@@ -458,15 +458,12 @@ function HeroSection() {
 
 
   return (
-    <section className="relative lg:h-screen flex items-center px-4 sm:px-6 lg:px-10 overflow-hidden">
-      {/* Background gradient */}
-      <div className="absolute inset-0 bg-gradient-to-b from-background via-background to-[hsl(240,6%,8%)]" />
-
-      {/* Subtle grid pattern — neutral white, low opacity */}
+    <section className="relative lg:min-h-[calc(100vh-4rem)] flex items-center px-4 sm:px-6 lg:px-10 overflow-hidden bg-gradient-to-b from-white via-slate-50 to-blue-50/40">
+      {/* Subtle grid pattern — slate, very low opacity for light surface */}
       <div
-        className="absolute inset-0 opacity-[0.025]"
+        className="absolute inset-0 opacity-[0.04]"
         style={{
-          backgroundImage: `linear-gradient(rgba(255,255,255,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.6) 1px, transparent 1px)`,
+          backgroundImage: `linear-gradient(rgba(15,23,42,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(15,23,42,0.6) 1px, transparent 1px)`,
           backgroundSize: "64px 64px",
         }}
       />
@@ -474,43 +471,47 @@ function HeroSection() {
       <div className="relative z-10 mx-auto max-w-7xl w-full grid lg:grid-cols-[1fr_1.15fr] gap-4 lg:gap-12 items-center pt-20 sm:pt-24 lg:pt-24 pb-8 sm:pb-12">
         {/* LEFT (desktop) / SECOND (mobile): copy + CTAs */}
         <div className="order-2 lg:order-1 space-y-4 sm:space-y-5 text-center lg:text-left">
-          <Badge variant="outline" className="border-cobalt text-cobalt px-3.5 py-1.5 bg-cobalt/10 text-sm">
+          <Badge variant="outline" className="border-cobalt text-cobalt px-3.5 py-1.5 bg-cobalt/10 text-sm shadow-sm shadow-cobalt/10">
             <Zap className="mr-1.5 h-3.5 w-3.5" />
             Now in Beta — Foundational Member Pricing
           </Badge>
 
-          <h1 className="text-[2rem] leading-[1.15] sm:text-4xl lg:text-4xl xl:text-5xl font-bold text-foreground text-balance">
+          <h1 className="text-[2rem] leading-[1.15] sm:text-4xl lg:text-4xl xl:text-5xl font-bold text-slate-900 text-balance tracking-tight">
             The real-time interactive bridge between{" "}
-            <span className="text-teal">the field and the office</span>
+            <span className="bg-gradient-to-r from-cobalt to-cobalt-hover bg-clip-text text-transparent">the field and the office</span>
           </h1>
 
-          <p className="text-base sm:text-base lg:text-base text-muted-foreground max-w-xl mx-auto lg:mx-0 text-pretty leading-relaxed">
+          <p className="text-base sm:text-base lg:text-base text-slate-600 max-w-xl mx-auto lg:mx-0 text-pretty leading-relaxed">
             Capture site conditions with your phone or 360 camera, add comments as you walk, and automatically preserve a time-stamped, geolocated record. Turn it into punch lists, reports, or proposals — and share with your team in minutes.
           </p>
 
           {/* CTAs: side-by-side on ALL screens (50/50 on mobile, auto on desktop) */}
           <div className="grid grid-cols-2 sm:flex sm:flex-row sm:items-center sm:justify-center lg:justify-start gap-3 pt-1">
             <GetTheAppButton className="w-full sm:w-auto" />
-            <Button variant="outline" asChild className="btn-teal-outline h-12 px-4 sm:px-6 text-base font-semibold w-full sm:w-auto">
+            <Button variant="outline" asChild className="h-12 px-4 sm:px-6 text-base font-semibold w-full sm:w-auto bg-white border-slate-300 text-slate-900 hover:border-cobalt hover:text-cobalt hover:bg-cobalt/5 shadow-sm">
               <Link href="#apps">
                 <span className="truncate">Explore Apps</span>
                 <ChevronRight className="ml-1 h-4 w-4 shrink-0" />
               </Link>
             </Button>
           </div>
-          <p className="text-sm text-muted-foreground/90 pt-1 leading-relaxed">
+          <p className="text-sm text-slate-500 pt-1 leading-relaxed">
             Free to download. 14-day all-access trial. Subscribe anytime — no credit card required during beta.
           </p>
         </div>
 
         {/* RIGHT (desktop) / FIRST (mobile): interactive demo. HeroDemo manages
-            its own expand button and fullscreen overlay. */}
+            its own expand button and fullscreen overlay. Wrapped as a premium
+            showcase frame — outer ring + soft outer glow, inner hairline + inset
+            highlight so 3D models, 360s, and video sit in an "expensive" frame. */}
         <div className="order-1 lg:order-2 w-full max-w-[22rem] sm:max-w-md lg:max-w-none mx-auto">
-          <Card className="bg-app-card border-app shadow-app-glow rounded-2xl">
-            <CardContent className="p-1.5 sm:p-3 lg:p-3">
-              <HeroDemo />
-            </CardContent>
-          </Card>
+          <div className="relative rounded-3xl bg-gradient-to-br from-white via-blue-50/60 to-white p-2 ring-1 ring-slate-200/80 shadow-[0_30px_80px_-20px_rgba(15,23,42,0.25),0_0_0_1px_rgba(59,130,246,0.06)]">
+            <div className="rounded-2xl overflow-hidden ring-1 ring-slate-900/5 bg-slate-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
+              <div className="p-1.5 sm:p-3 lg:p-3">
+                <HeroDemo />
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -524,16 +525,16 @@ function HeroSection() {
 
 function TrustBar() {
   return (
-    <section className="py-12 px-4 border-y border-border bg-muted/20">
+    <section className="py-12 px-4 border-y border-slate-200 bg-blue-50/40">
       <div className="container mx-auto">
-        <p className="text-center text-sm font-medium text-muted-foreground uppercase tracking-wider mb-8">
+        <p className="text-center text-sm font-semibold text-slate-500 uppercase tracking-wider mb-8">
           Built for teams across the AEC industry
         </p>
-        <div className="flex flex-wrap items-center justify-center gap-8 lg:gap-16">
+        <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 lg:gap-8">
           {TRUST_CATEGORIES.map((category) => (
             <div
               key={category}
-              className="px-4 py-2 rounded-lg bg-muted/30 border border-border text-muted-foreground font-medium text-sm"
+              className="px-4 py-2 rounded-lg bg-white border border-slate-200 text-slate-700 font-medium text-sm shadow-sm"
             >
               {category}
             </div>
@@ -550,19 +551,28 @@ function TrustBar() {
    ========================================================================== */
 
 function AppShowcaseSection() {
+  // Per-card module accent — used for the colored top border + icon halo so
+  // each card has its own identity and the row of white cards still pops.
+  const ACCENTS: Record<string, { border: string; bg: string; ring: string; text: string }> = {
+    "site-walk":       { border: "border-t-cobalt",       bg: "bg-cobalt/10",       ring: "ring-cobalt/30",       text: "text-cobalt" },
+    "360-tour-builder":{ border: "border-t-emerald-500",  bg: "bg-emerald-500/10",  ring: "ring-emerald-500/30",  text: "text-emerald-600" },
+    "design-studio":   { border: "border-t-violet-500",   bg: "bg-violet-500/10",   ring: "ring-violet-500/30",   text: "text-violet-600" },
+    "content-studio":  { border: "border-t-amber-500",    bg: "bg-amber-500/10",    ring: "ring-amber-500/30",    text: "text-amber-600" },
+  };
+
   return (
-    <section id="apps" className="py-20 px-4">
+    <section id="apps" className="py-20 px-4 bg-slate-50">
       <div className="container mx-auto max-w-6xl">
         {/* Section Header */}
         <div className="text-center mb-12">
-          <Badge variant="outline" className="border-primary/30 text-primary mb-4">
+          <Badge variant="outline" className="border-cobalt/40 text-cobalt bg-cobalt/5 mb-4">
             Connected Ecosystem
           </Badge>
-          <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
-            One platform. Multiple interactive workflows.
+          <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4 tracking-tight">
+            One platform. An expanding ecosystem of interactive workflows.
           </h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
-            Slate360 is built as an ecosystem of connected apps that share projects, files, permissions, and deliverables. Start with Site Walk, then expand into other capabilities as your workflows grow without losing continuity or context.
+          <p className="text-slate-600 max-w-2xl mx-auto leading-relaxed">
+            Slate360 is built as an expanding ecosystem of connected apps that share projects, files, permissions, and deliverables. Start with any app, then expand into other capabilities as your workflows grow without losing continuity or context.
           </p>
         </div>
 
@@ -570,24 +580,30 @@ function AppShowcaseSection() {
         <div className="grid gap-6 lg:grid-cols-2">
           {APP_SHOWCASE.map((app) => {
             const Icon = app.icon;
+            const accent = ACCENTS[app.slug] ?? ACCENTS["site-walk"];
             return (
               <Card
                 key={app.name}
-                className="bg-glass border-[hsla(45,82%,55%,0.12)] shadow-[0_8px_32px_hsla(0,0%,0%,0.4)] hover:shadow-[0_12px_40px_hsla(0,0%,0%,0.5),0_0_20px_hsla(45,82%,55%,0.15)] transition-all duration-300 group"
+                className={cn(
+                  "bg-white rounded-2xl ring-1 ring-slate-200/80 shadow-[0_20px_50px_rgba(15,23,42,0.08)]",
+                  "transition-transform duration-300 hover:-translate-y-1 hover:shadow-[0_30px_70px_rgba(15,23,42,0.12)]",
+                  "border-t-4 group",
+                  accent.border,
+                )}
               >
                 <CardHeader>
                   <div className="flex items-center gap-3 mb-2">
-                    <div className="h-12 w-12 rounded-xl bg-primary/20 flex items-center justify-center group-hover:bg-primary/30 transition-colors">
-                      <Icon className="h-6 w-6 text-primary" />
+                    <div className={cn("h-12 w-12 rounded-xl flex items-center justify-center ring-1 transition-colors", accent.bg, accent.ring)}>
+                      <Icon className={cn("h-6 w-6", accent.text)} />
                     </div>
-                    <CardTitle className="text-2xl text-foreground">{app.name}</CardTitle>
+                    <CardTitle className="text-2xl text-slate-900">{app.name}</CardTitle>
                     {app.comingSoon && (
                       <span className="ml-auto rounded-full border border-cobalt/30 bg-cobalt/10 px-2.5 py-0.5 text-xs font-semibold text-cobalt">
                         {app.statusLabel || "Coming Soon"}
                       </span>
                     )}
                   </div>
-                  <CardDescription className="text-muted-foreground text-base">
+                  <CardDescription className="text-slate-600 text-base leading-relaxed">
                     {app.description}
                   </CardDescription>
                 </CardHeader>
@@ -603,8 +619,8 @@ function AppShowcaseSection() {
                   {/* Features - 2 columns */}
                   <ul className="grid grid-cols-2 gap-x-4 gap-y-2">
                     {app.features.map((feature) => (
-                      <li key={feature} className="flex items-center gap-2 text-sm text-foreground">
-                        <Check className="h-4 w-4 text-primary flex-shrink-0" />
+                      <li key={feature} className="flex items-center gap-2 text-sm text-slate-700">
+                        <Check className={cn("h-4 w-4 flex-shrink-0", accent.text)} />
                         {feature}
                       </li>
                     ))}
@@ -614,9 +630,9 @@ function AppShowcaseSection() {
                   <div className="flex gap-3">
                     <BetaGatedButton
                       action="subscribe"
-                      className="flex-1 btn-amber-soft inline-flex items-center justify-center rounded-lg h-10 px-4 text-sm font-medium"
+                      className="flex-1 inline-flex items-center justify-center rounded-lg h-10 px-4 text-sm font-medium bg-cobalt hover:bg-cobalt-hover text-white shadow-md shadow-cobalt/30 transition-shadow hover:shadow-lg hover:shadow-cobalt/40"
                       renderEnabled={() => (
-                        <Button asChild className="flex-1 btn-amber-soft">
+                        <Button asChild className="flex-1 bg-cobalt hover:bg-cobalt-hover text-white shadow-md shadow-cobalt/30 transition-shadow hover:shadow-lg hover:shadow-cobalt/40">
                           <Link href="/signup">
                             {app.comingSoon ? "Join Waitlist" : "Subscribe"}
                             <ArrowRight className="ml-1 h-4 w-4" />
@@ -626,7 +642,7 @@ function AppShowcaseSection() {
                     >
                       {app.comingSoon ? "Join Waitlist" : "Subscribe"}
                     </BetaGatedButton>
-                    <Button asChild variant="outline" className="flex-1 border-[hsla(45,82%,55%,0.3)] text-muted-foreground hover:text-teal hover:border-teal/50">
+                    <Button asChild variant="outline" className="flex-1 bg-white border-slate-300 text-slate-700 hover:border-cobalt hover:text-cobalt hover:bg-cobalt/5">
                       <Link href={`/apps/${app.slug}`}>
                         Learn More
                         <ChevronRight className="ml-1 h-4 w-4" />
@@ -640,9 +656,9 @@ function AppShowcaseSection() {
         </div>
 
         {/* Interoperability Note */}
-        <Card className="mt-8 bg-primary/5 border-primary/20">
+        <Card className="mt-8 bg-cobalt/5 border-cobalt/20 ring-1 ring-cobalt/10 shadow-sm">
           <CardContent className="py-4 px-6">
-            <p className="text-sm text-center text-foreground">
+            <p className="text-sm text-center text-slate-700">
               Connected apps share projects, files, permissions, and deliverables so your workflow can expand without losing context.
             </p>
           </CardContent>
@@ -659,66 +675,66 @@ function AppShowcaseSection() {
 
 function SlateDropSection() {
   return (
-    <section id="slatedrop" className="py-20 px-4 bg-muted/10">
+    <section id="slatedrop" className="py-20 px-4 bg-blue-50/40">
       <div className="container mx-auto max-w-6xl">
         {/* Section Header */}
         <div className="text-center mb-12">
-          <Badge variant="outline" className="border-primary/30 text-primary mb-4">
+          <Badge variant="outline" className="border-cobalt/40 text-cobalt bg-cobalt/5 mb-4">
             <FolderSync className="mr-1.5 h-3.5 w-3.5" />
             Workflow Impact
           </Badge>
-          <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
+          <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4 tracking-tight">
             Why Slate360 changes the workflow
           </h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-slate-600 max-w-2xl mx-auto leading-relaxed">
             Slate360 keeps the field capture, project context, and office outputs connected so teams can work from the same current information instead of reconstructing it later.
           </p>
         </div>
 
         {/* Visual Placeholder - Connected Glass Cards */}
-        <Card className="bg-glass border-[hsla(45,82%,55%,0.12)] shadow-[0_8px_32px_hsla(0,0%,0%,0.4)] overflow-hidden">
+        <Card className="bg-white rounded-2xl ring-1 ring-slate-200/80 shadow-[0_20px_50px_rgba(15,23,42,0.08)] overflow-hidden">
           <CardContent className="p-8">
             <div className="relative">
               {/* Connection lines (decorative) */}
               <svg className="absolute inset-0 w-full h-full" xmlns="http://www.w3.org/2000/svg">
                 <defs>
-                  <linearGradient id="gold-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" stopColor="hsla(45,82%,55%,0.1)" />
-                    <stop offset="50%" stopColor="hsla(45,82%,55%,0.4)" />
-                    <stop offset="100%" stopColor="hsla(45,82%,55%,0.1)" />
+                  <linearGradient id="cobalt-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="rgba(59,130,246,0.05)" />
+                    <stop offset="50%" stopColor="rgba(59,130,246,0.35)" />
+                    <stop offset="100%" stopColor="rgba(59,130,246,0.05)" />
                   </linearGradient>
                 </defs>
                 {/* Horizontal lines */}
-                <line x1="20%" y1="50%" x2="80%" y2="50%" stroke="url(#gold-gradient)" strokeWidth="2" />
+                <line x1="20%" y1="50%" x2="80%" y2="50%" stroke="url(#cobalt-gradient)" strokeWidth="2" />
                 {/* Vertical lines */}
-                <line x1="50%" y1="20%" x2="50%" y2="80%" stroke="url(#gold-gradient)" strokeWidth="2" />
+                <line x1="50%" y1="20%" x2="50%" y2="80%" stroke="url(#cobalt-gradient)" strokeWidth="2" />
               </svg>
 
               {/* Grid of workflow outcomes */}
               <div className="relative grid gap-4 md:grid-cols-3 md:gap-8">
-                <Card className="bg-muted/30 border-border shadow-[0_8px_24px_hsla(0,0%,0%,0.2)]">
+                <Card className="bg-slate-50 border-slate-200 ring-1 ring-slate-200/60 shadow-sm">
                   <CardContent className="p-6 text-center">
-                    <FolderSync className="h-7 w-7 text-primary mx-auto mb-3" />
-                    <p className="text-sm font-semibold text-foreground mb-2">Stop losing project meaning</p>
-                    <p className="text-sm text-muted-foreground">
+                    <FolderSync className="h-7 w-7 text-cobalt mx-auto mb-3" />
+                    <p className="text-sm font-semibold text-slate-900 mb-2">Stop losing project meaning</p>
+                    <p className="text-sm text-slate-600 leading-relaxed">
                       Photos, notes, and documents are only valuable if they stay tied to the project context that explains them.
                     </p>
                   </CardContent>
                 </Card>
-                <Card className="bg-primary/10 border-primary/30 shadow-[0_0_20px_hsla(45,82%,55%,0.15)]">
+                <Card className="bg-cobalt/5 border-cobalt/30 ring-1 ring-cobalt/20 shadow-md shadow-cobalt/10">
                   <CardContent className="p-6 text-center">
-                    <Sparkles className="h-7 w-7 text-primary mx-auto mb-3" />
-                    <p className="text-sm font-semibold text-foreground mb-2">Create polished outputs faster</p>
-                    <p className="text-sm text-muted-foreground">
+                    <Sparkles className="h-7 w-7 text-cobalt mx-auto mb-3" />
+                    <p className="text-sm font-semibold text-slate-900 mb-2">Create polished outputs faster</p>
+                    <p className="text-sm text-slate-600 leading-relaxed">
                       Slate360 helps teams turn site documentation into professional, branded deliverables in minutes instead of spending hours rebuilding the story later.
                     </p>
                   </CardContent>
                 </Card>
-                <Card className="bg-muted/30 border-border shadow-[0_8px_24px_hsla(0,0%,0%,0.2)]">
+                <Card className="bg-slate-50 border-slate-200 ring-1 ring-slate-200/60 shadow-sm">
                   <CardContent className="p-6 text-center">
-                    <Users className="h-7 w-7 text-primary mx-auto mb-3" />
-                    <p className="text-sm font-semibold text-foreground mb-2">Keep the field and office aligned</p>
-                    <p className="text-sm text-muted-foreground">
+                    <Users className="h-7 w-7 text-cobalt mx-auto mb-3" />
+                    <p className="text-sm font-semibold text-slate-900 mb-2">Keep the field and office aligned</p>
+                    <p className="text-sm text-slate-600 leading-relaxed">
                       Make it easier for the people walking the project and the people reviewing it in real-time to work from the same current, contextualized information.
                     </p>
                   </CardContent>
@@ -728,7 +744,7 @@ function SlateDropSection() {
 
             {/* CTA */}
             <div className="text-center mt-8">
-              <Button className="btn-amber-soft">
+              <Button className="bg-cobalt hover:bg-cobalt-hover text-white shadow-md shadow-cobalt/30 hover:shadow-lg hover:shadow-cobalt/40">
                 See the workflow in action
                 <ChevronRight className="ml-1 h-4 w-4" />
               </Button>
@@ -910,17 +926,17 @@ function PricingSection() {
 
 function TestimonialsSection() {
   return (
-    <section className="py-20 px-4 bg-muted/10">
+    <section className="py-20 px-4 bg-blue-50/40">
       <div className="container mx-auto max-w-6xl">
         {/* Section Header */}
         <div className="text-center mb-12">
-          <Badge variant="outline" className="border-primary/30 text-primary mb-4">
+          <Badge variant="outline" className="border-cobalt/40 text-cobalt bg-cobalt/5 mb-4">
             Customer Stories
           </Badge>
-          <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
+          <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4 tracking-tight">
             What our customers will say
           </h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-slate-600 max-w-2xl mx-auto leading-relaxed">
             We&apos;re just getting started. As teams adopt Slate360, their stories will appear here.
           </p>
         </div>
@@ -930,14 +946,14 @@ function TestimonialsSection() {
           {[1, 2, 3].map((i) => (
             <Card
               key={i}
-              className="bg-glass border-[hsla(45,82%,55%,0.12)] shadow-[0_8px_32px_hsla(0,0%,0%,0.4)]"
+              className="bg-white rounded-2xl ring-1 ring-slate-200/80 shadow-[0_20px_50px_rgba(15,23,42,0.08)] transition-transform duration-300 hover:-translate-y-1"
             >
               <CardContent className="pt-6 flex flex-col items-center justify-center min-h-[200px]">
-                <Quote className="h-8 w-8 text-primary/20 mb-4" />
-                <p className="text-muted-foreground text-center text-sm">
+                <Quote className="h-8 w-8 text-cobalt/30 mb-4" />
+                <p className="text-slate-600 text-center text-sm">
                   Your story could be here.
                 </p>
-                <Button variant="link" asChild className="mt-3 text-primary text-sm">
+                <Button variant="link" asChild className="mt-3 text-cobalt hover:text-cobalt-hover text-sm">
                   <Link href="/signup">Be an early adopter →</Link>
                 </Button>
               </CardContent>
@@ -956,15 +972,17 @@ function TestimonialsSection() {
 
 function FinalCTASection() {
   return (
-    <section className="py-20 px-4">
+    <section className="py-20 px-4 bg-slate-50">
       <div className="container mx-auto max-w-4xl">
-        <Card className="bg-glass border-[hsla(45,82%,55%,0.2)] shadow-[0_8px_32px_hsla(0,0%,0%,0.4),0_0_40px_hsla(45,82%,55%,0.1)]">
+        <Card className="bg-white rounded-3xl ring-1 ring-cobalt/20 shadow-[0_30px_80px_-20px_rgba(59,130,246,0.25),0_20px_50px_rgba(15,23,42,0.08)] overflow-hidden">
+          {/* subtle cobalt glow strip on top edge */}
+          <div className="h-1 bg-gradient-to-r from-cobalt/0 via-cobalt to-cobalt/0" />
           <CardContent className="py-12 px-8 text-center">
-            <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
+            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4 tracking-tight">
               Ready to connect your entire project ecosystem?
             </h2>
-            <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">
-              Join thousands of construction professionals who trust Slate360 for their 
+            <p className="text-slate-600 mb-8 max-w-2xl mx-auto leading-relaxed">
+              Join thousands of construction professionals who trust Slate360 for their
               deliverables. Start free, upgrade when you&apos;re ready.
             </p>
 
@@ -973,17 +991,17 @@ function FinalCTASection() {
               <Input
                 type="email"
                 placeholder="Enter your work email"
-                className="bg-muted/30 border-border focus:border-primary h-12"
+                className="bg-white border-slate-300 text-slate-900 placeholder:text-slate-400 focus:border-cobalt h-12"
               />
-              <Button 
-                size="lg" 
-                className="btn-amber-soft h-12 px-8"
+              <Button
+                size="lg"
+                className="h-12 px-8 bg-cobalt hover:bg-cobalt-hover text-white shadow-md shadow-cobalt/30 hover:shadow-lg hover:shadow-cobalt/40"
               >
                 Create Your Free Account
               </Button>
             </div>
 
-            <p className="text-xs text-muted-foreground mt-4">
+            <p className="text-xs text-slate-500 mt-4">
               No credit card required. 5 GB free forever.
             </p>
           </CardContent>
@@ -1124,14 +1142,21 @@ function Footer() {
 export default function MarketingHomepage({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
   const router = useRouter();
   return (
-    <div className="dark min-h-screen bg-background text-foreground overflow-x-hidden">
+    // Root keeps `dark` so the fixed Header's glass/header tokens still resolve
+    // dark — the isolated dark top bar must stay intact.
+    <div className="dark min-h-screen overflow-x-hidden">
       <Header isLoggedIn={isLoggedIn} />
-      <main>
+      {/* Light marketing surface scoped to <main>. The `not-dark` wrapper +
+          explicit slate utilities override the dark token cascade so headings
+          render crisp slate-900 and bodies render slate-600. */}
+      <main className="bg-slate-50 text-slate-900 [color-scheme:light]">
         <HeroSection />
         <TrustBar />
         <AppShowcaseSection />
         <SlateDropSection />
-        <PricingSectionV2 onGetStarted={() => router.push(isLoggedIn ? "/dashboard" : "/signup")} />
+        <div className="bg-white">
+          <PricingSectionV2 onGetStarted={() => router.push(isLoggedIn ? "/dashboard" : "/signup")} />
+        </div>
         <TestimonialsSection />
         <FinalCTASection />
       </main>
