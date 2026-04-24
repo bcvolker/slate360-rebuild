@@ -197,6 +197,39 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
+### Session Handoff — 2026-04-24 (Site Walk Feature Registry + Admin-Layer Backend Audit)
+
+#### What Changed
+- `slate360-context/dashboard-tabs/site-walk/FEATURE_REGISTRY.md` (NEW) — rolling, ID-stable list of every Site Walk feature across 9 sections (A Foundations · B Uploads · C Field UX · D Plans · E Deliverables · F Client Interaction · G Reports · H Canvas/Realtime · I Auth). Combines this chat's contributions (H1–H18) with the UX-lead's spec (A–G).
+- `slate360-context/dashboard-tabs/site-walk/BACKEND_AUDIT.md` (NEW) — full schema audit for `organizations`, `org_contacts`, `project_stakeholders`, `project_members`, `project_collaborator_invites`, `projects` + API route inventory + 13 blocking gaps + a 4-patch migration proposal (NOT yet authored).
+- `/memories/repo/site-walk-feature-registry.md` (NEW) — pointer + top-8 blockers.
+
+#### Key Findings (read these before UX design)
+- `organizations` base CREATE TABLE is NOT in `supabase/migrations/` (predates CLI). Columns added since: `credits_balance`, `stripe_customer_id`, `deliverable_logo_s3_key`, `brand_settings jsonb`.
+- `address`, `website`, `brand_colors[]` are NOT first-class — only inside `brand_settings` jsonb.
+- No personal-profile schema separate from org branding (would need new `user_profiles` table).
+- `org_contacts` (global address book) + `contact_projects` (M:N) + `contact_files` exist; `project_stakeholders` (per-project external) + `project_members` (auth users) + `project_collaborator_invites` (pending) exist as 3 separate tables — UX must treat as union.
+- `projects` has only `name`, `description`, `status`, `metadata jsonb`, `report_defaults jsonb` as content fields. NO top-level `location`/`address`/`scope`/`start_date`/`end_date`/`budget_total`/`client_id`.
+- `site_walk_sessions.project_id` is NOT NULL → blocks "Start Walk Now" ad-hoc mode.
+- Branding source duplication: `organizations.brand_settings` vs separate `org_branding` table (`20260408000002_org_branding.sql`). Need to pick canonical.
+
+#### What's Broken / Partially Done
+- Nothing broken. This was a discovery + documentation pass — no code changes.
+- Operator action still pending: apply migrations `20260421000001_brand_and_report_defaults.sql` and `20260423000002_canvas_markup_realtime.sql` to live Supabase project `hadnfcenpcfaeclczsmm`. **Live status unconfirmed for both.**
+
+#### Context Files Updated
+- NEW `slate360-context/dashboard-tabs/site-walk/FEATURE_REGISTRY.md`
+- NEW `slate360-context/dashboard-tabs/site-walk/BACKEND_AUDIT.md`
+- NEW `/memories/repo/site-walk-feature-registry.md`
+
+#### Next Steps (ordered)
+1. UX lead reviews FEATURE_REGISTRY + BACKEND_AUDIT and signs off on the §6 schema patches.
+2. Author migration for proposed patches (4 ALTERs + new `user_profiles` table).
+3. Build missing admin endpoints: `GET/PATCH /api/org`, `GET /api/org/members`, `GET /api/contacts/search`, `GET /api/projects/[id]/team`, `POST /api/projects/[id]/attach-session`.
+4. Resolve `organizations.brand_settings` vs `org_branding` duplication — likely deprecate `org_branding`.
+5. THEN start UI build: Global Settings → Address Book → Project Intake → Ad-hoc Walk flow.
+6. Canvas UI (H14–H18) can proceed in parallel since its dependencies (H1–H13) are shipped.
+
 ### Session Handoff — 2026-04-23 (Canvas UX-Perf Patches: Broadcast, Offline PATCH, Undo/Redo, Strict Realtime Types)
 
 #### What Changed
