@@ -197,6 +197,42 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
+### Session Handoff — 2026-04-24 (3-Act Play Phase 1: Schema Patches + Team API + Legacy UI Archive)
+
+#### What Changed
+- `supabase/migrations/20260424000000_admin_layer_schema_v1.sql` (NEW, 138 lines) — applies all 4 §6 patches signed off today:
+  - Patch 1: `organizations` += `address`, `website`, `phone`, `brand_colors text[]`.
+  - Patch 2: `projects` += `location`, `address`, `scope`, `start_date`, `end_date`, `budget_total numeric(14,2)`, `client_contact_id uuid REFERENCES org_contacts(id)`, `is_archived bool`. Indexes on client_contact_id and partial index on `is_archived = false`.
+  - Patch 3: `user_profiles` table (`user_id PK -> auth.users`, `full_name`, `title`, `phone`, `signature_url`, `avatar_url`, `preferences jsonb`, `updated_at`) + RLS (self-only select/insert/update) + touch-updated_at trigger.
+  - Patch 4: `site_walk_sessions.project_id DROP NOT NULL` + ADD `is_ad_hoc bool default false` + partial index. Enables Act 2 Zero-Friction walks.
+  - Cleanup: `DROP TABLE IF EXISTS public.org_branding CASCADE` (canonical = `organizations.brand_settings`).
+  - All idempotent (`IF NOT EXISTS` / `IF EXISTS`), wrapped in `BEGIN/COMMIT`.
+- `app/api/projects/[projectId]/team/route.ts` (NEW, 178 lines) — unified roster endpoint. Aggregates `project_members` (internal auth users, joined to `user_profiles`), `project_stakeholders` (external), and `project_collaborator_invites` (status='pending') into a single `TeamMember[]` array with discriminator `source: "member" | "stakeholder" | "invite"`. Uses `getScopedProjectForUser` for auth. Three queries run in parallel via `Promise.all`. Auth-user emails fetched best-effort (non-fatal if view absent).
+- **Legacy UI archived:** moved every entry under `app/site-walk/*` into `app/site-walk/_legacy_v1/` via `git mv` (preserves history). 9 dirs + 1 file moved: `admin/`, `board/`, `deliverables/`, `dev/`, `home/`, `more/`, `[projectId]/`, `projects/`, `share/`, `walks/`, `layout.tsx`. `app/site-walk/` is now empty except for `_legacy_v1/`. Underscore prefix means Next.js will not route any of it — `/site-walk` now 404s by design until the new UI lands. **`app/api/site-walk/` and `lib/site-walk/` were NOT touched** (per directive).
+
+#### Live DB Status — REQUIRES OPERATOR ACTION
+The new migration `20260424000000_admin_layer_schema_v1.sql` is committed but NOT applied. Earlier migrations `20260421000001_brand_and_report_defaults.sql` and `20260423000002_canvas_markup_realtime.sql` are also unconfirmed against live `hadnfcenpcfaeclczsmm`. Operator must run `supabase db push` (or equivalent) before any UI consuming these columns ships.
+
+#### Side Effect to Note
+The outside-AI task at `prompts/CURRENT.md` (PR #27d.2 — PDF email mode) targets `app/site-walk/deliverables/[id]/SendEmailModal.tsx`, which has now moved to `app/site-walk/_legacy_v1/deliverables/[id]/SendEmailModal.tsx`. That task's output paths must be updated, OR the task should be re-issued against the new UI once it exists. Do not apply that PR as-written until reconciled.
+
+#### What's Broken / Partially Done
+- `/site-walk` now 404s (intentional — new UI not built).
+- Migration not yet pushed to live Supabase.
+- No `GET/PATCH /api/org`, `GET /api/contacts/search`, `POST /api/projects/[id]/attach-session` yet (next phase).
+
+#### Context Files Updated
+- This handoff (overwrites prior 2026-04-24 audit handoff).
+
+#### Next Steps (ordered)
+1. Operator runs `supabase db push` against `hadnfcenpcfaeclczsmm` to apply pending migrations.
+2. UX-lead delivers new Site Walk UI structure → build under `app/site-walk/` (fresh, not on top of `_legacy_v1/`).
+3. Build `GET/PATCH /api/org` + `GET /api/contacts/search?q=` + `POST /api/projects/[id]/attach-session` to support Act 1 Global Settings, Act 2 Zero-Friction Walk attach, and contact picker.
+4. Reconcile outside-AI PR #27d.2 (PDF email) against the new UI before applying.
+5. Update `slate360-context/dashboard-tabs/site-walk/FEATURE_REGISTRY.md` status flags as new UI features land.
+
+---
+
 ### Session Handoff — 2026-04-24 (Site Walk Feature Registry + Admin-Layer Backend Audit)
 
 #### What Changed
