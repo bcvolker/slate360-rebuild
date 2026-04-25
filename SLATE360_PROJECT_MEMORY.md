@@ -210,8 +210,15 @@ When editing oversized files, always read both the state declarations AND the JS
 - `app/api/projects/[projectId]/team/route.ts` (NEW, 178 lines) — unified roster endpoint. Aggregates `project_members` (internal auth users, joined to `user_profiles`), `project_stakeholders` (external), and `project_collaborator_invites` (status='pending') into a single `TeamMember[]` array with discriminator `source: "member" | "stakeholder" | "invite"`. Uses `getScopedProjectForUser` for auth. Three queries run in parallel via `Promise.all`. Auth-user emails fetched best-effort (non-fatal if view absent).
 - **Legacy UI archived:** moved every entry under `app/site-walk/*` into `app/site-walk/_legacy_v1/` via `git mv` (preserves history). 9 dirs + 1 file moved: `admin/`, `board/`, `deliverables/`, `dev/`, `home/`, `more/`, `[projectId]/`, `projects/`, `share/`, `walks/`, `layout.tsx`. `app/site-walk/` is now empty except for `_legacy_v1/`. Underscore prefix means Next.js will not route any of it — `/site-walk` now 404s by design until the new UI lands. **`app/api/site-walk/` and `lib/site-walk/` were NOT touched** (per directive).
 
-#### Live DB Status — REQUIRES OPERATOR ACTION
-The new migration `20260424000000_admin_layer_schema_v1.sql` is committed but NOT applied. Earlier migrations `20260421000001_brand_and_report_defaults.sql` and `20260423000002_canvas_markup_realtime.sql` are also unconfirmed against live `hadnfcenpcfaeclczsmm`. Operator must run `supabase db push` (or equivalent) before any UI consuming these columns ships.
+#### Live DB Status — APPLIED 2026-04-25
+All three migrations now live on `hadnfcenpcfaeclczsmm` (applied via direct `psql` against pooler `aws-1-us-west-1.pooler.supabase.com:5432` since CLI tracking was empty):
+- `20260305_contacts_calendar.sql` (prerequisite — `org_contacts` was missing live, blocking the FK)
+- `20260421000001_brand_and_report_defaults.sql`
+- `20260423000002_canvas_markup_realtime.sql`
+- `20260424000000_admin_layer_schema_v1.sql`
+All four versions inserted into `supabase_migrations.schema_migrations` so future `supabase db push` won't re-run them. Verified columns: `organizations.{address,website,phone,brand_colors}` present; `projects.{address,scope,budget_total,client_contact_id,is_archived}` present; `user_profiles` table present; `site_walk_sessions.project_id` is now nullable + `is_ad_hoc` column present; `org_branding` dropped.
+
+**⚠ Schema discrepancy noted:** `projects.location` already existed on live DB as `jsonb` (not `text`), so the `ADD COLUMN IF NOT EXISTS location text` was skipped. The column remains `jsonb`. UX must either treat location as a jsonb object (e.g. `{lat,lng,label}`) or a follow-up migration must convert it to `text`. Same for `projects.start_date` / `end_date` — those were pre-existing as `date` already, so they match the patch.
 
 #### Side Effect to Note
 The outside-AI task at `prompts/CURRENT.md` (PR #27d.2 — PDF email mode) targets `app/site-walk/deliverables/[id]/SendEmailModal.tsx`, which has now moved to `app/site-walk/_legacy_v1/deliverables/[id]/SendEmailModal.tsx`. That task's output paths must be updated, OR the task should be re-issued against the new UI once it exists. Do not apply that PR as-written until reconciled.
