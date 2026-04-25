@@ -197,41 +197,42 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-25 (location-jsonb fix + theme revert + mobile-header alignment)
+### Session Handoff — 2026-04-25 (Backend Ready for "3-Act Play" UI + Mobile Criticisms Added)
 
 #### What Changed
-- `supabase/migrations/20260425000000_projects_location_text.sql` (NEW) — reconciles `projects.location` from `jsonb` to `text` to match the §6 patch intent. Live data was empty; converted via `ALTER COLUMN ... TYPE text USING null`. **Applied live** to `hadnfcenpcfaeclczsmm` and recorded in `supabase_migrations.schema_migrations`.
-- `components/providers/ThemeProvider.tsx` — reverted default theme from `light` back to `dark`. The 2026-04-23 "premium-light flip" produced a washed-out look (white cards on slate-50 with only a 4-pt contrast spread + ultra-faint shadows where buttons/sections blended into the page). The codebase was originally designed dark-first (sidebar + header are permanently dark already; cards were `glass-on-black`). Updated three things: ThemeScript inline default + stale-key cleanup, ThemeProvider initial useState, ThemeApplier fallback. Users who explicitly opt into light via `setTheme()` are still respected.
-- `components/marketing-homepage.tsx` Header — fixed mobile alignment. Replaced the asymmetric `container mx-auto pl-3 pr-2 sm:px-4` + `-ml-1 sm:ml-0` hack with industry-standard `mx-auto max-w-7xl px-4 sm:px-6` (matches `components/Navbar.tsx`). Logo no longer pulled left of the page edge; left padding now equals right padding so logo and CTA both sit a uniform 16px from the viewport edges.
-
-#### Why these specific fixes
-- **Theme:** user reported "everything is pretty much white and washed out… buttons and sections blend in so much to the background." Root cause was `--background: #F8FAFC` vs `--card: #FFFFFF` (4-point contrast) plus `box-shadow: rgba(15,23,42,0.04)` (basically invisible) and `--border: #E2E8F0` (slate-200 hairline on a slate-50 page). Reverting to dark is the correct fix because (a) it's how the entire surface system was originally tuned, (b) `--header-*` and `--sidebar-*` tokens are permanently dark anyway, (c) it eliminates the white-on-white card problem in one change instead of re-tuning every surface token.
-- **Mobile header:** user reported logo not flush left + right edge gap on phone. `container` adds breakpoint-driven max-widths/padding that don't behave at <640px, and `pl-3 pr-2` was asymmetric on the same axis the user noticed. `max-w-7xl mx-auto px-4 sm:px-6` is the standard SaaS pattern (used by Linear, Vercel, etc.).
-- **Location column:** verified live row count = 0 before converting type; insert into `schema_migrations` after.
+- **Architecture Validation:** Verified that the external AI's "3 Act Play" architecture perfectly aligns with our newly laid backend foundation (Ad-hoc walk sessions, Unified Roster API, Offline Queue).
+- **Mobile UI Constraints Provided:** Formulated a set of field-centric constraints for the external AI to apply to the React components:
+    1. High contrast (WCAG AA) / 44x44 touch targets for sunlight readability.
+    2. Camera/Voice-First inputs (prominent photo buttons, large textareas).
+    3. Explicit visual states for the offline Sync Queue (Pending/Syncing/Synced).
+    4. Inline guest creation for Ad-Hoc walk routing.
+    5. Lightweight DOM (avoid heavy framer-motion) for battery/thermal efficiency in the field.
+- **Code Fixes Shipped & Live:** 
+    - `projects.location` converted from `jsonb` to `text` via new migration `20260425000000` (live on Supabase).
+    - `components/providers/ThemeProvider.tsx` globally reverted to "dark" mode to fix the "washed out" light mode UI bug.
+    - `components/marketing-homepage.tsx` mobile header padding and logo alignment fixed using standard tailwind containers (`max-w-7xl`).
 
 #### Live DB Status
-All five admin-layer migrations now applied + tracked on `hadnfcenpcfaeclczsmm`:
+All five core admin-layer migrations are **Live** and tracked on `hadnfcenpcfaeclczsmm`:
 - `20260305_contacts_calendar`
 - `20260421000001_brand_and_report_defaults`
 - `20260423000002_canvas_markup_realtime`
 - `20260424000000_admin_layer_schema_v1`
 - `20260425000000_projects_location_text`
 
-#### Side Effect to Note (still open from yesterday)
-Outside-AI task at `prompts/CURRENT.md` (PR #27d.2 — PDF email) still targets paths under `app/site-walk/_legacy_v1/`. Reconcile before applying that PR.
-
 #### What's Broken / Partially Done
-- `/site-walk` still 404s (intentional — new UI not yet built).
-- No `GET/PATCH /api/org`, `GET /api/contacts/search`, `POST /api/projects/[id]/attach-session` yet.
+- **`/site-walk` is a blank slate:** Reverting legacy code to `app/site-walk/_legacy_v1/` means the main route intentionally 404s. It is ready for the external AI's new code.
+- **3 API routes are pending:** We still need to build `GET/PATCH /api/org` (global settings), `GET /api/contacts/search` (typeahead), and `POST /api/projects/[id]/attach-session` (ad-hoc closure).
+- **Stale PR:** The outside-AI task at `prompts/CURRENT.md` (PR #27d.2 — PDF email) targets an archived `_legacy_v1` file. **Do not apply PR #27d.2** until reconciled with the new UI.
 
 #### Context Files Updated
-- This handoff (overwrites prior 2026-04-25 admin-layer handoff).
+- `SLATE360_PROJECT_MEMORY.md` (This handoff).
 
 #### Next Steps (ordered)
-1. UX-lead delivers new Site Walk UI structure → build under `app/site-walk/` (fresh).
-2. Build `GET/PATCH /api/org` + `GET /api/contacts/search?q=` + `POST /api/projects/[id]/attach-session`.
-3. Reconcile outside-AI PR #27d.2 (PDF email) against the new UI before applying.
-4. If light mode is wanted later, do a focused contrast pass on `:root` tokens (stronger borders, real card-vs-page contrast, visible shadows) before re-defaulting.
+1. **Receive the "Field-Tested" App Shell (Act 1)** from Claude.ai and implement it into `app/site-walk/layout.tsx` and `app/site-walk/page.tsx` (splitting the single-file mockup).
+2. **Re-evaluate Global Theme:** The new UI uses explicit light-mode tokens (`bg-slate-50`, `text-slate-900`) that fix the prior wash-out bug. We will likely flip `ThemeProvider` back to light mode, or scope the light mode directly to the `app/site-walk/` layout.
+3. **Build the 3 pending API routes** (`/api/org`, `/api/contacts/search`, `/api/projects/[id]/attach-session`).
+4. **Reconcile outside-AI PR #27d.2** (PDF emailing rules) against the newly generated Deliverables UI.
 
 ---
 
