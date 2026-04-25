@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -11,10 +12,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { Bell, Menu } from "lucide-react";
+import { Bell, Menu, Search, X } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { SlateLogoOnLight } from "@/components/shared/SlateLogoOnLight";
 import { InviteShareButton } from "@/components/shared/InviteShareButton";
 import { BetaFeedbackButton } from "@/components/shared/BetaFeedbackButton";
 import { BackButton } from "@/components/shared/BackButton";
@@ -34,70 +34,120 @@ export function DashboardTopBar({
   showLogo = false,
   isBetaEligible = false,
 }: DashboardTopBarProps) {
+  const [searchFocused, setSearchFocused] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+
   return (
     <header
       className={cn(
-        "fixed top-0 right-0 left-0 z-30 h-16 bg-white/95 backdrop-blur-xl border-b border-app text-foreground transition-all duration-300",
+        "fixed top-0 right-0 left-0 z-30 h-16 bg-white border-b border-slate-200 transition-all duration-300",
         isSidebarOpen ? "lg:left-64" : "lg:left-0"
       )}
     >
-      <div className="flex h-full items-center justify-between px-4 gap-4">
-        {/* Left: Optional logo (only when sidebar is collapsed) + Menu Toggle */}
-        <div className="flex items-center gap-3">
+      <div className="flex h-full items-center gap-3 px-4">
+        {/* Hamburger / logo area */}
+        <div className="flex shrink-0 items-center gap-2">
           {showLogo && (
-            <Link href="/dashboard" className="hidden sm:flex items-center" aria-label="Slate360 home">
-              <SlateLogoOnLight className="h-6 w-auto" />
+            <Link
+              href="/dashboard"
+              className="hidden sm:flex items-center gap-1.5 mr-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded"
+              aria-label="Slate360 home"
+            >
+              <span className="text-base font-bold text-slate-900 tracking-tight select-none">
+                Slate<span className="text-blue-600">360</span>
+              </span>
             </Link>
           )}
           <button
             onClick={onMenuClick}
-            className="flex items-center justify-center h-10 w-10 rounded-xl bg-slate-100 hover:bg-cobalt/10 border border-app hover:border-cobalt text-slate-700 hover:text-cobalt transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt/50 focus-visible:ring-offset-1 focus-visible:ring-offset-white"
-            aria-label="Toggle menu"
+            aria-label="Toggle sidebar"
+            className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 hover:text-slate-900 border border-slate-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
           >
-            <Menu className="h-5 w-5" />
+            <Menu className="h-4.5 w-4.5" />
           </button>
-          <BackButton className="h-10 w-10 rounded-xl bg-slate-100 hover:bg-cobalt/10 border border-app hover:border-cobalt text-slate-700 hover:text-cobalt transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt/50 focus-visible:ring-offset-1 focus-visible:ring-offset-white" />
+          <BackButton className="h-9 w-9 rounded-lg border border-slate-200 bg-transparent text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500" />
         </div>
 
-        <div className="flex-1" />
+        {/* Global search bar — centred in remaining space */}
+        <div className="flex-1 flex justify-center">
+          <div
+            className={cn(
+              "relative flex items-center w-full max-w-md rounded-xl border bg-slate-50 transition-all duration-200",
+              searchFocused
+                ? "border-blue-400 ring-3 ring-blue-100 bg-white"
+                : "border-slate-200 hover:border-slate-300"
+            )}
+          >
+            <Search
+              className={cn(
+                "absolute left-3 h-4 w-4 shrink-0 transition-colors",
+                searchFocused ? "text-blue-500" : "text-slate-400"
+              )}
+              aria-hidden="true"
+            />
+            <input
+              type="search"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onFocus={() => setSearchFocused(true)}
+              onBlur={() => setSearchFocused(false)}
+              placeholder="Search projects, people, files…"
+              aria-label="Global search"
+              className="h-10 w-full bg-transparent pl-9 pr-8 text-sm text-slate-900 placeholder:text-slate-400 outline-none"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                aria-label="Clear search"
+                className="absolute right-3 text-slate-400 hover:text-slate-600 transition-colors"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </div>
+        </div>
 
-        {/* Right: Actions */}
-        <div className="flex items-center gap-2">
+        {/* Right actions */}
+        <div className="flex shrink-0 items-center gap-1.5">
           <BetaFeedbackButton isEligible={isBetaEligible} />
           <InviteShareButton />
-          {/* Notification Bell — no hardcoded count */}
+
+          {/* Notification bell */}
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
                 variant="ghost"
                 size="icon"
-                className="relative text-slate-700 hover:bg-slate-100 hover:text-foreground transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt/50 focus-visible:ring-offset-1 focus-visible:ring-offset-white"
+                className="relative h-9 w-9 rounded-lg text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                 asChild
               >
-                <a href="/my-account?tab=notifications">
-                  <Bell className="h-5 w-5" />
-                  <span className="sr-only">Notifications</span>
+                <a href="/my-account?tab=notifications" aria-label="Notifications">
+                  <Bell className="h-4.5 w-4.5" />
+                  {/* unread dot — rendered only when there are notifications */}
+                  <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-blue-600 ring-2 ring-white" aria-hidden="true" />
                 </a>
               </Button>
             </TooltipTrigger>
-            <TooltipContent>
-              <p>Notifications</p>
-            </TooltipContent>
+            <TooltipContent side="bottom">Notifications</TooltipContent>
           </Tooltip>
 
-          {/* User Avatar Dropdown */}
+          {/* User avatar dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative h-9 w-9 rounded-full">
-                <Avatar className="h-9 w-9 border-2 border-cobalt/40">
-                  <AvatarFallback className="bg-cobalt/20 text-cobalt">
+              <Button
+                variant="ghost"
+                className="relative h-9 w-9 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                aria-label="User menu"
+              >
+                <Avatar className="h-9 w-9 border-2 border-blue-200">
+                  <AvatarFallback className="bg-blue-600 text-white text-sm font-semibold">
                     {userName ? userName.charAt(0).toUpperCase() : "U"}
                   </AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>{userName || "My Account"}</DropdownMenuLabel>
+              <DropdownMenuLabel className="text-slate-900">{userName || "My Account"}</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild className="cursor-pointer">
                 <a href="/my-account">My Account</a>

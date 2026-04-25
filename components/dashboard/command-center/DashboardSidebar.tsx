@@ -1,159 +1,133 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
-  Search,
-  X,
-  Inbox,
-  CreditCard,
-  ChevronDown,
-  MapPin,
+  LayoutDashboard,
   FolderKanban,
+  Users,
+  BarChart3,
   Shield,
-  Compass,
-  Palette,
-  Film,
+  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { SlateLogoOnLight } from "@/components/shared/SlateLogoOnLight";
 
 interface NavItem {
   label: string;
   icon: React.ElementType;
   href: string;
-  /** Path prefix used to determine active state. Defaults to href. */
   matchPrefix?: string;
-  comingSoon?: boolean;
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { label: "Projects", icon: FolderKanban, href: "/projects" },
-  { label: "SlateDrop", icon: Inbox, href: "/slatedrop" },
-  { label: "Site Walk", icon: MapPin, href: "/site-walk/walks", matchPrefix: "/site-walk" },
-  { label: "360 Tours", icon: Compass, href: "/tours", comingSoon: true },
-  { label: "Design Studio", icon: Palette, href: "/design-studio", comingSoon: true },
-  { label: "Content Studio", icon: Film, href: "/content-studio", comingSoon: true },
-  { label: "My Account", icon: CreditCard, href: "/my-account" },
+  { label: "Dashboard",  icon: LayoutDashboard, href: "/dashboard" },
+  { label: "Projects",   icon: FolderKanban,    href: "/projects" },
+  { label: "Directory",  icon: Users,           href: "/directory" },
+  { label: "Reports",    icon: BarChart3,        href: "/reports" },
 ];
 
 interface DashboardSidebarProps {
   isOpen: boolean;
   onClose?: () => void;
   isMobile?: boolean;
-  /** When true, show the Operations Console link. Gated by owner access. */
   hasOperationsConsoleAccess?: boolean;
 }
 
-export function DashboardSidebar({ isOpen, onClose, isMobile = false, hasOperationsConsoleAccess = false }: DashboardSidebarProps) {
-  const [searchExpanded, setSearchExpanded] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
+export function DashboardSidebar({
+  isOpen,
+  onClose,
+  isMobile = false,
+  hasOperationsConsoleAccess = false,
+}: DashboardSidebarProps) {
   const pathname = usePathname() ?? "";
 
   const isActive = (item: NavItem): boolean => {
-    if (item.comingSoon) return false;
     const prefix = item.matchPrefix ?? item.href;
     return pathname === prefix || pathname.startsWith(`${prefix}/`);
   };
 
   const sidebarContent = (
-    <div className="flex flex-col bg-[#F8FAFC] text-foreground border-r border-app h-full">
-      {/* Logo + Close */}
-      <div className="flex h-14 items-center justify-between px-4 border-b border-app">
-        <Link href="/dashboard" className="flex items-center">
-          <SlateLogoOnLight className="h-6 w-auto" />
+    <div className="flex flex-col h-full bg-slate-900 text-slate-300">
+      {/* Logo row */}
+      <div className="flex h-16 shrink-0 items-center justify-between px-5 border-b border-white/10">
+        <Link
+          href="/dashboard"
+          className="flex items-center gap-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 rounded"
+          aria-label="Slate360 home"
+        >
+          {/* Wordmark — crisp white */}
+          <span className="text-lg font-bold tracking-tight text-white select-none">
+            Slate<span className="text-blue-400">360</span>
+          </span>
         </Link>
         {onClose && (
-          <Button variant="ghost" size="icon" onClick={onClose} className="text-slate-600 hover:text-foreground hover:bg-slate-100 h-8 w-8 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt/50 focus-visible:ring-offset-1 focus-visible:ring-offset-[#F8FAFC]">
+          <button
+            onClick={onClose}
+            aria-label="Close sidebar"
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-white/10 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+          >
             <X className="h-4 w-4" />
-          </Button>
+          </button>
         )}
       </div>
 
       {/* Navigation */}
-      <nav className="space-y-0.5 px-3 py-3 overflow-y-auto">
-        {/* Search */}
-        <button
-          onClick={() => setSearchExpanded(!searchExpanded)}
-          className="relative flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition-all duration-200 hover:bg-slate-100 hover:text-foreground hover:translate-x-[1px] before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-[3px] before:rounded-r before:bg-cobalt/0 hover:before:bg-cobalt/40 before:transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt/50 focus-visible:ring-offset-1 focus-visible:ring-offset-[#F8FAFC]"
-        >
-          <Search className="h-4 w-4" />
-          Search
-          <ChevronDown className={cn("ml-auto h-3.5 w-3.5 transition-transform", searchExpanded && "rotate-180")} />
-        </button>
-        {searchExpanded && (
-          <div className="px-3 pb-2">
-            <Input
-              type="search"
-              placeholder="Search projects, clients..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-8 text-sm bg-white border-app text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt/50 focus-visible:ring-offset-1 focus-visible:ring-offset-[#F8FAFC]"
-              autoFocus
-            />
-          </div>
-        )}
-
+      <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-0.5" aria-label="Main navigation">
+        <p className="px-3 mb-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500 select-none">
+          Navigation
+        </p>
         {NAV_ITEMS.map((item) => {
           const active = isActive(item);
-          if (item.comingSoon) {
-            return (
-              <span
-                key={item.label}
-                aria-disabled="true"
-                className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-400 cursor-not-allowed"
-              >
-                <item.icon className="h-4 w-4" />
-                <span className="flex-1">{item.label}</span>
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-cobalt/70">Soon</span>
-              </span>
-            );
-          }
           return (
             <Link
               key={item.label}
               href={item.href}
               aria-current={active ? "page" : undefined}
               className={cn(
-                "relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt/50 focus-visible:ring-offset-1 focus-visible:ring-offset-[#F8FAFC]",
+                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 focus-visible:ring-offset-slate-900",
                 active
-                  ? "bg-cobalt/10 text-cobalt before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-[3px] before:rounded-r before:bg-cobalt"
-                  : "text-slate-700 hover:bg-slate-100 hover:text-foreground hover:translate-x-[1px] before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-[3px] before:rounded-r before:bg-cobalt/0 hover:before:bg-cobalt/40 before:transition-colors",
+                  ? "bg-white/10 text-white"
+                  : "text-slate-300 hover:bg-white/[0.06] hover:text-white"
               )}
             >
-              <item.icon className="h-4 w-4" />
-              <span className="flex-1">{item.label}</span>
+              <item.icon
+                className={cn("h-4 w-4 shrink-0", active ? "text-blue-400" : "text-slate-400")}
+              />
+              <span>{item.label}</span>
+              {active && (
+                <span className="ml-auto h-1.5 w-1.5 rounded-full bg-blue-400" aria-hidden="true" />
+              )}
             </Link>
           );
         })}
-
-        {/* Operations Console — owner only */}
-        {hasOperationsConsoleAccess && (
-          <a
-            href="/operations-console"
-            className="relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition-all duration-200 hover:bg-slate-100 hover:text-foreground hover:translate-x-[1px] before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-[3px] before:rounded-r before:bg-cobalt/0 hover:before:bg-cobalt/40 before:transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt/50 focus-visible:ring-offset-1 focus-visible:ring-offset-[#F8FAFC]"
-          >
-            <Shield className="h-4 w-4" />
-            Operations Console
-          </a>
-        )}
       </nav>
 
+      {/* Bottom: Operations Console */}
+      {hasOperationsConsoleAccess && (
+        <div className="shrink-0 px-3 pb-4 border-t border-white/10 pt-4">
+          <a
+            href="/operations-console"
+            className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 hover:bg-white/[0.06] hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+          >
+            <Shield className="h-4 w-4 shrink-0" />
+            Operations Console
+          </a>
+        </div>
+      )}
 
+      {/* Footer label */}
+      <div className="shrink-0 px-5 py-4 border-t border-white/10">
+        <p className="text-[10px] text-slate-600 select-none">Slate360 &copy; {new Date().getFullYear()}</p>
+      </div>
     </div>
   );
 
-  if (isMobile) {
-    return sidebarContent;
-  }
+  if (isMobile) return sidebarContent;
 
   return (
     <aside
       className={cn(
-        "fixed left-0 top-0 z-40 w-64 h-[100dvh] bg-[#F8FAFC] transition-transform duration-300",
+        "fixed left-0 top-0 z-40 w-64 h-[100dvh] shadow-2xl transition-transform duration-300",
         isOpen ? "translate-x-0" : "-translate-x-full"
       )}
     >
