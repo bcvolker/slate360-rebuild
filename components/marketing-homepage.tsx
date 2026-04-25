@@ -291,9 +291,9 @@ function Header({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
 
   return (
     <header className="dark fixed top-0 left-0 right-0 z-50 h-16 border-b border-white/10 bg-[#0B0F15]/85 backdrop-blur-lg text-white">
-      <div className="container mx-auto h-full pl-3 pr-2 sm:px-4 flex items-center justify-between">
+      <div className="mx-auto h-full max-w-7xl px-4 sm:px-6 flex items-center justify-between">
         {/* Logo */}
-        <Link href="/" className="flex items-center -ml-1 sm:ml-0">
+        <Link href="/" className="flex items-center flex-shrink-0">
           <SlateLogo />
         </Link>
 

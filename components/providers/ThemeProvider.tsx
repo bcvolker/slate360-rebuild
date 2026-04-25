@@ -16,8 +16,8 @@ interface ThemeContextValue {
 }
 
 const defaultContext: ThemeContextValue = {
-  theme: "light",
-  resolvedTheme: "light",
+  theme: "dark",
+  resolvedTheme: "dark",
   setTheme: () => {},
 };
 
@@ -41,12 +41,12 @@ function getSystemTheme(): "light" | "dark" {
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>("light");
-  const [resolvedTheme, setResolvedTheme] = useState<"light" | "dark">("light");
+  const [theme, setThemeState] = useState<Theme>("dark");
+  const [resolvedTheme, setResolvedTheme] = useState<"light" | "dark">("dark");
 
   // Read saved preference on mount
   useEffect(() => {
-    const saved = (localStorage.getItem("slate360-theme") ?? "light") as Theme;
+    const saved = (localStorage.getItem("slate360-theme") ?? "dark") as Theme;
     setThemeState(saved);
   }, []);
 
@@ -92,11 +92,16 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
  * Must be rendered server-side from app/layout.tsx.
  */
 export function ThemeScript() {
-  // Brute-force light: clear any stale 'dark' value persisted from prior
-  // builds so the global premium-light flip actually takes effect on first
-  // paint. Users who explicitly opt back into dark via setTheme() will
-  // re-persist 'dark' and that value will survive subsequent loads.
-  const script = `(function(){try{var s=localStorage.getItem('slate360-theme');if(s==='dark'){localStorage.removeItem('slate360-theme');s=null;}var t=s||'light';var r=t==='system'?(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):t;document.documentElement.classList.remove('light','dark');document.documentElement.classList.add(r);}catch(e){}})();`;
+  // Default theme = DARK. The 2026-04-23 "premium-light flip" experiment
+  // produced a washed-out look (white cards on slate-50 page bg with
+  // 4-pt contrast spread + ultra-faint shadows) where buttons and
+  // sections blended into the background. Reverting to dark, which is
+  // what the codebase was originally designed against (sidebar + header
+  // are permanently dark already; cards were originally glass-on-black).
+  // We also clear any stale 'light' value persisted during the experiment
+  // so users see the corrected default on next load. Users who explicitly
+  // opt into light via setTheme() will re-persist it.
+  const script = `(function(){try{var s=localStorage.getItem('slate360-theme');if(s==='light'){localStorage.removeItem('slate360-theme');s=null;}var t=s||'dark';var r=t==='system'?(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):t;document.documentElement.classList.remove('light','dark');document.documentElement.classList.add(r);}catch(e){document.documentElement.classList.add('dark');}})();`;
   return <script dangerouslySetInnerHTML={{ __html: script }} />;
 }
 
@@ -107,14 +112,14 @@ export function ThemeScript() {
 export function ThemeApplier() {
   useEffect(() => {
     try {
-      const saved = localStorage.getItem("slate360-theme") ?? "light";
+      const saved = localStorage.getItem("slate360-theme") ?? "dark";
       const resolved = saved === "system"
         ? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
         : saved;
       document.documentElement.classList.remove("light", "dark");
       document.documentElement.classList.add(resolved);
     } catch {
-      // ignore
+      document.documentElement.classList.add("dark");
     }
   }, []);
   return null;
