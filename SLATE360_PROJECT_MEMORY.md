@@ -197,6 +197,45 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
+### Session Handoff — 2026-04-26 (SlateDrop Folder Hub Correction)
+
+#### What Changed
+- `app/slatedrop/page.tsx` — corrected the first-pass SlateDrop hub after mobile review. The previous app cards looked like launch buttons and linked toward app/work routes. The route now presents a clear folder hierarchy:
+  - `General Files` with Uploads, Received, Shared, Archive.
+  - Entitlement-aware app file folders: Site Walk Files, 360 Tour Files, Design Studio Files, Content Studio Files.
+  - Folder previews use folder/lock icons and labels like `Folder` / `Locked`, not app-entry language.
+  - Legacy/test project rows are hidden from this hub so users are not sent into the old non-mobile SlateDrop project UI.
+  - A visible action grid documents the intended mobile folder actions: New folder, Upload, Save, Share, Send, Receive, Archive, Move.
+- `slate360-context/SLATEDROP.md` — clarified that `/slatedrop` is now a folder-system hub, not an app launcher, and that old/test projects should not be deleted automatically without explicit confirmation.
+
+#### Strategic Decisions / Corrections
+- The SlateDrop button should open a **folder hierarchy**, not app launch cards.
+- App-specific folders should communicate “these are files for this app,” not “click here to open the app.”
+- Existing legacy/test projects can be hidden from the new hub; do not delete live user data without explicit user confirmation.
+- The final real folder layout should be driven by the new Site Walk architecture once Site Walk is scaffolded.
+
+#### What's Broken / Partially Done
+- `/slatedrop` is now visually aligned as a folder hierarchy, but it is still a presentation/IA correction. The real mobile folder browser actions are not wired yet.
+- Project-scoped routes such as `/projects/[projectId]/slatedrop` still use the old `SlateDropClient` UI and need the next redesign pass before exposing them as the main mobile path.
+- App-specific physical folder provisioning still needs implementation or a virtual grouping layer.
+
+#### Validation
+- `app/slatedrop/page.tsx` line count: 159.
+- `get_errors` on `app/slatedrop/page.tsx`: no errors.
+- `npm run typecheck`: passed.
+
+#### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md` — this handoff.
+- `slate360-context/SLATEDROP.md` — corrected current `/slatedrop` behavior.
+
+#### Next Steps (ordered)
+1. Review `/slatedrop` on mobile/PWA. Confirm it reads as a folder hierarchy, not app launch buttons.
+2. Decide whether old test projects should be deleted from the database; do not delete automatically.
+3. Build the real mobile SlateDrop folder browser that replaces `SlateDropClient` for project-scoped routes.
+4. Let Site Walk folder requirements drive physical/virtual folder provisioning.
+
+---
+
 ### Session Handoff — 2026-04-26 (Mobile Nav + App-Centric SlateDrop Hub + Site Walk Blueprint)
 
 #### What Changed

@@ -59,7 +59,8 @@ The exact rows may be physical `project_folders` or virtual grouped views over e
 
 ### Current Implementation Notes
 
-- `/slatedrop` now acts as an app-centric SlateDrop hub and links users into project/site-scoped file spaces.
+- `/slatedrop` now acts as a folder-system hub, not an app launcher. It shows `General Files` plus entitlement-aware app file folders and hides legacy/test project rows so users are not pushed into the old non-mobile SlateDrop UI.
+- Existing test/legacy projects should **not** be deleted automatically. Hide them from the new hub until the user explicitly confirms data cleanup or the new Site Walk folder model creates fresh project/site folders.
 - Project-scoped full file browser remains available at `/projects/[projectId]/slatedrop` and `/project-hub/[projectId]/slatedrop`.
 - `lib/site-walk/slatedrop-bridge.ts` already bridges Site Walk captures/PDF exports into `slatedrop_uploads`; older notes that say Site Walk has zero SlateDrop bridge are stale.
 - Remaining gap: build the dedicated Site Walks/session folder presentation and collaborator-scoped file permissions.
