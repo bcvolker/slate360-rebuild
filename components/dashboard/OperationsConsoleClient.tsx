@@ -7,12 +7,14 @@ import { FloatingToast } from "@/components/shared/FloatingToast";
 import { useBetaUsers } from "@/lib/hooks/useBetaUsers";
 import type { BetaUser } from "@/lib/hooks/useBetaUsers";
 import { OperationsConsoleNav } from "@/components/dashboard/operations-console/OperationsConsoleNav";
+import type { OperationsConsoleCounts } from "@/lib/server/operations-console-counts";
 
 type Props = {
   ownerEmail: string;
+  initialCounts: OperationsConsoleCounts;
 };
 
-export default function OperationsConsoleClient({ ownerEmail }: Props) {
+export default function OperationsConsoleClient({ ownerEmail, initialCounts }: Props) {
   const { users, loading, error, reload, toggleApproval } = useBetaUsers();
   const [togglingId, setTogglingId] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; variant: "success" | "error" } | null>(null);
@@ -26,6 +28,10 @@ export default function OperationsConsoleClient({ ownerEmail }: Props) {
 
   const approvedCount = users.filter((u) => u.is_beta_approved).length;
   const pendingCount = users.filter((u) => !u.is_beta_approved).length;
+  const navCounts: OperationsConsoleCounts = {
+    ...initialCounts,
+    pendingAccess: loading && users.length === 0 ? initialCounts.pendingAccess : pendingCount,
+  };
 
   async function handleToggle(user: BetaUser) {
     setTogglingId(user.id);
@@ -67,7 +73,7 @@ export default function OperationsConsoleClient({ ownerEmail }: Props) {
         </div>
       </div>
 
-      <OperationsConsoleNav active="/operations-console" />
+      <OperationsConsoleNav active="/operations-console" counts={navCounts} />
 
       {/* Summary cards */}
       <div className="grid grid-cols-3 gap-4">
@@ -75,6 +81,13 @@ export default function OperationsConsoleClient({ ownerEmail }: Props) {
         <SummaryCard label="Version 1 Approved" value={approvedCount} loading={loading} accent="text-green-600" />
         <SummaryCard label="Pending" value={pendingCount} loading={loading} accent="text-amber-600" />
       </div>
+
+      <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+        <OpsCapabilityCard title="Extend access" detail="Set Version 1 access through a fixed date or revoke when the launch window closes." />
+        <OpsCapabilityCard title="Grant app access" detail="Issue temporary or permanent Site Walk, Tours, Design Studio, Content Studio, or SlateDrop overrides." />
+        <OpsCapabilityCard title="Pricing controls" detail="Review plan prices, bundle economics, discount experiments, and upgrade paths before publishing." />
+        <OpsCapabilityCard title="Enterprise seats" detail="Manage org-level seats, per-app assignment, permissions, and special customer terms." />
+      </section>
 
       {/* Filter + reload */}
       <div className="flex items-center justify-between">
@@ -138,6 +151,15 @@ export default function OperationsConsoleClient({ ownerEmail }: Props) {
           </table>
         </div>
       )}
+    </div>
+  );
+}
+
+function OpsCapabilityCard({ title, detail }: { title: string; detail: string }) {
+  return (
+    <div className="rounded-2xl border border-blue-200 bg-blue-50 p-4">
+      <p className="text-sm font-black text-slate-950">{title}</p>
+      <p className="mt-1 text-xs leading-5 text-blue-900">{detail}</p>
     </div>
   );
 }

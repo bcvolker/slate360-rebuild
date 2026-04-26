@@ -1,6 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { resolveServerOrgContext } from "@/lib/server/org-context";
 import OperationsConsoleClient from "@/components/dashboard/OperationsConsoleClient";
+import { getOperationsConsoleCounts } from "@/lib/server/operations-console-counts";
 
 export const metadata = {
   title: "Operations Console — Slate360",
@@ -20,5 +21,7 @@ export default async function OperationsConsolePage() {
     notFound();
   }
 
-  return <OperationsConsoleClient ownerEmail={user.email ?? ""} />;
+  const counts = await getOperationsConsoleCounts();
+
+  return <OperationsConsoleClient ownerEmail={user.email ?? ""} initialCounts={counts} />;
 }

@@ -2,8 +2,8 @@ import { createClient } from "@/lib/supabase/server";
 import MarketingHomepage from "@/components/marketing-homepage";
 
 export const metadata = {
-  title: 'Slate360 - The real-time interactive bridge between the field and the office',
-  description: 'Capture site conditions, organize project context, and turn field documentation into branded deliverables, immersive tours, and client-ready media from one connected platform.',
+  title: 'Slate360 - The connected app ecosystem for construction work',
+  description: 'Run Site Walk, 360 Tours, Design Studio, Content Studio, SlateDrop, and Coordination from one connected construction app ecosystem.',
 };
 
 export default async function RootPage() {

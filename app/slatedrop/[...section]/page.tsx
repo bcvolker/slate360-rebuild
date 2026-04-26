@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ArrowLeft, Download, Folder, Mail, MoreHorizontal, Pencil, Plus, Share2, Trash2, Upload } from "lucide-react";
 import { resolveServerOrgContext } from "@/lib/server/org-context";
+import SlateDropDesktopDropZone from "@/components/slatedrop/SlateDropDesktopDropZone";
 
 export const metadata = {
   title: "SlateDrop Folder — Slate360",
@@ -39,6 +40,8 @@ export default async function SlateDropSectionPage({ params }: { params: Promise
   const title = action?.title ?? titleFromSlug(child ?? root);
   const parent = action ? "SlateDrop Actions" : titleFromSlug(root);
   const detail = action?.detail ?? "This folder is ready for the new mobile-first browser. Real files and actions will be wired through the existing SlateDrop APIs.";
+  const folderId = section.join("/");
+  const folderPath = ["SlateDrop", ...section.map(titleFromSlug)].join("/");
 
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-5 px-4 py-5 sm:px-6 lg:px-8 lg:py-8">
@@ -64,6 +67,14 @@ export default async function SlateDropSectionPage({ params }: { params: Promise
       </section>
 
       {action && <ActionAssistant action={root} title={title} />}
+
+      {(root === "upload" || !action) && (
+        <SlateDropDesktopDropZone
+          folderId={folderId}
+          folderPath={folderPath}
+          label={root === "upload" ? "Desktop drag-and-drop upload" : `Drop files into ${title}`}
+        />
+      )}
 
       <section className="rounded-3xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center">
         <Folder className="mx-auto h-8 w-8 text-blue-700" />

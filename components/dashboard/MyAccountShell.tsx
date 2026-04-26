@@ -22,6 +22,7 @@ import AccountBillingTab from "./my-account/AccountBillingTab";
 import AccountDataTrackerTab from "./my-account/AccountDataTrackerTab";
 import AccountSecurityTab from "./my-account/AccountSecurityTab";
 import AccountNotificationsTab from "./my-account/AccountNotificationsTab";
+import AccountControlCenterNav from "./my-account/AccountControlCenterNav";
 import { ComingSoonEmptyState } from "@/components/shared/ComingSoonEmptyState";
 import type { DashboardAccountOverview } from "@/lib/types/dashboard";
 import type { Tier } from "@/lib/entitlements";
@@ -95,6 +96,9 @@ export default function MyAccountShell({ user, orgName, tier, role, isAdmin, isC
   }, []);
 
   const switchToBilling = useCallback(() => setActiveTab("billing"), []);
+  const switchToSection = useCallback((tabId: string) => {
+    if (TABS.some((tab) => tab.id === tabId)) setActiveTab(tabId as TabId);
+  }, []);
 
   // Audience filter: non-admins never see admin-only tabs.
   // Future: per-member `permissions` row will further restrict billing/data
@@ -122,6 +126,14 @@ export default function MyAccountShell({ user, orgName, tier, role, isAdmin, isC
       status="live"
       showCustomize={false}
     >
+      <div className="mb-6 space-y-2">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-cobalt">Account Control Center</p>
+        <p className="max-w-3xl text-sm text-zinc-400">
+          My Account is organized like Operations Console: quick section cards first, then focused controls for profile, security, organization, billing, app access, data, and privacy.
+        </p>
+        <AccountControlCenterNav isAdmin={isAdmin} activeTab={activeTab} onSelect={switchToSection} />
+      </div>
+
       {/* Two-column layout: left tab rail (grouped) + right content */}
       <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-6">
         <nav className="md:sticky md:top-20 md:self-start space-y-5">

@@ -53,6 +53,25 @@ Current Coordination sections:
 
 Future unread counts should be computed from inbox rows and surfaced on both desktop and mobile bell icons.
 
+### Operations Console Direction
+
+- `components/dashboard/operations-console/OperationsConsoleNav.tsx` accepts count badges for pending Version 1 access, open feedback, and feature/function suggestions.
+- `lib/server/operations-console-counts.ts` is the shared server helper for current badge counts. It reads `profiles.is_beta_approved` and `beta_feedback` while public-facing labels remain Version 1 / Feedback.
+- Operations sections are shaped as the business control center: access extensions, trial extensions, temporary/permanent app grants, pricing controls, business health, product health, systems health, and enterprise seat/permission management.
+- Existing backend mutations for many of these controls are not complete yet; keep the current UI truthful by framing them as workflows/build targets until migrations and audited APIs exist.
+
+### My Account Direction
+
+- `components/dashboard/my-account/AccountControlCenterNav.tsx` provides an Operations Console-style card launcher above the legacy grouped tab rail.
+- My Account should be organized around Profile, Security, Notifications, Organization, Billing & Apps, Data & Storage, Team Seats, and Privacy.
+- Admin-only account controls must stay hidden from non-admin members; enterprise per-feature permissions continue to come from `organization_members.permissions` via `resolveServerOrgContext()`.
+
+### Homepage Direction
+
+- The public hero should position Slate360 as a connected app ecosystem, not only a Site Walk field-capture product.
+- Site Walk-specific capture/report/proposal language belongs in the Site Walk app card/section.
+- Ecosystem copy should explain that adding apps/bundles increases power through shared SlateDrop storage, Coordination, contacts, project context, and deliverables.
+
 ### Mobile/PWA Top Bar (Current Direction)
 
 `components/shared/MobileTopBar.tsx` is the primary phone/PWA chrome above authenticated pages.

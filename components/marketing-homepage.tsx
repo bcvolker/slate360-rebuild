@@ -478,12 +478,12 @@ function HeroSection() {
           </Badge>
 
           <h1 className="text-[2rem] leading-[1.15] sm:text-4xl lg:text-4xl xl:text-5xl font-bold text-slate-900 text-balance tracking-tight">
-            The real-time interactive bridge between{" "}
-            <span className="bg-gradient-to-r from-cobalt to-cobalt-hover bg-clip-text text-transparent">the field and the office</span>
+            One connected app ecosystem for{" "}
+            <span className="bg-gradient-to-r from-cobalt to-cobalt-hover bg-clip-text text-transparent">construction work</span>
           </h1>
 
           <p className="text-base sm:text-base lg:text-base text-slate-600 max-w-xl mx-auto lg:mx-0 text-pretty leading-relaxed">
-            Capture site conditions with your phone or 360 camera, add comments as you walk, and automatically preserve a time-stamped, geolocated record. Turn it into punch lists, reports, or proposals — and share with your team in minutes.
+            Slate360 brings Site Walk, 360 Tours, Design Studio, Content Studio, SlateDrop, and Coordination into one shared system. Start with the app you need now, then add apps and bundles as your workflows grow without losing files, contacts, project context, or deliverables.
           </p>
 
           {/* CTAs: side-by-side on ALL screens (50/50 on mobile, auto on desktop) */}
@@ -983,8 +983,7 @@ function FinalCTASection() {
               Ready to connect your entire project ecosystem?
             </h2>
             <p className="text-slate-600 mb-8 max-w-2xl mx-auto leading-relaxed">
-              Join thousands of construction professionals who trust Slate360 for their
-              deliverables. Start free, upgrade when you&apos;re ready.
+                Build your stack one app at a time or unlock bundles when your team is ready. Shared SlateDrop storage, Coordination, contacts, and project context make every added app more powerful.
             </p>
 
             {/* Email Signup */}
@@ -1028,7 +1027,7 @@ function Footer() {
               <SlateLogoOnLight />
             </Link>
             <p className="text-sm text-muted-foreground mb-4">
-              The real-time interactive bridge between the field and the office.
+              The connected app ecosystem for construction work.
             </p>
             <div className="flex items-center gap-3">
               <Button variant="ghost" size="icon" className="h-9 w-9 hover:bg-teal-soft hover:text-teal">

@@ -4,6 +4,7 @@ import { Paperclip } from "lucide-react";
 import { OperationsConsoleNav } from "@/components/dashboard/operations-console/OperationsConsoleNav";
 import { resolveServerOrgContext } from "@/lib/server/org-context";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getOperationsConsoleCounts } from "@/lib/server/operations-console-counts";
 
 export const metadata = { title: "Feedback Inbox — Operations Console" };
 export const dynamic = "force-dynamic";
@@ -43,6 +44,7 @@ export default async function OperationsFeedbackPage() {
     .limit(50);
 
   const rows = (data ?? []) as FeedbackRow[];
+  const counts = await getOperationsConsoleCounts();
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 p-6">
@@ -51,7 +53,7 @@ export default async function OperationsFeedbackPage() {
         <p className="text-xs text-muted-foreground">Bugs, feature requests, attachments, session context, and reply workflow planning.</p>
       </header>
 
-      <OperationsConsoleNav active="/operations-console/feedback" />
+      <OperationsConsoleNav active="/operations-console/feedback" counts={counts} />
 
       {error ? (
         <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">{error.message}</div>
