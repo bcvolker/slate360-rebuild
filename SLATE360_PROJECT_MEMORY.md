@@ -213,6 +213,7 @@ When editing oversized files, always read both the state declarations AND the JS
 - **Home viewer expand fix:** `components/home/HeroDemo.tsx` and `components/home/AppDemo.tsx` now render fullscreen viewer overlays through a React portal to `document.body` with `z-[1000]`, `h-[100dvh]`, and `overflow-hidden`. This avoids clipping/flashing caused by ancestor overflow/stacking contexts on the marketing homepage.
 - **Production Command Center updated:** `components/dashboard/command-center/CommandCenterContent.tsx` now uses the new app-neutral shell layout after login/PWA launch: search everything, app-neutral quick actions, Projects & Tasks, Recent Work & Drafts, and Communications. `AppsGrid.tsx` now shows locked/available apps without privileging Site Walk.
 - **Stale preview root cause:** the original `slate360-rebuild-git-feat-ops-console-phase1-slate360.vercel.app` URL is an old branch deployment and will not update from `main`. Use `https://www.slate360.ai/preview/mobile-shell-v2` or the latest `main` deployment instead.
+- **Critical mobile preview header fix:** `app/preview/mobile-shell-v2/page.tsx` no longer tries to fit the full Slate360 wordmark plus giant search bar in the phone header. Header now matches the intended mobile/PWA pattern: left = cobalt app icon only; right = Share, Search, Notifications, user initials. Main content starts lower than the compact header so the app cards are no longer cut off.
 
 #### Live DB Status
 All five core admin-layer migrations are **Live** and tracked on `hadnfcenpcfaeclczsmm`:
@@ -234,7 +235,7 @@ All five core admin-layer migrations are **Live** and tracked on `hadnfcenpcfaec
 - `SLATE360_PROJECT_MEMORY.md` (This handoff).
 
 #### Next Steps (ordered)
-1. Wait for Vercel deploy of the latest `main` commit, then review `https://www.slate360.ai/preview/mobile-shell-v2` and the logged-in `/dashboard` / installed PWA.
+1. Wait for Vercel deploy of the latest `main` commit, then review `https://www.slate360.ai/preview/mobile-shell-v2` and confirm the compact icon-only mobile header is correct.
 2. Wire real data into Command Center sections (assigned tasks, recent work/drafts, communication threads/contacts) while preserving empty states for new/collaborator users.
 3. Wire the top-header/share action to the existing `InviteShareModal` provider wherever the new shell has a share icon.
 4. Build the 3 pending API routes (`/api/org`, `/api/contacts/search`, `/api/projects/[id]/attach-session`).

@@ -1,7 +1,6 @@
 import {
   Bell,
   CheckCircle2,
-  ChevronDown,
   ClipboardCheck,
   Command,
   FileText,
@@ -53,30 +52,33 @@ export default function MobileShellV2() {
   return (
     <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
       <div className="relative h-[800px] max-h-[90vh] w-full max-w-sm overflow-hidden rounded-[2.5rem] border-8 border-slate-800 bg-slate-50 shadow-2xl">
-        <header className="absolute inset-x-0 top-0 z-20 bg-slate-900 px-5 pb-4 pt-12 text-white shadow-lg">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex min-w-0 items-center gap-3">
-              <img src="/uploads/slate360-logo-light-v3.svg" alt="Slate360" className="h-7 w-auto" />
-              <button className="flex min-h-[44px] items-center gap-1 rounded-lg px-2 text-xs font-semibold text-slate-300 transition-colors hover:bg-white/10 hover:text-white">
-                Workspace <ChevronDown className="h-3.5 w-3.5" />
-              </button>
+        <header className="absolute inset-x-0 top-0 z-20 bg-slate-900 px-5 pb-3 pt-11 text-white shadow-lg">
+          <div className="flex min-h-[52px] items-center justify-between gap-3">
+            <div className="flex min-w-0 items-center">
+              <img
+                src="/uploads/slate360-icon-cobalt-v2.svg"
+                alt="Slate360"
+                className="h-10 w-10 object-contain drop-shadow-[0_0_10px_rgba(59,130,246,0.35)]"
+              />
             </div>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1.5">
               <button className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-slate-300 transition-colors hover:text-white" aria-label="Share">
                 <Share2 className="h-5 w-5" />
+              </button>
+              <button className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-slate-300 transition-colors hover:text-white" aria-label="Search">
+                <Search className="h-5 w-5" />
               </button>
               <button className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-slate-300 transition-colors hover:text-white" aria-label="Notifications">
                 <Bell className="h-5 w-5" />
               </button>
+              <button className="flex h-11 w-11 items-center justify-center rounded-full border border-blue-400/40 bg-blue-500/15 text-sm font-black text-blue-200 transition-colors hover:bg-blue-500/25" aria-label="Account menu">
+                BV
+              </button>
             </div>
-          </div>
-          <div className="mt-4 flex items-center gap-2 rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-sm text-slate-300">
-            <Search className="h-4 w-4" />
-            <span>Search everything in Slate360</span>
           </div>
         </header>
 
-        <main className="absolute inset-x-0 bottom-[80px] top-[132px] overflow-y-auto px-5 py-5 space-y-5">
+        <main className="absolute inset-x-0 bottom-[80px] top-[106px] overflow-y-auto px-5 py-5 space-y-5">
           <section>
             <div className="mb-3 flex items-center justify-between">
               <h2 className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-700">Your Apps</h2>
