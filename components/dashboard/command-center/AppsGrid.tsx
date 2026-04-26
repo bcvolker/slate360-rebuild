@@ -81,8 +81,6 @@ function gridColsForCount(count: number): string {
 }
 
 export function AppsGrid({ entitlements: _entitlements }: AppsGridProps) {
-  // Beta: surface all apps for every signed-in user. Entitlement gating returns
-  // post-beta — keep the prop wired so the switch is a one-line change.
   const visible = APPS;
 
   if (visible.length === 0) {
@@ -104,37 +102,54 @@ export function AppsGrid({ entitlements: _entitlements }: AppsGridProps) {
   return (
     <section className="surface-raised p-4 sm:p-5">
       <div className="mb-3 flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-foreground">Your Apps</h2>
-        <span className="text-xs text-muted-foreground">
-          {visible.length} subscribed
+        <h2 className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-700">Your Apps</h2>
+        <span className="rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-bold text-emerald-700 ring-1 ring-emerald-200">
+          Synced
         </span>
       </div>
       <div className={`grid gap-3 ${cols}`}>
         {visible.map((app) => {
           const Icon = app.icon;
-          return (
-            <Link
-              key={app.key}
-              href={app.href}
-              className="surface-raised-interactive group relative flex flex-col items-start gap-3 p-4"
+          const hasAccess = _entitlements?.[app.entitlement] ?? false;
+          const card = (
+            <div
+              className={`surface-raised-interactive group relative flex min-h-[112px] flex-col items-start gap-3 p-4 ${hasAccess ? "" : "opacity-60"}`}
             >
-              {app.comingSoon && (
-                <span className="absolute right-3 top-3 rounded-full border border-app bg-muted/40 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                  Coming Soon
+              {!hasAccess && (
+                <span className="absolute right-3 top-3 rounded-full border border-slate-300 bg-slate-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-600">
+                  Available
                 </span>
               )}
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-cobalt/10 text-cobalt transition-transform group-hover:scale-110">
+              {app.comingSoon && hasAccess && (
+                <span className="absolute right-3 top-3 rounded-full border border-slate-300 bg-slate-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-600">
+                  Soon
+                </span>
+              )}
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-cobalt/10 text-cobalt transition-transform group-hover:scale-105">
                 <Icon className="h-5 w-5" />
               </div>
-              <div className="space-y-1">
-                <h3 className="text-sm font-semibold text-foreground group-hover:text-cobalt-hover">
+              <div className="space-y-1 pr-10">
+                <h3 className="text-sm font-black text-slate-900 group-hover:text-cobalt">
                   {app.name}
                 </h3>
-                <p className="text-xs text-muted-foreground line-clamp-2">
+                <p className="text-xs text-slate-600 line-clamp-2">
                   {app.tagline}
                 </p>
               </div>
+            </div>
+          );
+
+          return hasAccess ? (
+            <Link
+              key={app.key}
+              href={app.href}
+            >
+              {card}
             </Link>
+          ) : (
+            <div key={app.key} aria-disabled="true">
+              {card}
+            </div>
           );
         })}
       </div>

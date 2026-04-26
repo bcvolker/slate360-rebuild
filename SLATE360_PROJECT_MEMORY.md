@@ -211,6 +211,8 @@ When editing oversized files, always read both the state declarations AND the JS
 - **4th Quick Action recommendation:** best universal choice is **Search Everything / Command Center** (global search / command palette) because it serves all apps, collaborators, projects, contacts, files, deliverables, and support workflows without privileging one product. Secondary option: **Create / Request Deliverable** for converting work into shareable outputs, but it is more app/tier-specific.
 - **Preview route updated:** `app/preview/mobile-shell-v2/page.tsx` now reflects the new field-tested Global App Shell direction (light canvas, slate-300 cards, cobalt action, app-neutral quick actions, Projects & Tasks / Recent Work / Communications hubs). The old dark amber shell preview is removed.
 - **Home viewer expand fix:** `components/home/HeroDemo.tsx` and `components/home/AppDemo.tsx` now render fullscreen viewer overlays through a React portal to `document.body` with `z-[1000]`, `h-[100dvh]`, and `overflow-hidden`. This avoids clipping/flashing caused by ancestor overflow/stacking contexts on the marketing homepage.
+- **Production Command Center updated:** `components/dashboard/command-center/CommandCenterContent.tsx` now uses the new app-neutral shell layout after login/PWA launch: search everything, app-neutral quick actions, Projects & Tasks, Recent Work & Drafts, and Communications. `AppsGrid.tsx` now shows locked/available apps without privileging Site Walk.
+- **Stale preview root cause:** the original `slate360-rebuild-git-feat-ops-console-phase1-slate360.vercel.app` URL is an old branch deployment and will not update from `main`. Use `https://www.slate360.ai/preview/mobile-shell-v2` or the latest `main` deployment instead.
 
 #### Live DB Status
 All five core admin-layer migrations are **Live** and tracked on `hadnfcenpcfaeclczsmm`:
@@ -224,7 +226,7 @@ All five core admin-layer migrations are **Live** and tracked on `hadnfcenpcfaec
 - **`/site-walk` is a blank slate:** Reverting legacy code to `app/site-walk/_legacy_v1/` means the main route intentionally 404s. It is ready for the external AI's new code.
 - **3 API routes are pending:** We still need to build `GET/PATCH /api/org` (global settings), `GET /api/contacts/search` (typeahead), and `POST /api/projects/[id]/attach-session` (ad-hoc closure).
 - **Stale PR:** The outside-AI task at `prompts/CURRENT.md` (PR #27d.2 — PDF email) targets an archived `_legacy_v1` file. **Do not apply PR #27d.2** until reconciled with the new UI.
-- **App Shell visual architecture not fully rebuilt yet:** CSS/theming and sidebar logo are fixed; the new ContainedSection-based App Shell components still need to be generated/implemented.
+- **App Shell visual architecture is now visible in preview and the logged-in Command Center.** Remaining work is wiring real data into the sections and building the final Site Walk app-specific UI.
 - **Validation note:** `npm run typecheck` passes after clearing stale `.next` route types. `bash scripts/check-file-size.sh` still fails on 12 pre-existing oversized files not touched in this task.
 - **PWA note:** Installing the PWA is handled by browser/OS install UI, not the in-app Share button. iOS: Safari share sheet → Add to Home Screen. Android/Chrome: install prompt/menu → Install app/Add to Home screen. Existing home-screen shortcuts may cache old service worker output; remove/re-add or force-refresh if stale.
 
@@ -232,9 +234,9 @@ All five core admin-layer migrations are **Live** and tracked on `hadnfcenpcfaec
 - `SLATE360_PROJECT_MEMORY.md` (This handoff).
 
 #### Next Steps (ordered)
-1. Review `/preview/mobile-shell-v2` after Vercel deploy completes; use it as the current visual target for the app-neutral Global App Shell.
-2. Generate/implement the production Slate360 Global App Shell around these universal hubs: Projects & Tasks, Recent Work & Drafts, Communications. Gate app cards by subscription and default collaborators to Assigned Tasks.
-3. Wire the top-header/share action to the existing `InviteShareModal` provider rather than creating new share code.
+1. Wait for Vercel deploy of the latest `main` commit, then review `https://www.slate360.ai/preview/mobile-shell-v2` and the logged-in `/dashboard` / installed PWA.
+2. Wire real data into Command Center sections (assigned tasks, recent work/drafts, communication threads/contacts) while preserving empty states for new/collaborator users.
+3. Wire the top-header/share action to the existing `InviteShareModal` provider wherever the new shell has a share icon.
 4. Build the 3 pending API routes (`/api/org`, `/api/contacts/search`, `/api/projects/[id]/attach-session`).
 5. Reconcile outside-AI PR #27d.2 (PDF emailing rules) against the newly generated Deliverables UI.
 
