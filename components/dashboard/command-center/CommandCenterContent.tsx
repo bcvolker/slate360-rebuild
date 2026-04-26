@@ -37,7 +37,7 @@ export function CommandCenterContent({ userName, orgName, storageLimitGb, entitl
     entitlements?.canAccessStandaloneDesignStudio ||
     entitlements?.canAccessStandaloneContentStudio,
   );
-  const [projectView, setProjectView] = useState(hasAnyApp ? "Pinned" : "Assigned Tasks");
+  const [projectView, setProjectView] = useState(hasAnyApp ? "Pinned" : "My Work");
   const [recentView, setRecentView] = useState("In-Progress");
   const [communicationsView, setCommunicationsView] = useState("Unread Threads");
 
@@ -77,7 +77,7 @@ export function CommandCenterContent({ userName, orgName, storageLimitGb, entitl
           <QuickAction href="/dashboard" label="Quick Start" detail="Launch any subscribed app" icon={<Rocket className="h-5 w-5" />} primary />
           <QuickAction href="/projects" label="New Project" detail="Create a shared workspace" icon={<Plus className="h-5 w-5" />} />
           <QuickAction href="/slatedrop" label="Open SlateDrop" detail={`${storageLimitGb}GB file hub`} icon={<Files className="h-5 w-5" />} />
-          <QuickAction href="/projects" label="Assigned Tasks" detail="Work assigned to you" icon={<ClipboardCheck className="h-5 w-5" />} />
+          <QuickAction href="/my-work" label="My Work" detail="Tasks, to-dos, and reviews" icon={<ClipboardCheck className="h-5 w-5" />} />
         </div>
       </section>
 
@@ -88,14 +88,14 @@ export function CommandCenterContent({ userName, orgName, storageLimitGb, entitl
             <h2 className="text-lg font-semibold text-slate-900">Projects &amp; Tasks</h2>
           </div>
           <SlateSubtleToggle
-            options={["Pinned", "All", "Assigned Tasks"]}
+            options={["Pinned", "All", "My Work"]}
             active={projectView}
             onChange={setProjectView}
           />
         </div>
         <SlateContainedSection maxHeight="200px">
           <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-8 text-sm text-slate-600 text-center">
-            {projectView === "Assigned Tasks" ? "No assigned tasks yet." : projectView === "Pinned" ? "No pinned projects yet." : "No projects to show yet."}
+            {projectView === "My Work" ? "No tasks, to-dos, or reviews yet." : projectView === "Pinned" ? "No pinned projects yet." : "No projects to show yet."}
           </div>
         </SlateContainedSection>
       </section>
@@ -131,7 +131,7 @@ export function CommandCenterContent({ userName, orgName, storageLimitGb, entitl
               active={communicationsView}
               onChange={setCommunicationsView}
             />
-            <Link href="/coordination" className="hidden rounded-lg border border-slate-300 bg-white px-3 py-1 text-xs font-bold text-blue-700 transition-colors hover:border-blue-600 sm:inline-flex">
+            <Link href="/coordination" className="inline-flex rounded-lg border border-slate-300 bg-white px-3 py-1 text-xs font-bold text-blue-700 transition-colors hover:border-blue-600">
               Open
             </Link>
           </div>

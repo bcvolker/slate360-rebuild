@@ -1,8 +1,68 @@
 # Slate360 — SlateDrop Blueprint
 
-**Last Updated:** 2026-03-04
+**Last Updated:** 2026-04-26
 **Context Maintenance:** Update this file whenever SlateDrop routes, components, API endpoints, folder structure, or file management behavior changes.
 **Cross-reference:** See `FUTURE_FEATURES.md` Phase 3E for SlateDrop wow features and SQL migrations.
+
+---
+
+## 0. Current Direction — App-Centric Mobile File Hub
+
+SlateDrop is no longer treated as a generic desktop file explorer. The current strategy is:
+
+- **SlateDrop is the shared file backbone for every app.** Site Walk, 360 Tours, Design Studio, Content Studio, and future apps write to SlateDrop-backed folders.
+- **The `/slatedrop` button opens a personalized hub.** It should show entitlement-aware app folder cards plus project/site file spaces. Users with only Site Walk see Site Walk-ready folders; when they add 360 Tours, a 360 Tours folder experience appears without changing data models.
+- **Mobile/PWA first.** The phone view must be thumb-optimized for open, back/forward folder navigation, upload, save/download, rename, move, copy, delete, and share by contacts/text/email.
+- **Project/site folders remain canonical.** New folder writes still use `project_folders`; file metadata remains in `slatedrop_uploads`; cross-app search/share should use the `unified_files` bridge.
+- **Do not preserve the old SlateDrop UI if it blocks usability.** Existing hooks/APIs can be reused, but the visual folder experience can be rebuilt from scratch around the same backend.
+
+### Recommended App Folder Model
+
+Every project/site should support app-scoped folders as the user unlocks apps:
+
+```text
+Project or Site
+  /Site Walks
+    /{Walk Date or Session Name}
+      /Photos
+      /Voice Notes
+      /Plans
+      /Markups
+      /Deliverables
+      /Shared / Client Uploads
+  /360 Tours
+    /Panoramas
+    /Scenes
+    /Hotspots
+    /Exports
+  /Design Studio
+    /Models
+    /Drawings
+    /Review Attachments
+    /Exports
+  /Content Studio
+    /Raw Media
+    /Edits
+    /Branded Exports
+```
+
+The exact rows may be physical `project_folders` or virtual grouped views over existing folders. The first mobile UI pass should prioritize a clean, app-centric presentation over exposing raw database folder paths.
+
+### Mobile SlateDrop UX Requirements
+
+- Top: current folder title + back/up action + search/filter.
+- Body: large folder cards and file rows with 44px minimum actions.
+- Bottom sheet/context actions: preview, save/download, rename, move, copy, delete, share, secure send.
+- Share surface: existing contacts picker + email/text/native share where available.
+- Routing: external uploads and received files should land in the right project/app folder based on token context.
+- Small-device navigation: breadcrumbs should collapse into a folder stack/back button, not a desktop path bar.
+
+### Current Implementation Notes
+
+- `/slatedrop` now acts as an app-centric SlateDrop hub and links users into project/site-scoped file spaces.
+- Project-scoped full file browser remains available at `/projects/[projectId]/slatedrop` and `/project-hub/[projectId]/slatedrop`.
+- `lib/site-walk/slatedrop-bridge.ts` already bridges Site Walk captures/PDF exports into `slatedrop_uploads`; older notes that say Site Walk has zero SlateDrop bridge are stale.
+- Remaining gap: build the dedicated Site Walks/session folder presentation and collaborator-scoped file permissions.
 
 ---
 

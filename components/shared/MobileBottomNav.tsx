@@ -17,10 +17,9 @@ import {
   FolderOpen,
   Cloud,
   MessagesSquare,
-  User,
   Footprints,
   FileText,
-  Send,
+  ClipboardCheck,
   MoreHorizontal,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -34,17 +33,17 @@ interface NavItem {
 
 const PLATFORM_NAV: NavItem[] = [
   { label: "Home", href: "/dashboard", icon: Home, matchPrefixes: ["/dashboard"] },
-  { label: "Projects", href: "/projects", icon: FolderOpen, matchPrefixes: ["/projects"] },
+  { label: "My Work", href: "/my-work", icon: ClipboardCheck, matchPrefixes: ["/my-work"] },
   { label: "SlateDrop", href: "/slatedrop", icon: Cloud, matchPrefixes: ["/slatedrop"] },
   { label: "Coordination", href: "/coordination", icon: MessagesSquare, matchPrefixes: ["/coordination"] },
-  { label: "Account", href: "/my-account", icon: User, matchPrefixes: ["/my-account"] },
+  { label: "More", href: "/more", icon: MoreHorizontal, matchPrefixes: ["/more", "/projects", "/my-account", "/settings", "/apps"] },
 ];
 
 const SITE_WALK_NAV: NavItem[] = [
   { label: "Home", href: "/site-walk", icon: Home, matchPrefixes: ["/site-walk$"] },
-  { label: "Walks", href: "/site-walk/walks", icon: Footprints, matchPrefixes: ["/site-walk/walks", "/site-walk/board"] },
-  { label: "Deliverables", href: "/site-walk/deliverables", icon: FileText, matchPrefixes: ["/site-walk/deliverables"] },
-  { label: "Share", href: "/site-walk/share", icon: Send, matchPrefixes: ["/site-walk/share"] },
+  { label: "Capture", href: "/site-walk/capture", icon: Footprints, matchPrefixes: ["/site-walk/capture", "/site-walk/walks", "/site-walk/board"] },
+  { label: "Files", href: "/slatedrop", icon: Cloud, matchPrefixes: ["/slatedrop", "/site-walk/files"] },
+  { label: "Outputs", href: "/site-walk/deliverables", icon: FileText, matchPrefixes: ["/site-walk/deliverables", "/site-walk/present"] },
   { label: "More", href: "/site-walk/more", icon: MoreHorizontal, matchPrefixes: ["/site-walk/more", "/site-walk/plans", "/site-walk/templates", "/site-walk/contacts"] },
 ];
 

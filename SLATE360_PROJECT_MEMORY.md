@@ -197,6 +197,89 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
+### Session Handoff — 2026-04-26 (Mobile Nav + App-Centric SlateDrop Hub + Site Walk Blueprint)
+
+#### What Changed
+- `docs/SITE_WALK_MASTER_ARCHITECTURE.md` — NEW. Saved the external AI Site Walk master blueprint as the forward source of truth for the new build. Confirms the 3 Act Play route-group structure: `/(act-1-setup)`, `/(act-2-inputs)`, `/(act-3-outputs)` under `app/site-walk/`, with clean URLs like `/site-walk/capture`.
+- `components/shared/MobileBottomNav.tsx` — platform PWA bottom nav now aligns to the confirmed shell strategy: Home, My Work, SlateDrop, Coordination, More. Coordination was already present and remains a primary tab. Site Walk future nav is now Home, Capture, Files, Outputs, More.
+- `components/dashboard/command-center/CommandCenterContent.tsx` — replaced `Assigned Tasks` with `My Work`; empty state copy now covers tasks, to-dos, and reviews. Coordination Hub Open action is visible on mobile and desktop.
+- `app/preview/mobile-shell-v2/page.tsx` — preview shell mirrors the new bottom nav and `My Work` quick-action language.
+- `app/(dashboard)/my-work/page.tsx` — NEW. Lightweight authenticated My Work landing page for assigned/created/due-soon work with real empty state and links to Projects/Coordination/Quick Start.
+- `app/(dashboard)/more/page.tsx` — NEW. Authenticated More hub for Projects, SlateDrop, Coordination, My Account, Billing, App Subscriptions, and Operations Console when available.
+- `app/slatedrop/page.tsx` — replaced the old project-scoped empty client with an app-centric SlateDrop hub. It now shows entitlement-aware app folder cards and project/site file spaces linking into `/projects/[projectId]/slatedrop`.
+- `slate360-context/SLATEDROP.md` — updated current direction: SlateDrop is app-centric, mobile-first, entitlement-aware, and can be visually rebuilt around existing backend APIs. Added recommended per-app folder model for Site Walk, 360 Tours, Design Studio, and Content Studio.
+- `slate360-context/DASHBOARD.md` — updated mobile/PWA bottom nav and Quick Action strategy.
+
+#### Strategic Decisions Locked In
+- Fourth quick action is **My Work**, not `Assigned Tasks`.
+- Bottom nav is primary-daily-use only: Home, My Work, SlateDrop, Coordination, More.
+- More packages secondary surfaces so the bottom nav stays clean.
+- SlateDrop should not be constrained by the old visual UI. Reuse APIs/hooks/backends, but the mobile folder UX can be rebuilt around app-centric cards, folder stacks, and bottom-sheet actions.
+- As users add app subscriptions, SlateDrop should reveal app-specific folder experiences without changing the underlying `project_folders` + `slatedrop_uploads` model.
+
+#### What's Broken / Partially Done
+- The new `/slatedrop` hub is a first-pass app-centric landing surface; the underlying full mobile folder browser still needs a redesigned phone-first UI for folder stack navigation, preview, save/download, rename, move, copy, delete, contacts/text/email share, and Secure Send.
+- App-specific SlateDrop folders are documented but not yet auto-provisioned for every app. Existing provisioning still creates broad project folders; next step is physical or virtual `Site Walks`, `360 Tours`, `Design Studio`, `Content Studio` folder groupings.
+- Collaborator file access remains incomplete: current file APIs mostly check org/uploader, not project membership + collaborator permissions.
+- Site Walk route tree is not scaffolded yet. `docs/SITE_WALK_MASTER_ARCHITECTURE.md` is ready for the next build phase, but `/site-walk` is still effectively blank/placeholder after legacy archive.
+- `bash scripts/check-file-size.sh` still fails on 12 pre-existing oversized files not touched by this work.
+
+#### Validation
+- `get_errors` on changed TSX files: no errors.
+- `npm run typecheck`: passed.
+- `npm run build`: passed with existing Sentry/top-level-await and ESLint plugin warnings.
+- `bash scripts/check-file-size.sh`: failed only on the known 12 pre-existing oversized files.
+
+#### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md` — this handoff.
+- `slate360-context/SLATEDROP.md` — app-centric/mobile-first SlateDrop direction and folder model.
+- `slate360-context/DASHBOARD.md` — current mobile nav and `My Work` strategy.
+- `docs/SITE_WALK_MASTER_ARCHITECTURE.md` — new Site Walk source-of-truth blueprint.
+
+#### Next Steps (ordered)
+1. Review `/dashboard`, `/my-work`, `/more`, `/slatedrop`, and `/preview/mobile-shell-v2` on mobile/PWA once deployed.
+2. Design/build the new mobile-first SlateDrop folder browser using existing APIs, not the old visual patterns.
+3. Add app-specific folder provisioning or virtual grouping for Site Walk, 360 Tours, Design Studio, and Content Studio.
+4. Harden SlateDrop APIs for collaborator project-scoped access.
+5. Scaffold the new Site Walk App Router route groups from `docs/SITE_WALK_MASTER_ARCHITECTURE.md` when ready.
+
+---
+
+### Session Handoff — 2026-04-26 (SlateDrop Audit + Shell Action Recommendation)
+
+#### What Changed
+- **SlateDrop architecture audit completed (read-only):** SlateDrop is real and mostly project-scoped. Core data model is `project_folders` + `slatedrop_uploads` + `slate_drop_links` + `unified_files` bridge. Project routes embed `SlateDropClient` with `initialProjectId`; standalone `/slatedrop` currently exists but the client shows a project-scoped empty state unless opened from a project.
+- **Folder system findings:** `project_folders` is canonical. `lib/slatedrop/provisioning.ts` currently creates project system folders like Documents, Drawings, Photos, 360 Tours, RFIs, Submittals, Schedule, Budget, Daily Logs, Reports, Records, Safety, Correspondence, Closeout, Deliverables, Misc. It does **not** yet create a dedicated `Site Walk` / `Walk Sessions` hierarchy.
+- **Storage/upload findings:** `/api/slatedrop/upload-url` reserves uploads with canonical S3 keys `orgs/{namespace}/{folderId}/{timestamp}_{filename}`, enforces storage quota from `getEntitlements()`, supports public upload tokens, and writes pending `slatedrop_uploads`; `/api/slatedrop/complete` activates rows and ensures a `unified_files` bridge row.
+- **Share/intake findings:** Secure Send exists at `/api/slatedrop/secure-send`, request/upload links exist through `project_external_links` and `/api/slatedrop/request-link`, and project audit ZIP export exists. Full audit log/versioning/folder-level permissions are still future work.
+- **Site Walk bridge findings:** `lib/site-walk/slatedrop-bridge.ts` already bridges Site Walk photo/video captures to the project `Photos` folder and deliverable PDFs to `Deliverables`; `site_walk_items.file_id` points back to `slatedrop_uploads`. `/api/slatedrop/delete` blocks deleting files linked to Site Walk captures. Remaining gap is information architecture: no per-session folder/subfolder view and no “Site Walks / Field Reports” virtual project folder.
+- **Entitlement findings:** Tier entitlements and modular subscriptions exist (`lib/entitlements.ts`, `lib/entitlements-modular.ts`, `lib/server/org-feature-flags.ts`). SlateDrop is treated as a backbone/platform feature; collaborators should derive file access from project membership, but current file APIs mostly check org/uploader and do not yet implement collaborator project-scoped permissions.
+- **4th Quick Action recommendation:** Replace `Assigned Tasks` with **My Work** (or **Tasks & To-Dos** if more explicit). It should aggregate assigned-to-me tasks, tasks I created/assigned, self to-dos, due-soon approvals/reviews, and project follow-ups. This avoids bias toward only recipients while still giving every user one smart work queue.
+- **Coordination Hub recommendation:** Keep it globally accessible on desktop and PWA, but do not make it the 4th quick action unless the user wants communication to outrank work execution. It should have a clear Open action in mobile and desktop sections, and later a topbar/bottom-nav affordance if it becomes daily-use.
+
+#### What's Broken / Partially Done
+- SlateDrop docs are stale in places: `slate360-context/SLATEDROP.md` still says Site Walk integration is missing, but code now has `lib/site-walk/slatedrop-bridge.ts` and Site Walk item/PDF bridge helpers.
+- SlateDrop project folder provisioning lacks a dedicated `Site Walk` parent with per-walk/session subfolders (`Photos`, `Voice Notes`, `Plans`, `Markup`, `Deliverables`, `Shared`).
+- `SlateDropClient` is effectively project-scoped for Phase 1; standalone `/slatedrop` is still a product-pillar route but needs a clear “choose a project/site” flow or org-level root strategy.
+- Collaborator file access scoping is incomplete: file APIs are mostly org/uploader scoped, not per-project membership/role scoped.
+- `app/api/slatedrop/zip/route.ts` uses `const namespace = orgId ?? user.id`, while newer code uses `resolveNamespace(orgId, user.id)`; verify/fix before relying on ZIP exports.
+- `app/api/slatedrop/move/route.ts` requires `newS3KeyPrefix` but ignores it and recomputes the destination key. Client still sends `orgs/default/...`; cleanup recommended.
+- SlateDrop UI still uses many dark/zinc styles and may need a light-shell pass consistent with the new app shell.
+- Current Command Center Quick Action still says `Assigned Tasks`; update it to `My Work` / `Tasks & To-Dos` if implementing the recommendation.
+
+#### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md` — updated latest handoff with SlateDrop audit findings and quick-action recommendation.
+
+#### Next Steps (ordered)
+1. Decide label for the 4th Quick Action: recommended **My Work**; fallback **Tasks & To-Dos**.
+2. Update `components/dashboard/command-center/CommandCenterContent.tsx` and `app/preview/mobile-shell-v2/page.tsx` to replace `Assigned Tasks`, and make Coordination Hub clearly openable on mobile as well as desktop.
+3. Update `slate360-context/SLATEDROP.md` to reflect the real current bridge state and the remaining “Site Walks virtual folder/session hierarchy” gap.
+4. Add/adjust SlateDrop folder conventions: project root → `Site Walks` → `{walk/session}` → Photos, Voice Notes, Plans, Markups, Deliverables, Shared/Client Uploads.
+5. Harden SlateDrop APIs for collaborator access by checking project membership for folder/file operations.
+6. Normalize ZIP/move route namespace handling and remove ignored `newS3KeyPrefix` contract.
+
+---
+
 ### Session Handoff — 2026-04-26 (Preview Shell Updated + Home Viewer Expand Fixed)
 
 #### What Changed

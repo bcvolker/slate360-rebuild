@@ -5,7 +5,6 @@ import {
   Command,
   Bug,
   ChevronDown,
-  ClipboardList,
   FileText,
   Files,
   FolderOpen,
@@ -16,7 +15,6 @@ import {
   Search,
   Share2,
   Sparkles,
-  User,
 } from "lucide-react";
 
 const apps = [
@@ -30,7 +28,7 @@ const quickActions = [
   { label: "Quick Start", detail: "Launch any subscribed app", icon: Rocket, primary: true },
   { label: "New Project", detail: "Create a shared workspace", icon: Plus },
   { label: "Open SlateDrop", detail: "Files, shares, uploads", icon: Files },
-  { label: "Assigned Tasks", detail: "Work assigned to you", icon: ClipboardList },
+  { label: "My Work", detail: "Tasks, to-dos, reviews", icon: ClipboardCheck },
 ];
 
 const projects = [
@@ -119,7 +117,7 @@ export default function MobileShellV2() {
             </div>
           </section>
 
-          <ContainedHub title="Projects & Tasks" tabs={["Pinned", "All", "Assigned Tasks"]} items={projects} icon={FolderOpen} />
+          <ContainedHub title="Projects & Tasks" tabs={["Pinned", "All", "My Work"]} items={projects} icon={FolderOpen} />
           <ContainedHub title="Recent Work & Drafts" tabs={["In-Progress", "Completed"]} items={recentWork} icon={FileText} />
           <ContainedHub title="Coordination Hub" tabs={["Unread Threads", "Recent Contacts"]} items={threads} icon={MessageSquare} cta="Open" />
         </main>
@@ -127,10 +125,10 @@ export default function MobileShellV2() {
         <nav className="absolute inset-x-0 bottom-0 flex h-[80px] items-center justify-between border-t border-slate-800 bg-slate-900/95 px-6 text-slate-400 backdrop-blur-xl">
           {[
             { label: "Home", icon: Command, active: true },
-            { label: "Projects", icon: FolderOpen },
-            { label: "Tasks", icon: ClipboardCheck },
-            { label: "Files", icon: Files },
-            { label: "Account", icon: User },
+            { label: "My Work", icon: ClipboardCheck },
+            { label: "SlateDrop", icon: Files },
+            { label: "Coordination", icon: MessageSquare },
+            { label: "More", icon: Plus },
           ].map((item) => (
             <button key={item.label} className={`flex h-full min-w-[44px] flex-col items-center justify-center gap-1 text-[10px] font-semibold ${item.active ? "text-blue-400" : "hover:text-white"}`}>
               <item.icon className="h-5 w-5" />

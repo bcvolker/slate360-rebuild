@@ -1,6 +1,6 @@
 # Slate360 — Dashboard Blueprint
 
-**Last Updated:** 2026-03-04
+**Last Updated:** 2026-04-26
 **Context Maintenance:** Update this file whenever dashboard routes, components, widgets, or layout logic changes.
 **Cross-reference:** See `FUTURE_FEATURES.md` for the full phased build roadmap (Phases 0–7).
 
@@ -27,6 +27,29 @@
 ---
 
 ## 2. Layout & Navigation
+
+### Mobile/PWA Bottom Navigation (Current Direction)
+
+`components/shared/MobileBottomNav.tsx` is the primary phone/PWA tab bar. The platform nav is intentionally app-shell focused:
+
+| Tab | Route | Purpose |
+|---|---|---|
+| Home | `/dashboard` | Command Center / app launcher |
+| My Work | `/my-work` | Tasks, to-dos, assigned/created work, reviews |
+| SlateDrop | `/slatedrop` | App-aware file hub and project/site file spaces |
+| Coordination | `/coordination` | Threads, contacts, notifications, collaboration |
+| More | `/more` | Projects, account, billing, subscriptions, secondary tools |
+
+Site Walk routes will use a future app-specific nav aligned to the 3 Act Play: Home, Capture, Files, Outputs, More.
+
+### Command Center Quick Actions (Current Direction)
+
+- Quick Start
+- New Project
+- Open SlateDrop
+- My Work
+
+`My Work` replaces the narrower `Assigned Tasks` label because owners/admins often assign and review work rather than only receive it.
 
 ### Sidebar Tabs (Current)
 | Tab | Route | Status |
