@@ -121,8 +121,8 @@
   --accent: #F1F5F9;
   --accent-foreground: #0F172A;
   --destructive: #DC2626;           /* red-600 */
-  --border: #E2E8F0;                /* slate-200 */
-  --input: #E2E8F0;
+  --border: #CBD5E1;                /* slate-300 — field-tested sunlight border */
+  --input: #CBD5E1;
 
   /* ── Brand (white-label override via --brand-primary on <body>) ── */
   --primary: var(--brand-primary, #3B82F6);
@@ -163,8 +163,8 @@
   --app-page: var(--background);
   --app-card: var(--card);
   --app-card-hover: #F8FAFC;                  /* slate-50 — hover wash on white card */
-  --app-border: #E2E8F0;                      /* slate-200 — visible hairline on white */
-  --app-border-strong: #CBD5E1;               /* slate-300 — used on hover */
+  --app-border: #CBD5E1;                      /* slate-300 — field-tested card/input border */
+  --app-border-strong: #94A3B8;               /* slate-400 — used on hover */
   --app-glass: rgba(11, 15, 21, 0.80);
   --app-backdrop-blur: 20px;
   --app-glow-amber: 0 0 12px rgba(59, 130, 246, 0.14);
@@ -391,6 +391,7 @@
    ───────────────────────────────────────────────────────────────── */
 @utility form-field {
   width: 100%;
+  min-height: 44px;
   padding: 0.5rem 0.75rem;
   border-radius: 0.5rem;
   background-color: #FFFFFF;
@@ -561,7 +562,7 @@
 }
 
 @utility auth-input {
-  @apply w-full rounded-xl border px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 transition-all focus:outline-none focus:ring-2;
+  @apply w-full min-h-[44px] rounded-xl border px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 transition-all focus:outline-none focus:ring-2;
   border-color: #CBD5E1; /* slate-300 */
   background: #FFFFFF;
   --tw-ring-color: rgba(59, 130, 246, 0.32);

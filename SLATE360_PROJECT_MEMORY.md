@@ -197,20 +197,18 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-25 (Backend Ready for "3-Act Play" UI + Mobile Criticisms Added)
+### Session Handoff — 2026-04-26 (Global App Shell Styling Locked + Quick Action Recommendation)
 
 #### What Changed
-- **Architecture Validation:** Verified that the external AI's "3 Act Play" architecture perfectly aligns with our newly laid backend foundation (Ad-hoc walk sessions, Unified Roster API, Offline Queue).
-- **Mobile UI Constraints Provided:** Formulated a set of field-centric constraints for the external AI to apply to the React components:
-    1. High contrast (WCAG AA) / 44x44 touch targets for sunlight readability.
-    2. Camera/Voice-First inputs (prominent photo buttons, large textareas).
-    3. Explicit visual states for the offline Sync Queue (Pending/Syncing/Synced).
-    4. Inline guest creation for Ad-Hoc walk routing.
-    5. Lightweight DOM (avoid heavy framer-motion) for battery/thermal efficiency in the field.
-- **Code Fixes Shipped & Live:** 
-    - `projects.location` converted from `jsonb` to `text` via new migration `20260425000000` (live on Supabase).
-    - `components/providers/ThemeProvider.tsx` globally reverted to "dark" mode to fix the "washed out" light mode UI bug.
-    - `components/marketing-homepage.tsx` mobile header padding and logo alignment fixed using standard tailwind containers (`max-w-7xl`).
+- **Executed external AI prompt directives for Phase 1 CSS/theming:**
+  - `components/ui/input.tsx` — removed `bg-transparent` + `dark:bg-input/30`; base inputs now force `bg-white text-slate-900 border-slate-300`, cobalt focus ring, and 44px min touch height.
+  - `components/ui/textarea.tsx` — same explicit field-tested styling; default min height now supports voice-dictation field entry.
+  - `app/globals.css` — global border/input/app-border tokens moved to slate-300; `form-field` and `auth-input` now have 44px min height.
+  - `components/providers/ThemeProvider.tsx` — default theme restored to `light`; no longer clears persisted light mode. Dark chrome is handled with isolated sidebar/header styling.
+  - `components/dashboard/AppShell.tsx` — authenticated shell canvas forced to `bg-slate-50 text-slate-900`.
+  - `components/dashboard/command-center/DashboardSidebar.tsx` — sidebar restored to dark `bg-slate-900` and now uses the dark-background logo component (`slate360-logo-light-v3.svg`).
+- **Existing audit facts still apply:** sharing is already available via `InviteShareModal`, `navigator.share`, SMS links, QR codes, and invite APIs. `/communications` route does not exist yet; internal calendar CRUD exists, but external iOS/Android/Google calendar sync is new work.
+- **4th Quick Action recommendation:** best universal choice is **Search Everything / Command Center** (global search / command palette) because it serves all apps, collaborators, projects, contacts, files, deliverables, and support workflows without privileging one product. Secondary option: **Create / Request Deliverable** for converting work into shareable outputs, but it is more app/tier-specific.
 
 #### Live DB Status
 All five core admin-layer migrations are **Live** and tracked on `hadnfcenpcfaeclczsmm`:
@@ -224,15 +222,18 @@ All five core admin-layer migrations are **Live** and tracked on `hadnfcenpcfaec
 - **`/site-walk` is a blank slate:** Reverting legacy code to `app/site-walk/_legacy_v1/` means the main route intentionally 404s. It is ready for the external AI's new code.
 - **3 API routes are pending:** We still need to build `GET/PATCH /api/org` (global settings), `GET /api/contacts/search` (typeahead), and `POST /api/projects/[id]/attach-session` (ad-hoc closure).
 - **Stale PR:** The outside-AI task at `prompts/CURRENT.md` (PR #27d.2 — PDF email) targets an archived `_legacy_v1` file. **Do not apply PR #27d.2** until reconciled with the new UI.
+- **App Shell visual architecture not fully rebuilt yet:** CSS/theming and sidebar logo are fixed; the new ContainedSection-based App Shell components still need to be generated/implemented.
+- **Validation note:** `npm run typecheck` passes after clearing stale `.next` route types. `bash scripts/check-file-size.sh` still fails on 12 pre-existing oversized files not touched in this task.
 
 #### Context Files Updated
 - `SLATE360_PROJECT_MEMORY.md` (This handoff).
 
 #### Next Steps (ordered)
-1. **Receive the "Field-Tested" App Shell (Act 1)** from Claude.ai and implement it into `app/site-walk/layout.tsx` and `app/site-walk/page.tsx` (splitting the single-file mockup).
-2. **Re-evaluate Global Theme:** The new UI uses explicit light-mode tokens (`bg-slate-50`, `text-slate-900`) that fix the prior wash-out bug. We will likely flip `ThemeProvider` back to light mode, or scope the light mode directly to the `app/site-walk/` layout.
-3. **Build the 3 pending API routes** (`/api/org`, `/api/contacts/search`, `/api/projects/[id]/attach-session`).
-4. **Reconcile outside-AI PR #27d.2** (PDF emailing rules) against the newly generated Deliverables UI.
+1. Generate/implement the Slate360 Global App Shell around these universal hubs: Projects & Tasks, Recent Work & Drafts, Communications. Do not prioritize Site Walk in the global shell; gate app cards by subscription and default collaborators to Assigned Tasks.
+2. Wire the top-header/share action to the existing `InviteShareModal` provider rather than creating new share code.
+3. Use **Search Everything / Command Center** as the recommended 4th Quick Action unless UX chooses the secondary Deliverable option.
+4. Build the 3 pending API routes (`/api/org`, `/api/contacts/search`, `/api/projects/[id]/attach-session`).
+5. Reconcile outside-AI PR #27d.2 (PDF emailing rules) against the newly generated Deliverables UI.
 
 ---
 

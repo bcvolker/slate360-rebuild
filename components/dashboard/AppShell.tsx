@@ -102,7 +102,7 @@ export function AppShell({
           <GlobalInviteModal data={inviteShareData} />
         </div>
       ) : (
-      <div className="min-h-screen w-full max-w-full bg-background overflow-x-hidden relative">
+      <div className="min-h-screen w-full max-w-full bg-slate-50 text-slate-900 overflow-x-hidden relative">
         <div className="hidden lg:block">
           <DashboardSidebar
             isOpen={sidebarOpen}
