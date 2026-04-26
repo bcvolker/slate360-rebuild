@@ -18,25 +18,28 @@ export default function manifest(): MetadataRoute.Manifest {
     categories: ["business", "productivity"],
     icons: [
       {
-        src: "/uploads/slate360-favicon-v2.svg",
-        sizes: "any",
-        type: "image/svg+xml",
-      },
-      {
         src: "/uploads/icon-192.png",
         sizes: "192x192",
         type: "image/png",
+        purpose: "any",
       },
       {
         src: "/uploads/icon-512.png",
         sizes: "512x512",
         type: "image/png",
+        purpose: "any",
       },
       {
         src: "/uploads/icon-512-maskable.png",
         sizes: "512x512",
         type: "image/png",
         purpose: "maskable",
+      },
+      {
+        src: "/uploads/slate360-favicon-v2.svg",
+        sizes: "any",
+        type: "image/svg+xml",
+        purpose: "any",
       },
     ],
     screenshots: [

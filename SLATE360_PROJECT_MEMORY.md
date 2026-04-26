@@ -197,6 +197,45 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
+### Session Handoff — 2026-04-26 (PWA Install Icon Branding Fix)
+
+#### What Changed
+- `app/manifest.ts` — reordered PWA icons so the PNG install assets are first and the SVG favicon is only a fallback. The manifest now prioritizes `/uploads/icon-192.png`, `/uploads/icon-512.png`, and `/uploads/icon-512-maskable.png`.
+- `app/layout.tsx` — updated Next metadata icons so browser and Apple home-screen discovery see the correct PNG icons before the SVG fallback.
+- `app/icon.svg`, `public/icon-v2.svg`, `public/uploads/slate360-favicon-v2.svg`, and `public/uploads/favicon.svg` — replaced the stale generic letter-S SVG artwork with the updated geometric Slate360 mark on the dark background.
+- `ops/bug-registry.json` — added `BUG-035` for the stale PWA install icon issue and marked it fixed.
+- `ONGOING_ISSUES.md` — added `S360-038` as a critical PWA branding issue in testing.
+- `slate360-context/DASHBOARD.md` — documented the PWA icon contract so future branding updates keep manifest, metadata, app icon, favicon SVGs, and PNG install icons aligned.
+
+#### Root Cause
+- The correct PNG PWA icons already existed, but `app/manifest.ts` listed stale `/uploads/slate360-favicon-v2.svg` first.
+- `app/layout.tsx`, `app/icon.svg`, and `/icon-v2.svg` still exposed stale generic-S SVG fallbacks, so some browsers/OSes could select the wrong install/home-screen icon.
+
+#### What's Broken / Partially Done
+- Existing installed PWAs may keep the old icon because iOS/Android cache home-screen icons aggressively. After deployment, remove the old Slate360 home-screen app and add it again to force the refreshed icon.
+- Non-active legacy uploaded icon assets still exist for archive/design-reference purposes; active app/manifest/favicon paths have been corrected.
+
+#### Validation
+- `get_errors` on changed config/docs JSON files: no errors.
+- `npm run typecheck`: passed.
+- `npm run build`: passed with existing warnings only (Sentry/top-level-await, cache serialization, missing Next ESLint plugin).
+- `bash scripts/check-file-size.sh`: failed only on 12 known pre-existing oversized files; this PWA icon fix did not add or enlarge app code files.
+- Grep validation confirmed the old generic-S SVG path/fav-mark pattern is no longer present in active app/public icon files.
+
+#### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md` — this handoff.
+- `slate360-context/DASHBOARD.md` — PWA icon asset alignment contract.
+- `ONGOING_ISSUES.md` — critical PWA branding issue status.
+- `ops/bug-registry.json` — structured bug record.
+
+#### Next Steps (ordered)
+1. Commit and push the PWA icon fix.
+2. Wait for Vercel production deploy from `main`.
+3. On a real device, delete the old installed Slate360 PWA and add it to the home screen again.
+4. Confirm the installed icon shows the geometric Slate360 S mark on the dark background.
+
+---
+
 ### Session Handoff — 2026-04-26 (SlateDrop DnD + Ops/My Account/Homepage)
 
 #### What Changed

@@ -1,6 +1,6 @@
 {
   "$schema": "./schemas/bug-registry.schema.json",
-  "updatedAt": "2026-04-18",
+  "updatedAt": "2026-04-26",
   "source": "slate360-context/ONGOING_ISSUES.md",
   "bugs": [
     {
@@ -232,6 +232,20 @@
         "Shared public shells import `components/shared/SlateLogo.tsx` instead of repeating raw logo `<img>` tags",
         "`npm run typecheck` passes after the token migration",
         "Production `main` deployment shows the same public shell styling as the branch build"
+      ]
+    },
+    {
+      "id": "BUG-035",
+      "title": "PWA install icon used stale generic S favicon",
+      "module": "pwa/branding",
+      "severity": "critical",
+      "status": "fixed",
+      "rootCause": "The manifest listed `/uploads/slate360-favicon-v2.svg` first and app metadata also referenced `/icon-v2.svg`; both SVGs still contained the old generic letter S mark while the PNG PWA icons had the updated geometric Slate360 mark.",
+      "verification": [
+        "`app/manifest.ts` lists the correct PNG PWA icons before the SVG fallback",
+        "`app/layout.tsx` icon metadata includes `/uploads/icon-192.png` and `/uploads/icon-512.png` before `/icon-v2.svg`",
+        "`public/icon-v2.svg`, `app/icon.svg`, `public/uploads/slate360-favicon-v2.svg`, and `public/uploads/favicon.svg` contain the updated geometric Slate360 mark",
+        "After deployment, remove the old home-screen install and add Slate360 again to verify the OS uses the updated icon"
       ]
     }
   ]

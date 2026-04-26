@@ -77,6 +77,7 @@ Future unread counts should be computed from inbox rows and surfaced on both des
 `components/shared/MobileTopBar.tsx` is the primary phone/PWA chrome above authenticated pages.
 
 - Logo uses the cobalt Version 1 icon asset, not the old white/orange mark.
+- PWA install icons must use the geometric Slate360 mark on `#0B0F15`. Keep `app/manifest.ts`, `app/layout.tsx`, `app/icon.svg`, `/icon-v2.svg`, `/uploads/slate360-favicon-v2.svg`, `/uploads/favicon.svg`, and `/uploads/icon-*.png` aligned; do not reintroduce the old generic letter-S favicon.
 - The label defaults to `Slate360` and should show the resolved org name when available; avoid generic `Workspace` copy.
 - Feedback is positioned as `Version 1 Feedback` and uses a portal-backed modal so it renders above the shell.
 - The notification bell routes to `/coordination/inbox`; account/profile actions remain in the avatar menu.

@@ -31,9 +31,16 @@ export const metadata: Metadata = {
     telephone: false,
   },
   icons: {
-    icon: [{ url: "/icon-v2.svg", type: "image/svg+xml" }],
+    icon: [
+      { url: "/uploads/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/uploads/icon-512.png", sizes: "512x512", type: "image/png" },
+      { url: "/icon-v2.svg", type: "image/svg+xml" },
+    ],
     shortcut: "/icon-v2.svg",
-    apple: [{ url: "/uploads/icon-192.png", sizes: "192x192" }],
+    apple: [
+      { url: "/uploads/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/uploads/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
   },
 };
 
