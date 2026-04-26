@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { FloatingToast } from "@/components/shared/FloatingToast";
 import { useBetaUsers } from "@/lib/hooks/useBetaUsers";
 import type { BetaUser } from "@/lib/hooks/useBetaUsers";
+import { OperationsConsoleNav } from "@/components/dashboard/operations-console/OperationsConsoleNav";
 
 type Props = {
   ownerEmail: string;
@@ -45,7 +46,7 @@ export default function OperationsConsoleClient({ ownerEmail }: Props) {
   }
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6 p-6">
+    <div className="mx-auto max-w-6xl space-y-6 p-6">
       {toast && (
         <FloatingToast
           message={toast.message}
@@ -65,6 +66,8 @@ export default function OperationsConsoleClient({ ownerEmail }: Props) {
           <p className="text-xs text-muted-foreground">Version 1 launch access &middot; {ownerEmail}</p>
         </div>
       </div>
+
+      <OperationsConsoleNav active="/operations-console" />
 
       {/* Summary cards */}
       <div className="grid grid-cols-3 gap-4">

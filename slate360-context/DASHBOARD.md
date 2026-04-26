@@ -42,6 +42,17 @@
 
 Site Walk routes will use a future app-specific nav aligned to the 3 Act Play: Home, Capture, Files, Outputs, More.
 
+### Coordination Hub Direction
+
+The notification bell must target the **Communication Inbox** at `/coordination/inbox`, not generic account settings.
+
+Current Coordination sections:
+- `/coordination/inbox` — bell destination for messages, received files, stakeholder responses, feedback replies, and unread work.
+- `/coordination/contacts` — global + project-scoped contact/stakeholder management for Site Walk, SlateDrop sends, and bulk outreach.
+- `/coordination/calendar` — calendar/schedule-assistant planning for iOS/Android calendar sync and higher-tier Site Walk scheduling.
+
+Future unread counts should be computed from inbox rows and surfaced on both desktop and mobile bell icons.
+
 ### Mobile/PWA Top Bar (Current Direction)
 
 `components/shared/MobileTopBar.tsx` is the primary phone/PWA chrome above authenticated pages.
@@ -49,7 +60,7 @@ Site Walk routes will use a future app-specific nav aligned to the 3 Act Play: H
 - Logo uses the cobalt Version 1 icon asset, not the old white/orange mark.
 - The label defaults to `Slate360` and should show the resolved org name when available; avoid generic `Workspace` copy.
 - Feedback is positioned as `Version 1 Feedback` and uses a portal-backed modal so it renders above the shell.
-- The notification bell routes to `/coordination`; account/profile actions remain in the avatar menu.
+- The notification bell routes to `/coordination/inbox`; account/profile actions remain in the avatar menu.
 - Keep tap targets at least 44px and avoid nested interactive elements in mobile shell controls.
 
 ### Command Center Quick Actions (Current Direction)

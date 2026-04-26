@@ -107,13 +107,13 @@ export function AppsGrid({ entitlements: _entitlements }: AppsGridProps) {
           Synced
         </span>
       </div>
-      <div className={`grid gap-3 ${cols}`}>
+      <div className={`grid items-stretch gap-3 ${cols}`}>
         {visible.map((app) => {
           const Icon = app.icon;
           const hasAccess = _entitlements?.[app.entitlement] ?? false;
           const card = (
             <div
-              className={`surface-raised-interactive group relative flex min-h-[112px] flex-col items-start gap-3 p-4 ${hasAccess ? "" : "opacity-60"}`}
+              className={`surface-raised-interactive group relative flex h-full min-h-[132px] flex-col items-start gap-3 p-4 ${hasAccess ? "" : "opacity-60"}`}
             >
               {!hasAccess && (
                 <span className="absolute right-3 top-3 rounded-full border border-slate-300 bg-slate-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-600">
@@ -143,11 +143,12 @@ export function AppsGrid({ entitlements: _entitlements }: AppsGridProps) {
             <Link
               key={app.key}
               href={app.href}
+              className="block h-full"
             >
               {card}
             </Link>
           ) : (
-            <div key={app.key} aria-disabled="true">
+            <div key={app.key} aria-disabled="true" className="h-full">
               {card}
             </div>
           );

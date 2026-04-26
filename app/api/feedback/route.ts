@@ -12,7 +12,27 @@ const FeedbackSchema = z.object({
   userAgent: z.string().max(500).optional().default(""),
   replayUrl: z.string().max(500).optional().default(""),
   appArea: z.string().max(100).optional().default(""),
+  attachments: z.array(z.object({
+    name: z.string().max(200),
+    type: z.string().max(100),
+    size: z.number().int().nonnegative().max(2_000_000),
+    dataUrl: z.string().max(3_000_000),
+  })).max(3).optional().default([]),
 });
+
+const typeMap: Record<z.infer<typeof FeedbackSchema>["category"], string> = {
+  bug: "bug",
+  suggestion: "feature",
+  praise: "other",
+  other: "other",
+};
+
+const severityMap: Record<string, string> = {
+  critical: "blocker",
+  high: "high",
+  medium: "medium",
+  low: "low",
+};
 
 export async function POST(req: NextRequest) {
   return withAuth(req, async ({ user, admin, orgId }) => {
@@ -28,19 +48,19 @@ export async function POST(req: NextRequest) {
       return badRequest(parsed.error.issues[0]?.message ?? "Invalid request");
     }
 
-    const { category, title, description, severity, pageUrl, userAgent, replayUrl, appArea } = parsed.data;
+    const { category, title, description, severity, pageUrl, userAgent, replayUrl, appArea, attachments } = parsed.data;
 
     const { error } = await admin.from("beta_feedback").insert({
       user_id: user.id,
       org_id: orgId,
-      type: category,
+      type: typeMap[category],
       title,
       description,
-      severity: severity ?? null,
+      severity: severity ? severityMap[severity] : null,
       app_area: appArea || null,
       page_url: pageUrl || null,
       user_agent: userAgent || null,
-      console_errors: replayUrl ? { replayUrl } : null,
+      console_errors: replayUrl || attachments.length > 0 ? { replayUrl: replayUrl || null, attachments } : null,
       status: "new",
     });
 

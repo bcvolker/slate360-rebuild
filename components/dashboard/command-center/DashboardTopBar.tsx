@@ -74,10 +74,10 @@ export function DashboardTopBar({
                 className="relative text-slate-700 hover:bg-slate-100 hover:text-foreground transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt/50 focus-visible:ring-offset-1 focus-visible:ring-offset-white"
                 asChild
               >
-                <a href="/my-account?tab=notifications">
+                <Link href="/coordination/inbox">
                   <Bell className="h-5 w-5" />
                   <span className="sr-only">Notifications</span>
-                </a>
+                </Link>
               </Button>
             </TooltipTrigger>
             <TooltipContent>

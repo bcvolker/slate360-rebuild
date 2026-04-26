@@ -112,8 +112,8 @@ export function MobileTopBar({
           )}
 
           <Link
-            href="/coordination"
-            aria-label="Notifications and coordination hub"
+            href="/coordination/inbox"
+            aria-label="Notifications and communication inbox"
             className="h-9 w-9 flex items-center justify-center rounded-lg text-header-muted hover:text-cobalt hover:bg-header-hover transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt/50 focus-visible:ring-offset-1 focus-visible:ring-offset-header-bg"
           >
             <Bell className="h-[18px] w-[18px]" />

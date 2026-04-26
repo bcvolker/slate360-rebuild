@@ -197,6 +197,63 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
+### Session Handoff — 2026-04-26 (Coordination Inbox + Ops Console + Site Walk V1 Plan)
+
+#### What Changed
+- `components/shared/MobileTopBar.tsx` and `components/dashboard/command-center/DashboardTopBar.tsx` — notification bell now routes to `/coordination/inbox`, the specific Communication Inbox destination inside Coordination Hub.
+- `app/coordination/page.tsx` — redirects to `/coordination/inbox` so generic Coordination visits land in the inbox.
+- `components/coordination/CoordinationHubShell.tsx` — NEW shared shell for Coordination sections.
+- `app/coordination/inbox/page.tsx` — NEW Communication Inbox scaffold for notifications, received files, stakeholder responses, messages, and feedback replies.
+- `app/coordination/contacts/page.tsx` — NEW contact management scaffold for global contacts and project stakeholder groups.
+- `app/coordination/calendar/page.tsx` — NEW calendar/schedule assistant scaffold for iOS/Android calendar sync strategy and higher-tier Site Walk scheduling.
+- `components/dashboard/operations-console/OperationsConsoleNav.tsx` — NEW Operations Console section map: Access Queue, Feedback Inbox, Users & Orgs, Revenue, Product Health, Systems.
+- `components/dashboard/OperationsConsoleClient.tsx` — added Operations Console navigation above the existing Version 1 access queue.
+- `app/(dashboard)/operations-console/feedback/page.tsx` — NEW owner-only Feedback Inbox reading `beta_feedback`, including attachments/session context where present.
+- `app/(dashboard)/operations-console/[section]/page.tsx` — NEW placeholder destinations for Users & Orgs, Revenue, Product Health, and Systems so Operations Console nav links are not dead.
+- `components/shared/BetaFeedbackModal.tsx` and `app/api/feedback/route.ts` — feedback modal now accepts up to 3 small attachments and stores them in the feedback record; API maps Version 1 feedback categories/severity to current DB enum values.
+- `components/dashboard/command-center/AppsGrid.tsx` — app cards now stretch equally so Content Studio no longer appears taller than the other Your Apps cards.
+- `app/slatedrop/[...section]/page.tsx` — SlateDrop folder action controls now link to action pages and show action assistant panels instead of terminal/no-op buttons.
+- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — NEW detailed 3 Act Play workflow/UI plan covering setup, contacts, Google location, capture, markup, classifications, notes, keyboard behavior, autosave, deliverables, pricing, and Coordination/SlateDrop ties.
+- Supabase cleanup — deleted old test project `Test Walk` after verifying it was the only current project row and clearly test data; follow-up project query returned `[]`.
+
+#### Strategic Decisions / Corrections
+- Notification bell means Communication Inbox, not My Account and not a generic Coordination landing page.
+- Coordination Hub V1 should be Inbox + Contacts + Calendar, with inbox powering unread bell state.
+- Operations Console should become the business control center: access, feedback/support, users/orgs, revenue, product health, and systems.
+- Old test projects can be removed; removal is possible through project delete cleanup/API or admin cleanup when the target is explicit. Do not delete ambiguous production data.
+- Your Apps and Quick Tools can have different visual rhythm by section, but cards within each section should be equal height and consistent.
+
+#### What's Broken / Partially Done
+- Coordination pages are scaffolds; inbox/contact/calendar storage tables and live unread counts still need implementation.
+- Operations Feedback Inbox reads feedback, but owner replies are not yet written back into a user-facing Coordination Inbox thread.
+- Feedback attachments are stored inline in feedback JSON for small Version 1 uploads; long-term storage should move them to SlateDrop/S3 with signed URLs.
+- SlateDrop action assistants define workflows and avoid terminal buttons, but real mutations (upload, create folder, share, send, receive, archive, move) still need API wiring.
+- Site Walk V1 plan is documented, not yet built into the new route-group structure.
+
+#### Validation
+- `get_errors` on changed files: no errors.
+- `npm run typecheck`: passed.
+- `npm run build`: passed with existing warnings only (Sentry/top-level-await and ESLint plugin warnings).
+- `bash scripts/check-file-size.sh`: failed on 12 pre-existing oversized files; no new/modified production file exceeded 300 lines.
+- Static terminal-control scan found only one obvious `href="#"` in preview-only `app/preview/light-theme/page.tsx`.
+
+#### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md` — this handoff.
+- `slate360-context/DASHBOARD.md` — Coordination inbox destination and sections.
+- `slate360-context/SLATEDROP.md` — SlateDrop action assistant behavior.
+- `docs/site-walk/SITE_WALK_BUILD_FILE.md` — references new V1 3 Act workflow plan.
+- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — new plan.
+
+#### Next Steps (ordered)
+1. Finish build validation, commit, and push.
+2. Wire Coordination Inbox persistence, unread counts, and notification bell badge state.
+3. Build Operations Console reply flow: owner responds to feedback → user receives message in `/coordination/inbox`.
+4. Move feedback attachments from inline JSON to SlateDrop/S3 signed file storage.
+5. Wire SlateDrop action assistants to real `project_folders`, upload, share, and send APIs.
+6. Start Site Walk V1 build from `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` using the 3 Act route-group structure.
+
+---
+
 ### Session Handoff — 2026-04-26 (Version 1 Mobile Shell + SlateDrop Actions)
 
 #### What Changed

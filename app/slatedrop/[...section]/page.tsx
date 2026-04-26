@@ -54,14 +54,16 @@ export default async function SlateDropSectionPage({ params }: { params: Promise
 
       <section className="rounded-3xl border border-slate-300 bg-white p-4 shadow-sm">
         <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
-          <FolderAction icon={Upload} label="Upload" />
-          <FolderAction icon={Download} label="Save" />
-          <FolderAction icon={Share2} label="Share" />
-          <FolderAction icon={Mail} label="Send" />
-          <FolderAction icon={Pencil} label="Rename" />
-          <FolderAction icon={MoreHorizontal} label="More" />
+          <FolderAction href="/slatedrop/upload" icon={Upload} label="Upload" />
+          <FolderAction href="/slatedrop/save" icon={Download} label="Save" />
+          <FolderAction href="/slatedrop/share" icon={Share2} label="Share" />
+          <FolderAction href="/slatedrop/send" icon={Mail} label="Send" />
+          <FolderAction href="/slatedrop/new-folder" icon={Pencil} label="New folder" />
+          <FolderAction href="/slatedrop/move" icon={MoreHorizontal} label="More" />
         </div>
       </section>
+
+      {action && <ActionAssistant action={root} title={title} />}
 
       <section className="rounded-3xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center">
         <Folder className="mx-auto h-8 w-8 text-blue-700" />
@@ -79,11 +81,42 @@ export default async function SlateDropSectionPage({ params }: { params: Promise
   );
 }
 
-function FolderAction({ icon: Icon, label }: { icon: typeof Plus; label: string }) {
+function ActionAssistant({ action, title }: { action: string; title: string }) {
+  const fields: Record<string, string[]> = {
+    "new-folder": ["Folder name", "Parent folder", "Project or app area"],
+    upload: ["Choose files", "Destination folder", "Tags / notes"],
+    save: ["Select files", "Download format", "Include folder structure"],
+    share: ["Recipients", "Permission level", "Message"],
+    send: ["Recipient", "Expiration", "Secure message"],
+    receive: ["Upload request title", "Allowed file types", "Recipient instructions"],
+    archive: ["Items to archive", "Archive reason", "Retention note"],
+    move: ["Items to move", "Destination folder", "Keep sharing links active"],
+  };
+
   return (
-    <button type="button" className="flex min-h-20 flex-col items-center justify-center gap-2 rounded-2xl border border-slate-300 bg-slate-50 px-2 text-xs font-bold text-slate-700">
+    <section className="rounded-3xl border border-blue-200 bg-blue-50 p-5 shadow-sm">
+      <p className="text-[11px] font-black uppercase tracking-[0.18em] text-blue-700">Action assistant</p>
+      <h2 className="mt-2 text-lg font-black text-slate-950">{title}</h2>
+      <p className="mt-1 text-sm leading-6 text-slate-700">
+        This panel defines the usable V1 workflow for this action. The next pass should connect these fields to the existing SlateDrop APIs and `project_folders` writes.
+      </p>
+      <div className="mt-4 grid gap-3 sm:grid-cols-3">
+        {(fields[action] ?? ["Select item", "Choose destination", "Confirm action"]).map((field) => (
+          <label key={field} className="space-y-1 text-xs font-black uppercase tracking-wide text-slate-600">
+            {field}
+            <input disabled className="mt-1 h-10 w-full rounded-2xl border border-slate-300 bg-white px-3 text-sm text-slate-500" placeholder="Wiring next" />
+          </label>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function FolderAction({ href, icon: Icon, label }: { href: string; icon: typeof Plus; label: string }) {
+  return (
+    <Link href={href} className="flex min-h-20 flex-col items-center justify-center gap-2 rounded-2xl border border-slate-300 bg-slate-50 px-2 text-xs font-bold text-slate-700 hover:border-blue-500 hover:bg-white">
       <Icon className="h-5 w-5 text-blue-700" />
       {label}
-    </button>
+    </Link>
   );
 }

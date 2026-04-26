@@ -8,6 +8,13 @@ type Category = "bug" | "suggestion" | "praise" | "other";
 type Severity = "low" | "medium" | "high" | "critical";
 type Status = { kind: "idle" } | { kind: "ok" } | { kind: "error"; message: string };
 
+type FeedbackAttachment = {
+  name: string;
+  type: string;
+  size: number;
+  dataUrl: string;
+};
+
 interface BetaFeedbackModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -23,6 +30,7 @@ export function BetaFeedbackModal({ open, onOpenChange }: BetaFeedbackModalProps
     severity: "medium" as Severity,
     includeData: true,
   });
+  const [attachments, setAttachments] = useState<FeedbackAttachment[]>([]);
 
   if (!open || typeof document === "undefined") return null;
 
@@ -62,6 +70,7 @@ export function BetaFeedbackModal({ open, onOpenChange }: BetaFeedbackModalProps
           pageUrl: form.includeData && typeof window !== "undefined" ? window.location.pathname : "",
           userAgent: form.includeData && typeof navigator !== "undefined" ? navigator.userAgent : "",
           replayUrl: form.includeData ? replayUrl : "",
+          attachments,
         }),
       });
 
@@ -72,6 +81,7 @@ export function BetaFeedbackModal({ open, onOpenChange }: BetaFeedbackModalProps
 
       setStatus({ kind: "ok" });
       setForm({ category: "bug", title: "", description: "", severity: "medium", includeData: true });
+      setAttachments([]);
       window.setTimeout(() => onOpenChange(false), 1200);
     } catch (err) {
       setStatus({ kind: "error", message: err instanceof Error ? err.message : "Failed to submit feedback" });
@@ -79,6 +89,24 @@ export function BetaFeedbackModal({ open, onOpenChange }: BetaFeedbackModalProps
       setLoading(false);
     }
   };
+
+  async function handleAttachmentChange(files: FileList | null) {
+    if (!files?.length) {
+      setAttachments([]);
+      return;
+    }
+
+    const selected = Array.from(files).slice(0, 3);
+    const tooLarge = selected.find((file) => file.size > 2_000_000);
+    if (tooLarge) {
+      setStatus({ kind: "error", message: "Each attachment must be 2 MB or smaller for Version 1 feedback." });
+      return;
+    }
+
+    const encoded = await Promise.all(selected.map(readAttachment));
+    setAttachments(encoded);
+    setStatus({ kind: "idle" });
+  }
 
   const modal = (
     <div
@@ -158,6 +186,24 @@ export function BetaFeedbackModal({ open, onOpenChange }: BetaFeedbackModalProps
             Include current page URL &amp; session data
           </label>
 
+          <Field label="Attachments">
+            <input
+              type="file"
+              multiple
+              accept="image/*,.pdf,.txt,.csv"
+              onChange={(e) => void handleAttachmentChange(e.target.files)}
+              className="form-field text-xs"
+            />
+            <p className="mt-1 text-[11px] leading-4 text-slate-500">Up to 3 screenshots or files, 2 MB each.</p>
+            {attachments.length > 0 && (
+              <ul className="mt-2 space-y-1 text-[11px] text-slate-600">
+                {attachments.map((file) => (
+                  <li key={`${file.name}-${file.size}`} className="truncate">{file.name} · {Math.round(file.size / 1024)} KB</li>
+                ))}
+              </ul>
+            )}
+          </Field>
+
           {status.kind === "error" && <p className="text-xs text-rose-600" role="alert">{status.message}</p>}
           {status.kind === "ok" && <p className="text-xs text-emerald-600">Thanks — feedback received.</p>}
 
@@ -174,6 +220,21 @@ export function BetaFeedbackModal({ open, onOpenChange }: BetaFeedbackModalProps
   );
 
   return createPortal(modal, document.body);
+}
+
+function readAttachment(file: File): Promise<FeedbackAttachment> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result !== "string") {
+        reject(new Error("Failed to read attachment"));
+        return;
+      }
+      resolve({ name: file.name, type: file.type || "application/octet-stream", size: file.size, dataUrl: reader.result });
+    };
+    reader.onerror = () => reject(new Error("Failed to read attachment"));
+    reader.readAsDataURL(file);
+  });
 }
 
 function Field({

@@ -3,6 +3,7 @@
 Last Updated: 2026-04-21
 Module Status: **Active — first real usable module in Phase 1 beta**
 Doctrine Source: `docs/SLATE360_MASTER_BUILD_PLAN.md` (this file must align)
+V1 UX Plan: `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md`
 
 ## Vision Update — 2026-04-21 (Founder Direction)
 
