@@ -78,7 +78,7 @@ Future unread counts should be computed from inbox rows and surfaced on both des
 
 - Logo uses the cobalt Version 1 icon asset, not the old white/orange mark.
 - PWA install icons must use the geometric Slate360 mark on `#0B0F15`. Keep `app/manifest.ts`, `app/layout.tsx`, `app/icon.svg`, `/icon-v2.svg`, `/uploads/slate360-favicon-v2.svg`, `/uploads/favicon.svg`, and `/uploads/icon-*.png` aligned; do not reintroduce the old generic letter-S favicon.
-- PWA service-worker rule: do **not** precache or runtime-cache Next HTML/CSS/JS (`/_next/static`) unless there is a tested versioned rollout. Stale mobile SW caches can serve old HTML that points at retired CSS chunks and render a white/text-only page after refresh.
+- PWA service-worker rule: service-worker caching is disabled by kill switch as of `2026-04-26-sw-kill-v2`. Do **not** precache or runtime-cache Next HTML/CSS/JS (`/_next/static`) unless there is a tested versioned rollout on real mobile refresh after deploy. Stale mobile SW caches can serve old HTML that points at retired CSS chunks and render a white/text-only page after refresh.
 - The label defaults to `Slate360` and should show the resolved org name when available; avoid generic `Workspace` copy.
 - Feedback is positioned as `Version 1 Feedback` and uses a portal-backed modal so it renders above the shell.
 - The notification bell routes to `/coordination/inbox`; account/profile actions remain in the avatar menu.

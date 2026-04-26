@@ -61,7 +61,7 @@ export default async function RootLayout({
   const branding = await readBrandingCookie();
 
   return (
-    <html lang="en" className="scroll-smooth" data-build="2026-04-26-stale-css-purge-v1" suppressHydrationWarning>
+    <html lang="en" className="scroll-smooth" data-build="2026-04-26-sw-kill-v2" suppressHydrationWarning>
       <head>
         <ThemeScript />
       </head>

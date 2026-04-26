@@ -256,11 +256,11 @@
       "status": "fixed",
       "rootCause": "Serwist default runtime caching and precaching could keep stale Next HTML/CSS/JS on mobile. After a deploy, a cached HTML document could reference retired CSS chunks, producing a mostly white text-only page on refresh.",
       "verification": [
-        "`app/sw.ts` uses `NetworkOnly` runtime caching and passes an empty precache list so Next HTML/CSS/JS are not served from stale service-worker caches",
-        "`app/sw.ts` activation deletes all Cache Storage entries and enables navigation preload before claiming clients",
-        "`components/providers/SWRegistrar.tsx` registers `/sw.js` with `updateViaCache: 'none'`, forces an update check, and reloads once when the new controller takes over",
+        "`app/sw.ts` is a kill-switch worker: it deletes all Cache Storage entries, posts `SLATE360_SW_KILL_RELOAD`, unregisters itself, and registers no fetch handler",
+        "`components/providers/SWRegistrar.tsx` registers `/sw.js` with `updateViaCache: 'none'` only until cleanup completes, then stores a disable flag and stops re-registering the worker",
+        "Generated `/sw.js` contains `2026-04-26-sw-kill-v2` and no old `static-style-assets` or `next-static-js-assets` runtime cache names",
         "`npm run typecheck` and `npm run build` pass after the change",
-        "After deployment, mobile browser refresh should restore styled Slate360 pages; if a tab is still controlled by the old worker, close/reopen once"
+        "After deployment, mobile browser refresh should restore styled Slate360 pages and stay styled after 10+ seconds; if a tab is still controlled by the old worker, close/reopen once"
       ]
     }
   ]
