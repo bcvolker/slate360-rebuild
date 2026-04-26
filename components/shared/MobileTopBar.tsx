@@ -10,8 +10,9 @@
  * thumb-friendly layout. Mounted in AppShell behind a lg:hidden wrapper.
  */
 
+import { useState } from "react";
 import Link from "next/link";
-import { Bell, Search, QrCode } from "lucide-react";
+import { Bell, Bug, ChevronDown, Search, Share2 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,8 +22,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { InviteShareButton } from "@/components/shared/InviteShareButton";
-import { BetaFeedbackButton } from "@/components/shared/BetaFeedbackButton";
+import { BetaFeedbackModal } from "@/components/shared/BetaFeedbackModal";
 import { BackButton } from "@/components/shared/BackButton";
 import { useInviteShare } from "@/components/shared/InviteShareProvider";
 import { cn } from "@/lib/utils";
@@ -36,10 +36,12 @@ interface MobileTopBarProps {
 
 export function MobileTopBar({
   userName,
+  workspaceName = "Workspace",
   isBetaEligible = false,
   onSearchClick,
 }: MobileTopBarProps) {
   const { setOpen: openInviteShare } = useInviteShare();
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
 
   return (
     <header
@@ -52,53 +54,67 @@ export function MobileTopBar({
       style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}
     >
       <div className="flex h-14 items-center justify-between gap-1 min-w-0 overflow-hidden">
-        {/* Left: back button (auto-hides on root) + cobalt icon */}
-        <div className="flex items-center min-w-0 flex-shrink-0 gap-1">
+        {/* Left: back button (auto-hides on root) + cobalt icon + workspace selector */}
+        <div className="flex items-center min-w-0 flex-shrink gap-1">
           <BackButton />
           <Link
             href="/dashboard"
-            className="flex items-center"
+            className="flex shrink-0 items-center"
             aria-label="Slate360 home"
           >
             <img
-              src="/uploads/slate360-icon-cobalt-v2.svg?v=cobalt-2026-04-21b"
+              src="/uploads/slate360-icon-cobalt.svg?v=cobalt-2026-04-26"
               alt="Slate360"
               width={36}
               height={36}
               className="h-9 w-9 object-contain drop-shadow-[0_0_10px_rgba(59,130,246,0.35)]"
             />
           </Link>
+          <button
+            type="button"
+            aria-label="Workspace and account switcher"
+            className="flex min-h-10 min-w-0 items-center gap-1 rounded-lg px-1.5 text-left hover:bg-header-hover transition-colors"
+          >
+            <span className="max-w-[88px] truncate text-xs font-semibold text-header">
+              {workspaceName || userName || "Workspace"}
+            </span>
+            <ChevronDown className="h-3.5 w-3.5 shrink-0 text-header-muted" />
+          </button>
         </div>
 
         {/* Right: actions */}
-        <div className="flex items-center gap-1">
+        <div className="flex shrink-0 items-center gap-1">
+          <button
+            type="button"
+            onClick={() => openInviteShare(true)}
+            aria-label="Invite and Share"
+            className="h-9 w-9 flex items-center justify-center rounded-lg text-header-muted hover:text-cobalt hover:bg-header-hover transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt/50 focus-visible:ring-offset-1 focus-visible:ring-offset-header-bg"
+          >
+            <Share2 className="h-[18px] w-[18px]" />
+          </button>
           <button
             type="button"
             onClick={onSearchClick}
             aria-label="Search"
-            className="hidden xs:flex h-9 w-9 items-center justify-center rounded-lg text-header-muted hover:text-cobalt hover:bg-header-hover transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt/50 focus-visible:ring-offset-1 focus-visible:ring-offset-header-bg"
+            className="h-9 w-9 flex items-center justify-center rounded-lg text-header-muted hover:text-cobalt hover:bg-header-hover transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt/50 focus-visible:ring-offset-1 focus-visible:ring-offset-header-bg"
           >
             <Search className="h-[18px] w-[18px]" />
           </button>
-
-          <BetaFeedbackButton isEligible={isBetaEligible} />
-          {/* Mobile-only: obvious QR/share button → opens Invite & Share modal */}
-          <button
-            type="button"
-            onClick={() => openInviteShare(true)}
-            aria-label="Invite & Share — get QR code"
-            className="sm:hidden h-9 w-9 flex items-center justify-center rounded-lg bg-cobalt/15 text-cobalt border border-cobalt/40 hover:bg-cobalt/25 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt/50 focus-visible:ring-offset-1 focus-visible:ring-offset-header-bg relative"
-          >
-            <QrCode className="h-[18px] w-[18px]" />
-            <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-cobalt animate-pulse" />
-          </button>
-          {/* Desktop pill version (hidden < sm) */}
-          <InviteShareButton />
+          {isBetaEligible && (
+            <button
+              type="button"
+              onClick={() => setFeedbackOpen(true)}
+              aria-label="Report a bug or suggest a feature"
+              className="h-9 w-9 flex items-center justify-center rounded-lg text-header-muted hover:text-cobalt hover:bg-header-hover transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt/50 focus-visible:ring-offset-1 focus-visible:ring-offset-header-bg"
+            >
+              <Bug className="h-[18px] w-[18px]" />
+            </button>
+          )}
 
           <Link
             href="/my-account?tab=notifications"
-            aria-label="Notifications"
-            className="hidden xs:flex h-9 w-9 items-center justify-center rounded-lg text-header-muted hover:text-cobalt hover:bg-header-hover transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt/50 focus-visible:ring-offset-1 focus-visible:ring-offset-header-bg"
+            aria-label="Notifications and coordination hub"
+            className="h-9 w-9 flex items-center justify-center rounded-lg text-header-muted hover:text-cobalt hover:bg-header-hover transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt/50 focus-visible:ring-offset-1 focus-visible:ring-offset-header-bg"
           >
             <Bell className="h-[18px] w-[18px]" />
           </Link>
@@ -143,6 +159,7 @@ export function MobileTopBar({
           </DropdownMenu>
         </div>
       </div>
+      <BetaFeedbackModal open={feedbackOpen} onOpenChange={setFeedbackOpen} />
     </header>
   );
 }

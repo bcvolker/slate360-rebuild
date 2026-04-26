@@ -3,6 +3,8 @@ import {
   CheckCircle2,
   ClipboardCheck,
   Command,
+  Bug,
+  ChevronDown,
   FileText,
   Files,
   FolderOpen,
@@ -52,33 +54,37 @@ export default function MobileShellV2() {
   return (
     <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
       <div className="relative h-[800px] max-h-[90vh] w-full max-w-sm overflow-hidden rounded-[2.5rem] border-8 border-slate-800 bg-slate-50 shadow-2xl">
-        <header className="absolute inset-x-0 top-0 z-20 bg-slate-900 px-5 pb-3 pt-11 text-white shadow-lg">
-          <div className="flex min-h-[52px] items-center justify-between gap-3">
-            <div className="flex min-w-0 items-center">
+        <header className="absolute inset-x-0 top-0 z-20 bg-slate-900 px-4 pb-2 pt-10 text-white shadow-lg">
+          <div className="flex min-h-[48px] items-center justify-between gap-2">
+            <div className="flex min-w-0 items-center gap-2">
               <img
-                src="/uploads/slate360-icon-cobalt-v2.svg"
+                src="/uploads/slate360-icon-cobalt.svg"
                 alt="Slate360"
-                className="h-10 w-10 object-contain drop-shadow-[0_0_10px_rgba(59,130,246,0.35)]"
+                className="h-9 w-9 shrink-0 object-contain drop-shadow-[0_0_10px_rgba(59,130,246,0.35)]"
               />
+              <button className="flex min-h-[40px] min-w-0 items-center gap-1 rounded-lg px-2 text-left transition-colors hover:bg-white/10" aria-label="Workspace and account menu">
+                <span className="max-w-[92px] truncate text-xs font-semibold text-slate-200">Brian Volker</span>
+                <ChevronDown className="h-3.5 w-3.5 shrink-0 text-slate-500" />
+              </button>
             </div>
-            <div className="flex items-center gap-1.5">
-              <button className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-slate-300 transition-colors hover:text-white" aria-label="Share">
-                <Share2 className="h-5 w-5" />
+            <div className="flex shrink-0 items-center gap-1">
+              <button className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-white/10 hover:text-white" aria-label="Share">
+                <Share2 className="h-[18px] w-[18px]" />
               </button>
-              <button className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-slate-300 transition-colors hover:text-white" aria-label="Search">
-                <Search className="h-5 w-5" />
+              <button className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-white/10 hover:text-white" aria-label="Search">
+                <Search className="h-[18px] w-[18px]" />
               </button>
-              <button className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-slate-300 transition-colors hover:text-white" aria-label="Notifications">
-                <Bell className="h-5 w-5" />
+              <button className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-white/10 hover:text-white" aria-label="Report a bug or suggest a feature">
+                <Bug className="h-[18px] w-[18px]" />
               </button>
-              <button className="flex h-11 w-11 items-center justify-center rounded-full border border-blue-400/40 bg-blue-500/15 text-sm font-black text-blue-200 transition-colors hover:bg-blue-500/25" aria-label="Account menu">
-                BV
+              <button className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-white/10 hover:text-white" aria-label="Notifications and coordination hub">
+                <Bell className="h-[18px] w-[18px]" />
               </button>
             </div>
           </div>
         </header>
 
-        <main className="absolute inset-x-0 bottom-[80px] top-[106px] overflow-y-auto px-5 py-5 space-y-5">
+        <main className="absolute inset-x-0 bottom-[80px] top-[100px] overflow-y-auto px-5 py-6 space-y-5">
           <section>
             <div className="mb-3 flex items-center justify-between">
               <h2 className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-700">Your Apps</h2>

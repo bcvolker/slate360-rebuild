@@ -117,7 +117,7 @@ export default function AppDemo({ type, modelSrc, panoramaSrc, label }: AppDemoP
               type="button"
               onClick={() => setExpanded(false)}
               aria-label="Close expanded viewer"
-              className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-foreground border border-white/20 transition-colors"
+              className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-white text-slate-950 hover:bg-slate-200 border-2 border-blue-500 shadow-[0_0_0_4px_rgba(59,130,246,0.22)] transition-colors"
             >
               <X className="h-6 w-6" />
             </button>
