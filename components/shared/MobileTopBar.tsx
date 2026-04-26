@@ -4,7 +4,7 @@
  * MobileTopBar — slim app-style top bar for mobile (≤lg).
  *
  * Logo (cobalt icon + workspace name) · global search trigger · Invite & Share
- * · Beta feedback · Notifications bell · Avatar dropdown.
+ * · Version 1 feedback · Coordination notifications bell · Avatar dropdown.
  *
  * Mirrors the desktop DashboardTopBar capabilities but in a compact,
  * thumb-friendly layout. Mounted in AppShell behind a lg:hidden wrapper.
@@ -36,7 +36,7 @@ interface MobileTopBarProps {
 
 export function MobileTopBar({
   userName,
-  workspaceName = "Workspace",
+  workspaceName = "Slate360",
   isBetaEligible = false,
   onSearchClick,
 }: MobileTopBarProps) {
@@ -46,7 +46,7 @@ export function MobileTopBar({
   return (
     <header
       className={cn(
-        "lg:hidden fixed top-0 left-0 right-0 z-30",
+        "lg:hidden fixed top-0 left-0 right-0 z-50",
         "h-14 bg-header-glass",
         "border-b border-header",
         "px-2 max-w-full overflow-hidden"
@@ -63,11 +63,11 @@ export function MobileTopBar({
             aria-label="Slate360 home"
           >
             <img
-              src="/slate360-icon-color.png?v=brand-icon-2026-04-26"
+              src="/uploads/slate360-icon-cobalt-v2.svg?v=v1-shell"
               alt="Slate360"
               width={36}
               height={36}
-              className="h-9 w-9 rounded-lg bg-white object-contain drop-shadow-[0_0_10px_rgba(59,130,246,0.35)]"
+              className="h-9 w-9 rounded-lg object-contain drop-shadow-[0_0_10px_rgba(59,130,246,0.35)]"
             />
           </Link>
           <button
@@ -104,7 +104,7 @@ export function MobileTopBar({
             <button
               type="button"
               onClick={() => setFeedbackOpen(true)}
-              aria-label="Report a bug or suggest a feature"
+              aria-label="Report a bug or suggest a feature for Version 1"
               className="h-9 w-9 flex items-center justify-center rounded-lg text-header-muted hover:text-cobalt hover:bg-header-hover transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt/50 focus-visible:ring-offset-1 focus-visible:ring-offset-header-bg"
             >
               <Bug className="h-[18px] w-[18px]" />
@@ -112,7 +112,7 @@ export function MobileTopBar({
           )}
 
           <Link
-            href="/my-account?tab=notifications"
+            href="/coordination"
             aria-label="Notifications and coordination hub"
             className="h-9 w-9 flex items-center justify-center rounded-lg text-header-muted hover:text-cobalt hover:bg-header-hover transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt/50 focus-visible:ring-offset-1 focus-visible:ring-offset-header-bg"
           >

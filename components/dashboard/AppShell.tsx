@@ -27,6 +27,7 @@ import type { InviteShareData } from "@/lib/types/invite";
 
 interface AppShellProps {
   userName: string;
+  workspaceName?: string | null;
   hasOperationsConsoleAccess?: boolean;
   inviteShareData: InviteShareData;
   isBetaEligible?: boolean;
@@ -42,6 +43,7 @@ const SIDEBAR_PIN_KEY = "slate360.sidebar.pinned";
 
 export function AppShell({
   userName,
+  workspaceName,
   hasOperationsConsoleAccess = false,
   inviteShareData,
   isBetaEligible = false,
@@ -144,6 +146,7 @@ export function AppShell({
 
         <MobileTopBar
           userName={userName}
+          workspaceName={workspaceName ?? "Slate360"}
           isBetaEligible={isBetaEligible}
           onSearchClick={() => setPaletteOpen(true)}
         />

@@ -6,7 +6,7 @@ import { isOwnerEmail, checkBetaApproved } from "@/lib/server/beta-access";
 import BetaPendingRecheck from "@/components/shared/BetaPendingRecheck";
 
 export const metadata = {
-  title: "Beta Access Pending — Slate360",
+  title: "Version 1 Access Pending — Slate360",
 };
 
 export default async function BetaPendingPage() {
@@ -30,10 +30,10 @@ export default async function BetaPendingPage() {
         </div>
 
         <div className="space-y-2">
-          <h1 className="text-2xl font-bold text-foreground">Beta Access Pending</h1>
+          <h1 className="text-2xl font-bold text-foreground">Version 1 Access Pending</h1>
           <p className="text-zinc-400 text-sm leading-relaxed">
-            Your account has been created, but beta access has not been granted yet.
-            You will receive a notification when your access is approved.
+            Your account has been created, but Version 1 access has not been approved yet.
+            You will receive a notification when your workspace is ready.
           </p>
         </div>
 
@@ -41,8 +41,8 @@ export default async function BetaPendingPage() {
           <p className="font-medium text-zinc-300">What happens next?</p>
           <ul className="list-disc list-inside space-y-1">
             <li>The Slate360 team reviews new accounts</li>
-            <li>Approved users gain full dashboard access</li>
-            <li>You&apos;ll be notified when your access is ready</li>
+            <li>Approved users can begin using the foundational Version 1 release</li>
+            <li>Any data you create will remain available as Slate360 evolves</li>
           </ul>
         </div>
 

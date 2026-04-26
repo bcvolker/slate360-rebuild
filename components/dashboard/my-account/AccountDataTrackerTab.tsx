@@ -88,7 +88,7 @@ export default function AccountDataTrackerTab({ overview, isAdmin, isCeo, maxCre
       {isCeo && (
         <div className="rounded-2xl border border-[#3B82F6]/30 bg-[#3B82F6]/5 p-4 text-center">
           <p className="text-xs text-zinc-400">
-            Internal owner usage is shown for visibility only. Phase 1 testing flows should not be blocked by normal storage or credit purchase prompts.
+            Internal owner usage is shown for visibility only. Version 1 launch flows should not be blocked by normal storage or credit purchase prompts.
           </p>
         </div>
       )}

@@ -474,7 +474,7 @@ function HeroSection() {
         <div className="order-2 lg:order-1 space-y-4 sm:space-y-5 text-center lg:text-left">
           <Badge variant="outline" className="border-cobalt text-cobalt px-3.5 py-1.5 bg-cobalt/10 text-sm shadow-sm shadow-cobalt/10">
             <Zap className="mr-1.5 h-3.5 w-3.5" />
-            Now in Beta — Foundational Member Pricing
+            Version 1 launch access opening soon
           </Badge>
 
           <h1 className="text-[2rem] leading-[1.15] sm:text-4xl lg:text-4xl xl:text-5xl font-bold text-slate-900 text-balance tracking-tight">
@@ -497,7 +497,7 @@ function HeroSection() {
             </Button>
           </div>
           <p className="text-sm text-slate-500 pt-1 leading-relaxed">
-            Free to download. 14-day all-access trial. Subscribe anytime — no credit card required during beta.
+            Version 1 is a foundational launch release. Early users keep their data as Slate360 evolves.
           </p>
         </div>
 

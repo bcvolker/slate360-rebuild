@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { createPortal } from "react-dom";
 import { Loader2, X } from "lucide-react";
 
 type Category = "bug" | "suggestion" | "praise" | "other";
@@ -23,7 +24,7 @@ export function BetaFeedbackModal({ open, onOpenChange }: BetaFeedbackModalProps
     includeData: true,
   });
 
-  if (!open) return null;
+  if (!open || typeof document === "undefined") return null;
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -79,11 +80,11 @@ export function BetaFeedbackModal({ open, onOpenChange }: BetaFeedbackModalProps
     }
   };
 
-  return (
+  const modal = (
     <div
       role="dialog"
       aria-modal="true"
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+      className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
       onClick={(e) => e.target === e.currentTarget && onOpenChange(false)}
     >
       <div className="modal-panel w-full max-w-lg p-6 relative">
@@ -95,7 +96,7 @@ export function BetaFeedbackModal({ open, onOpenChange }: BetaFeedbackModalProps
         >
           <X className="h-4 w-4" />
         </button>
-        <h2 className="text-lg font-semibold text-slate-900 mb-4">Submit Beta Feedback</h2>
+        <h2 className="text-lg font-semibold text-slate-900 mb-4">Submit Version 1 Feedback</h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="flex gap-3">
@@ -171,6 +172,8 @@ export function BetaFeedbackModal({ open, onOpenChange }: BetaFeedbackModalProps
       </div>
     </div>
   );
+
+  return createPortal(modal, document.body);
 }
 
 function Field({

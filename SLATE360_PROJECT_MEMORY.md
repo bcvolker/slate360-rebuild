@@ -197,6 +197,46 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
+### Session Handoff — 2026-04-26 (Version 1 Mobile Shell + SlateDrop Actions)
+
+#### What Changed
+- `components/shared/MobileTopBar.tsx` — mobile/PWA topbar now uses the cobalt Version 1 icon asset, defaults the label to `Slate360`/org name instead of `Workspace`, raises chrome stacking, routes notifications to `/coordination`, and frames feedback as Version 1 feedback.
+- `components/shared/BetaFeedbackModal.tsx` — feedback modal now portals to `document.body`, uses `z-[1000]`, and shows `Submit Version 1 Feedback` so it is not blocked by shell overlays.
+- `components/dashboard/AppShell.tsx`, `components/dashboard/AuthedAppShell.tsx`, `app/(dashboard)/layout.tsx` — threaded `workspaceName` from server org context into the mobile topbar.
+- `app/slatedrop/page.tsx` — folder/action cards are now tappable without nested-link issues. Cards keep separate folder-preview links plus an explicit `Open folder` CTA for reliable mobile taps.
+- `app/slatedrop/[...section]/page.tsx` — NEW interim destination page for folder/action routes such as `/slatedrop/general-files`, `/slatedrop/site-walk-files/photos`, and `/slatedrop/upload` while the real mobile folder browser is rebuilt.
+- Version 1 public/admin copy replaced visible beta/testing language in `components/marketing-homepage.tsx`, `app/beta-pending/page.tsx`, `components/dashboard/OperationsConsoleClient.tsx`, `components/shared/BetaFeedbackButton.tsx`, `components/shared/InviteShareModal.tsx`, `components/billing/BetaGatedButton.tsx`, `app/(dashboard)/more/page.tsx`, `app/preview/page.tsx`, `app/dev/health/page.tsx`, and internal owner account panels.
+
+#### Strategic Decisions / Corrections
+- Public-facing language should say Version 1 / Version 1 launch access, not beta tester/testing. Internal code names can remain temporarily where tied to DB fields/API routes.
+- Notification bell belongs to Coordination Hub; avatar menu remains the account/billing/sign-out surface.
+- Do not delete old backend projects automatically. Legacy/test projects remain hidden from the new `/slatedrop` hub until explicit cleanup is approved.
+- SlateDrop buttons must always lead somewhere, even if the current page is an aligned placeholder pending the real file-browser wiring.
+
+#### What's Broken / Partially Done
+- `/slatedrop/[...section]` is an aligned placeholder. Upload, Share, Send, New folder, Move, Archive, and Receive routes still need real mutations/UI.
+- Project-scoped routes such as `/projects/[projectId]/slatedrop` still use old `SlateDropClient` UI and need the mobile-first replacement.
+- Internal backend/API names still use beta terminology (`is_beta_approved`, `/api/admin/beta`, `useBetaUsers`) because changing schema/API names needs a separate migration/backfill plan.
+
+#### Validation
+- `get_errors` on all changed files: no errors.
+- `npm run typecheck`: passed.
+- `npm run build`: passed with existing warnings only (`instrumentation.ts` top-level await warning and missing Next ESLint plugin warning).
+- `bash scripts/check-file-size.sh`: failed on 12 pre-existing oversized files, including `components/marketing-homepage.tsx`; no newly created file exceeds 300 lines.
+
+#### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md` — this handoff.
+- `slate360-context/SLATEDROP.md` — clickable interim folder/action route behavior.
+- `slate360-context/DASHBOARD.md` — mobile topbar strategy.
+
+#### Next Steps (ordered)
+1. Test the deployed PWA on phone: topbar icon, org label, feedback modal stacking, notification route, and SlateDrop card/action taps.
+2. Wire `/slatedrop/[...section]` actions to real upload/create-folder/share/send flows using `project_folders` and existing SlateDrop APIs.
+3. Build the mobile-first replacement for old project-scoped `SlateDropClient` routes.
+4. If old backend test projects should be removed, create an explicit cleanup script/report and get approval before deleting data.
+
+---
+
 ### Session Handoff — 2026-04-26 (SlateDrop Folder Hub Correction)
 
 #### What Changed

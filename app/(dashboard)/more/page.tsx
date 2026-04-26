@@ -35,7 +35,7 @@ export default async function MorePage() {
   ];
 
   if (hasOperationsConsoleAccess) {
-    items.push({ label: "Operations Console", description: "Internal beta and platform controls.", href: "/operations-console", icon: Wrench, active: true });
+    items.push({ label: "Operations Console", description: "Internal Version 1 launch access and platform controls.", href: "/operations-console", icon: Wrench, active: true });
   }
 
   return (

@@ -62,14 +62,14 @@ export default function OperationsConsoleClient({ ownerEmail }: Props) {
         </div>
         <div>
           <h1 className="text-xl font-bold text-foreground">Operations Console</h1>
-          <p className="text-xs text-muted-foreground">Beta management &middot; {ownerEmail}</p>
+          <p className="text-xs text-muted-foreground">Version 1 launch access &middot; {ownerEmail}</p>
         </div>
       </div>
 
       {/* Summary cards */}
       <div className="grid grid-cols-3 gap-4">
         <SummaryCard label="Total Users" value={users.length} loading={loading} />
-        <SummaryCard label="Beta Approved" value={approvedCount} loading={loading} accent="text-green-600" />
+        <SummaryCard label="Version 1 Approved" value={approvedCount} loading={loading} accent="text-green-600" />
         <SummaryCard label="Pending" value={pendingCount} loading={loading} accent="text-amber-600" />
       </div>
 
@@ -118,7 +118,7 @@ export default function OperationsConsoleClient({ ownerEmail }: Props) {
                 <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">User</th>
                 <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">Company</th>
                 <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">Joined</th>
-                <th className="px-4 py-2.5 text-center text-xs font-medium text-muted-foreground">Beta Status</th>
+                <th className="px-4 py-2.5 text-center text-xs font-medium text-muted-foreground">Version 1 Status</th>
                 <th className="px-4 py-2.5 text-right text-xs font-medium text-muted-foreground">Action</th>
               </tr>
             </thead>

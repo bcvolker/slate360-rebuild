@@ -27,6 +27,7 @@ export default async function AuthedAppShell({ children }: { children: ReactNode
   return (
     <AppShell
       userName={userName}
+      workspaceName={ctx.orgName ?? "Slate360"}
       hasOperationsConsoleAccess={ctx.hasOperationsConsoleAccess}
       inviteShareData={inviteShareData}
       isBetaEligible={isBetaEligible}

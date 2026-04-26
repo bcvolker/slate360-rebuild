@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
    /dev/health — internal click-test surface.
    One page that lists every nav target, header button, and modal trigger
    in the shell so we can verify the app in 60 seconds instead of stumbling
-   on broken bits during real use. Beta-only, gated to logged-in users.
+  on broken bits during real use. Version 1 launch-only, gated to logged-in users.
    ------------------------------------------------------------------------ */
 
 interface Row {
@@ -40,12 +40,12 @@ const NAV: Row[] = [
 const PUBLIC: Row[] = [
   { label: "Privacy",        href: "/privacy",        expect: "Static legal page" },
   { label: "Terms",          href: "/terms",          expect: "Static legal page" },
-  { label: "Beta Pending",   href: "/beta-pending",   expect: "Beta-tester gate copy" },
+  { label: "Version 1 Pending", href: "/beta-pending", expect: "Version 1 access gate copy" },
 ];
 
 const HEADER_ACTIONS: Row[] = [
   { label: "Top header — Invite/Share",    expect: "Opens InviteShareButton modal", status: "wip" },
-  { label: "Top header — Beta feedback",   expect: "Opens feedback drawer",          status: "wip" },
+  { label: "Top header — Version 1 feedback", expect: "Opens feedback drawer",       status: "wip" },
   { label: "Top header — Download app",    expect: "PWA install prompt OR App Store link", status: "broken" },
   { label: "Sidebar — Command Center link",expect: "Visible from every sub-page",    status: "broken" },
   { label: "Homepage CTA when logged in",  expect: "Small 'Dashboard' text link, cobalt hover (NOT giant amber button)" },

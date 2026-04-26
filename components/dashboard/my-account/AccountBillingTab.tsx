@@ -66,7 +66,7 @@ export default function AccountBillingTab({ overview, isAdmin, isCeo, tierLabel,
             <Crown size={16} className="text-[#3B82F6]" /> Internal Owner Account
           </h3>
           <p className="text-xs text-zinc-400">
-            This account is treated as an internal Slate360 operator account for Phase 1 testing.
+            This account is treated as an internal Slate360 operator account for the Version 1 launch window.
             Subscriber purchase flows, storage upsells, and credit pack prompts are intentionally hidden here.
           </p>
         </div>

@@ -31,7 +31,7 @@ export function InviteShareModal({
 
   if (!open) return null;
 
-  const inviteLink = `${APP_URL}/signup?ref=${encodeURIComponent(userId)}&beta=1`;
+  const inviteLink = `${APP_URL}/signup?ref=${encodeURIComponent(userId)}&launch=1`;
 
   const handleCopy = async () => {
     try {
@@ -44,9 +44,9 @@ export function InviteShareModal({
   };
 
   const handleEmailShare = () => {
-    const subject = encodeURIComponent("Join me on the Slate360 Beta");
+    const subject = encodeURIComponent("Join me on Slate360 Version 1");
     const body = encodeURIComponent(
-      `Hi,\n\nI'm using Slate360 and thought you'd find it useful. Use my invite link to join the beta:\n\n${inviteLink}`,
+      `Hi,\n\nI'm using Slate360 Version 1 and thought you'd find it useful. Use my invite link to request launch access:\n\n${inviteLink}`,
     );
     window.location.href = `mailto:?subject=${subject}&body=${body}`;
   };
@@ -55,8 +55,8 @@ export function InviteShareModal({
   // on Android opens Nearby Share / SMS / Gmail / contact picker. Falls back to copy.
   const handleNativeShare = async () => {
     const shareData = {
-      title: "Slate360 Beta",
-      text: "I'm using Slate360 — join me on the beta:",
+      title: "Slate360 Version 1",
+      text: "I'm using Slate360 — request Version 1 launch access:",
       url: inviteLink,
     };
     if (typeof navigator !== "undefined" && "share" in navigator) {
@@ -72,7 +72,7 @@ export function InviteShareModal({
   };
 
   const handleSmsShare = () => {
-    const body = encodeURIComponent(`Join me on Slate360 Beta: ${inviteLink}`);
+    const body = encodeURIComponent(`Join me on Slate360 Version 1: ${inviteLink}`);
     // iOS uses ?body=, Android uses &body=. ?body= works on both modern devices.
     window.location.href = `sms:?&body=${body}`;
   };
@@ -155,7 +155,7 @@ export function InviteShareModal({
         {tab === "app" && (
           <div className="flex flex-col items-center text-center space-y-5">
             <p className="text-sm text-slate-700">
-              Let a colleague scan this code to join the Slate360 Beta.
+              Let a colleague scan this code to request Slate360 Version 1 access.
             </p>
             <div className="bg-white p-3 rounded-lg border border-slate-200">
               <QRCodeSVG value={inviteLink} size={180} level="M" />
@@ -201,7 +201,7 @@ export function InviteShareModal({
               </div>
             </div>
             <p className="text-xs text-slate-500">
-              Beta seats: {beta.seatsClaimed} / {beta.cap} claimed
+              Version 1 seats: {beta.seatsClaimed} / {beta.cap} claimed
             </p>
           </div>
         )}

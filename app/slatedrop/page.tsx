@@ -1,5 +1,6 @@
 import { resolveServerOrgContext } from "@/lib/server/org-context";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { Archive, Box, Brush, Camera, Compass, Download, FileInput, Folder, FolderOpen, HardDrive, Lock, Mail, Plus, Share2, Upload } from "lucide-react";
 import { resolveOrgEntitlements } from "@/lib/server/org-feature-flags";
 import { getProjectLabels } from "@/lib/projects/labels";
@@ -9,6 +10,7 @@ export const metadata = {
 };
 
 type AppFolder = {
+  slug: string;
   label: string;
   detail: string;
   active: boolean;
@@ -25,6 +27,7 @@ export default async function SlateDropPage() {
   const labels = getProjectLabels(tier);
   const appFolders: AppFolder[] = [
     {
+      slug: "site-walk-files",
       label: "Site Walk Files",
       detail: "Walk photos, plans, voice notes, markups, reports",
       active: entitlements.canAccessStandalonePunchwalk || entitlements.canAccessHub,
@@ -32,6 +35,7 @@ export default async function SlateDropPage() {
       folders: ["Walk Sessions", "Photos", "Plans", "Markups", "Voice Notes", "Deliverables"],
     },
     {
+      slug: "360-tour-files",
       label: "360 Tour Files",
       detail: "Panoramas, scenes, hotspots, tour exports",
       active: entitlements.canAccessStandaloneTourBuilder || entitlements.canAccessTourBuilder,
@@ -39,6 +43,7 @@ export default async function SlateDropPage() {
       folders: ["Panoramas", "Scenes", "Hotspots", "Tour Exports"],
     },
     {
+      slug: "design-studio-files",
       label: "Design Studio Files",
       detail: "Models, drawings, design review attachments",
       active: entitlements.canAccessStandaloneDesignStudio || entitlements.canAccessDesignStudio,
@@ -46,6 +51,7 @@ export default async function SlateDropPage() {
       folders: ["Models", "Drawings", "Review Attachments", "Exports"],
     },
     {
+      slug: "content-studio-files",
       label: "Content Studio Files",
       detail: "Edited media, branded exports, campaign assets",
       active: entitlements.canAccessStandaloneContentStudio || entitlements.canAccessContent,
@@ -72,7 +78,7 @@ export default async function SlateDropPage() {
       </section>
 
       <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="rounded-3xl border border-blue-300 bg-blue-50 p-4 shadow-sm">
+        <div className="rounded-3xl border border-blue-300 bg-blue-50 p-4 shadow-sm transition-all hover:border-blue-500 hover:shadow-md">
           <div className="flex items-start justify-between gap-3">
             <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-blue-700 shadow-sm">
               <FolderOpen className="h-5 w-5" />
@@ -81,7 +87,8 @@ export default async function SlateDropPage() {
           </div>
           <h2 className="mt-4 text-sm font-black text-slate-950">General Files</h2>
           <p className="mt-1 text-xs leading-5 text-slate-600">Uploads, received files, shared links, archive, and custom folders.</p>
-          <FolderPreview folders={["Uploads", "Received", "Shared", "Archive"]} />
+          <FolderPreview baseSlug="general-files" folders={["Uploads", "Received", "Shared", "Archive"]} />
+          <OpenFolderLink href="/slatedrop/general-files" label="Open General Files" />
         </div>
 
         {appFolders.map((folder) => {
@@ -89,7 +96,7 @@ export default async function SlateDropPage() {
           return (
             <div
               key={folder.label}
-              className={`rounded-3xl border p-4 shadow-sm ${folder.active ? "border-slate-300 bg-white" : "border-slate-200 bg-slate-50 opacity-75"}`}
+              className={`rounded-3xl border p-4 shadow-sm transition-all hover:border-blue-500 hover:shadow-md active:scale-[0.99] ${folder.active ? "border-slate-300 bg-white" : "border-slate-200 bg-slate-50 opacity-75"}`}
             >
               <div className="flex items-start justify-between gap-3">
                 <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-50 text-blue-700">
@@ -101,7 +108,8 @@ export default async function SlateDropPage() {
               </div>
               <h2 className="mt-4 text-sm font-black text-slate-950">{folder.label}</h2>
               <p className="mt-1 text-xs leading-5 text-slate-600">{folder.detail}</p>
-              <FolderPreview folders={folder.folders} locked={!folder.active} />
+              <FolderPreview baseSlug={folder.slug} folders={folder.folders} locked={!folder.active} />
+              <OpenFolderLink href={folder.active ? `/slatedrop/${folder.slug}` : "/my-account?tab=billing"} label={folder.active ? `Open ${folder.label}` : "Manage access"} />
             </div>
           );
         })}
@@ -116,14 +124,14 @@ export default async function SlateDropPage() {
           <Folder className="h-5 w-5 text-blue-700" />
         </div>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-8">
-          <ActionPill icon={Plus} label="New folder" />
-          <ActionPill icon={Upload} label="Upload" />
-          <ActionPill icon={Download} label="Save" />
-          <ActionPill icon={Share2} label="Share" />
-          <ActionPill icon={Mail} label="Send" />
-          <ActionPill icon={FileInput} label="Receive" />
-          <ActionPill icon={Archive} label="Archive" />
-          <ActionPill icon={FolderOpen} label="Move" />
+          <ActionPill href="/slatedrop/new-folder" icon={Plus} label="New folder" />
+          <ActionPill href="/slatedrop/upload" icon={Upload} label="Upload" />
+          <ActionPill href="/slatedrop/save" icon={Download} label="Save" />
+          <ActionPill href="/slatedrop/share" icon={Share2} label="Share" />
+          <ActionPill href="/slatedrop/send" icon={Mail} label="Send" />
+          <ActionPill href="/slatedrop/receive" icon={FileInput} label="Receive" />
+          <ActionPill href="/slatedrop/archive" icon={Archive} label="Archive" />
+          <ActionPill href="/slatedrop/move" icon={FolderOpen} label="Move" />
         </div>
         <div className="mt-5 rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-center">
           <p className="text-sm font-bold text-slate-800">Project folders are paused in this hub for now.</p>
@@ -136,24 +144,36 @@ export default async function SlateDropPage() {
   );
 }
 
-function FolderPreview({ folders, locked = false }: { folders: string[]; locked?: boolean }) {
+function toSlug(value: string) {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+}
+
+function FolderPreview({ baseSlug, folders, locked = false }: { baseSlug: string; folders: string[]; locked?: boolean }) {
   return (
     <div className="mt-4 space-y-1.5">
       {folders.slice(0, 4).map((name) => (
-        <div key={name} className="flex min-h-9 items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-2.5 text-xs font-semibold text-slate-700">
+        <Link key={name} href={locked ? "/my-account?tab=billing" : `/slatedrop/${baseSlug}/${toSlug(name)}`} className="flex min-h-9 items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-400 hover:bg-white">
           {locked ? <Lock className="h-3.5 w-3.5 text-slate-400" /> : <Folder className="h-3.5 w-3.5 text-blue-700" />}
           <span className="truncate">{name}</span>
-        </div>
+        </Link>
       ))}
     </div>
   );
 }
 
-function ActionPill({ icon: Icon, label }: { icon: typeof Plus; label: string }) {
+function OpenFolderLink({ href, label }: { href: string; label: string }) {
   return (
-    <div className="flex min-h-20 flex-col items-center justify-center gap-2 rounded-2xl border border-slate-300 bg-slate-50 px-2 text-center text-xs font-bold text-slate-700">
+    <Link href={href} className="mt-4 inline-flex min-h-10 w-full items-center justify-center rounded-2xl bg-blue-700 px-3 text-xs font-black text-white transition hover:bg-blue-800 active:scale-[0.99]">
+      {label}
+    </Link>
+  );
+}
+
+function ActionPill({ href, icon: Icon, label }: { href: string; icon: typeof Plus; label: string }) {
+  return (
+    <Link href={href} className="flex min-h-20 flex-col items-center justify-center gap-2 rounded-2xl border border-slate-300 bg-slate-50 px-2 text-center text-xs font-bold text-slate-700 transition-all hover:border-blue-500 hover:bg-white active:scale-[0.98]">
       <Icon className="h-5 w-5 text-blue-700" />
       {label}
-    </div>
+    </Link>
   );
 }

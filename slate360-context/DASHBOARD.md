@@ -42,6 +42,16 @@
 
 Site Walk routes will use a future app-specific nav aligned to the 3 Act Play: Home, Capture, Files, Outputs, More.
 
+### Mobile/PWA Top Bar (Current Direction)
+
+`components/shared/MobileTopBar.tsx` is the primary phone/PWA chrome above authenticated pages.
+
+- Logo uses the cobalt Version 1 icon asset, not the old white/orange mark.
+- The label defaults to `Slate360` and should show the resolved org name when available; avoid generic `Workspace` copy.
+- Feedback is positioned as `Version 1 Feedback` and uses a portal-backed modal so it renders above the shell.
+- The notification bell routes to `/coordination`; account/profile actions remain in the avatar menu.
+- Keep tap targets at least 44px and avoid nested interactive elements in mobile shell controls.
+
 ### Command Center Quick Actions (Current Direction)
 
 - Quick Start
