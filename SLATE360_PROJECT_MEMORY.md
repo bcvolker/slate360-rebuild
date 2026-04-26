@@ -197,6 +197,45 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
+### Session Handoff — 2026-04-26 (Mobile Stale CSS Service Worker Fix)
+
+#### What Changed
+- `app/sw.ts` — emergency PWA cache fix. The service worker now uses `NetworkOnly` runtime caching, passes an empty precache list, bumps the cache purge version to `2026-04-26-stale-css-purge-v1`, deletes all Cache Storage entries on activation, enables navigation preload, and claims clients.
+- `components/providers/SWRegistrar.tsx` — registers `/sw.js` with `updateViaCache: "none"`, immediately checks for an update, and reloads the page once when the new service-worker controller takes over.
+- `app/layout.tsx` — bumped the `data-build` marker to `2026-04-26-stale-css-purge-v1` for live verification.
+- `ops/bug-registry.json` — added `BUG-036` for the mobile unstyled white/text-only page caused by stale service-worker caches.
+- `ONGOING_ISSUES.md` — added `S360-039` as a critical PWA/service-worker issue in testing.
+- `slate360-context/DASHBOARD.md` — documented that Next HTML/CSS/JS must not be SW cached without a tested versioned rollout.
+
+#### Root Cause
+- Production CSS assets were reachable from Vercel, but mobile browsers could still be controlled by an older Serwist service worker using default runtime caching/precaching.
+- A stale cached HTML document can reference CSS chunk filenames from a previous deploy. After the deploy retires or changes those chunks, refresh can render a mostly white text-only page because the stylesheet request no longer matches the current app shell.
+
+#### What's Broken / Partially Done
+- Existing phone tabs controlled by the old service worker may need one close/reopen after deployment if the first reload is still controlled by old cached state.
+- Offline fallback/offline app caching is intentionally disabled for now to protect the live design; reintroduce offline support only with explicit cache versioning and mobile refresh testing.
+
+#### Validation
+- Live production diagnostic before the patch confirmed current Vercel HTML referenced CSS files that returned HTTP 200, pointing away from missing deploy assets and toward stale client SW/cache state.
+- `get_errors` on changed app files: no errors.
+- `npm run typecheck`: passed.
+- `npm run build`: passed with existing warnings only; first build attempt failed until the Serwist `self.__SW_MANIFEST` injection marker was restored, then passed.
+- Generated `/sw.js` no longer includes the old `static-style-assets` or `next-static-js-assets` runtime cache names.
+
+#### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md` — this handoff.
+- `slate360-context/DASHBOARD.md` — PWA service-worker caching contract.
+- `ONGOING_ISSUES.md` — S360-039.
+- `ops/bug-registry.json` — BUG-036.
+
+#### Next Steps (ordered)
+1. Commit and push the stale CSS/service-worker fix.
+2. Wait for Vercel production deploy from `main`.
+3. On phone, refresh once; if still unstyled, close all Slate360 tabs and reopen so the new SW takes control and clears caches.
+4. Verify `/`, `/dashboard`, and `/m/diag` render styled on mobile after refresh.
+
+---
+
 ### Session Handoff — 2026-04-26 (PWA Install Icon Branding Fix)
 
 #### What Changed

@@ -247,6 +247,21 @@
         "`public/icon-v2.svg`, `app/icon.svg`, `public/uploads/slate360-favicon-v2.svg`, and `public/uploads/favicon.svg` contain the updated geometric Slate360 mark",
         "After deployment, remove the old home-screen install and add Slate360 again to verify the OS uses the updated icon"
       ]
+    },
+    {
+      "id": "BUG-036",
+      "title": "Mobile refresh rendered unstyled page from stale service-worker caches",
+      "module": "pwa/service-worker",
+      "severity": "critical",
+      "status": "fixed",
+      "rootCause": "Serwist default runtime caching and precaching could keep stale Next HTML/CSS/JS on mobile. After a deploy, a cached HTML document could reference retired CSS chunks, producing a mostly white text-only page on refresh.",
+      "verification": [
+        "`app/sw.ts` uses `NetworkOnly` runtime caching and passes an empty precache list so Next HTML/CSS/JS are not served from stale service-worker caches",
+        "`app/sw.ts` activation deletes all Cache Storage entries and enables navigation preload before claiming clients",
+        "`components/providers/SWRegistrar.tsx` registers `/sw.js` with `updateViaCache: 'none'`, forces an update check, and reloads once when the new controller takes over",
+        "`npm run typecheck` and `npm run build` pass after the change",
+        "After deployment, mobile browser refresh should restore styled Slate360 pages; if a tab is still controlled by the old worker, close/reopen once"
+      ]
     }
   ]
 }

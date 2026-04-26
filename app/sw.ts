@@ -1,7 +1,6 @@
 /// <reference lib="webworker" />
-import { defaultCache } from "@serwist/next/worker";
-import type { PrecacheEntry, SerwistGlobalConfig } from "serwist";
-import { Serwist } from "serwist";
+import type { PrecacheEntry, RuntimeCaching, SerwistGlobalConfig } from "serwist";
+import { NetworkOnly, Serwist } from "serwist";
 
 declare global {
   interface WorkerGlobalScope extends SerwistGlobalConfig {
@@ -12,35 +11,41 @@ declare global {
 declare const self: ServiceWorkerGlobalScope & typeof globalThis;
 
 // Bump this whenever shipping a fix that users on stale caches need to see.
-const CACHE_VERSION = "2026-04-22-mobile-fix-v1";
+const CACHE_VERSION = "2026-04-26-stale-css-purge-v1";
+
+const runtimeCaching: RuntimeCaching[] = [
+  {
+    matcher: /.*/i,
+    method: "GET",
+    handler: new NetworkOnly(),
+  },
+];
+
+const ignoredPrecacheManifest = self.__SW_MANIFEST;
+void ignoredPrecacheManifest;
 
 const serwist = new Serwist({
-  precacheEntries: self.__SW_MANIFEST,
+  // Do not precache Next HTML/CSS/JS. A stale precached HTML document can point
+  // mobile browsers at retired CSS chunks after a deploy, producing an
+  // unstyled white/text-only page. Let Vercel/browser immutable asset caching
+  // handle _next/static and keep the SW as a purge/update shim for now.
+  precacheEntries: [],
   skipWaiting: true,
   clientsClaim: true,
   navigationPreload: true,
-  runtimeCaching: defaultCache,
-  fallbacks: {
-    entries: [
-      {
-        url: "/~offline",
-        matcher: ({ request }) => request.destination === "document",
-      },
-    ],
-  },
+  runtimeCaching,
 });
 
-// On every activation, blow away ALL old caches so users on a stale SW
-// get fresh HTML/CSS/JS the next time they open the app.
+// On every activation, blow away all Cache Storage entries from previous SWs so
+// users on stale mobile caches get fresh HTML/CSS/JS the next time they open or
+// refresh the app.
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     (async () => {
       const keys = await caches.keys();
-      await Promise.all(
-        keys
-          .filter((k) => !k.includes(CACHE_VERSION))
-          .map((k) => caches.delete(k))
-      );
+      await Promise.all(keys.map((key) => caches.delete(key)));
+      await self.registration.navigationPreload?.enable();
+      console.info(`[SW] activated ${CACHE_VERSION}; cleared ${keys.length} cache(s).`);
       await self.clients.claim();
     })()
   );
