@@ -197,7 +197,7 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-26 (Global App Shell Styling Locked + Quick Action Recommendation)
+### Session Handoff — 2026-04-26 (Preview Shell Updated + Home Viewer Expand Fixed)
 
 #### What Changed
 - **Executed external AI prompt directives for Phase 1 CSS/theming:**
@@ -209,6 +209,8 @@ When editing oversized files, always read both the state declarations AND the JS
   - `components/dashboard/command-center/DashboardSidebar.tsx` — sidebar restored to dark `bg-slate-900` and now uses the dark-background logo component (`slate360-logo-light-v3.svg`).
 - **Existing audit facts still apply:** sharing is already available via `InviteShareModal`, `navigator.share`, SMS links, QR codes, and invite APIs. `/communications` route does not exist yet; internal calendar CRUD exists, but external iOS/Android/Google calendar sync is new work.
 - **4th Quick Action recommendation:** best universal choice is **Search Everything / Command Center** (global search / command palette) because it serves all apps, collaborators, projects, contacts, files, deliverables, and support workflows without privileging one product. Secondary option: **Create / Request Deliverable** for converting work into shareable outputs, but it is more app/tier-specific.
+- **Preview route updated:** `app/preview/mobile-shell-v2/page.tsx` now reflects the new field-tested Global App Shell direction (light canvas, slate-300 cards, cobalt action, app-neutral quick actions, Projects & Tasks / Recent Work / Communications hubs). The old dark amber shell preview is removed.
+- **Home viewer expand fix:** `components/home/HeroDemo.tsx` and `components/home/AppDemo.tsx` now render fullscreen viewer overlays through a React portal to `document.body` with `z-[1000]`, `h-[100dvh]`, and `overflow-hidden`. This avoids clipping/flashing caused by ancestor overflow/stacking contexts on the marketing homepage.
 
 #### Live DB Status
 All five core admin-layer migrations are **Live** and tracked on `hadnfcenpcfaeclczsmm`:
@@ -224,14 +226,15 @@ All five core admin-layer migrations are **Live** and tracked on `hadnfcenpcfaec
 - **Stale PR:** The outside-AI task at `prompts/CURRENT.md` (PR #27d.2 — PDF email) targets an archived `_legacy_v1` file. **Do not apply PR #27d.2** until reconciled with the new UI.
 - **App Shell visual architecture not fully rebuilt yet:** CSS/theming and sidebar logo are fixed; the new ContainedSection-based App Shell components still need to be generated/implemented.
 - **Validation note:** `npm run typecheck` passes after clearing stale `.next` route types. `bash scripts/check-file-size.sh` still fails on 12 pre-existing oversized files not touched in this task.
+- **PWA note:** Installing the PWA is handled by browser/OS install UI, not the in-app Share button. iOS: Safari share sheet → Add to Home Screen. Android/Chrome: install prompt/menu → Install app/Add to Home screen. Existing home-screen shortcuts may cache old service worker output; remove/re-add or force-refresh if stale.
 
 #### Context Files Updated
 - `SLATE360_PROJECT_MEMORY.md` (This handoff).
 
 #### Next Steps (ordered)
-1. Generate/implement the Slate360 Global App Shell around these universal hubs: Projects & Tasks, Recent Work & Drafts, Communications. Do not prioritize Site Walk in the global shell; gate app cards by subscription and default collaborators to Assigned Tasks.
-2. Wire the top-header/share action to the existing `InviteShareModal` provider rather than creating new share code.
-3. Use **Search Everything / Command Center** as the recommended 4th Quick Action unless UX chooses the secondary Deliverable option.
+1. Review `/preview/mobile-shell-v2` after Vercel deploy completes; use it as the current visual target for the app-neutral Global App Shell.
+2. Generate/implement the production Slate360 Global App Shell around these universal hubs: Projects & Tasks, Recent Work & Drafts, Communications. Gate app cards by subscription and default collaborators to Assigned Tasks.
+3. Wire the top-header/share action to the existing `InviteShareModal` provider rather than creating new share code.
 4. Build the 3 pending API routes (`/api/org`, `/api/contacts/search`, `/api/projects/[id]/attach-session`).
 5. Reconcile outside-AI PR #27d.2 (PDF emailing rules) against the newly generated Deliverables UI.
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import dynamic from "next/dynamic";
 import { Maximize2, X } from "lucide-react";
 
@@ -30,6 +31,11 @@ interface AppDemoProps {
  */
 export default function AppDemo({ type, modelSrc, panoramaSrc, label }: AppDemoProps) {
   const [expanded, setExpanded] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (!expanded) return;
@@ -95,9 +101,9 @@ export default function AppDemo({ type, modelSrc, panoramaSrc, label }: AppDemoP
         <p className="text-xs text-muted-foreground text-center mt-2">{label}</p>
       )}
 
-      {expanded && !isPlaceholder && (
+      {mounted && expanded && !isPlaceholder && createPortal(
         <div
-          className="fixed inset-0 z-[100] bg-black/95 backdrop-blur flex flex-col"
+          className="fixed inset-0 z-[1000] h-[100dvh] w-screen bg-black/95 backdrop-blur flex flex-col isolate"
           role="dialog"
           aria-modal="true"
           aria-label={`Expanded ${label ?? "demo"} viewer`}
@@ -116,8 +122,9 @@ export default function AppDemo({ type, modelSrc, panoramaSrc, label }: AppDemoP
               <X className="h-6 w-6" />
             </button>
           </div>
-          <div className="flex-1 min-h-0 w-full">{viewer(true)}</div>
-        </div>
+          <div className="flex-1 min-h-0 w-full overflow-hidden">{viewer(true)}</div>
+        </div>,
+        document.body,
       )}
     </div>
   );
