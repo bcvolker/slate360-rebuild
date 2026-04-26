@@ -6,6 +6,7 @@ import type React from "react";
 import { Input } from "@/components/ui/input";
 import {
   Command,
+  ClipboardCheck,
   FileText,
   Files,
   FolderOpen,
@@ -42,7 +43,7 @@ export function CommandCenterContent({ userName, orgName, storageLimitGb, entitl
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
-      <section className="space-y-2">
+      <section className="hidden space-y-2 lg:block">
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
           {orgName || userName || "Slate360"}
         </p>
@@ -55,7 +56,7 @@ export function CommandCenterContent({ userName, orgName, storageLimitGb, entitl
       </section>
 
       {/* Search */}
-      <section className="surface-raised p-4 sm:p-5">
+      <section className="hidden surface-raised p-4 sm:p-5 lg:block">
         <div className="relative">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -76,7 +77,7 @@ export function CommandCenterContent({ userName, orgName, storageLimitGb, entitl
           <QuickAction href="/dashboard" label="Quick Start" detail="Launch any subscribed app" icon={<Rocket className="h-5 w-5" />} primary />
           <QuickAction href="/projects" label="New Project" detail="Create a shared workspace" icon={<Plus className="h-5 w-5" />} />
           <QuickAction href="/slatedrop" label="Open SlateDrop" detail={`${storageLimitGb}GB file hub`} icon={<Files className="h-5 w-5" />} />
-          <QuickAction href="/dashboard" label="Search Everything" detail="Projects, tasks, files" icon={<Command className="h-5 w-5" />} />
+          <QuickAction href="/projects" label="Assigned Tasks" detail="Work assigned to you" icon={<ClipboardCheck className="h-5 w-5" />} />
         </div>
       </section>
 
@@ -122,13 +123,18 @@ export function CommandCenterContent({ userName, orgName, storageLimitGb, entitl
         <div className="mb-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <MessageSquare className="h-4 w-4 text-primary" />
-            <h2 className="text-lg font-semibold text-slate-900">Communications</h2>
+            <h2 className="text-lg font-semibold text-slate-900">Coordination Hub</h2>
           </div>
-          <SlateSubtleToggle
-            options={["Unread Threads", "Recent Contacts"]}
-            active={communicationsView}
-            onChange={setCommunicationsView}
-          />
+          <div className="flex items-center gap-2">
+            <SlateSubtleToggle
+              options={["Unread Threads", "Recent Contacts"]}
+              active={communicationsView}
+              onChange={setCommunicationsView}
+            />
+            <Link href="/coordination" className="hidden rounded-lg border border-slate-300 bg-white px-3 py-1 text-xs font-bold text-blue-700 transition-colors hover:border-blue-600 sm:inline-flex">
+              Open
+            </Link>
+          </div>
         </div>
         <SlateContainedSection maxHeight="240px">
           <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-8 text-sm text-slate-600 text-center">

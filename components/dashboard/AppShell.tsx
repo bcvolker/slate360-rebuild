@@ -142,7 +142,11 @@ export function AppShell({
           />
         </div>
 
-        <MobileTopBar userName={userName} isBetaEligible={isBetaEligible} />
+        <MobileTopBar
+          userName={userName}
+          isBetaEligible={isBetaEligible}
+          onSearchClick={() => setPaletteOpen(true)}
+        />
 
         <main
           className={cn(

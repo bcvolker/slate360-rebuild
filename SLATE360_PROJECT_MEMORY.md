@@ -216,6 +216,7 @@ When editing oversized files, always read both the state declarations AND the JS
 - **Critical mobile preview header fix:** `app/preview/mobile-shell-v2/page.tsx` no longer tries to fit the full Slate360 wordmark plus giant search bar in the phone header. Header now matches the intended mobile/PWA pattern: left = cobalt app icon only; right = Share, Search, Notifications, user initials. Main content starts lower than the compact header so the app cards are no longer cut off.
 - **Second-pass mobile/PWA topbar fix:** preview and production `components/shared/MobileTopBar.tsx` now follow the clean old dev-shell pattern: icon-only Slate360 mark (`slate360-icon-cobalt.svg`), compact workspace/user dropdown text, then action icons (share, search, feedback/bug, notifications/avatar where applicable). No full wordmark and no giant search field in the mobile header.
 - **Homepage demo polish:** expanded viewer close buttons are now high-contrast white circles with blue ring/shadow; hero demo inactive tabs are now dark/slate instead of white pills with blue text.
+- **Final shell correction pass:** mobile preview + real PWA topbar now use the actual icon-only color asset (`/slate360-icon-color.png`) instead of the generic S/cube SVG. Mobile search is top-icon only and opens the existing `CommandPalette`; the mobile welcome text + large search section are hidden, while desktop keeps welcome/search. Redundant Quick Action "Search Everything" removed and replaced with "Assigned Tasks". Desktop sidebar now includes a Dashboard link above Projects. Communications section renamed to **Coordination Hub** with an Open action.
 
 #### Live DB Status
 All five core admin-layer migrations are **Live** and tracked on `hadnfcenpcfaeclczsmm`:
@@ -229,7 +230,7 @@ All five core admin-layer migrations are **Live** and tracked on `hadnfcenpcfaec
 - **`/site-walk` is a blank slate:** Reverting legacy code to `app/site-walk/_legacy_v1/` means the main route intentionally 404s. It is ready for the external AI's new code.
 - **3 API routes are pending:** We still need to build `GET/PATCH /api/org` (global settings), `GET /api/contacts/search` (typeahead), and `POST /api/projects/[id]/attach-session` (ad-hoc closure).
 - **Stale PR:** The outside-AI task at `prompts/CURRENT.md` (PR #27d.2 — PDF email) targets an archived `_legacy_v1` file. **Do not apply PR #27d.2** until reconciled with the new UI.
-- **App Shell visual architecture is now visible in preview and the logged-in Command Center.** Remaining work is wiring real data into the sections and building the final Site Walk app-specific UI.
+- **App Shell visual architecture is now visible in preview and the logged-in Command Center.** Remaining work is wiring real data into the sections, deciding the final 4th Quick Action if "Assigned Tasks" is not preferred, and building the final Site Walk app-specific UI.
 - **Validation note:** `npm run typecheck` passes after clearing stale `.next` route types. `bash scripts/check-file-size.sh` still fails on 12 pre-existing oversized files not touched in this task.
 - **PWA note:** Installing the PWA is handled by browser/OS install UI, not the in-app Share button. iOS: Safari share sheet → Add to Home Screen. Android/Chrome: install prompt/menu → Install app/Add to Home screen. Existing home-screen shortcuts may cache old service worker output; remove/re-add or force-refresh if stale.
 
@@ -237,7 +238,7 @@ All five core admin-layer migrations are **Live** and tracked on `hadnfcenpcfaec
 - `SLATE360_PROJECT_MEMORY.md` (This handoff).
 
 #### Next Steps (ordered)
-1. Wait for Vercel deploy of the latest `main` commit, then review `https://www.slate360.ai/preview/mobile-shell-v2?v=<latest-commit>` and confirm the icon-only header, app-card spacing, high-contrast close buttons, and dark inactive hero tabs are correct.
+1. Wait for Vercel deploy of the latest `main` commit, then review `https://www.slate360.ai/preview/mobile-shell-v2?v=<latest-commit>` and logged-in `/dashboard` PWA. Confirm icon-only color logo, no redundant mobile search bars, app cards start under header, and CommandPalette opens from mobile search icon.
 2. Wire real data into Command Center sections (assigned tasks, recent work/drafts, communication threads/contacts) while preserving empty states for new/collaborator users.
 3. Wire the top-header/share action to the existing `InviteShareModal` provider wherever the new shell has a share icon.
 4. Build the 3 pending API routes (`/api/org`, `/api/contacts/search`, `/api/projects/[id]/attach-session`).

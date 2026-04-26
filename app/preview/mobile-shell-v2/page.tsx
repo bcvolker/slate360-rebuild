@@ -5,6 +5,7 @@ import {
   Command,
   Bug,
   ChevronDown,
+  ClipboardList,
   FileText,
   Files,
   FolderOpen,
@@ -29,7 +30,7 @@ const quickActions = [
   { label: "Quick Start", detail: "Launch any subscribed app", icon: Rocket, primary: true },
   { label: "New Project", detail: "Create a shared workspace", icon: Plus },
   { label: "Open SlateDrop", detail: "Files, shares, uploads", icon: Files },
-  { label: "Search Everything", detail: "Projects, tasks, files", icon: Command },
+  { label: "Assigned Tasks", detail: "Work assigned to you", icon: ClipboardList },
 ];
 
 const projects = [
@@ -58,9 +59,9 @@ export default function MobileShellV2() {
           <div className="flex min-h-[48px] items-center justify-between gap-2">
             <div className="flex min-w-0 items-center gap-2">
               <img
-                src="/uploads/slate360-icon-cobalt.svg"
+                src="/slate360-icon-color.png"
                 alt="Slate360"
-                className="h-9 w-9 shrink-0 object-contain drop-shadow-[0_0_10px_rgba(59,130,246,0.35)]"
+                className="h-9 w-9 shrink-0 rounded-lg bg-white object-contain drop-shadow-[0_0_10px_rgba(59,130,246,0.35)]"
               />
               <button className="flex min-h-[40px] min-w-0 items-center gap-1 rounded-lg px-2 text-left transition-colors hover:bg-white/10" aria-label="Workspace and account menu">
                 <span className="max-w-[92px] truncate text-xs font-semibold text-slate-200">Brian Volker</span>
@@ -120,7 +121,7 @@ export default function MobileShellV2() {
 
           <ContainedHub title="Projects & Tasks" tabs={["Pinned", "All", "Assigned Tasks"]} items={projects} icon={FolderOpen} />
           <ContainedHub title="Recent Work & Drafts" tabs={["In-Progress", "Completed"]} items={recentWork} icon={FileText} />
-          <ContainedHub title="Communications" tabs={["Unread Threads", "Recent Contacts"]} items={threads} icon={MessageSquare} />
+          <ContainedHub title="Coordination Hub" tabs={["Unread Threads", "Recent Contacts"]} items={threads} icon={MessageSquare} cta="Open" />
         </main>
 
         <nav className="absolute inset-x-0 bottom-0 flex h-[80px] items-center justify-between border-t border-slate-800 bg-slate-900/95 px-6 text-slate-400 backdrop-blur-xl">
@@ -147,11 +148,13 @@ function ContainedHub({
   tabs,
   items,
   icon: Icon,
+  cta,
 }: {
   title: string;
   tabs: string[];
   items: { title: string; meta: string; status?: string }[];
   icon: typeof FolderOpen;
+  cta?: string;
 }) {
   return (
     <section className="rounded-2xl border border-slate-300 bg-white p-3 shadow-sm">
@@ -159,6 +162,7 @@ function ContainedHub({
         <h2 className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.18em] text-slate-700">
           <Icon className="h-4 w-4 text-blue-600" /> {title}
         </h2>
+        {cta ? <span className="rounded-lg border border-slate-300 bg-white px-2 py-1 text-[10px] font-bold text-blue-700">{cta}</span> : null}
       </div>
       <div className="mb-3 flex gap-1 overflow-x-auto rounded-xl bg-slate-100 p-1">
         {tabs.map((tab, index) => (

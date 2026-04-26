@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import {
   Search,
   X,
+  LayoutDashboard,
   Inbox,
   CreditCard,
   ChevronDown,
@@ -31,6 +32,7 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
+  { label: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
   { label: "Projects", icon: FolderKanban, href: "/projects" },
   { label: "SlateDrop", icon: Inbox, href: "/slatedrop" },
   { label: "Site Walk", icon: MapPin, href: "/site-walk/walks", matchPrefix: "/site-walk" },

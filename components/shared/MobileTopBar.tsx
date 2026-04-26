@@ -63,11 +63,11 @@ export function MobileTopBar({
             aria-label="Slate360 home"
           >
             <img
-              src="/uploads/slate360-icon-cobalt.svg?v=cobalt-2026-04-26"
+              src="/slate360-icon-color.png?v=brand-icon-2026-04-26"
               alt="Slate360"
               width={36}
               height={36}
-              className="h-9 w-9 object-contain drop-shadow-[0_0_10px_rgba(59,130,246,0.35)]"
+              className="h-9 w-9 rounded-lg bg-white object-contain drop-shadow-[0_0_10px_rgba(59,130,246,0.35)]"
             />
           </Link>
           <button
