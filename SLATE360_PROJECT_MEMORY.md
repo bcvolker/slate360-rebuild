@@ -1,6 +1,6 @@
 "# Slate360 — Project Memory
 
-Last Updated: 2026-04-19
+Last Updated: 2026-04-27
 Repo: bcvolker/slate360-rebuild
 Branch: main
 Live: https://www.slate360.ai
@@ -195,6 +195,32 @@ When editing oversized files, always read both the state declarations AND the JS
 ## Latest Session Handoff
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
+
+### Session Handoff — 2026-04-27 (Site Walk Build Plan Alignment)
+
+#### What Changed
+- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — updated the execution plan so it is explicitly compatible with the current live backend foundation and interactive deliverable schema.
+- Added a backend compatibility baseline covering project-aware access, ad-hoc sessions, item/offline fields, Master Plan Room, draft pins/markup, realtime, SlateDrop bridge, deliverables, audit/read receipts, and usage metering.
+- Added a Copilot-concern resolution matrix for migration drift, rich deliverables, dead buttons/App Store mode, field-office realtime, collaborator workflow, offline resilience, 100k-user scale/testability, and outside-AI review workflow.
+- Replaced the short V1 priority list with a 16-prompt build plan: 14 implementation prompts plus 2 hardening prompts, including acceptance gates and validation requirements after each prompt.
+- Documented estimate: 4–7 focused workdays for functional V1 if prompts run back-to-back, safer 1–2 calendar weeks with outside-AI review between prompts, plus separate 1–2 weeks for enterprise-scale load/App Store/PWA hardening.
+
+#### What's Broken / Partially Done
+- No Site Walk implementation files were changed in this planning pass.
+- The Site Walk frontend/API still needs to be built against the new schema.
+- Known first build blockers to resolve in Prompt 0: stale Site Walk shared types/enums, old deliverable status/type validation, ad-hoc session creation, draft pins using `plan_sheet_id`, and normalized deliverable public viewer loading.
+
+#### Context Files Updated
+- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — backend-compatible build plan and prompt sequence.
+- `SLATE360_PROJECT_MEMORY.md` — this handoff.
+
+#### Next Steps (ordered)
+1. Have the other AI assistant review the updated Site Walk plan for missed features or backend incompatibilities.
+2. If approved, begin Prompt 0: type/API reconciliation against current migrations before building visible UI.
+3. After each implementation prompt, produce a change summary, validation results, risks, and outside-AI review checklist before continuing.
+4. Keep visible Site Walk buttons functional or hidden; do not ship placeholder/dead-end actions.
+
+---
 
 ### Session Handoff — 2026-04-27 (Foundation Maintenance + Interactive Deliverables — Pushed)
 

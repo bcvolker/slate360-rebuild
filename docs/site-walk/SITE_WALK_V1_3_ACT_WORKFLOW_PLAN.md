@@ -1,6 +1,6 @@
 # Site Walk V1 — 3 Act Workflow, Layout, and Launch Plan
 
-Last Updated: 2026-04-26
+Last Updated: 2026-04-27
 Purpose: Product/UI plan for making Site Walk usable for Slate360 Version 1 launch.
 
 ---
@@ -18,6 +18,53 @@ This V1 3 Act workflow plan remains the execution-oriented launch plan, but it m
 - Monetization guardrails are part of product design: storage caps, AI credit caps, R2-backed storage, and App Store fee assumptions must protect margin.
 - Deliverables are not PDF-first. PDF export is one output alongside hosted previews, interactive portals, Kanban boards, cinematic presentations, SMS/email links, CSV/Excel exports, and integration targets.
 - App Store mode must hide unfinished apps/features entirely; no Coming Soon/dead-end surfaces should appear under `NEXT_PUBLIC_APP_STORE_MODE=true`.
+
+---
+
+## 2026-04-27 Backend Compatibility Baseline
+
+This build plan is now aligned to the backend that is live on Supabase and tracked in migrations. The Site Walk UI should build against this baseline rather than inventing a parallel data model.
+
+### Backend now available
+
+| Capability | Backend support to use | Build implication |
+|---|---|---|
+| Project/collaborator-safe access | `user_can_access_project()`, `user_can_manage_project()`, `user_can_access_org_or_project()`, `user_can_manage_org_or_project()` plus project-aware RLS | New APIs should use `withProjectAuth()` or explicitly verify project access before reads/writes. Do not rely only on org membership for project-bound workflows. |
+| Ad-hoc and project-bound sessions | `site_walk_sessions.project_id` is nullable; `is_ad_hoc`, `client_session_id`, `session_type`, `sync_state`, `last_synced_at` exist | `Start Walk Now` can create an ad-hoc session, then later attach it to a project. Project-bound walks should carry `project_id` from the start. |
+| Items/capture persistence | `site_walk_items` has `project_id`, file linkage, offline IDs, `capture_mode`, `sync_state`, upload state/progress, vector history, tags, trade/category, assignment/status fields | The capture UI must autosave draft items and patch fields incrementally. Client IDs should be generated for offline replay/idempotency. |
+| Master Plan Room | `site_walk_plan_sets`, `site_walk_plan_sheets`, `site_walk_session_plan_sheets`; legacy `site_walk_plans` remains for compatibility | New plan UI should prefer project-level plan sets/sheets and only use legacy plans as a bridge. |
+| Plan pins and markup | `site_walk_pins` supports draft pins, `plan_sheet_id`, `pin_status`, `label`, `markup_data`, realtime update identity | Long-press plan pinning can create draft pins before full item details are complete. Vector markup stays editable as JSON. |
+| Offline queue | `site_walk_offline_mutations` plus existing IndexedDB helpers | Offline UI must show pending/syncing/synced/failed/retry states and replay mutations in order. |
+| Realtime field-office sync | Realtime publication covers Site Walk tables including items, pins, deliverable interactive tables, activity, receipts, usage | Office/leadership views can subscribe to active sessions and observe status, pins, item inserts, and responses without manual refresh. |
+| SlateDrop bridge | `slatedrop_uploads`, `unified_files`, `site_walk_items.file_id`, `site_walk_deliverable_assets.file_id/unified_file_id` | Captures and deliverables must appear in project files. Do not write orphaned S3-only objects. |
+| Deliverables beyond PDF | Expanded deliverable types/statuses, `site_walk_deliverable_blocks`, `site_walk_portal_boards`, assets/scenes/hotspots/threads/responses/sends | The deliverable build should produce hosted outputs first, with PDF/email as export/send modes. |
+| Audit/read receipts/usage | `site_walk_activity_log`, `site_walk_read_receipts`, `site_walk_usage_events`, `site_walk_usage_monthly`, `record_site_walk_usage()` | Important sends, views, exports, comments, status changes, storage, AI, and realtime usage should be recorded. |
+
+### Existing code that must be reconciled before/during UI build
+
+- `/site-walk` is currently intentionally rebuilt from a clean surface. Legacy UI lives under `app/site-walk/_legacy_v1/` and should be treated as reference only, not the active route tree.
+- Some API routes still use old validation/type lists. Update shared types in `lib/types/site-walk.ts` before building UI on top of new deliverable/session/item fields.
+- `app/api/site-walk/deliverables/route.ts` currently accepts only the old deliverable types; it must accept the full backend list: `report`, `punchlist`, `photo_log`, `rfi`, `estimate`, `status_report`, `proposal`, `field_report`, `inspection_package`, `safety_report`, `proof_of_work`, `client_portal`, `kanban_board`, `cinematic_presentation`, `spreadsheet_export`, `virtual_tour`, `tour_360`, `model_viewer`, `media_gallery`, `client_review`, `custom`.
+- `app/api/site-walk/deliverables/[id]/route.ts` currently accepts only the old statuses; it must accept `draft`, `in_review`, `approved`, `submitted`, `shared`, `published`, `archived`, `revoked`.
+- `app/api/site-walk/deliverables/send/route.ts` already sends `link`, `inline_images`, and `pdf_attachment`; it must also write rows into `site_walk_deliverable_sends` and support `email_snapshot` when the UI produces one.
+- `lib/site-walk/load-deliverable.ts` currently normalizes public viewer items from `site_walk_deliverables.content`; it should be upgraded to load normalized `site_walk_deliverable_assets/scenes/hotspots/threads/responses` while preserving old `content` compatibility.
+- `app/api/site-walk/sessions/route.ts` still requires `project_id`; it must support ad-hoc session creation using the new nullable `project_id` and `is_ad_hoc` fields.
+- `app/api/site-walk/pins/route.ts` still requires `plan_id` and `item_id`; it must support `plan_sheet_id` and draft pins where `item_id` is not available yet.
+- `app/api/site-walk/upload/route.ts` currently routes photo/file captures to the project `Photos` folder. That is acceptable for launch, but the build should add clear folder conventions for Site Walk sessions and deliverables when SlateDrop provisioning is updated.
+
+### Copilot response concerns addressed in this plan
+
+| Concern | Resolution in this build plan |
+|---|---|
+| Backend drift / migration history | Already repaired. `supabase db push --dry-run --linked` reports the remote DB is up to date. Build uses current migrations, not assumed schema. |
+| Rich deliverables may not be backed by schema | Addressed by `site_walk_deliverable_assets`, `scenes`, `hotspots`, `threads`, `responses`, and `sends`. Act 3 must use these normalized tables. |
+| Dead buttons / App Store rejection risk | Every prompt includes a no-dead-button acceptance gate. App Store mode hides incomplete paths instead of showing placeholders. |
+| Field-office realtime requirement | Prompts 4, 6, 7, and 9 include realtime subscriptions for items, pins, assignments, activity, and office board state. |
+| Coworker/collaborator workflow | Access must use project-aware helpers and free-collaborator assigned-task routes. Collaborators should be able to respond and submit proof without full subscriber creation UI. |
+| Offline resilience | Act 2 requires IndexedDB drafts, blob persistence, ordered replay, idempotency, visible sync state, and conflict handling. |
+| Scale to thousands through 100k+ users | Build must keep server components first, limit realtime subscriptions to active sessions/project boards, use indexed project/session queries, paginate lists, avoid large client payloads, and test with seeded/load data before launch. |
+| Testability | Every prompt ends with typecheck/errors, file-size guard, route smoke, focused Playwright/manual checks, and a summary for outside-AI review. |
+| Need for outside prompts | No external prompts are required for implementation. Another AI can review each completed prompt summary against this plan. |
 
 ---
 
@@ -293,18 +340,308 @@ Free Collaborators do not see the full subscriber creation surface. Their defaul
 
 ---
 
-## Build Priority for V1 Launch
+## Build Plan for a Backend-Compatible Site Walk V1
 
-1. Shell alignment: Site Walk uses the same Slate360 chrome and bottom nav rules.
-2. Route-group scaffolding: `app/site-walk/(act-1-setup)`, `(act-2-inputs)`, `(act-3-outputs)` while preserving clean URLs.
-3. Act 1 fast setup: field project + location + contacts + branding defaults + Master Plan Room.
-4. Act 2 visual capture shell: plan-or-camera modal, dual-mode Camera/Plan view, pinning quick menu, vector toolbar, queue indicator, bottom sheet.
-5. Act 2 persistence loop: photo/upload → markup → classification/notes → autosave → item list.
-6. SlateDrop bridge: photos, markups, plans, and deliverables route into app/project folders.
-7. Coordination loop: assigned tasks, contact picker, send/share, stakeholder response, notification inbox.
-8. Act 3 first non-PDF deliverables: hosted preview/client portal and cinematic presentation shell before treating PDF as the only output.
-9. Offline queue and recovery for mobile capture through IndexedDB, not service-worker HTML/CSS/JS caching.
-10. App Store mode: hide unfinished/coming-soon modules under `NEXT_PUBLIC_APP_STORE_MODE=true`.
+### Prompt estimate and working rhythm
+
+Estimated build size: **14 implementation prompts plus 2 hardening prompts**.
+
+Estimated elapsed work time if prompts are run back-to-back with review between each: **4–7 focused workdays** for a functional V1, assuming no major third-party credential blocker. A safer calendar estimate with outside-AI review after each prompt is **1–2 weeks**. Full enterprise-scale load validation and App Store/PWA packaging hardening is a separate **1–2 week** track after the core workflows are functional.
+
+Each prompt should end with:
+1. What changed.
+2. Files touched.
+3. Backend tables/API routes used.
+4. Smoke tests run and expected results.
+5. Known risks or follow-up.
+6. A short outside-AI review checklist.
+
+### Prompt 0 — Preflight and stale-code reconciliation
+
+Goal: prepare the codebase so the build starts from accurate contracts.
+
+Tasks:
+- Update `lib/types/site-walk.ts` and related types to match the live backend fields and expanded enums.
+- Update stale API validation constants for deliverable types/statuses, session ad-hoc creation, and draft pins.
+- Confirm `/site-walk` active route tree is clean and `_legacy_v1` is reference only.
+- Confirm no active UI imports legacy paths that should remain archived.
+
+Acceptance:
+- TypeScript contracts match current migrations.
+- Existing API routes do not reject backend-valid Site Walk deliverables/statuses.
+- No dead route is introduced.
+
+### Prompt 1 — Site Walk app shell and route scaffold
+
+Goal: make `/site-walk` a functional module inside Slate360, not a 404 or a separate app.
+
+Tasks:
+- Build clean route-group scaffold for Act 1, Act 2, and Act 3 while preserving user-friendly URLs.
+- Use shared Slate360 shell, mobile bottom nav, entitlement/access rules, and real empty states.
+- Add a functional landing page with Start Walk, Create Field Project, Open Active Walks, Master Plan Room, Deliverables, and Assigned Work paths.
+- In App Store mode, hide incomplete actions rather than showing disabled placeholders.
+
+Acceptance:
+- `/site-walk` loads without auth/session crashes.
+- All visible buttons navigate to implemented routes or open functional modals.
+- Free-collaborator path defaults toward Assigned Work, not project creation.
+
+### Prompt 2 — Act 1 company identity, contacts, and project setup
+
+Goal: implement the setup foundations needed before a walk.
+
+Tasks:
+- Wire branding/settings UI to existing org branding endpoints and `organizations.brand_settings`.
+- Use existing contacts and project/team endpoints for stakeholders; if typeahead is missing, create a focused search endpoint.
+- Build project-bound walk setup using existing `projects` fields plus `metadata/report_defaults` where needed.
+- Keep canonical tiers from `getEntitlements()`; do not hardcode obsolete tiers.
+
+Acceptance:
+- User can configure branding basics.
+- User can select/create project context and stakeholders.
+- New setup data is read back from the DB after save, not trusted only in local state.
+
+### Prompt 3 — Master Plan Room
+
+Goal: wire project-level plan upload/list/select against the new plan-room schema.
+
+Tasks:
+- Build plan-set upload and list UI using SlateDrop-reserved files.
+- Store project-level plan sets/sheets in `site_walk_plan_sets` and `site_walk_plan_sheets`.
+- Attach selected plan sheets to a session through `site_walk_session_plan_sheets`.
+- Preserve legacy plan viewer compatibility where needed.
+
+Acceptance:
+- Project can show a reusable Master Plan Room.
+- Session can select a plan sheet before capture.
+- Plan image route returns a browser-loadable signed URL.
+
+### Prompt 4 — Session creation and active walk shell
+
+Goal: start and resume walks reliably.
+
+Tasks:
+- Support both ad-hoc `Start Walk Now` and project-bound session creation.
+- Generate `client_session_id` for offline/idempotency.
+- Mount `SiteWalkSessionProvider` around active capture routes.
+- Show sync/online/offline, active user/session status, and safe exit/end-session controls.
+
+Acceptance:
+- User can start a walk with or without a project.
+- Session can be resumed from Recent Work.
+- End Session updates DB status and records activity.
+
+### Prompt 5 — Capture engine: photo/upload/voice/text
+
+Goal: make field capture work end-to-end.
+
+Tasks:
+- Camera/upload path uses presigned upload, creates `site_walk_items`, bridges to SlateDrop, and refreshes item list.
+- Text/voice notes create items and support transcription when configured.
+- Capture metadata stores GPS/weather/device where available.
+- Upload progress and errors are visible.
+
+Acceptance:
+- User can create photo, upload, voice, and text items.
+- Captures appear in active walk item list and project files.
+- Failed upload does not lose the draft.
+
+### Prompt 6 — Plan canvas, long-press pins, and editable markup
+
+Goal: make the plan-first workflow real.
+
+Tasks:
+- Build canvas component with zoom/pan/layers and mobile gestures.
+- Wire long-press to create draft pin + item flow using `plan_sheet_id` when available.
+- Store editable vector markup in `markup_data` with undo/redo.
+- Broadcast cursor/pin drag during interaction and persist only on release/save.
+
+Acceptance:
+- User can drop/move pins on a plan.
+- Markup remains editable after save/reload.
+- Another active user sees pin/item updates in realtime.
+
+### Prompt 7 — Classification, assignment, notes, and item management
+
+Goal: turn raw captures into actionable field records.
+
+Tasks:
+- Build bottom-sheet classification form with title, status, priority, location, assignee, due date, cost/manpower, tags/trade/category, and notes.
+- Autosave patches items incrementally with visible save state.
+- Build item list with search/filter/bulk status/assignment actions.
+- Notify assignees and create activity/read records where applicable.
+
+Acceptance:
+- Office user can see assigned/critical/open work immediately.
+- Bulk operations are capped and safe.
+- No buttons are decorative.
+
+### Prompt 8 — Offline queue and conflict handling
+
+Goal: survive jobsite connectivity loss.
+
+Tasks:
+- Persist in-flight blobs and form state in IndexedDB.
+- Queue create/update/delete/upload-complete mutations with client IDs.
+- Replay in order when online.
+- Surface conflict/failed states and allow retry/discard.
+
+Acceptance:
+- Airplane-mode capture creates local drafts.
+- Returning online syncs without duplicate items.
+- User can see exactly what is pending or failed.
+
+### Prompt 9 — Field-office board and realtime support view
+
+Goal: let coworkers and office staff see field progress and support strategically.
+
+Tasks:
+- Build active sessions board using indexed project/session queries.
+- Subscribe only to relevant project/session channels.
+- Show open items, critical items, active assignments, latest comments, and sync health.
+- Add drill-down from office board to item/session details.
+
+Acceptance:
+- Office user can watch active walk progress without refresh.
+- Field user changes appear on the office board quickly.
+- Board queries are paginated/limited and do not load every org row.
+
+### Prompt 10 — Collaborator and assigned-work loop
+
+Goal: make coworker/subcontractor participation usable without full subscriber UI.
+
+Tasks:
+- Build assigned-work entry route for project members/collaborators.
+- Restrict collaborator UI to permitted tasks/items.
+- Allow before/after proof, note, photo/video/voice upload, status submit, and comments.
+- Route submitted files to SlateDrop and notify subscriber/GC.
+
+Acceptance:
+- Collaborator can complete assigned proof-of-work on mobile.
+- Collaborator cannot create unauthorized projects/deliverables.
+- Subscriber sees submitted work in realtime/notifications.
+
+### Prompt 11 — Act 3 deliverable builder: hosted outputs first
+
+Goal: create deliverables from captured items using the normalized backend.
+
+Tasks:
+- Create draft deliverables with full valid type/status lists.
+- Build block/asset/scene composition UI from selected items, files, plan sheets, 360 assets, and model references.
+- Store assets in `site_walk_deliverable_assets`, scenes in `site_walk_deliverable_scenes`, and hotspots in `site_walk_deliverable_hotspots`.
+- Keep `content` JSON as backwards-compatible summary only, not the source of all interaction state.
+
+Acceptance:
+- User can create a hosted preview/client-review deliverable from a walk.
+- Preview has thumbnails, arrows/navigation, overlays/hotspots, and expandable response sidebar.
+- 360/model items can be referenced without Site Walk becoming the 360/model authoring app.
+
+### Prompt 12 — Public viewer, client responses, and analytics
+
+Goal: make shared links interactive and auditable.
+
+Tasks:
+- Upgrade public token loader to normalized assets/scenes/hotspots/threads/responses.
+- Support token roles: view, download, comment, respond, approve.
+- Write client comments/questions/approvals into `site_walk_deliverable_threads` and `site_walk_deliverable_responses`.
+- Record views/read receipts/usage.
+
+Acceptance:
+- External recipient can open a hosted link, navigate the deliverable, comment/respond/approve as permitted.
+- Owner sees responses and analytics in-app.
+- Expired/revoked/max-view links fail safely.
+
+### Prompt 13 — PDF, inline email, email snapshot, and send log
+
+Goal: complete static/export send modes.
+
+Tasks:
+- Keep link, inline images, and PDF attachment modes working.
+- Add immutable email snapshot generation when needed.
+- Write every send attempt/result into `site_walk_deliverable_sends`.
+- Bridge exported PDFs/snapshots to SlateDrop and record usage.
+
+Acceptance:
+- Recipient can receive a PDF attachment email.
+- Recipient can receive an inline-image/body email without needing an attachment.
+- Owner can see send history and failures.
+
+### Prompt 14 — SlateDrop and Coordination polish
+
+Goal: make Site Walk feel integrated with the broader product.
+
+Tasks:
+- Add a Site Walk/Field Reports folder convention or virtual folder view in project files.
+- Confirm captured photos, plans, voice notes, PDFs, snapshots, and deliverable assets appear in predictable project file locations.
+- Route comments/responses/action-needed items into Coordination/My Work surfaces.
+- Ensure delete/revoke behaviors do not leave dangling references.
+
+Acceptance:
+- Users browsing project files can find Site Walk outputs without knowing internal S3 paths.
+- Coordination surfaces show actionable Site Walk work.
+
+### Prompt 15 — End-to-end QA, button audit, and mobile smoke
+
+Goal: remove broken paths before beta.
+
+Tasks:
+- Click every visible Site Walk button in desktop and mobile states.
+- Validate empty/error/loading states.
+- Run focused Playwright route and workflow smokes.
+- Run `npm run typecheck`, targeted errors, and file-size guard.
+- Confirm App Store mode hides incomplete paths.
+
+Acceptance:
+- A real user can complete: setup → start walk → capture → classify/assign → office sees progress → build/share deliverable → recipient responds.
+- No visible button is dead or placeholder-only.
+
+### Prompt 16 — Scale, load, and reliability hardening
+
+Goal: prove the architecture can grow without avoidable crashes.
+
+Tasks:
+- Add seed/load scripts for realistic org/project/session/item/deliverable volumes.
+- Test query plans and indexes for key routes: active board, item list, deliverables, public viewer, SlateDrop folder load.
+- Add pagination/cursors where any route can exceed 100 rows.
+- Add realtime subscription limits: subscribe to active session/project only, unsubscribe on route change, avoid org-wide firehose channels.
+- Validate RLS behavior with org owner, project member, collaborator, and anonymous token roles.
+
+Acceptance:
+- Route/API tests cover small and large datasets.
+- No core endpoint depends on loading all org data into memory.
+- Realtime remains scoped and recoverable.
+
+### Scalability targets and design rules
+
+The build should be designed for 1,000 → 10,000 → 50,000 → 100,000+ users by enforcing these rules from the start:
+
+- Database reads must be scoped by `org_id`, `project_id`, `session_id`, or token and supported by indexes.
+- Lists must paginate or cap results; dashboards should use summary endpoints/views instead of raw row floods.
+- Realtime should be used for active sessions and active office boards only. No global org-wide subscription should stream every row.
+- File uploads should go directly to object storage via presigned URLs; server routes should reserve/complete metadata, not proxy large files.
+- Heavy rendering/export work should be bounded, queued, or chunked when it grows beyond serverless-safe limits.
+- Mobile clients should keep local state bounded: visible session only, incremental item loading, thumbnails instead of originals.
+- Usage events should meter storage, AI, exports, messages, and realtime minutes so margin and abuse controls are enforceable.
+- Every schema/API change must keep RLS and project collaborator behavior intact.
+
+### Required validation after each implementation prompt
+
+- `get_errors` on changed files.
+- `npm run typecheck` when TypeScript contracts, routes, hooks, or components changed.
+- `bash scripts/check-file-size.sh` when app code changed; if it fails on pre-existing oversized files, note that separately and do not add new oversized files.
+- Focused smoke test for the route/workflow touched.
+- Confirm no visible button points to an unimplemented/dead route.
+- Update this plan or the relevant context doc when the implementation changes scope.
+
+### Information needed before or during build
+
+I do not need external prompts to start building. I can implement the slices directly from this plan and the current backend. Helpful decisions from you before the first build prompt:
+
+1. Confirm whether V1 should ship with the full plan canvas in Prompt 6 or allow camera-first capture before plan canvas is complete.
+2. Confirm launch-critical deliverable types: recommended first set is `field_report`, `photo_log`, `punchlist`, `client_review`, and `cinematic_presentation`.
+3. Confirm whether SMS send is required for V1 or can remain Phase 2 until Twilio/env setup is approved.
+4. Confirm the wording for collaborator UI: `My Work`, `Assigned Tasks`, or `Tasks & To-Dos`.
+5. Provide any required brand/design approval for the Site Walk capture screen if you want a specific v0 visual direction; otherwise I can build using the existing Slate360 design system.
 
 ---
 
