@@ -196,6 +196,32 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
+### Session Handoff — 2026-04-27 (Site Walk Prompt 1 Scaffold — Pushed)
+
+#### What Changed
+- `app/site-walk/layout.tsx` — added the active Site Walk module layout inside the authenticated Slate360 app shell.
+- `app/site-walk/page.tsx` — added a functional high-contrast Site Walk landing page with Start Walk, setup, plans, active walks, deliverables, and assigned-work actions plus App Store mode filtering.
+- `app/site-walk/(act-1-setup)/*`, `app/site-walk/(act-2-inputs)/*`, and `app/site-walk/(act-3-outputs)/*` — added Prompt 1 route-group scaffold for setup, plans, capture, walks, assigned work, and deliverables.
+- `components/site-walk/capture/*` — added required modular Act 2 placeholders: `DualModeToggle`, `CameraViewfinder`, `PlanViewer`, `UnifiedVectorToolbar`, `CaptureBottomSheet`, and `SyncQueueIndicator`.
+- `components/site-walk/SiteWalkSegmentedNav.tsx` — pointed module navigation at the new active routes and hid web-only tabs when `NEXT_PUBLIC_APP_STORE_MODE=true`.
+- `app/(apps)/site-walk/page.tsx` — removed stale duplicate `/site-walk` route that redirected to legacy `/site-walk/home` and blocked production build.
+
+#### What's Broken / Partially Done
+- Prompt 0 was intentionally skipped by the user's green-light to start Prompt 1; stale Site Walk type/API reconciliation still remains before deeper data wiring.
+- `bash scripts/check-file-size.sh` still fails on pre-existing oversized files outside the Prompt 1 scaffold; all new Prompt 1 files are under 300 lines.
+- Prompt 2 must implement the profit-margin metering guard before broad upload, AI, export, messaging, or realtime-cost workflows expand.
+
+#### Context Files Updated
+- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — marked Prompt 1 complete with implementation commit `c52d2f2` and validation summary.
+- `SLATE360_PROJECT_MEMORY.md` — this handoff.
+
+#### Next Steps (ordered)
+1. Run Prompt 0 reconciliation or explicitly accept deferring it before adding backend-bound UI logic.
+2. Start Prompt 2 metering guard before expanding expensive Site Walk upload/AI/export/realtime paths.
+3. Keep `/site-walk/capture` as a thin composition route and add future logic inside the new modular capture components.
+
+---
+
 ### Session Handoff — 2026-04-27 (Site Walk Critical Review Corrections)
 
 #### What Changed

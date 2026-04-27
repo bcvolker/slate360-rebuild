@@ -373,7 +373,7 @@ The detailed sections below are the executable prompt texts. When a prompt start
 | Prompt | Status | Commit | Execution prompt | Completion summary / audit response |
 |---|---|---|---|---|
 | 0 | Not started | — | Preflight and stale-code reconciliation against current backend contracts. | Pending. |
-| 1 | Not started | — | App shell, route scaffold, and mandatory empty Act 2 component scaffolding. | Pending. |
+| 1 | Complete | `c52d2f2` | App shell, route scaffold, and mandatory empty Act 2 component scaffolding. | Created the active `/site-walk` module layout and landing page, Act 1/2/3 route-group scaffold, `/site-walk/capture` thin composition route, and required modular capture placeholders. Updated Site Walk segmented navigation for the new routes and App Store mode, and removed the stale duplicate route at `app/(apps)/site-walk/page.tsx`. Validated with changed-file diagnostics, `npm run typecheck`, and `npm run build`; file-size guard still reports pre-existing oversized files outside this Prompt 1 scaffold. |
 | 2 | Not started | — | Profit-margin metering engine for storage, AI, exports, messaging, and realtime usage. | Pending. |
 | 3 | Not started | — | Act 1 company identity, contacts, and project setup. | Pending. |
 | 4 | Not started | — | Master Plan Room. | Pending. |
