@@ -6,13 +6,21 @@ import { cn } from "@/lib/utils";
 
 type Tab = { href: string; label: string };
 
-const TABS: Tab[] = [
-  { href: "/site-walk/home", label: "Home" },
+const BASE_TABS: Tab[] = [
+  { href: "/site-walk", label: "Home" },
   { href: "/site-walk/walks", label: "Walks" },
-  { href: "/site-walk/board", label: "Plans" },
-  { href: "/site-walk/deliverables", label: "Deliverables" },
-  { href: "/site-walk/more", label: "More" },
+  { href: "/site-walk/capture", label: "Capture" },
+  { href: "/site-walk/assigned-work", label: "Assigned Work" },
 ];
+
+const WEB_TABS: Tab[] = [
+  ...BASE_TABS,
+  { href: "/site-walk/plans", label: "Plans" },
+  { href: "/site-walk/deliverables", label: "Deliverables" },
+];
+
+const TABS: Tab[] =
+  process.env.NEXT_PUBLIC_APP_STORE_MODE === "true" ? BASE_TABS : WEB_TABS;
 
 /**
  * Sticky top-tab segmented control for the Site Walk module.
@@ -31,7 +39,9 @@ export function SiteWalkSegmentedNav() {
         <ul className="flex min-w-max items-center gap-1 px-2 py-1.5">
           {TABS.map((tab) => {
             const active =
-              pathname === tab.href || pathname.startsWith(tab.href + "/");
+              tab.href === "/site-walk"
+                ? pathname === tab.href
+                : pathname === tab.href || pathname.startsWith(tab.href + "/");
             return (
               <li key={tab.href}>
                 <Link
