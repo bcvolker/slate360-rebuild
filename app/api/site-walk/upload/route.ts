@@ -5,9 +5,8 @@ import { s3, BUCKET } from "@/lib/s3";
 import { withAppAuth } from "@/lib/server/api-auth";
 import { ok, badRequest, serverError } from "@/lib/server/api-response";
 import { buildCanonicalS3Key, resolveNamespace } from "@/lib/slatedrop/storage";
-import { resolveProjectFolderIdByName } from "@/lib/slatedrop/projectArtifacts";
-import { provisionProjectFolders } from "@/lib/slatedrop/provisioning";
 import { checkStorageLimit, meteringBlockedResponse } from "@/lib/site-walk/metering";
+import { ensureSiteWalkProjectFolder } from "@/lib/site-walk/slatedrop-folders";
 
 /** POST /api/site-walk/upload — returns a presigned PUT URL for photo/file upload */
 export const POST = (req: NextRequest) =>
@@ -39,7 +38,7 @@ export const POST = (req: NextRequest) =>
       .eq("org_id", orgId)
       .maybeSingle();
 
-    if (sessionError || !session?.project_id) {
+    if (sessionError || !session) {
       return badRequest("Session not found or access denied");
     }
 
@@ -48,42 +47,27 @@ export const POST = (req: NextRequest) =>
     const blocked = meteringBlockedResponse(storageCheck);
     if (blocked) return blocked;
 
-    let folderId = await resolveProjectFolderIdByName(
-      session.project_id,
-      "Photos",
-      orgId,
-      user.id,
-    );
-
-    if (!folderId) {
-      const { data: project } = await admin
-        .from("projects")
-        .select("name")
-        .eq("id", session.project_id)
-        .eq("org_id", orgId)
-        .maybeSingle();
-
-      if (!project?.name) {
-        return badRequest("Project not found for session");
-      }
-
-      await provisionProjectFolders(session.project_id, project.name, orgId, user.id);
-      folderId = await resolveProjectFolderIdByName(session.project_id, "Photos", orgId, user.id);
-    }
-
-    if (!folderId) {
-      return serverError("Project Photos folder is unavailable");
-    }
-
     const ext = filename.split(".").pop()?.toLowerCase() ?? "jpg";
     const namespace = resolveNamespace(orgId, user.id);
-    const key = buildCanonicalS3Key(namespace, folderId, filename);
+    const folderId = session.project_id
+      ? await ensureSiteWalkProjectFolder({
+          admin,
+          projectId: session.project_id,
+          orgId,
+          userId: user.id,
+          childName: "Photos",
+        })
+      : null;
+    const key = folderId
+      ? buildCanonicalS3Key(namespace, folderId, filename)
+      : `orgs/${namespace}/site-walk-files/ad-hoc/${session.id}/photos/${Date.now()}_${filename.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
 
     try {
       const command = new PutObjectCommand({
         Bucket: BUCKET,
         Key: key,
         ContentType: contentType,
+        ContentLength: requestedBytes || undefined,
       });
 
       const uploadUrl = await getSignedUrl(s3, command, { expiresIn: 900 }); // 15 min
@@ -92,7 +76,7 @@ export const POST = (req: NextRequest) =>
         .from("slatedrop_uploads")
         .insert({
           file_name: filename,
-          file_size: 0,
+          file_size: requestedBytes,
           file_type: ext,
           s3_key: key,
           folder_id: folderId,

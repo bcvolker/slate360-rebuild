@@ -1,20 +1,76 @@
-import { Camera, ImagePlus, Mic } from "lucide-react";
+"use client";
 
-export function CameraViewfinder() {
+import { useRef, useState } from "react";
+import { Camera, FileImage, Loader2, Mic, PencilLine, RotateCcw } from "lucide-react";
+import { useCaptureUpload } from "@/lib/hooks/useCaptureUpload";
+
+type Props = {
+  sessionId: string;
+};
+
+export function CameraViewfinder({ sessionId }: Props) {
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const uploadInputRef = useRef<HTMLInputElement>(null);
+  const [noteText, setNoteText] = useState("");
+  const { status, savePhoto, saveTextNote, resetStatus } = useCaptureUpload({ sessionId });
+  const busy = status.kind === "uploading" || status.kind === "saving";
+
+  function handleFile(file: File | undefined) {
+    if (!file) return;
+    void savePhoto(file);
+  }
+
   return (
-    <section className="min-h-[420px] rounded-3xl border border-slate-300 bg-white p-4 shadow-sm">
-      <div className="flex h-full min-h-[380px] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-300 bg-slate-100 p-6 text-center">
-        <Camera className="h-10 w-10 text-blue-800" />
-        <h2 className="mt-4 text-xl font-black text-slate-950">Camera viewfinder scaffold</h2>
-        <p className="mt-2 max-w-md text-sm leading-6 text-slate-600">
-          Prompt 6 wires browser camera, uploads, capture metadata, SlateDrop reservation, and draft recovery here.
-        </p>
-        <div className="mt-5 flex flex-wrap justify-center gap-2 text-xs font-bold text-slate-700">
-          <span className="inline-flex items-center gap-1 rounded-full border border-slate-300 bg-white px-3 py-1"><Camera className="h-3 w-3" /> Camera</span>
-          <span className="inline-flex items-center gap-1 rounded-full border border-slate-300 bg-white px-3 py-1"><ImagePlus className="h-3 w-3" /> Upload</span>
-          <span className="inline-flex items-center gap-1 rounded-full border border-slate-300 bg-white px-3 py-1"><Mic className="h-3 w-3" /> Voice</span>
+    <section className="rounded-3xl border border-slate-300 bg-white p-4">
+      <div className="rounded-3xl bg-slate-50 p-4 ring-1 ring-slate-300">
+        <div className="flex min-h-[280px] flex-col items-center justify-center text-center">
+          <Camera className="h-12 w-12 text-blue-800" />
+          <h2 className="mt-4 text-2xl font-black text-slate-950">Capture field proof</h2>
+          <p className="mt-2 max-w-lg text-sm leading-6 text-slate-700">
+            Photos are metered before upload, stored through SlateDrop, and saved to the active walk with timestamp and GPS metadata when available.
+          </p>
+
+          <div className="mt-6 grid w-full max-w-xl gap-3 sm:grid-cols-2">
+            <button type="button" onClick={() => cameraInputRef.current?.click()} disabled={busy} className="min-h-12 rounded-2xl bg-blue-600 px-4 py-3 text-sm font-black text-white transition hover:bg-blue-700 disabled:opacity-60">
+              <span className="inline-flex items-center gap-2"><Camera className="h-5 w-5" /> Take Photo</span>
+            </button>
+            <button type="button" onClick={() => uploadInputRef.current?.click()} disabled={busy} className="min-h-12 rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-black text-slate-900 transition hover:border-blue-300 hover:text-blue-800 disabled:opacity-60">
+              <span className="inline-flex items-center gap-2"><FileImage className="h-5 w-5" /> Upload from Device</span>
+            </button>
+          </div>
         </div>
+
+        <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={(event) => { handleFile(event.target.files?.[0]); event.target.value = ""; }} />
+        <input ref={uploadInputRef} type="file" accept="image/*" className="hidden" onChange={(event) => { handleFile(event.target.files?.[0]); event.target.value = ""; }} />
+      </div>
+
+      <div className="mt-4 rounded-2xl border border-slate-300 bg-white p-4">
+        <div className="flex items-center gap-2 text-sm font-black text-slate-900"><PencilLine className="h-4 w-4 text-blue-700" /> Quick text / voice note</div>
+        <textarea
+          value={noteText}
+          onChange={(event) => setNoteText(event.target.value)}
+          rows={5}
+          inputMode="text"
+          placeholder="Tap here to type, or use the native iOS/Android microphone on the keyboard to dictate a field note…"
+          className="mt-3 w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-base leading-6 text-slate-900 outline-none focus:border-blue-700 focus:ring-2 focus:ring-blue-700/15"
+        />
+        <div className="mt-3 grid gap-2 sm:grid-cols-2">
+          <button type="button" onClick={() => void saveTextNote(noteText, "text")} disabled={busy || !noteText.trim()} className="min-h-11 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-black text-slate-900 hover:border-blue-300 disabled:opacity-60">Save Text Note</button>
+          <button type="button" onClick={() => void saveTextNote(noteText, "voice")} disabled={busy || !noteText.trim()} className="min-h-11 rounded-xl bg-blue-600 px-4 py-2 text-sm font-black text-white hover:bg-blue-700 disabled:opacity-60"><span className="inline-flex items-center gap-2"><Mic className="h-4 w-4" /> Save Voice Note</span></button>
+        </div>
+      </div>
+
+      <div className={`mt-4 flex items-center justify-between gap-3 rounded-2xl px-4 py-3 text-sm font-black ${statusClasses(status.kind)}`}>
+        <span className="inline-flex items-center gap-2">{busy && <Loader2 className="h-4 w-4 animate-spin" />}{status.message}</span>
+        {status.kind !== "idle" && <button type="button" onClick={resetStatus} className="rounded-lg p-1 hover:bg-white/60" aria-label="Reset status"><RotateCcw className="h-4 w-4" /></button>}
       </div>
     </section>
   );
+}
+
+function statusClasses(kind: string) {
+  if (kind === "complete") return "bg-emerald-50 text-emerald-800";
+  if (kind === "error") return "bg-rose-50 text-rose-800";
+  if (kind === "uploading" || kind === "saving") return "bg-blue-50 text-blue-900";
+  return "bg-slate-50 text-slate-700";
 }

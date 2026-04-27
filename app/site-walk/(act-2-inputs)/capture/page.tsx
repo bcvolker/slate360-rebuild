@@ -50,7 +50,7 @@ export default async function SiteWalkCapturePage({ searchParams }: Props) {
 
           <section className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
             <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-1">
-              <CameraViewfinder />
+              <CameraViewfinder sessionId={session.id} />
               <PlanViewer />
             </div>
             <aside className="space-y-4">
