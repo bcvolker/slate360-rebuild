@@ -196,30 +196,31 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-27 (Site Walk Prompt 8 Capture Item Drawer — Pushed)
+### Session Handoff — 2026-04-27 (Site Walk Prompt 9 Offline Capture Sync — Pushed)
 
 #### What Changed
-- `components/site-walk/capture/CaptureBottomSheet.tsx` — replaced the placeholder with a mobile fixed/desktop sticky data drawer that opens after a capture or plan pin and uses `dvh`, safe-area padding, and `focus-within` padding for keyboard-safe note entry.
-- `components/site-walk/capture/CaptureItemForm.tsx` — added title, classification, priority, status, assignee, dictation-ready notes textarea, autosave indicator, and `✨ Format with AI` action with upgrade/top-up messaging on credit exhaustion.
-- `components/site-walk/capture/CaptureItemListPanel.tsx` and `useCaptureItems.ts` — added active-session item list, filters, selected-item editing, debounced autosave PATCHes to `site_walk_items`, and drawer focus events.
-- `components/site-walk/capture/CameraViewfinder.tsx`, `PlanViewer.tsx`, and `lib/hooks/useCaptureUpload.ts` — publish capture item focus after photo/note saves; plan pin/markup drops now create an editable `annotation` item and focus it in the drawer.
-- `lib/site-walk/capture-item-client.ts` and `lib/types/site-walk-capture.ts` — added shared client item creation helpers and Prompt 8 item form/list types without violating import direction.
-- `app/api/projects/[projectId]/site-walk/assignees/route.ts` — project-scoped assignee route using `withProjectAuth()`, project members, and matched project stakeholders.
-- `app/api/site-walk/notes/format/route.ts` — AI formatting now checks Site Walk metering, records the AI credit before provider processing, and returns existing metering 402 responses for exhausted credits.
+- `lib/site-walk/offline-db.ts` — added the Prompt 9 IndexedDB data store with separate `offline_mutations` and `offline_blobs` stores, queue summary events, local client IDs, and mutation/blob helpers.
+- `lib/site-walk/sync-manager.ts` and `lib/hooks/useSiteWalkSyncStatus.ts` — added a data-only replay manager that listens for `online`, polls while active, processes queued mutations sequentially, presigns/uploads queued media through the existing metered Site Walk upload route, and publishes queue state to the UI.
+- `lib/site-walk/offline-capture.ts`, `lib/hooks/useCaptureUpload.ts`, and `components/site-walk/capture/useCaptureItems.ts` — capture photos/notes, plan-pin items, and autosave PATCHes now queue immediately when offline or when network/storage calls fail, while local React state updates instantly.
+- `components/site-walk/capture/PlanViewer.tsx` — offline plan pin/markup drops create local annotation items and queue the eventual item + pin mutation without blocking the field worker.
+- `components/site-walk/capture/SyncQueueIndicator.tsx` — now displays `Working Offline`, `Syncing N items...`, sync issue count, or `All Synced` from the IndexedDB queue.
+- `app/api/site-walk/items/route.ts` — item creation now returns existing rows for duplicate `client_item_id` or `client_mutation_id` replays, preventing duplicate rows after interrupted sync retries.
 
 #### What's Broken / Partially Done
 - Voice notes still use typed/native-dictated text for this drawer; raw audio backup/transcription remains a later layer.
 - Project stakeholders without a matched Slate360 user/profile appear as contact-only disabled assignee options because `site_walk_items.assigned_to` requires an auth user UUID.
-- `bash scripts/check-file-size.sh` still fails on the same 12 known pre-existing oversized files outside Prompt 8.
+- Conflict handling currently surfaces failed/conflict queue state and preserves queued entries for retry; a user-facing retry/discard control can be expanded in a later hardening pass.
+- No service-worker HTML/CSS/JS caching was added; Prompt 9 is strictly IndexedDB data persistence.
+- `bash scripts/check-file-size.sh` still fails on the same 12 known pre-existing oversized files outside Prompt 9.
 
 #### Context Files Updated
-- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — marked Prompt 8 complete with implementation commit `84e0483`.
+- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — marked Prompt 9 complete with implementation commit `9e1676a`.
 - `SLATE360_PROJECT_MEMORY.md` — this handoff.
 
 #### Next Steps (ordered)
-1. Smoke test `/site-walk/capture` on mobile after deploy: save photo/note, edit drawer fields, wait for autosave, run AI format with available credits, and verify item list filtering.
-2. Add optional raw audio upload/transcription for voice notes if required.
-3. Start Prompt 9 field-office realtime/assignment board work.
+1. Smoke test `/site-walk/capture` on mobile: airplane-mode photo/note/pin capture, restore network, verify Syncing N items → All Synced and no duplicate rows.
+2. Start Prompt 10 field-office board and realtime support view.
+3. Add user-facing retry/discard controls for failed offline mutations in a later hardening pass.
 
 ---
 
