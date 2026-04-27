@@ -196,6 +196,34 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
+### Session Handoff — 2026-04-27 (Site Walk Prompt 0 Reconciliation — Pushed)
+
+#### What Changed
+- `lib/types/site-walk.ts` — converted to a small barrel export so the prior 258-line contract file does not grow past the 300-line cap.
+- `lib/types/site-walk-constants.ts` — added live-schema constants for session statuses/types, sync states, item/capture/upload states, deliverable types/statuses/output modes, and pin states.
+- `lib/types/site-walk-core.ts`, `lib/types/site-walk-deliverables.ts`, `lib/types/site-walk-collaboration.ts`, and `lib/types/site-walk-ops.ts` — reconciled shared contracts with the live migrations: nullable `site_walk_sessions.project_id`, `is_ad_hoc`, `client_session_id`, `session_type`, `sync_state`, item offline/upload/vector fields, expanded deliverable fields, Master Plan Room sheet types, and draft pins.
+- `app/api/site-walk/sessions/*` — supports ad-hoc session creation and updates for nullable project, client session ID, session type, sync state, and last sync time.
+- `app/api/site-walk/deliverables/*` — accepts expanded deliverable types/statuses/output modes and writes project/output config fields; revoke now sets status `revoked`.
+- `app/api/site-walk/items/*` — writes project context plus offline capture/upload/vector/tag fields.
+- `app/api/site-walk/pins/*` — accepts `plan_sheet_id`, nullable `item_id`, draft pin state, label, client pin ID, and created-by fields.
+
+#### What's Broken / Partially Done
+- Prompt 2 metering guard is still next and should happen before expanding expensive upload/AI/export/realtime flows.
+- `app/api/site-walk/deliverables/send/route.ts` still needs send-log rows in `site_walk_deliverable_sends` and future `email_snapshot` support when the UI produces snapshots.
+- `lib/site-walk/load-deliverable.ts` still loads legacy `site_walk_deliverables.content`; normalized asset/scene/thread/response loading remains for Act 3.
+- `bash scripts/check-file-size.sh` still fails on pre-existing oversized files outside this Prompt 0 change.
+
+#### Context Files Updated
+- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — marked Prompt 0 complete with implementation commit `1c3d77c` and updated stale-code notes.
+- `SLATE360_PROJECT_MEMORY.md` — this handoff.
+
+#### Next Steps (ordered)
+1. Start Prompt 2: profit-margin metering guard using the modular/per-app entitlement model.
+2. Wire the guard before new Site Walk upload, AI, export, send, or realtime-cost code paths expand.
+3. Keep active UI isolated from `app/site-walk/_legacy_v1/`; use legacy files as reference only.
+
+---
+
 ### Session Handoff — 2026-04-27 (Site Walk Prompt 1 Scaffold — Pushed)
 
 #### What Changed

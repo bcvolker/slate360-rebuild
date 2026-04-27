@@ -43,13 +43,13 @@ This build plan is now aligned to the backend that is live on Supabase and track
 ### Existing code that must be reconciled before/during UI build
 
 - `/site-walk` is currently intentionally rebuilt from a clean surface. Legacy UI lives under `app/site-walk/_legacy_v1/` and should be treated as reference only, not the active route tree.
-- Some API routes still use old validation/type lists. Update shared types in `lib/types/site-walk.ts` before building UI on top of new deliverable/session/item fields.
-- `app/api/site-walk/deliverables/route.ts` currently accepts only the old deliverable types; it must accept the full backend list: `report`, `punchlist`, `photo_log`, `rfi`, `estimate`, `status_report`, `proposal`, `field_report`, `inspection_package`, `safety_report`, `proof_of_work`, `client_portal`, `kanban_board`, `cinematic_presentation`, `spreadsheet_export`, `virtual_tour`, `tour_360`, `model_viewer`, `media_gallery`, `client_review`, `custom`.
-- `app/api/site-walk/deliverables/[id]/route.ts` currently accepts only the old statuses; it must accept `draft`, `in_review`, `approved`, `submitted`, `shared`, `published`, `archived`, `revoked`.
+- Prompt 0 reconciled the shared contracts by splitting `lib/types/site-walk.ts` into a barrel plus focused type modules and live-schema constants. Keep new Site Walk UI/API imports pointed at `@/lib/types/site-walk`.
+- `app/api/site-walk/deliverables/route.ts` now accepts the full backend deliverable type list: `report`, `punchlist`, `photo_log`, `rfi`, `estimate`, `status_report`, `proposal`, `field_report`, `inspection_package`, `safety_report`, `proof_of_work`, `client_portal`, `kanban_board`, `cinematic_presentation`, `spreadsheet_export`, `virtual_tour`, `tour_360`, `model_viewer`, `media_gallery`, `client_review`, `custom`.
+- `app/api/site-walk/deliverables/[id]/route.ts` now accepts `draft`, `in_review`, `approved`, `submitted`, `shared`, `published`, `archived`, `revoked`.
 - `app/api/site-walk/deliverables/send/route.ts` already sends `link`, `inline_images`, and `pdf_attachment`; it must also write rows into `site_walk_deliverable_sends` and support `email_snapshot` when the UI produces one.
 - `lib/site-walk/load-deliverable.ts` currently normalizes public viewer items from `site_walk_deliverables.content`; it should be upgraded to load normalized `site_walk_deliverable_assets/scenes/hotspots/threads/responses` while preserving old `content` compatibility.
-- `app/api/site-walk/sessions/route.ts` still requires `project_id`; it must support ad-hoc session creation using the new nullable `project_id` and `is_ad_hoc` fields.
-- `app/api/site-walk/pins/route.ts` still requires `plan_id` and `item_id`; it must support `plan_sheet_id` and draft pins where `item_id` is not available yet.
+- `app/api/site-walk/sessions/route.ts` supports nullable `project_id`, ad-hoc session creation, `client_session_id`, `session_type`, and `sync_state`.
+- `app/api/site-walk/pins/route.ts` supports `plan_sheet_id` and draft pins where `item_id` is not available yet.
 - `app/api/site-walk/upload/route.ts` currently routes photo/file captures to the project `Photos` folder. That is acceptable for launch, but the build should add clear folder conventions for Site Walk sessions and deliverables when SlateDrop provisioning is updated.
 
 ### Copilot response concerns addressed in this plan
@@ -372,7 +372,7 @@ The detailed sections below are the executable prompt texts. When a prompt start
 
 | Prompt | Status | Commit | Execution prompt | Completion summary / audit response |
 |---|---|---|---|---|
-| 0 | Not started | — | Preflight and stale-code reconciliation against current backend contracts. | Pending. |
+| 0 | Complete | `1c3d77c` | Preflight and stale-code reconciliation against current backend contracts. | Split Site Walk shared contracts into focused type modules plus live-schema constants, updated session/item/deliverable/pin payloads to match nullable project sessions, offline sync fields, expanded deliverable output fields, Master Plan Room sheets, and draft pins. Updated Site Walk APIs to use the shared constants for deliverable types/statuses/output modes, ad-hoc session creation, offline item fields, `plan_sheet_id`, and draft pins. Verified no active imports from `app/site-walk/_legacy_v1/`, changed-file diagnostics passed, `npm run typecheck` passed, and file-size guard only reports pre-existing oversized files outside this Prompt 0 change. |
 | 1 | Complete | `c52d2f2` | App shell, route scaffold, and mandatory empty Act 2 component scaffolding. | Created the active `/site-walk` module layout and landing page, Act 1/2/3 route-group scaffold, `/site-walk/capture` thin composition route, and required modular capture placeholders. Updated Site Walk segmented navigation for the new routes and App Store mode, and removed the stale duplicate route at `app/(apps)/site-walk/page.tsx`. Validated with changed-file diagnostics, `npm run typecheck`, and `npm run build`; file-size guard still reports pre-existing oversized files outside this Prompt 1 scaffold. |
 | 2 | Not started | — | Profit-margin metering engine for storage, AI, exports, messaging, and realtime usage. | Pending. |
 | 3 | Not started | — | Act 1 company identity, contacts, and project setup. | Pending. |
