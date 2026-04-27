@@ -196,29 +196,29 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-27 (Site Walk Prompt 5 Session Shell — Pushed)
+### Session Handoff — 2026-04-27 (Site Walk Prompt 6 Capture Engine — Pushed)
 
 #### What Changed
-- `app/api/site-walk/sessions/route.ts` — added idempotent session creation using `client_session_id` with server-side `randomUUID()` fallback, project-bound validation, ad-hoc support, active `in_progress` status, `started_at`, and sync timestamps.
-- `app/site-walk/page.tsx` and `app/site-walk/_components/StartWalkActions.tsx` — wired Start Walk Now and Create Field Project triggers to create real sessions and route to `/site-walk/capture?session=...`.
-- `app/site-walk/(act-2-inputs)/capture/page.tsx` — now requires and server-loads an active session before mounting the capture shell.
-- `app/site-walk/(act-2-inputs)/capture/_components/SiteWalkSessionProvider.tsx` — added active session context with sync state, online/offline state, safe exit, and end-walk behavior.
-- `app/site-walk/(act-2-inputs)/capture/_components/WalkHeader.tsx`, `SyncStatusBadge.tsx`, and `SessionExitModal.tsx` — added high-contrast shell UI for walk title, elapsed time, sync visibility, and safe End/Exit confirmation.
+- `components/site-walk/capture/CameraViewfinder.tsx` — replaced the placeholder with native photo/upload controls, 44px+ touch targets, visible upload/save status, and a dictation-friendly text/voice note textarea.
+- `lib/hooks/useCaptureUpload.ts` — added client capture workflow for metadata collection, metered presign requests, blob upload, and `site_walk_items` creation for photo/text/voice-note items.
+- `app/api/site-walk/upload/route.ts` — preserved Prompt 2 storage metering before presign, now stores project-bound captures under the SlateDrop `Site Walk Files / Photos` folder convention, and supports ad-hoc session upload fallback storage.
+- `lib/site-walk/slatedrop-folders.ts` — added focused server helper to ensure the project-level `Site Walk Files` parent and app-specific child folders exist.
+- `app/site-walk/(act-2-inputs)/capture/page.tsx` — passes the active session id into the capture engine.
 
 #### What's Broken / Partially Done
-- Prompt 5 intentionally does not build camera capture, file upload UX, or plan markup canvas logic; those remain Prompts 6 and 7.
-- Create Field Project on the dashboard starts a project-bound walk for the latest active project; deeper project creation/editing remains in `/site-walk/setup`.
-- Existing legacy provider under `components/site-walk/SiteWalkSessionProvider.tsx` remains untouched for legacy routes; the active capture shell uses the new modular provider under the capture route.
-- `bash scripts/check-file-size.sh` still fails on pre-existing oversized files outside this Prompt 5 change.
+- Prompt 6 intentionally does not build the interactive plan canvas or vector markup; those remain Prompt 7.
+- Voice notes currently save dictated/manual text as `voice_note` rows; raw audio backup/transcription can be layered in later using the existing recorder/transcription routes.
+- Ad-hoc session uploads use a SlateDrop upload row and stable ad-hoc S3 prefix, but cannot attach to a project folder until the session is attached to a project.
+- `bash scripts/check-file-size.sh` still fails on pre-existing oversized files outside this Prompt 6 change.
 
 #### Context Files Updated
-- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — marked Prompt 5 complete with implementation commit `e1ef0c6` and validation summary.
+- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — marked Prompt 6 complete with implementation commit `17c35cc` and validation summary.
 - `SLATE360_PROJECT_MEMORY.md` — this handoff.
 
 #### Next Steps (ordered)
-1. Start Prompt 6: capture engine for photo/upload/voice/text inside the new session provider shell.
-2. Keep Prompt 7 plan canvas separate; Prompt 5 only mounted the plan placeholder inside the session shell.
-3. If the dashboard needs explicit project picking before Create Field Project, extend `StartWalkActions` without moving session creation into the route page.
+1. Start Prompt 7: plan canvas, long-press pins, and editable markup; do not regress the raw capture flow.
+2. Add optional raw audio upload/transcription for voice notes after the plan canvas work if required.
+3. Add post-walk attach flow so ad-hoc uploaded captures can be migrated into project folder context later.
 
 ---
 
