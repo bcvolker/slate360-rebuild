@@ -28,6 +28,7 @@ export function PlanViewer({ projectId, sessionId }: Props) {
   const [pins, setPins] = useState<Pin[]>([]);
   const [tool, setTool] = useState<VectorTool>("select");
   const [transform, setTransform] = useState<Transform>({ x: 0, y: 0, scale: 1 });
+  const [mounted, setMounted] = useState(false);
   const [menu, setMenu] = useState<MenuState | null>(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("Long-press the plan to drop a draft pin.");
@@ -35,7 +36,10 @@ export function PlanViewer({ projectId, sessionId }: Props) {
   const activeSheet = useMemo(() => sheets.find((sheet) => sheet.id === activeSheetId) ?? null, [activeSheetId, sheets]);
   const markupShapes = useMemo(() => pins.flatMap((pin) => isMarkupData(pin.markup_data) ? pin.markup_data.shapes : []), [pins]);
 
+  useEffect(() => setMounted(true), []);
+
   useEffect(() => {
+    if (!mounted) return;
     function handleTool(event: Event) {
       const detail = event instanceof CustomEvent ? event.detail : null;
       const nextTool = typeof detail?.tool === "string" ? detail.tool : "select";
@@ -43,10 +47,10 @@ export function PlanViewer({ projectId, sessionId }: Props) {
     }
     window.addEventListener(VECTOR_TOOL_EVENT, handleTool);
     return () => window.removeEventListener(VECTOR_TOOL_EVENT, handleTool);
-  }, []);
+  }, [mounted]);
 
   useEffect(() => {
-    if (!projectId) return;
+    if (!mounted || !projectId) return;
     let cancelled = false;
     setLoading(true);
     fetch(`/api/site-walk/plan-sets?project_id=${encodeURIComponent(projectId)}`)
@@ -60,7 +64,7 @@ export function PlanViewer({ projectId, sessionId }: Props) {
       .catch(() => setMessage("Plan sheets could not be loaded."))
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
-  }, [projectId]);
+  }, [mounted, projectId]);
 
   useEffect(() => {
     if (!activeSheetId) return;
@@ -91,7 +95,7 @@ export function PlanViewer({ projectId, sessionId }: Props) {
   async function createDraftPin(point: { xPct: number; yPct: number; screenX: number; screenY: number }, markup?: MarkupData) {
     if (!activeSheetId) return;
     setMessage(markup ? "Saving markup JSON…" : "Saving draft pin…");
-    if (typeof navigator.vibrate === "function") navigator.vibrate(12);
+    if (typeof navigator !== "undefined" && typeof navigator.vibrate === "function") navigator.vibrate(12);
     const response = await fetch("/api/site-walk/pins", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -157,7 +161,8 @@ export function PlanViewer({ projectId, sessionId }: Props) {
     dragRef.current = null;
   }
 
-  if (!projectId) return <PlanPlaceholder title="Attach this walk to a project to use plan sheets." />;
+  if (!mounted) return <PlanPlaceholder title="Loading plan tools…" loading />;
+  if (!projectId) return <PlanPlaceholder title="Photos-only walk" text="No floor plan is required. Continue capturing photos and notes." />;
   if (loading) return <PlanPlaceholder title="Loading plan sheets…" loading />;
   if (!activeSheet) return <PlanPlaceholder title="No plan sheets yet" text="Upload plans in the Master Plan Room, then return here to drop pins and markup." />;
 

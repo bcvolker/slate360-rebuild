@@ -12,7 +12,7 @@ import { WalkHeader } from "./_components/WalkHeader";
 import type { ActiveWalkSession } from "./_components/session-shell-types";
 
 type Props = {
-  searchParams: Promise<{ session?: string }>;
+  searchParams: Promise<{ session?: string; plan?: string }>;
 };
 
 type SessionRow = ActiveWalkSession & {
@@ -20,25 +20,32 @@ type SessionRow = ActiveWalkSession & {
 };
 
 export default async function SiteWalkCapturePage({ searchParams }: Props) {
-  const { session: sessionId } = await searchParams;
+  const { session: sessionId, plan } = await searchParams;
   const context = await resolveServerOrgContext();
 
   if (!context.user || !context.orgId || !sessionId) {
     return <NoActiveSession />;
   }
 
-  const admin = createAdminClient();
-  const { data } = await admin
-    .from("site_walk_sessions")
-    .select("id, project_id, title, status, started_at, completed_at, is_ad_hoc, client_session_id, sync_state, last_synced_at, projects(name)")
-    .eq("id", sessionId)
-    .eq("org_id", context.orgId)
-    .maybeSingle<SessionRow>();
+  let data: SessionRow | null = null;
+  try {
+    const admin = createAdminClient();
+    const result = await admin
+      .from("site_walk_sessions")
+      .select("id, project_id, title, status, started_at, completed_at, is_ad_hoc, client_session_id, sync_state, last_synced_at, projects(name)")
+      .eq("id", sessionId)
+      .eq("org_id", context.orgId)
+      .maybeSingle<SessionRow>();
+    data = result.data ?? null;
+  } catch (error) {
+    console.error("Site Walk session load failed", error);
+  }
 
   if (!data) return <NoActiveSession />;
 
   const project = Array.isArray(data.projects) ? data.projects[0] : data.projects;
   const session: ActiveWalkSession = { ...data, project_name: project?.name ?? null };
+  const showPlanCanvas = plan !== "skip" && !!session.project_id;
 
   return (
     <SiteWalkSessionProvider initialSession={session}>
@@ -51,11 +58,11 @@ export default async function SiteWalkCapturePage({ searchParams }: Props) {
           <section className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
             <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-1">
               <CameraViewfinder sessionId={session.id} />
-              <PlanViewer sessionId={session.id} projectId={session.project_id} />
+              {showPlanCanvas && <PlanViewer sessionId={session.id} projectId={session.project_id} />}
             </div>
             <aside className="space-y-4">
               <SyncQueueIndicator />
-              <UnifiedVectorToolbar />
+              {showPlanCanvas && <UnifiedVectorToolbar />}
               <CaptureBottomSheet />
             </aside>
           </section>

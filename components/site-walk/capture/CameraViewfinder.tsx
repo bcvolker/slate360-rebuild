@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Camera, FileImage, Loader2, Mic, PencilLine, RotateCcw } from "lucide-react";
 import { useCaptureUpload } from "@/lib/hooks/useCaptureUpload";
 import { usePlanCaptureTarget } from "./plan-capture-events";
@@ -12,11 +12,14 @@ type Props = {
 export function CameraViewfinder({ sessionId }: Props) {
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const uploadInputRef = useRef<HTMLInputElement>(null);
+  const [mounted, setMounted] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const [noteText, setNoteText] = useState("");
   const { target, clearTarget } = usePlanCaptureTarget();
   const { status, savePhoto, saveTextNote, resetStatus } = useCaptureUpload({ sessionId, planTarget: target, onPlanTargetSaved: clearTarget });
   const busy = status.kind === "uploading" || status.kind === "saving";
+
+  useEffect(() => setMounted(true), []);
 
   function handleFile(file: File | undefined) {
     if (!file) return;
@@ -49,11 +52,11 @@ export function CameraViewfinder({ sessionId }: Props) {
           </p>
 
           <div className="mt-6 grid w-full max-w-xl gap-3 md:hidden">
-            <button type="button" onClick={() => cameraInputRef.current?.click()} disabled={busy} className="min-h-16 rounded-3xl bg-blue-600 px-5 py-4 text-lg font-black text-white shadow-sm transition hover:bg-blue-700 disabled:opacity-60">
+            <button type="button" onClick={() => cameraInputRef.current?.click()} disabled={busy || !mounted} className="min-h-16 rounded-3xl bg-blue-600 px-5 py-4 text-lg font-black text-white shadow-sm transition hover:bg-blue-700 disabled:opacity-60">
               <span className="inline-flex items-center gap-2"><Camera className="h-5 w-5" /> Take Photo</span>
             </button>
-            <button type="button" onClick={() => uploadInputRef.current?.click()} disabled={busy} className="min-h-12 rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-black text-slate-900 transition hover:border-blue-300 hover:text-blue-800 disabled:opacity-60">
-              <span className="inline-flex items-center gap-2"><FileImage className="h-5 w-5" /> Upload from Device</span>
+            <button type="button" onClick={() => uploadInputRef.current?.click()} disabled={busy || !mounted} className="min-h-16 rounded-3xl border border-slate-300 bg-white px-5 py-4 text-lg font-black text-slate-900 transition hover:border-blue-300 hover:text-blue-800 disabled:opacity-60">
+              <span className="inline-flex items-center gap-2"><FileImage className="h-5 w-5" /> Camera Roll</span>
             </button>
           </div>
 
@@ -61,12 +64,12 @@ export function CameraViewfinder({ sessionId }: Props) {
             onDragOver={(event) => { event.preventDefault(); setDragActive(true); }}
             onDragLeave={() => setDragActive(false)}
             onDrop={handleDrop}
-            className={`mt-6 hidden w-full max-w-xl rounded-3xl border-2 border-dashed p-8 transition md:block ${dragActive ? "border-blue-500 bg-blue-50" : "border-slate-300 bg-white"}`}
+            className={`mt-6 hidden w-full max-w-2xl rounded-3xl border-2 border-dashed p-10 transition md:flex md:min-h-64 md:flex-col md:items-center md:justify-center ${dragActive ? "border-blue-500 bg-blue-50" : "border-slate-300 bg-white"}`}
           >
-            <p className="text-base font-black text-slate-950">Drag photos here</p>
-            <p className="mt-2 text-sm leading-6 text-slate-600">Desktop mode keeps the camera hidden and prioritizes device upload.</p>
-            <button type="button" onClick={() => uploadInputRef.current?.click()} disabled={busy} className="mt-5 min-h-12 rounded-2xl bg-blue-600 px-5 py-3 text-sm font-black text-white transition hover:bg-blue-700 disabled:opacity-60">
-              <span className="inline-flex items-center gap-2"><FileImage className="h-5 w-5" /> Upload from Device</span>
+            <p className="text-2xl font-black text-slate-950">Drag &amp; Drop Photos Here</p>
+            <p className="mt-2 text-sm leading-6 text-slate-600">Desktop mode is upload-first for job trailer workflows.</p>
+            <button type="button" onClick={() => uploadInputRef.current?.click()} disabled={busy || !mounted} className="mt-6 min-h-12 rounded-2xl bg-blue-600 px-6 py-3 text-sm font-black text-white transition hover:bg-blue-700 disabled:opacity-60">
+              <span className="inline-flex items-center gap-2"><FileImage className="h-5 w-5" /> Select Photos from Computer</span>
             </button>
           </div>
         </div>
