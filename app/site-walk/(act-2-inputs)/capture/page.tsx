@@ -1,10 +1,7 @@
 import Link from "next/link";
-import { DualModeToggle } from "@/components/site-walk/capture/DualModeToggle";
 import { resolveServerOrgContext } from "@/lib/server/org-context";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { CaptureClientIsland } from "./_components/CaptureClientIsland";
-import { SiteWalkSessionProvider } from "./_components/SiteWalkSessionProvider";
-import { WalkHeader } from "./_components/WalkHeader";
+import { CaptureNoSsrBoundary } from "./_components/CaptureNoSsrBoundary";
 import type { ActiveWalkSession } from "./_components/session-shell-types";
 
 type Props = {
@@ -43,19 +40,7 @@ export default async function SiteWalkCapturePage({ searchParams }: Props) {
   const session: ActiveWalkSession = { ...data, project_name: project?.name ?? null };
   const showPlanCanvas = plan !== "skip" && !!session.project_id;
 
-  return (
-    <SiteWalkSessionProvider initialSession={session}>
-      <main className="min-h-[calc(100vh-160px)] bg-slate-50 px-4 py-4 text-slate-950 sm:px-6 lg:px-8">
-        <div className="mx-auto flex max-w-7xl flex-col gap-4">
-          <WalkHeader />
-
-          <DualModeToggle />
-
-          <CaptureClientIsland sessionId={session.id} projectId={session.project_id} showPlanCanvas={showPlanCanvas} />
-        </div>
-      </main>
-    </SiteWalkSessionProvider>
-  );
+  return <CaptureNoSsrBoundary session={session} showPlanCanvas={showPlanCanvas} />;
 }
 
 function NoActiveSession() {

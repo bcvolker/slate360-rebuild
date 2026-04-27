@@ -20,6 +20,7 @@ export function SiteWalkSessionProvider({ initialSession, children }: Props) {
   const [isEnding, setIsEnding] = useState(false);
 
   useEffect(() => {
+    if (typeof window === "undefined" || typeof navigator === "undefined") return;
     setIsOnline(navigator.onLine);
     const goOnline = () => setIsOnline(true);
     const goOffline = () => setIsOnline(false);
