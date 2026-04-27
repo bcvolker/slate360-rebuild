@@ -196,28 +196,30 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-27 (Site Walk Prompt 6 Capture Engine — Pushed)
+### Session Handoff — 2026-04-27 (Site Walk Prompt 7 Plan Canvas Hotfixes — Pushed)
 
 #### What Changed
-- `components/site-walk/capture/CameraViewfinder.tsx` — replaced the placeholder with native photo/upload controls, 44px+ touch targets, visible upload/save status, and a dictation-friendly text/voice note textarea.
-- `lib/hooks/useCaptureUpload.ts` — added client capture workflow for metadata collection, metered presign requests, blob upload, and `site_walk_items` creation for photo/text/voice-note items.
-- `app/api/site-walk/upload/route.ts` — preserved Prompt 2 storage metering before presign, now stores project-bound captures under the SlateDrop `Site Walk Files / Photos` folder convention, and supports ad-hoc session upload fallback storage.
-- `lib/site-walk/slatedrop-folders.ts` — added focused server helper to ensure the project-level `Site Walk Files` parent and app-specific child folders exist.
-- `app/site-walk/(act-2-inputs)/capture/page.tsx` — passes the active session id into the capture engine.
+- `app/site-walk/page.tsx` — guarded project-list loading so the `/site-walk` module shell still renders if project fetch/admin setup fails.
+- `app/site-walk/_components/StartWalkActions.tsx` — replaced direct `crypto.randomUUID()` use with a guarded client session ID fallback for browser compatibility.
+- `app/site-walk/**/*` active UI copy — removed user-facing `Act 1`, `Act 2`, and `Act 3` labels from setup/capture/walks/deliverables surfaces.
+- `components/site-walk/capture/CameraViewfinder.tsx` — added responsive capture UX: mobile remains camera-first with a giant Take Photo button, while desktop shows drag/drop Upload from Device and hides camera-first controls.
+- `components/site-walk/capture/PlanViewer.tsx` — implemented project-bound plan canvas with sheet/pin loading, pan, pinch/zoom controls, long-press draft pin creation, haptic feedback, and basic vector markup rendering.
+- `components/site-walk/capture/UnifiedVectorToolbar.tsx` — converted toolbar into active markup tool selection that drives plan-canvas JSON markup.
+- `components/site-walk/capture/PlanQuickActionMenu.tsx`, `components/site-walk/capture/plan-capture-events.ts`, and `lib/hooks/useCaptureUpload.ts` — added quick-action flow so the next photo/note attaches to a selected plan pin and coordinates.
 
 #### What's Broken / Partially Done
-- Prompt 6 intentionally does not build the interactive plan canvas or vector markup; those remain Prompt 7.
 - Voice notes currently save dictated/manual text as `voice_note` rows; raw audio backup/transcription can be layered in later using the existing recorder/transcription routes.
 - Ad-hoc session uploads use a SlateDrop upload row and stable ad-hoc S3 prefix, but cannot attach to a project folder until the session is attached to a project.
-- `bash scripts/check-file-size.sh` still fails on pre-existing oversized files outside this Prompt 6 change.
+- Plan sheets without extracted `image_s3_key` still show a grid placeholder, but pins/markup save against the sheet id.
+- `bash scripts/check-file-size.sh` still fails on pre-existing oversized files outside this Prompt 7 change.
 
 #### Context Files Updated
-- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — marked Prompt 6 complete with implementation commit `17c35cc` and validation summary.
+- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — marked Prompt 7 complete with implementation commit `9e571ec` and validation summary.
 - `SLATE360_PROJECT_MEMORY.md` — this handoff.
 
 #### Next Steps (ordered)
-1. Start Prompt 7: plan canvas, long-press pins, and editable markup; do not regress the raw capture flow.
-2. Add optional raw audio upload/transcription for voice notes after the plan canvas work if required.
+1. Start Prompt 8: classification, assignment, notes, and item management.
+2. Add optional raw audio upload/transcription for voice notes if required.
 3. Add post-walk attach flow so ad-hoc uploaded captures can be migrated into project folder context later.
 
 ---
