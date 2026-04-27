@@ -35,7 +35,7 @@ export function CaptureClientIsland({ sessionId, projectId, showPlanCanvas }: Pr
       <aside className="space-y-4">
         <SyncQueueIndicator />
         {showPlanCanvas && <UnifiedVectorToolbar />}
-        <CaptureBottomSheet />
+        <CaptureBottomSheet sessionId={sessionId} projectId={projectId} />
       </aside>
     </section>
   );

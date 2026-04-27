@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Crosshair, Loader2, MapPinned, Minus, Plus } from "lucide-react";
 import type { MarkupData, MarkupShape } from "@/lib/site-walk/markup-types";
+import { createAnnotationItem } from "@/lib/site-walk/capture-item-client";
+import { publishCaptureItemFocus } from "./capture-item-events";
 import { PlanQuickActionMenu } from "./PlanQuickActionMenu";
 import { VECTOR_TOOL_EVENT, type VectorTool } from "./UnifiedVectorToolbar";
 
@@ -96,6 +98,13 @@ export function PlanViewer({ projectId, sessionId }: Props) {
     if (!activeSheetId) return;
     setMessage(markup ? "Saving markup JSON…" : "Saving draft pin…");
     if (typeof navigator !== "undefined" && typeof navigator.vibrate === "function") navigator.vibrate(12);
+    const item = await createAnnotationItem(sessionId, markup ? "Plan markup" : "Plan pin", {
+      captured_from: "prompt_8_plan_pin",
+      plan_sheet_id: activeSheetId,
+      x_pct: point.xPct,
+      y_pct: point.yPct,
+      markup_data: markup ?? null,
+    });
     const response = await fetch("/api/site-walk/pins", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -103,9 +112,10 @@ export function PlanViewer({ projectId, sessionId }: Props) {
         plan_sheet_id: activeSheetId,
         project_id: projectId,
         session_id: sessionId,
+        item_id: item.id,
         x_pct: point.xPct,
         y_pct: point.yPct,
-        pin_status: "draft",
+        pin_status: "active",
         pin_color: markup ? "amber" : "blue",
         label: markup ? "Markup" : "Draft pin",
         markup_data: markup,
@@ -117,8 +127,9 @@ export function PlanViewer({ projectId, sessionId }: Props) {
       return;
     }
     setPins((current) => [...current, data.pin as Pin]);
+    publishCaptureItemFocus({ item, reason: "pin" });
     setMenu(markup ? null : { pinId: data.pin.id, ...point });
-    setMessage(markup ? "Markup saved as plan JSON." : "Draft pin saved. Choose what to attach next.");
+    setMessage(markup ? "Markup item saved. Add details in the drawer." : "Pin item saved. Add details or attach a photo next.");
   }
 
   function handlePointerDown(event: React.PointerEvent<HTMLDivElement>) {

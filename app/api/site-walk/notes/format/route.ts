@@ -22,18 +22,26 @@ professional bullet points suitable for a formal site-walk report. Rules:
 
 const MAX_INPUT_CHARS = 4000;
 
+type FormatBody = {
+  rawText?: unknown;
+  item_id?: unknown;
+  session_id?: unknown;
+  project_id?: unknown;
+};
+
 /**
  * POST /api/site-walk/notes/format
  * Body: { rawText: string }
  * Response: { formattedText: string, provider: "groq" | "openai" }
  *
- * TODO PR #27g.x: enforce per-org daily quota via ai_usage table.
+ * Metering is enforced before model processing so exhausted orgs are blocked
+ * before any AI provider call is made.
  */
 export const POST = (req: NextRequest) =>
   withAppAuth("punchwalk", req, async ({ user, admin, orgId }) => {
     if (!orgId) return badRequest("Organization required");
 
-    const body = await req.json().catch(() => null);
+    const body = (await req.json().catch(() => null)) as FormatBody | null;
     const rawText = typeof body?.rawText === "string" ? body.rawText : "";
     if (!rawText.trim()) return badRequest("rawText is required");
     if (rawText.length > MAX_INPUT_CHARS) {
@@ -48,6 +56,22 @@ export const POST = (req: NextRequest) =>
     const cfg = resolveChatProvider();
     if (!cfg) return serverError("AI provider not configured");
 
+    const itemId = typeof body?.item_id === "string" ? body.item_id : null;
+    const sessionId = typeof body?.session_id === "string" ? body.session_id : null;
+    const projectId = typeof body?.project_id === "string" ? body.project_id : null;
+
+    await recordSiteWalkUsage(admin, {
+      orgId,
+      projectId,
+      sessionId,
+      eventType: "ai_credits_used",
+      quantity: creditCost,
+      unit: "credits",
+      sourceTable: itemId ? "site_walk_items" : "site_walk_notes_format",
+      sourceId: itemId,
+      metadata: { route: "notes_format", chars: rawText.length, reserved_before_provider_call: true },
+    });
+
     const messages: ChatMessage[] = [
       { role: "system", content: SYSTEM_PROMPT },
       { role: "user", content: rawText.trim() },
@@ -59,14 +83,6 @@ export const POST = (req: NextRequest) =>
         maxTokens: 600,
       });
       if (!formattedText) return serverError("Empty AI response");
-      await recordSiteWalkUsage(admin, {
-        orgId,
-        eventType: "ai_credits_used",
-        quantity: creditCost,
-        unit: "credits",
-        sourceTable: "site_walk_notes_format",
-        metadata: { provider: cfg.provider, chars: rawText.length },
-      });
       console.info(
         `[notes-format] org=${orgId} user=${user.id} provider=${cfg.provider} chars=${rawText.length}`,
       );

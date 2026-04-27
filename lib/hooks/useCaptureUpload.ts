@@ -2,7 +2,8 @@
 
 import { useCallback, useState } from "react";
 import { captureMetadata } from "@/lib/site-walk/metadata";
-import type { CaptureMetadata } from "@/lib/site-walk/metadata";
+import { createCaptureItem, presignCaptureUpload } from "@/lib/site-walk/capture-item-client";
+import type { CaptureItemRecord } from "@/lib/types/site-walk-capture";
 
 type CaptureStatus =
   | { kind: "idle"; message: string }
@@ -11,14 +12,11 @@ type CaptureStatus =
   | { kind: "complete"; message: string }
   | { kind: "error"; message: string };
 
-type UploadResponse = { uploadUrl?: string; s3Key?: string; fileId?: string; error?: string };
-type ItemResponse = { item?: { id: string }; error?: string; warnings?: string[] };
-
 type UseCaptureUploadParams = {
   sessionId: string;
   planTarget?: PlanCaptureTarget | null;
   onPlanTargetSaved?: () => void;
-  onSaved?: () => void;
+  onSaved?: (item: CaptureItemRecord) => void;
 };
 
 export type PlanCaptureTarget = {
@@ -35,20 +33,7 @@ export function useCaptureUpload({ sessionId, planTarget, onPlanTargetSaved, onS
     setStatus({ kind: "uploading", message: "Uploading (1/1)..." });
     try {
       const metadata = await captureMetadata();
-      const presign = await fetch("/api/site-walk/upload", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          filename: file.name,
-          contentType: file.type || "image/jpeg",
-          sessionId,
-          fileSizeBytes: file.size,
-        }),
-      });
-      const upload = (await presign.json().catch(() => null)) as UploadResponse | null;
-      if (!presign.ok || !upload?.uploadUrl || !upload.s3Key) {
-        throw new Error(upload?.error ?? "Upload preflight failed");
-      }
+      const upload = await presignCaptureUpload(sessionId, file);
 
       const put = await fetch(upload.uploadUrl, {
         method: "PUT",
@@ -58,11 +43,11 @@ export function useCaptureUpload({ sessionId, planTarget, onPlanTargetSaved, onS
       if (!put.ok) throw new Error("Storage upload failed");
 
       setStatus({ kind: "saving", message: "Saving capture to the walk..." });
-      const item = await createItem({ sessionId, itemType: "photo", title: file.name, fileId: upload.fileId, s3Key: upload.s3Key, metadata, file });
+  const item = await createCaptureItem({ sessionId, itemType: "photo", title: file.name, fileId: upload.fileId, s3Key: upload.s3Key, metadata, file, captureMode: "camera" });
       if (planTarget) await attachItemToPlanPin(item.id, planTarget);
       setStatus({ kind: "complete", message: planTarget ? "Photo saved and attached to the selected plan pin." : "Photo saved to Site Walk Files / Photos." });
       if (planTarget) onPlanTargetSaved?.();
-      onSaved?.();
+  onSaved?.(item);
     } catch (error) {
       setStatus({ kind: "error", message: error instanceof Error ? error.message : "Photo upload failed." });
     }
@@ -73,17 +58,18 @@ export function useCaptureUpload({ sessionId, planTarget, onPlanTargetSaved, onS
     setStatus({ kind: "saving", message: mode === "voice" ? "Saving voice/dictation note..." : "Saving text note..." });
     try {
       const metadata = await captureMetadata();
-      const item = await createItem({
+      const item = await createCaptureItem({
         sessionId,
         itemType: mode === "voice" ? "voice_note" : "text_note",
         title: text.trim().slice(0, 80),
         description: text.trim(),
         metadata: { ...metadata, note_mode: mode, captured_from: "prompt_6_capture_engine", plan_target: planTarget ?? undefined },
+        captureMode: mode === "voice" ? "voice" : "text",
       });
       if (planTarget) await attachItemToPlanPin(item.id, planTarget);
       setStatus({ kind: "complete", message: planTarget ? "Note saved and attached to the selected plan pin." : mode === "voice" ? "Voice/dictation note saved." : "Text note saved." });
       if (planTarget) onPlanTargetSaved?.();
-      onSaved?.();
+      onSaved?.(item);
     } catch (error) {
       setStatus({ kind: "error", message: error instanceof Error ? error.message : "Note save failed." });
     }
@@ -117,55 +103,6 @@ async function attachItemToPlanPin(itemId: string, target: PlanCaptureTarget) {
     }),
   });
   if (!response.ok) throw new Error("Saved the item, but could not create the plan pin");
-}
-
-async function createItem(params: {
-  sessionId: string;
-  itemType: "photo" | "text_note" | "voice_note";
-  title: string;
-  description?: string;
-  fileId?: string | null;
-  s3Key?: string | null;
-  metadata: CaptureMetadata | Record<string, unknown>;
-  file?: File;
-}) {
-  const metadataRecord = params.metadata as Record<string, unknown>;
-  const gps = isGps(metadataRecord.gps) ? metadataRecord.gps : null;
-  const body = {
-    session_id: params.sessionId,
-    item_type: params.itemType,
-    title: params.title,
-    description: params.description,
-    file_id: params.fileId ?? null,
-    s3_key: params.s3Key ?? null,
-    latitude: gps?.latitude ?? null,
-    longitude: gps?.longitude ?? null,
-    weather: metadataRecord.weather ?? null,
-    metadata: {
-      ...params.metadata,
-      file_size: params.file?.size,
-      mime_type: params.file?.type,
-    },
-    capture_mode: params.itemType === "photo" ? "camera" : params.itemType === "voice_note" ? "voice" : "text",
-    sync_state: "synced",
-    local_created_at: new Date().toISOString(),
-    local_updated_at: new Date().toISOString(),
-  };
-
-  const response = await fetch("/api/site-walk/items", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  const data = (await response.json().catch(() => null)) as ItemResponse | null;
-  if (!response.ok || !data?.item) throw new Error(data?.error ?? "Could not save item");
-  return data.item;
-}
-
-function isGps(value: unknown): value is { latitude: number; longitude: number } {
-  return !!value && typeof value === "object" &&
-    typeof (value as { latitude?: unknown }).latitude === "number" &&
-    typeof (value as { longitude?: unknown }).longitude === "number";
 }
 
 export type { CaptureStatus };

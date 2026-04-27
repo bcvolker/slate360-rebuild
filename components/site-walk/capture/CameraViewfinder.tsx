@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Camera, FileImage, Loader2, Mic, PencilLine, RotateCcw } from "lucide-react";
 import { useCaptureUpload } from "@/lib/hooks/useCaptureUpload";
+import { publishCaptureItemFocus } from "./capture-item-events";
 import { usePlanCaptureTarget } from "./plan-capture-events";
 
 type Props = {
@@ -16,7 +17,7 @@ export function CameraViewfinder({ sessionId }: Props) {
   const [dragActive, setDragActive] = useState(false);
   const [noteText, setNoteText] = useState("");
   const { target, clearTarget } = usePlanCaptureTarget();
-  const { status, savePhoto, saveTextNote, resetStatus } = useCaptureUpload({ sessionId, planTarget: target, onPlanTargetSaved: clearTarget });
+  const { status, savePhoto, saveTextNote, resetStatus } = useCaptureUpload({ sessionId, planTarget: target, onPlanTargetSaved: clearTarget, onSaved: (item) => publishCaptureItemFocus({ item, reason: "captured" }) });
   const busy = status.kind === "uploading" || status.kind === "saving";
 
   useEffect(() => setMounted(true), []);
