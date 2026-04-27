@@ -1,12 +1,8 @@
 import Link from "next/link";
-import { CameraViewfinder } from "@/components/site-walk/capture/CameraViewfinder";
-import { CaptureBottomSheet } from "@/components/site-walk/capture/CaptureBottomSheet";
 import { DualModeToggle } from "@/components/site-walk/capture/DualModeToggle";
-import { PlanViewer } from "@/components/site-walk/capture/PlanViewer";
-import { SyncQueueIndicator } from "@/components/site-walk/capture/SyncQueueIndicator";
-import { UnifiedVectorToolbar } from "@/components/site-walk/capture/UnifiedVectorToolbar";
 import { resolveServerOrgContext } from "@/lib/server/org-context";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { CaptureClientIsland } from "./_components/CaptureClientIsland";
 import { SiteWalkSessionProvider } from "./_components/SiteWalkSessionProvider";
 import { WalkHeader } from "./_components/WalkHeader";
 import type { ActiveWalkSession } from "./_components/session-shell-types";
@@ -55,17 +51,7 @@ export default async function SiteWalkCapturePage({ searchParams }: Props) {
 
           <DualModeToggle />
 
-          <section className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
-            <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-1">
-              <CameraViewfinder sessionId={session.id} />
-              {showPlanCanvas && <PlanViewer sessionId={session.id} projectId={session.project_id} />}
-            </div>
-            <aside className="space-y-4">
-              <SyncQueueIndicator />
-              {showPlanCanvas && <UnifiedVectorToolbar />}
-              <CaptureBottomSheet />
-            </aside>
-          </section>
+          <CaptureClientIsland sessionId={session.id} projectId={session.project_id} showPlanCanvas={showPlanCanvas} />
         </div>
       </main>
     </SiteWalkSessionProvider>
