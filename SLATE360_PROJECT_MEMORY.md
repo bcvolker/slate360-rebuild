@@ -196,40 +196,30 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-27 (Site Walk Root Server Component Fix — Pushed)
+### Session Handoff — 2026-04-27 (Site Walk Prompt 8 Capture Item Drawer — Pushed)
 
 #### What Changed
-- `app/site-walk/page.tsx` — guarded project-list loading so the `/site-walk` module shell still renders if project fetch/admin setup fails.
-- `app/site-walk/_components/StartWalkActions.tsx` — replaced direct `crypto.randomUUID()` use with a guarded client session ID fallback for browser compatibility.
-- `app/site-walk/**/*` active UI copy — removed user-facing `Act 1`, `Act 2`, and `Act 3` labels from setup/capture/walks/deliverables surfaces.
-- `components/site-walk/capture/CameraViewfinder.tsx` — added responsive capture UX: mobile remains camera-first with a giant Take Photo button, while desktop shows drag/drop Upload from Device and hides camera-first controls.
-- `components/site-walk/capture/PlanViewer.tsx` — implemented project-bound plan canvas with sheet/pin loading, pan, pinch/zoom controls, long-press draft pin creation, haptic feedback, and basic vector markup rendering.
-- `components/site-walk/capture/UnifiedVectorToolbar.tsx` — converted toolbar into active markup tool selection that drives plan-canvas JSON markup.
-- `components/site-walk/capture/PlanQuickActionMenu.tsx`, `components/site-walk/capture/plan-capture-events.ts`, and `lib/hooks/useCaptureUpload.ts` — added quick-action flow so the next photo/note attaches to a selected plan pin and coordinates.
-- `app/site-walk/_components/StartWalkActions.tsx` — Code Red follow-up: Start Walk now opens an `Attach a Floor Plan?` modal with large Select Plan and Skip - Photos Only options. Photos-only starts a session and routes to `/site-walk/capture?session=...&plan=skip`.
-- `app/site-walk/(act-2-inputs)/capture/page.tsx` — Code Red follow-up: capture route now handles missing/invalid sessions gracefully and only renders `PlanViewer`/`UnifiedVectorToolbar` when the user did not skip plans and the session has a project.
-- `components/site-walk/capture/CameraViewfinder.tsx` — Code Red follow-up: browser file-input interactions are mount-gated; mobile shows large Take Photo and Camera Roll buttons, desktop shows a prominent Drag & Drop Photos Here zone.
-- `components/site-walk/capture/PlanViewer.tsx` — Code Red follow-up: plan fetch/tool listeners wait for client mount and haptics now guard `navigator` before calling `vibrate`.
-- `app/site-walk/(act-2-inputs)/capture/_components/CaptureClientIsland.tsx` — SSR dynamic import hotfix: uses `next/dynamic` with `ssr: false` for `CameraViewfinder`, `PlanViewer`, and `UnifiedVectorToolbar` so Server Components never render browser-only capture/plan code.
-- `app/site-walk/(act-2-inputs)/capture/page.tsx` — now imports only the client island instead of importing browser-heavy capture components directly.
-- `app/site-walk/(act-2-inputs)/capture/_components/CaptureNoSsrBoundary.tsx` and `CaptureShell.tsx` — deeper Code Red fix: dynamically defer the whole active capture shell with `ssr: false`, including `SiteWalkSessionProvider`, `WalkHeader`, and the capture island.
-- `app/site-walk/(act-2-inputs)/capture/_components/SiteWalkSessionProvider.tsx` — added explicit `window`/`navigator` guards before reading `navigator.onLine`.
-- `app/site-walk/page.tsx` and `app/site-walk/_components/StartWalkActions.tsx` — root `/site-walk` fix: stopped passing Lucide component functions from the Server Component landing page into the client `StartWalkCardButton`; the client now receives serializable `iconKey` values and maps them to icons internally.
+- `components/site-walk/capture/CaptureBottomSheet.tsx` — replaced the placeholder with a mobile fixed/desktop sticky data drawer that opens after a capture or plan pin and uses `dvh`, safe-area padding, and `focus-within` padding for keyboard-safe note entry.
+- `components/site-walk/capture/CaptureItemForm.tsx` — added title, classification, priority, status, assignee, dictation-ready notes textarea, autosave indicator, and `✨ Format with AI` action with upgrade/top-up messaging on credit exhaustion.
+- `components/site-walk/capture/CaptureItemListPanel.tsx` and `useCaptureItems.ts` — added active-session item list, filters, selected-item editing, debounced autosave PATCHes to `site_walk_items`, and drawer focus events.
+- `components/site-walk/capture/CameraViewfinder.tsx`, `PlanViewer.tsx`, and `lib/hooks/useCaptureUpload.ts` — publish capture item focus after photo/note saves; plan pin/markup drops now create an editable `annotation` item and focus it in the drawer.
+- `lib/site-walk/capture-item-client.ts` and `lib/types/site-walk-capture.ts` — added shared client item creation helpers and Prompt 8 item form/list types without violating import direction.
+- `app/api/projects/[projectId]/site-walk/assignees/route.ts` — project-scoped assignee route using `withProjectAuth()`, project members, and matched project stakeholders.
+- `app/api/site-walk/notes/format/route.ts` — AI formatting now checks Site Walk metering, records the AI credit before provider processing, and returns existing metering 402 responses for exhausted credits.
 
 #### What's Broken / Partially Done
-- Voice notes currently save dictated/manual text as `voice_note` rows; raw audio backup/transcription can be layered in later using the existing recorder/transcription routes.
-- Ad-hoc session uploads use a SlateDrop upload row and stable ad-hoc S3 prefix, but cannot attach to a project folder until the session is attached to a project.
-- Plan sheets without extracted `image_s3_key` still show a grid placeholder, but pins/markup save against the sheet id.
-- `bash scripts/check-file-size.sh` still fails on pre-existing oversized files outside this Prompt 7 change.
+- Voice notes still use typed/native-dictated text for this drawer; raw audio backup/transcription remains a later layer.
+- Project stakeholders without a matched Slate360 user/profile appear as contact-only disabled assignee options because `site_walk_items.assigned_to` requires an auth user UUID.
+- `bash scripts/check-file-size.sh` still fails on the same 12 known pre-existing oversized files outside Prompt 8.
 
 #### Context Files Updated
-- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — marked Prompt 7 complete with implementation commit `9e571ec`, Code Red hotfixes `e20aa7b`, `b7af818`, `5b8cfa9`, and root Server Component serialization fix `c2be1c4`.
+- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — marked Prompt 8 complete with implementation commit `84e0483`.
 - `SLATE360_PROJECT_MEMORY.md` — this handoff.
 
 #### Next Steps (ordered)
-1. Start Prompt 8: classification, assignment, notes, and item management.
+1. Smoke test `/site-walk/capture` on mobile after deploy: save photo/note, edit drawer fields, wait for autosave, run AI format with available credits, and verify item list filtering.
 2. Add optional raw audio upload/transcription for voice notes if required.
-3. Add post-walk attach flow so ad-hoc uploaded captures can be migrated into project folder context later.
+3. Start Prompt 9 field-office realtime/assignment board work.
 
 ---
 
