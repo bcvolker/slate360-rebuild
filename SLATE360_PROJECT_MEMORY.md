@@ -196,7 +196,7 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-27 (Site Walk SSR Dynamic Import Hotfix — Pushed)
+### Session Handoff — 2026-04-27 (Site Walk Deep No-SSR Capture Shell — Pushed)
 
 #### What Changed
 - `app/site-walk/page.tsx` — guarded project-list loading so the `/site-walk` module shell still renders if project fetch/admin setup fails.
@@ -212,6 +212,8 @@ When editing oversized files, always read both the state declarations AND the JS
 - `components/site-walk/capture/PlanViewer.tsx` — Code Red follow-up: plan fetch/tool listeners wait for client mount and haptics now guard `navigator` before calling `vibrate`.
 - `app/site-walk/(act-2-inputs)/capture/_components/CaptureClientIsland.tsx` — SSR dynamic import hotfix: uses `next/dynamic` with `ssr: false` for `CameraViewfinder`, `PlanViewer`, and `UnifiedVectorToolbar` so Server Components never render browser-only capture/plan code.
 - `app/site-walk/(act-2-inputs)/capture/page.tsx` — now imports only the client island instead of importing browser-heavy capture components directly.
+- `app/site-walk/(act-2-inputs)/capture/_components/CaptureNoSsrBoundary.tsx` and `CaptureShell.tsx` — deeper Code Red fix: dynamically defer the whole active capture shell with `ssr: false`, including `SiteWalkSessionProvider`, `WalkHeader`, and the capture island.
+- `app/site-walk/(act-2-inputs)/capture/_components/SiteWalkSessionProvider.tsx` — added explicit `window`/`navigator` guards before reading `navigator.onLine`.
 
 #### What's Broken / Partially Done
 - Voice notes currently save dictated/manual text as `voice_note` rows; raw audio backup/transcription can be layered in later using the existing recorder/transcription routes.
@@ -220,7 +222,7 @@ When editing oversized files, always read both the state declarations AND the JS
 - `bash scripts/check-file-size.sh` still fails on pre-existing oversized files outside this Prompt 7 change.
 
 #### Context Files Updated
-- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — marked Prompt 7 complete with implementation commit `9e571ec`, Code Red hotfix commit `e20aa7b`, and SSR dynamic import hotfix `b7af818`.
+- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — marked Prompt 7 complete with implementation commit `9e571ec`, Code Red hotfixes `e20aa7b` and `b7af818`, and deep no-SSR shell fix `5b8cfa9`.
 - `SLATE360_PROJECT_MEMORY.md` — this handoff.
 
 #### Next Steps (ordered)
