@@ -196,31 +196,29 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-27 (Site Walk Prompt 4 Master Plan Room — Pushed)
+### Session Handoff — 2026-04-27 (Site Walk Prompt 5 Session Shell — Pushed)
 
 #### What Changed
-- `app/site-walk/(act-1-setup)/plans/page.tsx` — replaced the placeholder with a thin server-loaded Master Plan Room route that loads active projects and initial plan room data.
-- `app/site-walk/(act-1-setup)/plans/_components/PlanUploader.tsx` — added drag/drop PDF upload with clear `Uploading...`, `Processing Sheets...`, and `Complete` states, using SlateDrop upload-url/complete into the `Site Walk Files / Plans` folder convention.
-- `app/site-walk/(act-1-setup)/plans/_components/PlanSetList.tsx` — added plan-set accordion/list UI with processing status pills and file size/page context.
-- `app/site-walk/(act-1-setup)/plans/_components/PlanSheetGrid.tsx` — added individual plan sheet grid backed by `site_walk_plan_sheets` rows and future thumbnail/image route support.
-- `app/site-walk/(act-1-setup)/plans/_components/MasterPlanRoomClient.tsx` and `plan-room-types.ts` — added project switching, plan room readback, and strict shared UI contracts.
-- `app/api/site-walk/plan-sets/route.ts` — added project-scoped GET/POST for `site_walk_plan_sets` and `site_walk_plan_sheets`, creating sheet rows from completed SlateDrop uploads.
-- `app/api/site-walk/plan-sheets/[id]/image/route.ts` — added signed redirect support for future plan sheet images/thumbnails.
+- `app/api/site-walk/sessions/route.ts` — added idempotent session creation using `client_session_id` with server-side `randomUUID()` fallback, project-bound validation, ad-hoc support, active `in_progress` status, `started_at`, and sync timestamps.
+- `app/site-walk/page.tsx` and `app/site-walk/_components/StartWalkActions.tsx` — wired Start Walk Now and Create Field Project triggers to create real sessions and route to `/site-walk/capture?session=...`.
+- `app/site-walk/(act-2-inputs)/capture/page.tsx` — now requires and server-loads an active session before mounting the capture shell.
+- `app/site-walk/(act-2-inputs)/capture/_components/SiteWalkSessionProvider.tsx` — added active session context with sync state, online/offline state, safe exit, and end-walk behavior.
+- `app/site-walk/(act-2-inputs)/capture/_components/WalkHeader.tsx`, `SyncStatusBadge.tsx`, and `SessionExitModal.tsx` — added high-contrast shell UI for walk title, elapsed time, sync visibility, and safe End/Exit confirmation.
 
 #### What's Broken / Partially Done
-- Prompt 4 creates plan-set and sheet DB rows after PDF upload, but full PDF page rasterization/thumbnail extraction remains a later processing-worker task.
-- The upload UI creates/uses a `Site Walk Files / Plans` project folder convention through existing SlateDrop folder APIs; global provisioning still does not create that folder tree by default.
-- Plan sheet image route is ready for stored `thumbnail_s3_key` / `image_s3_key`, but new uploads currently show queued thumbnail placeholders until extraction is implemented.
-- `bash scripts/check-file-size.sh` still fails on pre-existing oversized files outside this Prompt 4 change.
+- Prompt 5 intentionally does not build camera capture, file upload UX, or plan markup canvas logic; those remain Prompts 6 and 7.
+- Create Field Project on the dashboard starts a project-bound walk for the latest active project; deeper project creation/editing remains in `/site-walk/setup`.
+- Existing legacy provider under `components/site-walk/SiteWalkSessionProvider.tsx` remains untouched for legacy routes; the active capture shell uses the new modular provider under the capture route.
+- `bash scripts/check-file-size.sh` still fails on pre-existing oversized files outside this Prompt 5 change.
 
 #### Context Files Updated
-- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — marked Prompt 4 complete with implementation commit `ffb3799` and validation summary.
+- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — marked Prompt 5 complete with implementation commit `e1ef0c6` and validation summary.
 - `SLATE360_PROJECT_MEMORY.md` — this handoff.
 
 #### Next Steps (ordered)
-1. Start Prompt 5: session creation and active walk shell, using selected project and plan sheet context from Prompt 4.
-2. Add real PDF page extraction/thumbnail generation for `site_walk_plan_sheets` before relying on sheet images in capture.
-3. Consider adding `Site Walk Files / Plans` to default project folder provisioning so the UI does not need to create it on first upload.
+1. Start Prompt 6: capture engine for photo/upload/voice/text inside the new session provider shell.
+2. Keep Prompt 7 plan canvas separate; Prompt 5 only mounted the plan placeholder inside the session shell.
+3. If the dashboard needs explicit project picking before Create Field Project, extend `StartWalkActions` without moving session creation into the route page.
 
 ---
 
