@@ -27,11 +27,18 @@ import { withAppAuth } from "@/lib/server/api-auth";
 import { ok, badRequest, notFound, serverError } from "@/lib/server/api-response";
 import { s3, BUCKET } from "@/lib/s3";
 import { transcribeAudio } from "@/lib/server/ai-provider";
+import {
+  checkAICreditLimit,
+  meteringBlockedResponse,
+  recordSiteWalkUsage,
+} from "@/lib/site-walk/metering";
 
 const MAX_AUDIO_BYTES = 25 * 1024 * 1024;
 
 interface ItemRow {
   id: string;
+  project_id: string | null;
+  session_id: string | null;
   audio_s3_key: string | null;
   metadata: Record<string, unknown> | null;
 }
@@ -48,7 +55,7 @@ export const POST = (req: NextRequest) =>
 
     const { data: item, error: itemErr } = await admin
       .from("site_walk_items")
-      .select("id, audio_s3_key, metadata")
+      .select("id, project_id, session_id, audio_s3_key, metadata")
       .eq("id", body.item_id)
       .eq("org_id", orgId)
       .maybeSingle<ItemRow>();
@@ -101,6 +108,11 @@ export const POST = (req: NextRequest) =>
       return serverError("Failed to load audio from storage");
     }
 
+    const creditCost = Math.max(1, Math.ceil(audioBuffer.byteLength / (5 * 1024 * 1024)));
+    const creditCheck = await checkAICreditLimit(admin, orgId, creditCost);
+    const blocked = meteringBlockedResponse(creditCheck);
+    if (blocked) return blocked;
+
     // Run Whisper.
     let transcript: string;
     try {
@@ -136,6 +148,18 @@ export const POST = (req: NextRequest) =>
       console.error("[site-walk-transcribe] update failed", updateErr);
       return serverError("Transcribed audio but failed to save transcript");
     }
+
+    await recordSiteWalkUsage(admin, {
+      orgId,
+      projectId: item.project_id,
+      sessionId: item.session_id,
+      eventType: "ai_credits_used",
+      quantity: creditCost,
+      unit: "credits",
+      sourceTable: "site_walk_items",
+      sourceId: item.id,
+      metadata: { bytes: audioBuffer.byteLength, forced: force },
+    });
 
     console.info(
       `[site-walk-transcribe] org=${orgId} user=${user.id} item=${item.id} bytes=${audioBuffer.byteLength} chars=${transcript.length}`,

@@ -7,6 +7,7 @@ import { ok, badRequest, serverError } from "@/lib/server/api-response";
 import { buildCanonicalS3Key, resolveNamespace } from "@/lib/slatedrop/storage";
 import { resolveProjectFolderIdByName } from "@/lib/slatedrop/projectArtifacts";
 import { provisionProjectFolders } from "@/lib/slatedrop/provisioning";
+import { checkStorageLimit, meteringBlockedResponse } from "@/lib/site-walk/metering";
 
 /** POST /api/site-walk/upload — returns a presigned PUT URL for photo/file upload */
 export const POST = (req: NextRequest) =>
@@ -14,10 +15,11 @@ export const POST = (req: NextRequest) =>
     if (!orgId) return badRequest("Organization required");
 
     const body = await req.json();
-    const { filename, contentType, sessionId } = body as {
+    const { filename, contentType, sessionId, fileSizeBytes } = body as {
       filename?: string;
       contentType?: string;
       sessionId?: string;
+      fileSizeBytes?: number;
     };
 
     if (!filename || !contentType || !sessionId) {
@@ -40,6 +42,11 @@ export const POST = (req: NextRequest) =>
     if (sessionError || !session?.project_id) {
       return badRequest("Session not found or access denied");
     }
+
+    const requestedBytes = Number.isFinite(fileSizeBytes) ? Math.max(0, fileSizeBytes ?? 0) : 0;
+    const storageCheck = await checkStorageLimit(admin, orgId, requestedBytes);
+    const blocked = meteringBlockedResponse(storageCheck);
+    if (blocked) return blocked;
 
     let folderId = await resolveProjectFolderIdByName(
       session.project_id,

@@ -6,6 +6,7 @@ import { NextRequest } from "next/server";
 import { withAppAuth } from "@/lib/server/api-auth";
 import { ok, badRequest, serverError } from "@/lib/server/api-response";
 import { bridgePhotoToSlateDrop } from "@/lib/site-walk/slatedrop-bridge";
+import { recordSiteWalkUsage } from "@/lib/site-walk/metering";
 import { trackStorageUsed } from "@/lib/slatedrop/track-storage";
 import { SITE_WALK_ITEM_TYPES, type CreateItemPayload } from "@/lib/types/site-walk";
 
@@ -137,6 +138,17 @@ export const POST = (req: NextRequest) =>
         warnings.push("Photo saved, but project-file activation failed.");
       } else if (uploadUpdates.file_size) {
         await trackStorageUsed(admin, orgId, reservedUploadId);
+        await recordSiteWalkUsage(admin, {
+          orgId,
+          projectId: session.project_id ?? null,
+          sessionId: body.session_id,
+          eventType: "storage_bytes_uploaded",
+          quantity: uploadUpdates.file_size,
+          unit: "bytes",
+          sourceTable: "slatedrop_uploads",
+          sourceId: reservedUploadId,
+          metadata: { route: "site_walk_items", item_id: data.id },
+        });
       }
     }
 

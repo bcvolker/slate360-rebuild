@@ -2,6 +2,11 @@ import { NextRequest } from "next/server";
 import { withAppAuth } from "@/lib/server/api-auth";
 import { ok, badRequest, serverError } from "@/lib/server/api-response";
 import { transcribeAudio } from "@/lib/server/ai-provider";
+import {
+  checkAICreditLimit,
+  meteringBlockedResponse,
+  recordSiteWalkUsage,
+} from "@/lib/site-walk/metering";
 
 const MAX_AUDIO_BYTES = 25 * 1024 * 1024; // Groq + OpenAI both cap at 25 MB
 
@@ -14,7 +19,7 @@ const MAX_AUDIO_BYTES = 25 * 1024 * 1024; // Groq + OpenAI both cap at 25 MB
  * connection returns.
  */
 export const POST = (req: NextRequest) =>
-  withAppAuth("punchwalk", req, async ({ user, orgId }) => {
+  withAppAuth("punchwalk", req, async ({ user, admin, orgId }) => {
     if (!orgId) return badRequest("Organization required");
 
     let form: FormData;
@@ -35,8 +40,21 @@ export const POST = (req: NextRequest) =>
     const filename =
       typeof filenameRaw === "string" && filenameRaw.length > 0 ? filenameRaw : "note.webm";
 
+    const creditCost = Math.max(1, Math.ceil(audio.size / (5 * 1024 * 1024)));
+    const creditCheck = await checkAICreditLimit(admin, orgId, creditCost);
+    const blocked = meteringBlockedResponse(creditCheck);
+    if (blocked) return blocked;
+
     try {
       const transcript = await transcribeAudio(audio, filename);
+      await recordSiteWalkUsage(admin, {
+        orgId,
+        eventType: "ai_credits_used",
+        quantity: creditCost,
+        unit: "credits",
+        sourceTable: "site_walk_notes_transcribe",
+        metadata: { bytes: audio.size, filename },
+      });
       console.info(
         `[notes-transcribe] org=${orgId} user=${user.id} bytes=${audio.size} chars=${transcript.length}`,
       );

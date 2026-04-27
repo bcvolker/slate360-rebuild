@@ -2,6 +2,11 @@ import { NextRequest } from "next/server";
 import { withAppAuth } from "@/lib/server/api-auth";
 import { ok, badRequest, serverError } from "@/lib/server/api-response";
 import { chatComplete, resolveChatProvider, type ChatMessage } from "@/lib/server/ai-provider";
+import {
+  checkAICreditLimit,
+  meteringBlockedResponse,
+  recordSiteWalkUsage,
+} from "@/lib/site-walk/metering";
 
 const SYSTEM_PROMPT = `You are an expert construction project manager assistant.
 Take the dictated or typed field notes the user gives you and rewrite them as clear,
@@ -25,7 +30,7 @@ const MAX_INPUT_CHARS = 4000;
  * TODO PR #27g.x: enforce per-org daily quota via ai_usage table.
  */
 export const POST = (req: NextRequest) =>
-  withAppAuth("punchwalk", req, async ({ user, orgId }) => {
+  withAppAuth("punchwalk", req, async ({ user, admin, orgId }) => {
     if (!orgId) return badRequest("Organization required");
 
     const body = await req.json().catch(() => null);
@@ -34,6 +39,11 @@ export const POST = (req: NextRequest) =>
     if (rawText.length > MAX_INPUT_CHARS) {
       return badRequest(`rawText must be ≤ ${MAX_INPUT_CHARS} characters`);
     }
+
+    const creditCost = Math.max(1, Math.ceil(rawText.length / 2_000));
+    const creditCheck = await checkAICreditLimit(admin, orgId, creditCost);
+    const blocked = meteringBlockedResponse(creditCheck);
+    if (blocked) return blocked;
 
     const cfg = resolveChatProvider();
     if (!cfg) return serverError("AI provider not configured");
@@ -49,6 +59,14 @@ export const POST = (req: NextRequest) =>
         maxTokens: 600,
       });
       if (!formattedText) return serverError("Empty AI response");
+      await recordSiteWalkUsage(admin, {
+        orgId,
+        eventType: "ai_credits_used",
+        quantity: creditCost,
+        unit: "credits",
+        sourceTable: "site_walk_notes_format",
+        metadata: { provider: cfg.provider, chars: rawText.length },
+      });
       console.info(
         `[notes-format] org=${orgId} user=${user.id} provider=${cfg.provider} chars=${rawText.length}`,
       );
