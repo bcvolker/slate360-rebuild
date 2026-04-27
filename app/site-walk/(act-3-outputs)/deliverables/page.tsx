@@ -6,7 +6,7 @@ export default function SiteWalkDeliverablesPage() {
     <main className="min-h-[calc(100vh-160px)] bg-slate-50 px-4 py-6 text-slate-950 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-5xl space-y-5">
         <section className="rounded-3xl border border-slate-300 bg-white p-6 shadow-sm">
-          <p className="text-xs font-black uppercase tracking-[0.2em] text-blue-800">Act 3 outputs</p>
+          <p className="text-xs font-black uppercase tracking-[0.2em] text-blue-800">Deliverables</p>
           <h1 className="mt-2 text-3xl font-black tracking-tight">Deliverables</h1>
           <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-700">
             This route is the future home for hosted previews, client reviews, cinematic presentations, PDF exports, and email snapshots. Prompt 12 begins normalized deliverable building.

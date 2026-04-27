@@ -51,7 +51,7 @@ export default async function SiteWalkCapturePage({ searchParams }: Props) {
           <section className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
             <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-1">
               <CameraViewfinder sessionId={session.id} />
-              <PlanViewer />
+              <PlanViewer sessionId={session.id} projectId={session.project_id} />
             </div>
             <aside className="space-y-4">
               <SyncQueueIndicator />
@@ -69,7 +69,7 @@ function NoActiveSession() {
   return (
     <main className="min-h-[calc(100vh-160px)] bg-slate-50 px-4 py-6 text-slate-950 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-3xl rounded-3xl border border-slate-300 bg-white p-6 text-center">
-        <p className="text-xs font-black uppercase tracking-[0.2em] text-blue-800">Act 2 capture</p>
+        <p className="text-xs font-black uppercase tracking-[0.2em] text-blue-800">Capture</p>
         <h1 className="mt-2 text-2xl font-black text-slate-900">Start a walk first</h1>
         <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-slate-700">
           The capture shell now requires an active database session so offline tracking and safe exit controls stay consistent.

@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { Camera, FileImage, Loader2, Mic, PencilLine, RotateCcw } from "lucide-react";
 import { useCaptureUpload } from "@/lib/hooks/useCaptureUpload";
+import { usePlanCaptureTarget } from "./plan-capture-events";
 
 type Props = {
   sessionId: string;
@@ -11,8 +12,10 @@ type Props = {
 export function CameraViewfinder({ sessionId }: Props) {
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const uploadInputRef = useRef<HTMLInputElement>(null);
+  const [dragActive, setDragActive] = useState(false);
   const [noteText, setNoteText] = useState("");
-  const { status, savePhoto, saveTextNote, resetStatus } = useCaptureUpload({ sessionId });
+  const { target, clearTarget } = usePlanCaptureTarget();
+  const { status, savePhoto, saveTextNote, resetStatus } = useCaptureUpload({ sessionId, planTarget: target, onPlanTargetSaved: clearTarget });
   const busy = status.kind === "uploading" || status.kind === "saving";
 
   function handleFile(file: File | undefined) {
@@ -20,21 +23,49 @@ export function CameraViewfinder({ sessionId }: Props) {
     void savePhoto(file);
   }
 
+  function handleDrop(event: React.DragEvent<HTMLDivElement>) {
+    event.preventDefault();
+    setDragActive(false);
+    if (busy) return;
+    handleFile(event.dataTransfer.files[0]);
+  }
+
   return (
     <section className="rounded-3xl border border-slate-300 bg-white p-4">
+      {target && (
+        <div className="mb-3 flex flex-col gap-2 rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm font-bold text-blue-900 sm:flex-row sm:items-center sm:justify-between">
+          <span>Next capture attaches to the selected plan pin.</span>
+          <button type="button" onClick={clearTarget} className="rounded-xl bg-white px-3 py-2 text-xs font-black text-blue-800 hover:bg-blue-100">Clear plan target</button>
+        </div>
+      )}
+
       <div className="rounded-3xl bg-slate-50 p-4 ring-1 ring-slate-300">
         <div className="flex min-h-[280px] flex-col items-center justify-center text-center">
-          <Camera className="h-12 w-12 text-blue-800" />
+          <Camera className="h-12 w-12 text-blue-800 md:hidden" />
+          <FileImage className="hidden h-12 w-12 text-blue-800 md:block" />
           <h2 className="mt-4 text-2xl font-black text-slate-950">Capture field proof</h2>
           <p className="mt-2 max-w-lg text-sm leading-6 text-slate-700">
             Photos are metered before upload, stored through SlateDrop, and saved to the active walk with timestamp and GPS metadata when available.
           </p>
 
-          <div className="mt-6 grid w-full max-w-xl gap-3 sm:grid-cols-2">
-            <button type="button" onClick={() => cameraInputRef.current?.click()} disabled={busy} className="min-h-12 rounded-2xl bg-blue-600 px-4 py-3 text-sm font-black text-white transition hover:bg-blue-700 disabled:opacity-60">
+          <div className="mt-6 grid w-full max-w-xl gap-3 md:hidden">
+            <button type="button" onClick={() => cameraInputRef.current?.click()} disabled={busy} className="min-h-16 rounded-3xl bg-blue-600 px-5 py-4 text-lg font-black text-white shadow-sm transition hover:bg-blue-700 disabled:opacity-60">
               <span className="inline-flex items-center gap-2"><Camera className="h-5 w-5" /> Take Photo</span>
             </button>
             <button type="button" onClick={() => uploadInputRef.current?.click()} disabled={busy} className="min-h-12 rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-black text-slate-900 transition hover:border-blue-300 hover:text-blue-800 disabled:opacity-60">
+              <span className="inline-flex items-center gap-2"><FileImage className="h-5 w-5" /> Upload from Device</span>
+            </button>
+          </div>
+
+          <div
+            onDragOver={(event) => { event.preventDefault(); setDragActive(true); }}
+            onDragLeave={() => setDragActive(false)}
+            onDrop={handleDrop}
+            className={`mt-6 hidden w-full max-w-xl rounded-3xl border-2 border-dashed p-8 transition md:block ${dragActive ? "border-blue-500 bg-blue-50" : "border-slate-300 bg-white"}`}
+          >
+            <p className="text-base font-black text-slate-950">Drag photos here</p>
+            <p className="mt-2 text-sm leading-6 text-slate-600">Desktop mode keeps the camera hidden and prioritizes device upload.</p>
+            <button type="button" onClick={() => uploadInputRef.current?.click()} disabled={busy} className="mt-5 min-h-12 rounded-2xl bg-blue-600 px-5 py-3 text-sm font-black text-white transition hover:bg-blue-700 disabled:opacity-60">
               <span className="inline-flex items-center gap-2"><FileImage className="h-5 w-5" /> Upload from Device</span>
             </button>
           </div>

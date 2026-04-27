@@ -28,7 +28,7 @@ export function WalkHeader() {
     <>
       <section className="flex flex-col gap-3 rounded-3xl border border-slate-300 bg-white p-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="min-w-0">
-          <p className="text-xs font-black uppercase tracking-[0.2em] text-blue-800">Act 2 capture</p>
+          <p className="text-xs font-black uppercase tracking-[0.2em] text-blue-800">Capture</p>
           <h1 className="mt-1 truncate text-2xl font-black tracking-tight text-slate-900">{session.title}</h1>
           <p className="mt-1 text-sm text-slate-700">
             {session.is_ad_hoc ? "Ad-hoc walk" : session.project_name ?? "Project-bound walk"} · elapsed {elapsed}

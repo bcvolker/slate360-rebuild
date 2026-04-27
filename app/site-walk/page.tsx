@@ -65,17 +65,23 @@ const visibleActions = primaryActions.filter((action) => action.appStoreReady ||
 
 export default async function SiteWalkPage() {
   const context = await resolveServerOrgContext();
-  const admin = createAdminClient();
-  const { data } = context.orgId
-    ? await admin
-      .from("projects")
-      .select("id, name")
-      .eq("org_id", context.orgId)
-      .eq("status", "active")
-      .order("created_at", { ascending: false })
-      .limit(10)
-    : { data: [] };
-  const projects = (data ?? []) as Array<{ id: string; name: string }>;
+  let projects: Array<{ id: string; name: string }> = [];
+
+  if (context.orgId) {
+    try {
+      const admin = createAdminClient();
+      const { data } = await admin
+        .from("projects")
+        .select("id, name")
+        .eq("org_id", context.orgId)
+        .eq("status", "active")
+        .order("created_at", { ascending: false })
+        .limit(10);
+      projects = (data ?? []) as Array<{ id: string; name: string }>;
+    } catch (error) {
+      console.error("Site Walk project list failed", error);
+    }
+  }
 
   return (
     <main className="min-h-[calc(100vh-160px)] bg-slate-50 px-4 py-6 text-slate-950 sm:px-6 lg:px-8">

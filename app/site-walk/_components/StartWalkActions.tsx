@@ -26,6 +26,12 @@ type CardProps = {
 
 type SessionResponse = { session?: { id: string }; error?: string };
 
+function createClientSessionId() {
+  const cryptoApi = globalThis.crypto;
+  if (typeof cryptoApi?.randomUUID === "function") return cryptoApi.randomUUID();
+  return `site-walk-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
 export function StartWalkActions({ projects, compact = false, variant = "hero" }: Props) {
   const router = useRouter();
   const [projectId, setProjectId] = useState(projects[0]?.id ?? "");
@@ -41,7 +47,7 @@ export function StartWalkActions({ projects, compact = false, variant = "hero" }
     setCreating(mode);
     setError(null);
     try {
-      const clientSessionId = crypto.randomUUID();
+      const clientSessionId = createClientSessionId();
       const projectBound = mode === "project" && selectedProject;
       const response = await fetch("/api/site-walk/sessions", {
         method: "POST",
@@ -89,7 +95,7 @@ export function StartWalkActions({ projects, compact = false, variant = "hero" }
         <button type="button" onClick={() => void startWalk("project")} disabled={!!creating || !selectedProject} className={`${buttonBase} bg-blue-600 text-white transition hover:bg-blue-700 disabled:opacity-60`}>{creating === "project" ? "Creating…" : "Create Field Project"}</button>
       </div>
       <div className="flex items-center justify-between gap-3 text-xs font-semibold text-slate-600">
-        <span>Ad-hoc starts with no project. Project-bound passes `project_id`.</span>
+        <span>Ad-hoc starts immediately. Project-bound carries the selected project context.</span>
         <Link href="/site-walk/setup" className="text-blue-700 hover:underline">Setup</Link>
       </div>
       {error && <p className="rounded-xl bg-rose-50 px-3 py-2 text-sm font-bold text-rose-700">{error}</p>}
@@ -114,7 +120,7 @@ export function StartWalkCardButton({ projects, mode, title, description, icon: 
         body: JSON.stringify({
           project_id: projectBound ? project.id : null,
           is_ad_hoc: !projectBound,
-          client_session_id: crypto.randomUUID(),
+          client_session_id: createClientSessionId(),
           title: projectBound ? `${project.name} — Field Walk` : "Ad-hoc Site Walk",
           metadata: { source: "site_walk_dashboard_card", start_mode: projectBound ? "project" : "ad_hoc" },
           session_type: "general",
