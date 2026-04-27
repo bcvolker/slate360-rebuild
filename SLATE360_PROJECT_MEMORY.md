@@ -196,6 +196,33 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
+### Session Handoff — 2026-04-27 (Site Walk Prompt 2 Metering — Pushed)
+
+#### What Changed
+- `lib/site-walk/metering.ts` — added isolated Site Walk metering gatekeeper with typed responses, `checkStorageLimit()`, `checkAICreditLimit()`, `recordSiteWalkUsage()`, and `meteringBlockedResponse()`.
+- `lib/site-walk/metering.ts` — resolves Site Walk Basic/Pro through `resolveModularEntitlements` from `lib/entitlements.ts`; enforces Prompt 2 caps of 5GB/25GB storage and 300/1,000 monthly AI credits.
+- `lib/site-walk/metering.ts` — reads current usage from `site_walk_usage_monthly`, records through `record_site_walk_usage()`, logs failures, and falls back to direct `site_walk_usage_events` inserts if the RPC fails.
+- `app/api/site-walk/upload/route.ts` — checks storage before issuing a presigned upload URL.
+- `app/api/site-walk/items/route.ts` — records `storage_bytes_uploaded` when a reserved Site Walk upload is activated with a known file size.
+- `app/api/site-walk/notes/format/route.ts`, `app/api/site-walk/notes/transcribe/route.ts`, and `app/api/site-walk/transcribe/route.ts` — enforce AI credit caps before AI work and record `ai_credits_used` after success.
+
+#### What's Broken / Partially Done
+- Stripe/top-up checkout UI was intentionally not built in Prompt 2.
+- PDF/export, deliverable send, SMS, realtime-minute, media-transcode, and plan-page metering hooks are supported by the service types but not yet wired into every route.
+- Upload presign can only include the pending file size when the client sends `fileSizeBytes`; item activation records known storage usage from saved metadata.
+- `bash scripts/check-file-size.sh` still fails on pre-existing oversized files outside this Prompt 2 change.
+
+#### Context Files Updated
+- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — marked Prompt 2 complete with implementation commit `e46be46` and validation summary.
+- `SLATE360_PROJECT_MEMORY.md` — this handoff.
+
+#### Next Steps (ordered)
+1. Start Prompt 3: Act 1 company identity, contacts, and project setup.
+2. When adding PDF/export, email/SMS, realtime, media transcode, or plan processing routes, call the shared metering service before expensive work and record usage after success.
+3. Keep future top-up UI separate; routes already return typed `metering` payloads with 402 responses for storage/credit blocks.
+
+---
+
 ### Session Handoff — 2026-04-27 (Site Walk Prompt 0 Reconciliation — Pushed)
 
 #### What Changed
