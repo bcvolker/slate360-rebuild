@@ -197,29 +197,36 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-27 (Site Walk Backend Migration Prompt File)
+### Session Handoff — 2026-04-27 (Site Walk Backend Migrations Applied)
 
 #### What Changed
-- `docs/site-walk/SITE_WALK_BACKEND_MIGRATION_PROMPT.md` — created a single copy/paste prompt for an external AI assistant to generate the Site Walk backend migrations. It includes product context, existing schema summaries, known backend gaps, exact migration filenames, required SQL content, RLS/collaborator rules, realtime requirements, usage metering, validation queries, and output format.
+- `supabase/migrations/20260427090000_site_walk_project_access_helpers.sql` — added collaborator-aware project access helpers, project-aware columns/backfills, and replaced Site Walk RLS so `project_members` can access scoped Site Walk records.
+- `supabase/migrations/20260427091000_site_walk_master_plan_room.sql` — added project-level Master Plan Room tables (`site_walk_plan_sets`, `site_walk_plan_sheets`, `site_walk_session_plan_sheets`) and legacy plan compatibility fields.
+- `supabase/migrations/20260427092000_site_walk_offline_capture_idempotency.sql` — added offline/client IDs, sync/upload state, draft pin support, and `site_walk_offline_mutations`.
+- `supabase/migrations/20260427093000_site_walk_deliverable_outputs.sql` — expanded deliverables beyond PDF/report outputs and added `site_walk_deliverable_blocks` plus `site_walk_portal_boards`.
+- `supabase/migrations/20260427094000_site_walk_audit_receipts_realtime.sql` — added `site_walk_activity_log`, `site_walk_read_receipts`, status-change triggers, and realtime publication/replica identity coverage.
+- `supabase/migrations/20260427095000_site_walk_usage_metering.sql` — added `site_walk_usage_events`, `site_walk_usage_monthly`, and `record_site_walk_usage()`.
+- `slate360-context/BACKEND.md` — documented the applied Site Walk backend foundation and validation notes.
 
 #### Strategic Decisions / Corrections
-- The prompt asks for backend migrations only; no frontend implementation.
-- Offline support is explicitly framed as IndexedDB/client queue plus server idempotency, not service-worker HTML/CSS/JS caching.
-- Project collaborator access must be solved through project-aware helper functions and RLS, not org-only checks.
+- The external AI SQL was not applied verbatim. It was corrected for repo realities: nullable ad-hoc `site_walk_sessions.project_id`, safer constraint names, explicit `WITH CHECK` policies, optional-table guards, plan-sheet-only draft pins, and migration-history recording.
+- Supabase CLI `db push --dry-run` is currently blocked by historical remote migration drift and a malformed root `.env`; migrations were schema-tested and applied with `psql` using the Codespace `POSTGRES_PASSWORD`.
+- The remote database now has the six Site Walk backend migrations applied and recorded in `supabase_migrations.schema_migrations`.
 
 #### What's Broken / Partially Done
-- No migrations were added yet. The file is a prompt for the external AI response.
-- User plans to paste the external AI response back into the same file for review/correction.
+- Backend foundation for Site Walk is now in place, but frontend/API code still needs to be built to use the new schema.
+- Supabase migration history still has older remote versions missing from local files, so normal `supabase db push --dry-run` remains blocked until migration history is reconciled separately.
+- Root `.env` still has a Supabase CLI parse issue (`unexpected character '\\' in variable name`) and should be cleaned up in a separate env hygiene pass.
 
 #### Context Files Updated
 - `SLATE360_PROJECT_MEMORY.md` — this handoff.
-- `docs/site-walk/SITE_WALK_BACKEND_MIGRATION_PROMPT.md` — external AI prompt.
+- `slate360-context/BACKEND.md` — applied Site Walk backend foundation and validation notes.
 
 #### Next Steps (ordered)
-1. User copies `docs/site-walk/SITE_WALK_BACKEND_MIGRATION_PROMPT.md` into the external AI assistant.
-2. User pastes the external AI's SQL response back into the same file.
-3. Review the returned SQL carefully for RLS recursion, destructive constraints, missing idempotency guards, realtime publication safety, and migration order.
-4. Convert approved SQL into real files under `supabase/migrations/` and validate against local/type/release checks.
+1. Commit and push the migration files/context updates if not already done.
+2. Begin Site Walk app build against the new backend in thin slices: Act 1 shell/project setup, Master Plan Room upload/list, then Act 2 capture/offline queue.
+3. Wire Site Walk APIs to `withProjectAuth()` / project-aware access helpers; avoid new org-only collaborator regressions.
+4. Plan a separate Supabase maintenance task to reconcile old remote migration-history drift and fix the malformed root `.env` parse issue.
 
 ---
 
