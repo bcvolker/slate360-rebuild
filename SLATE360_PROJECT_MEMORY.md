@@ -197,6 +197,32 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
+### Session Handoff — 2026-04-27 (Site Walk Backend Migration Prompt File)
+
+#### What Changed
+- `docs/site-walk/SITE_WALK_BACKEND_MIGRATION_PROMPT.md` — created a single copy/paste prompt for an external AI assistant to generate the Site Walk backend migrations. It includes product context, existing schema summaries, known backend gaps, exact migration filenames, required SQL content, RLS/collaborator rules, realtime requirements, usage metering, validation queries, and output format.
+
+#### Strategic Decisions / Corrections
+- The prompt asks for backend migrations only; no frontend implementation.
+- Offline support is explicitly framed as IndexedDB/client queue plus server idempotency, not service-worker HTML/CSS/JS caching.
+- Project collaborator access must be solved through project-aware helper functions and RLS, not org-only checks.
+
+#### What's Broken / Partially Done
+- No migrations were added yet. The file is a prompt for the external AI response.
+- User plans to paste the external AI response back into the same file for review/correction.
+
+#### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md` — this handoff.
+- `docs/site-walk/SITE_WALK_BACKEND_MIGRATION_PROMPT.md` — external AI prompt.
+
+#### Next Steps (ordered)
+1. User copies `docs/site-walk/SITE_WALK_BACKEND_MIGRATION_PROMPT.md` into the external AI assistant.
+2. User pastes the external AI's SQL response back into the same file.
+3. Review the returned SQL carefully for RLS recursion, destructive constraints, missing idempotency guards, realtime publication safety, and migration order.
+4. Convert approved SQL into real files under `supabase/migrations/` and validate against local/type/release checks.
+
+---
+
 ### Session Handoff — 2026-04-27 (Site Walk Master Architecture Consolidation)
 
 #### What Changed
