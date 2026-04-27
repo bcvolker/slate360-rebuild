@@ -8,6 +8,9 @@ import {
   Map,
   PlayCircle,
 } from "lucide-react";
+import { resolveServerOrgContext } from "@/lib/server/org-context";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { StartWalkActions, StartWalkCardButton } from "./_components/StartWalkActions";
 
 const isAppStoreMode = process.env.NEXT_PUBLIC_APP_STORE_MODE === "true";
 
@@ -18,6 +21,7 @@ const primaryActions = [
     description: "Open the field-tested capture shell for camera, plan, voice, and notes.",
     icon: PlayCircle,
     appStoreReady: true,
+    startMode: "ad-hoc" as const,
   },
   {
     href: "/site-walk/setup",
@@ -25,6 +29,7 @@ const primaryActions = [
     description: "Set project context, stakeholders, location, and deliverable defaults.",
     icon: HardHat,
     appStoreReady: true,
+    startMode: "project" as const,
   },
   {
     href: "/site-walk/plans",
@@ -58,7 +63,20 @@ const primaryActions = [
 
 const visibleActions = primaryActions.filter((action) => action.appStoreReady || !isAppStoreMode);
 
-export default function SiteWalkPage() {
+export default async function SiteWalkPage() {
+  const context = await resolveServerOrgContext();
+  const admin = createAdminClient();
+  const { data } = context.orgId
+    ? await admin
+      .from("projects")
+      .select("id, name")
+      .eq("org_id", context.orgId)
+      .eq("status", "active")
+      .order("created_at", { ascending: false })
+      .limit(10)
+    : { data: [] };
+  const projects = (data ?? []) as Array<{ id: string; name: string }>;
+
   return (
     <main className="min-h-[calc(100vh-160px)] bg-slate-50 px-4 py-6 text-slate-950 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-6xl space-y-6">
@@ -77,14 +95,11 @@ export default function SiteWalkPage() {
                 </p>
               </div>
             </div>
-            <Link
-              href="/site-walk/capture"
-              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-blue-700 px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-blue-800 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-300"
-            >
-              Start Walk <ArrowRight className="h-4 w-4" />
-            </Link>
+            <StartWalkActions projects={projects} compact />
           </div>
         </section>
+
+        <StartWalkActions projects={projects} />
 
         <section aria-labelledby="site-walk-actions" className="space-y-3">
           <div className="flex items-end justify-between gap-3">
@@ -106,6 +121,9 @@ export default function SiteWalkPage() {
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
             {visibleActions.map((action) => {
               const Icon = action.icon;
+              if (action.startMode) {
+                return <StartWalkCardButton key={action.href} projects={projects} mode={action.startMode} title={action.title} description={action.description} icon={Icon} />;
+              }
               return (
                 <Link
                   key={action.href}

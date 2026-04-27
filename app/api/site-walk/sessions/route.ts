@@ -2,6 +2,7 @@
  * GET  /api/site-walk/sessions?project_id=...  — list sessions for a project
  * POST /api/site-walk/sessions                 — create a new session
  */
+import { randomUUID } from "crypto";
 import { NextRequest } from "next/server";
 import { withAppAuth } from "@/lib/server/api-auth";
 import { ok, badRequest, serverError } from "@/lib/server/api-response";
@@ -40,6 +41,7 @@ export const POST = (req: NextRequest) =>
     const projectId = body.project_id ?? null;
     const sessionType = body.session_type ?? "general";
     const syncState = body.sync_state ?? "synced";
+    const clientSessionId = body.client_session_id?.trim() || randomUUID();
 
     if (!SITE_WALK_SESSION_TYPES.includes(sessionType)) {
       return badRequest(`session_type must be one of: ${SITE_WALK_SESSION_TYPES.join(", ")}`);
@@ -48,6 +50,27 @@ export const POST = (req: NextRequest) =>
       return badRequest(`sync_state must be one of: ${SITE_WALK_SYNC_STATES.join(", ")}`);
     }
 
+    if (projectId) {
+      const { data: project } = await admin
+        .from("projects")
+        .select("id")
+        .eq("id", projectId)
+        .eq("org_id", orgId)
+        .maybeSingle();
+      if (!project) return badRequest("Project not found or access denied");
+    }
+
+    const { data: existing, error: existingError } = await admin
+      .from("site_walk_sessions")
+      .select("*")
+      .eq("org_id", orgId)
+      .eq("created_by", user.id)
+      .eq("client_session_id", clientSessionId)
+      .maybeSingle();
+
+    if (existingError) return serverError(existingError.message);
+    if (existing) return ok({ session: existing, idempotent: true });
+
     const { data, error } = await admin
       .from("site_walk_sessions")
       .insert({
@@ -55,12 +78,14 @@ export const POST = (req: NextRequest) =>
         project_id: projectId,
         created_by: user.id,
         title: body.title?.trim() || "Untitled Site Walk",
-        status: "draft",
+        status: "in_progress",
+        started_at: new Date().toISOString(),
         metadata: body.metadata ?? {},
         is_ad_hoc: body.is_ad_hoc ?? !projectId,
-        client_session_id: body.client_session_id ?? null,
+        client_session_id: clientSessionId,
         session_type: sessionType,
         sync_state: syncState,
+        last_synced_at: new Date().toISOString(),
       })
       .select()
       .single();
