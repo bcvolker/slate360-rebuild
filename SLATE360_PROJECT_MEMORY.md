@@ -196,30 +196,31 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-27 (Site Walk Prompt 3 Setup — Pushed)
+### Session Handoff — 2026-04-27 (Site Walk Prompt 4 Master Plan Room — Pushed)
 
 #### What Changed
-- `app/site-walk/(act-1-setup)/setup/page.tsx` — replaced the placeholder with a thin server-loaded setup route that reads org brand settings, projects, contacts, first-project report defaults, and tier context.
-- `app/site-walk/(act-1-setup)/setup/_components/BrandSettingsForm.tsx` — added org company identity form wired to `/api/site-walk/branding/settings` with save plus readback.
-- `app/site-walk/(act-1-setup)/setup/_components/ProjectSetupForm.tsx` — added Basic fast field project and Pro/Business expanded project setup using existing project create/patch/read routes and metadata.
-- `app/site-walk/(act-1-setup)/setup/_components/StakeholderPicker.tsx` — added Coordination contacts search and project stakeholder creation using existing contact and stakeholder APIs with roster readback.
-- `app/site-walk/(act-1-setup)/setup/_components/DeliverableDefaultsForm.tsx` — added per-project deliverable defaults wired to `/api/projects/[projectId]/report-defaults` with save plus readback.
-- `app/site-walk/(act-1-setup)/setup/_components/SiteWalkSetupClient.tsx` and `setup-types.ts` — added lightweight orchestration and strict shared setup contracts; every new/changed Prompt 3 file is under 300 lines.
+- `app/site-walk/(act-1-setup)/plans/page.tsx` — replaced the placeholder with a thin server-loaded Master Plan Room route that loads active projects and initial plan room data.
+- `app/site-walk/(act-1-setup)/plans/_components/PlanUploader.tsx` — added drag/drop PDF upload with clear `Uploading...`, `Processing Sheets...`, and `Complete` states, using SlateDrop upload-url/complete into the `Site Walk Files / Plans` folder convention.
+- `app/site-walk/(act-1-setup)/plans/_components/PlanSetList.tsx` — added plan-set accordion/list UI with processing status pills and file size/page context.
+- `app/site-walk/(act-1-setup)/plans/_components/PlanSheetGrid.tsx` — added individual plan sheet grid backed by `site_walk_plan_sheets` rows and future thumbnail/image route support.
+- `app/site-walk/(act-1-setup)/plans/_components/MasterPlanRoomClient.tsx` and `plan-room-types.ts` — added project switching, plan room readback, and strict shared UI contracts.
+- `app/api/site-walk/plan-sets/route.ts` — added project-scoped GET/POST for `site_walk_plan_sets` and `site_walk_plan_sheets`, creating sheet rows from completed SlateDrop uploads.
+- `app/api/site-walk/plan-sheets/[id]/image/route.ts` — added signed redirect support for future plan sheet images/thumbnails.
 
 #### What's Broken / Partially Done
-- Prompt 3 intentionally uses project `metadata` for location/scope/date setup because the existing generic project API does not expose every first-class project column yet.
-- Stakeholder selection copies contact details into `project_stakeholders`; it does not yet maintain a live contact-to-stakeholder sync relationship.
-- Logo/signature binary upload remains in the existing branding upload route; Prompt 3 only edits the settings/readback form fields.
-- `bash scripts/check-file-size.sh` still fails on pre-existing oversized files outside this Prompt 3 change.
+- Prompt 4 creates plan-set and sheet DB rows after PDF upload, but full PDF page rasterization/thumbnail extraction remains a later processing-worker task.
+- The upload UI creates/uses a `Site Walk Files / Plans` project folder convention through existing SlateDrop folder APIs; global provisioning still does not create that folder tree by default.
+- Plan sheet image route is ready for stored `thumbnail_s3_key` / `image_s3_key`, but new uploads currently show queued thumbnail placeholders until extraction is implemented.
+- `bash scripts/check-file-size.sh` still fails on pre-existing oversized files outside this Prompt 4 change.
 
 #### Context Files Updated
-- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — marked Prompt 3 complete with implementation commit `1958da1` and validation summary.
+- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — marked Prompt 4 complete with implementation commit `ffb3799` and validation summary.
 - `SLATE360_PROJECT_MEMORY.md` — this handoff.
 
 #### Next Steps (ordered)
-1. Start Prompt 4: Master Plan Room plan-set upload/list UI and plan sheet selection.
-2. Reuse Prompt 3 project context and report defaults when starting Prompt 5 session creation.
-3. If future setup work needs top-level project address/location/scope columns, extend the generic project API in a focused extraction before adding logic to the existing 257-line route.
+1. Start Prompt 5: session creation and active walk shell, using selected project and plan sheet context from Prompt 4.
+2. Add real PDF page extraction/thumbnail generation for `site_walk_plan_sheets` before relying on sheet images in capture.
+3. Consider adding `Site Walk Files / Plans` to default project folder provisioning so the UI does not need to create it on first upload.
 
 ---
 
