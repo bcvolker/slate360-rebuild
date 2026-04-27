@@ -8,6 +8,8 @@
 
 > **Site Walk detail source:** `docs/SITE_WALK_MASTER_ARCHITECTURE.md` is the authoritative module-level blueprint for Site Walk workflow, monetization guardrails, collaborator UX, App Store mode, Act 1/2/3 routing, and non-PDF deliverables. It must remain aligned with this master plan.
 
+> **Site Walk execution mandate:** `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` is the prompt-by-prompt execution ledger. It must be updated after each Site Walk build prompt with status, commit, validation, and an audit summary.
+
 ---
 
 ## Table of Contents
@@ -67,6 +69,17 @@ Slate360 (master app shell)
 - App launcher & app gating by subscription
 - Branding & account settings
 - Dashboard command center
+
+### Global Shell vs. Site Walk Module Shell
+
+These surfaces must not be conflated:
+
+| Surface | Owns | Must not own |
+|---|---|---|
+| `/dashboard` global Slate360 shell | Programmable Quick Start, Search Everything, Open SlateDrop, global app launcher, cross-app command-center cards | Site Walk-only plan-room controls, walk-specific capture controls, deliverable-builder internals |
+| `/site-walk` module entry | Recent walks, Active Walks, Master Plan Room, Capture, Deliverables, Assigned Work, Site Walk setup/checklists | Global app switching, global Search Everything implementation, unrelated app quick actions |
+
+Rule: global navigation can deep-link into Site Walk, but the Site Walk module dashboard should not duplicate the entire Slate360 command center.
 
 ---
 
@@ -382,9 +395,23 @@ assigned → seen → acknowledged → in progress → blocked → complete → 
 - Cap public link duration by tier
 - Limit 360/heavy media unless customer also has 360 app
 
-### Things to Meter (later)
+### V1 Metering Engine — Required Before Scale
 
-Total storage, active projects, active share links, external recipients, report exports, proposal exports, AI note cleanups, long-term hosted deliverables, large media uploads, bundled immersive content usage.
+Metering is not deferred. A reusable server-side metering guard must ship before high-volume Site Walk capture, AI, and deliverable workflows are opened broadly.
+
+The engine must:
+- Read entitlements only from `lib/entitlements.ts`.
+- Enforce storage caps before presigned R2/S3 upload URLs are issued.
+- Enforce AI credit caps before transcription, note formatting, summaries, extraction, or future AI workflows run.
+- Record usage through `site_walk_usage_events`, `site_walk_usage_monthly`, and `record_site_walk_usage()`.
+- Return typed allow/block/top-up-needed responses so UI can prompt for upgrade/top-up before expensive work happens.
+
+Planning caps for Site Walk:
+- Standard: 5GB storage / 300 AI credits.
+- Pro/Business: 25GB storage / 1,000 AI credits.
+- Enterprise: negotiated/custom caps.
+
+Meter at minimum: total storage, active public links, external recipients, report/PDF exports, proposal exports, AI note cleanups, transcription, generated summaries, long-term hosted deliverables, large media uploads, bundled 360/model references, email/SMS sends, and realtime minutes when practical.
 
 ### Profitability Principle
 
@@ -427,6 +454,7 @@ Site Walk should mostly be: structured data + optimized photos + lightweight PDF
 - [ ] Improve project file navigation
 - [ ] Ensure Site Walk and future apps can write predictable file structures
 - [ ] Make history/archive behavior explicit
+- [ ] Add Site Walk metering guard to storage/upload routes before broad capture rollout
 
 ### Phase 3 — Site Walk Backend Foundation
 
@@ -444,6 +472,9 @@ Site Walk should mostly be: structured data + optimized photos + lightweight PDF
 
 ### Phase 4 — Site Walk Field Capture Engine
 
+- [ ] Create route-group scaffold and empty modular capture placeholders before logic
+- [ ] Ensure `app/site-walk/(act-2-inputs)/capture/page.tsx` stays a thin composition page
+- [ ] Required capture components: `DualModeToggle.tsx`, `CameraViewfinder.tsx`, `PlanViewer.tsx`, `UnifiedVectorToolbar.tsx`, `CaptureBottomSheet.tsx`, `SyncQueueIndicator.tsx`
 - [ ] PWA shell with project selector
 - [ ] Session creation + session types
 - [ ] Camera-first capture screen
@@ -602,6 +633,18 @@ DB schema, route design, auth logic, entitlements, storage flows, API shapes, sh
 15. **All standalone apps use SlateDrop** as file backbone.
 16. **CEO/Market/Athlete360 are NOT subscription features.** Gated by `isSlateCeo` only.
 17. **Release gate must pass** (`npm run verify:release`) before merge.
+
+### Site Walk Capture Scaffolding Rule
+
+Before implementing capture logic, create the modular Act 2 capture component scaffold. The route page must import components from the Site Walk component tree and remain a thin composition file. Do not build capture, plan viewer, canvas, sync queue, or bottom-sheet logic directly inside a single page file.
+
+Mandatory capture scaffold files:
+- `DualModeToggle.tsx`
+- `CameraViewfinder.tsx`
+- `PlanViewer.tsx`
+- `UnifiedVectorToolbar.tsx`
+- `CaptureBottomSheet.tsx`
+- `SyncQueueIndicator.tsx`
 
 ### Safe Refactoring Rules
 

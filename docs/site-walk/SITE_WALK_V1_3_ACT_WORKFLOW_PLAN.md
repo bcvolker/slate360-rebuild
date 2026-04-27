@@ -61,10 +61,18 @@ This build plan is now aligned to the backend that is live on Supabase and track
 | Dead buttons / App Store rejection risk | Every prompt includes a no-dead-button acceptance gate. App Store mode hides incomplete paths instead of showing placeholders. |
 | Field-office realtime requirement | Prompts 4, 6, 7, and 9 include realtime subscriptions for items, pins, assignments, activity, and office board state. |
 | Coworker/collaborator workflow | Access must use project-aware helpers and free-collaborator assigned-task routes. Collaborators should be able to respond and submit proof without full subscriber creation UI. |
-| Offline resilience | Act 2 requires IndexedDB drafts, blob persistence, ordered replay, idempotency, visible sync state, and conflict handling. |
+| Offline resilience | Prompts 5, 6, 7, and 9 require IndexedDB drafts, blob persistence, ordered replay, idempotency, visible sync state, and conflict handling. |
 | Scale to thousands through 100k+ users | Build must keep server components first, limit realtime subscriptions to active sessions/project boards, use indexed project/session queries, paginate lists, avoid large client payloads, and test with seeded/load data before launch. |
 | Testability | Every prompt ends with typecheck/errors, file-size guard, route smoke, focused Playwright/manual checks, and a summary for outside-AI review. |
 | Need for outside prompts | No external prompts are required for implementation. Another AI can review each completed prompt summary against this plan. |
+
+### Critical review corrections added before execution
+
+The outside-AI critical review was correct: the prior plan addressed backend compatibility but did not yet make three execution constraints explicit enough. These are now mandatory:
+
+1. **300-line modular scaffolding before capture logic.** Prompt 1 must create the Act 2 capture scaffold as small imported files before any heavy capture/canvas logic is written. The active route `app/site-walk/(act-2-inputs)/capture/page.tsx` must compose imported components, not grow into a monolith. Required placeholder components: `DualModeToggle.tsx`, `CameraViewfinder.tsx`, `PlanViewer.tsx`, `UnifiedVectorToolbar.tsx`, `CaptureBottomSheet.tsx`, and `SyncQueueIndicator.tsx` under the Site Walk component tree.
+2. **Profit-margin metering engine before upload/AI expansion.** Prompt 2 is now dedicated to metering. Upload presign routes and AI note/transcription routes must enforce tier caps, record usage, and block or prompt for top-up before expensive usage occurs.
+3. **Global app shell and Site Walk module shell are separate.** `/dashboard` owns global Slate360 actions like Programmable Quick Start, Open SlateDrop, and Search Everything. `/site-walk` owns Site Walk-specific Recent Walks, Master Plan Room, Active Walks, Capture, Deliverables, and Assigned Work. The build must not duplicate the global dashboard inside the Site Walk module.
 
 ---
 
@@ -344,9 +352,9 @@ Free Collaborators do not see the full subscriber creation surface. Their defaul
 
 ### Prompt estimate and working rhythm
 
-Estimated build size: **14 implementation prompts plus 2 hardening prompts**.
+Estimated build size: **18 prompt waves total**: Prompt 0 preflight, Prompts 1–15 implementation, and Prompts 16–17 hardening/scale readiness.
 
-Estimated elapsed work time if prompts are run back-to-back with review between each: **4–7 focused workdays** for a functional V1, assuming no major third-party credential blocker. A safer calendar estimate with outside-AI review after each prompt is **1–2 weeks**. Full enterprise-scale load validation and App Store/PWA packaging hardening is a separate **1–2 week** track after the core workflows are functional.
+Estimated elapsed work time if prompts are run back-to-back with review between each: **5–8 focused workdays** for a functional V1, assuming no major third-party credential blocker. A safer calendar estimate with outside-AI review after each prompt is **1–2 weeks**. Full enterprise-scale load validation and App Store/PWA packaging hardening is a separate **1–2 week** track after the core workflows are functional.
 
 Each prompt should end with:
 1. What changed.
@@ -355,6 +363,33 @@ Each prompt should end with:
 4. Smoke tests run and expected results.
 5. Known risks or follow-up.
 6. A short outside-AI review checklist.
+
+### Prompt execution and audit ledger
+
+This table is the audit record. After each prompt wave is completed, update its status to `Complete`, add the commit hash, and replace the pending summary with exactly what changed, what was validated, and what remains.
+
+The detailed sections below are the executable prompt texts. When a prompt starts, use that section as the instruction block. When it ends, update this ledger before moving to the next prompt.
+
+| Prompt | Status | Commit | Execution prompt | Completion summary / audit response |
+|---|---|---|---|---|
+| 0 | Not started | — | Preflight and stale-code reconciliation against current backend contracts. | Pending. |
+| 1 | Not started | — | App shell, route scaffold, and mandatory empty Act 2 component scaffolding. | Pending. |
+| 2 | Not started | — | Profit-margin metering engine for storage, AI, exports, messaging, and realtime usage. | Pending. |
+| 3 | Not started | — | Act 1 company identity, contacts, and project setup. | Pending. |
+| 4 | Not started | — | Master Plan Room. | Pending. |
+| 5 | Not started | — | Session creation and active walk shell. | Pending. |
+| 6 | Not started | — | Capture engine: photo/upload/voice/text. | Pending. |
+| 7 | Not started | — | Plan canvas, long-press pins, and editable markup. | Pending. |
+| 8 | Not started | — | Classification, assignment, notes, and item management. | Pending. |
+| 9 | Not started | — | Offline queue and conflict handling. | Pending. |
+| 10 | Not started | — | Field-office board and realtime support view. | Pending. |
+| 11 | Not started | — | Collaborator and assigned-work loop. | Pending. |
+| 12 | Not started | — | Act 3 deliverable builder: hosted outputs first. | Pending. |
+| 13 | Not started | — | Public viewer, client responses, and analytics. | Pending. |
+| 14 | Not started | — | PDF, inline email, email snapshot, and send log. | Pending. |
+| 15 | Not started | — | SlateDrop and Coordination polish. | Pending. |
+| 16 | Not started | — | End-to-end QA, button audit, and mobile smoke. | Pending. |
+| 17 | Not started | — | Scale, load, and reliability hardening. | Pending. |
 
 ### Prompt 0 — Preflight and stale-code reconciliation
 
@@ -380,13 +415,35 @@ Tasks:
 - Use shared Slate360 shell, mobile bottom nav, entitlement/access rules, and real empty states.
 - Add a functional landing page with Start Walk, Create Field Project, Open Active Walks, Master Plan Room, Deliverables, and Assigned Work paths.
 - In App Store mode, hide incomplete actions rather than showing disabled placeholders.
+- Create the Act 2 capture route as a thin composition file at `app/site-walk/(act-2-inputs)/capture/page.tsx`.
+- Before writing capture logic, create empty modular placeholder components under `components/site-walk/capture/`: `DualModeToggle.tsx`, `CameraViewfinder.tsx`, `PlanViewer.tsx`, `UnifiedVectorToolbar.tsx`, `CaptureBottomSheet.tsx`, and `SyncQueueIndicator.tsx`.
+- The route page must import and compose these components. No capture page/component may exceed 300 lines, and no later prompt may bypass these placeholders by moving logic back into the page.
+- Keep `/dashboard` global-shell actions separate from `/site-walk` module actions: global Dashboard owns Programmable Quick Start, Open SlateDrop, and Search Everything; Site Walk owns Recent Walks, Master Plan Room, Active Walks, Capture, Deliverables, and Assigned Work.
 
 Acceptance:
 - `/site-walk` loads without auth/session crashes.
 - All visible buttons navigate to implemented routes or open functional modals.
 - Free-collaborator path defaults toward Assigned Work, not project creation.
+- Required Act 2 placeholder components exist, are imported by the route scaffold, and are ready for later logic.
 
-### Prompt 2 — Act 1 company identity, contacts, and project setup
+### Prompt 2 — Profit-margin metering engine
+
+Goal: protect 60%+ margin before upload, AI, export, messaging, and realtime usage scale.
+
+Tasks:
+- Build a reusable Site Walk metering guard/service that checks entitlements from `lib/entitlements.ts`, reads current usage from `site_walk_usage_monthly`, records usage through `record_site_walk_usage()`, and returns a typed allow/block/top-up-needed result.
+- Enforce storage limits before R2/S3 presigned upload URLs are issued. Standard planning cap: 5GB; Pro/Business planning cap: 25GB; Enterprise uses negotiated/custom caps.
+- Enforce AI credit limits before AI note formatting, transcription, summary generation, or future AI extraction. Standard planning cap: 300 credits; Pro/Business planning cap: 1,000 credits; Enterprise uses negotiated/custom caps.
+- Integrate the guard into Site Walk upload presign routes, AI formatting/transcription routes, PDF/export generation, email/SMS send routes when present, and realtime-minute recording where practical.
+- Return user-facing upgrade/top-up responses when caps are exceeded. Do not silently fail and do not perform expensive work before the guard allows it.
+
+Acceptance:
+- A user over storage cap cannot receive a presigned upload URL for a new Site Walk file.
+- A user over AI cap cannot run AI note/transcription/summary work.
+- Successful metered events are recorded in `site_walk_usage_events` and visible through monthly usage rollups.
+- The metering guard is route-level/server-side and cannot be bypassed by hiding UI buttons.
+
+### Prompt 3 — Act 1 company identity, contacts, and project setup
 
 Goal: implement the setup foundations needed before a walk.
 
@@ -401,7 +458,7 @@ Acceptance:
 - User can select/create project context and stakeholders.
 - New setup data is read back from the DB after save, not trusted only in local state.
 
-### Prompt 3 — Master Plan Room
+### Prompt 4 — Master Plan Room
 
 Goal: wire project-level plan upload/list/select against the new plan-room schema.
 
@@ -416,7 +473,7 @@ Acceptance:
 - Session can select a plan sheet before capture.
 - Plan image route returns a browser-loadable signed URL.
 
-### Prompt 4 — Session creation and active walk shell
+### Prompt 5 — Session creation and active walk shell
 
 Goal: start and resume walks reliably.
 
@@ -431,7 +488,7 @@ Acceptance:
 - Session can be resumed from Recent Work.
 - End Session updates DB status and records activity.
 
-### Prompt 5 — Capture engine: photo/upload/voice/text
+### Prompt 6 — Capture engine: photo/upload/voice/text
 
 Goal: make field capture work end-to-end.
 
@@ -446,7 +503,7 @@ Acceptance:
 - Captures appear in active walk item list and project files.
 - Failed upload does not lose the draft.
 
-### Prompt 6 — Plan canvas, long-press pins, and editable markup
+### Prompt 7 — Plan canvas, long-press pins, and editable markup
 
 Goal: make the plan-first workflow real.
 
@@ -461,7 +518,7 @@ Acceptance:
 - Markup remains editable after save/reload.
 - Another active user sees pin/item updates in realtime.
 
-### Prompt 7 — Classification, assignment, notes, and item management
+### Prompt 8 — Classification, assignment, notes, and item management
 
 Goal: turn raw captures into actionable field records.
 
@@ -476,7 +533,7 @@ Acceptance:
 - Bulk operations are capped and safe.
 - No buttons are decorative.
 
-### Prompt 8 — Offline queue and conflict handling
+### Prompt 9 — Offline queue and conflict handling
 
 Goal: survive jobsite connectivity loss.
 
@@ -491,7 +548,7 @@ Acceptance:
 - Returning online syncs without duplicate items.
 - User can see exactly what is pending or failed.
 
-### Prompt 9 — Field-office board and realtime support view
+### Prompt 10 — Field-office board and realtime support view
 
 Goal: let coworkers and office staff see field progress and support strategically.
 
@@ -506,7 +563,7 @@ Acceptance:
 - Field user changes appear on the office board quickly.
 - Board queries are paginated/limited and do not load every org row.
 
-### Prompt 10 — Collaborator and assigned-work loop
+### Prompt 11 — Collaborator and assigned-work loop
 
 Goal: make coworker/subcontractor participation usable without full subscriber UI.
 
@@ -521,7 +578,7 @@ Acceptance:
 - Collaborator cannot create unauthorized projects/deliverables.
 - Subscriber sees submitted work in realtime/notifications.
 
-### Prompt 11 — Act 3 deliverable builder: hosted outputs first
+### Prompt 12 — Act 3 deliverable builder: hosted outputs first
 
 Goal: create deliverables from captured items using the normalized backend.
 
@@ -536,7 +593,7 @@ Acceptance:
 - Preview has thumbnails, arrows/navigation, overlays/hotspots, and expandable response sidebar.
 - 360/model items can be referenced without Site Walk becoming the 360/model authoring app.
 
-### Prompt 12 — Public viewer, client responses, and analytics
+### Prompt 13 — Public viewer, client responses, and analytics
 
 Goal: make shared links interactive and auditable.
 
@@ -551,7 +608,7 @@ Acceptance:
 - Owner sees responses and analytics in-app.
 - Expired/revoked/max-view links fail safely.
 
-### Prompt 13 — PDF, inline email, email snapshot, and send log
+### Prompt 14 — PDF, inline email, email snapshot, and send log
 
 Goal: complete static/export send modes.
 
@@ -566,7 +623,7 @@ Acceptance:
 - Recipient can receive an inline-image/body email without needing an attachment.
 - Owner can see send history and failures.
 
-### Prompt 14 — SlateDrop and Coordination polish
+### Prompt 15 — SlateDrop and Coordination polish
 
 Goal: make Site Walk feel integrated with the broader product.
 
@@ -580,7 +637,7 @@ Acceptance:
 - Users browsing project files can find Site Walk outputs without knowing internal S3 paths.
 - Coordination surfaces show actionable Site Walk work.
 
-### Prompt 15 — End-to-end QA, button audit, and mobile smoke
+### Prompt 16 — End-to-end QA, button audit, and mobile smoke
 
 Goal: remove broken paths before beta.
 
@@ -595,7 +652,7 @@ Acceptance:
 - A real user can complete: setup → start walk → capture → classify/assign → office sees progress → build/share deliverable → recipient responds.
 - No visible button is dead or placeholder-only.
 
-### Prompt 16 — Scale, load, and reliability hardening
+### Prompt 17 — Scale, load, and reliability hardening
 
 Goal: prove the architecture can grow without avoidable crashes.
 

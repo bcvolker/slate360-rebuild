@@ -196,6 +196,33 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
+### Session Handoff — 2026-04-27 (Site Walk Critical Review Corrections)
+
+#### What Changed
+- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — addressed the outside-AI critical review by adding strict mandates for modular Act 2 scaffolding, a dedicated profit-margin metering prompt, and explicit global shell vs Site Walk module shell separation.
+- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — expanded the build sequence to 18 prompt waves total and added a prompt execution/audit ledger with status, commit, executable prompt, and completion-summary columns.
+- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — updated Prompt 1 to require placeholder capture components before logic: `DualModeToggle.tsx`, `CameraViewfinder.tsx`, `PlanViewer.tsx`, `UnifiedVectorToolbar.tsx`, `CaptureBottomSheet.tsx`, and `SyncQueueIndicator.tsx`.
+- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — added Prompt 2 for a server-side metering guard that checks entitlements, blocks over-cap uploads/AI, and records usage through Site Walk usage tables.
+- `SLATE360_MASTER_BUILD_PLAN.md` — added Site Walk execution-ledger mandate, global-vs-module shell separation, required V1 metering engine, and capture scaffolding rule.
+
+#### What's Broken / Partially Done
+- This was a planning/doc correction pass only. No Site Walk implementation code was changed.
+- Prompt 0 remains the first implementation step: reconcile shared types/enums and stale API route validation against the current backend.
+- Prompt 1 must create the modular route/component scaffold before any heavy capture/canvas logic.
+- Prompt 2 must add the metering engine before broad upload/AI workflows are expanded.
+
+#### Context Files Updated
+- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — corrected prompt sequence and audit ledger.
+- `SLATE360_MASTER_BUILD_PLAN.md` — master-level mandates for scaffolding, shell separation, and metering.
+- `SLATE360_PROJECT_MEMORY.md` — this handoff.
+
+#### Next Steps (ordered)
+1. Have the other AI assistant re-review the updated plan and master-plan mandates.
+2. If approved, start Prompt 0 and update the ledger row when complete.
+3. After every prompt, update the ledger with completion status, commit hash, exact summary, validation results, and remaining risks before starting the next prompt.
+
+---
+
 ### Session Handoff — 2026-04-27 (Site Walk Build Plan Alignment)
 
 #### What Changed
