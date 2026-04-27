@@ -196,7 +196,7 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-27 (Site Walk Prompt 7 Plan Canvas Hotfixes — Pushed)
+### Session Handoff — 2026-04-27 (Site Walk Code Red Runtime Hotfix — Pushed)
 
 #### What Changed
 - `app/site-walk/page.tsx` — guarded project-list loading so the `/site-walk` module shell still renders if project fetch/admin setup fails.
@@ -206,6 +206,10 @@ When editing oversized files, always read both the state declarations AND the JS
 - `components/site-walk/capture/PlanViewer.tsx` — implemented project-bound plan canvas with sheet/pin loading, pan, pinch/zoom controls, long-press draft pin creation, haptic feedback, and basic vector markup rendering.
 - `components/site-walk/capture/UnifiedVectorToolbar.tsx` — converted toolbar into active markup tool selection that drives plan-canvas JSON markup.
 - `components/site-walk/capture/PlanQuickActionMenu.tsx`, `components/site-walk/capture/plan-capture-events.ts`, and `lib/hooks/useCaptureUpload.ts` — added quick-action flow so the next photo/note attaches to a selected plan pin and coordinates.
+- `app/site-walk/_components/StartWalkActions.tsx` — Code Red follow-up: Start Walk now opens an `Attach a Floor Plan?` modal with large Select Plan and Skip - Photos Only options. Photos-only starts a session and routes to `/site-walk/capture?session=...&plan=skip`.
+- `app/site-walk/(act-2-inputs)/capture/page.tsx` — Code Red follow-up: capture route now handles missing/invalid sessions gracefully and only renders `PlanViewer`/`UnifiedVectorToolbar` when the user did not skip plans and the session has a project.
+- `components/site-walk/capture/CameraViewfinder.tsx` — Code Red follow-up: browser file-input interactions are mount-gated; mobile shows large Take Photo and Camera Roll buttons, desktop shows a prominent Drag & Drop Photos Here zone.
+- `components/site-walk/capture/PlanViewer.tsx` — Code Red follow-up: plan fetch/tool listeners wait for client mount and haptics now guard `navigator` before calling `vibrate`.
 
 #### What's Broken / Partially Done
 - Voice notes currently save dictated/manual text as `voice_note` rows; raw audio backup/transcription can be layered in later using the existing recorder/transcription routes.
@@ -214,7 +218,7 @@ When editing oversized files, always read both the state declarations AND the JS
 - `bash scripts/check-file-size.sh` still fails on pre-existing oversized files outside this Prompt 7 change.
 
 #### Context Files Updated
-- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — marked Prompt 7 complete with implementation commit `9e571ec` and validation summary.
+- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — marked Prompt 7 complete with implementation commit `9e571ec` and Code Red hotfix commit `e20aa7b`.
 - `SLATE360_PROJECT_MEMORY.md` — this handoff.
 
 #### Next Steps (ordered)
