@@ -5,6 +5,22 @@ Purpose: Product/UI plan for making Site Walk usable for Slate360 Version 1 laun
 
 ---
 
+## Authoritative Companion Doc
+
+The strategic source of truth is now `docs/SITE_WALK_MASTER_ARCHITECTURE.md`.
+
+This V1 3 Act workflow plan remains the execution-oriented launch plan, but it must not be interpreted as a PDF-centric camera app plan. Any build prompt or implementation slice must preserve these master constraints:
+
+- Site Walk is a module inside Slate360, not a separate app/auth/billing/file system.
+- Field-office sync is central: Supabase Realtime/Broadcast, subscriber/collaborator project context, Coordination Hub notifications, and SlateDrop file routing are core architecture.
+- Offline-first capture is required, but through explicit IndexedDB queues. Service-worker HTML/CSS/JS caching is disabled until a new offline strategy is proven on real phones after deployment.
+- Tier gating is required: Free Collaborator assigned-task UI, Standard solo field projects, Pro/Business collaborator/CM workflows, and Enterprise governance.
+- Monetization guardrails are part of product design: storage caps, AI credit caps, R2-backed storage, and App Store fee assumptions must protect margin.
+- Deliverables are not PDF-first. PDF export is one output alongside hosted previews, interactive portals, Kanban boards, cinematic presentations, SMS/email links, CSV/Excel exports, and integration targets.
+- App Store mode must hide unfinished apps/features entirely; no Coming Soon/dead-end surfaces should appear under `NEXT_PUBLIC_APP_STORE_MODE=true`.
+
+---
+
 ## North Star
 
 Site Walk should feel like a mobile field assistant that turns jobsite context into branded deliverables:
@@ -14,6 +30,8 @@ Site Walk should feel like a mobile field assistant that turns jobsite context i
 3. **Act 3 — Produce outputs:** choose a deliverable type, pull in captured items, brand it, price it when needed, preview, send, and track responses.
 
 Site Walk must use the same Slate360 auth, Coordination contacts/inbox, and SlateDrop file backbone. It should not feel like a separate app.
+
+The build must also preserve the larger strategic hooks: real-time multiplayer sync, offline queue resilience, collaborator restrictions, App Store review mode, leadership oversight, audit trails, and non-PDF deliverables.
 
 ---
 
@@ -46,6 +64,13 @@ Two creation modes:
    - Stakeholder groups from Coordination contacts
    - Plan uploads to SlateDrop `Site Walk Files / Plans`
    - Deliverable defaults: proposal, report, punch list, status update
+
+3. **CM Project / Pro-Business Walk**
+   - Cost-coded budget context
+   - Schedule/milestone context
+   - RFI/submittal hooks
+   - Collaborator permissions and assigned-task routing
+   - Leadership risk/reporting metadata
 
 ### Location + Google API UI
 
@@ -95,6 +120,12 @@ Top controls:
 - Battery/offline indicator.
 - End walk button.
 
+Start behavior:
+1. User taps `Start Walk Now`.
+2. Modal asks `Attach a Floor Plan?`.
+3. User selects a sheet from Master Plan Room, uploads/selects a plan, or skips to Camera Only.
+4. If a plan is selected, the first field action is long-press pin placement on the sheet; haptic feedback drops a pin and opens quick actions: `Take Photo`, `Upload from Device`, `Add Note`, `Assign Task`.
+
 ### Taking or Uploading a Picture
 
 Flow:
@@ -129,6 +160,12 @@ Editing behavior:
 - Every markup object should remain selectable after creation.
 - Users can move, resize, recolor, edit text, delete, undo, redo.
 - Markups should autosave as vector JSON plus a rendered preview for deliverables.
+- The Oops Engine is mandatory: local undo/redo stack for vector operations before and after autosave where possible.
+
+Plan behavior:
+- Layer toggles: clean base plan, current walk pins, historical pins, resolved items, assigned-to-me.
+- Multi-page PDF plan navigation uses a sheet-index bottom sheet.
+- Pinch-to-zoom and pan are first-class mobile gestures.
 
 ### Classification + Notes Screen
 
@@ -160,6 +197,7 @@ Autosave:
 - Draft item is created immediately after capture.
 - Markup, classification, notes, and assignments patch the item as the user works.
 - Offline changes queue locally and sync when connection returns.
+- Sync state must be visible: pending, syncing, synced, failed, retrying.
 
 ### Managing Many Items
 
@@ -186,6 +224,12 @@ User chooses a deliverable type:
 - Photo log
 - Status report
 - Estimate / scope of work
+- Proof-of-work packet
+- Safety report
+- Inspection package
+- Client portal board
+- Cinematic presentation
+- Spreadsheet/export package
 - Custom branded package
 
 The deliverable builder pulls from:
@@ -217,23 +261,50 @@ Send modes:
 - Web viewing page.
 - Secure SlateDrop link.
 - SMS link when contact has phone number.
+- Interactive client portal.
+- Cinematic presentation link.
+- CSV/Excel export.
+- Procore/Primavera integration target export.
 
 Responses:
 - Stakeholder comments and file responses route to Coordination Inbox.
 - Creator receives notification bell unread state.
 - Feedback replies from Operations Console also route to Coordination Inbox.
 
+### Cinematic Presentation Mode
+
+Presentation mode must be treated as a premium Act 3 deliverable:
+- Pitch-black `bg-[#0B0F15]` stage.
+- Dark glass controls: `bg-white/10 backdrop-blur-md border border-white/20`.
+- Bottom horizontal filmstrip for instant issue navigation.
+- Guided presenter view and detached viewer exploration.
+- Right-side collapsible comments/resolution panel tied to the current pin/photo.
+- Top-right Share action that creates a secure SlateDrop link and supports native share/QR/SMS/email.
+
+### Collaborator / Subcontractor Loop
+
+Free Collaborators do not see the full subscriber creation surface. Their default Site Walk path is:
+1. Open Slate360 and select the subscriber/GC context in the header switcher.
+2. Land on Assigned Tasks.
+3. Open a task/pin such as `Document electrical rough-in`.
+4. Route directly into Act 2 capture for that item.
+5. Submit before/after proof, notes, and status.
+6. Notify the subscriber/GC through Coordination Hub and route files into SlateDrop.
+
 ---
 
 ## Build Priority for V1 Launch
 
 1. Shell alignment: Site Walk uses the same Slate360 chrome and bottom nav rules.
-2. Act 1 fast setup: field project + location + contacts + branding defaults.
-3. Act 2 capture loop: photo/upload → markup → classification/notes → autosave → item list.
-4. SlateDrop bridge: photos, markups, plans, and deliverables route into app/project folders.
-5. Act 3 first deliverable: branded field report/proposal with PDF or hosted preview.
-6. Coordination loop: contact picker, send/share, stakeholder response, notification inbox.
-7. Offline queue and recovery for mobile capture.
+2. Route-group scaffolding: `app/site-walk/(act-1-setup)`, `(act-2-inputs)`, `(act-3-outputs)` while preserving clean URLs.
+3. Act 1 fast setup: field project + location + contacts + branding defaults + Master Plan Room.
+4. Act 2 visual capture shell: plan-or-camera modal, dual-mode Camera/Plan view, pinning quick menu, vector toolbar, queue indicator, bottom sheet.
+5. Act 2 persistence loop: photo/upload → markup → classification/notes → autosave → item list.
+6. SlateDrop bridge: photos, markups, plans, and deliverables route into app/project folders.
+7. Coordination loop: assigned tasks, contact picker, send/share, stakeholder response, notification inbox.
+8. Act 3 first non-PDF deliverables: hosted preview/client portal and cinematic presentation shell before treating PDF as the only output.
+9. Offline queue and recovery for mobile capture through IndexedDB, not service-worker HTML/CSS/JS caching.
+10. App Store mode: hide unfinished/coming-soon modules under `NEXT_PUBLIC_APP_STORE_MODE=true`.
 
 ---
 
@@ -243,3 +314,5 @@ Responses:
 - Whether proposal pricing is part of the first deliverable or a follow-up deliverable type.
 - Whether collaborators can create new findings or only respond to assigned items in V1.
 - Which calendar integration ships first: one-way calendar feed or Google/Microsoft two-way OAuth.
+- Final marketing names for the Site Walk tiers: code should stay on canonical entitlement tiers while product copy may use Standard / Pro labels.
+- Exact cut line between V1 and Phase 2 for realtime multiplayer, offline queue depth, Cinematic Mode interactivity, and leadership analytics.

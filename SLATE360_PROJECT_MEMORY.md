@@ -197,6 +197,39 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
+### Session Handoff — 2026-04-27 (Site Walk Master Architecture Consolidation)
+
+#### What Changed
+- `docs/SITE_WALK_MASTER_ARCHITECTURE.md` — replaced the earlier short feature map with the consolidated authoritative Site Walk blueprint. It now captures the other AI feedback: realtime multiplayer sync, IndexedDB offline-first capture queues, tier-gated collaboration, profit-margin/storage/AI-credit guardrails, App Store feature-flag strategy, field-tested design doctrine, Slate360 shell quick actions/hubs, collaborator/subcontractor assigned-task workflow, Act 1/2/3 details, non-PDF deliverables, Cinematic Presentation Mode, SlateDrop/Coordination routing, route-group strategy, and a feature completeness checklist.
+- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — updated the existing V1 3 Act plan so it explicitly defers to the master architecture and no longer reads as a camera/PDF-only plan. Added plan-or-camera start flow, long-press pinning, Oops Engine, plan layers, sync states, collaborator loop, Cinematic Mode, non-PDF outputs, App Store mode, and revised V1 build priorities.
+- `SLATE360_MASTER_BUILD_PLAN.md` — added a pointer naming `docs/SITE_WALK_MASTER_ARCHITECTURE.md` as the authoritative module-level Site Walk blueprint that must stay aligned with the root master plan.
+
+#### Strategic Decisions / Corrections
+- Site Walk remains a module inside Slate360, not a separate auth/billing/file-system product.
+- PDF is now explicitly a secondary output. The plan centers hosted previews, portals, Kanban/client boards, cinematic presentations, exports, and living project records.
+- The `/(act-X)` route group strategy is approved for clean URLs with organized Act 1/2/3 code ownership.
+- App Store mode should be a feature-flagged UI mode, not a second project. Incomplete apps/features must disappear under `NEXT_PUBLIC_APP_STORE_MODE=true`.
+- Service-worker HTML/CSS/JS caching remains disabled until offline behavior is redesigned and tested on real phones after deploy; offline capture should be IndexedDB queue based.
+
+#### What's Broken / Partially Done
+- This was a documentation/strategy consolidation only. Route groups, Act 1 scaffolding, and Act 2 `/site-walk/capture` layout are not implemented yet.
+- Realtime multiplayer, IndexedDB offline queues, collaborator role/schema/UI, Cinematic Mode, and App Store mode are now planned requirements but still need implementation slices.
+- Pricing labels still need final product decision: code should use canonical `lib/entitlements.ts` tiers while marketing can use Site Walk Standard / Pro labels if approved.
+
+#### Context Files Updated
+- `docs/SITE_WALK_MASTER_ARCHITECTURE.md` — authoritative Site Walk architecture.
+- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — execution-oriented V1 3 Act plan aligned to the master architecture.
+- `SLATE360_MASTER_BUILD_PLAN.md` — pointer to Site Walk module blueprint.
+- `SLATE360_PROJECT_MEMORY.md` — this handoff.
+
+#### Next Steps (ordered)
+1. Begin Act 1/2 scaffolding under `app/site-walk/(act-1-setup)`, `(act-2-inputs)`, and `(act-3-outputs)` using clean URL route groups.
+2. Build the Act 2 `/site-walk/capture` visual layout first: plan-or-camera modal, dual-mode shell, plan viewer, vector toolbar, queue indicator, and keyboard-safe bottom sheet.
+3. Wire existing safe APIs/SlateDrop paths before adding new realtime/offline/collaborator schema.
+4. Add App Store mode feature flag before any Capacitor/App Store packaging work.
+
+---
+
 ### Session Handoff — 2026-04-26 (Mobile Service Worker Kill Switch)
 
 #### What Changed

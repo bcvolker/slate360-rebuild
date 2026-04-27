@@ -6,6 +6,8 @@
 
 > **Rule:** If this file and any other doc conflict, THIS FILE wins.
 
+> **Site Walk detail source:** `docs/SITE_WALK_MASTER_ARCHITECTURE.md` is the authoritative module-level blueprint for Site Walk workflow, monetization guardrails, collaborator UX, App Store mode, Act 1/2/3 routing, and non-PDF deliverables. It must remain aligned with this master plan.
+
 ---
 
 ## Table of Contents
