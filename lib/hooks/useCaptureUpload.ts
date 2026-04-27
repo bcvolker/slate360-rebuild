@@ -3,6 +3,8 @@
 import { useCallback, useState } from "react";
 import { captureMetadata } from "@/lib/site-walk/metadata";
 import { createCaptureItem, presignCaptureUpload } from "@/lib/site-walk/capture-item-client";
+import { createOfflineId } from "@/lib/site-walk/offline-db";
+import { queueOfflineCapture } from "@/lib/site-walk/offline-capture";
 import type { CaptureItemRecord } from "@/lib/types/site-walk-capture";
 
 type CaptureStatus =
@@ -30,9 +32,18 @@ export function useCaptureUpload({ sessionId, planTarget, onPlanTargetSaved, onS
   const [status, setStatus] = useState<CaptureStatus>({ kind: "idle", message: "Ready to capture." });
 
   const savePhoto = useCallback(async (file: File) => {
+    const clientItemId = createOfflineId("item");
+    const clientMutationId = createOfflineId("mutation");
     setStatus({ kind: "uploading", message: "Uploading (1/1)..." });
+    const metadata = await captureMetadata();
+    if (isOffline()) {
+      const local = await queueOfflineCapture({ sessionId, itemType: "photo", title: file.name, metadata, file, captureMode: "camera", clientItemId, clientMutationId, planTarget });
+      setStatus({ kind: "complete", message: "Working offline — photo queued and ready to sync." });
+      if (planTarget) onPlanTargetSaved?.();
+      onSaved?.(local);
+      return;
+    }
     try {
-      const metadata = await captureMetadata();
       const upload = await presignCaptureUpload(sessionId, file);
 
       const put = await fetch(upload.uploadUrl, {
@@ -43,35 +54,54 @@ export function useCaptureUpload({ sessionId, planTarget, onPlanTargetSaved, onS
       if (!put.ok) throw new Error("Storage upload failed");
 
       setStatus({ kind: "saving", message: "Saving capture to the walk..." });
-  const item = await createCaptureItem({ sessionId, itemType: "photo", title: file.name, fileId: upload.fileId, s3Key: upload.s3Key, metadata, file, captureMode: "camera" });
+      const item = await createCaptureItem({ sessionId, itemType: "photo", title: file.name, fileId: upload.fileId, s3Key: upload.s3Key, metadata, file, captureMode: "camera", clientItemId, clientMutationId });
       if (planTarget) await attachItemToPlanPin(item.id, planTarget);
       setStatus({ kind: "complete", message: planTarget ? "Photo saved and attached to the selected plan pin." : "Photo saved to Site Walk Files / Photos." });
       if (planTarget) onPlanTargetSaved?.();
-  onSaved?.(item);
-    } catch (error) {
-      setStatus({ kind: "error", message: error instanceof Error ? error.message : "Photo upload failed." });
+      onSaved?.(item);
+    } catch {
+      const local = await queueOfflineCapture({ sessionId, itemType: "photo", title: file.name, metadata, file, captureMode: "camera", clientItemId, clientMutationId, planTarget });
+      setStatus({ kind: "complete", message: "Connection dropped — photo saved offline and queued." });
+      if (planTarget) onPlanTargetSaved?.();
+      onSaved?.(local);
     }
   }, [onPlanTargetSaved, onSaved, planTarget, sessionId]);
 
   const saveTextNote = useCallback(async (text: string, mode: "text" | "voice") => {
     if (!text.trim()) return;
+    const clientItemId = createOfflineId("item");
+    const clientMutationId = createOfflineId("mutation");
     setStatus({ kind: "saving", message: mode === "voice" ? "Saving voice/dictation note..." : "Saving text note..." });
+    const metadata = await captureMetadata();
+    const noteParams = {
+      sessionId,
+      itemType: mode === "voice" ? "voice_note" as const : "text_note" as const,
+      title: text.trim().slice(0, 80),
+      description: text.trim(),
+      metadata: { ...metadata, note_mode: mode, captured_from: "prompt_6_capture_engine", plan_target: planTarget ?? undefined },
+      captureMode: mode === "voice" ? "voice" as const : "text" as const,
+      clientItemId,
+      clientMutationId,
+      planTarget,
+    };
+    if (isOffline()) {
+      const local = await queueOfflineCapture(noteParams);
+      setStatus({ kind: "complete", message: "Working offline — note queued and ready to sync." });
+      if (planTarget) onPlanTargetSaved?.();
+      onSaved?.(local);
+      return;
+    }
     try {
-      const metadata = await captureMetadata();
-      const item = await createCaptureItem({
-        sessionId,
-        itemType: mode === "voice" ? "voice_note" : "text_note",
-        title: text.trim().slice(0, 80),
-        description: text.trim(),
-        metadata: { ...metadata, note_mode: mode, captured_from: "prompt_6_capture_engine", plan_target: planTarget ?? undefined },
-        captureMode: mode === "voice" ? "voice" : "text",
-      });
+      const item = await createCaptureItem(noteParams);
       if (planTarget) await attachItemToPlanPin(item.id, planTarget);
       setStatus({ kind: "complete", message: planTarget ? "Note saved and attached to the selected plan pin." : mode === "voice" ? "Voice/dictation note saved." : "Text note saved." });
       if (planTarget) onPlanTargetSaved?.();
       onSaved?.(item);
-    } catch (error) {
-      setStatus({ kind: "error", message: error instanceof Error ? error.message : "Note save failed." });
+    } catch {
+      const local = await queueOfflineCapture(noteParams);
+      setStatus({ kind: "complete", message: "Connection dropped — note saved offline and queued." });
+      if (planTarget) onPlanTargetSaved?.();
+      onSaved?.(local);
     }
   }, [onPlanTargetSaved, onSaved, planTarget, sessionId]);
 
@@ -106,3 +136,7 @@ async function attachItemToPlanPin(itemId: string, target: PlanCaptureTarget) {
 }
 
 export type { CaptureStatus };
+
+function isOffline() {
+  return typeof navigator !== "undefined" && !navigator.onLine;
+}

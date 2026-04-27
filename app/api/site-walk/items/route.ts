@@ -48,6 +48,23 @@ export const POST = (req: NextRequest) =>
 
     if (!session) return badRequest("Session not found or access denied");
 
+    if (body.client_item_id || body.client_mutation_id) {
+      let existingQuery = admin
+        .from("site_walk_items")
+        .select("*")
+        .eq("org_id", orgId)
+        .eq("created_by", user.id)
+        .limit(1);
+
+      existingQuery = body.client_item_id
+        ? existingQuery.eq("client_item_id", body.client_item_id)
+        : existingQuery.eq("client_mutation_id", body.client_mutation_id as string);
+
+      const { data: existing, error: existingError } = await existingQuery.maybeSingle();
+      if (existingError) return serverError(existingError.message);
+      if (existing) return ok({ item: existing, idempotent: true });
+    }
+
     // Get next sort_order
     const { data: lastItem } = await admin
       .from("site_walk_items")

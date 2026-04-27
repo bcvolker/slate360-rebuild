@@ -15,6 +15,9 @@ export type CreateCaptureItemParams = {
   metadata: CaptureMetadata | Record<string, unknown>;
   file?: File;
   captureMode: SiteWalkCaptureMode;
+  clientItemId?: string | null;
+  clientMutationId?: string | null;
+  uploadState?: "none" | "queued" | "uploading" | "uploaded" | "failed";
 };
 
 export async function presignCaptureUpload(sessionId: string, file: File): Promise<UploadResponse> {
@@ -36,9 +39,21 @@ export async function presignCaptureUpload(sessionId: string, file: File): Promi
 }
 
 export async function createCaptureItem(params: CreateCaptureItemParams): Promise<CaptureItemRecord> {
+  const body = buildCreateCaptureItemBody(params);
+  const response = await fetch("/api/site-walk/items", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  const data = (await response.json().catch(() => null)) as ItemResponse | null;
+  if (!response.ok || !data?.item) throw new Error(data?.error ?? "Could not save item");
+  return data.item;
+}
+
+export function buildCreateCaptureItemBody(params: CreateCaptureItemParams) {
   const metadataRecord = params.metadata as Record<string, unknown>;
   const gps = isGps(metadataRecord.gps) ? metadataRecord.gps : null;
-  const body = {
+  return {
     session_id: params.sessionId,
     item_type: params.itemType,
     title: params.title,
@@ -54,19 +69,14 @@ export async function createCaptureItem(params: CreateCaptureItemParams): Promis
       mime_type: params.file?.type,
     },
     capture_mode: params.captureMode,
-    sync_state: "synced",
+    client_item_id: params.clientItemId ?? null,
+    client_mutation_id: params.clientMutationId ?? null,
+    sync_state: params.uploadState === "queued" ? "pending" : "synced",
     local_created_at: new Date().toISOString(),
     local_updated_at: new Date().toISOString(),
+    upload_state: params.uploadState ?? "none",
+    upload_progress: params.uploadState === "queued" ? 0 : params.s3Key ? 100 : 0,
   };
-
-  const response = await fetch("/api/site-walk/items", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  const data = (await response.json().catch(() => null)) as ItemResponse | null;
-  if (!response.ok || !data?.item) throw new Error(data?.error ?? "Could not save item");
-  return data.item;
 }
 
 export async function createAnnotationItem(sessionId: string, title: string, metadata: Record<string, unknown>) {

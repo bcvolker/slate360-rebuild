@@ -4,6 +4,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Crosshair, Loader2, MapPinned, Minus, Plus } from "lucide-react";
 import type { MarkupData, MarkupShape } from "@/lib/site-walk/markup-types";
 import { createAnnotationItem } from "@/lib/site-walk/capture-item-client";
+import { captureMetadata } from "@/lib/site-walk/metadata";
+import { queueOfflineCapture } from "@/lib/site-walk/offline-capture";
 import { publishCaptureItemFocus } from "./capture-item-events";
 import { PlanQuickActionMenu } from "./PlanQuickActionMenu";
 import { VECTOR_TOOL_EVENT, type VectorTool } from "./UnifiedVectorToolbar";
@@ -98,13 +100,16 @@ export function PlanViewer({ projectId, sessionId }: Props) {
     if (!activeSheetId) return;
     setMessage(markup ? "Saving markup JSON…" : "Saving draft pin…");
     if (typeof navigator !== "undefined" && typeof navigator.vibrate === "function") navigator.vibrate(12);
-    const item = await createAnnotationItem(sessionId, markup ? "Plan markup" : "Plan pin", {
-      captured_from: "prompt_8_plan_pin",
-      plan_sheet_id: activeSheetId,
-      x_pct: point.xPct,
-      y_pct: point.yPct,
-      markup_data: markup ?? null,
-    });
+    const metadata = { captured_from: "prompt_8_plan_pin", plan_sheet_id: activeSheetId, x_pct: point.xPct, y_pct: point.yPct, markup_data: markup ?? null };
+    if (typeof navigator !== "undefined" && !navigator.onLine) {
+      const base = await captureMetadata();
+      const local = await queueOfflineCapture({ sessionId, itemType: "annotation", title: markup ? "Plan markup" : "Plan pin", description: "", metadata: { ...base, ...metadata }, captureMode: "plan_pin", planTarget: { planSheetId: activeSheetId, xPct: point.xPct, yPct: point.yPct } });
+      publishCaptureItemFocus({ item: local, reason: "pin" });
+      setMessage("Working offline — pin saved locally and queued.");
+      return;
+    }
+
+    const item = await createAnnotationItem(sessionId, markup ? "Plan markup" : "Plan pin", metadata);
     const response = await fetch("/api/site-walk/pins", {
       method: "POST",
       headers: { "Content-Type": "application/json" },

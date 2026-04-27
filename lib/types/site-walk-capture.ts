@@ -1,4 +1,4 @@
-import type { ItemPriority, ItemStatus, SiteWalkCaptureMode, SiteWalkItemType } from "./site-walk";
+import type { ItemPriority, ItemStatus, SiteWalkCaptureMode, SiteWalkItemType, SiteWalkSyncState, SiteWalkUploadState } from "./site-walk";
 
 export type CaptureClassification = "Issue" | "Observation" | "Safety" | "Progress" | "Question" | "Other";
 
@@ -13,6 +13,8 @@ export type CaptureAssignee = {
 export type CaptureItemRecord = {
   id: string;
   session_id: string;
+  client_item_id: string | null;
+  client_mutation_id: string | null;
   item_type: SiteWalkItemType;
   title: string;
   description: string | null;
@@ -21,6 +23,8 @@ export type CaptureItemRecord = {
   item_status: ItemStatus;
   assigned_to: string | null;
   capture_mode: SiteWalkCaptureMode;
+  sync_state: SiteWalkSyncState;
+  upload_state: SiteWalkUploadState;
   created_at: string;
   updated_at: string;
 };

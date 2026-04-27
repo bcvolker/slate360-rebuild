@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { loadOfflineItemsForSession, queueOfflineItemPatch } from "@/lib/site-walk/offline-capture";
 import type { UpdateItemPayload } from "@/lib/types/site-walk";
 import { useCaptureItemFocus } from "./capture-item-events";
 import { captureItemToDraft, type CaptureAssignee, type CaptureItemDraft, type CaptureItemRecord } from "@/lib/types/site-walk-capture";
@@ -52,6 +53,9 @@ export function useCaptureItems({ sessionId, projectId }: HookArgs) {
       .catch(() => {
         if (!cancelled) setItems([]);
       });
+    void loadOfflineItemsForSession(sessionId).then((offlineItems) => {
+      if (!cancelled && offlineItems.length > 0) setItems((current) => mergeItems(current, offlineItems));
+    });
     return () => { cancelled = true; };
   }, [sessionId]);
 
@@ -90,6 +94,7 @@ export function useCaptureItems({ sessionId, projectId }: HookArgs) {
   }
 
   async function saveDraft(itemId: string, nextDraft: CaptureItemDraft) {
+    if (!activeItem) return;
     setSaveState("saving");
     const payload: UpdateItemPayload = {
       title: nextDraft.title,
@@ -101,6 +106,14 @@ export function useCaptureItems({ sessionId, projectId }: HookArgs) {
       sync_state: "synced",
     };
     try {
+      if (isOffline() || itemId.startsWith("item-")) {
+        await queueOfflineItemPatch(sessionId, activeItem, payload);
+        const local = patchLocalItem(activeItem, nextDraft);
+        dirtyRef.current = false;
+        setItems((current) => upsertItem(current, local));
+        setSaveState("saved");
+        return;
+      }
       const response = await fetch(`/api/site-walk/items/${encodeURIComponent(itemId)}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -112,7 +125,11 @@ export function useCaptureItems({ sessionId, projectId }: HookArgs) {
       setItems((current) => upsertItem(current, data.item as CaptureItemRecord));
       setSaveState("saved");
     } catch {
-      setSaveState("error");
+      await queueOfflineItemPatch(sessionId, activeItem, payload);
+      const local = patchLocalItem(activeItem, nextDraft);
+      dirtyRef.current = false;
+      setItems((current) => upsertItem(current, local));
+      setSaveState("saved");
     }
   }
 
@@ -154,6 +171,28 @@ export function useCaptureItems({ sessionId, projectId }: HookArgs) {
     patchDraft,
     formatNotesWithAi,
   };
+}
+
+function mergeItems(current: CaptureItemRecord[], incoming: CaptureItemRecord[]) {
+  return incoming.reduce((items, item) => upsertItem(items, item), current);
+}
+
+function patchLocalItem(item: CaptureItemRecord, draft: CaptureItemDraft): CaptureItemRecord {
+  return {
+    ...item,
+    title: draft.title,
+    description: draft.notes,
+    category: draft.classification,
+    priority: draft.priority,
+    item_status: draft.status,
+    assigned_to: draft.assignedTo || null,
+    sync_state: "pending",
+    updated_at: new Date().toISOString(),
+  };
+}
+
+function isOffline() {
+  return typeof navigator !== "undefined" && !navigator.onLine;
 }
 
 function upsertItem(items: CaptureItemRecord[], item: CaptureItemRecord) {
