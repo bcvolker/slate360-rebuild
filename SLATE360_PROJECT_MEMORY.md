@@ -196,7 +196,7 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-27 (Foundation Maintenance + Interactive Deliverables)
+### Session Handoff — 2026-04-27 (Foundation Maintenance + Interactive Deliverables — Pushed)
 
 #### What Changed
 - `supabase/migrations/*_remote_history_placeholder.sql` — added no-op placeholders for remote-only historical Supabase migration versions so local history mirrors production history.
@@ -210,12 +210,14 @@ When editing oversized files, always read both the state declarations AND the JS
 - `supabase/migrations/20260427100000_site_walk_interactive_deliverables.sql` — added hosted interactive deliverable assets/scenes/hotspots/threads/responses/sends so Slate360 can host PDF/email snapshots, interactive links, 360 tours, model viewers, thumbnails/navigation, overlays, and response sidebars.
 - Deleted tracked zombie artifacts: `.bak` backups, `patch.js`, `.devcontainer_broken/`, and raw-upload context artifacts under `slate360-context/dashboard-tabs/`.
 - `slate360-context/BACKEND.md` — documented the applied Site Walk backend foundation and validation notes.
+- Commit `494c693 chore: harden backend migration foundation` is pushed to `origin/main`.
 
 #### Strategic Decisions / Corrections
 - The external AI SQL was not applied verbatim. It was corrected for repo realities: nullable ad-hoc `site_walk_sessions.project_id`, safer constraint names, explicit `WITH CHECK` policies, optional-table guards, plan-sheet-only draft pins, and migration-history recording.
 - Root `.env` parse issue was fixed by correcting an over-quoted `MARKET_SCHEDULER_SECRET` value.
 - Supabase CLI migration drift is now repaired. `supabase db push --dry-run --linked` reports the remote database is up to date.
 - The remote database now has the Site Walk backend and interactive-deliverable migrations applied and recorded in `supabase_migrations.schema_migrations`.
+- Post-push verification confirmed `main` is clean and aligned with `origin/main` at `494c693`.
 
 #### What's Broken / Partially Done
 - Backend foundation for Site Walk is now in place, but frontend/API code still needs to be built to use the new schema.
@@ -227,11 +229,10 @@ When editing oversized files, always read both the state declarations AND the JS
 - `slate360-context/BACKEND.md` — applied Site Walk backend foundation and validation notes.
 
 #### Next Steps (ordered)
-1. Commit and push the maintenance pass if not already done.
-2. Begin Site Walk app build against the new backend in thin slices: Act 1 shell/project setup, Master Plan Room upload/list, then Act 2 capture/offline queue.
-3. Wire Site Walk APIs to `withProjectAuth()` / project-aware access helpers; avoid new org-only collaborator regressions.
-4. During deliverable build, use `site_walk_deliverable_assets/scenes/hotspots/threads/responses/sends` rather than burying all interaction state in `content` JSON.
-5. Schedule a separate SQL hygiene pass for unrelated legacy lint errors before they block future release gates.
+1. Begin Site Walk app build against the new backend in thin slices: Act 1 shell/project setup, Master Plan Room upload/list, then Act 2 capture/offline queue.
+2. Wire Site Walk APIs to `withProjectAuth()` / project-aware access helpers; avoid new org-only collaborator regressions.
+3. During deliverable build, use `site_walk_deliverable_assets/scenes/hotspots/threads/responses/sends` rather than burying all interaction state in `content` JSON.
+4. Schedule a separate SQL hygiene pass for unrelated legacy lint errors before they block future release gates.
 
 ---
 
