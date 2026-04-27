@@ -13,7 +13,7 @@ export const POST = (req: NextRequest, ctx: IdRouteContext) =>
 
     const { data, error } = await admin
       .from("site_walk_deliverables")
-      .update({ share_revoked: true, status: "submitted" })
+      .update({ share_revoked: true, status: "revoked" })
       .eq("id", id)
       .eq("org_id", orgId)
       .select("id, share_revoked, status")

@@ -7,14 +7,12 @@ import { NextRequest } from "next/server";
 import { withAppAuth } from "@/lib/server/api-auth";
 import { ok, badRequest, notFound, serverError } from "@/lib/server/api-response";
 import type { IdRouteContext } from "@/lib/types/api";
-import type { UpdateSessionPayload, SiteWalkSessionStatus } from "@/lib/types/site-walk";
-
-const VALID_STATUSES: SiteWalkSessionStatus[] = [
-  "draft",
-  "in_progress",
-  "completed",
-  "archived",
-];
+import {
+  SITE_WALK_SESSION_STATUSES,
+  SITE_WALK_SESSION_TYPES,
+  SITE_WALK_SYNC_STATES,
+  type UpdateSessionPayload,
+} from "@/lib/types/site-walk";
 
 export const GET = (req: NextRequest, ctx: IdRouteContext) =>
   withAppAuth("punchwalk", req, async ({ admin, orgId }) => {
@@ -45,14 +43,30 @@ export const PATCH = (req: NextRequest, ctx: IdRouteContext) =>
       updates.title = body.title.trim();
     }
     if (body.status !== undefined) {
-      if (!VALID_STATUSES.includes(body.status)) {
-        return badRequest(`Invalid status. Must be one of: ${VALID_STATUSES.join(", ")}`);
+      if (!SITE_WALK_SESSION_STATUSES.includes(body.status)) {
+        return badRequest(`Invalid status. Must be one of: ${SITE_WALK_SESSION_STATUSES.join(", ")}`);
       }
       updates.status = body.status;
       if (body.status === "in_progress") updates.started_at = new Date().toISOString();
       if (body.status === "completed") updates.completed_at = new Date().toISOString();
     }
     if (body.metadata !== undefined) updates.metadata = body.metadata;
+    if (body.project_id !== undefined) updates.project_id = body.project_id;
+    if (body.is_ad_hoc !== undefined) updates.is_ad_hoc = body.is_ad_hoc;
+    if (body.client_session_id !== undefined) updates.client_session_id = body.client_session_id;
+    if (body.session_type !== undefined) {
+      if (!SITE_WALK_SESSION_TYPES.includes(body.session_type)) {
+        return badRequest(`session_type must be one of: ${SITE_WALK_SESSION_TYPES.join(", ")}`);
+      }
+      updates.session_type = body.session_type;
+    }
+    if (body.sync_state !== undefined) {
+      if (!SITE_WALK_SYNC_STATES.includes(body.sync_state)) {
+        return badRequest(`sync_state must be one of: ${SITE_WALK_SYNC_STATES.join(", ")}`);
+      }
+      updates.sync_state = body.sync_state;
+    }
+    if (body.last_synced_at !== undefined) updates.last_synced_at = body.last_synced_at;
 
     if (Object.keys(updates).length === 0) {
       return badRequest("No valid fields to update");

@@ -5,18 +5,11 @@
 import { NextRequest } from "next/server";
 import { withAppAuth } from "@/lib/server/api-auth";
 import { ok, badRequest, serverError } from "@/lib/server/api-response";
-import type {
-  CreateDeliverablePayload,
-  SiteWalkDeliverableType,
+import {
+  SITE_WALK_DELIVERABLE_TYPES,
+  SITE_WALK_OUTPUT_MODES,
+  type CreateDeliverablePayload,
 } from "@/lib/types/site-walk";
-
-const VALID_TYPES: SiteWalkDeliverableType[] = [
-  "report",
-  "punchlist",
-  "photo_log",
-  "status_report",
-  "custom",
-];
 
 export const GET = (req: NextRequest) =>
   withAppAuth("punchwalk", req, async ({ admin, orgId }) => {
@@ -41,14 +34,17 @@ export const POST = (req: NextRequest) =>
 
     const body = (await req.json()) as CreateDeliverablePayload;
     if (!body.session_id) return badRequest("session_id is required");
-    if (!body.deliverable_type || !VALID_TYPES.includes(body.deliverable_type)) {
-      return badRequest(`deliverable_type must be one of: ${VALID_TYPES.join(", ")}`);
+    if (!body.deliverable_type || !SITE_WALK_DELIVERABLE_TYPES.includes(body.deliverable_type)) {
+      return badRequest(`deliverable_type must be one of: ${SITE_WALK_DELIVERABLE_TYPES.join(", ")}`);
+    }
+    if (body.output_mode && !SITE_WALK_OUTPUT_MODES.includes(body.output_mode)) {
+      return badRequest(`output_mode must be one of: ${SITE_WALK_OUTPUT_MODES.join(", ")}`);
     }
 
     // Verify the session exists and belongs to this org
     const { data: session } = await admin
       .from("site_walk_sessions")
-      .select("id")
+      .select("id, project_id")
       .eq("id", body.session_id)
       .eq("org_id", orgId)
       .single();
@@ -60,11 +56,20 @@ export const POST = (req: NextRequest) =>
       .insert({
         session_id: body.session_id,
         org_id: orgId,
+        project_id: session.project_id ?? null,
         created_by: user.id,
         title: body.title?.trim() || "Untitled Report",
         deliverable_type: body.deliverable_type,
         status: "draft",
         content: body.content ?? [],
+        output_mode: body.output_mode ?? "hosted",
+        portal_config: body.portal_config ?? {},
+        presentation_config: body.presentation_config ?? {},
+        kanban_config: body.kanban_config ?? {},
+        export_config: body.export_config ?? {},
+        viewer_config: body.viewer_config ?? {},
+        response_config: body.response_config ?? {},
+        navigation_config: body.navigation_config ?? {},
       })
       .select()
       .single();

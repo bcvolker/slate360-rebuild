@@ -6,7 +6,7 @@ import { NextRequest } from "next/server";
 import { withAppAuth } from "@/lib/server/api-auth";
 import { ok, badRequest, serverError, notFound } from "@/lib/server/api-response";
 import type { IdRouteContext } from "@/lib/types/api";
-import type { UpdatePinPayload } from "@/lib/types/site-walk";
+import { SITE_WALK_PIN_STATUSES, type UpdatePinPayload } from "@/lib/types/site-walk";
 import { isMarkupData } from "@/lib/site-walk/markup-types";
 
 export const PATCH = (req: NextRequest, ctx: IdRouteContext) =>
@@ -31,6 +31,14 @@ export const PATCH = (req: NextRequest, ctx: IdRouteContext) =>
     }
     if (body.pin_number !== undefined) update.pin_number = body.pin_number;
     if (body.pin_color !== undefined) update.pin_color = body.pin_color;
+    if (body.item_id !== undefined) update.item_id = body.item_id;
+    if (body.pin_status !== undefined) {
+      if (!SITE_WALK_PIN_STATUSES.includes(body.pin_status)) {
+        return badRequest(`pin_status must be one of: ${SITE_WALK_PIN_STATUSES.join(", ")}`);
+      }
+      update.pin_status = body.pin_status;
+    }
+    if (body.label !== undefined) update.label = body.label;
     if (body.markup_data !== undefined) {
       if (!isMarkupData(body.markup_data)) {
         return badRequest("markup_data must match the MarkupData v1 schema");

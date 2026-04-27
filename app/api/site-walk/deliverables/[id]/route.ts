@@ -12,17 +12,11 @@ import {
   serverError,
 } from "@/lib/server/api-response";
 import type { IdRouteContext } from "@/lib/types/api";
-import type {
-  UpdateDeliverablePayload,
-  SiteWalkDeliverableStatus,
+import {
+  SITE_WALK_DELIVERABLE_STATUSES,
+  SITE_WALK_OUTPUT_MODES,
+  type UpdateDeliverablePayload,
 } from "@/lib/types/site-walk";
-
-const VALID_STATUSES: SiteWalkDeliverableStatus[] = [
-  "draft",
-  "submitted",
-  "shared",
-  "archived",
-];
 
 export const GET = (req: NextRequest, ctx: IdRouteContext) =>
   withAppAuth("punchwalk", req, async ({ admin, orgId }) => {
@@ -53,14 +47,33 @@ export const PATCH = (req: NextRequest, ctx: IdRouteContext) =>
       updates.title = body.title.trim();
     }
     if (body.status !== undefined) {
-      if (!VALID_STATUSES.includes(body.status)) {
-        return badRequest(`Invalid status. Must be one of: ${VALID_STATUSES.join(", ")}`);
+      if (!SITE_WALK_DELIVERABLE_STATUSES.includes(body.status)) {
+        return badRequest(`Invalid status. Must be one of: ${SITE_WALK_DELIVERABLE_STATUSES.join(", ")}`);
       }
       updates.status = body.status;
     }
     if (body.content !== undefined) {
       if (!Array.isArray(body.content)) return badRequest("content must be an array");
       updates.content = body.content;
+    }
+    if (body.output_mode !== undefined) {
+      if (!SITE_WALK_OUTPUT_MODES.includes(body.output_mode)) {
+        return badRequest(`output_mode must be one of: ${SITE_WALK_OUTPUT_MODES.join(", ")}`);
+      }
+      updates.output_mode = body.output_mode;
+    }
+    if (body.portal_config !== undefined) updates.portal_config = body.portal_config;
+    if (body.presentation_config !== undefined) updates.presentation_config = body.presentation_config;
+    if (body.kanban_config !== undefined) updates.kanban_config = body.kanban_config;
+    if (body.export_config !== undefined) updates.export_config = body.export_config;
+    if (body.viewer_config !== undefined) updates.viewer_config = body.viewer_config;
+    if (body.response_config !== undefined) updates.response_config = body.response_config;
+    if (body.navigation_config !== undefined) updates.navigation_config = body.navigation_config;
+    if (body.allow_viewer_responses !== undefined) {
+      updates.allow_viewer_responses = body.allow_viewer_responses;
+    }
+    if (body.allow_viewer_download !== undefined) {
+      updates.allow_viewer_download = body.allow_viewer_download;
     }
 
     if (Object.keys(updates).length === 0) {

@@ -7,15 +7,7 @@ import { withAppAuth } from "@/lib/server/api-auth";
 import { ok, badRequest, serverError } from "@/lib/server/api-response";
 import { bridgePhotoToSlateDrop } from "@/lib/site-walk/slatedrop-bridge";
 import { trackStorageUsed } from "@/lib/slatedrop/track-storage";
-import type { CreateItemPayload, SiteWalkItemType } from "@/lib/types/site-walk";
-
-const VALID_ITEM_TYPES: SiteWalkItemType[] = [
-  "photo",
-  "video",
-  "text_note",
-  "voice_note",
-  "annotation",
-];
+import { SITE_WALK_ITEM_TYPES, type CreateItemPayload } from "@/lib/types/site-walk";
 
 export const GET = (req: NextRequest) =>
   withAppAuth("punchwalk", req, async ({ admin, orgId }) => {
@@ -41,8 +33,8 @@ export const POST = (req: NextRequest) =>
 
     const body = (await req.json()) as CreateItemPayload;
     if (!body.session_id) return badRequest("session_id is required");
-    if (!body.item_type || !VALID_ITEM_TYPES.includes(body.item_type)) {
-      return badRequest(`item_type must be one of: ${VALID_ITEM_TYPES.join(", ")}`);
+    if (!body.item_type || !SITE_WALK_ITEM_TYPES.includes(body.item_type)) {
+      return badRequest(`item_type must be one of: ${SITE_WALK_ITEM_TYPES.join(", ")}`);
     }
 
     // Verify the session exists and belongs to this org
@@ -90,6 +82,7 @@ export const POST = (req: NextRequest) =>
       .insert({
         session_id: body.session_id,
         org_id: orgId,
+        project_id: session.project_id ?? null,
         created_by: user.id,
         item_type: body.item_type,
         title: body.title?.trim() ?? "",
@@ -104,6 +97,19 @@ export const POST = (req: NextRequest) =>
         sort_order: nextOrder,
         before_item_id: body.before_item_id ?? null,
         item_relationship: body.item_relationship ?? "standalone",
+        client_item_id: body.client_item_id ?? null,
+        client_mutation_id: body.client_mutation_id ?? null,
+        capture_mode: body.capture_mode ?? "camera",
+        sync_state: body.sync_state ?? "synced",
+        local_created_at: body.local_created_at ?? null,
+        local_updated_at: body.local_updated_at ?? null,
+        device_id: body.device_id ?? null,
+        upload_state: body.upload_state ?? "none",
+        upload_progress: body.upload_progress ?? 0,
+        vector_history: body.vector_history ?? [],
+        tags: body.tags ?? [],
+        trade: body.trade ?? null,
+        category: body.category ?? null,
       })
       .select()
       .single();

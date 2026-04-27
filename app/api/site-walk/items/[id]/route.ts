@@ -47,6 +47,15 @@ export const PATCH = (req: NextRequest, ctx: IdRouteContext) =>
     if (body.cost_estimate !== undefined) updates.cost_estimate = body.cost_estimate;
     if (body.manpower_hours !== undefined) updates.manpower_hours = body.manpower_hours;
     if (body.before_item_id !== undefined) updates.before_item_id = body.before_item_id;
+    if (body.capture_mode !== undefined) updates.capture_mode = body.capture_mode;
+    if (body.sync_state !== undefined) updates.sync_state = body.sync_state;
+    if (body.upload_state !== undefined) updates.upload_state = body.upload_state;
+    if (body.upload_progress !== undefined) updates.upload_progress = body.upload_progress;
+    if (body.vector_history !== undefined) updates.vector_history = body.vector_history;
+    if (body.markup_revision !== undefined) updates.markup_revision = body.markup_revision;
+    if (body.tags !== undefined) updates.tags = body.tags;
+    if (body.trade !== undefined) updates.trade = body.trade;
+    if (body.category !== undefined) updates.category = body.category;
 
     if (Object.keys(updates).length === 0) {
       return badRequest("No valid fields to update");
