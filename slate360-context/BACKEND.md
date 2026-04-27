@@ -144,18 +144,23 @@ Storage rules:
 
 ## Site Walk Backend Foundation
 
-Applied 2026-04-27 to Supabase project `hadnfcenpcfaeclczsmm` and tracked in `supabase/migrations/2026042709*.sql`:
+Applied 2026-04-27 to Supabase project `hadnfcenpcfaeclczsmm` and tracked in `supabase/migrations/2026042709*.sql` plus `20260427100000_site_walk_interactive_deliverables.sql`:
 - Project-aware access helpers now allow both `organization_members` and project-scoped `project_members` collaborators across Site Walk RLS.
 - Site Walk core tables now carry/backfill `project_id` where needed for collaborator-safe policies.
 - Master Plan Room schema exists: `site_walk_plan_sets`, `site_walk_plan_sheets`, and `site_walk_session_plan_sheets`.
 - Offline-first support exists via client IDs, sync/upload state fields, draft pins, and `site_walk_offline_mutations`.
 - Non-PDF outputs exist via expanded deliverable types, output configs, `site_walk_deliverable_blocks`, and `site_walk_portal_boards`.
+- Interactive hosted deliverables are supported by `site_walk_deliverable_assets`, `site_walk_deliverable_scenes`, `site_walk_deliverable_hotspots`, `site_walk_deliverable_threads`, `site_walk_deliverable_responses`, and `site_walk_deliverable_sends`.
+- Supported deliverable patterns now include PDF attachments, inline-image/email snapshots, hosted links, cinematic presentations, media galleries, 360/photo tours, 3D/model viewers, scene navigation, hotspots/overlays, and client response/question threads.
 - Audit/read infrastructure exists via `site_walk_activity_log`, `site_walk_read_receipts`, status-change triggers, and realtime publication coverage.
 - Usage/margin metering exists via `site_walk_usage_events`, `site_walk_usage_monthly`, and `record_site_walk_usage()`.
 
 Validation notes:
-- The migrations were schema-tested in a remote transaction and then applied directly with `psql` using the Codespace `POSTGRES_PASSWORD` because `supabase db push --dry-run` is blocked by old remote migration-history drift and the root `.env` has a parse issue.
-- Post-apply checks confirmed 9 new tables, 9 RLS-enabled new tables, 11 realtime Site Walk tables, and 6 new migration-history rows.
+- The initial six migrations were schema-tested in a remote transaction and then applied directly with `psql` using the Codespace `POSTGRES_PASSWORD`.
+- The root `.env` parse issue was fixed by correcting an over-quoted `MARKET_SCHEDULER_SECRET` value.
+- Remote/local Supabase migration history was reconciled by adding no-op remote-history placeholders, renaming duplicate short local migration filenames to unique timestamp prefixes, and repairing remote migration history.
+- `supabase db push --dry-run --linked` now reports the remote database is up to date after applying the interactive deliverables migration.
+- Post-apply checks confirmed the original 9 new Site Walk foundation tables plus the newer interactive deliverable tables are present with RLS/realtime coverage.
 - Future Site Walk APIs should call `user_can_access_project()` / `user_can_manage_project()` concepts through server auth helpers where possible, not reintroduce raw org-only checks.
 
 ## Market Backend Notes
