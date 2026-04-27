@@ -20,6 +20,7 @@ const primaryActions = [
     title: "Start Walk",
     description: "Open the field-tested capture shell for camera, plan, voice, and notes.",
     icon: PlayCircle,
+    iconKey: "play" as const,
     appStoreReady: true,
     startMode: "ad-hoc" as const,
   },
@@ -28,6 +29,7 @@ const primaryActions = [
     title: "Create Field Project",
     description: "Set project context, stakeholders, location, and deliverable defaults.",
     icon: HardHat,
+    iconKey: "hardHat" as const,
     appStoreReady: true,
     startMode: "project" as const,
   },
@@ -128,7 +130,7 @@ export default async function SiteWalkPage() {
             {visibleActions.map((action) => {
               const Icon = action.icon;
               if (action.startMode) {
-                return <StartWalkCardButton key={action.href} projects={projects} mode={action.startMode} title={action.title} description={action.description} icon={Icon} />;
+                return <StartWalkCardButton key={action.href} projects={projects} mode={action.startMode} title={action.title} description={action.description} iconKey={action.iconKey} />;
               }
               return (
                 <Link

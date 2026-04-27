@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState, type ComponentType } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Camera, Loader2, Map, X } from "lucide-react";
+import { ArrowRight, Camera, HardHat, Loader2, Map, PlayCircle, X } from "lucide-react";
 
 type ProjectOption = {
   id: string;
@@ -21,7 +21,7 @@ type CardProps = {
   mode: "ad-hoc" | "project";
   title: string;
   description: string;
-  icon: ComponentType<{ className?: string }>;
+  iconKey: "play" | "hardHat";
 };
 
 type SessionResponse = { session?: { id: string }; error?: string };
@@ -110,12 +110,13 @@ export function StartWalkActions({ projects, compact = false, variant = "hero" }
   );
 }
 
-export function StartWalkCardButton({ projects, mode, title, description, icon: Icon }: CardProps) {
+export function StartWalkCardButton({ projects, mode, title, description, iconKey }: CardProps) {
   const router = useRouter();
   const [creating, setCreating] = useState(false);
   const [promptOpen, setPromptOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const project = projects[0] ?? null;
+  const Icon = iconKey === "hardHat" ? HardHat : PlayCircle;
 
   async function startWalk(routeMode: "plan" | "photos") {
     setCreating(true);
