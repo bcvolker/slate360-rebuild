@@ -42,7 +42,7 @@ export function UnifiedVectorToolbar() {
           );
         })}
       </div>
-      <p className="mt-3 text-xs leading-5 text-slate-600">Select a tool, then tap the plan to store markup JSON with a draft pin.</p>
+      <p className="mt-3 text-xs leading-5 text-slate-600">Select a tool, then draw on the active photo or tap the plan to store markup JSON.</p>
     </section>
   );
 }

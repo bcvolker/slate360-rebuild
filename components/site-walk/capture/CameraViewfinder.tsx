@@ -3,8 +3,12 @@
 import { useEffect, useRef, useState } from "react";
 import { Camera, FileImage, Loader2, Mic, PencilLine, RotateCcw } from "lucide-react";
 import { useCaptureUpload } from "@/lib/hooks/useCaptureUpload";
+import { createOfflineId } from "@/lib/site-walk/offline-db";
+import type { CaptureItemRecord } from "@/lib/types/site-walk-capture";
 import { publishCaptureItemFocus } from "./capture-item-events";
+import { PhotoMarkupCanvas } from "./PhotoMarkupCanvas";
 import { usePlanCaptureTarget } from "./plan-capture-events";
+import { VECTOR_TOOL_EVENT } from "./UnifiedVectorToolbar";
 
 type Props = {
   sessionId: string;
@@ -15,16 +19,31 @@ export function CameraViewfinder({ sessionId }: Props) {
   const uploadInputRef = useRef<HTMLInputElement>(null);
   const [mounted, setMounted] = useState(false);
   const [dragActive, setDragActive] = useState(false);
+  const [activePreview, setActivePreview] = useState<{ url: string; title: string } | null>(null);
   const [noteText, setNoteText] = useState("");
   const { target, clearTarget } = usePlanCaptureTarget();
-  const { status, savePhoto, saveTextNote, resetStatus } = useCaptureUpload({ sessionId, planTarget: target, onPlanTargetSaved: clearTarget, onSaved: (item) => publishCaptureItemFocus({ item, reason: "captured" }) });
+  const { status, savePhoto, saveTextNote, resetStatus } = useCaptureUpload({ sessionId, planTarget: target, onPlanTargetSaved: clearTarget, onSaved: (item) => publishCaptureItemFocus({ item, reason: "captured", focus: false }) });
   const busy = status.kind === "uploading" || status.kind === "saving";
 
   useEffect(() => setMounted(true), []);
 
+  useEffect(() => () => {
+    if (activePreview?.url) URL.revokeObjectURL(activePreview.url);
+  }, [activePreview?.url]);
+
   function handleFile(file: File | undefined) {
     if (!file) return;
-    void savePhoto(file);
+    const previewUrl = URL.createObjectURL(file);
+    const clientItemId = createOfflineId("item");
+    const clientMutationId = createOfflineId("mutation");
+    const localItem = buildLocalPhotoItem(sessionId, file, previewUrl, clientItemId, clientMutationId);
+    setActivePreview((current) => {
+      if (current?.url) URL.revokeObjectURL(current.url);
+      return { url: previewUrl, title: file.name };
+    });
+    publishCaptureItemFocus({ item: localItem, reason: "captured", focus: true });
+    window.dispatchEvent(new CustomEvent(VECTOR_TOOL_EVENT, { detail: { tool: "draw" } }));
+    void savePhoto(file, { clientItemId, clientMutationId, previewUrl });
   }
 
   function handleDrop(event: React.DragEvent<HTMLDivElement>) {
@@ -45,6 +64,10 @@ export function CameraViewfinder({ sessionId }: Props) {
 
       <div className="rounded-3xl bg-slate-50 p-4 ring-1 ring-slate-300">
         <div className="flex min-h-[280px] flex-col items-center justify-center text-center">
+          {activePreview ? (
+            <PhotoMarkupCanvas imageUrl={activePreview.url} title={activePreview.title} />
+          ) : (
+            <>
           <Camera className="h-12 w-12 text-blue-800 md:hidden" />
           <FileImage className="hidden h-12 w-12 text-blue-800 md:block" />
           <h2 className="mt-4 text-2xl font-black text-slate-950">Capture field proof</h2>
@@ -73,6 +96,8 @@ export function CameraViewfinder({ sessionId }: Props) {
               <span className="inline-flex items-center gap-2"><FileImage className="h-5 w-5" /> Select Photos from Computer</span>
             </button>
           </div>
+            </>
+          )}
         </div>
 
         <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={(event) => { handleFile(event.target.files?.[0]); event.target.value = ""; }} />
@@ -101,6 +126,29 @@ export function CameraViewfinder({ sessionId }: Props) {
       </div>
     </section>
   );
+}
+
+function buildLocalPhotoItem(sessionId: string, file: File, previewUrl: string, clientItemId: string, clientMutationId: string): CaptureItemRecord {
+  const now = new Date().toISOString();
+  return {
+    id: clientItemId,
+    session_id: sessionId,
+    client_item_id: clientItemId,
+    client_mutation_id: clientMutationId,
+    item_type: "photo",
+    title: file.name,
+    description: null,
+    category: null,
+    priority: "medium",
+    item_status: "open",
+    assigned_to: null,
+    capture_mode: "camera",
+    sync_state: "pending",
+    upload_state: "queued",
+    local_preview_url: previewUrl,
+    created_at: now,
+    updated_at: now,
+  };
 }
 
 function statusClasses(kind: string) {

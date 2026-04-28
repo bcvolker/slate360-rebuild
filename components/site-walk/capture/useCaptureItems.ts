@@ -40,8 +40,18 @@ export function useCaptureItems({ sessionId, projectId }: HookArgs) {
 
   useCaptureItemFocus(useCallback((detail) => {
     setItems((current) => upsertItem(current, detail.item));
+    if (detail.focus === false) {
+      setActiveItemId((currentId) => {
+        if (currentId !== detail.item.id && detail.item.client_item_id) {
+          const active = items.find((item) => item.id === currentId);
+          if (active?.client_item_id === detail.item.client_item_id) return detail.item.id;
+        }
+        return currentId;
+      });
+      return;
+    }
     selectItem(detail.item);
-  }, [selectItem]));
+  }, [items, selectItem]));
 
   useEffect(() => {
     let cancelled = false;
@@ -196,7 +206,8 @@ function isOffline() {
 }
 
 function upsertItem(items: CaptureItemRecord[], item: CaptureItemRecord) {
-  const exists = items.some((current) => current.id === item.id);
-  const next = exists ? items.map((current) => current.id === item.id ? item : current) : [item, ...items];
+  const match = (current: CaptureItemRecord) => current.id === item.id || (!!current.client_item_id && current.client_item_id === item.client_item_id);
+  const exists = items.some(match);
+  const next = exists ? items.map((current) => match(current) ? { ...current, ...item, local_preview_url: item.local_preview_url ?? current.local_preview_url } : current) : [item, ...items];
   return next.sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at));
 }

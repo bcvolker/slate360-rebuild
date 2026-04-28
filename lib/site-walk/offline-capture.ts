@@ -10,6 +10,7 @@ type PlanTarget = { planSheetId: string; xPct: number; yPct: number; pinId?: str
 type QueueCaptureParams = CreateCaptureItemParams & {
   file?: File;
   planTarget?: PlanTarget | null;
+  previewUrl?: string | null;
 };
 
 export async function queueOfflineCapture(params: QueueCaptureParams): Promise<CaptureItemRecord> {
@@ -48,7 +49,7 @@ export async function queueOfflineCapture(params: QueueCaptureParams): Promise<C
     await enqueuePlanTargetMutation(params.sessionId, clientItemId, params.planTarget);
   }
 
-  return localItemFromBody(body, clientItemId, clientMutationId);
+  return localItemFromBody(body, clientItemId, clientMutationId, params.previewUrl ?? null);
 }
 
 export async function queueOfflineItemPatch(sessionId: string, item: CaptureItemRecord, patch: UpdateItemPayload) {
@@ -67,7 +68,7 @@ export async function loadOfflineItemsForSession(sessionId: string) {
   const mutations = await listOfflineMutations();
   return mutations
     .filter((mutation) => mutation.kind === "item_create" && mutation.sessionId === sessionId && mutation.body)
-    .map((mutation) => localItemFromBody(mutation.body as Record<string, unknown>, mutation.localClientItemId ?? mutation.id, String(mutation.body?.client_mutation_id ?? mutation.id)));
+    .map((mutation) => localItemFromBody(mutation.body as Record<string, unknown>, mutation.localClientItemId ?? mutation.id, String(mutation.body?.client_mutation_id ?? mutation.id), null));
 }
 
 async function enqueuePlanTargetMutation(sessionId: string, clientItemId: string, target: PlanTarget) {
@@ -92,7 +93,7 @@ async function enqueuePlanTargetMutation(sessionId: string, clientItemId: string
   });
 }
 
-function localItemFromBody(body: Record<string, unknown>, clientItemId: string, clientMutationId: string): CaptureItemRecord {
+function localItemFromBody(body: Record<string, unknown>, clientItemId: string, clientMutationId: string, previewUrl: string | null): CaptureItemRecord {
   const now = new Date().toISOString();
   return {
     id: clientItemId,
@@ -109,6 +110,7 @@ function localItemFromBody(body: Record<string, unknown>, clientItemId: string, 
     capture_mode: body.capture_mode as CaptureItemRecord["capture_mode"],
     sync_state: "pending",
     upload_state: body.upload_state === "queued" ? "queued" : "none",
+    local_preview_url: previewUrl,
     created_at: now,
     updated_at: now,
   };

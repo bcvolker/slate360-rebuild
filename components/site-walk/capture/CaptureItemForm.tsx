@@ -31,6 +31,12 @@ export function CaptureItemForm({ item, draft, assignees, saveState, aiState, ai
         <SaveIndicator state={saveState} />
       </div>
 
+      {item.local_preview_url && (
+        <div className="overflow-hidden rounded-3xl border border-slate-300 bg-slate-950">
+          <img src={item.local_preview_url} alt={item.title || "Captured photo"} className="max-h-48 w-full object-contain" />
+        </div>
+      )}
+
       <label className="space-y-2">
         <span className={labelClass}>Title</span>
         <input value={draft.title} onChange={(event) => onDraftChange({ title: event.target.value })} className={inputClass} placeholder="Short field item title" />

@@ -25,6 +25,7 @@ export type CaptureItemRecord = {
   capture_mode: SiteWalkCaptureMode;
   sync_state: SiteWalkSyncState;
   upload_state: SiteWalkUploadState;
+  local_preview_url?: string | null;
   created_at: string;
   updated_at: string;
 };

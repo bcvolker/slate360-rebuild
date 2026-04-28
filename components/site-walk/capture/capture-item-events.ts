@@ -8,6 +8,7 @@ const CAPTURE_ITEM_FOCUS_EVENT = "site-walk-capture-item-focus";
 type CaptureItemFocusDetail = {
   item: CaptureItemRecord;
   reason: "captured" | "pin" | "selected";
+  focus?: boolean;
 };
 
 function isCaptureItem(value: unknown): value is CaptureItemRecord {
