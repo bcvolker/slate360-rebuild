@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { loadOfflineItemsForSession, queueOfflineItemPatch } from "@/lib/site-walk/offline-capture";
 import type { MarkupData } from "@/lib/site-walk/markup-types";
+import { withPhotoAttachmentPins, type PhotoAttachmentPin } from "@/lib/site-walk/photo-attachments";
 import type { UpdateItemPayload } from "@/lib/types/site-walk";
 import { useCaptureItemFocus } from "./capture-item-events";
 import { captureItemToDraft, type CaptureAssignee, type CaptureItemDraft, type CaptureItemRecord } from "@/lib/types/site-walk-capture";
@@ -208,6 +209,29 @@ export function useCaptureItems({ sessionId, projectId }: HookArgs) {
     }
   }
 
+  async function savePhotoAttachmentPins(itemId: string, pins: PhotoAttachmentPin[]) {
+    const item = items.find((current) => current.id === itemId || current.client_item_id === itemId);
+    if (!item) return;
+    const metadata = withPhotoAttachmentPins(item.metadata, pins);
+    const payload: UpdateItemPayload = { metadata, sync_state: "synced" };
+    const local = { ...item, metadata, photo_attachment_pins: pins, sync_state: "pending" as const, updated_at: new Date().toISOString() };
+    setItems((current) => upsertItem(current, local));
+    try {
+      if (isOffline() || item.id.startsWith("item-")) {
+        await queueOfflineItemPatch(sessionId, item, payload);
+        return;
+      }
+      const response = await fetch(`/api/site-walk/items/${encodeURIComponent(item.id)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!response.ok) throw new Error("Attachment pin save failed");
+    } catch {
+      await queueOfflineItemPatch(sessionId, item, payload);
+    }
+  }
+
   return {
     items,
     assignees,
@@ -219,6 +243,7 @@ export function useCaptureItems({ sessionId, projectId }: HookArgs) {
     selectItem,
     patchDraft,
     saveMarkupData,
+    savePhotoAttachmentPins,
     formatNotesWithAi,
   };
 }

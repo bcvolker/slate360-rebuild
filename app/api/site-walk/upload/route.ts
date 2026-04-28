@@ -8,6 +8,21 @@ import { buildCanonicalS3Key, resolveNamespace } from "@/lib/slatedrop/storage";
 import { checkStorageLimit, meteringBlockedResponse } from "@/lib/site-walk/metering";
 import { ensureSiteWalkProjectFolder } from "@/lib/site-walk/slatedrop-folders";
 
+const MAX_FILE_BYTES = 25 * 1024 * 1024;
+const ALLOWED_CONTENT_TYPES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/heic",
+  "application/pdf",
+  "text/plain",
+  "text/csv",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/vnd.ms-excel",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+]);
+
 /** POST /api/site-walk/upload — returns a presigned PUT URL for photo/file upload */
 export const POST = (req: NextRequest) =>
   withAppAuth("punchwalk", req, async ({ user, admin, orgId }) => {
@@ -25,10 +40,12 @@ export const POST = (req: NextRequest) =>
       return badRequest("filename, contentType, and sessionId are required");
     }
 
-    // Validate content type (images + common docs)
-    const allowed = ["image/jpeg", "image/png", "image/webp", "image/heic", "application/pdf"];
-    if (!allowed.includes(contentType)) {
+    if (!ALLOWED_CONTENT_TYPES.has(contentType)) {
       return badRequest("Unsupported file type");
+    }
+
+    if (typeof fileSizeBytes === "number" && fileSizeBytes > MAX_FILE_BYTES) {
+      return badRequest("File must be 25MB or smaller");
     }
 
     const { data: session, error: sessionError } = await admin

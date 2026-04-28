@@ -25,7 +25,7 @@ export function CaptureClientIsland({ sessionId, projectId, showPlanCanvas, auto
   const [locationPickerOpen, setLocationPickerOpen] = useState(false);
   const carryForwardRef = useRef<Partial<Pick<CaptureItemDraft, "classification" | "priority" | "status" | "assignedTo">> | null>(null);
   const appliedCarryRef = useRef<string | null>(null);
-  const { items, assignees, activeItem, draft, saveState, aiState, aiMessage, selectItem, patchDraft, saveMarkupData, formatNotesWithAi } = useCaptureItems({ sessionId, projectId });
+  const { items, assignees, activeItem, draft, saveState, aiState, aiMessage, selectItem, patchDraft, saveMarkupData, savePhotoAttachmentPins, formatNotesWithAi } = useCaptureItems({ sessionId, projectId });
 
   useEffect(() => {
     const savedLocation = sessionStorage.getItem(`site-walk:current-location:${sessionId}`);
@@ -112,6 +112,7 @@ export function CaptureClientIsland({ sessionId, projectId, showPlanCanvas, auto
           modeLabel={showPlanCanvas ? "Plan-linked" : "Photos-only"}
           ghostImageUrl={ghostImageUrl}
           onMarkupChange={(itemId, markup) => void saveMarkupData(itemId, markup)}
+          onAttachmentPinsChange={(itemId, pins) => void savePhotoAttachmentPins(itemId, pins)}
           onSelectItem={selectItem}
           onNext={() => setActivePage("data")}
         />

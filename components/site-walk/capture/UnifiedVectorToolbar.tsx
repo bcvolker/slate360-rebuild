@@ -14,7 +14,7 @@ const TOOLS = [
   { label: "Text", value: "text", icon: Type },
 ] satisfies Array<{ label: string; value: VectorTool; icon: typeof MousePointer2 }>;
 
-const COLORS = ["#2563eb", "#dc2626", "#f59e0b", "#16a34a", "#111827"];
+const COLORS = ["#10b981", "#f59e0b", "#ef4444", "#a855f7", "#f8fafc"];
 
 export const VECTOR_TOOL_EVENT = "site-walk-vector-tool";
 
@@ -37,24 +37,23 @@ export function UnifiedVectorToolbar() {
   }
 
   return (
-    <section className="rounded-3xl border border-slate-300 bg-white p-4 shadow-sm" aria-label="Vector markup toolbar">
-      <h2 className="text-sm font-black uppercase tracking-[0.16em] text-slate-700">Markup tools</h2>
-      <div className="mt-3 grid grid-cols-3 gap-2 xl:grid-cols-1">
+    <section className="rounded-3xl border border-white/15 bg-white/10 p-2 shadow-sm backdrop-blur-xl" aria-label="Vector markup toolbar">
+      <h2 className="sr-only">Markup tools</h2>
+      <div className="grid grid-cols-6 gap-1">
         {TOOLS.map((tool) => {
           const Icon = tool.icon;
           const isActive = activeTool === tool.value;
           return (
-            <button key={tool.label} type="button" onClick={() => selectTool(tool.value)} className={`flex min-h-11 items-center justify-center gap-2 rounded-xl border px-3 py-2 text-sm font-bold xl:justify-start ${isActive ? "border-blue-300 bg-blue-50 text-blue-900" : "border-slate-300 bg-slate-50 text-slate-700 hover:border-blue-300"}`}>
-              <Icon className="h-4 w-4 text-blue-800" />
-              <span className="hidden xl:inline">{tool.label}</span>
+            <button key={tool.label} type="button" onClick={() => selectTool(tool.value)} className={`flex min-h-10 items-center justify-center gap-2 rounded-xl border px-2 py-2 text-xs font-black ${isActive ? "border-emerald-300 bg-emerald-300/20 text-emerald-100" : "border-white/10 bg-black/20 text-white/70 hover:border-emerald-200/60"}`} aria-label={tool.label}>
+              <Icon className="h-4 w-4" />
             </button>
           );
         })}
       </div>
-      <div className="mt-3 flex flex-wrap gap-2" aria-label="Markup colors">
-        {COLORS.map((color) => <button key={color} type="button" onClick={() => selectColor(color)} className={`h-8 w-8 rounded-full border-2 ${activeColor === color ? "border-slate-950" : "border-white shadow ring-1 ring-slate-300"}`} style={{ backgroundColor: color }} aria-label={`Use markup color ${color}`} />)}
+      <div className="mt-2 flex flex-wrap gap-2" aria-label="Markup colors">
+        {COLORS.map((color) => <button key={color} type="button" onClick={() => selectColor(color)} className={`h-7 w-7 rounded-full border-2 ${activeColor === color ? "border-emerald-200" : "border-white/40 shadow"}`} style={{ backgroundColor: color }} aria-label={`Use markup color ${color}`} />)}
       </div>
-      <p className="mt-3 text-xs leading-5 text-slate-600">Select a tool, then draw on the active photo or tap the plan to store markup JSON.</p>
+      <p className="mt-2 text-[11px] font-bold leading-4 text-white/55">Select moves, resizes, edits, or deletes. Long-press photo to pin files.</p>
     </section>
   );
 }

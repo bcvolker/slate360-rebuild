@@ -196,6 +196,33 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
+### Session Handoff — 2026-04-28 (Field Capture Visual Polish)
+
+#### What Changed
+- `components/site-walk/capture/VisualCaptureView.tsx` — removed the bulky post-photo chrome, added a dark/glassy high-contrast field UI, added a top stop thumbnail strip with title overlays, kept a lower current-location angle strip, added a swipe/right-to-notes CTA, and added removable pinned-file chips below the angle strip.
+- `components/site-walk/capture/PhotoMarkupCanvas.tsx` — changed photo rendering to fill the available frame with portrait/landscape detection, added selectable markup objects, move/resize/delete controls, inline editable text, and long-press photo pin creation.
+- `components/site-walk/capture/PhotoAttachmentPins.tsx` and `lib/site-walk/photo-attachments.ts` — added photo attachment pin metadata helpers and a pin modal that uploads/finalizes up to four 25MB files per pin with label/note metadata.
+- `components/site-walk/capture/CameraViewfinder.tsx`, `CaptureClientIsland.tsx`, `useCaptureItems.ts`, and `lib/types/site-walk-capture.ts` — wired selected saved photos back into the markup surface, persisted attachment pins through item `metadata`, and kept markup persistence intact.
+- `components/site-walk/capture/UnifiedVectorToolbar.tsx` and `app/api/site-walk/upload/route.ts` — moved capture controls away from navy/blue styling and expanded Site Walk uploads to common document types with a 25MB cap.
+
+#### What's Broken / Partially Done
+- The top strip distinguishes stops and the lower strip scopes angles by current location, but there is still no first-class `angle_of_item_id` relationship in the database; true multi-angle grouping should be added later.
+- Attachment pins store metadata on the Site Walk item and upload files to SlateDrop, but deliverable rendering and office live preview do not yet render those pin attachments.
+- Shape editing is lightweight SVG editing, not a full Fabric/Konva editor; rotation handles and per-corner resize handles remain future polish.
+
+#### Context Files Updated
+- `docs/site-walk/SITE_WALK_MASTER_ARCHITECTURE.md` — recorded visual capture polish and photo attachment pins.
+- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — added Prompt 10C completion row.
+- `SLATE360_PROJECT_MEMORY.md` — this handoff.
+
+#### Next Steps (ordered)
+1. Smoke test `/site-walk/capture` on phone: take photo, verify no wasted top text, mark up, select/move/delete/edit text, and swipe/tap to notes.
+2. Long-press a photo, upload up to four files, save a pin, remove a pinned chip, and verify metadata survives reload.
+3. Add a real `angle_of_item_id` / stop-vs-angle data relationship so same-location stops and same-item angles are not inferred from title/location.
+4. Render photo attachment pins in office live view and deliverables.
+
+---
+
 ### Session Handoff — 2026-04-28 (Prompt 10 Realtime Office Board)
 
 #### What Changed
