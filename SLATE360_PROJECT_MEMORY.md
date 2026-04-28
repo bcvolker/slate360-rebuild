@@ -196,9 +196,15 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-28 (Site Walk Compact Mobile Launcher — Pushed)
+### Session Handoff — 2026-04-28 (Site Walk App Home Chrome Removal — Pushed)
 
 #### What Changed
+- `components/site-walk/SiteWalkShell.tsx` — removed the redundant Site Walk module topbar from non-full-bleed routes; `/site-walk` now relies on the global Slate360 app shell only and no longer shows the extra back/feedback/user header.
+- `app/site-walk/page.tsx` and `app/site-walk/_components/SiteWalkLaunchGrid.tsx` — the Site Walk app home is now a contained, non-scrolling launcher with only three app actions: Quick Capture, Project, and SlateDrop. Removed the Field Project dropdown, Project dropdown, Plans, Photos Only, Resume, and secondary section links from the home screen.
+- `app/site-walk/slatedrop/page.tsx` — added a Site Walk-specific SlateDrop picker that lists Field Projects and routes users to the project file browser for Site Walk files.
+- `lib/site-walk/slatedrop-folders.ts` and `docs/site-walk/SITE_WALK_MASTER_ARCHITECTURE.md` — defined Site Walk project folder expectations: `Site Walk Files / Photos`, `Notes`, `Data`, `Plans`, and `Deliverables`.
+
+#### Previous Session Context
 - `app/site-walk/page.tsx` and `components/site-walk/SiteWalkShell.tsx` — removed the marketing/description card from the Site Walk home screen and hid the section nav on `/site-walk` so the app opens directly to action buttons.
 - `app/site-walk/_components/SiteWalkLaunchGrid.tsx` — compressed the phone layout into an above-the-fold app launcher: Field Project selector, Project tools menu, Quick Capture/desktop Upload, Plans, Photos Only, and Resume. Plan Room, Deliverables, and Setup are folded into the Project menu.
 - `lib/site-walk/quick-capture-launch.ts` and `components/site-walk/capture/CameraViewfinder.tsx` — quick-capture handoff now keeps an in-memory copy plus IndexedDB copy of the selected file before routing, improving phone reliability. Captures no longer default title to the file name; last non-empty title is reused for subsequent photos in the same session.
@@ -223,6 +229,7 @@ When editing oversized files, always read both the state declarations AND the JS
 - Photo markup strokes are currently local-only in `PhotoMarkupCanvas.tsx`; persisting them into `site_walk_items.markup_data` remains a follow-up.
 - True native-app permission prompts still depend on the deployment wrapper. In the current web/PWA surface, camera/photo-library access is requested through the native file input (`capture="environment"` on mobile, normal file picker on desktop).
 - Deliverable metadata display checkbox is documented/required but the Prompt 12 deliverable builder has not been implemented yet.
+- Notes/Data folder exports are defined in the folder convention but not yet materialized as generated text/JSON files in SlateDrop; capture records are still stored in `site_walk_items`.
 - Voice notes still use typed/native-dictated text for this drawer; raw audio backup/transcription remains a later layer.
 - No service-worker HTML/CSS/JS caching was added; Prompt 9 remains strictly IndexedDB data persistence plus local object URL previews.
 - `bash scripts/check-file-size.sh` still fails on the same 12 known pre-existing oversized files outside Prompt 9.
@@ -233,9 +240,9 @@ When editing oversized files, always read both the state declarations AND the JS
 - `SLATE360_PROJECT_MEMORY.md` — this handoff.
 
 #### Next Steps (ordered)
-1. Smoke test `/site-walk` on a real phone viewport: no description card, no section nav, all four core buttons visible without meaningful scrolling.
-2. Smoke test Quick Capture on a real phone: camera opens, image appears on capture screen, drawer opens, item title is blank unless a previous title was entered.
-3. Smoke test desktop: primary action reads Upload and opens file picker; arrow/color markup works on the uploaded image.
+1. Smoke test `/site-walk` on a phone viewport: only the global header plus three buttons should be visible, with no redundant Site Walk header and no page scrolling.
+2. Smoke test Site Walk SlateDrop: tap SlateDrop, pick a Field Project, confirm the project file browser opens.
+3. Implement materialized Notes/Data text/JSON exports into the new Site Walk folders when capture item data needs file-level browsing outside the database.
 4. Persist `PhotoMarkupCanvas` shapes into item `markup_data` if saved photo markups are required before Prompt 10.
 5. Add Include photo metadata checkbox when Prompt 12 deliverable builder is implemented.
 
