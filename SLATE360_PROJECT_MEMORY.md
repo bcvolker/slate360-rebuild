@@ -196,6 +196,32 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
+### Session Handoff — 2026-04-28 (Site Walk Duplicate Module Navigation Removal)
+
+#### What Changed
+- `components/site-walk/SiteWalkShell.tsx` — removed the remaining Site Walk segmented module nav from all active Site Walk routes; the shell now only wraps children and relies on the global authenticated app shell for header/share/settings/navigation.
+- `components/site-walk/SiteWalkTopBar.tsx` and `components/site-walk/SiteWalkSegmentedNav.tsx` — deleted the unused duplicate module chrome sources so `Back to dashboard`, duplicate Site Walk Share/user icons, and `My Dashboard / Deliverables / Active Walks / Plan Room / Setup & Branding` cannot be rendered by the active shell.
+- `docs/site-walk/SITE_WALK_MASTER_ARCHITECTURE.md` — documented that Site Walk must not render a second module topbar or segmented page nav above route content.
+
+#### What's Broken / Partially Done
+- If the live site still shows `Field-tested workspace`, it is not present in active `app/` or `components/` source after this fix; likely causes are an old Vercel deployment, stale browser/PWA cache, or a route outside the active Site Walk app path.
+- Photo markup strokes are currently local-only in `PhotoMarkupCanvas.tsx`; persisting them into `site_walk_items.markup_data` remains a follow-up.
+- Deliverable metadata display checkbox is documented/required but the Prompt 12 deliverable builder has not been implemented yet.
+- Notes/Data folder exports are defined in the folder convention but not yet materialized as generated text/JSON files in SlateDrop; capture records are still stored in `site_walk_items`.
+- `bash scripts/check-file-size.sh` still fails on the same 12 known pre-existing oversized files.
+
+#### Context Files Updated
+- `docs/site-walk/SITE_WALK_MASTER_ARCHITECTURE.md` — recorded the no-duplicate-module-chrome rule.
+- `SLATE360_PROJECT_MEMORY.md` — this handoff.
+
+#### Next Steps (ordered)
+1. Commit and push the duplicate module navigation deletion.
+2. Smoke test `/site-walk` and `/site-walk/slatedrop`: only one global header should appear; no `Back to dashboard` module topbar and no segmented Site Walk tabs should appear.
+3. If production still shows `Field-tested workspace`, verify the Vercel deployment SHA and clear stale PWA/browser cache before changing more source.
+4. Implement materialized Notes/Data text/JSON exports into Site Walk SlateDrop folders when file-level browsing is needed.
+
+---
+
 ### Session Handoff — 2026-04-28 (Site Walk App Home Chrome Removal — Pushed)
 
 #### What Changed

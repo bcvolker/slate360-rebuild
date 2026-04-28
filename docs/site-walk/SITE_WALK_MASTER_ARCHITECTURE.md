@@ -95,12 +95,7 @@ Global shell alignment:
 
 ## Module Navigation
 
-Core Site Walk navigation labels:
-- My Dashboard
-- Deliverables
-- Active Walks
-- Plan Room
-- Setup & Branding
+Site Walk must rely on the authenticated Slate360 app shell for top-level header actions and navigation. Do not render a second module topbar, duplicate Share/settings icons, or a segmented Site Walk page nav above route content. The app home owns the primary launch actions: Quick Capture, Project, and Site Walk SlateDrop.
 
 The capture screen itself is a task mode reached from Quick Capture, plan pins, or active walks; it should not force users to browse through navigation to begin work.
 
