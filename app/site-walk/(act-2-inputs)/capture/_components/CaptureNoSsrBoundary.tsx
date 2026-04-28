@@ -7,6 +7,7 @@ type Props = {
   session: ActiveWalkSession;
   showPlanCanvas: boolean;
   autoOpenCamera: boolean;
+  launchId: string | null;
 };
 
 const CaptureShell = dynamic(

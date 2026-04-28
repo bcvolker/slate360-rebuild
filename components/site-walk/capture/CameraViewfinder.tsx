@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Camera, FileImage, Loader2, Mic, PencilLine, RotateCcw } from "lucide-react";
 import { useCaptureUpload } from "@/lib/hooks/useCaptureUpload";
 import { createOfflineId } from "@/lib/site-walk/offline-db";
+import { readQuickCaptureLaunch, removeQuickCaptureLaunch } from "@/lib/site-walk/quick-capture-launch";
 import type { CaptureItemRecord } from "@/lib/types/site-walk-capture";
 import { requestCameraCapture, subscribeCameraCapture } from "./capture-camera-events";
 import { publishCaptureItemFocus } from "./capture-item-events";
@@ -14,11 +15,13 @@ import { VECTOR_TOOL_EVENT } from "./UnifiedVectorToolbar";
 type Props = {
   sessionId: string;
   autoOpenCamera?: boolean;
+  launchId?: string | null;
 };
 
-export function CameraViewfinder({ sessionId, autoOpenCamera = false }: Props) {
+export function CameraViewfinder({ sessionId, autoOpenCamera = false, launchId = null }: Props) {
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const uploadInputRef = useRef<HTMLInputElement>(null);
+  const consumedLaunchRef = useRef<string | null>(null);
   const [mounted, setMounted] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const [activePreview, setActivePreview] = useState<{ url: string; title: string } | null>(null);
@@ -42,6 +45,15 @@ export function CameraViewfinder({ sessionId, autoOpenCamera = false }: Props) {
     const timeout = window.setTimeout(() => cameraInputRef.current?.click(), 350);
     return () => window.clearTimeout(timeout);
   }, [autoOpenCamera, mounted]);
+
+  useEffect(() => {
+    if (!mounted || !launchId || consumedLaunchRef.current === launchId) return;
+    consumedLaunchRef.current = launchId;
+    void readQuickCaptureLaunch(launchId).then((launch) => {
+      if (launch?.file) handleFile(launch.file);
+      return removeQuickCaptureLaunch(launchId);
+    });
+  }, [launchId, mounted]);
 
   useEffect(() => () => {
     if (activePreview?.url) URL.revokeObjectURL(activePreview.url);

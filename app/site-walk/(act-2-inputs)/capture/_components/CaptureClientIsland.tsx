@@ -9,9 +9,10 @@ type Props = {
   projectId: string | null;
   showPlanCanvas: boolean;
   autoOpenCamera: boolean;
+  launchId: string | null;
 };
 
-const CameraViewfinder = dynamic<{ sessionId: string; autoOpenCamera?: boolean }>(
+const CameraViewfinder = dynamic<{ sessionId: string; autoOpenCamera?: boolean; launchId?: string | null }>(
   () => import("@/components/site-walk/capture/CameraViewfinder").then((mod) => mod.CameraViewfinder),
   { ssr: false, loading: () => <IslandLoading label="Loading capture tools…" /> },
 );
@@ -26,11 +27,11 @@ const UnifiedVectorToolbar = dynamic(
   { ssr: false, loading: () => <IslandLoading label="Loading markup tools…" compact /> },
 );
 
-export function CaptureClientIsland({ sessionId, projectId, showPlanCanvas, autoOpenCamera }: Props) {
+export function CaptureClientIsland({ sessionId, projectId, showPlanCanvas, autoOpenCamera, launchId }: Props) {
   return (
     <section className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
       <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-1">
-        <CameraViewfinder sessionId={sessionId} autoOpenCamera={autoOpenCamera} />
+        <CameraViewfinder sessionId={sessionId} autoOpenCamera={autoOpenCamera} launchId={launchId} />
         {showPlanCanvas && <PlanViewer sessionId={sessionId} projectId={projectId} />}
       </div>
       <aside className="space-y-4">
