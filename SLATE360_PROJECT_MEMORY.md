@@ -196,6 +196,33 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
+### Session Handoff — 2026-04-28 (Prompt 10 Realtime Office Board)
+
+#### What Changed
+- `app/site-walk/(act-2-inputs)/walks/page.tsx` — replaced the placeholder with a server-loaded Active Walks dashboard showing in-progress walks, project, person walking, elapsed time, item counts, and office drill-down links.
+- `app/site-walk/(act-2-inputs)/walks/[sessionId]/page.tsx` — added a live command center route with server-authenticated session/item loading.
+- `components/site-walk/live/LiveWalkView.tsx`, `MarkupImagePreview.tsx`, `live-walk-utils.ts`, and `live-walk-types.ts` — added the desktop split-pane live view grouped by Location → Item, item detail rendering, photo preview URL loading, and persisted `markup_data` SVG replay over photos.
+- `components/site-walk/live/useRealtimeWalk.ts` — added scoped Supabase Realtime subscriptions for `site_walk_items` with `session_id=eq.${sessionId}` and `site_walk_sessions` with `id=eq.${sessionId}`; no org-wide realtime firehose.
+
+#### What's Broken / Partially Done
+- Active Walks board is server-loaded on navigation; the live drill-down route is realtime, but the board itself does not yet update counts live without refresh.
+- Photo previews rely on `file_id` and `/api/slatedrop/download?mode=preview`; local-only/offline items appear in realtime only after they sync to the database.
+- Comments, assignments, sync health rollups, and office-side support actions are not yet included in the first Prompt 10 slice.
+- Higher-tier schedule/budget/RFI/submittal links remain future Prompt work.
+
+#### Context Files Updated
+- `docs/site-walk/SITE_WALK_MASTER_ARCHITECTURE.md` — recorded the office live command center.
+- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — marked Prompt 10 complete with realtime scope notes.
+- `SLATE360_PROJECT_MEMORY.md` — this handoff.
+
+#### Next Steps (ordered)
+1. Smoke test multiplayer: desktop `/site-walk/walks/[sessionId]` open while phone captures a photo/note; verify the item animates into the left feed.
+2. Add live count/status updates to `/site-walk/walks` itself if office users keep the dashboard open.
+3. Add office support actions: comment, assign, request more photos, mark blocker, and close/verify.
+4. Add planned walk assignment and Project Controls links after the realtime board is verified.
+
+---
+
 ### Session Handoff — 2026-04-28 (Prompt 10B Capture Polish)
 
 #### What Changed
