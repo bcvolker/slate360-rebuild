@@ -3,8 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 import type { MarkupData, MarkupShape } from "@/lib/site-walk/markup-types";
 import type { PhotoAttachmentPin } from "@/lib/site-walk/photo-attachments";
+import { SelectionMenu, TextEditor } from "./PhotoMarkupControls";
 import { PhotoAttachmentPins } from "./PhotoAttachmentPins";
 import { VECTOR_TOOL_EVENT, type VectorTool } from "./UnifiedVectorToolbar";
+
+export const PHOTO_MARKUP_UNDO_EVENT = "site-walk-photo-markup-undo", PHOTO_MARKUP_REDO_EVENT = "site-walk-photo-markup-redo";
 
 type Props = {
   imageUrl: string;
@@ -21,9 +24,7 @@ type DraftPoint = { x: number; y: number };
 type DragState = { id: string; start: DraftPoint; shape: MarkupShape };
 type DraftPin = { xPct: number; yPct: number } | null;
 type Transform = { x: number; y: number; scale: number };
-
-const WIDTH = 1000;
-const HEIGHT = 720;
+const WIDTH = 1000, HEIGHT = 720;
 
 export function PhotoMarkupCanvas({ imageUrl, title, sessionId, markupEnabled, initialMarkup, attachmentPins = [], onMarkupChange, onAttachmentPinsChange }: Props) {
   const stageRef = useRef<HTMLDivElement>(null);
@@ -34,7 +35,7 @@ export function PhotoMarkupCanvas({ imageUrl, title, sessionId, markupEnabled, i
   const undoRef = useRef<MarkupShape[][]>([]);
   const redoRef = useRef<MarkupShape[][]>([]);
   const [tool, setTool] = useState<VectorTool>("select");
-  const [color, setColor] = useState("#D4AF37");
+  const [color, setColor] = useState("#3B82F6");
   const [shapes, setShapes] = useState<MarkupShape[]>(initialMarkup?.shapes ?? []);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [editingTextId, setEditingTextId] = useState<string | null>(null);
@@ -55,6 +56,12 @@ export function PhotoMarkupCanvas({ imageUrl, title, sessionId, markupEnabled, i
     window.addEventListener(VECTOR_TOOL_EVENT, handleTool);
     return () => window.removeEventListener(VECTOR_TOOL_EVENT, handleTool);
   }, []);
+
+  useEffect(() => {
+    window.addEventListener(PHOTO_MARKUP_UNDO_EVENT, undo);
+    window.addEventListener(PHOTO_MARKUP_REDO_EVENT, redo);
+    return () => { window.removeEventListener(PHOTO_MARKUP_UNDO_EVENT, undo); window.removeEventListener(PHOTO_MARKUP_REDO_EVENT, redo); };
+  });
 
   useEffect(() => {
     onMarkupChange?.({ version: 1, coordSpace: "image", shapes });
@@ -124,11 +131,11 @@ export function PhotoMarkupCanvas({ imageUrl, title, sessionId, markupEnabled, i
     if (!markupEnabled) {
       if (pointersRef.current.size === 2 && pinchRef.current) {
         const [a, b] = Array.from(pointersRef.current.values());
-        const scale = clamp((distance(a, b) / pinchRef.current.distance) * pinchRef.current.scale, 1, 4);
+        const scale = clamp((distance(a, b) / pinchRef.current.distance) * pinchRef.current.scale, 0.75, 4);
         setTransform((current) => ({ ...current, scale }));
         return;
       }
-      if (panRef.current && transform.scale > 1) setTransform({ ...panRef.current.origin, x: panRef.current.origin.x + event.clientX - panRef.current.x, y: panRef.current.origin.y + event.clientY - panRef.current.y });
+      if (panRef.current && transform.scale !== 1) setTransform({ ...panRef.current.origin, x: panRef.current.origin.x + event.clientX - panRef.current.x, y: panRef.current.origin.y + event.clientY - panRef.current.y });
       return;
     }
     clearLongPress();
@@ -143,15 +150,12 @@ export function PhotoMarkupCanvas({ imageUrl, title, sessionId, markupEnabled, i
     else setDraftPoints([draftStart.x, draftStart.y, point.x, point.y]);
   }
 
-  function handlePointerUp() {
+  function handlePointerUp(event: React.PointerEvent<HTMLDivElement>) {
     clearLongPress();
-    pointersRef.current.clear();
-    pinchRef.current = null;
+    pointersRef.current.delete(event.pointerId);
+    if (pointersRef.current.size < 2) pinchRef.current = null;
     panRef.current = null;
-    if (dragState) {
-      setDragState(null);
-      return;
-    }
+    if (dragState) { setDragState(null); return; }
     if (!draftStart || draftPoints.length < 4) {
       setDraftStart(null);
       setDraftPoints([]);
@@ -166,18 +170,19 @@ export function PhotoMarkupCanvas({ imageUrl, title, sessionId, markupEnabled, i
     setDraftPoints([]);
   }
 
+  function handleWheel(event: React.WheelEvent<HTMLDivElement>) {
+    if (markupEnabled) return;
+    setTransform((current) => ({ ...current, scale: clamp(current.scale - event.deltaY * 0.002, 0.75, 4) }));
+  }
+
   return (
     <div className="h-full w-full text-left">
-      <div ref={stageRef} onPointerDown={handlePointerDown} onPointerMove={handlePointerMove} onPointerUp={handlePointerUp} onPointerCancel={handlePointerUp} className={`relative h-full min-h-[360px] w-full touch-none overflow-hidden bg-black ${portrait ? "aspect-[3/4]" : "aspect-[4/3]"}`}>
+      <div ref={stageRef} onWheel={handleWheel} onPointerDown={handlePointerDown} onPointerMove={handlePointerMove} onPointerUp={handlePointerUp} onPointerCancel={handlePointerUp} className={`relative h-full min-h-[360px] w-full touch-none overflow-hidden bg-black ${portrait ? "aspect-[3/4]" : "aspect-[4/3]"}`}>
         <img src={imageUrl} alt={title} onLoad={(event) => setPortrait(event.currentTarget.naturalHeight > event.currentTarget.naturalWidth)} className="h-full w-full select-none object-cover" style={{ transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})`, transformOrigin: "center" }} draggable={false} />
         <svg className="absolute inset-0 h-full w-full" viewBox={`0 0 ${WIDTH} ${HEIGHT}`} preserveAspectRatio="none" style={{ transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})`, transformOrigin: "center" }}>
           {shapes.map((shape) => renderShape(shape, "", selectedId === shape.id, (event) => beginShapeDrag(event, shape)))}
           {draftStart && draftPoints.length >= 4 && renderShape(buildShape(tool, draftStart, draftPoints, color), "draft", false)}
         </svg>
-        <div className="absolute left-3 top-3 z-20 flex gap-2 rounded-full border border-white/15 bg-black/55 p-1 text-xs font-black text-white backdrop-blur-xl">
-          <button type="button" onClick={undo} className="rounded-full bg-white/10 px-3 py-2 disabled:opacity-40" disabled={undoRef.current.length === 0}>Undo</button>
-          <button type="button" onClick={redo} className="rounded-full bg-white/10 px-3 py-2 disabled:opacity-40" disabled={redoRef.current.length === 0}>Redo</button>
-        </div>
         <PhotoAttachmentPins sessionId={sessionId} pins={attachmentPins} draftPin={draftPin} onDraftClose={() => setDraftPin(null)} onPinsChange={(pins) => onAttachmentPinsChange?.(pins)} />
         {editingTextId && <TextEditor shape={shapes.find((shape) => shape.id === editingTextId)} onChange={(value) => updateText(editingTextId, value)} onDone={() => setEditingTextId(null)} />}
         {selectedId && <SelectionMenu onDelete={deleteSelected} onBigger={() => resizeSelected(1.14)} onSmaller={() => resizeSelected(0.88)} onEditText={() => setEditingTextId(selectedId)} />}
@@ -248,7 +253,7 @@ function buildText(point: DraftPoint, color: string): MarkupShape {
 function renderShape(shape: MarkupShape | null, keySuffix = "", selected = false, onPointerDown?: (event: React.PointerEvent<SVGElement>) => void) {
   if (!shape) return null;
   const key = `${shape.id}${keySuffix}`;
-  const common = { onPointerDown, className: "cursor-move", filter: selected ? "drop-shadow(0 0 8px rgba(212,175,55,.9))" : undefined };
+  const common = { onPointerDown, className: "cursor-move", filter: selected ? "drop-shadow(0 0 8px rgba(59,130,246,.9))" : undefined };
   if (shape.kind === "rect") return <rect key={key} {...common} x={shape.x} y={shape.y} width={shape.width} height={shape.height} fill={shape.fill} stroke={shape.stroke} strokeWidth={selected ? shape.strokeWidth + 3 : shape.strokeWidth} />;
   if (shape.kind === "ellipse") return <ellipse key={key} {...common} cx={shape.cx} cy={shape.cy} rx={shape.rx} ry={shape.ry} fill={shape.fill} stroke={shape.stroke} strokeWidth={selected ? shape.strokeWidth + 3 : shape.strokeWidth} />;
   if (shape.kind === "arrow") return <ArrowShape key={key} shape={shape} selected={selected} onPointerDown={onPointerDown} />;
@@ -261,7 +266,7 @@ function ArrowShape({ shape, selected = false, onPointerDown }: { shape: Extract
   const angle = Math.atan2(shape.y2 - shape.y1, shape.x2 - shape.x1);
   const left = `${shape.x2 - shape.headSize * Math.cos(angle - Math.PI / 6)},${shape.y2 - shape.headSize * Math.sin(angle - Math.PI / 6)}`;
   const right = `${shape.x2 - shape.headSize * Math.cos(angle + Math.PI / 6)},${shape.y2 - shape.headSize * Math.sin(angle + Math.PI / 6)}`;
-  return <g onPointerDown={onPointerDown} className="cursor-move" filter={selected ? "drop-shadow(0 0 8px rgba(212,175,55,.9))" : undefined}><line x1={shape.x1} y1={shape.y1} x2={shape.x2} y2={shape.y2} stroke={shape.stroke} strokeWidth={selected ? shape.strokeWidth + 3 : shape.strokeWidth} strokeLinecap="round" /><polyline points={`${left} ${shape.x2},${shape.y2} ${right}`} fill="none" stroke={shape.stroke} strokeWidth={selected ? shape.strokeWidth + 3 : shape.strokeWidth} strokeLinecap="round" strokeLinejoin="round" /></g>;
+  return <g onPointerDown={onPointerDown} className="cursor-move" filter={selected ? "drop-shadow(0 0 8px rgba(59,130,246,.9))" : undefined}><line x1={shape.x1} y1={shape.y1} x2={shape.x2} y2={shape.y2} stroke={shape.stroke} strokeWidth={selected ? shape.strokeWidth + 3 : shape.strokeWidth} strokeLinecap="round" /><polyline points={`${left} ${shape.x2},${shape.y2} ${right}`} fill="none" stroke={shape.stroke} strokeWidth={selected ? shape.strokeWidth + 3 : shape.strokeWidth} strokeLinecap="round" strokeLinejoin="round" /></g>;
 }
 
 function distance(a: { x: number; y: number }, b: { x: number; y: number }) {
@@ -288,12 +293,4 @@ function resizeShape(shape: MarkupShape, scale: number): MarkupShape {
   if (shape.kind === "line") return { ...shape, x2: shape.x1 + (shape.x2 - shape.x1) * scale, y2: shape.y1 + (shape.y2 - shape.y1) * scale, updatedAt: Date.now() };
   return { ...shape, strokeWidth: Math.max(2, shape.strokeWidth * scale), updatedAt: Date.now() };
 }
-
-function SelectionMenu({ onDelete, onBigger, onSmaller, onEditText }: { onDelete: () => void; onBigger: () => void; onSmaller: () => void; onEditText: () => void }) {
-  return <div className="absolute left-3 top-14 z-20 flex gap-2 rounded-full border border-white/15 bg-black/60 p-1 text-xs font-black text-white backdrop-blur-xl"><button type="button" onClick={onSmaller} className="rounded-full bg-white/10 px-3 py-2">−</button><button type="button" onClick={onBigger} className="rounded-full bg-white/10 px-3 py-2">+</button><button type="button" onClick={onEditText} className="rounded-full bg-white/10 px-3 py-2">Text</button><button type="button" onClick={onDelete} className="rounded-full bg-rose-500 px-3 py-2">Delete</button></div>;
-}
-
-function TextEditor({ shape, onChange, onDone }: { shape?: MarkupShape; onChange: (value: string) => void; onDone: () => void }) {
-  if (!shape || shape.kind !== "text") return null;
-  return <input autoFocus value={shape.text} onChange={(event) => onChange(event.target.value)} onBlur={onDone} onKeyDown={(event) => { if (event.key === "Enter") onDone(); }} className="absolute z-30 min-w-40 rounded-2xl border border-[#D4AF37] bg-black/75 px-3 py-2 text-base font-black text-white outline-none backdrop-blur-xl" style={{ left: `${(shape.x / WIDTH) * 100}%`, top: `${(shape.y / HEIGHT) * 100}%` }} placeholder="Type note" />;
-}
+// End of active photo markup canvas.

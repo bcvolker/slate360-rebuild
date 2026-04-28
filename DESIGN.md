@@ -1,12 +1,12 @@
 # Slate360 Design System
 
-Last Updated: 2026-04-06
+Last Updated: 2026-04-28
 
 ## Aesthetic Direction: Dark Glass
 
-We have pivoted from Navy Blue to a **Dark Glass** aesthetic. This uses deep Zinc/Charcoal surfaces with glassmorphic effects (semi-transparent backgrounds, backdrop blur, subtle borders). The primary accent is now **Industrial Gold** (`#D4AF37` / `hsl(45 82% 55%)`).
+We use a **Dark Glass** aesthetic. This uses deep Zinc/Charcoal surfaces with glassmorphic effects (semi-transparent backgrounds, backdrop blur, subtle borders). The primary app-shell accent is the Slate360 cobalt family (`#3B82F6` / hover `#2563EB`) with steel/slate neutrals.
 
-All primary buttons, links, active states, focus rings, and interactive highlights now use Industrial Gold. Orange has been fully retired.
+All primary buttons, links, active states, focus rings, and interactive highlights should use cobalt or semantic CSS tokens that resolve to cobalt. Yellow, gold, amber, and orange are legacy accents and must not be used for primary Site Walk controls.
 
 ## CSS Custom Properties (globals.css)
 
@@ -30,10 +30,10 @@ Add these to `:root` and `.dark` in `app/globals.css`.
   --border: 240 5% 85%;              /* zinc-200 */
   --border-glass: 0 0% 0% / 0.08;
   
-  /* Accent - Industrial Gold */
-  --primary: 45 82% 55%;             /* #D4AF37 */
-  --primary-foreground: 240 10% 10%;
-  --primary-hover: 45 90% 48%;
+   /* Accent - Slate360 cobalt */
+   --primary: 217 91% 60%;            /* #3B82F6 */
+   --primary-foreground: 0 0% 100%;
+   --primary-hover: 221 83% 53%;      /* #2563EB */
   
   /* Status */
   --success: 142 76% 36%;
@@ -64,10 +64,10 @@ Add these to `:root` and `.dark` in `app/globals.css`.
   --border: 240 5% 16%;              /* zinc-800 */
   --border-glass: 0 0% 100% / 0.12;
   
-  /* Accent - Industrial Gold */
-  --primary: 45 82% 55%;             /* #D4AF37 */
-  --primary-foreground: 240 10% 10%;
-  --primary-hover: 45 90% 62%;
+   /* Accent - Slate360 cobalt */
+   --primary: 217 91% 60%;            /* #3B82F6 */
+   --primary-foreground: 0 0% 100%;
+   --primary-hover: 221 83% 53%;      /* #2563EB */
   
   /* Status */
   --success: 142 76% 36%;
@@ -107,17 +107,17 @@ Add these to `:root` and `.dark` in `app/globals.css`.
 - All active nav items, selected tabs, checkboxes: use `--primary`
 - Focus rings: `ring-2 ring-[hsl(var(--primary))]/40`
 
-All existing `--slate-orange` references should be replaced with `--primary`.
+All remaining orange/yellow/gold primary-control references should be replaced with `--primary`, `bg-blue-600`, `text-blue-*`, or token-backed cobalt utilities.
 
 ## Component Standards
 
 - **Cards & Panels**: `bg-[hsl(var(--surface))]` or `.bg-glass` for elevated panels
-- **Primary CTAs**: Industrial Gold background, dark text
-- **Secondary**: `border border-[hsl(var(--border))]` with hover gold accent
-- **Interactive highlights**: Gold for selected scene, active hotspot, progress bars
+- **Primary CTAs**: Cobalt background, white text
+- **Secondary**: `border border-[hsl(var(--border))]` with cobalt hover accent
+- **Interactive highlights**: Cobalt for selected scene, active hotspot, progress bars
 - **Mobile**: Larger touch targets (min 44px), prominent upload zones
 
-Update `app/globals.css` and run a global search-replace for any remaining orange/navy references.
+Update `app/globals.css` and run a global audit for any remaining orange/yellow/gold/navy primary-control references.
 
 ---
 

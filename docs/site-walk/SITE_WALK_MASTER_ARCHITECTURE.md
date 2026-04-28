@@ -140,7 +140,7 @@ Capture screen requirements:
 Plan requirements:
 - Long-press drops a pin with haptic feedback where available.
 - Pin quick actions can launch camera immediately.
-- Pin colors communicate status: red/issue, yellow/caution, blue/default, green/resolved.
+- Pin colors communicate status with the current palette: rose/issue, slate/caution, cobalt/default, and blue/closed.
 - Pin history and layered views must keep the clean base plan available.
 - Future native photo overlays should support visual alignment against plan context.
 
@@ -185,7 +185,7 @@ Implemented foundation:
 - Location-first carry-forward: current location persists in session storage, captured item titles default from the location, item details auto-compose the final title, and follow-up items can reuse location/classification/priority/status/assignee without carrying notes.
 - Capture polish: Location changes now use a zero-scroll modal with recent locations, photo markup persists as `MarkupData v1`, the Visual view has a Ghost Overlay toggle for progress alignment, and AI note formatting can populate notes/classification/priority from structured smart-tag output.
 - Field markup polish: the active Visual capture page now removes nonessential post-photo text, uses a dark/glassy high-contrast field UI, separates top stop thumbnails from the lower current-stop angle strip, fills the photo frame with portrait/landscape auto-detection, supports select/move/resize/delete/edit for markup shapes, and lets long-press photo pins upload up to four 25MB files with labels/notes stored in item metadata.
-- Branded capture controls: the Visual capture surface now uses Slate360 dark glass with Industrial Gold/cobalt accents, labels the top strip as Location Stops instead of Current Location, starts in pinch/zoom navigation mode, requires an explicit Start Markup action before drawing, exposes undo/redo above the photo, overlays the right-side notes chevron on the photo, and adds a Progress Timeline strip with ghost alignment for before/during/after progress photos.
+- Branded capture controls: the Visual capture surface now uses Slate360 dark glass with cobalt/steel accents, keeps the Location Stops rail as the top-most control, starts in pinch/zoom navigation mode, requires an explicit Start Markup action before drawing, keeps undo/redo in the top rail instead of on the photo, overlays the right-side notes chevron on the photo, shows a compact upload badge over the photo, and uses matching horizontal rails for location stops and progress timeline.
 - Office live command center: `/site-walk/walks` lists in-progress walks with walker, elapsed time, and item counts; `/site-walk/walks/[sessionId]` opens a desktop split-pane live view grouped by Location → Item with scoped Supabase Realtime subscriptions for `site_walk_items` and `site_walk_sessions` only.
 - Site Walk setup is now a paged workbook for mobile and tab-like workspace for desktop, with Project, Company/Branding, Plans & Docs, Team, Deliverables, and Project Controls sections. Company branding accepts logo/signature file uploads through the org branding asset route.
 - Bottom-sheet capture form with autosave, AI formatting, due date, assignee, and dictation control remains available as legacy component code but is no longer the primary active capture layout.

@@ -120,7 +120,7 @@ export function CaptureItemForm({ item, draft, assignees, saveState, aiState, ai
       </label>
 
       {dictationState === "listening" && <p className="text-xs font-black text-blue-800">Listening… speak your note now.</p>}
-      {dictationState === "unsupported" && <p className="text-xs font-bold text-amber-800">Voice recognition is not available in this browser. Use the keyboard microphone instead.</p>}
+      {dictationState === "unsupported" && <p className="text-xs font-bold text-slate-700">Voice recognition is not available in this browser. Use the keyboard microphone instead.</p>}
       {dictationState === "error" && <p className="text-xs font-bold text-rose-700">Dictation could not start. Check microphone permission and try again.</p>}
       {aiMessage && <AiMessage state={aiState} message={aiMessage} />}
     </div>
@@ -140,15 +140,15 @@ function FieldSelect({ label, value, values, onChange }: { label: string; value:
 
 function SaveIndicator({ state }: { state: Props["saveState"] }) {
   if (state === "saving") return <span className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-xs font-black text-blue-800"><Loader2 className="h-3.5 w-3.5 animate-spin" /> Saving…</span>;
-  if (state === "saved") return <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-black text-emerald-800">Saved</span>;
+  if (state === "saved") return <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-black text-blue-800">Saved</span>;
   if (state === "error") return <span className="rounded-full bg-rose-50 px-3 py-1 text-xs font-black text-rose-800">Save failed</span>;
-  if (state === "dirty") return <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-black text-amber-800">Unsaved edits</span>;
+  if (state === "dirty") return <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-black text-slate-700">Unsaved edits</span>;
   return <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-black text-slate-600">Ready</span>;
 }
 
 function AiMessage({ state, message }: { state: Props["aiState"]; message: string }) {
   if (state === "blocked") {
-    return <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm font-bold text-amber-900">{message} <a href="/settings/billing" className="underline">Upgrade or top up credits</a>.</div>;
+    return <div className="rounded-2xl border border-blue-200 bg-blue-50 p-4 text-sm font-bold text-blue-900">{message} <a href="/settings/billing" className="underline">Upgrade or top up credits</a>.</div>;
   }
-  return <p className={`text-sm font-bold ${state === "error" ? "text-rose-700" : "text-emerald-700"}`}>{message}</p>;
+  return <p className={`text-sm font-bold ${state === "error" ? "text-rose-700" : "text-blue-700"}`}>{message}</p>;
 }

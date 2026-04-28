@@ -121,7 +121,7 @@ export function PlanViewer({ projectId, sessionId }: Props) {
         x_pct: point.xPct,
         y_pct: point.yPct,
         pin_status: "active",
-        pin_color: markup ? "amber" : "blue",
+        pin_color: "blue",
         label: markup ? "Markup" : "Draft pin",
         markup_data: markup,
       }),

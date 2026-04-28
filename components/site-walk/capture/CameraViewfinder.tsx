@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Camera, FileImage, Loader2, Mic, PencilLine, RotateCcw } from "lucide-react";
+import { Camera, Check, FileImage, Loader2, Mic, PencilLine, RotateCcw } from "lucide-react";
 import { useCaptureUpload } from "@/lib/hooks/useCaptureUpload";
 import { isMarkupData, type MarkupData } from "@/lib/site-walk/markup-types";
 import { getPhotoAttachmentPins, type PhotoAttachmentPin } from "@/lib/site-walk/photo-attachments";
@@ -103,16 +103,16 @@ export function CameraViewfinder({ sessionId, autoOpenCamera = false, launchId =
   return (
     <section className={visualOnly ? "flex h-full min-h-0 flex-col overflow-hidden bg-zinc-950" : "rounded-3xl border border-slate-300 bg-white p-4"}>
       {target && (
-        <div className="mb-3 flex flex-col gap-2 rounded-2xl border border-[#D4AF37]/35 bg-[#D4AF37]/10 px-4 py-3 text-sm font-bold text-[#F8E7A1] sm:flex-row sm:items-center sm:justify-between">
+        <div className="mb-3 flex flex-col gap-2 rounded-2xl border border-blue-500/35 bg-blue-500/10 px-4 py-3 text-sm font-bold text-blue-100 sm:flex-row sm:items-center sm:justify-between">
           <span>Next capture attaches to the selected plan pin.</span>
-          <button type="button" onClick={clearTarget} className="rounded-xl bg-white px-3 py-2 text-xs font-black text-zinc-950 hover:bg-[#F8E7A1]">Clear plan target</button>
+          <button type="button" onClick={clearTarget} className="rounded-xl bg-white px-3 py-2 text-xs font-black text-zinc-950 hover:bg-blue-50">Clear plan target</button>
         </div>
       )}
 
       <div className={visualOnly ? "min-h-0 flex-1 bg-zinc-950" : "rounded-3xl bg-slate-50 p-4 ring-1 ring-slate-300"}>
         <div className={visualOnly ? "flex h-full min-h-0 flex-col items-center justify-center text-center" : "flex min-h-[280px] flex-col items-center justify-center text-center"}>
           {activePreview ? (
-            <div className={visualOnly ? "h-full w-full" : "w-full space-y-3"}>
+            <div className={visualOnly ? "relative h-full w-full" : "w-full space-y-3"}>
               <PhotoMarkupCanvas
                 imageUrl={activePreview.url}
                 title={activePreview.title}
@@ -123,6 +123,7 @@ export function CameraViewfinder({ sessionId, autoOpenCamera = false, launchId =
                 onAttachmentPinsChange={(pins) => onAttachmentPinsChange?.(activePreview.itemId, pins)}
                 onMarkupChange={(markup) => onMarkupChange?.(activePreview.itemId, markup)}
               />
+              {visualOnly && <UploadBadge kind={status.kind} />}
               {!visualOnly && <div className="grid gap-2 sm:grid-cols-2">
                 <button type="button" onClick={() => requestCameraCapture("camera", "next_item")} disabled={busy || !mounted} className="min-h-12 rounded-2xl bg-blue-600 px-4 py-3 text-base font-black text-white shadow-sm transition hover:bg-blue-700 disabled:opacity-60">
                   <span className="inline-flex items-center gap-2"><Camera className="h-5 w-5" /> Capture next item</span>
@@ -134,18 +135,18 @@ export function CameraViewfinder({ sessionId, autoOpenCamera = false, launchId =
             </div>
           ) : (
             <>
-          <Camera className="h-12 w-12 text-[#D4AF37] md:hidden" />
-          <FileImage className="hidden h-12 w-12 text-[#D4AF37] md:block" />
+          <Camera className="h-12 w-12 text-blue-400 md:hidden" />
+          <FileImage className="hidden h-12 w-12 text-blue-400 md:block" />
           <h2 className={`mt-4 text-2xl font-black ${visualOnly ? "text-white" : "text-slate-950"}`}>Capture field proof</h2>
           <p className={`mt-2 max-w-lg text-sm leading-6 ${visualOnly ? "px-5 text-slate-300" : "text-slate-700"}`}>
             One tap opens the camera. The image appears immediately, the drawer opens for notes/classification, and upload/offline sync continues in the background.
           </p>
 
           <div className="mt-6 grid w-full max-w-xl gap-3 md:hidden">
-            <button type="button" onClick={() => cameraInputRef.current?.click()} disabled={busy || !mounted} className="min-h-16 rounded-3xl bg-[#D4AF37] px-5 py-4 text-lg font-black text-zinc-950 shadow-lg shadow-[#D4AF37]/20 transition hover:bg-[#F8E7A1] disabled:opacity-60">
+            <button type="button" onClick={() => cameraInputRef.current?.click()} disabled={busy || !mounted} className="min-h-16 rounded-3xl bg-blue-600 px-5 py-4 text-lg font-black text-white shadow-lg shadow-blue-500/20 transition hover:bg-blue-700 disabled:opacity-60">
               <span className="inline-flex items-center gap-2"><Camera className="h-5 w-5" /> Take Photo</span>
             </button>
-            <button type="button" onClick={() => uploadInputRef.current?.click()} disabled={busy || !mounted} className="min-h-16 rounded-3xl border border-white/15 bg-white/10 px-5 py-4 text-lg font-black text-white transition hover:border-[#D4AF37] disabled:opacity-60">
+            <button type="button" onClick={() => uploadInputRef.current?.click()} disabled={busy || !mounted} className="min-h-16 rounded-3xl border border-white/15 bg-white/10 px-5 py-4 text-lg font-black text-white transition hover:border-blue-400 disabled:opacity-60">
               <span className="inline-flex items-center gap-2"><FileImage className="h-5 w-5" /> Camera Roll</span>
             </button>
           </div>
@@ -154,11 +155,11 @@ export function CameraViewfinder({ sessionId, autoOpenCamera = false, launchId =
             onDragOver={(event) => { event.preventDefault(); setDragActive(true); }}
             onDragLeave={() => setDragActive(false)}
             onDrop={handleDrop}
-            className={`mt-6 hidden w-full max-w-2xl rounded-3xl border-2 border-dashed p-10 transition md:flex md:min-h-64 md:flex-col md:items-center md:justify-center ${dragActive ? "border-[#D4AF37] bg-[#D4AF37]/10" : "border-slate-300 bg-white"}`}
+            className={`mt-6 hidden w-full max-w-2xl rounded-3xl border-2 border-dashed p-10 transition md:flex md:min-h-64 md:flex-col md:items-center md:justify-center ${dragActive ? "border-blue-500 bg-blue-50" : "border-slate-300 bg-white"}`}
           >
             <p className="text-2xl font-black text-slate-950">Drag &amp; Drop Photos Here</p>
             <p className="mt-2 text-sm leading-6 text-slate-600">Desktop mode is upload-first for job trailer workflows.</p>
-            <button type="button" onClick={() => uploadInputRef.current?.click()} disabled={busy || !mounted} className="mt-6 min-h-12 rounded-2xl bg-[#D4AF37] px-6 py-3 text-sm font-black text-zinc-950 transition hover:bg-[#F8E7A1] disabled:opacity-60">
+            <button type="button" onClick={() => uploadInputRef.current?.click()} disabled={busy || !mounted} className="mt-6 min-h-12 rounded-2xl bg-blue-600 px-6 py-3 text-sm font-black text-white transition hover:bg-blue-700 disabled:opacity-60">
               <span className="inline-flex items-center gap-2"><FileImage className="h-5 w-5" /> Select Photos from Computer</span>
             </button>
           </div>
@@ -186,7 +187,7 @@ export function CameraViewfinder({ sessionId, autoOpenCamera = false, launchId =
         </div>
       </div>}
 
-      {(!visualOnly || status.kind !== "idle") && <div className={`${visualOnly ? "m-3" : "mt-4"} flex items-center justify-between gap-3 rounded-2xl px-4 py-3 text-sm font-black ${statusClasses(status.kind)}`}>
+      {!visualOnly && <div className={`mt-4 flex items-center justify-between gap-3 rounded-2xl px-4 py-3 text-sm font-black ${statusClasses(status.kind)}`}>
         <span className="inline-flex items-center gap-2">{busy && <Loader2 className="h-4 w-4 animate-spin" />}{status.message}</span>
         {status.kind !== "idle" && <button type="button" onClick={resetStatus} className="rounded-lg p-1 hover:bg-white/60" aria-label="Reset status"><RotateCcw className="h-4 w-4" /></button>}
       </div>}
@@ -226,8 +227,13 @@ function readLastTitle(sessionId: string) {
 }
 
 function statusClasses(kind: string) {
-  if (kind === "complete") return "bg-[#D4AF37]/15 text-[#F8E7A1] ring-1 ring-[#D4AF37]/30";
+  if (kind === "complete") return "bg-blue-50 text-blue-900 ring-1 ring-blue-200";
   if (kind === "error") return "bg-rose-50 text-rose-800";
-  if (kind === "uploading" || kind === "saving") return "bg-amber-50 text-amber-900";
+  if (kind === "uploading" || kind === "saving") return "bg-blue-50 text-blue-900";
   return "bg-zinc-900/80 text-zinc-200 ring-1 ring-white/10";
+}
+
+function UploadBadge({ kind }: { kind: string }) {
+  const active = kind === "uploading" || kind === "saving";
+  return <div className="absolute right-3 top-3 z-20 flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-black/60 text-white shadow-xl backdrop-blur-xl" aria-label={active ? "Uploading capture" : "Capture upload ready"}>{active ? <Loader2 className="h-5 w-5 animate-spin text-blue-300" /> : <Check className="h-5 w-5 text-blue-300" />}</div>;
 }
