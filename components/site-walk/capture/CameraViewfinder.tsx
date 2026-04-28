@@ -16,9 +16,10 @@ type Props = {
   sessionId: string;
   autoOpenCamera?: boolean;
   launchId?: string | null;
+  layout?: "full" | "visual";
 };
 
-export function CameraViewfinder({ sessionId, autoOpenCamera = false, launchId = null }: Props) {
+export function CameraViewfinder({ sessionId, autoOpenCamera = false, launchId = null, layout = "full" }: Props) {
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const uploadInputRef = useRef<HTMLInputElement>(null);
   const consumedLaunchRef = useRef<string | null>(null);
@@ -29,6 +30,7 @@ export function CameraViewfinder({ sessionId, autoOpenCamera = false, launchId =
   const { target, clearTarget } = usePlanCaptureTarget();
   const { status, savePhoto, saveTextNote, resetStatus } = useCaptureUpload({ sessionId, planTarget: target, onPlanTargetSaved: clearTarget, onSaved: (item) => publishCaptureItemFocus({ item, reason: "captured", focus: false }) });
   const busy = status.kind === "uploading" || status.kind === "saving";
+  const visualOnly = layout === "visual";
 
   useEffect(() => setMounted(true), []);
 
@@ -83,7 +85,7 @@ export function CameraViewfinder({ sessionId, autoOpenCamera = false, launchId =
   }
 
   return (
-    <section className="rounded-3xl border border-slate-300 bg-white p-4">
+    <section className={visualOnly ? "flex h-full min-h-0 flex-col overflow-hidden bg-white" : "rounded-3xl border border-slate-300 bg-white p-4"}>
       {target && (
         <div className="mb-3 flex flex-col gap-2 rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm font-bold text-blue-900 sm:flex-row sm:items-center sm:justify-between">
           <span>Next capture attaches to the selected plan pin.</span>
@@ -91,26 +93,26 @@ export function CameraViewfinder({ sessionId, autoOpenCamera = false, launchId =
         </div>
       )}
 
-      <div className="rounded-3xl bg-slate-50 p-4 ring-1 ring-slate-300">
-        <div className="flex min-h-[280px] flex-col items-center justify-center text-center">
+      <div className={visualOnly ? "min-h-0 flex-1 bg-slate-950" : "rounded-3xl bg-slate-50 p-4 ring-1 ring-slate-300"}>
+        <div className={visualOnly ? "flex h-full min-h-0 flex-col items-center justify-center text-center" : "flex min-h-[280px] flex-col items-center justify-center text-center"}>
           {activePreview ? (
             <div className="w-full space-y-3">
               <PhotoMarkupCanvas imageUrl={activePreview.url} title={activePreview.title} />
-              <div className="grid gap-2 sm:grid-cols-2">
+              {!visualOnly && <div className="grid gap-2 sm:grid-cols-2">
                 <button type="button" onClick={() => requestCameraCapture("camera", "next_item")} disabled={busy || !mounted} className="min-h-12 rounded-2xl bg-blue-600 px-4 py-3 text-base font-black text-white shadow-sm transition hover:bg-blue-700 disabled:opacity-60">
                   <span className="inline-flex items-center gap-2"><Camera className="h-5 w-5" /> Capture next item</span>
                 </button>
                 <button type="button" onClick={() => requestCameraCapture("upload", "next_item")} disabled={busy || !mounted} className="min-h-12 rounded-2xl border border-slate-300 bg-white px-4 py-3 text-base font-black text-slate-900 transition hover:border-blue-300 hover:text-blue-800 disabled:opacity-60">
                   <span className="inline-flex items-center gap-2"><FileImage className="h-5 w-5" /> Upload next image</span>
                 </button>
-              </div>
+              </div>}
             </div>
           ) : (
             <>
           <Camera className="h-12 w-12 text-blue-800 md:hidden" />
           <FileImage className="hidden h-12 w-12 text-blue-800 md:block" />
-          <h2 className="mt-4 text-2xl font-black text-slate-950">Capture field proof</h2>
-          <p className="mt-2 max-w-lg text-sm leading-6 text-slate-700">
+          <h2 className={`mt-4 text-2xl font-black ${visualOnly ? "text-white" : "text-slate-950"}`}>Capture field proof</h2>
+          <p className={`mt-2 max-w-lg text-sm leading-6 ${visualOnly ? "px-5 text-slate-300" : "text-slate-700"}`}>
             One tap opens the camera. The image appears immediately, the drawer opens for notes/classification, and upload/offline sync continues in the background.
           </p>
 
@@ -143,7 +145,7 @@ export function CameraViewfinder({ sessionId, autoOpenCamera = false, launchId =
         <input ref={uploadInputRef} type="file" accept="image/*" className="hidden" onChange={(event) => { handleFile(event.target.files?.[0]); event.target.value = ""; }} />
       </div>
 
-      <div className="mt-4 rounded-2xl border border-slate-300 bg-white p-4">
+      {!visualOnly && <div className="mt-4 rounded-2xl border border-slate-300 bg-white p-4">
         <div className="flex items-center gap-2 text-sm font-black text-slate-900"><PencilLine className="h-4 w-4 text-blue-700" /> Quick text / voice note</div>
         <textarea
           value={noteText}
@@ -157,9 +159,9 @@ export function CameraViewfinder({ sessionId, autoOpenCamera = false, launchId =
           <button type="button" onClick={() => void saveTextNote(noteText, "text")} disabled={busy || !noteText.trim()} className="min-h-11 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-black text-slate-900 hover:border-blue-300 disabled:opacity-60">Save Text Note</button>
           <button type="button" onClick={() => void saveTextNote(noteText, "voice")} disabled={busy || !noteText.trim()} className="min-h-11 rounded-xl bg-blue-600 px-4 py-2 text-sm font-black text-white hover:bg-blue-700 disabled:opacity-60"><span className="inline-flex items-center gap-2"><Mic className="h-4 w-4" /> Save Voice Note</span></button>
         </div>
-      </div>
+      </div>}
 
-      <div className={`mt-4 flex items-center justify-between gap-3 rounded-2xl px-4 py-3 text-sm font-black ${statusClasses(status.kind)}`}>
+      <div className={`${visualOnly ? "m-3" : "mt-4"} flex items-center justify-between gap-3 rounded-2xl px-4 py-3 text-sm font-black ${statusClasses(status.kind)}`}>
         <span className="inline-flex items-center gap-2">{busy && <Loader2 className="h-4 w-4 animate-spin" />}{status.message}</span>
         {status.kind !== "idle" && <button type="button" onClick={resetStatus} className="rounded-lg p-1 hover:bg-white/60" aria-label="Reset status"><RotateCcw className="h-4 w-4" /></button>}
       </div>

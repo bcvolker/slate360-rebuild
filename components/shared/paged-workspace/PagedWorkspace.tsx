@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, type ReactNode, type TouchEvent } from "react";
+import { useEffect, useMemo, useState, type ReactNode, type TouchEvent } from "react";
 import { cn } from "@/lib/utils";
 import { PagedWorkspaceDots } from "./PagedWorkspaceDots";
 import { PagedWorkspaceRail } from "./PagedWorkspaceRail";
@@ -15,16 +15,18 @@ export type PagedWorkspacePage = {
 type Props = {
   pages: PagedWorkspacePage[];
   initialPageId?: string;
+  activePageId?: string;
   title?: string;
   subtitle?: string;
   className?: string;
   viewportClassName?: string;
+  showChrome?: boolean;
   onPageChange?: (pageId: string) => void;
 };
 
 const SWIPE_THRESHOLD = 48;
 
-export function PagedWorkspace({ pages, initialPageId, title, subtitle, className, viewportClassName, onPageChange }: Props) {
+export function PagedWorkspace({ pages, initialPageId, activePageId, title, subtitle, className, viewportClassName, showChrome = true, onPageChange }: Props) {
   const initialIndex = Math.max(0, pages.findIndex((page) => page.id === initialPageId));
   const [activeIndex, setActiveIndex] = useState(initialIndex);
   const [touchStart, setTouchStart] = useState<number | null>(null);
@@ -34,6 +36,12 @@ export function PagedWorkspace({ pages, initialPageId, title, subtitle, classNam
   const canGoNext = activeIndex < pages.length - 1;
 
   const railPages = useMemo(() => pages.map((page) => ({ id: page.id, label: page.label })), [pages]);
+
+  useEffect(() => {
+    if (!activePageId) return;
+    const nextIndex = pages.findIndex((page) => page.id === activePageId);
+    if (nextIndex >= 0) setActiveIndex(nextIndex);
+  }, [activePageId, pages]);
 
   function setPage(index: number) {
     const nextIndex = Math.min(Math.max(index, 0), pages.length - 1);
@@ -55,7 +63,7 @@ export function PagedWorkspace({ pages, initialPageId, title, subtitle, classNam
 
   return (
     <section className={cn("flex h-full min-h-0 w-full flex-col overflow-hidden", className)}>
-      {(title || subtitle || pages.length > 1) && (
+      {showChrome && (title || subtitle || pages.length > 1) && (
         <header className="shrink-0 border-b border-slate-200 bg-white/90 px-4 py-3 backdrop-blur">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
