@@ -11,9 +11,15 @@ type Props = {
   saveState: "idle" | "dirty" | "saving" | "saved" | "error";
   aiState: "idle" | "formatting" | "blocked" | "error";
   aiMessage: string | null;
+  currentLocation: string;
+  itemDetail: string;
   onDraftChange: (patch: Partial<CaptureItemDraft>) => void;
+  onLocationChange: (location: string) => void;
+  onItemDetailChange: (detail: string) => void;
   onFormatNotes: () => void;
   onBack: () => void;
+  onNewItemSameLocation: () => void;
+  onMoveLocation: () => void;
 };
 
 const inputClass = "w-full rounded-2xl border border-slate-300 bg-white px-3 py-2.5 text-base font-bold text-slate-950 outline-none focus:border-blue-700 focus:ring-2 focus:ring-blue-700/15";
@@ -31,7 +37,7 @@ type SpeechRecognitionLike = {
 };
 type SpeechRecognitionCtor = new () => SpeechRecognitionLike;
 
-export function DataContextView({ item, draft, assignees, saveState, aiState, aiMessage, onDraftChange, onFormatNotes, onBack }: Props) {
+export function DataContextView({ item, draft, assignees, saveState, aiState, aiMessage, currentLocation, itemDetail, onDraftChange, onLocationChange, onItemDetailChange, onFormatNotes, onBack, onNewItemSameLocation, onMoveLocation }: Props) {
   const [dictationState, setDictationState] = useState<"idle" | "listening" | "unsupported" | "error">("idle");
   const assignable = assignees.filter((assignee) => assignee.assignable);
 
@@ -67,6 +73,8 @@ export function DataContextView({ item, draft, assignees, saveState, aiState, ai
     );
   }
 
+  const fullTitle = itemDetail.trim() ? `${currentLocation.trim()} — ${itemDetail.trim()}` : currentLocation.trim();
+
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden bg-slate-50 text-slate-950">
       <header className="flex h-14 shrink-0 items-center justify-between gap-3 border-b border-slate-200 bg-white px-3">
@@ -98,7 +106,19 @@ export function DataContextView({ item, draft, assignees, saveState, aiState, ai
           </div>
         </section>
 
-        <input value={draft.title} onChange={(event) => onDraftChange({ title: event.target.value })} className={inputClass} placeholder="Short item title" />
+        <section className="shrink-0 rounded-3xl border border-slate-300 bg-white p-3">
+          <div className="grid gap-2 sm:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+            <label className="space-y-1">
+              <span className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-500">Current Location</span>
+              <input value={currentLocation} onChange={(event) => onLocationChange(event.target.value)} className={inputClass} placeholder="AOB Room 205" />
+            </label>
+            <label className="space-y-1">
+              <span className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-500">Item detail</span>
+              <input value={itemDetail} onChange={(event) => onItemDetailChange(event.target.value)} className={inputClass} placeholder="Electrical panel, networking rough-in…" />
+            </label>
+          </div>
+          <p className="mt-2 truncate rounded-2xl bg-slate-50 px-3 py-2 text-xs font-black text-slate-700">Title: {fullTitle}</p>
+        </section>
 
         <section className="relative min-h-0 flex-1 overflow-hidden rounded-3xl border border-slate-300 bg-white p-3 focus-within:pb-[22dvh]">
           <textarea
@@ -114,6 +134,11 @@ export function DataContextView({ item, draft, assignees, saveState, aiState, ai
         </section>
 
         {(dictationState !== "idle" || aiMessage) && <p className="shrink-0 text-xs font-bold text-slate-600">{dictationState === "listening" ? "Listening…" : dictationState === "unsupported" ? "Dictation unavailable; use the keyboard microphone." : dictationState === "error" ? "Dictation could not start." : aiMessage}</p>}
+
+        <footer className="grid shrink-0 grid-cols-2 gap-2">
+          <button type="button" onClick={onNewItemSameLocation} className="min-h-12 rounded-2xl bg-blue-600 px-3 py-3 text-sm font-black text-white">Save &amp; New Item Same Location</button>
+          <button type="button" onClick={onMoveLocation} className="min-h-12 rounded-2xl border border-slate-300 bg-white px-3 py-3 text-sm font-black text-slate-900">Move to New Location</button>
+        </footer>
       </main>
     </div>
   );

@@ -195,7 +195,7 @@ function buildLocalPhotoItem(sessionId: string, title: string, previewUrl: strin
 
 function readLastTitle(sessionId: string) {
   if (typeof sessionStorage === "undefined") return "";
-  return sessionStorage.getItem(`site-walk:last-title:${sessionId}`) ?? "";
+  return sessionStorage.getItem(`site-walk:current-location:${sessionId}`) ?? sessionStorage.getItem(`site-walk:last-title:${sessionId}`) ?? "";
 }
 
 function statusClasses(kind: string) {
