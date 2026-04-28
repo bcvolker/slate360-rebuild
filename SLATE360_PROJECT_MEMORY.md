@@ -196,31 +196,29 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-27 (Site Walk Prompt 9 Offline Capture Sync — Pushed)
+### Session Handoff — 2026-04-28 (Site Walk Prompt 9 UX Hotfix — Instant Capture Preview)
 
 #### What Changed
-- `lib/site-walk/offline-db.ts` — added the Prompt 9 IndexedDB data store with separate `offline_mutations` and `offline_blobs` stores, queue summary events, local client IDs, and mutation/blob helpers.
-- `lib/site-walk/sync-manager.ts` and `lib/hooks/useSiteWalkSyncStatus.ts` — added a data-only replay manager that listens for `online`, polls while active, processes queued mutations sequentially, presigns/uploads queued media through the existing metered Site Walk upload route, and publishes queue state to the UI.
-- `lib/site-walk/offline-capture.ts`, `lib/hooks/useCaptureUpload.ts`, and `components/site-walk/capture/useCaptureItems.ts` — capture photos/notes, plan-pin items, and autosave PATCHes now queue immediately when offline or when network/storage calls fail, while local React state updates instantly.
-- `components/site-walk/capture/PlanViewer.tsx` — offline plan pin/markup drops create local annotation items and queue the eventual item + pin mutation without blocking the field worker.
-- `components/site-walk/capture/SyncQueueIndicator.tsx` — now displays `Working Offline`, `Syncing N items...`, sync issue count, or `All Synced` from the IndexedDB queue.
-- `app/api/site-walk/items/route.ts` — item creation now returns existing rows for duplicate `client_item_id` or `client_mutation_id` replays, preventing duplicate rows after interrupted sync retries.
+- `components/site-walk/capture/CameraViewfinder.tsx` — photo capture now creates an immediate `URL.createObjectURL(file)` preview, builds a local draft item with shared client IDs, opens the notes drawer, activates draw mode, and saves/uploads in the background.
+- `components/site-walk/capture/PhotoMarkupCanvas.tsx` — added a local image markup surface over the object URL so field users can draw on the photo immediately before the server URL exists.
+- `components/site-walk/capture/CaptureItemForm.tsx` — shows the local captured photo thumbnail inside the bottom-sheet drawer.
+- `components/site-walk/capture/useCaptureItems.ts`, `components/site-walk/capture/capture-item-events.ts`, `lib/hooks/useCaptureUpload.ts`, `lib/site-walk/offline-capture.ts`, and `lib/types/site-walk-capture.ts` — preserve `local_preview_url`, reconcile server/offline updates by `client_item_id`, and avoid stealing focus when the background save resolves.
+- `app/site-walk/(act-2-inputs)/capture/_components/CaptureClientIsland.tsx` and `components/site-walk/capture/UnifiedVectorToolbar.tsx` — keep markup tools available for photos-only capture flows.
 
 #### What's Broken / Partially Done
+- Photo markup strokes are currently local-only in `PhotoMarkupCanvas.tsx`; persisting them into `site_walk_items.markup_data` remains a follow-up.
 - Voice notes still use typed/native-dictated text for this drawer; raw audio backup/transcription remains a later layer.
-- Project stakeholders without a matched Slate360 user/profile appear as contact-only disabled assignee options because `site_walk_items.assigned_to` requires an auth user UUID.
-- Conflict handling currently surfaces failed/conflict queue state and preserves queued entries for retry; a user-facing retry/discard control can be expanded in a later hardening pass.
-- No service-worker HTML/CSS/JS caching was added; Prompt 9 is strictly IndexedDB data persistence.
+- No service-worker HTML/CSS/JS caching was added; Prompt 9 remains strictly IndexedDB data persistence plus local object URL previews.
 - `bash scripts/check-file-size.sh` still fails on the same 12 known pre-existing oversized files outside Prompt 9.
 
 #### Context Files Updated
-- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — marked Prompt 9 complete with implementation commit `9e1676a`.
+- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — recorded the Prompt 9 instant capture preview UX hotfix commit.
 - `SLATE360_PROJECT_MEMORY.md` — this handoff.
 
 #### Next Steps (ordered)
-1. Smoke test `/site-walk/capture` on mobile: airplane-mode photo/note/pin capture, restore network, verify Syncing N items → All Synced and no duplicate rows.
-2. Start Prompt 10 field-office board and realtime support view.
-3. Add user-facing retry/discard controls for failed offline mutations in a later hardening pass.
+1. Smoke test `/site-walk/capture` on a real mobile browser: tap Take Photo, confirm photo appears instantly, drawer opens, markup tools draw on the photo, and background sync reaches All Synced.
+2. Persist `PhotoMarkupCanvas` shapes into item `markup_data` if the field UX requires saved photo markups before Prompt 10.
+3. Start Prompt 10 field-office board and realtime support view.
 
 ---
 
