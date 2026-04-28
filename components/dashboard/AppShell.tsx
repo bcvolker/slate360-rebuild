@@ -106,7 +106,7 @@ export function AppShell({
           <GlobalInviteModal data={inviteShareData} />
         </div>
       ) : (
-      <div className="min-h-screen w-full max-w-full bg-slate-50 text-slate-900 overflow-x-hidden relative">
+      <div className="relative h-[100dvh] w-full max-w-full overflow-hidden bg-slate-50 text-slate-900">
         <div className="hidden lg:block">
           <DashboardSidebar
             isOpen={sidebarOpen}
@@ -155,13 +155,13 @@ export function AppShell({
 
         <main
           className={cn(
-            "w-full min-w-0 overflow-x-hidden pt-14 pb-[88px] transition-all duration-300",
+            "flex h-[100dvh] w-full min-w-0 flex-col overflow-hidden pt-14 pb-[76px] transition-all duration-300",
             "lg:pt-16 lg:pb-0",
             sidebarOpen ? "lg:pl-64" : "lg:pl-0"
           )}
         >
           <MobileInstallStrip />
-          {children}
+          <div className="min-h-0 flex-1 overflow-hidden">{children}</div>
         </main>
 
         <MobileBottomNav />

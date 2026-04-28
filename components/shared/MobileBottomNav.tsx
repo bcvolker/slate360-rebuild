@@ -12,16 +12,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  Home,
-  FolderOpen,
-  Cloud,
-  MessagesSquare,
-  Footprints,
-  FileText,
-  ClipboardCheck,
-  MoreHorizontal,
-} from "lucide-react";
+import { Home, FolderOpen, Cloud, Footprints, FileText, MoreHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface NavItem {
@@ -33,10 +24,9 @@ interface NavItem {
 
 const PLATFORM_NAV: NavItem[] = [
   { label: "Home", href: "/dashboard", icon: Home, matchPrefixes: ["/dashboard"] },
-  { label: "My Work", href: "/my-work", icon: ClipboardCheck, matchPrefixes: ["/my-work"] },
+  { label: "Projects", href: "/projects", icon: FolderOpen, matchPrefixes: ["/projects"] },
   { label: "SlateDrop", href: "/slatedrop", icon: Cloud, matchPrefixes: ["/slatedrop"] },
-  { label: "Coordination", href: "/coordination", icon: MessagesSquare, matchPrefixes: ["/coordination"] },
-  { label: "More", href: "/more", icon: MoreHorizontal, matchPrefixes: ["/more", "/projects", "/my-account", "/settings", "/apps"] },
+  { label: "More", href: "/more", icon: MoreHorizontal, matchPrefixes: ["/more", "/my-work", "/coordination", "/my-account", "/settings", "/apps"] },
 ];
 
 const SITE_WALK_NAV: NavItem[] = [
@@ -66,7 +56,7 @@ export function MobileBottomNav() {
       )}
       style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)", paddingTop: "4px" }}
     >
-      <ul className="flex min-h-[64px] items-stretch justify-around px-2">
+      <ul className="flex min-h-[70px] items-stretch justify-around px-2">
         {items.map((item) => {
           const Icon = item.icon;
           const active = item.matchPrefixes.some((p) => {

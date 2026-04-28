@@ -196,6 +196,31 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
+### Session Handoff — 2026-04-28 (Slate360 Zero-Scroll App Shell)
+
+#### What Changed
+- `components/dashboard/AppShell.tsx` — kept the existing top headers unchanged, converted the authenticated shell frame to fixed `100dvh` with hidden page overflow, and wrapped shell children in a `min-h-0 flex-1 overflow-hidden` content pane so the PWA behaves more like a native app viewport.
+- `components/walled-garden-dashboard.tsx` — changed the Command Center page wrapper to fill the shell viewport instead of adding normal document/page scroll padding.
+- `components/dashboard/command-center/CommandCenterContent.tsx` — replaced the vertically stacked dashboard sections with a zero-scroll two-row layout: app launcher on top and horizontal Quick Resume carousel below.
+- `components/dashboard/command-center/AppsGrid.tsx` — changed app cards into centered, thumb-friendly square tiles using flex wrap so odd app counts center naturally.
+- `components/shared/MobileBottomNav.tsx` — aligned platform mobile tabs to the requested blueprint: Home, Projects, SlateDrop, More; the top header was not modified.
+- `slate360-context/DASHBOARD.md` — documented the zero-scroll shell rule, Command Center layout, and updated bottom-nav direction.
+
+#### What's Broken / Partially Done
+- The shell now hides document-level vertical overflow for authenticated pages; long-form pages that still assume body scrolling may need follow-up internal pane/tab/horizontal-rail work.
+- The Command Center Quick Resume carousel currently uses truthful navigation cards/empty-state entry points, not real populated recent files/draft deliverables data yet.
+- Build passes with pre-existing warnings only: Sentry client config rename warning, webpack cache large-string warnings, and Next ESLint plugin warning.
+
+#### Context Files Updated
+- `slate360-context/DASHBOARD.md` — recorded the zero-scroll native-app shell blueprint and bottom-nav changes.
+- `SLATE360_PROJECT_MEMORY.md` — this handoff.
+
+#### Next Steps (ordered)
+1. Smoke test `/dashboard` on mobile PWA viewport: confirm no vertical body scroll, top header unchanged, app tiles fit top half, Quick Resume swipes horizontally, and bottom nav stays fixed.
+2. Audit `/projects`, `/slatedrop`, `/more`, and `/settings` under the fixed shell and convert any clipped long pages to internal panes or horizontal workspaces.
+3. Wire Quick Resume carousel to real recent files, draft deliverables, active projects, and active work when the data contracts are ready.
+4. Apply a similar zero-scroll blueprint to the Site Walk app home when the Site Walk-specific blueprint is provided.
+
 ### Session Handoff — 2026-04-28 (Capture Rail Optimization + Cobalt Palette)
 
 #### What Changed

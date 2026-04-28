@@ -22,7 +22,7 @@ export default function WalledGardenDashboard({
   entitlements = null,
 }: WalledGardenDashboardProps) {
   return (
-    <div className="p-4 lg:p-6">
+    <div className="h-full overflow-hidden p-3 lg:p-5">
       <CommandCenterContent
         userName={userName}
         orgName={orgName}

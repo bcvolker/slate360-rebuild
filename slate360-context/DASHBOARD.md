@@ -1,6 +1,6 @@
 # Slate360 — Dashboard Blueprint
 
-**Last Updated:** 2026-04-26
+**Last Updated:** 2026-04-28
 **Context Maintenance:** Update this file whenever dashboard routes, components, widgets, or layout logic changes.
 **Cross-reference:** See `FUTURE_FEATURES.md` for the full phased build roadmap (Phases 0–7).
 
@@ -28,6 +28,16 @@
 
 ## 2. Layout & Navigation
 
+### Zero-Scroll Native-App Shell Direction
+
+The authenticated Slate360 shell now treats the viewport as a fixed native-app frame:
+
+- Top header stays fixed and unchanged.
+- Content paints inside a `100dvh` shell-owned viewport with hidden page overflow.
+- The Command Center home must fit without vertical scrolling: app launcher on the top half, horizontal quick-resume carousel on the bottom half.
+- Pages that need long-form content should use contained panes, tabs, horizontal rails, or internal module-specific workspaces rather than body/page scrolling.
+- This keeps the PWA transition path closer to the future App Store/native shell model.
+
 ### Mobile/PWA Bottom Navigation (Current Direction)
 
 `components/shared/MobileBottomNav.tsx` is the primary phone/PWA tab bar. The platform nav is intentionally app-shell focused:
@@ -35,10 +45,9 @@
 | Tab | Route | Purpose |
 |---|---|---|
 | Home | `/dashboard` | Command Center / app launcher |
-| My Work | `/my-work` | Tasks, to-dos, assigned/created work, reviews |
+| Projects | `/projects` | Global field/project management |
 | SlateDrop | `/slatedrop` | App-aware file hub and project/site file spaces |
-| Coordination | `/coordination` | Threads, contacts, notifications, collaboration |
-| More | `/more` | Projects, account, billing, subscriptions, secondary tools |
+| More | `/more` | Settings, account, billing, subscriptions, coordination, and secondary tools |
 
 Site Walk routes will use a future app-specific nav aligned to the 3 Act Play: Home, Capture, Files, Outputs, More.
 
@@ -84,7 +93,15 @@ Future unread counts should be computed from inbox rows and surfaced on both des
 - The notification bell routes to `/coordination/inbox`; account/profile actions remain in the avatar menu.
 - Keep tap targets at least 44px and avoid nested interactive elements in mobile shell controls.
 
-### Command Center Quick Actions (Current Direction)
+### Command Center Home Layout (Current Direction)
+
+The Command Center follows the zero-scroll blueprint:
+
+- Top content: centered flex-wrapped app tiles for Site Walk, 360 Tours, Design Studio, and Content Studio.
+- Bottom content: horizontal swipe carousel for Quick Resume surfaces such as Active Projects, Recent Files, Draft Deliverables, My Work, Coordination, Settings, and New Project.
+- Search and global actions live in shell chrome/menus instead of taking vertical space on the home surface.
+
+### Command Center Quick Actions (Legacy Reference)
 
 - Quick Start
 - New Project
