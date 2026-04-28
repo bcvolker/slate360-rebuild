@@ -196,9 +196,15 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-28 (Site Walk Frictionless Capture Workflow — Pushed)
+### Session Handoff — 2026-04-28 (Site Walk App Dashboard Quick Capture — Pushed)
 
 #### What Changed
+- `app/site-walk/page.tsx`, `app/site-walk/_components/SiteWalkLaunchGrid.tsx`, and deleted `app/site-walk/_components/StartWalkActions.tsx` — replaced the duplicate scroll-heavy Site Walk landing UI with one app-shell-style button grid above the fold: Field Project selector, New Field Project, Quick Capture / desktop Upload Pictures, Walk With Plans, Photos Only Walk, and Active Walks.
+- `lib/site-walk/quick-capture-launch.ts`, `app/site-walk/(act-2-inputs)/capture/page.tsx`, capture shell/island props, and `components/site-walk/capture/CameraViewfinder.tsx` — Quick Capture now opens the mobile camera or desktop file picker from the original tap, stores the selected file in IndexedDB, creates the Site Walk session, routes with `launch=<id>`, consumes the file on capture load, renders the image immediately, opens the drawer, and starts background upload/offline sync.
+- `app/site-walk/(act-2-inputs)/capture/_components/CaptureShell.tsx` — removed the non-interactive Camera/Plan selector that made the capture route feel like an extra step.
+- `docs/site-walk/SITE_WALK_MASTER_ARCHITECTURE.md` and `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — updated the blueprint/audit notes to reflect the first-tap camera/file-picker handoff and commit `c52bdb2`.
+
+#### Previous Session Context
 - `docs/site-walk/SITE_WALK_MASTER_ARCHITECTURE.md` — added the authoritative Site Walk master blueprint covering one-tap capture, Field Projects, plan rooms, tier guardrails, field-tested design, Act 1/2/3, offline queue, deliverables, and follow-ups.
 - `app/site-walk/_components/StartWalkActions.tsx` and `app/site-walk/(act-2-inputs)/capture/page.tsx` — added a direct Quick Capture path that creates a session and routes to capture with camera auto-open intent.
 - `components/site-walk/capture/CameraViewfinder.tsx` and `components/site-walk/capture/capture-camera-events.ts` — camera/upload can now be triggered from route intent, the active photo preview, or a plan-pin action; the active preview includes Capture Next Item / Upload Next Image controls.
@@ -208,7 +214,7 @@ When editing oversized files, always read both the state declarations AND the JS
 
 #### What's Broken / Partially Done
 - Photo markup strokes are currently local-only in `PhotoMarkupCanvas.tsx`; persisting them into `site_walk_items.markup_data` remains a follow-up.
-- Browser security may still require one user tap if a mobile browser blocks programmatic file-input opening after async session creation; the capture screen still exposes the large Take Photo button as fallback.
+- True native-app permission prompts still depend on the deployment wrapper. In the current web/PWA surface, camera/photo-library access is requested through the native file input (`capture="environment"` on mobile, normal file picker on desktop).
 - Voice notes still use typed/native-dictated text for this drawer; raw audio backup/transcription remains a later layer.
 - No service-worker HTML/CSS/JS caching was added; Prompt 9 remains strictly IndexedDB data persistence plus local object URL previews.
 - `bash scripts/check-file-size.sh` still fails on the same 12 known pre-existing oversized files outside Prompt 9.
@@ -219,10 +225,11 @@ When editing oversized files, always read both the state declarations AND the JS
 - `SLATE360_PROJECT_MEMORY.md` — this handoff.
 
 #### Next Steps (ordered)
-1. Smoke test `/site-walk` on a real mobile browser: Quick Capture → camera opens or fallback button appears → photo preview renders → drawer opens → dictation/AI/due date/classification autosave → Capture Next Item repeats.
-2. Smoke test project-bound flow: select an existing Field Project → Plan or Photos Walk → Select Plan → long-press plan → Attach next photo opens camera and attaches the capture to the pin.
-3. Persist `PhotoMarkupCanvas` shapes into item `markup_data` if saved photo markups are required before Prompt 10.
-4. Start Prompt 10 field-office board and realtime support view.
+1. Smoke test `/site-walk` on a real phone: Quick Capture should open the camera immediately before routing; after taking the photo, capture should load with the image visible and the drawer open.
+2. Smoke test `/site-walk` on desktop: primary action should read Upload Pictures and open a desktop file picker, not a camera workflow.
+3. Smoke test project-bound flow: select an existing Field Project → Walk With Plans → long-press plan → Attach next photo opens the camera and attaches the capture to the pin.
+4. Persist `PhotoMarkupCanvas` shapes into item `markup_data` if saved photo markups are required before Prompt 10.
+5. Start Prompt 10 field-office board and realtime support view.
 
 ---
 

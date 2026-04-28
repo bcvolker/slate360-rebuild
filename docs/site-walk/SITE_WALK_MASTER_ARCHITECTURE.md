@@ -21,12 +21,13 @@ The capture workflow must avoid clunky wizards.
 Required default flow:
 1. User selects or creates a Field Project, or starts an ad-hoc capture.
 2. User taps **Quick Capture**.
-3. The route creates a Site Walk session and opens `/site-walk/capture?plan=skip&quick=camera`.
-4. The camera file input opens immediately.
-5. `URL.createObjectURL(file)` renders the raw image instantly.
-6. The capture details drawer opens immediately with title, classification, priority, status, due date, assignee, and notes.
-7. Markup tools activate over the local image while upload/offline sync runs in the background.
-8. User taps **Capture next item** and repeats.
+3. Mobile opens the native camera immediately from that same tap; desktop opens the file picker for uploaded pictures.
+4. The selected file is stored in a short-lived IndexedDB launch handoff while the Site Walk session is created.
+5. The capture route opens with `launch=<id>` and consumes the selected file without asking the user to tap another camera button.
+6. `URL.createObjectURL(file)` renders the raw image instantly.
+7. The capture details drawer opens immediately with title, classification, priority, status, due date, assignee, and notes.
+8. Markup tools activate over the local image while upload/offline sync runs in the background.
+9. User taps **Capture next item** and repeats.
 
 Plan-based flow:
 1. User starts a project-bound Site Walk.
@@ -163,7 +164,8 @@ Exports:
 Implemented foundation:
 - Active Site Walk route scaffold.
 - Start Walk modal with Select Plan vs Skip - Photos Only.
-- Quick Capture route that can open the camera immediately.
+- Site Walk launch grid with one Quick Capture / desktop Upload Pictures action, Field Project selector, Walk With Plans, Photos Only Walk, and Active Walks above the fold.
+- Quick Capture file handoff that opens the mobile camera or desktop file picker from the first tap, then routes to capture with the selected image already available.
 - Local object URL preview and photo markup canvas.
 - Bottom-sheet capture form with autosave, AI formatting, due date, assignee, and dictation control.
 - IndexedDB offline mutation/blob queue and sync indicator.
