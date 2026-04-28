@@ -116,6 +116,11 @@ Required outcome:
 ## Act 2 — Dynamic & Frictionless Inputs
 
 Capture screen requirements:
+- Full-bleed `100dvh` task mode with the global bottom navigation hidden.
+- Two-step zero-scroll flow: Visual capture first, Data context second.
+- User-facing hierarchy: Walk → Location → Item → Angles.
+- Current Location chip carries forward until the user changes rooms/areas.
+- Item titles auto-compose as `{Location} — {Item detail}` while remaining editable.
 - Large cobalt Quick Capture / Take Photo button.
 - Camera auto-open when launched with `quick=camera`.
 - Immediate object URL preview.
@@ -171,7 +176,11 @@ Implemented foundation:
 - Photo markup supports draw, box, circle, arrow, text, and color selection.
 - Capture metadata is collected through `captureMetadata()`: timestamp always, GPS when browser/native permission is granted, weather when GPS is available, and file size/MIME metadata. Deliverable builders must expose an `Include photo metadata` checkbox that renders timestamp/location/weather subtly under photos.
 - Local object URL preview and photo markup canvas.
-- Bottom-sheet capture form with autosave, AI formatting, due date, assignee, and dictation control.
+- Full-bleed `/site-walk/capture` task shell that hides global app chrome and uses the shared paged workspace foundation.
+- Two-step capture flow: Visual view for photo/markup/angle carousel and Data view for title/location, classification, priority, status, assignee, notes, dictation, AI formatting, and next-location actions.
+- Location-first carry-forward: current location persists in session storage, captured item titles default from the location, item details auto-compose the final title, and follow-up items can reuse location/classification/priority/status/assignee without carrying notes.
+- Site Walk setup is now a paged workbook for mobile and tab-like workspace for desktop, with Project, Company/Branding, Plans & Docs, Team, Deliverables, and Project Controls sections. Company branding accepts logo/signature file uploads through the org branding asset route.
+- Bottom-sheet capture form with autosave, AI formatting, due date, assignee, and dictation control remains available as legacy component code but is no longer the primary active capture layout.
 - IndexedDB offline mutation/blob queue and sync indicator.
 - Plan Room and plan long-press capture path.
 - Field-tested header with initials, bug report, and share actions in Site Walk shell.

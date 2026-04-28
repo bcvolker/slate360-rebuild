@@ -40,6 +40,23 @@ export function BrandSettingsForm({ initialSettings }: Props) {
     setSettings((current) => ({ ...current, [key]: value }));
   }
 
+  async function uploadAsset(file: File | undefined, type: "logo" | "signature") {
+    if (!file) return;
+    setStatus({ kind: "loading", message: `Uploading ${type}…` });
+    try {
+      const formData = new FormData();
+      formData.set("file", file);
+      formData.set("type", type);
+      const response = await fetch("/api/site-walk/branding", { method: "POST", body: formData });
+      if (!response.ok) throw new Error(await readError(response));
+      const data = (await response.json()) as { url?: string };
+      update(type === "logo" ? "logo_url" : "signature_url", data.url ?? "");
+      setStatus({ kind: "ok", message: `${type === "logo" ? "Logo" : "Signature"} uploaded. Save identity to lock in any other changes.` });
+    } catch (error) {
+      setStatus({ kind: "error", message: error instanceof Error ? error.message : `Could not upload ${type}.` });
+    }
+  }
+
   return (
     <form onSubmit={handleSubmit} className="rounded-3xl border border-slate-300 bg-white p-5 shadow-sm">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
@@ -59,8 +76,12 @@ export function BrandSettingsForm({ initialSettings }: Props) {
         <Field label="Contact phone"><input className={inputClass} value={settings.contact_phone ?? ""} onChange={(e) => update("contact_phone", e.target.value)} placeholder="(555) 010-4200" /></Field>
         <Field label="Website"><input className={inputClass} value={settings.website ?? ""} onChange={(e) => update("website", e.target.value)} placeholder="https://company.com" /></Field>
         <Field label="Primary color"><input className={inputClass} value={settings.primary_color ?? "#2563EB"} onChange={(e) => update("primary_color", e.target.value)} placeholder="#2563EB" /></Field>
-        <Field label="Logo URL"><input className={inputClass} value={settings.logo_url ?? ""} onChange={(e) => update("logo_url", e.target.value)} placeholder="Upload route can set this automatically" /></Field>
+        <Field label="Logo file"><input className={inputClass} type="file" accept="image/png,image/jpeg,image/svg+xml,image/webp" onChange={(e) => void uploadAsset(e.target.files?.[0], "logo")} /></Field>
+        <Field label="Signature file"><input className={inputClass} type="file" accept="image/png,image/jpeg,image/svg+xml,image/webp" onChange={(e) => void uploadAsset(e.target.files?.[0], "signature")} /></Field>
+        {settings.logo_url && <div className="rounded-2xl border border-slate-300 bg-slate-50 p-3"><p className="mb-2 text-xs font-black uppercase tracking-[0.14em] text-slate-500">Logo preview</p><img src={settings.logo_url} alt="Company logo" className="max-h-20 object-contain" /></div>}
         <div className="md:col-span-2"><Field label="Business address"><textarea className={`${inputClass} min-h-20`} value={settings.address ?? ""} onChange={(e) => update("address", e.target.value)} placeholder="Street, suite, city, state" /></Field></div>
+        <div className="md:col-span-2"><Field label="Report header"><textarea className={`${inputClass} min-h-20`} value={settings.header_html ?? ""} onChange={(e) => update("header_html", e.target.value)} placeholder="Header text for professional documents" /></Field></div>
+        <div className="md:col-span-2"><Field label="Report footer"><textarea className={`${inputClass} min-h-20`} value={settings.footer_html ?? ""} onChange={(e) => update("footer_html", e.target.value)} placeholder="Footer, disclaimer, license, or contact text" /></Field></div>
       </div>
 
       <StatusMessage status={status} />

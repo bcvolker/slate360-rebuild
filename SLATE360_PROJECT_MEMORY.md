@@ -196,6 +196,34 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
+### Session Handoff — 2026-04-28 (Prompt 10A Site Walk UI Foundation)
+
+#### What Changed
+- `components/shared/paged-workspace/` and `components/dashboard/AppShell.tsx` — added reusable paged workspace primitives and made `/site-walk/capture` a full-bleed task route with global mobile bottom nav/app chrome hidden.
+- `app/site-walk/(act-2-inputs)/capture/_components/CaptureShell.tsx`, `CaptureClientIsland.tsx`, `components/site-walk/capture/VisualCaptureView.tsx`, `DataContextView.tsx`, and `CameraViewfinder.tsx` — replaced the primary capture composition with a zero-scroll Visual/Data two-step flow while preserving object URL previews, native file/camera input, upload/offline queue, autosave, and AI note formatting.
+- `CaptureClientIsland.tsx` and `DataContextView.tsx` — added Location-first workflow: current location persistence, auto-title preview, item detail field, carry-forward classification/priority/status/assignee, `Save & New Item Same Location`, and `Move to New Location`; notes are not carried forward.
+- `app/site-walk/(act-1-setup)/setup/_components/SiteWalkSetupClient.tsx` and `BrandSettingsForm.tsx` — converted setup to a paged workbook with Project, Company/Branding, Plans & Docs, Team, Deliverables, and Project Controls pages; company branding now supports logo/signature file uploads.
+
+#### What's Broken / Partially Done
+- `PhotoMarkupCanvas` shapes are still local-only and are not yet persisted into `site_walk_items.markup_data`.
+- The angle carousel shows local thumbnails when available; server-loaded photo thumbnails need a later file URL bridge if older synced items must preview after reload.
+- `Move to New Location` currently uses a simple browser prompt as the first fast workflow version; a polished location picker/recent locations sheet should replace it.
+- Office-to-field planned walk assignment, schedule/budget/RFI/submittal links, and materialized Notes/Data SlateDrop exports remain future work after Prompt 10A.
+- `bash scripts/check-file-size.sh` still fails on known pre-existing oversized files.
+
+#### Context Files Updated
+- `docs/site-walk/SITE_WALK_MASTER_ARCHITECTURE.md` — recorded the full-bleed two-step Location-first capture and setup workbook direction.
+- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — added Prompt 10A completion row and commit list.
+- `SLATE360_PROJECT_MEMORY.md` — this handoff.
+
+#### Next Steps (ordered)
+1. Smoke test `/site-walk/capture` on mobile: camera handoff, Visual → Data swipe/button, textarea keyboard behavior, AI format, and offline queue status.
+2. Replace the temporary `Move to New Location` prompt with a proper Location picker including recent locations and plan-derived labels.
+3. Persist markup shapes into `site_walk_items.markup_data` before deliverable generation depends on marked-up images.
+4. Resume Prompt 10: field-office board/realtime support and office-to-field assignment planning on top of the new Location → Item → Angle model.
+
+---
+
 ### Session Handoff — 2026-04-28 (Site Walk Duplicate Module Navigation Removal)
 
 #### What Changed
