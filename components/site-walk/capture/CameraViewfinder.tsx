@@ -64,14 +64,15 @@ export function CameraViewfinder({ sessionId, autoOpenCamera = false, launchId =
     const previewUrl = URL.createObjectURL(file);
     const clientItemId = createOfflineId("item");
     const clientMutationId = createOfflineId("mutation");
-    const localItem = buildLocalPhotoItem(sessionId, file, previewUrl, clientItemId, clientMutationId);
+    const title = readLastTitle(sessionId);
+    const localItem = buildLocalPhotoItem(sessionId, title, previewUrl, clientItemId, clientMutationId);
     setActivePreview((current) => {
       if (current?.url) URL.revokeObjectURL(current.url);
-      return { url: previewUrl, title: file.name };
+      return { url: previewUrl, title: title || "Captured photo" };
     });
     publishCaptureItemFocus({ item: localItem, reason: "captured", focus: true });
     window.dispatchEvent(new CustomEvent(VECTOR_TOOL_EVENT, { detail: { tool: "draw" } }));
-    void savePhoto(file, { clientItemId, clientMutationId, previewUrl });
+    void savePhoto(file, { clientItemId, clientMutationId, previewUrl, title });
   }
 
   function handleDrop(event: React.DragEvent<HTMLDivElement>) {
@@ -166,7 +167,7 @@ export function CameraViewfinder({ sessionId, autoOpenCamera = false, launchId =
   );
 }
 
-function buildLocalPhotoItem(sessionId: string, file: File, previewUrl: string, clientItemId: string, clientMutationId: string): CaptureItemRecord {
+function buildLocalPhotoItem(sessionId: string, title: string, previewUrl: string, clientItemId: string, clientMutationId: string): CaptureItemRecord {
   const now = new Date().toISOString();
   return {
     id: clientItemId,
@@ -174,7 +175,7 @@ function buildLocalPhotoItem(sessionId: string, file: File, previewUrl: string, 
     client_item_id: clientItemId,
     client_mutation_id: clientMutationId,
     item_type: "photo",
-    title: file.name,
+    title,
     description: null,
     category: null,
     priority: "medium",
@@ -188,6 +189,11 @@ function buildLocalPhotoItem(sessionId: string, file: File, previewUrl: string, 
     created_at: now,
     updated_at: now,
   };
+}
+
+function readLastTitle(sessionId: string) {
+  if (typeof sessionStorage === "undefined") return "";
+  return sessionStorage.getItem(`site-walk:last-title:${sessionId}`) ?? "";
 }
 
 function statusClasses(kind: string) {

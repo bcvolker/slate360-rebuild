@@ -20,6 +20,7 @@ export function SiteWalkShell({ children, userInitials = "SW", orgName = null }:
   const fullBleed =
     /^\/site-walk\/walks\/[^/]+/.test(pathname) ||
     pathname.startsWith("/site-walk/board");
+  const hideSectionNav = pathname === "/site-walk";
 
   if (fullBleed) {
     return <div className="w-full min-w-0">{children}</div>;
@@ -28,7 +29,7 @@ export function SiteWalkShell({ children, userInitials = "SW", orgName = null }:
   return (
     <>
       <SiteWalkTopBar projectName="Site Walk" backHref="/dashboard" userInitials={userInitials} orgName={orgName} />
-      <SiteWalkSegmentedNav />
+      {!hideSectionNav && <SiteWalkSegmentedNav />}
       <div className="w-full min-w-0">{children}</div>
     </>
   );

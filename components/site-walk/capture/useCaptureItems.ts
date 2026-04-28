@@ -100,6 +100,9 @@ export function useCaptureItems({ sessionId, projectId }: HookArgs) {
 
   function patchDraft(patch: Partial<CaptureItemDraft>) {
     setDraft((current) => current ? { ...current, ...patch } : current);
+    if (typeof patch.title === "string" && patch.title.trim()) {
+      sessionStorage.setItem(`site-walk:last-title:${sessionId}`, patch.title.trim());
+    }
     dirtyRef.current = true;
   }
 

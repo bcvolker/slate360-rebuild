@@ -1,36 +1,45 @@
 "use client";
 
 import { useState } from "react";
-import { Circle, MousePointer2, Pencil, Square, Type } from "lucide-react";
+import { ArrowUpRight, Circle, MousePointer2, Pencil, Square, Type } from "lucide-react";
 
-export type VectorTool = "select" | "draw" | "box" | "circle" | "text";
+export type VectorTool = "select" | "draw" | "box" | "circle" | "arrow" | "text";
 
 const TOOLS = [
   { label: "Select", value: "select", icon: MousePointer2 },
   { label: "Draw", value: "draw", icon: Pencil },
   { label: "Box", value: "box", icon: Square },
   { label: "Circle", value: "circle", icon: Circle },
+  { label: "Arrow", value: "arrow", icon: ArrowUpRight },
   { label: "Text", value: "text", icon: Type },
 ] satisfies Array<{ label: string; value: VectorTool; icon: typeof MousePointer2 }>;
 
+const COLORS = ["#2563eb", "#dc2626", "#f59e0b", "#16a34a", "#111827"];
+
 export const VECTOR_TOOL_EVENT = "site-walk-vector-tool";
 
-function publishVectorTool(tool: VectorTool) {
-  window.dispatchEvent(new CustomEvent(VECTOR_TOOL_EVENT, { detail: { tool } }));
+function publishVectorTool(tool: VectorTool, color: string) {
+  window.dispatchEvent(new CustomEvent(VECTOR_TOOL_EVENT, { detail: { tool, color } }));
 }
 
 export function UnifiedVectorToolbar() {
   const [activeTool, setActiveTool] = useState<VectorTool>("select");
+  const [activeColor, setActiveColor] = useState(COLORS[0]);
 
   function selectTool(tool: VectorTool) {
     setActiveTool(tool);
-    publishVectorTool(tool);
+    publishVectorTool(tool, activeColor);
+  }
+
+  function selectColor(color: string) {
+    setActiveColor(color);
+    publishVectorTool(activeTool, color);
   }
 
   return (
     <section className="rounded-3xl border border-slate-300 bg-white p-4 shadow-sm" aria-label="Vector markup toolbar">
       <h2 className="text-sm font-black uppercase tracking-[0.16em] text-slate-700">Markup tools</h2>
-      <div className="mt-3 grid grid-cols-5 gap-2 xl:grid-cols-1">
+      <div className="mt-3 grid grid-cols-3 gap-2 xl:grid-cols-1">
         {TOOLS.map((tool) => {
           const Icon = tool.icon;
           const isActive = activeTool === tool.value;
@@ -41,6 +50,9 @@ export function UnifiedVectorToolbar() {
             </button>
           );
         })}
+      </div>
+      <div className="mt-3 flex flex-wrap gap-2" aria-label="Markup colors">
+        {COLORS.map((color) => <button key={color} type="button" onClick={() => selectColor(color)} className={`h-8 w-8 rounded-full border-2 ${activeColor === color ? "border-slate-950" : "border-white shadow ring-1 ring-slate-300"}`} style={{ backgroundColor: color }} aria-label={`Use markup color ${color}`} />)}
       </div>
       <p className="mt-3 text-xs leading-5 text-slate-600">Select a tool, then draw on the active photo or tap the plan to store markup JSON.</p>
     </section>

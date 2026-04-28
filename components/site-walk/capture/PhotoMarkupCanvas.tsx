@@ -17,6 +17,7 @@ const HEIGHT = 720;
 export function PhotoMarkupCanvas({ imageUrl, title }: Props) {
   const stageRef = useRef<HTMLDivElement>(null);
   const [tool, setTool] = useState<VectorTool>("draw");
+  const [color, setColor] = useState("#2563eb");
   const [shapes, setShapes] = useState<MarkupShape[]>([]);
   const [draftStart, setDraftStart] = useState<DraftPoint | null>(null);
   const [draftPoints, setDraftPoints] = useState<number[]>([]);
@@ -25,7 +26,8 @@ export function PhotoMarkupCanvas({ imageUrl, title }: Props) {
     function handleTool(event: Event) {
       const detail = event instanceof CustomEvent ? event.detail : null;
       const nextTool = typeof detail?.tool === "string" ? detail.tool : "draw";
-      if (["select", "draw", "box", "circle", "text"].includes(nextTool)) setTool(nextTool as VectorTool);
+      if (["select", "draw", "box", "circle", "arrow", "text"].includes(nextTool)) setTool(nextTool as VectorTool);
+      if (typeof detail?.color === "string") setColor(detail.color);
     }
     window.addEventListener(VECTOR_TOOL_EVENT, handleTool);
     return () => window.removeEventListener(VECTOR_TOOL_EVENT, handleTool);
@@ -45,7 +47,7 @@ export function PhotoMarkupCanvas({ imageUrl, title }: Props) {
     event.currentTarget.setPointerCapture(event.pointerId);
     const point = toPoint(event.clientX, event.clientY);
     if (tool === "text") {
-      setShapes((current) => [...current, buildText(point)]);
+      setShapes((current) => [...current, buildText(point, color)]);
       return;
     }
     setDraftStart(point);
@@ -65,7 +67,7 @@ export function PhotoMarkupCanvas({ imageUrl, title }: Props) {
       setDraftPoints([]);
       return;
     }
-    const shape = buildShape(tool, draftStart, draftPoints);
+    const shape = buildShape(tool, draftStart, draftPoints, color);
     if (shape) setShapes((current) => [...current, shape]);
     setDraftStart(null);
     setDraftPoints([]);
@@ -84,7 +86,7 @@ export function PhotoMarkupCanvas({ imageUrl, title }: Props) {
         <img src={imageUrl} alt={title} className="h-full w-full select-none object-contain" draggable={false} />
         <svg className="absolute inset-0 h-full w-full" viewBox={`0 0 ${WIDTH} ${HEIGHT}`} preserveAspectRatio="xMidYMid meet">
           {shapes.map((shape) => renderShape(shape))}
-          {draftStart && draftPoints.length >= 4 && renderShape(buildShape(tool, draftStart, draftPoints), "draft")}
+          {draftStart && draftPoints.length >= 4 && renderShape(buildShape(tool, draftStart, draftPoints, color), "draft")}
         </svg>
       </div>
       <p className="mt-3 text-xs font-bold text-slate-600">Use the markup tools, then draw directly on the photo while the notes drawer stays open.</p>
@@ -92,19 +94,20 @@ export function PhotoMarkupCanvas({ imageUrl, title }: Props) {
   );
 }
 
-function buildShape(tool: VectorTool, start: DraftPoint, points: number[]): MarkupShape | null {
+function buildShape(tool: VectorTool, start: DraftPoint, points: number[], color: string): MarkupShape | null {
   const id = `shape-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
-  const base = { id, stroke: "#2563eb", fill: "none", strokeWidth: 5, rotation: 0, updatedAt: Date.now() };
+  const base = { id, stroke: color, fill: "none", strokeWidth: 5, rotation: 0, updatedAt: Date.now() };
   const endX = points[points.length - 2] ?? start.x;
   const endY = points[points.length - 1] ?? start.y;
   if (tool === "box") return { ...base, kind: "rect", x: Math.min(start.x, endX), y: Math.min(start.y, endY), width: Math.abs(endX - start.x), height: Math.abs(endY - start.y) };
   if (tool === "circle") return { ...base, kind: "ellipse", cx: (start.x + endX) / 2, cy: (start.y + endY) / 2, rx: Math.abs(endX - start.x) / 2, ry: Math.abs(endY - start.y) / 2 };
+  if (tool === "arrow") return { ...base, kind: "arrow", x1: start.x, y1: start.y, x2: endX, y2: endY, headSize: 28 };
   if (tool === "draw") return { ...base, kind: "freehand", points };
   return null;
 }
 
-function buildText(point: DraftPoint): MarkupShape {
-  return { id: `text-${Date.now()}`, kind: "text", x: point.x, y: point.y, text: "Note", fontSize: 32, stroke: "#2563eb", fill: "none", strokeWidth: 0, rotation: 0, updatedAt: Date.now() };
+function buildText(point: DraftPoint, color: string): MarkupShape {
+  return { id: `text-${Date.now()}`, kind: "text", x: point.x, y: point.y, text: "Note", fontSize: 32, stroke: color, fill: "none", strokeWidth: 0, rotation: 0, updatedAt: Date.now() };
 }
 
 function renderShape(shape: MarkupShape | null, keySuffix = "") {
@@ -112,7 +115,15 @@ function renderShape(shape: MarkupShape | null, keySuffix = "") {
   const key = `${shape.id}${keySuffix}`;
   if (shape.kind === "rect") return <rect key={key} x={shape.x} y={shape.y} width={shape.width} height={shape.height} fill={shape.fill} stroke={shape.stroke} strokeWidth={shape.strokeWidth} />;
   if (shape.kind === "ellipse") return <ellipse key={key} cx={shape.cx} cy={shape.cy} rx={shape.rx} ry={shape.ry} fill={shape.fill} stroke={shape.stroke} strokeWidth={shape.strokeWidth} />;
+  if (shape.kind === "arrow") return <ArrowShape key={key} shape={shape} />;
   if (shape.kind === "text") return <text key={key} x={shape.x} y={shape.y} fill={shape.stroke} fontSize={shape.fontSize} fontWeight={800}>{shape.text}</text>;
   if (shape.kind === "freehand") return <polyline key={key} points={shape.points.join(" ")} fill="none" stroke={shape.stroke} strokeWidth={shape.strokeWidth} strokeLinecap="round" strokeLinejoin="round" />;
   return null;
+}
+
+function ArrowShape({ shape }: { shape: Extract<MarkupShape, { kind: "arrow" }> }) {
+  const angle = Math.atan2(shape.y2 - shape.y1, shape.x2 - shape.x1);
+  const left = `${shape.x2 - shape.headSize * Math.cos(angle - Math.PI / 6)},${shape.y2 - shape.headSize * Math.sin(angle - Math.PI / 6)}`;
+  const right = `${shape.x2 - shape.headSize * Math.cos(angle + Math.PI / 6)},${shape.y2 - shape.headSize * Math.sin(angle + Math.PI / 6)}`;
+  return <g><line x1={shape.x1} y1={shape.y1} x2={shape.x2} y2={shape.y2} stroke={shape.stroke} strokeWidth={shape.strokeWidth} strokeLinecap="round" /><polyline points={`${left} ${shape.x2},${shape.y2} ${right}`} fill="none" stroke={shape.stroke} strokeWidth={shape.strokeWidth} strokeLinecap="round" strokeLinejoin="round" /></g>;
 }

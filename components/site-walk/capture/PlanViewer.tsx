@@ -47,7 +47,7 @@ export function PlanViewer({ projectId, sessionId }: Props) {
     function handleTool(event: Event) {
       const detail = event instanceof CustomEvent ? event.detail : null;
       const nextTool = typeof detail?.tool === "string" ? detail.tool : "select";
-      if (["select", "draw", "box", "circle", "text"].includes(nextTool)) setTool(nextTool as VectorTool);
+      if (["select", "draw", "box", "circle", "arrow", "text"].includes(nextTool)) setTool(nextTool as VectorTool);
     }
     window.addEventListener(VECTOR_TOOL_EVENT, handleTool);
     return () => window.removeEventListener(VECTOR_TOOL_EVENT, handleTool);
@@ -221,16 +221,24 @@ function buildMarkup(tool: VectorTool, point: { xPct: number; yPct: number }): M
   const x = (point.xPct / 100) * CANVAS_WIDTH;
   const y = (point.yPct / 100) * CANVAS_HEIGHT;
   const base = { id: `markup-${Date.now()}`, stroke: "#2563eb", fill: "none", strokeWidth: 4, rotation: 0, updatedAt: Date.now() };
-  const shape: MarkupShape = tool === "box" ? { ...base, kind: "rect", x: x - 50, y: y - 35, width: 100, height: 70 } : tool === "circle" ? { ...base, kind: "ellipse", cx: x, cy: y, rx: 48, ry: 34 } : tool === "text" ? { ...base, kind: "text", x, y, text: "Note", fontSize: 32 } : { ...base, kind: "freehand", points: [x - 40, y, x - 10, y - 25, x + 30, y + 18] };
+  const shape: MarkupShape = tool === "box" ? { ...base, kind: "rect", x: x - 50, y: y - 35, width: 100, height: 70 } : tool === "circle" ? { ...base, kind: "ellipse", cx: x, cy: y, rx: 48, ry: 34 } : tool === "arrow" ? { ...base, kind: "arrow", x1: x - 60, y1: y - 30, x2: x + 60, y2: y + 30, headSize: 24 } : tool === "text" ? { ...base, kind: "text", x, y, text: "Note", fontSize: 32 } : { ...base, kind: "freehand", points: [x - 40, y, x - 10, y - 25, x + 30, y + 18] };
   return { version: 1, coordSpace: "image", shapes: [shape] };
 }
 
 function renderShape(shape: MarkupShape) {
   if (shape.kind === "rect") return <rect key={shape.id} x={shape.x} y={shape.y} width={shape.width} height={shape.height} fill={shape.fill} stroke={shape.stroke} strokeWidth={shape.strokeWidth} />;
   if (shape.kind === "ellipse") return <ellipse key={shape.id} cx={shape.cx} cy={shape.cy} rx={shape.rx} ry={shape.ry} fill={shape.fill} stroke={shape.stroke} strokeWidth={shape.strokeWidth} />;
+  if (shape.kind === "arrow") return <ArrowShape key={shape.id} shape={shape} />;
   if (shape.kind === "text") return <text key={shape.id} x={shape.x} y={shape.y} fill={shape.stroke} fontSize={shape.fontSize} fontWeight={800}>{shape.text}</text>;
   if (shape.kind === "freehand") return <polyline key={shape.id} points={shape.points.join(" ")} fill="none" stroke={shape.stroke} strokeWidth={shape.strokeWidth} strokeLinecap="round" strokeLinejoin="round" />;
   return null;
+}
+
+function ArrowShape({ shape }: { shape: Extract<MarkupShape, { kind: "arrow" }> }) {
+  const angle = Math.atan2(shape.y2 - shape.y1, shape.x2 - shape.x1);
+  const left = `${shape.x2 - shape.headSize * Math.cos(angle - Math.PI / 6)},${shape.y2 - shape.headSize * Math.sin(angle - Math.PI / 6)}`;
+  const right = `${shape.x2 - shape.headSize * Math.cos(angle + Math.PI / 6)},${shape.y2 - shape.headSize * Math.sin(angle + Math.PI / 6)}`;
+  return <g><line x1={shape.x1} y1={shape.y1} x2={shape.x2} y2={shape.y2} stroke={shape.stroke} strokeWidth={shape.strokeWidth} strokeLinecap="round" /><polyline points={`${left} ${shape.x2},${shape.y2} ${right}`} fill="none" stroke={shape.stroke} strokeWidth={shape.strokeWidth} strokeLinecap="round" strokeLinejoin="round" /></g>;
 }
 
 function isMarkupData(value: unknown): value is MarkupData {

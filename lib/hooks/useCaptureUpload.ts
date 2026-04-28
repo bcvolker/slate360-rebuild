@@ -25,6 +25,7 @@ type SavePhotoOptions = {
   clientItemId?: string;
   clientMutationId?: string;
   previewUrl?: string;
+  title?: string;
 };
 
 export type PlanCaptureTarget = {
@@ -41,10 +42,11 @@ export function useCaptureUpload({ sessionId, planTarget, onPlanTargetSaved, onS
     const clientItemId = options?.clientItemId ?? createOfflineId("item");
     const clientMutationId = options?.clientMutationId ?? createOfflineId("mutation");
     const previewUrl = options?.previewUrl;
+    const title = options?.title ?? "";
     setStatus({ kind: "uploading", message: "Uploading (1/1)..." });
     const metadata = await captureMetadata();
     if (isOffline()) {
-      const local = await queueOfflineCapture({ sessionId, itemType: "photo", title: file.name, metadata, file, captureMode: "camera", clientItemId, clientMutationId, planTarget, previewUrl });
+      const local = await queueOfflineCapture({ sessionId, itemType: "photo", title, metadata, file, captureMode: "camera", clientItemId, clientMutationId, planTarget, previewUrl });
       setStatus({ kind: "complete", message: "Working offline — photo queued and ready to sync." });
       if (planTarget) onPlanTargetSaved?.();
       onSaved?.(local);
@@ -61,13 +63,13 @@ export function useCaptureUpload({ sessionId, planTarget, onPlanTargetSaved, onS
       if (!put.ok) throw new Error("Storage upload failed");
 
       setStatus({ kind: "saving", message: "Saving capture to the walk..." });
-      const item = await createCaptureItem({ sessionId, itemType: "photo", title: file.name, fileId: upload.fileId, s3Key: upload.s3Key, metadata, file, captureMode: "camera", clientItemId, clientMutationId });
+      const item = await createCaptureItem({ sessionId, itemType: "photo", title, fileId: upload.fileId, s3Key: upload.s3Key, metadata, file, captureMode: "camera", clientItemId, clientMutationId });
       if (planTarget) await attachItemToPlanPin(item.id, planTarget);
       setStatus({ kind: "complete", message: planTarget ? "Photo saved and attached to the selected plan pin." : "Photo saved to Site Walk Files / Photos." });
       if (planTarget) onPlanTargetSaved?.();
       onSaved?.({ ...item, local_preview_url: previewUrl });
     } catch {
-      const local = await queueOfflineCapture({ sessionId, itemType: "photo", title: file.name, metadata, file, captureMode: "camera", clientItemId, clientMutationId, planTarget, previewUrl });
+      const local = await queueOfflineCapture({ sessionId, itemType: "photo", title, metadata, file, captureMode: "camera", clientItemId, clientMutationId, planTarget, previewUrl });
       setStatus({ kind: "complete", message: "Connection dropped — photo saved offline and queued." });
       if (planTarget) onPlanTargetSaved?.();
       onSaved?.(local);
