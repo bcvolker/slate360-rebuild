@@ -166,6 +166,9 @@ Implemented foundation:
 - Start Walk modal with Select Plan vs Skip - Photos Only.
 - Site Walk launch grid with one Quick Capture / desktop Upload Pictures action, Field Project selector, Walk With Plans, Photos Only Walk, and Active Walks above the fold.
 - Quick Capture file handoff that opens the mobile camera or desktop file picker from the first tap, then routes to capture with the selected image already available.
+- Mobile home now removes explanatory marketing copy and hides secondary section nav on `/site-walk`; Plan Room, Deliverables, and Setup are folded into the Field Project tools menu.
+- Photo markup supports draw, box, circle, arrow, text, and color selection.
+- Capture metadata is collected through `captureMetadata()`: timestamp always, GPS when browser/native permission is granted, weather when GPS is available, and file size/MIME metadata. Deliverable builders must expose an `Include photo metadata` checkbox that renders timestamp/location/weather subtly under photos.
 - Local object URL preview and photo markup canvas.
 - Bottom-sheet capture form with autosave, AI formatting, due date, assignee, and dictation control.
 - IndexedDB offline mutation/blob queue and sync indicator.

@@ -196,9 +196,16 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-28 (Site Walk App Dashboard Quick Capture — Pushed)
+### Session Handoff — 2026-04-28 (Site Walk Compact Mobile Launcher — Pushed)
 
 #### What Changed
+- `app/site-walk/page.tsx` and `components/site-walk/SiteWalkShell.tsx` — removed the marketing/description card from the Site Walk home screen and hid the section nav on `/site-walk` so the app opens directly to action buttons.
+- `app/site-walk/_components/SiteWalkLaunchGrid.tsx` — compressed the phone layout into an above-the-fold app launcher: Field Project selector, Project tools menu, Quick Capture/desktop Upload, Plans, Photos Only, and Resume. Plan Room, Deliverables, and Setup are folded into the Project menu.
+- `lib/site-walk/quick-capture-launch.ts` and `components/site-walk/capture/CameraViewfinder.tsx` — quick-capture handoff now keeps an in-memory copy plus IndexedDB copy of the selected file before routing, improving phone reliability. Captures no longer default title to the file name; last non-empty title is reused for subsequent photos in the same session.
+- `components/site-walk/capture/UnifiedVectorToolbar.tsx`, `PhotoMarkupCanvas.tsx`, and `PlanViewer.tsx` — added arrow markup and color choices for photo/plan markup.
+- Metadata verification: `lib/site-walk/metadata.ts` collects `captured_at` on every capture, GPS when permission is granted, weather when GPS exists, and device info; `lib/site-walk/capture-item-client.ts` writes latitude/longitude/weather plus file size and MIME into the item payload. Future deliverable builders must expose an Include photo metadata checkbox for subtle timestamp/location/weather display under photos.
+
+#### Previous Session Context
 - `app/site-walk/page.tsx`, `app/site-walk/_components/SiteWalkLaunchGrid.tsx`, and deleted `app/site-walk/_components/StartWalkActions.tsx` — replaced the duplicate scroll-heavy Site Walk landing UI with one app-shell-style button grid above the fold: Field Project selector, New Field Project, Quick Capture / desktop Upload Pictures, Walk With Plans, Photos Only Walk, and Active Walks.
 - `lib/site-walk/quick-capture-launch.ts`, `app/site-walk/(act-2-inputs)/capture/page.tsx`, capture shell/island props, and `components/site-walk/capture/CameraViewfinder.tsx` — Quick Capture now opens the mobile camera or desktop file picker from the original tap, stores the selected file in IndexedDB, creates the Site Walk session, routes with `launch=<id>`, consumes the file on capture load, renders the image immediately, opens the drawer, and starts background upload/offline sync.
 - `app/site-walk/(act-2-inputs)/capture/_components/CaptureShell.tsx` — removed the non-interactive Camera/Plan selector that made the capture route feel like an extra step.
@@ -215,6 +222,7 @@ When editing oversized files, always read both the state declarations AND the JS
 #### What's Broken / Partially Done
 - Photo markup strokes are currently local-only in `PhotoMarkupCanvas.tsx`; persisting them into `site_walk_items.markup_data` remains a follow-up.
 - True native-app permission prompts still depend on the deployment wrapper. In the current web/PWA surface, camera/photo-library access is requested through the native file input (`capture="environment"` on mobile, normal file picker on desktop).
+- Deliverable metadata display checkbox is documented/required but the Prompt 12 deliverable builder has not been implemented yet.
 - Voice notes still use typed/native-dictated text for this drawer; raw audio backup/transcription remains a later layer.
 - No service-worker HTML/CSS/JS caching was added; Prompt 9 remains strictly IndexedDB data persistence plus local object URL previews.
 - `bash scripts/check-file-size.sh` still fails on the same 12 known pre-existing oversized files outside Prompt 9.
@@ -225,11 +233,11 @@ When editing oversized files, always read both the state declarations AND the JS
 - `SLATE360_PROJECT_MEMORY.md` — this handoff.
 
 #### Next Steps (ordered)
-1. Smoke test `/site-walk` on a real phone: Quick Capture should open the camera immediately before routing; after taking the photo, capture should load with the image visible and the drawer open.
-2. Smoke test `/site-walk` on desktop: primary action should read Upload Pictures and open a desktop file picker, not a camera workflow.
-3. Smoke test project-bound flow: select an existing Field Project → Walk With Plans → long-press plan → Attach next photo opens the camera and attaches the capture to the pin.
+1. Smoke test `/site-walk` on a real phone viewport: no description card, no section nav, all four core buttons visible without meaningful scrolling.
+2. Smoke test Quick Capture on a real phone: camera opens, image appears on capture screen, drawer opens, item title is blank unless a previous title was entered.
+3. Smoke test desktop: primary action reads Upload and opens file picker; arrow/color markup works on the uploaded image.
 4. Persist `PhotoMarkupCanvas` shapes into item `markup_data` if saved photo markups are required before Prompt 10.
-5. Start Prompt 10 field-office board and realtime support view.
+5. Add Include photo metadata checkbox when Prompt 12 deliverable builder is implemented.
 
 ---
 
