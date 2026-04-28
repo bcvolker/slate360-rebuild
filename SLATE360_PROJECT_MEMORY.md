@@ -196,6 +196,32 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
+### Session Handoff — 2026-04-28 (Capture Rail Optimization + Cobalt Palette)
+
+#### What Changed
+- `components/site-walk/capture/VisualCaptureView.tsx` — removed the separate top header/title/Notes button so the first visible control is the horizontal Stops rail; moved Back, undo, and redo into that rail; added blank outlined next-stop placeholder, scroll-edge arrows, backend-backed thumbnails for saved photos, cobalt active states, and a matching compact Progress rail with Ghost Align hidden until progress content exists.
+- `components/site-walk/capture/CameraViewfinder.tsx` — removed the visual-mode upload/status message below the photo and replaced it with a compact over-photo spinner/check upload badge; retained normal status messaging for non-visual/full capture mode.
+- `components/site-walk/capture/PhotoMarkupCanvas.tsx` and `PhotoMarkupControls.tsx` — improved pre-markup pinch/wheel zoom and pan, moved undo/redo control wiring out to the top rail via canvas events, changed selected markup glow/text editor to cobalt, and extracted overlay controls so the active canvas file stays under 300 lines.
+- `components/site-walk/capture/PhotoAttachmentPins.tsx`, `UnifiedVectorToolbar.tsx`, `CaptureItemForm.tsx`, `SyncQueueIndicator.tsx`, and `PlanViewer.tsx` — removed remaining active capture yellow/gold/amber/green styling in favor of cobalt/slate/rose semantics; plan markup pins now default to blue.
+- `DESIGN.md`, `docs/site-walk/SITE_WALK_MASTER_ARCHITECTURE.md`, and `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — corrected stale Industrial Gold guidance to the current cobalt app-shell palette and recorded Prompt 10E (`fe6fc8a`).
+
+#### What's Broken / Partially Done
+- The Progress rail is still inferred from same-location photo items; no first-class `progress_parent_item_id` / timeline schema yet.
+- The top Stops rail now has backend-backed thumbnails, but if `/api/site-walk/items/[id]/image` fails for an old/missing file it will still fall back to the icon placeholder.
+- No authenticated mobile browser smoke was run because the session had no logged-in browser context; validation was code/build/storage focused.
+
+#### Context Files Updated
+- `DESIGN.md` — corrected Slate360 primary accent from stale Industrial Gold to cobalt.
+- `docs/site-walk/SITE_WALK_MASTER_ARCHITECTURE.md` — recorded compact rails, cobalt capture controls, and upload badge.
+- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — added Prompt 10E with commit `fe6fc8a`.
+- `SLATE360_PROJECT_MEMORY.md` — this handoff.
+
+#### Next Steps (ordered)
+1. Phone smoke test `/site-walk/capture`: capture a photo, verify pinch/zoom before Start Markup, long-press attachment pin modal, upload badge spinner/check, and saved-stop thumbnail reopening.
+2. Verify Progress rail UX with at least two same-location captures and confirm Ghost Align only appears after timeline content exists.
+3. Add first-class stop/angle/progress timeline relationships in schema instead of same-location inference.
+4. Render progress timeline groups and photo attachment pins in deliverables and `/site-walk/walks/[sessionId]`.
+
 ### Session Handoff — 2026-04-28 (Branded Capture Controls + Timeline)
 
 #### What Changed
