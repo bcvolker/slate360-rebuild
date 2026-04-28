@@ -23,7 +23,7 @@ interface CommandCenterContentProps {
 
 export function CommandCenterContent({ userName, orgName, storageLimitGb, entitlements = null }: CommandCenterContentProps) {
   return (
-    <div className="mx-auto grid h-full w-full max-w-6xl grid-rows-[minmax(0,1fr)_minmax(170px,0.72fr)] gap-3 overflow-hidden lg:grid-rows-[minmax(0,1fr)_minmax(220px,0.82fr)]">
+    <div className="mx-auto grid h-full w-full max-w-6xl grid-rows-[minmax(190px,0.52fr)_minmax(0,1fr)] gap-3 overflow-hidden lg:grid-rows-[minmax(230px,0.5fr)_minmax(0,1fr)]">
       <AppsGrid entitlements={entitlements} />
       <section className="min-h-0 overflow-hidden rounded-3xl border border-slate-300 bg-white p-3 shadow-sm lg:p-4">
         <div className="mb-2 flex items-center justify-between gap-3">

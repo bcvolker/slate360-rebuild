@@ -97,7 +97,7 @@ Future unread counts should be computed from inbox rows and surfaced on both des
 
 The Command Center follows the zero-scroll blueprint:
 
-- Top content: centered flex-wrapped app tiles for Site Walk, 360 Tours, Design Studio, and Content Studio.
+- Top content: compact centered 2×2 app tiles for Site Walk, 360 Tours, Design Studio, and Content Studio. Site Walk remains visible/clickable during development; the next three apps stay represented as coming-soon app tiles so the launcher does not collapse to a single app.
 - Bottom content: horizontal swipe carousel for Quick Resume surfaces such as Active Projects, Recent Files, Draft Deliverables, My Work, Coordination, Settings, and New Project.
 - Search and global actions live in shell chrome/menus instead of taking vertical space on the home surface.
 

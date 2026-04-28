@@ -7,10 +7,9 @@ import type { Entitlements } from "@/lib/entitlements";
 /**
  * AppsGrid — Command Center
  *
- * Renders the user's subscribed Slate360 apps as equally-weighted cards.
- * - Entitlement-gated: only shows apps the org is subscribed to.
- * - Adaptive layout: grid columns adjust to the count so layout stays balanced.
- * - No app takes precedence — all cards share identical sizing and styling.
+ * Renders the four planned Slate360 apps as compact, equally-weighted tiles.
+ * Site Walk remains visible while under development; future apps remain represented
+ * so the shell layout is stable as subscriptions and app launches come online.
  */
 
 interface AppCard {
@@ -19,7 +18,7 @@ interface AppCard {
   tagline: string;
   href: string;
   icon: LucideIcon;
-  entitlement: keyof Entitlements;
+  entitlement?: keyof Entitlements;
   comingSoon?: boolean;
 }
 
@@ -30,7 +29,6 @@ const APPS: AppCard[] = [
     tagline: "Capture context. Create deliverables.",
     href: "/site-walk",
     icon: MapPin,
-    entitlement: "canAccessStandalonePunchwalk",
   },
   {
     key: "tours",
@@ -83,17 +81,17 @@ export function AppsGrid({ entitlements: _entitlements }: AppsGridProps) {
   }
 
   return (
-    <section className="flex min-h-0 flex-col overflow-hidden rounded-3xl border border-slate-300 bg-white p-3 shadow-sm sm:p-4">
+    <section className="flex min-h-0 flex-col overflow-hidden rounded-3xl border border-slate-300 bg-white p-2 shadow-sm sm:p-3">
       <div className="mb-2 flex items-center justify-center">
         <h2 className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-blue-700">Apps</h2>
       </div>
-      <div className="flex min-h-0 flex-1 flex-wrap content-center items-center justify-center gap-3 overflow-hidden">
+      <div className="grid min-h-0 flex-1 grid-cols-2 place-content-center place-items-center gap-2 overflow-hidden sm:gap-3">
         {visible.map((app) => {
           const Icon = app.icon;
-          const hasAccess = _entitlements?.[app.entitlement] ?? false;
+          const hasAccess = !app.entitlement || (_entitlements?.[app.entitlement] ?? false);
           const card = (
             <div
-              className={`group relative flex h-28 w-28 flex-col items-center justify-center gap-2 rounded-3xl border border-slate-300 bg-slate-50 p-3 text-center shadow-sm transition-all duration-200 hover:border-blue-500 hover:bg-blue-50 sm:h-32 sm:w-32 lg:h-36 lg:w-36 ${hasAccess ? "" : "opacity-60"}`}
+              className={`group relative flex h-20 w-28 flex-col items-center justify-center gap-1.5 rounded-2xl border border-slate-300 bg-slate-50 p-2 text-center shadow-sm transition-all duration-200 hover:border-blue-500 hover:bg-blue-50 sm:h-24 sm:w-32 lg:h-24 lg:w-36 ${hasAccess ? "" : "opacity-70"}`}
             >
               {!hasAccess && (
                 <span className="absolute right-2 top-2 rounded-full border border-slate-300 bg-white px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-slate-600">
@@ -105,14 +103,14 @@ export function AppsGrid({ entitlements: _entitlements }: AppsGridProps) {
                   Soon
                 </span>
               )}
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-lg shadow-blue-500/20 transition-transform group-hover:scale-105">
-                <Icon className="h-5 w-5" />
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600 text-white shadow-lg shadow-blue-500/20 transition-transform group-hover:scale-105">
+                <Icon className="h-4 w-4" />
               </div>
               <div className="min-w-0 space-y-1">
                 <h3 className="truncate text-xs font-black text-slate-900 group-hover:text-blue-700 sm:text-sm">
                   {app.name}
                 </h3>
-                <p className="hidden text-[11px] leading-4 text-slate-600 sm:line-clamp-2 sm:block">
+                <p className="hidden text-[10px] leading-3 text-slate-600 sm:line-clamp-2 sm:block">
                   {app.tagline}
                 </p>
               </div>
@@ -123,12 +121,12 @@ export function AppsGrid({ entitlements: _entitlements }: AppsGridProps) {
             <Link
               key={app.key}
               href={app.href}
-              className="block h-full"
+              className="block"
             >
               {card}
             </Link>
           ) : (
-            <div key={app.key} aria-disabled="true" className="h-full">
+            <div key={app.key} aria-disabled="true">
               {card}
             </div>
           );

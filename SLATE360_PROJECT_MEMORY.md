@@ -196,6 +196,26 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
+### Session Handoff — 2026-04-28 (Compact 2x2 App Launcher)
+
+#### What Changed
+- `components/dashboard/command-center/CommandCenterContent.tsx` — reduced the top app launcher row from a large half-screen allocation to a compact fixed-ratio section so the home screen no longer has excessive whitespace above Quick Resume.
+- `components/dashboard/command-center/AppsGrid.tsx` — changed the launcher to a compact 2×2 grid with all four planned apps represented in order: Site Walk, 360 Tours, Design Studio, Content Studio. Site Walk is now always clickable during development instead of being disabled by standalone subscription flags; future apps remain visible as coming-soon/available tiles.
+- `slate360-context/DASHBOARD.md` — documented the compact 2×2 app launcher rule.
+
+#### What's Broken / Partially Done
+- The launcher still uses coming-soon/available labels for apps that are not fully launched or not enabled; the product copy can be refined later.
+- Quick Resume still uses static navigation cards rather than real recent-files/drafts/project data.
+
+#### Context Files Updated
+- `slate360-context/DASHBOARD.md` — recorded compact 2×2 launcher behavior.
+- `SLATE360_PROJECT_MEMORY.md` — this handoff.
+
+#### Next Steps (ordered)
+1. Review `/dashboard` on mobile and desktop to confirm the 2×2 launcher is the right height and Site Walk opens correctly.
+2. Decide whether future app tiles should say `Soon`, `Available`, or `Locked` based on subscription/product state.
+3. Wire Quick Resume to real recent activity data when ready.
+
 ### Session Handoff — 2026-04-28 (Slate360 Zero-Scroll App Shell)
 
 #### What Changed
