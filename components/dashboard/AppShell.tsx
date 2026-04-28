@@ -54,8 +54,10 @@ export function AppShell({
   const [paletteOpen, setPaletteOpen] = useState(false);
 
   const pathname = usePathname() ?? "";
-  // Live Walk owns the entire viewport — no app chrome.
-  const fullBleed = /^\/site-walk\/walks\/active\/[^/]+/.test(pathname);
+  // Active Site Walk task modes own the entire viewport — no app chrome.
+  const fullBleed =
+    pathname.startsWith("/site-walk/capture") ||
+    /^\/site-walk\/walks\/active\/[^/]+/.test(pathname);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
