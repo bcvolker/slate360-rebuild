@@ -2,7 +2,7 @@ import type { ItemPriority, ItemStatus, SiteWalkCaptureMode, SiteWalkItemType, S
 import type { MarkupData } from "@/lib/site-walk/markup-types";
 import type { PhotoAttachmentPin } from "@/lib/site-walk/photo-attachments";
 
-export type CaptureClassification = "Issue" | "Observation" | "Safety" | "Progress" | "Question" | "Other";
+export type CaptureClassification = "Issue" | "Observation" | "Safety" | "Progress" | "On Track" | "Behind Schedule" | "Incorrect Work" | "Question" | "Other";
 
 export type CaptureAssignee = {
   id: string;
@@ -52,6 +52,9 @@ export const CAPTURE_CLASSIFICATIONS: CaptureClassification[] = [
   "Observation",
   "Safety",
   "Progress",
+  "On Track",
+  "Behind Schedule",
+  "Incorrect Work",
   "Question",
   "Other",
 ];

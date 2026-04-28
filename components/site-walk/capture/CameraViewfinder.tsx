@@ -20,11 +20,12 @@ type Props = {
   launchId?: string | null;
   layout?: "full" | "visual";
   activeItem?: CaptureItemRecord | null;
+  markupEnabled?: boolean;
   onMarkupChange?: (itemId: string, markup: MarkupData) => void;
   onAttachmentPinsChange?: (itemId: string, pins: PhotoAttachmentPin[]) => void;
 };
 
-export function CameraViewfinder({ sessionId, autoOpenCamera = false, launchId = null, layout = "full", activeItem = null, onMarkupChange, onAttachmentPinsChange }: Props) {
+export function CameraViewfinder({ sessionId, autoOpenCamera = false, launchId = null, layout = "full", activeItem = null, markupEnabled = true, onMarkupChange, onAttachmentPinsChange }: Props) {
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const uploadInputRef = useRef<HTMLInputElement>(null);
   const consumedLaunchRef = useRef<string | null>(null);
@@ -88,7 +89,7 @@ export function CameraViewfinder({ sessionId, autoOpenCamera = false, launchId =
       return { url: previewUrl, title: title || "Captured photo", itemId: clientItemId, revoke: true };
     });
     publishCaptureItemFocus({ item: localItem, reason: "captured", focus: true });
-    window.dispatchEvent(new CustomEvent(VECTOR_TOOL_EVENT, { detail: { tool: "draw" } }));
+    window.dispatchEvent(new CustomEvent(VECTOR_TOOL_EVENT, { detail: { tool: "select" } }));
     void savePhoto(file, { clientItemId, clientMutationId, previewUrl, title });
   }
 
@@ -102,9 +103,9 @@ export function CameraViewfinder({ sessionId, autoOpenCamera = false, launchId =
   return (
     <section className={visualOnly ? "flex h-full min-h-0 flex-col overflow-hidden bg-zinc-950" : "rounded-3xl border border-slate-300 bg-white p-4"}>
       {target && (
-        <div className="mb-3 flex flex-col gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-900 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mb-3 flex flex-col gap-2 rounded-2xl border border-[#D4AF37]/35 bg-[#D4AF37]/10 px-4 py-3 text-sm font-bold text-[#F8E7A1] sm:flex-row sm:items-center sm:justify-between">
           <span>Next capture attaches to the selected plan pin.</span>
-          <button type="button" onClick={clearTarget} className="rounded-xl bg-white px-3 py-2 text-xs font-black text-emerald-800 hover:bg-emerald-100">Clear plan target</button>
+          <button type="button" onClick={clearTarget} className="rounded-xl bg-white px-3 py-2 text-xs font-black text-zinc-950 hover:bg-[#F8E7A1]">Clear plan target</button>
         </div>
       )}
 
@@ -116,6 +117,7 @@ export function CameraViewfinder({ sessionId, autoOpenCamera = false, launchId =
                 imageUrl={activePreview.url}
                 title={activePreview.title}
                 sessionId={sessionId}
+                markupEnabled={markupEnabled}
                 initialMarkup={isMarkupData(activeItem?.markup_data) ? activeItem.markup_data : undefined}
                 attachmentPins={getPhotoAttachmentPins(activeItem?.metadata)}
                 onAttachmentPinsChange={(pins) => onAttachmentPinsChange?.(activePreview.itemId, pins)}
@@ -132,18 +134,18 @@ export function CameraViewfinder({ sessionId, autoOpenCamera = false, launchId =
             </div>
           ) : (
             <>
-          <Camera className="h-12 w-12 text-emerald-300 md:hidden" />
-          <FileImage className="hidden h-12 w-12 text-emerald-300 md:block" />
+          <Camera className="h-12 w-12 text-[#D4AF37] md:hidden" />
+          <FileImage className="hidden h-12 w-12 text-[#D4AF37] md:block" />
           <h2 className={`mt-4 text-2xl font-black ${visualOnly ? "text-white" : "text-slate-950"}`}>Capture field proof</h2>
           <p className={`mt-2 max-w-lg text-sm leading-6 ${visualOnly ? "px-5 text-slate-300" : "text-slate-700"}`}>
             One tap opens the camera. The image appears immediately, the drawer opens for notes/classification, and upload/offline sync continues in the background.
           </p>
 
           <div className="mt-6 grid w-full max-w-xl gap-3 md:hidden">
-            <button type="button" onClick={() => cameraInputRef.current?.click()} disabled={busy || !mounted} className="min-h-16 rounded-3xl bg-emerald-400 px-5 py-4 text-lg font-black text-zinc-950 shadow-lg shadow-emerald-400/20 transition hover:bg-emerald-300 disabled:opacity-60">
+            <button type="button" onClick={() => cameraInputRef.current?.click()} disabled={busy || !mounted} className="min-h-16 rounded-3xl bg-[#D4AF37] px-5 py-4 text-lg font-black text-zinc-950 shadow-lg shadow-[#D4AF37]/20 transition hover:bg-[#F8E7A1] disabled:opacity-60">
               <span className="inline-flex items-center gap-2"><Camera className="h-5 w-5" /> Take Photo</span>
             </button>
-            <button type="button" onClick={() => uploadInputRef.current?.click()} disabled={busy || !mounted} className="min-h-16 rounded-3xl border border-white/15 bg-white/10 px-5 py-4 text-lg font-black text-white transition hover:border-emerald-200 disabled:opacity-60">
+            <button type="button" onClick={() => uploadInputRef.current?.click()} disabled={busy || !mounted} className="min-h-16 rounded-3xl border border-white/15 bg-white/10 px-5 py-4 text-lg font-black text-white transition hover:border-[#D4AF37] disabled:opacity-60">
               <span className="inline-flex items-center gap-2"><FileImage className="h-5 w-5" /> Camera Roll</span>
             </button>
           </div>
@@ -152,11 +154,11 @@ export function CameraViewfinder({ sessionId, autoOpenCamera = false, launchId =
             onDragOver={(event) => { event.preventDefault(); setDragActive(true); }}
             onDragLeave={() => setDragActive(false)}
             onDrop={handleDrop}
-            className={`mt-6 hidden w-full max-w-2xl rounded-3xl border-2 border-dashed p-10 transition md:flex md:min-h-64 md:flex-col md:items-center md:justify-center ${dragActive ? "border-emerald-400 bg-emerald-50" : "border-slate-300 bg-white"}`}
+            className={`mt-6 hidden w-full max-w-2xl rounded-3xl border-2 border-dashed p-10 transition md:flex md:min-h-64 md:flex-col md:items-center md:justify-center ${dragActive ? "border-[#D4AF37] bg-[#D4AF37]/10" : "border-slate-300 bg-white"}`}
           >
             <p className="text-2xl font-black text-slate-950">Drag &amp; Drop Photos Here</p>
             <p className="mt-2 text-sm leading-6 text-slate-600">Desktop mode is upload-first for job trailer workflows.</p>
-            <button type="button" onClick={() => uploadInputRef.current?.click()} disabled={busy || !mounted} className="mt-6 min-h-12 rounded-2xl bg-emerald-500 px-6 py-3 text-sm font-black text-white transition hover:bg-emerald-600 disabled:opacity-60">
+            <button type="button" onClick={() => uploadInputRef.current?.click()} disabled={busy || !mounted} className="mt-6 min-h-12 rounded-2xl bg-[#D4AF37] px-6 py-3 text-sm font-black text-zinc-950 transition hover:bg-[#F8E7A1] disabled:opacity-60">
               <span className="inline-flex items-center gap-2"><FileImage className="h-5 w-5" /> Select Photos from Computer</span>
             </button>
           </div>
@@ -184,10 +186,10 @@ export function CameraViewfinder({ sessionId, autoOpenCamera = false, launchId =
         </div>
       </div>}
 
-      <div className={`${visualOnly ? "m-3" : "mt-4"} flex items-center justify-between gap-3 rounded-2xl px-4 py-3 text-sm font-black ${statusClasses(status.kind)}`}>
+      {(!visualOnly || status.kind !== "idle") && <div className={`${visualOnly ? "m-3" : "mt-4"} flex items-center justify-between gap-3 rounded-2xl px-4 py-3 text-sm font-black ${statusClasses(status.kind)}`}>
         <span className="inline-flex items-center gap-2">{busy && <Loader2 className="h-4 w-4 animate-spin" />}{status.message}</span>
         {status.kind !== "idle" && <button type="button" onClick={resetStatus} className="rounded-lg p-1 hover:bg-white/60" aria-label="Reset status"><RotateCcw className="h-4 w-4" /></button>}
-      </div>
+      </div>}
     </section>
   );
 }
@@ -224,7 +226,7 @@ function readLastTitle(sessionId: string) {
 }
 
 function statusClasses(kind: string) {
-  if (kind === "complete") return "bg-emerald-50 text-emerald-800";
+  if (kind === "complete") return "bg-[#D4AF37]/15 text-[#F8E7A1] ring-1 ring-[#D4AF37]/30";
   if (kind === "error") return "bg-rose-50 text-rose-800";
   if (kind === "uploading" || kind === "saving") return "bg-amber-50 text-amber-900";
   return "bg-zinc-900/80 text-zinc-200 ring-1 ring-white/10";

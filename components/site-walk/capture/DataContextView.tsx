@@ -106,6 +106,8 @@ export function DataContextView({ item, draft, assignees, saveState, aiState, ai
           </div>
         </section>
 
+        <p className="shrink-0 rounded-2xl border border-slate-300 bg-white px-3 py-2 text-xs font-black text-slate-700">Captured: {new Date(item.created_at).toLocaleString([], { dateStyle: "medium", timeStyle: "short" })}</p>
+
         <section className="shrink-0 rounded-3xl border border-slate-300 bg-white p-3">
           <div className="grid gap-2 sm:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
             <label className="space-y-1">

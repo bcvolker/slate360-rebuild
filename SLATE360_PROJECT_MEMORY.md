@@ -196,6 +196,32 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
+### Session Handoff — 2026-04-28 (Branded Capture Controls + Timeline)
+
+#### What Changed
+- `components/site-walk/capture/VisualCaptureView.tsx` — changed the top post-photo rail to `Location Stops`, removed green/emerald primary controls, moved the UI to Slate360 dark glass with Industrial Gold accents, added an over-photo right chevron for Notes, added explicit `Start markup` gating, and added a horizontal `Progress timeline` strip with `Add progress` plus ghost alignment.
+- `components/site-walk/capture/CameraViewfinder.tsx` — passed the markup-enabled state into the photo canvas, defaulted new photos to select/navigation mode, removed the visual-mode `Ready to capture` status strip unless there is an active status, and rethemed capture controls to gold/dark glass.
+- `components/site-walk/capture/PhotoMarkupCanvas.tsx` — added pinch/zoom/pan navigation mode, kept long-press attachments, added undo/redo above the photo, preserved selectable/movable/resizable markup when markup mode is enabled, and rethemed selected markup glow/text editor to Industrial Gold.
+- `components/site-walk/capture/UnifiedVectorToolbar.tsx`, `PhotoAttachmentPins.tsx`, `DataContextView.tsx`, `lib/types/site-walk-capture.ts`, and `useCaptureItems.ts` — rethemed markup/attachment controls, added progress-oriented classifications, and added an auto-filled captured timestamp on the notes/data step.
+
+#### What's Broken / Partially Done
+- `Progress timeline` is currently inferred from same-location photo items; it does not yet persist a first-class timeline relationship like `progress_parent_item_id`.
+- `Add progress` opens the camera and enables ghost alignment, but the saved progress photo still lands as a regular photo item until the timeline relationship/schema is added.
+- Deliverables and the office live board still need to render progress timeline groups and photo attachment pins.
+
+#### Context Files Updated
+- `docs/site-walk/SITE_WALK_MASTER_ARCHITECTURE.md` — recorded branded capture controls and progress timeline.
+- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — added Prompt 10D completion row.
+- `SLATE360_PROJECT_MEMORY.md` — this handoff.
+
+#### Next Steps (ordered)
+1. Smoke test phone capture: take one photo, pinch/zoom without drawing, tap Start markup, draw/select/move/undo/redo, then tap the right chevron to Notes without adding another angle.
+2. Test Add progress with Ghost Align on a same-location item and verify the new photo appears in the timeline/angle rail.
+3. Add a real progress/timeline DB relationship and deliverable renderer support.
+4. Render attachment pins and progress timelines in `/site-walk/walks/[sessionId]`.
+
+---
+
 ### Session Handoff — 2026-04-28 (Field Capture Visual Polish)
 
 #### What Changed
