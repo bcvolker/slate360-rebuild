@@ -2,7 +2,6 @@
 
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
-import { SiteWalkTopBar } from "@/components/site-walk/SiteWalkTopBar";
 import { SiteWalkSegmentedNav } from "@/components/site-walk/SiteWalkSegmentedNav";
 
 /**
@@ -28,7 +27,6 @@ export function SiteWalkShell({ children, userInitials = "SW", orgName = null }:
 
   return (
     <>
-      <SiteWalkTopBar projectName="Site Walk" backHref="/dashboard" userInitials={userInitials} orgName={orgName} />
       {!hideSectionNav && <SiteWalkSegmentedNav />}
       <div className="w-full min-w-0">{children}</div>
     </>

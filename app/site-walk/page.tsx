@@ -2,8 +2,6 @@ import { resolveServerOrgContext } from "@/lib/server/org-context";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { SiteWalkLaunchGrid } from "./_components/SiteWalkLaunchGrid";
 
-const isAppStoreMode = process.env.NEXT_PUBLIC_APP_STORE_MODE === "true";
-
 export default async function SiteWalkPage() {
   const context = await resolveServerOrgContext();
   let projects: Array<{ id: string; name: string }> = [];
@@ -25,9 +23,9 @@ export default async function SiteWalkPage() {
   }
 
   return (
-    <main className="min-h-[calc(100dvh-96px)] bg-slate-50 px-3 py-3 text-slate-950 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-6xl">
-        <SiteWalkLaunchGrid projects={projects} appStoreMode={isAppStoreMode} />
+    <main className="h-[calc(100dvh-96px)] overflow-hidden bg-slate-50 px-3 py-3 text-slate-950 sm:px-6 lg:px-8">
+      <div className="mx-auto flex h-full max-w-6xl items-start">
+        <SiteWalkLaunchGrid projects={projects} />
       </div>
     </main>
   );

@@ -53,6 +53,12 @@ Plan storage rule:
 - Individual Site Walk sessions can select plans from the Field Project Plan Room.
 - Photos-only sessions must remain one-tap and must not require a plan decision after Quick Capture.
 
+Site Walk SlateDrop folder rule:
+- Each Field Project owns a `Site Walk Files` system folder.
+- Required child folders: `Photos`, `Notes`, `Data`, `Plans`, and `Deliverables`.
+- Captured images save to `Photos`; typed/dictated notes and structured item data must be exportable into `Notes` and `Data`; plan uploads save to `Plans`; client/report outputs save to `Deliverables`.
+- The Site Walk home must expose one `SlateDrop` button that opens a Site Walk-specific project folder picker, not generic dashboard chrome.
+
 ## Tier Guardrails
 
 Tier gates are architecture, not Phase 2 polish.

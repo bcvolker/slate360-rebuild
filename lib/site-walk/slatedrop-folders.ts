@@ -14,7 +14,7 @@ type EnsureSiteWalkFolderParams = {
   projectId: string;
   orgId: string;
   userId: string;
-  childName: "Photos" | "Voice Notes" | "Plans" | "Deliverables";
+  childName: "Photos" | "Notes" | "Data" | "Plans" | "Deliverables";
 };
 
 export async function ensureSiteWalkProjectFolder({
