@@ -196,29 +196,33 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-28 (Site Walk Prompt 9 UX Hotfix — Instant Capture Preview)
+### Session Handoff — 2026-04-28 (Site Walk Frictionless Capture Workflow — Pushed)
 
 #### What Changed
-- `components/site-walk/capture/CameraViewfinder.tsx` — photo capture now creates an immediate `URL.createObjectURL(file)` preview, builds a local draft item with shared client IDs, opens the notes drawer, activates draw mode, and saves/uploads in the background.
-- `components/site-walk/capture/PhotoMarkupCanvas.tsx` — added a local image markup surface over the object URL so field users can draw on the photo immediately before the server URL exists.
-- `components/site-walk/capture/CaptureItemForm.tsx` — shows the local captured photo thumbnail inside the bottom-sheet drawer.
-- `components/site-walk/capture/useCaptureItems.ts`, `components/site-walk/capture/capture-item-events.ts`, `lib/hooks/useCaptureUpload.ts`, `lib/site-walk/offline-capture.ts`, and `lib/types/site-walk-capture.ts` — preserve `local_preview_url`, reconcile server/offline updates by `client_item_id`, and avoid stealing focus when the background save resolves.
-- `app/site-walk/(act-2-inputs)/capture/_components/CaptureClientIsland.tsx` and `components/site-walk/capture/UnifiedVectorToolbar.tsx` — keep markup tools available for photos-only capture flows.
+- `docs/site-walk/SITE_WALK_MASTER_ARCHITECTURE.md` — added the authoritative Site Walk master blueprint covering one-tap capture, Field Projects, plan rooms, tier guardrails, field-tested design, Act 1/2/3, offline queue, deliverables, and follow-ups.
+- `app/site-walk/_components/StartWalkActions.tsx` and `app/site-walk/(act-2-inputs)/capture/page.tsx` — added a direct Quick Capture path that creates a session and routes to capture with camera auto-open intent.
+- `components/site-walk/capture/CameraViewfinder.tsx` and `components/site-walk/capture/capture-camera-events.ts` — camera/upload can now be triggered from route intent, the active photo preview, or a plan-pin action; the active preview includes Capture Next Item / Upload Next Image controls.
+- `components/site-walk/capture/PlanQuickActionMenu.tsx` — plan long-press photo action now requests the camera immediately after setting the plan target.
+- `components/site-walk/capture/CaptureItemForm.tsx`, `components/site-walk/capture/useCaptureItems.ts`, `lib/types/site-walk-capture.ts`, and `lib/site-walk/offline-capture.ts` — added due date to the autosaving drawer and a dedicated dictation button using Web Speech where available with native-keyboard fallback messaging.
+- `app/site-walk/layout.tsx`, `components/site-walk/SiteWalkShell.tsx`, `components/site-walk/SiteWalkTopBar.tsx`, `components/site-walk/SiteWalkSegmentedNav.tsx`, and `app/globals.css` — updated Site Walk shell toward the unified field-tested header/nav: initials/settings, Report a Bug modal, Share action, requested nav labels, and high-contrast form defaults.
 
 #### What's Broken / Partially Done
 - Photo markup strokes are currently local-only in `PhotoMarkupCanvas.tsx`; persisting them into `site_walk_items.markup_data` remains a follow-up.
+- Browser security may still require one user tap if a mobile browser blocks programmatic file-input opening after async session creation; the capture screen still exposes the large Take Photo button as fallback.
 - Voice notes still use typed/native-dictated text for this drawer; raw audio backup/transcription remains a later layer.
 - No service-worker HTML/CSS/JS caching was added; Prompt 9 remains strictly IndexedDB data persistence plus local object URL previews.
 - `bash scripts/check-file-size.sh` still fails on the same 12 known pre-existing oversized files outside Prompt 9.
 
 #### Context Files Updated
-- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — recorded the Prompt 9 instant capture preview UX hotfix commit.
+- `docs/site-walk/SITE_WALK_MASTER_ARCHITECTURE.md` — new master strategy blueprint from the provided prompt.
+- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — recorded the Prompt 9 frictionless capture UX hotfix commit `5788313`.
 - `SLATE360_PROJECT_MEMORY.md` — this handoff.
 
 #### Next Steps (ordered)
-1. Smoke test `/site-walk/capture` on a real mobile browser: tap Take Photo, confirm photo appears instantly, drawer opens, markup tools draw on the photo, and background sync reaches All Synced.
-2. Persist `PhotoMarkupCanvas` shapes into item `markup_data` if the field UX requires saved photo markups before Prompt 10.
-3. Start Prompt 10 field-office board and realtime support view.
+1. Smoke test `/site-walk` on a real mobile browser: Quick Capture → camera opens or fallback button appears → photo preview renders → drawer opens → dictation/AI/due date/classification autosave → Capture Next Item repeats.
+2. Smoke test project-bound flow: select an existing Field Project → Plan or Photos Walk → Select Plan → long-press plan → Attach next photo opens camera and attaches the capture to the pin.
+3. Persist `PhotoMarkupCanvas` shapes into item `markup_data` if saved photo markups are required before Prompt 10.
+4. Start Prompt 10 field-office board and realtime support view.
 
 ---
 
