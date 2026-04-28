@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Camera, FileImage, Loader2, Mic, PencilLine, RotateCcw } from "lucide-react";
 import { useCaptureUpload } from "@/lib/hooks/useCaptureUpload";
+import type { MarkupData } from "@/lib/site-walk/markup-types";
 import { createOfflineId } from "@/lib/site-walk/offline-db";
 import { readQuickCaptureLaunch, removeQuickCaptureLaunch } from "@/lib/site-walk/quick-capture-launch";
 import type { CaptureItemRecord } from "@/lib/types/site-walk-capture";
@@ -17,15 +18,16 @@ type Props = {
   autoOpenCamera?: boolean;
   launchId?: string | null;
   layout?: "full" | "visual";
+  onMarkupChange?: (itemId: string, markup: MarkupData) => void;
 };
 
-export function CameraViewfinder({ sessionId, autoOpenCamera = false, launchId = null, layout = "full" }: Props) {
+export function CameraViewfinder({ sessionId, autoOpenCamera = false, launchId = null, layout = "full", onMarkupChange }: Props) {
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const uploadInputRef = useRef<HTMLInputElement>(null);
   const consumedLaunchRef = useRef<string | null>(null);
   const [mounted, setMounted] = useState(false);
   const [dragActive, setDragActive] = useState(false);
-  const [activePreview, setActivePreview] = useState<{ url: string; title: string } | null>(null);
+  const [activePreview, setActivePreview] = useState<{ url: string; title: string; itemId: string } | null>(null);
   const [noteText, setNoteText] = useState("");
   const { target, clearTarget } = usePlanCaptureTarget();
   const { status, savePhoto, saveTextNote, resetStatus } = useCaptureUpload({ sessionId, planTarget: target, onPlanTargetSaved: clearTarget, onSaved: (item) => publishCaptureItemFocus({ item, reason: "captured", focus: false }) });
@@ -70,7 +72,7 @@ export function CameraViewfinder({ sessionId, autoOpenCamera = false, launchId =
     const localItem = buildLocalPhotoItem(sessionId, title, previewUrl, clientItemId, clientMutationId);
     setActivePreview((current) => {
       if (current?.url) URL.revokeObjectURL(current.url);
-      return { url: previewUrl, title: title || "Captured photo" };
+      return { url: previewUrl, title: title || "Captured photo", itemId: clientItemId };
     });
     publishCaptureItemFocus({ item: localItem, reason: "captured", focus: true });
     window.dispatchEvent(new CustomEvent(VECTOR_TOOL_EVENT, { detail: { tool: "draw" } }));
@@ -97,7 +99,7 @@ export function CameraViewfinder({ sessionId, autoOpenCamera = false, launchId =
         <div className={visualOnly ? "flex h-full min-h-0 flex-col items-center justify-center text-center" : "flex min-h-[280px] flex-col items-center justify-center text-center"}>
           {activePreview ? (
             <div className="w-full space-y-3">
-              <PhotoMarkupCanvas imageUrl={activePreview.url} title={activePreview.title} />
+              <PhotoMarkupCanvas imageUrl={activePreview.url} title={activePreview.title} onMarkupChange={(markup) => onMarkupChange?.(activePreview.itemId, markup)} />
               {!visualOnly && <div className="grid gap-2 sm:grid-cols-2">
                 <button type="button" onClick={() => requestCameraCapture("camera", "next_item")} disabled={busy || !mounted} className="min-h-12 rounded-2xl bg-blue-600 px-4 py-3 text-base font-black text-white shadow-sm transition hover:bg-blue-700 disabled:opacity-60">
                   <span className="inline-flex items-center gap-2"><Camera className="h-5 w-5" /> Capture next item</span>

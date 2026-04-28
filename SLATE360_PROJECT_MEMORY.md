@@ -196,6 +196,33 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
+### Session Handoff — 2026-04-28 (Prompt 10B Capture Polish)
+
+#### What Changed
+- `components/site-walk/capture/LocationPickerModal.tsx` and `CaptureClientIsland.tsx` — replaced the temporary `Move to New Location` browser prompt with a zero-scroll in-app location picker, typed location entry, and recent session locations from `sessionStorage`.
+- `PhotoMarkupCanvas.tsx`, `CameraViewfinder.tsx`, `useCaptureItems.ts`, `app/api/site-walk/items/[id]/route.ts`, and Site Walk item types — serialized photo markup as `MarkupData v1` and saved it through the existing autosave/offline item patch path into `site_walk_items.markup_data`.
+- `VisualCaptureView.tsx` — added a `Ghost Overlay` toggle that displays a previous same-location photo at 30% opacity for progress-photo alignment when a local preview exists.
+- `app/api/site-walk/notes/format/route.ts` and `useCaptureItems.ts` — upgraded AI formatting to return/apply structured smart tags: cleaned notes, suggested classification, and suggested priority, while preserving `formattedText` for older callers.
+
+#### What's Broken / Partially Done
+- Ghost Overlay currently uses local preview URLs only; older synced photos still need a server thumbnail/read URL bridge before they can appear after reload.
+- Location picker recent locations are session-local; plan-derived labels and org/project-level location history remain future polish.
+- Markup persistence stores vector JSON; deliverable rendering still needs to consume that JSON and flatten/replay it into client outputs.
+- Office-to-field planned walk assignment, schedule/budget/RFI/submittal links, and materialized Notes/Data SlateDrop exports remain future work after Prompt 10B.
+
+#### Context Files Updated
+- `docs/site-walk/SITE_WALK_MASTER_ARCHITECTURE.md` — recorded location picker, markup persistence, ghost overlay, and AI smart tags.
+- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — added Prompt 10B completion row.
+- `SLATE360_PROJECT_MEMORY.md` — this handoff.
+
+#### Next Steps (ordered)
+1. Smoke test `/site-walk/capture`: location picker, recent locations, photo markup save while offline, Ghost Overlay toggle, and AI smart-tag dropdown updates.
+2. Add server-backed thumbnail/read URLs for synced photo angles so Ghost Overlay and the carousel survive reloads.
+3. Render persisted `markup_data` in deliverables and any item review surfaces.
+4. Resume Prompt 10: realtime office board and field-office support view.
+
+---
+
 ### Session Handoff — 2026-04-28 (Prompt 10A Site Walk UI Foundation)
 
 #### What Changed

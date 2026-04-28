@@ -121,6 +121,10 @@ Capture screen requirements:
 - User-facing hierarchy: Walk → Location → Item → Angles.
 - Current Location chip carries forward until the user changes rooms/areas.
 - Item titles auto-compose as `{Location} — {Item detail}` while remaining editable.
+- Moving locations uses an in-app picker with recent locations, never a native browser prompt.
+- Photo markup serializes to `site_walk_items.markup_data` through the same autosave/offline patch path as item data.
+- Progress walks can enable a ghost overlay to align the next photo with a previous angle.
+- AI note formatting returns cleaned notes plus suggested classification and priority so dictation can drive zero-tap tagging.
 - Large cobalt Quick Capture / Take Photo button.
 - Camera auto-open when launched with `quick=camera`.
 - Immediate object URL preview.
@@ -179,6 +183,7 @@ Implemented foundation:
 - Full-bleed `/site-walk/capture` task shell that hides global app chrome and uses the shared paged workspace foundation.
 - Two-step capture flow: Visual view for photo/markup/angle carousel and Data view for title/location, classification, priority, status, assignee, notes, dictation, AI formatting, and next-location actions.
 - Location-first carry-forward: current location persists in session storage, captured item titles default from the location, item details auto-compose the final title, and follow-up items can reuse location/classification/priority/status/assignee without carrying notes.
+- Capture polish: Location changes now use a zero-scroll modal with recent locations, photo markup persists as `MarkupData v1`, the Visual view has a Ghost Overlay toggle for progress alignment, and AI note formatting can populate notes/classification/priority from structured smart-tag output.
 - Site Walk setup is now a paged workbook for mobile and tab-like workspace for desktop, with Project, Company/Branding, Plans & Docs, Team, Deliverables, and Project Controls sections. Company branding accepts logo/signature file uploads through the org branding asset route.
 - Bottom-sheet capture form with autosave, AI formatting, due date, assignee, and dictation control remains available as legacy component code but is no longer the primary active capture layout.
 - IndexedDB offline mutation/blob queue and sync indicator.

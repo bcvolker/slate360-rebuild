@@ -2,13 +2,21 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { loadOfflineItemsForSession, queueOfflineItemPatch } from "@/lib/site-walk/offline-capture";
+import type { MarkupData } from "@/lib/site-walk/markup-types";
 import type { UpdateItemPayload } from "@/lib/types/site-walk";
 import { useCaptureItemFocus } from "./capture-item-events";
 import { captureItemToDraft, type CaptureAssignee, type CaptureItemDraft, type CaptureItemRecord } from "@/lib/types/site-walk-capture";
 
 type ItemsResponse = { items?: CaptureItemRecord[]; error?: string };
 type AssigneesResponse = { assignees?: CaptureAssignee[]; error?: string };
-type FormatResponse = { formattedText?: string; error?: string; metering?: { currentUsage: number; limit: number; tier: string } };
+type FormatResponse = {
+  formattedText?: string;
+  cleanedNotes?: string;
+  suggestedClassification?: string;
+  suggestedPriority?: string;
+  error?: string;
+  metering?: { currentUsage: number; limit: number; tier: string };
+};
 type SaveState = "idle" | "dirty" | "saving" | "saved" | "error";
 
 type HookArgs = { sessionId: string; projectId: string | null };
@@ -163,14 +171,41 @@ export function useCaptureItems({ sessionId, projectId }: HookArgs) {
       setAiMessage(limit ? `AI credits exhausted for this month (${limit} credit cap).` : data?.error ?? "AI credits exhausted.");
       return;
     }
-    if (!response.ok || !data?.formattedText) {
+    const cleanedNotes = data?.cleanedNotes ?? data?.formattedText;
+    if (!response.ok || !cleanedNotes) {
       setAiState("error");
       setAiMessage(data?.error ?? "AI formatting failed.");
       return;
     }
-    patchDraft({ notes: data.formattedText });
+    patchDraft({
+      notes: cleanedNotes,
+      classification: normalizeClassification(data?.suggestedClassification),
+      priority: normalizePriority(data?.suggestedPriority),
+    });
     setAiState("idle");
-    setAiMessage("Formatted with AI. Autosave will run next.");
+    setAiMessage("AI cleaned the notes and suggested tags. Autosave will run next.");
+  }
+
+  async function saveMarkupData(itemId: string, markup: MarkupData) {
+    const item = items.find((current) => current.id === itemId || current.client_item_id === itemId);
+    if (!item) return;
+    const revision = Date.now();
+    const payload: UpdateItemPayload = { markup_data: markup, markup_revision: revision, sync_state: "synced" };
+    setItems((current) => upsertItem(current, { ...item, markup_data: markup, sync_state: "pending", updated_at: new Date().toISOString() }));
+    try {
+      if (isOffline() || item.id.startsWith("item-")) {
+        await queueOfflineItemPatch(sessionId, item, payload);
+        return;
+      }
+      const response = await fetch(`/api/site-walk/items/${encodeURIComponent(item.id)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!response.ok) throw new Error("Markup save failed");
+    } catch {
+      await queueOfflineItemPatch(sessionId, item, payload);
+    }
   }
 
   return {
@@ -183,8 +218,20 @@ export function useCaptureItems({ sessionId, projectId }: HookArgs) {
     aiMessage,
     selectItem,
     patchDraft,
+    saveMarkupData,
     formatNotesWithAi,
   };
+}
+
+function normalizeClassification(value: string | undefined): CaptureItemDraft["classification"] {
+  const match = ["Issue", "Observation", "Safety", "Progress", "Question", "Other"].find((option) => option.toLowerCase() === value?.toLowerCase());
+  return (match ?? "Observation") as CaptureItemDraft["classification"];
+}
+
+function normalizePriority(value: string | undefined): CaptureItemDraft["priority"] {
+  const normalized = value?.toLowerCase();
+  if (normalized === "low" || normalized === "medium" || normalized === "high" || normalized === "critical") return normalized;
+  return "medium";
 }
 
 function mergeItems(current: CaptureItemRecord[], incoming: CaptureItemRecord[]) {

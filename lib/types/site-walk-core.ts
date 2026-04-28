@@ -10,6 +10,7 @@ import type {
   SITE_WALK_UPLOAD_STATES,
   SITE_WALK_WORKFLOW_TYPES,
 } from "./site-walk-constants";
+import type { MarkupData } from "@/lib/site-walk/markup-types";
 
 export type SiteWalkSessionStatus = typeof SITE_WALK_SESSION_STATUSES[number];
 export type SiteWalkSessionType = typeof SITE_WALK_SESSION_TYPES[number];
@@ -87,6 +88,7 @@ export type SiteWalkItem = {
   upload_state: SiteWalkUploadState;
   upload_progress: number;
   vector_history: unknown[];
+  markup_data: MarkupData | Record<string, never> | null;
   markup_revision: number;
   tags: string[];
   trade: string | null;
@@ -167,6 +169,7 @@ export type UpdateItemPayload = Partial<
     | "upload_state"
     | "upload_progress"
     | "vector_history"
+    | "markup_data"
     | "markup_revision"
     | "tags"
     | "trade"

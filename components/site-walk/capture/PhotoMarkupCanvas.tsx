@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { MarkupShape } from "@/lib/site-walk/markup-types";
+import type { MarkupData, MarkupShape } from "@/lib/site-walk/markup-types";
 import { VECTOR_TOOL_EVENT, type VectorTool } from "./UnifiedVectorToolbar";
 
 type Props = {
   imageUrl: string;
   title: string;
+  initialMarkup?: MarkupData | null;
+  onMarkupChange?: (markup: MarkupData) => void;
 };
 
 type DraftPoint = { x: number; y: number };
@@ -14,11 +16,11 @@ type DraftPoint = { x: number; y: number };
 const WIDTH = 1000;
 const HEIGHT = 720;
 
-export function PhotoMarkupCanvas({ imageUrl, title }: Props) {
+export function PhotoMarkupCanvas({ imageUrl, title, initialMarkup, onMarkupChange }: Props) {
   const stageRef = useRef<HTMLDivElement>(null);
   const [tool, setTool] = useState<VectorTool>("draw");
   const [color, setColor] = useState("#2563eb");
-  const [shapes, setShapes] = useState<MarkupShape[]>([]);
+  const [shapes, setShapes] = useState<MarkupShape[]>(initialMarkup?.shapes ?? []);
   const [draftStart, setDraftStart] = useState<DraftPoint | null>(null);
   const [draftPoints, setDraftPoints] = useState<number[]>([]);
 
@@ -32,6 +34,10 @@ export function PhotoMarkupCanvas({ imageUrl, title }: Props) {
     window.addEventListener(VECTOR_TOOL_EVENT, handleTool);
     return () => window.removeEventListener(VECTOR_TOOL_EVENT, handleTool);
   }, []);
+
+  useEffect(() => {
+    onMarkupChange?.({ version: 1, coordSpace: "image", shapes });
+  }, [onMarkupChange, shapes]);
 
   function toPoint(clientX: number, clientY: number) {
     const rect = stageRef.current?.getBoundingClientRect();

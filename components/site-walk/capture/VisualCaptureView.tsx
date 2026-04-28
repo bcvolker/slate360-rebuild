@@ -1,6 +1,8 @@
 "use client";
 
-import { Camera, Check, LogOut, Plus } from "lucide-react";
+import { Camera, Check, Ghost, LogOut, Plus } from "lucide-react";
+import { useState } from "react";
+import type { MarkupData } from "@/lib/site-walk/markup-types";
 import type { CaptureItemRecord } from "@/lib/types/site-walk-capture";
 import { requestCameraCapture } from "./capture-camera-events";
 import { CameraViewfinder } from "./CameraViewfinder";
@@ -13,11 +15,14 @@ type Props = {
   items: CaptureItemRecord[];
   activeItemId: string | null;
   modeLabel: string;
+  ghostImageUrl: string | null;
+  onMarkupChange: (itemId: string, markup: MarkupData) => void;
   onSelectItem: (item: CaptureItemRecord) => void;
   onNext: () => void;
 };
 
-export function VisualCaptureView({ sessionId, autoOpenCamera, launchId, items, activeItemId, modeLabel, onSelectItem, onNext }: Props) {
+export function VisualCaptureView({ sessionId, autoOpenCamera, launchId, items, activeItemId, modeLabel, ghostImageUrl, onMarkupChange, onSelectItem, onNext }: Props) {
+  const [ghostOn, setGhostOn] = useState(false);
   const photoItems = items.filter((item) => item.item_type === "photo");
 
   return (
@@ -36,10 +41,16 @@ export function VisualCaptureView({ sessionId, autoOpenCamera, launchId, items, 
       </header>
 
       <main className="min-h-0 flex-1 overflow-hidden">
-        <CameraViewfinder sessionId={sessionId} autoOpenCamera={autoOpenCamera} launchId={launchId} layout="visual" />
+        <div className="relative h-full min-h-0">
+          <CameraViewfinder sessionId={sessionId} autoOpenCamera={autoOpenCamera} launchId={launchId} layout="visual" onMarkupChange={onMarkupChange} />
+          {ghostOn && ghostImageUrl && <img src={ghostImageUrl} alt="Previous progress ghost overlay" className="pointer-events-none absolute inset-0 h-full w-full object-contain opacity-30 mix-blend-screen" />}
+        </div>
       </main>
 
       <div className="shrink-0 border-t border-white/10 bg-slate-900/95 px-3 py-2">
+        <button type="button" onClick={() => setGhostOn((current) => !current)} disabled={!ghostImageUrl} className={`mb-2 inline-flex h-9 items-center gap-2 rounded-full border px-3 text-xs font-black ${ghostOn ? "border-blue-400 bg-blue-500/20 text-blue-100" : "border-white/15 bg-white/10 text-white/80 disabled:opacity-40"}`}>
+          <Ghost className="h-4 w-4" /> Ghost Overlay
+        </button>
         <UnifiedVectorToolbar />
         <div className="mt-2 flex h-20 gap-2 overflow-x-auto pb-1 no-scrollbar" aria-label="Captured angles">
           <button type="button" onClick={() => requestCameraCapture("camera", "next_item")} className="flex h-16 min-w-16 flex-col items-center justify-center rounded-2xl border border-dashed border-white/25 bg-white/10 text-[11px] font-black text-white">

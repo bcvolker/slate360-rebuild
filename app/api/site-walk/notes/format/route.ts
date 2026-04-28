@@ -10,15 +10,18 @@ import {
 
 const SYSTEM_PROMPT = `You are an expert construction project manager assistant.
 Take the dictated or typed field notes the user gives you and rewrite them as clear,
-professional bullet points suitable for a formal site-walk report. Rules:
+professional bullet points suitable for a formal site-walk report, then infer smart tags. Rules:
 
 - Fix grammar, spelling, and punctuation. Expand obvious abbreviations.
 - Keep construction terminology (rebar, drywall, HVAC, GC, RFI, etc.) intact.
 - Use short, objective bullets. No conversational filler ("so basically", "you know").
 - If the input describes multiple distinct issues, output one bullet per issue.
 - Do NOT invent details that are not in the source text.
-- Output ONLY the bullets — no preamble, no closing remarks.
 - Use "- " as the bullet marker.`;
+
+const JSON_INSTRUCTIONS = `Return ONLY valid JSON with this exact shape:
+{"cleanedNotes":"- formatted bullet","suggestedClassification":"Issue|Observation|Safety|Progress|Question|Other","suggestedPriority":"low|medium|high|critical"}
+Classification guidance: Safety for hazards, Issue for defects/blockers, Progress for status documentation, Question for unresolved clarification, Observation for neutral field notes. Priority guidance: critical for life safety/major blockers, high for urgent trade rework, medium for normal follow-up, low for minor observations.`;
 
 const MAX_INPUT_CHARS = 4000;
 
@@ -32,7 +35,7 @@ type FormatBody = {
 /**
  * POST /api/site-walk/notes/format
  * Body: { rawText: string }
- * Response: { formattedText: string, provider: "groq" | "openai" }
+ * Response: { cleanedNotes, suggestedClassification, suggestedPriority, formattedText, provider }
  *
  * Metering is enforced before model processing so exhausted orgs are blocked
  * before any AI provider call is made.
@@ -74,21 +77,48 @@ export const POST = (req: NextRequest) =>
 
     const messages: ChatMessage[] = [
       { role: "system", content: SYSTEM_PROMPT },
-      { role: "user", content: rawText.trim() },
+      { role: "user", content: `${JSON_INSTRUCTIONS}\n\nField notes:\n${rawText.trim()}` },
     ];
 
     try {
-      const formattedText = await chatComplete(cfg, messages, {
+      const aiText = await chatComplete(cfg, messages, {
         temperature: 0.2,
         maxTokens: 600,
       });
-      if (!formattedText) return serverError("Empty AI response");
+      if (!aiText) return serverError("Empty AI response");
+      const parsed = parseSmartTags(aiText);
       console.info(
         `[notes-format] org=${orgId} user=${user.id} provider=${cfg.provider} chars=${rawText.length}`,
       );
-      return ok({ formattedText, provider: cfg.provider });
+      return ok({ ...parsed, formattedText: parsed.cleanedNotes, provider: cfg.provider });
     } catch (err) {
       console.error("[notes-format]", err);
       return serverError("Failed to format notes");
     }
   });
+
+function parseSmartTags(aiText: string) {
+  const json = aiText.match(/\{[\s\S]*\}/)?.[0] ?? aiText;
+  try {
+    const parsed = JSON.parse(json) as Record<string, unknown>;
+    const cleanedNotes = typeof parsed.cleanedNotes === "string" && parsed.cleanedNotes.trim() ? parsed.cleanedNotes.trim() : aiText.trim();
+    return {
+      cleanedNotes,
+      suggestedClassification: normalizeClassification(parsed.suggestedClassification),
+      suggestedPriority: normalizePriority(parsed.suggestedPriority),
+    };
+  } catch {
+    return { cleanedNotes: aiText.trim(), suggestedClassification: "Observation", suggestedPriority: "medium" };
+  }
+}
+
+function normalizeClassification(value: unknown) {
+  const match = ["Issue", "Observation", "Safety", "Progress", "Question", "Other"].find((option) => option.toLowerCase() === String(value ?? "").toLowerCase());
+  return match ?? "Observation";
+}
+
+function normalizePriority(value: unknown) {
+  const normalized = String(value ?? "").toLowerCase();
+  if (normalized === "low" || normalized === "medium" || normalized === "high" || normalized === "critical") return normalized;
+  return "medium";
+}

@@ -9,6 +9,7 @@ import { ok, badRequest, notFound, serverError } from "@/lib/server/api-response
 import type { IdRouteContext } from "@/lib/types/api";
 import type { UpdateItemPayload } from "@/lib/types/site-walk";
 import { notifyAssignment } from "@/lib/site-walk/notify-assignment";
+import { isMarkupData } from "@/lib/site-walk/markup-types";
 
 export const GET = (req: NextRequest, ctx: IdRouteContext) =>
   withAppAuth("punchwalk", req, async ({ admin, orgId }) => {
@@ -52,6 +53,12 @@ export const PATCH = (req: NextRequest, ctx: IdRouteContext) =>
     if (body.upload_state !== undefined) updates.upload_state = body.upload_state;
     if (body.upload_progress !== undefined) updates.upload_progress = body.upload_progress;
     if (body.vector_history !== undefined) updates.vector_history = body.vector_history;
+    if (body.markup_data !== undefined) {
+      if (body.markup_data !== null && !isMarkupData(body.markup_data)) {
+        return badRequest("markup_data must match the MarkupData v1 schema");
+      }
+      updates.markup_data = body.markup_data;
+    }
     if (body.markup_revision !== undefined) updates.markup_revision = body.markup_revision;
     if (body.tags !== undefined) updates.tags = body.tags;
     if (body.trade !== undefined) updates.trade = body.trade;
