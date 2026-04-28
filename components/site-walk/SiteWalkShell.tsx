@@ -12,7 +12,7 @@ import { SiteWalkSegmentedNav } from "@/components/site-walk/SiteWalkSegmentedNa
  * - Full-bleed routes (Live Walk, Plans canvas) hide the segmented nav
  *   so the canvas owns the screen. Full app-shell hide lands in Phase 3.
  */
-export function SiteWalkShell({ children }: { children: ReactNode }) {
+export function SiteWalkShell({ children, userInitials = "SW", orgName = null }: { children: ReactNode; userInitials?: string; orgName?: string | null }) {
   const pathname = usePathname() ?? "";
 
   // Live Walk: /site-walk/walks/<id> (anything past /walks/)
@@ -27,7 +27,7 @@ export function SiteWalkShell({ children }: { children: ReactNode }) {
 
   return (
     <>
-      <SiteWalkTopBar projectName="Site Walk" backHref="/dashboard" />
+      <SiteWalkTopBar projectName="Site Walk" backHref="/dashboard" userInitials={userInitials} orgName={orgName} />
       <SiteWalkSegmentedNav />
       <div className="w-full min-w-0">{children}</div>
     </>

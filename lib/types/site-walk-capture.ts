@@ -22,6 +22,7 @@ export type CaptureItemRecord = {
   priority: ItemPriority;
   item_status: ItemStatus;
   assigned_to: string | null;
+  due_date: string | null;
   capture_mode: SiteWalkCaptureMode;
   sync_state: SiteWalkSyncState;
   upload_state: SiteWalkUploadState;
@@ -36,6 +37,7 @@ export type CaptureItemDraft = {
   priority: ItemPriority;
   status: ItemStatus;
   assignedTo: string;
+  dueDate: string;
   notes: string;
 };
 
@@ -61,6 +63,7 @@ export function captureItemToDraft(item: CaptureItemRecord): CaptureItemDraft {
     priority: item.priority,
     status: item.item_status,
     assignedTo: item.assigned_to ?? "",
+    dueDate: item.due_date ?? "",
     notes: item.description ?? "",
   };
 }

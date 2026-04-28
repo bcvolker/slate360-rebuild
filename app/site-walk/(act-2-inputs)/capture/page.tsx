@@ -5,7 +5,7 @@ import { CaptureNoSsrBoundary } from "./_components/CaptureNoSsrBoundary";
 import type { ActiveWalkSession } from "./_components/session-shell-types";
 
 type Props = {
-  searchParams: Promise<{ session?: string; plan?: string }>;
+  searchParams: Promise<{ session?: string; plan?: string; quick?: string }>;
 };
 
 type SessionRow = ActiveWalkSession & {
@@ -13,7 +13,7 @@ type SessionRow = ActiveWalkSession & {
 };
 
 export default async function SiteWalkCapturePage({ searchParams }: Props) {
-  const { session: sessionId, plan } = await searchParams;
+  const { session: sessionId, plan, quick } = await searchParams;
   const context = await resolveServerOrgContext();
 
   if (!context.user || !context.orgId || !sessionId) {
@@ -40,7 +40,7 @@ export default async function SiteWalkCapturePage({ searchParams }: Props) {
   const session: ActiveWalkSession = { ...data, project_name: project?.name ?? null };
   const showPlanCanvas = plan !== "skip" && !!session.project_id;
 
-  return <CaptureNoSsrBoundary session={session} showPlanCanvas={showPlanCanvas} />;
+  return <CaptureNoSsrBoundary session={session} showPlanCanvas={showPlanCanvas} autoOpenCamera={quick === "camera"} />;
 }
 
 function NoActiveSession() {

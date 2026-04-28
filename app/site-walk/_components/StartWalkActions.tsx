@@ -44,7 +44,7 @@ export function StartWalkActions({ projects, compact = false, variant = "hero" }
     ? "inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl px-5 py-3 text-sm font-black"
     : "inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-black";
 
-  async function startWalk(mode: "ad-hoc" | "project", routeMode: "plan" | "photos") {
+  async function startWalk(mode: "ad-hoc" | "project", routeMode: "plan" | "photos" | "quick") {
     setCreating(mode);
     setError(null);
     try {
@@ -66,7 +66,7 @@ export function StartWalkActions({ projects, compact = false, variant = "hero" }
       const data = (await response.json().catch(() => null)) as SessionResponse | null;
       if (!response.ok || !data?.session?.id) throw new Error(data?.error ?? "Could not start walk");
       const encodedSession = encodeURIComponent(data.session.id);
-      router.push(routeMode === "plan" ? `/site-walk/plans?session=${encodedSession}` : `/site-walk/capture?session=${encodedSession}&plan=skip`);
+      router.push(routeMode === "plan" ? `/site-walk/plans?session=${encodedSession}` : `/site-walk/capture?session=${encodedSession}&plan=skip${routeMode === "quick" ? "&quick=camera" : ""}`);
     } catch (error) {
       setError(error instanceof Error ? error.message : "Could not start walk");
     } finally {
@@ -78,9 +78,9 @@ export function StartWalkActions({ projects, compact = false, variant = "hero" }
   if (compact) {
     return (
       <>
-        <button type="button" onClick={() => setPromptMode("ad-hoc")} disabled={!!creating} className={`${buttonBase} bg-blue-600 text-white transition hover:bg-blue-700 disabled:opacity-60`}>
+        <button type="button" onClick={() => void startWalk("ad-hoc", "quick")} disabled={!!creating} className={`${buttonBase} bg-blue-600 text-white transition hover:bg-blue-700 disabled:opacity-60`}>
           {creating === "ad-hoc" ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-          Start Walk <ArrowRight className="h-4 w-4" />
+          Quick Capture <Camera className="h-4 w-4" />
         </button>
         <StartWalkPlanModal open={!!promptMode} creating={creating} onClose={() => setPromptMode(null)} onSelectPlan={() => void startWalk(promptMode ?? "ad-hoc", "plan")} onPhotosOnly={() => void startWalk(promptMode ?? "ad-hoc", "photos")} />
       </>
@@ -97,8 +97,8 @@ export function StartWalkActions({ projects, compact = false, variant = "hero" }
         </select>
       </label>
       <div className="grid gap-2 sm:grid-cols-2">
-        <button type="button" onClick={() => setPromptMode("ad-hoc")} disabled={!!creating} className={`${buttonBase} border border-slate-300 bg-white text-slate-900 transition hover:border-blue-300 hover:text-blue-800 disabled:opacity-60`}>Start Walk Now</button>
-        <button type="button" onClick={() => setPromptMode("project")} disabled={!!creating || !selectedProject} className={`${buttonBase} bg-blue-600 text-white transition hover:bg-blue-700 disabled:opacity-60`}>{creating === "project" ? "Creating…" : "Start Project Walk"}</button>
+        <button type="button" onClick={() => void startWalk(selectedProject ? "project" : "ad-hoc", "quick")} disabled={!!creating} className={`${buttonBase} bg-blue-600 text-white transition hover:bg-blue-700 disabled:opacity-60`}>{creating ? "Opening camera…" : "Quick Capture"}</button>
+        <button type="button" onClick={() => setPromptMode("project")} disabled={!!creating || !selectedProject} className={`${buttonBase} border border-slate-300 bg-white text-slate-900 transition hover:border-blue-300 hover:text-blue-800 disabled:opacity-60`}>Plan or Photos Walk</button>
       </div>
       <div className="flex items-center justify-between gap-3 text-xs font-semibold text-slate-600">
         <span>Ad-hoc starts immediately. Project-bound carries the selected project context.</span>
@@ -118,7 +118,7 @@ export function StartWalkCardButton({ projects, mode, title, description, iconKe
   const project = projects[0] ?? null;
   const Icon = iconKey === "hardHat" ? HardHat : PlayCircle;
 
-  async function startWalk(routeMode: "plan" | "photos") {
+  async function startWalk(routeMode: "plan" | "photos" | "quick") {
     setCreating(true);
     setError(null);
     try {
@@ -139,7 +139,7 @@ export function StartWalkCardButton({ projects, mode, title, description, iconKe
       const data = (await response.json().catch(() => null)) as SessionResponse | null;
       if (!response.ok || !data?.session?.id) throw new Error(data?.error ?? "Could not start walk");
       const encodedSession = encodeURIComponent(data.session.id);
-      router.push(routeMode === "plan" ? `/site-walk/plans?session=${encodedSession}` : `/site-walk/capture?session=${encodedSession}&plan=skip`);
+      router.push(routeMode === "plan" ? `/site-walk/plans?session=${encodedSession}` : `/site-walk/capture?session=${encodedSession}&plan=skip${routeMode === "quick" ? "&quick=camera" : ""}`);
     } catch (error) {
       setError(error instanceof Error ? error.message : "Could not start walk");
       setCreating(false);
@@ -148,7 +148,7 @@ export function StartWalkCardButton({ projects, mode, title, description, iconKe
 
   return (
     <>
-      <button type="button" onClick={() => setPromptOpen(true)} disabled={creating || (mode === "project" && !project)} className="group rounded-2xl border border-slate-300 bg-white p-5 text-left transition hover:-translate-y-0.5 hover:border-blue-300 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-200 disabled:opacity-60">
+      <button type="button" onClick={() => mode === "ad-hoc" ? void startWalk("quick") : setPromptOpen(true)} disabled={creating || (mode === "project" && !project)} className="group rounded-2xl border border-slate-300 bg-white p-5 text-left transition hover:-translate-y-0.5 hover:border-blue-300 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-200 disabled:opacity-60">
         <div className="flex items-start gap-4">
           <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-blue-200 bg-blue-50 text-blue-800">
             {creating ? <Loader2 className="h-5 w-5 animate-spin" /> : <Icon className="h-5 w-5" />}

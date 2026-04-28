@@ -1,6 +1,7 @@
 "use client";
 
 import { Camera, StickyNote, X } from "lucide-react";
+import { requestCameraCapture } from "./capture-camera-events";
 import { publishPlanCaptureTarget } from "./plan-capture-events";
 
 type Props = {
@@ -16,6 +17,7 @@ type Props = {
 export function PlanQuickActionMenu({ pinId, planSheetId, xPct, yPct, screenX, screenY, onClose }: Props) {
   function choose(action: "photo" | "note") {
     publishPlanCaptureTarget({ pinId, planSheetId, xPct, yPct, action });
+    if (action === "photo") requestCameraCapture("camera", "plan_pin");
     onClose();
   }
 

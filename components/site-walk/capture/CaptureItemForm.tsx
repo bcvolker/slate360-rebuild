@@ -1,6 +1,7 @@
 "use client";
 
-import { Loader2, Sparkles } from "lucide-react";
+import { useState } from "react";
+import { Loader2, Mic, Sparkles } from "lucide-react";
 import { CAPTURE_CLASSIFICATIONS, CAPTURE_ITEM_STATUSES, CAPTURE_PRIORITIES, type CaptureAssignee, type CaptureItemDraft, type CaptureItemRecord } from "@/lib/types/site-walk-capture";
 
 type Props = {
@@ -17,9 +18,44 @@ type Props = {
 const inputClass = "w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-base text-slate-950 outline-none transition focus:border-blue-700 focus:ring-2 focus:ring-blue-700/15";
 const labelClass = "block text-xs font-black uppercase tracking-[0.14em] text-slate-600";
 
+type SpeechRecognitionResultLike = { readonly length: number; [index: number]: { transcript: string } };
+type SpeechRecognitionEventLike = Event & { results: { readonly length: number; [index: number]: SpeechRecognitionResultLike } };
+type SpeechRecognitionLike = {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  onresult: ((event: SpeechRecognitionEventLike) => void) | null;
+  onerror: (() => void) | null;
+  onend: (() => void) | null;
+  start: () => void;
+};
+type SpeechRecognitionCtor = new () => SpeechRecognitionLike;
+
 export function CaptureItemForm({ item, draft, assignees, saveState, aiState, aiMessage, onDraftChange, onFormatNotes }: Props) {
   const assignable = assignees.filter((assignee) => assignee.assignable);
   const contactOnly = assignees.filter((assignee) => !assignee.assignable);
+  const [dictationState, setDictationState] = useState<"idle" | "listening" | "unsupported" | "error">("idle");
+
+  function startDictation() {
+    const speechWindow = window as Window & { SpeechRecognition?: SpeechRecognitionCtor; webkitSpeechRecognition?: SpeechRecognitionCtor };
+    const Recognition = speechWindow.SpeechRecognition ?? speechWindow.webkitSpeechRecognition;
+    if (!Recognition) {
+      setDictationState("unsupported");
+      return;
+    }
+    const recognition = new Recognition();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = "en-US";
+    recognition.onresult = (event) => {
+      const text = Array.from({ length: event.results.length }, (_, index) => event.results[index][0]?.transcript ?? "").join(" ").trim();
+      if (text) onDraftChange({ notes: `${draft.notes}${draft.notes.trim() ? "\n" : ""}${text}` });
+    };
+    recognition.onerror = () => setDictationState("error");
+    recognition.onend = () => setDictationState((current) => current === "listening" ? "idle" : current);
+    setDictationState("listening");
+    recognition.start();
+  }
 
   return (
     <div className="space-y-4">
@@ -47,6 +83,10 @@ export function CaptureItemForm({ item, draft, assignees, saveState, aiState, ai
         <FieldSelect label="Priority" value={draft.priority} values={CAPTURE_PRIORITIES} onChange={(value) => onDraftChange({ priority: value as CaptureItemDraft["priority"] })} />
         <FieldSelect label="Status" value={draft.status} values={CAPTURE_ITEM_STATUSES} onChange={(value) => onDraftChange({ status: value as CaptureItemDraft["status"] })} />
         <label className="space-y-2">
+          <span className={labelClass}>Due date</span>
+          <input type="date" value={draft.dueDate} onChange={(event) => onDraftChange({ dueDate: event.target.value })} className={inputClass} />
+        </label>
+        <label className="space-y-2">
           <span className={labelClass}>Assignee</span>
           <select value={draft.assignedTo} onChange={(event) => onDraftChange({ assignedTo: event.target.value })} className={inputClass}>
             <option value="">Unassigned</option>
@@ -64,16 +104,24 @@ export function CaptureItemForm({ item, draft, assignees, saveState, aiState, ai
             {aiState === "formatting" ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />} Format with AI
           </button>
         </span>
-        <textarea
-          value={draft.notes}
-          onChange={(event) => onDraftChange({ notes: event.target.value })}
-          rows={7}
-          inputMode="text"
-          placeholder="Tap here and use the native keyboard microphone to dictate. The drawer adds extra focus padding so the keyboard never covers this text."
-          className={`${inputClass} min-h-44 resize-y scroll-mt-28 leading-7`}
-        />
+        <div className="relative">
+          <textarea
+            value={draft.notes}
+            onChange={(event) => onDraftChange({ notes: event.target.value })}
+            rows={7}
+            inputMode="text"
+            placeholder="Tap the mic to dictate, or type field notes. The drawer adds focus padding so the keyboard never covers this text."
+            className={`${inputClass} min-h-44 resize-y scroll-mt-28 pr-14 leading-7`}
+          />
+          <button type="button" onClick={startDictation} className="absolute right-3 top-3 inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-sm transition hover:bg-blue-700" aria-label="Start voice dictation">
+            <Mic className="h-5 w-5" />
+          </button>
+        </div>
       </label>
 
+      {dictationState === "listening" && <p className="text-xs font-black text-blue-800">Listening… speak your note now.</p>}
+      {dictationState === "unsupported" && <p className="text-xs font-bold text-amber-800">Voice recognition is not available in this browser. Use the keyboard microphone instead.</p>}
+      {dictationState === "error" && <p className="text-xs font-bold text-rose-700">Dictation could not start. Check microphone permission and try again.</p>}
       {aiMessage && <AiMessage state={aiState} message={aiMessage} />}
     </div>
   );

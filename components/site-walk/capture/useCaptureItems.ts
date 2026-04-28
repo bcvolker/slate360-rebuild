@@ -113,6 +113,7 @@ export function useCaptureItems({ sessionId, projectId }: HookArgs) {
       priority: nextDraft.priority,
       item_status: nextDraft.status,
       assigned_to: nextDraft.assignedTo || null,
+      due_date: nextDraft.dueDate || null,
       sync_state: "synced",
     };
     try {
@@ -196,6 +197,7 @@ function patchLocalItem(item: CaptureItemRecord, draft: CaptureItemDraft): Captu
     priority: draft.priority,
     item_status: draft.status,
     assigned_to: draft.assignedTo || null,
+    due_date: draft.dueDate || null,
     sync_state: "pending",
     updated_at: new Date().toISOString(),
   };

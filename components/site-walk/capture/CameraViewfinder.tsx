@@ -5,6 +5,7 @@ import { Camera, FileImage, Loader2, Mic, PencilLine, RotateCcw } from "lucide-r
 import { useCaptureUpload } from "@/lib/hooks/useCaptureUpload";
 import { createOfflineId } from "@/lib/site-walk/offline-db";
 import type { CaptureItemRecord } from "@/lib/types/site-walk-capture";
+import { requestCameraCapture, subscribeCameraCapture } from "./capture-camera-events";
 import { publishCaptureItemFocus } from "./capture-item-events";
 import { PhotoMarkupCanvas } from "./PhotoMarkupCanvas";
 import { usePlanCaptureTarget } from "./plan-capture-events";
@@ -12,9 +13,10 @@ import { VECTOR_TOOL_EVENT } from "./UnifiedVectorToolbar";
 
 type Props = {
   sessionId: string;
+  autoOpenCamera?: boolean;
 };
 
-export function CameraViewfinder({ sessionId }: Props) {
+export function CameraViewfinder({ sessionId, autoOpenCamera = false }: Props) {
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const uploadInputRef = useRef<HTMLInputElement>(null);
   const [mounted, setMounted] = useState(false);
@@ -26,6 +28,20 @@ export function CameraViewfinder({ sessionId }: Props) {
   const busy = status.kind === "uploading" || status.kind === "saving";
 
   useEffect(() => setMounted(true), []);
+
+  useEffect(() => {
+    if (!mounted) return;
+    return subscribeCameraCapture((detail) => {
+      if (detail.input === "camera") cameraInputRef.current?.click();
+      else uploadInputRef.current?.click();
+    });
+  }, [mounted]);
+
+  useEffect(() => {
+    if (!mounted || !autoOpenCamera) return;
+    const timeout = window.setTimeout(() => cameraInputRef.current?.click(), 350);
+    return () => window.clearTimeout(timeout);
+  }, [autoOpenCamera, mounted]);
 
   useEffect(() => () => {
     if (activePreview?.url) URL.revokeObjectURL(activePreview.url);
@@ -65,14 +81,24 @@ export function CameraViewfinder({ sessionId }: Props) {
       <div className="rounded-3xl bg-slate-50 p-4 ring-1 ring-slate-300">
         <div className="flex min-h-[280px] flex-col items-center justify-center text-center">
           {activePreview ? (
-            <PhotoMarkupCanvas imageUrl={activePreview.url} title={activePreview.title} />
+            <div className="w-full space-y-3">
+              <PhotoMarkupCanvas imageUrl={activePreview.url} title={activePreview.title} />
+              <div className="grid gap-2 sm:grid-cols-2">
+                <button type="button" onClick={() => requestCameraCapture("camera", "next_item")} disabled={busy || !mounted} className="min-h-12 rounded-2xl bg-blue-600 px-4 py-3 text-base font-black text-white shadow-sm transition hover:bg-blue-700 disabled:opacity-60">
+                  <span className="inline-flex items-center gap-2"><Camera className="h-5 w-5" /> Capture next item</span>
+                </button>
+                <button type="button" onClick={() => requestCameraCapture("upload", "next_item")} disabled={busy || !mounted} className="min-h-12 rounded-2xl border border-slate-300 bg-white px-4 py-3 text-base font-black text-slate-900 transition hover:border-blue-300 hover:text-blue-800 disabled:opacity-60">
+                  <span className="inline-flex items-center gap-2"><FileImage className="h-5 w-5" /> Upload next image</span>
+                </button>
+              </div>
+            </div>
           ) : (
             <>
           <Camera className="h-12 w-12 text-blue-800 md:hidden" />
           <FileImage className="hidden h-12 w-12 text-blue-800 md:block" />
           <h2 className="mt-4 text-2xl font-black text-slate-950">Capture field proof</h2>
           <p className="mt-2 max-w-lg text-sm leading-6 text-slate-700">
-            Photos are metered before upload, stored through SlateDrop, and saved to the active walk with timestamp and GPS metadata when available.
+            One tap opens the camera. The image appears immediately, the drawer opens for notes/classification, and upload/offline sync continues in the background.
           </p>
 
           <div className="mt-6 grid w-full max-w-xl gap-3 md:hidden">
@@ -142,6 +168,7 @@ function buildLocalPhotoItem(sessionId: string, file: File, previewUrl: string, 
     priority: "medium",
     item_status: "open",
     assigned_to: null,
+    due_date: null,
     capture_mode: "camera",
     sync_state: "pending",
     upload_state: "queued",

@@ -7,16 +7,17 @@ import { cn } from "@/lib/utils";
 type Tab = { href: string; label: string };
 
 const BASE_TABS: Tab[] = [
-  { href: "/site-walk", label: "Home" },
-  { href: "/site-walk/walks", label: "Walks" },
-  { href: "/site-walk/capture", label: "Capture" },
+  { href: "/site-walk", label: "My Dashboard" },
+  { href: "/site-walk/walks", label: "Active Walks" },
   { href: "/site-walk/assigned-work", label: "Assigned Work" },
 ];
 
 const WEB_TABS: Tab[] = [
-  ...BASE_TABS,
-  { href: "/site-walk/plans", label: "Plans" },
+  { href: "/site-walk", label: "My Dashboard" },
   { href: "/site-walk/deliverables", label: "Deliverables" },
+  { href: "/site-walk/walks", label: "Active Walks" },
+  { href: "/site-walk/plans", label: "Plan Room" },
+  { href: "/site-walk/setup", label: "Setup & Branding" },
 ];
 
 const TABS: Tab[] =

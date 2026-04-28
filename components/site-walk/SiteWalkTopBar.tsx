@@ -3,7 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ChevronDown, MoreHorizontal } from "lucide-react";
+import { ArrowLeft, Bug, ChevronDown, Share2 } from "lucide-react";
+import { BetaFeedbackModal } from "@/components/shared/BetaFeedbackModal";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -11,6 +12,8 @@ type Props = {
   backHref?: string;
   overflowItems?: { label: string; onClick: () => void; danger?: boolean }[];
   onProjectClick?: () => void;
+  userInitials: string;
+  orgName: string | null;
 };
 
 /**
@@ -21,11 +24,26 @@ type Props = {
 export function SiteWalkTopBar({
   projectName = "Site Walk",
   backHref,
-  overflowItems = [],
   onProjectClick,
+  userInitials,
+  orgName,
 }: Props) {
   const router = useRouter();
-  const [overflowOpen, setOverflowOpen] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [shareMessage, setShareMessage] = useState<string | null>(null);
+
+  async function shareCurrentView() {
+    const url = window.location.href;
+    try {
+      if (navigator.share) await navigator.share({ title: "Slate360 Site Walk", url });
+      else await navigator.clipboard.writeText(url);
+      setShareMessage("Link copied");
+      window.setTimeout(() => setShareMessage(null), 1800);
+    } catch {
+      setShareMessage("Share unavailable");
+      window.setTimeout(() => setShareMessage(null), 1800);
+    }
+  }
 
   return (
     <header
@@ -37,7 +55,7 @@ export function SiteWalkTopBar({
       <button
         type="button"
         onClick={() => (backHref ? router.push(backHref) : router.back())}
-        className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground hover:bg-white/[0.04] hover:text-foreground transition-colors"
+        className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-950"
         aria-label="Back"
       >
         <ArrowLeft className="h-5 w-5" />
@@ -46,54 +64,24 @@ export function SiteWalkTopBar({
       <button
         type="button"
         onClick={onProjectClick}
-        className="flex flex-1 items-center gap-1 truncate rounded-lg px-2 py-1.5 text-left hover:bg-white/[0.04] transition-colors"
+        className="flex flex-1 items-center gap-1 truncate rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-slate-100"
       >
-        <span className="truncate text-base font-semibold text-foreground">
+        <span className="truncate text-base font-black text-slate-950">
           {projectName}
         </span>
-        {onProjectClick && <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />}
+        {onProjectClick && <ChevronDown className="h-4 w-4 shrink-0 text-slate-600" />}
       </button>
 
-      {overflowItems.length > 0 && (
-        <div className="relative">
-          <button
-            type="button"
-            onClick={() => setOverflowOpen((v) => !v)}
-            className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground hover:bg-white/[0.04] hover:text-foreground transition-colors"
-            aria-label="More options"
-            aria-expanded={overflowOpen}
-          >
-            <MoreHorizontal className="h-5 w-5" />
-          </button>
-          {overflowOpen && (
-            <>
-              <div
-                className="fixed inset-0 z-30"
-                onClick={() => setOverflowOpen(false)}
-                aria-hidden
-              />
-              <div className="absolute right-0 top-full mt-1 z-40 min-w-[12rem] rounded-xl border border-app bg-app-card shadow-xl overflow-hidden">
-                {overflowItems.map((item) => (
-                  <button
-                    key={item.label}
-                    type="button"
-                    onClick={() => {
-                      item.onClick();
-                      setOverflowOpen(false);
-                    }}
-                    className={cn(
-                      "block w-full px-4 py-2.5 text-left text-sm transition-colors hover:bg-white/[0.04]",
-                      item.danger ? "text-red-400" : "text-foreground"
-                    )}
-                  >
-                    {item.label}
-                  </button>
-                ))}
-              </div>
-            </>
-          )}
-        </div>
-      )}
+      {shareMessage && <span className="hidden rounded-full bg-emerald-50 px-2 py-1 text-xs font-black text-emerald-800 sm:inline-flex">{shareMessage}</span>}
+      <button type="button" onClick={() => setFeedbackOpen(true)} className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-950" aria-label="Report a bug">
+        <Bug className="h-5 w-5" />
+      </button>
+      <button type="button" onClick={() => void shareCurrentView()} className="hidden h-9 items-center justify-center gap-2 rounded-xl bg-blue-600 px-3 text-sm font-black text-white transition hover:bg-blue-700 sm:inline-flex" aria-label="Share this Site Walk view">
+        <Share2 className="h-4 w-4" /> Share
+      </button>
+      <Link href="/settings" className="flex h-9 min-w-9 items-center justify-center rounded-full border border-slate-300 bg-white px-2 text-xs font-black text-slate-950" aria-label={`Open settings for ${orgName ?? "organization"}`}>
+        {userInitials}
+      </Link>
 
       {/* Hidden link kept so router-less back stays available */}
       {backHref && (
@@ -101,6 +89,7 @@ export function SiteWalkTopBar({
           Back to dashboard
         </Link>
       )}
+      <BetaFeedbackModal open={feedbackOpen} onOpenChange={setFeedbackOpen} />
     </header>
   );
 }
