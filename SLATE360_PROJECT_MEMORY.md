@@ -196,6 +196,29 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
+### Session Handoff — 2026-04-29 (Capture Carousel Semantics + Markup Editing)
+
+#### What Changed
+- `components/site-walk/capture/VisualCaptureView.tsx` — changed Last Location, Angles, and Progress from button-like pills inside each carousel into plain labels above each black horizontal thumbnail scroll bar.
+- `components/site-walk/capture/VisualCaptureView.tsx` — removed the redundant plus button between Markup and Files; only Angles/Progress keep plus actions for adding angle/progress captures.
+- `components/site-walk/capture/VisualCaptureView.tsx` — changed the top center Photos-only control into a dropdown for future project attachment, and changed the top-right current-location control into a Next button for moving to data entry.
+- `components/site-walk/capture/PhotoMarkupCanvas.tsx` — newly drawn shapes and text now immediately switch into Select mode and become selected so users can move, resize, edit text, or delete after drawing.
+- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — added Prompt 10G audit row for this correction.
+
+#### What's Broken / Partially Done
+- The Photos-only dropdown is visual/semantic only for now; actual attach-to-field-project behavior still needs data wiring.
+- Progress thumbnails still derive from current same-location session items; true historical progress/before-after fetch remains pending.
+- The user-uploaded reference image `public/uploads/marked up.jpg` remains untracked and intentionally not committed unless requested.
+
+#### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md` — this handoff.
+- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — Prompt 10G audit row.
+
+#### Next Steps (ordered)
+1. Mobile-test creating a box/circle/arrow/text shape, then confirm it is immediately selected and can be moved/resized/deleted.
+2. Wire the Photos-only dropdown to attach an ad-hoc walk to a real field project.
+3. Wire true Stops and historical Progress data sources instead of deriving both from current photo items only.
+
 ### Session Handoff — 2026-04-29 (VisualCaptureView Sketch Alignment)
 
 #### What Changed
