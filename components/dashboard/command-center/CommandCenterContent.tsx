@@ -23,7 +23,7 @@ interface CommandCenterContentProps {
 
 export function CommandCenterContent({ storageLimitGb, entitlements = null }: CommandCenterContentProps) {
   return (
-    <div className="mx-auto grid h-full w-full max-w-6xl grid-rows-[42%_18%_minmax(0,1fr)] gap-2 overflow-hidden lg:gap-3">
+    <div className="mx-auto grid h-full w-full max-w-6xl grid-rows-[36%_14%_minmax(0,1fr)] gap-2 overflow-hidden lg:gap-3">
       <AppsGrid entitlements={entitlements} />
       <section className="min-h-0 overflow-hidden rounded-3xl border border-slate-300 bg-white p-2 shadow-sm lg:p-3">
         <div className="flex h-full gap-2 overflow-x-auto no-scrollbar" aria-label="Global shortcut carousel">
@@ -36,12 +36,12 @@ export function CommandCenterContent({ storageLimitGb, entitlements = null }: Co
           <ResumeCard href="/projects" label="New Project" detail="Create a shared workspace" icon={<Plus className="h-5 w-5" />} />
         </div>
       </section>
-      <section className="min-h-0 overflow-hidden rounded-3xl border border-slate-300 bg-white p-3 shadow-sm lg:p-4">
-        <div className="mb-2 flex items-center justify-between gap-3">
+      <section className="min-h-0 overflow-hidden rounded-3xl border border-slate-300 bg-white p-2 shadow-sm lg:p-3">
+        <div className="mb-1.5 flex items-center justify-between gap-3">
           <p className="text-[10px] font-black uppercase tracking-[0.18em] text-blue-700">Workspace tray</p>
           <Link href="/coordination" className="rounded-full border border-slate-300 px-3 py-1 text-xs font-black text-slate-700 hover:border-blue-500 hover:text-blue-700">Open</Link>
         </div>
-        <div className="grid h-[calc(100%-36px)] gap-2 overflow-y-auto pr-1 sm:grid-cols-2 no-scrollbar" aria-label="Contained workspace tray">
+        <div className="grid h-[calc(100%-32px)] gap-2 overflow-y-auto pr-1 sm:grid-cols-2 no-scrollbar" aria-label="Contained workspace tray">
           <TrayCard href="/my-work" label="Work queue" detail="Tasks, approvals, and reviews will surface here." icon={<ClipboardCheck className="h-4 w-4" />} />
           <TrayCard href="/coordination/inbox" label="Inbox" detail="Unread threads and stakeholder responses stay contained here." icon={<MessageSquare className="h-4 w-4" />} />
           <TrayCard href="/slatedrop" label="File activity" detail="Recent SlateDrop uploads and shared files will appear here." icon={<Files className="h-4 w-4" />} />
@@ -79,7 +79,7 @@ function ResumeCard({
 
 function TrayCard({ href, label, detail, icon }: { href: string; label: string; detail: string; icon: React.ReactNode }) {
   return (
-    <Link href={href} className="flex min-h-20 items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3 text-left transition hover:border-blue-500 hover:bg-blue-50">
+    <Link href={href} className="flex min-h-16 items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3 text-left transition hover:border-blue-500 hover:bg-blue-50">
       <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white">{icon}</span>
       <span className="min-w-0">
         <p className="text-sm font-black text-slate-950">{label}</p>

@@ -196,23 +196,24 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-29 (Command Center Section Balance)
+### Session Handoff — 2026-04-29 (Command Center Tray Fit)
 
 #### What Changed
-- `components/dashboard/command-center/CommandCenterContent.tsx` — removed the visible `Quick resume` text, Slate360/org text, and `More` button from the horizontal shortcut rail; made that rail much shallower; changed the Command Center into three contained zones: apps, compact shortcuts, and bottom Workspace Tray.
-- `components/dashboard/command-center/CommandCenterContent.tsx` — added the bottom-third Workspace Tray with contained internal scrolling for Work Queue, Inbox, File Activity, and Setup entry points.
-- `slate360-context/DASHBOARD.md` — updated the zero-scroll Command Center documentation to describe the shallow middle rail plus bottom Workspace Tray.
+- `components/dashboard/command-center/CommandCenterContent.tsx` — tightened the zero-scroll grid from a 42% app row / 18% shortcut rail to a 36% app row / 14% shortcut rail so the Workspace Tray gets more lower-screen height and is less likely to be clipped.
+- `components/dashboard/command-center/CommandCenterContent.tsx` — reduced Workspace Tray padding and tray card minimum height to help the contained tray fit on short mobile viewports.
+- `components/dashboard/command-center/AppsGrid.tsx` — condensed the app launcher cards, title pill, gaps, and mobile card heights while preserving the 2×2 Site Walk / 360 Tours / Design Studio / Content Studio order.
+- `slate360-context/DASHBOARD.md` — documented the condensed app row and larger Workspace Tray allocation.
 
 #### What's Broken / Partially Done
 - Workspace Tray cards are still entry-point/empty-state cards, not live activity data.
-- The exact app/shortcut/tray heights may still need visual tuning after reviewing on real phone and desktop breakpoints.
+- The exact app/shortcut/tray heights may still need visual tuning after reviewing on real phone and desktop breakpoints, especially very short mobile screens.
 
 #### Context Files Updated
-- `slate360-context/DASHBOARD.md` — documented the three-zone Command Center structure.
+- `slate360-context/DASHBOARD.md` — documented the tighter app row and larger contained Workspace Tray.
 - `SLATE360_PROJECT_MEMORY.md` — this handoff.
 
 #### Next Steps (ordered)
-1. Review `/dashboard` in mobile PWA viewport and desktop to verify the apps + shortcut rail occupy roughly the upper two-thirds and Workspace Tray owns the bottom third.
+1. Review `/dashboard` in mobile PWA viewport and desktop to verify the Workspace Tray is no longer cut off at the bottom.
 2. Wire Workspace Tray cards to real work queue, inbox, recent file activity, and setup status when data contracts are ready.
 3. Continue with the Site Walk-specific blueprint once provided.
 

@@ -81,17 +81,17 @@ export function AppsGrid({ entitlements: _entitlements }: AppsGridProps) {
   }
 
   return (
-    <section className="flex min-h-0 flex-col overflow-hidden rounded-3xl border border-slate-300 bg-white p-2 shadow-sm sm:p-3">
-      <div className="mb-2 flex items-center justify-center">
-        <h2 className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-blue-700">Apps</h2>
+    <section className="flex min-h-0 flex-col overflow-hidden rounded-3xl border border-slate-300 bg-white p-2 shadow-sm">
+      <div className="mb-1 flex items-center justify-center">
+        <h2 className="rounded-full border border-blue-200 bg-blue-50 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-[0.18em] text-blue-700">Apps</h2>
       </div>
-      <div className="grid min-h-0 flex-1 grid-cols-2 place-content-center place-items-center gap-2 overflow-hidden sm:gap-3">
+      <div className="grid min-h-0 flex-1 grid-cols-2 place-content-center place-items-center gap-1.5 overflow-hidden sm:gap-2">
         {visible.map((app) => {
           const Icon = app.icon;
           const hasAccess = !app.entitlement || (_entitlements?.[app.entitlement] ?? false);
           const card = (
             <div
-              className={`group relative flex h-20 w-28 flex-col items-center justify-center gap-1.5 rounded-2xl border border-slate-300 bg-slate-50 p-2 text-center shadow-sm transition-all duration-200 hover:border-blue-500 hover:bg-blue-50 sm:h-24 sm:w-32 lg:h-24 lg:w-36 ${hasAccess ? "" : "opacity-70"}`}
+              className={`group relative flex h-16 w-28 flex-col items-center justify-center gap-1 rounded-2xl border border-slate-300 bg-slate-50 p-2 text-center shadow-sm transition-all duration-200 hover:border-blue-500 hover:bg-blue-50 sm:h-20 sm:w-32 lg:h-20 lg:w-36 ${hasAccess ? "" : "opacity-70"}`}
             >
               {!hasAccess && (
                 <span className="absolute right-2 top-2 rounded-full border border-slate-300 bg-white px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-slate-600">
@@ -103,14 +103,14 @@ export function AppsGrid({ entitlements: _entitlements }: AppsGridProps) {
                   Soon
                 </span>
               )}
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600 text-white shadow-lg shadow-blue-500/20 transition-transform group-hover:scale-105">
+              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-600 text-white shadow-lg shadow-blue-500/20 transition-transform group-hover:scale-105">
                 <Icon className="h-4 w-4" />
               </div>
               <div className="min-w-0 space-y-1">
                 <h3 className="truncate text-xs font-black text-slate-900 group-hover:text-blue-700 sm:text-sm">
                   {app.name}
                 </h3>
-                <p className="hidden text-[10px] leading-3 text-slate-600 sm:line-clamp-2 sm:block">
+                <p className="hidden text-[10px] leading-3 text-slate-600 lg:line-clamp-1 lg:block">
                   {app.tagline}
                 </p>
               </div>

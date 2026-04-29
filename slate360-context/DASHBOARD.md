@@ -97,9 +97,9 @@ Future unread counts should be computed from inbox rows and surfaced on both des
 
 The Command Center follows the zero-scroll blueprint:
 
-- Top content: compact centered 2×2 app tiles for Site Walk, 360 Tours, Design Studio, and Content Studio. Site Walk remains visible/clickable during development; the next three apps stay represented as coming-soon app tiles so the launcher does not collapse to a single app.
-- Middle content: a shallow horizontal shortcut rail for Active Projects, Recent Files, Draft Deliverables, My Work, Coordination, Settings, and New Project. It does not render extra title text above the rail.
-- Bottom content: a contained Workspace Tray occupying the remaining lower third, with its own internal scroll area for work queue, inbox, file activity, and setup entry points.
+- Top content: condensed centered 2×2 app tiles for Site Walk, 360 Tours, Design Studio, and Content Studio. Site Walk remains visible/clickable during development; the next three apps stay represented as coming-soon app tiles so the launcher does not collapse to a single app. Keep this row shorter than the Workspace Tray so small mobile screens do not clip the tray.
+- Middle content: a very shallow horizontal shortcut rail for Active Projects, Recent Files, Draft Deliverables, My Work, Coordination, Settings, and New Project. It does not render extra title text above the rail.
+- Bottom content: a contained Workspace Tray occupying the largest remaining lower area, with its own internal scroll area for work queue, inbox, file activity, and setup entry points.
 - Search and global actions live in shell chrome/menus instead of taking vertical space on the home surface.
 
 ### Command Center Quick Actions (Legacy Reference)
