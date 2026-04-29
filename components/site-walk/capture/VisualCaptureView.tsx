@@ -1,7 +1,7 @@
 "use client";
 
 import { Camera, ChevronLeft, ChevronRight, Paperclip, Plus, RotateCcw, RotateCw, Trash2, X } from "lucide-react";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import type { MarkupData } from "@/lib/site-walk/markup-types";
 import { getPhotoAttachmentPins, type PhotoAttachmentPin } from "@/lib/site-walk/photo-attachments";
 import type { CaptureItemRecord } from "@/lib/types/site-walk-capture";
@@ -53,9 +53,9 @@ export function VisualCaptureView({ sessionId, autoOpenCamera, launchId, items, 
         </div>
       </main>
 
+      <AngleCarousel items={angleItems.length > 0 ? angleItems : photoItems} activeItemId={activeItemId} revealedThumbKey={revealedThumbKey} onReveal={setRevealedThumbKey} onSelectItem={onSelectItem} />
       <CaptureActionBar pinCount={activePins.length} markupMode={markupMode} onToggleMarkup={() => setMarkupMode((current) => !current)} onOpenAttachments={() => setAttachmentsOpen(true)} />
       {markupMode && <div className="shrink-0 border-b border-white/10 bg-black px-2 py-1"><UnifiedVectorToolbar /></div>}
-      <AngleCarousel items={angleItems.length > 0 ? angleItems : photoItems} activeItemId={activeItemId} revealedThumbKey={revealedThumbKey} onReveal={setRevealedThumbKey} onSelectItem={onSelectItem} />
       <ProgressTimeline items={progressItems} ghostOn={ghostOn} ghostAvailable={!!ghostImageUrl} revealedThumbKey={revealedThumbKey} onReveal={setRevealedThumbKey} onToggleGhost={() => setGhostOn((current) => !current)} onAdd={() => { setGhostOn(true); requestCameraCapture("camera", "next_item"); }} onSelectItem={onSelectItem} />
 
       {attachmentsOpen && (
@@ -96,10 +96,10 @@ function StopCarousel({ items, activeItemId, revealedThumbKey, onReveal, onSelec
   return (
     <section className="shrink-0 bg-transparent py-1" aria-label="Locations and stops">
       <p className="mb-1 px-2 text-[10px] font-black uppercase tracking-[0.16em] text-white/55">Last location / stops</p>
-      <div className="flex h-16 w-full gap-2 overflow-x-auto border-y-2 border-white/25 bg-black/75 p-1 backdrop-blur-sm no-scrollbar">
+      <RailShell heightClass="h-16">
         {items.map((item, index) => <ThumbButton key={item.id} item={item} thumbKey={`stop-${item.id}`} active={item.id === activeItemId} revealed={revealedThumbKey === `stop-${item.id}`} label={item.title || `Stop ${index + 1}`} onReveal={onReveal} onOpen={() => onSelectItem(item)} onDoubleClick={() => { onSelectItem(item); onOpenEdit(); }} />)}
         <button type="button" onClick={() => requestCameraCapture("camera", "next_item")} className="flex aspect-square h-full shrink-0 items-center justify-center border border-blue-400/70 bg-blue-500/15 text-blue-100" aria-label="Add stop"><Plus className="h-6 w-6" /></button>
-      </div>
+      </RailShell>
     </section>
   );
 }
@@ -119,10 +119,10 @@ function AngleCarousel({ items, activeItemId, revealedThumbKey, onReveal, onSele
   return (
     <section className="shrink-0 bg-transparent py-1" aria-label="Angles">
       <p className="mb-1 px-2 text-[10px] font-black uppercase tracking-[0.16em] text-white/55">Angles</p>
-      <div className="flex h-16 w-full gap-2 overflow-x-auto border-y-2 border-white/25 bg-black/75 p-1 backdrop-blur-sm no-scrollbar">
+      <RailShell heightClass="h-16">
         <button type="button" onClick={() => requestCameraCapture("camera", "next_item")} className="flex aspect-square h-full shrink-0 items-center justify-center border border-blue-400/70 bg-blue-500/15 text-blue-100" aria-label="Add angle"><Plus className="h-6 w-6" /></button>
         {items.map((item) => <ThumbButton key={item.id} item={item} thumbKey={`angle-${item.id}`} active={item.id === activeItemId} revealed={revealedThumbKey === `angle-${item.id}`} label={item.title || "Angle"} onReveal={onReveal} onOpen={() => onSelectItem(item)} />)}
-      </div>
+      </RailShell>
     </section>
   );
 }
@@ -131,12 +131,24 @@ function ProgressTimeline({ items, ghostOn, ghostAvailable, revealedThumbKey, on
   return (
     <section className="shrink-0 bg-transparent pb-1 pt-1" aria-label="Progress">
       <p className="mb-1 px-2 text-[10px] font-black uppercase tracking-[0.16em] text-white/55">Progress / before & after</p>
-      <div className="flex h-14 w-full gap-2 overflow-x-auto border-y-2 border-white/25 bg-black/75 p-1 backdrop-blur-sm no-scrollbar">
+      <RailShell heightClass="h-14">
         <button type="button" onClick={onAdd} className="flex aspect-square h-full shrink-0 items-center justify-center border border-blue-400/70 bg-blue-500/15 text-blue-100" aria-label="Add progress photo"><Plus className="h-5 w-5" /></button>
         {ghostAvailable && <button type="button" onClick={onToggleGhost} className={`min-w-24 rounded-xl border px-2 text-[10px] font-black ${ghostOn ? "border-blue-400 bg-blue-500/20 text-blue-100" : "border-white/15 bg-white/10 text-white/70"}`}>Ghost align</button>}
         {items.map((item) => <ThumbButton key={item.id} item={item} thumbKey={`progress-${item.id}`} active={false} revealed={revealedThumbKey === `progress-${item.id}`} label={new Date(item.created_at).toLocaleDateString()} onReveal={onReveal} onOpen={() => onSelectItem(item)} />)}
-      </div>
+      </RailShell>
     </section>
+  );
+}
+
+function RailShell({ heightClass, children }: { heightClass: string; children: ReactNode }) {
+  return (
+    <div className="relative mx-2 overflow-hidden border-y-2 border-white/25 bg-black/75 backdrop-blur-sm">
+      <div className={`flex ${heightClass} gap-2 overflow-x-auto p-1 no-scrollbar`}>
+        {children}
+      </div>
+      <div className="pointer-events-none absolute inset-y-0 left-0 w-7 bg-gradient-to-r from-black/90 to-transparent" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 w-7 bg-gradient-to-l from-black/90 to-transparent" />
+    </div>
   );
 }
 
