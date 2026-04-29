@@ -67,10 +67,10 @@ export function useCaptureItems({ sessionId, projectId }: HookArgs) {
     fetch(`/api/site-walk/items?session_id=${encodeURIComponent(sessionId)}`, { cache: "no-store" })
       .then((response) => response.json() as Promise<ItemsResponse>)
       .then((data) => {
-        if (!cancelled) setItems(data.items ?? []);
+        if (!cancelled) setItems((current) => mergeItems(current, data.items ?? []));
       })
       .catch(() => {
-        if (!cancelled) setItems([]);
+        if (!cancelled) setItems((current) => current);
       });
     void loadOfflineItemsForSession(sessionId).then((offlineItems) => {
       if (!cancelled && offlineItems.length > 0) setItems((current) => mergeItems(current, offlineItems));

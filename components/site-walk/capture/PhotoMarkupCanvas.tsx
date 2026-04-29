@@ -186,7 +186,7 @@ export function PhotoMarkupCanvas({ imageUrl, title, sessionId, markupEnabled, i
           {shapes.map((shape) => renderShape(shape, "", selectedId === shape.id, (event) => beginShapeDrag(event, shape)))}
           {draftStart && draftPoints.length >= 4 && renderShape(buildShape(tool, draftStart, draftPoints, color), "draft", false)}
         </svg>
-        <PhotoAttachmentPins sessionId={sessionId} pins={attachmentPins} draftPin={draftPin} onDraftClose={() => setDraftPin(null)} onPinsChange={(pins) => onAttachmentPinsChange?.(pins)} />
+        <PhotoAttachmentPins sessionId={sessionId} pins={attachmentPins} draftPin={draftPin} transform={transform} onDraftClose={() => setDraftPin(null)} onPinsChange={(pins) => onAttachmentPinsChange?.(pins)} />
         {editingTextId && <TextEditor shape={shapes.find((shape) => shape.id === editingTextId)} onChange={(value) => updateText(editingTextId, value)} onDone={() => setEditingTextId(null)} />}
         {selectedId && <SelectionMenu onDelete={deleteSelected} onBigger={() => resizeSelected(1.14)} onSmaller={() => resizeSelected(0.88)} onEditText={() => setEditingTextId(selectedId)} />}
       </div>

@@ -1,43 +1,50 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FileUp, Loader2, Paperclip, Trash2, X } from "lucide-react";
 import { PHOTO_ATTACHMENT_MAX_FILE_BYTES, PHOTO_ATTACHMENT_MAX_FILES, type PhotoAttachmentFile, type PhotoAttachmentPin } from "@/lib/site-walk/photo-attachments";
 
 type DraftPin = { xPct: number; yPct: number } | null;
+type Transform = { x: number; y: number; scale: number };
 type UploadResponse = { uploadUrl?: string; fileId?: string; error?: string };
 
 type Props = {
   sessionId: string;
   pins: PhotoAttachmentPin[];
   draftPin: DraftPin;
+  transform: Transform;
   onDraftClose: () => void;
   onPinsChange: (pins: PhotoAttachmentPin[]) => void;
 };
 
-export function PhotoAttachmentPins({ sessionId, pins, draftPin, onDraftClose, onPinsChange }: Props) {
+export function PhotoAttachmentPins({ sessionId, pins, draftPin, transform, onDraftClose, onPinsChange }: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [localPins, setLocalPins] = useState(pins);
   const [label, setLabel] = useState("");
   const [note, setNote] = useState("");
   const [files, setFiles] = useState<PhotoAttachmentFile[]>([]);
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
+  useEffect(() => setLocalPins(pins), [pins]);
+
   async function uploadFiles(fileList: FileList | null) {
-    const nextFiles = Array.from(fileList ?? []).slice(0, PHOTO_ATTACHMENT_MAX_FILES - files.length);
-    if (nextFiles.length === 0) return;
+    const selectedFiles = Array.from(fileList ?? []).slice(0, PHOTO_ATTACHMENT_MAX_FILES - files.length);
+    if (selectedFiles.length === 0) return;
     setUploading(true);
     setMessage(null);
     try {
       const uploaded: PhotoAttachmentFile[] = [];
-      for (const file of nextFiles) {
+      for (const file of selectedFiles) {
         if (file.size > PHOTO_ATTACHMENT_MAX_FILE_BYTES) throw new Error(`${file.name} is over 25MB.`);
         const prepared = await prepareUpload(sessionId, file);
         await putFile(prepared.uploadUrl, file);
         await completeUpload(prepared.fileId);
         uploaded.push({ id: prepared.fileId, name: file.name, size: file.size, type: file.type || "application/octet-stream" });
       }
-      setFiles((current) => [...current, ...uploaded].slice(0, PHOTO_ATTACHMENT_MAX_FILES));
+      const savedFiles = [...files, ...uploaded].slice(0, PHOTO_ATTACHMENT_MAX_FILES);
+      setFiles(savedFiles);
+      if (draftPin) savePin(savedFiles);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "File upload failed.");
     } finally {
@@ -46,18 +53,20 @@ export function PhotoAttachmentPins({ sessionId, pins, draftPin, onDraftClose, o
     }
   }
 
-  function savePin() {
+  function savePin(pinFiles = files) {
     if (!draftPin) return;
     const nextPin: PhotoAttachmentPin = {
       id: `photo-pin-${Date.now()}`,
       xPct: draftPin.xPct,
       yPct: draftPin.yPct,
-      label: label.trim() || "Pinned file",
+      label: label.trim() || pinFiles[0]?.name || "Pinned file",
       note: note.trim(),
-      files,
+      files: pinFiles,
       createdAt: new Date().toISOString(),
     };
-    onPinsChange([...pins, nextPin]);
+    const nextPins = [...localPins, nextPin];
+    setLocalPins(nextPins);
+    onPinsChange(nextPins);
     resetModal();
   }
 
@@ -70,16 +79,18 @@ export function PhotoAttachmentPins({ sessionId, pins, draftPin, onDraftClose, o
   }
 
   function removePin(pinId: string) {
-    onPinsChange(pins.filter((pin) => pin.id !== pinId));
+    const nextPins = localPins.filter((pin) => pin.id !== pinId);
+    setLocalPins(nextPins);
+    onPinsChange(nextPins);
   }
 
   return (
     <>
-      <div className="pointer-events-none absolute inset-0">
-        {pins.map((pin) => (
+      <div className="pointer-events-none absolute inset-0" style={{ transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})`, transformOrigin: "center" }}>
+        {localPins.map((pin) => (
           <div key={pin.id} className="pointer-events-auto absolute -translate-x-1/2 -translate-y-1/2" style={{ left: `${pin.xPct}%`, top: `${pin.yPct}%` }}>
-            <div className="group flex items-center gap-1 rounded-full border border-white/30 bg-black/60 px-2 py-1 text-[10px] font-black text-white shadow-lg backdrop-blur-md">
-              <Paperclip className="h-3 w-3 text-blue-300" />
+            <div className="group flex h-9 min-w-9 items-center justify-center gap-1 rounded-full border-2 border-blue-200 bg-blue-600/90 px-2 text-[10px] font-black text-white shadow-[0_0_0_3px_rgba(0,0,0,0.45)] backdrop-blur-md">
+              <Paperclip className="h-4 w-4 text-white" />
               <span className="max-w-24 truncate opacity-0 transition group-hover:opacity-100 group-focus-within:opacity-100">{pin.label}</span>
               <button type="button" onClick={() => removePin(pin.id)} className="ml-1 rounded-full bg-white/15 p-1 text-white" aria-label={`Delete ${pin.label}`}><X className="h-3 w-3" /></button>
             </div>
@@ -105,7 +116,7 @@ export function PhotoAttachmentPins({ sessionId, pins, draftPin, onDraftClose, o
             <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploading || files.length >= PHOTO_ATTACHMENT_MAX_FILES} className="inline-flex min-h-10 items-center gap-2 rounded-2xl bg-blue-600 px-3 text-sm font-black text-white disabled:opacity-50">
               {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileUp className="h-4 w-4" />} Add files
             </button>
-            <button type="button" onClick={savePin} disabled={!label.trim() && files.length === 0} className="min-h-10 rounded-2xl bg-white px-4 text-sm font-black text-zinc-950 disabled:opacity-50">Save pin</button>
+            <button type="button" onClick={() => savePin()} disabled={!label.trim() && files.length === 0} className="min-h-10 rounded-2xl bg-white px-4 text-sm font-black text-zinc-950 disabled:opacity-50">Save pin</button>
             {message && <span className="text-xs font-bold text-rose-200">{message}</span>}
           </div>
           {files.length > 0 && <div className="mt-3 flex gap-2 overflow-x-auto pb-1 no-scrollbar">{files.map((file) => <FileChip key={file.id} file={file} onRemove={() => setFiles((current) => current.filter((item) => item.id !== file.id))} />)}</div>}

@@ -196,9 +196,15 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-29 (Capture Overlay + Mobile Performance)
+### Session Handoff — 2026-04-29 (Pinned Files + Optional Next Photo)
 
 #### What Changed
+- `components/site-walk/capture/useCaptureItems.ts` — initial server item load now merges into the current local optimistic list instead of replacing it, preventing a just-captured active photo from disappearing while upload/reconciliation is in flight.
+- `components/site-walk/capture/PhotoAttachmentPins.tsx` — file upload now auto-saves the pin, updates visible local pins immediately, uses a larger blue paperclip marker, and keeps markers aligned with the zoom/pan transform.
+- `components/site-walk/capture/PhotoMarkupCanvas.tsx` — passes the current canvas transform to pinned-file markers.
+- `components/site-walk/capture/DataContextView.tsx` — changed the fallback copy from angle-first to photo-first and added a `Done with this photo` primary action so users are not forced into another angle/photo.
+- `ops/bug-registry.json` and `slate360-context/ONGOING_ISSUES.md` — logged/fixed BUG-038 for missing pinned files and forced angle flow.
+- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — added Prompt 10M audit row for pinned files and optional next-photo flow.
 - `components/site-walk/capture/VisualCaptureView.tsx` — removed the dedicated black right-side notes/swipe bar from the capture canvas and changed the chevron into a small translucent overlay button on top of the photo area.
 - `components/site-walk/capture/PhotoMarkupCanvas.tsx` — stopped markup autosave from re-firing on parent rerenders and stopped local canvas state from resetting when optimistic item metadata changes; it now emits on local shape changes and resets only when the displayed image changes.
 - `components/site-walk/capture/CameraViewfinder.tsx` — preserves the active blob preview when upload reconciliation swaps the optimistic local item to the saved server item, avoiding revoked-preview flicker/blanking.
@@ -207,6 +213,7 @@ When editing oversized files, always read both the state declarations AND the JS
 - `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — added Prompt 10K/10L audit rows for mobile stability and capture overlay cleanup.
 
 #### What's Broken / Partially Done
+- Needs real-device smoke test: long-press photo, upload a file, confirm the blue paperclip appears immediately, then open Files and confirm the pin/file is listed.
 - Needs real-device smoke test on iPhone/Android: capture a photo, draw markup, move/resize/delete markup, long-press a pin, save a pin, press Next, then Back.
 - Existing mobile HTTP smoke script failed on stale homepage hero-copy expectation, not on the Site Walk capture changes.
 - Progress still derives from current same-location session items, not historical cross-walk media.
@@ -215,11 +222,11 @@ When editing oversized files, always read both the state declarations AND the JS
 
 #### Context Files Updated
 - `SLATE360_PROJECT_MEMORY.md` — this handoff.
-- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — Prompt 10K/10L audit rows.
-- `ops/bug-registry.json` and `slate360-context/ONGOING_ISSUES.md` — BUG-037.
+- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — Prompt 10M audit row.
+- `ops/bug-registry.json` and `slate360-context/ONGOING_ISSUES.md` — BUG-038.
 
 #### Next Steps (ordered)
-1. Mobile-test capture stability with a real camera image on a phone.
+1. Mobile-test pinned-file flow and `Done with this photo` flow with a real camera image on a phone.
 2. If still laggy, extract `PhotoMarkupCanvas` and throttle/debounce markup persistence further.
 3. Add a dedicated authenticated Site Walk mobile Playwright scenario once test auth fixtures exist.
 

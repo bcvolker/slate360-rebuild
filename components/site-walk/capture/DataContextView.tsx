@@ -66,8 +66,8 @@ export function DataContextView({ item, draft, assignees, saveState, aiState, ai
   if (!item || !draft) {
     return (
       <div className="flex h-full flex-col items-center justify-center bg-slate-50 p-6 text-center text-slate-950">
-        <h2 className="text-2xl font-black">Capture an angle first</h2>
-        <p className="mt-2 max-w-sm text-sm font-bold text-slate-600">Take a photo, then use notes to classify, assign, and save the field item.</p>
+        <h2 className="text-2xl font-black">Capture a photo first</h2>
+        <p className="mt-2 max-w-sm text-sm font-bold text-slate-600">Take one photo, then use this page only if you want notes, status, or assignment details.</p>
         <button type="button" onClick={onBack} className="mt-5 rounded-2xl bg-blue-600 px-5 py-3 text-sm font-black text-white">Back to camera</button>
       </div>
     );
@@ -137,8 +137,9 @@ export function DataContextView({ item, draft, assignees, saveState, aiState, ai
 
         {(dictationState !== "idle" || aiMessage) && <p className="shrink-0 text-xs font-bold text-slate-600">{dictationState === "listening" ? "Listening…" : dictationState === "unsupported" ? "Dictation unavailable; use the keyboard microphone." : dictationState === "error" ? "Dictation could not start." : aiMessage}</p>}
 
-        <footer className="grid shrink-0 grid-cols-2 gap-2">
-          <button type="button" onClick={onNewItemSameLocation} className="min-h-12 rounded-2xl bg-blue-600 px-3 py-3 text-sm font-black text-white">Save &amp; New Item Same Location</button>
+        <footer className="grid shrink-0 grid-cols-1 gap-2 sm:grid-cols-3">
+          <button type="button" onClick={onBack} className="min-h-12 rounded-2xl bg-blue-600 px-3 py-3 text-sm font-black text-white">Done with this photo</button>
+          <button type="button" onClick={onNewItemSameLocation} className="min-h-12 rounded-2xl border border-slate-300 bg-white px-3 py-3 text-sm font-black text-slate-900">Add another photo here</button>
           <button type="button" onClick={onMoveLocation} className="min-h-12 rounded-2xl border border-slate-300 bg-white px-3 py-3 text-sm font-black text-slate-900">Move to New Location</button>
         </footer>
       </main>

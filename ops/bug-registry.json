@@ -276,6 +276,20 @@
         "`CaptureClientIsland` passes `swipeEnabled={false}` to `PagedWorkspace` so Visual/Data navigation uses explicit Next/Back controls in capture mode",
         "`npm run typecheck` passes after the stability fix"
       ]
+    },
+    {
+      "id": "BUG-038",
+      "title": "Site Walk pinned files did not appear and Data page implied extra angles were required",
+      "module": "site-walk/capture",
+      "severity": "critical",
+      "status": "fixed",
+      "rootCause": "The initial items fetch replaced the local optimistic capture list instead of merging, which could drop the active photo while upload/reconciliation was still in flight. Pinned files also waited for a separate Save action and rendered tiny untransformed markers, so uploaded pins were easy to miss and did not track the zoomed/panned photo. The Data page fallback and primary footer copy still said angle/new-item language, implying another angle photo was mandatory.",
+      "verification": [
+        "`useCaptureItems` merges fetched server items into current local items instead of replacing the optimistic list",
+        "Long-press + file upload auto-saves a pin, updates local pins immediately, and shows a visible blue marker on the photo",
+        "Pin markers use the same transform as the photo canvas so they stay aligned while zoomed or panned",
+        "The Data page says `Capture a photo first` and offers `Done with this photo` instead of forcing `Save & New Item Same Location`"
+      ]
     }
   ]
 }
