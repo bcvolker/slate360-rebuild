@@ -1,6 +1,6 @@
 "use client";
 
-import { Camera, ChevronLeft, ChevronRight, MapPin, Paperclip, Plus, RotateCcw, RotateCw, Trash2, X } from "lucide-react";
+import { Camera, ChevronLeft, ChevronRight, Paperclip, Plus, RotateCcw, RotateCw, Trash2, X } from "lucide-react";
 import { useState } from "react";
 import type { MarkupData } from "@/lib/site-walk/markup-types";
 import { getPhotoAttachmentPins, type PhotoAttachmentPin } from "@/lib/site-walk/photo-attachments";
@@ -37,7 +37,7 @@ export function VisualCaptureView({ sessionId, autoOpenCamera, launchId, items, 
 
   return (
     <div className="flex h-[100dvh] w-full flex-col overflow-hidden bg-black text-white">
-      <TopCaptureControls modeLabel={modeLabel} activeLocation={activeLocation} onUndo={() => dispatchCanvasEvent(PHOTO_MARKUP_UNDO_EVENT)} onRedo={() => dispatchCanvasEvent(PHOTO_MARKUP_REDO_EVENT)} />
+      <TopCaptureControls modeLabel={modeLabel} onNext={onNext} onUndo={() => dispatchCanvasEvent(PHOTO_MARKUP_UNDO_EVENT)} onRedo={() => dispatchCanvasEvent(PHOTO_MARKUP_REDO_EVENT)} />
       <StopCarousel items={photoItems} activeItemId={activeItemId} onSelectItem={onSelectItem} onOpenEdit={onNext} />
 
       <main className="min-h-0 flex-1 border-y border-white/10 bg-zinc-950">
@@ -52,7 +52,7 @@ export function VisualCaptureView({ sessionId, autoOpenCamera, launchId, items, 
         </div>
       </main>
 
-      <CaptureActionBar pinCount={activePins.length} markupMode={markupMode} onToggleMarkup={() => setMarkupMode((current) => !current)} onOpenAttachments={() => setAttachmentsOpen(true)} onAddAngle={() => requestCameraCapture("camera", "next_item")} />
+      <CaptureActionBar pinCount={activePins.length} markupMode={markupMode} onToggleMarkup={() => setMarkupMode((current) => !current)} onOpenAttachments={() => setAttachmentsOpen(true)} />
       {markupMode && <div className="shrink-0 border-b border-white/10 bg-black px-2 py-1"><UnifiedVectorToolbar /></div>}
       <AngleCarousel items={angleItems.length > 0 ? angleItems : photoItems} activeItemId={activeItemId} onSelectItem={onSelectItem} />
       <ProgressTimeline items={progressItems} ghostOn={ghostOn} ghostAvailable={!!ghostImageUrl} onToggleGhost={() => setGhostOn((current) => !current)} onAdd={() => { setGhostOn(true); requestCameraCapture("camera", "next_item"); }} onSelectItem={onSelectItem} />
@@ -68,16 +68,20 @@ export function VisualCaptureView({ sessionId, autoOpenCamera, launchId, items, 
   );
 }
 
-function TopCaptureControls({ modeLabel, activeLocation, onUndo, onRedo }: { modeLabel: string; activeLocation: string; onUndo: () => void; onRedo: () => void }) {
+function TopCaptureControls({ modeLabel, onNext, onUndo, onRedo }: { modeLabel: string; onNext: () => void; onUndo: () => void; onRedo: () => void }) {
   return (
     <header className="shrink-0 border-b border-white/10 bg-black px-2 py-2">
       <div className="grid grid-cols-[auto_1fr_auto] items-center gap-2">
         <a href="/site-walk" className="inline-flex h-9 items-center gap-1 rounded-xl border border-white/15 bg-white/10 px-2 text-[10px] font-black uppercase tracking-[0.1em] text-white/85"><ChevronLeft className="h-4 w-4" /> Back</a>
-        <button type="button" className="h-9 min-w-0 rounded-xl border border-blue-500/35 bg-blue-500/15 px-2 text-center text-[10px] font-black uppercase tracking-[0.14em] text-blue-100">
-          <span className="block truncate">{modeLabel || "Field Punch"}</span>
-          <span className="block text-[9px] text-blue-100/70">Stops</span>
-        </button>
-        <button type="button" className="inline-flex h-9 max-w-28 items-center gap-1 rounded-xl border border-white/15 bg-white/10 px-2 text-[10px] font-black text-white/85"><MapPin className="h-3.5 w-3.5 text-blue-300" /><span className="truncate">{activeLocation}</span></button>
+        <label className="min-w-0">
+          <span className="sr-only">Walk project mode</span>
+          <select defaultValue={modeLabel || "Photos-only"} className="h-9 w-full rounded-xl border border-blue-500/35 bg-blue-500/15 px-2 text-center text-[10px] font-black uppercase tracking-[0.1em] text-blue-100">
+            <option>Photos-only</option>
+            <option>Attach to field project</option>
+            <option>Field project</option>
+          </select>
+        </label>
+        <button type="button" onClick={onNext} className="inline-flex h-9 items-center gap-1 rounded-xl border border-white/15 bg-white/10 px-3 text-[10px] font-black uppercase tracking-[0.1em] text-white/85">Next <ChevronRight className="h-4 w-4" /></button>
       </div>
       <div className="mt-2 grid grid-cols-2 gap-2">
         <button type="button" onClick={onUndo} className="h-8 rounded-xl border border-white/15 bg-white/5 text-[10px] font-black text-white/75"><RotateCcw className="mx-auto h-4 w-4" /></button>
@@ -90,9 +94,8 @@ function TopCaptureControls({ modeLabel, activeLocation, onUndo, onRedo }: { mod
 function StopCarousel({ items, activeItemId, onSelectItem, onOpenEdit }: { items: CaptureItemRecord[]; activeItemId: string | null; onSelectItem: (item: CaptureItemRecord) => void; onOpenEdit: () => void }) {
   return (
     <section className="shrink-0 bg-black px-2 py-2" aria-label="Locations and stops">
+      <p className="mb-1 px-1 text-[10px] font-black uppercase tracking-[0.16em] text-white/55">Last location / stops</p>
       <div className="flex h-16 gap-2 overflow-x-auto rounded-2xl border border-white/10 bg-black p-1 no-scrollbar">
-        <span className="flex min-w-24 flex-col justify-center rounded-xl border border-white/15 bg-white px-3 text-slate-950"><span className="text-[9px] font-black uppercase text-rose-500">Last</span><span className="truncate text-[11px] font-black">Location</span></span>
-        <button type="button" onClick={() => requestCameraCapture("camera", "next_item")} className="flex min-w-16 items-center justify-center rounded-xl border border-blue-400/60 bg-blue-500/15 text-blue-100" aria-label="Add stop"><Plus className="h-7 w-7" /></button>
         {items.map((item, index) => <ThumbButton key={item.id} item={item} active={item.id === activeItemId} label={item.title || `Stop ${index + 1}`} onClick={() => onSelectItem(item)} onDoubleClick={() => { onSelectItem(item); onOpenEdit(); }} />)}
         <span className="flex min-w-20 items-center justify-center rounded-xl border border-dashed border-white/20 text-[10px] font-black text-white/45">Next</span>
       </div>
@@ -100,12 +103,11 @@ function StopCarousel({ items, activeItemId, onSelectItem, onOpenEdit }: { items
   );
 }
 
-function CaptureActionBar({ pinCount, markupMode, onToggleMarkup, onOpenAttachments, onAddAngle }: { pinCount: number; markupMode: boolean; onToggleMarkup: () => void; onOpenAttachments: () => void; onAddAngle: () => void }) {
+function CaptureActionBar({ pinCount, markupMode, onToggleMarkup, onOpenAttachments }: { pinCount: number; markupMode: boolean; onToggleMarkup: () => void; onOpenAttachments: () => void }) {
   return (
     <div className="shrink-0 border-b border-white/10 bg-black px-2 py-2">
-      <div className="grid grid-cols-[1fr_auto_1fr] gap-2">
+      <div className="grid grid-cols-2 gap-2">
         <button type="button" onClick={onToggleMarkup} className={`h-10 rounded-xl border px-2 text-[10px] font-black uppercase tracking-[0.1em] ${markupMode ? "border-blue-400 bg-blue-500/20 text-blue-100" : "border-white/15 bg-white/10 text-white/80"}`}>Markup</button>
-        <button type="button" onClick={onAddAngle} className="flex h-10 w-16 items-center justify-center rounded-xl border border-blue-400/60 bg-blue-500/15 text-blue-100" aria-label="Add angle"><Plus className="h-7 w-7" /></button>
         <button type="button" onClick={onOpenAttachments} className="inline-flex h-10 items-center justify-center gap-1 rounded-xl border border-white/15 bg-white/10 px-2 text-[10px] font-black text-white/80"><Paperclip className="h-4 w-4 text-blue-300" /> Files ({pinCount})</button>
       </div>
     </div>
@@ -115,8 +117,8 @@ function CaptureActionBar({ pinCount, markupMode, onToggleMarkup, onOpenAttachme
 function AngleCarousel({ items, activeItemId, onSelectItem }: { items: CaptureItemRecord[]; activeItemId: string | null; onSelectItem: (item: CaptureItemRecord) => void }) {
   return (
     <section className="shrink-0 bg-black px-2 py-2" aria-label="Angles">
+      <p className="mb-1 px-1 text-[10px] font-black uppercase tracking-[0.16em] text-white/55">Angles</p>
       <div className="flex h-16 gap-2 overflow-x-auto rounded-2xl border border-white/10 bg-black p-1 no-scrollbar">
-        <span className="flex min-w-20 items-center justify-center rounded-xl border border-white/15 bg-white/10 text-[10px] font-black uppercase tracking-[0.12em] text-white">Angle</span>
         <button type="button" onClick={() => requestCameraCapture("camera", "next_item")} className="flex min-w-16 items-center justify-center rounded-xl border border-blue-400/60 bg-blue-500/15 text-blue-100" aria-label="Add angle"><Plus className="h-7 w-7" /></button>
         {items.map((item) => <ThumbButton key={item.id} item={item} active={item.id === activeItemId} label={item.title || "Angle"} onClick={() => onSelectItem(item)} />)}
         <span className="flex min-w-20 items-center justify-center rounded-xl border border-dashed border-white/20 text-[10px] font-black text-white/45">Next</span>
@@ -128,8 +130,8 @@ function AngleCarousel({ items, activeItemId, onSelectItem }: { items: CaptureIt
 function ProgressTimeline({ items, ghostOn, ghostAvailable, onToggleGhost, onAdd, onSelectItem }: { items: CaptureItemRecord[]; ghostOn: boolean; ghostAvailable: boolean; onToggleGhost: () => void; onAdd: () => void; onSelectItem: (item: CaptureItemRecord) => void }) {
   return (
     <section className="shrink-0 bg-black px-2 pb-2" aria-label="Progress">
+      <p className="mb-1 px-1 text-[10px] font-black uppercase tracking-[0.16em] text-white/55">Progress / before & after</p>
       <div className="flex h-14 gap-2 overflow-x-auto rounded-2xl border border-white/10 bg-black p-1 no-scrollbar">
-        <span className="flex min-w-24 items-center justify-center rounded-xl border border-white/15 bg-white/10 text-[10px] font-black uppercase tracking-[0.12em] text-white">Progress</span>
         <button type="button" onClick={onAdd} className="flex min-w-20 items-center justify-center gap-1 rounded-xl border border-blue-400/60 bg-blue-500/15 text-[10px] font-black text-blue-100"><Plus className="h-4 w-4" /> Add</button>
         {ghostAvailable && <button type="button" onClick={onToggleGhost} className={`min-w-24 rounded-xl border px-2 text-[10px] font-black ${ghostOn ? "border-blue-400 bg-blue-500/20 text-blue-100" : "border-white/15 bg-white/10 text-white/70"}`}>Ghost align</button>}
         {items.map((item) => <ThumbButton key={item.id} item={item} active={false} label={new Date(item.created_at).toLocaleDateString()} onClick={() => onSelectItem(item)} />)}

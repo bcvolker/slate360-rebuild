@@ -117,6 +117,7 @@ export function PhotoMarkupCanvas({ imageUrl, title, sessionId, markupEnabled, i
       setShapes((current) => [...current, textShape]);
       setSelectedId(textShape.id);
       setEditingTextId(textShape.id);
+      setTool("select");
       clearLongPress();
       return;
     }
@@ -165,6 +166,8 @@ export function PhotoMarkupCanvas({ imageUrl, title, sessionId, markupEnabled, i
     if (shape) {
       remember();
       setShapes((current) => [...current, shape]);
+      setSelectedId(shape.id);
+      setTool("select");
     }
     setDraftStart(null);
     setDraftPoints([]);
