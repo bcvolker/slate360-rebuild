@@ -196,6 +196,28 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
+### Session Handoff — 2026-04-29 (Angular Capture Rails)
+
+#### What Changed
+- `components/site-walk/capture/VisualCaptureView.tsx` — made Stops, Angles, and Progress rails full-width, square/angular, black translucent (`bg-black/75`) sections with stronger `border-y-2 border-white/25` outlines.
+- `components/site-walk/capture/VisualCaptureView.tsx` — changed thumbnail tiles to square/angular buttons and removed all visible thumbnail names by default; first tap reveals the label, second tap opens/selects the item.
+- `components/site-walk/capture/VisualCaptureView.tsx` — removed `Next` placeholder tiles from all three rails; rails now contain thumbnails plus Add actions only where applicable.
+- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — added Prompt 10H audit row for angular full-width rails.
+
+#### What's Broken / Partially Done
+- The Add stop action still uses the same camera capture path as adding another capture item; true stop modeling remains pending.
+- Progress still derives from current same-location session items, not historical cross-walk media.
+- The user-uploaded reference image `public/uploads/marked up.jpg` remains untracked and intentionally not committed unless requested.
+
+#### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md` — this handoff.
+- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — Prompt 10H audit row.
+
+#### Next Steps (ordered)
+1. Mobile-test thumbnail behavior: first tap reveals the name; second tap opens/selects the photo/stop.
+2. Tune rail heights if the full-width angular sections crowd the bounded capture canvas on shorter phones.
+3. Wire real Stops and historical Progress data sources.
+
 ### Session Handoff — 2026-04-29 (Capture Carousel Semantics + Markup Editing)
 
 #### What Changed
