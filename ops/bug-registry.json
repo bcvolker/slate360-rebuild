@@ -1,6 +1,6 @@
 {
   "$schema": "./schemas/bug-registry.schema.json",
-  "updatedAt": "2026-04-26",
+  "updatedAt": "2026-04-29",
   "source": "slate360-context/ONGOING_ISSUES.md",
   "bugs": [
     {
@@ -261,6 +261,20 @@
         "Generated `/sw.js` contains `2026-04-26-sw-kill-v2` and no old `static-style-assets` or `next-static-js-assets` runtime cache names",
         "`npm run typecheck` and `npm run build` pass after the change",
         "After deployment, mobile browser refresh should restore styled Slate360 pages and stay styled after 10+ seconds; if a tab is still controlled by the old worker, close/reopen once"
+      ]
+    },
+    {
+      "id": "BUG-037",
+      "title": "Site Walk capture canvas reset during mobile markup",
+      "module": "site-walk/capture",
+      "severity": "critical",
+      "status": "fixed",
+      "rootCause": "The mobile capture canvas re-emitted markup on parent rerenders, reset local markup state when optimistic item updates changed `initialMarkup`, revoked/reused the active blob preview during upload reconciliation, and still allowed parent workspace swipe handling in the capture task mode. On phones this looked like a jumpy/scrambled canvas that reverted to the capture/data flow before pins or markup stuck.",
+      "verification": [
+        "`PhotoMarkupCanvas` only emits markup when local `shapes` change and only resets local canvas state when `imageUrl` changes",
+        "`CameraViewfinder` preserves an existing blob preview when the server item replaces the local optimistic item",
+        "`CaptureClientIsland` passes `swipeEnabled={false}` to `PagedWorkspace` so Visual/Data navigation uses explicit Next/Back controls in capture mode",
+        "`npm run typecheck` passes after the stability fix"
       ]
     }
   ]

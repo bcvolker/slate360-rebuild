@@ -72,6 +72,7 @@ export function CameraViewfinder({ sessionId, autoOpenCamera = false, launchId =
     const url = activeItem.local_preview_url ?? (activeItem.id.startsWith("item-") ? null : `/api/site-walk/items/${encodeURIComponent(activeItem.id)}/image`);
     if (!url) return;
     setActivePreview((current) => {
+      if (current?.url === url) return { ...current, title: activeItem.title || current.title, itemId: activeItem.id };
       if (current?.revoke) URL.revokeObjectURL(current.url);
       return { url, title: activeItem.title || "Captured photo", itemId: activeItem.id, revoke: false };
     });

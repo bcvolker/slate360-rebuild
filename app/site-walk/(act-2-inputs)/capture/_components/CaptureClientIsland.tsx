@@ -152,6 +152,7 @@ export function CaptureClientIsland({ sessionId, projectId, showPlanCanvas, auto
         className="h-[100dvh]"
         viewportClassName="bg-slate-950"
         showChrome={false}
+        swipeEnabled={false}
         onPageChange={setActivePage}
       />
       <LocationPickerModal open={locationPickerOpen} currentLocation={currentLocation} recentLocations={recentLocations} onClose={() => setLocationPickerOpen(false)} onSelect={applyNewLocation} />

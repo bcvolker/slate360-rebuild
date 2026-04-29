@@ -196,29 +196,31 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-29 (Capture Rail Polish + Gesture Isolation)
+### Session Handoff — 2026-04-29 (Mobile Capture Stability)
 
 #### What Changed
-- `components/site-walk/capture/VisualCaptureView.tsx` — tightened the contained `RailShell` wrapper with stronger borders and edge fades so rail ends remain visibly inside the mobile viewport.
-- `components/site-walk/capture/VisualCaptureView.tsx` — made Progress/Before & After collapsible with safe-area bottom padding to avoid rounded-phone corner clipping.
-- `components/site-walk/capture/PhotoMarkupCanvas.tsx` — marked the gesture canvas with `data-disable-workspace-swipe="true"`.
-- `components/shared/paged-workspace/PagedWorkspace.tsx` — ignores touch swipe navigation from descendants that opt out, preventing photo pinch/zoom/pan/long-press from changing Visual/Data pages.
-- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — added Prompt 10J audit row for Progress collapse and canvas gesture isolation.
+- `components/site-walk/capture/PhotoMarkupCanvas.tsx` — stopped markup autosave from re-firing on parent rerenders and stopped local canvas state from resetting when optimistic item metadata changes; it now emits on local shape changes and resets only when the displayed image changes.
+- `components/site-walk/capture/CameraViewfinder.tsx` — preserves the active blob preview when upload reconciliation swaps the optimistic local item to the saved server item, avoiding revoked-preview flicker/blanking.
+- `components/shared/paged-workspace/PagedWorkspace.tsx` and `app/site-walk/(act-2-inputs)/capture/_components/CaptureClientIsland.tsx` — added `swipeEnabled` and disabled swipe paging in capture task mode so Visual/Data navigation uses explicit Next/Back controls.
+- `ops/bug-registry.json` and `slate360-context/ONGOING_ISSUES.md` — logged/fixed BUG-037 for mobile capture canvas resets.
+- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — added Prompt 10K audit row for the mobile stability fix.
 
 #### What's Broken / Partially Done
-- Needs real-device smoke test to confirm rail ends are visibly contained, Progress expands/collapses comfortably, and canvas gestures no longer navigate away.
+- Needs real-device smoke test on iPhone/Android: capture a photo, draw markup, move/resize/delete markup, long-press a pin, save a pin, press Next, then Back.
+- Existing mobile HTTP smoke script failed on stale homepage hero-copy expectation, not on the Site Walk capture changes.
 - Progress still derives from current same-location session items, not historical cross-walk media.
 - The user-uploaded reference image `public/uploads/marked up.jpg` remains untracked and intentionally not committed unless requested.
 - `components/site-walk/capture/PhotoMarkupCanvas.tsx` is 299 lines; future changes should extract before adding more logic.
 
 #### Context Files Updated
 - `SLATE360_PROJECT_MEMORY.md` — this handoff.
-- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — Prompt 10J audit row.
+- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — Prompt 10K audit row.
+- `ops/bug-registry.json` and `slate360-context/ONGOING_ISSUES.md` — BUG-037.
 
 #### Next Steps (ordered)
-1. Mobile-test rail visibility and safe-area spacing on a rounded-screen phone.
-2. Confirm pinch/zoom/pan and long-press attachment pins stay on the Visual page.
-3. Tune carousel heights/margins if the capture image becomes too short.
+1. Mobile-test capture stability with a real camera image on a phone.
+2. If still laggy, extract `PhotoMarkupCanvas` and throttle/debounce markup persistence further.
+3. Add a dedicated authenticated Site Walk mobile Playwright scenario once test auth fixtures exist.
 
 ### Session Handoff — 2026-04-29 (Angular Capture Rails)
 

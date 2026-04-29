@@ -21,12 +21,13 @@ type Props = {
   className?: string;
   viewportClassName?: string;
   showChrome?: boolean;
+  swipeEnabled?: boolean;
   onPageChange?: (pageId: string) => void;
 };
 
 const SWIPE_THRESHOLD = 48;
 
-export function PagedWorkspace({ pages, initialPageId, activePageId, title, subtitle, className, viewportClassName, showChrome = true, onPageChange }: Props) {
+export function PagedWorkspace({ pages, initialPageId, activePageId, title, subtitle, className, viewportClassName, showChrome = true, swipeEnabled = true, onPageChange }: Props) {
   const initialIndex = Math.max(0, pages.findIndex((page) => page.id === initialPageId));
   const [activeIndex, setActiveIndex] = useState(initialIndex);
   const [touchStart, setTouchStart] = useState<number | null>(null);
@@ -51,6 +52,10 @@ export function PagedWorkspace({ pages, initialPageId, activePageId, title, subt
   }
 
   function handleTouchEnd(event: TouchEvent<HTMLDivElement>) {
+    if (!swipeEnabled) {
+      setTouchStart(null);
+      return;
+    }
     if (isWorkspaceSwipeDisabled(event.target)) {
       setTouchStart(null);
       return;
@@ -81,7 +86,7 @@ export function PagedWorkspace({ pages, initialPageId, activePageId, title, subt
       )}
       <div
         className={cn("min-h-0 flex-1 overflow-hidden", viewportClassName)}
-        onTouchStart={(event) => setTouchStart(isWorkspaceSwipeDisabled(event.target) ? null : event.touches[0].clientX)}
+        onTouchStart={(event) => setTouchStart(!swipeEnabled || isWorkspaceSwipeDisabled(event.target) ? null : event.touches[0].clientX)}
         onTouchEnd={handleTouchEnd}
       >
         {activePage.content}

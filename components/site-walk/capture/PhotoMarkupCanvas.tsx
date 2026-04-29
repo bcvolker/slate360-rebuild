@@ -65,14 +65,14 @@ export function PhotoMarkupCanvas({ imageUrl, title, sessionId, markupEnabled, i
 
   useEffect(() => {
     onMarkupChange?.({ version: 1, coordSpace: "image", shapes });
-  }, [onMarkupChange, shapes]);
+  }, [shapes]);
 
   useEffect(() => {
     setShapes(initialMarkup?.shapes ?? []);
     setSelectedId(null);
     setEditingTextId(null);
     setTransform({ x: 0, y: 0, scale: 1 });
-  }, [imageUrl, initialMarkup]);
+  }, [imageUrl]);
 
   function clearLongPress() {
     if (longPressRef.current) window.clearTimeout(longPressRef.current);
