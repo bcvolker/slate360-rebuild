@@ -196,6 +196,26 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
+### Session Handoff — 2026-04-29 (VisualCaptureView Sketch Alignment)
+
+#### What Changed
+- `components/site-walk/capture/VisualCaptureView.tsx` — revised the mobile visual capture layout to match the clarified marked-up JPEG: top controls are non-overlay buttons/dropdowns, Stops/Angles/Progress are three separate black rectangular horizontal carousels with thumbnails, and the capture/photo area is a bounded middle region between the top carousel and bottom carousel stack.
+- `components/site-walk/capture/VisualCaptureView.tsx` — moved attachments and markup into a dedicated non-overlay action row, kept the notes chevron as a bounded side rail, and preserved ghost alignment, markup, attachment sheet, camera/upload, and item selection callbacks.
+- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — added Prompt 10F audit row for the sketch-alignment pass.
+
+#### What's Broken / Partially Done
+- The user-uploaded reference image `public/uploads/marked up.jpg` is untracked and intentionally not committed unless requested.
+- File-size guard still fails on unrelated pre-existing oversized files; `VisualCaptureView.tsx` is 175 lines and under the limit.
+
+#### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md` — this handoff.
+- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — Prompt 10F audit row.
+
+#### Next Steps (ordered)
+1. Visually verify `/site-walk/capture?session=...` on a real phone/mobile viewport against the marked-up JPEG.
+2. If the bounded capture area is too short/tall, tune the fixed carousel/action-row heights while keeping all controls non-overlay.
+3. Wire true Stops/Progress data sources when the backend stop/history model is ready.
+
 ### Session Handoff — 2026-04-29 (VisualCaptureView Verification)
 
 #### What Changed
