@@ -28,6 +28,7 @@ export function VisualCaptureView({ sessionId, autoOpenCamera, launchId, items, 
   const [ghostOn, setGhostOn] = useState(false);
   const [markupMode, setMarkupMode] = useState(false);
   const [attachmentsOpen, setAttachmentsOpen] = useState(false);
+  const [revealedThumbKey, setRevealedThumbKey] = useState<string | null>(null);
   const photoItems = items.filter((item) => item.item_type === "photo");
   const activeItem = photoItems.find((item) => item.id === activeItemId) ?? null;
   const activeLocation = getLocationLabel(activeItem) ?? "Current location";
@@ -38,7 +39,7 @@ export function VisualCaptureView({ sessionId, autoOpenCamera, launchId, items, 
   return (
     <div className="flex h-[100dvh] w-full flex-col overflow-hidden bg-black text-white">
       <TopCaptureControls modeLabel={modeLabel} onNext={onNext} onUndo={() => dispatchCanvasEvent(PHOTO_MARKUP_UNDO_EVENT)} onRedo={() => dispatchCanvasEvent(PHOTO_MARKUP_REDO_EVENT)} />
-      <StopCarousel items={photoItems} activeItemId={activeItemId} onSelectItem={onSelectItem} onOpenEdit={onNext} />
+      <StopCarousel items={photoItems} activeItemId={activeItemId} revealedThumbKey={revealedThumbKey} onReveal={setRevealedThumbKey} onSelectItem={onSelectItem} onOpenEdit={onNext} />
 
       <main className="min-h-0 flex-1 border-y border-white/10 bg-zinc-950">
         <div className="flex h-full min-h-0">
@@ -54,8 +55,8 @@ export function VisualCaptureView({ sessionId, autoOpenCamera, launchId, items, 
 
       <CaptureActionBar pinCount={activePins.length} markupMode={markupMode} onToggleMarkup={() => setMarkupMode((current) => !current)} onOpenAttachments={() => setAttachmentsOpen(true)} />
       {markupMode && <div className="shrink-0 border-b border-white/10 bg-black px-2 py-1"><UnifiedVectorToolbar /></div>}
-      <AngleCarousel items={angleItems.length > 0 ? angleItems : photoItems} activeItemId={activeItemId} onSelectItem={onSelectItem} />
-      <ProgressTimeline items={progressItems} ghostOn={ghostOn} ghostAvailable={!!ghostImageUrl} onToggleGhost={() => setGhostOn((current) => !current)} onAdd={() => { setGhostOn(true); requestCameraCapture("camera", "next_item"); }} onSelectItem={onSelectItem} />
+      <AngleCarousel items={angleItems.length > 0 ? angleItems : photoItems} activeItemId={activeItemId} revealedThumbKey={revealedThumbKey} onReveal={setRevealedThumbKey} onSelectItem={onSelectItem} />
+      <ProgressTimeline items={progressItems} ghostOn={ghostOn} ghostAvailable={!!ghostImageUrl} revealedThumbKey={revealedThumbKey} onReveal={setRevealedThumbKey} onToggleGhost={() => setGhostOn((current) => !current)} onAdd={() => { setGhostOn(true); requestCameraCapture("camera", "next_item"); }} onSelectItem={onSelectItem} />
 
       {attachmentsOpen && (
         <AttachmentsSheet
@@ -91,13 +92,13 @@ function TopCaptureControls({ modeLabel, onNext, onUndo, onRedo }: { modeLabel: 
   );
 }
 
-function StopCarousel({ items, activeItemId, onSelectItem, onOpenEdit }: { items: CaptureItemRecord[]; activeItemId: string | null; onSelectItem: (item: CaptureItemRecord) => void; onOpenEdit: () => void }) {
+function StopCarousel({ items, activeItemId, revealedThumbKey, onReveal, onSelectItem, onOpenEdit }: { items: CaptureItemRecord[]; activeItemId: string | null; revealedThumbKey: string | null; onReveal: (key: string) => void; onSelectItem: (item: CaptureItemRecord) => void; onOpenEdit: () => void }) {
   return (
-    <section className="shrink-0 bg-black px-2 py-2" aria-label="Locations and stops">
-      <p className="mb-1 px-1 text-[10px] font-black uppercase tracking-[0.16em] text-white/55">Last location / stops</p>
-      <div className="flex h-16 gap-2 overflow-x-auto rounded-2xl border border-white/10 bg-black p-1 no-scrollbar">
-        {items.map((item, index) => <ThumbButton key={item.id} item={item} active={item.id === activeItemId} label={item.title || `Stop ${index + 1}`} onClick={() => onSelectItem(item)} onDoubleClick={() => { onSelectItem(item); onOpenEdit(); }} />)}
-        <span className="flex min-w-20 items-center justify-center rounded-xl border border-dashed border-white/20 text-[10px] font-black text-white/45">Next</span>
+    <section className="shrink-0 bg-transparent py-1" aria-label="Locations and stops">
+      <p className="mb-1 px-2 text-[10px] font-black uppercase tracking-[0.16em] text-white/55">Last location / stops</p>
+      <div className="flex h-16 w-full gap-2 overflow-x-auto border-y-2 border-white/25 bg-black/75 p-1 backdrop-blur-sm no-scrollbar">
+        {items.map((item, index) => <ThumbButton key={item.id} item={item} thumbKey={`stop-${item.id}`} active={item.id === activeItemId} revealed={revealedThumbKey === `stop-${item.id}`} label={item.title || `Stop ${index + 1}`} onReveal={onReveal} onOpen={() => onSelectItem(item)} onDoubleClick={() => { onSelectItem(item); onOpenEdit(); }} />)}
+        <button type="button" onClick={() => requestCameraCapture("camera", "next_item")} className="flex aspect-square h-full shrink-0 items-center justify-center border border-blue-400/70 bg-blue-500/15 text-blue-100" aria-label="Add stop"><Plus className="h-6 w-6" /></button>
       </div>
     </section>
   );
@@ -114,28 +115,26 @@ function CaptureActionBar({ pinCount, markupMode, onToggleMarkup, onOpenAttachme
   );
 }
 
-function AngleCarousel({ items, activeItemId, onSelectItem }: { items: CaptureItemRecord[]; activeItemId: string | null; onSelectItem: (item: CaptureItemRecord) => void }) {
+function AngleCarousel({ items, activeItemId, revealedThumbKey, onReveal, onSelectItem }: { items: CaptureItemRecord[]; activeItemId: string | null; revealedThumbKey: string | null; onReveal: (key: string) => void; onSelectItem: (item: CaptureItemRecord) => void }) {
   return (
-    <section className="shrink-0 bg-black px-2 py-2" aria-label="Angles">
-      <p className="mb-1 px-1 text-[10px] font-black uppercase tracking-[0.16em] text-white/55">Angles</p>
-      <div className="flex h-16 gap-2 overflow-x-auto rounded-2xl border border-white/10 bg-black p-1 no-scrollbar">
-        <button type="button" onClick={() => requestCameraCapture("camera", "next_item")} className="flex min-w-16 items-center justify-center rounded-xl border border-blue-400/60 bg-blue-500/15 text-blue-100" aria-label="Add angle"><Plus className="h-7 w-7" /></button>
-        {items.map((item) => <ThumbButton key={item.id} item={item} active={item.id === activeItemId} label={item.title || "Angle"} onClick={() => onSelectItem(item)} />)}
-        <span className="flex min-w-20 items-center justify-center rounded-xl border border-dashed border-white/20 text-[10px] font-black text-white/45">Next</span>
+    <section className="shrink-0 bg-transparent py-1" aria-label="Angles">
+      <p className="mb-1 px-2 text-[10px] font-black uppercase tracking-[0.16em] text-white/55">Angles</p>
+      <div className="flex h-16 w-full gap-2 overflow-x-auto border-y-2 border-white/25 bg-black/75 p-1 backdrop-blur-sm no-scrollbar">
+        <button type="button" onClick={() => requestCameraCapture("camera", "next_item")} className="flex aspect-square h-full shrink-0 items-center justify-center border border-blue-400/70 bg-blue-500/15 text-blue-100" aria-label="Add angle"><Plus className="h-6 w-6" /></button>
+        {items.map((item) => <ThumbButton key={item.id} item={item} thumbKey={`angle-${item.id}`} active={item.id === activeItemId} revealed={revealedThumbKey === `angle-${item.id}`} label={item.title || "Angle"} onReveal={onReveal} onOpen={() => onSelectItem(item)} />)}
       </div>
     </section>
   );
 }
 
-function ProgressTimeline({ items, ghostOn, ghostAvailable, onToggleGhost, onAdd, onSelectItem }: { items: CaptureItemRecord[]; ghostOn: boolean; ghostAvailable: boolean; onToggleGhost: () => void; onAdd: () => void; onSelectItem: (item: CaptureItemRecord) => void }) {
+function ProgressTimeline({ items, ghostOn, ghostAvailable, revealedThumbKey, onReveal, onToggleGhost, onAdd, onSelectItem }: { items: CaptureItemRecord[]; ghostOn: boolean; ghostAvailable: boolean; revealedThumbKey: string | null; onReveal: (key: string) => void; onToggleGhost: () => void; onAdd: () => void; onSelectItem: (item: CaptureItemRecord) => void }) {
   return (
-    <section className="shrink-0 bg-black px-2 pb-2" aria-label="Progress">
-      <p className="mb-1 px-1 text-[10px] font-black uppercase tracking-[0.16em] text-white/55">Progress / before & after</p>
-      <div className="flex h-14 gap-2 overflow-x-auto rounded-2xl border border-white/10 bg-black p-1 no-scrollbar">
-        <button type="button" onClick={onAdd} className="flex min-w-20 items-center justify-center gap-1 rounded-xl border border-blue-400/60 bg-blue-500/15 text-[10px] font-black text-blue-100"><Plus className="h-4 w-4" /> Add</button>
+    <section className="shrink-0 bg-transparent pb-1 pt-1" aria-label="Progress">
+      <p className="mb-1 px-2 text-[10px] font-black uppercase tracking-[0.16em] text-white/55">Progress / before & after</p>
+      <div className="flex h-14 w-full gap-2 overflow-x-auto border-y-2 border-white/25 bg-black/75 p-1 backdrop-blur-sm no-scrollbar">
+        <button type="button" onClick={onAdd} className="flex aspect-square h-full shrink-0 items-center justify-center border border-blue-400/70 bg-blue-500/15 text-blue-100" aria-label="Add progress photo"><Plus className="h-5 w-5" /></button>
         {ghostAvailable && <button type="button" onClick={onToggleGhost} className={`min-w-24 rounded-xl border px-2 text-[10px] font-black ${ghostOn ? "border-blue-400 bg-blue-500/20 text-blue-100" : "border-white/15 bg-white/10 text-white/70"}`}>Ghost align</button>}
-        {items.map((item) => <ThumbButton key={item.id} item={item} active={false} label={new Date(item.created_at).toLocaleDateString()} onClick={() => onSelectItem(item)} />)}
-        <span className="flex min-w-20 items-center justify-center rounded-xl border border-dashed border-white/20 text-[10px] font-black text-white/45">Next</span>
+        {items.map((item) => <ThumbButton key={item.id} item={item} thumbKey={`progress-${item.id}`} active={false} revealed={revealedThumbKey === `progress-${item.id}`} label={new Date(item.created_at).toLocaleDateString()} onReveal={onReveal} onOpen={() => onSelectItem(item)} />)}
       </div>
     </section>
   );
@@ -152,8 +151,16 @@ function AttachmentsSheet({ pins, onClose, onRemove }: { pins: PhotoAttachmentPi
   );
 }
 
-function ThumbButton({ item, active, label, onClick, onDoubleClick }: { item: CaptureItemRecord; active: boolean; label: string; onClick: () => void; onDoubleClick?: () => void }) {
-  return <button type="button" onClick={onClick} onDoubleClick={onDoubleClick} className={`relative min-w-20 overflow-hidden rounded-xl border ${active ? "border-blue-500 ring-2 ring-blue-500/30" : "border-white/15"}`} aria-label={`Open ${label}`}><PhotoThumb item={item} /><span className="absolute inset-x-0 bottom-0 truncate bg-black/70 px-1 py-0.5 text-left text-[9px] font-black text-white">{label}</span></button>;
+function ThumbButton({ item, thumbKey, active, revealed, label, onReveal, onOpen, onDoubleClick }: { item: CaptureItemRecord; thumbKey: string; active: boolean; revealed: boolean; label: string; onReveal: (key: string) => void; onOpen: () => void; onDoubleClick?: () => void }) {
+  function handleClick() {
+    if (!revealed) {
+      onReveal(thumbKey);
+      return;
+    }
+    onOpen();
+  }
+
+  return <button type="button" onClick={handleClick} onDoubleClick={onDoubleClick ?? onOpen} className={`relative aspect-square h-full shrink-0 overflow-hidden border ${active ? "border-blue-500 ring-2 ring-blue-500/30" : "border-white/20"}`} aria-label={revealed ? `Open ${label}` : `Show ${label} name`}><PhotoThumb item={item} />{revealed && <span className="absolute inset-x-0 bottom-0 truncate bg-black/75 px-1 py-0.5 text-left text-[9px] font-black text-white">{label}</span>}</button>;
 }
 
 function dispatchCanvasEvent(name: string) {
