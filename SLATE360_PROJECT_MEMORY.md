@@ -196,26 +196,28 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-29 (Contained Capture Rails)
+### Session Handoff — 2026-04-29 (Capture Rail Polish + Gesture Isolation)
 
 #### What Changed
-- `components/site-walk/capture/VisualCaptureView.tsx` — added a reusable `RailShell` wrapper so Stops, Angles, and Progress rails are contained inside the viewport with `mx-2`, strong borders, and black translucent backgrounds.
-- `components/site-walk/capture/VisualCaptureView.tsx` — added left/right gradient edge shading on each rail to hint that the section can be horizontally scrolled.
-- `components/site-walk/capture/VisualCaptureView.tsx` — moved the Angles rail directly below the main capture/photo field, then placed Markup/Files below Angles and above Progress/Before & After.
-- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — added Prompt 10I audit row for contained rails/order correction.
+- `components/site-walk/capture/VisualCaptureView.tsx` — tightened the contained `RailShell` wrapper with stronger borders and edge fades so rail ends remain visibly inside the mobile viewport.
+- `components/site-walk/capture/VisualCaptureView.tsx` — made Progress/Before & After collapsible with safe-area bottom padding to avoid rounded-phone corner clipping.
+- `components/site-walk/capture/PhotoMarkupCanvas.tsx` — marked the gesture canvas with `data-disable-workspace-swipe="true"`.
+- `components/shared/paged-workspace/PagedWorkspace.tsx` — ignores touch swipe navigation from descendants that opt out, preventing photo pinch/zoom/pan/long-press from changing Visual/Data pages.
+- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — added Prompt 10J audit row for Progress collapse and canvas gesture isolation.
 
 #### What's Broken / Partially Done
-- Rail heights may still need visual tuning on very short phone screens after real-device review.
+- Needs real-device smoke test to confirm rail ends are visibly contained, Progress expands/collapses comfortably, and canvas gestures no longer navigate away.
 - Progress still derives from current same-location session items, not historical cross-walk media.
 - The user-uploaded reference image `public/uploads/marked up.jpg` remains untracked and intentionally not committed unless requested.
+- `components/site-walk/capture/PhotoMarkupCanvas.tsx` is 299 lines; future changes should extract before adding more logic.
 
 #### Context Files Updated
 - `SLATE360_PROJECT_MEMORY.md` — this handoff.
-- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — Prompt 10I audit row.
+- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — Prompt 10J audit row.
 
 #### Next Steps (ordered)
-1. Mobile-test rail visibility: edges should be visible inside the screen and gradient fades should suggest horizontal scroll.
-2. Confirm visual order: capture image → Angles → Markup/Files → Progress.
+1. Mobile-test rail visibility and safe-area spacing on a rounded-screen phone.
+2. Confirm pinch/zoom/pan and long-press attachment pins stay on the Visual page.
 3. Tune carousel heights/margins if the capture image becomes too short.
 
 ### Session Handoff — 2026-04-29 (Angular Capture Rails)
