@@ -196,6 +196,23 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
+### Session Handoff — 2026-04-29 (VisualCaptureView Verification)
+
+#### What Changed
+- No production code changed. Verified commit `0785724` is on `main` and `origin/main`, Vercel lists the latest production deployment as Ready, and `components/site-walk/capture/VisualCaptureView.tsx` remains 194 lines with the locked-in visual capture layout.
+
+#### What's Broken / Partially Done
+- If the UI appears unchanged, likely causes are cached browser/PWA bundle, viewing a non-Act-2/legacy capture route, or testing before an active photo exists. Most new controls appear after `activeItem` is present.
+- Existing repo file-size guard still fails on unrelated pre-existing oversized files; `VisualCaptureView.tsx` is under the 300-line limit.
+
+#### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md` — verification handoff only.
+
+#### Next Steps (ordered)
+1. User should hard-refresh/clear PWA site data and confirm they are on `/site-walk/capture?session=...` with an active captured photo.
+2. If a marked-up screenshot is provided, visually inspect it and translate the sketch into exact component/Tailwind layout changes.
+3. If needed, add a visible build/version marker or temporary debug label to confirm the deployed bundle being viewed.
+
 ### Session Handoff — 2026-04-29 (VisualCaptureView Lock-in)
 
 #### What Changed
