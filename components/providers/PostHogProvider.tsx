@@ -23,6 +23,7 @@ export function PostHogInit() {
 
     const key = process.env.NEXT_PUBLIC_POSTHOG_KEY;
     const host = process.env.NEXT_PUBLIC_POSTHOG_HOST;
+    const autocapture = process.env.NEXT_PUBLIC_POSTHOG_AUTOCAPTURE === "true";
     if (!key) return;
 
     import("posthog-js").then(({ default: posthog }) => {
@@ -31,8 +32,8 @@ export function PostHogInit() {
         api_host: host || "https://us.i.posthog.com",
         person_profiles: "identified_only",
         capture_pageview: true,
-        capture_pageleave: true,
-        autocapture: true,
+        capture_pageleave: false,
+        autocapture,
       });
     });
   }, []);

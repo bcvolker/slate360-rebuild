@@ -196,9 +196,14 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-29 (Pinned Files + Optional Next Photo)
+### Session Handoff — 2026-04-29 (Performance Audit + Telemetry Throttle)
 
 #### What Changed
+- `docs/PERFORMANCE_AUDIT_2026-04-29.md` — added a paranoid performance audit covering App Shell, Site Walk capture, Design Studio, 360 Tours, Content Studio, PWA/App Store wrapper reality, ranked risks, quick wins, and a second-opinion prompt for another AI assistant.
+- `components/providers/PostHogProvider.tsx` — disabled PostHog `autocapture` by default and disabled page-leave capture; autocapture is now opt-in through `NEXT_PUBLIC_POSTHOG_AUTOCAPTURE=true`.
+- `sentry.client.config.ts`, `sentry.server.config.ts`, and `sentry.edge.config.ts` — lowered default Sentry trace sample rate from 1.0 to 0.1 with env overrides; client replay-on-error default also lowered to 0.1.
+- Static audit found 372 client components and large active performance hotspots: `LocationMap.tsx` 1892 lines, `DashboardWidgetRenderer.tsx` 547, `PhotoMarkupCanvas.tsx` 299, plus heavy 360/model/media modules that need lazy-loading and throttling before App Store packaging.
+- Build stability guard was started and reached production build/type validation; it emitted known Sentry instrumentation and webpack large-string warnings. Re-check terminal output before relying on final status.
 - `components/site-walk/capture/useCaptureItems.ts` — initial server item load now merges into the current local optimistic list instead of replacing it, preventing a just-captured active photo from disappearing while upload/reconciliation is in flight.
 - `components/site-walk/capture/PhotoAttachmentPins.tsx` — file upload now auto-saves the pin, updates visible local pins immediately, uses a larger blue paperclip marker, and keeps markers aligned with the zoom/pan transform.
 - `components/site-walk/capture/PhotoMarkupCanvas.tsx` — passes the current canvas transform to pinned-file markers.
@@ -213,6 +218,8 @@ When editing oversized files, always read both the state declarations AND the JS
 - `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — added Prompt 10K/10L audit rows for mobile stability and capture overlay cleanup.
 
 #### What's Broken / Partially Done
+- App Store/native wrapper performance is not solved by packaging alone. If the app remains a WebView wrapper, it still needs image compression, lazy-loaded heavy modules, telemetry throttling, background upload design, and mobile performance tests.
+- High-priority performance follow-ups: dynamic import command palette/invite modal, lazy-load heavy widgets, split `LocationMap`, compress Site Walk capture previews, throttle canvas pointer updates, disable model auto-rotate by default, and add route bundle budgets.
 - Needs real-device smoke test: long-press photo, upload a file, confirm the blue paperclip appears immediately, then open Files and confirm the pin/file is listed.
 - Needs real-device smoke test on iPhone/Android: capture a photo, draw markup, move/resize/delete markup, long-press a pin, save a pin, press Next, then Back.
 - Existing mobile HTTP smoke script failed on stale homepage hero-copy expectation, not on the Site Walk capture changes.
@@ -222,13 +229,14 @@ When editing oversized files, always read both the state declarations AND the JS
 
 #### Context Files Updated
 - `SLATE360_PROJECT_MEMORY.md` — this handoff.
+- `docs/PERFORMANCE_AUDIT_2026-04-29.md` — performance audit and second-opinion prompt.
 - `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — Prompt 10M audit row.
 - `ops/bug-registry.json` and `slate360-context/ONGOING_ISSUES.md` — BUG-038.
 
 #### Next Steps (ordered)
-1. Mobile-test pinned-file flow and `Done with this photo` flow with a real camera image on a phone.
-2. If still laggy, extract `PhotoMarkupCanvas` and throttle/debounce markup persistence further.
-3. Add a dedicated authenticated Site Walk mobile Playwright scenario once test auth fixtures exist.
+1. Re-check the background build guard terminal and record whether it passed or failed.
+2. Mobile-test pinned-file flow and `Done with this photo` flow with a real camera image on a phone.
+3. Start P0 performance fixes: Site Walk image compression + `PhotoMarkupCanvas` extraction/throttling, then App Shell lazy-loading.
 
 ### Session Handoff — 2026-04-29 (Angular Capture Rails)
 
