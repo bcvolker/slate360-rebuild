@@ -196,6 +196,26 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
+### Session Handoff — 2026-04-29 (Command Center Section Balance)
+
+#### What Changed
+- `components/dashboard/command-center/CommandCenterContent.tsx` — removed the visible `Quick resume` text, Slate360/org text, and `More` button from the horizontal shortcut rail; made that rail much shallower; changed the Command Center into three contained zones: apps, compact shortcuts, and bottom Workspace Tray.
+- `components/dashboard/command-center/CommandCenterContent.tsx` — added the bottom-third Workspace Tray with contained internal scrolling for Work Queue, Inbox, File Activity, and Setup entry points.
+- `slate360-context/DASHBOARD.md` — updated the zero-scroll Command Center documentation to describe the shallow middle rail plus bottom Workspace Tray.
+
+#### What's Broken / Partially Done
+- Workspace Tray cards are still entry-point/empty-state cards, not live activity data.
+- The exact app/shortcut/tray heights may still need visual tuning after reviewing on real phone and desktop breakpoints.
+
+#### Context Files Updated
+- `slate360-context/DASHBOARD.md` — documented the three-zone Command Center structure.
+- `SLATE360_PROJECT_MEMORY.md` — this handoff.
+
+#### Next Steps (ordered)
+1. Review `/dashboard` in mobile PWA viewport and desktop to verify the apps + shortcut rail occupy roughly the upper two-thirds and Workspace Tray owns the bottom third.
+2. Wire Workspace Tray cards to real work queue, inbox, recent file activity, and setup status when data contracts are ready.
+3. Continue with the Site Walk-specific blueprint once provided.
+
 ### Session Handoff — 2026-04-28 (Compact 2x2 App Launcher)
 
 #### What Changed
