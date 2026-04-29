@@ -196,6 +196,28 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
+### Session Handoff — 2026-04-29 (Contained Capture Rails)
+
+#### What Changed
+- `components/site-walk/capture/VisualCaptureView.tsx` — added a reusable `RailShell` wrapper so Stops, Angles, and Progress rails are contained inside the viewport with `mx-2`, strong borders, and black translucent backgrounds.
+- `components/site-walk/capture/VisualCaptureView.tsx` — added left/right gradient edge shading on each rail to hint that the section can be horizontally scrolled.
+- `components/site-walk/capture/VisualCaptureView.tsx` — moved the Angles rail directly below the main capture/photo field, then placed Markup/Files below Angles and above Progress/Before & After.
+- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — added Prompt 10I audit row for contained rails/order correction.
+
+#### What's Broken / Partially Done
+- Rail heights may still need visual tuning on very short phone screens after real-device review.
+- Progress still derives from current same-location session items, not historical cross-walk media.
+- The user-uploaded reference image `public/uploads/marked up.jpg` remains untracked and intentionally not committed unless requested.
+
+#### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md` — this handoff.
+- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — Prompt 10I audit row.
+
+#### Next Steps (ordered)
+1. Mobile-test rail visibility: edges should be visible inside the screen and gradient fades should suggest horizontal scroll.
+2. Confirm visual order: capture image → Angles → Markup/Files → Progress.
+3. Tune carousel heights/margins if the capture image becomes too short.
+
 ### Session Handoff — 2026-04-29 (Angular Capture Rails)
 
 #### What Changed
