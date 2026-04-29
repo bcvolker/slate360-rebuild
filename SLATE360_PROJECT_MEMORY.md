@@ -196,26 +196,25 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-29 (Command Center Tray Fit)
+### Session Handoff — 2026-04-29 (VisualCaptureView Lock-in)
 
 #### What Changed
-- `components/dashboard/command-center/CommandCenterContent.tsx` — tightened the zero-scroll grid from a 42% app row / 18% shortcut rail to a 36% app row / 14% shortcut rail so the Workspace Tray gets more lower-screen height and is less likely to be clipped.
-- `components/dashboard/command-center/CommandCenterContent.tsx` — reduced Workspace Tray padding and tray card minimum height to help the contained tray fit on short mobile viewports.
-- `components/dashboard/command-center/AppsGrid.tsx` — condensed the app launcher cards, title pill, gaps, and mobile card heights while preserving the 2×2 Site Walk / 360 Tours / Design Studio / Content Studio order.
-- `slate360-context/DASHBOARD.md` — documented the condensed app row and larger Workspace Tray allocation.
+- `components/site-walk/capture/VisualCaptureView.tsx` — locked the screen to a strict zero-scroll layout: outer container is `flex h-[100dvh] w-full flex-col overflow-hidden`, the photo canvas `<main>` uses `flex-1 min-h-0 overflow-hidden`, and the three horizontal carousels (Locations top, Angles bottom 1, Progress bottom 2) all use `overflow-x-auto whitespace-nowrap no-scrollbar`.
+- `components/site-walk/capture/VisualCaptureView.tsx` — added a floating bottom-left `📎 Attachments ({count})` button overlaid on the image canvas. It opens an in-canvas bottom-sheet (`AttachmentsSheet`) listing every pinned attachment with a trash icon to remove it from state via `onAttachmentPinsChange`. Removed the legacy inline `PinnedFileStrip` chips.
+- Pinch/zoom, pan, and long-press → drop pin + open file picker continue to be handled inside the existing `PhotoMarkupCanvas` + `PhotoAttachmentPins` modal, so the React state and visual layout requested by the prompt are now in place without backend wiring changes.
 
 #### What's Broken / Partially Done
-- Workspace Tray cards are still entry-point/empty-state cards, not live activity data.
-- The exact app/shortcut/tray heights may still need visual tuning after reviewing on real phone and desktop breakpoints, especially very short mobile screens.
+- The Attachments bottom sheet is read-only summary plus removal; opening it does not yet jump-scroll the canvas to the pin's coordinates.
+- No Locations data source yet — the top Locations carousel still derives from `photoItems`; a true session "stops" model is pending.
+- Progress carousel still derives from items in the current session; cross-walk historical media at the same location is still pending a backend fetch.
 
 #### Context Files Updated
-- `slate360-context/DASHBOARD.md` — documented the tighter app row and larger contained Workspace Tray.
 - `SLATE360_PROJECT_MEMORY.md` — this handoff.
 
 #### Next Steps (ordered)
-1. Review `/dashboard` in mobile PWA viewport and desktop to verify the Workspace Tray is no longer cut off at the bottom.
-2. Wire Workspace Tray cards to real work queue, inbox, recent file activity, and setup status when data contracts are ready.
-3. Continue with the Site Walk-specific blueprint once provided.
+1. Visually verify the screen on a real mobile viewport: no document scroll, photo canvas fills, carousels swipe horizontally, attachments sheet opens above the canvas.
+2. Wire the Locations carousel to a real `walk_stops` model and the Progress carousel to historical media at the same location.
+3. Add jump-to-pin behavior so tapping an entry in the Attachments sheet pans/zooms the canvas to that pin.
 
 ### Session Handoff — 2026-04-28 (Compact 2x2 App Launcher)
 
