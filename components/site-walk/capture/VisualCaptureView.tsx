@@ -43,12 +43,10 @@ export function VisualCaptureView({ sessionId, autoOpenCamera, launchId, items, 
       <StopCarousel items={photoItems} activeItemId={activeItemId} revealedThumbKey={revealedThumbKey} onReveal={setRevealedThumbKey} onSelectItem={onSelectItem} onOpenEdit={onNext} />
 
       <main className="min-h-0 flex-1 border-y border-white/10 bg-zinc-950">
-        <div className="flex h-full min-h-0">
-          <div className="relative min-w-0 flex-1 overflow-hidden">
-            <CameraViewfinder sessionId={sessionId} autoOpenCamera={autoOpenCamera} launchId={launchId} layout="visual" activeItem={activeItem} markupEnabled={markupMode} onMarkupChange={onMarkupChange} onAttachmentPinsChange={onAttachmentPinsChange} />
-            {ghostOn && ghostImageUrl && <img src={ghostImageUrl} alt="Previous progress ghost alignment" className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-25 mix-blend-screen" />}
-          </div>
-          <button type="button" onClick={onNext} className="flex w-10 shrink-0 items-center justify-center border-l border-white/10 bg-black text-white/80" aria-label="Open notes and details">
+        <div className="relative h-full min-h-0 overflow-hidden">
+          <CameraViewfinder sessionId={sessionId} autoOpenCamera={autoOpenCamera} launchId={launchId} layout="visual" activeItem={activeItem} markupEnabled={markupMode} onMarkupChange={onMarkupChange} onAttachmentPinsChange={onAttachmentPinsChange} />
+          {ghostOn && ghostImageUrl && <img src={ghostImageUrl} alt="Previous progress ghost alignment" className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-25 mix-blend-screen" />}
+          <button type="button" onClick={onNext} className="absolute right-2 top-1/2 z-20 flex h-14 w-9 -translate-y-1/2 items-center justify-center border border-white/20 bg-black/35 text-white/85 shadow-xl backdrop-blur-md" aria-label="Open notes and details">
             <ChevronRight className="h-7 w-7" />
           </button>
         </div>

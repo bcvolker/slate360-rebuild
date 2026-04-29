@@ -196,14 +196,15 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-29 (Mobile Capture Stability)
+### Session Handoff — 2026-04-29 (Capture Overlay + Mobile Performance)
 
 #### What Changed
+- `components/site-walk/capture/VisualCaptureView.tsx` — removed the dedicated black right-side notes/swipe bar from the capture canvas and changed the chevron into a small translucent overlay button on top of the photo area.
 - `components/site-walk/capture/PhotoMarkupCanvas.tsx` — stopped markup autosave from re-firing on parent rerenders and stopped local canvas state from resetting when optimistic item metadata changes; it now emits on local shape changes and resets only when the displayed image changes.
 - `components/site-walk/capture/CameraViewfinder.tsx` — preserves the active blob preview when upload reconciliation swaps the optimistic local item to the saved server item, avoiding revoked-preview flicker/blanking.
 - `components/shared/paged-workspace/PagedWorkspace.tsx` and `app/site-walk/(act-2-inputs)/capture/_components/CaptureClientIsland.tsx` — added `swipeEnabled` and disabled swipe paging in capture task mode so Visual/Data navigation uses explicit Next/Back controls.
 - `ops/bug-registry.json` and `slate360-context/ONGOING_ISSUES.md` — logged/fixed BUG-037 for mobile capture canvas resets.
-- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — added Prompt 10K audit row for the mobile stability fix.
+- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — added Prompt 10K/10L audit rows for mobile stability and capture overlay cleanup.
 
 #### What's Broken / Partially Done
 - Needs real-device smoke test on iPhone/Android: capture a photo, draw markup, move/resize/delete markup, long-press a pin, save a pin, press Next, then Back.
@@ -214,7 +215,7 @@ When editing oversized files, always read both the state declarations AND the JS
 
 #### Context Files Updated
 - `SLATE360_PROJECT_MEMORY.md` — this handoff.
-- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — Prompt 10K audit row.
+- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — Prompt 10K/10L audit rows.
 - `ops/bug-registry.json` and `slate360-context/ONGOING_ISSUES.md` — BUG-037.
 
 #### Next Steps (ordered)
