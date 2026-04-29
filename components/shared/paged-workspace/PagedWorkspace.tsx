@@ -51,6 +51,10 @@ export function PagedWorkspace({ pages, initialPageId, activePageId, title, subt
   }
 
   function handleTouchEnd(event: TouchEvent<HTMLDivElement>) {
+    if (isWorkspaceSwipeDisabled(event.target)) {
+      setTouchStart(null);
+      return;
+    }
     if (touchStart === null) return;
     const delta = event.changedTouches[0].clientX - touchStart;
     setTouchStart(null);
@@ -77,11 +81,15 @@ export function PagedWorkspace({ pages, initialPageId, activePageId, title, subt
       )}
       <div
         className={cn("min-h-0 flex-1 overflow-hidden", viewportClassName)}
-        onTouchStart={(event) => setTouchStart(event.touches[0].clientX)}
+        onTouchStart={(event) => setTouchStart(isWorkspaceSwipeDisabled(event.target) ? null : event.touches[0].clientX)}
         onTouchEnd={handleTouchEnd}
       >
         {activePage.content}
       </div>
     </section>
   );
+}
+
+function isWorkspaceSwipeDisabled(target: EventTarget | null) {
+  return target instanceof Element && !!target.closest("[data-disable-workspace-swipe='true']");
 }

@@ -28,6 +28,7 @@ export function VisualCaptureView({ sessionId, autoOpenCamera, launchId, items, 
   const [ghostOn, setGhostOn] = useState(false);
   const [markupMode, setMarkupMode] = useState(false);
   const [attachmentsOpen, setAttachmentsOpen] = useState(false);
+  const [progressOpen, setProgressOpen] = useState(false);
   const [revealedThumbKey, setRevealedThumbKey] = useState<string | null>(null);
   const photoItems = items.filter((item) => item.item_type === "photo");
   const activeItem = photoItems.find((item) => item.id === activeItemId) ?? null;
@@ -56,7 +57,7 @@ export function VisualCaptureView({ sessionId, autoOpenCamera, launchId, items, 
       <AngleCarousel items={angleItems.length > 0 ? angleItems : photoItems} activeItemId={activeItemId} revealedThumbKey={revealedThumbKey} onReveal={setRevealedThumbKey} onSelectItem={onSelectItem} />
       <CaptureActionBar pinCount={activePins.length} markupMode={markupMode} onToggleMarkup={() => setMarkupMode((current) => !current)} onOpenAttachments={() => setAttachmentsOpen(true)} />
       {markupMode && <div className="shrink-0 border-b border-white/10 bg-black px-2 py-1"><UnifiedVectorToolbar /></div>}
-      <ProgressTimeline items={progressItems} ghostOn={ghostOn} ghostAvailable={!!ghostImageUrl} revealedThumbKey={revealedThumbKey} onReveal={setRevealedThumbKey} onToggleGhost={() => setGhostOn((current) => !current)} onAdd={() => { setGhostOn(true); requestCameraCapture("camera", "next_item"); }} onSelectItem={onSelectItem} />
+      <ProgressTimeline items={progressItems} open={progressOpen} ghostOn={ghostOn} ghostAvailable={!!ghostImageUrl} revealedThumbKey={revealedThumbKey} onReveal={setRevealedThumbKey} onToggleOpen={() => setProgressOpen((current) => !current)} onToggleGhost={() => setGhostOn((current) => !current)} onAdd={() => { setProgressOpen(true); setGhostOn(true); requestCameraCapture("camera", "next_item"); }} onSelectItem={onSelectItem} />
 
       {attachmentsOpen && (
         <AttachmentsSheet
@@ -127,27 +128,32 @@ function AngleCarousel({ items, activeItemId, revealedThumbKey, onReveal, onSele
   );
 }
 
-function ProgressTimeline({ items, ghostOn, ghostAvailable, revealedThumbKey, onReveal, onToggleGhost, onAdd, onSelectItem }: { items: CaptureItemRecord[]; ghostOn: boolean; ghostAvailable: boolean; revealedThumbKey: string | null; onReveal: (key: string) => void; onToggleGhost: () => void; onAdd: () => void; onSelectItem: (item: CaptureItemRecord) => void }) {
+function ProgressTimeline({ items, open, ghostOn, ghostAvailable, revealedThumbKey, onReveal, onToggleOpen, onToggleGhost, onAdd, onSelectItem }: { items: CaptureItemRecord[]; open: boolean; ghostOn: boolean; ghostAvailable: boolean; revealedThumbKey: string | null; onReveal: (key: string) => void; onToggleOpen: () => void; onToggleGhost: () => void; onAdd: () => void; onSelectItem: (item: CaptureItemRecord) => void }) {
   return (
-    <section className="shrink-0 bg-transparent pb-1 pt-1" aria-label="Progress">
-      <p className="mb-1 px-2 text-[10px] font-black uppercase tracking-[0.16em] text-white/55">Progress / before & after</p>
-      <RailShell heightClass="h-14">
-        <button type="button" onClick={onAdd} className="flex aspect-square h-full shrink-0 items-center justify-center border border-blue-400/70 bg-blue-500/15 text-blue-100" aria-label="Add progress photo"><Plus className="h-5 w-5" /></button>
-        {ghostAvailable && <button type="button" onClick={onToggleGhost} className={`min-w-24 rounded-xl border px-2 text-[10px] font-black ${ghostOn ? "border-blue-400 bg-blue-500/20 text-blue-100" : "border-white/15 bg-white/10 text-white/70"}`}>Ghost align</button>}
-        {items.map((item) => <ThumbButton key={item.id} item={item} thumbKey={`progress-${item.id}`} active={false} revealed={revealedThumbKey === `progress-${item.id}`} label={new Date(item.created_at).toLocaleDateString()} onReveal={onReveal} onOpen={() => onSelectItem(item)} />)}
-      </RailShell>
+    <section className="shrink-0 bg-transparent pt-1 pb-[calc(0.55rem+env(safe-area-inset-bottom))]" aria-label="Progress">
+      <button type="button" onClick={onToggleOpen} className="mb-1 flex w-full items-center justify-between px-3 text-left text-[10px] font-black uppercase tracking-[0.16em] text-white/60" aria-expanded={open}>
+        <span>Progress / before &amp; after</span>
+        <ChevronRight className={`h-4 w-4 transition-transform ${open ? "rotate-90" : ""}`} />
+      </button>
+      {open && (
+        <RailShell heightClass="h-14">
+          <button type="button" onClick={onAdd} className="flex aspect-square h-full shrink-0 items-center justify-center border border-blue-400/70 bg-blue-500/15 text-blue-100" aria-label="Add progress photo"><Plus className="h-5 w-5" /></button>
+          {ghostAvailable && <button type="button" onClick={onToggleGhost} className={`min-w-24 border px-2 text-[10px] font-black ${ghostOn ? "border-blue-400 bg-blue-500/20 text-blue-100" : "border-white/15 bg-white/10 text-white/70"}`}>Ghost align</button>}
+          {items.map((item) => <ThumbButton key={item.id} item={item} thumbKey={`progress-${item.id}`} active={false} revealed={revealedThumbKey === `progress-${item.id}`} label={new Date(item.created_at).toLocaleDateString()} onReveal={onReveal} onOpen={() => onSelectItem(item)} />)}
+        </RailShell>
+      )}
     </section>
   );
 }
 
 function RailShell({ heightClass, children }: { heightClass: string; children: ReactNode }) {
   return (
-    <div className="relative mx-2 overflow-hidden border-y-2 border-white/25 bg-black/75 backdrop-blur-sm">
+    <div className="relative mx-3 overflow-hidden border-2 border-white/25 bg-black/75 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)] backdrop-blur-sm">
       <div className={`flex ${heightClass} gap-2 overflow-x-auto p-1 no-scrollbar`}>
         {children}
       </div>
-      <div className="pointer-events-none absolute inset-y-0 left-0 w-7 bg-gradient-to-r from-black/90 to-transparent" />
-      <div className="pointer-events-none absolute inset-y-0 right-0 w-7 bg-gradient-to-l from-black/90 to-transparent" />
+      <div className="pointer-events-none absolute inset-y-0 left-0 w-9 border-l border-white/30 bg-gradient-to-r from-black via-black/65 to-transparent" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 w-9 border-r border-white/30 bg-gradient-to-l from-black via-black/65 to-transparent" />
     </div>
   );
 }

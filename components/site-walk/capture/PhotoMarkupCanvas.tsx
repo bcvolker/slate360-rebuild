@@ -180,7 +180,7 @@ export function PhotoMarkupCanvas({ imageUrl, title, sessionId, markupEnabled, i
 
   return (
     <div className="h-full w-full text-left">
-      <div ref={stageRef} onWheel={handleWheel} onPointerDown={handlePointerDown} onPointerMove={handlePointerMove} onPointerUp={handlePointerUp} onPointerCancel={handlePointerUp} className={`relative h-full min-h-[360px] w-full touch-none overflow-hidden bg-black ${portrait ? "aspect-[3/4]" : "aspect-[4/3]"}`}>
+      <div ref={stageRef} data-disable-workspace-swipe="true" onWheel={handleWheel} onPointerDown={handlePointerDown} onPointerMove={handlePointerMove} onPointerUp={handlePointerUp} onPointerCancel={handlePointerUp} className={`relative h-full min-h-[360px] w-full touch-none overflow-hidden bg-black ${portrait ? "aspect-[3/4]" : "aspect-[4/3]"}`}>
         <img src={imageUrl} alt={title} onLoad={(event) => setPortrait(event.currentTarget.naturalHeight > event.currentTarget.naturalWidth)} className="h-full w-full select-none object-cover" style={{ transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})`, transformOrigin: "center" }} draggable={false} />
         <svg className="absolute inset-0 h-full w-full" viewBox={`0 0 ${WIDTH} ${HEIGHT}`} preserveAspectRatio="none" style={{ transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})`, transformOrigin: "center" }}>
           {shapes.map((shape) => renderShape(shape, "", selectedId === shape.id, (event) => beginShapeDrag(event, shape)))}
