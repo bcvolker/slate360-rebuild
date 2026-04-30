@@ -52,6 +52,17 @@ This build plan is now aligned to the backend that is live on Supabase and track
 - `app/api/site-walk/pins/route.ts` supports `plan_sheet_id` and draft pins where `item_id` is not available yet.
 - `app/api/site-walk/upload/route.ts` currently routes photo/file captures to the project `Photos` folder. That is acceptable for launch, but the build should add clear folder conventions for Site Walk sessions and deliverables when SlateDrop provisioning is updated.
 
+### 2026-04-30 Cross-App Ecosystem Synergy Baseline
+
+Site Walk must preserve Slate360 ecosystem upside without becoming a clone of every other app. Cross-app features are premium, entitlement-gated bridges:
+
+- **Site Walk + 360 Tours:** only show 360 import/reference, 360 plan-pin viewer launch, and `tour_360`/`photo_360` deliverable composition when the workspace has both Site Walk (`punchwalk`) and 360 Tours (`tour_builder`) access. The entitlement resolver already exposes `resolveModularEntitlements()` and the `synergy.tours360InSiteWalk` flag.
+- **Site Walk + Design Studio:** only show model/design references in Site Walk deliverables when the workspace has both apps and `synergy.designInSiteWalk` is true.
+- **No dead surfaces:** if a user lacks the required app, hide the cross-app action or show a real upgrade CTA. Do not render nonfunctional `360`, `Design`, or `Coming Soon` buttons in App Store mode.
+- **Source of truth:** 360 authoring remains in 360 Tours. Site Walk may reference existing `project_tours` / `tour_scenes`, import entitled equirectangular assets into a Site Walk deliverable, or attach a 360 reference to a plan pin, but Site Walk should not duplicate the full 360 Tour builder UI.
+- **Backend state:** `site_walk_deliverable_assets.asset_type` already supports `photo_360` and `tour_360`; `site_walk_deliverable_scenes.scene_type` supports `photo_360`; hotspots support `yaw`/`pitch`; and `site_walk_items.metadata` can carry bridge metadata. However, `site_walk_items.item_type` does not yet include `photo_360`, and there is no explicit bridge API from 360 Tours into Site Walk. Build the bridge before promising end-to-end cross-app UX.
+- **Audit fields for future bridge:** any cross-app reference should persist source app, source table/id, source project, org, creator, referenced-vs-copied mode, entitlement gate used, and creation timestamp in normalized columns or `metadata`.
+
 ### Copilot response concerns addressed in this plan
 
 | Concern | Resolution in this build plan |
@@ -457,7 +468,8 @@ The detailed sections below are the executable prompt texts. When a prompt start
 | 10S | Complete | `dcff461` | Centered attachment panels and contained preview modal. | Centered the new attachment and edit attachment panels inside the capture area so action buttons are no longer cut off by the lower markup controls. Reduced the attached-file preview modal size, added a persistent top-right close button, and added pinch/drag zoom for image previews. |
 | 10T | Complete | `2172899` | Preview event isolation and attachment fallback. | Further contained marker file previews by shrinking the modal, making the close button a prominent cyan control, and stopping preview pointer/wheel events from bubbling into the capture canvas so pinch gestures zoom the preview instead of the photo behind it. Added an item-level attachment pin resolver so the capture canvas and Attached sheet read persisted `photo_attachment_pins` when metadata is missing or stale. |
 | 10U | Complete | `03b492f` | Preview crash hardening and faster capture preview. | Removed pointer capture from the marker file preview zoom handlers to avoid mobile DOM pointer-capture errors, made the preview card fit as a fixed small contained card within the capture area, capped image zoom at 4x, and kept all preview gestures isolated from the canvas behind it. Made new camera captures feel snappier by showing an immediate object URL from the original file before image compression/upload continues in the background. |
-| 10V | Complete | pending commit | Planned-walk strategy and start choice. | Updated the Act 2 strategy to make planned walks, Master Plan Room sheets, plan layering, optional background metadata, and restricted collaborator shells the source of truth. Updated org role docs for trapped collaborator shells plus restricted Personal Workspace. Added a `Walk with Plans` vs `Camera Only` capture start choice when plan sheets exist, a Plan/Camera mode toggle, PlanViewer primary mode with camera action, active-session pin filtering, and a crosshair `Drop Pin` action. |
+| 10V | Complete | `1a8e6a9` | Planned-walk strategy and start choice. | Updated the Act 2 strategy to make planned walks, Master Plan Room sheets, plan layering, optional background metadata, and restricted collaborator shells the source of truth. Updated org role docs for trapped collaborator shells plus restricted Personal Workspace. Added a `Walk with Plans` vs `Camera Only` capture start choice when plan sheets exist, a Plan/Camera mode toggle, PlanViewer primary mode with camera action, active-session pin filtering, and a crosshair `Drop Pin` action. |
+| 10W | Complete | `a71b3ea` | Cross-app ecosystem synergy audit and docs. | Audited Site Walk, 360 Tours, deliverable, SlateDrop, and entitlement surfaces for cross-app compatibility. Confirmed deliverable assets/scenes/hotspots already support `photo_360`, `tour_360`, and 360 yaw/pitch hotspots; confirmed 360 Tours has separate equirectangular upload/project tour APIs under `withAppAuth("tour_builder")`; confirmed `resolveModularEntitlements()` exposes `synergy.tours360InSiteWalk` and `synergy.designInSiteWalk`; and documented the gap that Site Walk lacks a first-class bridge route and `site_walk_items.item_type` does not yet include `photo_360`. Updated master/workflow docs to require entitlement-gated Site Walk + 360 Tours + Design Studio integration with no dead App Store surfaces. |
 | 10 | Complete | `9bc5868` | Field-office board and realtime support view. | Added a desktop-optimized `/site-walk/walks` board for in-progress walks with walk name, project, person walking, elapsed time, and captured item count. Added `/site-walk/walks/[sessionId]` live command center with split-pane layout: left feed grouped by Location → Item and right detail pane with photo preview, persisted vector markup overlay, AI-cleaned notes, classification, priority, status, and sync state. Added a scoped `useRealtimeWalk()` hook that subscribes to `postgres_changes` for `site_walk_items` filtered by `session_id=eq.${sessionId}` and `site_walk_sessions` filtered by `id=eq.${sessionId}`; no org-wide firehose channel is used. New realtime inserts animate into the feed and auto-select for office review. |
 | 11 | Not started | — | Collaborator and assigned-work loop. | Pending. |
 | 12 | Not started | — | Act 3 deliverable builder: hosted outputs first. | Pending. |
@@ -661,13 +673,15 @@ Goal: create deliverables from captured items using the normalized backend.
 Tasks:
 - Create draft deliverables with full valid type/status lists.
 - Build block/asset/scene composition UI from selected items, files, plan sheets, 360 assets, and model references.
+- Gate 360 asset/tour pickers behind Site Walk + 360 Tours entitlement (`synergy.tours360InSiteWalk`), and gate model/design references behind Site Walk + Design Studio entitlement (`synergy.designInSiteWalk`).
+- Reference existing 360 Tour scenes through a narrow bridge before copying media; preserve source app/table/id, project, org, and referenced-vs-copied mode.
 - Store assets in `site_walk_deliverable_assets`, scenes in `site_walk_deliverable_scenes`, and hotspots in `site_walk_deliverable_hotspots`.
 - Keep `content` JSON as backwards-compatible summary only, not the source of all interaction state.
 
 Acceptance:
 - User can create a hosted preview/client-review deliverable from a walk.
 - Preview has thumbnails, arrows/navigation, overlays/hotspots, and expandable response sidebar.
-- 360/model items can be referenced without Site Walk becoming the 360/model authoring app.
+- 360/model items can be referenced without Site Walk becoming the 360/model authoring app, and the references are invisible or upgrade-gated when the workspace lacks the paired app entitlement.
 
 ### Prompt 13 — Public viewer, client responses, and analytics
 

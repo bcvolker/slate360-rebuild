@@ -1,6 +1,6 @@
 # Site Walk — Master Architecture, Monetization, and Workflow Blueprint
 
-Last Updated: 2026-04-27
+Last Updated: 2026-04-30
 Status: Authoritative strategic blueprint for the Site Walk rebuild
 Scope: Slate360 Site Walk module, PWA/App Store strategy, collaborator workflow, tier gates, field capture, and non-PDF-centric deliverables
 
@@ -66,7 +66,36 @@ The target business model is 60%+ gross margin:
 - AI features must consume metered credits or run under subscriber-owned allowances.
 - App Store economics assume Apple/Google Small Business Program fees around 15% while eligible; pricing should still tolerate higher review, payment, or infrastructure costs.
 
-### 2.5 Auditability and Leadership Oversight
+### 2.5 Cross-App Ecosystem Synergy (Entitlement Gated)
+
+Site Walk must be architected as the field capture and project-context layer for the wider Slate360 ecosystem, not as a silo. Cross-app features are a premium differentiator and must only appear when the authenticated workspace has the required app entitlements.
+
+Core rule:
+
+- Site Walk + 360 Tours integrations require both the `punchwalk` and `tour_builder` app entitlements.
+- Site Walk + Design Studio integrations require both Site Walk and Design Studio entitlements.
+- The canonical resolver is `resolveModularEntitlements()` from `lib/entitlements.ts` / `lib/entitlements-modular.ts`; the existing synergy flags include `tours360InSiteWalk` and `designInSiteWalk`.
+- API surfaces must continue to use `withAppAuth("punchwalk", ...)` for Site Walk routes and `withAppAuth("tour_builder", ...)` for 360 Tours routes. Any bridge route must verify both sides before exposing cross-app records.
+- Under App Store mode and normal production UX, features that are not entitled must be hidden or replaced with a clear upgrade path. They must not appear as dead buttons, empty shells, or broken Coming Soon surfaces.
+
+Backend compatibility audit as of 2026-04-30:
+
+- Site Walk capture rows support generic metadata through `site_walk_items.metadata`, `markup_data`, `file_id`, `s3_key`, project linkage, and SlateDrop bridging, but `site_walk_items.item_type` currently accepts `photo`, `video`, `text_note`, `voice_note`, and `annotation`. Native capture rows do not yet have a first-class `photo_360` item type.
+- Plan pins can link any Site Walk item through `site_walk_pins.item_id`, include project/session fields, and can use `metadata`/`markup_data` for future viewer hints. They can support 360-pinned workflows once a 360-backed item or bridge reference exists.
+- Interactive deliverables are already 360-aware: `site_walk_deliverable_assets.asset_type` includes `photo_360` and `tour_360`; `site_walk_deliverable_scenes.scene_type` includes `photo_360`; hotspots support `yaw` and `pitch` for 360 navigation.
+- 360 Tours has a separate `project_tours` / `tour_scenes` schema and upload API that validates equirectangular JPEG/PNG panoramas with a 2:1 aspect ratio under the `tour_builder` entitlement.
+- The current codebase does not yet include an explicit Site Walk ↔ 360 Tours bridge route. The next implementation slice should add a narrow bridge that lists entitled project tours/scenes, allows selection into Site Walk plan pins/deliverables, and stores references without duplicating large media unless the user explicitly imports/copies assets.
+
+Required product behavior:
+
+1. Entitled users can attach existing 360 Tour scenes to Site Walk project context, plan pins, and deliverable scenes.
+2. Entitled users can upload equirectangular photos through the 360 Tours flow and reference them from Site Walk without treating Site Walk as the 360 authoring app.
+3. Plan pins may open a native 360 viewer when the linked item/asset is `photo_360` or `tour_360`.
+4. Interactive deliverables can include plan-sheet scenes, normal photo/video scenes, 360 photo scenes, 360 tour links, and hotspots that jump between them.
+5. Design Studio/model references may appear in Site Walk deliverables only when the workspace has the Design Studio synergy entitlement; otherwise Site Walk should show normal photo/report outputs only.
+6. Cross-app references must retain auditability: source app, source table/id, project, org, creator, entitlement state at creation time, and whether media is referenced or copied.
+
+### 2.6 Auditability and Leadership Oversight
 
 The leadership layer must provide operational truth, not vanity metrics:
 
@@ -574,7 +603,9 @@ This checklist captures the strategic features that must not be lost during impl
 - [ ] Long-press plan pinning with quick menu.
 - [ ] Camera, camera roll, upload, HEIC/ProRAW conversion, compression.
 - [ ] GPS/weather/EXIF metadata extraction.
-- [ ] 360° media ingest.
+- [ ] 360° media ingest through entitled 360 Tours flows and/or a dual-entitlement Site Walk bridge.
+- [ ] Entitlement-gated Site Walk + 360 Tours plan pins, native 360 viewer launch, and interactive deliverable scenes.
+- [ ] Entitlement-gated Site Walk + Design Studio model/design references in deliverables.
 - [ ] Background upload queue with visible status.
 - [ ] Unified vector toolbar.
 - [ ] Undo/redo Oops Engine.

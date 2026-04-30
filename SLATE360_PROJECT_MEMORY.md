@@ -196,35 +196,33 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-30 (Site Walk Strategy + Walk Start Choice)
+### Session Handoff — 2026-04-30 (Cross-App Ecosystem Synergy Audit)
 
 #### What Changed
-- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — updated Act 2 strategy around Act 1 planned walks, `Walk with Plans` vs `Camera Only`, crosshair plan pinning, active-walk pin layering, optional metadata, and restricted collaborator shells.
-- `slate360-context/ORG_ROLES_AND_PERMISSIONS.md` — clarified trapped collaborator shell behavior, assigned-work-only Site Walk permissions, and restricted Personal Workspace for App Store review safety.
-- `app/site-walk/(act-2-inputs)/capture/page.tsx` — checks whether the active project has plan sheets and passes `showStartChoice` into capture when plans exist and the user did not explicitly quick-launch camera/skip plans.
-- `app/site-walk/(act-2-inputs)/capture/_components/WalkStartChoice.tsx` — added dark/glassy premium `Walk with Plans` vs `Camera Only` start choice.
-- `app/site-walk/(act-2-inputs)/capture/_components/CaptureClientIsland.tsx` — added Plan/Camera mode state, PlanViewer-primary mode with camera action, and a floating Plan/Camera toggle after the walk starts.
-- `components/site-walk/capture/PlanViewer.tsx` and `app/api/site-walk/pins/route.ts` — added active-session pin filtering and a center-screen crosshair `Drop Pin` action.
-- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — backfilled Prompt 10U commit hash and added Prompt 10V.
+- `docs/SITE_WALK_MASTER_ARCHITECTURE.md` — added `Cross-App Ecosystem Synergy (Entitlement Gated)` with the Site Walk + 360 Tours + Design Studio rules, entitlement resolver requirements, App Store/no-dead-surface behavior, backend audit findings, and future bridge requirements.
+- `docs/SITE_WALK_MASTER_ARCHITECTURE.md` — updated the strategic checklist so 360 ingest, 360 plan pins/viewer launch, interactive deliverable scenes, and Design Studio references are explicitly dual-entitlement features.
+- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — added a 2026-04-30 cross-app ecosystem baseline documenting the current backend state: deliverable assets/scenes/hotspots are 360-aware, 360 Tours has separate `project_tours` / `tour_scenes` APIs, `resolveModularEntitlements()` exposes synergy flags, but Site Walk lacks a first-class 360 bridge and `site_walk_items.item_type` does not include `photo_360` yet.
+- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — backfilled Prompt 10V commit hash to `1a8e6a9`, added Prompt 10W for the audit/docs wave, and tightened Prompt 12 deliverable-builder tasks around entitlement-gated 360/model references.
 
 #### What's Broken / Partially Done
-- Needs real-device smoke test: project with uploaded plan sheets should show the `Walk with Plans` vs `Camera Only` choice before capture unless launched with quick camera or `plan=skip`.
-- Needs real-device smoke test: `Walk with Plans` opens PlanViewer as primary screen, `Camera` button enters visual capture, and floating Plan/Camera toggle switches both directions.
-- Needs backend/data smoke test: PlanViewer pin list defaults to active session pins; historical pin/layer toggles are documented but not fully implemented yet.
-- Crosshair `Drop Pin` is implemented, but full one-hand sheet/page bottom navigation and historical/assigned layer toggles still need dedicated UI polish.
-- The rail toggle is a space-saving UI pass, but the underlying distinction between true angles vs progress photos is still heuristic/current-session based.
-- `bash scripts/check-file-size.sh` still exits 1 due to known pre-existing oversized files; touched files remain under 300 lines (`CaptureClientIsland.tsx` 241, `WalkStartChoice.tsx` 37, `PlanViewer.tsx` 261, `capture/page.tsx` 73, `pins/route.ts` 94).
+- No implementation code was written for the Gemini fact-finding prompt by design; the bridge remains future work.
+- Missing bridge: no explicit Site Walk ↔ 360 Tours API currently lists/selects entitled project tour scenes for Site Walk plan pins or deliverables.
+- Schema gap: `site_walk_deliverable_assets.asset_type` supports `photo_360`/`tour_360`, and scenes/hotspots support 360 behavior, but `site_walk_items.item_type` still lacks a first-class `photo_360` capture type.
+- Needs future implementation: dual-entitlement bridge route should verify `punchwalk` + `tour_builder`, persist source app/table/id/project/org/referenced-vs-copied metadata, and avoid duplicating large 360 media unless explicitly importing.
+- Previous product gaps remain: PlanViewer layer toggles and one-hand sheet/page picker are not fully implemented; collaborator assigned-work shell and restricted Personal Workspace are documented but not built.
 - The user-uploaded reference image `public/uploads/marked up.jpg` and `ts-prune-output.txtcat` remain untracked and intentionally not committed.
 
 #### Context Files Updated
 - `SLATE360_PROJECT_MEMORY.md` — this handoff.
-- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — Act 2, collaborator loop, Prompt 10V row.
-- `slate360-context/ORG_ROLES_AND_PERMISSIONS.md` — trapped collaborator shell + restricted Personal Workspace.
+- `docs/SITE_WALK_MASTER_ARCHITECTURE.md` — cross-app ecosystem strategy and backend audit.
+- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — cross-app baseline, Prompt 10W, Prompt 12 entitlement gating.
 
 #### Next Steps (ordered)
-1. Build full PlanViewer layer toggles (`Active Walk`, `Historical Pins`, `Assigned to Me`) and one-hand sheet/page picker.
-2. Real-device smoke test plan/camera choice and mode toggle on iOS/Android.
-3. Build collaborator assigned-work shell and restricted Personal Workspace.
+1. Build a narrow dual-entitlement Site Walk ↔ 360 Tours bridge API for project tour/scene selection.
+2. Decide whether to add `photo_360` to `site_walk_items.item_type` or store 360 references only through deliverable assets/metadata.
+3. Add UI for entitled 360 plan-pin viewer launch and 360 deliverable composition.
+4. Build full PlanViewer layer toggles (`Active Walk`, `Historical Pins`, `Assigned to Me`) and one-hand sheet/page picker.
+5. Build collaborator assigned-work shell and restricted Personal Workspace.
 
 ### Session Handoff — 2026-04-30 (Markup Canvas Mobile UX Fixes)
 
