@@ -407,6 +407,19 @@
         "Pinch/drag zoom inside marker preview does not crash or affect the capture behind it",
         "Camera captures show an immediate local preview before compression/upload continues"
       ]
+    },
+    {
+      "id": "BUG-048",
+      "title": "Add Details lost the active capture after upload reconciliation",
+      "module": "site-walk/capture",
+      "severity": "critical",
+      "status": "fixed",
+      "rootCause": "The active capture resolver only matched `activeItemId` against `item.id`. After a photo upload, the optimistic local row could be replaced by the server row while preserving `client_item_id`, leaving `activeItemId` pointing at the local id. The Data page then received no active item/draft and showed the fallback that told users to capture a photo again.",
+      "verification": [
+        "`useCaptureItems` resolves the active item by either server id or `client_item_id`",
+        "After capture upload reconciliation, Add Details continues into the Data page instead of the Capture a photo first fallback",
+        "The Data page can keep showing the captured thumbnail via `getCaptureImageUrl()` while notes/details are entered"
+      ]
     }
   ]
 }

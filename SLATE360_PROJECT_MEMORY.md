@@ -196,37 +196,31 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-30 (Clean House PM/Deliverables Reality Audit)
+### Session Handoff — 2026-04-30 (Site Walk Add Details Focus Fix)
 
 #### What Changed
-- Read-only Gemini prompt executed: audited Project Hub PM pages, org branding settings, Site Walk deliverable versioning, SlateDrop folder provisioning, and open-source Gantt/budget-grid options.
-- PM Suite finding: `project-hub/[projectId]/rfis`, `submittals`, `budget`, and `schedule` pages are not mock-array pages; they fetch live APIs backed by `project_rfis`, `project_submittals`, `project_budgets`, and `project_tasks`. They still contain hardcoded option/template constants for statuses, AIA document codes, CSI categories, and handmade Gantt/table UI.
-- PM page sizes checked: RFIs 218 lines, Submittals 211, Budget 214, Schedule 240 — currently under the 300-line production limit after prior extraction.
-- Org branding finding: `organizations.brand_settings` exists as jsonb with `logo_url`, `signature_url`, `primary_color`, header/footer/contact fields, and UI/API exists in Site Walk setup. It does not yet support secondary/accent color arrays or a polished hex-picker/dropzone experience.
-- Deliverable versioning finding: `site_walk_deliverables` has rich hosted/interactive schema, send logs, snapshots, blocks, assets, scenes, hotspots, threads, and responses, but no true version-history mechanism such as `version_number`, `parent_id`, immutable revision table, or latest-published pointer lineage.
-- Auto-folder finding: `lib/slatedrop/provisioning.ts` is called from project create and creates broad project folders including RFIs/Submittals/Schedule/Budget/Site Walk-adjacent folders, but not the exact strict Gemini tree or per-workflow auto-save PDFs for RFIs/Submittals/Budgets/Schedules.
-- Important security/quality audit note: schedule `GET /api/projects/[projectId]/schedule` authenticates but does not call project-scope access before querying `project_tasks`; PATCH/POST/DELETE do scope-check. Fix before shipping PM Suite broadly.
-- Recommended OSS options: `gantt-task-react`, `frappe-gantt` React wrapper/custom integration, `react-spreadsheet` or `@tanstack/react-table` for lightweight editable budgets; evaluate license/React 19 compatibility before adding.
+- `components/site-walk/capture/useCaptureItems.ts` — fixed the Add Details loop by resolving the active capture by either server `id` or optimistic `client_item_id`, so upload reconciliation no longer drops the active photo before the Data page opens.
+- `slate360-context/ONGOING_ISSUES.md` — logged BUG-048 as fixed: Add Details returned to the “Capture a photo first” fallback after reconciliation.
+- `ops/bug-registry.json` — added BUG-048 with root cause and verification notes.
+- Validation passed: `git diff --check`, `npm run typecheck`, and editor diagnostics for `useCaptureItems.ts` / `bug-registry.json`.
+- File-size guard was run and still fails only on 12 known pre-existing oversized files; touched `useCaptureItems.ts` is 295 lines and under the 300-line limit.
 
 #### What's Broken / Partially Done
-- No implementation code was written by design; this was a fact-finding audit.
-- PM pages are real-data backed, but the UI is not yet app-centric/premium enough for the intended mobile/tablet-first experience.
-- Org branding is functional but too narrow for the requested brand-control vision: needs plural colors, secondary/accent support, proper color picker, logo dropzone, and deliverable metadata toggles.
-- Site Walk deliverables can be shared/sent and have interactive supporting tables, but edits overwrite the main row; true immutable versioning is missing.
-- SlateDrop provisions many useful folders, but the strict tree and automatic artifact routing/PDF generation are incomplete.
-- Large-scale Dark Glass/app-shell redesign must account for public website, login, signup, reset password, email confirmations, pending-access messaging, App Store reviewer flow, and desktop parity — not just authenticated app screens.
+- Needs real-device smoke test: capture photo → mark up → pin file → Add Details should open Data with the captured thumbnail and notes/details UI, not the Capture-first fallback.
+- Data Entry UX still needs a later product redesign; current fix only preserves the active capture loop. User specifically wants thumbnail/reference image plus professional notes, voice-to-text, and AI cleanup to remain central.
 - The user-uploaded reference image `public/uploads/marked up.jpg` and `ts-prune-output.txtcat` remain untracked and intentionally not committed.
+- Pre-existing file-size guard failures remain in unrelated files: `LocationMap.tsx`, `marketing-homepage.tsx`, `DashboardWidgetRenderer.tsx`, and other known oversized files reported by `scripts/check-file-size.sh`.
 
 #### Context Files Updated
 - `SLATE360_PROJECT_MEMORY.md` — this handoff.
+- `slate360-context/ONGOING_ISSUES.md` — BUG-048 fixed entry.
+- `ops/bug-registry.json` — BUG-048 fixed entry.
 
 #### Next Steps (ordered)
-1. Fix schedule `GET` project-scope access before expanding PM Suite access.
-2. Define the V1 app-shell design contract for mobile/tablet/desktop parity, including public auth and account-verification screens.
-3. Add brand settings schema/UI for secondary/accent color(s), logo dropzone, and deliverable metadata toggles.
-4. Design deliverable versioning migration: immutable versions/snapshots plus latest published pointer and rollback path.
-5. Align project folder provisioning to the strict app-centric tree and add server-side artifact/PDF auto-save paths for RFI/Submittal/Budget/Schedule outputs.
-6. Prototype Gantt/grid OSS library choices behind a feature flag after license and React 19 compatibility review.
+1. Real-device smoke test the Site Walk capture workflow: take photo, mark up, pin file, tap Add Details, confirm Data page keeps thumbnail and notes/details.
+2. If draft state still ever falls back independently, derive missing draft state from the recovered active item in `useCaptureItems` as a follow-up.
+3. Redesign Data Entry around reference photo + professional notes-first capture workflow with dictation and AI formatting as first-class actions.
+4. Continue fixing unrelated oversized files when touching those modules.
 
 ### Session Handoff — 2026-04-30 (Markup Canvas Mobile UX Fixes)
 

@@ -34,7 +34,7 @@ export function useCaptureItems({ sessionId, projectId }: HookArgs) {
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const activeItem = useMemo(
-    () => items.find((item) => item.id === activeItemId) ?? null,
+    () => findItemByStableId(items, activeItemId),
     [activeItemId, items],
   );
 
@@ -280,6 +280,11 @@ function patchLocalItem(item: CaptureItemRecord, draft: CaptureItemDraft): Captu
 
 function isOffline() {
   return typeof navigator !== "undefined" && !navigator.onLine;
+}
+
+function findItemByStableId(items: CaptureItemRecord[], itemId: string | null) {
+  if (!itemId) return null;
+  return items.find((item) => item.id === itemId || item.client_item_id === itemId) ?? null;
 }
 
 function upsertItem(items: CaptureItemRecord[], item: CaptureItemRecord) {

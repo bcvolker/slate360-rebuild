@@ -1,6 +1,6 @@
 # Slate360 — Ongoing Issues & Known Tech Debt
 
-**Last Updated:** 2026-04-30 (Site Walk markup canvas UX bugs fixed)
+**Last Updated:** 2026-04-30 (Site Walk capture details focus bug fixed)
 **Maintained by:** Development team — update whenever a bug is discovered or fixed.
 **Cross-reference:** See `FUTURE_FEATURES.md` for the full phased build roadmap (Phases 0–7).
 
@@ -28,6 +28,7 @@
 | BUG-045 | Site Walk / Capture | **Attachment edit panels and preview modal were not mobile-contained — FIXED 2026-04-30:** New/edit attachment panels opened at the bottom of the capture and could be cut off by lower markup controls. The marker file preview opened too large and made close controls hard to reach. Panels now open centered in the capture with scroll safety, and previews are smaller with a persistent close button plus image pinch/drag zoom. | High | ✅ Fixed |
 | BUG-046 | Site Walk / Capture | **Attachment preview gestures leaked to the capture and attachments could appear missing — FIXED 2026-04-30:** The marker preview modal did not stop pointer/wheel events from bubbling to the capture canvas, so pinch gestures could zoom the photo behind the modal. Attachment rendering also only read metadata pins, missing persisted `photo_attachment_pins` fallback data. Preview events are now isolated, the modal is smaller with a prominent close button, and the capture canvas/Attached sheet resolve pins from metadata or persisted item pins. | High | ✅ Fixed |
 | BUG-047 | Site Walk / Capture | **Marker preview zoom could crash and capture preview felt delayed — FIXED 2026-04-30:** The marker preview zoom handlers used pointer capture on mobile, which can throw DOM pointer-capture errors during multi-touch transitions and trigger the global error screen. The preview card also still used viewport sizing instead of strictly fitting the capture stage. The modal now avoids pointer capture, stays as a fixed small contained card, caps zoom at 4x, and camera captures show the original file preview immediately while compression/upload continues in the background. | High | ✅ Fixed |
+| BUG-048 | Site Walk / Capture | **Add Details returned to “Capture a photo first” after upload reconciliation — FIXED 2026-04-30:** The active capture resolver only matched `activeItemId` against `item.id`. When an optimistic local item was replaced by the server row, the row kept `client_item_id` but `activeItemId` could still be the local client id, so the Data page thought no active photo existed. `useCaptureItems` now resolves the active item by either server id or `client_item_id`, preserving the captured thumbnail and notes/details flow after markup or pinned-file saves. | Critical | ✅ Fixed |
 
 ---
 
