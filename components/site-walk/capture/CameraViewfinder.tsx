@@ -81,8 +81,7 @@ export function CameraViewfinder({ sessionId, autoOpenCamera = false, launchId =
   }
 
   async function prepareCaptureFile(file: File) {
-    const captureFile = await compressCaptureFile(file);
-    const previewUrl = URL.createObjectURL(captureFile);
+    const previewUrl = URL.createObjectURL(file);
     const clientItemId = createOfflineId("item");
     const clientMutationId = createOfflineId("mutation");
     const title = readLastTitle(sessionId);
@@ -90,6 +89,7 @@ export function CameraViewfinder({ sessionId, autoOpenCamera = false, launchId =
     setActivePreview({ url: previewUrl, title: title || "Captured photo", itemId: clientItemId });
     publishCaptureItemFocus({ item: localItem, reason: "captured", focus: true });
     window.dispatchEvent(new CustomEvent(VECTOR_TOOL_EVENT, { detail: { tool: "select" } }));
+    const captureFile = await compressCaptureFile(file);
     void savePhoto(captureFile, { clientItemId, clientMutationId, previewUrl, title });
   }
 

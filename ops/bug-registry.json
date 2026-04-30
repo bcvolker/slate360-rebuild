@@ -394,6 +394,19 @@
         "Pinching or dragging inside an image preview changes only the preview image and not the capture behind it",
         "CameraViewfinder and VisualCaptureView resolve attachment pins from metadata or item.photo_attachment_pins fallback"
       ]
+    },
+    {
+      "id": "BUG-047",
+      "title": "Marker preview zoom could crash and capture preview felt delayed",
+      "module": "site-walk/capture",
+      "severity": "high",
+      "status": "fixed",
+      "rootCause": "The marker preview zoom handlers used pointer capture during multi-touch image preview gestures, which can throw DOM pointer-capture errors on mobile and trigger the global error screen. The preview card still used viewport sizing instead of strictly fitting the capture stage. Capture preview waited for compression before showing the photo.",
+      "verification": [
+        "Marker preview modal is a small contained card with a visible close button and does not use pointer capture",
+        "Pinch/drag zoom inside marker preview does not crash or affect the capture behind it",
+        "Camera captures show an immediate local preview before compression/upload continues"
+      ]
     }
   ]
 }

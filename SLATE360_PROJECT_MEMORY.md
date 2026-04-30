@@ -196,32 +196,31 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-30 (Preview Isolation + Attachment Fallback)
+### Session Handoff — 2026-04-30 (Preview Crash Hardening + Faster Capture Preview)
 
 #### What Changed
-- `components/site-walk/capture/PhotoAttachmentFilePreviewModal.tsx` — further reduced the marker preview modal to a smaller contained card, made the close control a prominent cyan top-right button, and stopped pointer/wheel events from bubbling into the capture canvas.
-- `components/site-walk/capture/PhotoAttachmentFilePreviewModal.tsx` — image pinch/drag zoom now runs inside the preview surface only; gestures should no longer zoom/pan the capture behind the modal.
-- `lib/site-walk/photo-attachments.ts` — added `getItemPhotoAttachmentPins()` to resolve pins from metadata first, then persisted `photo_attachment_pins` fallback.
-- `components/site-walk/capture/CameraViewfinder.tsx` and `VisualCaptureView.tsx` — use `getItemPhotoAttachmentPins()` so pins remain visible in the canvas and Attached sheet when fallback item-level pins exist.
-- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — backfilled Prompt 10S commit hash and added Prompt 10T.
-- `ops/bug-registry.json` and `slate360-context/ONGOING_ISSUES.md` — logged/resolved BUG-046.
+- `components/site-walk/capture/PhotoAttachmentFilePreviewModal.tsx` — removed pointer capture from image preview zoom handlers to avoid mobile DOM pointer-capture crashes during multi-touch transitions.
+- `components/site-walk/capture/PhotoAttachmentFilePreviewModal.tsx` — changed the marker preview to a fixed small contained card (`min(17rem, calc(100% - 1rem))` by `min(20rem, calc(100% - 1rem))`), with a visible cyan X and isolated preview gestures capped at 4x zoom.
+- `components/site-walk/capture/CameraViewfinder.tsx` — camera captures now show an immediate object URL from the original file before compression/upload continues, making the Visual screen feel snappier after taking a photo.
+- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — backfilled Prompt 10T commit hash and added Prompt 10U.
+- `ops/bug-registry.json` and `slate360-context/ONGOING_ISSUES.md` — logged/resolved BUG-047.
 
 #### What's Broken / Partially Done
-- Needs real-device smoke test: tap marker `View`, confirm the preview is clearly smaller, the cyan X is visible/reachable, and tapping X closes it.
-- Needs real-device smoke test: pinch/drag inside an image preview and confirm only the preview changes, not the capture behind it.
-- Needs real-device smoke test: create a pinned attachment, reopen Attached sheet, navigate away/back, and confirm the file remains listed until deleted.
+- Needs real-device smoke test: tap marker `View`, confirm the preview fits inside the capture area, the cyan X is visible, and tapping X closes without error.
+- Needs real-device smoke test: pinch/drag inside an image preview repeatedly and confirm no `Something went wrong` white screen appears and the capture behind it does not move.
+- Needs real-device smoke test: take a photo and confirm the image appears immediately while upload/compression continues in the background.
 - The rail toggle is a space-saving UI pass, but the underlying distinction between true angles vs progress photos is still heuristic/current-session based.
-- `bash scripts/check-file-size.sh` still exits 1 due to known pre-existing oversized files; touched files remain under 300 lines (`PhotoAttachmentFilePreviewModal.tsx` 93, `PhotoAttachmentPins.tsx` 263, `CameraViewfinder.tsx` 239, `VisualCaptureView.tsx` 217, `photo-attachments.ts` 59).
+- `bash scripts/check-file-size.sh` still exits 1 due to known pre-existing oversized files; touched files remain under 300 lines (`PhotoAttachmentFilePreviewModal.tsx` 92, `CameraViewfinder.tsx` 239).
 - The user-uploaded reference image `public/uploads/marked up.jpg` and `ts-prune-output.txtcat` remain untracked and intentionally not committed.
 
 #### Context Files Updated
 - `SLATE360_PROJECT_MEMORY.md` — this handoff.
-- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — Prompt 10T row.
-- `slate360-context/ONGOING_ISSUES.md` and `ops/bug-registry.json` — BUG-046.
+- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — Prompt 10U row.
+- `slate360-context/ONGOING_ISSUES.md` and `ops/bug-registry.json` — BUG-047.
 
 #### Next Steps (ordered)
-1. Real-device mobile-test preview containment, close button visibility, and gesture isolation.
-2. Real-device mobile-test pinned attachment persistence in marker popup and Attached sheet after navigation/reload.
+1. Real-device mobile-test marker preview open/close and repeated pinch zoom on iOS/Android.
+2. Real-device mobile-test capture handoff speed from camera return to Visual screen.
 3. Continue simplifying the Data screen around photo reference + notes-first construction workflow; current dropdowns/buttons remain transitional.
 
 ### Session Handoff — 2026-04-30 (Markup Canvas Mobile UX Fixes)
