@@ -111,12 +111,12 @@ export function AppShell({
     <TooltipProvider>
      <InviteShareProvider>
       {fullBleed ? (
-        <div className="fixed inset-0 w-full h-[100dvh] bg-background overflow-hidden">
+        <div className="fixed inset-0 h-[100dvh] w-full overflow-hidden bg-[#0B0F15] text-slate-50">
           {children}
           <GlobalInviteModal data={inviteShareData} />
         </div>
       ) : (
-      <div className="relative h-[100dvh] w-full max-w-full overflow-hidden bg-slate-50 text-slate-900">
+      <div className="relative flex h-[100dvh] w-full max-w-full flex-col overflow-hidden bg-[#0B0F15] text-slate-50">
         <div className="hidden lg:block">
           <DashboardSidebar
             isOpen={sidebarOpen}
@@ -129,7 +129,7 @@ export function AppShell({
           <SheetContent
             side="left"
             showCloseButton={false}
-            className="w-64 p-0 !bg-background !border-zinc-800 lg:hidden"
+            className="w-64 p-0 !border-white/10 !bg-[#0B0F15] lg:hidden"
           >
             <DashboardSidebar
               isOpen
@@ -165,13 +165,13 @@ export function AppShell({
 
         <main
           className={cn(
-            "flex h-[100dvh] w-full min-w-0 flex-col overflow-hidden pt-14 pb-[76px] transition-all duration-300",
+            "flex min-h-0 flex-1 w-full min-w-0 flex-col overflow-hidden bg-[radial-gradient(circle_at_top,rgba(37,99,235,0.16),transparent_32%),#0B0F15] pt-14 pb-[76px] transition-all duration-300",
             "lg:pt-16 lg:pb-0",
             sidebarOpen ? "lg:pl-64" : "lg:pl-0"
           )}
         >
           <MobileInstallStrip />
-          <div className="min-h-0 flex-1 overflow-hidden">{children}</div>
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-24 lg:pb-0 scrollbar-none">{children}</div>
         </main>
 
         <MobileBottomNav />

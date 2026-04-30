@@ -1,6 +1,6 @@
 # Slate360 — Dashboard Blueprint
 
-**Last Updated:** 2026-04-28
+**Last Updated:** 2026-04-30
 **Context Maintenance:** Update this file whenever dashboard routes, components, widgets, or layout logic changes.
 **Cross-reference:** See `FUTURE_FEATURES.md` for the full phased build roadmap (Phases 0–7).
 
@@ -28,15 +28,26 @@
 
 ## 2. Layout & Navigation
 
-### Zero-Scroll Native-App Shell Direction
+### Fixed Native-App Shell + Contained Scroll Direction
 
-The authenticated Slate360 shell now treats the viewport as a fixed native-app frame:
+The authenticated Slate360 shell treats the viewport as a fixed native-app frame, but content must remain accessible on real phones:
 
-- Top header stays fixed and unchanged.
-- Content paints inside a `100dvh` shell-owned viewport with hidden page overflow.
-- The Command Center home must fit without vertical scrolling: app launcher on the top half, horizontal quick-resume carousel on the bottom half.
-- Pages that need long-form content should use contained panes, tabs, horizontal rails, or internal module-specific workspaces rather than body/page scrolling.
-- This keeps the PWA transition path closer to the future App Store/native shell model.
+- Top header and mobile bottom nav stay shell-owned and `flex-none`/fixed.
+- The outer shell remains `h-[100dvh]` with hidden body/page overflow to preserve the PWA/native frame.
+- The primary app content area must use `min-h-0 flex-1 overflow-y-auto overscroll-contain` with mobile bottom padding (`pb-24` or safe-area equivalent) so buttons and lower content are never cut off.
+- Full-bleed workspaces such as capture/canvas views may keep local `overflow-hidden`, but their detail panels and action surfaces need their own contained scroll regions.
+- The Command Center home should still be compact, but “zero body scroll” must not become “no scroll anywhere.” If content cannot fit on a small phone, use contained internal panes rather than clipping.
+- This keeps the PWA transition path close to a future App Store/native shell while protecting field usability.
+
+### Dark Glass Shell Direction
+
+As of 2026-04-30, authenticated shell chrome and Site Walk/Auth entry surfaces use the premium Dark Glass direction:
+
+- Base app surface: `#0B0F15` with subtle graphite/cobalt radial gradients.
+- Panels/cards: translucent glass (`bg-white/5`, `backdrop-blur-md`, `border-white/10`, `shadow-lg`, rounded corners).
+- Primary actions: cobalt blue with a soft glow (`bg-blue-600 hover:bg-blue-500 text-white shadow-[0_0_15px_rgba(37,99,235,0.3)]`).
+- Secondary actions: ghost glass (`border-white/20 bg-white/5 hover:bg-white/10`).
+- Text: `text-slate-50` for primary/headings and `text-slate-400` for supporting copy.
 
 ### Mobile/PWA Bottom Navigation (Current Direction)
 

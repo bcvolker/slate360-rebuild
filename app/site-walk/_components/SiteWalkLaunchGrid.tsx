@@ -53,24 +53,24 @@ export function SiteWalkLaunchGrid({ projects }: Props) {
   }
 
   return (
-    <section className="w-full rounded-3xl border border-slate-300 bg-white p-3 shadow-sm sm:p-4">
+    <section className="w-full rounded-3xl border border-white/10 bg-white/5 p-3 shadow-lg backdrop-blur-md sm:p-4">
       <div className="grid h-full grid-cols-3 gap-2 sm:gap-3">
-        <button type="button" onClick={openQuickCapture} disabled={!!creating} className="min-h-28 rounded-3xl bg-blue-600 p-3 text-left text-white shadow-sm transition hover:bg-blue-700 disabled:opacity-60 sm:min-h-36 sm:p-5">
+        <button type="button" onClick={openQuickCapture} disabled={!!creating} className="min-h-28 rounded-3xl bg-blue-600 p-3 text-left text-white shadow-[0_0_15px_rgba(37,99,235,0.3)] transition hover:bg-blue-500 disabled:opacity-60 sm:min-h-36 sm:p-5">
           {creating === "quick" ? <Loader2 className="h-7 w-7 animate-spin" /> : mobileCapture ? <Camera className="h-7 w-7" /> : <Upload className="h-7 w-7" />}
           <span className="mt-3 block text-base font-black sm:text-xl">{mobileCapture ? "Quick Capture" : "Upload"}</span>
           <span className="mt-1 block text-xs font-bold text-blue-50 sm:text-sm">{mobileCapture ? "Camera" : "Pictures"}</span>
         </button>
 
-        <Link href="/site-walk/setup" className="min-h-28 rounded-3xl border border-slate-300 bg-white p-3 text-left transition hover:border-blue-300 sm:min-h-36 sm:p-5">
-          <HardHat className="h-7 w-7 text-blue-800" />
-          <span className="mt-3 block text-base font-black text-slate-950 sm:text-xl">Project</span>
-          <span className="mt-1 block text-xs font-bold text-slate-600 sm:text-sm">Create / manage</span>
+        <Link href="/site-walk/setup" className="min-h-28 rounded-3xl border border-white/20 bg-white/5 p-3 text-left shadow-lg backdrop-blur-md transition hover:bg-white/10 sm:min-h-36 sm:p-5">
+          <HardHat className="h-7 w-7 text-blue-300" />
+          <span className="mt-3 block text-base font-black text-slate-50 sm:text-xl">Project</span>
+          <span className="mt-1 block text-xs font-bold text-slate-400 sm:text-sm">Create / manage</span>
         </Link>
 
-        <Link href="/site-walk/slatedrop" className="min-h-28 rounded-3xl border border-slate-300 bg-white p-3 text-left transition hover:border-blue-300 sm:min-h-36 sm:p-5">
-          <FolderOpen className="h-7 w-7 text-blue-800" />
-          <span className="mt-3 block text-base font-black text-slate-950 sm:text-xl">SlateDrop</span>
-          <span className="mt-1 block text-xs font-bold text-slate-600 sm:text-sm">Site Walk files</span>
+        <Link href="/site-walk/slatedrop" className="min-h-28 rounded-3xl border border-white/20 bg-white/5 p-3 text-left shadow-lg backdrop-blur-md transition hover:bg-white/10 sm:min-h-36 sm:p-5">
+          <FolderOpen className="h-7 w-7 text-blue-300" />
+          <span className="mt-3 block text-base font-black text-slate-50 sm:text-xl">SlateDrop</span>
+          <span className="mt-1 block text-xs font-bold text-slate-400 sm:text-sm">Site Walk files</span>
         </Link>
       </div>
 

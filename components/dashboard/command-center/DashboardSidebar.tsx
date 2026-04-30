@@ -62,14 +62,14 @@ export function DashboardSidebar({ isOpen, onClose, isMobile = false, hasOperati
   };
 
   const sidebarContent = (
-    <div className="flex flex-col bg-slate-900 text-slate-300 border-r border-slate-800 h-full">
+    <div className="flex h-full flex-col border-r border-white/10 bg-[#0B0F15] text-slate-300 shadow-lg">
       {/* Logo + Close */}
-      <div className="flex h-14 items-center justify-between px-4 border-b border-slate-800">
+      <div className="flex h-14 items-center justify-between border-b border-white/10 px-4">
         <Link href="/dashboard" className="flex items-center">
           <SlateLogo className="h-6 w-auto" />
         </Link>
         {onClose && (
-          <Button variant="ghost" size="icon" onClick={onClose} className="text-slate-400 hover:text-white hover:bg-white/10 h-8 w-8 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt/50 focus-visible:ring-offset-1 focus-visible:ring-offset-slate-900">
+          <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8 text-slate-400 transition-colors duration-200 hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 focus-visible:ring-offset-1 focus-visible:ring-offset-[#0B0F15]">
             <X className="h-4 w-4" />
           </Button>
         )}
@@ -93,7 +93,7 @@ export function DashboardSidebar({ isOpen, onClose, isMobile = false, hasOperati
               placeholder="Search projects, clients..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-8 text-sm bg-white border-app text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt/50 focus-visible:ring-offset-1 focus-visible:ring-offset-[#F8FAFC]"
+              className="h-8 border-white/15 bg-white/5 text-slate-50 placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 focus-visible:ring-offset-1 focus-visible:ring-offset-[#0B0F15]"
               autoFocus
             />
           </div>
@@ -155,7 +155,7 @@ export function DashboardSidebar({ isOpen, onClose, isMobile = false, hasOperati
   return (
     <aside
       className={cn(
-        "fixed left-0 top-0 z-40 w-64 h-[100dvh] bg-slate-900 transition-transform duration-300",
+        "fixed left-0 top-0 z-40 h-[100dvh] w-64 bg-[#0B0F15] transition-transform duration-300",
         isOpen ? "translate-x-0" : "-translate-x-full"
       )}
     >

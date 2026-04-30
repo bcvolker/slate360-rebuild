@@ -39,22 +39,22 @@ export function VisualCaptureView({ sessionId, autoOpenCamera, launchId, items, 
   const activePins = getItemPhotoAttachmentPins(activeItem);
 
   return (
-    <div className="flex h-[100dvh] w-full flex-col overflow-hidden bg-slate-950 text-white">
+    <div className="flex h-[100dvh] w-full flex-col overflow-hidden bg-[#0B0F15] text-slate-50">
       <TopCaptureControls modeLabel={modeLabel} onNext={onNext} onUndo={() => dispatchCanvasEvent(PHOTO_MARKUP_UNDO_EVENT)} onRedo={() => dispatchCanvasEvent(PHOTO_MARKUP_REDO_EVENT)} />
       <StopCarousel items={photoItems} activeItemId={activeItemId} revealedThumbKey={revealedThumbKey} onReveal={setRevealedThumbKey} onSelectItem={onSelectItem} onOpenEdit={onNext} />
 
-      <main className="min-h-0 flex-1 border-y border-cyan-300/10 bg-[radial-gradient(circle_at_50%_0%,rgba(14,165,233,0.16),rgba(2,6,23,0.96)_55%)]">
+      <main className="min-h-0 flex-1 border-y border-white/10 bg-[radial-gradient(circle_at_50%_0%,rgba(37,99,235,0.18),rgba(11,15,21,0.98)_55%)]">
         <div className="relative h-full min-h-0 overflow-hidden">
           <CameraViewfinder sessionId={sessionId} autoOpenCamera={autoOpenCamera} launchId={launchId} layout="visual" activeItem={activeItem} markupEnabled={markupMode} onMarkupChange={onMarkupChange} onAttachmentPinsChange={onAttachmentPinsChange} />
           {ghostOn && ghostImageUrl && <img src={ghostImageUrl} alt="Previous progress ghost alignment" className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-25 mix-blend-screen" />}
-          <button type="button" onClick={onNext} className="absolute bottom-3 right-3 z-20 inline-flex min-h-12 items-center gap-2 rounded-2xl border border-cyan-200/35 bg-cyan-300 px-4 text-sm font-black text-slate-950 shadow-[0_0_34px_rgba(103,232,249,0.25)]" aria-label="Add details for this photo">
+          <button type="button" onClick={onNext} className="absolute bottom-3 right-3 z-20 inline-flex min-h-12 items-center gap-2 rounded-2xl bg-blue-600 px-4 text-sm font-black text-white shadow-[0_0_15px_rgba(37,99,235,0.3)] hover:bg-blue-500" aria-label="Add details for this photo">
             Add Details <ChevronRight className="h-5 w-5" />
           </button>
         </div>
       </main>
 
       <CaptureActionBar pinCount={activePins.length} markupMode={markupMode} onToggleMarkup={() => setMarkupMode((current) => !current)} onOpenAttachments={() => setAttachmentsOpen(true)} />
-      {markupMode && <div className="shrink-0 border-b border-white/10 bg-black px-2 py-1"><UnifiedVectorToolbar /></div>}
+      {markupMode && <div className="shrink-0 border-b border-white/10 bg-[#0B0F15]/95 px-2 py-1 backdrop-blur-md"><UnifiedVectorToolbar /></div>}
       <CaptureMediaRail mode={railMode} onModeChange={setRailMode} angleItems={angleItems.length > 0 ? angleItems : photoItems} progressItems={progressItems} activeItemId={activeItemId} ghostOn={ghostOn} ghostAvailable={!!ghostImageUrl} revealedThumbKey={revealedThumbKey} onReveal={setRevealedThumbKey} onToggleGhost={() => setGhostOn((current) => !current)} onAddProgress={() => { setRailMode("progress"); setGhostOn(true); requestCameraCapture("camera", "next_item"); }} onSelectItem={onSelectItem} />
 
       {attachmentsOpen && (
@@ -70,7 +70,7 @@ export function VisualCaptureView({ sessionId, autoOpenCamera, launchId, items, 
 
 function TopCaptureControls({ modeLabel, onNext, onUndo, onRedo }: { modeLabel: string; onNext: () => void; onUndo: () => void; onRedo: () => void }) {
   return (
-    <header className="shrink-0 border-b border-cyan-300/10 bg-slate-950/95 px-2 py-2 shadow-[0_12px_45px_rgba(0,0,0,0.35)]">
+    <header className="shrink-0 border-b border-white/10 bg-[#0B0F15]/90 px-2 py-2 shadow-lg backdrop-blur-md">
       <div className="grid grid-cols-[auto_1fr_auto] items-center gap-2">
         <a href="/site-walk" className="inline-flex h-9 items-center gap-1 rounded-xl border border-white/15 bg-white/5 px-2 text-[10px] font-black uppercase tracking-[0.1em] text-white/85"><ChevronLeft className="h-4 w-4" /> Back</a>
         <label className="min-w-0">
@@ -81,7 +81,7 @@ function TopCaptureControls({ modeLabel, onNext, onUndo, onRedo }: { modeLabel: 
             <option>Field project</option>
           </select>
         </label>
-        <button type="button" onClick={onNext} className="inline-flex h-9 items-center gap-1 rounded-xl border border-cyan-300/25 bg-cyan-300/10 px-3 text-[10px] font-black uppercase tracking-[0.1em] text-cyan-100">Details <ChevronRight className="h-4 w-4" /></button>
+        <button type="button" onClick={onNext} className="inline-flex h-9 items-center gap-1 rounded-xl bg-blue-600 px-3 text-[10px] font-black uppercase tracking-[0.1em] text-white shadow-[0_0_15px_rgba(37,99,235,0.3)] hover:bg-blue-500">Details <ChevronRight className="h-4 w-4" /></button>
       </div>
       <div className="mt-2 grid grid-cols-2 gap-2">
         <button type="button" onClick={onUndo} className="inline-flex h-8 items-center justify-center gap-1 rounded-xl border border-white/15 bg-white/5 text-[10px] font-black uppercase tracking-[0.1em] text-white/75"><RotateCcw className="h-4 w-4" /> Undo</button>
@@ -105,7 +105,7 @@ function StopCarousel({ items, activeItemId, revealedThumbKey, onReveal, onSelec
 
 function CaptureActionBar({ pinCount, markupMode, onToggleMarkup, onOpenAttachments }: { pinCount: number; markupMode: boolean; onToggleMarkup: () => void; onOpenAttachments: () => void }) {
   return (
-    <div className="shrink-0 border-b border-white/10 bg-black px-2 py-2">
+    <div className="shrink-0 border-b border-white/10 bg-[#0B0F15]/95 px-2 py-2 backdrop-blur-md">
       <div className="grid grid-cols-2 gap-2">
         <button type="button" onClick={onToggleMarkup} className={`h-10 rounded-xl border px-2 text-[10px] font-black uppercase tracking-[0.1em] ${markupMode ? "border-blue-400 bg-blue-500/20 text-blue-100" : "border-white/15 bg-white/10 text-white/80"}`}>Markup</button>
         <button type="button" onClick={onOpenAttachments} className="inline-flex h-10 items-center justify-center gap-1 rounded-xl border border-white/15 bg-white/10 px-2 text-[10px] font-black text-white/80"><Paperclip className="h-4 w-4 text-blue-300" /> Attached ({pinCount})</button>

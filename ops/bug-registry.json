@@ -420,6 +420,19 @@
         "After capture upload reconciliation, Add Details continues into the Data page instead of the Capture a photo first fallback",
         "The Data page can keep showing the captured thumbnail via `getCaptureImageUrl()` while notes/details are entered"
       ]
+    },
+    {
+      "id": "BUG-049",
+      "title": "Mobile app shell locked screens and cut off bottom actions",
+      "module": "dashboard/site-walk",
+      "severity": "critical",
+      "status": "fixed",
+      "rootCause": "The fixed native-app shell and Site Walk details screen used `overflow-hidden` at multiple nested levels, so small phone viewports could clip lower content/actions behind shell chrome without an internal scroll container.",
+      "verification": [
+        "Authenticated app pages render inside a fixed `h-[100dvh]` shell while the child content pane uses `min-h-0 flex-1 overflow-y-auto overscroll-contain`",
+        "Site Walk landing no longer locks its page with `overflow-hidden` and includes mobile bottom padding",
+        "Site Walk Data details screen scrolls internally with safe bottom padding so Save/Add Angle actions remain reachable"
+      ]
     }
   ]
 }

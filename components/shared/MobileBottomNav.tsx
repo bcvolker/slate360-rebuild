@@ -50,9 +50,8 @@ export function MobileBottomNav() {
     <nav
       aria-label="Primary"
       className={cn(
-        "lg:hidden fixed bottom-0 left-0 right-0 z-40",
-        "bg-header-glass",
-        "border-t border-header"
+        "fixed bottom-0 left-0 right-0 z-40 lg:hidden",
+        "rounded-t-3xl border-t border-white/10 bg-[#0B0F15]/88 shadow-lg backdrop-blur-md"
       )}
       style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)", paddingTop: "4px" }}
     >

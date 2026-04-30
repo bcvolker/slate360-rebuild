@@ -539,13 +539,13 @@
    the SlateLogo + nav remains consistent across the app shell.
    ───────────────────────────────────────────────────────────────── */
 @utility auth-page {
-  @apply min-h-screen flex flex-col text-slate-900;
-  background-color: #F8FAFC; /* slate-50 */
+  @apply min-h-screen flex flex-col text-slate-50;
+  background-color: #0B0F15;
   background-image:
-    radial-gradient(circle at top, rgba(59, 130, 246, 0.08), transparent 32%),
-    linear-gradient(180deg, #F8FAFC 0%, rgba(239, 246, 255, 0.6) 100%);
+    radial-gradient(circle at top, rgba(37, 99, 235, 0.22), transparent 34%),
+    linear-gradient(180deg, #0B0F15 0%, #111827 100%);
   background-attachment: fixed;
-  color-scheme: light;
+  color-scheme: dark;
 }
 
 /* Topbar stays dark + isolated so it matches the marketing/header chrome.
@@ -562,42 +562,49 @@
 }
 
 @utility auth-card {
-  @apply w-full max-w-md rounded-2xl p-8 bg-white;
+  @apply w-full max-w-md rounded-2xl border border-white/10 bg-white/5 p-8 text-slate-50 backdrop-blur-md;
   ring-width: 1px;
-  --tw-ring-color: rgba(226, 232, 240, 0.8); /* slate-200/80 */
+  --tw-ring-color: rgba(255, 255, 255, 0.10);
   box-shadow:
-    0 25px 50px -12px rgba(15, 23, 42, 0.12),
-    0 0 0 1px rgba(226, 232, 240, 0.8);
+    0 25px 50px -12px rgba(0, 0, 0, 0.45),
+    0 0 0 1px rgba(255, 255, 255, 0.08);
 }
+
+.auth-card .text-slate-900 { color: #F8FAFC; }
+.auth-card .text-slate-700,
+.auth-card .text-slate-600,
+.auth-card .text-slate-500 { color: #94A3B8; }
+.auth-card .text-primary,
+.auth-card .text-cobalt { color: #60A5FA; }
 
 @utility auth-input {
-  @apply w-full min-h-[44px] rounded-xl border px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 transition-all focus:outline-none focus:ring-2;
-  border-color: #CBD5E1; /* slate-300 */
-  background: #FFFFFF;
+  @apply w-full min-h-[44px] rounded-xl border px-4 py-3 text-sm text-slate-50 placeholder:text-slate-500 transition-all focus:outline-none focus:ring-2;
+  border-color: rgba(255, 255, 255, 0.10);
+  background: rgba(255, 255, 255, 0.05);
   --tw-ring-color: rgba(59, 130, 246, 0.32);
 }
-.auth-input:focus { border-color: var(--color-cobalt); }
+.auth-input:focus { border-color: #60A5FA; }
 
 @utility auth-label {
-  @apply mb-1.5 block text-[0.7rem] font-semibold uppercase tracking-[0.14em] text-slate-700;
+  @apply mb-1.5 block text-[0.7rem] font-semibold uppercase tracking-[0.14em] text-slate-400;
 }
 
 @utility auth-btn-primary {
   @apply w-full flex items-center justify-center gap-2 py-3.5 rounded-full font-semibold text-sm text-white transition-all hover:scale-[1.02] disabled:opacity-50 disabled:scale-100;
-  background-color: var(--color-cobalt);
-  box-shadow: 0 8px 20px -4px rgba(59, 130, 246, 0.40), 0 4px 8px -2px rgba(59, 130, 246, 0.20);
+  background-color: #2563EB;
+  box-shadow: 0 0 15px rgba(37, 99, 235, 0.30), 0 8px 20px -4px rgba(37, 99, 235, 0.32);
 }
-.auth-btn-primary:hover { background-color: var(--color-cobalt-hover); }
+.auth-btn-primary:hover { background-color: #3B82F6; }
 
 @utility auth-btn-oauth {
-  @apply w-full flex items-center justify-center gap-3 rounded-xl border px-4 py-3 text-sm font-medium text-slate-700 transition-colors disabled:opacity-50;
-  border-color: #CBD5E1; /* slate-300 */
-  background: #FFFFFF;
+  @apply w-full flex items-center justify-center gap-3 rounded-xl border px-4 py-3 text-sm font-medium text-slate-200 transition-colors disabled:opacity-50;
+  border-color: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.05);
 }
 .auth-btn-oauth:hover {
-  background: #F8FAFC; /* slate-50 */
-  border-color: var(--color-cobalt);
-  color: var(--color-cobalt);
+  background: rgba(255, 255, 255, 0.10);
+  border-color: rgba(96, 165, 250, 0.60);
+  color: #DBEAFE;
 }
 
 @utility auth-link {
@@ -608,12 +615,12 @@
 
 @utility auth-divider-line {
   @apply w-full border-t;
-  border-color: #E2E8F0; /* slate-200 */
+  border-color: rgba(255, 255, 255, 0.10);
 }
 
 @utility auth-divider-text {
-  @apply px-3 text-xs text-slate-500;
-  background: #FFFFFF;
+  @apply px-3 text-xs text-slate-400;
+  background: rgba(11, 15, 21, 0.92);
 }
 
 @utility auth-error {

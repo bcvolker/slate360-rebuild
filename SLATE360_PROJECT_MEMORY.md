@@ -196,28 +196,40 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-30 (Site Walk Add Details Focus Fix)
+### Session Handoff — 2026-04-30 (Mobile Contained Scroll + Dark Glass Pass)
 
 #### What Changed
-- `components/site-walk/capture/useCaptureItems.ts` — fixed the Add Details loop by resolving the active capture by either server `id` or optimistic `client_item_id`, so upload reconciliation no longer drops the active photo before the Data page opens.
-- `slate360-context/ONGOING_ISSUES.md` — logged BUG-048 as fixed: Add Details returned to the “Capture a photo first” fallback after reconciliation.
-- `ops/bug-registry.json` — added BUG-048 with root cause and verification notes.
-- Validation passed: `git diff --check`, `npm run typecheck`, and editor diagnostics for `useCaptureItems.ts` / `bug-registry.json`.
-- File-size guard was run and still fails only on 12 known pre-existing oversized files; touched `useCaptureItems.ts` is 295 lines and under the 300-line limit.
+- `components/dashboard/AppShell.tsx` — restored mobile accessibility by keeping the outer `100dvh` shell fixed while moving authenticated route content into a contained `min-h-0 flex-1 overflow-y-auto overscroll-contain pb-24` pane.
+- `components/site-walk/capture/DataContextView.tsx` — changed the details/data-entry screen from clipped `overflow-hidden` to internal scrolling with safe bottom padding so Save/Add Angle actions remain reachable on phones.
+- `app/site-walk/page.tsx` and `app/site-walk/_components/SiteWalkLaunchGrid.tsx` — removed the locked landing-page overflow pattern and applied Dark Glass launch cards/actions.
+- `components/site-walk/capture/VisualCaptureView.tsx` — applied Dark Glass capture chrome and cobalt primary Add Details styling while preserving camera/canvas workspace behavior.
+- `components/dashboard/command-center/DashboardTopBar.tsx`, `components/dashboard/command-center/DashboardSidebar.tsx`, `components/shared/MobileTopBar.tsx`, and `components/shared/MobileBottomNav.tsx` — applied Dark Glass shell chrome with graphite background, translucent borders, and glass nav surfaces.
+- `app/globals.css` — converted shared auth utilities (`auth-page`, `auth-card`, inputs, OAuth/primary buttons, dividers) to Dark Glass/cobalt styling without expanding the already-large auth page files.
+- `slate360-context/DASHBOARD.md` — replaced the rigid “Zero-Scroll” guidance with fixed native shell + contained internal scrolling, and documented the Dark Glass shell direction.
+- `slate360-context/ONGOING_ISSUES.md` and `ops/bug-registry.json` — logged BUG-049 as fixed: mobile shell/content clipping from nested `overflow-hidden`.
+- Validation passed: `git diff --check`, `npm run typecheck`, and editor diagnostics on touched TSX files. `app/globals.css` still shows known Tailwind v4 CSS-language-service false positives for `@theme`, `@utility`, and `@apply`.
+- File-size guard was run and still fails only on 12 known pre-existing oversized files; all touched `.tsx` files are under 300 lines.
 
 #### What's Broken / Partially Done
-- Needs real-device smoke test: capture photo → mark up → pin file → Add Details should open Data with the captured thumbnail and notes/details UI, not the Capture-first fallback.
-- Data Entry UX still needs a later product redesign; current fix only preserves the active capture loop. User specifically wants thumbnail/reference image plus professional notes, voice-to-text, and AI cleanup to remain central.
-- The user-uploaded reference image `public/uploads/marked up.jpg` and `ts-prune-output.txtcat` remain untracked and intentionally not committed.
+- Needs real-device smoke test on small iPhone/Android heights: authenticated dashboard/home, Site Walk landing, Visual capture, Data details, login, signup, forgot password.
+- Keyboard-open states on auth forms and Site Walk notes were not browser-tested in this session; CSS/typecheck cannot fully verify mobile viewport keyboard behavior.
+- Some deeper authenticated app pages may still have light surfaces inside the now-dark shell and should be tokenized systematically in a later pass.
+- `components/dashboard/command-center/DashboardTopBar.tsx` still uses `SlateLogoOnLight`; check visual contrast on the dark topbar and swap asset if needed.
+- `app/signup/page.tsx` is 298 lines and unchanged; extract before adding future auth/security logic.
+- The user-uploaded reference images under `public/uploads/` and `ts-prune-output.txtcat` remain untracked and intentionally not committed.
 - Pre-existing file-size guard failures remain in unrelated files: `LocationMap.tsx`, `marketing-homepage.tsx`, `DashboardWidgetRenderer.tsx`, and other known oversized files reported by `scripts/check-file-size.sh`.
 
 #### Context Files Updated
 - `SLATE360_PROJECT_MEMORY.md` — this handoff.
-- `slate360-context/ONGOING_ISSUES.md` — BUG-048 fixed entry.
-- `ops/bug-registry.json` — BUG-048 fixed entry.
+- `slate360-context/DASHBOARD.md` — shell scrolling doctrine and Dark Glass direction.
+- `slate360-context/ONGOING_ISSUES.md` — BUG-049 fixed entry.
+- `ops/bug-registry.json` — BUG-049 fixed entry.
 
 #### Next Steps (ordered)
-1. Real-device smoke test the Site Walk capture workflow: take photo, mark up, pin file, tap Add Details, confirm Data page keeps thumbnail and notes/details.
+1. Real-device smoke test on a small phone: dashboard → Site Walk → capture → Add Details → scroll Data screen to Save/Add Angle, then auth login/signup/forgot-password with keyboard open.
+2. If dark topbar logo contrast is weak, swap `SlateLogoOnLight` usage in `DashboardTopBar` for a dark-header-safe logo variant.
+3. Plan a token/component cleanup so remaining app surfaces use shared Dark Glass primitives instead of one-off class strings.
+4. Extract `app/signup/page.tsx` before adding future bot protection, extra onboarding, or conversion experiments.
 2. If draft state still ever falls back independently, derive missing draft state from the recovered active item in `useCaptureItems` as a follow-up.
 3. Redesign Data Entry around reference photo + professional notes-first capture workflow with dictation and AI formatting as first-class actions.
 4. Continue fixing unrelated oversized files when touching those modules.
