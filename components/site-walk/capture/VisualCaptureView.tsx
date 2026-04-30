@@ -4,7 +4,7 @@ import { Camera, ChevronLeft, ChevronRight, Eye, ExternalLink, Loader2, Papercli
 import { useState, type ReactNode } from "react";
 import type { MarkupData } from "@/lib/site-walk/markup-types";
 import { getCaptureImageUrl } from "@/lib/site-walk/capture-image-url";
-import { getPhotoAttachmentPins, type PhotoAttachmentFile, type PhotoAttachmentPin } from "@/lib/site-walk/photo-attachments";
+import { getItemPhotoAttachmentPins, type PhotoAttachmentFile, type PhotoAttachmentPin } from "@/lib/site-walk/photo-attachments";
 import type { CaptureItemRecord } from "@/lib/types/site-walk-capture";
 import { requestCameraCapture } from "./capture-camera-events";
 import { CameraViewfinder } from "./CameraViewfinder";
@@ -36,7 +36,7 @@ export function VisualCaptureView({ sessionId, autoOpenCamera, launchId, items, 
   const activeLocation = getLocationLabel(activeItem) ?? "Current location";
   const angleItems = photoItems.filter((item) => getLocationLabel(item) === activeLocation);
   const progressItems = angleItems.filter((item) => item.id !== activeItemId);
-  const activePins = getPhotoAttachmentPins(activeItem?.metadata);
+  const activePins = getItemPhotoAttachmentPins(activeItem);
 
   return (
     <div className="flex h-[100dvh] w-full flex-col overflow-hidden bg-slate-950 text-white">

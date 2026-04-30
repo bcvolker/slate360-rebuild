@@ -196,30 +196,32 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-30 (Centered Attachment Panels + Preview Zoom)
+### Session Handoff — 2026-04-30 (Preview Isolation + Attachment Fallback)
 
 #### What Changed
-- `components/site-walk/capture/PhotoAttachmentPins.tsx` — centered the new attachment and edit attachment panels inside the capture area with `max-h`/scroll safety so buttons are not cut off by bottom markup controls.
-- `components/site-walk/capture/PhotoAttachmentFilePreviewModal.tsx` — reduced the preview modal footprint, added a persistent top-right close button, and added pointer-based pinch/drag zoom for image previews.
-- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — backfilled Prompt 10R commit hash and added Prompt 10S for centered attachment panels/contained previews.
-- `ops/bug-registry.json` and `slate360-context/ONGOING_ISSUES.md` — logged/resolved BUG-045.
+- `components/site-walk/capture/PhotoAttachmentFilePreviewModal.tsx` — further reduced the marker preview modal to a smaller contained card, made the close control a prominent cyan top-right button, and stopped pointer/wheel events from bubbling into the capture canvas.
+- `components/site-walk/capture/PhotoAttachmentFilePreviewModal.tsx` — image pinch/drag zoom now runs inside the preview surface only; gestures should no longer zoom/pan the capture behind the modal.
+- `lib/site-walk/photo-attachments.ts` — added `getItemPhotoAttachmentPins()` to resolve pins from metadata first, then persisted `photo_attachment_pins` fallback.
+- `components/site-walk/capture/CameraViewfinder.tsx` and `VisualCaptureView.tsx` — use `getItemPhotoAttachmentPins()` so pins remain visible in the canvas and Attached sheet when fallback item-level pins exist.
+- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — backfilled Prompt 10S commit hash and added Prompt 10T.
+- `ops/bug-registry.json` and `slate360-context/ONGOING_ISSUES.md` — logged/resolved BUG-046.
 
 #### What's Broken / Partially Done
-- Needs real-device smoke test: long-press photo to create a new attachment pin and confirm the centered panel is fully usable above the bottom markup controls.
-- Needs real-device smoke test: tap existing paperclip marker, tap `Tap to edit`, and confirm the edit panel opens centered with Save/Remove fully visible.
-- Needs real-device smoke test: tap marker `View`, confirm the preview is smaller, the X is visible/reachable, image pinch zoom works, and drag pan works after zooming.
+- Needs real-device smoke test: tap marker `View`, confirm the preview is clearly smaller, the cyan X is visible/reachable, and tapping X closes it.
+- Needs real-device smoke test: pinch/drag inside an image preview and confirm only the preview changes, not the capture behind it.
+- Needs real-device smoke test: create a pinned attachment, reopen Attached sheet, navigate away/back, and confirm the file remains listed until deleted.
 - The rail toggle is a space-saving UI pass, but the underlying distinction between true angles vs progress photos is still heuristic/current-session based.
-- `bash scripts/check-file-size.sh` still exits 1 due to known pre-existing oversized files; touched files remain under 300 lines (`PhotoAttachmentPins.tsx` 263, `PhotoAttachmentFilePreviewModal.tsx` 89).
+- `bash scripts/check-file-size.sh` still exits 1 due to known pre-existing oversized files; touched files remain under 300 lines (`PhotoAttachmentFilePreviewModal.tsx` 93, `PhotoAttachmentPins.tsx` 263, `CameraViewfinder.tsx` 239, `VisualCaptureView.tsx` 217, `photo-attachments.ts` 59).
 - The user-uploaded reference image `public/uploads/marked up.jpg` and `ts-prune-output.txtcat` remain untracked and intentionally not committed.
 
 #### Context Files Updated
 - `SLATE360_PROJECT_MEMORY.md` — this handoff.
-- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — Prompt 10S row.
-- `slate360-context/ONGOING_ISSUES.md` and `ops/bug-registry.json` — BUG-045.
+- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — Prompt 10T row.
+- `slate360-context/ONGOING_ISSUES.md` and `ops/bug-registry.json` — BUG-046.
 
 #### Next Steps (ordered)
-1. Real-device mobile-test centered new/edit attachment panels on the smallest target phone viewport.
-2. Real-device mobile-test preview X visibility plus image pinch/drag zoom.
+1. Real-device mobile-test preview containment, close button visibility, and gesture isolation.
+2. Real-device mobile-test pinned attachment persistence in marker popup and Attached sheet after navigation/reload.
 3. Continue simplifying the Data screen around photo reference + notes-first construction workflow; current dropdowns/buttons remain transitional.
 
 ### Session Handoff — 2026-04-30 (Markup Canvas Mobile UX Fixes)

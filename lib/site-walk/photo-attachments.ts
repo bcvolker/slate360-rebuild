@@ -27,6 +27,12 @@ export function getPhotoAttachmentPins(metadata: unknown): PhotoAttachmentPin[] 
   return pins.filter(isPhotoAttachmentPin).slice(0, 20);
 }
 
+export function getItemPhotoAttachmentPins(item: { metadata?: unknown; photo_attachment_pins?: unknown } | null | undefined): PhotoAttachmentPin[] {
+  const metadataPins = getPhotoAttachmentPins(item?.metadata);
+  if (metadataPins.length > 0) return metadataPins;
+  return Array.isArray(item?.photo_attachment_pins) ? item.photo_attachment_pins.filter(isPhotoAttachmentPin).slice(0, 20) : [];
+}
+
 export function withPhotoAttachmentPins(metadata: unknown, pins: PhotoAttachmentPin[]): Record<string, unknown> {
   const base = metadata && typeof metadata === "object" ? { ...(metadata as Record<string, unknown>) } : {};
   base[PHOTO_ATTACHMENT_METADATA_KEY] = pins;

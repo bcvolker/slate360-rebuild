@@ -381,6 +381,19 @@
         "The attached-file preview modal is smaller than the full capture area and keeps a visible top-right close button",
         "Image previews support pinch zoom and drag pan before closing"
       ]
+    },
+    {
+      "id": "BUG-046",
+      "title": "Attachment preview gestures leaked to capture and pins could appear missing",
+      "module": "site-walk/capture",
+      "severity": "high",
+      "status": "fixed",
+      "rootCause": "The marker preview modal allowed pointer and wheel events to bubble into the underlying capture canvas, so pinch gestures could zoom the photo behind the modal. Attachment rendering also read only metadata pins, so persisted `photo_attachment_pins` fallback data could be missed by the canvas and Attached sheet.",
+      "verification": [
+        "Opening a marker preview shows a small contained modal with a prominent top-right close button",
+        "Pinching or dragging inside an image preview changes only the preview image and not the capture behind it",
+        "CameraViewfinder and VisualCaptureView resolve attachment pins from metadata or item.photo_attachment_pins fallback"
+      ]
     }
   ]
 }

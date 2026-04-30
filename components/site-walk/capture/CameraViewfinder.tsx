@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Camera, Check, FileImage, Loader2, Mic, PencilLine, RotateCcw } from "lucide-react";
 import { useCaptureUpload } from "@/lib/hooks/useCaptureUpload";
 import { isMarkupData, type MarkupData } from "@/lib/site-walk/markup-types";
-import { getPhotoAttachmentPins, type PhotoAttachmentPin } from "@/lib/site-walk/photo-attachments";
+import { getItemPhotoAttachmentPins, type PhotoAttachmentPin } from "@/lib/site-walk/photo-attachments";
 import { createOfflineId } from "@/lib/site-walk/offline-db";
 import { compressCaptureFile } from "@/lib/site-walk/image-compression";
 import { getCaptureImageUrl } from "@/lib/site-walk/capture-image-url";
@@ -119,7 +119,7 @@ export function CameraViewfinder({ sessionId, autoOpenCamera = false, launchId =
                 sessionId={sessionId}
                 markupEnabled={markupEnabled}
                 initialMarkup={isMarkupData(activeItem?.markup_data) ? activeItem.markup_data : undefined}
-                attachmentPins={getPhotoAttachmentPins(activeItem?.metadata)}
+                attachmentPins={getItemPhotoAttachmentPins(activeItem)}
                 onAttachmentPinsChange={(pins) => onAttachmentPinsChange?.(activePreview.itemId, pins)}
                 onMarkupChange={(markup) => onMarkupChange?.(activePreview.itemId, markup)}
               />
