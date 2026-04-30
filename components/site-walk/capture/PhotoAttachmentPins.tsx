@@ -1,12 +1,15 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { FileUp, Loader2, Paperclip, Trash2, X } from "lucide-react";
 import { PHOTO_ATTACHMENT_MAX_FILE_BYTES, PHOTO_ATTACHMENT_MAX_FILES, type PhotoAttachmentFile, type PhotoAttachmentPin } from "@/lib/site-walk/photo-attachments";
+import { PhotoAttachmentFilePreviewModal } from "./PhotoAttachmentFilePreviewModal";
+import { PhotoAttachmentFileThumbnail } from "./PhotoAttachmentFileThumbnail";
 
 type DraftPin = { xPct: number; yPct: number } | null;
 type Transform = { x: number; y: number; scale: number };
 type UploadResponse = { uploadUrl?: string; fileId?: string; error?: string };
+type PinDragState = { pinId: string; pointerId: number; timeoutId: number; dragging: boolean } | null;
 
 type Props = {
   sessionId: string;
@@ -18,17 +21,27 @@ type Props = {
 };
 
 export function PhotoAttachmentPins({ sessionId, pins, draftPin, transform, onDraftClose, onPinsChange }: Props) {
+  const overlayRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const localPinsRef = useRef(pins);
+  const dragRef = useRef<PinDragState>(null);
   const [localPins, setLocalPins] = useState(pins);
   const [selectedPinId, setSelectedPinId] = useState<string | null>(null);
   const [editingPinId, setEditingPinId] = useState<string | null>(null);
+  const [draggingPinId, setDraggingPinId] = useState<string | null>(null);
+  const [previewFile, setPreviewFile] = useState<PhotoAttachmentFile | null>(null);
   const [label, setLabel] = useState("");
   const [note, setNote] = useState("");
   const [files, setFiles] = useState<PhotoAttachmentFile[]>([]);
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
-  useEffect(() => setLocalPins(pins), [pins]);
+  useEffect(() => {
+    localPinsRef.current = pins;
+    setLocalPins(pins);
+  }, [pins]);
+
+  useEffect(() => () => clearDragTimer(), []);
 
   async function uploadFiles(fileList: FileList | null) {
     const selectedFiles = Array.from(fileList ?? []).slice(0, PHOTO_ATTACHMENT_MAX_FILES - files.length);
@@ -67,6 +80,7 @@ export function PhotoAttachmentPins({ sessionId, pins, draftPin, transform, onDr
       createdAt: new Date().toISOString(),
     };
     const nextPins = [...localPins, nextPin];
+    localPinsRef.current = nextPins;
     setLocalPins(nextPins);
     onPinsChange(nextPins);
     resetModal();
@@ -82,6 +96,7 @@ export function PhotoAttachmentPins({ sessionId, pins, draftPin, transform, onDr
 
   function removePin(pinId: string) {
     const nextPins = localPins.filter((pin) => pin.id !== pinId);
+    localPinsRef.current = nextPins;
     setLocalPins(nextPins);
     onPinsChange(nextPins);
     if (selectedPinId === pinId) setSelectedPinId(null);
@@ -97,6 +112,7 @@ export function PhotoAttachmentPins({ sessionId, pins, draftPin, transform, onDr
   function savePinEdits() {
     if (!editingPinId) return;
     const nextPins = localPins.map((pin) => pin.id === editingPinId ? { ...pin, label: label.trim() || pin.label, note: note.trim() } : pin);
+    localPinsRef.current = nextPins;
     setLocalPins(nextPins);
     onPinsChange(nextPins);
     setEditingPinId(null);
@@ -104,13 +120,73 @@ export function PhotoAttachmentPins({ sessionId, pins, draftPin, transform, onDr
     setNote("");
   }
 
+  function beginPinPress(event: ReactPointerEvent<HTMLButtonElement>, pin: PhotoAttachmentPin) {
+    event.stopPropagation();
+    event.currentTarget.setPointerCapture(event.pointerId);
+    clearDragTimer();
+    const timeoutId = window.setTimeout(() => {
+      if (dragRef.current?.pinId !== pin.id) return;
+      dragRef.current.dragging = true;
+      setDraggingPinId(pin.id);
+      setSelectedPinId(null);
+      setEditingPinId(null);
+    }, 350);
+    dragRef.current = { pinId: pin.id, pointerId: event.pointerId, timeoutId, dragging: false };
+  }
+
+  function movePressedPin(event: ReactPointerEvent<HTMLButtonElement>) {
+    const drag = dragRef.current;
+    if (!drag?.dragging || drag.pointerId !== event.pointerId) return;
+    event.preventDefault();
+    updatePinPosition(drag.pinId, event.clientX, event.clientY);
+  }
+
+  function endPinPress(event: ReactPointerEvent<HTMLButtonElement>, pin: PhotoAttachmentPin) {
+    const drag = dragRef.current;
+    event.stopPropagation();
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+    clearDragTimer();
+    dragRef.current = null;
+    setDraggingPinId(null);
+    if (drag?.dragging) {
+      onPinsChange(localPinsRef.current);
+      return;
+    }
+    setSelectedPinId((current) => current === pin.id ? null : pin.id);
+  }
+
+  function updatePinPosition(pinId: string, clientX: number, clientY: number) {
+    const rect = overlayRef.current?.getBoundingClientRect();
+    if (!rect || rect.width === 0 || rect.height === 0) return;
+    const xPct = clamp(((clientX - rect.left) / rect.width) * 100, 0, 100);
+    const yPct = clamp(((clientY - rect.top) / rect.height) * 100, 0, 100);
+    setLocalPins((currentPins) => {
+      const nextPins = currentPins.map((pin) => pin.id === pinId ? { ...pin, xPct, yPct } : pin);
+      localPinsRef.current = nextPins;
+      return nextPins;
+    });
+  }
+
+  function clearDragTimer() {
+    if (dragRef.current?.timeoutId) window.clearTimeout(dragRef.current.timeoutId);
+  }
+
   return (
     <>
-      <div className="pointer-events-none absolute inset-0" style={{ transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})`, transformOrigin: "center" }}>
+      <div ref={overlayRef} className="pointer-events-none absolute inset-0" style={{ transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})`, transformOrigin: "center" }}>
         {localPins.map((pin) => (
           <div key={pin.id} className="pointer-events-auto absolute -translate-x-1/2 -translate-y-1/2" style={{ left: `${pin.xPct}%`, top: `${pin.yPct}%` }}>
-            <button type="button" onClick={() => setSelectedPinId((current) => current === pin.id ? null : pin.id)} className="flex h-7 w-7 items-center justify-center rounded-full border border-cyan-100 bg-cyan-500/95 text-white shadow-[0_0_0_2px_rgba(0,0,0,0.55),0_8px_22px_rgba(8,145,178,0.35)] backdrop-blur-md" aria-label={`Preview attachment ${pin.label}`}><Paperclip className="h-3.5 w-3.5" /></button>
-            {selectedPinId === pin.id && <button type="button" onClick={() => startEdit(pin)} className="absolute left-1/2 top-8 z-40 w-44 -translate-x-1/2 rounded-2xl border border-cyan-300/25 bg-slate-950/95 p-2 text-left text-white shadow-2xl backdrop-blur-xl"><p className="truncate text-xs font-black text-cyan-100">{pin.label}</p><p className="mt-1 line-clamp-2 text-[11px] font-bold text-white/65">{pin.note || `${pin.files.length} attached file${pin.files.length === 1 ? "" : "s"}`}</p><p className="mt-2 text-[10px] font-black uppercase tracking-[0.14em] text-cyan-200/80">Tap to edit</p></button>}
+            <button type="button" onPointerDown={(event) => beginPinPress(event, pin)} onPointerMove={movePressedPin} onPointerUp={(event) => endPinPress(event, pin)} onPointerCancel={(event) => endPinPress(event, pin)} className={`flex h-7 w-7 touch-none items-center justify-center rounded-full border text-white shadow-[0_0_0_2px_rgba(0,0,0,0.55),0_8px_22px_rgba(8,145,178,0.35)] backdrop-blur-md ${draggingPinId === pin.id ? "scale-110 border-white bg-cyan-300 text-slate-950" : "border-cyan-100 bg-cyan-500/95"}`} aria-label={`Hold and drag attachment ${pin.label}`}><Paperclip className="h-3.5 w-3.5" /></button>
+            {selectedPinId === pin.id && (
+              <div className="absolute left-1/2 top-8 z-40 flex w-60 -translate-x-1/2 gap-2 rounded-2xl border border-cyan-300/25 bg-slate-950/95 p-2 text-white shadow-2xl backdrop-blur-xl">
+                <PhotoAttachmentFileThumbnail file={pin.files[0]} onOpen={setPreviewFile} />
+                <button type="button" onClick={(event) => { event.stopPropagation(); startEdit(pin); }} className="min-w-0 flex-1 text-left">
+                  <p className="truncate text-xs font-black text-cyan-100">{pin.label}</p>
+                  <p className="mt-1 line-clamp-2 text-[11px] font-bold text-white/65">{pin.note || `${pin.files.length} attached file${pin.files.length === 1 ? "" : "s"}`}</p>
+                  <p className="mt-2 text-[10px] font-black uppercase tracking-[0.14em] text-cyan-200/80">Tap to edit</p>
+                </button>
+              </div>
+            )}
           </div>
         ))}
       </div>
@@ -153,8 +229,14 @@ export function PhotoAttachmentPins({ sessionId, pins, draftPin, transform, onDr
           <div className="mt-3 flex gap-2"><button type="button" onClick={savePinEdits} className="min-h-10 rounded-2xl bg-cyan-300 px-4 text-sm font-black text-slate-950">Save changes</button><button type="button" onClick={() => editingPinId && removePin(editingPinId)} className="min-h-10 rounded-2xl border border-rose-300/30 bg-rose-500/10 px-4 text-sm font-black text-rose-100">Remove pin</button></div>
         </div>
       )}
+
+      {previewFile && <PhotoAttachmentFilePreviewModal file={previewFile} onClose={() => setPreviewFile(null)} />}
     </>
   );
+}
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value));
 }
 
 function FileChip({ file, onRemove }: { file: PhotoAttachmentFile; onRemove: () => void }) {

@@ -108,7 +108,7 @@ function CaptureActionBar({ pinCount, markupMode, onToggleMarkup, onOpenAttachme
     <div className="shrink-0 border-b border-white/10 bg-black px-2 py-2">
       <div className="grid grid-cols-2 gap-2">
         <button type="button" onClick={onToggleMarkup} className={`h-10 rounded-xl border px-2 text-[10px] font-black uppercase tracking-[0.1em] ${markupMode ? "border-blue-400 bg-blue-500/20 text-blue-100" : "border-white/15 bg-white/10 text-white/80"}`}>Markup</button>
-        <button type="button" onClick={onOpenAttachments} className="inline-flex h-10 items-center justify-center gap-1 rounded-xl border border-white/15 bg-white/10 px-2 text-[10px] font-black text-white/80"><Paperclip className="h-4 w-4 text-blue-300" /> Files ({pinCount})</button>
+        <button type="button" onClick={onOpenAttachments} className="inline-flex h-10 items-center justify-center gap-1 rounded-xl border border-white/15 bg-white/10 px-2 text-[10px] font-black text-white/80"><Paperclip className="h-4 w-4 text-blue-300" /> Attached ({pinCount})</button>
       </div>
     </div>
   );
