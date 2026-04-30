@@ -342,6 +342,32 @@
         "Select mode performs bounding-box hit detection when tapping the canvas",
         "Selected shapes render a cyan bounding box with corner handles and can be moved or resized with the existing controls"
       ]
+    },
+    {
+      "id": "BUG-043",
+      "title": "Attachment markers could not be dragged and marker preview lacked a visible thumbnail affordance",
+      "module": "site-walk/capture",
+      "severity": "high",
+      "status": "fixed",
+      "rootCause": "Saved attachment markers waited for a delayed long-press before drag started, so normal touch-drag movement felt inert. The marker popover also rendered no visible thumbnail fallback when the file preview URL was missing or not an image.",
+      "verification": [
+        "Touching and dragging a saved paperclip marker immediately moves it on the photo and release saves updated pin coordinates",
+        "The marker popover always shows a right-side View tile for the first attached file or a fallback paperclip tile",
+        "Tapping the View tile opens the larger file preview modal"
+      ]
+    },
+    {
+      "id": "BUG-044",
+      "title": "Markup selection exposed detached plus/minus/delete popup and lacked direct resize handles",
+      "module": "site-walk/capture",
+      "severity": "high",
+      "status": "fixed",
+      "rootCause": "Selected markup showed a floating top-left SelectionMenu whose plus/minus/delete controls were detached from the selected shape and confusing near attachment popovers. The visible cyan handles were presentation-only and could not resize the selected shape.",
+      "verification": [
+        "Selecting markup no longer renders the detached plus/minus/delete canvas popup",
+        "Dragging cyan selection corners resizes boxes/circles and adjusts arrow endpoints",
+        "Markup toolbar color and line-width controls update the selected shape as well as future shapes"
+      ]
     }
   ]
 }

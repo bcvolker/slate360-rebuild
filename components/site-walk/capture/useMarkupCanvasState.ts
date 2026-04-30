@@ -1,19 +1,15 @@
 import { useEffect, useRef, useState, type PointerEvent, type WheelEvent } from "react";
 import type { MarkupData, MarkupShape } from "@/lib/site-walk/markup-types";
 import { VECTOR_TOOL_EVENT, type VectorTool } from "./UnifiedVectorToolbar";
-import { buildShape, buildText, clamp, distance, findShapeAtPoint, MARKUP_HEIGHT, MARKUP_WIDTH, moveShape, resizeShape, type DraftPoint, type PointerPoint, type Transform } from "./markupCanvasGeometry";
+import { buildShape, buildText, clamp, distance, findShapeAtPoint, MARKUP_HEIGHT, MARKUP_WIDTH, moveShape, type DraftPoint, type PointerPoint, type Transform } from "./markupCanvasGeometry";
+import { recolorShape, resizeShapeFromHandle, setShapeStrokeWidth, type ResizeHandle } from "./markupShapeEdits";
 
 export type DraftPin = { xPct: number; yPct: number } | null;
 
-type DragState = { id: string; start: DraftPoint; shape: MarkupShape };
+type DragState = { id: string; start: DraftPoint; shape: MarkupShape; mode: "move" } | { id: string; handle: ResizeHandle; mode: "resize" };
 type PendingMove = { pointerId: number; clientX: number; clientY: number; previous?: PointerPoint };
 
-type UseMarkupCanvasStateArgs = {
-  imageUrl: string;
-  markupEnabled: boolean;
-  initialMarkup?: MarkupData | null;
-  onMarkupChange?: (markup: MarkupData) => void;
-};
+type UseMarkupCanvasStateArgs = { imageUrl: string; markupEnabled: boolean; initialMarkup?: MarkupData | null; onMarkupChange?: (markup: MarkupData) => void };
 
 export const PHOTO_MARKUP_UNDO_EVENT = "site-walk-photo-markup-undo";
 export const PHOTO_MARKUP_REDO_EVENT = "site-walk-photo-markup-redo";
@@ -29,11 +25,13 @@ export function useMarkupCanvasState({ imageUrl, markupEnabled, initialMarkup, o
   const undoRef = useRef<MarkupShape[][]>([]);
   const redoRef = useRef<MarkupShape[][]>([]);
   const shapesRef = useRef<MarkupShape[]>(initialMarkup?.shapes ?? []);
+  const selectedIdRef = useRef<string | null>(null);
   const draftStartRef = useRef<DraftPoint | null>(null);
   const draftPointsRef = useRef<number[]>([]);
   const transformRef = useRef<Transform>({ x: 0, y: 0, scale: 1 });
   const [tool, setTool] = useState<VectorTool>("select");
   const [color, setColor] = useState("#3B82F6");
+  const [strokeWidth, setStrokeWidth] = useState(5);
   const [shapes, setShapes] = useState<MarkupShape[]>(initialMarkup?.shapes ?? []);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [editingTextId, setEditingTextId] = useState<string | null>(null);
@@ -48,12 +46,22 @@ export function useMarkupCanvasState({ imageUrl, markupEnabled, initialMarkup, o
     function handleTool(event: Event) {
       const detail = event instanceof CustomEvent ? event.detail : null;
       const nextTool = typeof detail?.tool === "string" ? detail.tool : "draw";
+      if (detail?.deleteSelected) deleteSelected();
       if (["select", "draw", "box", "circle", "arrow", "text"].includes(nextTool)) setTool(nextTool as VectorTool);
-      if (typeof detail?.color === "string") setColor(detail.color);
+      if (typeof detail?.color === "string") {
+        setColor(detail.color);
+        editSelectedShape((shape) => recolorShape(shape, detail.color));
+      }
+      if (typeof detail?.strokeWidth === "number") {
+        setStrokeWidth(detail.strokeWidth);
+        editSelectedShape((shape) => setShapeStrokeWidth(shape, detail.strokeWidth));
+      }
     }
     window.addEventListener(VECTOR_TOOL_EVENT, handleTool);
     return () => window.removeEventListener(VECTOR_TOOL_EVENT, handleTool);
   }, []);
+
+  useEffect(() => { selectedIdRef.current = selectedId; }, [selectedId]);
 
   useEffect(() => {
     window.addEventListener(PHOTO_MARKUP_UNDO_EVENT, undo);
@@ -73,13 +81,9 @@ export function useMarkupCanvasState({ imageUrl, markupEnabled, initialMarkup, o
     updateTransform({ x: 0, y: 0, scale: 1 });
   }, [imageUrl]);
 
-  useEffect(() => () => {
-    if (rafRef.current) window.cancelAnimationFrame(rafRef.current);
-  }, []);
+  useEffect(() => () => { if (rafRef.current) window.cancelAnimationFrame(rafRef.current); }, []);
 
-  function emitMarkup(nextShapes = shapesRef.current) {
-    onMarkupChange?.({ version: 1, coordSpace: "image", shapes: nextShapes });
-  }
+  function emitMarkup(nextShapes = shapesRef.current) { onMarkupChange?.({ version: 1, coordSpace: "image", shapes: nextShapes }); }
 
   function applyShapes(updater: (current: MarkupShape[]) => MarkupShape[], emit = true) {
     const nextShapes = updater(shapesRef.current);
@@ -90,25 +94,17 @@ export function useMarkupCanvasState({ imageUrl, markupEnabled, initialMarkup, o
 
   function updateTransform(nextTransform: Transform | ((current: Transform) => Transform)) {
     const resolved = typeof nextTransform === "function" ? nextTransform(transformRef.current) : nextTransform;
-    transformRef.current = resolved;
-    setTransform(resolved);
+    transformRef.current = resolved; setTransform(resolved);
   }
 
-  function updateDraftStart(nextStart: DraftPoint | null) {
-    draftStartRef.current = nextStart;
-    setDraftStart(nextStart);
-  }
+  function updateDraftStart(nextStart: DraftPoint | null) { draftStartRef.current = nextStart; setDraftStart(nextStart); }
 
   function updateDraftPoints(nextPoints: number[] | ((current: number[]) => number[])) {
     const resolved = typeof nextPoints === "function" ? nextPoints(draftPointsRef.current) : nextPoints;
-    draftPointsRef.current = resolved;
-    setDraftPoints(resolved);
+    draftPointsRef.current = resolved; setDraftPoints(resolved);
   }
 
-  function clearLongPress() {
-    if (longPressRef.current) window.clearTimeout(longPressRef.current);
-    longPressRef.current = null;
-  }
+  function clearLongPress() { if (longPressRef.current) window.clearTimeout(longPressRef.current); longPressRef.current = null; }
 
   function toPoint(clientX: number, clientY: number) {
     const rect = stageRef.current?.getBoundingClientRect();
@@ -146,7 +142,7 @@ export function useMarkupCanvasState({ imageUrl, markupEnabled, initialMarkup, o
       if (hit.kind === "text" && selectedId === hit.id) setEditingTextId(hit.id);
       setSelectedId(hit.id);
       remember();
-      setDragState({ id: hit.id, start: point, shape: hit });
+      setDragState({ id: hit.id, start: point, shape: hit, mode: "move" });
       clearLongPress();
       return;
     }
@@ -195,7 +191,11 @@ export function useMarkupCanvasState({ imageUrl, markupEnabled, initialMarkup, o
     clearLongPress();
     if (dragState) {
       const point = toPoint(move.clientX, move.clientY);
-      const nextShapes = shapesRef.current.map((shape) => shape.id === dragState.id ? moveShape(dragState.shape, point.x - dragState.start.x, point.y - dragState.start.y) : shape);
+      const nextShapes = shapesRef.current.map((shape) => {
+        if (shape.id !== dragState.id) return shape;
+        if (dragState.mode === "resize") return resizeShapeFromHandle(shape, dragState.handle, point);
+        return moveShape(dragState.shape, point.x - dragState.start.x, point.y - dragState.start.y);
+      });
       shapesRef.current = nextShapes;
       setShapes(nextShapes);
       return;
@@ -225,7 +225,7 @@ export function useMarkupCanvasState({ imageUrl, markupEnabled, initialMarkup, o
       updateDraftPoints([]);
       return;
     }
-    const shape = buildShape(tool, finalDraftStart, finalDraftPoints, color);
+    const shape = buildShape(tool, finalDraftStart, finalDraftPoints, color, strokeWidth);
     if (shape) {
       remember();
       applyShapes((current) => [...current, shape]);
@@ -248,47 +248,52 @@ export function useMarkupCanvasState({ imageUrl, markupEnabled, initialMarkup, o
     if (shape.kind === "text" && selectedId === shape.id) setEditingTextId(shape.id);
     setSelectedId(shape.id);
     remember();
-    setDragState({ id: shape.id, start: toPoint(event.clientX, event.clientY), shape });
+    setDragState({ id: shape.id, start: toPoint(event.clientX, event.clientY), shape, mode: "move" });
+  }
+
+  function beginSelectionResize(event: PointerEvent<SVGElement>, shape: MarkupShape, handle: ResizeHandle) {
+    if (!markupEnabled || tool !== "select") return;
+    event.stopPropagation();
+    flushPendingMove();
+    setSelectedId(shape.id);
+    remember();
+    setDragState({ id: shape.id, handle, mode: "resize" });
   }
 
   function deleteSelected() {
+    const targetId = selectedIdRef.current;
+    if (!targetId) return;
     remember();
-    applyShapes((current) => current.filter((shape) => shape.id !== selectedId));
+    applyShapes((current) => current.filter((shape) => shape.id !== targetId));
     setSelectedId(null);
     setEditingTextId(null);
   }
 
-  function resizeSelected(scale: number) {
-    remember();
-    applyShapes((current) => current.map((shape) => shape.id === selectedId ? resizeShape(shape, scale) : shape));
+  function editSelectedShape(update: (shape: MarkupShape) => MarkupShape) {
+    const targetId = selectedIdRef.current;
+    if (!targetId) return;
+    remember(); applyShapes((current) => current.map((shape) => shape.id === targetId ? update(shape) : shape));
   }
 
   function updateText(id: string, text: string) {
     applyShapes((current) => current.map((shape) => shape.id === id && shape.kind === "text" ? { ...shape, text, updatedAt: Date.now() } : shape));
   }
 
-  function remember(snapshot = shapesRef.current) {
-    undoRef.current = [...undoRef.current.slice(-14), snapshot];
-    redoRef.current = [];
-  }
+  function remember(snapshot = shapesRef.current) { undoRef.current = [...undoRef.current.slice(-14), snapshot]; redoRef.current = []; }
 
   function undo() {
     const previous = undoRef.current.pop();
     if (!previous) return;
     redoRef.current = [shapesRef.current, ...redoRef.current.slice(0, 14)];
-    shapesRef.current = previous;
-    setShapes(previous);
-    emitMarkup(previous);
+    shapesRef.current = previous; setShapes(previous); emitMarkup(previous);
   }
 
   function redo() {
     const next = redoRef.current.shift();
     if (!next) return;
     undoRef.current = [...undoRef.current.slice(-14), shapesRef.current];
-    shapesRef.current = next;
-    setShapes(next);
-    emitMarkup(next);
+    shapesRef.current = next; setShapes(next); emitMarkup(next);
   }
 
-  return { stageRef, shapes, selectedId, editingTextId, setEditingTextId, draftStart, draftPoints, draftPin, setDraftPin, portrait, setPortrait, transform, tool, color, handlePointerDown, handlePointerMove, handlePointerUp, handleWheel, beginShapeDrag, deleteSelected, resizeSelected, updateText };
+  return { stageRef, shapes, selectedId, editingTextId, setEditingTextId, draftStart, draftPoints, draftPin, setDraftPin, portrait, setPortrait, transform, tool, color, strokeWidth, handlePointerDown, handlePointerMove, handlePointerUp, handleWheel, beginShapeDrag, beginSelectionResize, updateText };
 }

@@ -196,30 +196,33 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-30 (Draggable Attachment Pins + Previews)
+### Session Handoff — 2026-04-30 (Attachment Drag + Markup Resize Follow-up)
 
 #### What Changed
-- `components/site-walk/capture/PhotoAttachmentPins.tsx` — added hold-and-drag repositioning for saved attachment paperclip markers; releasing the marker commits the new `xPct`/`yPct` coordinates through `onPinsChange`.
-- `components/site-walk/capture/PhotoAttachmentPins.tsx` — reworked the marker popover into a compact split layout: thumbnail area opens a larger preview, while the `Tap to edit` side opens the existing label/note edit panel.
-- `components/site-walk/capture/PhotoAttachmentFileThumbnail.tsx` — added a small image thumbnail/file fallback tile for pinned attachments.
-- `components/site-walk/capture/PhotoAttachmentFilePreviewModal.tsx` — added an image/iframe full preview modal for marker thumbnail taps using `/api/slatedrop/download?fileId=...&mode=preview`.
-- `components/site-walk/capture/VisualCaptureView.tsx` — renamed the direct capture attachment button from `Files` to `Attached`.
-- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — backfilled Prompt 10P commit hash and added Prompt 10Q for draggable markers/thumbnail previews.
+- `components/site-walk/capture/PhotoAttachmentPins.tsx` — replaced delayed paperclip long-press dragging with immediate touch-drag after a small movement threshold; release still commits updated pin coordinates through `onPinsChange`.
+- `components/site-walk/capture/PhotoAttachmentFileThumbnail.tsx` — marker popover now always shows a right-side `View` tile for the first attached file, with image thumbnail when available and visible file/paperclip fallback otherwise.
+- `components/site-walk/capture/PhotoMarkupCanvas.tsx` — removed the detached floating plus/minus/delete `SelectionMenu`; selected markup now resizes by dragging the cyan corner handles.
+- `components/site-walk/capture/UnifiedVectorToolbar.tsx` — added selected-shape color, stroke-width, and delete controls next to the existing color tools.
+- `components/site-walk/capture/useMarkupCanvasState.ts` and `markupShapeEdits.ts` — added selected-shape recolor/stroke-width updates and handle-based resize/reshape for boxes, circles, arrows/lines, and text sizing.
+- `ops/bug-registry.json` and `slate360-context/ONGOING_ISSUES.md` — logged/resolved BUG-043 and BUG-044.
+- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — backfilled Prompt 10Q commit hash and added Prompt 10R for this follow-up.
 
 #### What's Broken / Partially Done
-- Needs real-device smoke test: attach a file, long-press and drag the paperclip marker to a new photo point, release it, navigate away/back, and confirm the marker stays at the new position.
-- Needs real-device smoke test: tap marker, tap thumbnail to open preview, close preview, then tap `Tap to edit` to edit label/note and remove if needed.
+- Needs real-device smoke test: attach a file, touch-drag the paperclip marker to a new photo point, release it, navigate away/back, and confirm the marker stays at the new position.
+- Needs real-device smoke test: tap marker, tap right-side `View` tile to open preview, close preview, then tap `Tap to edit` to edit label/note.
+- Needs real-device smoke test: draw/select a box/circle/arrow, drag cyan handles to resize/reshape, change color and stroke width from the toolbar, and confirm no detached plus/minus/delete popup appears.
 - The rail toggle is a space-saving UI pass, but the underlying distinction between true angles vs progress photos is still heuristic/current-session based.
-- `bash scripts/check-file-size.sh` still exits 1 due to known pre-existing oversized files; touched files remain under 300 lines (`VisualCaptureView.tsx` 217, `PhotoAttachmentPins.tsx` 265, `PhotoAttachmentFilePreviewModal.tsx` 49, `PhotoAttachmentFileThumbnail.tsx` 44).
+- `bash scripts/check-file-size.sh` still exits 1 due to known pre-existing oversized files; touched files remain under 300 lines (`useMarkupCanvasState.ts` 299, `PhotoAttachmentPins.tsx` 259, `PhotoMarkupCanvas.tsx` 91, `UnifiedVectorToolbar.tsx` 69, `markupShapeEdits.ts` 42, `PhotoAttachmentFileThumbnail.tsx` 45).
 - The user-uploaded reference image `public/uploads/marked up.jpg` and `ts-prune-output.txtcat` remain untracked and intentionally not committed.
 
 #### Context Files Updated
 - `SLATE360_PROJECT_MEMORY.md` — this handoff.
-- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — Prompt 10Q row.
+- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — Prompt 10R row.
+- `slate360-context/ONGOING_ISSUES.md` and `ops/bug-registry.json` — BUG-043/BUG-044.
 
 #### Next Steps (ordered)
-1. Real-device mobile-test marker long-press drag, release-save, and reload persistence.
-2. Real-device mobile-test thumbnail preview vs `Tap to edit` split actions for image and non-image attachments.
+1. Real-device mobile-test marker drag, release-save, reload persistence, and right-side `View` preview tile behavior.
+2. Real-device mobile-test selected markup corner-resize, toolbar color/stroke-width editing, and toolbar delete.
 3. Continue simplifying the Data screen around photo reference + notes-first construction workflow; current dropdowns/buttons remain transitional.
 
 ### Session Handoff — 2026-04-30 (Markup Canvas Mobile UX Fixes)

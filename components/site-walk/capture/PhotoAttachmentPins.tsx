@@ -9,7 +9,7 @@ import { PhotoAttachmentFileThumbnail } from "./PhotoAttachmentFileThumbnail";
 type DraftPin = { xPct: number; yPct: number } | null;
 type Transform = { x: number; y: number; scale: number };
 type UploadResponse = { uploadUrl?: string; fileId?: string; error?: string };
-type PinDragState = { pinId: string; pointerId: number; timeoutId: number; dragging: boolean } | null;
+type PinDragState = { pinId: string; pointerId: number; startX: number; startY: number; dragging: boolean } | null;
 
 type Props = {
   sessionId: string;
@@ -40,8 +40,6 @@ export function PhotoAttachmentPins({ sessionId, pins, draftPin, transform, onDr
     localPinsRef.current = pins;
     setLocalPins(pins);
   }, [pins]);
-
-  useEffect(() => () => clearDragTimer(), []);
 
   async function uploadFiles(fileList: FileList | null) {
     const selectedFiles = Array.from(fileList ?? []).slice(0, PHOTO_ATTACHMENT_MAX_FILES - files.length);
@@ -122,22 +120,23 @@ export function PhotoAttachmentPins({ sessionId, pins, draftPin, transform, onDr
 
   function beginPinPress(event: ReactPointerEvent<HTMLButtonElement>, pin: PhotoAttachmentPin) {
     event.stopPropagation();
+    event.preventDefault();
     event.currentTarget.setPointerCapture(event.pointerId);
-    clearDragTimer();
-    const timeoutId = window.setTimeout(() => {
-      if (dragRef.current?.pinId !== pin.id) return;
-      dragRef.current.dragging = true;
-      setDraggingPinId(pin.id);
-      setSelectedPinId(null);
-      setEditingPinId(null);
-    }, 350);
-    dragRef.current = { pinId: pin.id, pointerId: event.pointerId, timeoutId, dragging: false };
+    dragRef.current = { pinId: pin.id, pointerId: event.pointerId, startX: event.clientX, startY: event.clientY, dragging: false };
   }
 
   function movePressedPin(event: ReactPointerEvent<HTMLButtonElement>) {
     const drag = dragRef.current;
-    if (!drag?.dragging || drag.pointerId !== event.pointerId) return;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    event.stopPropagation();
     event.preventDefault();
+    if (!drag.dragging && Math.hypot(event.clientX - drag.startX, event.clientY - drag.startY) > 3) {
+      drag.dragging = true;
+      setDraggingPinId(drag.pinId);
+      setSelectedPinId(null);
+      setEditingPinId(null);
+    }
+    if (!drag.dragging) return;
     updatePinPosition(drag.pinId, event.clientX, event.clientY);
   }
 
@@ -145,7 +144,6 @@ export function PhotoAttachmentPins({ sessionId, pins, draftPin, transform, onDr
     const drag = dragRef.current;
     event.stopPropagation();
     if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
-    clearDragTimer();
     dragRef.current = null;
     setDraggingPinId(null);
     if (drag?.dragging) {
@@ -167,10 +165,6 @@ export function PhotoAttachmentPins({ sessionId, pins, draftPin, transform, onDr
     });
   }
 
-  function clearDragTimer() {
-    if (dragRef.current?.timeoutId) window.clearTimeout(dragRef.current.timeoutId);
-  }
-
   return (
     <>
       <div ref={overlayRef} className="pointer-events-none absolute inset-0" style={{ transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})`, transformOrigin: "center" }}>
@@ -179,12 +173,12 @@ export function PhotoAttachmentPins({ sessionId, pins, draftPin, transform, onDr
             <button type="button" onPointerDown={(event) => beginPinPress(event, pin)} onPointerMove={movePressedPin} onPointerUp={(event) => endPinPress(event, pin)} onPointerCancel={(event) => endPinPress(event, pin)} className={`flex h-7 w-7 touch-none items-center justify-center rounded-full border text-white shadow-[0_0_0_2px_rgba(0,0,0,0.55),0_8px_22px_rgba(8,145,178,0.35)] backdrop-blur-md ${draggingPinId === pin.id ? "scale-110 border-white bg-cyan-300 text-slate-950" : "border-cyan-100 bg-cyan-500/95"}`} aria-label={`Hold and drag attachment ${pin.label}`}><Paperclip className="h-3.5 w-3.5" /></button>
             {selectedPinId === pin.id && (
               <div className="absolute left-1/2 top-8 z-40 flex w-60 -translate-x-1/2 gap-2 rounded-2xl border border-cyan-300/25 bg-slate-950/95 p-2 text-white shadow-2xl backdrop-blur-xl">
-                <PhotoAttachmentFileThumbnail file={pin.files[0]} onOpen={setPreviewFile} />
                 <button type="button" onClick={(event) => { event.stopPropagation(); startEdit(pin); }} className="min-w-0 flex-1 text-left">
                   <p className="truncate text-xs font-black text-cyan-100">{pin.label}</p>
                   <p className="mt-1 line-clamp-2 text-[11px] font-bold text-white/65">{pin.note || `${pin.files.length} attached file${pin.files.length === 1 ? "" : "s"}`}</p>
                   <p className="mt-2 text-[10px] font-black uppercase tracking-[0.14em] text-cyan-200/80">Tap to edit</p>
                 </button>
+                <PhotoAttachmentFileThumbnail file={pin.files[0]} onOpen={setPreviewFile} />
               </div>
             )}
           </div>

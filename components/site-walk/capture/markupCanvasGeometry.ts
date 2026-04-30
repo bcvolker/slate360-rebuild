@@ -9,9 +9,9 @@ export const MARKUP_WIDTH = 1000;
 export const MARKUP_HEIGHT = 720;
 const HIT_PAD = 18;
 
-export function buildShape(tool: VectorTool, start: DraftPoint, points: number[], color: string): MarkupShape | null {
+export function buildShape(tool: VectorTool, start: DraftPoint, points: number[], color: string, strokeWidth = 5): MarkupShape | null {
   const id = `shape-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
-  const base = { id, stroke: color, fill: "none", strokeWidth: 5, rotation: 0, updatedAt: Date.now() };
+  const base = { id, stroke: color, fill: "none", strokeWidth, rotation: 0, updatedAt: Date.now() };
   const endX = points[points.length - 2] ?? start.x;
   const endY = points[points.length - 1] ?? start.y;
   if (tool === "box") return { ...base, kind: "rect", x: Math.min(start.x, endX), y: Math.min(start.y, endY), width: Math.abs(endX - start.x), height: Math.abs(endY - start.y) };

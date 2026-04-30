@@ -4,7 +4,8 @@ import type { PointerEvent } from "react";
 import type { MarkupData, MarkupShape } from "@/lib/site-walk/markup-types";
 import type { PhotoAttachmentPin } from "@/lib/site-walk/photo-attachments";
 import { buildShape, getShapeBounds, MARKUP_HEIGHT, MARKUP_WIDTH } from "./markupCanvasGeometry";
-import { SelectionMenu, TextEditor } from "./PhotoMarkupControls";
+import type { ResizeHandle } from "./markupShapeEdits";
+import { TextEditor } from "./PhotoMarkupControls";
 import { PhotoAttachmentPins } from "./PhotoAttachmentPins";
 import { PHOTO_MARKUP_REDO_EVENT, PHOTO_MARKUP_UNDO_EVENT, useMarkupCanvasState } from "./useMarkupCanvasState";
 
@@ -53,22 +54,21 @@ export function PhotoMarkupCanvas({ imageUrl, title, sessionId, markupEnabled, i
           style={{ transform: `translate(${canvas.transform.x}px, ${canvas.transform.y}px) scale(${canvas.transform.scale})`, transformOrigin: "center" }}
         >
           {canvas.shapes.map((shape) => renderShape(shape, "", canvas.selectedId === shape.id, (event) => canvas.beginShapeDrag(event, shape)))}
-          {renderSelectionBounds(canvas.shapes.find((shape) => shape.id === canvas.selectedId) ?? null)}
-          {canvas.draftStart && canvas.draftPoints.length >= 4 && renderShape(buildShape(canvas.tool, canvas.draftStart, canvas.draftPoints, canvas.color), "draft", false)}
+          {renderSelectionBounds(canvas.shapes.find((shape) => shape.id === canvas.selectedId) ?? null, canvas.beginSelectionResize)}
+          {canvas.draftStart && canvas.draftPoints.length >= 4 && renderShape(buildShape(canvas.tool, canvas.draftStart, canvas.draftPoints, canvas.color, canvas.strokeWidth), "draft", false)}
         </svg>
         <PhotoAttachmentPins sessionId={sessionId} pins={attachmentPins} draftPin={canvas.draftPin} transform={canvas.transform} onDraftClose={() => canvas.setDraftPin(null)} onPinsChange={(pins) => onAttachmentPinsChange?.(pins)} />
         {editingTextId && <TextEditor shape={canvas.shapes.find((shape) => shape.id === editingTextId)} onChange={(value) => canvas.updateText(editingTextId, value)} onDone={() => canvas.setEditingTextId(null)} />}
-        {canvas.selectedId && <SelectionMenu onDelete={canvas.deleteSelected} onBigger={() => canvas.resizeSelected(1.14)} onSmaller={() => canvas.resizeSelected(0.88)} />}
       </div>
     </div>
   );
 }
 
-function renderSelectionBounds(shape: MarkupShape | null) {
+function renderSelectionBounds(shape: MarkupShape | null, onHandleDown: (event: PointerEvent<SVGElement>, shape: MarkupShape, handle: ResizeHandle) => void) {
   const bounds = shape ? getShapeBounds(shape) : null;
   if (!bounds) return null;
-  const handles = [[bounds.x, bounds.y], [bounds.x + bounds.width, bounds.y], [bounds.x, bounds.y + bounds.height], [bounds.x + bounds.width, bounds.y + bounds.height]];
-  return <g pointerEvents="none"><rect x={bounds.x} y={bounds.y} width={bounds.width} height={bounds.height} fill="none" stroke="#67e8f9" strokeDasharray="12 8" strokeWidth={3} />{handles.map(([x, y]) => <rect key={`${x}-${y}`} x={x - 9} y={y - 9} width={18} height={18} rx={4} fill="#67e8f9" stroke="#0f172a" strokeWidth={3} />)}</g>;
+  const handles: Array<[ResizeHandle, number, number]> = [["nw", bounds.x, bounds.y], ["ne", bounds.x + bounds.width, bounds.y], ["sw", bounds.x, bounds.y + bounds.height], ["se", bounds.x + bounds.width, bounds.y + bounds.height]];
+  return <g><rect pointerEvents="none" x={bounds.x} y={bounds.y} width={bounds.width} height={bounds.height} fill="none" stroke="#67e8f9" strokeDasharray="12 8" strokeWidth={3} />{shape && handles.map(([handle, x, y]) => <rect key={handle} x={x - 12} y={y - 12} width={24} height={24} rx={5} fill="#67e8f9" stroke="#0f172a" strokeWidth={3} className="cursor-nwse-resize" onPointerDown={(event) => onHandleDown(event, shape, handle)} />)}</g>;
 }
 
 function renderShape(shape: MarkupShape | null, keySuffix = "", selected = false, onPointerDown?: (event: PointerEvent<SVGElement>) => void) {

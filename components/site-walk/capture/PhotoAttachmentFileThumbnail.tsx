@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { FileText, Loader2 } from "lucide-react";
+import { FileText, Loader2, Paperclip } from "lucide-react";
 import type { PhotoAttachmentFile } from "@/lib/site-walk/photo-attachments";
 
 type Props = {
@@ -34,11 +34,12 @@ export function PhotoAttachmentFileThumbnail({ file, onOpen }: Props) {
     return () => { cancelled = true; };
   }, [file, isImage]);
 
-  if (!file) return null;
+  if (!file) return <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-cyan-200/30 bg-slate-950 text-cyan-100"><Paperclip className="h-5 w-5" /></div>;
 
   return (
-    <button type="button" onClick={(event) => { event.stopPropagation(); onOpen(file); }} className="h-14 w-14 shrink-0 overflow-hidden rounded-2xl border border-cyan-200/30 bg-slate-950 text-cyan-100" aria-label={`Preview ${file.name}`}>
+    <button type="button" onClick={(event) => { event.stopPropagation(); onOpen(file); }} className="relative h-14 w-14 shrink-0 overflow-hidden rounded-2xl border border-cyan-200/30 bg-slate-950 text-cyan-100" aria-label={`Preview ${file.name}`}>
       {loading ? <span className="flex h-full items-center justify-center"><Loader2 className="h-4 w-4 animate-spin" /></span> : url ? <img src={url} alt={file.name} className="h-full w-full object-cover" /> : <span className="flex h-full items-center justify-center"><FileText className="h-5 w-5" /></span>}
+      <span className="absolute inset-x-0 bottom-0 bg-black/70 py-0.5 text-[8px] font-black uppercase tracking-[0.08em] text-white">View</span>
     </button>
   );
 }
