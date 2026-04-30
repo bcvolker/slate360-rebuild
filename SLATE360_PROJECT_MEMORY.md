@@ -196,39 +196,37 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-30 (Generalized Site Walk + App Store Strategy)
+### Session Handoff — 2026-04-30 (Clean House PM/Deliverables Reality Audit)
 
 #### What Changed
-- `docs/SITE_WALK_MASTER_ARCHITECTURE.md` — added `Generalized Data Entry Doctrine` requiring customizable Tags / Departments / Categories instead of construction-only trade-first UX; construction terms are now optional industry packs.
-- `docs/SITE_WALK_MASTER_ARCHITECTURE.md` — strengthened Leadership Oversight with organization-level Global Command Center behavior for `owner` / `admin`, read-only `viewer` leadership views, and auditable leadership comments.
-- `docs/SITE_WALK_MASTER_ARCHITECTURE.md` — generalized collaborator examples into deputized cross-org workflows and documented paid subscriber-to-subscriber org switching through the header context switcher.
-- `docs/SITE_WALK_MASTER_ARCHITECTURE.md` — added App Store-safe launch language rules: no user-facing `Beta`, `Beta Testing`, or `Waitlist`; use Version 1 / Foundational Member / Account Verification / Workspace Provisioning; maintain a permanent reviewer account such as `apple@slate360.ai`.
-- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — added Prompt 10X for the Gemini audit/docs wave and expanded execution constraints for generalized data, Global Command Center, App Store reviewer account, deputized collaborator shell, and subscriber cross-org switching.
-- `slate360-context/ORG_ROLES_AND_PERMISSIONS.md` — updated org role guidance so `owner` / `admin` include Global Command Center access, `viewer` supports read-only leadership oversight, collaborators are generalized beyond construction, and user-facing access copy avoids Beta/Waitlist wording.
-- Fact-finding audit completed with no implementation code changes: Operations Console remains Slate CEO/internal-only; account approval uses `profiles.is_beta_approved` internally; rendered pending/console copy is already mostly Version 1-oriented; org roles already support the foundation for Leadership Oversight.
-- Validation passed: `git diff --check` and `npm run typecheck`.
+- Read-only Gemini prompt executed: audited Project Hub PM pages, org branding settings, Site Walk deliverable versioning, SlateDrop folder provisioning, and open-source Gantt/budget-grid options.
+- PM Suite finding: `project-hub/[projectId]/rfis`, `submittals`, `budget`, and `schedule` pages are not mock-array pages; they fetch live APIs backed by `project_rfis`, `project_submittals`, `project_budgets`, and `project_tasks`. They still contain hardcoded option/template constants for statuses, AIA document codes, CSI categories, and handmade Gantt/table UI.
+- PM page sizes checked: RFIs 218 lines, Submittals 211, Budget 214, Schedule 240 — currently under the 300-line production limit after prior extraction.
+- Org branding finding: `organizations.brand_settings` exists as jsonb with `logo_url`, `signature_url`, `primary_color`, header/footer/contact fields, and UI/API exists in Site Walk setup. It does not yet support secondary/accent color arrays or a polished hex-picker/dropzone experience.
+- Deliverable versioning finding: `site_walk_deliverables` has rich hosted/interactive schema, send logs, snapshots, blocks, assets, scenes, hotspots, threads, and responses, but no true version-history mechanism such as `version_number`, `parent_id`, immutable revision table, or latest-published pointer lineage.
+- Auto-folder finding: `lib/slatedrop/provisioning.ts` is called from project create and creates broad project folders including RFIs/Submittals/Schedule/Budget/Site Walk-adjacent folders, but not the exact strict Gemini tree or per-workflow auto-save PDFs for RFIs/Submittals/Budgets/Schedules.
+- Important security/quality audit note: schedule `GET /api/projects/[projectId]/schedule` authenticates but does not call project-scope access before querying `project_tasks`; PATCH/POST/DELETE do scope-check. Fix before shipping PM Suite broadly.
+- Recommended OSS options: `gantt-task-react`, `frappe-gantt` React wrapper/custom integration, `react-spreadsheet` or `@tanstack/react-table` for lightweight editable budgets; evaluate license/React 19 compatibility before adding.
 
 #### What's Broken / Partially Done
-- No implementation code was written for Gemini Prompt 1 by design; this was an audit plus strategy-doc update.
-- Global Command Center is documented but not built yet.
-- Permanent App Store reviewer account such as `apple@slate360.ai` is documented but not provisioned/seeded yet.
-- Internal DB/API names such as `profiles.is_beta_approved` and `/api/admin/beta` still contain beta terminology; docs now allow this internally until a safe migration, but public UI should avoid it.
-- Deputized collaborator shell and paid subscriber cross-org switcher behavior remain documented future implementation work.
-- Previous product gaps remain: Site Walk ↔ 360 Tours bridge, `photo_360` item-type decision, PlanViewer layer toggles, one-hand sheet/page picker, and collaborator assigned-work shell.
+- No implementation code was written by design; this was a fact-finding audit.
+- PM pages are real-data backed, but the UI is not yet app-centric/premium enough for the intended mobile/tablet-first experience.
+- Org branding is functional but too narrow for the requested brand-control vision: needs plural colors, secondary/accent support, proper color picker, logo dropzone, and deliverable metadata toggles.
+- Site Walk deliverables can be shared/sent and have interactive supporting tables, but edits overwrite the main row; true immutable versioning is missing.
+- SlateDrop provisions many useful folders, but the strict tree and automatic artifact routing/PDF generation are incomplete.
+- Large-scale Dark Glass/app-shell redesign must account for public website, login, signup, reset password, email confirmations, pending-access messaging, App Store reviewer flow, and desktop parity — not just authenticated app screens.
 - The user-uploaded reference image `public/uploads/marked up.jpg` and `ts-prune-output.txtcat` remain untracked and intentionally not committed.
 
 #### Context Files Updated
 - `SLATE360_PROJECT_MEMORY.md` — this handoff.
-- `docs/SITE_WALK_MASTER_ARCHITECTURE.md` — generalized data entry, Leadership Oversight, cross-org collaboration, and App Store-safe access strategy.
-- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — Prompt 10X and execution constraints for generalized tags, Global Command Center, reviewer account, and collaborator workflows.
-- `slate360-context/ORG_ROLES_AND_PERMISSIONS.md` — owner/admin/viewer leadership model, deputized collaborator behavior, paid subscriber cross-org switching, and Version 1/App Store access-language rules.
 
 #### Next Steps (ordered)
-1. Provision and seed a permanent App Store reviewer account such as `apple@slate360.ai` that bypasses the access queue.
-2. Build the org-level Global Command Center for Site Walk `owner` / `admin` leadership oversight.
-3. Implement project/org configurable Tags / Departments / Categories and move construction trade labels into optional industry packs.
-4. Build collaborator assigned-work shell, restricted Personal Workspace, and paid subscriber cross-org switcher behavior.
-5. Later: safely migrate internal beta naming only after public launch surfaces are fully stable.
+1. Fix schedule `GET` project-scope access before expanding PM Suite access.
+2. Define the V1 app-shell design contract for mobile/tablet/desktop parity, including public auth and account-verification screens.
+3. Add brand settings schema/UI for secondary/accent color(s), logo dropzone, and deliverable metadata toggles.
+4. Design deliverable versioning migration: immutable versions/snapshots plus latest published pointer and rollback path.
+5. Align project folder provisioning to the strict app-centric tree and add server-side artifact/PDF auto-save paths for RFI/Submittal/Budget/Schedule outputs.
+6. Prototype Gantt/grid OSS library choices behind a feature flag after license and React 19 compatibility review.
 
 ### Session Handoff — 2026-04-30 (Markup Canvas Mobile UX Fixes)
 
