@@ -23,11 +23,11 @@ Risk:
 - Markup save callbacks can cause parent rerenders if not throttled carefully.
 
 Recommended next steps:
-1. Extract `PhotoMarkupCanvas` before adding features: gesture state, rendering, markup tools, and pin layer should be separate files.
+1. Extract `PhotoMarkupCanvas` before adding features: gesture state, rendering, markup tools, and pin layer should be separate files. **Status 2026-04-30:** canvas state moved to `useMarkupCanvasState.ts` and geometry helpers moved to `markupCanvasGeometry.ts`; component is now 82 lines.
 2. Add client-side image downscaling for preview and upload targets. **Status 2026-04-30:** implemented for Site Walk capture in `lib/site-walk/image-compression.ts` and wired through `CameraViewfinder` before preview/upload.
 3. Keep original file only if needed; render a preview-sized blob in the canvas.
-4. Throttle pointer move state writes with `requestAnimationFrame`.
-5. Debounce markup persistence at 800–1200ms and flush on Next/Back/visibilitychange.
+4. Throttle pointer move state writes with `requestAnimationFrame`. **Status 2026-04-30:** pointer-move drawing/dragging/panning is frame-coalesced in `useMarkupCanvasState.ts`.
+5. Debounce markup persistence at 800–1200ms and flush on Next/Back/visibilitychange. **Status 2026-04-30:** active drag/draw gestures no longer fire parent `onMarkupChange`; shape changes flush on gesture end or discrete edit actions.
 6. Add a real mobile test script for capture → markup → pin → Next → Back.
 
 ### P0 — App Shell must not mount heavy modules globally

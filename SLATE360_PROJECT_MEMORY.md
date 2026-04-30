@@ -196,6 +196,29 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
+### Session Handoff — 2026-04-30 (Canvas Extraction + Throttling)
+
+#### What Changed
+- `components/site-walk/capture/PhotoMarkupCanvas.tsx` — reduced from 299 lines to 82 lines; now focuses on rendering the image, SVG shapes, pins, text editor, and selection controls.
+- `components/site-walk/capture/useMarkupCanvasState.ts` — added extracted canvas state/hook for tools, selected/editing state, pan/zoom, pointer handlers, undo/redo, draft pins, shape edits, and markup emission.
+- `components/site-walk/capture/markupCanvasGeometry.ts` — added shared geometry helpers/constants for markup coordinate space, shape construction, movement, resizing, clamping, and distance math.
+- `useMarkupCanvasState.ts` — coalesces pointer movement through `requestAnimationFrame`; active draw/drag/pan gestures update visual state at frame cadence and parent `onMarkupChange` only flushes at gesture end or discrete edits.
+- `docs/PERFORMANCE_AUDIT_2026-04-29.md` — marked canvas extraction, pointer throttling, and gesture-end save flushing as implemented.
+
+#### What's Broken / Partially Done
+- Needs real-device smoke test on iPhone/Android: capture a photo, draw freehand, draw box/circle/arrow/text, drag a saved shape, resize/delete, undo/redo, long-press a file pin, then Next/Back.
+- `bash scripts/check-file-size.sh` still exits 1 due to known pre-existing oversized files, but the touched canvas files are all under 300 lines (`PhotoMarkupCanvas.tsx` 82, `useMarkupCanvasState.ts` 279, `markupCanvasGeometry.ts` 50).
+- The user-uploaded reference image `public/uploads/marked up.jpg` and `ts-prune-output.txtcat` remain untracked and intentionally not committed.
+
+#### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md` — this handoff.
+- `docs/PERFORMANCE_AUDIT_2026-04-29.md` — implementation status for canvas extraction/throttling.
+
+#### Next Steps (ordered)
+1. Mobile-test the full Site Walk capture/markup/pin/Next/Back workflow on iPhone and Android.
+2. If mobile markup still feels heavy, replace freehand point arrays with mutable SVG path rendering during drag and commit the final point array only on pointer up.
+3. Continue P1 performance work: split/lazy-load heavy widgets, split `LocationMap`, lazy-load 360/model viewers, and add route bundle budgets.
+
 ### Session Handoff — 2026-04-30 (Capture Compression + Lazy Shell)
 
 #### What Changed
