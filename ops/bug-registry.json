@@ -1,6 +1,6 @@
 {
   "$schema": "./schemas/bug-registry.schema.json",
-  "updatedAt": "2026-04-29",
+  "updatedAt": "2026-04-30",
   "source": "slate360-context/ONGOING_ISSUES.md",
   "bugs": [
     {
@@ -289,6 +289,32 @@
         "Long-press + file upload auto-saves a pin, updates local pins immediately, and shows a visible blue marker on the photo",
         "Pin markers use the same transform as the photo canvas so they stay aligned while zoomed or panned",
         "The Data page says `Capture a photo first` and offers `Done with this photo` instead of forcing `Save & New Item Same Location`"
+      ]
+    },
+    {
+      "id": "BUG-039",
+      "title": "Site Walk image disappeared when returning from Data to Visual",
+      "module": "site-walk/capture",
+      "severity": "critical",
+      "status": "fixed",
+      "rootCause": "The Visual canvas revoked blob object URLs even though the active capture item still used the same local_preview_url as its fallback while server thumbnails were not ready.",
+      "verification": [
+        "CameraViewfinder no longer revokes local capture preview URLs during Visual/Data navigation",
+        "CameraViewfinder and DataContextView use getCaptureImageUrl() so server images fall back to local previews until the API thumbnail is ready",
+        "Returning from Data to Visual keeps the captured photo visible"
+      ]
+    },
+    {
+      "id": "BUG-040",
+      "title": "Site Walk pinned files could not be previewed before removal",
+      "module": "site-walk/capture",
+      "severity": "high",
+      "status": "fixed",
+      "rootCause": "The pinned-attachments sheet only listed pin labels and removal controls; individual file chips did not request preview URLs or show a verification modal.",
+      "verification": [
+        "AttachmentsSheet lists each pinned file as a previewable chip",
+        "Tapping a pinned file fetches /api/slatedrop/download?mode=preview and opens an image/iframe preview modal",
+        "Preview modal includes an Open full file fallback link"
       ]
     }
   ]

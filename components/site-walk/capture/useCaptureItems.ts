@@ -249,7 +249,7 @@ export function useCaptureItems({ sessionId, projectId }: HookArgs) {
 }
 
 function normalizeClassification(value: string | undefined): CaptureItemDraft["classification"] {
-  const match = ["Issue", "Observation", "Safety", "Progress", "On Track", "Behind Schedule", "Incorrect Work", "Question", "Other"].find((option) => option.toLowerCase() === value?.toLowerCase());
+  const match = ["Safety", "Quality", "Schedule", "RFI", "Observation", "Punch List", "Coordination", "Progress", "Other"].find((option) => option.toLowerCase() === value?.toLowerCase());
   return (match ?? "Observation") as CaptureItemDraft["classification"];
 }
 

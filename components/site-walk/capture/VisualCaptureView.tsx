@@ -1,9 +1,10 @@
 "use client";
 
-import { Camera, ChevronLeft, ChevronRight, Paperclip, Plus, RotateCcw, RotateCw, Trash2, X } from "lucide-react";
+import { Camera, ChevronLeft, ChevronRight, Eye, ExternalLink, Loader2, Paperclip, Plus, RotateCcw, RotateCw, Trash2, X } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import type { MarkupData } from "@/lib/site-walk/markup-types";
-import { getPhotoAttachmentPins, type PhotoAttachmentPin } from "@/lib/site-walk/photo-attachments";
+import { getCaptureImageUrl } from "@/lib/site-walk/capture-image-url";
+import { getPhotoAttachmentPins, type PhotoAttachmentFile, type PhotoAttachmentPin } from "@/lib/site-walk/photo-attachments";
 import type { CaptureItemRecord } from "@/lib/types/site-walk-capture";
 import { requestCameraCapture } from "./capture-camera-events";
 import { CameraViewfinder } from "./CameraViewfinder";
@@ -38,16 +39,16 @@ export function VisualCaptureView({ sessionId, autoOpenCamera, launchId, items, 
   const activePins = getPhotoAttachmentPins(activeItem?.metadata);
 
   return (
-    <div className="flex h-[100dvh] w-full flex-col overflow-hidden bg-black text-white">
+    <div className="flex h-[100dvh] w-full flex-col overflow-hidden bg-slate-950 text-white">
       <TopCaptureControls modeLabel={modeLabel} onNext={onNext} onUndo={() => dispatchCanvasEvent(PHOTO_MARKUP_UNDO_EVENT)} onRedo={() => dispatchCanvasEvent(PHOTO_MARKUP_REDO_EVENT)} />
       <StopCarousel items={photoItems} activeItemId={activeItemId} revealedThumbKey={revealedThumbKey} onReveal={setRevealedThumbKey} onSelectItem={onSelectItem} onOpenEdit={onNext} />
 
-      <main className="min-h-0 flex-1 border-y border-white/10 bg-zinc-950">
+      <main className="min-h-0 flex-1 border-y border-cyan-300/10 bg-[radial-gradient(circle_at_50%_0%,rgba(14,165,233,0.16),rgba(2,6,23,0.96)_55%)]">
         <div className="relative h-full min-h-0 overflow-hidden">
           <CameraViewfinder sessionId={sessionId} autoOpenCamera={autoOpenCamera} launchId={launchId} layout="visual" activeItem={activeItem} markupEnabled={markupMode} onMarkupChange={onMarkupChange} onAttachmentPinsChange={onAttachmentPinsChange} />
           {ghostOn && ghostImageUrl && <img src={ghostImageUrl} alt="Previous progress ghost alignment" className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-25 mix-blend-screen" />}
-          <button type="button" onClick={onNext} className="absolute right-2 top-1/2 z-20 flex h-14 w-9 -translate-y-1/2 items-center justify-center border border-white/20 bg-black/35 text-white/85 shadow-xl backdrop-blur-md" aria-label="Open notes and details">
-            <ChevronRight className="h-7 w-7" />
+          <button type="button" onClick={onNext} className="absolute bottom-3 right-3 z-20 inline-flex min-h-12 items-center gap-2 rounded-2xl border border-cyan-200/35 bg-cyan-300 px-4 text-sm font-black text-slate-950 shadow-[0_0_34px_rgba(103,232,249,0.25)]" aria-label="Add details for this photo">
+            Add Details <ChevronRight className="h-5 w-5" />
           </button>
         </div>
       </main>
@@ -70,18 +71,18 @@ export function VisualCaptureView({ sessionId, autoOpenCamera, launchId, items, 
 
 function TopCaptureControls({ modeLabel, onNext, onUndo, onRedo }: { modeLabel: string; onNext: () => void; onUndo: () => void; onRedo: () => void }) {
   return (
-    <header className="shrink-0 border-b border-white/10 bg-black px-2 py-2">
+    <header className="shrink-0 border-b border-cyan-300/10 bg-slate-950/95 px-2 py-2 shadow-[0_12px_45px_rgba(0,0,0,0.35)]">
       <div className="grid grid-cols-[auto_1fr_auto] items-center gap-2">
-        <a href="/site-walk" className="inline-flex h-9 items-center gap-1 rounded-xl border border-white/15 bg-white/10 px-2 text-[10px] font-black uppercase tracking-[0.1em] text-white/85"><ChevronLeft className="h-4 w-4" /> Back</a>
+        <a href="/site-walk" className="inline-flex h-9 items-center gap-1 rounded-xl border border-white/15 bg-white/5 px-2 text-[10px] font-black uppercase tracking-[0.1em] text-white/85"><ChevronLeft className="h-4 w-4" /> Back</a>
         <label className="min-w-0">
           <span className="sr-only">Walk project mode</span>
-          <select defaultValue={modeLabel || "Photos-only"} className="h-9 w-full rounded-xl border border-blue-500/35 bg-blue-500/15 px-2 text-center text-[10px] font-black uppercase tracking-[0.1em] text-blue-100">
+          <select defaultValue={modeLabel || "Photos-only"} className="h-9 w-full rounded-xl border border-cyan-300/25 bg-cyan-300/10 px-2 text-center text-[10px] font-black uppercase tracking-[0.1em] text-cyan-100">
             <option>Photos-only</option>
             <option>Attach to field project</option>
             <option>Field project</option>
           </select>
         </label>
-        <button type="button" onClick={onNext} className="inline-flex h-9 items-center gap-1 rounded-xl border border-white/15 bg-white/10 px-3 text-[10px] font-black uppercase tracking-[0.1em] text-white/85">Next <ChevronRight className="h-4 w-4" /></button>
+        <button type="button" onClick={onNext} className="inline-flex h-9 items-center gap-1 rounded-xl border border-cyan-300/25 bg-cyan-300/10 px-3 text-[10px] font-black uppercase tracking-[0.1em] text-cyan-100">Details <ChevronRight className="h-4 w-4" /></button>
       </div>
       <div className="mt-2 grid grid-cols-2 gap-2">
         <button type="button" onClick={onUndo} className="h-8 rounded-xl border border-white/15 bg-white/5 text-[10px] font-black text-white/75"><RotateCcw className="mx-auto h-4 w-4" /></button>
@@ -146,22 +147,52 @@ function ProgressTimeline({ items, open, ghostOn, ghostAvailable, revealedThumbK
 
 function RailShell({ heightClass, children }: { heightClass: string; children: ReactNode }) {
   return (
-    <div className="relative mx-3 overflow-hidden border-2 border-white/25 bg-black/75 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)] backdrop-blur-sm">
+    <div className="relative mx-3 overflow-hidden rounded-2xl border border-cyan-300/15 bg-slate-900/80 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06),0_16px_50px_rgba(0,0,0,0.28)] backdrop-blur-sm">
       <div className={`flex ${heightClass} gap-2 overflow-x-auto p-1 no-scrollbar`}>
         {children}
       </div>
-      <div className="pointer-events-none absolute inset-y-0 left-0 w-9 border-l border-white/30 bg-gradient-to-r from-black via-black/65 to-transparent" />
-      <div className="pointer-events-none absolute inset-y-0 right-0 w-9 border-r border-white/30 bg-gradient-to-l from-black via-black/65 to-transparent" />
+      <div className="pointer-events-none absolute inset-y-0 left-0 w-9 border-l border-cyan-300/15 bg-gradient-to-r from-slate-950 via-slate-950/65 to-transparent" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 w-9 border-r border-cyan-300/15 bg-gradient-to-l from-slate-950 via-slate-950/65 to-transparent" />
     </div>
   );
 }
 
 function AttachmentsSheet({ pins, onClose, onRemove }: { pins: PhotoAttachmentPin[]; onClose: () => void; onRemove: (pinId: string) => void }) {
+  const [preview, setPreview] = useState<{ file: PhotoAttachmentFile; url: string | null; loading: boolean; error: string | null } | null>(null);
+
+  async function openPreview(file: PhotoAttachmentFile) {
+    setPreview({ file, url: null, loading: true, error: null });
+    try {
+      const response = await fetch(`/api/slatedrop/download?fileId=${encodeURIComponent(file.id)}&mode=preview`, { cache: "no-store" });
+      const data = (await response.json().catch(() => null)) as { url?: string; error?: string } | null;
+      if (!response.ok || !data?.url) throw new Error(data?.error ?? "Preview unavailable.");
+      setPreview({ file, url: data.url, loading: false, error: null });
+    } catch (error) {
+      setPreview({ file, url: null, loading: false, error: error instanceof Error ? error.message : "Preview unavailable." });
+    }
+  }
+
   return (
     <div className="absolute inset-0 z-40 flex flex-col justify-end bg-black/55" role="dialog" aria-label="Pinned attachments" onClick={onClose}>
       <div className="rounded-t-3xl border-t border-white/10 bg-zinc-950/95 p-3 shadow-2xl backdrop-blur-xl" onClick={(event) => event.stopPropagation()}>
         <div className="mb-2 flex items-center justify-between"><p className="text-[11px] font-black uppercase tracking-[0.16em] text-blue-100">Pinned attachments ({pins.length})</p><button type="button" onClick={onClose} className="rounded-full border border-white/15 p-2 text-white/80" aria-label="Close attachments"><X className="h-4 w-4" /></button></div>
-        {pins.length === 0 ? <p className="rounded-2xl border border-dashed border-white/15 bg-white/5 px-4 py-6 text-center text-xs font-bold text-white/60">Long-press the photo to drop a pin and attach files.</p> : <ul className="max-h-64 space-y-2 overflow-y-auto pr-1 no-scrollbar">{pins.map((pin) => <li key={pin.id} className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-3 py-2"><Paperclip className="h-4 w-4 shrink-0 text-blue-300" /><div className="min-w-0 flex-1"><p className="truncate text-sm font-black text-white">{pin.label}</p><p className="truncate text-[11px] font-bold text-white/60">{pin.files.length} file{pin.files.length === 1 ? "" : "s"}{pin.note ? ` · ${pin.note}` : ""}</p></div><button type="button" onClick={() => onRemove(pin.id)} className="rounded-full border border-white/15 p-2 text-white/75 hover:border-rose-400 hover:text-rose-200" aria-label={`Remove ${pin.label}`}><Trash2 className="h-4 w-4" /></button></li>)}</ul>}
+        {pins.length === 0 ? <p className="rounded-2xl border border-dashed border-white/15 bg-white/5 px-4 py-6 text-center text-xs font-bold text-white/60">Long-press the photo to drop a pin and attach files.</p> : <ul className="max-h-72 space-y-2 overflow-y-auto pr-1 no-scrollbar">{pins.map((pin) => <li key={pin.id} className="rounded-2xl border border-white/10 bg-white/5 px-3 py-2"><div className="flex items-center gap-3"><Paperclip className="h-4 w-4 shrink-0 text-cyan-300" /><div className="min-w-0 flex-1"><p className="truncate text-sm font-black text-white">{pin.label}</p><p className="truncate text-[11px] font-bold text-white/60">{pin.files.length} file{pin.files.length === 1 ? "" : "s"}{pin.note ? ` · ${pin.note}` : ""}</p></div><button type="button" onClick={() => onRemove(pin.id)} className="rounded-full border border-white/15 p-2 text-white/75 hover:border-rose-400 hover:text-rose-200" aria-label={`Remove ${pin.label}`}><Trash2 className="h-4 w-4" /></button></div>{pin.files.length > 0 && <div className="mt-2 flex flex-wrap gap-2">{pin.files.map((file) => <button key={file.id} type="button" onClick={() => void openPreview(file)} className="inline-flex max-w-full items-center gap-1 rounded-full border border-cyan-300/20 bg-cyan-300/10 px-2 py-1 text-[11px] font-black text-cyan-100"><Eye className="h-3 w-3" /><span className="truncate">{file.name}</span></button>)}</div>}</li>)}</ul>}
+      </div>
+      {preview && <FilePreviewModal preview={preview} onClose={() => setPreview(null)} />}
+    </div>
+  );
+}
+
+function FilePreviewModal({ preview, onClose }: { preview: { file: PhotoAttachmentFile; url: string | null; loading: boolean; error: string | null }; onClose: () => void }) {
+  const isImage = preview.file.type.startsWith("image/");
+  return (
+    <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/70 p-3" role="dialog" aria-label={`Preview ${preview.file.name}`} onClick={onClose}>
+      <div className="flex max-h-[86dvh] w-full max-w-3xl flex-col overflow-hidden rounded-3xl border border-white/10 bg-slate-950 shadow-2xl" onClick={(event) => event.stopPropagation()}>
+        <div className="flex items-center justify-between gap-3 border-b border-white/10 px-3 py-2"><p className="min-w-0 truncate text-sm font-black text-white">{preview.file.name}</p><button type="button" onClick={onClose} className="rounded-full border border-white/15 p-2 text-white/80" aria-label="Close preview"><X className="h-4 w-4" /></button></div>
+        <div className="min-h-72 flex-1 bg-black">
+          {preview.loading ? <div className="flex h-72 items-center justify-center text-white"><Loader2 className="h-6 w-6 animate-spin" /></div> : preview.error ? <div className="flex h-72 items-center justify-center p-6 text-center text-sm font-bold text-rose-100">{preview.error}</div> : isImage ? <img src={preview.url ?? ""} alt={preview.file.name} className="max-h-[70dvh] w-full object-contain" /> : <iframe src={preview.url ?? ""} title={preview.file.name} className="h-[70dvh] w-full bg-white" />}
+        </div>
+        {preview.url && <a href={preview.url} target="_blank" rel="noreferrer" className="inline-flex items-center justify-center gap-2 border-t border-white/10 px-4 py-3 text-sm font-black text-cyan-100"><ExternalLink className="h-4 w-4" /> Open full file</a>}
       </div>
     </div>
   );
@@ -184,8 +215,7 @@ function dispatchCanvasEvent(name: string) {
 }
 
 function getPhotoThumbUrl(item: CaptureItemRecord) {
-  if (item.local_preview_url) return item.local_preview_url;
-  return item.id.startsWith("item-") ? null : `/api/site-walk/items/${encodeURIComponent(item.id)}/image`;
+  return getCaptureImageUrl(item);
 }
 
 function PhotoThumb({ item }: { item: CaptureItemRecord }) {

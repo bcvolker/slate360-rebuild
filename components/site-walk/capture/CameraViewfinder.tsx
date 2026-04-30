@@ -7,6 +7,7 @@ import { isMarkupData, type MarkupData } from "@/lib/site-walk/markup-types";
 import { getPhotoAttachmentPins, type PhotoAttachmentPin } from "@/lib/site-walk/photo-attachments";
 import { createOfflineId } from "@/lib/site-walk/offline-db";
 import { compressCaptureFile } from "@/lib/site-walk/image-compression";
+import { getCaptureImageUrl } from "@/lib/site-walk/capture-image-url";
 import { readQuickCaptureLaunch, removeQuickCaptureLaunch } from "@/lib/site-walk/quick-capture-launch";
 import type { CaptureItemRecord } from "@/lib/types/site-walk-capture";
 import { requestCameraCapture, subscribeCameraCapture } from "./capture-camera-events";
@@ -32,7 +33,7 @@ export function CameraViewfinder({ sessionId, autoOpenCamera = false, launchId =
   const consumedLaunchRef = useRef<string | null>(null);
   const [mounted, setMounted] = useState(false);
   const [dragActive, setDragActive] = useState(false);
-  const [activePreview, setActivePreview] = useState<{ url: string; title: string; itemId: string; revoke: boolean } | null>(null);
+  const [activePreview, setActivePreview] = useState<{ url: string; title: string; itemId: string } | null>(null);
   const [noteText, setNoteText] = useState("");
   const { target, clearTarget } = usePlanCaptureTarget();
   const { status, savePhoto, saveTextNote, resetStatus } = useCaptureUpload({ sessionId, planTarget: target, onPlanTargetSaved: clearTarget, onSaved: (item) => publishCaptureItemFocus({ item, reason: "captured", focus: false }) });
@@ -64,18 +65,13 @@ export function CameraViewfinder({ sessionId, autoOpenCamera = false, launchId =
     });
   }, [launchId, mounted]);
 
-  useEffect(() => () => {
-    if (activePreview?.revoke) URL.revokeObjectURL(activePreview.url);
-  }, [activePreview?.revoke, activePreview?.url]);
-
   useEffect(() => {
     if (!activeItem || activePreview?.itemId === activeItem.id) return;
-    const url = activeItem.local_preview_url ?? (activeItem.id.startsWith("item-") ? null : `/api/site-walk/items/${encodeURIComponent(activeItem.id)}/image`);
+    const url = getCaptureImageUrl(activeItem);
     if (!url) return;
     setActivePreview((current) => {
       if (current?.url === url) return { ...current, title: activeItem.title || current.title, itemId: activeItem.id };
-      if (current?.revoke) URL.revokeObjectURL(current.url);
-      return { url, title: activeItem.title || "Captured photo", itemId: activeItem.id, revoke: false };
+      return { url, title: activeItem.title || "Captured photo", itemId: activeItem.id };
     });
   }, [activeItem, activePreview?.itemId]);
 
@@ -91,10 +87,7 @@ export function CameraViewfinder({ sessionId, autoOpenCamera = false, launchId =
     const clientMutationId = createOfflineId("mutation");
     const title = readLastTitle(sessionId);
     const localItem = buildLocalPhotoItem(sessionId, title, previewUrl, clientItemId, clientMutationId);
-    setActivePreview((current) => {
-      if (current?.revoke) URL.revokeObjectURL(current.url);
-      return { url: previewUrl, title: title || "Captured photo", itemId: clientItemId, revoke: true };
-    });
+    setActivePreview({ url: previewUrl, title: title || "Captured photo", itemId: clientItemId });
     publishCaptureItemFocus({ item: localItem, reason: "captured", focus: true });
     window.dispatchEvent(new CustomEvent(VECTOR_TOOL_EVENT, { detail: { tool: "select" } }));
     void savePhoto(captureFile, { clientItemId, clientMutationId, previewUrl, title });

@@ -196,6 +196,33 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
+### Session Handoff — 2026-04-30 (Capture Flow Review + Slate Polish)
+
+#### What Changed
+- `components/site-walk/capture/CameraViewfinder.tsx` + `lib/site-walk/capture-image-url.ts` — preserved local capture preview URLs across Visual/Data navigation and added a shared local-first/server-fallback image URL helper so Back no longer reuses a revoked blob URL while the server image is not ready.
+- `components/site-walk/capture/VisualCaptureView.tsx` — changed the capture surface toward Slate360 dark/cobalt glass styling, replaced the side chevron with a clearer `Add Details` CTA, and added pinned-file preview chips/modal in the attachments sheet.
+- `components/site-walk/capture/DataContextView.tsx` — redesigned Data Entry as a Slate360 dark photo-details panel with a reference thumbnail, construction classifications, `Save & Next Location`, secondary `Add Angle`, and `Save & Finish Walk` actions.
+- `app/site-walk/(act-2-inputs)/walks/[sessionId]/page.tsx` — replaced the prior live command-center page with a contained mobile-first Walk Summary list; each capture card links back into `/site-walk/capture?session=...&item=...` for editing.
+- `app/site-walk/(act-3-outputs)/deliverables/new/page.tsx` — added a compatibility route that redirects to the existing deliverables surface with the session query.
+- `ops/bug-registry.json` and `slate360-context/ONGOING_ISSUES.md` — logged and resolved BUG-039 (image disappears on Back) and BUG-040 (pin previews unavailable).
+- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — added Prompt 10N implementation row for capture flow review and polish.
+
+#### What's Broken / Partially Done
+- Needs real-device smoke test on iPhone/Android: capture photo → Add Details → Back → verify image remains, add file pin → Files → preview pinned image/PDF → Data → Save & Next Location → choose location → capture next photo.
+- `Save & Finish Walk` waits briefly for existing autosave when `saveState` is dirty/saving, but a true explicit `flushDraft()` API in `useCaptureItems` would be stronger once that hook is extracted below 250 lines.
+- `bash scripts/check-file-size.sh` still exits 1 due to known pre-existing oversized files; all touched production files are under 300 lines.
+- The user-uploaded reference image `public/uploads/marked up.jpg` and `ts-prune-output.txtcat` remain untracked and intentionally not committed.
+
+#### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md` — this handoff.
+- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — Prompt 10N row.
+- `slate360-context/ONGOING_ISSUES.md` and `ops/bug-registry.json` — BUG-039/BUG-040.
+
+#### Next Steps (ordered)
+1. Mobile-test the full capture/data/review flow on iPhone and Android and verify pin preview file types.
+2. Extract `useCaptureItems.ts` below 250 lines and add an explicit `flushDraft()` that `Save & Finish Walk` can await before routing.
+3. Continue visual polish on the Visual capture rails/buttons if the new Slate/cobalt pass still feels too dense in hand.
+
 ### Session Handoff — 2026-04-30 (Canvas Extraction + Throttling)
 
 #### What Changed

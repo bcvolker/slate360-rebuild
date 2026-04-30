@@ -1,6 +1,6 @@
 # Slate360 — Ongoing Issues & Known Tech Debt
 
-**Last Updated:** 2026-04-29 (Site Walk mobile capture canvas reset fixed)
+**Last Updated:** 2026-04-30 (Site Walk capture image/pin preview bugs fixed)
 **Maintained by:** Development team — update whenever a bug is discovered or fixed.
 **Cross-reference:** See `FUTURE_FEATURES.md` for the full phased build roadmap (Phases 0–7).
 
@@ -19,6 +19,8 @@
 | BUG-017 | Dashboard | **React Hydration Error #418 — FULLY FIXED:** `isClient` is declared as `useState(false)` at line 479. `loadWidgetPrefs()` is called inside a `useEffect` at line 570 (same effect that sets `isClient(true)` and `setCalMonth/setCalYear`). All `new Date()` calls in JSX are guarded by `isClient &&`. The fix is complete — no decomposition needed for this specific bug. | High | ✅ Fully Fixed |
 | BUG-018 | LocationMap | **DrawingManager deprecation — `LocationMap.tsx` confirmed source (not WizardLocationPicker):** `components/dashboard/LocationMap.tsx` uses `useMapsLibrary("drawing")` at line 194 and `new drawingLib.DrawingManager(...)` at line 459 with `APIProvider libraries={["places", "drawing", "geometry"]}` at line 1479. The `WizardLocationPicker` does NOT use the drawing library. **Migration deadline: May 2026** when Google removes the library. Scope: replace DrawingManager marker/polyline/polygon/rectangle/circle drawing with custom native `google.maps` click-based implementations. This is a ~400-line change within the 1624-line file. See `slate360-context/BACKEND.md §9b` for the migration approach. | High | 🔴 Open — May 2026 deadline |
 | BUG-019 | SlateDrop Widgets | **"Extra Open SlateDrop" click required — root cause confirmed:** The `embedded` prop was added to `SlateDropClient` to remove the screen-within-a-screen layout. But the "Open SlateDrop" CTA button lives in the widget ***shell*** (not inside `SlateDropClient`), so the shell still renders the button even when the client is embedded. The shell and the client treat `embedded` as two separate concerns — the shell doesn't know the client is already visible. **Fixes applied Mar 4 2026:** (1) Dashboard + Project Hub SlateDrop widgets now share `SlateDropWidgetBody` and render embedded `SlateDropClient` in-widget (no separate root-folder mini UI); (2) Project Hub widget grid now uses `grid-cols-1 md:grid-cols-2 xl:grid-cols-3`, which restores true large-width behavior (`lg` spans 3 columns at `xl`) instead of only growing downward. **Remaining:** remove redundant shell CTA where embedded content is already visible. | Medium | 🟡 Mostly Fixed |
+| BUG-039 | Site Walk / Capture | **Image disappeared when returning from Data to Visual — FIXED 2026-04-30:** `CameraViewfinder` revoked local blob preview URLs even though active capture items still needed those URLs while server image routes were not ready. Fixed by preserving capture preview URLs across Visual/Data navigation and using a shared `getCaptureImageUrl()` fallback in Visual/Data surfaces. | Critical | ✅ Fixed |
+| BUG-040 | Site Walk / Capture | **Pinned files could not be previewed — FIXED 2026-04-30:** The pinned attachments sheet only allowed removal. It now lists each pinned file as a previewable chip, fetches a SlateDrop preview URL, opens images/iframes in a modal, and includes an Open full file fallback. | High | ✅ Fixed |
 
 ---
 

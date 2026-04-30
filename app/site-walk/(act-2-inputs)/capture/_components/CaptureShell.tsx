@@ -9,13 +9,14 @@ type Props = {
   showPlanCanvas: boolean;
   autoOpenCamera: boolean;
   launchId: string | null;
+  initialItemId: string | null;
 };
 
-export function CaptureShell({ session, showPlanCanvas, autoOpenCamera, launchId }: Props) {
+export function CaptureShell({ session, showPlanCanvas, autoOpenCamera, launchId, initialItemId }: Props) {
   return (
     <SiteWalkSessionProvider initialSession={session}>
       <main className="fixed inset-0 h-[100dvh] w-full overflow-hidden bg-slate-950 text-slate-950">
-        <CaptureClientIsland sessionId={session.id} projectId={session.project_id} showPlanCanvas={showPlanCanvas} autoOpenCamera={autoOpenCamera} launchId={launchId} />
+        <CaptureClientIsland sessionId={session.id} projectId={session.project_id} showPlanCanvas={showPlanCanvas} autoOpenCamera={autoOpenCamera} launchId={launchId} initialItemId={initialItemId} />
       </main>
     </SiteWalkSessionProvider>
   );

@@ -15,9 +15,10 @@ type Props = {
   showPlanCanvas: boolean;
   autoOpenCamera: boolean;
   launchId: string | null;
+  initialItemId: string | null;
 };
 
-export function CaptureClientIsland({ sessionId, projectId, showPlanCanvas, autoOpenCamera, launchId }: Props) {
+export function CaptureClientIsland({ sessionId, projectId, showPlanCanvas, autoOpenCamera, launchId, initialItemId }: Props) {
   const [activePage, setActivePage] = useState("visual");
   const [currentLocation, setCurrentLocation] = useState("Current location");
   const [itemDetail, setItemDetail] = useState("");
@@ -26,6 +27,12 @@ export function CaptureClientIsland({ sessionId, projectId, showPlanCanvas, auto
   const carryForwardRef = useRef<Partial<Pick<CaptureItemDraft, "classification" | "priority" | "status" | "assignedTo">> | null>(null);
   const appliedCarryRef = useRef<string | null>(null);
   const { items, assignees, activeItem, draft, saveState, aiState, aiMessage, selectItem, patchDraft, saveMarkupData, savePhotoAttachmentPins, formatNotesWithAi } = useCaptureItems({ sessionId, projectId });
+
+  useEffect(() => {
+    if (!initialItemId || activeItem?.id === initialItemId) return;
+    const target = items.find((item) => item.id === initialItemId || item.client_item_id === initialItemId);
+    if (target) selectItem(target);
+  }, [activeItem?.id, initialItemId, items, selectItem]);
 
   useEffect(() => {
     const savedLocation = sessionStorage.getItem(`site-walk:current-location:${sessionId}`);
@@ -89,6 +96,12 @@ export function CaptureClientIsland({ sessionId, projectId, showPlanCanvas, auto
     setLocationPickerOpen(true);
   }
 
+  function finishWalk() {
+    window.setTimeout(() => {
+      window.location.href = `/site-walk/walks/${encodeURIComponent(sessionId)}`;
+    }, saveState === "dirty" || saveState === "saving" ? 1700 : 0);
+  }
+
   function applyNewLocation(location: string) {
     updateLocation(location);
     setItemDetail("");
@@ -136,8 +149,9 @@ export function CaptureClientIsland({ sessionId, projectId, showPlanCanvas, auto
           onItemDetailChange={updateItemDetail}
           onFormatNotes={() => void formatNotesWithAi()}
           onBack={() => setActivePage("visual")}
-          onNewItemSameLocation={startNextItemSameLocation}
-          onMoveLocation={moveToNewLocation}
+          onAddAngle={startNextItemSameLocation}
+          onSaveNextLocation={moveToNewLocation}
+          onSaveFinishWalk={finishWalk}
         />
       ),
     },

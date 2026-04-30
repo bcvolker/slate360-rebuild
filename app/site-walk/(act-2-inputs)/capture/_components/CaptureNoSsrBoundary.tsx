@@ -8,6 +8,7 @@ type Props = {
   showPlanCanvas: boolean;
   autoOpenCamera: boolean;
   launchId: string | null;
+  initialItemId: string | null;
 };
 
 const CaptureShell = dynamic(

@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronLeft, Loader2, Mic, Sparkles } from "lucide-react";
+import { ArrowRight, ChevronLeft, Flag, Loader2, Mic, Sparkles } from "lucide-react";
+import { getCaptureImageUrl } from "@/lib/site-walk/capture-image-url";
 import { CAPTURE_CLASSIFICATIONS, CAPTURE_PRIORITIES, CAPTURE_ITEM_STATUSES, type CaptureAssignee, type CaptureItemDraft, type CaptureItemRecord } from "@/lib/types/site-walk-capture";
 
 type Props = {
@@ -18,11 +19,12 @@ type Props = {
   onItemDetailChange: (detail: string) => void;
   onFormatNotes: () => void;
   onBack: () => void;
-  onNewItemSameLocation: () => void;
-  onMoveLocation: () => void;
+  onAddAngle: () => void;
+  onSaveNextLocation: () => void;
+  onSaveFinishWalk: () => void;
 };
 
-const inputClass = "w-full rounded-2xl border border-slate-300 bg-white px-3 py-2.5 text-base font-bold text-slate-950 outline-none focus:border-blue-700 focus:ring-2 focus:ring-blue-700/15";
+const inputClass = "w-full rounded-2xl border border-white/10 bg-slate-950/70 px-3 py-2.5 text-base font-bold text-slate-50 outline-none focus:border-cyan-300 focus:ring-2 focus:ring-cyan-300/20";
 
 type SpeechRecognitionResultLike = { readonly length: number; [index: number]: { transcript: string } };
 type SpeechRecognitionEventLike = Event & { results: { readonly length: number; [index: number]: SpeechRecognitionResultLike } };
@@ -37,7 +39,7 @@ type SpeechRecognitionLike = {
 };
 type SpeechRecognitionCtor = new () => SpeechRecognitionLike;
 
-export function DataContextView({ item, draft, assignees, saveState, aiState, aiMessage, currentLocation, itemDetail, onDraftChange, onLocationChange, onItemDetailChange, onFormatNotes, onBack, onNewItemSameLocation, onMoveLocation }: Props) {
+export function DataContextView({ item, draft, assignees, saveState, aiState, aiMessage, currentLocation, itemDetail, onDraftChange, onLocationChange, onItemDetailChange, onFormatNotes, onBack, onAddAngle, onSaveNextLocation, onSaveFinishWalk }: Props) {
   const [dictationState, setDictationState] = useState<"idle" | "listening" | "unsupported" | "error">("idle");
   const assignable = assignees.filter((assignee) => assignee.assignable);
 
@@ -65,35 +67,36 @@ export function DataContextView({ item, draft, assignees, saveState, aiState, ai
 
   if (!item || !draft) {
     return (
-      <div className="flex h-full flex-col items-center justify-center bg-slate-50 p-6 text-center text-slate-950">
+      <div className="flex h-full flex-col items-center justify-center bg-slate-950 p-6 text-center text-white">
         <h2 className="text-2xl font-black">Capture a photo first</h2>
-        <p className="mt-2 max-w-sm text-sm font-bold text-slate-600">Take one photo, then use this page only if you want notes, status, or assignment details.</p>
-        <button type="button" onClick={onBack} className="mt-5 rounded-2xl bg-blue-600 px-5 py-3 text-sm font-black text-white">Back to camera</button>
+        <p className="mt-2 max-w-sm text-sm font-bold text-slate-300">Take one photo, then add field notes, status, assignment, and priority details.</p>
+        <button type="button" onClick={onBack} className="mt-5 rounded-2xl bg-cyan-300 px-5 py-3 text-sm font-black text-slate-950">Back to camera</button>
       </div>
     );
   }
 
   const fullTitle = itemDetail.trim() ? `${currentLocation.trim()} — ${itemDetail.trim()}` : currentLocation.trim();
+  const previewUrl = getCaptureImageUrl(item);
 
   return (
-    <div className="flex h-full min-h-0 flex-col overflow-hidden bg-slate-50 text-slate-950">
-      <header className="flex h-14 shrink-0 items-center justify-between gap-3 border-b border-slate-200 bg-white px-3">
-        <button type="button" onClick={onBack} className="inline-flex h-10 items-center gap-2 rounded-full border border-slate-300 px-3 text-sm font-black text-slate-800">
+    <div className="flex h-full min-h-0 flex-col overflow-hidden bg-slate-950 text-white">
+      <header className="flex h-14 shrink-0 items-center justify-between gap-3 border-b border-white/10 bg-slate-950/95 px-3">
+        <button type="button" onClick={onBack} className="inline-flex h-10 items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 text-sm font-black text-slate-100">
           <ChevronLeft className="h-4 w-4" /> Visual
         </button>
         <div className="min-w-0 text-center">
-          <p className="truncate text-sm font-black">Item data</p>
-          <p className="text-[11px] font-bold text-slate-500">{saveLabel(saveState)}</p>
+          <p className="truncate text-sm font-black">Photo details</p>
+          <p className="text-[11px] font-bold text-cyan-200">{saveLabel(saveState)}</p>
         </div>
-        <button type="button" onClick={onFormatNotes} disabled={aiState === "formatting" || !draft.notes.trim()} className="inline-flex h-10 items-center gap-2 rounded-full bg-blue-600 px-3 text-sm font-black text-white disabled:opacity-50">
+        <button type="button" onClick={onFormatNotes} disabled={aiState === "formatting" || !draft.notes.trim()} className="inline-flex h-10 items-center gap-2 rounded-full border border-cyan-300/30 bg-cyan-300/10 px-3 text-sm font-black text-cyan-100 disabled:opacity-50">
           {aiState === "formatting" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />} AI
         </button>
       </header>
 
       <main className="flex min-h-0 flex-1 flex-col gap-3 overflow-hidden p-3 pb-[max(env(safe-area-inset-bottom),0.75rem)]">
-        <section className="grid shrink-0 grid-cols-[96px_minmax(0,1fr)] gap-3">
-          <div className="h-24 overflow-hidden rounded-2xl border border-slate-300 bg-slate-950">
-            {item.local_preview_url && <img src={item.local_preview_url} alt="" className="h-full w-full object-cover" />}
+        <section className="grid shrink-0 grid-cols-[104px_minmax(0,1fr)] gap-3 rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-2 shadow-[0_18px_60px_rgba(0,0,0,0.25)]">
+          <div className="h-28 overflow-hidden rounded-2xl border border-cyan-300/20 bg-slate-900">
+            {previewUrl ? <img src={previewUrl} alt="Captured reference" className="h-full w-full object-cover" /> : <div className="flex h-full items-center justify-center text-[10px] font-black uppercase tracking-[0.14em] text-slate-500">No preview</div>}
           </div>
           <div className="grid min-w-0 grid-cols-2 gap-2">
             <FieldSelect value={draft.classification} values={CAPTURE_CLASSIFICATIONS} onChange={(value) => onDraftChange({ classification: value as CaptureItemDraft["classification"] })} />
@@ -106,41 +109,41 @@ export function DataContextView({ item, draft, assignees, saveState, aiState, ai
           </div>
         </section>
 
-        <p className="shrink-0 rounded-2xl border border-slate-300 bg-white px-3 py-2 text-xs font-black text-slate-700">Captured: {new Date(item.created_at).toLocaleString([], { dateStyle: "medium", timeStyle: "short" })}</p>
+        <p className="shrink-0 rounded-2xl border border-white/10 bg-white/[0.04] px-3 py-2 text-xs font-black text-slate-300">Captured: {new Date(item.created_at).toLocaleString([], { dateStyle: "medium", timeStyle: "short" })}</p>
 
-        <section className="shrink-0 rounded-3xl border border-slate-300 bg-white p-3">
+        <section className="shrink-0 rounded-3xl border border-white/10 bg-white/[0.04] p-3">
           <div className="grid gap-2 sm:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
             <label className="space-y-1">
-              <span className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-500">Current Location</span>
+              <span className="text-[11px] font-black uppercase tracking-[0.12em] text-cyan-200/80">Current Location</span>
               <input value={currentLocation} onChange={(event) => onLocationChange(event.target.value)} className={inputClass} placeholder="AOB Room 205" />
             </label>
             <label className="space-y-1">
-              <span className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-500">Item detail</span>
+              <span className="text-[11px] font-black uppercase tracking-[0.12em] text-cyan-200/80">Item detail</span>
               <input value={itemDetail} onChange={(event) => onItemDetailChange(event.target.value)} className={inputClass} placeholder="Electrical panel, networking rough-in…" />
             </label>
           </div>
-          <p className="mt-2 truncate rounded-2xl bg-slate-50 px-3 py-2 text-xs font-black text-slate-700">Title: {fullTitle}</p>
+          <p className="mt-2 truncate rounded-2xl bg-slate-950/60 px-3 py-2 text-xs font-black text-slate-300">Title: {fullTitle}</p>
         </section>
 
-        <section className="relative min-h-0 flex-1 overflow-hidden rounded-3xl border border-slate-300 bg-white p-3 focus-within:pb-[22dvh]">
+        <section className="relative min-h-0 flex-1 overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] p-3 focus-within:pb-[22dvh]">
           <textarea
             value={draft.notes}
             onChange={(event) => onDraftChange({ notes: event.target.value })}
             inputMode="text"
-            placeholder="Dictation-friendly notes. The text area owns the remaining screen so the keyboard does not cover the active text."
-            className="h-full min-h-0 w-full resize-none bg-transparent pb-14 pr-12 text-base font-medium leading-7 text-slate-950 outline-none"
+            placeholder="Field notes, issue details, owner direction, or inspection observations…"
+            className="h-full min-h-0 w-full resize-none bg-transparent pb-14 pr-12 text-base font-medium leading-7 text-slate-50 outline-none placeholder:text-slate-500"
           />
-          <button type="button" onClick={startDictation} className="absolute bottom-3 right-3 inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-600 text-white" aria-label="Start voice dictation">
+          <button type="button" onClick={startDictation} className="absolute bottom-3 right-3 inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-cyan-300 text-slate-950" aria-label="Start voice dictation">
             <Mic className="h-5 w-5" />
           </button>
         </section>
 
-        {(dictationState !== "idle" || aiMessage) && <p className="shrink-0 text-xs font-bold text-slate-600">{dictationState === "listening" ? "Listening…" : dictationState === "unsupported" ? "Dictation unavailable; use the keyboard microphone." : dictationState === "error" ? "Dictation could not start." : aiMessage}</p>}
+        {(dictationState !== "idle" || aiMessage) && <p className="shrink-0 text-xs font-bold text-slate-300">{dictationState === "listening" ? "Listening…" : dictationState === "unsupported" ? "Dictation unavailable; use the keyboard microphone." : dictationState === "error" ? "Dictation could not start." : aiMessage}</p>}
 
-        <footer className="grid shrink-0 grid-cols-1 gap-2 sm:grid-cols-3">
-          <button type="button" onClick={onBack} className="min-h-12 rounded-2xl bg-blue-600 px-3 py-3 text-sm font-black text-white">Done with this photo</button>
-          <button type="button" onClick={onNewItemSameLocation} className="min-h-12 rounded-2xl border border-slate-300 bg-white px-3 py-3 text-sm font-black text-slate-900">Add another photo here</button>
-          <button type="button" onClick={onMoveLocation} className="min-h-12 rounded-2xl border border-slate-300 bg-white px-3 py-3 text-sm font-black text-slate-900">Move to New Location</button>
+        <footer className="grid shrink-0 grid-cols-1 gap-2 sm:grid-cols-[1fr_auto_auto]">
+          <button type="button" onClick={onSaveNextLocation} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-cyan-300 px-3 py-3 text-sm font-black text-slate-950 shadow-[0_0_30px_rgba(103,232,249,0.2)]">Save &amp; Next Location <ArrowRight className="h-4 w-4" /></button>
+          <button type="button" onClick={onAddAngle} className="min-h-12 rounded-2xl border border-white/15 bg-white/5 px-3 py-3 text-sm font-black text-slate-100">Add Angle</button>
+          <button type="button" onClick={onSaveFinishWalk} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-emerald-300/30 bg-emerald-300/10 px-3 py-3 text-sm font-black text-emerald-100"><Flag className="h-4 w-4" /> Save &amp; Finish Walk</button>
         </footer>
       </main>
     </div>
