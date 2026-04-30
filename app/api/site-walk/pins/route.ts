@@ -20,6 +20,7 @@ export const GET = (req: NextRequest) =>
     if (!orgId) return badRequest("Organization context required");
     const planId = req.nextUrl.searchParams.get("plan_id");
     const planSheetId = req.nextUrl.searchParams.get("plan_sheet_id");
+    const sessionId = req.nextUrl.searchParams.get("session_id");
     if (!planId && !planSheetId) return badRequest("plan_id or plan_sheet_id is required");
 
     let query = admin
@@ -29,6 +30,7 @@ export const GET = (req: NextRequest) =>
 
     if (planId) query = query.eq("plan_id", planId);
     else if (planSheetId) query = query.eq("plan_sheet_id", planSheetId);
+    if (sessionId) query = query.eq("session_id", sessionId);
 
     const { data, error } = await query
       .order("pin_number", { ascending: true });

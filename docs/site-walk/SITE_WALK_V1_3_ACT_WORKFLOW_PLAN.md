@@ -1,6 +1,6 @@
 # Site Walk V1 — 3 Act Workflow, Layout, and Launch Plan
 
-Last Updated: 2026-04-29
+Last Updated: 2026-04-30
 Purpose: Product/UI plan for making Site Walk usable for Slate360 Version 1 launch.
 
 ---
@@ -160,6 +160,8 @@ Deliverables should automatically pull this information when created.
 
 ## Act 2 — Capture Inputs
 
+Act 2 must start from the Act 1 setup context. Quick Capture remains available as a fallback, but it is not the primary product story. Planned walks, Master Plan Room sheets, assigned work, and strict subscriber/collaborator boundaries are the default assumptions for production workflows.
+
 ### Capture Home
 
 Mobile-first bottom controls:
@@ -177,9 +179,35 @@ Top controls:
 
 Start behavior:
 1. User taps `Start Walk Now`.
-2. Modal asks `Attach a Floor Plan?`.
-3. User selects a sheet from Master Plan Room, uploads/selects a plan, or skips to Camera Only.
-4. If a plan is selected, the first field action is long-press pin placement on the sheet; haptic feedback drops a pin and opens quick actions: `Take Photo`, `Upload from Device`, `Add Note`, `Assign Task`.
+2. If the session/project has uploaded plan sheets, the app asks: `Walk with Plans` or `Camera Only`.
+3. `Walk with Plans` opens the Master Plan Room / active sheet first, with a camera action available from the plan header.
+4. `Camera Only` bypasses the plan layer and opens the existing Visual capture surface.
+5. If no plan sheets exist, the app defaults to Camera Only but should still surface the Act 1 prompt to upload plans before the next planned walk.
+
+Rules:
+- No user is forced to use plans. Plan-based walks are premium and encouraged, but Camera Only remains a supported fallback.
+- If plans exist, never funnel the user directly into camera without the plan/camera choice unless they explicitly launched a quick camera action.
+- Users must be able to switch between Plan and Camera modes from the capture header after the walk starts.
+
+### Plan Canvas / Master Plan Room Runtime
+
+The plan screen is the primary surface for planned walks. It must be optimized for one-hand mobile use and low visual clutter.
+
+Plan navigation:
+- Mobile viewing uses pinch-to-zoom and pan as first-class gestures.
+- Sheet/page navigation must be easy to reach through a sheet selector or bottom-sheet page picker.
+- Multi-page PDFs are treated as plan sheet collections; users should never have to leave the walk to switch sheets.
+
+Plan pinning:
+- Pin dropping must use a Crosshair / Center-Screen mechanism: the user pans/zooms the plan until the target is under the fixed crosshair, then taps `Drop Pin`.
+- Do not use long-press as the primary plan pin mechanism. Long-press can remain a fallback gesture only after the crosshair flow is shipped and tested.
+- Dropping a plan pin opens quick actions: `Take Photo`, `Upload from Device`, `Add Note`, `Assign Task`, and `Progress / Before & After`.
+
+Pin clutter and layers:
+- Default layer shows only pins for the active walk/session.
+- Optional toggles can reveal `Historical Pins`, `Assigned to Me`, `Resolved`, and `All Project Pins`.
+- Historical pins are never on by default; this protects mobile performance and keeps field crews focused.
+- Assigned-collaborator views default to only the pins/tasks assigned to that collaborator.
 
 ### Taking or Uploading a Picture
 
@@ -187,8 +215,13 @@ Flow:
 1. User taps Camera or Upload.
 2. Image opens in a review screen.
 3. User can accept, retake, upload another, or mark up.
-4. Background metadata is captured: timestamp, GPS if allowed, device, optional weather.
+4. Background metadata is captured silently: timestamp, GPS if allowed, device, optional weather.
 5. The original image is preserved; markups are stored separately as editable vector data.
+
+Background metadata rules:
+- GPS, weather, and timestamps are supporting context, not deliverable requirements.
+- Deliverables can include or hide metadata per template, recipient, tier, and privacy setting.
+- Missing GPS/weather must never block capture, save, preview, or delivery.
 
 ### Markup UI
 
@@ -218,9 +251,10 @@ Editing behavior:
 - The Oops Engine is mandatory: local undo/redo stack for vector operations before and after autosave where possible.
 
 Plan behavior:
-- Layer toggles: clean base plan, current walk pins, historical pins, resolved items, assigned-to-me.
-- Multi-page PDF plan navigation uses a sheet-index bottom sheet.
-- Pinch-to-zoom and pan are first-class mobile gestures.
+- Clean base plan plus active-walk pins is the default view.
+- Layer toggles: current walk pins, historical pins, resolved items, assigned-to-me.
+- Multi-page PDF plan navigation uses a sheet-index bottom sheet or equivalent one-hand picker.
+- Pinch-to-zoom and pan are first-class mobile gestures, but pin placement is crosshair-driven.
 
 ### Classification + Notes Screen
 
@@ -338,13 +372,33 @@ Presentation mode must be treated as a premium Act 3 deliverable:
 
 ### Collaborator / Subcontractor Loop
 
-Free Collaborators do not see the full subscriber creation surface. Their default Site Walk path is:
+Free Collaborators do not see the full subscriber creation surface. They run inside a restricted Trapped Shell that proves the app has useful functionality without exposing subscriber-only project setup, billing, deliverables, or broad project data.
+
+Subscriber / GC capabilities:
+- Create projects, plan sets, planned walks, deliverables, assignments, and collaborator invites.
+- See all project walk history, historical pins, team progress, and deliverable outputs allowed by tier.
+- Convert collaborator responses into reports, punch lists, proposals, proof packets, and client portals.
+
+Free Collaborator capabilities:
 1. Open Slate360 and select the subscriber/GC context in the header switcher.
-2. Land on Assigned Tasks.
-3. Open a task/pin such as `Document electrical rough-in`.
-4. Route directly into Act 2 capture for that item.
-5. Submit before/after proof, notes, and status.
-6. Notify the subscriber/GC through Coordination Hub and route files into SlateDrop.
+2. Land on `Assigned Tasks` / `My Work`, not project creation.
+3. See only projects, walks, pins, files, comments, and tasks specifically assigned to them.
+4. Open a task/pin such as `Document electrical rough-in`.
+5. Route directly into Act 2 capture for that assigned item.
+6. Submit Progress / Before-and-After proof, notes, status, and allowed file responses on those assigned pins only.
+7. Notify the subscriber/GC through Coordination Hub and route files into SlateDrop.
+
+App Store review safety:
+- Free Collaborators must not land in an empty shell when they have no assigned work.
+- They get a heavily restricted Personal Workspace for basic quick captures, local notes, and profile/account setup.
+- The Personal Workspace must not create subscriber-owned projects, branded deliverables, plan rooms, broad file shares, or team assignments.
+- Upsell Solo / Standard tier from Personal Workspace with clear messaging: upgrade to create your own projects, plan rooms, and deliverables.
+
+Enforcement rules:
+- Collaborator APIs must use project-aware access helpers and assignment checks.
+- Collaborators cannot reveal historical pins unless assigned or explicitly shared.
+- Collaborators cannot create unauthorized project pins; they can add proof/resolution captures to assigned pins.
+- Subscriber context and Personal Workspace context must be visually distinct to avoid accidental data leakage.
 
 ---
 
@@ -402,7 +456,8 @@ The detailed sections below are the executable prompt texts. When a prompt start
 | 10R | Complete | `c7ed2e5` | Attachment drag and markup edit follow-up. | Replaced delayed paperclip long-press drag with immediate touch-drag movement after a small threshold, moved the marker preview tile to the right side with an always-visible `View` fallback, removed the detached selected-shape plus/minus/delete popup, added toolbar-based selected markup color/line-width/delete controls, and made the cyan selected-shape handles draggable for resize/reshape. |
 | 10S | Complete | `dcff461` | Centered attachment panels and contained preview modal. | Centered the new attachment and edit attachment panels inside the capture area so action buttons are no longer cut off by the lower markup controls. Reduced the attached-file preview modal size, added a persistent top-right close button, and added pinch/drag zoom for image previews. |
 | 10T | Complete | `2172899` | Preview event isolation and attachment fallback. | Further contained marker file previews by shrinking the modal, making the close button a prominent cyan control, and stopping preview pointer/wheel events from bubbling into the capture canvas so pinch gestures zoom the preview instead of the photo behind it. Added an item-level attachment pin resolver so the capture canvas and Attached sheet read persisted `photo_attachment_pins` when metadata is missing or stale. |
-| 10U | Complete | pending commit | Preview crash hardening and faster capture preview. | Removed pointer capture from the marker file preview zoom handlers to avoid mobile DOM pointer-capture errors, made the preview card fit as a fixed small contained card within the capture area, capped image zoom at 4x, and kept all preview gestures isolated from the canvas behind it. Made new camera captures feel snappier by showing an immediate object URL from the original file before image compression/upload continues in the background. |
+| 10U | Complete | `03b492f` | Preview crash hardening and faster capture preview. | Removed pointer capture from the marker file preview zoom handlers to avoid mobile DOM pointer-capture errors, made the preview card fit as a fixed small contained card within the capture area, capped image zoom at 4x, and kept all preview gestures isolated from the canvas behind it. Made new camera captures feel snappier by showing an immediate object URL from the original file before image compression/upload continues in the background. |
+| 10V | Complete | pending commit | Planned-walk strategy and start choice. | Updated the Act 2 strategy to make planned walks, Master Plan Room sheets, plan layering, optional background metadata, and restricted collaborator shells the source of truth. Updated org role docs for trapped collaborator shells plus restricted Personal Workspace. Added a `Walk with Plans` vs `Camera Only` capture start choice when plan sheets exist, a Plan/Camera mode toggle, PlanViewer primary mode with camera action, active-session pin filtering, and a crosshair `Drop Pin` action. |
 | 10 | Complete | `9bc5868` | Field-office board and realtime support view. | Added a desktop-optimized `/site-walk/walks` board for in-progress walks with walk name, project, person walking, elapsed time, and captured item count. Added `/site-walk/walks/[sessionId]` live command center with split-pane layout: left feed grouped by Location → Item and right detail pane with photo preview, persisted vector markup overlay, AI-cleaned notes, classification, priority, status, and sync state. Added a scoped `useRealtimeWalk()` hook that subscribes to `postgres_changes` for `site_walk_items` filtered by `session_id=eq.${sessionId}` and `site_walk_sessions` filtered by `id=eq.${sessionId}`; no org-wide firehose channel is used. New realtime inserts animate into the feed and auto-select for office review. |
 | 11 | Not started | — | Collaborator and assigned-work loop. | Pending. |
 | 12 | Not started | — | Act 3 deliverable builder: hosted outputs first. | Pending. |

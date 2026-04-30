@@ -157,10 +157,12 @@ create unique index on project_collaborator_invites (project_id, lower(email))
 ### UI variations (subscription vs. no-subscription)
 
 - **Collaborator without subscription:**
-  - Lands in a stripped-down `Collaborator Shell` — only the projects they were invited to are visible.
-  - Sidebar shows: Project, Tasks, Files (shared folders only), Comments.
+  - Lands in a stripped-down trapped `Collaborator Shell` — only assigned projects/tasks/walks/pins are visible.
+  - Sidebar shows: Assigned Tasks / My Work, permitted Project snapshot, Files (shared folders only), Comments.
   - Hidden: Marketplace, billing, AppsGrid (except read-only viewer of files), Operations Console, settings beyond profile.
-  - Banner: “You’re collaborating on **‹Project›**. [Get your own Slate360]” to convert.
+  - Site Walk access is assignment-bound: collaborators can submit Progress / Before-and-After captures, notes, file responses, and status updates only on tasks/pins assigned to them.
+  - To satisfy iOS/Android app review, if no assigned work exists they see a heavily restricted Personal Workspace for basic quick captures, local notes, and profile/account setup. It cannot create subscriber projects, plan rooms, deliverables, broad file shares, or team assignments.
+  - Banner: “You’re collaborating on **‹Project›**. Upgrade to Solo to create your own projects and deliverables.”
 - **Collaborator with own subscription:**
   - Sees the full dashboard for their own org.
   - The other subscriber’s project shows up under `Projects › Shared with me`.

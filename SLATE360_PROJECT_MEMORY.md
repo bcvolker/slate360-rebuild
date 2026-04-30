@@ -196,32 +196,35 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-30 (Preview Crash Hardening + Faster Capture Preview)
+### Session Handoff — 2026-04-30 (Site Walk Strategy + Walk Start Choice)
 
 #### What Changed
-- `components/site-walk/capture/PhotoAttachmentFilePreviewModal.tsx` — removed pointer capture from image preview zoom handlers to avoid mobile DOM pointer-capture crashes during multi-touch transitions.
-- `components/site-walk/capture/PhotoAttachmentFilePreviewModal.tsx` — changed the marker preview to a fixed small contained card (`min(17rem, calc(100% - 1rem))` by `min(20rem, calc(100% - 1rem))`), with a visible cyan X and isolated preview gestures capped at 4x zoom.
-- `components/site-walk/capture/CameraViewfinder.tsx` — camera captures now show an immediate object URL from the original file before compression/upload continues, making the Visual screen feel snappier after taking a photo.
-- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — backfilled Prompt 10T commit hash and added Prompt 10U.
-- `ops/bug-registry.json` and `slate360-context/ONGOING_ISSUES.md` — logged/resolved BUG-047.
+- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — updated Act 2 strategy around Act 1 planned walks, `Walk with Plans` vs `Camera Only`, crosshair plan pinning, active-walk pin layering, optional metadata, and restricted collaborator shells.
+- `slate360-context/ORG_ROLES_AND_PERMISSIONS.md` — clarified trapped collaborator shell behavior, assigned-work-only Site Walk permissions, and restricted Personal Workspace for App Store review safety.
+- `app/site-walk/(act-2-inputs)/capture/page.tsx` — checks whether the active project has plan sheets and passes `showStartChoice` into capture when plans exist and the user did not explicitly quick-launch camera/skip plans.
+- `app/site-walk/(act-2-inputs)/capture/_components/WalkStartChoice.tsx` — added dark/glassy premium `Walk with Plans` vs `Camera Only` start choice.
+- `app/site-walk/(act-2-inputs)/capture/_components/CaptureClientIsland.tsx` — added Plan/Camera mode state, PlanViewer-primary mode with camera action, and a floating Plan/Camera toggle after the walk starts.
+- `components/site-walk/capture/PlanViewer.tsx` and `app/api/site-walk/pins/route.ts` — added active-session pin filtering and a center-screen crosshair `Drop Pin` action.
+- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — backfilled Prompt 10U commit hash and added Prompt 10V.
 
 #### What's Broken / Partially Done
-- Needs real-device smoke test: tap marker `View`, confirm the preview fits inside the capture area, the cyan X is visible, and tapping X closes without error.
-- Needs real-device smoke test: pinch/drag inside an image preview repeatedly and confirm no `Something went wrong` white screen appears and the capture behind it does not move.
-- Needs real-device smoke test: take a photo and confirm the image appears immediately while upload/compression continues in the background.
+- Needs real-device smoke test: project with uploaded plan sheets should show the `Walk with Plans` vs `Camera Only` choice before capture unless launched with quick camera or `plan=skip`.
+- Needs real-device smoke test: `Walk with Plans` opens PlanViewer as primary screen, `Camera` button enters visual capture, and floating Plan/Camera toggle switches both directions.
+- Needs backend/data smoke test: PlanViewer pin list defaults to active session pins; historical pin/layer toggles are documented but not fully implemented yet.
+- Crosshair `Drop Pin` is implemented, but full one-hand sheet/page bottom navigation and historical/assigned layer toggles still need dedicated UI polish.
 - The rail toggle is a space-saving UI pass, but the underlying distinction between true angles vs progress photos is still heuristic/current-session based.
-- `bash scripts/check-file-size.sh` still exits 1 due to known pre-existing oversized files; touched files remain under 300 lines (`PhotoAttachmentFilePreviewModal.tsx` 92, `CameraViewfinder.tsx` 239).
+- `bash scripts/check-file-size.sh` still exits 1 due to known pre-existing oversized files; touched files remain under 300 lines (`CaptureClientIsland.tsx` 241, `WalkStartChoice.tsx` 37, `PlanViewer.tsx` 261, `capture/page.tsx` 73, `pins/route.ts` 94).
 - The user-uploaded reference image `public/uploads/marked up.jpg` and `ts-prune-output.txtcat` remain untracked and intentionally not committed.
 
 #### Context Files Updated
 - `SLATE360_PROJECT_MEMORY.md` — this handoff.
-- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — Prompt 10U row.
-- `slate360-context/ONGOING_ISSUES.md` and `ops/bug-registry.json` — BUG-047.
+- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — Act 2, collaborator loop, Prompt 10V row.
+- `slate360-context/ORG_ROLES_AND_PERMISSIONS.md` — trapped collaborator shell + restricted Personal Workspace.
 
 #### Next Steps (ordered)
-1. Real-device mobile-test marker preview open/close and repeated pinch zoom on iOS/Android.
-2. Real-device mobile-test capture handoff speed from camera return to Visual screen.
-3. Continue simplifying the Data screen around photo reference + notes-first construction workflow; current dropdowns/buttons remain transitional.
+1. Build full PlanViewer layer toggles (`Active Walk`, `Historical Pins`, `Assigned to Me`) and one-hand sheet/page picker.
+2. Real-device smoke test plan/camera choice and mode toggle on iOS/Android.
+3. Build collaborator assigned-work shell and restricted Personal Workspace.
 
 ### Session Handoff — 2026-04-30 (Markup Canvas Mobile UX Fixes)
 

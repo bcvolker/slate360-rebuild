@@ -1,24 +1,32 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { Camera, Map } from "lucide-react";
 import { PagedWorkspace, type PagedWorkspacePage } from "@/components/shared/paged-workspace";
 import { DataContextView } from "@/components/site-walk/capture/DataContextView";
 import { LocationPickerModal } from "@/components/site-walk/capture/LocationPickerModal";
+import { PlanViewer } from "@/components/site-walk/capture/PlanViewer";
 import { VisualCaptureView } from "@/components/site-walk/capture/VisualCaptureView";
 import { requestCameraCapture } from "@/components/site-walk/capture/capture-camera-events";
 import { useCaptureItems } from "@/components/site-walk/capture/useCaptureItems";
 import type { CaptureItemDraft } from "@/lib/types/site-walk-capture";
+import { WalkStartChoice } from "./WalkStartChoice";
 
 type Props = {
   sessionId: string;
   projectId: string | null;
+  walkName: string;
   showPlanCanvas: boolean;
+  showStartChoice: boolean;
   autoOpenCamera: boolean;
   launchId: string | null;
   initialItemId: string | null;
 };
 
-export function CaptureClientIsland({ sessionId, projectId, showPlanCanvas, autoOpenCamera, launchId, initialItemId }: Props) {
+type WalkMode = "choice" | "plan" | "camera";
+
+export function CaptureClientIsland({ sessionId, projectId, walkName, showPlanCanvas, showStartChoice, autoOpenCamera, launchId, initialItemId }: Props) {
+  const [walkMode, setWalkMode] = useState<WalkMode>(() => showStartChoice ? "choice" : showPlanCanvas ? "plan" : "camera");
   const [activePage, setActivePage] = useState("visual");
   const [currentLocation, setCurrentLocation] = useState("Current location");
   const [itemDetail, setItemDetail] = useState("");
@@ -111,6 +119,25 @@ export function CaptureClientIsland({ sessionId, projectId, showPlanCanvas, auto
 
   const ghostImageUrl = findGhostImageUrl(items, activeItem?.id ?? null, currentLocation);
 
+  function openCameraMode(openCamera = false) {
+    setWalkMode("camera");
+    setActivePage("visual");
+    if (openCamera) window.setTimeout(() => requestCameraCapture("camera", "next_item"), 150);
+  }
+
+  if (walkMode === "choice") {
+    return <WalkStartChoice walkName={walkName} onPlanMode={() => setWalkMode("plan")} onCameraOnly={() => openCameraMode()} />;
+  }
+
+  if (walkMode === "plan") {
+    return (
+      <>
+        <PlanCaptureScreen projectId={projectId} sessionId={sessionId} onCamera={() => openCameraMode(true)} />
+        <CaptureModeToggle mode="plan" onPlan={() => setWalkMode("plan")} onCamera={() => openCameraMode()} />
+      </>
+    );
+  }
+
   const pages: PagedWorkspacePage[] = [
     {
       id: "visual",
@@ -169,9 +196,29 @@ export function CaptureClientIsland({ sessionId, projectId, showPlanCanvas, auto
         swipeEnabled={false}
         onPageChange={setActivePage}
       />
+      {showPlanCanvas && <CaptureModeToggle mode="camera" onPlan={() => setWalkMode("plan")} onCamera={() => openCameraMode()} />}
       <LocationPickerModal open={locationPickerOpen} currentLocation={currentLocation} recentLocations={recentLocations} onClose={() => setLocationPickerOpen(false)} onSelect={applyNewLocation} />
     </>
   );
+}
+
+function PlanCaptureScreen({ projectId, sessionId, onCamera }: { projectId: string | null; sessionId: string; onCamera: () => void }) {
+  return (
+    <section className="flex h-[100dvh] flex-col bg-slate-950 text-white">
+      <header className="shrink-0 border-b border-cyan-300/10 bg-slate-950/95 px-3 py-3">
+        <p className="text-[10px] font-black uppercase tracking-[0.16em] text-cyan-100">Walk with Plans</p>
+        <div className="mt-1 flex items-center justify-between gap-3">
+          <h1 className="text-lg font-black">Master Plan Room</h1>
+          <button type="button" onClick={onCamera} className="inline-flex min-h-10 items-center gap-2 rounded-2xl bg-cyan-300 px-3 text-xs font-black text-slate-950"><Camera className="h-4 w-4" /> Camera</button>
+        </div>
+      </header>
+      <div className="min-h-0 flex-1 overflow-y-auto p-3 no-scrollbar"><PlanViewer projectId={projectId} sessionId={sessionId} /></div>
+    </section>
+  );
+}
+
+function CaptureModeToggle({ mode, onPlan, onCamera }: { mode: "plan" | "camera"; onPlan: () => void; onCamera: () => void }) {
+  return <div className="fixed left-3 top-3 z-40 flex rounded-2xl border border-white/15 bg-slate-950/80 p-1 shadow-2xl backdrop-blur-xl"><button type="button" onClick={onPlan} className={`inline-flex h-8 items-center gap-1 rounded-xl px-2 text-[10px] font-black uppercase tracking-[0.1em] ${mode === "plan" ? "bg-cyan-300 text-slate-950" : "text-white/70"}`}><Map className="h-3.5 w-3.5" /> Plan</button><button type="button" onClick={onCamera} className={`inline-flex h-8 items-center gap-1 rounded-xl px-2 text-[10px] font-black uppercase tracking-[0.1em] ${mode === "camera" ? "bg-cyan-300 text-slate-950" : "text-white/70"}`}><Camera className="h-3.5 w-3.5" /> Camera</button></div>;
 }
 
 function parseItemDetail(title: string, location: string) {

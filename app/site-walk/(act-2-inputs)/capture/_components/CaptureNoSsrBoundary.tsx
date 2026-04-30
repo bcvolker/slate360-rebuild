@@ -6,6 +6,7 @@ import type { ActiveWalkSession } from "./session-shell-types";
 type Props = {
   session: ActiveWalkSession;
   showPlanCanvas: boolean;
+  showStartChoice: boolean;
   autoOpenCamera: boolean;
   launchId: string | null;
   initialItemId: string | null;

@@ -35,7 +35,7 @@ export function PlanViewer({ projectId, sessionId }: Props) {
   const [mounted, setMounted] = useState(false);
   const [menu, setMenu] = useState<MenuState | null>(null);
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("Long-press the plan to drop a draft pin.");
+  const [message, setMessage] = useState("Move the plan under the crosshair, then tap Drop Pin.");
 
   const activeSheet = useMemo(() => sheets.find((sheet) => sheet.id === activeSheetId) ?? null, [activeSheetId, sheets]);
   const markupShapes = useMemo(() => pins.flatMap((pin) => isMarkupData(pin.markup_data) ? pin.markup_data.shapes : []), [pins]);
@@ -72,7 +72,7 @@ export function PlanViewer({ projectId, sessionId }: Props) {
 
   useEffect(() => {
     if (!activeSheetId) return;
-    fetch(`/api/site-walk/pins?plan_sheet_id=${encodeURIComponent(activeSheetId)}`)
+    fetch(`/api/site-walk/pins?plan_sheet_id=${encodeURIComponent(activeSheetId)}&session_id=${encodeURIComponent(sessionId)}`)
       .then((response) => response.json() as Promise<PinResponse>)
       .then((data) => setPins(data.pins ?? []))
       .catch(() => setMessage("Pins could not be loaded."));
@@ -137,6 +137,12 @@ export function PlanViewer({ projectId, sessionId }: Props) {
     setMessage(markup ? "Markup item saved. Add details in the drawer." : "Pin item saved. Add details or attach a photo next.");
   }
 
+  function dropCenterPin() {
+    const rect = stageRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    void createDraftPin(toPlanPoint(rect.left + rect.width / 2, rect.top + rect.height / 2));
+  }
+
   function handlePointerDown(event: React.PointerEvent<HTMLDivElement>) {
     event.currentTarget.setPointerCapture(event.pointerId);
     pointersRef.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
@@ -194,6 +200,7 @@ export function PlanViewer({ projectId, sessionId }: Props) {
           <select value={activeSheetId} onChange={(event) => setActiveSheetId(event.target.value)} className="min-h-11 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-bold text-slate-900">
             {sheets.map((sheet) => <option key={sheet.id} value={sheet.id}>{sheet.sheet_name ?? "Plan sheet"}</option>)}
           </select>
+          <button type="button" onClick={dropCenterPin} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-blue-600 px-3 text-sm font-black text-white"><Crosshair className="h-4 w-4" /> Drop Pin</button>
           <button type="button" onClick={() => setTransform((current) => ({ ...current, scale: clamp(current.scale - 0.2, 0.6, 3) }))} className="min-h-11 rounded-xl border border-slate-300 px-3"><Minus className="h-4 w-4" /></button>
           <button type="button" onClick={() => setTransform((current) => ({ ...current, scale: clamp(current.scale + 0.2, 0.6, 3) }))} className="min-h-11 rounded-xl border border-slate-300 px-3"><Plus className="h-4 w-4" /></button>
         </div>
@@ -207,7 +214,7 @@ export function PlanViewer({ projectId, sessionId }: Props) {
           {pins.map((pin) => <button key={pin.id} type="button" onClick={(event) => { event.stopPropagation(); setMenu({ pinId: pin.id, xPct: pin.x_pct, yPct: pin.y_pct, screenX: (pin.x_pct / 100) * CANVAS_WIDTH * transform.scale + transform.x + 12, screenY: (pin.y_pct / 100) * CANVAS_HEIGHT * transform.scale + transform.y + 12 }); }} className="absolute flex h-8 w-8 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-white bg-blue-600 text-xs font-black text-white shadow" style={{ left: `${pin.x_pct}%`, top: `${pin.y_pct}%` }}>{pin.pin_status === "draft" ? "D" : "✓"}</button>)}
         </div>
         {menu && <PlanQuickActionMenu planSheetId={activeSheet.id} {...menu} onClose={() => setMenu(null)} />}
-        <div className="absolute right-4 top-4 rounded-full border border-blue-200 bg-blue-50 p-2 text-blue-800"><Crosshair className="h-4 w-4" /></div>
+        <div className="pointer-events-none absolute left-1/2 top-1/2 rounded-full border border-blue-200 bg-blue-50 p-2 text-blue-800 shadow-lg"><Crosshair className="h-4 w-4" /></div>
       </div>
     </section>
   );

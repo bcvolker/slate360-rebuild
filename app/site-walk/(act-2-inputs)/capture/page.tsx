@@ -38,9 +38,21 @@ export default async function SiteWalkCapturePage({ searchParams }: Props) {
 
   const project = Array.isArray(data.projects) ? data.projects[0] : data.projects;
   const session: ActiveWalkSession = { ...data, project_name: project?.name ?? null };
-  const showPlanCanvas = plan !== "skip" && !!session.project_id;
+  const hasPlanSheets = session.project_id ? await hasProjectPlanSheets(session.project_id, context.orgId) : false;
+  const showPlanCanvas = plan !== "skip" && !!session.project_id && hasPlanSheets;
+  const showStartChoice = showPlanCanvas && !plan && !quick && !item;
 
-  return <CaptureNoSsrBoundary session={session} showPlanCanvas={showPlanCanvas} autoOpenCamera={quick === "camera"} launchId={launch ?? null} initialItemId={item ?? null} />;
+  return <CaptureNoSsrBoundary session={session} showPlanCanvas={showPlanCanvas} showStartChoice={showStartChoice} autoOpenCamera={quick === "camera"} launchId={launch ?? null} initialItemId={item ?? null} />;
+}
+
+async function hasProjectPlanSheets(projectId: string, orgId: string) {
+  try {
+    const admin = createAdminClient();
+    const { data } = await admin.from("site_walk_plan_sheets").select("id").eq("project_id", projectId).eq("org_id", orgId).limit(1);
+    return (data?.length ?? 0) > 0;
+  } catch {
+    return false;
+  }
 }
 
 function NoActiveSession() {
