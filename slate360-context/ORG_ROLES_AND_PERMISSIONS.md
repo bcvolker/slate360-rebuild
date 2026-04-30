@@ -1,15 +1,15 @@
 # Org Roles, Permissions, and Member Model
 
-Last updated: 2026-04-19
+Last updated: 2026-04-30
 
 ## Roles (today, in `org_members.role`)
 
 | Role | Created by | Default capability |
 |---|---|---|
-| `owner` | First user to create the org | Everything. Cannot be removed without ownership transfer. |
-| `admin` | Promoted by owner | Same as owner except cannot delete the org or transfer ownership. |
+| `owner` | First user to create the org | Everything. Cannot be removed without ownership transfer. Gets Global Command Center access for all org projects/walks. |
+| `admin` | Promoted by owner | Same as owner except cannot delete the org or transfer ownership. Gets Global Command Center access for all org projects/walks. |
 | `member` | Invited by owner/admin | Use the apps. No billing/data/audit/members visibility. |
-| `viewer` | Invited by owner/admin | **Read-only across all org projects.** Use case: ASU directors viewing what 40–50 beta-tester PMs/architects produce. No edits, no creates. |
+| `viewer` | Invited by owner/admin | **Read-only across all org projects.** Use case: directors viewing what 40–50 Version 1 pilot PMs/architects produce. No edits, no creates. |
 
 Role rank lives in `lib/server/org-context.ts` (`roleRank()`):
 `owner=0, admin=1, member=2, viewer=3`. The DB enum (`org_role`) was
@@ -54,7 +54,7 @@ create table org_member_app_access (
 
 `AppsGrid` and `QuickNav` should read this and only show apps the user
 has been assigned, in addition to the org-level `canAccessStandalone*`
-flags. Today both surfaces show all four apps to every user (beta).
+flags. Today both surfaces show all four apps to every user in the internal launch build.
 
 ## Project-scoped access
 
@@ -63,10 +63,20 @@ Independent from org role. Two models:
 1. **All projects** (default for owner/admin, viewer with `viewer` role)
 2. **Specific projects** — user appears in `project_members(project_id, user_id, role)` with role `editor` / `commenter` / `viewer`
 
-For ASU beta:
+For ASU / enterprise pilots:
 - 40–50 PMs/architects = `member` role on `org:asu` + `editor` on the projects they create
 - Directors / assistant directors = `viewer` role on `org:asu` (read-all)
   + automatic membership inserted on every new project under that org
+
+## Leadership Oversight / Global Command Center
+
+Leadership oversight is organization-scoped, not project-scoped:
+
+- Solo customers are `owner` of their own organization and should simply see the normal app unless they open leadership tools intentionally.
+- Multi-person organizations can promote directors, department heads, or operations leads to `owner` / `admin` for full control or `viewer` for read-only leadership oversight.
+- `owner` / `admin` users should receive a Global Command Center view that can list every active Site Walk across the organization, show status/risk/activity, and allow auditable comments where enabled.
+- `viewer` users receive read-only leadership dashboards and deliverables without upload/edit controls.
+- Server-side access must continue to derive from `organization_members.role`, project-aware helpers, and RLS; UI-only hiding is not sufficient.
 
 ## Demographic data captured at signup
 
@@ -103,8 +113,8 @@ Capabilities (planned / scaffolded):
 
 ## Project Collaborators (cross-org, per-project)
 
-**Goal:** A subscriber working on a project can invite up to 3 outside
-contributors (e.g. PM invites electrician, plumber, HVAC tech) to help
+**Goal:** A subscriber working on a project can invite outside
+contributors (e.g. PM invites a vendor, inspector, facilities tech, contractor, adjuster, or teammate) to help
 with that one project. Collaborators may or may not already have a
 Slate360 subscription.
 
@@ -157,7 +167,7 @@ create unique index on project_collaborator_invites (project_id, lower(email))
 ### UI variations (subscription vs. no-subscription)
 
 - **Collaborator without subscription:**
-  - Lands in a stripped-down trapped `Collaborator Shell` — only assigned projects/tasks/walks/pins are visible.
+  - Lands in a stripped-down deputized `Collaborator Shell` — only assigned projects/tasks/walks/pins are visible.
   - Sidebar shows: Assigned Tasks / My Work, permitted Project snapshot, Files (shared folders only), Comments.
   - Hidden: Marketplace, billing, AppsGrid (except read-only viewer of files), Operations Console, settings beyond profile.
   - Site Walk access is assignment-bound: collaborators can submit Progress / Before-and-After captures, notes, file responses, and status updates only on tasks/pins assigned to them.
@@ -167,6 +177,16 @@ create unique index on project_collaborator_invites (project_id, lower(email))
   - Sees the full dashboard for their own org.
   - The other subscriber’s project shows up under `Projects › Shared with me`.
   - Switches between contexts via the existing org/project switcher in the header.
+  - Collaborates as an equal paid Slate360 user inside the inviting organization’s permissions while retaining their own workspace, files, billing, and projects.
+
+## App Store / Version 1 Access Language
+
+Public user-facing UI must avoid launch-risk wording that Apple can treat as incomplete software:
+
+- Do not show `Beta`, `Beta Testing`, `Waitlist`, or similar wording in normal app surfaces.
+- Use `Version 1`, `Foundational Member`, `Account Verification`, `Workspace Provisioning`, or `Account Under Review`.
+- The current database/API field names such as `profiles.is_beta_approved` can remain internally until a safe migration is scheduled, but UI copy should present them as Version 1 access/account verification.
+- Maintain a permanent pre-approved reviewer account such as `apple@slate360.ai` for App Store submission. It must bypass the access queue and open a complete seeded workspace.
 
 ### Code surfaces to build
 
@@ -182,10 +202,10 @@ create unique index on project_collaborator_invites (project_id, lower(email))
 
 ---
 
-## Leadership View of Beta-Tester Projects
+## Leadership View of Version 1 / Enterprise Projects
 
 **Goal:** ASU directors must be able to see (read-only) every project
-that any beta tester in their cohort works on, without the beta tester
+that any Version 1 pilot member or employee in their cohort works on, without the employee
 having to think about it.
 
 This is the same problem as project collaborators — cross-account
@@ -204,8 +224,8 @@ People on this project
     [+ Invite teammate]
 
   Outside collaborators       (counter: 2 / 3 used)
-    • Greg the Electrician   pending  email·sms      [Resend] [Revoke]
-    • Dan the Plumber        active   email           [Revoke]
+    • Greg the Vendor        pending  email·sms      [Resend] [Revoke]
+    • Dana the Inspector     active   email           [Revoke]
     [+ Invite collaborator]
 
   Shared with leadership      (auto, controlled by org admin)

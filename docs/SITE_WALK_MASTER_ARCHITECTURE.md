@@ -102,9 +102,29 @@ The leadership layer must provide operational truth, not vanity metrics:
 - Immutable status-change logs.
 - Read receipts for sent deliverables and assigned tasks.
 - Plan heatmaps showing issue clusters.
-- Subcontractor scorecards based on time-to-resolution and rework patterns.
+- Contributor scorecards based on time-to-resolution, rework patterns, and assigned-work completion.
 - Financial risk tracking tied to budget, estimate, change-order, and scope fields.
 - Exportable project history for disputes, closeout, and client communication.
+
+Leadership visibility is solved at the organization layer:
+
+- Solo users are simply `owner` of their own organization and should not see distracting enterprise leadership chrome by default.
+- Enterprise organizations can promote directors or department heads to `owner` / `admin` for full operational control, or `viewer` for read-only oversight.
+- `owner` and `admin` roles may access a Global Command Center that lists active walks across every project in the organization, supports read/comment workflows, and surfaces risk/throughput metrics.
+- `viewer` role users may receive read-only leadership views across all org projects when configured for institutional deployments such as university facilities.
+- Writes must remain role-checked server-side. Leadership comment access should be explicit and auditable.
+
+### 2.7 Generalized Data Entry Doctrine
+
+Site Walk must not be hardcoded as a construction-only app. Construction templates are valuable, but the core data model must work for university facilities, insurance, real estate, inspections, events, retail, and any field documentation workflow.
+
+Required doctrine:
+
+- Replace hardcoded `trade`-first UX with customizable Tags / Departments / Categories.
+- Ship broad defaults such as Safety, Quality, Maintenance, Progress, Priority, Client Request, Damage, Follow-Up, and Closeout.
+- Allow each organization/project to define its own tag library and hide irrelevant defaults.
+- Treat construction labels such as cost codes, RFIs, submittals, subcontractors, and punch lists as optional industry packs, not universal labels.
+- Deliverables should preserve the user’s chosen language. An insurance user should see claims/damage language; a real estate user should see listing/condition language; ASU Facilities should see building/department language.
 
 ---
 
@@ -176,22 +196,23 @@ Use a unified contained-hub UI with max height around `max-h-[250px]` and bottom
    - Resumes paused walks, draft deliverables, and unfinished uploads.
 3. Coordination & Communications Hub
    - Tabs: My Action Items, Unread Threads.
-   - Prioritizes assigned tasks, client comments, and subcontractor updates.
+   - Prioritizes assigned tasks, client comments, vendor updates, collaborator responses, and internal team threads.
    - Calendar sync remains Phase 2 unless explicitly pulled forward.
 
 ---
 
-## 5. Collaborator and Subcontractor Workflow
+## 5. Deputized Collaborator and Cross-Org Workflow
 
 ### 5.1 Invitation and Login
 
-Example: an electrician is invited by a general contractor.
+Example: an outside contributor is invited by a subscriber to complete a scoped assignment.
 
-1. Subscriber invites the electrician to a project or specific task.
-2. Electrician installs Slate360 as a PWA or opens the web app.
-3. Electrician creates a free account or logs in.
-4. Header workspace switcher shows the general contractor’s invited workspace/project context.
+1. Subscriber invites a collaborator to a project, plan pin, walk, or specific task.
+2. Collaborator installs Slate360 as a PWA/app or opens the web app.
+3. Collaborator creates a free account or logs in.
+4. Header workspace switcher shows the subscriber’s invited workspace/project context.
 5. Access is project-scoped and permission-scoped, not broad account access.
+6. If the collaborator already owns a paid Slate360 subscription, their own organization remains available in the header switcher and the invited project appears as shared/cross-org work.
 
 ### 5.2 Free Collaborator UI
 
@@ -202,10 +223,11 @@ Free Collaborators see a simplified shell:
 - No billing/admin controls.
 - Unsubscribed apps are locked or hidden depending on environment mode.
 - They can view instructions, upload required proof, comment, and resolve within assignment scope.
+- This is a deputized workflow: collaborators execute assigned work and experience the polished UI, but cannot create full subscriber-owned projects, plan rooms, or deliverables until they upgrade.
 
 ### 5.3 Before/After Proof-of-Work Loop
 
-1. Collaborator opens an assigned item such as `Document electrical rough-in`.
+1. Collaborator opens an assigned item such as `Document Room 214 condition` or `Submit proof for assigned pin`.
 2. The route deep-links directly into Act 2 capture for that item/pin.
 3. Collaborator takes or uploads before/after photos.
 4. Collaborator adds notes, voice, or short video memo if allowed.
@@ -244,6 +266,10 @@ When false:
 
 Apple Guideline 2.1 rejects incomplete apps with placeholders or dead-end buttons. App Store review mode must show only shippable paths.
 
+Apple-facing and public user-facing UI must not use launch-risk language such as `Beta`, `Beta Testing`, or `Waitlist`. Use `Version 1`, `Foundational Member`, `Account Verification`, `Workspace Provisioning`, or `Account Under Review` instead.
+
+App Store submission must include a permanent reviewer account such as `apple@slate360.ai` that bypasses the approval queue and lands in a fully functional, pre-seeded workspace. This account must be maintained as long as the app remains in store review cycles so Apple/Google reviewers never hit an empty approval wall.
+
 ### 6.4 Capacitor/TWA Strategy
 
 If wrapped for stores:
@@ -269,7 +295,7 @@ All tiers should share these account-level foundations:
 
 - Company Identity Hub: high-resolution PNG logo, brand colors, address, phone, website.
 - User Profile: direct phone, title, digital signature, avatar/initials.
-- Global Address Book: reusable typeahead contacts for trades, clients, inspectors, owners, and internal team.
+- Global Address Book: reusable typeahead contacts for clients, inspectors, owners, internal teams, departments, vendors, contractors, and outside collaborators.
 - Deliverable defaults: terms, disclaimers, signature block, report/proposal visual style.
 
 ### 7.2 Field Project Setup — Standard Tier
@@ -285,7 +311,7 @@ Standard is the lean solo mode:
 
 ### 7.3 CM Project Setup — Pro/Business Tier
 
-Pro/Business unlocks construction-management context:
+Pro/Business can unlock construction-management context when the organization selects that industry pack:
 
 - Cost-coded budgets.
 - Schedule/milestones and later Gantt views.
@@ -294,6 +320,8 @@ Pro/Business unlocks construction-management context:
 - Stakeholder permission management.
 - Collaborator assignments and response workflows.
 - Leadership oversight and risk reporting.
+
+For non-construction organizations, the same tier should expose equivalent organization-defined Departments, Categories, service lines, claim types, facility zones, or listing/asset groups instead of forcing construction terminology.
 
 ### 7.4 Ad-Hoc Start
 
@@ -593,11 +621,16 @@ This checklist captures the strategic features that must not be lost during impl
 - [ ] Tier gates for Standard, Pro/Business, Enterprise, and Free Collaborators.
 - [ ] Storage and AI credit limits to protect margins.
 - [ ] App Store mode feature flag that hides unfinished/coming-soon surfaces.
+- [ ] Public UI copy uses `Version 1`, `Foundational Member`, `Account Verification`, or `Workspace Provisioning` instead of forbidden launch-risk wording.
+- [ ] Permanent App Store reviewer account such as `apple@slate360.ai` bypasses the approval queue and opens a complete seeded workspace.
 - [ ] High-contrast field UI and global form contrast reset.
 - [ ] Universal app shell with initials/workspace switcher, bug report, share.
 - [ ] Four universal quick actions.
 - [ ] Three contained scrolling hubs.
 - [ ] Free Collaborator assigned-task default dashboard.
+- [ ] Deputized collaborator shell with assigned-work execution and paid subscriber cross-org switcher behavior.
+- [ ] Organization-level Global Command Center for `owner` / `admin` leadership oversight.
+- [ ] Customizable Tags / Departments / Categories replace hardcoded industry-specific trade dropdowns.
 - [ ] Master Plan Room with mobile-optimized plan sheets/tiles.
 - [ ] Start Walk modal: attach plan or skip camera-only.
 - [ ] Long-press plan pinning with quick menu.

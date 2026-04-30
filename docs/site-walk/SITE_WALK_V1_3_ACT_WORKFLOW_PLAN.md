@@ -18,6 +18,9 @@ This V1 3 Act workflow plan remains the execution-oriented launch plan, but it m
 - Monetization guardrails are part of product design: storage caps, AI credit caps, R2-backed storage, and App Store fee assumptions must protect margin.
 - Deliverables are not PDF-first. PDF export is one output alongside hosted previews, interactive portals, Kanban boards, cinematic presentations, SMS/email links, CSV/Excel exports, and integration targets.
 - App Store mode must hide unfinished apps/features entirely; no Coming Soon/dead-end surfaces should appear under `NEXT_PUBLIC_APP_STORE_MODE=true`.
+- User-facing launch copy must avoid `Beta`, `Beta Testing`, and `Waitlist`; use `Version 1`, `Foundational Member`, `Account Verification`, or `Workspace Provisioning`.
+- Data entry must use configurable Tags / Departments / Categories instead of hardcoded trade dropdowns so Site Walk can serve construction, university facilities, insurance, real estate, and other field workflows.
+- Organization `owner` / `admin` users can receive a Global Command Center view across all active walks in their organization; solo owners should not see enterprise-only clutter unless needed.
 
 ---
 
@@ -84,6 +87,8 @@ The outside-AI critical review was correct: the prior plan addressed backend com
 1. **300-line modular scaffolding before capture logic.** Prompt 1 must create the Act 2 capture scaffold as small imported files before any heavy capture/canvas logic is written. The active route `app/site-walk/(act-2-inputs)/capture/page.tsx` must compose imported components, not grow into a monolith. Required placeholder components: `DualModeToggle.tsx`, `CameraViewfinder.tsx`, `PlanViewer.tsx`, `UnifiedVectorToolbar.tsx`, `CaptureBottomSheet.tsx`, and `SyncQueueIndicator.tsx` under the Site Walk component tree.
 2. **Profit-margin metering engine before upload/AI expansion.** Prompt 2 is now dedicated to metering. Upload presign routes and AI note/transcription routes must enforce tier caps, record usage, and block or prompt for top-up before expensive usage occurs.
 3. **Global app shell and Site Walk module shell are separate.** `/dashboard` owns global Slate360 actions like Programmable Quick Start, Open SlateDrop, and Search Everything. `/site-walk` owns Site Walk-specific Recent Walks, Master Plan Room, Active Walks, Capture, Deliverables, and Assigned Work. The build must not duplicate the global dashboard inside the Site Walk module.
+4. **App Store review account is mandatory.** Store submissions must include a permanent pre-approved reviewer login such as `apple@slate360.ai` that bypasses the access queue and opens a seeded, fully functional workspace.
+5. **Generalized data entry is mandatory.** Construction templates can exist as industry packs, but the base UI must expose custom tags/departments/categories and broad defaults such as Safety, Quality, Maintenance, Progress, Priority, Follow-Up, and Client Request.
 
 ---
 
@@ -138,6 +143,8 @@ Two creation modes:
    - Collaborator permissions and assigned-task routing
    - Leadership risk/reporting metadata
 
+All project modes must support organization-defined Tags / Departments / Categories. Industry-specific fields such as trades, RFIs, submittals, claim types, asset groups, or listing condition categories are optional templates layered on top of the generalized tag system.
+
 ### Location + Google API UI
 
 Recommended interface:
@@ -151,7 +158,7 @@ Recommended interface:
 
 Contacts come from Coordination Hub:
 - Global contacts: reusable across Slate360.
-- Project contacts: client, owner, PM, subcontractor, inspector, internal team.
+- Project contacts: client, owner, PM, department lead, vendor, contractor, inspector, outside collaborator, internal team.
 - Recipient groups: proposal recipients, daily update recipients, punch list recipients.
 - Permission levels: view only, comment/respond, upload files, assigned-task responder.
 
@@ -381,7 +388,7 @@ Presentation mode must be treated as a premium Act 3 deliverable:
 - Right-side collapsible comments/resolution panel tied to the current pin/photo.
 - Top-right Share action that creates a secure SlateDrop link and supports native share/QR/SMS/email.
 
-### Collaborator / Subcontractor Loop
+### Deputized Collaborator / Cross-Org Loop
 
 Free Collaborators do not see the full subscriber creation surface. They run inside a restricted Trapped Shell that proves the app has useful functionality without exposing subscriber-only project setup, billing, deliverables, or broad project data.
 
@@ -394,16 +401,28 @@ Free Collaborator capabilities:
 1. Open Slate360 and select the subscriber/GC context in the header switcher.
 2. Land on `Assigned Tasks` / `My Work`, not project creation.
 3. See only projects, walks, pins, files, comments, and tasks specifically assigned to them.
-4. Open a task/pin such as `Document electrical rough-in`.
+4. Open a task/pin such as `Document Room 214 condition` or `Submit assigned proof`.
 5. Route directly into Act 2 capture for that assigned item.
 6. Submit Progress / Before-and-After proof, notes, status, and allowed file responses on those assigned pins only.
 7. Notify the subscriber/GC through Coordination Hub and route files into SlateDrop.
+
+Subscriber-to-subscriber collaboration:
+- If an invited email already belongs to a paid Slate360 workspace, keep that user’s own organization intact.
+- The invited subscriber can switch between their organization and the inviting organization/project through the top header context switcher.
+- Shared project access should feel like collaboration between equals while still honoring the inviting organization’s project permissions.
+
+Leadership oversight:
+- Organization `owner` and `admin` roles can access a Global Command Center that lists all active walks across all org projects.
+- Leadership users can read, comment, and monitor risk/status across employee walks without requiring every project manager to manually share each walk.
+- Solo organization owners should simply see their normal dashboard; enterprise leadership chrome should appear only when there is more than one org member/project or when the user opens the command center.
 
 App Store review safety:
 - Free Collaborators must not land in an empty shell when they have no assigned work.
 - They get a heavily restricted Personal Workspace for basic quick captures, local notes, and profile/account setup.
 - The Personal Workspace must not create subscriber-owned projects, branded deliverables, plan rooms, broad file shares, or team assignments.
 - Upsell Solo / Standard tier from Personal Workspace with clear messaging: upgrade to create your own projects, plan rooms, and deliverables.
+- Public UI must not say `Beta`, `Beta Testing`, or `Waitlist`; use `Account Verification`, `Workspace Provisioning`, `Foundational Member`, or `Version 1 Access`.
+- App Store submission credentials must use a permanent approved account such as `apple@slate360.ai` so reviewers bypass the access queue and see complete functionality.
 
 Enforcement rules:
 - Collaborator APIs must use project-aware access helpers and assignment checks.
@@ -470,6 +489,7 @@ The detailed sections below are the executable prompt texts. When a prompt start
 | 10U | Complete | `03b492f` | Preview crash hardening and faster capture preview. | Removed pointer capture from the marker file preview zoom handlers to avoid mobile DOM pointer-capture errors, made the preview card fit as a fixed small contained card within the capture area, capped image zoom at 4x, and kept all preview gestures isolated from the canvas behind it. Made new camera captures feel snappier by showing an immediate object URL from the original file before image compression/upload continues in the background. |
 | 10V | Complete | `1a8e6a9` | Planned-walk strategy and start choice. | Updated the Act 2 strategy to make planned walks, Master Plan Room sheets, plan layering, optional background metadata, and restricted collaborator shells the source of truth. Updated org role docs for trapped collaborator shells plus restricted Personal Workspace. Added a `Walk with Plans` vs `Camera Only` capture start choice when plan sheets exist, a Plan/Camera mode toggle, PlanViewer primary mode with camera action, active-session pin filtering, and a crosshair `Drop Pin` action. |
 | 10W | Complete | `1d0ebb8` | Cross-app ecosystem synergy audit and docs. | Audited Site Walk, 360 Tours, deliverable, SlateDrop, and entitlement surfaces for cross-app compatibility. Confirmed deliverable assets/scenes/hotspots already support `photo_360`, `tour_360`, and 360 yaw/pitch hotspots; confirmed 360 Tours has separate equirectangular upload/project tour APIs under `withAppAuth("tour_builder")`; confirmed `resolveModularEntitlements()` exposes `synergy.tours360InSiteWalk` and `synergy.designInSiteWalk`; and documented the gap that Site Walk lacks a first-class bridge route and `site_walk_items.item_type` does not yet include `photo_360`. Updated master/workflow docs to require entitlement-gated Site Walk + 360 Tours + Design Studio integration with no dead App Store surfaces. |
+| 10X | Complete | pending commit | Generalist data, leadership oversight, collaborator deputization, and App Store compliance docs. | Audited the current Operations Console/access gate and org role model, then updated the master docs to require customizable Tags / Departments / Categories, organization-level Global Command Center access for `owner` / `admin`, deputized collaborator shells plus subscriber-to-subscriber org switching, and App Store-safe launch copy/reviewer account rules. |
 | 10 | Complete | `9bc5868` | Field-office board and realtime support view. | Added a desktop-optimized `/site-walk/walks` board for in-progress walks with walk name, project, person walking, elapsed time, and captured item count. Added `/site-walk/walks/[sessionId]` live command center with split-pane layout: left feed grouped by Location → Item and right detail pane with photo preview, persisted vector markup overlay, AI-cleaned notes, classification, priority, status, and sync state. Added a scoped `useRealtimeWalk()` hook that subscribes to `postgres_changes` for `site_walk_items` filtered by `session_id=eq.${sessionId}` and `site_walk_sessions` filtered by `id=eq.${sessionId}`; no org-wide firehose channel is used. New realtime inserts animate into the feed and auto-select for office review. |
 | 11 | Not started | — | Collaborator and assigned-work loop. | Pending. |
 | 12 | Not started | — | Act 3 deliverable builder: hosted outputs first. | Pending. |
@@ -653,18 +673,21 @@ Acceptance:
 
 ### Prompt 11 — Collaborator and assigned-work loop
 
-Goal: make coworker/subcontractor participation usable without full subscriber UI.
+Goal: make coworker/outside collaborator participation usable without full subscriber UI.
 
 Tasks:
 - Build assigned-work entry route for project members/collaborators.
 - Restrict collaborator UI to permitted tasks/items.
 - Allow before/after proof, note, photo/video/voice upload, status submit, and comments.
 - Route submitted files to SlateDrop and notify subscriber/GC.
+- If the collaborator already has a paid Slate360 workspace, preserve their own organization and expose the inviting organization/project through the header context switcher.
+- If the collaborator has no paid subscription, route them into a restricted deputized shell that can execute assigned work but cannot create full projects, plan rooms, or deliverables.
 
 Acceptance:
 - Collaborator can complete assigned proof-of-work on mobile.
 - Collaborator cannot create unauthorized projects/deliverables.
 - Subscriber sees submitted work in realtime/notifications.
+- Paid subscriber collaborators can switch back to their own organization without losing the invited project context.
 
 ### Prompt 12 — Act 3 deliverable builder: hosted outputs first
 
@@ -729,7 +752,7 @@ Acceptance:
 
 ### Prompt 16 — End-to-end QA, button audit, and mobile smoke
 
-Goal: remove broken paths before beta.
+Goal: remove broken paths before App Store / Version 1 launch.
 
 Tasks:
 - Click every visible Site Walk button in desktop and mobile states.

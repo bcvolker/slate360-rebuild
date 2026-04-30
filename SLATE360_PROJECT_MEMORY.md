@@ -196,33 +196,39 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-30 (Cross-App Ecosystem Synergy Audit)
+### Session Handoff — 2026-04-30 (Generalized Site Walk + App Store Strategy)
 
 #### What Changed
-- `docs/SITE_WALK_MASTER_ARCHITECTURE.md` — added `Cross-App Ecosystem Synergy (Entitlement Gated)` with the Site Walk + 360 Tours + Design Studio rules, entitlement resolver requirements, App Store/no-dead-surface behavior, backend audit findings, and future bridge requirements.
-- `docs/SITE_WALK_MASTER_ARCHITECTURE.md` — updated the strategic checklist so 360 ingest, 360 plan pins/viewer launch, interactive deliverable scenes, and Design Studio references are explicitly dual-entitlement features.
-- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — added a 2026-04-30 cross-app ecosystem baseline documenting the current backend state: deliverable assets/scenes/hotspots are 360-aware, 360 Tours has separate `project_tours` / `tour_scenes` APIs, `resolveModularEntitlements()` exposes synergy flags, but Site Walk lacks a first-class 360 bridge and `site_walk_items.item_type` does not include `photo_360` yet.
-- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — backfilled Prompt 10V commit hash to `1a8e6a9`, added Prompt 10W for the audit/docs wave, and tightened Prompt 12 deliverable-builder tasks around entitlement-gated 360/model references.
+- `docs/SITE_WALK_MASTER_ARCHITECTURE.md` — added `Generalized Data Entry Doctrine` requiring customizable Tags / Departments / Categories instead of construction-only trade-first UX; construction terms are now optional industry packs.
+- `docs/SITE_WALK_MASTER_ARCHITECTURE.md` — strengthened Leadership Oversight with organization-level Global Command Center behavior for `owner` / `admin`, read-only `viewer` leadership views, and auditable leadership comments.
+- `docs/SITE_WALK_MASTER_ARCHITECTURE.md` — generalized collaborator examples into deputized cross-org workflows and documented paid subscriber-to-subscriber org switching through the header context switcher.
+- `docs/SITE_WALK_MASTER_ARCHITECTURE.md` — added App Store-safe launch language rules: no user-facing `Beta`, `Beta Testing`, or `Waitlist`; use Version 1 / Foundational Member / Account Verification / Workspace Provisioning; maintain a permanent reviewer account such as `apple@slate360.ai`.
+- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — added Prompt 10X for the Gemini audit/docs wave and expanded execution constraints for generalized data, Global Command Center, App Store reviewer account, deputized collaborator shell, and subscriber cross-org switching.
+- `slate360-context/ORG_ROLES_AND_PERMISSIONS.md` — updated org role guidance so `owner` / `admin` include Global Command Center access, `viewer` supports read-only leadership oversight, collaborators are generalized beyond construction, and user-facing access copy avoids Beta/Waitlist wording.
+- Fact-finding audit completed with no implementation code changes: Operations Console remains Slate CEO/internal-only; account approval uses `profiles.is_beta_approved` internally; rendered pending/console copy is already mostly Version 1-oriented; org roles already support the foundation for Leadership Oversight.
+- Validation passed: `git diff --check` and `npm run typecheck`.
 
 #### What's Broken / Partially Done
-- No implementation code was written for the Gemini fact-finding prompt by design; the bridge remains future work.
-- Missing bridge: no explicit Site Walk ↔ 360 Tours API currently lists/selects entitled project tour scenes for Site Walk plan pins or deliverables.
-- Schema gap: `site_walk_deliverable_assets.asset_type` supports `photo_360`/`tour_360`, and scenes/hotspots support 360 behavior, but `site_walk_items.item_type` still lacks a first-class `photo_360` capture type.
-- Needs future implementation: dual-entitlement bridge route should verify `punchwalk` + `tour_builder`, persist source app/table/id/project/org/referenced-vs-copied metadata, and avoid duplicating large 360 media unless explicitly importing.
-- Previous product gaps remain: PlanViewer layer toggles and one-hand sheet/page picker are not fully implemented; collaborator assigned-work shell and restricted Personal Workspace are documented but not built.
+- No implementation code was written for Gemini Prompt 1 by design; this was an audit plus strategy-doc update.
+- Global Command Center is documented but not built yet.
+- Permanent App Store reviewer account such as `apple@slate360.ai` is documented but not provisioned/seeded yet.
+- Internal DB/API names such as `profiles.is_beta_approved` and `/api/admin/beta` still contain beta terminology; docs now allow this internally until a safe migration, but public UI should avoid it.
+- Deputized collaborator shell and paid subscriber cross-org switcher behavior remain documented future implementation work.
+- Previous product gaps remain: Site Walk ↔ 360 Tours bridge, `photo_360` item-type decision, PlanViewer layer toggles, one-hand sheet/page picker, and collaborator assigned-work shell.
 - The user-uploaded reference image `public/uploads/marked up.jpg` and `ts-prune-output.txtcat` remain untracked and intentionally not committed.
 
 #### Context Files Updated
 - `SLATE360_PROJECT_MEMORY.md` — this handoff.
-- `docs/SITE_WALK_MASTER_ARCHITECTURE.md` — cross-app ecosystem strategy and backend audit.
-- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — cross-app baseline, Prompt 10W, Prompt 12 entitlement gating.
+- `docs/SITE_WALK_MASTER_ARCHITECTURE.md` — generalized data entry, Leadership Oversight, cross-org collaboration, and App Store-safe access strategy.
+- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — Prompt 10X and execution constraints for generalized tags, Global Command Center, reviewer account, and collaborator workflows.
+- `slate360-context/ORG_ROLES_AND_PERMISSIONS.md` — owner/admin/viewer leadership model, deputized collaborator behavior, paid subscriber cross-org switching, and Version 1/App Store access-language rules.
 
 #### Next Steps (ordered)
-1. Build a narrow dual-entitlement Site Walk ↔ 360 Tours bridge API for project tour/scene selection.
-2. Decide whether to add `photo_360` to `site_walk_items.item_type` or store 360 references only through deliverable assets/metadata.
-3. Add UI for entitled 360 plan-pin viewer launch and 360 deliverable composition.
-4. Build full PlanViewer layer toggles (`Active Walk`, `Historical Pins`, `Assigned to Me`) and one-hand sheet/page picker.
-5. Build collaborator assigned-work shell and restricted Personal Workspace.
+1. Provision and seed a permanent App Store reviewer account such as `apple@slate360.ai` that bypasses the access queue.
+2. Build the org-level Global Command Center for Site Walk `owner` / `admin` leadership oversight.
+3. Implement project/org configurable Tags / Departments / Categories and move construction trade labels into optional industry packs.
+4. Build collaborator assigned-work shell, restricted Personal Workspace, and paid subscriber cross-org switcher behavior.
+5. Later: safely migrate internal beta naming only after public launch surfaces are fully stable.
 
 ### Session Handoff — 2026-04-30 (Markup Canvas Mobile UX Fixes)
 
