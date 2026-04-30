@@ -11,15 +11,14 @@
  */
 
 import { useEffect, useState, type ReactNode } from "react";
+import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { DashboardSidebar } from "@/components/dashboard/command-center/DashboardSidebar";
 import { DashboardTopBar } from "@/components/dashboard/command-center/DashboardTopBar";
-import CommandPalette from "@/components/shared/CommandPalette";
 import { InviteShareProvider, useInviteShare } from "@/components/shared/InviteShareProvider";
-import { InviteShareModal } from "@/components/shared/InviteShareModal";
 import { MobileTopBar } from "@/components/shared/MobileTopBar";
 import { MobileInstallStrip } from "@/components/shared/MobileInstallStrip";
 import { MobileBottomNav } from "@/components/shared/MobileBottomNav";
@@ -36,10 +35,21 @@ interface AppShellProps {
 
 function GlobalInviteModal({ data }: { data: InviteShareData }) {
   const { open, setOpen } = useInviteShare();
+  if (!open) return null;
   return <InviteShareModal open={open} onOpenChange={setOpen} {...data} />;
 }
 
 const SIDEBAR_PIN_KEY = "slate360.sidebar.pinned";
+
+const CommandPalette = dynamic(() => import("@/components/shared/CommandPalette"), {
+  ssr: false,
+  loading: () => null,
+});
+
+const InviteShareModal = dynamic(() => import("@/components/shared/InviteShareModal").then((mod) => mod.InviteShareModal), {
+  ssr: false,
+  loading: () => null,
+});
 
 export function AppShell({
   userName,
@@ -166,11 +176,13 @@ export function AppShell({
 
         <MobileBottomNav />
 
-        <CommandPalette
-          open={paletteOpen}
-          onOpenChange={setPaletteOpen}
-          hasOperationsConsoleAccess={hasOperationsConsoleAccess}
-        />
+        {paletteOpen && (
+          <CommandPalette
+            open={paletteOpen}
+            onOpenChange={setPaletteOpen}
+            hasOperationsConsoleAccess={hasOperationsConsoleAccess}
+          />
+        )}
         <GlobalInviteModal data={inviteShareData} />
       </div>
       )}

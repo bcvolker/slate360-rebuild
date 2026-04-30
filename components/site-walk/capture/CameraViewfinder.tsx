@@ -6,6 +6,7 @@ import { useCaptureUpload } from "@/lib/hooks/useCaptureUpload";
 import { isMarkupData, type MarkupData } from "@/lib/site-walk/markup-types";
 import { getPhotoAttachmentPins, type PhotoAttachmentPin } from "@/lib/site-walk/photo-attachments";
 import { createOfflineId } from "@/lib/site-walk/offline-db";
+import { compressCaptureFile } from "@/lib/site-walk/image-compression";
 import { readQuickCaptureLaunch, removeQuickCaptureLaunch } from "@/lib/site-walk/quick-capture-launch";
 import type { CaptureItemRecord } from "@/lib/types/site-walk-capture";
 import { requestCameraCapture, subscribeCameraCapture } from "./capture-camera-events";
@@ -80,7 +81,12 @@ export function CameraViewfinder({ sessionId, autoOpenCamera = false, launchId =
 
   function handleFile(file: File | undefined) {
     if (!file) return;
-    const previewUrl = URL.createObjectURL(file);
+    void prepareCaptureFile(file);
+  }
+
+  async function prepareCaptureFile(file: File) {
+    const captureFile = await compressCaptureFile(file);
+    const previewUrl = URL.createObjectURL(captureFile);
     const clientItemId = createOfflineId("item");
     const clientMutationId = createOfflineId("mutation");
     const title = readLastTitle(sessionId);
@@ -91,7 +97,7 @@ export function CameraViewfinder({ sessionId, autoOpenCamera = false, launchId =
     });
     publishCaptureItemFocus({ item: localItem, reason: "captured", focus: true });
     window.dispatchEvent(new CustomEvent(VECTOR_TOOL_EVENT, { detail: { tool: "select" } }));
-    void savePhoto(file, { clientItemId, clientMutationId, previewUrl, title });
+    void savePhoto(captureFile, { clientItemId, clientMutationId, previewUrl, title });
   }
 
   function handleDrop(event: React.DragEvent<HTMLDivElement>) {

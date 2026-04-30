@@ -1,6 +1,6 @@
 "# Slate360 — Project Memory
 
-Last Updated: 2026-04-27
+Last Updated: 2026-04-30
 Repo: bcvolker/slate360-rebuild
 Branch: main
 Live: https://www.slate360.ai
@@ -195,6 +195,29 @@ When editing oversized files, always read both the state declarations AND the JS
 ## Latest Session Handoff
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
+
+### Session Handoff — 2026-04-30 (Capture Compression + Lazy Shell)
+
+#### What Changed
+- `lib/site-walk/image-compression.ts` — added fail-safe client-side capture downscaling/compression with `createImageBitmap` orientation support, canvas JPEG output, and original-file fallback when decode/compression is unsupported or not smaller.
+- `components/site-walk/capture/CameraViewfinder.tsx` — now compresses/downscales selected camera/gallery images before creating the object URL, optimistic item, and `savePhoto` upload/offline queue payload.
+- `components/dashboard/AppShell.tsx` — lazy-loads `CommandPalette` only after Cmd/Ctrl+K/search opens it and lazy-loads `InviteShareModal` only while invite/share is open.
+- `docs/PERFORMANCE_AUDIT_2026-04-29.md` — marked the Site Walk image compression and app-shell modal/palette lazy-loading quick wins as implemented.
+
+#### What's Broken / Partially Done
+- Gemini Prompt 2 (`PhotoMarkupCanvas` extraction/throttling/debounced persistence) is still pending; `components/site-walk/capture/PhotoMarkupCanvas.tsx` remains at 299 lines and should be extracted before any new logic is added.
+- `bash scripts/check-file-size.sh` still exits 1 because of 12 known pre-existing oversized files; touched files are under the 300-line limit (`image-compression.ts` 50, `CameraViewfinder.tsx` 246, `AppShell.tsx` 192).
+- Needs real-device smoke test on iPhone/Android: capture a large camera photo, confirm preview appears, markup/pins work, upload completes, and Files still lists pinned uploads.
+- The user-uploaded reference image `public/uploads/marked up.jpg` and `ts-prune-output.txtcat` remain untracked and intentionally not committed.
+
+#### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md` — this handoff.
+- `docs/PERFORMANCE_AUDIT_2026-04-29.md` — implementation status for image compression and lazy shell quick wins.
+
+#### Next Steps (ordered)
+1. Mobile-test capture compression on real iPhone/Android camera images and verify no HEIC/WebView decode regressions; fallback should preserve capture if compression is unsupported.
+2. Implement Gemini Prompt 2 as a separate extraction: create `useMarkupCanvas.ts`, move gesture/save logic out of `PhotoMarkupCanvas`, throttle pointer updates with `requestAnimationFrame`, and debounce/flush markup persistence.
+3. Continue P1 performance work: split/lazy-load heavy widgets, split `LocationMap`, lazy-load 360/model viewers, and add route bundle budgets.
 
 ### Session Handoff — 2026-04-29 (Performance Audit + Telemetry Throttle)
 

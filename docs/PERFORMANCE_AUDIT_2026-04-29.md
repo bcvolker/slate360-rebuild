@@ -24,7 +24,7 @@ Risk:
 
 Recommended next steps:
 1. Extract `PhotoMarkupCanvas` before adding features: gesture state, rendering, markup tools, and pin layer should be separate files.
-2. Add client-side image downscaling for preview and upload targets.
+2. Add client-side image downscaling for preview and upload targets. **Status 2026-04-30:** implemented for Site Walk capture in `lib/site-walk/image-compression.ts` and wired through `CameraViewfinder` before preview/upload.
 3. Keep original file only if needed; render a preview-sized blob in the canvas.
 4. Throttle pointer move state writes with `requestAnimationFrame`.
 5. Debounce markup persistence at 800–1200ms and flush on Next/Back/visibilitychange.
@@ -42,8 +42,8 @@ Risk:
 - Command palette and invite/share plumbing should stay lazy until opened where possible.
 
 Recommended next steps:
-1. Make `CommandPalette` dynamic and only load when first opened.
-2. Make invite modal body dynamic and only load when opened.
+1. Make `CommandPalette` dynamic and only load when first opened. **Status 2026-04-30:** implemented in `AppShell`.
+2. Make invite modal body dynamic and only load when opened. **Status 2026-04-30:** implemented in `AppShell`.
 3. Keep mobile nav/topbar lightweight and avoid hidden heavy descendants.
 4. Add an App Store mode that hides unfinished apps and removes install-banner logic inside native wrappers.
 
