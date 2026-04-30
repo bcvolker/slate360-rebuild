@@ -316,6 +316,32 @@
         "Tapping a pinned file fetches /api/slatedrop/download?mode=preview and opens an image/iframe preview modal",
         "Preview modal includes an Open full file fallback link"
       ]
+    },
+    {
+      "id": "BUG-041",
+      "title": "iOS long-press and native zoom conflicted with Site Walk canvas pins",
+      "module": "site-walk/capture",
+      "severity": "critical",
+      "status": "fixed",
+      "rootCause": "The markup canvas relied on Pointer Events but did not explicitly disable iOS user selection, touch callouts, and browser touch gestures on the canvas root; custom pinch/wheel zoom also only ran in non-markup mode.",
+      "verification": [
+        "PhotoMarkupCanvas root sets touch-action none plus user-select and -webkit-touch-callout suppression",
+        "useMarkupCanvasState applies two-finger pinch zoom regardless of markup mode",
+        "Wheel zoom updates the shared transform without requiring markup mode to be disabled"
+      ]
+    },
+    {
+      "id": "BUG-042",
+      "title": "Markup pencil disengaged and shape selection was unreliable",
+      "module": "site-walk/capture",
+      "severity": "high",
+      "status": "fixed",
+      "rootCause": "Every committed shape switched the active tool back to select, so freehand drawing required repeated pencil taps. Shape moving depended on SVG stroke hit targets only, making selection unreliable on phones.",
+      "verification": [
+        "Freehand draw stays active after pointer up until the user chooses another tool",
+        "Select mode performs bounding-box hit detection when tapping the canvas",
+        "Selected shapes render a cyan bounding box with corner handles and can be moved or resized with the existing controls"
+      ]
     }
   ]
 }

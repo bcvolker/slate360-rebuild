@@ -196,6 +196,32 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
+### Session Handoff — 2026-04-30 (Markup Canvas Mobile UX Fixes)
+
+#### What Changed
+- `components/site-walk/capture/PhotoMarkupCanvas.tsx` — added explicit iOS-safe canvas styles (`touchAction: none`, disabled user selection, disabled `WebkitTouchCallout`) and renders a cyan selected-shape bounds overlay with corner handles.
+- `components/site-walk/capture/useMarkupCanvasState.ts` — pinch zoom now works even while markup mode is active; wheel zoom always updates the shared transform; freehand draw stays active after each stroke instead of falling back to Select.
+- `components/site-walk/capture/useMarkupCanvasState.ts` and `markupCanvasGeometry.ts` — added bounding-box shape hit detection so Select mode can tap inside/near a shape to select and drag it, rather than relying only on narrow SVG stroke targets.
+- `components/site-walk/capture/PhotoMarkupControls.tsx` — removed the redundant Text button from the selected-shape popup; text creation remains in the toolbar and selected text can be edited with a second tap.
+- `ops/bug-registry.json` and `slate360-context/ONGOING_ISSUES.md` — logged and resolved BUG-041 (iOS long-press/zoom conflicts) and BUG-042 (pencil disengage/unreliable shape selection).
+- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — added Prompt 10O row and backfilled Prompt 10N commit hash.
+
+#### What's Broken / Partially Done
+- Needs real-device iPhone/Android smoke test: long-press pin without iOS callout, two-finger pinch while markup mode is on, mouse/wheel zoom on desktop, repeated freehand strokes without re-tapping pencil, tap/drag/resize/delete shapes, second-tap edit text.
+- Resize is still via the existing `+` / `−` selected-shape controls; corner handles are currently visual affordances, not direct drag-resize handles.
+- `bash scripts/check-file-size.sh` still exits 1 due to known pre-existing oversized files; touched canvas files remain under 300 lines (`useMarkupCanvasState.ts` 294, `PhotoMarkupCanvas.tsx` 91, `markupCanvasGeometry.ts` 74).
+- The user-uploaded reference image `public/uploads/marked up.jpg` and `ts-prune-output.txtcat` remain untracked and intentionally not committed.
+
+#### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md` — this handoff.
+- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — Prompt 10O row.
+- `slate360-context/ONGOING_ISSUES.md` and `ops/bug-registry.json` — BUG-041/BUG-042.
+
+#### Next Steps (ordered)
+1. Real-device smoke test the markup/pin/zoom workflow on iPhone and Android.
+2. If direct corner drag-resize is still needed after testing, extract `useMarkupCanvasState.ts` below 250 lines first, then add handle-specific resize drag state.
+3. Continue simplifying the Data screen around photo reference + notes-first construction workflow; current dropdowns/buttons remain transitional.
+
 ### Session Handoff — 2026-04-30 (Capture Flow Review + Slate Polish)
 
 #### What Changed

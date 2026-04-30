@@ -9,11 +9,10 @@ type SelectionMenuProps = {
   onDelete: () => void;
   onBigger: () => void;
   onSmaller: () => void;
-  onEditText: () => void;
 };
 
-export function SelectionMenu({ onDelete, onBigger, onSmaller, onEditText }: SelectionMenuProps) {
-  return <div className="absolute left-3 top-3 z-20 flex gap-2 rounded-full border border-white/15 bg-black/60 p-1 text-xs font-black text-white backdrop-blur-xl"><button type="button" onClick={onSmaller} className="rounded-full bg-white/10 px-3 py-2">−</button><button type="button" onClick={onBigger} className="rounded-full bg-white/10 px-3 py-2">+</button><button type="button" onClick={onEditText} className="rounded-full bg-white/10 px-3 py-2">Text</button><button type="button" onClick={onDelete} className="rounded-full bg-rose-500 px-3 py-2">Delete</button></div>;
+export function SelectionMenu({ onDelete, onBigger, onSmaller }: SelectionMenuProps) {
+  return <div className="absolute left-3 top-3 z-20 flex gap-2 rounded-full border border-white/15 bg-black/60 p-1 text-xs font-black text-white backdrop-blur-xl"><button type="button" onClick={onSmaller} className="rounded-full bg-white/10 px-3 py-2">−</button><button type="button" onClick={onBigger} className="rounded-full bg-white/10 px-3 py-2">+</button><button type="button" onClick={onDelete} className="rounded-full bg-rose-500 px-3 py-2">Delete</button></div>;
 }
 
 export function TextEditor({ shape, onChange, onDone }: { shape?: MarkupShape; onChange: (value: string) => void; onDone: () => void }) {

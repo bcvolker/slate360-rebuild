@@ -7,6 +7,7 @@ export type PointerPoint = { x: number; y: number };
 
 export const MARKUP_WIDTH = 1000;
 export const MARKUP_HEIGHT = 720;
+const HIT_PAD = 18;
 
 export function buildShape(tool: VectorTool, start: DraftPoint, points: number[], color: string): MarkupShape | null {
   const id = `shape-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
@@ -47,4 +48,27 @@ export function resizeShape(shape: MarkupShape, scale: number): MarkupShape {
   if (shape.kind === "arrow") return { ...shape, x2: shape.x1 + (shape.x2 - shape.x1) * scale, y2: shape.y1 + (shape.y2 - shape.y1) * scale, headSize: shape.headSize * scale, updatedAt: Date.now() };
   if (shape.kind === "line") return { ...shape, x2: shape.x1 + (shape.x2 - shape.x1) * scale, y2: shape.y1 + (shape.y2 - shape.y1) * scale, updatedAt: Date.now() };
   return { ...shape, strokeWidth: Math.max(2, shape.strokeWidth * scale), updatedAt: Date.now() };
+}
+
+export function findShapeAtPoint(shapes: MarkupShape[], point: DraftPoint) {
+  return [...shapes].reverse().find((shape) => {
+    const bounds = getShapeBounds(shape);
+    if (!bounds) return false;
+    return point.x >= bounds.x - HIT_PAD && point.x <= bounds.x + bounds.width + HIT_PAD && point.y >= bounds.y - HIT_PAD && point.y <= bounds.y + bounds.height + HIT_PAD;
+  }) ?? null;
+}
+
+export function getShapeBounds(shape: MarkupShape) {
+  if (shape.kind === "rect") return { x: shape.x, y: shape.y, width: shape.width, height: shape.height };
+  if (shape.kind === "ellipse") return { x: shape.cx - shape.rx, y: shape.cy - shape.ry, width: shape.rx * 2, height: shape.ry * 2 };
+  if (shape.kind === "text") return { x: shape.x, y: shape.y - shape.fontSize, width: Math.max(80, shape.text.length * shape.fontSize * 0.55), height: shape.fontSize * 1.25 };
+  if (shape.kind === "arrow" || shape.kind === "line") return boundsFromPoints([shape.x1, shape.y1, shape.x2, shape.y2]);
+  return boundsFromPoints(shape.points);
+}
+
+function boundsFromPoints(points: number[]) {
+  const xs = points.filter((_, index) => index % 2 === 0);
+  const ys = points.filter((_, index) => index % 2 === 1);
+  const minX = Math.min(...xs), maxX = Math.max(...xs), minY = Math.min(...ys), maxY = Math.max(...ys);
+  return { x: minX, y: minY, width: Math.max(1, maxX - minX), height: Math.max(1, maxY - minY) };
 }
