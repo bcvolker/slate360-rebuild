@@ -368,6 +368,19 @@
         "Dragging cyan selection corners resizes boxes/circles and adjusts arrow endpoints",
         "Markup toolbar color and line-width controls update the selected shape as well as future shapes"
       ]
+    },
+    {
+      "id": "BUG-045",
+      "title": "Attachment edit panels and preview modal were not mobile-contained",
+      "module": "site-walk/capture",
+      "severity": "high",
+      "status": "fixed",
+      "rootCause": "The new/edit attachment panels were anchored to the bottom of the capture area, where lower markup controls could cut off action buttons. The marker file preview used a near-full-height modal that made the close control difficult to reach or obscured on mobile.",
+      "verification": [
+        "New attachment and edit attachment panels open centered in the capture area with scroll safety",
+        "The attached-file preview modal is smaller than the full capture area and keeps a visible top-right close button",
+        "Image previews support pinch zoom and drag pan before closing"
+      ]
     }
   ]
 }

@@ -186,7 +186,8 @@ export function PhotoAttachmentPins({ sessionId, pins, draftPin, transform, onDr
       </div>
 
       {draftPin && (
-        <div className="absolute inset-x-3 bottom-3 z-30 rounded-[1.5rem] border border-white/15 bg-zinc-950/88 p-3 text-white shadow-2xl backdrop-blur-xl">
+        <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/25 p-4">
+        <div className="max-h-[78dvh] w-full max-w-md overflow-y-auto rounded-[1.5rem] border border-white/15 bg-zinc-950/94 p-3 text-white shadow-2xl backdrop-blur-xl no-scrollbar">
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="text-[11px] font-black uppercase tracking-[0.16em] text-blue-100">Pin files to photo</p>
@@ -208,10 +209,12 @@ export function PhotoAttachmentPins({ sessionId, pins, draftPin, transform, onDr
           </div>
           {files.length > 0 && <div className="mt-3 flex gap-2 overflow-x-auto pb-1 no-scrollbar">{files.map((file) => <FileChip key={file.id} file={file} onRemove={() => setFiles((current) => current.filter((item) => item.id !== file.id))} />)}</div>}
         </div>
+        </div>
       )}
 
       {editingPinId && (
-        <div className="absolute inset-x-3 bottom-3 z-40 rounded-[1.5rem] border border-cyan-300/20 bg-slate-950/95 p-3 text-white shadow-2xl backdrop-blur-xl">
+        <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/25 p-4">
+        <div className="max-h-[78dvh] w-full max-w-md overflow-y-auto rounded-[1.5rem] border border-cyan-300/20 bg-slate-950/95 p-3 text-white shadow-2xl backdrop-blur-xl no-scrollbar">
           <div className="flex items-start justify-between gap-3">
             <div><p className="text-[11px] font-black uppercase tracking-[0.16em] text-cyan-100">Edit pinned file</p><p className="mt-1 text-xs font-semibold text-white/60">Update the marker name or field note.</p></div>
             <button type="button" onClick={() => setEditingPinId(null)} className="rounded-full border border-white/15 p-2 text-white/80"><X className="h-4 w-4" /></button>
@@ -221,6 +224,7 @@ export function PhotoAttachmentPins({ sessionId, pins, draftPin, transform, onDr
             <input value={note} onChange={(event) => setNote(event.target.value)} className="rounded-2xl border border-white/15 bg-white/10 px-3 py-2 text-sm font-bold outline-none placeholder:text-white/40" placeholder="Brief note" />
           </div>
           <div className="mt-3 flex gap-2"><button type="button" onClick={savePinEdits} className="min-h-10 rounded-2xl bg-cyan-300 px-4 text-sm font-black text-slate-950">Save changes</button><button type="button" onClick={() => editingPinId && removePin(editingPinId)} className="min-h-10 rounded-2xl border border-rose-300/30 bg-rose-500/10 px-4 text-sm font-black text-rose-100">Remove pin</button></div>
+        </div>
         </div>
       )}
 
