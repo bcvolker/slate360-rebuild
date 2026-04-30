@@ -29,7 +29,7 @@ export function VisualCaptureView({ sessionId, autoOpenCamera, launchId, items, 
   const [ghostOn, setGhostOn] = useState(false);
   const [markupMode, setMarkupMode] = useState(false);
   const [attachmentsOpen, setAttachmentsOpen] = useState(false);
-  const [progressOpen, setProgressOpen] = useState(false);
+  const [railMode, setRailMode] = useState<"angles" | "progress">("angles");
   const [revealedThumbKey, setRevealedThumbKey] = useState<string | null>(null);
   const photoItems = items.filter((item) => item.item_type === "photo");
   const activeItem = photoItems.find((item) => item.id === activeItemId) ?? null;
@@ -53,10 +53,9 @@ export function VisualCaptureView({ sessionId, autoOpenCamera, launchId, items, 
         </div>
       </main>
 
-      <AngleCarousel items={angleItems.length > 0 ? angleItems : photoItems} activeItemId={activeItemId} revealedThumbKey={revealedThumbKey} onReveal={setRevealedThumbKey} onSelectItem={onSelectItem} />
       <CaptureActionBar pinCount={activePins.length} markupMode={markupMode} onToggleMarkup={() => setMarkupMode((current) => !current)} onOpenAttachments={() => setAttachmentsOpen(true)} />
       {markupMode && <div className="shrink-0 border-b border-white/10 bg-black px-2 py-1"><UnifiedVectorToolbar /></div>}
-      <ProgressTimeline items={progressItems} open={progressOpen} ghostOn={ghostOn} ghostAvailable={!!ghostImageUrl} revealedThumbKey={revealedThumbKey} onReveal={setRevealedThumbKey} onToggleOpen={() => setProgressOpen((current) => !current)} onToggleGhost={() => setGhostOn((current) => !current)} onAdd={() => { setProgressOpen(true); setGhostOn(true); requestCameraCapture("camera", "next_item"); }} onSelectItem={onSelectItem} />
+      <CaptureMediaRail mode={railMode} onModeChange={setRailMode} angleItems={angleItems.length > 0 ? angleItems : photoItems} progressItems={progressItems} activeItemId={activeItemId} ghostOn={ghostOn} ghostAvailable={!!ghostImageUrl} revealedThumbKey={revealedThumbKey} onReveal={setRevealedThumbKey} onToggleGhost={() => setGhostOn((current) => !current)} onAddProgress={() => { setRailMode("progress"); setGhostOn(true); requestCameraCapture("camera", "next_item"); }} onSelectItem={onSelectItem} />
 
       {attachmentsOpen && (
         <AttachmentsSheet
@@ -85,8 +84,8 @@ function TopCaptureControls({ modeLabel, onNext, onUndo, onRedo }: { modeLabel: 
         <button type="button" onClick={onNext} className="inline-flex h-9 items-center gap-1 rounded-xl border border-cyan-300/25 bg-cyan-300/10 px-3 text-[10px] font-black uppercase tracking-[0.1em] text-cyan-100">Details <ChevronRight className="h-4 w-4" /></button>
       </div>
       <div className="mt-2 grid grid-cols-2 gap-2">
-        <button type="button" onClick={onUndo} className="h-8 rounded-xl border border-white/15 bg-white/5 text-[10px] font-black text-white/75"><RotateCcw className="mx-auto h-4 w-4" /></button>
-        <button type="button" onClick={onRedo} className="h-8 rounded-xl border border-white/15 bg-white/5 text-[10px] font-black text-white/75"><RotateCw className="mx-auto h-4 w-4" /></button>
+        <button type="button" onClick={onUndo} className="inline-flex h-8 items-center justify-center gap-1 rounded-xl border border-white/15 bg-white/5 text-[10px] font-black uppercase tracking-[0.1em] text-white/75"><RotateCcw className="h-4 w-4" /> Undo</button>
+        <button type="button" onClick={onRedo} className="inline-flex h-8 items-center justify-center gap-1 rounded-xl border border-white/15 bg-white/5 text-[10px] font-black uppercase tracking-[0.1em] text-white/75">Redo <RotateCw className="h-4 w-4" /></button>
       </div>
     </header>
   );
@@ -115,32 +114,20 @@ function CaptureActionBar({ pinCount, markupMode, onToggleMarkup, onOpenAttachme
   );
 }
 
-function AngleCarousel({ items, activeItemId, revealedThumbKey, onReveal, onSelectItem }: { items: CaptureItemRecord[]; activeItemId: string | null; revealedThumbKey: string | null; onReveal: (key: string) => void; onSelectItem: (item: CaptureItemRecord) => void }) {
+function CaptureMediaRail({ mode, onModeChange, angleItems, progressItems, activeItemId, ghostOn, ghostAvailable, revealedThumbKey, onReveal, onToggleGhost, onAddProgress, onSelectItem }: { mode: "angles" | "progress"; onModeChange: (mode: "angles" | "progress") => void; angleItems: CaptureItemRecord[]; progressItems: CaptureItemRecord[]; activeItemId: string | null; ghostOn: boolean; ghostAvailable: boolean; revealedThumbKey: string | null; onReveal: (key: string) => void; onToggleGhost: () => void; onAddProgress: () => void; onSelectItem: (item: CaptureItemRecord) => void }) {
+  const showingProgress = mode === "progress";
+  const items = showingProgress ? progressItems : angleItems;
   return (
-    <section className="shrink-0 bg-transparent py-1" aria-label="Angles">
-      <p className="mb-1 px-2 text-[10px] font-black uppercase tracking-[0.16em] text-white/55">Angles</p>
-      <RailShell heightClass="h-16">
-        <button type="button" onClick={() => requestCameraCapture("camera", "next_item")} className="flex aspect-square h-full shrink-0 items-center justify-center border border-blue-400/70 bg-blue-500/15 text-blue-100" aria-label="Add angle"><Plus className="h-6 w-6" /></button>
-        {items.map((item) => <ThumbButton key={item.id} item={item} thumbKey={`angle-${item.id}`} active={item.id === activeItemId} revealed={revealedThumbKey === `angle-${item.id}`} label={item.title || "Angle"} onReveal={onReveal} onOpen={() => onSelectItem(item)} />)}
+    <section className="shrink-0 bg-transparent pt-1 pb-[calc(0.55rem+env(safe-area-inset-bottom))]" aria-label="Capture media rail">
+      <div className="mx-3 mb-1 grid grid-cols-2 rounded-2xl border border-white/10 bg-white/5 p-1">
+        <button type="button" onClick={() => onModeChange("angles")} className={`h-8 rounded-xl text-[10px] font-black uppercase tracking-[0.12em] ${!showingProgress ? "bg-cyan-300 text-slate-950" : "text-white/65"}`}>Additional Angles</button>
+        <button type="button" onClick={() => onModeChange("progress")} className={`h-8 rounded-xl text-[10px] font-black uppercase tracking-[0.12em] ${showingProgress ? "bg-cyan-300 text-slate-950" : "text-white/65"}`}>Progress / Before &amp; After</button>
+      </div>
+      <RailShell heightClass="h-14">
+        <button type="button" onClick={showingProgress ? onAddProgress : () => requestCameraCapture("camera", "next_item")} className="flex aspect-square h-full shrink-0 items-center justify-center border border-cyan-300/60 bg-cyan-300/15 text-cyan-100" aria-label={showingProgress ? "Add progress photo" : "Add angle"}><Plus className="h-5 w-5" /></button>
+        {showingProgress && ghostAvailable && <button type="button" onClick={onToggleGhost} className={`min-w-24 border px-2 text-[10px] font-black ${ghostOn ? "border-cyan-300 bg-cyan-300/20 text-cyan-100" : "border-white/15 bg-white/10 text-white/70"}`}>Ghost align</button>}
+        {items.map((item) => <ThumbButton key={item.id} item={item} thumbKey={`${mode}-${item.id}`} active={!showingProgress && item.id === activeItemId} revealed={revealedThumbKey === `${mode}-${item.id}`} label={showingProgress ? new Date(item.created_at).toLocaleDateString() : item.title || "Angle"} onReveal={onReveal} onOpen={() => onSelectItem(item)} />)}
       </RailShell>
-    </section>
-  );
-}
-
-function ProgressTimeline({ items, open, ghostOn, ghostAvailable, revealedThumbKey, onReveal, onToggleOpen, onToggleGhost, onAdd, onSelectItem }: { items: CaptureItemRecord[]; open: boolean; ghostOn: boolean; ghostAvailable: boolean; revealedThumbKey: string | null; onReveal: (key: string) => void; onToggleOpen: () => void; onToggleGhost: () => void; onAdd: () => void; onSelectItem: (item: CaptureItemRecord) => void }) {
-  return (
-    <section className="shrink-0 bg-transparent pt-1 pb-[calc(0.55rem+env(safe-area-inset-bottom))]" aria-label="Progress">
-      <button type="button" onClick={onToggleOpen} className="mb-1 flex w-full items-center justify-between px-3 text-left text-[10px] font-black uppercase tracking-[0.16em] text-white/60" aria-expanded={open}>
-        <span>Progress / before &amp; after</span>
-        <ChevronRight className={`h-4 w-4 transition-transform ${open ? "rotate-90" : ""}`} />
-      </button>
-      {open && (
-        <RailShell heightClass="h-14">
-          <button type="button" onClick={onAdd} className="flex aspect-square h-full shrink-0 items-center justify-center border border-blue-400/70 bg-blue-500/15 text-blue-100" aria-label="Add progress photo"><Plus className="h-5 w-5" /></button>
-          {ghostAvailable && <button type="button" onClick={onToggleGhost} className={`min-w-24 border px-2 text-[10px] font-black ${ghostOn ? "border-blue-400 bg-blue-500/20 text-blue-100" : "border-white/15 bg-white/10 text-white/70"}`}>Ghost align</button>}
-          {items.map((item) => <ThumbButton key={item.id} item={item} thumbKey={`progress-${item.id}`} active={false} revealed={revealedThumbKey === `progress-${item.id}`} label={new Date(item.created_at).toLocaleDateString()} onReveal={onReveal} onOpen={() => onSelectItem(item)} />)}
-        </RailShell>
-      )}
     </section>
   );
 }

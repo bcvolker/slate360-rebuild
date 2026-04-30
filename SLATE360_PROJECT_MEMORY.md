@@ -196,6 +196,31 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
+### Session Handoff — 2026-04-30 (Capture Attachments + Rail Layout Refinement)
+
+#### What Changed
+- `components/site-walk/capture/PhotoAttachmentPins.tsx` — reduced saved attachment markers to smaller cyan paperclip icons; tapping a marker now opens a compact preview card, and tapping the preview opens an edit panel for the marker label/note with remove support.
+- `components/site-walk/capture/VisualCaptureView.tsx` — moved Markup and Files directly below the capture image, so field controls are adjacent to the photo instead of below the angles rail.
+- `components/site-walk/capture/VisualCaptureView.tsx` — combined Additional Angles and Progress/Before & After into one shared horizontal rail with a two-button toggle; Additional Angles is the default and Progress keeps Ghost Align when available.
+- `components/site-walk/capture/VisualCaptureView.tsx` — top undo/redo controls now show `Undo` and `Redo` labels next to the icons.
+- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — added Prompt 10P row and backfilled Prompt 10O commit hash.
+
+#### What's Broken / Partially Done
+- Needs real-device smoke test: attach a file, confirm the paperclip marker is small, tap marker for quick preview, tap preview to edit label/note, confirm Files sheet still lists and previews attachments.
+- The compact marker preview edits marker metadata only; full file preview still lives in the Files sheet preview modal.
+- The rail toggle is a space-saving UI pass, but the underlying distinction between true angles vs progress photos is still heuristic/current-session based.
+- `bash scripts/check-file-size.sh` still exits 1 due to known pre-existing oversized files; touched files remain under 300 lines (`VisualCaptureView.tsx` 217, `PhotoAttachmentPins.tsx` 183).
+- The user-uploaded reference image `public/uploads/marked up.jpg` and `ts-prune-output.txtcat` remain untracked and intentionally not committed.
+
+#### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md` — this handoff.
+- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — Prompt 10P row.
+
+#### Next Steps (ordered)
+1. Mobile-test the marker tap → preview → edit label/note loop and the Files sheet preview loop.
+2. Verify the new Markup/Files position feels better in hand and that the combined rail does not crowd shorter phone viewports.
+3. Continue simplifying the Data screen around photo reference + notes-first construction workflow; current dropdowns/buttons remain transitional.
+
 ### Session Handoff — 2026-04-30 (Markup Canvas Mobile UX Fixes)
 
 #### What Changed

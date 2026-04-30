@@ -20,6 +20,8 @@ type Props = {
 export function PhotoAttachmentPins({ sessionId, pins, draftPin, transform, onDraftClose, onPinsChange }: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [localPins, setLocalPins] = useState(pins);
+  const [selectedPinId, setSelectedPinId] = useState<string | null>(null);
+  const [editingPinId, setEditingPinId] = useState<string | null>(null);
   const [label, setLabel] = useState("");
   const [note, setNote] = useState("");
   const [files, setFiles] = useState<PhotoAttachmentFile[]>([]);
@@ -82,6 +84,24 @@ export function PhotoAttachmentPins({ sessionId, pins, draftPin, transform, onDr
     const nextPins = localPins.filter((pin) => pin.id !== pinId);
     setLocalPins(nextPins);
     onPinsChange(nextPins);
+    if (selectedPinId === pinId) setSelectedPinId(null);
+    if (editingPinId === pinId) setEditingPinId(null);
+  }
+
+  function startEdit(pin: PhotoAttachmentPin) {
+    setEditingPinId(pin.id);
+    setLabel(pin.label);
+    setNote(pin.note);
+  }
+
+  function savePinEdits() {
+    if (!editingPinId) return;
+    const nextPins = localPins.map((pin) => pin.id === editingPinId ? { ...pin, label: label.trim() || pin.label, note: note.trim() } : pin);
+    setLocalPins(nextPins);
+    onPinsChange(nextPins);
+    setEditingPinId(null);
+    setLabel("");
+    setNote("");
   }
 
   return (
@@ -89,11 +109,8 @@ export function PhotoAttachmentPins({ sessionId, pins, draftPin, transform, onDr
       <div className="pointer-events-none absolute inset-0" style={{ transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})`, transformOrigin: "center" }}>
         {localPins.map((pin) => (
           <div key={pin.id} className="pointer-events-auto absolute -translate-x-1/2 -translate-y-1/2" style={{ left: `${pin.xPct}%`, top: `${pin.yPct}%` }}>
-            <div className="group flex h-9 min-w-9 items-center justify-center gap-1 rounded-full border-2 border-blue-200 bg-blue-600/90 px-2 text-[10px] font-black text-white shadow-[0_0_0_3px_rgba(0,0,0,0.45)] backdrop-blur-md">
-              <Paperclip className="h-4 w-4 text-white" />
-              <span className="max-w-24 truncate opacity-0 transition group-hover:opacity-100 group-focus-within:opacity-100">{pin.label}</span>
-              <button type="button" onClick={() => removePin(pin.id)} className="ml-1 rounded-full bg-white/15 p-1 text-white" aria-label={`Delete ${pin.label}`}><X className="h-3 w-3" /></button>
-            </div>
+            <button type="button" onClick={() => setSelectedPinId((current) => current === pin.id ? null : pin.id)} className="flex h-7 w-7 items-center justify-center rounded-full border border-cyan-100 bg-cyan-500/95 text-white shadow-[0_0_0_2px_rgba(0,0,0,0.55),0_8px_22px_rgba(8,145,178,0.35)] backdrop-blur-md" aria-label={`Preview attachment ${pin.label}`}><Paperclip className="h-3.5 w-3.5" /></button>
+            {selectedPinId === pin.id && <button type="button" onClick={() => startEdit(pin)} className="absolute left-1/2 top-8 z-40 w-44 -translate-x-1/2 rounded-2xl border border-cyan-300/25 bg-slate-950/95 p-2 text-left text-white shadow-2xl backdrop-blur-xl"><p className="truncate text-xs font-black text-cyan-100">{pin.label}</p><p className="mt-1 line-clamp-2 text-[11px] font-bold text-white/65">{pin.note || `${pin.files.length} attached file${pin.files.length === 1 ? "" : "s"}`}</p><p className="mt-2 text-[10px] font-black uppercase tracking-[0.14em] text-cyan-200/80">Tap to edit</p></button>}
           </div>
         ))}
       </div>
@@ -120,6 +137,20 @@ export function PhotoAttachmentPins({ sessionId, pins, draftPin, transform, onDr
             {message && <span className="text-xs font-bold text-rose-200">{message}</span>}
           </div>
           {files.length > 0 && <div className="mt-3 flex gap-2 overflow-x-auto pb-1 no-scrollbar">{files.map((file) => <FileChip key={file.id} file={file} onRemove={() => setFiles((current) => current.filter((item) => item.id !== file.id))} />)}</div>}
+        </div>
+      )}
+
+      {editingPinId && (
+        <div className="absolute inset-x-3 bottom-3 z-40 rounded-[1.5rem] border border-cyan-300/20 bg-slate-950/95 p-3 text-white shadow-2xl backdrop-blur-xl">
+          <div className="flex items-start justify-between gap-3">
+            <div><p className="text-[11px] font-black uppercase tracking-[0.16em] text-cyan-100">Edit pinned file</p><p className="mt-1 text-xs font-semibold text-white/60">Update the marker name or field note.</p></div>
+            <button type="button" onClick={() => setEditingPinId(null)} className="rounded-full border border-white/15 p-2 text-white/80"><X className="h-4 w-4" /></button>
+          </div>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            <input value={label} onChange={(event) => setLabel(event.target.value)} className="rounded-2xl border border-white/15 bg-white/10 px-3 py-2 text-sm font-bold outline-none placeholder:text-white/40" placeholder="Attachment name" />
+            <input value={note} onChange={(event) => setNote(event.target.value)} className="rounded-2xl border border-white/15 bg-white/10 px-3 py-2 text-sm font-bold outline-none placeholder:text-white/40" placeholder="Brief note" />
+          </div>
+          <div className="mt-3 flex gap-2"><button type="button" onClick={savePinEdits} className="min-h-10 rounded-2xl bg-cyan-300 px-4 text-sm font-black text-slate-950">Save changes</button><button type="button" onClick={() => editingPinId && removePin(editingPinId)} className="min-h-10 rounded-2xl border border-rose-300/30 bg-rose-500/10 px-4 text-sm font-black text-rose-100">Remove pin</button></div>
         </div>
       )}
     </>
