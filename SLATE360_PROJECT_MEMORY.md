@@ -196,6 +196,45 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
+### Session Handoff — 2026-05-14 (App-Shell Doctrine + Placeholder Page Purge)
+
+#### What Changed
+- `app/site-walk/(act-3-outputs)/deliverables/page.tsx` — was `<ComingSoonEmptyState>` → real Supabase query on `site_walk_deliverables`, DeliverableCard list, Dark Glass bg, CTA empty state
+- `app/site-walk/(act-2-inputs)/assigned-work/page.tsx` — was placeholder prose + dev note → real query on `site_walk_assignments` for current user, AssignmentCard list with priority/status
+- `app/site-walk/(act-2-inputs)/walks/page.tsx` — removed `bg-slate-50` + marketing hero → Dark Glass palette, all stat/walk cards restyled to `bg-white/5`
+- `app/(apps)/content-studio/page.tsx`, `design-studio/page.tsx`, `tour-builder/page.tsx` — unwrapped bare `<main>` wrappers; now direct shell pass-throughs
+- `app/(dashboard)/my-work/page.tsx` — was static white scaffold → async server component querying `site_walk_assignments`, Dark Glass list with link to assigned-work
+- `app/(dashboard)/settings/account/page.tsx` — removed 2 disabled "Coming Soon" rows (email prefs, 2FA)
+- `app/coordination/inbox/page.tsx`, `calendar/page.tsx` — removed dev notes/planning text → clean empty states
+- `app/coordination/contacts/page.tsx` — was static feature-planning cards → real `org_contacts` query, ContactCard grid
+- `components/dashboard/DashboardClient.tsx` — removed `geospatial` + `virtual-studio` from `ALL_TABS`
+- `components/dashboard/DashboardOverview.tsx` — removed same from `routeMap`
+- `components/project-hub/ProjectDashboardGrid.tsx` — 591→534 lines via extraction to new lib
+- `lib/project-hub/resolve-project-location.ts` — **new file** extracted utility
+- `ops/architecture-allowlist.json` — 4 stale market entries removed, `view/**/route.ts` added
+- `ops/file-size-baseline.json` — ProjectDashboardGrid updated to 534, legacy CaptureClient added
+- `ops/bug-registry.json` — BUG-057 and BUG-058 added (both fixed)
+- `ONGOING_ISSUES.md` — S360-040, S360-041 added (both done); app-shell doctrine note added
+- `SLATE360_MASTER_BUILD_PLAN.md` — §15 Neutral App-Shell Doctrine section added
+
+#### What's Broken / Partially Done
+- **BUG-018 MAY 2026 DEADLINE**: `components/dashboard/LocationMap.tsx` — DrawingManager deprecated. Lines 194, 459, 1479. Replace with native `google.maps` click-based pattern (see `WizardLocationPicker.tsx`). ~400-line change in 1,624-line file.
+- SlateDrop Recents/Shared/Requests tabs still show mock/empty data (no real wiring yet)
+- `file_folders` → `project_folders` Phase 2 migration incomplete
+- BUG-021 (location views inconsistent across contexts) still `in-progress` — `LocationDisplay` component exists but may not be consumed uniformly
+
+#### Context Files Updated
+- `ops/bug-registry.json` — BUG-057/058 added
+- `ONGOING_ISSUES.md` — S360-040/041 added, doctrine note added, date updated
+- `SLATE360_MASTER_BUILD_PLAN.md` — §15 Neutral App-Shell Doctrine added
+- `SLATE360_PROJECT_MEMORY.md` — this handoff
+
+#### Next Steps (ordered)
+1. Fix BUG-018 — LocationMap DrawingManager migration (May 2026 deadline — HIGH URGENCY)
+2. Wire SlateDrop Recents/Shared/Requests to real Supabase data
+3. Continue Site Walk flagship: Act 1 field-project setup, Act 3 deliverable builder
+4. Audit any remaining `<ComingSoonEmptyState>` usage in the shell → either gate it or replace it
+
 ### Session Handoff — 2026-05-01 (Allowlist Fix + File Size Cleanup)
 
 #### What Changed

@@ -1,6 +1,6 @@
 # Slate360 Ongoing Issues
 
-Last updated: 2026-04-17
+Last updated: 2026-05-14
 
 This is the durable root issue tracker for the active Phase 1 repair program. It is intended to preserve the current business-logic, routing, and product-surface concerns while implementation proceeds in smaller slices.
 
@@ -62,8 +62,12 @@ Fix timing values:
 | S360-031 | Owner override handling distorts account trust | High | No | Data / usage / credits | The active My Account route now avoids misleading credit-used math and preserves the same underlying balances for owner and subscriber views, but broader owner-only surfaces still need audit. | `components/dashboard/my-account/AccountBillingTab.tsx`; `components/dashboard/my-account/AccountDataTrackerTab.tsx` | Keep owner notes informational only and continue separating owner diagnostics from subscriber-facing truths. | before design | Medium | testing | Improved in this slice, not fully closed platform-wide. |
 | S360-032 | Platform usage visibility gap across AWS, Supabase, and app usage | High | No | Data / usage / credits | The current UI does not expose a cohesive platform usage picture spanning storage, uploads, credits, entitlements, or backend usage health. | Dashboard and account usage surfaces; storage/credits APIs | Build a truthful Phase 1 usage layer after the canonical metric contract is settled. | during design | High | open | Do not add more cards before the source model is unified. |
 
+| S360-040 | Authenticated pages rendered placeholder/marketing content and dev notes | Critical | Yes | app-shell/site-walk/coordination/dashboard | Multiple in-shell routes (deliverables, assigned-work, walks, coordination inbox/calendar/contacts, my-work, content-studio, design-studio, tour-builder, settings/account) still had Coming Soon stubs, marketing hero text, filler prose, or dev planning notes visible to users. App Store review requires every surface to be functional. | `app/site-walk/(act-3-outputs)/deliverables/page.tsx`; `app/site-walk/(act-2-inputs)/assigned-work/page.tsx`; `app/site-walk/(act-2-inputs)/walks/page.tsx`; `app/(apps)/content-studio/page.tsx`; `app/(apps)/design-studio/page.tsx`; `app/(apps)/tour-builder/page.tsx`; `app/(dashboard)/my-work/page.tsx`; `app/(dashboard)/settings/account/page.tsx`; `app/coordination/inbox/page.tsx`; `app/coordination/calendar/page.tsx`; `app/coordination/contacts/page.tsx` | Replace all filler with real Supabase queries and Dark Glass workspaces; remove all dev notes and Coming Soon disabled rows from user-visible UI. See BUG-057. | before design | High | done | Fixed in commit 262c69a — all routes now have real data queries or clean empty states in Dark Glass palette. Rule: every authenticated page must be a functional workspace. |
+| S360-041 | Pre-pivot dead apps (Geospatial, Virtual Studio) still appeared in dashboard launcher | High | Yes | dashboard | `DashboardClient.tsx` ALL_TABS and `DashboardOverview.tsx` routeMap still included `geospatial` and `virtual-studio` entries pointing to non-existent routes — apps removed from the product before current architecture was established. | `components/dashboard/DashboardClient.tsx`; `components/dashboard/DashboardOverview.tsx` | Remove both entries from ALL_TABS and routeMap. See BUG-058. | before design | Medium | done | Fixed in commit 262c69a — both entries removed. Dashboard launcher no longer shows tiles for dead apps. |
+
 ## Notes
 
 - This tracker intentionally preserves uncertain items as uncertain when repo evidence is incomplete.
 - Do not mark issues `done` until the route/component/data-path evidence has been re-verified after the fix.
 - If a future prompt changes product-surface assumptions, update this file and the active build-plan report in the same slice.
+- **App-shell doctrine (added 2026-05-XX):** Every authenticated page must be a functional workspace. No placeholder text, no Coming Soon, no dev notes in user-visible UI. Pages inside the authenticated shell are not web pages — they are native app panes.

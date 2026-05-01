@@ -634,6 +634,16 @@ DB schema, route design, auth logic, entitlements, storage flows, API shapes, sh
 16. **CEO/Market/Athlete360 are NOT subscription features.** Gated by `isSlateCeo` only.
 17. **Release gate must pass** (`npm run verify:release`) before merge.
 
+### Neutral App-Shell Doctrine (added 2026-05-14)
+
+Every authenticated page inside the app shell is a **functional workspace**, not a web page.
+
+- **Every page must have a real job.** Pages inside `/dashboard`, `/site-walk`, `/coordination`, `/projects`, and any app shell route must render real data, real actions, or a clean functional empty state. They must not render hero text, descriptive marketing paragraphs, "Coming soon" banners, numbered planning lists, or dev notes visible to users.
+- **No placeholder content in the authenticated shell.** If a route is not ready, do not show it — hide it via App Store mode or entitlement gates. A page that exists must be usable.
+- **Dark Glass palette is mandatory** for all authenticated shell surfaces. Background: `bg-[radial-gradient(circle_at_top,rgba(37,99,235,0.14),transparent_34%),#0B0F15]`. Cards: `border-white/10 bg-white/5 backdrop-blur-sm`. No `bg-white`, `bg-slate-50`, or hardcoded light classes inside authenticated routes.
+- **No pre-pivot dead apps in the launcher.** If a module was removed from the product, remove it from `ALL_TABS`, `routeMap`, command palette, and all nav components in the same commit.
+- **Coming Soon is banned inside the shell.** `<ComingSoonEmptyState>` may only appear behind an explicit feature flag or be replaced before any App Store submission build.
+
 ### Site Walk Capture Scaffolding Rule
 
 Before implementing capture logic, create the modular Act 2 capture component scaffold. The route page must import components from the Site Walk component tree and remain a thin composition file. Do not build capture, plan viewer, canvas, sync queue, or bottom-sheet logic directly inside a single page file.

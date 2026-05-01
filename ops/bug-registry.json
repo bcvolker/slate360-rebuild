@@ -532,6 +532,38 @@
         "resolveServerOrgContext grants Operations Console access to slate360_staff rows as well as CEO_EMAIL owner identity",
         "Mobile bottom nav labels /projects as tier-neutral Work and treats /operations-console as a More surface"
       ]
+    },
+    {
+      "id": "BUG-057",
+      "title": "Authenticated pages rendered placeholder/marketing content and dev notes instead of functional workspaces",
+      "module": "app-shell/site-walk/coordination/dashboard/my-work",
+      "severity": "critical",
+      "status": "fixed",
+      "rootCause": "Multiple authenticated-shell routes (deliverables, assigned-work, walks, coordination inbox/calendar/contacts, my-work, content-studio, design-studio, tour-builder, settings/account) still contained marketing hero text, Coming Soon stubs, numbered dev planning lists, filler prose, or bare `<main>` wrappers instead of functional Dark Glass workspaces. App Store review requires every in-app surface to be real and functional.",
+      "verification": [
+        "app/site-walk/(act-3-outputs)/deliverables/page.tsx queries site_walk_deliverables and renders real deliverable list with empty state",
+        "app/site-walk/(act-2-inputs)/assigned-work/page.tsx queries site_walk_assignments for current user with real cards",
+        "app/site-walk/(act-2-inputs)/walks/page.tsx uses Dark Glass bg (#0B0F15) — no marketing hero paragraph",
+        "app/(apps)/content-studio, design-studio, tour-builder pages are pass-throughs to their shell components with no bare <main> wrappers",
+        "app/(dashboard)/my-work/page.tsx queries site_walk_assignments and renders live task list in Dark Glass",
+        "app/coordination/inbox and calendar have clean empty states instead of dev notes",
+        "app/coordination/contacts queries org_contacts and renders ContactCard grid",
+        "app/(dashboard)/settings/account/page.tsx has no disabled Coming Soon rows",
+        "npm run typecheck passes after all changes"
+      ]
+    },
+    {
+      "id": "BUG-058",
+      "title": "Pre-pivot dead apps (Geospatial, Virtual Studio) still visible in dashboard launcher",
+      "module": "dashboard",
+      "severity": "high",
+      "status": "fixed",
+      "rootCause": "components/dashboard/DashboardClient.tsx ALL_TABS and components/dashboard/DashboardOverview.tsx routeMap still included `geospatial` and `virtual-studio` entries that pointed to non-existent routes — pre-pivot apps removed from the product before current architecture was established.",
+      "verification": [
+        "grep -n 'geospatial\\|virtual-studio' components/dashboard/DashboardClient.tsx returns no results",
+        "grep -n 'geospatial\\|virtual-studio' components/dashboard/DashboardOverview.tsx returns no results",
+        "Dashboard app launcher shows no tiles for Geospatial or Virtual Studio"
+      ]
     }
   ]
 }
