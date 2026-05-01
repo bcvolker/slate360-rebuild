@@ -1,73 +1,92 @@
 import Link from "next/link";
-import { ClipboardCheck, FolderOpen, MessageSquare, Plus, Search } from "lucide-react";
+import { ArrowRight, ClipboardCheck, Clock, FolderOpen, Plus } from "lucide-react";
+import { resolveServerOrgContext } from "@/lib/server/org-context";
+import { createAdminClient } from "@/lib/supabase/admin";
+import type { SiteWalkAssignment, AssignmentPriority, AssignmentStatus } from "@/lib/types/site-walk";
 
 export const metadata = {
   title: "My Work — Slate360",
 };
 
-const WORK_BUCKETS = [
-  {
-    label: "Assigned to me",
-    description: "Tasks, walk items, and reviews that need your response.",
-  },
-  {
-    label: "Created by me",
-    description: "Work you assigned, requested, or started and need to track.",
-  },
-  {
-    label: "Due soon",
-    description: "Upcoming follow-ups, approvals, reports, and project actions.",
-  },
-] as const;
+type AssignmentRow = Pick<SiteWalkAssignment, "id" | "title" | "priority" | "status" | "due_date" | "session_id">;
 
-export default function MyWorkPage() {
+export default async function MyWorkPage() {
+  const { user, orgId } = await resolveServerOrgContext();
+
+  const assignments: AssignmentRow[] = [];
+  if (orgId && user) {
+    const admin = createAdminClient();
+    const { data } = await admin
+      .from("site_walk_assignments")
+      .select("id, title, priority, status, due_date, session_id")
+      .eq("org_id", orgId)
+      .eq("assigned_to", user.id)
+      .neq("status", "done")
+      .order("created_at", { ascending: false })
+      .limit(50);
+    assignments.push(...((data ?? []) as AssignmentRow[]));
+  }
+
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-5 sm:px-6 lg:px-8 lg:py-8">
-      <section className="rounded-3xl border border-slate-300 bg-white p-5 shadow-sm sm:p-6">
-        <p className="text-[11px] font-black uppercase tracking-[0.18em] text-blue-700">My Work</p>
-        <h1 className="mt-2 text-2xl font-black text-slate-950 sm:text-3xl">Tasks, to-dos, and reviews</h1>
-        <p className="mt-2 max-w-2xl text-sm text-slate-600">
-          One place for work assigned to you, work you assigned to others, self to-dos, and due-soon follow-ups.
-        </p>
-      </section>
+    <div className="mx-auto flex w-full max-w-5xl flex-col gap-4 px-4 py-5 sm:px-6 lg:px-8 lg:py-8">
+      <header>
+        <p className="text-[11px] font-black uppercase tracking-[0.18em] text-blue-400">My Work</p>
+        <h1 className="mt-1 text-2xl font-black text-slate-50">Tasks &amp; reviews</h1>
+      </header>
 
-      <section className="grid gap-3 sm:grid-cols-3">
-        {WORK_BUCKETS.map((bucket) => (
-          <div key={bucket.label} className="rounded-3xl border border-slate-300 bg-white p-4 shadow-sm">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-50 text-blue-700">
-              <ClipboardCheck className="h-5 w-5" />
-            </div>
-            <h2 className="mt-4 text-sm font-black text-slate-950">{bucket.label}</h2>
-            <p className="mt-1 text-xs leading-5 text-slate-600">{bucket.description}</p>
+      {assignments.length > 0 ? (
+        <section className="space-y-3">
+          {assignments.map((a) => (
+            <Link key={a.id} href={`/site-walk/walks/${a.session_id}`} className="flex items-center justify-between gap-4 rounded-3xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm transition hover:border-blue-500/40 hover:bg-white/10">
+              <div className="min-w-0 flex-1">
+                <p className="truncate font-black text-slate-50">{a.title}</p>
+                <div className="mt-0.5 flex items-center gap-3 text-xs">
+                  <span className={priorityColor(a.priority)}>{a.priority}</span>
+                  {a.due_date && <span className="flex items-center gap-1 text-slate-500"><Clock className="h-3 w-3" /> {formatDate(a.due_date)}</span>}
+                </div>
+              </div>
+              <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-black uppercase tracking-wide ${statusColor(a.status)}`}>
+                {a.status.replace(/_/g, " ")}
+              </span>
+            </Link>
+          ))}
+        </section>
+      ) : (
+        <section className="rounded-3xl border border-dashed border-white/20 bg-white/5 p-10 text-center">
+          <ClipboardCheck className="mx-auto h-7 w-7 text-slate-500" />
+          <p className="mt-3 text-sm font-black text-slate-300">No active assignments</p>
+          <p className="mx-auto mt-1 max-w-md text-sm text-slate-500">
+            Items assigned to you from Site Walk sessions will appear here.
+          </p>
+          <div className="mt-5 flex flex-wrap justify-center gap-2">
+            <Link href="/projects" className="inline-flex items-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-4 py-2 text-sm font-black text-slate-200 hover:bg-white/20">
+              <FolderOpen className="h-4 w-4" /> Projects
+            </Link>
+            <Link href="/site-walk" className="inline-flex items-center gap-2 rounded-2xl bg-blue-600 px-4 py-2 text-sm font-black text-white hover:bg-blue-500">
+              <Plus className="h-4 w-4" /> Start a Walk
+            </Link>
           </div>
-        ))}
-      </section>
+        </section>
+      )}
 
-      <section className="rounded-3xl border border-dashed border-slate-300 bg-slate-50 px-4 py-10 text-center">
-        <ClipboardCheck className="mx-auto h-7 w-7 text-slate-400" />
-        <p className="mt-3 text-sm font-bold text-slate-800">No active work yet</p>
-        <p className="mx-auto mt-1 max-w-md text-sm text-slate-600">
-          As Site Walk items, project tasks, approvals, and deliverable reviews are assigned or created, they will appear here.
-        </p>
-        <div className="mt-5 flex flex-wrap justify-center gap-2">
-          <Link href="/projects" className="inline-flex min-h-11 items-center gap-2 rounded-2xl border border-slate-300 bg-white px-4 text-sm font-bold text-slate-900 hover:border-blue-600">
-            <FolderOpen className="h-4 w-4" /> Open Projects
-          </Link>
-          <Link href="/coordination" className="inline-flex min-h-11 items-center gap-2 rounded-2xl border border-slate-300 bg-white px-4 text-sm font-bold text-slate-900 hover:border-blue-600">
-            <MessageSquare className="h-4 w-4" /> Coordination
-          </Link>
-          <Link href="/dashboard" className="inline-flex min-h-11 items-center gap-2 rounded-2xl bg-blue-600 px-4 text-sm font-bold text-white hover:bg-blue-700">
-            <Plus className="h-4 w-4" /> Quick Start
-          </Link>
-        </div>
-      </section>
-
-      <section className="rounded-3xl border border-slate-300 bg-white p-4 shadow-sm">
-        <div className="flex items-center gap-3 text-sm text-slate-600">
-          <Search className="h-4 w-4 text-blue-700" />
-          Use the top search icon or Command Palette to jump directly to apps, files, projects, contacts, and settings.
-        </div>
+      <section className="rounded-3xl border border-white/10 bg-white/5 p-4">
+        <Link href="/site-walk/assigned-work" className="flex items-center justify-between text-sm text-slate-400 hover:text-slate-200">
+          <span>All assigned items in Site Walk</span>
+          <ArrowRight className="h-4 w-4" />
+        </Link>
       </section>
     </div>
   );
+}
+
+function priorityColor(p: AssignmentPriority) {
+  return p === "critical" ? "font-black text-red-400" : p === "high" ? "font-black text-orange-400" : p === "medium" ? "font-black text-yellow-400" : "font-black text-slate-400";
+}
+
+function statusColor(s: AssignmentStatus) {
+  return s === "acknowledged" ? "bg-blue-700/60 text-blue-200" : s === "in_progress" ? "bg-yellow-700/60 text-yellow-200" : "bg-slate-700 text-slate-300";
+}
+
+function formatDate(iso: string) {
+  return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }

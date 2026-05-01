@@ -61,20 +61,6 @@ export default async function AccountSettingsPage() {
           />
           <AccountRow
             href="/dashboard"
-            icon={<Mail className="h-4 w-4" />}
-            label="Email preferences"
-            hint="Coming soon"
-            disabled
-          />
-          <AccountRow
-            href="/dashboard"
-            icon={<Shield className="h-4 w-4" />}
-            label="Two-factor authentication"
-            hint="Coming soon"
-            disabled
-          />
-          <AccountRow
-            href="/dashboard"
             icon={<CreditCard className="h-4 w-4" />}
             label="Billing & subscription"
             hint="Manage in Stripe portal"

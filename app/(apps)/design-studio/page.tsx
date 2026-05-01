@@ -28,10 +28,5 @@ export default async function DesignStudioPage() {
     .eq("org_id", orgId)
     .order("name", { ascending: true });
 
-  return (
-    <main className="flex min-h-screen flex-col p-6">
-      <h1 className="mb-6 text-2xl font-bold">Design Studio</h1>
-      <DesignStudioShell projects={projects ?? []} />
-    </main>
-  );
+  return <DesignStudioShell projects={projects ?? []} />;
 }

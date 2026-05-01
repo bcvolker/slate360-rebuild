@@ -1,9 +1,10 @@
 import { redirect } from "next/navigation";
-import { Bell, FileInput, MessageSquare, Sparkles } from "lucide-react";
+import { Inbox } from "lucide-react";
+import Link from "next/link";
 import { CoordinationHubShell } from "@/components/coordination/CoordinationHubShell";
 import { resolveServerOrgContext } from "@/lib/server/org-context";
 
-export const metadata = { title: "Communication Inbox — Slate360" };
+export const metadata = { title: "Inbox — Slate360" };
 export const dynamic = "force-dynamic";
 
 export default async function CoordinationInboxPage() {
@@ -13,33 +14,20 @@ export default async function CoordinationInboxPage() {
   return (
     <CoordinationHubShell
       active="inbox"
-      eyebrow="Coordination Hub"
-      title="Communication Inbox"
-      description="This is the bell destination: received files, stakeholder responses, feedback replies, comments, and action-required notifications should collect here instead of hiding inside account settings."
+      eyebrow="Coordination"
+      title="Inbox"
+      description="Messages, received files, and stakeholder responses from your project activity."
     >
-      <section className="grid gap-3 lg:grid-cols-3">
-        <InboxCard icon={Bell} title="Notifications" detail="Unread comments, assignment updates, deliverable views, and system replies." />
-        <InboxCard icon={FileInput} title="Received" detail="Uploaded documents, stakeholder responses, intake links, and SlateDrop receipts." />
-        <InboxCard icon={MessageSquare} title="Messages" detail="Threads tied to projects, Site Walk items, deliverables, and feedback tickets." />
-      </section>
-
-      <section className="rounded-3xl border border-dashed border-white/15 bg-white/5 p-6 text-center shadow-lg backdrop-blur-md">
-        <Sparkles className="mx-auto h-8 w-8 text-blue-200" />
-        <p className="mt-3 text-sm font-black text-white">No communication items yet</p>
-        <p className="mx-auto mt-1 max-w-2xl text-sm leading-6 text-slate-300">
-          The next wiring pass should route feedback replies, Site Walk comments, received SlateDrop uploads, and stakeholder responses into this inbox with unread counts for the notification bell.
+      <div className="rounded-3xl border border-dashed border-white/20 bg-white/5 p-10 text-center">
+        <Inbox className="mx-auto h-8 w-8 text-slate-500" />
+        <p className="mt-3 font-black text-slate-300">No messages yet</p>
+        <p className="mt-1 text-sm text-slate-500">
+          Activity from Site Walk items, SlateDrop shares, and project updates will appear here.
         </p>
-      </section>
+        <Link href="/site-walk" className="mt-5 inline-flex items-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-4 py-2 text-sm font-black text-slate-200 hover:bg-white/20">
+          Go to Site Walk
+        </Link>
+      </div>
     </CoordinationHubShell>
-  );
-}
-
-function InboxCard({ icon: Icon, title, detail }: { icon: typeof Bell; title: string; detail: string }) {
-  return (
-    <div className="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-lg backdrop-blur-md">
-      <Icon className="h-5 w-5 text-blue-200" />
-      <h2 className="mt-3 text-sm font-black text-white">{title}</h2>
-      <p className="mt-1 text-sm leading-6 text-slate-400">{detail}</p>
-    </div>
   );
 }

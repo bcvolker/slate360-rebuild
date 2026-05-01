@@ -49,8 +49,6 @@ function useVisibleTabs(
     { id: "design-studio",  label: "Design Studio",  icon: Palette,         color: "#7C3AED", entKey: "canAccessDesignStudio", requiredTier: "standard" },
     { id: "content-studio", label: "Content Studio", icon: Layers,          color: "#EC4899", entKey: "canAccessContent",      requiredTier: "standard" },
     { id: "tours",          label: "360 Tours",      icon: Compass,         color: "#0891B2", entKey: "canAccessStandaloneTourBuilder",  requiredTier: "standard" },
-    { id: "geospatial",     label: "Geospatial",     icon: Globe,           color: "#059669", entKey: "canAccessGeospatial",   requiredTier: "standard" },
-    { id: "virtual-studio", label: "Virtual Studio", icon: Film,            color: "#2563EB", entKey: "canAccessVirtual",      requiredTier: "standard" },
     { id: "analytics",      label: "Analytics",      icon: BarChart3,       color: "#6366F1", entKey: "canAccessAnalytics",    requiredTier: "business" },
     { id: "my-account",     label: "My Account",     icon: User,            color: "#3B82F6" },
   ];

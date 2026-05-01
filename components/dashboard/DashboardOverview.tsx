@@ -129,8 +129,6 @@ export default function DashboardOverview({
                         "design-studio": "/design-studio",
                         "content-studio": "/content-studio",
                         "tours": "/tours",
-                        "geospatial": "/geospatial",
-                        "virtual-studio": "/virtual-studio",
                         "analytics": "/analytics",
                         "my-account": "/my-account",
                         "operations-console": "/operations-console",

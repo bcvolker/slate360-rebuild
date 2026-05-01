@@ -14,17 +14,9 @@ export default async function SiteWalksPage() {
   const walks = context.orgId ? await loadActiveWalks(context.orgId) : [];
 
   return (
-    <main className="min-h-[calc(100vh-160px)] bg-slate-50 px-4 py-6 text-slate-950 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-7xl space-y-5">
-        <section className="rounded-3xl border border-slate-300 bg-white p-6 shadow-sm">
-          <p className="text-xs font-black uppercase tracking-[0.2em] text-blue-800">Active walks</p>
-          <h1 className="mt-2 text-3xl font-black tracking-tight">Live field command center</h1>
-          <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-700">
-            Watch in-progress walks across active projects, then drill into a real-time Location → Item feed as field captures arrive.
-          </p>
-        </section>
-
-        <section className="grid gap-4 lg:grid-cols-3">
+    <main className="min-h-[calc(100dvh-96px)] overflow-y-auto bg-[radial-gradient(circle_at_top,rgba(37,99,235,0.14),transparent_34%),#0B0F15] px-4 py-4 text-slate-50 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl space-y-4">
+        <section className="grid gap-3 lg:grid-cols-3">
           <StatCard label="In progress" value={String(walks.length)} />
           <StatCard label="Items captured" value={String(walks.reduce((sum, walk) => sum + walk.itemCount, 0))} />
           <StatCard label="Active walkers" value={String(new Set(walks.map((walk) => walk.walkerName)).size)} />
@@ -32,7 +24,7 @@ export default async function SiteWalksPage() {
 
         <section className="grid gap-3">
           {walks.map((walk) => <WalkCard key={walk.id} walk={walk} />)}
-          {walks.length === 0 && <div className="rounded-3xl border border-dashed border-slate-300 bg-white p-8 text-center text-sm font-bold text-slate-600 shadow-sm">No in-progress walks right now. Start a walk from a phone and it will appear here.</div>}
+          {walks.length === 0 && <div className="rounded-3xl border border-dashed border-white/20 bg-white/5 p-8 text-center text-sm font-bold text-slate-400">No in-progress walks right now. Start a walk from a phone and it will appear here.</div>}
         </section>
       </div>
     </main>
@@ -41,10 +33,10 @@ export default async function SiteWalksPage() {
 
 function WalkCard({ walk }: { walk: LiveWalkSummary }) {
   return (
-    <Link href={`/site-walk/walks/${walk.id}`} className="grid gap-4 rounded-3xl border border-slate-300 bg-white p-5 shadow-sm transition hover:border-blue-300 lg:grid-cols-[minmax(0,1.2fr)_repeat(3,minmax(0,0.5fr))] lg:items-center">
+    <Link href={`/site-walk/walks/${walk.id}`} className="grid gap-4 rounded-3xl border border-white/10 bg-white/5 p-5 backdrop-blur-sm transition hover:border-blue-500/40 hover:bg-white/10 lg:grid-cols-[minmax(0,1.2fr)_repeat(3,minmax(0,0.5fr))] lg:items-center">
       <div>
-        <p className="text-xs font-black uppercase tracking-[0.16em] text-blue-800">{walk.projectName ?? "Ad-hoc walk"}</p>
-        <h2 className="mt-1 text-xl font-black text-slate-950">{walk.title}</h2>
+        <p className="text-xs font-black uppercase tracking-[0.16em] text-blue-400">{walk.projectName ?? "Ad-hoc walk"}</p>
+        <h2 className="mt-1 text-xl font-black text-slate-50">{walk.title}</h2>
       </div>
       <Metric icon={<UserRound className="h-4 w-4" />} label="Person walking" value={walk.walkerName} />
       <Metric icon={<Clock className="h-4 w-4" />} label="Time elapsed" value={elapsedLabel(walk.startedAt)} />
@@ -54,11 +46,11 @@ function WalkCard({ walk }: { walk: LiveWalkSummary }) {
 }
 
 function StatCard({ label, value }: { label: string; value: string }) {
-  return <div className="rounded-3xl border border-slate-300 bg-white p-5 shadow-sm"><p className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">{label}</p><p className="mt-2 text-3xl font-black text-slate-950">{value}</p></div>;
+  return <div className="rounded-3xl border border-white/10 bg-white/5 p-5 backdrop-blur-sm"><p className="text-xs font-black uppercase tracking-[0.16em] text-slate-400">{label}</p><p className="mt-2 text-3xl font-black text-slate-50">{value}</p></div>;
 }
 
 function Metric({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
-  return <div className="rounded-2xl bg-slate-50 p-3"><p className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.12em] text-slate-500">{icon}{label}</p><p className="mt-1 truncate text-sm font-black text-slate-950">{value}</p></div>;
+  return <div className="rounded-2xl bg-white/5 p-3"><p className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.12em] text-slate-400">{icon}{label}</p><p className="mt-1 truncate text-sm font-black text-slate-50">{value}</p></div>;
 }
 
 async function loadActiveWalks(orgId: string): Promise<LiveWalkSummary[]> {

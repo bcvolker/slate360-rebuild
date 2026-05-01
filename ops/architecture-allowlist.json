@@ -9,10 +9,7 @@
     "app/api/directions/route.ts",
     "app/api/static-map/route.ts",
     "app/api/weather/reverse-geocode/route.ts",
-    "app/api/market/activity/route.ts",
-    "app/api/market/book/route.ts",
-    "app/api/market/polymarket/route.ts",
-    "app/api/market/resolution/route.ts",
+    "app/api/view/**/route.ts",
     "app/api/email/send/route.ts",
     "app/api/projects/view-mode/route.ts"
   ]

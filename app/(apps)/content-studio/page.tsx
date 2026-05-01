@@ -28,10 +28,5 @@ export default async function ContentStudioPage() {
     .eq("org_id", orgId)
     .order("name", { ascending: true });
 
-  return (
-    <main className="flex min-h-screen flex-col p-6">
-      <h1 className="mb-6 text-2xl font-bold">Content Studio</h1>
-      <ContentStudioShell projects={projects ?? []} />
-    </main>
-  );
+  return <ContentStudioShell projects={projects ?? []} />;
 }

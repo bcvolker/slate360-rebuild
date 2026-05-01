@@ -1,6 +1,6 @@
 {
   "$schema": "./schemas/file-size-baseline.schema.json",
-  "updatedAt": "2026-04-17",
+  "updatedAt": "2026-05-01",
   "threshold": 300,
   "files": {
     "app/_color-audit/page.tsx": 387,
@@ -23,7 +23,7 @@
     "components/dashboard/DashboardWidgetRenderer.tsx": 547,
     "components/dashboard/LocationMap.tsx": 1892,
     "components/dashboard/MarketClient.tsx": 3131,    "components/marketing-homepage.tsx": 1170,    "components/project-hub/ObservationsClient.tsx": 335,
-    "components/project-hub/ProjectDashboardGrid.tsx": 560,
+    "components/project-hub/ProjectDashboardGrid.tsx": 534,
     "components/project-hub/WizardLocationPicker.tsx": 412,
     "components/slatedrop/ProjectFileExplorer.tsx": 363,
     "components/slatedrop/SlateDropClient.tsx": 451,
@@ -32,6 +32,7 @@
     "lib/market/scheduler.ts": 346,
     "app/api/market/polymarket/route.ts": 306,
     "app/signup/page.tsx": 306,
+    "app/site-walk/_legacy_v1/walks/active/[sessionId]/CaptureClient.tsx": 309,
     "components/dashboard/market/MarketAutomationBuilder.tsx": 305,
     "components/ui/sidebar.tsx": 726,
     "lib/hooks/useMarketDirectBuyState.ts": 304,

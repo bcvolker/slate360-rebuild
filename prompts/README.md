@@ -22,3 +22,8 @@ the outside AI can't see) without crowding the conversation.
 - Past prompts archived as `archive/PR-XX-short-name.md` if useful.
 - Each prompt MUST include: branch name, hard rules, file paths, request/response
   shapes, smoke test, "report back with" checklist.
+
+## Session Helpers
+
+- `SESSION_BOOTSTRAP.md` — startup checklist for loading the full in-chat tool stack and running safe diagnostics.
+- `CLAUDE_OPUS_4_6_HANDOFF.md` — template for outside-AI requests that must run on Claude Opus 4.6.

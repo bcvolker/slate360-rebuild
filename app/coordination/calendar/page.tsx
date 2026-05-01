@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
-import { BellRing, CalendarClock, CalendarDays, Smartphone } from "lucide-react";
+import { CalendarDays } from "lucide-react";
+import Link from "next/link";
 import { CoordinationHubShell } from "@/components/coordination/CoordinationHubShell";
 import { resolveServerOrgContext } from "@/lib/server/org-context";
 
@@ -13,35 +14,20 @@ export default async function CoordinationCalendarPage() {
   return (
     <CoordinationHubShell
       active="calendar"
-      eyebrow="Coordination Hub"
-      title="Calendar Management"
-      description="The schedule layer should connect iOS/Android calendars, Site Walk appointments, project milestones, reminders, and schedule-aware higher-tier field workflows."
+      eyebrow="Coordination"
+      title="Calendar"
+      description="Scheduled walks, project milestones, and upcoming field activity."
     >
-      <section className="grid gap-3 lg:grid-cols-3">
-        <CalendarCard icon={Smartphone} title="Device Calendar Sync" detail="Use iCalendar/CalDAV-ready links first, then native Google/Microsoft calendar OAuth where required." />
-        <CalendarCard icon={CalendarClock} title="Schedule Assistant" detail="Suggest Site Walk time windows based on user availability, project milestones, and stakeholder calendars." />
-        <CalendarCard icon={BellRing} title="Reminder Routing" detail="Send reminders into the Communication Inbox, email, and optional device calendar alerts." />
-      </section>
-
-      <section className="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-lg backdrop-blur-md">
-        <h2 className="text-sm font-black text-white">Recommended V1 integration path</h2>
-        <ol className="mt-3 space-y-2 text-sm leading-6 text-slate-300">
-          <li><strong>1.</strong> Generate per-user calendar feeds for Site Walk sessions and project milestones.</li>
-          <li><strong>2.</strong> Add Google Calendar and Microsoft 365 OAuth for two-way sync.</li>
-          <li><strong>3.</strong> iPhone and Android support comes through those calendar providers plus installable calendar links.</li>
-          <li><strong>4.</strong> Higher-tier Site Walk can use schedule awareness to warn before starting walks outside planned windows.</li>
-        </ol>
-      </section>
+      <div className="rounded-3xl border border-dashed border-white/20 bg-white/5 p-10 text-center">
+        <CalendarDays className="mx-auto h-8 w-8 text-slate-500" />
+        <p className="mt-3 font-black text-slate-300">No events scheduled</p>
+        <p className="mt-1 text-sm text-slate-500">
+          Site Walk sessions and project deadlines will appear on your calendar.
+        </p>
+        <Link href="/site-walk" className="mt-5 inline-flex items-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-4 py-2 text-sm font-black text-slate-200 hover:bg-white/20">
+          Start a Walk
+        </Link>
+      </div>
     </CoordinationHubShell>
-  );
-}
-
-function CalendarCard({ icon: Icon, title, detail }: { icon: typeof CalendarDays; title: string; detail: string }) {
-  return (
-    <div className="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-lg backdrop-blur-md">
-      <Icon className="h-5 w-5 text-blue-200" />
-      <h2 className="mt-3 text-sm font-black text-white">{title}</h2>
-      <p className="mt-1 text-sm leading-6 text-slate-400">{detail}</p>
-    </div>
   );
 }
