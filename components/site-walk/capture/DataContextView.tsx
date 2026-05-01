@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { ArrowRight, ChevronLeft, Flag, Loader2, Mic, Sparkles } from "lucide-react";
 import { getCaptureImageUrl } from "@/lib/site-walk/capture-image-url";
-import { CAPTURE_CLASSIFICATIONS, CAPTURE_PRIORITIES, CAPTURE_ITEM_STATUSES, type CaptureAssignee, type CaptureItemDraft, type CaptureItemRecord } from "@/lib/types/site-walk-capture";
+import { CAPTURE_PRIORITIES, CAPTURE_ITEM_STATUSES, CAPTURE_TAG_SUGGESTIONS, type CaptureAssignee, type CaptureItemDraft, type CaptureItemRecord } from "@/lib/types/site-walk-capture";
 
 type Props = {
   item: CaptureItemRecord | null;
@@ -41,7 +41,21 @@ type SpeechRecognitionCtor = new () => SpeechRecognitionLike;
 
 export function DataContextView({ item, draft, assignees, saveState, aiState, aiMessage, currentLocation, itemDetail, onDraftChange, onLocationChange, onItemDetailChange, onFormatNotes, onBack, onAddAngle, onSaveNextLocation, onSaveFinishWalk }: Props) {
   const [dictationState, setDictationState] = useState<"idle" | "listening" | "unsupported" | "error">("idle");
+  const [tagInput, setTagInput] = useState("");
   const assignable = assignees.filter((assignee) => assignee.assignable);
+
+  function addTag(rawTag: string) {
+    if (!draft) return;
+    const tag = rawTag.trim();
+    if (!tag) return;
+    onDraftChange({ tags: Array.from(new Set([...draft.tags, tag])) });
+    setTagInput("");
+  }
+
+  function removeTag(tag: string) {
+    if (!draft) return;
+    onDraftChange({ tags: draft.tags.filter((current) => current !== tag) });
+  }
 
   function startDictation() {
     if (!draft) return;
@@ -89,7 +103,7 @@ export function DataContextView({ item, draft, assignees, saveState, aiState, ai
           <p className="text-[11px] font-bold text-cyan-200">{saveLabel(saveState)}</p>
         </div>
         <button type="button" onClick={onFormatNotes} disabled={aiState === "formatting" || !draft.notes.trim()} className="inline-flex h-10 items-center gap-2 rounded-full border border-white/20 bg-white/5 px-3 text-sm font-black text-slate-100 hover:bg-white/10 disabled:opacity-50">
-          {aiState === "formatting" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />} AI
+          {aiState === "formatting" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />} Clean
         </button>
       </header>
 
@@ -99,9 +113,9 @@ export function DataContextView({ item, draft, assignees, saveState, aiState, ai
             {previewUrl ? <img src={previewUrl} alt="Captured reference" className="h-full w-full object-cover" /> : <div className="flex h-full items-center justify-center text-[10px] font-black uppercase tracking-[0.14em] text-slate-500">No preview</div>}
           </div>
           <div className="grid min-w-0 grid-cols-2 gap-2">
-            <FieldSelect value={draft.classification} values={CAPTURE_CLASSIFICATIONS} onChange={(value) => onDraftChange({ classification: value as CaptureItemDraft["classification"] })} />
-            <FieldSelect value={draft.priority} values={CAPTURE_PRIORITIES} onChange={(value) => onDraftChange({ priority: value as CaptureItemDraft["priority"] })} />
-            <FieldSelect value={draft.status} values={CAPTURE_ITEM_STATUSES} onChange={(value) => onDraftChange({ status: value as CaptureItemDraft["status"] })} />
+            <FieldSelect value={draft.status} values={CAPTURE_ITEM_STATUSES} labelFor={statusLabel} onChange={(value) => onDraftChange({ status: value as CaptureItemDraft["status"] })} />
+            <FieldSelect value={draft.priority} values={CAPTURE_PRIORITIES} labelFor={priorityLabel} onChange={(value) => onDraftChange({ priority: value as CaptureItemDraft["priority"] })} />
+            <input value={draft.costImpact} onChange={(event) => onDraftChange({ costImpact: event.target.value })} className={inputClass} inputMode="decimal" placeholder="Cost impact" aria-label="Cost impact" />
             <select value={draft.assignedTo} onChange={(event) => onDraftChange({ assignedTo: event.target.value })} className={inputClass} aria-label="Assignee">
               <option value="">Unassigned</option>
               {assignable.map((assignee) => <option key={assignee.id} value={assignee.id}>{assignee.label}</option>)}
@@ -110,6 +124,28 @@ export function DataContextView({ item, draft, assignees, saveState, aiState, ai
         </section>
 
         <p className="shrink-0 rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-black text-slate-400 backdrop-blur-md">Captured: {new Date(item.created_at).toLocaleString([], { dateStyle: "medium", timeStyle: "short" })}</p>
+
+        <section className="shrink-0 rounded-3xl border border-white/10 bg-white/5 p-3 shadow-lg backdrop-blur-md">
+          <label className="space-y-2">
+            <span className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-400">Custom Tags</span>
+            <input
+              value={tagInput}
+              onChange={(event) => setTagInput(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  event.preventDefault();
+                  addTag(tagInput);
+                }
+              }}
+              className={inputClass}
+              placeholder="Type any tag and press Enter"
+            />
+          </label>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {CAPTURE_TAG_SUGGESTIONS.map((tag) => <TagButton key={tag} tag={tag} onClick={() => addTag(tag)} />)}
+            {draft.tags.map((tag) => <TagChip key={tag} tag={tag} onRemove={() => removeTag(tag)} />)}
+          </div>
+        </section>
 
         <section className="shrink-0 rounded-3xl border border-white/10 bg-white/5 p-3 shadow-lg backdrop-blur-md">
           <div className="grid gap-2 sm:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
@@ -150,12 +186,29 @@ export function DataContextView({ item, draft, assignees, saveState, aiState, ai
   );
 }
 
-function FieldSelect({ value, values, onChange }: { value: string; values: readonly string[]; onChange: (value: string) => void }) {
+function FieldSelect({ value, values, labelFor, onChange }: { value: string; values: readonly string[]; labelFor: (value: string) => string; onChange: (value: string) => void }) {
   return (
     <select value={value} onChange={(event) => onChange(event.target.value)} className={inputClass}>
-      {values.map((option) => <option key={option} value={option}>{option.replace("_", " ")}</option>)}
+      {values.map((option) => <option key={option} value={option}>{labelFor(option)}</option>)}
     </select>
   );
+}
+
+function TagButton({ tag, onClick }: { tag: string; onClick: () => void }) {
+  return <button type="button" onClick={onClick} className="rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-black text-blue-100 hover:bg-white/10">{tag}</button>;
+}
+
+function TagChip({ tag, onRemove }: { tag: string; onRemove: () => void }) {
+  return <button type="button" onClick={onRemove} className="rounded-full border border-blue-300/30 bg-blue-500/15 px-3 py-1.5 text-xs font-black text-blue-100" aria-label={`Remove ${tag} tag`}>{tag} ×</button>;
+}
+
+function statusLabel(value: string) {
+  if (value === "in_progress") return "Review";
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+function priorityLabel(value: string) {
+  return value === "medium" ? "Med" : value.charAt(0).toUpperCase() + value.slice(1);
 }
 
 function saveLabel(state: Props["saveState"]) {

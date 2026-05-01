@@ -1,6 +1,6 @@
 # Site Walk V1 — 3 Act Workflow, Layout, and Launch Plan
 
-Last Updated: 2026-04-30
+Last Updated: 2026-05-01
 Purpose: Product/UI plan for making Site Walk usable for Slate360 Version 1 launch.
 
 ---
@@ -50,6 +50,7 @@ This build plan is now aligned to the backend that is live on Supabase and track
 - `app/api/site-walk/deliverables/route.ts` now accepts the full backend deliverable type list: `report`, `punchlist`, `photo_log`, `rfi`, `estimate`, `status_report`, `proposal`, `field_report`, `inspection_package`, `safety_report`, `proof_of_work`, `client_portal`, `kanban_board`, `cinematic_presentation`, `spreadsheet_export`, `virtual_tour`, `tour_360`, `model_viewer`, `media_gallery`, `client_review`, `custom`.
 - `app/api/site-walk/deliverables/[id]/route.ts` now accepts `draft`, `in_review`, `approved`, `submitted`, `shared`, `published`, `archived`, `revoked`.
 - `app/api/site-walk/deliverables/send/route.ts` already sends `link`, `inline_images`, and `pdf_attachment`; it must also write rows into `site_walk_deliverable_sends` and support `email_snapshot` when the UI produces one.
+- Deliverable metadata visibility does not need a new schema migration: `site_walk_deliverables.viewer_config` already exists and create/update APIs accept it. Use a stable nested shape such as `viewer_config.metadataVisibility = { gps: boolean, weather: boolean, timestamps: boolean, assignee: boolean, costImpact: boolean }`. `organizations.brand_settings` can hold org defaults, but each deliverable should persist its own override in `viewer_config`.
 - `lib/site-walk/load-deliverable.ts` currently normalizes public viewer items from `site_walk_deliverables.content`; it should be upgraded to load normalized `site_walk_deliverable_assets/scenes/hotspots/threads/responses` while preserving old `content` compatibility.
 - `app/api/site-walk/sessions/route.ts` supports nullable `project_id`, ad-hoc session creation, `client_session_id`, `session_type`, and `sync_state`.
 - `app/api/site-walk/pins/route.ts` supports `plan_sheet_id` and draft pins where `item_id` is not available yet.

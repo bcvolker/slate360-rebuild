@@ -196,43 +196,38 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-04-30 (Mobile Contained Scroll + Dark Glass Pass)
+### Session Handoff — 2026-05-01 (Site Walk Custom Tags + Deliverable Visibility Audit)
 
 #### What Changed
-- `components/dashboard/AppShell.tsx` — restored mobile accessibility by keeping the outer `100dvh` shell fixed while moving authenticated route content into a contained `min-h-0 flex-1 overflow-y-auto overscroll-contain pb-24` pane.
-- `components/site-walk/capture/DataContextView.tsx` — changed the details/data-entry screen from clipped `overflow-hidden` to internal scrolling with safe bottom padding so Save/Add Angle actions remain reachable on phones.
-- `app/site-walk/page.tsx` and `app/site-walk/_components/SiteWalkLaunchGrid.tsx` — removed the locked landing-page overflow pattern and applied Dark Glass launch cards/actions.
-- `components/site-walk/capture/VisualCaptureView.tsx` — applied Dark Glass capture chrome and cobalt primary Add Details styling while preserving camera/canvas workspace behavior.
-- `components/dashboard/command-center/DashboardTopBar.tsx`, `components/dashboard/command-center/DashboardSidebar.tsx`, `components/shared/MobileTopBar.tsx`, and `components/shared/MobileBottomNav.tsx` — applied Dark Glass shell chrome with graphite background, translucent borders, and glass nav surfaces.
-- `app/globals.css` — converted shared auth utilities (`auth-page`, `auth-card`, inputs, OAuth/primary buttons, dividers) to Dark Glass/cobalt styling without expanding the already-large auth page files.
-- `slate360-context/DASHBOARD.md` — replaced the rigid “Zero-Scroll” guidance with fixed native shell + contained internal scrolling, and documented the Dark Glass shell direction.
-- `slate360-context/ONGOING_ISSUES.md` and `ops/bug-registry.json` — logged BUG-049 as fixed: mobile shell/content clipping from nested `overflow-hidden`.
-- Validation passed: `git diff --check`, `npm run typecheck`, and editor diagnostics on touched TSX files. `app/globals.css` still shows known Tailwind v4 CSS-language-service false positives for `@theme`, `@utility`, and `@apply`.
-- File-size guard was run and still fails only on 12 known pre-existing oversized files; all touched `.tsx` files are under 300 lines.
+- `components/site-walk/capture/DataContextView.tsx` — replaced the hardcoded classification/trade-style data entry with Status, Priority, Custom Tags, Cost Impact, Assigned To, Location, Item Detail, and Notes. Tags can be typed with Enter or added from Safety/Quality/Progress/Defect suggestions.
+- `lib/types/site-walk-capture.ts` — added tag/cost fields to the capture draft/record contract while keeping legacy `classification` exports for older capture components.
+- `components/site-walk/capture/capture-draft-save.ts` — extracted draft payload/local patch helpers so `useCaptureItems.ts` dropped from 295 to 272 lines and stays safely under the 300-line guard.
+- `components/site-walk/capture/useCaptureItems.ts` — now persists tags to `site_walk_items.tags`, clears legacy `trade/category` on the new Data screen save path, persists cost impact to `cost_estimate`, and merges AI suggested classification into tags instead of reintroducing hardcoded dropdowns.
+- Deliverable schema audit: `site_walk_deliverables.viewer_config` and `organizations.brand_settings` already provide storage for hide/show metadata preferences; no migration needed now. The missing work is UI/viewer wiring.
+- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — documented the stable `viewer_config.metadataVisibility` shape for GPS/weather/timestamps/assignee/cost impact.
+- `slate360-context/ONGOING_ISSUES.md` and `ops/bug-registry.json` — logged BUG-050 as open: Deliverable Studio metadata visibility controls are schema-ready but not wired.
+- Validation passed: bug registry JSON parse, `git diff --check`, `npm run typecheck`, and editor diagnostics on touched TS/TSX/JSON files.
+- File-size guard was run and still fails only on the 12 known pre-existing oversized files; touched `.tsx`/`.ts` files are under 300 lines.
 
 #### What's Broken / Partially Done
-- Needs real-device smoke test on small iPhone/Android heights: authenticated dashboard/home, Site Walk landing, Visual capture, Data details, login, signup, forgot password.
-- Keyboard-open states on auth forms and Site Walk notes were not browser-tested in this session; CSS/typecheck cannot fully verify mobile viewport keyboard behavior.
-- Some deeper authenticated app pages may still have light surfaces inside the now-dark shell and should be tokenized systematically in a later pass.
-- `components/dashboard/command-center/DashboardTopBar.tsx` still uses `SlateLogoOnLight`; check visual contrast on the dark topbar and swap asset if needed.
-- `app/signup/page.tsx` is 298 lines and unchanged; extract before adding future auth/security logic.
+- Needs real-device smoke test: capture photo → Add Details → add custom tags/cost/assignee/notes → confirm autosave → refresh/reopen item and verify tags/cost persist.
+- `CaptureItemForm.tsx` and `CaptureItemListPanel.tsx` still use the legacy classification filter/UI for older capture surfaces; the active Data screen no longer exposes hardcoded trade/category dropdowns.
+- Deliverable metadata visibility toggles still need the actual Deliverable Studio UI and public-viewer enforcement for `viewer_config.metadataVisibility`.
+- Capture Visual screen still looks dense in screenshots; it needs a dedicated visual hierarchy pass (separate top evidence rail, main photo/markup stage, bottom tool drawer) after the data-entry fix.
 - The user-uploaded reference images under `public/uploads/` and `ts-prune-output.txtcat` remain untracked and intentionally not committed.
 - Pre-existing file-size guard failures remain in unrelated files: `LocationMap.tsx`, `marketing-homepage.tsx`, `DashboardWidgetRenderer.tsx`, and other known oversized files reported by `scripts/check-file-size.sh`.
 
 #### Context Files Updated
 - `SLATE360_PROJECT_MEMORY.md` — this handoff.
-- `slate360-context/DASHBOARD.md` — shell scrolling doctrine and Dark Glass direction.
-- `slate360-context/ONGOING_ISSUES.md` — BUG-049 fixed entry.
-- `ops/bug-registry.json` — BUG-049 fixed entry.
+- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — deliverable metadata visibility storage contract.
+- `slate360-context/ONGOING_ISSUES.md` — BUG-050 open entry.
+- `ops/bug-registry.json` — BUG-050 open entry.
 
 #### Next Steps (ordered)
-1. Real-device smoke test on a small phone: dashboard → Site Walk → capture → Add Details → scroll Data screen to Save/Add Angle, then auth login/signup/forgot-password with keyboard open.
-2. If dark topbar logo contrast is weak, swap `SlateLogoOnLight` usage in `DashboardTopBar` for a dark-header-safe logo variant.
-3. Plan a token/component cleanup so remaining app surfaces use shared Dark Glass primitives instead of one-off class strings.
-4. Extract `app/signup/page.tsx` before adding future bot protection, extra onboarding, or conversion experiments.
-2. If draft state still ever falls back independently, derive missing draft state from the recovered active item in `useCaptureItems` as a follow-up.
-3. Redesign Data Entry around reference photo + professional notes-first capture workflow with dictation and AI formatting as first-class actions.
-4. Continue fixing unrelated oversized files when touching those modules.
+1. Real-device smoke test the new Data screen tags/cost/assignee autosave and refresh persistence.
+2. Build Deliverable Studio metadata toggles backed by `viewer_config.metadataVisibility` and enforce them in public deliverable rendering.
+3. Redesign the Visual capture screen hierarchy so photo evidence, markup controls, attachment pins, and additional angles read as separate sections instead of one dense control stack.
+4. Extract or retire legacy classification-based capture surfaces when they are next touched.
 
 ### Session Handoff — 2026-04-30 (Markup Canvas Mobile UX Fixes)
 

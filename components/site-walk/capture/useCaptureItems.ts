@@ -6,6 +6,7 @@ import type { MarkupData } from "@/lib/site-walk/markup-types";
 import { withPhotoAttachmentPins, type PhotoAttachmentPin } from "@/lib/site-walk/photo-attachments";
 import type { UpdateItemPayload } from "@/lib/types/site-walk";
 import { useCaptureItemFocus } from "./capture-item-events";
+import { buildDraftPayload, patchLocalItem } from "./capture-draft-save";
 import { captureItemToDraft, type CaptureAssignee, type CaptureItemDraft, type CaptureItemRecord } from "@/lib/types/site-walk-capture";
 
 type ItemsResponse = { items?: CaptureItemRecord[]; error?: string };
@@ -118,16 +119,7 @@ export function useCaptureItems({ sessionId, projectId }: HookArgs) {
   async function saveDraft(itemId: string, nextDraft: CaptureItemDraft) {
     if (!activeItem) return;
     setSaveState("saving");
-    const payload: UpdateItemPayload = {
-      title: nextDraft.title,
-      description: nextDraft.notes,
-      category: nextDraft.classification,
-      priority: nextDraft.priority,
-      item_status: nextDraft.status,
-      assigned_to: nextDraft.assignedTo || null,
-      due_date: nextDraft.dueDate || null,
-      sync_state: "synced",
-    };
+    const payload = buildDraftPayload(nextDraft);
     try {
       if (isOffline() || itemId.startsWith("item-")) {
         await queueOfflineItemPatch(sessionId, activeItem, payload);
@@ -180,7 +172,7 @@ export function useCaptureItems({ sessionId, projectId }: HookArgs) {
     }
     patchDraft({
       notes: cleanedNotes,
-      classification: normalizeClassification(data?.suggestedClassification),
+      tags: mergeTags(draft.tags, data?.suggestedClassification),
       priority: normalizePriority(data?.suggestedPriority),
     });
     setAiState("idle");
@@ -248,34 +240,19 @@ export function useCaptureItems({ sessionId, projectId }: HookArgs) {
   };
 }
 
-function normalizeClassification(value: string | undefined): CaptureItemDraft["classification"] {
-  const match = ["Safety", "Quality", "Schedule", "RFI", "Observation", "Punch List", "Coordination", "Progress", "Other"].find((option) => option.toLowerCase() === value?.toLowerCase());
-  return (match ?? "Observation") as CaptureItemDraft["classification"];
-}
-
 function normalizePriority(value: string | undefined): CaptureItemDraft["priority"] {
   const normalized = value?.toLowerCase();
   if (normalized === "low" || normalized === "medium" || normalized === "high" || normalized === "critical") return normalized;
   return "medium";
 }
 
-function mergeItems(current: CaptureItemRecord[], incoming: CaptureItemRecord[]) {
-  return incoming.reduce((items, item) => upsertItem(items, item), current);
+function mergeTags(current: string[], suggested: string | undefined) {
+  const next = suggested?.trim();
+  return next ? Array.from(new Set([...current, next])) : current;
 }
 
-function patchLocalItem(item: CaptureItemRecord, draft: CaptureItemDraft): CaptureItemRecord {
-  return {
-    ...item,
-    title: draft.title,
-    description: draft.notes,
-    category: draft.classification,
-    priority: draft.priority,
-    item_status: draft.status,
-    assigned_to: draft.assignedTo || null,
-    due_date: draft.dueDate || null,
-    sync_state: "pending",
-    updated_at: new Date().toISOString(),
-  };
+function mergeItems(current: CaptureItemRecord[], incoming: CaptureItemRecord[]) {
+  return incoming.reduce((items, item) => upsertItem(items, item), current);
 }
 
 function isOffline() {

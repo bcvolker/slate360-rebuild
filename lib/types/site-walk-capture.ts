@@ -22,6 +22,9 @@ export type CaptureItemRecord = {
   description: string | null;
   location_label?: string | null;
   category: string | null;
+  trade?: string | null;
+  tags?: string[];
+  cost_estimate?: number | null;
   priority: ItemPriority;
   item_status: ItemStatus;
   assigned_to: string | null;
@@ -40,6 +43,8 @@ export type CaptureItemRecord = {
 export type CaptureItemDraft = {
   title: string;
   classification: CaptureClassification;
+  tags: string[];
+  costImpact: string;
   priority: ItemPriority;
   status: ItemStatus;
   assignedTo: string;
@@ -47,20 +52,17 @@ export type CaptureItemDraft = {
   notes: string;
 };
 
-export const CAPTURE_CLASSIFICATIONS: CaptureClassification[] = [
-  "Safety",
-  "Quality",
-  "Schedule",
-  "RFI",
-  "Observation",
-  "Punch List",
-  "Coordination",
-  "Progress",
-  "Other",
-];
-
 export const CAPTURE_PRIORITIES: ItemPriority[] = ["low", "medium", "high", "critical"];
-export const CAPTURE_ITEM_STATUSES: ItemStatus[] = ["open", "in_progress", "resolved", "verified"];
+export const CAPTURE_ITEM_STATUSES: ItemStatus[] = ["open", "in_progress", "closed"];
+export const CAPTURE_TAG_SUGGESTIONS = ["Safety", "Quality", "Progress", "Defect"] as const;
+export const CAPTURE_CLASSIFICATIONS: CaptureClassification[] = ["Safety", "Quality", "Schedule", "RFI", "Observation", "Punch List", "Coordination", "Progress", "Other"];
+
+function readTags(item: CaptureItemRecord) {
+  const legacyCategory = item.category?.trim();
+  const itemTags = Array.isArray(item.tags) ? item.tags : [];
+  const baseTags = itemTags.length > 0 ? itemTags : legacyCategory ? [legacyCategory] : [];
+  return Array.from(new Set(baseTags.map((tag) => tag.trim()).filter(Boolean)));
+}
 
 export function captureItemToDraft(item: CaptureItemRecord): CaptureItemDraft {
   const classification = CAPTURE_CLASSIFICATIONS.includes(item.category as CaptureClassification)
@@ -69,6 +71,8 @@ export function captureItemToDraft(item: CaptureItemRecord): CaptureItemDraft {
   return {
     title: item.title,
     classification,
+    tags: readTags(item),
+    costImpact: item.cost_estimate === null ? "" : String(item.cost_estimate),
     priority: item.priority,
     status: item.item_status,
     assignedTo: item.assigned_to ?? "",

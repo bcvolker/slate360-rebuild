@@ -1,6 +1,6 @@
 # Slate360 — Ongoing Issues & Known Tech Debt
 
-**Last Updated:** 2026-04-30 (mobile shell scrolling + Dark Glass pass)
+**Last Updated:** 2026-05-01 (Site Walk custom tags + deliverable visibility audit)
 **Maintained by:** Development team — update whenever a bug is discovered or fixed.
 **Cross-reference:** See `FUTURE_FEATURES.md` for the full phased build roadmap (Phases 0–7).
 
@@ -30,6 +30,7 @@
 | BUG-047 | Site Walk / Capture | **Marker preview zoom could crash and capture preview felt delayed — FIXED 2026-04-30:** The marker preview zoom handlers used pointer capture on mobile, which can throw DOM pointer-capture errors during multi-touch transitions and trigger the global error screen. The preview card also still used viewport sizing instead of strictly fitting the capture stage. The modal now avoids pointer capture, stays as a fixed small contained card, caps zoom at 4x, and camera captures show the original file preview immediately while compression/upload continues in the background. | High | ✅ Fixed |
 | BUG-048 | Site Walk / Capture | **Add Details returned to “Capture a photo first” after upload reconciliation — FIXED 2026-04-30:** The active capture resolver only matched `activeItemId` against `item.id`. When an optimistic local item was replaced by the server row, the row kept `client_item_id` but `activeItemId` could still be the local client id, so the Data page thought no active photo existed. `useCaptureItems` now resolves the active item by either server id or `client_item_id`, preserving the captured thumbnail and notes/details flow after markup or pinned-file saves. | Critical | ✅ Fixed |
 | BUG-049 | Dashboard / Site Walk Mobile Shell | **Phone screens were locked and bottom actions could be cut off — FIXED 2026-04-30:** The authenticated shell and Site Walk details surfaces treated “native app shell” as `overflow-hidden` at too many levels. Small phone heights could hide lower content/actions behind the mobile nav with no contained scroll escape. `AppShell`, the Site Walk landing page, and `DataContextView` now keep the outer shell fixed while moving scrolling into `min-h-0 flex-1 overflow-y-auto` panes with mobile bottom padding. | Critical | ✅ Fixed |
+| BUG-050 | Site Walk / Deliverables | **Deliverable metadata visibility controls are schema-ready but not wired — OPEN 2026-05-01:** `site_walk_deliverables.viewer_config` and `organizations.brand_settings` can store hide/show preferences for GPS, weather, timestamps, assignee, and cost impact, and the deliverable create/update APIs already accept `viewer_config`. The missing piece is a Deliverable Studio UI contract and public-viewer enforcement that reads/writes `viewer_config.metadataVisibility` per deliverable with org defaults as a fallback. | Medium | 🔴 Open |
 
 ---
 

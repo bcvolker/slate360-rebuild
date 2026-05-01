@@ -433,6 +433,19 @@
         "Site Walk landing no longer locks its page with `overflow-hidden` and includes mobile bottom padding",
         "Site Walk Data details screen scrolls internally with safe bottom padding so Save/Add Angle actions remain reachable"
       ]
+    },
+    {
+      "id": "BUG-050",
+      "title": "Deliverable metadata visibility controls are not wired",
+      "module": "site-walk/deliverables",
+      "severity": "medium",
+      "status": "open",
+      "rootCause": "The schema can persist per-deliverable metadata visibility in `site_walk_deliverables.viewer_config` and org defaults in `organizations.brand_settings`, but the Deliverable Studio UI and public viewer do not yet read/write/enforce a stable `metadataVisibility` contract.",
+      "verification": [
+        "Deliverable Studio exposes toggles for GPS, weather, timestamps, assignee, and cost impact",
+        "Deliverable create/update payloads persist `viewer_config.metadataVisibility` per deliverable",
+        "Public deliverable rendering hides metadata according to the per-deliverable override, falling back to organization defaults when unset"
+      ]
     }
   ]
 }
