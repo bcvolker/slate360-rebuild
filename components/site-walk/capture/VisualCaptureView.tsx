@@ -1,6 +1,6 @@
 "use client";
 
-import { Camera, ChevronLeft, ChevronRight, Eye, ExternalLink, Loader2, Paperclip, Plus, RotateCcw, RotateCw, Trash2, X } from "lucide-react";
+import { Camera, ChevronLeft, ChevronRight, Eye, ExternalLink, Loader2, Paperclip, Plus, RotateCcw, RotateCw, Shapes, Trash2, X } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import type { MarkupData } from "@/lib/site-walk/markup-types";
 import { getCaptureImageUrl } from "@/lib/site-walk/capture-image-url";
@@ -25,10 +25,13 @@ type Props = {
   onNext: () => void;
 };
 
+type DrawerMode = "view" | "markup" | "attach" | "angles";
+
 export function VisualCaptureView({ sessionId, autoOpenCamera, launchId, items, activeItemId, modeLabel, ghostImageUrl, onMarkupChange, onAttachmentPinsChange, onSelectItem, onNext }: Props) {
   const [ghostOn, setGhostOn] = useState(false);
-  const [markupMode, setMarkupMode] = useState(false);
   const [attachmentsOpen, setAttachmentsOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(true);
+  const [drawerMode, setDrawerMode] = useState<DrawerMode>("view");
   const [railMode, setRailMode] = useState<"angles" | "progress">("angles");
   const [revealedThumbKey, setRevealedThumbKey] = useState<string | null>(null);
   const photoItems = items.filter((item) => item.item_type === "photo");
@@ -37,25 +40,28 @@ export function VisualCaptureView({ sessionId, autoOpenCamera, launchId, items, 
   const angleItems = photoItems.filter((item) => getLocationLabel(item) === activeLocation);
   const progressItems = angleItems.filter((item) => item.id !== activeItemId);
   const activePins = getItemPhotoAttachmentPins(activeItem);
+  const markupMode = drawerOpen && drawerMode === "markup";
 
   return (
     <div className="flex h-[100dvh] w-full flex-col overflow-hidden bg-[#0B0F15] text-slate-50">
-      <TopCaptureControls modeLabel={modeLabel} onNext={onNext} onUndo={() => dispatchCanvasEvent(PHOTO_MARKUP_UNDO_EVENT)} onRedo={() => dispatchCanvasEvent(PHOTO_MARKUP_REDO_EVENT)} />
-      <StopCarousel items={photoItems} activeItemId={activeItemId} revealedThumbKey={revealedThumbKey} onReveal={setRevealedThumbKey} onSelectItem={onSelectItem} onOpenEdit={onNext} />
+      <TopCaptureControls location={activeLocation} modeLabel={modeLabel} onUndo={() => dispatchCanvasEvent(PHOTO_MARKUP_UNDO_EVENT)} onRedo={() => dispatchCanvasEvent(PHOTO_MARKUP_REDO_EVENT)} />
 
       <main className="min-h-0 flex-1 border-y border-white/10 bg-[radial-gradient(circle_at_50%_0%,rgba(37,99,235,0.18),rgba(11,15,21,0.98)_55%)]">
         <div className="relative h-full min-h-0 overflow-hidden">
           <CameraViewfinder sessionId={sessionId} autoOpenCamera={autoOpenCamera} launchId={launchId} layout="visual" activeItem={activeItem} markupEnabled={markupMode} onMarkupChange={onMarkupChange} onAttachmentPinsChange={onAttachmentPinsChange} />
           {ghostOn && ghostImageUrl && <img src={ghostImageUrl} alt="Previous progress ghost alignment" className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-25 mix-blend-screen" />}
-          <button type="button" onClick={onNext} className="absolute bottom-3 right-3 z-20 inline-flex min-h-12 items-center gap-2 rounded-2xl bg-blue-600 px-4 text-sm font-black text-white shadow-[0_0_15px_rgba(37,99,235,0.3)] hover:bg-blue-500" aria-label="Add details for this photo">
-            Add Details <ChevronRight className="h-5 w-5" />
+          <button type="button" onClick={onNext} className="absolute bottom-4 left-1/2 z-20 inline-flex min-h-12 -translate-x-1/2 items-center gap-2 whitespace-nowrap rounded-2xl bg-blue-600 px-5 text-sm font-black text-white shadow-[0_0_28px_rgba(37,99,235,0.55)] ring-1 ring-blue-300/30 hover:bg-blue-500" aria-label="Add field details for this photo">
+            Add Field Details <ChevronRight className="h-5 w-5" />
           </button>
         </div>
       </main>
 
-      <CaptureActionBar pinCount={activePins.length} markupMode={markupMode} onToggleMarkup={() => setMarkupMode((current) => !current)} onOpenAttachments={() => setAttachmentsOpen(true)} />
-      {markupMode && <div className="shrink-0 border-b border-white/10 bg-[#0B0F15]/95 px-2 py-1 backdrop-blur-md"><UnifiedVectorToolbar /></div>}
-      <CaptureMediaRail mode={railMode} onModeChange={setRailMode} angleItems={angleItems.length > 0 ? angleItems : photoItems} progressItems={progressItems} activeItemId={activeItemId} ghostOn={ghostOn} ghostAvailable={!!ghostImageUrl} revealedThumbKey={revealedThumbKey} onReveal={setRevealedThumbKey} onToggleGhost={() => setGhostOn((current) => !current)} onAddProgress={() => { setRailMode("progress"); setGhostOn(true); requestCameraCapture("camera", "next_item"); }} onSelectItem={onSelectItem} />
+      <BottomToolDrawer mode={drawerMode} open={drawerOpen} pinCount={activePins.length} onModeChange={(mode) => { setDrawerMode(mode); setDrawerOpen(true); }} onToggleOpen={() => setDrawerOpen((current) => !current)} onOpenAttachments={() => setAttachmentsOpen(true)}>
+        {drawerMode === "view" && <StopCarousel items={photoItems} activeItemId={activeItemId} revealedThumbKey={revealedThumbKey} onReveal={setRevealedThumbKey} onSelectItem={onSelectItem} onOpenEdit={onNext} />}
+        {drawerMode === "markup" && <div className="px-2 pb-2"><UnifiedVectorToolbar /></div>}
+        {drawerMode === "attach" && <AttachDrawer pinCount={activePins.length} onOpenAttachments={() => setAttachmentsOpen(true)} />}
+        {drawerMode === "angles" && <CaptureMediaRail mode={railMode} onModeChange={setRailMode} angleItems={angleItems.length > 0 ? angleItems : photoItems} progressItems={progressItems} activeItemId={activeItemId} ghostOn={ghostOn} ghostAvailable={!!ghostImageUrl} revealedThumbKey={revealedThumbKey} onReveal={setRevealedThumbKey} onToggleGhost={() => setGhostOn((current) => !current)} onAddProgress={() => { setRailMode("progress"); setGhostOn(true); requestCameraCapture("camera", "next_item"); }} onSelectItem={onSelectItem} />}
+      </BottomToolDrawer>
 
       {attachmentsOpen && (
         <AttachmentsSheet
@@ -68,26 +74,41 @@ export function VisualCaptureView({ sessionId, autoOpenCamera, launchId, items, 
   );
 }
 
-function TopCaptureControls({ modeLabel, onNext, onUndo, onRedo }: { modeLabel: string; onNext: () => void; onUndo: () => void; onRedo: () => void }) {
+function TopCaptureControls({ location, modeLabel, onUndo, onRedo }: { location: string; modeLabel: string; onUndo: () => void; onRedo: () => void }) {
   return (
     <header className="shrink-0 border-b border-white/10 bg-[#0B0F15]/90 px-2 py-2 shadow-lg backdrop-blur-md">
       <div className="grid grid-cols-[auto_1fr_auto] items-center gap-2">
         <a href="/site-walk" className="inline-flex h-9 items-center gap-1 rounded-xl border border-white/15 bg-white/5 px-2 text-[10px] font-black uppercase tracking-[0.1em] text-white/85"><ChevronLeft className="h-4 w-4" /> Back</a>
-        <label className="min-w-0">
-          <span className="sr-only">Walk project mode</span>
-          <select defaultValue={modeLabel || "Photos-only"} className="h-9 w-full rounded-xl border border-cyan-300/25 bg-cyan-300/10 px-2 text-center text-[10px] font-black uppercase tracking-[0.1em] text-cyan-100">
-            <option>Photos-only</option>
-            <option>Attach to field project</option>
-            <option>Field project</option>
-          </select>
-        </label>
-        <button type="button" onClick={onNext} className="inline-flex h-9 items-center gap-1 rounded-xl bg-blue-600 px-3 text-[10px] font-black uppercase tracking-[0.1em] text-white shadow-[0_0_15px_rgba(37,99,235,0.3)] hover:bg-blue-500">Details <ChevronRight className="h-4 w-4" /></button>
-      </div>
-      <div className="mt-2 grid grid-cols-2 gap-2">
-        <button type="button" onClick={onUndo} className="inline-flex h-8 items-center justify-center gap-1 rounded-xl border border-white/15 bg-white/5 text-[10px] font-black uppercase tracking-[0.1em] text-white/75"><RotateCcw className="h-4 w-4" /> Undo</button>
-        <button type="button" onClick={onRedo} className="inline-flex h-8 items-center justify-center gap-1 rounded-xl border border-white/15 bg-white/5 text-[10px] font-black uppercase tracking-[0.1em] text-white/75">Redo <RotateCw className="h-4 w-4" /></button>
+        <div className="min-w-0 text-center">
+          <p className="truncate text-sm font-black text-white">{location}</p>
+          <p className="truncate text-[9px] font-black uppercase tracking-[0.16em] text-cyan-100/70">{modeLabel || "Photos-only"}</p>
+        </div>
+        <div className="flex items-center justify-end gap-1">
+          <button type="button" onClick={onUndo} className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-white/15 bg-white/5 text-white/75" aria-label="Undo markup"><RotateCcw className="h-4 w-4" /></button>
+          <button type="button" onClick={onRedo} className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-white/15 bg-white/5 text-white/75" aria-label="Redo markup"><RotateCw className="h-4 w-4" /></button>
+        </div>
       </div>
     </header>
+  );
+}
+
+function BottomToolDrawer({ mode, open, pinCount, children, onModeChange, onToggleOpen, onOpenAttachments }: { mode: DrawerMode; open: boolean; pinCount: number; children: ReactNode; onModeChange: (mode: DrawerMode) => void; onToggleOpen: () => void; onOpenAttachments: () => void }) {
+  const tools: Array<{ mode: DrawerMode; label: string; icon: ReactNode }> = [
+    { mode: "view", label: "View", icon: <Eye className="h-4 w-4" /> },
+    { mode: "markup", label: "Markup", icon: <Shapes className="h-4 w-4" /> },
+    { mode: "attach", label: `Attach${pinCount ? ` ${pinCount}` : ""}`, icon: <Paperclip className="h-4 w-4" /> },
+    { mode: "angles", label: "Angles", icon: <Camera className="h-4 w-4" /> },
+  ];
+  return (
+    <section className="shrink-0 border-t border-white/10 bg-[#0B0F15]/95 pb-[calc(0.45rem+env(safe-area-inset-bottom))] pt-2 shadow-[0_-18px_60px_rgba(0,0,0,0.38)] backdrop-blur-xl" aria-label="Capture tools">
+      <div className="mx-auto mb-2 h-1 w-12 rounded-full bg-white/20" />
+      <div className="mx-3 grid grid-cols-4 rounded-2xl border border-white/10 bg-white/5 p-1">
+        {tools.map((tool) => <button key={tool.mode} type="button" onClick={() => onModeChange(tool.mode)} className={`inline-flex h-10 items-center justify-center gap-1 rounded-xl text-[10px] font-black uppercase tracking-[0.08em] ${mode === tool.mode && open ? "bg-blue-600 text-white shadow-[0_0_18px_rgba(37,99,235,0.35)]" : "text-white/65"}`}>{tool.icon}<span>{tool.label}</span></button>)}
+      </div>
+      <button type="button" onClick={onToggleOpen} className="mx-auto mt-2 block text-[10px] font-black uppercase tracking-[0.16em] text-white/45">{open ? "Hide drawer" : "Show drawer"}</button>
+      {open && <div className="mt-2">{children}</div>}
+      {mode === "attach" && !open && <button type="button" onClick={onOpenAttachments} className="sr-only">Open attachments</button>}
+    </section>
   );
 }
 
@@ -103,13 +124,11 @@ function StopCarousel({ items, activeItemId, revealedThumbKey, onReveal, onSelec
   );
 }
 
-function CaptureActionBar({ pinCount, markupMode, onToggleMarkup, onOpenAttachments }: { pinCount: number; markupMode: boolean; onToggleMarkup: () => void; onOpenAttachments: () => void }) {
+function AttachDrawer({ pinCount, onOpenAttachments }: { pinCount: number; onOpenAttachments: () => void }) {
   return (
-    <div className="shrink-0 border-b border-white/10 bg-[#0B0F15]/95 px-2 py-2 backdrop-blur-md">
-      <div className="grid grid-cols-2 gap-2">
-        <button type="button" onClick={onToggleMarkup} className={`h-10 rounded-xl border px-2 text-[10px] font-black uppercase tracking-[0.1em] ${markupMode ? "border-blue-400 bg-blue-500/20 text-blue-100" : "border-white/15 bg-white/10 text-white/80"}`}>Markup</button>
-        <button type="button" onClick={onOpenAttachments} className="inline-flex h-10 items-center justify-center gap-1 rounded-xl border border-white/15 bg-white/10 px-2 text-[10px] font-black text-white/80"><Paperclip className="h-4 w-4 text-blue-300" /> Attached ({pinCount})</button>
-      </div>
+    <div className="mx-3 rounded-2xl border border-white/10 bg-white/5 p-3 text-center">
+      <p className="text-xs font-bold text-white/65">Long-press the photo to drop a pin, then attach files or notes.</p>
+      <button type="button" onClick={onOpenAttachments} className="mt-3 inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 text-xs font-black uppercase tracking-[0.12em] text-white shadow-[0_0_15px_rgba(37,99,235,0.3)]"><Paperclip className="h-4 w-4" /> Pinned attachments ({pinCount})</button>
     </div>
   );
 }
@@ -118,7 +137,7 @@ function CaptureMediaRail({ mode, onModeChange, angleItems, progressItems, activ
   const showingProgress = mode === "progress";
   const items = showingProgress ? progressItems : angleItems;
   return (
-    <section className="shrink-0 bg-transparent pt-1 pb-[calc(0.55rem+env(safe-area-inset-bottom))]" aria-label="Capture media rail">
+    <section className="shrink-0 bg-transparent pt-1" aria-label="Capture media rail">
       <div className="mx-3 mb-1 grid grid-cols-2 rounded-2xl border border-white/10 bg-white/5 p-1">
         <button type="button" onClick={() => onModeChange("angles")} className={`h-8 rounded-xl text-[10px] font-black uppercase tracking-[0.12em] ${!showingProgress ? "bg-cyan-300 text-slate-950" : "text-white/65"}`}>Additional Angles</button>
         <button type="button" onClick={() => onModeChange("progress")} className={`h-8 rounded-xl text-[10px] font-black uppercase tracking-[0.12em] ${showingProgress ? "bg-cyan-300 text-slate-950" : "text-white/65"}`}>Progress / Before &amp; After</button>

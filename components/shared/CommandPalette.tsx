@@ -28,6 +28,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { shouldHideInAppStoreMode } from "@/lib/app-store-mode";
 
 interface PaletteItem {
   id: string;
@@ -105,7 +106,7 @@ export default function CommandPalette({
     }
   }
 
-  const visible = ITEMS.filter((i) => !i.internalOnly || hasOperationsConsoleAccess);
+  const visible = ITEMS.filter((i) => (!i.internalOnly || hasOperationsConsoleAccess) && !shouldHideInAppStoreMode(i.comingSoon));
   const groups = ["Navigate", "Apps", "Create", "Account"] as const;
 
   if (!open) return null;

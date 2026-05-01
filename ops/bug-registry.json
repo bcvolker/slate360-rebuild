@@ -446,6 +446,19 @@
         "Deliverable create/update payloads persist `viewer_config.metadataVisibility` per deliverable",
         "Public deliverable rendering hides metadata according to the per-deliverable override, falling back to organization defaults when unset"
       ]
+    },
+    {
+      "id": "BUG-051",
+      "title": "App Store mode exposed unfinished app surfaces",
+      "module": "app-shell/navigation",
+      "severity": "high",
+      "status": "fixed",
+      "rootCause": "The dashboard apps grid, command palette, sidebar, and shared navigation components still rendered Coming Soon app entries for 360 Tours, Design Studio, and Content Studio even though App Store review mode requires unbuilt surfaces to disappear entirely.",
+      "verification": [
+        "`NEXT_PUBLIC_APP_STORE_MODE` defaults to enabled unless explicitly set to `false`",
+        "Command palette and app navigation filter `comingSoon` items through the shared App Store mode helper",
+        "Dashboard app cards hide unfinished apps instead of showing disabled or Soon-labelled tiles under App Store mode"
+      ]
     }
   ]
 }

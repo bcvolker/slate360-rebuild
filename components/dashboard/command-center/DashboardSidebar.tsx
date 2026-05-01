@@ -20,6 +20,7 @@ import {
   Film,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { shouldHideInAppStoreMode } from "@/lib/app-store-mode";
 import { SlateLogo } from "@/components/shared/SlateLogo";
 
 interface NavItem {
@@ -99,7 +100,7 @@ export function DashboardSidebar({ isOpen, onClose, isMobile = false, hasOperati
           </div>
         )}
 
-        {NAV_ITEMS.map((item) => {
+        {NAV_ITEMS.filter((item) => !shouldHideInAppStoreMode(item.comingSoon)).map((item) => {
           const active = isActive(item);
           if (item.comingSoon) {
             return (

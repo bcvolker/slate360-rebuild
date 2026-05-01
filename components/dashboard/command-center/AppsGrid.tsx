@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Compass, FileText, MapPin, Palette, type LucideIcon } from "lucide-react";
 import type { Entitlements } from "@/lib/entitlements";
+import { shouldHideInAppStoreMode } from "@/lib/app-store-mode";
 
 /**
  * AppsGrid — Command Center
@@ -64,7 +65,7 @@ interface AppsGridProps {
 }
 
 export function AppsGrid({ entitlements: _entitlements }: AppsGridProps) {
-  const visible = APPS;
+  const visible = APPS.filter((app) => !shouldHideInAppStoreMode(app.comingSoon));
 
   if (visible.length === 0) {
     return (

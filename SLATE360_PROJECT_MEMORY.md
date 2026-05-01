@@ -196,38 +196,38 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-05-01 (Site Walk Custom Tags + Deliverable Visibility Audit)
+### Session Handoff — 2026-05-01 (Capture Drawer + App Store Mode Hiding)
 
 #### What Changed
-- `components/site-walk/capture/DataContextView.tsx` — replaced the hardcoded classification/trade-style data entry with Status, Priority, Custom Tags, Cost Impact, Assigned To, Location, Item Detail, and Notes. Tags can be typed with Enter or added from Safety/Quality/Progress/Defect suggestions.
-- `lib/types/site-walk-capture.ts` — added tag/cost fields to the capture draft/record contract while keeping legacy `classification` exports for older capture components.
-- `components/site-walk/capture/capture-draft-save.ts` — extracted draft payload/local patch helpers so `useCaptureItems.ts` dropped from 295 to 272 lines and stays safely under the 300-line guard.
-- `components/site-walk/capture/useCaptureItems.ts` — now persists tags to `site_walk_items.tags`, clears legacy `trade/category` on the new Data screen save path, persists cost impact to `cost_estimate`, and merges AI suggested classification into tags instead of reintroducing hardcoded dropdowns.
-- Deliverable schema audit: `site_walk_deliverables.viewer_config` and `organizations.brand_settings` already provide storage for hide/show metadata preferences; no migration needed now. The missing work is UI/viewer wiring.
-- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — documented the stable `viewer_config.metadataVisibility` shape for GPS/weather/timestamps/assignee/cost impact.
-- `slate360-context/ONGOING_ISSUES.md` and `ops/bug-registry.json` — logged BUG-050 as open: Deliverable Studio metadata visibility controls are schema-ready but not wired.
-- Validation passed: bug registry JSON parse, `git diff --check`, `npm run typecheck`, and editor diagnostics on touched TS/TSX/JSON files.
-- File-size guard was run and still fails only on the 12 known pre-existing oversized files; touched `.tsx`/`.ts` files are under 300 lines.
+- `components/site-walk/capture/VisualCaptureView.tsx` — refactored the active visual capture screen into a four-zone mobile workspace: top context rail, large photo/markup stage, floating glowing Add Field Details action, and a collapsible bottom tool drawer with View / Markup / Attach / Angles modes.
+- `components/site-walk/capture/VisualCaptureView.tsx` — preserved `CameraViewfinder` mounting while hiding/showing drawer chrome so markup canvas state, pins, and active preview remain stable; `useMarkupCanvasState.ts` was reviewed but not edited because it is at the 299-line limit and drawer state did not require hook changes.
+- `lib/app-store-mode.ts` — added a shared `APP_STORE_MODE` / `shouldHideInAppStoreMode()` helper; reviewer mode defaults on unless `NEXT_PUBLIC_APP_STORE_MODE=false`.
+- `components/shared/CommandPalette.tsx`, `components/dashboard/command-center/AppsGrid.tsx`, `components/dashboard/command-center/DashboardSidebar.tsx`, `components/shared/QuickNav.tsx`, and `components/shared/MobileNavSheet.tsx` — filter `comingSoon` app entries under App Store mode so 360 Tours, Design Studio, and Content Studio are hidden instead of shown as Soon/dead-end surfaces.
+- `components/shared/InviteShareModal.tsx` — converted the global invite/share modal to Dark Glass styling and clarified the tabs as Share App Link vs Invite Collaborator.
+- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — documented the App Store mode helper and the current four-zone capture shell.
+- `slate360-context/ONGOING_ISSUES.md` and `ops/bug-registry.json` — logged BUG-051 fixed for App Store mode exposing unfinished app surfaces; BUG-050 remains open.
+- Validation passed: editor diagnostics on touched files, bug registry JSON parse, `git diff --check`, `npm run typecheck`, and `npm run build` (warnings only: existing Sentry/instrumentation/ESLint-plugin warnings).
+- File-size guard was run and still fails only on the 12 known pre-existing oversized files; all touched production `.tsx`/`.ts` files remain under 300 lines.
 
 #### What's Broken / Partially Done
-- Needs real-device smoke test: capture photo → Add Details → add custom tags/cost/assignee/notes → confirm autosave → refresh/reopen item and verify tags/cost persist.
-- `CaptureItemForm.tsx` and `CaptureItemListPanel.tsx` still use the legacy classification filter/UI for older capture surfaces; the active Data screen no longer exposes hardcoded trade/category dropdowns.
-- Deliverable metadata visibility toggles still need the actual Deliverable Studio UI and public-viewer enforcement for `viewer_config.metadataVisibility`.
-- Capture Visual screen still looks dense in screenshots; it needs a dedicated visual hierarchy pass (separate top evidence rail, main photo/markup stage, bottom tool drawer) after the data-entry fix.
+- Needs real-device smoke test: capture photo → switch View/Markup/Attach/Angles drawer modes → draw markup → hide/show drawer → verify markup state persists → Add Field Details opens Data screen.
+- Needs App Store mode smoke test with `NEXT_PUBLIC_APP_STORE_MODE=true` in a clean browser: command palette, app grid, sidebar, QuickNav, and MobileNavSheet should hide unbuilt apps; setting the flag to `false` should reveal future-app surfaces for internal/dev review.
+- Deliverable metadata visibility toggles still need the actual Deliverable Studio UI and public-viewer enforcement for `viewer_config.metadataVisibility` (BUG-050 remains open).
+- Public marketing/app detail preview pages still intentionally describe future apps; this pass only hid authenticated reviewer-facing app launch/navigation surfaces.
 - The user-uploaded reference images under `public/uploads/` and `ts-prune-output.txtcat` remain untracked and intentionally not committed.
 - Pre-existing file-size guard failures remain in unrelated files: `LocationMap.tsx`, `marketing-homepage.tsx`, `DashboardWidgetRenderer.tsx`, and other known oversized files reported by `scripts/check-file-size.sh`.
 
 #### Context Files Updated
 - `SLATE360_PROJECT_MEMORY.md` — this handoff.
-- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — deliverable metadata visibility storage contract.
-- `slate360-context/ONGOING_ISSUES.md` — BUG-050 open entry.
-- `ops/bug-registry.json` — BUG-050 open entry.
+- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — App Store mode helper and four-zone capture shell notes.
+- `slate360-context/ONGOING_ISSUES.md` — BUG-051 fixed entry and updated timestamp.
+- `ops/bug-registry.json` — BUG-051 fixed entry.
 
 #### Next Steps (ordered)
-1. Real-device smoke test the new Data screen tags/cost/assignee autosave and refresh persistence.
+1. Real-device smoke test the new capture drawer and App Store mode hiding on iPhone/Android-sized viewports.
 2. Build Deliverable Studio metadata toggles backed by `viewer_config.metadataVisibility` and enforce them in public deliverable rendering.
-3. Redesign the Visual capture screen hierarchy so photo evidence, markup controls, attachment pins, and additional angles read as separate sections instead of one dense control stack.
-4. Extract or retire legacy classification-based capture surfaces when they are next touched.
+3. Audit public/native preview surfaces before App Store submission to decide whether future-app marketing pages also need reviewer-mode hiding.
+4. Continue rich deliverable work: normalized assets/scenes/hotspots/threads/responses in public viewer, 360/model bridge APIs, and Coordination/contacts/calendar workflow loops.
 
 ### Session Handoff — 2026-04-30 (Markup Canvas Mobile UX Fixes)
 

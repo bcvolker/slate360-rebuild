@@ -18,6 +18,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { getEntitlements, type Tier } from "@/lib/entitlements";
+import { shouldHideInAppStoreMode } from "@/lib/app-store-mode";
 
 interface NavItem {
   label: string;
@@ -63,6 +64,7 @@ export default function QuickNav({ tier, isCeo = false, internalAccess }: QuickN
   const ent = tier ? getEntitlements(tier, { isSlateCeo: isCeo }) : null;
 
   const visibleItems = NAV_ITEMS.filter((item) => {
+    if (shouldHideInAppStoreMode(item.comingSoon)) return false;
     // Phase 1 beta: hide placeholder modules from tester navigation
     if (item.phase1Hidden) return false;
     if (item.internalKey) {
