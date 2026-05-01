@@ -196,38 +196,41 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-05-01 (Capture Drawer + App Store Mode Hiding)
+### Session Handoff — 2026-05-01 (Walk Summary + Feedback Loop)
 
 #### What Changed
-- `components/site-walk/capture/VisualCaptureView.tsx` — refactored the active visual capture screen into a four-zone mobile workspace: top context rail, large photo/markup stage, floating glowing Add Field Details action, and a collapsible bottom tool drawer with View / Markup / Attach / Angles modes.
-- `components/site-walk/capture/VisualCaptureView.tsx` — preserved `CameraViewfinder` mounting while hiding/showing drawer chrome so markup canvas state, pins, and active preview remain stable; `useMarkupCanvasState.ts` was reviewed but not edited because it is at the 299-line limit and drawer state did not require hook changes.
-- `lib/app-store-mode.ts` — added a shared `APP_STORE_MODE` / `shouldHideInAppStoreMode()` helper; reviewer mode defaults on unless `NEXT_PUBLIC_APP_STORE_MODE=false`.
-- `components/shared/CommandPalette.tsx`, `components/dashboard/command-center/AppsGrid.tsx`, `components/dashboard/command-center/DashboardSidebar.tsx`, `components/shared/QuickNav.tsx`, and `components/shared/MobileNavSheet.tsx` — filter `comingSoon` app entries under App Store mode so 360 Tours, Design Studio, and Content Studio are hidden instead of shown as Soon/dead-end surfaces.
-- `components/shared/InviteShareModal.tsx` — converted the global invite/share modal to Dark Glass styling and clarified the tabs as Share App Link vs Invite Collaborator.
-- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — documented the App Store mode helper and the current four-zone capture shell.
-- `slate360-context/ONGOING_ISSUES.md` and `ops/bug-registry.json` — logged BUG-051 fixed for App Store mode exposing unfinished app surfaces; BUG-050 remains open.
+- `app/site-walk/(act-2-inputs)/walks/[sessionId]/page.tsx` — upgraded the Act 2 Walk Summary handoff screen into a Dark Glass, vertically scrolling review list of session captures with thumbnail, location, priority, status, custom tags, notes preview, edit-back link, and top/bottom Create Deliverable CTAs.
+- `app/site-walk/(act-2-inputs)/capture/_components/CaptureClientIsland.tsx` already routes Save & Finish Walk to `/site-walk/walks/[sessionId]`, so the existing finish flow now lands on the new summary screen.
+- `components/shared/BetaFeedbackModal.tsx` — sends `appArea` based on the current path to `/api/feedback` and was polished to Dark Glass so the Version 1 feedback loop feels integrated with the premium shell.
+- `app/api/feedback/route.ts`, `app/(dashboard)/operations-console/feedback/page.tsx`, `lib/server/operations-console-counts.ts`, and `components/dashboard/OperationsConsoleClient.tsx` were reviewed: feedback submits to `beta_feedback`, Operations Console reads/counts real rows, and access approval uses real `/api/admin/beta` GET/PATCH APIs against `profiles.is_beta_approved`.
+- `supabase/migrations/20260501090000_beta_feedback_contract_reconcile.sql` — added a reconciliation migration so older `category`/`replay_url` feedback tables support the current `type`/`app_area`/`console_errors` owner inbox contract.
+- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — documented `/site-walk/walks/[sessionId]` as the Act 2 → Act 3 core-loop handoff.
+- `slate360-context/DASHBOARD.md` — documented the feedback data flow from modal to API to `beta_feedback` to Operations Console.
+- `slate360-context/ONGOING_ISSUES.md` and `ops/bug-registry.json` — logged BUG-052 fixed for feedback schema drift risk.
 - Validation passed: editor diagnostics on touched files, bug registry JSON parse, `git diff --check`, `npm run typecheck`, and `npm run build` (warnings only: existing Sentry/instrumentation/ESLint-plugin warnings).
 - File-size guard was run and still fails only on the 12 known pre-existing oversized files; all touched production `.tsx`/`.ts` files remain under 300 lines.
 
 #### What's Broken / Partially Done
-- Needs real-device smoke test: capture photo → switch View/Markup/Attach/Angles drawer modes → draw markup → hide/show drawer → verify markup state persists → Add Field Details opens Data screen.
-- Needs App Store mode smoke test with `NEXT_PUBLIC_APP_STORE_MODE=true` in a clean browser: command palette, app grid, sidebar, QuickNav, and MobileNavSheet should hide unbuilt apps; setting the flag to `false` should reveal future-app surfaces for internal/dev review.
+- Needs real-device smoke test: capture photo → Add Field Details → Save & Finish Walk → review Walk Summary → tap a card to edit → return → Create Deliverable.
+- The Walk Summary Create Deliverable button currently routes into the existing Deliverable Studio entry route; the actual interactive Deliverable Studio/editor/viewer is still the next large build slice.
+- Apply/push the new Supabase migration before relying on the reconciled feedback contract in production environments that only have the older `beta_feedback` shape.
+- Operations Console now has real access-approval and feedback inbox wiring, but most broader business-control workflows remain truthful scaffolds until audited mutations are built.
 - Deliverable metadata visibility toggles still need the actual Deliverable Studio UI and public-viewer enforcement for `viewer_config.metadataVisibility` (BUG-050 remains open).
-- Public marketing/app detail preview pages still intentionally describe future apps; this pass only hid authenticated reviewer-facing app launch/navigation surfaces.
 - The user-uploaded reference images under `public/uploads/` and `ts-prune-output.txtcat` remain untracked and intentionally not committed.
 - Pre-existing file-size guard failures remain in unrelated files: `LocationMap.tsx`, `marketing-homepage.tsx`, `DashboardWidgetRenderer.tsx`, and other known oversized files reported by `scripts/check-file-size.sh`.
 
 #### Context Files Updated
 - `SLATE360_PROJECT_MEMORY.md` — this handoff.
-- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — App Store mode helper and four-zone capture shell notes.
-- `slate360-context/ONGOING_ISSUES.md` — BUG-051 fixed entry and updated timestamp.
-- `ops/bug-registry.json` — BUG-051 fixed entry.
+- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — Walk Summary handoff note.
+- `slate360-context/DASHBOARD.md` — feedback wiring and Operations Console direction.
+- `slate360-context/ONGOING_ISSUES.md` — BUG-052 fixed entry and updated timestamp.
+- `ops/bug-registry.json` — BUG-052 fixed entry.
 
 #### Next Steps (ordered)
-1. Real-device smoke test the new capture drawer and App Store mode hiding on iPhone/Android-sized viewports.
-2. Build Deliverable Studio metadata toggles backed by `viewer_config.metadataVisibility` and enforce them in public deliverable rendering.
-3. Audit public/native preview surfaces before App Store submission to decide whether future-app marketing pages also need reviewer-mode hiding.
-4. Continue rich deliverable work: normalized assets/scenes/hotspots/threads/responses in public viewer, 360/model bridge APIs, and Coordination/contacts/calendar workflow loops.
+1. Real-device smoke test the complete Site Walk core loop from capture through Walk Summary and Create Deliverable.
+2. Apply/push `20260501090000_beta_feedback_contract_reconcile.sql` to Supabase before Version 1 testing, then submit a real bug from the header and verify it appears in Operations Console.
+3. Build the interactive Deliverable Studio/editor/viewer using normalized assets/scenes/hotspots/threads/responses, not PDF-first content JSON.
+4. Continue global Slate360 shell work: subscribed-app management, Coordination Hub, reusable contacts/stakeholders, calendar/mobile scheduling, and real-time/offline collaboration polish.
 
 ### Session Handoff — 2026-04-30 (Markup Canvas Mobile UX Fixes)
 

@@ -77,6 +77,7 @@ Future unread counts should be computed from inbox rows and surfaced on both des
 
 - `components/dashboard/operations-console/OperationsConsoleNav.tsx` accepts count badges for pending Version 1 access, open feedback, and feature/function suggestions.
 - `lib/server/operations-console-counts.ts` is the shared server helper for current badge counts. It reads `profiles.is_beta_approved` and `beta_feedback` while public-facing labels remain Version 1 / Feedback.
+- 2026-05-01: feedback intake is wired through `components/shared/BetaFeedbackModal.tsx` → `app/api/feedback/route.ts` → `beta_feedback` → `app/(dashboard)/operations-console/feedback/page.tsx`. Migration `20260501090000_beta_feedback_contract_reconcile.sql` reconciles older `category`/`replay_url` table shape with the current `type`/`app_area`/`console_errors` Operations Console contract.
 - Operations sections are shaped as the business control center: access extensions, trial extensions, temporary/permanent app grants, pricing controls, business health, product health, systems health, and enterprise seat/permission management.
 - Existing backend mutations for many of these controls are not complete yet; keep the current UI truthful by framing them as workflows/build targets until migrations and audited APIs exist.
 

@@ -20,6 +20,7 @@ This V1 3 Act workflow plan remains the execution-oriented launch plan, but it m
 - App Store mode must hide unfinished apps/features entirely; no Coming Soon/dead-end surfaces should appear under `NEXT_PUBLIC_APP_STORE_MODE=true`. 2026-05-01 implementation note: `lib/app-store-mode.ts` centralizes this flag and defaults reviewer mode on unless `NEXT_PUBLIC_APP_STORE_MODE=false`; app launch surfaces must filter unbuilt apps rather than showing Soon pills.
 - User-facing launch copy must avoid `Beta`, `Beta Testing`, and `Waitlist`; use `Version 1`, `Foundational Member`, `Account Verification`, or `Workspace Provisioning`.
 - Data entry must use configurable Tags / Departments / Categories instead of hardcoded trade dropdowns so Site Walk can serve construction, university facilities, insurance, real estate, and other field workflows.
+- 2026-05-01 core-loop note: `/site-walk/walks/[sessionId]` is the Walk Summary handoff from Act 2 to Act 3. It lists each capture with thumbnail, location, priority, status, custom tags, and notes preview, and routes edits back into `/site-walk/capture?session=...&item=...` before entering Deliverable Studio.
 - Organization `owner` / `admin` users can receive a Global Command Center view across all active walks in their organization; solo owners should not see enterprise-only clutter unless needed.
 
 ---

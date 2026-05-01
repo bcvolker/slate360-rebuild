@@ -70,6 +70,7 @@ export function BetaFeedbackModal({ open, onOpenChange }: BetaFeedbackModalProps
           pageUrl: form.includeData && typeof window !== "undefined" ? window.location.pathname : "",
           userAgent: form.includeData && typeof navigator !== "undefined" ? navigator.userAgent : "",
           replayUrl: form.includeData ? replayUrl : "",
+          appArea: form.includeData && typeof window !== "undefined" ? getAppArea(window.location.pathname) : "",
           attachments,
         }),
       });
@@ -108,23 +109,26 @@ export function BetaFeedbackModal({ open, onOpenChange }: BetaFeedbackModalProps
     setStatus({ kind: "idle" });
   }
 
+  const fieldClass = "w-full rounded-2xl border border-white/15 bg-white/5 px-3 py-2.5 text-sm font-bold text-white outline-none placeholder:text-white/35 focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20";
+
   const modal = (
     <div
       role="dialog"
       aria-modal="true"
-      className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+      className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/70 p-4 backdrop-blur-md"
       onClick={(e) => e.target === e.currentTarget && onOpenChange(false)}
     >
-      <div className="modal-panel w-full max-w-lg p-6 relative">
+      <div className="relative w-full max-w-lg rounded-3xl border border-white/10 bg-[#0B0F15]/95 p-6 text-slate-50 shadow-[0_24px_80px_rgba(0,0,0,0.55)] backdrop-blur-xl">
         <button
           type="button"
           onClick={() => onOpenChange(false)}
-          className="absolute top-3 right-3 p-1 text-slate-500 hover:text-slate-900 rounded transition-colors"
+          className="absolute right-3 top-3 rounded-full border border-white/15 bg-white/5 p-2 text-white/70 transition-colors hover:bg-white/10 hover:text-white"
           aria-label="Close"
         >
           <X className="h-4 w-4" />
         </button>
-        <h2 className="text-lg font-semibold text-slate-900 mb-4">Submit Version 1 Feedback</h2>
+        <h2 className="mb-1 text-lg font-black text-white">Submit Version 1 Feedback</h2>
+        <p className="mb-4 text-xs font-bold text-white/50">Bugs and suggestions go straight to the owner Operations Console.</p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="flex gap-3">
@@ -132,7 +136,7 @@ export function BetaFeedbackModal({ open, onOpenChange }: BetaFeedbackModalProps
               <select
                 value={form.category}
                 onChange={(e) => setForm({ ...form, category: e.target.value as Category })}
-                className="form-field"
+                className={fieldClass}
               >
                 <option value="bug">Report a Bug</option>
                 <option value="suggestion">Suggest a Feature</option>
@@ -145,7 +149,7 @@ export function BetaFeedbackModal({ open, onOpenChange }: BetaFeedbackModalProps
                 <select
                   value={form.severity}
                   onChange={(e) => setForm({ ...form, severity: e.target.value as Severity })}
-                  className="form-field"
+                  className={fieldClass}
                 >
                   <option value="low">Low</option>
                   <option value="medium">Medium</option>
@@ -162,7 +166,7 @@ export function BetaFeedbackModal({ open, onOpenChange }: BetaFeedbackModalProps
               type="text"
               value={form.title}
               onChange={(e) => setForm({ ...form, title: e.target.value })}
-              className="form-field"
+              className={fieldClass}
             />
           </Field>
 
@@ -172,16 +176,16 @@ export function BetaFeedbackModal({ open, onOpenChange }: BetaFeedbackModalProps
               rows={4}
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
-              className="form-field resize-none"
+              className={`${fieldClass} resize-none`}
             />
           </Field>
 
-          <label className="flex items-center gap-2 text-xs text-slate-600">
+          <label className="flex items-center gap-2 text-xs font-bold text-white/60">
             <input
               type="checkbox"
               checked={form.includeData}
               onChange={(e) => setForm({ ...form, includeData: e.target.checked })}
-              className="rounded border-slate-300 text-cobalt focus:ring-cobalt/30"
+              className="rounded border-white/20 bg-white/5 text-blue-500 focus:ring-blue-500/30"
             />
             Include current page URL &amp; session data
           </label>
@@ -192,11 +196,11 @@ export function BetaFeedbackModal({ open, onOpenChange }: BetaFeedbackModalProps
               multiple
               accept="image/*,.pdf,.txt,.csv"
               onChange={(e) => void handleAttachmentChange(e.target.files)}
-              className="form-field text-xs"
+              className={`${fieldClass} text-xs`}
             />
-            <p className="mt-1 text-[11px] leading-4 text-slate-500">Up to 3 screenshots or files, 2 MB each.</p>
+            <p className="mt-1 text-[11px] leading-4 text-white/45">Up to 3 screenshots or files, 2 MB each.</p>
             {attachments.length > 0 && (
-              <ul className="mt-2 space-y-1 text-[11px] text-slate-600">
+              <ul className="mt-2 space-y-1 text-[11px] text-white/60">
                 {attachments.map((file) => (
                   <li key={`${file.name}-${file.size}`} className="truncate">{file.name} · {Math.round(file.size / 1024)} KB</li>
                 ))}
@@ -204,13 +208,13 @@ export function BetaFeedbackModal({ open, onOpenChange }: BetaFeedbackModalProps
             )}
           </Field>
 
-          {status.kind === "error" && <p className="text-xs text-rose-600" role="alert">{status.message}</p>}
-          {status.kind === "ok" && <p className="text-xs text-emerald-600">Thanks — feedback received.</p>}
+          {status.kind === "error" && <p className="text-xs font-bold text-rose-200" role="alert">{status.message}</p>}
+          {status.kind === "ok" && <p className="text-xs font-bold text-emerald-200">Thanks — feedback received.</p>}
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2 mt-1 rounded-md bg-cobalt text-primary-foreground hover:opacity-90 transition-opacity disabled:opacity-50 text-sm font-medium"
+            className="mt-1 w-full rounded-2xl bg-blue-600 py-3 text-sm font-black text-white shadow-[0_0_18px_rgba(37,99,235,0.34)] transition hover:bg-blue-500 disabled:opacity-50"
           >
             {loading ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : "Submit Feedback"}
           </button>
@@ -237,6 +241,11 @@ function readAttachment(file: File): Promise<FeedbackAttachment> {
   });
 }
 
+function getAppArea(pathname: string) {
+  const segment = pathname.split("/").filter(Boolean)[0];
+  return segment || "dashboard";
+}
+
 function Field({
   label,
   children,
@@ -248,7 +257,7 @@ function Field({
 }) {
   return (
     <div className={`space-y-1 ${className ?? ""}`}>
-      <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{label}</label>
+      <label className="text-xs font-black uppercase tracking-wide text-white/55">{label}</label>
       {children}
     </div>
   );

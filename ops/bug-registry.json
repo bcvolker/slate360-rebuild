@@ -459,6 +459,19 @@
         "Command palette and app navigation filter `comingSoon` items through the shared App Store mode helper",
         "Dashboard app cards hide unfinished apps instead of showing disabled or Soon-labelled tiles under App Store mode"
       ]
+    },
+    {
+      "id": "BUG-052",
+      "title": "Feedback intake schema could drift from Operations Console inbox",
+      "module": "operations-console/feedback",
+      "severity": "high",
+      "status": "fixed",
+      "rootCause": "Migration history had both an older `category`/`replay_url` feedback table shape and the newer Operations Console/API `type`/`app_area`/`console_errors` contract. If the older table shape created the table first, feedback submissions could fail or the owner inbox counts could miss rows.",
+      "verification": [
+        "A reconciliation migration adds the Operations Console columns when missing and backfills `type` from legacy `category` values",
+        "Legacy `category` is made nullable so the current `/api/feedback` insert contract can succeed",
+        "The feedback modal sends a real `appArea` based on the current path so Operations Console can group submissions by app surface"
+      ]
     }
   ]
 }
