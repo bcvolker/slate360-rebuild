@@ -52,7 +52,7 @@ export default function OperationsConsoleClient({ ownerEmail, initialCounts }: P
   }
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6 p-6">
+    <div className="mx-auto max-w-6xl space-y-6 px-4 py-5 pb-28 text-slate-50 sm:px-6 lg:px-8 lg:py-8 lg:pb-8">
       {toast && (
         <FloatingToast
           message={toast.message}
@@ -64,22 +64,22 @@ export default function OperationsConsoleClient({ ownerEmail, initialCounts }: P
 
       {/* Header */}
       <div className="flex items-center gap-3">
-        <div className="rounded-lg bg-amber-100 p-2 dark:bg-amber-900/30">
-          <Shield className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+        <div className="rounded-2xl bg-amber-400/10 p-3 ring-1 ring-amber-400/20">
+          <Shield className="h-5 w-5 text-amber-200" />
         </div>
         <div>
-          <h1 className="text-xl font-bold text-foreground">Operations Console</h1>
-          <p className="text-xs text-muted-foreground">Version 1 launch access &middot; {ownerEmail}</p>
+          <h1 className="text-xl font-bold text-white">Operations Console</h1>
+          <p className="text-xs text-slate-400">Version 1 launch access &middot; {ownerEmail}</p>
         </div>
       </div>
 
       <OperationsConsoleNav active="/operations-console" counts={navCounts} />
 
       {/* Summary cards */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <SummaryCard label="Total Users" value={users.length} loading={loading} />
-        <SummaryCard label="Version 1 Approved" value={approvedCount} loading={loading} accent="text-green-600" />
-        <SummaryCard label="Pending" value={pendingCount} loading={loading} accent="text-amber-600" />
+        <SummaryCard label="Version 1 Approved" value={approvedCount} loading={loading} accent="text-emerald-200" />
+        <SummaryCard label="Pending" value={pendingCount} loading={loading} accent="text-amber-200" />
       </div>
 
       <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
@@ -91,22 +91,22 @@ export default function OperationsConsoleClient({ ownerEmail, initialCounts }: P
 
       {/* Filter + reload */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1 rounded-lg border bg-background p-1">
+        <div className="flex items-center gap-1 rounded-2xl border border-white/10 bg-white/5 p-1">
           {(["all", "approved", "pending"] as const).map((f) => (
             <button
               key={f}
               onClick={() => setFilter(f)}
               className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
                 filter === f
-                  ? "bg-primary text-primary-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
+                  ? "bg-sky-400/15 text-sky-100 shadow-sm"
+                  : "text-slate-400 hover:text-white"
               }`}
             >
               {f === "all" ? `All (${users.length})` : f === "approved" ? `Approved (${approvedCount})` : `Pending (${pendingCount})`}
             </button>
           ))}
         </div>
-        <Button variant="ghost" size="sm" onClick={reload} disabled={loading}>
+        <Button variant="ghost" size="sm" onClick={reload} disabled={loading} className="text-slate-300 hover:bg-white/10 hover:text-white">
           <RefreshCw className={`mr-1 h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
           Refresh
         </Button>
@@ -115,30 +115,30 @@ export default function OperationsConsoleClient({ ownerEmail, initialCounts }: P
       {/* User list */}
       {loading && users.length === 0 ? (
         <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
         </div>
       ) : error ? (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-800 dark:bg-red-950/30 dark:text-red-300">
+        <div className="rounded-2xl border border-red-400/20 bg-red-500/10 p-4 text-sm text-red-200">
           {error}
           <Button variant="outline" size="sm" className="ml-3" onClick={reload}>
             Retry
           </Button>
         </div>
       ) : filtered.length === 0 ? (
-        <div className="py-12 text-center text-sm text-muted-foreground">No users match this filter.</div>
+        <div className="py-12 text-center text-sm text-slate-400">No users match this filter.</div>
       ) : (
-        <div className="overflow-hidden rounded-lg border">
+        <div className="overflow-x-auto rounded-3xl border border-white/10 bg-white/5 shadow-lg backdrop-blur-md">
           <table className="w-full text-sm">
-            <thead className="border-b bg-muted/50">
+            <thead className="border-b border-white/10 bg-white/5">
               <tr>
-                <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">User</th>
-                <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">Company</th>
-                <th className="px-4 py-2.5 text-left text-xs font-medium text-muted-foreground">Joined</th>
-                <th className="px-4 py-2.5 text-center text-xs font-medium text-muted-foreground">Version 1 Status</th>
-                <th className="px-4 py-2.5 text-right text-xs font-medium text-muted-foreground">Action</th>
+                <th className="px-4 py-2.5 text-left text-xs font-medium text-slate-400">User</th>
+                <th className="px-4 py-2.5 text-left text-xs font-medium text-slate-400">Company</th>
+                <th className="px-4 py-2.5 text-left text-xs font-medium text-slate-400">Joined</th>
+                <th className="px-4 py-2.5 text-center text-xs font-medium text-slate-400">Version 1 Status</th>
+                <th className="px-4 py-2.5 text-right text-xs font-medium text-slate-400">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y">
+            <tbody className="divide-y divide-white/10">
               {filtered.map((u) => (
                 <UserRow
                   key={u.id}
@@ -157,9 +157,9 @@ export default function OperationsConsoleClient({ ownerEmail, initialCounts }: P
 
 function OpsCapabilityCard({ title, detail }: { title: string; detail: string }) {
   return (
-    <div className="rounded-2xl border border-blue-200 bg-blue-50 p-4">
-      <p className="text-sm font-black text-slate-950">{title}</p>
-      <p className="mt-1 text-xs leading-5 text-blue-900">{detail}</p>
+    <div className="rounded-2xl border border-white/10 bg-white/5 p-4 shadow-lg backdrop-blur-md">
+      <p className="text-sm font-black text-white">{title}</p>
+      <p className="mt-1 text-xs leading-5 text-slate-400">{detail}</p>
     </div>
   );
 }
@@ -176,12 +176,12 @@ function SummaryCard({
   accent?: string;
 }) {
   return (
-    <div className="rounded-lg border bg-background p-4">
-      <p className="text-xs font-medium text-muted-foreground">{label}</p>
+    <div className="rounded-2xl border border-white/10 bg-white/5 p-4 shadow-lg backdrop-blur-md">
+      <p className="text-xs font-medium text-slate-400">{label}</p>
       {loading ? (
-        <Loader2 className="mt-1 h-5 w-5 animate-spin text-muted-foreground" />
+        <Loader2 className="mt-1 h-5 w-5 animate-spin text-slate-400" />
       ) : (
-        <p className={`mt-1 text-2xl font-bold ${accent ?? "text-foreground"}`}>{value}</p>
+        <p className={`mt-1 text-2xl font-bold ${accent ?? "text-white"}`}>{value}</p>
       )}
     </div>
   );
@@ -197,17 +197,17 @@ function UserRow({
   onToggle: () => void;
 }) {
   return (
-    <tr className="hover:bg-muted/30">
+    <tr className="hover:bg-white/5">
       <td className="px-4 py-3">
         <div>
-          <p className="font-medium text-foreground">{user.display_name || user.email || user.id.slice(0, 8)}</p>
+          <p className="font-medium text-white">{user.display_name || user.email || user.id.slice(0, 8)}</p>
           {user.email && user.display_name && (
-            <p className="text-xs text-muted-foreground">{user.email}</p>
+            <p className="text-xs text-slate-400">{user.email}</p>
           )}
         </div>
       </td>
-      <td className="px-4 py-3 text-muted-foreground">{user.company || "—"}</td>
-      <td className="px-4 py-3 text-muted-foreground">
+      <td className="px-4 py-3 text-slate-400">{user.company || "—"}</td>
+      <td className="px-4 py-3 text-slate-400">
         {new Date(user.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
       </td>
       <td className="px-4 py-3 text-center">

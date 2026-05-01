@@ -67,10 +67,11 @@ function roleRank(role?: string | null): number {
   return 4;
 }
 
-function resolveInternalAccess(isSlateCeo: boolean) {
+function resolveInternalAccess(isSlateCeo: boolean, isSlateStaff: boolean) {
+  const hasInternalAccess = isSlateCeo || isSlateStaff;
   return {
-    canAccessOperationsConsole: isSlateCeo,
-    hasInternalAccess: isSlateCeo,
+    canAccessOperationsConsole: hasInternalAccess,
+    hasInternalAccess,
   };
 }
 
@@ -150,7 +151,7 @@ export const resolveServerOrgContext = cache(async (): Promise<ServerOrgContext>
     }
   }
 
-  const internalAccess = resolveInternalAccess(isSlateCeo);
+  const internalAccess = resolveInternalAccess(isSlateCeo, isSlateStaffResolved);
 
   // Resolve beta approval (owner auto-approved, others checked from profiles)
   const isBetaApproved = isSlateCeo || (await checkBetaApproved(user.id));

@@ -17,12 +17,12 @@ export default async function MorePage() {
   const { hasOperationsConsoleAccess } = await resolveServerOrgContext();
 
   const items: MoreItem[] = [
-    { label: "Account", href: "/my-account", icon: User },
-    { label: "Organization", href: "/my-account?tab=organization", icon: Building2 },
-    { label: "Billing & Apps", href: "/my-account?tab=billing", icon: CreditCard },
+    { label: "Account", href: "/more/account", icon: User },
+    { label: "Organization", href: "/more/organization", icon: Building2 },
+    { label: "Billing & Apps", href: "/more/billing", icon: CreditCard },
     { label: "Coordination", href: "/coordination/inbox", icon: MessageSquare },
     { label: "Storage", href: "/slatedrop", icon: HardDrive },
-    { label: "Legal / Support", href: "/privacy", icon: LifeBuoy },
+    { label: "Legal / Support", href: "/more/support", icon: LifeBuoy },
   ];
 
   if (hasOperationsConsoleAccess) {

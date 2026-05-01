@@ -3,7 +3,7 @@
 /**
  * MobileBottomNav — fixed glassy bottom navigation for mobile (≤lg).
  *
- * Five tabs: Home / Projects / SlateDrop / Coordination / Account.
+ * Platform tabs stay tier-neutral: Home / Work / SlateDrop / More.
  * Cobalt active indicator (matches new color palette — no amber/gold).
  * Safe-area padding so it sits above the iOS home indicator.
  *
@@ -24,15 +24,15 @@ interface NavItem {
 
 const PLATFORM_NAV: NavItem[] = [
   { label: "Home", href: "/dashboard", icon: Home, matchPrefixes: ["/dashboard"] },
-  { label: "Projects", href: "/projects", icon: FolderOpen, matchPrefixes: ["/projects"] },
+  { label: "Work", href: "/projects", icon: FolderOpen, matchPrefixes: ["/projects", "/project-hub"] },
   { label: "SlateDrop", href: "/slatedrop", icon: Cloud, matchPrefixes: ["/slatedrop"] },
-  { label: "More", href: "/more", icon: MoreHorizontal, matchPrefixes: ["/more", "/my-work", "/coordination", "/my-account", "/settings", "/apps"] },
+  { label: "More", href: "/more", icon: MoreHorizontal, matchPrefixes: ["/more", "/my-work", "/coordination", "/my-account", "/settings", "/apps", "/operations-console"] },
 ];
 
 const SITE_WALK_NAV: NavItem[] = [
   { label: "Home", href: "/site-walk", icon: Home, matchPrefixes: ["/site-walk$"] },
   { label: "Capture", href: "/site-walk/capture", icon: Footprints, matchPrefixes: ["/site-walk/capture", "/site-walk/walks", "/site-walk/board"] },
-  { label: "Files", href: "/slatedrop", icon: Cloud, matchPrefixes: ["/slatedrop", "/site-walk/files"] },
+  { label: "Files", href: "/site-walk/slatedrop", icon: Cloud, matchPrefixes: ["/site-walk/slatedrop", "/site-walk/files"] },
   { label: "Outputs", href: "/site-walk/deliverables", icon: FileText, matchPrefixes: ["/site-walk/deliverables", "/site-walk/present"] },
   { label: "More", href: "/site-walk/more", icon: MoreHorizontal, matchPrefixes: ["/site-walk/more", "/site-walk/plans", "/site-walk/templates", "/site-walk/contacts"] },
 ];

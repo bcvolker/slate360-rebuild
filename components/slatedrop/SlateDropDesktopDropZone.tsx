@@ -89,8 +89,8 @@ export default function SlateDropDesktopDropZone({ folderId, folderPath, label =
         if (state !== "uploading") setState("dragging");
       }}
       onDragLeave={() => state === "dragging" && setState("idle")}
-      className={`hidden rounded-3xl border-2 border-dashed p-6 text-center shadow-sm transition-colors lg:block ${
-        state === "dragging" ? "border-blue-500 bg-blue-50" : "border-slate-300 bg-white"
+      className={`hidden rounded-3xl border-2 border-dashed p-6 text-center shadow-lg backdrop-blur-md transition-colors lg:block ${
+        state === "dragging" ? "border-sky-400 bg-sky-400/10" : "border-white/15 bg-white/[0.03]"
       }`}
     >
       <input
@@ -103,17 +103,17 @@ export default function SlateDropDesktopDropZone({ folderId, folderPath, label =
           event.currentTarget.value = "";
         }}
       />
-      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-blue-700">
+      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-sky-400/10 text-sky-200 ring-1 ring-sky-400/20">
         {state === "uploading" ? <Loader2 className="h-6 w-6 animate-spin" /> : state === "done" ? <CheckCircle2 className="h-6 w-6" /> : state === "error" ? <XCircle className="h-6 w-6 text-red-600" /> : <UploadCloud className="h-6 w-6" />}
       </div>
-      <h2 className="mt-3 text-base font-black text-slate-950">{label}</h2>
-      <p className="mx-auto mt-1 max-w-xl text-sm leading-6 text-slate-600">{message}</p>
-      {state === "uploading" && <p className="mt-2 text-xs font-bold text-blue-700">{uploaded} uploaded so far</p>}
+      <h2 className="mt-3 text-base font-black text-white">{label}</h2>
+      <p className="mx-auto mt-1 max-w-xl text-sm leading-6 text-slate-400">{message}</p>
+      {state === "uploading" && <p className="mt-2 text-xs font-bold text-sky-200">{uploaded} uploaded so far</p>}
       <button
         type="button"
         onClick={() => inputRef.current?.click()}
         disabled={state === "uploading"}
-        className="mt-4 inline-flex min-h-10 items-center justify-center rounded-2xl bg-blue-700 px-4 text-xs font-black text-white hover:bg-blue-800 disabled:opacity-60"
+        className="mt-4 inline-flex min-h-10 items-center justify-center rounded-2xl bg-sky-500 px-4 text-xs font-black text-slate-950 hover:bg-sky-400 disabled:opacity-60"
       >
         Choose files
       </button>

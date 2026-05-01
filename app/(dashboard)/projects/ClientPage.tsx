@@ -110,15 +110,15 @@ export default function ProjectsClientPage() {
               <FolderKanban className="h-5 w-5" />
             </span>
             <div className="min-w-0">
-              <p className="text-[11px] font-black uppercase tracking-[0.18em] text-blue-200">Directory</p>
-              <h1 className="truncate text-2xl font-black text-white">Projects</h1>
+              <p className="text-[11px] font-black uppercase tracking-[0.18em] text-blue-200">Work directory</p>
+              <h1 className="truncate text-2xl font-black text-white">Projects & Field Projects</h1>
             </div>
           </div>
           <button
             onClick={() => setWizardOpen(true)}
             className="hidden min-h-11 items-center justify-center gap-2 rounded-2xl bg-blue-600 px-4 text-sm font-black text-white shadow-[0_0_15px_rgba(37,99,235,0.3)] transition hover:bg-blue-500 sm:inline-flex"
           >
-            <Plus className="h-4 w-4" /> New
+            <Plus className="h-4 w-4" /> New Work
           </button>
         </div>
 
@@ -128,7 +128,7 @@ export default function ProjectsClientPage() {
             <input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search projects"
+              placeholder="Search projects and field projects"
               className="h-12 w-full rounded-2xl border border-white/10 bg-slate-950/45 pl-10 pr-4 text-sm font-bold text-white outline-none placeholder:text-slate-500 focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20"
             />
           </div>
@@ -147,7 +147,7 @@ export default function ProjectsClientPage() {
         type="button"
         onClick={() => setWizardOpen(true)}
         className="fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom))] right-4 z-30 inline-flex h-14 w-14 items-center justify-center rounded-full bg-blue-600 text-white shadow-[0_0_20px_rgba(37,99,235,0.4)] transition hover:bg-blue-500 sm:hidden"
-        aria-label="Create project"
+        aria-label="Create project or field project"
       >
         <Plus className="h-6 w-6" />
       </button>

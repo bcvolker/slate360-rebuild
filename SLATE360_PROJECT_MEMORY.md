@@ -196,28 +196,37 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-05-01 (Dashboard / Site Walk / Wizard No-Filler Cleanup)
+### Session Handoff — 2026-05-01 (Drilldown Shell / Operations Console Cleanup)
 
 #### What Changed
-- Reviewed the latest uploaded screenshot contact sheet under `public/uploads/screenshots of app/`; the screenshots confirmed remaining old states: horizontal dashboard carousel/Workspace Tray, Site Walk marketing copy, white project wizard/map controls, and crammed bottom-safe-area issues.
-- `components/dashboard/command-center/CommandCenterContent.tsx`: removed the horizontal shortcut carousel and Workspace Tray entirely. Dashboard now stacks vertically: app entry, Quick Actions grid, Recent Walks row, and Inbox row.
-- `app/site-walk/_components/SiteWalkLaunchGrid.tsx`: removed cockpit marketing paragraphs and reduced Site Walk home to action-first buttons (`Start Quick Walk`, `Create Field Project`) plus compact continuation/Walks/Files/Outputs entries.
-- `components/projects/CreateProjectWizard.tsx`: converted the project wizard modal, inputs, review cards, header/footer, and buttons to dark glass and added mobile bottom-safe padding.
-- `components/projects/WizardLocationPickerController.tsx` and `components/projects/WizardLocationPicker.tsx`: converted map search/tool controls and fallback state away from white controls to dark glass.
-- `slate360-context/ONGOING_ISSUES.md` and `ops/bug-registry.json`: logged BUG-055 fixed for remaining horizontal carousel, marketing filler, and white wizard controls.
-- `slate360-context/DASHBOARD.md` and `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md`: documented the no-horizontal-scroll dashboard and action-first Site Walk direction.
+- `app/slatedrop/[...section]/page.tsx` and `components/slatedrop/SlateDropDesktopDropZone.tsx`: darkened SlateDrop folder/action drilldowns and upload drop zone so opening folders no longer reverts to white-card zebra UI.
+- `app/(dashboard)/more/page.tsx`: changed Account/Organization/Billing/Support rows to native `/more/[section]` drilldowns instead of immediately jumping into heavier legacy/public pages.
+- `app/(dashboard)/more/[section]/page.tsx`: added native dark app-shell section pages for Account, Organization, Billing & Apps, and Legal / Support with deeper links.
+- `components/dashboard/OperationsConsoleClient.tsx`, `components/dashboard/operations-console/OperationsConsoleNav.tsx`, `app/(dashboard)/operations-console/[section]/page.tsx`, and `app/(dashboard)/operations-console/feedback/page.tsx`: darkened Operations Console access queue, nav cards, workflow sections, and feedback inbox for mobile/PWA consistency.
+- `lib/server/org-context.ts`: Operations Console now grants access to `slate360_staff` rows as well as `CEO_EMAIL` owner identity. This reduces brittleness when `CEO_EMAIL` is missing/mismatched, but production still needs either `CEO_EMAIL` set or the CEO user inserted into `slate360_staff`.
+- `components/shared/MobileBottomNav.tsx`: renamed the platform `/projects` tab to tier-neutral `Work`, included `/project-hub` in active matching, included `/operations-console` under More, and routed Site Walk Files to `/site-walk/slatedrop`.
+- `app/(dashboard)/projects/ClientPage.tsx`: changed top label/copy to `Projects & Field Projects` / `Work directory` so lower Site Walk field-project users and higher-tier project-management users share one global destination.
+- `ops/bug-registry.json`, `slate360-context/ONGOING_ISSUES.md`, `slate360-context/DASHBOARD.md`, and `slate360-context/SLATEDROP.md`: logged/documented BUG-056.
 
 #### What's Broken / Partially Done
-- Needs real-device refresh/deploy verification: screenshots may still show cached old app UI until the PWA reloads the latest build.
-- SlateDrop now has the native shell shape, but Recents/Shared/Requests and row contents still need real file/share/request data wiring.
-- Project cards and wizard are cleaner, but project detail pages still need a strategic value-loop pass.
-- Coordination is visually consistent and tabbed, but contacts/calendar/inbox remain truthful scaffolds until backed by real contact/calendar/message records.
-- Deliverable metadata visibility toggles still need the actual Deliverable Studio UI and public-viewer enforcement for `viewer_config.metadataVisibility` (BUG-050 remains open).
-- The user-uploaded reference images under `public/uploads/` and `ts-prune-output.txtcat` remain untracked and intentionally not committed.
-- Pre-existing file-size guard failures remain in unrelated files; touched production files remain under 300 lines.
+- Needs deployed/PWA verification on the phone for `/slatedrop/general-files`, `/slatedrop/upload`, `/more/account`, `/more/billing`, `/operations-console`, and `/operations-console/feedback`.
+- Operations Console owner access will still fail in production if neither `CEO_EMAIL` is set to the owner email nor a non-revoked `slate360_staff` row exists for the owner/staff account.
+- More section pages are a native-shell bridge; the deeper `/my-account` and `/plans` pages still need a full visual/value pass.
+- SlateDrop folder drilldowns are visually consistent now, but live Recents/Shared/Requests/folder data wiring remains pending.
+- Project detail pages and full Project Hub surfaces still need native-pane/value-loop cleanup.
 
 #### Context Files Updated
 - `SLATE360_PROJECT_MEMORY.md` — this handoff.
+- `slate360-context/ONGOING_ISSUES.md` and `ops/bug-registry.json` — BUG-056 fixed entry.
+- `slate360-context/DASHBOARD.md` — native drilldown and tier-neutral Work nav rule.
+- `slate360-context/SLATEDROP.md` — SlateDrop drilldown dark-shell rule.
+
+#### Next Steps (ordered)
+1. Verify `CEO_EMAIL` in Vercel or add the owner email to `slate360_staff` so the phone PWA can access Operations Console.
+2. Retest the phone PWA on `/more/*`, `/slatedrop/*`, and `/operations-console/*` after the new deployment.
+3. Wire SlateDrop Recents/Shared/Requests and folder drilldowns to real records instead of interim assistant panels.
+4. Continue shell contract + visual token work to fix remaining ultra-dark blending globally.
+5. Start Site Walk module shell and capture bottom-sheet refactor once drilldown consistency is verified.
 - `slate360-context/DASHBOARD.md` — no-horizontal-scroll dashboard note.
 - `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — action-first Site Walk note.
 - `slate360-context/ONGOING_ISSUES.md` — BUG-055 fixed entry and updated timestamp.

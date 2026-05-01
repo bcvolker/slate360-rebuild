@@ -517,6 +517,21 @@
         "WizardLocationPicker controls no longer render white search/tool bars over the dark shell",
         "Changed files remain under 300 lines and pass TypeScript/build validation"
       ]
+    },
+    {
+      "id": "BUG-056",
+      "title": "Drilldown surfaces reverted to white-card zebra UI and owner console access was brittle",
+      "module": "app-shell/slatedrop/more/operations-console",
+      "severity": "critical",
+      "status": "fixed",
+      "rootCause": "The previous native-shell cleanup only covered top-level surfaces. SlateDrop folder/action drilldowns, Operations Console sections/feedback/access queue, and More destinations still used light cards or jumped into heavier legacy/public pages. Operations Console access also depended only on CEO_EMAIL, so explicitly granted staff/internal users could lose access if the owner env was missing or mismatched.",
+      "verification": [
+        "/slatedrop/[...section] and SlateDropDesktopDropZone render dark app-shell surfaces instead of white cards",
+        "/more links route to native /more/[section] app-shell pages before offering deeper account/billing/legal controls",
+        "Operations Console access queue, nav, section pages, and feedback inbox use dark mobile-safe surfaces",
+        "resolveServerOrgContext grants Operations Console access to slate360_staff rows as well as CEO_EMAIL owner identity",
+        "Mobile bottom nav labels /projects as tier-neutral Work and treats /operations-console as a More surface"
+      ]
     }
   ]
 }

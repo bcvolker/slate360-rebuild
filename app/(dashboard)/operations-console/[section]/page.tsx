@@ -41,25 +41,25 @@ export default async function OperationsSectionPage({ params }: { params: Promis
   const counts = await getOperationsConsoleCounts();
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6 p-6">
+    <div className="mx-auto max-w-6xl space-y-6 px-4 py-5 pb-28 text-slate-50 sm:px-6 lg:px-8 lg:py-8 lg:pb-8">
       <header>
-        <h1 className="text-xl font-bold text-foreground">{copy.title}</h1>
-        <p className="text-xs text-muted-foreground">{copy.detail}</p>
+        <h1 className="text-xl font-bold text-white">{copy.title}</h1>
+        <p className="text-xs leading-5 text-slate-400">{copy.detail}</p>
       </header>
       <OperationsConsoleNav active={`/operations-console/${section}`} counts={counts} />
-      <section className="rounded-3xl border border-slate-300 bg-white p-6 shadow-sm">
-        <p className="text-sm font-black text-slate-950">Build target</p>
+      <section className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-lg backdrop-blur-md">
+        <p className="text-sm font-black text-white">Build target</p>
         <ul className="mt-3 grid gap-3 sm:grid-cols-3">
           {copy.bullets.map((bullet) => (
-            <li key={bullet} className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm font-semibold text-slate-700">{bullet}</li>
+            <li key={bullet} className="rounded-2xl border border-white/10 bg-slate-950/45 p-4 text-sm font-semibold text-slate-300">{bullet}</li>
           ))}
         </ul>
       </section>
-      <section className="rounded-3xl border border-blue-200 bg-blue-50 p-6 shadow-sm">
-        <p className="text-sm font-black text-slate-950">CEO control-center workflows</p>
+      <section className="rounded-3xl border border-sky-400/20 bg-sky-400/10 p-6 shadow-lg backdrop-blur-md">
+        <p className="text-sm font-black text-white">CEO control-center workflows</p>
         <ul className="mt-3 grid gap-3 sm:grid-cols-3">
           {copy.workflows.map((workflow) => (
-            <li key={workflow} className="rounded-2xl border border-blue-200 bg-white p-4 text-sm font-semibold text-slate-700">{workflow}</li>
+            <li key={workflow} className="rounded-2xl border border-sky-400/20 bg-slate-950/45 p-4 text-sm font-semibold text-slate-300">{workflow}</li>
           ))}
         </ul>
       </section>

@@ -121,6 +121,7 @@ The Command Center follows the zero-scroll blueprint:
 - 2026-05-01: `/more`, `/coordination/inbox`, `/coordination/contacts`, `/coordination/calendar`, `/slatedrop`, and `/site-walk/slatedrop` were converted away from white cards on the dark app frame. This is a triage consistency pass, not the final SlateDrop/Coordination product model.
 - In App Store mode, SlateDrop hides inactive future app folder placeholders instead of showing locked 360 Tours / Design Studio / Content Studio spaces to reviewers.
 - 2026-05-01 native-tab cleanup: `/projects` is now a Field Projects directory instead of a dashboard metrics page; `/slatedrop` is now a compact file-browser shell with Browse/Recents/Shared/Requests tabs; `/more` is now a utility/settings list. These tabs should stay no-filler: compact title, useful rows/cards, and one obvious primary action.
+- 2026-05-01 drilldown cleanup: primary tab drilldowns must also obey the native shell. `/more` now opens native section pages before deeper account/billing/legal controls, `/slatedrop/[...section]` is darkened, Operations Console drilldowns are dark/mobile-safe, and the phone nav labels `/projects` as tier-neutral `Work` so lower Site Walk users with Field Projects and higher-tier project-management users share the same global destination.
 
 ### Command Center Quick Actions (Legacy Reference)
 

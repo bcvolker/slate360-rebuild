@@ -44,18 +44,18 @@ export default async function SlateDropSectionPage({ params }: { params: Promise
   const folderPath = ["SlateDrop", ...section.map(titleFromSlug)].join("/");
 
   return (
-    <div className="mx-auto flex w-full max-w-4xl flex-col gap-5 px-4 py-5 sm:px-6 lg:px-8 lg:py-8">
-      <Link href="/slatedrop" className="inline-flex min-h-10 w-fit items-center gap-2 rounded-2xl border border-slate-300 bg-white px-3 text-sm font-bold text-slate-700 hover:border-blue-500">
+    <div className="mx-auto flex w-full max-w-4xl flex-col gap-5 px-4 py-5 pb-28 text-slate-50 sm:px-6 lg:px-8 lg:py-8 lg:pb-8">
+      <Link href="/slatedrop" className="inline-flex min-h-10 w-fit items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-3 text-sm font-bold text-slate-200 hover:border-sky-400/60 hover:bg-white/10">
         <ArrowLeft className="h-4 w-4" /> SlateDrop
       </Link>
 
-      <section className="rounded-3xl border border-slate-300 bg-white p-5 shadow-sm sm:p-6">
-        <p className="text-[11px] font-black uppercase tracking-[0.18em] text-blue-700">{parent}</p>
-        <h1 className="mt-2 text-2xl font-black text-slate-950 sm:text-3xl">{title}</h1>
-        <p className="mt-2 max-w-2xl text-sm text-slate-600">{detail}</p>
+      <section className="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-lg backdrop-blur-md sm:p-6">
+        <p className="text-[11px] font-black uppercase tracking-[0.18em] text-sky-200">{parent}</p>
+        <h1 className="mt-2 text-2xl font-black text-white sm:text-3xl">{title}</h1>
+        <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">{detail}</p>
       </section>
 
-      <section className="rounded-3xl border border-slate-300 bg-white p-4 shadow-sm">
+      <section className="rounded-3xl border border-white/10 bg-white/5 p-4 shadow-lg backdrop-blur-md">
         <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
           <FolderAction href="/slatedrop/upload" icon={Upload} label="Upload" />
           <FolderAction href="/slatedrop/save" icon={Download} label="Save" />
@@ -76,16 +76,16 @@ export default async function SlateDropSectionPage({ params }: { params: Promise
         />
       )}
 
-      <section className="rounded-3xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center">
-        <Folder className="mx-auto h-8 w-8 text-blue-700" />
-        <p className="mt-3 text-sm font-bold text-slate-800">Folder browser placeholder</p>
-        <p className="mx-auto mt-1 max-w-lg text-sm text-slate-600">
-          This keeps every SlateDrop control clickable while we replace the legacy project-scoped file explorer with the new Site Walk-driven folder browser.
+      <section className="rounded-3xl border border-dashed border-white/15 bg-white/[0.03] p-6 text-center shadow-lg backdrop-blur-md">
+        <Folder className="mx-auto h-8 w-8 text-sky-200" />
+        <p className="mt-3 text-sm font-bold text-white">Folder browser wiring</p>
+        <p className="mx-auto mt-1 max-w-lg text-sm leading-6 text-slate-400">
+          This folder is available while the live mobile browser is connected to project folders, shared files, recents, and request links.
         </p>
         <div className="mt-5 flex flex-wrap justify-center gap-2">
-          <span className="rounded-full border border-slate-300 bg-white px-3 py-1 text-xs font-bold text-slate-600">No legacy project UI</span>
-          <span className="rounded-full border border-slate-300 bg-white px-3 py-1 text-xs font-bold text-slate-600">Mobile-first actions</span>
-          <span className="rounded-full border border-slate-300 bg-white px-3 py-1 text-xs font-bold text-slate-600">Ready for Site Walk folders</span>
+          <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-bold text-slate-300">No legacy project UI</span>
+          <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-bold text-slate-300">Mobile-first actions</span>
+          <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-bold text-slate-300">Ready for Site Walk folders</span>
         </div>
       </section>
     </div>
@@ -105,17 +105,17 @@ function ActionAssistant({ action, title }: { action: string; title: string }) {
   };
 
   return (
-    <section className="rounded-3xl border border-blue-200 bg-blue-50 p-5 shadow-sm">
-      <p className="text-[11px] font-black uppercase tracking-[0.18em] text-blue-700">Action assistant</p>
-      <h2 className="mt-2 text-lg font-black text-slate-950">{title}</h2>
-      <p className="mt-1 text-sm leading-6 text-slate-700">
+    <section className="rounded-3xl border border-sky-400/20 bg-sky-400/10 p-5 shadow-lg backdrop-blur-md">
+      <p className="text-[11px] font-black uppercase tracking-[0.18em] text-sky-200">Action assistant</p>
+      <h2 className="mt-2 text-lg font-black text-white">{title}</h2>
+      <p className="mt-1 text-sm leading-6 text-slate-300">
         This panel defines the usable V1 workflow for this action. The next pass should connect these fields to the existing SlateDrop APIs and `project_folders` writes.
       </p>
       <div className="mt-4 grid gap-3 sm:grid-cols-3">
         {(fields[action] ?? ["Select item", "Choose destination", "Confirm action"]).map((field) => (
-          <label key={field} className="space-y-1 text-xs font-black uppercase tracking-wide text-slate-600">
+          <label key={field} className="space-y-1 text-xs font-black uppercase tracking-wide text-slate-400">
             {field}
-            <input disabled className="mt-1 h-10 w-full rounded-2xl border border-slate-300 bg-white px-3 text-sm text-slate-500" placeholder="Wiring next" />
+            <input disabled className="mt-1 h-10 w-full rounded-2xl border border-white/10 bg-slate-950/50 px-3 text-sm text-slate-500" placeholder="Wiring next" />
           </label>
         ))}
       </div>
@@ -125,8 +125,8 @@ function ActionAssistant({ action, title }: { action: string; title: string }) {
 
 function FolderAction({ href, icon: Icon, label }: { href: string; icon: typeof Plus; label: string }) {
   return (
-    <Link href={href} className="flex min-h-20 flex-col items-center justify-center gap-2 rounded-2xl border border-slate-300 bg-slate-50 px-2 text-xs font-bold text-slate-700 hover:border-blue-500 hover:bg-white">
-      <Icon className="h-5 w-5 text-blue-700" />
+    <Link href={href} className="flex min-h-20 flex-col items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] px-2 text-xs font-bold text-slate-300 hover:border-sky-400/60 hover:bg-white/10">
+      <Icon className="h-5 w-5 text-sky-200" />
       {label}
     </Link>
   );

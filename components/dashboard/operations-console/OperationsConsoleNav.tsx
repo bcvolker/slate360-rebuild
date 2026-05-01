@@ -23,22 +23,22 @@ export function OperationsConsoleNav({ active, counts }: { active: string; count
             key={section.href}
             href={section.href}
             aria-current={selected ? "page" : undefined}
-            className={`rounded-2xl border p-4 transition hover:border-blue-500 hover:shadow-sm ${selected ? "border-blue-400 bg-blue-50" : "border-slate-300 bg-white"}`}
+            className={`rounded-2xl border p-4 transition hover:border-sky-400/60 hover:bg-white/10 ${selected ? "border-sky-400/50 bg-sky-400/10" : "border-white/10 bg-white/5"}`}
           >
             <div className="flex gap-3">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-700 ring-1 ring-blue-100">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sky-400/10 text-sky-200 ring-1 ring-sky-400/20">
                 <Icon className="h-5 w-5" />
               </span>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
-                  <p className="text-sm font-black text-slate-950">{section.label}</p>
+                  <p className="text-sm font-black text-white">{section.label}</p>
                   {typeof badge === "number" && badge > 0 ? (
                     <span className="rounded-full bg-red-600 px-2 py-0.5 text-[10px] font-black text-white shadow-sm" aria-label={`${badge} items need attention`}>
                       {badge}
                     </span>
                   ) : null}
                 </div>
-                <p className="mt-1 text-xs leading-5 text-slate-600">{section.detail}</p>
+                <p className="mt-1 text-xs leading-5 text-slate-400">{section.detail}</p>
               </div>
             </div>
           </Link>
