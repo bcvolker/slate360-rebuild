@@ -502,6 +502,21 @@
         "/more renders an iOS-style settings list with Account, Organization, Billing & Apps, Coordination, Storage, Legal/Support, Operations Console if authorized, and Sign Out",
         "Changed production files remain under 300 lines and pass TypeScript"
       ]
+    },
+    {
+      "id": "BUG-055",
+      "title": "Remaining horizontal carousel, marketing filler, and white wizard controls",
+      "module": "dashboard/site-walk/projects",
+      "severity": "critical",
+      "status": "fixed",
+      "rootCause": "The Command Center still had a horizontal shortcut carousel and Workspace Tray, Site Walk home still used marketing-style cockpit text, and project creation used white/light map controls inside a dark app shell, preserving the vibe-coded website feel.",
+      "verification": [
+        "CommandCenterContent has no horizontal overflow carousel and no Workspace Tray section",
+        "/site-walk home shows compact title and action buttons instead of marketing paragraphs",
+        "CreateProjectWizard modal uses dark glass styling, dark inputs, and mobile bottom safe padding",
+        "WizardLocationPicker controls no longer render white search/tool bars over the dark shell",
+        "Changed files remain under 300 lines and pass TypeScript/build validation"
+      ]
     }
   ]
 }

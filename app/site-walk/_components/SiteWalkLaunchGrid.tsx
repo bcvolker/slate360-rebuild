@@ -65,38 +65,31 @@ export function SiteWalkLaunchGrid({ projects }: Props) {
   }
 
   return (
-    <section className="w-full space-y-4 rounded-[2rem] border border-white/10 bg-white/5 p-4 shadow-2xl backdrop-blur-md sm:p-5">
-      <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
-        <div className="rounded-[1.75rem] border border-white/10 bg-slate-950/45 p-4 shadow-lg sm:p-5">
-          <p className="text-[11px] font-black uppercase tracking-[0.18em] text-blue-200">Site Walk Cockpit</p>
-          <h1 className="mt-2 max-w-2xl text-3xl font-black leading-tight text-white sm:text-4xl">
-            Start field work, then turn the walk into something useful.
-          </h1>
-          <p className="mt-3 max-w-2xl text-sm font-bold leading-6 text-slate-300">
-            Choose a field project, capture stops, add context, collect files, and finish with a walk summary or deliverable handoff.
-          </p>
+    <section className="w-full space-y-3 rounded-[2rem] border border-white/10 bg-white/5 p-3 shadow-2xl backdrop-blur-md sm:p-4">
+      <div className="flex items-center justify-between gap-3 px-1">
+        <h1 className="text-2xl font-black text-white">Site Walk</h1>
+        <Link href="/projects" className="text-xs font-black text-blue-200">Projects</Link>
+      </div>
 
-          <div className="mt-5 grid gap-3 sm:grid-cols-2">
-            <button type="button" onClick={openQuickCapture} disabled={!!creating} className="group min-h-36 rounded-3xl bg-blue-600 p-4 text-left text-white shadow-[0_0_20px_rgba(37,99,235,0.35)] transition hover:bg-blue-500 disabled:opacity-60">
+      <div className="grid gap-3 sm:grid-cols-2">
+        <button type="button" onClick={openQuickCapture} disabled={!!creating} className="group min-h-32 rounded-3xl bg-blue-600 p-4 text-left text-white shadow-[0_0_20px_rgba(37,99,235,0.35)] transition hover:bg-blue-500 disabled:opacity-60">
               <span className="flex items-center justify-between gap-3">
                 {creating === "quick" ? <Loader2 className="h-7 w-7 animate-spin" /> : mobileCapture ? <Camera className="h-7 w-7" /> : <Upload className="h-7 w-7" />}
                 <ArrowRight className="h-5 w-5 transition group-hover:translate-x-1" />
               </span>
-              <span className="mt-5 block text-xl font-black">Start Walk Now</span>
-              <span className="mt-1 block text-sm font-bold text-blue-50">{mobileCapture ? "Open the camera for Stop 1" : "Upload the first photo for Stop 1"}</span>
-            </button>
+          <span className="mt-5 block text-xl font-black">Start Quick Walk</span>
+        </button>
 
-            <Link href="/site-walk/setup" className="min-h-36 rounded-3xl border border-white/15 bg-white/5 p-4 text-left shadow-lg backdrop-blur-md transition hover:border-blue-400/60 hover:bg-blue-500/10">
+        <Link href="/site-walk/setup" className="min-h-32 rounded-3xl border border-white/15 bg-slate-900/70 p-4 text-left shadow-lg backdrop-blur-md transition hover:border-blue-400/60 hover:bg-blue-500/15">
               <HardHat className="h-7 w-7 text-blue-300" />
-              <span className="mt-5 block text-xl font-black text-slate-50">Set Up a Field Project</span>
-              <span className="mt-1 block text-sm font-bold text-slate-400">Plans, locations, stakeholders, and capture defaults.</span>
-            </Link>
-          </div>
-        </div>
+          <span className="mt-5 block text-xl font-black text-slate-50">Create Field Project</span>
+        </Link>
+      </div>
 
-        <aside className="rounded-[1.75rem] border border-white/10 bg-slate-950/45 p-4 shadow-lg">
+      {(projects.length > 0) && (
+        <aside className="rounded-[1.75rem] border border-white/10 bg-slate-900/70 p-3 shadow-lg">
           <div className="flex items-center justify-between gap-3">
-            <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">Continue</p>
+            <p className="text-sm font-black text-white">Continue</p>
             <Link href="/projects" className="text-xs font-black text-blue-200 hover:text-blue-100">All projects</Link>
           </div>
           <div className="mt-3 space-y-2">
@@ -109,30 +102,22 @@ export function SiteWalkLaunchGrid({ projects }: Props) {
                 </span>
               </button>
             ))}
-            {projects.length === 0 && (
-              <Link href="/site-walk/setup" className="block rounded-2xl border border-dashed border-white/15 bg-white/5 p-4 text-sm font-bold leading-6 text-slate-300">
-                Create your first Field Project before a planned walk, or use Start Walk Now for ad hoc capture.
-              </Link>
-            )}
           </div>
         </aside>
-      </div>
+      )}
 
       <div className="grid gap-3 sm:grid-cols-3">
-        <Link href="/site-walk/walks" className="rounded-3xl border border-white/10 bg-white/5 p-4 transition hover:border-blue-400/60 hover:bg-blue-500/10">
+        <Link href="/site-walk/walks" className="rounded-3xl border border-white/10 bg-slate-900/70 p-4 transition hover:border-blue-400/60 hover:bg-blue-500/15">
           <Camera className="h-5 w-5 text-blue-300" />
           <h2 className="mt-3 text-sm font-black text-white">Walks</h2>
-          <p className="mt-1 text-xs font-bold leading-5 text-slate-400">Resume sessions and review completed walk summaries.</p>
         </Link>
-        <Link href="/site-walk/slatedrop" className="rounded-3xl border border-white/10 bg-white/5 p-4 transition hover:border-blue-400/60 hover:bg-blue-500/10">
+        <Link href="/site-walk/slatedrop" className="rounded-3xl border border-white/10 bg-slate-900/70 p-4 transition hover:border-blue-400/60 hover:bg-blue-500/15">
           <FolderOpen className="h-5 w-5 text-blue-300" />
           <h2 className="mt-3 text-sm font-black text-white">Files</h2>
-          <p className="mt-1 text-xs font-bold leading-5 text-slate-400">Plans, photos, markups, voice notes, and shared files.</p>
         </Link>
-        <Link href="/site-walk/deliverables" className="rounded-3xl border border-white/10 bg-white/5 p-4 transition hover:border-blue-400/60 hover:bg-blue-500/10">
+        <Link href="/site-walk/deliverables" className="rounded-3xl border border-white/10 bg-slate-900/70 p-4 transition hover:border-blue-400/60 hover:bg-blue-500/15">
           <FileText className="h-5 w-5 text-blue-300" />
           <h2 className="mt-3 text-sm font-black text-white">Outputs</h2>
-          <p className="mt-1 text-xs font-bold leading-5 text-slate-400">Turn captured stops into shareable deliverables.</p>
         </Link>
       </div>
 

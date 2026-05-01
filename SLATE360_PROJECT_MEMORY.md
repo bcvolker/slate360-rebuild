@@ -196,20 +196,21 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-05-01 (Native Projects / SlateDrop / More Cleanup)
+### Session Handoff — 2026-05-01 (Dashboard / Site Walk / Wizard No-Filler Cleanup)
 
 #### What Changed
-- `app/(dashboard)/projects/page.tsx`: simplified the route to render the Projects client inside the shared app shell without duplicate dashboard header props.
-- `app/(dashboard)/projects/ClientPage.tsx`: removed top-level metrics/summary loading and rebuilt `/projects` as a native Field Projects directory with compact header, search, project list, empty state, and create action.
-- `components/projects/ProjectsAllProjectsTab.tsx`: replaced the horizontal project carousel with dark-glass project cards in a responsive grid and a clean empty state.
-- `app/slatedrop/page.tsx`: replaced the folder-card/action-pill hub with a compact native file-browser shell: Files header, search, Upload/New Folder actions, Browse/Recents/Shared/Requests tabs, folder rows, and App Store mode hiding for inactive future folders.
-- `app/(dashboard)/more/page.tsx`: replaced paragraph-heavy cards with an iOS-style settings list: Account, Organization, Billing & Apps, Coordination, Storage, Legal/Support, Operations Console when authorized, and Sign Out.
-- `slate360-context/ONGOING_ISSUES.md` and `ops/bug-registry.json`: logged BUG-054 fixed for primary tabs behaving like dashboard/marketing pages instead of native panes.
-- `slate360-context/DASHBOARD.md` and `slate360-context/SLATEDROP.md`: documented the no-filler native tab contracts.
+- Reviewed the latest uploaded screenshot contact sheet under `public/uploads/screenshots of app/`; the screenshots confirmed remaining old states: horizontal dashboard carousel/Workspace Tray, Site Walk marketing copy, white project wizard/map controls, and crammed bottom-safe-area issues.
+- `components/dashboard/command-center/CommandCenterContent.tsx`: removed the horizontal shortcut carousel and Workspace Tray entirely. Dashboard now stacks vertically: app entry, Quick Actions grid, Recent Walks row, and Inbox row.
+- `app/site-walk/_components/SiteWalkLaunchGrid.tsx`: removed cockpit marketing paragraphs and reduced Site Walk home to action-first buttons (`Start Quick Walk`, `Create Field Project`) plus compact continuation/Walks/Files/Outputs entries.
+- `components/projects/CreateProjectWizard.tsx`: converted the project wizard modal, inputs, review cards, header/footer, and buttons to dark glass and added mobile bottom-safe padding.
+- `components/projects/WizardLocationPickerController.tsx` and `components/projects/WizardLocationPicker.tsx`: converted map search/tool controls and fallback state away from white controls to dark glass.
+- `slate360-context/ONGOING_ISSUES.md` and `ops/bug-registry.json`: logged BUG-055 fixed for remaining horizontal carousel, marketing filler, and white wizard controls.
+- `slate360-context/DASHBOARD.md` and `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md`: documented the no-horizontal-scroll dashboard and action-first Site Walk direction.
 
 #### What's Broken / Partially Done
+- Needs real-device refresh/deploy verification: screenshots may still show cached old app UI until the PWA reloads the latest build.
 - SlateDrop now has the native shell shape, but Recents/Shared/Requests and row contents still need real file/share/request data wiring.
-- Project cards now provide a cleaner directory, but project detail pages still need a strategic value-loop pass.
+- Project cards and wizard are cleaner, but project detail pages still need a strategic value-loop pass.
 - Coordination is visually consistent and tabbed, but contacts/calendar/inbox remain truthful scaffolds until backed by real contact/calendar/message records.
 - Deliverable metadata visibility toggles still need the actual Deliverable Studio UI and public-viewer enforcement for `viewer_config.metadataVisibility` (BUG-050 remains open).
 - The user-uploaded reference images under `public/uploads/` and `ts-prune-output.txtcat` remain untracked and intentionally not committed.
@@ -217,16 +218,16 @@ When editing oversized files, always read both the state declarations AND the JS
 
 #### Context Files Updated
 - `SLATE360_PROJECT_MEMORY.md` — this handoff.
-- `slate360-context/DASHBOARD.md` — native tab cleanup note.
-- `slate360-context/SLATEDROP.md` — native file-browser shell direction.
-- `slate360-context/ONGOING_ISSUES.md` — BUG-054 fixed entry and updated timestamp.
-- `ops/bug-registry.json` — BUG-054 fixed entry.
+- `slate360-context/DASHBOARD.md` — no-horizontal-scroll dashboard note.
+- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — action-first Site Walk note.
+- `slate360-context/ONGOING_ISSUES.md` — BUG-055 fixed entry and updated timestamp.
+- `ops/bug-registry.json` — BUG-055 fixed entry.
 
 #### Next Steps (ordered)
-1. Real-device smoke test `/projects`, `/slatedrop`, and `/more` on installed phone PWA for scroll, tap targets, bottom-nav clearance, and visual consistency.
-2. Wire `/slatedrop` Browse/Recents/Shared/Requests rows to real folder/file/share/request data instead of interim route rows.
-3. Rebuild project detail pages around the same native-pane contract and remove any remaining legacy Project Hub drift.
-4. Build real Contacts/Calendar/Inbox records behind the Coordination shell.
+1. Deploy/refresh real phone PWA and retake screenshots for `/dashboard`, `/site-walk`, `/projects` wizard, `/slatedrop`, `/more`, and `/coordination/inbox`.
+2. If old UI persists after deploy, clear PWA/service-worker cache and verify `NEXT_PUBLIC_APP_STORE_MODE` deployment env.
+3. Wire `/slatedrop` Browse/Recents/Shared/Requests rows to real folder/file/share/request data instead of interim route rows.
+4. Rebuild project detail pages around the same native-pane contract and remove any remaining legacy Project Hub drift.
 5. Continue Deliverable Studio/editor/viewer using normalized assets/scenes/hotspots/threads/responses.
 
 ### Session Handoff — 2026-04-30 (Markup Canvas Mobile UX Fixes)

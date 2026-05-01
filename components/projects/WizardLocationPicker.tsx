@@ -24,7 +24,7 @@ export default function WizardLocationPicker({
 
   if (!apiKey) {
     return (
-      <div className="h-full flex items-center justify-center text-xs text-gray-500 px-4 text-center">
+      <div className="flex h-full items-center justify-center px-4 text-center text-xs font-semibold text-slate-400">
         Google Maps API key not configured (NEXT_PUBLIC_GOOGLE_MAPS_API_KEY).
       </div>
     );

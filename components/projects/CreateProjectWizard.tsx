@@ -95,21 +95,21 @@ export default function CreateProjectWizard({
     });
   };
 
-  const field = "w-full rounded-xl border border-app bg-white/[0.04] px-4 py-3 text-sm text-foreground placeholder:text-zinc-500 focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/20 focus:outline-none transition-all";
-  const label = "mb-1.5 block text-xs font-semibold text-zinc-300";
+  const field = "w-full rounded-xl border border-white/15 bg-white/10 px-4 py-3 text-sm font-semibold text-white placeholder:text-slate-500 focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-all";
+  const label = "mb-1.5 block text-xs font-bold text-slate-300";
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
-      <div onClick={(e) => e.stopPropagation()} className="relative w-full max-w-3xl overflow-hidden rounded-2xl border border-app bg-app-card shadow-2xl text-foreground flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 pb-[calc(7rem+env(safe-area-inset-bottom))] sm:pb-4">
+      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+      <div onClick={(e) => e.stopPropagation()} className="relative flex max-h-[82dvh] w-full max-w-3xl flex-col overflow-hidden rounded-[1.5rem] border border-white/10 bg-[#0B0F15] text-white shadow-2xl sm:max-h-[90vh]">
 
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-app bg-white/[0.04]/50 px-5 py-4">
+        <div className="flex items-center justify-between border-b border-white/10 bg-white/5 px-5 py-4">
           <div>
-            <h3 className="text-lg font-black text-foreground">Create New Project</h3>
+            <h3 className="text-lg font-black text-white">Create Project</h3>
             <p className="text-xs text-zinc-400 mt-0.5">Step {step} of {TOTAL_STEPS} — {STEP_LABELS[step - 1]}</p>
           </div>
-          <button type="button" onClick={onClose} className="w-8 h-8 rounded-lg flex items-center justify-center text-zinc-400 hover:bg-white/[0.06] hover:text-foreground transition-colors"><X size={18} /></button>
+          <button type="button" onClick={onClose} className="w-8 h-8 rounded-lg flex items-center justify-center text-zinc-400 hover:bg-white/10 hover:text-white transition-colors"><X size={18} /></button>
         </div>
 
         {/* Progress bar */}
@@ -118,7 +118,7 @@ export default function CreateProjectWizard({
         </div>
 
         {/* Step pills */}
-        <div className="flex border-b border-app bg-app-card">
+        <div className="flex border-b border-white/10 bg-white/5">
           {STEP_LABELS.map((lbl, i) => (
             <div key={lbl} className={`flex-1 py-2 text-center text-[10px] font-bold transition-colors ${i + 1 === step ? "text-[#3B82F6]" : i + 1 < step ? "text-emerald-400" : "text-zinc-500"}`}>
               {i + 1 < step && <CheckCircle2 size={10} className="inline mr-0.5 mb-0.5" />}{lbl}
@@ -127,7 +127,7 @@ export default function CreateProjectWizard({
         </div>
 
         {/* Body */}
-        <form id="create-project-form" onSubmit={submit} className="flex-1 overflow-y-auto p-5 sm:p-6">
+        <form id="create-project-form" onSubmit={submit} className="flex-1 overflow-y-auto p-5 pb-8 sm:p-6">
           {error && <div className="mb-4 rounded-lg border border-red-900/50 bg-red-950/30 px-4 py-2.5 text-sm text-red-400">{error}</div>}
 
           {step === 1 && (
@@ -162,10 +162,7 @@ export default function CreateProjectWizard({
 
           {step === 3 && (
             <div className="space-y-3">
-              <p className="text-xs text-zinc-400">
-                Search for an address, click anywhere on the map to drop a pin, or use the <strong>polygon tool</strong> to outline the site boundary.
-              </p>
-              <div className="h-[360px] w-full rounded-xl border border-app overflow-hidden bg-white/[0.04]">
+              <div className="h-[360px] w-full overflow-hidden rounded-xl border border-white/10 bg-white/5">
                 <WizardLocationPicker value={location} onChange={setLocation} />
               </div>
               {location.address && (
@@ -193,9 +190,9 @@ export default function CreateProjectWizard({
                 { label: "Location", value: location.address || (location.lat !== null && location.lng !== null ? `${location.lat.toFixed(5)}, ${location.lng.toFixed(5)}` : "Not set") },
                 { label: "Boundary", value: location.boundary.length > 0 ? `${location.boundary.length} point polygon` : "Not drawn" },
               ].map(({ label: l, value }) => (
-                <div key={l} className="rounded-xl border border-app bg-white/[0.04]/50 px-4 py-3">
+                <div key={l} className="rounded-xl border border-white/10 bg-white/5 px-4 py-3">
                   <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider mb-0.5">{l}</p>
-                  <p className="text-sm font-semibold text-foreground">{value}</p>
+                  <p className="text-sm font-semibold text-white">{value}</p>
                 </div>
               ))}
             </div>
@@ -203,22 +200,22 @@ export default function CreateProjectWizard({
         </form>
 
         {/* Footer */}
-        <div className="border-t border-app bg-white/[0.04]/50 px-5 py-4 flex items-center justify-between">
+        <div className="border-t border-white/10 bg-white/5 px-5 py-4 flex items-center justify-between">
           {step > 1 ? (
-            <button type="button" onClick={() => setStep((s) => s - 1)} className="inline-flex items-center gap-1.5 rounded-xl border border-app bg-white/[0.04] px-4 py-2.5 text-sm font-semibold text-zinc-300 hover:bg-white/[0.06] transition-all">
+            <button type="button" onClick={() => setStep((s) => s - 1)} className="inline-flex items-center gap-1.5 rounded-xl border border-white/15 bg-white/5 px-4 py-2.5 text-sm font-semibold text-zinc-300 hover:bg-white/10 transition-all">
               <ChevronLeft size={14} /> Back
             </button>
           ) : (
-            <button type="button" onClick={onClose} className="inline-flex items-center gap-1.5 rounded-xl border border-app bg-white/[0.04] px-4 py-2.5 text-sm font-semibold text-zinc-300 hover:bg-white/[0.06] transition-all">
+            <button type="button" onClick={onClose} className="inline-flex items-center gap-1.5 rounded-xl border border-white/15 bg-white/5 px-4 py-2.5 text-sm font-semibold text-zinc-300 hover:bg-white/10 transition-all">
               Cancel
             </button>
           )}
           {step < TOTAL_STEPS ? (
-            <button type="button" onClick={() => setStep((s) => s + 1)} disabled={!canAdvance} className="inline-flex items-center gap-1.5 rounded-xl bg-[#3B82F6] px-6 py-2.5 text-sm font-bold text-foreground hover:bg-[#1D4ED8] disabled:opacity-50 transition-all">
+            <button type="button" onClick={() => setStep((s) => s + 1)} disabled={!canAdvance} className="inline-flex items-center gap-1.5 rounded-xl bg-[#3B82F6] px-6 py-2.5 text-sm font-bold text-white hover:bg-[#1D4ED8] disabled:opacity-50 transition-all">
               Next <ChevronRight size={14} />
             </button>
           ) : (
-            <button type="submit" form="create-project-form" disabled={creating || !name.trim()} className="inline-flex items-center gap-2 rounded-xl bg-[#3B82F6] px-6 py-2.5 text-sm font-bold text-foreground hover:bg-[#1D4ED8] disabled:opacity-50 transition-all">
+            <button type="submit" form="create-project-form" disabled={creating || !name.trim()} className="inline-flex items-center gap-2 rounded-xl bg-[#3B82F6] px-6 py-2.5 text-sm font-bold text-white hover:bg-[#1D4ED8] disabled:opacity-50 transition-all">
               {creating && <Loader2 size={14} className="animate-spin" />}
               {creating ? "Provisioning…" : "Create Project"}
             </button>

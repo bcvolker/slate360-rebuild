@@ -1,6 +1,6 @@
 # Slate360 — Dashboard Blueprint
 
-**Last Updated:** 2026-05-01 (native tab contract cleanup)
+**Last Updated:** 2026-05-01 (dashboard no-filler cleanup)
 **Context Maintenance:** Update this file whenever dashboard routes, components, widgets, or layout logic changes.
 **Cross-reference:** See `FUTURE_FEATURES.md` for the full phased build roadmap (Phases 0–7).
 
@@ -114,6 +114,7 @@ The Command Center follows the zero-scroll blueprint:
 - Bottom content: a contained Workspace Tray occupying the largest remaining lower area, with its own internal scroll area for work queue, inbox, file activity, and setup entry points.
 - Search and global actions live in shell chrome/menus instead of taking vertical space on the home surface.
 - 2026-05-01 triage: the Command Center app launcher and workspace tray are back on Dark Glass surfaces. When App Store mode leaves only one visible app, Site Walk renders as a large primary entry card instead of a tiny tile floating in a mostly empty app grid. The shell also removed the duplicate inner mobile bottom padding that created an obvious gap above the bottom nav.
+- 2026-05-01 no-filler cleanup: the Command Center no longer uses a horizontal shortcut carousel or Workspace Tray. The active home surface is now vertical and action-first: app entry, Quick Actions grid, Recent Walks row, and Inbox row. Avoid reintroducing horizontal scrolling for primary dashboard actions.
 
 ### Secondary Mobile Surfaces Triage
 

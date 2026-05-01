@@ -1,6 +1,6 @@
 # Slate360 — Ongoing Issues & Known Tech Debt
 
-**Last Updated:** 2026-05-01 (Native tab contract cleanup)
+**Last Updated:** 2026-05-01 (Dashboard/Site Walk/wizard no-filler cleanup)
 **Maintained by:** Development team — update whenever a bug is discovered or fixed.
 **Cross-reference:** See `FUTURE_FEATURES.md` for the full phased build roadmap (Phases 0–7).
 
@@ -35,6 +35,7 @@
 | BUG-052 | Operations Console / Feedback | **Feedback intake schema could drift from owner inbox — FIXED 2026-05-01:** Migration history had both legacy `category`/`replay_url` and newer `type`/`app_area`/`console_errors` feedback contracts. Added a reconciliation migration that makes the current `/api/feedback` insert and Operations Console inbox/counts reliable, and the modal now sends an app-area hint from the current path. | High | ✅ Fixed |
 | BUG-053 | App Shell / Site Walk / SlateDrop / Coordination | **Dark shell surfaces looked like disconnected white web pages — FIXED 2026-05-01 triage:** The authenticated shell mixed a dark native-app frame with white cards, tiny single-app launcher tiles, duplicate bottom padding, filler secondary pages, and capture defaults like `Current location`. Triage converted the Command Center, Site Walk home, More, Coordination, SlateDrop, and Site Walk files surfaces toward consistent Dark Glass; made `/site-walk` a Field-Work Cockpit; hid inactive SlateDrop app-folder placeholders in App Store mode; replaced default location copy with `Stop 1`; and made Save & Next capture the next stop immediately instead of forcing a modal. | Critical | ✅ Fixed — triage pass; deeper Projects/SlateDrop browser rebuild still pending |
 | BUG-054 | App Shell / Projects / SlateDrop / More | **Primary tabs were dashboard/marketing pages instead of native app panes — FIXED 2026-05-01:** `/projects` led with low-value metrics and duplicate dashboard chrome, `/slatedrop` used explanatory folder cards/action pills, and `/more` used paragraph-heavy cards. Rebuilt `/projects` as a compact Field Projects directory with search, cards, empty state, and create action; rebuilt `/slatedrop` as a compact file-browser shell with Browse/Recents/Shared/Requests tabs and folder rows; rebuilt `/more` as an iOS-style settings list. | High | ✅ Fixed — next pass should wire real SlateDrop Recents/Shared/Requests and final project detail value |
+| BUG-055 | Dashboard / Site Walk / Project Wizard | **Remaining horizontal carousel, marketing filler, and white wizard controls — FIXED 2026-05-01:** Screenshots showed the Command Center still had a horizontal shortcut carousel plus Workspace Tray, `/site-walk` still had marketing-style cockpit paragraphs, and `CreateProjectWizard` / map controls still had white panels over the dark app shell. Removed dashboard horizontal scrolling and Workspace Tray, simplified Site Walk home to action-first buttons, and converted project wizard/map controls to dark glass with mobile bottom clearance. | Critical | ✅ Fixed — verify on real phone PWA |
 
 ---
 

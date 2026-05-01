@@ -46,14 +46,14 @@ export default function WizardLocationPickerController({
   const buttonClassName = (active: boolean) =>
     `px-2 py-1.5 rounded-lg text-xs font-bold transition-colors flex items-center gap-1 ${
       active
-        ? "bg-[#3B82F6] text-foreground"
-        : "bg-white text-gray-600 hover:bg-gray-50 border border-gray-200"
+        ? "bg-[#3B82F6] text-white"
+        : "bg-slate-950/85 text-slate-200 hover:bg-slate-900 border border-white/15"
     }`;
 
   return (
     <div className="absolute inset-0 pointer-events-none">
       <div className="absolute top-2 left-2 right-2 z-10 pointer-events-auto">
-        <div className="flex gap-1.5 bg-white rounded-xl shadow-md border border-gray-200 p-1.5">
+        <div className="flex gap-1.5 rounded-xl border border-white/15 bg-slate-950/90 p-1.5 shadow-md backdrop-blur-md">
           <div className="relative flex-1">
             <input
               value={input}
@@ -67,16 +67,16 @@ export default function WizardLocationPickerController({
                 if (event.key === "Escape") setSuggestions([]);
               }}
               placeholder="Search address or coordinates…"
-              className="w-full px-3 py-1.5 text-sm rounded-lg border border-gray-200 focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6]/20 focus:outline-none"
+              className="w-full rounded-lg border border-white/15 bg-white/10 px-3 py-1.5 text-sm font-semibold text-white placeholder:text-slate-500 focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6]/20 focus:outline-none"
             />
             {resolving && (
               <Loader2
                 size={12}
-                className="absolute right-2 top-1/2 -translate-y-1/2 animate-spin text-gray-400"
+                className="absolute right-2 top-1/2 -translate-y-1/2 animate-spin text-slate-400"
               />
             )}
             {suggestions.length > 0 && (
-              <ul className="absolute top-full left-0 right-0 mt-1 bg-white rounded-xl border border-gray-200 shadow-xl z-20 max-h-52 overflow-y-auto">
+              <ul className="absolute top-full left-0 right-0 mt-1 z-20 max-h-52 overflow-y-auto rounded-xl border border-white/15 bg-slate-950 shadow-xl">
                 {suggestions.map((suggestion) => (
                   <li
                     key={suggestion.placeId}
@@ -84,7 +84,7 @@ export default function WizardLocationPickerController({
                       event.preventDefault();
                       void selectSuggestion(suggestion);
                     }}
-                    className="px-3 py-2 text-xs hover:bg-amber-50 cursor-pointer flex items-start gap-2"
+                    className="flex cursor-pointer items-start gap-2 px-3 py-2 text-xs font-semibold text-slate-200 hover:bg-white/10"
                   >
                     <MapPin size={11} className="text-[#3B82F6] mt-0.5 shrink-0" />
                     {suggestion.description}
@@ -96,7 +96,7 @@ export default function WizardLocationPickerController({
           <button
             type="button"
             onClick={() => void searchAddress()}
-            className="px-2.5 py-1.5 bg-[#3B82F6] hover:bg-[#1D4ED8] rounded-lg text-foreground transition-colors"
+            className="rounded-lg bg-[#3B82F6] px-2.5 py-1.5 text-white transition-colors hover:bg-[#1D4ED8]"
           >
             <Search size={14} />
           </button>
@@ -104,7 +104,7 @@ export default function WizardLocationPickerController({
       </div>
 
       <div className="absolute bottom-2 left-2 z-10 pointer-events-auto flex gap-1.5 flex-wrap">
-        <div className="flex gap-0.5 bg-white rounded-xl border border-gray-200 shadow p-1">
+        <div className="flex gap-0.5 rounded-xl border border-white/15 bg-slate-950/90 p-1 shadow backdrop-blur-md">
           <button type="button" onClick={() => activateTool("select")} title="Select/Pan" className={buttonClassName(!isDrawingPolygon && tool === "select")}><MousePointer2 size={13} /></button>
           <button type="button" onClick={() => activateTool("marker")} title="Drop pin" className={buttonClassName(tool === "marker")}><MapPin size={13} /></button>
           <button
@@ -120,13 +120,13 @@ export default function WizardLocationPickerController({
           {!isDrawingPolygon && value.boundary.length > 0 && <button type="button" onClick={clearBoundary} title="Clear boundary" className={buttonClassName(false)}><Eraser size={13} /></button>}
         </div>
 
-        <div className="flex gap-0.5 bg-white rounded-xl border border-gray-200 shadow p-1">
+        <div className="flex gap-0.5 rounded-xl border border-white/15 bg-slate-950/90 p-1 shadow backdrop-blur-md">
           <button type="button" onClick={() => setMapType("roadmap")} className={buttonClassName(mapType === "roadmap")}>Map</button>
           <button type="button" onClick={() => setMapType("satellite")} className={buttonClassName(mapType === "satellite")}>Sat</button>
           <button type="button" onClick={() => setMapType("hybrid")} className={buttonClassName(mapType === "hybrid")}>Hyb</button>
         </div>
 
-        <div className="flex gap-0.5 bg-white rounded-xl border border-gray-200 shadow p-1">
+        <div className="flex gap-0.5 rounded-xl border border-white/15 bg-slate-950/90 p-1 shadow backdrop-blur-md">
           <button type="button" onClick={() => setIsThreeD(false)} className={buttonClassName(!isThreeD)}>2D</button>
           <button type="button" onClick={() => setIsThreeD(true)} className={buttonClassName(isThreeD)}>3D</button>
         </div>
@@ -134,7 +134,7 @@ export default function WizardLocationPickerController({
 
       {isDrawingPolygon && (
         <div className="absolute top-14 left-2 right-2 z-10 pointer-events-none">
-          <div className="bg-app-card/95 backdrop-blur-sm rounded-lg px-3 py-1.5 text-[11px] text-foreground font-semibold text-center">
+          <div className="rounded-lg border border-white/10 bg-slate-950/90 px-3 py-1.5 text-center text-[11px] font-semibold text-white backdrop-blur-sm">
             {drawingVertices.length < 3
               ? `Click map to add vertices (${drawingVertices.length} so far, need 3 min)`
               : `${drawingVertices.length} pts — click ⧆ again to close boundary`}
@@ -144,7 +144,7 @@ export default function WizardLocationPickerController({
 
       {value.lat !== null && value.lng !== null && (
         <div className="absolute bottom-2 right-2 z-10 pointer-events-none">
-          <div className="bg-white/90 backdrop-blur-sm rounded-lg px-2 py-1 text-[10px] text-gray-600 border border-gray-200 shadow flex items-center gap-1">
+          <div className="flex items-center gap-1 rounded-lg border border-white/15 bg-slate-950/90 px-2 py-1 text-[10px] text-slate-200 shadow backdrop-blur-sm">
             <MapPin size={9} className="text-[#3B82F6]" />
             {value.lat.toFixed(5)}, {value.lng.toFixed(5)}
           </div>
