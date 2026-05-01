@@ -487,6 +487,21 @@
         "/more, /coordination/*, /slatedrop, and /site-walk/slatedrop no longer render white cards on the dark app shell",
         "SlateDrop hides inactive future app folder placeholders when App Store mode is enabled"
       ]
+    },
+    {
+      "id": "BUG-054",
+      "title": "Primary tabs were dashboard/marketing pages instead of native app panes",
+      "module": "app-shell/projects/slatedrop/more",
+      "severity": "high",
+      "status": "fixed",
+      "rootCause": "The primary bottom-nav tabs did not have strict product contracts: `/projects` led with low-value count cards and duplicate dashboard chrome, `/slatedrop` was a marketing-style folder-card page, and `/more` used paragraph-heavy cards instead of a utility settings menu.",
+      "verification": [
+        "/projects renders a compact Field Projects directory with search, project cards, empty state, and create action instead of top-level metrics",
+        "/slatedrop renders a compact file-browser shell with search, upload/new-folder actions, Browse/Recents/Shared/Requests tabs, and folder rows",
+        "/slatedrop hides inactive future app folders in App Store mode through the shared reviewer-mode helper",
+        "/more renders an iOS-style settings list with Account, Organization, Billing & Apps, Coordination, Storage, Legal/Support, Operations Console if authorized, and Sign Out",
+        "Changed production files remain under 300 lines and pass TypeScript"
+      ]
     }
   ]
 }

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Loader2, MoreVertical, Trash2 } from "lucide-react";
+import { ChevronRight, FolderKanban, Loader2, MapPin, MoreVertical, Trash2 } from "lucide-react";
 import { resolveProjectLocation } from "@/lib/projects/location";
 import type { ProjectListItem } from "@/lib/types/projects";
 
@@ -17,7 +17,7 @@ export default function ProjectsAllProjectsTab({ loading, projects, onOpenDelete
 
   if (loading) {
     return (
-      <div className="flex justify-center p-20 text-zinc-500">
+      <div className="flex justify-center rounded-3xl border border-white/10 bg-white/5 p-16 text-slate-400 shadow-lg backdrop-blur-md">
         <Loader2 className="animate-spin" />
       </div>
     );
@@ -25,14 +25,16 @@ export default function ProjectsAllProjectsTab({ loading, projects, onOpenDelete
 
   if (projects.length === 0) {
     return (
-      <div className="rounded-2xl border-2 border-dashed border-app bg-app-card p-20 text-center text-zinc-400">
-        No projects found. Click "New Project" to start building.
+      <div className="rounded-3xl border border-dashed border-white/15 bg-white/5 p-10 text-center shadow-lg backdrop-blur-md">
+        <FolderKanban className="mx-auto h-8 w-8 text-blue-200" />
+        <p className="mt-3 text-sm font-black text-white">Create your first project</p>
+        <p className="mx-auto mt-1 max-w-sm text-sm leading-6 text-slate-400">Projects organize Site Walks, files, contacts, deliverables, and field activity.</p>
       </div>
     );
   }
 
   return (
-    <div className="flex gap-6 overflow-x-auto pb-4 snap-x snap-mandatory" style={{ scrollbarWidth: "none" }}>
+    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
       {projects.map((project) => {
         const mapsKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? "";
         const resolvedLocation = resolveProjectLocation(project.metadata, {
@@ -51,10 +53,10 @@ export default function ProjectsAllProjectsTab({ loading, projects, onOpenDelete
         return (
           <div
             key={project.id}
-            className="group relative flex w-[340px] shrink-0 snap-start flex-col overflow-hidden rounded-2xl border border-app bg-app-card hover:border-app hover:-translate-y-1 transition-all"
+            className="group relative overflow-hidden rounded-3xl border border-white/10 bg-white/5 shadow-lg backdrop-blur-md transition-all hover:border-blue-400/70 hover:bg-blue-500/10"
           >
             <Link href={`/projects/${project.id}`} className="block">
-              <div className="h-32 w-full relative overflow-hidden">
+              <div className="relative h-32 w-full overflow-hidden">
                 {staticMapUrl ? (
                   <div
                     className="absolute inset-0 bg-cover bg-center group-hover:scale-105 transition-transform duration-500"
@@ -66,12 +68,14 @@ export default function ProjectsAllProjectsTab({ loading, projects, onOpenDelete
                 {staticMapUrl && <div className="absolute inset-0 bg-black/45" />}
                 <div className="absolute inset-0 p-4 flex flex-col justify-between">
                   <div className="flex items-start justify-between">
-                    <span />
-                    <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-bold text-foreground backdrop-blur-md uppercase tracking-wider">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-slate-950/55 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-200 backdrop-blur-md">
+                      <MapPin className="h-3 w-3 text-blue-200" /> {resolvedLocation.label || "No location"}
+                    </span>
+                    <span className="rounded-full bg-white/15 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white backdrop-blur-md">
                       {project.status ?? "active"}
                     </span>
                   </div>
-                  <h2 className="text-xl font-black text-foreground truncate">{project.name}</h2>
+                  <h2 className="truncate text-xl font-black text-white">{project.name}</h2>
                 </div>
               </div>
             </Link>
@@ -83,7 +87,7 @@ export default function ProjectsAllProjectsTab({ loading, projects, onOpenDelete
                   event.stopPropagation();
                   setCardMenuOpen(cardMenuOpen === project.id ? null : project.id);
                 }}
-                className="flex items-center justify-center w-7 h-7 rounded-lg bg-white/20 hover:bg-white/40 backdrop-blur-md transition-all text-foreground"
+                className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-950/45 text-slate-200 backdrop-blur-md transition-all hover:bg-white/15"
                 title="Project options"
               >
                 <MoreVertical size={14} />
@@ -92,7 +96,7 @@ export default function ProjectsAllProjectsTab({ loading, projects, onOpenDelete
               {cardMenuOpen === project.id && (
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setCardMenuOpen(null)} />
-                  <div className="absolute left-0 top-9 z-50 w-48 rounded-xl border border-app bg-white/[0.04] shadow-2xl py-1 overflow-hidden">
+                  <div className="absolute left-0 top-10 z-50 w-48 overflow-hidden rounded-2xl border border-white/10 bg-slate-950 py-1 shadow-2xl">
                     <button
                       onClick={(event) => {
                         event.preventDefault();
@@ -109,11 +113,11 @@ export default function ProjectsAllProjectsTab({ loading, projects, onOpenDelete
               )}
             </div>
 
-            <Link href={`/projects/${project.id}`} className="p-5 flex-1 flex flex-col justify-between">
-              <p className="text-sm text-zinc-400 line-clamp-2">{project.description || "No description provided."}</p>
-              <div className="mt-4 pt-4 border-t border-app flex justify-between text-xs font-semibold text-zinc-500">
+            <Link href={`/projects/${project.id}`} className="flex min-h-32 flex-col justify-between p-4">
+              <p className="line-clamp-2 text-sm leading-6 text-slate-400">{project.description || "No description yet."}</p>
+              <div className="mt-4 flex items-center justify-between border-t border-white/10 pt-4 text-xs font-semibold text-slate-500">
                 <span>Created: {new Date(project.created_at).toLocaleDateString()}</span>
-                <span className="text-[#3B82F6] group-hover:underline">Open Project →</span>
+                <span className="inline-flex items-center gap-1 text-blue-200">Open <ChevronRight className="h-3.5 w-3.5" /></span>
               </div>
             </Link>
           </div>

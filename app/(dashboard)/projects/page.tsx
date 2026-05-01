@@ -7,20 +7,9 @@ export const metadata = {
 };
 
 export default async function ProjectsServerPage() {
-  const { user, tier, isSlateCeo, canAccessOperationsConsole } = await resolveServerOrgContext();
+  const { user } = await resolveServerOrgContext();
 
   if (!user) redirect("/login");
 
-  return (
-    <ClientPage
-      user={{
-        name: user.user_metadata?.full_name ?? user.email?.split("@")[0] ?? "User",
-        email: user.email ?? "",
-        avatar: user.user_metadata?.avatar_url ?? undefined,
-      }}
-      tier={tier}
-      isCeo={isSlateCeo}
-      internalAccess={{ operationsConsole: canAccessOperationsConsole }}
-    />
-  );
+  return <ClientPage />;
 }

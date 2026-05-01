@@ -1,17 +1,17 @@
 # Slate360 — SlateDrop Blueprint
 
-**Last Updated:** 2026-04-26
+**Last Updated:** 2026-05-01
 **Context Maintenance:** Update this file whenever SlateDrop routes, components, API endpoints, folder structure, or file management behavior changes.
 **Cross-reference:** See `FUTURE_FEATURES.md` Phase 3E for SlateDrop wow features and SQL migrations.
 
 ---
 
-## 0. Current Direction — App-Centric Mobile File Hub
+## 0. Current Direction — Native File Browser Shell
 
 SlateDrop is no longer treated as a generic desktop file explorer. The current strategy is:
 
 - **SlateDrop is the shared file backbone for every app.** Site Walk, 360 Tours, Design Studio, Content Studio, and future apps write to SlateDrop-backed folders.
-- **The `/slatedrop` button opens a personalized hub.** It should show entitlement-aware app folder cards plus project/site file spaces. Users with only Site Walk see Site Walk-ready folders; when they add 360 Tours, a 360 Tours folder experience appears without changing data models.
+- **The `/slatedrop` button opens a native file-browser shell.** It should feel closer to Apple Files/Dropbox than a marketing hub: compact title, search, Upload/New Folder actions, Browse/Recents/Shared/Requests tabs, and folder/file rows.
 - **Mobile/PWA first.** The phone view must be thumb-optimized for open, back/forward folder navigation, upload, save/download, rename, move, copy, delete, and share by contacts/text/email.
 - **Project/site folders remain canonical.** New folder writes still use `project_folders`; file metadata remains in `slatedrop_uploads`; cross-app search/share should use the `unified_files` bridge.
 - **Do not preserve the old SlateDrop UI if it blocks usability.** Existing hooks/APIs can be reused, but the visual folder experience can be rebuilt from scratch around the same backend.
@@ -59,8 +59,8 @@ The exact rows may be physical `project_folders` or virtual grouped views over e
 
 ### Current Implementation Notes
 
-- `/slatedrop` now acts as a folder-system hub, not an app launcher. It shows `General Files` plus entitlement-aware app file folders and hides legacy/test project rows so users are not pushed into the old non-mobile SlateDrop UI.
-- Folder cards and action pills are clickable. `/slatedrop/[...section]` provides the interim folder/action destination page for routes such as `/slatedrop/general-files`, `/slatedrop/site-walk-files/photos`, and `/slatedrop/upload` while the real mobile file browser is rebuilt.
+- 2026-05-01: `/slatedrop` now renders the native shell contract: compact Files header, search field, Upload/New Folder actions, Browse/Recents/Shared/Requests segmented nav, and row-based folder entries. In App Store mode, inactive/future app folders are hidden entirely.
+- `/slatedrop/[...section]` provides the interim folder/action destination page for routes such as `/slatedrop/general-files`, `/slatedrop/site-walk-files`, and `/slatedrop/upload` while the real mobile file browser is wired to live folder/file records.
 - `/slatedrop/[...section]` now includes action assistant panels for action routes. This prevents terminal controls and defines the required fields for Upload, New folder, Share, Send, Receive, Archive, Save, and Move before wiring each action to the live SlateDrop APIs.
 - Desktop users now get a real drag-and-drop upload zone on `/slatedrop/upload` and folder pages under `/slatedrop/[...section]`. It calls the existing `/api/slatedrop/upload-url` + direct PUT + `/api/slatedrop/complete` flow, using the section path as the destination folder namespace until the final folder browser is wired.
 - Avoid nested links in the mobile folder cards. Keep folder preview rows and the explicit `Open folder` CTA as separate tap targets so phone taps do not require multiple attempts.

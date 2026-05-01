@@ -196,21 +196,20 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-05-01 (App Shell / Site Walk Cockpit Triage)
+### Session Handoff — 2026-05-01 (Native Projects / SlateDrop / More Cleanup)
 
 #### What Changed
-- `components/dashboard/AppShell.tsx`: removed duplicate inner mobile bottom padding that created a visual gap above the fixed bottom nav.
-- `components/dashboard/command-center/AppsGrid.tsx` and `components/dashboard/command-center/CommandCenterContent.tsx`: converted Command Center app/tray cards from white cards to Dark Glass; if App Store mode leaves only Site Walk visible, it now renders as a large primary app entry instead of a tiny tile.
-- `app/site-walk/_components/SiteWalkLaunchGrid.tsx`: rebuilt the Site Walk module home as a Field-Work Cockpit with Start Walk Now, Field Project setup, recent project continuation, Walks, Files, and Outputs.
-- `app/site-walk/(act-2-inputs)/capture/_components/CaptureClientIsland.tsx` and `components/site-walk/capture/DataContextView.tsx`: changed the default capture location from `Current location` to `Stop 1`, renamed labels to Stop / Location, and made `Save & Capture Next Stop` immediately advance to the next numbered stop instead of forcing the move-location modal.
-- `components/site-walk/capture/LocationPickerModal.tsx`: converted the fallback picker to Dark Glass and renamed it around Next Stop language.
-- `app/slatedrop/page.tsx`, `app/site-walk/slatedrop/page.tsx`, `app/(dashboard)/more/page.tsx`, `components/coordination/CoordinationHubShell.tsx`, and coordination child pages: converted visible white-card secondary surfaces to Dark Glass and made SlateDrop hide inactive future app folders in App Store mode.
-- `slate360-context/ONGOING_ISSUES.md` and `ops/bug-registry.json`: logged BUG-053 as fixed for the shell/IA/visual triage regression.
-- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` and `slate360-context/DASHBOARD.md`: documented the cockpit, stop-flow, and secondary-surface triage.
+- `app/(dashboard)/projects/page.tsx`: simplified the route to render the Projects client inside the shared app shell without duplicate dashboard header props.
+- `app/(dashboard)/projects/ClientPage.tsx`: removed top-level metrics/summary loading and rebuilt `/projects` as a native Field Projects directory with compact header, search, project list, empty state, and create action.
+- `components/projects/ProjectsAllProjectsTab.tsx`: replaced the horizontal project carousel with dark-glass project cards in a responsive grid and a clean empty state.
+- `app/slatedrop/page.tsx`: replaced the folder-card/action-pill hub with a compact native file-browser shell: Files header, search, Upload/New Folder actions, Browse/Recents/Shared/Requests tabs, folder rows, and App Store mode hiding for inactive future folders.
+- `app/(dashboard)/more/page.tsx`: replaced paragraph-heavy cards with an iOS-style settings list: Account, Organization, Billing & Apps, Coordination, Storage, Legal/Support, Operations Console when authorized, and Sign Out.
+- `slate360-context/ONGOING_ISSUES.md` and `ops/bug-registry.json`: logged BUG-054 fixed for primary tabs behaving like dashboard/marketing pages instead of native panes.
+- `slate360-context/DASHBOARD.md` and `slate360-context/SLATEDROP.md`: documented the no-filler native tab contracts.
 
 #### What's Broken / Partially Done
-- This was a high-impact triage slice, not a full app-shell IA rebuild. `/projects` still needs a strategic rebuild around real project workflows, not top-level metrics.
-- SlateDrop is visually safer and App Store safer, but the final Finder/Dropbox-style real file browser still needs a dedicated rebuild against the canonical folder model.
+- SlateDrop now has the native shell shape, but Recents/Shared/Requests and row contents still need real file/share/request data wiring.
+- Project cards now provide a cleaner directory, but project detail pages still need a strategic value-loop pass.
 - Coordination is visually consistent and tabbed, but contacts/calendar/inbox remain truthful scaffolds until backed by real contact/calendar/message records.
 - Deliverable metadata visibility toggles still need the actual Deliverable Studio UI and public-viewer enforcement for `viewer_config.metadataVisibility` (BUG-050 remains open).
 - The user-uploaded reference images under `public/uploads/` and `ts-prune-output.txtcat` remain untracked and intentionally not committed.
@@ -218,15 +217,15 @@ When editing oversized files, always read both the state declarations AND the JS
 
 #### Context Files Updated
 - `SLATE360_PROJECT_MEMORY.md` — this handoff.
-- `docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md` — cockpit and stop-flow note.
-- `slate360-context/DASHBOARD.md` — Command Center/secondary surface triage note.
-- `slate360-context/ONGOING_ISSUES.md` — BUG-053 fixed entry and updated timestamp.
-- `ops/bug-registry.json` — BUG-053 fixed entry.
+- `slate360-context/DASHBOARD.md` — native tab cleanup note.
+- `slate360-context/SLATEDROP.md` — native file-browser shell direction.
+- `slate360-context/ONGOING_ISSUES.md` — BUG-054 fixed entry and updated timestamp.
+- `ops/bug-registry.json` — BUG-054 fixed entry.
 
 #### Next Steps (ordered)
-1. Real-device smoke test `/dashboard`, `/site-walk`, `/site-walk/capture`, `/more`, `/coordination/inbox`, `/slatedrop`, and `/site-walk/slatedrop` on an installed phone PWA.
-2. Rebuild `/projects` around clear global Field Projects/workspaces and remove low-value count-first content.
-3. Replace SlateDrop placeholder folder cards with the real Finder/Explorer-style browser backed by `project_folders` and file APIs.
+1. Real-device smoke test `/projects`, `/slatedrop`, and `/more` on installed phone PWA for scroll, tap targets, bottom-nav clearance, and visual consistency.
+2. Wire `/slatedrop` Browse/Recents/Shared/Requests rows to real folder/file/share/request data instead of interim route rows.
+3. Rebuild project detail pages around the same native-pane contract and remove any remaining legacy Project Hub drift.
 4. Build real Contacts/Calendar/Inbox records behind the Coordination shell.
 5. Continue Deliverable Studio/editor/viewer using normalized assets/scenes/hotspots/threads/responses.
 

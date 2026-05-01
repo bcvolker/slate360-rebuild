@@ -1,6 +1,6 @@
 # Slate360 — Dashboard Blueprint
 
-**Last Updated:** 2026-05-01
+**Last Updated:** 2026-05-01 (native tab contract cleanup)
 **Context Maintenance:** Update this file whenever dashboard routes, components, widgets, or layout logic changes.
 **Cross-reference:** See `FUTURE_FEATURES.md` for the full phased build roadmap (Phases 0–7).
 
@@ -119,6 +119,7 @@ The Command Center follows the zero-scroll blueprint:
 
 - 2026-05-01: `/more`, `/coordination/inbox`, `/coordination/contacts`, `/coordination/calendar`, `/slatedrop`, and `/site-walk/slatedrop` were converted away from white cards on the dark app frame. This is a triage consistency pass, not the final SlateDrop/Coordination product model.
 - In App Store mode, SlateDrop hides inactive future app folder placeholders instead of showing locked 360 Tours / Design Studio / Content Studio spaces to reviewers.
+- 2026-05-01 native-tab cleanup: `/projects` is now a Field Projects directory instead of a dashboard metrics page; `/slatedrop` is now a compact file-browser shell with Browse/Recents/Shared/Requests tabs; `/more` is now a utility/settings list. These tabs should stay no-filler: compact title, useful rows/cards, and one obvious primary action.
 
 ### Command Center Quick Actions (Legacy Reference)
 

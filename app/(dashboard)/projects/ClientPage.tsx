@@ -1,30 +1,22 @@
 "use client";
 
-import DashboardHeader from "@/components/shared/DashboardHeader";
 import { useEffect, useState, useCallback } from "react";
 import {
-  Plus,
   FolderKanban,
+  Plus,
+  Search,
 } from "lucide-react";
 import CreateProjectWizard, {
   CreateProjectPayload,
 } from "@/components/projects/CreateProjectWizard";
 import ProjectsDeleteModal from "@/components/projects/ProjectsDeleteModal";
 import ProjectsAllProjectsTab from "@/components/projects/ProjectsAllProjectsTab";
-import type { ProjectListItem, ProjectsSummary } from "@/lib/types/projects";
+import type { ProjectListItem } from "@/lib/types/projects";
 
-interface Props {
-  user: {name: string, email: string, avatar?: string};
-  tier: import("@/lib/entitlements").Tier;
-  isCeo?: boolean;
-  internalAccess?: { operationsConsole?: boolean };
-}
-
-export default function ProjectsClientPage({ user, tier, isCeo = false, internalAccess }: Props) {
+export default function ProjectsClientPage() {
   const [projects, setProjects] = useState<ProjectListItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [summaryLoading, setSummaryLoading] = useState(true);
-  const [summary, setSummary] = useState<ProjectsSummary | null>(null);
+  const [search, setSearch] = useState("");
   const [wizardOpen, setWizardOpen] = useState(false);
   const [creating, setCreating] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
@@ -65,7 +57,6 @@ export default function ProjectsClientPage({ user, tier, isCeo = false, internal
       }
       closeDeleteModal();
       await loadProjects();
-      await loadSummary();
     } catch {
       setDeleteError("Network error. Please try again.");
     } finally {
@@ -83,21 +74,9 @@ export default function ProjectsClientPage({ user, tier, isCeo = false, internal
     }
   }, []);
 
-  const loadSummary = useCallback(async () => {
-    setSummaryLoading(true);
-    try {
-      const res = await fetch("/api/projects/summary", { cache: "no-store" });
-      const data = await res.json();
-      if (res.ok) setSummary(data as ProjectsSummary);
-    } finally {
-      setSummaryLoading(false);
-    }
-  }, []);
-
   useEffect(() => {
     void loadProjects();
-    void loadSummary();
-  }, [loadProjects, loadSummary]);
+  }, [loadProjects]);
 
   const handleCreate = async (payload: CreateProjectPayload) => {
     setCreating(true);
@@ -109,76 +88,69 @@ export default function ProjectsClientPage({ user, tier, isCeo = false, internal
       });
       setWizardOpen(false);
       await loadProjects();
-      await loadSummary();
     } finally {
       setCreating(false);
     }
   };
 
-  return (
-    <div className="min-h-screen bg-background overflow-x-hidden">
-      <DashboardHeader
-        user={user}
-        tier={tier}
-        isCeo={isCeo}
-        internalAccess={internalAccess}
-        showBackLink
-      />
+  const filteredProjects = projects.filter((project) => {
+    const query = search.trim().toLowerCase();
+    if (!query) return true;
+    return [project.name, project.description, project.location, project.city, project.state, project.region]
+      .filter((value): value is string => typeof value === "string")
+      .some((value) => value.toLowerCase().includes(query));
+  });
 
-      <div className="mx-auto max-w-[1440px] px-4 sm:px-6 py-6 sm:py-8 space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <h1 className="text-xl sm:text-2xl font-black text-foreground flex items-center gap-3">
-            <FolderKanban size={28} className="text-[#3B82F6]" /> Projects
-          </h1>
+  return (
+    <div className="min-h-full overflow-x-hidden text-slate-50">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-4 py-5 pb-28 sm:px-6 lg:px-8 lg:py-8 lg:pb-8">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-3">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-lg shadow-blue-500/20">
+              <FolderKanban className="h-5 w-5" />
+            </span>
+            <div className="min-w-0">
+              <p className="text-[11px] font-black uppercase tracking-[0.18em] text-blue-200">Directory</p>
+              <h1 className="truncate text-2xl font-black text-white">Projects</h1>
+            </div>
+          </div>
           <button
             onClick={() => setWizardOpen(true)}
-            className="flex items-center justify-center gap-2 rounded-xl bg-[#3B82F6] px-5 py-3 text-sm font-bold text-foreground shadow-lg hover:bg-[#1D4ED8] transition-all hover:-translate-y-0.5 hover:shadow-xl w-full sm:w-auto"
+            className="hidden min-h-11 items-center justify-center gap-2 rounded-2xl bg-blue-600 px-4 text-sm font-black text-white shadow-[0_0_15px_rgba(37,99,235,0.3)] transition hover:bg-blue-500 sm:inline-flex"
           >
-            <Plus size={16} /> New Project
+            <Plus className="h-4 w-4" /> New
           </button>
         </div>
 
-        <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          {[
-            {
-              label: "Total Projects",
-              value: summary?.totals.projects ?? projects.length,
-            },
-            {
-              label: "Active Projects",
-              value: summary?.totals.activeProjects ?? 0,
-            },
-            {
-              label: "Open RFIs",
-              value: summary?.work.openRfis ?? 0,
-            },
-            {
-              label: "Pending Submittals",
-              value: summary?.work.pendingSubmittals ?? 0,
-            },
-          ].map((item) => (
-            <div key={item.label} className="rounded-2xl border border-zinc-800 bg-card px-4 py-4">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">{item.label}</p>
-              <p className="mt-1 text-2xl font-black text-foreground">
-                {summaryLoading ? "..." : item.value}
-              </p>
-            </div>
-          ))}
+        <section className="rounded-3xl border border-white/10 bg-white/5 p-3 shadow-lg backdrop-blur-md">
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+            <input
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Search projects"
+              className="h-12 w-full rounded-2xl border border-white/10 bg-slate-950/45 pl-10 pr-4 text-sm font-bold text-white outline-none placeholder:text-slate-500 focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20"
+            />
+          </div>
         </section>
 
-        <section className="space-y-4">
-          <div>
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">Project Directory</p>
-            <h2 className="text-lg font-black text-foreground">Open a project and continue work</h2>
-          </div>
-
+        <section className="min-h-0">
           <ProjectsAllProjectsTab
-          loading={loading}
-          projects={projects}
-          onOpenDeleteProject={openDeleteModal}
+            loading={loading}
+            projects={filteredProjects}
+            onOpenDeleteProject={openDeleteModal}
           />
         </section>
       </div>
+
+      <button
+        type="button"
+        onClick={() => setWizardOpen(true)}
+        className="fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom))] right-4 z-30 inline-flex h-14 w-14 items-center justify-center rounded-full bg-blue-600 text-white shadow-[0_0_20px_rgba(37,99,235,0.4)] transition hover:bg-blue-500 sm:hidden"
+        aria-label="Create project"
+      >
+        <Plus className="h-6 w-6" />
+      </button>
 
       <CreateProjectWizard
         open={wizardOpen}
