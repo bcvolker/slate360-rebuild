@@ -23,9 +23,9 @@ export default async function CoordinationCalendarPage() {
         <CalendarCard icon={BellRing} title="Reminder Routing" detail="Send reminders into the Communication Inbox, email, and optional device calendar alerts." />
       </section>
 
-      <section className="rounded-3xl border border-slate-300 bg-white p-5 shadow-sm">
-        <h2 className="text-sm font-black text-slate-950">Recommended V1 integration path</h2>
-        <ol className="mt-3 space-y-2 text-sm leading-6 text-slate-600">
+      <section className="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-lg backdrop-blur-md">
+        <h2 className="text-sm font-black text-white">Recommended V1 integration path</h2>
+        <ol className="mt-3 space-y-2 text-sm leading-6 text-slate-300">
           <li><strong>1.</strong> Generate per-user calendar feeds for Site Walk sessions and project milestones.</li>
           <li><strong>2.</strong> Add Google Calendar and Microsoft 365 OAuth for two-way sync.</li>
           <li><strong>3.</strong> iPhone and Android support comes through those calendar providers plus installable calendar links.</li>
@@ -38,10 +38,10 @@ export default async function CoordinationCalendarPage() {
 
 function CalendarCard({ icon: Icon, title, detail }: { icon: typeof CalendarDays; title: string; detail: string }) {
   return (
-    <div className="rounded-3xl border border-slate-300 bg-white p-5 shadow-sm">
-      <Icon className="h-5 w-5 text-blue-700" />
-      <h2 className="mt-3 text-sm font-black text-slate-950">{title}</h2>
-      <p className="mt-1 text-sm leading-6 text-slate-600">{detail}</p>
+    <div className="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-lg backdrop-blur-md">
+      <Icon className="h-5 w-5 text-blue-200" />
+      <h2 className="mt-3 text-sm font-black text-white">{title}</h2>
+      <p className="mt-1 text-sm leading-6 text-slate-400">{detail}</p>
     </div>
   );
 }

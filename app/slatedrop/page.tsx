@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Archive, Box, Brush, Camera, Compass, Download, FileInput, Folder, FolderOpen, HardDrive, Lock, Mail, Plus, Share2, Upload } from "lucide-react";
 import { resolveOrgEntitlements } from "@/lib/server/org-feature-flags";
 import { getProjectLabels } from "@/lib/projects/labels";
+import { shouldHideInAppStoreMode } from "@/lib/app-store-mode";
 
 export const metadata = {
   title: "SlateDrop — Slate360",
@@ -59,55 +60,56 @@ export default async function SlateDropPage() {
       folders: ["Raw Media", "Edits", "Branded Exports", "Campaign Assets"],
     },
   ];
+  const visibleAppFolders = appFolders.filter((folder) => !shouldHideInAppStoreMode(!folder.active));
 
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-5 sm:px-6 lg:px-8 lg:py-8">
-      <section className="rounded-3xl border border-slate-300 bg-white p-5 shadow-sm sm:p-6">
+    <div className="mx-auto flex w-full max-w-6xl flex-col gap-5 px-4 py-5 text-slate-50 sm:px-6 lg:px-8 lg:py-8">
+      <section className="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-lg backdrop-blur-md sm:p-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <p className="text-[11px] font-black uppercase tracking-[0.18em] text-blue-700">SlateDrop Folder System</p>
-            <h1 className="mt-2 text-2xl font-black text-slate-950 sm:text-3xl">Files organized by folder, not app launchers</h1>
-            <p className="mt-2 max-w-2xl text-sm text-slate-600">
-              This is the new mobile-first folder map. Legacy {labels.pluralLower} are intentionally hidden here until the new Site Walk folder model is wired.
+            <p className="text-[11px] font-black uppercase tracking-[0.18em] text-blue-200">SlateDrop</p>
+            <h1 className="mt-2 text-2xl font-black text-white sm:text-3xl">Files, folders, uploads, and shares</h1>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">
+              Browse general files and active app folders from one contained file hub. In review mode, inactive future app spaces stay hidden.
             </p>
           </div>
-          <div className="inline-flex items-center gap-2 rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm font-bold text-slate-700">
-            <HardDrive className="h-4 w-4 text-blue-700" /> {entitlements.maxStorageGB}GB storage
+          <div className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-slate-950/45 px-4 py-3 text-sm font-bold text-slate-300">
+            <HardDrive className="h-4 w-4 text-blue-200" /> {entitlements.maxStorageGB}GB storage
           </div>
         </div>
       </section>
 
       <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="rounded-3xl border border-blue-300 bg-blue-50 p-4 shadow-sm transition-all hover:border-blue-500 hover:shadow-md">
+        <div className="rounded-3xl border border-blue-400/40 bg-blue-500/10 p-4 shadow-lg backdrop-blur-md transition-all hover:border-blue-300/70">
           <div className="flex items-start justify-between gap-3">
-            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-blue-700 shadow-sm">
+            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-sm">
               <FolderOpen className="h-5 w-5" />
             </span>
-            <span className="rounded-full bg-white px-2 py-1 text-[10px] font-black uppercase tracking-wide text-blue-700 ring-1 ring-blue-200">General</span>
+            <span className="rounded-full bg-white/10 px-2 py-1 text-[10px] font-black uppercase tracking-wide text-blue-100 ring-1 ring-white/15">General</span>
           </div>
-          <h2 className="mt-4 text-sm font-black text-slate-950">General Files</h2>
-          <p className="mt-1 text-xs leading-5 text-slate-600">Uploads, received files, shared links, archive, and custom folders.</p>
+          <h2 className="mt-4 text-sm font-black text-white">General Files</h2>
+          <p className="mt-1 text-xs leading-5 text-slate-300">Uploads, received files, shared links, archive, and custom folders.</p>
           <FolderPreview baseSlug="general-files" folders={["Uploads", "Received", "Shared", "Archive"]} />
           <OpenFolderLink href="/slatedrop/general-files" label="Open General Files" />
         </div>
 
-        {appFolders.map((folder) => {
+        {visibleAppFolders.map((folder) => {
           const Icon = folder.icon;
           return (
             <div
               key={folder.label}
-              className={`rounded-3xl border p-4 shadow-sm transition-all hover:border-blue-500 hover:shadow-md active:scale-[0.99] ${folder.active ? "border-slate-300 bg-white" : "border-slate-200 bg-slate-50 opacity-75"}`}
+              className={`rounded-3xl border p-4 shadow-lg backdrop-blur-md transition-all hover:border-blue-400/70 hover:bg-blue-500/10 active:scale-[0.99] ${folder.active ? "border-white/10 bg-white/5" : "border-white/10 bg-white/5 opacity-75"}`}
             >
               <div className="flex items-start justify-between gap-3">
-                <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-50 text-blue-700">
+                <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-600 text-white">
                   <Icon className="h-5 w-5" />
                 </span>
-                <span className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-[10px] font-black uppercase tracking-wide ${folder.active ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200" : "bg-slate-100 text-slate-500 ring-1 ring-slate-200"}`}>
+                <span className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-[10px] font-black uppercase tracking-wide ${folder.active ? "bg-emerald-300/10 text-emerald-100 ring-1 ring-emerald-300/20" : "bg-white/10 text-slate-300 ring-1 ring-white/15"}`}>
                   {folder.active ? "Folder" : <><Lock className="h-3 w-3" /> Locked</>}
                 </span>
               </div>
-              <h2 className="mt-4 text-sm font-black text-slate-950">{folder.label}</h2>
-              <p className="mt-1 text-xs leading-5 text-slate-600">{folder.detail}</p>
+              <h2 className="mt-4 text-sm font-black text-white">{folder.label}</h2>
+              <p className="mt-1 text-xs leading-5 text-slate-400">{folder.detail}</p>
               <FolderPreview baseSlug={folder.slug} folders={folder.folders} locked={!folder.active} />
               <OpenFolderLink href={folder.active ? `/slatedrop/${folder.slug}` : "/my-account?tab=billing"} label={folder.active ? `Open ${folder.label}` : "Manage access"} />
             </div>
@@ -115,13 +117,13 @@ export default async function SlateDropPage() {
         })}
       </section>
 
-      <section className="rounded-3xl border border-slate-300 bg-white p-5 shadow-sm">
+      <section className="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-lg backdrop-blur-md">
         <div className="mb-4 flex items-center justify-between gap-3">
           <div>
-            <h2 className="text-lg font-black text-slate-950">Folder actions</h2>
-            <p className="text-sm text-slate-600">These are the actions the new browser must support once the Site Walk folder model is finalized.</p>
+            <h2 className="text-lg font-black text-white">Folder actions</h2>
+            <p className="text-sm text-slate-400">Upload, share, receive, archive, and organize files without leaving the app shell.</p>
           </div>
-          <Folder className="h-5 w-5 text-blue-700" />
+          <Folder className="h-5 w-5 text-blue-200" />
         </div>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-8">
           <ActionPill href="/slatedrop/new-folder" icon={Plus} label="New folder" />
@@ -133,9 +135,9 @@ export default async function SlateDropPage() {
           <ActionPill href="/slatedrop/archive" icon={Archive} label="Archive" />
           <ActionPill href="/slatedrop/move" icon={FolderOpen} label="Move" />
         </div>
-        <div className="mt-5 rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-center">
-          <p className="text-sm font-bold text-slate-800">Project folders are paused in this hub for now.</p>
-          <p className="mx-auto mt-1 max-w-2xl text-sm text-slate-600">
+        <div className="mt-5 rounded-2xl border border-dashed border-white/15 bg-slate-950/45 px-4 py-6 text-center">
+          <p className="text-sm font-bold text-white">Project folders are paused in this hub for now.</p>
+          <p className="mx-auto mt-1 max-w-2xl text-sm text-slate-400">
             Existing test {labels.pluralLower} are not deleted, but they are hidden here so the new SlateDrop experience can be driven by the Site Walk architecture instead of old legacy project folders.
           </p>
         </div>
@@ -152,8 +154,8 @@ function FolderPreview({ baseSlug, folders, locked = false }: { baseSlug: string
   return (
     <div className="mt-4 space-y-1.5">
       {folders.slice(0, 4).map((name) => (
-        <Link key={name} href={locked ? "/my-account?tab=billing" : `/slatedrop/${baseSlug}/${toSlug(name)}`} className="flex min-h-9 items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-2.5 text-xs font-semibold text-slate-700 hover:border-blue-400 hover:bg-white">
-          {locked ? <Lock className="h-3.5 w-3.5 text-slate-400" /> : <Folder className="h-3.5 w-3.5 text-blue-700" />}
+        <Link key={name} href={locked ? "/my-account?tab=billing" : `/slatedrop/${baseSlug}/${toSlug(name)}`} className="flex min-h-9 items-center gap-2 rounded-xl border border-white/10 bg-slate-950/45 px-2.5 text-xs font-semibold text-slate-300 hover:border-blue-400/70 hover:bg-blue-500/10">
+          {locked ? <Lock className="h-3.5 w-3.5 text-slate-500" /> : <Folder className="h-3.5 w-3.5 text-blue-200" />}
           <span className="truncate">{name}</span>
         </Link>
       ))}
@@ -171,8 +173,8 @@ function OpenFolderLink({ href, label }: { href: string; label: string }) {
 
 function ActionPill({ href, icon: Icon, label }: { href: string; icon: typeof Plus; label: string }) {
   return (
-    <Link href={href} className="flex min-h-20 flex-col items-center justify-center gap-2 rounded-2xl border border-slate-300 bg-slate-50 px-2 text-center text-xs font-bold text-slate-700 transition-all hover:border-blue-500 hover:bg-white active:scale-[0.98]">
-      <Icon className="h-5 w-5 text-blue-700" />
+    <Link href={href} className="flex min-h-20 flex-col items-center justify-center gap-2 rounded-2xl border border-white/10 bg-slate-950/45 px-2 text-center text-xs font-bold text-slate-300 transition-all hover:border-blue-400/70 hover:bg-blue-500/10 active:scale-[0.98]">
+      <Icon className="h-5 w-5 text-blue-200" />
       {label}
     </Link>
   );

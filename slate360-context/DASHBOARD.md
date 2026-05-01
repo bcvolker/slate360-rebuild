@@ -1,6 +1,6 @@
 # Slate360 — Dashboard Blueprint
 
-**Last Updated:** 2026-04-30
+**Last Updated:** 2026-05-01
 **Context Maintenance:** Update this file whenever dashboard routes, components, widgets, or layout logic changes.
 **Cross-reference:** See `FUTURE_FEATURES.md` for the full phased build roadmap (Phases 0–7).
 
@@ -113,6 +113,12 @@ The Command Center follows the zero-scroll blueprint:
 - Middle content: a very shallow horizontal shortcut rail for Active Projects, Recent Files, Draft Deliverables, My Work, Coordination, Settings, and New Project. It does not render extra title text above the rail.
 - Bottom content: a contained Workspace Tray occupying the largest remaining lower area, with its own internal scroll area for work queue, inbox, file activity, and setup entry points.
 - Search and global actions live in shell chrome/menus instead of taking vertical space on the home surface.
+- 2026-05-01 triage: the Command Center app launcher and workspace tray are back on Dark Glass surfaces. When App Store mode leaves only one visible app, Site Walk renders as a large primary entry card instead of a tiny tile floating in a mostly empty app grid. The shell also removed the duplicate inner mobile bottom padding that created an obvious gap above the bottom nav.
+
+### Secondary Mobile Surfaces Triage
+
+- 2026-05-01: `/more`, `/coordination/inbox`, `/coordination/contacts`, `/coordination/calendar`, `/slatedrop`, and `/site-walk/slatedrop` were converted away from white cards on the dark app frame. This is a triage consistency pass, not the final SlateDrop/Coordination product model.
+- In App Store mode, SlateDrop hides inactive future app folder placeholders instead of showing locked 360 Tours / Design Studio / Content Studio spaces to reviewers.
 
 ### Command Center Quick Actions (Legacy Reference)
 

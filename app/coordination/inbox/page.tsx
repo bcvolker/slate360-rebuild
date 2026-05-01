@@ -23,10 +23,10 @@ export default async function CoordinationInboxPage() {
         <InboxCard icon={MessageSquare} title="Messages" detail="Threads tied to projects, Site Walk items, deliverables, and feedback tickets." />
       </section>
 
-      <section className="rounded-3xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center">
-        <Sparkles className="mx-auto h-8 w-8 text-blue-700" />
-        <p className="mt-3 text-sm font-black text-slate-900">No communication items yet</p>
-        <p className="mx-auto mt-1 max-w-2xl text-sm leading-6 text-slate-600">
+      <section className="rounded-3xl border border-dashed border-white/15 bg-white/5 p-6 text-center shadow-lg backdrop-blur-md">
+        <Sparkles className="mx-auto h-8 w-8 text-blue-200" />
+        <p className="mt-3 text-sm font-black text-white">No communication items yet</p>
+        <p className="mx-auto mt-1 max-w-2xl text-sm leading-6 text-slate-300">
           The next wiring pass should route feedback replies, Site Walk comments, received SlateDrop uploads, and stakeholder responses into this inbox with unread counts for the notification bell.
         </p>
       </section>
@@ -36,10 +36,10 @@ export default async function CoordinationInboxPage() {
 
 function InboxCard({ icon: Icon, title, detail }: { icon: typeof Bell; title: string; detail: string }) {
   return (
-    <div className="rounded-3xl border border-slate-300 bg-white p-5 shadow-sm">
-      <Icon className="h-5 w-5 text-blue-700" />
-      <h2 className="mt-3 text-sm font-black text-slate-950">{title}</h2>
-      <p className="mt-1 text-sm leading-6 text-slate-600">{detail}</p>
+    <div className="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-lg backdrop-blur-md">
+      <Icon className="h-5 w-5 text-blue-200" />
+      <h2 className="mt-3 text-sm font-black text-white">{title}</h2>
+      <p className="mt-1 text-sm leading-6 text-slate-400">{detail}</p>
     </div>
   );
 }

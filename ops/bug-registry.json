@@ -1,6 +1,6 @@
 {
   "$schema": "./schemas/bug-registry.schema.json",
-  "updatedAt": "2026-04-30",
+  "updatedAt": "2026-05-01",
   "source": "slate360-context/ONGOING_ISSUES.md",
   "bugs": [
     {
@@ -471,6 +471,21 @@
         "A reconciliation migration adds the Operations Console columns when missing and backfills `type` from legacy `category` values",
         "Legacy `category` is made nullable so the current `/api/feedback` insert contract can succeed",
         "The feedback modal sends a real `appArea` based on the current path so Operations Console can group submissions by app surface"
+      ]
+    },
+    {
+      "id": "BUG-053",
+      "title": "Dark shell surfaces looked like disconnected white web pages",
+      "module": "app-shell/site-walk/slatedrop/coordination",
+      "severity": "critical",
+      "status": "fixed",
+      "rootCause": "The authenticated app mixed a dark native shell with light page cards, a tiny single visible app tile, duplicate bottom padding, filler secondary-page copy, inactive future SlateDrop folders, and capture defaults such as `Current location`, making the PWA feel like disconnected web pages instead of a contained app.",
+      "verification": [
+        "Command Center app launcher and tray render Dark Glass surfaces, and a single visible app becomes a large Site Walk entry card",
+        "/site-walk renders a Field-Work Cockpit with Start Walk Now, Field Project setup, recent project continuation, Walks, Files, and Outputs",
+        "Site Walk capture defaults to Stop 1 and Save & Capture Next Stop immediately advances to Stop 2 without forcing a move-location modal",
+        "/more, /coordination/*, /slatedrop, and /site-walk/slatedrop no longer render white cards on the dark app shell",
+        "SlateDrop hides inactive future app folder placeholders when App Store mode is enabled"
       ]
     }
   ]

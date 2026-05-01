@@ -21,6 +21,7 @@ This V1 3 Act workflow plan remains the execution-oriented launch plan, but it m
 - User-facing launch copy must avoid `Beta`, `Beta Testing`, and `Waitlist`; use `Version 1`, `Foundational Member`, `Account Verification`, or `Workspace Provisioning`.
 - Data entry must use configurable Tags / Departments / Categories instead of hardcoded trade dropdowns so Site Walk can serve construction, university facilities, insurance, real estate, and other field workflows.
 - 2026-05-01 core-loop note: `/site-walk/walks/[sessionId]` is the Walk Summary handoff from Act 2 to Act 3. It lists each capture with thumbnail, location, priority, status, custom tags, and notes preview, and routes edits back into `/site-walk/capture?session=...&item=...` before entering Deliverable Studio.
+- 2026-05-01 cockpit/stop-flow note: `/site-walk` is now a Field-Work Cockpit rather than a three-button launcher. Capture defaults to `Stop 1`, uses editable Stop / Location labels, and `Save & Capture Next Stop` immediately advances to the next numbered stop so field users are not blocked by an extra move-location page.
 - Organization `owner` / `admin` users can receive a Global Command Center view across all active walks in their organization; solo owners should not see enterprise-only clutter unless needed.
 
 ---

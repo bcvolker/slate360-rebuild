@@ -171,7 +171,7 @@ export function AppShell({
           )}
         >
           <MobileInstallStrip />
-          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-24 lg:pb-0 scrollbar-none">{children}</div>
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-4 lg:pb-0 scrollbar-none">{children}</div>
         </main>
 
         <MobileBottomNav />

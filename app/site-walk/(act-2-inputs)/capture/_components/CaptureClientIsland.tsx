@@ -28,7 +28,7 @@ type WalkMode = "choice" | "plan" | "camera";
 export function CaptureClientIsland({ sessionId, projectId, walkName, showPlanCanvas, showStartChoice, autoOpenCamera, launchId, initialItemId }: Props) {
   const [walkMode, setWalkMode] = useState<WalkMode>(() => showStartChoice ? "choice" : showPlanCanvas ? "plan" : "camera");
   const [activePage, setActivePage] = useState("visual");
-  const [currentLocation, setCurrentLocation] = useState("Current location");
+  const [currentLocation, setCurrentLocation] = useState("Stop 1");
   const [itemDetail, setItemDetail] = useState("");
   const [recentLocations, setRecentLocations] = useState<string[]>([]);
   const [locationPickerOpen, setLocationPickerOpen] = useState(false);
@@ -66,7 +66,7 @@ export function CaptureClientIsland({ sessionId, projectId, walkName, showPlanCa
   }, [activeItem, currentLocation, draft, patchDraft]);
 
   function updateLocation(location: string) {
-    const cleanLocation = location || "Current location";
+    const cleanLocation = location.trim() || "Stop 1";
     setCurrentLocation(cleanLocation);
     setRecentLocations((current) => [cleanLocation.trim(), ...current.filter((item) => item !== cleanLocation.trim())].slice(0, 8));
     if (draft) {
@@ -101,7 +101,7 @@ export function CaptureClientIsland({ sessionId, projectId, walkName, showPlanCa
 
   function moveToNewLocation() {
     rememberCarryForward();
-    setLocationPickerOpen(true);
+    applyNewLocation(nextStopLabel(currentLocation, recentLocations));
   }
 
   function finishWalk() {
@@ -233,6 +233,15 @@ function parseRecentLocations(value: string) {
   } catch {
     return [];
   }
+}
+
+function nextStopLabel(currentLocation: string, recentLocations: string[]) {
+  const candidates = [currentLocation, ...recentLocations];
+  const maxStop = candidates.reduce((max, label) => {
+    const match = label.trim().match(/^stop\s+(\d+)$/i);
+    return match ? Math.max(max, Number(match[1])) : max;
+  }, 1);
+  return `Stop ${maxStop + 1}`;
 }
 
 function findGhostImageUrl(items: { id: string; title: string; item_type: string; local_preview_url?: string | null }[], activeItemId: string | null, location: string) {

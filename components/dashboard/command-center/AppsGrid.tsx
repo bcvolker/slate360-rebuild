@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Compass, FileText, MapPin, Palette, type LucideIcon } from "lucide-react";
+import { ArrowRight, Compass, FileText, MapPin, Palette, type LucideIcon } from "lucide-react";
 import type { Entitlements } from "@/lib/entitlements";
 import { shouldHideInAppStoreMode } from "@/lib/app-store-mode";
 
@@ -81,39 +81,46 @@ export function AppsGrid({ entitlements: _entitlements }: AppsGridProps) {
     );
   }
 
+  const singleApp = visible.length === 1;
+
   return (
-    <section className="flex min-h-0 flex-col overflow-hidden rounded-3xl border border-slate-300 bg-white p-2 shadow-sm">
-      <div className="mb-1 flex items-center justify-center">
-        <h2 className="rounded-full border border-blue-200 bg-blue-50 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-[0.18em] text-blue-700">Apps</h2>
+    <section className="flex min-h-0 flex-col overflow-hidden rounded-3xl border border-white/10 bg-white/5 p-3 shadow-lg backdrop-blur-md sm:p-4">
+      <div className="mb-2 flex items-center justify-between gap-3">
+        <h2 className="text-[10px] font-black uppercase tracking-[0.18em] text-blue-200">Apps</h2>
+        {singleApp && <span className="text-[10px] font-bold text-slate-400">Open your active app</span>}
       </div>
-      <div className="grid min-h-0 flex-1 grid-cols-2 place-content-center place-items-center gap-1.5 overflow-hidden sm:gap-2">
+      <div className={singleApp ? "grid min-h-0 flex-1 grid-cols-1" : "grid min-h-0 flex-1 grid-cols-2 place-content-center place-items-center gap-2 overflow-hidden"}>
         {visible.map((app) => {
           const Icon = app.icon;
           const hasAccess = !app.entitlement || (_entitlements?.[app.entitlement] ?? false);
           const card = (
             <div
-              className={`group relative flex h-16 w-28 flex-col items-center justify-center gap-1 rounded-2xl border border-slate-300 bg-slate-50 p-2 text-center shadow-sm transition-all duration-200 hover:border-blue-500 hover:bg-blue-50 sm:h-20 sm:w-32 lg:h-20 lg:w-36 ${hasAccess ? "" : "opacity-70"}`}
+              className={`group relative flex ${singleApp ? "h-full min-h-36 items-start justify-between p-4 text-left" : "h-20 w-full flex-col items-center justify-center gap-1 p-2 text-center sm:h-24"} rounded-3xl border border-white/10 bg-slate-950/45 shadow-lg transition-all duration-200 hover:border-blue-400/70 hover:bg-blue-500/10 ${hasAccess ? "" : "opacity-70"}`}
             >
               {!hasAccess && (
-                <span className="absolute right-2 top-2 rounded-full border border-slate-300 bg-white px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-slate-600">
+                <span className="absolute right-2 top-2 rounded-full border border-white/15 bg-white/10 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-slate-200">
                   Available
                 </span>
               )}
               {app.comingSoon && hasAccess && (
-                <span className="absolute right-2 top-2 rounded-full border border-slate-300 bg-white px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-slate-600">
+                <span className="absolute right-2 top-2 rounded-full border border-white/15 bg-white/10 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-slate-200">
                   Soon
                 </span>
               )}
-              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-600 text-white shadow-lg shadow-blue-500/20 transition-transform group-hover:scale-105">
-                <Icon className="h-4 w-4" />
+              <div className={singleApp ? "flex w-full items-center justify-between gap-3" : "contents"}>
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-lg shadow-blue-500/20 transition-transform group-hover:scale-105">
+                  <Icon className="h-5 w-5" />
+                </div>
+                {singleApp && <ArrowRight className="h-5 w-5 text-blue-200" />}
               </div>
               <div className="min-w-0 space-y-1">
-                <h3 className="truncate text-xs font-black text-slate-900 group-hover:text-blue-700 sm:text-sm">
+                <h3 className={singleApp ? "text-2xl font-black text-white" : "truncate text-xs font-black text-slate-50 group-hover:text-blue-100 sm:text-sm"}>
                   {app.name}
                 </h3>
-                <p className="hidden text-[10px] leading-3 text-slate-600 lg:line-clamp-1 lg:block">
+                <p className={singleApp ? "max-w-xs text-sm font-bold leading-5 text-slate-300" : "hidden text-[10px] leading-3 text-slate-400 lg:line-clamp-1 lg:block"}>
                   {app.tagline}
                 </p>
+                {singleApp && <p className="pt-2 text-xs font-black uppercase tracking-[0.14em] text-blue-200">Enter Field-Work Cockpit</p>}
               </div>
             </div>
           );
@@ -122,7 +129,7 @@ export function AppsGrid({ entitlements: _entitlements }: AppsGridProps) {
             <Link
               key={app.key}
               href={app.href}
-              className="block"
+              className="block h-full"
             >
               {card}
             </Link>

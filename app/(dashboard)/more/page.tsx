@@ -39,12 +39,12 @@ export default async function MorePage() {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-5 sm:px-6 lg:px-8 lg:py-8">
-      <section className="rounded-3xl border border-slate-300 bg-white p-5 shadow-sm sm:p-6">
-        <p className="text-[11px] font-black uppercase tracking-[0.18em] text-blue-700">More</p>
-        <h1 className="mt-2 text-2xl font-black text-slate-950 sm:text-3xl">Everything else in Slate360</h1>
-        <p className="mt-2 max-w-2xl text-sm text-slate-600">
-          The bottom navigation stays focused on daily work. More packages account, billing, project administration, app access, and secondary tools.
+    <div className="mx-auto flex w-full max-w-5xl flex-col gap-5 px-4 py-5 text-slate-50 sm:px-6 lg:px-8 lg:py-8">
+      <section className="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-lg backdrop-blur-md sm:p-6">
+        <p className="text-[11px] font-black uppercase tracking-[0.18em] text-blue-200">More</p>
+        <h1 className="mt-2 text-2xl font-black text-white sm:text-3xl">Settings, coordination, and workspace controls</h1>
+        <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">
+          This is the utility drawer, not a marketing page. Open account, billing, contacts, inbox, storage, and administrative controls from one contained app surface.
         </p>
       </section>
 
@@ -52,17 +52,17 @@ export default async function MorePage() {
         {items.map((item) => {
           const Icon = item.icon;
           return (
-            <Link key={item.label} href={item.href} className="rounded-3xl border border-slate-300 bg-white p-4 shadow-sm transition-all hover:border-blue-500 hover:shadow-md">
+            <Link key={item.label} href={item.href} className="rounded-3xl border border-white/10 bg-white/5 p-4 shadow-lg backdrop-blur-md transition-all hover:border-blue-400/70 hover:bg-blue-500/10">
               <div className="flex items-start gap-3">
-                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-blue-700">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-blue-600 text-white">
                   <Icon className="h-5 w-5" />
                 </span>
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
-                    <h2 className="text-sm font-black text-slate-950">{item.label}</h2>
-                    {item.active ? <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 ring-1 ring-emerald-200">Ready</span> : null}
+                    <h2 className="text-sm font-black text-white">{item.label}</h2>
+                    {item.active ? <span className="rounded-full bg-emerald-300/10 px-2 py-0.5 text-[10px] font-bold text-emerald-100 ring-1 ring-emerald-300/20">Ready</span> : null}
                   </div>
-                  <p className="mt-1 text-xs leading-5 text-slate-600">{item.description}</p>
+                  <p className="mt-1 text-xs leading-5 text-slate-400">{item.description}</p>
                 </div>
               </div>
             </Link>
@@ -70,9 +70,9 @@ export default async function MorePage() {
         })}
       </section>
 
-      <section className="rounded-3xl border border-slate-300 bg-white p-4 shadow-sm">
-        <div className="flex items-center gap-3 text-sm text-slate-600">
-          <Settings className="h-4 w-4 text-blue-700" />
+      <section className="rounded-3xl border border-white/10 bg-white/5 p-4 text-slate-300 shadow-lg backdrop-blur-md">
+        <div className="flex items-center gap-3 text-sm">
+          <Settings className="h-4 w-4 text-blue-200" />
           As subscriptions change, app-specific file folders and surfaces should appear in SlateDrop without changing the primary bottom navigation.
         </div>
       </section>

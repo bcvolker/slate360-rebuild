@@ -24,8 +24,8 @@ export default async function CoordinationContactsPage() {
         <ContactScope icon={Phone} title="Phone / SMS" detail="Mobile numbers for urgent field coordination and text links." />
       </section>
 
-      <section className="rounded-3xl border border-slate-300 bg-white p-5 shadow-sm">
-        <h2 className="text-sm font-black text-slate-950">V1 contact model</h2>
+      <section className="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-lg backdrop-blur-md">
+        <h2 className="text-sm font-black text-white">V1 contact model</h2>
         <div className="mt-4 grid gap-3 sm:grid-cols-3">
           <Step number="1" label="Add or import contacts" detail="Name, company, role, email, mobile, project tags." />
           <Step number="2" label="Attach to projects" detail="Assign contacts to stakeholder groups and permission roles." />
@@ -38,20 +38,20 @@ export default async function CoordinationContactsPage() {
 
 function ContactScope({ icon: Icon, title, detail }: { icon: typeof Users2; title: string; detail: string }) {
   return (
-    <div className="rounded-3xl border border-slate-300 bg-white p-5 shadow-sm">
-      <Icon className="h-5 w-5 text-blue-700" />
-      <h2 className="mt-3 text-sm font-black text-slate-950">{title}</h2>
-      <p className="mt-1 text-sm leading-6 text-slate-600">{detail}</p>
+    <div className="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-lg backdrop-blur-md">
+      <Icon className="h-5 w-5 text-blue-200" />
+      <h2 className="mt-3 text-sm font-black text-white">{title}</h2>
+      <p className="mt-1 text-sm leading-6 text-slate-400">{detail}</p>
     </div>
   );
 }
 
 function Step({ number, label, detail }: { number: string; label: string; detail: string }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+    <div className="rounded-2xl border border-white/10 bg-slate-950/45 p-4">
       <span className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-700 text-xs font-black text-white">{number}</span>
-      <p className="mt-3 text-sm font-black text-slate-900">{label}</p>
-      <p className="mt-1 text-xs leading-5 text-slate-600">{detail}</p>
+      <p className="mt-3 text-sm font-black text-white">{label}</p>
+      <p className="mt-1 text-xs leading-5 text-slate-400">{detail}</p>
     </div>
   );
 }

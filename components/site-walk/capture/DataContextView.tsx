@@ -89,7 +89,8 @@ export function DataContextView({ item, draft, assignees, saveState, aiState, ai
     );
   }
 
-  const fullTitle = itemDetail.trim() ? `${currentLocation.trim()} — ${itemDetail.trim()}` : currentLocation.trim();
+  const stopLabel = currentLocation.trim() || "Stop 1";
+  const fullTitle = itemDetail.trim() ? `${stopLabel} — ${itemDetail.trim()}` : stopLabel;
   const previewUrl = getCaptureImageUrl(item);
 
   return (
@@ -99,7 +100,7 @@ export function DataContextView({ item, draft, assignees, saveState, aiState, ai
           <ChevronLeft className="h-4 w-4" /> Visual
         </button>
         <div className="min-w-0 text-center">
-          <p className="truncate text-sm font-black">Photo details</p>
+          <p className="truncate text-sm font-black">{fullTitle}</p>
           <p className="text-[11px] font-bold text-cyan-200">{saveLabel(saveState)}</p>
         </div>
         <button type="button" onClick={onFormatNotes} disabled={aiState === "formatting" || !draft.notes.trim()} className="inline-flex h-10 items-center gap-2 rounded-full border border-white/20 bg-white/5 px-3 text-sm font-black text-slate-100 hover:bg-white/10 disabled:opacity-50">
@@ -150,15 +151,15 @@ export function DataContextView({ item, draft, assignees, saveState, aiState, ai
         <section className="shrink-0 rounded-3xl border border-white/10 bg-white/5 p-3 shadow-lg backdrop-blur-md">
           <div className="grid gap-2 sm:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
             <label className="space-y-1">
-              <span className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-400">Current Location</span>
-              <input value={currentLocation} onChange={(event) => onLocationChange(event.target.value)} className={inputClass} placeholder="AOB Room 205" />
+              <span className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-400">Stop / Location</span>
+              <input value={currentLocation} onChange={(event) => onLocationChange(event.target.value)} className={inputClass} placeholder="Stop 1, Lobby, AOB Room 205" />
             </label>
             <label className="space-y-1">
-              <span className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-400">Item detail</span>
+              <span className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-400">What is this photo about?</span>
               <input value={itemDetail} onChange={(event) => onItemDetailChange(event.target.value)} className={inputClass} placeholder="Electrical panel, networking rough-in…" />
             </label>
           </div>
-          <p className="mt-2 truncate rounded-2xl bg-slate-950/60 px-3 py-2 text-xs font-black text-slate-300">Title: {fullTitle}</p>
+          <p className="mt-2 truncate rounded-2xl bg-slate-950/60 px-3 py-2 text-xs font-black text-slate-300">Saved as: {fullTitle}</p>
         </section>
 
         <section className="relative min-h-72 flex-1 overflow-hidden rounded-3xl border border-white/10 bg-white/5 p-3 shadow-lg backdrop-blur-md focus-within:pb-[22dvh]">
@@ -177,7 +178,7 @@ export function DataContextView({ item, draft, assignees, saveState, aiState, ai
         {(dictationState !== "idle" || aiMessage) && <p className="shrink-0 text-xs font-bold text-slate-300">{dictationState === "listening" ? "Listening…" : dictationState === "unsupported" ? "Dictation unavailable; use the keyboard microphone." : dictationState === "error" ? "Dictation could not start." : aiMessage}</p>}
 
         <footer className="grid shrink-0 grid-cols-1 gap-2 sm:grid-cols-[1fr_auto_auto]">
-          <button type="button" onClick={onSaveNextLocation} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-blue-600 px-3 py-3 text-sm font-black text-white shadow-[0_0_15px_rgba(37,99,235,0.3)] hover:bg-blue-500">Save &amp; Next Location <ArrowRight className="h-4 w-4" /></button>
+          <button type="button" onClick={onSaveNextLocation} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-blue-600 px-3 py-3 text-sm font-black text-white shadow-[0_0_15px_rgba(37,99,235,0.3)] hover:bg-blue-500">Save &amp; Capture Next Stop <ArrowRight className="h-4 w-4" /></button>
           <button type="button" onClick={onAddAngle} className="min-h-12 rounded-2xl border border-white/20 bg-white/5 px-3 py-3 text-sm font-black text-slate-100 hover:bg-white/10">Add Angle</button>
           <button type="button" onClick={onSaveFinishWalk} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-emerald-300/30 bg-emerald-300/10 px-3 py-3 text-sm font-black text-emerald-100"><Flag className="h-4 w-4" /> Save &amp; Finish Walk</button>
         </footer>

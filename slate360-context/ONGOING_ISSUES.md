@@ -1,6 +1,6 @@
 # Slate360 — Ongoing Issues & Known Tech Debt
 
-**Last Updated:** 2026-05-01 (Walk Summary + feedback loop reconciliation)
+**Last Updated:** 2026-05-01 (App shell / Site Walk cockpit triage)
 **Maintained by:** Development team — update whenever a bug is discovered or fixed.
 **Cross-reference:** See `FUTURE_FEATURES.md` for the full phased build roadmap (Phases 0–7).
 
@@ -33,6 +33,7 @@
 | BUG-050 | Site Walk / Deliverables | **Deliverable metadata visibility controls are schema-ready but not wired — OPEN 2026-05-01:** `site_walk_deliverables.viewer_config` and `organizations.brand_settings` can store hide/show preferences for GPS, weather, timestamps, assignee, and cost impact, and the deliverable create/update APIs already accept `viewer_config`. The missing piece is a Deliverable Studio UI contract and public-viewer enforcement that reads/writes `viewer_config.metadataVisibility` per deliverable with org defaults as a fallback. | Medium | 🔴 Open |
 | BUG-051 | App Shell / Navigation | **App Store mode exposed unfinished app surfaces — FIXED 2026-05-01:** Several reviewer-facing app launch surfaces showed 360 Tours, Design Studio, and Content Studio with Soon pills instead of hiding them. Added shared App Store mode filtering (`NEXT_PUBLIC_APP_STORE_MODE` defaults on unless explicitly `false`) across command palette, app grid, sidebar, and shared navigation. | High | ✅ Fixed |
 | BUG-052 | Operations Console / Feedback | **Feedback intake schema could drift from owner inbox — FIXED 2026-05-01:** Migration history had both legacy `category`/`replay_url` and newer `type`/`app_area`/`console_errors` feedback contracts. Added a reconciliation migration that makes the current `/api/feedback` insert and Operations Console inbox/counts reliable, and the modal now sends an app-area hint from the current path. | High | ✅ Fixed |
+| BUG-053 | App Shell / Site Walk / SlateDrop / Coordination | **Dark shell surfaces looked like disconnected white web pages — FIXED 2026-05-01 triage:** The authenticated shell mixed a dark native-app frame with white cards, tiny single-app launcher tiles, duplicate bottom padding, filler secondary pages, and capture defaults like `Current location`. Triage converted the Command Center, Site Walk home, More, Coordination, SlateDrop, and Site Walk files surfaces toward consistent Dark Glass; made `/site-walk` a Field-Work Cockpit; hid inactive SlateDrop app-folder placeholders in App Store mode; replaced default location copy with `Stop 1`; and made Save & Next capture the next stop immediately instead of forcing a modal. | Critical | ✅ Fixed — triage pass; deeper Projects/SlateDrop browser rebuild still pending |
 
 ---
 
