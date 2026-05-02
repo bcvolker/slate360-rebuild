@@ -130,12 +130,68 @@ The SlateDrop path can be optionally updated from `Field Projects/{id}/` to `Pro
 
 ## 5. Entitlements Architecture
 
+### V1 Foundational Release Model
+
+V1 is **invite-only and admin-approved**. Public paid subscriptions do **not** exist in V1. See [`APP_STORE_AND_OFFLINE_STRATEGY.md`](./APP_STORE_AND_OFFLINE_STRATEGY.md) §0.
+
+**V1 access flow:**
+1. User downloads free app from App Store / Play Store
+2. User signs up in-app (email, password, optional org affiliation request)
+3. Account created with `account_status = 'pending_approval'`
+4. User sees Pending Foundational Verification screen — no app shell
+5. Admin reviews in Operations Console
+6. Admin approves: assigns `account_status = 'approved'`, role, `organization_id`, entitlements
+7. User signs in next time → full app shell unlocks
+
+### Required New Schema (V1 critical)
+
+Add to `profiles` (or create `user_access` table if RLS isolation needed):
+
+```sql
+ALTER TABLE profiles ADD COLUMN account_status TEXT NOT NULL DEFAULT 'pending_approval'
+  CHECK (account_status IN ('pending_approval', 'approved', 'rejected', 'suspended'));
+ALTER TABLE profiles ADD COLUMN approved_at TIMESTAMPTZ;
+ALTER TABLE profiles ADD COLUMN approved_by UUID REFERENCES auth.users(id);
+ALTER TABLE profiles ADD COLUMN rejection_reason TEXT;
+ALTER TABLE profiles ADD COLUMN is_foundational_user BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE profiles ADD COLUMN foundational_access_started_at TIMESTAMPTZ;
+ALTER TABLE profiles ADD COLUMN foundational_org_id UUID REFERENCES organizations(id);
+ALTER TABLE profiles ADD COLUMN foundational_data_retention_until TIMESTAMPTZ;
+ALTER TABLE profiles ADD COLUMN v2_discount_eligible BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE profiles ADD COLUMN v2_discount_type TEXT;  -- e.g. 'foundational_50_percent'
+ALTER TABLE profiles ADD COLUMN signup_org_request TEXT;  -- free-text "I'm with ASU Capital Programs Management"
+
+-- Reviewer bypass (App Store reviewer accounts must skip pending screen)
+ALTER TABLE profiles ADD COLUMN is_app_reviewer BOOLEAN NOT NULL DEFAULT FALSE;
+```
+
+Add new role to `organization_members.role`:
+
+```sql
+ALTER TABLE organization_members
+  DROP CONSTRAINT IF EXISTS organization_members_role_check;
+ALTER TABLE organization_members
+  ADD CONSTRAINT organization_members_role_check
+  CHECK (role IN ('owner', 'admin', 'executive_viewer', 'project_manager', 'project_contributor', 'collaborator'));
+```
+
 ### Current Tiers (from `lib/entitlements.ts`)
 ```
 trial → standard → business → enterprise
 ```
 
+In V1, tiers are admin-assigned at approval time. There is no public self-serve subscription path.  
 Legacy tier names (`creator`, `model`) auto-map to `standard` at runtime.
+
+### V1 vs V2 Entitlement Resolution
+
+| Context | V1 | V2 |
+|---|---|---|
+| New user signup | Free in-app, default `pending_approval` | Free in-app, default `pending_approval` OR public free-trial path |
+| Subscription source | Admin-assigned via Operations Console | Native iOS/Android IAP (RevenueCat or equivalent) |
+| Web checkout | None visible | Marketing only, not primary purchase path |
+| Stripe usage | Backend infrastructure only, no public flow | Optional alternative for enterprise/ASU custom invoicing |
+| ASU $1 vendor txn | Handled outside the app via business invoicing | Same |
 
 ### Per-App Entitlement Model
 
@@ -153,6 +209,8 @@ storage_addon_gb: number
 credit_addon_balance: number
 ```
 
+In V1, only `site_walk` and `slatedrop` columns are user-facing. Other apps are hidden in UI but tracked in DB.
+
 ### Resolving Entitlements for Any User
 
 Always use `resolveModularEntitlements()` from `lib/entitlements.ts` for app-specific checks. Never check raw DB columns in UI components.
@@ -160,6 +218,11 @@ Always use `resolveModularEntitlements()` from `lib/entitlements.ts` for app-spe
 ```typescript
 const entitlements = getEntitlements(tier, { isSlateCeo });
 const modular = resolveModularEntitlements(orgAppSubscriptions);
+
+// V1 — check approval first (middleware)
+if (profile.account_status !== 'approved' && !profile.is_app_reviewer) {
+  redirect('/pending-verification');
+}
 
 // Check project creation permission
 if (!canCreateFullProject(entitlements.tier, isSlateCeo)) {
@@ -279,30 +342,48 @@ interface OrgBrandSettings {
 - Add field contrast CSS token stubs
 - Verify typecheck + guards pass
 
-**Step 2 — Project Type Migration**
+**Step 2 — Approval Gate (V1 CRITICAL — must come before any user-facing flow)**
+- Migration: add `account_status`, `is_foundational_user`, `foundational_org_id`, `foundational_data_retention_until`, `v2_discount_eligible`, `is_app_reviewer`, `signup_org_request` columns to `profiles`
+- Migration: extend `organization_members.role` to include `executive_viewer`, `project_manager`, `project_contributor`
+- Update middleware: redirect `pending_approval` users to `/pending-verification` (except `is_app_reviewer = true`)
+- Build `/pending-verification` page (polished, branded, no shell, no nav)
+- Build Operations Console approval queue (admin-only): list pending users, approve/reject UI, assign role + org + entitlements
+- Seed App Store reviewer accounts: pre-approved, demo org, sample data
+- Verify: new signup → pending screen → admin approves → user gets full shell on next sign-in
+
+**Step 3 — V1 UI Scrub (remove ghost apps)**
+- Audit DashboardClient `ALL_TABS`: remove any reference to 360 Tours, Design Studio, Content Studio, Tour Builder
+- Audit Command Palette: remove non-V1 app commands
+- Audit `/apps/` route: hide non-V1 app tiles entirely (do not show "Coming Soon")
+- Audit Quick Actions: only show actions for V1-entitled apps
+- Audit App Store listing copy draft: no mention of future apps
+- Audit any "beta" / "test" / "coming soon" text in UI; replace with neutral language or remove
+- Verify: cold-start app as new approved Site-Walk-only user → only Site Walk concepts visible
+
+**Step 4 — Project Type Migration**
 - Migration: add `project_type` to `projects`; default `'field'`; add `converted_from_id`, `converted_at`
 - Create `lib/project-access.ts` with `canCreateFullProject()` / `canCreateFieldProject()`
 - Update project creation API route to enforce tier gate
 - Update `SiteWalkSetupClient` to use `project_type` when creating sessions
 
-**Step 3 — SlateDrop Folder Generator**
+**Step 5 — SlateDrop Folder Generator**
 - Create `lib/slatedrop/folder-generator.ts`
 - Wire to project creation API (call after project row insert)
 - Write unit tests for folder path generation
 
-**Step 4 — Site Walk Act 1 Complete**
+**Step 6 — Site Walk Act 1 Complete**
 - Walk-type selection step in setup
 - Contacts + collaborator step
 - Template selection (UI only, no backend logic yet)
 - "Start Walk" CTA → creates `site_walk_sessions` row → routes to `/site-walk/capture`
-- Fix setup page background + `100dvh`
 
-**Step 5 — Walks Tab Full**
-- Segmented control: All / In Progress / Review / Complete / Drafts
-- Filter query by `status` in `loadWalks()`
-- New Walk CTA → `/site-walk/setup`
+**Step 7 — Site Walk Act 2 — Offline Capture (Local-First)**
+- IndexedDB queue for capture items + media
+- Background sync when network detected
+- Sync status badge in capture shell
+- Verify: airplane mode capture → reconnect → all items synced
 
-**Step 6 — Deliverable Builder**
+**Step 8 — Site Walk Act 3 — Deliverable Builder**
 - Step 1: Type (Punch / Progress / Inspection / Proposal / Custom)
 - Step 2: Item selection from sessions in project
 - Step 3: Branding (reads from `org.brand_settings`)
@@ -311,36 +392,51 @@ interface OrgBrandSettings {
 - Step 6: Recipients (from org contacts)
 - Step 7: Send + save to SlateDrop
 
-**Step 7 — Collaborator Shell Rewrite**
+**Step 9 — Walks Tab Full**
+- Segmented control: All / In Progress / Review / Complete / Drafts
+- Filter query by `status` in `loadWalks()`
+- New Walk CTA → `/site-walk/setup`
+
+**Step 10 — Executive Viewer Role (V1 Required for ASU)**
+- RLS policies: `executive_viewer` can SELECT all org-scoped Site Walk tables, blocked from INSERT/UPDATE/DELETE
+- Build `/exec` route or org-overview view in Home tab for executive viewers
+- Read-only org dashboard: all Field Projects, recent walks, open items, deliverables
+- Filters by user, project, date range
+
+**Step 11 — Collaborator Shell Rewrite**
 - Dark Glass + `h-[100dvh]` fixed shell
 - Bottom nav: Assigned Work / My Walks / Plans / Messages / Account
 - No sidebar, no full subscriber shell
 
-**Step 8 — Account Deletion UI**
+**Step 12 — Account Deletion UI**
 - Surface the delete button in Account → Security tab
 - It already calls the API route — just need the UI
 
-**Step 9 — App Icon 1024×1024**
-- Create/export icon at 1024×1024
-- Add to public/uploads and update manifest + Capacitor config
-
-**Step 10 — Capacitor Installation**
-- Install core + CLI + plugins
+**Step 13 — Capacitor Installation + Native Plugins**
+- Install core + CLI + plugins (camera, filesystem, geolocation, network)
 - Evaluate static export vs server approach
-- Configure platforms
-- Test on real device
+- Configure platforms (iOS + Android)
+- Test on real device: camera, offline capture, sync
 
-**Step 11 — Permission Pre-Prompts**
+**Step 14 — Permission Pre-Prompts + App Icon**
 - Camera pre-prompt modal (before first capture)
 - Microphone pre-prompt modal (before first voice note)
 - Location pre-prompt modal (in walk setup)
+- 1024×1024 app icon added to manifest + Capacitor
+- Splash screen configured
 
-**Step 12 — Field High Contrast Mode UI**
+**Step 15 — Field High Contrast Mode UI**
 - Add toggle in Account → Preferences
 - Save to `profiles.preferences.field_contrast_mode`
 - Apply `.field-contrast` class to shell root on load
 
-**Step 13 — App Store Submission**
-- Prepare screenshots
-- Write App Store listing
-- Submit for review
+**Step 16 — App Store Submission**
+- Decide distribution track (public-gated vs Apple School Manager Custom App)
+- Prepare iOS screenshots (6.9" + 6.1")
+- Prepare Android screenshots
+- Write App Store / Play Store listing copy (no banned terms)
+- Provide pre-approved reviewer credentials in submission
+- Submit iOS via Xcode → App Store Connect
+- Submit Android via Android Studio → Play Console
+- Respond to reviewer feedback
+- Approval → ASU foundational user program begins

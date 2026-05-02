@@ -837,18 +837,146 @@ Column: `organization_members.role` — enforce in RLS policies.
 7. **Slice 6 — Permission Tiers** (RLS enforcement)
 8. **Slice 7 — App Store Readiness Pass** (icon, pre-prompts, field contrast, Capacitor eval)
 
-## 19. Full V1-to-App-Store Build Sequence (locked 2026-05-02)
+## 19. Full V1-to-App-Store Build Sequence (locked 2026-05-02, V1 Foundational corrections applied)
 
-This is the single source of truth for what to build and in what order. Updated from the §18 locked shell doctrine and the four doctrine docs.
+This is the single source of truth for what to build and in what order. Updated from the §18 locked shell doctrine and the four doctrine docs in [`docs/`](docs/).
 
 ### Key Architecture Decisions Locked
 
-1. **Field Projects and full Projects share the `projects` table** — differentiated by `project_type: 'field' | 'full'`. No separate table. Upgrade = single column change.
-2. **Capacitor.js is the native wrapper** — no React Native, no TWA, no Expo. Wraps the existing Next.js codebase into iOS + Android native binaries.
-3. **Offline capture is IndexedDB-first** — service worker remains disabled. Photos + metadata save locally first, sync to R2/SlateDrop when connected.
-4. **V1 UI scope = Site Walk + Core Shell only** — DB/entitlement models designed for 4 apps, but 360 Tours / Design Studio / Content Studio have no active UI in V1.
-5. **Subscriptions are web-only for V1** — users subscribe on the web. App login only. Avoids Apple IAP (30% fee) for V1.
-6. **App-neutral shell** — the platform shell does not show Site Walk concepts. It adapts to whatever apps the user has.
+1. **V1 = Foundational Release** — invite-only, admin-approved, free to download from App Store/Play Store. No public paid subscriptions in V1. No IAP in V1. ASU $1 vendor txn handled outside the app via business invoicing. See [`docs/APP_STORE_AND_OFFLINE_STRATEGY.md`](docs/APP_STORE_AND_OFFLINE_STRATEGY.md) §0.
+2. **V2 = Public Monetized Release** — native iOS/Android IAP (evaluate RevenueCat), Apple Small Business Program for 15% commission, website remains marketing-only. Other apps progressively unlocked.
+3. **Field Projects and full Projects share the `projects` table** — differentiated by `project_type: 'field' | 'full'`. Upgrade = single column flip.
+4. **Capacitor.js is the native wrapper** — no React Native, no TWA, no Expo.
+5. **Offline capture is IndexedDB-first** — service worker remains disabled. Local-first capture, background sync.
+6. **V1 UI scope = Site Walk + Core Shell + Approval Gate + Executive Viewer + Operations Console** — DB designed for 4 apps, but 360 Tours / Design Studio / Content Studio have ZERO UI in V1 (no "Coming Soon" tiles, no locked icons).
+7. **App-neutral shell** — adapts to whatever apps the user has subscribed to.
+8. **Banned V1 terminology**: beta, test, demo, coming soon, unfinished, trial experiment, pilot program. Use: Foundational Release, Invite-only, Access pending approval.
+9. **App Reviewer accounts** — pre-approved (`is_app_reviewer = true`), bypass pending screen, demo data seeded, credentials provided in App Store Connect + Play Console submission.
+10. **Foundational user data rights** — V1 users own their data, retain access for 1+ year after V2 launch, get V2 discount, ASU may negotiate enterprise license at V2.
+
+### Step 1 — Shell Correction (no DB, fast)
+- `MobileBottomNav.tsx`: `Work`→`Projects`, add `Coordination`, `More`→`Account`
+- `app/site-walk/(act-1-setup)/setup/page.tsx`: Dark Glass + `100dvh`
+- `globals.css`: add `--field-contrast-bg/fg/border/accent/card/muted` token stubs (no UI yet)
+- Verify typecheck + guards pass → commit
+
+### Step 2 — Approval Gate (V1 CRITICAL, before any user-facing flow)
+- Migration: add `account_status`, `is_foundational_user`, `foundational_org_id`, `foundational_data_retention_until`, `v2_discount_eligible`, `is_app_reviewer`, `signup_org_request`, `approved_at`, `approved_by`, `rejection_reason` columns to `profiles`
+- Migration: extend `organization_members.role` to include `executive_viewer`, `project_manager`, `project_contributor`
+- Update middleware: redirect `pending_approval` users to `/pending-verification` (except `is_app_reviewer = true`)
+- Build polished `/pending-verification` page (no shell, no nav, branded waiting screen)
+- Build Operations Console approval queue: list pending users, approve/reject UI, assign role + org + entitlements
+- Seed at least one App Store reviewer account: pre-approved, demo org, sample Field Project + Walk + Deliverable
+- Verify end-to-end: new signup → pending screen → admin approves → user gets full shell on next sign-in
+
+### Step 3 — V1 UI Scrub (remove ghost apps; CRITICAL for App Store approval)
+- Audit DashboardClient `ALL_TABS`: remove 360 Tours, Design Studio, Content Studio, Tour Builder
+- Audit Command Palette: remove non-V1 app commands
+- Audit `/apps/` route: hide non-V1 app tiles entirely (NOT "Coming Soon")
+- Audit Quick Actions: only show actions for V1-entitled apps
+- Audit landing page (`app/page.tsx`): remove pricing/subscription CTAs visible in V1 native binary
+- Search & remove: "beta", "test", "demo", "coming soon", "trial experiment", "pilot program" anywhere in user-facing UI
+- Verify cold-start as new approved Site-Walk-only user: only Site Walk concepts visible
+
+### Step 4 — Project Type Migration
+- Migration: `projects.project_type TEXT DEFAULT 'field' CHECK (IN 'field','full')`
+- Migration: `projects.converted_from_id UUID NULLABLE REFERENCES projects(id)`
+- Migration: `projects.converted_at TIMESTAMPTZ NULLABLE`
+- Create `lib/project-access.ts`: `canCreateFullProject()` / `canCreateFieldProject()`
+- Update project creation API route to enforce tier gate
+- Update `SiteWalkSetupClient` to tag sessions with `project_type = 'field'` by default
+
+### Step 5 — SlateDrop Folder Generator
+- Create `lib/slatedrop/folder-generator.ts`
+- `generateFieldProjectFolders(orgId, projectId)` — creates Site Walk tree
+- `generateFullProjectFolders(orgId, projectId, subscribedApps[])` — creates full tree
+- Wire call to project creation API route (after project row insert)
+- Verify folders created in DB
+
+### Step 6 — Site Walk Act 1 Complete
+- Walk-type selection step added to `SiteWalkSetupClient`
+- Contacts + collaborator step
+- "Start Walk" CTA creates `site_walk_sessions` row → routes to `/site-walk/capture?session={id}`
+
+### Step 7 — Site Walk Act 2 — Offline Capture (Local-First)
+- IndexedDB queue for capture items + media
+- Background sync when network detected
+- Sync status badge in capture shell
+- Verify: airplane-mode capture → reconnect → all items synced
+
+### Step 8 — Site Walk Act 3 — Deliverable Builder
+- Step flow: Type → Items → Branding → Summary → Preview → Recipients → Send
+- Branding auto-loads from `org.brand_settings` (no re-entry)
+- Save deliverable to SlateDrop path on send
+- Verify end-to-end → commit
+
+### Step 9 — Walks Tab Full
+- Segmented control: All | In Progress | Review | Complete | Drafts
+- Filter `loadWalks()` by `status`
+- New Walk CTA → `/site-walk/setup`
+- Resume button on In Progress walks → `/site-walk/capture?session={id}`
+
+### Step 10 — Executive Viewer Role (V1 Required for ASU leadership)
+- RLS policies: `executive_viewer` SELECT-only on org-scoped Site Walk tables
+- Org overview view: all Field Projects, recent walks, open items, deliverables
+- Filters: by user, project, date range
+- Read-only mode (all CTAs hidden for executive viewers)
+
+### Step 11 — Collaborator Shell Rewrite
+- Dark Glass + `h-[100dvh]` fixed shell
+- Bottom nav: Assigned Work | My Walks | Plans | Messages | Account
+- No desktop sidebar
+- Verify limited capture works (only assigned project sessions)
+
+### Step 12 — Account Deletion UI
+- Account → Security tab: surface "Delete Account" button (route already exists)
+- Confirm modal before submit
+
+### Step 13 — Field High Contrast Mode
+- Account → Preferences: toggle "Field High Contrast"
+- Saves to `profiles.preferences.field_contrast_mode`
+- Shell applies `.field-contrast` class to root div on load
+
+### Step 14 — App Icon 1024×1024 + Permission Pre-Prompts
+- Create/export 1024×1024 app icon; update manifest + Capacitor config
+- Camera, microphone, location pre-prompt modals
+- Verify all three permission flows work on mobile device
+
+### Step 15 — Capacitor Installation
+- Owner review meeting before this step (static export vs server mode)
+- Install `@capacitor/core`, `@capacitor/cli`, platform plugins
+- Configure `capacitor.config.ts`
+- Add iOS + Android platforms
+- Test camera, filesystem, offline capture on real device
+
+### Step 16 — Distribution Track Decision (owner sign-off)
+- Decide iOS track: Public-gated vs Apple School Manager Custom App for ASU
+- Decide Android track: Public Play Store with approval gate vs Closed Testing for ASU
+- TestFlight / Play Internal Testing for our own QA pass
+
+### Step 17 — App Store Submission
+- Prepare iOS screenshots (6.9" + 6.1" required)
+- Prepare Android screenshots
+- Write App Store + Play Store listing copy (no banned terms)
+- Provide pre-approved reviewer credentials in App Store Connect + Play Console
+- Provide 30-second walkthrough video for reviewer
+- Submit iOS via Xcode → App Store Connect
+- Submit Android via Android Studio → Play Console
+- Respond to reviewer feedback
+- Approval → ASU Capital Programs Management foundational user program begins
+
+### Step 18 (V2 horizon — NOT V1) — Public Monetization
+- Evaluate RevenueCat vs hand-rolled IAP
+- Apply for Apple Small Business Program (15% commission)
+- Wire IAP entitlement sync to `org_app_subscriptions`
+- Public sign-up flow: skip approval gate, allow free trial → IAP upgrade
+- Foundational user discount offer flow
+- Enterprise license negotiation flow for ASU and similar orgs
+- Progressively unlock 360 Tours → Design Studio → Content Studio as each becomes production-ready
+
+---
+
+## 17. Disruptor Pack (Future)
 
 ### Step 1 — Shell Correction (no DB, fast)
 - `MobileBottomNav.tsx`: `Work`→`Projects`, add `Coordination`, `More`→`Account`

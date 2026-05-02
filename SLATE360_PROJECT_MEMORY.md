@@ -196,6 +196,51 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
+### Session Handoff — 2026-05-02 (V1 Foundational Release Doctrine Corrections)
+
+#### What Changed (no code, doctrine corrections — second pass)
+- `docs/APP_STORE_AND_OFFLINE_STRATEGY.md` §0/§0a/§0b — V1 Foundational Release doctrine: free download + admin-approved gate, banned terminology (beta/test/demo/coming soon), $1 ASU vendor txn handled OUTSIDE the app via business invoicing, V2 = native IAP via RevenueCat (Apple Small Business Program 15%), 5 distribution tracks to evaluate, App Reviewer pre-approved account requirements
+- `docs/APP_STORE_AND_OFFLINE_STRATEGY.md` §9 — exact V1 Visible/Hidden lists, App Store listing copy rules, V1→V2 foundational user transition promise (1-year retention, V2 discount)
+- `docs/SLATE360_PRODUCT_DOCTRINE.md` §2 — replaced V1 scope with Foundational Release section, added foundational user data rights
+- `docs/SLATE360_PRODUCT_DOCTRINE.md` §5 — added Executive Viewer role for ASU leadership, added Pending User role + Pending Foundational Verification screen spec
+- `docs/ENTITLEMENTS_AND_PROJECT_MODEL.md` §5 — V1 access flow, schema migration for `account_status`, `is_foundational_user`, `foundational_org_id`, `foundational_data_retention_until`, `v2_discount_eligible`, `is_app_reviewer`, `signup_org_request`, extended `organization_members.role` enum
+- `docs/ENTITLEMENTS_AND_PROJECT_MODEL.md` §9 — rewrote 16-step sequence: Approval Gate is now Step 2, V1 UI Scrub is Step 3, Executive Viewer is Step 10
+- `SLATE360_MASTER_BUILD_PLAN.md` §19 — rewrote 18-step build sequence with 10 V1 architecture decisions, V2 horizon as Step 18
+
+#### Key Strategic Corrections (overrides prior doctrine)
+1. **REMOVED** "subscriptions web-only in V1" — wrong direction. Correct: V1 free + approval-gated; V2 = native IAP.
+2. V1 = **Slate360 V1 Foundational Release** — never call it beta/test/demo in user-facing copy
+3. V1 access: download free → signup → `account_status = pending_approval` → admin approves in Operations Console → user gets full shell
+4. ASU $1 vendor transaction handled **outside the app** via business invoicing
+5. App Store reviewers get pre-approved accounts (`is_app_reviewer = true`) with seeded demo data
+6. Executive Viewer role required in V1 for ASU leadership oversight (read-only org-wide)
+7. NO ghost apps in V1 UI — 360 Tours / Design Studio / Content Studio have ZERO presence
+8. Foundational user data rights: 1-year retention + V2 discount eligibility
+9. Distribution track decision required pre-submission (public-gated vs Apple School Manager Custom App for ASU)
+10. V2: native IAP via RevenueCat, Apple Small Business Program for 15% commission
+
+#### What's Broken / Partially Done
+- All implementation work pending owner approval to start Step 1
+- **BUG-018 MAY 2026 DEADLINE**: `components/dashboard/LocationMap.tsx` DrawingManager deprecated
+- SlateDrop Recents/Shared/Requests still mock data
+- `file_folders` → `project_folders` Phase 2 migration incomplete
+
+#### Next Steps — Awaiting Owner Approval
+1. **Step 1 — Shell Correction** (no DB, fast, safe): platform nav, setup page Dark Glass, field-contrast tokens
+2. **Step 2 — Approval Gate** (V1 CRITICAL, requires migration review)
+3. **Step 3 — V1 UI Scrub** (remove all ghost apps + banned terminology)
+4. **Step 4 — Project Type Migration**
+5. **Steps 5-18** — Folder generator, Site Walk Acts 1/2/3, Walks tab, Executive Viewer, Collaborator Shell, Account Deletion, Field Contrast UI, App Icon + Permissions, Capacitor, Distribution decision, App Store submission
+
+Owner decision needed before Step 16: **public-gated App Store vs Apple School Manager Custom App for ASU iOS rollout?**
+
+#### Context Files Updated
+- `docs/APP_STORE_AND_OFFLINE_STRATEGY.md` — §0/§0a/§0b/§9 added/rewritten
+- `docs/SLATE360_PRODUCT_DOCTRINE.md` — §2 V1 Foundational, §5 Executive Viewer + Pending User
+- `docs/ENTITLEMENTS_AND_PROJECT_MODEL.md` — §5 V1 access + schema, §9 corrected 16-step sequence
+- `SLATE360_MASTER_BUILD_PLAN.md` — §19 corrected 18-step sequence
+- `SLATE360_PROJECT_MEMORY.md` — this handoff
+
 ### Session Handoff — 2026-05-02 (Ecosystem Doctrine Lock)
 
 #### What Changed

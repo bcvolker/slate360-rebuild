@@ -1,8 +1,100 @@
 # App Store & Offline Strategy
 
 **Created:** 2026-05-02  
-**Status:** LOCKED — Binding technical strategy for native app submission and offline capture.  
-**Answers:** How does a Next.js web app get into the iOS and Android App Stores?
+**Updated:** 2026-05-02 (V1 Foundational Release corrections)  
+**Status:** LOCKED — Binding technical + strategic doctrine for native app submission, offline capture, V1 access control, and V2 monetization.  
+**Answers:** How does a Next.js web app get into the iOS and Android App Stores, who is allowed to use it in V1, and how does monetization work later?
+
+---
+
+## 0. V1 vs V2 — Strategic Doctrine (read first)
+
+### V1 — Foundational Release (CURRENT TARGET)
+
+V1 is **NOT** a public paid release. V1 is **NOT** a beta. V1 is the **Slate360 V1 Foundational Release** — a controlled, invite-only deployment of Slate360 + Site Walk distributed through the App Store and Play Store with admin-controlled access.
+
+**Banned terminology in V1 user-facing copy and App Store listings:**
+- "beta"
+- "test"
+- "demo"
+- "coming soon"
+- "unfinished"
+- "trial experiment"
+- "pilot program"
+
+**Approved terminology:**
+- "Foundational Release"
+- "Invite-only access"
+- "Access pending approval"
+- "Your organization administrator or Slate360 admin will review your request"
+
+**V1 distribution model:**
+- App is **free to download** from the App Store and Play Store
+- **No public paid subscription flow** in V1
+- **No In-App Purchases (IAP)** in V1
+- All access is gated by admin approval through Operations Console
+- New users default to `account_status = pending_approval` and see a polished "Pending Foundational Verification" screen
+- The first foundational organization is Arizona State University Capital Programs Management Group (project managers, architects, leadership)
+- The $1 ASU vendor-registration transaction is handled **outside the app** through normal business invoicing — **never** through Apple/Google IAP
+- Approved foundational users get access to Site Walk and Field Projects scoped to their assigned organization
+- Leadership gets the Executive Viewer role for organization-wide read-only oversight
+
+**V1 success criteria:**
+1. App accepted into both App Store and Play Store
+2. ASU foundational users actively creating Field Projects, performing walks, generating deliverables
+3. ASU leadership using Executive Viewer to oversee org activity
+4. Bug reports + feature requests captured and triaged
+5. No App Store rejections for incomplete/ghost features
+
+### V2 — Public Monetized Release (FUTURE — after V1 stabilizes)
+
+V2 is the public, monetized launch.
+
+- Public App Store / Play Store availability remains
+- **Native iOS/Android IAP becomes the primary purchase path** — users subscribe in-app
+- Evaluate **RevenueCat** (or equivalent) for cross-platform entitlement abstraction — recommended over hand-rolling IAP
+- Apple Small Business Program (15% commission tier) should be applied for if eligible
+- Website remains for marketing, account support, and admin tools — **not** the primary purchase path
+- Apps progressively unlock as they become production-ready: 360 Tours → Design Studio → Content Studio
+- Foundational V1 users retain access to their data and receive a discounted V2 upgrade offer
+- Enterprise/seat-based licensing path opens for organizations like ASU after V1 success
+
+**Anti-patterns to avoid in V1 doctrine:**
+- ❌ "Subscriptions are web-only forever" — wrong. V1 is web-free + approval-gated; V2 moves to native IAP.
+- ❌ Building a Stripe/web checkout into V1 user-facing flow — V1 has no public purchase path.
+- ❌ Showing future apps as locked tiles or "coming soon" — must be hidden entirely from V1 UI.
+
+---
+
+## 0a. V1 Distribution Tracks (evaluate before submission)
+
+Distribution method on App Store Connect has long-term implications — **switching from private to public after approval may require a new app record**. Evaluate these tracks before final submission:
+
+| Track | Purpose | When to Use |
+|---|---|---|
+| **Apple TestFlight / Play Internal Testing** | Technical pre-release device validation (camera, offline, native plugins) | Before public submission, for our own QA |
+| **Apple TestFlight / Play Closed Testing** | Limited group testing of release candidates | Before public submission, with select foundational users |
+| **Public App Store / Play Store (V1 Foundational, gated by approval)** | The primary V1 distribution path | Recommended for ASU rollout — easier user onboarding than custom app |
+| **Apple Custom App via Apple Business Manager / Apple School Manager** | Private distribution to specific organizations | Evaluate for ASU specifically — may be preferable since ASU is an educational institution |
+| **Apple Unlisted App** | Not discoverable in search, accessible via direct link | Alternative if public discoverability is undesired |
+
+**Owner decision required before submission:**
+- Which iOS distribution track for ASU? (Public-gated vs Apple School Manager Custom App)
+- Which Android distribution track? (Public Play Store with approval gate vs Closed Testing track for ASU specifically)
+
+---
+
+## 0b. App Reviewer Access (CRITICAL)
+
+Because V1 is approval-gated, the app reviewer would otherwise be stuck on the Pending Foundational Verification screen and reject the app.
+
+**Mandatory before submission:**
+1. Create a dedicated reviewer account (email: `appreview+ios@slate360.ai` and `appreview+android@slate360.ai`)
+2. Pre-approve the reviewer account (`account_status = approved`, role = subscriber, linked to a demo organization)
+3. Seed the reviewer's organization with at least one Field Project, one completed Site Walk session with sample photos, and one deliverable
+4. Provide credentials in App Store Connect "App Review Information" section
+5. Provide credentials in Play Console "App access" section, with a clear note: "This app uses approval-based access for organizational deployment. Reviewer account is pre-approved."
+6. Provide a 30-second walkthrough video showing reviewer login → Field Project → Walk → Deliverable
 
 ---
 
@@ -259,10 +351,52 @@ CI/CD (future): Fastlane or Xcode Cloud for automated App Store builds from `mai
 
 ## 9. V1 App Store Submission Target
 
-V1 submission scope:
+### Visible in V1
+
 - Slate360 Core Shell (login, account, projects, SlateDrop, coordination)
 - Site Walk App (Act 1 Setup / Act 2 Capture / Act 3 Deliver)
-- No 360 Tours UI, no Design Studio UI, no Content Studio UI
-- Other apps shown as "coming soon" ONLY in the App Store LISTING description, NOT in the app UI
+- Field Projects (lower-tier Site Walk container)
+- SlateDrop with Site Walk + Field Project folders
+- Coordination (inbox, calendar, contacts)
+- Account / Organization Settings
+- Pending Foundational Verification screen for unapproved users
+- Executive Viewer role for organization leadership
+- Operations Console (admin users only)
 
-After App Store approval: begin V1 Foundation user program → field users submit feedback → iterate → monetize in V2.
+### Hidden in V1 (must NOT appear anywhere in app UI or App Store listing copy)
+
+- 360 Tours
+- Design Studio
+- Content Studio
+- "Coming soon" cards or tiles
+- Disabled/locked future app tiles
+- Public subscription prompts or pricing pages
+- Stripe/web checkout flows
+- Full Project PM suite (RFIs, submittals, budgets, schedules) — keep DB schema, hide UI
+- "Beta" / "demo" / "test" language anywhere
+
+### App Store Listing Copy Rules
+
+- Describe Slate360 as a complete construction field-documentation app
+- Describe Site Walk as the core feature (capture, organize, deliver)
+- Do **not** mention other future apps in the listing
+- Do **not** use the word "beta" or "early access" anywhere
+- Use "Invite-only foundational release for construction professionals" if access-gating needs to be disclosed
+
+### Post-Approval Plan
+
+1. ASU Capital Programs Management foundational users approved through Operations Console
+2. ASU users perform real Site Walks, generate deliverables
+3. ASU leadership uses Executive Viewer for oversight
+4. Bug reports + feature requests captured
+5. App iterated and improved without disrupting foundational users
+6. Once stable: V2 monetization unlocked, public subscriptions enabled, additional apps progressively unlocked
+7. ASU offered enterprise license negotiation; foundational individual users offered V2 discount
+
+### V1 → V2 Foundational User Transition Promise
+
+Foundational users are guaranteed:
+- Their created data (Field Projects, walks, items, deliverables, files) is preserved
+- They retain view/download access to V1 data for **at least 1 year** after V2 launch
+- They receive a **discounted V2 subscription** offer
+- If their organization purchases enterprise access, organizational data access continues per the enterprise agreement

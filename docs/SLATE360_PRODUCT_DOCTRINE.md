@@ -40,13 +40,38 @@ Slate360 (master app shell)
 └── App 4: Content Studio ————— media editing, branded clips, polished outputs
 ```
 
-### V1 Scope (App Store submission — Site Walk + Core Shell)
+### V1 Scope — Foundational Release (App Store submission)
 
-For V1, implement UI only for:
+V1 is the **Slate360 V1 Foundational Release** — invite-only, admin-approved, free to download, no public paid subscription path. See [`APP_STORE_AND_OFFLINE_STRATEGY.md`](./APP_STORE_AND_OFFLINE_STRATEGY.md) §0 for full doctrine.
+
+Implement UI only for:
 - Slate360 Core shell (nav, projects/field-projects, SlateDrop, coordination, account)
 - Site Walk (Act 1 Setup / Act 2 Capture / Act 3 Deliver)
+- Pending Foundational Verification screen (gates new accounts)
+- Executive Viewer role (read-only org-wide view for leadership)
+- Operations Console approval queue (admin only)
+
+**V1 is NOT:**
+- A public paid release
+- A web subscription product
+- A beta or test program (banned terminology)
+- A multi-app ecosystem launch
 
 Design the **database and entitlement models** to support all 4 apps from day one. Do not build UI for apps 2–4 yet, but do not design the DB in a way that requires rewrites when they are added.
+
+**V1 banned UI elements:**
+- "Coming Soon" cards or tiles for unreleased apps
+- Disabled/locked future app icons
+- Public subscription/checkout pages
+- "Beta" or "test" badges
+- Stripe-based purchase flows
+
+**Foundational user data rights (locked promise):**
+- All data created in V1 is owned by the user/organization
+- Field Projects, walks, deliverables, and files are preserved across V2 transition
+- V1 users retain view/download access for at least 1 year after V2 launch
+- V1 users receive discounted V2 subscription offers
+- Organization-linked data follows enterprise agreement terms if applicable
 
 ---
 
@@ -117,25 +142,58 @@ Users must not be required to re-enter this information in each app. A one-time 
 
 ---
 
-## 5. Collaborator Access Model
+## 5. Collaborator and Access Role Model
 
-Collaborator access is fundamentally different from subscriber access. These are distinct experience shells:
+User access types in V1 are fundamentally different experiences. These are distinct experience shells:
 
-| Role | Shell | Can Do |
-|---|---|---|
-| **Full Subscriber** | Full Slate360 shell | Access all entitled apps, create projects, manage org |
-| **Org Executive/Viewer** | Full shell, read-only mode | View all org projects, walks, and deliverables; no edit |
-| **Project Manager** | Full shell, scoped | Full access to assigned projects only |
-| **Project Contributor** | Full shell, scoped | Create/edit items in assigned projects; no deliverable generation |
-| **Lightweight Collaborator** | Simplified shell (CollaboratorShell) | Assigned work, limited capture, submit, messages |
-| **Client/Stakeholder Viewer** | Share link only, no login | Read deliverable via token; no app access |
+| Role | Shell | Can Do | V1 Required |
+|---|---|---|---|
+| **Full Subscriber** | Full Slate360 shell | Access all entitled apps, create projects, manage org | ✅ |
+| **Org Executive Viewer** | Full shell, read-only mode | View all org Field Projects, walks, items, deliverables; no edit | ✅ (ASU leadership oversight) |
+| **Project Manager** | Full shell, scoped | Full access to assigned projects only | ✅ |
+| **Project Contributor** | Full shell, scoped | Create/edit items in assigned projects; no deliverable generation | Optional V1 |
+| **Lightweight Collaborator** | Simplified shell (CollaboratorShell) | Assigned work, limited capture, submit, messages | ✅ |
+| **Client/Stakeholder Viewer** | Share link only, no login | Read deliverable via token; no app access | ✅ (already exists) |
+| **Pending User** | Pending Foundational Verification screen only | View pending status, contact support | ✅ |
 
-**Lightweight Collaborator Shell nav:**
+### Executive Viewer Role (V1 Required)
+
+For ASU leadership oversight and any future enterprise org. Specifically:
+
+**Can:**
+- View all approved Field Projects in their organization
+- See active and completed walks across the org
+- See open item counts, status summaries
+- See recent progress updates and activity timeline
+- View generated deliverables/reports (read-only)
+- Open read-only project summary dashboards
+- Filter by user, project, date range
+
+**Cannot:**
+- Perform field capture unless separately entitled as a subscriber
+- Edit project/field records unless separately granted
+- Access organizations they don't belong to
+- Manage billing/admin/seats unless separately authorized as an Org Admin
+
+Implementation: `organization_members.role = 'executive_viewer'` enforced via RLS policies that allow SELECT on org-scoped Site Walk tables but block INSERT/UPDATE/DELETE.
+
+### Lightweight Collaborator Shell nav:
 ```
 Assigned Work | My Walks | Plans | Messages | Account
 ```
 
 Lightweight collaborators are invited by a subscriber. They download the app, sign in, and see only their assigned work. They do not see the full Slate360 ecosystem. They cannot create projects, view other users' walks, or access billing.
+
+### Pending Foundational Verification Screen
+
+New users default to `account_status = pending_approval`. They see a polished pending screen with:
+- "Welcome to Slate360 — your access is pending approval"
+- Their submitted email + org affiliation request
+- Estimated approval window
+- Contact link for support
+- No app shell, no nav, no Site Walk access until approved
+
+The Operations Console is the approval center. Admins approve/reject and assign role + organization + entitlements.
 
 ---
 
