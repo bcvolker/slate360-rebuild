@@ -133,7 +133,6 @@ export default function ProjectBudgetPage() {
         <div>
           <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Financials</p>
           <h2 className="text-xl font-black text-foreground">Budget & Cost Control{profile.projectName && <span className="ml-2 text-base font-semibold text-zinc-500">— {profile.projectName}</span>}</h2>
-          <p className="mt-1 text-sm text-zinc-400">Track original budget, change orders, spend, and forecasts.</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <button onClick={() => setShowFromScratch(true)} disabled={rows.length > 0} className="inline-flex items-center gap-1.5 rounded-lg border border-dashed border-blue-600 bg-blue-950/30 px-3 py-2 text-xs font-semibold text-blue-400 hover:bg-blue-950/50 disabled:opacity-30 disabled:cursor-not-allowed transition" title="Start a fresh budget from CSI template"><FileText size={14} /> New Budget</button>

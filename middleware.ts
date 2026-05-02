@@ -95,7 +95,14 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith("/dashboard") ||
     pathname.startsWith("/slatedrop") ||
     pathname.startsWith("/project-hub") ||
-    pathname.startsWith("/site-walk");
+    pathname.startsWith("/site-walk") ||
+    pathname.startsWith("/my-account") ||
+    pathname.startsWith("/more") ||
+    pathname.startsWith("/coordination") ||
+    pathname.startsWith("/my-work") ||
+    pathname.startsWith("/settings") ||
+    pathname.startsWith("/apps") ||
+    pathname.startsWith("/operations-console");
 
   if (
     !user &&

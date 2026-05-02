@@ -12,7 +12,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, FolderOpen, Cloud, Footprints, FileText, MoreHorizontal } from "lucide-react";
+import { Home, FolderOpen, Cloud, Footprints, FileText, MoreHorizontal, Map } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface NavItem {
@@ -31,10 +31,10 @@ const PLATFORM_NAV: NavItem[] = [
 
 const SITE_WALK_NAV: NavItem[] = [
   { label: "Home", href: "/site-walk", icon: Home, matchPrefixes: ["/site-walk$"] },
-  { label: "Capture", href: "/site-walk/capture", icon: Footprints, matchPrefixes: ["/site-walk/capture", "/site-walk/walks", "/site-walk/board"] },
-  { label: "Files", href: "/site-walk/slatedrop", icon: Cloud, matchPrefixes: ["/site-walk/slatedrop", "/site-walk/files"] },
-  { label: "Outputs", href: "/site-walk/deliverables", icon: FileText, matchPrefixes: ["/site-walk/deliverables", "/site-walk/present"] },
-  { label: "More", href: "/site-walk/more", icon: MoreHorizontal, matchPrefixes: ["/site-walk/more", "/site-walk/plans", "/site-walk/templates", "/site-walk/contacts"] },
+  { label: "Walks", href: "/site-walk/walks", icon: Footprints, matchPrefixes: ["/site-walk/walks", "/site-walk/capture", "/site-walk/board"] },
+  { label: "Plans", href: "/site-walk/plans", icon: Map, matchPrefixes: ["/site-walk/plans"] },
+  { label: "Deliverables", href: "/site-walk/deliverables", icon: FileText, matchPrefixes: ["/site-walk/deliverables", "/site-walk/present"] },
+  { label: "More", href: "/site-walk/more", icon: MoreHorizontal, matchPrefixes: ["/site-walk/more", "/site-walk/slatedrop", "/site-walk/files", "/site-walk/templates", "/site-walk/contacts"] },
 ];
 
 function pickNav(pathname: string): NavItem[] {

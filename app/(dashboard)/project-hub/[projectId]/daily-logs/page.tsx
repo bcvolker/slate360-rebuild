@@ -102,7 +102,6 @@ export default function DailyLogsPage() {
         <div>
           <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Field Reports</p>
           <h2 className="text-xl font-black text-foreground">Daily Logs</h2>
-          <p className="mt-1 text-sm text-zinc-400">Capture daily site conditions, crew, weather, delays and safety.</p>
         </div>
         <div className="flex items-center gap-2">
           <button onClick={exportCSV} disabled={logs.length === 0} className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-700 bg-card px-3 py-2 text-xs font-semibold text-zinc-300 hover:bg-zinc-700 disabled:opacity-40"><Download size={14} /> Export</button>

@@ -121,7 +121,6 @@ export default function PunchListPage() {
         <div>
           <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Punch List</p>
           <h2 className="text-xl font-black text-foreground">Deficiency Tracker</h2>
-          <p className="mt-1 text-sm text-zinc-400">Track, assign, and close out punch items before project completion.</p>
         </div>
         <div className="flex items-center gap-2">
           <button onClick={exportCSV} disabled={items.length === 0} className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-700 bg-card px-3 py-2 text-xs font-semibold text-zinc-300 hover:bg-zinc-700 disabled:opacity-40">

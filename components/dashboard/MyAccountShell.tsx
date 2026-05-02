@@ -22,8 +22,7 @@ import AccountBillingTab from "./my-account/AccountBillingTab";
 import AccountDataTrackerTab from "./my-account/AccountDataTrackerTab";
 import AccountSecurityTab from "./my-account/AccountSecurityTab";
 import AccountNotificationsTab from "./my-account/AccountNotificationsTab";
-import AccountControlCenterNav from "./my-account/AccountControlCenterNav";
-import { ComingSoonEmptyState } from "@/components/shared/ComingSoonEmptyState";
+
 import type { DashboardAccountOverview } from "@/lib/types/dashboard";
 import type { Tier } from "@/lib/entitlements";
 
@@ -31,31 +30,30 @@ import type { Tier } from "@/lib/entitlements";
 //   - everyone: all signed-in users
 //   - admin:    org owner/admin only (workspace + billing surfaces)
 //
-// Enterprise admins control which non-admin members see billing/data via
-// `permissions` on the org_members row (future). Today we gate by `isAdmin`.
+// hidden: true tabs exist in the type system but are not rendered (pending build).
 const TABS = [
   // PROFILE
-  { id: "profile",       group: "Profile",      label: "Profile",         icon: User,     audience: "everyone" },
-  { id: "notifications", group: "Profile",      label: "Notifications",   icon: Bell,     audience: "everyone" },
-  { id: "sessions",      group: "Profile",      label: "Sessions",        icon: Activity, audience: "everyone" },
+  { id: "profile",       group: "Profile",   label: "Profile",         icon: User,       audience: "everyone", hidden: false },
+  { id: "notifications", group: "Profile",   label: "Notifications",   icon: Bell,       audience: "everyone", hidden: false },
+  { id: "sessions",      group: "Profile",   label: "Sessions",        icon: Activity,   audience: "everyone", hidden: true  },
 
   // SECURITY
-  { id: "security",      group: "Security",     label: "Password & 2FA",  icon: Lock,     audience: "everyone" },
-  { id: "login-history", group: "Security",     label: "Login History",   icon: KeyRound, audience: "everyone" },
+  { id: "security",      group: "Security",  label: "Password",        icon: Lock,       audience: "everyone", hidden: false },
+  { id: "login-history", group: "Security",  label: "Login History",   icon: KeyRound,   audience: "everyone", hidden: true  },
 
-  // WORKSPACE
-  { id: "workspace",     group: "Workspace",    label: "General",         icon: Building2, audience: "admin" },
-  { id: "members",       group: "Workspace",    label: "Members & Roles", icon: Users,     audience: "admin" },
-  { id: "permissions",   group: "Workspace",    label: "Permissions",     icon: Shield,    audience: "admin" },
-  { id: "audit",         group: "Workspace",    label: "Audit Log",       icon: FileText,  audience: "admin" },
+  // BILLING (admin)
+  { id: "billing",       group: "Billing",   label: "Plan & Billing",  icon: CreditCard, audience: "admin",    hidden: false },
+  { id: "data",          group: "Billing",   label: "Usage & Credits", icon: Database,   audience: "admin",    hidden: false },
 
-  // BILLING
-  { id: "billing",       group: "Billing",      label: "Plan & Billing",  icon: CreditCard, audience: "admin" },
-  { id: "data",          group: "Billing",      label: "Usage & Credits", icon: Database,   audience: "admin" },
+  // WORKSPACE (admin) — pending build
+  { id: "workspace",     group: "Workspace", label: "General",         icon: Building2,  audience: "admin",    hidden: true  },
+  { id: "members",       group: "Workspace", label: "Members & Roles", icon: Users,      audience: "admin",    hidden: true  },
+  { id: "permissions",   group: "Workspace", label: "Permissions",     icon: Shield,     audience: "admin",    hidden: true  },
+  { id: "audit",         group: "Workspace", label: "Audit Log",       icon: FileText,   audience: "admin",    hidden: true  },
 
-  // DATA & PRIVACY
-  { id: "privacy",       group: "Data & Privacy", label: "Privacy & Data", icon: Database, audience: "everyone" },
-  { id: "legal",         group: "Data & Privacy", label: "Legal",          icon: FileText, audience: "everyone" },
+  // DATA & PRIVACY — pending build
+  { id: "privacy",       group: "Data & Privacy", label: "Privacy & Data", icon: Database, audience: "everyone", hidden: true },
+  { id: "legal",         group: "Data & Privacy", label: "Legal",          icon: FileText, audience: "everyone", hidden: true },
 ] as const;
 
 type TabId = (typeof TABS)[number]["id"];
@@ -100,10 +98,9 @@ export default function MyAccountShell({ user, orgName, tier, role, isAdmin, isC
     if (TABS.some((tab) => tab.id === tabId)) setActiveTab(tabId as TabId);
   }, []);
 
-  // Audience filter: non-admins never see admin-only tabs.
-  // Future: per-member `permissions` row will further restrict billing/data
-  // for delegated admins (e.g. Enterprise managers without billing access).
+  // Audience + hidden filter: non-admins never see admin tabs; hidden tabs are pending build.
   const visibleTabs = TABS.filter((t) => {
+    if (t.hidden) return false;
     if (t.audience === "admin" && !isAdmin) return false;
     return true;
   });
@@ -126,13 +123,7 @@ export default function MyAccountShell({ user, orgName, tier, role, isAdmin, isC
       status="live"
       showCustomize={false}
     >
-      <div className="mb-6 space-y-2">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-cobalt">Account Control Center</p>
-        <p className="max-w-3xl text-sm text-zinc-400">
-          My Account is organized like Operations Console: quick section cards first, then focused controls for profile, security, organization, billing, app access, data, and privacy.
-        </p>
-        <AccountControlCenterNav isAdmin={isAdmin} activeTab={activeTab} onSelect={switchToSection} />
-      </div>
+
 
       {/* Two-column layout: left tab rail (grouped) + right content */}
       <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-6">
@@ -171,23 +162,11 @@ export default function MyAccountShell({ user, orgName, tier, role, isAdmin, isC
         {activeTab === "profile" && (
           <AccountProfileTab user={user} orgName={orgName} role={role} />
         )}
-        {activeTab === "sessions" && (
-          <ComingSoonEmptyState title="Sessions & Devices" />
+        {activeTab === "notifications" && (
+          <AccountNotificationsTab />
         )}
-        {activeTab === "login-history" && (
-          <ComingSoonEmptyState title="Login History" />
-        )}
-        {activeTab === "workspace" && (
-          <ComingSoonEmptyState title="Workspace General" />
-        )}
-        {activeTab === "members" && (
-          <ComingSoonEmptyState title="Members & Roles" />
-        )}
-        {activeTab === "permissions" && (
-          <ComingSoonEmptyState title="Permissions" />
-        )}
-        {activeTab === "audit" && (
-          <ComingSoonEmptyState title="Audit Log" />
+        {activeTab === "security" && (
+          <AccountSecurityTab overview={overview} userEmail={user.email} loading={loading} />
         )}
         {activeTab === "billing" && (
           <AccountBillingTab
@@ -210,17 +189,10 @@ export default function MyAccountShell({ user, orgName, tier, role, isAdmin, isC
             onBuyCredits={switchToBilling}
           />
         )}
-        {activeTab === "security" && (
-          <AccountSecurityTab overview={overview} userEmail={user.email} loading={loading} />
-        )}
-        {activeTab === "notifications" && (
-          <AccountNotificationsTab />
-        )}
-        {activeTab === "privacy" && (
-          <ComingSoonEmptyState title="Privacy & Data" />
-        )}
-        {activeTab === "legal" && (
-          <ComingSoonEmptyState title="Legal" />
+        {activeTab !== "profile" && activeTab !== "notifications" && activeTab !== "security" && activeTab !== "billing" && activeTab !== "data" && (
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-8 text-center">
+            <p className="text-sm text-zinc-400">This section is coming soon.</p>
+          </div>
         )}
         </div>
       </div>

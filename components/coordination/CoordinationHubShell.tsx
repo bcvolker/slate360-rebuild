@@ -1,46 +1,29 @@
 import Link from "next/link";
 import { CalendarDays, Inbox, Users2, type LucideIcon } from "lucide-react";
 
-const tabs: { label: string; href: string; icon: LucideIcon; detail: string }[] = [
-  {
-    label: "Inbox",
-    href: "/coordination/inbox",
-    icon: Inbox,
-    detail: "Messages, received files, stakeholder responses, and feedback replies.",
-  },
-  {
-    label: "Contacts",
-    href: "/coordination/contacts",
-    icon: Users2,
-    detail: "Global and project-scoped stakeholder lists for fast outreach.",
-  },
-  {
-    label: "Calendar",
-    href: "/coordination/calendar",
-    icon: CalendarDays,
-    detail: "Schedule-aware planning with iOS, Android, and higher-tier Site Walk sync.",
-  },
+const tabs: { label: string; href: string; icon: LucideIcon }[] = [
+  { label: "Inbox",    href: "/coordination/inbox",    icon: Inbox },
+  { label: "Contacts", href: "/coordination/contacts",  icon: Users2 },
+  { label: "Calendar", href: "/coordination/calendar",  icon: CalendarDays },
 ];
 
 export function CoordinationHubShell({
   active,
   title,
   eyebrow,
-  description,
   children,
 }: {
   active: "inbox" | "contacts" | "calendar";
   title: string;
   eyebrow: string;
-  description: string;
+  description?: string; // kept in signature for backward compat; not rendered
   children: React.ReactNode;
 }) {
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-5 px-4 py-5 text-slate-50 sm:px-6 lg:px-8 lg:py-8">
       <section className="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-lg backdrop-blur-md sm:p-6">
         <p className="text-[11px] font-black uppercase tracking-[0.18em] text-blue-200">{eyebrow}</p>
-        <h1 className="mt-2 text-2xl font-black text-white sm:text-3xl">{title}</h1>
-        <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-300">{description}</p>
+        <h1 className="mt-1 text-2xl font-black text-white sm:text-3xl">{title}</h1>
       </section>
 
       <nav className="grid gap-3 sm:grid-cols-3" aria-label="Coordination sections">
@@ -58,10 +41,7 @@ export function CoordinationHubShell({
                 <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-600 text-white ring-1 ring-white/10">
                   <Icon className="h-5 w-5" />
                 </span>
-                <div>
-                  <p className="text-sm font-black text-white">{tab.label}</p>
-                  <p className="text-xs leading-5 text-slate-400">{tab.detail}</p>
-                </div>
+                <p className="text-sm font-black text-white">{tab.label}</p>
               </div>
             </Link>
           );

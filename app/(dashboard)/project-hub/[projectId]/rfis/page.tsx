@@ -126,7 +126,6 @@ export default function ProjectRFIsPage() {
         <div>
           <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Project Communication</p>
           <h2 className="text-xl font-black text-foreground">Requests for Information</h2>
-          <p className="mt-1 text-sm text-zinc-400">Submit, track, and respond to RFIs with full audit trail.</p>
         </div>
         <div className="flex items-center gap-2">
           <button onClick={exportCSV} disabled={rows.length === 0} className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-700 bg-card px-3 py-2 text-xs font-semibold text-zinc-300 hover:bg-zinc-700 disabled:opacity-40"><Download size={14} /> Export</button>

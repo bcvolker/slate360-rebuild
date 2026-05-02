@@ -31,15 +31,11 @@ export default async function CoordinationContactsPage() {
       active="contacts"
       eyebrow="Coordination"
       title="Contacts"
-      description="Team members, clients, trades, and stakeholders for fast outreach across your projects."
     >
       {contacts.length === 0 ? (
         <div className="rounded-3xl border border-dashed border-white/20 bg-white/5 p-10 text-center">
           <Users2 className="mx-auto h-8 w-8 text-slate-500" />
           <p className="mt-3 font-black text-slate-300">No contacts yet</p>
-          <p className="mt-1 text-sm text-slate-500">
-            Add team members, clients, and trades to send deliverables and assign walk items.
-          </p>
         </div>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">

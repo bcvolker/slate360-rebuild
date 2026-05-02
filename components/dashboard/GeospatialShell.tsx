@@ -24,13 +24,9 @@ export default function GeospatialShell({ user, tier, isCeo, internalAccess }: P
       status="coming-soon"
       requiredTier="standard"
     >
-      <div className="rounded-2xl border border-app bg-app-card px-6 py-10 text-center">
-        <p className="text-sm font-semibold text-foreground mb-1">Coming Soon</p>
-        <p className="text-sm text-zinc-400 max-w-md mx-auto leading-relaxed">
-          Geospatial &amp; Robotics — drone flight planning, point cloud processing,
-          GIS mapping, and volumetric analysis — is planned for a future development phase.
-          You&apos;ll be notified when it launches.
-        </p>
+      <div className="flex flex-col items-center justify-center rounded-2xl border border-app bg-app-card py-16">
+        <Globe size={32} className="text-zinc-600 mb-3" />
+        <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">In Development</p>
       </div>
     </DashboardTabShell>
   );

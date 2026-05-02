@@ -24,13 +24,9 @@ export default function ToursShell({ user, tier, isCeo, internalAccess }: Props)
       status="coming-soon"
       requiredTier="standard"
     >
-      <div className="rounded-2xl border border-app bg-app-card px-6 py-10 text-center">
-        <p className="text-sm font-semibold text-foreground mb-1">Coming Soon</p>
-        <p className="text-sm text-zinc-400 max-w-md mx-auto leading-relaxed">
-          360 Tour Builder — panoramic capture, floor plan hotspot mapping, and
-          interactive virtual walkthroughs — is planned for a future development phase.
-          You&apos;ll be notified when it launches.
-        </p>
+      <div className="flex flex-col items-center justify-center rounded-2xl border border-app bg-app-card py-16">
+        <Compass size={32} className="text-zinc-600 mb-3" />
+        <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">In Development</p>
       </div>
     </DashboardTabShell>
   );

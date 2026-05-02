@@ -1,6 +1,6 @@
 "use client";
 
-import { Shield, KeyRound, Smartphone, Monitor, Loader2 } from "lucide-react";
+import { Shield, KeyRound, Monitor, Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useState } from "react";
 import type { DashboardAccountOverview } from "@/lib/types/dashboard";
@@ -37,9 +37,6 @@ export default function AccountSecurityTab({ overview, userEmail, loading }: Pro
         <h3 className="text-sm font-bold text-zinc-100 mb-4 flex items-center gap-2">
           <KeyRound size={16} className="text-[#3B82F6]" /> Password
         </h3>
-        <p className="text-xs text-zinc-400 mb-4">
-          Receive a secure password reset link at <strong className="text-zinc-200">{userEmail}</strong>.
-        </p>
         <button
           onClick={handlePasswordReset}
           disabled={resetBusy || resetSent}
@@ -48,19 +45,9 @@ export default function AccountSecurityTab({ overview, userEmail, loading }: Pro
           {resetBusy ? <Loader2 size={14} className="animate-spin" /> : <KeyRound size={14} />}
           {resetSent ? "Reset Link Sent" : "Send Reset Link"}
         </button>
-      </div>
-
-      {/* Two-Factor Auth */}
-      <div className="rounded-2xl border border-app bg-app-card p-6">
-        <h3 className="text-sm font-bold text-zinc-100 mb-3 flex items-center gap-2">
-          <Smartphone size={16} className="text-[#3B82F6]" /> Two-Factor Authentication
-        </h3>
-        <p className="text-xs text-zinc-400 mb-3">
-          Add an extra layer of security to your account with authenticator app or SMS verification.
-        </p>
-        <div className="inline-flex items-center gap-2 rounded-full bg-white/[0.04] px-3 py-1 text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">
-          Coming Soon
-        </div>
+        {resetSent && (
+          <p className="mt-3 text-xs text-zinc-400">Check <strong className="text-zinc-300">{userEmail}</strong> for your reset link.</p>
+        )}
       </div>
 
       {/* Active Sessions */}

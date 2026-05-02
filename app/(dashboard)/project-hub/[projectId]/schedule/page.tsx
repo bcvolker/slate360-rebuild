@@ -168,7 +168,6 @@ export default function ProjectSchedulePage() {
         <div>
           <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Timeline</p>
           <h2 className="text-xl font-black text-foreground">Schedule & Tasks{profile.projectName && <span className="ml-2 text-base font-semibold text-zinc-500">— {profile.projectName}</span>}</h2>
-          <p className="mt-1 text-sm text-zinc-400">Plan tasks, set milestones, and track progress with Gantt.</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <div className="inline-flex rounded-lg border border-zinc-700 bg-card overflow-hidden">

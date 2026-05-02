@@ -10,7 +10,6 @@ const SECTIONS = {
     title: "Account",
     eyebrow: "Profile",
     icon: User,
-    detail: "Manage your profile, password, notifications, and signed-in devices without leaving the app shell.",
     actions: [
       { label: "Profile details", href: "/my-account?tab=profile" },
       { label: "Security", href: "/my-account?tab=security" },
@@ -21,7 +20,6 @@ const SECTIONS = {
     title: "Organization",
     eyebrow: "Workspace",
     icon: Building2,
-    detail: "Review workspace identity, members, roles, permissions, and audit controls for admins.",
     actions: [
       { label: "Workspace settings", href: "/my-account?tab=workspace" },
       { label: "Members & roles", href: "/my-account?tab=members" },
@@ -32,7 +30,6 @@ const SECTIONS = {
     title: "Billing & Apps",
     eyebrow: "Subscription",
     icon: CreditCard,
-    detail: "See your current plan, app access, seats, credits, storage, and upgrade paths.",
     actions: [
       { label: "Plan & billing", href: "/my-account?tab=billing" },
       { label: "Usage & credits", href: "/my-account?tab=data" },
@@ -43,7 +40,6 @@ const SECTIONS = {
     title: "Legal / Support",
     eyebrow: "Help",
     icon: LifeBuoy,
-    detail: "Open privacy, terms, feedback, and support resources from inside the app utility area.",
     actions: [
       { label: "Privacy policy", href: "/privacy" },
       { label: "Terms", href: "/terms" },
@@ -70,9 +66,8 @@ export default async function MoreSectionPage({ params }: { params: Promise<{ se
           <Icon className="h-6 w-6" />
         </span>
         <p className="mt-4 text-[11px] font-black uppercase tracking-[0.18em] text-sky-200">{copy.eyebrow}</p>
-        <h1 className="mt-1 text-2xl font-black text-white">{copy.title}</h1>
-        <p className="mt-2 text-sm leading-6 text-slate-300">{copy.detail}</p>
-        <div className="mt-4 rounded-2xl border border-white/10 bg-slate-950/45 px-4 py-3 text-xs font-bold text-slate-400">
+        <h1 className="mt-2 text-xl font-black text-white">{copy.title}</h1>
+        <div className="mt-3 rounded-2xl border border-white/10 bg-slate-950/45 px-4 py-3 text-xs font-bold text-slate-400">
           Signed in as <span className="text-slate-200">{ctx.user?.email ?? "your Slate360 account"}</span>
         </div>
       </section>

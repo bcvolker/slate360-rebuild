@@ -33,11 +33,6 @@ export default async function MorePage() {
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-4 px-4 py-5 pb-28 text-slate-50 sm:px-6 lg:px-8 lg:py-8 lg:pb-8">
-      <header>
-        <p className="text-[11px] font-black uppercase tracking-[0.18em] text-blue-200">Utility</p>
-        <h1 className="mt-1 text-2xl font-black text-white">More</h1>
-      </header>
-
       <section className="overflow-hidden rounded-3xl border border-white/10 bg-white/5 shadow-lg backdrop-blur-md">
         {items.map((item) => {
           const Icon = item.icon;

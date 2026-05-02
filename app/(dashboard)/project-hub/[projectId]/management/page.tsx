@@ -45,9 +45,8 @@ export default function ProjectManagementPage() {
       {/* ── Page header ── */}
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Project Management</p>
-          <h2 className="text-xl font-black text-gray-900">Team & Contract Management</h2>
-          <p className="mt-1 text-sm text-gray-500">Manage stakeholders, contracts, document summaries, and generate professional reports.</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Project Management</p>
+          <h2 className="text-xl font-black text-foreground">Team & Contract Management</h2>
         </div>
         <div className="flex items-center gap-2">
           <Link href={`/project-hub/${projectId}/slatedrop`}
