@@ -196,6 +196,93 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
+### Session Handoff — 2026-05-02 (Ecosystem Doctrine Lock)
+
+#### What Changed
+- `docs/SLATE360_PRODUCT_DOCTRINE.md` — **NEW** — App-neutral shell doctrine, ecosystem hierarchy, collaborator model, org branding, cross-app bundles, Site Walk 3-act workflow, credit/usage model, coding rules
+- `docs/SLATEDROP_ARCHITECTURE.md` — **NEW** — SlateDrop as platform file system, folder hierarchy spec, file routing by operation, entitlement-aware behavior, share link lifecycle
+- `docs/APP_STORE_AND_OFFLINE_STRATEGY.md` — **NEW** — Capacitor.js decision, offline-first IndexedDB doctrine, App Store checklist, Field High Contrast mode, permission pre-prompts, build/release flow
+- `docs/ENTITLEMENTS_AND_PROJECT_MODEL.md` — **NEW** — Field Project vs Project same-table decision, project_type migration spec, entitlement gates, SlateDrop folder generator spec, org branding schema, full Gap List P0→P3, 13-step build sequence
+- `SLATE360_MASTER_BUILD_PLAN.md` — Added Doctrine Documents section + §19 (Full V1-to-App-Store Build Sequence, 12 steps)
+- `SLATE360_PROJECT_MEMORY.md` — this handoff
+- NO code changes this session — doctrine lock only
+
+#### Architecture Decisions Locked This Session
+1. **Field Projects + full Projects = same `projects` table** with `project_type: 'field' | 'full'`; upgrade = single column change; NO separate `field_projects` table
+2. **Capacitor.js = the native wrapper** for iOS + Android App Store submission; no React Native/TWA/Expo
+3. **Offline capture = IndexedDB-first** in Act 2; service worker stays disabled; photos save locally → sync to R2 when connected
+4. **V1 UI scope = Site Walk + Core Shell only** — DB designed for 4 apps but UI for 2
+5. **Subscriptions = web-only for V1** — avoids Apple IAP fee
+6. **App shell is app-neutral** — not Site Walk biased; Home/Projects/SlateDrop/Coordination/Account tabs
+7. **Org branding in `organizations.brand_settings`** flows into all deliverables auto — users never re-enter company info per-app
+
+#### Critical Gaps (from §18 + P0 list in ENTITLEMENTS_AND_PROJECT_MODEL.md)
+1. Platform nav still wrong: `Work`/`More` → needs `Projects`/`Coordination`/`Account` **[Step 1 — FIRST]**
+2. Setup page: light background + `100vh` **[Step 1 — FIRST]**
+3. `projects.project_type` column doesn't exist — migration needed **[Step 2]**
+4. `lib/project-access.ts` doesn't exist **[Step 2]**
+5. `lib/slatedrop/folder-generator.ts` doesn't exist **[Step 3]**
+6. Deliverable builder = redirect stub **[Step 6]**
+7. Capacitor not installed — can't compile native binary **[Step 11]**
+8. App icon 1024×1024 missing **[Step 10]**
+
+#### What's Still Broken / Partially Done
+- **BUG-018 MAY 2026 DEADLINE**: `components/dashboard/LocationMap.tsx` — DrawingManager deprecated. Lines 194, 459, 1479.
+- SlateDrop Recents/Shared/Requests still mock data
+- `file_folders` → `project_folders` Phase 2 migration incomplete
+
+#### Next Steps (from §19 Build Sequence)
+1. **Step 1 — Shell Correction** (no DB, fast): Fix nav + setup page + field contrast token stubs
+2. **Step 2 — Project Type Migration**: `project_type` column + lib helpers
+3. **Step 3 — SlateDrop Folder Generator**: `lib/slatedrop/folder-generator.ts`
+4. **Step 4 — Site Walk Act 1 Complete**: Walk type selection + Start Walk CTA
+5. **Step 5 — Walks Tab Full**: All statuses + segmented control
+6. **Step 6 — Deliverable Builder**: Actual step-by-step flow
+
+#### Doctrine Docs to Read at Session Start
+For any work touching shell, nav, projects, SlateDrop, entitlements, or collaborators:
+- `docs/SLATE360_PRODUCT_DOCTRINE.md`
+- `docs/SLATEDROP_ARCHITECTURE.md`
+- `docs/APP_STORE_AND_OFFLINE_STRATEGY.md`
+- `docs/ENTITLEMENTS_AND_PROJECT_MODEL.md`
+
+### Session Handoff — 2026-05-02 (Gap Analysis + Shell Lock Plan)
+
+#### What Changed
+- `SLATE360_MASTER_BUILD_PLAN.md` — §18 added: locked nav rules, three-act routing, fixed-screen rules, surface hierarchy tokens, Field Project model spec, permission tiers, collaborator shell spec, app-store gaps, corrected slice order
+- NO code changes this session — gap analysis only, awaiting slice-0 approval
+
+#### Critical Gaps Found (in priority order)
+1. **Platform nav wrong**: `PLATFORM_NAV` in `MobileBottomNav.tsx` has `Work`/`More` — must be `Projects`/`Coordination`/`Account` (5 tabs)
+2. **Setup page Light-mode violation**: `app/site-walk/(act-1-setup)/setup/page.tsx` uses `bg-slate-50` + `100vh` — must be Dark Glass + `100dvh`
+3. **Field Project model missing**: no migration, no table, no type — the entire tier-gated "Field Project vs Project" product split is unbuilt
+4. **Deliverable builder missing**: `deliverables/new/page.tsx` is a redirect stub — no step flow
+5. **Walks tab incomplete**: only shows `in_progress` — needs All/Review/Complete/Drafts segmented control
+6. **Collaborator shell web-style**: `CollaboratorShell.tsx` uses light bg + desktop sidebar — must be Dark Glass + bottom nav
+7. **Field High Contrast mode**: no tokens, no UI, no toggle — required before outdoor field beta
+8. **App icon 1024×1024**: App Store Connect requirement — manifest only has 192+512
+9. **Permission roles unenforced**: `organization_members.role` exists in DB but not enforced in any RLS or component
+
+#### What's Broken / Partially Done
+- **BUG-018 MAY 2026 DEADLINE**: `components/dashboard/LocationMap.tsx` — DrawingManager deprecated. Lines 194, 459, 1479.
+- SlateDrop Recents/Shared/Requests still mock data
+- `file_folders` → `project_folders` Phase 2 migration incomplete
+- BUG-021 (location views inconsistent) still in-progress
+
+#### Next Steps — Approved Slice Order
+1. **Slice 0 — Lock Shell** (no DB changes, no risk):
+   - `MobileBottomNav.tsx`: `Work`→`Projects`, add `Coordination`, `More`→`Account`
+   - `app/site-walk/(act-1-setup)/setup/page.tsx`: Dark Glass, `100dvh`
+   - `globals.css`: add `--field-contrast-bg`, `--field-contrast-fg`, `--field-contrast-border` token stubs
+2. **Slice 1 — Field Project Model** (requires migration review before running)
+3. **Slice 2 — Site Walk Act 1 Complete** (walk type + Start Walk flow)
+4. **Slice 3 — Walks Tab** (ALL statuses + segmented control)
+5. **Slice 4 — Deliverable Builder** (step flow)
+
+#### Context Files Updated
+- `SLATE360_MASTER_BUILD_PLAN.md` — §18 added (corrected build plan)
+- `SLATE360_PROJECT_MEMORY.md` — this handoff
+
 ### Session Handoff — 2026-05-14 (App-Shell Doctrine + Placeholder Page Purge)
 
 #### What Changed

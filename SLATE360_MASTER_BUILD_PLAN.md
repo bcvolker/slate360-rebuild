@@ -12,6 +12,19 @@
 
 ---
 
+## Doctrine Documents (MUST READ for any build session)
+
+Before writing any code involving the app shell, projects, SlateDrop, entitlements, or collaborators, read the relevant doctrine doc:
+
+| Topic | Doc |
+|---|---|
+| App-neutral shell, collaborator model, org branding, cross-app bundles | `docs/SLATE360_PRODUCT_DOCTRINE.md` |
+| SlateDrop as platform file system, folder hierarchy, share links | `docs/SLATEDROP_ARCHITECTURE.md` |
+| Capacitor native wrapper, offline-first capture, App Store checklist | `docs/APP_STORE_AND_OFFLINE_STRATEGY.md` |
+| Field Project vs Project model, entitlement gates, upgrade path, gap list | `docs/ENTITLEMENTS_AND_PROJECT_MODEL.md` |
+
+---
+
 ## Table of Contents
 
 1. [Product Architecture](#1-product-architecture)
@@ -705,7 +718,227 @@ Mandatory capture scaffold files:
 
 ---
 
-## 17. Disruptor Pack (Future)
+## 18. App-Store Native Shell Doctrine (locked 2026-05-02)
+
+This section captures the gap analysis from the external AI review of commit `228dd36` and locks the decisions. All implementation must follow this before any new feature slices.
+
+### Locked Navigation Rules
+
+**Slate360 Platform (main shell) — 5 tabs:**
+```
+Home | Projects | SlateDrop | Coordination | Account
+```
+- `Home` → `/dashboard` — command center
+- `Projects` → `/projects` — project list + Project Hub
+- `SlateDrop` → `/slatedrop` — file system
+- `Coordination` → `/coordination/inbox` — inbox, calendar, contacts
+- `Account` → `/my-account` — profile, billing, org, settings, sign out
+
+**Site Walk module — 5 tabs:**
+```
+Home | Walks | Plans | Deliverables | More
+```
+- `Home` → `/site-walk` — launch grid + recent activity
+- `Walks` → `/site-walk/walks` — session management (All/In Progress/Review/Complete/Drafts)
+- `Plans` → `/site-walk/plans` — Master Plan Room
+- `Deliverables` → `/site-walk/deliverables` — deliverable list + builder
+- `More` → `/site-walk/more` — branding, templates, contacts, SlateDrop, settings
+
+**File:** `components/shared/MobileBottomNav.tsx`
+
+### Site Walk Three-Act Workflow (locked routing)
+
+```
+Act 1 — Setup:    /site-walk/setup   (project/field-project, walk type, plans, contacts, template)
+Act 2 — Capture:  /site-walk/capture (photo, video, note, voice, pin, status, offline)
+Act 3 — Deliver:  /site-walk/deliverables  (builder + list)
+```
+
+### Fixed-Screen Shell Rules
+
+- `AppShell` outer div: `h-[100dvh] overflow-hidden` — no full-page scroll ✅
+- Child scroll zone: `overflow-y-auto overscroll-contain` on inner div — contained scroll ✅
+- Every `<main>` inside Site Walk must use `100dvh`, not `100vh`
+- Individual pages must NOT add `overflow-y-auto` to `<main>` — the AppShell scroll zone handles it
+- Exception: capture and fullscreen modes use `fixed inset-0` full-bleed overrides
+
+### Surface Hierarchy (token names — locked)
+
+These tokens must exist in `globals.css` before any new module styling:
+- `--app-bg` — page base background
+- `--app-panel` — section/panel above page (used for SiteWalkSetupClient, plan room panels)
+- `--app-card` — card surface (already exists)
+- `--app-card-elevated` — elevated card / modal surface (add)
+- `--field-contrast-bg` — high-contrast background for outdoor use
+- `--field-contrast-fg` — high-contrast foreground text
+- `--field-contrast-border` — high-contrast border
+
+Dark Glass inline classes (`bg-[radial-gradient(...)]`) are correct for page shells. Token aliases are needed for any component that must switch between normal and field-contrast modes.
+
+### Field Project vs Project (product model — NOT YET BUILT)
+
+This is the most critical missing model before Site Walk beta.
+
+| Tier | Creates | Data Entity | Storage Path |
+|---|---|---|---|
+| Standard / Trial | Field Project | `field_projects` table | `field_projects/{id}/` |
+| Business / Enterprise | Full Project | existing `projects` table | `projects/{id}/` |
+
+Required migration: `field_projects` table with columns: `id, org_id, name, walk_type, walk_template, created_by, created_at, updated_at, status, metadata`  
+Required FK: `site_walk_sessions.field_project_id UUID NULLABLE REFERENCES field_projects(id)`  
+Required tier gate: trial/standard → only `field_projects`; business/enterprise → either  
+Required upgrade path: Field Project → convert/import to full Project with all walk data migrated  
+
+### Permission Tiers (not yet enforced)
+
+| Role | Can Do |
+|---|---|
+| Owner / Org Admin | Everything |
+| Org Executive | Read all org walks and deliverables, no edit |
+| Project Manager | Full access to assigned projects only |
+| Project Contributor | Create/edit items, no deliverables |
+| Collaborator | Field capture only on assigned project (3-seat limit per subscriber) |
+| Client/Stakeholder Viewer | Read-only via share link, no login required |
+
+Column: `organization_members.role` — enforce in RLS policies.
+
+### Collaborator Shell (not yet native-app-style)
+
+`components/collaborator/CollaboratorShell.tsx` must be rewritten to:
+- Dark Glass + `h-[100dvh]` fixed shell
+- Mobile bottom nav: `Assigned Work | Walks | Plans | Messages | Account`
+- No desktop sidebar (collaborators are field users)
+- Capture access limited to assigned projects
+
+### App Store Readiness Gaps
+
+| Item | Status | Priority |
+|---|---|---|
+| Platform nav: Account tab | ❌ missing | HIGH — do first |
+| Setup page: Dark Glass + 100dvh | ❌ violation | HIGH — do first |
+| Field High Contrast tokens | ❌ not added | HIGH — before beta |
+| Field High Contrast UI toggle | ❌ not built | HIGH — before beta |
+| App icon 1024×1024 | ❌ not in manifest | HIGH — App Store Connect requirement |
+| Camera pre-prompt explanation UI | ❌ not built | MEDIUM |
+| Location pre-prompt explanation UI | ❌ not built | MEDIUM |
+| Notification permission flow | ❌ not built | MEDIUM |
+| Offline queue active retry | ⚠️ passive only | MEDIUM |
+| Push notification backend | ❌ not built | LOW (V2) |
+| Capacitor/native wrapper | ❌ PWA only | Required for App Store |
+
+### Corrected Implementation Slice Order
+
+1. **Slice 0 — Lock Shell** (nav, Dark Glass violations, token stubs) — no DB
+2. **Slice 1 — Field Project Model** (migration + tier gate + create flow)
+3. **Slice 2 — Site Walk Act 1 Complete** (walk type, contacts, template, Start Walk)
+4. **Slice 3 — Walks Tab Full** (All/In Progress/Review/Complete/Drafts segmented control)
+5. **Slice 4 — Deliverable Builder** (step flow: Type→Items→Branding→Summary→Share→Final)
+6. **Slice 5 — Collaborator Shell** (native-app rewrite + limited capture access)
+7. **Slice 6 — Permission Tiers** (RLS enforcement)
+8. **Slice 7 — App Store Readiness Pass** (icon, pre-prompts, field contrast, Capacitor eval)
+
+## 19. Full V1-to-App-Store Build Sequence (locked 2026-05-02)
+
+This is the single source of truth for what to build and in what order. Updated from the §18 locked shell doctrine and the four doctrine docs.
+
+### Key Architecture Decisions Locked
+
+1. **Field Projects and full Projects share the `projects` table** — differentiated by `project_type: 'field' | 'full'`. No separate table. Upgrade = single column change.
+2. **Capacitor.js is the native wrapper** — no React Native, no TWA, no Expo. Wraps the existing Next.js codebase into iOS + Android native binaries.
+3. **Offline capture is IndexedDB-first** — service worker remains disabled. Photos + metadata save locally first, sync to R2/SlateDrop when connected.
+4. **V1 UI scope = Site Walk + Core Shell only** — DB/entitlement models designed for 4 apps, but 360 Tours / Design Studio / Content Studio have no active UI in V1.
+5. **Subscriptions are web-only for V1** — users subscribe on the web. App login only. Avoids Apple IAP (30% fee) for V1.
+6. **App-neutral shell** — the platform shell does not show Site Walk concepts. It adapts to whatever apps the user has.
+
+### Step 1 — Shell Correction (no DB, fast)
+- `MobileBottomNav.tsx`: `Work`→`Projects`, add `Coordination`, `More`→`Account`
+- `app/site-walk/(act-1-setup)/setup/page.tsx`: Dark Glass + `100dvh`
+- `globals.css`: add `--field-contrast-bg/fg/border/accent/card/muted` token stubs (no UI yet)
+- Verify typecheck + guards pass → commit
+
+### Step 2 — Project Type Migration
+- Migration: `projects.project_type TEXT DEFAULT 'field' CHECK (IN 'field','full')`
+- Migration: `projects.converted_from_id UUID NULLABLE REFERENCES projects(id)`
+- Migration: `projects.converted_at TIMESTAMPTZ NULLABLE`
+- Create `lib/project-access.ts`: `canCreateFullProject()` / `canCreateFieldProject()`
+- Update project creation API route to enforce tier gate
+- Update `SiteWalkSetupClient` to tag sessions with `project_type = 'field'` by default
+- Verify → commit
+
+### Step 3 — SlateDrop Folder Generator
+- Create `lib/slatedrop/folder-generator.ts`
+- `generateFieldProjectFolders(orgId, projectId)` — creates Site Walk tree
+- `generateFullProjectFolders(orgId, projectId, subscribedApps[])` — creates full tree
+- Wire call to project creation API route (after project row insert)
+- Verify folders created in DB → commit
+
+### Step 4 — Site Walk Act 1 Complete
+- Walk-type selection step added to `SiteWalkSetupClient`
+- "Start Walk" CTA creates `site_walk_sessions` row → routes to `/site-walk/capture?session={id}`
+- Fix setup page background + `100dvh` (done in Step 1, verify in context here)
+- Verify end-to-end: create field project → choose walk type → start walk → lands in capture → commit
+
+### Step 5 — Walks Tab Full
+- Segmented control: All | In Progress | Review | Complete | Drafts
+- Filter `loadWalks()` by `status` param
+- New Walk CTA → `/site-walk/setup`
+- "Resume" button on In Progress walks → `/site-walk/capture?session={id}`
+- Verify → commit
+
+### Step 6 — Deliverable Builder (Step-by-Step Flow)
+- Step 1: Type selection (Punch / Progress / Inspection / Proposal / Custom)
+- Step 2: Item selection (from sessions in project, filter by status/area/trade)
+- Step 3: Branding (reads from `org.brand_settings`; no user re-entry)
+- Step 4: Summary (manual text + optional AI if credits available)
+- Step 5: Preview (PDF mock → then real via existing migration tables)
+- Step 6: Recipients (from `org_contacts` + project contacts)
+- Step 7: Send (email link / SMS link) + save to SlateDrop path
+- Verify end-to-end: select items → add branding → preview → send → appears in deliverables list → commit
+
+### Step 7 — Collaborator Shell Rewrite
+- `CollaboratorShell.tsx`: Dark Glass + `h-[100dvh]` fixed shell
+- Bottom nav: Assigned Work | My Walks | Plans | Messages | Account
+- No desktop sidebar
+- Verify limited capture works (only assigned project sessions) → commit
+
+### Step 8 — Account Deletion UI
+- Account → Security tab: surface "Delete Account" button
+- Calls existing `/api/account/delete` route
+- Confirm modal before submit
+- Verify → commit
+
+### Step 9 — Field High Contrast Mode
+- Account → Preferences: toggle "Field High Contrast"
+- Saves to `profiles.preferences.field_contrast_mode`
+- Shell reads preference on load; applies `.field-contrast` class to root div
+- CSS tokens `--field-contrast-*` applied via `.field-contrast` override block in `globals.css`
+- Verify outdoor readability pass → commit
+
+### Step 10 — App Icon 1024×1024 + Permission Pre-Prompts
+- Create/export 1024×1024 app icon; add to `public/uploads/`; update manifest
+- Camera pre-prompt modal: shown before first capture in a walk
+- Microphone pre-prompt modal: shown before first voice note
+- Location pre-prompt modal: shown in walk setup when enabling GPS tagging
+- Verify all three permission flows work on mobile device → commit
+
+### Step 11 — Capacitor Installation
+- **Review meeting required before this step** — static export vs server mode decision
+- Install `@capacitor/core`, `@capacitor/cli`, platform plugins
+- Configure `capacitor.config.ts`
+- Add iOS + Android platforms
+- Test on real iPhone and Android device
+- Verify camera works, filesystem works, offline capture works → commit
+
+### Step 12 — App Store Submission
+- Prepare iOS screenshots (6.9" + 6.1" required)
+- Prepare Android screenshots
+- Write App Store listing (product description, keywords)
+- Submit iOS binary via Xcode to App Store Connect
+- Submit Android bundle via Android Studio to Play Console
+- Respond to reviewer feedback
+- Approval → V1 Foundation user program begins
+
+---
 
 Build LAST, but keep in the roadmap. Design schema hooks NOW.
 
