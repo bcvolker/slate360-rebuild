@@ -186,6 +186,26 @@
   --module-analytics: #6366F1;
   --module-market: #6366F1;
   --module-slatedrop: #3B82F6;
+
+  /* ── Field High Contrast token stubs (V1 Foundational doctrine) ──
+     These are STUBS for a future opt-in "Field High Contrast" display
+     mode for harsh-sunlight construction-site conditions. They are
+     NOT applied by default. The default app remains premium dark
+     graphite/glass. A future slice will wire these into a `.field`
+     subtree wrapper and a user-toggleable preference.
+
+     Naming follows the same shape as the shadcn surface tokens so
+     a `.field` subtree can override them without touching component
+     class names. Values are placeholders sized for sunlight legibility
+     and will be tuned during the dedicated Field Contrast slice. */
+  --field-contrast-bg: #F8FAFC;          /* near-white page surface */
+  --field-contrast-surface: #FFFFFF;     /* opaque card surface (no glass) */
+  --field-contrast-card: #FFFFFF;
+  --field-contrast-fg: #0F172A;          /* slate-900 — body text */
+  --field-contrast-muted: #334155;       /* slate-700 — secondary text */
+  --field-contrast-border: #475569;      /* slate-600 — bold separators */
+  --field-contrast-primary: #B45309;     /* amber-700 — strong accent for buttons */
+  --field-contrast-focus: #92400E;       /* amber-800 — focus ring */
 }
 
 /* Dark-palette opt-in. The premium light tokens above are the default

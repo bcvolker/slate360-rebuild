@@ -196,6 +196,51 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
+### Session Handoff — 2026-05-02 (Slice 0 — Shell Correction)
+
+#### What Changed
+- `components/shared/MobileBottomNav.tsx`: PLATFORM_NAV is now `Home / Projects / SlateDrop / Coordination / Account`. Coordination promoted from buried-under-More to first-class tab. "Work" → "Projects". "More" → "Account" (still routes to `/more` hub for now). Site Walk module nav unchanged (`Home / Walks / Plans / Deliverables / More`).
+- `app/site-walk/(act-1-setup)/setup/page.tsx`: Removed `bg-slate-50` + `min-h-[calc(100vh-160px)]`. Now uses `dark min-h-[100dvh] bg-[#0B0F15]` with white/5 glass cards. App-native, not webpage-style.
+- `app/globals.css`: Added `--field-contrast-*` token stubs (8 vars) under `:root`. STUBS only — not applied by default. Default app remains premium dark graphite/glass. Future `.field` subtree wrapper + user toggle will activate them.
+- Validation: `npm run typecheck` passes clean. `bash scripts/check-file-size.sh` shows no NEW files exceed 300 lines.
+
+#### What's Broken / Partially Done — V1 UI Scrub Required (Step 3)
+**Ghost apps still visible in active V1 UI** (must be hidden behind feature flags before App Store submission):
+- `components/dashboard/command-center/DashboardSidebar.tsx` lines 40-42: `360 Tours`, `Design Studio`, `Content Studio` with `comingSoon: true` — banned terminology + ghost apps
+- `components/dashboard/command-center/AppsGrid.tsx` lines 35, 45-56: Tours, Design Studio, Content Studio app cards
+- `components/dashboard/DashboardClient.tsx` lines 49-51: tabs for design-studio, content-studio, tours
+- `app/(dashboard)/tours/page.tsx`: route exists and renders ToursShell
+- `app/dev/health/page.tsx`: lists `/tours`, `/content-studio`, `/design-studio` (dev-only — lower risk)
+
+These were left in place per Slice 0 scope (UI/CSS only, no feature-flag wiring).
+
+#### Not in This Slice (deferred)
+- Cobalt-blue → gold/amber primary palette migration (still cobalt in `:root --primary` and many components). User has stated dislike of cobalt; needs dedicated Palette Migration slice.
+- Account tab still routes to `/more` (existing hub). Future slice may rename route to `/account`.
+- Coordination link goes to `/coordination/inbox` (the existing entry); no Coordination home page yet.
+
+#### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md` — this handoff
+
+#### Next Steps (corrected build order from MASTER_BUILD_PLAN §19)
+1. **Slice 1 — Approval Gate** (V1 BLOCKER for App Store):
+   - DB migration: add `account_status`, `is_foundational_user`, `foundational_org_id`, `foundational_data_retention_until`, `v2_discount_eligible`, `is_app_reviewer`, `signup_org_request`, `approved_at`, `approved_by`, `rejection_reason` to `profiles`
+   - Pending Foundational Verification screen
+   - Operations Console approval queue
+   - Signup flow defaults `account_status = pending_approval`
+   - Pre-approve App Reviewer accounts with seeded demo Field Project + Walk + Deliverable
+2. **Slice 2 — V1 UI Scrub**: hide 360 Tours / Design Studio / Content Studio behind feature flag in active V1 surfaces (DashboardSidebar, AppsGrid, DashboardClient tabs, /tours route)
+3. **Slice 3 — Field Project Model**: extend `projects` table with `project_type: 'field' | 'full'`, build Field Project creation flow, storage routing
+4. **Slice 4 — Site Walk Act 1 (Setup)** rebuilt around Field Projects
+5. **Slice 5 — Site Walk Act 2 (Capture)** audit + IndexedDB-first rebuild
+6. **Slice 6 — Site Walk Act 3 (Deliverables)**: builder, PDF, interactive link, recipient picker, SlateDrop save
+7. **Slice 7 — Executive Viewer role** for ASU leadership
+8. **Slice 8 — App Store Readiness**: Capacitor wrapper, app icon 1024, permission pre-prompts, account deletion UI verified, reviewer credentials in App Store Connect / Play Console "App access"
+
+#### Owner Decisions Needed
+- Distribution track for ASU iOS rollout (decide before Slice 8): public-gated App Store vs Apple School Manager Custom App vs TestFlight invite
+- When to schedule the Cobalt → Gold/Amber palette migration (not blocking V1 submission but conflicts with stated brand direction)
+
 ### Session Handoff — 2026-05-02 (V1 Foundational Release Doctrine Corrections)
 
 #### What Changed (no code, doctrine corrections — second pass)

@@ -3,8 +3,11 @@
 /**
  * MobileBottomNav — fixed glassy bottom navigation for mobile (≤lg).
  *
- * Platform tabs stay tier-neutral: Home / Work / SlateDrop / More.
- * Cobalt active indicator (matches new color palette — no amber/gold).
+ * V1 Foundational Release platform tabs (locked 2026-05-02):
+ *   Home / Projects / SlateDrop / Coordination / Account
+ *
+ * Coordination is a first-class tab (was buried under More).
+ * Account replaces More and is the entry point to org / billing / settings.
  * Safe-area padding so it sits above the iOS home indicator.
  *
  * Mounted in AppShell behind a lg:hidden wrapper.
@@ -12,7 +15,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, FolderOpen, Cloud, Footprints, FileText, MoreHorizontal, Map } from "lucide-react";
+import { Home, FolderOpen, Cloud, Footprints, FileText, MessageSquare, MoreHorizontal, User, Map } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface NavItem {
@@ -24,9 +27,10 @@ interface NavItem {
 
 const PLATFORM_NAV: NavItem[] = [
   { label: "Home", href: "/dashboard", icon: Home, matchPrefixes: ["/dashboard"] },
-  { label: "Work", href: "/projects", icon: FolderOpen, matchPrefixes: ["/projects", "/project-hub"] },
+  { label: "Projects", href: "/projects", icon: FolderOpen, matchPrefixes: ["/projects", "/project-hub"] },
   { label: "SlateDrop", href: "/slatedrop", icon: Cloud, matchPrefixes: ["/slatedrop"] },
-  { label: "More", href: "/more", icon: MoreHorizontal, matchPrefixes: ["/more", "/my-work", "/coordination", "/my-account", "/settings", "/apps", "/operations-console"] },
+  { label: "Coordination", href: "/coordination/inbox", icon: MessageSquare, matchPrefixes: ["/coordination"] },
+  { label: "Account", href: "/more", icon: User, matchPrefixes: ["/more", "/my-account", "/settings", "/apps", "/operations-console"] },
 ];
 
 const SITE_WALK_NAV: NavItem[] = [

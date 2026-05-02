@@ -23,10 +23,10 @@ export default async function SiteWalkSetupPage() {
 
   if (!context.user || !context.orgId) {
     return (
-      <main className="min-h-[calc(100vh-160px)] bg-slate-50 px-4 py-6 text-slate-900 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-3xl rounded-3xl border border-slate-300 bg-white p-6 shadow-sm">
-          <h1 className="text-2xl font-black">Sign in required</h1>
-          <p className="mt-2 text-sm text-slate-700">Site Walk setup needs an organization workspace.</p>
+      <main className="dark min-h-[100dvh] bg-[#0B0F15] px-4 py-6 text-slate-100 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-3xl rounded-3xl border border-white/10 bg-white/5 p-6 shadow-lg backdrop-blur-md">
+          <h1 className="text-2xl font-black text-white">Sign in required</h1>
+          <p className="mt-2 text-sm text-slate-300">Site Walk setup needs an organization workspace.</p>
         </div>
       </main>
     );
@@ -46,7 +46,7 @@ export default async function SiteWalkSetupPage() {
   const tier = resolveSetupTier(context.tier, context.isSlateCeo, subscriptionsResult.data ?? null);
 
   return (
-    <main className="min-h-[calc(100vh-160px)] bg-slate-50 px-4 py-6 text-slate-950 sm:px-6 lg:px-8">
+    <main className="dark min-h-[100dvh] bg-[#0B0F15] px-4 py-6 text-slate-100 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-5xl space-y-5">
         <SiteWalkSetupClient
           brandSettings={(orgResult.data?.brand_settings ?? {}) as BrandSettings}
@@ -57,7 +57,7 @@ export default async function SiteWalkSetupPage() {
           tier={tier}
         />
 
-        <Link href="/site-walk" className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-slate-900 hover:border-blue-300 hover:text-blue-800">
+        <Link href="/site-walk" className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-bold text-slate-100 backdrop-blur-md hover:border-white/20 hover:bg-white/10">
           Back to Site Walk <ArrowRight className="h-4 w-4" />
         </Link>
       </div>
