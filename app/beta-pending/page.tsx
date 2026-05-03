@@ -1,61 +1,12 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Clock, ArrowLeft } from "lucide-react";
-import { createClient } from "@/lib/supabase/server";
-import { isOwnerEmail, checkBetaApproved } from "@/lib/server/beta-access";
-import BetaPendingRecheck from "@/components/shared/BetaPendingRecheck";
 
-export const metadata = {
-  title: "Version 1 Access Pending — Slate360",
-};
-
+/**
+ * /beta-pending — kept for backward compatibility.
+ *
+ * Canonical pending-verification URL is now /pending-verification.
+ * Old email links, PWA caches, and logged references are redirected here.
+ */
 export default async function BetaPendingPage() {
-  // If the user is now approved (or is the owner), send them to dashboard.
-  // This runs on every server render, including when the client calls
-  // router.refresh() via the recheck button.
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (user) {
-    const approved =
-      isOwnerEmail(user.email) || (await checkBetaApproved(user.id));
-    if (approved) redirect("/dashboard");
-  }
-
-  return (
-    <div className="dark min-h-screen bg-app-page flex items-center justify-center p-6">
-      <div className="max-w-md w-full text-center space-y-6">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
-          <Clock className="h-8 w-8 text-primary" />
-        </div>
-
-        <div className="space-y-2">
-          <h1 className="text-2xl font-bold text-foreground">Version 1 Access Pending</h1>
-          <p className="text-zinc-400 text-sm leading-relaxed">
-            Your account has been created, but Version 1 access has not been approved yet.
-            You will receive a notification when your workspace is ready.
-          </p>
-        </div>
-
-        <div className="rounded-2xl border border-app bg-app-card p-4 text-left text-sm text-zinc-400 space-y-1.5">
-          <p className="font-medium text-zinc-300">What happens next?</p>
-          <ul className="list-disc list-inside space-y-1">
-            <li>The Slate360 team reviews new accounts</li>
-            <li>Approved users can begin using the foundational Version 1 release</li>
-            <li>Any data you create will remain available as Slate360 evolves</li>
-          </ul>
-        </div>
-
-        <BetaPendingRecheck />
-
-        <Link
-          href="/"
-          className="inline-flex items-center gap-2 text-sm text-zinc-400 hover:text-teal transition-colors"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to home
-        </Link>
-      </div>
-    </div>
-  );
+  redirect("/pending-verification");
 }
+

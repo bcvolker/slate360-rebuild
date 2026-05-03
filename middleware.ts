@@ -34,16 +34,34 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Fetch org & tier information to enforce the walled garden
+  // Fetch org + V1 approval status in parallel (both require only user.id)
   let isStandaloneOnly = false;
+  // Fail-open on DB errors — requireBetaAccess() in layouts is the safety net.
+  let accountApproved = true;
+  let isAppReviewer = false;
+
   if (user) {
     try {
-      const { data: member } = await supabase
-        .from("organization_members")
-        .select("org_id, organizations!inner(tier)")
-        .eq("user_id", user.id)
-        .single();
+      const [{ data: member }, { data: profile }] = await Promise.all([
+        supabase
+          .from("organization_members")
+          .select("org_id, organizations!inner(tier)")
+          .eq("user_id", user.id)
+          .single(),
+        supabase
+          .from("profiles")
+          .select("account_status, is_app_reviewer")
+          .eq("id", user.id)
+          .maybeSingle(),
+      ]);
 
+      // V1 approval status
+      if (profile) {
+        accountApproved = profile.account_status === "approved";
+        isAppReviewer = profile.is_app_reviewer === true;
+      }
+
+      // Walled-garden standalone-only check
       if (member) {
         const { data: flags } = await supabase
           .from("org_feature_flags")
@@ -62,7 +80,7 @@ export async function middleware(request: NextRequest) {
         }
       }
     } catch (err) {
-      console.error("[Middleware] Walled garden check failed:", err);
+      console.error("[Middleware] Context check failed:", err);
     }
   }
 
@@ -93,6 +111,7 @@ export async function middleware(request: NextRequest) {
   // Protect authenticated routes — redirect to login if not authenticated
   const isBetaProtectedRoute =
     pathname.startsWith("/dashboard") ||
+    pathname.startsWith("/projects") ||
     pathname.startsWith("/slatedrop") ||
     pathname.startsWith("/project-hub") ||
     pathname.startsWith("/site-walk") ||
@@ -113,6 +132,30 @@ export async function middleware(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     url.searchParams.set("redirectTo", pathname);
+    return NextResponse.redirect(url);
+  }
+
+  // ── V1 Approval Gate ─────────────────────────────────────────────
+  // Users without an approved account_status are redirected to the
+  // Pending Foundational Verification screen.
+  // Owner email (CEO_EMAIL env) and is_app_reviewer accounts bypass.
+  // /pending-verification and /beta-pending are exempt to avoid loops.
+  const ownerEmail = process.env.CEO_EMAIL;
+  const isOwner = ownerEmail && user?.email?.toLowerCase() === ownerEmail.toLowerCase();
+  const isApprovalBypassRoute =
+    pathname.startsWith("/pending-verification") ||
+    pathname.startsWith("/beta-pending");
+
+  if (
+    user &&
+    isBetaProtectedRoute &&
+    !isApprovalBypassRoute &&
+    !isOwner &&
+    !accountApproved &&
+    !isAppReviewer
+  ) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/pending-verification";
     return NextResponse.redirect(url);
   }
 

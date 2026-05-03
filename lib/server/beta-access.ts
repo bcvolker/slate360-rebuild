@@ -77,6 +77,6 @@ export async function requireBetaAccess(user: User | null): Promise<void> {
 
   const approved = await checkBetaApproved(user.id);
   if (!approved) {
-    redirect("/beta-pending");
+    redirect("/pending-verification");
   }
 }

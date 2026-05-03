@@ -19,7 +19,7 @@ export const GET = (req: NextRequest) =>
 
     const { data, error } = await admin
       .from("profiles")
-      .select("id, email, display_name, company, is_beta_approved, created_at")
+      .select("id, email, display_name, company, is_beta_approved, account_status, is_app_reviewer, created_at")
       .order("created_at", { ascending: false });
 
     if (error) return serverError(error.message);
@@ -33,17 +33,40 @@ export const PATCH = (req: NextRequest) =>
     const body = (await req.json().catch(() => ({}))) as {
       userId?: string;
       approved?: boolean;
+      isAppReviewer?: boolean;
     };
 
-    if (!body.userId || typeof body.approved !== "boolean") {
-      return badRequest("userId (string) and approved (boolean) are required");
+    if (!body.userId) {
+      return badRequest("userId (string) is required");
+    }
+
+    // Build the update payload — at least one of approved/isAppReviewer must be provided
+    type ProfileUpdate = {
+      account_status?: string;
+      is_beta_approved?: boolean;
+      is_app_reviewer?: boolean;
+      approved_at?: string | null;
+    };
+    const update: ProfileUpdate = {};
+
+    if (typeof body.approved === "boolean") {
+      update.account_status = body.approved ? "approved" : "pending_approval";
+      update.is_beta_approved = body.approved;
+      update.approved_at = body.approved ? new Date().toISOString() : null;
+    }
+    if (typeof body.isAppReviewer === "boolean") {
+      update.is_app_reviewer = body.isAppReviewer;
+    }
+
+    if (Object.keys(update).length === 0) {
+      return badRequest("approved (boolean) or isAppReviewer (boolean) is required");
     }
 
     const { data, error } = await admin
       .from("profiles")
-      .update({ is_beta_approved: body.approved })
+      .update(update)
       .eq("id", body.userId)
-      .select("id, email, display_name, is_beta_approved")
+      .select("id, email, display_name, is_beta_approved, account_status, is_app_reviewer")
       .single();
 
     if (error) return serverError(error.message);

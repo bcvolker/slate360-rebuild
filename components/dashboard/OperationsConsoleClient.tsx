@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Shield, Users2, Loader2, CheckCircle2, XCircle, RefreshCw } from "lucide-react";
+import { Shield, Users2, Loader2, CheckCircle2, XCircle, RefreshCw, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FloatingToast } from "@/components/shared/FloatingToast";
 import { useBetaUsers } from "@/lib/hooks/useBetaUsers";
@@ -21,13 +21,13 @@ export default function OperationsConsoleClient({ ownerEmail, initialCounts }: P
   const [filter, setFilter] = useState<"all" | "approved" | "pending">("all");
 
   const filtered = users.filter((u) => {
-    if (filter === "approved") return u.is_beta_approved;
-    if (filter === "pending") return !u.is_beta_approved;
+    if (filter === "approved") return u.account_status === "approved";
+    if (filter === "pending") return u.account_status !== "approved";
     return true;
   });
 
-  const approvedCount = users.filter((u) => u.is_beta_approved).length;
-  const pendingCount = users.filter((u) => !u.is_beta_approved).length;
+  const approvedCount = users.filter((u) => u.account_status === "approved").length;
+  const pendingCount = users.filter((u) => u.account_status !== "approved").length;
   const navCounts: OperationsConsoleCounts = {
     ...initialCounts,
     pendingAccess: loading && users.length === 0 ? initialCounts.pendingAccess : pendingCount,
@@ -211,19 +211,30 @@ function UserRow({
         {new Date(user.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
       </td>
       <td className="px-4 py-3 text-center">
-        {user.is_beta_approved ? (
-          <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700 dark:bg-green-900/30 dark:text-green-300">
-            <CheckCircle2 className="h-3 w-3" /> Approved
-          </span>
-        ) : (
-          <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
-            <XCircle className="h-3 w-3" /> Pending
-          </span>
-        )}
+        <div className="flex flex-col items-center gap-1">
+          {user.account_status === "approved" ? (
+            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-900/40 px-2 py-0.5 text-xs font-medium text-emerald-300 ring-1 ring-emerald-400/20">
+              <CheckCircle2 className="h-3 w-3" /> Approved
+            </span>
+          ) : user.account_status === "suspended" ? (
+            <span className="inline-flex items-center gap-1 rounded-full bg-red-900/40 px-2 py-0.5 text-xs font-medium text-red-300 ring-1 ring-red-400/20">
+              <XCircle className="h-3 w-3" /> Suspended
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1 rounded-full bg-amber-900/40 px-2 py-0.5 text-xs font-medium text-amber-300 ring-1 ring-amber-400/20">
+              <XCircle className="h-3 w-3" /> Pending
+            </span>
+          )}
+          {user.is_app_reviewer && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-sky-900/40 px-2 py-0.5 text-xs font-medium text-sky-300 ring-1 ring-sky-400/20">
+              <Star className="h-3 w-3" /> Reviewer
+            </span>
+          )}
+        </div>
       </td>
       <td className="px-4 py-3 text-right">
         <Button
-          variant={user.is_beta_approved ? "outline" : "default"}
+          variant={user.account_status === "approved" ? "outline" : "default"}
           size="sm"
           disabled={toggling}
           onClick={onToggle}
@@ -231,7 +242,7 @@ function UserRow({
         >
           {toggling ? (
             <Loader2 className="h-3.5 w-3.5 animate-spin" />
-          ) : user.is_beta_approved ? (
+          ) : user.account_status === "approved" ? (
             "Revoke"
           ) : (
             "Approve"

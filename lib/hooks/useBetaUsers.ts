@@ -8,6 +8,8 @@ export type BetaUser = {
   display_name: string | null;
   company: string | null;
   is_beta_approved: boolean;
+  account_status: string;
+  is_app_reviewer: boolean;
   created_at: string;
 };
 
@@ -49,7 +51,14 @@ export function useBetaUsers() {
       const body = await res.json();
       setUsers((prev) =>
         prev.map((u) =>
-          u.id === userId ? { ...u, is_beta_approved: body.user.is_beta_approved } : u,
+          u.id === userId
+            ? {
+                ...u,
+                is_beta_approved: body.user.is_beta_approved,
+                account_status: body.user.account_status ?? u.account_status,
+                is_app_reviewer: body.user.is_app_reviewer ?? u.is_app_reviewer,
+              }
+            : u,
         ),
       );
       return body.user;
