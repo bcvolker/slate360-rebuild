@@ -35,7 +35,7 @@ export default async function SiteWalkSetupPage() {
   const admin = createAdminClient();
   const [orgResult, projectsResult, contactsResult, subscriptionsResult] = await Promise.all([
     admin.from("organizations").select("brand_settings").eq("id", context.orgId).maybeSingle(),
-    admin.from("projects").select("id, name, description, metadata, status, created_at").eq("org_id", context.orgId).eq("status", "active").order("created_at", { ascending: false }).limit(25),
+    admin.from("projects").select("id, name, description, metadata, status, created_at").eq("org_id", context.orgId).eq("status", "active").eq("project_type", "field").order("created_at", { ascending: false }).limit(25),
     admin.from("org_contacts").select("id, name, email, phone, company, title, initials, color").eq("org_id", context.orgId).eq("is_archived", false).order("name").limit(50),
     admin.from("org_app_subscriptions").select("site_walk, tours, slatedrop, design_studio, content_studio, bundle, storage_addon_gb, credit_addon_balance").eq("org_id", context.orgId).maybeSingle<SubscriptionRow>(),
   ]);

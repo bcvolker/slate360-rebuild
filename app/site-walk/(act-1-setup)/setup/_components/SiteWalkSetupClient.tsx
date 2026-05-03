@@ -9,6 +9,7 @@ import { DeliverableDefaultsForm } from "./DeliverableDefaultsForm";
 import { ProjectSetupForm } from "./ProjectSetupForm";
 import { StakeholderPicker } from "./StakeholderPicker";
 import type { BrandSettings, ProjectSavedEvent, ReportDefaults, SetupContact, SetupProject, SiteWalkSetupTier } from "./setup-types";
+import { StartWalkForm } from "./StartWalkForm";
 
 type Props = {
   brandSettings: BrandSettings;
@@ -44,7 +45,9 @@ export function SiteWalkSetupClient({ brandSettings, projects, contacts, initial
   ];
 
   return (
-    <div className="h-[calc(100dvh-11rem)] min-h-[640px] overflow-hidden lg:h-auto lg:min-h-0">
+    <div className="space-y-5">
+      <StartWalkForm projects={projects} />
+
       <section className="rounded-3xl border border-slate-300 bg-white p-6 shadow-sm">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
@@ -58,7 +61,7 @@ export function SiteWalkSetupClient({ brandSettings, projects, contacts, initial
         </div>
       </section>
 
-      <div className="mt-5 h-[calc(100%-9.5rem)] min-h-0 rounded-3xl border border-slate-300 bg-white shadow-sm lg:h-auto">
+      <div className="rounded-3xl border border-slate-300 bg-white shadow-sm">
         <PagedWorkspace pages={pages} title="Field Project Setup" subtitle="Swipe through the workbook on mobile; use the same sections as tabs on desktop." viewportClassName="overflow-y-auto p-4" />
       </div>
     </div>
