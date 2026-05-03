@@ -196,6 +196,38 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
+### Session Handoff — 2026-05-03 (Slice 2 — V1 UI Scrub + Data Polish)
+
+#### What Changed
+- `components/dashboard/command-center/DashboardSidebar.tsx` — Removed 360 Tours, Design Studio, Content Studio from `NAV_ITEMS`. Removed unused imports `Compass`, `Palette`, `Film`.
+- `components/dashboard/command-center/AppsGrid.tsx` — Removed tours, design-studio, content-studio from `APPS` array. Removed unused imports `Compass`, `Palette`, `FileText`.
+- `components/dashboard/DashboardClient.tsx` — Removed design-studio, content-studio, tours tabs from `ALL_TABS`. Removed unused imports `Palette`, `Globe`, `Film`, `Layers`, `Compass`.
+- `app/(dashboard)/tours/page.tsx` — Replaced ToursShell render with `redirect('/dashboard')` (5 lines).
+- `app/signup/page.tsx` — Added `orgRequest` state + passes `orgRequest` in API body. Extracted `<details>` demographics block into `SignupDemographics` component. Now 241 lines (was approaching 304).
+- `components/auth/SignupDemographics.tsx` — NEW extracted component (107 lines). Contains all optional demographic inputs + new "What will you use Slate360 for?" textarea.
+- `app/api/auth/signup/route.ts` — Picks up `orgRequest` from body; after successful `generateLink`, does best-effort `profiles.update({ signup_org_request })` using admin client + `linkData.user.id`.
+- `app/api/admin/beta/route.ts` — PATCH now sets `is_foundational_user: true` whenever `body.approved === true`.
+
+#### Commit
+`e8b692f` — "Slice 2: V1 UI scrub + data polish"
+
+#### What's Broken / Partially Done
+- **DB migration not confirmed live**: `supabase/migrations/20260503000001_add_v1_approval_gate.sql` exists in git but the `supabase db push` CLI timed out in Codespaces and all API calls failed. The `signup_org_request`, `is_foundational_user`, `account_status`, etc. columns may NOT be in the live Supabase schema. **Must apply manually via Supabase Dashboard → SQL Editor before Slice 1 features work in production.**
+- Ghost apps removed from nav/tabs but their corresponding route pages still exist (`/design-studio`, `/content-studio`). They're already blocked by middleware `PHASE_1_BLOCKED_PATHS`. No action needed for V1 but those pages should be removed in a cleanup slice.
+- `shouldHideInAppStoreMode` import still in DashboardSidebar (line 20) — it's used in the render filter at line 97 even though no items have `comingSoon` anymore. Harmless, no-op filter. Clean up later.
+
+#### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md` — this handoff
+
+#### Next Steps (ordered)
+1. **CRITICAL**: Apply DB migration manually — Supabase Dashboard → SQL Editor → paste contents of `supabase/migrations/20260503000001_add_v1_approval_gate.sql`. Verify with `SELECT column_name FROM information_schema.columns WHERE table_name = 'profiles'`.
+2. **Slice 3 — Field Project Model**: `project_type: 'field' | 'full'` on `projects` table, Field Project creation flow, storage routing
+3. **Slice 4 — Site Walk Act 1** rebuilt around Field Projects
+4. **Slice 5 — Site Walk Act 2 Capture** audit + IndexedDB-first rebuild
+5. **Slice 6 — Site Walk Act 3 Deliverables**
+6. **Slice 7 — Executive Viewer role**
+7. **Slice 8 — App Store Readiness** (Capacitor, icon, permissions, reviewer credentials, account deletion)
+
 ### Session Handoff — 2026-05-03 (Slice 1 — Approval Gate)
 
 #### What Changed
