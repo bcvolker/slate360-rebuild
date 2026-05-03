@@ -29,17 +29,20 @@ const TOTAL_STEPS = 4;
 export type CreateProjectPayload = {
   name: string;
   description: string;
+  type: 'field' | 'full';
   metadata: Record<string, unknown>;
 };
 
 export default function CreateProjectWizard({
-  open, creating, error, onClose, onSubmit,
+  open, creating, error, onClose, onSubmit, projectFieldType = 'field',
 }: {
   open: boolean;
   creating: boolean;
   error: string | null;
   onClose: () => void;
   onSubmit: (payload: CreateProjectPayload) => Promise<void>;
+  /** Whether this wizard is creating a 'field' or 'full' project. */
+  projectFieldType?: 'field' | 'full';
 }) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -82,6 +85,7 @@ export default function CreateProjectWizard({
     await onSubmit({
       name: name.trim(),
       description: description.trim(),
+      type: projectFieldType,
       metadata: {
         projectType,
         contractType,
@@ -106,7 +110,9 @@ export default function CreateProjectWizard({
         {/* Header */}
         <div className="flex items-center justify-between border-b border-app bg-white/[0.04]/50 px-5 py-4">
           <div>
-            <h3 className="text-lg font-black text-foreground">Create New Project</h3>
+            <h3 className="text-lg font-black text-foreground">
+              {projectFieldType === 'full' ? 'New Full Project' : 'New Field Project'}
+            </h3>
             <p className="text-xs text-zinc-400 mt-0.5">Step {step} of {TOTAL_STEPS} — {STEP_LABELS[step - 1]}</p>
           </div>
           <button type="button" onClick={onClose} className="w-8 h-8 rounded-lg flex items-center justify-center text-zinc-400 hover:bg-white/[0.06] hover:text-foreground transition-colors"><X size={18} /></button>

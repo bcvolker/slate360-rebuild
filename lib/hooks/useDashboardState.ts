@@ -4,6 +4,7 @@ import { useState, useRef, useMemo, useCallback, useEffect } from "react";
 import { useQueryState, parseAsString } from "nuqs";
 import { createClient } from "@/lib/supabase/client";
 import { getEntitlements, type Tier } from "@/lib/entitlements";
+import { canCreateFullProject } from "@/lib/project-access";
 import type { WidgetRendererContext } from "@/components/dashboard/DashboardWidgetRenderer";
 import type {
   DashboardContact as Contact,
@@ -67,6 +68,9 @@ export function useDashboardState({
   const [customizeOpen, setCustomizeOpen] = useState(false);
   const [createWizardOpen, setCreateWizardOpen] = useState(false);
   const [wizardCreating, setWizardCreating] = useState(false);
+  const [wizardProjectType, setWizardProjectType] = useState<'field' | 'full'>('field');
+  const [choiceSheetOpen, setChoiceSheetOpen] = useState(false);
+  const canCreateFull = canCreateFullProject(ent.tier, isSlateCeo);
 
   const account = useAccountState({
     supabase,
@@ -131,10 +135,11 @@ export function useDashboardState({
       const res = await fetch("/api/projects/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ ...payload, type: wizardProjectType }),
       });
       if (res.ok) {
         setCreateWizardOpen(false);
+        setWizardProjectType('field');
         fetch("/api/dashboard/widgets", { cache: "no-store" })
           .then((r) => r.json())
           .then((d) => { if (!d.error) setWidgetsData(parseWidgetsPayload(d)); })
@@ -143,7 +148,8 @@ export function useDashboardState({
     } finally {
       setWizardCreating(false);
     }
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [wizardProjectType]);
 
   const liveContacts: Contact[] = widgetsData?.contacts ?? [];
   const liveProjects = widgetsData?.projects ?? [];
@@ -195,6 +201,9 @@ export function useDashboardState({
     projectDropdownOpen, setProjectDropdownOpen,
     createWizardOpen, setCreateWizardOpen,
     wizardCreating,
+    wizardProjectType, setWizardProjectType,
+    choiceSheetOpen, setChoiceSheetOpen,
+    canCreateFull,
     handleCreateProject,
 
     // Sub-hook spreads (widget prefs, billing, account, weather, suggest, notifications)

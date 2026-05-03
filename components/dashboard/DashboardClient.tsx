@@ -3,6 +3,7 @@
 import { useDashboardState, type DashboardProps } from "@/lib/hooks/useDashboardState";
 import { useEffect } from "react";
 import CreateProjectWizard, { type CreateProjectPayload } from "@/components/project-hub/CreateProjectWizard";
+import { ProjectTypeChoiceSheet } from "@/components/project-hub/ProjectTypeChoiceSheet";
 import WidgetCustomizeDrawer from "@/components/widgets/WidgetCustomizeDrawer";
 import DashboardMyAccount from "@/components/dashboard/DashboardMyAccount";
 import DashboardSlateDropWindow from "@/components/dashboard/DashboardSlateDropWindow";
@@ -129,7 +130,14 @@ export default function DashboardClient(props: DashboardProps) {
             projectDropdownOpen={s.projectDropdownOpen}
             onProjectDropdownToggle={() => s.setProjectDropdownOpen((v) => !v)}
             projectTypeEmoji={projectTypeEmoji}
-            onCreateProject={() => s.setCreateWizardOpen(true)}
+            onCreateProject={() => {
+              if (s.canCreateFull) {
+                s.setChoiceSheetOpen(true);
+              } else {
+                s.setWizardProjectType('field');
+                s.setCreateWizardOpen(true);
+              }
+            }}
             carouselRef={s.carouselRef}
             onScrollCarousel={s.scrollCarousel}
             onProjectDeleted={(id) => {
@@ -236,6 +244,22 @@ export default function DashboardClient(props: DashboardProps) {
         tier={props.tier}
       />
 
+      {/* ── Project Type Choice Sheet (Business/Enterprise only) ── */}
+      <ProjectTypeChoiceSheet
+        open={s.choiceSheetOpen}
+        onClose={() => s.setChoiceSheetOpen(false)}
+        onSelectField={() => {
+          s.setChoiceSheetOpen(false);
+          s.setWizardProjectType('field');
+          s.setCreateWizardOpen(true);
+        }}
+        onSelectFull={() => {
+          s.setChoiceSheetOpen(false);
+          s.setWizardProjectType('full');
+          s.setCreateWizardOpen(true);
+        }}
+      />
+
       {/* ── Create Project Wizard ── */}
       <CreateProjectWizard
         open={s.createWizardOpen}
@@ -243,6 +267,7 @@ export default function DashboardClient(props: DashboardProps) {
         error={null}
         onClose={() => s.setCreateWizardOpen(false)}
         onSubmit={(payload: CreateProjectPayload) => s.handleCreateProject(payload)}
+        projectFieldType={s.wizardProjectType}
       />
     </div>
   );

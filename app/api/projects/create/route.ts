@@ -3,6 +3,14 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { provisionProjectFolders } from "@/lib/slatedrop/provisioning";
 import { logProjectActivity } from "@/lib/projects/activity-log";
+import { canCreateFullProject } from "@/lib/project-access";
+import { isOwnerEmail } from "@/lib/server/beta-access";
+import type { Tier } from "@/lib/entitlements";
+
+function toTier(v?: string | null): Tier {
+  if (v === "business" || v === "enterprise" || v === "standard") return v;
+  return "trial";
+}
 
 export async function POST(req: NextRequest) {
   const supabase = await createClient();
@@ -20,23 +28,37 @@ export async function POST(req: NextRequest) {
     name?: string;
     description?: string;
     metadata?: Record<string, unknown>;
+    type?: string;
   };
 
   const name = body.name?.trim();
   const description = body.description?.trim() || null;
   const metadata = body.metadata && typeof body.metadata === "object" ? body.metadata : {};
+  const requestedType = body.type === "full" ? "full" : "field";
 
   if (!name) {
     return NextResponse.json({ error: "Project name is required" }, { status: 400 });
   }
 
+  // Resolve org membership + tier for entitlement check
   const { data: membership } = await admin
     .from("organization_members")
-    .select("org_id")
+    .select("org_id, organizations(tier)")
     .eq("user_id", user.id)
     .maybeSingle();
 
   const orgId = membership?.org_id ?? null;
+  const orgRaw = (membership as { organizations?: { tier?: string | null } | null } | null)?.organizations;
+  const orgTier = toTier(orgRaw?.tier);
+  const isSlateCeo = isOwnerEmail(user.email);
+
+  // Entitlement gate: only Business/Enterprise/CEO may create full projects
+  if (requestedType === "full" && !canCreateFullProject(orgTier, isSlateCeo)) {
+    return NextResponse.json(
+      { error: "Full Projects require a Business or Enterprise subscription." },
+      { status: 403 }
+    );
+  }
 
   const rollbackProject = async (projectId: string) => {
     let rollback = admin.from("projects").delete().eq("id", projectId);
@@ -53,8 +75,9 @@ export async function POST(req: NextRequest) {
       metadata,
       status: "active",
       created_by: user.id,
+      project_type: requestedType,
     })
-    .select("id, name, description, metadata, status, created_at")
+    .select("id, name, description, metadata, status, project_type, created_at")
     .single();
 
   if (projectError || !createdProject) {
@@ -96,6 +119,7 @@ export async function POST(req: NextRequest) {
     entityId: createdProject.id,
     metadata: {
       name: createdProject.name,
+      project_type: requestedType,
     },
   });
 
