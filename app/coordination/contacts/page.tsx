@@ -1,9 +1,8 @@
 import { redirect } from "next/navigation";
-import { Mail, Phone, Users2 } from "lucide-react";
 import { CoordinationHubShell } from "@/components/coordination/CoordinationHubShell";
 import { resolveServerOrgContext } from "@/lib/server/org-context";
 import { createAdminClient } from "@/lib/supabase/admin";
-import GlassCard from "@/components/shared/GlassCard";
+import { ContactsClient } from "@/components/coordination/ContactsClient";
 
 export const metadata = { title: "Contacts — Slate360" };
 export const dynamic = "force-dynamic";
@@ -23,7 +22,7 @@ export default async function CoordinationContactsPage() {
       .eq("org_id", ctx.orgId)
       .eq("is_archived", false)
       .order("name")
-      .limit(100);
+      .limit(200);
     contacts.push(...((data ?? []) as ContactRow[]));
   }
 
@@ -33,44 +32,8 @@ export default async function CoordinationContactsPage() {
       eyebrow="Coordination"
       title="Contacts"
     >
-      {contacts.length === 0 ? (
-        <GlassCard className="p-10 text-center border-dashed">
-          <Users2 className="mx-auto h-8 w-8 text-slate-500" />
-          <p className="mt-3 font-black text-slate-300">No contacts yet</p>
-        </GlassCard>
-      ) : (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {contacts.map((c) => <ContactCard key={c.id} contact={c} />)}
-        </div>
-      )}
+      <ContactsClient contacts={contacts} />
     </CoordinationHubShell>
   );
 }
 
-function ContactCard({ contact }: { contact: ContactRow }) {
-  return (
-    <div className="rounded-3xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm">
-      <div className="flex items-center gap-3">
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl text-sm font-black text-white" style={{ backgroundColor: contact.color ?? "#2563EB" }}>
-          {contact.initials ?? contact.name.slice(0, 2).toUpperCase()}
-        </span>
-        <div className="min-w-0 flex-1">
-          <p className="truncate font-black text-slate-50">{contact.name}</p>
-          {contact.company && <p className="truncate text-xs text-slate-400">{contact.company}</p>}
-        </div>
-      </div>
-      <div className="mt-3 space-y-1">
-        {contact.email && (
-          <a href={`mailto:${contact.email}`} className="flex items-center gap-2 text-xs text-slate-400 hover:text-slate-200">
-            <Mail className="h-3.5 w-3.5 shrink-0" /><span className="truncate">{contact.email}</span>
-          </a>
-        )}
-        {contact.phone && (
-          <a href={`tel:${contact.phone}`} className="flex items-center gap-2 text-xs text-slate-400 hover:text-slate-200">
-            <Phone className="h-3.5 w-3.5 shrink-0" /><span className="truncate">{contact.phone}</span>
-          </a>
-        )}
-      </div>
-    </div>
-  );
-}
