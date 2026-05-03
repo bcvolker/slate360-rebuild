@@ -14,11 +14,6 @@ import { Tabs, TabsContent } from "@/components/ui/tabs";
 import {
   ChevronLeft,
   BarChart3,
-  Palette,
-  Globe,
-  Film,
-  Layers,
-  Compass,
   User,
   Shield,
 } from "lucide-react";
@@ -46,9 +41,6 @@ function useVisibleTabs(
   canAccessOperationsConsole: boolean,
 ): DashTab[] {
   const ALL_TABS: (DashTab & { entKey?: keyof typeof ent; requiredTier?: import("@/lib/entitlements").Tier })[] = [
-    { id: "design-studio",  label: "Design Studio",  icon: Palette,         color: "#7C3AED", entKey: "canAccessDesignStudio", requiredTier: "standard" },
-    { id: "content-studio", label: "Content Studio", icon: Layers,          color: "#EC4899", entKey: "canAccessContent",      requiredTier: "standard" },
-    { id: "tours",          label: "360 Tours",      icon: Compass,         color: "#0891B2", entKey: "canAccessStandaloneTourBuilder",  requiredTier: "standard" },
     { id: "analytics",      label: "Analytics",      icon: BarChart3,       color: "#6366F1", entKey: "canAccessAnalytics",    requiredTier: "business" },
     { id: "my-account",     label: "My Account",     icon: User,            color: "#3B82F6" },
   ];

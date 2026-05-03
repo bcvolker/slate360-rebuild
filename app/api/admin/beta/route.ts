@@ -45,6 +45,7 @@ export const PATCH = (req: NextRequest) =>
       account_status?: string;
       is_beta_approved?: boolean;
       is_app_reviewer?: boolean;
+      is_foundational_user?: boolean;
       approved_at?: string | null;
     };
     const update: ProfileUpdate = {};
@@ -53,6 +54,7 @@ export const PATCH = (req: NextRequest) =>
       update.account_status = body.approved ? "approved" : "pending_approval";
       update.is_beta_approved = body.approved;
       update.approved_at = body.approved ? new Date().toISOString() : null;
+      if (body.approved) update.is_foundational_user = true;
     }
     if (typeof body.isAppReviewer === "boolean") {
       update.is_app_reviewer = body.isAppReviewer;

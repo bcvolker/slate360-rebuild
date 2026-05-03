@@ -5,6 +5,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { Eye, EyeOff, ArrowRight, Loader2 } from "lucide-react";
 import SignupConfirmation from "@/components/auth/SignupConfirmation";
+import { SignupDemographics } from "@/components/auth/SignupDemographics";
 import { SlateLogo } from "@/components/shared/SlateLogo";
 
 export default function SignupPage() {
@@ -20,6 +21,7 @@ export default function SignupPage() {
   const [referralSource, setReferralSource] = useState("");
   // Referral code — auto-filled from ?ref=CODE URL param. Locked once set
   // from URL so the original referral attribution is preserved.
+  const [orgRequest, setOrgRequest] = useState("");
   const [referredBy, setReferredBy] = useState("");
   const [referredByLocked, setReferredByLocked] = useState(false);
   const [showPass, setShowPass] = useState(false);
@@ -65,6 +67,7 @@ export default function SignupPage() {
           password,
           name,
           redirectAfter,
+          orgRequest: orgRequest.trim() || null,
           demographics: {
             company: company || null,
             jobTitle: jobTitle || null,
@@ -194,76 +197,16 @@ export default function SignupPage() {
             </div>
 
             {/* Optional demographic fields — helps tailor your experience */}
-            <details className="group rounded-xl border border-input bg-card/40 px-4 py-3">
-              <summary className="flex items-center justify-between cursor-pointer text-xs font-semibold text-slate-500 hover:text-slate-900">
-                <span>Tell us about your work <span className="text-slate-500 font-normal">(optional)</span></span>
-                <span className="text-slate-500 group-open:rotate-180 transition-transform">▾</span>
-              </summary>
-              <div className="mt-4 space-y-3">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="auth-label">Company / Organization</label>
-                    <input type="text" value={company} onChange={(e) => setCompany(e.target.value)} placeholder="Acme Construction" className="auth-input" />
-                  </div>
-                  <div>
-                    <label className="auth-label">Job title</label>
-                    <input type="text" value={jobTitle} onChange={(e) => setJobTitle(e.target.value)} placeholder="Project Manager" className="auth-input" />
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="auth-label">Industry</label>
-                    <select value={industry} onChange={(e) => setIndustry(e.target.value)} className="auth-input">
-                      <option value="">Select…</option>
-                      <option>General Contractor</option>
-                      <option>Architecture</option>
-                      <option>Engineering</option>
-                      <option>Owner / Developer</option>
-                      <option>Subcontractor</option>
-                      <option>Real Estate</option>
-                      <option>Education</option>
-                      <option>Government / Public Works</option>
-                      <option>Other</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="auth-label">Company size</label>
-                    <select value={companySize} onChange={(e) => setCompanySize(e.target.value)} className="auth-input">
-                      <option value="">Select…</option>
-                      <option>Just me</option>
-                      <option>2–10</option>
-                      <option>11–50</option>
-                      <option>51–200</option>
-                      <option>201–1000</option>
-                      <option>1000+</option>
-                    </select>
-                  </div>
-                </div>
-                <div>
-                  <label className="auth-label">How did you hear about us?</label>
-                  <input type="text" value={referralSource} onChange={(e) => setReferralSource(e.target.value)} placeholder="Search, colleague, conference…" className="auth-input" />
-                </div>
-                <div>
-                  <label className="auth-label">
-                    Referred by
-                    {referredByLocked && (
-                      <span className="ml-2 text-[10px] text-primary font-semibold uppercase tracking-wider">From link</span>
-                    )}
-                  </label>
-                  <input
-                    type="text"
-                    value={referredBy}
-                    onChange={(e) => setReferredBy(e.target.value.toUpperCase())}
-                    placeholder="Referral code (optional)"
-                    readOnly={referredByLocked}
-                    className={`auth-input uppercase ${referredByLocked ? "opacity-70 cursor-not-allowed" : ""}`}
-                  />
-                  <p className="text-[11px] text-slate-600 mt-1">
-                    Both you and your referrer earn rewards once your subscription clears.
-                  </p>
-                </div>
-              </div>
-            </details>
+            <SignupDemographics
+              company={company} setCompany={setCompany}
+              jobTitle={jobTitle} setJobTitle={setJobTitle}
+              industry={industry} setIndustry={setIndustry}
+              companySize={companySize} setCompanySize={setCompanySize}
+              referralSource={referralSource} setReferralSource={setReferralSource}
+              orgRequest={orgRequest} setOrgRequest={setOrgRequest}
+              referredBy={referredBy} setReferredBy={setReferredBy}
+              referredByLocked={referredByLocked}
+            />
             <div className="space-y-2.5 pt-1">
               <label className="flex items-start gap-3 cursor-pointer">
                 <input type="checkbox" required checked={agreeTerms} onChange={(e) => setAgreeTerms(e.target.checked)}

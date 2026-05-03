@@ -16,7 +16,7 @@ export async function POST(req: Request) {
   if (blocked) return blocked;
 
   try {
-    const { email, password, name, redirectAfter, demographics } = await req.json();
+    const { email, password, name, redirectAfter, demographics, orgRequest } = await req.json();
 
     if (!email || !password) {
       return NextResponse.json(
@@ -69,6 +69,15 @@ export async function POST(req: Request) {
         { error: linkError.message },
         { status: 400 }
       );
+    }
+
+    // Write signup_org_request to the profiles row if provided.
+    // Runs best-effort — a failure here should not block account creation.
+    if (typeof orgRequest === "string" && orgRequest.trim().length > 0) {
+      await supabase
+        .from("profiles")
+        .update({ signup_org_request: orgRequest.trim() })
+        .eq("id", linkData.user.id);
     }
 
     // Send the confirmation email via Resend

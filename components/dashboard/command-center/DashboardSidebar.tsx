@@ -15,9 +15,6 @@ import {
   MapPin,
   FolderKanban,
   Shield,
-  Compass,
-  Palette,
-  Film,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { shouldHideInAppStoreMode } from "@/lib/app-store-mode";
@@ -37,9 +34,6 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Projects", icon: FolderKanban, href: "/projects" },
   { label: "SlateDrop", icon: Inbox, href: "/slatedrop" },
   { label: "Site Walk", icon: MapPin, href: "/site-walk/walks", matchPrefix: "/site-walk" },
-  { label: "360 Tours", icon: Compass, href: "/tours", comingSoon: true },
-  { label: "Design Studio", icon: Palette, href: "/design-studio", comingSoon: true },
-  { label: "Content Studio", icon: Film, href: "/content-studio", comingSoon: true },
   { label: "My Account", icon: CreditCard, href: "/my-account" },
 ];
 

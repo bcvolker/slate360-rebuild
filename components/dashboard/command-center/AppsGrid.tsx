@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Compass, FileText, MapPin, Palette, type LucideIcon } from "lucide-react";
+import { ArrowRight, MapPin, type LucideIcon } from "lucide-react";
 import type { Entitlements } from "@/lib/entitlements";
 import { shouldHideInAppStoreMode } from "@/lib/app-store-mode";
 
@@ -31,33 +31,7 @@ const APPS: AppCard[] = [
     href: "/site-walk",
     icon: MapPin,
   },
-  {
-    key: "tours",
-    name: "360 Tours",
-    tagline: "Immersive walkthroughs with project context.",
-    href: "/apps/360-tour-builder",
-    icon: Compass,
-    entitlement: "canAccessStandaloneTourBuilder",
-    comingSoon: true,
-  },
-  {
-    key: "design-studio",
-    name: "Design Studio",
-    tagline: "Connected 2D and 3D design review.",
-    href: "/apps/design-studio",
-    icon: Palette,
-    entitlement: "canAccessStandaloneDesignStudio",
-    comingSoon: true,
-  },
-  {
-    key: "content-studio",
-    name: "Content Studio",
-    tagline: "Branded media and content delivery.",
-    href: "/apps/content-studio",
-    icon: FileText,
-    entitlement: "canAccessStandaloneContentStudio",
-    comingSoon: true,
-  },
+
 ];
 
 interface AppsGridProps {
