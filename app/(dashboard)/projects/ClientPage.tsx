@@ -111,7 +111,7 @@ export default function ProjectsClientPage() {
             </span>
             <div className="min-w-0">
               <p className="text-[11px] font-black uppercase tracking-[0.18em] text-blue-200">Work directory</p>
-              <h1 className="truncate text-2xl font-black text-white">Projects & Field Projects</h1>
+              <h1 className="truncate text-2xl font-black text-white">Projects</h1>
             </div>
           </div>
           <button

@@ -196,7 +196,47 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-05-04 (Slice 4 — Site Walk Act 1 Setup)
+### Session Handoff — 2026-05-04 (Slice 3.5 — Shell Neutrality & Polish)
+
+#### What Changed
+- `components/dashboard/command-center/CommandCenterContent.tsx` — "Start Walk" quick action replaced with entitlement-aware primary CTA: shows "New Walk" (→ `/site-walk/setup`) only when `canAccessStandalonePunchwalk` is true; falls back to "New Project" (→ `/projects`) for any user without Site Walk access. "Recent Walks" section now hidden for non-punchwalk users. List sections wrapped in `max-h-[320px] overflow-y-auto` to cap growth.
+- `app/coordination/inbox/page.tsx` — Removed "Go to Site Walk" link from empty state. Added `<InboxTabs>` shell with All | Unread | Notifications tabs (URL search-params driven, no hard-refresh). Empty state copy is now neutral.
+- `app/coordination/calendar/page.tsx` — Removed "Start a Walk" link from empty state. Replaced with neutral copy about cross-project events.
+- `components/coordination/InboxTabs.tsx` — NEW client component. Three-tab bar (All | Unread | Notifications) using `useSearchParams` + `usePathname`. Wraps its children in a `max-h-[420px] overflow-y-auto no-scrollbar` container for mobile containment.
+- `app/(dashboard)/projects/ClientPage.tsx` — "Projects & Field Projects" heading changed to "Projects".
+- `slate360-context/ONGOING_ISSUES.md` — Added BUG-057 (shell neutrality). Updated datestamp.
+
+#### Commits
+- `[pending]` — "fix(shell): Slice 3.5 — app-neutral shell, inbox tabs, projects label"
+
+#### What's Broken / Partially Done
+- `InboxTabs` uses `next/navigation` `useSearchParams` which requires a `<Suspense>` boundary above it in Next.js 15 for the page to render without the static export warning. Current setup is `force-dynamic` so it will work in production, but could emit a build-time warning. Add `<Suspense>` wrapper in the inbox page if warnings appear.
+- The primary CTA in the quick-actions grid uses `entitlements?.canAccessStandalonePunchwalk`. For V1 all approved users have Site Walk access so this always shows "New Walk". The logic is correct for multi-app future.
+- Contrast/visual polish (dark sections blending together) is OPEN — needs a CSS design token pass in `globals.css`. Not addressed in this slice.
+- Inbox tabs display the same empty state regardless of active tab — tabs are structural scaffolding only; real filtering requires inbox data rows from `coordination_messages` or similar.
+
+#### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md` — this handoff
+- `slate360-context/ONGOING_ISSUES.md` — BUG-057 added
+
+#### Progress
+- ✅ Slice 0 — Shell Correction
+- ✅ Slice 1 — Approval Gate
+- ✅ Slice 2 — V1 UI Scrub
+- ✅ Slice 3 — Field Project Model
+- ✅ Slice 3.5 — Shell Neutrality & Polish (this slice)
+- ✅ Slice 4 — Site Walk Act 1 Setup
+- ❌ Slice 5 — Site Walk Act 2 Capture (IndexedDB-first, visual polish, task assignment)
+- ❌ Slice 6 — Deliverables
+- ❌ Slice 7 — Executive Viewer
+- ❌ Slice 8 — App Store Readiness
+
+#### Next Steps (ordered)
+1. **Contrast / Visual Polish pass** — globals.css token update to create card-surface separation without zebra effect. The ask: subtle elevation via border brightness + surface background variation (e.g., `bg-slate-900/60` cards on `bg-[#0B0F15]` base). Do NOT add bg-white.
+2. **Slice 5 — Site Walk Act 2 Capture** — drop screenshots into `/workspaces/slate360-rebuild/screenshots/capture/` before executing. Known issues: visual sections blend, filler dropdown content, no task/assignee from contacts, voice UX needs separation.
+3. FIREWALL: `/site-walk/(act-2-inputs)/capture/_components/` — do NOT modify CaptureShell, SiteWalkSessionProvider, WalkHeader, SessionExitModal without reading them completely first.
+
+
 
 #### What Changed
 - `app/site-walk/(act-1-setup)/setup/page.tsx` — projects query now filters `project_type='field'` so only Field Projects appear in the setup form.
