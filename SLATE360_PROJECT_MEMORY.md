@@ -196,6 +196,49 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
+### Session Handoff — 2026-05-03 (Slice 1 — Approval Gate)
+
+#### What Changed
+- `supabase/migrations/20260503000001_add_v1_approval_gate.sql` — **Applied to live DB**. Added `account_status` (text CHECK pending_approval|approved|suspended), `is_app_reviewer` (bool), `is_foundational_user` (bool), `signup_org_request` (text), `approved_at`, `approved_by`, `rejection_reason`. Backfilled: `is_beta_approved=true` rows → `account_status='approved'`. Two triggers: (1) `trg_sync_account_status` keeps `is_beta_approved` in sync whenever `account_status` changes; (2) `trg_auto_set_app_reviewer` auto-approves emails ending in `+ios@slate360.ai` or `+android@slate360.ai`. Performance index on `(account_status) WHERE pending_approval`.
+- `middleware.ts` — Parallel `profiles` query added alongside existing org-membership fetch. New approval gate: authenticated users on protected routes with `account_status != 'approved'` AND `is_app_reviewer != true` redirected to `/pending-verification`. Owner (CEO_EMAIL) bypasses. Added `/projects` to `isBetaProtectedRoute` (was missing — pre-existing bug now fixed).
+- `app/pending-verification/page.tsx` — NEW canonical pending screen. Dark Glass, standalone (no AppShell nav), no banned terminology, shows user email + org request, recheck button, V1 data-rights messaging.
+- `app/beta-pending/page.tsx` — Now a one-line redirect to `/pending-verification` for backward compat.
+- `lib/server/beta-access.ts` — `requireBetaAccess()` now redirects to `/pending-verification`.
+- `app/api/admin/beta/route.ts` — GET now returns `account_status, is_app_reviewer`. PATCH can write `account_status`, `is_beta_approved` (kept for sync), and `is_app_reviewer`. Proper typed update payload (no `any`).
+- `lib/hooks/useBetaUsers.ts` — `BetaUser` type updated: added `account_status: string`, `is_app_reviewer: boolean`. State update after toggle preserves new fields.
+- `lib/server/operations-console-counts.ts` — `pendingAccess` count now queries `account_status = 'pending_approval'` (was `is_beta_approved = false`).
+- `components/dashboard/OperationsConsoleClient.tsx` — Approval filter + user row badges now use `account_status`. Suspended state added (red badge). `is_app_reviewer` shown as blue "Reviewer" badge in the same cell.
+
+#### V1 Access Flow (now live)
+1. User downloads app → creates account → `account_status = 'pending_approval'` by default
+2. Middleware intercepts any protected route → redirects to `/pending-verification`
+3. Owner logs into Operations Console → sees pending queue → clicks Approve
+4. API sets `account_status = 'approved'` → trigger sets `is_beta_approved = true`
+5. User clicks "Check my status" → `router.refresh()` → page server-render detects approval → `redirect('/dashboard')`
+6. App Store reviewers: email ends in `+ios@slate360.ai` → auto-approved via DB trigger, bypasses pending screen
+
+#### What's Broken / Partially Done
+- `signup_org_request` column exists but is NOT being populated at signup yet. The pending-verification page gracefully skips it if null. Slice 1.5 could add a "What org are you with?" field to the signup flow.
+- `/pending-verification` page is NOT reachable if user is not logged in (redirects to /login instead). This is correct behavior.
+- Ghost apps (360 Tours, Design Studio, Content Studio) still visible in DashboardSidebar + AppsGrid + DashboardClient tabs — deferred to Slice 2 (V1 UI Scrub).
+- `is_foundational_user` column exists but is not being set on new approvals — Operations Console Approve action should set it. Wire in a later slice or as part of the PATCH update.
+
+#### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md` — this handoff
+
+#### Next Steps (corrected build order)
+1. **Slice 2 — V1 UI Scrub**: Feature-flag or remove ghost apps from active V1 UI (DashboardSidebar lines 40-42, AppsGrid, DashboardClient lines 49-51, /tours route). Pure UI — no DB.
+2. **Slice 3 — Field Project Model**: `project_type: 'field' | 'full'` on `projects` table, Field Project creation flow, storage routing
+3. **Slice 4 — Site Walk Act 1** rebuilt around Field Projects
+4. **Slice 5 — Site Walk Act 2 Capture** audit + IndexedDB-first rebuild
+5. **Slice 6 — Site Walk Act 3 Deliverables**
+6. **Slice 7 — Executive Viewer role**
+7. **Slice 8 — App Store Readiness** (Capacitor, icon, permissions, reviewer credentials, account deletion)
+
+Owner decisions still needed:
+- Distribution track for ASU iOS: public-gated vs Apple School Manager Custom App vs TestFlight
+- Cobalt → Gold/Amber palette migration approval (not blocking V1 but conflicts with stated brand direction)
+
 ### Session Handoff — 2026-05-02 (Slice 0 — Shell Correction)
 
 #### What Changed
