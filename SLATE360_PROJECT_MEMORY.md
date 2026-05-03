@@ -196,6 +196,43 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
+### Session Handoff — 2026-05-03 (Security Cleanup — Bot Purge + Bot Prevention)
+
+#### What Changed
+- `lib/server/turnstile.ts` — NEW. `verifyTurnstile(token)` helper. POSTs to Cloudflare Turnstile siteverify endpoint. Graceful degradation: allows through when `TURNSTILE_SECRET_KEY` is not set; blocks when key IS set but token is missing/invalid.
+- `app/api/auth/signup/route.ts` — Added honeypot check (silent fake success when `hp` field is populated) + Cloudflare Turnstile CAPTCHA verification via `verifyTurnstile(cfToken)` before account creation.
+- `app/signup/page.tsx` — Added `hp` honeypot input (offscreen, `tabIndex=-1`, `aria-hidden`), Cloudflare Turnstile widget (`cf-turnstile` div with `data-sitekey`), JS callbacks `_s360TurnstileOk` / `_s360TurnstileExp`, Script tag for Cloudflare challenge.js. Submit button disabled until token received (when site key is configured).
+- `lib/server/rate-limit.ts` — Rate limit warning upgraded from `console.warn` to `console.error` with actionable message directing to Upstash.
+- `next.config.ts` — CSP updated: `https://challenges.cloudflare.com` added to `script-src`, `frame-src`, and `connect-src`.
+
+#### Bot Attack Summary
+- 202 Turkish-pattern bot accounts created 2026-04-27, all unconfirmed.
+- Root cause: `UPSTASH_REDIS_REST_URL=""` in `.env.local` → rate limiter disabled → bots used our full `/api/auth/signup` API.
+- Secondary vector confirmed: Supabase anon key can be used to POST directly to `/auth/v1/signup` bypassing our API entirely.
+- All 202 bots deleted via admin API (CEO account `slate360ceo@gmail.com` protected by Supabase).
+- Resend domain `slate360.ai` verified, sending-enabled, key valid. Bot emails were sent but bounced at recipient (last_event: "failed").
+
+#### Supabase User State (post-cleanup)
+- Only 1 user: `slate360ceo@gmail.com` — confirmed, enterprise tier, `is_ceo:true`, `is_platform_admin:true`, `canAccessCeo:true`.
+
+#### What's Broken / Partially Done
+- **CRITICAL**: `UPSTASH_REDIS_REST_URL=""` — rate limiting is fully disabled in production. Must add Upstash Redis to Vercel env vars.
+- **CRITICAL**: Supabase direct signup bypass is open. The public anon key can POST to `/auth/v1/signup` without hitting our API. Fix: Supabase Dashboard → Auth → Providers → Email → **Disable "Allow new users to sign up"**.
+- **Turnstile dormant**: `NEXT_PUBLIC_TURNSTILE_SITE_KEY` and `TURNSTILE_SECRET_KEY` not yet added to Vercel env. Code is live; keys activate it instantly.
+- Security changes committed but not yet pushed to GitHub.
+
+#### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md` — this handoff
+
+#### Next Steps (ordered)
+1. **MANUAL — Supabase Dashboard**: Auth → Providers → Email → Disable "Allow new users to sign up" (closes anon-bypass).
+2. **MANUAL — Upstash**: Create free Redis DB at https://upstash.com → add `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` to Vercel + `.env.local`.
+3. **MANUAL — Cloudflare Turnstile**: dash.cloudflare.com → Turnstile → Add Site (`slate360.ai` + `localhost`) → copy keys → add `NEXT_PUBLIC_TURNSTILE_SITE_KEY` and `TURNSTILE_SECRET_KEY` to Vercel.
+4. Push security commit to GitHub (auto-deploys to Vercel).
+5. Create a real test account and verify: confirmation email arrives → approval-gate landing page appears → CEO can approve from Operations Console.
+6. Check Resend monthly quota at resend.com/overview — free tier is 3k/month; upgrade to Pro ($20/mo) before ASU V1 launch.
+7. Resume **Slice 5 — Site Walk Act 2 Capture** (see prior handoff below).
+
 ### Session Handoff — 2026-05-03 (Visual Elevation & Contrast Pass — Slice 3.6)
 
 #### What Changed

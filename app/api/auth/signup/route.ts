@@ -8,6 +8,7 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendConfirmationEmail } from "@/lib/email";
 import { createRateLimiter } from "@/lib/server/rate-limit";
+import { verifyTurnstile } from "@/lib/server/turnstile";
 
 const checkRate = createRateLimiter("auth:signup", 5, 900); // 5 signups per IP per 15 min
 
@@ -16,7 +17,22 @@ export async function POST(req: Request) {
   if (blocked) return blocked;
 
   try {
-    const { email, password, name, redirectAfter, demographics, orgRequest } = await req.json();
+    const { email, password, name, redirectAfter, demographics, orgRequest, hp, cfToken } = await req.json();
+
+    // ── Honeypot check — bots fill this field, humans never do ──────────
+    if (typeof hp === "string" && hp.length > 0) {
+      // Silent fake success to confuse the bot; no account created
+      return NextResponse.json({ success: true, message: "Account created. Check your email for your verification link." });
+    }
+
+    // ── Cloudflare Turnstile CAPTCHA ────────────────────────────────────
+    const captchaOk = await verifyTurnstile(cfToken as string | null);
+    if (!captchaOk) {
+      return NextResponse.json(
+        { error: "CAPTCHA verification failed. Please refresh the page and try again." },
+        { status: 400 }
+      );
+    }
 
     if (!email || !password) {
       return NextResponse.json(

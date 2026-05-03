@@ -1,12 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Script from "next/script";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { Eye, EyeOff, ArrowRight, Loader2 } from "lucide-react";
 import SignupConfirmation from "@/components/auth/SignupConfirmation";
 import { SignupDemographics } from "@/components/auth/SignupDemographics";
 import { SlateLogo } from "@/components/shared/SlateLogo";
+
+const TURNSTILE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "";
 
 export default function SignupPage() {
   const [email, setEmail] = useState("");
@@ -35,6 +38,9 @@ export default function SignupPage() {
   const [agreePrivacy, setAgreePrivacy] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [selectedBilling, setSelectedBilling] = useState<"monthly" | "annual">("monthly");
+  // Bot prevention
+  const [hp, setHp] = useState("");           // honeypot — bots fill this, humans never see it
+  const [cfToken, setCfToken] = useState(""); // Cloudflare Turnstile token
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -47,6 +53,15 @@ export default function SignupPage() {
       setReferredBy(ref.trim().toUpperCase());
       setReferredByLocked(true);
     }
+  }, []);
+
+  // Register Turnstile global callbacks once on mount
+  useEffect(() => {
+    if (!TURNSTILE_KEY) return;
+    const g = globalThis as Record<string, unknown>;
+    g["_s360TurnstileOk"] = (t: string) => setCfToken(t);
+    g["_s360TurnstileExp"] = () => setCfToken("");
+    return () => { delete g["_s360TurnstileOk"]; delete g["_s360TurnstileExp"]; };
   }, []);
 
   const supabase = createClient();
@@ -68,6 +83,8 @@ export default function SignupPage() {
           name,
           redirectAfter,
           orgRequest: orgRequest.trim() || null,
+          hp,
+          cfToken: cfToken || null,
           demographics: {
             company: company || null,
             jobTitle: jobTitle || null,
@@ -229,11 +246,42 @@ export default function SignupPage() {
               </label>
             </div>
 
-            <button type="submit" disabled={loading || !!oauthLoading || !agreeTerms || !agreePrivacy}
+            <button type="submit" disabled={loading || !!oauthLoading || !agreeTerms || !agreePrivacy || (!!TURNSTILE_KEY && !cfToken)}
               className="auth-btn-primary disabled:cursor-not-allowed">
               {loading ? <Loader2 size={16} className="animate-spin" /> : <>Create account <ArrowRight size={15} /></>}
             </button>
+
+            {/* Honeypot — visually hidden, off-screen. Bots fill it; real users never see it. */}
+            <input
+              type="text"
+              name="website"
+              value={hp}
+              onChange={(e) => setHp(e.target.value)}
+              tabIndex={-1}
+              autoComplete="off"
+              aria-hidden="true"
+              style={{ position: "absolute", left: "-9999px", top: "-9999px", width: "1px", height: "1px", opacity: 0 }}
+            />
+
+            {/* Cloudflare Turnstile CAPTCHA widget — only renders when site key is set */}
+            {TURNSTILE_KEY && (
+              <div
+                className="cf-turnstile"
+                data-sitekey={TURNSTILE_KEY}
+                data-callback="_s360TurnstileOk"
+                data-expired-callback="_s360TurnstileExp"
+                data-theme="dark"
+              />
+            )}
           </form>
+
+          {/* Turnstile script — loaded lazily, only when key is configured */}
+          {TURNSTILE_KEY && (
+            <Script
+              src="https://challenges.cloudflare.com/turnstile/v0/api.js"
+              strategy="lazyOnload"
+            />
+          )}
         </div>
       </div>
     </div>

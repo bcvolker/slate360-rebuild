@@ -46,7 +46,11 @@ export function createRateLimiter(
   return async function checkRateLimit(req: Request): Promise<NextResponse | null> {
     if (!limiter) {
       if (process.env.NODE_ENV === "production") {
-        console.warn("[rate-limit] Upstash not configured — rate limiting disabled in production!");
+        console.error(
+          "[rate-limit] CRITICAL: Upstash Redis is not configured in production. " +
+          "Rate limiting is DISABLED. Set UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN " +
+          "at https://upstash.com (free tier) to prevent abuse."
+        );
       }
       return null;
     }
