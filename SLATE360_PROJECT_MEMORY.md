@@ -212,7 +212,7 @@ When editing oversized files, always read both the state declarations AND the JS
 `e8b692f` — "Slice 2: V1 UI scrub + data polish"
 
 #### What's Broken / Partially Done
-- **DB migration not confirmed live**: `supabase/migrations/20260503000001_add_v1_approval_gate.sql` exists in git but the `supabase db push` CLI timed out in Codespaces and all API calls failed. The `signup_org_request`, `is_foundational_user`, `account_status`, etc. columns may NOT be in the live Supabase schema. **Must apply manually via Supabase Dashboard → SQL Editor before Slice 1 features work in production.**
+- **DB migration confirmed live** (`e8b692f` + manual apply via Supabase Management API): all 7 columns in `profiles` verified — `account_status` (default `pending_approval`), `is_app_reviewer`, `is_foundational_user`, `signup_org_request`, `approved_at`, `approved_by`, `rejection_reason`. Both triggers live: `trg_sync_account_status` + `trg_auto_set_app_reviewer`. Slice 1 is fully operational.
 - Ghost apps removed from nav/tabs but their corresponding route pages still exist (`/design-studio`, `/content-studio`). They're already blocked by middleware `PHASE_1_BLOCKED_PATHS`. No action needed for V1 but those pages should be removed in a cleanup slice.
 - `shouldHideInAppStoreMode` import still in DashboardSidebar (line 20) — it's used in the render filter at line 97 even though no items have `comingSoon` anymore. Harmless, no-op filter. Clean up later.
 
