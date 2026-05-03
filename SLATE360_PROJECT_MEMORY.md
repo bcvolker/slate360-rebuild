@@ -196,6 +196,41 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
+### Session Handoff — 2026-05-03 (Slice 3 — Field Project Model)
+
+#### What Changed
+- `supabase/migrations/20260503000002_add_project_type.sql` — **Applied to live DB**. `project_type TEXT NOT NULL DEFAULT 'field' CHECK ('field'|'full')`, `converted_from_id UUID FK -> projects(id)`, `converted_at TIMESTAMPTZ`. All existing rows backfilled to `project_type='field'`. Indexes: `idx_projects_project_type`, `idx_projects_org_id_type`.
+- `lib/project-access.ts` — NEW. `canCreateFullProject(tier, isSlateCeo): boolean` (Business/Enterprise/CEO only). `canCreateFieldProject(): boolean` (always true — all tiers).
+- `app/api/projects/create/route.ts` — Accepts `type: 'field' | 'full'` in request body. Resolves org tier from `organizations.tier`. Returns 403 if `type='full'` and user is not Business/Enterprise/CEO. Inserts `project_type` into DB row.
+- `components/project-hub/CreateProjectWizard.tsx` — `CreateProjectPayload` now includes `type: 'field' | 'full'`. New `projectFieldType` prop. Header dynamically shows "New Field Project" or "New Full Project".
+- `components/project-hub/ProjectTypeChoiceSheet.tsx` — NEW Dark Glass modal. Only shown to Business/Enterprise users. Two functional buttons: Field Project (blue/MapPin) and Full Project (purple/Building2). Trial/Standard users skip this — wizard opens directly as Field.
+- `lib/hooks/useDashboardState.ts` — Added `wizardProjectType` state, `choiceSheetOpen` state, `canCreateFull` computed value. `handleCreateProject` now forwards `type: wizardProjectType` in API payload.
+- `components/dashboard/DashboardClient.tsx` — "New Project" click: if `canCreateFull` → opens `ProjectTypeChoiceSheet`; else → opens wizard directly as `'field'`. `ProjectTypeChoiceSheet` wired with `onSelectField`/`onSelectFull` callbacks.
+
+#### Commit
+`95b7fcb` — "Slice 3: Field Project Model"
+
+#### Live DB Verification
+Both migrations fully applied and column-verified:
+- `profiles`: `account_status`, `is_app_reviewer`, `is_foundational_user`, `signup_org_request`, `approved_at`, `approved_by`, `rejection_reason` ✅
+- `projects`: `project_type` (default `'field'`), `converted_from_id`, `converted_at` ✅
+- Triggers: `trg_sync_account_status`, `trg_auto_set_app_reviewer` ✅
+
+#### What's Broken / Partially Done
+- Project cards in dashboard/projects list do NOT yet show `project_type` badge. Non-breaking — data is stored correctly, just not surfaced in UI. Slice 4 can add the badge.
+- `canCreateFull` is computed from `ent.tier` in the client. For the current ASU test org (trial/standard), "New Project" will open the wizard directly as Field — this is correct behavior.
+- Full Project creation path is wired but the additional folder tree provisioning (`360 Tours/`, `Design Studio/`, etc.) in `provisionProjectFolders` is not yet type-aware. Tracked as future work.
+
+#### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md` — this handoff
+
+#### Next Steps (ordered)
+1. **Slice 4 — Site Walk Act 1 (Field Project Flow)**: Wire `/site-walk/setup` to accept a `projectId` from a Field Project, auto-link session to project, show project name in walk header. Project picker on walk start if user has multiple field projects.
+2. **Slice 5 — Site Walk Act 2 Capture**: IndexedDB-first rebuild, offline capture queue, sync on reconnect
+3. **Slice 6 — Site Walk Act 3 Deliverables**
+4. **Slice 7 — Executive Viewer role**
+5. **Slice 8 — App Store Readiness** (Capacitor, icon, permissions, reviewer credentials, account deletion)
+
 ### Session Handoff — 2026-05-03 (Slice 2 — V1 UI Scrub + Data Polish)
 
 #### What Changed
