@@ -196,7 +196,42 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-05-03 (Slice 3 — Field Project Model)
+### Session Handoff — 2026-05-04 (Slice 4 — Site Walk Act 1 Setup)
+
+#### What Changed
+- `app/site-walk/(act-1-setup)/setup/page.tsx` — projects query now filters `project_type='field'` so only Field Projects appear in the setup form.
+- `app/site-walk/(act-1-setup)/setup/_components/StartWalkForm.tsx` — NEW client component. Dark Glass card rendered at the top of the setup page. Field Project dropdown (from filtered projects), Walk Type picker (Punch/Progress/Inspection/Proposal/General/Safety/Proof of Work), auto-generated title input, "Start Walk" button. On submit: POST `/api/site-walk/sessions` (existing route) → redirect to `/site-walk/capture?session={id}`. Empty-state variant shows "New Field Project" link when org has no field projects. Graceful error display.
+- `app/site-walk/(act-1-setup)/setup/_components/SiteWalkSetupClient.tsx` — `StartWalkForm` imported and rendered as the first card above the existing org-setup workbook. Layout changed from fixed-height to `space-y-5` stack.
+- `lib/site-walk/metadata.ts` — Already existed with full `captureMetadata()` implementation (GPS, weather, device). No changes needed.
+
+#### Commit
+`3404dee` — "feat(site-walk): Slice 4 — Act 1 Start Walk form"
+
+#### What's Broken / Partially Done
+- `StartWalkForm` "New Project" link targets `/dashboard?tab=projects&create=field` — this param isn't wired in `DashboardClient` yet. It navigates to the dashboard but doesn't auto-open the wizard. Low priority for V1.
+- Capture page redirect uses `?session={id}` — this is correct per `app/site-walk/(act-2-inputs)/capture/page.tsx` which reads `searchParams.session`.
+- No form validation for empty title (falls back to `defaultTitle()` on submit — intentional).
+
+#### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md` — this handoff
+
+#### Progress
+- ✅ Slice 0 — Shell Correction (`80bb5dd`)
+- ✅ Slice 1 — Approval Gate (`eb68d17`, `aae95dd`)
+- ✅ Slice 2 — V1 UI Scrub (`e8b692f`)
+- ✅ Slice 3 — Field Project Model (`95b7fcb`)
+- ✅ Slice 4 — Site Walk Act 1 Setup (`3404dee`)
+- ❌ Slice 5 — Site Walk Act 2 Capture rebuild (IndexedDB-first, visual sections, real dropdowns, task assignment)
+- ❌ Slice 6 — Site Walk Act 3 Deliverables
+- ❌ Slice 7 — Executive Viewer role
+- ❌ Slice 8 — App Store Readiness
+
+#### Next Steps (ordered)
+1. **Slice 5 — Site Walk Act 2 Capture** — Drop screenshots into `/workspaces/slate360-rebuild/screenshots/capture/` before executing; agent will view them and critique before rebuilding. Known issues: visual sections blend together, dropdown options are filler/non-real, no task/assignee assignment, voice UX needs refinement.
+2. Check capture page at `app/site-walk/(act-2-inputs)/capture/page.tsx` + all `_components/` before touching — FIREWALL: CaptureShell, SiteWalkSessionProvider, WalkHeader, SessionExitModal are existing code.
+3. Slice 5 must NOT break `/site-walk/capture?session={id}` routing — the `StartWalkForm` redirect depends on this.
+
+
 
 #### What Changed
 - `supabase/migrations/20260503000002_add_project_type.sql` — **Applied to live DB**. `project_type TEXT NOT NULL DEFAULT 'field' CHECK ('field'|'full')`, `converted_from_id UUID FK -> projects(id)`, `converted_at TIMESTAMPTZ`. All existing rows backfilled to `project_type='field'`. Indexes: `idx_projects_project_type`, `idx_projects_org_id_type`.
