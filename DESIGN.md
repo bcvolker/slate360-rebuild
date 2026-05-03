@@ -4,9 +4,11 @@ Last Updated: 2026-04-28
 
 ## Aesthetic Direction: Dark Glass
 
-We use a **Dark Glass** aesthetic. This uses deep Zinc/Charcoal surfaces with glassmorphic effects (semi-transparent backgrounds, backdrop blur, subtle borders). The primary app-shell accent is the Slate360 cobalt family (`#3B82F6` / hover `#2563EB`) with steel/slate neutrals.
+We use a **Dark Glass** aesthetic. This uses deep Zinc/Charcoal surfaces with glassmorphic effects (semi-transparent backgrounds, backdrop blur, subtle borders).
 
-All primary buttons, links, active states, focus rings, and interactive highlights should use cobalt or semantic CSS tokens that resolve to cobalt. Yellow, gold, amber, and orange are legacy accents and must not be used for primary Site Walk controls.
+**Primary accent for the app shell is amber-gold** (`bg-amber-500 text-slate-950` / hover `bg-amber-400`). Cobalt (`#3B82F6`) remains valid for data-viz, links, focus rings, and market/analytics modules. Shell CTAs, FABs, icon badges, and quick-action hover states must use amber.
+
+Yellow, gold, and orange were legacy accents in earlier builds. Amber is now explicitly the canonical primary for interactive shell surfaces.
 
 ## CSS Custom Properties (globals.css)
 

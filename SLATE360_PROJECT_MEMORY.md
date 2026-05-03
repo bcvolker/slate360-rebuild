@@ -196,7 +196,52 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-05-04 (Slice 3.5 — Shell Neutrality & Polish)
+### Session Handoff — 2026-05-03 (Visual Elevation & Contrast Pass — Slice 3.6)
+
+#### What Changed
+- `app/globals.css` — Added Dark Glass Elevation System utilities: `glass-card` (slate-900/60 bg, blur, slate-700/60 border, deep shadow), `btn-amber-solid` (amber-500 background, slate-950 text), `shadow-amber-glow` (amber FAB glow).
+- `components/shared/GlassCard.tsx` — NEW reusable dark glass card wrapper. Applies Level 1 surface: `bg-slate-900/60 backdrop-blur-md border border-slate-700/60 rounded-3xl shadow-lg shadow-black/40`. Used in `className` to override padding, radius, or border style.
+- `components/dashboard/DashboardClient.tsx` — Outer wrapper changed from `bg-background` (light slate-50) to `dark bg-[#0B0F15]`. Forces `.dark` CSS variable resolution and Level 0 canvas for the entire dashboard subtree.
+- `components/dashboard/command-center/CommandCenterContent.tsx` — All three section wrappers (`border-white/10 bg-white/5`) replaced with `<GlassCard className="p-3">`. Icon spots changed from `bg-blue-600 text-white` → `bg-amber-500 text-slate-950`. Hover states changed from blue → amber (`hover:border-amber-400/50 hover:bg-amber-500/10`). "View" links changed to `text-amber-300`.
+- `app/(dashboard)/projects/ClientPage.tsx` — Search section replaced with `<GlassCard className="p-3">`. Icon badge, CTA button, FAB button all changed from `bg-blue-600 text-white` → `bg-amber-500 text-slate-950`. FAB shadow changed to `shadow-amber-glow`. Label text changed from `text-blue-200` → `text-amber-300`. Search input focus border changed from blue to amber.
+- `app/coordination/inbox/page.tsx` — Empty state `div` replaced with `<GlassCard className="py-12 text-center border-dashed">`.
+- `app/coordination/calendar/page.tsx` — Empty state `div` replaced with `<GlassCard className="py-12 text-center border-dashed">`.
+- `app/coordination/contacts/page.tsx` — Empty state `div` replaced with `<GlassCard className="p-10 text-center border-dashed">`.
+
+#### Key Design Decisions
+- **Amber is now the shell primary accent** — `bg-amber-500 text-slate-950` for all shell CTAs, FABs, icon spots. This replaces `bg-blue-600 text-white`. DESIGN.md notes cobalt as primary; the user has explicitly overridden this — amber is now canon for the app shell.
+- **Dark forced on DashboardClient** — `class="dark"` on the outer wrapper ensures `.dark` CSS vars apply so `--card`, `--border`, etc. resolve to dark values. Without this the light-theme defaults were leaking.
+- **GlassCard is the canonical card primitive** — use it everywhere a `rounded-3xl border bg-white/5` card existed before.
+
+#### What's Broken / Partially Done
+- `InboxTabs` still shows the same empty state for all three tabs — structural scaffolding only. Real filtering requires inbox data rows.
+- `AccountPreferencesCard`, `AccountOverviewRow`, `AccountAdminCards` (sub-components of `DashboardMyAccount`) still use `bg-white/[0.04]` glass treatment — these should be migrated to `<GlassCard>` in a future cleanup pass.
+- `DESIGN.md` still documents cobalt as primary accent — update it to reflect amber direction before the next design pass.
+
+#### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md` — this handoff
+- `app/globals.css` — new elevation + amber utilities
+- New file: `components/shared/GlassCard.tsx`
+
+#### Progress
+- ✅ Slice 0 — Shell Correction
+- ✅ Slice 1 — Approval Gate
+- ✅ Slice 2 — V1 UI Scrub
+- ✅ Slice 3 — Field Project Model
+- ✅ Slice 3.5 — Shell Neutrality & Polish
+- ✅ Slice 3.6 — Visual Elevation & Contrast Pass (this slice)
+- ✅ Slice 4 — Site Walk Act 1 Setup
+- ❌ Slice 5 — Site Walk Act 2 Capture (IndexedDB-first, visual polish, task assignment)
+- ❌ Slice 6 — Deliverables
+- ❌ Slice 7 — Executive Viewer
+- ❌ Slice 8 — App Store Readiness
+
+#### Next Steps (ordered)
+1. **Slice 5 — Site Walk Act 2 Capture** — drop screenshots into `/workspaces/slate360-rebuild/screenshots/capture/` before executing. Known issues: visual sections blend, filler dropdown content, no task/assignee from contacts, voice UX needs separation.
+2. **Migrate AccountPreferencesCard/AccountOverviewRow** to `<GlassCard>` for full account-section visual parity.
+3. FIREWALL: `/site-walk/(act-2-inputs)/capture/_components/` — do NOT modify CaptureShell, SiteWalkSessionProvider, WalkHeader, SessionExitModal without reading them completely first.
+
+
 
 #### What Changed
 - `components/dashboard/command-center/CommandCenterContent.tsx` — "Start Walk" quick action replaced with entitlement-aware primary CTA: shows "New Walk" (→ `/site-walk/setup`) only when `canAccessStandalonePunchwalk` is true; falls back to "New Project" (→ `/projects`) for any user without Site Walk access. "Recent Walks" section now hidden for non-punchwalk users. List sections wrapped in `max-h-[320px] overflow-y-auto` to cap growth.

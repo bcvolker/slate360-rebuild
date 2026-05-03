@@ -3,6 +3,7 @@ import { Mail, Phone, Users2 } from "lucide-react";
 import { CoordinationHubShell } from "@/components/coordination/CoordinationHubShell";
 import { resolveServerOrgContext } from "@/lib/server/org-context";
 import { createAdminClient } from "@/lib/supabase/admin";
+import GlassCard from "@/components/shared/GlassCard";
 
 export const metadata = { title: "Contacts — Slate360" };
 export const dynamic = "force-dynamic";
@@ -33,10 +34,10 @@ export default async function CoordinationContactsPage() {
       title="Contacts"
     >
       {contacts.length === 0 ? (
-        <div className="rounded-3xl border border-dashed border-white/20 bg-white/5 p-10 text-center">
+        <GlassCard className="p-10 text-center border-dashed">
           <Users2 className="mx-auto h-8 w-8 text-slate-500" />
           <p className="mt-3 font-black text-slate-300">No contacts yet</p>
-        </div>
+        </GlassCard>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {contacts.map((c) => <ContactCard key={c.id} contact={c} />)}

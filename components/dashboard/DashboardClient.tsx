@@ -92,7 +92,7 @@ export default function DashboardClient(props: DashboardProps) {
      ================================================================ */
 
   return (
-    <div className="min-h-screen bg-background overflow-x-hidden">
+    <div className="dark min-h-screen bg-[#0B0F15] overflow-x-hidden">
       {/* ════════ MAIN CONTENT ════════ */}
       <main className="max-w-[1440px] mx-auto px-4 sm:px-6 py-6 sm:py-8 overflow-x-hidden">
 

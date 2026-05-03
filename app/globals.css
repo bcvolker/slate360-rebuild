@@ -369,6 +369,40 @@
   box-shadow: var(--app-glow-amber);
 }
 
+/* ─────────────────────────────────────────────────────────────────
+   Dark Glass Elevation System (App Shell — hardcoded dark values)
+   Three surface levels for the authenticated dark shell:
+     Level 0: bg-[#0B0F15]          — base canvas (inline Tailwind JIT)
+     Level 1: glass-card             — card surface (slate-900/60 + blur)
+     Level 2: glass-card + hover     — active / hovered card surface
+   ───────────────────────────────────────────────────────────────── */
+
+@utility glass-card {
+  background-color: rgba(15, 23, 42, 0.60);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(51, 65, 85, 0.60);
+  border-radius: 1.5rem;
+  box-shadow: 0 8px 32px -4px rgba(0, 0, 0, 0.40), 0 2px 6px -2px rgba(0, 0, 0, 0.25);
+  transition: border-color 150ms ease, background-color 150ms ease;
+}
+
+/* Amber primary button — replaces cobalt for all shell CTAs */
+@utility btn-amber-solid {
+  background-color: #F59E0B;
+  color: #0C0A09;
+  transition: background-color 150ms ease, box-shadow 150ms ease;
+  &:hover {
+    background-color: #D97706;
+    box-shadow: 0 0 14px rgba(245, 158, 11, 0.30);
+  }
+}
+
+/* Amber glow shadow for FAB / primary shell buttons */
+@utility shadow-amber-glow {
+  box-shadow: 0 0 20px 0 rgba(245, 158, 11, 0.35), 0 4px 12px 0 rgba(245, 158, 11, 0.20);
+}
+
 @utility bg-app-page {
   background-color: var(--app-page);
 }

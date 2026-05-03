@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import type { Entitlements } from "@/lib/entitlements";
 import { AppsGrid } from "@/components/dashboard/command-center/AppsGrid";
+import GlassCard from "@/components/shared/GlassCard";
 
 interface CommandCenterContentProps {
   userName: string;
@@ -35,18 +36,18 @@ export function CommandCenterContent({ storageLimitGb, entitlements = null }: Co
       <AppsGrid entitlements={entitlements} />
 
       {/* Quick actions — app-neutral core actions + one entitlement-aware primary CTA */}
-      <section className="rounded-3xl border border-white/10 bg-white/5 p-3 shadow-lg backdrop-blur-md">
+      <GlassCard className="p-3">
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4" aria-label="Quick actions">
           <ActionCard href={primaryAction.href} label={primaryAction.label} icon={primaryAction.icon} />
           <ActionCard href="/projects" label="Projects" icon={<FolderOpen className="h-5 w-5" />} />
           <ActionCard href="/slatedrop" label="Files" icon={<Files className="h-5 w-5" />} />
           <ActionCard href="/coordination/inbox" label="Inbox" icon={<MessageSquare className="h-5 w-5" />} />
         </div>
-      </section>
+      </GlassCard>
 
       {/* Recent Activity — only render Site Walk walk list when user has Site Walk access */}
       {hasSiteWalk && (
-        <section className="rounded-3xl border border-white/10 bg-white/5 p-3 shadow-lg backdrop-blur-md">
+        <GlassCard className="p-3">
           <SectionHeader title="Recent Walks" href="/site-walk/walks" />
           <div className="max-h-[320px] overflow-y-auto rounded-xl no-scrollbar">
             <ListCard
@@ -56,11 +57,11 @@ export function CommandCenterContent({ storageLimitGb, entitlements = null }: Co
               icon={<ClipboardCheck className="h-4 w-4" />}
             />
           </div>
-        </section>
+        </GlassCard>
       )}
 
       {/* Inbox — always visible, constrained height */}
-      <section className="rounded-3xl border border-white/10 bg-white/5 p-3 shadow-lg backdrop-blur-md">
+      <GlassCard className="p-3">
         <SectionHeader title="Inbox" href="/coordination/inbox" />
         <div className="max-h-[320px] overflow-y-auto rounded-xl no-scrollbar">
           <ListCard
@@ -70,7 +71,7 @@ export function CommandCenterContent({ storageLimitGb, entitlements = null }: Co
             icon={<MessageSquare className="h-4 w-4" />}
           />
         </div>
-      </section>
+      </GlassCard>
     </div>
   );
 }
@@ -87,9 +88,9 @@ function ActionCard({
   return (
     <Link
       href={href}
-      className="flex min-h-20 flex-col justify-between rounded-2xl border border-white/12 bg-slate-900/70 p-3 text-left text-white shadow-sm transition-all duration-200 hover:border-blue-400/70 hover:bg-blue-500/15"
+      className="flex min-h-20 flex-col justify-between rounded-2xl border border-slate-700/60 bg-slate-900/70 p-3 text-left text-white shadow-sm transition-all duration-200 hover:border-amber-400/50 hover:bg-amber-500/10"
     >
-      <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600 text-white">{icon}</span>
+      <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-500 text-slate-950">{icon}</span>
       <span className="text-sm font-black">{label}</span>
     </Link>
   );
@@ -99,15 +100,15 @@ function SectionHeader({ title, href }: { title: string; href: string }) {
   return (
     <div className="mb-2 flex items-center justify-between">
       <h2 className="text-sm font-black text-white">{title}</h2>
-      <Link href={href} className="text-xs font-black text-blue-200">View</Link>
+      <Link href={href} className="text-xs font-black text-amber-300">View</Link>
     </div>
   );
 }
 
 function ListCard({ href, label, detail, icon }: { href: string; label: string; detail: string; icon: React.ReactNode }) {
   return (
-    <Link href={href} className="flex min-h-16 items-center gap-3 rounded-2xl border border-white/12 bg-slate-900/70 p-3 text-left transition hover:border-blue-400/70 hover:bg-blue-500/15">
-      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white">{icon}</span>
+    <Link href={href} className="flex min-h-16 items-center gap-3 rounded-2xl border border-slate-700/60 bg-slate-900/70 p-3 text-left transition hover:border-amber-400/50 hover:bg-amber-500/10">
+      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-amber-500 text-slate-950">{icon}</span>
       <span className="min-w-0">
         <p className="text-sm font-black text-slate-50">{label}</p>
         <p className="mt-1 text-xs leading-5 text-slate-400">{detail}</p>

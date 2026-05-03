@@ -11,6 +11,7 @@ import CreateProjectWizard, {
 } from "@/components/projects/CreateProjectWizard";
 import ProjectsDeleteModal from "@/components/projects/ProjectsDeleteModal";
 import ProjectsAllProjectsTab from "@/components/projects/ProjectsAllProjectsTab";
+import GlassCard from "@/components/shared/GlassCard";
 import type { ProjectListItem } from "@/lib/types/projects";
 
 export default function ProjectsClientPage() {
@@ -106,33 +107,33 @@ export default function ProjectsClientPage() {
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-4 py-5 pb-28 sm:px-6 lg:px-8 lg:py-8 lg:pb-8">
         <div className="flex items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-3">
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-lg shadow-blue-500/20">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-amber-500 text-slate-950 shadow-lg shadow-amber-500/20">
               <FolderKanban className="h-5 w-5" />
             </span>
             <div className="min-w-0">
-              <p className="text-[11px] font-black uppercase tracking-[0.18em] text-blue-200">Work directory</p>
+              <p className="text-[11px] font-black uppercase tracking-[0.18em] text-amber-300">Work directory</p>
               <h1 className="truncate text-2xl font-black text-white">Projects</h1>
             </div>
           </div>
           <button
             onClick={() => setWizardOpen(true)}
-            className="hidden min-h-11 items-center justify-center gap-2 rounded-2xl bg-blue-600 px-4 text-sm font-black text-white shadow-[0_0_15px_rgba(37,99,235,0.3)] transition hover:bg-blue-500 sm:inline-flex"
+            className="hidden min-h-11 items-center justify-center gap-2 rounded-2xl bg-amber-500 px-4 text-sm font-black text-slate-950 shadow-amber-glow transition hover:bg-amber-400 sm:inline-flex"
           >
             <Plus className="h-4 w-4" /> New Work
           </button>
         </div>
 
-        <section className="rounded-3xl border border-white/10 bg-white/5 p-3 shadow-lg backdrop-blur-md">
+        <GlassCard className="p-3">
           <div className="relative">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
             <input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Search projects and field projects"
-              className="h-12 w-full rounded-2xl border border-white/10 bg-slate-950/45 pl-10 pr-4 text-sm font-bold text-white outline-none placeholder:text-slate-500 focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20"
+              className="h-12 w-full rounded-2xl border border-slate-700/60 bg-slate-950/45 pl-10 pr-4 text-sm font-bold text-white outline-none placeholder:text-slate-500 focus:border-amber-400 focus:ring-2 focus:ring-amber-500/20"
             />
           </div>
-        </section>
+        </GlassCard>
 
         <section className="min-h-0">
           <ProjectsAllProjectsTab
@@ -146,7 +147,7 @@ export default function ProjectsClientPage() {
       <button
         type="button"
         onClick={() => setWizardOpen(true)}
-        className="fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom))] right-4 z-30 inline-flex h-14 w-14 items-center justify-center rounded-full bg-blue-600 text-white shadow-[0_0_20px_rgba(37,99,235,0.4)] transition hover:bg-blue-500 sm:hidden"
+        className="fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom))] right-4 z-30 inline-flex h-14 w-14 items-center justify-center rounded-full bg-amber-500 text-slate-950 shadow-amber-glow transition hover:bg-amber-400 sm:hidden"
         aria-label="Create project or field project"
       >
         <Plus className="h-6 w-6" />
