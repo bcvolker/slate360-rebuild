@@ -7,12 +7,15 @@
 
 import { CommandCenterContent } from "@/components/dashboard/command-center/CommandCenterContent";
 import type { Entitlements } from "@/lib/entitlements";
+import type { DashboardUpcomingEvent, DashboardRecentContact } from "@/components/dashboard/command-center/CommandCenterContent";
 
 interface WalledGardenDashboardProps {
   userName: string;
   orgName: string;
   storageLimitGb?: number;
   entitlements?: Entitlements | null;
+  upcomingEvents?: DashboardUpcomingEvent[];
+  recentContacts?: DashboardRecentContact[];
 }
 
 export default function WalledGardenDashboard({
@@ -20,6 +23,8 @@ export default function WalledGardenDashboard({
   orgName,
   storageLimitGb = 5,
   entitlements = null,
+  upcomingEvents = [],
+  recentContacts = [],
 }: WalledGardenDashboardProps) {
   return (
     <div className="h-full overflow-hidden p-3 lg:p-5">
@@ -28,6 +33,8 @@ export default function WalledGardenDashboard({
         orgName={orgName}
         storageLimitGb={storageLimitGb}
         entitlements={entitlements}
+        upcomingEvents={upcomingEvents}
+        recentContacts={recentContacts}
       />
     </div>
   );

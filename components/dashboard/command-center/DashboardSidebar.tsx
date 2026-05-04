@@ -64,7 +64,7 @@ export function DashboardSidebar({ isOpen, onClose, isMobile = false, hasOperati
           <SlateLogo className="h-6 w-auto" />
         </Link>
         {onClose && (
-          <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8 text-slate-400 transition-colors duration-200 hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 focus-visible:ring-offset-1 focus-visible:ring-offset-[#0B0F15]">
+          <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8 text-slate-400 transition-colors duration-200 hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50 focus-visible:ring-offset-1 focus-visible:ring-offset-[#0B0F15]">
             <X className="h-4 w-4" />
           </Button>
         )}
@@ -75,7 +75,7 @@ export function DashboardSidebar({ isOpen, onClose, isMobile = false, hasOperati
         {/* Search */}
         <button
           onClick={() => setSearchExpanded(!searchExpanded)}
-          className="relative flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-300 transition-all duration-200 hover:bg-white/10 hover:text-white hover:translate-x-[1px] before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-[3px] before:rounded-r before:bg-cobalt/0 hover:before:bg-cobalt/60 before:transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt/50 focus-visible:ring-offset-1 focus-visible:ring-offset-slate-900"
+          className="relative flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-300 transition-all duration-200 hover:bg-white/10 hover:text-white hover:translate-x-[1px] before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-[3px] before:rounded-r before:bg-amber-400/0 hover:before:bg-amber-400/60 before:transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50 focus-visible:ring-offset-1 focus-visible:ring-offset-slate-900"
         >
           <Search className="h-4 w-4" />
           Search
@@ -88,7 +88,7 @@ export function DashboardSidebar({ isOpen, onClose, isMobile = false, hasOperati
               placeholder="Search projects, clients..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-8 border-white/15 bg-white/5 text-slate-50 placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 focus-visible:ring-offset-1 focus-visible:ring-offset-[#0B0F15]"
+              className="h-8 border-white/15 bg-white/5 text-slate-50 placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50 focus-visible:ring-offset-1 focus-visible:ring-offset-[#0B0F15]"
               autoFocus
             />
           </div>
@@ -105,7 +105,7 @@ export function DashboardSidebar({ isOpen, onClose, isMobile = false, hasOperati
               >
                 <item.icon className="h-4 w-4" />
                 <span className="flex-1">{item.label}</span>
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-cobalt/70">Soon</span>
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-amber-400/70">Soon</span>
               </span>
             );
           }
@@ -115,10 +115,10 @@ export function DashboardSidebar({ isOpen, onClose, isMobile = false, hasOperati
               href={item.href}
               aria-current={active ? "page" : undefined}
               className={cn(
-                "relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt/50 focus-visible:ring-offset-1 focus-visible:ring-offset-[#F8FAFC]",
+                "relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50 focus-visible:ring-offset-1 focus-visible:ring-offset-[#0B0F15]",
                 active
-                  ? "bg-white/10 text-white before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-[3px] before:rounded-r before:bg-cobalt"
-                  : "text-slate-300 hover:bg-white/10 hover:text-white hover:translate-x-[1px] before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-[3px] before:rounded-r before:bg-cobalt/0 hover:before:bg-cobalt/60 before:transition-colors",
+                  ? "bg-white/10 text-white before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-[3px] before:rounded-r before:bg-amber-400"
+                  : "text-slate-300 hover:bg-white/10 hover:text-white hover:translate-x-[1px] before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-[3px] before:rounded-r before:bg-amber-400/0 hover:before:bg-amber-400/60 before:transition-colors",
               )}
             >
               <item.icon className="h-4 w-4" />
@@ -131,7 +131,7 @@ export function DashboardSidebar({ isOpen, onClose, isMobile = false, hasOperati
         {hasOperationsConsoleAccess && (
           <a
             href="/operations-console"
-            className="relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-300 transition-all duration-200 hover:bg-white/10 hover:text-white hover:translate-x-[1px] before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-[3px] before:rounded-r before:bg-cobalt/0 hover:before:bg-cobalt/60 before:transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt/50 focus-visible:ring-offset-1 focus-visible:ring-offset-slate-900"
+            className="relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-300 transition-all duration-200 hover:bg-white/10 hover:text-white hover:translate-x-[1px] before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-[3px] before:rounded-r before:bg-amber-400/0 hover:before:bg-amber-400/60 before:transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50 focus-visible:ring-offset-1 focus-visible:ring-offset-slate-900"
           >
             <Shield className="h-4 w-4" />
             Operations Console

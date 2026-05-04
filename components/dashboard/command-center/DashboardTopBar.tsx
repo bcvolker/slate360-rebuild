@@ -51,12 +51,12 @@ export function DashboardTopBar({
           )}
           <button
             onClick={onMenuClick}
-            className="flex items-center justify-center h-10 w-10 rounded-xl border border-white/15 bg-white/5 text-slate-200 transition-colors duration-200 hover:border-blue-400/60 hover:bg-white/10 hover:text-blue-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 focus-visible:ring-offset-1 focus-visible:ring-offset-[#0B0F15]"
+            className="flex items-center justify-center h-10 w-10 rounded-xl border border-white/15 bg-white/5 text-slate-200 transition-colors duration-200 hover:border-amber-400/60 hover:bg-white/10 hover:text-amber-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50 focus-visible:ring-offset-1 focus-visible:ring-offset-[#0B0F15]"
             aria-label="Toggle menu"
           >
             <Menu className="h-5 w-5" />
           </button>
-          <BackButton className="h-10 w-10 rounded-xl border border-white/15 bg-white/5 text-slate-200 transition-colors duration-200 hover:border-blue-400/60 hover:bg-white/10 hover:text-blue-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 focus-visible:ring-offset-1 focus-visible:ring-offset-[#0B0F15]" />
+          <BackButton className="h-10 w-10 rounded-xl border border-white/15 bg-white/5 text-slate-200 transition-colors duration-200 hover:border-amber-400/60 hover:bg-white/10 hover:text-amber-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50 focus-visible:ring-offset-1 focus-visible:ring-offset-[#0B0F15]" />
         </div>
 
         <div className="flex-1" />
@@ -71,7 +71,7 @@ export function DashboardTopBar({
               <Button
                 variant="ghost"
                 size="icon"
-                className="relative text-slate-300 transition-colors duration-200 hover:bg-white/10 hover:text-blue-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 focus-visible:ring-offset-1 focus-visible:ring-offset-[#0B0F15]"
+                className="relative text-slate-300 transition-colors duration-200 hover:bg-white/10 hover:text-amber-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50 focus-visible:ring-offset-1 focus-visible:ring-offset-[#0B0F15]"
                 asChild
               >
                 <Link href="/coordination/inbox">
@@ -89,8 +89,8 @@ export function DashboardTopBar({
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-9 w-9 rounded-full">
-                <Avatar className="h-9 w-9 border-2 border-cobalt/40">
-                  <AvatarFallback className="bg-blue-600/20 text-blue-200">
+                <Avatar className="h-9 w-9 border-2 border-amber-500/40">
+                  <AvatarFallback className="bg-amber-500/20 text-amber-200">
                     {userName ? userName.charAt(0).toUpperCase() : "U"}
                   </AvatarFallback>
                 </Avatar>

@@ -23,7 +23,7 @@ export default async function SiteWalkPage() {
   }
 
   return (
-    <main className="min-h-[calc(100dvh-96px)] overflow-y-auto bg-[radial-gradient(circle_at_top,rgba(37,99,235,0.14),transparent_34%),#0B0F15] px-3 py-3 pb-24 text-slate-50 sm:px-6 lg:px-8">
+      <main className="min-h-[calc(100dvh-96px)] overflow-y-auto bg-[radial-gradient(circle_at_top,rgba(245,158,11,0.07),transparent_34%),#0B0F15] px-3 py-3 pb-24 text-slate-50 sm:px-6 lg:px-8">
       <div className="mx-auto flex min-h-full max-w-6xl items-start">
         <SiteWalkLaunchGrid projects={projects} />
       </div>

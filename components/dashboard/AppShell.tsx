@@ -165,7 +165,7 @@ export function AppShell({
 
         <main
           className={cn(
-            "flex min-h-0 flex-1 w-full min-w-0 flex-col overflow-hidden bg-[radial-gradient(circle_at_top,rgba(37,99,235,0.16),transparent_32%),#0B0F15] pt-14 pb-[76px] transition-all duration-300",
+            "flex min-h-0 flex-1 w-full min-w-0 flex-col overflow-hidden bg-[radial-gradient(circle_at_top,rgba(245,158,11,0.07),transparent_32%),#0B0F15] pt-14 pb-[76px] transition-all duration-300",
             "lg:pt-16 lg:pb-0",
             sidebarOpen ? "lg:pl-64" : "lg:pl-0"
           )}
