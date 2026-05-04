@@ -74,7 +74,7 @@ function renderSelectionBounds(shape: MarkupShape | null, onHandleDown: (event: 
 function renderShape(shape: MarkupShape | null, keySuffix = "", selected = false, onPointerDown?: (event: PointerEvent<SVGElement>) => void) {
   if (!shape) return null;
   const key = `${shape.id}${keySuffix}`;
-  const common = { onPointerDown, className: "cursor-move", filter: selected ? "drop-shadow(0 0 8px rgba(59,130,246,.9))" : undefined };
+  const common = { onPointerDown, className: "cursor-move", filter: selected ? "drop-shadow(0 0 8px rgba(245,158,11,.9))" : undefined };
   if (shape.kind === "rect") return <rect key={key} {...common} x={shape.x} y={shape.y} width={shape.width} height={shape.height} fill={shape.fill} stroke={shape.stroke} strokeWidth={selected ? shape.strokeWidth + 3 : shape.strokeWidth} />;
   if (shape.kind === "ellipse") return <ellipse key={key} {...common} cx={shape.cx} cy={shape.cy} rx={shape.rx} ry={shape.ry} fill={shape.fill} stroke={shape.stroke} strokeWidth={selected ? shape.strokeWidth + 3 : shape.strokeWidth} />;
   if (shape.kind === "arrow") return <ArrowShape key={key} shape={shape} selected={selected} onPointerDown={onPointerDown} />;
@@ -87,5 +87,5 @@ function ArrowShape({ shape, selected = false, onPointerDown }: { shape: Extract
   const angle = Math.atan2(shape.y2 - shape.y1, shape.x2 - shape.x1);
   const left = `${shape.x2 - shape.headSize * Math.cos(angle - Math.PI / 6)},${shape.y2 - shape.headSize * Math.sin(angle - Math.PI / 6)}`;
   const right = `${shape.x2 - shape.headSize * Math.cos(angle + Math.PI / 6)},${shape.y2 - shape.headSize * Math.sin(angle + Math.PI / 6)}`;
-  return <g onPointerDown={onPointerDown} className="cursor-move" filter={selected ? "drop-shadow(0 0 8px rgba(59,130,246,.9))" : undefined}><line x1={shape.x1} y1={shape.y1} x2={shape.x2} y2={shape.y2} stroke={shape.stroke} strokeWidth={selected ? shape.strokeWidth + 3 : shape.strokeWidth} strokeLinecap="round" /><polyline points={`${left} ${shape.x2},${shape.y2} ${right}`} fill="none" stroke={shape.stroke} strokeWidth={selected ? shape.strokeWidth + 3 : shape.strokeWidth} strokeLinecap="round" strokeLinejoin="round" /></g>;
+  return <g onPointerDown={onPointerDown} className="cursor-move" filter={selected ? "drop-shadow(0 0 8px rgba(245,158,11,.9))" : undefined}><line x1={shape.x1} y1={shape.y1} x2={shape.x2} y2={shape.y2} stroke={shape.stroke} strokeWidth={selected ? shape.strokeWidth + 3 : shape.strokeWidth} strokeLinecap="round" /><polyline points={`${left} ${shape.x2},${shape.y2} ${right}`} fill="none" stroke={shape.stroke} strokeWidth={selected ? shape.strokeWidth + 3 : shape.strokeWidth} strokeLinecap="round" strokeLinejoin="round" /></g>;
 }

@@ -63,10 +63,10 @@ export default function ProjectsPortfolioOverview({
     {
       id: "active",
       icon: FolderKanban,
-      borderColor: "border-blue-900/50",
-      bgColor: "bg-blue-950/40",
-      labelColor: "text-blue-400",
-      valueColor: "text-blue-300",
+      borderColor: "border-amber-900/50",
+      bgColor: "bg-amber-950/40",
+      labelColor: "text-amber-400",
+      valueColor: "text-amber-300",
       value: summary?.totals.activeProjects ?? 0,
       label: "Active Projects",
       detail: summary?.recentProjects?.length

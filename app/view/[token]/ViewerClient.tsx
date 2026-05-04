@@ -241,7 +241,7 @@ export default function ViewerClient({ deliverable, token }: Props) {
             className={cn(
               "h-14 min-w-[88px] bg-black border-2 rounded overflow-hidden relative transition-all",
               activeIndex === idx
-                ? "border-cobalt shadow-[0_0_16px_-2px_rgba(59,130,246,0.6)]"
+                ? "border-cobalt shadow-[0_0_16px_-2px_rgba(245,158,11,0.6)]"
                 : "border-transparent opacity-60 hover:opacity-100"
             )}
             aria-label={`Go to item ${idx + 1}`}

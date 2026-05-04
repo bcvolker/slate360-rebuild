@@ -45,7 +45,7 @@ export default function CeoStaffAddForm({ onGrant, onCancel }: Props) {
   };
 
   return (
-    <div className="rounded-xl border border-blue-200 bg-blue-50/50 p-4 space-y-3">
+    <div className="rounded-xl border border-amber-200 bg-amber-50/50 p-4 space-y-3">
       <div className="grid gap-3 sm:grid-cols-2">
         <div>
           <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1">

@@ -110,7 +110,7 @@ export default function DashboardProjectCard({
               p.status === "active"
                 ? "bg-emerald-500/90 text-foreground"
                 : p.status === "completed"
-                ? "bg-blue-500/90 text-foreground"
+                ? "bg-amber-500/90 text-foreground"
                 : "bg-amber-500/90 text-foreground"
             }`}
           >

@@ -59,7 +59,7 @@ export default function MobileShellV2() {
               <img
                 src="/slate360-icon-color.png"
                 alt="Slate360"
-                className="h-9 w-9 shrink-0 rounded-lg bg-white object-contain drop-shadow-[0_0_10px_rgba(59,130,246,0.35)]"
+                className="h-9 w-9 shrink-0 rounded-lg bg-white object-contain drop-shadow-[0_0_10px_rgba(245,158,11,0.35)]"
               />
               <button className="flex min-h-[40px] min-w-0 items-center gap-1 rounded-lg px-2 text-left transition-colors hover:bg-white/10" aria-label="Workspace and account menu">
                 <span className="max-w-[92px] truncate text-xs font-semibold text-slate-200">Brian Volker</span>
@@ -91,9 +91,9 @@ export default function MobileShellV2() {
             </div>
             <div className="grid grid-cols-2 gap-3">
               {apps.map((app) => (
-                <button key={app.label} className={`relative min-h-[96px] rounded-2xl border border-slate-300 bg-white p-3 text-left shadow-sm transition-all duration-200 ${app.locked ? "opacity-60" : "hover:border-blue-600 hover:shadow-md"}`}>
+                <button key={app.label} className={`relative min-h-[96px] rounded-2xl border border-slate-300 bg-white p-3 text-left shadow-sm transition-all duration-200 ${app.locked ? "opacity-60" : "hover:border-amber-500 hover:shadow-md"}`}>
                   <div className="flex items-start justify-between gap-2">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50 text-amber-600">
                       {app.locked ? <Lock className="h-5 w-5" /> : <Sparkles className="h-5 w-5" />}
                     </div>
                     <span className="text-[10px] font-bold uppercase tracking-wide text-slate-500">{app.status}</span>
@@ -108,10 +108,10 @@ export default function MobileShellV2() {
             <h2 className="mb-3 text-[11px] font-black uppercase tracking-[0.18em] text-slate-700">Quick Actions</h2>
             <div className="grid grid-cols-2 gap-3">
               {quickActions.map((action) => (
-                <button key={action.label} className={`min-h-[104px] rounded-2xl border p-3 text-left shadow-sm transition-all duration-200 ${action.primary ? "border-blue-700 bg-blue-600 text-white shadow-blue-600/20" : "border-slate-300 bg-white text-slate-900 hover:border-blue-600"}`}>
+                <button key={action.label} className={`min-h-[104px] rounded-2xl border p-3 text-left shadow-sm transition-all duration-200 ${action.primary ? "border-amber-600 bg-amber-500 text-white shadow-amber-600/20" : "border-slate-300 bg-white text-slate-900 hover:border-amber-500"}`}>
                   <action.icon className="h-5 w-5" />
                   <p className="mt-3 text-sm font-black">{action.label}</p>
-                  <p className={`mt-1 text-[11px] ${action.primary ? "text-blue-100" : "text-slate-600"}`}>{action.detail}</p>
+                  <p className={`mt-1 text-[11px] ${action.primary ? "text-amber-100" : "text-slate-600"}`}>{action.detail}</p>
                 </button>
               ))}
             </div>
@@ -130,7 +130,7 @@ export default function MobileShellV2() {
             { label: "Coordination", icon: MessageSquare },
             { label: "More", icon: Plus },
           ].map((item) => (
-            <button key={item.label} className={`flex h-full min-w-[44px] flex-col items-center justify-center gap-1 text-[10px] font-semibold ${item.active ? "text-blue-400" : "hover:text-white"}`}>
+            <button key={item.label} className={`flex h-full min-w-[44px] flex-col items-center justify-center gap-1 text-[10px] font-semibold ${item.active ? "text-amber-400" : "hover:text-white"}`}>
               <item.icon className="h-5 w-5" />
               {item.label}
             </button>
@@ -158,13 +158,13 @@ function ContainedHub({
     <section className="rounded-2xl border border-slate-300 bg-white p-3 shadow-sm">
       <div className="mb-3 flex items-center justify-between gap-3">
         <h2 className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.18em] text-slate-700">
-          <Icon className="h-4 w-4 text-blue-600" /> {title}
+          <Icon className="h-4 w-4 text-amber-600" /> {title}
         </h2>
-        {cta ? <span className="rounded-lg border border-slate-300 bg-white px-2 py-1 text-[10px] font-bold text-blue-700">{cta}</span> : null}
+        {cta ? <span className="rounded-lg border border-slate-300 bg-white px-2 py-1 text-[10px] font-bold text-amber-700">{cta}</span> : null}
       </div>
       <div className="mb-3 flex gap-1 overflow-x-auto rounded-xl bg-slate-100 p-1">
         {tabs.map((tab, index) => (
-          <button key={tab} className={`min-h-[36px] shrink-0 rounded-lg px-3 text-[11px] font-bold ${index === 0 ? "bg-white text-blue-700 shadow-sm" : "text-slate-600"}`}>
+          <button key={tab} className={`min-h-[36px] shrink-0 rounded-lg px-3 text-[11px] font-bold ${index === 0 ? "bg-white text-amber-700 shadow-sm" : "text-slate-600"}`}>
             {tab}
           </button>
         ))}

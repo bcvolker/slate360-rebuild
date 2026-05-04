@@ -18,7 +18,7 @@ export default function DailyLogItem({ log, isExpanded, onToggle, onEdit, onHist
   return (
     <div className="rounded-xl border border-zinc-800 bg-card shadow-sm overflow-hidden transition-all">
       <button onClick={onToggle} className="flex w-full items-center gap-3 p-4 text-left hover:bg-card/50 transition">
-        <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-blue-500/20 px-2 py-0.5 text-[10px] font-bold text-blue-400"><Calendar size={10} /> {log.log_date}</span>
+        <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-amber-500/20 px-2 py-0.5 text-[10px] font-bold text-amber-400"><Calendar size={10} /> {log.log_date}</span>
         <div className="flex-1 min-w-0">
           <span className="truncate text-sm font-semibold text-foreground">{log.summary ? (log.summary.length > 80 ? log.summary.slice(0, 80) + "…" : log.summary) : "No summary"}</span>
         </div>
@@ -30,13 +30,13 @@ export default function DailyLogItem({ log, isExpanded, onToggle, onEdit, onHist
       {isExpanded && (
         <div className="border-t border-zinc-800 bg-card/30 p-4 space-y-4">
           {/* Weather card */}
-          <div className="rounded-lg border border-blue-500/20 bg-blue-500/5 p-3">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-blue-400 mb-2"><CloudSun size={10} className="inline mr-1" />Weather</p>
+          <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-3">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-amber-400 mb-2"><CloudSun size={10} className="inline mr-1" />Weather</p>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <div><p className="text-[10px] font-bold uppercase text-blue-500">Temp</p><p className="text-sm font-semibold text-blue-300">{log.weather_temp != null ? `${log.weather_temp}°C` : "—"}</p></div>
-              <div><p className="text-[10px] font-bold uppercase text-blue-500">Condition</p><p className="text-sm font-semibold text-blue-300">{log.weather_condition || "—"}</p></div>
-              <div><p className="text-[10px] font-bold uppercase text-blue-500">Wind</p><p className="text-sm font-semibold text-blue-300">{log.weather_wind || "—"}</p></div>
-              <div><p className="text-[10px] font-bold uppercase text-blue-500">Precip</p><p className="text-sm font-semibold text-blue-300">{log.weather_precip || "—"}</p></div>
+              <div><p className="text-[10px] font-bold uppercase text-amber-500">Temp</p><p className="text-sm font-semibold text-amber-300">{log.weather_temp != null ? `${log.weather_temp}°C` : "—"}</p></div>
+              <div><p className="text-[10px] font-bold uppercase text-amber-500">Condition</p><p className="text-sm font-semibold text-amber-300">{log.weather_condition || "—"}</p></div>
+              <div><p className="text-[10px] font-bold uppercase text-amber-500">Wind</p><p className="text-sm font-semibold text-amber-300">{log.weather_wind || "—"}</p></div>
+              <div><p className="text-[10px] font-bold uppercase text-amber-500">Precip</p><p className="text-sm font-semibold text-amber-300">{log.weather_precip || "—"}</p></div>
             </div>
           </div>
           {log.summary && <div><p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 mb-1">Summary</p><p className="text-sm text-zinc-300 whitespace-pre-wrap">{log.summary}</p></div>}

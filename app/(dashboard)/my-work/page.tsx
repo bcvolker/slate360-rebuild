@@ -30,14 +30,14 @@ export default async function MyWorkPage() {
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-4 px-4 py-5 sm:px-6 lg:px-8 lg:py-8">
       <header>
-        <p className="text-[11px] font-black uppercase tracking-[0.18em] text-blue-400">My Work</p>
+        <p className="text-[11px] font-black uppercase tracking-[0.18em] text-amber-400">My Work</p>
         <h1 className="mt-1 text-2xl font-black text-slate-50">Tasks &amp; reviews</h1>
       </header>
 
       {assignments.length > 0 ? (
         <section className="space-y-3">
           {assignments.map((a) => (
-            <Link key={a.id} href={`/site-walk/walks/${a.session_id}`} className="flex items-center justify-between gap-4 rounded-3xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm transition hover:border-blue-500/40 hover:bg-white/10">
+            <Link key={a.id} href={`/site-walk/walks/${a.session_id}`} className="flex items-center justify-between gap-4 rounded-3xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm transition hover:border-amber-500/40 hover:bg-white/10">
               <div className="min-w-0 flex-1">
                 <p className="truncate font-black text-slate-50">{a.title}</p>
                 <div className="mt-0.5 flex items-center gap-3 text-xs">
@@ -62,7 +62,7 @@ export default async function MyWorkPage() {
             <Link href="/projects" className="inline-flex items-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-4 py-2 text-sm font-black text-slate-200 hover:bg-white/20">
               <FolderOpen className="h-4 w-4" /> Projects
             </Link>
-            <Link href="/site-walk" className="inline-flex items-center gap-2 rounded-2xl bg-blue-600 px-4 py-2 text-sm font-black text-white hover:bg-blue-500">
+            <Link href="/site-walk" className="inline-flex items-center gap-2 rounded-2xl bg-amber-500 px-4 py-2 text-sm font-black text-white hover:bg-amber-400">
               <Plus className="h-4 w-4" /> Start a Walk
             </Link>
           </div>
@@ -84,7 +84,7 @@ function priorityColor(p: AssignmentPriority) {
 }
 
 function statusColor(s: AssignmentStatus) {
-  return s === "acknowledged" ? "bg-blue-700/60 text-blue-200" : s === "in_progress" ? "bg-yellow-700/60 text-yellow-200" : "bg-slate-700 text-slate-300";
+  return s === "acknowledged" ? "bg-amber-600/60 text-amber-200" : s === "in_progress" ? "bg-yellow-700/60 text-yellow-200" : "bg-slate-700 text-slate-300";
 }
 
 function formatDate(iso: string) {

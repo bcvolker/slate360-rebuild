@@ -200,28 +200,28 @@ export function PlanViewer({ projectId, sessionId }: Props) {
           <select value={activeSheetId} onChange={(event) => setActiveSheetId(event.target.value)} className="min-h-11 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-bold text-slate-900">
             {sheets.map((sheet) => <option key={sheet.id} value={sheet.id}>{sheet.sheet_name ?? "Plan sheet"}</option>)}
           </select>
-          <button type="button" onClick={dropCenterPin} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-blue-600 px-3 text-sm font-black text-white"><Crosshair className="h-4 w-4" /> Drop Pin</button>
+          <button type="button" onClick={dropCenterPin} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-amber-500 px-3 text-sm font-black text-white"><Crosshair className="h-4 w-4" /> Drop Pin</button>
           <button type="button" onClick={() => setTransform((current) => ({ ...current, scale: clamp(current.scale - 0.2, 0.6, 3) }))} className="min-h-11 rounded-xl border border-slate-300 px-3"><Minus className="h-4 w-4" /></button>
           <button type="button" onClick={() => setTransform((current) => ({ ...current, scale: clamp(current.scale + 0.2, 0.6, 3) }))} className="min-h-11 rounded-xl border border-slate-300 px-3"><Plus className="h-4 w-4" /></button>
         </div>
       </div>
       <div ref={stageRef} onPointerDown={handlePointerDown} onPointerMove={handlePointerMove} onPointerUp={handlePointerUp} onPointerCancel={handlePointerUp} className="relative h-[420px] touch-none overflow-hidden rounded-2xl border border-slate-300 bg-slate-100">
         <div className="absolute left-0 top-0 origin-top-left" style={{ width: CANVAS_WIDTH, height: CANVAS_HEIGHT, transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})` }}>
-          {hasImage ? <img src={`/api/site-walk/plan-sheets/${activeSheet.id}/image`} alt={activeSheet.sheet_name ?? "Plan sheet"} className="h-full w-full select-none object-contain" draggable={false} /> : <div className="flex h-full w-full items-center justify-center bg-[linear-gradient(90deg,#cbd5e1_1px,transparent_1px),linear-gradient(#cbd5e1_1px,transparent_1px)] bg-[size:40px_40px] text-center"><div><MapPinned className="mx-auto h-10 w-10 text-blue-800" /><p className="mt-3 font-black text-slate-900">{activeSheet.sheet_name ?? "Plan sheet"}</p><p className="text-sm text-slate-600">Image extraction pending. Pins still save against this sheet.</p></div></div>}
+          {hasImage ? <img src={`/api/site-walk/plan-sheets/${activeSheet.id}/image`} alt={activeSheet.sheet_name ?? "Plan sheet"} className="h-full w-full select-none object-contain" draggable={false} /> : <div className="flex h-full w-full items-center justify-center bg-[linear-gradient(90deg,#cbd5e1_1px,transparent_1px),linear-gradient(#cbd5e1_1px,transparent_1px)] bg-[size:40px_40px] text-center"><div><MapPinned className="mx-auto h-10 w-10 text-amber-900" /><p className="mt-3 font-black text-slate-900">{activeSheet.sheet_name ?? "Plan sheet"}</p><p className="text-sm text-slate-600">Image extraction pending. Pins still save against this sheet.</p></div></div>}
           <svg className="pointer-events-none absolute inset-0 h-full w-full" viewBox={`0 0 ${CANVAS_WIDTH} ${CANVAS_HEIGHT}`}>
             {markupShapes.map((shape) => renderShape(shape))}
           </svg>
-          {pins.map((pin) => <button key={pin.id} type="button" onClick={(event) => { event.stopPropagation(); setMenu({ pinId: pin.id, xPct: pin.x_pct, yPct: pin.y_pct, screenX: (pin.x_pct / 100) * CANVAS_WIDTH * transform.scale + transform.x + 12, screenY: (pin.y_pct / 100) * CANVAS_HEIGHT * transform.scale + transform.y + 12 }); }} className="absolute flex h-8 w-8 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-white bg-blue-600 text-xs font-black text-white shadow" style={{ left: `${pin.x_pct}%`, top: `${pin.y_pct}%` }}>{pin.pin_status === "draft" ? "D" : "✓"}</button>)}
+          {pins.map((pin) => <button key={pin.id} type="button" onClick={(event) => { event.stopPropagation(); setMenu({ pinId: pin.id, xPct: pin.x_pct, yPct: pin.y_pct, screenX: (pin.x_pct / 100) * CANVAS_WIDTH * transform.scale + transform.x + 12, screenY: (pin.y_pct / 100) * CANVAS_HEIGHT * transform.scale + transform.y + 12 }); }} className="absolute flex h-8 w-8 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-white bg-amber-500 text-xs font-black text-white shadow" style={{ left: `${pin.x_pct}%`, top: `${pin.y_pct}%` }}>{pin.pin_status === "draft" ? "D" : "✓"}</button>)}
         </div>
         {menu && <PlanQuickActionMenu planSheetId={activeSheet.id} {...menu} onClose={() => setMenu(null)} />}
-        <div className="pointer-events-none absolute left-1/2 top-1/2 rounded-full border border-blue-200 bg-blue-50 p-2 text-blue-800 shadow-lg"><Crosshair className="h-4 w-4" /></div>
+        <div className="pointer-events-none absolute left-1/2 top-1/2 rounded-full border border-amber-200 bg-amber-50 p-2 text-amber-900 shadow-lg"><Crosshair className="h-4 w-4" /></div>
       </div>
     </section>
   );
 }
 
 function PlanPlaceholder({ title, text, loading = false }: { title: string; text?: string; loading?: boolean }) {
-  return <section className="rounded-3xl border border-slate-300 bg-white p-4 shadow-sm"><div className="flex min-h-[360px] flex-col items-center justify-center rounded-2xl border border-slate-300 bg-slate-50 p-6 text-center">{loading ? <Loader2 className="h-8 w-8 animate-spin text-blue-800" /> : <MapPinned className="h-10 w-10 text-blue-800" />}<h2 className="mt-4 text-xl font-black text-slate-950">{title}</h2>{text && <p className="mt-2 max-w-md text-sm leading-6 text-slate-600">{text}</p>}</div></section>;
+  return <section className="rounded-3xl border border-slate-300 bg-white p-4 shadow-sm"><div className="flex min-h-[360px] flex-col items-center justify-center rounded-2xl border border-slate-300 bg-slate-50 p-6 text-center">{loading ? <Loader2 className="h-8 w-8 animate-spin text-amber-900" /> : <MapPinned className="h-10 w-10 text-amber-900" />}<h2 className="mt-4 text-xl font-black text-slate-950">{title}</h2>{text && <p className="mt-2 max-w-md text-sm leading-6 text-slate-600">{text}</p>}</div></section>;
 }
 
 function buildMarkup(tool: VectorTool, point: { xPct: number; yPct: number }): MarkupData {

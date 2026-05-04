@@ -30,7 +30,7 @@ const STATUS_CONFIG: Record<AssignmentStatus, { label: string; icon: React.React
 
 const PRIORITY_COLORS: Record<string, string> = {
   low: "bg-slate-100 text-slate-700",
-  medium: "bg-blue-100 text-blue-700",
+  medium: "bg-amber-100 text-amber-700",
   high: "bg-amber-100 text-amber-700",
   critical: "bg-red-100 text-red-700",
 };

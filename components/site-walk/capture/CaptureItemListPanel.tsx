@@ -25,8 +25,8 @@ export function CaptureItemListPanel({ items, activeItemId, open, onOpenChange, 
   return (
     <div className="rounded-3xl border border-slate-300 bg-slate-50 p-3">
       <button type="button" onClick={() => onOpenChange(!open)} className="flex w-full items-center justify-between gap-3 rounded-2xl bg-white px-4 py-3 text-left text-sm font-black text-slate-900 ring-1 ring-slate-200">
-        <span className="inline-flex items-center gap-2"><ListFilter className="h-4 w-4 text-blue-700" /> Items in this walk</span>
-        <span className="rounded-full bg-blue-50 px-2 py-1 text-xs text-blue-800">{filtered.length}/{items.length}</span>
+        <span className="inline-flex items-center gap-2"><ListFilter className="h-4 w-4 text-amber-700" /> Items in this walk</span>
+        <span className="rounded-full bg-amber-50 px-2 py-1 text-xs text-amber-900">{filtered.length}/{items.length}</span>
       </button>
 
       {open && (
@@ -44,7 +44,7 @@ export function CaptureItemListPanel({ items, activeItemId, open, onOpenChange, 
 
           <div className="max-h-72 space-y-2 overflow-y-auto pr-1">
             {filtered.map((item) => (
-              <button key={item.id} type="button" onClick={() => onSelect(item)} className={`w-full rounded-2xl border p-3 text-left transition ${item.id === activeItemId ? "border-blue-400 bg-blue-50" : "border-slate-200 bg-white hover:border-blue-200"}`}>
+              <button key={item.id} type="button" onClick={() => onSelect(item)} className={`w-full rounded-2xl border p-3 text-left transition ${item.id === activeItemId ? "border-amber-400 bg-amber-50" : "border-slate-200 bg-white hover:border-amber-200"}`}>
                 <div className="flex items-start justify-between gap-3">
                   <p className="line-clamp-2 text-sm font-black text-slate-950">{item.title || "Untitled item"}</p>
                   <span className="shrink-0 rounded-full bg-slate-100 px-2 py-1 text-[10px] font-black uppercase text-slate-600">{item.priority}</span>

@@ -190,7 +190,7 @@ export function PhotoAttachmentPins({ sessionId, pins, draftPin, transform, onDr
         <div className="max-h-[78dvh] w-full max-w-md overflow-y-auto rounded-[1.5rem] border border-white/15 bg-zinc-950/94 p-3 text-white shadow-2xl backdrop-blur-xl no-scrollbar">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="text-[11px] font-black uppercase tracking-[0.16em] text-blue-100">Pin files to photo</p>
+              <p className="text-[11px] font-black uppercase tracking-[0.16em] text-amber-100">Pin files to photo</p>
               <p className="mt-1 text-xs font-semibold text-white/70">Add up to {PHOTO_ATTACHMENT_MAX_FILES} files, max 25MB each.</p>
             </div>
             <button type="button" onClick={resetModal} className="rounded-full border border-white/15 p-2 text-white/80"><X className="h-4 w-4" /></button>
@@ -201,7 +201,7 @@ export function PhotoAttachmentPins({ sessionId, pins, draftPin, transform, onDr
           </div>
           <div className="mt-3 flex flex-wrap items-center gap-2">
             <input ref={fileInputRef} type="file" multiple className="hidden" onChange={(event) => void uploadFiles(event.target.files)} />
-            <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploading || files.length >= PHOTO_ATTACHMENT_MAX_FILES} className="inline-flex min-h-10 items-center gap-2 rounded-2xl bg-blue-600 px-3 text-sm font-black text-white disabled:opacity-50">
+            <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploading || files.length >= PHOTO_ATTACHMENT_MAX_FILES} className="inline-flex min-h-10 items-center gap-2 rounded-2xl bg-amber-500 px-3 text-sm font-black text-white disabled:opacity-50">
               {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileUp className="h-4 w-4" />} Add files
             </button>
             <button type="button" onClick={() => savePin()} disabled={!label.trim() && files.length === 0} className="min-h-10 rounded-2xl bg-white px-4 text-sm font-black text-zinc-950 disabled:opacity-50">Save pin</button>
@@ -238,7 +238,7 @@ function clamp(value: number, min: number, max: number) {
 }
 
 function FileChip({ file, onRemove }: { file: PhotoAttachmentFile; onRemove: () => void }) {
-  return <span className="inline-flex max-w-56 shrink-0 items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-2 text-xs font-black text-white"><Paperclip className="h-3.5 w-3.5 text-blue-300" /><span className="truncate">{file.name}</span><button type="button" onClick={onRemove} aria-label={`Remove ${file.name}`}><Trash2 className="h-3.5 w-3.5" /></button></span>;
+  return <span className="inline-flex max-w-56 shrink-0 items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-2 text-xs font-black text-white"><Paperclip className="h-3.5 w-3.5 text-amber-300" /><span className="truncate">{file.name}</span><button type="button" onClick={onRemove} aria-label={`Remove ${file.name}`}><Trash2 className="h-3.5 w-3.5" /></button></span>;
 }
 
 async function prepareUpload(sessionId: string, file: File): Promise<{ uploadUrl: string; fileId: string }> {

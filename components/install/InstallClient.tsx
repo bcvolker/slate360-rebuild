@@ -201,7 +201,7 @@ function IOSCoachMark() {
       <div className="flex flex-col items-center gap-2 pt-2">
         <p className="text-sm font-semibold text-cobalt">The Share button is down here ↓</p>
         <div className="animate-bounce">
-          <ArrowDown className="h-12 w-12 text-cobalt drop-shadow-[0_0_12px_rgba(59,130,246,0.6)]" strokeWidth={2.5} />
+          <ArrowDown className="h-12 w-12 text-cobalt drop-shadow-[0_0_12px_rgba(245,158,11,0.6)]" strokeWidth={2.5} />
         </div>
       </div>
     </div>

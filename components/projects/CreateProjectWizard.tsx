@@ -95,7 +95,7 @@ export default function CreateProjectWizard({
     });
   };
 
-  const field = "w-full rounded-xl border border-white/15 bg-white/10 px-4 py-3 text-sm font-semibold text-white placeholder:text-slate-500 focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-all";
+  const field = "w-full rounded-xl border border-white/15 bg-white/10 px-4 py-3 text-sm font-semibold text-white placeholder:text-slate-500 focus:border-amber-400 focus:ring-2 focus:ring-amber-500/20 focus:outline-none transition-all";
   const label = "mb-1.5 block text-xs font-bold text-slate-300";
 
   return (

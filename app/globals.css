@@ -69,8 +69,8 @@
 
   /* Brand + header tokens registered for Tailwind v4 (used as bg-cobalt,
      text-cobalt, bg-header, etc — see @utility blocks below). */
-  --color-cobalt: #3B82F6;
-  --color-cobalt-hover: #2563EB;
+  --color-cobalt: #F59E0B;
+  --color-cobalt-hover: #D97706;
   --color-steel: #94A3B8;
   --color-glass: var(--app-glass);
   --color-header-bg: var(--header-bg);
@@ -526,11 +526,11 @@
 
 /* ── Cobalt hover utilities (used by app shell) ── */
 @utility bg-cobalt-soft {
-  background-color: rgba(59, 130, 246, 0.10);
+  background-color: rgba(245, 158, 11, 0.10);
 }
 
 @utility bg-cobalt-soft-strong {
-  background-color: rgba(59, 130, 246, 0.16);
+  background-color: rgba(245, 158, 11, 0.16);
 }
 
 @utility text-cobalt {
@@ -538,7 +538,7 @@
 }
 
 @utility text-cobalt-hover {
-  color: #60A5FA; /* Cobalt-400 — slightly lighter so it reads on dark */
+  color: #FCD34D; /* Amber-300 — lighter so it reads on dark */
 }
 
 @utility border-cobalt {
@@ -546,7 +546,7 @@
 }
 
 @utility border-cobalt-soft {
-  border-color: rgba(59, 130, 246, 0.40);
+  border-color: rgba(245, 158, 11, 0.40);
 }
 
 /* ── Branded buttons ── */

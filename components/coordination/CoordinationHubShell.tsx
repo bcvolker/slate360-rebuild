@@ -22,7 +22,7 @@ export function CoordinationHubShell({
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-5 px-4 py-5 text-slate-50 sm:px-6 lg:px-8 lg:py-8">
       <section className="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-lg backdrop-blur-md sm:p-6">
-        <p className="text-[11px] font-black uppercase tracking-[0.18em] text-blue-200">{eyebrow}</p>
+        <p className="text-[11px] font-black uppercase tracking-[0.18em] text-amber-200">{eyebrow}</p>
         <h1 className="mt-1 text-2xl font-black text-white sm:text-3xl">{title}</h1>
       </section>
 
@@ -35,10 +35,10 @@ export function CoordinationHubShell({
               key={tab.href}
               href={tab.href}
               aria-current={selected ? "page" : undefined}
-              className={`rounded-3xl border p-4 shadow-lg backdrop-blur-md transition hover:border-blue-400/70 hover:bg-blue-500/10 ${selected ? "border-blue-400/70 bg-blue-500/15" : "border-white/10 bg-white/5"}`}
+              className={`rounded-3xl border p-4 shadow-lg backdrop-blur-md transition hover:border-amber-400/70 hover:bg-amber-500/10 ${selected ? "border-amber-400/70 bg-amber-500/15" : "border-white/10 bg-white/5"}`}
             >
               <div className="flex items-center gap-3">
-                <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-600 text-white ring-1 ring-white/10">
+                <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-500 text-white ring-1 ring-white/10">
                   <Icon className="h-5 w-5" />
                 </span>
                 <p className="text-sm font-black text-white">{tab.label}</p>

@@ -35,7 +35,7 @@ const lightVars: React.CSSProperties = {
   // Borders — stronger
   ["--border" as string]: "#CBD5E1",
   ["--input" as string]: "#CBD5E1",
-  ["--ring" as string]: "rgba(37, 99, 235, 0.55)",
+  ["--ring" as string]: "rgba(245, 158, 11, 0.55)",
   // Chrome — header is dark graphite, bottom nav is even darker (near-black)
   ["--sidebar" as string]: "#18181B",
   ["--sidebar-foreground" as string]: "#FAFAFA",
@@ -122,7 +122,7 @@ export default function LightThemePreview() {
               <h1 className="text-3xl font-bold tracking-tight">Welcome back, Brock</h1>
               <p className="text-[var(--muted-foreground)] mt-1">Here&rsquo;s what&rsquo;s waiting for you today.</p>
             </div>
-            <button className="hidden sm:inline-flex items-center gap-2 h-11 px-5 rounded-xl bg-[var(--primary)] text-foreground font-semibold shadow-lg shadow-blue-500/30 hover:bg-[var(--primary-hover)] transition-all">
+            <button className="hidden sm:inline-flex items-center gap-2 h-11 px-5 rounded-xl bg-[var(--primary)] text-foreground font-semibold shadow-lg shadow-amber-500/30 hover:bg-[var(--primary-hover)] transition-all">
               <Plus className="h-4 w-4" /> New Project
             </button>
           </div>
@@ -158,7 +158,7 @@ export default function LightThemePreview() {
                 { who: "You", what: "shared a deliverable with", where: "Carolyn Reeves" },
               ].map((ev, i) => (
                 <div key={i} className="px-5 py-4 flex items-center gap-4 hover:bg-[var(--accent)] transition-colors">
-                  <div className="h-9 w-9 rounded-full bg-blue-100 text-[var(--primary)] flex items-center justify-center text-sm font-semibold">
+                  <div className="h-9 w-9 rounded-full bg-amber-100 text-[var(--primary)] flex items-center justify-center text-sm font-semibold">
                     {ev.who.split(" ").map((p) => p[0]).join("")}
                   </div>
                   <div className="flex-1 text-sm">
@@ -176,13 +176,13 @@ export default function LightThemePreview() {
           <section className="space-y-3">
             <h2 className="text-lg font-semibold">Buttons & links — depth check</h2>
             <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] shadow-md ring-1 ring-slate-900/5 p-6 flex flex-wrap gap-3">
-              <button className="h-11 px-5 rounded-xl bg-[var(--primary)] text-foreground font-semibold shadow-lg shadow-blue-500/40 hover:bg-[var(--primary-hover)] transition-all">
+              <button className="h-11 px-5 rounded-xl bg-[var(--primary)] text-foreground font-semibold shadow-lg shadow-amber-500/40 hover:bg-[var(--primary-hover)] transition-all">
                 Primary action
               </button>
               <button className="h-11 px-5 rounded-xl bg-white border border-[var(--border)] text-[var(--foreground)] font-semibold hover:bg-[var(--accent)] hover:border-[var(--primary)] transition-all">
                 Secondary
               </button>
-              <button className="h-11 px-5 rounded-xl text-[var(--primary)] font-semibold hover:bg-blue-50 transition-all">
+              <button className="h-11 px-5 rounded-xl text-[var(--primary)] font-semibold hover:bg-amber-50 transition-all">
                 Tertiary link
               </button>
               <a href="#" className="h-11 px-5 inline-flex items-center text-[var(--primary)] font-medium hover:underline">

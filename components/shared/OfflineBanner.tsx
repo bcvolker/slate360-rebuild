@@ -34,7 +34,7 @@ export function OfflineBanner() {
           {!syncing && (
             <button
               onClick={flush}
-              className="ml-1 text-xs font-medium text-blue-600 hover:underline dark:text-blue-400"
+              className="ml-1 text-xs font-medium text-amber-600 hover:underline dark:text-amber-400"
             >
               Sync now
             </button>

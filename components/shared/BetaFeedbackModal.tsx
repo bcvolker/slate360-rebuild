@@ -109,7 +109,7 @@ export function BetaFeedbackModal({ open, onOpenChange }: BetaFeedbackModalProps
     setStatus({ kind: "idle" });
   }
 
-  const fieldClass = "w-full rounded-2xl border border-white/15 bg-white/5 px-3 py-2.5 text-sm font-bold text-white outline-none placeholder:text-white/35 focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20";
+  const fieldClass = "w-full rounded-2xl border border-white/15 bg-white/5 px-3 py-2.5 text-sm font-bold text-white outline-none placeholder:text-white/35 focus:border-amber-400 focus:ring-2 focus:ring-amber-500/20";
 
   const modal = (
     <div
@@ -185,7 +185,7 @@ export function BetaFeedbackModal({ open, onOpenChange }: BetaFeedbackModalProps
               type="checkbox"
               checked={form.includeData}
               onChange={(e) => setForm({ ...form, includeData: e.target.checked })}
-              className="rounded border-white/20 bg-white/5 text-blue-500 focus:ring-blue-500/30"
+              className="rounded border-white/20 bg-white/5 text-amber-500 focus:ring-amber-500/30"
             />
             Include current page URL &amp; session data
           </label>
@@ -214,7 +214,7 @@ export function BetaFeedbackModal({ open, onOpenChange }: BetaFeedbackModalProps
           <button
             type="submit"
             disabled={loading}
-            className="mt-1 w-full rounded-2xl bg-blue-600 py-3 text-sm font-black text-white shadow-[0_0_18px_rgba(37,99,235,0.34)] transition hover:bg-blue-500 disabled:opacity-50"
+            className="mt-1 w-full rounded-2xl bg-amber-500 py-3 text-sm font-black text-white shadow-[0_0_18px_rgba(245,158,11,0.34)] transition hover:bg-amber-400 disabled:opacity-50"
           >
             {loading ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : "Submit Feedback"}
           </button>

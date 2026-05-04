@@ -38,9 +38,9 @@ export default function RFIItem({ rfi, isExpanded, onToggle, onQuickStatus, onSe
           </div>
           <div><p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Question</p><p className="mt-1 text-sm text-zinc-300 whitespace-pre-wrap">{rfi.question}</p></div>
           {rfi.response_text && (
-            <div className="rounded-lg border border-blue-500/20 bg-blue-500/5 p-3">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-blue-400 mb-1">Response</p>
-              <p className="text-sm text-blue-300 whitespace-pre-wrap">{rfi.response_text}</p>
+            <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-3">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-amber-400 mb-1">Response</p>
+              <p className="text-sm text-amber-300 whitespace-pre-wrap">{rfi.response_text}</p>
             </div>
           )}
           <div className="flex flex-wrap items-center gap-2 pt-2">

@@ -112,7 +112,7 @@ export default function DailyLogsPage() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        {([{ label: "Total Logs", value: logs.length, color: "text-foreground" }, { label: "This Week", value: logs.filter((l) => { const d = new Date(l.log_date); const now = new Date(); const diff = (now.getTime() - d.getTime()) / 86400000; return diff <= 7; }).length, color: "text-blue-400" }, { label: "Total Crew Count", value: totalCrew, color: "text-emerald-400" }, { label: "Delay Entries", value: logs.filter((l) => l.delays).length, color: "text-amber-400" }] as const).map((s) => (
+        {([{ label: "Total Logs", value: logs.length, color: "text-foreground" }, { label: "This Week", value: logs.filter((l) => { const d = new Date(l.log_date); const now = new Date(); const diff = (now.getTime() - d.getTime()) / 86400000; return diff <= 7; }).length, color: "text-amber-400" }, { label: "Total Crew Count", value: totalCrew, color: "text-emerald-400" }, { label: "Delay Entries", value: logs.filter((l) => l.delays).length, color: "text-amber-400" }] as const).map((s) => (
           <div key={s.label} className="rounded-xl border border-zinc-800 bg-card p-4 shadow-sm"><p className="text-xs font-semibold text-zinc-500">{s.label}</p><p className={`text-2xl font-black ${s.color}`}>{s.value}</p></div>
         ))}
       </div>

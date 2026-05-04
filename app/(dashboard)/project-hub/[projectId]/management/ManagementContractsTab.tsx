@@ -156,11 +156,11 @@ export default function ManagementContractsTab({ projectId, showToast, onStatsCh
                         </div>
                       )}
                       {parsedReqs.length > 0 && (
-                        <div className="rounded-xl border border-blue-100 bg-blue-50 p-3 space-y-2">
-                          <div className="flex items-center gap-1.5"><Shield size={12} className="text-blue-600" /><p className="text-[10px] font-bold uppercase tracking-wider text-blue-600">Key Contractual Requirements</p></div>
+                        <div className="rounded-xl border border-amber-100 bg-amber-50 p-3 space-y-2">
+                          <div className="flex items-center gap-1.5"><Shield size={12} className="text-amber-600" /><p className="text-[10px] font-bold uppercase tracking-wider text-amber-600">Key Contractual Requirements</p></div>
                           <ul className="space-y-1">
                             {parsedReqs.map((req, i) => (
-                              <li key={i} className="flex items-start gap-1.5 text-xs text-blue-900"><CheckCircle2 size={11} className="text-blue-400 mt-0.5 shrink-0" />{req}</li>
+                              <li key={i} className="flex items-start gap-1.5 text-xs text-amber-900"><CheckCircle2 size={11} className="text-amber-400 mt-0.5 shrink-0" />{req}</li>
                             ))}
                           </ul>
                         </div>

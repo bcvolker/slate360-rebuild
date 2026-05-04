@@ -51,14 +51,14 @@ export function UnifiedVectorToolbar() {
           const Icon = tool.icon;
           const isActive = activeTool === tool.value;
           return (
-            <button key={tool.label} type="button" onClick={() => selectTool(tool.value)} className={`flex min-h-10 items-center justify-center gap-2 rounded-xl border px-2 py-2 text-xs font-black ${isActive ? "border-blue-500 bg-blue-500/20 text-blue-100" : "border-white/10 bg-black/20 text-white/70 hover:border-blue-400"}`} aria-label={tool.label}>
+            <button key={tool.label} type="button" onClick={() => selectTool(tool.value)} className={`flex min-h-10 items-center justify-center gap-2 rounded-xl border px-2 py-2 text-xs font-black ${isActive ? "border-amber-500 bg-amber-500/20 text-amber-100" : "border-white/10 bg-black/20 text-white/70 hover:border-amber-400"}`} aria-label={tool.label}>
               <Icon className="h-4 w-4" />
             </button>
           );
         })}
       </div>
       <div className="mt-2 flex flex-wrap items-center gap-2" aria-label="Markup colors and line width">
-        {COLORS.map((color) => <button key={color} type="button" onClick={() => selectColor(color)} className={`h-7 w-7 rounded-full border-2 ${activeColor === color ? "border-blue-300" : "border-white/40 shadow"}`} style={{ backgroundColor: color }} aria-label={`Use markup color ${color}`} />)}
+        {COLORS.map((color) => <button key={color} type="button" onClick={() => selectColor(color)} className={`h-7 w-7 rounded-full border-2 ${activeColor === color ? "border-amber-300" : "border-white/40 shadow"}`} style={{ backgroundColor: color }} aria-label={`Use markup color ${color}`} />)}
         <span className="ml-1 h-6 w-px bg-white/15" />
         {STROKE_WIDTHS.map((width) => <button key={width} type="button" onClick={() => selectStrokeWidth(width)} className={`min-h-7 rounded-full border px-2 text-[10px] font-black ${activeStrokeWidth === width ? "border-cyan-300 bg-cyan-300/20 text-cyan-100" : "border-white/15 bg-black/20 text-white/70"}`} aria-label={`Set line width ${width}`}>{width}px</button>)}
         <button type="button" onClick={() => publishVectorTool(activeTool, activeColor, activeStrokeWidth, true)} className="ml-auto inline-flex min-h-7 items-center gap-1 rounded-full border border-rose-300/30 bg-rose-500/10 px-2 text-[10px] font-black text-rose-100" aria-label="Delete selected markup"><Trash2 className="h-3.5 w-3.5" /> Delete</button>

@@ -192,7 +192,7 @@ export default function ProjectSchedulePage() {
       <div className="grid grid-cols-3 gap-3 sm:grid-cols-6">
         {[
           { label: "Total", value: stats.total, color: "text-foreground" },
-          { label: "In Progress", value: stats.inProgress, color: "text-blue-400" },
+          { label: "In Progress", value: stats.inProgress, color: "text-amber-400" },
           { label: "Completed", value: stats.completed, color: "text-emerald-400" },
           { label: "Delayed", value: stats.delayed, color: "text-red-400" },
           { label: "Milestones", value: stats.milestones, color: "text-purple-400" },

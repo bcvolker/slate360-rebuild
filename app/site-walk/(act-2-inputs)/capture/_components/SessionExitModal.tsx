@@ -27,9 +27,9 @@ export function SessionExitModal({ open, ending, onClose, onExit, onEnd }: Props
         </div>
 
         <div className="mt-5 grid gap-2 sm:grid-cols-3">
-          <button type="button" onClick={onClose} className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-black text-slate-900 hover:border-blue-300">Cancel</button>
-          <button type="button" onClick={onExit} className="rounded-xl border border-slate-300 bg-slate-50 px-3 py-2 text-sm font-black text-slate-900 hover:border-blue-300">Exit</button>
-          <button type="button" onClick={onEnd} disabled={ending} className="rounded-xl bg-blue-600 px-3 py-2 text-sm font-black text-white hover:bg-blue-700 disabled:opacity-60">{ending ? "Ending…" : "End Walk"}</button>
+          <button type="button" onClick={onClose} className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-black text-slate-900 hover:border-amber-300">Cancel</button>
+          <button type="button" onClick={onExit} className="rounded-xl border border-slate-300 bg-slate-50 px-3 py-2 text-sm font-black text-slate-900 hover:border-amber-300">Exit</button>
+          <button type="button" onClick={onEnd} disabled={ending} className="rounded-xl bg-amber-500 px-3 py-2 text-sm font-black text-white hover:bg-amber-600 disabled:opacity-60">{ending ? "Ending…" : "End Walk"}</button>
         </div>
       </div>
     </div>

@@ -49,13 +49,13 @@ export function MasterPlanRoomClient({ projects, initialPlanSets, initialSheets 
       <section className="rounded-3xl border border-slate-300 bg-white p-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-blue-800">Master Plan Room</p>
+            <p className="text-xs font-black uppercase tracking-[0.2em] text-amber-900">Master Plan Room</p>
             <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-900">Project plan sets</h1>
             <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-700">Upload PDF plan packages into SlateDrop, track processing, and store reusable sheet rows before the field walk starts.</p>
           </div>
           <label className="block min-w-64 text-sm font-bold text-slate-900">
             <span className="mb-1 block">Project</span>
-            <select value={projectId} onChange={(event) => void chooseProject(event.target.value)} className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-blue-700 focus:ring-2 focus:ring-blue-700/15">
+            <select value={projectId} onChange={(event) => void chooseProject(event.target.value)} className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-amber-600 focus:ring-2 focus:ring-amber-600/15">
               <option value="">Select a project</option>
               {projects.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}
             </select>

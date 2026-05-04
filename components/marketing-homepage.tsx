@@ -506,7 +506,7 @@ function HeroSection() {
             showcase frame — outer ring + soft outer glow, inner hairline + inset
             highlight so 3D models, 360s, and video sit in an "expensive" frame. */}
         <div className="order-1 lg:order-2 w-full max-w-[22rem] sm:max-w-md lg:max-w-none mx-auto">
-          <div className="relative rounded-3xl bg-gradient-to-br from-white via-blue-50/60 to-white p-2 ring-1 ring-slate-200/80 shadow-[0_30px_80px_-20px_rgba(15,23,42,0.25),0_0_0_1px_rgba(59,130,246,0.06)]">
+          <div className="relative rounded-3xl bg-gradient-to-br from-white via-blue-50/60 to-white p-2 ring-1 ring-slate-200/80 shadow-[0_30px_80px_-20px_rgba(15,23,42,0.25),0_0_0_1px_rgba(245,158,11,0.06)]">
             <div className="rounded-2xl overflow-hidden ring-1 ring-slate-900/5 bg-slate-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
               <div className="p-1.5 sm:p-3 lg:p-3">
                 <HeroDemo />
@@ -526,7 +526,7 @@ function HeroSection() {
 
 function TrustBar() {
   return (
-    <section className="py-12 px-4 border-y border-slate-200 bg-blue-50/40">
+    <section className="py-12 px-4 border-y border-slate-200 bg-amber-50/40">
       <div className="container mx-auto">
         <p className="text-center text-sm font-semibold text-slate-500 uppercase tracking-wider mb-8">
           Built for teams across the AEC industry
@@ -676,7 +676,7 @@ function AppShowcaseSection() {
 
 function SlateDropSection() {
   return (
-    <section id="slatedrop" className="py-20 px-4 bg-blue-50/40">
+    <section id="slatedrop" className="py-20 px-4 bg-amber-50/40">
       <div className="container mx-auto max-w-6xl">
         {/* Section Header */}
         <div className="text-center mb-12">
@@ -700,9 +700,9 @@ function SlateDropSection() {
               <svg className="absolute inset-0 w-full h-full" xmlns="http://www.w3.org/2000/svg">
                 <defs>
                   <linearGradient id="cobalt-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" stopColor="rgba(59,130,246,0.05)" />
-                    <stop offset="50%" stopColor="rgba(59,130,246,0.35)" />
-                    <stop offset="100%" stopColor="rgba(59,130,246,0.05)" />
+                    <stop offset="0%" stopColor="rgba(245,158,11,0.05)" />
+                    <stop offset="50%" stopColor="rgba(245,158,11,0.35)" />
+                    <stop offset="100%" stopColor="rgba(245,158,11,0.05)" />
                   </linearGradient>
                 </defs>
                 {/* Horizontal lines */}
@@ -927,7 +927,7 @@ function PricingSection() {
 
 function TestimonialsSection() {
   return (
-    <section className="py-20 px-4 bg-blue-50/40">
+    <section className="py-20 px-4 bg-amber-50/40">
       <div className="container mx-auto max-w-6xl">
         {/* Section Header */}
         <div className="text-center mb-12">
@@ -975,7 +975,7 @@ function FinalCTASection() {
   return (
     <section className="py-20 px-4 bg-slate-50">
       <div className="container mx-auto max-w-4xl">
-        <Card className="bg-white rounded-3xl ring-1 ring-cobalt/20 shadow-[0_30px_80px_-20px_rgba(59,130,246,0.25),0_20px_50px_rgba(15,23,42,0.08)] overflow-hidden">
+        <Card className="bg-white rounded-3xl ring-1 ring-cobalt/20 shadow-[0_30px_80px_-20px_rgba(245,158,11,0.25),0_20px_50px_rgba(15,23,42,0.08)] overflow-hidden">
           {/* subtle cobalt glow strip on top edge */}
           <div className="h-1 bg-gradient-to-r from-cobalt/0 via-cobalt to-cobalt/0" />
           <CardContent className="py-12 px-8 text-center">

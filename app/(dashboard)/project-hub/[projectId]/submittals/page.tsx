@@ -149,7 +149,7 @@ export default function ProjectSubmittalsPage() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
-        {([{ label: "Total", value: stats.total, color: "text-foreground" }, { label: "Pending", value: stats.pending, color: "text-amber-400" }, { label: "Approved", value: stats.approved, color: "text-emerald-400" }, { label: "Action Needed", value: stats.action, color: "text-red-400" }, { label: "Closed", value: stats.closed, color: "text-blue-400" }] as const).map((s) => (
+        {([{ label: "Total", value: stats.total, color: "text-foreground" }, { label: "Pending", value: stats.pending, color: "text-amber-400" }, { label: "Approved", value: stats.approved, color: "text-emerald-400" }, { label: "Action Needed", value: stats.action, color: "text-red-400" }, { label: "Closed", value: stats.closed, color: "text-amber-400" }] as const).map((s) => (
           <div key={s.label} className="rounded-xl border border-zinc-800 bg-card p-4"><p className="text-xs font-semibold text-zinc-500">{s.label}</p><p className={`text-2xl font-black ${s.color}`}>{s.value}</p></div>
         ))}
       </div>

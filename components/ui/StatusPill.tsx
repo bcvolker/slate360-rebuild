@@ -20,7 +20,7 @@ interface StatusPillProps {
 }
 
 const STATUS_STYLES: Record<string, string> = {
-  open:        "bg-blue-50 text-blue-700 border-blue-100",
+  open:        "bg-amber-50 text-amber-700 border-amber-100",
   "in-review": "bg-amber-50 text-amber-700 border-amber-100",
   "in_review": "bg-amber-50 text-amber-700 border-amber-100",
   pending:     "bg-amber-50 text-amber-700 border-amber-100",
@@ -34,7 +34,7 @@ const STATUS_STYLES: Record<string, string> = {
   "on-hold":   "bg-amber-50 text-amber-700 border-amber-100",
   "on_hold":   "bg-amber-50 text-amber-700 border-amber-100",
   queued:      "bg-gray-100 text-gray-600 border-gray-200",
-  processing:  "bg-blue-50 text-blue-700 border-blue-100",
+  processing:  "bg-amber-50 text-amber-700 border-amber-100",
   failed:      "bg-red-50 text-red-700 border-red-100",
 };
 

@@ -146,7 +146,7 @@ export default function ManagementStakeholdersTab({ projectId, company, showToas
                           </div>
                         ))}
                       </div>
-                      {s.notes && <div className="rounded-lg border border-blue-100 bg-blue-50 p-3 text-xs text-blue-800">{s.notes}</div>}
+                      {s.notes && <div className="rounded-lg border border-amber-100 bg-amber-50 p-3 text-xs text-amber-900">{s.notes}</div>}
                       <div className="flex flex-wrap gap-2 pt-1">
                         {s.email && <a href={`mailto:${s.email}`} className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition"><Mail size={12} /> Email</a>}
                         {s.phone && <a href={`tel:${s.phone}`} className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition"><Phone size={12} /> Call</a>}

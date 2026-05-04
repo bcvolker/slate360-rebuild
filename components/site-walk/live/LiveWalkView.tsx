@@ -34,20 +34,20 @@ export function LiveWalkView({ session, initialItems }: Props) {
     <section className="grid min-h-[calc(100vh-12rem)] gap-4 xl:grid-cols-[420px_minmax(0,1fr)]">
       <aside className="overflow-hidden rounded-3xl border border-slate-300 bg-white shadow-sm">
         <div className="border-b border-slate-200 p-4">
-          <p className="text-xs font-black uppercase tracking-[0.18em] text-blue-800">Live Feed</p>
+          <p className="text-xs font-black uppercase tracking-[0.18em] text-amber-900">Live Feed</p>
           <h2 className="mt-1 text-xl font-black text-slate-950">Location → Item</h2>
           <p className="mt-1 text-sm font-bold text-slate-600">New captures appear here without refreshing.</p>
         </div>
         <div className="max-h-[calc(100vh-18rem)] overflow-y-auto p-3">
           {groups.map((group) => (
             <div key={group.location} className="mb-4">
-              <div className="mb-2 flex items-center gap-2 rounded-2xl bg-slate-100 px-3 py-2 text-sm font-black text-slate-800"><MapPin className="h-4 w-4 text-blue-800" /> {group.location}</div>
+              <div className="mb-2 flex items-center gap-2 rounded-2xl bg-slate-100 px-3 py-2 text-sm font-black text-slate-800"><MapPin className="h-4 w-4 text-amber-900" /> {group.location}</div>
               <div className="space-y-2">
                 {group.items.map((item) => {
                   const active = selected?.id === item.id;
                   const recent = recentIds.has(item.id);
                   return (
-                    <button key={item.id} type="button" onClick={() => setSelectedId(item.id)} className={`w-full rounded-2xl border p-3 text-left transition ${active ? "border-blue-500 bg-blue-50" : "border-slate-200 bg-white hover:border-blue-200"} ${recent ? "animate-pulse ring-2 ring-emerald-300" : ""}`}>
+                    <button key={item.id} type="button" onClick={() => setSelectedId(item.id)} className={`w-full rounded-2xl border p-3 text-left transition ${active ? "border-amber-500 bg-amber-50" : "border-slate-200 bg-white hover:border-amber-200"} ${recent ? "animate-pulse ring-2 ring-emerald-300" : ""}`}>
                       <div className="flex items-center justify-between gap-2">
                         <p className="line-clamp-1 text-sm font-black text-slate-950">{getItemDetail(item)}</p>
                         <span className="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-black uppercase text-slate-600">{item.priority}</span>
@@ -75,7 +75,7 @@ function ItemDetail({ item }: { item: LiveWalkItem }) {
     <div className="space-y-4">
       <div className="flex flex-col gap-3 border-b border-slate-200 pb-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
-          <p className="text-xs font-black uppercase tracking-[0.18em] text-blue-800">Live item</p>
+          <p className="text-xs font-black uppercase tracking-[0.18em] text-amber-900">Live item</p>
           <h1 className="mt-1 text-2xl font-black text-slate-950">{item.title || getItemDetail(item)}</h1>
           <p className="mt-1 text-sm font-bold text-slate-600">{item.category ?? "Observation"} · {item.item_status.replace("_", " ")}</p>
         </div>
@@ -100,7 +100,7 @@ function Info({ label, value }: { label: string; value: string }) {
 }
 
 function EmptyDetail() {
-  return <div className="flex min-h-96 flex-col items-center justify-center text-center text-slate-600"><Activity className="h-8 w-8 text-blue-800" /><p className="mt-3 text-sm font-black">Waiting for live field data.</p></div>;
+  return <div className="flex min-h-96 flex-col items-center justify-center text-center text-slate-600"><Activity className="h-8 w-8 text-amber-900" /><p className="mt-3 text-sm font-black">Waiting for live field data.</p></div>;
 }
 
 function upsert(items: LiveWalkItem[], item: LiveWalkItem) {

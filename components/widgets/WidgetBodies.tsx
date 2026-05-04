@@ -92,15 +92,15 @@ export function FinancialWidgetBody({
 
   if (totalBudget === 0) {
     return (
-      <div className={["rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100", "p-4 flex flex-col justify-center items-center flex-1", expanded ? "min-h-[200px]" : ""].join(" ")}>
-        <BarChart3 size={28} className="text-blue-300 mb-2" />
-        <p className="text-xs text-blue-400 text-center">No budget data available yet</p>
+      <div className={["rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-amber-100", "p-4 flex flex-col justify-center items-center flex-1", expanded ? "min-h-[200px]" : ""].join(" ")}>
+        <BarChart3 size={28} className="text-amber-300 mb-2" />
+        <p className="text-xs text-amber-400 text-center">No budget data available yet</p>
       </div>
     );
   }
 
   return (
-    <div className="rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 p-4 flex-1 space-y-3">
+    <div className="rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-amber-100 p-4 flex-1 space-y-3">
       <div className="grid grid-cols-2 gap-2">
         <div className="bg-white/70 rounded-lg p-2">
           <p className="text-[9px] font-bold uppercase tracking-wider text-gray-400">Budget</p>
@@ -245,7 +245,7 @@ export function ProjectInfoWidgetBody({
   expanded?: boolean;
 }) {
   const fmtUsd = (v: number) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", notation: "compact", maximumFractionDigits: 1 }).format(v);
-  const statusColor: Record<string, string> = { Active: "text-emerald-600 bg-emerald-50", "On Hold": "text-amber-600 bg-amber-50", Completed: "text-blue-600 bg-blue-50", Planning: "text-purple-600 bg-purple-50" };
+  const statusColor: Record<string, string> = { Active: "text-emerald-600 bg-emerald-50", "On Hold": "text-amber-600 bg-amber-50", Completed: "text-amber-600 bg-amber-50", Planning: "text-purple-600 bg-purple-50" };
 
   return (
     <div className="rounded-xl bg-gradient-to-br from-slate-50 to-blue-50 border border-slate-100 p-4 flex-1 space-y-3">
@@ -291,7 +291,7 @@ export function ProcessingWidgetBody({
   const statusColor: Record<string, string> = {
     completed: "text-emerald-600 bg-emerald-50",
     processing: "text-amber-600 bg-amber-50",
-    queued: "text-blue-600 bg-blue-50",
+    queued: "text-amber-600 bg-amber-50",
     failed: "text-red-600 bg-red-50",
   };
 

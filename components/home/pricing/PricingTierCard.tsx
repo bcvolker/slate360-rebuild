@@ -51,8 +51,8 @@ export function PricingTierCard({
       className={cn(
         "relative flex flex-col bg-white rounded-2xl ring-1 ring-slate-200/80 shadow-[0_10px_30px_rgba(15,23,42,0.06)]",
         "transition-transform duration-300 hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(15,23,42,0.10)]",
-        highlight && "ring-cobalt/40 shadow-[0_15px_40px_rgba(59,130,246,0.15)]",
-        feature && "ring-2 ring-cobalt/50 shadow-[0_10px_40px_rgba(59,130,246,0.20)]",
+        highlight && "ring-cobalt/40 shadow-[0_15px_40px_rgba(245,158,11,0.15)]",
+        feature && "ring-2 ring-cobalt/50 shadow-[0_10px_40px_rgba(245,158,11,0.20)]",
         accentBorder && `border-t-4 ${accentBorder}`,
       )}
     >

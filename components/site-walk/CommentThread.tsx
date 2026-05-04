@@ -98,7 +98,7 @@ export function CommentThread({ sessionId, itemId, isField, currentUserId }: Pro
           >
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               {c.is_escalation && <AlertTriangle className="h-3 w-3 text-amber-500" />}
-              <span className={c.is_field ? "text-green-600" : "text-blue-600"}>
+              <span className={c.is_field ? "text-green-600" : "text-amber-600"}>
                 {c.is_field ? "Field" : "Office"}
               </span>
               <span>·</span>

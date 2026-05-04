@@ -15,7 +15,7 @@ export function PlanSetList({ planSets, sheets, activePlanSetId, onSelectPlanSet
     <section className="rounded-3xl border border-slate-300 bg-white p-5">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-xs font-black uppercase tracking-[0.18em] text-blue-800">Plan sets</p>
+          <p className="text-xs font-black uppercase tracking-[0.18em] text-amber-900">Plan sets</p>
           <h2 className="mt-1 text-xl font-black text-slate-900">Uploaded drawing packages</h2>
           <p className="mt-1 text-sm leading-6 text-slate-700">Open a set to review its extracted sheet rows.</p>
         </div>
@@ -30,7 +30,7 @@ export function PlanSetList({ planSets, sheets, activePlanSetId, onSelectPlanSet
             <article key={planSet.id} className="rounded-2xl bg-slate-50 ring-1 ring-slate-300">
               <button type="button" onClick={() => onSelectPlanSet(planSet.id)} className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left">
                 <span className="flex min-w-0 items-center gap-3">
-                  <FileText className="h-5 w-5 shrink-0 text-blue-700" />
+                  <FileText className="h-5 w-5 shrink-0 text-amber-700" />
                   <span className="min-w-0">
                     <span className="block truncate text-sm font-black text-slate-900">{planSet.title}</span>
                     <span className="block text-xs font-semibold text-slate-600">{count} sheet{count === 1 ? "" : "s"} · {formatBytes(planSet.file_size)}</span>
@@ -58,7 +58,7 @@ export function PlanSetList({ planSets, sheets, activePlanSetId, onSelectPlanSet
 
 function StatusPill({ status }: { status: SiteWalkPlanSet["processing_status"] }) {
   const label = status === "ready" ? "Complete" : status === "processing" ? "Processing Sheets" : status === "pending" ? "Uploading" : status;
-  const color = status === "ready" ? "bg-emerald-100 text-emerald-800" : status === "failed" ? "bg-rose-100 text-rose-800" : "bg-blue-100 text-blue-900";
+  const color = status === "ready" ? "bg-emerald-100 text-emerald-800" : status === "failed" ? "bg-rose-100 text-rose-800" : "bg-amber-100 text-amber-900";
   return <span className={`rounded-full px-2.5 py-1 text-[11px] font-black capitalize ${color}`}>{label}</span>;
 }
 

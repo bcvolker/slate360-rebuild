@@ -109,7 +109,7 @@ export default function ExternalRespondPage() {
         <div className="max-w-md w-full overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
           <div className="bg-[#3B82F6] px-6 py-4">
             <SlateLogoOnLight className="h-6 w-auto mb-2 opacity-90" />
-            <p className="text-sm text-blue-100">Slate360 Secure Portal</p>
+            <p className="text-sm text-amber-100">Slate360 Secure Portal</p>
           </div>
           <div className="p-5 text-center">
             <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-3">
@@ -137,11 +137,11 @@ export default function ExternalRespondPage() {
         <div className="bg-gradient-to-r from-[#3B82F6] to-[#1D4ED8] px-6 py-5 text-foreground">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <span className="inline-block text-[10px] font-bold uppercase tracking-widest text-blue-200/80 mb-1.5 bg-white/10 px-2 py-0.5 rounded-full">
+              <span className="inline-block text-[10px] font-bold uppercase tracking-widest text-amber-200/80 mb-1.5 bg-white/10 px-2 py-0.5 rounded-full">
                 {payload.item.type}
               </span>
               <h1 className="text-xl font-black leading-tight">{payload.item.title}</h1>
-              <p className="mt-1.5 text-sm text-blue-100">
+              <p className="mt-1.5 text-sm text-amber-100">
                 Project: <span className="font-semibold text-foreground">{payload.project.name}</span>
               </p>
             </div>
@@ -149,7 +149,7 @@ export default function ExternalRespondPage() {
               <UploadCloud size={18} />
             </div>
           </div>
-          <p className="mt-3 text-xs text-blue-200/70">
+          <p className="mt-3 text-xs text-amber-200/70">
             Review the details below and submit your decision. No Slate360 account required.
           </p>
         </div>

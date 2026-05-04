@@ -84,7 +84,7 @@ export default function TermsPage() {
             <Scale size={24} className="text-foreground" />
           </div>
           <h1 className="text-3xl font-black text-foreground sm:text-4xl">Terms of Service</h1>
-          <p className="mt-3 text-sm text-blue-200">Effective Date: January 1, 2025 · Last Updated: June 1, 2025</p>
+          <p className="mt-3 text-sm text-amber-200">Effective Date: January 1, 2025 · Last Updated: June 1, 2025</p>
         </div>
       </div>
 

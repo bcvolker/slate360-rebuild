@@ -14,7 +14,7 @@ export function DualModeToggle() {
           <div
             key={mode.label}
             className={mode.active
-              ? "rounded-xl border border-blue-300 bg-blue-50 p-4 text-blue-950"
+              ? "rounded-xl border border-amber-300 bg-amber-50 p-4 text-stone-950"
               : "rounded-xl border border-slate-200 bg-slate-50 p-4 text-slate-700"}
           >
             <div className="flex items-center gap-3">

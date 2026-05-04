@@ -34,7 +34,7 @@ export default async function SiteWalkPlansPage() {
     : { planSets: [], sheets: [] };
 
   return (
-    <main className="min-h-[calc(100vh-160px)] bg-[radial-gradient(circle_at_top,rgba(37,99,235,0.14),transparent_34%),#0B0F15] px-4 py-4 text-slate-50 sm:px-6 lg:px-8">
+    <main className="min-h-[calc(100vh-160px)] bg-[radial-gradient(circle_at_top,rgba(245,158,11,0.14),transparent_34%),#0B0F15] px-4 py-4 text-slate-50 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-5xl space-y-5">
         <MasterPlanRoomClient projects={projects} initialPlanSets={planSets} initialSheets={sheets} />
 

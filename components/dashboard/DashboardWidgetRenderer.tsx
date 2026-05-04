@@ -90,7 +90,7 @@ const weatherIcon = (icon: string) => {
     case "sun": return <Sun size={18} className="text-amber-400" />;
     case "cloud-sun": return <CloudSun size={18} className="text-zinc-400" />;
     case "cloud": return <Cloud size={18} className="text-zinc-400" />;
-    case "rain": return <CloudRain size={18} className="text-blue-400" />;
+    case "rain": return <CloudRain size={18} className="text-amber-400" />;
     case "snow": return <Snowflake size={18} className="text-sky-300" />;
     default: return <Sun size={18} className="text-amber-400" />;
   }
@@ -383,7 +383,7 @@ export default function DashboardWidgetRenderer({
             </div>
             <div className="space-y-1.5">
               {(ctx.liveWeather?.constructionAlerts ?? DEMO_WEATHER.constructionAlerts).map((a, i) => (
-                <div key={i} className={`flex items-start gap-2 p-2.5 rounded-xl text-xs ${a.severity === "warning" ? "bg-amber-50 text-amber-700" : a.severity === "caution" ? "bg-amber-50 text-orange-700" : "bg-blue-50 text-blue-700"}`}>
+                <div key={i} className={`flex items-start gap-2 p-2.5 rounded-xl text-xs ${a.severity === "warning" ? "bg-amber-50 text-amber-700" : a.severity === "caution" ? "bg-amber-50 text-orange-700" : "bg-amber-50 text-amber-700"}`}>
                   <AlertTriangle size={12} className="mt-0.5 shrink-0" /><span className="leading-relaxed">{a.message}</span>
                 </div>
               ))}

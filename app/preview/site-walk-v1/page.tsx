@@ -80,7 +80,7 @@ export default function SiteWalkPreviewPage() {
                 alt="Slate360"
                 width={36}
                 height={36}
-                className="h-9 w-9 object-contain drop-shadow-[0_0_10px_rgba(59,130,246,0.35)]"
+                className="h-9 w-9 object-contain drop-shadow-[0_0_10px_rgba(245,158,11,0.35)]"
               />
             </Link>
           </div>
@@ -206,7 +206,7 @@ export default function SiteWalkPreviewPage() {
                   {active && (
                     <span
                       aria-hidden
-                      className="absolute top-0 left-1/2 -translate-x-1/2 h-[2px] w-8 rounded-b-full bg-cobalt shadow-[0_2px_10px_rgba(59,130,246,0.45)]"
+                      className="absolute top-0 left-1/2 -translate-x-1/2 h-[2px] w-8 rounded-b-full bg-cobalt shadow-[0_2px_10px_rgba(245,158,11,0.45)]"
                     />
                   )}
                   <Icon size={22} strokeWidth={active ? 2.5 : 2} className={cn("transition-transform", active && "-translate-y-0.5")} />

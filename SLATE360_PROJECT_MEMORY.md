@@ -223,6 +223,48 @@ When editing oversized files, always read both the state declarations AND the JS
 4. Deliverable builder — wire `BlockEditor` to `site_walk_items`, save to `site_walk_deliverables`.
 5. Walk sessions list — add completed session query + amber filter tabs.
 
+### Session Handoff — 2026-05-04 (Amber Brand System Propagation — Full Push)
+
+#### What Changed
+- `app/globals.css` — All 13 cobalt tokens replaced with amber: `--primary`, `--primary-foreground` (→ #0C0A09 for WCAG AA on amber), `--primary-hover`, `--ring`, `--sidebar-primary-foreground`, `--app-glow-amber`, `--app-glow-amber-strong`, `shadow-gold-glow`, `btn-amber-soft`, `form-field:focus`, `form-button-ghost:hover`, `auth-page` gradient, `auth-input`, `auth-btn-primary`, `auth-link`, `auth-btn-oauth:hover`.
+- `lib/email-theme.ts` — `primary`, `primaryHover`, `primaryOnDark`, `quoteBorder`, `quoteBg` all updated to amber tokens. Removed duplicate `quoteBorder` property.
+- `lib/email-assignments.ts` — 2 inline cobalt (#3B82F6) hardcodes → amber (#F59E0B). Quote block bg updated to amber-tint.
+- `lib/email-collaborators.ts` — 2 inline cobalt hardcodes → amber. Quote block bg updated.
+- `app/icon.svg` — Cobalt → amber (#F59E0B), logo scaled to 71% w/ `translate(27,27)` for ~20% safe-zone padding, width/height 1024.
+- `public/uploads/slate360-favicon-v2.svg` — Same amber + padding changes.
+- `public/uploads/icon-192.png` — Regenerated from amber SVG via sharp.
+- `public/uploads/icon-512.png` — Regenerated from amber SVG via sharp.
+- `public/uploads/icon-512-maskable.png` — Regenerated from amber SVG via sharp.
+- `components/home/LandingHeader.tsx` — raw `<img>` → `<SlateLogo>` (named import).
+- `components/home/LandingFooter.tsx` — raw `<img>` → `<SlateLogoOnLight>` (footer uses `bg-surface` = light bg).
+- `components/home/LoginModal.tsx` — raw `<img>` → `<SlateLogo>`.
+- `components/collaborator/CollaboratorShell.tsx` — raw `<Image>` → `<SlateLogo>`.
+- `slate360-context/DESIGN_SYSTEM.md` — Created: canonical 5-layer design token map.
+- `docs/COMPLETION_AUDIT.md` — Created: 10-part completion audit across all modules.
+- Deployed to GitHub main (commit 8e983bb) → Vercel auto-deploy triggered.
+
+#### What's Broken / Partially Done
+- **CRITICAL (pre-existing)**: `UPSTASH_REDIS_REST_URL=""` — rate limiting disabled.
+- **CRITICAL (pre-existing)**: Supabase direct signup bypass. Manual Supabase Dashboard fix needed.
+- **Turnstile dormant (pre-existing)**: keys not added to Vercel yet.
+- Walk sessions list: only shows `in_progress` — needs status tabs for completed sessions.
+- Deliverable builder: `BlockEditor.tsx` is a scaffold, not yet wired to session items.
+- `/site-walk/present/[id]` and `/site-walk/portal/[token]` routes do not exist.
+- SlateDrop Recents/Shared/Requests tabs still have mock data.
+- PWA icon on user's phone: will update after Vercel deploy + user force-reinstalls PWA (old icon cached). No action required on our end.
+
+#### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md` — this handoff
+- `slate360-context/DESIGN_SYSTEM.md` — created
+- `docs/COMPLETION_AUDIT.md` — created
+
+#### Next Steps (ordered)
+1. **User**: check Vercel deploy, reinstall PWA, confirm amber icon + color scheme on phone.
+2. **MANUAL security** (pre-existing): Supabase disable anon signup + Upstash Redis + Cloudflare Turnstile keys.
+3. Walk sessions list: extend query to `in_progress OR completed`, add amber filter tabs.
+4. Deliverable builder: wire `BlockEditor` to `site_walk_items`, save to `site_walk_deliverables`, dark glass theme.
+5. SlateDrop real data (Recents/Shared/Requests tabs).
+
 ### Session Handoff — 2026-05-04 (Global Chrome Polish — Amber Pass Complete)
 
 #### What Changed

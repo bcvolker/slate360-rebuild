@@ -53,19 +53,19 @@ export default function DailyLogForm({ form, setForm, editingId, saving, onSubmi
           <div><label className={label}>Summary</label><textarea className={`${field} resize-y`} rows={3} value={form.summary} onChange={set("summary")} placeholder="Overall site activity and progress…" /></div>
 
           {/* Weather section */}
-          <div className="rounded-xl border border-blue-500/20 bg-blue-500/5 p-4 space-y-3">
+          <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 space-y-3">
             <div className="flex items-center justify-between">
-              <p className="text-xs font-bold text-blue-400">Weather</p>
-              <button type="button" onClick={logCurrentWeather} disabled={loadingWeather} className="inline-flex items-center gap-1 rounded-lg border border-blue-500/30 bg-blue-500/10 px-2.5 py-1.5 text-[10px] font-semibold text-blue-400 hover:bg-blue-500/20 disabled:opacity-60 transition">
+              <p className="text-xs font-bold text-amber-400">Weather</p>
+              <button type="button" onClick={logCurrentWeather} disabled={loadingWeather} className="inline-flex items-center gap-1 rounded-lg border border-amber-500/30 bg-amber-500/10 px-2.5 py-1.5 text-[10px] font-semibold text-amber-400 hover:bg-amber-500/20 disabled:opacity-60 transition">
                 {loadingWeather ? <Loader2 size={10} className="animate-spin" /> : <MapPin size={10} />} Auto-fill
               </button>
             </div>
-            {weatherToast && <p className="text-[10px] font-semibold text-blue-400">{weatherToast}</p>}
+            {weatherToast && <p className="text-[10px] font-semibold text-amber-400">{weatherToast}</p>}
             <div className="grid grid-cols-2 gap-3">
-              <div><label className="mb-1 block text-[10px] font-bold text-blue-500">Temp (°C)</label><input type="number" value={form.weather_temp} onChange={set("weather_temp")} className="w-full rounded-lg border border-blue-500/30 bg-card px-3 py-1.5 text-sm text-foreground outline-none" /></div>
-              <div><label className="mb-1 block text-[10px] font-bold text-blue-500">Condition</label><input type="text" value={form.weather_condition} onChange={set("weather_condition")} placeholder="Clear, Rain, etc." className="w-full rounded-lg border border-blue-500/30 bg-card px-3 py-1.5 text-sm text-foreground outline-none" /></div>
-              <div><label className="mb-1 block text-[10px] font-bold text-blue-500">Wind</label><input type="text" value={form.weather_wind} onChange={set("weather_wind")} placeholder="10 km/h" className="w-full rounded-lg border border-blue-500/30 bg-card px-3 py-1.5 text-sm text-foreground outline-none" /></div>
-              <div><label className="mb-1 block text-[10px] font-bold text-blue-500">Precipitation</label><input type="text" value={form.weather_precip} onChange={set("weather_precip")} placeholder="None, 5mm, etc." className="w-full rounded-lg border border-blue-500/30 bg-card px-3 py-1.5 text-sm text-foreground outline-none" /></div>
+              <div><label className="mb-1 block text-[10px] font-bold text-amber-500">Temp (°C)</label><input type="number" value={form.weather_temp} onChange={set("weather_temp")} className="w-full rounded-lg border border-amber-500/30 bg-card px-3 py-1.5 text-sm text-foreground outline-none" /></div>
+              <div><label className="mb-1 block text-[10px] font-bold text-amber-500">Condition</label><input type="text" value={form.weather_condition} onChange={set("weather_condition")} placeholder="Clear, Rain, etc." className="w-full rounded-lg border border-amber-500/30 bg-card px-3 py-1.5 text-sm text-foreground outline-none" /></div>
+              <div><label className="mb-1 block text-[10px] font-bold text-amber-500">Wind</label><input type="text" value={form.weather_wind} onChange={set("weather_wind")} placeholder="10 km/h" className="w-full rounded-lg border border-amber-500/30 bg-card px-3 py-1.5 text-sm text-foreground outline-none" /></div>
+              <div><label className="mb-1 block text-[10px] font-bold text-amber-500">Precipitation</label><input type="text" value={form.weather_precip} onChange={set("weather_precip")} placeholder="None, 5mm, etc." className="w-full rounded-lg border border-amber-500/30 bg-card px-3 py-1.5 text-sm text-foreground outline-none" /></div>
             </div>
           </div>
 

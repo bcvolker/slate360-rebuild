@@ -10,7 +10,7 @@ interface Props {
 
 const TAG_COLORS: Record<string, string> = {
   Client:        "bg-amber-500/20 text-amber-300 border-amber-500/30",
-  Vendor:        "bg-blue-500/20 text-blue-300 border-blue-500/30",
+  Vendor:        "bg-amber-500/20 text-amber-300 border-amber-500/30",
   Subcontractor: "bg-purple-500/20 text-purple-300 border-purple-500/30",
   Architect:     "bg-teal-500/20 text-teal-300 border-teal-500/30",
   Team:          "bg-green-500/20 text-green-300 border-green-500/30",

@@ -125,7 +125,7 @@ export default function HeroDemo() {
               type="button"
               onClick={() => setExpanded(false)}
               aria-label="Close expanded viewer"
-              className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-white text-slate-950 hover:bg-slate-200 border-2 border-blue-500 shadow-[0_0_0_4px_rgba(59,130,246,0.22)] transition-colors"
+              className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-white text-slate-950 hover:bg-slate-200 border-2 border-amber-500 shadow-[0_0_0_4px_rgba(245,158,11,0.22)] transition-colors"
             >
               <X className="h-6 w-6" />
             </button>
@@ -155,8 +155,8 @@ function TabBtn({
       onClick={onClick}
       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium transition-colors ${
         active
-          ? "bg-slate-900 text-blue-400 border border-blue-500 shadow-sm"
-          : "bg-slate-900/60 border border-slate-700 text-slate-300 hover:text-blue-400 hover:border-blue-500 hover:bg-slate-900"
+          ? "bg-slate-900 text-amber-400 border border-amber-500 shadow-sm"
+          : "bg-slate-900/60 border border-slate-700 text-slate-300 hover:text-amber-400 hover:border-amber-500 hover:bg-slate-900"
       }`}
     >
       {icon}

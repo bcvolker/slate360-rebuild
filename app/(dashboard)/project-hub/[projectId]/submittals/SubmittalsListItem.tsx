@@ -54,14 +54,14 @@ export default function SubmittalsListItem({ sub, expanded, onToggle, onQuickSta
             ))}
           </div>
           {sub.response_text && (
-            <div className="rounded-lg border border-blue-900/50 bg-blue-950/30 p-3">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-blue-400 mb-1">Response / Notes</p>
-              <p className="text-sm text-blue-300 whitespace-pre-wrap">{sub.response_text}</p>
+            <div className="rounded-lg border border-amber-900/30 bg-slate-900/50 p-3">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-amber-400 mb-1">Response / Notes</p>
+              <p className="text-sm text-amber-300 whitespace-pre-wrap">{sub.response_text}</p>
             </div>
           )}
           <div className="flex flex-wrap items-center gap-2 pt-2">
             {sub.status !== "Approved" && sub.status !== "Closed" && <button onClick={() => onQuickStatus("Approved")} className={`${btn} border-emerald-900/50 bg-emerald-950/30 text-emerald-400 hover:bg-emerald-950/50`}>Approve</button>}
-            {sub.status !== "Closed" && <button onClick={() => onQuickStatus("Closed")} className={`${btn} border-blue-900/50 bg-blue-950/30 text-blue-400 hover:bg-blue-950/50`}>Close</button>}
+            {sub.status !== "Closed" && <button onClick={() => onQuickStatus("Closed")} className={`${btn} border-amber-900/30 bg-slate-900/50 text-amber-400 hover:bg-slate-900/80`}>Close</button>}
             <button onClick={onSend} className={`${btn} border-zinc-700 bg-card text-zinc-300 hover:bg-zinc-700`}><Send size={12} /> Send</button>
             <button onClick={onSaveAs} className={`${btn} border-zinc-700 bg-card text-zinc-300 hover:bg-zinc-700`}>Save As</button>
             <button onClick={onEdit} className={`${btn} border-zinc-700 bg-card text-zinc-300 hover:bg-zinc-700`}>Edit</button>

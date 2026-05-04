@@ -135,7 +135,7 @@ export default function ProjectBudgetPage() {
           <h2 className="text-xl font-black text-foreground">Budget & Cost Control{profile.projectName && <span className="ml-2 text-base font-semibold text-zinc-500">— {profile.projectName}</span>}</h2>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          <button onClick={() => setShowFromScratch(true)} disabled={rows.length > 0} className="inline-flex items-center gap-1.5 rounded-lg border border-dashed border-blue-600 bg-blue-950/30 px-3 py-2 text-xs font-semibold text-blue-400 hover:bg-blue-950/50 disabled:opacity-30 disabled:cursor-not-allowed transition" title="Start a fresh budget from CSI template"><FileText size={14} /> New Budget</button>
+          <button onClick={() => setShowFromScratch(true)} disabled={rows.length > 0} className="inline-flex items-center gap-1.5 rounded-lg border border-dashed border-amber-700/50 bg-slate-900/50 px-3 py-2 text-xs font-semibold text-amber-400 hover:bg-slate-900/80 disabled:opacity-30 disabled:cursor-not-allowed transition" title="Start a fresh budget from CSI template"><FileText size={14} /> New Budget</button>
           <button onClick={exportCSV} disabled={rows.length === 0} className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-700 bg-card px-3 py-2 text-xs font-semibold text-zinc-300 hover:bg-card disabled:opacity-40"><Download size={14} /> Export</button>
           <button onClick={() => void onSaveSnapshot()} disabled={snapshotSaving || rows.length === 0} className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-700 bg-card px-3 py-2 text-xs font-semibold text-zinc-300 hover:bg-card disabled:opacity-40">{snapshotSaving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />} Snapshot</button>
           <ViewCustomizer storageKey={`viewprefs-budget-${projectId}`} cols={[{key:"cost_code",label:"Cost Code"},{key:"description",label:"Description"},{key:"category",label:"Category"},{key:"budget",label:"Budget"},{key:"revised",label:"Revised"},{key:"spent",label:"Spent"},{key:"variance",label:"Variance"}]} defaultCols={["cost_code","description","category","budget","revised","spent","variance"]} prefs={viewPrefs} onPrefsChange={setViewPrefs} />
@@ -147,7 +147,7 @@ export default function ProjectBudgetPage() {
         {[
           { label: "Original Budget", value: fmtCurrency(totals.budget), icon: DollarSign, color: "text-foreground" },
           { label: "Change Orders", value: fmtCurrency(totals.changeOrders), icon: Plus, color: totals.changeOrders > 0 ? "text-amber-400" : "text-foreground" },
-          { label: "Revised Budget", value: fmtCurrency(revisedBudget), icon: DollarSign, color: "text-blue-400" },
+          { label: "Revised Budget", value: fmtCurrency(revisedBudget), icon: DollarSign, color: "text-amber-400" },
           { label: "Spent to Date", value: fmtCurrency(totals.spent), icon: TrendingDown, color: "text-foreground" },
           { label: "Variance", value: fmtCurrency(variance), icon: variance >= 0 ? TrendingUp : TrendingDown, color: variance >= 0 ? "text-emerald-400" : "text-red-400" },
           { label: "% Spent", value: `${pctSpent}%`, icon: DollarSign, color: pctSpent > 90 ? "text-red-400" : "text-foreground" },
@@ -196,9 +196,9 @@ export default function ProjectBudgetPage() {
               <label className="mb-1 block text-xs font-bold text-zinc-400">Project Name</label>
               <input type="text" value={scratchName || profile.projectName} onChange={(e) => setScratchName(e.target.value)} placeholder={profile.projectName || "Enter project name…"} className="w-full rounded-lg border border-zinc-700 bg-card px-3 py-2 text-sm text-zinc-200 outline-none focus:border-[#3B82F6]" />
             </div>
-            <div className="rounded-xl bg-blue-950/30 border border-blue-900/40 p-3">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-blue-400 mb-2">Will create {CSI_TEMPLATES.length} line items</p>
-              <div className="flex flex-wrap gap-1">{CSI_TEMPLATES.slice(0, 8).map((t) => <span key={t.costCode} className="inline-flex rounded-full bg-blue-500/20 px-2 py-0.5 text-[9px] font-semibold text-blue-300">{t.costCode}</span>)}<span className="inline-flex rounded-full bg-blue-500/20 px-2 py-0.5 text-[9px] font-semibold text-blue-300">+{CSI_TEMPLATES.length - 8} more</span></div>
+            <div className="rounded-xl bg-slate-900/50 border border-amber-900/30 p-3">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-amber-400 mb-2">Will create {CSI_TEMPLATES.length} line items</p>
+              <div className="flex flex-wrap gap-1">{CSI_TEMPLATES.slice(0, 8).map((t) => <span key={t.costCode} className="inline-flex rounded-full bg-amber-500/20 px-2 py-0.5 text-[9px] font-semibold text-amber-300">{t.costCode}</span>)}<span className="inline-flex rounded-full bg-amber-500/20 px-2 py-0.5 text-[9px] font-semibold text-amber-300">+{CSI_TEMPLATES.length - 8} more</span></div>
             </div>
             <button onClick={() => void handleFromScratch()} disabled={saving} className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-[#3B82F6] px-4 py-2.5 text-sm font-semibold text-foreground hover:bg-[#1D4ED8] disabled:opacity-50 transition">{saving ? <Loader2 size={14} className="animate-spin" /> : <FileText size={14} />} Generate CSI Budget Template</button>
           </div>

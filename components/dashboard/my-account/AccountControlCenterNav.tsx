@@ -39,17 +39,17 @@ export default function AccountControlCenterNav({ isAdmin, activeTab, onSelect }
             key={section.title}
             type="button"
             onClick={() => onSelect(section.tabId)}
-            className={`rounded-2xl border p-4 text-left transition hover:border-blue-500 hover:shadow-sm ${selected ? "border-blue-400 bg-blue-50" : "border-app bg-app-card"}`}
+            className={`rounded-2xl border p-4 text-left transition hover:border-amber-500 hover:shadow-sm ${selected ? "border-amber-400 bg-amber-50" : "border-app bg-app-card"}`}
           >
             <div className="flex items-start gap-3">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-700 ring-1 ring-blue-100">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-700 ring-1 ring-amber-100">
                 <Icon className="h-5 w-5" />
               </span>
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
                   <p className={selected ? "text-sm font-black text-slate-950" : "text-sm font-black text-zinc-100"}>{section.title}</p>
                   {section.status ? (
-                    <span className="rounded-full bg-white/[0.08] px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-blue-600 ring-1 ring-blue-200">
+                    <span className="rounded-full bg-white/[0.08] px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-amber-600 ring-1 ring-amber-200">
                       {section.status}
                     </span>
                   ) : null}

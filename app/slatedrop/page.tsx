@@ -65,7 +65,7 @@ export default async function SlateDropPage() {
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-4 px-4 py-5 pb-28 text-slate-50 sm:px-6 lg:px-8 lg:py-8 lg:pb-8">
       <header className="flex items-center justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-[11px] font-black uppercase tracking-[0.18em] text-blue-200">SlateDrop</p>
+          <p className="text-[11px] font-black uppercase tracking-[0.18em] text-amber-200">SlateDrop</p>
           <h1 className="truncate text-2xl font-black text-white">Files</h1>
         </div>
         <div className="flex items-center gap-2">
@@ -77,7 +77,7 @@ export default async function SlateDropPage() {
       <section className="rounded-3xl border border-white/10 bg-white/5 p-3 shadow-lg backdrop-blur-md">
         <div className="relative">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
-          <input className="h-12 w-full rounded-2xl border border-white/10 bg-slate-950/45 pl-10 pr-4 text-sm font-bold text-white outline-none placeholder:text-slate-500 focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20" placeholder="Search files" />
+          <input className="h-12 w-full rounded-2xl border border-white/10 bg-slate-950/45 pl-10 pr-4 text-sm font-bold text-white outline-none placeholder:text-slate-500 focus:border-amber-400 focus:ring-2 focus:ring-amber-500/20" placeholder="Search files" />
         </div>
       </section>
 
@@ -99,17 +99,17 @@ export default async function SlateDropPage() {
 }
 
 function ActionButton({ href, icon: Icon, label }: { href: string; icon: typeof Plus; label: string }) {
-  return <Link href={href} className="inline-flex min-h-10 items-center gap-2 rounded-2xl bg-blue-600 px-3 text-xs font-black text-white shadow-[0_0_15px_rgba(37,99,235,0.25)] hover:bg-blue-500"><Icon className="h-4 w-4" /> {label}</Link>;
+  return <Link href={href} className="inline-flex min-h-10 items-center gap-2 rounded-2xl bg-amber-500 px-3 text-xs font-black text-white shadow-[0_0_15px_rgba(245,158,11,0.25)] hover:bg-amber-400"><Icon className="h-4 w-4" /> {label}</Link>;
 }
 
 function SegmentLink({ href, label, active = false }: { href: string; label: string; active?: boolean }) {
-  return <Link href={href} className={`rounded-xl px-2 py-2 text-center text-xs font-black ${active ? "bg-blue-600 text-white" : "text-slate-400 hover:bg-white/5 hover:text-white"}`}>{label}</Link>;
+  return <Link href={href} className={`rounded-xl px-2 py-2 text-center text-xs font-black ${active ? "bg-amber-500 text-white" : "text-slate-400 hover:bg-white/5 hover:text-white"}`}>{label}</Link>;
 }
 
 function FileRow({ href, label, meta, icon: Icon }: { href: string; label: string; meta: string; icon: typeof Folder }) {
   return (
-    <Link href={href} className="flex min-h-16 items-center gap-3 border-b border-white/10 px-4 transition hover:bg-blue-500/10">
-      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-blue-600 text-white"><Icon className="h-5 w-5" /></span>
+    <Link href={href} className="flex min-h-16 items-center gap-3 border-b border-white/10 px-4 transition hover:bg-amber-500/10">
+      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-amber-500 text-white"><Icon className="h-5 w-5" /></span>
       <span className="min-w-0 flex-1">
         <span className="block truncate text-sm font-black text-white">{label}</span>
         <span className="block truncate text-xs font-bold text-slate-400">{meta}</span>

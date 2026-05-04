@@ -1134,7 +1134,7 @@ function DrawController({
           <div className="flex flex-1 sm:flex-none items-center gap-1">
             <div className="flex flex-col min-w-[200px] flex-1 gap-1">
               <div className="relative flex items-center h-8 rounded-lg border border-gray-200 bg-gray-50/50 hover:bg-white focus-within:bg-white focus-within:border-[#3B82F6] transition-all px-2 overflow-hidden">
-                <div className="w-2 h-2 rounded-full border-2 border-blue-500 shrink-0 mr-2" />
+                <div className="w-2 h-2 rounded-full border-2 border-amber-500 shrink-0 mr-2" />
                 <input
                   type="text"
                   value={originInput}
@@ -1771,8 +1771,8 @@ export default function LocationMap({ center, locationLabel, contactRecipients =
           {showSharePanel && showToolbar && (
             <div className="relative z-10 border-b border-gray-100 bg-gray-50/50 px-2 py-2 sm:px-4 shadow-inner">
               {routeData && (
-                <div className="mb-2 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-xs text-blue-900 shadow-sm flex items-center gap-2">
-                  <div className="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 shrink-0">
+                <div className="mb-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900 shadow-sm flex items-center gap-2">
+                  <div className="w-5 h-5 rounded-full bg-amber-100 flex items-center justify-center text-amber-600 shrink-0">
                     <MapPin size={12} />
                   </div>
                   <span><span className="font-bold">Route Data:</span> {routeData.origin} &rarr; {routeData.destination} &middot; {routeData.distance} &middot; {routeData.duration} &middot; {routeData.travelMode.toLowerCase()}</span>

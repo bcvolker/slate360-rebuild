@@ -28,7 +28,7 @@ const INTENT_META: Record<Intent, { label: string; icon: typeof ThumbsUp; tone: 
   question: {
     label: "Question",
     icon: HelpCircle,
-    tone: "bg-blue-500/15 text-blue-300 border-blue-500/40 hover:bg-blue-500/25",
+    tone: "bg-amber-500/15 text-amber-300 border-amber-500/40 hover:bg-amber-500/25",
     defaultBody: "Question: ",
   },
   comment: {

@@ -15,11 +15,11 @@ export function PlanSheetGrid({ activePlanSet, sheets }: Props) {
     <section className="rounded-3xl border border-slate-300 bg-white p-5">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-xs font-black uppercase tracking-[0.18em] text-blue-800">Sheets</p>
+          <p className="text-xs font-black uppercase tracking-[0.18em] text-amber-900">Sheets</p>
           <h2 className="mt-1 text-xl font-black text-slate-900">{activePlanSet?.title ?? "Select a plan set"}</h2>
           <p className="mt-1 text-sm leading-6 text-slate-700">Individual sheet rows are stored in the project-level plan sheet table.</p>
         </div>
-        <Grid3X3 className="h-5 w-5 text-blue-700" />
+        <Grid3X3 className="h-5 w-5 text-amber-700" />
       </div>
 
       <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">

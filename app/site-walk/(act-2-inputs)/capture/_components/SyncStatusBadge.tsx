@@ -14,7 +14,7 @@ export function SyncStatusBadge({ isOnline, syncState }: Props) {
   const color = !isOnline || syncState === "failed" || syncState === "conflict"
     ? "bg-amber-50 text-amber-900 ring-amber-200"
     : syncing || syncState === "pending"
-      ? "bg-blue-50 text-blue-900 ring-blue-200"
+      ? "bg-amber-50 text-amber-900 ring-amber-200"
       : "bg-emerald-50 text-emerald-800 ring-emerald-200";
 
   return (

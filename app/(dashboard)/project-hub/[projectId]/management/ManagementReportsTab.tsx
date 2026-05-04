@@ -84,11 +84,11 @@ export default function ManagementReportsTab({ projectId, projectName, showToast
           </div>
         </div>
 
-        <div className="rounded-2xl border border-blue-100 bg-blue-50 p-4">
-          <div className="flex items-center gap-2 mb-2"><Book size={14} className="text-blue-600" /><p className="text-xs font-black text-blue-800">What gets included</p></div>
+        <div className="rounded-2xl border border-amber-100 bg-amber-50 p-4">
+          <div className="flex items-center gap-2 mb-2"><Book size={14} className="text-amber-600" /><p className="text-xs font-black text-amber-900">What gets included</p></div>
           <ul className="space-y-1.5">
             {["Live project stats & completion %", "Budget vs. actuals with variance", "RFI & submittal status summary", "Task schedule progress", "Daily log recap", "Open punch list items"].map((item) => (
-              <li key={item} className="flex items-center gap-1.5 text-[11px] text-blue-700"><CheckCircle2 size={10} className="text-blue-400 shrink-0" />{item}</li>
+              <li key={item} className="flex items-center gap-1.5 text-[11px] text-amber-700"><CheckCircle2 size={10} className="text-amber-400 shrink-0" />{item}</li>
             ))}
           </ul>
         </div>
@@ -105,9 +105,9 @@ export default function ManagementReportsTab({ projectId, projectName, showToast
         ) : (
           <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
             <div className="bg-[#3B82F6] px-6 py-5">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-blue-200 mb-1">Slate360 Professional Report</p>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-amber-200 mb-1">Slate360 Professional Report</p>
               <h3 className="text-lg font-black text-foreground">{reportResult.title}</h3>
-              <p className="text-[11px] text-blue-200 mt-1">Generated {new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</p>
+              <p className="text-[11px] text-amber-200 mt-1">Generated {new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</p>
             </div>
             <div className="p-6 space-y-5">
               <div>

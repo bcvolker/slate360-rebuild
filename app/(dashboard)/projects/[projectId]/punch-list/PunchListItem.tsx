@@ -51,7 +51,7 @@ export default function PunchListItem({ item, isExpanded, onToggle, onQuickStatu
             {item.status !== "Closed" && (
               <>
                 {item.status === "Open" && <button onClick={() => onQuickStatus(item, "In Progress")} className="inline-flex items-center gap-1 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 text-xs font-semibold text-amber-400 hover:bg-amber-500/20 transition"><Clock size={12} /> Start Progress</button>}
-                {(item.status === "Open" || item.status === "In Progress") && <button onClick={() => onQuickStatus(item, "Ready for Review")} className="inline-flex items-center gap-1 rounded-lg border border-blue-500/30 bg-blue-500/10 px-3 py-1.5 text-xs font-semibold text-blue-400 hover:bg-blue-500/20 transition"><Check size={12} /> Ready for Review</button>}
+                {(item.status === "Open" || item.status === "In Progress") && <button onClick={() => onQuickStatus(item, "Ready for Review")} className="inline-flex items-center gap-1 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 text-xs font-semibold text-amber-400 hover:bg-amber-500/20 transition"><Check size={12} /> Ready for Review</button>}
                 <button onClick={() => onQuickStatus(item, "Closed")} className="inline-flex items-center gap-1 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-1.5 text-xs font-semibold text-emerald-400 hover:bg-emerald-500/20 transition"><Check size={12} /> Close Item</button>
               </>
             )}

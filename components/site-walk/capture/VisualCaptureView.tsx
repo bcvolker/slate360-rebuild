@@ -46,11 +46,11 @@ export function VisualCaptureView({ sessionId, autoOpenCamera, launchId, items, 
     <div className="flex h-[100dvh] w-full flex-col overflow-hidden bg-[#0B0F15] text-slate-50">
       <TopCaptureControls location={activeLocation} modeLabel={modeLabel} onUndo={() => dispatchCanvasEvent(PHOTO_MARKUP_UNDO_EVENT)} onRedo={() => dispatchCanvasEvent(PHOTO_MARKUP_REDO_EVENT)} />
 
-      <main className="min-h-0 flex-1 border-y border-white/10 bg-[radial-gradient(circle_at_50%_0%,rgba(37,99,235,0.18),rgba(11,15,21,0.98)_55%)]">
+      <main className="min-h-0 flex-1 border-y border-white/10 bg-[radial-gradient(circle_at_50%_0%,rgba(245,158,11,0.18),rgba(11,15,21,0.98)_55%)]">
         <div className="relative h-full min-h-0 overflow-hidden">
           <CameraViewfinder sessionId={sessionId} autoOpenCamera={autoOpenCamera} launchId={launchId} layout="visual" activeItem={activeItem} markupEnabled={markupMode} onMarkupChange={onMarkupChange} onAttachmentPinsChange={onAttachmentPinsChange} />
           {ghostOn && ghostImageUrl && <img src={ghostImageUrl} alt="Previous progress ghost alignment" className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-25 mix-blend-screen" />}
-          <button type="button" onClick={onNext} className="absolute bottom-4 left-1/2 z-20 inline-flex min-h-12 -translate-x-1/2 items-center gap-2 whitespace-nowrap rounded-2xl bg-blue-600 px-5 text-sm font-black text-white shadow-[0_0_28px_rgba(37,99,235,0.55)] ring-1 ring-blue-300/30 hover:bg-blue-500" aria-label="Add field details for this photo">
+          <button type="button" onClick={onNext} className="absolute bottom-4 left-1/2 z-20 inline-flex min-h-12 -translate-x-1/2 items-center gap-2 whitespace-nowrap rounded-2xl bg-amber-500 px-5 text-sm font-black text-white shadow-[0_0_28px_rgba(245,158,11,0.55)] ring-1 ring-amber-300/30 hover:bg-amber-400" aria-label="Add field details for this photo">
             Add Field Details <ChevronRight className="h-5 w-5" />
           </button>
         </div>
@@ -103,7 +103,7 @@ function BottomToolDrawer({ mode, open, pinCount, children, onModeChange, onTogg
     <section className="shrink-0 border-t border-white/10 bg-[#0B0F15]/95 pb-[calc(0.45rem+env(safe-area-inset-bottom))] pt-2 shadow-[0_-18px_60px_rgba(0,0,0,0.38)] backdrop-blur-xl" aria-label="Capture tools">
       <div className="mx-auto mb-2 h-1 w-12 rounded-full bg-white/20" />
       <div className="mx-3 grid grid-cols-4 rounded-2xl border border-white/10 bg-white/5 p-1">
-        {tools.map((tool) => <button key={tool.mode} type="button" onClick={() => onModeChange(tool.mode)} className={`inline-flex h-10 items-center justify-center gap-1 rounded-xl text-[10px] font-black uppercase tracking-[0.08em] ${mode === tool.mode && open ? "bg-blue-600 text-white shadow-[0_0_18px_rgba(37,99,235,0.35)]" : "text-white/65"}`}>{tool.icon}<span>{tool.label}</span></button>)}
+        {tools.map((tool) => <button key={tool.mode} type="button" onClick={() => onModeChange(tool.mode)} className={`inline-flex h-10 items-center justify-center gap-1 rounded-xl text-[10px] font-black uppercase tracking-[0.08em] ${mode === tool.mode && open ? "bg-amber-500 text-white shadow-[0_0_18px_rgba(245,158,11,0.35)]" : "text-white/65"}`}>{tool.icon}<span>{tool.label}</span></button>)}
       </div>
       <button type="button" onClick={onToggleOpen} className="mx-auto mt-2 block text-[10px] font-black uppercase tracking-[0.16em] text-white/45">{open ? "Hide drawer" : "Show drawer"}</button>
       {open && <div className="mt-2">{children}</div>}
@@ -118,7 +118,7 @@ function StopCarousel({ items, activeItemId, revealedThumbKey, onReveal, onSelec
       <p className="mb-1 px-2 text-[10px] font-black uppercase tracking-[0.16em] text-white/55">Last location / stops</p>
       <RailShell heightClass="h-16">
         {items.map((item, index) => <ThumbButton key={item.id} item={item} thumbKey={`stop-${item.id}`} active={item.id === activeItemId} revealed={revealedThumbKey === `stop-${item.id}`} label={item.title || `Stop ${index + 1}`} onReveal={onReveal} onOpen={() => onSelectItem(item)} onDoubleClick={() => { onSelectItem(item); onOpenEdit(); }} />)}
-        <button type="button" onClick={() => requestCameraCapture("camera", "next_item")} className="flex aspect-square h-full shrink-0 items-center justify-center border border-blue-400/70 bg-blue-500/15 text-blue-100" aria-label="Add stop"><Plus className="h-6 w-6" /></button>
+        <button type="button" onClick={() => requestCameraCapture("camera", "next_item")} className="flex aspect-square h-full shrink-0 items-center justify-center border border-amber-400/70 bg-amber-500/15 text-amber-100" aria-label="Add stop"><Plus className="h-6 w-6" /></button>
       </RailShell>
     </section>
   );
@@ -128,7 +128,7 @@ function AttachDrawer({ pinCount, onOpenAttachments }: { pinCount: number; onOpe
   return (
     <div className="mx-3 rounded-2xl border border-white/10 bg-white/5 p-3 text-center">
       <p className="text-xs font-bold text-white/65">Long-press the photo to drop a pin, then attach files or notes.</p>
-      <button type="button" onClick={onOpenAttachments} className="mt-3 inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 text-xs font-black uppercase tracking-[0.12em] text-white shadow-[0_0_15px_rgba(37,99,235,0.3)]"><Paperclip className="h-4 w-4" /> Pinned attachments ({pinCount})</button>
+      <button type="button" onClick={onOpenAttachments} className="mt-3 inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-amber-500 px-4 text-xs font-black uppercase tracking-[0.12em] text-white shadow-[0_0_15px_rgba(245,158,11,0.3)]"><Paperclip className="h-4 w-4" /> Pinned attachments ({pinCount})</button>
     </div>
   );
 }
@@ -181,7 +181,7 @@ function AttachmentsSheet({ pins, onClose, onRemove }: { pins: PhotoAttachmentPi
   return (
     <div className="absolute inset-0 z-40 flex flex-col justify-end bg-black/55" role="dialog" aria-label="Pinned attachments" onClick={onClose}>
       <div className="rounded-t-3xl border-t border-white/10 bg-zinc-950/95 p-3 shadow-2xl backdrop-blur-xl" onClick={(event) => event.stopPropagation()}>
-        <div className="mb-2 flex items-center justify-between"><p className="text-[11px] font-black uppercase tracking-[0.16em] text-blue-100">Pinned attachments ({pins.length})</p><button type="button" onClick={onClose} className="rounded-full border border-white/15 p-2 text-white/80" aria-label="Close attachments"><X className="h-4 w-4" /></button></div>
+        <div className="mb-2 flex items-center justify-between"><p className="text-[11px] font-black uppercase tracking-[0.16em] text-amber-100">Pinned attachments ({pins.length})</p><button type="button" onClick={onClose} className="rounded-full border border-white/15 p-2 text-white/80" aria-label="Close attachments"><X className="h-4 w-4" /></button></div>
         {pins.length === 0 ? <p className="rounded-2xl border border-dashed border-white/15 bg-white/5 px-4 py-6 text-center text-xs font-bold text-white/60">Long-press the photo to drop a pin and attach files.</p> : <ul className="max-h-72 space-y-2 overflow-y-auto pr-1 no-scrollbar">{pins.map((pin) => <li key={pin.id} className="rounded-2xl border border-white/10 bg-white/5 px-3 py-2"><div className="flex items-center gap-3"><Paperclip className="h-4 w-4 shrink-0 text-cyan-300" /><div className="min-w-0 flex-1"><p className="truncate text-sm font-black text-white">{pin.label}</p><p className="truncate text-[11px] font-bold text-white/60">{pin.files.length} file{pin.files.length === 1 ? "" : "s"}{pin.note ? ` · ${pin.note}` : ""}</p></div><button type="button" onClick={() => onRemove(pin.id)} className="rounded-full border border-white/15 p-2 text-white/75 hover:border-rose-400 hover:text-rose-200" aria-label={`Remove ${pin.label}`}><Trash2 className="h-4 w-4" /></button></div>{pin.files.length > 0 && <div className="mt-2 flex flex-wrap gap-2">{pin.files.map((file) => <button key={file.id} type="button" onClick={() => void openPreview(file)} className="inline-flex max-w-full items-center gap-1 rounded-full border border-cyan-300/20 bg-cyan-300/10 px-2 py-1 text-[11px] font-black text-cyan-100"><Eye className="h-3 w-3" /><span className="truncate">{file.name}</span></button>)}</div>}</li>)}</ul>}
       </div>
       {preview && <FilePreviewModal preview={preview} onClose={() => setPreview(null)} />}
@@ -213,7 +213,7 @@ function ThumbButton({ item, thumbKey, active, revealed, label, onReveal, onOpen
     onOpen();
   }
 
-  return <button type="button" onClick={handleClick} onDoubleClick={onDoubleClick ?? onOpen} className={`relative aspect-square h-full shrink-0 overflow-hidden border ${active ? "border-blue-500 ring-2 ring-blue-500/30" : "border-white/20"}`} aria-label={revealed ? `Open ${label}` : `Show ${label} name`}><PhotoThumb item={item} />{revealed && <span className="absolute inset-x-0 bottom-0 truncate bg-black/75 px-1 py-0.5 text-left text-[9px] font-black text-white">{label}</span>}</button>;
+  return <button type="button" onClick={handleClick} onDoubleClick={onDoubleClick ?? onOpen} className={`relative aspect-square h-full shrink-0 overflow-hidden border ${active ? "border-amber-500 ring-2 ring-amber-500/30" : "border-white/20"}`} aria-label={revealed ? `Open ${label}` : `Show ${label} name`}><PhotoThumb item={item} />{revealed && <span className="absolute inset-x-0 bottom-0 truncate bg-black/75 px-1 py-0.5 text-left text-[9px] font-black text-white">{label}</span>}</button>;
 }
 
 function dispatchCanvasEvent(name: string) {

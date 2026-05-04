@@ -49,7 +49,7 @@ export default function BudgetTable({ rows, filtered, loading, editingId, totals
                   <td className="px-4 py-3 max-w-[160px] truncate font-medium text-zinc-200 text-xs">{row.description || "—"}</td>
                   <td className="px-4 py-3 text-[10px] text-zinc-500">{row.category || "—"}</td>
                   <td className="px-4 py-3 text-right text-xs text-zinc-300">{fmtCurrency(budget)}</td>
-                  <td className="px-4 py-3 text-right text-xs font-semibold text-blue-400">{fmtCurrency(revised)}</td>
+                  <td className="px-4 py-3 text-right text-xs font-semibold text-amber-400">{fmtCurrency(revised)}</td>
                   <td className="px-4 py-3 text-right text-xs text-zinc-300">{fmtCurrency(spent)}</td>
                   <td className={`px-4 py-3 text-right text-xs font-bold ${rowVariance >= 0 ? "text-emerald-400" : "text-red-400"}`}>{fmtCurrency(rowVariance)}</td>
                   <td className="px-4 py-3 text-center" onClick={(e) => e.stopPropagation()}>
@@ -81,7 +81,7 @@ export default function BudgetTable({ rows, filtered, loading, editingId, totals
           <tr>
             <td className="px-4 py-3" colSpan={3}>Totals ({filtered.length} items)</td>
             <td className="px-4 py-3 text-right">{fmtCurrency(totals.budget)}</td>
-            <td className="px-4 py-3 text-right text-blue-400">{fmtCurrency(revisedBudget)}</td>
+            <td className="px-4 py-3 text-right text-amber-400">{fmtCurrency(revisedBudget)}</td>
             <td className="px-4 py-3 text-right">{fmtCurrency(totals.spent)}</td>
             <td className={`px-4 py-3 text-right ${variance >= 0 ? "text-emerald-400" : "text-red-400"}`}>{fmtCurrency(variance)}</td>
             <td className="px-4 py-3" />
