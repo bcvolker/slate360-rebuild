@@ -3,27 +3,26 @@ import { CoordinationHubShell } from "@/components/coordination/CoordinationHubS
 import { resolveServerOrgContext } from "@/lib/server/org-context";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { ContactsClient } from "@/components/coordination/ContactsClient";
+import type { Contact } from "@/components/coordination/contacts/types";
 
 export const metadata = { title: "Contacts — Slate360" };
 export const dynamic = "force-dynamic";
-
-type ContactRow = { id: string; name: string; email: string | null; phone: string | null; company: string | null; initials: string | null; color: string | null };
 
 export default async function CoordinationContactsPage() {
   const ctx = await resolveServerOrgContext();
   if (!ctx.user) redirect("/login?next=/coordination/contacts");
 
-  const contacts: ContactRow[] = [];
+  let contacts: Contact[] = [];
   if (ctx.orgId) {
     const admin = createAdminClient();
     const { data } = await admin
       .from("org_contacts")
-      .select("id, name, email, phone, company, initials, color")
+      .select("id, name, email, phone, company, title, notes, initials, color, tags, contact_projects(project_id, projects(id, name))")
       .eq("org_id", ctx.orgId)
       .eq("is_archived", false)
       .order("name")
       .limit(200);
-    contacts.push(...((data ?? []) as ContactRow[]));
+    contacts = (data ?? []) as unknown as Contact[];
   }
 
   return (
