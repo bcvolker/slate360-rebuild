@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { SlateLogo } from "@/components/shared/SlateLogo";
 
 interface LandingHeaderProps {
   onLoginClick: () => void;
@@ -27,11 +28,7 @@ export default function LandingHeader({ onLoginClick, isScrolled }: LandingHeade
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2">
-            <img
-              src="/uploads/slate360-logo-cobalt-v3.svg?v=cobalt-2026-04-19b"
-              alt="Slate360"
-              className="h-7 sm:h-8 w-auto"
-            />
+            <SlateLogo className="h-7 sm:h-8 w-auto" />
           </Link>
 
           {/* Desktop Navigation */}

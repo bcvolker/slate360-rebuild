@@ -15,6 +15,7 @@ import { Bell, Menu } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { SlateLogoOnLight } from "@/components/shared/SlateLogoOnLight";
+import { SlateLogo } from "@/components/shared/SlateLogo";
 import { InviteShareButton } from "@/components/shared/InviteShareButton";
 import { BetaFeedbackButton } from "@/components/shared/BetaFeedbackButton";
 import { BackButton } from "@/components/shared/BackButton";
@@ -46,7 +47,7 @@ export function DashboardTopBar({
         <div className="flex items-center gap-3">
           {showLogo && (
             <Link href="/dashboard" className="hidden sm:flex items-center" aria-label="Slate360 home">
-              <SlateLogoOnLight className="h-6 w-auto" />
+              <SlateLogo className="h-6 w-auto" />
             </Link>
           )}
           <button

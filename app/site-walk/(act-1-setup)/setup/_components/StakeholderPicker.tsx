@@ -14,7 +14,7 @@ type Props = {
 
 type Draft = { contactId: string; role: string; name: string; email: string; company: string; phone: string };
 
-const inputClass = "w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-blue-700 focus:ring-2 focus:ring-blue-700/15";
+const inputClass = "w-full rounded-xl border border-slate-700/60 bg-slate-800/60 px-3 py-2 text-sm text-slate-50 placeholder:text-slate-500 outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20";
 
 export function StakeholderPicker({ project, initialContacts }: Props) {
   const [contacts, setContacts] = useState(initialContacts);
@@ -81,26 +81,26 @@ export function StakeholderPicker({ project, initialContacts }: Props) {
   }
 
   return (
-    <section className="rounded-3xl border border-slate-300 bg-white p-5 shadow-sm">
+    <section className="rounded-3xl border border-slate-700/60 bg-slate-900/60 backdrop-blur-md p-5">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-        <div><p className="text-xs font-black uppercase tracking-[0.18em] text-blue-800">Stakeholders</p><h2 className="mt-1 text-xl font-black text-slate-900">Contacts to project team</h2><p className="mt-1 text-sm leading-6 text-slate-700">Search Coordination contacts, then write selected people into the project roster.</p></div>
-        <span className="rounded-full border border-slate-300 bg-slate-50 px-3 py-1 text-xs font-bold text-slate-700">{project ? project.name : "No project selected"}</span>
+        <div><p className="text-xs font-black uppercase tracking-[0.18em] text-amber-400">Stakeholders</p><h2 className="mt-1 text-xl font-black text-slate-50">Contacts to project team</h2><p className="mt-1 text-sm leading-6 text-slate-400">Search Coordination contacts, then write selected people into the project roster.</p></div>
+        <span className="rounded-full border border-slate-700/60 bg-slate-800/60 px-3 py-1 text-xs font-bold text-slate-300">{project ? project.name : "No project selected"}</span>
       </div>
 
       <div className="mt-5 grid gap-5 lg:grid-cols-[1fr_1fr]">
         <form onSubmit={handleSubmit} className="space-y-3">
-          <label className="block text-sm font-bold text-slate-900"><span className="mb-1 block">Search contacts</span><div className="relative"><Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" /><input className={`${inputClass} pl-9`} value={query} onChange={(e) => void searchContacts(e.target.value)} placeholder="Owner, architect, inspector…" /></div></label>
+          <label className="block text-sm font-bold text-slate-200"><span className="mb-1 block">Search contacts</span><div className="relative"><Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" /><input className={`${inputClass} pl-9`} value={query} onChange={(e) => void searchContacts(e.target.value)} placeholder="Owner, architect, inspector…" /></div></label>
           <select value={draft.contactId} onChange={(e) => selectContact(e.target.value)} className={inputClass}><option value="">Use manual entry or pick a contact</option>{filtered.map((contact) => <option key={contact.id} value={contact.id}>{contact.name}{contact.company ? ` · ${contact.company}` : ""}</option>)}</select>
           <div className="grid gap-3 sm:grid-cols-2"><input className={inputClass} value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} placeholder="Name" /><input className={inputClass} value={draft.role} onChange={(e) => setDraft({ ...draft, role: e.target.value })} placeholder="Role" /><input className={inputClass} value={draft.email} onChange={(e) => setDraft({ ...draft, email: e.target.value })} placeholder="Email" /><input className={inputClass} value={draft.company} onChange={(e) => setDraft({ ...draft, company: e.target.value })} placeholder="Company" /></div>
-          <button type="submit" disabled={!project || status.kind === "loading"} className="inline-flex items-center gap-2 rounded-xl bg-blue-700 px-4 py-2 text-sm font-black text-white shadow-sm transition hover:bg-blue-800 disabled:opacity-60"><UserPlus className="h-4 w-4" /> Add stakeholder</button>
+          <button type="submit" disabled={!project || status.kind === "loading"} className="inline-flex items-center gap-2 rounded-xl bg-amber-500 px-4 py-2 text-sm font-black text-slate-950 shadow-sm transition hover:bg-amber-400 disabled:opacity-60"><UserPlus className="h-4 w-4" /> Add stakeholder</button>
           <StatusMessage status={status} />
         </form>
 
-        <div className="rounded-2xl border border-slate-300 bg-slate-50 p-4">
-          <h3 className="text-sm font-black text-slate-900">Current project roster</h3>
+        <div className="rounded-2xl border border-slate-700/60 bg-slate-800/60 p-4">
+          <h3 className="text-sm font-black text-slate-50">Current project roster</h3>
           <div className="mt-3 space-y-2">
-            {stakeholders.map((person) => <div key={person.id} className="rounded-xl border border-slate-300 bg-white p-3"><p className="text-sm font-black text-slate-900">{person.name}</p><p className="text-xs text-slate-700">{person.role}{person.company ? ` · ${person.company}` : ""}</p><p className="text-xs text-slate-500">{person.email ?? person.phone ?? "No contact detail"}</p></div>)}
-            {stakeholders.length === 0 && <p className="rounded-xl border border-dashed border-slate-300 bg-white p-4 text-sm text-slate-600">No stakeholders saved for this project yet.</p>}
+            {stakeholders.map((person) => <div key={person.id} className="rounded-xl border border-slate-700/60 bg-slate-900/60 p-3"><p className="text-sm font-black text-slate-50">{person.name}</p><p className="text-xs text-slate-400">{person.role}{person.company ? ` · ${person.company}` : ""}</p><p className="text-xs text-slate-500">{person.email ?? person.phone ?? "No contact detail"}</p></div>)}
+            {stakeholders.length === 0 && <p className="rounded-xl border border-dashed border-slate-700/60 bg-slate-900/40 p-4 text-sm text-slate-500">No stakeholders saved for this project yet.</p>}
           </div>
         </div>
       </div>
@@ -108,5 +108,5 @@ export function StakeholderPicker({ project, initialContacts }: Props) {
   );
 }
 
-function StatusMessage({ status }: { status: SubmitState }) { if (status.kind === "idle" || status.kind === "loading") return null; return <p className={`text-sm font-semibold ${status.kind === "ok" ? "text-emerald-700" : "text-rose-700"}`}>{status.message}</p>; }
+function StatusMessage({ status }: { status: SubmitState }) { if (status.kind === "idle" || status.kind === "loading") return null; return <p className={`text-sm font-semibold ${status.kind === "ok" ? "text-emerald-400" : "text-rose-400"}`}>{status.message}</p>; }
 async function readError(response: Response) { const data = (await response.json().catch(() => null)) as { error?: string } | null; return data?.error ?? "Request failed"; }

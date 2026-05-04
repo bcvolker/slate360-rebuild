@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
-import Image from "next/image";
+import { SlateLogo } from "@/components/shared/SlateLogo";
 
 type Props = {
   user: { name: string; email: string };
@@ -19,13 +19,7 @@ export function CollaboratorShell({ user, projectName, children }: Props) {
       <header className="border-b border-border bg-card">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
           <Link href="/collaborator" className="flex items-center gap-2">
-            <Image
-              src="/uploads/slate360-logo-reversed-v2.svg?v=cobalt-2026-04-19"
-              alt="Slate360"
-              width={120}
-              height={28}
-              priority
-            />
+            <SlateLogo className="h-7 w-auto" />
           </Link>
           <div className="flex items-center gap-3 text-xs text-muted-foreground">
             <span className="hidden sm:inline">

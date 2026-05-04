@@ -81,6 +81,8 @@ Tier note:
 | Active bugs | `slate360-context/ONGOING_ISSUES.md`, `ops/bug-registry.json` |
 | Release readiness | `ops/module-manifest.json`, `ops/release-gates.json` |
 | Codebase facts (DB, routes, deps) | `CODEBASE_AUDIT_2025.md` |
+| **Colors / design tokens / CSS vars / logos / email colors** | **`slate360-context/DESIGN_SYSTEM.md`** |
+| **What's left to build (completion audit)** | **`docs/COMPLETION_AUDIT.md`** |
 
 ## Backend Quick Access
 
@@ -195,6 +197,70 @@ When editing oversized files, always read both the state declarations AND the JS
 ## Latest Session Handoff
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
+
+### Session Handoff — 2026-05-04 (Design System Map + Completion Audit)
+
+#### What Changed
+- `slate360-context/DESIGN_SYSTEM.md` — NEW. Canonical design token map: 5-layer color system, amber brand tokens, CSS var table, email theme reference, logo component guide, shell patterns, typography scale, status badges, Project Hub monolith table. Referenced from Task Map.
+- `docs/COMPLETION_AUDIT.md` — NEW. Full completion audit across all 10 parts: Slate360 platform, Site Walk, SlateDrop, Market Robot, 360 Tours, Design Studio, security, infrastructure, and a prioritized build order (Tiers 1–5) for other AI assistants.
+- `SLATE360_PROJECT_MEMORY.md` (Task Map) — Added two new rows: DESIGN_SYSTEM.md and COMPLETION_AUDIT.md.
+
+#### What's Broken / Partially Done
+- Same critical items as previous handoff — security blockers not yet resolved (require manual Supabase + Upstash + Turnstile dashboard actions).
+- Deliverable builder is still the largest missing feature.
+- `globals.css` `--primary` / `--ring` still point to cobalt — fix in globals.css propagates everywhere.
+- `lib/email-theme.ts` still cobalt — single edit fixes all 4 email types.
+
+#### Context Files Updated
+- `slate360-context/DESIGN_SYSTEM.md` — created
+- `docs/COMPLETION_AUDIT.md` — created
+- `SLATE360_PROJECT_MEMORY.md` — task map updated
+
+#### Next Steps (ordered)
+1. **MANUAL security** (Tier 1 in audit): Supabase anon signup disable + Upstash Redis + Cloudflare Turnstile keys in Vercel.
+2. **`globals.css`** — fix `--primary`, `--ring`, auth utilities, `--app-glow-amber` to amber (single file, highest leverage).
+3. **`lib/email-theme.ts`** — fix `primary` to `#F59E0B`, fix inline bypasses in email-assignments and email-collaborators.
+4. Deliverable builder — wire `BlockEditor` to `site_walk_items`, save to `site_walk_deliverables`.
+5. Walk sessions list — add completed session query + amber filter tabs.
+
+### Session Handoff — 2026-05-04 (Global Chrome Polish — Amber Pass Complete)
+
+#### What Changed
+- `app/site-walk/(act-2-inputs)/walks/page.tsx` — Amber pass: blue radial gradient → amber, `hover:border-blue-500/40` → amber, `text-blue-400` project name → amber.
+- `app/site-walk/(act-2-inputs)/walks/[sessionId]/page.tsx` — Full amber conversion: blue+cyan gradient → amber, all cyan text/borders/icons/tags/pills → amber. "Create Deliverable" CTA amber. Empty state border/icon amber.
+- `app/site-walk/(act-3-outputs)/deliverables/page.tsx` — Amber pass: blue gradient, section label, both blue "New Walk" / "Start a Walk" CTAs, `text-blue-400` label, `shared`/`published` status badges neutralised to slate.
+- `app/site-walk/(act-2-inputs)/assigned-work/page.tsx` — Amber pass: blue gradient, section label, "Site Walk Home" CTA, hover border, `acknowledged` status badge neutralised.
+- `components/coordination/InboxTabs.tsx` — Active tab `bg-blue-600` → `bg-amber-500 text-slate-950`.
+- `app/(dashboard)/more/page.tsx` — Icon badges `bg-blue-600` → `bg-amber-500 text-slate-950`, row hover `bg-blue-500/10` → `bg-amber-500/10`.
+- `components/dashboard/command-center/DashboardTopBar.tsx` — Logo import changed from `SlateLogoOnLight` (cobalt, light-bg variant) to `SlateLogo` (white, dark-bg variant). This fixes the cobalt blue logo on the dark header.
+- `app/site-walk/(act-1-setup)/setup/_components/SiteWalkSetupClient.tsx` — Full dark glass conversion: outer section card, heading, tier badge, Plans & Docs panel, Project Controls panel — all white/blue → dark glass + amber.
+- `app/site-walk/(act-1-setup)/setup/_components/BrandSettingsForm.tsx` — Full dark glass conversion: inputClass, card, section label, submit button, field labels, logo preview card, StatusMessage colors.
+- `app/site-walk/(act-1-setup)/setup/_components/ProjectSetupForm.tsx` — Full dark glass conversion: inputClass, card, Header function, Field/StatusMessage helpers.
+- `app/site-walk/(act-1-setup)/setup/_components/DeliverableDefaultsForm.tsx` — Full dark glass conversion: inputClass, card, labels, button, info box (blue → amber/dark).
+- `app/site-walk/(act-1-setup)/setup/_components/StakeholderPicker.tsx` — Full dark glass conversion: inputClass, section card, label, project badge, search label, Add stakeholder button, roster card stack all dark.
+- `app/site-walk/(act-1-setup)/setup/_components/StartWalkForm.tsx` — Amber pass: section labels, select focus rings, Walk Title textarea focus ring, Start Walk CTA, New Field Project CTA.
+
+#### What's Broken / Partially Done
+- **CRITICAL (pre-existing)**: `UPSTASH_REDIS_REST_URL=""` — rate limiting disabled. Add Upstash Redis to Vercel env.
+- **CRITICAL (pre-existing)**: Supabase direct signup bypass (anon key → `/auth/v1/signup`). Manual Supabase Dashboard fix needed.
+- **Turnstile dormant (pre-existing)**: keys not added to Vercel yet.
+- Security commit from 2026-05-03 not yet pushed to GitHub.
+- Deliverable builder: `deliverables/new/page.tsx` is still a redirect placeholder; `BlockEditor.tsx` is a scaffold. Not yet wired to session items.
+- Completed walk sessions: `walks/page.tsx` still only shows `in_progress` — need to add status tabs/filter for completed sessions.
+- `/site-walk/present/[id]` and `/site-walk/portal/[token]` routes do not exist yet.
+- `walks/[sessionId]/page.tsx` — session review: "Create Deliverable" button routes to `deliverables/new?session=...` which redirects but no builder exists at destination.
+
+#### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md` — this handoff
+
+#### Next Steps (ordered)
+1. **MANUAL security** (pre-existing): Supabase disable anon signup + Upstash Redis + Cloudflare Turnstile keys.
+2. Walk sessions list: extend query to `in_progress OR completed`, add amber filter tabs. Add "New Walk" amber CTA to that page.
+3. Deliverable builder: wire `BlockEditor` to `site_walk_items` from a session, save to `site_walk_deliverables`, full dark glass theme.
+4. Session review → deliverable CTA should be unblocked once builder exists.
+5. SlateDrop real data (Recents/Shared/Requests tabs still have mock data).
+
+
 
 ### Session Handoff — 2026-05-03 (Security Cleanup — Bot Purge + Bot Prevention)
 

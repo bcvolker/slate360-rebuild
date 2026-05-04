@@ -9,7 +9,7 @@ type Props = {
   initialSettings: BrandSettings;
 };
 
-const inputClass = "w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-blue-700 focus:ring-2 focus:ring-blue-700/15";
+const inputClass = "w-full rounded-xl border border-slate-700/60 bg-slate-800/60 px-3 py-2 text-sm text-slate-50 placeholder:text-slate-500 outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20";
 
 export function BrandSettingsForm({ initialSettings }: Props) {
   const [settings, setSettings] = useState<BrandSettings>(initialSettings);
@@ -58,14 +58,14 @@ export function BrandSettingsForm({ initialSettings }: Props) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="rounded-3xl border border-slate-300 bg-white p-5 shadow-sm">
+    <form onSubmit={handleSubmit} className="rounded-3xl border border-slate-700/60 bg-slate-900/60 backdrop-blur-md p-5">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <p className="text-xs font-black uppercase tracking-[0.18em] text-blue-800">Company identity</p>
-          <h2 className="mt-1 text-xl font-black text-slate-900">Brand defaults</h2>
-          <p className="mt-1 text-sm leading-6 text-slate-700">Shared org branding flows into reports, proposals, and punch lists.</p>
+          <p className="text-xs font-black uppercase tracking-[0.18em] text-amber-400">Company identity</p>
+          <h2 className="mt-1 text-xl font-black text-slate-50">Brand defaults</h2>
+          <p className="mt-1 text-sm leading-6 text-slate-400">Shared org branding flows into reports, proposals, and punch lists.</p>
         </div>
-        <button type="submit" disabled={status.kind === "loading"} className="rounded-xl bg-blue-700 px-4 py-2 text-sm font-black text-white shadow-sm transition hover:bg-blue-800 disabled:opacity-60">
+        <button type="submit" disabled={status.kind === "loading"} className="rounded-xl bg-amber-500 px-4 py-2 text-sm font-black text-slate-950 shadow-sm transition hover:bg-amber-400 disabled:opacity-60">
           {status.kind === "loading" ? "Saving…" : "Save identity"}
         </button>
       </div>
@@ -78,7 +78,7 @@ export function BrandSettingsForm({ initialSettings }: Props) {
         <Field label="Primary color"><input className={inputClass} value={settings.primary_color ?? "#2563EB"} onChange={(e) => update("primary_color", e.target.value)} placeholder="#2563EB" /></Field>
         <Field label="Logo file"><input className={inputClass} type="file" accept="image/png,image/jpeg,image/svg+xml,image/webp" onChange={(e) => void uploadAsset(e.target.files?.[0], "logo")} /></Field>
         <Field label="Signature file"><input className={inputClass} type="file" accept="image/png,image/jpeg,image/svg+xml,image/webp" onChange={(e) => void uploadAsset(e.target.files?.[0], "signature")} /></Field>
-        {settings.logo_url && <div className="rounded-2xl border border-slate-300 bg-slate-50 p-3"><p className="mb-2 text-xs font-black uppercase tracking-[0.14em] text-slate-500">Logo preview</p><img src={settings.logo_url} alt="Company logo" className="max-h-20 object-contain" /></div>}
+        {settings.logo_url && <div className="rounded-2xl border border-slate-700/60 bg-slate-800/60 p-3"><p className="mb-2 text-xs font-black uppercase tracking-[0.14em] text-slate-400">Logo preview</p><img src={settings.logo_url} alt="Company logo" className="max-h-20 object-contain" /></div>}
         <div className="md:col-span-2"><Field label="Business address"><textarea className={`${inputClass} min-h-20`} value={settings.address ?? ""} onChange={(e) => update("address", e.target.value)} placeholder="Street, suite, city, state" /></Field></div>
         <div className="md:col-span-2"><Field label="Report header"><textarea className={`${inputClass} min-h-20`} value={settings.header_html ?? ""} onChange={(e) => update("header_html", e.target.value)} placeholder="Header text for professional documents" /></Field></div>
         <div className="md:col-span-2"><Field label="Report footer"><textarea className={`${inputClass} min-h-20`} value={settings.footer_html ?? ""} onChange={(e) => update("footer_html", e.target.value)} placeholder="Footer, disclaimer, license, or contact text" /></Field></div>
@@ -90,12 +90,12 @@ export function BrandSettingsForm({ initialSettings }: Props) {
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return <label className="block text-sm font-bold text-slate-900"><span className="mb-1 block">{label}</span>{children}</label>;
+  return <label className="block text-sm font-bold text-slate-200"><span className="mb-1 block">{label}</span>{children}</label>;
 }
 
 function StatusMessage({ status }: { status: SubmitState }) {
   if (status.kind === "idle" || status.kind === "loading") return null;
-  const color = status.kind === "ok" ? "text-emerald-700" : "text-rose-700";
+  const color = status.kind === "ok" ? "text-emerald-400" : "text-rose-400";
   return <p className={`mt-4 text-sm font-semibold ${color}`}>{status.message}</p>;
 }
 

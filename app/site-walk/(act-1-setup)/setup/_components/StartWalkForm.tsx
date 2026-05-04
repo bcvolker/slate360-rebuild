@@ -87,14 +87,14 @@ export function StartWalkForm({ projects }: Props) {
   if (projects.length === 0) {
     return (
       <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-md">
-        <p className="text-xs font-black uppercase tracking-[0.2em] text-blue-400">Start a Walk</p>
+        <p className="text-xs font-black uppercase tracking-[0.2em] text-amber-400">Start a Walk</p>
         <h2 className="mt-2 text-xl font-black text-white">No field projects yet</h2>
         <p className="mt-2 text-sm text-slate-300">
           Create a field project first, then return here to launch a walk.
         </p>
         <a
           href="/dashboard?tab=projects&create=field"
-          className="mt-4 inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-black text-white hover:bg-blue-500"
+          className="mt-4 inline-flex items-center gap-2 rounded-xl bg-amber-500 px-4 py-2.5 text-sm font-black text-slate-950 hover:bg-amber-400"
         >
           <Plus className="h-4 w-4" /> New Field Project
         </a>
@@ -106,7 +106,7 @@ export function StartWalkForm({ projects }: Props) {
 
   return (
     <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-md">
-      <p className="text-xs font-black uppercase tracking-[0.2em] text-blue-400">Start a Walk</p>
+      <p className="text-xs font-black uppercase tracking-[0.2em] text-amber-400">Start a Walk</p>
       <h2 className="mt-2 text-xl font-black text-white">Configure and launch field capture</h2>
 
       <div className="mt-5 grid gap-4 sm:grid-cols-2">
@@ -117,7 +117,7 @@ export function StartWalkForm({ projects }: Props) {
             <select
               value={projectId}
               onChange={(e) => handleProjectChange(e.target.value)}
-              className="w-full appearance-none rounded-xl border border-white/10 bg-white/5 py-2.5 pl-3 pr-8 text-sm text-white backdrop-blur-md focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+              className="w-full appearance-none rounded-xl border border-white/10 bg-white/5 py-2.5 pl-3 pr-8 text-sm text-white backdrop-blur-md focus:outline-none focus:ring-2 focus:ring-amber-500/50"
             >
               {projects.map((p) => (
                 <option key={p.id} value={p.id} className="bg-slate-900">
@@ -136,7 +136,7 @@ export function StartWalkForm({ projects }: Props) {
             <select
               value={walkType}
               onChange={(e) => handleWalkTypeChange(e.target.value as SiteWalkSessionType)}
-              className="w-full appearance-none rounded-xl border border-white/10 bg-white/5 py-2.5 pl-3 pr-8 text-sm text-white backdrop-blur-md focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+              className="w-full appearance-none rounded-xl border border-white/10 bg-white/5 py-2.5 pl-3 pr-8 text-sm text-white backdrop-blur-md focus:outline-none focus:ring-2 focus:ring-amber-500/50"
             >
               {WALK_TYPE_OPTIONS.map((o) => (
                 <option key={o.value} value={o.value} className="bg-slate-900">
@@ -161,7 +161,7 @@ export function StartWalkForm({ projects }: Props) {
           onChange={(e) => setTitle(e.target.value)}
           maxLength={120}
           placeholder="Auto-generated from project and walk type"
-          className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white placeholder:text-slate-600 backdrop-blur-md focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+          className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white placeholder:text-slate-600 backdrop-blur-md focus:outline-none focus:ring-2 focus:ring-amber-500/50"
         />
       </div>
 
@@ -171,7 +171,7 @@ export function StartWalkForm({ projects }: Props) {
         <button
           onClick={handleStartWalk}
           disabled={submitting || !projectId}
-          className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-black text-white hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex items-center gap-2 rounded-xl bg-amber-500 px-5 py-2.5 text-sm font-black text-slate-950 hover:bg-amber-400 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <Play className="h-4 w-4" />
           {submitting ? "Starting…" : "Start Walk"}

@@ -125,10 +125,10 @@
   --input: #CBD5E1;
 
   /* ── Brand (white-label override via --brand-primary on <body>) ── */
-  --primary: var(--brand-primary, #3B82F6);
-  --primary-foreground: #FFFFFF;
-  --primary-hover: #2563EB;
-  --ring: var(--brand-primary, #3B82F6);
+  --primary: var(--brand-primary, #F59E0B);  /* amber-500 — canonical brand accent */
+  --primary-foreground: #0C0A09;             /* near-black — WCAG AA on amber */
+  --primary-hover: #D97706;                  /* amber-600 */
+  --ring: var(--brand-primary, #F59E0B);     /* amber focus ring — all interactive elements */
 
   /* ── Charts (oklch — keep distinct hues for data viz) ──────── */
   --chart-1: oklch(0.488 0.243 264.376);
@@ -141,7 +141,7 @@
   --sidebar: #0B0F15;
   --sidebar-foreground: #F8FAFC;
   --sidebar-primary: var(--primary);
-  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-primary-foreground: #0C0A09;     /* near-black — readable on amber sidebar primary */
   --sidebar-accent: #1e2533;
   --sidebar-accent-foreground: #F8FAFC;
   --sidebar-border: rgba(255, 255, 255, 0.10);
@@ -167,8 +167,8 @@
   --app-border-strong: #94A3B8;               /* slate-400 — used on hover */
   --app-glass: rgba(11, 15, 21, 0.80);
   --app-backdrop-blur: 20px;
-  --app-glow-amber: 0 0 12px rgba(59, 130, 246, 0.14);
-  --app-glow-amber-strong: 0 0 16px 0 rgba(59, 130, 246, 0.22), 0 2px 8px 0 rgba(59, 130, 246, 0.14);
+  --app-glow-amber: 0 0 12px rgba(245, 158, 11, 0.18);
+  --app-glow-amber-strong: 0 0 20px 0 rgba(245, 158, 11, 0.35), 0 4px 12px 0 rgba(245, 158, 11, 0.22);
   --app-shadow-card: 0 1px 2px 0 rgba(15, 23, 42, 0.04), 0 1px 3px 0 rgba(15, 23, 42, 0.08);
   --app-shadow-elevated: 0 8px 24px -8px rgba(15, 23, 42, 0.16), 0 2px 6px -2px rgba(15, 23, 42, 0.08);
 
@@ -362,7 +362,7 @@
 }
 
 @utility shadow-gold-glow {
-  box-shadow: 0 0 20px 0 rgba(59, 130, 246, 0.35), 0 4px 12px 0 rgba(59, 130, 246, 0.20);
+  box-shadow: 0 0 20px 0 rgba(245, 158, 11, 0.40), 0 4px 12px 0 rgba(245, 158, 11, 0.25);
 }
 
 @utility shadow-app-glow {
@@ -471,8 +471,8 @@
     border-color: #94A3B8;              /* slate-400 */
   }
   &:focus {
-    border-color: var(--color-cobalt);
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.20);
+    border-color: #F59E0B;
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.20);
   }
   &:disabled {
     background-color: #F1F5F9;
@@ -501,9 +501,9 @@
   color: #334155;                       /* slate-700 */
   transition: border-color 150ms ease, background-color 150ms ease, color 150ms ease;
   &:hover {
-    border-color: var(--color-cobalt);
-    background-color: rgba(59, 130, 246, 0.06);
-    color: var(--color-cobalt);
+    border-color: #F59E0B;
+    background-color: rgba(245, 158, 11, 0.08);
+    color: #D97706;
   }
 }
 
@@ -551,14 +551,14 @@
 
 /* ── Branded buttons ── */
 @utility btn-amber-soft {
-  background: linear-gradient(180deg, rgba(59, 130, 246, 0.92), rgba(37, 99, 235, 0.92));
-  color: #ffffff;
-  border: 1px solid rgba(59, 130, 246, 0.45);
+  background: linear-gradient(180deg, rgba(245, 158, 11, 0.92), rgba(217, 119, 6, 0.92));
+  color: #0C0A09;
+  border: 1px solid rgba(245, 158, 11, 0.45);
   box-shadow: var(--app-glow-amber);
   transition: all 0.18s ease;
 }
 .btn-amber-soft:hover {
-  background: linear-gradient(180deg, rgba(59, 130, 246, 1), rgba(37, 99, 235, 1));
+  background: linear-gradient(180deg, rgba(245, 158, 11, 1), rgba(217, 119, 6, 1));
   box-shadow: var(--app-glow-amber-strong);
   transform: translateY(-1px);
 }
@@ -596,7 +596,8 @@
   @apply min-h-screen flex flex-col text-slate-50;
   background-color: #0B0F15;
   background-image:
-    radial-gradient(circle at top, rgba(37, 99, 235, 0.22), transparent 34%),
+    radial-gradient(ellipse at top, rgba(245, 158, 11, 0.15), transparent 36%),
+    radial-gradient(ellipse at bottom right, rgba(217, 119, 6, 0.07), transparent 50%),
     linear-gradient(180deg, #0B0F15 0%, #111827 100%);
   background-attachment: fixed;
   color-scheme: dark;
@@ -629,26 +630,27 @@
 .auth-card .text-slate-600,
 .auth-card .text-slate-500 { color: #94A3B8; }
 .auth-card .text-primary,
-.auth-card .text-cobalt { color: #60A5FA; }
+.auth-card .text-cobalt { color: #FCD34D; } /* amber-300 — readable on dark glass */
 
 @utility auth-input {
   @apply w-full min-h-[44px] rounded-xl border px-4 py-3 text-sm text-slate-50 placeholder:text-slate-500 transition-all focus:outline-none focus:ring-2;
   border-color: rgba(255, 255, 255, 0.10);
   background: rgba(255, 255, 255, 0.05);
-  --tw-ring-color: rgba(59, 130, 246, 0.32);
+  --tw-ring-color: rgba(245, 158, 11, 0.32);
 }
-.auth-input:focus { border-color: #60A5FA; }
+.auth-input:focus { border-color: #F59E0B; }
 
 @utility auth-label {
   @apply mb-1.5 block text-[0.7rem] font-semibold uppercase tracking-[0.14em] text-slate-400;
 }
 
 @utility auth-btn-primary {
-  @apply w-full flex items-center justify-center gap-2 py-3.5 rounded-full font-semibold text-sm text-white transition-all hover:scale-[1.02] disabled:opacity-50 disabled:scale-100;
-  background-color: #2563EB;
-  box-shadow: 0 0 15px rgba(37, 99, 235, 0.30), 0 8px 20px -4px rgba(37, 99, 235, 0.32);
+  @apply w-full flex items-center justify-center gap-2 py-3.5 rounded-full font-semibold text-sm transition-all hover:scale-[1.02] disabled:opacity-50 disabled:scale-100;
+  color: #0C0A09;
+  background-color: #D97706;
+  box-shadow: 0 0 15px rgba(245, 158, 11, 0.30), 0 8px 20px -4px rgba(245, 158, 11, 0.25);
 }
-.auth-btn-primary:hover { background-color: #3B82F6; }
+.auth-btn-primary:hover { background-color: #F59E0B; }
 
 @utility auth-btn-oauth {
   @apply w-full flex items-center justify-center gap-3 rounded-xl border px-4 py-3 text-sm font-medium text-slate-200 transition-colors disabled:opacity-50;
@@ -657,15 +659,15 @@
 }
 .auth-btn-oauth:hover {
   background: rgba(255, 255, 255, 0.10);
-  border-color: rgba(96, 165, 250, 0.60);
-  color: #DBEAFE;
+  border-color: rgba(245, 158, 11, 0.50);
+  color: #FCD34D;
 }
 
 @utility auth-link {
-  color: var(--color-cobalt);
+  color: #FCD34D; /* amber-300 — readable on dark glass */
   transition: color 0.15s ease;
 }
-.auth-link:hover { color: var(--color-cobalt-hover); }
+.auth-link:hover { color: #F59E0B; } /* amber-500 */
 
 @utility auth-divider-line {
   @apply w-full border-t;

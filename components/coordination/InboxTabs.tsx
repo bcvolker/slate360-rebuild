@@ -43,7 +43,7 @@ export function InboxTabs({ children }: { children: React.ReactNode }) {
               aria-selected={isActive}
               className={`flex-1 rounded-xl py-2 text-center text-xs font-black transition-colors ${
                 isActive
-                  ? "bg-blue-600 text-white shadow"
+                  ? "bg-amber-500 text-slate-950 shadow"
                   : "text-slate-400 hover:text-slate-200"
               }`}
             >

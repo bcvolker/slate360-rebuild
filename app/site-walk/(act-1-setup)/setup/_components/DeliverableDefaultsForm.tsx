@@ -11,7 +11,7 @@ type Props = {
   initialDefaults: ReportDefaults;
 };
 
-const inputClass = "w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-blue-700 focus:ring-2 focus:ring-blue-700/15";
+const inputClass = "w-full rounded-xl border border-slate-700/60 bg-slate-800/60 px-3 py-2 text-sm text-slate-50 placeholder:text-slate-500 outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20";
 
 export function DeliverableDefaultsForm({ project, tier, initialDefaults }: Props) {
   const [defaults, setDefaults] = useState(initialDefaults);
@@ -54,10 +54,10 @@ export function DeliverableDefaultsForm({ project, tier, initialDefaults }: Prop
   }
 
   return (
-    <form onSubmit={handleSubmit} className="rounded-3xl border border-slate-300 bg-white p-5 shadow-sm">
+    <form onSubmit={handleSubmit} className="rounded-3xl border border-slate-700/60 bg-slate-900/60 backdrop-blur-md p-5">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-        <div><p className="text-xs font-black uppercase tracking-[0.18em] text-blue-800">Deliverable defaults</p><h2 className="mt-1 text-xl font-black text-slate-900">Report auto-fill fields</h2><p className="mt-1 text-sm leading-6 text-slate-700">Store once per project so every output starts branded and complete.</p></div>
-        <button type="submit" disabled={!project || status.kind === "loading"} className="rounded-xl bg-blue-700 px-4 py-2 text-sm font-black text-white shadow-sm transition hover:bg-blue-800 disabled:opacity-60">{status.kind === "loading" ? "Saving…" : "Save defaults"}</button>
+        <div><p className="text-xs font-black uppercase tracking-[0.18em] text-amber-400">Deliverable defaults</p><h2 className="mt-1 text-xl font-black text-slate-50">Report auto-fill fields</h2><p className="mt-1 text-sm leading-6 text-slate-400">Store once per project so every output starts branded and complete.</p></div>
+        <button type="submit" disabled={!project || status.kind === "loading"} className="rounded-xl bg-amber-500 px-4 py-2 text-sm font-black text-slate-950 shadow-sm transition hover:bg-amber-400 disabled:opacity-60">{status.kind === "loading" ? "Saving…" : "Save defaults"}</button>
       </div>
 
       <div className="mt-5 grid gap-4 md:grid-cols-2">
@@ -70,12 +70,12 @@ export function DeliverableDefaultsForm({ project, tier, initialDefaults }: Prop
         <div className="md:col-span-2"><Field label="Scope of work"><textarea className={`${inputClass} min-h-20`} value={defaults.scope_of_work ?? ""} onChange={(e) => update("scope_of_work", e.target.value)} /></Field></div>
       </div>
 
-      {expanded ? <p className="mt-4 rounded-xl border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-900">Pro/Business setup keeps CM hooks ready for budgets, schedules, RFIs, and submittals in later prompts.</p> : <p className="mt-4 rounded-xl border border-slate-300 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700">Basic setup keeps defaults lean: client, address, scope, and output type.</p>}
+      {expanded ? <p className="mt-4 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs font-semibold text-amber-300">Pro/Business setup keeps CM hooks ready for budgets, schedules, RFIs, and submittals in later prompts.</p> : <p className="mt-4 rounded-xl border border-slate-700/60 bg-slate-800/60 px-3 py-2 text-xs font-semibold text-slate-400">Basic setup keeps defaults lean: client, address, scope, and output type.</p>}
       <StatusMessage status={status} />
     </form>
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) { return <label className="block text-sm font-bold text-slate-900"><span className="mb-1 block">{label}</span>{children}</label>; }
-function StatusMessage({ status }: { status: SubmitState }) { if (status.kind === "idle" || status.kind === "loading") return null; return <p className={`mt-4 text-sm font-semibold ${status.kind === "ok" ? "text-emerald-700" : "text-rose-700"}`}>{status.message}</p>; }
+function Field({ label, children }: { label: string; children: React.ReactNode }) { return <label className="block text-sm font-bold text-slate-200"><span className="mb-1 block">{label}</span>{children}</label>; }
+function StatusMessage({ status }: { status: SubmitState }) { if (status.kind === "idle" || status.kind === "loading") return null; return <p className={`mt-4 text-sm font-semibold ${status.kind === "ok" ? "text-emerald-400" : "text-rose-400"}`}>{status.message}</p>; }
 async function readError(response: Response) { const data = (await response.json().catch(() => null)) as { error?: string } | null; return data?.error ?? "Request failed"; }

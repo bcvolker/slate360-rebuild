@@ -14,7 +14,7 @@ export default async function SiteWalksPage() {
   const walks = context.orgId ? await loadActiveWalks(context.orgId) : [];
 
   return (
-    <main className="min-h-[calc(100dvh-96px)] overflow-y-auto bg-[radial-gradient(circle_at_top,rgba(37,99,235,0.14),transparent_34%),#0B0F15] px-4 py-4 text-slate-50 sm:px-6 lg:px-8">
+    <main className="min-h-[calc(100dvh-96px)] overflow-y-auto bg-[radial-gradient(circle_at_top,rgba(245,158,11,0.07),transparent_34%),#0B0F15] px-4 py-4 text-slate-50 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl space-y-4">
         <section className="grid gap-3 lg:grid-cols-3">
           <StatCard label="In progress" value={String(walks.length)} />
@@ -33,9 +33,9 @@ export default async function SiteWalksPage() {
 
 function WalkCard({ walk }: { walk: LiveWalkSummary }) {
   return (
-    <Link href={`/site-walk/walks/${walk.id}`} className="grid gap-4 rounded-3xl border border-white/10 bg-white/5 p-5 backdrop-blur-sm transition hover:border-blue-500/40 hover:bg-white/10 lg:grid-cols-[minmax(0,1.2fr)_repeat(3,minmax(0,0.5fr))] lg:items-center">
+    <Link href={`/site-walk/walks/${walk.id}`} className="grid gap-4 rounded-3xl border border-white/10 bg-white/5 p-5 backdrop-blur-sm transition hover:border-amber-400/40 hover:bg-white/10 lg:grid-cols-[minmax(0,1.2fr)_repeat(3,minmax(0,0.5fr))] lg:items-center">
       <div>
-        <p className="text-xs font-black uppercase tracking-[0.16em] text-blue-400">{walk.projectName ?? "Ad-hoc walk"}</p>
+        <p className="text-xs font-black uppercase tracking-[0.16em] text-amber-400">{walk.projectName ?? "Ad-hoc walk"}</p>
         <h2 className="mt-1 text-xl font-black text-slate-50">{walk.title}</h2>
       </div>
       <Metric icon={<UserRound className="h-4 w-4" />} label="Person walking" value={walk.walkerName} />

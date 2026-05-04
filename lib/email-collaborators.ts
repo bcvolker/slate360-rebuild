@@ -19,7 +19,7 @@ export async function sendCollaboratorInviteEmail({
   const safeMessage = message ? escapeHtml(message) : null;
 
   const body = `
-    <h2 style="margin:0 0 8px;color:#3B82F6;font-size:24px;font-weight:800;">
+    <h2 style="margin:0 0 8px;color:#F59E0B;font-size:24px;font-weight:800;">
       ${safeName} invited you to collaborate on ${safeProject}
     </h2>
     <p style="margin:0 0 18px;color:#6b7280;font-size:15px;line-height:1.7;">
@@ -28,7 +28,7 @@ export async function sendCollaboratorInviteEmail({
     </p>
     ${
       safeMessage
-        ? `<div style="margin:0 0 20px;padding:14px 16px;background:#f3f4f6;border-left:4px solid #3B82F6;border-radius:6px;color:#374151;font-size:13px;font-style:italic;">"${safeMessage}"</div>`
+        ? `<div style="margin:0 0 20px;padding:14px 16px;background:#fef3c7;border-left:4px solid #F59E0B;border-radius:6px;color:#92400e;font-size:13px;font-style:italic;">"${safeMessage}"</div>`
         : ""
     }
     ${ctaButton("Accept invite & sign in", inviteUrl)}

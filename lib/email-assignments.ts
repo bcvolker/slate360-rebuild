@@ -49,7 +49,7 @@ export async function sendAssignmentNotificationEmail(
   }
 
   const body = `
-    <h2 style="margin:0 0 8px;color:#3B82F6;font-size:22px;font-weight:800;">
+    <h2 style="margin:0 0 8px;color:#F59E0B;font-size:22px;font-weight:800;">
       ${safe(args.assignerName)} assigned you a ${kindLabel}
     </h2>
     <p style="margin:0 0 6px;color:#111827;font-size:16px;font-weight:600;">${safe(args.title)}</p>
@@ -59,7 +59,7 @@ export async function sendAssignmentNotificationEmail(
     </p>
     ${
       args.message
-        ? `<div style="margin:0 0 20px;padding:14px;background:#f3f4f6;border-left:4px solid #3B82F6;border-radius:4px;color:#4b5563;font-size:14px;font-style:italic;">"${safe(args.message)}"</div>`
+        ? `<div style="margin:0 0 20px;padding:14px;background:#fef3c7;border-left:4px solid #F59E0B;border-radius:4px;color:#92400e;font-size:14px;font-style:italic;">"${safe(args.message)}"</div>`
         : ""
     }
     ${ctaButton("Open in Slate360", args.link)}

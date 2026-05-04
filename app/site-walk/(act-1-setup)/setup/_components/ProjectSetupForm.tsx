@@ -23,7 +23,7 @@ type Props = {
   onProjectSaved: (event: ProjectSavedEvent) => void;
 };
 
-const inputClass = "w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-blue-700 focus:ring-2 focus:ring-blue-700/15";
+const inputClass = "w-full rounded-xl border border-slate-700/60 bg-slate-800/60 px-3 py-2 text-sm text-slate-50 placeholder:text-slate-500 outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20";
 
 export function ProjectSetupForm({ initialProjects, tier, onProjectSaved }: Props) {
   const [projects, setProjects] = useState(initialProjects);
@@ -82,7 +82,7 @@ export function ProjectSetupForm({ initialProjects, tier, onProjectSaved }: Prop
   }
 
   return (
-    <form onSubmit={handleSubmit} className="rounded-3xl border border-slate-300 bg-white p-5 shadow-sm">
+    <form onSubmit={handleSubmit} className="rounded-3xl border border-slate-700/60 bg-slate-900/60 backdrop-blur-md p-5">
       <Header expanded={expanded} loading={status.kind === "loading"} />
       <div className="mt-5 grid gap-4 md:grid-cols-2">
         <label className="block text-sm font-bold text-slate-900 md:col-span-2">
@@ -106,11 +106,11 @@ export function ProjectSetupForm({ initialProjects, tier, onProjectSaved }: Prop
 }
 
 function Header({ expanded, loading }: { expanded: boolean; loading: boolean }) {
-  return <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between"><div><p className="text-xs font-black uppercase tracking-[0.18em] text-blue-800">Project setup</p><h2 className="mt-1 text-xl font-black text-slate-900">{expanded ? "CM-ready project context" : "Fast field project"}</h2><p className="mt-1 text-sm leading-6 text-slate-700">{expanded ? "Capture schedule-aware context and project hooks for Pro/Business workflows." : "Basic users get a lightweight setup that gets crews into capture fast."}</p></div><button type="submit" disabled={loading} className="rounded-xl bg-blue-700 px-4 py-2 text-sm font-black text-white shadow-sm transition hover:bg-blue-800 disabled:opacity-60">{loading ? "Saving…" : "Save project"}</button></div>;
+  return <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between"><div><p className="text-xs font-black uppercase tracking-[0.18em] text-amber-400">Project setup</p><h2 className="mt-1 text-xl font-black text-slate-50">{expanded ? "CM-ready project context" : "Fast field project"}</h2><p className="mt-1 text-sm leading-6 text-slate-400">{expanded ? "Capture schedule-aware context and project hooks for Pro/Business workflows." : "Basic users get a lightweight setup that gets crews into capture fast."}</p></div><button type="submit" disabled={loading} className="rounded-xl bg-amber-500 px-4 py-2 text-sm font-black text-slate-950 shadow-sm transition hover:bg-amber-400 disabled:opacity-60">{loading ? "Saving…" : "Save project"}</button></div>;
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) { return <label className="block text-sm font-bold text-slate-900"><span className="mb-1 block">{label}</span>{children}</label>; }
-function StatusMessage({ status }: { status: SubmitState }) { if (status.kind === "idle" || status.kind === "loading") return null; return <p className={`mt-4 text-sm font-semibold ${status.kind === "ok" ? "text-emerald-700" : "text-rose-700"}`}>{status.message}</p>; }
+function Field({ label, children }: { label: string; children: React.ReactNode }) { return <label className="block text-sm font-bold text-slate-200"><span className="mb-1 block">{label}</span>{children}</label>; }
+function StatusMessage({ status }: { status: SubmitState }) { if (status.kind === "idle" || status.kind === "loading") return null; return <p className={`mt-4 text-sm font-semibold ${status.kind === "ok" ? "text-emerald-400" : "text-rose-400"}`}>{status.message}</p>; }
 function textMeta(metadata: Record<string, unknown> | null | undefined, key: string) { const value = metadata?.[key]; return typeof value === "string" ? value : ""; }
 function emptyForm(project?: SetupProject): ProjectForm { return { projectId: project?.id ?? "", name: project?.name ?? "", description: project?.description ?? "", location: textMeta(project?.metadata, "location"), address: textMeta(project?.metadata, "address"), scope: textMeta(project?.metadata, "scope"), startDate: textMeta(project?.metadata, "start_date"), endDate: textMeta(project?.metadata, "end_date") }; }
 function buildMetadata(form: ProjectForm, current: Record<string, unknown> | null, expanded: boolean) { return { ...(current ?? {}), app: "site_walk", location: form.location, address: form.address, scope: form.scope, ...(expanded ? { start_date: form.startDate || null, end_date: form.endDate || null, cm_hooks_enabled: true } : { cm_hooks_enabled: false }) }; }

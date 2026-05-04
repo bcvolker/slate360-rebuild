@@ -13,14 +13,14 @@ export default async function SiteWalkDeliverablesPage() {
   const deliverables = context.orgId ? await loadDeliverables(context.orgId) : [];
 
   return (
-    <main className="min-h-[calc(100dvh-96px)] overflow-y-auto bg-[radial-gradient(circle_at_top,rgba(37,99,235,0.14),transparent_34%),#0B0F15] px-4 py-4 text-slate-50 sm:px-6 lg:px-8">
+    <main className="min-h-[calc(100dvh-96px)] overflow-y-auto bg-[radial-gradient(circle_at_top,rgba(245,158,11,0.07),transparent_34%),#0B0F15] px-4 py-4 text-slate-50 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-5xl space-y-4">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-blue-400">Site Walk</p>
+            <p className="text-xs font-black uppercase tracking-[0.2em] text-amber-400">Site Walk</p>
             <h1 className="mt-1 text-2xl font-black">Deliverables</h1>
           </div>
-          <Link href="/site-walk" className="inline-flex items-center gap-2 rounded-2xl bg-blue-600 px-4 py-2 text-sm font-black text-white hover:bg-blue-500">
+          <Link href="/site-walk" className="inline-flex items-center gap-2 rounded-2xl bg-amber-500 px-4 py-2 text-sm font-black text-slate-950 hover:bg-amber-400">
             <Plus className="h-4 w-4" /> New Walk
           </Link>
         </div>
@@ -31,7 +31,7 @@ export default async function SiteWalkDeliverablesPage() {
               <FileText className="mx-auto h-8 w-8 text-slate-500" />
               <p className="mt-3 font-black text-slate-300">No deliverables yet</p>
               <p className="mt-1 text-sm text-slate-500">Complete a walk and generate a report — it will appear here.</p>
-              <Link href="/site-walk" className="mt-5 inline-flex items-center gap-2 rounded-2xl bg-blue-600 px-4 py-2 text-sm font-black text-white hover:bg-blue-500">
+              <Link href="/site-walk" className="mt-5 inline-flex items-center gap-2 rounded-2xl bg-amber-500 px-4 py-2 text-sm font-black text-slate-950 hover:bg-amber-400">
                 Start a Walk
               </Link>
             </div>
@@ -48,8 +48,8 @@ const STATUS_STYLE: Record<string, string> = {
   draft: "bg-slate-700 text-slate-300",
   in_review: "bg-yellow-700/60 text-yellow-200",
   approved: "bg-green-700/60 text-green-200",
-  shared: "bg-blue-700/60 text-blue-200",
-  published: "bg-blue-700/60 text-blue-200",
+  shared: "bg-slate-600/60 text-slate-200",
+  published: "bg-slate-600/60 text-slate-200",
   archived: "bg-slate-800 text-slate-500",
 };
 
@@ -62,7 +62,7 @@ function DeliverableCard({ deliverable }: { deliverable: DeliverableRow }) {
   return (
     <article className="flex items-center justify-between gap-4 rounded-3xl border border-white/10 bg-white/5 p-5 backdrop-blur-sm">
       <div className="min-w-0 flex-1">
-        <p className="text-xs font-black uppercase tracking-[0.14em] text-blue-400">{label}</p>
+        <p className="text-xs font-black uppercase tracking-[0.14em] text-amber-400">{label}</p>
         <h2 className="mt-1 truncate font-black text-slate-50">{deliverable.title || "Untitled deliverable"}</h2>
         {project?.name && <p className="mt-0.5 text-xs text-slate-400">{project.name}</p>}
         <p className="mt-1 flex items-center gap-1 text-xs text-slate-500"><Clock className="h-3 w-3" /> {created}</p>

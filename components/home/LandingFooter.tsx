@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { FOOTER_LINKS } from "@/components/home/landing-data";
+import { SlateLogoOnLight } from "@/components/shared/SlateLogoOnLight";
 
 export default function LandingFooter() {
   return (
@@ -11,11 +12,7 @@ export default function LandingFooter() {
           {/* Brand Column */}
           <div className="col-span-2 md:col-span-1">
             <Link href="/" className="flex items-center gap-2 mb-4">
-              <img
-                src="/uploads/slate360-logo-reversed-v2.svg?v=cobalt-2026-04-19"
-                alt="Slate360"
-                className="h-7 w-auto"
-              />
+              <SlateLogoOnLight className="h-7 w-auto" />
             </Link>
             <p className="text-sm text-muted-foreground">
               The complete platform for construction documentation.

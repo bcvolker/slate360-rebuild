@@ -11,10 +11,10 @@ export default async function SiteWalkAssignedWorkPage() {
   const assignments = context.orgId && context.user ? await loadAssignments(context.orgId, context.user.id) : [];
 
   return (
-    <main className="min-h-[calc(100dvh-96px)] overflow-y-auto bg-[radial-gradient(circle_at_top,rgba(37,99,235,0.14),transparent_34%),#0B0F15] px-4 py-4 text-slate-50 sm:px-6 lg:px-8">
+    <main className="min-h-[calc(100dvh-96px)] overflow-y-auto bg-[radial-gradient(circle_at_top,rgba(245,158,11,0.07),transparent_34%),#0B0F15] px-4 py-4 text-slate-50 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-5xl space-y-4">
         <div>
-          <p className="text-xs font-black uppercase tracking-[0.2em] text-blue-400">Site Walk</p>
+          <p className="text-xs font-black uppercase tracking-[0.2em] text-amber-400">Site Walk</p>
           <h1 className="mt-1 text-2xl font-black">Assigned Work</h1>
         </div>
 
@@ -28,7 +28,7 @@ export default async function SiteWalkAssignedWorkPage() {
                 <Link href="/projects" className="inline-flex items-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-4 py-2 text-sm font-black text-slate-200 hover:bg-white/20">
                   <FolderOpen className="h-4 w-4" /> Projects
                 </Link>
-                <Link href="/site-walk" className="inline-flex items-center gap-2 rounded-2xl bg-blue-600 px-4 py-2 text-sm font-black text-white hover:bg-blue-500">
+                <Link href="/site-walk" className="inline-flex items-center gap-2 rounded-2xl bg-amber-500 px-4 py-2 text-sm font-black text-slate-950 hover:bg-amber-400">
                   Site Walk Home
                 </Link>
               </div>
@@ -51,7 +51,7 @@ const PRIORITY_COLOR: Record<AssignmentPriority, string> = {
 
 const STATUS_STYLE: Record<AssignmentStatus, string> = {
   pending: "bg-slate-700 text-slate-300",
-  acknowledged: "bg-blue-700/60 text-blue-200",
+  acknowledged: "bg-slate-600/60 text-slate-300",
   in_progress: "bg-yellow-700/60 text-yellow-200",
   done: "bg-green-700/60 text-green-200",
   rejected: "bg-red-900/60 text-red-300",
@@ -64,7 +64,7 @@ function AssignmentCard({ assignment }: { assignment: AssignmentRow }) {
   const statusStyle = STATUS_STYLE[assignment.status] ?? "bg-slate-700 text-slate-300";
 
   return (
-    <Link href={`/site-walk/walks/${assignment.session_id}`} className="flex items-center justify-between gap-4 rounded-3xl border border-white/10 bg-white/5 p-5 backdrop-blur-sm transition hover:border-blue-500/40 hover:bg-white/10">
+    <Link href={`/site-walk/walks/${assignment.session_id}`} className="flex items-center justify-between gap-4 rounded-3xl border border-white/10 bg-white/5 p-5 backdrop-blur-sm transition hover:border-amber-400/40 hover:bg-white/10">
       <div className="min-w-0 flex-1">
         <h2 className="truncate font-black text-slate-50">{assignment.title}</h2>
         <div className="mt-1 flex items-center gap-3 text-xs">

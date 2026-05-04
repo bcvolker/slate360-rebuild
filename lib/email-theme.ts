@@ -19,9 +19,9 @@
 
 export const EMAIL_COLORS = {
   /* Brand */
-  primary: "#3B82F6",          // Cobalt-500 — links, CTAs, headings
-  primaryHover: "#2563EB",     // Cobalt-600
-  primaryOnDark: "#60A5FA",    // Cobalt-400 — readable on header band
+  primary: "#F59E0B",          // Amber-500 — links, CTAs, headings
+  primaryHover: "#D97706",     // Amber-600
+  primaryOnDark: "#FCD34D",    // Amber-300 — readable on header band
 
   /* Surfaces */
   pageBg: "#f7f8fa",           // outer email canvas (light, not dark — emails stay neutral)
@@ -30,8 +30,8 @@ export const EMAIL_COLORS = {
   headerBand: "#0B0F15",       // top bar of every email — matches in-app header (dark)
   footerBand: "#fafafa",       // footer band
   footerBorder: "#f1f1f1",
-  quoteBg: "#f3f4f6",          // pull-quote / message block background
-  quoteBorder: "#3B82F6",      // pull-quote left border (matches primary)
+  quoteBg: "#fef3c7",          // pull-quote / message block background
+  quoteBorder: "#F59E0B",      // pull-quote left border (amber)
 
   /* Text */
   textPrimary: "#111827",      // headings, strong body

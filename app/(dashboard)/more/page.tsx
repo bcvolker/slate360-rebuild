@@ -35,8 +35,8 @@ export default async function MorePage() {
         {items.map((item) => {
           const Icon = item.icon;
           return (
-            <Link key={item.label} href={item.href} className="flex min-h-16 items-center gap-3 border-b border-white/10 px-4 transition hover:bg-blue-500/10 last:border-b-0">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-blue-600 text-white">
+            <Link key={item.label} href={item.href} className="flex min-h-16 items-center gap-3 border-b border-white/10 px-4 transition hover:bg-amber-500/10 last:border-b-0">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-amber-500 text-slate-950">
                   <Icon className="h-5 w-5" />
               </span>
               <span className="min-w-0 flex-1 text-sm font-black text-white">{item.label}</span>
