@@ -58,12 +58,12 @@ export default function SlateDropActionModals({
     <>
       {newFolderModal && (
         <ModalBackdrop onClose={() => setNewFolderModal(null)}>
-          <div className="w-full max-w-sm bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-100">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-              <h3 className="text-base font-bold text-gray-900">New Folder</h3>
+          <div className="w-full max-w-sm bg-[#151A23] rounded-2xl shadow-2xl overflow-hidden border border-white/10">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
+              <h3 className="text-base font-bold text-slate-100">New Folder</h3>
               <button
                 onClick={() => setNewFolderModal(null)}
-                className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100"
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:bg-white/[0.06]"
               >
                 <X size={16} />
               </button>
@@ -74,13 +74,13 @@ export default function SlateDropActionModals({
                 value={newFolderModal.name}
                 onChange={(event) => setNewFolderModal((prev) => (prev ? { ...prev, name: event.target.value } : prev))}
                 placeholder="Folder name"
-                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/20 focus:border-[#3B82F6] transition-all mb-4"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-white/10 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all mb-4"
                 autoFocus
               />
               <div className="flex gap-2">
                 <button
                   onClick={() => setNewFolderModal(null)}
-                  className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
+                  className="flex-1 py-2.5 rounded-xl border border-white/10 text-sm font-semibold text-slate-300 hover:bg-white/[0.03] transition-colors"
                 >
                   Cancel
                 </button>
@@ -93,7 +93,7 @@ export default function SlateDropActionModals({
                   }}
                   disabled={!newFolderModal.name.trim()}
                   className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-foreground transition-all hover:opacity-90 disabled:opacity-50"
-                  style={{ backgroundColor: "#3B82F6" }}
+                  style={{ backgroundColor: "#F59E0B" }}
                 >
                   Create
                 </button>
@@ -105,10 +105,10 @@ export default function SlateDropActionModals({
 
       {renameModal && (
         <ModalBackdrop onClose={() => setRenameModal(null)}>
-          <div className="w-full max-w-sm bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-100">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-              <h3 className="text-base font-bold text-gray-900">Rename {renameModal.type}</h3>
-              <button onClick={() => setRenameModal(null)} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100">
+          <div className="w-full max-w-sm bg-[#151A23] rounded-2xl shadow-2xl overflow-hidden border border-white/10">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
+              <h3 className="text-base font-bold text-slate-100">Rename {renameModal.type}</h3>
+              <button onClick={() => setRenameModal(null)} className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:bg-white/[0.06]">
                 <X size={16} />
               </button>
             </div>
@@ -117,13 +117,13 @@ export default function SlateDropActionModals({
                 type="text"
                 value={renameValue}
                 onChange={(event) => setRenameValue(event.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/20 focus:border-[#3B82F6] transition-all mb-4"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-white/10 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all mb-4"
                 autoFocus
               />
               <div className="flex gap-2">
                 <button
                   onClick={() => setRenameModal(null)}
-                  className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
+                  className="flex-1 py-2.5 rounded-xl border border-white/10 text-sm font-semibold text-slate-300 hover:bg-white/[0.03] transition-colors"
                 >
                   Cancel
                 </button>
@@ -133,7 +133,7 @@ export default function SlateDropActionModals({
                     await onRename(renameModal, renameValue.trim());
                   }}
                   className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-foreground transition-all hover:opacity-90"
-                  style={{ backgroundColor: "#3B82F6" }}
+                  style={{ backgroundColor: "#F59E0B" }}
                 >
                   Rename
                 </button>
@@ -145,27 +145,27 @@ export default function SlateDropActionModals({
 
       {deleteConfirm && (
         <ModalBackdrop onClose={() => setDeleteConfirm(null)}>
-          <div className="w-full max-w-sm bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-100">
+          <div className="w-full max-w-sm bg-[#151A23] rounded-2xl shadow-2xl overflow-hidden border border-white/10">
             <div className="p-6 text-center">
-              <div className="w-14 h-14 rounded-2xl bg-red-50 flex items-center justify-center mx-auto mb-4">
+              <div className="w-14 h-14 rounded-2xl bg-red-500/10 flex items-center justify-center mx-auto mb-4">
                 <Trash2 size={24} className="text-red-500" />
               </div>
-              <h3 className="text-base font-bold text-gray-900 mb-2">Delete {deleteConfirm.type}?</h3>
-              <p className="text-xs text-gray-400 mb-6">
+              <h3 className="text-base font-bold text-slate-100 mb-2">Delete {deleteConfirm.type}?</h3>
+              <p className="text-xs text-slate-500 mb-6">
                 &quot;{deleteConfirm.name}&quot; will be permanently deleted. This action cannot be undone.
               </p>
 
               {deleteConfirm.type === "project" && (
                 <div className="text-left mb-6">
-                  <label className="block text-xs font-semibold text-gray-700 mb-1.5">
-                    Type <span className="font-black text-red-600">{deleteConfirm.name}</span> to confirm
+                  <label className="block text-xs font-semibold text-slate-200 mb-1.5">
+                    Type <span className="font-black text-red-400">{deleteConfirm.name}</span> to confirm
                   </label>
                   <input
                     type="text"
                     value={deleteProjectConfirmName}
                     onChange={(event) => setDeleteProjectConfirmName(event.target.value)}
                     placeholder="Enter project name..."
-                    className="w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-red-400 focus:ring-2 focus:ring-red-100 outline-none transition-all"
+                    className="w-full rounded-xl border border-white/10 px-3.5 py-2.5 text-sm text-slate-100 placeholder-gray-400 focus:border-red-400 focus:ring-2 focus:ring-red-100 outline-none transition-all"
                     autoFocus
                   />
                 </div>
@@ -174,7 +174,7 @@ export default function SlateDropActionModals({
               <div className="flex gap-2">
                 <button
                   onClick={() => setDeleteConfirm(null)}
-                  className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
+                  className="flex-1 py-2.5 rounded-xl border border-white/10 text-sm font-semibold text-slate-300 hover:bg-white/[0.03] transition-colors"
                 >
                   Cancel
                 </button>
@@ -199,18 +199,18 @@ export default function SlateDropActionModals({
 
       {moveModal && (
         <ModalBackdrop onClose={() => setMoveModal(null)}>
-          <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-100">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+          <div className="w-full max-w-md bg-[#151A23] rounded-2xl shadow-2xl overflow-hidden border border-white/10">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
               <div>
-                <h3 className="text-base font-bold text-gray-900">Move File</h3>
-                <p className="text-xs text-gray-500 mt-0.5">Select destination for &quot;{moveModal.name}&quot;</p>
+                <h3 className="text-base font-bold text-slate-100">Move File</h3>
+                <p className="text-xs text-slate-400 mt-0.5">Select destination for &quot;{moveModal.name}&quot;</p>
               </div>
-              <button onClick={() => setMoveModal(null)} className="text-gray-400 hover:text-gray-600 transition-colors">
+              <button onClick={() => setMoveModal(null)} className="text-slate-500 hover:text-slate-300 transition-colors">
                 <X size={20} />
               </button>
             </div>
             <div className="p-6">
-              <div className="max-h-60 overflow-y-auto border border-gray-200 rounded-xl p-2 mb-6">
+              <div className="max-h-60 overflow-y-auto border border-white/10 rounded-xl p-2 mb-6">
                 {(() => {
                   const allFolders: { id: string; name: string; path: string }[] = [];
                   const traverse = (nodes: FolderNode[], path = "") => {
@@ -226,10 +226,10 @@ export default function SlateDropActionModals({
                       key={folder.id}
                       onClick={() => setMoveTargetFolder(folder.id)}
                       className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-left transition-colors ${
-                        moveTargetFolder === folder.id ? "bg-[#3B82F6]/10 text-[#3B82F6] font-medium" : "hover:bg-gray-50 text-gray-700"
+                        moveTargetFolder === folder.id ? "bg-amber-500/10 text-amber-500 font-medium" : "hover:bg-white/[0.03] text-slate-200"
                       }`}
                     >
-                      <Folder size={16} className={moveTargetFolder === folder.id ? "text-[#3B82F6]" : "text-gray-400"} />
+                      <Folder size={16} className={moveTargetFolder === folder.id ? "text-amber-500" : "text-slate-500"} />
                       {folder.name}
                     </button>
                   ));
@@ -238,7 +238,7 @@ export default function SlateDropActionModals({
               <div className="flex gap-3">
                 <button
                   onClick={() => setMoveModal(null)}
-                  className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors"
+                  className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-slate-200 bg-white/[0.06] hover:bg-white/[0.08] transition-colors"
                 >
                   Cancel
                 </button>
@@ -252,7 +252,7 @@ export default function SlateDropActionModals({
                   }}
                   disabled={!moveTargetFolder || moveTargetFolder === activeFolderId}
                   className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-foreground transition-all hover:opacity-90 disabled:opacity-50"
-                  style={{ backgroundColor: "#3B82F6" }}
+                  style={{ backgroundColor: "#F59E0B" }}
                 >
                   Move Here
                 </button>

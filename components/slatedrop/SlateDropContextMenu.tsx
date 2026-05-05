@@ -79,7 +79,7 @@ export default function SlateDropContextMenu({
 
   return (
     <div
-      className="fixed z-[100] w-52 bg-white rounded-xl border border-gray-100 shadow-2xl overflow-hidden py-1"
+      className="fixed z-[100] w-52 bg-[#151A23] rounded-xl border border-white/10 shadow-2xl overflow-hidden py-1"
       style={{ top: contextMenu.y, left: contextMenu.x }}
       onClick={(e) => e.stopPropagation()}
     >
@@ -186,10 +186,10 @@ function CtxItem({
       onClick={onClick}
       className={`w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-medium transition-colors ${
         danger
-          ? "text-red-500 hover:bg-red-50"
+          ? "text-red-500 hover:bg-red-500/10"
           : accent
-          ? "text-[#3B82F6] hover:bg-[#3B82F6]/5 font-semibold"
-          : "text-gray-600 hover:bg-gray-50"
+          ? "text-amber-500 hover:bg-amber-500/5 font-semibold"
+          : "text-slate-300 hover:bg-white/[0.03]"
       }`}
     >
       <Icon size={13} />
@@ -199,5 +199,5 @@ function CtxItem({
 }
 
 function CtxDivider() {
-  return <div className="my-1 mx-3 border-t border-gray-100" />;
+  return <div className="my-1 mx-3 border-t border-white/10" />;
 }
