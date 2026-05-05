@@ -265,6 +265,35 @@ When editing oversized files, always read both the state declarations AND the JS
 4. Deliverable builder: wire `BlockEditor` to `site_walk_items`, save to `site_walk_deliverables`, dark glass theme.
 5. SlateDrop real data (Recents/Shared/Requests tabs).
 
+### Session Handoff — 2026-05-04 (Logo Inline SVG — Permanent Color Unification)
+
+#### What Changed
+- `components/shared/SlateLogo.tsx` — Rewrote: `<img src=".../slate360-logo-light-v3.svg">` → inline `<svg>`. SLATE letterforms: `fill="#ffffff"`. 360 digits + S-mark upper: `fill="currentColor"`. SVG wrapper: `className="text-[var(--color-cobalt)]"`. Props changed from `ImgHTMLAttributes<HTMLImageElement>` to `SVGProps<SVGSVGElement>`.
+- `components/shared/SlateLogoOnLight.tsx` — Same inline SVG conversion. SLATE letterforms: `fill="#18181b"` (near-black for light BG). 360 digits + S-mark upper: `fill="currentColor"`.
+- `components/shared/SlateIcon.tsx` — NEW. Standalone S-mark icon (square canvas, no wordmark). Dark bg rect (`#0B0F15`) + S-mark upper (`fill="currentColor"`) + S-mark lower (`fill="#ffffff"`).
+- `components/shared/MobileTopBar.tsx` — Added `SlateIcon` import. Replaced raw `<img src="/uploads/slate360-icon-cobalt-v2.svg">` with `<SlateIcon className="h-9 w-9 rounded-lg drop-shadow-[0_0_10px_rgba(245,158,11,0.35)]" />`.
+- `public/uploads/` SVG files (6) — All hardcoded `#3B82F6` → `#F59E0B` as static-file fallback.
+- Commit: `c039be8`
+
+#### Why This Matters
+SVG `<img>` tags are opaque to CSS. The SVGs embedded their blue in a `<style>` block inside `<defs>`, which is scoped to the SVG document context — CSS vars from the host page cannot penetrate it. Inline SVG components with `fill="currentColor"` + `text-[var(--color-cobalt)]` on the wrapper are the only way to make logos respond to the design token system.
+
+**Permanent system:** Change `--color-cobalt` in `app/globals.css` → logos + all `text-cobalt`/`bg-cobalt`/`border-cobalt` utilities update globally. One line.
+
+#### What's Broken / Partially Done
+- Same pre-existing items as previous handoff (Upstash Redis, Supabase anon signup, Turnstile keys, SiteDrop mock data, deliverable builder).
+
+#### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md` — this handoff
+
+#### Next Steps (ordered)
+1. Visual smoke test on prod: confirm logos render amber on header, sidebar, auth pages, footer.
+2. Pre-existing security tasks: Supabase disable anon signup + Upstash Redis + Cloudflare Turnstile.
+3. Walk sessions list: extend query to `in_progress OR completed`, add amber filter tabs.
+4. Deliverable builder: wire `BlockEditor` to `site_walk_items` from a session.
+
+
+
 ### Session Handoff — 2026-05-04 (Global Chrome Polish — Amber Pass Complete)
 
 #### What Changed

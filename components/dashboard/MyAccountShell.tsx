@@ -119,7 +119,7 @@ export default function MyAccountShell({ user, orgName, tier, role, isAdmin, isC
       internalAccess={internalAccess}
       title="My Account"
       icon={User}
-      accent="#3B82F6"
+      accent="#F59E0B"
       status="live"
       showCustomize={false}
     >
@@ -143,7 +143,7 @@ export default function MyAccountShell({ user, orgName, tier, role, isAdmin, isC
                         onClick={() => setActiveTab(tab.id)}
                         className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all ${
                           active
-                            ? "bg-white/[0.06] text-foreground border-l-2 border-teal pl-[10px]"
+                            ? "bg-white/[0.06] text-foreground border-l-2 border-amber-500 pl-[10px]"
                             : "text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-200"
                         }`}
                       >

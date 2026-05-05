@@ -119,9 +119,9 @@ export default function CommandPalette({
       {/* Backdrop */}
       <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" />
 
-      {/* Palette */}
+      {/* Palette — dark class forces dark tokens since this portal renders outside any .dark subtree */}
       <div
-        className="relative w-full max-w-xl rounded-2xl border border-app bg-app-card shadow-2xl overflow-hidden"
+        className="dark relative w-full max-w-xl rounded-2xl border border-app bg-app-card shadow-2xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         <Command label="Command Palette" className="flex flex-col">

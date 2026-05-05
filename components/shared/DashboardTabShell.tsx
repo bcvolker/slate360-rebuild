@@ -15,6 +15,7 @@ export interface DashboardTabShellProps {
   title: string;
   icon?: LucideIcon;
   accent?: string;
+  /** @default "#F59E0B" */
   status?: TabStatus;
   isCeo?: boolean;
   internalAccess?: { operationsConsole?: boolean };
@@ -29,7 +30,7 @@ export default function DashboardTabShell({
   tier,
   title,
   icon: Icon,
-  accent = "#3B82F6",
+  accent = "#F59E0B",
   status = "coming-soon",
   isCeo = false,
   internalAccess,
@@ -42,7 +43,7 @@ export default function DashboardTabShell({
   const isLocked = !isTrial && requiredTier ? !tierMeetsRequirement(tier, requiredTier) : false;
 
   return (
-    <div className="min-h-screen bg-background overflow-x-hidden">
+    <div className="dark min-h-screen bg-background overflow-x-hidden">
 
       {/* MAIN — chrome is provided by AppShell; we only paint page content */}
       <main className="max-w-[1440px] mx-auto px-4 sm:px-6 py-6 sm:py-8 overflow-x-hidden space-y-6">

@@ -35,12 +35,12 @@ export default function AccountSecurityTab({ overview, userEmail, loading }: Pro
       {/* Password */}
       <div className="rounded-2xl border border-app bg-app-card p-6">
         <h3 className="text-sm font-bold text-zinc-100 mb-4 flex items-center gap-2">
-          <KeyRound size={16} className="text-[#3B82F6]" /> Password
+          <KeyRound size={16} className="text-amber-500" /> Password
         </h3>
         <button
           onClick={handlePasswordReset}
           disabled={resetBusy || resetSent}
-          className="inline-flex items-center gap-2 rounded-xl bg-[#3B82F6] px-4 py-2 text-xs font-semibold text-zinc-950 hover:bg-[#3B82F6]/80 transition-colors disabled:opacity-50"
+          className="inline-flex items-center gap-2 rounded-xl bg-amber-500 px-4 py-2 text-xs font-semibold text-zinc-950 hover:bg-amber-500/80 transition-colors disabled:opacity-50"
         >
           {resetBusy ? <Loader2 size={14} className="animate-spin" /> : <KeyRound size={14} />}
           {resetSent ? "Reset Link Sent" : "Send Reset Link"}
@@ -53,7 +53,7 @@ export default function AccountSecurityTab({ overview, userEmail, loading }: Pro
       {/* Active Sessions */}
       <div className="rounded-2xl border border-app bg-app-card p-6">
         <h3 className="text-sm font-bold text-zinc-100 mb-4 flex items-center gap-2">
-          <Monitor size={16} className="text-[#3B82F6]" /> Recent Sessions
+          <Monitor size={16} className="text-amber-500" /> Recent Sessions
         </h3>
         {loading ? (
           <div className="flex justify-center py-4"><Loader2 className="animate-spin text-zinc-500" size={20} /></div>
@@ -79,7 +79,7 @@ export default function AccountSecurityTab({ overview, userEmail, loading }: Pro
       {/* Data Export & Deletion */}
       <div className="rounded-2xl border border-app bg-app-card p-6">
         <h3 className="text-sm font-bold text-zinc-100 mb-3 flex items-center gap-2">
-          <Shield size={16} className="text-[#3B82F6]" /> Data & Privacy
+          <Shield size={16} className="text-amber-500" /> Data & Privacy
         </h3>
         <div className="space-y-3">
           <div className="flex items-center justify-between">

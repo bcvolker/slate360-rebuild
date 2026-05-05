@@ -97,18 +97,18 @@ export function DashboardTopBar({
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>{userName || "My Account"}</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild className="cursor-pointer">
+            <DropdownMenuContent align="end" className="w-56 border-white/10 bg-[#0B0F15]/95 text-slate-100 backdrop-blur-md">
+              <DropdownMenuLabel className="text-xs text-slate-100">{userName || "My Account"}</DropdownMenuLabel>
+              <DropdownMenuSeparator className="bg-white/10" />
+              <DropdownMenuItem asChild className="text-xs hover:bg-cobalt/10 hover:text-cobalt cursor-pointer">
                 <a href="/my-account">My Account</a>
               </DropdownMenuItem>
-              <DropdownMenuItem asChild className="cursor-pointer">
+              <DropdownMenuItem asChild className="text-xs hover:bg-cobalt/10 hover:text-cobalt cursor-pointer">
                 <a href="/my-account?tab=billing">Billing &amp; Payments</a>
               </DropdownMenuItem>
-              <DropdownMenuSeparator />
+              <DropdownMenuSeparator className="bg-white/10" />
               <DropdownMenuItem
-                className="text-destructive focus:text-destructive cursor-pointer"
+                className="text-xs text-destructive hover:bg-destructive/10 hover:text-destructive cursor-pointer"
                 onClick={() => {
                   import("@/lib/supabase/client").then(({ createClient }) => {
                     const supabase = createClient();
