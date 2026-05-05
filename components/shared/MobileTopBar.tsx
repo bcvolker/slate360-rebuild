@@ -3,7 +3,7 @@
 /**
  * MobileTopBar — slim app-style top bar for mobile (≤lg).
  *
- * Logo (cobalt icon + workspace name) · global search trigger · Invite & Share
+ * Logo (amber icon + workspace name) · global search trigger · Invite & Share
  * · Version 1 feedback · Coordination notifications bell · Avatar dropdown.
  *
  * Mirrors the desktop DashboardTopBar capabilities but in a compact,
@@ -24,6 +24,7 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { BetaFeedbackModal } from "@/components/shared/BetaFeedbackModal";
 import { BackButton } from "@/components/shared/BackButton";
+import { SlateIcon } from "@/components/shared/SlateIcon";
 import { useInviteShare } from "@/components/shared/InviteShareProvider";
 import { cn } from "@/lib/utils";
 
@@ -61,13 +62,7 @@ export function MobileTopBar({
             className="flex shrink-0 items-center"
             aria-label="Slate360 home"
           >
-            <img
-              src="/uploads/slate360-icon-cobalt-v2.svg?v=v1-shell"
-              alt="Slate360"
-              width={36}
-              height={36}
-              className="h-9 w-9 rounded-lg object-contain drop-shadow-[0_0_10px_rgba(245,158,11,0.35)]"
-            />
+            <SlateIcon className="h-9 w-9 rounded-lg drop-shadow-[0_0_10px_rgba(245,158,11,0.35)]" />
           </Link>
           <button
             type="button"

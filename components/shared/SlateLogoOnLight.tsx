@@ -1,19 +1,18 @@
 /**
  * SlateLogoOnLight — Slate360 brand logo for LIGHT backgrounds only.
  *
- * Uses the cobalt/dark-text variant of the lockup so the logo stays
- * legible against white surfaces (mobile nav sheet, light cards, print
- * exports, etc).
+ * INLINE SVG so the brand accent color (360 digits + S-mark) uses
+ * `fill="currentColor"`, which resolves from `text-[var(--color-cobalt)]`
+ * on the SVG wrapper. Changing --color-cobalt in globals.css instantly
+ * updates every instance — no static file hunt required.
  *
- * For DARK backgrounds (sidebar, header, marketing hero), use the
- * default `<SlateLogo />` from `./SlateLogo` instead. Mixing the two
- * is intentional — there is no `variant` prop on either component, by
- * design (variants reintroduce the "the logo disappeared" bug class).
+ * Text color is near-black (#18181b) so SLATE letterforms are legible on
+ * white/light surfaces. For DARK backgrounds use `<SlateLogo />` instead.
+ * Do not add a `variant` prop — variants reintroduce the "wrong logo" bug.
  */
 
-import type { ImgHTMLAttributes } from "react";
-
-const LOGO_SRC = "/uploads/slate360-logo-cobalt-v3.svg?v=cobalt-2026-04-23";
+import { cn } from "@/lib/utils";
+import type { SVGProps } from "react";
 
 const SIZE_MAP = {
   sm: "h-5 w-auto",
@@ -21,21 +20,38 @@ const SIZE_MAP = {
   lg: "h-9 w-auto",
 } as const;
 
-interface SlateLogoOnLightProps {
+interface SlateLogoOnLightProps extends SVGProps<SVGSVGElement> {
   size?: keyof typeof SIZE_MAP;
-  className?: string;
 }
 
-type SlateLogoOnLightImageProps = SlateLogoOnLightProps &
-  Omit<ImgHTMLAttributes<HTMLImageElement>, "src" | "alt">;
-
-export function SlateLogoOnLight({ size = "md", className, ...imgProps }: SlateLogoOnLightImageProps) {
+export function SlateLogoOnLight({ size = "md", className, ...svgProps }: SlateLogoOnLightProps) {
   return (
-    <img
-      src={LOGO_SRC}
-      alt="Slate360"
-      className={className ?? SIZE_MAP[size]}
-      {...imgProps}
-    />
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 1031.31 142.6"
+      role="img"
+      aria-label="Slate360"
+      className={cn("text-[var(--color-cobalt)]", className ?? SIZE_MAP[size])}
+      {...svgProps}
+    >
+      {/* transparent bounding rect */}
+      <rect width="1031.31" height="142.6" rx="23.47" ry="23.47" fill="none" />
+      <g>
+        {/* SLATE letterforms — near-black on light surfaces */}
+        <path fill="#18181b" d="M376.45,122.79h-69.23c-8.72,0-15.82-7.1-15.82-15.82V19.83h17.12v85.84h67.92v17.12Z" />
+        <path fill="#18181b" d="M249.64,122.79h-74.94v-17.12h74.94c7.79,0,11.34-6.72,11.34-12.96s-3.55-12.96-11.34-12.96c-.21,0-.42,0-.63-.02l-43.81-3.22c-16.85-.83-29.27-12.02-29.56-26.66,0-.06,0-.11,0-.17v-3.23c0-15.81,12.37-26.85,30.08-26.85h65.74v17.12h-65.74c-3.04,0-12.96.7-12.96,9.73v3.14c.17,6.38,6.82,9.53,13.35,9.83.08,0,.16,0,.24.01l43.64,3.21c16.06.18,28.12,13.05,28.12,30.08s-12.24,30.08-28.46,30.08Z" />
+        <path fill="#18181b" d="M706.13,36.71v-17.12h-80.02c-8.74,0-15.86,7.11-15.86,15.86v71.48c0,8.74,7.11,15.86,15.86,15.86h80.02v-17.12h-78.75v-25.92h72.13v-17.12h-72.13v-25.92h78.75Z" />
+        {/* 360 digits — brand accent (currentColor → var(--color-cobalt) → #F59E0B) */}
+        <path fill="currentColor" d="M808.26,63.1v-15.09c0-15.7-12.72-28.42-28.42-28.42h-59.34v17.12h59.34c6.24,0,11.3,5.06,11.3,11.3v8.95c0,3.13-2.54,5.67-5.67,5.67h-51.82v17.12h51.82c3.13,0,5.67,2.54,5.67,5.67v8.95c0,6.24-5.06,11.3-11.3,11.3h-59.34v17.12h59.34c15.7,0,28.42-12.72,28.42-28.42v-15.1c0-1.85-.59-3.56-1.6-4.95-1.33-1.85-1.33-4.41,0-6.26,1-1.39,1.6-3.1,1.6-4.95Z" />
+        <path fill="#18181b" d="M491.5,123.05h19.29l-49.25-94.93c-2.73-5.26-8.1-8.54-14.02-8.56h-.05c-5.9,0-11.28,3.24-14.03,8.46l-50.07,95.02h19.35l14.95-28.36h59.13l14.71,28.36ZM426.68,77.56l20.78-39.42,20.45,39.42h-41.23Z" />
+        <polygon fill="#18181b" points="600.97 19.59 484.67 19.59 484.67 36.71 533.45 36.71 533.45 123.05 550.57 123.05 550.57 36.71 600.97 36.71 600.97 19.59" />
+        <path fill="currentColor" d="M977.91,122.79h-25.91c-16.5,0-29.93-13.43-29.93-29.93v-43.34c0-16.5,13.43-29.93,29.93-29.93h25.91c16.5,0,29.93,13.43,29.93,29.93v43.34c0,16.5-13.43,29.93-29.93,29.93ZM952,36.71c-7.06,0-12.81,5.75-12.81,12.81v43.34c0,7.06,5.75,12.81,12.81,12.81h25.91c7.06,0,12.81-5.75,12.81-12.81v-43.34c0-7.06-5.75-12.81-12.81-12.81h-25.91Z" />
+        <path fill="currentColor" d="M879.63,58.73h-29.15c-4.59,0-8.92,1.07-12.81,2.92v-10.21c0-8.12,6.61-14.73,14.73-14.73h54.61v-17.12h-54.61c-17.56,0-31.85,14.29-31.85,31.85v41.42c0,16.5,13.43,29.93,29.93,29.93h29.15c16.5,0,29.93-13.43,29.93-29.93v-4.2c0-16.5-13.43-29.93-29.93-29.93ZM892.44,92.86c0,7.06-5.75,12.81-12.81,12.81h-29.15c-7.06,0-12.81-5.75-12.81-12.81v-4.2c0-7.06,5.75-12.81,12.81-12.81h29.15c7.06,0,12.81,5.75,12.81,12.81v4.2Z" />
+      </g>
+      {/* S-mark icon upper — brand accent */}
+      <path fill="currentColor" d="M18.89,42.86l54.37-30.34c1.36-.92,2.99-1.45,4.72-1.45,1.59,0,3.1.44,4.39,1.23l58.74,32.78v19.27s-63.1-35.21-63.1-35.21l-41.73,23.28c-.16.09-.57.32-.57.97s.42.89.57.97l61.53,34.34-17.21,9.66L18.89,63.93v-21.07Z" />
+      {/* S-mark icon lower — near-black */}
+      <path fill="#18181b" d="M80.23,43.82l-17.16,9.69,60.64,34.72c.16.09.57.32.57.97s-.42.89-.57.97l-38.47,21.48-3.26,1.82-3.26-1.82-59.83-33.4v19.27s58.99,32.94,58.99,32.94c1.27.71,2.69,1.07,4.1,1.07s2.83-.36,4.1-1.07l55.02-30.72v-20.91l-60.88-35.01Z" />
+    </svg>
   );
 }
