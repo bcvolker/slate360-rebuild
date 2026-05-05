@@ -111,12 +111,12 @@ export function AppShell({
     <TooltipProvider>
      <InviteShareProvider>
       {fullBleed ? (
-        <div className="fixed inset-0 h-[100dvh] w-full overflow-hidden bg-[#0B0F15] text-slate-50">
+        <div className="fixed inset-0 h-[100dvh] w-full overflow-hidden bg-[#0B0F15] text-slate-50 dark">
           {children}
           <GlobalInviteModal data={inviteShareData} />
         </div>
       ) : (
-      <div className="relative flex h-[100dvh] w-full max-w-full flex-col overflow-hidden bg-[#0B0F15] text-slate-50">
+      <div className="dark relative flex h-[100dvh] w-full max-w-full flex-col overflow-hidden bg-[#0B0F15] text-slate-50">
         <div className="hidden lg:block">
           <DashboardSidebar
             isOpen={sidebarOpen}

@@ -119,19 +119,19 @@ export default function CommandPalette({
       {/* Backdrop */}
       <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" />
 
-      {/* Palette — dark class forces dark tokens since this portal renders outside any .dark subtree */}
+      {/* Palette */}
       <div
-        className="dark relative w-full max-w-xl rounded-2xl border border-app bg-app-card shadow-2xl overflow-hidden"
+        className="relative w-full max-w-xl rounded-2xl border border-white/10 bg-[#151A23] shadow-2xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         <Command label="Command Palette" className="flex flex-col">
-          <div className="flex items-center gap-2 px-4 py-3 border-b border-app">
+          <div className="flex items-center gap-2 px-4 py-3 border-b border-white/10">
             <Search className="h-4 w-4 text-zinc-500" />
             <Command.Input
               value={search}
               onValueChange={setSearch}
               placeholder="Type a command or search…"
-              className="flex-1 bg-transparent text-sm text-foreground placeholder:text-zinc-500 outline-none"
+              className="flex-1 bg-transparent text-sm text-slate-100 placeholder:text-zinc-500 outline-none"
               autoFocus
             />
             <kbd className="rounded border border-app bg-white/[0.04] px-1.5 py-0.5 text-[10px] font-mono text-zinc-400">
@@ -182,7 +182,7 @@ export default function CommandPalette({
             })}
           </Command.List>
 
-          <div className="flex items-center justify-between border-t border-app px-4 py-2 text-[10px] text-zinc-500">
+          <div className="flex items-center justify-between border-t border-white/10 px-4 py-2 text-[10px] text-zinc-500">
             <span>↑↓ navigate · ↵ select</span>
             <span>⌘K to toggle</span>
           </div>

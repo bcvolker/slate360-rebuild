@@ -7,7 +7,10 @@ export type LiveWalkSummary = {
   projectName: string | null;
   walkerName: string;
   startedAt: string | null;
+  completedAt: string | null;
+  status: "draft" | "in_progress" | "completed" | "archived";
   itemCount: number;
+  thumbnailUrl: string | null;
 };
 
 export type LiveWalkSession = {
