@@ -201,6 +201,7 @@ When editing oversized files, always read both the state declarations AND the JS
 ### Session Handoff — 2026-05-06 (Account Hub Navigation + Site Walk Back Affordances)
 
 #### What Changed
+- Commit `3819d3a` (`fix: unify account hub navigation and Site Walk back affordances`) is pushed to `main`; Vercel should deploy from `main` automatically.
 - `app/(dashboard)/more/page.tsx` — Account Hub now shows real signed-in email, plan label, and storage usage summary; menu rows now route to native Account, Organization, Billing & Apps, Coordination, Storage, Support, Operations Console, and Sign Out surfaces.
 - `app/(dashboard)/more/[section]/page.tsx` — Rebuilt native dark-glass section pages for `account`, `organization`, `billing`, `coordination`, `storage`, and `support` with amber styling, real entitlements/usage, and real links into settings, Stripe billing portal, SlateDrop, Coordination, policies, and support email.
 - `app/(dashboard)/more/_components/BillingPortalButton.tsx` — NEW client row that opens `/api/billing/portal` from the Billing & Apps section, disabled truthfully for non-admin/internal owner cases.
