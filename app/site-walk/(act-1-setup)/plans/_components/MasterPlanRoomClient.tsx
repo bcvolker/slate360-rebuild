@@ -6,6 +6,7 @@ import { PlanSheetGrid } from "./PlanSheetGrid";
 import { PlanUploader } from "./PlanUploader";
 import type { PlanRoomPayload, PlanRoomProject } from "./plan-room-types";
 import type { SiteWalkPlanSet, SiteWalkPlanSheet } from "@/lib/types/site-walk";
+import GlassCard from "@/components/shared/GlassCard";
 
 type Props = {
   projects: PlanRoomProject[];
@@ -46,22 +47,22 @@ export function MasterPlanRoomClient({ projects, initialPlanSets, initialSheets 
 
   return (
     <div className="space-y-5">
-      <section className="rounded-3xl border border-slate-300 bg-white p-6">
+      <GlassCard className="p-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-amber-900">Master Plan Room</p>
-            <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-900">Project plan sets</h1>
-            <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-700">Upload PDF plan packages into SlateDrop, track processing, and store reusable sheet rows before the field walk starts.</p>
+            <p className="text-xs font-black uppercase tracking-[0.2em] text-amber-400">Master Plan Room</p>
+            <h1 className="mt-2 text-3xl font-black tracking-tight text-white">Project plan sets</h1>
+            <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-400">Upload PDF plan packages into SlateDrop, track processing, and store reusable sheet rows before the field walk starts.</p>
           </div>
-          <label className="block min-w-64 text-sm font-bold text-slate-900">
+          <label className="block min-w-64 text-sm font-bold text-slate-200">
             <span className="mb-1 block">Project</span>
-            <select value={projectId} onChange={(event) => void chooseProject(event.target.value)} className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-amber-600 focus:ring-2 focus:ring-amber-600/15">
+            <select value={projectId} onChange={(event) => void chooseProject(event.target.value)} className="w-full rounded-xl border border-white/10 bg-slate-950/70 px-3 py-2 text-sm text-slate-100 outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20">
               <option value="">Select a project</option>
               {projects.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}
             </select>
           </label>
         </div>
-      </section>
+      </GlassCard>
 
       <PlanUploader project={activeProject} onPlanRoomChange={handlePlanRoomChange} />
       <div className="grid gap-5 xl:grid-cols-[0.9fr_1.1fr]">

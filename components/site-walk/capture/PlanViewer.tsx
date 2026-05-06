@@ -190,44 +190,44 @@ export function PlanViewer({ projectId, sessionId }: Props) {
 
   const hasImage = !!(activeSheet.image_s3_key || activeSheet.thumbnail_s3_key);
   return (
-    <section className="min-h-[480px] rounded-3xl border border-slate-300 bg-white p-4 shadow-sm">
+    <section className="min-h-[480px] rounded-3xl border border-white/10 bg-slate-900/70 p-4 text-slate-50 shadow-lg shadow-black/30">
       <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-lg font-black text-slate-950">Plan canvas</h2>
-          <p className="text-xs font-bold text-slate-600">{message}</p>
+          <h2 className="text-lg font-black text-white">Plan canvas</h2>
+          <p className="text-xs font-bold text-slate-400">{message}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <select value={activeSheetId} onChange={(event) => setActiveSheetId(event.target.value)} className="min-h-11 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-bold text-slate-900">
+          <select value={activeSheetId} onChange={(event) => setActiveSheetId(event.target.value)} className="min-h-11 rounded-xl border border-white/10 bg-slate-950/70 px-3 py-2 text-sm font-bold text-slate-100">
             {sheets.map((sheet) => <option key={sheet.id} value={sheet.id}>{sheet.sheet_name ?? "Plan sheet"}</option>)}
           </select>
-          <button type="button" onClick={dropCenterPin} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-amber-500 px-3 text-sm font-black text-white"><Crosshair className="h-4 w-4" /> Drop Pin</button>
-          <button type="button" onClick={() => setTransform((current) => ({ ...current, scale: clamp(current.scale - 0.2, 0.6, 3) }))} className="min-h-11 rounded-xl border border-slate-300 px-3"><Minus className="h-4 w-4" /></button>
-          <button type="button" onClick={() => setTransform((current) => ({ ...current, scale: clamp(current.scale + 0.2, 0.6, 3) }))} className="min-h-11 rounded-xl border border-slate-300 px-3"><Plus className="h-4 w-4" /></button>
+          <button type="button" onClick={dropCenterPin} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-amber-500 px-3 text-sm font-black text-slate-950"><Crosshair className="h-4 w-4" /> Drop Pin</button>
+          <button type="button" onClick={() => setTransform((current) => ({ ...current, scale: clamp(current.scale - 0.2, 0.6, 3) }))} className="min-h-11 rounded-xl border border-white/10 bg-white/[0.04] px-3 text-slate-200"><Minus className="h-4 w-4" /></button>
+          <button type="button" onClick={() => setTransform((current) => ({ ...current, scale: clamp(current.scale + 0.2, 0.6, 3) }))} className="min-h-11 rounded-xl border border-white/10 bg-white/[0.04] px-3 text-slate-200"><Plus className="h-4 w-4" /></button>
         </div>
       </div>
-      <div ref={stageRef} onPointerDown={handlePointerDown} onPointerMove={handlePointerMove} onPointerUp={handlePointerUp} onPointerCancel={handlePointerUp} className="relative h-[420px] touch-none overflow-hidden rounded-2xl border border-slate-300 bg-slate-100">
+      <div ref={stageRef} onPointerDown={handlePointerDown} onPointerMove={handlePointerMove} onPointerUp={handlePointerUp} onPointerCancel={handlePointerUp} className="relative h-[420px] touch-none overflow-hidden rounded-2xl border border-white/10 bg-slate-950/70">
         <div className="absolute left-0 top-0 origin-top-left" style={{ width: CANVAS_WIDTH, height: CANVAS_HEIGHT, transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})` }}>
-          {hasImage ? <img src={`/api/site-walk/plan-sheets/${activeSheet.id}/image`} alt={activeSheet.sheet_name ?? "Plan sheet"} className="h-full w-full select-none object-contain" draggable={false} /> : <div className="flex h-full w-full items-center justify-center bg-[linear-gradient(90deg,#cbd5e1_1px,transparent_1px),linear-gradient(#cbd5e1_1px,transparent_1px)] bg-[size:40px_40px] text-center"><div><MapPinned className="mx-auto h-10 w-10 text-amber-900" /><p className="mt-3 font-black text-slate-900">{activeSheet.sheet_name ?? "Plan sheet"}</p><p className="text-sm text-slate-600">Image extraction pending. Pins still save against this sheet.</p></div></div>}
+          {hasImage ? <img src={`/api/site-walk/plan-sheets/${activeSheet.id}/image`} alt={activeSheet.sheet_name ?? "Plan sheet"} className="h-full w-full select-none object-contain" draggable={false} /> : <div className="flex h-full w-full items-center justify-center bg-[linear-gradient(90deg,rgba(148,163,184,0.25)_1px,transparent_1px),linear-gradient(rgba(148,163,184,0.25)_1px,transparent_1px)] bg-[size:40px_40px] text-center"><div><MapPinned className="mx-auto h-10 w-10 text-amber-400" /><p className="mt-3 font-black text-white">{activeSheet.sheet_name ?? "Plan sheet"}</p><p className="text-sm text-slate-400">Image extraction pending. Pins still save against this sheet.</p></div></div>}
           <svg className="pointer-events-none absolute inset-0 h-full w-full" viewBox={`0 0 ${CANVAS_WIDTH} ${CANVAS_HEIGHT}`}>
             {markupShapes.map((shape) => renderShape(shape))}
           </svg>
-          {pins.map((pin) => <button key={pin.id} type="button" onClick={(event) => { event.stopPropagation(); setMenu({ pinId: pin.id, xPct: pin.x_pct, yPct: pin.y_pct, screenX: (pin.x_pct / 100) * CANVAS_WIDTH * transform.scale + transform.x + 12, screenY: (pin.y_pct / 100) * CANVAS_HEIGHT * transform.scale + transform.y + 12 }); }} className="absolute flex h-8 w-8 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-white bg-amber-500 text-xs font-black text-white shadow" style={{ left: `${pin.x_pct}%`, top: `${pin.y_pct}%` }}>{pin.pin_status === "draft" ? "D" : "✓"}</button>)}
+          {pins.map((pin) => <button key={pin.id} type="button" onClick={(event) => { event.stopPropagation(); setMenu({ pinId: pin.id, xPct: pin.x_pct, yPct: pin.y_pct, screenX: (pin.x_pct / 100) * CANVAS_WIDTH * transform.scale + transform.x + 12, screenY: (pin.y_pct / 100) * CANVAS_HEIGHT * transform.scale + transform.y + 12 }); }} className="absolute flex h-8 w-8 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-white bg-amber-500 text-xs font-black text-slate-950 shadow" style={{ left: `${pin.x_pct}%`, top: `${pin.y_pct}%` }}>{pin.pin_status === "draft" ? "D" : "✓"}</button>)}
         </div>
         {menu && <PlanQuickActionMenu planSheetId={activeSheet.id} {...menu} onClose={() => setMenu(null)} />}
-        <div className="pointer-events-none absolute left-1/2 top-1/2 rounded-full border border-amber-200 bg-amber-50 p-2 text-amber-900 shadow-lg"><Crosshair className="h-4 w-4" /></div>
+        <div className="pointer-events-none absolute left-1/2 top-1/2 rounded-full border border-amber-500/20 bg-amber-500/10 p-2 text-amber-300 shadow-lg"><Crosshair className="h-4 w-4" /></div>
       </div>
     </section>
   );
 }
 
 function PlanPlaceholder({ title, text, loading = false }: { title: string; text?: string; loading?: boolean }) {
-  return <section className="rounded-3xl border border-slate-300 bg-white p-4 shadow-sm"><div className="flex min-h-[360px] flex-col items-center justify-center rounded-2xl border border-slate-300 bg-slate-50 p-6 text-center">{loading ? <Loader2 className="h-8 w-8 animate-spin text-amber-900" /> : <MapPinned className="h-10 w-10 text-amber-900" />}<h2 className="mt-4 text-xl font-black text-slate-950">{title}</h2>{text && <p className="mt-2 max-w-md text-sm leading-6 text-slate-600">{text}</p>}</div></section>;
+  return <section className="rounded-3xl border border-white/10 bg-slate-900/70 p-4 text-slate-50 shadow-lg shadow-black/30"><div className="flex min-h-[360px] flex-col items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] p-6 text-center">{loading ? <Loader2 className="h-8 w-8 animate-spin text-amber-400" /> : <MapPinned className="h-10 w-10 text-amber-400" />}<h2 className="mt-4 text-xl font-black text-white">{title}</h2>{text && <p className="mt-2 max-w-md text-sm leading-6 text-slate-400">{text}</p>}</div></section>;
 }
 
 function buildMarkup(tool: VectorTool, point: { xPct: number; yPct: number }): MarkupData {
   const x = (point.xPct / 100) * CANVAS_WIDTH;
   const y = (point.yPct / 100) * CANVAS_HEIGHT;
-  const base = { id: `markup-${Date.now()}`, stroke: "#2563eb", fill: "none", strokeWidth: 4, rotation: 0, updatedAt: Date.now() };
+  const base = { id: `markup-${Date.now()}`, stroke: "#F59E0B", fill: "none", strokeWidth: 4, rotation: 0, updatedAt: Date.now() };
   const shape: MarkupShape = tool === "box" ? { ...base, kind: "rect", x: x - 50, y: y - 35, width: 100, height: 70 } : tool === "circle" ? { ...base, kind: "ellipse", cx: x, cy: y, rx: 48, ry: 34 } : tool === "arrow" ? { ...base, kind: "arrow", x1: x - 60, y1: y - 30, x2: x + 60, y2: y + 30, headSize: 24 } : tool === "text" ? { ...base, kind: "text", x, y, text: "Note", fontSize: 32 } : { ...base, kind: "freehand", points: [x - 40, y, x - 10, y - 25, x + 30, y + 18] };
   return { version: 1, coordSpace: "image", shapes: [shape] };
 }

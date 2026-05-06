@@ -1,15 +1,16 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ArrowLeft, Download, Folder, Mail, MoreHorizontal, Pencil, Plus, Share2, Trash2, Upload } from "lucide-react";
+import { ArrowLeft, Download, Folder, Mail, MoreHorizontal, Pencil, Plus, Share2, Upload } from "lucide-react";
 import { resolveServerOrgContext } from "@/lib/server/org-context";
 import SlateDropDesktopDropZone from "@/components/slatedrop/SlateDropDesktopDropZone";
+import GlassCard from "@/components/shared/GlassCard";
 
 export const metadata = {
   title: "SlateDrop Folder — Slate360",
 };
 
 const ACTION_COPY: Record<string, { title: string; detail: string }> = {
-  "new-folder": { title: "New folder", detail: "Create a custom folder once the final Site Walk folder model is wired." },
+  "new-folder": { title: "New folder", detail: "Create a custom folder for project files, plans, photos, or reports." },
   upload: { title: "Upload", detail: "Add photos, plans, reports, and received files into the selected folder." },
   save: { title: "Save", detail: "Save or download selected files to your device." },
   share: { title: "Share", detail: "Share selected files through contacts, text, email, or native share." },
@@ -45,17 +46,17 @@ export default async function SlateDropSectionPage({ params }: { params: Promise
 
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-5 px-4 py-5 pb-28 text-slate-50 sm:px-6 lg:px-8 lg:py-8 lg:pb-8">
-      <Link href="/slatedrop" className="inline-flex min-h-10 w-fit items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-3 text-sm font-bold text-slate-200 hover:border-sky-400/60 hover:bg-white/10">
+      <Link href="/slatedrop" className="inline-flex min-h-10 w-fit items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] px-3 text-sm font-bold text-slate-200 hover:border-amber-400/60 hover:bg-white/10">
         <ArrowLeft className="h-4 w-4" /> SlateDrop
       </Link>
 
-      <section className="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-lg backdrop-blur-md sm:p-6">
-        <p className="text-[11px] font-black uppercase tracking-[0.18em] text-sky-200">{parent}</p>
+      <GlassCard className="p-5 sm:p-6">
+        <p className="text-[11px] font-black uppercase tracking-[0.18em] text-amber-400">{parent}</p>
         <h1 className="mt-2 text-2xl font-black text-white sm:text-3xl">{title}</h1>
         <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">{detail}</p>
-      </section>
+      </GlassCard>
 
-      <section className="rounded-3xl border border-white/10 bg-white/5 p-4 shadow-lg backdrop-blur-md">
+      <GlassCard className="p-4">
         <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
           <FolderAction href="/slatedrop/upload" icon={Upload} label="Upload" />
           <FolderAction href="/slatedrop/save" icon={Download} label="Save" />
@@ -64,9 +65,9 @@ export default async function SlateDropSectionPage({ params }: { params: Promise
           <FolderAction href="/slatedrop/new-folder" icon={Pencil} label="New folder" />
           <FolderAction href="/slatedrop/move" icon={MoreHorizontal} label="More" />
         </div>
-      </section>
+      </GlassCard>
 
-      {action && <ActionAssistant action={root} title={title} />}
+      {action && root !== "upload" && <ActionState title={title} />}
 
       {(root === "upload" || !action) && (
         <SlateDropDesktopDropZone
@@ -76,57 +77,31 @@ export default async function SlateDropSectionPage({ params }: { params: Promise
         />
       )}
 
-      <section className="rounded-3xl border border-dashed border-white/15 bg-white/[0.03] p-6 text-center shadow-lg backdrop-blur-md">
-        <Folder className="mx-auto h-8 w-8 text-sky-200" />
-        <p className="mt-3 text-sm font-bold text-white">Folder browser wiring</p>
+      <GlassCard className="border-dashed border-white/15 bg-white/[0.03] p-6 text-center">
+        <Folder className="mx-auto h-8 w-8 text-amber-400" />
+        <p className="mt-3 text-sm font-bold text-white">No files selected</p>
         <p className="mx-auto mt-1 max-w-lg text-sm leading-6 text-slate-400">
-          This folder is available while the live mobile browser is connected to project folders, shared files, recents, and request links.
+          Open a project folder or upload files to use SlateDrop actions from this workspace.
         </p>
-        <div className="mt-5 flex flex-wrap justify-center gap-2">
-          <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-bold text-slate-300">No legacy project UI</span>
-          <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-bold text-slate-300">Mobile-first actions</span>
-          <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-bold text-slate-300">Ready for Site Walk folders</span>
-        </div>
-      </section>
+      </GlassCard>
     </div>
   );
 }
 
-function ActionAssistant({ action, title }: { action: string; title: string }) {
-  const fields: Record<string, string[]> = {
-    "new-folder": ["Folder name", "Parent folder", "Project or app area"],
-    upload: ["Choose files", "Destination folder", "Tags / notes"],
-    save: ["Select files", "Download format", "Include folder structure"],
-    share: ["Recipients", "Permission level", "Message"],
-    send: ["Recipient", "Expiration", "Secure message"],
-    receive: ["Upload request title", "Allowed file types", "Recipient instructions"],
-    archive: ["Items to archive", "Archive reason", "Retention note"],
-    move: ["Items to move", "Destination folder", "Keep sharing links active"],
-  };
-
+function ActionState({ title }: { title: string }) {
   return (
-    <section className="rounded-3xl border border-sky-400/20 bg-sky-400/10 p-5 shadow-lg backdrop-blur-md">
-      <p className="text-[11px] font-black uppercase tracking-[0.18em] text-sky-200">Action assistant</p>
-      <h2 className="mt-2 text-lg font-black text-white">{title}</h2>
-      <p className="mt-1 text-sm leading-6 text-slate-300">
-        This panel defines the usable V1 workflow for this action. The next pass should connect these fields to the existing SlateDrop APIs and `project_folders` writes.
-      </p>
-      <div className="mt-4 grid gap-3 sm:grid-cols-3">
-        {(fields[action] ?? ["Select item", "Choose destination", "Confirm action"]).map((field) => (
-          <label key={field} className="space-y-1 text-xs font-black uppercase tracking-wide text-slate-400">
-            {field}
-            <input disabled className="mt-1 h-10 w-full rounded-2xl border border-white/10 bg-slate-950/50 px-3 text-sm text-slate-500" placeholder="Wiring next" />
-          </label>
-        ))}
-      </div>
-    </section>
+    <GlassCard className="border-amber-400/20 bg-amber-500/10 p-5">
+      <p className="text-[11px] font-black uppercase tracking-[0.18em] text-amber-300">{title}</p>
+      <h2 className="mt-2 text-lg font-black text-white">Select files first</h2>
+      <p className="mt-1 text-sm leading-6 text-slate-300">Open a folder with files, then run this action from the file toolbar or context menu.</p>
+    </GlassCard>
   );
 }
 
 function FolderAction({ href, icon: Icon, label }: { href: string; icon: typeof Plus; label: string }) {
   return (
-    <Link href={href} className="flex min-h-20 flex-col items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] px-2 text-xs font-bold text-slate-300 hover:border-sky-400/60 hover:bg-white/10">
-      <Icon className="h-5 w-5 text-sky-200" />
+    <Link href={href} className="flex min-h-20 flex-col items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] px-2 text-xs font-bold text-slate-300 hover:border-amber-400/60 hover:bg-white/10">
+      <Icon className="h-5 w-5 text-amber-400" />
       {label}
     </Link>
   );

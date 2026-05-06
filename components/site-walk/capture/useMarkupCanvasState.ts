@@ -30,7 +30,7 @@ export function useMarkupCanvasState({ imageUrl, markupEnabled, initialMarkup, o
   const draftPointsRef = useRef<number[]>([]);
   const transformRef = useRef<Transform>({ x: 0, y: 0, scale: 1 });
   const [tool, setTool] = useState<VectorTool>("select");
-  const [color, setColor] = useState("#3B82F6");
+  const [color, setColor] = useState("#F59E0B");
   const [strokeWidth, setStrokeWidth] = useState(5);
   const [shapes, setShapes] = useState<MarkupShape[]>(initialMarkup?.shapes ?? []);
   const [selectedId, setSelectedId] = useState<string | null>(null);

@@ -1,6 +1,6 @@
 # Site Walk — Field Platform Roadmap
 
-**Last Updated:** 2026-05-XX  
+**Last Updated:** 2026-05-06  
 **Status:** Planning / Pre-build
 **Owner:** Product + Engineering
 
@@ -365,7 +365,42 @@ Please answer each question with a concrete recommendation and 1-2 sentence rati
 
 ---
 
-## 6. Root Cause Report — Dark Theme Failures
+## 6. High-Value Feature Backlog
+
+These are the highest-value field workflow features to preserve for future build phases. They should be implemented only after the core workspace navigation, project setup, plan upload, capture, and reporting routes are stable.
+
+| Feature | Product Requirement | Build Notes |
+|---|---|---|
+| Swipe-Up Capture Drawer | Data entry for notes, trades, priority, tags, and cost impact must live in a mobile-native swipe-up bottom sheet over the camera. No page navigations during capture. | Implement inside `/site-walk/capture` after the camera shell is stable. Use a contained bottom sheet with keyboard-safe scrolling. |
+| Plan Layer Management | Plans must support a Layer Toggle to hide/show pins from older walks, trades, sessions, and status groups so the blueprint stays clean. | Backed by `site_walk_plan_pins`; UI belongs in `/site-walk/plans`. |
+| Voice-to-Text Dictation | Implement native browser Web Speech API in the capture drawer for hands-free note-taking. | Progressive enhancement only; show a normal text area when the API is unavailable. |
+| Quick-Clone Stops | Add a button to duplicate the previous stop's tags, trades, category, and checklist values for repetitive inspections. | Store as client action inside capture first; persist only when the new stop is saved. |
+| Offline Sync Queue | Add a header icon showing how many items are stored in IndexedDB waiting for network sync. | Must read from the existing offline capture queue and never block capture. |
+| Walk Templates | Save a walk's stops, trades, tags, and checklist setup as a reusable template for similar future walks. | Belongs in Office Prep; do not surface inside live capture until templates are selected. |
+| Daily Leadership Summary | Auto-email a daily summary of open issues, completed walks, blocked items, and weather delays to org leadership. | Requires leadership viewer roles and org email preferences. |
+| Dynamic Deliverable Builder | Build a modular block-builder for reports, including drag-and-drop photos, plans, pins, sections, and issue tables instead of rigid PDFs. | Target route: `/site-walk/reports`. Start with saved block JSON before PDF export. |
+
+---
+
+## 7. Strict Site Walk Internal Routing
+
+Site Walk must use a small, predictable workspace map. Do not bury active work behind marketing pages or generic descriptions.
+
+| Route | Purpose | UX Rule |
+|---|---|---|
+| `/site-walk` | Landing: setup wizard, plan upload entry, and Plan & Start Walk path. | Planning-first. Quick Capture is a smaller emergency escape hatch. |
+| `/site-walk/walks` | Filterable list of all active and past walks. | Show real walk records only; no fake metrics. |
+| `/site-walk/plans` | Plan Viewer and Layer Manager. | Manage plan sets, sheets, and future pin layers. |
+| `/site-walk/capture` | High-performance field execution view. | Mobile-first, no marketing, no navigation away during capture. |
+| `/site-walk/reports` | Dynamic Deliverable Builder. | Report workspace for deliverables, sections, exports, and share links. |
+
+Current compatibility aliases:
+- `/site-walk/setup` remains the existing setup route behind the Landing action.
+- `/site-walk/deliverables` remains available for legacy deliverable links until `/site-walk/reports` fully replaces it.
+
+---
+
+## 8. Root Cause Report — Dark Theme Failures
 
 History of why the dark theme fixes kept failing:
 

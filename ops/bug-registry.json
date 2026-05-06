@@ -1,6 +1,6 @@
 {
   "$schema": "./schemas/bug-registry.schema.json",
-  "updatedAt": "2026-05-01",
+  "updatedAt": "2026-05-06",
   "source": "slate360-context/ONGOING_ISSUES.md",
   "bugs": [
     {
@@ -563,6 +563,22 @@
         "grep -n 'geospatial\\|virtual-studio' components/dashboard/DashboardClient.tsx returns no results",
         "grep -n 'geospatial\\|virtual-studio' components/dashboard/DashboardOverview.tsx returns no results",
         "Dashboard app launcher shows no tiles for Geospatial or Virtual Studio"
+      ]
+    },
+    {
+      "id": "BUG-059",
+      "title": "Deep authenticated subpages leaked legacy white/cobalt UI and marketing filler",
+      "module": "site-walk/slatedrop/account",
+      "severity": "critical",
+      "status": "fixed",
+      "rootCause": "Earlier design cleanup fixed top-level shells but nested Site Walk plans/capture components, SlateDrop action drilldowns, Project Hub SlateDrop breadcrumbs, and the duplicate account settings page still used white cards, cobalt/sky accents, disabled fake forms, or workspace-incompatible copy.",
+      "verification": [
+        "Site Walk has a module nav for /site-walk, /site-walk/walks, /site-walk/plans, /site-walk/capture, and /site-walk/reports",
+        "/site-walk/plans Plan Room components render dark glass surfaces and amber controls",
+        "/site-walk/capture empty/loading/header/drawer/plan/menu surfaces no longer use solid white cards or cobalt defaults",
+        "/slatedrop/[...section] uses GlassCard/amber styling and no disabled fake form fields",
+        "/project-hub/[projectId]/slatedrop breadcrumb header is dark/amber",
+        "/settings/account redirects to the unified /settings split-pane account workspace"
       ]
     }
   ]

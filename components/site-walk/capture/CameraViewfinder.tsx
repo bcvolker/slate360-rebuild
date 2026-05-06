@@ -101,15 +101,15 @@ export function CameraViewfinder({ sessionId, autoOpenCamera = false, launchId =
   }
 
   return (
-    <section className={visualOnly ? "flex h-full min-h-0 flex-col overflow-hidden bg-zinc-950" : "rounded-3xl border border-slate-300 bg-white p-4"}>
+    <section className={visualOnly ? "flex h-full min-h-0 flex-col overflow-hidden bg-zinc-950" : "rounded-3xl border border-white/10 bg-slate-900/70 p-4 text-slate-50 shadow-lg shadow-black/30"}>
       {target && (
         <div className="mb-3 flex flex-col gap-2 rounded-2xl border border-amber-500/35 bg-amber-500/10 px-4 py-3 text-sm font-bold text-amber-100 sm:flex-row sm:items-center sm:justify-between">
           <span>Next capture attaches to the selected plan pin.</span>
-          <button type="button" onClick={clearTarget} className="rounded-xl bg-white px-3 py-2 text-xs font-black text-zinc-950 hover:bg-amber-50">Clear plan target</button>
+          <button type="button" onClick={clearTarget} className="rounded-xl bg-amber-500 px-3 py-2 text-xs font-black text-zinc-950 hover:bg-amber-400">Clear plan target</button>
         </div>
       )}
 
-      <div className={visualOnly ? "min-h-0 flex-1 bg-zinc-950" : "rounded-3xl bg-slate-50 p-4 ring-1 ring-slate-300"}>
+      <div className={visualOnly ? "min-h-0 flex-1 bg-zinc-950" : "rounded-3xl bg-slate-950/55 p-4 ring-1 ring-white/10"}>
         <div className={visualOnly ? "flex h-full min-h-0 flex-col items-center justify-center text-center" : "flex min-h-[280px] flex-col items-center justify-center text-center"}>
           {activePreview ? (
             <div className={visualOnly ? "relative h-full w-full" : "w-full space-y-3"}>
@@ -125,10 +125,10 @@ export function CameraViewfinder({ sessionId, autoOpenCamera = false, launchId =
               />
               {visualOnly && <UploadBadge kind={status.kind} />}
               {!visualOnly && <div className="grid gap-2 sm:grid-cols-2">
-                <button type="button" onClick={() => requestCameraCapture("camera", "next_item")} disabled={busy || !mounted} className="min-h-12 rounded-2xl bg-amber-500 px-4 py-3 text-base font-black text-white shadow-sm transition hover:bg-amber-600 disabled:opacity-60">
+                <button type="button" onClick={() => requestCameraCapture("camera", "next_item")} disabled={busy || !mounted} className="min-h-12 rounded-2xl bg-amber-500 px-4 py-3 text-base font-black text-slate-950 shadow-sm transition hover:bg-amber-400 disabled:opacity-60">
                   <span className="inline-flex items-center gap-2"><Camera className="h-5 w-5" /> Capture next item</span>
                 </button>
-                <button type="button" onClick={() => requestCameraCapture("upload", "next_item")} disabled={busy || !mounted} className="min-h-12 rounded-2xl border border-slate-300 bg-white px-4 py-3 text-base font-black text-slate-900 transition hover:border-amber-300 hover:text-amber-900 disabled:opacity-60">
+                <button type="button" onClick={() => requestCameraCapture("upload", "next_item")} disabled={busy || !mounted} className="min-h-12 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-base font-black text-slate-200 transition hover:border-amber-400/50 hover:text-amber-200 disabled:opacity-60">
                   <span className="inline-flex items-center gap-2"><FileImage className="h-5 w-5" /> Upload next image</span>
                 </button>
               </div>}
@@ -137,13 +137,13 @@ export function CameraViewfinder({ sessionId, autoOpenCamera = false, launchId =
             <>
           <Camera className="h-12 w-12 text-amber-400 md:hidden" />
           <FileImage className="hidden h-12 w-12 text-amber-400 md:block" />
-          <h2 className={`mt-4 text-2xl font-black ${visualOnly ? "text-white" : "text-slate-950"}`}>Capture field proof</h2>
-          <p className={`mt-2 max-w-lg text-sm leading-6 ${visualOnly ? "px-5 text-slate-300" : "text-slate-700"}`}>
+          <h2 className="mt-4 text-2xl font-black text-white">Capture field proof</h2>
+          <p className={`mt-2 max-w-lg text-sm leading-6 ${visualOnly ? "px-5 text-slate-300" : "text-slate-400"}`}>
             One tap opens the camera. The image appears immediately, the drawer opens for notes/classification, and upload/offline sync continues in the background.
           </p>
 
           <div className="mt-6 grid w-full max-w-xl gap-3 md:hidden">
-            <button type="button" onClick={() => cameraInputRef.current?.click()} disabled={busy || !mounted} className="min-h-16 rounded-3xl bg-amber-500 px-5 py-4 text-lg font-black text-white shadow-lg shadow-amber-500/20 transition hover:bg-amber-600 disabled:opacity-60">
+            <button type="button" onClick={() => cameraInputRef.current?.click()} disabled={busy || !mounted} className="min-h-16 rounded-3xl bg-amber-500 px-5 py-4 text-lg font-black text-slate-950 shadow-lg shadow-amber-500/20 transition hover:bg-amber-400 disabled:opacity-60">
               <span className="inline-flex items-center gap-2"><Camera className="h-5 w-5" /> Take Photo</span>
             </button>
             <button type="button" onClick={() => uploadInputRef.current?.click()} disabled={busy || !mounted} className="min-h-16 rounded-3xl border border-white/15 bg-white/10 px-5 py-4 text-lg font-black text-white transition hover:border-amber-400 disabled:opacity-60">
@@ -155,11 +155,11 @@ export function CameraViewfinder({ sessionId, autoOpenCamera = false, launchId =
             onDragOver={(event) => { event.preventDefault(); setDragActive(true); }}
             onDragLeave={() => setDragActive(false)}
             onDrop={handleDrop}
-            className={`mt-6 hidden w-full max-w-2xl rounded-3xl border-2 border-dashed p-10 transition md:flex md:min-h-64 md:flex-col md:items-center md:justify-center ${dragActive ? "border-amber-500 bg-amber-50" : "border-slate-300 bg-white"}`}
+            className={`mt-6 hidden w-full max-w-2xl rounded-3xl border-2 border-dashed p-10 transition md:flex md:min-h-64 md:flex-col md:items-center md:justify-center ${dragActive ? "border-amber-500 bg-amber-500/10" : "border-white/15 bg-white/[0.04]"}`}
           >
-            <p className="text-2xl font-black text-slate-950">Drag &amp; Drop Photos Here</p>
-            <p className="mt-2 text-sm leading-6 text-slate-600">Desktop mode is upload-first for job trailer workflows.</p>
-            <button type="button" onClick={() => uploadInputRef.current?.click()} disabled={busy || !mounted} className="mt-6 min-h-12 rounded-2xl bg-amber-500 px-6 py-3 text-sm font-black text-white transition hover:bg-amber-600 disabled:opacity-60">
+            <p className="text-2xl font-black text-white">Drag &amp; Drop Photos Here</p>
+            <p className="mt-2 text-sm leading-6 text-slate-400">Desktop mode is upload-first for job trailer workflows.</p>
+            <button type="button" onClick={() => uploadInputRef.current?.click()} disabled={busy || !mounted} className="mt-6 min-h-12 rounded-2xl bg-amber-500 px-6 py-3 text-sm font-black text-slate-950 transition hover:bg-amber-400 disabled:opacity-60">
               <span className="inline-flex items-center gap-2"><FileImage className="h-5 w-5" /> Select Photos from Computer</span>
             </button>
           </div>
@@ -171,25 +171,25 @@ export function CameraViewfinder({ sessionId, autoOpenCamera = false, launchId =
         <input ref={uploadInputRef} type="file" accept="image/*" className="hidden" onChange={(event) => { handleFile(event.target.files?.[0]); event.target.value = ""; }} />
       </div>
 
-      {!visualOnly && <div className="mt-4 rounded-2xl border border-slate-300 bg-white p-4">
-        <div className="flex items-center gap-2 text-sm font-black text-slate-900"><PencilLine className="h-4 w-4 text-amber-700" /> Quick text / voice note</div>
+      {!visualOnly && <div className="mt-4 rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+        <div className="flex items-center gap-2 text-sm font-black text-slate-100"><PencilLine className="h-4 w-4 text-amber-300" /> Quick text / voice note</div>
         <textarea
           value={noteText}
           onChange={(event) => setNoteText(event.target.value)}
           rows={5}
           inputMode="text"
           placeholder="Tap here to type, or use the native iOS/Android microphone on the keyboard to dictate a field note…"
-          className="mt-3 w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-base leading-6 text-slate-900 outline-none focus:border-amber-600 focus:ring-2 focus:ring-amber-600/15"
+          className="mt-3 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-base leading-6 text-slate-100 outline-none placeholder:text-slate-600 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20"
         />
         <div className="mt-3 grid gap-2 sm:grid-cols-2">
-          <button type="button" onClick={() => void saveTextNote(noteText, "text")} disabled={busy || !noteText.trim()} className="min-h-11 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-black text-slate-900 hover:border-amber-300 disabled:opacity-60">Save Text Note</button>
-          <button type="button" onClick={() => void saveTextNote(noteText, "voice")} disabled={busy || !noteText.trim()} className="min-h-11 rounded-xl bg-amber-500 px-4 py-2 text-sm font-black text-white hover:bg-amber-600 disabled:opacity-60"><span className="inline-flex items-center gap-2"><Mic className="h-4 w-4" /> Save Voice Note</span></button>
+          <button type="button" onClick={() => void saveTextNote(noteText, "text")} disabled={busy || !noteText.trim()} className="min-h-11 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-black text-slate-200 hover:border-amber-400/50 disabled:opacity-60">Save Text Note</button>
+          <button type="button" onClick={() => void saveTextNote(noteText, "voice")} disabled={busy || !noteText.trim()} className="min-h-11 rounded-xl bg-amber-500 px-4 py-2 text-sm font-black text-slate-950 hover:bg-amber-400 disabled:opacity-60"><span className="inline-flex items-center gap-2"><Mic className="h-4 w-4" /> Save Voice Note</span></button>
         </div>
       </div>}
 
       {!visualOnly && <div className={`mt-4 flex items-center justify-between gap-3 rounded-2xl px-4 py-3 text-sm font-black ${statusClasses(status.kind)}`}>
         <span className="inline-flex items-center gap-2">{busy && <Loader2 className="h-4 w-4 animate-spin" />}{status.message}</span>
-        {status.kind !== "idle" && <button type="button" onClick={resetStatus} className="rounded-lg p-1 hover:bg-white/60" aria-label="Reset status"><RotateCcw className="h-4 w-4" /></button>}
+        {status.kind !== "idle" && <button type="button" onClick={resetStatus} className="rounded-lg p-1 hover:bg-white/10" aria-label="Reset status"><RotateCcw className="h-4 w-4" /></button>}
       </div>}
     </section>
   );
@@ -227,9 +227,9 @@ function readLastTitle(sessionId: string) {
 }
 
 function statusClasses(kind: string) {
-  if (kind === "complete") return "bg-amber-50 text-amber-900 ring-1 ring-amber-200";
-  if (kind === "error") return "bg-rose-50 text-rose-800";
-  if (kind === "uploading" || kind === "saving") return "bg-amber-50 text-amber-900";
+  if (kind === "complete") return "bg-emerald-500/10 text-emerald-300 ring-1 ring-emerald-500/20";
+  if (kind === "error") return "bg-rose-500/10 text-rose-300 ring-1 ring-rose-500/20";
+  if (kind === "uploading" || kind === "saving") return "bg-amber-500/10 text-amber-200 ring-1 ring-amber-500/20";
   return "bg-zinc-900/80 text-zinc-200 ring-1 ring-white/10";
 }
 

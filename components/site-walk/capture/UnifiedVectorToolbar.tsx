@@ -14,7 +14,7 @@ const TOOLS = [
   { label: "Text", value: "text", icon: Type },
 ] satisfies Array<{ label: string; value: VectorTool; icon: typeof MousePointer2 }>;
 
-const COLORS = ["#3B82F6", "#94A3B8", "#ef4444", "#a855f7", "#f8fafc"];
+const COLORS = ["#F59E0B", "#94A3B8", "#ef4444", "#a855f7", "#f8fafc"];
 const STROKE_WIDTHS = [3, 5, 8, 12];
 
 export const VECTOR_TOOL_EVENT = "site-walk-vector-tool";

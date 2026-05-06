@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Camera, FileText, FolderOpen, HardHat, Loader2, MapPinned, Upload } from "lucide-react";
+import { ArrowRight, Camera, ClipboardList, FileText, HardHat, Layers3, Loader2, MapPinned, Upload } from "lucide-react";
+import GlassCard from "@/components/shared/GlassCard";
 import { saveQuickCaptureLaunch } from "@/lib/site-walk/quick-capture-launch";
 
 type ProjectOption = { id: string; name: string };
@@ -65,14 +66,17 @@ export function SiteWalkLaunchGrid({ projects }: Props) {
   }
 
   return (
-    <section className="w-full space-y-3 rounded-[2rem] border border-white/10 bg-white/5 p-3 shadow-2xl backdrop-blur-md sm:p-4">
-      <div className="flex items-center justify-between gap-3 px-1">
-        <h1 className="text-2xl font-black text-white">Site Walk</h1>
-        <Link href="/projects" className="text-xs font-black text-slate-400 hover:text-amber-300 transition-colors">Projects</Link>
-      </div>
+    <section className="w-full space-y-4">
+      <GlassCard className="space-y-4 p-4 sm:p-5">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-[11px] font-black uppercase tracking-[0.18em] text-amber-400">Planning first</p>
+            <h1 className="mt-1 text-2xl font-black text-white">Site Walk Workspace</h1>
+          </div>
+          <Link href="/projects" className="inline-flex min-h-10 w-fit items-center rounded-2xl border border-white/10 px-3 text-xs font-black text-slate-300 transition hover:border-amber-400/60 hover:text-amber-200">Projects</Link>
+        </div>
 
-      <div className="grid gap-3 sm:grid-cols-2">
-        {/* Primary — planning-first */}
+        <div className="grid gap-3 lg:grid-cols-[1.25fr_0.9fr_0.85fr]">
         <Link
           href="/site-walk/setup"
           className="group min-h-32 rounded-3xl bg-amber-500 p-4 text-left text-slate-950 shadow-[0_0_20px_rgba(245,158,11,0.30)] transition hover:bg-amber-400"
@@ -82,25 +86,38 @@ export function SiteWalkLaunchGrid({ projects }: Props) {
             <ArrowRight className="h-5 w-5 transition group-hover:translate-x-1" />
           </span>
           <span className="mt-5 block text-xl font-black">Plan &amp; Start Walk</span>
+          <span className="mt-1 block text-xs font-bold text-slate-800">Project, plan set, field assignment</span>
         </Link>
 
-        {/* Secondary — quick capture for emergencies */}
+        <Link
+          href="/site-walk/plans"
+          className="group min-h-32 rounded-3xl border border-white/15 bg-slate-950/55 p-4 text-left text-slate-50 transition hover:border-amber-400/60 hover:bg-amber-500/10"
+        >
+          <span className="flex items-center justify-between gap-3">
+            <Layers3 className="h-7 w-7 text-amber-300" />
+            <ArrowRight className="h-5 w-5 text-slate-500 transition group-hover:translate-x-1 group-hover:text-amber-200" />
+          </span>
+          <span className="mt-5 block text-xl font-black">Plans</span>
+          <span className="mt-1 block text-xs font-bold text-slate-400">Upload and manage drawing sets</span>
+        </Link>
+
         <button
           type="button"
           onClick={openQuickCapture}
           disabled={!!creating}
-          className="group min-h-32 rounded-3xl border border-white/15 bg-slate-900/70 p-4 text-left text-slate-50 shadow-lg backdrop-blur-md transition hover:border-amber-400/60 hover:bg-amber-500/10 disabled:opacity-60"
+          className="group min-h-32 rounded-3xl border border-white/15 bg-slate-950/55 p-4 text-left text-slate-50 transition hover:border-amber-400/60 hover:bg-amber-500/10 disabled:opacity-60"
         >
           <span className="flex items-center justify-between gap-3">
             {creating === "quick" ? <Loader2 className="h-7 w-7 animate-spin" /> : mobileCapture ? <Camera className="h-7 w-7 text-amber-300" /> : <Upload className="h-7 w-7 text-amber-300" />}
           </span>
           <span className="mt-5 block text-xl font-black">Quick Capture</span>
-          <span className="mt-1 block text-xs text-slate-400">No plan needed</span>
+          <span className="mt-1 block text-xs font-bold text-slate-400">Emergency photo start</span>
         </button>
-      </div>
+        </div>
+      </GlassCard>
 
       {(projects.length > 0) && (
-        <aside className="rounded-[1.75rem] border border-white/10 bg-slate-900/70 p-3 shadow-lg">
+        <GlassCard className="rounded-[1.75rem] p-3">
           <div className="flex items-center justify-between gap-3">
             <p className="text-sm font-black text-white">Continue a Project</p>
             <Link href="/projects" className="text-xs font-black text-slate-400 hover:text-amber-300 transition-colors">All projects</Link>
@@ -116,21 +133,21 @@ export function SiteWalkLaunchGrid({ projects }: Props) {
               </button>
             ))}
           </div>
-        </aside>
+        </GlassCard>
       )}
 
       <div className="grid gap-3 sm:grid-cols-3">
         <Link href="/site-walk/walks" className="rounded-3xl border border-white/10 bg-slate-900/70 p-4 transition hover:border-amber-400/60 hover:bg-amber-500/10">
-          <Camera className="h-5 w-5 text-amber-400" />
+          <ClipboardList className="h-5 w-5 text-amber-400" />
           <h2 className="mt-3 text-sm font-black text-white">Walks</h2>
         </Link>
-        <Link href="/site-walk/slatedrop" className="rounded-3xl border border-white/10 bg-slate-900/70 p-4 transition hover:border-amber-400/60 hover:bg-amber-500/10">
-          <FolderOpen className="h-5 w-5 text-amber-400" />
-          <h2 className="mt-3 text-sm font-black text-white">Files</h2>
+        <Link href="/site-walk/plans" className="rounded-3xl border border-white/10 bg-slate-900/70 p-4 transition hover:border-amber-400/60 hover:bg-amber-500/10">
+          <Layers3 className="h-5 w-5 text-amber-400" />
+          <h2 className="mt-3 text-sm font-black text-white">Plan Layers</h2>
         </Link>
-        <Link href="/site-walk/deliverables" className="rounded-3xl border border-white/10 bg-slate-900/70 p-4 transition hover:border-amber-400/60 hover:bg-amber-500/10">
+        <Link href="/site-walk/reports" className="rounded-3xl border border-white/10 bg-slate-900/70 p-4 transition hover:border-amber-400/60 hover:bg-amber-500/10">
           <FileText className="h-5 w-5 text-amber-400" />
-          <h2 className="mt-3 text-sm font-black text-white">Outputs</h2>
+          <h2 className="mt-3 text-sm font-black text-white">Reports</h2>
         </Link>
       </div>
 

@@ -7,15 +7,15 @@ const MODES = [
 
 export function DualModeToggle() {
   return (
-    <section className="grid gap-2 rounded-2xl border border-slate-300 bg-white p-2 shadow-sm sm:grid-cols-2" aria-label="Capture mode">
+    <section className="grid gap-2 rounded-2xl border border-white/10 bg-slate-900/70 p-2 shadow-lg shadow-black/30 sm:grid-cols-2" aria-label="Capture mode">
       {MODES.map((mode) => {
         const Icon = mode.icon;
         return (
           <div
             key={mode.label}
             className={mode.active
-              ? "rounded-xl border border-amber-300 bg-amber-50 p-4 text-stone-950"
-              : "rounded-xl border border-slate-200 bg-slate-50 p-4 text-slate-700"}
+              ? "rounded-xl border border-amber-400/40 bg-amber-500/10 p-4 text-amber-100"
+              : "rounded-xl border border-white/10 bg-white/[0.04] p-4 text-slate-400"}
           >
             <div className="flex items-center gap-3">
               <Icon className="h-5 w-5" />

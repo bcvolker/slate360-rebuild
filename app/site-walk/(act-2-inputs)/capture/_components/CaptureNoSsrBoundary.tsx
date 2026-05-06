@@ -23,8 +23,8 @@ export function CaptureNoSsrBoundary(props: Props) {
 
 function CaptureShellLoading() {
   return (
-    <main className="min-h-[calc(100vh-160px)] bg-slate-50 px-4 py-4 text-slate-950 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-7xl rounded-3xl border border-slate-300 bg-white p-6 text-sm font-bold text-slate-600 shadow-sm">
+    <main className="min-h-[calc(100vh-160px)] bg-[#0B0F15] px-4 py-4 text-slate-50 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl rounded-3xl border border-white/10 bg-slate-900/60 p-6 text-sm font-bold text-slate-300 shadow-lg shadow-black/40 backdrop-blur-md">
         Loading Site Walk capture…
       </div>
     </main>

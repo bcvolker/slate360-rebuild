@@ -2,6 +2,7 @@
 
 import { useRef, useState, type DragEvent } from "react";
 import { FileUp } from "lucide-react";
+import GlassCard from "@/components/shared/GlassCard";
 import type { PlanRoomPayload, PlanRoomProject, UploadState } from "./plan-room-types";
 
 type FolderResponse = { folders?: Array<{ id: string; name: string; folder_path?: string; path?: string; project_id?: string }> ; error?: string };
@@ -51,27 +52,27 @@ export function PlanUploader({ project, onPlanRoomChange }: Props) {
   }
 
   return (
-    <section className="rounded-3xl border border-slate-300 bg-white p-5">
+    <GlassCard className="p-5">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <p className="text-xs font-black uppercase tracking-[0.18em] text-amber-900">Upload</p>
-          <h2 className="mt-1 text-xl font-black text-slate-900">Plan set PDF</h2>
-          <p className="mt-1 text-sm leading-6 text-slate-700">Uploads route through SlateDrop into Site Walk Files / Plans.</p>
+          <p className="text-xs font-black uppercase tracking-[0.18em] text-amber-400">Upload</p>
+          <h2 className="mt-1 text-xl font-black text-white">Plan set PDF</h2>
+          <p className="mt-1 text-sm leading-6 text-slate-400">Uploads route through SlateDrop into Site Walk Files / Plans.</p>
         </div>
-        <button type="button" onClick={() => inputRef.current?.click()} disabled={!project || state.stage === "uploading" || state.stage === "processing"} className="inline-flex items-center gap-2 rounded-xl bg-amber-500 px-4 py-2 text-sm font-black text-white transition hover:bg-amber-600 disabled:opacity-60">
+        <button type="button" onClick={() => inputRef.current?.click()} disabled={!project || state.stage === "uploading" || state.stage === "processing"} className="inline-flex items-center gap-2 rounded-xl bg-amber-500 px-4 py-2 text-sm font-black text-slate-950 transition hover:bg-amber-400 disabled:opacity-60">
           <FileUp className="h-4 w-4" /> Choose PDF
         </button>
       </div>
 
-      <div onDrop={handleDrop} onDragOver={(event) => { event.preventDefault(); setDragging(true); }} onDragLeave={() => setDragging(false)} className={`mt-5 rounded-3xl bg-slate-50 p-8 text-center transition ${dragging ? "ring-2 ring-amber-500" : "ring-1 ring-slate-300"}`}>
+      <div onDrop={handleDrop} onDragOver={(event) => { event.preventDefault(); setDragging(true); }} onDragLeave={() => setDragging(false)} className={`mt-5 rounded-3xl border border-dashed border-white/15 bg-white/[0.04] p-8 text-center transition ${dragging ? "ring-2 ring-amber-500" : "ring-1 ring-white/10"}`}>
         <input ref={inputRef} type="file" accept="application/pdf,.pdf" className="hidden" onChange={(event) => event.target.files && void handleFiles(event.target.files)} />
-        <FileUp className="mx-auto h-10 w-10 text-amber-700" />
-        <p className="mt-3 text-lg font-black text-slate-900">Drag a construction plan PDF here</p>
-        <p className="mt-1 text-sm text-slate-700">Large files can take a moment. The status below stays visible through upload and sheet processing.</p>
+        <FileUp className="mx-auto h-10 w-10 text-amber-400" />
+        <p className="mt-3 text-lg font-black text-white">Drag a construction plan PDF here</p>
+        <p className="mt-1 text-sm text-slate-400">Large files can take a moment. The status below stays visible through upload and sheet processing.</p>
       </div>
 
       <div className={`mt-4 rounded-2xl px-4 py-3 text-sm font-black ${statusClasses(state.stage)}`}>{state.message}</div>
-    </section>
+    </GlassCard>
   );
 }
 
@@ -108,4 +109,4 @@ async function uploadToStorage(file: File, uploadUrl: string) { if (!uploadUrl) 
 async function completeSlateDropUpload(fileId: string) { const response = await fetch("/api/slatedrop/complete", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ fileId }) }); if (!response.ok) throw new Error(await readError(response)); }
 async function createPlanSet(projectId: string, file: File, fileId: string, s3Key: string) { const response = await fetch("/api/site-walk/plan-sets", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ projectId, fileId, s3Key, title: file.name.replace(/\.pdf$/i, ""), originalFileName: file.name, mimeType: file.type || "application/pdf", fileSize: file.size, pageCount: 1 }) }); if (!response.ok) throw new Error(await readError(response)); return (await response.json()) as PlanRoomPayload; }
 async function readError(response: Response) { const data = (await response.json().catch(() => null)) as { error?: string; message?: string } | null; return data?.error ?? data?.message ?? "Request failed"; }
-function statusClasses(stage: UploadState["stage"]) { if (stage === "complete") return "bg-emerald-50 text-emerald-800"; if (stage === "error") return "bg-rose-50 text-rose-800"; if (stage === "uploading" || stage === "processing") return "bg-amber-50 text-amber-900"; return "bg-slate-50 text-slate-700"; }
+function statusClasses(stage: UploadState["stage"]) { if (stage === "complete") return "bg-emerald-500/10 text-emerald-300 border border-emerald-500/20"; if (stage === "error") return "bg-rose-500/10 text-rose-300 border border-rose-500/20"; if (stage === "uploading" || stage === "processing") return "bg-amber-500/10 text-amber-200 border border-amber-500/20"; return "bg-white/[0.04] text-slate-300 border border-white/10"; }

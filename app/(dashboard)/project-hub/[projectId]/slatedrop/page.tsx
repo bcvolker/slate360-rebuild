@@ -28,17 +28,17 @@ export default async function ProjectSlateDropPage({
 
   return (
     /* Give this container the remaining viewport height after the Project Hub nav */
-    <div className="flex flex-col" style={{ height: "calc(100svh - 3.5rem)" }}>
+    <div className="flex flex-col bg-[#0B0F15] text-slate-50" style={{ height: "calc(100svh - 3.5rem)" }}>
       {/* Breadcrumb header matching other Tier-3 tab pages */}
-      <div className="shrink-0 flex items-center gap-3 px-4 sm:px-6 py-3 bg-white border-b border-gray-100">
+      <div className="shrink-0 flex items-center gap-3 px-4 sm:px-6 py-3 bg-slate-900/80 border-b border-white/10 backdrop-blur-md">
         <Link
           href={`/project-hub/${projectId}`}
-          className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 hover:text-[#3B82F6] transition-colors"
+          className="flex items-center gap-1.5 text-xs font-semibold text-slate-400 hover:text-amber-300 transition-colors"
         >
           <ChevronLeft size={14} /> {projectName}
         </Link>
-        <span className="text-gray-300">/</span>
-        <span className="flex items-center gap-1.5 text-xs font-semibold text-[#3B82F6]">
+        <span className="text-slate-600">/</span>
+        <span className="flex items-center gap-1.5 text-xs font-semibold text-amber-400">
           <FolderOpen size={13} /> Files
         </span>
       </div>

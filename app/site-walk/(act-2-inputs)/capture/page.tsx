@@ -57,14 +57,14 @@ async function hasProjectPlanSheets(projectId: string, orgId: string) {
 
 function NoActiveSession() {
   return (
-    <main className="min-h-[calc(100vh-160px)] bg-slate-50 px-4 py-6 text-slate-950 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-3xl rounded-3xl border border-slate-300 bg-white p-6 text-center">
-        <p className="text-xs font-black uppercase tracking-[0.2em] text-amber-900">Capture</p>
-        <h1 className="mt-2 text-2xl font-black text-slate-900">Start a walk first</h1>
-        <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-slate-700">
+    <main className="min-h-[calc(100vh-160px)] bg-[radial-gradient(circle_at_top,rgba(245,158,11,0.07),transparent_34%),#0B0F15] px-4 py-6 text-slate-50 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-3xl rounded-3xl border border-white/10 bg-slate-900/60 p-6 text-center shadow-lg shadow-black/40 backdrop-blur-md">
+        <p className="text-xs font-black uppercase tracking-[0.2em] text-amber-400">Capture</p>
+        <h1 className="mt-2 text-2xl font-black text-white">Start a walk first</h1>
+        <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-slate-400">
           The capture shell now requires an active database session so offline tracking and safe exit controls stay consistent.
         </p>
-        <Link href="/site-walk" className="mt-5 inline-flex rounded-xl bg-amber-500 px-4 py-2 text-sm font-black text-white hover:bg-amber-600">
+        <Link href="/site-walk" className="mt-5 inline-flex rounded-xl bg-amber-500 px-4 py-2 text-sm font-black text-slate-950 hover:bg-amber-400">
           Back to Site Walk
         </Link>
       </div>

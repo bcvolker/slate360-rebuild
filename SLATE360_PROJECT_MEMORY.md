@@ -198,30 +198,39 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-05-04 (Design System Map + Completion Audit)
+### Session Handoff — 2026-05-06 (Deep Subpage UI Purge + Site Walk Workspace Nav)
 
 #### What Changed
-- `slate360-context/DESIGN_SYSTEM.md` — NEW. Canonical design token map: 5-layer color system, amber brand tokens, CSS var table, email theme reference, logo component guide, shell patterns, typography scale, status badges, Project Hub monolith table. Referenced from Task Map.
-- `docs/COMPLETION_AUDIT.md` — NEW. Full completion audit across all 10 parts: Slate360 platform, Site Walk, SlateDrop, Market Robot, 360 Tours, Design Studio, security, infrastructure, and a prioritized build order (Tiers 1–5) for other AI assistants.
-- `SLATE360_PROJECT_MEMORY.md` (Task Map) — Added two new rows: DESIGN_SYSTEM.md and COMPLETION_AUDIT.md.
+- `components/site-walk/SiteWalkModuleNav.tsx` — NEW. Compact module nav for Site Walk routes: Workspace, Walks, Plans, Capture, Reports.
+- `components/site-walk/SiteWalkShell.tsx` — Wires the internal module nav above Site Walk content.
+- `app/site-walk/_components/SiteWalkLaunchGrid.tsx` — Reworked landing into planning-first workspace: Plan & Start Walk, Plans, smaller Quick Capture escape hatch, Walks/Plan Layers/Reports shortcuts.
+- `app/site-walk/(act-3-outputs)/reports/page.tsx` — NEW clean Dark Glass reports placeholder/workspace for the future dynamic deliverable builder.
+- `app/site-walk/(act-1-setup)/plans/_components/*` — Plan Room, uploader, plan set list, and sheet grid converted from white-card UI to Dark Glass/amber surfaces.
+- `app/site-walk/(act-2-inputs)/capture/*` and `components/site-walk/capture/*` — Capture loading/empty state/header/exit modal/drawer/item list/item form/camera viewfinder/plan viewer/plan menu darkened; cobalt/blue markup defaults changed to amber.
+- `components/settings/AccountSettingsClient.tsx` — Rebuilt as a dark split-pane account workspace (Profile, Security, Preferences, Billing).
+- `app/(dashboard)/settings/account/page.tsx` — Legacy duplicate account page now redirects to `/settings` to avoid old UI/logout-prone hard reloads.
+- `app/slatedrop/[...section]/page.tsx` — Drilldown action/folder pages use GlassCard/amber and no longer show fake disabled action-assistant forms.
+- `app/(dashboard)/project-hub/[projectId]/slatedrop/page.tsx` — Breadcrumb/header darkened and cobalt replaced with amber.
 
 #### What's Broken / Partially Done
-- Same critical items as previous handoff — security blockers not yet resolved (require manual Supabase + Upstash + Turnstile dashboard actions).
-- Deliverable builder is still the largest missing feature.
-- `globals.css` `--primary` / `--ring` still point to cobalt — fix in globals.css propagates everywhere.
-- `lib/email-theme.ts` still cobalt — single edit fixes all 4 email types.
+- `bash scripts/check-file-size.sh` still fails because of pre-existing oversized files unrelated to this slice: `LocationMap.tsx`, `marketing-homepage.tsx`, `DashboardWidgetRenderer.tsx`, `CalendarWidget.tsx`, etc. All changed production files in this slice are under 300 lines.
+- Some older unused/shared Site Walk helper components still contain cobalt/white classes (`CaptureTiles`, `NoteCaptureBar`, `WalkItemsBrowse`, legacy `_legacy_v1`). They are not on the new primary `/site-walk` route stack but should be deleted or isolated later.
+- `/site-walk/reports` is a clean scaffold only; dynamic deliverable builder still needs data wiring.
+- `/site-walk/walks` still needs filter/sort tabs and assign/share/link-to-project actions.
 
 #### Context Files Updated
-- `slate360-context/DESIGN_SYSTEM.md` — created
-- `docs/COMPLETION_AUDIT.md` — created
-- `SLATE360_PROJECT_MEMORY.md` — task map updated
+- `slate360-context/dashboard-tabs/site-walk/FIELD_PLATFORM_ROADMAP.md` — Added High-Value Feature Backlog and strict Site Walk internal route structure.
+- `slate360-context/ONGOING_ISSUES.md` — Added BUG-059 fixed row for deep subpage UI leakage.
+- `ops/bug-registry.json` — Added BUG-059 fixed registry entry.
+- `slate360-context/SLATEDROP.md` — Updated SlateDrop drilldown notes.
+- `SLATE360_PROJECT_MEMORY.md` — this handoff.
 
 #### Next Steps (ordered)
-1. **MANUAL security** (Tier 1 in audit): Supabase anon signup disable + Upstash Redis + Cloudflare Turnstile keys in Vercel.
-2. **`globals.css`** — fix `--primary`, `--ring`, auth utilities, `--app-glow-amber` to amber (single file, highest leverage).
-3. **`lib/email-theme.ts`** — fix `primary` to `#F59E0B`, fix inline bypasses in email-assignments and email-collaborators.
-4. Deliverable builder — wire `BlockEditor` to `site_walk_items`, save to `site_walk_deliverables`.
-5. Walk sessions list — add completed session query + amber filter tabs.
+1. Verify deployed PWA clicks manually: `/site-walk`, `/site-walk/plans`, `/site-walk/capture`, `/site-walk/reports`, `/slatedrop/upload`, `/settings`, `/project-hub/[id]/slatedrop`.
+2. Build `/site-walk/walks` filter/sort/action toolbar: All/Pending/In Progress/Completed, Search, Assign/Reassign, Share, Link to Project.
+3. Wire `/site-walk/reports` to real deliverables/session items using the planned Dynamic Deliverable Builder.
+4. Delete or isolate unused old Site Walk helpers and `_legacy_v1` routes so future grep audits do not see dead cobalt/white UI.
+5. Address pre-existing oversized file list from `scripts/check-file-size.sh` in separate extraction PRs.
 
 ### Session Handoff — 2026-05-04 (Amber Brand System Propagation — Full Push)
 
