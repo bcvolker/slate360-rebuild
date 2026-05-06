@@ -91,7 +91,20 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  const basePath = parentFolder?.folder_path ?? `Project Sandbox/${scopedProject.name}`;
+  let duplicateLookup = admin
+    .from("project_folders")
+    .select("id, name, folder_path, project_id, parent_id, is_system")
+    .eq("project_id", projectId)
+    .eq("name", name);
+
+  duplicateLookup = parentFolder?.id ? duplicateLookup.eq("parent_id", parentFolder.id) : duplicateLookup.is("parent_id", null);
+  duplicateLookup = duplicateLookup.limit(1);
+  const { data: existingFolder } = await duplicateLookup.maybeSingle();
+  if (existingFolder) {
+    return NextResponse.json({ ok: true, folder: existingFolder, id: existingFolder.id, name: existingFolder.name, folder_path: existingFolder.folder_path });
+  }
+
+  const basePath = parentFolder?.folder_path ?? `Projects/${projectId}`;
   const folderPath = `${basePath}/${name}`;
 
   const insertRow = {
@@ -119,7 +132,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: error?.message ?? "Failed to create folder" }, { status: 500 });
   }
 
-  return NextResponse.json({ ok: true, folder: created });
+  return NextResponse.json({ ok: true, folder: created, id: created.id, name: created.name, folder_path: created.folder_path });
 }
 
 export async function PATCH(req: NextRequest) {

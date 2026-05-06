@@ -595,6 +595,21 @@
         "/more/[section] supports account, organization, billing, coordination, storage, and support with dark amber styling and real links",
         "Site Walk module nav and capture start/plan/camera modes expose a visible Site Walk Home affordance"
       ]
+    },
+    {
+      "id": "BUG-061",
+      "title": "Site Walk assignees API and Plan Room folder upload failed against live schema",
+      "module": "site-walk/projects/slatedrop",
+      "severity": "critical",
+      "status": "fixed",
+      "rootCause": "The assignees route selected stale column names from `project_members`, `project_stakeholders`, and `profiles`; the live database has `site_walk_assignments` but does not yet expose `org_collaborators`; the Plan Room folder client expected top-level folder response fields while `/api/slatedrop/folders` returned a nested `folder` object; the dropzone did not make the full upload target tap-selectable on mobile.",
+      "verification": [
+        "GET /api/projects/[projectId]/site-walk/assignees uses schema-tolerant `select('*')` parsing and returns `{ assignees: [] }` instead of a 500 when optional assignee sources fail",
+        "Project folder provisioning creates the `Site Walk Files / Plans` folder tree for new projects",
+        "POST /api/slatedrop/folders returns both nested `folder` data and flat `id`, `name`, `folder_path` compatibility fields",
+        "PlanUploader dropzone has an onClick/keyboard path to the hidden native file input for mobile tap-to-select",
+        "npm run typecheck passes"
+      ]
     }
   ]
 }

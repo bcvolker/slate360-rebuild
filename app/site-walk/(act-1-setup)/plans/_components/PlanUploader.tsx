@@ -1,12 +1,12 @@
 "use client";
 
-import { useRef, useState, type DragEvent } from "react";
+import { useRef, useState, type DragEvent, type KeyboardEvent } from "react";
 import { FileUp } from "lucide-react";
 import GlassCard from "@/components/shared/GlassCard";
 import type { PlanRoomPayload, PlanRoomProject, UploadState } from "./plan-room-types";
 
 type FolderResponse = { folders?: Array<{ id: string; name: string; folder_path?: string; path?: string; project_id?: string }> ; error?: string };
-type FolderCreateResponse = { id?: string; name?: string; folder_path?: string; error?: string };
+type FolderCreateResponse = { id?: string; name?: string; folder_path?: string; folder?: { id?: string; name?: string; folder_path?: string }; error?: string };
 type UploadUrlResponse = { uploadUrl?: string; fileId?: string; s3Key?: string; error?: string; message?: string };
 
 type Props = {
@@ -20,6 +20,7 @@ export function PlanUploader({ project, onPlanRoomChange }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [state, setState] = useState<UploadState>(defaultState);
   const [dragging, setDragging] = useState(false);
+  const canSelectFile = Boolean(project) && state.stage !== "uploading" && state.stage !== "processing";
 
   async function handleFiles(files: FileList | File[]) {
     const file = Array.from(files)[0];
@@ -51,6 +52,17 @@ export function PlanUploader({ project, onPlanRoomChange }: Props) {
     void handleFiles(event.dataTransfer.files);
   }
 
+  function openFilePicker() {
+    if (canSelectFile) inputRef.current?.click();
+  }
+
+  function handlePickerKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      openFilePicker();
+    }
+  }
+
   return (
     <GlassCard className="p-5">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
@@ -59,16 +71,16 @@ export function PlanUploader({ project, onPlanRoomChange }: Props) {
           <h2 className="mt-1 text-xl font-black text-white">Plan set PDF</h2>
           <p className="mt-1 text-sm leading-6 text-slate-400">Uploads route through SlateDrop into Site Walk Files / Plans.</p>
         </div>
-        <button type="button" onClick={() => inputRef.current?.click()} disabled={!project || state.stage === "uploading" || state.stage === "processing"} className="inline-flex items-center gap-2 rounded-xl bg-amber-500 px-4 py-2 text-sm font-black text-slate-950 transition hover:bg-amber-400 disabled:opacity-60">
+        <button type="button" onClick={openFilePicker} disabled={!canSelectFile} className="inline-flex items-center gap-2 rounded-xl bg-amber-500 px-4 py-2 text-sm font-black text-slate-950 transition hover:bg-amber-400 disabled:opacity-60">
           <FileUp className="h-4 w-4" /> Choose PDF
         </button>
       </div>
 
-      <div onDrop={handleDrop} onDragOver={(event) => { event.preventDefault(); setDragging(true); }} onDragLeave={() => setDragging(false)} className={`mt-5 rounded-3xl border border-dashed border-white/15 bg-white/[0.04] p-8 text-center transition ${dragging ? "ring-2 ring-amber-500" : "ring-1 ring-white/10"}`}>
+      <div onClick={openFilePicker} onKeyDown={handlePickerKeyDown} onDrop={handleDrop} onDragOver={(event) => { event.preventDefault(); setDragging(true); }} onDragLeave={() => setDragging(false)} role="button" tabIndex={0} aria-disabled={!canSelectFile} className={`mt-5 cursor-pointer rounded-3xl border border-dashed border-white/15 bg-white/[0.04] p-8 text-center transition focus:outline-none focus:ring-2 focus:ring-amber-500 ${dragging ? "ring-2 ring-amber-500" : "ring-1 ring-white/10"}`}>
         <input ref={inputRef} type="file" accept="application/pdf,.pdf" className="hidden" onChange={(event) => event.target.files && void handleFiles(event.target.files)} />
         <FileUp className="mx-auto h-10 w-10 text-amber-400" />
-        <p className="mt-3 text-lg font-black text-white">Drag a construction plan PDF here</p>
-        <p className="mt-1 text-sm text-slate-400">Large files can take a moment. The status below stays visible through upload and sheet processing.</p>
+        <p className="mt-3 text-lg font-black text-white">Tap to choose a PDF or drag it here</p>
+        <p className="mt-1 text-sm text-slate-400">Mobile users can tap this area to open the native file picker. Large files can take a moment.</p>
       </div>
 
       <div className={`mt-4 rounded-2xl px-4 py-3 text-sm font-black ${statusClasses(state.stage)}`}>{state.message}</div>
@@ -95,8 +107,9 @@ async function createFolder(projectId: string, name: string, parentFolderId: str
   const response = await fetch("/api/slatedrop/folders", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ projectId, name, parentFolderId }) });
   if (!response.ok) throw new Error(await readError(response));
   const data = (await response.json()) as FolderCreateResponse;
-  if (!data.id) throw new Error(`Could not create ${name} folder.`);
-  return { id: data.id, name: data.name ?? name, path: data.folder_path ?? name };
+  const folder = data.folder ?? data;
+  if (!folder.id) throw new Error(`Could not create ${name} folder.`);
+  return { id: folder.id, name: folder.name ?? name, path: folder.folder_path ?? name };
 }
 
 async function reserveSlateDropUpload(file: File, folderId: string, folderPath: string) {

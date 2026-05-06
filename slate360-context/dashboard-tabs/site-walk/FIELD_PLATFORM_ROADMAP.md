@@ -1,6 +1,6 @@
 # Site Walk — Field Platform Roadmap
 
-**Last Updated:** 2026-05-06 (navigation affordance cleanup)
+**Last Updated:** 2026-05-06 (capture Z-stack rebuild)
 **Status:** Planning / Pre-build
 **Owner:** Product + Engineering
 
@@ -379,6 +379,8 @@ These are the highest-value field workflow features to preserve for future build
 | Walk Templates | Save a walk's stops, trades, tags, and checklist setup as a reusable template for similar future walks. | Belongs in Office Prep; do not surface inside live capture until templates are selected. |
 | Daily Leadership Summary | Auto-email a daily summary of open issues, completed walks, blocked items, and weather delays to org leadership. | Requires leadership viewer roles and org email preferences. |
 | Dynamic Deliverable Builder | Build a modular block-builder for reports, including drag-and-drop photos, plans, pins, sections, and issue tables instead of rigid PDFs. | Target route: `/site-walk/reports`. Start with saved block JSON before PDF export. |
+
+**Implementation note — 2026-05-06:** `/site-walk/capture` now uses a strict layered Z-index architecture: full-bleed camera/plan background, floating Dark Glass tools, panning/zooming plan viewer with long-press pins, Ghost Mode camera toggle, and a draggable swipe-up data-entry bottom sheet.
 
 ---
 

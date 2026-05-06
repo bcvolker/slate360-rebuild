@@ -1,6 +1,6 @@
 "use client";
 
-import { Camera, StickyNote, X } from "lucide-react";
+import { Camera, StickyNote, Upload, X } from "lucide-react";
 import { requestCameraCapture } from "./capture-camera-events";
 import { publishPlanCaptureTarget } from "./plan-capture-events";
 
@@ -12,12 +12,16 @@ type Props = {
   screenX: number;
   screenY: number;
   onClose: () => void;
+  onCaptureRequest?: (input: "camera" | "upload") => void;
 };
 
-export function PlanQuickActionMenu({ pinId, planSheetId, xPct, yPct, screenX, screenY, onClose }: Props) {
-  function choose(action: "photo" | "note") {
+export function PlanQuickActionMenu({ pinId, planSheetId, xPct, yPct, screenX, screenY, onClose, onCaptureRequest }: Props) {
+  function choose(action: "photo" | "note", input?: "camera" | "upload") {
     publishPlanCaptureTarget({ pinId, planSheetId, xPct, yPct, action });
-    if (action === "photo") requestCameraCapture("camera", "plan_pin");
+    if (input) {
+      if (onCaptureRequest) onCaptureRequest(input);
+      else requestCameraCapture(input, "plan_pin");
+    }
     onClose();
   }
 
@@ -36,8 +40,11 @@ export function PlanQuickActionMenu({ pinId, planSheetId, xPct, yPct, screenX, s
         </button>
       </div>
       <div className="mt-3 grid gap-2">
-        <button type="button" onClick={() => choose("photo")} className="flex min-h-11 items-center gap-2 rounded-xl bg-amber-500 px-3 py-2 text-sm font-black text-slate-950 hover:bg-amber-400">
-          <Camera className="h-4 w-4" /> Attach next photo
+        <button type="button" onClick={() => choose("photo", "camera")} className="flex min-h-11 items-center gap-2 rounded-xl bg-amber-500 px-3 py-2 text-sm font-black text-slate-950 hover:bg-amber-400">
+          <Camera className="h-4 w-4" /> Take photo at this pin
+        </button>
+        <button type="button" onClick={() => choose("photo", "upload")} className="flex min-h-11 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-sm font-black text-slate-200 hover:border-amber-400/50 hover:text-amber-200">
+          <Upload className="h-4 w-4" /> Upload existing photo
         </button>
         <button type="button" onClick={() => choose("note")} className="flex min-h-11 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-sm font-black text-slate-200 hover:border-amber-400/50 hover:text-amber-200">
           <StickyNote className="h-4 w-4" /> Attach next note

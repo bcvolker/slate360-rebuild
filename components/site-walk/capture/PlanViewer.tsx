@@ -1,261 +1,249 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Crosshair, Loader2, MapPinned, Minus, Plus } from "lucide-react";
-import type { MarkupData, MarkupShape } from "@/lib/site-walk/markup-types";
-import { createAnnotationItem } from "@/lib/site-walk/capture-item-client";
-import { captureMetadata } from "@/lib/site-walk/metadata";
-import { queueOfflineCapture } from "@/lib/site-walk/offline-capture";
-import { publishCaptureItemFocus } from "./capture-item-events";
+import { useCallback, useRef, useState, type MouseEvent, type MutableRefObject, type PointerEvent, type ReactNode, type WheelEvent } from "react";
+import { BookOpen, Layers, MapPin, Minus, Move, Plus, Search } from "lucide-react";
+import GlassCard from "@/components/shared/GlassCard";
+import { cn } from "@/lib/utils";
+import { PlanLayerToolbar, type LayerFilter } from "./PlanLayerToolbar";
 import { PlanQuickActionMenu } from "./PlanQuickActionMenu";
-import { VECTOR_TOOL_EVENT, type VectorTool } from "./UnifiedVectorToolbar";
 
-type Props = { projectId: string | null; sessionId: string };
-type PlanSheet = { id: string; sheet_name: string | null; image_s3_key?: string | null; thumbnail_s3_key?: string | null };
-type Pin = { id: string; x_pct: number; y_pct: number; label: string | null; pin_status: string | null; markup_data?: MarkupData | Record<string, never> | null };
-type PlanSetResponse = { sheets?: PlanSheet[]; error?: string };
-type PinResponse = { pins?: Pin[]; pin?: Pin; error?: string };
-type MenuState = { pinId?: string; xPct: number; yPct: number; screenX: number; screenY: number };
-type Transform = { x: number; y: number; scale: number };
+type Props = {
+  projectId?: string | null;
+  sessionId?: string;
+  onCaptureRequest?: (input: "camera" | "upload") => void;
+};
 
-const CANVAS_WIDTH = 1000;
-const CANVAS_HEIGHT = 720;
+type Pin = {
+  id: string;
+  x_pct: number;
+  y_pct: number;
+  session_id: string;
+  label: string;
+  amber: boolean;
+};
 
-export function PlanViewer({ projectId, sessionId }: Props) {
-  const stageRef = useRef<HTMLDivElement>(null);
-  const longPressRef = useRef<number | null>(null);
-  const pointersRef = useRef(new Map<number, { x: number; y: number }>());
-  const pinchRef = useRef<{ distance: number; scale: number } | null>(null);
-  const dragRef = useRef<{ x: number; y: number; origin: Transform } | null>(null);
-  const [sheets, setSheets] = useState<PlanSheet[]>([]);
-  const [activeSheetId, setActiveSheetId] = useState("");
-  const [pins, setPins] = useState<Pin[]>([]);
-  const [tool, setTool] = useState<VectorTool>("select");
-  const [transform, setTransform] = useState<Transform>({ x: 0, y: 0, scale: 1 });
-  const [mounted, setMounted] = useState(false);
-  const [menu, setMenu] = useState<MenuState | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("Move the plan under the crosshair, then tap Drop Pin.");
+type Point = { x: number; y: number };
+type Transform = { scale: number; x: number; y: number };
+type PlanMenu = "search" | "pages" | "layers" | null;
+type QuickMenuState = { pinId?: string; xPct: number; yPct: number; screenX: number; screenY: number } | null;
 
-  const activeSheet = useMemo(() => sheets.find((sheet) => sheet.id === activeSheetId) ?? null, [activeSheetId, sheets]);
-  const markupShapes = useMemo(() => pins.flatMap((pin) => isMarkupData(pin.markup_data) ? pin.markup_data.shapes : []), [pins]);
+const MOCK_PINS: Pin[] = [
+  { id: "1", x_pct: 25.5, y_pct: 35.2, session_id: "past-1", label: "01", amber: false },
+  { id: "2", x_pct: 45.1, y_pct: 60.8, session_id: "past-2", label: "02", amber: false },
+  { id: "3", x_pct: 75.0, y_pct: 20.0, session_id: "past-1", label: "03", amber: false },
+];
 
-  useEffect(() => setMounted(true), []);
+const PLAN_PAGES = ["Sheet 01", "Sheet 02", "Sheet 03"];
 
-  useEffect(() => {
-    if (!mounted) return;
-    function handleTool(event: Event) {
-      const detail = event instanceof CustomEvent ? event.detail : null;
-      const nextTool = typeof detail?.tool === "string" ? detail.tool : "select";
-      if (["select", "draw", "box", "circle", "arrow", "text"].includes(nextTool)) setTool(nextTool as VectorTool);
+export function PlanViewer({ projectId, sessionId = "current-session", onCaptureRequest }: Props) {
+  const surfaceRef = useRef<HTMLDivElement>(null);
+  const [pins, setPins] = useState<Pin[]>(MOCK_PINS);
+  const [filter, setFilter] = useState<LayerFilter>("all");
+  const [activePinId, setActivePinId] = useState<string | null>(null);
+  const [activeMenu, setActiveMenu] = useState<PlanMenu>(null);
+  const [pageIndex, setPageIndex] = useState(0);
+  const [quickMenu, setQuickMenu] = useState<QuickMenuState>(null);
+  const [transform, setTransform] = useState<Transform>({ scale: 1, x: 0, y: 0 });
+  const pressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const dragStart = useRef<{ pointerId: number; point: Point; offset: Point; moved: boolean } | null>(null);
+  const activePointers = useRef(new Map<number, Point>());
+  const pinchStart = useRef<{ distance: number; scale: number } | null>(null);
+
+  const visiblePins = pins.filter((pin) => {
+    if (filter === "none") return false;
+    if (filter === "current") return pin.session_id === sessionId;
+    return true;
+  });
+
+  const startPress = useCallback((event: PointerEvent<HTMLDivElement>) => {
+    const point = { x: event.clientX, y: event.clientY };
+    activePointers.current.set(event.pointerId, point);
+    dragStart.current = { pointerId: event.pointerId, point, offset: { x: transform.x, y: transform.y }, moved: false };
+    event.currentTarget.setPointerCapture(event.pointerId);
+
+    if (activePointers.current.size >= 2) {
+      clearPressTimer(pressTimer);
+      dragStart.current = null;
+      pinchStart.current = { distance: pointerDistance(activePointers.current), scale: transform.scale };
+      return;
     }
-    window.addEventListener(VECTOR_TOOL_EVENT, handleTool);
-    return () => window.removeEventListener(VECTOR_TOOL_EVENT, handleTool);
-  }, [mounted]);
 
-  useEffect(() => {
-    if (!mounted || !projectId) return;
-    let cancelled = false;
-    setLoading(true);
-    fetch(`/api/site-walk/plan-sets?project_id=${encodeURIComponent(projectId)}`)
-      .then((response) => response.json() as Promise<PlanSetResponse>)
-      .then((data) => {
-        if (cancelled) return;
-        const nextSheets = data.sheets ?? [];
-        setSheets(nextSheets);
-        setActiveSheetId((current) => current || nextSheets[0]?.id || "");
-      })
-      .catch(() => setMessage("Plan sheets could not be loaded."))
-      .finally(() => { if (!cancelled) setLoading(false); });
-    return () => { cancelled = true; };
-  }, [mounted, projectId]);
+    pressTimer.current = setTimeout(() => {
+      const drag = dragStart.current;
+      if (!drag || drag.moved) return;
+      const nextPin = buildPin(point, surfaceRef.current, pins.length + 1, sessionId);
+      if (!nextPin) return;
+      setPins((current) => [...current, nextPin]);
+      setActivePinId(nextPin.id);
+      setQuickMenu({ pinId: nextPin.id, xPct: nextPin.x_pct, yPct: nextPin.y_pct, screenX: point.x, screenY: point.y });
+      if (navigator.vibrate) navigator.vibrate(50);
+    }, 500);
+  }, [pins.length, sessionId, transform.scale, transform.x, transform.y]);
 
-  useEffect(() => {
-    if (!activeSheetId) return;
-    fetch(`/api/site-walk/pins?plan_sheet_id=${encodeURIComponent(activeSheetId)}&session_id=${encodeURIComponent(sessionId)}`)
-      .then((response) => response.json() as Promise<PinResponse>)
-      .then((data) => setPins(data.pins ?? []))
-      .catch(() => setMessage("Pins could not be loaded."));
-  }, [activeSheetId]);
+  const movePointer = useCallback((event: PointerEvent<HTMLDivElement>) => {
+    activePointers.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
+    if (activePointers.current.size >= 2 && pinchStart.current) {
+      clearPressTimer(pressTimer);
+      const ratio = pointerDistance(activePointers.current) / Math.max(1, pinchStart.current.distance);
+      setTransform((current) => ({ ...current, scale: clamp(pinchStart.current!.scale * ratio, 0.75, 2.5) }));
+      return;
+    }
 
-  const clearLongPress = useCallback(() => {
-    if (longPressRef.current) window.clearTimeout(longPressRef.current);
-    longPressRef.current = null;
+    const drag = dragStart.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    const dx = event.clientX - drag.point.x;
+    const dy = event.clientY - drag.point.y;
+    if (Math.hypot(dx, dy) > 5) {
+      drag.moved = true;
+      clearPressTimer(pressTimer);
+    }
+    if (drag.moved) setTransform((current) => ({ ...current, x: drag.offset.x + dx, y: drag.offset.y + dy }));
   }, []);
 
-  function toPlanPoint(clientX: number, clientY: number) {
-    const rect = stageRef.current?.getBoundingClientRect();
-    if (!rect) return { xPct: 50, yPct: 50, screenX: 20, screenY: 20 };
-    const localX = (clientX - rect.left - transform.x) / transform.scale;
-    const localY = (clientY - rect.top - transform.y) / transform.scale;
-    return {
-      xPct: clamp((localX / CANVAS_WIDTH) * 100, 0, 100),
-      yPct: clamp((localY / CANVAS_HEIGHT) * 100, 0, 100),
-      screenX: clientX - rect.left + 12,
-      screenY: clientY - rect.top + 12,
-    };
+  const endPointer = useCallback((event: PointerEvent<HTMLDivElement>) => {
+    clearPressTimer(pressTimer);
+    activePointers.current.delete(event.pointerId);
+    if (activePointers.current.size < 2) pinchStart.current = null;
+    if (dragStart.current?.pointerId === event.pointerId) dragStart.current = null;
+  }, []);
+
+  function handleWheel(event: WheelEvent<HTMLDivElement>) {
+    event.preventDefault();
+    const delta = event.deltaY > 0 ? -0.1 : 0.1;
+    setTransform((current) => ({ ...current, scale: clamp(current.scale + delta, 0.75, 2.5) }));
   }
 
-  async function createDraftPin(point: { xPct: number; yPct: number; screenX: number; screenY: number }, markup?: MarkupData) {
-    if (!activeSheetId) return;
-    setMessage(markup ? "Saving markup JSON…" : "Saving draft pin…");
-    if (typeof navigator !== "undefined" && typeof navigator.vibrate === "function") navigator.vibrate(12);
-    const metadata = { captured_from: "prompt_8_plan_pin", plan_sheet_id: activeSheetId, x_pct: point.xPct, y_pct: point.yPct, markup_data: markup ?? null };
-    if (typeof navigator !== "undefined" && !navigator.onLine) {
-      const base = await captureMetadata();
-      const local = await queueOfflineCapture({ sessionId, itemType: "annotation", title: markup ? "Plan markup" : "Plan pin", description: "", metadata: { ...base, ...metadata }, captureMode: "plan_pin", planTarget: { planSheetId: activeSheetId, xPct: point.xPct, yPct: point.yPct } });
-      publishCaptureItemFocus({ item: local, reason: "pin" });
-      setMessage("Working offline — pin saved locally and queued.");
-      return;
-    }
-
-    const item = await createAnnotationItem(sessionId, markup ? "Plan markup" : "Plan pin", metadata);
-    const response = await fetch("/api/site-walk/pins", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        plan_sheet_id: activeSheetId,
-        project_id: projectId,
-        session_id: sessionId,
-        item_id: item.id,
-        x_pct: point.xPct,
-        y_pct: point.yPct,
-        pin_status: "active",
-        pin_color: "blue",
-        label: markup ? "Markup" : "Draft pin",
-        markup_data: markup,
-      }),
-    });
-    const data = (await response.json().catch(() => null)) as PinResponse | null;
-    if (!response.ok || !data?.pin) {
-      setMessage(data?.error ?? "Could not save the plan pin.");
-      return;
-    }
-    setPins((current) => [...current, data.pin as Pin]);
-    publishCaptureItemFocus({ item, reason: "pin" });
-    setMenu(markup ? null : { pinId: data.pin.id, ...point });
-    setMessage(markup ? "Markup item saved. Add details in the drawer." : "Pin item saved. Add details or attach a photo next.");
+  function zoom(delta: number) {
+    setTransform((current) => ({ ...current, scale: clamp(current.scale + delta, 0.75, 2.5) }));
   }
 
-  function dropCenterPin() {
-    const rect = stageRef.current?.getBoundingClientRect();
-    if (!rect) return;
-    void createDraftPin(toPlanPoint(rect.left + rect.width / 2, rect.top + rect.height / 2));
+  function handlePinClick(event: MouseEvent, pinId: string) {
+    event.stopPropagation();
+    setActivePinId(pinId);
+    const pin = pins.find((item) => item.id === pinId);
+    if (pin) setQuickMenu({ pinId, xPct: pin.x_pct, yPct: pin.y_pct, screenX: event.clientX, screenY: event.clientY });
   }
 
-  function handlePointerDown(event: React.PointerEvent<HTMLDivElement>) {
-    event.currentTarget.setPointerCapture(event.pointerId);
-    pointersRef.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
-    if (pointersRef.current.size === 2) {
-      clearLongPress();
-      const [a, b] = Array.from(pointersRef.current.values());
-      pinchRef.current = { distance: distance(a, b), scale: transform.scale };
-      return;
-    }
-    dragRef.current = { x: event.clientX, y: event.clientY, origin: transform };
-    longPressRef.current = window.setTimeout(() => {
-      const point = toPlanPoint(event.clientX, event.clientY);
-      const markup = tool === "select" ? undefined : buildMarkup(tool, point);
-      void createDraftPin(point, markup);
-    }, 650);
-  }
-
-  function handlePointerMove(event: React.PointerEvent<HTMLDivElement>) {
-    const previous = pointersRef.current.get(event.pointerId);
-    pointersRef.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
-    if (!previous) return;
-    if (Math.abs(event.clientX - previous.x) + Math.abs(event.clientY - previous.y) > 6) clearLongPress();
-    if (pointersRef.current.size === 2 && pinchRef.current) {
-      const [a, b] = Array.from(pointersRef.current.values());
-      const nextScale = clamp((distance(a, b) / pinchRef.current.distance) * pinchRef.current.scale, 0.6, 3);
-      setTransform((current) => ({ ...current, scale: nextScale }));
-      return;
-    }
-    if (dragRef.current && tool === "select") {
-      setTransform({ ...dragRef.current.origin, x: dragRef.current.origin.x + event.clientX - dragRef.current.x, y: dragRef.current.origin.y + event.clientY - dragRef.current.y });
-    }
-  }
-
-  function handlePointerUp(event: React.PointerEvent<HTMLDivElement>) {
-    clearLongPress();
-    pointersRef.current.delete(event.pointerId);
-    if (pointersRef.current.size < 2) pinchRef.current = null;
-    dragRef.current = null;
-  }
-
-  if (!mounted) return <PlanPlaceholder title="Loading plan tools…" loading />;
-  if (!projectId) return <PlanPlaceholder title="Photos-only walk" text="No floor plan is required. Continue capturing photos and notes." />;
-  if (loading) return <PlanPlaceholder title="Loading plan sheets…" loading />;
-  if (!activeSheet) return <PlanPlaceholder title="No plan sheets yet" text="Upload plans in the Master Plan Room, then return here to drop pins and markup." />;
-
-  const hasImage = !!(activeSheet.image_s3_key || activeSheet.thumbnail_s3_key);
   return (
-    <section className="min-h-[480px] rounded-3xl border border-white/10 bg-slate-900/70 p-4 text-slate-50 shadow-lg shadow-black/30">
-      <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 className="text-lg font-black text-white">Plan canvas</h2>
-          <p className="text-xs font-bold text-slate-400">{message}</p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <select value={activeSheetId} onChange={(event) => setActiveSheetId(event.target.value)} className="min-h-11 rounded-xl border border-white/10 bg-slate-950/70 px-3 py-2 text-sm font-bold text-slate-100">
-            {sheets.map((sheet) => <option key={sheet.id} value={sheet.id}>{sheet.sheet_name ?? "Plan sheet"}</option>)}
-          </select>
-          <button type="button" onClick={dropCenterPin} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-amber-500 px-3 text-sm font-black text-slate-950"><Crosshair className="h-4 w-4" /> Drop Pin</button>
-          <button type="button" onClick={() => setTransform((current) => ({ ...current, scale: clamp(current.scale - 0.2, 0.6, 3) }))} className="min-h-11 rounded-xl border border-white/10 bg-white/[0.04] px-3 text-slate-200"><Minus className="h-4 w-4" /></button>
-          <button type="button" onClick={() => setTransform((current) => ({ ...current, scale: clamp(current.scale + 0.2, 0.6, 3) }))} className="min-h-11 rounded-xl border border-white/10 bg-white/[0.04] px-3 text-slate-200"><Plus className="h-4 w-4" /></button>
+    <div className="relative h-full w-full overflow-hidden bg-slate-950 text-white">
+      <div
+        className="absolute inset-0 z-0 touch-none overflow-hidden bg-slate-950"
+        onPointerDown={startPress}
+        onPointerMove={movePointer}
+        onPointerUp={endPointer}
+        onPointerCancel={endPointer}
+        onPointerLeave={endPointer}
+        onWheel={handleWheel}
+      >
+        <div ref={surfaceRef} className="absolute left-1/2 top-1/2 aspect-[1.4/1] w-[150vw] max-w-6xl -translate-x-1/2 -translate-y-1/2 rounded-3xl border border-white/10 bg-slate-900 shadow-2xl" style={{ transform: `translate(calc(-50% + ${transform.x}px), calc(-50% + ${transform.y}px)) scale(${transform.scale})`, transformOrigin: "center" }}>
+          <div className="absolute inset-0 rounded-3xl bg-[linear-gradient(to_right,#80808016_1px,transparent_1px),linear-gradient(to_bottom,#80808016_1px,transparent_1px)] bg-[size:24px_24px]" />
+          <div className="absolute inset-0 flex items-center justify-center opacity-30 select-none pointer-events-none">
+            <span className="text-4xl font-black tracking-widest text-slate-700 -rotate-45">{PLAN_PAGES[pageIndex].toUpperCase()}</span>
+          </div>
+
+          {visiblePins.map((pin) => <PlanPin key={pin.id} pin={pin} active={activePinId === pin.id} current={pin.session_id === sessionId || pin.amber} onClick={(event) => handlePinClick(event, pin.id)} />)}
         </div>
       </div>
-      <div ref={stageRef} onPointerDown={handlePointerDown} onPointerMove={handlePointerMove} onPointerUp={handlePointerUp} onPointerCancel={handlePointerUp} className="relative h-[420px] touch-none overflow-hidden rounded-2xl border border-white/10 bg-slate-950/70">
-        <div className="absolute left-0 top-0 origin-top-left" style={{ width: CANVAS_WIDTH, height: CANVAS_HEIGHT, transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})` }}>
-          {hasImage ? <img src={`/api/site-walk/plan-sheets/${activeSheet.id}/image`} alt={activeSheet.sheet_name ?? "Plan sheet"} className="h-full w-full select-none object-contain" draggable={false} /> : <div className="flex h-full w-full items-center justify-center bg-[linear-gradient(90deg,rgba(148,163,184,0.25)_1px,transparent_1px),linear-gradient(rgba(148,163,184,0.25)_1px,transparent_1px)] bg-[size:40px_40px] text-center"><div><MapPinned className="mx-auto h-10 w-10 text-amber-400" /><p className="mt-3 font-black text-white">{activeSheet.sheet_name ?? "Plan sheet"}</p><p className="text-sm text-slate-400">Image extraction pending. Pins still save against this sheet.</p></div></div>}
-          <svg className="pointer-events-none absolute inset-0 h-full w-full" viewBox={`0 0 ${CANVAS_WIDTH} ${CANVAS_HEIGHT}`}>
-            {markupShapes.map((shape) => renderShape(shape))}
-          </svg>
-          {pins.map((pin) => <button key={pin.id} type="button" onClick={(event) => { event.stopPropagation(); setMenu({ pinId: pin.id, xPct: pin.x_pct, yPct: pin.y_pct, screenX: (pin.x_pct / 100) * CANVAS_WIDTH * transform.scale + transform.x + 12, screenY: (pin.y_pct / 100) * CANVAS_HEIGHT * transform.scale + transform.y + 12 }); }} className="absolute flex h-8 w-8 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-white bg-amber-500 text-xs font-black text-slate-950 shadow" style={{ left: `${pin.x_pct}%`, top: `${pin.y_pct}%` }}>{pin.pin_status === "draft" ? "D" : "✓"}</button>)}
+
+      {/* Layer 1: plan menus */}
+      <GlassCard className="absolute left-3 top-16 z-20 flex flex-col gap-2 bg-slate-950/60 p-2 backdrop-blur-xl">
+        <PlanToolButton active={activeMenu === "search"} icon={<Search className="h-4 w-4" />} label="Search" onClick={() => setActiveMenu(toggleMenu(activeMenu, "search"))} />
+        <PlanToolButton active={activeMenu === "pages"} icon={<BookOpen className="h-4 w-4" />} label="Pages" onClick={() => setActiveMenu(toggleMenu(activeMenu, "pages"))} />
+        <PlanToolButton active={activeMenu === "layers"} icon={<Layers className="h-4 w-4" />} label="Layers" onClick={() => setActiveMenu(toggleMenu(activeMenu, "layers"))} />
+      </GlassCard>
+
+      {activeMenu && (
+        <GlassCard className="absolute left-20 top-16 z-20 w-[min(20rem,calc(100vw-6rem))] bg-slate-950/75 p-3 backdrop-blur-xl">
+          {activeMenu === "search" && <PlanMenuPanel title="Search" body="Search sheets, rooms, or pin labels. Search index wiring lands with real plan data." />}
+          {activeMenu === "pages" && <PageSelector active={pageIndex} projectAware={Boolean(projectId)} onSelect={setPageIndex} />}
+          {activeMenu === "layers" && <PlanLayerToolbar filter={filter} onChangeFilter={setFilter} pinCount={visiblePins.length} className="static left-auto top-auto z-auto w-full max-w-none translate-x-0" />}
+        </GlassCard>
+      )}
+
+      {quickMenu && (
+        <PlanQuickActionMenu
+          pinId={quickMenu.pinId}
+          planSheetId={`sheet-${pageIndex + 1}`}
+          xPct={quickMenu.xPct}
+          yPct={quickMenu.yPct}
+          screenX={quickMenu.screenX}
+          screenY={quickMenu.screenY}
+          onClose={() => setQuickMenu(null)}
+          onCaptureRequest={onCaptureRequest}
+        />
+      )}
+
+      <GlassCard className="absolute right-3 top-16 z-20 flex items-center gap-2 bg-slate-950/60 p-2 backdrop-blur-xl">
+        <button type="button" onClick={() => zoom(-0.15)} className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-white/[0.04] text-white/75 hover:text-amber-100" aria-label="Zoom out"><Minus className="h-4 w-4" /></button>
+        <span className="min-w-12 text-center text-[10px] font-black text-slate-300">{Math.round(transform.scale * 100)}%</span>
+        <button type="button" onClick={() => zoom(0.15)} className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-white/[0.04] text-white/75 hover:text-amber-100" aria-label="Zoom in"><Plus className="h-4 w-4" /></button>
+      </GlassCard>
+
+      <div className="pointer-events-none absolute bottom-28 left-1/2 z-20 -translate-x-1/2">
+        <div className="rounded-full border border-white/10 bg-slate-950/80 px-4 py-2 shadow-xl backdrop-blur">
+          <p className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-slate-300"><Move className="h-3 w-3 text-amber-500" /> Pan, zoom, or long-press to drop pin</p>
         </div>
-        {menu && <PlanQuickActionMenu planSheetId={activeSheet.id} {...menu} onClose={() => setMenu(null)} />}
-        <div className="pointer-events-none absolute left-1/2 top-1/2 rounded-full border border-amber-500/20 bg-amber-500/10 p-2 text-amber-300 shadow-lg"><Crosshair className="h-4 w-4" /></div>
       </div>
-    </section>
+    </div>
   );
 }
 
-function PlanPlaceholder({ title, text, loading = false }: { title: string; text?: string; loading?: boolean }) {
-  return <section className="rounded-3xl border border-white/10 bg-slate-900/70 p-4 text-slate-50 shadow-lg shadow-black/30"><div className="flex min-h-[360px] flex-col items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] p-6 text-center">{loading ? <Loader2 className="h-8 w-8 animate-spin text-amber-400" /> : <MapPinned className="h-10 w-10 text-amber-400" />}<h2 className="mt-4 text-xl font-black text-white">{title}</h2>{text && <p className="mt-2 max-w-md text-sm leading-6 text-slate-400">{text}</p>}</div></section>;
+function PlanPin({ pin, active, current, onClick }: { pin: Pin; active: boolean; current: boolean; onClick: (event: MouseEvent) => void }) {
+  return (
+    <button type="button" onClick={onClick} className={cn("absolute -translate-x-1/2 -translate-y-full p-2 transition-all duration-300", active ? "z-20 scale-125" : "z-10 hover:scale-110")} style={{ left: `${pin.x_pct}%`, top: `${pin.y_pct}%` }}>
+      <span className="relative flex flex-col items-center">
+        <span className={cn("flex h-8 w-8 items-center justify-center rounded-full border-2 shadow-xl shadow-black/50", current ? "border-amber-200 bg-amber-500 text-amber-950" : "border-slate-500 bg-slate-700 text-slate-300", active && current && "ring-4 ring-amber-500/30")}>
+          <span className="text-[11px] font-black">{pin.label}</span>
+        </span>
+        <span className={cn("h-3 w-0.5 shadow-lg", current ? "bg-amber-500" : "bg-slate-700")} />
+      </span>
+    </button>
+  );
 }
 
-function buildMarkup(tool: VectorTool, point: { xPct: number; yPct: number }): MarkupData {
-  const x = (point.xPct / 100) * CANVAS_WIDTH;
-  const y = (point.yPct / 100) * CANVAS_HEIGHT;
-  const base = { id: `markup-${Date.now()}`, stroke: "#F59E0B", fill: "none", strokeWidth: 4, rotation: 0, updatedAt: Date.now() };
-  const shape: MarkupShape = tool === "box" ? { ...base, kind: "rect", x: x - 50, y: y - 35, width: 100, height: 70 } : tool === "circle" ? { ...base, kind: "ellipse", cx: x, cy: y, rx: 48, ry: 34 } : tool === "arrow" ? { ...base, kind: "arrow", x1: x - 60, y1: y - 30, x2: x + 60, y2: y + 30, headSize: 24 } : tool === "text" ? { ...base, kind: "text", x, y, text: "Note", fontSize: 32 } : { ...base, kind: "freehand", points: [x - 40, y, x - 10, y - 25, x + 30, y + 18] };
-  return { version: 1, coordSpace: "image", shapes: [shape] };
+function PlanToolButton({ active, icon, label, onClick }: { active: boolean; icon: ReactNode; label: string; onClick: () => void }) {
+  return <button type="button" onClick={onClick} className={`inline-flex h-11 w-11 items-center justify-center rounded-xl transition ${active ? "bg-amber-500 text-slate-950" : "bg-white/[0.04] text-white/70 hover:text-amber-100"}`} aria-label={label}>{icon}</button>;
 }
 
-function renderShape(shape: MarkupShape) {
-  if (shape.kind === "rect") return <rect key={shape.id} x={shape.x} y={shape.y} width={shape.width} height={shape.height} fill={shape.fill} stroke={shape.stroke} strokeWidth={shape.strokeWidth} />;
-  if (shape.kind === "ellipse") return <ellipse key={shape.id} cx={shape.cx} cy={shape.cy} rx={shape.rx} ry={shape.ry} fill={shape.fill} stroke={shape.stroke} strokeWidth={shape.strokeWidth} />;
-  if (shape.kind === "arrow") return <ArrowShape key={shape.id} shape={shape} />;
-  if (shape.kind === "text") return <text key={shape.id} x={shape.x} y={shape.y} fill={shape.stroke} fontSize={shape.fontSize} fontWeight={800}>{shape.text}</text>;
-  if (shape.kind === "freehand") return <polyline key={shape.id} points={shape.points.join(" ")} fill="none" stroke={shape.stroke} strokeWidth={shape.strokeWidth} strokeLinecap="round" strokeLinejoin="round" />;
-  return null;
+function PlanMenuPanel({ title, body }: { title: string; body: string }) {
+  return <div><p className="text-[10px] font-black uppercase tracking-[0.16em] text-amber-300">{title}</p><p className="mt-2 text-sm leading-6 text-slate-300">{body}</p></div>;
 }
 
-function ArrowShape({ shape }: { shape: Extract<MarkupShape, { kind: "arrow" }> }) {
-  const angle = Math.atan2(shape.y2 - shape.y1, shape.x2 - shape.x1);
-  const left = `${shape.x2 - shape.headSize * Math.cos(angle - Math.PI / 6)},${shape.y2 - shape.headSize * Math.sin(angle - Math.PI / 6)}`;
-  const right = `${shape.x2 - shape.headSize * Math.cos(angle + Math.PI / 6)},${shape.y2 - shape.headSize * Math.sin(angle + Math.PI / 6)}`;
-  return <g><line x1={shape.x1} y1={shape.y1} x2={shape.x2} y2={shape.y2} stroke={shape.stroke} strokeWidth={shape.strokeWidth} strokeLinecap="round" /><polyline points={`${left} ${shape.x2},${shape.y2} ${right}`} fill="none" stroke={shape.stroke} strokeWidth={shape.strokeWidth} strokeLinecap="round" strokeLinejoin="round" /></g>;
+function PageSelector({ active, projectAware, onSelect }: { active: number; projectAware: boolean; onSelect: (index: number) => void }) {
+  return (
+    <div>
+      <p className="text-[10px] font-black uppercase tracking-[0.16em] text-amber-300">Pages</p>
+      <p className="mt-1 text-xs text-slate-500">{projectAware ? "Project plan set" : "Demo plan set"}</p>
+      <div className="mt-3 grid gap-2">
+        {PLAN_PAGES.map((page, index) => <button key={page} type="button" onClick={() => onSelect(index)} className={`rounded-xl border px-3 py-2 text-left text-sm font-black transition ${active === index ? "border-amber-400 bg-amber-500/15 text-amber-100" : "border-white/10 bg-white/[0.04] text-slate-300 hover:border-amber-400/50"}`}>{page}</button>)}
+      </div>
+    </div>
+  );
 }
 
-function isMarkupData(value: unknown): value is MarkupData {
-  return !!value && typeof value === "object" && (value as { version?: unknown }).version === 1 && Array.isArray((value as { shapes?: unknown }).shapes);
+function buildPin(point: Point, surface: HTMLDivElement | null, count: number, sessionId: string): Pin | null {
+  if (!surface) return null;
+  const rect = surface.getBoundingClientRect();
+  const xPct = clamp(((point.x - rect.left) / rect.width) * 100, 0, 100);
+  const yPct = clamp(((point.y - rect.top) / rect.height) * 100, 0, 100);
+  return { id: Math.random().toString(36).slice(2), x_pct: xPct, y_pct: yPct, session_id: sessionId, label: String(count).padStart(2, "0"), amber: true };
+}
+
+function clearPressTimer(timerRef: MutableRefObject<ReturnType<typeof setTimeout> | null>) {
+  if (timerRef.current) clearTimeout(timerRef.current);
+  timerRef.current = null;
+}
+
+function pointerDistance(points: Map<number, Point>) {
+  const [first, second] = Array.from(points.values());
+  if (!first || !second) return 1;
+  return Math.hypot(second.x - first.x, second.y - first.y);
+}
+
+function toggleMenu(current: PlanMenu, next: Exclude<PlanMenu, null>): PlanMenu {
+  return current === next ? null : next;
 }
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
-}
-
-function distance(a: { x: number; y: number }, b: { x: number; y: number }) {
-  return Math.hypot(a.x - b.x, a.y - b.y);
 }

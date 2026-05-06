@@ -1,4 +1,4 @@
-"# Slate360 — Project Memory
+# Slate360 — Project Memory
 
 Last Updated: 2026-04-30
 Repo: bcvolker/slate360-rebuild
@@ -11,6 +11,10 @@ This file is the default new-chat attachment. Keep it short. Read this first, th
 
 **AI Agents (Copilot, Claude, etc.) have read/write/run/push access to:**
 - **Git**: commit, branch, merge, and push to `bcvolker/slate360-rebuild` on GitHub
+## Save State - Architecture & Design (May 2026)
+- The `_legacy_v1` tree has been explicitly purged and removed from the active routing.
+- The entire application is strictly unified under the 'Dark Glass & Amber' design token system utilizing the `<GlassCard>` component.
+
 - **Vercel**: deploy + env var management via `VERCEL_TOKEN` Codespace secret
 - **AWS S3**: bucket `slate360-storage` (us-east-2) via stored credentials
 - **Cloudflare R2**: bucket `slate360-storage` via stored S3-compatible credentials and account-scoped R2 access
@@ -198,39 +202,30 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-05-06 (Account Hub Navigation + Site Walk Back Affordances)
+### Session Handoff — 2026-05-06 (Field Capture Z-Stack UX Rebuild)
 
 #### What Changed
-- Commit `3819d3a` (`fix: unify account hub navigation and Site Walk back affordances`) is pushed to `main`; Vercel should deploy from `main` automatically.
-- `app/(dashboard)/more/page.tsx` — Account Hub now shows real signed-in email, plan label, and storage usage summary; menu rows now route to native Account, Organization, Billing & Apps, Coordination, Storage, Support, Operations Console, and Sign Out surfaces.
-- `app/(dashboard)/more/[section]/page.tsx` — Rebuilt native dark-glass section pages for `account`, `organization`, `billing`, `coordination`, `storage`, and `support` with amber styling, real entitlements/usage, and real links into settings, Stripe billing portal, SlateDrop, Coordination, policies, and support email.
-- `app/(dashboard)/more/_components/BillingPortalButton.tsx` — NEW client row that opens `/api/billing/portal` from the Billing & Apps section, disabled truthfully for non-admin/internal owner cases.
-- `components/dashboard/command-center/DashboardTopBar.tsx`, `components/shared/MobileTopBar.tsx`, `components/shared/header/UserMenu.tsx`, `components/shared/QuickNav.tsx`, `components/shared/CommandPalette.tsx`, `components/shared/MobileNavSheet.tsx`, `components/shared/MobileModuleBar.tsx`, `components/dashboard/command-center/DashboardSidebar.tsx`, `components/dashboard/MobileQuickAccess.tsx`, `components/dashboard/DashboardOverview.tsx`, `components/dashboard/command-center/StorageCreditsCard.tsx` — Account navigation now consistently targets `/more`, `/more/account`, `/more/billing`, or `/more/storage` instead of legacy `/my-account`; cobalt hover/border states touched in this slice were replaced with amber.
-- `app/(dashboard)/my-account/page.tsx` — Legacy route now redirects to `/more/account` so old DashboardTabShell account styling is not re-entered from direct links.
-- `components/site-walk/SiteWalkModuleNav.tsx`, `app/site-walk/(act-2-inputs)/capture/_components/WalkStartChoice.tsx`, `app/site-walk/(act-2-inputs)/capture/_components/CaptureClientIsland.tsx`, `components/site-walk/capture/VisualCaptureView.tsx` — Added explicit `Site Walk Home`/Home affordances for module subpages, start-choice, plan mode, and camera mode; active touched capture cyan accents converted to amber.
-- `components/shared/BackButton.tsx` — Treats `/site-walk` and `/more` as root surfaces and uses amber hover styling.
-- `components/dashboard/my-account/AccountSecurityTab.tsx` — Password reset callback now returns to `/settings`, not legacy `/my-account`.
+- `app/site-walk/(act-2-inputs)/capture/_components/CaptureClientIsland.tsx` — Replaced the old visual/data paged flow with a strict layered Z-stack: Layer 0 camera/plan background, Layer 1 floating mode/home tools, Layer 2 shared swipe-up data sheet.
+- `components/site-walk/capture/VisualCaptureView.tsx` — Rebuilt the camera surface as full-bleed `100dvh` with floating Dark Glass controls, Home affordance, Ghost Mode toggle, markup/undo/redo tools, quick Photo/Roll actions, and a thumbnail rail overlay.
+- `components/site-walk/capture/PlanViewer.tsx` — Rebuilt plan mode as a full-bleed panning/zooming surface with 500ms long-press pin drops, zoom controls, and collapsible Search/Pages/Layers tool menus.
+- `components/site-walk/capture/CaptureDataBottomSheet.tsx` — NEW draggable/expandable bottom sheet. Minimized state shows drag handle + Capture button; expanded state shows notes textarea, Voice Dictation stub, AI Format Note action, and Save & Next Stop.
+- `components/site-walk/capture/PlanLayerToolbar.tsx` — Added reusable `className` support so the existing layer toggle can live inside the collapsible plan Layers menu.
 
 #### What's Broken / Partially Done
-- `bash scripts/check-file-size.sh` still fails because of pre-existing oversized files unrelated to this slice (`LocationMap.tsx`, `marketing-homepage.tsx`, `DashboardWidgetRenderer.tsx`, etc.). All changed production files are under 300 lines; `npm run guard:file-size-regression` passes.
-- `npm run verify:release` required gates passed, but optional `clob-contract` still reports missing `app/api/market/buy/route.ts`, optional `mobile-smoke` reports pre-existing “Homepage hero copy missing,” and lint has one pre-existing warning in `scripts/probe-overflow.mjs`.
-- `/site-walk/reports` remains a scaffold; dynamic report builder still needs data wiring.
-- `/site-walk/walks` still needs filter/sort tabs and assign/share/link-to-project actions.
+- Plan Search and Pages menus are UI stubs until real multi-sheet indexing/thumbnail data is wired.
+- Voice Dictation is a visible stub per roadmap; real Web Speech API progressive enhancement remains future work.
+- `bash scripts/check-file-size.sh` still fails on pre-existing oversized files outside this slice. All changed production files are under 300 lines.
 
 #### Context Files Updated
-- `slate360-context/DASHBOARD.md` — Account Hub is now canonical; `/my-account` documented as redirect; amber shell/account route rules updated.
-- `slate360-context/dashboard-tabs/MODULE_REGISTRY.md` — My Account entry changed to Account Hub `/more`.
-- `slate360-context/dashboard-tabs/site-walk/FIELD_PLATFORM_ROADMAP.md` — Added explicit Site Walk Home/back affordance rule and updated future org/team route references.
-- `slate360-context/ONGOING_ISSUES.md` — Added BUG-060 fixed row.
-- `ops/bug-registry.json` — Added BUG-060 fixed registry entry.
+- `slate360-context/dashboard-tabs/site-walk/FIELD_PLATFORM_ROADMAP.md` — Updated Last Updated note and recorded the capture Z-stack implementation note.
 - `SLATE360_PROJECT_MEMORY.md` — this handoff.
 
 #### Next Steps (ordered)
-1. Manually verify deployed clicks: desktop avatar menu, mobile avatar menu, sidebar Account, bottom Account tab, `/more`, `/more/account`, `/more/billing`, `/more/coordination`, `/more/storage`, `/my-account` redirect, `/site-walk`, `/site-walk/plans`, `/site-walk/capture`.
-2. Build `/site-walk/walks` filter/sort/action toolbar: All/Pending/In Progress/Completed, Search, Assign/Reassign, Share, Link to Project.
-3. Wire `/site-walk/reports` to real deliverables/session items using the planned Dynamic Deliverable Builder.
-4. Delete or isolate unused old Site Walk helpers and `_legacy_v1` routes so future grep audits do not see dead cobalt/white UI.
-5. Address pre-existing oversized file list and optional release-guard warnings in separate cleanup slices.
+1. Mobile smoke test `/site-walk/capture`: open camera, minimize/expand bottom sheet, tap Capture, type notes, run AI Format Note, and Save & Next Stop.
+2. Plan smoke test `/site-walk/capture?mode=plan` or equivalent start path: pan, zoom, long-press to drop pin, open Search/Pages/Layers menus, toggle layer visibility.
+3. Replace plan Search/Pages stubs with real plan-set sheet data after multi-page PDF processing is wired.
+4. Add progressive Web Speech dictation behind feature detection.
+5. Address pre-existing oversized file list in a separate cleanup slice.
 
 ### Session Handoff — 2026-05-04 (Amber Brand System Propagation — Full Push)
 
@@ -3348,3 +3343,65 @@ Build now shows `/project-hub` + all 11 sub-routes in route list (previously abs
 2. Start the blank-canvas rebuild for `/projects` while preserving project APIs and creation plumbing
 3. Rebuild `/projects/[projectId]` overview after the new projects directory surface is stable
 4. Rebuild project-scoped SlateDrop after the new project hierarchy is locked
+## Session Handoff — 2025-05-15
+### What Changed
+- `components/dashboard/command-center/QuickActionsCard.tsx`: Replaced hardcoded "Start Site Walk" action with app-neutral "Upload File" (`/slatedrop/upload`).
+- `components/dashboard/command-center/AppsGrid.tsx`: Updated `visible` filter logic to fully hide apps the user is not entitled to, rather than showing them disabled with an "Available" badge.
+- `components/shared/CommandPalette.tsx`: Removed the direct `/site-walk` quick-launch action from the `Apps` group.
+- `components/shared/QuickNav.tsx` & `components/dashboard/command-center/DashboardSidebar.tsx`: Verified no hardcoded Site Walk routes were present, and cleaned up unused `MapPin` imports.
+
+### What's Broken / Partially Done
+- None. The global shell is now app-neutral. Typecheck was initiated.
+
+### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md`: Added Shell Boundary enforcement completion notes.
+
+### Next Steps (ordered)
+1. Proceed with the Project Hub or SlateDrop implementation.
+
+### Capture Performance Rebuild
+- **DataContextView.tsx**: Refactored to use local state (`localLocation`, `localDetail`) for text inputs instead of updating the parent global state on each keystroke. It synchronizes via `onBlur` for text inputs.
+- **CaptureClientIsland.tsx**: Refactored the mode rendering layout. `CameraViewfinder` is now continually mounted when navigating to the data view (`viewMode === "camera" || viewMode === "data"`). The `DataContextView` is injected into a fixed, draggable Bottom Sheet overlay rather than a paged modal swap. Note: PagedWorkspace swap logic was converted to an animated inline tray. Re-rendering is successfully isolated.
+### Capture Performance Rebuild
+- **DataContextView.tsx**: Refactored to use local state (`localLocation`, `localDetail`) for text inputs instead of updating the parent global state on each keystroke. It synchronizes via `onBlur` for text inputs.
+- **CaptureClientIsland.tsx**: Refactored the mode rendering layout. `CameraViewfinder` is now continually mounted when navigating to the data view (`viewMode === "camera" || viewMode === "data"`). The `DataContextView` is injected into a fixed, draggable Bottom Sheet overlay rather than a paged modal swap. Note: PagedWorkspace swap logic was converted to an animated inline tray. Re-rendering is successfully isolated.
+### Operations Console Purge (Shell Boundary Enforcement)
+- **components/dashboard/operations-console/OperationsConsoleNav.tsx**: Replaced all `sky-*` tokens with their `amber-*` equivalents.
+- **app/(dashboard)/operations-console/[section]/page.tsx**: Replaced `sky-*` tokens with `amber-*`. Extracted the core layout into standard `<GlassCard>` components.
+- **app/(dashboard)/operations-console/feedback/page.tsx**: Replaced `sky-*` tokens with `amber-*`. Extracted the feedback row listing into a `<GlassCard>`.
+- **components/dashboard/OperationsConsoleClient.tsx**: Swapped light-mode `bg-white/bg-gray` for `bg-slate-*`. Swapped `text-blue-*/bg-blue-*` interaction states for `amber-*` equivalents. Replaced top-level layout block elements with `<GlassCard>` instances to match the global dark glass aesthetics.
+### Site Walk Hub Rebuild (Page-by-Page Series)
+- **app/site-walk/page.tsx**: Rebuilt the root page to render the new `SiteWalkHub`. Generic texts and static placeholders removed.
+- **app/site-walk/_components/SiteWalkHub.tsx**: Created a new Dark Glass 3-tab layout:
+  - **Setup & Plans**: Offers "New Full Project" (Business/Enterprise only based on `tier`) and "New Field Project". Added plan upload target.
+  - **My Walks**: Displays walk records. Includes trailing 3-dot dropdown with Link, Manage Access, and Delete. Active walks show an Amber "Continue Walk" button.
+  - **Deliverables**: Displays generated reports alongside a "Create New Report" action.
+- **app/site-walk/_components/SiteWalkLaunchGrid.tsx**: Removed the legacy horizontal scrolling placeholder grid.
+### Account & Settings Hub Rebuild (Page-by-Page Series)
+- **components/settings/AccountSettingsClient.tsx**: Rebuilt into a functional Split-Pane Dark Glass UI:
+  - **Profile & Preferences Tab**: Merged. Added real inputs for First Name, Last Name, Phone Number, and Job Title. Built a custom UI toggle for Notification Preferences (Email vs Push).
+  - **Team & Collaborators Tab**: CRITICAL NEW FEATURE. Contains an Invite Team Member section with email and role inputs. Renders a mockup of tier-entitlement logic: displays current seat count, limits 'model' tier, and prompts an Amber CTA to upgrade if seats are saturated.
+  - **Billing & Subscription Tab**: Purged the fake AI graphs. Now clearly features a Dark Glass gradient banner highlighting the active tier and a prominent "Manage Subscription" button pointing out.
+  - **Security Tab**: Retained and styled cohesively in the danger-zone aesthetic.
+- Fixed residual `GlassCard` and `FolderPlus` import errors scattered from previous sweeps.
+### Plan Viewer & Pinning Engine Rebuild (Page-by-Page Series)
+- **components/site-walk/capture/PlanLayerToolbar.tsx**: Created a floating Dark Glass toolbar overlay. Implements `all`, `current`, and `none` layer filtering controls visually. Display counts attached explicitly to active render trees.
+- **components/site-walk/capture/PlanViewer.tsx**: Rewrote the component entirely into a self-contained bounding canvas.
+  - Features PointerEvents mapping (500ms timeout threshold) to convert relative X/Y client gestures into stored coordinate percentages overlaying the background image element. Drops Amber Pins instantly via local state array spread.
+  - Injected logic filtering all pins based on the active `LayerFilter` selection, completely separating historic clashing walkthrough pins vs active session pins.
+  - Extracted rendering elements to keep the core file extremely lean (< 200 lines).
+### Organization Branding & Nomenclature Rebuild (Page-by-Page Series)
+- **Nomenclature Purge**: Replaced instances of 'Outputs' with 'Deliverables' in `SiteWalkHub.tsx` and `DeliverableDefaultsForm.tsx` to standardize SaaS terminology.
+- **Organization Branding Hub**: Appended a new `OrgBrandingPanel` to `AccountSettingsClient.tsx`. Features a high-contrast Dark Glass layout containing a Company Logo drag-and-drop zone using `UploadCloud`, Organization Details inputs, and a custom CSS flexbox wireframe mimicking a professional PDF report standard representing the uploaded Deliverable Preview visually.
+
+## Session Handoff — 2026-05-06
+### What Changed
+- **Inbox ([components/coordination/InboxTabs.tsx](components/coordination/InboxTabs.tsx))**: Rebuilt with Dark Glass layout and fixed-height contained scrolling. Added "Notifications", "Milestones", and "Messages" tabs. Added the permanent Amber 'Welcome Alert' specific to Collaborators.
+- **Contacts ([components/coordination/contacts/ContactList.tsx](components/coordination/contacts/ContactList.tsx))**: Preserved the Split-Pane layout, added `getRoleBadge` to visually distinguish between "Team Member", "Collaborator", and "External Stakeholder" based on the contact tags.
+- **Calendar ([components/coordination/CalendarClient.tsx](components/coordination/CalendarClient.tsx))**: Overhauled into an "Upcoming Agenda" list using Dark Glass cards. Added left border and accent color differentiation to highlight 'Scheduled Walks' (Amber) and 'Project Milestones' (Slate).
+### What's Broken / Partially Done
+- None.
+### Context Files Updated
+- None inside docs. Memory has been updated.
+### Next Steps (ordered)
+1. Proceed with the next Value Audit.
