@@ -47,6 +47,12 @@ export const POST = (req: NextRequest) =>
     if (!body.plan_id && !body.plan_sheet_id) {
       return badRequest("plan_id or plan_sheet_id is required");
     }
+    if (body.plan_id && !isUuid(body.plan_id)) {
+      return badRequest("plan_id must be a saved UUID");
+    }
+    if (body.plan_sheet_id && !isUuid(body.plan_sheet_id)) {
+      return badRequest("plan_sheet_id must be a saved UUID");
+    }
     if (
       typeof body.x_pct !== "number" ||
       typeof body.y_pct !== "number" ||
@@ -92,3 +98,7 @@ export const POST = (req: NextRequest) =>
     }
     return ok({ pin: data }, 201);
   });
+
+function isUuid(value: string) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+}

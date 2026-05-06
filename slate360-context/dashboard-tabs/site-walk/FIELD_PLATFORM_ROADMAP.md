@@ -1,6 +1,6 @@
 # Site Walk — Field Platform Roadmap
 
-**Last Updated:** 2026-05-06 (plan upload/render hotfix)
+**Last Updated:** 2026-05-06 (PDF infrastructure hotfix)
 **Status:** Planning / Pre-build
 **Owner:** Product + Engineering
 
@@ -382,7 +382,9 @@ These are the highest-value field workflow features to preserve for future build
 
 **Implementation note — 2026-05-06:** `/site-walk/capture` now uses a strict layered Z-index architecture: full-bleed camera/plan background, floating Dark Glass tools, panning/zooming plan viewer with long-press pins, Ghost Mode camera toggle, and a draggable swipe-up data-entry bottom sheet.
 
-**Implementation note — 2026-05-06:** Plan Room PDF uploads now return an array-compatible `planSets` payload, avoid PDF.js parsing during upload, force phone-picked PDFs to `application/pdf`, render uploaded PDFs directly in Plan Room and capture through `/api/site-walk/plan-sets/[id]/file` using a same-origin bundled PDF worker, expose a direct **Start walk with plans** action that opens capture in plan mode, and provide compact previous/next page arrows plus a searchable expandable Pages panel.
+**Implementation note — 2026-05-06:** Plan Room PDF uploads now return an array-compatible `planSets` payload, avoid PDF.js parsing during upload, force phone-picked PDFs to `application/pdf`, render uploaded PDFs directly in Plan Room and capture through `/api/site-walk/plan-sets/[id]/file` as a same-origin `application/pdf` stream, hardcode PDF.js to `/pdf.worker.min.js` copied into `public/`, expose exact amber source/load/render errors, expose a direct **Start walk with plans** action that opens capture in plan mode, and provide compact previous/next page arrows plus a searchable expandable Pages panel.
+
+**Implementation note — 2026-05-06:** Plan long-press attachment uploads now tolerate live project folder provisioning failures: `/api/site-walk/upload` logs `Site Walk Files / Photos` provisioning errors and falls back to a session-scoped upload key instead of returning a raw 500, while plan-pin attachment skips unsaved local draft pin IDs and creates the persisted pin after the capture item saves.
 
 ---
 

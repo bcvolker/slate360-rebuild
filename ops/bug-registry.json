@@ -617,14 +617,30 @@
       "module": "site-walk/plans/capture",
       "severity": "critical",
       "status": "fixed",
-      "rootCause": "POST /api/site-walk/plan-sets returned a singular `planSet` while the Plan Room client merged `planSets`, so a successful mobile upload could throw a client error after completion. The capture Z-stack plan viewer also rendered a dark placeholder surface instead of the uploaded PDF, then the browser PDF renderer tried to load its worker from unpkg, which production CSP blocks. On mobile this surfaced as a PDF render failure followed by a global white-screen crash.",
+      "rootCause": "POST /api/site-walk/plan-sets returned a singular `planSet` while the Plan Room client merged `planSets`, so a successful mobile upload could throw a client error after completion. The capture Z-stack plan viewer also rendered a dark placeholder surface instead of the uploaded PDF, then the browser PDF renderer tried to load its worker from a bundled/imported URL that was unreliable in Next production. When the worker failed, PDF.js fell back to main-thread parsing and could crash mobile with OOM / SES_UNCAUGHT_EXCEPTION.",
       "verification": [
         "Plan set creation returns both `planSet` and `planSets: [planSet]`, and PlanUploader normalizes older singular responses",
         "PlanUploader avoids PDF.js parsing during upload and forces application/pdf content type for phone file-picker uploads",
-        "Plan Room and capture plan mode render uploaded PDFs through /api/site-walk/plan-sets/[id]/file with a same-origin bundled PDF worker and white PDF surfaces",
+        "public/pdf.worker.min.js is copied from react-pdf's exact pdfjs-dist 5.4.296 worker and PlanPdfPage hardcodes workerSrc to /pdf.worker.min.js",
+        "/api/site-walk/plan-sets/[id]/file proxies the S3/R2 object as a same-origin application/pdf stream instead of redirecting to a signed storage URL",
+        "Plan Room and capture plan mode render uploaded PDFs through /api/site-walk/plan-sets/[id]/file with visible amber error details if source/load/render fails",
         "Plan mode has compact previous/next page arrows plus a searchable expandable Pages panel",
         "Plan Room exposes a Start walk with plans action that creates a session and opens /site-walk/capture in plan mode",
         "PlanViewer no longer calls preventDefault in React's passive wheel handler"
+      ]
+    },
+    {
+      "id": "BUG-063",
+      "title": "Plan long-press capture attachments returned internal server errors",
+      "module": "site-walk/plans/capture/slatedrop",
+      "severity": "critical",
+      "status": "fixed",
+      "rootCause": "POST /api/site-walk/upload provisioned the project Photos folder before the guarded presign/reserve block, so project_folders lookup/create errors could escape as raw 500s during plan-pin attachment uploads. Draft plan pins also carried local random IDs into the saved-pin PATCH route, which could trigger UUID/database errors instead of creating a new persisted pin.",
+      "verification": [
+        "POST /api/site-walk/upload logs folder provisioning failures and continues with a session fallback S3 key plus pending slatedrop_uploads row",
+        "Plan-pin photo uploads ignore unsaved local pin IDs and create a persisted site_walk_pins row after the capture item is saved",
+        "Pin create/update routes validate UUID-shaped IDs before Supabase calls so invalid draft IDs return structured 400s instead of internal server errors",
+        "Long-press on a plan, then Take photo at this pin and Upload existing photo both complete without an internal server error"
       ]
     }
   ]

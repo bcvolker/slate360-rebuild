@@ -13,6 +13,7 @@ export const PATCH = (req: NextRequest, ctx: IdRouteContext) =>
   withAppAuth("punchwalk", req, async ({ admin, orgId }) => {
     if (!orgId) return badRequest("Organization context required");
     const { id } = await ctx.params;
+    if (!isUuid(id)) return badRequest("Pin id must be a saved UUID");
 
     const body = (await req.json()) as UpdatePinPayload;
     const update: Record<string, unknown> = {};
@@ -67,6 +68,7 @@ export const DELETE = (req: NextRequest, ctx: IdRouteContext) =>
   withAppAuth("punchwalk", req, async ({ admin, orgId }) => {
     if (!orgId) return badRequest("Organization context required");
     const { id } = await ctx.params;
+    if (!isUuid(id)) return badRequest("Pin id must be a saved UUID");
 
     const { error } = await admin
       .from("site_walk_pins")
@@ -77,3 +79,7 @@ export const DELETE = (req: NextRequest, ctx: IdRouteContext) =>
     if (error) return serverError(error.message);
     return ok({ deleted: true });
   });
+
+function isUuid(value: string) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+}

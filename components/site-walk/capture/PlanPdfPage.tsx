@@ -6,7 +6,7 @@ import { Document, Page, pdfjs } from "react-pdf";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
 
-pdfjs.GlobalWorkerOptions.workerSrc = new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url).toString();
+pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.js";
 
 type Props = {
   fileUrl: string;
@@ -46,16 +46,22 @@ export function PlanPdfPage({ fileUrl, pageNumber, label, compact = false, maxWi
   return (
     <div ref={shellRef} className="flex h-full w-full items-center justify-center overflow-hidden bg-white text-slate-900">
       {error ? (
-        <div className="flex flex-col items-center gap-2 px-4 text-center text-sm font-bold text-slate-600">
-          <FileWarning className="h-7 w-7 text-amber-500" />
-          <span>{error}</span>
+        <div className="mx-4 rounded-2xl border border-amber-500/40 bg-amber-500/15 p-4 text-left shadow-lg shadow-amber-950/10">
+          <div className="flex items-start gap-3">
+            <FileWarning className="mt-0.5 h-6 w-6 shrink-0 text-amber-600" />
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.16em] text-amber-700">PDF render error</p>
+              <p className="mt-2 break-words text-sm font-bold leading-6 text-amber-950">{error}</p>
+            </div>
+          </div>
         </div>
       ) : (
-        <PlanPdfErrorBoundary key={`${fileUrl}:${pageNumber}`} onError={() => setError("This PDF renderer hit a browser error. Refresh and try again; the uploaded file is still saved.")}>
+        <PlanPdfErrorBoundary key={`${fileUrl}:${pageNumber}`} onError={(caughtError) => setError(reportPdfError("PDF render exception", caughtError, { fileUrl, pageNumber, label }))}>
           <Document
             file={fileUrl}
             loading={<Loader2 className="h-6 w-6 animate-spin text-slate-400" />}
-            onLoadError={() => setError("This PDF could not be rendered in the browser. Open the file separately or try re-uploading if it was exported with restricted PDF settings.")}
+            onSourceError={(sourceError) => setError(reportPdfError("PDF source failed", sourceError, { fileUrl, pageNumber, label }))}
+            onLoadError={(loadError) => setError(reportPdfError("PDF load failed", loadError, { fileUrl, pageNumber, label }))}
             onLoadSuccess={({ numPages }) => onPageCount?.(numPages)}
           >
             <Page
@@ -64,6 +70,7 @@ export function PlanPdfPage({ fileUrl, pageNumber, label, compact = false, maxWi
               renderAnnotationLayer={false}
               renderTextLayer={false}
               loading={<Loader2 className="h-5 w-5 animate-spin text-slate-400" />}
+              onRenderError={(renderError) => setError(reportPdfError("PDF page render failed", renderError, { fileUrl, pageNumber, label }))}
               className="overflow-hidden bg-white [&_canvas]:!h-auto [&_canvas]:!max-w-full [&_canvas]:!bg-white"
               aria-label={label}
             />
@@ -74,7 +81,29 @@ export function PlanPdfPage({ fileUrl, pageNumber, label, compact = false, maxWi
   );
 }
 
-class PlanPdfErrorBoundary extends Component<{ children: ReactNode; onError: () => void }, { hasError: boolean }> {
+type PdfErrorDetails = {
+  fileUrl: string;
+  pageNumber: number;
+  label: string;
+};
+
+function reportPdfError(prefix: string, error: unknown, details: PdfErrorDetails) {
+  const message = formatPdfError(error);
+  console.error(`[PlanPdfPage] ${prefix}`, { message, error, details, workerSrc: pdfjs.GlobalWorkerOptions.workerSrc });
+  return `${prefix}: ${message}`;
+}
+
+function formatPdfError(error: unknown) {
+  if (error instanceof Error) return `${error.name}: ${error.message}`;
+  if (typeof error === "string") return error;
+  try {
+    return JSON.stringify(error);
+  } catch {
+    return "Unknown PDF error";
+  }
+}
+
+class PlanPdfErrorBoundary extends Component<{ children: ReactNode; onError: (error: unknown) => void }, { hasError: boolean }> {
   state = { hasError: false };
 
   static getDerivedStateFromError() {
@@ -82,8 +111,7 @@ class PlanPdfErrorBoundary extends Component<{ children: ReactNode; onError: () 
   }
 
   componentDidCatch(error: unknown) {
-    console.error("Plan PDF renderer failed", error);
-    this.props.onError();
+    this.props.onError(error);
   }
 
   render() {

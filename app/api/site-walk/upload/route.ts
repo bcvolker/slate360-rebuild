@@ -66,15 +66,27 @@ export const POST = (req: NextRequest) =>
 
     const ext = filename.split(".").pop()?.toLowerCase() ?? "jpg";
     const namespace = resolveNamespace(orgId, user.id);
-    const folderId = session.project_id
-      ? await ensureSiteWalkProjectFolder({
+    let folderId: string | null = null;
+
+    if (session.project_id) {
+      try {
+        folderId = await ensureSiteWalkProjectFolder({
           admin,
           projectId: session.project_id,
           orgId,
           userId: user.id,
           childName: "Photos",
-        })
-      : null;
+        });
+      } catch (err) {
+        console.error("[site-walk-upload] folder provisioning failed; using session fallback", {
+          sessionId: session.id,
+          projectId: session.project_id,
+          orgId,
+          error: describeError(err),
+        });
+      }
+    }
+
     const key = folderId
       ? buildCanonicalS3Key(namespace, folderId, filename)
       : `orgs/${namespace}/site-walk-files/ad-hoc/${session.id}/photos/${Date.now()}_${filename.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
@@ -115,3 +127,10 @@ export const POST = (req: NextRequest) =>
       return serverError("Failed to generate upload URL");
     }
   });
+
+function describeError(error: unknown) {
+  if (error instanceof Error) {
+    return { name: error.name, message: error.message };
+  }
+  return { message: String(error) };
+}

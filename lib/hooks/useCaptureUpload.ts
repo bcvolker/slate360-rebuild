@@ -118,8 +118,9 @@ export function useCaptureUpload({ sessionId, planTarget, onPlanTargetSaved, onS
 }
 
 async function attachItemToPlanPin(itemId: string, target: PlanCaptureTarget) {
-  if (target.pinId) {
-    const response = await fetch(`/api/site-walk/pins/${encodeURIComponent(target.pinId)}`, {
+  const savedPinId = target.pinId && isUuid(target.pinId) ? target.pinId : null;
+  if (savedPinId) {
+    const response = await fetch(`/api/site-walk/pins/${encodeURIComponent(savedPinId)}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ item_id: itemId, pin_status: "active" }),
@@ -145,6 +146,10 @@ async function attachItemToPlanPin(itemId: string, target: PlanCaptureTarget) {
 }
 
 export type { CaptureStatus };
+
+function isUuid(value: string) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+}
 
 function isOffline() {
   return typeof navigator !== "undefined" && !navigator.onLine;

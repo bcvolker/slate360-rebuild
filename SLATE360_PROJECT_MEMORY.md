@@ -202,33 +202,37 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-05-06 (Plan PDF CSP Worker + Navigation Hotfix)
+### Session Handoff — 2026-05-06 (Plan PDF + Plan Pin Attachment Hotfix)
 
 #### What Changed
-- `components/site-walk/capture/PlanPdfPage.tsx` — Fixed the live CSP failure by replacing the external unpkg PDF.js worker with a same-origin bundled `pdf.worker.min.mjs`; added a local error boundary so PDF renderer exceptions show inline instead of white-screening capture.
-- `app/site-walk/(act-1-setup)/plans/_components/PlanUploader.tsx` — Removed PDF.js parsing from upload preparation so phone uploads do not try to spin up a worker during upload; upload still stores the original PDF and renderer discovers page count when opened.
-- `components/site-walk/capture/PlanPageControls.tsx` — NEW compact previous/next page arrows plus a center page pill that opens the Pages panel.
-- `components/site-walk/capture/PlanViewer.tsx` — Wired page arrows, searchable expandable Pages panel, and Search icon to the same jump list while keeping panning, pinch zoom, layers, and long-press pins.
-- `components/project-hub/DrawingsViewerClient.tsx` — Replaced the same external unpkg PDF worker pattern in project drawings to prevent the CSP issue elsewhere.
-- `ONGOING_ISSUES.md`, `ops/bug-registry.json`, and `FIELD_PLATFORM_ROADMAP.md` — Updated S360-043 / BUG-062 root cause and verification with the CSP worker fix and condensed navigation behavior.
+- `public/pdf.worker.min.js` — NEW copied from the exact React-PDF PDF.js worker version (`pdfjs-dist` 5.4.296) so production loads the worker from a stable public URL.
+- `components/site-walk/capture/PlanPdfPage.tsx` — Hardcodes `pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.js"`; logs exact source/load/page-render/render-exception failures; visible amber error box displays the exact PDF error text.
+- `app/api/site-walk/plan-sets/[id]/file/route.ts` — Proxies the original plan PDF as a same-origin raw `application/pdf` stream with inline disposition and `X-Content-Type-Options: nosniff` instead of redirecting to a signed storage URL.
+- `components/project-hub/DrawingsViewerClient.tsx` and `app/(dashboard)/project-hub/[projectId]/drawings/page.tsx` — Aligned remaining React-PDF worker configs to `/pdf.worker.min.js`.
+- `app/api/site-walk/upload/route.ts` — Folder provisioning for `Site Walk Files / Photos` is now non-fatal; failures are logged and the route continues with a session-scoped fallback S3 key plus a pending `slatedrop_uploads` reservation.
+- `lib/hooks/useCaptureUpload.ts` — Plan-pin attachments ignore unsaved local draft pin IDs and create a persisted pin after the capture item saves instead of PATCHing a random local ID.
+- `app/api/site-walk/pins/route.ts` and `app/api/site-walk/pins/[id]/route.ts` — Validate UUID-shaped plan/pin IDs before Supabase calls so invalid draft IDs return structured 400s rather than internal server errors.
+- `ONGOING_ISSUES.md`, `ops/bug-registry.json`, and `FIELD_PLATFORM_ROADMAP.md` — Updated S360-043 / BUG-062 and added S360-044 / BUG-063 for the plan-pin attachment upload failure.
 
 #### What's Broken / Partially Done
-- Existing plan sets uploaded before this fix may have only one stored `site_walk_plan_sheets` row, but capture discovers PDF page count at render time so the Pages menu can still expand after the PDF loads.
-- Full server-side PDF rasterization/thumbnail extraction is still future work; current fix renders the original PDF in-browser with a bundled worker. Thumbnail jump strip can be added after thumbnails are persisted.
-- `bash scripts/check-file-size.sh` still fails on pre-existing oversized files outside this slice. All changed production files are under 300 lines.
+- Existing plan sets uploaded before PDF page-count extraction may have only one stored `site_walk_plan_sheets` row; capture can render/page the full PDF after load, but page-specific persisted pin sheets beyond row 1 still need a later sheet-sync/rasterization pass.
+- Full server-side PDF rasterization/thumbnail extraction remains future work; current production fix renders the original PDF in-browser with the public PDF.js worker.
+- Verify SlateDrop/Supabase-storage-style bucket CORS still allows authenticated GET from `https://www.slate360.ai`; the current plan route proxies PDFs same-origin, but direct storage GETs elsewhere can still taint canvases if bucket CORS is missing.
+- `bash scripts/check-file-size.sh` still fails on pre-existing oversized files outside this slice; this run reported the same oversized legacy files plus unrelated dirty `components/settings/AccountSettingsClient.tsx`.
 
 #### Context Files Updated
-- `ONGOING_ISSUES.md` — Updated S360-043 with CSP worker root cause and page-navigation verification.
-- `ops/bug-registry.json` — Updated BUG-062 root cause and verification criteria.
-- `slate360-context/dashboard-tabs/site-walk/FIELD_PLATFORM_ROADMAP.md` — Updated implementation note for bundled PDF worker, no upload-time PDF parsing, page arrows, and searchable Pages panel.
+- `ONGOING_ISSUES.md` — Updated PDF status and added S360-044 for plan long-press attachment upload internal server errors.
+- `ops/bug-registry.json` — Updated BUG-062 verification and added BUG-063.
+- `slate360-context/dashboard-tabs/site-walk/FIELD_PLATFORM_ROADMAP.md` — Added implementation notes for public worker/raw PDF stream and plan-pin upload fallback.
 - `SLATE360_PROJECT_MEMORY.md` — this handoff.
 
 #### Next Steps (ordered)
-1. After deploy, retest the Broadway field project on desktop/phone and confirm console no longer reports CSP violations for `https://unpkg.com/pdfjs-dist...`.
-2. Verify the uploaded PDF content renders on the white sheet and the phone no longer white-screens with `SES_UNCAUGHT_EXCEPTION: null`.
-3. In capture plan mode, test compact page arrows, searchable Pages panel, Layers menu, pinch/zoom, long-press pin, Take photo at this pin, and Upload existing photo.
-4. If a PDF still fails inline rendering, use the inline renderer error and the signed `/api/site-walk/plan-sets/[id]/file` response to separate PDF corruption from renderer/runtime errors.
-5. Add server-side PDF rasterization, thumbnails, and true thumbnail-strip navigation as a later hardening slice.
+1. After deploy, retest the Broadway field project on desktop/phone and confirm `/pdf.worker.min.js` loads with `200 OK` and no PDF.js worker fallback warning.
+2. Verify `/api/site-walk/plan-sets/[id]/file` returns `Content-Type: application/pdf` and streams the PDF from the app origin, not a redirect to storage.
+3. Verify the uploaded PDF content renders on the white sheet and the phone no longer white-screens with OOM / `SES_UNCAUGHT_EXCEPTION`.
+4. In capture plan mode, test compact page arrows, searchable Pages panel, Layers menu, pinch/zoom, long-press pin, Take photo at this pin, and Upload existing photo.
+5. Confirm `/api/site-walk/upload` returns a presigned URL for plan-pin uploads even if `project_folders` provisioning logs a fallback warning.
+6. Add server-side PDF page-count/sheet sync, rasterization, thumbnails, and true thumbnail-strip navigation as a later hardening slice.
 
 ### Session Handoff — 2026-05-04 (Amber Brand System Propagation — Full Push)
 

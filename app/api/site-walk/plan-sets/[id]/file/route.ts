@@ -1,5 +1,4 @@
 import { GetObjectCommand } from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { NextRequest, NextResponse } from "next/server";
 import { withAppAuth } from "@/lib/server/api-auth";
 import { badRequest, notFound, serverError } from "@/lib/server/api-response";
@@ -11,6 +10,11 @@ type PlanSetFileRow = {
   original_file_name: string | null;
   source_s3_key: string | null;
   mime_type: string | null;
+};
+
+type StreamableS3Body = {
+  transformToWebStream?: () => ReadableStream<Uint8Array>;
+  transformToByteArray?: () => Promise<Uint8Array>;
 };
 
 export const GET = (req: NextRequest, ctx: IdRouteContext) =>
@@ -29,21 +33,42 @@ export const GET = (req: NextRequest, ctx: IdRouteContext) =>
     if (!planSet?.source_s3_key) return notFound("Plan PDF not found");
 
     const fileName = planSet.original_file_name || `${planSet.title || "site-walk-plan"}.pdf`;
-    const contentType = planSet.mime_type?.includes("pdf") ? planSet.mime_type : "application/pdf";
 
     try {
-      const url = await getSignedUrl(
-        s3,
+      const object = await s3.send(
         new GetObjectCommand({
           Bucket: BUCKET,
           Key: planSet.source_s3_key,
-          ResponseContentDisposition: `inline; filename="${encodeURIComponent(fileName)}"`,
-          ResponseContentType: contentType,
         }),
-        { expiresIn: 3600 },
       );
-      return NextResponse.redirect(url);
+      const body = await toResponseBody(object.Body);
+      const headers = new Headers({
+        "Cache-Control": "private, max-age=300",
+        "Content-Disposition": `inline; filename="${encodeURIComponent(fileName)}"`,
+        "Content-Type": "application/pdf",
+        "X-Content-Type-Options": "nosniff",
+      });
+      if (typeof object.ContentLength === "number") headers.set("Content-Length", String(object.ContentLength));
+      return new NextResponse(body, { status: 200, headers });
     } catch (error) {
       return serverError(error instanceof Error ? error.message : "Failed to load plan PDF");
     }
   });
+
+async function toResponseBody(body: unknown): Promise<BodyInit> {
+  const streamBody = body as StreamableS3Body | null;
+  if (streamBody?.transformToWebStream) return streamBody.transformToWebStream();
+  if (streamBody?.transformToByteArray) {
+    const bytes = await streamBody.transformToByteArray();
+    return new Blob([toArrayBuffer(bytes)], { type: "application/pdf" });
+  }
+  if (body instanceof Blob || body instanceof ReadableStream) return body;
+  if (body instanceof Uint8Array) return new Blob([toArrayBuffer(body)], { type: "application/pdf" });
+  throw new Error("Plan PDF stream was empty");
+}
+
+function toArrayBuffer(bytes: Uint8Array): ArrayBuffer {
+  const buffer = new ArrayBuffer(bytes.byteLength);
+  new Uint8Array(buffer).set(bytes);
+  return buffer;
+}
