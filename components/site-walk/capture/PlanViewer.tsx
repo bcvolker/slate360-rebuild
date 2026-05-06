@@ -6,6 +6,7 @@ import GlassCard from "@/components/shared/GlassCard";
 import { cn } from "@/lib/utils";
 import type { SiteWalkPlanSet, SiteWalkPlanSheet } from "@/lib/types/site-walk";
 import { PlanLayerToolbar, type LayerFilter } from "./PlanLayerToolbar";
+import { PlanPageControls } from "./PlanPageControls";
 import { PlanPdfPage } from "./PlanPdfPage";
 import { PlanQuickActionMenu } from "./PlanQuickActionMenu";
 
@@ -121,6 +122,10 @@ export function PlanViewer({ projectId, sessionId = "current-session", planSets 
     setTransform((current) => ({ ...current, scale: clamp(current.scale + delta, 0.75, 2.5) }));
   }
 
+  function goToPage(delta: number) {
+    setPageIndex((current) => clamp(Math.min(current, pages.length - 1) + delta, 0, Math.max(0, pages.length - 1)));
+  }
+
   function handlePinClick(event: MouseEvent, pinId: string) {
     event.stopPropagation();
     setActivePinId(pinId);
@@ -159,11 +164,12 @@ export function PlanViewer({ projectId, sessionId = "current-session", planSets 
 
       {activeMenu && (
         <GlassCard className="absolute left-20 top-16 z-20 w-[min(20rem,calc(100vw-6rem))] bg-slate-950/75 p-3 backdrop-blur-xl">
-          {activeMenu === "search" && <PlanMenuPanel title="Search" body="Search sheets, rooms, or pin labels. Search index wiring lands with real plan data." />}
-          {activeMenu === "pages" && <PageSelector active={safePageIndex} pages={pages} projectAware={Boolean(projectId)} onSelect={setPageIndex} />}
+          {(activeMenu === "search" || activeMenu === "pages") && <PageSelector active={safePageIndex} pages={pages} projectAware={Boolean(projectId)} onSelect={setPageIndex} />}
           {activeMenu === "layers" && <PlanLayerToolbar filter={filter} onChangeFilter={setFilter} pinCount={visiblePins.length} className="static left-auto top-auto z-auto w-full max-w-none translate-x-0" />}
         </GlassCard>
       )}
+
+      {activePage && <PlanPageControls label={activePage.label} current={safePageIndex + 1} total={pages.length} onPrevious={() => goToPage(-1)} onNext={() => goToPage(1)} onOpenPages={() => setActiveMenu("pages")} />}
 
       {quickMenu && (
         <PlanQuickActionMenu
@@ -210,18 +216,19 @@ function PlanToolButton({ active, icon, label, onClick }: { active: boolean; ico
   return <button type="button" onClick={onClick} className={`inline-flex h-11 w-11 items-center justify-center rounded-xl transition ${active ? "bg-amber-500 text-slate-950" : "bg-white/[0.04] text-white/70 hover:text-amber-100"}`} aria-label={label}>{icon}</button>;
 }
 
-function PlanMenuPanel({ title, body }: { title: string; body: string }) {
-  return <div><p className="text-[10px] font-black uppercase tracking-[0.16em] text-amber-300">{title}</p><p className="mt-2 text-sm leading-6 text-slate-300">{body}</p></div>;
-}
-
 function PageSelector({ active, pages, projectAware, onSelect }: { active: number; pages: PlanPage[]; projectAware: boolean; onSelect: (index: number) => void }) {
+  const [query, setQuery] = useState("");
+  const filteredPages = pages.map((page, index) => ({ page, index })).filter(({ page }) => page.label.toLowerCase().includes(query.trim().toLowerCase()) || String(page.pageNumber).includes(query.trim()));
+
   return (
     <div>
       <p className="text-[10px] font-black uppercase tracking-[0.16em] text-amber-300">Pages</p>
       <p className="mt-1 text-xs text-slate-500">{projectAware ? "Project plan set" : "No project plan selected"}</p>
-      <div className="mt-3 grid gap-2">
-        {pages.map((page, index) => <button key={page.key} type="button" onClick={() => onSelect(index)} className={`rounded-xl border px-3 py-2 text-left text-sm font-black transition ${active === index ? "border-amber-400 bg-amber-500/15 text-amber-100" : "border-white/10 bg-white/[0.04] text-slate-300 hover:border-amber-400/50"}`}>{page.label}</button>)}
+      <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search sheet or page…" className="mt-3 w-full rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-sm font-bold text-slate-100 outline-none placeholder:text-slate-500 focus:border-amber-400" />
+      <div className="mt-3 grid max-h-[45dvh] gap-2 overflow-y-auto pr-1">
+        {filteredPages.map(({ page, index }) => <button key={page.key} type="button" onClick={() => onSelect(index)} className={`rounded-xl border px-3 py-2 text-left text-sm font-black transition ${active === index ? "border-amber-400 bg-amber-500/15 text-amber-100" : "border-white/10 bg-white/[0.04] text-slate-300 hover:border-amber-400/50"}`}>{page.label}</button>)}
         {pages.length === 0 && <p className="rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-sm font-bold text-slate-400">Upload a plan set before using page navigation.</p>}
+        {pages.length > 0 && filteredPages.length === 0 && <p className="rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-sm font-bold text-slate-400">No matching pages.</p>}
       </div>
     </div>
   );

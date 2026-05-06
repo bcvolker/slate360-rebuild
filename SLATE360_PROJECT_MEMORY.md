@@ -202,33 +202,33 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-05-06 (Plan Room Upload + PDF Capture Hotfix)
+### Session Handoff — 2026-05-06 (Plan PDF CSP Worker + Navigation Hotfix)
 
 #### What Changed
-- `app/api/site-walk/plan-sets/route.ts` — POST now returns both `planSet` and `planSets: [planSet]`, matching the client merge contract and preventing the post-upload mobile crash.
-- `app/api/site-walk/plan-sets/[id]/file/route.ts` — NEW authenticated signed-PDF route for original uploaded plan set files; forces inline `application/pdf` for phone-picked PDFs.
-- `app/site-walk/(act-1-setup)/plans/_components/PlanUploader.tsx` — Validates upload reservation metadata, normalizes older singular API responses, forces PDF content type, and reads PDF page count only when safe for mobile file size.
-- `app/site-walk/(act-1-setup)/plans/_components/PlanSheetGrid.tsx` + `components/site-walk/capture/PlanPdfPage.tsx` — Plan Room now renders uploaded PDF pages on a white surface when extracted thumbnails are not available.
-- `app/site-walk/(act-1-setup)/plans/_components/StartPlanWalkButton.tsx` + `MasterPlanRoomClient.tsx` — Added direct **Start walk with plans** CTA that creates a session and opens `/site-walk/capture` in plan mode.
-- Capture shell files + `components/site-walk/capture/PlanViewer.tsx` — Capture plan mode now receives real plan sets/sheets, renders the uploaded PDF instead of the dark placeholder, uses real page labels, and no longer calls `preventDefault()` in the passive wheel handler.
+- `components/site-walk/capture/PlanPdfPage.tsx` — Fixed the live CSP failure by replacing the external unpkg PDF.js worker with a same-origin bundled `pdf.worker.min.mjs`; added a local error boundary so PDF renderer exceptions show inline instead of white-screening capture.
+- `app/site-walk/(act-1-setup)/plans/_components/PlanUploader.tsx` — Removed PDF.js parsing from upload preparation so phone uploads do not try to spin up a worker during upload; upload still stores the original PDF and renderer discovers page count when opened.
+- `components/site-walk/capture/PlanPageControls.tsx` — NEW compact previous/next page arrows plus a center page pill that opens the Pages panel.
+- `components/site-walk/capture/PlanViewer.tsx` — Wired page arrows, searchable expandable Pages panel, and Search icon to the same jump list while keeping panning, pinch zoom, layers, and long-press pins.
+- `components/project-hub/DrawingsViewerClient.tsx` — Replaced the same external unpkg PDF worker pattern in project drawings to prevent the CSP issue elsewhere.
+- `ONGOING_ISSUES.md`, `ops/bug-registry.json`, and `FIELD_PLATFORM_ROADMAP.md` — Updated S360-043 / BUG-062 root cause and verification with the CSP worker fix and condensed navigation behavior.
 
 #### What's Broken / Partially Done
 - Existing plan sets uploaded before this fix may have only one stored `site_walk_plan_sheets` row, but capture discovers PDF page count at render time so the Pages menu can still expand after the PDF loads.
-- Full server-side PDF rasterization/thumbnail extraction is still future work; current fix renders the original PDF in-browser.
+- Full server-side PDF rasterization/thumbnail extraction is still future work; current fix renders the original PDF in-browser with a bundled worker. Thumbnail jump strip can be added after thumbnails are persisted.
 - `bash scripts/check-file-size.sh` still fails on pre-existing oversized files outside this slice. All changed production files are under 300 lines.
 
 #### Context Files Updated
-- `ONGOING_ISSUES.md` — Added S360-043 for the Plan Room crash/black-placeholder regression.
-- `ops/bug-registry.json` — Added BUG-062 with verification criteria.
-- `slate360-context/dashboard-tabs/site-walk/FIELD_PLATFORM_ROADMAP.md` — Updated Last Updated note and recorded the plan upload/render implementation note.
+- `ONGOING_ISSUES.md` — Updated S360-043 with CSP worker root cause and page-navigation verification.
+- `ops/bug-registry.json` — Updated BUG-062 root cause and verification criteria.
+- `slate360-context/dashboard-tabs/site-walk/FIELD_PLATFORM_ROADMAP.md` — Updated implementation note for bundled PDF worker, no upload-time PDF parsing, page arrows, and searchable Pages panel.
 - `SLATE360_PROJECT_MEMORY.md` — this handoff.
 
 #### Next Steps (ordered)
-1. After deploy, retest the Broadway field project on phone: upload a PDF from APDF, confirm the screen does not blank after completion, tap **Start walk with plans**, and verify capture opens in plan mode.
-2. On desktop and phone, verify the PDF renders as visible black/gray drawing lines on a white sheet, not a black placeholder.
-3. In capture plan mode, test pinch/zoom, Pages menu, Layers menu, long-press pin, Take photo at this pin, and Upload existing photo.
-4. If PDF rendering fails on a specific APDF export, inspect the PDF.js error state and test whether the file is locked/damaged.
-5. Add server-side PDF rasterization and persisted thumbnails as a later hardening slice.
+1. After deploy, retest the Broadway field project on desktop/phone and confirm console no longer reports CSP violations for `https://unpkg.com/pdfjs-dist...`.
+2. Verify the uploaded PDF content renders on the white sheet and the phone no longer white-screens with `SES_UNCAUGHT_EXCEPTION: null`.
+3. In capture plan mode, test compact page arrows, searchable Pages panel, Layers menu, pinch/zoom, long-press pin, Take photo at this pin, and Upload existing photo.
+4. If a PDF still fails inline rendering, use the inline renderer error and the signed `/api/site-walk/plan-sets/[id]/file` response to separate PDF corruption from renderer/runtime errors.
+5. Add server-side PDF rasterization, thumbnails, and true thumbnail-strip navigation as a later hardening slice.
 
 ### Session Handoff — 2026-05-04 (Amber Brand System Propagation — Full Push)
 

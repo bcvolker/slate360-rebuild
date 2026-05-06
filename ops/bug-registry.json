@@ -617,11 +617,12 @@
       "module": "site-walk/plans/capture",
       "severity": "critical",
       "status": "fixed",
-      "rootCause": "POST /api/site-walk/plan-sets returned a singular `planSet` while the Plan Room client merged `planSets`, so a successful mobile upload could throw a client error after completion. The capture Z-stack plan viewer also rendered a dark placeholder surface instead of the uploaded PDF, and React wheel preventDefault triggered passive-listener console warnings.",
+      "rootCause": "POST /api/site-walk/plan-sets returned a singular `planSet` while the Plan Room client merged `planSets`, so a successful mobile upload could throw a client error after completion. The capture Z-stack plan viewer also rendered a dark placeholder surface instead of the uploaded PDF, then the browser PDF renderer tried to load its worker from unpkg, which production CSP blocks. On mobile this surfaced as a PDF render failure followed by a global white-screen crash.",
       "verification": [
         "Plan set creation returns both `planSet` and `planSets: [planSet]`, and PlanUploader normalizes older singular responses",
-        "PlanUploader reads PDF page count before creating sheet rows when the file is small enough for safe mobile parsing and forces application/pdf content type for phone file-picker uploads",
-        "Plan Room and capture plan mode render uploaded PDFs through /api/site-walk/plan-sets/[id]/file with white PDF surfaces",
+        "PlanUploader avoids PDF.js parsing during upload and forces application/pdf content type for phone file-picker uploads",
+        "Plan Room and capture plan mode render uploaded PDFs through /api/site-walk/plan-sets/[id]/file with a same-origin bundled PDF worker and white PDF surfaces",
+        "Plan mode has compact previous/next page arrows plus a searchable expandable Pages panel",
         "Plan Room exposes a Start walk with plans action that creates a session and opens /site-walk/capture in plan mode",
         "PlanViewer no longer calls preventDefault in React's passive wheel handler"
       ]

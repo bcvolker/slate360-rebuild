@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Component, useEffect, useRef, useState, type ReactNode } from "react";
 import { FileWarning, Loader2 } from "lucide-react";
 import { Document, Page, pdfjs } from "react-pdf";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
 
-pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+pdfjs.GlobalWorkerOptions.workerSrc = new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url).toString();
 
 type Props = {
   fileUrl: string;
@@ -22,6 +22,10 @@ export function PlanPdfPage({ fileUrl, pageNumber, label, compact = false, maxWi
   const shellRef = useRef<HTMLDivElement>(null);
   const [pageWidth, setPageWidth] = useState(minWidth);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setError(null);
+  }, [fileUrl, pageNumber]);
 
   useEffect(() => {
     const shell = shellRef.current;
@@ -47,23 +51,42 @@ export function PlanPdfPage({ fileUrl, pageNumber, label, compact = false, maxWi
           <span>{error}</span>
         </div>
       ) : (
-        <Document
-          file={fileUrl}
-          loading={<Loader2 className="h-6 w-6 animate-spin text-slate-400" />}
-          onLoadError={() => setError("This PDF could not be rendered. Download and re-upload if it came from a locked or damaged source.")}
-          onLoadSuccess={({ numPages }) => onPageCount?.(numPages)}
-        >
-          <Page
-            pageNumber={pageNumber}
-            width={pageWidth}
-            renderAnnotationLayer={false}
-            renderTextLayer={false}
-            loading={<Loader2 className="h-5 w-5 animate-spin text-slate-400" />}
-            className="overflow-hidden bg-white [&_canvas]:!h-auto [&_canvas]:!max-w-full [&_canvas]:!bg-white"
-            aria-label={label}
-          />
-        </Document>
+        <PlanPdfErrorBoundary key={`${fileUrl}:${pageNumber}`} onError={() => setError("This PDF renderer hit a browser error. Refresh and try again; the uploaded file is still saved.")}>
+          <Document
+            file={fileUrl}
+            loading={<Loader2 className="h-6 w-6 animate-spin text-slate-400" />}
+            onLoadError={() => setError("This PDF could not be rendered in the browser. Open the file separately or try re-uploading if it was exported with restricted PDF settings.")}
+            onLoadSuccess={({ numPages }) => onPageCount?.(numPages)}
+          >
+            <Page
+              pageNumber={pageNumber}
+              width={pageWidth}
+              renderAnnotationLayer={false}
+              renderTextLayer={false}
+              loading={<Loader2 className="h-5 w-5 animate-spin text-slate-400" />}
+              className="overflow-hidden bg-white [&_canvas]:!h-auto [&_canvas]:!max-w-full [&_canvas]:!bg-white"
+              aria-label={label}
+            />
+          </Document>
+        </PlanPdfErrorBoundary>
       )}
     </div>
   );
+}
+
+class PlanPdfErrorBoundary extends Component<{ children: ReactNode; onError: () => void }, { hasError: boolean }> {
+  state = { hasError: false };
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: unknown) {
+    console.error("Plan PDF renderer failed", error);
+    this.props.onError();
+  }
+
+  render() {
+    return this.state.hasError ? null : this.props.children;
+  }
 }

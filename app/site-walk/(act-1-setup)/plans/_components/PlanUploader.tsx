@@ -1,12 +1,9 @@
 "use client";
 
 import { useRef, useState, type DragEvent, type KeyboardEvent } from "react";
-import { pdfjs } from "react-pdf";
 import { FileUp } from "lucide-react";
 import GlassCard from "@/components/shared/GlassCard";
 import type { PlanRoomPayload, PlanRoomProject, UploadState } from "./plan-room-types";
-
-pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 type FolderResponse = { folders?: Array<{ id: string; name: string; folder_path?: string; path?: string; project_id?: string }> ; error?: string };
 type FolderCreateResponse = { id?: string; name?: string; folder_path?: string; folder?: { id?: string; name?: string; folder_path?: string }; error?: string };
@@ -127,7 +124,7 @@ async function reserveSlateDropUpload(file: File, folderId: string, folderPath: 
 async function uploadToStorage(file: File, uploadUrl: string) { if (!uploadUrl) throw new Error("Upload reservation failed."); const response = await fetch(uploadUrl, { method: "PUT", headers: { "Content-Type": planPdfContentType(file) }, body: file }); if (!response.ok) throw new Error("Storage upload failed."); }
 async function completeSlateDropUpload(fileId: string) { const response = await fetch("/api/slatedrop/complete", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ fileId }) }); if (!response.ok) throw new Error(await readError(response)); }
 async function createPlanSet(projectId: string, file: File, fileId: string, s3Key: string, pageCount: number) { const response = await fetch("/api/site-walk/plan-sets", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ projectId, fileId, s3Key, title: file.name.replace(/\.pdf$/i, ""), originalFileName: file.name, mimeType: planPdfContentType(file), fileSize: file.size, pageCount }) }); if (!response.ok) throw new Error(await readError(response)); const data = (await response.json()) as PlanRoomPayload & { planSet?: PlanRoomPayload["planSets"][number] }; if ((!data.planSets || data.planSets.length === 0) && data.planSet) return { planSets: [data.planSet], sheets: data.sheets ?? [] }; if (!data.planSets) throw new Error("Plan set was created, but the server response was incomplete."); return { planSets: data.planSets, sheets: data.sheets ?? [] }; }
-async function readPdfPageCount(file: File) { if (file.size > 25 * 1024 * 1024) return 1; try { const data = new Uint8Array(await file.arrayBuffer()); const task = pdfjs.getDocument({ data }); const pdf = await task.promise; const count = pdf.numPages; await pdf.destroy(); return Math.max(1, Math.min(250, count)); } catch { return 1; } }
+async function readPdfPageCount(_file: File) { return 1; }
 function planPdfContentType(file: File) { return file.name.toLowerCase().endsWith(".pdf") ? "application/pdf" : file.type || "application/pdf"; }
 async function readError(response: Response) { const data = (await response.json().catch(() => null)) as { error?: string; message?: string } | null; return data?.error ?? data?.message ?? "Request failed"; }
 function statusClasses(stage: UploadState["stage"]) { if (stage === "complete") return "bg-emerald-500/10 text-emerald-300 border border-emerald-500/20"; if (stage === "error") return "bg-rose-500/10 text-rose-300 border border-rose-500/20"; if (stage === "uploading" || stage === "processing") return "bg-amber-500/10 text-amber-200 border border-amber-500/20"; return "bg-white/[0.04] text-slate-300 border border-white/10"; }
