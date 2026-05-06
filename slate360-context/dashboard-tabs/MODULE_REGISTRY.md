@@ -15,7 +15,7 @@
 | Geospatial & Robotics | `/(dashboard)/geospatial` | `getEntitlements(tier).canAccessGeospatial` | `dashboard-tabs/geospatial-robotics/IMPLEMENTATION_PLAN.md` | Scaffolded |
 | Virtual Studio | `/(dashboard)/virtual-studio` | `getEntitlements(tier).canAccessVirtualStudio` | `dashboard-tabs/virtual-studio/IMPLEMENTATION_PLAN.md` | Scaffolded |
 | Analytics & Reports | `/(dashboard)/analytics` | `getEntitlements(tier).canAccessAnalytics` + CEO override | `dashboard-tabs/analytics-reports/IMPLEMENTATION_PLAN.md` | Live (v1 UI) |
-| My Account | `/(dashboard)/my-account` | authenticated | `dashboard-tabs/my-account/IMPLEMENTATION_PLAN.md` | Scaffolded |
+| Account Hub | `/more` (`/my-account` redirects to `/more/account`) | authenticated | `dashboard-tabs/my-account/IMPLEMENTATION_PLAN.md` | Live |
 | CEO Command Center | `/(dashboard)/ceo` | `resolveServerOrgContext().canAccessCeo` (owner-only, NOT entitlement) | `dashboard-tabs/ceo-command-center/IMPLEMENTATION_PLAN.md` | Live stub |
 | Market Robot | `/market` | `resolveServerOrgContext().canAccessMarket` (NOT entitlement) | `dashboard-tabs/market-robot/IMPLEMENTATION_PLAN.md` | Live |
 | Athlete360 | `/athlete360` | `resolveServerOrgContext().canAccessAthlete360` (NOT entitlement) | `dashboard-tabs/athlete360/IMPLEMENTATION_PLAN.md` | Stub |

@@ -48,7 +48,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Geospatial",     href: "/geospatial",      icon: Globe,        gate: "canAccessGeospatial", phase1Hidden: true },
   { label: "Virtual Studio", href: "/virtual-studio",  icon: Film,         gate: "canAccessVirtual", phase1Hidden: true },
   { label: "Analytics",      href: "/analytics",       icon: BarChart3,    gate: "canAccessAnalytics", phase1Hidden: true },
-  { label: "My Account",     href: "/my-account",      icon: User },
+  { label: "Account",        href: "/more",            icon: User },
   { label: "Operations Console", href: "/operations-console",         icon: Shield,       internalKey: "operationsConsole" },
 ];
 
@@ -82,7 +82,7 @@ export default function QuickNav({ tier, isCeo = false, internalAccess }: QuickN
     <div className="relative">
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-2 rounded-xl border border-app bg-app-card px-3 py-2 text-xs font-semibold text-zinc-300 hover:bg-white/[0.04] hover:text-cobalt-hover hover:border-cobalt transition-all"
+        className="flex items-center gap-2 rounded-xl border border-app bg-app-card px-3 py-2 text-xs font-semibold text-zinc-300 transition-all hover:border-amber-500/50 hover:bg-white/[0.04] hover:text-amber-200"
       >
         <LayoutDashboard size={14} /> Navigate <ChevronDown size={12} />
       </button>
@@ -97,7 +97,7 @@ export default function QuickNav({ tier, isCeo = false, internalAccess }: QuickN
                   key={item.href}
                   href={item.href}
                   onClick={() => setOpen(false)}
-                  className="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-zinc-300 hover:bg-white/[0.04] hover:text-cobalt-hover transition-colors"
+                  className="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-zinc-300 transition-colors hover:bg-white/[0.04] hover:text-amber-200"
                 >
                   <Icon size={14} />
                   <span className="flex-1">{item.label}</span>

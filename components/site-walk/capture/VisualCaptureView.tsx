@@ -78,10 +78,10 @@ function TopCaptureControls({ location, modeLabel, onUndo, onRedo }: { location:
   return (
     <header className="shrink-0 border-b border-white/10 bg-[#0B0F15]/90 px-2 py-2 shadow-lg backdrop-blur-md">
       <div className="grid grid-cols-[auto_1fr_auto] items-center gap-2">
-        <a href="/site-walk" className="inline-flex h-9 items-center gap-1 rounded-xl border border-white/15 bg-white/5 px-2 text-[10px] font-black uppercase tracking-[0.1em] text-white/85"><ChevronLeft className="h-4 w-4" /> Back</a>
+        <a href="/site-walk" className="inline-flex h-9 items-center gap-1 rounded-xl border border-white/15 bg-white/5 px-2 text-[10px] font-black uppercase tracking-[0.1em] text-white/85 hover:border-amber-300/50 hover:text-amber-100"><ChevronLeft className="h-4 w-4" /> Home</a>
         <div className="min-w-0 text-center">
           <p className="truncate text-sm font-black text-white">{location}</p>
-          <p className="truncate text-[9px] font-black uppercase tracking-[0.16em] text-cyan-100/70">{modeLabel || "Photos-only"}</p>
+          <p className="truncate text-[9px] font-black uppercase tracking-[0.16em] text-amber-200/70">{modeLabel || "Photos-only"}</p>
         </div>
         <div className="flex items-center justify-end gap-1">
           <button type="button" onClick={onUndo} className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-white/15 bg-white/5 text-white/75" aria-label="Undo markup"><RotateCcw className="h-4 w-4" /></button>
@@ -139,12 +139,12 @@ function CaptureMediaRail({ mode, onModeChange, angleItems, progressItems, activ
   return (
     <section className="shrink-0 bg-transparent pt-1" aria-label="Capture media rail">
       <div className="mx-3 mb-1 grid grid-cols-2 rounded-2xl border border-white/10 bg-white/5 p-1">
-        <button type="button" onClick={() => onModeChange("angles")} className={`h-8 rounded-xl text-[10px] font-black uppercase tracking-[0.12em] ${!showingProgress ? "bg-cyan-300 text-slate-950" : "text-white/65"}`}>Additional Angles</button>
-        <button type="button" onClick={() => onModeChange("progress")} className={`h-8 rounded-xl text-[10px] font-black uppercase tracking-[0.12em] ${showingProgress ? "bg-cyan-300 text-slate-950" : "text-white/65"}`}>Progress / Before &amp; After</button>
+        <button type="button" onClick={() => onModeChange("angles")} className={`h-8 rounded-xl text-[10px] font-black uppercase tracking-[0.12em] ${!showingProgress ? "bg-amber-500 text-slate-950" : "text-white/65"}`}>Additional Angles</button>
+        <button type="button" onClick={() => onModeChange("progress")} className={`h-8 rounded-xl text-[10px] font-black uppercase tracking-[0.12em] ${showingProgress ? "bg-amber-500 text-slate-950" : "text-white/65"}`}>Progress / Before &amp; After</button>
       </div>
       <RailShell heightClass="h-14">
-        <button type="button" onClick={showingProgress ? onAddProgress : () => requestCameraCapture("camera", "next_item")} className="flex aspect-square h-full shrink-0 items-center justify-center border border-cyan-300/60 bg-cyan-300/15 text-cyan-100" aria-label={showingProgress ? "Add progress photo" : "Add angle"}><Plus className="h-5 w-5" /></button>
-        {showingProgress && ghostAvailable && <button type="button" onClick={onToggleGhost} className={`min-w-24 border px-2 text-[10px] font-black ${ghostOn ? "border-cyan-300 bg-cyan-300/20 text-cyan-100" : "border-white/15 bg-white/10 text-white/70"}`}>Ghost align</button>}
+        <button type="button" onClick={showingProgress ? onAddProgress : () => requestCameraCapture("camera", "next_item")} className="flex aspect-square h-full shrink-0 items-center justify-center border border-amber-300/60 bg-amber-500/15 text-amber-100" aria-label={showingProgress ? "Add progress photo" : "Add angle"}><Plus className="h-5 w-5" /></button>
+        {showingProgress && ghostAvailable && <button type="button" onClick={onToggleGhost} className={`min-w-24 border px-2 text-[10px] font-black ${ghostOn ? "border-amber-300 bg-amber-500/20 text-amber-100" : "border-white/15 bg-white/10 text-white/70"}`}>Ghost align</button>}
         {items.map((item) => <ThumbButton key={item.id} item={item} thumbKey={`${mode}-${item.id}`} active={!showingProgress && item.id === activeItemId} revealed={revealedThumbKey === `${mode}-${item.id}`} label={showingProgress ? new Date(item.created_at).toLocaleDateString() : item.title || "Angle"} onReveal={onReveal} onOpen={() => onSelectItem(item)} />)}
       </RailShell>
     </section>
@@ -153,12 +153,12 @@ function CaptureMediaRail({ mode, onModeChange, angleItems, progressItems, activ
 
 function RailShell({ heightClass, children }: { heightClass: string; children: ReactNode }) {
   return (
-    <div className="relative mx-3 overflow-hidden rounded-2xl border border-cyan-300/15 bg-slate-900/80 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06),0_16px_50px_rgba(0,0,0,0.28)] backdrop-blur-sm">
+    <div className="relative mx-3 overflow-hidden rounded-2xl border border-amber-500/15 bg-slate-900/80 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06),0_16px_50px_rgba(0,0,0,0.28)] backdrop-blur-sm">
       <div className={`flex ${heightClass} gap-2 overflow-x-auto p-1 no-scrollbar`}>
         {children}
       </div>
-      <div className="pointer-events-none absolute inset-y-0 left-0 w-9 border-l border-cyan-300/15 bg-gradient-to-r from-slate-950 via-slate-950/65 to-transparent" />
-      <div className="pointer-events-none absolute inset-y-0 right-0 w-9 border-r border-cyan-300/15 bg-gradient-to-l from-slate-950 via-slate-950/65 to-transparent" />
+      <div className="pointer-events-none absolute inset-y-0 left-0 w-9 border-l border-amber-500/15 bg-gradient-to-r from-slate-950 via-slate-950/65 to-transparent" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 w-9 border-r border-amber-500/15 bg-gradient-to-l from-slate-950 via-slate-950/65 to-transparent" />
     </div>
   );
 }
@@ -182,7 +182,7 @@ function AttachmentsSheet({ pins, onClose, onRemove }: { pins: PhotoAttachmentPi
     <div className="absolute inset-0 z-40 flex flex-col justify-end bg-black/55" role="dialog" aria-label="Pinned attachments" onClick={onClose}>
       <div className="rounded-t-3xl border-t border-white/10 bg-zinc-950/95 p-3 shadow-2xl backdrop-blur-xl" onClick={(event) => event.stopPropagation()}>
         <div className="mb-2 flex items-center justify-between"><p className="text-[11px] font-black uppercase tracking-[0.16em] text-amber-100">Pinned attachments ({pins.length})</p><button type="button" onClick={onClose} className="rounded-full border border-white/15 p-2 text-white/80" aria-label="Close attachments"><X className="h-4 w-4" /></button></div>
-        {pins.length === 0 ? <p className="rounded-2xl border border-dashed border-white/15 bg-white/5 px-4 py-6 text-center text-xs font-bold text-white/60">Long-press the photo to drop a pin and attach files.</p> : <ul className="max-h-72 space-y-2 overflow-y-auto pr-1 no-scrollbar">{pins.map((pin) => <li key={pin.id} className="rounded-2xl border border-white/10 bg-white/5 px-3 py-2"><div className="flex items-center gap-3"><Paperclip className="h-4 w-4 shrink-0 text-cyan-300" /><div className="min-w-0 flex-1"><p className="truncate text-sm font-black text-white">{pin.label}</p><p className="truncate text-[11px] font-bold text-white/60">{pin.files.length} file{pin.files.length === 1 ? "" : "s"}{pin.note ? ` · ${pin.note}` : ""}</p></div><button type="button" onClick={() => onRemove(pin.id)} className="rounded-full border border-white/15 p-2 text-white/75 hover:border-rose-400 hover:text-rose-200" aria-label={`Remove ${pin.label}`}><Trash2 className="h-4 w-4" /></button></div>{pin.files.length > 0 && <div className="mt-2 flex flex-wrap gap-2">{pin.files.map((file) => <button key={file.id} type="button" onClick={() => void openPreview(file)} className="inline-flex max-w-full items-center gap-1 rounded-full border border-cyan-300/20 bg-cyan-300/10 px-2 py-1 text-[11px] font-black text-cyan-100"><Eye className="h-3 w-3" /><span className="truncate">{file.name}</span></button>)}</div>}</li>)}</ul>}
+        {pins.length === 0 ? <p className="rounded-2xl border border-dashed border-white/15 bg-white/5 px-4 py-6 text-center text-xs font-bold text-white/60">Long-press the photo to drop a pin and attach files.</p> : <ul className="max-h-72 space-y-2 overflow-y-auto pr-1 no-scrollbar">{pins.map((pin) => <li key={pin.id} className="rounded-2xl border border-white/10 bg-white/5 px-3 py-2"><div className="flex items-center gap-3"><Paperclip className="h-4 w-4 shrink-0 text-amber-300" /><div className="min-w-0 flex-1"><p className="truncate text-sm font-black text-white">{pin.label}</p><p className="truncate text-[11px] font-bold text-white/60">{pin.files.length} file{pin.files.length === 1 ? "" : "s"}{pin.note ? ` · ${pin.note}` : ""}</p></div><button type="button" onClick={() => onRemove(pin.id)} className="rounded-full border border-white/15 p-2 text-white/75 hover:border-rose-400 hover:text-rose-200" aria-label={`Remove ${pin.label}`}><Trash2 className="h-4 w-4" /></button></div>{pin.files.length > 0 && <div className="mt-2 flex flex-wrap gap-2">{pin.files.map((file) => <button key={file.id} type="button" onClick={() => void openPreview(file)} className="inline-flex max-w-full items-center gap-1 rounded-full border border-amber-300/20 bg-amber-500/10 px-2 py-1 text-[11px] font-black text-amber-100"><Eye className="h-3 w-3" /><span className="truncate">{file.name}</span></button>)}</div>}</li>)}</ul>}
       </div>
       {preview && <FilePreviewModal preview={preview} onClose={() => setPreview(null)} />}
     </div>
@@ -198,7 +198,7 @@ function FilePreviewModal({ preview, onClose }: { preview: { file: PhotoAttachme
         <div className="min-h-72 flex-1 bg-black">
           {preview.loading ? <div className="flex h-72 items-center justify-center text-white"><Loader2 className="h-6 w-6 animate-spin" /></div> : preview.error ? <div className="flex h-72 items-center justify-center p-6 text-center text-sm font-bold text-rose-100">{preview.error}</div> : isImage ? <img src={preview.url ?? ""} alt={preview.file.name} className="max-h-[70dvh] w-full object-contain" /> : <iframe src={preview.url ?? ""} title={preview.file.name} className="h-[70dvh] w-full bg-white" />}
         </div>
-        {preview.url && <a href={preview.url} target="_blank" rel="noreferrer" className="inline-flex items-center justify-center gap-2 border-t border-white/10 px-4 py-3 text-sm font-black text-cyan-100"><ExternalLink className="h-4 w-4" /> Open full file</a>}
+        {preview.url && <a href={preview.url} target="_blank" rel="noreferrer" className="inline-flex items-center justify-center gap-2 border-t border-white/10 px-4 py-3 text-sm font-black text-amber-100"><ExternalLink className="h-4 w-4" /> Open full file</a>}
       </div>
     </div>
   );

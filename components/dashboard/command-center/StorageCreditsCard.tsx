@@ -47,7 +47,7 @@ export function StorageCreditsCard({ storageUsedBytes, fileCount, storageLimitGb
             Storage
           </CardTitle>
           <Link
-            href="/my-account"
+            href="/more/storage"
             className="text-xs text-muted-foreground hover:text-amber-300 transition-colors"
           >
             Manage

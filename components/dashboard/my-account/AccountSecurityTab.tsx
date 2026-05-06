@@ -20,7 +20,7 @@ export default function AccountSecurityTab({ overview, userEmail, loading }: Pro
     try {
       const supabase = createClient();
       await supabase.auth.resetPasswordForEmail(userEmail, {
-        redirectTo: `${window.location.origin}/auth/callback?next=/my-account`,
+        redirectTo: `${window.location.origin}/auth/callback?next=/settings`,
       });
       setResetSent(true);
     } finally {

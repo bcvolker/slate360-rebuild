@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Camera, Map } from "lucide-react";
+import Link from "next/link";
+import { ArrowLeft, Camera, Map } from "lucide-react";
 import { PagedWorkspace, type PagedWorkspacePage } from "@/components/shared/paged-workspace";
 import { DataContextView } from "@/components/site-walk/capture/DataContextView";
 import { LocationPickerModal } from "@/components/site-walk/capture/LocationPickerModal";
@@ -205,11 +206,14 @@ export function CaptureClientIsland({ sessionId, projectId, walkName, showPlanCa
 function PlanCaptureScreen({ projectId, sessionId, onCamera }: { projectId: string | null; sessionId: string; onCamera: () => void }) {
   return (
     <section className="flex h-[100dvh] flex-col bg-slate-950 text-white">
-      <header className="shrink-0 border-b border-cyan-300/10 bg-slate-950/95 px-3 py-3">
-        <p className="text-[10px] font-black uppercase tracking-[0.16em] text-cyan-100">Walk with Plans</p>
+      <header className="shrink-0 border-b border-amber-500/10 bg-slate-950/95 px-3 py-3">
+        <Link href="/site-walk" className="mb-2 inline-flex min-h-9 items-center gap-2 rounded-2xl border border-white/15 bg-white/[0.04] px-3 text-xs font-black text-white/80 transition hover:border-amber-300/50 hover:text-amber-100">
+          <ArrowLeft className="h-4 w-4" /> Site Walk Home
+        </Link>
+        <p className="text-[10px] font-black uppercase tracking-[0.16em] text-amber-200">Walk with Plans</p>
         <div className="mt-1 flex items-center justify-between gap-3">
           <h1 className="text-lg font-black">Master Plan Room</h1>
-          <button type="button" onClick={onCamera} className="inline-flex min-h-10 items-center gap-2 rounded-2xl bg-cyan-300 px-3 text-xs font-black text-slate-950"><Camera className="h-4 w-4" /> Camera</button>
+          <button type="button" onClick={onCamera} className="inline-flex min-h-10 items-center gap-2 rounded-2xl bg-amber-500 px-3 text-xs font-black text-slate-950 hover:bg-amber-400"><Camera className="h-4 w-4" /> Camera</button>
         </div>
       </header>
       <div className="min-h-0 flex-1 overflow-y-auto p-3 no-scrollbar"><PlanViewer projectId={projectId} sessionId={sessionId} /></div>
@@ -218,7 +222,7 @@ function PlanCaptureScreen({ projectId, sessionId, onCamera }: { projectId: stri
 }
 
 function CaptureModeToggle({ mode, onPlan, onCamera }: { mode: "plan" | "camera"; onPlan: () => void; onCamera: () => void }) {
-  return <div className="fixed left-3 top-3 z-40 flex rounded-2xl border border-white/15 bg-slate-950/80 p-1 shadow-2xl backdrop-blur-xl"><button type="button" onClick={onPlan} className={`inline-flex h-8 items-center gap-1 rounded-xl px-2 text-[10px] font-black uppercase tracking-[0.1em] ${mode === "plan" ? "bg-cyan-300 text-slate-950" : "text-white/70"}`}><Map className="h-3.5 w-3.5" /> Plan</button><button type="button" onClick={onCamera} className={`inline-flex h-8 items-center gap-1 rounded-xl px-2 text-[10px] font-black uppercase tracking-[0.1em] ${mode === "camera" ? "bg-cyan-300 text-slate-950" : "text-white/70"}`}><Camera className="h-3.5 w-3.5" /> Camera</button></div>;
+  return <div className="fixed left-3 top-3 z-40 flex rounded-2xl border border-white/15 bg-slate-950/80 p-1 shadow-2xl backdrop-blur-xl"><button type="button" onClick={onPlan} className={`inline-flex h-8 items-center gap-1 rounded-xl px-2 text-[10px] font-black uppercase tracking-[0.1em] ${mode === "plan" ? "bg-amber-500 text-slate-950" : "text-white/70"}`}><Map className="h-3.5 w-3.5" /> Plan</button><button type="button" onClick={onCamera} className={`inline-flex h-8 items-center gap-1 rounded-xl px-2 text-[10px] font-black uppercase tracking-[0.1em] ${mode === "camera" ? "bg-amber-500 text-slate-950" : "text-white/70"}`}><Camera className="h-3.5 w-3.5" /> Camera</button></div>;
 }
 
 function parseItemDetail(title: string, location: string) {

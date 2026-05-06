@@ -83,11 +83,11 @@ export default function UserMenu({
             </div>
             <div className="py-1">
               <Link
-                href="/my-account"
+                href="/more/account"
                 onClick={() => onOpenChange(false)}
                 className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-zinc-300 hover:bg-white/[0.04] transition-colors"
               >
-                <Activity size={15} /> My Account
+                <Activity size={15} /> Account
               </Link>
               {isAdmin && (
                 <button
@@ -95,7 +95,7 @@ export default function UserMenu({
                   className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-zinc-300 hover:bg-white/[0.04] transition-colors"
                 >
                   {billingBusy ? <Loader2 size={15} className="animate-spin" /> : <CreditCard size={15} />}
-                  Billing &amp; Payments
+                  Billing &amp; Apps
                 </button>
               )}
               <button

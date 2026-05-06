@@ -130,7 +130,7 @@ export default function DashboardOverview({
                         "content-studio": "/content-studio",
                         "tours": "/tours",
                         "analytics": "/analytics",
-                        "my-account": "/my-account",
+                        "my-account": "/more",
                         "operations-console": "/operations-console",
                         "market": "/market",
                         "athlete360": "/athlete360",

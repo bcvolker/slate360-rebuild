@@ -34,7 +34,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Projects", icon: FolderKanban, href: "/projects" },
   { label: "SlateDrop", icon: Inbox, href: "/slatedrop" },
   { label: "Site Walk", icon: MapPin, href: "/site-walk/walks", matchPrefix: "/site-walk" },
-  { label: "My Account", icon: CreditCard, href: "/my-account" },
+  { label: "Account", icon: CreditCard, href: "/more" },
 ];
 
 interface DashboardSidebarProps {

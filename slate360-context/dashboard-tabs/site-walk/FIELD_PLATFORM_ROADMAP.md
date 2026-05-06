@@ -1,6 +1,6 @@
 # Site Walk — Field Platform Roadmap
 
-**Last Updated:** 2026-05-06  
+**Last Updated:** 2026-05-06 (navigation affordance cleanup)
 **Status:** Planning / Pre-build
 **Owner:** Product + Engineering
 
@@ -230,7 +230,7 @@ Search: ________________
 ### 3f. Collaborator Access System
 
 **Invitation flow:**
-1. Org admin goes to `/my-account?tab=team` (new tab in `MyAccountShell`)
+1. Org admin goes to `/more/organization` or the future team-management panel inside `/settings`
 2. Clicks "Add Field Worker" → enters email
 3. System checks: is that email a Slate360 user? If yes, send invite. If no, send invite + signup link.
 4. Invited user sees a notification on their dashboard → accepts → appears in `org_collaborators` as `active`
@@ -397,6 +397,10 @@ Site Walk must use a small, predictable workspace map. Do not bury active work b
 Current compatibility aliases:
 - `/site-walk/setup` remains the existing setup route behind the Landing action.
 - `/site-walk/deliverables` remains available for legacy deliverable links until `/site-walk/reports` fully replaces it.
+
+Navigation affordance rule:
+- Every non-root Site Walk workspace must expose an explicit `Site Walk Home` / `Back to Workspace` affordance in addition to tab navigation.
+- Full-bleed capture modes cannot rely on the global app shell; camera-only, plan mode, and start-choice screens must each provide a visible route back to `/site-walk`.
 
 ---
 

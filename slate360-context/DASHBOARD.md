@@ -1,6 +1,6 @@
 # Slate360 — Dashboard Blueprint
 
-**Last Updated:** 2026-05-01 (dashboard no-filler cleanup)
+**Last Updated:** 2026-05-06 (account hub + Site Walk navigation cleanup)
 **Context Maintenance:** Update this file whenever dashboard routes, components, widgets, or layout logic changes.
 **Cross-reference:** See `FUTURE_FEATURES.md` for the full phased build roadmap (Phases 0–7).
 
@@ -19,7 +19,9 @@
   /tours                         ← ✅ Scaffolded (DashboardTabShell)
   /geospatial                    ← ✅ Scaffolded (DashboardTabShell)
   /virtual-studio                ← ✅ Scaffolded (DashboardTabShell)
-  /my-account                    ← ✅ Scaffolded (DashboardTabShell)
+  /more                          ← Account Hub: account, org, billing/apps, coordination, storage, support
+  /settings                      ← Split-pane account workspace
+  /my-account                    ← Legacy compatibility redirect to `/more/account`
 ```
 
 **Dashboard entry point:** `app/dashboard/` redirects into the authenticated `(dashboard)` route group.
@@ -43,9 +45,9 @@ The authenticated Slate360 shell treats the viewport as a fixed native-app frame
 
 As of 2026-04-30, authenticated shell chrome and Site Walk/Auth entry surfaces use the premium Dark Glass direction:
 
-- Base app surface: `#0B0F15` with subtle graphite/cobalt radial gradients.
+- Base app surface: `#0B0F15` with subtle graphite/amber radial gradients.
 - Panels/cards: translucent glass (`bg-white/5`, `backdrop-blur-md`, `border-white/10`, `shadow-lg`, rounded corners).
-- Primary actions: cobalt blue with a soft glow (`bg-blue-600 hover:bg-blue-500 text-white shadow-[0_0_15px_rgba(37,99,235,0.3)]`).
+- Primary actions: amber with a soft glow (`bg-amber-500 hover:bg-amber-400 text-slate-950`).
 - Secondary actions: ghost glass (`border-white/20 bg-white/5 hover:bg-white/10`).
 - Text: `text-slate-50` for primary/headings and `text-slate-400` for supporting copy.
 
@@ -58,7 +60,7 @@ As of 2026-04-30, authenticated shell chrome and Site Walk/Auth entry surfaces u
 | Home | `/dashboard` | Command Center / app launcher |
 | Projects | `/projects` | Global field/project management |
 | SlateDrop | `/slatedrop` | App-aware file hub and project/site file spaces |
-| More | `/more` | Settings, account, billing, subscriptions, coordination, and secondary tools |
+| Account | `/more` | Settings, account, organization, billing/apps, coordination, storage, support, and internal console links |
 
 Site Walk routes will use a future app-specific nav aligned to the 3 Act Play: Home, Capture, Files, Outputs, More.
 
@@ -81,10 +83,11 @@ Future unread counts should be computed from inbox rows and surfaced on both des
 - Operations sections are shaped as the business control center: access extensions, trial extensions, temporary/permanent app grants, pricing controls, business health, product health, systems health, and enterprise seat/permission management.
 - Existing backend mutations for many of these controls are not complete yet; keep the current UI truthful by framing them as workflows/build targets until migrations and audited APIs exist.
 
-### My Account Direction
+### Account Hub Direction
 
-- `components/dashboard/my-account/AccountControlCenterNav.tsx` provides an Operations Console-style card launcher above the legacy grouped tab rail.
-- My Account should be organized around Profile, Security, Notifications, Organization, Billing & Apps, Data & Storage, Team Seats, and Privacy.
+- `/more` is the canonical account utility hub in the authenticated shell. It owns Account, Organization, Billing & Apps, Coordination, Storage, Legal / Support, Operations Console (if authorized), and Sign Out.
+- Header avatar menus are quick subsets only; they must use the same labels and destinations as `/more` (`/more/account`, `/more/billing`, `/more`). Do not route new chrome to legacy `/my-account`.
+- `/my-account` remains a compatibility route and redirects to `/more/account` to avoid re-opening the old DashboardTabShell account surface.
 - Admin-only account controls must stay hidden from non-admin members; enterprise per-feature permissions continue to come from `organization_members.permissions` via `resolveServerOrgContext()`.
 
 ### Homepage Direction
@@ -97,7 +100,7 @@ Future unread counts should be computed from inbox rows and surfaced on both des
 
 `components/shared/MobileTopBar.tsx` is the primary phone/PWA chrome above authenticated pages.
 
-- Logo uses the cobalt Version 1 icon asset, not the old white/orange mark.
+- Logo uses the amber geometric Version 1 icon asset, not the old white/orange mark.
 - PWA install icons must use the geometric Slate360 mark on `#0B0F15`. Keep `app/manifest.ts`, `app/layout.tsx`, `app/icon.svg`, `/icon-v2.svg`, `/uploads/slate360-favicon-v2.svg`, `/uploads/favicon.svg`, and `/uploads/icon-*.png` aligned; do not reintroduce the old generic letter-S favicon.
 - PWA service-worker rule: service-worker caching is disabled by kill switch as of `2026-04-26-sw-kill-v2`. Do **not** precache or runtime-cache Next HTML/CSS/JS (`/_next/static`) unless there is a tested versioned rollout on real mobile refresh after deploy. Stale mobile SW caches can serve old HTML that points at retired CSS chunks and render a white/text-only page after refresh.
 - The label defaults to `Slate360` and should show the resolved org name when available; avoid generic `Workspace` copy.
@@ -121,6 +124,7 @@ The Command Center follows the zero-scroll blueprint:
 - 2026-05-01: `/more`, `/coordination/inbox`, `/coordination/contacts`, `/coordination/calendar`, `/slatedrop`, and `/site-walk/slatedrop` were converted away from white cards on the dark app frame. This is a triage consistency pass, not the final SlateDrop/Coordination product model.
 - In App Store mode, SlateDrop hides inactive future app folder placeholders instead of showing locked 360 Tours / Design Studio / Content Studio spaces to reviewers.
 - 2026-05-01 native-tab cleanup: `/projects` is now a Field Projects directory instead of a dashboard metrics page; `/slatedrop` is now a compact file-browser shell with Browse/Recents/Shared/Requests tabs; `/more` is now a utility/settings list. These tabs should stay no-filler: compact title, useful rows/cards, and one obvious primary action.
+- 2026-05-06 account hub cleanup: `/more` now shows real signed-in identity, plan, and storage summary. `/more/[section]` owns native dark-glass Account, Organization, Billing & Apps, Coordination, Storage, and Legal / Support pages; Storage and Billing read real entitlements/usage and Billing uses the Stripe portal when the user is an admin.
 - 2026-05-01 drilldown cleanup: primary tab drilldowns must also obey the native shell. `/more` now opens native section pages before deeper account/billing/legal controls, `/slatedrop/[...section]` is darkened, Operations Console drilldowns are dark/mobile-safe, and the phone nav labels `/projects` as tier-neutral `Work` so lower Site Walk users with Field Projects and higher-tier project-management users share the same global destination.
 
 ### Command Center Quick Actions (Legacy Reference)
@@ -143,7 +147,7 @@ The Command Center follows the zero-scroll blueprint:
 | 360 Tour Builder | `/(dashboard)/tours` | ✅ Scaffolded |
 | Geospatial & Robotics | `/(dashboard)/geospatial` | ✅ Scaffolded |
 | Virtual Studio | `/(dashboard)/virtual-studio` | ✅ Scaffolded |
-| My Account | `/(dashboard)/my-account` | ✅ Scaffolded |
+| Account Hub | `/more` | ✅ Live |
 | Analytics & Reports | `/(dashboard)/analytics` | ✅ DashboardTabShell |
 | CEO Command Center | `/(dashboard)/ceo` | ✅ DashboardTabShell |
 | Market | `/market` | ✅ Built |
@@ -154,7 +158,7 @@ The Command Center follows the zero-scroll blueprint:
 **Header Layout:**
 - **Left cluster:** Slate360 logo (links to `/dashboard`) + optional "← Dashboard" back link (via `showBackLink` prop)
 - **Center:** Search bar (active with `onSearchChange` or read-only stub)
-- **Right cluster:** QuickNav dropdown, Bell (with live notifications), Customize (with dirty dot), User avatar with dropdown menu (My Account, Billing, Sign out)
+- **Right cluster:** QuickNav dropdown, Bell (with live notifications), Customize (with dirty dot), User avatar with dropdown menu (Account, Billing & Apps, Account Hub, Sign out)
 
 **Props:** `user`, `tier`, `isCeo?`, `showBackLink?`, `searchQuery?`, `onSearchChange?`, `searchPlaceholder?`, `prefsDirty?`, `onCustomizeOpen?`, `notifications?`, `notificationsLoading?`, `onRefreshNotifications?`
 
@@ -205,7 +209,7 @@ Server page (resolveServerOrgContext → hasInternalAccess)
 | ToursShell | `components/dashboard/ToursShell.tsx` | `/tours` | ✅ |
 | GeospatialShell | `components/dashboard/GeospatialShell.tsx` | `/geospatial` | ✅ |
 | VirtualStudioShell | `components/dashboard/VirtualStudioShell.tsx` | `/virtual-studio` | ✅ |
-| MyAccountShell | `components/dashboard/MyAccountShell.tsx` | `/my-account` | ✅ |
+| Account Hub | `app/(dashboard)/more/page.tsx` + `app/(dashboard)/more/[section]/page.tsx` | `/more` | ✅ |
 
 ### Hydration Safety (Critical)
 Current state:

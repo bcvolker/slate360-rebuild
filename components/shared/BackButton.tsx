@@ -14,6 +14,8 @@ import { cn } from "@/lib/utils";
 const ROOT_PATHS = new Set<string>([
   "/",
   "/dashboard",
+  "/site-walk",
+  "/more",
   "/preview/app-shell-v1",
   "/preview/site-walk-v1",
 ]);
@@ -51,7 +53,7 @@ export function BackButton({ className, alwaysShow = false, href }: BackButtonPr
       aria-label="Go back"
       className={cn(
         "h-9 w-9 flex items-center justify-center rounded-lg",
-        "text-slate-400 hover:text-cobalt hover:bg-cobalt/10",
+        "text-slate-400 hover:text-amber-200 hover:bg-amber-500/10",
         "transition-colors",
         className
       )}

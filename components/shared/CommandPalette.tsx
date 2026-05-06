@@ -47,7 +47,7 @@ const ITEMS: PaletteItem[] = [
   { id: "nav-cc",       group: "Navigate", label: "Command Center",  icon: LayoutDashboard, action: "navigate", href: "/dashboard",   shortcut: "G C" },
   { id: "nav-projects", group: "Navigate", label: "Projects",        icon: FolderKanban,    action: "navigate", href: "/projects",    shortcut: "G P" },
   { id: "nav-slatedrop",group: "Navigate", label: "SlateDrop",       icon: Inbox,           action: "navigate", href: "/slatedrop",   shortcut: "G D" },
-  { id: "nav-account",  group: "Navigate", label: "My Account",      icon: User,            action: "navigate", href: "/my-account",  shortcut: "G A" },
+  { id: "nav-account",  group: "Navigate", label: "Account Hub",     icon: User,            action: "navigate", href: "/more",        shortcut: "G A" },
   { id: "nav-ops",      group: "Navigate", label: "Operations Console", icon: Shield,       action: "navigate", href: "/operations-console", internalOnly: true },
 
   // Apps
@@ -61,7 +61,7 @@ const ITEMS: PaletteItem[] = [
   { id: "new-walk",     group: "Create", label: "New Site Walk", icon: MapPin,     action: "navigate", href: "/site-walk?new=1", shortcut: "C W" },
 
   // Account
-  { id: "acc-settings", group: "Account", label: "Settings",  icon: Settings, action: "navigate", href: "/my-account?tab=preferences" },
+  { id: "acc-settings", group: "Account", label: "Account Settings", icon: Settings, action: "navigate", href: "/settings" },
   { id: "acc-signout",  group: "Account", label: "Sign out",  icon: LogOut,   action: "signout" },
 ];
 

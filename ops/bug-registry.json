@@ -580,6 +580,21 @@
         "/project-hub/[projectId]/slatedrop breadcrumb header is dark/amber",
         "/settings/account redirects to the unified /settings split-pane account workspace"
       ]
+    },
+    {
+      "id": "BUG-060",
+      "title": "Account navigation drift and missing Site Walk home affordances",
+      "module": "app-shell/account/site-walk",
+      "severity": "critical",
+      "status": "fixed",
+      "rootCause": "Header avatar menus, sidebar/quick navigation, and the mobile Account tab used separate account destinations and labels. The Account Hub section pages were shallow launchers, and full-bleed Site Walk capture modes could cover the Site Walk module nav without a clear home route.",
+      "verification": [
+        "Header avatar and mobile avatar menus route Account to /more/account and Billing & Apps to /more/billing",
+        "/my-account redirects to /more/account instead of rendering the legacy DashboardTabShell account surface",
+        "/more shows real signed-in email, plan, and storage summary",
+        "/more/[section] supports account, organization, billing, coordination, storage, and support with dark amber styling and real links",
+        "Site Walk module nav and capture start/plan/camera modes expose a visible Site Walk Home affordance"
+      ]
     }
   ]
 }

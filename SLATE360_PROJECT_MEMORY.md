@@ -198,39 +198,38 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-05-06 (Deep Subpage UI Purge + Site Walk Workspace Nav)
+### Session Handoff — 2026-05-06 (Account Hub Navigation + Site Walk Back Affordances)
 
 #### What Changed
-- `components/site-walk/SiteWalkModuleNav.tsx` — NEW. Compact module nav for Site Walk routes: Workspace, Walks, Plans, Capture, Reports.
-- `components/site-walk/SiteWalkShell.tsx` — Wires the internal module nav above Site Walk content.
-- `app/site-walk/_components/SiteWalkLaunchGrid.tsx` — Reworked landing into planning-first workspace: Plan & Start Walk, Plans, smaller Quick Capture escape hatch, Walks/Plan Layers/Reports shortcuts.
-- `app/site-walk/(act-3-outputs)/reports/page.tsx` — NEW clean Dark Glass reports placeholder/workspace for the future dynamic deliverable builder.
-- `app/site-walk/(act-1-setup)/plans/_components/*` — Plan Room, uploader, plan set list, and sheet grid converted from white-card UI to Dark Glass/amber surfaces.
-- `app/site-walk/(act-2-inputs)/capture/*` and `components/site-walk/capture/*` — Capture loading/empty state/header/exit modal/drawer/item list/item form/camera viewfinder/plan viewer/plan menu darkened; cobalt/blue markup defaults changed to amber.
-- `components/settings/AccountSettingsClient.tsx` — Rebuilt as a dark split-pane account workspace (Profile, Security, Preferences, Billing).
-- `app/(dashboard)/settings/account/page.tsx` — Legacy duplicate account page now redirects to `/settings` to avoid old UI/logout-prone hard reloads.
-- `app/slatedrop/[...section]/page.tsx` — Drilldown action/folder pages use GlassCard/amber and no longer show fake disabled action-assistant forms.
-- `app/(dashboard)/project-hub/[projectId]/slatedrop/page.tsx` — Breadcrumb/header darkened and cobalt replaced with amber.
+- `app/(dashboard)/more/page.tsx` — Account Hub now shows real signed-in email, plan label, and storage usage summary; menu rows now route to native Account, Organization, Billing & Apps, Coordination, Storage, Support, Operations Console, and Sign Out surfaces.
+- `app/(dashboard)/more/[section]/page.tsx` — Rebuilt native dark-glass section pages for `account`, `organization`, `billing`, `coordination`, `storage`, and `support` with amber styling, real entitlements/usage, and real links into settings, Stripe billing portal, SlateDrop, Coordination, policies, and support email.
+- `app/(dashboard)/more/_components/BillingPortalButton.tsx` — NEW client row that opens `/api/billing/portal` from the Billing & Apps section, disabled truthfully for non-admin/internal owner cases.
+- `components/dashboard/command-center/DashboardTopBar.tsx`, `components/shared/MobileTopBar.tsx`, `components/shared/header/UserMenu.tsx`, `components/shared/QuickNav.tsx`, `components/shared/CommandPalette.tsx`, `components/shared/MobileNavSheet.tsx`, `components/shared/MobileModuleBar.tsx`, `components/dashboard/command-center/DashboardSidebar.tsx`, `components/dashboard/MobileQuickAccess.tsx`, `components/dashboard/DashboardOverview.tsx`, `components/dashboard/command-center/StorageCreditsCard.tsx` — Account navigation now consistently targets `/more`, `/more/account`, `/more/billing`, or `/more/storage` instead of legacy `/my-account`; cobalt hover/border states touched in this slice were replaced with amber.
+- `app/(dashboard)/my-account/page.tsx` — Legacy route now redirects to `/more/account` so old DashboardTabShell account styling is not re-entered from direct links.
+- `components/site-walk/SiteWalkModuleNav.tsx`, `app/site-walk/(act-2-inputs)/capture/_components/WalkStartChoice.tsx`, `app/site-walk/(act-2-inputs)/capture/_components/CaptureClientIsland.tsx`, `components/site-walk/capture/VisualCaptureView.tsx` — Added explicit `Site Walk Home`/Home affordances for module subpages, start-choice, plan mode, and camera mode; active touched capture cyan accents converted to amber.
+- `components/shared/BackButton.tsx` — Treats `/site-walk` and `/more` as root surfaces and uses amber hover styling.
+- `components/dashboard/my-account/AccountSecurityTab.tsx` — Password reset callback now returns to `/settings`, not legacy `/my-account`.
 
 #### What's Broken / Partially Done
-- `bash scripts/check-file-size.sh` still fails because of pre-existing oversized files unrelated to this slice: `LocationMap.tsx`, `marketing-homepage.tsx`, `DashboardWidgetRenderer.tsx`, `CalendarWidget.tsx`, etc. All changed production files in this slice are under 300 lines.
-- Some older unused/shared Site Walk helper components still contain cobalt/white classes (`CaptureTiles`, `NoteCaptureBar`, `WalkItemsBrowse`, legacy `_legacy_v1`). They are not on the new primary `/site-walk` route stack but should be deleted or isolated later.
-- `/site-walk/reports` is a clean scaffold only; dynamic deliverable builder still needs data wiring.
+- `bash scripts/check-file-size.sh` still fails because of pre-existing oversized files unrelated to this slice (`LocationMap.tsx`, `marketing-homepage.tsx`, `DashboardWidgetRenderer.tsx`, etc.). All changed production files are under 300 lines; `npm run guard:file-size-regression` passes.
+- `npm run verify:release` required gates passed, but optional `clob-contract` still reports missing `app/api/market/buy/route.ts`, optional `mobile-smoke` reports pre-existing “Homepage hero copy missing,” and lint has one pre-existing warning in `scripts/probe-overflow.mjs`.
+- `/site-walk/reports` remains a scaffold; dynamic report builder still needs data wiring.
 - `/site-walk/walks` still needs filter/sort tabs and assign/share/link-to-project actions.
 
 #### Context Files Updated
-- `slate360-context/dashboard-tabs/site-walk/FIELD_PLATFORM_ROADMAP.md` — Added High-Value Feature Backlog and strict Site Walk internal route structure.
-- `slate360-context/ONGOING_ISSUES.md` — Added BUG-059 fixed row for deep subpage UI leakage.
-- `ops/bug-registry.json` — Added BUG-059 fixed registry entry.
-- `slate360-context/SLATEDROP.md` — Updated SlateDrop drilldown notes.
+- `slate360-context/DASHBOARD.md` — Account Hub is now canonical; `/my-account` documented as redirect; amber shell/account route rules updated.
+- `slate360-context/dashboard-tabs/MODULE_REGISTRY.md` — My Account entry changed to Account Hub `/more`.
+- `slate360-context/dashboard-tabs/site-walk/FIELD_PLATFORM_ROADMAP.md` — Added explicit Site Walk Home/back affordance rule and updated future org/team route references.
+- `slate360-context/ONGOING_ISSUES.md` — Added BUG-060 fixed row.
+- `ops/bug-registry.json` — Added BUG-060 fixed registry entry.
 - `SLATE360_PROJECT_MEMORY.md` — this handoff.
 
 #### Next Steps (ordered)
-1. Verify deployed PWA clicks manually: `/site-walk`, `/site-walk/plans`, `/site-walk/capture`, `/site-walk/reports`, `/slatedrop/upload`, `/settings`, `/project-hub/[id]/slatedrop`.
+1. Manually verify deployed clicks: desktop avatar menu, mobile avatar menu, sidebar Account, bottom Account tab, `/more`, `/more/account`, `/more/billing`, `/more/coordination`, `/more/storage`, `/my-account` redirect, `/site-walk`, `/site-walk/plans`, `/site-walk/capture`.
 2. Build `/site-walk/walks` filter/sort/action toolbar: All/Pending/In Progress/Completed, Search, Assign/Reassign, Share, Link to Project.
 3. Wire `/site-walk/reports` to real deliverables/session items using the planned Dynamic Deliverable Builder.
 4. Delete or isolate unused old Site Walk helpers and `_legacy_v1` routes so future grep audits do not see dead cobalt/white UI.
-5. Address pre-existing oversized file list from `scripts/check-file-size.sh` in separate extraction PRs.
+5. Address pre-existing oversized file list and optional release-guard warnings in separate cleanup slices.
 
 ### Session Handoff — 2026-05-04 (Amber Brand System Propagation — Full Push)
 

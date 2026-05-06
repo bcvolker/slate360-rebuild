@@ -100,11 +100,14 @@ export function DashboardTopBar({
             <DropdownMenuContent align="end" className="w-56 border-white/10 bg-[#0B0F15]/95 text-slate-100 backdrop-blur-md">
               <DropdownMenuLabel className="text-xs text-slate-100">{userName || "My Account"}</DropdownMenuLabel>
               <DropdownMenuSeparator className="bg-white/10" />
-              <DropdownMenuItem asChild className="text-xs hover:bg-cobalt/10 hover:text-cobalt cursor-pointer">
-                <a href="/my-account">My Account</a>
+              <DropdownMenuItem asChild className="text-xs cursor-pointer hover:bg-amber-500/10 hover:text-amber-200">
+                <Link href="/more/account">Account</Link>
               </DropdownMenuItem>
-              <DropdownMenuItem asChild className="text-xs hover:bg-cobalt/10 hover:text-cobalt cursor-pointer">
-                <a href="/my-account?tab=billing">Billing &amp; Payments</a>
+              <DropdownMenuItem asChild className="text-xs cursor-pointer hover:bg-amber-500/10 hover:text-amber-200">
+                <Link href="/more/billing">Billing &amp; Apps</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild className="text-xs cursor-pointer hover:bg-amber-500/10 hover:text-amber-200">
+                <Link href="/more">Account Hub</Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator className="bg-white/10" />
               <DropdownMenuItem

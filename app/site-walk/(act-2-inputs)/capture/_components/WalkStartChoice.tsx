@@ -1,6 +1,7 @@
 "use client";
 
-import { Camera, Map, ArrowRight } from "lucide-react";
+import Link from "next/link";
+import { Camera, Map, ArrowLeft, ArrowRight } from "lucide-react";
 
 type Props = {
   walkName: string;
@@ -10,9 +11,12 @@ type Props = {
 
 export function WalkStartChoice({ walkName, onPlanMode, onCameraOnly }: Props) {
   return (
-    <section className="flex h-[100dvh] items-center justify-center bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.18),rgba(2,6,23,0.98)_52%)] p-4 text-white">
+    <section className="flex h-[100dvh] items-center justify-center bg-[radial-gradient(circle_at_top,rgba(245,158,11,0.16),rgba(2,6,23,0.98)_52%)] p-4 text-white">
       <div className="w-full max-w-3xl rounded-[2rem] border border-white/10 bg-white/10 p-4 shadow-2xl backdrop-blur-2xl sm:p-6">
-        <p className="text-[11px] font-black uppercase tracking-[0.2em] text-cyan-100">Start Site Walk</p>
+        <Link href="/site-walk" className="mb-4 inline-flex min-h-9 items-center gap-2 rounded-2xl border border-white/15 bg-slate-950/45 px-3 text-xs font-black text-white/80 transition hover:border-amber-300/50 hover:text-amber-100">
+          <ArrowLeft className="h-4 w-4" /> Site Walk Home
+        </Link>
+        <p className="text-[11px] font-black uppercase tracking-[0.2em] text-amber-200">Start Site Walk</p>
         <h1 className="mt-2 text-2xl font-black sm:text-3xl">Walk with Plans or Camera Only?</h1>
         <p className="mt-2 text-sm font-semibold leading-6 text-white/65">{walkName} has plan sheets available. Choose the field workflow for this pass. You can switch modes from the header after starting.</p>
         <div className="mt-5 grid gap-3 sm:grid-cols-2">
@@ -27,11 +31,11 @@ export function WalkStartChoice({ walkName, onPlanMode, onCameraOnly }: Props) {
 function ChoiceCard({ title, text, icon, onClick }: { title: string; text: string; icon: "plan" | "camera"; onClick: () => void }) {
   const Icon = icon === "plan" ? Map : Camera;
   return (
-    <button type="button" onClick={onClick} className="group min-h-52 rounded-[1.5rem] border border-white/15 bg-slate-950/60 p-4 text-left shadow-xl transition hover:border-cyan-200/60 hover:bg-cyan-300/10">
-      <span className="flex h-12 w-12 items-center justify-center rounded-2xl border border-cyan-200/25 bg-cyan-300/15 text-cyan-100"><Icon className="h-6 w-6" /></span>
+    <button type="button" onClick={onClick} className="group min-h-52 rounded-[1.5rem] border border-white/15 bg-slate-950/60 p-4 text-left shadow-xl transition hover:border-amber-300/60 hover:bg-amber-500/10">
+      <span className="flex h-12 w-12 items-center justify-center rounded-2xl border border-amber-300/25 bg-amber-500/15 text-amber-100"><Icon className="h-6 w-6" /></span>
       <span className="mt-4 block text-xl font-black text-white">{title}</span>
       <span className="mt-2 block text-sm font-semibold leading-6 text-white/60">{text}</span>
-      <span className="mt-5 inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.14em] text-cyan-100">Continue <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" /></span>
+      <span className="mt-5 inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.14em] text-amber-100">Continue <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" /></span>
     </button>
   );
 }

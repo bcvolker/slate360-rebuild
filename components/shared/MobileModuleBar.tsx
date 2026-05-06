@@ -36,7 +36,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Geo",         href: "/geospatial",     icon: Globe,        gate: "canAccessGeospatial", phase1Hidden: true },
   { label: "Virtual",     href: "/virtual-studio", icon: Film,         gate: "canAccessVirtual", phase1Hidden: true },
   { label: "Analytics",   href: "/analytics",      icon: BarChart3,    gate: "canAccessAnalytics", phase1Hidden: true },
-  { label: "Account",     href: "/my-account",     icon: User },
+  { label: "Account",     href: "/more",           icon: User },
   { label: "Ops Console", href: "/operations-console",            icon: Shield,       internalKey: "operationsConsole" },
 ];
 
@@ -75,7 +75,7 @@ export default function MobileModuleBar({ tier, isCeo = false, internalAccess }:
             <Link
               key={item.href}
               href={item.href}
-              className="flex flex-col items-center gap-0.5 px-2.5 py-1 rounded-lg text-zinc-400 hover:text-cobalt-hover hover:bg-white/[0.04]/50 transition-colors shrink-0"
+              className="flex flex-col items-center gap-0.5 px-2.5 py-1 rounded-lg text-zinc-400 transition-colors hover:bg-white/[0.04]/50 hover:text-amber-200 shrink-0"
             >
               <Icon size={16} />
               <span className="text-[9px] font-medium leading-tight">{item.label}</span>

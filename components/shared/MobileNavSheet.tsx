@@ -47,7 +47,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Geospatial",    href: "/geospatial",     icon: Globe,         gate: "canAccessGeospatial", phase1Hidden: true },
   { label: "Virtual Studio",href: "/virtual-studio", icon: Film,          gate: "canAccessVirtual", phase1Hidden: true },
   { label: "Analytics",     href: "/analytics",      icon: BarChart3,     gate: "canAccessAnalytics", phase1Hidden: true },
-  { label: "My Account",    href: "/my-account",     icon: User },
+  { label: "Account",       href: "/more",           icon: User },
   { label: "Operations Console", href: "/operations-console",        icon: Shield,        internalKey: "operationsConsole" },
 ];
 
@@ -83,7 +83,7 @@ export default function MobileNavSheet({
     <>
       {/* Hamburger trigger — only visible on mobile */}
       <button
-        className="sm:hidden w-9 h-9 rounded-xl flex items-center justify-center text-white hover:bg-white/10 hover:text-cobalt transition-colors"
+        className="sm:hidden w-9 h-9 rounded-xl flex items-center justify-center text-white transition-colors hover:bg-white/10 hover:text-amber-200"
         onClick={() => setOpen(true)}
         aria-label="Open navigation menu"
       >

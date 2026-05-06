@@ -40,7 +40,7 @@ export default function MobileQuickAccess({ open, onToggle }: MobileQuickAccessP
               {([
                 { label: "Command Center", icon: Home,      href: "/dashboard",   desc: "Overview, recent files, and projects" },
                 { label: "Projects",    icon: FolderKanban,  href: "/projects",    desc: "Project details, photos & punch list" },
-                { label: "My Account",  icon: User,         href: "/my-account",  desc: "Billing, usage, security & profile" },
+                { label: "Account",     icon: User,         href: "/more",        desc: "Billing, usage, security & profile" },
               ]).map((item) => {
                 const NavIcon = item.icon;
                 return (

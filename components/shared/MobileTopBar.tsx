@@ -54,7 +54,7 @@ export function MobileTopBar({
       style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}
     >
       <div className="flex h-14 items-center justify-between gap-1 min-w-0 overflow-hidden">
-        {/* Left: back button (auto-hides on root) + cobalt icon + workspace selector */}
+        {/* Left: back button (auto-hides on root) + amber icon + workspace selector */}
         <div className="flex items-center min-w-0 flex-shrink gap-1">
           <BackButton />
           <Link
@@ -82,7 +82,7 @@ export function MobileTopBar({
             type="button"
             onClick={() => openInviteShare(true)}
             aria-label="Invite and Share"
-            className="h-9 w-9 flex items-center justify-center rounded-lg text-header-muted hover:text-cobalt hover:bg-header-hover transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt/50 focus-visible:ring-offset-1 focus-visible:ring-offset-header-bg"
+            className="h-9 w-9 flex items-center justify-center rounded-lg text-header-muted hover:text-amber-200 hover:bg-header-hover transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50 focus-visible:ring-offset-1 focus-visible:ring-offset-header-bg"
           >
             <Share2 className="h-[18px] w-[18px]" />
           </button>
@@ -90,7 +90,7 @@ export function MobileTopBar({
             type="button"
             onClick={onSearchClick}
             aria-label="Search"
-            className="h-9 w-9 flex items-center justify-center rounded-lg text-header-muted hover:text-cobalt hover:bg-header-hover transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt/50 focus-visible:ring-offset-1 focus-visible:ring-offset-header-bg"
+            className="h-9 w-9 flex items-center justify-center rounded-lg text-header-muted hover:text-amber-200 hover:bg-header-hover transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50 focus-visible:ring-offset-1 focus-visible:ring-offset-header-bg"
           >
             <Search className="h-[18px] w-[18px]" />
           </button>
@@ -99,7 +99,7 @@ export function MobileTopBar({
               type="button"
               onClick={() => setFeedbackOpen(true)}
               aria-label="Report a bug or suggest a feature for Version 1"
-              className="h-9 w-9 flex items-center justify-center rounded-lg text-header-muted hover:text-cobalt hover:bg-header-hover transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt/50 focus-visible:ring-offset-1 focus-visible:ring-offset-header-bg"
+              className="h-9 w-9 flex items-center justify-center rounded-lg text-header-muted hover:text-amber-200 hover:bg-header-hover transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50 focus-visible:ring-offset-1 focus-visible:ring-offset-header-bg"
             >
               <Bug className="h-[18px] w-[18px]" />
             </button>
@@ -108,7 +108,7 @@ export function MobileTopBar({
           <Link
             href="/coordination/inbox"
             aria-label="Notifications and communication inbox"
-            className="h-9 w-9 flex items-center justify-center rounded-lg text-header-muted hover:text-cobalt hover:bg-header-hover transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt/50 focus-visible:ring-offset-1 focus-visible:ring-offset-header-bg"
+            className="h-9 w-9 flex items-center justify-center rounded-lg text-header-muted hover:text-amber-200 hover:bg-header-hover transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50 focus-visible:ring-offset-1 focus-visible:ring-offset-header-bg"
           >
             <Bell className="h-[18px] w-[18px]" />
           </Link>
@@ -116,10 +116,10 @@ export function MobileTopBar({
           <DropdownMenu>
             <DropdownMenuTrigger
               aria-label="Account menu"
-              className="h-9 w-9 flex items-center justify-center rounded-full transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt/50 focus-visible:ring-offset-1 focus-visible:ring-offset-header-bg"
+              className="h-9 w-9 flex items-center justify-center rounded-full transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50 focus-visible:ring-offset-1 focus-visible:ring-offset-header-bg"
             >
-              <Avatar className="h-8 w-8 border border-cobalt/40">
-                <AvatarFallback className="bg-cobalt/15 text-cobalt text-[12px] font-semibold">
+              <Avatar className="h-8 w-8 border border-amber-500/40">
+                <AvatarFallback className="bg-amber-500/15 text-amber-200 text-[12px] font-semibold">
                   {userName ? userName.charAt(0).toUpperCase() : "U"}
                 </AvatarFallback>
               </Avatar>
@@ -129,11 +129,14 @@ export function MobileTopBar({
                 {userName || "My Account"}
               </DropdownMenuLabel>
               <DropdownMenuSeparator className="bg-border/50" />
-              <DropdownMenuItem asChild className="text-xs hover:bg-cobalt/10 hover:text-cobalt cursor-pointer">
-                <Link href="/my-account">My Account</Link>
+              <DropdownMenuItem asChild className="text-xs cursor-pointer hover:bg-amber-500/10 hover:text-amber-200">
+                <Link href="/more/account">Account</Link>
               </DropdownMenuItem>
-              <DropdownMenuItem asChild className="text-xs hover:bg-cobalt/10 hover:text-cobalt cursor-pointer">
-                <Link href="/my-account?tab=billing">Billing &amp; Payments</Link>
+              <DropdownMenuItem asChild className="text-xs cursor-pointer hover:bg-amber-500/10 hover:text-amber-200">
+                <Link href="/more/billing">Billing &amp; Apps</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild className="text-xs cursor-pointer hover:bg-amber-500/10 hover:text-amber-200">
+                <Link href="/more">Account Hub</Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator className="bg-border/50" />
               <DropdownMenuItem

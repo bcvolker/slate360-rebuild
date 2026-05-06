@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Camera, ClipboardList, FileText, HardHat, Map } from "lucide-react";
+import { ArrowLeft, Camera, ClipboardList, FileText, HardHat, Map } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import GlassCard from "@/components/shared/GlassCard";
 import { cn } from "@/lib/utils";
@@ -35,6 +35,11 @@ export function SiteWalkModuleNav({ orgName }: Props) {
         <div className="min-w-0 px-1">
           <p className="text-[10px] font-black uppercase tracking-[0.18em] text-amber-400">Site Walk</p>
           <p className="truncate text-xs font-bold text-slate-400">{orgName ?? "Field workspace"}</p>
+          {pathname !== "/site-walk" && (
+            <Link href="/site-walk" className="mt-2 inline-flex min-h-9 items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] px-3 text-xs font-black text-slate-200 transition hover:border-amber-400/60 hover:text-amber-200">
+              <ArrowLeft className="h-3.5 w-3.5" /> Site Walk Home
+            </Link>
+          )}
         </div>
         <nav className="grid grid-cols-5 gap-1 rounded-2xl border border-white/10 bg-slate-950/55 p-1" aria-label="Site Walk sections">
           {NAV_ITEMS.map((item) => {
