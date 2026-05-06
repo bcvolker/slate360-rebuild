@@ -1,5 +1,6 @@
 "use client";
 
+import GlassCard from "@/components/shared/GlassCard";
 import { Loader2, Folder, FileText, Link as LinkIcon, Check, ArrowUpRight, Download } from "lucide-react";
 import { useProjectFileExplorer } from "./useProjectFileExplorer";
 

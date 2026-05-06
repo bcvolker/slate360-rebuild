@@ -1,5 +1,6 @@
 "use client";
 
+import GlassCard from "@/components/shared/GlassCard";
 import { useState } from "react";
 import { User, Loader2, Camera, Check } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -30,8 +31,8 @@ export default function AccountProfileTab({ user, orgName, role }: Props) {
   return (
     <div className="space-y-6">
       {/* Avatar + Name */}
-      <div className="rounded-2xl border border-app bg-app-card p-6">
-        <h3 className="text-sm font-bold text-zinc-100 mb-4 flex items-center gap-2">
+      <GlassCard className="p-6">
+        <h3 className="text-sm font-bold text-slate-100 mb-4 flex items-center gap-2">
           <User size={16} className="text-amber-500" /> Profile Information
         </h3>
         <div className="flex items-start gap-5">
@@ -39,7 +40,7 @@ export default function AccountProfileTab({ user, orgName, role }: Props) {
             {user.avatar ? (
               <img src={user.avatar} alt="" className="w-20 h-20 rounded-2xl object-cover" />
             ) : (
-              <div className="w-20 h-20 rounded-2xl bg-zinc-700 flex items-center justify-center text-foreground text-2xl font-bold">
+              <div className="w-20 h-20 rounded-2xl bg-slate-700 flex items-center justify-center text-foreground text-2xl font-bold">
                 {user.name.charAt(0).toUpperCase()}
               </div>
             )}
@@ -49,27 +50,27 @@ export default function AccountProfileTab({ user, orgName, role }: Props) {
           </div>
           <div className="flex-1 space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-zinc-400 mb-1">Full Name</label>
+              <label className="block text-xs font-semibold text-slate-400 mb-1">Full Name</label>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full max-w-sm px-3 py-2 rounded-xl border border-app bg-white/[0.04] text-zinc-100 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500"
+                className="w-full max-w-sm px-3 py-2 rounded-xl border border-white/10 bg-amber-500/5 hover:bg-amber-500/10 text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-zinc-400 mb-1">Email</label>
-              <p className="text-sm text-zinc-300">{user.email}</p>
-              <p className="text-[10px] text-zinc-500 mt-0.5">Contact support to change your email address.</p>
+              <label className="block text-xs font-semibold text-slate-400 mb-1">Email</label>
+              <p className="text-sm text-slate-300">{user.email}</p>
+              <p className="text-[10px] text-slate-500 mt-0.5">Contact support to change your email address.</p>
             </div>
             <div className="flex gap-3">
               <div>
-                <label className="block text-xs font-semibold text-zinc-400 mb-1">Organization</label>
-                <p className="text-sm text-zinc-300">{orgName || "Personal"}</p>
+                <label className="block text-xs font-semibold text-slate-400 mb-1">Organization</label>
+                <p className="text-sm text-slate-300">{orgName || "Personal"}</p>
               </div>
               <div>
-                <label className="block text-xs font-semibold text-zinc-400 mb-1">Role</label>
-                <p className="text-sm text-zinc-300 capitalize">{role}</p>
+                <label className="block text-xs font-semibold text-slate-400 mb-1">Role</label>
+                <p className="text-sm text-slate-300 capitalize">{role}</p>
               </div>
             </div>
             <button
@@ -82,7 +83,7 @@ export default function AccountProfileTab({ user, orgName, role }: Props) {
             </button>
           </div>
         </div>
-      </div>
+      </GlassCard>
     </div>
   );
 }

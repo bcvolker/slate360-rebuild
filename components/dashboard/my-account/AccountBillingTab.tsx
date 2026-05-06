@@ -1,5 +1,6 @@
 "use client";
 
+import GlassCard from "@/components/shared/GlassCard";
 import { useState } from "react";
 import { CreditCard, ArrowRight, Loader2, Download, Zap, TrendingUp, Crown } from "lucide-react";
 import type { DashboardAccountOverview } from "@/lib/types/dashboard";
@@ -61,37 +62,37 @@ export default function AccountBillingTab({ overview, isAdmin, isCeo, tierLabel,
   return (
     <div className="space-y-6">
       {isCeo && (
-        <div className="rounded-2xl border border-amber-500/30 bg-amber-500/5 p-6">
-          <h3 className="text-sm font-bold text-zinc-100 mb-2 flex items-center gap-2">
+        <GlassCard className="p-6 border-amber-500/30 bg-amber-500/5">
+          <h3 className="text-sm font-bold text-slate-100 mb-2 flex items-center gap-2">
             <Crown size={16} className="text-amber-500" /> Internal Owner Account
           </h3>
-          <p className="text-xs text-zinc-400">
+          <p className="text-xs text-slate-400">
             This account is treated as an internal Slate360 operator account for the Version 1 launch window.
             Subscriber purchase flows, storage upsells, and credit pack prompts are intentionally hidden here.
           </p>
-        </div>
+        </GlassCard>
       )}
 
       {/* Current Plan */}
-      <div className="rounded-2xl border border-app bg-app-card p-6">
-        <h3 className="text-sm font-bold text-zinc-100 mb-4 flex items-center gap-2">
+      <GlassCard className="p-6">
+        <h3 className="text-sm font-bold text-slate-100 mb-4 flex items-center gap-2">
           <Crown size={16} className="text-amber-500" /> Current Plan
         </h3>
         <div className="flex items-center justify-between">
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-lg font-black text-zinc-100">{tierLabel}</span>
+              <span className="text-lg font-black text-slate-100">{tierLabel}</span>
               <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
                 billing?.status === "active" ? "bg-emerald-900/50 text-emerald-400" :
                 billing?.status === "past_due" ? "bg-amber-900/50 text-amber-400" :
                 billing?.status === "canceled" ? "bg-red-900/50 text-red-400" :
-                "bg-white/[0.04] text-zinc-400"
+                "bg-amber-500/5 hover:bg-amber-500/10 text-slate-400"
               }`}>
                 {billing?.status ?? "trialing"}
               </span>
             </div>
             {billing?.renewsOn && (
-              <p className="text-xs text-zinc-400 mt-1">
+              <p className="text-xs text-slate-400 mt-1">
                 Renews {new Date(billing.renewsOn).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
               </p>
             )}
@@ -100,22 +101,22 @@ export default function AccountBillingTab({ overview, isAdmin, isCeo, tierLabel,
             <button
               onClick={openBillingPortal}
               disabled={portalBusy}
-              className="inline-flex items-center gap-2 rounded-xl bg-white/[0.04] border border-app px-4 py-2 text-xs font-semibold text-zinc-200 hover:bg-white/[0.06] transition-colors disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-xl bg-amber-500/5 hover:bg-amber-500/10 border border-white/10 px-4 py-2 text-xs font-semibold text-slate-200 hover:bg-amber-500/10 hover:bg-amber-500/15 transition-colors disabled:opacity-50"
             >
               {portalBusy ? <Loader2 size={14} className="animate-spin" /> : <CreditCard size={14} />}
               Manage Subscription
             </button>
           )}
         </div>
-      </div>
+      </GlassCard>
 
       {/* Payment Methods — admin only */}
       {isAdmin && !isCeo && (
-        <div className="rounded-2xl border border-app bg-app-card p-6">
-          <h3 className="text-sm font-bold text-zinc-100 mb-3 flex items-center gap-2">
+        <GlassCard className="p-6">
+          <h3 className="text-sm font-bold text-slate-100 mb-3 flex items-center gap-2">
             <CreditCard size={16} className="text-amber-500" /> Payment Methods
           </h3>
-          <p className="text-xs text-zinc-400 mb-4">
+          <p className="text-xs text-slate-400 mb-4">
             Payment methods are managed securely through Stripe. Update your card, add a backup, or change your billing address.
           </p>
           <button
@@ -126,17 +127,17 @@ export default function AccountBillingTab({ overview, isAdmin, isCeo, tierLabel,
             {portalBusy ? <Loader2 size={14} className="animate-spin" /> : <ArrowRight size={14} />}
             Update Payment Method
           </button>
-        </div>
+        </GlassCard>
       )}
 
       {/* Buy Credits — admin only */}
       {isAdmin && !isCeo && (
-        <div className="rounded-2xl border border-app bg-app-card p-6">
-          <h3 className="text-sm font-bold text-zinc-100 mb-1 flex items-center gap-2">
+        <GlassCard className="p-6">
+          <h3 className="text-sm font-bold text-slate-100 mb-1 flex items-center gap-2">
             <Zap size={16} className="text-amber-500" /> Purchase Credits
           </h3>
-          <p className="text-xs text-zinc-400 mb-4">
-            Credits power data processing, model rendering, and AI features. Your current balance: <strong className="text-zinc-200">{billing?.totalCreditsBalance?.toLocaleString() ?? 0}</strong>
+          <p className="text-xs text-slate-400 mb-4">
+            Credits power data processing, model rendering, and AI features. Your current balance: <strong className="text-slate-200">{billing?.totalCreditsBalance?.toLocaleString() ?? 0}</strong>
           </p>
           <div className="grid gap-3 sm:grid-cols-3">
             {CREDIT_PACKS.map((pack) => (
@@ -144,47 +145,47 @@ export default function AccountBillingTab({ overview, isAdmin, isCeo, tierLabel,
                 key={pack.id}
                 onClick={() => buyCredits(pack.id)}
                 disabled={creditBusy !== null}
-                className="rounded-xl border border-app bg-white/[0.04] p-4 text-left hover:border-cobalt hover:bg-white/[0.04]/80 transition-all disabled:opacity-50"
+                className="rounded-xl border border-white/10 bg-amber-500/5 hover:bg-amber-500/10 p-4 text-left hover:border-cobalt hover:bg-amber-500/5 hover:bg-amber-500/10/80 transition-all disabled:opacity-50"
               >
-                <p className="text-sm font-bold text-zinc-100">{pack.name}</p>
+                <p className="text-sm font-bold text-slate-100">{pack.name}</p>
                 <p className="text-lg font-black text-amber-500">{pack.credits.toLocaleString()}</p>
-                <p className="text-[10px] text-zinc-500">{pack.desc}</p>
+                <p className="text-[10px] text-slate-500">{pack.desc}</p>
                 {creditBusy === pack.id && <Loader2 size={14} className="animate-spin text-amber-500 mt-2" />}
               </button>
             ))}
           </div>
-        </div>
+        </GlassCard>
       )}
 
       {/* Invoices — admin only */}
       {isAdmin && !isCeo && (
-        <div className="rounded-2xl border border-app bg-app-card p-6">
-          <h3 className="text-sm font-bold text-zinc-100 mb-3 flex items-center gap-2">
+        <GlassCard className="p-6">
+          <h3 className="text-sm font-bold text-slate-100 mb-3 flex items-center gap-2">
             <Download size={16} className="text-amber-500" /> Invoices & Receipts
           </h3>
-          <p className="text-xs text-zinc-400 mb-4">
+          <p className="text-xs text-slate-400 mb-4">
             View and download all past invoices, receipts, and credit purchase confirmations.
           </p>
           <button
             onClick={openBillingPortal}
             disabled={portalBusy}
-            className="inline-flex items-center gap-2 rounded-xl bg-white/[0.04] border border-app px-4 py-2 text-xs font-semibold text-zinc-200 hover:bg-white/[0.06] transition-colors disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-xl bg-amber-500/5 hover:bg-amber-500/10 border border-white/10 px-4 py-2 text-xs font-semibold text-slate-200 hover:bg-amber-500/10 hover:bg-amber-500/15 transition-colors disabled:opacity-50"
           >
             {portalBusy ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
             View Invoices
           </button>
-        </div>
+        </GlassCard>
       )}
 
       {/* Upgrade CTA (non-enterprise) */}
       {tierLabel !== "Enterprise" && !isCeo && (
-        <div className="rounded-2xl border border-amber-500/30 bg-amber-500/5 p-6">
+        <GlassCard className="p-6 border-amber-500/30 bg-amber-500/5">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-sm font-bold text-zinc-100 flex items-center gap-2">
+              <h3 className="text-sm font-bold text-slate-100 flex items-center gap-2">
                 <TrendingUp size={16} className="text-amber-500" /> Upgrade Your Plan
               </h3>
-              <p className="text-xs text-zinc-400 mt-1">Unlock more storage, credits, seats, and premium features.</p>
+              <p className="text-xs text-slate-400 mt-1">Unlock more storage, credits, seats, and premium features.</p>
             </div>
             <a
               href="/plans"
@@ -193,24 +194,24 @@ export default function AccountBillingTab({ overview, isAdmin, isCeo, tierLabel,
               View Plans <ArrowRight size={14} />
             </a>
           </div>
-        </div>
+        </GlassCard>
       )}
 
       {/* Non-admin notice */}
       {!isAdmin && (
-        <div className="rounded-2xl border border-app bg-app-card/50 p-4 text-center">
-          <p className="text-xs text-zinc-500">
+        <GlassCard className="/50 p-4 text-center">
+          <p className="text-xs text-slate-500">
             Billing and payment information is managed by your organization&apos;s administrator.
           </p>
-        </div>
+        </GlassCard>
       )}
 
       {isCeo && (
-        <div className="rounded-2xl border border-app bg-app-card/50 p-4 text-center">
-          <p className="text-xs text-zinc-500">
+        <GlassCard className="/50 p-4 text-center">
+          <p className="text-xs text-slate-500">
             Internal owner billing is managed outside the standard subscriber self-service flow.
           </p>
-        </div>
+        </GlassCard>
       )}
     </div>
   );
