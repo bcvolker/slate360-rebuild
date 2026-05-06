@@ -1,6 +1,6 @@
 # Site Walk — Field Platform Roadmap
 
-**Last Updated:** 2026-05-06 (capture Z-stack rebuild)
+**Last Updated:** 2026-05-06 (plan upload/render hotfix)
 **Status:** Planning / Pre-build
 **Owner:** Product + Engineering
 
@@ -381,6 +381,8 @@ These are the highest-value field workflow features to preserve for future build
 | Dynamic Deliverable Builder | Build a modular block-builder for reports, including drag-and-drop photos, plans, pins, sections, and issue tables instead of rigid PDFs. | Target route: `/site-walk/reports`. Start with saved block JSON before PDF export. |
 
 **Implementation note — 2026-05-06:** `/site-walk/capture` now uses a strict layered Z-index architecture: full-bleed camera/plan background, floating Dark Glass tools, panning/zooming plan viewer with long-press pins, Ghost Mode camera toggle, and a draggable swipe-up data-entry bottom sheet.
+
+**Implementation note — 2026-05-06:** Plan Room PDF uploads now return an array-compatible `planSets` payload, count PDF pages before creating sheet rows when the file is small enough for safe mobile parsing, force phone-picked PDFs to `application/pdf`, render uploaded PDFs directly in Plan Room and capture through `/api/site-walk/plan-sets/[id]/file`, and expose a direct **Start walk with plans** action that opens capture in plan mode.
 
 ---
 

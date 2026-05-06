@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 import type { ActiveWalkSession } from "./session-shell-types";
+import type { SiteWalkPlanSet, SiteWalkPlanSheet } from "@/lib/types/site-walk";
 
 type Props = {
   session: ActiveWalkSession;
@@ -10,6 +11,8 @@ type Props = {
   autoOpenCamera: boolean;
   launchId: string | null;
   initialItemId: string | null;
+  planSets: SiteWalkPlanSet[];
+  planSheets: SiteWalkPlanSheet[];
 };
 
 const CaptureShell = dynamic(

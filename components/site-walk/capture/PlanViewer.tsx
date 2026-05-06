@@ -1,15 +1,19 @@
 "use client";
 
-import { useCallback, useRef, useState, type MouseEvent, type MutableRefObject, type PointerEvent, type ReactNode, type WheelEvent } from "react";
-import { BookOpen, Layers, MapPin, Minus, Move, Plus, Search } from "lucide-react";
+import { useCallback, useMemo, useRef, useState, type MouseEvent, type MutableRefObject, type PointerEvent, type ReactNode, type WheelEvent } from "react";
+import { BookOpen, Layers, Minus, Move, Plus, Search } from "lucide-react";
 import GlassCard from "@/components/shared/GlassCard";
 import { cn } from "@/lib/utils";
+import type { SiteWalkPlanSet, SiteWalkPlanSheet } from "@/lib/types/site-walk";
 import { PlanLayerToolbar, type LayerFilter } from "./PlanLayerToolbar";
+import { PlanPdfPage } from "./PlanPdfPage";
 import { PlanQuickActionMenu } from "./PlanQuickActionMenu";
 
 type Props = {
   projectId?: string | null;
   sessionId?: string;
+  planSets?: SiteWalkPlanSet[];
+  sheets?: SiteWalkPlanSheet[];
   onCaptureRequest?: (input: "camera" | "upload") => void;
 };
 
@@ -26,28 +30,29 @@ type Point = { x: number; y: number };
 type Transform = { scale: number; x: number; y: number };
 type PlanMenu = "search" | "pages" | "layers" | null;
 type QuickMenuState = { pinId?: string; xPct: number; yPct: number; screenX: number; screenY: number } | null;
+type PlanPage = { key: string; label: string; pageNumber: number; sheetId?: string };
 
-const MOCK_PINS: Pin[] = [
-  { id: "1", x_pct: 25.5, y_pct: 35.2, session_id: "past-1", label: "01", amber: false },
-  { id: "2", x_pct: 45.1, y_pct: 60.8, session_id: "past-2", label: "02", amber: false },
-  { id: "3", x_pct: 75.0, y_pct: 20.0, session_id: "past-1", label: "03", amber: false },
-];
-
-const PLAN_PAGES = ["Sheet 01", "Sheet 02", "Sheet 03"];
-
-export function PlanViewer({ projectId, sessionId = "current-session", onCaptureRequest }: Props) {
+export function PlanViewer({ projectId, sessionId = "current-session", planSets = [], sheets = [], onCaptureRequest }: Props) {
   const surfaceRef = useRef<HTMLDivElement>(null);
-  const [pins, setPins] = useState<Pin[]>(MOCK_PINS);
+  const [pins, setPins] = useState<Pin[]>([]);
   const [filter, setFilter] = useState<LayerFilter>("all");
   const [activePinId, setActivePinId] = useState<string | null>(null);
   const [activeMenu, setActiveMenu] = useState<PlanMenu>(null);
   const [pageIndex, setPageIndex] = useState(0);
+  const [pdfPageCount, setPdfPageCount] = useState(0);
   const [quickMenu, setQuickMenu] = useState<QuickMenuState>(null);
   const [transform, setTransform] = useState<Transform>({ scale: 1, x: 0, y: 0 });
   const pressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dragStart = useRef<{ pointerId: number; point: Point; offset: Point; moved: boolean } | null>(null);
   const activePointers = useRef(new Map<number, Point>());
   const pinchStart = useRef<{ distance: number; scale: number } | null>(null);
+
+  const activePlanSet = useMemo(() => planSets.find((planSet) => planSet.processing_status === "ready") ?? planSets[0] ?? null, [planSets]);
+  const planSheets = useMemo(() => activePlanSet ? sheets.filter((sheet) => sheet.plan_set_id === activePlanSet.id) : [], [activePlanSet, sheets]);
+  const pages = useMemo(() => buildPages(activePlanSet, planSheets, pdfPageCount), [activePlanSet, planSheets, pdfPageCount]);
+  const safePageIndex = pages.length > 0 ? Math.min(pageIndex, pages.length - 1) : 0;
+  const activePage = pages[safePageIndex] ?? null;
+  const planFileUrl = activePlanSet?.source_s3_key ? `/api/site-walk/plan-sets/${activePlanSet.id}/file` : null;
 
   const visiblePins = pins.filter((pin) => {
     if (filter === "none") return false;
@@ -108,7 +113,6 @@ export function PlanViewer({ projectId, sessionId = "current-session", onCapture
   }, []);
 
   function handleWheel(event: WheelEvent<HTMLDivElement>) {
-    event.preventDefault();
     const delta = event.deltaY > 0 ? -0.1 : 0.1;
     setTransform((current) => ({ ...current, scale: clamp(current.scale + delta, 0.75, 2.5) }));
   }
@@ -135,11 +139,12 @@ export function PlanViewer({ projectId, sessionId = "current-session", onCapture
         onPointerLeave={endPointer}
         onWheel={handleWheel}
       >
-        <div ref={surfaceRef} className="absolute left-1/2 top-1/2 aspect-[1.4/1] w-[150vw] max-w-6xl -translate-x-1/2 -translate-y-1/2 rounded-3xl border border-white/10 bg-slate-900 shadow-2xl" style={{ transform: `translate(calc(-50% + ${transform.x}px), calc(-50% + ${transform.y}px)) scale(${transform.scale})`, transformOrigin: "center" }}>
-          <div className="absolute inset-0 rounded-3xl bg-[linear-gradient(to_right,#80808016_1px,transparent_1px),linear-gradient(to_bottom,#80808016_1px,transparent_1px)] bg-[size:24px_24px]" />
-          <div className="absolute inset-0 flex items-center justify-center opacity-30 select-none pointer-events-none">
-            <span className="text-4xl font-black tracking-widest text-slate-700 -rotate-45">{PLAN_PAGES[pageIndex].toUpperCase()}</span>
-          </div>
+        <div ref={surfaceRef} className="absolute left-1/2 top-1/2 aspect-[1.4/1] w-[150vw] max-w-6xl -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-3xl border border-white/10 bg-white shadow-2xl" style={{ transform: `translate(calc(-50% + ${transform.x}px), calc(-50% + ${transform.y}px)) scale(${transform.scale})`, transformOrigin: "center" }}>
+          {planFileUrl && activePage ? (
+            <PlanPdfPage fileUrl={planFileUrl} pageNumber={activePage.pageNumber} label={activePage.label} onPageCount={setPdfPageCount} />
+          ) : (
+            <PlanEmptySurface projectAware={Boolean(projectId)} />
+          )}
 
           {visiblePins.map((pin) => <PlanPin key={pin.id} pin={pin} active={activePinId === pin.id} current={pin.session_id === sessionId || pin.amber} onClick={(event) => handlePinClick(event, pin.id)} />)}
         </div>
@@ -155,7 +160,7 @@ export function PlanViewer({ projectId, sessionId = "current-session", onCapture
       {activeMenu && (
         <GlassCard className="absolute left-20 top-16 z-20 w-[min(20rem,calc(100vw-6rem))] bg-slate-950/75 p-3 backdrop-blur-xl">
           {activeMenu === "search" && <PlanMenuPanel title="Search" body="Search sheets, rooms, or pin labels. Search index wiring lands with real plan data." />}
-          {activeMenu === "pages" && <PageSelector active={pageIndex} projectAware={Boolean(projectId)} onSelect={setPageIndex} />}
+          {activeMenu === "pages" && <PageSelector active={safePageIndex} pages={pages} projectAware={Boolean(projectId)} onSelect={setPageIndex} />}
           {activeMenu === "layers" && <PlanLayerToolbar filter={filter} onChangeFilter={setFilter} pinCount={visiblePins.length} className="static left-auto top-auto z-auto w-full max-w-none translate-x-0" />}
         </GlassCard>
       )}
@@ -163,7 +168,7 @@ export function PlanViewer({ projectId, sessionId = "current-session", onCapture
       {quickMenu && (
         <PlanQuickActionMenu
           pinId={quickMenu.pinId}
-          planSheetId={`sheet-${pageIndex + 1}`}
+          planSheetId={activePage?.sheetId ?? activePage?.key ?? "unassigned-plan-sheet"}
           xPct={quickMenu.xPct}
           yPct={quickMenu.yPct}
           screenX={quickMenu.screenX}
@@ -209,16 +214,31 @@ function PlanMenuPanel({ title, body }: { title: string; body: string }) {
   return <div><p className="text-[10px] font-black uppercase tracking-[0.16em] text-amber-300">{title}</p><p className="mt-2 text-sm leading-6 text-slate-300">{body}</p></div>;
 }
 
-function PageSelector({ active, projectAware, onSelect }: { active: number; projectAware: boolean; onSelect: (index: number) => void }) {
+function PageSelector({ active, pages, projectAware, onSelect }: { active: number; pages: PlanPage[]; projectAware: boolean; onSelect: (index: number) => void }) {
   return (
     <div>
       <p className="text-[10px] font-black uppercase tracking-[0.16em] text-amber-300">Pages</p>
-      <p className="mt-1 text-xs text-slate-500">{projectAware ? "Project plan set" : "Demo plan set"}</p>
+      <p className="mt-1 text-xs text-slate-500">{projectAware ? "Project plan set" : "No project plan selected"}</p>
       <div className="mt-3 grid gap-2">
-        {PLAN_PAGES.map((page, index) => <button key={page} type="button" onClick={() => onSelect(index)} className={`rounded-xl border px-3 py-2 text-left text-sm font-black transition ${active === index ? "border-amber-400 bg-amber-500/15 text-amber-100" : "border-white/10 bg-white/[0.04] text-slate-300 hover:border-amber-400/50"}`}>{page}</button>)}
+        {pages.map((page, index) => <button key={page.key} type="button" onClick={() => onSelect(index)} className={`rounded-xl border px-3 py-2 text-left text-sm font-black transition ${active === index ? "border-amber-400 bg-amber-500/15 text-amber-100" : "border-white/10 bg-white/[0.04] text-slate-300 hover:border-amber-400/50"}`}>{page.label}</button>)}
+        {pages.length === 0 && <p className="rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-sm font-bold text-slate-400">Upload a plan set before using page navigation.</p>}
       </div>
     </div>
   );
+}
+
+function PlanEmptySurface({ projectAware }: { projectAware: boolean }) {
+  return <div className="flex h-full w-full items-center justify-center bg-white px-8 text-center text-sm font-bold text-slate-600">{projectAware ? "The uploaded plan file is still being prepared. Try the Pages menu or refresh the walk." : "Start this walk from a field project with uploaded plans to use plan mode."}</div>;
+}
+
+function buildPages(planSet: SiteWalkPlanSet | null, sheets: SiteWalkPlanSheet[], pdfPageCount: number): PlanPage[] {
+  if (!planSet) return [];
+  const total = Math.max(planSet.page_count || 0, sheets.length, pdfPageCount, 1);
+  return Array.from({ length: total }, (_, index) => {
+    const pageNumber = index + 1;
+    const sheet = sheets.find((item) => item.sheet_number === pageNumber);
+    return { key: sheet?.id ?? `${planSet.id}-${pageNumber}`, label: sheet?.sheet_name ?? `Sheet ${pageNumber}`, pageNumber, sheetId: sheet?.id };
+  });
 }
 
 function buildPin(point: Point, surface: HTMLDivElement | null, count: number, sessionId: string): Pin | null {

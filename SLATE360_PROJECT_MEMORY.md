@@ -202,30 +202,33 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-05-06 (Field Capture Z-Stack UX Rebuild)
+### Session Handoff — 2026-05-06 (Plan Room Upload + PDF Capture Hotfix)
 
 #### What Changed
-- `app/site-walk/(act-2-inputs)/capture/_components/CaptureClientIsland.tsx` — Replaced the old visual/data paged flow with a strict layered Z-stack: Layer 0 camera/plan background, Layer 1 floating mode/home tools, Layer 2 shared swipe-up data sheet.
-- `components/site-walk/capture/VisualCaptureView.tsx` — Rebuilt the camera surface as full-bleed `100dvh` with floating Dark Glass controls, Home affordance, Ghost Mode toggle, markup/undo/redo tools, quick Photo/Roll actions, and a thumbnail rail overlay.
-- `components/site-walk/capture/PlanViewer.tsx` — Rebuilt plan mode as a full-bleed panning/zooming surface with 500ms long-press pin drops, zoom controls, and collapsible Search/Pages/Layers tool menus.
-- `components/site-walk/capture/CaptureDataBottomSheet.tsx` — NEW draggable/expandable bottom sheet. Minimized state shows drag handle + Capture button; expanded state shows notes textarea, Voice Dictation stub, AI Format Note action, and Save & Next Stop.
-- `components/site-walk/capture/PlanLayerToolbar.tsx` — Added reusable `className` support so the existing layer toggle can live inside the collapsible plan Layers menu.
+- `app/api/site-walk/plan-sets/route.ts` — POST now returns both `planSet` and `planSets: [planSet]`, matching the client merge contract and preventing the post-upload mobile crash.
+- `app/api/site-walk/plan-sets/[id]/file/route.ts` — NEW authenticated signed-PDF route for original uploaded plan set files; forces inline `application/pdf` for phone-picked PDFs.
+- `app/site-walk/(act-1-setup)/plans/_components/PlanUploader.tsx` — Validates upload reservation metadata, normalizes older singular API responses, forces PDF content type, and reads PDF page count only when safe for mobile file size.
+- `app/site-walk/(act-1-setup)/plans/_components/PlanSheetGrid.tsx` + `components/site-walk/capture/PlanPdfPage.tsx` — Plan Room now renders uploaded PDF pages on a white surface when extracted thumbnails are not available.
+- `app/site-walk/(act-1-setup)/plans/_components/StartPlanWalkButton.tsx` + `MasterPlanRoomClient.tsx` — Added direct **Start walk with plans** CTA that creates a session and opens `/site-walk/capture` in plan mode.
+- Capture shell files + `components/site-walk/capture/PlanViewer.tsx` — Capture plan mode now receives real plan sets/sheets, renders the uploaded PDF instead of the dark placeholder, uses real page labels, and no longer calls `preventDefault()` in the passive wheel handler.
 
 #### What's Broken / Partially Done
-- Plan Search and Pages menus are UI stubs until real multi-sheet indexing/thumbnail data is wired.
-- Voice Dictation is a visible stub per roadmap; real Web Speech API progressive enhancement remains future work.
+- Existing plan sets uploaded before this fix may have only one stored `site_walk_plan_sheets` row, but capture discovers PDF page count at render time so the Pages menu can still expand after the PDF loads.
+- Full server-side PDF rasterization/thumbnail extraction is still future work; current fix renders the original PDF in-browser.
 - `bash scripts/check-file-size.sh` still fails on pre-existing oversized files outside this slice. All changed production files are under 300 lines.
 
 #### Context Files Updated
-- `slate360-context/dashboard-tabs/site-walk/FIELD_PLATFORM_ROADMAP.md` — Updated Last Updated note and recorded the capture Z-stack implementation note.
+- `ONGOING_ISSUES.md` — Added S360-043 for the Plan Room crash/black-placeholder regression.
+- `ops/bug-registry.json` — Added BUG-062 with verification criteria.
+- `slate360-context/dashboard-tabs/site-walk/FIELD_PLATFORM_ROADMAP.md` — Updated Last Updated note and recorded the plan upload/render implementation note.
 - `SLATE360_PROJECT_MEMORY.md` — this handoff.
 
 #### Next Steps (ordered)
-1. Mobile smoke test `/site-walk/capture`: open camera, minimize/expand bottom sheet, tap Capture, type notes, run AI Format Note, and Save & Next Stop.
-2. Plan smoke test `/site-walk/capture?mode=plan` or equivalent start path: pan, zoom, long-press to drop pin, open Search/Pages/Layers menus, toggle layer visibility.
-3. Replace plan Search/Pages stubs with real plan-set sheet data after multi-page PDF processing is wired.
-4. Add progressive Web Speech dictation behind feature detection.
-5. Address pre-existing oversized file list in a separate cleanup slice.
+1. After deploy, retest the Broadway field project on phone: upload a PDF from APDF, confirm the screen does not blank after completion, tap **Start walk with plans**, and verify capture opens in plan mode.
+2. On desktop and phone, verify the PDF renders as visible black/gray drawing lines on a white sheet, not a black placeholder.
+3. In capture plan mode, test pinch/zoom, Pages menu, Layers menu, long-press pin, Take photo at this pin, and Upload existing photo.
+4. If PDF rendering fails on a specific APDF export, inspect the PDF.js error state and test whether the file is locked/damaged.
+5. Add server-side PDF rasterization and persisted thumbnails as a later hardening slice.
 
 ### Session Handoff — 2026-05-04 (Amber Brand System Propagation — Full Push)
 

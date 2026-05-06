@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { PlanSetList } from "./PlanSetList";
 import { PlanSheetGrid } from "./PlanSheetGrid";
 import { PlanUploader } from "./PlanUploader";
+import { StartPlanWalkButton } from "./StartPlanWalkButton";
 import type { PlanRoomPayload, PlanRoomProject } from "./plan-room-types";
 import type { SiteWalkPlanSet, SiteWalkPlanSheet } from "@/lib/types/site-walk";
 import GlassCard from "@/components/shared/GlassCard";
@@ -65,6 +66,9 @@ export function MasterPlanRoomClient({ projects, initialPlanSets, initialSheets 
       </GlassCard>
 
       <PlanUploader project={activeProject} onPlanRoomChange={handlePlanRoomChange} />
+      {activeProject && (
+        <StartPlanWalkButton projectId={activeProject.id} projectName={activeProject.name} planSetId={activePlanSet?.id ?? null} disabled={!activePlanSet} />
+      )}
       <div className="grid gap-5 xl:grid-cols-[0.9fr_1.1fr]">
         <PlanSetList planSets={planSets} sheets={sheets} activePlanSetId={activePlanSetId} onSelectPlanSet={setActivePlanSetId} />
         <PlanSheetGrid activePlanSet={activePlanSet} sheets={sheets} />

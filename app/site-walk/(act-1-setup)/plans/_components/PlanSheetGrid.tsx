@@ -2,6 +2,7 @@
 
 import { Grid3X3, ImageOff } from "lucide-react";
 import GlassCard from "@/components/shared/GlassCard";
+import { PlanPdfPage } from "@/components/site-walk/capture/PlanPdfPage";
 import type { SiteWalkPlanSet, SiteWalkPlanSheet } from "@/lib/types/site-walk";
 
 type Props = {
@@ -29,6 +30,8 @@ export function PlanSheetGrid({ activePlanSet, sheets }: Props) {
             <div className="flex aspect-[4/3] items-center justify-center bg-slate-950/60">
               {sheet.thumbnail_s3_key || sheet.image_s3_key ? (
                 <img src={`/api/site-walk/plan-sheets/${sheet.id}/image`} alt={sheet.sheet_name ?? `Sheet ${sheet.sheet_number}`} className="h-full w-full object-contain" />
+              ) : activePlanSet?.source_s3_key ? (
+                <PlanPdfPage fileUrl={`/api/site-walk/plan-sets/${activePlanSet.id}/file`} pageNumber={sheet.sheet_number} label={sheet.sheet_name ?? `Sheet ${sheet.sheet_number}`} compact maxWidth={280} />
               ) : (
                 <div className="text-center text-slate-500">
                   <ImageOff className="mx-auto h-8 w-8 text-slate-400" />

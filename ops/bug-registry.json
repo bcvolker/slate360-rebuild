@@ -610,6 +610,21 @@
         "PlanUploader dropzone has an onClick/keyboard path to the hidden native file input for mobile tap-to-select",
         "npm run typecheck passes"
       ]
+    },
+    {
+      "id": "BUG-062",
+      "title": "Plan Room upload completion crashed mobile and capture rendered placeholder plans",
+      "module": "site-walk/plans/capture",
+      "severity": "critical",
+      "status": "fixed",
+      "rootCause": "POST /api/site-walk/plan-sets returned a singular `planSet` while the Plan Room client merged `planSets`, so a successful mobile upload could throw a client error after completion. The capture Z-stack plan viewer also rendered a dark placeholder surface instead of the uploaded PDF, and React wheel preventDefault triggered passive-listener console warnings.",
+      "verification": [
+        "Plan set creation returns both `planSet` and `planSets: [planSet]`, and PlanUploader normalizes older singular responses",
+        "PlanUploader reads PDF page count before creating sheet rows when the file is small enough for safe mobile parsing and forces application/pdf content type for phone file-picker uploads",
+        "Plan Room and capture plan mode render uploaded PDFs through /api/site-walk/plan-sets/[id]/file with white PDF surfaces",
+        "Plan Room exposes a Start walk with plans action that creates a session and opens /site-walk/capture in plan mode",
+        "PlanViewer no longer calls preventDefault in React's passive wheel handler"
+      ]
     }
   ]
 }

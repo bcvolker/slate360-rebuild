@@ -8,6 +8,7 @@ import { PlanViewer } from "@/components/site-walk/capture/PlanViewer";
 import { VisualCaptureView } from "@/components/site-walk/capture/VisualCaptureView";
 import { requestCameraCapture } from "@/components/site-walk/capture/capture-camera-events";
 import { useCaptureItems } from "@/components/site-walk/capture/useCaptureItems";
+import type { SiteWalkPlanSet, SiteWalkPlanSheet } from "@/lib/types/site-walk";
 import type { CaptureItemDraft } from "@/lib/types/site-walk-capture";
 import { WalkStartChoice } from "./WalkStartChoice";
 
@@ -20,11 +21,13 @@ type Props = {
   autoOpenCamera: boolean;
   launchId: string | null;
   initialItemId: string | null;
+  planSets: SiteWalkPlanSet[];
+  planSheets: SiteWalkPlanSheet[];
 };
 
 type WalkMode = "choice" | "plan" | "camera";
 
-export function CaptureClientIsland({ sessionId, projectId, walkName, showPlanCanvas, showStartChoice, autoOpenCamera, launchId, initialItemId }: Props) {
+export function CaptureClientIsland({ sessionId, projectId, walkName, showPlanCanvas, showStartChoice, autoOpenCamera, launchId, initialItemId, planSets, planSheets }: Props) {
   const [walkMode, setWalkMode] = useState<WalkMode>(() => showStartChoice ? "choice" : showPlanCanvas ? "plan" : "camera");
   const [currentLocation, setCurrentLocation] = useState("Stop 1");
   const [recentLocations, setRecentLocations] = useState<string[]>([]);
@@ -107,7 +110,7 @@ export function CaptureClientIsland({ sessionId, projectId, walkName, showPlanCa
       {/* Layer 0: full-bleed capture background */}
       <div className="absolute inset-0 z-0">
         {walkMode === "plan" ? (
-          <PlanViewer projectId={projectId} sessionId={sessionId} onCaptureRequest={handlePlanCaptureRequest} />
+          <PlanViewer projectId={projectId} sessionId={sessionId} planSets={planSets} sheets={planSheets} onCaptureRequest={handlePlanCaptureRequest} />
         ) : (
           <VisualCaptureView
             sessionId={sessionId}

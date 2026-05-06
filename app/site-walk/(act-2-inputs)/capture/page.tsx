@@ -3,6 +3,7 @@ import { resolveServerOrgContext } from "@/lib/server/org-context";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { CaptureNoSsrBoundary } from "./_components/CaptureNoSsrBoundary";
 import type { ActiveWalkSession } from "./_components/session-shell-types";
+import type { SiteWalkPlanSet, SiteWalkPlanSheet } from "@/lib/types/site-walk";
 
 type Props = {
   searchParams: Promise<{ session?: string; plan?: string; quick?: string; launch?: string; item?: string }>;
@@ -38,20 +39,24 @@ export default async function SiteWalkCapturePage({ searchParams }: Props) {
 
   const project = Array.isArray(data.projects) ? data.projects[0] : data.projects;
   const session: ActiveWalkSession = { ...data, project_name: project?.name ?? null };
-  const hasPlanSheets = session.project_id ? await hasProjectPlanSheets(session.project_id, context.orgId) : false;
+  const planRoom = session.project_id ? await loadProjectPlanRoom(session.project_id, context.orgId) : { planSets: [], sheets: [] };
+  const hasPlanSheets = planRoom.sheets.length > 0;
   const showPlanCanvas = plan !== "skip" && !!session.project_id && hasPlanSheets;
   const showStartChoice = showPlanCanvas && !plan && !quick && !item;
 
-  return <CaptureNoSsrBoundary session={session} showPlanCanvas={showPlanCanvas} showStartChoice={showStartChoice} autoOpenCamera={quick === "camera"} launchId={launch ?? null} initialItemId={item ?? null} />;
+  return <CaptureNoSsrBoundary session={session} showPlanCanvas={showPlanCanvas} showStartChoice={showStartChoice} autoOpenCamera={quick === "camera"} launchId={launch ?? null} initialItemId={item ?? null} planSets={planRoom.planSets} planSheets={planRoom.sheets} />;
 }
 
-async function hasProjectPlanSheets(projectId: string, orgId: string) {
+async function loadProjectPlanRoom(projectId: string, orgId: string) {
   try {
     const admin = createAdminClient();
-    const { data } = await admin.from("site_walk_plan_sheets").select("id").eq("project_id", projectId).eq("org_id", orgId).limit(1);
-    return (data?.length ?? 0) > 0;
+    const [setsResult, sheetsResult] = await Promise.all([
+      admin.from("site_walk_plan_sets").select("*").eq("project_id", projectId).eq("org_id", orgId).neq("processing_status", "archived").order("created_at", { ascending: false }),
+      admin.from("site_walk_plan_sheets").select("*").eq("project_id", projectId).eq("org_id", orgId).order("sort_order", { ascending: true }),
+    ]);
+    return { planSets: (setsResult.data ?? []) as SiteWalkPlanSet[], sheets: (sheetsResult.data ?? []) as SiteWalkPlanSheet[] };
   } catch {
-    return false;
+    return { planSets: [], sheets: [] };
   }
 }
 

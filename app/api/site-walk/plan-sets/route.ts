@@ -116,5 +116,5 @@ export const POST = (req: NextRequest) =>
       .select("*");
     if (sheetError) return serverError(sheetError.message);
 
-    return ok({ planSet, sheets: sheets ?? [] }, 201);
+    return ok({ planSet, planSets: [planSet], sheets: sheets ?? [] }, 201);
   });
