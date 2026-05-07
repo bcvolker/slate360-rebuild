@@ -1,14 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent, type MutableRefObject, type PointerEvent, type ReactNode } from "react";
-import { BookOpen, Layers, Minus, Move, Plus, Search } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent, type MutableRefObject, type PointerEvent } from "react";
+import { Move } from "lucide-react";
 import GlassCard from "@/components/shared/GlassCard";
 import { cn } from "@/lib/utils";
 import type { SiteWalkPlanSet, SiteWalkPlanSheet } from "@/lib/types/site-walk";
-import { PlanLayerToolbar, type LayerFilter } from "./PlanLayerToolbar";
-import { PlanPageControls } from "./PlanPageControls";
+import type { LayerFilter } from "./PlanLayerToolbar";
 import { PlanPdfPage } from "./PlanPdfPage";
 import { PlanQuickActionMenu } from "./PlanQuickActionMenu";
+import { PlanToolbar } from "./PlanToolbar";
 import { calculateCenteredPlanTransform } from "./planViewerGeometry";
 
 type Props = {
@@ -30,7 +30,6 @@ type Pin = {
 
 type Point = { x: number; y: number };
 type Transform = { scale: number; x: number; y: number };
-type PlanMenu = "search" | "pages" | "layers" | null;
 type QuickMenuState = { pinId?: string; xPct: number; yPct: number; screenX: number; screenY: number } | null;
 type PlanPage = { key: string; label: string; pageNumber: number; sheetId?: string };
 const MIN_SCALE = 0.35, MAX_SCALE = 2.5, FIT_PADDING = 32;
@@ -41,11 +40,11 @@ export function PlanViewer({ projectId, sessionId = "current-session", planSets 
   const [pins, setPins] = useState<Pin[]>([]);
   const [filter, setFilter] = useState<LayerFilter>("all");
   const [activePinId, setActivePinId] = useState<string | null>(null);
-  const [activeMenu, setActiveMenu] = useState<PlanMenu>(null);
   const [pageIndex, setPageIndex] = useState(0);
   const [pdfPageCount, setPdfPageCount] = useState(0);
   const [quickMenu, setQuickMenu] = useState<QuickMenuState>(null);
   const [transform, setTransform] = useState<Transform>({ scale: 1, x: 0, y: 0 });
+  const [hintVisible, setHintVisible] = useState(true);
   const pressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dragStart = useRef<{ pointerId: number; point: Point; offset: Point; moved: boolean } | null>(null);
   const activePointers = useRef(new Map<number, Point>());
@@ -142,10 +141,6 @@ export function PlanViewer({ projectId, sessionId = "current-session", planSets 
     setTransform((current) => ({ ...current, scale: clamp(current.scale + delta, MIN_SCALE, MAX_SCALE) }));
   }
 
-  function goToPage(delta: number) {
-    setPageIndex((current) => clamp(Math.min(current, pages.length - 1) + delta, 0, Math.max(0, pages.length - 1)));
-  }
-
   function handlePinClick(event: MouseEvent, pinId: string) {
     event.stopPropagation();
     setActivePinId(pinId);
@@ -175,21 +170,18 @@ export function PlanViewer({ projectId, sessionId = "current-session", planSets 
         </div>
       </div>
 
-      {/* Layer 1: plan menus */}
-      <GlassCard className="absolute left-3 top-16 z-20 flex flex-col gap-2 bg-slate-950/60 p-2 backdrop-blur-xl">
-        <PlanToolButton active={activeMenu === "search"} icon={<Search className="h-4 w-4" />} label="Search" onClick={() => setActiveMenu(toggleMenu(activeMenu, "search"))} />
-        <PlanToolButton active={activeMenu === "pages"} icon={<BookOpen className="h-4 w-4" />} label="Pages" onClick={() => setActiveMenu(toggleMenu(activeMenu, "pages"))} />
-        <PlanToolButton active={activeMenu === "layers"} icon={<Layers className="h-4 w-4" />} label="Layers" onClick={() => setActiveMenu(toggleMenu(activeMenu, "layers"))} />
-      </GlassCard>
-
-      {activeMenu && (
-        <GlassCard className="absolute left-20 top-16 z-20 w-[min(20rem,calc(100vw-6rem))] bg-slate-950/75 p-3 backdrop-blur-xl">
-          {(activeMenu === "search" || activeMenu === "pages") && <PageSelector active={safePageIndex} pages={pages} projectAware={Boolean(projectId)} onSelect={setPageIndex} />}
-          {activeMenu === "layers" && <PlanLayerToolbar filter={filter} onChangeFilter={setFilter} pinCount={visiblePins.length} className="static left-auto top-auto z-auto w-full max-w-none translate-x-0" />}
-        </GlassCard>
-      )}
-
-      {activePage && <PlanPageControls label={activePage.label} current={safePageIndex + 1} total={pages.length} onPrevious={() => goToPage(-1)} onNext={() => goToPage(1)} onOpenPages={() => setActiveMenu("pages")} />}
+      {/* Unified plan toolbar (search, page input, thumbnails, layers, zoom, collapse) */}
+      <PlanToolbar
+        fileUrl={planFileUrl}
+        pages={pages.map((page) => ({ key: page.key, label: page.label, pageNumber: page.pageNumber }))}
+        activeIndex={safePageIndex}
+        zoomPercent={Math.round(transform.scale * 100)}
+        filter={filter}
+        pinCount={visiblePins.length}
+        onSelect={(index) => { setPageIndex(index); setHintVisible(false); }}
+        onZoom={zoom}
+        onChangeFilter={setFilter}
+      />
 
       {quickMenu && (
         <PlanQuickActionMenu
@@ -204,17 +196,11 @@ export function PlanViewer({ projectId, sessionId = "current-session", planSets 
         />
       )}
 
-      <GlassCard className="absolute right-3 top-16 z-20 flex items-center gap-2 bg-slate-950/60 p-2 backdrop-blur-xl">
-        <button type="button" onClick={() => zoom(-0.15)} className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-white/[0.04] text-white/75 hover:text-amber-100" aria-label="Zoom out"><Minus className="h-4 w-4" /></button>
-        <span className="min-w-12 text-center text-[10px] font-black text-slate-300">{Math.round(transform.scale * 100)}%</span>
-        <button type="button" onClick={() => zoom(0.15)} className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-white/[0.04] text-white/75 hover:text-amber-100" aria-label="Zoom in"><Plus className="h-4 w-4" /></button>
-      </GlassCard>
-
-      <div className="pointer-events-none absolute bottom-28 left-1/2 z-20 -translate-x-1/2">
-        <div className="rounded-full border border-white/10 bg-slate-950/80 px-4 py-2 shadow-xl backdrop-blur">
-          <p className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-slate-300"><Move className="h-3 w-3 text-amber-500" /> Pan, zoom, or long-press to drop pin</p>
-        </div>
-      </div>
+      {hintVisible && (
+        <button type="button" onClick={() => setHintVisible(false)} className="pointer-events-auto absolute bottom-[6.5rem] left-1/2 z-20 -translate-x-1/2 rounded-full border border-white/10 bg-slate-950/80 px-4 py-2 shadow-xl backdrop-blur hover:border-amber-300/40" aria-label="Dismiss long-press hint">
+          <span className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-slate-300"><Move className="h-3 w-3 text-amber-500" /> Pan, zoom, or long-press to drop pin</span>
+        </button>
+      )}
     </div>
   );
 }
@@ -232,30 +218,8 @@ function PlanPin({ pin, active, current, onClick }: { pin: Pin; active: boolean;
   );
 }
 
-function PlanToolButton({ active, icon, label, onClick }: { active: boolean; icon: ReactNode; label: string; onClick: () => void }) {
-  return <button type="button" onClick={onClick} className={`inline-flex h-11 w-11 items-center justify-center rounded-xl transition ${active ? "bg-amber-500 text-slate-950" : "bg-white/[0.04] text-white/70 hover:text-amber-100"}`} aria-label={label}>{icon}</button>;
-}
-
-function PageSelector({ active, pages, projectAware, onSelect }: { active: number; pages: PlanPage[]; projectAware: boolean; onSelect: (index: number) => void }) {
-  const [query, setQuery] = useState("");
-  const filteredPages = pages.map((page, index) => ({ page, index })).filter(({ page }) => page.label.toLowerCase().includes(query.trim().toLowerCase()) || String(page.pageNumber).includes(query.trim()));
-
-  return (
-    <div>
-      <p className="text-[10px] font-black uppercase tracking-[0.16em] text-amber-300">Pages</p>
-      <p className="mt-1 text-xs text-slate-500">{projectAware ? "Project plan set" : "No project plan selected"}</p>
-      <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search sheet or page…" className="mt-3 w-full rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-sm font-bold text-slate-100 outline-none placeholder:text-slate-500 focus:border-amber-400" />
-      <div className="mt-3 grid max-h-[45dvh] gap-2 overflow-y-auto pr-1">
-        {filteredPages.map(({ page, index }) => <button key={page.key} type="button" onClick={() => onSelect(index)} className={`rounded-xl border px-3 py-2 text-left text-sm font-black transition ${active === index ? "border-amber-400 bg-amber-500/15 text-amber-100" : "border-white/10 bg-white/[0.04] text-slate-300 hover:border-amber-400/50"}`}>{page.label}</button>)}
-        {pages.length === 0 && <p className="rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-sm font-bold text-slate-400">Upload a plan set before using page navigation.</p>}
-        {pages.length > 0 && filteredPages.length === 0 && <p className="rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-sm font-bold text-slate-400">No matching pages.</p>}
-      </div>
-    </div>
-  );
-}
-
 function PlanEmptySurface({ projectAware }: { projectAware: boolean }) {
-  return <div className="flex h-full w-full items-center justify-center bg-white px-8 text-center text-sm font-bold text-slate-600">{projectAware ? "The uploaded plan file is still being prepared. Try the Pages menu or refresh the walk." : "Start this walk from a field project with uploaded plans to use plan mode."}</div>;
+  return <div className="flex h-full w-full items-center justify-center bg-white px-8 text-center text-sm font-bold text-slate-600">{projectAware ? "The uploaded plan file is still being prepared. Use the toolbar to switch pages or refresh." : "Start this walk from a field project with uploaded plans to use plan mode."}</div>;
 }
 
 function buildPages(planSet: SiteWalkPlanSet | null, sheets: SiteWalkPlanSheet[], pdfPageCount: number): PlanPage[] {
@@ -285,10 +249,6 @@ function pointerDistance(points: Map<number, Point>) {
   const [first, second] = Array.from(points.values());
   if (!first || !second) return 1;
   return Math.hypot(second.x - first.x, second.y - first.y);
-}
-
-function toggleMenu(current: PlanMenu, next: Exclude<PlanMenu, null>): PlanMenu {
-  return current === next ? null : next;
 }
 
 function clamp(value: number, min: number, max: number) {
