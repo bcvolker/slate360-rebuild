@@ -2,8 +2,11 @@
 
 import { useRef, useState, type DragEvent, type KeyboardEvent } from "react";
 import { FileUp } from "lucide-react";
+import { pdfjs } from "react-pdf";
 import GlassCard from "@/components/shared/GlassCard";
 import type { PlanRoomPayload, PlanRoomProject, UploadState } from "./plan-room-types";
+
+pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.js";
 
 type FolderResponse = { folders?: Array<{ id: string; name: string; folder_path?: string; path?: string; project_id?: string }> ; error?: string };
 type FolderCreateResponse = { id?: string; name?: string; folder_path?: string; folder?: { id?: string; name?: string; folder_path?: string }; error?: string };
@@ -40,9 +43,13 @@ export function PlanUploader({ project, onPlanRoomChange }: Props) {
       await uploadToStorage(file, reserved.uploadUrl);
       await completeSlateDropUpload(reserved.fileId);
 
-      setState({ stage: "processing", message: "Processing Sheets… Creating plan set and sheet rows." });
+      setState({ stage: "processing", message: "Processing Sheets… Creating plan set." });
       const payload = await createPlanSet(project.id, file, reserved.fileId, reserved.s3Key, pageCount);
-      onPlanRoomChange(payload);
+      const planSet = payload.planSets[0];
+      if (!planSet) throw new Error("Plan set was created, but the server response was incomplete.");
+      setState({ stage: "processing", message: `Generating ${pageCount} plan sheet row${pageCount === 1 ? "" : "s"}…` });
+      const extracted = await autoCreateSheets(planSet.id, pageCount);
+      onPlanRoomChange(extracted);
       setState({ stage: "complete", message: "Complete — plan set is saved in Site Walk Files / Plans." });
     } catch (error) {
       setState({ stage: "error", message: error instanceof Error ? error.message : "Plan upload failed." });
@@ -112,7 +119,8 @@ async function reserveSlateDropUpload(file: File, folderId: string, folderPath: 
 async function uploadToStorage(file: File, uploadUrl: string) { if (!uploadUrl) throw new Error("Upload reservation failed."); const response = await fetch(uploadUrl, { method: "PUT", headers: { "Content-Type": planPdfContentType(file) }, body: file }); if (!response.ok) throw new Error("Storage upload failed."); }
 async function completeSlateDropUpload(fileId: string) { const response = await fetch("/api/slatedrop/complete", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ fileId }) }); if (!response.ok) throw new Error(await readError(response)); }
 async function createPlanSet(projectId: string, file: File, fileId: string, s3Key: string, pageCount: number) { const response = await fetch("/api/site-walk/plan-sets", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ projectId, fileId, s3Key, title: file.name.replace(/\.pdf$/i, ""), originalFileName: file.name, mimeType: planPdfContentType(file), fileSize: file.size, pageCount }) }); if (!response.ok) throw new Error(await readError(response)); const data = (await response.json()) as PlanRoomPayload & { planSet?: PlanRoomPayload["planSets"][number] }; if ((!data.planSets || data.planSets.length === 0) && data.planSet) return { planSets: [data.planSet], sheets: data.sheets ?? [] }; if (!data.planSets) throw new Error("Plan set was created, but the server response was incomplete."); return { planSets: data.planSets, sheets: data.sheets ?? [] }; }
-async function readPdfPageCount(_file: File) { return 1; }
+async function autoCreateSheets(planSetId: string, pageCount: number) { const response = await fetch(`/api/site-walk/plan-sets/${encodeURIComponent(planSetId)}/sheets/auto`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ pageCount }) }); if (!response.ok) throw new Error(await readError(response)); const data = (await response.json()) as PlanRoomPayload & { planSet?: PlanRoomPayload["planSets"][number] }; if ((!data.planSets || data.planSets.length === 0) && data.planSet) return { planSets: [data.planSet], sheets: data.sheets ?? [] }; if (!data.planSets) throw new Error("Sheet extraction completed, but the server response was incomplete."); return { planSets: data.planSets, sheets: data.sheets ?? [] }; }
+async function readPdfPageCount(file: File) { const data = new Uint8Array(await file.arrayBuffer()); const pdf = await pdfjs.getDocument({ data }).promise; const pageCount = Math.max(1, Math.min(250, Math.floor(pdf.numPages || 1))); await pdf.destroy(); return pageCount; }
 function planPdfContentType(file: File) { return file.name.toLowerCase().endsWith(".pdf") ? "application/pdf" : file.type || "application/pdf"; }
 async function readError(response: Response) { const data = (await response.json().catch(() => null)) as { error?: string; message?: string } | null; return data?.error ?? data?.message ?? "Request failed"; }
 function statusClasses(stage: UploadState["stage"]) { if (stage === "complete") return "bg-emerald-500/10 text-emerald-300 border border-emerald-500/20"; if (stage === "error") return "bg-rose-500/10 text-rose-300 border border-rose-500/20"; if (stage === "uploading" || stage === "processing") return "bg-amber-500/10 text-amber-200 border border-amber-500/20"; return "bg-white/[0.04] text-slate-300 border border-white/10"; }

@@ -408,6 +408,8 @@ These are the highest-value field workflow features to preserve for future build
 
 **Implementation note — 2026-05-07:** Confirm & Attach hardening pass now injects the exact `[capture]#1` through `[capture]#10` trace across plan-menu target selection, context target state, camera upload confirmation, file preparation, upload presign, offline fallback, pin attach, and attach helper entry. The upload preview modal remains open until `prepareCaptureFile`/`savePhoto` resolves, displays inline attach errors, and `useCaptureUpload` no longer treats plan-pin attach failures as offline fallback; it sets an explicit error status and preserves the plan target for retry. Plan Viewer disables capture actions with syncing copy whenever the active PDF page lacks a saved `sheetId`.
 
+**Implementation note — 2026-05-07:** Plan sheet extraction pass adds POST `/api/site-walk/plan-sets/[id]/sheets/auto` to create UUID-backed `site_walk_plan_sheets` rows for every PDF page. `PlanUploader` now reads the PDF page count with PDF.js, creates the plan set, calls the extractor route, and waits for the returned `planSets` + `sheets` payload before updating Plan Room state, so Plan Mode receives real `sheetId` values instead of ghost pages that block pinning.
+
 ---
 
 ## 7. Strict Site Walk Internal Routing

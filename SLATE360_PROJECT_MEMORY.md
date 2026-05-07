@@ -202,6 +202,31 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
+### Session Handoff — 2026-05-07 (Site Walk Phase 4 Plan Sheet Extractor)
+
+#### What Changed
+- `app/api/site-walk/plan-sets/[id]/sheets/auto/route.ts` — New POST route that validates `punchwalk` auth + project access, accepts `pageCount`, inserts missing `site_walk_plan_sheets` rows for each PDF page, updates `site_walk_plan_sets.page_count` / `processing_status='ready'`, and returns `{ planSet, planSets, sheets }`.
+- `app/site-walk/(act-1-setup)/plans/_components/PlanUploader.tsx` — Reads PDF page count with PDF.js (`pdfjs.getDocument`), uploads through SlateDrop as before, creates the plan set, then calls `/api/site-walk/plan-sets/{id}/sheets/auto` before `onPlanRoomChange`. The returned sheet UUIDs now merge into `MasterPlanRoomClient` state before the user starts Plan Mode.
+- `ONGOING_ISSUES.md`, `slate360-context/ONGOING_ISSUES.md`, `ops/bug-registry.json`, and `slate360-context/dashboard-tabs/site-walk/FIELD_PLATFORM_ROADMAP.md` — Added S360-055 / BUG-075 and the Site Walk roadmap implementation note.
+
+#### What's Broken / Partially Done
+- Existing already-uploaded PDFs with ghost pages still need a manual/backfill call to `/sheets/auto` or a UI retry action; this slice wires new uploads.
+- Browser/device smoke verification still needs to upload a multi-page PDF and confirm pages beyond page 1 receive real `sheetId` UUIDs and allow long-press pinning.
+- `bash scripts/check-file-size.sh` still fails on 12 pre-existing oversized files outside this slice; changed files remain under 300 lines (`PlanUploader.tsx` 126, extractor route 100).
+
+#### Context Files Updated
+- `ONGOING_ISSUES.md` — Added S360-055 for UUID-backed plan sheet extraction.
+- `slate360-context/ONGOING_ISSUES.md` — Added BUG-075.
+- `ops/bug-registry.json` — Added BUG-075.
+- `slate360-context/dashboard-tabs/site-walk/FIELD_PLATFORM_ROADMAP.md` — Added implementation note.
+- `SLATE360_PROJECT_MEMORY.md` — This handoff.
+
+#### Next Steps (ordered)
+1. Retest with a new multi-page PDF upload: verify `PlanUploader` reads the correct page count and `/sheets/auto` returns sheet UUID rows.
+2. Start a Plan Mode walk from that upload and long-press pages beyond page 1; pin actions should unlock instead of showing syncing copy.
+3. Add an admin/backfill action for older uploaded PDFs that still have ghost pages.
+4. Continue retesting Phase 1–3 fixes: mobile markup, PDF centering, and Confirm & Attach tracing.
+
 ### Session Handoff — 2026-05-07 (Site Walk Phase 3 Confirm & Attach Hardening)
 
 #### What Changed

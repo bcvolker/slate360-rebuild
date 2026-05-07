@@ -814,6 +814,21 @@
         "PlanQuickActionMenu disables capture actions with syncing copy when PlanViewer has no saved sheet ID",
         "npm run typecheck passes"
       ]
+    },
+    {
+      "id": "BUG-075",
+      "title": "Uploaded multi-page PDFs did not generate saved plan sheet rows for every page",
+      "module": "site-walk/plans",
+      "severity": "high",
+      "status": "fixed",
+      "rootCause": "Plan upload tracked a plan set but did not reliably create a UUID-backed site_walk_plan_sheets row for every PDF page, leaving PlanViewer to build ghost pages from render-time PDF page count that could not accept plan pins.",
+      "verification": [
+        "POST /api/site-walk/plan-sets/[id]/sheets/auto validates access, accepts pageCount, inserts missing site_walk_plan_sheets rows, updates plan_set.page_count, and returns planSets plus sheets",
+        "PlanUploader reads PDF page count with pdfjs before upload",
+        "PlanUploader calls /sheets/auto after plan set creation and before onPlanRoomChange",
+        "MasterPlanRoomClient receives the returned sheets through the existing onPlanRoomChange merge path so UUID sheet IDs are available for plan mode",
+        "npm run typecheck passes"
+      ]
     }
   ]
 }
