@@ -31,7 +31,7 @@ export default async function WalkReviewPage({ params }: Props) {
           <Link href="/site-walk/walks" className="inline-flex h-10 items-center gap-2 rounded-2xl border border-white/15 bg-white/5 px-3 text-sm font-black text-slate-100"><ArrowLeft className="h-4 w-4" /> Walks</Link>
           <div className="flex items-center gap-2">
             {sessionRow.project_id && (
-              <Link href={`/site-walk/progression?projectId=${encodeURIComponent(sessionRow.project_id)}`} className="hidden h-10 items-center gap-1 rounded-2xl border border-white/15 bg-white/5 px-3 text-xs font-black uppercase tracking-wider text-slate-100 sm:inline-flex">Progressions</Link>
+              <Link href={`/site-walk/progression?projectId=${encodeURIComponent(sessionRow.project_id)}`} className="inline-flex h-10 items-center gap-1 rounded-2xl border border-white/15 bg-white/5 px-3 text-[11px] font-black uppercase tracking-wider text-slate-100">Progress</Link>
             )}
             <CreateDeliverableLink sessionId={sessionId} compact />
           </div>

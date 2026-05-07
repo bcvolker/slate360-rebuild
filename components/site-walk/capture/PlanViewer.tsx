@@ -5,7 +5,7 @@ import { Move } from "lucide-react";
 import GlassCard from "@/components/shared/GlassCard";
 import { cn } from "@/lib/utils";
 import type { SiteWalkPlanSet, SiteWalkPlanSheet } from "@/lib/types/site-walk";
-import type { LayerFilter } from "./PlanLayerToolbar";
+import type { LayerFilter } from "./plan-layer-types";
 import { PlanPdfPage } from "./PlanPdfPage";
 import { PlanQuickActionMenu } from "./PlanQuickActionMenu";
 import { PlanToolbar } from "./PlanToolbar";

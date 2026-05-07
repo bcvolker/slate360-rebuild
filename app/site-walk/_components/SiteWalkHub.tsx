@@ -26,6 +26,12 @@ export function SiteWalkHub({
       <header className="mb-8">
         <h1 className="text-2xl font-bold tracking-tight text-white">Site Walk Hub</h1>
         <p className="text-sm text-slate-400 mt-1">Manage field setup, conduct mobile walks, and generate client deliverables.</p>
+        <nav className="mt-3 flex flex-wrap gap-2 text-[11px] font-black uppercase tracking-wider">
+          <Link href="/site-walk/walks" className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-slate-200 hover:text-white">My Walks</Link>
+          <Link href="/site-walk/plans" className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-slate-200 hover:text-white">Plan Room</Link>
+          <Link href="/site-walk/progression" className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-slate-200 hover:text-white">Progressions</Link>
+          <Link href="/site-walk/assigned-work" className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-slate-200 hover:text-white">Assigned</Link>
+        </nav>
       </header>
 
       {/* Tabs */}
@@ -38,7 +44,7 @@ export function SiteWalkHub({
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id as any)}
-            className={`whitespace-nowrap px-6 py-3 text-sm font-semibold transition-colors ${
+            className={`whitespace-nowrap px-3 py-2 text-xs font-semibold transition-colors sm:px-6 sm:py-3 sm:text-sm ${
               activeTab === tab.id
                 ? "border-b-2 border-amber-400 text-amber-400"
                 : "border-b-2 border-transparent text-slate-400 hover:text-slate-200"

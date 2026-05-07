@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown, ChevronUp, Eye, EyeOff, Layers, MapPin, Minus, Plus, Search } from "lucide-react";
 import { Document, Page, pdfjs } from "react-pdf";
 import GlassCard from "@/components/shared/GlassCard";
-import type { LayerFilter } from "./PlanLayerToolbar";
+import type { LayerFilter } from "./plan-layer-types";
 
 pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.js";
 

@@ -202,6 +202,38 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
+### Session Handoff — 2026-05-07 (Site Walk 6-Commit Architectural Sweep)
+
+#### What Changed
+- **Commit 1 `c297ace`** — `components/site-walk/capture/CaptureContext.tsx` (NEW) provider replacing the window-event capture bus that caused the file-picker reopen loop. `VisualCaptureView.tsx` rewritten as CSS grid (`auto / [auto] / 1fr / auto / 5.9rem`) so the markup row, camera, angle strip, and bottom sheet reserve never overlap. `CameraViewfinder.tsx` consumes `pendingCapture` from the context once on mount instead of racing `setTimeout(autoOpenCamera)`. `PlanQuickActionMenu.tsx` calls `requestCapture` through context.
+- **Commit 2 `d39e39b`** — `components/site-walk/capture/PlanToolbar.tsx` (NEW, 167 lines) — single collapsible toolbar with fuzzy search, "Pg #" jump, lazy IntersectionObserver PDF thumbnails, inline All/Mine/Hide layer toggle with pin count, and +/- zoom. `PlanViewer.tsx` lost three floating tool buttons, `PageSelector` dialog, inline `PlanLayerToolbar`, `PlanPageControls`, the right-side zoom card, and the always-on hint pill. Hint button is now dismissible.
+- **Commit 3 `1fd83b5`** — `supabase/migrations/20260507000001_site_walk_project_capture_settings.sql` adds the per-project capture settings table with RLS via `user_can_access_project` / `user_can_manage_project`. `app/api/site-walk/projects/[projectId]/capture-settings/route.ts` + `lib/hooks/useProjectCaptureSettings.ts` + `components/site-walk/capture/ManageTradesModal.tsx` give per-project Manage Trades. `CaptureDataBottomSheet.tsx` now takes `tradeOptions` and `canManageTrades`, surfacing a Settings2 "Manage" link beside the Trade label. `CaptureClientIsland.tsx` wires it all up.
+- **Commit 4 `115d186`** — `supabase/migrations/20260508000001_site_walk_progression_roles.sql` extends the `item_relationship` CHECK to `(standalone, resolution, rework, before, after, progress)` and adds a partial `(project_id, location_label, created_at)` index. `SITE_WALK_ITEM_RELATIONSHIPS` updated. `UpdateItemPayload`, `CaptureItemRecord`, `CaptureItemDraft`, `captureItemToDraft`, `buildDraftPayload`, `patchLocalItem` all carry `item_relationship`. `app/api/site-walk/items/[id]/comparison/route.ts` returns `{ before, after }` (resolves either direction). `app/api/site-walk/projects/[projectId]/progressions/route.ts` returns chains grouped by `location_label`. `app/site-walk/items/[id]/compare/page.tsx` and `app/site-walk/(act-2-inputs)/progression/page.tsx` are the side-by-side viewer and timeline. `CaptureDataBottomSheet.tsx` "Link to Previous" toggle now sets `itemRelationship='after'` automatically and exposes role pills (After paired / Progress step) plus a deep link to the comparison view.
+- **Commit 5 `f383ac1`** — `app/site-walk/(act-1-setup)/plans/_components/MasterPlanRoomClient.tsx` consolidated to project header card + uploader + inline Start-Walk + collapsed Plan Library accordion. `PlanUploader.tsx` lost the duplicate "Upload / Plan set PDF / Choose PDF" header chrome — the drop zone is the button. `StartPlanWalkButton.tsx` is full-width on phones, auto on desktop, with secondary copy hidden below `sm`.
+- **Commit 6 (this commit)** — Deleted orphaned `components/site-walk/capture/PlanLayerToolbar.tsx` and `PlanPageControls.tsx`; extracted `LayerFilter` to `components/site-walk/capture/plan-layer-types.ts`. `PlanToolbar.tsx` and `PlanViewer.tsx` re-pointed. `app/site-walk/_components/SiteWalkHub.tsx` tabs slim to `px-3 py-2 text-xs` on phones, `sm:px-6 sm:py-3 sm:text-sm` on desktop; added a quick-nav pill row (My Walks / Plan Room / Progressions / Assigned) under the hub header. `app/site-walk/(act-2-inputs)/walks/[sessionId]/page.tsx` "Progress" link is now visible on mobile too.
+- **Backend applied** — both migrations were pushed to project `hadnfcenpcfaeclczsmm` (slate360-prod, us-west-1) via the Supabase Management API and verified (`pg_get_constraintdef` returns the expanded CHECK; `to_regclass` returns the new table).
+
+#### What's Broken / Partially Done
+- Commit 4's git commit accidentally bundled ~180 unrelated archival file renames from a prior session (used `git add -A`). Diff line count is inflated but the actual Commit 4 changes are correct. Remaining commits used targeted `git add`. No remediation possible without rewriting pushed history.
+- `app/site-walk/_components/SiteWalkHub.tsx` still uses `any[]` and the hardcoded `walks` mock array (pre-existing tech debt, out of scope for this sweep). New nav pills above are typed and real.
+- Old captures created before the migration default to `item_relationship='standalone'` — they won't appear in the Progressions list until re-tagged.
+- The Progressions page requires `?projectId=` in the URL; future work should infer it from current project context.
+- File-size guard still flags 12 pre-existing oversized files outside this slice.
+
+#### Backend Migrations Applied (live in production)
+- `20260507000001_site_walk_project_capture_settings.sql` ✅
+- `20260508000001_site_walk_progression_roles.sql` ✅
+
+#### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md` — this handoff.
+
+#### Next Steps (ordered)
+1. Real-world re-test on phone: file-picker loop fixed, markup row no longer overlaps, plan toolbar usable, per-project Manage Trades, Link-to-Previous, Open before/after viewer, Progressions page, simplified plan upload.
+2. Replace `SiteWalkHub` mock walks with real `site_walk_sessions` query.
+3. Infer `projectId` for Progressions page from current project context.
+4. Server-side PDF page-count + sheet sync, rasterization, real thumbnails.
+5. Deliverable builder wiring (`BlockEditor.tsx`).
+
 ### Session Handoff — 2026-05-07 (Markup Restore & Multi-Angle Capture Pass)
 
 #### What Changed

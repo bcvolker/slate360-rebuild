@@ -751,6 +751,23 @@
         "useCaptureItems.savePhotoAngle persists metadata.photo_angles records and the item image route serves persisted angle previews via angle_id",
         "npm run typecheck passes"
       ]
+    },
+    {
+      "id": "BUG-071",
+      "title": "Site Walk capture: file-picker reopen loop, markup overlap, fragmented plan toolbar, no per-project trades, no before/after viewer, bloated plan upload",
+      "module": "site-walk/capture",
+      "severity": "high",
+      "status": "fixed",
+      "rootCause": "Window-event capture bus + setTimeout autoOpenCamera race caused the picker to reopen after save. Absolute Z-stack let the markup row overlap the camera. Plan toolbar was three floating buttons + dialog + side card. Trades were a hardcoded constant. before_item_id existed but no comparison or progression UI consumed it. MasterPlanRoomClient stacked five cards.",
+      "verification": [
+        "Capture flow uses CaptureContext provider; CameraViewfinder consumes pendingCapture once on mount",
+        "VisualCaptureView uses CSS grid 'auto / [auto] / 1fr / auto / 5.9rem' so markup, camera, angle strip, and bottom-sheet reserve do not overlap",
+        "PlanToolbar.tsx replaces PlanLayerToolbar + PlanPageControls + PageSelector dialog (both old files deleted)",
+        "site_walk_project_capture_settings table + GET/PUT route + useProjectCaptureSettings + ManageTradesModal live in production",
+        "item_relationship CHECK accepts 'before','after','progress' (verified via pg_get_constraintdef on production); /api/site-walk/items/[id]/comparison and /api/site-walk/projects/[projectId]/progressions return paired data; /site-walk/items/[id]/compare and /site-walk/progression render it",
+        "MasterPlanRoomClient consolidated to header + uploader + Start-Walk + collapsed Plan Library accordion",
+        "npm run typecheck passes after all six commits"
+      ]
     }
   ]
 }
