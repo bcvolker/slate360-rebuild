@@ -3,9 +3,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent, type MutableRefObject, type PointerEvent } from "react";
 import { Move } from "lucide-react";
 import GlassCard from "@/components/shared/GlassCard";
-import { cn } from "@/lib/utils";
-import type { SiteWalkPlanSet, SiteWalkPlanSheet } from "@/lib/types/site-walk";
+import type { SiteWalkPin, SiteWalkPlanSet, SiteWalkPlanSheet } from "@/lib/types/site-walk";
 import type { LayerFilter } from "./plan-layer-types";
+import { mapPlanPin, mergeFetchedPlanPins, PlanPin, type PlanViewerPin } from "./PlanPin";
 import { PlanPdfPage, type PlanPdfRenderDetails } from "./PlanPdfPage";
 import { PlanQuickActionMenu } from "./PlanQuickActionMenu";
 import { PlanToolbar } from "./PlanToolbar";
@@ -19,18 +19,9 @@ type Props = {
   onCaptureRequest?: (input: "camera" | "upload") => void;
 };
 
-type Pin = {
-  id: string;
-  x_pct: number;
-  y_pct: number;
-  session_id: string;
-  label: string;
-  amber: boolean;
-};
-
 type Point = { x: number; y: number };
 type Transform = { scale: number; x: number; y: number };
-type QuickMenuState = { pinId?: string; xPct: number; yPct: number; screenX: number; screenY: number } | null;
+type QuickMenuState = { pinId?: string; xPct: number; yPct: number } | null;
 type PlanPage = { key: string; label: string; pageNumber: number; sheetId?: string };
 type PdfReadyToken = PlanPdfRenderDetails & { sequence: number };
 const MIN_SCALE = 0.35, MAX_SCALE = 2.5, FIT_PADDING = 32;
@@ -38,7 +29,7 @@ const MIN_SCALE = 0.35, MAX_SCALE = 2.5, FIT_PADDING = 32;
 export function PlanViewer({ projectId, sessionId = "current-session", planSets = [], sheets = [], onCaptureRequest }: Props) {
   const viewportRef = useRef<HTMLDivElement>(null);
   const surfaceRef = useRef<HTMLDivElement>(null);
-  const [pins, setPins] = useState<Pin[]>([]);
+  const [pins, setPins] = useState<PlanViewerPin[]>([]);
   const [filter, setFilter] = useState<LayerFilter>("all");
   const [activePinId, setActivePinId] = useState<string | null>(null);
   const [pageIndex, setPageIndex] = useState(0);
@@ -91,6 +82,23 @@ export function PlanViewer({ projectId, sessionId = "current-session", planSets 
     return () => viewport.removeEventListener("wheel", handleNativeWheel);
   }, []);
 
+  useEffect(() => {
+    let cancelled = false;
+    if (!activePage?.sheetId) {
+      setPins([]);
+      return;
+    }
+    fetch(`/api/site-walk/pins?plan_sheet_id=${encodeURIComponent(activePage.sheetId)}`, { cache: "no-store" })
+      .then((response) => response.ok ? response.json() as Promise<{ pins?: SiteWalkPin[] }> : null)
+      .then((data) => {
+        if (cancelled || !data) return;
+        const fetched = (data.pins ?? []).map((pin, index) => mapPlanPin(pin, index, sessionId));
+        setPins((current) => mergeFetchedPlanPins(current, fetched));
+      })
+      .catch(() => undefined);
+    return () => { cancelled = true; };
+  }, [activePage?.sheetId, sessionId]);
+
   const visiblePins = pins.filter((pin) => {
     if (filter === "none") return false;
     if (filter === "current") return pin.session_id === sessionId;
@@ -117,7 +125,7 @@ export function PlanViewer({ projectId, sessionId = "current-session", planSets 
       if (!nextPin) return;
       setPins((current) => [...current, nextPin]);
       setActivePinId(nextPin.id);
-      setQuickMenu({ pinId: nextPin.id, xPct: nextPin.x_pct, yPct: nextPin.y_pct, screenX: point.x, screenY: point.y });
+      setQuickMenu({ pinId: nextPin.id, xPct: nextPin.x_pct, yPct: nextPin.y_pct });
       if (navigator.vibrate) navigator.vibrate(50);
     }, 500);
   }, [pins.length, sessionId, transform.scale, transform.x, transform.y]);
@@ -157,7 +165,7 @@ export function PlanViewer({ projectId, sessionId = "current-session", planSets 
     event.stopPropagation();
     setActivePinId(pinId);
     const pin = pins.find((item) => item.id === pinId);
-    if (pin) setQuickMenu({ pinId, xPct: pin.x_pct, yPct: pin.y_pct, screenX: event.clientX, screenY: event.clientY });
+    if (pin) setQuickMenu({ pinId, xPct: pin.x_pct, yPct: pin.y_pct });
   }
 
   return (
@@ -201,8 +209,6 @@ export function PlanViewer({ projectId, sessionId = "current-session", planSets 
           planSheetId={activePage?.sheetId ?? ""}
           xPct={quickMenu.xPct}
           yPct={quickMenu.yPct}
-          screenX={quickMenu.screenX}
-          screenY={quickMenu.screenY}
           captureDisabledReason={captureDisabledReason}
           onClose={() => setQuickMenu(null)}
           onCaptureRequest={onCaptureRequest}
@@ -215,19 +221,6 @@ export function PlanViewer({ projectId, sessionId = "current-session", planSets 
         </button>
       )}
     </div>
-  );
-}
-
-function PlanPin({ pin, active, current, onClick }: { pin: Pin; active: boolean; current: boolean; onClick: (event: MouseEvent) => void }) {
-  return (
-    <button type="button" onClick={onClick} className={cn("absolute -translate-x-1/2 -translate-y-full p-2 transition-all duration-300", active ? "z-20 scale-125" : "z-10 hover:scale-110")} style={{ left: `${pin.x_pct}%`, top: `${pin.y_pct}%` }}>
-      <span className="relative flex flex-col items-center">
-        <span className={cn("flex h-8 w-8 items-center justify-center rounded-full border-2 shadow-xl shadow-black/50", current ? "border-amber-200 bg-amber-500 text-amber-950" : "border-slate-500 bg-slate-700 text-slate-300", active && current && "ring-4 ring-amber-500/30")}>
-          <span className="text-[11px] font-black">{pin.label}</span>
-        </span>
-        <span className={cn("h-3 w-0.5 shadow-lg", current ? "bg-amber-500" : "bg-slate-700")} />
-      </span>
-    </button>
   );
 }
 
@@ -245,7 +238,7 @@ function buildPages(planSet: SiteWalkPlanSet | null, sheets: SiteWalkPlanSheet[]
   });
 }
 
-function buildPin(point: Point, surface: HTMLDivElement | null, count: number, sessionId: string): Pin | null {
+function buildPin(point: Point, surface: HTMLDivElement | null, count: number, sessionId: string): PlanViewerPin | null {
   if (!surface) return null;
   const rect = surface.getBoundingClientRect();
   const xPct = clamp(((point.x - rect.left) / rect.width) * 100, 0, 100);

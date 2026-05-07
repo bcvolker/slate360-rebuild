@@ -1,160 +1,160 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useMemo, useState } from "react";
+import { Building2, Camera, ChevronDown, ClipboardList, FolderOpen, Loader2, Star, Zap } from "lucide-react";
 import GlassCard from "@/components/shared/GlassCard";
-import { Building2, Construction, FileText, MoreVertical, Play, Plus, MapPin, Trash2, Link as LinkIcon, Users, Rocket, UploadCloud } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
-export function SiteWalkHub({
-  projects,
-  walks,
-  reports,
-  tier,
-}: {
-  projects: any[];
-  walks: any[];
-  reports: any[];
-  tier: string;
-}) {
-  const [activeTab, setActiveTab] = useState<"setup" | "walks" | "deliverables">("setup");
+export type HubProject = {
+  id: string;
+  name: string;
+  description: string | null;
+  status: string;
+  createdAt: string;
+};
 
-  const canCreateFullProject = ["business", "enterprise"].includes(tier);
+export type HubWalk = {
+  id: string;
+  title: string;
+  status: string;
+  projectId: string | null;
+  projectName: string | null;
+  startedAt: string | null;
+  completedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  itemCount: number;
+  isStarred: boolean;
+};
+
+type Tab = "recent" | "starred" | "projects";
+type CreateState = { kind: "idle" } | { kind: "starting"; target: string } | { kind: "error"; message: string };
+
+export function SiteWalkHub({ projects, walks }: { projects: HubProject[]; walks: HubWalk[] }) {
+  const router = useRouter();
+  const [activeTab, setActiveTab] = useState<Tab>("recent");
+  const [expandedProjectId, setExpandedProjectId] = useState<string | null>(projects[0]?.id ?? null);
+  const [createState, setCreateState] = useState<CreateState>({ kind: "idle" });
+  const starredWalks = useMemo(() => walks.filter((walk) => walk.isStarred), [walks]);
+
+  async function startWalk(project?: HubProject) {
+    const target = project?.id ?? "quick";
+    setCreateState({ kind: "starting", target });
+    try {
+      const response = await fetch("/api/site-walk/sessions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          project_id: project?.id ?? null,
+          session_type: "general",
+          title: buildWalkTitle(project?.name),
+          metadata: { started_at: new Date().toISOString(), started_from: project ? "hub_project" : "hub_quick" },
+          is_ad_hoc: !project,
+        }),
+      });
+      const body = (await response.json().catch(() => null)) as { session?: { id?: string }; error?: string } | null;
+      if (!response.ok) throw new Error(body?.error ?? `Server error ${response.status}`);
+      const sessionId = body?.session?.id;
+      if (!sessionId) throw new Error("No session ID returned.");
+      router.push(`/site-walk/capture?session=${encodeURIComponent(sessionId)}${project ? "" : "&quick=camera"}`);
+    } catch (error) {
+      setCreateState({ kind: "error", message: error instanceof Error ? error.message : "Could not start walk." });
+    }
+  }
 
   return (
-    <div className="w-full space-y-6">
-      <header className="mb-8">
-        <h1 className="text-2xl font-bold tracking-tight text-white">Site Walk Hub</h1>
-        <p className="text-sm text-slate-400 mt-1">Manage field setup, conduct mobile walks, and generate client deliverables.</p>
-        <nav className="mt-3 flex flex-wrap gap-2 text-[11px] font-black uppercase tracking-wider">
-          <Link href="/site-walk/walks" className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-slate-200 hover:text-white">My Walks</Link>
-          <Link href="/site-walk/plans" className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-slate-200 hover:text-white">Plan Room</Link>
-          <Link href="/site-walk/progression" className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-slate-200 hover:text-white">Progressions</Link>
-          <Link href="/site-walk/assigned-work" className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-slate-200 hover:text-white">Assigned</Link>
-        </nav>
-      </header>
-
-      {/* Tabs */}
-      <div className="flex w-full overflow-x-auto border-b border-white/10 no-scrollbar">
-        {[
-          { id: "setup", label: "Setup & Plans" },
-          { id: "walks", label: "My Walks" },
-          { id: "deliverables", label: "Deliverables" },
-        ].map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id as any)}
-            className={`whitespace-nowrap px-3 py-2 text-xs font-semibold transition-colors sm:px-6 sm:py-3 sm:text-sm ${
-              activeTab === tab.id
-                ? "border-b-2 border-amber-400 text-amber-400"
-                : "border-b-2 border-transparent text-slate-400 hover:text-slate-200"
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
+    <div className="w-full space-y-4">
+      <div className="grid gap-3 sm:grid-cols-2">
+        <button type="button" onClick={() => { setActiveTab("projects"); setExpandedProjectId(projects[0]?.id ?? null); }} className="group min-h-32 rounded-[2rem] border border-white/10 bg-white/[0.06] p-5 text-left shadow-[0_22px_70px_rgba(0,0,0,0.25)] backdrop-blur-xl transition hover:border-amber-400/45 hover:bg-white/[0.09]">
+          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-500 text-slate-950"><Building2 className="h-6 w-6" /></span>
+          <span className="mt-4 block text-2xl font-black text-white">Start from Project</span>
+          <span className="mt-1 block text-sm font-bold text-slate-400">Choose a project and continue.</span>
+        </button>
+        <button type="button" onClick={() => void startWalk()} disabled={createState.kind === "starting"} className="group min-h-32 rounded-[2rem] border border-amber-400/35 bg-amber-500 p-5 text-left text-slate-950 shadow-[0_24px_80px_rgba(245,158,11,0.22)] transition hover:bg-amber-400 disabled:opacity-70">
+          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-950 text-amber-300">{createState.kind === "starting" && createState.target === "quick" ? <Loader2 className="h-6 w-6 animate-spin" /> : <Zap className="h-6 w-6" />}</span>
+          <span className="mt-4 block text-2xl font-black">Quick Walk</span>
+          <span className="mt-1 block text-sm font-black text-slate-900/75">Open camera now.</span>
+        </button>
       </div>
 
-      <div className="mt-8">
-        {activeTab === "setup" && (
-          <div className="space-y-8 animate-in fade-in duration-300">
-            <section>
-              <h2 className="mb-4 text-base font-bold text-white">Start a Project</h2>
-              <div className="grid gap-4 sm:grid-cols-2">
-                {canCreateFullProject && (
-                  <GlassCard className="flex flex-col items-center justify-center p-6 text-center hover:bg-slate-900/60 transition-colors cursor-pointer group">
-                    <Building2 className="mb-3 h-8 w-8 text-amber-500 group-hover:scale-110 transition-transform" />
-                    <span className="font-semibold text-slate-50">New Full Project</span>
-                    <span className="mt-1 text-xs text-slate-400">Construction management, bids, full workspace</span>
-                  </GlassCard>
-                )}
-                <GlassCard className="flex flex-col items-center justify-center p-6 text-center hover:bg-slate-900/60 transition-colors cursor-pointer group">
-                  <Construction className="mb-3 h-8 w-8 text-amber-500 group-hover:scale-110 transition-transform" />
-                  <span className="font-semibold text-slate-50">New Field Project</span>
-                  <span className="mt-1 text-xs text-slate-400">Lightweight wrapper for field capture & plans</span>
-                </GlassCard>
-              </div>
-            </section>
+      {createState.kind === "error" && <p className="rounded-2xl border border-rose-400/25 bg-rose-500/10 px-4 py-3 text-sm font-bold text-rose-200">{createState.message}</p>}
 
-            <section>
-              <h2 className="mb-4 text-base font-bold text-white">Floor Plans</h2>
-              <GlassCard className="flex flex-col items-center justify-center p-8 border-dashed border-white/20 bg-transparent hover:bg-white/[0.02] transition-colors">
-                <UploadCloud className="h-8 w-8 text-slate-500 mb-3" />
-                <p className="text-sm font-semibold text-slate-300">Upload Plan Sets</p>
-                <p className="text-xs text-slate-500 mt-1 max-w-sm text-center">Upload PDFs to pin issues during field walks. Drop files here or click to browse.</p>
-                <Button className="mt-4 bg-slate-800 text-slate-100 hover:bg-slate-700" size="sm">Browse Files</Button>
-              </GlassCard>
-            </section>
-          </div>
-        )}
+      <GlassCard className="overflow-hidden p-0">
+        <div className="flex gap-2 overflow-x-auto border-b border-white/10 p-3 no-scrollbar">
+          {(["recent", "starred", "projects"] as const).map((tab) => (
+            <button key={tab} type="button" onClick={() => setActiveTab(tab)} className={`shrink-0 rounded-full px-4 py-2 text-sm font-black transition ${activeTab === tab ? "bg-amber-500 text-slate-950" : "bg-white/[0.04] text-slate-300 hover:bg-white/[0.08]"}`}>
+              {tab === "recent" ? "Recent Walks" : tab === "starred" ? "Starred" : "Projects"}
+            </button>
+          ))}
+        </div>
 
-        {activeTab === "walks" && (
-          <div className="space-y-4 animate-in fade-in duration-300">
-            {walks.length === 0 ? (
-              <GlassCard className="p-8 text-center">
-                <MapPin className="mx-auto h-8 w-8 text-slate-600 mb-3" />
-                <p className="text-sm text-slate-400">No walks found.</p>
-              </GlassCard>
-            ) : (
-              <div className="grid gap-4">
-                {walks.map((w: any) => (
-                  <GlassCard key={w.id} className="flex items-center justify-between p-4 bg-slate-950/40 hover:bg-slate-900/60 transition-colors">
-                    <div className="flex flex-col">
-                      <span className="font-bold text-slate-50">{w.name}</span>
-                      <span className="text-xs text-slate-400">{w.date} &middot; {w.project}</span>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      {w.status === "in_progress" && (
-                        <Button className="bg-amber-500 text-slate-950 hover:bg-amber-400 font-bold gap-2 text-xs h-8">
-                          <Rocket className="h-4 w-4" /> Continue Walk
-                        </Button>
-                      )}
-                      
-                      <div className="relative group cursor-pointer p-2 hover:bg-white/10 rounded-full">
-                        <MoreVertical className="h-4 w-4 text-slate-400" />
-                        <div className="absolute right-0 top-10 w-48 rounded-xl border border-white/10 bg-slate-900 p-1 shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
-                          <button className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-semibold text-slate-300 hover:bg-white/10">
-                            <LinkIcon className="h-3.5 w-3.5" /> Link to Project
-                          </button>
-                          <button className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-semibold text-slate-300 hover:bg-white/10">
-                            <Users className="h-3.5 w-3.5" /> Manage Access / Assign
-                          </button>
-                          <button className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-semibold text-red-400 hover:bg-red-400/10 hover:text-red-300">
-                            <Trash2 className="h-3.5 w-3.5" /> Delete
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </GlassCard>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {activeTab === "deliverables" && (
-          <div className="space-y-4 animate-in fade-in duration-300">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-base font-bold text-white">Generated Reports</h2>
-              <Button className="bg-slate-800 text-slate-100 hover:bg-slate-700 gap-1 h-8 text-xs font-bold">
-                <Plus className="h-3 w-3" /> Create New Report
-              </Button>
+        <div className="max-h-[58dvh] overflow-y-auto p-3 no-scrollbar">
+          {activeTab === "recent" && (
+            <div className="space-y-2">
+              {walks.length === 0 && <div className="rounded-3xl border border-dashed border-white/15 bg-white/[0.03] p-6 text-center text-sm font-bold text-slate-400">No walks yet. Start a Quick Walk.</div>}
+              {walks.map((walk) => (
+                <Link key={walk.id} href={walkHref(walk)} className="flex items-center gap-3 rounded-3xl border border-white/10 bg-white/[0.04] p-3 transition hover:border-amber-400/40 hover:bg-white/[0.08]">
+                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-500/15 text-amber-300"><Camera className="h-5 w-5" /></span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-base font-black text-white">{walk.title}</span>
+                    <span className="mt-0.5 block truncate text-xs font-bold text-slate-400">{walk.projectName ?? "Quick Walk"} · {walk.itemCount} capture{walk.itemCount === 1 ? "" : "s"} · {formatDate(walk.updatedAt)}</span>
+                  </span>
+                  <span className={`rounded-full px-2 py-1 text-[10px] font-black uppercase ${walk.status === "completed" ? "bg-emerald-500/15 text-emerald-300" : "bg-amber-500/15 text-amber-200"}`}>{walk.status.replaceAll("_", " ")}</span>
+                </Link>
+              ))}
             </div>
-            
-            {reports.length === 0 ? (
-              <GlassCard className="p-8 text-center border-dashed border-white/10">
-                <FileText className="mx-auto h-8 w-8 text-slate-600 mb-3" />
-                <p className="text-sm text-slate-400">No deliverables generated yet.</p>
-                <p className="text-xs text-slate-500 mt-1">Complete a walk to build a report.</p>
-              </GlassCard>
-            ) : (
-              <div className="grid gap-4">
-                 {/* Reports map here */}
-              </div>
-            )}
-          </div>
-        )}
-      </div>
+          )}
+
+          {activeTab === "starred" && (
+            <div className="space-y-2">
+              {starredWalks.length === 0 && <div className="rounded-3xl border border-dashed border-white/15 bg-white/[0.03] p-6 text-center text-sm font-bold text-slate-400">No starred walks yet.</div>}
+              {starredWalks.map((walk) => <Link key={walk.id} href={walkHref(walk)} className="flex items-center gap-3 rounded-3xl border border-white/10 bg-white/[0.04] p-3 transition hover:border-amber-400/40"><Star className="h-5 w-5 shrink-0 fill-amber-300 text-amber-300" /><span className="min-w-0 flex-1 truncate font-black text-white">{walk.title}</span><span className="text-xs font-bold text-slate-400">{formatDate(walk.updatedAt)}</span></Link>)}
+            </div>
+          )}
+
+          {activeTab === "projects" && (
+            <div className="space-y-2">
+              {projects.length === 0 && <Link href="/site-walk/setup" className="block rounded-3xl border border-dashed border-white/15 bg-white/[0.03] p-6 text-center text-sm font-bold text-amber-200">Create a field project</Link>}
+              {projects.map((project) => {
+                const projectWalks = walks.filter((walk) => walk.projectId === project.id);
+                const expanded = expandedProjectId === project.id;
+                return (
+                  <div key={project.id} className="rounded-3xl border border-white/10 bg-white/[0.04] p-3">
+                    <button type="button" onClick={() => setExpandedProjectId(expanded ? null : project.id)} className="flex w-full items-center gap-3 text-left">
+                      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/[0.06] text-amber-300"><FolderOpen className="h-5 w-5" /></span>
+                      <span className="min-w-0 flex-1"><span className="block truncate font-black text-white">{project.name}</span><span className="block text-xs font-bold text-slate-400">{projectWalks.length} walk{projectWalks.length === 1 ? "" : "s"}</span></span>
+                      <ChevronDown className={`h-4 w-4 text-slate-400 transition ${expanded ? "rotate-180" : ""}`} />
+                    </button>
+                    {expanded && (
+                      <div className="mt-3 space-y-2 border-t border-white/10 pt-3">
+                        <button type="button" onClick={() => void startWalk(project)} disabled={createState.kind === "starting"} className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl bg-amber-500 px-4 text-sm font-black text-slate-950 hover:bg-amber-400 disabled:opacity-70">
+                          {createState.kind === "starting" && createState.target === project.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <ClipboardList className="h-4 w-4" />} Start walk
+                        </button>
+                        {projectWalks.length === 0 && <p className="rounded-2xl bg-black/20 px-3 py-2 text-center text-xs font-bold text-slate-500">No walks for this project yet.</p>}
+                        {projectWalks.map((walk) => <Link key={walk.id} href={walkHref(walk)} className="flex items-center justify-between rounded-2xl bg-black/20 px-3 py-2 text-sm font-bold text-slate-200 hover:text-amber-100"><span className="truncate">{walk.title}</span><span className="ml-3 shrink-0 text-xs text-slate-500">{walk.itemCount}</span></Link>)}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </GlassCard>
     </div>
   );
+}
+
+function buildWalkTitle(projectName?: string) {
+  const date = new Date().toISOString().slice(0, 10);
+  return projectName ? `${projectName} — Site Walk — ${date}` : `Quick Walk — ${date}`;
+}
+
+function walkHref(walk: HubWalk) {
+  return walk.status === "completed" ? `/site-walk/walks/${encodeURIComponent(walk.id)}` : `/site-walk/capture?session=${encodeURIComponent(walk.id)}`;
+}
+
+function formatDate(value: string) {
+  return value.slice(0, 10);
 }

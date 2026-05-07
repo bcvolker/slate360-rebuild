@@ -43,6 +43,8 @@ function CaptureClientIslandInner({ sessionId, projectId, walkName, showPlanCanv
   const [walkMode, setWalkMode] = useState<WalkMode>(() => showStartChoice ? "choice" : showPlanCanvas ? "plan" : "camera");
   const [currentLocation, setCurrentLocation] = useState("Stop 1");
   const [recentLocations, setRecentLocations] = useState<string[]>([]);
+  const [ghostOn, setGhostOn] = useState(false);
+  const [markupOn, setMarkupOn] = useState(true);
   const carryForwardRef = useRef<Partial<Pick<CaptureItemDraft, "classification" | "trade" | "priority" | "status" | "assignedTo">> | null>(null);
   const appliedCarryRef = useRef<string | null>(null);
   const returnToPlanAfterSaveRef = useRef(false);
@@ -82,7 +84,6 @@ function CaptureClientIslandInner({ sessionId, projectId, walkName, showPlanCanv
     const cleanLocation = location.trim() || "Stop 1";
     setCurrentLocation(cleanLocation);
     setRecentLocations((current) => [cleanLocation, ...current.filter((item) => item !== cleanLocation)].slice(0, 8));
-    if (draft) patchDraft({ title: cleanLocation });
   }
 
   function rememberCarryForward() {
@@ -102,8 +103,9 @@ function CaptureClientIslandInner({ sessionId, projectId, walkName, showPlanCanv
 
   function saveNextStop(options: { fromPlanPin?: boolean } = {}) {
     rememberCarryForward();
+    const shouldReturnToPlan = options.fromPlanPin || returnToPlanAfterSaveRef.current;
     updateLocation(nextStopLabel(currentLocation, recentLocations));
-    if (options.fromPlanPin || showPlanCanvas || returnToPlanAfterSaveRef.current) {
+    if (shouldReturnToPlan) {
       returnToPlanAfterSaveRef.current = false;
       setWalkMode("plan");
       return;
@@ -148,6 +150,8 @@ function CaptureClientIslandInner({ sessionId, projectId, walkName, showPlanCanv
             activeItemId={activeItem?.id ?? null}
             modeLabel={showPlanCanvas ? "Plan-linked" : "Photos-only"}
             ghostImageUrl={ghostImageUrl}
+            ghostOn={ghostOn}
+            markupOn={markupOn}
             onMarkupChange={(itemId, markup) => void saveMarkupData(itemId, markup)}
             onAttachmentPinsChange={(itemId, pins) => void savePhotoAttachmentPins(itemId, pins)}
             onPlanCaptureSaved={handlePlanCaptureSaved}
@@ -173,6 +177,11 @@ function CaptureClientIslandInner({ sessionId, projectId, walkName, showPlanCanv
         currentLocation={currentLocation}
         tradeOptions={tradeSettings.trades}
         canManageTrades={Boolean(projectId)}
+        ghostOn={ghostOn}
+        ghostAvailable={Boolean(ghostImageUrl)}
+        markupOn={markupOn}
+        onToggleGhost={() => setGhostOn((current) => !current)}
+        onToggleMarkup={() => setMarkupOn((current) => !current)}
         onDraftChange={patchDraft}
         onCapture={captureNow}
         onFormatNotes={() => void formatNotesWithAi()}

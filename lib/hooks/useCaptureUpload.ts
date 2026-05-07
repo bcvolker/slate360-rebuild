@@ -82,7 +82,7 @@ export function useCaptureUpload({ sessionId, planTarget, onPlanTargetSaved, onS
     if (planTarget) {
       try {
         console.log("[capture]#8 attachPin", { itemId: item.id, planTarget });
-        await attachItemToPlanPin(item.id, planTarget);
+        await attachItemToPlanPin(sessionId, item.id, planTarget);
       } catch (error) {
         const message = formatCaptureError(error, "Unknown attach failure");
         setStatus({ kind: "error", message: `Photo saved, but it could not attach to the plan pin: ${message}` });
@@ -132,7 +132,7 @@ export function useCaptureUpload({ sessionId, planTarget, onPlanTargetSaved, onS
 
     if (planTarget) {
       try {
-        await attachItemToPlanPin(item.id, planTarget);
+        await attachItemToPlanPin(sessionId, item.id, planTarget);
       } catch (error) {
         const message = formatCaptureError(error, "Unknown attach failure");
         setStatus({ kind: "error", message: `Note saved, but it could not attach to the plan pin: ${message}` });
@@ -148,7 +148,7 @@ export function useCaptureUpload({ sessionId, planTarget, onPlanTargetSaved, onS
   return { status, savePhoto, saveTextNote, resetStatus: () => setStatus({ kind: "idle", message: "Ready to capture." }) };
 }
 
-async function attachItemToPlanPin(itemId: string, target: PlanCaptureTarget) {
+async function attachItemToPlanPin(sessionId: string, itemId: string, target: PlanCaptureTarget) {
   const savedPinId = target.pinId && isUuid(target.pinId) ? target.pinId : null;
   console.log("[capture]#10 attachItemToPlanPin", { savedPinId, target });
   if (savedPinId) {
@@ -169,6 +169,7 @@ async function attachItemToPlanPin(itemId: string, target: PlanCaptureTarget) {
     body: JSON.stringify({
       plan_sheet_id: target.planSheetId,
       item_id: itemId,
+      session_id: sessionId,
       x_pct: target.xPct,
       y_pct: target.yPct,
       pin_status: "active",

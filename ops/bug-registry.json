@@ -829,6 +829,23 @@
         "MasterPlanRoomClient receives the returned sheets through the existing onPlanRoomChange merge path so UUID sheet IDs are available for plan mode",
         "npm run typecheck passes"
       ]
+    },
+    {
+      "id": "BUG-076",
+      "title": "Site Walk hub and capture crisis regression blocked core field flow",
+      "module": "site-walk/hub-capture-plans",
+      "severity": "critical",
+      "status": "fixed",
+      "rootCause": "The landing hub mixed mock walks with a wordy setup/deliverables UI; Save & Next forced plan mode for every planned project; PlanViewer lost local pins when switching to camera capture; and markup/pin actions were positioned in top/off-screen controls instead of reachable drawer surfaces.",
+      "verification": [
+        "/site-walk renders real sessions/projects with Start from Project, Quick Walk, and Recent/Starred/Projects tabs",
+        "Quick Walk creates a real ad-hoc site_walk_sessions row and opens /site-walk/capture with quick=camera",
+        "Save & Next Stop advances the location and requests the next capture unless returning from a plan-pin capture",
+        "New plan pins include session_id and PlanViewer fetches saved sheet pins when remounted",
+        "PlanQuickActionMenu renders as a centered modal instead of screen-coordinate absolute positioning",
+        "Markup, Ghost, Undo, Redo, and UnifiedVectorToolbar controls render inside CaptureDataBottomSheet",
+        "npm run typecheck passes"
+      ]
     }
   ]
 }

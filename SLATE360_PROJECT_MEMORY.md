@@ -1,6 +1,6 @@
 # Slate360 — Project Memory
 
-Last Updated: 2026-04-30
+Last Updated: 2026-05-07
 Repo: bcvolker/slate360-rebuild
 Branch: main
 Live: https://www.slate360.ai
@@ -202,30 +202,34 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-05-07 (Site Walk Phase 4 Plan Sheet Extractor)
+### Session Handoff — 2026-05-07 (Site Walk Crisis Recovery Pass)
 
 #### What Changed
-- `app/api/site-walk/plan-sets/[id]/sheets/auto/route.ts` — New POST route that validates `punchwalk` auth + project access, accepts `pageCount`, inserts missing `site_walk_plan_sheets` rows for each PDF page, updates `site_walk_plan_sets.page_count` / `processing_status='ready'`, and returns `{ planSet, planSets, sheets }`.
-- `app/site-walk/(act-1-setup)/plans/_components/PlanUploader.tsx` — Reads PDF page count with PDF.js (`pdfjs.getDocument`), uploads through SlateDrop as before, creates the plan set, then calls `/api/site-walk/plan-sets/{id}/sheets/auto` before `onPlanRoomChange`. The returned sheet UUIDs now merge into `MasterPlanRoomClient` state before the user starts Plan Mode.
-- `ONGOING_ISSUES.md`, `slate360-context/ONGOING_ISSUES.md`, `ops/bug-registry.json`, and `slate360-context/dashboard-tabs/site-walk/FIELD_PLATFORM_ROADMAP.md` — Added S360-055 / BUG-075 and the Site Walk roadmap implementation note.
+- `app/site-walk/page.tsx` — Removed the mock `Safety Inspection` / `Punch List` data. The landing route now loads real field projects, real `site_walk_sessions`, item counts, project names, and starred metadata.
+- `app/site-walk/_components/SiteWalkHub.tsx` — Rebuilt the hub as a simple action-first screen: `Start from Project`, `Quick Walk`, and a contained scroll panel with `Recent Walks`, `Starred`, and `Projects`. `Quick Walk` creates a real ad-hoc session and opens capture with `quick=camera`; project rows expand and can start/resume walks.
+- `app/site-walk/(act-2-inputs)/capture/_components/CaptureClientIsland.tsx` — Fixed `Save & Next Stop`: it now advances the location and requests the next capture unless the save came from a plan pin. It no longer renames the current active draft to the next stop label. Markup/Ghost state is lifted here for drawer controls.
+- `components/site-walk/capture/VisualCaptureView.tsx` and `CaptureDataBottomSheet.tsx` — Moved Markup, Ghost, Undo, Redo, and `UnifiedVectorToolbar` from top chrome into the bottom sheet so phone users can reach tools with their thumb. Visual top chrome is now minimal.
+- `components/site-walk/capture/PlanQuickActionMenu.tsx` — Replaced screen-coordinate absolute positioning with a centered modal overlay so the pin menu cannot render off-screen.
+- `components/site-walk/capture/PlanViewer.tsx` and new `components/site-walk/capture/PlanPin.tsx` — `PlanViewer` now fetches saved pins for the active sheet when it mounts/remounts, so plan pins reappear after switching to camera and attaching a capture. Pin rendering/mapping helpers were extracted to keep `PlanViewer` under 300 lines.
+- `lib/hooks/useCaptureUpload.ts` — New plan-pin POSTs now include `session_id`, allowing fetched pins to render as current-session amber pins after return to Plan Mode.
+- `slate360-context/ONGOING_ISSUES.md` and `ops/bug-registry.json` — Added BUG-076 for the crisis regression and recovery pass.
 
 #### What's Broken / Partially Done
-- Existing already-uploaded PDFs with ghost pages still need a manual/backfill call to `/sheets/auto` or a UI retry action; this slice wires new uploads.
-- Browser/device smoke verification still needs to upload a multi-page PDF and confirm pages beyond page 1 receive real `sheetId` UUIDs and allow long-press pinning.
-- `bash scripts/check-file-size.sh` still fails on 12 pre-existing oversized files outside this slice; changed files remain under 300 lines (`PlanUploader.tsx` 126, extractor route 100).
+- Browser/device smoke verification still needs to confirm the full end-to-end field workflow on phone: `/site-walk` → Quick Walk → capture → Save & Next → capture next stop.
+- Plan-pin capture now persists/fetches pins, but it still needs live smoke verification on a real PDF sheet: long-press → upload/take photo → return to Plan Mode → pin visible.
+- Existing old PDFs with no `site_walk_plan_sheets` rows still need the Phase 4 backfill/retry action; new uploads are wired.
+- `bash scripts/check-file-size.sh` still fails on 12 pre-existing oversized files outside this slice; all changed files are under 300 lines.
 
 #### Context Files Updated
-- `ONGOING_ISSUES.md` — Added S360-055 for UUID-backed plan sheet extraction.
-- `slate360-context/ONGOING_ISSUES.md` — Added BUG-075.
-- `ops/bug-registry.json` — Added BUG-075.
-- `slate360-context/dashboard-tabs/site-walk/FIELD_PLATFORM_ROADMAP.md` — Added implementation note.
+- `slate360-context/ONGOING_ISSUES.md` — Added BUG-076.
+- `ops/bug-registry.json` — Added BUG-076.
 - `SLATE360_PROJECT_MEMORY.md` — This handoff.
 
 #### Next Steps (ordered)
-1. Retest with a new multi-page PDF upload: verify `PlanUploader` reads the correct page count and `/sheets/auto` returns sheet UUID rows.
-2. Start a Plan Mode walk from that upload and long-press pages beyond page 1; pin actions should unlock instead of showing syncing copy.
-3. Add an admin/backfill action for older uploaded PDFs that still have ghost pages.
-4. Continue retesting Phase 1–3 fixes: mobile markup, PDF centering, and Confirm & Attach tracing.
+1. Phone smoke: open `/site-walk`, tap Quick Walk, confirm camera opens, take/upload a photo, tap Save & Next, confirm next stop capture opens.
+2. Project smoke: open `/site-walk`, tap Start from Project, expand a project, start/resume a walk, confirm existing walks open capture/review correctly.
+3. Plan smoke: start a plan walk from a PDF with real sheet rows, long-press a point, attach a photo, confirm return to Plan Mode and saved pin appears.
+4. Add a backfill/retry UI for older PDFs that still need `/api/site-walk/plan-sets/[id]/sheets/auto`.
 
 ### Session Handoff — 2026-05-07 (Site Walk Phase 3 Confirm & Attach Hardening)
 
