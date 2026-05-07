@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, Camera, FileImage } from "lucide-react";
+import { ArrowLeft, Camera, FileImage, Ghost, RotateCcw, RotateCw, Shapes } from "lucide-react";
 import { useEffect, useState } from "react";
 import GlassCard from "@/components/shared/GlassCard";
 import type { MarkupData } from "@/lib/site-walk/markup-types";
@@ -12,6 +12,8 @@ import { CameraViewfinder } from "./CameraViewfinder";
 import { useOptionalCaptureContext } from "./CaptureContext";
 import { requestCameraCapture } from "./capture-camera-events";
 import { PhotoAngleStrip } from "./PhotoAngleStrip";
+import { PHOTO_MARKUP_REDO_EVENT, PHOTO_MARKUP_UNDO_EVENT } from "./PhotoMarkupCanvas";
+import { UnifiedVectorToolbar } from "./UnifiedVectorToolbar";
 
 type Props = {
   sessionId: string;
@@ -23,6 +25,8 @@ type Props = {
   ghostImageUrl: string | null;
   ghostOn: boolean;
   markupOn: boolean;
+  onToggleGhost: () => void;
+  onToggleMarkup: () => void;
   onMarkupChange: (itemId: string, markup: MarkupData) => void;
   onAttachmentPinsChange: (itemId: string, pins: PhotoAttachmentPin[]) => void;
   onPlanCaptureSaved?: () => void;
@@ -33,7 +37,7 @@ type Props = {
 // Reserve at the bottom for the collapsed CaptureDataBottomSheet handle.
 const BOTTOM_SHEET_RESERVE = "5.7rem";
 
-export function VisualCaptureView({ sessionId, autoOpenCamera, launchId, items, activeItemId, modeLabel, ghostImageUrl, ghostOn, markupOn, onMarkupChange, onAttachmentPinsChange, onPlanCaptureSaved, onAddAngle, onAngleCaptureFile }: Props) {
+export function VisualCaptureView({ sessionId, autoOpenCamera, launchId, items, activeItemId, modeLabel, ghostImageUrl, ghostOn, markupOn, onToggleGhost, onToggleMarkup, onMarkupChange, onAttachmentPinsChange, onPlanCaptureSaved, onAddAngle, onAngleCaptureFile }: Props) {
   const [activeAngleId, setActiveAngleId] = useState<string | null>(null);
   const [previewActive, setPreviewActive] = useState(false);
   const captureCtx = useOptionalCaptureContext();
@@ -43,6 +47,7 @@ export function VisualCaptureView({ sessionId, autoOpenCamera, launchId, items, 
   const activeImageUrl = getPhotoAngleImageUrl(activeItem, activeAngleId);
   const activeImageTitle = activeAngleId && activeItem ? `${activeItem.title || "Captured photo"} — angle` : activeItem?.title ?? null;
   const captureReady = Boolean(activeItem || captureCtx?.pendingCapture || previewActive || activeItemId);
+  const ghostAvailable = Boolean(ghostImageUrl);
 
   useEffect(() => setActiveAngleId(null), [activeItemId]);
 
@@ -57,10 +62,14 @@ export function VisualCaptureView({ sessionId, autoOpenCamera, launchId, items, 
     else requestCameraCapture(input, "next_item");
   }
 
+  function dispatchCanvasEvent(type: string) {
+    window.dispatchEvent(new CustomEvent(type));
+  }
+
   return (
     <div
       className="grid h-full w-full overflow-hidden bg-[#0B0F15] text-white"
-      style={{ gridTemplateRows: `auto minmax(0,1fr) auto ${BOTTOM_SHEET_RESERVE}` }}
+      style={{ gridTemplateRows: `auto minmax(0,1fr) auto auto ${BOTTOM_SHEET_RESERVE}` }}
     >
       {/* Top chrome bar */}
       <header className="z-30 flex items-center gap-2 border-b border-white/5 bg-slate-950/55 px-3 py-2 backdrop-blur-xl">
@@ -113,6 +122,35 @@ export function VisualCaptureView({ sessionId, autoOpenCamera, launchId, items, 
       <div className="z-20 border-t border-white/5 bg-slate-950/55 px-3 py-2 backdrop-blur-xl">
         <PhotoAngleStrip item={activeItem} activeAngleId={activeAngleId} className="static left-auto right-auto bottom-auto" onSelectAngle={setActiveAngleId} onAddAngle={onAddAngle} />
       </div>
+
+      {/* Tools strip */}
+      {captureReady && (
+        <div className="z-20 flex flex-col gap-2 border-t border-white/5 bg-slate-950/80 px-3 py-2 backdrop-blur-xl">
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+            <button type="button" onClick={onToggleMarkup} className={`inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-xl px-3 text-xs font-black uppercase tracking-wider transition-colors ${markupOn ? "bg-amber-500 text-slate-950 shadow-[0_0_12px_rgba(245,158,11,0.3)]" : "border border-white/10 bg-black/40 text-slate-200 hover:border-amber-300/50 hover:bg-black hover:text-amber-100"}`}>
+              <Shapes className="h-4 w-4" /> Markup
+            </button>
+            <button type="button" onClick={onToggleGhost} disabled={!ghostAvailable} className={`inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-xl px-3 text-xs font-black uppercase tracking-wider transition-colors disabled:opacity-40 ${ghostOn ? "bg-amber-500 text-slate-950 shadow-[0_0_12px_rgba(245,158,11,0.3)]" : "border border-white/10 bg-black/40 text-slate-200 hover:border-amber-300/50 hover:bg-black hover:text-amber-100"}`}>
+              <Ghost className="h-4 w-4" /> Ghost
+            </button>
+            {markupOn && (
+              <>
+                <button type="button" onClick={() => dispatchCanvasEvent(PHOTO_MARKUP_UNDO_EVENT)} className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-xl border border-white/10 bg-black/40 px-3 text-xs font-black uppercase tracking-wider text-slate-200 transition-colors hover:border-amber-300/50 hover:bg-black hover:text-amber-100">
+                  <RotateCcw className="h-4 w-4" /> Undo
+                </button>
+                <button type="button" onClick={() => dispatchCanvasEvent(PHOTO_MARKUP_REDO_EVENT)} className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-xl border border-white/10 bg-black/40 px-3 text-xs font-black uppercase tracking-wider text-slate-200 transition-colors hover:border-amber-300/50 hover:bg-black hover:text-amber-100">
+                  <RotateCw className="h-4 w-4" /> Redo
+                </button>
+              </>
+            )}
+          </div>
+          {markupOn && (
+            <div>
+              <UnifiedVectorToolbar />
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Reserved space for collapsed CaptureDataBottomSheet handle */}
       <div aria-hidden />

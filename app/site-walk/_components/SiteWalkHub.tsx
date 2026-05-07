@@ -93,7 +93,7 @@ export function SiteWalkHub({ projects, walks }: { projects: HubProject[]; walks
           ))}
         </div>
 
-        <div className="max-h-[58dvh] overflow-y-auto p-3 no-scrollbar">
+        <div className="max-h-[calc(100dvh-22rem)] overflow-y-auto p-3 pb-8 no-scrollbar">
           {activeTab === "recent" && (
             <div className="space-y-2">
               {walks.length === 0 && <div className="rounded-3xl border border-dashed border-white/15 bg-white/[0.03] p-6 text-center text-sm font-bold text-slate-400">No walks yet. Start a Quick Walk.</div>}

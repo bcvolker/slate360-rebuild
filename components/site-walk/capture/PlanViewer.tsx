@@ -148,6 +148,12 @@ export function PlanViewer({ projectId, sessionId = "current-session", planSets 
       setPins((current) => [...current, nextPin]);
       setActivePinId(nextPin.id);
       setQuickMenu({ pinId: nextPin.id, xPct: nextPin.x_pct, yPct: nextPin.y_pct });
+      
+      // Clear pointer state so gestures don't get stuck under the modal.
+      activePointers.current.clear();
+      pinchStart.current = null;
+      dragStart.current = null;
+
       if (navigator.vibrate) navigator.vibrate(50);
     }, 500);
   }, [pins.length, sessionId, transform.scale, transform.x, transform.y]);

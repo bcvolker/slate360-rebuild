@@ -166,6 +166,8 @@ function CaptureClientIslandInner({ sessionId, projectId, walkName, showPlanCanv
             ghostImageUrl={ghostImageUrl}
             ghostOn={ghostOn}
             markupOn={markupOn}
+            onToggleGhost={() => setGhostOn((current) => !current)}
+            onToggleMarkup={() => setMarkupOn((current) => !current)}
             onMarkupChange={(itemId, markup) => void saveMarkupData(itemId, markup)}
             onAttachmentPinsChange={(itemId, pins) => void savePhotoAttachmentPins(itemId, pins)}
             onPlanCaptureSaved={handlePlanCaptureSaved}
@@ -191,11 +193,6 @@ function CaptureClientIslandInner({ sessionId, projectId, walkName, showPlanCanv
         currentLocation={currentLocation}
         tradeOptions={tradeSettings.trades}
         canManageTrades={Boolean(projectId)}
-        ghostOn={ghostOn}
-        ghostAvailable={Boolean(ghostImageUrl)}
-        markupOn={markupOn}
-        onToggleGhost={() => setGhostOn((current) => !current)}
-        onToggleMarkup={() => setMarkupOn((current) => !current)}
         onDraftChange={patchDraft}
         onCapture={captureNow}
         onFormatNotes={() => void formatNotesWithAi()}

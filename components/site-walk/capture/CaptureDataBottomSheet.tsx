@@ -1,12 +1,10 @@
 "use client";
 
 import { useRef, useState, type PointerEvent } from "react";
-import { Camera, ChevronUp, Ghost, Link2, Loader2, Mic, RotateCcw, RotateCw, Settings2, Shapes, SkipForward, Sparkles, Upload } from "lucide-react";
+import { Camera, ChevronUp, Link2, Loader2, Mic, Settings2, SkipForward, Sparkles, Upload } from "lucide-react";
 import GlassCard from "@/components/shared/GlassCard";
 import { useDeviceContext, type DeviceCaptureInput } from "@/lib/hooks/useDeviceContext";
 import { CAPTURE_ITEM_STATUSES, type CaptureAssignee, type CaptureItemDraft, type CaptureItemRecord } from "@/lib/types/site-walk-capture";
-import { PHOTO_MARKUP_REDO_EVENT, PHOTO_MARKUP_UNDO_EVENT } from "./PhotoMarkupCanvas";
-import { UnifiedVectorToolbar } from "./UnifiedVectorToolbar";
 
 type Props = {
   item: CaptureItemRecord | null;
@@ -19,11 +17,6 @@ type Props = {
   currentLocation: string;
   tradeOptions: string[];
   canManageTrades: boolean;
-  ghostOn: boolean;
-  ghostAvailable: boolean;
-  markupOn: boolean;
-  onToggleGhost: () => void;
-  onToggleMarkup: () => void;
   onDraftChange: (patch: Partial<CaptureItemDraft>) => void;
   onCapture: (input?: DeviceCaptureInput) => void;
   onFormatNotes: () => void;
@@ -31,7 +24,7 @@ type Props = {
   onOpenManageTrades?: () => void;
 };
 
-export function CaptureDataBottomSheet({ item, items, assignees, draft, saveState, aiState, aiMessage, currentLocation, tradeOptions, canManageTrades, ghostOn, ghostAvailable, markupOn, onToggleGhost, onToggleMarkup, onDraftChange, onCapture, onFormatNotes, onSaveNextStop, onOpenManageTrades }: Props) {
+export function CaptureDataBottomSheet({ item, items, assignees, draft, saveState, aiState, aiMessage, currentLocation, tradeOptions, canManageTrades, onDraftChange, onCapture, onFormatNotes, onSaveNextStop, onOpenManageTrades }: Props) {
   const [expanded, setExpanded] = useState(false);
   const [linkProgression, setLinkProgression] = useState(false);
   const dragStartY = useRef<number | null>(null);
@@ -70,31 +63,20 @@ export function CaptureDataBottomSheet({ item, items, assignees, draft, saveStat
           <p className="truncate text-xs font-black uppercase tracking-[0.16em] text-amber-300">{currentLocation}</p>
           <h2 className="truncate text-base font-black text-white">{item?.title || "Ready for next field stop"}</h2>
         </div>
-        <button type="button" onClick={() => onCapture(primaryCaptureInput)} className="inline-flex min-h-12 items-center gap-2 rounded-2xl bg-amber-500 px-5 text-sm font-black text-slate-950 shadow-[0_0_24px_rgba(245,158,11,0.38)] transition hover:bg-amber-400">
-          {primaryCaptureInput === "camera" ? <Camera className="h-5 w-5" /> : <Upload className="h-5 w-5" />} {primaryCaptureLabel}
-        </button>
+        {item ? (
+          <button type="button" onClick={() => onSaveNextStop()} disabled={isSaving} className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-2xl bg-amber-500 px-5 text-sm font-black text-slate-950 shadow-[0_0_24px_rgba(245,158,11,0.38)] transition hover:bg-amber-400 disabled:opacity-60">
+            {isSaving ? <Loader2 className="h-5 w-5 animate-spin" /> : <SkipForward className="h-5 w-5" />}
+            Save &amp; Next
+          </button>
+        ) : (
+          <button type="button" onClick={() => onCapture(primaryCaptureInput)} className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-2xl bg-amber-500 px-5 text-sm font-black text-slate-950 shadow-[0_0_24px_rgba(245,158,11,0.38)] transition hover:bg-amber-400">
+            {primaryCaptureInput === "camera" ? <Camera className="h-5 w-5" /> : <Upload className="h-5 w-5" />} {primaryCaptureLabel}
+          </button>
+        )}
       </div>
 
       {expanded && (
         <div className="mt-4 max-h-[58dvh] space-y-3 overflow-y-auto pr-1 no-scrollbar">
-          <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-3">
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-              <button type="button" onClick={onToggleMarkup} className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl px-3 text-xs font-black uppercase tracking-wider ${markupOn ? "bg-amber-500 text-slate-950" : "border border-white/10 bg-black/25 text-slate-200"}`}>
-                <Shapes className="h-4 w-4" /> Markup
-              </button>
-              <button type="button" onClick={onToggleGhost} disabled={!ghostAvailable} className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl px-3 text-xs font-black uppercase tracking-wider disabled:opacity-40 ${ghostOn ? "bg-amber-500 text-slate-950" : "border border-white/10 bg-black/25 text-slate-200"}`}>
-                <Ghost className="h-4 w-4" /> Ghost
-              </button>
-              <button type="button" onClick={() => dispatchCanvasEvent(PHOTO_MARKUP_UNDO_EVENT)} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl border border-white/10 bg-black/25 px-3 text-xs font-black uppercase tracking-wider text-slate-200">
-                <RotateCcw className="h-4 w-4" /> Undo
-              </button>
-              <button type="button" onClick={() => dispatchCanvasEvent(PHOTO_MARKUP_REDO_EVENT)} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl border border-white/10 bg-black/25 px-3 text-xs font-black uppercase tracking-wider text-slate-200">
-                <RotateCw className="h-4 w-4" /> Redo
-              </button>
-            </div>
-            {markupOn && <div className="mt-3"><UnifiedVectorToolbar /></div>}
-          </div>
-
           <label className="block">
             <span className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">Field note</span>
             <textarea
@@ -104,6 +86,8 @@ export function CaptureDataBottomSheet({ item, items, assignees, draft, saveStat
               disabled={!draft}
               placeholder="Type what happened, what changed, and who owns the next action…"
               className="mt-2 w-full rounded-3xl border border-white/10 bg-black/35 px-4 py-3 text-base leading-6 text-slate-100 outline-none placeholder:text-slate-600 focus:border-amber-400 focus:ring-2 focus:ring-amber-500/20 disabled:opacity-60"
+              style={{ WebkitUserSelect: "text", userSelect: "text" }}
+              onPointerDown={(e) => e.stopPropagation()}
             />
           </label>
 
