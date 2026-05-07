@@ -798,6 +798,22 @@
         "calculateCenteredPlanTransform returns early for PDF pages until the matching file/page render token exists",
         "npm run typecheck passes"
       ]
+    },
+    {
+      "id": "BUG-074",
+      "title": "Confirm & Attach could silently hang or fall back offline when plan pin attach failed",
+      "module": "site-walk/plans/capture",
+      "severity": "high",
+      "status": "fixed",
+      "rootCause": "The upload confirmation modal closed before prepareCaptureFile/savePhoto resolved, prepareCaptureFile launched savePhoto as fire-and-forget, and useCaptureUpload caught plan-pin attach failures inside the same fallback block as upload/network failures. Synthetic planSheetId values could therefore be swallowed as offline queued captures with no user-visible error.",
+      "verification": [
+        "Exactly ten [capture]#1 through [capture]#10 console tracers are present across PlanQuickActionMenu, CaptureContext, CameraViewfinder, and useCaptureUpload",
+        "PendingUploadPreviewModal stays open while Confirm & Attach is busy and renders an inline error banner on rejection",
+        "CameraViewfinder awaits prepareCaptureFile/savePhoto from Confirm & Attach and catches/rethrows prepare failures through the modal banner",
+        "useCaptureUpload separates upload/create failures from attachItemToPlanPin failures; attach failures set status.kind error and do not call onPlanTargetSaved",
+        "PlanQuickActionMenu disables capture actions with syncing copy when PlanViewer has no saved sheet ID",
+        "npm run typecheck passes"
+      ]
     }
   ]
 }

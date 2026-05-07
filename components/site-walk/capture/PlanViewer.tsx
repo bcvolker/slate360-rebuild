@@ -59,6 +59,7 @@ export function PlanViewer({ projectId, sessionId = "current-session", planSets 
   const safePageIndex = pages.length > 0 ? Math.min(pageIndex, pages.length - 1) : 0;
   const activePage = pages[safePageIndex] ?? null;
   const planFileUrl = activePlanSet?.source_s3_key ? `/api/site-walk/plan-sets/${activePlanSet.id}/file` : null;
+  const captureDisabledReason = activePage && !activePage.sheetId ? "Plan sheet is still syncing. Uploads unlock when this PDF page has a saved sheet ID." : undefined;
 
   const handlePdfPageRendered = useCallback((details: PlanPdfRenderDetails) => {
     pdfReadySequence.current += 1;
@@ -197,11 +198,12 @@ export function PlanViewer({ projectId, sessionId = "current-session", planSets 
       {quickMenu && (
         <PlanQuickActionMenu
           pinId={quickMenu.pinId}
-          planSheetId={activePage?.sheetId ?? activePage?.key ?? "unassigned-plan-sheet"}
+          planSheetId={activePage?.sheetId ?? ""}
           xPct={quickMenu.xPct}
           yPct={quickMenu.yPct}
           screenX={quickMenu.screenX}
           screenY={quickMenu.screenY}
+          captureDisabledReason={captureDisabledReason}
           onClose={() => setQuickMenu(null)}
           onCaptureRequest={onCaptureRequest}
         />

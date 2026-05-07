@@ -406,6 +406,8 @@ These are the highest-value field workflow features to preserve for future build
 
 **Implementation note — 2026-05-07:** PDF centering now waits for React-PDF's actual canvas render event. `PlanPdfPage` fires `onPdfPageRendered` from `<Page onRenderSuccess>`, and `PlanViewer` stores a matching `pdfReadyToken`; the centering effect includes that token in its dependencies and skips `calculateCenteredPlanTransform()` until the current file/page render token exists, preventing initial top-left placement from placeholder measurements.
 
+**Implementation note — 2026-05-07:** Confirm & Attach hardening pass now injects the exact `[capture]#1` through `[capture]#10` trace across plan-menu target selection, context target state, camera upload confirmation, file preparation, upload presign, offline fallback, pin attach, and attach helper entry. The upload preview modal remains open until `prepareCaptureFile`/`savePhoto` resolves, displays inline attach errors, and `useCaptureUpload` no longer treats plan-pin attach failures as offline fallback; it sets an explicit error status and preserves the plan target for retry. Plan Viewer disables capture actions with syncing copy whenever the active PDF page lacks a saved `sheetId`.
+
 ---
 
 ## 7. Strict Site Walk Internal Routing

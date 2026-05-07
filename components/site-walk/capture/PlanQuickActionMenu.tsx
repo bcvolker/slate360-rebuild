@@ -13,16 +13,20 @@ type Props = {
   yPct: number;
   screenX: number;
   screenY: number;
+  captureDisabledReason?: string;
   onClose: () => void;
   onCaptureRequest?: (input: "camera" | "upload") => void;
 };
 
-export function PlanQuickActionMenu({ pinId, planSheetId, xPct, yPct, screenX, screenY, onClose, onCaptureRequest }: Props) {
+export function PlanQuickActionMenu({ pinId, planSheetId, xPct, yPct, screenX, screenY, captureDisabledReason, onClose, onCaptureRequest }: Props) {
   const { isDesktop } = useDeviceContext();
   const captureCtx = useOptionalCaptureContext();
+  const captureDisabled = Boolean(captureDisabledReason);
 
   function choose(action: "photo" | "note", input?: "camera" | "upload") {
     const target = { pinId, planSheetId, xPct, yPct };
+    console.log("[capture]#1 choose", { input, target });
+    if (captureDisabled) return;
     // Primary path: set plan target on the React context BEFORE requesting capture.
     if (captureCtx) {
       captureCtx.setPlanTarget(target);
@@ -51,11 +55,12 @@ export function PlanQuickActionMenu({ pinId, planSheetId, xPct, yPct, screenX, s
         </button>
       </div>
       <div className="mt-3 grid gap-2">
-        {!isDesktop && <button type="button" onClick={() => choose("photo", "camera")} className="flex min-h-11 items-center gap-2 rounded-xl bg-amber-500 px-3 py-2 text-sm font-black text-slate-950 hover:bg-amber-400"><Camera className="h-4 w-4" /> Take photo at this pin</button>}
-        <button type="button" onClick={() => choose("photo", "upload")} className="flex min-h-11 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-sm font-black text-slate-200 hover:border-amber-400/50 hover:text-amber-200">
+        {!isDesktop && <button type="button" onClick={() => choose("photo", "camera")} disabled={captureDisabled} className="flex min-h-11 items-center gap-2 rounded-xl bg-amber-500 px-3 py-2 text-sm font-black text-slate-950 hover:bg-amber-400 disabled:opacity-50"><Camera className="h-4 w-4" /> Take photo at this pin</button>}
+        <button type="button" onClick={() => choose("photo", "upload")} disabled={captureDisabled} className="flex min-h-11 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-sm font-black text-slate-200 hover:border-amber-400/50 hover:text-amber-200 disabled:opacity-50">
           <Upload className="h-4 w-4" /> Upload existing photo
         </button>
-        <button type="button" onClick={() => choose("note")} className="flex min-h-11 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-sm font-black text-slate-200 hover:border-amber-400/50 hover:text-amber-200">
+        {captureDisabledReason && <p className="rounded-xl border border-amber-400/25 bg-amber-500/10 px-3 py-2 text-xs font-bold leading-5 text-amber-100">{captureDisabledReason}</p>}
+        <button type="button" onClick={() => choose("note")} disabled={captureDisabled} className="flex min-h-11 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-sm font-black text-slate-200 hover:border-amber-400/50 hover:text-amber-200 disabled:opacity-50">
           <StickyNote className="h-4 w-4" /> Attach next note
         </button>
       </div>

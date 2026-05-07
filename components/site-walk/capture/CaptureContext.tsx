@@ -26,7 +26,10 @@ export function CaptureProvider({ children }: { children: ReactNode }) {
   const [planTarget, setPlanTargetState] = useState<PlanCaptureTarget | null>(null);
   const [pendingCapture, setPendingCapture] = useState<PendingCapture | null>(null);
 
-  const setPlanTarget = useCallback((target: PlanCaptureTarget | null) => setPlanTargetState(target), []);
+  const setPlanTarget = useCallback((target: PlanCaptureTarget | null) => {
+    console.log("[capture]#2 setPlanTarget", target);
+    setPlanTargetState(target);
+  }, []);
   const clearPlanTarget = useCallback(() => setPlanTargetState(null), []);
   const requestCapture = useCallback((input: CaptureInput, source: CameraRequestSource = "quick_capture") => {
     setPendingCapture({ input, source });

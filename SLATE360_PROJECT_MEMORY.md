@@ -202,6 +202,36 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
+### Session Handoff — 2026-05-07 (Site Walk Phase 3 Confirm & Attach Hardening)
+
+#### What Changed
+- `components/site-walk/capture/PlanQuickActionMenu.tsx` — Added `[capture]#1 choose` trace. Capture actions now accept `captureDisabledReason`; when the active PDF page has no saved sheet ID, upload/camera/note actions are disabled with syncing copy.
+- `components/site-walk/capture/CaptureContext.tsx` — Added `[capture]#2 setPlanTarget` trace.
+- `components/site-walk/capture/CameraViewfinder.tsx` — Added `[capture]#3` through `[capture]#5`, local pending-upload busy/error state, awaited `prepareCaptureFile` from Confirm & Attach, kept the modal open until the promise resolves, and rethrows prepare/save failures after logging them. Also now awaits `savePhoto` instead of launching it fire-and-forget.
+- `components/site-walk/capture/PendingUploadPreviewModal.tsx` — Modal no longer closes on overlay/cancel while busy, button copy changes to `Attaching…`, and an inline error banner appears if confirmation rejects.
+- `lib/hooks/useCaptureUpload.ts` — Added `[capture]#6` through `[capture]#10`. Split upload/create fallback from plan-pin attach failure. Attach failure now sets `status.kind='error'`, throws for photo confirmation, does not call `onPlanTargetSaved`, and validates `planSheetId` as UUID before creating a pin.
+- `components/site-walk/capture/CaptureQuickNotePanel.tsx`, `components/site-walk/capture/CaptureUploadBadge.tsx`, and `lib/site-walk/capture-error-format.ts` — Small extractions to keep `CameraViewfinder.tsx` under the 300-line production limit and share error formatting.
+- `components/site-walk/capture/PlanViewer.tsx` — Passes a disabled reason to `PlanQuickActionMenu` when the active page has no synced `sheetId` instead of sending a synthetic ID.
+- `ONGOING_ISSUES.md`, `slate360-context/ONGOING_ISSUES.md`, `ops/bug-registry.json`, and `slate360-context/dashboard-tabs/site-walk/FIELD_PLATFORM_ROADMAP.md` — Added S360-054 / BUG-074 and the Site Walk roadmap implementation note.
+
+#### What's Broken / Partially Done
+- Browser/device smoke verification still needs to confirm the full `[capture]#1`–`#10` trace on desktop plan-pin Upload existing photo.
+- If old PDFs still have no `site_walk_plan_sheets` rows, PlanQuickActionMenu now intentionally disables capture actions for that page until sheet sync/backfill is implemented.
+- `bash scripts/check-file-size.sh` still fails on 12 pre-existing oversized files outside this slice; changed files are under 300 lines (`CameraViewfinder.tsx` 299).
+
+#### Context Files Updated
+- `ONGOING_ISSUES.md` — Added S360-054 for Confirm & Attach silent failures.
+- `slate360-context/ONGOING_ISSUES.md` — Added BUG-074.
+- `ops/bug-registry.json` — Added BUG-074.
+- `slate360-context/dashboard-tabs/site-walk/FIELD_PLATFORM_ROADMAP.md` — Added implementation note.
+- `SLATE360_PROJECT_MEMORY.md` — This handoff.
+
+#### Next Steps (ordered)
+1. Retest desktop plan-pin Upload existing photo: modal should remain open while attaching, success returns to Plan Mode, attach failure shows inline error.
+2. Watch console for `[capture]#1` through `[capture]#10` to confirm `planTarget`, `planSheetId`, presign, fallback, and pin attach flow.
+3. Implement/backfill server-side PDF sheet sync so pages without saved `sheetId` can unlock plan-pin captures.
+4. Retest Phase 2 PDF centering and Phase 1 mobile markup/grid fixes in the live build.
+
 ### Session Handoff — 2026-05-07 (Site Walk Phase 2 PDF Centering Race)
 
 #### What Changed
