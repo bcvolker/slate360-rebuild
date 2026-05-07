@@ -1,10 +1,10 @@
 "use client";
 
 import { useRef, useState, type PointerEvent } from "react";
-import { Camera, ChevronUp, Link2, Loader2, Mic, SkipForward, Sparkles, Upload } from "lucide-react";
+import { Camera, ChevronUp, Link2, Loader2, Mic, Settings2, SkipForward, Sparkles, Upload } from "lucide-react";
 import GlassCard from "@/components/shared/GlassCard";
 import { useDeviceContext, type DeviceCaptureInput } from "@/lib/hooks/useDeviceContext";
-import { CAPTURE_ITEM_STATUSES, CAPTURE_TRADES, type CaptureAssignee, type CaptureItemDraft, type CaptureItemRecord } from "@/lib/types/site-walk-capture";
+import { CAPTURE_ITEM_STATUSES, type CaptureAssignee, type CaptureItemDraft, type CaptureItemRecord } from "@/lib/types/site-walk-capture";
 
 type Props = {
   item: CaptureItemRecord | null;
@@ -15,13 +15,16 @@ type Props = {
   aiState: string;
   aiMessage: string | null;
   currentLocation: string;
+  tradeOptions: string[];
+  canManageTrades: boolean;
   onDraftChange: (patch: Partial<CaptureItemDraft>) => void;
   onCapture: (input?: DeviceCaptureInput) => void;
   onFormatNotes: () => void;
   onSaveNextStop: () => void;
+  onOpenManageTrades?: () => void;
 };
 
-export function CaptureDataBottomSheet({ item, items, assignees, draft, saveState, aiState, aiMessage, currentLocation, onDraftChange, onCapture, onFormatNotes, onSaveNextStop }: Props) {
+export function CaptureDataBottomSheet({ item, items, assignees, draft, saveState, aiState, aiMessage, currentLocation, tradeOptions, canManageTrades, onDraftChange, onCapture, onFormatNotes, onSaveNextStop, onOpenManageTrades }: Props) {
   const [expanded, setExpanded] = useState(false);
   const [linkProgression, setLinkProgression] = useState(false);
   const dragStartY = useRef<number | null>(null);
@@ -80,7 +83,18 @@ export function CaptureDataBottomSheet({ item, items, assignees, draft, saveStat
           </label>
 
           <div className="grid gap-2 sm:grid-cols-3">
-            <label className="block"><span className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">Trade</span><select value={draft?.trade ?? ""} onChange={(event) => onDraftChange({ trade: event.target.value })} disabled={!draft} className={selectClass}><option value="">Select trade…</option>{CAPTURE_TRADES.map((trade) => <option key={trade} value={trade}>{trade}</option>)}</select></label>
+            <label className="block sm:col-span-1">
+              <span className="flex items-center justify-between text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">
+                <span>Trade</span>
+                {canManageTrades && onOpenManageTrades && (
+                  <button type="button" onClick={onOpenManageTrades} className="inline-flex items-center gap-1 rounded-md px-1 py-0.5 text-[9px] font-black uppercase tracking-wider text-amber-300 hover:text-amber-100" aria-label="Manage project trades"><Settings2 className="h-3 w-3" /> Manage</button>
+                )}
+              </span>
+              <select value={draft?.trade ?? ""} onChange={(event) => onDraftChange({ trade: event.target.value })} disabled={!draft} className={selectClass}>
+                <option value="">Select trade…</option>
+                {tradeOptions.map((trade) => <option key={trade} value={trade}>{trade}</option>)}
+              </select>
+            </label>
             <label className="block"><span className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">Assignee</span><select value={draft?.assignedTo ?? ""} onChange={(event) => onDraftChange({ assignedTo: event.target.value })} disabled={!draft} className={selectClass}><option value="">Unassigned</option>{assignees.filter((assignee) => assignee.assignable).map((assignee) => <option key={assignee.id} value={assignee.id}>{assignee.label}</option>)}</select></label>
             <label className="block"><span className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">Status</span><select value={draft?.status ?? "open"} onChange={(event) => onDraftChange({ status: event.target.value as CaptureItemDraft["status"] })} disabled={!draft} className={selectClass}>{CAPTURE_ITEM_STATUSES.map((status) => <option key={status} value={status}>{formatOption(status)}</option>)}</select></label>
           </div>

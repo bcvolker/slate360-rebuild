@@ -4,10 +4,12 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Camera, Map } from "lucide-react";
 import { CaptureDataBottomSheet } from "@/components/site-walk/capture/CaptureDataBottomSheet";
+import { ManageTradesModal } from "@/components/site-walk/capture/ManageTradesModal";
 import { PlanViewer } from "@/components/site-walk/capture/PlanViewer";
 import { VisualCaptureView } from "@/components/site-walk/capture/VisualCaptureView";
 import { CaptureProvider, useCaptureContext } from "@/components/site-walk/capture/CaptureContext";
 import { useCaptureItems } from "@/components/site-walk/capture/useCaptureItems";
+import { useProjectCaptureSettings } from "@/lib/hooks/useProjectCaptureSettings";
 import { useDeviceContext, type DeviceCaptureInput } from "@/lib/hooks/useDeviceContext";
 import type { SiteWalkPlanSet, SiteWalkPlanSheet } from "@/lib/types/site-walk";
 import type { CaptureItemDraft } from "@/lib/types/site-walk-capture";
@@ -46,6 +48,8 @@ function CaptureClientIslandInner({ sessionId, projectId, walkName, showPlanCanv
   const returnToPlanAfterSaveRef = useRef(false);
   const { primaryCaptureInput } = useDeviceContext();
   const { items, assignees, activeItem, draft, saveState, aiState, aiMessage, selectItem, patchDraft, saveMarkupData, savePhotoAttachmentPins, savePhotoAngle, formatNotesWithAi } = useCaptureItems({ sessionId, projectId });
+  const tradeSettings = useProjectCaptureSettings(projectId);
+  const [manageTradesOpen, setManageTradesOpen] = useState(false);
 
   useEffect(() => {
     if (!initialItemId || activeItem?.id === initialItemId) return;
@@ -167,11 +171,23 @@ function CaptureClientIslandInner({ sessionId, projectId, walkName, showPlanCanv
         aiState={aiState}
         aiMessage={aiMessage}
         currentLocation={currentLocation}
+        tradeOptions={tradeSettings.trades}
+        canManageTrades={Boolean(projectId)}
         onDraftChange={patchDraft}
         onCapture={captureNow}
         onFormatNotes={() => void formatNotesWithAi()}
         onSaveNextStop={saveNextStop}
+        onOpenManageTrades={() => setManageTradesOpen(true)}
       />
+
+      {manageTradesOpen && (
+        <ManageTradesModal
+          projectId={projectId}
+          initialTrades={tradeSettings.trades}
+          onClose={() => setManageTradesOpen(false)}
+          onSave={tradeSettings.save}
+        />
+      )}
     </section>
   );
 }
