@@ -59,7 +59,7 @@ export const CAPTURE_PRIORITIES: ItemPriority[] = ["low", "medium", "high", "cri
 export const CAPTURE_ITEM_STATUSES: ItemStatus[] = ["open", "in_progress", "resolved", "verified", "closed", "na"];
 export const CAPTURE_TAG_SUGGESTIONS = ["Safety", "Quality", "Progress", "Defect"] as const;
 export const CAPTURE_CLASSIFICATIONS: CaptureClassification[] = ["Safety", "Quality", "Schedule", "RFI", "Observation", "Punch List", "Coordination", "Progress", "Other"];
-export const CAPTURE_TRADES = ["General", "Electrical", "Plumbing", "HVAC", "Painting", "Flooring", "Drywall", "Roofing", "Fire Protection", "Concrete", "Steel", "Site Work", "Millwork", "Low Voltage", "Other"] as const;
+export const CAPTURE_TRADES = ["General", "Electrical", "Plumbing", "HVAC", "Framing", "Concrete", "Painting", "Flooring", "Drywall", "Roofing", "Fire Protection", "Steel", "Site Work", "Millwork", "Low Voltage", "Other"] as const;
 
 function readTags(item: CaptureItemRecord) {
   const legacyCategory = item.category?.trim();

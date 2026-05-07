@@ -704,6 +704,22 @@
         "Photo markup and attached-file image previews also use object-contain containment",
         "npm run typecheck passes"
       ]
+    },
+    {
+      "id": "BUG-068",
+      "title": "Plan centering and pin menu context drifted on desktop",
+      "module": "site-walk/plans/capture",
+      "severity": "high",
+      "status": "fixed",
+      "rootCause": "The plan viewer still relied on CSS translate centering around a transform state initialized at x/y zero, the plan-pin quick menu did not consume the shared device context, and the bottom-sheet swipe handle was still too subtle for mobile capture users.",
+      "verification": [
+        "PlanViewer uses calculateCenteredPlanTransform inside the fit useEffect to compute scale plus x/y offsets from viewport and surface dimensions",
+        "Plan surface now starts from left/top zero with transform-origin top left so computed x/y offsets own centering",
+        "PlanQuickActionMenu uses useDeviceContext and hides the Take Photo action on desktop",
+        "CaptureDataBottomSheet uses an animated ChevronUp swipe affordance",
+        "Trade defaults include General, Electrical, Plumbing, HVAC, Framing, and Concrete",
+        "npm run typecheck passes"
+      ]
     }
   ]
 }

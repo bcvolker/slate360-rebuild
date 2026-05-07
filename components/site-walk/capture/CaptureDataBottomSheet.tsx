@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, type PointerEvent } from "react";
-import { Camera, GripHorizontal, Link2, Loader2, Mic, SkipForward, Sparkles, Upload } from "lucide-react";
+import { Camera, ChevronUp, Link2, Loader2, Mic, SkipForward, Sparkles, Upload } from "lucide-react";
 import GlassCard from "@/components/shared/GlassCard";
 import { useDeviceContext, type DeviceCaptureInput } from "@/lib/hooks/useDeviceContext";
 import { CAPTURE_ITEM_STATUSES, CAPTURE_TRADES, type CaptureAssignee, type CaptureItemDraft, type CaptureItemRecord } from "@/lib/types/site-walk-capture";
@@ -49,10 +49,9 @@ export function CaptureDataBottomSheet({ item, items, assignees, draft, saveStat
       className={`fixed inset-x-0 bottom-0 z-40 rounded-b-none border-x-0 border-b-0 bg-slate-950/92 px-4 pb-[max(env(safe-area-inset-bottom),1rem)] pt-2 shadow-[0_-28px_80px_rgba(0,0,0,0.55)] backdrop-blur-2xl transition-transform duration-300 md:left-1/2 md:max-w-3xl md:-translate-x-1/2 md:rounded-t-[2rem] md:border-x ${expanded ? "translate-y-0" : "translate-y-[calc(100%-5.7rem)]"}`}
       aria-label="Swipe-up capture details"
     >
-      <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-slate-400/50" aria-hidden="true" />
       <div className="touch-none" onPointerDown={handlePointerDown} onPointerUp={handlePointerUp}>
         <button type="button" onClick={() => setExpanded((current) => !current)} className="mx-auto flex w-full flex-col items-center gap-1 pb-2" aria-label={expanded ? "Collapse capture details" : "Expand capture details"}>
-          <GripHorizontal className="h-4 w-4 text-white/35" />
+          <ChevronUp className={`h-6 w-6 text-amber-200 ${expanded ? "rotate-180" : "animate-bounce"}`} />
         </button>
       </div>
 

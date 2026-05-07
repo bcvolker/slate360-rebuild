@@ -9,6 +9,7 @@ import { PlanLayerToolbar, type LayerFilter } from "./PlanLayerToolbar";
 import { PlanPageControls } from "./PlanPageControls";
 import { PlanPdfPage } from "./PlanPdfPage";
 import { PlanQuickActionMenu } from "./PlanQuickActionMenu";
+import { calculateCenteredPlanTransform } from "./planViewerGeometry";
 
 type Props = {
   projectId?: string | null;
@@ -61,12 +62,7 @@ export function PlanViewer({ projectId, sessionId = "current-session", planSets 
     const viewport = viewportRef.current;
     const surface = surfaceRef.current;
     if (!viewport || !surface) return;
-    function fitPlanToViewport() {
-      const width = Math.max(1, viewport!.clientWidth - FIT_PADDING);
-      const height = Math.max(1, viewport!.clientHeight - FIT_PADDING);
-      const scale = Math.min(width / Math.max(1, surface!.offsetWidth), height / Math.max(1, surface!.offsetHeight), 1);
-      setTransform({ scale: clamp(scale, MIN_SCALE, 1), x: 0, y: 0 });
-    }
+    function fitPlanToViewport() { setTransform(calculateCenteredPlanTransform({ maxScale: 1, minScale: MIN_SCALE, padding: FIT_PADDING, surface: surface!, viewport: viewport! })); }
     fitPlanToViewport();
     const observer = new ResizeObserver(fitPlanToViewport);
     observer.observe(viewport); observer.observe(surface);
@@ -168,7 +164,7 @@ export function PlanViewer({ projectId, sessionId = "current-session", planSets 
         onPointerCancel={endPointer}
         onPointerLeave={endPointer}
       >
-        <div ref={surfaceRef} className="absolute left-1/2 top-1/2 aspect-[1.4/1] w-[150vw] max-w-6xl -translate-x-1/2 -translate-y-1/2 touch-none select-none overflow-hidden rounded-3xl border border-white/10 bg-white shadow-2xl" style={{ transform: `translate(calc(-50% + ${transform.x}px), calc(-50% + ${transform.y}px)) scale(${transform.scale})`, transformOrigin: "center", WebkitTouchCallout: "none" }}>
+        <div ref={surfaceRef} className="absolute left-0 top-0 aspect-[1.4/1] w-[150vw] max-w-6xl touch-none select-none overflow-hidden rounded-3xl border border-white/10 bg-white shadow-2xl" style={{ transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})`, transformOrigin: "top left", WebkitTouchCallout: "none" }}>
           {planFileUrl && activePage ? (
             <PlanPdfPage fileUrl={planFileUrl} pageNumber={activePage.pageNumber} label={activePage.label} onPageCount={setPdfPageCount} />
           ) : (
