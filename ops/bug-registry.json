@@ -660,6 +660,21 @@
         "capture-draft-save sends category, trade, tags, and before_item_id from the draft payload instead of nullifying trade/category",
         "npm run typecheck passes"
       ]
+    },
+    {
+      "id": "BUG-065",
+      "title": "Plan long-press could still trigger native OS menus and bottom sheet lacked a clear drag affordance",
+      "module": "site-walk/plans/capture",
+      "severity": "high",
+      "status": "fixed",
+      "rootCause": "The PDF plan viewer and rendered PDF shell did not apply complete select/touch/callout suppression across the plan container stack, and the capture bottom sheet needed a stronger top-edge swipe handle for native-app affordance.",
+      "verification": [
+        "PlanViewer root, interaction viewport, and plan surface apply touch-none, select-none, and WebkitTouchCallout none",
+        "PlanPdfPage root applies touch-none, select-none, and WebkitTouchCallout none",
+        "PlanPdfPage wraps the React-PDF Document in a flex h-full w-full items-center justify-center container",
+        "CaptureDataBottomSheet renders a top-edge rounded swipe handle",
+        "npm run typecheck passes"
+      ]
     }
   ]
 }

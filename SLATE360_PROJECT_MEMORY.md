@@ -202,35 +202,32 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-05-07 (Capture Data Model + Device Context Pass)
+### Session Handoff — 2026-05-07 (Native Interaction Pass)
 
 #### What Changed
-- `lib/hooks/useDeviceContext.ts` — New shared hook detects desktop vs mobile from pointer/viewport/touch capability and returns the primary capture input/label (`Upload Photo` on desktop, `Camera` on mobile).
-- `app/site-walk/(act-2-inputs)/capture/_components/CaptureClientIsland.tsx` — Uses `useDeviceContext()` for next-item capture dispatch, carries trade forward, destructures `assignees` from `useCaptureItems`, and passes `items` + `assignees` to `CaptureDataBottomSheet`.
-- `components/site-walk/capture/CaptureDataBottomSheet.tsx` — Primary button is device-aware; expanded sheet now has compact Trade, Assignee, Status, and Link to Previous (Progression) controls. Progression selection writes `beforeItemId` from saved UUID-backed items only.
-- `lib/types/site-walk-capture.ts` — Draft/record types now include `trade` and `beforeItemId`/`before_item_id`; status options now include the full workflow status set; shared capture trade options added.
-- `components/site-walk/capture/capture-draft-save.ts` — Autosave no longer hardcodes `category: null` or `trade: null`; it persists `category`, `trade`, normalized `tags`, and `before_item_id` from the draft.
-- `ONGOING_ISSUES.md`, `ops/bug-registry.json`, and `slate360-context/dashboard-tabs/site-walk/FIELD_PLATFORM_ROADMAP.md` — Added S360-045 / BUG-064 and Site Walk roadmap notes for this pass.
+- `components/site-walk/capture/PlanViewer.tsx` — Added `touch-none`, `select-none`, and `WebkitTouchCallout: "none"` to the plan root, interaction viewport, and plan surface so mobile long-presses do not invoke OS copy/save menus.
+- `components/site-walk/capture/PlanPdfPage.tsx` — Added `touch-none`, `select-none`, and `WebkitTouchCallout: "none"` to the PDF shell; wrapped the React-PDF `Document` in a full-size flex `items-center justify-center` container for natural dead-center positioning.
+- `components/site-walk/capture/CaptureDataBottomSheet.tsx` — Added a visible top-edge swipe handle (`w-12 h-1.5 bg-slate-400/50 rounded-full`) so users recognize the sheet can be dragged/swiped.
+- `ONGOING_ISSUES.md`, `ops/bug-registry.json`, and `slate360-context/dashboard-tabs/site-walk/FIELD_PLATFORM_ROADMAP.md` — Added S360-046 / BUG-065 and a Site Walk roadmap note for the native interaction pass.
 
 #### What's Broken / Partially Done
-- Browser smoke verification still needs to confirm desktop bottom-sheet primary action opens file selection and mobile primary action opens camera.
-- Progression dropdown intentionally filters to saved UUID-backed items to avoid invalid `before_item_id` FK writes; offline/local progression remapping is still future work.
+- Browser/device smoke verification still needs to confirm iOS/Android long-press on the plan/PDF no longer opens native copy/save callouts.
 - Existing plan/PDF follow-ups remain: server-side PDF page-count/sheet sync, rasterization, thumbnails, and true thumbnail-strip navigation.
-- `bash scripts/check-file-size.sh` still fails on pre-existing oversized files outside this slice; changed files are under limit (`CaptureClientIsland.tsx` 184, `CaptureDataBottomSheet.tsx` 135, `useDeviceContext.ts` 38, `capture-draft-save.ts` 52, `site-walk-capture.ts` 88).
-- Working tree still contains many unrelated pre-existing dirty/deleted files. Stage/commit only the focused capture data-model files and context updates.
+- Existing capture workflow follow-up remains: offline/local progression remapping if before/after linking must work before prior items sync to UUID-backed rows.
+- `bash scripts/check-file-size.sh` still fails on pre-existing oversized files outside this slice; changed files are under limit (`PlanViewer.tsx` 299, `PlanPdfPage.tsx` 122, `CaptureDataBottomSheet.tsx` 137).
+- Working tree still contains many unrelated pre-existing dirty/deleted files. Stage/commit only the focused native interaction files and context updates.
 
 #### Context Files Updated
-- `ONGOING_ISSUES.md` — Added S360-045 for capture workflow fields/device primary action.
-- `ops/bug-registry.json` — Added BUG-064 verification for device context, bottom-sheet fields, and draft save persistence.
-- `slate360-context/dashboard-tabs/site-walk/FIELD_PLATFORM_ROADMAP.md` — Added implementation note for device context and workflow field persistence.
+- `ONGOING_ISSUES.md` — Added S360-046 for native OS callout suppression and bottom-sheet swipe affordance.
+- `ops/bug-registry.json` — Added BUG-065 verification for callout blocking, flex centering, and swipe handle.
+- `slate360-context/dashboard-tabs/site-walk/FIELD_PLATFORM_ROADMAP.md` — Added implementation note for native interaction standards.
 - `SLATE360_PROJECT_MEMORY.md` — this handoff.
 
 #### Next Steps (ordered)
-1. Desktop smoke: open `/site-walk/capture`, expand the bottom sheet, confirm primary button says Upload Photo and opens file selection.
-2. Mobile smoke: open capture in PWA/mobile browser, confirm primary button says Camera and opens camera capture.
-3. Select Trade, Assignee, Status, and a previous saved item; confirm PATCH includes `trade`, `assigned_to`, `item_status`, `tags`, and `before_item_id`.
-4. Add offline/local progression remapping if progression linking must work before prior items are synced to UUID-backed rows.
-5. Continue later PDF hardening: page-count/sheet sync, rasterization, thumbnails, and thumbnail-strip navigation.
+1. Mobile smoke: long-press the plan/PDF on iOS/Android and confirm no native copy/save/share menu appears.
+2. Desktop/mobile smoke: open plan mode and confirm the PDF appears centered by the flex wrapper before zoom/pan.
+3. Expand/collapse the capture bottom sheet and confirm the top swipe handle is visually obvious and does not block drag behavior.
+4. Continue later PDF hardening: page-count/sheet sync, rasterization, thumbnails, and thumbnail-strip navigation.
 
 ### Session Handoff — 2026-05-04 (Amber Brand System Propagation — Full Push)
 

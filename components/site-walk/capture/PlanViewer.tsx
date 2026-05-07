@@ -158,17 +158,17 @@ export function PlanViewer({ projectId, sessionId = "current-session", planSets 
   }
 
   return (
-    <div className="relative h-full w-full overflow-hidden bg-slate-950 text-white">
+    <div className="relative h-full w-full touch-none select-none overflow-hidden bg-slate-950 text-white" style={{ WebkitTouchCallout: "none" }}>
       <div
         ref={viewportRef}
-        className="absolute inset-0 z-0 touch-none overflow-hidden bg-slate-950"
+        className="absolute inset-0 z-0 touch-none select-none overflow-hidden bg-slate-950" style={{ WebkitTouchCallout: "none" }}
         onPointerDown={startPress}
         onPointerMove={movePointer}
         onPointerUp={endPointer}
         onPointerCancel={endPointer}
         onPointerLeave={endPointer}
       >
-        <div ref={surfaceRef} className="absolute left-1/2 top-1/2 aspect-[1.4/1] w-[150vw] max-w-6xl -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-3xl border border-white/10 bg-white shadow-2xl" style={{ transform: `translate(calc(-50% + ${transform.x}px), calc(-50% + ${transform.y}px)) scale(${transform.scale})`, transformOrigin: "center" }}>
+        <div ref={surfaceRef} className="absolute left-1/2 top-1/2 aspect-[1.4/1] w-[150vw] max-w-6xl -translate-x-1/2 -translate-y-1/2 touch-none select-none overflow-hidden rounded-3xl border border-white/10 bg-white shadow-2xl" style={{ transform: `translate(calc(-50% + ${transform.x}px), calc(-50% + ${transform.y}px)) scale(${transform.scale})`, transformOrigin: "center", WebkitTouchCallout: "none" }}>
           {planFileUrl && activePage ? (
             <PlanPdfPage fileUrl={planFileUrl} pageNumber={activePage.pageNumber} label={activePage.label} onPageCount={setPdfPageCount} />
           ) : (

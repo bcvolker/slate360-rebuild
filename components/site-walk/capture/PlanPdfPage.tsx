@@ -44,7 +44,7 @@ export function PlanPdfPage({ fileUrl, pageNumber, label, compact = false, maxWi
   }, [compact, maxWidth, minWidth]);
 
   return (
-    <div ref={shellRef} className="flex h-full w-full items-center justify-center overflow-hidden bg-white text-slate-900">
+    <div ref={shellRef} className="flex h-full w-full touch-none select-none items-center justify-center overflow-hidden bg-white text-slate-900" style={{ WebkitTouchCallout: "none" }}>
       {error ? (
         <div className="mx-4 rounded-2xl border border-amber-500/40 bg-amber-500/15 p-4 text-left shadow-lg shadow-amber-950/10">
           <div className="flex items-start gap-3">
@@ -56,26 +56,28 @@ export function PlanPdfPage({ fileUrl, pageNumber, label, compact = false, maxWi
           </div>
         </div>
       ) : (
-        <PlanPdfErrorBoundary key={fileUrl} onError={(caughtError) => setError(reportPdfError("PDF render exception", caughtError, { fileUrl, pageNumber, label }))}>
-          <Document
-            file={fileUrl}
-            loading={<Loader2 className="h-6 w-6 animate-spin text-slate-400" />}
-            onSourceError={(sourceError) => setError(reportPdfError("PDF source failed", sourceError, { fileUrl, pageNumber, label }))}
-            onLoadError={(loadError) => setError(reportPdfError("PDF load failed", loadError, { fileUrl, pageNumber, label }))}
-            onLoadSuccess={({ numPages }) => onPageCount?.(numPages)}
-          >
-            <Page
-              pageNumber={pageNumber}
-              width={pageWidth}
-              renderAnnotationLayer={false}
-              renderTextLayer={false}
-              loading={<Loader2 className="h-5 w-5 animate-spin text-slate-400" />}
-              onRenderError={(renderError) => setError(reportPdfError("PDF page render failed", renderError, { fileUrl, pageNumber, label }))}
-              className="overflow-hidden bg-white [&_canvas]:!h-auto [&_canvas]:!max-w-full [&_canvas]:!bg-white"
-              aria-label={label}
-            />
-          </Document>
-        </PlanPdfErrorBoundary>
+        <div className="flex h-full w-full items-center justify-center">
+          <PlanPdfErrorBoundary key={fileUrl} onError={(caughtError) => setError(reportPdfError("PDF render exception", caughtError, { fileUrl, pageNumber, label }))}>
+            <Document
+              file={fileUrl}
+              loading={<Loader2 className="h-6 w-6 animate-spin text-slate-400" />}
+              onSourceError={(sourceError) => setError(reportPdfError("PDF source failed", sourceError, { fileUrl, pageNumber, label }))}
+              onLoadError={(loadError) => setError(reportPdfError("PDF load failed", loadError, { fileUrl, pageNumber, label }))}
+              onLoadSuccess={({ numPages }) => onPageCount?.(numPages)}
+            >
+              <Page
+                pageNumber={pageNumber}
+                width={pageWidth}
+                renderAnnotationLayer={false}
+                renderTextLayer={false}
+                loading={<Loader2 className="h-5 w-5 animate-spin text-slate-400" />}
+                onRenderError={(renderError) => setError(reportPdfError("PDF page render failed", renderError, { fileUrl, pageNumber, label }))}
+                className="overflow-hidden bg-white [&_canvas]:!h-auto [&_canvas]:!max-w-full [&_canvas]:!bg-white"
+                aria-label={label}
+              />
+            </Document>
+          </PlanPdfErrorBoundary>
+        </div>
       )}
     </div>
   );
