@@ -202,37 +202,33 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-05-06 (Plan PDF + Plan Pin Attachment Hotfix)
+### Session Handoff — 2026-05-06 (PDF Stabilization Pass)
 
 #### What Changed
-- `public/pdf.worker.min.js` — NEW copied from the exact React-PDF PDF.js worker version (`pdfjs-dist` 5.4.296) so production loads the worker from a stable public URL.
-- `components/site-walk/capture/PlanPdfPage.tsx` — Hardcodes `pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.js"`; logs exact source/load/page-render/render-exception failures; visible amber error box displays the exact PDF error text.
-- `app/api/site-walk/plan-sets/[id]/file/route.ts` — Proxies the original plan PDF as a same-origin raw `application/pdf` stream with inline disposition and `X-Content-Type-Options: nosniff` instead of redirecting to a signed storage URL.
-- `components/project-hub/DrawingsViewerClient.tsx` and `app/(dashboard)/project-hub/[projectId]/drawings/page.tsx` — Aligned remaining React-PDF worker configs to `/pdf.worker.min.js`.
-- `app/api/site-walk/upload/route.ts` — Folder provisioning for `Site Walk Files / Photos` is now non-fatal; failures are logged and the route continues with a session-scoped fallback S3 key plus a pending `slatedrop_uploads` reservation.
-- `lib/hooks/useCaptureUpload.ts` — Plan-pin attachments ignore unsaved local draft pin IDs and create a persisted pin after the capture item saves instead of PATCHing a random local ID.
-- `app/api/site-walk/pins/route.ts` and `app/api/site-walk/pins/[id]/route.ts` — Validate UUID-shaped plan/pin IDs before Supabase calls so invalid draft IDs return structured 400s rather than internal server errors.
-- `ONGOING_ISSUES.md`, `ops/bug-registry.json`, and `FIELD_PLATFORM_ROADMAP.md` — Updated S360-043 / BUG-062 and added S360-044 / BUG-063 for the plan-pin attachment upload failure.
+- `components/site-walk/capture/PlanViewer.tsx` — Added viewport/surface measurement on load, page change, and resize; initializes transform scale/x/y so the plan surface is centered and fits inside the viewport; replaced React synthetic `onWheel` with a native wheel listener using `{ passive: false }` plus `preventDefault()`.
+- `components/site-walk/capture/PlanPdfPage.tsx` — Removed `pageNumber` from the error-boundary key so React-PDF `Document` stays mounted across page switches; enforced a 1200px maximum canvas render width.
+- `app/site-walk/(act-1-setup)/plans/_components/MasterPlanRoomClient.tsx` — Added progressive disclosure: `PlanSheetGrid` stays hidden until the upload flow returns a new plan/sheet payload, reducing first-load clutter and PDF preview memory pressure.
+- `ONGOING_ISSUES.md`, `ops/bug-registry.json`, and `slate360-context/dashboard-tabs/site-walk/FIELD_PLATFORM_ROADMAP.md` — Updated S360-043 / BUG-062 and Site Walk roadmap notes with the stabilization pass.
 
 #### What's Broken / Partially Done
+- Browser smoke verification still needs to be run on the deployed Broadway/APDF path: upload/start plan mode, confirm first render fits/centers, and verify mouse-wheel zoom emits no passive event warning.
 - Existing plan sets uploaded before PDF page-count extraction may have only one stored `site_walk_plan_sheets` row; capture can render/page the full PDF after load, but page-specific persisted pin sheets beyond row 1 still need a later sheet-sync/rasterization pass.
 - Full server-side PDF rasterization/thumbnail extraction remains future work; current production fix renders the original PDF in-browser with the public PDF.js worker.
-- Verify SlateDrop/Supabase-storage-style bucket CORS still allows authenticated GET from `https://www.slate360.ai`; the current plan route proxies PDFs same-origin, but direct storage GETs elsewhere can still taint canvases if bucket CORS is missing.
-- `bash scripts/check-file-size.sh` still fails on pre-existing oversized files outside this slice; this run reported the same oversized legacy files plus unrelated dirty `components/settings/AccountSettingsClient.tsx`.
+- `bash scripts/check-file-size.sh` still fails on pre-existing oversized files outside this slice; changed files are under limit (`PlanViewer.tsx` 299, `PlanPdfPage.tsx` 120, `MasterPlanRoomClient.tsx` 94).
+- Working tree contains many unrelated pre-existing dirty/deleted files. Stage/commit only the focused PDF stabilization files and this memory update.
 
 #### Context Files Updated
-- `ONGOING_ISSUES.md` — Updated PDF status and added S360-044 for plan long-press attachment upload internal server errors.
-- `ops/bug-registry.json` — Updated BUG-062 verification and added BUG-063.
-- `slate360-context/dashboard-tabs/site-walk/FIELD_PLATFORM_ROADMAP.md` — Added implementation notes for public worker/raw PDF stream and plan-pin upload fallback.
+- `ONGOING_ISSUES.md` — S360-043 now includes viewport fit, native wheel, Document stability, 1200px cap, and upload progressive disclosure.
+- `ops/bug-registry.json` — BUG-062 verification now includes the stabilization pass checks.
+- `slate360-context/dashboard-tabs/site-walk/FIELD_PLATFORM_ROADMAP.md` — Added a PDF stabilization implementation note.
 - `SLATE360_PROJECT_MEMORY.md` — this handoff.
 
 #### Next Steps (ordered)
-1. After deploy, retest the Broadway field project on desktop/phone and confirm `/pdf.worker.min.js` loads with `200 OK` and no PDF.js worker fallback warning.
-2. Verify `/api/site-walk/plan-sets/[id]/file` returns `Content-Type: application/pdf` and streams the PDF from the app origin, not a redirect to storage.
-3. Verify the uploaded PDF content renders on the white sheet and the phone no longer white-screens with OOM / `SES_UNCAUGHT_EXCEPTION`.
-4. In capture plan mode, test compact page arrows, searchable Pages panel, Layers menu, pinch/zoom, long-press pin, Take photo at this pin, and Upload existing photo.
-5. Confirm `/api/site-walk/upload` returns a presigned URL for plan-pin uploads even if `project_folders` provisioning logs a fallback warning.
-6. Add server-side PDF page-count/sheet sync, rasterization, thumbnails, and true thumbnail-strip navigation as a later hardening slice.
+1. Deploy or run the app and retest Broadway/APDF on desktop/phone: upload plan, tap Start walk with plans, open plan mode, confirm initial fit/centering.
+2. Mouse-wheel zoom the desktop plan viewport and confirm no passive event error appears in the browser console.
+3. Page through the PDF and watch memory/console behavior to confirm the React-PDF `Document` no longer remounts on each page switch.
+4. Confirm Plan Room no longer renders the Plan Sheet grid before a user completes an upload in the current flow.
+5. Add server-side PDF page-count/sheet sync, rasterization, thumbnails, and true thumbnail-strip navigation as a later hardening slice.
 
 ### Session Handoff — 2026-05-04 (Amber Brand System Propagation — Full Push)
 

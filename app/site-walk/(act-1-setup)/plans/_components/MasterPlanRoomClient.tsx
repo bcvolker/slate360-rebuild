@@ -20,6 +20,7 @@ export function MasterPlanRoomClient({ projects, initialPlanSets, initialSheets 
   const [planSets, setPlanSets] = useState(initialPlanSets);
   const [sheets, setSheets] = useState(initialSheets);
   const [activePlanSetId, setActivePlanSetId] = useState<string | null>(initialPlanSets[0]?.id ?? null);
+  const [showSheetGrid, setShowSheetGrid] = useState(false);
 
   const activeProject = useMemo(() => projects.find((project) => project.id === projectId) ?? null, [projectId, projects]);
   const activePlanSet = useMemo(() => planSets.find((planSet) => planSet.id === activePlanSetId) ?? null, [activePlanSetId, planSets]);
@@ -30,6 +31,7 @@ export function MasterPlanRoomClient({ projects, initialPlanSets, initialSheets 
       setPlanSets([]);
       setSheets([]);
       setActivePlanSetId(null);
+      setShowSheetGrid(false);
       return;
     }
     const response = await fetch(`/api/site-walk/plan-sets?project_id=${encodeURIComponent(nextProjectId)}`, { cache: "no-store" });
@@ -38,12 +40,14 @@ export function MasterPlanRoomClient({ projects, initialPlanSets, initialSheets 
     setPlanSets(data.planSets);
     setSheets(data.sheets);
     setActivePlanSetId(data.planSets[0]?.id ?? null);
+    setShowSheetGrid(false);
   }
 
   function handlePlanRoomChange(payload: PlanRoomPayload) {
     setPlanSets((current) => mergePlanSets(current, payload.planSets));
     setSheets((current) => mergeSheets(current, payload.sheets));
     setActivePlanSetId(payload.planSets[0]?.id ?? activePlanSetId);
+    setShowSheetGrid(payload.planSets.length > 0 || payload.sheets.length > 0);
   }
 
   return (
@@ -69,9 +73,9 @@ export function MasterPlanRoomClient({ projects, initialPlanSets, initialSheets 
       {activeProject && (
         <StartPlanWalkButton projectId={activeProject.id} projectName={activeProject.name} planSetId={activePlanSet?.id ?? null} disabled={!activePlanSet} />
       )}
-      <div className="grid gap-5 xl:grid-cols-[0.9fr_1.1fr]">
+      <div className={showSheetGrid ? "grid gap-5 xl:grid-cols-[0.9fr_1.1fr]" : "grid gap-5"}>
         <PlanSetList planSets={planSets} sheets={sheets} activePlanSetId={activePlanSetId} onSelectPlanSet={setActivePlanSetId} />
-        <PlanSheetGrid activePlanSet={activePlanSet} sheets={sheets} />
+        {showSheetGrid && <PlanSheetGrid activePlanSet={activePlanSet} sheets={sheets} />}
       </div>
     </div>
   );

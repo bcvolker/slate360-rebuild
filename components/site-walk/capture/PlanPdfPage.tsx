@@ -34,7 +34,7 @@ export function PlanPdfPage({ fileUrl, pageNumber, label, compact = false, maxWi
     function updateWidth() {
       const padding = compact ? 0 : 24;
       const nextWidth = Math.floor((shell?.clientWidth ?? minWidth) - padding);
-      setPageWidth(Math.max(minWidth, Math.min(maxWidth, nextWidth)));
+      setPageWidth(Math.min(1200, Math.max(minWidth, Math.min(maxWidth, nextWidth))));
     }
 
     updateWidth();
@@ -56,7 +56,7 @@ export function PlanPdfPage({ fileUrl, pageNumber, label, compact = false, maxWi
           </div>
         </div>
       ) : (
-        <PlanPdfErrorBoundary key={`${fileUrl}:${pageNumber}`} onError={(caughtError) => setError(reportPdfError("PDF render exception", caughtError, { fileUrl, pageNumber, label }))}>
+        <PlanPdfErrorBoundary key={fileUrl} onError={(caughtError) => setError(reportPdfError("PDF render exception", caughtError, { fileUrl, pageNumber, label }))}>
           <Document
             file={fileUrl}
             loading={<Loader2 className="h-6 w-6 animate-spin text-slate-400" />}

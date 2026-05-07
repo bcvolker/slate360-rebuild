@@ -626,7 +626,10 @@
         "Plan Room and capture plan mode render uploaded PDFs through /api/site-walk/plan-sets/[id]/file with visible amber error details if source/load/render fails",
         "Plan mode has compact previous/next page arrows plus a searchable expandable Pages panel",
         "Plan Room exposes a Start walk with plans action that creates a session and opens /site-walk/capture in plan mode",
-        "PlanViewer no longer calls preventDefault in React's passive wheel handler"
+        "PlanViewer initializes plan mode by measuring the viewport and surface, then fitting and centering the sheet with transform scale/x/y",
+        "PlanViewer uses a native wheel listener with { passive: false } and preventDefault instead of React synthetic onWheel",
+        "PlanPdfPage keeps the react-pdf Document mounted across page switches and caps render width at 1200px",
+        "Plan Room hides the Plan Sheet grid until the upload flow returns a new plan payload"
       ]
     },
     {

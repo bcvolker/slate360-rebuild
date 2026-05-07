@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState, type MouseEvent, type MutableRefObject, type PointerEvent, type ReactNode, type WheelEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent, type MutableRefObject, type PointerEvent, type ReactNode } from "react";
 import { BookOpen, Layers, Minus, Move, Plus, Search } from "lucide-react";
 import GlassCard from "@/components/shared/GlassCard";
 import { cn } from "@/lib/utils";
@@ -32,8 +32,10 @@ type Transform = { scale: number; x: number; y: number };
 type PlanMenu = "search" | "pages" | "layers" | null;
 type QuickMenuState = { pinId?: string; xPct: number; yPct: number; screenX: number; screenY: number } | null;
 type PlanPage = { key: string; label: string; pageNumber: number; sheetId?: string };
+const MIN_SCALE = 0.35, MAX_SCALE = 2.5, FIT_PADDING = 32;
 
 export function PlanViewer({ projectId, sessionId = "current-session", planSets = [], sheets = [], onCaptureRequest }: Props) {
+  const viewportRef = useRef<HTMLDivElement>(null);
   const surfaceRef = useRef<HTMLDivElement>(null);
   const [pins, setPins] = useState<Pin[]>([]);
   const [filter, setFilter] = useState<LayerFilter>("all");
@@ -54,6 +56,33 @@ export function PlanViewer({ projectId, sessionId = "current-session", planSets 
   const safePageIndex = pages.length > 0 ? Math.min(pageIndex, pages.length - 1) : 0;
   const activePage = pages[safePageIndex] ?? null;
   const planFileUrl = activePlanSet?.source_s3_key ? `/api/site-walk/plan-sets/${activePlanSet.id}/file` : null;
+
+  useEffect(() => {
+    const viewport = viewportRef.current;
+    const surface = surfaceRef.current;
+    if (!viewport || !surface) return;
+    function fitPlanToViewport() {
+      const width = Math.max(1, viewport!.clientWidth - FIT_PADDING);
+      const height = Math.max(1, viewport!.clientHeight - FIT_PADDING);
+      const scale = Math.min(width / Math.max(1, surface!.offsetWidth), height / Math.max(1, surface!.offsetHeight), 1);
+      setTransform({ scale: clamp(scale, MIN_SCALE, 1), x: 0, y: 0 });
+    }
+    fitPlanToViewport();
+    const observer = new ResizeObserver(fitPlanToViewport);
+    observer.observe(viewport); observer.observe(surface);
+    return () => observer.disconnect();
+  }, [activePage?.pageNumber, activePlanSet?.id]);
+
+  useEffect(() => {
+    const viewport = viewportRef.current;
+    if (!viewport) return;
+    function handleNativeWheel(event: globalThis.WheelEvent) {
+      event.preventDefault();
+      setTransform((current) => ({ ...current, scale: clamp(current.scale + (event.deltaY > 0 ? -0.1 : 0.1), MIN_SCALE, MAX_SCALE) }));
+    }
+    viewport.addEventListener("wheel", handleNativeWheel, { passive: false });
+    return () => viewport.removeEventListener("wheel", handleNativeWheel);
+  }, []);
 
   const visiblePins = pins.filter((pin) => {
     if (filter === "none") return false;
@@ -91,7 +120,7 @@ export function PlanViewer({ projectId, sessionId = "current-session", planSets 
     if (activePointers.current.size >= 2 && pinchStart.current) {
       clearPressTimer(pressTimer);
       const ratio = pointerDistance(activePointers.current) / Math.max(1, pinchStart.current.distance);
-      setTransform((current) => ({ ...current, scale: clamp(pinchStart.current!.scale * ratio, 0.75, 2.5) }));
+      setTransform((current) => ({ ...current, scale: clamp(pinchStart.current!.scale * ratio, MIN_SCALE, MAX_SCALE) }));
       return;
     }
 
@@ -113,13 +142,8 @@ export function PlanViewer({ projectId, sessionId = "current-session", planSets 
     if (dragStart.current?.pointerId === event.pointerId) dragStart.current = null;
   }, []);
 
-  function handleWheel(event: WheelEvent<HTMLDivElement>) {
-    const delta = event.deltaY > 0 ? -0.1 : 0.1;
-    setTransform((current) => ({ ...current, scale: clamp(current.scale + delta, 0.75, 2.5) }));
-  }
-
   function zoom(delta: number) {
-    setTransform((current) => ({ ...current, scale: clamp(current.scale + delta, 0.75, 2.5) }));
+    setTransform((current) => ({ ...current, scale: clamp(current.scale + delta, MIN_SCALE, MAX_SCALE) }));
   }
 
   function goToPage(delta: number) {
@@ -136,13 +160,13 @@ export function PlanViewer({ projectId, sessionId = "current-session", planSets 
   return (
     <div className="relative h-full w-full overflow-hidden bg-slate-950 text-white">
       <div
+        ref={viewportRef}
         className="absolute inset-0 z-0 touch-none overflow-hidden bg-slate-950"
         onPointerDown={startPress}
         onPointerMove={movePointer}
         onPointerUp={endPointer}
         onPointerCancel={endPointer}
         onPointerLeave={endPointer}
-        onWheel={handleWheel}
       >
         <div ref={surfaceRef} className="absolute left-1/2 top-1/2 aspect-[1.4/1] w-[150vw] max-w-6xl -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-3xl border border-white/10 bg-white shadow-2xl" style={{ transform: `translate(calc(-50% + ${transform.x}px), calc(-50% + ${transform.y}px)) scale(${transform.scale})`, transformOrigin: "center" }}>
           {planFileUrl && activePage ? (
