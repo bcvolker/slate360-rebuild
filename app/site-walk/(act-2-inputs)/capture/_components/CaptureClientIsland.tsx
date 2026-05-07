@@ -6,7 +6,7 @@ import { ArrowLeft, Camera, Map } from "lucide-react";
 import { CaptureDataBottomSheet } from "@/components/site-walk/capture/CaptureDataBottomSheet";
 import { PlanViewer } from "@/components/site-walk/capture/PlanViewer";
 import { VisualCaptureView } from "@/components/site-walk/capture/VisualCaptureView";
-import { requestCameraCapture } from "@/components/site-walk/capture/capture-camera-events";
+import { CaptureProvider, useCaptureContext } from "@/components/site-walk/capture/CaptureContext";
 import { useCaptureItems } from "@/components/site-walk/capture/useCaptureItems";
 import { useDeviceContext, type DeviceCaptureInput } from "@/lib/hooks/useDeviceContext";
 import type { SiteWalkPlanSet, SiteWalkPlanSheet } from "@/lib/types/site-walk";
@@ -28,7 +28,16 @@ type Props = {
 
 type WalkMode = "choice" | "plan" | "camera";
 
-export function CaptureClientIsland({ sessionId, projectId, walkName, showPlanCanvas, showStartChoice, autoOpenCamera, launchId, initialItemId, planSets, planSheets }: Props) {
+export function CaptureClientIsland(props: Props) {
+  return (
+    <CaptureProvider>
+      <CaptureClientIslandInner {...props} />
+    </CaptureProvider>
+  );
+}
+
+function CaptureClientIslandInner({ sessionId, projectId, walkName, showPlanCanvas, showStartChoice, autoOpenCamera, launchId, initialItemId, planSets, planSheets }: Props) {
+  const { requestCapture } = useCaptureContext();
   const [walkMode, setWalkMode] = useState<WalkMode>(() => showStartChoice ? "choice" : showPlanCanvas ? "plan" : "camera");
   const [currentLocation, setCurrentLocation] = useState("Stop 1");
   const [recentLocations, setRecentLocations] = useState<string[]>([]);
@@ -84,7 +93,7 @@ export function CaptureClientIsland({ sessionId, projectId, walkName, showPlanCa
   }
 
   function captureNow(input: DeviceCaptureInput = primaryCaptureInput) {
-    requestCameraCapture(input, "next_item");
+    requestCapture(input, "next_item");
   }
 
   function saveNextStop(options: { fromPlanPin?: boolean } = {}) {
@@ -95,18 +104,19 @@ export function CaptureClientIsland({ sessionId, projectId, walkName, showPlanCa
       setWalkMode("plan");
       return;
     }
-    window.setTimeout(captureNow, 150);
+    captureNow();
   }
 
   function openCameraMode(openCamera = false) {
     setWalkMode("camera");
-    if (openCamera) window.setTimeout(captureNow, 150);
+    if (openCamera) requestCapture(primaryCaptureInput, "next_item");
   }
 
   function handlePlanCaptureRequest(input: "camera" | "upload") {
+    // PlanQuickActionMenu has already set the planTarget on the context.
     returnToPlanAfterSaveRef.current = true;
+    requestCapture(input, "plan_pin");
     setWalkMode("camera");
-    window.setTimeout(() => requestCameraCapture(input, "plan_pin"), 180);
   }
 
   function handlePlanCaptureSaved() {
@@ -137,7 +147,7 @@ export function CaptureClientIsland({ sessionId, projectId, walkName, showPlanCa
             onMarkupChange={(itemId, markup) => void saveMarkupData(itemId, markup)}
             onAttachmentPinsChange={(itemId, pins) => void savePhotoAttachmentPins(itemId, pins)}
             onPlanCaptureSaved={handlePlanCaptureSaved}
-            onAddAngle={() => requestCameraCapture(primaryCaptureInput, "angle")}
+            onAddAngle={() => requestCapture(primaryCaptureInput, "angle")}
             onAngleCaptureFile={savePhotoAngle}
           />
         )}

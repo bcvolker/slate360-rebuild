@@ -11,9 +11,10 @@ import { getCaptureImageUrl } from "@/lib/site-walk/capture-image-url";
 import { readQuickCaptureLaunch, removeQuickCaptureLaunch } from "@/lib/site-walk/quick-capture-launch";
 import type { PhotoAngleCaptureMode, PhotoAngleRecord } from "@/lib/site-walk/photo-angles";
 import type { CaptureItemRecord } from "@/lib/types/site-walk-capture";
-import { requestCameraCapture, subscribeCameraCapture, type CameraRequestDetail } from "./capture-camera-events";
+import { requestCameraCapture, type CameraRequestDetail } from "./capture-camera-events";
 import { publishCaptureItemFocus } from "./capture-item-events";
 import { buildLocalPhotoItem, readLastTitle, statusClasses } from "./cameraViewfinderHelpers";
+import { useOptionalCaptureContext } from "./CaptureContext";
 import { PendingUploadPreviewModal } from "./PendingUploadPreviewModal";
 import { PhotoMarkupCanvas } from "./PhotoMarkupCanvas";
 import { usePlanCaptureTarget } from "./plan-capture-events";
@@ -49,7 +50,10 @@ export function CameraViewfinder({ sessionId, autoOpenCamera = false, launchId =
   const [activePreview, setActivePreview] = useState<{ url: string; title: string; itemId: string } | null>(null);
   const [pendingUpload, setPendingUpload] = useState<PendingUpload | null>(null);
   const [noteText, setNoteText] = useState("");
-  const { target, clearTarget } = usePlanCaptureTarget();
+  const captureCtx = useOptionalCaptureContext();
+  const { target: legacyTarget, clearTarget: clearLegacyTarget } = usePlanCaptureTarget();
+  const target = captureCtx?.planTarget ?? legacyTarget;
+  const clearTarget = captureCtx ? captureCtx.clearPlanTarget : clearLegacyTarget;
   const { status, savePhoto, saveTextNote, resetStatus } = useCaptureUpload({ sessionId, planTarget: target, onPlanTargetSaved: clearTarget, onSaved: (item, context) => { publishCaptureItemFocus({ item, reason: "captured", focus: false }); if (context.planTarget) onPlanCaptureSaved?.(); } });
   const busy = status.kind === "uploading" || status.kind === "saving";
   const visualOnly = layout === "visual";
@@ -62,18 +66,21 @@ export function CameraViewfinder({ sessionId, autoOpenCamera = false, launchId =
 
   useEffect(() => {
     if (!mounted) return;
-    return subscribeCameraCapture((detail) => {
-      captureIntentRef.current = { source: detail.source, input: detail.input };
-      if (detail.input === "camera") cameraInputRef.current?.click();
-      else uploadInputRef.current?.click();
-    });
-  }, [mounted]);
+    const pending = captureCtx?.pendingCapture;
+    if (!pending) return;
+    captureIntentRef.current = { source: pending.source, input: pending.input };
+    const ref = pending.input === "camera" ? cameraInputRef : uploadInputRef;
+    const handle = window.setTimeout(() => ref.current?.click(), 60);
+    captureCtx?.consumePendingCapture();
+    return () => window.clearTimeout(handle);
+  }, [captureCtx, captureCtx?.pendingCapture, mounted]);
 
   useEffect(() => {
-    if (!mounted || !autoOpenCamera) return;
+    if (!mounted || !autoOpenCamera || captureCtx) return;
+    // Legacy path only: contexts handle this via requestCapture.
     const timeout = window.setTimeout(() => cameraInputRef.current?.click(), 350);
     return () => window.clearTimeout(timeout);
-  }, [autoOpenCamera, mounted]);
+  }, [autoOpenCamera, captureCtx, mounted]);
 
   useEffect(() => {
     if (!mounted || !launchId || consumedLaunchRef.current === launchId) return;
@@ -175,6 +182,14 @@ export function CameraViewfinder({ sessionId, autoOpenCamera = false, launchId =
     else uploadInputRef.current?.click();
   }
 
+  function triggerCapture(input: "camera" | "upload", source: CameraRequestDetail["source"]) {
+    if (captureCtx) {
+      captureCtx.requestCapture(input, source);
+      return;
+    }
+    requestCameraCapture(input, source);
+  }
+
   return (
     <section className={visualOnly ? "flex h-full min-h-0 flex-col overflow-hidden bg-zinc-950" : "rounded-3xl border border-white/10 bg-slate-900/70 p-4 text-slate-50 shadow-lg shadow-black/30"}>
       {target && (
@@ -200,10 +215,10 @@ export function CameraViewfinder({ sessionId, autoOpenCamera = false, launchId =
               />
               {visualOnly && <UploadBadge kind={status.kind} />}
               {!visualOnly && <div className="grid gap-2 sm:grid-cols-2">
-                <button type="button" onClick={() => requestCameraCapture("camera", "next_item")} disabled={busy || !mounted} className="min-h-12 rounded-2xl bg-amber-500 px-4 py-3 text-base font-black text-slate-950 shadow-sm transition hover:bg-amber-400 disabled:opacity-60">
+                <button type="button" onClick={() => triggerCapture("camera", "next_item")} disabled={busy || !mounted} className="min-h-12 rounded-2xl bg-amber-500 px-4 py-3 text-base font-black text-slate-950 shadow-sm transition hover:bg-amber-400 disabled:opacity-60">
                   <span className="inline-flex items-center gap-2"><Camera className="h-5 w-5" /> Capture next item</span>
                 </button>
-                <button type="button" onClick={() => requestCameraCapture("upload", "next_item")} disabled={busy || !mounted} className="min-h-12 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-base font-black text-slate-200 transition hover:border-amber-400/50 hover:text-amber-200 disabled:opacity-60">
+                <button type="button" onClick={() => triggerCapture("upload", "next_item")} disabled={busy || !mounted} className="min-h-12 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-base font-black text-slate-200 transition hover:border-amber-400/50 hover:text-amber-200 disabled:opacity-60">
                   <span className="inline-flex items-center gap-2"><FileImage className="h-5 w-5" /> Upload next image</span>
                 </button>
               </div>}

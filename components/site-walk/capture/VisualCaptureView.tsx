@@ -8,8 +8,9 @@ import type { MarkupData } from "@/lib/site-walk/markup-types";
 import { getPhotoAngleImageUrl, type PhotoAngleCaptureMode, type PhotoAngleRecord } from "@/lib/site-walk/photo-angles";
 import type { PhotoAttachmentPin } from "@/lib/site-walk/photo-attachments";
 import type { CaptureItemRecord } from "@/lib/types/site-walk-capture";
-import { requestCameraCapture } from "./capture-camera-events";
 import { CameraViewfinder } from "./CameraViewfinder";
+import { useOptionalCaptureContext } from "./CaptureContext";
+import { requestCameraCapture } from "./capture-camera-events";
 import { PhotoAngleStrip } from "./PhotoAngleStrip";
 import { PHOTO_MARKUP_REDO_EVENT, PHOTO_MARKUP_UNDO_EVENT } from "./PhotoMarkupCanvas";
 import { UnifiedVectorToolbar } from "./UnifiedVectorToolbar";
@@ -29,15 +30,20 @@ type Props = {
   onAngleCaptureFile: (itemId: string, file: File, previewUrl: string, captureMode: PhotoAngleCaptureMode) => Promise<PhotoAngleRecord | null>;
 };
 
+// Reserve at the bottom for the collapsed CaptureDataBottomSheet handle.
+const BOTTOM_SHEET_RESERVE = "5.9rem";
+
 export function VisualCaptureView({ sessionId, autoOpenCamera, launchId, items, activeItemId, modeLabel, ghostImageUrl, onMarkupChange, onAttachmentPinsChange, onPlanCaptureSaved, onAddAngle, onAngleCaptureFile }: Props) {
   const [ghostOn, setGhostOn] = useState(false);
   const [markupOn, setMarkupOn] = useState(true);
   const [activeAngleId, setActiveAngleId] = useState<string | null>(null);
+  const captureCtx = useOptionalCaptureContext();
   const photoItems = items.filter((item) => item.item_type === "photo");
   const activeItem = photoItems.find((item) => item.id === activeItemId) ?? null;
   const activeLocation = getLocationLabel(activeItem) ?? "Stop ready";
   const activeImageUrl = getPhotoAngleImageUrl(activeItem, activeAngleId);
   const activeImageTitle = activeAngleId && activeItem ? `${activeItem.title || "Captured photo"} — angle` : activeItem?.title ?? null;
+  const showMarkupRow = markupOn && Boolean(activeItem);
 
   useEffect(() => setActiveAngleId(null), [activeItemId]);
 
@@ -47,67 +53,89 @@ export function VisualCaptureView({ sessionId, autoOpenCamera, launchId, items, 
     return angle;
   }
 
+  function triggerCapture(input: "camera" | "upload") {
+    if (captureCtx) captureCtx.requestCapture(input, "next_item");
+    else requestCameraCapture(input, "next_item");
+  }
+
   return (
-    <div className="relative h-full w-full overflow-hidden bg-[#0B0F15] text-white">
-      {/* Layer 0: full-bleed camera */}
-      <div className="absolute inset-0 z-0">
-        <CameraViewfinder
-          sessionId={sessionId}
-          autoOpenCamera={autoOpenCamera}
-          launchId={launchId}
-          layout="visual"
-          activeItem={activeItem}
-          activeImageUrl={activeImageUrl}
-          activeImageTitle={activeImageTitle}
-          activeImageKey={`${activeItem?.id ?? "none"}:${activeAngleId ?? "main"}`}
-          markupEnabled={markupOn}
-          onPlanCaptureSaved={onPlanCaptureSaved}
-          onAngleCaptureFile={handleAngleCaptureFile}
-          onMarkupChange={onMarkupChange}
-          onAttachmentPinsChange={onAttachmentPinsChange}
-        />
-      </div>
-
-      {ghostOn && ghostImageUrl && <img src={ghostImageUrl} alt="Previous progress ghost alignment" className="pointer-events-none absolute inset-0 z-10 h-full w-full object-cover opacity-25 mix-blend-screen" />}
-
-      {/* Layer 1: floating transparent tools */}
-      <GlassCard className="absolute left-3 top-3 z-20 flex max-w-[58vw] items-center gap-3 bg-slate-950/55 px-3 py-2 backdrop-blur-xl">
-        <Link href="/site-walk" className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-white/80 hover:border-amber-300/50 hover:text-amber-100" aria-label="Site Walk Home">
+    <div
+      className="grid h-full w-full overflow-hidden bg-[#0B0F15] text-white"
+      style={{ gridTemplateRows: `auto ${showMarkupRow ? "auto " : ""}1fr auto ${BOTTOM_SHEET_RESERVE}` }}
+    >
+      {/* Top chrome bar */}
+      <header className="z-30 flex items-center gap-2 border-b border-white/5 bg-slate-950/55 px-3 py-2 backdrop-blur-xl">
+        <Link href="/site-walk" aria-label="Site Walk Home" className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-white/80 hover:border-amber-300/50 hover:text-amber-100">
           <ArrowLeft className="h-4 w-4" />
         </Link>
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-black text-white">{activeLocation}</p>
           <p className="truncate text-[9px] font-black uppercase tracking-[0.16em] text-amber-200/75">{modeLabel || "Camera"}</p>
         </div>
-      </GlassCard>
+        <div className="flex items-center gap-1">
+          <button type="button" onClick={() => setGhostOn((current) => !current)} disabled={!ghostImageUrl} className={`hidden h-9 items-center gap-1.5 rounded-xl px-2.5 text-[10px] font-black uppercase tracking-[0.1em] transition disabled:opacity-40 sm:inline-flex ${ghostOn ? "bg-amber-500 text-slate-950" : "bg-white/[0.04] text-white/75 hover:text-amber-100"}`}>
+            <Ghost className="h-4 w-4" /> Ghost
+          </button>
+          <button type="button" onClick={() => setMarkupOn((current) => !current)} className={`inline-flex h-9 w-9 items-center justify-center rounded-xl transition ${markupOn ? "bg-amber-500 text-slate-950" : "bg-white/[0.04] text-white/75 hover:text-amber-100"}`} aria-label={markupOn ? "Hide markup tools" : "Show markup tools"}>
+            <Shapes className="h-4 w-4" />
+          </button>
+          <button type="button" onClick={() => dispatchCanvasEvent(PHOTO_MARKUP_UNDO_EVENT)} className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-white/[0.04] text-white/70 hover:text-amber-100" aria-label="Undo markup">
+            <RotateCcw className="h-4 w-4" />
+          </button>
+          <button type="button" onClick={() => dispatchCanvasEvent(PHOTO_MARKUP_REDO_EVENT)} className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-white/[0.04] text-white/70 hover:text-amber-100" aria-label="Redo markup">
+            <RotateCw className="h-4 w-4" />
+          </button>
+        </div>
+      </header>
 
-      {markupOn && activeItem && <div className="absolute inset-x-3 top-20 z-20 mx-auto max-w-xl"><UnifiedVectorToolbar /></div>}
+      {/* Markup toolbar — own row, no overlap */}
+      {showMarkupRow && (
+        <div className="z-30 flex justify-center border-b border-white/5 bg-slate-950/40 px-3 py-2 backdrop-blur-xl">
+          <UnifiedVectorToolbar />
+        </div>
+      )}
 
-      <GlassCard className="absolute right-3 top-3 z-20 flex items-center gap-1 bg-slate-950/55 p-1.5 backdrop-blur-xl">
-        <button type="button" onClick={() => setGhostOn((current) => !current)} disabled={!ghostImageUrl} className={`inline-flex min-h-10 items-center gap-2 rounded-xl px-3 text-[11px] font-black uppercase tracking-[0.1em] transition disabled:opacity-40 ${ghostOn ? "bg-amber-500 text-slate-950" : "bg-white/[0.04] text-white/75 hover:text-amber-100"}`}>
-          <Ghost className="h-4 w-4" /> Ghost Mode
-        </button>
-        <button type="button" onClick={() => setMarkupOn((current) => !current)} className={`inline-flex h-10 w-10 items-center justify-center rounded-xl transition ${markupOn ? "bg-amber-500 text-slate-950" : "bg-white/[0.04] text-white/75 hover:text-amber-100"}`} aria-label="Toggle markup tools">
-          <Shapes className="h-4 w-4" />
-        </button>
-        <button type="button" onClick={() => dispatchCanvasEvent(PHOTO_MARKUP_UNDO_EVENT)} className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-white/[0.04] text-white/70 hover:text-amber-100" aria-label="Undo markup">
-          <RotateCcw className="h-4 w-4" />
-        </button>
-        <button type="button" onClick={() => dispatchCanvasEvent(PHOTO_MARKUP_REDO_EVENT)} className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-white/[0.04] text-white/70 hover:text-amber-100" aria-label="Redo markup">
-          <RotateCw className="h-4 w-4" />
-        </button>
-      </GlassCard>
+      {/* Camera surface */}
+      <div className="relative min-h-0">
+        <div className="absolute inset-0">
+          <CameraViewfinder
+            sessionId={sessionId}
+            autoOpenCamera={autoOpenCamera}
+            launchId={launchId}
+            layout="visual"
+            activeItem={activeItem}
+            activeImageUrl={activeImageUrl}
+            activeImageTitle={activeImageTitle}
+            activeImageKey={`${activeItem?.id ?? "none"}:${activeAngleId ?? "main"}`}
+            markupEnabled={markupOn}
+            onPlanCaptureSaved={onPlanCaptureSaved}
+            onAngleCaptureFile={handleAngleCaptureFile}
+            onMarkupChange={onMarkupChange}
+            onAttachmentPinsChange={onAttachmentPinsChange}
+          />
+        </div>
 
-      <GlassCard className="absolute left-3 bottom-28 z-20 flex gap-2 bg-slate-950/55 p-2 backdrop-blur-xl">
-        <button type="button" onClick={() => requestCameraCapture("camera", "next_item")} className="inline-flex min-h-12 items-center gap-2 rounded-2xl bg-amber-500 px-4 text-sm font-black text-slate-950 shadow-[0_0_22px_rgba(245,158,11,0.34)] hover:bg-amber-400">
-          <Camera className="h-5 w-5" /> Photo
-        </button>
-        <button type="button" onClick={() => requestCameraCapture("upload", "next_item")} className="inline-flex min-h-12 items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] px-4 text-sm font-black text-white/80 hover:border-amber-300/50 hover:text-amber-100">
-          <FileImage className="h-5 w-5" /> Roll
-        </button>
-      </GlassCard>
+        {ghostOn && ghostImageUrl && (
+          <img src={ghostImageUrl} alt="Previous progress ghost alignment" className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-25 mix-blend-screen" />
+        )}
 
-      <PhotoAngleStrip item={activeItem} activeAngleId={activeAngleId} className="absolute inset-x-3 bottom-[11.2rem] z-20" onSelectAngle={setActiveAngleId} onAddAngle={onAddAngle} />
+        <GlassCard className="absolute right-3 top-3 z-20 flex flex-col gap-2 bg-slate-950/55 p-2 backdrop-blur-xl sm:flex-row">
+          <button type="button" onClick={() => triggerCapture("camera")} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-amber-500 px-3 text-xs font-black text-slate-950 shadow-[0_0_18px_rgba(245,158,11,0.34)] hover:bg-amber-400">
+            <Camera className="h-4 w-4" /> Photo
+          </button>
+          <button type="button" onClick={() => triggerCapture("upload")} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-3 text-xs font-black text-white/80 hover:border-amber-300/50 hover:text-amber-100">
+            <FileImage className="h-4 w-4" /> Roll
+          </button>
+        </GlassCard>
+      </div>
+
+      {/* Angle strip */}
+      <div className="z-20 border-t border-white/5 bg-slate-950/55 px-3 py-2 backdrop-blur-xl">
+        <PhotoAngleStrip item={activeItem} activeAngleId={activeAngleId} className="static left-auto right-auto bottom-auto" onSelectAngle={setActiveAngleId} onAddAngle={onAddAngle} />
+      </div>
+
+      {/* Reserved space for collapsed CaptureDataBottomSheet handle */}
+      <div aria-hidden />
     </div>
   );
 }

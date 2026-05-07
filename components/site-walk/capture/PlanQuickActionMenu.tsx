@@ -2,6 +2,7 @@
 
 import { Camera, StickyNote, Upload, X } from "lucide-react";
 import { useDeviceContext } from "@/lib/hooks/useDeviceContext";
+import { useOptionalCaptureContext } from "./CaptureContext";
 import { requestCameraCapture } from "./capture-camera-events";
 import { publishPlanCaptureTarget } from "./plan-capture-events";
 
@@ -18,13 +19,20 @@ type Props = {
 
 export function PlanQuickActionMenu({ pinId, planSheetId, xPct, yPct, screenX, screenY, onClose, onCaptureRequest }: Props) {
   const { isDesktop } = useDeviceContext();
+  const captureCtx = useOptionalCaptureContext();
 
   function choose(action: "photo" | "note", input?: "camera" | "upload") {
-    publishPlanCaptureTarget({ pinId, planSheetId, xPct, yPct, action });
-    if (input) {
-      if (onCaptureRequest) onCaptureRequest(input);
-      else requestCameraCapture(input, "plan_pin");
+    const target = { pinId, planSheetId, xPct, yPct };
+    // Primary path: set plan target on the React context BEFORE requesting capture.
+    if (captureCtx) {
+      captureCtx.setPlanTarget(target);
+      if (input) captureCtx.requestCapture(input, "plan_pin");
+    } else {
+      // Legacy fallback: window event bus (used by any caller still outside the provider).
+      publishPlanCaptureTarget({ ...target, action });
+      if (input) requestCameraCapture(input, "plan_pin");
     }
+    if (input && onCaptureRequest) onCaptureRequest(input);
     onClose();
   }
 
