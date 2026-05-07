@@ -202,6 +202,30 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
+### Session Handoff — 2026-05-07 (Site Walk Phase 2 PDF Centering Race)
+
+#### What Changed
+- `components/site-walk/capture/PlanPdfPage.tsx` — Added `PlanPdfRenderDetails` and an optional `onPdfPageRendered` prop. The callback fires only from React-PDF `<Page onRenderSuccess>`, so the parent hears about the page after the canvas has painted.
+- `components/site-walk/capture/PlanViewer.tsx` — Added `pdfReadyToken` state and a render-sequence ref. The centering effect now includes `pdfReadyToken` in its dependencies and returns early for PDF pages until the token matches the current file URL and page number. The actual `calculateCenteredPlanTransform()` call is scheduled with `requestAnimationFrame` after render success.
+- `ONGOING_ISSUES.md`, `slate360-context/ONGOING_ISSUES.md`, `ops/bug-registry.json`, and `slate360-context/dashboard-tabs/site-walk/FIELD_PLATFORM_ROADMAP.md` — Added S360-053 / BUG-073 and the Site Walk roadmap note for render-driven PDF centering.
+
+#### What's Broken / Partially Done
+- Phase 3 is still pending: Confirm & Attach needs explicit try/catch/logging and pin/sheet ID failure handling to stop silent fallback/hangs.
+- Browser/device smoke verification still needs to confirm initial plan load centers after the PDF canvas appears on desktop and phone.
+- `bash scripts/check-file-size.sh` still fails on 12 pre-existing oversized files outside this slice; changed files remain under 300 lines (`PlanViewer.tsx` 266, `PlanPdfPage.tsx` 130).
+
+#### Context Files Updated
+- `ONGOING_ISSUES.md` — Added S360-053 for PDF centering render race.
+- `slate360-context/ONGOING_ISSUES.md` — Added BUG-073.
+- `ops/bug-registry.json` — Added BUG-073.
+- `slate360-context/dashboard-tabs/site-walk/FIELD_PLATFORM_ROADMAP.md` — Added implementation note.
+- `SLATE360_PROJECT_MEMORY.md` — This handoff.
+
+#### Next Steps (ordered)
+1. Execute Phase 3 prompt: instrument and harden Confirm & Attach / `savePhoto` / plan pin attach path.
+2. Retest plan mode on desktop and phone: first PDF page should center after render with no top-left default.
+3. Retest Phase 1 quick wins: touchscreen laptop pin menu upload-only; mobile capture keeps markup toolbar visible.
+
 ### Session Handoff — 2026-05-07 (Site Walk Phase 1 Device/Grid Quick Wins)
 
 #### What Changed

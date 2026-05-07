@@ -16,9 +16,16 @@ type Props = {
   maxWidth?: number;
   minWidth?: number;
   onPageCount?: (count: number) => void;
+  onPdfPageRendered?: (details: PlanPdfRenderDetails) => void;
 };
 
-export function PlanPdfPage({ fileUrl, pageNumber, label, compact = false, maxWidth = 980, minWidth = 240, onPageCount }: Props) {
+export type PlanPdfRenderDetails = {
+  fileUrl: string;
+  pageNumber: number;
+  pageWidth: number;
+};
+
+export function PlanPdfPage({ fileUrl, pageNumber, label, compact = false, maxWidth = 980, minWidth = 240, onPageCount, onPdfPageRendered }: Props) {
   const shellRef = useRef<HTMLDivElement>(null);
   const [pageWidth, setPageWidth] = useState(minWidth);
   const [error, setError] = useState<string | null>(null);
@@ -72,6 +79,7 @@ export function PlanPdfPage({ fileUrl, pageNumber, label, compact = false, maxWi
                 renderTextLayer={false}
                 loading={<Loader2 className="h-5 w-5 animate-spin text-slate-400" />}
                 onRenderError={(renderError) => setError(reportPdfError("PDF page render failed", renderError, { fileUrl, pageNumber, label }))}
+                onRenderSuccess={() => onPdfPageRendered?.({ fileUrl, pageNumber, pageWidth })}
                 className="overflow-hidden bg-white [&_canvas]:!h-auto [&_canvas]:!max-w-full [&_canvas]:!bg-white"
                 aria-label={label}
               />

@@ -783,6 +783,21 @@
         "CaptureDataBottomSheet chevron button has a min-h-11 touch target",
         "npm run typecheck passes"
       ]
+    },
+    {
+      "id": "BUG-073",
+      "title": "Plan PDF centering ran before React-PDF finished painting the canvas",
+      "module": "site-walk/plans/capture",
+      "severity": "high",
+      "status": "fixed",
+      "rootCause": "PlanViewer measured and centered the plan surface as soon as the React component mounted, while React-PDF was still loading/rendering the canvas. The first transform could lock onto the placeholder surface before the actual PDF canvas was painted.",
+      "verification": [
+        "PlanPdfPage exposes onPdfPageRendered and fires it from Page onRenderSuccess",
+        "PlanViewer stores a pdfReadyToken from the render-success callback",
+        "PlanViewer centering effect includes pdfReadyToken in its dependency array",
+        "calculateCenteredPlanTransform returns early for PDF pages until the matching file/page render token exists",
+        "npm run typecheck passes"
+      ]
     }
   ]
 }

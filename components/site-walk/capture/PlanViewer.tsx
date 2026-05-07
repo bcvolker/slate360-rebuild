@@ -6,7 +6,7 @@ import GlassCard from "@/components/shared/GlassCard";
 import { cn } from "@/lib/utils";
 import type { SiteWalkPlanSet, SiteWalkPlanSheet } from "@/lib/types/site-walk";
 import type { LayerFilter } from "./plan-layer-types";
-import { PlanPdfPage } from "./PlanPdfPage";
+import { PlanPdfPage, type PlanPdfRenderDetails } from "./PlanPdfPage";
 import { PlanQuickActionMenu } from "./PlanQuickActionMenu";
 import { PlanToolbar } from "./PlanToolbar";
 import { calculateCenteredPlanTransform } from "./planViewerGeometry";
@@ -32,6 +32,7 @@ type Point = { x: number; y: number };
 type Transform = { scale: number; x: number; y: number };
 type QuickMenuState = { pinId?: string; xPct: number; yPct: number; screenX: number; screenY: number } | null;
 type PlanPage = { key: string; label: string; pageNumber: number; sheetId?: string };
+type PdfReadyToken = PlanPdfRenderDetails & { sequence: number };
 const MIN_SCALE = 0.35, MAX_SCALE = 2.5, FIT_PADDING = 32;
 
 export function PlanViewer({ projectId, sessionId = "current-session", planSets = [], sheets = [], onCaptureRequest }: Props) {
@@ -42,6 +43,7 @@ export function PlanViewer({ projectId, sessionId = "current-session", planSets 
   const [activePinId, setActivePinId] = useState<string | null>(null);
   const [pageIndex, setPageIndex] = useState(0);
   const [pdfPageCount, setPdfPageCount] = useState(0);
+  const [pdfReadyToken, setPdfReadyToken] = useState<PdfReadyToken | null>(null);
   const [quickMenu, setQuickMenu] = useState<QuickMenuState>(null);
   const [transform, setTransform] = useState<Transform>({ scale: 1, x: 0, y: 0 });
   const [hintVisible, setHintVisible] = useState(true);
@@ -49,6 +51,7 @@ export function PlanViewer({ projectId, sessionId = "current-session", planSets 
   const dragStart = useRef<{ pointerId: number; point: Point; offset: Point; moved: boolean } | null>(null);
   const activePointers = useRef(new Map<number, Point>());
   const pinchStart = useRef<{ distance: number; scale: number } | null>(null);
+  const pdfReadySequence = useRef(0);
 
   const activePlanSet = useMemo(() => planSets.find((planSet) => planSet.processing_status === "ready") ?? planSets[0] ?? null, [planSets]);
   const planSheets = useMemo(() => activePlanSet ? sheets.filter((sheet) => sheet.plan_set_id === activePlanSet.id) : [], [activePlanSet, sheets]);
@@ -57,16 +60,24 @@ export function PlanViewer({ projectId, sessionId = "current-session", planSets 
   const activePage = pages[safePageIndex] ?? null;
   const planFileUrl = activePlanSet?.source_s3_key ? `/api/site-walk/plan-sets/${activePlanSet.id}/file` : null;
 
+  const handlePdfPageRendered = useCallback((details: PlanPdfRenderDetails) => {
+    pdfReadySequence.current += 1;
+    setPdfReadyToken({ ...details, sequence: pdfReadySequence.current });
+  }, []);
+
+  useEffect(() => setPdfReadyToken(null), [activePage?.pageNumber, planFileUrl]);
+
   useEffect(() => {
     const viewport = viewportRef.current;
     const surface = surfaceRef.current;
     if (!viewport || !surface) return;
+    if (planFileUrl && activePage && (!pdfReadyToken || pdfReadyToken.fileUrl !== planFileUrl || pdfReadyToken.pageNumber !== activePage.pageNumber)) return;
     function fitPlanToViewport() { setTransform(calculateCenteredPlanTransform({ maxScale: 1, minScale: MIN_SCALE, padding: FIT_PADDING, surface: surface!, viewport: viewport! })); }
-    fitPlanToViewport();
+    const frameId = window.requestAnimationFrame(fitPlanToViewport);
     const observer = new ResizeObserver(fitPlanToViewport);
     observer.observe(viewport); observer.observe(surface);
-    return () => observer.disconnect();
-  }, [activePage?.pageNumber, activePlanSet?.id]);
+    return () => { window.cancelAnimationFrame(frameId); observer.disconnect(); };
+  }, [activePage, activePlanSet?.id, pdfReadyToken, planFileUrl]);
 
   useEffect(() => {
     const viewport = viewportRef.current;
@@ -161,7 +172,7 @@ export function PlanViewer({ projectId, sessionId = "current-session", planSets 
       >
         <div ref={surfaceRef} className="absolute left-0 top-0 aspect-[1.4/1] w-[150vw] max-w-6xl touch-none select-none overflow-hidden rounded-3xl border border-white/10 bg-white shadow-2xl" style={{ transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})`, transformOrigin: "top left", WebkitTouchCallout: "none" }}>
           {planFileUrl && activePage ? (
-            <PlanPdfPage fileUrl={planFileUrl} pageNumber={activePage.pageNumber} label={activePage.label} onPageCount={setPdfPageCount} />
+            <PlanPdfPage fileUrl={planFileUrl} pageNumber={activePage.pageNumber} label={activePage.label} onPageCount={setPdfPageCount} onPdfPageRendered={handlePdfPageRendered} />
           ) : (
             <PlanEmptySurface projectAware={Boolean(projectId)} />
           )}
