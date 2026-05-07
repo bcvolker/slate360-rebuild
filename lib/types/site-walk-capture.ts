@@ -24,6 +24,7 @@ export type CaptureItemRecord = {
   category: string | null;
   trade?: string | null;
   tags?: string[];
+  before_item_id?: string | null;
   cost_estimate?: number | null;
   priority: ItemPriority;
   item_status: ItemStatus;
@@ -43,7 +44,9 @@ export type CaptureItemRecord = {
 export type CaptureItemDraft = {
   title: string;
   classification: CaptureClassification;
+  trade: string;
   tags: string[];
+  beforeItemId: string;
   costImpact: string;
   priority: ItemPriority;
   status: ItemStatus;
@@ -53,9 +56,10 @@ export type CaptureItemDraft = {
 };
 
 export const CAPTURE_PRIORITIES: ItemPriority[] = ["low", "medium", "high", "critical"];
-export const CAPTURE_ITEM_STATUSES: ItemStatus[] = ["open", "in_progress", "closed"];
+export const CAPTURE_ITEM_STATUSES: ItemStatus[] = ["open", "in_progress", "resolved", "verified", "closed", "na"];
 export const CAPTURE_TAG_SUGGESTIONS = ["Safety", "Quality", "Progress", "Defect"] as const;
 export const CAPTURE_CLASSIFICATIONS: CaptureClassification[] = ["Safety", "Quality", "Schedule", "RFI", "Observation", "Punch List", "Coordination", "Progress", "Other"];
+export const CAPTURE_TRADES = ["General", "Electrical", "Plumbing", "HVAC", "Painting", "Flooring", "Drywall", "Roofing", "Fire Protection", "Concrete", "Steel", "Site Work", "Millwork", "Low Voltage", "Other"] as const;
 
 function readTags(item: CaptureItemRecord) {
   const legacyCategory = item.category?.trim();
@@ -71,7 +75,9 @@ export function captureItemToDraft(item: CaptureItemRecord): CaptureItemDraft {
   return {
     title: item.title,
     classification,
+    trade: item.trade ?? "",
     tags: readTags(item),
+    beforeItemId: item.before_item_id ?? "",
     costImpact: item.cost_estimate === null ? "" : String(item.cost_estimate),
     priority: item.priority,
     status: item.item_status,

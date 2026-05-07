@@ -645,6 +645,21 @@
         "Pin create/update routes validate UUID-shaped IDs before Supabase calls so invalid draft IDs return structured 400s instead of internal server errors",
         "Long-press on a plan, then Take photo at this pin and Upload existing photo both complete without an internal server error"
       ]
+    },
+    {
+      "id": "BUG-064",
+      "title": "Capture bottom sheet dropped trade/progression and used the wrong primary capture action on desktop",
+      "module": "site-walk/capture",
+      "severity": "high",
+      "status": "fixed",
+      "rootCause": "The active capture bottom sheet did not consume the assignees returned by useCaptureItems, lacked compact trade/status/progression fields, always labeled its primary action as Capture, and the draft save helper hardcoded category and trade to null while omitting before_item_id.",
+      "verification": [
+        "useDeviceContext centralizes desktop/mobile detection and returns Upload Photo for desktop, Camera for mobile",
+        "CaptureClientIsland uses the device context when dispatching next-item camera/upload requests and passes assignees/items to CaptureDataBottomSheet",
+        "CaptureDataBottomSheet renders Trade, Assignee, Status, and Link to Previous (Progression) controls",
+        "capture-draft-save sends category, trade, tags, and before_item_id from the draft payload instead of nullifying trade/category",
+        "npm run typecheck passes"
+      ]
     }
   ]
 }

@@ -202,33 +202,35 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-05-06 (PDF Stabilization Pass)
+### Session Handoff — 2026-05-07 (Capture Data Model + Device Context Pass)
 
 #### What Changed
-- `components/site-walk/capture/PlanViewer.tsx` — Added viewport/surface measurement on load, page change, and resize; initializes transform scale/x/y so the plan surface is centered and fits inside the viewport; replaced React synthetic `onWheel` with a native wheel listener using `{ passive: false }` plus `preventDefault()`.
-- `components/site-walk/capture/PlanPdfPage.tsx` — Removed `pageNumber` from the error-boundary key so React-PDF `Document` stays mounted across page switches; enforced a 1200px maximum canvas render width.
-- `app/site-walk/(act-1-setup)/plans/_components/MasterPlanRoomClient.tsx` — Added progressive disclosure: `PlanSheetGrid` stays hidden until the upload flow returns a new plan/sheet payload, reducing first-load clutter and PDF preview memory pressure.
-- `ONGOING_ISSUES.md`, `ops/bug-registry.json`, and `slate360-context/dashboard-tabs/site-walk/FIELD_PLATFORM_ROADMAP.md` — Updated S360-043 / BUG-062 and Site Walk roadmap notes with the stabilization pass.
+- `lib/hooks/useDeviceContext.ts` — New shared hook detects desktop vs mobile from pointer/viewport/touch capability and returns the primary capture input/label (`Upload Photo` on desktop, `Camera` on mobile).
+- `app/site-walk/(act-2-inputs)/capture/_components/CaptureClientIsland.tsx` — Uses `useDeviceContext()` for next-item capture dispatch, carries trade forward, destructures `assignees` from `useCaptureItems`, and passes `items` + `assignees` to `CaptureDataBottomSheet`.
+- `components/site-walk/capture/CaptureDataBottomSheet.tsx` — Primary button is device-aware; expanded sheet now has compact Trade, Assignee, Status, and Link to Previous (Progression) controls. Progression selection writes `beforeItemId` from saved UUID-backed items only.
+- `lib/types/site-walk-capture.ts` — Draft/record types now include `trade` and `beforeItemId`/`before_item_id`; status options now include the full workflow status set; shared capture trade options added.
+- `components/site-walk/capture/capture-draft-save.ts` — Autosave no longer hardcodes `category: null` or `trade: null`; it persists `category`, `trade`, normalized `tags`, and `before_item_id` from the draft.
+- `ONGOING_ISSUES.md`, `ops/bug-registry.json`, and `slate360-context/dashboard-tabs/site-walk/FIELD_PLATFORM_ROADMAP.md` — Added S360-045 / BUG-064 and Site Walk roadmap notes for this pass.
 
 #### What's Broken / Partially Done
-- Browser smoke verification still needs to be run on the deployed Broadway/APDF path: upload/start plan mode, confirm first render fits/centers, and verify mouse-wheel zoom emits no passive event warning.
-- Existing plan sets uploaded before PDF page-count extraction may have only one stored `site_walk_plan_sheets` row; capture can render/page the full PDF after load, but page-specific persisted pin sheets beyond row 1 still need a later sheet-sync/rasterization pass.
-- Full server-side PDF rasterization/thumbnail extraction remains future work; current production fix renders the original PDF in-browser with the public PDF.js worker.
-- `bash scripts/check-file-size.sh` still fails on pre-existing oversized files outside this slice; changed files are under limit (`PlanViewer.tsx` 299, `PlanPdfPage.tsx` 120, `MasterPlanRoomClient.tsx` 94).
-- Working tree contains many unrelated pre-existing dirty/deleted files. Stage/commit only the focused PDF stabilization files and this memory update.
+- Browser smoke verification still needs to confirm desktop bottom-sheet primary action opens file selection and mobile primary action opens camera.
+- Progression dropdown intentionally filters to saved UUID-backed items to avoid invalid `before_item_id` FK writes; offline/local progression remapping is still future work.
+- Existing plan/PDF follow-ups remain: server-side PDF page-count/sheet sync, rasterization, thumbnails, and true thumbnail-strip navigation.
+- `bash scripts/check-file-size.sh` still fails on pre-existing oversized files outside this slice; changed files are under limit (`CaptureClientIsland.tsx` 184, `CaptureDataBottomSheet.tsx` 135, `useDeviceContext.ts` 38, `capture-draft-save.ts` 52, `site-walk-capture.ts` 88).
+- Working tree still contains many unrelated pre-existing dirty/deleted files. Stage/commit only the focused capture data-model files and context updates.
 
 #### Context Files Updated
-- `ONGOING_ISSUES.md` — S360-043 now includes viewport fit, native wheel, Document stability, 1200px cap, and upload progressive disclosure.
-- `ops/bug-registry.json` — BUG-062 verification now includes the stabilization pass checks.
-- `slate360-context/dashboard-tabs/site-walk/FIELD_PLATFORM_ROADMAP.md` — Added a PDF stabilization implementation note.
+- `ONGOING_ISSUES.md` — Added S360-045 for capture workflow fields/device primary action.
+- `ops/bug-registry.json` — Added BUG-064 verification for device context, bottom-sheet fields, and draft save persistence.
+- `slate360-context/dashboard-tabs/site-walk/FIELD_PLATFORM_ROADMAP.md` — Added implementation note for device context and workflow field persistence.
 - `SLATE360_PROJECT_MEMORY.md` — this handoff.
 
 #### Next Steps (ordered)
-1. Deploy or run the app and retest Broadway/APDF on desktop/phone: upload plan, tap Start walk with plans, open plan mode, confirm initial fit/centering.
-2. Mouse-wheel zoom the desktop plan viewport and confirm no passive event error appears in the browser console.
-3. Page through the PDF and watch memory/console behavior to confirm the React-PDF `Document` no longer remounts on each page switch.
-4. Confirm Plan Room no longer renders the Plan Sheet grid before a user completes an upload in the current flow.
-5. Add server-side PDF page-count/sheet sync, rasterization, thumbnails, and true thumbnail-strip navigation as a later hardening slice.
+1. Desktop smoke: open `/site-walk/capture`, expand the bottom sheet, confirm primary button says Upload Photo and opens file selection.
+2. Mobile smoke: open capture in PWA/mobile browser, confirm primary button says Camera and opens camera capture.
+3. Select Trade, Assignee, Status, and a previous saved item; confirm PATCH includes `trade`, `assigned_to`, `item_status`, `tags`, and `before_item_id`.
+4. Add offline/local progression remapping if progression linking must work before prior items are synced to UUID-backed rows.
+5. Continue later PDF hardening: page-count/sheet sync, rasterization, thumbnails, and thumbnail-strip navigation.
 
 ### Session Handoff — 2026-05-04 (Amber Brand System Propagation — Full Push)
 

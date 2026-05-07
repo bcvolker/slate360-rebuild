@@ -1,28 +1,36 @@
 "use client";
 
 import { useRef, useState, type PointerEvent } from "react";
-import { Camera, GripHorizontal, Loader2, Mic, SkipForward, Sparkles } from "lucide-react";
+import { Camera, GripHorizontal, Link2, Loader2, Mic, SkipForward, Sparkles, Upload } from "lucide-react";
 import GlassCard from "@/components/shared/GlassCard";
-import type { CaptureItemDraft, CaptureItemRecord } from "@/lib/types/site-walk-capture";
+import { useDeviceContext, type DeviceCaptureInput } from "@/lib/hooks/useDeviceContext";
+import { CAPTURE_ITEM_STATUSES, CAPTURE_TRADES, type CaptureAssignee, type CaptureItemDraft, type CaptureItemRecord } from "@/lib/types/site-walk-capture";
 
 type Props = {
   item: CaptureItemRecord | null;
+  items: CaptureItemRecord[];
+  assignees: CaptureAssignee[];
   draft: CaptureItemDraft | null;
   saveState: string;
   aiState: string;
   aiMessage: string | null;
   currentLocation: string;
   onDraftChange: (patch: Partial<CaptureItemDraft>) => void;
-  onCapture: () => void;
+  onCapture: (input?: DeviceCaptureInput) => void;
   onFormatNotes: () => void;
   onSaveNextStop: () => void;
 };
 
-export function CaptureDataBottomSheet({ item, draft, saveState, aiState, aiMessage, currentLocation, onDraftChange, onCapture, onFormatNotes, onSaveNextStop }: Props) {
+export function CaptureDataBottomSheet({ item, items, assignees, draft, saveState, aiState, aiMessage, currentLocation, onDraftChange, onCapture, onFormatNotes, onSaveNextStop }: Props) {
   const [expanded, setExpanded] = useState(false);
+  const [linkProgression, setLinkProgression] = useState(false);
   const dragStartY = useRef<number | null>(null);
+  const { primaryCaptureInput, primaryCaptureLabel } = useDeviceContext();
   const isSaving = saveState === "saving";
   const aiBusy = aiState === "loading" || aiState === "formatting";
+  const progressionActive = Boolean(draft?.beforeItemId) || linkProgression;
+  const previousItems = items.filter((candidate) => isUuid(candidate.id) && candidate.id !== item?.id && candidate.client_item_id !== item?.client_item_id);
+  const selectClass = "mt-1 h-10 w-full rounded-2xl border border-white/10 bg-black/35 px-3 text-xs font-black text-slate-100 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-500/20 disabled:opacity-50";
 
   function handlePointerDown(event: PointerEvent<HTMLDivElement>) {
     dragStartY.current = event.clientY;
@@ -53,8 +61,8 @@ export function CaptureDataBottomSheet({ item, draft, saveState, aiState, aiMess
           <p className="truncate text-xs font-black uppercase tracking-[0.16em] text-amber-300">{currentLocation}</p>
           <h2 className="truncate text-base font-black text-white">{item?.title || "Ready for next field stop"}</h2>
         </div>
-        <button type="button" onClick={onCapture} className="inline-flex min-h-12 items-center gap-2 rounded-2xl bg-amber-500 px-5 text-sm font-black text-slate-950 shadow-[0_0_24px_rgba(245,158,11,0.38)] transition hover:bg-amber-400">
-          <Camera className="h-5 w-5" /> Capture
+        <button type="button" onClick={() => onCapture(primaryCaptureInput)} className="inline-flex min-h-12 items-center gap-2 rounded-2xl bg-amber-500 px-5 text-sm font-black text-slate-950 shadow-[0_0_24px_rgba(245,158,11,0.38)] transition hover:bg-amber-400">
+          {primaryCaptureInput === "camera" ? <Camera className="h-5 w-5" /> : <Upload className="h-5 w-5" />} {primaryCaptureLabel}
         </button>
       </div>
 
@@ -71,6 +79,25 @@ export function CaptureDataBottomSheet({ item, draft, saveState, aiState, aiMess
               className="mt-2 w-full rounded-3xl border border-white/10 bg-black/35 px-4 py-3 text-base leading-6 text-slate-100 outline-none placeholder:text-slate-600 focus:border-amber-400 focus:ring-2 focus:ring-amber-500/20 disabled:opacity-60"
             />
           </label>
+
+          <div className="grid gap-2 sm:grid-cols-3">
+            <label className="block"><span className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">Trade</span><select value={draft?.trade ?? ""} onChange={(event) => onDraftChange({ trade: event.target.value })} disabled={!draft} className={selectClass}><option value="">Select trade…</option>{CAPTURE_TRADES.map((trade) => <option key={trade} value={trade}>{trade}</option>)}</select></label>
+            <label className="block"><span className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">Assignee</span><select value={draft?.assignedTo ?? ""} onChange={(event) => onDraftChange({ assignedTo: event.target.value })} disabled={!draft} className={selectClass}><option value="">Unassigned</option>{assignees.filter((assignee) => assignee.assignable).map((assignee) => <option key={assignee.id} value={assignee.id}>{assignee.label}</option>)}</select></label>
+            <label className="block"><span className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">Status</span><select value={draft?.status ?? "open"} onChange={(event) => onDraftChange({ status: event.target.value as CaptureItemDraft["status"] })} disabled={!draft} className={selectClass}>{CAPTURE_ITEM_STATUSES.map((status) => <option key={status} value={status}>{formatOption(status)}</option>)}</select></label>
+          </div>
+
+          <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-3">
+            <button type="button" disabled={!draft} onClick={() => { if (progressionActive) { setLinkProgression(false); onDraftChange({ beforeItemId: "" }); } else setLinkProgression(true); }} className={`inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl px-4 text-sm font-black transition disabled:opacity-50 ${progressionActive ? "bg-amber-500 text-slate-950" : "border border-white/10 bg-black/25 text-slate-200"}`}>
+              <Link2 className="h-4 w-4" /> Link to Previous (Progression)
+            </button>
+            {progressionActive && (
+              <select value={draft?.beforeItemId ?? ""} onChange={(event) => onDraftChange({ beforeItemId: event.target.value })} disabled={!draft || previousItems.length === 0} className={selectClass} aria-label="Previous item for progression timeline">
+                <option value="">Select existing pin/item…</option>
+                {previousItems.length === 0 && <option value="" disabled>No previous items yet</option>}
+                {previousItems.map((previousItem) => <option key={previousItem.id} value={previousItem.id}>{formatItemLabel(previousItem)}</option>)}
+              </select>
+            )}
+          </div>
 
           <div className="grid gap-2 sm:grid-cols-2">
             <button type="button" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] px-4 text-sm font-black text-slate-200" aria-disabled="true">
@@ -92,4 +119,18 @@ export function CaptureDataBottomSheet({ item, draft, saveState, aiState, aiMess
       )}
     </GlassCard>
   );
+}
+
+function formatOption(value: string) {
+  return value.replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+function formatItemLabel(item: CaptureItemRecord) {
+  const title = item.title.trim() || item.category || item.item_type;
+  const time = new Date(item.created_at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  return `${title} · ${time}`;
+}
+
+function isUuid(value: string) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
 }

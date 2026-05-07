@@ -8,6 +8,7 @@ import { PlanViewer } from "@/components/site-walk/capture/PlanViewer";
 import { VisualCaptureView } from "@/components/site-walk/capture/VisualCaptureView";
 import { requestCameraCapture } from "@/components/site-walk/capture/capture-camera-events";
 import { useCaptureItems } from "@/components/site-walk/capture/useCaptureItems";
+import { useDeviceContext, type DeviceCaptureInput } from "@/lib/hooks/useDeviceContext";
 import type { SiteWalkPlanSet, SiteWalkPlanSheet } from "@/lib/types/site-walk";
 import type { CaptureItemDraft } from "@/lib/types/site-walk-capture";
 import { WalkStartChoice } from "./WalkStartChoice";
@@ -31,9 +32,10 @@ export function CaptureClientIsland({ sessionId, projectId, walkName, showPlanCa
   const [walkMode, setWalkMode] = useState<WalkMode>(() => showStartChoice ? "choice" : showPlanCanvas ? "plan" : "camera");
   const [currentLocation, setCurrentLocation] = useState("Stop 1");
   const [recentLocations, setRecentLocations] = useState<string[]>([]);
-  const carryForwardRef = useRef<Partial<Pick<CaptureItemDraft, "classification" | "priority" | "status" | "assignedTo">> | null>(null);
+  const carryForwardRef = useRef<Partial<Pick<CaptureItemDraft, "classification" | "trade" | "priority" | "status" | "assignedTo">> | null>(null);
   const appliedCarryRef = useRef<string | null>(null);
-  const { items, activeItem, draft, saveState, aiState, aiMessage, selectItem, patchDraft, saveMarkupData, savePhotoAttachmentPins, formatNotesWithAi } = useCaptureItems({ sessionId, projectId });
+  const { primaryCaptureInput } = useDeviceContext();
+  const { items, assignees, activeItem, draft, saveState, aiState, aiMessage, selectItem, patchDraft, saveMarkupData, savePhotoAttachmentPins, formatNotesWithAi } = useCaptureItems({ sessionId, projectId });
 
   useEffect(() => {
     if (!initialItemId || activeItem?.id === initialItemId) return;
@@ -73,14 +75,15 @@ export function CaptureClientIsland({ sessionId, projectId, walkName, showPlanCa
     if (!draft) return;
     carryForwardRef.current = {
       classification: draft.classification,
+      trade: draft.trade,
       priority: draft.priority,
       status: draft.status,
       assignedTo: draft.assignedTo,
     };
   }
 
-  function captureNow() {
-    requestCameraCapture("camera", "next_item");
+  function captureNow(input: DeviceCaptureInput = primaryCaptureInput) {
+    requestCameraCapture(input, "next_item");
   }
 
   function saveNextStop() {
@@ -134,6 +137,8 @@ export function CaptureClientIsland({ sessionId, projectId, walkName, showPlanCa
       {/* Layer 2: draggable data entry bottom sheet */}
       <CaptureDataBottomSheet
         item={activeItem}
+        items={items}
+        assignees={assignees}
         draft={draft}
         saveState={saveState}
         aiState={aiState}
