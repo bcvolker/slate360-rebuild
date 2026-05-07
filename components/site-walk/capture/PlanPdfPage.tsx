@@ -25,30 +25,14 @@ export type PlanPdfRenderDetails = {
   pageWidth: number;
 };
 
-export function PlanPdfPage({ fileUrl, pageNumber, label, compact = false, maxWidth = 980, minWidth = 240, onPageCount, onPdfPageRendered }: Props) {
+export function PlanPdfPage({ fileUrl, pageNumber, label, compact = false, maxWidth = 1200, minWidth = 1200, onPageCount, onPdfPageRendered }: Props) {
   const shellRef = useRef<HTMLDivElement>(null);
-  const [pageWidth, setPageWidth] = useState(minWidth);
   const [error, setError] = useState<string | null>(null);
+  const pageWidth = 1200; // Fixed width for CSS Transform zooming
 
   useEffect(() => {
     setError(null);
   }, [fileUrl, pageNumber]);
-
-  useEffect(() => {
-    const shell = shellRef.current;
-    if (!shell) return;
-
-    function updateWidth() {
-      const padding = compact ? 0 : 24;
-      const nextWidth = Math.floor((shell?.clientWidth ?? minWidth) - padding);
-      setPageWidth(Math.min(1200, Math.max(minWidth, Math.min(maxWidth, nextWidth))));
-    }
-
-    updateWidth();
-    const observer = new ResizeObserver(updateWidth);
-    observer.observe(shell);
-    return () => observer.disconnect();
-  }, [compact, maxWidth, minWidth]);
 
   return (
     <div ref={shellRef} className="flex h-full w-full touch-none select-none items-center justify-center overflow-hidden bg-white text-slate-900" style={{ WebkitTouchCallout: "none" }}>

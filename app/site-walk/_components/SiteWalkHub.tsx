@@ -84,8 +84,8 @@ export function SiteWalkHub({ projects, walks }: { projects: HubProject[]; walks
 
       {createState.kind === "error" && <p className="rounded-2xl border border-rose-400/25 bg-rose-500/10 px-4 py-3 text-sm font-bold text-rose-200">{createState.message}</p>}
 
-      <GlassCard className="overflow-hidden p-0">
-        <div className="flex gap-2 overflow-x-auto border-b border-white/10 p-3 no-scrollbar">
+      <GlassCard className="flex flex-col flex-1 overflow-hidden p-0 max-h-[calc(100dvh-18rem)]">
+        <div className="flex shrink-0 gap-2 overflow-x-auto border-b border-white/10 p-3 no-scrollbar">
           {(["recent", "starred", "projects"] as const).map((tab) => (
             <button key={tab} type="button" onClick={() => setActiveTab(tab)} className={`shrink-0 rounded-full px-4 py-2 text-sm font-black transition ${activeTab === tab ? "bg-amber-500 text-slate-950" : "bg-white/[0.04] text-slate-300 hover:bg-white/[0.08]"}`}>
               {tab === "recent" ? "Recent Walks" : tab === "starred" ? "Starred" : "Projects"}
@@ -93,7 +93,7 @@ export function SiteWalkHub({ projects, walks }: { projects: HubProject[]; walks
           ))}
         </div>
 
-        <div className="max-h-[calc(100dvh-22rem)] overflow-y-auto p-3 pb-8 no-scrollbar">
+        <div className="flex-1 overflow-y-auto p-3 pb-8 mb-8 no-scrollbar">
           {activeTab === "recent" && (
             <div className="space-y-2">
               {walks.length === 0 && <div className="rounded-3xl border border-dashed border-white/15 bg-white/[0.03] p-6 text-center text-sm font-bold text-slate-400">No walks yet. Start a Quick Walk.</div>}

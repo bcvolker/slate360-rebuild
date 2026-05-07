@@ -84,7 +84,7 @@ export function VisualCaptureView({ sessionId, autoOpenCamera, launchId, items, 
       </header>
 
       {/* Camera surface */}
-      <div className="relative min-h-0">
+      <div className="relative min-h-0" onClick={(e) => { if ((e.target as HTMLElement).tagName !== "INPUT" && (e.target as HTMLElement).tagName !== "TEXTAREA") (document.activeElement as HTMLElement)?.blur(); }}>
         <div className="absolute inset-0">
           <CameraViewfinder
             sessionId={sessionId}

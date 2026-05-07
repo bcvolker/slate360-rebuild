@@ -56,27 +56,26 @@ export function CaptureDataBottomSheet({ item, items, assignees, draft, saveStat
       aria-label="Swipe-up capture details"
     >
       <div className="touch-none" onPointerDown={handlePointerDown} onPointerUp={handlePointerUp}>
-        <button type="button" onClick={() => setExpanded((current) => !current)} className="mx-auto flex min-h-11 w-full flex-col items-center gap-1 pb-2" aria-label={expanded ? "Collapse capture details" : "Expand capture details"}>
-          <ChevronUp className={`h-6 w-6 text-amber-200 ${expanded ? "rotate-180" : "animate-bounce"}`} />
+        <button type="button" onClick={() => setExpanded((current) => !current)} className="mx-auto flex min-h-8 w-full flex-col items-center gap-1 pb-0 pt-0.5" aria-label={expanded ? "Collapse capture details" : "Expand capture details"}>
+          <ChevronUp className={`transition-transform duration-300 h-6 w-6 text-amber-200/80 ${expanded ? "rotate-180" : "animate-bounce"}`} />
         </button>
-      </div>
-
-      <div className="flex items-center gap-3">
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-xs font-black uppercase tracking-[0.16em] text-amber-300">{currentLocation}</p>
-          <h2 className="truncate text-base font-black text-white">{item?.title || "Ready for next field stop"}</h2>
+        <div className="flex items-center gap-3 pb-3">
+          <div className="min-w-0 flex-1 pl-1 cursor-pointer" onClick={() => setExpanded((current) => !current)}>
+            <p className="truncate text-xs font-black uppercase tracking-[0.16em] text-amber-300/80">{currentLocation}</p>
+            <h2 className="truncate text-base font-black text-white">{item?.title || "Ready for next field stop"}</h2>
+          </div>
+          {item ? (
+            <button type="button" onClick={() => onSaveNextStop()} disabled={isSaving} className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-2xl bg-amber-500 px-4 text-sm font-black text-slate-950 shadow-[0_0_24px_rgba(245,158,11,0.38)] transition hover:bg-amber-400 disabled:opacity-60 pointer-events-auto relative z-50">
+              {isSaving ? <Loader2 className="h-5 w-5 animate-spin" /> : saveActionIcon}
+              <span className="hidden sm:inline">{saveActionLabel}</span>
+              <span className="sm:hidden">{returnsToPlan ? "To Plan" : "Next Pt"}</span>
+            </button>
+          ) : (
+            <button type="button" onClick={() => onCapture(primaryCaptureInput)} className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-2xl bg-amber-500 px-5 text-sm font-black text-slate-950 shadow-[0_0_24px_rgba(245,158,11,0.38)] transition hover:bg-amber-400 pointer-events-auto relative z-50">
+              {primaryCaptureInput === "camera" ? <Camera className="h-5 w-5" /> : <Upload className="h-5 w-5" />} {primaryCaptureLabel}
+            </button>
+          )}
         </div>
-        {item ? (
-          <button type="button" onClick={() => onSaveNextStop()} disabled={isSaving} className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-2xl bg-amber-500 px-4 text-sm font-black text-slate-950 shadow-[0_0_24px_rgba(245,158,11,0.38)] transition hover:bg-amber-400 disabled:opacity-60">
-            {isSaving ? <Loader2 className="h-5 w-5 animate-spin" /> : saveActionIcon}
-            <span className="hidden sm:inline">{saveActionLabel}</span>
-            <span className="sm:hidden">{returnsToPlan ? "To Plan" : "Next Pt"}</span>
-          </button>
-        ) : (
-          <button type="button" onClick={() => onCapture(primaryCaptureInput)} className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-2xl bg-amber-500 px-5 text-sm font-black text-slate-950 shadow-[0_0_24px_rgba(245,158,11,0.38)] transition hover:bg-amber-400">
-            {primaryCaptureInput === "camera" ? <Camera className="h-5 w-5" /> : <Upload className="h-5 w-5" />} {primaryCaptureLabel}
-          </button>
-        )}
       </div>
 
       {expanded && (

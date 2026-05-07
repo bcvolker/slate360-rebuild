@@ -200,24 +200,25 @@ When editing oversized files, always read both the state declarations AND the JS
 
 ## Latest Session Handoff
 
-<!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
-
-### Session Handoff — 2026-05-07 (Mobile UX Overhaul)
-
+### Session Handoff — 2026-05-07 (Mobile Architecture & GPU Pivot)
 #### What Changed
-- `app/site-walk/_components/SiteWalkHub.tsx`: Fixed mobile bottom scrolling overflow by using `calc(100dvh-22rem)` and `pb-8`.
-- `components/site-walk/capture/VisualCaptureView.tsx`: Relocated Markup, Ghost, Undo/Redo buttons, and `UnifiedVectorToolbar` from the bottom sheet directly into the visual view (above the bottom sheet handle) for immediate thumbs-reach access without opening the notes drawer.
-- `components/site-walk/capture/CaptureDataBottomSheet.tsx`: Moved the "Save & Next Stop" button out of the expanded notes section and into the sticky header next to the camera button so it is always accessible. Also removed the redundant secondary Save button.
-- `components/site-walk/capture/CaptureDataBottomSheet.tsx`: Removed the broad `touch-none` wrapping the main container and added `userSelect: text` to the textarea to fix iOS Safari blocking mobile keyboard activation. Dropped the "Voice Dictation" stub, allowing users to use their device's native dictation keyboard.
-- `app/site-walk/(act-2-inputs)/capture/_components/CaptureClientIsland.tsx`: Improved capture progression logic. When doing a walk with plans (`showPlanCanvas`), pressing "Save & Next" automatically switches the mode back to the `plan` view, heavily streamlining the jump-to-next-pin cycle. When doing a Quick Walk, it continues to instantly respawn the camera.
-- `components/site-walk/capture/PlanViewer.tsx`: Fixed a severe infinite zoom/crash loop when dropping a pin by explicitly clearing `activePointers.current` when the quick menu modal opens.
+- `components/site-walk/capture/PlanPdfPage.tsx`: Hardcoded `<Page width={1200}>` to stop dynamic resizing and CPU-bound OOM crashes, moving PDF panning/zooming to CSS GPU layers natively used in `PlanViewer.tsx`.
+- `app/site-walk/_components/SiteWalkHub.tsx`: Converted layout to `flex flex-col flex-1 overflow-hidden` and added `pb-safe` spacing to stop landing page scroll bleed.
+- `components/site-walk/capture/VisualCaptureView.tsx`: Added `document.activeElement?.blur()` to the root wrapper whenever non-input elements are tapped to dismiss rogue mobile keyboards.
+- `components/site-walk/capture/CaptureDataBottomSheet.tsx`: Shifted the `Save & Next` / `Save & Return` buttons firmly into the top fixed header next to the Swipe Up chevron for permanent one-tap access.
+- `components/site-walk/capture/PlanToolbar.tsx`: Updated z-index to `z-50` and verified positioning so it's always top-anchored and visible over plans.
 
 #### What's Broken / Partially Done
-- Mobile UX changes need to be verified on a physical iPhone/Android device in the field to ensure the viewport constraints hold up perfectly under varying browser chrome states.
-- Need to verify if the "Save & Next Stop" sticky button covers any critical image details when taking a very tall photo.
+- Need to verify CSS GPU panning holds up well when scaling past `2x` (text clarity vs frame performance).
+- Testing on older Android devices needed for the new `activeElement?.blur()` global trap.
 
 #### Context Files Updated
-- `SLATE360_PROJECT_MEMORY.md` — Updated session handoff.
+- `SLATE360_PROJECT_MEMORY.md`: Updated session handoff.
+- `slate360-context/ONGOING_ISSUES.md`: None strictly updated by name, fixed architecture traps instead.
+
+#### Next Steps
+1. Verify the PDF viewer memory usage is stable in production builds on 2GB RAM phones.
+2. Test the capture view data entry flow end-to-end to ensure the new Save position is ergonomic.
 
 #### Next Steps (ordered)
 1. Run a live mobile test with Safari and Chrome.
