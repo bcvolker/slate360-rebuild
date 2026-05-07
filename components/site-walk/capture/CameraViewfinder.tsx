@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ChangeEvent, type MouseEvent } from "react";
 import { Camera, Check, FileImage, Loader2, Mic, PencilLine, RotateCcw } from "lucide-react";
 import { useCaptureUpload } from "@/lib/hooks/useCaptureUpload";
 import { isMarkupData, type MarkupData } from "@/lib/site-walk/markup-types";
@@ -12,6 +12,7 @@ import { readQuickCaptureLaunch, removeQuickCaptureLaunch } from "@/lib/site-wal
 import type { CaptureItemRecord } from "@/lib/types/site-walk-capture";
 import { requestCameraCapture, subscribeCameraCapture } from "./capture-camera-events";
 import { publishCaptureItemFocus } from "./capture-item-events";
+import { PendingUploadPreviewModal } from "./PendingUploadPreviewModal";
 import { PhotoMarkupCanvas } from "./PhotoMarkupCanvas";
 import { usePlanCaptureTarget } from "./plan-capture-events";
 import { VECTOR_TOOL_EVENT } from "./UnifiedVectorToolbar";
@@ -27,13 +28,17 @@ type Props = {
   onAttachmentPinsChange?: (itemId: string, pins: PhotoAttachmentPin[]) => void;
 };
 
+type PendingUpload = { file: File; url: string };
+
 export function CameraViewfinder({ sessionId, autoOpenCamera = false, launchId = null, layout = "full", activeItem = null, markupEnabled = true, onMarkupChange, onAttachmentPinsChange }: Props) {
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const uploadInputRef = useRef<HTMLInputElement>(null);
   const consumedLaunchRef = useRef<string | null>(null);
+  const pendingUploadRef = useRef<PendingUpload | null>(null);
   const [mounted, setMounted] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const [activePreview, setActivePreview] = useState<{ url: string; title: string; itemId: string } | null>(null);
+  const [pendingUpload, setPendingUpload] = useState<PendingUpload | null>(null);
   const [noteText, setNoteText] = useState("");
   const { target, clearTarget } = usePlanCaptureTarget();
   const { status, savePhoto, saveTextNote, resetStatus } = useCaptureUpload({ sessionId, planTarget: target, onPlanTargetSaved: clearTarget, onSaved: (item) => publishCaptureItemFocus({ item, reason: "captured", focus: false }) });
@@ -41,6 +46,10 @@ export function CameraViewfinder({ sessionId, autoOpenCamera = false, launchId =
   const visualOnly = layout === "visual";
 
   useEffect(() => setMounted(true), []);
+
+  useEffect(() => () => {
+    if (pendingUploadRef.current) URL.revokeObjectURL(pendingUploadRef.current.url);
+  }, []);
 
   useEffect(() => {
     if (!mounted) return;
@@ -75,13 +84,48 @@ export function CameraViewfinder({ sessionId, autoOpenCamera = false, launchId =
     });
   }, [activeItem, activePreview?.itemId]);
 
-  function handleFile(file: File | undefined) {
+  function resetFileInputClick(event: MouseEvent<HTMLInputElement>) {
+    event.stopPropagation();
+    event.currentTarget.value = "";
+  }
+
+  function handleFileInputChange(event: ChangeEvent<HTMLInputElement>, confirmBeforeAttach: boolean) {
+    event.stopPropagation();
+    handleFile(event.currentTarget.files?.[0], confirmBeforeAttach);
+    event.currentTarget.value = "";
+  }
+
+  function handleFile(file: File | undefined, confirmBeforeAttach = false) {
     if (!file) return;
+    if (confirmBeforeAttach) {
+      previewUploadFile(file);
+      return;
+    }
     void prepareCaptureFile(file);
   }
 
-  async function prepareCaptureFile(file: File) {
-    const previewUrl = URL.createObjectURL(file);
+  function previewUploadFile(file: File) {
+    if (pendingUploadRef.current) URL.revokeObjectURL(pendingUploadRef.current.url);
+    const next = { file, url: URL.createObjectURL(file) };
+    pendingUploadRef.current = next;
+    setPendingUpload(next);
+  }
+
+  function cancelPendingUpload() {
+    if (pendingUploadRef.current) URL.revokeObjectURL(pendingUploadRef.current.url);
+    pendingUploadRef.current = null;
+    setPendingUpload(null);
+  }
+
+  function confirmPendingUpload() {
+    const upload = pendingUploadRef.current;
+    if (!upload) return;
+    pendingUploadRef.current = null;
+    setPendingUpload(null);
+    void prepareCaptureFile(upload.file, upload.url);
+  }
+
+  async function prepareCaptureFile(file: File, previewUrl = URL.createObjectURL(file)) {
     const clientItemId = createOfflineId("item");
     const clientMutationId = createOfflineId("mutation");
     const title = readLastTitle(sessionId);
@@ -95,9 +139,10 @@ export function CameraViewfinder({ sessionId, autoOpenCamera = false, launchId =
 
   function handleDrop(event: React.DragEvent<HTMLDivElement>) {
     event.preventDefault();
+    event.stopPropagation();
     setDragActive(false);
     if (busy) return;
-    handleFile(event.dataTransfer.files[0]);
+    handleFile(event.dataTransfer.files[0], true);
   }
 
   return (
@@ -167,9 +212,11 @@ export function CameraViewfinder({ sessionId, autoOpenCamera = false, launchId =
           )}
         </div>
 
-        <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={(event) => { handleFile(event.target.files?.[0]); event.target.value = ""; }} />
-        <input ref={uploadInputRef} type="file" accept="image/*" className="hidden" onChange={(event) => { handleFile(event.target.files?.[0]); event.target.value = ""; }} />
+        <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" className="hidden" onClick={resetFileInputClick} onChange={(event) => handleFileInputChange(event, false)} />
+        <input ref={uploadInputRef} type="file" accept="image/*" className="hidden" onClick={resetFileInputClick} onChange={(event) => handleFileInputChange(event, true)} />
       </div>
+
+      {pendingUpload && <PendingUploadPreviewModal fileName={pendingUpload.file.name} imageUrl={pendingUpload.url} busy={busy} onCancel={cancelPendingUpload} onConfirm={confirmPendingUpload} />}
 
       {!visualOnly && <div className="mt-4 rounded-2xl border border-white/10 bg-white/[0.04] p-4">
         <div className="flex items-center gap-2 text-sm font-black text-slate-100"><PencilLine className="h-4 w-4 text-amber-300" /> Quick text / voice note</div>

@@ -43,7 +43,7 @@ export function PhotoMarkupCanvas({ imageUrl, title, sessionId, markupEnabled, i
           src={imageUrl}
           alt={title}
           onLoad={(event) => canvas.setPortrait(event.currentTarget.naturalHeight > event.currentTarget.naturalWidth)}
-          className="h-full w-full select-none object-cover"
+          className="h-full max-h-[60vh] w-full max-w-full select-none object-contain"
           style={{ transform: `translate(${canvas.transform.x}px, ${canvas.transform.y}px) scale(${canvas.transform.scale})`, transformOrigin: "center" }}
           draggable={false}
         />

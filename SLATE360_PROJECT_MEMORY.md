@@ -202,30 +202,34 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-05-07 (Capture State Machine Fix)
+### Session Handoff — 2026-05-07 (Desktop Image Upload & Rendering Fix)
 
 #### What Changed
-- `app/site-walk/(act-2-inputs)/capture/_components/CaptureClientIsland.tsx` — Added a `returnToPlanAfterSaveRef` flag. Plan-pin camera/upload requests now mark that the next save should return to Plan Mode.
-- `app/site-walk/(act-2-inputs)/capture/_components/CaptureClientIsland.tsx` — Updated `saveNextStop()` so plan-enabled walks or plan-pin-originated captures call `setWalkMode("plan")` after updating the next stop instead of scheduling another camera capture. Photo-only flows still auto-open the next capture.
-- `ONGOING_ISSUES.md`, `ops/bug-registry.json`, and `slate360-context/dashboard-tabs/site-walk/FIELD_PLATFORM_ROADMAP.md` — Added S360-047 / BUG-066 and a Site Walk roadmap note for the capture state machine fix.
+- `components/site-walk/capture/CameraViewfinder.tsx` and `components/site-walk/capture/PendingUploadPreviewModal.tsx` — Added a pending desktop upload preview state. Upload input and drag/drop selections now show a contained preview with **Confirm & Attach** and **Cancel** before starting the upload/attach flow.
+- `components/site-walk/capture/CameraViewfinder.tsx` — File inputs now stop propagation and clear `event.currentTarget.value` on click/change so the same file can be reselected and picker events do not bubble into parent capture handlers.
+- `components/site-walk/capture/PhotoAttachmentPins.tsx` — Pinned-file input now stops propagation and clears its value on click/change without increasing the file line count.
+- `components/site-walk/capture/PhotoMarkupCanvas.tsx` and `components/site-walk/capture/PhotoAttachmentFilePreviewModal.tsx` — Image previews now use `object-contain`, `max-w-full`, and `max-h-[60vh]` containment instead of filling/cropping the preview area.
+- `ONGOING_ISSUES.md`, `ops/bug-registry.json`, and `slate360-context/dashboard-tabs/site-walk/FIELD_PLATFORM_ROADMAP.md` — Added S360-048 / BUG-067 and the roadmap implementation note for desktop upload/rendering containment.
 
 #### What's Broken / Partially Done
-- Browser/device smoke verification still needs to confirm Plan Mode → long-press pin → capture photo/upload → Save & Next Stop returns immediately to the Plan Viewer.
+- Browser smoke verification still needs to confirm desktop Select Photos opens the picker once, Cancel permits selecting the same file again, Confirm & Attach starts the upload, and the preview stays contained/non-pixelated.
+- Browser smoke verification still needs to confirm drag/drop follows the same Confirm & Attach / Cancel preview path.
 - Existing plan/PDF follow-ups remain: server-side PDF page-count/sheet sync, rasterization, thumbnails, and true thumbnail-strip navigation.
 - Existing capture workflow follow-up remains: offline/local progression remapping if before/after linking must work before prior items sync to UUID-backed rows.
-- `bash scripts/check-file-size.sh` still fails on pre-existing oversized files outside this slice; changed file is under limit (`CaptureClientIsland.tsx` 191).
-- Working tree still contains many unrelated pre-existing dirty/deleted files. Stage/commit only the focused capture state machine file and context updates.
+- `bash scripts/check-file-size.sh` still fails on 12 pre-existing oversized files outside this slice; changed files are under limit (`CameraViewfinder.tsx` 286, `PendingUploadPreviewModal.tsx` 27, `PhotoAttachmentPins.tsx` 263, `PhotoMarkupCanvas.tsx` 91, `PhotoAttachmentFilePreviewModal.tsx` 92).
+- Working tree still contains many unrelated pre-existing dirty/deleted files. Stage/commit only the focused capture upload/rendering files and context updates.
 
 #### Context Files Updated
-- `ONGOING_ISSUES.md` — Added S360-047 for plan-pin Save & Next returning to Plan Mode.
-- `ops/bug-registry.json` — Added BUG-066 verification for plan-pin capture state routing.
-- `slate360-context/dashboard-tabs/site-walk/FIELD_PLATFORM_ROADMAP.md` — Added implementation note for state-machine behavior.
+- `ONGOING_ISSUES.md` — Added S360-048 for desktop upload picker looping and oversized previews.
+- `ops/bug-registry.json` — Added BUG-067 verification for file input clearing, event propagation blocking, confirm/cancel preview controls, and image containment.
+- `slate360-context/dashboard-tabs/site-walk/FIELD_PLATFORM_ROADMAP.md` — Added implementation note for desktop image upload/rendering behavior.
 - `SLATE360_PROJECT_MEMORY.md` — this handoff.
 
 #### Next Steps (ordered)
-1. Smoke test Plan Mode: long-press a plan pin, choose Take Photo or Upload Existing, tap Save & Next Stop, and confirm the blueprint is visible again.
-2. Smoke test photo-only capture and confirm Save & Next Stop still opens the next camera/upload flow.
-3. Continue later PDF hardening: page-count/sheet sync, rasterization, thumbnails, and thumbnail-strip navigation.
+1. Smoke test desktop capture: Select Photos from Computer → choose image → preview is constrained → Cancel → choose the same image again with no picker loop.
+2. Smoke test Confirm & Attach and verify upload/save proceeds into the active capture flow with a contained `object-contain` preview.
+3. Smoke test desktop drag/drop and plan-pin Upload Existing Photo to confirm they use the same confirmation preview path.
+4. Continue later PDF hardening: page-count/sheet sync, rasterization, thumbnails, and thumbnail-strip navigation.
 
 ### Session Handoff — 2026-05-04 (Amber Brand System Propagation — Full Push)
 

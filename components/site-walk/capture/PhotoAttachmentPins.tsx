@@ -200,7 +200,7 @@ export function PhotoAttachmentPins({ sessionId, pins, draftPin, transform, onDr
             <input value={note} onChange={(event) => setNote(event.target.value)} className="rounded-2xl border border-white/15 bg-white/10 px-3 py-2 text-sm font-bold outline-none placeholder:text-white/40" placeholder="Brief note" />
           </div>
           <div className="mt-3 flex flex-wrap items-center gap-2">
-            <input ref={fileInputRef} type="file" multiple className="hidden" onChange={(event) => void uploadFiles(event.target.files)} />
+            <input ref={fileInputRef} type="file" multiple className="hidden" onClick={(event) => { event.stopPropagation(); event.currentTarget.value = ""; }} onChange={(event) => { event.stopPropagation(); void uploadFiles(event.currentTarget.files); event.currentTarget.value = ""; }} />
             <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploading || files.length >= PHOTO_ATTACHMENT_MAX_FILES} className="inline-flex min-h-10 items-center gap-2 rounded-2xl bg-amber-500 px-3 text-sm font-black text-white disabled:opacity-50">
               {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileUp className="h-4 w-4" />} Add files
             </button>
