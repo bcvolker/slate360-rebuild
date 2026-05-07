@@ -202,38 +202,38 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-05-07 (Capture Loop Wiring Pass)
+### Session Handoff — 2026-05-07 (Markup Restore & Multi-Angle Capture Pass)
 
 #### What Changed
-- `components/site-walk/capture/PendingUploadPreviewModal.tsx` — Renamed the confirmation prop to `onConfirmAttach` and made Confirm & Attach stop propagation before invoking the callback.
-- `components/site-walk/capture/CameraViewfinder.tsx` — Confirm & Attach now calls `confirmPendingUpload()` → `prepareCaptureFile()` → `savePhoto()`, and plan-target save completions bubble through a new `onPlanCaptureSaved` callback.
-- `lib/hooks/useCaptureUpload.ts` — `onSaved` now includes `{ planTarget }` context after online, offline, and fallback saves so callers know whether the capture originated from a plan pin.
-- `components/site-walk/capture/VisualCaptureView.tsx` — Passes `onPlanCaptureSaved` from the island into `CameraViewfinder`.
-- `app/site-walk/(act-2-inputs)/capture/_components/CaptureClientIsland.tsx` — `saveNextStop()` now accepts `{ fromPlanPin }`; plan capture saved events call `saveNextStop({ fromPlanPin: true })`, clear the return-to-plan flag, and return `walkMode` to `plan`.
-- `components/site-walk/capture/CaptureDataBottomSheet.tsx` — Save & Next button now wraps `onSaveNextStop()` so click events cannot be mistaken for options.
-- `ONGOING_ISSUES.md`, `ops/bug-registry.json`, and `slate360-context/dashboard-tabs/site-walk/FIELD_PLATFORM_ROADMAP.md` — Added S360-050 / BUG-069 and the roadmap implementation note for the capture loop wiring pass.
+- `components/site-walk/capture/VisualCaptureView.tsx` — Markup tools now default on for active photos, `UnifiedVectorToolbar` is visible above the active `PhotoMarkupCanvas`, and the selected primary/angle image is fed into `CameraViewfinder`.
+- `components/site-walk/capture/PhotoAngleStrip.tsx` — Added a horizontal Dark Glass strip with Main, saved angle thumbnails, and a distinct `+ Add Angle` action for the current item.
+- `components/site-walk/capture/CameraViewfinder.tsx` and `components/site-walk/capture/capture-camera-events.ts` — Added camera/upload request source `angle`; angle captures reuse the existing native input/upload flow but append to the active item instead of creating a new stop.
+- `components/site-walk/capture/capture-angle-save.ts`, `lib/site-walk/photo-angles.ts`, and `components/site-walk/capture/useCaptureItems.ts` — Added current-item angle persistence through `metadata.photo_angles`, optimistic previews, offline queue fallback, and persisted S3-backed angle records.
+- `app/api/site-walk/items/[id]/image/route.ts` — Added `?angle_id=` image serving so persisted angle thumbnails resolve through the existing authenticated image redirect route.
+- `ONGOING_ISSUES.md`, `ops/bug-registry.json`, `slate360-context/ONGOING_ISSUES.md`, and `slate360-context/dashboard-tabs/site-walk/FIELD_PLATFORM_ROADMAP.md` — Added S360-051 / BUG-070 and the roadmap implementation note for markup restore + multi-angle capture.
 
 #### What's Broken / Partially Done
-- Browser smoke verification still needs to confirm desktop plan pin → Upload existing photo → Confirm & Attach saves/attaches the item and returns directly to Plan Mode.
-- Browser smoke verification still needs to confirm mobile plan pin → Take Photo also returns directly to Plan Mode after the item saves.
-- Confirm whether automatically running Save & Next after plan-pin save is the desired UX; if users need to edit notes/trade before returning to the plan, gate the auto-return behind a new "Quick attach" mode.
-- Previous smoke tests remain worth running: Plan Mode starts centered, desktop pin menu is upload-only, bottom sheet arrow bounces, Trade includes Framing/Concrete, desktop file picker can reselect the same file, and previews stay contained.
+- Browser smoke verification still needs to confirm capture → markup canvas/tools visible immediately, draw/undo/redo behavior works, and the bottom sheet still saves notes/classification.
+- Browser smoke verification still needs to confirm `+ Add Angle` opens desktop upload or mobile camera, appends to the current stop, and does not create a new stop in the item list.
+- Browser smoke verification still needs to confirm persisted angle thumbnails reload through `/api/site-walk/items/[id]/image?angle_id=...` after refresh.
+- Previous smoke tests remain worth running: plan-pin upload/camera returns to Plan Mode after save, Plan Mode starts centered, desktop pin menu is upload-only, bottom sheet arrow bounces, Trade includes Framing/Concrete, desktop file picker can reselect the same file, and previews stay contained.
 - Existing plan/PDF follow-ups remain: server-side PDF page-count/sheet sync, rasterization, thumbnails, and true thumbnail-strip navigation.
 - Existing capture workflow follow-up remains: offline/local progression remapping if before/after linking must work before prior items sync to UUID-backed rows.
-- `bash scripts/check-file-size.sh` still fails on 12 pre-existing oversized files outside this slice; changed files are under limit (`CaptureClientIsland.tsx` 196, `CameraViewfinder.tsx` 287, `PendingUploadPreviewModal.tsx` 27, `VisualCaptureView.tsx` 115, `useCaptureUpload.ts` 158, `CaptureDataBottomSheet.tsx` 135).
-- Working tree still contains many unrelated pre-existing dirty/deleted files. Stage/commit only the focused capture loop wiring files and context updates.
+- `bash scripts/check-file-size.sh` still fails on 12 pre-existing oversized files outside this slice; changed files are under limit (`VisualCaptureView.tsx` 122, `CameraViewfinder.tsx` 278, `PhotoAngleStrip.tsx` 45, `capture-angle-save.ts` 98, `photo-angles.ts` 84, `useCaptureItems.ts` 281, `CaptureClientIsland.tsx` 197, `image/route.ts` 52).
+- Working tree still contains many unrelated pre-existing dirty/deleted files. Stage/commit only the focused markup/multi-angle files and context updates.
 
 #### Context Files Updated
-- `ONGOING_ISSUES.md` — Added S360-050 for plan-pin upload confirmation and return-to-plan wiring.
-- `ops/bug-registry.json` — Added BUG-069 verification for the capture loop wiring pass.
-- `slate360-context/dashboard-tabs/site-walk/FIELD_PLATFORM_ROADMAP.md` — Added implementation note for capture loop wiring behavior.
+- `ONGOING_ISSUES.md` — Added S360-051 for markup restore and current-item multi-angle capture.
+- `ops/bug-registry.json` — Added BUG-070 verification for markup restore and multi-angle capture.
+- `slate360-context/ONGOING_ISSUES.md` — Added BUG-070 to the active known issues tracker.
+- `slate360-context/dashboard-tabs/site-walk/FIELD_PLATFORM_ROADMAP.md` — Added implementation note for `PhotoAngleStrip` and `metadata.photo_angles` behavior.
 - `SLATE360_PROJECT_MEMORY.md` — this handoff.
 
 #### Next Steps (ordered)
-1. Smoke test desktop plan-pin upload: long-press pin → Upload existing photo → Confirm & Attach → wait for save → Plan Viewer returns without another camera/upload prompt.
-2. Smoke test mobile plan-pin camera: long-press pin → Take Photo → wait for save → Plan Viewer returns.
-3. Confirm the item appears attached to the pin and the bottom-sheet Save & Next button still works for manual/photo-only flows.
-4. If auto-return is too aggressive for field notes, add an explicit quick-attach vs add-details choice before returning to Plan Mode.
+1. Smoke test mobile capture: take a photo, confirm markup canvas/tools are visible immediately, draw markup, undo/redo, then save notes/classification.
+2. Smoke test multi-angle: tap `+ Add Angle`, capture/upload another image, confirm the strip shows Main + appended angle and no new stop is created.
+3. Refresh the capture session and confirm persisted angle thumbnails load from the authenticated item image route.
+4. Re-run plan-pin smoke tests from the prior pass to ensure plan return behavior still works after angle event routing.
 5. Continue later PDF hardening: page-count/sheet sync, rasterization, thumbnails, and thumbnail-strip navigation.
 
 ### Session Handoff — 2026-05-04 (Amber Brand System Propagation — Full Push)

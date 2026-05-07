@@ -3,9 +3,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { loadOfflineItemsForSession, queueOfflineItemPatch } from "@/lib/site-walk/offline-capture";
 import type { MarkupData } from "@/lib/site-walk/markup-types";
+import type { PhotoAngleCaptureMode, PhotoAngleRecord } from "@/lib/site-walk/photo-angles";
 import { withPhotoAttachmentPins, type PhotoAttachmentPin } from "@/lib/site-walk/photo-attachments";
 import type { UpdateItemPayload } from "@/lib/types/site-walk";
 import { useCaptureItemFocus } from "./capture-item-events";
+import { saveCaptureAngle } from "./capture-angle-save";
 import { buildDraftPayload, patchLocalItem } from "./capture-draft-save";
 import { captureItemToDraft, type CaptureAssignee, type CaptureItemDraft, type CaptureItemRecord } from "@/lib/types/site-walk-capture";
 
@@ -224,6 +226,12 @@ export function useCaptureItems({ sessionId, projectId }: HookArgs) {
     }
   }
 
+  async function savePhotoAngle(itemId: string, file: File, previewUrl: string, captureMode: PhotoAngleCaptureMode): Promise<PhotoAngleRecord | null> {
+    const item = findItemByStableId(items, itemId);
+    if (!item) return null;
+    return saveCaptureAngle({ sessionId, item, file, previewUrl, captureMode, onLocalItem: (local) => setItems((current) => upsertItem(current, local)) });
+  }
+
   return {
     items,
     assignees,
@@ -236,6 +244,7 @@ export function useCaptureItems({ sessionId, projectId }: HookArgs) {
     patchDraft,
     saveMarkupData,
     savePhotoAttachmentPins,
+    savePhotoAngle,
     formatNotesWithAi,
   };
 }

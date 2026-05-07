@@ -9,9 +9,11 @@ import { createOfflineId } from "@/lib/site-walk/offline-db";
 import { compressCaptureFile } from "@/lib/site-walk/image-compression";
 import { getCaptureImageUrl } from "@/lib/site-walk/capture-image-url";
 import { readQuickCaptureLaunch, removeQuickCaptureLaunch } from "@/lib/site-walk/quick-capture-launch";
+import type { PhotoAngleCaptureMode, PhotoAngleRecord } from "@/lib/site-walk/photo-angles";
 import type { CaptureItemRecord } from "@/lib/types/site-walk-capture";
-import { requestCameraCapture, subscribeCameraCapture } from "./capture-camera-events";
+import { requestCameraCapture, subscribeCameraCapture, type CameraRequestDetail } from "./capture-camera-events";
 import { publishCaptureItemFocus } from "./capture-item-events";
+import { buildLocalPhotoItem, readLastTitle, statusClasses } from "./cameraViewfinderHelpers";
 import { PendingUploadPreviewModal } from "./PendingUploadPreviewModal";
 import { PhotoMarkupCanvas } from "./PhotoMarkupCanvas";
 import { usePlanCaptureTarget } from "./plan-capture-events";
@@ -23,19 +25,25 @@ type Props = {
   launchId?: string | null;
   layout?: "full" | "visual";
   activeItem?: CaptureItemRecord | null;
+  activeImageUrl?: string | null;
+  activeImageTitle?: string | null;
+  activeImageKey?: string | null;
   markupEnabled?: boolean;
   onPlanCaptureSaved?: () => void;
+  onAngleCaptureFile?: (itemId: string, file: File, previewUrl: string, captureMode: PhotoAngleCaptureMode) => Promise<PhotoAngleRecord | null>;
   onMarkupChange?: (itemId: string, markup: MarkupData) => void;
   onAttachmentPinsChange?: (itemId: string, pins: PhotoAttachmentPin[]) => void;
 };
 
 type PendingUpload = { file: File; url: string };
+type CaptureIntent = Pick<CameraRequestDetail, "source" | "input">;
 
-export function CameraViewfinder({ sessionId, autoOpenCamera = false, launchId = null, layout = "full", activeItem = null, markupEnabled = true, onPlanCaptureSaved, onMarkupChange, onAttachmentPinsChange }: Props) {
+export function CameraViewfinder({ sessionId, autoOpenCamera = false, launchId = null, layout = "full", activeItem = null, activeImageUrl = null, activeImageTitle = null, activeImageKey = null, markupEnabled = true, onPlanCaptureSaved, onAngleCaptureFile, onMarkupChange, onAttachmentPinsChange }: Props) {
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const uploadInputRef = useRef<HTMLInputElement>(null);
   const consumedLaunchRef = useRef<string | null>(null);
   const pendingUploadRef = useRef<PendingUpload | null>(null);
+  const captureIntentRef = useRef<CaptureIntent>({ source: "quick_capture", input: "camera" });
   const [mounted, setMounted] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const [activePreview, setActivePreview] = useState<{ url: string; title: string; itemId: string } | null>(null);
@@ -55,6 +63,7 @@ export function CameraViewfinder({ sessionId, autoOpenCamera = false, launchId =
   useEffect(() => {
     if (!mounted) return;
     return subscribeCameraCapture((detail) => {
+      captureIntentRef.current = { source: detail.source, input: detail.input };
       if (detail.input === "camera") cameraInputRef.current?.click();
       else uploadInputRef.current?.click();
     });
@@ -76,14 +85,15 @@ export function CameraViewfinder({ sessionId, autoOpenCamera = false, launchId =
   }, [launchId, mounted]);
 
   useEffect(() => {
-    if (!activeItem || activePreview?.itemId === activeItem.id) return;
-    const url = getCaptureImageUrl(activeItem);
+    if (!activeItem) return;
+    const url = activeImageUrl ?? getCaptureImageUrl(activeItem);
     if (!url) return;
     setActivePreview((current) => {
-      if (current?.url === url) return { ...current, title: activeItem.title || current.title, itemId: activeItem.id };
-      return { url, title: activeItem.title || "Captured photo", itemId: activeItem.id };
+      const title = activeImageTitle ?? activeItem.title ?? "Captured photo";
+      if (current?.url === url && current.itemId === activeItem.id) return { ...current, title, itemId: activeItem.id };
+      return { url, title, itemId: activeItem.id };
     });
-  }, [activeItem, activePreview?.itemId]);
+  }, [activeImageKey, activeImageTitle, activeImageUrl, activeItem]);
 
   function resetFileInputClick(event: MouseEvent<HTMLInputElement>) {
     event.stopPropagation();
@@ -127,6 +137,18 @@ export function CameraViewfinder({ sessionId, autoOpenCamera = false, launchId =
   }
 
   async function prepareCaptureFile(file: File, previewUrl = URL.createObjectURL(file)) {
+    const intent = captureIntentRef.current;
+    if (intent.source === "angle" && activeItem && onAngleCaptureFile) {
+      setActivePreview({ url: previewUrl, title: `${activeItem.title || "Captured photo"} — angle`, itemId: activeItem.id });
+      window.dispatchEvent(new CustomEvent(VECTOR_TOOL_EVENT, { detail: { tool: "select" } }));
+      const captureFile = await compressCaptureFile(file);
+      try {
+        await onAngleCaptureFile(activeItem.id, captureFile, previewUrl, intent.input);
+      } finally {
+        captureIntentRef.current = { source: "quick_capture", input: "camera" };
+      }
+      return;
+    }
     const clientItemId = createOfflineId("item");
     const clientMutationId = createOfflineId("mutation");
     const title = readLastTitle(sessionId);
@@ -143,7 +165,14 @@ export function CameraViewfinder({ sessionId, autoOpenCamera = false, launchId =
     event.stopPropagation();
     setDragActive(false);
     if (busy) return;
+    captureIntentRef.current = { source: "quick_capture", input: "upload" };
     handleFile(event.dataTransfer.files[0], true);
+  }
+
+  function openCaptureInput(intent: CaptureIntent) {
+    captureIntentRef.current = intent;
+    if (intent.input === "camera") cameraInputRef.current?.click();
+    else uploadInputRef.current?.click();
   }
 
   return (
@@ -189,10 +218,10 @@ export function CameraViewfinder({ sessionId, autoOpenCamera = false, launchId =
           </p>
 
           <div className="mt-6 grid w-full max-w-xl gap-3 md:hidden">
-            <button type="button" onClick={() => cameraInputRef.current?.click()} disabled={busy || !mounted} className="min-h-16 rounded-3xl bg-amber-500 px-5 py-4 text-lg font-black text-slate-950 shadow-lg shadow-amber-500/20 transition hover:bg-amber-400 disabled:opacity-60">
+            <button type="button" onClick={() => openCaptureInput({ source: "quick_capture", input: "camera" })} disabled={busy || !mounted} className="min-h-16 rounded-3xl bg-amber-500 px-5 py-4 text-lg font-black text-slate-950 shadow-lg shadow-amber-500/20 transition hover:bg-amber-400 disabled:opacity-60">
               <span className="inline-flex items-center gap-2"><Camera className="h-5 w-5" /> Take Photo</span>
             </button>
-            <button type="button" onClick={() => uploadInputRef.current?.click()} disabled={busy || !mounted} className="min-h-16 rounded-3xl border border-white/15 bg-white/10 px-5 py-4 text-lg font-black text-white transition hover:border-amber-400 disabled:opacity-60">
+            <button type="button" onClick={() => openCaptureInput({ source: "quick_capture", input: "upload" })} disabled={busy || !mounted} className="min-h-16 rounded-3xl border border-white/15 bg-white/10 px-5 py-4 text-lg font-black text-white transition hover:border-amber-400 disabled:opacity-60">
               <span className="inline-flex items-center gap-2"><FileImage className="h-5 w-5" /> Camera Roll</span>
             </button>
           </div>
@@ -205,7 +234,7 @@ export function CameraViewfinder({ sessionId, autoOpenCamera = false, launchId =
           >
             <p className="text-2xl font-black text-white">Drag &amp; Drop Photos Here</p>
             <p className="mt-2 text-sm leading-6 text-slate-400">Desktop mode is upload-first for job trailer workflows.</p>
-            <button type="button" onClick={() => uploadInputRef.current?.click()} disabled={busy || !mounted} className="mt-6 min-h-12 rounded-2xl bg-amber-500 px-6 py-3 text-sm font-black text-slate-950 transition hover:bg-amber-400 disabled:opacity-60">
+            <button type="button" onClick={() => openCaptureInput({ source: "quick_capture", input: "upload" })} disabled={busy || !mounted} className="mt-6 min-h-12 rounded-2xl bg-amber-500 px-6 py-3 text-sm font-black text-slate-950 transition hover:bg-amber-400 disabled:opacity-60">
               <span className="inline-flex items-center gap-2"><FileImage className="h-5 w-5" /> Select Photos from Computer</span>
             </button>
           </div>
@@ -241,44 +270,6 @@ export function CameraViewfinder({ sessionId, autoOpenCamera = false, launchId =
       </div>}
     </section>
   );
-}
-
-function buildLocalPhotoItem(sessionId: string, title: string, previewUrl: string, clientItemId: string, clientMutationId: string): CaptureItemRecord {
-  const now = new Date().toISOString();
-  return {
-    id: clientItemId,
-    session_id: sessionId,
-    client_item_id: clientItemId,
-    client_mutation_id: clientMutationId,
-    item_type: "photo",
-    title,
-    description: null,
-    category: null,
-    priority: "medium",
-    item_status: "open",
-    assigned_to: null,
-    due_date: null,
-    capture_mode: "camera",
-    sync_state: "pending",
-    upload_state: "queued",
-    metadata: {},
-    photo_attachment_pins: [],
-    local_preview_url: previewUrl,
-    created_at: now,
-    updated_at: now,
-  };
-}
-
-function readLastTitle(sessionId: string) {
-  if (typeof sessionStorage === "undefined") return "";
-  return sessionStorage.getItem(`site-walk:current-location:${sessionId}`) ?? sessionStorage.getItem(`site-walk:last-title:${sessionId}`) ?? "";
-}
-
-function statusClasses(kind: string) {
-  if (kind === "complete") return "bg-emerald-500/10 text-emerald-300 ring-1 ring-emerald-500/20";
-  if (kind === "error") return "bg-rose-500/10 text-rose-300 ring-1 ring-rose-500/20";
-  if (kind === "uploading" || kind === "saving") return "bg-amber-500/10 text-amber-200 ring-1 ring-amber-500/20";
-  return "bg-zinc-900/80 text-zinc-200 ring-1 ring-white/10";
 }
 
 function UploadBadge({ kind }: { kind: string }) {

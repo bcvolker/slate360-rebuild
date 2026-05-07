@@ -2,8 +2,10 @@
 
 export const SITE_WALK_CAMERA_EVENT = "site-walk:camera-request";
 
-type CameraRequestDetail = {
-  source: "quick_capture" | "plan_pin" | "next_item";
+export type CameraRequestSource = "quick_capture" | "plan_pin" | "next_item" | "angle";
+
+export type CameraRequestDetail = {
+  source: CameraRequestSource;
   input: "camera" | "upload";
 };
 

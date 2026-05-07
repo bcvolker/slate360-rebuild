@@ -36,7 +36,7 @@ export function CaptureClientIsland({ sessionId, projectId, walkName, showPlanCa
   const appliedCarryRef = useRef<string | null>(null);
   const returnToPlanAfterSaveRef = useRef(false);
   const { primaryCaptureInput } = useDeviceContext();
-  const { items, assignees, activeItem, draft, saveState, aiState, aiMessage, selectItem, patchDraft, saveMarkupData, savePhotoAttachmentPins, formatNotesWithAi } = useCaptureItems({ sessionId, projectId });
+  const { items, assignees, activeItem, draft, saveState, aiState, aiMessage, selectItem, patchDraft, saveMarkupData, savePhotoAttachmentPins, savePhotoAngle, formatNotesWithAi } = useCaptureItems({ sessionId, projectId });
 
   useEffect(() => {
     if (!initialItemId || activeItem?.id === initialItemId) return;
@@ -137,7 +137,8 @@ export function CaptureClientIsland({ sessionId, projectId, walkName, showPlanCa
             onMarkupChange={(itemId, markup) => void saveMarkupData(itemId, markup)}
             onAttachmentPinsChange={(itemId, pins) => void savePhotoAttachmentPins(itemId, pins)}
             onPlanCaptureSaved={handlePlanCaptureSaved}
-            onSelectItem={selectItem}
+            onAddAngle={() => requestCameraCapture(primaryCaptureInput, "angle")}
+            onAngleCaptureFile={savePhotoAngle}
           />
         )}
       </div>

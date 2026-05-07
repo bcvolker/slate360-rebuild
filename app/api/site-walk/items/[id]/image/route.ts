@@ -8,6 +8,7 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { NextRequest, NextResponse } from "next/server";
 import { withAppAuth } from "@/lib/server/api-auth";
 import { badRequest, notFound, serverError } from "@/lib/server/api-response";
+import { getPhotoAngleById } from "@/lib/site-walk/photo-angles";
 import { BUCKET, s3 } from "@/lib/s3";
 import type { IdRouteContext } from "@/lib/types/api";
 
@@ -16,23 +17,28 @@ export const GET = (req: NextRequest, ctx: IdRouteContext) =>
     if (!orgId) return badRequest("Organization context required");
 
     const { id } = await ctx.params;
+    const angleId = req.nextUrl.searchParams.get("angle_id");
     const { data: item, error } = await admin
       .from("site_walk_items")
-      .select("s3_key, item_type, title")
+      .select("s3_key, item_type, title, metadata")
       .eq("id", id)
       .eq("org_id", orgId)
       .maybeSingle();
 
     if (error) return serverError(error.message);
-    if (!item?.s3_key) return notFound("Item image not found");
+    if (!item) return notFound("Item image not found");
 
-    const ext = item.s3_key.split(".").pop()?.toLowerCase() ?? "jpg";
-    const fileName = `${item.title || `site-walk-${id}`}.${ext}`;
+    const angle = angleId ? getPhotoAngleById(item.metadata, angleId) : null;
+    const s3Key = angleId ? angle?.s3Key : item.s3_key;
+    if (!s3Key) return notFound(angleId ? "Angle image not found" : "Item image not found");
+
+    const ext = s3Key.split(".").pop()?.toLowerCase() ?? "jpg";
+    const fileName = `${angle?.label || item.title || `site-walk-${id}`}.${ext}`;
     const contentType = ext === "png" ? "image/png" : ext === "webp" ? "image/webp" : "image/jpeg";
 
     const command = new GetObjectCommand({
       Bucket: BUCKET,
-      Key: item.s3_key,
+      Key: s3Key,
       ResponseContentDisposition: `inline; filename="${encodeURIComponent(fileName)}"`,
       ResponseContentType: contentType,
     });

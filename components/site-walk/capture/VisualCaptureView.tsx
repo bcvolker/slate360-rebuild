@@ -2,15 +2,17 @@
 
 import Link from "next/link";
 import { ArrowLeft, Camera, FileImage, Ghost, RotateCcw, RotateCw, Shapes } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import GlassCard from "@/components/shared/GlassCard";
 import type { MarkupData } from "@/lib/site-walk/markup-types";
-import { getCaptureImageUrl } from "@/lib/site-walk/capture-image-url";
+import { getPhotoAngleImageUrl, type PhotoAngleCaptureMode, type PhotoAngleRecord } from "@/lib/site-walk/photo-angles";
 import type { PhotoAttachmentPin } from "@/lib/site-walk/photo-attachments";
 import type { CaptureItemRecord } from "@/lib/types/site-walk-capture";
 import { requestCameraCapture } from "./capture-camera-events";
 import { CameraViewfinder } from "./CameraViewfinder";
+import { PhotoAngleStrip } from "./PhotoAngleStrip";
 import { PHOTO_MARKUP_REDO_EVENT, PHOTO_MARKUP_UNDO_EVENT } from "./PhotoMarkupCanvas";
+import { UnifiedVectorToolbar } from "./UnifiedVectorToolbar";
 
 type Props = {
   sessionId: string;
@@ -23,15 +25,27 @@ type Props = {
   onMarkupChange: (itemId: string, markup: MarkupData) => void;
   onAttachmentPinsChange: (itemId: string, pins: PhotoAttachmentPin[]) => void;
   onPlanCaptureSaved?: () => void;
-  onSelectItem: (item: CaptureItemRecord) => void;
+  onAddAngle: () => void;
+  onAngleCaptureFile: (itemId: string, file: File, previewUrl: string, captureMode: PhotoAngleCaptureMode) => Promise<PhotoAngleRecord | null>;
 };
 
-export function VisualCaptureView({ sessionId, autoOpenCamera, launchId, items, activeItemId, modeLabel, ghostImageUrl, onMarkupChange, onAttachmentPinsChange, onPlanCaptureSaved, onSelectItem }: Props) {
+export function VisualCaptureView({ sessionId, autoOpenCamera, launchId, items, activeItemId, modeLabel, ghostImageUrl, onMarkupChange, onAttachmentPinsChange, onPlanCaptureSaved, onAddAngle, onAngleCaptureFile }: Props) {
   const [ghostOn, setGhostOn] = useState(false);
-  const [markupOn, setMarkupOn] = useState(false);
+  const [markupOn, setMarkupOn] = useState(true);
+  const [activeAngleId, setActiveAngleId] = useState<string | null>(null);
   const photoItems = items.filter((item) => item.item_type === "photo");
   const activeItem = photoItems.find((item) => item.id === activeItemId) ?? null;
   const activeLocation = getLocationLabel(activeItem) ?? "Stop ready";
+  const activeImageUrl = getPhotoAngleImageUrl(activeItem, activeAngleId);
+  const activeImageTitle = activeAngleId && activeItem ? `${activeItem.title || "Captured photo"} — angle` : activeItem?.title ?? null;
+
+  useEffect(() => setActiveAngleId(null), [activeItemId]);
+
+  async function handleAngleCaptureFile(itemId: string, file: File, previewUrl: string, captureMode: PhotoAngleCaptureMode) {
+    const angle = await onAngleCaptureFile(itemId, file, previewUrl, captureMode);
+    if (angle) setActiveAngleId(angle.id);
+    return angle;
+  }
 
   return (
     <div className="relative h-full w-full overflow-hidden bg-[#0B0F15] text-white">
@@ -43,8 +57,12 @@ export function VisualCaptureView({ sessionId, autoOpenCamera, launchId, items, 
           launchId={launchId}
           layout="visual"
           activeItem={activeItem}
+          activeImageUrl={activeImageUrl}
+          activeImageTitle={activeImageTitle}
+          activeImageKey={`${activeItem?.id ?? "none"}:${activeAngleId ?? "main"}`}
           markupEnabled={markupOn}
           onPlanCaptureSaved={onPlanCaptureSaved}
+          onAngleCaptureFile={handleAngleCaptureFile}
           onMarkupChange={onMarkupChange}
           onAttachmentPinsChange={onAttachmentPinsChange}
         />
@@ -62,6 +80,8 @@ export function VisualCaptureView({ sessionId, autoOpenCamera, launchId, items, 
           <p className="truncate text-[9px] font-black uppercase tracking-[0.16em] text-amber-200/75">{modeLabel || "Camera"}</p>
         </div>
       </GlassCard>
+
+      {markupOn && activeItem && <div className="absolute inset-x-3 top-20 z-20 mx-auto max-w-xl"><UnifiedVectorToolbar /></div>}
 
       <GlassCard className="absolute right-3 top-3 z-20 flex items-center gap-1 bg-slate-950/55 p-1.5 backdrop-blur-xl">
         <button type="button" onClick={() => setGhostOn((current) => !current)} disabled={!ghostImageUrl} className={`inline-flex min-h-10 items-center gap-2 rounded-xl px-3 text-[11px] font-black uppercase tracking-[0.1em] transition disabled:opacity-40 ${ghostOn ? "bg-amber-500 text-slate-950" : "bg-white/[0.04] text-white/75 hover:text-amber-100"}`}>
@@ -87,22 +107,9 @@ export function VisualCaptureView({ sessionId, autoOpenCamera, launchId, items, 
         </button>
       </GlassCard>
 
-      {photoItems.length > 0 && (
-        <div className="absolute inset-x-3 bottom-[11.2rem] z-20 flex gap-2 overflow-x-auto no-scrollbar">
-          {photoItems.slice(0, 12).map((item) => (
-            <button key={item.id} type="button" onClick={() => onSelectItem(item)} className={`h-14 w-14 shrink-0 overflow-hidden rounded-2xl border bg-black/50 ${item.id === activeItemId ? "border-amber-400 ring-2 ring-amber-500/30" : "border-white/15"}`} aria-label={`Open ${item.title}`}>
-              <PhotoThumb item={item} />
-            </button>
-          ))}
-        </div>
-      )}
+      <PhotoAngleStrip item={activeItem} activeAngleId={activeAngleId} className="absolute inset-x-3 bottom-[11.2rem] z-20" onSelectAngle={setActiveAngleId} onAddAngle={onAddAngle} />
     </div>
   );
-}
-
-function PhotoThumb({ item }: { item: CaptureItemRecord }) {
-  const thumbUrl = getCaptureImageUrl(item);
-  return thumbUrl ? <img src={thumbUrl} alt="" className="h-full w-full object-cover" /> : <span className="flex h-full w-full items-center justify-center bg-zinc-950"><Camera className="h-5 w-5 text-white/45" /></span>;
 }
 
 function dispatchCanvasEvent(name: string) {
