@@ -202,6 +202,33 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
+### Session Handoff — 2026-05-07 (Site Walk Phase 1 Device/Grid Quick Wins)
+
+#### What Changed
+- `lib/hooks/useDeviceContext.ts` — Device context now defaults to `desktop` for SSR/hydration and only switches to mobile when `(pointer: coarse)`, `(hover: none)`, and `(max-width: 767px)` all match. This prevents touchscreen laptops from showing phone-only Site Walk pin actions like `Take photo at this pin`.
+- `components/site-walk/capture/VisualCaptureView.tsx` — Markup row now stays mounted during the active-item handoff window by checking `activeItem`, `pendingCapture`, optimistic preview state, or `activeItemId`. The capture grid camera row now uses `minmax(0,1fr)`, and the bottom-sheet reserve is reconciled to `5.7rem`.
+- `components/site-walk/capture/CameraViewfinder.tsx` — Added a small `onPreviewStateChange` callback so the parent grid knows when an optimistic photo/upload preview is visible before the saved item fully resolves.
+- `components/site-walk/capture/CaptureDataBottomSheet.tsx` — Chevron handle button now has a `min-h-11` tap target for phone use.
+- `ONGOING_ISSUES.md`, `slate360-context/ONGOING_ISSUES.md`, `ops/bug-registry.json`, and `slate360-context/dashboard-tabs/site-walk/FIELD_PLATFORM_ROADMAP.md` — Added S360-052 / BUG-072 and the Site Walk roadmap implementation note for this quick-win fix.
+
+#### What's Broken / Partially Done
+- Phase 2 is still pending: PDF centering should wait for React-PDF page render success before measuring.
+- Phase 3 is still pending: Confirm & Attach needs explicit try/catch/logging and pin/sheet ID failure handling to stop silent fallback/hangs.
+- `bash scripts/check-file-size.sh` still fails on 12 pre-existing oversized files outside this slice; changed files are under 300 lines (`CameraViewfinder.tsx` is 296).
+
+#### Context Files Updated
+- `ONGOING_ISSUES.md` — Added S360-052 for device context + grid handoff.
+- `slate360-context/ONGOING_ISSUES.md` — Added BUG-072.
+- `ops/bug-registry.json` — Added BUG-072 and updated BUG-071 grid verification to `minmax(0,1fr)` / `5.7rem`.
+- `slate360-context/dashboard-tabs/site-walk/FIELD_PLATFORM_ROADMAP.md` — Added implementation note.
+- `SLATE360_PROJECT_MEMORY.md` — This handoff.
+
+#### Next Steps (ordered)
+1. Execute Phase 2 prompt: defer plan centering until React-PDF `<Page onRenderSuccess>` fires.
+2. Execute Phase 3 prompt: instrument and harden Confirm & Attach / `savePhoto` / plan pin attach path.
+3. Retest on touchscreen laptop: plan pin menu should be upload-only.
+4. Retest on phone: capture/upload should keep markup toolbar visible and bottom-sheet chevron tappable.
+
 ### Session Handoff — 2026-05-07 (Site Walk 6-Commit Architectural Sweep)
 
 #### What Changed

@@ -32,6 +32,7 @@ type Props = {
   markupEnabled?: boolean;
   onPlanCaptureSaved?: () => void;
   onAngleCaptureFile?: (itemId: string, file: File, previewUrl: string, captureMode: PhotoAngleCaptureMode) => Promise<PhotoAngleRecord | null>;
+  onPreviewStateChange?: (active: boolean) => void;
   onMarkupChange?: (itemId: string, markup: MarkupData) => void;
   onAttachmentPinsChange?: (itemId: string, pins: PhotoAttachmentPin[]) => void;
 };
@@ -39,7 +40,7 @@ type Props = {
 type PendingUpload = { file: File; url: string };
 type CaptureIntent = Pick<CameraRequestDetail, "source" | "input">;
 
-export function CameraViewfinder({ sessionId, autoOpenCamera = false, launchId = null, layout = "full", activeItem = null, activeImageUrl = null, activeImageTitle = null, activeImageKey = null, markupEnabled = true, onPlanCaptureSaved, onAngleCaptureFile, onMarkupChange, onAttachmentPinsChange }: Props) {
+export function CameraViewfinder({ sessionId, autoOpenCamera = false, launchId = null, layout = "full", activeItem = null, activeImageUrl = null, activeImageTitle = null, activeImageKey = null, markupEnabled = true, onPlanCaptureSaved, onAngleCaptureFile, onPreviewStateChange, onMarkupChange, onAttachmentPinsChange }: Props) {
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const uploadInputRef = useRef<HTMLInputElement>(null);
   const consumedLaunchRef = useRef<string | null>(null);
@@ -59,6 +60,8 @@ export function CameraViewfinder({ sessionId, autoOpenCamera = false, launchId =
   const visualOnly = layout === "visual";
 
   useEffect(() => setMounted(true), []);
+
+  useEffect(() => onPreviewStateChange?.(Boolean(activePreview)), [activePreview, onPreviewStateChange]);
 
   useEffect(() => () => {
     if (pendingUploadRef.current) URL.revokeObjectURL(pendingUploadRef.current.url);

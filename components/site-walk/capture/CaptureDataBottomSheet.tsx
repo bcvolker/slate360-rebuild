@@ -53,7 +53,7 @@ export function CaptureDataBottomSheet({ item, items, assignees, draft, saveStat
       aria-label="Swipe-up capture details"
     >
       <div className="touch-none" onPointerDown={handlePointerDown} onPointerUp={handlePointerUp}>
-        <button type="button" onClick={() => setExpanded((current) => !current)} className="mx-auto flex w-full flex-col items-center gap-1 pb-2" aria-label={expanded ? "Collapse capture details" : "Expand capture details"}>
+        <button type="button" onClick={() => setExpanded((current) => !current)} className="mx-auto flex min-h-11 w-full flex-col items-center gap-1 pb-2" aria-label={expanded ? "Collapse capture details" : "Expand capture details"}>
           <ChevronUp className={`h-6 w-6 text-amber-200 ${expanded ? "rotate-180" : "animate-bounce"}`} />
         </button>
       </div>

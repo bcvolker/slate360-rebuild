@@ -761,12 +761,27 @@
       "rootCause": "Window-event capture bus + setTimeout autoOpenCamera race caused the picker to reopen after save. Absolute Z-stack let the markup row overlap the camera. Plan toolbar was three floating buttons + dialog + side card. Trades were a hardcoded constant. before_item_id existed but no comparison or progression UI consumed it. MasterPlanRoomClient stacked five cards.",
       "verification": [
         "Capture flow uses CaptureContext provider; CameraViewfinder consumes pendingCapture once on mount",
-        "VisualCaptureView uses CSS grid 'auto / [auto] / 1fr / auto / 5.9rem' so markup, camera, angle strip, and bottom-sheet reserve do not overlap",
+        "VisualCaptureView uses CSS grid 'auto / [auto] / minmax(0,1fr) / auto / 5.7rem' so markup, camera, angle strip, and bottom-sheet reserve do not overlap",
         "PlanToolbar.tsx replaces PlanLayerToolbar + PlanPageControls + PageSelector dialog (both old files deleted)",
         "site_walk_project_capture_settings table + GET/PUT route + useProjectCaptureSettings + ManageTradesModal live in production",
         "item_relationship CHECK accepts 'before','after','progress' (verified via pg_get_constraintdef on production); /api/site-walk/items/[id]/comparison and /api/site-walk/projects/[projectId]/progressions return paired data; /site-walk/items/[id]/compare and /site-walk/progression render it",
         "MasterPlanRoomClient consolidated to header + uploader + Start-Walk + collapsed Plan Library accordion",
         "npm run typecheck passes after all six commits"
+      ]
+    },
+    {
+      "id": "BUG-072",
+      "title": "Device detection and capture-grid handoff kept desktop touchscreens in mobile mode and hid markup tools after capture",
+      "module": "site-walk/capture",
+      "severity": "high",
+      "status": "fixed",
+      "rootCause": "useDeviceContext treated coarse pointer alone as mobile, so touchscreen laptops could show phone-only plan actions; VisualCaptureView removed the markup toolbar whenever activeItem was temporarily null during the optimistic capture handoff, and its bottom-sheet reserve no longer exactly matched the collapsed sheet translate height.",
+      "verification": [
+        "useDeviceContext defaults to desktop for SSR/hydration and only switches to mobile when pointer is coarse, hover is none, and viewport is under 768px",
+        "VisualCaptureView keeps the markup row visible while an active item, pending capture, optimistic preview, or activeItemId handoff exists",
+        "VisualCaptureView camera row uses minmax(0,1fr) and the bottom reserve matches the collapsed sheet math at 5.7rem",
+        "CaptureDataBottomSheet chevron button has a min-h-11 touch target",
+        "npm run typecheck passes"
       ]
     }
   ]

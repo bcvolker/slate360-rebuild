@@ -402,6 +402,8 @@ These are the highest-value field workflow features to preserve for future build
 
 **Implementation note — 2026-05-07:** Markup restore and multi-angle capture now keep markup enabled by default for active photos, render the `UnifiedVectorToolbar` over the active `PhotoMarkupCanvas`, add a horizontal Dark Glass `PhotoAngleStrip` with Main + saved angles + `+ Add Angle`, and route angle camera/upload events back into the current capture item through `metadata.photo_angles` instead of creating a new stop.
 
+**Implementation note — 2026-05-07:** Device/grid quick-win pass now defaults device context to desktop through SSR/hydration and only switches to mobile when `(pointer: coarse)`, `(hover: none)`, and `(max-width: 767px)` all match, preventing touchscreen laptops from showing phone-only capture actions. `VisualCaptureView` also keeps the markup toolbar mounted during pending/optimistic preview handoff, uses `minmax(0,1fr)` for the camera row, aligns the bottom-sheet reserve with the collapsed sheet at `5.7rem`, and gives the bottom-sheet chevron a `min-h-11` touch target.
+
 ---
 
 ## 7. Strict Site Walk Internal Routing

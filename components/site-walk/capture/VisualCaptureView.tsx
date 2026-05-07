@@ -31,19 +31,20 @@ type Props = {
 };
 
 // Reserve at the bottom for the collapsed CaptureDataBottomSheet handle.
-const BOTTOM_SHEET_RESERVE = "5.9rem";
+const BOTTOM_SHEET_RESERVE = "5.7rem";
 
 export function VisualCaptureView({ sessionId, autoOpenCamera, launchId, items, activeItemId, modeLabel, ghostImageUrl, onMarkupChange, onAttachmentPinsChange, onPlanCaptureSaved, onAddAngle, onAngleCaptureFile }: Props) {
   const [ghostOn, setGhostOn] = useState(false);
   const [markupOn, setMarkupOn] = useState(true);
   const [activeAngleId, setActiveAngleId] = useState<string | null>(null);
+  const [previewActive, setPreviewActive] = useState(false);
   const captureCtx = useOptionalCaptureContext();
   const photoItems = items.filter((item) => item.item_type === "photo");
   const activeItem = photoItems.find((item) => item.id === activeItemId) ?? null;
   const activeLocation = getLocationLabel(activeItem) ?? "Stop ready";
   const activeImageUrl = getPhotoAngleImageUrl(activeItem, activeAngleId);
   const activeImageTitle = activeAngleId && activeItem ? `${activeItem.title || "Captured photo"} — angle` : activeItem?.title ?? null;
-  const showMarkupRow = markupOn && Boolean(activeItem);
+  const showMarkupRow = markupOn && Boolean(activeItem || captureCtx?.pendingCapture || previewActive || activeItemId);
 
   useEffect(() => setActiveAngleId(null), [activeItemId]);
 
@@ -61,7 +62,7 @@ export function VisualCaptureView({ sessionId, autoOpenCamera, launchId, items, 
   return (
     <div
       className="grid h-full w-full overflow-hidden bg-[#0B0F15] text-white"
-      style={{ gridTemplateRows: `auto ${showMarkupRow ? "auto " : ""}1fr auto ${BOTTOM_SHEET_RESERVE}` }}
+      style={{ gridTemplateRows: `auto ${showMarkupRow ? "auto " : ""}minmax(0,1fr) auto ${BOTTOM_SHEET_RESERVE}` }}
     >
       {/* Top chrome bar */}
       <header className="z-30 flex items-center gap-2 border-b border-white/5 bg-slate-950/55 px-3 py-2 backdrop-blur-xl">
@@ -110,6 +111,7 @@ export function VisualCaptureView({ sessionId, autoOpenCamera, launchId, items, 
             markupEnabled={markupOn}
             onPlanCaptureSaved={onPlanCaptureSaved}
             onAngleCaptureFile={handleAngleCaptureFile}
+            onPreviewStateChange={setPreviewActive}
             onMarkupChange={onMarkupChange}
             onAttachmentPinsChange={onAttachmentPinsChange}
           />

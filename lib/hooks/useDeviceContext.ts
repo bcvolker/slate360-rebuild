@@ -6,10 +6,10 @@ export type DeviceKind = "desktop" | "mobile";
 export type DeviceCaptureInput = "camera" | "upload";
 
 export function useDeviceContext() {
-  const [deviceKind, setDeviceKind] = useState<DeviceKind>(() => detectDeviceKind());
+  const [deviceKind, setDeviceKind] = useState<DeviceKind>("desktop");
 
   useEffect(() => {
-    const queries = [window.matchMedia("(pointer: coarse)"), window.matchMedia("(max-width: 767px)")];
+    const queries = [window.matchMedia("(pointer: coarse)"), window.matchMedia("(hover: none)"), window.matchMedia("(max-width: 767px)")];
     const update = () => setDeviceKind(detectDeviceKind());
     update();
     window.addEventListener("resize", update);
@@ -33,7 +33,7 @@ export function useDeviceContext() {
 function detectDeviceKind(): DeviceKind {
   if (typeof window === "undefined") return "desktop";
   const coarsePointer = window.matchMedia("(pointer: coarse)").matches;
+  const noHover = window.matchMedia("(hover: none)").matches;
   const narrowViewport = window.matchMedia("(max-width: 767px)").matches;
-  const touchCapable = navigator.maxTouchPoints > 0;
-  return coarsePointer || (touchCapable && narrowViewport) ? "mobile" : "desktop";
+  return coarsePointer && noHover && narrowViewport ? "mobile" : "desktop";
 }
