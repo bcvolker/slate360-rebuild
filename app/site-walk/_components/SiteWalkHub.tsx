@@ -65,16 +65,20 @@ export function SiteWalkHub({ projects, walks }: { projects: HubProject[]; walks
 
   return (
     <div className="w-full space-y-4">
-      <div className="grid gap-3 sm:grid-cols-2">
-        <button type="button" onClick={() => { setActiveTab("projects"); setExpandedProjectId(projects[0]?.id ?? null); }} className="group min-h-32 rounded-[2rem] border border-white/10 bg-white/[0.06] p-5 text-left shadow-[0_22px_70px_rgba(0,0,0,0.25)] backdrop-blur-xl transition hover:border-amber-400/45 hover:bg-white/[0.09]">
-          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-500 text-slate-950"><Building2 className="h-6 w-6" /></span>
-          <span className="mt-4 block text-2xl font-black text-white">Start from Project</span>
-          <span className="mt-1 block text-sm font-bold text-slate-400">Choose a project and continue.</span>
+      <div className="grid gap-3 grid-cols-2">
+        <button type="button" onClick={() => { setActiveTab("projects"); setExpandedProjectId(projects[0]?.id ?? null); }} className="group min-h-24 rounded-[1.5rem] border border-white/10 bg-white/[0.06] p-4 text-left shadow-[0_22px_70px_rgba(0,0,0,0.25)] backdrop-blur-xl transition hover:border-amber-400/45 hover:bg-white/[0.09] flex flex-col justify-between">
+          <span className="flex h-10 w-10 items-center justify-center rounded-[0.875rem] bg-amber-500 text-slate-950"><Building2 className="h-5 w-5" /></span>
+          <div className="mt-3">
+            <span className="block text-lg sm:text-xl font-black text-white leading-tight">Start from Project</span>
+            <span className="mt-0.5 hidden sm:block text-xs font-bold text-slate-400">Choose a project and continue.</span>
+          </div>
         </button>
-        <button type="button" onClick={() => void startWalk()} disabled={createState.kind === "starting"} className="group min-h-32 rounded-[2rem] border border-amber-400/35 bg-amber-500 p-5 text-left text-slate-950 shadow-[0_24px_80px_rgba(245,158,11,0.22)] transition hover:bg-amber-400 disabled:opacity-70">
-          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-950 text-amber-300">{createState.kind === "starting" && createState.target === "quick" ? <Loader2 className="h-6 w-6 animate-spin" /> : <Zap className="h-6 w-6" />}</span>
-          <span className="mt-4 block text-2xl font-black">Quick Walk</span>
-          <span className="mt-1 block text-sm font-black text-slate-900/75">Open camera now.</span>
+        <button type="button" onClick={() => void startWalk()} disabled={createState.kind === "starting"} className="group min-h-24 rounded-[1.5rem] border border-amber-400/35 bg-amber-500 p-4 text-left text-slate-950 shadow-[0_24px_80px_rgba(245,158,11,0.22)] transition hover:bg-amber-400 disabled:opacity-70 flex flex-col justify-between">
+          <span className="flex h-10 w-10 items-center justify-center rounded-[0.875rem] bg-slate-950 text-amber-300">{createState.kind === "starting" && createState.target === "quick" ? <Loader2 className="h-5 w-5 animate-spin" /> : <Zap className="h-5 w-5" />}</span>
+          <div className="mt-3">
+            <span className="block text-lg sm:text-xl font-black leading-tight">Quick Walk</span>
+            <span className="mt-0.5 hidden sm:block text-xs font-black text-slate-900/75">Open camera now.</span>
+          </div>
         </button>
       </div>
 

@@ -140,7 +140,21 @@ function CaptureClientIslandInner({ sessionId, projectId, walkName, showPlanCanv
       {/* Layer 0: full-bleed capture background */}
       <div className="absolute inset-0 z-0">
         {walkMode === "plan" ? (
-          <PlanViewer projectId={projectId} sessionId={sessionId} planSets={planSets} sheets={planSheets} onCaptureRequest={handlePlanCaptureRequest} />
+          <PlanViewer
+            projectId={projectId}
+            sessionId={sessionId}
+            planSets={planSets}
+            sheets={planSheets}
+            items={items}
+            onCaptureRequest={handlePlanCaptureRequest}
+            onSelectItem={(id) => {
+              const target = items.find((i) => i.id === id);
+              if (target) {
+                selectItem(target);
+                setWalkMode("camera");
+              }
+            }}
+          />
         ) : (
           <VisualCaptureView
             sessionId={sessionId}

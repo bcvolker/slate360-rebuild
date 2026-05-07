@@ -11,6 +11,7 @@ export type PlanViewerPin = {
   session_id: string;
   label: string;
   amber: boolean;
+  item_id: string | null;
 };
 
 export function PlanPin({ pin, active, current, onClick }: { pin: PlanViewerPin; active: boolean; current: boolean; onClick: (event: MouseEvent) => void }) {
@@ -34,6 +35,7 @@ export function mapPlanPin(row: SiteWalkPin, index: number, sessionId: string): 
     session_id: row.session_id ?? "",
     label: row.pin_number ? String(row.pin_number).padStart(2, "0") : String(index + 1).padStart(2, "0"),
     amber: row.session_id === sessionId,
+    item_id: row.item_id ?? null,
   };
 }
 

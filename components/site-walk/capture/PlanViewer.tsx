@@ -16,7 +16,9 @@ type Props = {
   sessionId?: string;
   planSets?: SiteWalkPlanSet[];
   sheets?: SiteWalkPlanSheet[];
+  items?: { id: string; title?: string; description?: string | null }[];
   onCaptureRequest?: (input: "camera" | "upload") => void;
+  onSelectItem?: (itemId: string) => void;
 };
 
 type Point = { x: number; y: number };
@@ -26,7 +28,7 @@ type PlanPage = { key: string; label: string; pageNumber: number; sheetId?: stri
 type PdfReadyToken = PlanPdfRenderDetails & { sequence: number };
 const MIN_SCALE = 0.35, MAX_SCALE = 2.5, FIT_PADDING = 32;
 
-export function PlanViewer({ projectId, sessionId = "current-session", planSets = [], sheets = [], onCaptureRequest }: Props) {
+export function PlanViewer({ projectId, sessionId = "current-session", planSets = [], sheets = [], items = [], onCaptureRequest, onSelectItem }: Props) {
   const viewportRef = useRef<HTMLDivElement>(null);
   const surfaceRef = useRef<HTMLDivElement>(null);
   const [pins, setPins] = useState<PlanViewerPin[]>([]);
@@ -64,11 +66,31 @@ export function PlanViewer({ projectId, sessionId = "current-session", planSets 
     const surface = surfaceRef.current;
     if (!viewport || !surface) return;
     if (planFileUrl && activePage && (!pdfReadyToken || pdfReadyToken.fileUrl !== planFileUrl || pdfReadyToken.pageNumber !== activePage.pageNumber)) return;
-    function fitPlanToViewport() { setTransform(calculateCenteredPlanTransform({ maxScale: 1, minScale: MIN_SCALE, padding: FIT_PADDING, surface: surface!, viewport: viewport! })); }
-    const frameId = window.requestAnimationFrame(fitPlanToViewport);
-    const observer = new ResizeObserver(fitPlanToViewport);
-    observer.observe(viewport); observer.observe(surface);
-    return () => { window.cancelAnimationFrame(frameId); observer.disconnect(); };
+    
+    let frameId: number;
+    let resizing = false;
+
+    function fitPlanToViewport() { 
+      resizing = false;
+      setTransform(calculateCenteredPlanTransform({ maxScale: 1, minScale: MIN_SCALE, padding: FIT_PADDING, surface: surface!, viewport: viewport! })); 
+    }
+    
+    // Initial setup inside RAF
+    frameId = window.requestAnimationFrame(fitPlanToViewport);
+
+    const observer = new ResizeObserver(() => {
+      if (!resizing) {
+        resizing = true;
+        frameId = window.requestAnimationFrame(fitPlanToViewport);
+      }
+    });
+    
+    // Only observe viewport, observing surface can cause infinite loops when transform changes
+    observer.observe(viewport); 
+    return () => { 
+      window.cancelAnimationFrame(frameId); 
+      observer.disconnect(); 
+    };
   }, [activePage, activePlanSet?.id, pdfReadyToken, planFileUrl]);
 
   useEffect(() => {
@@ -165,7 +187,12 @@ export function PlanViewer({ projectId, sessionId = "current-session", planSets 
     event.stopPropagation();
     setActivePinId(pinId);
     const pin = pins.find((item) => item.id === pinId);
-    if (pin) setQuickMenu({ pinId, xPct: pin.x_pct, yPct: pin.y_pct });
+    if (!pin) return;
+    if (pin.item_id) {
+      setQuickMenu(null);
+    } else {
+      setQuickMenu({ pinId, xPct: pin.x_pct, yPct: pin.y_pct });
+    }
   }
 
   return (
@@ -186,7 +213,27 @@ export function PlanViewer({ projectId, sessionId = "current-session", planSets 
             <PlanEmptySurface projectAware={Boolean(projectId)} />
           )}
 
-          {visiblePins.map((pin) => <PlanPin key={pin.id} pin={pin} active={activePinId === pin.id} current={pin.session_id === sessionId || pin.amber} onClick={(event) => handlePinClick(event, pin.id)} />)}
+          {visiblePins.map((pin) => {
+            const isActive = activePinId === pin.id;
+            const item = pin.item_id ? items.find((i) => i.id === pin.item_id) : null;
+            return (
+              <div key={pin.id}>
+                <PlanPin pin={pin} active={isActive} current={pin.session_id === sessionId || pin.amber} onClick={(event) => handlePinClick(event, pin.id)} />
+                {isActive && pin.item_id && (
+                  <div className="pointer-events-auto absolute z-40 flex w-60 -translate-x-1/2 -translate-y-full gap-2 rounded-2xl border border-cyan-300/25 bg-slate-950/95 p-2 text-white shadow-2xl backdrop-blur-xl transition-all" style={{ left: `${pin.x_pct}%`, top: `calc(${pin.y_pct}% - 3rem)` }} onClick={(e) => e.stopPropagation()}>
+                    <div className="min-w-0 flex-1 text-left flex flex-col justify-center">
+                      <p className="truncate text-xs font-black text-cyan-100">{item?.title || `Pin ${pin.label}`}</p>
+                      <p className="mt-1 line-clamp-2 text-[11px] font-bold text-white/65">{item?.description || "Saved item"}</p>
+                      <p className="mt-2 text-[10px] font-black uppercase tracking-[0.14em] text-cyan-200/80">Tap preview to view</p>
+                    </div>
+                    <button type="button" onClick={() => onSelectItem?.(pin.item_id!)} className="h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-black border border-white/10 relative transition hover:scale-105 hover:ring-2 hover:ring-amber-500">
+                      <img src={`/api/site-walk/items/${pin.item_id}/image`} alt="Preview" className="h-full w-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                    </button>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -243,7 +290,7 @@ function buildPin(point: Point, surface: HTMLDivElement | null, count: number, s
   const rect = surface.getBoundingClientRect();
   const xPct = clamp(((point.x - rect.left) / rect.width) * 100, 0, 100);
   const yPct = clamp(((point.y - rect.top) / rect.height) * 100, 0, 100);
-  return { id: Math.random().toString(36).slice(2), x_pct: xPct, y_pct: yPct, session_id: sessionId, label: String(count).padStart(2, "0"), amber: true };
+  return { id: Math.random().toString(36).slice(2), x_pct: xPct, y_pct: yPct, session_id: sessionId, label: String(count).padStart(2, "0"), amber: true, item_id: null };
 }
 
 function clearPressTimer(timerRef: MutableRefObject<ReturnType<typeof setTimeout> | null>) {
