@@ -17,6 +17,7 @@ type Props = {
   currentLocation: string;
   tradeOptions: string[];
   canManageTrades: boolean;
+  returnsToPlan?: boolean;
   onDraftChange: (patch: Partial<CaptureItemDraft>) => void;
   onCapture: (input?: DeviceCaptureInput) => void;
   onFormatNotes: () => void;
@@ -24,7 +25,7 @@ type Props = {
   onOpenManageTrades?: () => void;
 };
 
-export function CaptureDataBottomSheet({ item, items, assignees, draft, saveState, aiState, aiMessage, currentLocation, tradeOptions, canManageTrades, onDraftChange, onCapture, onFormatNotes, onSaveNextStop, onOpenManageTrades }: Props) {
+export function CaptureDataBottomSheet({ item, items, assignees, draft, saveState, aiState, aiMessage, currentLocation, tradeOptions, canManageTrades, returnsToPlan = false, onDraftChange, onCapture, onFormatNotes, onSaveNextStop, onOpenManageTrades }: Props) {
   const [expanded, setExpanded] = useState(false);
   const [linkProgression, setLinkProgression] = useState(false);
   const dragStartY = useRef<number | null>(null);
@@ -34,6 +35,8 @@ export function CaptureDataBottomSheet({ item, items, assignees, draft, saveStat
   const progressionActive = Boolean(draft?.beforeItemId) || linkProgression;
   const previousItems = items.filter((candidate) => isUuid(candidate.id) && candidate.id !== item?.id && candidate.client_item_id !== item?.client_item_id);
   const selectClass = "mt-1 h-10 w-full rounded-2xl border border-white/10 bg-black/35 px-3 text-xs font-black text-slate-100 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-500/20 disabled:opacity-50";
+  const saveActionIcon = returnsToPlan ? <Link2 className="h-5 w-5" /> : <SkipForward className="h-5 w-5" />;
+  const saveActionLabel = returnsToPlan ? "Save & Return to Plan" : "Save & Next Camera";
 
   function handlePointerDown(event: PointerEvent<HTMLDivElement>) {
     dragStartY.current = event.clientY;
@@ -64,9 +67,10 @@ export function CaptureDataBottomSheet({ item, items, assignees, draft, saveStat
           <h2 className="truncate text-base font-black text-white">{item?.title || "Ready for next field stop"}</h2>
         </div>
         {item ? (
-          <button type="button" onClick={() => onSaveNextStop()} disabled={isSaving} className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-2xl bg-amber-500 px-5 text-sm font-black text-slate-950 shadow-[0_0_24px_rgba(245,158,11,0.38)] transition hover:bg-amber-400 disabled:opacity-60">
-            {isSaving ? <Loader2 className="h-5 w-5 animate-spin" /> : <SkipForward className="h-5 w-5" />}
-            Save &amp; Next
+          <button type="button" onClick={() => onSaveNextStop()} disabled={isSaving} className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-2xl bg-amber-500 px-4 text-sm font-black text-slate-950 shadow-[0_0_24px_rgba(245,158,11,0.38)] transition hover:bg-amber-400 disabled:opacity-60">
+            {isSaving ? <Loader2 className="h-5 w-5 animate-spin" /> : saveActionIcon}
+            <span className="hidden sm:inline">{saveActionLabel}</span>
+            <span className="sm:hidden">{returnsToPlan ? "To Plan" : "Next Pt"}</span>
           </button>
         ) : (
           <button type="button" onClick={() => onCapture(primaryCaptureInput)} className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-2xl bg-amber-500 px-5 text-sm font-black text-slate-950 shadow-[0_0_24px_rgba(245,158,11,0.38)] transition hover:bg-amber-400">
@@ -131,22 +135,13 @@ export function CaptureDataBottomSheet({ item, items, assignees, draft, saveStat
             )}
           </div>
 
-          <div className="grid gap-2 sm:grid-cols-2">
-            <button type="button" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] px-4 text-sm font-black text-slate-200" aria-disabled="true">
-              <Mic className="h-4 w-4 text-amber-300" /> Voice Dictation
-              <span className="rounded-full bg-white/10 px-2 py-0.5 text-[9px] uppercase tracking-[0.14em] text-slate-400">Stub</span>
-            </button>
-            <button type="button" onClick={onFormatNotes} disabled={!draft || aiBusy} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 text-sm font-black text-amber-100 disabled:opacity-60">
+          <div className="flex">
+            <button type="button" onClick={onFormatNotes} disabled={!draft || aiBusy} className="inline-flex w-full min-h-12 items-center justify-center gap-2 rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 text-sm font-black text-amber-100 disabled:opacity-60">
               {aiBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />} AI Format Note
             </button>
           </div>
 
           {aiMessage && <p className="rounded-2xl border border-amber-500/20 bg-amber-500/10 px-3 py-2 text-xs font-bold text-amber-100">{aiMessage}</p>}
-
-          <button type="button" onClick={() => onSaveNextStop()} disabled={isSaving} className="inline-flex min-h-14 w-full items-center justify-center gap-2 rounded-3xl bg-amber-500 px-5 text-base font-black text-slate-950 shadow-[0_0_28px_rgba(245,158,11,0.34)] transition hover:bg-amber-400 disabled:opacity-60">
-            {isSaving ? <Loader2 className="h-5 w-5 animate-spin" /> : <SkipForward className="h-5 w-5" />}
-            Save &amp; Next Stop
-          </button>
         </div>
       )}
     </GlassCard>

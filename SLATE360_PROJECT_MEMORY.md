@@ -202,23 +202,26 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-05-07 (Site Walk Crisis Recovery Pass)
+### Session Handoff — 2026-05-07 (Mobile UX Overhaul)
 
 #### What Changed
-- `app/site-walk/page.tsx` — Removed the mock `Safety Inspection` / `Punch List` data. The landing route now loads real field projects, real `site_walk_sessions`, item counts, project names, and starred metadata.
-- `app/site-walk/_components/SiteWalkHub.tsx` — Rebuilt the hub as a simple action-first screen: `Start from Project`, `Quick Walk`, and a contained scroll panel with `Recent Walks`, `Starred`, and `Projects`. `Quick Walk` creates a real ad-hoc session and opens capture with `quick=camera`; project rows expand and can start/resume walks.
-- `app/site-walk/(act-2-inputs)/capture/_components/CaptureClientIsland.tsx` — Fixed `Save & Next Stop`: it now advances the location and requests the next capture unless the save came from a plan pin. It no longer renames the current active draft to the next stop label. Markup/Ghost state is lifted here for drawer controls.
-- `components/site-walk/capture/VisualCaptureView.tsx` and `CaptureDataBottomSheet.tsx` — Moved Markup, Ghost, Undo, Redo, and `UnifiedVectorToolbar` from top chrome into the bottom sheet so phone users can reach tools with their thumb. Visual top chrome is now minimal.
-- `components/site-walk/capture/PlanQuickActionMenu.tsx` — Replaced screen-coordinate absolute positioning with a centered modal overlay so the pin menu cannot render off-screen.
-- `components/site-walk/capture/PlanViewer.tsx` and new `components/site-walk/capture/PlanPin.tsx` — `PlanViewer` now fetches saved pins for the active sheet when it mounts/remounts, so plan pins reappear after switching to camera and attaching a capture. Pin rendering/mapping helpers were extracted to keep `PlanViewer` under 300 lines.
-- `lib/hooks/useCaptureUpload.ts` — New plan-pin POSTs now include `session_id`, allowing fetched pins to render as current-session amber pins after return to Plan Mode.
-- `slate360-context/ONGOING_ISSUES.md` and `ops/bug-registry.json` — Added BUG-076 for the crisis regression and recovery pass.
+- `app/site-walk/_components/SiteWalkHub.tsx`: Fixed mobile bottom scrolling overflow by using `calc(100dvh-22rem)` and `pb-8`.
+- `components/site-walk/capture/VisualCaptureView.tsx`: Relocated Markup, Ghost, Undo/Redo buttons, and `UnifiedVectorToolbar` from the bottom sheet directly into the visual view (above the bottom sheet handle) for immediate thumbs-reach access without opening the notes drawer.
+- `components/site-walk/capture/CaptureDataBottomSheet.tsx`: Moved the "Save & Next Stop" button out of the expanded notes section and into the sticky header next to the camera button so it is always accessible. Also removed the redundant secondary Save button.
+- `components/site-walk/capture/CaptureDataBottomSheet.tsx`: Removed the broad `touch-none` wrapping the main container and added `userSelect: text` to the textarea to fix iOS Safari blocking mobile keyboard activation. Dropped the "Voice Dictation" stub, allowing users to use their device's native dictation keyboard.
+- `app/site-walk/(act-2-inputs)/capture/_components/CaptureClientIsland.tsx`: Improved capture progression logic. When doing a walk with plans (`showPlanCanvas`), pressing "Save & Next" automatically switches the mode back to the `plan` view, heavily streamlining the jump-to-next-pin cycle. When doing a Quick Walk, it continues to instantly respawn the camera.
+- `components/site-walk/capture/PlanViewer.tsx`: Fixed a severe infinite zoom/crash loop when dropping a pin by explicitly clearing `activePointers.current` when the quick menu modal opens.
 
 #### What's Broken / Partially Done
-- Browser/device smoke verification still needs to confirm the full end-to-end field workflow on phone: `/site-walk` → Quick Walk → capture → Save & Next → capture next stop.
-- Plan-pin capture now persists/fetches pins, but it still needs live smoke verification on a real PDF sheet: long-press → upload/take photo → return to Plan Mode → pin visible.
-- Existing old PDFs with no `site_walk_plan_sheets` rows still need the Phase 4 backfill/retry action; new uploads are wired.
-- `bash scripts/check-file-size.sh` still fails on 12 pre-existing oversized files outside this slice; all changed files are under 300 lines.
+- Mobile UX changes need to be verified on a physical iPhone/Android device in the field to ensure the viewport constraints hold up perfectly under varying browser chrome states.
+- Need to verify if the "Save & Next Stop" sticky button covers any critical image details when taking a very tall photo.
+
+#### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md` — Updated session handoff.
+
+#### Next Steps (ordered)
+1. Run a live mobile test with Safari and Chrome.
+2. If further adjustments are needed to the Capture View grid rows or the bottom sheet padding, tweak `BOTTOM_SHEET_RESERVE`.
 
 #### Context Files Updated
 - `slate360-context/ONGOING_ISSUES.md` — Added BUG-076.

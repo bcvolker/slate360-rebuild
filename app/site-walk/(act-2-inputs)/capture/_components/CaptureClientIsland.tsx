@@ -103,7 +103,10 @@ function CaptureClientIslandInner({ sessionId, projectId, walkName, showPlanCanv
 
   function saveNextStop(options: { fromPlanPin?: boolean } = {}) {
     rememberCarryForward();
-    const shouldReturnToPlan = options.fromPlanPin || returnToPlanAfterSaveRef.current;
+    // In a plan-based walk, the user always wants to drop the next pin on the plan.
+    // In a quick walk, the camera comes back up immediately.
+    const shouldReturnToPlan = showPlanCanvas || options.fromPlanPin || returnToPlanAfterSaveRef.current;
+    
     updateLocation(nextStopLabel(currentLocation, recentLocations));
     if (shouldReturnToPlan) {
       returnToPlanAfterSaveRef.current = false;
@@ -193,6 +196,7 @@ function CaptureClientIslandInner({ sessionId, projectId, walkName, showPlanCanv
         currentLocation={currentLocation}
         tradeOptions={tradeSettings.trades}
         canManageTrades={Boolean(projectId)}
+        returnsToPlan={showPlanCanvas}
         onDraftChange={patchDraft}
         onCapture={captureNow}
         onFormatNotes={() => void formatNotesWithAi()}
