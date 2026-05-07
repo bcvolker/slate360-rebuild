@@ -202,32 +202,30 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-05-07 (Native Interaction Pass)
+### Session Handoff — 2026-05-07 (Capture State Machine Fix)
 
 #### What Changed
-- `components/site-walk/capture/PlanViewer.tsx` — Added `touch-none`, `select-none`, and `WebkitTouchCallout: "none"` to the plan root, interaction viewport, and plan surface so mobile long-presses do not invoke OS copy/save menus.
-- `components/site-walk/capture/PlanPdfPage.tsx` — Added `touch-none`, `select-none`, and `WebkitTouchCallout: "none"` to the PDF shell; wrapped the React-PDF `Document` in a full-size flex `items-center justify-center` container for natural dead-center positioning.
-- `components/site-walk/capture/CaptureDataBottomSheet.tsx` — Added a visible top-edge swipe handle (`w-12 h-1.5 bg-slate-400/50 rounded-full`) so users recognize the sheet can be dragged/swiped.
-- `ONGOING_ISSUES.md`, `ops/bug-registry.json`, and `slate360-context/dashboard-tabs/site-walk/FIELD_PLATFORM_ROADMAP.md` — Added S360-046 / BUG-065 and a Site Walk roadmap note for the native interaction pass.
+- `app/site-walk/(act-2-inputs)/capture/_components/CaptureClientIsland.tsx` — Added a `returnToPlanAfterSaveRef` flag. Plan-pin camera/upload requests now mark that the next save should return to Plan Mode.
+- `app/site-walk/(act-2-inputs)/capture/_components/CaptureClientIsland.tsx` — Updated `saveNextStop()` so plan-enabled walks or plan-pin-originated captures call `setWalkMode("plan")` after updating the next stop instead of scheduling another camera capture. Photo-only flows still auto-open the next capture.
+- `ONGOING_ISSUES.md`, `ops/bug-registry.json`, and `slate360-context/dashboard-tabs/site-walk/FIELD_PLATFORM_ROADMAP.md` — Added S360-047 / BUG-066 and a Site Walk roadmap note for the capture state machine fix.
 
 #### What's Broken / Partially Done
-- Browser/device smoke verification still needs to confirm iOS/Android long-press on the plan/PDF no longer opens native copy/save callouts.
+- Browser/device smoke verification still needs to confirm Plan Mode → long-press pin → capture photo/upload → Save & Next Stop returns immediately to the Plan Viewer.
 - Existing plan/PDF follow-ups remain: server-side PDF page-count/sheet sync, rasterization, thumbnails, and true thumbnail-strip navigation.
 - Existing capture workflow follow-up remains: offline/local progression remapping if before/after linking must work before prior items sync to UUID-backed rows.
-- `bash scripts/check-file-size.sh` still fails on pre-existing oversized files outside this slice; changed files are under limit (`PlanViewer.tsx` 299, `PlanPdfPage.tsx` 122, `CaptureDataBottomSheet.tsx` 137).
-- Working tree still contains many unrelated pre-existing dirty/deleted files. Stage/commit only the focused native interaction files and context updates.
+- `bash scripts/check-file-size.sh` still fails on pre-existing oversized files outside this slice; changed file is under limit (`CaptureClientIsland.tsx` 191).
+- Working tree still contains many unrelated pre-existing dirty/deleted files. Stage/commit only the focused capture state machine file and context updates.
 
 #### Context Files Updated
-- `ONGOING_ISSUES.md` — Added S360-046 for native OS callout suppression and bottom-sheet swipe affordance.
-- `ops/bug-registry.json` — Added BUG-065 verification for callout blocking, flex centering, and swipe handle.
-- `slate360-context/dashboard-tabs/site-walk/FIELD_PLATFORM_ROADMAP.md` — Added implementation note for native interaction standards.
+- `ONGOING_ISSUES.md` — Added S360-047 for plan-pin Save & Next returning to Plan Mode.
+- `ops/bug-registry.json` — Added BUG-066 verification for plan-pin capture state routing.
+- `slate360-context/dashboard-tabs/site-walk/FIELD_PLATFORM_ROADMAP.md` — Added implementation note for state-machine behavior.
 - `SLATE360_PROJECT_MEMORY.md` — this handoff.
 
 #### Next Steps (ordered)
-1. Mobile smoke: long-press the plan/PDF on iOS/Android and confirm no native copy/save/share menu appears.
-2. Desktop/mobile smoke: open plan mode and confirm the PDF appears centered by the flex wrapper before zoom/pan.
-3. Expand/collapse the capture bottom sheet and confirm the top swipe handle is visually obvious and does not block drag behavior.
-4. Continue later PDF hardening: page-count/sheet sync, rasterization, thumbnails, and thumbnail-strip navigation.
+1. Smoke test Plan Mode: long-press a plan pin, choose Take Photo or Upload Existing, tap Save & Next Stop, and confirm the blueprint is visible again.
+2. Smoke test photo-only capture and confirm Save & Next Stop still opens the next camera/upload flow.
+3. Continue later PDF hardening: page-count/sheet sync, rasterization, thumbnails, and thumbnail-strip navigation.
 
 ### Session Handoff — 2026-05-04 (Amber Brand System Propagation — Full Push)
 

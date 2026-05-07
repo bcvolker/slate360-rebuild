@@ -675,6 +675,20 @@
         "CaptureDataBottomSheet renders a top-edge rounded swipe handle",
         "npm run typecheck passes"
       ]
+    },
+    {
+      "id": "BUG-066",
+      "title": "Plan-pin Save & Next left users stuck in camera mode",
+      "module": "site-walk/plans/capture",
+      "severity": "high",
+      "status": "fixed",
+      "rootCause": "CaptureClientIsland switched from plan mode into camera mode for plan-pin captures but Save & Next always scheduled another next-item capture instead of returning plan-based walks to the blueprint.",
+      "verification": [
+        "Plan-pin capture requests set a return-to-plan flag before opening camera/upload capture",
+        "Save & Next Stop returns plan-enabled walks or plan-pin-originated captures to walkMode plan",
+        "Non-plan capture flows still schedule the next camera/upload capture",
+        "npm run typecheck passes"
+      ]
     }
   ]
 }

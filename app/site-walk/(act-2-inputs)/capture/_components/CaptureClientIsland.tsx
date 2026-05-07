@@ -34,6 +34,7 @@ export function CaptureClientIsland({ sessionId, projectId, walkName, showPlanCa
   const [recentLocations, setRecentLocations] = useState<string[]>([]);
   const carryForwardRef = useRef<Partial<Pick<CaptureItemDraft, "classification" | "trade" | "priority" | "status" | "assignedTo">> | null>(null);
   const appliedCarryRef = useRef<string | null>(null);
+  const returnToPlanAfterSaveRef = useRef(false);
   const { primaryCaptureInput } = useDeviceContext();
   const { items, assignees, activeItem, draft, saveState, aiState, aiMessage, selectItem, patchDraft, saveMarkupData, savePhotoAttachmentPins, formatNotesWithAi } = useCaptureItems({ sessionId, projectId });
 
@@ -89,6 +90,11 @@ export function CaptureClientIsland({ sessionId, projectId, walkName, showPlanCa
   function saveNextStop() {
     rememberCarryForward();
     updateLocation(nextStopLabel(currentLocation, recentLocations));
+    if (showPlanCanvas || returnToPlanAfterSaveRef.current) {
+      returnToPlanAfterSaveRef.current = false;
+      setWalkMode("plan");
+      return;
+    }
     window.setTimeout(captureNow, 150);
   }
 
@@ -98,6 +104,7 @@ export function CaptureClientIsland({ sessionId, projectId, walkName, showPlanCa
   }
 
   function handlePlanCaptureRequest(input: "camera" | "upload") {
+    returnToPlanAfterSaveRef.current = true;
     setWalkMode("camera");
     window.setTimeout(() => requestCameraCapture(input, "plan_pin"), 180);
   }

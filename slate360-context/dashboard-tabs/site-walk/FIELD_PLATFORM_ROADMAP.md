@@ -1,6 +1,6 @@
 # Site Walk — Field Platform Roadmap
 
-**Last Updated:** 2026-05-07 (native interaction pass)
+**Last Updated:** 2026-05-07 (capture state machine fix)
 **Status:** Planning / Pre-build
 **Owner:** Product + Engineering
 
@@ -391,6 +391,8 @@ These are the highest-value field workflow features to preserve for future build
 **Implementation note — 2026-05-07:** Capture now has a shared `useDeviceContext()` hook: desktop primary capture dispatches Upload Photo/file selection, while mobile primary capture dispatches Camera. The active bottom sheet consumes `useCaptureItems` assignees/items, renders compact Trade, Assignee, Status, and Link to Previous (Progression) controls, and autosave persists category/trade/tags/before_item_id from the draft instead of nulling workflow fields.
 
 **Implementation note — 2026-05-07:** Native interaction pass suppresses OS selection/copy/save callouts on the plan viewer and PDF shell with `touch-none`, `select-none`, and `WebkitTouchCallout: none`; the React-PDF `Document` is wrapped in a full-size flex-centering shell, and the capture bottom sheet now shows a top-edge swipe handle.
+
+**Implementation note — 2026-05-07:** Capture state machine fix now returns plan-enabled walks and plan-pin-originated captures back to Plan Mode after Save & Next Stop, instead of scheduling another camera capture and leaving field users stranded away from the blueprint.
 
 ---
 
