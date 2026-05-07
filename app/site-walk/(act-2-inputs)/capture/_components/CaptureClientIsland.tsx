@@ -87,10 +87,10 @@ export function CaptureClientIsland({ sessionId, projectId, walkName, showPlanCa
     requestCameraCapture(input, "next_item");
   }
 
-  function saveNextStop() {
+  function saveNextStop(options: { fromPlanPin?: boolean } = {}) {
     rememberCarryForward();
     updateLocation(nextStopLabel(currentLocation, recentLocations));
-    if (showPlanCanvas || returnToPlanAfterSaveRef.current) {
+    if (options.fromPlanPin || showPlanCanvas || returnToPlanAfterSaveRef.current) {
       returnToPlanAfterSaveRef.current = false;
       setWalkMode("plan");
       return;
@@ -107,6 +107,10 @@ export function CaptureClientIsland({ sessionId, projectId, walkName, showPlanCa
     returnToPlanAfterSaveRef.current = true;
     setWalkMode("camera");
     window.setTimeout(() => requestCameraCapture(input, "plan_pin"), 180);
+  }
+
+  function handlePlanCaptureSaved() {
+    saveNextStop({ fromPlanPin: true });
   }
 
   if (walkMode === "choice") {
@@ -132,6 +136,7 @@ export function CaptureClientIsland({ sessionId, projectId, walkName, showPlanCa
             ghostImageUrl={ghostImageUrl}
             onMarkupChange={(itemId, markup) => void saveMarkupData(itemId, markup)}
             onAttachmentPinsChange={(itemId, pins) => void savePhotoAttachmentPins(itemId, pins)}
+            onPlanCaptureSaved={handlePlanCaptureSaved}
             onSelectItem={selectItem}
           />
         )}

@@ -110,7 +110,7 @@ export function CaptureDataBottomSheet({ item, items, assignees, draft, saveStat
 
           {aiMessage && <p className="rounded-2xl border border-amber-500/20 bg-amber-500/10 px-3 py-2 text-xs font-bold text-amber-100">{aiMessage}</p>}
 
-          <button type="button" onClick={onSaveNextStop} disabled={isSaving} className="inline-flex min-h-14 w-full items-center justify-center gap-2 rounded-3xl bg-amber-500 px-5 text-base font-black text-slate-950 shadow-[0_0_28px_rgba(245,158,11,0.34)] transition hover:bg-amber-400 disabled:opacity-60">
+          <button type="button" onClick={() => onSaveNextStop()} disabled={isSaving} className="inline-flex min-h-14 w-full items-center justify-center gap-2 rounded-3xl bg-amber-500 px-5 text-base font-black text-slate-950 shadow-[0_0_28px_rgba(245,158,11,0.34)] transition hover:bg-amber-400 disabled:opacity-60">
             {isSaving ? <Loader2 className="h-5 w-5 animate-spin" /> : <SkipForward className="h-5 w-5" />}
             Save &amp; Next Stop
           </button>

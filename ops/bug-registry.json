@@ -720,6 +720,22 @@
         "Trade defaults include General, Electrical, Plumbing, HVAC, Framing, and Concrete",
         "npm run typecheck passes"
       ]
+    },
+    {
+      "id": "BUG-069",
+      "title": "Plan-pin upload confirmation did not drive the return-to-plan loop",
+      "module": "site-walk/plans/capture",
+      "severity": "high",
+      "status": "fixed",
+      "rootCause": "The upload confirmation modal only closed its local preview and started the camera viewfinder upload flow; the saved capture callback did not carry plan-pin context back up to CaptureClientIsland, so the main state machine could not automatically execute Save & Next and return to the blueprint after the database save completed.",
+      "verification": [
+        "PendingUploadPreviewModal exposes an explicit onConfirmAttach callback and stops click propagation before invoking it",
+        "CameraViewfinder calls prepareCaptureFile from Confirm & Attach and passes plan-target save completion back to the parent via onPlanCaptureSaved",
+        "useCaptureUpload passes the active planTarget through its onSaved context after online, offline, and fallback saves",
+        "CaptureClientIsland handles plan capture saved events by calling saveNextStop({ fromPlanPin: true }) and setting walkMode back to plan",
+        "CaptureDataBottomSheet wraps onSaveNextStop so click events do not leak into the saveNextStop options object",
+        "npm run typecheck passes"
+      ]
     }
   ]
 }

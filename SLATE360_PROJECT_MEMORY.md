@@ -202,37 +202,38 @@ When editing oversized files, always read both the state declarations AND the JS
 
 <!-- Each chat MUST overwrite this section at end of conversation. Next chat reads this first. -->
 
-### Session Handoff — 2026-05-07 (Centering Math & Context Pass)
+### Session Handoff — 2026-05-07 (Capture Loop Wiring Pass)
 
 #### What Changed
-- `components/site-walk/capture/planViewerGeometry.ts` — Added `calculateCenteredPlanTransform()` to compute plan scale plus x/y center offsets from measured viewport/surface dimensions.
-- `components/site-walk/capture/PlanViewer.tsx` — Fit effect now applies the calculated centered transform; plan surface starts from `left-0 top-0` with `transformOrigin: "top left"` so transform x/y mathematically own initial centering.
-- `components/site-walk/capture/PlanQuickActionMenu.tsx` — Imported `useDeviceContext()` and hides the Take Photo button when `isDesktop` is true; desktop pin menus now show upload-only capture actions.
-- `components/site-walk/capture/CaptureDataBottomSheet.tsx` — Replaced the static swipe handle with an animated `ChevronUp` indicator that rotates when expanded.
-- `lib/types/site-walk-capture.ts` — Trade defaults now include General, Electrical, Plumbing, HVAC, Framing, and Concrete at the front of the dropdown list.
-- `ONGOING_ISSUES.md`, `ops/bug-registry.json`, and `slate360-context/dashboard-tabs/site-walk/FIELD_PLATFORM_ROADMAP.md` — Added S360-049 / BUG-068 and the roadmap implementation note for the centering/context pass.
+- `components/site-walk/capture/PendingUploadPreviewModal.tsx` — Renamed the confirmation prop to `onConfirmAttach` and made Confirm & Attach stop propagation before invoking the callback.
+- `components/site-walk/capture/CameraViewfinder.tsx` — Confirm & Attach now calls `confirmPendingUpload()` → `prepareCaptureFile()` → `savePhoto()`, and plan-target save completions bubble through a new `onPlanCaptureSaved` callback.
+- `lib/hooks/useCaptureUpload.ts` — `onSaved` now includes `{ planTarget }` context after online, offline, and fallback saves so callers know whether the capture originated from a plan pin.
+- `components/site-walk/capture/VisualCaptureView.tsx` — Passes `onPlanCaptureSaved` from the island into `CameraViewfinder`.
+- `app/site-walk/(act-2-inputs)/capture/_components/CaptureClientIsland.tsx` — `saveNextStop()` now accepts `{ fromPlanPin }`; plan capture saved events call `saveNextStop({ fromPlanPin: true })`, clear the return-to-plan flag, and return `walkMode` to `plan`.
+- `components/site-walk/capture/CaptureDataBottomSheet.tsx` — Save & Next button now wraps `onSaveNextStop()` so click events cannot be mistaken for options.
+- `ONGOING_ISSUES.md`, `ops/bug-registry.json`, and `slate360-context/dashboard-tabs/site-walk/FIELD_PLATFORM_ROADMAP.md` — Added S360-050 / BUG-069 and the roadmap implementation note for the capture loop wiring pass.
 
 #### What's Broken / Partially Done
-- Browser smoke verification still needs to confirm Plan Mode starts centered on desktop and mobile for the Broadway/APDF plan set, including after changing pages and resizing.
-- Browser smoke verification still needs to confirm desktop plan-pin long-press menus hide Take Photo and show Upload existing photo, while mobile still shows Take Photo.
-- Browser smoke verification still needs to confirm the collapsed bottom sheet has a visible bouncing arrow and the Trade dropdown includes Framing/Concrete plus the other defaults.
-- The previous desktop upload smoke tests remain worth running: Select Photos opens once, Cancel permits selecting the same file again, Confirm & Attach starts upload, and preview stays contained/non-pixelated.
+- Browser smoke verification still needs to confirm desktop plan pin → Upload existing photo → Confirm & Attach saves/attaches the item and returns directly to Plan Mode.
+- Browser smoke verification still needs to confirm mobile plan pin → Take Photo also returns directly to Plan Mode after the item saves.
+- Confirm whether automatically running Save & Next after plan-pin save is the desired UX; if users need to edit notes/trade before returning to the plan, gate the auto-return behind a new "Quick attach" mode.
+- Previous smoke tests remain worth running: Plan Mode starts centered, desktop pin menu is upload-only, bottom sheet arrow bounces, Trade includes Framing/Concrete, desktop file picker can reselect the same file, and previews stay contained.
 - Existing plan/PDF follow-ups remain: server-side PDF page-count/sheet sync, rasterization, thumbnails, and true thumbnail-strip navigation.
 - Existing capture workflow follow-up remains: offline/local progression remapping if before/after linking must work before prior items sync to UUID-backed rows.
-- `bash scripts/check-file-size.sh` still fails on 12 pre-existing oversized files outside this slice; changed files are under limit (`PlanViewer.tsx` 295, `planViewerGeometry.ts` 18, `PlanQuickActionMenu.tsx` 56, `CaptureDataBottomSheet.tsx` 135, `site-walk-capture.ts` 88).
-- Working tree still contains many unrelated pre-existing dirty/deleted files. Stage/commit only the focused centering/context files and context updates.
+- `bash scripts/check-file-size.sh` still fails on 12 pre-existing oversized files outside this slice; changed files are under limit (`CaptureClientIsland.tsx` 196, `CameraViewfinder.tsx` 287, `PendingUploadPreviewModal.tsx` 27, `VisualCaptureView.tsx` 115, `useCaptureUpload.ts` 158, `CaptureDataBottomSheet.tsx` 135).
+- Working tree still contains many unrelated pre-existing dirty/deleted files. Stage/commit only the focused capture loop wiring files and context updates.
 
 #### Context Files Updated
-- `ONGOING_ISSUES.md` — Added S360-049 for mathematical plan centering, desktop pin menu context, swipe arrow, and trade defaults.
-- `ops/bug-registry.json` — Added BUG-068 verification for the centering/context pass.
-- `slate360-context/dashboard-tabs/site-walk/FIELD_PLATFORM_ROADMAP.md` — Added implementation note for centering/context behavior.
+- `ONGOING_ISSUES.md` — Added S360-050 for plan-pin upload confirmation and return-to-plan wiring.
+- `ops/bug-registry.json` — Added BUG-069 verification for the capture loop wiring pass.
+- `slate360-context/dashboard-tabs/site-walk/FIELD_PLATFORM_ROADMAP.md` — Added implementation note for capture loop wiring behavior.
 - `SLATE360_PROJECT_MEMORY.md` — this handoff.
 
 #### Next Steps (ordered)
-1. Smoke test Plan Mode centering: open a plan walk on desktop and mobile, verify the sheet starts centered, then change pages and resize/rotate.
-2. Smoke test plan-pin menu context: desktop long-press should show upload-only; mobile long-press should still show Take Photo.
-3. Smoke test bottom sheet/trade UI: collapsed arrow bounces, expands/collapses cleanly, and Trade includes General, Electrical, Plumbing, HVAC, Framing, and Concrete.
-4. Re-run the previous desktop upload smoke tests to make sure Confirm & Attach still opens the active capture flow after this pass.
+1. Smoke test desktop plan-pin upload: long-press pin → Upload existing photo → Confirm & Attach → wait for save → Plan Viewer returns without another camera/upload prompt.
+2. Smoke test mobile plan-pin camera: long-press pin → Take Photo → wait for save → Plan Viewer returns.
+3. Confirm the item appears attached to the pin and the bottom-sheet Save & Next button still works for manual/photo-only flows.
+4. If auto-return is too aggressive for field notes, add an explicit quick-attach vs add-details choice before returning to Plan Mode.
 5. Continue later PDF hardening: page-count/sheet sync, rasterization, thumbnails, and thumbnail-strip navigation.
 
 ### Session Handoff — 2026-05-04 (Amber Brand System Propagation — Full Push)

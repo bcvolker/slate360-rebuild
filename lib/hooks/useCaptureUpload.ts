@@ -18,7 +18,7 @@ type UseCaptureUploadParams = {
   sessionId: string;
   planTarget?: PlanCaptureTarget | null;
   onPlanTargetSaved?: () => void;
-  onSaved?: (item: CaptureItemRecord) => void;
+  onSaved?: (item: CaptureItemRecord, context: CaptureSavedContext) => void;
 };
 
 type SavePhotoOptions = {
@@ -35,6 +35,8 @@ export type PlanCaptureTarget = {
   pinId?: string;
 };
 
+type CaptureSavedContext = { planTarget: PlanCaptureTarget | null };
+
 export function useCaptureUpload({ sessionId, planTarget, onPlanTargetSaved, onSaved }: UseCaptureUploadParams) {
   const [status, setStatus] = useState<CaptureStatus>({ kind: "idle", message: "Ready to capture." });
 
@@ -49,7 +51,7 @@ export function useCaptureUpload({ sessionId, planTarget, onPlanTargetSaved, onS
       const local = await queueOfflineCapture({ sessionId, itemType: "photo", title, metadata, file, captureMode: "camera", clientItemId, clientMutationId, planTarget, previewUrl });
       setStatus({ kind: "complete", message: "Working offline — photo queued and ready to sync." });
       if (planTarget) onPlanTargetSaved?.();
-      onSaved?.(local);
+      onSaved?.(local, { planTarget: planTarget ?? null });
       return;
     }
     try {
@@ -67,12 +69,12 @@ export function useCaptureUpload({ sessionId, planTarget, onPlanTargetSaved, onS
       if (planTarget) await attachItemToPlanPin(item.id, planTarget);
       setStatus({ kind: "complete", message: planTarget ? "Photo saved and attached to the selected plan pin." : "Photo saved to Site Walk Files / Photos." });
       if (planTarget) onPlanTargetSaved?.();
-      onSaved?.({ ...item, local_preview_url: previewUrl });
+      onSaved?.({ ...item, local_preview_url: previewUrl }, { planTarget: planTarget ?? null });
     } catch {
       const local = await queueOfflineCapture({ sessionId, itemType: "photo", title, metadata, file, captureMode: "camera", clientItemId, clientMutationId, planTarget, previewUrl });
       setStatus({ kind: "complete", message: "Connection dropped — photo saved offline and queued." });
       if (planTarget) onPlanTargetSaved?.();
-      onSaved?.(local);
+      onSaved?.(local, { planTarget: planTarget ?? null });
     }
   }, [onPlanTargetSaved, onSaved, planTarget, sessionId]);
 
@@ -97,7 +99,7 @@ export function useCaptureUpload({ sessionId, planTarget, onPlanTargetSaved, onS
       const local = await queueOfflineCapture(noteParams);
       setStatus({ kind: "complete", message: "Working offline — note queued and ready to sync." });
       if (planTarget) onPlanTargetSaved?.();
-      onSaved?.(local);
+      onSaved?.(local, { planTarget: planTarget ?? null });
       return;
     }
     try {
@@ -105,12 +107,12 @@ export function useCaptureUpload({ sessionId, planTarget, onPlanTargetSaved, onS
       if (planTarget) await attachItemToPlanPin(item.id, planTarget);
       setStatus({ kind: "complete", message: planTarget ? "Note saved and attached to the selected plan pin." : mode === "voice" ? "Voice/dictation note saved." : "Text note saved." });
       if (planTarget) onPlanTargetSaved?.();
-      onSaved?.(item);
+      onSaved?.(item, { planTarget: planTarget ?? null });
     } catch {
       const local = await queueOfflineCapture(noteParams);
       setStatus({ kind: "complete", message: "Connection dropped — note saved offline and queued." });
       if (planTarget) onPlanTargetSaved?.();
-      onSaved?.(local);
+      onSaved?.(local, { planTarget: planTarget ?? null });
     }
   }, [onPlanTargetSaved, onSaved, planTarget, sessionId]);
 

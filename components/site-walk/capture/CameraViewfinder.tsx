@@ -24,13 +24,14 @@ type Props = {
   layout?: "full" | "visual";
   activeItem?: CaptureItemRecord | null;
   markupEnabled?: boolean;
+  onPlanCaptureSaved?: () => void;
   onMarkupChange?: (itemId: string, markup: MarkupData) => void;
   onAttachmentPinsChange?: (itemId: string, pins: PhotoAttachmentPin[]) => void;
 };
 
 type PendingUpload = { file: File; url: string };
 
-export function CameraViewfinder({ sessionId, autoOpenCamera = false, launchId = null, layout = "full", activeItem = null, markupEnabled = true, onMarkupChange, onAttachmentPinsChange }: Props) {
+export function CameraViewfinder({ sessionId, autoOpenCamera = false, launchId = null, layout = "full", activeItem = null, markupEnabled = true, onPlanCaptureSaved, onMarkupChange, onAttachmentPinsChange }: Props) {
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const uploadInputRef = useRef<HTMLInputElement>(null);
   const consumedLaunchRef = useRef<string | null>(null);
@@ -41,7 +42,7 @@ export function CameraViewfinder({ sessionId, autoOpenCamera = false, launchId =
   const [pendingUpload, setPendingUpload] = useState<PendingUpload | null>(null);
   const [noteText, setNoteText] = useState("");
   const { target, clearTarget } = usePlanCaptureTarget();
-  const { status, savePhoto, saveTextNote, resetStatus } = useCaptureUpload({ sessionId, planTarget: target, onPlanTargetSaved: clearTarget, onSaved: (item) => publishCaptureItemFocus({ item, reason: "captured", focus: false }) });
+  const { status, savePhoto, saveTextNote, resetStatus } = useCaptureUpload({ sessionId, planTarget: target, onPlanTargetSaved: clearTarget, onSaved: (item, context) => { publishCaptureItemFocus({ item, reason: "captured", focus: false }); if (context.planTarget) onPlanCaptureSaved?.(); } });
   const busy = status.kind === "uploading" || status.kind === "saving";
   const visualOnly = layout === "visual";
 
@@ -216,7 +217,7 @@ export function CameraViewfinder({ sessionId, autoOpenCamera = false, launchId =
         <input ref={uploadInputRef} type="file" accept="image/*" className="hidden" onClick={resetFileInputClick} onChange={(event) => handleFileInputChange(event, true)} />
       </div>
 
-      {pendingUpload && <PendingUploadPreviewModal fileName={pendingUpload.file.name} imageUrl={pendingUpload.url} busy={busy} onCancel={cancelPendingUpload} onConfirm={confirmPendingUpload} />}
+      {pendingUpload && <PendingUploadPreviewModal fileName={pendingUpload.file.name} imageUrl={pendingUpload.url} busy={busy} onCancel={cancelPendingUpload} onConfirmAttach={confirmPendingUpload} />}
 
       {!visualOnly && <div className="mt-4 rounded-2xl border border-white/10 bg-white/[0.04] p-4">
         <div className="flex items-center gap-2 text-sm font-black text-slate-100"><PencilLine className="h-4 w-4 text-amber-300" /> Quick text / voice note</div>

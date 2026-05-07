@@ -1,6 +1,6 @@
 # Site Walk — Field Platform Roadmap
 
-**Last Updated:** 2026-05-07 (centering math and desktop context pass)
+**Last Updated:** 2026-05-07 (capture loop wiring pass)
 **Status:** Planning / Pre-build
 **Owner:** Product + Engineering
 
@@ -397,6 +397,8 @@ These are the highest-value field workflow features to preserve for future build
 **Implementation note — 2026-05-07:** Desktop image upload now clears file inputs on click/change, stops file picker events from bubbling into parent capture handlers, stages upload/drag-drop selections in a contained preview with **Confirm & Attach** and **Cancel**, and constrains preview imagery with `object-contain`, `max-w-full`, and `max-h-[60vh]` so uploaded photos do not stretch across the capture screen.
 
 **Implementation note — 2026-05-07:** Centering/context pass now computes initial plan transform x/y offsets from measured viewport and surface dimensions instead of relying on CSS centering alone, uses `useDeviceContext()` in the plan-pin quick menu so desktop users see upload-only pin actions, replaces the bottom-sheet static handle with an animated `ChevronUp`, and expands trade defaults to include General, Electrical, Plumbing, HVAC, Framing, and Concrete.
+
+**Implementation note — 2026-05-07:** Capture loop wiring pass now makes the desktop **Confirm & Attach** action invoke an explicit attach callback, carries plan-target save context through `useCaptureUpload`, bubbles plan capture completion from `CameraViewfinder` through `VisualCaptureView` to `CaptureClientIsland`, and calls `saveNextStop({ fromPlanPin: true })` so plan-pin photo/upload saves return directly to Plan Mode after the item is saved.
 
 ---
 

@@ -7,10 +7,10 @@ type Props = {
   imageUrl: string;
   busy: boolean;
   onCancel: () => void;
-  onConfirm: () => void;
+  onConfirmAttach: () => void;
 };
 
-export function PendingUploadPreviewModal({ fileName, imageUrl, busy, onCancel, onConfirm }: Props) {
+export function PendingUploadPreviewModal({ fileName, imageUrl, busy, onCancel, onConfirmAttach }: Props) {
   return (
     <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/80 p-4" role="dialog" aria-label="Confirm uploaded image" onClick={onCancel}>
       <div className="w-full max-w-3xl rounded-[2rem] border border-white/10 bg-slate-950 p-4 shadow-2xl" onClick={(event) => event.stopPropagation()}>
@@ -19,8 +19,8 @@ export function PendingUploadPreviewModal({ fileName, imageUrl, busy, onCancel, 
           <img src={imageUrl} alt={fileName} className="max-h-[60vh] max-w-full rounded-2xl object-contain" draggable={false} />
         </div>
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          <button type="button" onClick={onConfirm} disabled={busy} className="min-h-12 rounded-2xl bg-amber-500 px-4 py-3 text-sm font-black text-slate-950 hover:bg-amber-400 disabled:opacity-60">Confirm &amp; Attach</button>
-          <button type="button" onClick={onCancel} className="min-h-12 rounded-2xl border border-white/15 bg-white/[0.04] px-4 py-3 text-sm font-black text-white hover:border-amber-300/50">Cancel</button>
+          <button type="button" onClick={(event) => { event.stopPropagation(); onConfirmAttach(); }} disabled={busy} className="min-h-12 rounded-2xl bg-amber-500 px-4 py-3 text-sm font-black text-slate-950 hover:bg-amber-400 disabled:opacity-60">Confirm &amp; Attach</button>
+          <button type="button" onClick={(event) => { event.stopPropagation(); onCancel(); }} className="min-h-12 rounded-2xl border border-white/15 bg-white/[0.04] px-4 py-3 text-sm font-black text-white hover:border-amber-300/50">Cancel</button>
         </div>
       </div>
     </div>

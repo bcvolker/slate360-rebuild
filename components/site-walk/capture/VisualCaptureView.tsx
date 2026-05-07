@@ -22,10 +22,11 @@ type Props = {
   ghostImageUrl: string | null;
   onMarkupChange: (itemId: string, markup: MarkupData) => void;
   onAttachmentPinsChange: (itemId: string, pins: PhotoAttachmentPin[]) => void;
+  onPlanCaptureSaved?: () => void;
   onSelectItem: (item: CaptureItemRecord) => void;
 };
 
-export function VisualCaptureView({ sessionId, autoOpenCamera, launchId, items, activeItemId, modeLabel, ghostImageUrl, onMarkupChange, onAttachmentPinsChange, onSelectItem }: Props) {
+export function VisualCaptureView({ sessionId, autoOpenCamera, launchId, items, activeItemId, modeLabel, ghostImageUrl, onMarkupChange, onAttachmentPinsChange, onPlanCaptureSaved, onSelectItem }: Props) {
   const [ghostOn, setGhostOn] = useState(false);
   const [markupOn, setMarkupOn] = useState(false);
   const photoItems = items.filter((item) => item.item_type === "photo");
@@ -43,6 +44,7 @@ export function VisualCaptureView({ sessionId, autoOpenCamera, launchId, items, 
           layout="visual"
           activeItem={activeItem}
           markupEnabled={markupOn}
+          onPlanCaptureSaved={onPlanCaptureSaved}
           onMarkupChange={onMarkupChange}
           onAttachmentPinsChange={onAttachmentPinsChange}
         />
