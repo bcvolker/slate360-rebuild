@@ -46,18 +46,18 @@ export function StartPlanWalkButton({ projectId, projectName, planSetId, disable
   }
 
   return (
-    <div className="rounded-3xl border border-amber-400/20 bg-amber-500/10 p-4 shadow-[0_18px_50px_rgba(245,158,11,0.08)]">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="text-xs font-black uppercase tracking-[0.18em] text-amber-300">Ready for field capture</p>
-          <p className="mt-1 text-sm font-bold text-slate-300">Start a walk from this plan set to open the mobile plan viewer first.</p>
-          {error && <p className="mt-2 text-sm font-bold text-rose-300">{error}</p>}
+    <div className="rounded-3xl border border-amber-400/30 bg-amber-500/10 p-3 sm:p-4 shadow-[0_18px_50px_rgba(245,158,11,0.08)]">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <p className="text-[11px] font-black uppercase tracking-[0.18em] text-amber-300">Ready for field capture</p>
+          <p className="hidden text-sm font-bold text-slate-300 sm:block">Start a walk on this plan set — opens the mobile plan viewer.</p>
+          {error && <p className="mt-1 text-sm font-bold text-rose-300">{error}</p>}
         </div>
         <button
           type="button"
           onClick={startWalk}
           disabled={disabled || starting || !planSetId}
-          className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-amber-500 px-5 text-sm font-black text-slate-950 shadow-[0_0_24px_rgba(245,158,11,0.25)] transition hover:bg-amber-400 disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-amber-500 px-5 text-sm font-black text-slate-950 shadow-[0_0_24px_rgba(245,158,11,0.25)] transition hover:bg-amber-400 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
         >
           {starting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
           {starting ? "Starting…" : "Start walk with plans"}

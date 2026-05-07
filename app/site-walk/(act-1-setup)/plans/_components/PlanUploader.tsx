@@ -67,26 +67,14 @@ export function PlanUploader({ project, onPlanRoomChange }: Props) {
   }
 
   return (
-    <GlassCard className="p-5">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <p className="text-xs font-black uppercase tracking-[0.18em] text-amber-400">Upload</p>
-          <h2 className="mt-1 text-xl font-black text-white">Plan set PDF</h2>
-          <p className="mt-1 text-sm leading-6 text-slate-400">Uploads route through SlateDrop into Site Walk Files / Plans.</p>
-        </div>
-        <button type="button" onClick={openFilePicker} disabled={!canSelectFile} className="inline-flex items-center gap-2 rounded-xl bg-amber-500 px-4 py-2 text-sm font-black text-slate-950 transition hover:bg-amber-400 disabled:opacity-60">
-          <FileUp className="h-4 w-4" /> Choose PDF
-        </button>
-      </div>
-
-      <div onClick={openFilePicker} onKeyDown={handlePickerKeyDown} onDrop={handleDrop} onDragOver={(event) => { event.preventDefault(); setDragging(true); }} onDragLeave={() => setDragging(false)} role="button" tabIndex={0} aria-disabled={!canSelectFile} className={`mt-5 cursor-pointer rounded-3xl border border-dashed border-white/15 bg-white/[0.04] p-8 text-center transition focus:outline-none focus:ring-2 focus:ring-amber-500 ${dragging ? "ring-2 ring-amber-500" : "ring-1 ring-white/10"}`}>
+    <GlassCard className="p-4 sm:p-5">
+      <div onClick={openFilePicker} onKeyDown={handlePickerKeyDown} onDrop={handleDrop} onDragOver={(event) => { event.preventDefault(); setDragging(true); }} onDragLeave={() => setDragging(false)} role="button" tabIndex={0} aria-disabled={!canSelectFile} className={`relative cursor-pointer rounded-3xl border border-dashed border-white/15 bg-white/[0.04] p-6 text-center transition focus:outline-none focus:ring-2 focus:ring-amber-500 sm:p-10 ${dragging ? "ring-2 ring-amber-500" : ""} ${canSelectFile ? "" : "opacity-60"}`}>
         <input ref={inputRef} type="file" accept="application/pdf,.pdf" className="hidden" onChange={(event) => event.target.files && void handleFiles(event.target.files)} />
         <FileUp className="mx-auto h-10 w-10 text-amber-400" />
-        <p className="mt-3 text-lg font-black text-white">Tap to choose a PDF or drag it here</p>
-        <p className="mt-1 text-sm text-slate-400">Mobile users can tap this area to open the native file picker. Large files can take a moment.</p>
+        <p className="mt-3 text-base font-black text-white sm:text-lg">{project ? "Tap to choose a PDF or drag it here" : "Pick a project above to upload a plan set"}</p>
+        <p className="mt-1 text-xs text-slate-400 sm:text-sm">PDFs route through SlateDrop into Site Walk Files / Plans.</p>
       </div>
-
-      <div className={`mt-4 rounded-2xl px-4 py-3 text-sm font-black ${statusClasses(state.stage)}`}>{state.message}</div>
+      <div className={`mt-3 rounded-2xl px-3 py-2 text-xs font-black sm:text-sm ${statusClasses(state.stage)}`}>{state.message}</div>
     </GlassCard>
   );
 }
