@@ -48,6 +48,7 @@ export const PATCH = (req: NextRequest, ctx: IdRouteContext) =>
     if (body.cost_estimate !== undefined) updates.cost_estimate = body.cost_estimate;
     if (body.manpower_hours !== undefined) updates.manpower_hours = body.manpower_hours;
     if (body.before_item_id !== undefined) updates.before_item_id = body.before_item_id;
+    if (body.item_relationship !== undefined) updates.item_relationship = body.item_relationship;
     if (body.capture_mode !== undefined) updates.capture_mode = body.capture_mode;
     if (body.sync_state !== undefined) updates.sync_state = body.sync_state;
     if (body.upload_state !== undefined) updates.upload_state = body.upload_state;

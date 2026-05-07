@@ -75,6 +75,9 @@ export const SITE_WALK_ITEM_RELATIONSHIPS = [
   "standalone",
   "resolution",
   "rework",
+  "before",
+  "after",
+  "progress",
 ] as const;
 
 export const SITE_WALK_DELIVERABLE_TYPES = [

@@ -100,15 +100,25 @@ export function CaptureDataBottomSheet({ item, items, assignees, draft, saveStat
           </div>
 
           <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-3">
-            <button type="button" disabled={!draft} onClick={() => { if (progressionActive) { setLinkProgression(false); onDraftChange({ beforeItemId: "" }); } else setLinkProgression(true); }} className={`inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl px-4 text-sm font-black transition disabled:opacity-50 ${progressionActive ? "bg-amber-500 text-slate-950" : "border border-white/10 bg-black/25 text-slate-200"}`}>
+            <button type="button" disabled={!draft} onClick={() => { if (progressionActive) { setLinkProgression(false); onDraftChange({ beforeItemId: "", itemRelationship: "standalone" }); } else { setLinkProgression(true); onDraftChange({ itemRelationship: "after" }); } }} className={`inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl px-4 text-sm font-black transition disabled:opacity-50 ${progressionActive ? "bg-amber-500 text-slate-950" : "border border-white/10 bg-black/25 text-slate-200"}`}>
               <Link2 className="h-4 w-4" /> Link to Previous (Progression)
             </button>
             {progressionActive && (
-              <select value={draft?.beforeItemId ?? ""} onChange={(event) => onDraftChange({ beforeItemId: event.target.value })} disabled={!draft || previousItems.length === 0} className={selectClass} aria-label="Previous item for progression timeline">
-                <option value="">Select existing pin/item…</option>
-                {previousItems.length === 0 && <option value="" disabled>No previous items yet</option>}
-                {previousItems.map((previousItem) => <option key={previousItem.id} value={previousItem.id}>{formatItemLabel(previousItem)}</option>)}
-              </select>
+              <>
+                <select value={draft?.beforeItemId ?? ""} onChange={(event) => onDraftChange({ beforeItemId: event.target.value })} disabled={!draft || previousItems.length === 0} className={selectClass} aria-label="Previous item for progression timeline">
+                  <option value="">Select existing pin/item…</option>
+                  {previousItems.length === 0 && <option value="" disabled>No previous items yet</option>}
+                  {previousItems.map((previousItem) => <option key={previousItem.id} value={previousItem.id}>{formatItemLabel(previousItem)}</option>)}
+                </select>
+                <div className="mt-2 flex gap-2">
+                  {(["after","progress"] as const).map((role) => (
+                    <button key={role} type="button" onClick={() => onDraftChange({ itemRelationship: role })} className={`flex-1 rounded-2xl border px-3 py-2 text-[11px] font-black uppercase tracking-wider transition ${draft?.itemRelationship === role ? "border-amber-400 bg-amber-500/20 text-amber-100" : "border-white/10 bg-black/25 text-slate-300 hover:text-white"}`}>{role === "after" ? "After (paired)" : "Progress step"}</button>
+                  ))}
+                </div>
+                {draft?.beforeItemId && (
+                  <a href={`/site-walk/items/${draft.beforeItemId}/compare`} target="_blank" rel="noopener noreferrer" className="mt-2 inline-block text-[10px] font-black uppercase tracking-[0.16em] text-amber-300 hover:text-amber-100">Open before/after viewer ↗</a>
+                )}
+              </>
             )}
           </div>
 

@@ -5,7 +5,7 @@ import Link from "next/link";
 import {
   ChevronDown,
   LayoutDashboard,
-  MapPin,
+  
   Compass,
   Palette,
   Layers,
@@ -41,8 +41,7 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { label: "Command Center", href: "/dashboard",       icon: LayoutDashboard },
   { label: "Projects",       href: "/projects",        icon: FolderKanban },
-  { label: "Site Walk",      href: "/site-walk",                icon: MapPin },
-  { label: "360 Tours",      href: "/apps/360-tour-builder",    icon: Compass,   comingSoon: true },
+    { label: "360 Tours",      href: "/apps/360-tour-builder",    icon: Compass,   comingSoon: true },
   { label: "Design Studio",  href: "/apps/design-studio",       icon: Palette,   comingSoon: true },
   { label: "Content Studio", href: "/apps/content-studio",      icon: Layers,    comingSoon: true },
   { label: "Geospatial",     href: "/geospatial",      icon: Globe,        gate: "canAccessGeospatial", phase1Hidden: true },

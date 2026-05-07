@@ -1,4 +1,4 @@
-import type { ItemPriority, ItemStatus, SiteWalkCaptureMode, SiteWalkItemType, SiteWalkSyncState, SiteWalkUploadState } from "./site-walk";
+import type { ItemPriority, ItemRelationship, ItemStatus, SiteWalkCaptureMode, SiteWalkItemType, SiteWalkSyncState, SiteWalkUploadState } from "./site-walk";
 import type { MarkupData } from "@/lib/site-walk/markup-types";
 import type { PhotoAttachmentPin } from "@/lib/site-walk/photo-attachments";
 
@@ -25,6 +25,7 @@ export type CaptureItemRecord = {
   trade?: string | null;
   tags?: string[];
   before_item_id?: string | null;
+  item_relationship?: ItemRelationship;
   cost_estimate?: number | null;
   priority: ItemPriority;
   item_status: ItemStatus;
@@ -47,6 +48,7 @@ export type CaptureItemDraft = {
   trade: string;
   tags: string[];
   beforeItemId: string;
+  itemRelationship: ItemRelationship;
   costImpact: string;
   priority: ItemPriority;
   status: ItemStatus;
@@ -77,6 +79,7 @@ export function captureItemToDraft(item: CaptureItemRecord): CaptureItemDraft {
     classification,
     trade: item.trade ?? "",
     tags: readTags(item),
+    itemRelationship: (item.item_relationship ?? "standalone") as ItemRelationship,
     beforeItemId: item.before_item_id ?? "",
     costImpact: item.cost_estimate === null ? "" : String(item.cost_estimate),
     priority: item.priority,

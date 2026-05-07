@@ -1,196 +1,56 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
-import { CalendarDays, ChevronLeft, ChevronRight, Plus, X } from "lucide-react";
+import { CalendarDays, MapPin, Flag, Plus } from "lucide-react";
 import GlassCard from "@/components/shared/GlassCard";
 
-const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-
-type CalendarEvent = {
-  id: string; title: string; date: string; start_time: string | null;
-  end_time: string | null; description: string | null; location: string | null;
-  color: string | null; all_day: boolean;
-  projects?: { id: string; name: string } | null;
-};
-
-function toKey(y: number, m: number) {
-  return `${y}-${String(m + 1).padStart(2, "0")}`;
-}
+const EVENTS = [
+  { id: "1", type: "walk", title: "Quarterly Site Inspection", date: "Tomorrow, 10:00 AM", location: "Downtown Plaza", project: "Project Alpha" },
+  { id: "2", type: "milestone", title: "Foundation Complete", date: "Friday, 5:00 PM", project: "Project Beta" },
+  { id: "3", type: "walk", title: "Initial Onboarding Walk", date: "Next Monday, 9:00 AM", location: "Westside Marina", project: "Project Gamma" },
+  { id: "4", type: "milestone", title: "Roofing Approval", date: "Next Wednesday", project: "Project Alpha" },
+];
 
 export function CalendarClient() {
-  const router = useRouter();
-  const now = new Date();
-  const [year, setYear] = useState(now.getFullYear());
-  const [month, setMonth] = useState(now.getMonth()); // 0-indexed
-  const [events, setEvents] = useState<CalendarEvent[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [open, setOpen] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [formError, setFormError] = useState<string | null>(null);
-  const [form, setForm] = useState({ title: "", date: "", description: "", location: "", all_day: true, start_time: "", end_time: "" });
-
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const res = await fetch(`/api/calendar?month=${toKey(year, month)}`);
-      if (res.ok) {
-        const j = (await res.json()) as { events?: CalendarEvent[] };
-        setEvents(j.events ?? []);
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, [year, month]);
-
-  useEffect(() => { void load(); }, [load]);
-
-  function prevMonth() {
-    if (month === 0) { setYear((y) => y - 1); setMonth(11); }
-    else setMonth((m) => m - 1);
-  }
-  function nextMonth() {
-    if (month === 11) { setYear((y) => y + 1); setMonth(0); }
-    else setMonth((m) => m + 1);
-  }
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!form.title.trim()) { setFormError("Title is required"); return; }
-    if (!form.date) { setFormError("Date is required"); return; }
-    setSaving(true); setFormError(null);
-    try {
-      const res = await fetch("/api/calendar", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, all_day: form.all_day }),
-      });
-      if (!res.ok) {
-        const j = await res.json().catch(() => ({}));
-        throw new Error((j as { error?: string }).error ?? "Failed to save");
-      }
-      setOpen(false);
-      setForm({ title: "", date: "", description: "", location: "", all_day: true, start_time: "", end_time: "" });
-      router.refresh();
-      await load();
-    } catch (err) {
-      setFormError(err instanceof Error ? err.message : "Unknown error");
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  const sorted = [...events].sort((a, b) => a.date.localeCompare(b.date));
-
   return (
-    <>
-      {/* Month navigation */}
-      <GlassCard className="p-3">
-        <div className="flex items-center justify-between gap-2">
-          <button onClick={prevMonth} className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-700/60 text-slate-400 hover:text-white hover:border-slate-600 transition-colors">
-            <ChevronLeft className="h-4 w-4" />
-          </button>
-          <span className="font-black text-white">{MONTHS[month]} {year}</span>
-          <button onClick={nextMonth} className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-700/60 text-slate-400 hover:text-white hover:border-slate-600 transition-colors">
-            <ChevronRight className="h-4 w-4" />
-          </button>
-        </div>
-      </GlassCard>
+    <div className="flex flex-col gap-4 h-[calc(100vh-140px)]">
+      <div className="flex items-center justify-between mb-2 shrink-0">
+        <h2 className="text-xl font-black text-slate-100 flex items-center gap-2">
+          <CalendarDays className="h-5 w-5 text-slate-400" /> Upcoming Agenda
+        </h2>
+        <button className="flex shrink-0 items-center gap-1.5 rounded-2xl bg-amber-500 px-4 py-2 text-sm font-black text-slate-950 hover:bg-amber-400 transition-colors">
+          <Plus className="h-4 w-4" /> New Event
+        </button>
+      </div>
 
-      {/* Events list */}
-      {loading ? (
-        <GlassCard className="py-10 text-center">
-          <p className="text-sm text-slate-400">Loading…</p>
-        </GlassCard>
-      ) : sorted.length === 0 ? (
-        <GlassCard className="py-12 text-center border-dashed">
-          <CalendarDays className="mx-auto h-8 w-8 text-slate-500" />
-          <p className="mt-3 font-black text-slate-300">No events in {MONTHS[month]}</p>
-          <p className="mt-1 text-xs text-slate-500">Add deadlines, site inspections, and project milestones.</p>
-          <button
-            onClick={() => setOpen(true)}
-            className="mt-4 flex items-center gap-1.5 mx-auto rounded-2xl bg-amber-500 px-4 py-2 text-sm font-black text-slate-950 hover:bg-amber-400 transition-colors"
-          >
-            <Plus className="h-4 w-4" /> Add Event
-          </button>
-        </GlassCard>
-      ) : (
-        <>
-          <div className="mb-2 flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-400">{sorted.length} event{sorted.length !== 1 ? "s" : ""}</span>
-            <button
-              onClick={() => setOpen(true)}
-              className="flex items-center gap-1.5 rounded-2xl bg-amber-500 px-3 py-1.5 text-xs font-black text-slate-950 hover:bg-amber-400 transition-colors"
-            >
-              <Plus className="h-3.5 w-3.5" /> Add
-            </button>
-          </div>
-          <div className="space-y-2">
-            {sorted.map((ev) => (
-              <div key={ev.id} className="flex items-start gap-3 rounded-2xl border border-slate-700/60 bg-slate-900/70 p-3">
-                <div className="mt-0.5 flex h-8 w-8 shrink-0 flex-col items-center justify-center rounded-xl text-center" style={{ backgroundColor: ev.color ?? "#D4AF37" }}>
-                  <span className="text-[10px] font-black leading-none text-slate-950">{new Date(ev.date + "T12:00:00").toLocaleDateString("en-US",{month:"short"})}</span>
-                  <span className="text-sm font-black leading-none text-slate-950">{new Date(ev.date + "T12:00:00").getDate()}</span>
+      <div className="flex-1 overflow-y-auto no-scrollbar pb-10">
+        <div className="grid gap-3">
+          {EVENTS.map((ev) => {
+            const isWalk = ev.type === "walk";
+            return (
+              <GlassCard key={ev.id} className="p-4 relative overflow-hidden flex items-start gap-4">
+                <div className={`absolute top-0 bottom-0 left-0 w-1 ${isWalk ? "bg-amber-500" : "bg-slate-500"}`} />
+                <div className={`mt-1 shrink-0 p-2 rounded-xl ${isWalk ? "bg-amber-500/10 text-amber-500 border border-amber-500/20" : "bg-slate-500/10 text-slate-400 border border-slate-500/20"}`}>
+                  {isWalk ? <MapPin className="h-5 w-5" /> : <Flag className="h-5 w-5" />}
                 </div>
-                <div className="min-w-0 flex-1">
-                  <p className="font-black text-slate-50 truncate">{ev.title}</p>
-                  {ev.projects?.name && <p className="text-xs text-slate-400 truncate">{ev.projects.name}</p>}
-                  {ev.location && <p className="text-xs text-slate-500 truncate">{ev.location}</p>}
-                  {!ev.all_day && ev.start_time && (
-                    <p className="text-xs text-amber-400">{ev.start_time.slice(0,5)}{ev.end_time ? ` – ${ev.end_time.slice(0,5)}` : ""}</p>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-4">
+                    <p className={`text-base font-black truncate ${isWalk ? "text-amber-100" : "text-slate-200"}`}>{ev.title}</p>
+                    <span className="text-xs font-bold text-slate-400 shrink-0 bg-slate-900/50 px-2 py-1 rounded-lg border border-slate-800/50">
+                      {ev.date}
+                    </span>
+                  </div>
+                  <p className="text-sm font-bold text-slate-500 mt-1">{ev.project}</p>
+                  {ev.location && (
+                    <p className="text-xs text-slate-400 mt-1 flex items-center gap-1">
+                      <MapPin className="h-3 w-3" /> {ev.location}
+                    </p>
                   )}
                 </div>
-              </div>
-            ))}
-          </div>
-        </>
-      )}
-
-      {/* Add Event modal */}
-      {open && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-3xl border border-slate-700/60 bg-slate-900 p-5 shadow-2xl">
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="font-black text-white">New Event</h2>
-              <button onClick={() => setOpen(false)} className="text-slate-400 hover:text-white"><X className="h-5 w-5" /></button>
-            </div>
-            <form onSubmit={handleSubmit} className="space-y-3">
-              <ModalField label="Title *" value={form.title} onChange={(v) => setForm((p) => ({ ...p, title: v }))} />
-              <ModalField label="Date *" type="date" value={form.date} onChange={(v) => setForm((p) => ({ ...p, date: v }))} />
-              <ModalField label="Location" value={form.location} onChange={(v) => setForm((p) => ({ ...p, location: v }))} />
-              <ModalField label="Description" value={form.description} onChange={(v) => setForm((p) => ({ ...p, description: v }))} />
-              <label className="flex items-center gap-2 text-xs font-bold text-slate-400">
-                <input type="checkbox" checked={!form.all_day} onChange={(e) => setForm((p) => ({ ...p, all_day: !e.target.checked }))} className="accent-amber-500" />
-                Add time
-              </label>
-              {!form.all_day && (
-                <div className="flex gap-2">
-                  <div className="flex-1"><ModalField label="Start" type="time" value={form.start_time} onChange={(v) => setForm((p) => ({ ...p, start_time: v }))} /></div>
-                  <div className="flex-1"><ModalField label="End" type="time" value={form.end_time} onChange={(v) => setForm((p) => ({ ...p, end_time: v }))} /></div>
-                </div>
-              )}
-              {formError && <p className="text-xs font-bold text-red-400">{formError}</p>}
-              <div className="flex gap-2 pt-1">
-                <button type="button" onClick={() => setOpen(false)} className="flex-1 rounded-2xl border border-slate-700/60 py-2.5 text-sm font-bold text-slate-400 hover:text-white transition-colors">Cancel</button>
-                <button type="submit" disabled={saving} className="flex-1 rounded-2xl bg-amber-500 py-2.5 text-sm font-black text-slate-950 hover:bg-amber-400 disabled:opacity-60 transition-colors">
-                  {saving ? "Saving…" : "Save Event"}
-                </button>
-              </div>
-            </form>
-          </div>
+              </GlassCard>
+            );
+          })}
         </div>
-      )}
-    </>
-  );
-}
-
-function ModalField({ label, value, onChange, type = "text" }: { label: string; value: string; onChange: (v: string) => void; type?: string }) {
-  return (
-    <div>
-      <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-slate-400">{label}</label>
-      <input type={type} value={value} onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-2xl border border-slate-700/60 bg-slate-800 px-3 py-2.5 text-sm text-slate-100 placeholder:text-slate-600 focus:border-amber-400/60 focus:outline-none"
-      />
+      </div>
     </div>
   );
 }

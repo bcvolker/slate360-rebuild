@@ -39,7 +39,11 @@ interface AppsGridProps {
 }
 
 export function AppsGrid({ entitlements }: AppsGridProps) {
-  const visible = APPS.filter((app) => !shouldHideInAppStoreMode(app.comingSoon));
+  const visible = APPS.filter((app) => {
+    if (shouldHideInAppStoreMode(app.comingSoon)) return false;
+    const hasAccess = !app.entitlement || (entitlements?.[app.entitlement] ?? false);
+    return hasAccess;
+  });
 
   if (visible.length === 0) {
     return (

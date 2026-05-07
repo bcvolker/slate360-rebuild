@@ -1,4 +1,5 @@
 import { notFound, redirect } from "next/navigation";
+import GlassCard from "@/components/shared/GlassCard";
 import { OperationsConsoleNav } from "@/components/dashboard/operations-console/OperationsConsoleNav";
 import { resolveServerOrgContext } from "@/lib/server/org-context";
 import { getOperationsConsoleCounts } from "@/lib/server/operations-console-counts";
@@ -47,22 +48,22 @@ export default async function OperationsSectionPage({ params }: { params: Promis
         <p className="text-xs leading-5 text-slate-400">{copy.detail}</p>
       </header>
       <OperationsConsoleNav active={`/operations-console/${section}`} counts={counts} />
-      <section className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-lg backdrop-blur-md">
+      <GlassCard className="p-6">
         <p className="text-sm font-black text-white">Build target</p>
         <ul className="mt-3 grid gap-3 sm:grid-cols-3">
           {copy.bullets.map((bullet) => (
             <li key={bullet} className="rounded-2xl border border-white/10 bg-slate-950/45 p-4 text-sm font-semibold text-slate-300">{bullet}</li>
           ))}
         </ul>
-      </section>
-      <section className="rounded-3xl border border-sky-400/20 bg-sky-400/10 p-6 shadow-lg backdrop-blur-md">
+      </GlassCard>
+      <GlassCard className="p-6 border-amber-400/20 bg-amber-400/10">
         <p className="text-sm font-black text-white">CEO control-center workflows</p>
         <ul className="mt-3 grid gap-3 sm:grid-cols-3">
           {copy.workflows.map((workflow) => (
-            <li key={workflow} className="rounded-2xl border border-sky-400/20 bg-slate-950/45 p-4 text-sm font-semibold text-slate-300">{workflow}</li>
+            <li key={workflow} className="rounded-2xl border border-amber-400/20 bg-slate-950/45 p-4 text-sm font-semibold text-slate-300">{workflow}</li>
           ))}
         </ul>
-      </section>
+      </GlassCard>
     </div>
   );
 }

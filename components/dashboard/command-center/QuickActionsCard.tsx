@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Zap, FolderPlus, FolderOpen, Inbox, MapPin } from "lucide-react";
+import { Zap, FolderPlus, FolderOpen, Inbox, FileUp } from "lucide-react";
 
 export function QuickActionsCard() {
   return (
@@ -51,9 +51,9 @@ export function QuickActionsCard() {
             className="h-auto py-3 flex-col gap-1.5 rounded-xl border-border hover:border-amber-400/60 hover:text-amber-300 hover:bg-amber-500/10"
             asChild
           >
-            <Link href="/site-walk">
-              <MapPin className="h-5 w-5" />
-              <span className="text-xs">Start Site Walk</span>
+            <Link href="/slatedrop/upload">
+              <FileUp className="h-5 w-5" />
+              <span className="text-xs">Upload File</span>
             </Link>
           </Button>
         </div>

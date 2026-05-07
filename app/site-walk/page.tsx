@@ -1,6 +1,6 @@
 import { resolveServerOrgContext } from "@/lib/server/org-context";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { SiteWalkLaunchGrid } from "./_components/SiteWalkLaunchGrid";
+import { SiteWalkHub } from "./_components/SiteWalkHub";
 
 export default async function SiteWalkPage() {
   const context = await resolveServerOrgContext();
@@ -22,10 +22,16 @@ export default async function SiteWalkPage() {
     }
   }
 
+  // Mock data for walks to satisfy the UI requirement in the roadmap phase
+  const walks = [
+    { id: "1", name: "Safety Inspection", date: "Oct 24, 2025", project: "Alpha Site", status: "in_progress" },
+    { id: "2", name: "Punch List", date: "Oct 22, 2025", project: "Beta Site", status: "completed" },
+  ];
+
   return (
       <main className="min-h-[calc(100dvh-96px)] overflow-y-auto bg-[radial-gradient(circle_at_top,rgba(245,158,11,0.07),transparent_34%),#0B0F15] px-3 py-3 pb-24 text-slate-50 sm:px-6 lg:px-8">
       <div className="mx-auto flex min-h-full max-w-6xl items-start">
-        <SiteWalkLaunchGrid projects={projects} />
+        <SiteWalkHub projects={projects} walks={walks} reports={[]} tier={context.tier} />
       </div>
     </main>
   );

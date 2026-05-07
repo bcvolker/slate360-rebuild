@@ -56,7 +56,7 @@ export function DeliverableDefaultsForm({ project, tier, initialDefaults }: Prop
   return (
     <form onSubmit={handleSubmit} className="rounded-3xl border border-slate-700/60 bg-slate-900/60 backdrop-blur-md p-5">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-        <div><p className="text-xs font-black uppercase tracking-[0.18em] text-amber-400">Deliverable defaults</p><h2 className="mt-1 text-xl font-black text-slate-50">Report auto-fill fields</h2><p className="mt-1 text-sm leading-6 text-slate-400">Store once per project so every output starts branded and complete.</p></div>
+        <div><p className="text-xs font-black uppercase tracking-[0.18em] text-amber-400">Deliverable defaults</p><h2 className="mt-1 text-xl font-black text-slate-50">Report auto-fill fields</h2><p className="mt-1 text-sm leading-6 text-slate-400">Store once per project so every deliverable starts branded and complete.</p></div>
         <button type="submit" disabled={!project || status.kind === "loading"} className="rounded-xl bg-amber-500 px-4 py-2 text-sm font-black text-slate-950 shadow-sm transition hover:bg-amber-400 disabled:opacity-60">{status.kind === "loading" ? "Saving…" : "Save defaults"}</button>
       </div>
 
@@ -64,13 +64,13 @@ export function DeliverableDefaultsForm({ project, tier, initialDefaults }: Prop
         <Field label="Client name"><input className={inputClass} value={defaults.client_name ?? ""} onChange={(e) => update("client_name", e.target.value)} /></Field>
         <Field label="Client email"><input className={inputClass} value={defaults.client_email ?? ""} onChange={(e) => update("client_email", e.target.value)} type="email" /></Field>
         <Field label="Project number"><input className={inputClass} value={defaults.project_number ?? ""} onChange={(e) => update("project_number", e.target.value)} /></Field>
-        <Field label="Default output"><select className={inputClass} value={defaults.default_deliverable_type ?? "field_report"} onChange={(e) => update("default_deliverable_type", e.target.value)}><option value="field_report">Field report</option><option value="punch_list">Punch list</option><option value="proposal">Proposal</option><option value="status_update">Status update</option></select></Field>
+        <Field label="Default deliverable"><select className={inputClass} value={defaults.default_deliverable_type ?? "field_report"} onChange={(e) => update("default_deliverable_type", e.target.value)}><option value="field_report">Field report</option><option value="punch_list">Punch list</option><option value="proposal">Proposal</option><option value="status_update">Status update</option></select></Field>
         <Field label="Project address"><input className={inputClass} value={defaults.project_address ?? ""} onChange={(e) => update("project_address", e.target.value)} /></Field>
         {expanded && <Field label="Inspector license"><input className={inputClass} value={defaults.inspector_license ?? ""} onChange={(e) => update("inspector_license", e.target.value)} /></Field>}
         <div className="md:col-span-2"><Field label="Scope of work"><textarea className={`${inputClass} min-h-20`} value={defaults.scope_of_work ?? ""} onChange={(e) => update("scope_of_work", e.target.value)} /></Field></div>
       </div>
 
-      {expanded ? <p className="mt-4 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs font-semibold text-amber-300">Pro/Business setup keeps CM hooks ready for budgets, schedules, RFIs, and submittals in later prompts.</p> : <p className="mt-4 rounded-xl border border-slate-700/60 bg-slate-800/60 px-3 py-2 text-xs font-semibold text-slate-400">Basic setup keeps defaults lean: client, address, scope, and output type.</p>}
+      {expanded ? <p className="mt-4 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs font-semibold text-amber-300">Pro/Business setup keeps CM hooks ready for budgets, schedules, RFIs, and submittals in later prompts.</p> : <p className="mt-4 rounded-xl border border-slate-700/60 bg-slate-800/60 px-3 py-2 text-xs font-semibold text-slate-400">Basic setup keeps defaults lean: client, address, scope, and deliverable type.</p>}
       <StatusMessage status={status} />
     </form>
   );

@@ -12,7 +12,7 @@ import {
   Inbox,
   CreditCard,
   ChevronDown,
-  MapPin,
+  
   FolderKanban,
   Shield,
 } from "lucide-react";
@@ -33,8 +33,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
   { label: "Projects", icon: FolderKanban, href: "/projects" },
   { label: "SlateDrop", icon: Inbox, href: "/slatedrop" },
-  { label: "Site Walk", icon: MapPin, href: "/site-walk/walks", matchPrefix: "/site-walk" },
-  { label: "Account", icon: CreditCard, href: "/more" },
+    { label: "Account", icon: CreditCard, href: "/more" },
 ];
 
 interface DashboardSidebarProps {

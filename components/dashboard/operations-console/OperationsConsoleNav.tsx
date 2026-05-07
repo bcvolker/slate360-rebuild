@@ -23,10 +23,10 @@ export function OperationsConsoleNav({ active, counts }: { active: string; count
             key={section.href}
             href={section.href}
             aria-current={selected ? "page" : undefined}
-            className={`rounded-2xl border p-4 transition hover:border-sky-400/60 hover:bg-white/10 ${selected ? "border-sky-400/50 bg-sky-400/10" : "border-white/10 bg-white/5"}`}
+            className={`rounded-2xl border p-4 transition hover:border-amber-400/60 hover:bg-white/10 ${selected ? "border-amber-400/50 bg-amber-400/10" : "border-white/10 bg-white/5"}`}
           >
             <div className="flex gap-3">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sky-400/10 text-sky-200 ring-1 ring-sky-400/20">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-400/10 text-amber-200 ring-1 ring-amber-400/20">
                 <Icon className="h-5 w-5" />
               </span>
               <div className="min-w-0 flex-1">

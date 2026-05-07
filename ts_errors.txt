@@ -1,0 +1,10 @@
+components/dashboard/my-account/AccountBillingTab.tsx(77,8): error TS17008: JSX element 'GlassCard' has no corresponding closing tag.
+components/dashboard/my-account/AccountBillingTab.tsx(113,7): error TS1005: ')' expected.
+components/dashboard/my-account/AccountBillingTab.tsx(216,5): error TS1128: Declaration or statement expected.
+components/dashboard/my-account/AccountBillingTab.tsx(217,3): error TS1109: Expression expected.
+components/dashboard/my-account/AccountSecurityTab.tsx(37,8): error TS17008: JSX element 'GlassCard' has no corresponding closing tag.
+components/dashboard/my-account/AccountSecurityTab.tsx(54,7): error TS1005: ')' expected.
+components/dashboard/my-account/AccountSecurityTab.tsx(85,10): error TS17008: JSX element 'div' has no corresponding closing tag.
+components/dashboard/my-account/AccountSecurityTab.tsx(106,7): error TS1128: Declaration or statement expected.
+components/dashboard/my-account/AccountSecurityTab.tsx(107,5): error TS1109: Expression expected.
+components/dashboard/my-account/AccountSecurityTab.tsx(108,3): error TS1109: Expression expected.

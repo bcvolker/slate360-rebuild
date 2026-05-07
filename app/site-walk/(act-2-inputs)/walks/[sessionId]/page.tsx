@@ -29,7 +29,12 @@ export default async function WalkReviewPage({ params }: Props) {
       <header className="shrink-0 border-b border-white/10 bg-[#0B0F15]/92 px-4 py-3 shadow-[0_18px_60px_rgba(0,0,0,0.35)] backdrop-blur-xl">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-3">
           <Link href="/site-walk/walks" className="inline-flex h-10 items-center gap-2 rounded-2xl border border-white/15 bg-white/5 px-3 text-sm font-black text-slate-100"><ArrowLeft className="h-4 w-4" /> Walks</Link>
-          <CreateDeliverableLink sessionId={sessionId} compact />
+          <div className="flex items-center gap-2">
+            {sessionRow.project_id && (
+              <Link href={`/site-walk/progression?projectId=${encodeURIComponent(sessionRow.project_id)}`} className="hidden h-10 items-center gap-1 rounded-2xl border border-white/15 bg-white/5 px-3 text-xs font-black uppercase tracking-wider text-slate-100 sm:inline-flex">Progressions</Link>
+            )}
+            <CreateDeliverableLink sessionId={sessionId} compact />
+          </div>
         </div>
         <div className="mx-auto mt-4 max-w-5xl">
           <p className="text-[11px] font-black uppercase tracking-[0.22em] text-amber-300/80">Walk Summary</p>

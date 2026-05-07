@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { FloatingToast } from "@/components/shared/FloatingToast";
 import { useBetaUsers } from "@/lib/hooks/useBetaUsers";
 import type { BetaUser } from "@/lib/hooks/useBetaUsers";
+import GlassCard from "@/components/shared/GlassCard";
 import { OperationsConsoleNav } from "@/components/dashboard/operations-console/OperationsConsoleNav";
 import type { OperationsConsoleCounts } from "@/lib/server/operations-console-counts";
 
@@ -98,7 +99,7 @@ export default function OperationsConsoleClient({ ownerEmail, initialCounts }: P
               onClick={() => setFilter(f)}
               className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
                 filter === f
-                  ? "bg-sky-400/15 text-sky-100 shadow-sm"
+                  ? "bg-amber-400/15 text-amber-100 shadow-sm"
                   : "text-slate-400 hover:text-white"
               }`}
             >
@@ -127,7 +128,7 @@ export default function OperationsConsoleClient({ ownerEmail, initialCounts }: P
       ) : filtered.length === 0 ? (
         <div className="py-12 text-center text-sm text-slate-400">No users match this filter.</div>
       ) : (
-        <div className="overflow-x-auto rounded-3xl border border-white/10 bg-white/5 shadow-lg backdrop-blur-md">
+        <GlassCard className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="border-b border-white/10 bg-white/5">
               <tr>
@@ -149,7 +150,7 @@ export default function OperationsConsoleClient({ ownerEmail, initialCounts }: P
               ))}
             </tbody>
           </table>
-        </div>
+        </GlassCard>
       )}
     </div>
   );
@@ -157,10 +158,10 @@ export default function OperationsConsoleClient({ ownerEmail, initialCounts }: P
 
 function OpsCapabilityCard({ title, detail }: { title: string; detail: string }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/5 p-4 shadow-lg backdrop-blur-md">
+    <GlassCard className="p-4">
       <p className="text-sm font-black text-white">{title}</p>
       <p className="mt-1 text-xs leading-5 text-slate-400">{detail}</p>
-    </div>
+    </GlassCard>
   );
 }
 
@@ -176,14 +177,14 @@ function SummaryCard({
   accent?: string;
 }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/5 p-4 shadow-lg backdrop-blur-md">
+    <GlassCard className="p-4">
       <p className="text-xs font-medium text-slate-400">{label}</p>
       {loading ? (
         <Loader2 className="mt-1 h-5 w-5 animate-spin text-slate-400" />
       ) : (
         <p className={`mt-1 text-2xl font-bold ${accent ?? "text-white"}`}>{value}</p>
       )}
-    </div>
+    </GlassCard>
   );
 }
 
@@ -226,7 +227,7 @@ function UserRow({
             </span>
           )}
           {user.is_app_reviewer && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-sky-900/40 px-2 py-0.5 text-xs font-medium text-sky-300 ring-1 ring-sky-400/20">
+            <span className="inline-flex items-center gap-1 rounded-full bg-amber-900/40 px-2 py-0.5 text-xs font-medium text-amber-300 ring-1 ring-amber-400/20">
               <Star className="h-3 w-3" /> Reviewer
             </span>
           )}

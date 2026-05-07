@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { Paperclip } from "lucide-react";
+import GlassCard from "@/components/shared/GlassCard";
 import { OperationsConsoleNav } from "@/components/dashboard/operations-console/OperationsConsoleNav";
 import { resolveServerOrgContext } from "@/lib/server/org-context";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -75,7 +76,7 @@ export default async function OperationsFeedbackPage() {
 function FeedbackCard({ row }: { row: FeedbackRow }) {
   const attachments = getAttachments(row.console_errors);
   return (
-    <article className="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-lg backdrop-blur-md">
+    <GlassCard className="p-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <div className="flex flex-wrap gap-2">
@@ -98,11 +99,11 @@ function FeedbackCard({ row }: { row: FeedbackRow }) {
 
       {attachments.length > 0 && (
         <div className="mt-4 rounded-2xl border border-white/10 bg-slate-950/45 p-3">
-          <p className="flex items-center gap-2 text-xs font-black uppercase tracking-wide text-slate-300"><Paperclip className="h-4 w-4 text-sky-200" /> Attachments</p>
+          <p className="flex items-center gap-2 text-xs font-black uppercase tracking-wide text-slate-300"><Paperclip className="h-4 w-4 text-amber-200" /> Attachments</p>
           <div className="mt-2 flex flex-wrap gap-2">
             {attachments.map((attachment) => (
               attachment.dataUrl ? (
-                <Link key={`${attachment.name}-${attachment.size}`} href={attachment.dataUrl} className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold text-sky-200" target="_blank">
+                <Link key={`${attachment.name}-${attachment.size}`} href={attachment.dataUrl} className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold text-amber-200" target="_blank">
                   {attachment.name ?? "Attachment"}
                 </Link>
               ) : (
@@ -115,10 +116,10 @@ function FeedbackCard({ row }: { row: FeedbackRow }) {
         </div>
       )}
 
-      <div className="mt-4 rounded-2xl border border-sky-400/20 bg-sky-400/10 p-3 text-xs leading-5 text-slate-300">
+      <div className="mt-4 rounded-2xl border border-amber-400/20 bg-amber-400/10 p-3 text-xs leading-5 text-slate-300">
         Reply workflow: admin replies should create a Coordination Inbox message for this user, update this feedback status, and preserve the full thread for audit history.
       </div>
-    </article>
+    </GlassCard>
   );
 }
 

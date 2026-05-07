@@ -1,6 +1,6 @@
 "use client";
 
-import { Search } from "lucide-react";
+import { Search, UserCircle, Users, ExternalLink } from "lucide-react";
 import type { Contact } from "./types";
 
 interface Props {
@@ -12,6 +12,28 @@ interface Props {
 }
 
 export function ContactList({ contacts, selectedId, query, onQueryChange, onSelect }: Props) {
+  function getRoleBadge(tags: string[] = []) {
+    if (tags.includes("Team")) {
+      return (
+        <span className="inline-flex items-center gap-1 rounded bg-green-500/20 px-1.5 py-0.5 text-[9px] font-bold text-green-400 border border-green-500/30">
+          <UserCircle className="w-2.5 h-2.5" /> Team Member
+        </span>
+      );
+    }
+    if (tags.includes("Collaborator")) {
+      return (
+        <span className="inline-flex items-center gap-1 rounded bg-amber-500/20 px-1.5 py-0.5 text-[9px] font-bold text-amber-400 border border-amber-500/30">
+          <Users className="w-2.5 h-2.5" /> Collaborator
+        </span>
+      );
+    }
+    return (
+      <span className="inline-flex items-center gap-1 rounded bg-slate-500/20 px-1.5 py-0.5 text-[9px] font-bold text-slate-400 border border-slate-500/30">
+        <ExternalLink className="w-2.5 h-2.5" /> External Stakeholder
+      </span>
+    );
+  }
+
   return (
     <div className="flex h-full flex-col">
       {/* Search */}
@@ -50,12 +72,15 @@ export function ContactList({ contacts, selectedId, query, onQueryChange, onSele
                 {c.initials ?? c.name.slice(0, 2).toUpperCase()}
               </span>
               <div className="min-w-0">
-                <p className={`truncate text-sm font-black ${isActive ? "text-amber-100" : "text-slate-100"}`}>
-                  {c.name}
-                </p>
-                {c.company && (
-                  <p className="truncate text-xs text-slate-400">{c.company}</p>
-                )}
+                <div className="flex items-center justify-between gap-1">
+                  <p className={`truncate text-sm font-black ${isActive ? "text-amber-100" : "text-slate-100"}`}>
+                    {c.name}
+                  </p>
+                </div>
+                <div className="mt-0.5 flex flex-col gap-1 items-start">
+                  {c.company && <p className="truncate text-xs text-slate-400">{c.company}</p>}
+                  {getRoleBadge(c.tags)}
+                </div>
               </div>
             </button>
           );

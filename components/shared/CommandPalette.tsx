@@ -19,7 +19,7 @@ import {
   Inbox,
   LayoutDashboard,
   LogOut,
-  MapPin,
+  
   Palette,
   Search,
   Settings,
@@ -51,15 +51,13 @@ const ITEMS: PaletteItem[] = [
   { id: "nav-ops",      group: "Navigate", label: "Operations Console", icon: Shield,       action: "navigate", href: "/operations-console", internalOnly: true },
 
   // Apps
-  { id: "app-sw",       group: "Apps", label: "Site Walk",      icon: MapPin,    action: "navigate", href: "/site-walk" },
   { id: "app-tours",    group: "Apps", label: "360 Tours",      icon: Compass,   action: "navigate", href: "/apps/360-tour-builder",  comingSoon: true },
   { id: "app-design",   group: "Apps", label: "Design Studio",  icon: Palette,   action: "navigate", href: "/apps/design-studio",     comingSoon: true },
   { id: "app-content",  group: "Apps", label: "Content Studio", icon: FileText,  action: "navigate", href: "/apps/content-studio",    comingSoon: true },
 
   // Create
   { id: "new-project",  group: "Create", label: "New Project",   icon: FolderPlus, action: "navigate", href: "/projects?new=1",  shortcut: "C P" },
-  { id: "new-walk",     group: "Create", label: "New Site Walk", icon: MapPin,     action: "navigate", href: "/site-walk?new=1", shortcut: "C W" },
-
+  
   // Account
   { id: "acc-settings", group: "Account", label: "Account Settings", icon: Settings, action: "navigate", href: "/settings" },
   { id: "acc-signout",  group: "Account", label: "Sign out",  icon: LogOut,   action: "signout" },

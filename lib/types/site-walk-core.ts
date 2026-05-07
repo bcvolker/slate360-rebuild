@@ -164,6 +164,7 @@ export type UpdateItemPayload = Partial<
     | "cost_estimate"
     | "manpower_hours"
     | "before_item_id"
+    | "item_relationship"
     | "capture_mode"
     | "sync_state"
     | "upload_state"
