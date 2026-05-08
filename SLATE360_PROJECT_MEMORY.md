@@ -200,33 +200,27 @@ When editing oversized files, always read both the state declarations AND the JS
 
 ## Latest Session Handoff
 
-### Session Handoff — 2026-05-08 (Site Walk Mobile Architecture Recovery)
+### Session Handoff — 2026-05-08 (Focused Save & Next Drawer Repair)
 
 #### What Changed
-- `components/site-walk/capture/PlanPdfPage.tsx`: Kept the active viewer PDF at a fixed 1200px width, preserved compact thumbnail widths, and memoized the component so PlanViewer pan/zoom state changes do not re-render React-PDF.
-- `components/site-walk/capture/PlanViewer.tsx`, `components/site-walk/capture/planViewerModel.ts`, `components/site-walk/capture/planViewerGeometry.ts`: Extracted plan math/helpers, brought PlanViewer under 300 lines, changed the plan surface to a fixed 1200px composited layer, and centered it with toolbar/bottom-sheet reserved space.
-- `lib/hooks/useVirtualKeyboardOffset.ts`, `components/site-walk/capture/VisualCaptureView.tsx`, `components/site-walk/capture/CaptureDataBottomSheet.tsx`: Added visualViewport keyboard offset tracking, pointer-down keyboard dismissal, keyboard-aware reserves, and sheet bottom offset.
-- `components/site-walk/capture/CaptureDataBottomSheet.tsx`: Removed Save/Capture primary actions from the collapsed sheet; primary actions now render only inside the expanded data collection drawer.
-- `components/site-walk/capture/useCaptureItems.ts`, `app/site-walk/(act-2-inputs)/capture/_components/CaptureClientIsland.tsx`: Added `flushCurrentDraft()` and rewired Save & Next so plan-pin captures stay on data entry until the expanded-sheet Save action, then return to plan; normal camera captures advance to the next camera stop.
-- `app/site-walk/page.tsx`, `app/site-walk/_components/SiteWalkHub.tsx`: Reworked the hub as a fixed-height flex shell with only the list pane scrolling and safe-area bottom padding.
-- `components/shared/GlassCard.tsx`: Added a typed optional `style` prop for structural keyboard-safe positioning.
+- `components/site-walk/capture/CaptureDataBottomSheet.tsx`: Fixed the expanded drawer Save & Next tap path by excluding buttons/links from the pointer-down keyboard blur handler, adding local `advancing` feedback, and awaiting the parent step transition instead of firing it blindly.
+- `app/site-walk/(act-2-inputs)/capture/_components/CaptureClientIsland.tsx`: `captureNow()` now forces `walkMode="camera"` before requesting the next capture, and `saveNextStop()` logs draft-flush failures without blocking the step transition.
 
 #### What's Broken / Partially Done
-- Physical iPhone/Android verification is still required for the exact browser-memory behavior and keyboard/safe-area positioning.
-- `bash scripts/check-file-size.sh` still fails on 12 pre-existing oversized files outside this slice; all changed app files are under 300 lines.
+- Need physical phone verification specifically for: type a note with keyboard open → tap Save & Next → next camera capture opens.
+- Other reported mobile plan/PDF issues remain unresolved and should be handled one at a time after this button fix is tested.
 
 #### Context Files Updated
-- `ONGOING_ISSUES.md`: Added S360-057.
-- `slate360-context/ONGOING_ISSUES.md`: Added BUG-077.
-- `ops/bug-registry.json`: Added BUG-077.
-- `slate360-context/dashboard-tabs/site-walk/FIELD_PLATFORM_ROADMAP.md`: Added the May 8 implementation note.
+- `ONGOING_ISSUES.md`: Added S360-058.
+- `slate360-context/ONGOING_ISSUES.md`: Added BUG-078.
+- `ops/bug-registry.json`: Added BUG-078.
+- `slate360-context/dashboard-tabs/site-walk/FIELD_PLATFORM_ROADMAP.md`: Added focused Save & Next implementation note.
 - `SLATE360_PROJECT_MEMORY.md`: This handoff.
 
 #### Next Steps (ordered)
-1. After Vercel deploys, phone smoke `/site-walk` → project plan walk → long-press plan → attach photo/upload → swipe drawer up → add note → Save & Next; expected: Save button is not visible while collapsed, note saves, and the view returns to Plan Mode.
-2. Pinch-zoom and pan the same PDF repeatedly on iOS Safari and Android Chrome; expected: no React-PDF re-render/OOM crash and toolbar remains visible.
-3. Quick Walk smoke: capture/upload a photo, swipe drawer up, Save & Next; expected: current draft flushes and the next camera capture starts.
-4. If old PDFs still lack sheet rows, add a backfill/retry UI for `/api/site-walk/plan-sets/[id]/sheets/auto`.
+1. Deploy smoke: Quick Walk → capture/upload → swipe drawer up → type note → tap Save & Next while keyboard is open; expected: spinner briefly appears and next camera capture opens.
+2. Plan-pin smoke: Plan Mode → long-press pin → attach photo/upload → swipe drawer up → Save & Next; expected: spinner briefly appears and view returns to Plan Mode.
+3. If this still fails, instrument only `handleSaveNextClick()`, `saveNextStop()`, and `captureNow()` with one-step logs before changing layout again.
 
 ### Session Handoff — 2026-05-07 (Site Walk Phase 3 Confirm & Attach Hardening)
 

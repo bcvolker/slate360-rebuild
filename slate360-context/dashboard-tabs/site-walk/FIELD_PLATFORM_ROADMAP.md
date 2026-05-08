@@ -1,6 +1,6 @@
 # Site Walk — Field Platform Roadmap
 
-**Last Updated:** 2026-05-08 (mobile plan/capture architecture pass)
+**Last Updated:** 2026-05-08 (Save & Next drawer repair)
 **Status:** Planning / Pre-build
 **Owner:** Product + Engineering
 
@@ -411,6 +411,8 @@ These are the highest-value field workflow features to preserve for future build
 **Implementation note — 2026-05-07:** Plan sheet extraction pass adds POST `/api/site-walk/plan-sets/[id]/sheets/auto` to create UUID-backed `site_walk_plan_sheets` rows for every PDF page. `PlanUploader` now reads the PDF page count with PDF.js, creates the plan set, calls the extractor route, and waits for the returned `planSets` + `sheets` payload before updating Plan Room state, so Plan Mode receives real `sheetId` values instead of ghost pages that block pinning.
 
 **Implementation note — 2026-05-08:** Mobile plan/capture architecture pass now memoizes the fixed-width `PlanPdfPage`, renders the active plan on a fixed 1200px composited surface moved only by `translate3d(...) scale(...)`, reserves toolbar/bottom-sheet space in plan centering math, and keeps thumbnails lightweight through the existing compact props. Capture now uses visualViewport keyboard offset tracking, hides primary actions while the bottom sheet is collapsed, shows Save & Next only inside the expanded data collection sheet, flushes dirty draft data before advancing, and returns to Plan Mode only after the expanded-sheet Save action for plan-pin captures.
+
+**Implementation note — 2026-05-08:** Focused Save & Next repair now prevents the expanded drawer's keyboard-dismiss pointer handler from running on buttons/links, awaits the parent step transition with local advancing feedback, logs draft-flush failures without blocking the step change, and forces Camera Mode before requesting the next capture. This targets the mobile failure where tapping Save & Next while the keyboard was open could reflow the fixed drawer and cancel the click.
 
 ---
 

@@ -29,10 +29,12 @@ type Props = {
 export function CaptureDataBottomSheet({ item, items, assignees, draft, saveState, aiState, aiMessage, currentLocation, tradeOptions, canManageTrades, returnsToPlan = false, onDraftChange, onCapture, onFormatNotes, onSaveNextStop, onOpenManageTrades }: Props) {
   const [expanded, setExpanded] = useState(false);
   const [linkProgression, setLinkProgression] = useState(false);
+  const [advancing, setAdvancing] = useState(false);
   const dragStartY = useRef<number | null>(null);
   const { primaryCaptureInput, primaryCaptureLabel } = useDeviceContext();
   const keyboardOffset = useVirtualKeyboardOffset();
   const isSaving = saveState === "saving";
+  const actionBusy = isSaving || advancing;
   const aiBusy = aiState === "loading" || aiState === "formatting";
   const progressionActive = Boolean(draft?.beforeItemId) || linkProgression;
   const previousItems = items.filter((candidate) => isUuid(candidate.id) && candidate.id !== item?.id && candidate.client_item_id !== item?.client_item_id);
@@ -56,8 +58,19 @@ export function CaptureDataBottomSheet({ item, items, assignees, draft, saveStat
   function handleContentPointerDown(event: PointerEvent<HTMLDivElement>) {
     const target = event.target;
     if (!(target instanceof HTMLElement)) return;
-    if (target.closest("input, textarea, select, [contenteditable='true']")) return;
+    if (target.closest("button, a, input, textarea, select, [contenteditable='true']")) return;
     blurActiveField();
+  }
+
+  async function handleSaveNextClick() {
+    if (advancing) return;
+    setAdvancing(true);
+    try {
+      await onSaveNextStop();
+      setExpanded(false);
+    } finally {
+      setAdvancing(false);
+    }
   }
 
   return (
@@ -82,8 +95,8 @@ export function CaptureDataBottomSheet({ item, items, assignees, draft, saveStat
         <div className="mt-2 max-h-[58dvh] space-y-3 overflow-y-auto pr-1 no-scrollbar" onPointerDownCapture={handleContentPointerDown}>
           <div className="sticky top-0 z-10 rounded-[1.5rem] border border-white/10 bg-slate-950/95 p-2 shadow-xl backdrop-blur-xl">
             {item ? (
-              <button type="button" onClick={() => void onSaveNextStop()} disabled={isSaving} className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-amber-500 px-4 text-sm font-black text-slate-950 shadow-[0_0_24px_rgba(245,158,11,0.38)] transition hover:bg-amber-400 disabled:opacity-60">
-                {isSaving ? <Loader2 className="h-5 w-5 animate-spin" /> : saveActionIcon}
+              <button type="button" onClick={() => void handleSaveNextClick()} disabled={advancing} className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-amber-500 px-4 text-sm font-black text-slate-950 shadow-[0_0_24px_rgba(245,158,11,0.38)] transition hover:bg-amber-400 disabled:opacity-60">
+                {actionBusy ? <Loader2 className="h-5 w-5 animate-spin" /> : saveActionIcon}
                 <span>{saveActionLabel}</span>
               </button>
             ) : (

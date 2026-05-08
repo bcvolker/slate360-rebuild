@@ -862,6 +862,21 @@
         "SiteWalkHub/page use a fixed-height flex shell with only the list pane scrolling and safe-area bottom padding",
         "npm run typecheck passes"
       ]
+    },
+    {
+      "id": "BUG-078",
+      "title": "Swipe-up data drawer Save & Next button did not advance to the next stop",
+      "module": "site-walk/capture-data-drawer",
+      "severity": "critical",
+      "status": "fixed",
+      "rootCause": "The drawer blurred the active field on pointer-down for all non-input targets, so tapping Save & Next while the mobile keyboard was open could reflow the sheet before the click fired. The parent also wrapped the async transition in void and did not force camera mode before requesting the next capture, so plan/camera transitions could appear to do nothing.",
+      "verification": [
+        "CaptureDataBottomSheet ignores buttons/links in the pointer-down keyboard blur handler",
+        "Save & Next awaits the parent transition and shows a local advancing spinner",
+        "CaptureClientIsland captureNow forces walkMode='camera' before requesting next_item capture",
+        "Draft flush failures are logged but do not block moving to the next stop",
+        "npm run typecheck passes"
+      ]
     }
   ]
 }

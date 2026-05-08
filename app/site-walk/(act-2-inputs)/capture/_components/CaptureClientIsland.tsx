@@ -98,12 +98,17 @@ function CaptureClientIslandInner({ sessionId, projectId, walkName, showPlanCanv
   }
 
   function captureNow(input: DeviceCaptureInput = primaryCaptureInput) {
+    setWalkMode("camera");
     requestCapture(input, "next_item");
   }
 
   async function saveNextStop(options: { fromPlanPin?: boolean } = {}) {
     rememberCarryForward();
-    await flushCurrentDraft();
+    try {
+      await flushCurrentDraft();
+    } catch (error) {
+      console.error("[site-walk] Save & Next draft flush failed; continuing to next stop", error);
+    }
     const shouldReturnToPlan = options.fromPlanPin || returnToPlanAfterSave;
     
     updateLocation(nextStopLabel(currentLocation, recentLocations));
@@ -200,7 +205,7 @@ function CaptureClientIslandInner({ sessionId, projectId, walkName, showPlanCanv
         onDraftChange={patchDraft}
         onCapture={captureNow}
         onFormatNotes={() => void formatNotesWithAi()}
-        onSaveNextStop={() => void saveNextStop()}
+        onSaveNextStop={() => saveNextStop()}
         onOpenManageTrades={() => setManageTradesOpen(true)}
       />
 
