@@ -1,9 +1,10 @@
 import { cn } from "@/lib/utils";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 
 interface GlassCardProps {
   children: ReactNode;
   className?: string;
+  style?: CSSProperties;
 }
 
 /**
@@ -14,7 +15,7 @@ interface GlassCardProps {
  *
  * Use className to override padding, radius, or border style (e.g. border-dashed).
  */
-export default function GlassCard({ children, className }: GlassCardProps) {
+export default function GlassCard({ children, className, style }: GlassCardProps) {
   return (
     <div
       className={cn(
@@ -23,6 +24,7 @@ export default function GlassCard({ children, className }: GlassCardProps) {
         "transition-colors duration-150",
         className,
       )}
+      style={style}
     >
       {children}
     </div>

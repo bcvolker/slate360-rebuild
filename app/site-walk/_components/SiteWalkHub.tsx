@@ -64,7 +64,7 @@ export function SiteWalkHub({ projects, walks }: { projects: HubProject[]; walks
   }
 
   return (
-    <div className="w-full space-y-4">
+    <div className="flex h-full min-h-0 w-full flex-col space-y-4">
       <div className="grid gap-3 grid-cols-2">
         <button type="button" onClick={() => { setActiveTab("projects"); setExpandedProjectId(projects[0]?.id ?? null); }} className="group min-h-24 rounded-[1.5rem] border border-white/10 bg-white/[0.06] p-4 text-left shadow-[0_22px_70px_rgba(0,0,0,0.25)] backdrop-blur-xl transition hover:border-amber-400/45 hover:bg-white/[0.09] flex flex-col justify-between">
           <span className="flex h-10 w-10 items-center justify-center rounded-[0.875rem] bg-amber-500 text-slate-950"><Building2 className="h-5 w-5" /></span>
@@ -84,7 +84,7 @@ export function SiteWalkHub({ projects, walks }: { projects: HubProject[]; walks
 
       {createState.kind === "error" && <p className="rounded-2xl border border-rose-400/25 bg-rose-500/10 px-4 py-3 text-sm font-bold text-rose-200">{createState.message}</p>}
 
-      <GlassCard className="flex flex-col flex-1 overflow-hidden p-0 max-h-[calc(100dvh-18rem)]">
+      <GlassCard className="flex min-h-0 flex-1 flex-col overflow-hidden p-0">
         <div className="flex shrink-0 gap-2 overflow-x-auto border-b border-white/10 p-3 no-scrollbar">
           {(["recent", "starred", "projects"] as const).map((tab) => (
             <button key={tab} type="button" onClick={() => setActiveTab(tab)} className={`shrink-0 rounded-full px-4 py-2 text-sm font-black transition ${activeTab === tab ? "bg-amber-500 text-slate-950" : "bg-white/[0.04] text-slate-300 hover:bg-white/[0.08]"}`}>
@@ -93,7 +93,7 @@ export function SiteWalkHub({ projects, walks }: { projects: HubProject[]; walks
           ))}
         </div>
 
-        <div className="flex-1 overflow-y-auto p-3 pb-8 mb-8 no-scrollbar">
+        <div className="min-h-0 flex-1 overflow-y-auto p-3 pb-[max(env(safe-area-inset-bottom),2rem)] no-scrollbar">
           {activeTab === "recent" && (
             <div className="space-y-2">
               {walks.length === 0 && <div className="rounded-3xl border border-dashed border-white/15 bg-white/[0.03] p-6 text-center text-sm font-bold text-slate-400">No walks yet. Start a Quick Walk.</div>}

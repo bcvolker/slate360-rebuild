@@ -1,6 +1,6 @@
 {
   "$schema": "./schemas/bug-registry.schema.json",
-  "updatedAt": "2026-05-07",
+  "updatedAt": "2026-05-08",
   "source": "slate360-context/ONGOING_ISSUES.md",
   "bugs": [
     {
@@ -844,6 +844,22 @@
         "New plan pins include session_id and PlanViewer fetches saved sheet pins when remounted",
         "PlanQuickActionMenu renders as a centered modal instead of screen-coordinate absolute positioning",
         "Markup, Ghost, Undo, Redo, and UnifiedVectorToolbar controls render inside CaptureDataBottomSheet",
+        "npm run typecheck passes"
+      ]
+    },
+    {
+      "id": "BUG-077",
+      "title": "Mobile Site Walk plan/capture flow still crashed and exposed a partially cut-off Save & Next action",
+      "module": "site-walk/mobile-plans-capture",
+      "severity": "critical",
+      "status": "fixed",
+      "rootCause": "The previous GPU pivot still allowed PlanViewer pan/zoom state to re-render the React-PDF child, kept the plan surface sized from responsive CSS instead of the fixed 1200px canvas, used static bottom-sheet reserves that ignored the mobile keyboard, and left the Save & Next action visible in the collapsed capture sheet while plan-pin captures auto-returned to plan before data entry.",
+      "verification": [
+        "PlanPdfPage renders the primary viewer at a fixed 1200px width and is memoized so PlanViewer transform changes do not re-render React-PDF",
+        "PlanViewer uses a fixed 1200px composited surface with translate3d/scale CSS transforms and centering math that reserves toolbar and bottom-sheet space",
+        "CaptureDataBottomSheet tracks visualViewport keyboard offset, hides primary actions while collapsed, and shows Save & Next only inside the expanded data collection sheet",
+        "CaptureClientIsland no longer auto-returns to plan immediately after a plan-pin photo save; Save & Next flushes the draft first, then returns to plan only for plan-pin captures",
+        "SiteWalkHub/page use a fixed-height flex shell with only the list pane scrolling and safe-area bottom padding",
         "npm run typecheck passes"
       ]
     }

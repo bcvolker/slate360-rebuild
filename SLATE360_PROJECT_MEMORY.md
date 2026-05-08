@@ -200,40 +200,33 @@ When editing oversized files, always read both the state declarations AND the JS
 
 ## Latest Session Handoff
 
-### Session Handoff — 2026-05-07 (Mobile Architecture & GPU Pivot)
+### Session Handoff — 2026-05-08 (Site Walk Mobile Architecture Recovery)
+
 #### What Changed
-- `components/site-walk/capture/PlanPdfPage.tsx`: Hardcoded `<Page width={1200}>` to stop dynamic resizing and CPU-bound OOM crashes, moving PDF panning/zooming to CSS GPU layers natively used in `PlanViewer.tsx`.
-- `app/site-walk/_components/SiteWalkHub.tsx`: Converted layout to `flex flex-col flex-1 overflow-hidden` and added `pb-safe` spacing to stop landing page scroll bleed.
-- `components/site-walk/capture/VisualCaptureView.tsx`: Added `document.activeElement?.blur()` to the root wrapper whenever non-input elements are tapped to dismiss rogue mobile keyboards.
-- `components/site-walk/capture/CaptureDataBottomSheet.tsx`: Shifted the `Save & Next` / `Save & Return` buttons firmly into the top fixed header next to the Swipe Up chevron for permanent one-tap access.
-- `components/site-walk/capture/PlanToolbar.tsx`: Updated z-index to `z-50` and verified positioning so it's always top-anchored and visible over plans.
+- `components/site-walk/capture/PlanPdfPage.tsx`: Kept the active viewer PDF at a fixed 1200px width, preserved compact thumbnail widths, and memoized the component so PlanViewer pan/zoom state changes do not re-render React-PDF.
+- `components/site-walk/capture/PlanViewer.tsx`, `components/site-walk/capture/planViewerModel.ts`, `components/site-walk/capture/planViewerGeometry.ts`: Extracted plan math/helpers, brought PlanViewer under 300 lines, changed the plan surface to a fixed 1200px composited layer, and centered it with toolbar/bottom-sheet reserved space.
+- `lib/hooks/useVirtualKeyboardOffset.ts`, `components/site-walk/capture/VisualCaptureView.tsx`, `components/site-walk/capture/CaptureDataBottomSheet.tsx`: Added visualViewport keyboard offset tracking, pointer-down keyboard dismissal, keyboard-aware reserves, and sheet bottom offset.
+- `components/site-walk/capture/CaptureDataBottomSheet.tsx`: Removed Save/Capture primary actions from the collapsed sheet; primary actions now render only inside the expanded data collection drawer.
+- `components/site-walk/capture/useCaptureItems.ts`, `app/site-walk/(act-2-inputs)/capture/_components/CaptureClientIsland.tsx`: Added `flushCurrentDraft()` and rewired Save & Next so plan-pin captures stay on data entry until the expanded-sheet Save action, then return to plan; normal camera captures advance to the next camera stop.
+- `app/site-walk/page.tsx`, `app/site-walk/_components/SiteWalkHub.tsx`: Reworked the hub as a fixed-height flex shell with only the list pane scrolling and safe-area bottom padding.
+- `components/shared/GlassCard.tsx`: Added a typed optional `style` prop for structural keyboard-safe positioning.
 
 #### What's Broken / Partially Done
-- Need to verify CSS GPU panning holds up well when scaling past `2x` (text clarity vs frame performance).
-- Testing on older Android devices needed for the new `activeElement?.blur()` global trap.
+- Physical iPhone/Android verification is still required for the exact browser-memory behavior and keyboard/safe-area positioning.
+- `bash scripts/check-file-size.sh` still fails on 12 pre-existing oversized files outside this slice; all changed app files are under 300 lines.
 
 #### Context Files Updated
-- `SLATE360_PROJECT_MEMORY.md`: Updated session handoff.
-- `slate360-context/ONGOING_ISSUES.md`: None strictly updated by name, fixed architecture traps instead.
-
-#### Next Steps
-1. Verify the PDF viewer memory usage is stable in production builds on 2GB RAM phones.
-2. Test the capture view data entry flow end-to-end to ensure the new Save position is ergonomic.
-
-#### Next Steps (ordered)
-1. Run a live mobile test with Safari and Chrome.
-2. If further adjustments are needed to the Capture View grid rows or the bottom sheet padding, tweak `BOTTOM_SHEET_RESERVE`.
-
-#### Context Files Updated
-- `slate360-context/ONGOING_ISSUES.md` — Added BUG-076.
-- `ops/bug-registry.json` — Added BUG-076.
-- `SLATE360_PROJECT_MEMORY.md` — This handoff.
+- `ONGOING_ISSUES.md`: Added S360-057.
+- `slate360-context/ONGOING_ISSUES.md`: Added BUG-077.
+- `ops/bug-registry.json`: Added BUG-077.
+- `slate360-context/dashboard-tabs/site-walk/FIELD_PLATFORM_ROADMAP.md`: Added the May 8 implementation note.
+- `SLATE360_PROJECT_MEMORY.md`: This handoff.
 
 #### Next Steps (ordered)
-1. Phone smoke: open `/site-walk`, tap Quick Walk, confirm camera opens, take/upload a photo, tap Save & Next, confirm next stop capture opens.
-2. Project smoke: open `/site-walk`, tap Start from Project, expand a project, start/resume a walk, confirm existing walks open capture/review correctly.
-3. Plan smoke: start a plan walk from a PDF with real sheet rows, long-press a point, attach a photo, confirm return to Plan Mode and saved pin appears.
-4. Add a backfill/retry UI for older PDFs that still need `/api/site-walk/plan-sets/[id]/sheets/auto`.
+1. After Vercel deploys, phone smoke `/site-walk` → project plan walk → long-press plan → attach photo/upload → swipe drawer up → add note → Save & Next; expected: Save button is not visible while collapsed, note saves, and the view returns to Plan Mode.
+2. Pinch-zoom and pan the same PDF repeatedly on iOS Safari and Android Chrome; expected: no React-PDF re-render/OOM crash and toolbar remains visible.
+3. Quick Walk smoke: capture/upload a photo, swipe drawer up, Save & Next; expected: current draft flushes and the next camera capture starts.
+4. If old PDFs still lack sheet rows, add a backfill/retry UI for `/api/site-walk/plan-sets/[id]/sheets/auto`.
 
 ### Session Handoff — 2026-05-07 (Site Walk Phase 3 Confirm & Attach Hardening)
 

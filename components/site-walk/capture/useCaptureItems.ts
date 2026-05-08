@@ -118,6 +118,15 @@ export function useCaptureItems({ sessionId, projectId }: HookArgs) {
     dirtyRef.current = true;
   }
 
+  async function flushCurrentDraft() {
+    if (saveTimerRef.current) {
+      clearTimeout(saveTimerRef.current);
+      saveTimerRef.current = null;
+    }
+    if (!activeItem || !draft || !dirtyRef.current) return;
+    await saveDraft(activeItem.id, draft);
+  }
+
   async function saveDraft(itemId: string, nextDraft: CaptureItemDraft) {
     if (!activeItem) return;
     setSaveState("saving");
@@ -242,6 +251,7 @@ export function useCaptureItems({ sessionId, projectId }: HookArgs) {
     aiMessage,
     selectItem,
     patchDraft,
+    flushCurrentDraft,
     saveMarkupData,
     savePhotoAttachmentPins,
     savePhotoAngle,

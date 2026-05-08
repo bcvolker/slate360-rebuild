@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { ArrowLeft, Camera, FileImage, Ghost, RotateCcw, RotateCw, Shapes } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type PointerEvent } from "react";
 import GlassCard from "@/components/shared/GlassCard";
+import { useVirtualKeyboardOffset } from "@/lib/hooks/useVirtualKeyboardOffset";
 import type { MarkupData } from "@/lib/site-walk/markup-types";
 import { getPhotoAngleImageUrl, type PhotoAngleCaptureMode, type PhotoAngleRecord } from "@/lib/site-walk/photo-angles";
 import type { PhotoAttachmentPin } from "@/lib/site-walk/photo-attachments";
@@ -40,6 +41,7 @@ const BOTTOM_SHEET_RESERVE = "5.7rem";
 export function VisualCaptureView({ sessionId, autoOpenCamera, launchId, items, activeItemId, modeLabel, ghostImageUrl, ghostOn, markupOn, onToggleGhost, onToggleMarkup, onMarkupChange, onAttachmentPinsChange, onPlanCaptureSaved, onAddAngle, onAngleCaptureFile }: Props) {
   const [activeAngleId, setActiveAngleId] = useState<string | null>(null);
   const [previewActive, setPreviewActive] = useState(false);
+  const keyboardOffset = useVirtualKeyboardOffset();
   const captureCtx = useOptionalCaptureContext();
   const photoItems = items.filter((item) => item.item_type === "photo");
   const activeItem = photoItems.find((item) => item.id === activeItemId) ?? null;
@@ -66,10 +68,21 @@ export function VisualCaptureView({ sessionId, autoOpenCamera, launchId, items, 
     window.dispatchEvent(new CustomEvent(type));
   }
 
+  function handleTapDismiss(event: PointerEvent<HTMLDivElement>) {
+    const target = event.target;
+    if (!(target instanceof HTMLElement)) return;
+    if (target.closest("input, textarea, select, [contenteditable='true']")) return;
+    const activeElement = document.activeElement;
+    if (activeElement instanceof HTMLElement && activeElement !== document.body) activeElement.blur();
+  }
+
+  const bottomReserve = keyboardOffset > 0 ? `calc(${BOTTOM_SHEET_RESERVE} + ${keyboardOffset}px)` : BOTTOM_SHEET_RESERVE;
+
   return (
     <div
       className="grid h-full w-full overflow-hidden bg-[#0B0F15] text-white"
-      style={{ gridTemplateRows: `auto minmax(0,1fr) auto auto ${BOTTOM_SHEET_RESERVE}` }}
+      style={{ gridTemplateRows: `auto minmax(0,1fr) auto auto ${bottomReserve}` }}
+      onPointerDownCapture={handleTapDismiss}
     >
       {/* Top chrome bar */}
       <header className="z-30 flex items-center gap-2 border-b border-white/5 bg-slate-950/55 px-3 py-2 backdrop-blur-xl">
@@ -84,7 +97,7 @@ export function VisualCaptureView({ sessionId, autoOpenCamera, launchId, items, 
       </header>
 
       {/* Camera surface */}
-      <div className="relative min-h-0" onClick={(e) => { if ((e.target as HTMLElement).tagName !== "INPUT" && (e.target as HTMLElement).tagName !== "TEXTAREA") (document.activeElement as HTMLElement)?.blur(); }}>
+      <div className="relative min-h-0">
         <div className="absolute inset-0">
           <CameraViewfinder
             sessionId={sessionId}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent, type MutableRefObject, type PointerEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent, type PointerEvent } from "react";
 import { Move } from "lucide-react";
 import GlassCard from "@/components/shared/GlassCard";
 import type { SiteWalkPin, SiteWalkPlanSet, SiteWalkPlanSheet } from "@/lib/types/site-walk";
@@ -9,6 +9,7 @@ import { mapPlanPin, mergeFetchedPlanPins, PlanPin, type PlanViewerPin } from ".
 import { PlanPdfPage, type PlanPdfRenderDetails } from "./PlanPdfPage";
 import { PlanQuickActionMenu } from "./PlanQuickActionMenu";
 import { PlanToolbar } from "./PlanToolbar";
+import { buildPages, buildPlanPin, clearPressTimer, clamp, MAX_PLAN_SCALE, MIN_PLAN_SCALE, PLAN_BOTTOM_RESERVE, PLAN_FIT_PADDING, PLAN_PDF_BASE_HEIGHT, PLAN_PDF_BASE_WIDTH, PLAN_TOOLBAR_RESERVE, pointerDistance, type Point, type QuickMenuState, type Transform } from "./planViewerModel";
 import { calculateCenteredPlanTransform } from "./planViewerGeometry";
 
 type Props = {
@@ -21,12 +22,7 @@ type Props = {
   onSelectItem?: (itemId: string) => void;
 };
 
-type Point = { x: number; y: number };
-type Transform = { scale: number; x: number; y: number };
-type QuickMenuState = { pinId?: string; xPct: number; yPct: number } | null;
-type PlanPage = { key: string; label: string; pageNumber: number; sheetId?: string };
 type PdfReadyToken = PlanPdfRenderDetails & { sequence: number };
-const MIN_SCALE = 0.35, MAX_SCALE = 2.5, FIT_PADDING = 32;
 
 export function PlanViewer({ projectId, sessionId = "current-session", planSets = [], sheets = [], items = [], onCaptureRequest, onSelectItem }: Props) {
   const viewportRef = useRef<HTMLDivElement>(null);
@@ -72,7 +68,7 @@ export function PlanViewer({ projectId, sessionId = "current-session", planSets 
 
     function fitPlanToViewport() { 
       resizing = false;
-      setTransform(calculateCenteredPlanTransform({ maxScale: 1, minScale: MIN_SCALE, padding: FIT_PADDING, surface: surface!, viewport: viewport! })); 
+      setTransform(calculateCenteredPlanTransform({ maxScale: 1, minScale: MIN_PLAN_SCALE, padding: PLAN_FIT_PADDING, reservedBottom: PLAN_BOTTOM_RESERVE, reservedTop: PLAN_TOOLBAR_RESERVE, surface: surface!, viewport: viewport! }));
     }
     
     // Initial setup inside RAF
@@ -98,7 +94,7 @@ export function PlanViewer({ projectId, sessionId = "current-session", planSets 
     if (!viewport) return;
     function handleNativeWheel(event: globalThis.WheelEvent) {
       event.preventDefault();
-      setTransform((current) => ({ ...current, scale: clamp(current.scale + (event.deltaY > 0 ? -0.1 : 0.1), MIN_SCALE, MAX_SCALE) }));
+      setTransform((current) => ({ ...current, scale: clamp(current.scale + (event.deltaY > 0 ? -0.1 : 0.1), MIN_PLAN_SCALE, MAX_PLAN_SCALE) }));
     }
     viewport.addEventListener("wheel", handleNativeWheel, { passive: false });
     return () => viewport.removeEventListener("wheel", handleNativeWheel);
@@ -131,7 +127,11 @@ export function PlanViewer({ projectId, sessionId = "current-session", planSets 
     const point = { x: event.clientX, y: event.clientY };
     activePointers.current.set(event.pointerId, point);
     dragStart.current = { pointerId: event.pointerId, point, offset: { x: transform.x, y: transform.y }, moved: false };
-    event.currentTarget.setPointerCapture(event.pointerId);
+    try {
+      event.currentTarget.setPointerCapture(event.pointerId);
+    } catch {
+      // Mobile Safari can reject pointer capture during multi-touch transitions.
+    }
 
     if (activePointers.current.size >= 2) {
       clearPressTimer(pressTimer);
@@ -143,7 +143,7 @@ export function PlanViewer({ projectId, sessionId = "current-session", planSets 
     pressTimer.current = setTimeout(() => {
       const drag = dragStart.current;
       if (!drag || drag.moved) return;
-      const nextPin = buildPin(point, surfaceRef.current, pins.length + 1, sessionId);
+      const nextPin = buildPlanPin(point, surfaceRef.current, pins.length + 1, sessionId);
       if (!nextPin) return;
       setPins((current) => [...current, nextPin]);
       setActivePinId(nextPin.id);
@@ -163,7 +163,7 @@ export function PlanViewer({ projectId, sessionId = "current-session", planSets 
     if (activePointers.current.size >= 2 && pinchStart.current) {
       clearPressTimer(pressTimer);
       const ratio = pointerDistance(activePointers.current) / Math.max(1, pinchStart.current.distance);
-      setTransform((current) => ({ ...current, scale: clamp(pinchStart.current!.scale * ratio, MIN_SCALE, MAX_SCALE) }));
+      setTransform((current) => ({ ...current, scale: clamp(pinchStart.current!.scale * ratio, MIN_PLAN_SCALE, MAX_PLAN_SCALE) }));
       return;
     }
 
@@ -186,7 +186,7 @@ export function PlanViewer({ projectId, sessionId = "current-session", planSets 
   }, []);
 
   function zoom(delta: number) {
-    setTransform((current) => ({ ...current, scale: clamp(current.scale + delta, MIN_SCALE, MAX_SCALE) }));
+    setTransform((current) => ({ ...current, scale: clamp(current.scale + delta, MIN_PLAN_SCALE, MAX_PLAN_SCALE) }));
   }
 
   function handlePinClick(event: MouseEvent, pinId: string) {
@@ -202,17 +202,17 @@ export function PlanViewer({ projectId, sessionId = "current-session", planSets 
   }
 
   return (
-    <div className="relative h-full w-full touch-none select-none overflow-hidden bg-slate-950 text-white" style={{ WebkitTouchCallout: "none" }}>
+    <div className="relative h-full w-full touch-none select-none overflow-hidden bg-slate-950 text-white" style={{ WebkitTouchCallout: "none", touchAction: "none" }}>
       <div
         ref={viewportRef}
-        className="absolute inset-0 z-0 touch-none select-none overflow-hidden bg-slate-950" style={{ WebkitTouchCallout: "none" }}
+        className="absolute inset-0 z-0 touch-none select-none overflow-hidden bg-slate-950" style={{ WebkitTouchCallout: "none", touchAction: "none" }}
         onPointerDown={startPress}
         onPointerMove={movePointer}
         onPointerUp={endPointer}
         onPointerCancel={endPointer}
         onPointerLeave={endPointer}
       >
-        <div ref={surfaceRef} className="absolute left-0 top-0 aspect-[1.4/1] w-[150vw] max-w-6xl touch-none select-none overflow-hidden rounded-3xl border border-white/10 bg-white shadow-2xl" style={{ transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})`, transformOrigin: "top left", WebkitTouchCallout: "none" }}>
+        <div ref={surfaceRef} className="absolute left-0 top-0 touch-none select-none overflow-hidden rounded-3xl border border-white/10 bg-white shadow-2xl" style={{ backfaceVisibility: "hidden", contain: "layout paint", height: PLAN_PDF_BASE_HEIGHT, touchAction: "none", transform: `translate3d(${transform.x}px, ${transform.y}px, 0) scale(${transform.scale})`, transformOrigin: "top left", WebkitTouchCallout: "none", width: PLAN_PDF_BASE_WIDTH, willChange: "transform" }}>
           {planFileUrl && activePage ? (
             <PlanPdfPage fileUrl={planFileUrl} pageNumber={activePage.pageNumber} label={activePage.label} onPageCount={setPdfPageCount} onPdfPageRendered={handlePdfPageRendered} />
           ) : (
@@ -279,37 +279,4 @@ export function PlanViewer({ projectId, sessionId = "current-session", planSets 
 
 function PlanEmptySurface({ projectAware }: { projectAware: boolean }) {
   return <div className="flex h-full w-full items-center justify-center bg-white px-8 text-center text-sm font-bold text-slate-600">{projectAware ? "The uploaded plan file is still being prepared. Use the toolbar to switch pages or refresh." : "Start this walk from a field project with uploaded plans to use plan mode."}</div>;
-}
-
-function buildPages(planSet: SiteWalkPlanSet | null, sheets: SiteWalkPlanSheet[], pdfPageCount: number): PlanPage[] {
-  if (!planSet) return [];
-  const total = Math.max(planSet.page_count || 0, sheets.length, pdfPageCount, 1);
-  return Array.from({ length: total }, (_, index) => {
-    const pageNumber = index + 1;
-    const sheet = sheets.find((item) => item.sheet_number === pageNumber);
-    return { key: sheet?.id ?? `${planSet.id}-${pageNumber}`, label: sheet?.sheet_name ?? `Sheet ${pageNumber}`, pageNumber, sheetId: sheet?.id };
-  });
-}
-
-function buildPin(point: Point, surface: HTMLDivElement | null, count: number, sessionId: string): PlanViewerPin | null {
-  if (!surface) return null;
-  const rect = surface.getBoundingClientRect();
-  const xPct = clamp(((point.x - rect.left) / rect.width) * 100, 0, 100);
-  const yPct = clamp(((point.y - rect.top) / rect.height) * 100, 0, 100);
-  return { id: Math.random().toString(36).slice(2), x_pct: xPct, y_pct: yPct, session_id: sessionId, label: String(count).padStart(2, "0"), amber: true, item_id: null };
-}
-
-function clearPressTimer(timerRef: MutableRefObject<ReturnType<typeof setTimeout> | null>) {
-  if (timerRef.current) clearTimeout(timerRef.current);
-  timerRef.current = null;
-}
-
-function pointerDistance(points: Map<number, Point>) {
-  const [first, second] = Array.from(points.values());
-  if (!first || !second) return 1;
-  return Math.hypot(second.x - first.x, second.y - first.y);
-}
-
-function clamp(value: number, min: number, max: number) {
-  return Math.min(max, Math.max(min, value));
 }

@@ -1,8 +1,9 @@
 "use client";
 
-import { Component, useEffect, useRef, useState, type ReactNode } from "react";
+import { Component, memo, useEffect, useState, type ReactNode } from "react";
 import { FileWarning, Loader2 } from "lucide-react";
 import { Document, Page, pdfjs } from "react-pdf";
+import { PLAN_PDF_BASE_WIDTH } from "./planViewerModel";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
 
@@ -25,17 +26,16 @@ export type PlanPdfRenderDetails = {
   pageWidth: number;
 };
 
-export function PlanPdfPage({ fileUrl, pageNumber, label, compact = false, maxWidth = 1200, minWidth = 1200, onPageCount, onPdfPageRendered }: Props) {
-  const shellRef = useRef<HTMLDivElement>(null);
+function PlanPdfPageComponent({ fileUrl, pageNumber, label, compact = false, maxWidth = PLAN_PDF_BASE_WIDTH, minWidth = 240, onPageCount, onPdfPageRendered }: Props) {
   const [error, setError] = useState<string | null>(null);
-  const pageWidth = 1200; // Fixed width for CSS Transform zooming
+  const pageWidth = compact ? Math.max(minWidth, Math.min(maxWidth, PLAN_PDF_BASE_WIDTH)) : PLAN_PDF_BASE_WIDTH;
 
   useEffect(() => {
     setError(null);
   }, [fileUrl, pageNumber]);
 
   return (
-    <div ref={shellRef} className="flex h-full w-full touch-none select-none items-center justify-center overflow-hidden bg-white text-slate-900" style={{ WebkitTouchCallout: "none" }}>
+    <div className="flex h-full w-full touch-none select-none items-center justify-center overflow-hidden bg-white text-slate-900" style={{ WebkitTouchCallout: "none" }}>
       {error ? (
         <div className="mx-4 rounded-2xl border border-amber-500/40 bg-amber-500/15 p-4 text-left shadow-lg shadow-amber-950/10">
           <div className="flex items-start gap-3">
@@ -74,6 +74,8 @@ export function PlanPdfPage({ fileUrl, pageNumber, label, compact = false, maxWi
     </div>
   );
 }
+
+export const PlanPdfPage = memo(PlanPdfPageComponent, (previous, next) => previous.fileUrl === next.fileUrl && previous.pageNumber === next.pageNumber && previous.label === next.label && previous.compact === next.compact && previous.maxWidth === next.maxWidth && previous.minWidth === next.minWidth);
 
 type PdfErrorDetails = {
   fileUrl: string;

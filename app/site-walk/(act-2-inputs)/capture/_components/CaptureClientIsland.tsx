@@ -47,9 +47,9 @@ function CaptureClientIslandInner({ sessionId, projectId, walkName, showPlanCanv
   const [markupOn, setMarkupOn] = useState(true);
   const carryForwardRef = useRef<Partial<Pick<CaptureItemDraft, "classification" | "trade" | "priority" | "status" | "assignedTo">> | null>(null);
   const appliedCarryRef = useRef<string | null>(null);
-  const returnToPlanAfterSaveRef = useRef(false);
+  const [returnToPlanAfterSave, setReturnToPlanAfterSave] = useState(false);
   const { primaryCaptureInput } = useDeviceContext();
-  const { items, assignees, activeItem, draft, saveState, aiState, aiMessage, selectItem, patchDraft, saveMarkupData, savePhotoAttachmentPins, savePhotoAngle, formatNotesWithAi } = useCaptureItems({ sessionId, projectId });
+  const { items, assignees, activeItem, draft, saveState, aiState, aiMessage, selectItem, patchDraft, flushCurrentDraft, saveMarkupData, savePhotoAttachmentPins, savePhotoAngle, formatNotesWithAi } = useCaptureItems({ sessionId, projectId });
   const tradeSettings = useProjectCaptureSettings(projectId);
   const [manageTradesOpen, setManageTradesOpen] = useState(false);
 
@@ -101,15 +101,14 @@ function CaptureClientIslandInner({ sessionId, projectId, walkName, showPlanCanv
     requestCapture(input, "next_item");
   }
 
-  function saveNextStop(options: { fromPlanPin?: boolean } = {}) {
+  async function saveNextStop(options: { fromPlanPin?: boolean } = {}) {
     rememberCarryForward();
-    // In a plan-based walk, the user always wants to drop the next pin on the plan.
-    // In a quick walk, the camera comes back up immediately.
-    const shouldReturnToPlan = showPlanCanvas || options.fromPlanPin || returnToPlanAfterSaveRef.current;
+    await flushCurrentDraft();
+    const shouldReturnToPlan = options.fromPlanPin || returnToPlanAfterSave;
     
     updateLocation(nextStopLabel(currentLocation, recentLocations));
     if (shouldReturnToPlan) {
-      returnToPlanAfterSaveRef.current = false;
+      setReturnToPlanAfterSave(false);
       setWalkMode("plan");
       return;
     }
@@ -117,19 +116,20 @@ function CaptureClientIslandInner({ sessionId, projectId, walkName, showPlanCanv
   }
 
   function openCameraMode(openCamera = false) {
+    setReturnToPlanAfterSave(false);
     setWalkMode("camera");
     if (openCamera) requestCapture(primaryCaptureInput, "next_item");
   }
 
   function handlePlanCaptureRequest(input: "camera" | "upload") {
     // PlanQuickActionMenu has already set the planTarget on the context.
-    returnToPlanAfterSaveRef.current = true;
+    setReturnToPlanAfterSave(true);
     requestCapture(input, "plan_pin");
     setWalkMode("camera");
   }
 
   function handlePlanCaptureSaved() {
-    saveNextStop({ fromPlanPin: true });
+    setReturnToPlanAfterSave(true);
   }
 
   if (walkMode === "choice") {
@@ -181,7 +181,7 @@ function CaptureClientIslandInner({ sessionId, projectId, walkName, showPlanCanv
       </div>
 
       {/* Layer 1: mode switch and plan home affordance */}
-      {showPlanCanvas && <CaptureModeToggle mode={walkMode === "plan" ? "plan" : "camera"} onPlan={() => setWalkMode("plan")} onCamera={() => openCameraMode()} />}
+      {showPlanCanvas && <CaptureModeToggle mode={walkMode === "plan" ? "plan" : "camera"} onPlan={() => { setReturnToPlanAfterSave(false); setWalkMode("plan"); }} onCamera={() => openCameraMode()} />}
       {walkMode === "plan" && <SiteWalkHomeButton />}
 
       {/* Layer 2: draggable data entry bottom sheet */}
@@ -196,11 +196,11 @@ function CaptureClientIslandInner({ sessionId, projectId, walkName, showPlanCanv
         currentLocation={currentLocation}
         tradeOptions={tradeSettings.trades}
         canManageTrades={Boolean(projectId)}
-        returnsToPlan={showPlanCanvas}
+        returnsToPlan={returnToPlanAfterSave}
         onDraftChange={patchDraft}
         onCapture={captureNow}
         onFormatNotes={() => void formatNotesWithAi()}
-        onSaveNextStop={saveNextStop}
+        onSaveNextStop={() => void saveNextStop()}
         onOpenManageTrades={() => setManageTradesOpen(true)}
       />
 

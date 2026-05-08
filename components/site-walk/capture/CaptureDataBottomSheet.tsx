@@ -1,9 +1,10 @@
 "use client";
 
 import { useRef, useState, type PointerEvent } from "react";
-import { Camera, ChevronUp, Link2, Loader2, Mic, Settings2, SkipForward, Sparkles, Upload } from "lucide-react";
+import { Camera, ChevronUp, Link2, Loader2, Settings2, SkipForward, Sparkles, Upload } from "lucide-react";
 import GlassCard from "@/components/shared/GlassCard";
 import { useDeviceContext, type DeviceCaptureInput } from "@/lib/hooks/useDeviceContext";
+import { useVirtualKeyboardOffset } from "@/lib/hooks/useVirtualKeyboardOffset";
 import { CAPTURE_ITEM_STATUSES, type CaptureAssignee, type CaptureItemDraft, type CaptureItemRecord } from "@/lib/types/site-walk-capture";
 
 type Props = {
@@ -21,7 +22,7 @@ type Props = {
   onDraftChange: (patch: Partial<CaptureItemDraft>) => void;
   onCapture: (input?: DeviceCaptureInput) => void;
   onFormatNotes: () => void;
-  onSaveNextStop: () => void;
+  onSaveNextStop: () => void | Promise<void>;
   onOpenManageTrades?: () => void;
 };
 
@@ -30,6 +31,7 @@ export function CaptureDataBottomSheet({ item, items, assignees, draft, saveStat
   const [linkProgression, setLinkProgression] = useState(false);
   const dragStartY = useRef<number | null>(null);
   const { primaryCaptureInput, primaryCaptureLabel } = useDeviceContext();
+  const keyboardOffset = useVirtualKeyboardOffset();
   const isSaving = saveState === "saving";
   const aiBusy = aiState === "loading" || aiState === "formatting";
   const progressionActive = Boolean(draft?.beforeItemId) || linkProgression;
@@ -39,6 +41,7 @@ export function CaptureDataBottomSheet({ item, items, assignees, draft, saveStat
   const saveActionLabel = returnsToPlan ? "Save & Return to Plan" : "Save & Next Camera";
 
   function handlePointerDown(event: PointerEvent<HTMLDivElement>) {
+    blurActiveField();
     dragStartY.current = event.clientY;
   }
 
@@ -50,36 +53,46 @@ export function CaptureDataBottomSheet({ item, items, assignees, draft, saveStat
     dragStartY.current = null;
   }
 
+  function handleContentPointerDown(event: PointerEvent<HTMLDivElement>) {
+    const target = event.target;
+    if (!(target instanceof HTMLElement)) return;
+    if (target.closest("input, textarea, select, [contenteditable='true']")) return;
+    blurActiveField();
+  }
+
   return (
     <GlassCard
       className={`fixed inset-x-0 bottom-0 z-40 rounded-b-none border-x-0 border-b-0 bg-slate-950/92 px-4 pb-[max(env(safe-area-inset-bottom),1rem)] pt-2 shadow-[0_-28px_80px_rgba(0,0,0,0.55)] backdrop-blur-2xl transition-transform duration-300 md:left-1/2 md:max-w-3xl md:-translate-x-1/2 md:rounded-t-[2rem] md:border-x ${expanded ? "translate-y-0" : "translate-y-[calc(100%-5.7rem)]"}`}
+      style={{ bottom: keyboardOffset }}
       aria-label="Swipe-up capture details"
     >
       <div className="touch-none" onPointerDown={handlePointerDown} onPointerUp={handlePointerUp}>
         <button type="button" onClick={() => setExpanded((current) => !current)} className="mx-auto flex min-h-8 w-full flex-col items-center gap-1 pb-0 pt-0.5" aria-label={expanded ? "Collapse capture details" : "Expand capture details"}>
           <ChevronUp className={`transition-transform duration-300 h-6 w-6 text-amber-200/80 ${expanded ? "rotate-180" : "animate-bounce"}`} />
         </button>
-        <div className="flex items-center gap-3 pb-3">
+        <div className="flex min-h-14 items-center gap-3 pb-3">
           <div className="min-w-0 flex-1 pl-1 cursor-pointer" onClick={() => setExpanded((current) => !current)}>
             <p className="truncate text-xs font-black uppercase tracking-[0.16em] text-amber-300/80">{currentLocation}</p>
             <h2 className="truncate text-base font-black text-white">{item?.title || "Ready for next field stop"}</h2>
           </div>
-          {item ? (
-            <button type="button" onClick={() => onSaveNextStop()} disabled={isSaving} className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-2xl bg-amber-500 px-4 text-sm font-black text-slate-950 shadow-[0_0_24px_rgba(245,158,11,0.38)] transition hover:bg-amber-400 disabled:opacity-60 pointer-events-auto relative z-50">
-              {isSaving ? <Loader2 className="h-5 w-5 animate-spin" /> : saveActionIcon}
-              <span className="hidden sm:inline">{saveActionLabel}</span>
-              <span className="sm:hidden">{returnsToPlan ? "To Plan" : "Next Pt"}</span>
-            </button>
-          ) : (
-            <button type="button" onClick={() => onCapture(primaryCaptureInput)} className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-2xl bg-amber-500 px-5 text-sm font-black text-slate-950 shadow-[0_0_24px_rgba(245,158,11,0.38)] transition hover:bg-amber-400 pointer-events-auto relative z-50">
-              {primaryCaptureInput === "camera" ? <Camera className="h-5 w-5" /> : <Upload className="h-5 w-5" />} {primaryCaptureLabel}
-            </button>
-          )}
         </div>
       </div>
 
       {expanded && (
-        <div className="mt-4 max-h-[58dvh] space-y-3 overflow-y-auto pr-1 no-scrollbar">
+        <div className="mt-2 max-h-[58dvh] space-y-3 overflow-y-auto pr-1 no-scrollbar" onPointerDownCapture={handleContentPointerDown}>
+          <div className="sticky top-0 z-10 rounded-[1.5rem] border border-white/10 bg-slate-950/95 p-2 shadow-xl backdrop-blur-xl">
+            {item ? (
+              <button type="button" onClick={() => void onSaveNextStop()} disabled={isSaving} className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-amber-500 px-4 text-sm font-black text-slate-950 shadow-[0_0_24px_rgba(245,158,11,0.38)] transition hover:bg-amber-400 disabled:opacity-60">
+                {isSaving ? <Loader2 className="h-5 w-5 animate-spin" /> : saveActionIcon}
+                <span>{saveActionLabel}</span>
+              </button>
+            ) : (
+              <button type="button" onClick={() => onCapture(primaryCaptureInput)} className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-amber-500 px-5 text-sm font-black text-slate-950 shadow-[0_0_24px_rgba(245,158,11,0.38)] transition hover:bg-amber-400">
+                {primaryCaptureInput === "camera" ? <Camera className="h-5 w-5" /> : <Upload className="h-5 w-5" />} {primaryCaptureLabel}
+              </button>
+            )}
+          </div>
+
           <label className="block">
             <span className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">Field note</span>
             <textarea
@@ -161,6 +174,7 @@ function isUuid(value: string) {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
 }
 
-function dispatchCanvasEvent(name: string) {
-  if (typeof window !== "undefined") window.dispatchEvent(new Event(name));
+function blurActiveField() {
+  const activeElement = document.activeElement;
+  if (activeElement instanceof HTMLElement) activeElement.blur();
 }
