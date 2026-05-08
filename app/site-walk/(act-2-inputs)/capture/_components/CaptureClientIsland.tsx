@@ -102,13 +102,13 @@ function CaptureClientIslandInner({ sessionId, projectId, walkName, showPlanCanv
     requestCapture(input, "next_item");
   }
 
-  async function saveNextStop(options: { fromPlanPin?: boolean } = {}) {
+  function saveNextStop(options: { fromPlanPin?: boolean } = {}) {
     rememberCarryForward();
-    try {
-      await flushCurrentDraft();
-    } catch (error) {
+    // Fire and forget so we don't break the user gesture token for native file picker
+    flushCurrentDraft().catch((error) => {
       console.error("[site-walk] Save & Next draft flush failed; continuing to next stop", error);
-    }
+    });
+    
     const shouldReturnToPlan = options.fromPlanPin || returnToPlanAfterSave;
     
     updateLocation(nextStopLabel(currentLocation, recentLocations));
@@ -145,8 +145,8 @@ function CaptureClientIslandInner({ sessionId, projectId, walkName, showPlanCanv
 
   return (
     <section className="relative h-[100dvh] w-full overflow-hidden bg-slate-950 text-white">
-      {/* Layer 0: full-bleed capture background */}
-      <div className="absolute inset-0 z-0">
+      {/* Layer 0: full-bleed capture background / left pane on desktop */}
+      <div className="absolute inset-0 z-0 md:right-96">
         {walkMode === "plan" ? (
           <PlanViewer
             projectId={projectId}
@@ -186,8 +186,10 @@ function CaptureClientIslandInner({ sessionId, projectId, walkName, showPlanCanv
       </div>
 
       {/* Layer 1: mode switch and plan home affordance */}
-      {showPlanCanvas && <CaptureModeToggle mode={walkMode === "plan" ? "plan" : "camera"} onPlan={() => { setReturnToPlanAfterSave(false); setWalkMode("plan"); }} onCamera={() => openCameraMode()} />}
-      {walkMode === "plan" && <SiteWalkHomeButton />}
+      <div className="absolute inset-0 pointer-events-none z-10 md:right-96">
+        {showPlanCanvas && <div className="pointer-events-auto"><CaptureModeToggle mode={walkMode === "plan" ? "plan" : "camera"} onPlan={() => { setReturnToPlanAfterSave(false); setWalkMode("plan"); }} onCamera={() => openCameraMode()} /></div>}
+        {walkMode === "plan" && <div className="pointer-events-auto"><SiteWalkHomeButton /></div>}
+      </div>
 
       {/* Layer 2: draggable data entry bottom sheet */}
       <CaptureDataBottomSheet
@@ -222,11 +224,11 @@ function CaptureClientIslandInner({ sessionId, projectId, walkName, showPlanCanv
 }
 
 function CaptureModeToggle({ mode, onPlan, onCamera }: { mode: "plan" | "camera"; onPlan: () => void; onCamera: () => void }) {
-  return <div className="fixed left-1/2 top-3 z-30 flex -translate-x-1/2 rounded-2xl border border-white/15 bg-slate-950/75 p-1 shadow-2xl backdrop-blur-xl"><button type="button" onClick={onPlan} className={`inline-flex h-9 items-center gap-1 rounded-xl px-3 text-[10px] font-black uppercase tracking-[0.1em] ${mode === "plan" ? "bg-amber-500 text-slate-950" : "text-white/70"}`}><Map className="h-3.5 w-3.5" /> Plan</button><button type="button" onClick={onCamera} className={`inline-flex h-9 items-center gap-1 rounded-xl px-3 text-[10px] font-black uppercase tracking-[0.1em] ${mode === "camera" ? "bg-amber-500 text-slate-950" : "text-white/70"}`}><Camera className="h-3.5 w-3.5" /> Camera</button></div>;
+  return <div className="absolute left-1/2 top-3 z-30 flex -translate-x-1/2 rounded-2xl border border-white/15 bg-slate-950/75 p-1 shadow-2xl backdrop-blur-xl"><button type="button" onClick={onPlan} className={`inline-flex h-9 items-center gap-1 rounded-xl px-3 text-[10px] font-black uppercase tracking-[0.1em] ${mode === "plan" ? "bg-amber-500 text-slate-950" : "text-white/70"}`}><Map className="h-3.5 w-3.5" /> Plan</button><button type="button" onClick={onCamera} className={`inline-flex h-9 items-center gap-1 rounded-xl px-3 text-[10px] font-black uppercase tracking-[0.1em] ${mode === "camera" ? "bg-amber-500 text-slate-950" : "text-white/70"}`}><Camera className="h-3.5 w-3.5" /> Camera</button></div>;
 }
 
 function SiteWalkHomeButton() {
-  return <Link href="/site-walk" className="fixed right-3 top-3 z-30 inline-flex h-11 items-center gap-2 rounded-2xl border border-white/15 bg-slate-950/75 px-3 text-xs font-black text-white/80 shadow-2xl backdrop-blur-xl hover:border-amber-300/50 hover:text-amber-100"><ArrowLeft className="h-4 w-4" /> Home</Link>;
+  return <Link href="/site-walk" className="absolute right-3 top-3 z-30 inline-flex h-11 items-center gap-2 rounded-2xl border border-white/15 bg-slate-950/75 px-3 text-xs font-black text-white/80 shadow-2xl backdrop-blur-xl hover:border-amber-300/50 hover:text-amber-100"><ArrowLeft className="h-4 w-4" /> Home</Link>;
 }
 
 function parseRecentLocations(value: string) {

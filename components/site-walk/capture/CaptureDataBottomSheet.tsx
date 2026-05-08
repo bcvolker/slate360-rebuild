@@ -27,9 +27,10 @@ type Props = {
 };
 
 export function CaptureDataBottomSheet({ item, items, assignees, draft, saveState, aiState, aiMessage, currentLocation, tradeOptions, canManageTrades, returnsToPlan = false, onDraftChange, onCapture, onFormatNotes, onSaveNextStop, onOpenManageTrades }: Props) {
-  const [expanded, setExpanded] = useState(false);
+  const [expandedMobile, setExpandedMobile] = useState(false);
   const [linkProgression, setLinkProgression] = useState(false);
   const [advancing, setAdvancing] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(false);
   const dragStartY = useRef<number | null>(null);
   const { primaryCaptureInput, primaryCaptureLabel } = useDeviceContext();
   const keyboardOffset = useVirtualKeyboardOffset();
@@ -42,16 +43,22 @@ export function CaptureDataBottomSheet({ item, items, assignees, draft, saveStat
   const saveActionIcon = returnsToPlan ? <Link2 className="h-5 w-5" /> : <SkipForward className="h-5 w-5" />;
   const saveActionLabel = returnsToPlan ? "Save & Return to Plan" : "Save & Next Camera";
 
+  if (typeof window !== "undefined" && !isDesktop && window.innerWidth >= 768) {
+    setIsDesktop(true); // crude safe measure for resizing
+  }
+  
   function handlePointerDown(event: PointerEvent<HTMLDivElement>) {
+    // Only drag on mobile
+    if (typeof window !== "undefined" && window.innerWidth >= 768) return;
     blurActiveField();
     dragStartY.current = event.clientY;
   }
 
   function handlePointerUp(event: PointerEvent<HTMLDivElement>) {
-    if (dragStartY.current === null) return;
+    if ((typeof window !== "undefined" && window.innerWidth >= 768) || dragStartY.current === null) return;
     const delta = event.clientY - dragStartY.current;
-    if (delta < -18) setExpanded(true);
-    if (delta > 18) setExpanded(false);
+    if (delta < -18) setExpandedMobile(true);
+    if (delta > 18) setExpandedMobile(false);
     dragStartY.current = null;
   }
 
@@ -62,38 +69,38 @@ export function CaptureDataBottomSheet({ item, items, assignees, draft, saveStat
     blurActiveField();
   }
 
-  async function handleSaveNextClick() {
+  function handleSaveNextClick() {
     if (advancing) return;
     setAdvancing(true);
-    try {
-      await onSaveNextStop();
-      setExpanded(false);
-    } finally {
-      setAdvancing(false);
-    }
+    onSaveNextStop();
+    setExpandedMobile(false);
+    // Reset advancing after a delay in case the native picker is cancelled
+    setTimeout(() => setAdvancing(false), 2000);
   }
+
+  const wrapperStyle = (typeof window !== "undefined" && window.innerWidth < 768) ? { bottom: keyboardOffset } : {};
 
   return (
     <GlassCard
-      className={`fixed inset-x-0 bottom-0 z-40 rounded-b-none border-x-0 border-b-0 bg-slate-950/92 px-4 pb-[max(env(safe-area-inset-bottom),1rem)] pt-2 shadow-[0_-28px_80px_rgba(0,0,0,0.55)] backdrop-blur-2xl transition-transform duration-300 md:left-1/2 md:max-w-3xl md:-translate-x-1/2 md:rounded-t-[2rem] md:border-x ${expanded ? "translate-y-0" : "translate-y-[calc(100%-5.7rem)]"}`}
-      style={{ bottom: keyboardOffset }}
-      aria-label="Swipe-up capture details"
+      className={`fixed inset-x-0 bottom-0 z-40 rounded-b-none border-x-0 border-b-0 bg-slate-950/92 px-4 pb-[max(env(safe-area-inset-bottom),1rem)] pt-2 shadow-[0_-28px_80px_rgba(0,0,0,0.55)] backdrop-blur-2xl transition-transform duration-300 md:left-auto md:right-0 md:top-0 md:h-[100dvh] md:w-96 md:translate-x-0 md:translate-y-0 md:rounded-none md:border-l md:border-t-0 md:pt-4 md:shadow-[-20px_0_40px_rgba(0,0,0,0.3)] ${expandedMobile ? "translate-y-0" : "translate-y-[calc(100%-5.7rem)]"}`}
+      style={wrapperStyle}
+      aria-label="Capture details"
     >
-      <div className="touch-none" onPointerDown={handlePointerDown} onPointerUp={handlePointerUp}>
-        <button type="button" onClick={() => setExpanded((current) => !current)} className="mx-auto flex min-h-8 w-full flex-col items-center gap-1 pb-0 pt-0.5" aria-label={expanded ? "Collapse capture details" : "Expand capture details"}>
-          <ChevronUp className={`transition-transform duration-300 h-6 w-6 text-amber-200/80 ${expanded ? "rotate-180" : "animate-bounce"}`} />
+      <div className="md:hidden touch-none" onPointerDown={handlePointerDown} onPointerUp={handlePointerUp}>
+        <button type="button" onClick={() => setExpandedMobile((current) => !current)} className="mx-auto flex min-h-8 w-full flex-col items-center gap-1 pb-0 pt-0.5" aria-label={expandedMobile ? "Collapse capture details" : "Expand capture details"}>
+          <ChevronUp className={`transition-transform duration-300 h-6 w-6 text-amber-200/80 ${expandedMobile ? "rotate-180" : "animate-bounce"}`} />
         </button>
-        <div className="flex min-h-14 items-center gap-3 pb-3">
-          <div className="min-w-0 flex-1 pl-1 cursor-pointer" onClick={() => setExpanded((current) => !current)}>
-            <p className="truncate text-xs font-black uppercase tracking-[0.16em] text-amber-300/80">{currentLocation}</p>
-            <h2 className="truncate text-base font-black text-white">{item?.title || "Ready for next field stop"}</h2>
-          </div>
+      </div>
+      
+      <div className="flex min-h-14 items-center gap-3 pb-3">
+        <div className="min-w-0 flex-1 pl-1 cursor-pointer md:cursor-default" onClick={() => setExpandedMobile((current) => !current)}>
+          <p className="truncate text-xs font-black uppercase tracking-[0.16em] text-amber-300/80">{currentLocation}</p>
+          <h2 className="truncate text-base font-black text-white">{item?.title || "Ready for next field stop"}</h2>
         </div>
       </div>
 
-      {expanded && (
-        <div className="mt-2 max-h-[58dvh] space-y-3 overflow-y-auto pr-1 no-scrollbar" onPointerDownCapture={handleContentPointerDown}>
-          <div className="sticky top-0 z-10 rounded-[1.5rem] border border-white/10 bg-slate-950/95 p-2 shadow-xl backdrop-blur-xl">
+      <div className={`mt-2 ${expandedMobile ? "block" : "hidden"} md:block md:h-[calc(100dvh-6rem)] md:pb-20 space-y-3 pr-1 md:pr-4 overflow-y-auto no-scrollbar max-h-[58dvh] md:max-h-none`} onPointerDownCapture={handleContentPointerDown}>
+        <div className="sticky top-0 z-10 rounded-[1.5rem] border border-white/10 bg-slate-950/95 p-2 shadow-xl backdrop-blur-xl">
             {item ? (
               <button type="button" onClick={() => void handleSaveNextClick()} disabled={advancing} className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-amber-500 px-4 text-sm font-black text-slate-950 shadow-[0_0_24px_rgba(245,158,11,0.38)] transition hover:bg-amber-400 disabled:opacity-60">
                 {actionBusy ? <Loader2 className="h-5 w-5 animate-spin" /> : saveActionIcon}
@@ -168,7 +175,6 @@ export function CaptureDataBottomSheet({ item, items, assignees, draft, saveStat
 
           {aiMessage && <p className="rounded-2xl border border-amber-500/20 bg-amber-500/10 px-3 py-2 text-xs font-bold text-amber-100">{aiMessage}</p>}
         </div>
-      )}
     </GlassCard>
   );
 }
