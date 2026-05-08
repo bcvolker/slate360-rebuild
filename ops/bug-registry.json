@@ -877,6 +877,21 @@
         "Draft flush failures are logged but do not block moving to the next stop",
         "npm run typecheck passes"
       ]
+    },
+    {
+      "id": "BUG-079",
+      "title": "Site Walk capture flow remains blocked after repeated Save & Next, desktop layout, plan crash, and pan fixes",
+      "module": "site-walk/capture-plans-mobile-desktop",
+      "severity": "critical",
+      "status": "open",
+      "rootCause": "The remaining failures appear architectural rather than isolated button bugs: mobile native camera opening is routed through React state/useEffect instead of the original trusted tap handler; the capture route still renders inside sticky Site Walk module chrome; active upload vs active item vs next-stop states are implicit; panning is disabled when markup mode is on by default; and mobile plan mode still depends on client-side React-PDF rendering.",
+      "verification": [
+        "Create a minimal mobile test proving direct input.click in the tap handler works while state/effect-driven input.click fails or succeeds on the target phone",
+        "Document and instrument capture states: empty, pending upload preview, saving upload, active item ready, saving details, requesting next capture, plan return, and error",
+        "Capture route hides SiteWalkModuleNav/global sticky chrome in task mode and desktop sidebar is contained without overlap",
+        "Pan works while markup tools are visible or an explicit navigation/hand tool is selected",
+        "Phone plan mode no longer crashes with a real project PDF, preferably after testing a non-React-PDF image/tile render path"
+      ]
     }
   ]
 }

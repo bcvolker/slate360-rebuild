@@ -200,6 +200,35 @@ When editing oversized files, always read both the state declarations AND the JS
 
 ## Latest Session Handoff
 
+### Session Handoff — 2026-05-08 (Site Walk Capture Failure Report)
+
+#### What Changed
+- `docs/site-walk/SITE_WALK_CAPTURE_FAILURE_ANALYSIS_2026-05-08.md`: Added a full incident report covering May 4–8 Site Walk capture attempts, repeated failed assumptions, current code facts, process-of-elimination findings, and an outside-AI prompt.
+- `ops/bug-registry.json`: Added BUG-079 as open/critical for unresolved Site Walk capture flow after repeated Save & Next, desktop layout, plan crash, and pan fixes.
+- `slate360-context/ONGOING_ISSUES.md`: Added BUG-079 row pointing to the report and explicitly marking the issue open.
+- `ONGOING_ISSUES.md`: Added S360-059 row matching BUG-079.
+
+#### What's Broken / Partially Done
+- `components/site-walk/capture/CameraViewfinder.tsx`: Current next-capture path opens native camera/file input from a React `useEffect` after `CaptureContext` state changes; likely invalid for strict mobile user-activation rules.
+- `components/site-walk/SiteWalkModuleNav.tsx`: Sticky module nav remains visible above `/site-walk/capture`, so capture is not a true isolated task shell.
+- `components/site-walk/capture/useMarkupCanvasState.ts`: Pan path only runs when `markupEnabled` is false, while `CaptureClientIsland` defaults markup on.
+- `components/site-walk/capture/PlanPdfPage.tsx`: Mobile plan mode still relies on React-PDF client rendering; phone crashes persist despite worker/render/centering fixes.
+- File-size risk: `CameraViewfinder.tsx` and `useMarkupCanvasState.ts` are now slightly over 300 lines and should be extracted before further app-code edits.
+
+#### Context Files Updated
+- `docs/site-walk/SITE_WALK_CAPTURE_FAILURE_ANALYSIS_2026-05-08.md`: New root-cause report and outside-AI prompt.
+- `ops/bug-registry.json`: Added BUG-079.
+- `slate360-context/ONGOING_ISSUES.md`: Added BUG-079.
+- `ONGOING_ISSUES.md`: Added S360-059.
+- `SLATE360_PROJECT_MEMORY.md`: This handoff.
+
+#### Next Steps (ordered)
+1. Do not patch capture UI again until a minimal mobile direct-click vs state/effect file-input test proves the native picker user-activation hypothesis.
+2. Draft the capture state machine (`empty`, `pending_upload_preview`, `saving_upload`, `active_item_ready`, `draft_dirty`, `requesting_next_capture`, `plan_return`, `error`) before code changes.
+3. Design `/site-walk/capture` as an isolated full-screen task route without sticky Site Walk module nav.
+4. Split photo navigation/pan from markup mode and default mobile captured-photo view to navigation mode.
+5. Evaluate a mobile plan render path based on pre-rendered images/tiles instead of React-PDF.
+
 ### Session Handoff — 2026-05-08 (Focused Save & Next Drawer Repair)
 
 #### What Changed
