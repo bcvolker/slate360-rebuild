@@ -43,6 +43,25 @@ function CaptureClientIslandInner({ sessionId, projectId, walkName, showPlanCanv
   const [walkMode, setWalkMode] = useState<WalkMode>(() => showStartChoice ? "choice" : showPlanCanvas ? "plan" : "camera");
   const [currentLocation, setCurrentLocation] = useState("Stop 1");
   const [recentLocations, setRecentLocations] = useState<string[]>([]);
+  const sectionRef = useRef<HTMLElement | null>(null);
+  const [sectionHeight, setSectionHeight] = useState<string>("100dvh");
+
+  // Measure available height (viewport - whatever is above this section, e.g. site-walk nav)
+  useEffect(() => {
+    function measure() {
+      if (!sectionRef.current) return;
+      const top = sectionRef.current.getBoundingClientRect().top;
+      const vh = window.innerHeight;
+      setSectionHeight(`${Math.max(vh - top, 360)}px`);
+    }
+    measure();
+    window.addEventListener("resize", measure);
+    window.addEventListener("scroll", measure, true);
+    return () => {
+      window.removeEventListener("resize", measure);
+      window.removeEventListener("scroll", measure, true);
+    };
+  }, []);
   const [ghostOn, setGhostOn] = useState(false);
   const [markupOn, setMarkupOn] = useState(true);
   const carryForwardRef = useRef<Partial<Pick<CaptureItemDraft, "classification" | "trade" | "priority" | "status" | "assignedTo">> | null>(null);
@@ -144,9 +163,9 @@ function CaptureClientIslandInner({ sessionId, projectId, walkName, showPlanCanv
   const ghostImageUrl = findGhostImageUrl(items, activeItem?.id ?? null, currentLocation);
 
   return (
-    <section className="relative h-[100dvh] w-full overflow-hidden bg-slate-950 text-white">
-      {/* Layer 0: full-bleed capture background / left pane on desktop */}
-      <div className="absolute inset-0 z-0 md:right-96">
+    <section ref={sectionRef} className="relative w-full overflow-hidden bg-slate-950 text-white flex flex-col md:flex-row" style={{ height: sectionHeight }}>
+      {/* Left pane: capture canvas */}
+      <div className="relative flex-1 min-h-0 min-w-0">
         {walkMode === "plan" ? (
           <PlanViewer
             projectId={projectId}
@@ -183,15 +202,15 @@ function CaptureClientIslandInner({ sessionId, projectId, walkName, showPlanCanv
             onAngleCaptureFile={savePhotoAngle}
           />
         )}
+
+        {/* Layer 1: mode switch and plan home affordance — overlay on canvas only */}
+        <div className="absolute inset-0 pointer-events-none z-10">
+          {showPlanCanvas && <div className="pointer-events-auto"><CaptureModeToggle mode={walkMode === "plan" ? "plan" : "camera"} onPlan={() => { setReturnToPlanAfterSave(false); setWalkMode("plan"); }} onCamera={() => openCameraMode()} /></div>}
+          {walkMode === "plan" && <div className="pointer-events-auto"><SiteWalkHomeButton /></div>}
+        </div>
       </div>
 
-      {/* Layer 1: mode switch and plan home affordance */}
-      <div className="absolute inset-0 pointer-events-none z-10 md:right-96">
-        {showPlanCanvas && <div className="pointer-events-auto"><CaptureModeToggle mode={walkMode === "plan" ? "plan" : "camera"} onPlan={() => { setReturnToPlanAfterSave(false); setWalkMode("plan"); }} onCamera={() => openCameraMode()} /></div>}
-        {walkMode === "plan" && <div className="pointer-events-auto"><SiteWalkHomeButton /></div>}
-      </div>
-
-      {/* Layer 2: draggable data entry bottom sheet */}
+      {/* Right pane on desktop / bottom sheet on mobile */}
       <CaptureDataBottomSheet
         item={activeItem}
         items={items}

@@ -78,9 +78,14 @@ export function CameraViewfinder({ sessionId, autoOpenCamera = false, launchId =
     if (!pending) return;
     captureIntentRef.current = { source: pending.source, input: pending.input };
     const ref = pending.input === "camera" ? cameraInputRef : uploadInputRef;
-    const handle = window.setTimeout(() => ref.current?.click(), 60);
+    // Click synchronously so the cleanup-on-consume cannot race the click.
+    // Doing this inside the same task preserves the user gesture token in Safari/iOS.
+    try {
+      ref.current?.click();
+    } catch (err) {
+      console.error("[capture] failed to open file picker", err);
+    }
     captureCtx?.consumePendingCapture();
-    return () => window.clearTimeout(handle);
   }, [captureCtx, captureCtx?.pendingCapture, mounted]);
 
   useEffect(() => {

@@ -212,7 +212,13 @@ export function useMarkupCanvasState({ imageUrl, markupEnabled, initialMarkup, o
     clearLongPress();
     pointersRef.current.delete(event.pointerId);
     if (pointersRef.current.size < 2) pinchRef.current = null;
-    panRef.current = null;
+    // Re-anchor pan to remaining finger so post-pinch single-finger pan keeps working.
+    if (pointersRef.current.size === 1) {
+      const remaining = Array.from(pointersRef.current.values())[0];
+      panRef.current = { x: remaining.x, y: remaining.y, origin: transformRef.current };
+    } else {
+      panRef.current = null;
+    }
     if (dragState) {
       setDragState(null);
       emitMarkup();
