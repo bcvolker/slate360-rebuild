@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState, type PointerEvent, type WheelEvent } from "react";
 import type { MarkupData, MarkupShape } from "@/lib/site-walk/markup-types";
 import { VECTOR_TOOL_EVENT, type VectorTool } from "./UnifiedVectorToolbar";
-import { buildShape, buildText, clamp, distance, findShapeAtPoint, MARKUP_HEIGHT, MARKUP_WIDTH, moveShape, type DraftPoint, type PointerPoint, type Transform } from "./markupCanvasGeometry";
+import { buildShape, buildText, findShapeAtPoint, MARKUP_HEIGHT, MARKUP_WIDTH, moveShape, type DraftPoint, type PointerPoint, type Transform } from "./markupCanvasGeometry";
 import { recolorShape, resizeShapeFromHandle, setShapeStrokeWidth, type ResizeHandle } from "./markupShapeEdits";
+import { applyWheelZoom, beginPinch, computePanTransform, computePinchScale, reanchorPan, type PanAnchor, type PinchAnchor } from "./markupPanTransform";
 
 export type DraftPin = { xPct: number; yPct: number } | null;
 
@@ -20,8 +21,8 @@ export function useMarkupCanvasState({ imageUrl, markupEnabled, initialMarkup, o
   const rafRef = useRef<number | null>(null);
   const pendingMoveRef = useRef<PendingMove | null>(null);
   const pointersRef = useRef(new Map<number, PointerPoint>());
-  const pinchRef = useRef<{ distance: number; scale: number } | null>(null);
-  const panRef = useRef<{ x: number; y: number; origin: Transform } | null>(null);
+  const pinchRef = useRef<PinchAnchor | null>(null);
+  const panRef = useRef<PanAnchor | null>(null);
   const undoRef = useRef<MarkupShape[][]>([]);
   const redoRef = useRef<MarkupShape[][]>([]);
   const shapesRef = useRef<MarkupShape[]>(initialMarkup?.shapes ?? []);
@@ -123,8 +124,7 @@ export function useMarkupCanvasState({ imageUrl, markupEnabled, initialMarkup, o
     pointersRef.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
     if (pointersRef.current.size === 2) {
       clearLongPress();
-      const [a, b] = Array.from(pointersRef.current.values());
-      pinchRef.current = { distance: distance(a, b), scale: transform.scale };
+      pinchRef.current = beginPinch(pointersRef.current, transform.scale);
       return;
     }
     panRef.current = { x: event.clientX, y: event.clientY, origin: transformRef.current };
@@ -179,13 +179,12 @@ export function useMarkupCanvasState({ imageUrl, markupEnabled, initialMarkup, o
 
   function processPointerMove(move: PendingMove) {
     if (pointersRef.current.size === 2 && pinchRef.current) {
-      const [a, b] = Array.from(pointersRef.current.values());
-      const scale = clamp((distance(a, b) / pinchRef.current.distance) * pinchRef.current.scale, 0.75, 4);
+      const scale = computePinchScale(pointersRef.current, pinchRef.current);
       updateTransform((current) => ({ ...current, scale }));
       return;
     }
     if (!markupEnabled) {
-      if (panRef.current && transformRef.current.scale !== 1) updateTransform({ ...panRef.current.origin, x: panRef.current.origin.x + move.clientX - panRef.current.x, y: panRef.current.origin.y + move.clientY - panRef.current.y });
+      if (panRef.current) updateTransform(computePanTransform(panRef.current, move.clientX, move.clientY));
       return;
     }
     clearLongPress();
@@ -213,12 +212,7 @@ export function useMarkupCanvasState({ imageUrl, markupEnabled, initialMarkup, o
     pointersRef.current.delete(event.pointerId);
     if (pointersRef.current.size < 2) pinchRef.current = null;
     // Re-anchor pan to remaining finger so post-pinch single-finger pan keeps working.
-    if (pointersRef.current.size === 1) {
-      const remaining = Array.from(pointersRef.current.values())[0];
-      panRef.current = { x: remaining.x, y: remaining.y, origin: transformRef.current };
-    } else {
-      panRef.current = null;
-    }
+    panRef.current = reanchorPan(pointersRef.current, transformRef.current);
     if (dragState) {
       setDragState(null);
       emitMarkup();
@@ -244,7 +238,7 @@ export function useMarkupCanvasState({ imageUrl, markupEnabled, initialMarkup, o
 
   function handleWheel(event: WheelEvent<HTMLDivElement>) {
     event.preventDefault();
-    updateTransform((current) => ({ ...current, scale: clamp(current.scale - event.deltaY * 0.002, 0.75, 4) }));
+    updateTransform((current) => applyWheelZoom(current, event.deltaY));
   }
 
   function beginShapeDrag(event: PointerEvent<SVGElement>, shape: MarkupShape) {

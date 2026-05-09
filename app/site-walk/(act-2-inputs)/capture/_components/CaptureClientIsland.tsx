@@ -39,31 +39,30 @@ export function CaptureClientIsland(props: Props) {
 }
 
 function CaptureClientIslandInner({ sessionId, projectId, walkName, showPlanCanvas, showStartChoice, autoOpenCamera, launchId, initialItemId, planSets, planSheets }: Props) {
-  const { requestCapture } = useCaptureContext();
+  const captureCtx = useCaptureContext();
+  const { requestCapture } = captureCtx;
   const [walkMode, setWalkMode] = useState<WalkMode>(() => showStartChoice ? "choice" : showPlanCanvas ? "plan" : "camera");
   const [currentLocation, setCurrentLocation] = useState("Stop 1");
   const [recentLocations, setRecentLocations] = useState<string[]>([]);
-  const sectionRef = useRef<HTMLElement | null>(null);
-  const [sectionHeight, setSectionHeight] = useState<string>("100dvh");
 
-  // Measure available height (viewport - whatever is above this section, e.g. site-walk nav)
+  // ── Direct picker refs: these open the native file/camera picker synchronously ──
+  const directCameraRef = useRef<HTMLInputElement>(null);
+  const directUploadRef = useRef<HTMLInputElement>(null);
+  const pickerIntentRef = useRef<{ source: string; input: "camera" | "upload" }>({ source: "quick_capture", input: "camera" });
+
+  // Register the synchronous picker opener on the context so any child can use it
   useEffect(() => {
-    function measure() {
-      if (!sectionRef.current) return;
-      const top = sectionRef.current.getBoundingClientRect().top;
-      const vh = window.innerHeight;
-      setSectionHeight(`${Math.max(vh - top, 360)}px`);
-    }
-    measure();
-    window.addEventListener("resize", measure);
-    window.addEventListener("scroll", measure, true);
-    return () => {
-      window.removeEventListener("resize", measure);
-      window.removeEventListener("scroll", measure, true);
+    captureCtx.openPickerRef.current = (input, source) => {
+      pickerIntentRef.current = { source, input };
+      const ref = input === "camera" ? directCameraRef : directUploadRef;
+      ref.current!.value = "";
+      ref.current!.click();
     };
-  }, []);
+    return () => { captureCtx.openPickerRef.current = null; };
+  }, [captureCtx]);
+
   const [ghostOn, setGhostOn] = useState(false);
-  const [markupOn, setMarkupOn] = useState(true);
+  const [markupOn, setMarkupOn] = useState(false);
   const carryForwardRef = useRef<Partial<Pick<CaptureItemDraft, "classification" | "trade" | "priority" | "status" | "assignedTo">> | null>(null);
   const appliedCarryRef = useRef<string | null>(null);
   const [returnToPlanAfterSave, setReturnToPlanAfterSave] = useState(false);
@@ -118,7 +117,16 @@ function CaptureClientIslandInner({ sessionId, projectId, walkName, showPlanCanv
 
   function captureNow(input: DeviceCaptureInput = primaryCaptureInput) {
     setWalkMode("camera");
-    requestCapture(input, "next_item");
+    // Use the synchronous direct picker path — .click() happens in THIS event frame
+    openPickerDirect(input, "next_item");
+  }
+
+  /** Opens the native picker synchronously — MUST be called from within a user tap/click handler frame. */
+  function openPickerDirect(input: "camera" | "upload", source: string) {
+    pickerIntentRef.current = { source, input };
+    const ref = input === "camera" ? directCameraRef : directUploadRef;
+    ref.current!.value = "";
+    ref.current!.click();
   }
 
   function saveNextStop(options: { fromPlanPin?: boolean } = {}) {
@@ -136,6 +144,7 @@ function CaptureClientIslandInner({ sessionId, projectId, walkName, showPlanCanv
       setWalkMode("plan");
       return;
     }
+    // CRITICAL: this opens the picker synchronously in the same event frame as the tap
     captureNow();
   }
 
@@ -148,8 +157,20 @@ function CaptureClientIslandInner({ sessionId, projectId, walkName, showPlanCanv
   function handlePlanCaptureRequest(input: "camera" | "upload") {
     // PlanQuickActionMenu has already set the planTarget on the context.
     setReturnToPlanAfterSave(true);
-    requestCapture(input, "plan_pin");
+    openPickerDirect(input, "plan_pin");
     setWalkMode("camera");
+  }
+
+  /** Handle files selected from the colocated direct picker inputs. */
+  function handleDirectFileChange(event: React.ChangeEvent<HTMLInputElement>) {
+    event.stopPropagation();
+    const file = event.currentTarget.files?.[0];
+    event.currentTarget.value = "";
+    if (!file) return;
+    // Dispatch a capture-file event that CameraViewfinder can consume
+    window.dispatchEvent(new CustomEvent("site-walk:direct-capture-file", {
+      detail: { file, source: pickerIntentRef.current.source, input: pickerIntentRef.current.input },
+    }));
   }
 
   function handlePlanCaptureSaved() {
@@ -163,7 +184,7 @@ function CaptureClientIslandInner({ sessionId, projectId, walkName, showPlanCanv
   const ghostImageUrl = findGhostImageUrl(items, activeItem?.id ?? null, currentLocation);
 
   return (
-    <section ref={sectionRef} className="relative w-full overflow-hidden bg-slate-950 text-white flex flex-col md:flex-row" style={{ height: sectionHeight }}>
+    <section className="relative flex h-full w-full flex-1 overflow-hidden bg-slate-950 text-white flex-col md:flex-row">
       {/* Left pane: capture canvas */}
       <div className="relative flex-1 min-h-0 min-w-0">
         {walkMode === "plan" ? (
@@ -238,6 +259,11 @@ function CaptureClientIslandInner({ sessionId, projectId, walkName, showPlanCanv
           onSave={tradeSettings.save}
         />
       )}
+
+      {/* Direct picker inputs — colocated here so .click() runs in the same event frame as the tap.
+          This is the FIX for iOS Safari user-activation loss (BUG-079). */}
+      <input ref={directCameraRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleDirectFileChange} />
+      <input ref={directUploadRef} type="file" accept="image/*" className="hidden" onChange={handleDirectFileChange} />
     </section>
   );
 }

@@ -141,7 +141,7 @@ export function VisualCaptureView({ sessionId, autoOpenCamera, launchId, items, 
         <div className="z-20 flex flex-col gap-2 border-t border-white/5 bg-slate-950/80 px-3 py-2 backdrop-blur-xl">
           <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
             <button type="button" onClick={onToggleMarkup} className={`inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-xl px-3 text-xs font-black uppercase tracking-wider transition-colors ${markupOn ? "bg-amber-500 text-slate-950 shadow-[0_0_12px_rgba(245,158,11,0.3)]" : "border border-white/10 bg-black/40 text-slate-200 hover:border-amber-300/50 hover:bg-black hover:text-amber-100"}`}>
-              <Shapes className="h-4 w-4" /> Markup
+              <Shapes className="h-4 w-4" /> {markupOn ? "Drawing" : "Navigate"}
             </button>
             <button type="button" onClick={onToggleGhost} disabled={!ghostAvailable} className={`inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-xl px-3 text-xs font-black uppercase tracking-wider transition-colors disabled:opacity-40 ${ghostOn ? "bg-amber-500 text-slate-950 shadow-[0_0_12px_rgba(245,158,11,0.3)]" : "border border-white/10 bg-black/40 text-slate-200 hover:border-amber-300/50 hover:bg-black hover:text-amber-100"}`}>
               <Ghost className="h-4 w-4" /> Ghost

@@ -51,7 +51,7 @@ export function PhotoMarkupCanvas({ imageUrl, title, sessionId, markupEnabled, i
           className="absolute inset-0 h-full w-full"
           viewBox={`0 0 ${MARKUP_WIDTH} ${MARKUP_HEIGHT}`}
           preserveAspectRatio="none"
-          style={{ transform: `translate(${canvas.transform.x}px, ${canvas.transform.y}px) scale(${canvas.transform.scale})`, transformOrigin: "center" }}
+          style={{ transform: `translate(${canvas.transform.x}px, ${canvas.transform.y}px) scale(${canvas.transform.scale})`, transformOrigin: "center", pointerEvents: markupEnabled ? "auto" : "none" }}
         >
           {canvas.shapes.map((shape) => renderShape(shape, "", canvas.selectedId === shape.id, (event) => canvas.beginShapeDrag(event, shape)))}
           {renderSelectionBounds(canvas.shapes.find((shape) => shape.id === canvas.selectedId) ?? null, canvas.beginSelectionResize)}
