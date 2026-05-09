@@ -170,22 +170,20 @@ function SheetContents({
   progressionActive, setLinkProgression, selectClass, maxHeightClass,
 }: SheetContentsProps) {
   return (
-    <div className={`space-y-3 ${maxHeightClass} ${maxHeightClass ? "overflow-y-auto pr-1 no-scrollbar" : ""}`} onPointerDownCapture={handleContentPointerDown}>
-      <div className="rounded-[1.5rem] border border-white/10 bg-slate-950/95 p-2 shadow-xl backdrop-blur-xl">
-        {item ? (
-          <button type="button" onClick={handleSaveNextClick} disabled={advancing} className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-amber-500 px-4 text-sm font-black text-slate-950 shadow-[0_0_24px_rgba(245,158,11,0.38)] transition hover:bg-amber-400 disabled:opacity-60">
-            {actionBusy ? <Loader2 className="h-5 w-5 animate-spin" /> : saveActionIcon}
-            <span>{saveActionLabel}</span>
-          </button>
-        ) : (
-          <button type="button" onClick={() => onCapture(primaryCaptureInput)} className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-amber-500 px-5 text-sm font-black text-slate-950 shadow-[0_0_24px_rgba(245,158,11,0.38)] transition hover:bg-amber-400">
-            {primaryCaptureInput === "camera" ? <Camera className="h-5 w-5" /> : <Upload className="h-5 w-5" />} {primaryCaptureLabel}
-          </button>
+    <div className={`flex flex-col ${maxHeightClass}`}>
+      {/* ── Body: scrollable form fields ── */}
+      <div className={`flex-1 space-y-3 overflow-y-auto pr-1 pb-3 no-scrollbar ${maxHeightClass ? "" : ""}`} onPointerDownCapture={handleContentPointerDown}>
+        {/* Capture trigger — shown only when there's no active item */}
+        {!item && (
+          <div className="rounded-[1.5rem] border border-white/10 bg-slate-950/95 p-2 shadow-xl backdrop-blur-xl">
+            <button type="button" onClick={() => onCapture(primaryCaptureInput)} className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-amber-500 px-5 text-sm font-black text-slate-950 shadow-[0_0_24px_rgba(245,158,11,0.38)] transition hover:bg-amber-400">
+              {primaryCaptureInput === "camera" ? <Camera className="h-5 w-5" /> : <Upload className="h-5 w-5" />} {primaryCaptureLabel}
+            </button>
+          </div>
         )}
-      </div>
 
-      <label className="block">
-        <span className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">Field note</span>
+        <label className="block">
+          <span className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">Field note</span>
         <textarea
           value={draft?.notes ?? ""}
           onChange={(event) => onDraftChange({ notes: event.target.value })}
@@ -201,13 +199,13 @@ function SheetContents({
       <div className="grid gap-2 sm:grid-cols-3">
         <label className="block sm:col-span-1">
           <span className="flex items-center justify-between text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">
-            <span>Trade</span>
+            <span>Category <span className="normal-case tracking-normal text-slate-600">(Customizable in Org Settings)</span></span>
             {canManageTrades && onOpenManageTrades && (
-              <button type="button" onClick={onOpenManageTrades} className="inline-flex items-center gap-1 rounded-md px-1 py-0.5 text-[9px] font-black uppercase tracking-wider text-amber-300 hover:text-amber-100" aria-label="Manage project trades"><Settings2 className="h-3 w-3" /> Manage</button>
+              <button type="button" onClick={onOpenManageTrades} className="inline-flex items-center gap-1 rounded-md px-1 py-0.5 text-[9px] font-black uppercase tracking-wider text-amber-300 hover:text-amber-100" aria-label="Manage project categories"><Settings2 className="h-3 w-3" /> Manage</button>
             )}
           </span>
           <select value={draft?.trade ?? ""} onChange={(event) => onDraftChange({ trade: event.target.value })} disabled={!draft} className={selectClass}>
-            <option value="">Select trade…</option>
+            <option value="">Select category…</option>
             {tradeOptions.map((trade) => <option key={trade} value={trade}>{trade}</option>)}
           </select>
         </label>
@@ -244,7 +242,18 @@ function SheetContents({
         </button>
       </div>
 
-      {aiMessage && <p className="rounded-2xl border border-amber-500/20 bg-amber-500/10 px-3 py-2 text-xs font-bold text-amber-100">{aiMessage}</p>}
+        {aiMessage && <p className="rounded-2xl border border-amber-500/20 bg-amber-500/10 px-3 py-2 text-xs font-bold text-amber-100">{aiMessage}</p>}
+      </div>
+
+      {/* ── Footer: Save & Next — always visible, never scrolls off-screen ── */}
+      {item && (
+        <div className="shrink-0 border-t border-white/10 bg-slate-950/95 px-1 pt-3 pb-[max(env(safe-area-inset-bottom),0.5rem)]">
+          <button type="button" onClick={handleSaveNextClick} disabled={advancing} className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-amber-500 px-4 text-sm font-black text-slate-950 shadow-[0_0_24px_rgba(245,158,11,0.38)] transition hover:bg-amber-400 disabled:opacity-60">
+            {actionBusy ? <Loader2 className="h-5 w-5 animate-spin" /> : saveActionIcon}
+            <span>{saveActionLabel}</span>
+          </button>
+        </div>
+      )}
     </div>
   );
 }
