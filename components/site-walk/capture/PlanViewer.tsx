@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent, type PointerEvent } from "react";
-import { Move } from "lucide-react";
+import { Hand, MapPin, Move } from "lucide-react";
 import GlassCard from "@/components/shared/GlassCard";
 import type { SiteWalkPin, SiteWalkPlanSet, SiteWalkPlanSheet } from "@/lib/types/site-walk";
 import type { LayerFilter } from "./plan-layer-types";
@@ -9,7 +9,9 @@ import { mapPlanPin, mergeFetchedPlanPins, PlanPin, type PlanViewerPin } from ".
 import { PlanPdfPage, type PlanPdfRenderDetails } from "./PlanPdfPage";
 import { PlanQuickActionMenu } from "./PlanQuickActionMenu";
 import { PlanToolbar } from "./PlanToolbar";
-import { buildPages, buildPlanPin, clearPressTimer, clamp, MAX_PLAN_SCALE, MIN_PLAN_SCALE, PLAN_BOTTOM_RESERVE, PLAN_FIT_PADDING, PLAN_PDF_BASE_HEIGHT, PLAN_PDF_BASE_WIDTH, PLAN_TOOLBAR_RESERVE, pointerDistance, type Point, type QuickMenuState, type Transform } from "./planViewerModel";
+import { PinInfoBubble, PlanEmptySurface } from "./PlanViewerParts";
+import { buildPages, buildPlanPin, clamp, MAX_PLAN_SCALE, MIN_PLAN_SCALE, PLAN_BOTTOM_RESERVE, PLAN_FIT_PADDING, PLAN_PDF_BASE_HEIGHT, PLAN_PDF_BASE_WIDTH, PLAN_TOOLBAR_RESERVE, type Point, type QuickMenuState, type Transform } from "./planViewerModel";
+import { usePlanGestures } from "./usePlanGestures";
 import { calculateCenteredPlanTransform } from "./planViewerGeometry";
 
 type Props = {
@@ -35,12 +37,23 @@ export function PlanViewer({ projectId, sessionId = "current-session", planSets 
   const [pdfReadyToken, setPdfReadyToken] = useState<PdfReadyToken | null>(null);
   const [quickMenu, setQuickMenu] = useState<QuickMenuState>(null);
   const [transform, setTransform] = useState<Transform>({ scale: 1, x: 0, y: 0 });
+  const transformRef = useRef<Transform>({ scale: 1, x: 0, y: 0 });
   const [hintVisible, setHintVisible] = useState(true);
-  const pressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const dragStart = useRef<{ pointerId: number; point: Point; offset: Point; moved: boolean } | null>(null);
-  const activePointers = useRef(new Map<number, Point>());
-  const pinchStart = useRef<{ distance: number; scale: number } | null>(null);
+  const [toolMode, setToolMode] = useState<"pan" | "draw">("pan");
   const pdfReadySequence = useRef(0);
+
+  /** Apply transform directly to the DOM for zero-React-render gesture frames. */
+  function applyTransformToDOM(t: Transform) {
+    transformRef.current = t;
+    if (surfaceRef.current) {
+      surfaceRef.current.style.transform = `translate3d(${t.x}px, ${t.y}px, 0) scale(${t.scale})`;
+    }
+  }
+
+  /** Commit the ref-based transform to React state (for dependent UI like zoom %). */
+  function commitTransform() {
+    setTransform({ ...transformRef.current });
+  }
 
   const activePlanSet = useMemo(() => planSets.find((planSet) => planSet.processing_status === "ready") ?? planSets[0] ?? null, [planSets]);
   const planSheets = useMemo(() => activePlanSet ? sheets.filter((sheet) => sheet.plan_set_id === activePlanSet.id) : [], [activePlanSet, sheets]);
@@ -68,7 +81,9 @@ export function PlanViewer({ projectId, sessionId = "current-session", planSets 
 
     function fitPlanToViewport() { 
       resizing = false;
-      setTransform(calculateCenteredPlanTransform({ maxScale: 1, minScale: MIN_PLAN_SCALE, padding: PLAN_FIT_PADDING, reservedBottom: PLAN_BOTTOM_RESERVE, reservedTop: PLAN_TOOLBAR_RESERVE, surface: surface!, viewport: viewport! }));
+      const centered = calculateCenteredPlanTransform({ maxScale: 1, minScale: MIN_PLAN_SCALE, padding: PLAN_FIT_PADDING, reservedBottom: PLAN_BOTTOM_RESERVE, reservedTop: PLAN_TOOLBAR_RESERVE, surface: surface!, viewport: viewport! });
+      applyTransformToDOM(centered);
+      setTransform(centered);
     }
     
     // Initial setup inside RAF
@@ -94,7 +109,10 @@ export function PlanViewer({ projectId, sessionId = "current-session", planSets 
     if (!viewport) return;
     function handleNativeWheel(event: globalThis.WheelEvent) {
       event.preventDefault();
-      setTransform((current) => ({ ...current, scale: clamp(current.scale + (event.deltaY > 0 ? -0.1 : 0.1), MIN_PLAN_SCALE, MAX_PLAN_SCALE) }));
+      const c = transformRef.current;
+      const next = { ...c, scale: clamp(c.scale + (event.deltaY > 0 ? -0.1 : 0.1), MIN_PLAN_SCALE, MAX_PLAN_SCALE) };
+      applyTransformToDOM(next);
+      commitTransform();
     }
     viewport.addEventListener("wheel", handleNativeWheel, { passive: false });
     return () => viewport.removeEventListener("wheel", handleNativeWheel);
@@ -123,70 +141,22 @@ export function PlanViewer({ projectId, sessionId = "current-session", planSets 
     return true;
   });
 
-  const startPress = useCallback((event: PointerEvent<HTMLDivElement>) => {
-    const point = { x: event.clientX, y: event.clientY };
-    activePointers.current.set(event.pointerId, point);
-    dragStart.current = { pointerId: event.pointerId, point, offset: { x: transform.x, y: transform.y }, moved: false };
-    try {
-      event.currentTarget.setPointerCapture(event.pointerId);
-    } catch {
-      // Mobile Safari can reject pointer capture during multi-touch transitions.
-    }
+  const handleLongPress = useCallback((point: Point) => {
+    const nextPin = buildPlanPin(point, surfaceRef.current, pins.length + 1, sessionId);
+    if (!nextPin) return;
+    setPins((current) => [...current, nextPin]);
+    setActivePinId(nextPin.id);
+    setQuickMenu({ pinId: nextPin.id, xPct: nextPin.x_pct, yPct: nextPin.y_pct });
+    if (navigator.vibrate) navigator.vibrate(50);
+  }, [pins.length, sessionId]);
 
-    if (activePointers.current.size >= 2) {
-      clearPressTimer(pressTimer);
-      dragStart.current = null;
-      pinchStart.current = { distance: pointerDistance(activePointers.current), scale: transform.scale };
-      return;
-    }
-
-    pressTimer.current = setTimeout(() => {
-      const drag = dragStart.current;
-      if (!drag || drag.moved) return;
-      const nextPin = buildPlanPin(point, surfaceRef.current, pins.length + 1, sessionId);
-      if (!nextPin) return;
-      setPins((current) => [...current, nextPin]);
-      setActivePinId(nextPin.id);
-      setQuickMenu({ pinId: nextPin.id, xPct: nextPin.x_pct, yPct: nextPin.y_pct });
-      
-      // Clear pointer state so gestures don't get stuck under the modal.
-      activePointers.current.clear();
-      pinchStart.current = null;
-      dragStart.current = null;
-
-      if (navigator.vibrate) navigator.vibrate(50);
-    }, 500);
-  }, [pins.length, sessionId, transform.scale, transform.x, transform.y]);
-
-  const movePointer = useCallback((event: PointerEvent<HTMLDivElement>) => {
-    activePointers.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
-    if (activePointers.current.size >= 2 && pinchStart.current) {
-      clearPressTimer(pressTimer);
-      const ratio = pointerDistance(activePointers.current) / Math.max(1, pinchStart.current.distance);
-      setTransform((current) => ({ ...current, scale: clamp(pinchStart.current!.scale * ratio, MIN_PLAN_SCALE, MAX_PLAN_SCALE) }));
-      return;
-    }
-
-    const drag = dragStart.current;
-    if (!drag || drag.pointerId !== event.pointerId) return;
-    const dx = event.clientX - drag.point.x;
-    const dy = event.clientY - drag.point.y;
-    if (Math.hypot(dx, dy) > 5) {
-      drag.moved = true;
-      clearPressTimer(pressTimer);
-    }
-    if (drag.moved) setTransform((current) => ({ ...current, x: drag.offset.x + dx, y: drag.offset.y + dy }));
-  }, []);
-
-  const endPointer = useCallback((event: PointerEvent<HTMLDivElement>) => {
-    clearPressTimer(pressTimer);
-    activePointers.current.delete(event.pointerId);
-    if (activePointers.current.size < 2) pinchStart.current = null;
-    if (dragStart.current?.pointerId === event.pointerId) dragStart.current = null;
-  }, []);
+  const { startPress, movePointer, endPointer } = usePlanGestures({ surfaceRef, transformRef, applyTransformToDOM, commitTransform, toolMode, onLongPress: handleLongPress });
 
   function zoom(delta: number) {
-    setTransform((current) => ({ ...current, scale: clamp(current.scale + delta, MIN_PLAN_SCALE, MAX_PLAN_SCALE) }));
+    const c = transformRef.current;
+    const next = { ...c, scale: clamp(c.scale + delta, MIN_PLAN_SCALE, MAX_PLAN_SCALE) };
+    applyTransformToDOM(next);
+    commitTransform();
   }
 
   function handlePinClick(event: MouseEvent, pinId: string) {
@@ -212,35 +182,37 @@ export function PlanViewer({ projectId, sessionId = "current-session", planSets 
         onPointerCancel={endPointer}
         onPointerLeave={endPointer}
       >
-        <div ref={surfaceRef} className="absolute left-0 top-0 touch-none select-none overflow-hidden rounded-3xl border border-white/10 bg-white shadow-2xl" style={{ backfaceVisibility: "hidden", contain: "layout paint", height: PLAN_PDF_BASE_HEIGHT, touchAction: "none", transform: `translate3d(${transform.x}px, ${transform.y}px, 0) scale(${transform.scale})`, transformOrigin: "top left", WebkitTouchCallout: "none", width: PLAN_PDF_BASE_WIDTH, willChange: "transform" }}>
+        <div ref={surfaceRef} className="absolute left-0 top-0 touch-none select-none overflow-hidden rounded-3xl border border-white/10 bg-white shadow-2xl" style={{ backfaceVisibility: "hidden", contain: "layout paint", height: PLAN_PDF_BASE_HEIGHT, touchAction: "none", transform: `translate3d(${transform.x}px, ${transform.y}px, 0) scale(${transform.scale})`, transformOrigin: "top left", WebkitTouchCallout: "none", width: PLAN_PDF_BASE_WIDTH, willChange: "transform" }} data-plan-surface>
           {planFileUrl && activePage ? (
             <PlanPdfPage fileUrl={planFileUrl} pageNumber={activePage.pageNumber} label={activePage.label} onPageCount={setPdfPageCount} onPdfPageRendered={handlePdfPageRendered} />
           ) : (
             <PlanEmptySurface projectAware={Boolean(projectId)} />
           )}
 
+          {/* Pin layer — pointer-events gated by toolMode */}
+          <div className="absolute inset-0" style={{ pointerEvents: toolMode === "draw" ? "auto" : "none" }}>
           {visiblePins.map((pin) => {
             const isActive = activePinId === pin.id;
             const item = pin.item_id ? items.find((i) => i.id === pin.item_id) : null;
             return (
               <div key={pin.id}>
                 <PlanPin pin={pin} active={isActive} current={pin.session_id === sessionId || pin.amber} onClick={(event) => handlePinClick(event, pin.id)} />
-                {isActive && pin.item_id && (
-                  <div className="pointer-events-auto absolute z-40 flex w-60 -translate-x-1/2 -translate-y-full gap-2 rounded-2xl border border-cyan-300/25 bg-slate-950/95 p-2 text-white shadow-2xl backdrop-blur-xl transition-all" style={{ left: `${pin.x_pct}%`, top: `calc(${pin.y_pct}% - 3rem)` }} onClick={(e) => e.stopPropagation()}>
-                    <div className="min-w-0 flex-1 text-left flex flex-col justify-center">
-                      <p className="truncate text-xs font-black text-cyan-100">{item?.title || `Pin ${pin.label}`}</p>
-                      <p className="mt-1 line-clamp-2 text-[11px] font-bold text-white/65">{item?.description || "Saved item"}</p>
-                      <p className="mt-2 text-[10px] font-black uppercase tracking-[0.14em] text-cyan-200/80">Tap preview to view</p>
-                    </div>
-                    <button type="button" onClick={() => onSelectItem?.(pin.item_id!)} className="h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-black border border-white/10 relative transition hover:scale-105 hover:ring-2 hover:ring-amber-500">
-                      <img src={`/api/site-walk/items/${pin.item_id}/image`} alt="Preview" className="h-full w-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
-                    </button>
-                  </div>
-                )}
+                {isActive && pin.item_id && <PinInfoBubble pin={pin} item={item} onSelect={() => onSelectItem?.(pin.item_id!)} />}
               </div>
             );
           })}
+          </div>
         </div>
+      </div>
+
+      {/* Pan / Draw toggle — always visible above toolbar */}
+      <div className="absolute left-1/2 top-14 z-30 flex -translate-x-1/2 rounded-2xl border border-white/15 bg-slate-950/80 p-1 shadow-2xl backdrop-blur-xl">
+        <button type="button" onClick={() => setToolMode("pan")} className={`inline-flex h-9 items-center gap-1.5 rounded-xl px-3 text-[10px] font-black uppercase tracking-[0.1em] transition ${toolMode === "pan" ? "bg-amber-500 text-slate-950" : "text-white/70 hover:text-white"}`}>
+          <Hand className="h-3.5 w-3.5" /> Pan
+        </button>
+        <button type="button" onClick={() => setToolMode("draw")} className={`inline-flex h-9 items-center gap-1.5 rounded-xl px-3 text-[10px] font-black uppercase tracking-[0.1em] transition ${toolMode === "draw" ? "bg-amber-500 text-slate-950" : "text-white/70 hover:text-white"}`}>
+          <MapPin className="h-3.5 w-3.5" /> Pin/Draw
+        </button>
       </div>
 
       {/* Unified plan toolbar (search, page input, thumbnails, layers, zoom, collapse) */}
@@ -269,14 +241,12 @@ export function PlanViewer({ projectId, sessionId = "current-session", planSets 
       )}
 
       {hintVisible && (
-        <button type="button" onClick={() => setHintVisible(false)} className="pointer-events-auto absolute bottom-[6.5rem] left-1/2 z-20 -translate-x-1/2 rounded-full border border-white/10 bg-slate-950/80 px-4 py-2 shadow-xl backdrop-blur hover:border-amber-300/40" aria-label="Dismiss long-press hint">
-          <span className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-slate-300"><Move className="h-3 w-3 text-amber-500" /> Pan, zoom, or long-press to drop pin</span>
+        <button type="button" onClick={() => setHintVisible(false)} className="pointer-events-auto absolute bottom-[6.5rem] left-1/2 z-20 -translate-x-1/2 rounded-full border border-white/10 bg-slate-950/80 px-3 py-1.5 shadow-xl backdrop-blur hover:border-amber-300/40" aria-label="Dismiss hint">
+          <span className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-slate-300"><Move className="h-3 w-3 text-amber-500" /> {toolMode === "pan" ? "Pan & zoom. Tap Pin/Draw to place pins." : "Long-press to pin. Tap Pan to navigate."}</span>
         </button>
       )}
     </div>
   );
 }
 
-function PlanEmptySurface({ projectAware }: { projectAware: boolean }) {
-  return <div className="flex h-full w-full items-center justify-center bg-white px-8 text-center text-sm font-bold text-slate-600">{projectAware ? "The uploaded plan file is still being prepared. Use the toolbar to switch pages or refresh." : "Start this walk from a field project with uploaded plans to use plan mode."}</div>;
-}
+

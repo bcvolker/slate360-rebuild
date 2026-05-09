@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ArrowLeft, Camera, ClipboardList, FileText, HardHat, Map } from "lucide-react";
+import { ArrowLeft, Camera, ClipboardList, FileText, HardHat } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import GlassCard from "@/components/shared/GlassCard";
 import { cn } from "@/lib/utils";
@@ -21,7 +21,6 @@ type Props = {
 const NAV_ITEMS: NavItem[] = [
   { href: "/site-walk", label: "Workspace", icon: HardHat, match: (path) => path === "/site-walk" },
   { href: "/site-walk/walks", label: "Walks", icon: ClipboardList, match: (path) => path.startsWith("/site-walk/walks") },
-  { href: "/site-walk/plans", label: "Plans", icon: Map, match: (path) => path.startsWith("/site-walk/plans") },
   { href: "/site-walk/capture", label: "Capture", icon: Camera, match: (path) => path.startsWith("/site-walk/capture") },
   { href: "/site-walk/reports", label: "Reports", icon: FileText, match: (path) => path.startsWith("/site-walk/reports") || path.startsWith("/site-walk/deliverables") },
 ];
@@ -41,7 +40,7 @@ export function SiteWalkModuleNav({ orgName }: Props) {
             </Link>
           )}
         </div>
-        <nav className="grid grid-cols-5 gap-1 rounded-2xl border border-white/10 bg-slate-950/55 p-1" aria-label="Site Walk sections">
+        <nav className="grid grid-cols-4 gap-1 rounded-2xl border border-white/10 bg-slate-950/55 p-1" aria-label="Site Walk sections">
           {NAV_ITEMS.map((item) => {
             const active = item.match(pathname);
             const Icon = item.icon;
