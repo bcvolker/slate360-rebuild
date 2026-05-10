@@ -62,7 +62,7 @@ function CaptureClientIslandInner({ sessionId, projectId, walkName, showPlanCanv
   }, [captureCtx]);
 
   const [ghostOn, setGhostOn] = useState(false);
-  const [markupOn, setMarkupOn] = useState(false);
+  const [markupOn, setMarkupOn] = useState(true);
   const carryForwardRef = useRef<Partial<Pick<CaptureItemDraft, "classification" | "trade" | "priority" | "status" | "assignedTo">> | null>(null);
   const appliedCarryRef = useRef<string | null>(null);
   const [returnToPlanAfterSave, setReturnToPlanAfterSave] = useState(false);

@@ -55,18 +55,21 @@ export function CameraViewfinder({ sessionId, autoOpenCamera = false, launchId =
   useEffect(() => onPreviewStateChange?.(Boolean(activePreview)), [activePreview, onPreviewStateChange]);
   useEffect(() => () => fileHandler.cleanupPendingUpload(), []);
 
-  // Listen for files from the colocated direct picker in CaptureClientIsland
+  // Listen for files from the colocated direct picker in CaptureClientIsland.
+  // Use a ref to avoid re-registering the listener on every render.
+  const fileHandlerRef = useRef(fileHandler);
+  fileHandlerRef.current = fileHandler;
   useEffect(() => {
     function handleDirectFile(event: Event) {
       const detail = (event as CustomEvent).detail;
       if (!detail?.file) return;
-      fileHandler.setIntent({ source: detail.source ?? "quick_capture", input: detail.input ?? "camera" });
+      fileHandlerRef.current.setIntent({ source: detail.source ?? "quick_capture", input: detail.input ?? "camera" });
       const confirmBeforeAttach = detail.input === "upload";
-      fileHandler.handleFile(detail.file as File, confirmBeforeAttach);
+      fileHandlerRef.current.handleFile(detail.file as File, confirmBeforeAttach);
     }
     window.addEventListener("site-walk:direct-capture-file", handleDirectFile);
     return () => window.removeEventListener("site-walk:direct-capture-file", handleDirectFile);
-  }, [fileHandler]);
+  }, []); // stable — reads from ref, never re-registers
 
   useEffect(() => {
     if (!mounted || !autoOpenCamera || captureCtx) return;

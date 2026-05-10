@@ -118,30 +118,24 @@ export function VisualCaptureView({ sessionId, autoOpenCamera, launchId, items, 
         )}
       </div>
 
-      {/* Tools strip — flex-docked below photo, never hidden behind headers */}
-      {captureReady && (
-        <div className="z-20 shrink-0 flex flex-col gap-1 border-t border-white/5 bg-slate-950/80 px-3 py-1.5 backdrop-blur-xl">
-          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
-            <button type="button" onClick={onToggleMarkup} className={`inline-flex min-h-9 shrink-0 items-center justify-center gap-1.5 rounded-xl px-2.5 text-[10px] font-black uppercase tracking-wider ${markupOn ? "bg-amber-500 text-slate-950" : "border border-white/10 bg-black/50 text-slate-200"}`}>
-              <Shapes className="h-3.5 w-3.5" /> {markupOn ? "Drawing" : "Navigate"}
-            </button>
-            <button type="button" onClick={onToggleGhost} disabled={!ghostAvailable} className={`inline-flex min-h-9 shrink-0 items-center justify-center gap-1.5 rounded-xl px-2.5 text-[10px] font-black uppercase tracking-wider disabled:opacity-40 ${ghostOn ? "bg-amber-500 text-slate-950" : "border border-white/10 bg-black/50 text-slate-200"}`}>
-              <Ghost className="h-3.5 w-3.5" /> Ghost
-            </button>
-            {markupOn && (
-              <>
-                <button type="button" onClick={() => dispatchCanvasEvent(PHOTO_MARKUP_UNDO_EVENT)} className="inline-flex min-h-9 shrink-0 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-black/50 px-2.5 text-[10px] font-black uppercase tracking-wider text-slate-200">
-                  <RotateCcw className="h-3.5 w-3.5" /> Undo
-                </button>
-                <button type="button" onClick={() => dispatchCanvasEvent(PHOTO_MARKUP_REDO_EVENT)} className="inline-flex min-h-9 shrink-0 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-black/50 px-2.5 text-[10px] font-black uppercase tracking-wider text-slate-200">
-                  <RotateCw className="h-3.5 w-3.5" /> Redo
-                </button>
-              </>
-            )}
-          </div>
-          {markupOn && <UnifiedVectorToolbar />}
+      {/* Tools strip — ALWAYS visible below photo, no gate on captureReady */}
+      <div className="z-20 shrink-0 flex flex-col gap-1 border-t border-white/5 bg-slate-950/80 px-3 py-1.5 backdrop-blur-xl">
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
+          <button type="button" onClick={onToggleMarkup} className={`inline-flex min-h-9 shrink-0 items-center justify-center gap-1.5 rounded-xl px-2.5 text-[10px] font-black uppercase tracking-wider ${markupOn ? "bg-amber-500 text-slate-950" : "border border-white/10 bg-black/50 text-slate-200"}`}>
+            <Shapes className="h-3.5 w-3.5" /> {markupOn ? "Drawing" : "Navigate"}
+          </button>
+          <button type="button" onClick={() => dispatchCanvasEvent(PHOTO_MARKUP_UNDO_EVENT)} className="inline-flex min-h-9 shrink-0 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-black/50 px-2.5 text-[10px] font-black uppercase tracking-wider text-slate-200">
+            <RotateCcw className="h-3.5 w-3.5" /> Undo
+          </button>
+          <button type="button" onClick={() => dispatchCanvasEvent(PHOTO_MARKUP_REDO_EVENT)} className="inline-flex min-h-9 shrink-0 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-black/50 px-2.5 text-[10px] font-black uppercase tracking-wider text-slate-200">
+            <RotateCw className="h-3.5 w-3.5" /> Redo
+          </button>
+          <button type="button" onClick={onToggleGhost} disabled={!ghostAvailable} className={`inline-flex min-h-9 shrink-0 items-center justify-center gap-1.5 rounded-xl px-2.5 text-[10px] font-black uppercase tracking-wider disabled:opacity-40 ${ghostOn ? "bg-amber-500 text-slate-950" : "border border-white/10 bg-black/50 text-slate-200"}`}>
+            <Ghost className="h-3.5 w-3.5" /> Ghost
+          </button>
         </div>
-      )}
+        <UnifiedVectorToolbar />
+      </div>
 
       {/* Timeline strip — horizontal thumbnails of all captures in this session */}
       {photoItems.length > 0 && (
