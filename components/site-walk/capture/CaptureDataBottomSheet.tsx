@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type PointerEvent, type ReactElement } from "react";
-import { Camera, ChevronUp, Link2, Loader2, Settings2, SkipForward, Sparkles, Upload } from "lucide-react";
+import { ArrowLeft, Camera, Link2, Loader2, Settings2, SkipForward, Sparkles, Upload } from "lucide-react";
 import { useDeviceContext, type DeviceCaptureInput } from "@/lib/hooks/useDeviceContext";
 import { CAPTURE_ITEM_STATUSES, type CaptureAssignee, type CaptureItemDraft, type CaptureItemRecord } from "@/lib/types/site-walk-capture";
 
@@ -71,19 +71,18 @@ export function CaptureDataBottomSheet({ item, items, assignees, draft, saveStat
       )}
       {expandedMobile && (
         <div className="md:hidden fixed inset-0 z-50 flex flex-col bg-slate-950/97 backdrop-blur-xl" aria-label="Capture details (mobile)">
-          <div className="flex items-center gap-3 border-b border-white/10 px-4 py-3">
-            <button type="button" onClick={() => setExpandedMobile(false)} className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-white/80" aria-label="Close details">
-              <ChevronUp className="h-5 w-5 rotate-180" />
+          <div className="flex items-center gap-2 border-b border-white/10 px-3 py-2.5">
+            <button type="button" onClick={() => setExpandedMobile(false)} className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.04] px-2.5 text-[11px] font-black text-white/80" aria-label="Back to photo">
+              <ArrowLeft className="h-4 w-4" /> Photo
             </button>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-xs font-black uppercase tracking-[0.16em] text-amber-300/80">{currentLocation}</p>
-              <h2 className="truncate text-base font-black text-white">{item?.title || "Ready for next field stop"}</h2>
+              <p className="truncate text-[10px] font-black uppercase tracking-[0.14em] text-amber-300/80">{currentLocation}</p>
+              <h2 className="truncate text-sm font-black text-white">{item?.title || "Ready"}</h2>
             </div>
             {item && (
-              <button type="button" onClick={handleSaveNextClick} disabled={advancing} className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-amber-500 px-3 text-xs font-black text-slate-950 shadow-lg disabled:opacity-60">
+              <button type="button" onClick={handleSaveNextClick} disabled={advancing} className="inline-flex h-9 items-center gap-1 rounded-xl bg-amber-500 px-3 text-[11px] font-black text-slate-950 shadow-lg disabled:opacity-60">
                 {actionBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : saveActionIcon}
-                <span className="hidden sm:inline">{saveActionLabel}</span>
-                <span className="sm:hidden">Save</span>
+                <span>Save</span>
               </button>
             )}
           </div>

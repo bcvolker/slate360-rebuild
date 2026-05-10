@@ -172,10 +172,10 @@ export function PlanViewer({ projectId, sessionId = "current-session", planSets 
   }
 
   return (
-    <div className="relative h-full w-full touch-none select-none overflow-hidden bg-slate-950 text-white" style={{ WebkitTouchCallout: "none", touchAction: "none" }}>
+    <div className="absolute inset-0 touch-none select-none overflow-hidden bg-black text-white" style={{ WebkitTouchCallout: "none", touchAction: "none" }}>
       <div
         ref={viewportRef}
-        className="absolute inset-0 z-0 touch-none select-none overflow-hidden bg-slate-950" style={{ WebkitTouchCallout: "none", touchAction: "none" }}
+        className="absolute inset-0 z-0 touch-none select-none overflow-hidden" style={{ WebkitTouchCallout: "none", touchAction: "none" }}
         onPointerDown={startPress}
         onPointerMove={movePointer}
         onPointerUp={endPointer}

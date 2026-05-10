@@ -221,6 +221,7 @@ function CaptureClientIslandInner({ sessionId, projectId, walkName, showPlanCanv
             onPlanCaptureSaved={handlePlanCaptureSaved}
             onAddAngle={() => requestCapture(primaryCaptureInput, "angle")}
             onAngleCaptureFile={savePhotoAngle}
+            onSelectItem={(id) => { const t = items.find((i) => i.id === id); if (t) selectItem(t); }}
           />
         )}
 

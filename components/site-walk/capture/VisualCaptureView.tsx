@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, Ghost, RotateCcw, RotateCw, Shapes } from "lucide-react";
-import { useEffect, useState, type PointerEvent } from "react";
+import { ArrowLeft, Ghost, LogOut, RotateCcw, RotateCw, Shapes } from "lucide-react";
+import { useEffect, useRef, useState, type PointerEvent } from "react";
 
 import type { MarkupData } from "@/lib/site-walk/markup-types";
 import { getPhotoAngleImageUrl, type PhotoAngleCaptureMode, type PhotoAngleRecord } from "@/lib/site-walk/photo-angles";
@@ -30,11 +30,14 @@ type Props = {
   onPlanCaptureSaved?: () => void;
   onAddAngle: () => void;
   onAngleCaptureFile: (itemId: string, file: File, previewUrl: string, captureMode: PhotoAngleCaptureMode) => Promise<PhotoAngleRecord | null>;
+  onSelectItem?: (itemId: string) => void;
 };
 
-export function VisualCaptureView({ sessionId, autoOpenCamera, launchId, items, activeItemId, modeLabel, ghostImageUrl, ghostOn, markupOn, onToggleGhost, onToggleMarkup, onMarkupChange, onAttachmentPinsChange, onPlanCaptureSaved, onAddAngle, onAngleCaptureFile }: Props) {
+export function VisualCaptureView({ sessionId, autoOpenCamera, launchId, items, activeItemId, modeLabel, ghostImageUrl, ghostOn, markupOn, onToggleGhost, onToggleMarkup, onMarkupChange, onAttachmentPinsChange, onPlanCaptureSaved, onAddAngle, onAngleCaptureFile, onSelectItem }: Props) {
   const [activeAngleId, setActiveAngleId] = useState<string | null>(null);
   const [previewActive, setPreviewActive] = useState(false);
+  const [exitConfirm, setExitConfirm] = useState(false);
+  const timelineRef = useRef<HTMLDivElement>(null);
   const photoItems = items.filter((item) => item.item_type === "photo");
   const activeItem = photoItems.find((item) => item.id === activeItemId) ?? null;
   const activeLocation = getLocationLabel(activeItem) ?? "Stop ready";
@@ -67,14 +70,28 @@ export function VisualCaptureView({ sessionId, autoOpenCamera, launchId, items, 
     <div className="flex h-full w-full flex-col overflow-hidden bg-[#0B0F15] text-white" onPointerDownCapture={handleTapDismiss}>
       {/* Top chrome bar */}
       <header className="z-30 flex shrink-0 items-center gap-2 border-b border-white/5 bg-slate-950/55 px-3 py-1.5 backdrop-blur-xl">
-        <Link href="/site-walk" aria-label="Site Walk Home" className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-white/80 hover:border-amber-300/50 hover:text-amber-100">
-          <ArrowLeft className="h-4 w-4" />
-        </Link>
+        <button type="button" onClick={() => setExitConfirm(true)} className="inline-flex h-9 shrink-0 items-center gap-1 rounded-xl border border-red-500/30 bg-red-500/10 px-2 text-[10px] font-black text-red-300 hover:bg-red-500/20" aria-label="Exit walk">
+          <LogOut className="h-3.5 w-3.5" /> Exit
+        </button>
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-black text-white">{activeLocation}</p>
           <p className="truncate text-[9px] font-black uppercase tracking-[0.16em] text-amber-200/75">{modeLabel || "Camera"}</p>
         </div>
       </header>
+
+      {/* Exit confirmation modal */}
+      {exitConfirm && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 backdrop-blur-sm" onClick={() => setExitConfirm(false)}>
+          <div className="mx-4 w-full max-w-xs rounded-2xl border border-white/10 bg-slate-900 p-5 text-center shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <p className="text-base font-black text-white">Exit this walk?</p>
+            <p className="mt-2 text-xs font-semibold text-slate-400">Your captured items are saved. You can resume this walk later.</p>
+            <div className="mt-4 flex gap-2">
+              <button type="button" onClick={() => setExitConfirm(false)} className="flex-1 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2.5 text-sm font-black text-white">Cancel</button>
+              <Link href="/site-walk" className="flex-1 rounded-xl bg-red-500 px-3 py-2.5 text-sm font-black text-white">Exit Walk</Link>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Camera surface — takes remaining space */}
       <div className="relative flex-1 min-h-0">
@@ -126,10 +143,20 @@ export function VisualCaptureView({ sessionId, autoOpenCamera, launchId, items, 
         </div>
       )}
 
-      {/* Angle strip */}
-      <div className="z-20 shrink-0 border-t border-white/5 bg-slate-950/55 px-3 py-1 backdrop-blur-xl">
-        <PhotoAngleStrip item={activeItem} activeAngleId={activeAngleId} className="static left-auto right-auto bottom-auto" onSelectAngle={setActiveAngleId} onAddAngle={onAddAngle} />
-      </div>
+      {/* Timeline strip — horizontal thumbnails of all captures in this session */}
+      {photoItems.length > 0 && (
+        <div ref={timelineRef} className="z-20 shrink-0 flex items-center gap-1.5 overflow-x-auto border-t border-white/5 bg-slate-950/70 px-2 py-1.5 no-scrollbar backdrop-blur-xl">
+          {photoItems.map((pi) => {
+            const isActive = pi.id === activeItemId;
+            const thumbUrl = pi.local_preview_url || (pi.id ? `/api/site-walk/items/${pi.id}/image` : undefined);
+            return (
+              <button key={pi.id} type="button" onClick={() => onSelectItem?.(pi.id)} className={`shrink-0 h-10 w-10 rounded-lg overflow-hidden border-2 transition ${isActive ? "border-amber-500 ring-1 ring-amber-500/40" : "border-white/10 opacity-60"}`}>
+                {thumbUrl ? <img src={thumbUrl} alt={pi.title || "Capture"} className="h-full w-full object-cover" /> : <div className="h-full w-full bg-slate-700" />}
+              </button>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
