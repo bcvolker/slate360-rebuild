@@ -1,6 +1,6 @@
 {
   "$schema": "./schemas/bug-registry.schema.json",
-  "updatedAt": "2026-05-08",
+  "updatedAt": "2026-05-10",
   "source": "slate360-context/ONGOING_ISSUES.md",
   "bugs": [
     {
@@ -880,11 +880,11 @@
     },
     {
       "id": "BUG-079",
-      "title": "Site Walk capture flow remains blocked after repeated Save & Next, desktop layout, plan crash, and pan fixes",
+      "title": "Plan Viewer + capture flow architecturally broken on mobile — 7 commits failed",
       "module": "site-walk/capture-plans-mobile-desktop",
       "severity": "critical",
       "status": "open",
-      "rootCause": "The remaining failures appear architectural rather than isolated button bugs: mobile native camera opening is routed through React state/useEffect instead of the original trusted tap handler; the capture route still renders inside sticky Site Walk module chrome; active upload vs active item vs next-stop states are implicit; panning is disabled when markup mode is on by default; and mobile plan mode still depends on client-side React-PDF rendering.",
+      "rootCause": "React-PDF incompatible with mobile touch wrappers. Fixed 1200x858 surface model fails on phone viewports. Centering effect races with layout. CSS GPU transform overwritten by React state re-renders. See CRITICAL_FAILURE_REPORT_MAY.md",
       "verification": [
         "Create a minimal mobile test proving direct input.click in the tap handler works while state/effect-driven input.click fails or succeeds on the target phone",
         "Document and instrument capture states: empty, pending upload preview, saving upload, active item ready, saving details, requesting next capture, plan return, and error",
@@ -892,7 +892,61 @@
         "Pan works while markup tools are visible or an explicit navigation/hand tool is selected",
         "Phone plan mode no longer crashes with a real project PDF, preferably after testing a non-React-PDF image/tile render path"
       ]
+    },
+    {
+      "id": "BUG-080",
+      "title": "Markup tools not rendering below captured photo",
+      "module": "site-walk/capture",
+      "severity": "high",
+      "status": "open",
+      "rootCause": "captureReady depends on activeItem from async server fetch. Tools strip invisible until round-trip completes.",
+      "verification": [
+        "Tools strip visible immediately after capture view mounts, even before server fetch"
+      ]
+    },
+    {
+      "id": "BUG-081",
+      "title": "Site Walk Hub list overflows past screen bottom",
+      "module": "site-walk/hub",
+      "severity": "high",
+      "status": "open",
+      "rootCause": "SiteWalkShell has no height constraint. h-full resolves to content height (unbounded).",
+      "verification": [
+        "Hub list contained within viewport, scroll stops at safe area inset"
+      ]
+    },
+    {
+      "id": "BUG-082",
+      "title": "No delete option for walks in Hub",
+      "module": "site-walk/hub",
+      "severity": "medium",
+      "status": "open",
+      "rootCause": "No DELETE API endpoint or UI affordance for sessions.",
+      "verification": [
+        "User can delete a walk via swipe or context menu"
+      ]
+    },
+    {
+      "id": "BUG-083",
+      "title": "Plans tab still visible in PWA due to stale iOS cache",
+      "module": "pwa/service-worker",
+      "severity": "medium",
+      "status": "open",
+      "rootCause": "iOS standalone PWA caches bundles independently of Cache Storage. Kill-switch SW does not bust iOS standalone cache.",
+      "verification": [
+        "Force-close + reopen PWA shows 4-tab nav without Plans"
+      ]
+    },
+    {
+      "id": "BUG-084",
+      "title": "Field Project taxonomy confuses non-CM users",
+      "module": "site-walk/hub",
+      "severity": "medium",
+      "status": "open",
+      "rootCause": "Start from Project implies formal CM setup. Quick inspection users need simpler terminology.",
+      "verification": [
+        "Hub uses agreed-upon simple term instead of Field Project"
+      ]
     }
   ]
 }
-
