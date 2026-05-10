@@ -64,7 +64,7 @@ export function SiteWalkHub({ projects, walks }: { projects: HubProject[]; walks
   }
 
   return (
-    <div className="flex h-full min-h-0 w-full flex-col space-y-4">
+    <div className="flex h-full min-h-0 w-full flex-col gap-3 overflow-hidden">
       <div className="grid gap-3 grid-cols-2">
         <button type="button" onClick={() => { setActiveTab("projects"); setExpandedProjectId(projects[0]?.id ?? null); }} className="group min-h-24 rounded-[1.5rem] border border-white/10 bg-white/[0.06] p-4 text-left shadow-[0_22px_70px_rgba(0,0,0,0.25)] backdrop-blur-xl transition hover:border-amber-400/45 hover:bg-white/[0.09] flex flex-col justify-between">
           <span className="flex h-10 w-10 items-center justify-center rounded-[0.875rem] bg-amber-500 text-slate-950"><Building2 className="h-5 w-5" /></span>

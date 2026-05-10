@@ -30,8 +30,8 @@ export default async function SiteWalkPage() {
   const { projects, walks } = context.orgId ? await loadHubData(context.orgId) : { projects: [], walks: [] };
 
   return (
-    <main className="h-[calc(100dvh-96px)] overflow-hidden bg-[radial-gradient(circle_at_top,rgba(245,158,11,0.07),transparent_34%),#0B0F15] px-3 py-3 pb-[max(env(safe-area-inset-bottom),1rem)] text-slate-50 sm:px-6 lg:px-8">
-      <div className="mx-auto flex h-full min-h-0 max-w-6xl items-stretch">
+    <main className="flex min-h-0 flex-1 flex-col overflow-hidden bg-[radial-gradient(circle_at_top,rgba(245,158,11,0.07),transparent_34%),#0B0F15] px-3 py-3 pb-[max(env(safe-area-inset-bottom),1rem)] text-slate-50 sm:px-6 lg:px-8">
+      <div className="mx-auto flex min-h-0 w-full max-w-6xl flex-1">
         <SiteWalkHub projects={projects} walks={walks} />
       </div>
     </main>
