@@ -43,7 +43,10 @@ export function SWRegistrar() {
 
       navigator.serviceWorker.addEventListener("controllerchange", handleControllerChange);
       navigator.serviceWorker.addEventListener("message", handleMessage);
-      navigator.serviceWorker.register("/sw.js", { updateViaCache: "none" }).then((registration) => {
+      // Cache-bust: iOS standalone PWA aggressively caches SW files independently
+      // of Cache Storage. The query param forces iOS to fetch the new SW on every deploy.
+      const swUrl = `/sw.js?v=${encodeURIComponent(process.env.NEXT_PUBLIC_BUILD_ID || Date.now().toString(36))}`;
+      navigator.serviceWorker.register(swUrl, { updateViaCache: "none" }).then((registration) => {
         void registration.update();
       }).catch((err) => {
         console.warn("[SW] registration failed:", err);

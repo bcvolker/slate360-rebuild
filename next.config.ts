@@ -8,7 +8,13 @@ const withSerwist = withSerwistInit({
   disable: process.env.NODE_ENV === "development",
 });
 
+const buildId = Date.now().toString(36);
+
 const nextConfig: NextConfig = {
+  generateBuildId: () => buildId,
+  env: {
+    NEXT_PUBLIC_BUILD_ID: buildId,
+  },
   eslint: { ignoreDuringBuilds: false },
   typescript: { ignoreBuildErrors: false },
   experimental: {
@@ -22,6 +28,15 @@ const nextConfig: NextConfig = {
   },
   async headers() {
     return [
+      {
+        // Service worker must NEVER be cached by the browser or CDN
+        source: "/sw.js",
+        headers: [
+          { key: "Cache-Control", value: "no-cache, no-store, must-revalidate" },
+          { key: "Pragma", value: "no-cache" },
+          { key: "Expires", value: "0" },
+        ],
+      },
       {
         source: "/:path((?!_next/static|_next/image|favicon).*)",
         headers: [
