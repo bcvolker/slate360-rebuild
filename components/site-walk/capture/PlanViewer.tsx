@@ -182,7 +182,7 @@ export function PlanViewer({ projectId, sessionId = "current-session", planSets 
         onPointerCancel={endPointer}
         onPointerLeave={endPointer}
       >
-        <div ref={surfaceRef} className="absolute left-0 top-0 touch-none select-none overflow-hidden rounded-3xl border border-white/10 bg-white shadow-2xl" style={{ backfaceVisibility: "hidden", contain: "layout paint", height: PLAN_PDF_BASE_HEIGHT, touchAction: "none", transform: `translate3d(${transform.x}px, ${transform.y}px, 0) scale(${transform.scale})`, transformOrigin: "top left", WebkitTouchCallout: "none", width: PLAN_PDF_BASE_WIDTH, willChange: "transform" }} data-plan-surface>
+        <div ref={surfaceRef} className="absolute left-0 top-0 touch-none select-none overflow-hidden bg-white" style={{ backfaceVisibility: "hidden", contain: "layout paint", height: PLAN_PDF_BASE_HEIGHT, touchAction: "none", transform: `translate3d(${transform.x}px, ${transform.y}px, 0) scale(${transform.scale})`, transformOrigin: "top left", WebkitTouchCallout: "none", width: PLAN_PDF_BASE_WIDTH, willChange: "transform" }} data-plan-surface>
           {planFileUrl && activePage ? (
             <PlanPdfPage fileUrl={planFileUrl} pageNumber={activePage.pageNumber} label={activePage.label} onPageCount={setPdfPageCount} onPdfPageRendered={handlePdfPageRendered} />
           ) : (
@@ -205,17 +205,18 @@ export function PlanViewer({ projectId, sessionId = "current-session", planSets 
         </div>
       </div>
 
-      {/* Pan / Draw toggle — always visible above toolbar */}
-      <div className="absolute left-1/2 top-14 z-30 flex -translate-x-1/2 rounded-2xl border border-white/15 bg-slate-950/80 p-1 shadow-2xl backdrop-blur-xl">
-        <button type="button" onClick={() => setToolMode("pan")} className={`inline-flex h-9 items-center gap-1.5 rounded-xl px-3 text-[10px] font-black uppercase tracking-[0.1em] transition ${toolMode === "pan" ? "bg-amber-500 text-slate-950" : "text-white/70 hover:text-white"}`}>
+      {/* Pan / Draw toggle */}
+      <div className="absolute left-1/2 top-2 z-50 flex -translate-x-1/2 rounded-2xl border border-white/15 bg-slate-950/85 p-0.5 shadow-2xl backdrop-blur-xl">
+        <button type="button" onClick={() => setToolMode("pan")} className={`inline-flex h-8 items-center gap-1 rounded-xl px-2.5 text-[10px] font-black uppercase tracking-[0.08em] transition ${toolMode === "pan" ? "bg-amber-500 text-slate-950" : "text-white/70"}`}>
           <Hand className="h-3.5 w-3.5" /> Pan
         </button>
-        <button type="button" onClick={() => setToolMode("draw")} className={`inline-flex h-9 items-center gap-1.5 rounded-xl px-3 text-[10px] font-black uppercase tracking-[0.1em] transition ${toolMode === "draw" ? "bg-amber-500 text-slate-950" : "text-white/70 hover:text-white"}`}>
-          <MapPin className="h-3.5 w-3.5" /> Pin/Draw
+        <button type="button" onClick={() => setToolMode("draw")} className={`inline-flex h-8 items-center gap-1 rounded-xl px-2.5 text-[10px] font-black uppercase tracking-[0.08em] transition ${toolMode === "draw" ? "bg-amber-500 text-slate-950" : "text-white/70"}`}>
+          <MapPin className="h-3.5 w-3.5" /> Pin
         </button>
       </div>
 
-      {/* Unified plan toolbar (search, page input, thumbnails, layers, zoom, collapse) */}
+      {/* Plan toolbar — anchored below the toggle */}
+      <div className="absolute top-12 inset-x-2 z-50">
       <PlanToolbar
         fileUrl={planFileUrl}
         pages={pages.map((page) => ({ key: page.key, label: page.label, pageNumber: page.pageNumber }))}
@@ -227,6 +228,7 @@ export function PlanViewer({ projectId, sessionId = "current-session", planSets 
         onZoom={zoom}
         onChangeFilter={setFilter}
       />
+      </div>
 
       {quickMenu && (
         <PlanQuickActionMenu

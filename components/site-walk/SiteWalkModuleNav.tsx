@@ -22,7 +22,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/site-walk", label: "Workspace", icon: HardHat, match: (path) => path === "/site-walk" },
   { href: "/site-walk/walks", label: "Walks", icon: ClipboardList, match: (path) => path.startsWith("/site-walk/walks") },
   { href: "/site-walk/capture", label: "Capture", icon: Camera, match: (path) => path.startsWith("/site-walk/capture") },
-  { href: "/site-walk/reports", label: "Reports", icon: FileText, match: (path) => path.startsWith("/site-walk/reports") || path.startsWith("/site-walk/deliverables") },
+  { href: "/site-walk/reports", label: "Deliverables", icon: FileText, match: (path) => path.startsWith("/site-walk/reports") || path.startsWith("/site-walk/deliverables") },
 ];
 
 export function SiteWalkModuleNav({ orgName }: Props) {

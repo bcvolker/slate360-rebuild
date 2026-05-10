@@ -1,10 +1,8 @@
 "use client";
 
-import { useRef, useState, type PointerEvent, type ReactElement } from "react";
+import { useState, type PointerEvent, type ReactElement } from "react";
 import { Camera, ChevronUp, Link2, Loader2, Settings2, SkipForward, Sparkles, Upload } from "lucide-react";
-import GlassCard from "@/components/shared/GlassCard";
 import { useDeviceContext, type DeviceCaptureInput } from "@/lib/hooks/useDeviceContext";
-import { useVirtualKeyboardOffset } from "@/lib/hooks/useVirtualKeyboardOffset";
 import { CAPTURE_ITEM_STATUSES, type CaptureAssignee, type CaptureItemDraft, type CaptureItemRecord } from "@/lib/types/site-walk-capture";
 
 type Props = {
@@ -30,9 +28,7 @@ export function CaptureDataBottomSheet({ item, items, assignees, draft, saveStat
   const [expandedMobile, setExpandedMobile] = useState(false);
   const [linkProgression, setLinkProgression] = useState(false);
   const [advancing, setAdvancing] = useState(false);
-  const dragStartY = useRef<number | null>(null);
   const { primaryCaptureInput, primaryCaptureLabel } = useDeviceContext();
-  const keyboardOffset = useVirtualKeyboardOffset();
   const isSaving = saveState === "saving";
   const actionBusy = isSaving || advancing;
   const aiBusy = aiState === "loading" || aiState === "formatting";
@@ -41,20 +37,6 @@ export function CaptureDataBottomSheet({ item, items, assignees, draft, saveStat
   const selectClass = "mt-1 h-10 w-full rounded-2xl border border-white/10 bg-black/35 px-3 text-xs font-black text-slate-100 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-500/20 disabled:opacity-50";
   const saveActionIcon = returnsToPlan ? <Link2 className="h-5 w-5" /> : <SkipForward className="h-5 w-5" />;
   const saveActionLabel = returnsToPlan ? "Save & Return to Plan" : "Save & Next Camera";
-
-  function handlePointerDown(event: PointerEvent<HTMLDivElement>) {
-    if (typeof window !== "undefined" && window.innerWidth >= 768) return;
-    blurActiveField();
-    dragStartY.current = event.clientY;
-  }
-
-  function handlePointerUp(event: PointerEvent<HTMLDivElement>) {
-    if ((typeof window !== "undefined" && window.innerWidth >= 768) || dragStartY.current === null) return;
-    const delta = event.clientY - dragStartY.current;
-    if (delta < -18) setExpandedMobile(true);
-    if (delta > 18) setExpandedMobile(false);
-    dragStartY.current = null;
-  }
 
   function handleContentPointerDown(event: PointerEvent<HTMLDivElement>) {
     const target = event.target;
@@ -75,38 +57,54 @@ export function CaptureDataBottomSheet({ item, items, assignees, draft, saveStat
 
   return (
     <>
-      {/* MOBILE: fixed bottom sheet (swipe up) */}
-      <GlassCard
-        className={`md:hidden fixed inset-x-0 bottom-0 z-40 rounded-b-none border-x-0 border-b-0 bg-slate-950/92 px-4 pb-[max(env(safe-area-inset-bottom),1rem)] pt-2 shadow-[0_-28px_80px_rgba(0,0,0,0.55)] backdrop-blur-2xl transition-transform duration-300 ${expandedMobile ? "translate-y-0" : "translate-y-[calc(100%-5.7rem)]"}`}
-        style={{ bottom: keyboardOffset }}
-        aria-label="Capture details (mobile)"
-      >
-        <div className="touch-none" onPointerDown={handlePointerDown} onPointerUp={handlePointerUp}>
-          <button type="button" onClick={() => setExpandedMobile((current) => !current)} className="mx-auto flex min-h-8 w-full flex-col items-center gap-1 pb-0 pt-0.5" aria-label={expandedMobile ? "Collapse capture details" : "Expand capture details"}>
-            <ChevronUp className={`transition-transform duration-300 h-6 w-6 text-amber-200/80 ${expandedMobile ? "rotate-180" : "animate-bounce"}`} />
-          </button>
-        </div>
-        <div className="flex min-h-14 items-center gap-3 pb-3">
-          <div className="min-w-0 flex-1 pl-1 cursor-pointer" onClick={() => setExpandedMobile((current) => !current)}>
-            <p className="truncate text-xs font-black uppercase tracking-[0.16em] text-amber-300/80">{currentLocation}</p>
-            <h2 className="truncate text-base font-black text-white">{item?.title || "Ready for next field stop"}</h2>
+      {/* MOBILE: FAB when minimized → full-screen modal when expanded */}
+      {!expandedMobile && (
+        <button
+          type="button"
+          onClick={() => setExpandedMobile(true)}
+          className="md:hidden fixed right-4 z-40 inline-flex min-h-12 items-center gap-2 rounded-full bg-amber-500 px-5 py-3 text-sm font-black text-slate-950 shadow-[0_4px_24px_rgba(245,158,11,0.45)] active:scale-95 transition"
+          style={{ bottom: `max(env(safe-area-inset-bottom, 0.75rem) + 0.75rem, 1.5rem)` }}
+          aria-label="Add details and save"
+        >
+          <SkipForward className="h-5 w-5" /> {item ? "Details & Save" : "Start Capture"}
+        </button>
+      )}
+      {expandedMobile && (
+        <div className="md:hidden fixed inset-0 z-50 flex flex-col bg-slate-950/97 backdrop-blur-xl" aria-label="Capture details (mobile)">
+          <div className="flex items-center gap-3 border-b border-white/10 px-4 py-3">
+            <button type="button" onClick={() => setExpandedMobile(false)} className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-white/80" aria-label="Close details">
+              <ChevronUp className="h-5 w-5 rotate-180" />
+            </button>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-xs font-black uppercase tracking-[0.16em] text-amber-300/80">{currentLocation}</p>
+              <h2 className="truncate text-base font-black text-white">{item?.title || "Ready for next field stop"}</h2>
+            </div>
+            {item && (
+              <button type="button" onClick={handleSaveNextClick} disabled={advancing} className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-amber-500 px-3 text-xs font-black text-slate-950 shadow-lg disabled:opacity-60">
+                {actionBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : saveActionIcon}
+                <span className="hidden sm:inline">{saveActionLabel}</span>
+                <span className="sm:hidden">Save</span>
+              </button>
+            )}
+          </div>
+          <div className="flex-1 min-h-0 overflow-y-auto px-4 py-3 pb-12">
+            <SheetContents
+              item={item} draft={draft} actionBusy={actionBusy} advancing={advancing}
+              saveActionIcon={saveActionIcon} saveActionLabel={saveActionLabel}
+              primaryCaptureInput={primaryCaptureInput} primaryCaptureLabel={primaryCaptureLabel}
+              onCapture={onCapture} handleSaveNextClick={handleSaveNextClick}
+              handleContentPointerDown={handleContentPointerDown}
+              onDraftChange={onDraftChange} onFormatNotes={onFormatNotes}
+              aiBusy={aiBusy} aiMessage={aiMessage}
+              tradeOptions={tradeOptions} canManageTrades={canManageTrades} onOpenManageTrades={onOpenManageTrades}
+              assignees={assignees} previousItems={previousItems}
+              progressionActive={progressionActive} setLinkProgression={setLinkProgression}
+              selectClass={selectClass}
+              maxHeightClass=""
+            />
           </div>
         </div>
-        {expandedMobile && <SheetContents
-          item={item} draft={draft} actionBusy={actionBusy} advancing={advancing}
-          saveActionIcon={saveActionIcon} saveActionLabel={saveActionLabel}
-          primaryCaptureInput={primaryCaptureInput} primaryCaptureLabel={primaryCaptureLabel}
-          onCapture={onCapture} handleSaveNextClick={handleSaveNextClick}
-          handleContentPointerDown={handleContentPointerDown}
-          onDraftChange={onDraftChange} onFormatNotes={onFormatNotes}
-          aiBusy={aiBusy} aiMessage={aiMessage}
-          tradeOptions={tradeOptions} canManageTrades={canManageTrades} onOpenManageTrades={onOpenManageTrades}
-          assignees={assignees} previousItems={previousItems}
-          progressionActive={progressionActive} setLinkProgression={setLinkProgression}
-          selectClass={selectClass}
-          maxHeightClass="max-h-[58dvh]"
-        />}
-      </GlassCard>
+      )}
 
       {/* DESKTOP: full-height right column inside the section flex */}
       <aside className="hidden md:flex flex-col w-96 shrink-0 border-l border-white/10 bg-slate-950/92 backdrop-blur-2xl shadow-[-20px_0_40px_rgba(0,0,0,0.3)] h-full overflow-hidden" aria-label="Capture details (desktop)">
