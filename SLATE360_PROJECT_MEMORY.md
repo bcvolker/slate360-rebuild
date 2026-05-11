@@ -3625,3 +3625,20 @@ Build now shows `/project-hub` + all 11 sub-routes in route list (previously abs
 - None inside docs. Memory has been updated.
 ### Next Steps (ordered)
 1. Proceed with the next Value Audit.
+
+### Session Handoff — 2026-05-11 (Loop & UI Rescue Pass)
+
+#### What Changed
+- **Task 1: Rasterization Status Badge**: Added a developer badge in `PlanViewer.tsx` to explicitly indicate `[ USING: LEAFLET ]` vs `[ USING: REACT-PDF ]`. Also included a `[ RETRY RASTERIZATION ]` button for manual retries that outputs native HTTP errors if it fails.
+- **Task 2: State Machine Repair**: In `CaptureClientIsland.tsx` and `CaptureDataBottomSheet.tsx`, intercepted the `fromPlanPin` scope. Saving a capture created from the plan pin now immediately routes the app `walkMode` back to "plan". 
+- **Task 3: Un-Jam Markup UI**: Shifted layout classes in `VisualCaptureView.tsx` to properly push the tools up out of the FAB collision zone (`pb-32` padding approach when the timeline reel isn't active).
+- **Task 4: Card Shrinking**: Purged the block-level absolute formatting of `PlanToolbar` so it elegantly floats (`absolute top-12 md:top-16 inset-x-2/3 z-[1000]`) rather than consuming map space.
+
+#### What's Broken / Partially Done
+- Validate the "Retry Rasterization" trigger in production to see if Vercel drops an explicit 504 Timeout or 500 Out of Memory error natively.
+
+#### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md`
+
+#### Next Steps (ordered)
+1. User: Perform a complete end-to-end plan walk capture loop leveraging the actual remote build. Use the "Retry Rasterization" button to intercept unvarnished lambda errors if the UI falls back to REACT-PDF.
