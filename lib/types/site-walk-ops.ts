@@ -77,6 +77,12 @@ export type SiteWalkPlanSheet = {
   metadata: Record<string, unknown>;
   created_at: string;
   updated_at: string;
+  /** R2 key for the server-rasterized WebP image (Leaflet viewer) */
+  rasterized_key?: string | null;
+  /** Pixel width of the rasterized image */
+  rasterized_width?: number | null;
+  /** Pixel height of the rasterized image */
+  rasterized_height?: number | null;
 };
 
 export type SiteWalkSessionPlanSheet = {

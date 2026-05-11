@@ -7,30 +7,30 @@ Live: https://www.slate360.ai
 
 This file is the default new-chat attachment. Keep it short. Read this first, then only pull the docs required for the task.
 
-## AI Agent Access
+## AI Agent Access & Backend Autonomy
 
-**AI Agents (Copilot, Claude, etc.) have read/write/run/push access to:**
-- **Git**: commit, branch, merge, and push to `bcvolker/slate360-rebuild` on GitHub
+**AI Agents (Copilot, Claude, etc.) have full read/write/run/push access and MUST act autonomously on the backend:**
+- **Git**: commit, branch, merge, and push to `bcvolker/slate360-rebuild` on GitHub.
+- **Vercel**: deploy + env var management via the token.
+- **AWS S3 & Cloudflare R2**: direct bucket access via variables populated in `.env.local`.
+- **Stripe**: webhook and billing management via Vercel env secrets.
+- **Supabase CLI**: You MUST link the project autonomously (`npx supabase link --project-ref hadnfcenpcfaeclczsmm --password 'Arlopear$1976_989*'`) using the `SUPABASE_ACCESS_TOKEN` in `.env.local` and you MUST push migrations, RPC functions, and schema changes on your own. Do not ask for permission to run migrations.
+
+This access is completely intentional. Agents are expected to push commits, run database migrations, test backend scripts, and deploy — not just suggest changes.
+
+## Start Here (Initialization Routine)
+
+When a new chat starts, you must immediately get caught up to speed on the project's memory and context.
+Recommended read order:
+1. This file (`SLATE360_PROJECT_MEMORY.md`).
+2. `slate360-context/ONGOING_ISSUES.md` (Check the active bugs, especially current blockers).
+3. `SLATE360_MASTER_BUILD_PLAN.md` (Single source of truth for product architecture).
+4. `ops/bug-registry.json` (For tracking the actual schema and status of bugs).
+5. Load the `.env.local` variables into your context so you are ready to access the backend immediately.
+
 ## Save State - Architecture & Design (May 2026)
 - The `_legacy_v1` tree has been explicitly purged and removed from the active routing.
 - The entire application is strictly unified under the 'Dark Glass & Amber' design token system utilizing the `<GlassCard>` component.
-
-- **Vercel**: deploy + env var management via `VERCEL_TOKEN` Codespace secret
-- **AWS S3**: bucket `slate360-storage` (us-east-2) via stored credentials
-- **Cloudflare R2**: bucket `slate360-storage` via stored S3-compatible credentials and account-scoped R2 access
-- **Stripe**: webhook and billing management via Vercel env secrets
-- **Supabase CLI**: migrations, RPC functions, schema changes to project `hadnfcenpcfaeclczsmm`
-
-This access is intentional. Agents are expected to push commits, run migrations, and deploy — not just suggest changes.
-
-## Start Here
-
-Recommended read order:
-1. This file
-2. `SLATE360_MASTER_BUILD_PLAN.md` (single source of truth for product direction)
-3. Only task-relevant docs from the read map below
-
-Do not read all context files by default.
 
 ## Project Snapshot
 
@@ -58,18 +58,31 @@ Tier note:
 - trial tier unlocks ALL tabs with tight limits (500 credits, 5GB, 1 seat) + TrialBanner
 - `/ceo`, `/market`, and `/athlete360` are internal access routes, not subscription features
 
-## Critical Rules
+## Critical Rules & Safety Guardrails
 
-1. No production `.ts` / `.tsx` / `.js` file over 300 lines.
-2. No `any`.
-3. Use shared auth wrappers and response helpers.
-4. Types come from `lib/types/`.
-5. Server components first.
-6. Internal routes (`/ceo`, `/market`, `/athlete360`) do not use entitlements.
-7. Subscription gates must use `getEntitlements()`.
-8. New folder writes use `project_folders`.
-9. No mock data in production UI.
-10. Update context docs after code changes.
+**1. No "Vibe Coding" & No Feature Creep**
+- Build ONLY what is explicitly requested or specifically required to resolve the active task/bug.
+- Do NOT invent features, fluff UI, or add "AI generated" filler content/options just to make a page look busy. Everything presented to the user must provide explicit, practical value.
+- If you notice missing "industry standards" or have ideas for architectural improvements, **STOP and ask the user** in conversation before building them.
+
+**2. Anti-Tangling & Code Structure**
+- No production `.ts` / `.tsx` / `.js` file over **300 lines**. If a file grows too large, extract components/hooks safely.
+- One component per file, one hook per file.
+- Single responsibility: keep files decoupled to prevent tangled bugs where fixing one area breaks another.
+
+**3. Types & Access**
+- No `any`. Use proper typed contracts. Types come from `lib/types/`.
+- Use shared auth wrappers and response helpers.
+- Internal routes (`/ceo`, `/market`, `/athlete360`) do not use entitlements.
+- Subscription gates must use `getEntitlements()`.
+
+**4. Data & State**
+- New folder writes use `project_folders`.
+- No mock data in production UI. Show realistic empty states or error states.
+- Always `await` backend DB actions before navigating or fetching related data (prevent async race conditions).
+
+**5. Context Integrity**
+- Update context docs after code changes.
 
 ## Task-Based Read Map
 

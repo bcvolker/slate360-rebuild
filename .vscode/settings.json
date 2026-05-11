@@ -1,4 +1,9 @@
 {
+    "github.copilot.chat.defaultContext": {
+        "files": [
+            "SLATE360_PROJECT_MEMORY.md"
+        ]
+    },
     "markdown.validate.enabled": true,
     "git.autofetch": false,
     "npm.autoDetect": "off",
