@@ -70,8 +70,8 @@ export function VisualCaptureView({ sessionId, autoOpenCamera, launchId, items, 
     <div className="flex h-full w-full flex-col overflow-hidden bg-[#0B0F15] text-white" onPointerDownCapture={handleTapDismiss}>
       {/* Top chrome bar */}
       <header className="z-30 flex shrink-0 items-center gap-2 border-b border-white/5 bg-slate-950/55 px-3 py-1.5 backdrop-blur-xl">
-        <button type="button" onClick={() => setExitConfirm(true)} className="inline-flex h-9 shrink-0 items-center gap-1 rounded-xl border border-red-500/30 bg-red-500/10 px-2 text-[10px] font-black text-red-300 hover:bg-red-500/20" aria-label="Exit walk">
-          <LogOut className="h-3.5 w-3.5" /> Exit
+        <button type="button" onClick={() => setExitConfirm(true)} className="inline-flex h-9 shrink-0 items-center gap-1 rounded-xl border border-red-500/30 bg-red-500/10 px-2.5 text-[10px] font-black text-red-300 hover:bg-red-500/20" aria-label="Exit walk">
+          <LogOut className="h-3.5 w-3.5" /> Exit Walk
         </button>
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-black text-white">{activeLocation}</p>

@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, type PointerEvent, type ReactElement } from "react";
-import { ArrowLeft, Camera, Link2, Loader2, Settings2, SkipForward, Sparkles, Upload } from "lucide-react";
+import Link from "next/link";
+import { ArrowLeft, Camera, CheckCircle2, Link2, Loader2, Settings2, SkipForward, Sparkles, Upload } from "lucide-react";
 import { useDeviceContext, type DeviceCaptureInput } from "@/lib/hooks/useDeviceContext";
 import { CAPTURE_ITEM_STATUSES, type CaptureAssignee, type CaptureItemDraft, type CaptureItemRecord } from "@/lib/types/site-walk-capture";
 
 type Props = {
+  sessionId: string;
   item: CaptureItemRecord | null;
   items: CaptureItemRecord[];
   assignees: CaptureAssignee[];
@@ -24,7 +26,7 @@ type Props = {
   onOpenManageTrades?: () => void;
 };
 
-export function CaptureDataBottomSheet({ item, items, assignees, draft, saveState, aiState, aiMessage, currentLocation, tradeOptions, canManageTrades, returnsToPlan = false, onDraftChange, onCapture, onFormatNotes, onSaveNextStop, onOpenManageTrades }: Props) {
+export function CaptureDataBottomSheet({ sessionId, item, items, assignees, draft, saveState, aiState, aiMessage, currentLocation, tradeOptions, canManageTrades, returnsToPlan = false, onDraftChange, onCapture, onFormatNotes, onSaveNextStop, onOpenManageTrades }: Props) {
   const [expandedMobile, setExpandedMobile] = useState(false);
   const [linkProgression, setLinkProgression] = useState(false);
   const [advancing, setAdvancing] = useState(false);
@@ -63,7 +65,7 @@ export function CaptureDataBottomSheet({ item, items, assignees, draft, saveStat
           type="button"
           onClick={() => setExpandedMobile(true)}
           className="md:hidden fixed right-4 z-40 inline-flex min-h-12 items-center gap-2 rounded-full bg-amber-500 px-5 py-3 text-sm font-black text-slate-950 shadow-[0_4px_24px_rgba(245,158,11,0.45)] active:scale-95 transition"
-          style={{ bottom: `max(env(safe-area-inset-bottom, 0.75rem) + 0.75rem, 1.5rem)` }}
+          style={{ bottom: `calc(max(env(safe-area-inset-bottom, 0.75rem), 0.75rem) + 5rem)` }}
           aria-label="Add details and save"
         >
           <SkipForward className="h-5 w-5" /> {item ? "Details & Save" : "Start Capture"}
@@ -101,6 +103,13 @@ export function CaptureDataBottomSheet({ item, items, assignees, draft, saveStat
               selectClass={selectClass}
               maxHeightClass=""
             />
+            {/* Finish Walk — takes user to walk review page */}
+            <Link
+              href={`/site-walk/walks/${encodeURIComponent(sessionId)}`}
+              className="mt-4 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 text-sm font-black text-emerald-300 transition hover:bg-emerald-500/20"
+            >
+              <CheckCircle2 className="h-5 w-5" /> Finish Walk & Review Stops
+            </Link>
           </div>
         </div>
       )}

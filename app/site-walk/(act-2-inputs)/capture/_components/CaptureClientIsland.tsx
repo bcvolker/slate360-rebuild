@@ -234,6 +234,7 @@ function CaptureClientIslandInner({ sessionId, projectId, walkName, showPlanCanv
 
       {/* Right pane on desktop / bottom sheet on mobile */}
       <CaptureDataBottomSheet
+        sessionId={sessionId}
         item={activeItem}
         items={items}
         assignees={assignees}
@@ -294,7 +295,6 @@ function nextStopLabel(currentLocation: string, recentLocations: string[]) {
   }, 1);
   return `Stop ${maxStop + 1}`;
 }
-
 function findGhostImageUrl(items: { id: string; title: string; item_type: string; local_preview_url?: string | null }[], activeItemId: string | null, location: string) {
   const prefix = location.trim();
   return items.find((item) => item.id !== activeItemId && item.item_type === "photo" && item.title.startsWith(prefix) && item.local_preview_url)?.local_preview_url ?? null;
