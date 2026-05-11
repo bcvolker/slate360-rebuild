@@ -9,7 +9,7 @@ declare global {
 
 declare const self: ServiceWorkerGlobalScope & typeof globalThis;
 
-const KILL_SWITCH_VERSION = "2026-04-26-sw-kill-v2";
+const KILL_SWITCH_VERSION = "2026-05-11-canary-alpha-01";
 
 const ignoredPrecacheManifest = self.__SW_MANIFEST;
 void ignoredPrecacheManifest;

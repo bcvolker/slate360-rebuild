@@ -61,8 +61,12 @@ export default async function RootLayout({
   const branding = await readBrandingCookie();
 
   return (
-    <html lang="en" className="scroll-smooth" data-build="2026-04-26-sw-kill-v2" suppressHydrationWarning>
+    <html lang="en" className="scroll-smooth" data-build="canary-alpha-01" suppressHydrationWarning>
       <head>
+        {/* Force iOS Safari to never cache this page */}
+        <meta httpEquiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+        <meta httpEquiv="Pragma" content="no-cache" />
+        <meta httpEquiv="Expires" content="0" />
         <ThemeScript />
       </head>
       <body
@@ -74,6 +78,11 @@ export default async function RootLayout({
           "--brand-font": branding.font_family,
         } as React.CSSProperties}
       >
+        {/* CANARY BANNER — remove after confirming deploy cache is busted */}
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 99999, background: "#dc2626", color: "#fff", textAlign: "center", padding: "6px 12px", fontSize: "13px", fontWeight: 900, letterSpacing: "0.1em", fontFamily: "monospace" }}>
+          VER: CANARY-ALPHA-01 — {new Date().toISOString().slice(0, 10)}
+        </div>
+        <div style={{ height: "32px" }} />
         <ClientProviders>{children}</ClientProviders>
       </body>
     </html>

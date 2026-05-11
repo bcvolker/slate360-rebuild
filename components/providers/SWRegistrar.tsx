@@ -5,8 +5,8 @@ import { useEffect } from "react";
 export function SWRegistrar() {
   useEffect(() => {
     if ("serviceWorker" in navigator && process.env.NODE_ENV === "production") {
-      const disabledKey = "slate360-sw-disabled-2026-04-26-sw-kill-v2";
-      const refreshKey = "slate360-sw-refresh-2026-04-26-sw-kill-v2";
+      const disabledKey = "slate360-sw-disabled-2026-05-11-canary";
+      const refreshKey = "slate360-sw-refresh-2026-05-11-canary";
       let refreshing = false;
 
       const clearBrowserCaches = async () => {
