@@ -10,7 +10,7 @@ import { PlanPdfPage, type PlanPdfRenderDetails } from "./PlanPdfPage";
 import { PlanQuickActionMenu } from "./PlanQuickActionMenu";
 import { PlanToolbar } from "./PlanToolbar";
 import { PinInfoBubble, PlanEmptySurface } from "./PlanViewerParts";
-import { buildPages, buildPlanPin, clamp, MAX_PLAN_SCALE, MIN_PLAN_SCALE, PLAN_BOTTOM_RESERVE, PLAN_FIT_PADDING, PLAN_PDF_BASE_HEIGHT, PLAN_PDF_BASE_WIDTH, PLAN_TOOLBAR_RESERVE, type Point, type QuickMenuState, type Transform } from "./planViewerModel";
+import { buildPages, buildPlanPin, clamp, getPlanReserves, MAX_PLAN_SCALE, MIN_PLAN_SCALE, PLAN_FIT_PADDING, PLAN_PDF_BASE_HEIGHT, PLAN_PDF_BASE_WIDTH, type Point, type QuickMenuState, type Transform } from "./planViewerModel";
 import { usePlanGestures } from "./usePlanGestures";
 import { calculateCenteredPlanTransform } from "./planViewerGeometry";
 
@@ -81,7 +81,8 @@ export function PlanViewer({ projectId, sessionId = "current-session", planSets 
 
     function fitPlanToViewport() { 
       resizing = false;
-      const centered = calculateCenteredPlanTransform({ maxScale: 1, minScale: MIN_PLAN_SCALE, padding: PLAN_FIT_PADDING, reservedBottom: PLAN_BOTTOM_RESERVE, reservedTop: PLAN_TOOLBAR_RESERVE, surface: surface!, viewport: viewport! });
+      const reserves = getPlanReserves();
+      const centered = calculateCenteredPlanTransform({ maxScale: 1, minScale: MIN_PLAN_SCALE, padding: PLAN_FIT_PADDING, reservedBottom: reserves.bottom, reservedTop: reserves.toolbar, surface: surface!, viewport: viewport! });
       applyTransformToDOM(centered);
       setTransform(centered);
     }

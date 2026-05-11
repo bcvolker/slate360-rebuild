@@ -11,9 +11,17 @@ export const PLAN_PDF_BASE_WIDTH = 1200;
 export const PLAN_PDF_BASE_HEIGHT = 858;
 export const MIN_PLAN_SCALE = 0.25;
 export const MAX_PLAN_SCALE = 2.5;
-export const PLAN_FIT_PADDING = 32;
-export const PLAN_TOOLBAR_RESERVE = 148;
-export const PLAN_BOTTOM_RESERVE = 112;
+export const PLAN_FIT_PADDING = 16;
+
+/** Responsive reserves — mobile gets compact values so the plan fills the screen. */
+export function getPlanReserves() {
+  const mobile = typeof window !== "undefined" && window.innerWidth < 768;
+  return { toolbar: mobile ? 44 : 120, bottom: mobile ? 44 : 80 };
+}
+
+// Legacy constants kept for any non-responsive call sites
+export const PLAN_TOOLBAR_RESERVE = 44;
+export const PLAN_BOTTOM_RESERVE = 44;
 
 export function buildPages(planSet: SiteWalkPlanSet | null, sheets: SiteWalkPlanSheet[], pdfPageCount: number): PlanPage[] {
   if (!planSet) return [];

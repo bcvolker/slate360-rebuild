@@ -2,11 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown, ChevronUp, Eye, EyeOff, Layers, MapPin, Minus, Plus, Search } from "lucide-react";
-import { Document, Page, pdfjs } from "react-pdf";
 import GlassCard from "@/components/shared/GlassCard";
 import type { LayerFilter } from "./plan-layer-types";
-
-pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.js";
 
 export type PlanToolbarPage = {
   key: string;
@@ -100,48 +97,14 @@ export function PlanToolbar({ fileUrl, pages, activeIndex, zoomPercent, filter, 
               aria-selected={index === activeIndex}
               data-page-index={index}
               onClick={() => onSelect(index)}
-              className={`group flex h-24 w-20 shrink-0 flex-col items-center gap-1 rounded-xl border bg-white/[0.04] p-1 transition ${index === activeIndex ? "border-amber-400 ring-2 ring-amber-500/40" : "border-white/10 hover:border-amber-400/50"}`}
+              className={`flex h-10 shrink-0 items-center gap-1 rounded-xl border px-3 text-xs font-black transition ${index === activeIndex ? "border-amber-400 bg-amber-500/15 text-amber-100 ring-1 ring-amber-500/30" : "border-white/10 bg-white/[0.04] text-slate-300 hover:border-amber-400/50"}`}
             >
-              <PlanThumbnail fileUrl={fileUrl} pageNumber={page.pageNumber} />
-              <span className="line-clamp-1 px-1 text-[9px] font-black uppercase tracking-wider text-white/80">{page.label}</span>
+              <MapPin className="h-3 w-3" /> {page.label}
             </button>
           ))}
         </div>
       )}
     </GlassCard>
-  );
-}
-
-function PlanThumbnail({ fileUrl, pageNumber }: { fileUrl: string | null; pageNumber: number }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
-    const node = ref.current;
-    if (!node || typeof IntersectionObserver === "undefined") {
-      setVisible(true);
-      return;
-    }
-    const observer = new IntersectionObserver(([entry]) => {
-      if (entry?.isIntersecting) {
-        setVisible(true);
-        observer.disconnect();
-      }
-    }, { rootMargin: "120px" });
-    observer.observe(node);
-    return () => observer.disconnect();
-  }, []);
-
-  return (
-    <div ref={ref} className="flex h-16 w-full items-center justify-center overflow-hidden rounded-md bg-white text-slate-400">
-      {visible && fileUrl ? (
-        <Document file={fileUrl} loading={<span className="text-[8px]">…</span>}>
-          <Page pageNumber={pageNumber} width={64} renderAnnotationLayer={false} renderTextLayer={false} loading={<span className="text-[8px]">…</span>} className="overflow-hidden bg-white [&_canvas]:!h-auto [&_canvas]:!max-w-full" />
-        </Document>
-      ) : (
-        <span className="text-[9px] font-black text-slate-400">{pageNumber}</span>
-      )}
-    </div>
   );
 }
 
