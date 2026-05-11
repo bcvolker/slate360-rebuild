@@ -22,7 +22,7 @@ type Props = {
   onDraftChange: (patch: Partial<CaptureItemDraft>) => void;
   onCapture: (input?: DeviceCaptureInput) => void;
   onFormatNotes: () => void;
-  onSaveNextStop: () => void | Promise<void>;
+  onSaveNextStop: (options?: { fromPlanPin?: boolean }) => void | Promise<void>;
   onOpenManageTrades?: () => void;
 };
 

@@ -55,7 +55,7 @@ export function PlanToolbar({ fileUrl, pages, activeIndex, zoomPercent, filter, 
   }
 
   return (
-    <GlassCard className="absolute inset-x-3 top-16 z-50 flex flex-col gap-2 bg-slate-950/75 p-2 backdrop-blur-xl">
+    <GlassCard className="flex flex-col gap-2 bg-slate-950/75 p-2 backdrop-blur-xl max-h-[40vh] overflow-y-auto w-full pointer-events-auto shadow-2xl">
       <div className="flex flex-wrap items-center gap-2">
         <button type="button" onClick={() => setCollapsed((current) => !current)} className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-white/[0.05] px-2.5 text-[10px] font-black uppercase tracking-[0.1em] text-white/80 hover:text-amber-100" aria-label={collapsed ? "Expand plan toolbar" : "Collapse plan toolbar"}>
           {collapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}

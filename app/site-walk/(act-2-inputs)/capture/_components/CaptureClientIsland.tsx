@@ -140,6 +140,7 @@ function CaptureClientIslandInner({ sessionId, projectId, walkName, showPlanCanv
     
     updateLocation(nextStopLabel(currentLocation, recentLocations));
     if (shouldReturnToPlan) {
+      setWalkMode("plan");
       setReturnToPlanAfterSave(false);
       setWalkMode("plan");
       return;
@@ -249,7 +250,7 @@ function CaptureClientIslandInner({ sessionId, projectId, walkName, showPlanCanv
         onDraftChange={patchDraft}
         onCapture={captureNow}
         onFormatNotes={() => void formatNotesWithAi()}
-        onSaveNextStop={() => saveNextStop()}
+        onSaveNextStop={(opts?: { fromPlanPin?: boolean }) => saveNextStop({ fromPlanPin: opts?.fromPlanPin ?? returnToPlanAfterSave })}
         onOpenManageTrades={() => setManageTradesOpen(true)}
       />
 

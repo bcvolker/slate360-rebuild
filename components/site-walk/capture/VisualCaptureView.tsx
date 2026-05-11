@@ -119,7 +119,7 @@ export function VisualCaptureView({ sessionId, autoOpenCamera, launchId, items, 
       </div>
 
       {/* Tools strip — ALWAYS visible below photo, no gate on captureReady */}
-      <div className="z-20 shrink-0 flex flex-col gap-1 border-t border-white/5 bg-slate-950/80 px-3 py-1.5 backdrop-blur-xl">
+      <div className={`z-20 shrink-0 flex flex-col gap-1 border-t border-white/5 bg-slate-950/80 px-3 py-1.5 backdrop-blur-xl ${photoItems.length === 0 ? "pb-32" : ""}`}>
         <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
           <button type="button" onClick={onToggleMarkup} className={`inline-flex min-h-9 shrink-0 items-center justify-center gap-1.5 rounded-xl px-2.5 text-[10px] font-black uppercase tracking-wider ${markupOn ? "bg-amber-500 text-slate-950" : "border border-white/10 bg-black/50 text-slate-200"}`}>
             <Shapes className="h-3.5 w-3.5" /> {markupOn ? "Drawing" : "Navigate"}
@@ -139,7 +139,7 @@ export function VisualCaptureView({ sessionId, autoOpenCamera, launchId, items, 
 
       {/* Timeline strip — horizontal thumbnails of all captures in this session */}
       {photoItems.length > 0 && (
-        <div ref={timelineRef} className="z-20 shrink-0 flex items-center gap-1.5 overflow-x-auto border-t border-white/5 bg-slate-950/70 px-2 py-1.5 no-scrollbar backdrop-blur-xl">
+        <div ref={timelineRef} className="z-20 shrink-0 flex items-center gap-1.5 overflow-x-auto border-t border-white/5 bg-slate-950/70 px-2 py-1.5 no-scrollbar backdrop-blur-xl pb-32">
           {photoItems.map((pi) => {
             const isActive = pi.id === activeItemId;
             const thumbUrl = pi.local_preview_url || (pi.id ? `/api/site-walk/items/${pi.id}/image` : undefined);

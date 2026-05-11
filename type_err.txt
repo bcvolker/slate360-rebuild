@@ -1,0 +1,7 @@
+
+> slate360-rebuild@0.1.0 typecheck
+> tsc --noEmit
+
+app/site-walk/(act-2-inputs)/capture/_components/CaptureClientIsland.tsx(253,9): error TS2322: Type '(opts: any) => void' is not assignable to type '() => void | Promise<void>'.
+  Target signature provides too few arguments. Expected 1 or more, but got 0.
+app/site-walk/(act-2-inputs)/capture/_components/CaptureClientIsland.tsx(253,26): error TS7006: Parameter 'opts' implicitly has an 'any' type.
