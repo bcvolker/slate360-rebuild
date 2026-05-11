@@ -13,13 +13,13 @@ export const GET = (req: NextRequest, ctx: IdRouteContext) =>
 
     const { data: sheet, error } = await admin
       .from("site_walk_plan_sheets")
-      .select("sheet_name, image_s3_key, thumbnail_s3_key")
+      .select("sheet_name, image_s3_key, thumbnail_s3_key, rasterized_key")
       .eq("id", id)
       .eq("org_id", orgId)
       .maybeSingle();
 
     if (error) return serverError(error.message);
-    const key = sheet?.thumbnail_s3_key ?? sheet?.image_s3_key;
+    const key = sheet?.rasterized_key ?? sheet?.thumbnail_s3_key ?? sheet?.image_s3_key;
     if (!key) return notFound("Plan sheet image not found");
 
     try {

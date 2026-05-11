@@ -49,6 +49,8 @@ export function PlanUploader({ project, onPlanRoomChange }: Props) {
       if (!planSet) throw new Error("Plan set was created, but the server response was incomplete.");
       setState({ stage: "processing", message: `Generating ${pageCount} plan sheet row${pageCount === 1 ? "" : "s"}…` });
       const extracted = await autoCreateSheets(planSet.id, pageCount);
+      // Trigger background rasterization
+      fetch(`/api/site-walk/plan-sets/${encodeURIComponent(planSet.id)}/rasterize`, { method: "POST" }).catch((e) => console.error("Rasterization background trigger failed", e));
       onPlanRoomChange(extracted);
       setState({ stage: "complete", message: "Complete — plan set is saved in Site Walk Files / Plans." });
     } catch (error) {

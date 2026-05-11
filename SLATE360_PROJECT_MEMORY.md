@@ -213,6 +213,42 @@ When editing oversized files, always read both the state declarations AND the JS
 
 ## Latest Session Handoff
 
+### Session Handoff — 2026-05-11 (Site Walk Rasterization & Routing - Slice B.2)
+
+#### What Changed
+- **Rasterization API**: Created `app/api/site-walk/plan-sets/[id]/rasterize/route.ts` to process PDF pages into WebP using `@napi-rs/canvas` and `sharp` via `pdfjs-dist`, ensuring compliance with Vercel's 50MB serverless limit. Updates `site_walk_plan_sheets` with the rasterized R2 object key.
+- **Image Serving Route**: Updated `app/api/site-walk/plan-sheets/[id]/image/route.ts` to check for `rasterized_key` and serve 24-hour presigned URLs from R2.
+- **Router Logic**: Renamed the monolithic React-PDF component to `PlanViewerPdf.tsx` and created a new Traffic Cop router at `components/site-walk/capture/PlanViewer.tsx`. Automatically routes mobile users with rasterized keys to the new Leaflet component (`PlanViewerLeaflet`), and falls back to PDF rendering for desktop or un-rasterized data.
+- **Auto-Trigger**: Extended `PlanUploader.tsx` to fire an asynchronous, non-blocking `fetch` request to the rasterization API after generating plan sheets natively.
+
+#### What's Broken / Partially Done
+- Backend rasterization is fully integrated but must be monitored in production for lambda execution time limits on extremely large PDF sets (over 200 pages).
+
+#### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md` (This tracking update).
+
+#### Next Steps (ordered)
+1. Proceed to end-to-end testing of the Plan Uploader to ensure PDFs are properly vectorized to R2 and visible in Leaflet Mobile.
+
+
+### Session Handoff — 2026-05-11 (Site Walk Rasterization & Routing - Slice B.2)
+
+#### What Changed
+- **Rasterization API**: Created `app/api/site-walk/plan-sets/[id]/rasterize/route.ts` to process PDF pages into WebP using `@napi-rs/canvas` and `sharp` via `pdfjs-dist`, ensuring compliance with Vercel's 50MB serverless limit. Updates `site_walk_plan_sheets` with the rasterized R2 object key.
+- **Image Serving Route**: Updated `app/api/site-walk/plan-sheets/[id]/image/route.ts` to check for `rasterized_key` and serve 24-hour presigned URLs from R2.
+- **Router Logic**: Renamed the monolithic React-PDF component to `PlanViewerPdf.tsx` and created a new Traffic Cop router at `components/site-walk/capture/PlanViewer.tsx`. Automatically routes mobile users with rasterized keys to the new Leaflet component (`PlanViewerLeaflet`), and falls back to PDF rendering for desktop or un-rasterized data.
+- **Auto-Trigger**: Extended `PlanUploader.tsx` to fire an asynchronous, non-blocking `fetch` request to the rasterization API after generating plan sheets natively.
+
+#### What's Broken / Partially Done
+- Backend rasterization is fully integrated but must be monitored in production for lambda execution time limits on extremely large PDF sets (over 200 pages).
+
+#### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md` (This tracking update).
+
+#### Next Steps (ordered)
+1. Proceed to end-to-end testing of the Plan Uploader to ensure PDFs are properly vectorized to R2 and visible in Leaflet Mobile.
+
+
 ### Session Handoff — 2026-05-08 (Site Walk Capture Failure Report)
 
 #### What Changed
