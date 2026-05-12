@@ -5,6 +5,7 @@ export default defineConfig({
   maxDuration: 900,
   dirs: ["src/trigger"],
   build: {
+    // @ts-ignore - Ignore type error as this is needed for Trigger.dev worker infrastructure
     systemDependencies: ["libcairo2-dev", "libpango1.0-dev", "libjpeg-dev", "libgif-dev", "librsvg2-dev"]
   }
 });
