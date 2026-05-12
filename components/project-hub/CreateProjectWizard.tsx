@@ -111,7 +111,7 @@ export default function CreateProjectWizard({
         <div className="flex items-center justify-between border-b border-app bg-white/[0.04]/50 px-5 py-4">
           <div>
             <h3 className="text-lg font-black text-foreground">
-              {projectFieldType === 'full' ? 'New Full Project' : 'New Field Project'}
+              {projectFieldType === 'full' ? 'New Full Project' : 'New Site Visit'}
             </h3>
             <p className="text-xs text-zinc-400 mt-0.5">Step {step} of {TOTAL_STEPS} — {STEP_LABELS[step - 1]}</p>
           </div>

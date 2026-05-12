@@ -68,8 +68,8 @@ export function VisualCaptureView({ sessionId, autoOpenCamera, launchId, items, 
 
   return (
     <div className="flex h-full w-full flex-col overflow-hidden bg-[#0B0F15] text-white" onPointerDownCapture={handleTapDismiss}>
-      {/* Top chrome bar */}
-      <header className="z-30 flex shrink-0 items-center gap-2 border-b border-white/5 bg-slate-950/55 px-3 py-1.5 backdrop-blur-xl">
+      {/* TopCaptureBar */}
+      <header className="fixed top-0 left-0 right-0 z-30 flex shrink-0 items-center gap-2 border-b border-white/5 bg-slate-950/80 px-3 py-[max(env(safe-area-inset-top),0.5rem)] backdrop-blur-xl">
         <button type="button" onClick={() => setExitConfirm(true)} className="inline-flex h-9 shrink-0 items-center gap-1 rounded-xl border border-red-500/30 bg-red-500/10 px-2.5 text-[10px] font-black text-red-300 hover:bg-red-500/20" aria-label="Exit walk">
           <LogOut className="h-3.5 w-3.5" /> Exit Walk
         </button>
@@ -93,9 +93,9 @@ export function VisualCaptureView({ sessionId, autoOpenCamera, launchId, items, 
         </div>
       )}
 
-      {/* Camera surface — takes remaining space */}
-      <div className="relative flex-1 min-h-0">
-        <div className="absolute inset-0">
+      {/* CaptureStage */}
+      <div className="absolute top-[env(safe-area-inset-top)] bottom-[env(safe-area-inset-bottom)] left-0 right-0 z-10 overflow-hidden pt-12 pb-[120px]">
+        <div className="absolute inset-0 pt-12 pb-[120px]">
           <CameraViewfinder
             sessionId={sessionId}
             autoOpenCamera={autoOpenCamera}
@@ -118,8 +118,21 @@ export function VisualCaptureView({ sessionId, autoOpenCamera, launchId, items, 
         )}
       </div>
 
-      {/* Tools strip — ALWAYS visible below photo, no gate on captureReady */}
-      <div className={`z-20 shrink-0 flex flex-col gap-1 border-t border-white/5 bg-slate-950/80 px-3 py-1.5 backdrop-blur-xl ${photoItems.length === 0 ? "pb-32" : ""}`}>
+      {/* Unified Bottom Rail */}
+      <div className="fixed bottom-0 left-0 right-0 z-30 flex flex-col gap-1 border-t border-white/5 bg-slate-950/90 px-3 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-2 backdrop-blur-xl">
+        {photoItems.length > 0 && (
+          <div ref={timelineRef} className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1">
+            {photoItems.map((pi) => {
+              const isActive = pi.id === activeItemId;
+              const thumbUrl = pi.local_preview_url || (pi.id ? `/api/site-walk/items/${pi.id}/image` : undefined);
+              return (
+                <button key={pi.id} type="button" onClick={() => onSelectItem?.(pi.id)} className={`shrink-0 h-10 w-10 rounded-lg overflow-hidden border-2 transition ${isActive ? "border-amber-500 ring-1 ring-amber-500/40" : "border-white/10 opacity-60"}`}>
+                  {thumbUrl ? <img src={thumbUrl} alt={pi.title || "Capture"} className="h-full w-full object-cover" /> : <div className="h-full w-full bg-slate-700" />}
+                </button>
+              );
+            })}
+          </div>
+        )}
         <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
           <button type="button" onClick={onToggleMarkup} className={`inline-flex min-h-9 shrink-0 items-center justify-center gap-1.5 rounded-xl px-2.5 text-[10px] font-black uppercase tracking-wider ${markupOn ? "bg-amber-500 text-slate-950" : "border border-white/10 bg-black/50 text-slate-200"}`}>
             <Shapes className="h-3.5 w-3.5" /> {markupOn ? "Drawing" : "Navigate"}
@@ -136,21 +149,6 @@ export function VisualCaptureView({ sessionId, autoOpenCamera, launchId, items, 
         </div>
         <UnifiedVectorToolbar />
       </div>
-
-      {/* Timeline strip — horizontal thumbnails of all captures in this session */}
-      {photoItems.length > 0 && (
-        <div ref={timelineRef} className="z-20 shrink-0 flex items-center gap-1.5 overflow-x-auto border-t border-white/5 bg-slate-950/70 px-2 py-1.5 no-scrollbar backdrop-blur-xl pb-32">
-          {photoItems.map((pi) => {
-            const isActive = pi.id === activeItemId;
-            const thumbUrl = pi.local_preview_url || (pi.id ? `/api/site-walk/items/${pi.id}/image` : undefined);
-            return (
-              <button key={pi.id} type="button" onClick={() => onSelectItem?.(pi.id)} className={`shrink-0 h-10 w-10 rounded-lg overflow-hidden border-2 transition ${isActive ? "border-amber-500 ring-1 ring-amber-500/40" : "border-white/10 opacity-60"}`}>
-                {thumbUrl ? <img src={thumbUrl} alt={pi.title || "Capture"} className="h-full w-full object-cover" /> : <div className="h-full w-full bg-slate-700" />}
-              </button>
-            );
-          })}
-        </div>
-      )}
     </div>
   );
 }

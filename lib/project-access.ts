@@ -17,8 +17,8 @@ export function canCreateFullProject(tier: Tier, isSlateCeo: boolean): boolean {
 }
 
 /**
- * Returns true when the user may create a Field Project.
- * All active subscribers (including trial) can create Field Projects.
+ * Returns true when the user may create a Site Visit.
+ * All active subscribers (including trial) can create Site Visits.
  */
 export function canCreateFieldProject(): boolean {
   return true;

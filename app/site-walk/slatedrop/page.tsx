@@ -27,7 +27,7 @@ export default async function SiteWalkSlateDropPage() {
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-500 text-white"><FolderOpen className="h-6 w-6" /></div>
             <div>
               <h1 className="text-2xl font-black">Site Walk SlateDrop</h1>
-              <p className="text-sm font-bold text-slate-300">Open a Field Project folder to view photos, notes, data, plans, and deliverables.</p>
+              <p className="text-sm font-bold text-slate-300">Open a Site Visit folder to view photos, notes, data, plans, and deliverables.</p>
             </div>
           </div>
         </section>
@@ -39,7 +39,7 @@ export default async function SiteWalkSlateDropPage() {
               <p className="mt-1 text-sm font-bold text-slate-400">Site Walk Files / Photos / Notes / Data / Plans / Deliverables</p>
             </Link>
           ))}
-          {projects.length === 0 && <Link href="/site-walk/setup" className="rounded-3xl border border-dashed border-white/15 bg-white/5 p-6 text-center text-sm font-black text-slate-300">Create a Field Project first</Link>}
+          {projects.length === 0 && <Link href="/site-walk/setup" className="rounded-3xl border border-dashed border-white/15 bg-white/5 p-6 text-center text-sm font-black text-slate-300">Create a Site Visit first</Link>}
         </section>
       </div>
     </main>

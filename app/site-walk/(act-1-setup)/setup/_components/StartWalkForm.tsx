@@ -96,7 +96,7 @@ export function StartWalkForm({ projects }: Props) {
           href="/dashboard?tab=projects&create=field"
           className="mt-4 inline-flex items-center gap-2 rounded-xl bg-amber-500 px-4 py-2.5 text-sm font-black text-slate-950 hover:bg-amber-400"
         >
-          <Plus className="h-4 w-4" /> New Field Project
+          <Plus className="h-4 w-4" /> New Site Visit
         </a>
       </div>
     );
@@ -110,9 +110,9 @@ export function StartWalkForm({ projects }: Props) {
       <h2 className="mt-2 text-xl font-black text-white">Configure and launch field capture</h2>
 
       <div className="mt-5 grid gap-4 sm:grid-cols-2">
-        {/* Field Project */}
+        {/* Site Visit */}
         <div>
-          <label className="mb-1.5 block text-xs font-bold text-slate-400">Field Project</label>
+          <label className="mb-1.5 block text-xs font-bold text-slate-400">Site Visit</label>
           <div className="relative">
             <select
               value={projectId}

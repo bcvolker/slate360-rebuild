@@ -62,7 +62,7 @@ export function SiteWalkSetupClient({ brandSettings, projects, contacts, initial
       </section>
 
       <div className="rounded-3xl border border-slate-700/60 bg-slate-900/60 backdrop-blur-md shadow-lg">
-        <PagedWorkspace pages={pages} title="Field Project Setup" subtitle="Swipe through the workbook on mobile; use the same sections as tabs on desktop." viewportClassName="overflow-y-auto p-4" />
+        <PagedWorkspace pages={pages} title="Site Visit Setup" subtitle="Swipe through the workbook on mobile; use the same sections as tabs on desktop." viewportClassName="overflow-y-auto p-4" />
       </div>
     </div>
   );
@@ -73,7 +73,7 @@ function PlansDocsPanel({ project }: { project: SetupProject | null }) {
     <section className="rounded-3xl border border-slate-700/60 bg-slate-900/60 backdrop-blur-md p-5">
       <p className="text-xs font-black uppercase tracking-[0.18em] text-amber-400">Plans & Docs</p>
       <h2 className="mt-1 text-xl font-black text-slate-50">Plan room and project documents</h2>
-      <p className="mt-2 text-sm leading-6 text-slate-400">Upload plan sets, specs, instructions, and supporting files into the Field Project folder system before crews start capture.</p>
+      <p className="mt-2 text-sm leading-6 text-slate-400">Upload plan sets, specs, instructions, and supporting files into the Site Visit folder system before crews start capture.</p>
       <div className="mt-5 grid gap-3 sm:grid-cols-2">
         <Link href="/site-walk/plans" className="rounded-2xl border border-slate-700/60 bg-slate-800/60 p-4 text-sm font-black text-slate-50 hover:border-amber-400/50 hover:bg-amber-500/10 transition"><UploadCloud className="mb-3 h-6 w-6 text-amber-400" />Open Plan Room</Link>
         <Link href={project ? `/projects/${project.id}/slatedrop` : "/site-walk/slatedrop"} className="rounded-2xl border border-slate-700/60 bg-slate-800/60 p-4 text-sm font-black text-slate-50 hover:border-amber-400/50 hover:bg-amber-500/10 transition"><UploadCloud className="mb-3 h-6 w-6 text-amber-400" />Open Site Walk Files</Link>

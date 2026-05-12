@@ -11,7 +11,7 @@ interface ProjectTypeChoiceSheetProps {
 
 /**
  * Dark Glass modal shown to Business/Enterprise users when they click
- * "New Project". Lets them choose between a Field Project and a full Project.
+ * "New Project". Lets them choose between a Site Visit and a full Project.
  * Trial/Standard users never see this — the wizard opens directly as Field.
  */
 export function ProjectTypeChoiceSheet({
@@ -51,7 +51,7 @@ export function ProjectTypeChoiceSheet({
               <MapPin size={18} />
             </span>
             <div>
-              <p className="font-bold text-sm text-white">Field Project</p>
+              <p className="font-bold text-sm text-white">Site Visit</p>
               <p className="text-xs text-zinc-400 mt-0.5 leading-relaxed">
                 Site Walk sessions, plans, deliverables, and collaborator submissions.
                 The fastest way to start capturing on-site context.
@@ -69,7 +69,7 @@ export function ProjectTypeChoiceSheet({
             <div>
               <p className="font-bold text-sm text-white">Full Project</p>
               <p className="text-xs text-zinc-400 mt-0.5 leading-relaxed">
-                Everything in a Field Project, plus schedules, budgets, RFIs, submittals,
+                Everything in a Site Visit, plus schedules, budgets, RFIs, submittals,
                 and the full SlateDrop folder tree.
               </p>
             </div>
