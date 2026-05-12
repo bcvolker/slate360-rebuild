@@ -241,6 +241,10 @@ export function useCaptureItems({ sessionId, projectId }: HookArgs) {
     return saveCaptureAngle({ sessionId, item, file, previewUrl, captureMode, onLocalItem: (local) => setItems((current) => upsertItem(current, local)) });
   }
 
+  function deselectItem() {
+    setActiveItemId(null);
+  }
+
   return {
     items,
     assignees,
@@ -250,6 +254,7 @@ export function useCaptureItems({ sessionId, projectId }: HookArgs) {
     aiState,
     aiMessage,
     selectItem,
+    deselectItem,
     patchDraft,
     flushCurrentDraft,
     saveMarkupData,

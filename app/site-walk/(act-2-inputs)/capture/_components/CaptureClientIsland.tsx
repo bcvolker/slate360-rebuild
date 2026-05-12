@@ -70,7 +70,7 @@ function CaptureClientIslandInner({ sessionId, projectId, walkName, showPlanCanv
   const appliedCarryRef = useRef<string | null>(null);
   const [returnToPlanAfterSave, setReturnToPlanAfterSave] = useState(false);
   const { primaryCaptureInput } = useDeviceContext();
-  const { items, assignees, activeItem, draft, saveState, aiState, aiMessage, selectItem, patchDraft, flushCurrentDraft, saveMarkupData, savePhotoAttachmentPins, savePhotoAngle, formatNotesWithAi } = useCaptureItems({ sessionId, projectId });
+  const { items, assignees, activeItem, draft, saveState, aiState, aiMessage, selectItem, deselectItem, patchDraft, flushCurrentDraft, saveMarkupData, savePhotoAttachmentPins, savePhotoAngle, formatNotesWithAi } = useCaptureItems({ sessionId, projectId });
   const tradeSettings = useProjectCaptureSettings(projectId);
   const [manageTradesOpen, setManageTradesOpen] = useState(false);
 
@@ -145,7 +145,7 @@ function CaptureClientIslandInner({ sessionId, projectId, walkName, showPlanCanv
     if (shouldReturnToPlan) {
       setWalkMode("plan");
       setReturnToPlanAfterSave(false);
-      setWalkMode("plan");
+      deselectItem();
       return;
     }
     // CRITICAL: this opens the picker synchronously in the same event frame as the tap
