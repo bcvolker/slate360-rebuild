@@ -2,18 +2,49 @@ import { task } from "@trigger.dev/sdk/v3";
 import { createClient } from "@supabase/supabase-js";
 import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { createCanvas } from "@napi-rs/canvas";
+import { createCanvas } from "canvas";
 import sharp from "sharp";
 import { v4 as uuidv4 } from "uuid";
 
-// Use the legacy build which includes node.js polyfills
-import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf.mjs";
+// Polyfill for NodeJS environments before importing pdfjs
+if (typeof globalThis.DOMMatrix === "undefined") {
+  (globalThis as any).DOMMatrix = class DOMMatrix {
+    a=1; b=0; c=0; d=1; e=0; f=0;
+    constructor() {}
+  };
+}
+if (typeof globalThis.Path2D === "undefined") {
+  (globalThis as any).Path2D = class Path2D {
+    constructor() {}
+  };
+}
+if (typeof globalThis.ImageData === "undefined") {
+  (globalThis as any).ImageData = class ImageData {
+    data: Uint8ClampedArray;
+    width: number;
+    height: number;
+    constructor(width: number, height: number) {
+      this.width = width;
+      this.height = height;
+      this.data = new Uint8ClampedArray(width * height * 4);
+    }
+  };
+}
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || "";
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || "";
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+// We will dynamically import pdfjs-dist inside the run function
 
-const s3 = new S3Client({
+const BUCKET = process.env.R2_BUCKET || "slate360-storage";
+
+// Move supabase initialization into a getter so it doesn't fail at import time
+const getSupabase = () => {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
+  if (!supabaseUrl) throw new Error("supabaseUrl is required.");
+  if (!supabaseServiceKey) throw new Error("supabaseServiceKey is required.");
+  return createClient(supabaseUrl, supabaseServiceKey);
+};
+
+const getS3 = () => new S3Client({
   region: process.env.R2_REGION || "us-east-1",
   endpoint: process.env.R2_ENDPOINT || (process.env.CLOUDFLARE_ACCOUNT_ID ? `https://${process.env.CLOUDFLARE_ACCOUNT_ID}.r2.cloudflarestorage.com` : undefined),
   credentials: {
@@ -21,8 +52,6 @@ const s3 = new S3Client({
     secretAccessKey: process.env.R2_SECRET_ACCESS_KEY || "",
   },
 });
-
-const BUCKET = process.env.R2_BUCKET || "slate360-storage";
 
 class NodeCanvasFactory {
   create(width: number, height: number) {
@@ -48,6 +77,8 @@ export const rasterizePlanTask = task({
   run: async (payload: { planSetId: string; orgId: string }) => {
     const { planSetId, orgId } = payload;
     console.log(`Starting rasterization for planSetId: ${planSetId}`);
+    const supabase = getSupabase();
+    const s3 = getS3();
 
     // Update job to processing
     const { data: jobs } = await supabase
@@ -97,6 +128,8 @@ export const rasterizePlanTask = task({
       }
       
       const pdfArrayBuffer = await pdfResponse.arrayBuffer();
+
+      const pdfjsLib = await import("pdfjs-dist/legacy/build/pdf.mjs");
 
       const loadingTask = pdfjsLib.getDocument({
         data: new Uint8Array(pdfArrayBuffer),

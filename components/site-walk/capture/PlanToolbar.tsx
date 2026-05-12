@@ -55,56 +55,58 @@ export function PlanToolbar({ fileUrl, pages, activeIndex, zoomPercent, filter, 
   }
 
   return (
-    <GlassCard className="flex flex-col gap-2 bg-slate-950/75 p-2 backdrop-blur-xl max-h-[40vh] overflow-y-auto w-full pointer-events-auto shadow-2xl">
-      <div className="flex flex-wrap items-center gap-2">
-        <button type="button" onClick={() => setCollapsed((current) => !current)} className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-white/[0.05] px-2.5 text-[10px] font-black uppercase tracking-[0.1em] text-white/80 hover:text-amber-100" aria-label={collapsed ? "Expand plan toolbar" : "Collapse plan toolbar"}>
-          {collapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
-          Plans
-        </button>
-        <span className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-400">{total === 0 ? "No pages" : `${activeIndex + 1} / ${total}`}</span>
+    <div className="absolute top-12 inset-x-2 z-50 pointer-events-none">
+      <GlassCard className="flex flex-col gap-2 bg-slate-950/75 p-2 backdrop-blur-xl max-h-[40vh] overflow-y-auto w-full pointer-events-auto shadow-2xl">
+        <div className="flex flex-wrap items-center gap-2">
+          <button type="button" onClick={() => setCollapsed((current) => !current)} className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-white/[0.05] px-2.5 text-[10px] font-black uppercase tracking-[0.1em] text-white/80 hover:text-amber-100" aria-label={collapsed ? "Expand plan toolbar" : "Collapse plan toolbar"}>
+            {collapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
+            Plans
+          </button>
+          <span className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-400">{total === 0 ? "No pages" : `${activeIndex + 1} / ${total}`}</span>
 
-        <div className="ml-auto flex flex-wrap items-center gap-1.5">
-          <div className="flex items-center rounded-xl bg-white/[0.05] px-1">
-            <Search className="h-4 w-4 text-amber-400" />
-            <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search sheet…" className="h-9 w-32 bg-transparent px-2 text-xs font-bold text-white outline-none placeholder:text-slate-500 sm:w-44" aria-label="Search plan pages" />
-          </div>
+          <div className="ml-auto flex flex-wrap items-center gap-1.5">
+            <div className="flex items-center rounded-xl bg-white/[0.05] px-1">
+              <Search className="h-4 w-4 text-amber-400" />
+              <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search sheet…" className="h-9 w-32 bg-transparent px-2 text-xs font-bold text-white outline-none placeholder:text-slate-500 sm:w-44" aria-label="Search plan pages" />
+            </div>
 
-          <form onSubmit={(event) => { event.preventDefault(); handlePageInputSubmit(); }} className="flex items-center rounded-xl bg-white/[0.05] px-1">
-            <span className="px-2 text-[10px] font-black uppercase tracking-[0.16em] text-slate-400">Pg</span>
-            <input value={pageInput} onChange={(event) => setPageInput(event.target.value.replace(/[^0-9]/g, ""))} placeholder="#" inputMode="numeric" className="h-9 w-12 bg-transparent text-center text-xs font-black text-white outline-none placeholder:text-slate-500" aria-label="Go to page number" />
-          </form>
+            <form onSubmit={(event) => { event.preventDefault(); handlePageInputSubmit(); }} className="flex items-center rounded-xl bg-white/[0.05] px-1">
+              <span className="px-2 text-[10px] font-black uppercase tracking-[0.16em] text-slate-400">Pg</span>
+              <input value={pageInput} onChange={(event) => setPageInput(event.target.value.replace(/[^0-9]/g, ""))} placeholder="#" inputMode="numeric" className="h-9 w-12 bg-transparent text-center text-xs font-black text-white outline-none placeholder:text-slate-500" aria-label="Go to page number" />
+            </form>
 
-          <LayerToggle filter={filter} onChangeFilter={onChangeFilter} pinCount={pinCount} />
+            <LayerToggle filter={filter} onChangeFilter={onChangeFilter} pinCount={pinCount} />
 
-          <div className="flex items-center rounded-xl bg-white/[0.05]">
-            <button type="button" onClick={() => onZoom(-0.15)} className="inline-flex h-9 w-9 items-center justify-center rounded-l-xl text-white/75 hover:text-amber-100" aria-label="Zoom out"><Minus className="h-4 w-4" /></button>
-            <span className="min-w-[2.75rem] text-center text-[10px] font-black text-slate-300">{zoomPercent}%</span>
-            <button type="button" onClick={() => onZoom(0.15)} className="inline-flex h-9 w-9 items-center justify-center rounded-r-xl text-white/75 hover:text-amber-100" aria-label="Zoom in"><Plus className="h-4 w-4" /></button>
+            <div className="flex items-center rounded-xl bg-white/[0.05]">
+              <button type="button" onClick={() => onZoom(-0.15)} className="inline-flex h-9 w-9 items-center justify-center rounded-l-xl text-white/75 hover:text-amber-100" aria-label="Zoom out"><Minus className="h-4 w-4" /></button>
+              <span className="min-w-[2.75rem] text-center text-[10px] font-black text-slate-300">{zoomPercent}%</span>
+              <button type="button" onClick={() => onZoom(0.15)} className="inline-flex h-9 w-9 items-center justify-center rounded-r-xl text-white/75 hover:text-amber-100" aria-label="Zoom in"><Plus className="h-4 w-4" /></button>
+            </div>
           </div>
         </div>
-      </div>
 
-      {!collapsed && (
-        <div ref={stripRef} className="flex max-w-full items-stretch gap-2 overflow-x-auto pb-1 no-scrollbar" role="listbox" aria-label="Plan page thumbnails">
-          {filtered.length === 0 && (
-            <p className="rounded-xl bg-white/[0.04] px-3 py-2 text-xs font-bold text-slate-400">{total === 0 ? "Upload a plan set to enable navigation." : "No matching pages."}</p>
-          )}
-          {filtered.map(({ page, index }) => (
-            <button
-              key={page.key}
-              type="button"
-              role="option"
-              aria-selected={index === activeIndex}
-              data-page-index={index}
-              onClick={() => onSelect(index)}
-              className={`flex h-10 shrink-0 items-center gap-1 rounded-xl border px-3 text-xs font-black transition ${index === activeIndex ? "border-amber-400 bg-amber-500/15 text-amber-100 ring-1 ring-amber-500/30" : "border-white/10 bg-white/[0.04] text-slate-300 hover:border-amber-400/50"}`}
-            >
-              <MapPin className="h-3 w-3" /> {page.label}
-            </button>
-          ))}
-        </div>
-      )}
-    </GlassCard>
+        {!collapsed && (
+          <div ref={stripRef} className="flex max-w-full items-stretch gap-2 overflow-x-auto pb-1 no-scrollbar" role="listbox" aria-label="Plan page thumbnails">
+            {filtered.length === 0 && (
+              <p className="rounded-xl bg-white/[0.04] px-3 py-2 text-xs font-bold text-slate-400">{total === 0 ? "Upload a plan set to enable navigation." : "No matching pages."}</p>
+            )}
+            {filtered.map(({ page, index }) => (
+              <button
+                key={page.key}
+                type="button"
+                role="option"
+                aria-selected={index === activeIndex}
+                data-page-index={index}
+                onClick={() => onSelect(index)}
+                className={`flex h-10 shrink-0 items-center gap-1 rounded-xl border px-3 text-xs font-black transition ${index === activeIndex ? "border-amber-400 bg-amber-500/15 text-amber-100 ring-1 ring-amber-500/30" : "border-white/10 bg-white/[0.04] text-slate-300 hover:border-amber-400/50"}`}
+              >
+                <MapPin className="h-3 w-3" /> {page.label}
+              </button>
+            ))}
+          </div>
+        )}
+      </GlassCard>
+    </div>
   );
 }
 

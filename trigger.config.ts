@@ -4,6 +4,9 @@ export default defineConfig({
   project: "proj_ydquoejbfqidzbjioyno",
   maxDuration: 900,
   dirs: ["src/trigger"],
+  build: {
+    systemDependencies: ["libcairo2-dev", "libpango1.0-dev", "libjpeg-dev", "libgif-dev", "librsvg2-dev"]
+  }
 });
 
 // Add build configuration to ignore optional dependencies if needed

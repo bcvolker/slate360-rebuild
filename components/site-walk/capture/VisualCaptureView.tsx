@@ -119,9 +119,9 @@ export function VisualCaptureView({ sessionId, autoOpenCamera, launchId, items, 
       </div>
 
       {/* Unified Bottom Rail */}
-      <div className="fixed bottom-0 left-0 right-0 z-30 flex flex-col gap-1 border-t border-white/5 bg-slate-950/90 px-3 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-2 backdrop-blur-xl">
+      <div className="fixed bottom-0 left-0 right-0 z-30 flex flex-col gap-2 border-t border-white/5 bg-slate-950/90 pl-3 pr-[160px] pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-3 backdrop-blur-xl">
         {photoItems.length > 0 && (
-          <div ref={timelineRef} className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1">
+          <div ref={timelineRef} className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
             {photoItems.map((pi) => {
               const isActive = pi.id === activeItemId;
               const thumbUrl = pi.local_preview_url || (pi.id ? `/api/site-walk/items/${pi.id}/image` : undefined);
@@ -133,21 +133,27 @@ export function VisualCaptureView({ sessionId, autoOpenCamera, launchId, items, 
             })}
           </div>
         )}
-        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
-          <button type="button" onClick={onToggleMarkup} className={`inline-flex min-h-9 shrink-0 items-center justify-center gap-1.5 rounded-xl px-2.5 text-[10px] font-black uppercase tracking-wider ${markupOn ? "bg-amber-500 text-slate-950" : "border border-white/10 bg-black/50 text-slate-200"}`}>
+        <div className="flex flex-wrap items-center gap-2">
+          <button type="button" onClick={onToggleMarkup} className={`inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-xl px-3 text-[10px] font-black uppercase tracking-wider ${markupOn ? "bg-amber-500 text-slate-950" : "border border-white/10 bg-black/50 text-slate-200"}`}>
             <Shapes className="h-3.5 w-3.5" /> {markupOn ? "Drawing" : "Navigate"}
           </button>
-          <button type="button" onClick={() => dispatchCanvasEvent(PHOTO_MARKUP_UNDO_EVENT)} className="inline-flex min-h-9 shrink-0 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-black/50 px-2.5 text-[10px] font-black uppercase tracking-wider text-slate-200">
-            <RotateCcw className="h-3.5 w-3.5" /> Undo
-          </button>
-          <button type="button" onClick={() => dispatchCanvasEvent(PHOTO_MARKUP_REDO_EVENT)} className="inline-flex min-h-9 shrink-0 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-black/50 px-2.5 text-[10px] font-black uppercase tracking-wider text-slate-200">
-            <RotateCw className="h-3.5 w-3.5" /> Redo
-          </button>
-          <button type="button" onClick={onToggleGhost} disabled={!ghostAvailable} className={`inline-flex min-h-9 shrink-0 items-center justify-center gap-1.5 rounded-xl px-2.5 text-[10px] font-black uppercase tracking-wider disabled:opacity-40 ${ghostOn ? "bg-amber-500 text-slate-950" : "border border-white/10 bg-black/50 text-slate-200"}`}>
+          {markupOn && (
+            <>
+              <button type="button" onClick={() => dispatchCanvasEvent(PHOTO_MARKUP_UNDO_EVENT)} className="inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-black/50 px-3 text-[10px] font-black uppercase tracking-wider text-slate-200">
+                <RotateCcw className="h-3.5 w-3.5" /> Undo
+              </button>
+              <button type="button" onClick={() => dispatchCanvasEvent(PHOTO_MARKUP_REDO_EVENT)} className="inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-black/50 px-3 text-[10px] font-black uppercase tracking-wider text-slate-200">
+                <RotateCw className="h-3.5 w-3.5" /> Redo
+              </button>
+            </>
+          )}
+          <button type="button" onClick={onToggleGhost} disabled={!ghostAvailable} className={`inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-xl px-3 text-[10px] font-black uppercase tracking-wider disabled:opacity-40 ${ghostOn ? "bg-amber-500 text-slate-950" : "border border-white/10 bg-black/50 text-slate-200"}`}>
             <Ghost className="h-3.5 w-3.5" /> Ghost
           </button>
         </div>
-        <UnifiedVectorToolbar />
+        <div className="pt-1">
+          <UnifiedVectorToolbar />
+        </div>
       </div>
     </div>
   );
