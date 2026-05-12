@@ -121,7 +121,7 @@ export function SiteWalkHub({ projects, walks }: { projects: HubProject[]; walks
 
           {activeTab === "projects" && (
             <div className="space-y-2">
-              {projects.length === 0 && <Link href="/site-walk/setup" className="block rounded-3xl border border-dashed border-white/15 bg-white/[0.03] p-6 text-center text-sm font-bold text-amber-200">Create a field project</Link>}
+              {projects.length === 0 && <Link href="/site-walk/setup" className="block rounded-3xl border border-dashed border-white/15 bg-white/[0.03] p-6 text-center text-sm font-bold text-amber-200">Create a site visit</Link>}
               {projects.map((project) => {
                 const projectWalks = walks.filter((walk) => walk.projectId === project.id);
                 const expanded = expandedProjectId === project.id;

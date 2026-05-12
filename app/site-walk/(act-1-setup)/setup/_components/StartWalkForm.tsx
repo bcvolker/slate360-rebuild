@@ -54,7 +54,7 @@ export function StartWalkForm({ projects }: Props) {
 
   async function handleStartWalk() {
     if (!projectId) {
-      setError("Select a field project to continue.");
+      setError("Select a site visit to continue.");
       return;
     }
     setSubmitting(true);
@@ -88,9 +88,9 @@ export function StartWalkForm({ projects }: Props) {
     return (
       <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-md">
         <p className="text-xs font-black uppercase tracking-[0.2em] text-amber-400">Start a Walk</p>
-        <h2 className="mt-2 text-xl font-black text-white">No field projects yet</h2>
+        <h2 className="mt-2 text-xl font-black text-white">No site visits yet</h2>
         <p className="mt-2 text-sm text-slate-300">
-          Create a field project first, then return here to launch a walk.
+          Create a site visit first, then return here to launch a walk.
         </p>
         <a
           href="/dashboard?tab=projects&create=field"

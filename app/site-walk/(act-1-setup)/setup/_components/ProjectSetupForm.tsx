@@ -42,7 +42,7 @@ export function ProjectSetupForm({ initialProjects, tier, onProjectSaved }: Prop
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!form.name.trim()) return setStatus({ kind: "error", message: "Project name is required." });
-    setStatus({ kind: "loading", message: "Saving field project…" });
+    setStatus({ kind: "loading", message: "Saving site visit…" });
     try {
       const metadata = buildMetadata(form, selected?.metadata ?? null, expanded);
       const payload = { name: form.name, description: form.description, metadata };
@@ -88,7 +88,7 @@ export function ProjectSetupForm({ initialProjects, tier, onProjectSaved }: Prop
         <label className="block text-sm font-bold text-slate-900 md:col-span-2">
           <span className="mb-1 block">Project context</span>
           <select value={form.projectId} onChange={(e) => chooseProject(e.target.value)} className={inputClass}>
-            <option value="">Create a new field project</option>
+            <option value="">Create a new site visit</option>
             {projects.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}
           </select>
         </label>
@@ -106,7 +106,7 @@ export function ProjectSetupForm({ initialProjects, tier, onProjectSaved }: Prop
 }
 
 function Header({ expanded, loading }: { expanded: boolean; loading: boolean }) {
-  return <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between"><div><p className="text-xs font-black uppercase tracking-[0.18em] text-amber-400">Project setup</p><h2 className="mt-1 text-xl font-black text-slate-50">{expanded ? "CM-ready project context" : "Fast field project"}</h2><p className="mt-1 text-sm leading-6 text-slate-400">{expanded ? "Capture schedule-aware context and project hooks for Pro/Business workflows." : "Basic users get a lightweight setup that gets crews into capture fast."}</p></div><button type="submit" disabled={loading} className="rounded-xl bg-amber-500 px-4 py-2 text-sm font-black text-slate-950 shadow-sm transition hover:bg-amber-400 disabled:opacity-60">{loading ? "Saving…" : "Save project"}</button></div>;
+  return <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between"><div><p className="text-xs font-black uppercase tracking-[0.18em] text-amber-400">Project setup</p><h2 className="mt-1 text-xl font-black text-slate-50">{expanded ? "CM-ready project context" : "Fast site visit"}</h2><p className="mt-1 text-sm leading-6 text-slate-400">{expanded ? "Capture schedule-aware context and project hooks for Pro/Business workflows." : "Basic users get a lightweight setup that gets crews into capture fast."}</p></div><button type="submit" disabled={loading} className="rounded-xl bg-amber-500 px-4 py-2 text-sm font-black text-slate-950 shadow-sm transition hover:bg-amber-400 disabled:opacity-60">{loading ? "Saving…" : "Save project"}</button></div>;
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) { return <label className="block text-sm font-bold text-slate-200"><span className="mb-1 block">{label}</span>{children}</label>; }

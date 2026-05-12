@@ -25,7 +25,7 @@ export function SiteWalkSetupClient({ brandSettings, projects, contacts, initial
   const [reportDefaults, setReportDefaults] = useState(initialReportDefaults);
 
   const modeCopy = useMemo(() => {
-    if (tier === "basic") return "Basic mode: fast field projects, contacts, and report defaults without CM overhead.";
+    if (tier === "basic") return "Basic mode: fast site visits, contacts, and report defaults without CM overhead.";
     if (tier === "pro") return "Pro mode: expanded setup with CM hooks ready for plans, schedules, and assignments.";
     return "Business mode: expanded setup for organization-wide CM workflows and leadership reporting.";
   }, [tier]);
@@ -52,7 +52,7 @@ export function SiteWalkSetupClient({ brandSettings, projects, contacts, initial
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <p className="text-xs font-black uppercase tracking-[0.2em] text-amber-400">Setup</p>
-            <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-50">Company, contacts, and field project setup</h1>
+            <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-50">Company, contacts, and site visit setup</h1>
             <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-400">Configure {orgName} once, bind a project context, then read every save back from Slate360 before capture starts.</p>
           </div>
           <div className="rounded-2xl border border-slate-700/60 bg-slate-800/60 px-4 py-3 text-sm font-bold text-slate-50">

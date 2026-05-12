@@ -129,7 +129,7 @@ export default function ProjectsClientPage() {
             <input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search projects and field projects"
+              placeholder="Search projects and site visits"
               className="h-12 w-full rounded-2xl border border-slate-700/60 bg-slate-950/45 pl-10 pr-4 text-sm font-bold text-white outline-none placeholder:text-slate-500 focus:border-amber-400 focus:ring-2 focus:ring-amber-500/20"
             />
           </div>
@@ -148,7 +148,7 @@ export default function ProjectsClientPage() {
         type="button"
         onClick={() => setWizardOpen(true)}
         className="fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom))] right-4 z-30 inline-flex h-14 w-14 items-center justify-center rounded-full bg-amber-500 text-slate-950 shadow-amber-glow transition hover:bg-amber-400 sm:hidden"
-        aria-label="Create project or field project"
+        aria-label="Create project or site visit"
       >
         <Plus className="h-6 w-6" />
       </button>

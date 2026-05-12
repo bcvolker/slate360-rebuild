@@ -391,7 +391,7 @@ function SecurityPanel({
               <ul className="list-disc space-y-2 pl-5 text-sm font-medium text-slate-400">
                 <li>Your user account and login credentials</li>
                 <li>All active subscriptions</li>
-                <li>All uploaded field projects, pins, and media</li>
+                <li>All uploaded site visits, pins, and media</li>
                 {orgName && <li>Organization &ldquo;{orgName}&rdquo; if you are the sole member</li>}
               </ul>
               <div className="pt-4 mt-4 border-t border-rose-500/20">
