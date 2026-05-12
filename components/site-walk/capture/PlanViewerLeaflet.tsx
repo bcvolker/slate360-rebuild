@@ -1,20 +1,16 @@
 "use client";
 
 /**
- * PlanViewerLeaflet — mobile-first plan viewer using Leaflet.js.
+ * PlanViewerLeaflet — mobile-first plan viewer using Leaflet.js + CRS.Simple.
  *
- * Replaces react-pdf for mobile. Displays server-rasterized WebP images of
- * plan pages using Leaflet's CRS.Simple (pixel coordinates, not lat/lng).
- *
- * Why Leaflet:
- * - Uses <img> tags, not <canvas> — no WebKit canvas memory budget issues
- * - Native pinch/zoom/pan on all mobile browsers
- * - 42KB gzipped — tiny bundle
- * - CRS.Simple is designed for image overlays (floor plans, blueprints)
+ * Two rendering paths:
+ * 1. Server-rasterized WebP (Trigger.dev): fast, CDN-served.
+ * 2. Browser-rendered PDF (pdfjs-dist): instant, no backend dependency.
+ *    Activated automatically when no rasterized_key exists on the active sheet.
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Hand, Loader2, MapPin } from "lucide-react";
+import { AlertTriangle, Hand, Loader2, MapPin } from "lucide-react";
 import L from "leaflet";
 import { ImageOverlay, MapContainer, Marker, useMap, useMapEvents } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
@@ -62,6 +58,9 @@ function createPinIcon(label: string, amber: boolean): L.DivIcon {
   });
 }
 
+type BrowserRender = { status: "idle" | "loading" | "ready" | "error"; url: string | null; width: number; height: number; error: string | null };
+const IDLE_RENDER: BrowserRender = { status: "idle", url: null, width: 2048, height: 1448, error: null };
+
 export function PlanViewerLeaflet({ projectId, sessionId = "current-session", planSets = [], sheets = [], items = [], onCaptureRequest, onSelectItem }: Props) {
   const [pageIndex, setPageIndex] = useState(0);
   const [pdfPageCount] = useState(0);
@@ -69,6 +68,7 @@ export function PlanViewerLeaflet({ projectId, sessionId = "current-session", pl
   const [filter, setFilter] = useState<LayerFilter>("all");
   const [quickMenu, setQuickMenu] = useState<QuickMenuState>(null);
   const [toolMode, setToolMode] = useState<"pan" | "draw">("pan");
+  const [browser, setBrowser] = useState<BrowserRender>(IDLE_RENDER);
   const mapRef = useRef<L.Map | null>(null);
 
   const activePlanSet = useMemo(() => planSets.find((ps) => ps.processing_status === "ready") ?? planSets[0] ?? null, [planSets]);
@@ -77,15 +77,67 @@ export function PlanViewerLeaflet({ projectId, sessionId = "current-session", pl
   const safePageIndex = pages.length > 0 ? Math.min(pageIndex, pages.length - 1) : 0;
   const activePage = pages[safePageIndex] ?? null;
 
-  // Find the rasterized sheet for the active page
+  // Server-rasterized path
   const activeSheet = planSheets.find((s) => s.id === activePage?.sheetId) ?? null;
   const hasRasterized = Boolean(activeSheet?.rasterized_key && activeSheet.rasterized_width && activeSheet.rasterized_height);
-  const imageWidth = activeSheet?.rasterized_width ?? 2048;
-  const imageHeight = activeSheet?.rasterized_height ?? 1448;
-  const imageUrl = activeSheet?.rasterized_key ? `/api/site-walk/plan-sheets/${activeSheet.id}/image` : null;
+  const serverImageUrl = activeSheet?.rasterized_key ? `/api/site-walk/plan-sheets/${activeSheet.id}/image` : null;
+  const serverWidth = activeSheet?.rasterized_width ?? 2048;
+  const serverHeight = activeSheet?.rasterized_height ?? 1448;
+
+  // Effective image source: server WebP > browser-rendered canvas
+  const imageUrl = hasRasterized ? serverImageUrl : browser.url;
+  const imageWidth = hasRasterized ? serverWidth : browser.width;
+  const imageHeight = hasRasterized ? serverHeight : browser.height;
+  const hasImage = hasRasterized || browser.status === "ready";
 
   // Leaflet bounds for CRS.Simple: [[0,0], [height, width]]
   const bounds = useMemo<L.LatLngBoundsExpression>(() => [[0, 0], [imageHeight, imageWidth]], [imageHeight, imageWidth]);
+
+  // Browser-side PDF rendering — fires when no server-rasterized image is available
+  useEffect(() => {
+    if (hasRasterized || !activePlanSet?.id) {
+      setBrowser(IDLE_RENDER);
+      return;
+    }
+    let cancelled = false;
+    let blobUrl: string | null = null;
+    setBrowser((prev) => ({ ...prev, status: "loading", error: null }));
+
+    async function render() {
+      const { pdfjs } = await import("react-pdf");
+      pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.js";
+      const res = await fetch(`/api/site-walk/plan-sets/${encodeURIComponent(activePlanSet!.id)}/pdf`);
+      if (!res.ok) throw new Error(`PDF load failed (${res.status})`);
+      const data = await res.arrayBuffer();
+      const pdf = await pdfjs.getDocument({ data: new Uint8Array(data) }).promise;
+      const pageNum = Math.min(Math.max(activePage?.pageNumber ?? 1, 1), pdf.numPages);
+      const page = await pdf.getPage(pageNum);
+      const viewport = page.getViewport({ scale: 2.0 });
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.round(viewport.width);
+      canvas.height = Math.round(viewport.height);
+      const ctx = canvas.getContext("2d");
+      if (!ctx) throw new Error("Canvas unavailable");
+      await page.render({ canvasContext: ctx, viewport, canvas }).promise;
+      if (cancelled) { canvas.width = 0; await pdf.destroy(); return; }
+      const blob = await new Promise<Blob>((res, rej) =>
+        canvas.toBlob((b) => (b ? res(b) : rej(new Error("toBlob failed"))), "image/webp", 0.85)
+      );
+      blobUrl = URL.createObjectURL(blob);
+      if (!cancelled) setBrowser({ status: "ready", url: blobUrl, width: canvas.width, height: canvas.height, error: null });
+      canvas.width = 0;
+      await pdf.destroy();
+    }
+
+    render().catch((err: unknown) => {
+      if (!cancelled) setBrowser((prev) => ({ ...prev, status: "error", error: err instanceof Error ? err.message : String(err) }));
+    });
+
+    return () => {
+      cancelled = true;
+      if (blobUrl) URL.revokeObjectURL(blobUrl);
+    };
+  }, [hasRasterized, activePlanSet?.id, activePage?.pageNumber]);
 
   // Fetch pins for the active sheet
   useEffect(() => {
@@ -125,8 +177,8 @@ export function PlanViewerLeaflet({ projectId, sessionId = "current-session", pl
 
   return (
     <div className="absolute inset-0 touch-none select-none overflow-hidden bg-black text-white" style={{ WebkitTouchCallout: "none" }}>
-      {/* Leaflet map container */}
-      {hasRasterized && imageUrl ? (
+      {/* Leaflet map container — shows when server image or browser-rendered image is ready */}
+      {hasImage && imageUrl ? (
         <MapContainer
           crs={L.CRS.Simple}
           bounds={bounds}
@@ -152,13 +204,17 @@ export function PlanViewerLeaflet({ projectId, sessionId = "current-session", pl
             />
           ))}
         </MapContainer>
+      ) : browser.status === "error" ? (
+        <div className="flex h-full w-full flex-col items-center justify-center gap-3 px-6 text-center">
+          <AlertTriangle className="h-8 w-8 text-rose-400" />
+          <p className="text-sm font-black text-white">Could not load plan</p>
+          <p className="rounded-xl border border-rose-400/20 bg-rose-500/10 px-3 py-2 text-xs font-semibold text-rose-300">{browser.error}</p>
+        </div>
       ) : (
         <div className="flex h-full w-full flex-col items-center justify-center gap-3 px-6 text-center">
           <Loader2 className="h-8 w-8 animate-spin text-amber-500" />
-          <p className="text-sm font-black text-white">Loading plan…</p>
-          <p className="text-xs font-semibold text-slate-400">
-            {!activePlanSet ? "No plan sets found for this project." : !hasRasterized ? "Plan is being processed. The image will appear shortly." : "Loading image…"}
-          </p>
+          <p className="text-sm font-black text-white">{!activePlanSet ? "No plan uploaded" : "Rendering plan…"}</p>
+          <p className="text-xs font-semibold text-slate-400">{!activePlanSet ? "Upload a plan from the walk setup screen." : "Your plan is being prepared. This takes a few seconds."}</p>
         </div>
       )}
 

@@ -128,8 +128,15 @@ export const POST = (req: NextRequest) =>
       });
     if (jobError) console.error("Failed to insert raster job", jobError);
 
-    // Fire the Trigger.dev task
-    await tasks.trigger("plan.rasterize", { planSetId: planSet.id, orgId });
+    // Fire the Trigger.dev task — wrapped in try/catch so upload never fails if trigger is unavailable.
+    // When TRIGGER_SECRET_KEY is not set or the call fails, the plan still loads via browser-side rendering.
+    if (process.env.TRIGGER_SECRET_KEY) {
+      try {
+        await tasks.trigger("plan.rasterize", { planSetId: planSet.id, orgId });
+      } catch (e) {
+        console.warn("[plan-sets] Trigger.dev dispatch failed (browser rendering fallback will be used):", e);
+      }
+    }
 
     return ok({ planSet, planSets: [planSet], sheets: sheets ?? [] }, 201);
   });
