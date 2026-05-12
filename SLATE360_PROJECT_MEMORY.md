@@ -32,6 +32,54 @@ Recommended read order:
 - The `_legacy_v1` tree has been explicitly purged and removed from the active routing.
 - The entire application is strictly unified under the 'Dark Glass & Amber' design token system utilizing the `<GlassCard>` component.
 
+## Session Handoff — 2026-05-12 (plan upload streamlining + old plan rescue)
+### What Changed
+- `app/site-walk/(act-1-setup)/setup/_components/ProjectSetupForm.tsx`: added an obvious "Next step — upload plans" panel directly under project setup. Existing/just-saved projects show `PlanUploaderCard`; unsaved projects show "Save first" guidance.
+- `app/site-walk/(act-1-setup)/setup/_components/StartWalkForm.tsx`: removed the hidden optional upload toggle. Plan upload is now always visible as "Step 2 — Upload plans for this walk" for the selected project.
+- `app/site-walk/(act-2-inputs)/capture/page.tsx`: project-backed walks now enter plan-capable mode even when they currently have zero plan sheets, so users can upload plans from the active walk.
+- `app/site-walk/(act-2-inputs)/capture/_components/WalkStartChoice.tsx`: start screen now clearly offers "Open Plan Room / Upload Plans" and "Camera-only Capture".
+- `components/site-walk/capture/PlanViewer.tsx`: added active-walk upload state. If a project walk has no plans, it renders `PlanUploaderCard` inside the plan view. If an old plan has no job row or a stale queued/processing job, it shows "Generate Mobile View" instead of spinning forever.
+- `app/api/site-walk/plan-sets/[id]/rasterize/route.ts`: stale queued/processing raster jobs older than 5 minutes are marked failed and replaced with a fresh job before dispatching Trigger.dev.
+- Trigger.dev production worker deployed successfully: version `20260512.8`, 1 detected task.
+### What's Broken / Partially Done
+- Backend inspection found 3 plan sets: all had sheets, zero `rasterized_key`; two had no job rows and one had a stale queued job. New UI/route handles these cases, but user must tap "Generate Mobile View" on old plans to force a fresh Trigger run unless we backfill jobs separately.
+- Vercel env shows `TRIGGER_SECRET_KEY` available for Preview + Production only. That covers current deployed tests; Development is not set.
+- Existing file-size guard still reports unrelated pre-existing >300-line files, including `CaptureClientIsland.tsx` at ~305 lines. Touched files remain under 300 lines.
+### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md`: session handoff updated
+- `slate360-context/ONGOING_ISSUES.md`: added BUG-082 fixed row for plan upload discoverability/stale jobs
+- `ops/bug-registry.json`: added BUG-085 fixed entry
+### Next Steps (ordered)
+1. Verify Vercel deploy succeeds for the next commit.
+2. Smoke test: create/select project → upload plans from project setup; start a new walk → upload plans from visible Step 2; active walk with no plans → Open Plan Room / Upload Plans.
+3. Open old plan → tap Generate Mobile View → confirm Trigger.dev Runs tab shows a new `plan.rasterize` run and `site_walk_plan_sheets.rasterized_key` fills in.
+4. Optional backend cleanup: backfill fresh raster jobs for old unrasterized plan sets instead of requiring manual Generate taps.
+
+## Session Handoff — 2026-05-13 (session 2 — architecture enforcement)
+### What Changed
+- `components/site-walk/capture/PlanViewerLeaflet.tsx`: **HARD REVERTED** to pre-81bd284. pdfjs browser rendering removed (OOM-crashes WebKit on 50MB PDFs). WebP-only Leaflet viewer restored. `hasRasterized` gate enforced.
+- `components/site-walk/capture/PlanViewer.tsx`: `hasRasterized` gate restored. Added Trigger.dev error display — fetches `plan_raster_jobs` via Supabase client when `!hasRasterized`; if `status='failed'`, shows red `AlertTriangle` card with `error_text`. No more silent spinners.
+- `components/site-walk/capture/useCaptureItems.ts`: Added `deselectItem()` export (clears `activeItemId`).
+- `app/site-walk/(act-2-inputs)/capture/_components/CaptureClientIsland.tsx`: `deselectItem()` now called in `saveNextStop` when returning to plan. Removed redundant double `setWalkMode("plan")` call. FAB correctly shows "Start Capture" after save-and-return.
+### What's Broken / Partially Done
+- **Root cause still unfixed**: `TRIGGER_SECRET_KEY` not set in Vercel Production. Plans will still spin (or show Trigger error on failure) until the key is added.
+  - Fix: Trigger.dev dashboard → Project Settings → API Keys → copy `tr_prod_...` → Vercel env → `TRIGGER_SECRET_KEY` (Production + Preview).
+- `plan_raster_jobs` error fetch in `PlanViewer` is one-shot (no polling). If job fails after mount, error won't auto-appear without navigation.
+### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md`: session handoff updated
+### Next Steps (ordered)
+1. Check Trigger.dev Dashboard → Runs tab → find failed run error message.
+2. Add `TRIGGER_SECRET_KEY` (prod `tr_prod_...`) to Vercel → redeploy → confirm Runs tab is populated.
+3. Once Trigger runs, test full loop: upload plan → wait for rasterize → plan in Leaflet → long-press → pin → camera → capture → "Save & Return to Plan" → confirms lands back on plan with clear FAB.
+
+## Session Handoff — 2026-05-13 (session 1 — browser rendering attempt, superseded)
+### What Changed (REVERTED in session 2)
+- `app/api/site-walk/plan-sets/[id]/pdf/route.ts` (NEW): GET proxy for PDF from R2. Still in codebase; unused now.
+- `app/api/site-walk/plan-sets/[id]/rasterize/route.ts` (NEW): POST retry endpoint. Still in codebase; used by retry button.
+- `app/api/site-walk/plan-sets/route.ts`: `tasks.trigger` wrapped in TRIGGER_SECRET_KEY guard. Still active.
+- `supabase/migrations/20260512000003_rls_realtime_plan_sheets.sql`: RLS policies APPLIED. Still active.
+- `.env.local`: Fixed `MARKET_SCHEDULER_SECRET` double-quoted value. Still fixed.
+
 ## Session Handoff — 2026-05-12
 ### What Changed
 - `lib/hooks/usePlanSheetsRealtime.ts` (NEW): Supabase Realtime hook — subscribes to `site_walk_plan_sheets` changes filtered by `project_id`. When Trigger.dev writes `rasterized_key`, local state updates instantly. This is the fix for `hasRasterized` evaluating to false after rasterization completes.
@@ -42,8 +90,22 @@ Recommended read order:
 - `app/site-walk/(act-1-setup)/plans/` (DELETED): entire directory removed (page + 6 _components).
 ### What's Broken / Partially Done
 - Supabase Realtime requires the `project_id` column to be indexed on `site_walk_plan_sheets` for filter performance. Verify or add index if latency is an issue.
-- The "Field Project" rename was already complete in this codebase — "Site Visit" is used everywhere. No rename was needed.
-- Vercel deploy triggered by push `5d03de5` — should be live in ~2 min.
+### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md`: session handoff added
+### Next Steps (ordered)
+1. Verify Vercel deploy succeeds (check Vercel dashboard).
+2. Smoke test: upload a PDF on the setup page → check plan sheets appear in capture view via Leaflet automatically.
+3. Confirm Supabase Realtime is enabled for the `site_walk_plan_sheets` table in the Supabase dashboard (Table Editor → Replication).
+4. If Leaflet still doesn't appear after rasterization, check Trigger.dev run logs for errors writing `rasterized_key`.
+### What Changed
+- `lib/hooks/usePlanSheetsRealtime.ts` (NEW): Supabase Realtime hook — subscribes to `site_walk_plan_sheets` changes filtered by `project_id`. When Trigger.dev writes `rasterized_key`, local state updates instantly. This is the fix for `hasRasterized` evaluating to false after rasterization completes.
+- `app/site-walk/(act-2-inputs)/capture/_components/CaptureClientIsland.tsx`: now calls `usePlanSheetsRealtime(planSheets, projectId)` and passes `liveSheets` to `PlanViewer`. Root cause of Leaflet not loading was static server props never updating.
+- `components/site-walk/PlanUploaderCard.tsx` (NEW): shared PDF plan uploader component, transplanted from deleted plans page.
+- `app/site-walk/(act-1-setup)/setup/_components/StartWalkForm.tsx`: added collapsible "Upload a plan (optional)" section with `PlanUploaderCard` — plan upload is now part of walk creation.
+- `components/shared/MobileBottomNav.tsx`: removed Plans tab from `SITE_WALK_NAV`; `/site-walk/plans` now falls under "More" match prefix.
+- `app/site-walk/(act-1-setup)/plans/` (DELETED): entire directory removed (page + 6 _components).
+### What's Broken / Partially Done
+- Supabase Realtime requires the `project_id` column to be indexed on `site_walk_plan_sheets` for filter performance. Verify or add index if latency is an issue.
 ### Context Files Updated
 - `SLATE360_PROJECT_MEMORY.md`: session handoff added
 ### Next Steps (ordered)

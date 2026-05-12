@@ -1,6 +1,8 @@
 "use client";
 
 import { useMemo, useState, type FormEvent } from "react";
+import { FileUp } from "lucide-react";
+import { PlanUploaderCard } from "@/components/site-walk/PlanUploaderCard";
 import type { ProjectSavedEvent, SetupProject, SiteWalkSetupTier, SubmitState } from "./setup-types";
 
 type ProjectResponse = { project?: SetupProject; error?: string };
@@ -101,6 +103,22 @@ export function ProjectSetupForm({ initialProjects, tier, onProjectSaved }: Prop
         <div className="md:col-span-2"><Field label="Description"><textarea className={`${inputClass} min-h-20`} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Notes for the field team" /></Field></div>
       </div>
       <StatusMessage status={status} />
+      <div className="mt-5 rounded-3xl border border-amber-500/25 bg-amber-500/[0.06] p-3">
+        <div className="mb-3 flex items-center gap-2">
+          <FileUp className="h-5 w-5 text-amber-400" />
+          <div>
+            <p className="text-sm font-black text-white">Next step — upload plans</p>
+            <p className="text-xs font-semibold text-slate-400">After the project is saved, add PDF plan sets here so every walk can open them.</p>
+          </div>
+        </div>
+        {selected ? (
+          <PlanUploaderCard project={selected} />
+        ) : (
+          <div className="rounded-2xl border border-dashed border-white/15 bg-white/[0.04] p-5 text-center text-sm font-bold text-slate-300">
+            Save this project first, then the plan upload dropzone appears here.
+          </div>
+        )}
+      </div>
     </form>
   );
 }

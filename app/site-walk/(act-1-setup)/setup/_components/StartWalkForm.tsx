@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronDown, ChevronUp, FileUp, Play, Plus } from "lucide-react";
+import { ChevronDown, FileUp, Play, Plus } from "lucide-react";
 import type { SiteWalkSessionType } from "@/lib/types/site-walk";
 import { PlanUploaderCard } from "@/components/site-walk/PlanUploaderCard";
 import type { SetupProject } from "./setup-types";
@@ -40,7 +40,6 @@ export function StartWalkForm({ projects }: Props) {
   const [title, setTitle] = useState(() => defaultTitle("punch", projects[0]?.name));
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showUploader, setShowUploader] = useState(false);
 
   function handleWalkTypeChange(type: SiteWalkSessionType) {
     setWalkType(type);
@@ -167,25 +166,16 @@ export function StartWalkForm({ projects }: Props) {
         />
       </div>
 
-      {/* Optional plan upload */}
-      <div className="mt-4">
-        <button
-          type="button"
-          onClick={() => setShowUploader((v) => !v)}
-          disabled={!projectId}
-          className="inline-flex items-center gap-1.5 text-xs font-black text-amber-400 hover:text-amber-300 disabled:opacity-40"
-        >
-          <FileUp className="h-3.5 w-3.5" />
-          {showUploader ? "Hide plan upload" : "Upload a plan (optional)"}
-          {showUploader ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-        </button>
-        {showUploader && projectId && (
-          <div className="mt-3">
-            <PlanUploaderCard
-              project={projects.find((p) => p.id === projectId) ?? null}
-            />
+      {/* Plan upload is intentionally always visible — no hidden optional toggle. */}
+      <div className="mt-5 rounded-3xl border border-amber-500/25 bg-amber-500/[0.06] p-3">
+        <div className="mb-3 flex items-center gap-2">
+          <FileUp className="h-5 w-5 text-amber-400" />
+          <div>
+            <p className="text-sm font-black text-white">Step 2 — Upload plans for this walk</p>
+            <p className="text-xs font-semibold text-slate-400">Drop a PDF set now, or start the walk and upload from the Plan Room later.</p>
           </div>
-        )}
+        </div>
+        <PlanUploaderCard project={projects.find((p) => p.id === projectId) ?? null} />
       </div>
 
       {error && <p className="mt-3 text-sm text-red-400">{error}</p>}

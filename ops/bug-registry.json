@@ -947,6 +947,21 @@
       "verification": [
         "Hub uses agreed-upon simple term instead of Field Project"
       ]
+    },
+    {
+      "id": "BUG-085",
+      "title": "Plan upload discoverability and stale raster jobs block old plans",
+      "module": "site-walk/plans",
+      "severity": "critical",
+      "status": "fixed",
+      "rootCause": "Plan upload was hidden behind secondary project/walk UI; active project walks with zero plan sheets had no upload path; old plan sets with no raster job or stale queued jobs spun forever while Trigger.dev had no run.",
+      "verification": [
+        "Project setup shows a plan upload panel immediately after project save/select",
+        "Start Walk form always shows the plan upload dropzone for the selected project",
+        "Active project walks can open Plan Room and upload plans even when no plan sheets exist yet",
+        "PlanViewer shows Generate Mobile View for missing or stale raster jobs instead of an infinite spinner",
+        "Manual rasterize route replaces stale queued/processing jobs and dispatches a fresh Trigger.dev run"
+      ]
     }
   ]
 }

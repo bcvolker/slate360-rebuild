@@ -40,8 +40,7 @@ export default async function SiteWalkCapturePage({ searchParams }: Props) {
   const project = Array.isArray(data.projects) ? data.projects[0] : data.projects;
   const session: ActiveWalkSession = { ...data, project_name: project?.name ?? null };
   const planRoom = session.project_id ? await loadProjectPlanRoom(session.project_id, context.orgId) : { planSets: [], sheets: [] };
-  const hasPlanSheets = planRoom.sheets.length > 0;
-  const showPlanCanvas = plan !== "skip" && !!session.project_id && hasPlanSheets;
+  const showPlanCanvas = plan !== "skip" && !!session.project_id;
   const showStartChoice = showPlanCanvas && !plan && !quick && !item;
 
   return <CaptureNoSsrBoundary session={session} showPlanCanvas={showPlanCanvas} showStartChoice={showStartChoice} autoOpenCamera={quick === "camera"} launchId={launch ?? null} initialItemId={item ?? null} planSets={planRoom.planSets} planSheets={planRoom.sheets} />;

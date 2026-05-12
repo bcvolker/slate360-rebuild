@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { AlertTriangle, Loader2 } from "lucide-react";
+import { AlertTriangle, FileUp, Loader2 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { createClient } from "@/lib/supabase/client";
+import { PlanUploaderCard } from "@/components/site-walk/PlanUploaderCard";
 import type { SiteWalkPlanSet, SiteWalkPlanSheet } from "@/lib/types/site-walk";
 import { PlanViewerLeaflet } from "./PlanViewerLeaflet";
 import { PlanViewerPdf } from "./PlanViewerPdf";
@@ -20,20 +21,24 @@ type Props = {
 
 export function PlanViewer(props: Props) {
   const isMobile = useIsMobile();
+  const [localPlanSets, setLocalPlanSets] = useState<SiteWalkPlanSet[]>([]);
+  const [localSheets, setLocalSheets] = useState<SiteWalkPlanSheet[]>([]);
   const [retrying, setRetrying] = useState(false);
   const [retryMessage, setRetryMessage] = useState<string | null>(null);
   const [failedJobError, setFailedJobError] = useState<string | null>(null);
-  // undefined = still loading, null = loaded but no job row exists (old plan), string = job status
-  const [jobStatus, setJobStatus] = useState<"loading" | "none" | "queued" | "processing" | "failed">("loading");
+  const [jobStatus, setJobStatus] = useState<"loading" | "none" | "queued" | "processing" | "stale" | "failed">("loading");
+
+  const allPlanSets = useMemo(() => [...localPlanSets, ...(props.planSets ?? [])], [localPlanSets, props.planSets]);
+  const allSheets = useMemo(() => [...localSheets, ...(props.sheets ?? [])], [localSheets, props.sheets]);
 
   const activePlanSet = useMemo(
-    () => props.planSets?.find((set) => set.processing_status === "ready") ?? props.planSets?.[0] ?? null,
-    [props.planSets]
+    () => allPlanSets.find((set) => set.processing_status === "ready") ?? allPlanSets[0] ?? null,
+    [allPlanSets]
   );
 
   const planSheets = useMemo(
-    () => (activePlanSet ? props.sheets?.filter((sheet) => sheet.plan_set_id === activePlanSet.id) ?? [] : []),
-    [activePlanSet, props.sheets]
+    () => (activePlanSet ? allSheets.filter((sheet) => sheet.plan_set_id === activePlanSet.id) : []),
+    [activePlanSet, allSheets]
   );
 
   const hasRasterized = planSheets.length > 0 && planSheets.some((s) => s.rasterized_key != null);
@@ -48,7 +53,7 @@ export function PlanViewer(props: Props) {
     const supabase = createClient();
     void supabase
       .from("plan_raster_jobs")
-      .select("status, error_text")
+      .select("status, error_text, created_at")
       .eq("plan_set_id", activePlanSet.id)
       .order("created_at", { ascending: false })
       .limit(1)
@@ -62,6 +67,9 @@ export function PlanViewer(props: Props) {
         } else if (job.status === "failed") {
           setJobStatus("failed");
           setFailedJobError(job.error_text ?? "Rasterization failed (no details)");
+        } else if ((job.status === "queued" || job.status === "processing") && isStaleJob(job.created_at)) {
+          setJobStatus("stale");
+          setFailedJobError(null);
         } else {
           setJobStatus(job.status as "queued" | "processing");
           setFailedJobError(null);
@@ -76,10 +84,16 @@ export function PlanViewer(props: Props) {
     setRetryMessage(null);
     try {
       const response = await fetch(`/api/site-walk/plan-sets/${encodeURIComponent(activePlanSet.id)}/rasterize`, { method: "POST" });
+      const js = await response.json().catch(() => null) as { error?: string; message?: string; status?: string } | null;
       if (!response.ok) {
-        const js = await response.json().catch(() => null) as { error?: string } | null;
         setRetryMessage(`Failed: ${js?.error ?? response.statusText}`);
+      } else if (js?.status === "failed" || js?.error) {
+        setJobStatus("failed");
+        setFailedJobError(js.error ?? js.message ?? "Trigger dispatch failed.");
+        setRetryMessage(js.error ?? js.message ?? "Trigger dispatch failed.");
       } else {
+        setJobStatus("queued");
+        setFailedJobError(null);
         setRetryMessage("Processing started — the plan will appear automatically when ready.");
       }
     } catch (e: unknown) {
@@ -92,16 +106,35 @@ export function PlanViewer(props: Props) {
   // Mobile without a rasterized image → show a processing screen.
   // Never show React-PDF on mobile (it crashes with touch gestures).
   if (isMobile && !hasRasterized) {
+    // no activePlanSet means this project/walk has no plans yet — show uploader immediately
     // jobStatus="none" means old plan with no raster job row — show Generate button immediately
+    // jobStatus="stale" means a queued/processing row is old enough to be considered stuck
     // jobStatus="failed" means job ran but failed — show error + retry
     // jobStatus="loading"|"queued"|"processing" means in-flight — show spinner
-    const showGenerate = jobStatus === "none" && !!activePlanSet;
+    const showUpload = !activePlanSet && !!props.projectId;
+    const showGenerate = (jobStatus === "none" || jobStatus === "stale") && !!activePlanSet;
     const showError = jobStatus === "failed" && !!failedJobError;
     const showSpinner = !showGenerate && !showError;
 
     return (
       <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-slate-950 px-6 text-center">
-        {showError ? (
+        {showUpload ? (
+          <div className="w-full max-w-md">
+            <div className="mb-4">
+              <FileUp className="mx-auto h-10 w-10 text-amber-400" />
+              <p className="mt-2 text-base font-black text-white">Add plans to this walk</p>
+              <p className="mt-1 text-xs font-semibold text-slate-400">Upload a PDF set now, then Site Walk will generate the mobile plan view.</p>
+            </div>
+            <PlanUploaderCard
+              project={{ id: props.projectId ?? "", name: "Current project" }}
+              onPlanRoomChange={(payload) => {
+                setLocalPlanSets(payload.planSets);
+                setLocalSheets(payload.sheets);
+                setJobStatus("queued");
+              }}
+            />
+          </div>
+        ) : showError ? (
           <>
             <AlertTriangle className="h-10 w-10 text-red-400" />
             <div>
@@ -118,10 +151,11 @@ export function PlanViewer(props: Props) {
               <AlertTriangle className="h-8 w-8 text-amber-400" />
             </div>
             <div>
-              <p className="text-base font-black text-white">Mobile view not generated yet</p>
+              <p className="text-base font-black text-white">{jobStatus === "stale" ? "Mobile generation is stuck" : "Mobile view not generated yet"}</p>
               <p className="mt-1 text-xs font-semibold text-slate-400">
-                This plan was uploaded before the mobile processor was active.
-                Tap the button below to generate it now.
+                {jobStatus === "stale"
+                  ? "The queued job is stale and never reached Trigger.dev. Tap below to regenerate it."
+                  : "This plan was uploaded before the mobile processor was active. Tap below to generate it now."}
               </p>
             </div>
           </>
@@ -161,11 +195,18 @@ export function PlanViewer(props: Props) {
   return (
     <div className="relative h-full w-full">
       {usingLeaflet ? (
-        <PlanViewerLeaflet {...props} />
+        <PlanViewerLeaflet {...props} planSets={allPlanSets} sheets={allSheets} />
       ) : (
-        <PlanViewerPdf {...props} />
+        <PlanViewerPdf {...props} planSets={allPlanSets} sheets={allSheets} />
       )}
     </div>
   );
+}
+
+function isStaleJob(value: string | null | undefined) {
+  if (!value) return false;
+  const createdAt = new Date(value).getTime();
+  if (!Number.isFinite(createdAt)) return false;
+  return Date.now() - createdAt > 5 * 60 * 1000;
 }
 

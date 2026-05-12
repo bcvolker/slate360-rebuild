@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Camera, Map, ArrowLeft, Play } from "lucide-react";
+import { ArrowLeft, Camera, FileUp } from "lucide-react";
 
 type Props = {
   walkName: string;
@@ -20,7 +20,10 @@ export function WalkStartChoice({ walkName, onPlanMode, onCameraOnly }: Props) {
         <h1 className="mt-1 text-lg font-black">{walkName || "Site Visit"}</h1>
         <div className="mt-4 flex flex-col gap-3">
           <button type="button" onClick={onPlanMode} className="flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-amber-500 px-4 text-sm font-black text-slate-950 shadow-[0_0_24px_rgba(245,158,11,0.38)] transition hover:bg-amber-400 disabled:opacity-60">
-            <Play className="h-5 w-5" /> Start Site Visit
+            <FileUp className="h-5 w-5" /> Open Plan Room / Upload Plans
+          </button>
+          <button type="button" onClick={onCameraOnly} className="flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl border border-white/15 bg-white/[0.06] px-4 text-sm font-black text-white transition hover:border-amber-300/50 hover:bg-white/[0.1]">
+            <Camera className="h-5 w-5" /> Camera-only Capture
           </button>
         </div>
       </div>
