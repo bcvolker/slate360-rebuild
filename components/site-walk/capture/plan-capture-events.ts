@@ -29,7 +29,7 @@ export function usePlanCaptureTarget() {
     function handleEvent(event: Event) {
       const detail = event instanceof CustomEvent ? event.detail : null;
       if (!isPlanCaptureDetail(detail)) return;
-      setTarget({ planSheetId: detail.planSheetId, xPct: detail.xPct, yPct: detail.yPct, pinId: detail.pinId });
+      setTarget({ planSheetId: detail.planSheetId, xPct: detail.xPct, yPct: detail.yPct, pinId: detail.pinId, clientPinId: detail.clientPinId });
     }
 
     window.addEventListener(PLAN_CAPTURE_EVENT, handleEvent);

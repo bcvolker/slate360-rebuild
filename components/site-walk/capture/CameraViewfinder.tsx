@@ -9,6 +9,7 @@ import { readQuickCaptureLaunch, removeQuickCaptureLaunch } from "@/lib/site-wal
 import type { PhotoAngleCaptureMode, PhotoAngleRecord } from "@/lib/site-walk/photo-angles";
 import type { CaptureItemRecord } from "@/lib/types/site-walk-capture";
 import { requestCameraCapture, type CameraRequestDetail } from "./capture-camera-events";
+import type { SiteWalkPin } from "@/lib/types/site-walk";
 import { CaptureQuickNotePanel } from "./CaptureQuickNotePanel";
 import { CaptureUploadBadge } from "./CaptureUploadBadge";
 import { statusClasses } from "./cameraViewfinderHelpers";
@@ -29,7 +30,7 @@ type Props = {
   activeImageTitle?: string | null;
   activeImageKey?: string | null;
   markupEnabled?: boolean;
-  onPlanCaptureSaved?: () => void;
+  onPlanCaptureSaved?: (pin: SiteWalkPin | null) => void;
   onAngleCaptureFile?: (itemId: string, file: File, previewUrl: string, captureMode: PhotoAngleCaptureMode) => Promise<PhotoAngleRecord | null>;
   onPreviewStateChange?: (active: boolean) => void;
   onMarkupChange?: (itemId: string, markup: MarkupData) => void;

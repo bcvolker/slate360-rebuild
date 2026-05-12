@@ -1,0 +1,286 @@
+Slate360 ChatGPT Fact-Finding Prioritized File List
+Date: 2026-05-12
+Repo: bcvolker/slate360-rebuild
+Audited HEAD: fc1cb7e1fb3da6f0379be253f974da1ed2b76ae0
+
+Use this list with docs/CHATGPT_FACT_FINDING_HANDOFF.md. It is grouped by priority for building a safe next plan. Do not read every file by default; start with the group that matches the next task.
+
+A. Strategy / Doctrine / Memory / Gates
+--------------------------------------
+SLATE360_PROJECT_MEMORY.md
+SLATE360_MASTER_BUILD_PLAN.md
+docs/SITE_WALK_MASTER_ARCHITECTURE.md
+slate360-context/ONGOING_ISSUES.md
+ops/bug-registry.json
+ops/release-gates.json
+ops/module-manifest.json
+docs/SLATE360_PRODUCT_DOCTRINE.md
+docs/APP_STORE_AND_OFFLINE_STRATEGY.md
+docs/ENTITLEMENTS_AND_PROJECT_MODEL.md
+docs/SLATEDROP_ARCHITECTURE.md
+.github/copilot-instructions.md
+CRITICAL_FAILURE_REPORT_MAY.md  [historical/stale for rasterization]
+SECOND_OPINION_DOSSIER.md       [historical]
+_archived_context/docs/COMPLETION_AUDIT.md
+_archived_context/slate360-context/DESIGN_SYSTEM.md
+_archived_context/docs/site-walk/SITE_WALK_V1_3_ACT_WORKFLOW_PLAN.md
+
+B. App Shell / Navigation / Layout
+----------------------------------
+app/layout.tsx
+middleware.ts
+components/dashboard/AppShell.tsx
+components/dashboard/command-center/DashboardSidebar.tsx
+components/dashboard/command-center/DashboardTopBar.tsx
+components/dashboard/command-center/AppsGrid.tsx
+components/shared/MobileTopBar.tsx
+components/shared/MobileBottomNav.tsx
+components/shared/MobileInstallStrip.tsx
+components/shared/CommandPalette.tsx
+components/shared/InviteShareProvider.tsx
+components/shared/InviteShareModal.tsx
+lib/app-store-mode.ts
+lib/server/org-context.ts
+lib/entitlements.ts
+lib/entitlements-modular.ts
+
+C. Design / Theme / Email / App Store Visual Polish
+---------------------------------------------------
+app/globals.css
+components/providers/ThemeProvider.tsx
+components/shared/GlassCard.tsx
+components/shared/SlateLogo.tsx
+components/Navbar.tsx
+components/Footer.tsx
+components/marketing-homepage.tsx
+app/login/page.tsx
+app/signup/page.tsx
+app/pending-verification/page.tsx
+app/beta-pending/page.tsx
+_archived_context/slate360-context/DESIGN_SYSTEM.md
+
+D. Site Walk Entry / Setup / Walks / Capture Shell
+--------------------------------------------------
+app/site-walk/page.tsx
+app/site-walk/(act-1-setup)/setup/page.tsx
+app/site-walk/(act-1-setup)/setup/_components/ProjectSetupForm.tsx
+app/site-walk/(act-1-setup)/setup/_components/StartWalkForm.tsx
+components/site-walk/PlanUploaderCard.tsx
+app/site-walk/(act-2-inputs)/capture/page.tsx
+app/site-walk/(act-2-inputs)/capture/_components/CaptureClientIsland.tsx
+app/site-walk/(act-2-inputs)/capture/_components/WalkStartChoice.tsx
+components/site-walk/capture/CaptureContext.tsx
+components/site-walk/capture/CameraViewfinder.tsx
+components/site-walk/capture/CaptureDataBottomSheet.tsx
+components/site-walk/capture/useCaptureItems.ts
+components/site-walk/capture/useCaptureFileHandler.ts
+components/site-walk/capture/cameraViewfinderHelpers.ts
+app/site-walk/walks/page.tsx
+app/site-walk/walks/[id]/page.tsx
+app/site-walk/walks/active/[id]/page.tsx
+
+E. Plan Viewer / Long-Press / Pinning (Highest Priority)
+--------------------------------------------------------
+components/site-walk/capture/PlanViewer.tsx
+components/site-walk/capture/PlanViewerLeaflet.tsx
+components/site-walk/capture/PlanViewerPdf.tsx
+components/site-walk/capture/PlanViewerParts.tsx
+components/site-walk/capture/PlanPdfPage.tsx
+components/site-walk/capture/PlanPin.tsx
+components/site-walk/capture/PlanQuickActionMenu.tsx
+components/site-walk/capture/PlanToolbar.tsx
+components/site-walk/capture/planViewerModel.ts
+components/site-walk/capture/planViewerGeometry.ts
+components/site-walk/capture/plan-layer-types.ts
+components/site-walk/capture/usePlanGestures.ts
+components/site-walk/capture/plan-capture-events.ts
+components/site-walk/capture/capture-camera-events.ts
+lib/hooks/useCaptureUpload.ts
+lib/hooks/useSiteWalkRealtime.ts
+lib/hooks/usePlanSheetsRealtime.ts
+app/api/site-walk/pins/route.ts
+app/api/site-walk/pins/[id]/route.ts
+
+F. Capture Upload / Data / Persistence
+--------------------------------------
+lib/hooks/useCaptureUpload.ts
+lib/site-walk/capture-item-client.ts
+lib/site-walk/capture-error-format.ts
+lib/site-walk/image-compression.ts
+lib/site-walk/metadata.ts
+lib/site-walk/offline-db.ts
+lib/site-walk/offline-capture.ts
+lib/site-walk/markup-types.ts
+components/site-walk/capture/useCaptureFileHandler.ts
+components/site-walk/capture/CaptureDataBottomSheet.tsx
+components/site-walk/capture/CameraViewfinder.tsx
+app/api/site-walk/items/route.ts
+app/api/site-walk/items/[id]/route.ts
+app/api/site-walk/upload/route.ts
+app/api/site-walk/sessions/route.ts
+app/api/site-walk/sessions/[id]/route.ts
+app/api/site-walk/sessions/[id]/items/route.ts
+app/api/site-walk/sessions/[id]/complete/route.ts
+
+G. Trigger Rasterization / Plans / Image Routes
+-----------------------------------------------
+src/trigger/rasterize.ts
+trigger.config.ts
+lib/types/pdfjs-worker.d.ts
+package.json
+package-lock.json
+app/api/site-walk/plan-sets/route.ts
+app/api/site-walk/plan-sets/[id]/route.ts
+app/api/site-walk/plan-sets/[id]/file/route.ts
+app/api/site-walk/plan-sets/[id]/pdf/route.ts
+app/api/site-walk/plan-sets/[id]/rasterize/route.ts
+app/api/site-walk/plan-sheets/route.ts
+app/api/site-walk/plan-sheets/[id]/route.ts
+app/api/site-walk/plan-sheets/[id]/image/route.ts
+lib/hooks/usePlanSheetsRealtime.ts
+supabase/migrations/20260512000003_rls_realtime_plan_sheets.sql
+
+H. Organization / Leadership / Collaborator Access
+--------------------------------------------------
+lib/server/org-context.ts
+lib/server/api-auth.ts
+lib/server/api-response.ts
+lib/server/beta-access.ts
+middleware.ts
+app/api/org/members/route.ts
+app/api/org/members/[id]/route.ts
+app/api/org/invites/route.ts
+app/api/projects/route.ts
+app/api/projects/[id]/route.ts
+app/api/projects/[id]/members/route.ts
+app/api/projects/[id]/invites/route.ts
+app/api/project-collaborator-invites/route.ts
+app/operations-console/page.tsx
+app/operations-console/users/page.tsx
+app/operations-console/approvals/page.tsx
+components/settings/AccountSettingsClient.tsx
+components/shared/InviteShareProvider.tsx
+components/shared/InviteShareModal.tsx
+
+I. SlateDrop Backbone
+---------------------
+app/slatedrop/page.tsx
+app/slatedrop/[...section]/page.tsx
+components/slatedrop/SlateDropClient.tsx
+components/slatedrop/SlateDropSidebar.tsx
+components/slatedrop/SlateDropTopBar.tsx
+components/slatedrop/SlateDropToolbar.tsx
+components/slatedrop/SlateDropFileArea.tsx
+components/slatedrop/SlateDropContextMenu.tsx
+components/slatedrop/SlateDropActionModals.tsx
+components/slatedrop/SlateDropSharePreviewModals.tsx
+lib/slatedrop/storage.ts
+lib/slatedrop/projectArtifacts.ts
+lib/slatedrop/track-storage.ts
+lib/site-walk/slatedrop-bridge.ts
+lib/site-walk/slatedrop-folders.ts
+app/api/slatedrop/upload/route.ts
+app/api/slatedrop/download/route.ts
+app/api/slatedrop/share/route.ts
+app/api/slatedrop/request/route.ts
+app/api/slatedrop/delete/route.ts
+app/api/slatedrop/move/route.ts
+app/api/slatedrop/zip/route.ts
+app/api/slatedrop/restore/route.ts
+app/api/slatedrop/provision/route.ts
+
+J. Approval Gate / Operations Console / Foundational Release
+------------------------------------------------------------
+middleware.ts
+lib/server/beta-access.ts
+lib/server/org-context.ts
+app/pending-verification/page.tsx
+app/beta-pending/page.tsx
+app/operations-console/page.tsx
+app/operations-console/approvals/page.tsx
+app/operations-console/users/page.tsx
+components/dashboard/command-center/DashboardSidebar.tsx
+components/dashboard/AppShell.tsx
+ops/release-gates.json
+ops/bug-registry.json
+
+K. App Store / PWA / Capacitor / Offline
+----------------------------------------
+app/manifest.ts
+app/sw.ts
+app/install/page.tsx
+components/shared/MobileInstallStrip.tsx
+lib/app-store-mode.ts
+next.config.ts
+public/*
+docs/APP_STORE_AND_OFFLINE_STRATEGY.md
+
+No Capacitor config was found during this audit. If a future plan needs native wrapping, search for capacitor.config.*, ios/, android/, and package scripts before assuming support exists.
+
+L. Tests / CI / Guardrails / Diagnostics
+----------------------------------------
+package.json
+playwright.config.ts
+e2e/auth.spec.ts
+e2e/hero-smoke.spec.ts
+e2e/mobile-smoke.spec.ts
+e2e/maps-diag.spec.ts
+scripts/check-file-size.sh
+scripts/guard-architecture.mjs
+scripts/guard-file-size-regression.mjs
+scripts/verify-release.mjs
+run_tsc.mjs
+tsconfig.json
+eslint.config.mjs
+ts_errors.txt
+ts_errors2.txt
+type_err.txt
+typecheck_out.txt
+
+M. Hidden / Placeholder / Filler Risk Areas
+-------------------------------------------
+app/geospatial/page.tsx
+app/virtual-studio/page.tsx
+app/content-studio/page.tsx
+app/design-studio/page.tsx
+app/analytics/page.tsx
+app/tour-builder/page.tsx
+app/dev/**
+app/preview/**
+components/project-hub/**
+components/dashboard/command-center/AppsGrid.tsx
+middleware.ts
+lib/app-store-mode.ts
+
+N. Files Specifically Implicated in Current BUG-079
+---------------------------------------------------
+components/site-walk/capture/PlanViewer.tsx
+components/site-walk/capture/PlanViewerLeaflet.tsx
+components/site-walk/capture/PlanViewerPdf.tsx
+components/site-walk/capture/planViewerModel.ts
+components/site-walk/capture/usePlanGestures.ts
+components/site-walk/capture/PlanQuickActionMenu.tsx
+components/site-walk/capture/CaptureContext.tsx
+components/site-walk/capture/CameraViewfinder.tsx
+components/site-walk/capture/useCaptureFileHandler.ts
+components/site-walk/capture/CaptureDataBottomSheet.tsx
+lib/hooks/useCaptureUpload.ts
+app/api/site-walk/items/route.ts
+app/api/site-walk/pins/route.ts
+app/api/site-walk/pins/[id]/route.ts
+lib/hooks/useSiteWalkRealtime.ts
+lib/hooks/usePlanSheetsRealtime.ts
+app/site-walk/(act-2-inputs)/capture/_components/CaptureClientIsland.tsx
+
+Recommended first read set for the next implementation task:
+1. docs/CHATGPT_FACT_FINDING_HANDOFF.md
+2. SLATE360_PROJECT_MEMORY.md
+3. slate360-context/ONGOING_ISSUES.md
+4. ops/bug-registry.json
+5. components/site-walk/capture/PlanViewerLeaflet.tsx
+6. components/site-walk/capture/PlanQuickActionMenu.tsx
+7. components/site-walk/capture/CaptureContext.tsx
+8. lib/hooks/useCaptureUpload.ts
+9. app/api/site-walk/pins/route.ts
+10. app/api/site-walk/pins/[id]/route.ts
+11. app/site-walk/(act-2-inputs)/capture/_components/CaptureClientIsland.tsx

@@ -7,6 +7,7 @@ import { useEffect, useRef, useState, type PointerEvent } from "react";
 import type { MarkupData } from "@/lib/site-walk/markup-types";
 import { getPhotoAngleImageUrl, type PhotoAngleCaptureMode, type PhotoAngleRecord } from "@/lib/site-walk/photo-angles";
 import type { PhotoAttachmentPin } from "@/lib/site-walk/photo-attachments";
+import type { SiteWalkPin } from "@/lib/types/site-walk";
 import type { CaptureItemRecord } from "@/lib/types/site-walk-capture";
 import { CameraViewfinder } from "./CameraViewfinder";
 import { PhotoAngleStrip } from "./PhotoAngleStrip";
@@ -27,7 +28,7 @@ type Props = {
   onToggleMarkup: () => void;
   onMarkupChange: (itemId: string, markup: MarkupData) => void;
   onAttachmentPinsChange: (itemId: string, pins: PhotoAttachmentPin[]) => void;
-  onPlanCaptureSaved?: () => void;
+  onPlanCaptureSaved?: (pin: SiteWalkPin | null) => void;
   onAddAngle: () => void;
   onAngleCaptureFile: (itemId: string, file: File, previewUrl: string, captureMode: PhotoAngleCaptureMode) => Promise<PhotoAngleRecord | null>;
   onSelectItem?: (itemId: string) => void;

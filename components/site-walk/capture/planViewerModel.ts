@@ -4,7 +4,7 @@ import type { PlanViewerPin } from "./PlanPin";
 
 export type Point = { x: number; y: number };
 export type Transform = { scale: number; x: number; y: number };
-export type QuickMenuState = { pinId?: string; xPct: number; yPct: number } | null;
+export type QuickMenuState = { pinId?: string | null; clientPinId?: string | null; xPct: number; yPct: number } | null;
 export type PlanPage = { key: string; label: string; pageNumber: number; sheetId?: string };
 
 export const PLAN_PDF_BASE_WIDTH = 1200;
@@ -38,7 +38,12 @@ export function buildPlanPin(point: Point, surface: HTMLDivElement | null, count
   const rect = surface.getBoundingClientRect();
   const xPct = clamp(((point.x - rect.left) / rect.width) * 100, 0, 100);
   const yPct = clamp(((point.y - rect.top) / rect.height) * 100, 0, 100);
-  return { id: Math.random().toString(36).slice(2), x_pct: xPct, y_pct: yPct, session_id: sessionId, label: String(count).padStart(2, "0"), amber: true, item_id: null };
+  const clientPinId = createClientPinId();
+  return { id: clientPinId, client_pin_id: clientPinId, x_pct: xPct, y_pct: yPct, session_id: sessionId, label: String(count).padStart(2, "0"), amber: true, item_id: null };
+}
+
+export function createClientPinId() {
+  return `pin_${globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2)}`;
 }
 
 export function clearPressTimer(timerRef: MutableRefObject<ReturnType<typeof setTimeout> | null>) {
