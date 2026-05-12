@@ -46,24 +46,32 @@ export const POST = (req: NextRequest, ctx: IdRouteContext) =>
       jobId = newJob?.id;
     }
 
-    // Try to trigger Trigger.dev task — but NEVER crash the route if it fails
-    let triggerSucceeded = false;
-    if (process.env.TRIGGER_SECRET_KEY) {
-      try {
-        const { tasks } = await import("@trigger.dev/sdk/v3");
-        await tasks.trigger("plan.rasterize", { planSetId: id, orgId });
-        triggerSucceeded = true;
-      } catch (e) {
-        console.warn("[rasterize-route] Trigger.dev task dispatch failed (will use browser rendering):", e);
+    // Fire Trigger.dev — no silent guards. If this throws, write the error to the DB so
+    // PlanViewer can surface it as a red card instead of an infinite spinner.
+    try {
+      const { tasks } = await import("@trigger.dev/sdk/v3");
+      await tasks.trigger("plan.rasterize", { planSetId: id, orgId });
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      console.error("[rasterize-route] Trigger.dev dispatch failed:", msg);
+      if (jobId) {
+        await admin
+          .from("plan_raster_jobs")
+          .update({ status: "failed", error_text: `Vercel Dispatch Error: ${msg}` })
+          .eq("id", jobId);
       }
+      return ok({
+        jobId,
+        status: "failed",
+        error: `Vercel Dispatch Error: ${msg}`,
+        message: "Trigger.dev dispatch failed. Check error_text in plan_raster_jobs for details.",
+      });
     }
 
     return ok({
       jobId,
       status: "queued",
-      triggerDispatched: triggerSucceeded,
-      message: triggerSucceeded
-        ? "Rasterization queued — plan will appear automatically."
-        : "Plan ready for browser rendering. Reload the plan view.",
+      triggerDispatched: true,
+      message: "Rasterization queued — plan will appear automatically.",
     });
   });

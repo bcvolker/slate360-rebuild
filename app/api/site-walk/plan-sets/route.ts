@@ -118,23 +118,30 @@ export const POST = (req: NextRequest) =>
       .select("*");
     if (sheetError) return serverError(sheetError.message);
 
-    // Insert task to queue
-    const { error: jobError } = await admin
+    // Insert task to queue — capture the job ID so we can write errors back on dispatch failure
+    const { data: rasterJob, error: jobError } = await admin
       .from("plan_raster_jobs")
       .insert({
         org_id: orgId,
         plan_set_id: planSet.id,
         status: "queued"
-      });
+      })
+      .select("id")
+      .single();
     if (jobError) console.error("Failed to insert raster job", jobError);
 
-    // Fire the Trigger.dev task — wrapped in try/catch so upload never fails if trigger is unavailable.
-    // When TRIGGER_SECRET_KEY is not set or the call fails, the plan still loads via browser-side rendering.
-    if (process.env.TRIGGER_SECRET_KEY) {
-      try {
-        await tasks.trigger("plan.rasterize", { planSetId: planSet.id, orgId });
-      } catch (e) {
-        console.warn("[plan-sets] Trigger.dev dispatch failed (browser rendering fallback will be used):", e);
+    // Fire Trigger.dev — no silent guards. If this throws, write the error to the DB so
+    // PlanViewer can surface it as a red card instead of an infinite spinner.
+    try {
+      await tasks.trigger("plan.rasterize", { planSetId: planSet.id, orgId });
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      console.error("[plan-sets] Trigger.dev dispatch failed:", msg);
+      if (rasterJob?.id) {
+        await admin
+          .from("plan_raster_jobs")
+          .update({ status: "failed", error_text: `Vercel Dispatch Error: ${msg}` })
+          .eq("id", rasterJob.id);
       }
     }
 
