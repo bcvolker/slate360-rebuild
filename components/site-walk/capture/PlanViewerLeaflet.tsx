@@ -22,7 +22,7 @@ import type { SiteWalkPlanSet, SiteWalkPlanSheet } from "@/lib/types/site-walk";
 import type { LayerFilter } from "./plan-layer-types";
 import { PlanQuickActionMenu } from "./PlanQuickActionMenu";
 import { PlanToolbar } from "./PlanToolbar";
-import { buildPages, type QuickMenuState } from "./planViewerModel";
+import { buildPages, createClientPinId, type QuickMenuState } from "./planViewerModel";
 
 type Props = {
   projectId?: string | null;
@@ -36,6 +36,7 @@ type Props = {
 
 type PlanViewerPin = {
   id: string;
+  client_pin_id?: string | null;
   x_pct: number;
   y_pct: number;
   session_id: string;
@@ -92,10 +93,10 @@ export function PlanViewerLeaflet({ projectId, sessionId = "current-session", pl
     if (!activePage?.sheetId) { setPins([]); return; }
     let cancelled = false;
     fetch(`/api/site-walk/pins?plan_sheet_id=${encodeURIComponent(activePage.sheetId)}`, { cache: "no-store" })
-      .then((r) => r.ok ? r.json() as Promise<{ pins?: Array<{ id: string; plan_sheet_id: string; x_pct: number; y_pct: number; label: string; session_id: string; item_id: string | null }> }> : null)
+      .then((r) => r.ok ? r.json() as Promise<{ pins?: Array<{ id: string; client_pin_id: string | null; plan_sheet_id: string; x_pct: number; y_pct: number; pin_number: number | null; label: string | null; session_id: string; item_id: string | null }> }> : null)
       .then((data) => {
         if (cancelled || !data?.pins) return;
-        setPins(data.pins.map((p, i) => ({ id: p.id, x_pct: p.x_pct, y_pct: p.y_pct, session_id: p.session_id, label: p.label || String(i + 1).padStart(2, "0"), amber: p.session_id === sessionId, item_id: p.item_id })));
+        setPins(data.pins.map((p, i) => ({ id: p.id, client_pin_id: p.client_pin_id, x_pct: p.x_pct, y_pct: p.y_pct, session_id: p.session_id, label: p.pin_number ? String(p.pin_number).padStart(2, "0") : String(i + 1).padStart(2, "0"), amber: p.session_id === sessionId, item_id: p.item_id })));
       })
       .catch(() => undefined);
     return () => { cancelled = true; };
@@ -115,7 +116,7 @@ export function PlanViewerLeaflet({ projectId, sessionId = "current-session", pl
     if (pin.item_id) {
       onSelectItem?.(pin.item_id);
     } else {
-      setQuickMenu({ pinId, xPct: pin.x_pct, yPct: pin.y_pct });
+      setQuickMenu({ pinId: isUuid(pin.id) ? pin.id : null, clientPinId: pin.client_pin_id ?? (!isUuid(pin.id) ? pin.id : null), xPct: pin.x_pct, yPct: pin.y_pct });
     }
   }
 
@@ -191,6 +192,7 @@ export function PlanViewerLeaflet({ projectId, sessionId = "current-session", pl
       {quickMenu && (
         <PlanQuickActionMenu
           pinId={quickMenu.pinId}
+          clientPinId={quickMenu.clientPinId}
           planSheetId={activePage?.sheetId ?? ""}
           xPct={quickMenu.xPct}
           yPct={quickMenu.yPct}
@@ -230,8 +232,10 @@ function MapEventHandler({ toolMode, imageWidth, imageHeight, sessionId, pins, s
       const yPct = (e.latlng.lat / imageHeight) * 100;
       const xPct = (e.latlng.lng / imageWidth) * 100;
       if (xPct < 0 || xPct > 100 || yPct < 0 || yPct > 100) return;
+      const clientPinId = createClientPinId();
       const newPin: PlanViewerPin = {
-        id: Math.random().toString(36).slice(2),
+        id: clientPinId,
+        client_pin_id: clientPinId,
         x_pct: xPct,
         y_pct: yPct,
         session_id: sessionId,
@@ -240,10 +244,14 @@ function MapEventHandler({ toolMode, imageWidth, imageHeight, sessionId, pins, s
         item_id: null,
       };
       setPins((current) => [...current, newPin]);
-      setQuickMenu({ pinId: newPin.id, xPct, yPct });
+      setQuickMenu({ clientPinId, xPct, yPct });
       if (navigator.vibrate) navigator.vibrate(50);
     },
   });
 
   return null;
+}
+
+function isUuid(value: string) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 }

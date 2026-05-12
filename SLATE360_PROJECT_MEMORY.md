@@ -32,6 +32,68 @@ Recommended read order:
 - The `_legacy_v1` tree has been explicitly purged and removed from the active routing.
 - The entire application is strictly unified under the 'Dark Glass & Amber' design token system utilizing the `<GlassCard>` component.
 
+## Session Handoff — 2026-05-12 (BUG-079 pre-commit review)
+### What Changed
+- `docs/site-walk/BUG079_IMPLEMENTATION_REVIEW.md`: added strict pre-commit review covering fix summary, changed files, identity lifecycle, validation, remaining risks, manual device test plan, and targeted staging command.
+- `docs/CODEX_LOCAL_SETUP_STATUS.md`: recorded Codex CLI global install (`codex-cli 0.130.0`) and current unauthenticated status (`codex login status` => not logged in).
+- `docs/site-walk/BUG079_METADATA_AND_UI_PARITY_AUDIT.md`: added focused audit confirming plan-pin captures use the same metadata/upload path as quick capture, with follow-ups documented for richer pin card UI parity and offline transaction resilience.
+- Review checks confirmed the BUG-079 tracked diff stays scoped to Site Walk capture/pin identity plus prior workflow/docs; no Trigger, migration, billing, auth, theme, or hidden-app implementation paths were modified.
+- Re-ran validations: `npm run typecheck` passed, `npm run build` passed with existing warnings, `npm run guard:architecture` passed, and `npm run audit:sitewalk-release` still reports 984 existing release-surface findings by design.
+### What's Broken / Partially Done
+- Physical iOS/Android testing is still required before marking BUG-079 fixed in `ops/bug-registry.json` / `slate360-context/ONGOING_ISSUES.md`.
+- `npm run audit:sitewalk-release` still exits 1 with 984 existing findings unrelated to the BUG-079 identity fix.
+- Codex CLI is installed but not logged in; user must run `codex login` before using Codex audits/reviews.
+- No files are staged, committed, or pushed yet.
+### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md`: latest handoff
+- `docs/site-walk/BUG079_IMPLEMENTATION_REVIEW.md`: review artifact for commit readiness
+- `docs/CODEX_LOCAL_SETUP_STATUS.md`: local Codex install/auth status
+- `docs/site-walk/BUG079_METADATA_AND_UI_PARITY_AUDIT.md`: metadata/UI parity audit
+### Next Steps (ordered)
+1. Re-run validation after the metadata/Codex docs are added.
+2. If validation is clean, stage only targeted files; do not use `git add .`.
+3. Commit and push `chore/codex-workflow-and-sitewalk-pin-plan`, then run physical-device BUG-079 smoke tests before resolving the bug registry entries.
+
+## Session Handoff — 2026-05-12 (BUG-079 pin identity lifecycle slice)
+### What Changed
+- `components/site-walk/capture/PlanViewerLeaflet.tsx`: optimistic pins now use `clientPinId`/`client_pin_id`; temporary IDs are no longer passed as authoritative `pinId` UUIDs.
+- `components/site-walk/capture/planViewerModel.ts` and `PlanViewerPdf.tsx`: PDF/fallback optimistic pins now follow the same client-id distinction.
+- `components/site-walk/capture/PlanQuickActionMenu.tsx`: capture targets now separate saved `pinId` from optimistic `clientPinId`, and avoid double-opening the native picker when the direct callback is available.
+- `lib/hooks/useCaptureUpload.ts`: attach logic now PATCHes saved UUID pins, POSTs unsaved optimistic pins with `client_pin_id`, parses the returned persisted pin row, and includes it in save context.
+- `components/site-walk/capture/useCaptureFileHandler.ts`, `CameraViewfinder.tsx`, `VisualCaptureView.tsx`, and `CaptureClientIsland.tsx`: threaded persisted pin callback and trigger a fresh PlanViewer mount after plan-linked save.
+- `lib/site-walk/offline-capture.ts`: offline queued pin mutations now preserve `client_pin_id`.
+- `docs/site-walk/BUG079_PIN_CAPTURE_ROOT_CAUSE_PLAN.md`: updated with applied implementation notes.
+### What's Broken / Partially Done
+- Physical iOS/Android testing is still required before marking BUG-079 fixed in the bug registry.
+- Note-only quick action still sets a plan target but needs manual verification of the note-entry UX.
+- `npm run audit:sitewalk-release` still reports 984 existing release-surface risk lines unrelated to this fix.
+### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md`: latest handoff
+- `docs/site-walk/BUG079_PIN_CAPTURE_ROOT_CAUSE_PLAN.md`: applied implementation notes
+### Next Steps (ordered)
+1. Run physical-device smoke test: plan → pin → photo/upload → details → save → return → refresh, confirming one persisted pin.
+2. If verified, update `ops/bug-registry.json` and `slate360-context/ONGOING_ISSUES.md` to mark BUG-079 resolved.
+3. Commit only after user review/approval; do not push directly to `main`.
+
+## Session Handoff — 2026-05-12 (Codex workflow + BUG-079 root-cause plan)
+### What Changed
+- `AGENTS.md`: added repo-level guardrails for Codex/Copilot workflows, App Store mode, Site Walk-only release scope, Trigger rasterization safety, and validation expectations.
+- `docs/CODEX_WORKFLOW.md`: documented ChatGPT/Copilot/Codex responsibilities and the feature-branch workflow.
+- `docs/CODEX_PROMPTS.md`: added reusable Codex prompts for no-edit audits, BUG-079 identity lifecycle review, hidden-app/filler/style/App Store audits, and PR review.
+- `scripts/audit-sitewalk-release-surface.mjs`: added read-only scanner for release-surface risk terms in `app/` and `components/`.
+- `package.json`: added `audit:sitewalk-release` script.
+- `docs/site-walk/BUG079_PIN_CAPTURE_ROOT_CAUSE_PLAN.md`: confirmed BUG-079 likely root cause and proposed a first implementation slice without touching product code.
+### What's Broken / Partially Done
+- No BUG-079 product fix implemented yet; approval is needed before editing Site Walk capture/pin code.
+- `npm run audit:sitewalk-release` reports 984 current risk lines and exits 1 by design.
+- `npm run guard:file-size-regression` still fails on pre-existing over-threshold files.
+### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md`: latest handoff for workflow/root-cause planning.
+### Next Steps (ordered)
+1. Get approval before implementing the BUG-079 pin identity lifecycle fix.
+2. Implement the narrow slice from `docs/site-walk/BUG079_PIN_CAPTURE_ROOT_CAUSE_PLAN.md` on the current feature branch.
+3. Validate with typecheck/build/guards and physical iOS/Android preview smoke tests before any merge.
+
 ## Session Handoff — 2026-05-12 (Trigger PDF rasterizer fixed)
 ### What Changed
 - `src/trigger/rasterize.ts`: fixed production PDF rasterization by explicitly registering `pdf.worker.mjs` on `globalThis`, dynamically loading a Path2D-capable canvas runtime, and adding a Trigger-safe `process.getBuiltinModule` shim before importing `@napi-rs/canvas`.

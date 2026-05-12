@@ -12,7 +12,7 @@ import { useCaptureItems } from "@/components/site-walk/capture/useCaptureItems"
 import { useProjectCaptureSettings } from "@/lib/hooks/useProjectCaptureSettings";
 import { useDeviceContext, type DeviceCaptureInput } from "@/lib/hooks/useDeviceContext";
 import { usePlanSheetsRealtime } from "@/lib/hooks/usePlanSheetsRealtime";
-import type { SiteWalkPlanSet, SiteWalkPlanSheet } from "@/lib/types/site-walk";
+import type { SiteWalkPin, SiteWalkPlanSet, SiteWalkPlanSheet } from "@/lib/types/site-walk";
 import type { CaptureItemDraft } from "@/lib/types/site-walk-capture";
 import { WalkStartChoice } from "./WalkStartChoice";
 
@@ -47,6 +47,7 @@ function CaptureClientIslandInner({ sessionId, projectId, walkName, showPlanCanv
   const [walkMode, setWalkMode] = useState<WalkMode>(() => showStartChoice ? "choice" : showPlanCanvas ? "plan" : "camera");
   const [currentLocation, setCurrentLocation] = useState("Stop 1");
   const [recentLocations, setRecentLocations] = useState<string[]>([]);
+  const [planRefreshKey, setPlanRefreshKey] = useState(0);
 
   // ── Direct picker refs: these open the native file/camera picker synchronously ──
   const directCameraRef = useRef<HTMLInputElement>(null);
@@ -177,8 +178,9 @@ function CaptureClientIslandInner({ sessionId, projectId, walkName, showPlanCanv
     }));
   }
 
-  function handlePlanCaptureSaved() {
+  function handlePlanCaptureSaved(_pin: SiteWalkPin | null) {
     setReturnToPlanAfterSave(true);
+    setPlanRefreshKey((current) => current + 1);
   }
 
   if (walkMode === "choice") {
@@ -193,6 +195,7 @@ function CaptureClientIslandInner({ sessionId, projectId, walkName, showPlanCanv
       <div className="relative flex-1 min-h-0 min-w-0">
         {walkMode === "plan" ? (
           <PlanViewer
+            key={planRefreshKey}
             projectId={projectId}
             sessionId={sessionId}
             planSets={planSets}

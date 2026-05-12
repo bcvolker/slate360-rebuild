@@ -147,7 +147,7 @@ export function PlanViewerPdf({ projectId, sessionId = "current-session", planSe
     if (!nextPin) return;
     setPins((current) => [...current, nextPin]);
     setActivePinId(nextPin.id);
-    setQuickMenu({ pinId: nextPin.id, xPct: nextPin.x_pct, yPct: nextPin.y_pct });
+    setQuickMenu({ clientPinId: nextPin.client_pin_id ?? nextPin.id, xPct: nextPin.x_pct, yPct: nextPin.y_pct });
     if (navigator.vibrate) navigator.vibrate(50);
   }, [pins.length, sessionId]);
 
@@ -168,7 +168,7 @@ export function PlanViewerPdf({ projectId, sessionId = "current-session", planSe
     if (pin.item_id) {
       setQuickMenu(null);
     } else {
-      setQuickMenu({ pinId, xPct: pin.x_pct, yPct: pin.y_pct });
+      setQuickMenu({ pinId: isUuid(pin.id) ? pin.id : null, clientPinId: pin.client_pin_id ?? (!isUuid(pin.id) ? pin.id : null), xPct: pin.x_pct, yPct: pin.y_pct });
     }
   }
 
@@ -234,6 +234,7 @@ export function PlanViewerPdf({ projectId, sessionId = "current-session", planSe
       {quickMenu && (
         <PlanQuickActionMenu
           pinId={quickMenu.pinId}
+          clientPinId={quickMenu.clientPinId}
           planSheetId={activePage?.sheetId ?? ""}
           xPct={quickMenu.xPct}
           yPct={quickMenu.yPct}
@@ -250,6 +251,10 @@ export function PlanViewerPdf({ projectId, sessionId = "current-session", planSe
       )}
     </div>
   );
+}
+
+function isUuid(value: string) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 }
 
 

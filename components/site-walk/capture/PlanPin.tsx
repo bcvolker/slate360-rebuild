@@ -6,6 +6,7 @@ import type { SiteWalkPin } from "@/lib/types/site-walk";
 
 export type PlanViewerPin = {
   id: string;
+  client_pin_id?: string | null;
   x_pct: number;
   y_pct: number;
   session_id: string;
@@ -30,6 +31,7 @@ export function PlanPin({ pin, active, current, onClick }: { pin: PlanViewerPin;
 export function mapPlanPin(row: SiteWalkPin, index: number, sessionId: string): PlanViewerPin {
   return {
     id: row.id,
+    client_pin_id: row.client_pin_id,
     x_pct: row.x_pct,
     y_pct: row.y_pct,
     session_id: row.session_id ?? "",
@@ -40,8 +42,12 @@ export function mapPlanPin(row: SiteWalkPin, index: number, sessionId: string): 
 }
 
 export function mergeFetchedPlanPins(current: PlanViewerPin[], fetched: PlanViewerPin[]) {
-  const optimistic = current.filter((pin) => pin.amber && !isUuid(pin.id) && !fetched.some((saved) => samePoint(saved, pin)));
+  const optimistic = current.filter((pin) => pin.amber && !isUuid(pin.id) && !fetched.some((saved) => sameClientPin(saved, pin) || samePoint(saved, pin)));
   return [...fetched, ...optimistic];
+}
+
+function sameClientPin(a: PlanViewerPin, b: PlanViewerPin) {
+  return Boolean(a.client_pin_id && b.client_pin_id && a.client_pin_id === b.client_pin_id);
 }
 
 function samePoint(a: PlanViewerPin, b: PlanViewerPin) {

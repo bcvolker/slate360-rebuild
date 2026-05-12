@@ -6,6 +6,7 @@ import { createCaptureItem, presignCaptureUpload } from "@/lib/site-walk/capture
 import { formatCaptureError } from "@/lib/site-walk/capture-error-format";
 import { createOfflineId } from "@/lib/site-walk/offline-db";
 import { queueOfflineCapture } from "@/lib/site-walk/offline-capture";
+import type { SiteWalkPin } from "@/lib/types/site-walk";
 import type { CaptureItemRecord } from "@/lib/types/site-walk-capture";
 
 type CaptureStatus =
@@ -33,10 +34,13 @@ export type PlanCaptureTarget = {
   planSheetId: string;
   xPct: number;
   yPct: number;
-  pinId?: string;
+  /** Persisted site_walk_pins.id. Must be a server UUID. */
+  pinId?: string | null;
+  /** Temporary optimistic client id, stored as site_walk_pins.client_pin_id after POST. */
+  clientPinId?: string | null;
 };
 
-type CaptureSavedContext = { planTarget: PlanCaptureTarget | null };
+type CaptureSavedContext = { planTarget: PlanCaptureTarget | null; planPin: SiteWalkPin | null };
 
 export function useCaptureUpload({ sessionId, planTarget, onPlanTargetSaved, onSaved }: UseCaptureUploadParams) {
   const [status, setStatus] = useState<CaptureStatus>({ kind: "idle", message: "Ready to capture." });
@@ -53,10 +57,11 @@ export function useCaptureUpload({ sessionId, planTarget, onPlanTargetSaved, onS
       const local = await queueOfflineCapture({ sessionId, itemType: "photo", title, metadata, file, captureMode: "camera", clientItemId, clientMutationId, planTarget, previewUrl });
       setStatus({ kind: "complete", message: "Working offline — photo queued and ready to sync." });
       if (planTarget) onPlanTargetSaved?.();
-      onSaved?.(local, { planTarget: planTarget ?? null });
+      onSaved?.(local, { planTarget: planTarget ?? null, planPin: null });
       return;
     }
     let item: CaptureItemRecord;
+    let planPin: SiteWalkPin | null = null;
     try {
       const upload = await presignCaptureUpload(sessionId, file);
       console.log("[capture]#7 presigned", upload);
@@ -75,14 +80,13 @@ export function useCaptureUpload({ sessionId, planTarget, onPlanTargetSaved, onS
       const local = await queueOfflineCapture({ sessionId, itemType: "photo", title, metadata, file, captureMode: "camera", clientItemId, clientMutationId, planTarget, previewUrl });
       setStatus({ kind: "complete", message: "Connection dropped — photo saved offline and queued." });
       if (planTarget) onPlanTargetSaved?.();
-      onSaved?.(local, { planTarget: planTarget ?? null });
+      onSaved?.(local, { planTarget: planTarget ?? null, planPin: null });
       return;
     }
 
     if (planTarget) {
       try {
-        console.log("[capture]#8 attachPin", { itemId: item.id, planTarget });
-        await attachItemToPlanPin(sessionId, item.id, planTarget);
+        planPin = await attachItemToPlanPin(sessionId, item.id, planTarget);
       } catch (error) {
         const message = formatCaptureError(error, "Unknown attach failure");
         setStatus({ kind: "error", message: `Photo saved, but it could not attach to the plan pin: ${message}` });
@@ -92,7 +96,7 @@ export function useCaptureUpload({ sessionId, planTarget, onPlanTargetSaved, onS
 
     setStatus({ kind: "complete", message: planTarget ? "Photo saved and attached to the selected plan pin." : "Photo saved to Site Walk Files / Photos." });
     if (planTarget) onPlanTargetSaved?.();
-    onSaved?.({ ...item, local_preview_url: previewUrl }, { planTarget: planTarget ?? null });
+    onSaved?.({ ...item, local_preview_url: previewUrl }, { planTarget: planTarget ?? null, planPin });
   }, [onPlanTargetSaved, onSaved, planTarget, sessionId]);
 
   const saveTextNote = useCallback(async (text: string, mode: "text" | "voice") => {
@@ -116,23 +120,24 @@ export function useCaptureUpload({ sessionId, planTarget, onPlanTargetSaved, onS
       const local = await queueOfflineCapture(noteParams);
       setStatus({ kind: "complete", message: "Working offline — note queued and ready to sync." });
       if (planTarget) onPlanTargetSaved?.();
-      onSaved?.(local, { planTarget: planTarget ?? null });
+      onSaved?.(local, { planTarget: planTarget ?? null, planPin: null });
       return;
     }
     let item: CaptureItemRecord;
+    let planPin: SiteWalkPin | null = null;
     try {
       item = await createCaptureItem(noteParams);
     } catch {
       const local = await queueOfflineCapture(noteParams);
       setStatus({ kind: "complete", message: "Connection dropped — note saved offline and queued." });
       if (planTarget) onPlanTargetSaved?.();
-      onSaved?.(local, { planTarget: planTarget ?? null });
+      onSaved?.(local, { planTarget: planTarget ?? null, planPin: null });
       return;
     }
 
     if (planTarget) {
       try {
-        await attachItemToPlanPin(sessionId, item.id, planTarget);
+        planPin = await attachItemToPlanPin(sessionId, item.id, planTarget);
       } catch (error) {
         const message = formatCaptureError(error, "Unknown attach failure");
         setStatus({ kind: "error", message: `Note saved, but it could not attach to the plan pin: ${message}` });
@@ -142,15 +147,14 @@ export function useCaptureUpload({ sessionId, planTarget, onPlanTargetSaved, onS
 
     setStatus({ kind: "complete", message: planTarget ? "Note saved and attached to the selected plan pin." : mode === "voice" ? "Voice/dictation note saved." : "Text note saved." });
     if (planTarget) onPlanTargetSaved?.();
-    onSaved?.(item, { planTarget: planTarget ?? null });
+    onSaved?.(item, { planTarget: planTarget ?? null, planPin });
   }, [onPlanTargetSaved, onSaved, planTarget, sessionId]);
 
   return { status, savePhoto, saveTextNote, resetStatus: () => setStatus({ kind: "idle", message: "Ready to capture." }) };
 }
 
-async function attachItemToPlanPin(sessionId: string, itemId: string, target: PlanCaptureTarget) {
+async function attachItemToPlanPin(sessionId: string, itemId: string, target: PlanCaptureTarget): Promise<SiteWalkPin> {
   const savedPinId = target.pinId && isUuid(target.pinId) ? target.pinId : null;
-  console.log("[capture]#10 attachItemToPlanPin", { savedPinId, target });
   if (savedPinId) {
     const response = await fetch(`/api/site-walk/pins/${encodeURIComponent(savedPinId)}`, {
       method: "PATCH",
@@ -158,7 +162,7 @@ async function attachItemToPlanPin(sessionId: string, itemId: string, target: Pl
       body: JSON.stringify({ item_id: itemId, pin_status: "active" }),
     });
     if (!response.ok) throw new Error(`Saved the item, but could not attach it to the plan pin: ${await response.text()}`);
-    return;
+    return readPinResponse(response);
   }
 
   if (!isUuid(target.planSheetId)) throw new Error("Plan sheet is still syncing. Try again after the sheet has a saved ID.");
@@ -174,10 +178,17 @@ async function attachItemToPlanPin(sessionId: string, itemId: string, target: Pl
       y_pct: target.yPct,
       pin_status: "active",
       pin_color: "blue",
-      label: "Plan-linked capture",
+      client_pin_id: target.clientPinId ?? null,
     }),
   });
   if (!response.ok) throw new Error(`Saved the item, but could not create the plan pin: ${await response.text()}`);
+  return readPinResponse(response);
+}
+
+async function readPinResponse(response: Response): Promise<SiteWalkPin> {
+  const body = await response.json() as { pin?: SiteWalkPin };
+  if (!body.pin) throw new Error("Plan pin response did not include the persisted pin.");
+  return body.pin;
 }
 
 export type { CaptureStatus };

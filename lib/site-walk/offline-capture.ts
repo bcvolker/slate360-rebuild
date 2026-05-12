@@ -5,7 +5,7 @@ import { createOfflineId, enqueueOfflineMutation, listOfflineMutations, saveOffl
 import type { UpdateItemPayload } from "@/lib/types/site-walk";
 import type { CaptureItemRecord } from "@/lib/types/site-walk-capture";
 
-type PlanTarget = { planSheetId: string; xPct: number; yPct: number; pinId?: string };
+type PlanTarget = { planSheetId: string; xPct: number; yPct: number; pinId?: string | null; clientPinId?: string | null };
 
 type QueueCaptureParams = CreateCaptureItemParams & {
   file?: File;
@@ -81,7 +81,7 @@ async function enqueuePlanTargetMutation(sessionId: string, clientItemId: string
         y_pct: target.yPct,
         pin_status: "active",
         pin_color: "blue",
-        label: "Plan-linked capture",
+        client_pin_id: target.clientPinId ?? null,
       };
   await enqueueOfflineMutation({
     kind: "pin_mutation",

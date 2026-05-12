@@ -7,7 +7,8 @@ import { requestCameraCapture } from "./capture-camera-events";
 import { publishPlanCaptureTarget } from "./plan-capture-events";
 
 type Props = {
-  pinId?: string;
+  pinId?: string | null;
+  clientPinId?: string | null;
   planSheetId: string;
   xPct: number;
   yPct: number;
@@ -16,25 +17,26 @@ type Props = {
   onCaptureRequest?: (input: "camera" | "upload") => void;
 };
 
-export function PlanQuickActionMenu({ pinId, planSheetId, xPct, yPct, captureDisabledReason, onClose, onCaptureRequest }: Props) {
+export function PlanQuickActionMenu({ pinId, clientPinId, planSheetId, xPct, yPct, captureDisabledReason, onClose, onCaptureRequest }: Props) {
   const { isDesktop } = useDeviceContext();
   const captureCtx = useOptionalCaptureContext();
   const captureDisabled = Boolean(captureDisabledReason);
 
   function choose(action: "photo" | "note", input?: "camera" | "upload") {
-    const target = { pinId, planSheetId, xPct, yPct };
-    console.log("[capture]#1 choose", { input, target });
+    const target = { pinId: pinId && isUuid(pinId) ? pinId : null, clientPinId: clientPinId ?? null, planSheetId, xPct, yPct };
     if (captureDisabled) return;
     // Primary path: set plan target on the React context BEFORE requesting capture.
     if (captureCtx) {
       captureCtx.setPlanTarget(target);
-      if (input) captureCtx.requestCapture(input, "plan_pin");
+      if (input) {
+        if (onCaptureRequest) onCaptureRequest(input);
+        else captureCtx.requestCapture(input, "plan_pin");
+      }
     } else {
       // Legacy fallback: window event bus (used by any caller still outside the provider).
       publishPlanCaptureTarget({ ...target, action });
       if (input) requestCameraCapture(input, "plan_pin");
     }
-    if (input && onCaptureRequest) onCaptureRequest(input);
     onClose();
   }
 
@@ -63,4 +65,8 @@ export function PlanQuickActionMenu({ pinId, planSheetId, xPct, yPct, captureDis
       </div>
     </div>
   );
+}
+
+function isUuid(value: string) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 }

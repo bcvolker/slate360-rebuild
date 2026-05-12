@@ -9,6 +9,7 @@ import { createOfflineId } from "@/lib/site-walk/offline-db";
 import { compressCaptureFile } from "@/lib/site-walk/image-compression";
 import { formatCaptureError } from "@/lib/site-walk/capture-error-format";
 import type { PhotoAngleCaptureMode, PhotoAngleRecord } from "@/lib/site-walk/photo-angles";
+import type { SiteWalkPin } from "@/lib/types/site-walk";
 import type { CaptureItemRecord } from "@/lib/types/site-walk-capture";
 import { publishCaptureItemFocus } from "./capture-item-events";
 import { buildLocalPhotoItem, readLastTitle } from "./cameraViewfinderHelpers";
@@ -22,7 +23,7 @@ type Args = {
   planTarget: PlanCaptureTarget | null;
   clearTarget: () => void;
   activeItem: CaptureItemRecord | null;
-  onPlanCaptureSaved?: () => void;
+  onPlanCaptureSaved?: (pin: SiteWalkPin | null) => void;
   onAngleCaptureFile?: (itemId: string, file: File, previewUrl: string, captureMode: PhotoAngleCaptureMode) => Promise<PhotoAngleRecord | null>;
 };
 
@@ -40,7 +41,7 @@ export function useCaptureFileHandler({ sessionId, planTarget, clearTarget, acti
     onPlanTargetSaved: clearTarget,
     onSaved: (item, context) => {
       publishCaptureItemFocus({ item, reason: "captured", focus: false });
-      if (context.planTarget) onPlanCaptureSaved?.();
+      if (context.planTarget) onPlanCaptureSaved?.(context.planPin);
     },
   });
 
