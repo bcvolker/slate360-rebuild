@@ -954,13 +954,16 @@
       "module": "site-walk/plans",
       "severity": "critical",
       "status": "fixed",
-      "rootCause": "Plan upload was hidden behind secondary project/walk UI; active project walks with zero plan sheets had no upload path; old plan sets with no raster job or stale queued jobs spun forever while Trigger.dev had no run.",
+      "rootCause": "Plan upload was hidden behind secondary project/walk UI; active project walks with zero plan sheets had no upload path; old plan sets with no raster job or stale queued jobs spun forever; Trigger.dev worker lacked Supabase/R2 env vars; Vercel dispatch inherited VERCEL_GIT_COMMIT_REF as a Trigger preview branch header.",
       "verification": [
         "Project setup shows a plan upload panel immediately after project save/select",
         "Start Walk form always shows the plan upload dropzone for the selected project",
         "Active project walks can open Plan Room and upload plans even when no plan sheets exist yet",
         "PlanViewer shows Generate Mobile View for missing or stale raster jobs instead of an infinite spinner",
-        "Manual rasterize route replaces stale queued/processing jobs and dispatches a fresh Trigger.dev run"
+        "Manual rasterize route replaces stale queued/processing jobs and dispatches a fresh Trigger.dev run",
+        "Trigger.dev production env list includes Supabase and R2 variables",
+        "Vercel tasks.trigger calls force previewBranch to an empty string and log accepted run IDs",
+        "PlanUploaderCard awaits rasterize dispatch and reports dispatch failure to the user"
       ]
     }
   ]

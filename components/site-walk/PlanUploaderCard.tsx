@@ -85,12 +85,10 @@ export function PlanUploaderCard({ project, onPlanRoomChange }: Props) {
       if (!planSet) throw new Error("Plan set was created, but the server response was incomplete.");
       setState({ stage: "processing", message: `Generating ${pageCount} plan sheet row${pageCount === 1 ? "" : "s"}…` });
       const extracted = await autoCreateSheets(planSet.id, pageCount);
-      // Trigger background rasterization — intentionally fire-and-forget
-      fetch(`/api/site-walk/plan-sets/${encodeURIComponent(planSet.id)}/rasterize`, { method: "POST" }).catch((e) =>
-        console.error("Rasterization background trigger failed", e),
-      );
+      setState({ stage: "processing", message: "Sending plan to the mobile converter…" });
+      await startRasterization(planSet.id);
       onPlanRoomChange?.(extracted);
-      setState({ stage: "complete", message: "Complete — plan set is saved in Site Walk Files / Plans." });
+      setState({ stage: "complete", message: "Uploaded — mobile conversion has started. The plan will appear automatically when ready." });
     } catch (error) {
       setState({ stage: "error", message: error instanceof Error ? error.message : "Plan upload failed." });
     }
@@ -212,6 +210,14 @@ async function autoCreateSheets(planSetId: string, pageCount: number) {
   if ((!data.planSets || data.planSets.length === 0) && data.planSet) return { planSets: [data.planSet], sheets: data.sheets ?? [] };
   if (!data.planSets) throw new Error("Sheet extraction completed, but the server response was incomplete.");
   return { planSets: data.planSets, sheets: data.sheets ?? [] };
+}
+
+async function startRasterization(planSetId: string) {
+  const response = await fetch(`/api/site-walk/plan-sets/${encodeURIComponent(planSetId)}/rasterize`, { method: "POST" });
+  const data = (await response.json().catch(() => null)) as { status?: string; error?: string; message?: string } | null;
+  if (!response.ok) throw new Error(data?.error ?? data?.message ?? "Could not start mobile conversion.");
+  if (data?.status === "failed" || data?.error) throw new Error(data.error ?? data.message ?? "Mobile conversion failed to start.");
+  return data;
 }
 
 async function readPdfPageCount(file: File) {

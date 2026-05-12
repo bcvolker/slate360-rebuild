@@ -26,6 +26,8 @@ type CreatePlanSetBody = {
 
 import { tasks } from "@trigger.dev/sdk/v3";
 
+const triggerRequestOptions = { clientConfig: { previewBranch: "" } };
+
 export const GET = (req: NextRequest) =>
   withAppAuth("punchwalk", req, async ({ user, admin, orgId }) => {
     if (!orgId) return badRequest("Organization context required");
@@ -133,7 +135,8 @@ export const POST = (req: NextRequest) =>
     // Fire Trigger.dev — no silent guards. If this throws, write the error to the DB so
     // PlanViewer can surface it as a red card instead of an infinite spinner.
     try {
-      await tasks.trigger("plan.rasterize", { planSetId: planSet.id, orgId });
+      const handle = await tasks.trigger("plan.rasterize", { planSetId: planSet.id, orgId }, undefined, triggerRequestOptions);
+      console.info("[plan-sets] Trigger.dev dispatch accepted", { planSetId: planSet.id, runId: handle.id });
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : String(e);
       console.error("[plan-sets] Trigger.dev dispatch failed:", msg);

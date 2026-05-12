@@ -3,6 +3,8 @@ import { withAppAuth } from "@/lib/server/api-auth";
 import { badRequest, notFound, ok, serverError } from "@/lib/server/api-response";
 import type { IdRouteContext } from "@/lib/types/api";
 
+const triggerRequestOptions = { clientConfig: { previewBranch: "" } };
+
 export const POST = (req: NextRequest, ctx: IdRouteContext) =>
   withAppAuth("punchwalk", req, async ({ admin, orgId }) => {
     if (!orgId) return badRequest("Organization context required");
@@ -58,7 +60,8 @@ export const POST = (req: NextRequest, ctx: IdRouteContext) =>
     // PlanViewer can surface it as a red card instead of an infinite spinner.
     try {
       const { tasks } = await import("@trigger.dev/sdk/v3");
-      await tasks.trigger("plan.rasterize", { planSetId: id, orgId });
+      const handle = await tasks.trigger("plan.rasterize", { planSetId: id, orgId }, undefined, triggerRequestOptions);
+      console.info("[rasterize-route] Trigger.dev dispatch accepted", { planSetId: id, runId: handle.id });
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : String(e);
       console.error("[rasterize-route] Trigger.dev dispatch failed:", msg);

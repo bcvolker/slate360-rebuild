@@ -32,7 +32,7 @@ Recommended read order:
 - The `_legacy_v1` tree has been explicitly purged and removed from the active routing.
 - The entire application is strictly unified under the 'Dark Glass & Amber' design token system utilizing the `<GlassCard>` component.
 
-## Session Handoff — 2026-05-12 (plan upload streamlining + old plan rescue)
+## Session Handoff — 2026-05-12 (plan upload + Trigger dispatch rescue)
 ### What Changed
 - `app/site-walk/(act-1-setup)/setup/_components/ProjectSetupForm.tsx`: added an obvious "Next step — upload plans" panel directly under project setup. Existing/just-saved projects show `PlanUploaderCard`; unsaved projects show "Save first" guidance.
 - `app/site-walk/(act-1-setup)/setup/_components/StartWalkForm.tsx`: removed the hidden optional upload toggle. Plan upload is now always visible as "Step 2 — Upload plans for this walk" for the selected project.
@@ -40,9 +40,12 @@ Recommended read order:
 - `app/site-walk/(act-2-inputs)/capture/_components/WalkStartChoice.tsx`: start screen now clearly offers "Open Plan Room / Upload Plans" and "Camera-only Capture".
 - `components/site-walk/capture/PlanViewer.tsx`: added active-walk upload state. If a project walk has no plans, it renders `PlanUploaderCard` inside the plan view. If an old plan has no job row or a stale queued/processing job, it shows "Generate Mobile View" instead of spinning forever.
 - `app/api/site-walk/plan-sets/[id]/rasterize/route.ts`: stale queued/processing raster jobs older than 5 minutes are marked failed and replaced with a fresh job before dispatching Trigger.dev.
-- Trigger.dev production worker deployed successfully: version `20260512.8`, 1 detected task.
+- `app/api/site-walk/plan-sets/route.ts` and `app/api/site-walk/plan-sets/[id]/rasterize/route.ts`: Trigger SDK dispatch now passes `clientConfig.previewBranch = ""` so Vercel production does not send `x-trigger-branch: main`; both routes log accepted Trigger run IDs.
+- `components/site-walk/PlanUploaderCard.tsx`: upload no longer fire-and-forgets rasterization. It awaits the manual rasterize route and surfaces dispatch failure instead of showing false completion.
+- `trigger.config.ts`: added `syncEnvVars` for Supabase + R2 variables so Trigger.dev workers have the runtime secrets needed to download PDFs and write WebP images.
+- Trigger.dev production worker deployed successfully: version `20260512.9`, 1 detected task, 9 env vars synced.
 ### What's Broken / Partially Done
-- Backend inspection found 3 plan sets: all had sheets, zero `rasterized_key`; two had no job rows and one had a stale queued job. New UI/route handles these cases, but user must tap "Generate Mobile View" on old plans to force a fresh Trigger run unless we backfill jobs separately.
+- Backend inspection found 4 plan sets: all have sheets, zero `rasterized_key`; two had no job rows and two had queued jobs with no raster output. New UI/route handles no-job and stale-job cases, but user must tap "Generate Mobile View" on old plans to force a fresh Trigger run unless we backfill jobs separately.
 - Vercel env shows `TRIGGER_SECRET_KEY` available for Preview + Production only. That covers current deployed tests; Development is not set.
 - Existing file-size guard still reports unrelated pre-existing >300-line files, including `CaptureClientIsland.tsx` at ~305 lines. Touched files remain under 300 lines.
 ### Context Files Updated
@@ -52,7 +55,7 @@ Recommended read order:
 ### Next Steps (ordered)
 1. Verify Vercel deploy succeeds for the next commit.
 2. Smoke test: create/select project → upload plans from project setup; start a new walk → upload plans from visible Step 2; active walk with no plans → Open Plan Room / Upload Plans.
-3. Open old plan → tap Generate Mobile View → confirm Trigger.dev Runs tab shows a new `plan.rasterize` run and `site_walk_plan_sheets.rasterized_key` fills in.
+3. Open old plan → tap Generate Mobile View → confirm Trigger.dev prod Runs tab shows a new `plan.rasterize` run and `site_walk_plan_sheets.rasterized_key` fills in.
 4. Optional backend cleanup: backfill fresh raster jobs for old unrasterized plan sets instead of requiring manual Generate taps.
 
 ## Session Handoff — 2026-05-13 (session 2 — architecture enforcement)
