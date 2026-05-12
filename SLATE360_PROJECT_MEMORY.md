@@ -213,6 +213,25 @@ When editing oversized files, always read both the state declarations AND the JS
 
 ## Latest Session Handoff
 
+### Session Handoff — 2026-05-11 (Second Opinion Dossier)
+
+#### What Changed
+- **SECOND_OPINION_DOSSIER.md**: Created a forensic export for outside senior AI architecture review covering Vercel build failure, PWA/service-worker caching behavior, VisualCaptureView layout collisions, Site Walk UI/routing debt, and the plan viewer/serverless rasterization trap.
+
+#### What's Broken / Partially Done
+- Latest Vercel deployment for commit `4e44b28` failed; production/physical device cannot show the newest developer badge or UI rescue changes.
+- Build failure root cause: `@napi-rs/canvas` native `.node` binaries are being bundled from `app/api/site-walk/plan-sets/[id]/rasterize/route.ts`, causing webpack parse errors in Vercel.
+- Plan rasterization should be moved out of Vercel request handlers into a dedicated asynchronous worker architecture.
+
+#### Context Files Updated
+- `SECOND_OPINION_DOSSIER.md`: New external-review dossier.
+- `SLATE360_PROJECT_MEMORY.md`: This handoff.
+
+#### Next Steps (ordered)
+1. Share `SECOND_OPINION_DOSSIER.md` with outside reviewers.
+2. Do not continue patching app UI until the failed Vercel build/rasterization architecture is resolved.
+3. Decide on an async raster worker approach for Cloudflare R2/Supabase before restoring mobile Leaflet rollout.
+
 ### Session Handoff — 2026-05-11 (Site Walk Rasterization & Routing - Slice B.2)
 
 #### What Changed
