@@ -24,6 +24,8 @@ type CreatePlanSetBody = {
   pageCount?: number;
 };
 
+import { tasks } from "@trigger.dev/sdk/v3";
+
 export const GET = (req: NextRequest) =>
   withAppAuth("punchwalk", req, async ({ user, admin, orgId }) => {
     if (!orgId) return badRequest("Organization context required");
@@ -115,6 +117,19 @@ export const POST = (req: NextRequest) =>
       .insert(sheetRows)
       .select("*");
     if (sheetError) return serverError(sheetError.message);
+
+    // Insert task to queue
+    const { error: jobError } = await admin
+      .from("plan_raster_jobs")
+      .insert({
+        org_id: orgId,
+        plan_set_id: planSet.id,
+        status: "queued"
+      });
+    if (jobError) console.error("Failed to insert raster job", jobError);
+
+    // Fire the Trigger.dev task
+    await tasks.trigger("plan.rasterize", { planSetId: planSet.id, orgId });
 
     return ok({ planSet, planSets: [planSet], sheets: sheets ?? [] }, 201);
   });
