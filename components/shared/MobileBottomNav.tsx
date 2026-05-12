@@ -15,7 +15,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, FolderOpen, Cloud, Footprints, FileText, MessageSquare, MoreHorizontal, User, Map } from "lucide-react";
+import { Home, FolderOpen, Cloud, Footprints, FileText, MessageSquare, MoreHorizontal, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface NavItem {
@@ -36,9 +36,8 @@ const PLATFORM_NAV: NavItem[] = [
 const SITE_WALK_NAV: NavItem[] = [
   { label: "Home", href: "/site-walk", icon: Home, matchPrefixes: ["/site-walk$"] },
   { label: "Walks", href: "/site-walk/walks", icon: Footprints, matchPrefixes: ["/site-walk/walks", "/site-walk/capture", "/site-walk/board"] },
-  { label: "Plans", href: "/site-walk/plans", icon: Map, matchPrefixes: ["/site-walk/plans"] },
   { label: "Deliverables", href: "/site-walk/deliverables", icon: FileText, matchPrefixes: ["/site-walk/deliverables", "/site-walk/present"] },
-  { label: "More", href: "/site-walk/more", icon: MoreHorizontal, matchPrefixes: ["/site-walk/more", "/site-walk/slatedrop", "/site-walk/files", "/site-walk/templates", "/site-walk/contacts"] },
+  { label: "More", href: "/site-walk/more", icon: MoreHorizontal, matchPrefixes: ["/site-walk/more", "/site-walk/slatedrop", "/site-walk/files", "/site-walk/templates", "/site-walk/contacts", "/site-walk/plans"] },
 ];
 
 function pickNav(pathname: string): NavItem[] {

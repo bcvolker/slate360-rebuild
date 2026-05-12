@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronDown, Play, Plus } from "lucide-react";
+import { ChevronDown, ChevronUp, FileUp, Play, Plus } from "lucide-react";
 import type { SiteWalkSessionType } from "@/lib/types/site-walk";
+import { PlanUploaderCard } from "@/components/site-walk/PlanUploaderCard";
 import type { SetupProject } from "./setup-types";
 
 type Props = {
@@ -39,6 +40,7 @@ export function StartWalkForm({ projects }: Props) {
   const [title, setTitle] = useState(() => defaultTitle("punch", projects[0]?.name));
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showUploader, setShowUploader] = useState(false);
 
   function handleWalkTypeChange(type: SiteWalkSessionType) {
     setWalkType(type);
@@ -163,6 +165,27 @@ export function StartWalkForm({ projects }: Props) {
           placeholder="Auto-generated from project and walk type"
           className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white placeholder:text-slate-600 backdrop-blur-md focus:outline-none focus:ring-2 focus:ring-amber-500/50"
         />
+      </div>
+
+      {/* Optional plan upload */}
+      <div className="mt-4">
+        <button
+          type="button"
+          onClick={() => setShowUploader((v) => !v)}
+          disabled={!projectId}
+          className="inline-flex items-center gap-1.5 text-xs font-black text-amber-400 hover:text-amber-300 disabled:opacity-40"
+        >
+          <FileUp className="h-3.5 w-3.5" />
+          {showUploader ? "Hide plan upload" : "Upload a plan (optional)"}
+          {showUploader ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+        </button>
+        {showUploader && projectId && (
+          <div className="mt-3">
+            <PlanUploaderCard
+              project={projects.find((p) => p.id === projectId) ?? null}
+            />
+          </div>
+        )}
       </div>
 
       {error && <p className="mt-3 text-sm text-red-400">{error}</p>}

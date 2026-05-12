@@ -11,6 +11,7 @@ import { CaptureProvider, useCaptureContext } from "@/components/site-walk/captu
 import { useCaptureItems } from "@/components/site-walk/capture/useCaptureItems";
 import { useProjectCaptureSettings } from "@/lib/hooks/useProjectCaptureSettings";
 import { useDeviceContext, type DeviceCaptureInput } from "@/lib/hooks/useDeviceContext";
+import { usePlanSheetsRealtime } from "@/lib/hooks/usePlanSheetsRealtime";
 import type { SiteWalkPlanSet, SiteWalkPlanSheet } from "@/lib/types/site-walk";
 import type { CaptureItemDraft } from "@/lib/types/site-walk-capture";
 import { WalkStartChoice } from "./WalkStartChoice";
@@ -39,6 +40,8 @@ export function CaptureClientIsland(props: Props) {
 }
 
 function CaptureClientIslandInner({ sessionId, projectId, walkName, showPlanCanvas, showStartChoice, autoOpenCamera, launchId, initialItemId, planSets, planSheets }: Props) {
+  // Subscribe to Realtime so hasRasterized flips immediately when Trigger.dev finishes
+  const liveSheets = usePlanSheetsRealtime(planSheets, projectId);
   const captureCtx = useCaptureContext();
   const { requestCapture } = captureCtx;
   const [walkMode, setWalkMode] = useState<WalkMode>(() => showStartChoice ? "choice" : showPlanCanvas ? "plan" : "camera");
@@ -193,7 +196,7 @@ function CaptureClientIslandInner({ sessionId, projectId, walkName, showPlanCanv
             projectId={projectId}
             sessionId={sessionId}
             planSets={planSets}
-            sheets={planSheets}
+            sheets={liveSheets}
             items={items}
             onCaptureRequest={handlePlanCaptureRequest}
             onSelectItem={(id) => {
