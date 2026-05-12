@@ -6,7 +6,8 @@ export function SWRegistrar() {
   useEffect(() => {
     if ("serviceWorker" in navigator) {
       const checkAndClearCache = async () => {
-        const buildId = process.env.NEXT_PUBLIC_BUILD_ID || "dev";
+        // Hardcoded build ID — bump this string on every deploy to force cache nuke
+        const buildId = "2026-05-12-build-02";
         const lastBuildId = localStorage.getItem("slate360-last-build");
 
         if (buildId !== lastBuildId) {

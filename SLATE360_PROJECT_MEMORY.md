@@ -32,6 +32,26 @@ Recommended read order:
 - The `_legacy_v1` tree has been explicitly purged and removed from the active routing.
 - The entire application is strictly unified under the 'Dark Glass & Amber' design token system utilizing the `<GlassCard>` component.
 
+## Session Handoff — 2026-05-12
+### What Changed
+- `lib/hooks/usePlanSheetsRealtime.ts` (NEW): Supabase Realtime hook — subscribes to `site_walk_plan_sheets` changes filtered by `project_id`. When Trigger.dev writes `rasterized_key`, local state updates instantly. This is the fix for `hasRasterized` evaluating to false after rasterization completes.
+- `app/site-walk/(act-2-inputs)/capture/_components/CaptureClientIsland.tsx`: now calls `usePlanSheetsRealtime(planSheets, projectId)` and passes `liveSheets` to `PlanViewer`. Root cause of Leaflet not loading was static server props never updating.
+- `components/site-walk/PlanUploaderCard.tsx` (NEW): shared PDF plan uploader component, transplanted from deleted plans page.
+- `app/site-walk/(act-1-setup)/setup/_components/StartWalkForm.tsx`: added collapsible "Upload a plan (optional)" section with `PlanUploaderCard` — plan upload is now part of walk creation.
+- `components/shared/MobileBottomNav.tsx`: removed Plans tab from `SITE_WALK_NAV`; `/site-walk/plans` now falls under "More" match prefix.
+- `app/site-walk/(act-1-setup)/plans/` (DELETED): entire directory removed (page + 6 _components).
+### What's Broken / Partially Done
+- Supabase Realtime requires the `project_id` column to be indexed on `site_walk_plan_sheets` for filter performance. Verify or add index if latency is an issue.
+- The "Field Project" rename was already complete in this codebase — "Site Visit" is used everywhere. No rename was needed.
+- Vercel deploy triggered by push `5d03de5` — should be live in ~2 min.
+### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md`: session handoff added
+### Next Steps (ordered)
+1. Verify Vercel deploy succeeds (check Vercel dashboard).
+2. Smoke test: upload a PDF on the setup page → check plan sheets appear in capture view via Leaflet automatically.
+3. Confirm Supabase Realtime is enabled for the `site_walk_plan_sheets` table in the Supabase dashboard (Table Editor → Replication).
+4. If Leaflet still doesn't appear after rasterization, check Trigger.dev run logs for errors writing `rasterized_key`.
+
 ## Project Snapshot
 
 Slate360 is a Next.js 15 + React 19 + TypeScript SaaS platform with:

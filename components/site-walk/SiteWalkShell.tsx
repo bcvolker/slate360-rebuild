@@ -15,7 +15,6 @@ import { SiteWalkModuleNav } from "./SiteWalkModuleNav";
 export function SiteWalkShell({ children, orgName }: { children: ReactNode; userInitials?: string; orgName?: string | null }) {
   return (
     <div className="flex h-full w-full min-w-0 flex-col overflow-hidden bg-[#0B0F15]">
-      <div className="fixed top-0 left-0 w-full bg-green-500 text-black font-black text-center z-[9999] p-2">VER: UI-NUKE-02</div>
       <div className="shrink-0">
         <SiteWalkModuleNav orgName={orgName} />
       </div>
