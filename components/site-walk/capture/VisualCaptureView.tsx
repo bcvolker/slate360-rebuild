@@ -152,7 +152,7 @@ export function VisualCaptureView({ sessionId, autoOpenCamera, launchId, items, 
           </button>
         </div>
         <div className="pt-1">
-          <UnifiedVectorToolbar />
+          <UnifiedVectorToolbar disabled={!captureReady} />
         </div>
       </div>
     </div>
