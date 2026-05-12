@@ -94,7 +94,9 @@ Deep history files are reference-only unless the task needs them.
 
 ## Backend Quick Reference
 
-### Supabase clients
+- **FULL BACKEND ACCESS:** You have complete control over the backend. When implementing database schema changes, you MUST autonomously run migrations (`npx supabase db push` or similar) and execute backend deployments (e.g., `npx trigger.dev deploy` for Trigger workers). Do NOT ask the user to manually run pushes or migrations.
+- Supabase: project ref `hadnfcenpcfaeclczsmm`
+- Trigger.dev: project ref `proj_ydquoejbfqidzbjioyno`. To deploy autonomously, use the PAT: `npx trigger.dev deploy --access-token tr_pat_k1b4ndufsfwifi3dwxt4kkrz4urafvq9ky2vja9x`
 
 ```typescript
 import { createClient } from "@/lib/supabase/client";
