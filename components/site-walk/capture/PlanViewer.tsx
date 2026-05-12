@@ -23,6 +23,8 @@ export function PlanViewer(props: Props) {
   const [retrying, setRetrying] = useState(false);
   const [retryMessage, setRetryMessage] = useState<string | null>(null);
   const [failedJobError, setFailedJobError] = useState<string | null>(null);
+  // undefined = still loading, null = loaded but no job row exists (old plan), string = job status
+  const [jobStatus, setJobStatus] = useState<"loading" | "none" | "queued" | "processing" | "failed">("loading");
 
   const activePlanSet = useMemo(
     () => props.planSets?.find((set) => set.processing_status === "ready") ?? props.planSets?.[0] ?? null,
@@ -38,10 +40,11 @@ export function PlanViewer(props: Props) {
   // On mobile: always use Leaflet (or show processing state). Never fall back to React-PDF on mobile.
   const usingLeaflet = isMobile && hasRasterized;
 
-  // Check whether the Trigger.dev rasterization job has failed so we can show an error instead of a spinner.
+  // Check whether the Trigger.dev rasterization job has failed/missing so we can surface it instead of spinning.
   useEffect(() => {
-    if (!activePlanSet || hasRasterized) { setFailedJobError(null); return; }
+    if (!activePlanSet || hasRasterized) { setFailedJobError(null); setJobStatus("loading"); return; }
     let cancelled = false;
+    setJobStatus("loading");
     const supabase = createClient();
     void supabase
       .from("plan_raster_jobs")
@@ -49,11 +52,20 @@ export function PlanViewer(props: Props) {
       .eq("plan_set_id", activePlanSet.id)
       .order("created_at", { ascending: false })
       .limit(1)
-      .single()
       .then(({ data }) => {
         if (cancelled) return;
-        if (data?.status === "failed") setFailedJobError(data.error_text ?? "Rasterization failed (no details)");
-        else setFailedJobError(null);
+        const job = data?.[0];
+        if (!job) {
+          // Old plan — uploaded before Trigger was built. No job row exists at all.
+          setJobStatus("none");
+          setFailedJobError(null);
+        } else if (job.status === "failed") {
+          setJobStatus("failed");
+          setFailedJobError(job.error_text ?? "Rasterization failed (no details)");
+        } else {
+          setJobStatus(job.status as "queued" | "processing");
+          setFailedJobError(null);
+        }
       });
     return () => { cancelled = true; };
   }, [activePlanSet?.id, hasRasterized]);
@@ -80,16 +92,36 @@ export function PlanViewer(props: Props) {
   // Mobile without a rasterized image → show a processing screen.
   // Never show React-PDF on mobile (it crashes with touch gestures).
   if (isMobile && !hasRasterized) {
+    // jobStatus="none" means old plan with no raster job row — show Generate button immediately
+    // jobStatus="failed" means job ran but failed — show error + retry
+    // jobStatus="loading"|"queued"|"processing" means in-flight — show spinner
+    const showGenerate = jobStatus === "none" && !!activePlanSet;
+    const showError = jobStatus === "failed" && !!failedJobError;
+    const showSpinner = !showGenerate && !showError;
+
     return (
       <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-slate-950 px-6 text-center">
-        {failedJobError ? (
+        {showError ? (
           <>
             <AlertTriangle className="h-10 w-10 text-red-400" />
             <div>
               <p className="text-base font-black text-white">Plan processing failed</p>
-              <p className="mt-1 text-xs font-semibold text-slate-400">Trigger.dev worker error:</p>
+              <p className="mt-1 text-xs font-semibold text-slate-400">Error from worker:</p>
               <p className="mt-1 rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs font-mono text-red-300">
                 {failedJobError}
+              </p>
+            </div>
+          </>
+        ) : showGenerate ? (
+          <>
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-500/10">
+              <AlertTriangle className="h-8 w-8 text-amber-400" />
+            </div>
+            <div>
+              <p className="text-base font-black text-white">Mobile view not generated yet</p>
+              <p className="mt-1 text-xs font-semibold text-slate-400">
+                This plan was uploaded before the mobile processor was active.
+                Tap the button below to generate it now.
               </p>
             </div>
           </>
@@ -112,9 +144,9 @@ export function PlanViewer(props: Props) {
           <button
             onClick={() => void handleRetryRasterization()}
             disabled={retrying}
-            className="rounded-xl bg-amber-500 px-4 py-2 text-sm font-black text-slate-950 hover:bg-amber-400 disabled:opacity-50"
+            className="rounded-xl bg-amber-500 px-5 py-2.5 text-sm font-black text-slate-950 hover:bg-amber-400 disabled:opacity-50"
           >
-            {retrying ? "Starting…" : "Re-process plan"}
+            {retrying ? "Starting…" : showGenerate ? "Generate Mobile View" : "Re-process plan"}
           </button>
         )}
         {retryMessage && (

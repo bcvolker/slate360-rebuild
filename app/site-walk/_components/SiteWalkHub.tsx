@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
-import { Building2, Camera, ChevronDown, ClipboardList, FolderOpen, Loader2, Star, Zap } from "lucide-react";
+import { Building2, Camera, ChevronDown, ClipboardList, FileText, FolderOpen, Loader2, Star, Zap } from "lucide-react";
 import GlassCard from "@/components/shared/GlassCard";
+import { PlanUploaderCard } from "@/components/site-walk/PlanUploaderCard";
 
 export type HubProject = {
   id: string;
@@ -137,6 +138,14 @@ export function SiteWalkHub({ projects, walks }: { projects: HubProject[]; walks
                         <button type="button" onClick={() => void startWalk(project)} disabled={createState.kind === "starting"} className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl bg-amber-500 px-4 text-sm font-black text-slate-950 hover:bg-amber-400 disabled:opacity-70">
                           {createState.kind === "starting" && createState.target === project.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <ClipboardList className="h-4 w-4" />} Start walk
                         </button>
+                        {/* Plan Room — visible whenever the project is expanded */}
+                        <div className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-3">
+                          <div className="mb-2 flex items-center gap-2">
+                            <FileText className="h-4 w-4 text-amber-400" />
+                            <span className="text-xs font-black uppercase tracking-wider text-amber-400">Plan Room</span>
+                          </div>
+                          <PlanUploaderCard project={project} />
+                        </div>
                         {projectWalks.length === 0 && <p className="rounded-2xl bg-black/20 px-3 py-2 text-center text-xs font-bold text-slate-500">No walks for this project yet.</p>}
                         {projectWalks.map((walk) => <Link key={walk.id} href={walkHref(walk)} className="flex items-center justify-between rounded-2xl bg-black/20 px-3 py-2 text-sm font-bold text-slate-200 hover:text-amber-100"><span className="truncate">{walk.title}</span><span className="ml-3 shrink-0 text-xs text-slate-500">{walk.itemCount}</span></Link>)}
                       </div>
