@@ -32,6 +32,25 @@ Recommended read order:
 - The `_legacy_v1` tree has been explicitly purged and removed from the active routing.
 - The entire application is strictly unified under the 'Dark Glass & Amber' design token system utilizing the `<GlassCard>` component.
 
+## Session Handoff — 2026-05-12 (Trigger PDF rasterizer fixed)
+### What Changed
+- `src/trigger/rasterize.ts`: fixed production PDF rasterization by explicitly registering `pdf.worker.mjs` on `globalThis`, dynamically loading a Path2D-capable canvas runtime, and adding a Trigger-safe `process.getBuiltinModule` shim before importing `@napi-rs/canvas`.
+- `trigger.config.ts`: added `additionalPackages({ packages: ["@napi-rs/canvas"] })` so the Trigger image installs the native canvas package that PDF.js requires at runtime.
+- `package.json` / `package-lock.json`: added `@napi-rs/canvas`.
+- `lib/types/pdfjs-worker.d.ts`: added a module declaration for `pdfjs-dist/legacy/build/pdf.worker.mjs`.
+- Trigger.dev production worker deployed successfully as version `20260512.15`.
+### What's Broken / Partially Done
+- File-size guard still fails on unrelated pre-existing oversized files; changed production files are under 300 lines (`src/trigger/rasterize.ts` is 252 lines, `trigger.config.ts` is 57 lines).
+- Older unrasterized plan sets may still need the user to tap Generate Mobile View unless backfilled separately.
+### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md`: latest handoff
+- `slate360-context/ONGOING_ISSUES.md`: BUG-082 root cause updated with PDF.js worker/canvas fixes
+- `ops/bug-registry.json`: BUG-085 verification updated with production Trigger run success
+### Next Steps (ordered)
+1. Commit and push the rasterizer fix so Vercel/API-route code and package lock are preserved on `main`.
+2. Smoke test from the PWA: upload a new plan → confirm “mobile conversion started” → wait for WebP plan to open in Leaflet.
+3. Optional backend cleanup: backfill or re-trigger any remaining old plan sets without `rasterized_key`.
+
 ## Session Handoff — 2026-05-12 (plan upload + Trigger dispatch rescue)
 ### What Changed
 - `app/site-walk/(act-1-setup)/setup/_components/ProjectSetupForm.tsx`: added an obvious "Next step — upload plans" panel directly under project setup. Existing/just-saved projects show `PlanUploaderCard`; unsaved projects show "Save first" guidance.

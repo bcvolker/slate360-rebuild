@@ -2,36 +2,80 @@ import { task } from "@trigger.dev/sdk/v3";
 import { createClient } from "@supabase/supabase-js";
 import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { createCanvas } from "canvas";
+import { createRequire } from "node:module";
 import sharp from "sharp";
 import { v4 as uuidv4 } from "uuid";
 
-// Polyfill for NodeJS environments before importing pdfjs
-if (typeof globalThis.DOMMatrix === "undefined") {
-  (globalThis as any).DOMMatrix = class DOMMatrix {
-    a=1; b=0; c=0; d=1; e=0; f=0;
-    constructor() {}
-  };
-}
-if (typeof globalThis.Path2D === "undefined") {
-  (globalThis as any).Path2D = class Path2D {
-    constructor() {}
-  };
-}
-if (typeof globalThis.ImageData === "undefined") {
-  (globalThis as any).ImageData = class ImageData {
-    data: Uint8ClampedArray;
-    width: number;
-    height: number;
-    constructor(width: number, height: number) {
-      this.width = width;
-      this.height = height;
-      this.data = new Uint8ClampedArray(width * height * 4);
-    }
-  };
-}
+type PdfJsModule = typeof import("pdfjs-dist/legacy/build/pdf.mjs");
+type PdfJsWorkerModule = typeof import("pdfjs-dist/legacy/build/pdf.worker.mjs");
+type CanvasRuntime = typeof import("@napi-rs/canvas");
+type CanvasRuntimeImport = CanvasRuntime & {
+  default?: CanvasRuntime;
+};
 
-// We will dynamically import pdfjs-dist inside the run function
+type PdfJsGlobal = typeof globalThis & {
+  pdfjsWorker?: PdfJsWorkerModule;
+};
+
+type ProcessWithBuiltinModule = NodeJS.Process & {
+  getBuiltinModule?: (id: string) => unknown;
+};
+
+const requireBuiltin = createRequire(import.meta.url);
+let canvasRuntime: CanvasRuntime | null = null;
+
+const ensureCanvasRuntime = async () => {
+  const processWithBuiltin = process as ProcessWithBuiltinModule;
+  processWithBuiltin.getBuiltinModule ??= (id: string) => requireBuiltin(id);
+
+  if (!canvasRuntime) {
+    const importedCanvas = await import("@napi-rs/canvas") as CanvasRuntimeImport;
+    canvasRuntime = typeof importedCanvas.createCanvas === "function"
+      ? importedCanvas
+      : importedCanvas.default ?? null;
+  }
+
+  if (!canvasRuntime || typeof canvasRuntime.createCanvas !== "function") {
+    throw new Error("@napi-rs/canvas did not expose createCanvas in the Trigger runtime.");
+  }
+  if (typeof canvasRuntime.DOMMatrix !== "function") {
+    throw new Error("@napi-rs/canvas did not expose DOMMatrix in the Trigger runtime.");
+  }
+
+  if (typeof globalThis.DOMMatrix !== "function") {
+    globalThis.DOMMatrix = canvasRuntime.DOMMatrix as unknown as typeof globalThis.DOMMatrix;
+  }
+  if (typeof globalThis.Path2D !== "function") {
+    globalThis.Path2D = canvasRuntime.Path2D as unknown as typeof globalThis.Path2D;
+  }
+  if (typeof globalThis.ImageData !== "function") {
+    globalThis.ImageData = canvasRuntime.ImageData as unknown as typeof globalThis.ImageData;
+  }
+
+  return canvasRuntime;
+};
+
+const getCanvasRuntime = () => {
+  if (!canvasRuntime) {
+    throw new Error("Canvas runtime has not been initialized.");
+  }
+  return canvasRuntime;
+};
+
+// We dynamically import PDF.js inside the run function so the Trigger worker can
+// boot with env validation deferred. In Node, PDF.js disables real web workers
+// and falls back to a "fake worker" loaded from GlobalWorkerOptions.workerSrc.
+// Trigger bundles pdf.mjs as a hashed file, so the default ./pdf.worker.mjs path
+// resolves to /app/pdf.worker.mjs and fails unless we register the worker module
+// on globalThis first.
+
+const bootstrapPdfWorker = async (pdfjsLib: PdfJsModule) => {
+  const pdfjsGlobal = globalThis as PdfJsGlobal;
+  pdfjsGlobal.pdfjsWorker ??= await import("pdfjs-dist/legacy/build/pdf.worker.mjs");
+
+  // Keep workerSrc resolvable for any PDF.js path that still asks for it.
+  pdfjsLib.GlobalWorkerOptions.workerSrc = "pdfjs-dist/legacy/build/pdf.worker.mjs";
+};
 
 const BUCKET = process.env.R2_BUCKET || "slate360-storage";
 
@@ -55,6 +99,7 @@ const getS3 = () => new S3Client({
 
 class NodeCanvasFactory {
   create(width: number, height: number) {
+    const { createCanvas } = getCanvasRuntime();
     const canvas = createCanvas(width, height);
     const context = canvas.getContext("2d");
     return { canvas, context };
@@ -129,7 +174,9 @@ export const rasterizePlanTask = task({
       
       const pdfArrayBuffer = await pdfResponse.arrayBuffer();
 
+      await ensureCanvasRuntime();
       const pdfjsLib = await import("pdfjs-dist/legacy/build/pdf.mjs");
+      await bootstrapPdfWorker(pdfjsLib);
 
       const loadingTask = pdfjsLib.getDocument({
         data: new Uint8Array(pdfArrayBuffer),

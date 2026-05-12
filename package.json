@@ -42,6 +42,7 @@
     "@aws-sdk/client-s3": "^3.995.0",
     "@aws-sdk/lib-storage": "^3.995.0",
     "@aws-sdk/s3-request-presigner": "^3.995.0",
+    "@napi-rs/canvas": "^1.0.0",
     "@photo-sphere-viewer/core": "^5.14.1",
     "@react-pdf/renderer": "^4.5.1",
     "@sentry/nextjs": "^10.47.0",

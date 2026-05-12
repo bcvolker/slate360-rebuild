@@ -954,7 +954,7 @@
       "module": "site-walk/plans",
       "severity": "critical",
       "status": "fixed",
-      "rootCause": "Plan upload was hidden behind secondary project/walk UI; active project walks with zero plan sheets had no upload path; old plan sets with no raster job or stale queued jobs spun forever; Trigger.dev worker lacked Supabase/R2 env vars; Vercel dispatch inherited VERCEL_GIT_COMMIT_REF as a Trigger preview branch header.",
+      "rootCause": "Plan upload was hidden behind secondary project/walk UI; active project walks with zero plan sheets had no upload path; old plan sets with no raster job or stale queued jobs spun forever; Trigger.dev worker lacked Supabase/R2 env vars; Vercel dispatch inherited VERCEL_GIT_COMMIT_REF as a Trigger preview branch header; PDF.js fake-worker setup could not resolve /app/pdf.worker.mjs in the Trigger bundle; node-canvas lacked the Path2D/DOMMatrix support PDF.js v5 needed for clipping.",
       "verification": [
         "Project setup shows a plan upload panel immediately after project save/select",
         "Start Walk form always shows the plan upload dropzone for the selected project",
@@ -963,7 +963,10 @@
         "Manual rasterize route replaces stale queued/processing jobs and dispatches a fresh Trigger.dev run",
         "Trigger.dev production env list includes Supabase and R2 variables",
         "Vercel tasks.trigger calls force previewBranch to an empty string and log accepted run IDs",
-        "PlanUploaderCard awaits rasterize dispatch and reports dispatch failure to the user"
+        "PlanUploaderCard awaits rasterize dispatch and reports dispatch failure to the user",
+        "Trigger rasterizer registers pdf.worker.mjs on globalThis before getDocument",
+        "Trigger deployment includes @napi-rs/canvas for Path2D/DOMMatrix rendering support",
+        "Production Trigger run run_cmp2qvnvg3hs30iodbk44x6y1 completed and wrote a rasterized_key"
       ]
     }
   ]

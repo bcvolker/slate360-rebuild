@@ -1,5 +1,5 @@
 import { defineConfig } from "@trigger.dev/sdk/v3";
-import { syncEnvVars } from "@trigger.dev/build/extensions/core";
+import { additionalPackages, syncEnvVars } from "@trigger.dev/build/extensions/core";
 import { existsSync, readFileSync } from "node:fs";
 
 const triggerEnvNames = [
@@ -21,6 +21,7 @@ export default defineConfig({
   dirs: ["src/trigger"],
   build: {
     extensions: [
+      additionalPackages({ packages: ["@napi-rs/canvas"] }),
       syncEnvVars(() => pickTriggerEnv()),
     ],
     // @ts-ignore - Ignore type error as this is needed for Trigger.dev worker infrastructure
