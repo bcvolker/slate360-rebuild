@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Activity, CheckCircle2, Clock, Footprints, UserRound } from "lucide-react";
+import { Activity, BriefcaseBusiness, CheckCircle2, Clock, Footprints, Plus, UserRound } from "lucide-react";
 import type { LiveWalkSummary } from "@/components/site-walk/live/live-walk-types";
 import { elapsedLabel } from "@/components/site-walk/live/live-walk-utils";
 import { resolveServerOrgContext } from "@/lib/server/org-context";
@@ -28,43 +28,57 @@ export default async function SiteWalksPage() {
 
   const inProgress = walks.filter((w) => w.status === "in_progress");
   const completed = walks.filter((w) => w.status !== "in_progress");
+  const worksiteCount = new Set(walks.map((walk) => walk.projectName).filter(Boolean)).size;
+  const itemCount = walks.reduce((sum, walk) => sum + walk.itemCount, 0);
 
   return (
-    <main className="min-h-[calc(100dvh-96px)] overflow-y-auto bg-[radial-gradient(circle_at_top,rgba(245,158,11,0.07),transparent_34%),#0B0F15] px-4 py-4 text-slate-50 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-7xl space-y-6">
-
-        {/* Stats */}
-        <section className="grid gap-3 lg:grid-cols-3">
-          <StatCard label="In progress" value={String(inProgress.length)} />
-          <StatCard label="Items captured" value={String(walks.reduce((sum, w) => sum + w.itemCount, 0))} />
-          <StatCard label="Completed walks" value={String(completed.length)} />
+    <main className="flex h-full min-h-0 flex-col overflow-hidden bg-[radial-gradient(circle_at_top,rgba(245,158,11,0.07),transparent_34%),#0B0F15] px-4 py-4 text-slate-50 sm:px-6 lg:px-8">
+      <div className="mx-auto flex min-h-0 w-full max-w-7xl flex-1 flex-col gap-3">
+        <section className="shrink-0 rounded-3xl border border-white/10 bg-white/[0.045] p-3 backdrop-blur-xl">
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-400">Site Walk</p>
+              <h1 className="truncate text-xl font-black text-white">Worksites</h1>
+            </div>
+            <Link href="/site-walk/setup" className="inline-flex min-h-10 shrink-0 items-center gap-2 rounded-2xl bg-amber-500 px-3 text-xs font-black text-slate-950 hover:bg-amber-400">
+              <Plus className="h-4 w-4" /> New Worksite
+            </Link>
+          </div>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <SummaryBadge label="Worksites" value={String(worksiteCount)} />
+            <SummaryBadge label="Active" value={String(inProgress.length)} />
+            <SummaryBadge label="Reports" value={String(completed.length)} />
+            <SummaryBadge label="Items" value={String(itemCount)} />
+          </div>
         </section>
 
-        {/* In-progress */}
-        {inProgress.length > 0 && (
-          <section className="space-y-2">
-            <h2 className="text-[11px] font-black uppercase tracking-[0.16em] text-amber-400">In Progress</h2>
-            <div className="grid gap-3">
-              {inProgress.map((walk) => <WalkCard key={walk.id} walk={walk} />)}
-            </div>
-          </section>
-        )}
+        <div className="min-h-0 flex-1 overflow-y-auto pb-[max(env(safe-area-inset-bottom),1rem)] no-scrollbar">
+          <div className="space-y-4">
+            {inProgress.length > 0 && (
+              <section className="space-y-2">
+                <h2 className="text-[11px] font-black uppercase tracking-[0.16em] text-amber-400">Active Walks</h2>
+                <div className="grid gap-2">
+                  {inProgress.map((walk) => <WalkCard key={walk.id} walk={walk} />)}
+                </div>
+              </section>
+            )}
 
-        {/* Completed */}
-        {completed.length > 0 && (
-          <section className="space-y-2">
-            <h2 className="text-[11px] font-black uppercase tracking-[0.16em] text-slate-400">Completed</h2>
-            <div className="grid gap-3">
-              {completed.map((walk) => <WalkCard key={walk.id} walk={walk} />)}
-            </div>
-          </section>
-        )}
+            {completed.length > 0 && (
+              <section className="space-y-2">
+                <h2 className="text-[11px] font-black uppercase tracking-[0.16em] text-slate-400">Completed Reports</h2>
+                <div className="grid gap-2">
+                  {completed.map((walk) => <WalkCard key={walk.id} walk={walk} />)}
+                </div>
+              </section>
+            )}
 
-        {walks.length === 0 && (
-          <div className="rounded-3xl border border-dashed border-white/20 bg-white/5 p-8 text-center text-sm font-bold text-slate-400">
-            No walks yet. Start a walk from a phone and it will appear here.
+            {walks.length === 0 && (
+              <div className="rounded-3xl border border-dashed border-white/20 bg-white/5 p-8 text-center text-sm font-bold text-slate-400">
+                No worksites yet. Create a worksite to organize walks, plans, captures, reports, and files.
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
     </main>
   );
@@ -73,7 +87,7 @@ export default async function SiteWalksPage() {
 function WalkCard({ walk }: { walk: LiveWalkSummary }) {
   const isComplete = walk.status === "completed";
   return (
-    <div className="relative group rounded-3xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm transition hover:border-amber-400/40 hover:bg-white/10 overflow-hidden">
+    <div className="relative group overflow-hidden rounded-3xl border border-white/10 bg-white/5 p-3 backdrop-blur-sm transition hover:border-amber-400/40 hover:bg-white/10">
       {/* Thumbnail */}
       {walk.thumbnailUrl && (
         <div className="absolute inset-0 opacity-10 group-hover:opacity-15 transition-opacity">
@@ -86,12 +100,12 @@ function WalkCard({ walk }: { walk: LiveWalkSummary }) {
       <div className="relative flex items-start gap-4">
         {/* Thumbnail icon (when no photo, show placeholder) */}
         {!walk.thumbnailUrl && (
-          <div className="hidden sm:flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white/5 border border-white/10 text-slate-500">
-            <Footprints className="h-6 w-6" />
+          <div className="hidden h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-slate-500 sm:flex">
+            <Footprints className="h-5 w-5" />
           </div>
         )}
         {walk.thumbnailUrl && (
-          <div className="hidden sm:block h-14 w-14 shrink-0 rounded-2xl overflow-hidden border border-white/10">
+          <div className="hidden h-12 w-12 shrink-0 overflow-hidden rounded-2xl border border-white/10 sm:block">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={walk.thumbnailUrl} alt="" className="h-full w-full object-cover" />
           </div>
@@ -101,8 +115,8 @@ function WalkCard({ walk }: { walk: LiveWalkSummary }) {
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
-              <p className="text-xs font-black uppercase tracking-[0.16em] text-amber-400 truncate">{walk.projectName ?? "Ad-hoc walk"}</p>
-              <Link href={`/site-walk/walks/${walk.id}`} className="mt-1 block text-xl font-black text-slate-50 hover:text-amber-200 transition-colors truncate">
+              <p className="truncate text-[10px] font-black uppercase tracking-[0.16em] text-amber-400">{walk.projectName ?? "No worksite"}</p>
+              <Link href={`/site-walk/walks/${walk.id}`} className="mt-0.5 block truncate text-base font-black text-slate-50 transition-colors hover:text-amber-200">
                 {walk.title}
               </Link>
               {isComplete && (
@@ -114,7 +128,7 @@ function WalkCard({ walk }: { walk: LiveWalkSummary }) {
             <DeleteWalkButton walkId={walk.id} walkTitle={walk.title} />
           </div>
 
-          <div className="mt-3 flex flex-wrap gap-3">
+          <div className="mt-2 flex flex-wrap gap-2">
             <Metric icon={<UserRound className="h-3.5 w-3.5" />} label="Walker" value={walk.walkerName} />
             <Metric icon={<Clock className="h-3.5 w-3.5" />} label="Elapsed" value={elapsedLabel(walk.startedAt)} />
             <Metric icon={<Activity className="h-3.5 w-3.5" />} label="Items" value={String(walk.itemCount)} />
@@ -125,12 +139,11 @@ function WalkCard({ walk }: { walk: LiveWalkSummary }) {
   );
 }
 
-function StatCard({ label, value }: { label: string; value: string }) {
+function SummaryBadge({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-3xl border border-white/10 bg-white/5 p-5 backdrop-blur-sm">
-      <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-400">{label}</p>
-      <p className="mt-2 text-3xl font-black text-slate-50">{value}</p>
-    </div>
+    <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.05] px-3 py-1 text-[11px] font-black text-slate-300">
+      <BriefcaseBusiness className="h-3.5 w-3.5 text-slate-500" /> {label} <span className="text-amber-200">{value}</span>
+    </span>
   );
 }
 

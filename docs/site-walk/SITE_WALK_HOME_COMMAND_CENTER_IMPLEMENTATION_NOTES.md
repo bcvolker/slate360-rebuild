@@ -218,3 +218,50 @@ Phone review after commit `645fe3a` found the scroll panel became too dominant a
 - `npm run build`: passed with existing warnings only: Sentry config deprecation, webpack cache large-string warnings, `instrumentation.ts` async target warning, and Next ESLint plugin warning.
 - `npm run guard:architecture`: passed.
 - `bash scripts/check-file-size.sh || true`: still reports 13 pre-existing unrelated oversized files; none of the Slice 1.2 changed production files exceed 300 lines.
+
+## Phone Review After Taxonomy Pass
+
+Phone review after commit `602fce9` found the terminology direction improved, but layout and Worksites routing still needed a focused correction:
+
+- The fixed mobile panel height created dead blank space under the contained tab panel.
+- The top action area still felt cramped, so shrinking the panel did not use space effectively.
+- The panel should flex to available space above the bottom nav instead of using an arbitrary height like `43dvh`.
+- Empty space inside the panel is acceptable; dead blank space outside the panel above the bottom nav is not.
+- The Walks page still used oversized passive metric cards with little field value.
+- The Walks page should move toward the lower-tier `Worksites` concept while preserving existing routes and APIs.
+- `Worksite` is the Site Walk container for lower-tier users.
+- `Project` remains the higher-tier PM container for schedule, budget, RFIs, submittals, versions, and oversight.
+- SlateDrop will become the file backbone for Worksites and Projects, but folder automation remains future work.
+
+## Slice 1.3 Layout + Worksites Correction
+
+- Removed the arbitrary fixed/maximum height cap from the Site Walk Home panel.
+- Restored the home work panel to `flex-1 min-h-0`, so it fills remaining space above bottom nav without page-level scrolling.
+- Kept the top actions compact but adjusted spacing and text sizing to reduce cramped wrapping.
+- Kept tabs as compact wrapped segmented tabs: Active, Recent, Worksites, Issues, Reports.
+- Converted the Walks page visible heading to Worksites while keeping the `/site-walk/walks` route intact.
+- Removed the giant Walks metric cards and replaced them with compact summary badges.
+- Kept the Walks/Worksites page focused on active walks, completed reports, and real empty states from existing data.
+- Did not implement SlateDrop folder automation or higher-tier Project Management features.
+
+## Slice 1.3 Codex-style review
+
+- No Trigger changes: passed.
+- No schema/migration changes: passed.
+- No capture/plan viewer changes: passed.
+- No fake data: passed.
+- No app-wide color migration: passed.
+- No page scroll under bottom nav: preserved through bounded flex containers and internal scroll panes.
+- No blank dead space below the work panel: fixed by restoring the panel to flex remaining space.
+- Main panel uses flex remaining space: passed.
+- Walks/Worksites page no longer uses giant passive metrics: fixed with compact badges.
+- Delete remains two-click confirmation: unchanged.
+- Existing walk opening still works: links/routes preserved.
+
+## Slice 1.3 Validation
+
+- `get_errors` on changed focused files: passed.
+- `npm run typecheck`: passed.
+- `npm run build`: passed with existing warnings only: Sentry config deprecation, webpack cache large-string warnings, `instrumentation.ts` async target warning, and Next ESLint plugin warning.
+- `npm run guard:architecture`: passed.
+- `bash scripts/check-file-size.sh || true`: still reports 13 pre-existing unrelated oversized files; none of the Slice 1.3 changed production files exceed 300 lines.

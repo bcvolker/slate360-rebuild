@@ -49,16 +49,16 @@ export function SiteWalkHub({ projects, walks, summary }: { projects: HubProject
 
   return (
     <div className="mx-auto flex h-full min-h-0 w-full max-w-5xl flex-col gap-2 overflow-hidden lg:gap-3">
-      <section className="shrink-0 rounded-[1.4rem] border border-white/10 bg-white/[0.035] p-2.5 backdrop-blur-xl sm:p-3" aria-label="Site Walk actions">
-        <p className="px-1 pb-2 text-[10px] font-black uppercase tracking-[0.24em] text-amber-400/90">Site Walk</p>
-        <div className="grid grid-cols-3 gap-2">
-          <Link href="/site-walk/setup" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.07] px-2 text-center text-xs font-black text-white transition hover:border-amber-400/45 hover:bg-white/[0.1]">
+      <section className="shrink-0 rounded-[1.4rem] border border-white/10 bg-white/[0.035] p-2 backdrop-blur-xl sm:p-3" aria-label="Site Walk actions">
+        <p className="px-1 pb-1.5 text-[10px] font-black uppercase tracking-[0.24em] text-amber-400/90">Site Walk</p>
+        <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
+          <Link href="/site-walk/setup" className="inline-flex min-h-12 items-center justify-center gap-1.5 rounded-2xl border border-white/10 bg-white/[0.07] px-1.5 text-center text-[11px] font-black text-white transition hover:border-amber-400/45 hover:bg-white/[0.1] sm:gap-2 sm:px-2 sm:text-xs">
             <ClipboardList className="h-4 w-4 shrink-0 text-amber-300" /> New Worksite
           </Link>
-          <button type="button" onClick={() => projects.length > 0 ? setActiveTab("worksites") : router.push("/site-walk/setup")} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.07] px-2 text-center text-xs font-black text-white transition hover:border-amber-400/45 hover:bg-white/[0.1]">
+          <button type="button" onClick={() => projects.length > 0 ? setActiveTab("worksites") : router.push("/site-walk/setup")} className="inline-flex min-h-12 items-center justify-center gap-1.5 rounded-2xl border border-white/10 bg-white/[0.07] px-1.5 text-center text-[11px] font-black text-white transition hover:border-amber-400/45 hover:bg-white/[0.1] sm:gap-2 sm:px-2 sm:text-xs">
             <Building2 className="h-4 w-4 shrink-0 text-amber-300" /> Start Walk
           </button>
-          <button type="button" onClick={() => void startWalk()} disabled={createState.kind === "starting"} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-amber-500 px-2 text-center text-xs font-black text-slate-950 transition hover:bg-amber-400 disabled:opacity-70">
+          <button type="button" onClick={() => void startWalk()} disabled={createState.kind === "starting"} className="inline-flex min-h-12 items-center justify-center gap-1.5 rounded-2xl bg-amber-500 px-1.5 text-center text-[11px] font-black text-slate-950 transition hover:bg-amber-400 disabled:opacity-70 sm:gap-2 sm:px-2 sm:text-xs">
             {createState.kind === "starting" && createState.target === "quick" ? <Loader2 className="h-4 w-4 shrink-0 animate-spin" /> : <Zap className="h-4 w-4 shrink-0" />} Quick Capture
           </button>
         </div>
@@ -66,7 +66,7 @@ export function SiteWalkHub({ projects, walks, summary }: { projects: HubProject
 
       {createState.kind === "error" && <p className="shrink-0 rounded-2xl border border-rose-400/25 bg-rose-500/10 px-4 py-3 text-sm font-bold text-rose-200">{createState.message}</p>}
 
-      <GlassCard className="flex h-[43dvh] min-h-[17rem] max-h-[23rem] shrink-0 flex-col overflow-hidden p-0 lg:min-h-0 lg:max-h-none lg:flex-1 lg:shrink lg:basis-0">
+      <GlassCard className="flex min-h-0 flex-1 flex-col overflow-hidden p-0">
         <div className="grid shrink-0 grid-cols-3 gap-1 border-b border-white/10 p-2 sm:grid-cols-5" role="tablist" aria-label="Site Walk command panels">
           {([
             { key: "active", label: "Active", count: activeWalks.length },

@@ -38,6 +38,27 @@ Recommended read order:
 - Visual framing correction: future V1 design work should be described as Graphite Glass + restrained amber + muted teal, not harsh black/orange or a broad app-wide Dark Glass repaint.
 - Site Walk terminology rule: use `Worksite` for lower-tier field containers and reserve `Project` for higher-tier PM containers unless existing route/API/table names force the old term.
 
+## Session Handoff — 2026-05-13 (Site Walk Home Slice 1.3 Worksites layout)
+### What Changed
+- `app/site-walk/_components/SiteWalkHub.tsx`: removed the arbitrary `43dvh`/max-height cap so the Home work panel again fills remaining space above bottom nav via `flex-1 min-h-0`; top actions remain compact with tighter spacing.
+- `app/site-walk/(act-2-inputs)/walks/page.tsx`: changed the visible page concept to Worksites, removed giant passive metric cards, added compact summary badges, and kept walk/report lists dense and scroll-contained.
+- `docs/site-walk/SITE_WALK_HOME_COMMAND_CENTER_IMPLEMENTATION_NOTES.md`: added Phone Review After Taxonomy Pass, Slice 1.3 layout notes, and Codex-style review.
+- `docs/site-walk/SITE_WALK_V1_TAXONOMY_AND_WORKFLOW.md`: clarified Worksite as the lower-tier Site Walk container and Project as higher-tier PM; no table/API renames in this slice.
+### What's Broken / Partially Done
+- Slice 1 remains pending physical iPhone confirmation.
+- `/site-walk/walks` route name remains unchanged; only visible labeling moves toward Worksites.
+- SlateDrop folder automation for Worksites/Projects remains documented future work only.
+- Higher-tier Project Management suite remains out of scope.
+- File-size guard still reports 13 pre-existing unrelated oversized files.
+### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md`: latest handoff
+- `docs/site-walk/SITE_WALK_HOME_COMMAND_CENTER_IMPLEMENTATION_NOTES.md`: Slice 1.3 review/validation notes
+- `docs/site-walk/SITE_WALK_V1_TAXONOMY_AND_WORKFLOW.md`: taxonomy clarification
+### Next Steps (ordered)
+1. Monitor the Slice 1.3 Vercel deployment.
+2. Test on iPhone: no blank dead space below Home panel, compact top actions, panel reaches above bottom nav, Worksites page has no giant metrics, and existing walk open/delete behavior still works.
+3. Do not mark Slice 1 complete until user confirms physical phone testing.
+
 ## Session Handoff — 2026-05-13 (Site Walk Home Slice 1.2 balance + taxonomy)
 ### What Changed
 - `docs/site-walk/SITE_WALK_V1_TAXONOMY_AND_WORKFLOW.md`: created Worksite / Project / Walk / Stop / Item-Issue / Deliverable / SlateDrop relationship taxonomy.

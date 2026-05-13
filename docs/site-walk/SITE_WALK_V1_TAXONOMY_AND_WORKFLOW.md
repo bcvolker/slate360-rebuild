@@ -11,15 +11,15 @@ Site Walk needs simple field-first language without implying that every user is 
 
 ### 1. Worksite
 
-- Lower-tier Site Walk container.
+- Lower-tier Site Walk container for Site Walk users.
 - Used for a building, location, job, client site, or scoped work area.
-- Holds walks, stops, captures, files, deliverables, and SlateDrop folders.
+- Can contain multiple Walks / Site Visits, plans, stops, captures, reports, deliverables, files, and SlateDrop folders.
 - Does not imply the full construction PM suite.
 - UI labels should prefer `Worksite` for Site Walk Home, Site Walk setup, and compact field workflows.
 
 ### 2. Project
 
-- Higher-tier construction management container.
+- Higher-tier construction management container, reserved for advanced PM contexts.
 - Supports advanced PM features later:
   - schedule
   - budget
@@ -29,6 +29,7 @@ Site Walk needs simple field-first language without implying that every user is 
   - historical versions
   - enterprise oversight
 - Use `Project` where the user is clearly inside Project Hub or higher-tier construction management.
+- Do not rename database tables, route segments, or API contracts in the Site Walk Home slices; UI can say `Worksite` even when internal names still use `projects` temporarily.
 
 ### 3. Walk / Site Visit
 
@@ -80,4 +81,5 @@ For Slice 1.2, update UI language where safe:
 - Prefer `Worksites` over `Projects` in Site Walk Home.
 - Prefer `Reports` over `Drafts` for compact output tabs.
 - Keep existing route/API/table names intact when changing them would risk data, auth, or navigation regressions.
+- Do not rename database tables in this slice.
 - Do not implement SlateDrop folder automation in this slice.
