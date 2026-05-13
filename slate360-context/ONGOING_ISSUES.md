@@ -1,6 +1,6 @@
 # Slate360 — Ongoing Issues & Known Tech Debt
 
-**Last Updated:** 2026-05-08 (Site Walk Mobile Architecture Pass)
+**Last Updated:** 2026-05-13 (App Shell Bridge + Site Walk V1 Mobile UX Direction)
 **Maintained by:** Development team — update whenever a bug is discovered or fixed.
 **Cross-reference:** See `FUTURE_FEATURES.md` for the full phased build roadmap (Phases 0–7).
 
@@ -50,6 +50,40 @@
 | BUG-078 | Site Walk / Capture Drawer | **Swipe-up data drawer Save & Next button did not advance — FIXED 2026-05-08:** Tapping Save & Next while the keyboard was open could blur the active field during pointer-down, reflow the fixed drawer, and cancel the actual click. The parent also swallowed the async transition and did not force Camera Mode before requesting the next capture. The fix excludes buttons/links from blur-on-pointer-down, awaits the transition with local advancing feedback, logs draft-flush failures without blocking, and forces `walkMode="camera"` before `next_item` capture requests. | Critical | ✅ Fixed — verify type note then Save & Next with keyboard open; expected next stop camera opens or plan-pin flow returns to plan after the expanded-sheet action |
 | BUG-079 | Site Walk / Capture + Plans | **Capture flow remains blocked after repeated patches — OPEN 2026-05-08:** User verification reports that Save & Next still does not advance on mobile, desktop capture still spills under the header/off-screen, desktop upload state opens File Explorer again, phone plan walks still crash, and zoom works without pan. Root-cause report: `docs/site-walk/SITE_WALK_CAPTURE_FAILURE_ANALYSIS_2026-05-08.md`. Current leading causes are architectural: native camera/file input is still opened through React state/effects rather than the original tap handler, capture still renders under sticky module chrome, active-upload/active-item/next-stop states are implicit, pan is disabled while markup mode is on by default, and mobile plans still rely on React-PDF rendering. | Critical | 🔴 Open — stop patching until a capture state machine, direct mobile picker proof, full-screen task shell, pan/markup mode split, and mobile plan render strategy are verified |
 | BUG-082 | Site Walk / Plans UX + Raster Jobs | **Plan upload was too hidden and old plans spun forever — FIXED 2026-05-12:** Plan upload lived behind secondary UI, active walks with zero sheets had no upload path, and old plan sets with no `plan_raster_jobs` row or stale `queued` rows could spin indefinitely. Follow-up investigation found Trigger-specific root causes: (1) Trigger.dev production worker had no Supabase/R2 env vars; (2) Vercel dispatch inherited `VERCEL_GIT_COMMIT_REF=main` as a Trigger preview branch header; (3) PDF.js v5 fake-worker setup could not find `/app/pdf.worker.mjs` in Trigger; (4) `canvas` lacked real `Path2D` support needed by PDF.js clipping. **Fixes:** project setup + new walk + active walk expose upload dropzones; `PlanViewer` shows Generate Mobile View for no-job/stale-job cases; manual rasterize route replaces stale jobs; Trigger deploy syncs Supabase/R2 env vars; Vercel dispatch calls pass `previewBranch: ""`; Trigger rasterizer now registers the PDF.js worker module, uses `@napi-rs/canvas` for `Path2D`/`DOMMatrix`, and includes that package in the Trigger image. | Critical | ✅ Fixed — production run `run_cmp2qvnvg3hs30iodbk44x6y1` completed and wrote `rasterized_key` for plan set `7d1114ab-ef7a-4588-b18d-8e7bf9af186d` |
+
+---
+
+## Site Walk V1 Mobile UI Issue Group — Open 2026-05-13
+
+These are planning-level UI architecture issues for the next approved Site Walk phase. They should be implemented in small slices from `docs/site-walk/SITE_WALK_V1_UI_IMPLEMENTATION_PLAN.md`, not as a broad redesign.
+
+| ID | Area | Description | Priority | Status |
+|---|---|---|---|---|
+| UI-001 | Site Walk Home | Site Walk Home needs a native command-center layout with Resume Active Walk, Start New Walk, Recent Walks, Issues/Open Items, Needs Review, Draft Deliverables, Unsynced Items, and Project / Field Project shortcuts. Remove authenticated install banner and duplicate module nav where bottom nav already covers the route. | High | 🔴 Planned |
+| UI-002 | Walk rows | Recent Walks must be contained above bottom nav and walk rows need a three-dot menu: Rename, Duplicate Walk, Link / Change Project, Create Deliverable, Archive, Delete. Delete requires a second confirmation. | High | 🔴 Planned |
+| UI-003 | Capture header | Quick Walk and Plan Walk need one task-header pattern. Plan-linked capture should say `Stop N · From Plan` or `Stop N · Plan Location`; Back to Plan must be primary and Exit Walk must remain secondary/destructive. | Critical | 🔴 Planned |
+| UI-004 | Stop navigation | Capture needs a compact horizontal stop strip (`Stop 1 | Stop 2 | Stop 3 | + Stop`) under the header or inside the lower drawer without wasting vertical space. | High | 🔴 Planned |
+| UI-005 | Plan workspace | Plan viewer still needs a larger plan canvas, compact sheet bar, page forward/back, thumbnail rail, search results drawer, layer/pin toggles, clean plan/show pins toggle, and portrait/landscape behavior. | Critical | 🔴 Planned |
+| UI-006 | Plan tools | Plan tools should move to a bottom drawer with `Sheets`, `Search`, `Pins`, and `Layers` tabs. Collapsed state should read like `Sheets · 1/24`; expanded state owns thumbnails/search/pins/layers. | High | 🔴 Planned |
+| UI-007 | Markup tools | Markup tools are still too visually heavy for field use. They need compact contextual rows with Select, Pen, Rectangle, Circle, Arrow, Text, Undo, Redo, color/stroke controls, and delete only when relevant. | High | 🔴 Planned |
+| UI-008 | Details/save | Save language must become state-specific: `Save Stop & Return to Plan` for Plan Walk and `Save Stop & Continue` for Quick Walk. Avoid vague `Details & Save` language. | High | 🔴 Planned |
+| UI-009 | Attachments | Attachments should move into the Details / Attachments / Markup sheet and support photos, documents, other photos, future 360 photos, and future videos without any modal being covered by toolbar/action rail. | High | 🔴 Planned |
+| UI-010 | Pins | Draft pins are draggable before save; saved pins must be locked by default and movable only through explicit Edit Location / Move Pin mode to prevent accidental movement while panning. | Critical | 🔴 Planned |
+| SITEWALK-PIN-MOVE-DELETE-DUPLICATION | Pins / Stop Preview | Saved plan pins are locked, cannot be deleted/moved, and attempted movement appears to create duplicate pins on top of the old pin. This is not part of the Site Walk Home slice; fix in the Pins / Stop Preview slice with explicit Move Pin and Delete/Archive pin affordances. | Critical | 🔴 Planned |
+| UI-011 | Before/After + Ghost | Before/After needs a V1 guided recapture path. Ghost overlay appears only during Add After Photo alignment and should not be a large always-visible control. | Medium | 🔴 Planned |
+| UI-012 | Color/design tokens | Color system is fragmented and too harsh in active Site Walk. Move toward graphite/slate, softer panels, restrained amber, muted teal/smoke, warm off-white, and neutral plan/photo workspaces via CSS variables and a hardcoded color audit. First token migration should target Site Walk capture/plan only. | High | 🔴 Planned |
+
+---
+
+## Slate360 V1 App Shell + Design System Issue Group — Open 2026-05-13
+
+These issues bridge the Site Walk V1 mobile UX plan to the broader Slate360 shell. They should be handled as planning-approved UI slices and no-edit audits before any broad implementation.
+
+| ID | Area | Description | Priority | Status |
+|---|---|---|---|---|
+| UI-DESIGN-SYSTEM-FRAGMENTATION | Design system | Slate360 still has multiple overlapping UI systems: legacy marketing, early dashboard/widget cards, Dark Glass rescue styling, Site Walk task chrome, and utility-class drift. Future design work must use the `--s360-*` token plan, hardcoded color audit, and Graphite Glass + restrained amber + muted teal direction instead of broad app-wide repainting. | Critical | 🔴 Planned |
+| APP-SHELL-COMMAND-CENTER | App shell | The global shell needs a unified command-center and task-shell contract: Home is cross-app and app-neutral, normal mobile shell pages use `Home | Projects | SlateDrop | Coordination | Account`, and active Site Walk capture/plan task modes can hide platform nav while preserving clear return paths. | High | 🔴 Planned |
+| APP-STORE-VISIBLE-SURFACE-RISK | App Store V1 | App Store-facing authenticated surfaces still need a visibility audit for hidden/future apps, direct routes, command palette/app grid links, and banned V1 terminology. Future apps must be hidden, not shown as Coming Soon, demo, beta/test, disabled, waitlist, or placeholder surfaces. | Critical | 🔴 Planned |
 
 ---
 

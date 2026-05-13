@@ -1,6 +1,6 @@
 # Slate360 — Project Memory
 
-Last Updated: 2026-05-07
+Last Updated: 2026-05-13
 Repo: bcvolker/slate360-rebuild
 Branch: main
 Live: https://www.slate360.ai
@@ -31,6 +31,98 @@ Recommended read order:
 ## Save State - Architecture & Design (May 2026)
 - The `_legacy_v1` tree has been explicitly purged and removed from the active routing.
 - The entire application is strictly unified under the 'Dark Glass & Amber' design token system utilizing the `<GlassCard>` component.
+- Site Walk Plan Walk core loop is now partially working on live: plan opens, pan/zoom works, long press opens capture, plan-linked capture can be created, and saved plan pins can be opened.
+- Major next phase: Site Walk V1 mobile UI architecture cleanup. Do not start an app-wide redesign in one pass.
+- Selected UX direction: Site Walk Home command center, shared mobile `CaptureShell`, compact plan tools drawer, contextual markup/attachments, explicit saved-pin Move Pin mode, Before/After guided recapture, and a graphite/slate design-token foundation.
+- App-shell bridge direction: Slate360 Home remains the app-neutral command center; normal mobile shell nav is `Home | Projects | SlateDrop | Coordination | Account`; active capture/plan task modes may hide platform nav and own the full viewport.
+- Visual framing correction: future V1 design work should be described as Graphite Glass + restrained amber + muted teal, not harsh black/orange or a broad app-wide Dark Glass repaint.
+
+## Session Handoff — 2026-05-13 (Site Walk Home compact command center correction)
+### What Changed
+- `app/site-walk/_components/SiteWalkHub.tsx`: compacted Site Walk Home by replacing the large hero with a small context row, replacing oversized action cards with compact Resume Walk / Setup Walk / Quick Capture / From Project actions, converting metrics to chips, and moving Recent / Projects / Issues / Drafts into one contained tabbed work panel.
+- `app/site-walk/_components/StatusPanel.tsx`: converted large status cards into compact actionable chips.
+- `app/site-walk/_components/WalkActionsMenu.tsx`: made the row menu more visible and added Resume / Open as the first menu action while keeping Delete behind confirmation.
+- `components/site-walk/SiteWalkModuleNav.tsx`: replaced the full duplicate subpage module nav with a compact Site Walk context bar and Home affordance.
+- `docs/site-walk/SITE_WALK_HOME_COMMAND_CENTER_IMPLEMENTATION_NOTES.md`: documented phone-review findings, compact correction, review checklist, and validation.
+- `slate360-context/ONGOING_ISSUES.md`: logged `SITEWALK-PIN-MOVE-DELETE-DUPLICATION` as a critical Pins / Stop Preview follow-up.
+### What's Broken / Partially Done
+- Slice 1 remains pending physical iPhone confirmation.
+- Setup page still needs a future focused cleanup; only duplicate module chrome was compacted here.
+- Saved plan pin move/delete and duplicate-on-move behavior is deferred to the Pins / Stop Preview slice; no plan viewer or pin logic was changed.
+- File-size guard still reports 13 pre-existing unrelated oversized files.
+### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md`: latest handoff
+- `docs/site-walk/SITE_WALK_HOME_COMMAND_CENTER_IMPLEMENTATION_NOTES.md`: audit/review/validation record
+- `slate360-context/ONGOING_ISSUES.md`: pin move/delete duplication follow-up
+### Next Steps (ordered)
+1. Monitor the compact correction Vercel deployment.
+2. Test on iPhone: compact header/actions, chips, tabbed work panel, Recent rows, Projects tab, More menu, delete confirmation, and Site Walk subpage Home return.
+3. After phone confirmation, decide whether to proceed to Setup page cleanup or the next approved Site Walk slice.
+
+## Session Handoff — 2026-05-13 (Site Walk Home command center Slice 1)
+### What Changed
+- `app/site-walk/page.tsx`: loads real Site Walk command-center summary counts for open items, needs review, draft deliverables, unsynced items, projects, and walks.
+- `app/site-walk/_components/SiteWalkHub.tsx`: converted Site Walk Home into a bounded native-style command center with Resume Active Walk, Start New Walk, Quick Walk, status panels, contained Recent Walks, and Field Project shortcuts.
+- `app/site-walk/_components/WalkActionsMenu.tsx`: added supported row actions: Rename, Link / Change Project, Create Deliverable, Archive, and Delete with second confirmation.
+- `app/site-walk/_components/StatusPanel.tsx`, `ModalActions.tsx`, and `siteWalkHubTypes.ts`: extracted small focused helpers/types to keep files under 300 lines.
+- `components/dashboard/AppShell.tsx`: removed the authenticated `MobileInstallStrip` render while leaving the shared component available elsewhere.
+- `components/site-walk/SiteWalkModuleNav.tsx`: hides duplicate top tabs on `/site-walk` home only.
+- `components/site-walk/SiteWalkShell.tsx`: fills the parent app-shell viewport with `h-full min-h-0` to reduce page-level scroll bleed.
+- `docs/site-walk/SITE_WALK_HOME_COMMAND_CENTER_IMPLEMENTATION_NOTES.md`: added audit, implementation notes, review checklist, and validation results.
+### What's Broken / Partially Done
+- Duplicate Walk is intentionally hidden; no safe duplicate-with-items/attachments API exists yet.
+- Physical iPhone testing is still required before marking Slice 1 complete.
+- File-size guard still reports 13 pre-existing oversized unrelated files; no Slice 1 changed production file exceeds 300 lines.
+### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md`: latest handoff
+- `docs/site-walk/SITE_WALK_HOME_COMMAND_CENTER_IMPLEMENTATION_NOTES.md`: audit/review/validation record
+### Next Steps (ordered)
+1. Monitor Vercel deployment for the Slice 1 commit.
+2. Test on iPhone Safari/PWA: `/site-walk` opens without install banner/top tabs, page does not scroll under bottom nav, Recent Walks scrolls internally, row menu opens, delete requires second confirmation, and Resume/Quick Walk still route to capture.
+3. Only after user confirms phone testing, mark Slice 1 complete and proceed to the next approved slice.
+
+## Session Handoff — 2026-05-13 (app shell bridge planning)
+### What Changed
+- `docs/SLATE360_V1_APP_SHELL_UX_ARCHITECTURE.md`: created the shell bridge between Site Walk task UX and the app-neutral Slate360 command-center shell.
+- `docs/design/SLATE360_UNIFIED_DESIGN_SYSTEM_GAP_AUDIT.md`: created a planning audit for current UI-system fragmentation, token direction, Codex review role, and guardrail script recommendations.
+- `SLATE360_MASTER_BUILD_PLAN.md`: linked the new app-shell/design-system docs and added the Graphite Glass + restrained amber + muted teal shell bridge rules.
+- `slate360-context/ONGOING_ISSUES.md`: added the app-shell/design-system issue group for design-system fragmentation, shell command-center alignment, and App Store visible-surface risk.
+- `docs/CHATGPT_FACT_FINDING_FILE_LIST.txt`: added the new planning docs to the prioritized file list.
+### What's Broken / Partially Done
+- No product behavior, backend, schema, Trigger, migration, or UI implementation changes were made.
+- Bug registry was not updated in this app-shell bridge pass; existing `BUG-086` remains the grouped Site Walk mobile UI planning tracker.
+- The next implementation should still begin with Site Walk Slice 1 unless the user first approves a no-edit app-shell visibility/design audit slice.
+### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md`: latest handoff and app-shell visual direction
+- `SLATE360_MASTER_BUILD_PLAN.md`: shell bridge and visual framing correction
+- `slate360-context/ONGOING_ISSUES.md`: app-shell/design-system planning issues
+- `docs/CHATGPT_FACT_FINDING_FILE_LIST.txt`: new docs added
+### Next Steps (ordered)
+1. Review and approve the new app-shell architecture and design-system gap audit docs.
+2. Run the next implementation as Site Walk Slice 1: Site Walk Home command center cleanup, or first run a no-edit shell visibility/design audit if desired.
+3. Keep Plan Walk/capture behavior intact while iterating UI.
+
+## Session Handoff — 2026-05-13 (Site Walk V1 mobile UX planning)
+### What Changed
+- `docs/site-walk/SITE_WALK_V1_MOBILE_UX_DECISION_RECORD.md`: created locked mobile UX decisions for Site Walk Home, task header, stop strip, plan viewer, plan tools drawer, markup, save copy, attachments, shared Quick/Plan Walk capture shell, pin movement, Before/After/Ghost, and color/token direction.
+- `docs/site-walk/SITE_WALK_V1_UI_IMPLEMENTATION_PLAN.md`: created eight implementation slices with goals, likely files, what not to touch, validation commands, iPhone smoke tests, and rollback concerns.
+- `docs/design/SLATE360_V1_DESIGN_TOKEN_PLAN.md`: created proposed `--s360-*` design tokens and first migration plan limited to Site Walk capture/plan.
+- `SLATE360_MASTER_BUILD_PLAN.md`: added the selected Site Walk V1 mobile UX direction and linked the new planning docs.
+- `slate360-context/ONGOING_ISSUES.md`: added a Site Walk V1 Mobile UI issue group covering command center, capture header/back/exit, plan workspace/tools, markup, details/save, attachments, pins, Before/After/Ghost, and design tokens.
+- `ops/bug-registry.json`: added one grouped UI-planning bug entry if schema validation remains compatible.
+### What's Broken / Partially Done
+- No UI implementation was done in this planning slice.
+- No backend, migration, Trigger, Stripe, or product behavior changes were made.
+- The next implementation should start with Slice 1: Site Walk Home command center cleanup.
+### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md`: latest handoff and next UI direction
+- `SLATE360_MASTER_BUILD_PLAN.md`: Site Walk V1 mobile UX direction
+- `slate360-context/ONGOING_ISSUES.md`: UI issue group
+- `ops/bug-registry.json`: grouped UI-planning bug entry
+### Next Steps (ordered)
+1. Review and approve the planning docs.
+2. Start Slice 1 only after approval: Site Walk Home command center cleanup.
+3. Keep Plan Walk/capture behavior intact while iterating UI.
 
 ## Session Handoff — 2026-05-13 (capture + plan mobile UI reorg)
 ### What Changed

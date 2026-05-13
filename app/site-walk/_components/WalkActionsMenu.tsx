@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Archive, FileText, Link2, MoreVertical, Pencil, Trash2 } from "lucide-react";
+import { Archive, FileText, Link2, MoreVertical, Pencil, Play, Trash2 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -78,12 +78,19 @@ export function WalkActionsMenu({ walk, projects }: { walk: HubWalk; projects: H
           <button
             type="button"
             aria-label={`Open actions for ${walk.title}`}
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] text-slate-300 transition hover:border-amber-400/50 hover:text-amber-200"
+            className="flex h-11 shrink-0 items-center justify-center gap-1 rounded-2xl border border-amber-400/25 bg-white/[0.06] px-2 text-amber-200 transition hover:border-amber-400/70 hover:bg-white/[0.1]"
           >
             <MoreVertical className="h-5 w-5" />
+            <span className="sr-only">More</span>
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-56 border-white/10 bg-[#0B0F15]/95 text-slate-100 backdrop-blur-xl">
+          <DropdownMenuItem asChild className="cursor-pointer gap-2 text-xs hover:bg-amber-500/10 hover:text-amber-200">
+            <Link href={walkHref(walk)}>
+              <Play className="h-4 w-4" /> Resume / Open
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuSeparator className="bg-white/10" />
           <DropdownMenuItem onClick={() => setModal("rename")} className="cursor-pointer gap-2 text-xs hover:bg-amber-500/10 hover:text-amber-200">
             <Pencil className="h-4 w-4" /> Rename
           </DropdownMenuItem>
@@ -148,4 +155,8 @@ export function WalkActionsMenu({ walk, projects }: { walk: HubWalk; projects: H
       )}
     </>
   );
+}
+
+function walkHref(walk: HubWalk) {
+  return walk.status === "completed" ? `/site-walk/walks/${encodeURIComponent(walk.id)}` : `/site-walk/capture?session=${encodeURIComponent(walk.id)}`;
 }

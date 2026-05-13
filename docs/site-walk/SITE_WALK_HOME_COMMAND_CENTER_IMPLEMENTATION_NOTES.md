@@ -99,3 +99,53 @@ Applied the smallest safe Slice 1 cleanup:
 - `npm run build`: passed with existing warnings only: Sentry config deprecation, webpack cache large-string warnings, `instrumentation.ts` async target warning, and Next ESLint plugin warning.
 - `npm run guard:architecture`: passed.
 - `bash scripts/check-file-size.sh || true`: still reports 13 pre-existing oversized files; none of the Slice 1 changed production files exceed 300 lines.
+
+## Phone Review After First Slice
+
+User iPhone review after commit `a377e73` found the first command-center pass still too large and not native enough:
+
+- The top `Field command center` card is vague and wastes vertical space.
+- Resume Active Walk, Start New Walk, and Quick Walk are oversized; Resume is too visually dominant as a large orange card.
+- Start New Walk and Quick Walk are not clearly differentiated. New Walk should communicate setup/project/plan flow, while Quick Walk should mean camera-only/ad-hoc capture.
+- Passive metric cards take too much prime screen space and do not read as actionable command chips.
+- Recent Walks and Field Projects collide in a split layout on the phone; Recent Walks is squeezed instead of being one obvious contained testable panel.
+- Field Projects is unclear/missing because it competes with Recent Walks instead of living as a tab in the main work panel.
+- The walk row three-dot menu is not obvious enough to the user.
+- Delete should remain inside the menu and should not appear as a primary visible trash action.
+- The full Site Walk module nav still appears on non-home Site Walk pages and wastes space.
+- Returning to Site Walk Home from other Site Walk pages still feels awkward.
+- Setup still has duplicate nav and AI-generated layout issues; this correction only addresses shell/module chrome, not a setup-page rebuild.
+- Saved plan pins cannot be moved/deleted, and attempted movement appears to create duplicate pins on top of old pins. This is deferred to the Pins / Stop Preview slice and must not be fixed in this Site Walk Home correction.
+
+## Compact Correction Implementation Notes
+
+- Replaced the large hero with a compact Site Walk / workspace context row.
+- Changed primary actions to compact controls: Resume Walk, Setup Walk, Quick Capture, and From Project.
+- Renamed Quick Walk to Quick Capture with Camera-only context.
+- Converted large status cards into compact chips for Open Items, Needs Review, Unsynced, and Draft Reports.
+- Replaced the split Recent Walks / Field Projects layout with one tabbed contained work panel: Recent, Projects, Issues, Drafts.
+- Moved Field Projects into the Projects tab with Start Walk, Plan Room, and More actions.
+- Made the row action menu more visible and added Resume / Open as the first menu action.
+- Replaced the large subpage Site Walk module nav with a compact context bar and Home affordance on non-home pages.
+
+## Compact Correction Codex-style review
+
+- No Trigger/rasterization changes: passed.
+- No capture upload changes: passed.
+- No plan viewer/pin logic changes: passed; pin move/delete duplication was documented only.
+- No migrations: passed.
+- No fake data: passed.
+- No dead buttons: passed; unsupported Duplicate Walk remains hidden.
+- No page scroll under bottom nav: preserved.
+- Main work panel scrolls internally: preserved via `flex-1 min-h-0 overflow-y-auto`.
+- Recent walk rows no longer overlap Field Projects: fixed by moving Projects into a tab.
+- Three-dot menu is visible: improved with an amber-accented More trigger.
+- Passive metrics are compact: fixed as small chips.
+
+## Compact Correction Validation
+
+- `get_errors` on changed correction files: passed.
+- `npm run typecheck`: passed.
+- `npm run build`: passed with existing warnings only: Sentry config deprecation, webpack cache large-string warnings, `instrumentation.ts` async target warning, and Next ESLint plugin warning.
+- `npm run guard:architecture`: passed.
+- `bash scripts/check-file-size.sh || true`: still reports 13 pre-existing unrelated oversized files; none of the correction files exceed 300 lines.
