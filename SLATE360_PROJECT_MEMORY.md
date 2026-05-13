@@ -38,6 +38,30 @@ Recommended read order:
 - Visual framing correction: future V1 design work should be described as Graphite Glass + restrained amber + muted teal, not harsh black/orange or a broad app-wide Dark Glass repaint.
 - Site Walk terminology rule: use `Worksite` for lower-tier field containers and reserve `Project` for higher-tier PM containers unless existing route/API/table names force the old term.
 
+## Session Handoff — 2026-05-13 (Shared CaptureShell V1)
+### What Changed
+- `app/site-walk/(act-2-inputs)/capture/_components/SharedCaptureTaskHeader.tsx`: added the shared Quick Walk / Plan Walk active task header with primary Back to Plan or Site Walk, stop context, walk title, and secondary/destructive Exit confirmation.
+- `app/site-walk/(act-2-inputs)/capture/_components/CaptureClientIsland.tsx`: wraps plan and camera modes in one shared shell structure and uses `Stop N · From Plan` or `Stop N · Quick Capture` copy.
+- `components/site-walk/capture/VisualCaptureView.tsx`: can suppress its legacy header inside the shared shell so camera mode does not duplicate chrome.
+- `components/site-walk/capture/CaptureDataBottomSheet.tsx`: added live Details, Attachments, and Markup tabs plus state-specific save labels.
+- `components/site-walk/capture/CaptureSheetUtilityPanel.tsx`: wires Attachments to existing capture/upload callbacks and Markup to the existing vector toolbar events.
+- `docs/site-walk/SHARED_CAPTURESHELL_V1_AUDIT.md` and `docs/site-walk/SHARED_CAPTURESHELL_V1_IMPLEMENTATION.md`: record the pre-edit audit, shell structure, checklist, validation, and deferred work.
+### What's Broken / Partially Done
+- Physical iPhone confirmation is still required for Quick Walk and Plan Walk.
+- Full saved-pin Move Pin and Delete remain deferred.
+- Plan Tools Drawer remains deferred.
+- Full Stop Strip navigation remains deferred; current shell shows only the current stop label.
+- Before/After/Ghost V1 and Deliverables V1 remain deferred.
+### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md`: latest handoff
+- `docs/site-walk/SITE_WALK_V1_CURRENT_BUILD_CONTEXT.md`: updated current shell state and remaining gaps
+- `docs/site-walk/SHARED_CAPTURESHELL_V1_AUDIT.md`: new pre-edit audit
+- `docs/site-walk/SHARED_CAPTURESHELL_V1_IMPLEMENTATION.md`: new implementation and validation notes
+### Next Steps (ordered)
+1. Monitor Vercel deployment for the Shared CaptureShell V1 commit.
+2. Test on iPhone: Quick Capture opens, header says `Stop 1 · Quick Capture`, save label says `Save Stop & Continue`, Plan Walk opens, plan pan/zoom works, empty-plan long press opens capture, header says `Stop N · From Plan`, Back to Plan returns to the plan, save label says `Save Stop & Return to Plan`, and saved-pin duplicate guard still holds.
+3. Keep saved-pin Move/Delete, Plan Tools Drawer, full Stop Strip navigation, Before/After/Ghost, and Deliverables for later approved slices.
+
 ## Session Handoff — 2026-05-13 (Saved plan pin duplicate guard)
 ### What Changed
 - `components/site-walk/capture/PlanViewerLeaflet.tsx`: saved Leaflet markers now isolate pointer, touch, click, and contextmenu events so saved-pin taps/presses do not bubble into map-level draft-pin creation; saved pins remain non-draggable unless a future explicit Move Pin mode is implemented.

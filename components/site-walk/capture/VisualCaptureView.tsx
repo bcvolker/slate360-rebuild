@@ -33,9 +33,10 @@ type Props = {
   onAngleCaptureFile: (itemId: string, file: File, previewUrl: string, captureMode: PhotoAngleCaptureMode) => Promise<PhotoAngleRecord | null>;
   onSelectItem?: (itemId: string) => void;
   onBackToPlan?: () => void;
+  showTaskHeader?: boolean;
 };
 
-export function VisualCaptureView({ sessionId, autoOpenCamera, launchId, items, activeItemId, modeLabel, ghostImageUrl, ghostOn, markupOn, onToggleGhost, onToggleMarkup, onMarkupChange, onAttachmentPinsChange, onPlanCaptureSaved, onAddAngle, onAngleCaptureFile, onSelectItem, onBackToPlan }: Props) {
+export function VisualCaptureView({ sessionId, autoOpenCamera, launchId, items, activeItemId, modeLabel, ghostImageUrl, ghostOn, markupOn, onToggleGhost, onToggleMarkup, onMarkupChange, onAttachmentPinsChange, onPlanCaptureSaved, onAddAngle, onAngleCaptureFile, onSelectItem, onBackToPlan, showTaskHeader = true }: Props) {
   const [activeAngleId, setActiveAngleId] = useState<string | null>(null);
   const [previewActive, setPreviewActive] = useState(false);
   const [exitConfirm, setExitConfirm] = useState(false);
@@ -71,7 +72,7 @@ export function VisualCaptureView({ sessionId, autoOpenCamera, launchId, items, 
   return (
     <div className="flex h-full min-h-0 w-full flex-col overflow-hidden bg-[#0B0F15] text-white" onPointerDownCapture={handleTapDismiss}>
       {/* TopCaptureBar */}
-      <header className="relative z-30 flex shrink-0 items-center gap-2 border-b border-white/5 bg-slate-950/88 px-3 pb-2 pt-[max(env(safe-area-inset-top),0.5rem)] backdrop-blur-xl">
+      {showTaskHeader && <header className="relative z-30 flex shrink-0 items-center gap-2 border-b border-white/5 bg-slate-950/88 px-3 pb-2 pt-[max(env(safe-area-inset-top),0.5rem)] backdrop-blur-xl">
         {onBackToPlan && (
           <button type="button" onClick={onBackToPlan} className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-2xl bg-amber-500 px-3 text-[11px] font-black uppercase tracking-[0.08em] text-slate-950 shadow-lg shadow-amber-500/20" aria-label="Back to plan">
             <ArrowLeft className="h-4 w-4" /> Plan
@@ -84,10 +85,10 @@ export function VisualCaptureView({ sessionId, autoOpenCamera, launchId, items, 
         <button type="button" onClick={() => setExitConfirm(true)} className="inline-flex h-9 shrink-0 items-center gap-1 rounded-xl border border-red-500/25 bg-black/25 px-2.5 text-[10px] font-black text-red-200/85 hover:bg-red-500/15" aria-label="Exit walk">
           <LogOut className="h-3.5 w-3.5" /> Exit
         </button>
-      </header>
+      </header>}
 
       {/* Exit confirmation modal */}
-      {exitConfirm && (
+      {showTaskHeader && exitConfirm && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 backdrop-blur-sm" onClick={() => setExitConfirm(false)}>
           <div className="mx-4 w-full max-w-xs rounded-2xl border border-white/10 bg-slate-900 p-5 text-center shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <p className="text-base font-black text-white">Exit this walk?</p>

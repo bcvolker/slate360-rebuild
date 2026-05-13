@@ -5,6 +5,9 @@ import Link from "next/link";
 import { ArrowLeft, Camera, CheckCircle2, Link2, Loader2, Settings2, SkipForward, Sparkles, Upload } from "lucide-react";
 import { useDeviceContext, type DeviceCaptureInput } from "@/lib/hooks/useDeviceContext";
 import { CAPTURE_ITEM_STATUSES, type CaptureAssignee, type CaptureItemDraft, type CaptureItemRecord } from "@/lib/types/site-walk-capture";
+import { CaptureSheetUtilityPanel } from "./CaptureSheetUtilityPanel";
+
+type CaptureSheetTab = "details" | "attachments" | "markup";
 
 type Props = {
   sessionId: string;
@@ -29,6 +32,7 @@ type Props = {
 
 export function CaptureDataBottomSheet({ sessionId, item, items, assignees, draft, saveState, aiState, aiMessage, currentLocation, tradeOptions, canManageTrades, returnsToPlan = false, onDraftChange, onCapture, onFormatNotes, onSaveNextStop, onOpenManageTrades, showMinimizedMobile = true }: Props) {
   const [expandedMobile, setExpandedMobile] = useState(false);
+  const [activeTab, setActiveTab] = useState<CaptureSheetTab>("details");
   const [linkProgression, setLinkProgression] = useState(false);
   const [advancing, setAdvancing] = useState(false);
   const { primaryCaptureInput, primaryCaptureLabel } = useDeviceContext();
@@ -39,7 +43,8 @@ export function CaptureDataBottomSheet({ sessionId, item, items, assignees, draf
   const previousItems = items.filter((candidate) => isUuid(candidate.id) && candidate.id !== item?.id && candidate.client_item_id !== item?.client_item_id);
   const selectClass = "mt-1 h-10 w-full rounded-2xl border border-white/10 bg-black/35 px-3 text-xs font-black text-slate-100 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-500/20 disabled:opacity-50";
   const saveActionIcon = returnsToPlan ? <Link2 className="h-5 w-5" /> : <SkipForward className="h-5 w-5" />;
-  const saveActionLabel = returnsToPlan ? "Save & Return to Plan" : "Save & Next Camera";
+  const saveActionLabel = returnsToPlan ? "Save Stop & Return to Plan" : "Save Stop & Continue";
+  const tabs: CaptureSheetTab[] = ["details", "attachments", "markup"];
 
   function handleContentPointerDown(event: PointerEvent<HTMLDivElement>) {
     const target = event.target;
@@ -57,6 +62,9 @@ export function CaptureDataBottomSheet({ sessionId, item, items, assignees, draf
     setExpandedMobile(false);
     setTimeout(() => setAdvancing(false), 2000);
   }
+
+  const tabButtons = <div className="grid grid-cols-3 gap-1 rounded-2xl border border-white/10 bg-black/25 p-1">{tabs.map((tab) => <button key={tab} type="button" onClick={() => setActiveTab(tab)} className={`h-9 rounded-xl text-[10px] font-black uppercase tracking-[0.12em] ${activeTab === tab ? "bg-amber-500 text-slate-950" : "text-slate-400"}`}>{tab}</button>)}</div>;
+  const activePanel = activeTab === "details" ? <SheetContents item={item} draft={draft} actionBusy={actionBusy} advancing={advancing} saveActionIcon={saveActionIcon} saveActionLabel={saveActionLabel} primaryCaptureInput={primaryCaptureInput} primaryCaptureLabel={primaryCaptureLabel} onCapture={onCapture} handleSaveNextClick={handleSaveNextClick} handleContentPointerDown={handleContentPointerDown} onDraftChange={onDraftChange} onFormatNotes={onFormatNotes} aiBusy={aiBusy} aiMessage={aiMessage} tradeOptions={tradeOptions} canManageTrades={canManageTrades} onOpenManageTrades={onOpenManageTrades} assignees={assignees} previousItems={previousItems} progressionActive={progressionActive} setLinkProgression={setLinkProgression} selectClass={selectClass} maxHeightClass="" /> : <CaptureSheetUtilityPanel mode={activeTab} hasItem={Boolean(item)} actionBusy={actionBusy} primaryCaptureInput={primaryCaptureInput} primaryCaptureLabel={primaryCaptureLabel} onCapture={onCapture} />;
 
   return (
     <>
@@ -89,20 +97,8 @@ export function CaptureDataBottomSheet({ sessionId, item, items, assignees, draf
             )}
           </div>
           <div className="flex-1 min-h-0 overflow-y-auto px-4 py-3 pb-12">
-            <SheetContents
-              item={item} draft={draft} actionBusy={actionBusy} advancing={advancing}
-              saveActionIcon={saveActionIcon} saveActionLabel={saveActionLabel}
-              primaryCaptureInput={primaryCaptureInput} primaryCaptureLabel={primaryCaptureLabel}
-              onCapture={onCapture} handleSaveNextClick={handleSaveNextClick}
-              handleContentPointerDown={handleContentPointerDown}
-              onDraftChange={onDraftChange} onFormatNotes={onFormatNotes}
-              aiBusy={aiBusy} aiMessage={aiMessage}
-              tradeOptions={tradeOptions} canManageTrades={canManageTrades} onOpenManageTrades={onOpenManageTrades}
-              assignees={assignees} previousItems={previousItems}
-              progressionActive={progressionActive} setLinkProgression={setLinkProgression}
-              selectClass={selectClass}
-              maxHeightClass=""
-            />
+            {tabButtons}
+            <div className="mt-3">{activePanel}</div>
             {/* Finish Walk — takes user to walk review page */}
             <Link
               href={`/site-walk/walks/${encodeURIComponent(sessionId)}`}
@@ -119,22 +115,10 @@ export function CaptureDataBottomSheet({ sessionId, item, items, assignees, draf
         <div className="px-4 pt-4 pb-3 border-b border-white/5">
           <p className="truncate text-xs font-black uppercase tracking-[0.16em] text-amber-300/80">{currentLocation}</p>
           <h2 className="truncate text-base font-black text-white">{item?.title || "Ready for next field stop"}</h2>
+          <div className="mt-3">{tabButtons}</div>
         </div>
         <div className="flex-1 min-h-0 overflow-y-auto px-4 py-3">
-          <SheetContents
-            item={item} draft={draft} actionBusy={actionBusy} advancing={advancing}
-            saveActionIcon={saveActionIcon} saveActionLabel={saveActionLabel}
-            primaryCaptureInput={primaryCaptureInput} primaryCaptureLabel={primaryCaptureLabel}
-            onCapture={onCapture} handleSaveNextClick={handleSaveNextClick}
-            handleContentPointerDown={handleContentPointerDown}
-            onDraftChange={onDraftChange} onFormatNotes={onFormatNotes}
-            aiBusy={aiBusy} aiMessage={aiMessage}
-            tradeOptions={tradeOptions} canManageTrades={canManageTrades} onOpenManageTrades={onOpenManageTrades}
-            assignees={assignees} previousItems={previousItems}
-            progressionActive={progressionActive} setLinkProgression={setLinkProgression}
-            selectClass={selectClass}
-            maxHeightClass=""
-          />
+          {activePanel}
         </div>
       </aside>
     </>

@@ -14,6 +14,7 @@ import type { SiteWalkPin, SiteWalkPlanSet, SiteWalkPlanSheet } from "@/lib/type
 import type { CaptureItemDraft } from "@/lib/types/site-walk-capture";
 import { CaptureModeToggle, SiteWalkHomeButton } from "./CaptureModeControls";
 import { findGhostImageUrl, nextStopLabel, parseRecentLocations } from "./captureSessionHelpers";
+import { SharedCaptureTaskHeader } from "./SharedCaptureTaskHeader";
 import { WalkStartChoice } from "./WalkStartChoice";
 
 type Props = {
@@ -188,11 +189,15 @@ function CaptureClientIslandInner({ sessionId, projectId, walkName, showPlanCanv
   }
 
   const ghostImageUrl = findGhostImageUrl(items, activeItem?.id ?? null, currentLocation);
+  const isPlanWorkflow = showPlanCanvas;
+  const taskContextLabel = isPlanWorkflow ? "From Plan" : "Quick Capture";
+  const returnToPlan = () => { setReturnToPlanAfterSave(false); setWalkMode("plan"); };
 
   return (
-    <section className="relative flex h-full w-full flex-1 overflow-hidden bg-slate-950 text-white flex-col md:flex-row">
-      {/* Left pane: capture canvas */}
-      <div className="relative flex-1 min-h-0 min-w-0">
+    <section className="relative flex h-full w-full flex-col overflow-hidden bg-slate-950 text-white">
+      <SharedCaptureTaskHeader walkName={walkName} stopLabel={currentLocation} contextLabel={taskContextLabel} backLabel={isPlanWorkflow ? "Back to Plan" : "Site Walk"} onBack={isPlanWorkflow ? returnToPlan : undefined} />
+      <div className="flex min-h-0 flex-1 flex-col md:flex-row">
+      <div className="relative min-h-0 min-w-0 flex-1">
         {walkMode === "plan" ? (
           <PlanViewer
             key={planRefreshKey}
@@ -217,7 +222,7 @@ function CaptureClientIslandInner({ sessionId, projectId, walkName, showPlanCanv
             launchId={launchId}
             items={items}
             activeItemId={activeItem?.id ?? null}
-            modeLabel={showPlanCanvas ? "Plan-linked" : "Photos-only"}
+            modeLabel={taskContextLabel}
             ghostImageUrl={ghostImageUrl}
             ghostOn={ghostOn}
             markupOn={markupOn}
@@ -229,7 +234,8 @@ function CaptureClientIslandInner({ sessionId, projectId, walkName, showPlanCanv
             onAddAngle={() => requestCapture(primaryCaptureInput, "angle")}
             onAngleCaptureFile={savePhotoAngle}
             onSelectItem={(id) => { const t = items.find((i) => i.id === id); if (t) selectItem(t); }}
-            onBackToPlan={showPlanCanvas ? () => { setReturnToPlanAfterSave(false); setWalkMode("plan"); } : undefined}
+            onBackToPlan={isPlanWorkflow ? returnToPlan : undefined}
+            showTaskHeader={false}
           />
         )}
 
@@ -275,6 +281,7 @@ function CaptureClientIslandInner({ sessionId, projectId, walkName, showPlanCanv
           This is the FIX for iOS Safari user-activation loss (BUG-079). */}
       <input ref={directCameraRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleDirectFileChange} />
       <input ref={directUploadRef} type="file" accept="image/*" className="hidden" onChange={handleDirectFileChange} />
+      </div>
     </section>
   );
 }
