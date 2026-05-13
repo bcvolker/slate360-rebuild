@@ -111,6 +111,31 @@ export function PlanViewerLeaflet({ projectId, sessionId = "current-session", pl
     }
   }
 
+  function handleDraftPinMove(pinId: string, latLng: L.LatLng, final = false) {
+    const yPct = clampPercent((latLng.lat / imageHeight) * 100);
+    const xPct = clampPercent((latLng.lng / imageWidth) * 100);
+    setPins((current) => current.map((pin) => pin.id === pinId ? { ...pin, x_pct: xPct, y_pct: yPct } : pin));
+    setQuickMenu((current) => {
+      if (!current) return current;
+      const movingPin = pins.find((pin) => pin.id === pinId);
+      const sameDraft = current.clientPinId && (current.clientPinId === movingPin?.client_pin_id || current.clientPinId === pinId);
+      const sameSaved = current.pinId && current.pinId === pinId;
+      if (!sameDraft && !sameSaved) return current;
+      return { ...current, xPct, yPct };
+    });
+    if (final) console.log("[PLAN_WALK] draft pin moved", { pinId, xPct, yPct });
+  }
+
+  function handleDraftPinDragStart() {
+    mapRef.current?.dragging.disable();
+  }
+
+  function handleDraftPinDragEnd(pinId: string, event: L.LeafletEvent) {
+    const marker = event.target as L.Marker;
+    handleDraftPinMove(pinId, marker.getLatLng(), true);
+    mapRef.current?.dragging.enable();
+  }
+
   const handleMapCreated = useCallback((map: L.Map) => {
     mapRef.current = map;
   }, []);
@@ -140,7 +165,13 @@ export function PlanViewerLeaflet({ projectId, sessionId = "current-session", pl
               key={pin.id}
               position={pinToLatLng(pin, imageWidth, imageHeight)}
               icon={createPinIcon(pin.label, pin.amber)}
-              eventHandlers={{ click: () => handlePinClick(pin.id) }}
+              draggable={isDraftPin(pin)}
+              eventHandlers={{
+                click: () => handlePinClick(pin.id),
+                dragstart: () => { if (isDraftPin(pin)) handleDraftPinDragStart(); },
+                drag: (event) => { if (isDraftPin(pin)) handleDraftPinMove(pin.id, (event.target as L.Marker).getLatLng()); },
+                dragend: (event) => { if (isDraftPin(pin)) handleDraftPinDragEnd(pin.id, event); },
+              }}
             />
           ))}
         </MapContainer>
@@ -196,4 +227,12 @@ export function PlanViewerLeaflet({ projectId, sessionId = "current-session", pl
 
 function isUuid(value: string) {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+}
+
+function isDraftPin(pin: PlanViewerPin) {
+  return !pin.item_id && !isUuid(pin.id);
+}
+
+function clampPercent(value: number) {
+  return Math.min(100, Math.max(0, value));
 }

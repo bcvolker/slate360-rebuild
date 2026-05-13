@@ -32,6 +32,24 @@ Recommended read order:
 - The `_legacy_v1` tree has been explicitly purged and removed from the active routing.
 - The entire application is strictly unified under the 'Dark Glass & Amber' design token system utilizing the `<GlassCard>` component.
 
+## Session Handoff — 2026-05-13 (Plan Walk action sheet + draft pin drag)
+### What Changed
+- `components/site-walk/capture/PlanQuickActionMenu.tsx`: raised the plan capture actions to a mobile-safe `z-[2000]` bottom sheet, removed fragile full-screen click-to-close behavior, added Cancel, and kept camera/upload opening from trusted button taps. Note-only is disabled with explanatory text until the visual note UX is reliably wired.
+- `components/site-walk/capture/PlanViewerLeaflet.tsx`: unsaved optimistic plan pins are now draggable before save; drag updates `x_pct`, `y_pct`, and the active quick-menu target coordinates without changing persisted pin behavior.
+- `components/site-walk/capture/PlanViewerLeafletEvents.tsx`: added limited `[PLAN_WALK]` diagnostics for draft pin creation and action sheet visibility.
+- `docs/site-walk/PLAN_WALK_ACTION_MENU_AND_DRAFT_PIN_DIAGNOSIS.md`: documented why the action UI was likely hidden, how the sheet now opens, draft-pin dragging behavior, metadata preservation, and remaining UI parity gaps.
+### What's Broken / Partially Done
+- Live iPhone verification is still required before marking BUG-079 resolved.
+- Note-only plan stops remain a follow-up; the action sheet disables that path rather than leaving a dead button.
+- Rich plan pin thumbnail/card preview parity remains a future UI polish slice.
+### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md`: latest handoff
+- `docs/site-walk/PLAN_WALK_ACTION_MENU_AND_DRAFT_PIN_DIAGNOSIS.md`: action sheet/draft pin diagnosis
+### Next Steps (ordered)
+1. Validate with `npm run typecheck`, `npm run build`, and `npm run guard:architecture`.
+2. Commit and push the focused main fix.
+3. Monitor Vercel production deployment and test live iPhone Safari with cache-busting URL.
+
 ## Session Handoff — 2026-05-12 (Plan Walk touch capture fix)
 ### What Changed
 - `components/site-walk/capture/PlanViewerLeafletEvents.tsx`: added Leaflet map event bridge for mobile long-press, contextmenu, and explicit Pin-mode click plan-stop creation without disabling normal pan/zoom.

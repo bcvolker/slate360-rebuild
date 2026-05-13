@@ -43,10 +43,11 @@ export function PlanViewerLeafletEvents({ toolMode, imageWidth, imageHeight, ses
       amber: true,
       item_id: null,
     };
+    console.log("[PLAN_WALK] draft pin created", { clientPinId });
     console.log("[PLAN_WALK] coordinates calculated", { xPct, yPct, clientPinId });
     setPins((current) => [...current, newPin]);
     setQuickMenu({ clientPinId, xPct, yPct });
-    console.log("[PLAN_WALK] action menu opened");
+    console.log("[PLAN_WALK] action sheet visible");
     if (navigator.vibrate) navigator.vibrate(50);
   }, [imageHeight, imageWidth, pins.length, sessionId, setPins, setQuickMenu]);
 
