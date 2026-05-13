@@ -93,11 +93,11 @@ export function WalkActionsMenu({ walk, projects }: { walk: HubWalk; projects: H
             <Pencil className="h-4 w-4" /> Rename
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => setModal("project")} className="cursor-pointer gap-2 text-xs hover:bg-amber-500/10 hover:text-amber-200">
-            <Link2 className="h-4 w-4" /> Link / Change Project
+            <Link2 className="h-4 w-4" /> Link / Change Worksite
           </DropdownMenuItem>
           <DropdownMenuItem asChild className="cursor-pointer gap-2 text-xs hover:bg-amber-500/10 hover:text-amber-200">
             <Link href={`/site-walk/deliverables/new?session=${encodeURIComponent(walk.id)}`}>
-              <FileText className="h-4 w-4" /> Create Deliverable
+              <FileText className="h-4 w-4" /> Create Report
             </Link>
           </DropdownMenuItem>
           <DropdownMenuSeparator className="bg-white/10" />
@@ -123,12 +123,12 @@ export function WalkActionsMenu({ walk, projects }: { walk: HubWalk; projects: H
 
             {modal === "project" && (
               <div className="space-y-4">
-                <div><p className="text-xs font-black uppercase tracking-[0.18em] text-amber-400">Project link</p><h2 className="mt-1 text-lg font-black">Link this walk</h2></div>
+                <div><p className="text-xs font-black uppercase tracking-[0.18em] text-amber-400">Worksite link</p><h2 className="mt-1 text-lg font-black">Link this walk</h2></div>
                 <select value={projectId} onChange={(event) => setProjectId(event.target.value)} className="min-h-12 w-full rounded-2xl border border-white/10 bg-black/30 px-4 text-sm font-bold text-white outline-none focus:border-amber-400">
-                  <option value="">No project / Quick Walk</option>
+                  <option value="">No worksite / Quick Walk</option>
                   {projects.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}
                 </select>
-                <ModalActions onCancel={() => setModal("none")} busy={busy === "project"} onConfirm={() => void patchSession("project", { project_id: projectId || null })} confirmLabel="Save project" />
+                <ModalActions onCancel={() => setModal("none")} busy={busy === "project"} onConfirm={() => void patchSession("project", { project_id: projectId || null })} confirmLabel="Save worksite" />
               </div>
             )}
 

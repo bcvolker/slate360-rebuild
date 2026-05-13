@@ -57,6 +57,8 @@
 
 These are planning-level UI architecture issues for the next approved Site Walk phase. They should be implemented in small slices from `docs/site-walk/SITE_WALK_V1_UI_IMPLEMENTATION_PLAN.md`, not as a broad redesign.
 
+Terminology note: Site Walk UI should use `Worksite` for lower-tier field containers and reserve `Project` for higher-tier construction-management containers unless an existing route, API, table, or integration name forces otherwise. See `docs/site-walk/SITE_WALK_V1_TAXONOMY_AND_WORKFLOW.md`.
+
 | ID | Area | Description | Priority | Status |
 |---|---|---|---|---|
 | UI-001 | Site Walk Home | Site Walk Home needs a native command-center layout with Resume Active Walk, Start New Walk, Recent Walks, Issues/Open Items, Needs Review, Draft Deliverables, Unsynced Items, and Project / Field Project shortcuts. Remove authenticated install banner and duplicate module nav where bottom nav already covers the route. | High | 🔴 Planned |

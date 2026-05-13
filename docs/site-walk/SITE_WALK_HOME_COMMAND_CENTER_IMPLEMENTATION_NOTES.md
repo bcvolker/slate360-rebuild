@@ -197,3 +197,24 @@ User iPhone review after commit `ba35719` found the compact pass closer, but sti
 - `npm run build`: passed with existing warnings only: Sentry config deprecation, webpack cache large-string warnings, `instrumentation.ts` async target warning, and Next ESLint plugin warning.
 - `npm run guard:architecture`: passed.
 - `bash scripts/check-file-size.sh || true`: still reports 13 pre-existing unrelated oversized files; none of the final-compression changed production files exceed 300 lines.
+
+## Slice 1.2 Balance + Taxonomy Refinement
+
+Phone review after commit `645fe3a` found the scroll panel became too dominant and too walk-list-heavy for both existing and new users. The refinement keeps the page non-scrolling, but reduces the mobile panel height and gives the primary command area more breathing room.
+
+- Site Walk Home now uses Worksite language in the compact panel where safe.
+- `Projects` tab became `Worksites`; `Drafts` became `Reports`.
+- Primary actions are now `New Worksite`, `Start Walk`, and `Quick Capture` with no subtitles.
+- `Start Walk` opens Worksites when real worksites exist; otherwise it routes to setup.
+- The tab row no longer horizontally scrolls; it wraps as compact folder-style buttons.
+- The main panel is capped on mobile with a responsive height instead of owning all remaining vertical space.
+- Existing walk open/resume, quick capture, setup, deliverables, and bottom nav behavior are preserved.
+- No SlateDrop folder automation was implemented in this slice.
+
+## Slice 1.2 Validation
+
+- `get_errors` on changed focused files: passed.
+- `npm run typecheck`: passed.
+- `npm run build`: passed with existing warnings only: Sentry config deprecation, webpack cache large-string warnings, `instrumentation.ts` async target warning, and Next ESLint plugin warning.
+- `npm run guard:architecture`: passed.
+- `bash scripts/check-file-size.sh || true`: still reports 13 pre-existing unrelated oversized files; none of the Slice 1.2 changed production files exceed 300 lines.

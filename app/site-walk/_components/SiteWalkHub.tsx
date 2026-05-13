@@ -10,7 +10,7 @@ import { WalkActionsMenu } from "./WalkActionsMenu";
 import type { HubProject, HubSummary, HubWalk } from "./siteWalkHubTypes";
 
 type CreateState = { kind: "idle" } | { kind: "starting"; target: string } | { kind: "error"; message: string };
-type WorkTab = "active" | "recent" | "projects" | "issues" | "drafts";
+type WorkTab = "active" | "recent" | "worksites" | "issues" | "reports";
 
 export function SiteWalkHub({ projects, walks, summary }: { projects: HubProject[]; walks: HubWalk[]; summary: HubSummary }) {
   const router = useRouter();
@@ -48,35 +48,34 @@ export function SiteWalkHub({ projects, walks, summary }: { projects: HubProject
   }
 
   return (
-    <div className="mx-auto flex h-full min-h-0 w-full max-w-5xl flex-col gap-2 overflow-hidden">
-      <p className="shrink-0 px-1 text-[10px] font-black uppercase tracking-[0.24em] text-amber-400/90">Site Walk</p>
-
-      <div className={`grid shrink-0 gap-2 ${projects.length > 0 ? "grid-cols-3" : "grid-cols-2"}`}>
-        <Link href="/site-walk/setup" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.07] px-3 text-xs font-black text-white transition hover:border-amber-400/45 hover:bg-white/[0.1]">
-          <ClipboardList className="h-4 w-4 shrink-0 text-amber-300" /> Setup Walk
-        </Link>
-        <button type="button" onClick={() => void startWalk()} disabled={createState.kind === "starting"} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl bg-amber-500 px-3 text-xs font-black text-slate-950 transition hover:bg-amber-400 disabled:opacity-70">
-          {createState.kind === "starting" && createState.target === "quick" ? <Loader2 className="h-4 w-4 shrink-0 animate-spin" /> : <Zap className="h-4 w-4 shrink-0" />} Quick Capture
-        </button>
-        {projects.length > 0 && (
-          <button type="button" onClick={() => setActiveTab("projects")} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.07] px-3 text-xs font-black text-white transition hover:border-amber-400/45 hover:bg-white/[0.1]">
-            <Building2 className="h-4 w-4 shrink-0 text-amber-300" /> Project Walk
+    <div className="mx-auto flex h-full min-h-0 w-full max-w-5xl flex-col gap-2 overflow-hidden lg:gap-3">
+      <section className="shrink-0 rounded-[1.4rem] border border-white/10 bg-white/[0.035] p-2.5 backdrop-blur-xl sm:p-3" aria-label="Site Walk actions">
+        <p className="px-1 pb-2 text-[10px] font-black uppercase tracking-[0.24em] text-amber-400/90">Site Walk</p>
+        <div className="grid grid-cols-3 gap-2">
+          <Link href="/site-walk/setup" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.07] px-2 text-center text-xs font-black text-white transition hover:border-amber-400/45 hover:bg-white/[0.1]">
+            <ClipboardList className="h-4 w-4 shrink-0 text-amber-300" /> New Worksite
+          </Link>
+          <button type="button" onClick={() => projects.length > 0 ? setActiveTab("worksites") : router.push("/site-walk/setup")} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.07] px-2 text-center text-xs font-black text-white transition hover:border-amber-400/45 hover:bg-white/[0.1]">
+            <Building2 className="h-4 w-4 shrink-0 text-amber-300" /> Start Walk
           </button>
-        )}
-      </div>
+          <button type="button" onClick={() => void startWalk()} disabled={createState.kind === "starting"} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-amber-500 px-2 text-center text-xs font-black text-slate-950 transition hover:bg-amber-400 disabled:opacity-70">
+            {createState.kind === "starting" && createState.target === "quick" ? <Loader2 className="h-4 w-4 shrink-0 animate-spin" /> : <Zap className="h-4 w-4 shrink-0" />} Quick Capture
+          </button>
+        </div>
+      </section>
 
       {createState.kind === "error" && <p className="shrink-0 rounded-2xl border border-rose-400/25 bg-rose-500/10 px-4 py-3 text-sm font-bold text-rose-200">{createState.message}</p>}
 
-      <GlassCard className="flex min-h-0 flex-1 flex-col overflow-hidden p-0">
-        <div className="flex shrink-0 gap-1 overflow-x-auto border-b border-white/10 p-2 no-scrollbar" role="tablist" aria-label="Site Walk command panels">
+      <GlassCard className="flex h-[43dvh] min-h-[17rem] max-h-[23rem] shrink-0 flex-col overflow-hidden p-0 lg:min-h-0 lg:max-h-none lg:flex-1 lg:shrink lg:basis-0">
+        <div className="grid shrink-0 grid-cols-3 gap-1 border-b border-white/10 p-2 sm:grid-cols-5" role="tablist" aria-label="Site Walk command panels">
           {([
             { key: "active", label: "Active", count: activeWalks.length },
             { key: "recent", label: "Recent", count: walks.length },
-            { key: "projects", label: "Projects", count: projects.length },
+            { key: "worksites", label: "Worksites", count: projects.length },
             { key: "issues", label: "Issues", count: issueCount },
-            { key: "drafts", label: "Drafts", count: draftCount },
+            { key: "reports", label: "Reports", count: draftCount },
           ] as const).map((tab) => (
-            <button key={tab.key} type="button" onClick={() => setActiveTab(tab.key)} className={`min-h-9 shrink-0 rounded-xl px-3 text-xs font-black transition ${activeTab === tab.key ? "bg-amber-500 text-slate-950" : "bg-white/[0.04] text-slate-300 hover:bg-white/[0.08]"}`}>
+            <button key={tab.key} type="button" onClick={() => setActiveTab(tab.key)} className={`min-h-8 rounded-xl px-2 text-[11px] font-black transition ${activeTab === tab.key ? "bg-amber-500 text-slate-950" : "bg-white/[0.04] text-slate-300 hover:bg-white/[0.08]"}`}>
               {tab.label}{tab.count > 0 ? <span className="ml-1 opacity-75">{tab.count}</span> : null}
             </button>
           ))}
@@ -105,10 +104,10 @@ export function SiteWalkHub({ projects, walks, summary }: { projects: HubProject
             </section>
           )}
 
-          {activeTab === "projects" && (
+          {activeTab === "worksites" && (
             <section className="space-y-2">
               {projects.length === 0 ? (
-                <Link href="/site-walk/setup" className="block rounded-3xl border border-dashed border-white/15 bg-white/[0.03] p-6 text-center text-sm font-bold text-amber-200">No field projects yet. Start from a project or create one.</Link>
+                <Link href="/site-walk/setup" className="block rounded-3xl border border-dashed border-white/15 bg-white/[0.03] p-6 text-center text-sm font-bold text-amber-200">No worksites yet. Create a worksite to organize walks, plans, captures, and deliverables.</Link>
               ) : (
                 <div className="space-y-2">
                   {projects.map((project) => {
@@ -146,9 +145,9 @@ export function SiteWalkHub({ projects, walks, summary }: { projects: HubProject
             </section>
           )}
 
-          {activeTab === "drafts" && (
+          {activeTab === "reports" && (
             <section className="rounded-3xl border border-dashed border-white/15 bg-white/[0.03] p-6 text-center text-sm font-bold text-slate-400">
-              {draftCount > 0 ? <Link href="/site-walk/deliverables" className="text-amber-200 underline underline-offset-4">Open drafts</Link> : "No drafts yet."}
+              {draftCount > 0 ? <Link href="/site-walk/deliverables" className="text-amber-200 underline underline-offset-4">Open reports</Link> : "No reports yet. Complete a walk to create a deliverable."}
             </section>
           )}
         </div>

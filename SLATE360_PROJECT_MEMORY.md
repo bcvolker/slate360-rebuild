@@ -36,6 +36,29 @@ Recommended read order:
 - Selected UX direction: Site Walk Home command center, shared mobile `CaptureShell`, compact plan tools drawer, contextual markup/attachments, explicit saved-pin Move Pin mode, Before/After guided recapture, and a graphite/slate design-token foundation.
 - App-shell bridge direction: Slate360 Home remains the app-neutral command center; normal mobile shell nav is `Home | Projects | SlateDrop | Coordination | Account`; active capture/plan task modes may hide platform nav and own the full viewport.
 - Visual framing correction: future V1 design work should be described as Graphite Glass + restrained amber + muted teal, not harsh black/orange or a broad app-wide Dark Glass repaint.
+- Site Walk terminology rule: use `Worksite` for lower-tier field containers and reserve `Project` for higher-tier PM containers unless existing route/API/table names force the old term.
+
+## Session Handoff — 2026-05-13 (Site Walk Home Slice 1.2 balance + taxonomy)
+### What Changed
+- `docs/site-walk/SITE_WALK_V1_TAXONOMY_AND_WORKFLOW.md`: created Worksite / Project / Walk / Stop / Item-Issue / Deliverable / SlateDrop relationship taxonomy.
+- `app/site-walk/_components/SiteWalkHub.tsx`: reduced the mobile work panel height, replaced horizontal scrolling tabs with compact wrapped tabs, renamed tabs to Active / Recent / Worksites / Issues / Reports, and changed primary actions to New Worksite / Start Walk / Quick Capture.
+- `app/site-walk/_components/WalkActionsMenu.tsx`: changed menu wording to Link / Change Worksite and Create Report while preserving existing APIs/routes.
+- `slate360-context/ONGOING_ISSUES.md`: added the Worksite-vs-Project terminology rule.
+- `docs/site-walk/SITE_WALK_HOME_COMMAND_CENTER_IMPLEMENTATION_NOTES.md`: documented Slice 1.2 balance/taxonomy refinement.
+### What's Broken / Partially Done
+- Slice 1 remains pending physical iPhone confirmation.
+- Existing route/API/table names still use `project` / `deliverables` where changing them would risk regressions.
+- SlateDrop folder automation for Worksites/Projects is documented only; not implemented.
+- File-size guard still reports 13 pre-existing unrelated oversized files.
+### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md`: latest handoff and terminology rule
+- `slate360-context/ONGOING_ISSUES.md`: terminology note
+- `docs/site-walk/SITE_WALK_V1_TAXONOMY_AND_WORKFLOW.md`: new taxonomy doc
+- `docs/site-walk/SITE_WALK_HOME_COMMAND_CENTER_IMPLEMENTATION_NOTES.md`: Slice 1.2 notes
+### Next Steps (ordered)
+1. Monitor the Slice 1.2 Vercel deployment.
+2. Test on iPhone: action area balance, panel height, wrapped tabs, Worksites empty state, Reports empty state, row menu wording, and two-click delete.
+3. Do not mark Slice 1 complete until user confirms phone testing.
 
 ## Session Handoff — 2026-05-13 (Site Walk Home final compression)
 ### What Changed
