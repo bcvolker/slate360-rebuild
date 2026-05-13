@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
-import { ArrowLeft, Camera, Map } from "lucide-react";
 import { CaptureDataBottomSheet } from "@/components/site-walk/capture/CaptureDataBottomSheet";
 import { ManageTradesModal } from "@/components/site-walk/capture/ManageTradesModal";
 import { PlanViewer } from "@/components/site-walk/capture/PlanViewer";
@@ -14,6 +12,8 @@ import { useDeviceContext, type DeviceCaptureInput } from "@/lib/hooks/useDevice
 import { usePlanSheetsRealtime } from "@/lib/hooks/usePlanSheetsRealtime";
 import type { SiteWalkPin, SiteWalkPlanSet, SiteWalkPlanSheet } from "@/lib/types/site-walk";
 import type { CaptureItemDraft } from "@/lib/types/site-walk-capture";
+import { CaptureModeToggle, SiteWalkHomeButton } from "./CaptureModeControls";
+import { findGhostImageUrl, nextStopLabel, parseRecentLocations } from "./captureSessionHelpers";
 import { WalkStartChoice } from "./WalkStartChoice";
 
 type Props = {
@@ -229,6 +229,7 @@ function CaptureClientIslandInner({ sessionId, projectId, walkName, showPlanCanv
             onAddAngle={() => requestCapture(primaryCaptureInput, "angle")}
             onAngleCaptureFile={savePhotoAngle}
             onSelectItem={(id) => { const t = items.find((i) => i.id === id); if (t) selectItem(t); }}
+            onBackToPlan={showPlanCanvas ? () => { setReturnToPlanAfterSave(false); setWalkMode("plan"); } : undefined}
           />
         )}
 
@@ -258,6 +259,7 @@ function CaptureClientIslandInner({ sessionId, projectId, walkName, showPlanCanv
         onFormatNotes={() => void formatNotesWithAi()}
         onSaveNextStop={(opts?: { fromPlanPin?: boolean }) => saveNextStop({ fromPlanPin: opts?.fromPlanPin ?? returnToPlanAfterSave })}
         onOpenManageTrades={() => setManageTradesOpen(true)}
+        showMinimizedMobile={walkMode !== "plan"}
       />
 
       {manageTradesOpen && (
@@ -275,34 +277,4 @@ function CaptureClientIslandInner({ sessionId, projectId, walkName, showPlanCanv
       <input ref={directUploadRef} type="file" accept="image/*" className="hidden" onChange={handleDirectFileChange} />
     </section>
   );
-}
-
-function CaptureModeToggle({ mode, onPlan, onCamera }: { mode: "plan" | "camera"; onPlan: () => void; onCamera: () => void }) {
-  return <div className="absolute left-1/2 top-3 z-30 flex -translate-x-1/2 rounded-2xl border border-white/15 bg-slate-950/75 p-1 shadow-2xl backdrop-blur-xl"><button type="button" onClick={onPlan} className={`inline-flex h-9 items-center gap-1 rounded-xl px-3 text-[10px] font-black uppercase tracking-[0.1em] ${mode === "plan" ? "bg-amber-500 text-slate-950" : "text-white/70"}`}><Map className="h-3.5 w-3.5" /> Plan</button><button type="button" onClick={onCamera} className={`inline-flex h-9 items-center gap-1 rounded-xl px-3 text-[10px] font-black uppercase tracking-[0.1em] ${mode === "camera" ? "bg-amber-500 text-slate-950" : "text-white/70"}`}><Camera className="h-3.5 w-3.5" /> Camera</button></div>;
-}
-
-function SiteWalkHomeButton() {
-  return <Link href="/site-walk" className="absolute right-3 top-3 z-30 inline-flex h-11 items-center gap-2 rounded-2xl border border-white/15 bg-slate-950/75 px-3 text-xs font-black text-white/80 shadow-2xl backdrop-blur-xl hover:border-amber-300/50 hover:text-amber-100"><ArrowLeft className="h-4 w-4" /> Home</Link>;
-}
-
-function parseRecentLocations(value: string) {
-  try {
-    const parsed = JSON.parse(value) as unknown;
-    return Array.isArray(parsed) ? parsed.filter((item): item is string => typeof item === "string" && item.trim().length > 0).slice(0, 8) : [];
-  } catch {
-    return [];
-  }
-}
-
-function nextStopLabel(currentLocation: string, recentLocations: string[]) {
-  const candidates = [currentLocation, ...recentLocations];
-  const maxStop = candidates.reduce((max, label) => {
-    const match = label.trim().match(/^stop\s+(\d+)$/i);
-    return match ? Math.max(max, Number(match[1])) : max;
-  }, 1);
-  return `Stop ${maxStop + 1}`;
-}
-function findGhostImageUrl(items: { id: string; title: string; item_type: string; local_preview_url?: string | null }[], activeItemId: string | null, location: string) {
-  const prefix = location.trim();
-  return items.find((item) => item.id !== activeItemId && item.item_type === "photo" && item.title.startsWith(prefix) && item.local_preview_url)?.local_preview_url ?? null;
 }

@@ -32,6 +32,29 @@ Recommended read order:
 - The `_legacy_v1` tree has been explicitly purged and removed from the active routing.
 - The entire application is strictly unified under the 'Dark Glass & Amber' design token system utilizing the `<GlassCard>` component.
 
+## Session Handoff — 2026-05-13 (capture + plan mobile UI reorg)
+### What Changed
+- `components/site-walk/capture/VisualCaptureView.tsx`: reorganized the active capture screen into a flex task shell with a clear Plan return button, secondary Exit action, larger visual stage, compact bottom controls, and vector tools shown only while Drawing is active.
+- `app/site-walk/(act-2-inputs)/capture/_components/CaptureClientIsland.tsx`: wired Back to Plan through the existing `walkMode` owner, hid the minimized details launcher while already in plan mode, and extracted controls/helpers to keep the file under the 300-line guard.
+- `app/site-walk/(act-2-inputs)/capture/_components/CaptureModeControls.tsx` and `captureSessionHelpers.ts`: extracted capture mode/home controls plus session label helpers from `CaptureClientIsland`.
+- `components/site-walk/capture/CaptureDataBottomSheet.tsx`: moved the minimized mobile Details/Start launcher away from the bottom action rail.
+- `components/site-walk/capture/UnifiedVectorToolbar.tsx`: compacted markup tools and removed the tall explanatory block.
+- `components/site-walk/capture/CameraViewfinder.tsx`: made the plan-target banner compact/absolute in visual mode to preserve photo space.
+- `components/site-walk/capture/PlanToolbar.tsx`: reduced the mobile plan toolbar footprint while preserving sheet navigation, search, layer toggles, and zoom.
+- `components/site-walk/capture/PendingUploadPreviewModal.tsx`: raised and constrained the upload preview modal so it stays above active capture controls.
+- `docs/site-walk/CAPTURE_AND_PLAN_UI_REORG_DIAGNOSIS.md`: added the required structure/overlap diagnosis and safe reorg plan.
+### What's Broken / Partially Done
+- Physical iPhone verification is still required for the reorganized Back to Plan / Details / upload preview layout.
+- Draft pin dragging was not changed in this slice; it remains the prior implementation and should be re-tested on device.
+- `bash scripts/check-file-size.sh` still fails on 13 unrelated pre-existing oversized files, but no touched file exceeds the 300-line threshold.
+### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md`: latest handoff
+- `docs/site-walk/CAPTURE_AND_PLAN_UI_REORG_DIAGNOSIS.md`: mobile capture/plan UI diagnosis
+### Next Steps (ordered)
+1. Commit and push `fix(site-walk): reorganize mobile capture and plan workspace` to `main`.
+2. Monitor Vercel production until the new deployment is Ready.
+3. Test on iPhone Safari: plan load → pan/zoom → long-press → capture/upload → Details → Save & Return to Plan → reopen saved pin.
+
 ## Session Handoff — 2026-05-13 (Plan Walk action sheet + draft pin drag)
 ### What Changed
 - `components/site-walk/capture/PlanQuickActionMenu.tsx`: raised the plan capture actions to a mobile-safe `z-[2000]` bottom sheet, removed fragile full-screen click-to-close behavior, added Cancel, and kept camera/upload opening from trusted button taps. Note-only is disabled with explanatory text until the visual note UX is reliably wired.

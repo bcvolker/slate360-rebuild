@@ -24,9 +24,10 @@ type Props = {
   onFormatNotes: () => void;
   onSaveNextStop: (options?: { fromPlanPin?: boolean }) => void | Promise<void>;
   onOpenManageTrades?: () => void;
+  showMinimizedMobile?: boolean;
 };
 
-export function CaptureDataBottomSheet({ sessionId, item, items, assignees, draft, saveState, aiState, aiMessage, currentLocation, tradeOptions, canManageTrades, returnsToPlan = false, onDraftChange, onCapture, onFormatNotes, onSaveNextStop, onOpenManageTrades }: Props) {
+export function CaptureDataBottomSheet({ sessionId, item, items, assignees, draft, saveState, aiState, aiMessage, currentLocation, tradeOptions, canManageTrades, returnsToPlan = false, onDraftChange, onCapture, onFormatNotes, onSaveNextStop, onOpenManageTrades, showMinimizedMobile = true }: Props) {
   const [expandedMobile, setExpandedMobile] = useState(false);
   const [linkProgression, setLinkProgression] = useState(false);
   const [advancing, setAdvancing] = useState(false);
@@ -60,15 +61,14 @@ export function CaptureDataBottomSheet({ sessionId, item, items, assignees, draf
   return (
     <>
       {/* MOBILE: FAB when minimized → full-screen modal when expanded */}
-      {!expandedMobile && (
+      {!expandedMobile && showMinimizedMobile && (
         <button
           type="button"
           onClick={() => setExpandedMobile(true)}
-          className="md:hidden fixed right-4 z-40 inline-flex min-h-12 items-center gap-2 rounded-full bg-amber-500 px-5 py-3 text-sm font-black text-slate-950 shadow-[0_4px_24px_rgba(245,158,11,0.45)] active:scale-95 transition"
-          style={{ bottom: `calc(max(env(safe-area-inset-bottom, 0.75rem), 0.75rem) + 5rem)` }}
+          className="md:hidden fixed right-3 top-[calc(env(safe-area-inset-top,0rem)+3.6rem)] z-40 inline-flex min-h-10 items-center gap-1.5 rounded-2xl bg-amber-500 px-3 py-2 text-[11px] font-black uppercase tracking-[0.08em] text-slate-950 shadow-[0_4px_24px_rgba(245,158,11,0.35)] transition active:scale-95"
           aria-label="Add details and save"
         >
-          <SkipForward className="h-5 w-5" /> {item ? "Details & Save" : "Start Capture"}
+          {saveActionIcon} {item ? "Details" : "Start"}
         </button>
       )}
       {expandedMobile && (

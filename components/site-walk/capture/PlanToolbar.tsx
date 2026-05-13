@@ -56,10 +56,10 @@ export function PlanToolbar({ fileUrl, pages, activeIndex, zoomPercent, filter, 
   }
 
   return (
-    <div className="absolute top-14 inset-x-2 z-[1000] pointer-events-none md:top-12">
-      <GlassCard className="flex flex-col gap-2 bg-slate-950/75 p-2 backdrop-blur-xl max-h-[38vh] overflow-y-auto w-full pointer-events-auto shadow-2xl md:max-h-[40vh]">
-        <div className="flex flex-wrap items-center gap-2">
-          <button type="button" onClick={() => setCollapsed((current) => !current)} className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-white/[0.05] px-2.5 text-[10px] font-black uppercase tracking-[0.1em] text-white/80 hover:text-amber-100" aria-label={collapsed ? "Expand plan toolbar" : "Collapse plan toolbar"}>
+    <div className="absolute top-12 inset-x-2 z-[1000] pointer-events-none md:top-12">
+      <GlassCard className="flex w-full max-h-[30vh] flex-col gap-1.5 overflow-y-auto bg-slate-950/78 p-1.5 shadow-2xl backdrop-blur-xl pointer-events-auto md:max-h-[40vh]">
+        <div className="flex flex-wrap items-center gap-1.5">
+          <button type="button" onClick={() => setCollapsed((current) => !current)} className="inline-flex h-8 items-center gap-1 rounded-xl bg-white/[0.05] px-2 text-[9px] font-black uppercase tracking-[0.1em] text-white/80 hover:text-amber-100" aria-label={collapsed ? "Expand plan toolbar" : "Collapse plan toolbar"}>
             {collapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
             Plans
           </button>
@@ -69,20 +69,20 @@ export function PlanToolbar({ fileUrl, pages, activeIndex, zoomPercent, filter, 
           <div className={`${collapsed ? "hidden" : "flex"} ml-auto flex-wrap items-center gap-1.5`}>
             <div className="flex items-center rounded-xl bg-white/[0.05] px-1">
               <Search className="h-4 w-4 text-amber-400" />
-              <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search sheet…" className="h-9 w-32 bg-transparent px-2 text-xs font-bold text-white outline-none placeholder:text-slate-500 sm:w-44" aria-label="Search plan pages" />
+              <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search sheet…" className="h-8 w-28 bg-transparent px-2 text-xs font-bold text-white outline-none placeholder:text-slate-500 sm:w-44" aria-label="Search plan pages" />
             </div>
 
             <form onSubmit={(event) => { event.preventDefault(); handlePageInputSubmit(); }} className="flex items-center rounded-xl bg-white/[0.05] px-1">
               <span className="px-2 text-[10px] font-black uppercase tracking-[0.16em] text-slate-400">Pg</span>
-              <input value={pageInput} onChange={(event) => setPageInput(event.target.value.replace(/[^0-9]/g, ""))} placeholder="#" inputMode="numeric" className="h-9 w-12 bg-transparent text-center text-xs font-black text-white outline-none placeholder:text-slate-500" aria-label="Go to page number" />
+              <input value={pageInput} onChange={(event) => setPageInput(event.target.value.replace(/[^0-9]/g, ""))} placeholder="#" inputMode="numeric" className="h-8 w-12 bg-transparent text-center text-xs font-black text-white outline-none placeholder:text-slate-500" aria-label="Go to page number" />
             </form>
 
             <LayerToggle filter={filter} onChangeFilter={onChangeFilter} pinCount={pinCount} />
 
             <div className="flex items-center rounded-xl bg-white/[0.05]">
-              <button type="button" onClick={() => onZoom(-0.15)} className="inline-flex h-9 w-9 items-center justify-center rounded-l-xl text-white/75 hover:text-amber-100" aria-label="Zoom out"><Minus className="h-4 w-4" /></button>
+              <button type="button" onClick={() => onZoom(-0.15)} className="inline-flex h-8 w-8 items-center justify-center rounded-l-xl text-white/75 hover:text-amber-100" aria-label="Zoom out"><Minus className="h-4 w-4" /></button>
               <span className="min-w-[2.75rem] text-center text-[10px] font-black text-slate-300">{zoomPercent}%</span>
-              <button type="button" onClick={() => onZoom(0.15)} className="inline-flex h-9 w-9 items-center justify-center rounded-r-xl text-white/75 hover:text-amber-100" aria-label="Zoom in"><Plus className="h-4 w-4" /></button>
+              <button type="button" onClick={() => onZoom(0.15)} className="inline-flex h-8 w-8 items-center justify-center rounded-r-xl text-white/75 hover:text-amber-100" aria-label="Zoom in"><Plus className="h-4 w-4" /></button>
             </div>
           </div>
         </div>
@@ -100,7 +100,7 @@ export function PlanToolbar({ fileUrl, pages, activeIndex, zoomPercent, filter, 
                 aria-selected={index === activeIndex}
                 data-page-index={index}
                 onClick={() => onSelect(index)}
-                className={`flex h-10 shrink-0 items-center gap-1 rounded-xl border px-3 text-xs font-black transition ${index === activeIndex ? "border-amber-400 bg-amber-500/15 text-amber-100 ring-1 ring-amber-500/30" : "border-white/10 bg-white/[0.04] text-slate-300 hover:border-amber-400/50"}`}
+                className={`flex h-9 shrink-0 items-center gap-1 rounded-xl border px-3 text-xs font-black transition ${index === activeIndex ? "border-amber-400 bg-amber-500/15 text-amber-100 ring-1 ring-amber-500/30" : "border-white/10 bg-white/[0.04] text-slate-300 hover:border-amber-400/50"}`}
               >
                 <MapPin className="h-3 w-3" /> {page.label}
               </button>

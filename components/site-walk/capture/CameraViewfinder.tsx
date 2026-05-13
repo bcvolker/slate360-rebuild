@@ -133,11 +133,11 @@ export function CameraViewfinder({ sessionId, autoOpenCamera = false, launchId =
   }
 
   return (
-    <section className={visualOnly ? "flex h-full min-h-0 flex-col overflow-hidden bg-zinc-950" : "rounded-3xl border border-white/10 bg-slate-900/70 p-4 text-slate-50 shadow-lg shadow-black/30"}>
+    <section className={visualOnly ? "relative flex h-full min-h-0 flex-col overflow-hidden bg-zinc-950" : "rounded-3xl border border-white/10 bg-slate-900/70 p-4 text-slate-50 shadow-lg shadow-black/30"}>
       {target && (
-        <div className="mb-3 flex flex-col gap-2 rounded-2xl border border-amber-500/35 bg-amber-500/10 px-4 py-3 text-sm font-bold text-amber-100 sm:flex-row sm:items-center sm:justify-between">
+        <div className={visualOnly ? "absolute left-3 right-3 top-3 z-20 flex items-center justify-between gap-2 rounded-2xl border border-amber-500/35 bg-slate-950/85 px-3 py-2 text-xs font-black text-amber-100 shadow-2xl backdrop-blur-xl" : "mb-3 flex flex-col gap-2 rounded-2xl border border-amber-500/35 bg-amber-500/10 px-4 py-3 text-sm font-bold text-amber-100 sm:flex-row sm:items-center sm:justify-between"}>
           <span>Next capture attaches to the selected plan pin.</span>
-          <button type="button" onClick={clearTarget} className="rounded-xl bg-amber-500 px-3 py-2 text-xs font-black text-zinc-950 hover:bg-amber-400">Clear plan target</button>
+          <button type="button" onClick={clearTarget} className="shrink-0 rounded-xl bg-amber-500 px-3 py-2 text-xs font-black text-zinc-950 hover:bg-amber-400">Clear</button>
         </div>
       )}
 
