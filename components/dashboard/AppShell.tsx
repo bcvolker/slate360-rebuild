@@ -20,7 +20,6 @@ import { DashboardSidebar } from "@/components/dashboard/command-center/Dashboar
 import { DashboardTopBar } from "@/components/dashboard/command-center/DashboardTopBar";
 import { InviteShareProvider, useInviteShare } from "@/components/shared/InviteShareProvider";
 import { MobileTopBar } from "@/components/shared/MobileTopBar";
-import { MobileInstallStrip } from "@/components/shared/MobileInstallStrip";
 import { MobileBottomNav } from "@/components/shared/MobileBottomNav";
 import type { InviteShareData } from "@/lib/types/invite";
 
@@ -170,7 +169,6 @@ export function AppShell({
             sidebarOpen ? "lg:pl-64" : "lg:pl-0"
           )}
         >
-          <MobileInstallStrip />
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-4 lg:pb-0 scrollbar-none">{children}</div>
         </main>
 

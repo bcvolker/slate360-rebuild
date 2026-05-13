@@ -28,6 +28,8 @@ const NAV_ITEMS: NavItem[] = [
 export function SiteWalkModuleNav({ orgName }: Props) {
   const pathname = usePathname() ?? "/site-walk";
 
+  if (pathname === "/site-walk") return null;
+
   return (
     <div className="sticky top-0 z-30 bg-[#0B0F15]/92 px-3 pt-3 backdrop-blur-xl sm:px-6 lg:px-8">
       <GlassCard className="mx-auto flex max-w-7xl flex-col gap-3 rounded-[1.5rem] p-3 sm:flex-row sm:items-center sm:justify-between">
