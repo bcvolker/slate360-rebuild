@@ -38,6 +38,28 @@ Recommended read order:
 - Visual framing correction: future V1 design work should be described as Graphite Glass + restrained amber + muted teal, not harsh black/orange or a broad app-wide Dark Glass repaint.
 - Site Walk terminology rule: use `Worksite` for lower-tier field containers and reserve `Project` for higher-tier PM containers unless existing route/API/table names force the old term.
 
+## Session Handoff — 2026-05-13 (Saved plan pin duplicate guard)
+### What Changed
+- `components/site-walk/capture/PlanViewerLeaflet.tsx`: saved Leaflet markers now isolate pointer, touch, click, and contextmenu events so saved-pin taps/presses do not bubble into map-level draft-pin creation; saved pins remain non-draggable unless a future explicit Move Pin mode is implemented.
+- `components/site-walk/capture/PlanViewerLeafletEvents.tsx`: draw-mode map click/contextmenu creation now ignores events whose source target is a Leaflet marker icon.
+- `components/site-walk/capture/PlanQuickActionMenu.tsx`: saved/unlinked pin menu copy now says `Saved Stop`, `Location locked`, and `Open Details` language instead of `Draft pin` drag instructions; Move Pin and Delete are not exposed as active flows.
+- `components/site-walk/capture/planViewerModel.ts`: quick-menu state now carries saved-pin context without changing `clientPinId` or server UUID reconciliation semantics.
+- `docs/site-walk/PLAN_PIN_SAFETY_BEFORE_CAPTURESHELL.md`: updated from planning-only to record the implemented tiny guard and deferred work.
+### What's Broken / Partially Done
+- Do not mark the pin issue resolved until user confirms on a physical phone.
+- Full saved-pin Move Pin mode remains a future slice.
+- Full saved-pin Delete flow remains a future slice.
+- Shared CaptureShell remains the next planned major slice if the user approves it.
+- Plan navigation/search/layers/thumbnails remain incomplete.
+### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md`: latest handoff
+- `docs/site-walk/PLAN_PIN_SAFETY_BEFORE_CAPTURESHELL.md`: implemented guard and deferred work
+### Next Steps (ordered)
+1. Validate with `npm run typecheck`, `npm run build`, `npm run guard:architecture`, and `bash scripts/check-file-size.sh || true`.
+2. Commit only the focused saved-pin safety files if validation passes.
+3. Test on iPhone: tap saved pins, long-press saved pins, attempt a drag gesture on saved pins, and confirm no duplicate draft pin appears; then long-press empty plan space and confirm draft pin creation still works.
+4. Wait for user phone confirmation before marking this issue resolved.
+
 ## Session Handoff — 2026-05-13 (Site Walk Home Slice 1.3 Worksites layout)
 ### What Changed
 - `app/site-walk/_components/SiteWalkHub.tsx`: removed the arbitrary `43dvh`/max-height cap so the Home work panel again fills remaining space above bottom nav via `flex-1 min-h-0`; top actions remain compact with tighter spacing.

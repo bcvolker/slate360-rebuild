@@ -26,6 +26,8 @@ import { PlanToolbar } from "./PlanToolbar";
 import { PlanViewerLeafletEvents } from "./PlanViewerLeafletEvents";
 import { buildPages, type QuickMenuState } from "./planViewerModel";
 
+const SAVED_PIN_STOP_EVENTS = ["pointerdown", "pointerup", "click", "contextmenu", "touchstart", "touchend"] as const;
+
 type Props = {
   projectId?: string | null;
   sessionId?: string;
@@ -51,6 +53,22 @@ function createPinIcon(label: string, amber: boolean): L.DivIcon {
     iconSize: [28, 36],
     iconAnchor: [14, 36],
     html: `<div style="display:flex;flex-direction:column;align-items:center"><div style="width:28px;height:28px;border-radius:50%;background:${amber ? "#f59e0b" : "#64748b"};color:${amber ? "#0c0a09" : "#fff"};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;border:2px solid ${amber ? "#fbbf24" : "#94a3b8"};box-shadow:0 2px 8px rgba(0,0,0,0.3)">${label}</div><div style="width:2px;height:8px;background:${amber ? "#f59e0b" : "#64748b"};border-radius:1px"></div></div>`,
+  });
+}
+
+function isolateSavedPinMarker(marker: L.Marker) {
+  const element = marker.getElement();
+  if (!element) return;
+  const stopPropagation = (event: Event) => {
+    event.stopPropagation();
+  };
+  for (const eventName of SAVED_PIN_STOP_EVENTS) {
+    element.addEventListener(eventName, stopPropagation);
+  }
+  marker.once("remove", () => {
+    for (const eventName of SAVED_PIN_STOP_EVENTS) {
+      element.removeEventListener(eventName, stopPropagation);
+    }
   });
 }
 
@@ -107,7 +125,8 @@ export function PlanViewerLeaflet({ projectId, sessionId = "current-session", pl
     if (pin.item_id) {
       onSelectItem?.(pin.item_id);
     } else {
-      setQuickMenu({ pinId: isUuid(pin.id) ? pin.id : null, clientPinId: pin.client_pin_id ?? (!isUuid(pin.id) ? pin.id : null), xPct: pin.x_pct, yPct: pin.y_pct });
+      const isSavedPin = isUuid(pin.id);
+      setQuickMenu({ pinId: isSavedPin ? pin.id : null, clientPinId: pin.client_pin_id ?? (!isSavedPin ? pin.id : null), xPct: pin.x_pct, yPct: pin.y_pct, isSavedPin });
     }
   }
 
@@ -167,7 +186,11 @@ export function PlanViewerLeaflet({ projectId, sessionId = "current-session", pl
               icon={createPinIcon(pin.label, pin.amber)}
               draggable={isDraftPin(pin)}
               eventHandlers={{
-                click: () => handlePinClick(pin.id),
+                add: (event) => { if (!isDraftPin(pin)) isolateSavedPinMarker(event.target as L.Marker); },
+                click: (event) => { if (!isDraftPin(pin)) stopLeafletEvent(event); handlePinClick(pin.id); },
+                contextmenu: (event) => { if (!isDraftPin(pin)) stopLeafletEvent(event); handlePinClick(pin.id); },
+                mousedown: (event) => { if (!isDraftPin(pin)) stopLeafletEvent(event); },
+                mouseup: (event) => { if (!isDraftPin(pin)) stopLeafletEvent(event); },
                 dragstart: () => { if (isDraftPin(pin)) handleDraftPinDragStart(); },
                 drag: (event) => { if (isDraftPin(pin)) handleDraftPinMove(pin.id, (event.target as L.Marker).getLatLng()); },
                 dragend: (event) => { if (isDraftPin(pin)) handleDraftPinDragEnd(pin.id, event); },
@@ -213,6 +236,7 @@ export function PlanViewerLeaflet({ projectId, sessionId = "current-session", pl
         <PlanQuickActionMenu
           pinId={quickMenu.pinId}
           clientPinId={quickMenu.clientPinId}
+          isSavedPin={quickMenu.isSavedPin}
           planSheetId={activePage?.sheetId ?? ""}
           xPct={quickMenu.xPct}
           yPct={quickMenu.yPct}
@@ -223,6 +247,13 @@ export function PlanViewerLeaflet({ projectId, sessionId = "current-session", pl
       )}
     </div>
   );
+}
+
+function stopLeafletEvent(event: L.LeafletEvent) {
+  const sourceEvent = "originalEvent" in event ? event.originalEvent : null;
+  if (sourceEvent instanceof Event) {
+    L.DomEvent.stop(sourceEvent);
+  }
 }
 
 function isUuid(value: string) {

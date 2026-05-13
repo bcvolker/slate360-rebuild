@@ -117,9 +117,11 @@ export function PlanViewerLeafletEvents({ toolMode, imageWidth, imageHeight, ses
   useMapEvents({
     click(event) {
       if (toolMode !== "draw") return;
+      if (isMarkerEventTarget(event.originalEvent.target)) return;
       createPinAtLatLng(event.latlng);
     },
     contextmenu(event) {
+      if (isMarkerEventTarget(event.originalEvent.target)) return;
       createPinAtLatLng(event.latlng);
     },
   });

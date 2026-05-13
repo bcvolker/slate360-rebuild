@@ -10,6 +10,7 @@ import { publishPlanCaptureTarget } from "./plan-capture-events";
 type Props = {
   pinId?: string | null;
   clientPinId?: string | null;
+  isSavedPin?: boolean;
   planSheetId: string;
   xPct: number;
   yPct: number;
@@ -18,7 +19,7 @@ type Props = {
   onCaptureRequest?: (input: "camera" | "upload") => void;
 };
 
-export function PlanQuickActionMenu({ pinId, clientPinId, planSheetId, xPct, yPct, captureDisabledReason, onClose, onCaptureRequest }: Props) {
+export function PlanQuickActionMenu({ pinId, clientPinId, isSavedPin = false, planSheetId, xPct, yPct, captureDisabledReason, onClose, onCaptureRequest }: Props) {
   const { isDesktop } = useDeviceContext();
   const captureCtx = useOptionalCaptureContext();
   const captureDisabled = Boolean(captureDisabledReason);
@@ -57,14 +58,15 @@ export function PlanQuickActionMenu({ pinId, clientPinId, planSheetId, xPct, yPc
       <div className="pointer-events-auto w-full max-w-sm rounded-[1.75rem] border border-amber-400/25 bg-slate-900/95 p-4 text-left text-slate-50 shadow-2xl shadow-black/70 backdrop-blur-xl">
         <div className="flex items-start justify-between gap-2">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.16em] text-amber-400">Draft pin</p>
-            <p className="mt-1 text-sm font-bold text-slate-400">Drag the pin to adjust it, then attach the next capture.</p>
+            <p className="text-xs font-black uppercase tracking-[0.16em] text-amber-400">{isSavedPin ? "Saved Stop" : "Draft pin"}</p>
+            <p className="mt-1 text-sm font-bold text-slate-400">{isSavedPin ? "Location locked. Open details or add evidence from this saved location." : "Drag the pin to adjust it, then attach the next capture."}</p>
           </div>
           <button type="button" onClick={onClose} className="rounded-lg p-1 text-slate-500 hover:bg-white/[0.06]" aria-label="Close pin actions">
             <X className="h-4 w-4" />
           </button>
         </div>
         <div className="mt-3 grid gap-2">
+          {isSavedPin && <button type="button" disabled className="flex min-h-11 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-sm font-black text-slate-500 opacity-70" title="Linked saved stops open directly from the plan pin."><StickyNote className="h-4 w-4" /> Open Details</button>}
           {!isDesktop && <button type="button" onClick={() => choose("photo", "camera")} disabled={captureDisabled} className="flex min-h-11 items-center gap-2 rounded-xl bg-amber-500 px-3 py-2 text-sm font-black text-slate-950 hover:bg-amber-400 disabled:opacity-50"><Camera className="h-4 w-4" /> Take photo at this pin</button>}
           <button type="button" onClick={() => choose("photo", "upload")} disabled={captureDisabled} className="flex min-h-11 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-sm font-black text-slate-200 hover:border-amber-400/50 hover:text-amber-200 disabled:opacity-50">
             <Upload className="h-4 w-4" /> Upload existing photo

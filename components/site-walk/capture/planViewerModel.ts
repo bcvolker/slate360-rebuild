@@ -4,7 +4,7 @@ import type { PlanViewerPin } from "./PlanPin";
 
 export type Point = { x: number; y: number };
 export type Transform = { scale: number; x: number; y: number };
-export type QuickMenuState = { pinId?: string | null; clientPinId?: string | null; xPct: number; yPct: number } | null;
+export type QuickMenuState = { pinId?: string | null; clientPinId?: string | null; xPct: number; yPct: number; isSavedPin?: boolean } | null;
 export type PlanPage = { key: string; label: string; pageNumber: number; sheetId?: string };
 
 export const PLAN_PDF_BASE_WIDTH = 1200;
