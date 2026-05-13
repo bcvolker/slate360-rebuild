@@ -29,13 +29,17 @@ export function PlanQuickActionMenu({ pinId, clientPinId, planSheetId, xPct, yPc
     if (captureCtx) {
       captureCtx.setPlanTarget(target);
       if (input) {
+        console.log("[PLAN_WALK] capture requested", { input, target });
         if (onCaptureRequest) onCaptureRequest(input);
         else captureCtx.requestCapture(input, "plan_pin");
       }
     } else {
       // Legacy fallback: window event bus (used by any caller still outside the provider).
       publishPlanCaptureTarget({ ...target, action });
-      if (input) requestCameraCapture(input, "plan_pin");
+      if (input) {
+        console.log("[PLAN_WALK] capture requested", { input, target });
+        requestCameraCapture(input, "plan_pin");
+      }
     }
     onClose();
   }

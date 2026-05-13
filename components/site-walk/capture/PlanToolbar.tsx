@@ -24,11 +24,12 @@ type Props = {
 };
 
 export function PlanToolbar({ fileUrl, pages, activeIndex, zoomPercent, filter, pinCount, onSelect, onZoom, onChangeFilter }: Props) {
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(() => typeof window !== "undefined" && window.matchMedia("(max-width: 767px)").matches);
   const [query, setQuery] = useState("");
   const [pageInput, setPageInput] = useState("");
   const stripRef = useRef<HTMLDivElement>(null);
   const total = pages.length;
+  const activeLabel = pages[activeIndex]?.label ?? "No pages";
 
   const filtered = useMemo(() => {
     const term = query.trim().toLowerCase();
@@ -55,16 +56,17 @@ export function PlanToolbar({ fileUrl, pages, activeIndex, zoomPercent, filter, 
   }
 
   return (
-    <div className="absolute top-12 inset-x-2 z-[1000] pointer-events-none">
-      <GlassCard className="flex flex-col gap-2 bg-slate-950/75 p-2 backdrop-blur-xl max-h-[40vh] overflow-y-auto w-full pointer-events-auto shadow-2xl">
+    <div className="absolute top-14 inset-x-2 z-[1000] pointer-events-none md:top-12">
+      <GlassCard className="flex flex-col gap-2 bg-slate-950/75 p-2 backdrop-blur-xl max-h-[38vh] overflow-y-auto w-full pointer-events-auto shadow-2xl md:max-h-[40vh]">
         <div className="flex flex-wrap items-center gap-2">
           <button type="button" onClick={() => setCollapsed((current) => !current)} className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-white/[0.05] px-2.5 text-[10px] font-black uppercase tracking-[0.1em] text-white/80 hover:text-amber-100" aria-label={collapsed ? "Expand plan toolbar" : "Collapse plan toolbar"}>
             {collapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
             Plans
           </button>
-          <span className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-400">{total === 0 ? "No pages" : `${activeIndex + 1} / ${total}`}</span>
+          <span className="min-w-0 flex-1 truncate text-[10px] font-black uppercase tracking-[0.16em] text-slate-300">{total === 0 ? "No pages" : `${activeIndex + 1} / ${total} · ${activeLabel}`}</span>
+          {collapsed && <span className="inline-flex h-7 min-w-7 items-center justify-center rounded-lg bg-amber-500/15 px-2 text-[10px] font-black text-amber-100">{pinCount}</span>}
 
-          <div className="ml-auto flex flex-wrap items-center gap-1.5">
+          <div className={`${collapsed ? "hidden" : "flex"} ml-auto flex-wrap items-center gap-1.5`}>
             <div className="flex items-center rounded-xl bg-white/[0.05] px-1">
               <Search className="h-4 w-4 text-amber-400" />
               <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search sheet…" className="h-9 w-32 bg-transparent px-2 text-xs font-bold text-white outline-none placeholder:text-slate-500 sm:w-44" aria-label="Search plan pages" />

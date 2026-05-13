@@ -32,6 +32,25 @@ Recommended read order:
 - The `_legacy_v1` tree has been explicitly purged and removed from the active routing.
 - The entire application is strictly unified under the 'Dark Glass & Amber' design token system utilizing the `<GlassCard>` component.
 
+## Session Handoff — 2026-05-12 (Plan Walk touch capture fix)
+### What Changed
+- `components/site-walk/capture/PlanViewerLeafletEvents.tsx`: added Leaflet map event bridge for mobile long-press, contextmenu, and explicit Pin-mode click plan-stop creation without disabling normal pan/zoom.
+- `components/site-walk/capture/PlanViewerLeaflet.tsx`: moved Leaflet map event handling into the new helper and removed the extra toolbar wrapper so the mobile plan surface gets more usable space.
+- `components/site-walk/capture/PlanToolbar.tsx`: mobile toolbar now starts collapsed with sheet/page count and pin count visible; search, layers, zoom, and page navigation remain available when expanded.
+- `components/site-walk/capture/PlanQuickActionMenu.tsx`: added limited `[PLAN_WALK]` capture-request diagnostics for camera/upload handoff.
+- `docs/site-walk/PLAN_WALK_TOUCH_CAPTURE_DIAGNOSIS.md`: documented the event-path diagnosis, toolbar obstruction, capture handoff, return-to-plan behavior, and follow-ups.
+### What's Broken / Partially Done
+- Live iPhone verification is still required; do not mark BUG-079 resolved until user confirms plan long-press → capture/upload → details → save → return → one persisted pin.
+- Note-only plan stop flow still needs a follow-up UX pass if it remains exposed as a primary workflow.
+- Final rich pin thumbnail/card preview parity remains a later UI polish slice.
+### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md`: latest handoff
+- `docs/site-walk/PLAN_WALK_TOUCH_CAPTURE_DIAGNOSIS.md`: focused diagnosis and fix notes
+### Next Steps (ordered)
+1. Commit and push the focused main fix after validation.
+2. Monitor Vercel production deployment.
+3. User tests live iPhone Safari plan long-press capture flow with cache-busting URL.
+
 ## Session Handoff — 2026-05-12 (BUG-079 pre-commit review)
 ### What Changed
 - `docs/site-walk/BUG079_IMPLEMENTATION_REVIEW.md`: added strict pre-commit review covering fix summary, changed files, identity lifecycle, validation, remaining risks, manual device test plan, and targeted staging command.

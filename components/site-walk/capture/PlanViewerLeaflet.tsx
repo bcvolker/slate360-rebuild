@@ -16,13 +16,15 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Hand, Loader2, MapPin } from "lucide-react";
 import L from "leaflet";
-import { ImageOverlay, MapContainer, Marker, useMap, useMapEvents } from "react-leaflet";
+import { ImageOverlay, MapContainer, Marker } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import type { SiteWalkPlanSet, SiteWalkPlanSheet } from "@/lib/types/site-walk";
 import type { LayerFilter } from "./plan-layer-types";
+import type { PlanViewerPin } from "./PlanPin";
 import { PlanQuickActionMenu } from "./PlanQuickActionMenu";
 import { PlanToolbar } from "./PlanToolbar";
-import { buildPages, createClientPinId, type QuickMenuState } from "./planViewerModel";
+import { PlanViewerLeafletEvents } from "./PlanViewerLeafletEvents";
+import { buildPages, type QuickMenuState } from "./planViewerModel";
 
 type Props = {
   projectId?: string | null;
@@ -32,17 +34,6 @@ type Props = {
   items?: { id: string; title?: string; description?: string | null }[];
   onCaptureRequest?: (input: "camera" | "upload") => void;
   onSelectItem?: (itemId: string) => void;
-};
-
-type PlanViewerPin = {
-  id: string;
-  client_pin_id?: string | null;
-  x_pct: number;
-  y_pct: number;
-  session_id: string;
-  label: string;
-  amber: boolean;
-  item_id: string | null;
 };
 
 /** Convert percentage-based pin to Leaflet CRS.Simple coordinates. */
@@ -125,7 +116,7 @@ export function PlanViewerLeaflet({ projectId, sessionId = "current-session", pl
   }, []);
 
   return (
-    <div className="absolute inset-0 touch-none select-none overflow-hidden bg-black text-white" style={{ WebkitTouchCallout: "none" }}>
+    <div className="absolute inset-0 select-none overflow-hidden bg-black text-white" style={{ WebkitTouchCallout: "none" }}>
       {/* Leaflet map container */}
       {hasRasterized && imageUrl ? (
         <MapContainer
@@ -143,7 +134,7 @@ export function PlanViewerLeaflet({ projectId, sessionId = "current-session", pl
           ref={handleMapCreated}
         >
           <ImageOverlay url={imageUrl} bounds={bounds} />
-          <MapEventHandler toolMode={toolMode} imageWidth={imageWidth} imageHeight={imageHeight} sessionId={sessionId} pins={pins} setPins={setPins} setQuickMenu={setQuickMenu} />
+          <PlanViewerLeafletEvents toolMode={toolMode} imageWidth={imageWidth} imageHeight={imageHeight} sessionId={sessionId} pins={pins} setPins={setPins} setQuickMenu={setQuickMenu} />
           {visiblePins.map((pin) => (
             <Marker
               key={pin.id}
@@ -174,19 +165,17 @@ export function PlanViewerLeaflet({ projectId, sessionId = "current-session", pl
       </div>
 
       {/* Plan toolbar */}
-      <div className="absolute top-12 inset-x-2 z-[1000]">
-        <PlanToolbar
-          fileUrl={null}
-          pages={pages.map((p) => ({ key: p.key, label: p.label, pageNumber: p.pageNumber }))}
-          activeIndex={safePageIndex}
-          zoomPercent={mapRef.current ? Math.round(Math.pow(2, mapRef.current.getZoom()) * 100) : 100}
-          filter={filter}
-          pinCount={visiblePins.length}
-          onSelect={setPageIndex}
-          onZoom={(delta) => { if (mapRef.current) delta > 0 ? mapRef.current.zoomIn(0.5) : mapRef.current.zoomOut(0.5); }}
-          onChangeFilter={setFilter}
-        />
-      </div>
+      <PlanToolbar
+        fileUrl={null}
+        pages={pages.map((p) => ({ key: p.key, label: p.label, pageNumber: p.pageNumber }))}
+        activeIndex={safePageIndex}
+        zoomPercent={mapRef.current ? Math.round(Math.pow(2, mapRef.current.getZoom()) * 100) : 100}
+        filter={filter}
+        pinCount={visiblePins.length}
+        onSelect={setPageIndex}
+        onZoom={(delta) => { if (mapRef.current) delta > 0 ? mapRef.current.zoomIn(0.5) : mapRef.current.zoomOut(0.5); }}
+        onChangeFilter={setFilter}
+      />
 
       {/* Quick action menu for pin */}
       {quickMenu && (
@@ -203,53 +192,6 @@ export function PlanViewerLeaflet({ projectId, sessionId = "current-session", pl
       )}
     </div>
   );
-}
-
-/** Handles map click events for pin creation in draw mode. */
-function MapEventHandler({ toolMode, imageWidth, imageHeight, sessionId, pins, setPins, setQuickMenu }: {
-  toolMode: "pan" | "draw";
-  imageWidth: number;
-  imageHeight: number;
-  sessionId: string;
-  pins: PlanViewerPin[];
-  setPins: React.Dispatch<React.SetStateAction<PlanViewerPin[]>>;
-  setQuickMenu: React.Dispatch<React.SetStateAction<QuickMenuState>>;
-}) {
-  const map = useMap();
-
-  // Disable/enable map dragging based on tool mode
-  useEffect(() => {
-    if (toolMode === "draw") {
-      map.dragging.disable();
-    } else {
-      map.dragging.enable();
-    }
-  }, [toolMode, map]);
-
-  useMapEvents({
-    click(e) {
-      if (toolMode !== "draw") return;
-      const yPct = (e.latlng.lat / imageHeight) * 100;
-      const xPct = (e.latlng.lng / imageWidth) * 100;
-      if (xPct < 0 || xPct > 100 || yPct < 0 || yPct > 100) return;
-      const clientPinId = createClientPinId();
-      const newPin: PlanViewerPin = {
-        id: clientPinId,
-        client_pin_id: clientPinId,
-        x_pct: xPct,
-        y_pct: yPct,
-        session_id: sessionId,
-        label: String(pins.length + 1).padStart(2, "0"),
-        amber: true,
-        item_id: null,
-      };
-      setPins((current) => [...current, newPin]);
-      setQuickMenu({ clientPinId, xPct, yPct });
-      if (navigator.vibrate) navigator.vibrate(50);
-    },
-  });
-
-  return null;
 }
 
 function isUuid(value: string) {
