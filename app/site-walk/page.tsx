@@ -36,9 +36,9 @@ export default async function SiteWalkPage() {
   const { projects, walks, summary } = context.orgId ? await loadHubData(context.orgId) : { projects: [], walks: [], summary: EMPTY_SUMMARY };
 
   return (
-    <main className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-[radial-gradient(circle_at_top,rgba(245,158,11,0.07),transparent_34%),#0B0F15] px-3 py-3 text-slate-50 sm:px-6 lg:px-8">
+    <main className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-[radial-gradient(circle_at_top,rgba(245,158,11,0.07),transparent_34%),#0B0F15] px-3 py-2 text-slate-50 sm:px-6 sm:py-3 lg:px-8">
       <div className="mx-auto flex min-h-0 w-full max-w-6xl flex-1">
-        <SiteWalkHub projects={projects} walks={walks} summary={summary} orgName={context.orgName} />
+        <SiteWalkHub projects={projects} walks={walks} summary={summary} />
       </div>
     </main>
   );

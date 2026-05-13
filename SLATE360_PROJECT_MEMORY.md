@@ -37,6 +37,25 @@ Recommended read order:
 - App-shell bridge direction: Slate360 Home remains the app-neutral command center; normal mobile shell nav is `Home | Projects | SlateDrop | Coordination | Account`; active capture/plan task modes may hide platform nav and own the full viewport.
 - Visual framing correction: future V1 design work should be described as Graphite Glass + restrained amber + muted teal, not harsh black/orange or a broad app-wide Dark Glass repaint.
 
+## Session Handoff — 2026-05-13 (Site Walk Home final compression)
+### What Changed
+- `app/site-walk/_components/SiteWalkHub.tsx`: removed the boxed top context row, removed top All Walks button, removed Resume hero, removed metric chip strip, and made the main contained panel the primary value surface with Active / Recent / Projects / Issues / Drafts tabs and tab badges.
+- `app/site-walk/_components/WalkActionsMenu.tsx`: changed hard delete from typed DELETE/title confirmation to a two-click destructive modal while still sending the existing server confirmation payload internally.
+- `app/site-walk/page.tsx`: reduced mobile vertical padding so the panel starts higher.
+- `docs/site-walk/SITE_WALK_HOME_COMMAND_CENTER_IMPLEMENTATION_NOTES.md`: added Phone Review After Compact Pass, final compression notes, review, and validation.
+### What's Broken / Partially Done
+- Slice 1 remains pending physical iPhone confirmation.
+- Setup page still needs a future focused cleanup.
+- Saved plan pin move/delete duplication remains deferred to the Pins / Stop Preview slice; no plan viewer or pin logic was changed.
+- File-size guard still reports 13 pre-existing unrelated oversized files.
+### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md`: latest handoff
+- `docs/site-walk/SITE_WALK_HOME_COMMAND_CENTER_IMPLEMENTATION_NOTES.md`: phone-review/final-compression/validation record
+### Next Steps (ordered)
+1. Monitor the final-compression Vercel deployment.
+2. Test on iPhone: tiny Site Walk label, compact Setup Walk / Quick Capture / Project Walk actions, Active tab, Recent full walks list link, Projects/Issues/Drafts tabs, visible row menu, two-click Delete Walk modal, and no page-level scroll under bottom nav.
+3. Do not mark Slice 1 complete until the user confirms phone testing.
+
 ## Session Handoff — 2026-05-13 (Site Walk Home compact command center correction)
 ### What Changed
 - `app/site-walk/_components/SiteWalkHub.tsx`: compacted Site Walk Home by replacing the large hero with a small context row, replacing oversized action cards with compact Resume Walk / Setup Walk / Quick Capture / From Project actions, converting metrics to chips, and moving Recent / Projects / Issues / Drafts into one contained tabbed work panel.

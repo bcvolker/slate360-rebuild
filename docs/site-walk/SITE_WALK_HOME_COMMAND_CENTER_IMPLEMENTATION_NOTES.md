@@ -149,3 +149,51 @@ User iPhone review after commit `a377e73` found the first command-center pass st
 - `npm run build`: passed with existing warnings only: Sentry config deprecation, webpack cache large-string warnings, `instrumentation.ts` async target warning, and Next ESLint plugin warning.
 - `npm run guard:architecture`: passed.
 - `bash scripts/check-file-size.sh || true`: still reports 13 pre-existing unrelated oversized files; none of the correction files exceed 300 lines.
+
+## Phone Review After Compact Pass
+
+User iPhone review after commit `ba35719` found the compact pass closer, but still not compressed enough for prime mobile space:
+
+- The top Slate360/workspace context row remains low-value and hard to read.
+- The separate top All Walks button is unclear and should move into the main tabbed work panel instead of consuming header space.
+- Resume Walk is useful but should not be a primary hero/action card; active/resumable walks belong in an Active tab or compact list.
+- Action buttons should be self-explanatory without subtitles.
+- From Project reads as ambiguous; use Project Walk only when it clearly means starting from a field project.
+- The Open Items / Needs Review / Unsynced / Draft Reports chip strip feels visually mismatched and should be removed or converted to tab badges.
+- Passive metrics should not consume space unless they directly navigate to useful work.
+- Typed DELETE/title confirmation is too cumbersome for mobile; use a two-click confirmation modal instead.
+- The main contained tabbed panel should own most of the value and start higher on the screen.
+- V1 will not implement a customizable Site Walk Home layout yet; that belongs to future settings/preferences work.
+
+## Final Compression Implementation Notes
+
+- Removed the boxed top context row and separate All Walks button.
+- Kept only a tiny Site Walk label above the actions.
+- Compressed primary actions to Setup Walk, Quick Capture, and Project Walk when projects exist.
+- Removed subtitles from the primary action buttons.
+- Moved resumable walks into an Active tab instead of a prominent Resume card.
+- Removed the horizontal metric chip strip and converted useful counts to tab badges.
+- Made the tabbed work panel the main flex-1 scroll area: Active, Recent, Projects, Issues, Drafts.
+- Kept walk rows compact with title, project/source, status, item count, date, and visible three-dot menu.
+- Changed hard delete from typed confirmation to a two-click destructive confirmation modal.
+
+## Final Compression Codex-style review
+
+- No Trigger/rasterization changes: passed.
+- No schema/migration changes: passed.
+- No capture upload or plan viewer logic changes: passed.
+- No fake data: passed; empty states remain honest.
+- No hidden future apps exposed: passed.
+- No page-level scroll under bottom nav: preserved.
+- Main tabbed panel is the primary scroll area: implemented with `flex-1 min-h-0 overflow-y-auto`.
+- Delete is now a two-click confirmation: menu Delete, then modal Delete Walk.
+- Row three-dot menu remains visible.
+- Passive metrics were removed from the separate strip and converted to tab badges where useful.
+
+## Final Compression Validation
+
+- `get_errors` on changed focused-correction files: passed.
+- `npm run typecheck`: passed.
+- `npm run build`: passed with existing warnings only: Sentry config deprecation, webpack cache large-string warnings, `instrumentation.ts` async target warning, and Next ESLint plugin warning.
+- `npm run guard:architecture`: passed.
+- `bash scripts/check-file-size.sh || true`: still reports 13 pre-existing unrelated oversized files; none of the final-compression changed production files exceed 300 lines.

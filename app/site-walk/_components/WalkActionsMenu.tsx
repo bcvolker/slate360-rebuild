@@ -24,8 +24,6 @@ export function WalkActionsMenu({ walk, projects }: { walk: HubWalk; projects: H
   const [error, setError] = useState<string | null>(null);
   const [title, setTitle] = useState(walk.title);
   const [projectId, setProjectId] = useState(walk.projectId ?? "");
-  const [deleteText, setDeleteText] = useState("");
-  const [deleteName, setDeleteName] = useState("");
 
   async function patchSession(action: BusyAction, payload: Record<string, unknown>) {
     setBusy(action);
@@ -56,7 +54,7 @@ export function WalkActionsMenu({ walk, projects }: { walk: HubWalk; projects: H
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(
           permanent
-            ? { permanent: true, confirmText: deleteText.trim(), confirmName: deleteName.trim() }
+            ? { permanent: true, confirmText: "DELETE", confirmName: walk.title.trim() }
             : {},
         ),
       });
@@ -143,10 +141,8 @@ export function WalkActionsMenu({ walk, projects }: { walk: HubWalk; projects: H
 
             {modal === "delete" && (
               <div className="space-y-4">
-                <div><p className="text-xs font-black uppercase tracking-[0.18em] text-rose-300">Delete walk</p><h2 className="mt-1 text-lg font-black">Permanently delete this walk?</h2><p className="mt-2 text-sm text-slate-400">Type DELETE and the walk title to confirm. This is intentionally a second confirmation.</p></div>
-                <input value={deleteText} onChange={(event) => setDeleteText(event.target.value)} placeholder="Type DELETE" className="min-h-12 w-full rounded-2xl border border-white/10 bg-black/30 px-4 text-sm font-bold text-white outline-none focus:border-rose-300" />
-                <input value={deleteName} onChange={(event) => setDeleteName(event.target.value)} placeholder={walk.title} className="min-h-12 w-full rounded-2xl border border-white/10 bg-black/30 px-4 text-sm font-bold text-white outline-none focus:border-rose-300" />
-                <ModalActions onCancel={() => setModal("none")} busy={busy === "delete"} onConfirm={() => void deleteSession(true)} confirmLabel="Delete walk" danger disabled={deleteText.trim() !== "DELETE" || deleteName.trim() !== walk.title.trim()} />
+                <div><p className="text-xs font-black uppercase tracking-[0.18em] text-rose-300">Delete walk</p><h2 className="mt-1 text-lg font-black">Delete this walk?</h2><p className="mt-2 text-sm text-slate-400">This cannot be undone.</p></div>
+                <ModalActions onCancel={() => setModal("none")} busy={busy === "delete"} onConfirm={() => void deleteSession(true)} confirmLabel="Delete Walk" danger />
               </div>
             )}
             {error && <p className="mt-4 rounded-2xl border border-rose-400/25 bg-rose-500/10 px-3 py-2 text-sm font-bold text-rose-200">{error}</p>}
