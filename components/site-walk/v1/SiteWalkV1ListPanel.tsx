@@ -4,37 +4,37 @@ import type { ReactNode } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 
-export type ListTab = "active" | "recent" | "worksites" | "issues";
+export type ListTab = "recent" | "active" | "shared" | "review";
 
 type SiteWalkV1ListPanelProps = {
   defaultTab?: ListTab;
-  activeContent: ReactNode;
   recentContent: ReactNode;
-  worksitesContent: ReactNode;
-  issuesContent: ReactNode;
+  activeContent: ReactNode;
+  sharedContent: ReactNode;
+  reviewContent: ReactNode;
   className?: string;
 };
 
 const tabDefs: { value: ListTab; label: string }[] = [
-  { value: "active", label: "Active" },
   { value: "recent", label: "Recent" },
-  { value: "worksites", label: "Worksites" },
-  { value: "issues", label: "Issues" },
+  { value: "active", label: "Active" },
+  { value: "shared", label: "Shared" },
+  { value: "review", label: "Needs Review" },
 ];
 
 export function SiteWalkV1ListPanel({
-  defaultTab = "active",
-  activeContent,
+  defaultTab = "recent",
   recentContent,
-  worksitesContent,
-  issuesContent,
+  activeContent,
+  sharedContent,
+  reviewContent,
   className,
 }: SiteWalkV1ListPanelProps) {
   const contentMap: Record<ListTab, ReactNode> = {
-    active: activeContent,
     recent: recentContent,
-    worksites: worksitesContent,
-    issues: issuesContent,
+    active: activeContent,
+    shared: sharedContent,
+    review: reviewContent,
   };
 
   return (

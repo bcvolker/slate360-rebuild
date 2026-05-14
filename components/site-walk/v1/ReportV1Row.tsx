@@ -5,10 +5,10 @@ import { SiteWalkV1RowMenu, type RowAction } from "./SiteWalkV1RowMenu";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
-type ReportV1RowProps = {
+type DeliverableV1RowProps = {
   title: string;
   sourceWalk: string | null;
-  reportType: string;
+  deliverableType: string;
   lastUpdated: string;
   onOpen: () => void;
   onShare?: () => void;
@@ -20,16 +20,19 @@ function typeLabel(t: string): string {
   return t.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
-export function ReportV1Row({
+/** @deprecated use DeliverableV1Row */
+export const ReportV1Row = DeliverableV1Row;
+
+export function DeliverableV1Row({
   title,
   sourceWalk,
-  reportType,
+  deliverableType,
   lastUpdated,
   onOpen,
   onShare,
   onDelete,
   className,
-}: ReportV1RowProps) {
+}: DeliverableV1RowProps) {
   const actions: RowAction[] = [
     { label: "Open", onClick: onOpen },
     ...(onShare ? [{ label: "Share", onClick: onShare }] : []),
@@ -66,7 +69,7 @@ export function ReportV1Row({
         variant="outline"
         className="rounded-md border-zinc-700 bg-zinc-800/50 px-1.5 py-0 text-[10px] text-zinc-400"
       >
-        {typeLabel(reportType)}
+        {typeLabel(deliverableType)}
       </Badge>
 
       <SiteWalkV1RowMenu actions={actions} />

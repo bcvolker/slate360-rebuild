@@ -10,8 +10,10 @@ type WorksiteV1RowProps = {
   lastActivity: string | null;
   onOpen: () => void;
   onStartWalk: () => void;
-  onPlanRoom: () => void;
+  onPlansAndDocs: () => void;
   onSlateDrop: () => void;
+  onCollaborators?: () => void;
+  onDeliverables?: () => void;
   onRename?: () => void;
   onArchive?: () => void;
   onDelete?: () => void;
@@ -24,8 +26,10 @@ export function WorksiteV1Row({
   lastActivity,
   onOpen,
   onStartWalk,
-  onPlanRoom,
+  onPlansAndDocs,
   onSlateDrop,
+  onCollaborators,
+  onDeliverables,
   onRename,
   onArchive,
   onDelete,
@@ -34,8 +38,14 @@ export function WorksiteV1Row({
   const actions: RowAction[] = [
     { label: "Open", onClick: onOpen },
     { label: "Start Walk", onClick: onStartWalk },
-    { label: "Plan Room", onClick: onPlanRoom },
+    { label: "Plans & Documents", onClick: onPlansAndDocs },
     { label: "SlateDrop", onClick: onSlateDrop },
+    ...(onCollaborators
+      ? [{ label: "Collaborators", onClick: onCollaborators }]
+      : []),
+    ...(onDeliverables
+      ? [{ label: "Deliverables", onClick: onDeliverables }]
+      : []),
     ...(onRename ? [{ label: "Rename", onClick: onRename }] : []),
     ...(onArchive
       ? [{ label: "Archive", onClick: onArchive, separator: true }]

@@ -67,18 +67,42 @@ Instead of incrementally fixing pill-shaped controls, stacked headers, crowded l
 ## Preview Route
 
 `/site-walk-v1-preview` — non-production preview showing:
-- Home tab with action grid and tabbed list panel
-- Worksites tab with empty state
-- Reports tab with empty state
-- Account tab with real utility links only
+- Home tab with primary actions, core access row, and work panel (Recent/Active/Shared/Review)
+- Worksites tab with New Worksite action and empty state
+- SlateDrop tab with section links, auto-folder concept, and empty state
+- Coordination tab with Assignments/Comments/Inbox/Shared/Invitations/Contacts
+- Deliverables tab with Create Deliverable, 9 category chips, status sections
 - Plan workspace skeleton (accessible via navigation)
 - Capture workspace skeleton (accessible via navigation)
+- Desktop sidebar layout at lg+ breakpoint
+- Avatar/profile menu in header (Account, Settings, Billing, Organization, Feedback, Help, Sign Out)
+
+## Applied Corrections (2026-05-14 revision)
+
+These corrections have been applied to the V1 preview:
+
+1. **Bottom nav is Home | Worksites/Projects | SlateDrop | Coordination | Deliverables.** Account removed from bottom nav.
+2. **Account is in the avatar/profile dropdown** in the header (Account, Settings, Billing, Organization, Feedback, Help, Sign Out).
+3. **"Reports" replaced with "Deliverables" everywhere.** Deliverable types include Visual Walk Summary, Punch/Issue Package, Proposal, Before & After, Progress Timeline, 360 Tour, 3D Model Review, Closeout Record, PDF Export.
+4. **"Plan Room" banned.** WorksiteV1Row now uses "Plans & Documents." Plans belong under Worksite/Project.
+5. **Worksites/Projects label follows entitlement model.** `useProjectLabel` prop on BottomNav and Shell switches between "Worksites" (default) and "Projects" (when full PM tier detected).
+6. **SlateDrop is a core nav surface** with Worksite Folders, Recent Uploads, Shared Drops, File Requests, and auto-folder concept display.
+7. **Coordination is a core nav surface** with Assignments, Comments, Inbox, Shared With Me, Invitations, Contacts.
+8. **Desktop sidebar layout** renders at lg+ breakpoint with full nav; mobile bottom nav hidden at lg+.
+9. **Preview remains non-production.** No production routes changed.
+10. **Coordination is the correct label** (not "Coordinate"). Fixed in bottom nav, sidebar, and Home core access row.
+11. **"Needs Review" is the correct work-panel tab label** (not "Review"). Fixed in SiteWalkV1ListPanel.
+12. **Worksites/Projects label** is currently controlled by `useProjectLabel` prop in the preview. It still needs to be wired to the real entitlement/project-access helper (`canCreateFullProject()` from `lib/project-access.ts`) before production swap.
+6. **Coordination must be core nav.** Assignments, comments, inbox, and board APIs exist. They need a visible surface.
+7. **Account belongs in avatar/profile menu, not primary bottom nav.** Account/Settings is a secondary utility. Use the avatar dropdown for account access; give the primary nav slot to Deliverables, SlateDrop, or Coordination.
+8. **Desktop and landscape must be considered from the start.** Current V1 skeleton is phone-portrait only. Must plan for tablet portrait, tablet landscape, and desktop sidebar layout.
 
 ## Next Steps After User Reviews Preview Route
 
-1. User reviews preview route on mobile viewport and provides feedback.
-2. Iterate V1 components based on feedback.
-3. Wire real data from existing hooks/loaders into V1 components.
-4. Create a feature-flagged swap of production route imports.
-5. Physical device confirmation.
-6. Replace production imports and remove old components.
+1. Revise V1 bottom nav: Home, Worksites, Deliverables, SlateDrop (or Coordination). Account via avatar.
+2. User reviews revised preview route on mobile viewport and provides feedback.
+3. Iterate V1 components based on feedback.
+4. Wire real data from existing hooks/loaders into V1 components.
+5. Create a feature-flagged swap of production route imports.
+6. Physical device confirmation.
+7. Replace production imports and remove old components.

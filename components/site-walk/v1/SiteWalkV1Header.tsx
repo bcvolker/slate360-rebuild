@@ -1,11 +1,24 @@
 "use client";
 
-import { ArrowLeft, MoreVertical } from "lucide-react";
+import {
+  ArrowLeft,
+  MoreVertical,
+  Search,
+  Bell,
+  User,
+  Settings,
+  CreditCard,
+  Building2,
+  MessageSquare,
+  HelpCircle,
+  LogOut,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
@@ -24,6 +37,7 @@ type SiteWalkV1HeaderProps = {
     onClick: () => void;
   };
   overflowActions?: HeaderAction[];
+  showAvatar?: boolean;
   className?: string;
 };
 
@@ -32,6 +46,7 @@ export function SiteWalkV1Header({
   onBack,
   primaryAction,
   overflowActions,
+  showAvatar = false,
   className,
 }: SiteWalkV1HeaderProps) {
   return (
@@ -98,6 +113,54 @@ export function SiteWalkV1Header({
           </DropdownMenuContent>
         </DropdownMenu>
       )}
+
+      {showAvatar && <AvatarMenu />}
     </header>
+  );
+}
+
+/* --- Avatar / profile dropdown --- */
+
+function AvatarMenu() {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          type="button"
+          aria-label="Account menu"
+          className="flex size-8 shrink-0 items-center justify-center rounded-full bg-amber-600/20 text-xs font-bold text-amber-400 transition-colors hover:bg-amber-600/30"
+        >
+          S
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        align="end"
+        className="min-w-[180px] border-white/10 bg-zinc-900"
+      >
+        <DropdownMenuItem className="gap-2 text-zinc-300">
+          <User className="size-4" /> Account
+        </DropdownMenuItem>
+        <DropdownMenuItem className="gap-2 text-zinc-300">
+          <Settings className="size-4" /> Settings
+        </DropdownMenuItem>
+        <DropdownMenuItem className="gap-2 text-zinc-300">
+          <CreditCard className="size-4" /> Billing
+        </DropdownMenuItem>
+        <DropdownMenuItem className="gap-2 text-zinc-300">
+          <Building2 className="size-4" /> Organization
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem className="gap-2 text-zinc-300">
+          <MessageSquare className="size-4" /> Feedback
+        </DropdownMenuItem>
+        <DropdownMenuItem className="gap-2 text-zinc-300">
+          <HelpCircle className="size-4" /> Help
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem className="gap-2 text-red-400">
+          <LogOut className="size-4" /> Sign Out
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

@@ -89,6 +89,21 @@ Only after explicit approval:
 4. Token pilot limited to Site Walk capture/plan surfaces.
 5. Deliverables V1 polish.
 
+## Backend Audit Findings (2026-05-14)
+
+A full backend audit was completed. Key findings for future V1 work:
+
+- Use "Deliverables" not "Reports." Backend defines 22 deliverable types.
+- Worksites map to `projects` with `project_type = 'field'`. No separate Worksite table.
+- Plan sets are project-scoped. "Plan Room" label is banned; use "Plans & Documents."
+- SlateDrop auto-provisions 17 system folders per project.
+- Collaborator model is fully built: invites, seats, limits, per-project.
+- Coordination (assignments, comments, inbox, board) APIs exist but no dedicated page.
+- V1 preview components exist at `components/site-walk/v1/` with preview route `/site-walk-v1-preview`.
+- Audit docs: `docs/audit/BACKEND_ENTITLEMENT_AND_DATA_MODEL_AUDIT.md` and related.
+- Coordination is the correct nav label (not "Coordinate"). Needs Review is the correct work-panel tab label (not "Review").
+- Worksites/Projects label is controlled by `useProjectLabel` prop in V1 preview. It still needs to be wired to `canCreateFullProject()` from `lib/project-access.ts` before production swap.
+
 ## Smoke Tests For Future Site Walk Work
 
 - Open `/site-walk` on mobile viewport and confirm no dead blank space below the Home work panel.
