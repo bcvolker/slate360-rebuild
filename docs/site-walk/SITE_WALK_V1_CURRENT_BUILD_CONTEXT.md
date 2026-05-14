@@ -1,6 +1,6 @@
 # Site Walk V1 Current Build Context
 
-Last Updated: 2026-05-13
+Last Updated: 2026-05-14
 Status: Current Site Walk source-of-truth map.
 
 ## Purpose
@@ -12,6 +12,7 @@ This file is the quick map for Site Walk V1 work. It identifies what is working,
 - Site Walk is the only fully visible V1 app for app-store-facing authenticated surfaces.
 - Plan Walk core loop works enough to protect it: plan opens, pan/zoom works, long press opens capture, plan-linked capture can be created, and saved plan pins can be opened.
 - Shared CaptureShell V1 is implemented locally: Quick Walk and Plan Walk now share the active task header, state-specific save labels, and Details / Attachments / Markup lower-sheet tabs.
+- Act 2 screen-zone ownership correction is implemented locally: Shared task header owns the top zone, plan/photo canvas owns the middle, the bottom drawer owns Details / Attachments / Markup plus save, and modal overlays sit above task controls.
 - Trigger.dev plan rasterization is working. Do not disturb it unless the task proves it is directly involved.
 - Mobile Site Walk must use server-generated plan imagery, not browser-side construction-PDF rendering.
 - Home command center has compact primary actions and a flex-filling work panel.
@@ -26,6 +27,7 @@ This file is the quick map for Site Walk V1 work. It identifies what is working,
 | Current decision record | `docs/site-walk/SITE_WALK_V1_MOBILE_UX_DECISION_RECORD.md` | UX decisions for command center, CaptureShell, plan tools, save flow |
 | Shared CaptureShell audit | `docs/site-walk/SHARED_CAPTURESHELL_V1_AUDIT.md` | Pre-edit ownership map and overlay risk notes |
 | Shared CaptureShell implementation | `docs/site-walk/SHARED_CAPTURESHELL_V1_IMPLEMENTATION.md` | Implemented shell structure, checklist, deferred work |
+| Act 2 zone correction | `docs/site-walk/ACT2_SCREEN_ZONE_OWNERSHIP_CORRECTION.md` | Current screen-zone ownership diagnosis, implemented cleanup, deferred work |
 | Current taxonomy | `docs/site-walk/SITE_WALK_V1_TAXONOMY_AND_WORKFLOW.md` | Worksite/Project/Walk/Stop/Item/Deliverable language |
 | Implementation notes | `docs/site-walk/SITE_WALK_HOME_COMMAND_CENTER_IMPLEMENTATION_NOTES.md` | Historical notes for Home command-center slices |
 | Failure history | `docs/site-walk/SITE_WALK_CAPTURE_FAILURE_ANALYSIS_2026-05-08.md` | Capture failure context; read only when touching capture/save behavior |
@@ -45,6 +47,7 @@ This file is the quick map for Site Walk V1 work. It identifies what is working,
 | Capture task route | `app/site-walk/(act-2-inputs)/capture/*` | Full-viewport capture shell and client island |
 | Shared capture task header | `app/site-walk/(act-2-inputs)/capture/_components/SharedCaptureTaskHeader.tsx` | Shared Quick Walk / Plan Walk active header with Back to Plan or Site Walk and secondary Exit |
 | Capture/plan UI | `components/site-walk/capture/*` | Camera, plan viewer, bottom sheet, toolbar, pin menus, attachments |
+| Plan compact pill | `components/site-walk/capture/PlanToolbar.tsx` | Compact plan context only; full Plan Tools Drawer remains deferred |
 
 ## Preserve Before Editing
 
@@ -62,6 +65,7 @@ This file is the quick map for Site Walk V1 work. It identifies what is working,
 - Saved pins still need move/delete polish.
 - Plan navigation, search, layers, thumbnails, and sheet selection remain incomplete.
 - Shared CaptureShell still needs physical iPhone confirmation.
+- Act 2 zone ownership still needs physical iPhone confirmation after the correction.
 - Full Stop Strip navigation is not implemented yet; the shared header only shows the current stop label.
 - Deliverables V1 still needs product polish.
 - App Store visible-surface cleanup is not complete.
@@ -69,6 +73,7 @@ This file is the quick map for Site Walk V1 work. It identifies what is working,
 ## Highest-Risk UI Debt In Site Walk
 
 - Multiple fixed and absolute overlays compete in capture/plan surfaces.
+- Act 2 correction removes the main top-zone stack from Plan Walk, but future Plan Tools Drawer work must keep one owner for plan controls.
 - Z-index values range from shell-level values to very high modal values like `z-[2000]` and `z-[2100]`.
 - Bottom action zones are split across capture sheets, quick action menus, toolbar hints, mobile nav avoidance, and safe-area padding.
 - Hardcoded black/slate/amber/cyan classes are common in capture files.

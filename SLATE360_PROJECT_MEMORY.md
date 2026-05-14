@@ -38,6 +38,32 @@ Recommended read order:
 - Visual framing correction: future V1 design work should be described as Graphite Glass + restrained amber + muted teal, not harsh black/orange or a broad app-wide Dark Glass repaint.
 - Site Walk terminology rule: use `Worksite` for lower-tier field containers and reserve `Project` for higher-tier PM containers unless existing route/API/table names force the old term.
 
+## Session Handoff — 2026-05-14 (Act 2 screen-zone ownership correction)
+### What Changed
+- `app/site-walk/(act-2-inputs)/capture/_components/SharedCaptureTaskHeader.tsx`: Exit confirmation now renders in the modal layer with safe-area padding and updated unsaved-changes copy.
+- `app/site-walk/(act-2-inputs)/capture/_components/CaptureClientIsland.tsx`: removed duplicate floating Plan/Camera and Home controls from active task mode and drives Markup mode from the bottom drawer tab.
+- `components/site-walk/capture/PlanToolbar.tsx`: collapsed plan controls to one compact `Plans` pill with current page context and pin count; full Plan Tools Drawer remains deferred.
+- `components/site-walk/capture/PlanViewerLeaflet.tsx`: removed floating Pan/Pin controls while preserving pan/zoom and empty-area long-press draft pin creation; saved linked pins now fall back to the locked menu when their item cannot be resolved locally.
+- `components/site-walk/capture/CaptureDataBottomSheet.tsx`: removed floating Details/Start button and duplicate top Save; mobile drawer auto-opens to Details after capture/select and keeps the bottom footer save canonical.
+- `components/site-walk/capture/VisualCaptureView.tsx`: removed detached always-visible bottom markup rail so Markup tools appear only in the drawer's Markup tab.
+- `components/site-walk/capture/PendingUploadPreviewModal.tsx`: raised upload preview into the modal layer above task controls.
+- `docs/site-walk/ACT2_SCREEN_ZONE_OWNERSHIP_CORRECTION.md`: created diagnosis and implementation record.
+### What's Broken / Partially Done
+- Physical iPhone confirmation is still required before marking Act 2 zone ownership complete.
+- Full Plan Tools Drawer remains deferred.
+- Full saved-pin Move/Delete remains deferred.
+- Full Stop Strip navigation remains deferred.
+- Before/After/Ghost and Deliverables V1 remain deferred.
+### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md`: latest handoff
+- `docs/site-walk/ACT2_SCREEN_ZONE_OWNERSHIP_CORRECTION.md`: new correction diagnosis and record
+- `docs/site-walk/SHARED_CAPTURESHELL_V1_IMPLEMENTATION.md`: added correction summary
+- `docs/site-walk/SITE_WALK_V1_CURRENT_BUILD_CONTEXT.md`: updated current state and code map
+### Next Steps (ordered)
+1. Validate with `npm run typecheck`, `npm run build`, `npm run guard:architecture`, and `bash scripts/check-file-size.sh || true`.
+2. Test on iPhone: Plan Walk top zone has only task header plus compact plan pill, no Home/Pan/Pin/large card stack; Quick Capture has no floating Details button; Details auto-opens after capture; only bottom save is primary; Exit modal is centered and unobscured; Markup tools appear only under Markup tab; saved pins either open details or show the locked fallback menu.
+3. Keep Plan Tools Drawer, saved-pin Move/Delete, full Stop Strip navigation, Before/After/Ghost, and Deliverables for later approved slices.
+
 ## Session Handoff — 2026-05-13 (Shared CaptureShell V1)
 ### What Changed
 - `app/site-walk/(act-2-inputs)/capture/_components/SharedCaptureTaskHeader.tsx`: added the shared Quick Walk / Plan Walk active task header with primary Back to Plan or Site Walk, stop context, walk title, and secondary/destructive Exit confirmation.

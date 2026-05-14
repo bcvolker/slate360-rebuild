@@ -1,7 +1,7 @@
 # Shared CaptureShell V1 Implementation
 
-Date: 2026-05-13
-Status: Implemented and validated locally
+Date: 2026-05-14
+Status: Implemented; Act 2 zone-ownership correction applied and validated locally
 Rollback tag: `pre-shared-captureshell-v1-20260513-172442`
 
 ## What Changed
@@ -21,6 +21,23 @@ Rollback tag: `pre-shared-captureshell-v1-20260513-172442`
 - `CaptureDataBottomSheet.tsx` remains the details/save owner and now exposes the three active lower-sheet tabs.
 - `PlanViewerLeaflet.tsx` and plan rasterized-image handling were not changed.
 
+## Act 2 Zone-Ownership Correction
+
+Rollback tag for the correction: `pre-act2-zone-ownership-20260514-010357`
+
+- Zone 1 — Task Header: `SharedCaptureTaskHeader.tsx` is the only active task top owner. Plan/Camera, Home, Pan/Pin, and legacy capture headers are not stacked under it in shared task mode.
+- Zone 2 — Canvas: Plan Walk keeps the Leaflet plan as the canvas; Quick Walk keeps the camera/photo as the canvas. Permanent large tool cards were removed from the canvas.
+- Zone 3 — Bottom Drawer: `CaptureDataBottomSheet.tsx` owns Details / Attachments / Markup and the canonical save button. Markup controls appear only in the Markup tab.
+- Zone 4 — Modal Layer: Exit confirmation and upload preview render above plan/capture controls and respect iOS safe areas.
+
+Specific correction outcomes:
+
+- `PlanToolbar.tsx` now renders one compact `Plans` pill with page context and visible pin count; full plan tools remain deferred.
+- `PlanViewerLeaflet.tsx` no longer renders the floating Pan/Pin switch; pan/zoom and long-press draft-pin creation remain preserved.
+- `CaptureDataBottomSheet.tsx` no longer renders a floating Details button or duplicate top Save button; it auto-opens to Details when an item becomes active.
+- `VisualCaptureView.tsx` no longer renders the detached bottom markup rail in shared task mode.
+- Saved linked pins open the loaded item when available; unresolved saved pins open the safe locked menu instead of doing nothing.
+
 ## Behavior Checklist
 
 - Back to Plan exists as the primary Plan Walk header action.
@@ -32,6 +49,7 @@ Rollback tag: `pre-shared-captureshell-v1-20260513-172442`
 - Attachments tab uses the existing capture/upload callback path.
 - Markup tab uses the existing `UnifiedVectorToolbar` event path.
 - The Stop Strip is intentionally not implemented beyond the current stop label in the header.
+- The Act 2 correction intentionally does not implement Plan Tools Drawer, saved-pin Move/Delete, full Stop Strip navigation, Before/After/Ghost, or Deliverables.
 
 ## Codex-Style Review Checklist
 
@@ -63,4 +81,4 @@ Rollback tag: `pre-shared-captureshell-v1-20260513-172442`
 - `npm run typecheck` — passed.
 - `npm run build` — passed with existing Next/Sentry/webpack warnings.
 - `npm run guard:architecture` — passed.
-- `bash scripts/check-file-size.sh || true` — reports 13 pre-existing unrelated oversized files; no touched Shared CaptureShell file exceeds 300 lines.
+- `bash scripts/check-file-size.sh || true` — reports 13 pre-existing unrelated oversized files; no touched Shared CaptureShell or Act 2 correction file exceeds 300 lines.

@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, type PointerEvent, type ReactElement } from "react";
+import { useEffect, useRef, useState, type PointerEvent, type ReactElement } from "react";
 import Link from "next/link";
 import { ArrowLeft, Camera, CheckCircle2, Link2, Loader2, Settings2, SkipForward, Sparkles, Upload } from "lucide-react";
 import { useDeviceContext, type DeviceCaptureInput } from "@/lib/hooks/useDeviceContext";
 import { CAPTURE_ITEM_STATUSES, type CaptureAssignee, type CaptureItemDraft, type CaptureItemRecord } from "@/lib/types/site-walk-capture";
 import { CaptureSheetUtilityPanel } from "./CaptureSheetUtilityPanel";
 
-type CaptureSheetTab = "details" | "attachments" | "markup";
+export type CaptureSheetTab = "details" | "attachments" | "markup";
 
 type Props = {
   sessionId: string;
@@ -22,17 +22,18 @@ type Props = {
   tradeOptions: string[];
   canManageTrades: boolean;
   returnsToPlan?: boolean;
+  activeTab: CaptureSheetTab;
+  onActiveTabChange: (tab: CaptureSheetTab) => void;
   onDraftChange: (patch: Partial<CaptureItemDraft>) => void;
   onCapture: (input?: DeviceCaptureInput) => void;
   onFormatNotes: () => void;
   onSaveNextStop: (options?: { fromPlanPin?: boolean }) => void | Promise<void>;
   onOpenManageTrades?: () => void;
-  showMinimizedMobile?: boolean;
 };
 
-export function CaptureDataBottomSheet({ sessionId, item, items, assignees, draft, saveState, aiState, aiMessage, currentLocation, tradeOptions, canManageTrades, returnsToPlan = false, onDraftChange, onCapture, onFormatNotes, onSaveNextStop, onOpenManageTrades, showMinimizedMobile = true }: Props) {
+export function CaptureDataBottomSheet({ sessionId, item, items, assignees, draft, saveState, aiState, aiMessage, currentLocation, tradeOptions, canManageTrades, returnsToPlan = false, activeTab, onActiveTabChange, onDraftChange, onCapture, onFormatNotes, onSaveNextStop, onOpenManageTrades }: Props) {
   const [expandedMobile, setExpandedMobile] = useState(false);
-  const [activeTab, setActiveTab] = useState<CaptureSheetTab>("details");
+  const lastOpenedItemRef = useRef<string | null>(null);
   const [linkProgression, setLinkProgression] = useState(false);
   const [advancing, setAdvancing] = useState(false);
   const { primaryCaptureInput, primaryCaptureLabel } = useDeviceContext();
@@ -45,6 +46,14 @@ export function CaptureDataBottomSheet({ sessionId, item, items, assignees, draf
   const saveActionIcon = returnsToPlan ? <Link2 className="h-5 w-5" /> : <SkipForward className="h-5 w-5" />;
   const saveActionLabel = returnsToPlan ? "Save Stop & Return to Plan" : "Save Stop & Continue";
   const tabs: CaptureSheetTab[] = ["details", "attachments", "markup"];
+
+  useEffect(() => {
+    const itemKey = item?.id ?? item?.client_item_id ?? null;
+    if (!itemKey || lastOpenedItemRef.current === itemKey) return;
+    lastOpenedItemRef.current = itemKey;
+    onActiveTabChange("details");
+    setExpandedMobile(true);
+  }, [item?.client_item_id, item?.id, onActiveTabChange]);
 
   function handleContentPointerDown(event: PointerEvent<HTMLDivElement>) {
     const target = event.target;
@@ -63,24 +72,13 @@ export function CaptureDataBottomSheet({ sessionId, item, items, assignees, draf
     setTimeout(() => setAdvancing(false), 2000);
   }
 
-  const tabButtons = <div className="grid grid-cols-3 gap-1 rounded-2xl border border-white/10 bg-black/25 p-1">{tabs.map((tab) => <button key={tab} type="button" onClick={() => setActiveTab(tab)} className={`h-9 rounded-xl text-[10px] font-black uppercase tracking-[0.12em] ${activeTab === tab ? "bg-amber-500 text-slate-950" : "text-slate-400"}`}>{tab}</button>)}</div>;
+  const tabButtons = <div className="grid grid-cols-3 gap-1 rounded-2xl border border-white/10 bg-black/25 p-1">{tabs.map((tab) => <button key={tab} type="button" onClick={() => onActiveTabChange(tab)} className={`h-9 rounded-xl text-[10px] font-black uppercase tracking-[0.12em] ${activeTab === tab ? "bg-amber-500 text-slate-950" : "text-slate-400"}`}>{tab}</button>)}</div>;
   const activePanel = activeTab === "details" ? <SheetContents item={item} draft={draft} actionBusy={actionBusy} advancing={advancing} saveActionIcon={saveActionIcon} saveActionLabel={saveActionLabel} primaryCaptureInput={primaryCaptureInput} primaryCaptureLabel={primaryCaptureLabel} onCapture={onCapture} handleSaveNextClick={handleSaveNextClick} handleContentPointerDown={handleContentPointerDown} onDraftChange={onDraftChange} onFormatNotes={onFormatNotes} aiBusy={aiBusy} aiMessage={aiMessage} tradeOptions={tradeOptions} canManageTrades={canManageTrades} onOpenManageTrades={onOpenManageTrades} assignees={assignees} previousItems={previousItems} progressionActive={progressionActive} setLinkProgression={setLinkProgression} selectClass={selectClass} maxHeightClass="" /> : <CaptureSheetUtilityPanel mode={activeTab} hasItem={Boolean(item)} actionBusy={actionBusy} primaryCaptureInput={primaryCaptureInput} primaryCaptureLabel={primaryCaptureLabel} onCapture={onCapture} />;
 
   return (
     <>
-      {/* MOBILE: FAB when minimized → full-screen modal when expanded */}
-      {!expandedMobile && showMinimizedMobile && (
-        <button
-          type="button"
-          onClick={() => setExpandedMobile(true)}
-          className="md:hidden fixed right-3 top-[calc(env(safe-area-inset-top,0rem)+3.6rem)] z-40 inline-flex min-h-10 items-center gap-1.5 rounded-2xl bg-amber-500 px-3 py-2 text-[11px] font-black uppercase tracking-[0.08em] text-slate-950 shadow-[0_4px_24px_rgba(245,158,11,0.35)] transition active:scale-95"
-          aria-label="Add details and save"
-        >
-          {saveActionIcon} {item ? "Details" : "Start"}
-        </button>
-      )}
       {expandedMobile && (
-        <div className="md:hidden fixed inset-0 z-50 flex flex-col bg-slate-950/97 backdrop-blur-xl" aria-label="Capture details (mobile)">
+        <div className="md:hidden fixed inset-x-0 bottom-0 z-50 flex max-h-[68dvh] flex-col rounded-t-[1.5rem] border-t border-white/10 bg-slate-950/97 shadow-[0_-20px_50px_rgba(0,0,0,0.45)] backdrop-blur-xl" aria-label="Capture details (mobile)">
           <div className="flex items-center gap-2 border-b border-white/10 px-3 py-2.5">
             <button type="button" onClick={() => setExpandedMobile(false)} className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.04] px-2.5 text-[11px] font-black text-white/80" aria-label="Back to photo">
               <ArrowLeft className="h-4 w-4" /> Photo
@@ -89,14 +87,8 @@ export function CaptureDataBottomSheet({ sessionId, item, items, assignees, draf
               <p className="truncate text-[10px] font-black uppercase tracking-[0.14em] text-amber-300/80">{currentLocation}</p>
               <h2 className="truncate text-sm font-black text-white">{item?.title || "Ready"}</h2>
             </div>
-            {item && (
-              <button type="button" onClick={handleSaveNextClick} disabled={advancing} className="inline-flex h-9 items-center gap-1 rounded-xl bg-amber-500 px-3 text-[11px] font-black text-slate-950 shadow-lg disabled:opacity-60">
-                {actionBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : saveActionIcon}
-                <span>Save</span>
-              </button>
-            )}
           </div>
-          <div className="flex-1 min-h-0 overflow-y-auto px-4 py-3 pb-12">
+          <div className="flex-1 min-h-0 overflow-y-auto px-4 py-3 pb-[max(env(safe-area-inset-bottom),0.75rem)]">
             {tabButtons}
             <div className="mt-3">{activePanel}</div>
             {/* Finish Walk — takes user to walk review page */}

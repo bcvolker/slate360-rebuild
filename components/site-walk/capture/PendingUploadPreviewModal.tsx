@@ -13,7 +13,7 @@ type Props = {
 
 export function PendingUploadPreviewModal({ fileName, imageUrl, busy, errorMessage, onCancel, onConfirmAttach }: Props) {
   return (
-    <div className="fixed inset-0 z-[2100] flex items-center justify-center bg-black/80 p-4" role="dialog" aria-label="Confirm uploaded image" onClick={() => { if (!busy) onCancel(); }}>
+    <div className="fixed inset-0 z-[3000] flex items-center justify-center bg-black/80 p-4" role="dialog" aria-label="Confirm uploaded image" onClick={() => { if (!busy) onCancel(); }}>
       <div className="max-h-[calc(100dvh-2rem)] w-full max-w-3xl overflow-y-auto rounded-[2rem] border border-white/10 bg-slate-950 p-4 shadow-2xl" onClick={(event) => event.stopPropagation()}>
         <div className="flex items-center gap-2 text-sm font-black uppercase tracking-[0.16em] text-amber-200"><FileImage className="h-4 w-4" /> Preview upload</div>
         {errorMessage && <div className="mt-3 rounded-2xl border border-red-400/40 bg-red-500/10 px-4 py-3 text-sm font-bold leading-6 text-red-100">{errorMessage}</div>}

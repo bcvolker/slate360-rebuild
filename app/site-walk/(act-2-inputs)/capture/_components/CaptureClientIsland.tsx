@@ -12,7 +12,7 @@ import { useDeviceContext, type DeviceCaptureInput } from "@/lib/hooks/useDevice
 import { usePlanSheetsRealtime } from "@/lib/hooks/usePlanSheetsRealtime";
 import type { SiteWalkPin, SiteWalkPlanSet, SiteWalkPlanSheet } from "@/lib/types/site-walk";
 import type { CaptureItemDraft } from "@/lib/types/site-walk-capture";
-import { CaptureModeToggle, SiteWalkHomeButton } from "./CaptureModeControls";
+import type { CaptureSheetTab } from "@/components/site-walk/capture/CaptureDataBottomSheet";
 import { findGhostImageUrl, nextStopLabel, parseRecentLocations } from "./captureSessionHelpers";
 import { SharedCaptureTaskHeader } from "./SharedCaptureTaskHeader";
 import { WalkStartChoice } from "./WalkStartChoice";
@@ -66,8 +66,7 @@ function CaptureClientIslandInner({ sessionId, projectId, walkName, showPlanCanv
     return () => { captureCtx.openPickerRef.current = null; };
   }, [captureCtx]);
 
-  const [ghostOn, setGhostOn] = useState(false);
-  const [markupOn, setMarkupOn] = useState(true);
+  const [activeSheetTab, setActiveSheetTab] = useState<CaptureSheetTab>("details");
   const carryForwardRef = useRef<Partial<Pick<CaptureItemDraft, "classification" | "trade" | "priority" | "status" | "assignedTo">> | null>(null);
   const appliedCarryRef = useRef<string | null>(null);
   const [returnToPlanAfterSave, setReturnToPlanAfterSave] = useState(false);
@@ -165,6 +164,7 @@ function CaptureClientIslandInner({ sessionId, projectId, walkName, showPlanCanv
     setReturnToPlanAfterSave(true);
     openPickerDirect(input, "plan_pin");
     setWalkMode("camera");
+    setActiveSheetTab("details");
   }
 
   /** Handle files selected from the colocated direct picker inputs. */
@@ -182,6 +182,7 @@ function CaptureClientIslandInner({ sessionId, projectId, walkName, showPlanCanv
   function handlePlanCaptureSaved(_pin: SiteWalkPin | null) {
     setReturnToPlanAfterSave(true);
     setPlanRefreshKey((current) => current + 1);
+    setActiveSheetTab("details");
   }
 
   if (walkMode === "choice") {
@@ -211,6 +212,7 @@ function CaptureClientIslandInner({ sessionId, projectId, walkName, showPlanCanv
               const target = items.find((i) => i.id === id);
               if (target) {
                 selectItem(target);
+                setActiveSheetTab("details");
                 setWalkMode("camera");
               }
             }}
@@ -224,26 +226,16 @@ function CaptureClientIslandInner({ sessionId, projectId, walkName, showPlanCanv
             activeItemId={activeItem?.id ?? null}
             modeLabel={taskContextLabel}
             ghostImageUrl={ghostImageUrl}
-            ghostOn={ghostOn}
-            markupOn={markupOn}
-            onToggleGhost={() => setGhostOn((current) => !current)}
-            onToggleMarkup={() => setMarkupOn((current) => !current)}
+            ghostOn={false}
+            markupOn={activeSheetTab === "markup"}
             onMarkupChange={(itemId, markup) => void saveMarkupData(itemId, markup)}
             onAttachmentPinsChange={(itemId, pins) => void savePhotoAttachmentPins(itemId, pins)}
             onPlanCaptureSaved={handlePlanCaptureSaved}
-            onAddAngle={() => requestCapture(primaryCaptureInput, "angle")}
             onAngleCaptureFile={savePhotoAngle}
-            onSelectItem={(id) => { const t = items.find((i) => i.id === id); if (t) selectItem(t); }}
             onBackToPlan={isPlanWorkflow ? returnToPlan : undefined}
             showTaskHeader={false}
           />
         )}
-
-        {/* Layer 1: mode switch and plan home affordance — overlay on canvas only */}
-        <div className="absolute inset-0 pointer-events-none z-10">
-          {showPlanCanvas && <div className="pointer-events-auto"><CaptureModeToggle mode={walkMode === "plan" ? "plan" : "camera"} onPlan={() => { setReturnToPlanAfterSave(false); setWalkMode("plan"); }} onCamera={() => openCameraMode()} /></div>}
-          {walkMode === "plan" && <div className="pointer-events-auto"><SiteWalkHomeButton /></div>}
-        </div>
       </div>
 
       {/* Right pane on desktop / bottom sheet on mobile */}
@@ -260,12 +252,13 @@ function CaptureClientIslandInner({ sessionId, projectId, walkName, showPlanCanv
         tradeOptions={tradeSettings.trades}
         canManageTrades={Boolean(projectId)}
         returnsToPlan={returnToPlanAfterSave}
+        activeTab={activeSheetTab}
+        onActiveTabChange={setActiveSheetTab}
         onDraftChange={patchDraft}
         onCapture={captureNow}
         onFormatNotes={() => void formatNotesWithAi()}
         onSaveNextStop={(opts?: { fromPlanPin?: boolean }) => saveNextStop({ fromPlanPin: opts?.fromPlanPin ?? returnToPlanAfterSave })}
         onOpenManageTrades={() => setManageTradesOpen(true)}
-        showMinimizedMobile={walkMode !== "plan"}
       />
 
       {manageTradesOpen && (

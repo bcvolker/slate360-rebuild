@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, Ghost, LogOut, RotateCcw, RotateCw, Shapes } from "lucide-react";
-import { useEffect, useRef, useState, type PointerEvent } from "react";
+import { ArrowLeft, LogOut } from "lucide-react";
+import { useEffect, useState, type PointerEvent } from "react";
 
 import type { MarkupData } from "@/lib/site-walk/markup-types";
 import { getPhotoAngleImageUrl, type PhotoAngleCaptureMode, type PhotoAngleRecord } from "@/lib/site-walk/photo-angles";
@@ -10,9 +10,6 @@ import type { PhotoAttachmentPin } from "@/lib/site-walk/photo-attachments";
 import type { SiteWalkPin } from "@/lib/types/site-walk";
 import type { CaptureItemRecord } from "@/lib/types/site-walk-capture";
 import { CameraViewfinder } from "./CameraViewfinder";
-import { PhotoAngleStrip } from "./PhotoAngleStrip";
-import { PHOTO_MARKUP_REDO_EVENT, PHOTO_MARKUP_UNDO_EVENT } from "./PhotoMarkupCanvas";
-import { UnifiedVectorToolbar } from "./UnifiedVectorToolbar";
 
 type Props = {
   sessionId: string;
@@ -24,30 +21,23 @@ type Props = {
   ghostImageUrl: string | null;
   ghostOn: boolean;
   markupOn: boolean;
-  onToggleGhost: () => void;
-  onToggleMarkup: () => void;
   onMarkupChange: (itemId: string, markup: MarkupData) => void;
   onAttachmentPinsChange: (itemId: string, pins: PhotoAttachmentPin[]) => void;
   onPlanCaptureSaved?: (pin: SiteWalkPin | null) => void;
-  onAddAngle: () => void;
   onAngleCaptureFile: (itemId: string, file: File, previewUrl: string, captureMode: PhotoAngleCaptureMode) => Promise<PhotoAngleRecord | null>;
-  onSelectItem?: (itemId: string) => void;
   onBackToPlan?: () => void;
   showTaskHeader?: boolean;
 };
 
-export function VisualCaptureView({ sessionId, autoOpenCamera, launchId, items, activeItemId, modeLabel, ghostImageUrl, ghostOn, markupOn, onToggleGhost, onToggleMarkup, onMarkupChange, onAttachmentPinsChange, onPlanCaptureSaved, onAddAngle, onAngleCaptureFile, onSelectItem, onBackToPlan, showTaskHeader = true }: Props) {
+export function VisualCaptureView({ sessionId, autoOpenCamera, launchId, items, activeItemId, modeLabel, ghostImageUrl, ghostOn, markupOn, onMarkupChange, onAttachmentPinsChange, onPlanCaptureSaved, onAngleCaptureFile, onBackToPlan, showTaskHeader = true }: Props) {
   const [activeAngleId, setActiveAngleId] = useState<string | null>(null);
-  const [previewActive, setPreviewActive] = useState(false);
+  const [, setPreviewActive] = useState(false);
   const [exitConfirm, setExitConfirm] = useState(false);
-  const timelineRef = useRef<HTMLDivElement>(null);
   const photoItems = items.filter((item) => item.item_type === "photo");
   const activeItem = photoItems.find((item) => item.id === activeItemId) ?? null;
   const activeLocation = getLocationLabel(activeItem) ?? "Stop ready";
   const activeImageUrl = getPhotoAngleImageUrl(activeItem, activeAngleId);
   const activeImageTitle = activeAngleId && activeItem ? `${activeItem.title || "Captured photo"} — angle` : activeItem?.title ?? null;
-  const captureReady = Boolean(activeItem || previewActive || activeItemId);
-  const ghostAvailable = Boolean(ghostImageUrl);
 
   useEffect(() => setActiveAngleId(null), [activeItemId]);
 
@@ -55,10 +45,6 @@ export function VisualCaptureView({ sessionId, autoOpenCamera, launchId, items, 
     const angle = await onAngleCaptureFile(itemId, file, previewUrl, captureMode);
     if (angle) setActiveAngleId(angle.id);
     return angle;
-  }
-
-  function dispatchCanvasEvent(type: string) {
-    window.dispatchEvent(new CustomEvent(type));
   }
 
   function handleTapDismiss(event: PointerEvent<HTMLDivElement>) {
@@ -124,44 +110,6 @@ export function VisualCaptureView({ sessionId, autoOpenCamera, launchId, items, 
         {ghostOn && ghostImageUrl && (
           <img src={ghostImageUrl} alt="Ghost alignment" className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-25 mix-blend-screen" />
         )}
-      </div>
-
-      {/* Unified Bottom Rail */}
-      <div className="relative z-30 flex shrink-0 flex-col gap-1.5 border-t border-white/5 bg-slate-950/92 px-3 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-2 backdrop-blur-xl">
-        {photoItems.length > 0 && (
-          <div ref={timelineRef} className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
-            {photoItems.map((pi) => {
-              const isActive = pi.id === activeItemId;
-              const thumbUrl = pi.local_preview_url || (pi.id ? `/api/site-walk/items/${pi.id}/image` : undefined);
-              return (
-                <button key={pi.id} type="button" onClick={() => onSelectItem?.(pi.id)} className={`h-9 w-9 shrink-0 overflow-hidden rounded-lg border-2 transition ${isActive ? "border-amber-500 ring-1 ring-amber-500/40" : "border-white/10 opacity-60"}`}>
-                  {thumbUrl ? <img src={thumbUrl} alt={pi.title || "Capture"} className="h-full w-full object-cover" /> : <div className="h-full w-full bg-slate-700" />}
-                </button>
-              );
-            })}
-          </div>
-        )}
-        <div className="flex flex-wrap items-center gap-2">
-          <button type="button" onClick={onToggleMarkup} className={`inline-flex h-8 shrink-0 items-center justify-center gap-1.5 rounded-xl px-3 text-[10px] font-black uppercase tracking-wider ${markupOn ? "bg-amber-500 text-slate-950" : "border border-white/10 bg-black/50 text-slate-200"}`}>
-            <Shapes className="h-3.5 w-3.5" /> {markupOn ? "Drawing" : "Navigate"}
-          </button>
-          {markupOn && (
-            <>
-              <button type="button" onClick={() => dispatchCanvasEvent(PHOTO_MARKUP_UNDO_EVENT)} className="inline-flex h-8 shrink-0 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-black/50 px-3 text-[10px] font-black uppercase tracking-wider text-slate-200">
-                <RotateCcw className="h-3.5 w-3.5" /> Undo
-              </button>
-              <button type="button" onClick={() => dispatchCanvasEvent(PHOTO_MARKUP_REDO_EVENT)} className="inline-flex h-8 shrink-0 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-black/50 px-3 text-[10px] font-black uppercase tracking-wider text-slate-200">
-                <RotateCw className="h-3.5 w-3.5" /> Redo
-              </button>
-            </>
-          )}
-          <button type="button" onClick={onToggleGhost} disabled={!ghostAvailable} className={`inline-flex h-8 shrink-0 items-center justify-center gap-1.5 rounded-xl px-3 text-[10px] font-black uppercase tracking-wider disabled:opacity-40 ${ghostOn ? "bg-amber-500 text-slate-950" : "border border-white/10 bg-black/50 text-slate-200"}`}>
-            <Ghost className="h-3.5 w-3.5" /> Ghost
-          </button>
-        </div>
-        {markupOn && <div>
-          <UnifiedVectorToolbar disabled={!captureReady} />
-        </div>}
       </div>
     </div>
   );

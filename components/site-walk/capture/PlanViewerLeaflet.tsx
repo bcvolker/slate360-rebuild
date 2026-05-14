@@ -14,7 +14,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Hand, Loader2, MapPin } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import L from "leaflet";
 import { ImageOverlay, MapContainer, Marker } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
@@ -78,7 +78,6 @@ export function PlanViewerLeaflet({ projectId, sessionId = "current-session", pl
   const [pins, setPins] = useState<PlanViewerPin[]>([]);
   const [filter, setFilter] = useState<LayerFilter>("all");
   const [quickMenu, setQuickMenu] = useState<QuickMenuState>(null);
-  const [toolMode, setToolMode] = useState<"pan" | "draw">("pan");
   const mapRef = useRef<L.Map | null>(null);
 
   const activePlanSet = useMemo(() => planSets.find((ps) => ps.processing_status === "ready") ?? planSets[0] ?? null, [planSets]);
@@ -123,7 +122,12 @@ export function PlanViewerLeaflet({ projectId, sessionId = "current-session", pl
     const pin = pins.find((p) => p.id === pinId);
     if (!pin) return;
     if (pin.item_id) {
-      onSelectItem?.(pin.item_id);
+      const canOpenItem = items.some((item) => item.id === pin.item_id);
+      if (canOpenItem) {
+        onSelectItem?.(pin.item_id);
+        return;
+      }
+      setQuickMenu({ pinId: isUuid(pin.id) ? pin.id : null, clientPinId: pin.client_pin_id ?? null, xPct: pin.x_pct, yPct: pin.y_pct, isSavedPin: true });
     } else {
       const isSavedPin = isUuid(pin.id);
       setQuickMenu({ pinId: isSavedPin ? pin.id : null, clientPinId: pin.client_pin_id ?? (!isSavedPin ? pin.id : null), xPct: pin.x_pct, yPct: pin.y_pct, isSavedPin });
@@ -178,7 +182,7 @@ export function PlanViewerLeaflet({ projectId, sessionId = "current-session", pl
           ref={handleMapCreated}
         >
           <ImageOverlay url={imageUrl} bounds={bounds} />
-          <PlanViewerLeafletEvents toolMode={toolMode} imageWidth={imageWidth} imageHeight={imageHeight} sessionId={sessionId} pins={pins} setPins={setPins} setQuickMenu={setQuickMenu} />
+          <PlanViewerLeafletEvents toolMode="pan" imageWidth={imageWidth} imageHeight={imageHeight} sessionId={sessionId} pins={pins} setPins={setPins} setQuickMenu={setQuickMenu} />
           {visiblePins.map((pin) => (
             <Marker
               key={pin.id}
@@ -207,17 +211,6 @@ export function PlanViewerLeaflet({ projectId, sessionId = "current-session", pl
           </p>
         </div>
       )}
-
-      {/* Pan / Draw toggle */}
-      <div className="absolute left-1/2 top-2 z-[1000] flex -translate-x-1/2 rounded-2xl border border-white/15 bg-slate-950/85 p-0.5 shadow-2xl backdrop-blur-xl">
-        <button type="button" onClick={() => setToolMode("pan")} className={`inline-flex h-8 items-center gap-1 rounded-xl px-2.5 text-[10px] font-black uppercase tracking-[0.08em] transition ${toolMode === "pan" ? "bg-amber-500 text-slate-950" : "text-white/70"}`}>
-          <Hand className="h-3.5 w-3.5" /> Pan
-        </button>
-        <button type="button" onClick={() => setToolMode("draw")} className={`inline-flex h-8 items-center gap-1 rounded-xl px-2.5 text-[10px] font-black uppercase tracking-[0.08em] transition ${toolMode === "draw" ? "bg-amber-500 text-slate-950" : "text-white/70"}`}>
-          <MapPin className="h-3.5 w-3.5" /> Pin
-        </button>
-      </div>
-
       {/* Plan toolbar */}
       <PlanToolbar
         fileUrl={null}
