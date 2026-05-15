@@ -43,8 +43,34 @@ export function SiteWalkHomeClient({
 }: Props) {
   const router = useRouter();
   const [tab, setTab] = useState<V1NavTab>("home");
+  const [startingQuickWalk, setStartingQuickWalk] = useState(false);
 
   const title = shellTitle(tab, orgName);
+
+  async function handleQuickCapture() {
+    if (startingQuickWalk) return;
+    setStartingQuickWalk(true);
+    try {
+      const dateLabel = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" });
+      const res = await fetch("/api/site-walk/sessions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: `Quick Walk — ${dateLabel}`,
+          session_type: "general",
+          metadata: { started_at: new Date().toISOString(), started_from: "v1_home_quick" },
+        }),
+      });
+      if (!res.ok) throw new Error(`Session create failed: ${res.status}`);
+      const body = (await res.json()) as { session?: { id?: string } };
+      const sessionId = body?.session?.id;
+      if (!sessionId) throw new Error("No session ID returned");
+      router.push(`/site-walk/capture?session=${encodeURIComponent(sessionId)}&quick=camera`);
+    } catch (err) {
+      console.error("[SiteWalkHomeClient] Quick Walk error:", err);
+      setStartingQuickWalk(false);
+    }
+  }
 
   return (
     <SiteWalkV1Shell title={title} activeTab={tab} onTabChange={setTab}>
@@ -55,6 +81,7 @@ export function SiteWalkHomeClient({
           summary={summary}
           router={router}
           setTab={setTab}
+          onQuickCapture={handleQuickCapture}
         />
       )}
       {tab === "worksites" && (

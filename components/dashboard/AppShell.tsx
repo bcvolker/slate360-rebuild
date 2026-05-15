@@ -64,7 +64,9 @@ export function AppShell({
 
   const pathname = usePathname() ?? "";
   // Active Site Walk task modes own the entire viewport — no app chrome.
+  // /site-walk Home uses V1Shell which provides its own header + bottom nav.
   const fullBleed =
+    pathname === "/site-walk" ||
     pathname.startsWith("/site-walk/capture") ||
     /^\/site-walk\/walks\/active\/[^/]+/.test(pathname);
 

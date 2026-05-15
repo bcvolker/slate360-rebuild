@@ -15,9 +15,11 @@ type HomeViewProps = {
   summary: HubSummary;
   router: RouterLike;
   setTab: (t: V1NavTab) => void;
+  /** Override for Quick Walk — parent provides session-creation + navigate logic. */
+  onQuickCapture?: () => void;
 };
 
-export function HomeView({ walks, projects, summary, router }: HomeViewProps) {
+export function HomeView({ walks, projects, summary, router, onQuickCapture }: HomeViewProps) {
   const recentWalks = walks.slice(0, 20);
 
   const walksByProject = new Map<string, number>();
@@ -46,8 +48,8 @@ export function HomeView({ walks, projects, summary, router }: HomeViewProps) {
         </p>
         <SiteWalkV1ActionGrid
           onNewWorksite={() => router.push("/site-walk/setup")}
-          onStartWalk={() => router.push("/site-walk/setup")}
-          onQuickCapture={() => router.push("/site-walk/capture?quick=1")}
+          onStartWalk={() => router.push("/site-walk/walks")}
+          onQuickCapture={onQuickCapture}
           className="!px-0"
         />
       </div>
