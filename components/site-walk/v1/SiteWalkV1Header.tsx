@@ -79,9 +79,8 @@ export function SiteWalkV1Header({
 
       {/* Brand or title */}
       {showBranding ? (
-        <div className="flex min-w-0 flex-1 items-center gap-2.5">
+        <div className="flex min-w-0 flex-1 items-center">
           <SlateLogo size="md" />
-          <span className="text-xs font-medium text-zinc-500">Site Walk</span>
         </div>
       ) : (
         <h1 className="min-w-0 flex-1 truncate text-base font-semibold text-white">
@@ -150,7 +149,7 @@ function ToolIcon({ icon: Icon, label }: { icon: typeof Search; label: string })
   return (
     <Button
       variant="ghost"
-      size="icon-sm"
+      size="icon"
       aria-label={label}
       className="text-zinc-500 hover:text-white"
     >

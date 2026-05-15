@@ -158,8 +158,13 @@ function HomeView({
 
   return (
     <div className="flex h-full flex-col">
-      {/* ── Top zone: actions ── */}
-      <div className="shrink-0 pt-1">
+      {/* ── Top zone: label + actions ── */}
+      <div className="shrink-0">
+        {/* Module label */}
+        <p className="px-4 pt-3 pb-2 text-[11px] font-bold uppercase tracking-[0.15em] text-amber-500/80">
+          Site Walk
+        </p>
+
         <SiteWalkV1ActionGrid
           onNewWorksite={() => router.push("/site-walk/setup")}
           onStartWalk={() => router.push("/site-walk/setup")}
@@ -167,16 +172,16 @@ function HomeView({
         />
 
         {/* Core tools row */}
-        <div className="grid grid-cols-3 gap-2.5 px-4 pb-1">
+        <div className="grid grid-cols-3 gap-2.5 px-4 pt-1 pb-2">
           <ToolCard icon={FolderOpen} label="SlateDrop" onClick={() => setTab("slatedrop")} />
           <ToolCard icon={MessageSquare} label="Coordination" onClick={() => setTab("coordination")} />
           <ToolCard icon={Package} label="Deliverables" onClick={() => setTab("deliverables")} />
         </div>
       </div>
 
-      {/* ── Work panel: fills remaining space, contained scroll ── */}
+      {/* ── Work panel: controlled height, internal scroll ── */}
       <SiteWalkV1ListPanel
-        className="mt-3 mb-3 min-h-0 flex-1"
+        className="mt-3 mb-4 h-[36dvh] max-h-[340px] shrink-0"
         recentContent={
           recentWalks.length > 0 ? (
             <WalkList walks={recentWalks} router={router} />

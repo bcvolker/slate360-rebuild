@@ -40,7 +40,7 @@ export function SiteWalkV1ListPanel({
   return (
     <div
       className={cn(
-        "mx-4 flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-white/6 bg-zinc-900/40",
+        "relative mx-4 flex flex-col overflow-hidden rounded-xl border border-white/6 bg-zinc-900/40",
         className,
       )}
     >
@@ -68,12 +68,15 @@ export function SiteWalkV1ListPanel({
           <TabsContent
             key={tab.value}
             value={tab.value}
-            className="min-h-0 flex-1 overflow-y-auto px-3 pt-2 pb-4"
+            className="min-h-0 flex-1 overflow-y-auto px-3 pt-2 pb-6"
           >
             {contentMap[tab.value]}
           </TabsContent>
         ))}
       </Tabs>
+
+      {/* Bottom fade — scroll affordance */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-zinc-900/90 to-transparent" />
     </div>
   );
 }
