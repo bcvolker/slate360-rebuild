@@ -158,10 +158,10 @@ function HomeView({
 
   return (
     <div className="flex h-full flex-col">
-      {/* ── Top zone: label + actions ── */}
+      {/* ── Command zone ── */}
       <div className="shrink-0">
         {/* Module label */}
-        <p className="px-4 pt-3 pb-2 text-[11px] font-bold uppercase tracking-[0.15em] text-amber-500/80">
+        <p className="px-4 pt-3 pb-1 text-[11px] font-bold uppercase tracking-[0.15em] text-amber-500/80">
           Site Walk
         </p>
 
@@ -172,16 +172,16 @@ function HomeView({
         />
 
         {/* Core tools row */}
-        <div className="grid grid-cols-3 gap-2.5 px-4 pt-1 pb-2">
+        <div className="grid grid-cols-3 gap-2.5 px-4 pb-2">
           <ToolCard icon={FolderOpen} label="SlateDrop" onClick={() => setTab("slatedrop")} />
           <ToolCard icon={MessageSquare} label="Coordination" onClick={() => setTab("coordination")} />
           <ToolCard icon={Package} label="Deliverables" onClick={() => setTab("deliverables")} />
         </div>
       </div>
 
-      {/* ── Work panel: controlled height, internal scroll ── */}
+      {/* ── Work panel: anchored near bottom, controlled height ── */}
       <SiteWalkV1ListPanel
-        className="mt-3 mb-4 h-[36dvh] max-h-[340px] shrink-0"
+        className="mt-auto mb-3 h-[34dvh] min-h-[245px] max-h-[320px] shrink-0"
         recentContent={
           recentWalks.length > 0 ? (
             <WalkList walks={recentWalks} router={router} />
@@ -260,9 +260,9 @@ function ToolCard({
     <button
       type="button"
       onClick={onClick}
-      className="flex h-11 items-center gap-2 rounded-xl border border-white/6 bg-zinc-900/60 px-3 text-xs font-medium text-zinc-400 transition-colors hover:bg-zinc-800/80 hover:text-zinc-200 active:bg-zinc-800"
+      className="flex h-14 items-center gap-2.5 rounded-xl border border-white/6 bg-zinc-900/60 px-3 text-[13px] font-medium text-zinc-400 transition-colors hover:bg-zinc-800/80 hover:text-zinc-200 active:bg-zinc-800"
     >
-      <Icon className="size-4 shrink-0 text-zinc-500" />
+      <Icon className="size-5 shrink-0 text-zinc-500" />
       <span className="truncate">{label}</span>
     </button>
   );

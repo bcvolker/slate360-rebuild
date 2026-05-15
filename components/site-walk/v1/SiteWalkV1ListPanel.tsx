@@ -45,17 +45,14 @@ export function SiteWalkV1ListPanel({
       )}
     >
       <Tabs defaultValue={defaultTab} className="flex min-h-0 flex-1 flex-col">
-        {/* Panel header + tab strip */}
-        <div className="shrink-0 px-3 pt-2.5">
-          <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-zinc-600">
-            Work
-          </p>
-          <TabsList className="h-8 w-full bg-transparent p-0">
+        {/* Tab strip */}
+        <div className="shrink-0 px-3 pt-1.5">
+          <TabsList className="h-7 w-full bg-transparent p-0">
             {tabDefs.map((tab) => (
               <TabsTrigger
                 key={tab.value}
                 value={tab.value}
-                className="flex-1 rounded-none border-b-2 border-transparent pb-1.5 text-[11px] font-medium text-zinc-500 transition-colors data-[state=active]:border-amber-500 data-[state=active]:bg-transparent data-[state=active]:text-white data-[state=active]:shadow-none"
+                className="flex-1 rounded-none border-b border-transparent pb-1 text-[11px] font-medium text-zinc-500 transition-colors data-[state=active]:border-amber-500 data-[state=active]:bg-transparent data-[state=active]:text-white data-[state=active]:shadow-none"
               >
                 {tab.label}
               </TabsTrigger>
