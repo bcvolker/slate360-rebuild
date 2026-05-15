@@ -119,6 +119,25 @@ Rule: global navigation can deep-link into Site Walk, but the Site Walk module d
 
 ---
 
+## 2a. Concurrent AI Development Tracks
+
+> **Full details:** `docs/CONCURRENT_DEVELOPMENT_TRACKS.md`
+
+Two AI development tracks run simultaneously. Each track owns a non-overlapping area of the codebase. Cross-track edits require explicit approval.
+
+| Track | Owns | Branch |
+|---|---|---|
+| **Track A — AppShell + Site Walk UI** | Global AppShell, Site Walk V1 UI, Graphite Glass design system, capture/plan visual shells | `main` |
+| **Track B — Digital Twin Lite** | CEO-gated Digital Twin app, drone processing Trigger jobs, multipart upload, GPU worker, twin APIs/viewers/share routes | `feature/digital-twin-lite` |
+
+**Hard rules:**
+1. Track B must not modify `components/site-walk/`, `app/site-walk/`, `components/dashboard/AppShell.tsx`, `MobileTopBar`, or `MobileBottomNav`.
+2. Track A must not implement Digital Twin backend, viewer, or drone-processing logic.
+3. Track B may request AppShell integration changes — Track A applies them on `main`.
+4. Both tracks confirm at session end that they did not touch the other's files.
+
+---
+
 ## 3. Site Walk — Product Definition
 
 ### What It Is
@@ -264,6 +283,57 @@ A Site Walk-only customer must be able to do ALL of the above without any other 
 ---
 
 ## 7. Site Walk — Mobile UX Requirements
+
+### V1 Mobile UX Direction — Locked 2026-05-13
+
+The next Site Walk UI phase is a focused mobile architecture cleanup, not a backend rewrite and not an app-wide redesign. The current Plan Walk core loop is partially working and must be preserved: plan opens, pan/zoom works, long press opens capture, plan-linked capture can be created, and saved plan pins can be opened.
+
+Authoritative planning docs for this phase:
+
+- `docs/site-walk/SITE_WALK_V1_MOBILE_UX_DECISION_RECORD.md`
+- `docs/site-walk/SITE_WALK_V1_UI_IMPLEMENTATION_PLAN.md`
+- `docs/design/SLATE360_V1_DESIGN_TOKEN_PLAN.md`
+- `docs/SLATE360_V1_APP_SHELL_UX_ARCHITECTURE.md`
+- `docs/design/SLATE360_UNIFIED_DESIGN_SYSTEM_GAP_AUDIT.md`
+
+App-shell bridge rule:
+
+- Site Walk is the V1 field-task pattern source, but the Slate360 shell remains app-neutral. The global shell follows command-center, task-shell, safe-area, and tokenized design principles without becoming Site Walk-only.
+- Normal mobile shell pages use the locked platform nav: `Home | Projects | SlateDrop | Coordination | Account`.
+- Active capture/plan task modes may take over the full viewport and hide platform bottom nav while preserving a clear route back to Site Walk/module context.
+- Future apps remain hidden until functional and entitled. Do not show Coming Soon, demo, beta/test, waitlist, disabled future app, or fake placeholder surfaces in the authenticated V1 shell.
+- Visual direction for V1 planning is Graphite Glass + restrained amber + muted teal: premium graphite/slate, glass-like depth without crushing contrast, restrained amber/gold, muted teal/smoke, warm off-white, and neutral plan/photo workspaces. Do not frame future implementation as harsh black/orange or a broad app-wide repaint.
+
+Locked decisions for the next UI phase:
+
+- Site Walk Home becomes a command center: Resume Active Walk, Start New Walk, Recent Walks, Issues/Open Items, Needs Review, Draft Deliverables, Unsynced Items, and Project / Field Project shortcuts.
+- Authenticated Site Walk surfaces must not show app install banners or duplicate module nav when bottom nav already covers the same routes.
+- Capture uses a consistent task header. Plan-linked capture should say `Stop N · From Plan` or `Stop N · Plan Location`, not vague `PLAN-LINKED` copy.
+- Back to Plan is primary in plan-linked capture; Exit Walk remains secondary/destructive and must never replace Back to Plan.
+- Stop navigation uses a compact horizontal strip: `Stop 1 | Stop 2 | Stop 3 | + Stop`.
+- Plan viewer prioritizes the plan canvas with compact top sheet bar, page forward/back, thumbnails, sheet/page search, search results drawer, layer/pin toggles, clean plan/show pins toggle, and portrait/landscape behavior.
+- Plan tools move into a bottom drawer with `Sheets`, `Search`, `Pins`, and `Layers` tabs.
+- Markup tools become compact/contextual with 44px touch targets, no long instructional text, and no toolbar covering photo/plan.
+- Save copy is state-specific: `Save Stop & Return to Plan` for Plan Walk and `Save Stop & Continue` for Quick Walk.
+- Attachments move into the details sheet under `Details`, `Attachments`, and `Markup` tabs.
+- Quick Walk and Plan Walk share one capture system; Plan Walk adds plan sheet context, plan pin, plan coordinates, and Back to Plan.
+- Draft pins are draggable before save. Saved pins are locked by default and only move through explicit Edit Location / Move Pin mode.
+- Before/After and Ghost are planned as guided recapture: Ghost appears only during Add After Photo alignment.
+- Color direction moves from harsh black/orange toward premium graphite/slate, softer panels, restrained amber, muted teal/smoke, warm off-white, and clearer neutral plan/photo workspaces.
+- Design-system work starts with CSS variable tokens and a hardcoded color audit. First migration slice targets Site Walk capture/plan only.
+
+Recommended implementation sequence:
+
+1. Site Walk Home command center cleanup.
+2. Shared mobile `CaptureShell`.
+3. Plan viewer workspace cleanup.
+4. Markup and attachment compaction.
+5. Pins and stop preview.
+6. Before/After and Ghost V1.
+7. Design token foundation.
+8. App Store visible surface cleanup.
+
+Do not begin an app-wide visual redesign in one pass.
 
 ### Design Principles
 
@@ -673,7 +743,7 @@ Every authenticated page inside the app shell is a **functional workspace**, not
 
 - **Every page must have a real job.** Pages inside `/dashboard`, `/site-walk`, `/coordination`, `/projects`, and any app shell route must render real data, real actions, or a clean functional empty state. They must not render hero text, descriptive marketing paragraphs, "Coming soon" banners, numbered planning lists, or dev notes visible to users.
 - **No placeholder content in the authenticated shell.** If a route is not ready, do not show it — hide it via App Store mode or entitlement gates. A page that exists must be usable.
-- **Dark Glass palette is mandatory** for all authenticated shell surfaces. Background: `bg-[radial-gradient(circle_at_top,rgba(37,99,235,0.14),transparent_34%),#0B0F15]`. Cards: `border-white/10 bg-white/5 backdrop-blur-sm`. No `bg-white`, `bg-slate-50`, or hardcoded light classes inside authenticated routes.
+- **Authenticated shell visual language is controlled, not ad hoc.** Existing Dark Glass rescue styling remains safer than white-card drift, but the V1 direction is Graphite Glass + restrained amber + muted teal through `--s360-*` tokens. Do not add new hardcoded black/orange, white-card, or one-off Tailwind palette systems inside authenticated routes.
 - **No pre-pivot dead apps in the launcher.** If a module was removed from the product, remove it from `ALL_TABS`, `routeMap`, command palette, and all nav components in the same commit.
 - **Coming Soon is banned inside the shell.** `<ComingSoonEmptyState>` may only appear behind an explicit feature flag or be replaced before any App Store submission build.
 

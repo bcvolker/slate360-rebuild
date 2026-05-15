@@ -28,6 +28,21 @@ Recommended read order:
 4. `ops/bug-registry.json` (For tracking the actual schema and status of bugs).
 5. Load the `.env.local` variables into your context so you are ready to access the backend immediately.
 
+## Concurrent Development Tracks (Active — 2026-05-15)
+
+**Two AI tracks are running simultaneously. Read `docs/CONCURRENT_DEVELOPMENT_TRACKS.md` before any session.**
+
+| Track | Owns | Branch |
+|---|---|---|
+| **Track A — AppShell + Site Walk UI** | Global AppShell design, Site Walk V1 UI, Graphite Glass design system, capture/plan shell visual work | `main` |
+| **Track B — Digital Twin Lite** | CEO-gated Digital Twin app, drone processing, multipart upload, GPU worker, twin APIs/viewers/share | `feature/digital-twin-lite` |
+
+**Hard rules (enforced by both tracks):**
+1. Track A must not implement Digital Twin backend/viewer logic.
+2. Track B must not modify Site Walk UI, Site Walk capture, Site Walk plan viewer, or global AppShell styling.
+3. Track B may request AppShell integration but must not edit shared shell files directly.
+4. Both tracks must read this file before work and confirm they did not touch the other track's files at session end.
+
 ## Save State - Architecture & Design (May 2026)
 - The `_legacy_v1` tree has been explicitly purged and removed from the active routing.
 - The entire application is strictly unified under the 'Dark Glass & Amber' design token system utilizing the `<GlassCard>` component.
@@ -38,6 +53,36 @@ Recommended read order:
 - Visual framing correction: future V1 design work should be described as Graphite Glass + restrained amber + muted teal, not harsh black/orange or a broad app-wide Dark Glass repaint.
 - Site Walk terminology rule: use `Worksite` for lower-tier field containers and reserve `Project` for higher-tier PM containers unless existing route/API/table names force the old term.
 - `docs/SLATE360_GLOBAL_UX_DOCTRINE.md` now exists as the concise global UX doctrine; `docs/EXTERNAL_AI_UX_REVIEW_PACKET.md` is the sanitized external-review packet; `docs/site-walk/PLAN_PIN_SAFETY_BEFORE_CAPTURESHELL.md` is the tiny saved-pin safety plan before Shared CaptureShell.
+- **Production `/site-walk` now uses V1 Home** (commit `99f3fa5`). AppShell fullBleed suppresses MobileTopBar/BottomNav. V1Shell owns the viewport.
+- **Quick Walk** creates a real DB session via `/api/site-walk/sessions`, then navigates to `/site-walk/capture?session=<id>&quick=camera`. Capture shell is entered with `autoOpenCamera=true`.
+- **Capture idle screen** ("Capture field proof") still needs V1 replacement — it lives in `CameraViewfinder.tsx`, `!activePreview` branch. `autoOpenCamera` is blocked by `captureCtx` guard (iOS-safe by design). Next slice: replace with V1 minimal prompt.
+- **Global Slate360 AppShell** visual migration to Graphite Glass + amber still needed — currently uses Dark Glass. Track A owns this.
+- **Site Walk capture review shell** and **Plan Walk viewer shell** both need redesigned V1 wrappers — deferred pending approved slices.
+
+## Session Handoff — 2026-05-15 (Concurrent development tracks + capture audit)
+### What Changed
+- `docs/CONCURRENT_DEVELOPMENT_TRACKS.md`: created — defines Track A (AppShell + Site Walk UI) and Track B (Digital Twin Lite) with ownership tables, forbidden zones, branch strategy, and cross-track safety check protocol.
+- `SLATE360_PROJECT_MEMORY.md`: added "Concurrent Development Tracks" summary section and state bullets for production V1 Home, Quick Walk, capture idle screen, AppShell migration, and capture/plan V1 deferred work.
+- `SLATE360_MASTER_BUILD_PLAN.md`: added Section 2a "Concurrent AI Development Tracks" note referencing the new doc.
+### What's Broken / Partially Done
+- Quick Walk capture idle screen still shows "Capture field proof" (needs V1 replacement in `CameraViewfinder.tsx`).
+- Global Slate360 AppShell visual migration to Graphite Glass + amber not yet started.
+- Site Walk capture review V1 shell not yet started.
+- Plan Walk viewer V1 shell not yet started.
+- Track B (Digital Twin Lite) not yet started.
+### Context Files Updated
+- `docs/CONCURRENT_DEVELOPMENT_TRACKS.md`: created
+- `SLATE360_PROJECT_MEMORY.md`: concurrent tracks section + state bullets
+- `SLATE360_MASTER_BUILD_PLAN.md`: concurrent tracks note in Section 2
+### Cross-Track Safety Check
+- Track: A
+- Branch: main
+- Files touched: `docs/CONCURRENT_DEVELOPMENT_TRACKS.md` (created), `SLATE360_PROJECT_MEMORY.md`, `SLATE360_MASTER_BUILD_PLAN.md`
+- Did NOT touch: Digital Twin files, Trigger.dev, Supabase migrations, API routes, capture product code, PlanViewerLeaflet, billing, ops console
+### Next Steps (ordered)
+1. Approved next slice: replace "Capture field proof" idle screen in `CameraViewfinder.tsx` with V1-styled minimal prompt (single amber button, no verbose copy).
+2. Begin global AppShell Graphite Glass migration once capture idle screen slice is approved.
+3. Track B to create `feature/digital-twin-lite` branch when ready to start Digital Twin work.
 
 ## Session Handoff — 2026-05-14 (V1 UI replacement layer + backend audit)
 ### What Changed
