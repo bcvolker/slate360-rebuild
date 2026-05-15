@@ -133,7 +133,6 @@ export function SiteWalkV1Header({
       {/* Tool icons — visible on branded Home header */}
       {showToolIcons && (
         <div className="flex items-center -mr-1.5">
-          <ToolIcon icon={Search} label="Search" />
           <ToolIcon icon={Bell} label="Notifications" />
           <ToolIcon icon={Share2} label="Share" className="hidden min-[400px]:flex" />
           <ToolIcon icon={MessageSquarePlus} label="Feedback" />

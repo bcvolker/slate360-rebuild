@@ -11,6 +11,7 @@ import { PlanWorkspaceV1Skeleton } from "@/components/site-walk/v1/PlanWorkspace
 import { CaptureWorkspaceV1Skeleton } from "@/components/site-walk/v1/CaptureWorkspaceV1Skeleton";
 import type { V1NavTab } from "@/components/site-walk/v1/SiteWalkV1BottomNav";
 import type { HubProject, HubSummary, HubWalk } from "@/app/site-walk/_components/siteWalkHubTypes";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   FolderOpen,
@@ -157,28 +158,29 @@ function HomeView({
   }
 
   return (
-    <div className="grid h-full min-h-0 grid-rows-[1fr_minmax(285px,305px)] gap-y-3 px-4 pb-3">
+    <div
+      className={cn(
+        "grid h-full min-h-0 gap-y-3 px-4 pb-3",
+        /* Portrait: stacked command + panel */
+        "grid-rows-[1fr_minmax(285px,305px)]",
+        /* Landscape: side-by-side when viewport is short */
+        "landscape:grid-cols-2 landscape:grid-rows-[1fr] landscape:gap-x-4 landscape:gap-y-0",
+      )}
+    >
       {/* Zone 1: Command — grows to fill available space */}
-      <div className="flex min-h-0 flex-col justify-center gap-y-4">
+      <div className="flex min-h-0 flex-col justify-center gap-y-5">
         {/* Label */}
         <p className="text-[14px] font-bold uppercase tracking-[0.18em] text-amber-400">
           Site Walk
         </p>
 
-        {/* Primary actions */}
+        {/* 2×2 action grid */}
         <SiteWalkV1ActionGrid
           onNewWorksite={() => router.push("/site-walk/setup")}
           onStartWalk={() => router.push("/site-walk/setup")}
           onQuickCapture={() => router.push("/site-walk/capture?quick=1")}
           className="!px-0"
         />
-
-        {/* Core tools */}
-        <div className="grid grid-cols-3 gap-3">
-          <ToolCard icon={FolderOpen} label="SlateDrop" onClick={() => setTab("slatedrop")} />
-          <ToolCard icon={MessageSquare} label="Coordination" onClick={() => setTab("coordination")} />
-          <ToolCard icon={Package} label="Deliverables" onClick={() => setTab("deliverables")} />
-        </div>
       </div>
 
       {/* Zone 2: Work panel — clamped 285–305px */}
@@ -246,27 +248,6 @@ function WalkList({ walks, router }: { walks: HubWalk[]; router: RouterLike }) {
         />
       ))}
     </div>
-  );
-}
-
-function ToolCard({
-  icon: Icon,
-  label,
-  onClick,
-}: {
-  icon: typeof FolderOpen;
-  label: string;
-  onClick?: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="flex h-[72px] items-center gap-3 rounded-xl border border-white/6 bg-zinc-900/60 px-3.5 text-[14px] font-medium text-zinc-400 transition-colors hover:bg-zinc-800/80 hover:text-zinc-200 active:bg-zinc-800"
-    >
-      <Icon className="size-6 shrink-0 text-zinc-500" />
-      <span>{label}</span>
-    </button>
   );
 }
 
