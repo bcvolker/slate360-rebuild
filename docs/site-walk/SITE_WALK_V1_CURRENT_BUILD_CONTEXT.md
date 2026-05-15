@@ -103,6 +103,11 @@ A full backend audit was completed. Key findings for future V1 work:
 - Audit docs: `docs/audit/BACKEND_ENTITLEMENT_AND_DATA_MODEL_AUDIT.md` and related.
 - Coordination is the correct nav label (not "Coordinate"). Needs Review is the correct work-panel tab label (not "Review").
 - Worksites/Projects label is controlled by `useProjectLabel` prop in V1 preview. It still needs to be wired to `canCreateFullProject()` from `lib/project-access.ts` before production swap.
+- V1 preview is now wired to real read-only data via shared `loadSiteWalkHubData()` in `lib/site-walk/load-hub-data.ts`. Production `/site-walk` also uses this shared loader (same behavior, code deduplicated).
+- Home shows real walks, worksites, and summary counts. Worksites shows real projects. SlateDrop/Coordination/Deliverables tabs route to existing production pages.
+- All V1 preview buttons route to existing pages — no mutations, no fake behavior.
+- Home command center refined: work panel uses Recent/Worksites/Shared/Needs Review tabs with real data. Contained scroll. Starred tab deferred.
+- Primary actions: Create Worksite, Walk from Worksite, Quick Walk. Summary KPI strip removed. No passive metrics on Home. Counts only in row metadata. No-op row actions removed from preview.
 
 ## Smoke Tests For Future Site Walk Work
 

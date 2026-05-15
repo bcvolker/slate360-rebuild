@@ -51,7 +51,7 @@ export function WalkV1Row({
       ? [{ label: "Link Worksite", onClick: onLinkWorksite }]
       : []),
     ...(onCreateReport
-      ? [{ label: "Create Report", onClick: onCreateReport }]
+      ? [{ label: "Create Deliverable", onClick: onCreateReport }]
       : []),
     ...(onArchive
       ? [{ label: "Archive", onClick: onArchive, separator: true }]

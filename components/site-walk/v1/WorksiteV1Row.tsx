@@ -37,7 +37,7 @@ export function WorksiteV1Row({
 }: WorksiteV1RowProps) {
   const actions: RowAction[] = [
     { label: "Open", onClick: onOpen },
-    { label: "Start Walk", onClick: onStartWalk },
+    { label: "Walk from Worksite", onClick: onStartWalk },
     { label: "Plans & Documents", onClick: onPlansAndDocs },
     { label: "SlateDrop", onClick: onSlateDrop },
     ...(onCollaborators

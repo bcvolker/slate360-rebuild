@@ -4,12 +4,12 @@ import type { ReactNode } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 
-export type ListTab = "recent" | "active" | "shared" | "review";
+export type ListTab = "recent" | "worksites" | "shared" | "review";
 
 type SiteWalkV1ListPanelProps = {
   defaultTab?: ListTab;
   recentContent: ReactNode;
-  activeContent: ReactNode;
+  worksitesContent: ReactNode;
   sharedContent: ReactNode;
   reviewContent: ReactNode;
   className?: string;
@@ -17,7 +17,7 @@ type SiteWalkV1ListPanelProps = {
 
 const tabDefs: { value: ListTab; label: string }[] = [
   { value: "recent", label: "Recent" },
-  { value: "active", label: "Active" },
+  { value: "worksites", label: "Worksites" },
   { value: "shared", label: "Shared" },
   { value: "review", label: "Needs Review" },
 ];
@@ -25,22 +25,22 @@ const tabDefs: { value: ListTab; label: string }[] = [
 export function SiteWalkV1ListPanel({
   defaultTab = "recent",
   recentContent,
-  activeContent,
+  worksitesContent,
   sharedContent,
   reviewContent,
   className,
 }: SiteWalkV1ListPanelProps) {
   const contentMap: Record<ListTab, ReactNode> = {
     recent: recentContent,
-    active: activeContent,
+    worksites: worksitesContent,
     shared: sharedContent,
     review: reviewContent,
   };
 
   return (
-    <div className={cn("flex flex-1 flex-col px-4 pb-2", className)}>
-      <Tabs defaultValue={defaultTab} className="flex flex-1 flex-col">
-        <TabsList className="h-9 w-full bg-white/5">
+    <div className={cn("flex min-h-0 flex-1 flex-col px-4 pb-2", className)}>
+      <Tabs defaultValue={defaultTab} className="flex min-h-0 flex-1 flex-col">
+        <TabsList className="h-9 w-full shrink-0 bg-white/5">
           {tabDefs.map((tab) => (
             <TabsTrigger
               key={tab.value}
@@ -56,7 +56,7 @@ export function SiteWalkV1ListPanel({
           <TabsContent
             key={tab.value}
             value={tab.value}
-            className="mt-2 flex-1"
+            className="mt-2 min-h-0 flex-1 overflow-y-auto"
           >
             {contentMap[tab.value]}
           </TabsContent>

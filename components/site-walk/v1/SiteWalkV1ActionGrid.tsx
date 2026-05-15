@@ -25,20 +25,20 @@ export function SiteWalkV1ActionGrid({
 }: SiteWalkV1ActionGridProps) {
   const actions: ActionItem[] = [
     {
-      id: "new-worksite",
-      label: "New Worksite",
+      id: "create-worksite",
+      label: "Create Worksite",
       icon: Plus,
       onClick: onNewWorksite ?? (() => {}),
     },
     {
-      id: "start-walk",
-      label: "Start Walk",
+      id: "walk-from-worksite",
+      label: "Walk from Worksite",
       icon: Play,
       onClick: onStartWalk ?? (() => {}),
     },
     {
-      id: "quick-capture",
-      label: "Quick Capture",
+      id: "quick-walk",
+      label: "Quick Walk",
       icon: Camera,
       onClick: onQuickCapture ?? (() => {}),
     },
