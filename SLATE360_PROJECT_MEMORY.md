@@ -37,6 +37,71 @@ Recommended read order:
 - App-shell bridge direction: Slate360 Home remains the app-neutral command center; normal mobile shell nav is `Home | Projects | SlateDrop | Coordination | Account`; active capture/plan task modes may hide platform nav and own the full viewport.
 - Visual framing correction: future V1 design work should be described as Graphite Glass + restrained amber + muted teal, not harsh black/orange or a broad app-wide Dark Glass repaint.
 - Site Walk terminology rule: use `Worksite` for lower-tier field containers and reserve `Project` for higher-tier PM containers unless existing route/API/table names force the old term.
+- `docs/SLATE360_GLOBAL_UX_DOCTRINE.md` now exists as the concise global UX doctrine; `docs/EXTERNAL_AI_UX_REVIEW_PACKET.md` is the sanitized external-review packet; `docs/site-walk/PLAN_PIN_SAFETY_BEFORE_CAPTURESHELL.md` is the tiny saved-pin safety plan before Shared CaptureShell.
+
+## Session Handoff — 2026-05-14 (V1 UI replacement layer + backend audit)
+### What Changed
+- `components/site-walk/v1/`: created 11 new V1 UI components (SiteWalkV1Shell, Header, BottomNav, ActionGrid, ListPanel, RowMenu, WorksiteV1Row, WalkV1Row, ReportV1Row, PlanWorkspaceV1Skeleton, CaptureWorkspaceV1Skeleton).
+- `app/site-walk-v1-preview/page.tsx`: non-production preview route demonstrating V1 UI.
+- `docs/site-walk/SITE_WALK_V1_UI_REPLACEMENT_LAYER.md`: created + updated with backend audit corrections.
+- `docs/audit/`: created 7 audit documents (backend/data model, API surface, entitlement/tier, SlateDrop, deliverables, collaboration/org, frontend-to-backend match, responsive layout).
+- V1 preview committed and deployed to Vercel at commit `2ac4f25`.
+### What's Broken / Partially Done
+- V1 preview uses "Reports" label — must change to "Deliverables" in next revision.
+- V1 preview uses "Account" as bottom nav tab — should be avatar/profile menu; give slot to Deliverables or Coordination.
+- V1 preview is phone-portrait only — no landscape/tablet/desktop layout.
+- V1 preview uses empty states only — no real data wired.
+- "Plan Room" terminology banned — use "Plans & Documents."
+- SlateDrop not visible from V1 Home — needs primary nav position.
+- Coordination has no dedicated V1 page yet.
+### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md`: this handoff
+- `docs/site-walk/SITE_WALK_V1_CURRENT_BUILD_CONTEXT.md`: added backend audit findings
+- `docs/site-walk/SITE_WALK_V1_UI_REPLACEMENT_LAYER.md`: added backend audit corrections + revised next steps
+
+## Session Handoff — 2026-05-15 (V1 production Home swap)
+### What Changed
+- `app/site-walk/page.tsx`: now renders `SiteWalkHomeClient` (V1 Home) instead of `SiteWalkHub`
+- `app/site-walk/layout.tsx`: removed `SiteWalkShell`; now `AuthedAppShell` only
+- `components/site-walk/v1/SiteWalkV1Shell.tsx`: root div changed to `fixed inset-0 z-50 overflow-hidden` so it covers AppShell chrome
+- `app/site-walk/_components/siteWalkHubTypes.ts`: converted to re-export shim; types moved to `lib/types/site-walk.ts`
+- `lib/types/site-walk.ts`: added `HubProject`, `HubWalk`, `HubSummary`
+- `app/site-walk-v1-preview/_components/V1PreviewClient.tsx`: slimmed 541→94 lines; imports from shared view files
+### What Was Created
+- `components/site-walk/SiteWalkHomeClient.tsx` — production Home client (no skeleton demos)
+- `components/site-walk/v1/views/HomeView.tsx` — 2×2 action grid + work panel
+- `components/site-walk/v1/views/WorksitesView.tsx` — worksites list view
+- `components/site-walk/v1/views/SlateDropView.tsx` — SlateDrop quick access
+- `components/site-walk/v1/views/CoordinationView.tsx` — coordination sections
+- `components/site-walk/v1/views/DeliverablesView.tsx` — deliverables tab
+- `components/site-walk/v1/views/v1-view-utils.tsx` — shared utils (timeAgo, EmptyList, RouterLike)
+- `app/site-walk/(act-1-setup)/layout.tsx` — SiteWalkShell for setup sub-routes
+- `app/site-walk/(act-2-inputs)/layout.tsx` — SiteWalkShell for walks/capture sub-routes
+- `app/site-walk/(act-3-outputs)/layout.tsx` — SiteWalkShell for deliverables/reports sub-routes
+- `app/site-walk/more/layout.tsx`, `slatedrop/layout.tsx`, `items/layout.tsx` — SiteWalkShell for top-level sub-routes
+### What's Broken / Partially Done
+- Nothing known. Typecheck, build, guard:architecture, file-size all pass.
+- `SiteWalkHub` old UI is preserved at `app/site-walk/_components/SiteWalkHub.tsx` but no longer rendered.
+### Architecture Rule Fix
+- Hub types were in `app/`; moved to `lib/types/site-walk.ts`; `siteWalkHubTypes.ts` is now a re-export shim for backward compat with `app/` consumers.
+### Untouched Areas (confirmed)
+- Trigger.dev tasks, Supabase schema/migrations, all API routes, capture upload, plan pin logic, PlanViewerLeaflet, billing, ops console.
+### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md`: this handoff
+- `docs/site-walk/SITE_WALK_V1_CURRENT_BUILD_CONTEXT.md`: production Home section updated
+### Next Phase (ordered)
+1. Worksites list page migration to V1 shell (WorksitesView already wired in tab; add full-page route)
+2. Walk detail / session page V1 migration
+3. Capture shell migration (V1 CaptureShell — not started; do not disturb existing capture logic)
+4. Plan workspace / pin tools V1 shell migration
+- `docs/audit/*`: 7 new audit documents
+### Next Steps (ordered)
+1. Revise V1 bottom nav: Home, Worksites, Deliverables, SlateDrop (or Coordination). Account via avatar.
+2. Rename all "Reports" labels to "Deliverables" in V1 components.
+3. Wire real project/session data from existing APIs into V1 preview.
+4. Add desktop sidebar layout alongside mobile bottom nav.
+5. Physical device testing on iPhone.
+6. Feature-flagged swap of production imports once V1 is approved.
 
 ## Session Handoff — 2026-05-14 (Act 2 screen-zone ownership correction)
 ### What Changed
@@ -109,6 +174,57 @@ Recommended read order:
 2. Commit only the focused saved-pin safety files if validation passes.
 3. Test on iPhone: tap saved pins, long-press saved pins, attempt a drag gesture on saved pins, and confirm no duplicate draft pin appears; then long-press empty plan space and confirm draft pin creation still works.
 4. Wait for user phone confirmation before marking this issue resolved.
+
+## Session Handoff — 2026-05-13 (Global UX doctrine + pin safety plan)
+### What Changed
+- `docs/SLATE360_GLOBAL_UX_DOCTRINE.md`: created the missing concise global UX doctrine covering platform identity, spacing/action rules, object action rules, plan pin rules, Site Walk three-act model, collaboration ownership, hidden-app rules, visual direction, and desktop/landscape expectations.
+- `docs/EXTERNAL_AI_UX_REVIEW_PACKET.md`: created a sanitized external-AI UX packet for Gemini/Claude/Grok/v0 review; it excludes secrets, credentials, env vars, backend quick-access instructions, and raw project memory.
+- `docs/site-walk/PLAN_PIN_SAFETY_BEFORE_CAPTURESHELL.md`: created a planning-only saved-pin safety audit before Shared CaptureShell, based only on the requested pin viewer/API files.
+- `docs/SLATE360_CURRENT_BUILD_CONTEXT.md`: updated the source map so global UX doctrine and external packet are current, not missing.
+- `docs/REPO_CONTEXT_FILE_AUDIT.md`: updated context classification so the global doctrine is filled and the pin-safety plan is current.
+- `docs/SLATE360_ACCELERATED_BUILD_WORKFLOW.md`: updated default read order and added external-AI packet safety guidance plus current planning packet references.
+### What's Broken / Partially Done
+- No product behavior was changed, no UI was redesigned, no migrations were run, Trigger rasterization was untouched, and Supabase schema was untouched.
+- Saved plan pins remain not safely movable/deletable in product code; this session only documents the tiny guard plan.
+- Plan navigation/search/layers/thumbnails remain incomplete.
+- Quick Walk and Plan Walk are still not unified under Shared CaptureShell.
+### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md`: latest handoff
+- `docs/SLATE360_GLOBAL_UX_DOCTRINE.md`: new doctrine
+- `docs/EXTERNAL_AI_UX_REVIEW_PACKET.md`: new sanitized external packet
+- `docs/site-walk/PLAN_PIN_SAFETY_BEFORE_CAPTURESHELL.md`: new pin-safety plan
+- `docs/SLATE360_CURRENT_BUILD_CONTEXT.md`: source map update
+- `docs/REPO_CONTEXT_FILE_AUDIT.md`: audit classification update
+- `docs/SLATE360_ACCELERATED_BUILD_WORKFLOW.md`: workflow update
+### Next Steps (ordered)
+1. Run `codex --version || true`; run only a no-edit Codex review if authentication and safe no-edit execution are available.
+2. Run `npm run typecheck` and `npm run build`.
+3. Next implementation should be either a tiny saved-pin safety guard or Shared CaptureShell, depending on user approval.
+4. Do not commit or push unless the user explicitly approves.
+
+## Session Handoff — 2026-05-13 (Repo source-of-truth + UI debt audit)
+### What Changed
+- `docs/SLATE360_CURRENT_BUILD_CONTEXT.md`: created current source-of-truth map for broad Slate360 work, including active doc order, missing requested docs, code boundaries, no-go rules, validation baseline, and rollback plan.
+- `docs/site-walk/SITE_WALK_V1_CURRENT_BUILD_CONTEXT.md`: created Site Walk V1 current context map covering working baseline, current docs, code map, preserve-before-edit rules, known gaps, risk areas, safe next slices, and smoke tests.
+- `docs/REPO_CONTEXT_FILE_AUDIT.md`: created context-file classification audit that separates authoritative current docs from useful references, missing docs, active confusing files, and stale archived context zones.
+- `docs/design/UI_TECHNICAL_DEBT_INVENTORY.md`: created no-edit UI debt inventory covering duplicate shells/navs, filler/demo language, hardcoded color drift, capture/plan overlay risk, and safe implementation order.
+- `docs/SLATE360_ACCELERATED_BUILD_WORKFLOW.md`: created the previously missing workflow doc with default read order, build stages, Codex role, broad UI checklist, and rollback pattern.
+### What's Broken / Partially Done
+- `docs/SLATE360_GLOBAL_UX_DOCTRINE.md` is still missing; the audit instructs agents to use app-shell architecture, design gap audit, and token plan until a formal doctrine doc is created.
+- No code behavior was changed, no UI was refactored, and no stale files were deleted.
+- Physical iPhone confirmation for Site Walk Home Slice 1.3 remains pending.
+- Site Walk plan/capture gaps remain: saved pin move/delete, plan navigation/search/layers/thumbnails, shared CaptureShell polish, save/return loop polish, and Deliverables V1.
+### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md`: latest handoff
+- `docs/SLATE360_CURRENT_BUILD_CONTEXT.md`: new current build source map
+- `docs/site-walk/SITE_WALK_V1_CURRENT_BUILD_CONTEXT.md`: new Site Walk current context map
+- `docs/REPO_CONTEXT_FILE_AUDIT.md`: new context-file classification audit
+- `docs/design/UI_TECHNICAL_DEBT_INVENTORY.md`: new UI debt inventory
+- `docs/SLATE360_ACCELERATED_BUILD_WORKFLOW.md`: new accelerated workflow and Codex role doc
+### Next Steps (ordered)
+1. Run `codex --version || true`, `npm run typecheck`, and `npm run build` for the documentation-only audit validation requested in this session.
+2. If future UX doctrine is needed, create `docs/SLATE360_GLOBAL_UX_DOCTRINE.md` by consolidating existing shell architecture and design-system docs, not by duplicating them.
+3. Before any broad UI slice, start from `docs/SLATE360_CURRENT_BUILD_CONTEXT.md`, `docs/REPO_CONTEXT_FILE_AUDIT.md`, and `docs/design/UI_TECHNICAL_DEBT_INVENTORY.md`.
 
 ## Session Handoff — 2026-05-13 (Site Walk Home Slice 1.3 Worksites layout)
 ### What Changed

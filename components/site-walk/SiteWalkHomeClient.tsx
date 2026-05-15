@@ -3,8 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { SiteWalkV1Shell } from "@/components/site-walk/v1/SiteWalkV1Shell";
-import { PlanWorkspaceV1Skeleton } from "@/components/site-walk/v1/PlanWorkspaceV1Skeleton";
-import { CaptureWorkspaceV1Skeleton } from "@/components/site-walk/v1/CaptureWorkspaceV1Skeleton";
 import type { V1NavTab } from "@/components/site-walk/v1/SiteWalkV1BottomNav";
 import type { HubProject, HubSummary, HubWalk } from "@/lib/types/site-walk";
 import { HomeView } from "@/components/site-walk/v1/views/HomeView";
@@ -16,43 +14,35 @@ import { DeliverablesView } from "@/components/site-walk/v1/views/DeliverablesVi
 type Props = {
   orgName: string | null;
   userInitial: string;
-  isAdmin: boolean;
   projects: HubProject[];
   walks: HubWalk[];
   summary: HubSummary;
 };
 
-type PreviewScreen = "shell" | "plan" | "capture";
+function shellTitle(tab: V1NavTab, orgName: string | null): string {
+  switch (tab) {
+    case "home":
+      return orgName ? `${orgName} · Site Walk` : "Site Walk";
+    case "worksites":
+      return "Worksites";
+    case "slatedrop":
+      return "SlateDrop";
+    case "coordination":
+      return "Coordination";
+    case "deliverables":
+      return "Deliverables";
+  }
+}
 
-export function V1PreviewClient({
+export function SiteWalkHomeClient({
   orgName,
   userInitial,
-  isAdmin,
   projects,
   walks,
   summary,
 }: Props) {
   const router = useRouter();
   const [tab, setTab] = useState<V1NavTab>("home");
-  const [screen, setScreen] = useState<PreviewScreen>("shell");
-
-  if (screen === "plan") {
-    return (
-      <PlanWorkspaceV1Skeleton
-        worksiteName="Plan Preview"
-        walkTitle="(read-only skeleton)"
-        onBack={() => setScreen("shell")}
-      />
-    );
-  }
-  if (screen === "capture") {
-    return (
-      <CaptureWorkspaceV1Skeleton
-        onBack={() => setScreen("plan")}
-        onExit={() => setScreen("shell")}
-      />
-    );
-  }
 
   const title = shellTitle(tab, orgName);
 
@@ -76,19 +66,3 @@ export function V1PreviewClient({
     </SiteWalkV1Shell>
   );
 }
-
-function shellTitle(tab: V1NavTab, orgName: string | null): string {
-  switch (tab) {
-    case "home":
-      return orgName ? `${orgName} · Site Walk` : "Site Walk";
-    case "worksites":
-      return "Worksites";
-    case "slatedrop":
-      return "SlateDrop";
-    case "coordination":
-      return "Coordination";
-    case "deliverables":
-      return "Deliverables";
-  }
-}
-

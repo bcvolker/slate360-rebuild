@@ -1,30 +1,27 @@
 import type { ReactNode } from "react";
 import type { Metadata } from "next";
 import AuthedAppShell from "@/components/dashboard/AuthedAppShell";
-import { resolveServerOrgContext } from "@/lib/server/org-context";
-import { SiteWalkShell } from "@/components/site-walk/SiteWalkShell";
 
 export const metadata: Metadata = {
   title: "Site Walk — Slate360",
   description: "Field capture, plan walks, and deliverables for construction teams.",
 };
 
-export default async function SiteWalkLayout({ children }: { children: ReactNode }) {
-  const context = await resolveServerOrgContext();
-  const initials = getInitials(context.user?.user_metadata?.full_name, context.user?.email);
-  return (
-    <AuthedAppShell>
-      <SiteWalkShell userInitials={initials} orgName={context.orgName}>{children}</SiteWalkShell>
-    </AuthedAppShell>
-  );
+/**
+ * Top-level Site Walk layout.
+ *
+ * Provides AuthedAppShell (auth protection, topbar, sidebar, mobile nav,
+ * InviteShareProvider, CommandPalette) for all /site-walk routes.
+ *
+ * SiteWalkShell is intentionally removed here — the production Home
+ * (SiteWalkHomeClient) owns the full viewport via SiteWalkV1Shell which uses
+ * `fixed inset-0 z-50` to overlay the AppShell chrome.
+ *
+ * Sub-route groups (act-1-setup, act-2-inputs, act-3-outputs) and top-level
+ * sub-routes (more, slatedrop, items) each have their own nested layout that
+ * re-introduces SiteWalkShell for those pages.
+ */
+export default function SiteWalkLayout({ children }: { children: ReactNode }) {
+  return <AuthedAppShell>{children}</AuthedAppShell>;
 }
 
-function getInitials(name?: unknown, email?: string | null) {
-  const source = typeof name === "string" && name.trim() ? name : email ?? "SW";
-  return source
-    .split(/\s+|@/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() ?? "")
-    .join("") || "SW";
-}

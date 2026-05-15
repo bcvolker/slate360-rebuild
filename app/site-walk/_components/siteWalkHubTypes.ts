@@ -1,29 +1,4 @@
-export type HubProject = {
-  id: string;
-  name: string;
-  description: string | null;
-  status: string;
-  createdAt: string;
-};
+// Re-exported from lib/types/site-walk so app/ files can keep relative imports.
+// Source of truth is lib/types/site-walk.ts.
+export type { HubProject, HubWalk, HubSummary } from "@/lib/types/site-walk";
 
-export type HubWalk = {
-  id: string;
-  title: string;
-  status: string;
-  projectId: string | null;
-  projectName: string | null;
-  startedAt: string | null;
-  completedAt: string | null;
-  createdAt: string;
-  updatedAt: string;
-  itemCount: number;
-  syncState: string | null;
-  isStarred: boolean;
-};
-
-export type HubSummary = {
-  openItems: number;
-  needsReview: number;
-  draftDeliverables: number;
-  unsyncedItems: number;
-};

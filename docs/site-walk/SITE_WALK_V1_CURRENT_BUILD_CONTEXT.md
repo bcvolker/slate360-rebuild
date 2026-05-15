@@ -1,6 +1,6 @@
 # Site Walk V1 Current Build Context
 
-Last Updated: 2026-05-14
+Last Updated: 2026-05-15
 Status: Current Site Walk source-of-truth map.
 
 ## Purpose
@@ -36,18 +36,25 @@ This file is the quick map for Site Walk V1 work. It identifies what is working,
 
 | Area | File or folder | Notes |
 |---|---|---|
-| Site Walk layout wrapper | `app/site-walk/layout.tsx` | Wraps Site Walk in authenticated app shell plus module shell |
-| Site Walk module shell | `components/site-walk/SiteWalkShell.tsx` | Owns non-task module viewport contract |
+| Site Walk layout wrapper | `app/site-walk/layout.tsx` | `AuthedAppShell` only — `SiteWalkShell` removed from top-level |
+| Sub-route shell layouts | `app/site-walk/(act-1-setup)/layout.tsx`, `(act-2-inputs)/layout.tsx`, `(act-3-outputs)/layout.tsx`, `more/layout.tsx`, `slatedrop/layout.tsx`, `items/layout.tsx` | Each wraps children in `SiteWalkShell` |
+| Site Walk module shell | `components/site-walk/SiteWalkShell.tsx` | Owns non-task module viewport contract; used by all sub-routes |
 | Module nav | `components/site-walk/SiteWalkModuleNav.tsx` | Hidden on `/site-walk`; compact on non-home pages |
-| Home data loader | `app/site-walk/page.tsx` | Server loader for projects, walks, summary |
-| Home client UI | `app/site-walk/_components/SiteWalkHub.tsx` | Command center, tabs, actions, work panel |
+| **V1 Home client** | **`app/site-walk/page.tsx`** | **Server loader — renders `SiteWalkHomeClient` (V1, not old Hub)** |
+| **Production Home orchestrator** | **`components/site-walk/SiteWalkHomeClient.tsx`** | **V1 Home with tab state; renders `SiteWalkV1Shell`** |
+| **V1 shell container** | **`components/site-walk/v1/SiteWalkV1Shell.tsx`** | **`fixed inset-0 z-50` — covers AppShell chrome on Home only** |
+| V1 view files | `components/site-walk/v1/views/` | HomeView, WorksitesView, SlateDropView, CoordinationView, DeliverablesView, v1-view-utils |
+| Hub types | `lib/types/site-walk.ts` | `HubProject`, `HubWalk`, `HubSummary` now live here |
+| Hub types shim | `app/site-walk/_components/siteWalkHubTypes.ts` | Re-exports from `lib/types/site-walk`; preserves app/ consumers |
+| Old Home client (preserved, unused) | `app/site-walk/_components/SiteWalkHub.tsx` | Not rendered; do not delete until V1 Home is fully validated |
 | Walk row actions | `app/site-walk/_components/WalkActionsMenu.tsx` | Rename, worksite link, archive, delete modal |
 | Worksites/Walks page | `app/site-walk/(act-2-inputs)/walks/page.tsx` | Visible Worksites page; route still legacy walks |
 | Delete walk button | `components/site-walk/walks/DeleteWalkButton.tsx` | Still visible trash action on Worksites/Walks page |
 | Capture task route | `app/site-walk/(act-2-inputs)/capture/*` | Full-viewport capture shell and client island |
-| Shared capture task header | `app/site-walk/(act-2-inputs)/capture/_components/SharedCaptureTaskHeader.tsx` | Shared Quick Walk / Plan Walk active header with Back to Plan or Site Walk and secondary Exit |
+| Shared capture task header | `app/site-walk/(act-2-inputs)/capture/_components/SharedCaptureTaskHeader.tsx` | Shared Quick Walk / Plan Walk active header |
 | Capture/plan UI | `components/site-walk/capture/*` | Camera, plan viewer, bottom sheet, toolbar, pin menus, attachments |
 | Plan compact pill | `components/site-walk/capture/PlanToolbar.tsx` | Compact plan context only; full Plan Tools Drawer remains deferred |
+| V1 preview route | `app/site-walk-v1-preview/` | Regression check only; not production |
 
 ## Preserve Before Editing
 

@@ -5,7 +5,7 @@ import type {
   HubProject,
   HubSummary,
   HubWalk,
-} from "@/app/site-walk/_components/siteWalkHubTypes";
+} from "@/lib/types/site-walk";
 
 /* ------------------------------------------------------------------ */
 /*  Shared read-only loader for Site Walk hub data.                    */
