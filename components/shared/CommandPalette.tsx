@@ -51,9 +51,9 @@ const ITEMS: PaletteItem[] = [
   { id: "nav-ops",      group: "Navigate", label: "Operations Console", icon: Shield,       action: "navigate", href: "/operations-console", internalOnly: true },
 
   // Apps
-  { id: "app-tours",    group: "Apps", label: "360 Tours",      icon: Compass,   action: "navigate", href: "/apps/360-tour-builder",  comingSoon: true },
-  { id: "app-design",   group: "Apps", label: "Design Studio",  icon: Palette,   action: "navigate", href: "/apps/design-studio",     comingSoon: true },
-  { id: "app-content",  group: "Apps", label: "Content Studio", icon: FileText,  action: "navigate", href: "/apps/content-studio",    comingSoon: true },
+  { id: "app-tours",    group: "Apps", label: "360 Tours",      icon: Compass,   action: "navigate", href: "/tour-builder",   comingSoon: true },
+  { id: "app-design",   group: "Apps", label: "Design Studio",  icon: Palette,   action: "navigate", href: "/design-studio",  comingSoon: true },
+  { id: "app-content",  group: "Apps", label: "Content Studio", icon: FileText,  action: "navigate", href: "/content-studio", comingSoon: true },
 
   // Create
   { id: "new-project",  group: "Create", label: "New Project",   icon: FolderPlus, action: "navigate", href: "/projects?new=1",  shortcut: "C P" },

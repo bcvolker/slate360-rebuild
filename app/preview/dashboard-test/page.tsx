@@ -18,9 +18,6 @@ export default function DashboardTest() {
 
       <main className="w-full min-w-0 overflow-x-hidden pt-[6.25rem] pb-[88px]">
         <WalledGardenDashboard
-          userName="Test User"
-          orgName="Test Org"
-          storageLimitGb={5}
           entitlements={null}
         />
       </main>

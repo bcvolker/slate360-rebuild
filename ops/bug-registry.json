@@ -1,6 +1,6 @@
 {
   "$schema": "./schemas/bug-registry.schema.json",
-  "updatedAt": "2026-05-10",
+  "updatedAt": "2026-05-13",
   "source": "slate360-context/ONGOING_ISSUES.md",
   "bugs": [
     {
@@ -967,6 +967,25 @@
         "Trigger rasterizer registers pdf.worker.mjs on globalThis before getDocument",
         "Trigger deployment includes @napi-rs/canvas for Path2D/DOMMatrix rendering support",
         "Production Trigger run run_cmp2qvnvg3hs30iodbk44x6y1 completed and wrote a rasterized_key"
+      ]
+    },
+    {
+      "id": "BUG-086",
+      "title": "Site Walk V1 mobile UI architecture remains inconsistent after core Plan Walk loop started working",
+      "module": "site-walk/mobile-ui",
+      "severity": "high",
+      "status": "open",
+      "rootCause": "The Plan Walk core loop is now partially functional, but the mobile workspace is still organized as overlapping web panels instead of a native task shell. Site Walk Home, capture headers, plan tools, markup tools, attachments, save wording, pin movement, Before/After/Ghost, and color tokens need a coordinated V1 mobile UX cleanup documented in the decision record and implementation plan.",
+      "verification": [
+        "Site Walk Home renders a command-center layout with contained Recent Walks above the bottom nav and no authenticated install banner or duplicate module nav",
+        "Walk rows expose Rename, Duplicate Walk, Link / Change Project, Create Deliverable, Archive, and Delete with second confirmation for delete",
+        "Quick Walk and Plan Walk share a mobile CaptureShell with task header, stop strip, state-specific save labels, and Exit Walk secondary to Back to Plan",
+        "Plan viewer maximizes canvas space and uses a bottom tools drawer with Sheets, Search, Pins, and Layers tabs",
+        "Markup controls are compact/contextual with 44px touch targets and do not cover photo or plan content",
+        "Attachments live inside the Details / Attachments / Markup sheet and are not covered by toolbar/action rail",
+        "Draft pins remain draggable before save, while saved pins are locked unless explicit Edit Location / Move Pin mode is active",
+        "Before/After uses guided Add After Photo recapture and Ghost overlay only appears during alignment",
+        "First design-token migration is limited to Site Walk capture/plan surfaces and follows docs/design/SLATE360_V1_DESIGN_TOKEN_PLAN.md"
       ]
     }
   ]

@@ -1,18 +1,13 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
-  Search,
   X,
   LayoutDashboard,
   Inbox,
   CreditCard,
-  ChevronDown,
-  
   FolderKanban,
   Shield,
 } from "lucide-react";
@@ -45,8 +40,6 @@ interface DashboardSidebarProps {
 }
 
 export function DashboardSidebar({ isOpen, onClose, isMobile = false, hasOperationsConsoleAccess = false }: DashboardSidebarProps) {
-  const [searchExpanded, setSearchExpanded] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
   const pathname = usePathname() ?? "";
 
   const isActive = (item: NavItem): boolean => {
@@ -71,28 +64,6 @@ export function DashboardSidebar({ isOpen, onClose, isMobile = false, hasOperati
 
       {/* Navigation */}
       <nav className="space-y-0.5 px-3 py-3 overflow-y-auto">
-        {/* Search */}
-        <button
-          onClick={() => setSearchExpanded(!searchExpanded)}
-          className="relative flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-300 transition-all duration-200 hover:bg-white/10 hover:text-white hover:translate-x-[1px] before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-[3px] before:rounded-r before:bg-amber-400/0 hover:before:bg-amber-400/60 before:transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50 focus-visible:ring-offset-1 focus-visible:ring-offset-slate-900"
-        >
-          <Search className="h-4 w-4" />
-          Search
-          <ChevronDown className={cn("ml-auto h-3.5 w-3.5 transition-transform", searchExpanded && "rotate-180")} />
-        </button>
-        {searchExpanded && (
-          <div className="px-3 pb-2">
-            <Input
-              type="search"
-              placeholder="Search projects, clients..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-8 border-white/15 bg-white/5 text-slate-50 placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50 focus-visible:ring-offset-1 focus-visible:ring-offset-[#0B0F15]"
-              autoFocus
-            />
-          </div>
-        )}
-
         {NAV_ITEMS.filter((item) => !shouldHideInAppStoreMode(item.comingSoon)).map((item) => {
           const active = isActive(item);
           if (item.comingSoon) {

@@ -1,156 +1,228 @@
 "use client";
 
+import React from "react";
 import Link from "next/link";
-import type React from "react";
-import {
-  Cloud,
-  FolderOpen,
-  MessageSquare,
-  User,
-  CalendarDays,
-  Users,
-} from "lucide-react";
+import { MapPin, Plus, Search, Upload, Share2, Bell, MessageSquare, ClipboardList, Clock } from "lucide-react";
 import type { Entitlements } from "@/lib/entitlements";
-import { AppsGrid } from "@/components/dashboard/command-center/AppsGrid";
-import GlassCard from "@/components/shared/GlassCard";
-
-export interface DashboardUpcomingEvent {
-  id: string;
-  title: string;
-  date: string;
-  start_time: string | null;
-  color: string | null;
-}
-
-export interface DashboardRecentContact {
-  id: string;
-  name: string;
-  company: string | null;
-  title: string | null;
-  initials: string;
-  color: string;
-}
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { useInviteShare } from "@/components/shared/InviteShareProvider";
+import { cn } from "@/lib/utils";
 
 interface CommandCenterContentProps {
-  userName: string;
-  orgName: string;
-  storageLimitGb: number;
   entitlements?: Entitlements | null;
-  upcomingEvents?: DashboardUpcomingEvent[];
-  recentContacts?: DashboardRecentContact[];
-}
-
-function formatEventDate(dateStr: string, startTime: string | null): string {
-  const d = new Date(`${dateStr}T00:00:00`);
-  const label = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-  return startTime ? `${label} · ${startTime.slice(0, 5)}` : label;
+  /**
+   * True for Slate360 CEO/owner.
+   * Reserved for when Track B provides a real /ceo/twin route.
+   * Intentionally unused until that route exists.
+   */
+  isSlateCeo?: boolean;
 }
 
 export function CommandCenterContent({
   entitlements = null,
-  upcomingEvents = [],
-  recentContacts = [],
+  isSlateCeo = false,
 }: CommandCenterContentProps) {
+  const { setOpen: openInviteShare } = useInviteShare();
+
+  const handleSearch = () => {
+    if (typeof window === "undefined") return;
+    // Trigger the global ⌘K CommandPalette via the same keyboard event AppShell listens for.
+    window.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "k", metaKey: true, bubbles: true }),
+    );
+  };
+
+  const hasSiteWalk = entitlements?.canAccessStandalonePunchwalk ?? false;
+
   return (
-    <div className="mx-auto flex h-full w-full max-w-6xl flex-col gap-3 overflow-y-auto px-1 pb-3 no-scrollbar">
-      {/* Apps — launch any app you are subscribed to */}
-      <AppsGrid entitlements={entitlements} />
+    <div className="mx-auto flex h-full w-full max-w-2xl flex-col gap-4 overflow-y-auto px-4 pb-6 pt-4 no-scrollbar">
 
-      {/* Platform quick actions — same for every user, no app-specific content */}
-      <GlassCard className="p-3">
-        <p className="mb-2 text-[10px] font-black uppercase tracking-[0.18em] text-amber-300/70">Quick Access</p>
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4" aria-label="Quick actions">
-          <ActionCard href="/projects" label="Projects" icon={<FolderOpen className="h-5 w-5" />} />
-          <ActionCard href="/slatedrop" label="Files" icon={<Cloud className="h-5 w-5" />} />
-          <ActionCard href="/coordination/inbox" label="Inbox" icon={<MessageSquare className="h-5 w-5" />} />
-          <ActionCard href="/more" label="Account" icon={<User className="h-5 w-5" />} />
+      {/* ── Section 1: Your Apps ── */}
+      <section>
+        <p className="mb-2 text-[10px] font-black uppercase tracking-[0.18em] text-amber-400">
+          Your Apps
+        </p>
+        <div className="grid gap-3">
+          {/* Site Walk — shown if entitlement present */}
+          {hasSiteWalk && (
+            <AppTile
+              href="/site-walk"
+              name="Site Walk"
+              tagline="Field capture & deliverables"
+              icon={MapPin}
+            />
+          )}
+          {/*
+           * Slate360 Twin tile intentionally omitted.
+           * Track B must provide a real route (e.g. /ceo/twin) before this tile
+           * can be wired. Once Track B ships:
+           *   1. Add a real href here (e.g. href="/ceo/twin").
+           *   2. Gate with isSlateCeo (already passed as prop).
+           *   3. Remove this comment block.
+           * Do NOT add a placeholder or Coming Soon tile.
+           */}
+          {/* No apps available */}
+          {!hasSiteWalk && (
+            <div className="col-span-full rounded-2xl border border-dashed border-white/10 px-4 py-8 text-center text-sm text-slate-500">
+              No apps in your plan.{" "}
+              <Link href="/more/billing" className="text-amber-400 hover:underline">
+                View plans
+              </Link>
+            </div>
+          )}
         </div>
-      </GlassCard>
+      </section>
 
-      {/* Data widgets row */}
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        {/* Upcoming Schedule */}
-        <GlassCard className="p-3">
-          <div className="mb-2 flex items-center gap-2">
-            <CalendarDays className="h-3.5 w-3.5 text-amber-400" />
-            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-amber-300/70">Upcoming Schedule</p>
-          </div>
-          {upcomingEvents.length === 0 ? (
-            <p className="py-2 text-center text-xs text-slate-500">No upcoming events</p>
-          ) : (
-            <div className="flex flex-col gap-1.5">
-              {upcomingEvents.map((ev) => (
-                <Link
-                  key={ev.id}
-                  href="/calendar"
-                  className="flex items-center gap-2.5 rounded-xl bg-slate-900/50 p-2 transition-colors hover:bg-white/10"
-                >
-                  <span
-                    className="h-2 w-2 shrink-0 rounded-full"
-                    style={{ background: ev.color ?? "#f59e0b" }}
-                  />
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold text-slate-100">{ev.title}</p>
-                    <p className="text-xs text-slate-400">{formatEventDate(ev.date, ev.start_time)}</p>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          )}
-        </GlassCard>
+      {/* ── Section 2: Quick Actions ── */}
+      <section>
+        <p className="mb-2 text-[10px] font-black uppercase tracking-[0.18em] text-amber-400">
+          Quick Actions
+        </p>
+        <div className="grid grid-cols-2 gap-3">
+          <QuickActionCard
+            label="New Worksite"
+            icon={Plus}
+            href="/site-walk/setup"
+          />
+          <QuickActionCard
+            label="Search"
+            icon={Search}
+            onClick={handleSearch}
+          />
+          <QuickActionCard
+            label="Upload Files"
+            icon={Upload}
+            href="/slatedrop"
+          />
+          <QuickActionCard
+            label="Invite & Share"
+            icon={Share2}
+            onClick={() => openInviteShare(true)}
+          />
+        </div>
+      </section>
 
-        {/* Recent Contacts */}
-        <GlassCard className="p-3">
-          <div className="mb-2 flex items-center gap-2">
-            <Users className="h-3.5 w-3.5 text-amber-400" />
-            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-amber-300/70">Recent Contacts</p>
-          </div>
-          {recentContacts.length === 0 ? (
-            <p className="py-2 text-center text-xs text-slate-500">No contacts yet</p>
-          ) : (
-            <div className="flex flex-col gap-1.5">
-              {recentContacts.map((c) => (
-                <Link
-                  key={c.id}
-                  href="/contacts"
-                  className="flex items-center gap-2.5 rounded-xl bg-slate-900/50 p-2 transition-colors hover:bg-white/10"
-                >
-                  <span
-                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white"
-                    style={{ background: c.color ?? "#1e293b" }}
+      {/* ── Section 3: Activity Panel ── */}
+      <section className="min-h-0 flex-1">
+        <div className="relative flex flex-col overflow-hidden rounded-xl border border-white/6 bg-zinc-900/40 min-h-[260px]">
+          <Tabs defaultValue="notifications" className="flex min-h-0 flex-1 flex-col">
+            <div className="shrink-0 border-b border-white/5 px-3">
+              <TabsList className="h-9 w-full bg-transparent p-0">
+                {ACTIVITY_TABS.map((tab) => (
+                  <TabsTrigger
+                    key={tab.value}
+                    value={tab.value}
+                    className="flex-1 rounded-none border-b-2 border-transparent py-2 text-[11px] font-medium text-zinc-500 transition-colors data-[state=active]:border-amber-500 data-[state=active]:bg-transparent data-[state=active]:text-white data-[state=active]:shadow-none"
                   >
-                    {c.initials}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold text-slate-100">{c.name}</p>
-                    <p className="truncate text-xs text-slate-400">{c.company ?? c.title ?? ""}</p>
-                  </div>
-                </Link>
-              ))}
+                    {tab.label}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
             </div>
-          )}
-        </GlassCard>
-      </div>
+            {ACTIVITY_TABS.map((tab) => (
+              <TabsContent
+                key={tab.value}
+                value={tab.value}
+                className="min-h-0 flex-1 overflow-y-auto px-4 py-6"
+              >
+                <ActivityEmptyState icon={tab.icon} label={tab.emptyLabel} href={tab.href} />
+              </TabsContent>
+            ))}
+          </Tabs>
+          {/* Bottom fade — scroll affordance */}
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-zinc-900/90 to-transparent" />
+        </div>
+      </section>
     </div>
   );
 }
 
-function ActionCard({
-  href,
-  label,
-  icon,
-}: {
+// ── Sub-components ───────────────────────────────────────────────────────────
+
+interface AppTileProps {
   href: string;
-  label: string;
-  icon: React.ReactNode;
-}) {
+  name: string;
+  tagline: string;
+  icon: React.ElementType;
+}
+
+function AppTile({ href, name, tagline, icon: Icon }: AppTileProps) {
   return (
     <Link
       href={href}
-      className="flex min-h-20 flex-col justify-between rounded-2xl border border-slate-700/60 bg-slate-900/70 p-3 text-left text-white shadow-sm transition-all duration-200 hover:border-amber-400/50 hover:bg-amber-500/10"
+      className="flex items-center gap-4 rounded-2xl border border-white/8 bg-white/[0.03] px-4 py-4 transition-colors hover:border-amber-500/30 hover:bg-white/[0.06] active:bg-white/[0.09]"
     >
-      <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-500 text-slate-950">{icon}</span>
-      <span className="text-sm font-black">{label}</span>
+      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-amber-500/15 text-amber-400">
+        <Icon className="h-5 w-5" />
+      </span>
+      <div className="min-w-0">
+        <p className="text-sm font-black text-white">{name}</p>
+        <p className="text-xs text-zinc-500">{tagline}</p>
+      </div>
     </Link>
   );
 }
+
+interface QuickActionCardProps {
+  label: string;
+  icon: React.ElementType;
+  href?: string;
+  onClick?: () => void;
+}
+
+function QuickActionCard({ label, icon: Icon, href, onClick }: QuickActionCardProps) {
+  const className =
+    "flex min-h-[90px] flex-col items-center justify-center gap-2 rounded-xl border border-white/8 bg-white/[0.04] text-zinc-300 transition-colors hover:border-amber-500/25 hover:bg-white/[0.08] hover:text-white active:bg-white/[0.12]";
+
+  const inner = (
+    <>
+      <Icon className="h-6 w-6 text-amber-500" />
+      <span className="text-[13px] font-medium leading-tight text-center">{label}</span>
+    </>
+  );
+
+  if (href) {
+    return (
+      <Link href={href} className={className}>
+        {inner}
+      </Link>
+    );
+  }
+
+  return (
+    <button type="button" onClick={onClick} className={className}>
+      {inner}
+    </button>
+  );
+}
+
+function ActivityEmptyState({
+  icon: Icon,
+  label,
+  href,
+}: {
+  icon: React.ElementType;
+  label: string;
+  href?: string;
+}) {
+  return (
+    <div className="flex flex-col items-center justify-center gap-2 py-8 text-center">
+      <Icon className="h-6 w-6 text-zinc-600" />
+      <p className="text-xs text-zinc-600">{label}</p>
+      {href && (
+        <Link href={href} className="text-[11px] text-amber-500 hover:underline">
+          Open
+        </Link>
+      )}
+    </div>
+  );
+}
+
+const ACTIVITY_TABS = [
+  { value: "notifications", label: "Alerts", icon: Bell, emptyLabel: "No new notifications", href: "/coordination/inbox" },
+  { value: "messages", label: "Messages", icon: MessageSquare, emptyLabel: "No unread messages", href: "/coordination/inbox" },
+  { value: "assigned", label: "Assigned", icon: ClipboardList, emptyLabel: "No assigned work", href: "/site-walk/assigned-work" },
+  { value: "recent", label: "Recent", icon: Clock, emptyLabel: "No recent activity", href: undefined },
+] as const;
+
+

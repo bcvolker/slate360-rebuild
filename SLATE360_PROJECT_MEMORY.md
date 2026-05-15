@@ -44,6 +44,21 @@ Recommended read order:
 4. Both tracks must read this file before work and confirm they did not touch the other track's files at session end.
 
 ## Save State - Architecture & Design (May 2026)
+
+### SlateDrop Backbone
+SlateDrop is **not** just an upload page. It is the shared file/folder backbone for the entire Slate360 platform. All UI work must treat it as infrastructure, not a feature module:
+- App-level and org-level folders
+- Worksite and Project folders (provisioned via `/api/slatedrop/provision`)
+- Site Walk captures (photos, annotations, plan attachments)
+- Plans and construction documents
+- Deliverable exports and reports
+- Stakeholder intake and external upload tokens
+- History/version folders
+- RFIs, submittals, and schedule attachments when PM features are enabled
+- Eventual export/recordkeeping and archival workflows
+
+Do not redesign or simplify `/slatedrop` routes without understanding the folder provisioning contracts (`project_folders` table, not `file_folders`).
+
 - The `_legacy_v1` tree has been explicitly purged and removed from the active routing.
 - The entire application is strictly unified under the 'Dark Glass & Amber' design token system utilizing the `<GlassCard>` component.
 - Site Walk Plan Walk core loop is now partially working on live: plan opens, pan/zoom works, long press opens capture, plan-linked capture can be created, and saved plan pins can be opened.
@@ -59,7 +74,42 @@ Recommended read order:
 - **Global Slate360 AppShell** visual migration to Graphite Glass + amber still needed — currently uses Dark Glass. Track A owns this.
 - **Site Walk capture review shell** and **Plan Walk viewer shell** both need redesigned V1 wrappers — deferred pending approved slices.
 
-## Session Handoff — 2026-05-15 (Concurrent development tracks + capture audit)
+## Session Handoff — 2026-05-15 (Track A: AppShell cleanup + V1 Dashboard)
+### What Changed
+- `components/shared/CommandPalette.tsx`: fixed 3 stale app hrefs (`/apps/360-tour-builder` → `/tour-builder`, `/apps/design-studio` → `/design-studio`, `/apps/content-studio` → `/content-studio`). All still `comingSoon`/hidden in app-store mode.
+- `components/apps/AppSidebar.tsx`: DELETED — dead code, no external imports.
+- `components/apps/AppTopBar.tsx`: DELETED — dead code, no external imports.
+- `components/apps/AppCard.tsx`, `app-data.ts`, `AppPreviewSheet.tsx`: DELETED — entire `components/apps/` folder was dead (only self-referential imports).
+- `components/dashboard/command-center/DashboardSidebar.tsx`: removed disconnected in-sidebar search expander (inline text input that was disconnected from CommandPalette). CommandPalette (⌘K) remains the canonical search surface.
+- `components/dashboard/command-center/CommandCenterContent.tsx`: FULL REWRITE — V1 Slate360 Home. Three sections: (1) Your Apps (Site Walk + Twin if isSlateCeo), (2) Quick Actions 2×2 (New Worksite, Search via ⌘K dispatch, Upload Files, Invite & Share), (3) Activity Panel (tabbed: Alerts/Messages/Assigned/Recent — all clean empty states, no fake data).
+- `components/walled-garden-dashboard.tsx`: simplified props — removed `userName`, `orgName`, `storageLimitGb`, `upcomingEvents`, `recentContacts`; added `isSlateCeo`.
+- `app/(dashboard)/dashboard/page.tsx`: extracts `isSlateCeo` from org context; removed stale `fetchUpcomingEvents`/`fetchRecentContacts` DB calls; page title changed to "Slate360 — Home".
+- `app/preview/dashboard-test/page.tsx`: updated to match new WalledGardenDashboard props.
+### What's Broken / Partially Done
+- Slate360 Twin app tile **intentionally hidden** — no real route exists yet. Track B must provide a real `/ceo/twin` (or equivalent) route. When ready: add `href` to the `AppTile` in `CommandCenterContent.tsx` and gate with `isSlateCeo` (prop already plumbed). Do NOT add a placeholder or Coming Soon tile.
+- "New Worksite" quick action routes to `/site-walk/setup`. A "Create Project" variant requires: (1) `/projects?new=1` search param wired into `ProjectsClientPage` to auto-open `CreateProjectWizard`, AND (2) an entitlement field distinguishing full-PM users from field-only users (`canAccessHub` is currently `true` for all tiers — not a valid gate). Deferred.
+- Activity Panel tabs (Alerts, Messages, Assigned, Recent) all show clean empty states. Wire data when coordination inbox loaders are available.
+- Quick Walk capture idle screen still shows "Capture field proof" (needs V1 replacement in `CameraViewfinder.tsx`).
+- Site Walk capture review V1 shell not yet started.
+- Plan Walk viewer V1 shell not yet started.
+- Track B (Digital Twin Lite) not yet started.
+- `check-file-size.sh` reports 13 pre-existing files over 300 lines (e.g. `LocationMap.tsx` 1892 lines, `marketing-homepage.tsx` 1164 lines) — these are pre-existing, not caused by this session.
+### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md`: this handoff
+### Cross-Track Safety Check
+- Track: A
+- Branch: main
+- Files touched: `CommandPalette.tsx`, `DashboardSidebar.tsx`, `CommandCenterContent.tsx`, `walled-garden-dashboard.tsx`, `app/(dashboard)/dashboard/page.tsx`, `app/preview/dashboard-test/page.tsx`
+- Deleted: `components/apps/AppSidebar.tsx`, `AppTopBar.tsx`, `AppCard.tsx`, `app-data.ts`, `AppPreviewSheet.tsx`
+- Track B files touched: NONE
+- Site Walk capture/PlanViewer/Trigger/Supabase/API/Digital Twin files touched: NONE
+### Next Steps (ordered)
+1. Visual QA of new /dashboard on mobile (Site Walk V1 style reference)
+2. Wire Slate360 Twin tile href when Track B `/ceo/twin` route is created
+3. Wire Activity Panel tabs with real coordination inbox data when safe loaders exist
+4. V1 capture idle screen replacement in `CameraViewfinder.tsx` (Track A next slice)
+5. Site Walk capture review V1 shell
+6. Plan Walk viewer V1 shell
 ### What Changed
 - `docs/CONCURRENT_DEVELOPMENT_TRACKS.md`: created — defines Track A (AppShell + Site Walk UI) and Track B (Digital Twin Lite) with ownership tables, forbidden zones, branch strategy, and cross-track safety check protocol.
 - `SLATE360_PROJECT_MEMORY.md`: added "Concurrent Development Tracks" summary section and state bullets for production V1 Home, Quick Walk, capture idle screen, AppShell migration, and capture/plan V1 deferred work.
