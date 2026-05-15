@@ -40,7 +40,7 @@ export function SiteWalkV1ListPanel({
   return (
     <div
       className={cn(
-        "relative mx-4 flex flex-col overflow-hidden rounded-xl border border-white/6 bg-zinc-900/40",
+        "relative flex flex-col overflow-hidden rounded-xl border border-white/6 bg-zinc-900/40",
         className,
       )}
     >

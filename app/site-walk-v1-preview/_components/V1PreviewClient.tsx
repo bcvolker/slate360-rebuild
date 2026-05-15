@@ -157,32 +157,30 @@ function HomeView({
   }
 
   return (
-    <div className="flex h-full flex-col">
-      {/* ── Command zone ── */}
-      <div className="shrink-0 px-4 pt-4">
-        {/* Module label */}
-        <p className="pb-3.5 text-[14px] font-bold uppercase tracking-[0.18em] text-amber-400">
-          Site Walk
-        </p>
+    <div className="grid grid-rows-[auto_auto_auto_minmax(285px,305px)] content-start px-4 pt-4 pb-3">
+      {/* Row 1: Module label */}
+      <p className="pb-3 text-[14px] font-bold uppercase tracking-[0.18em] text-amber-400">
+        Site Walk
+      </p>
 
-        <SiteWalkV1ActionGrid
-          onNewWorksite={() => router.push("/site-walk/setup")}
-          onStartWalk={() => router.push("/site-walk/setup")}
-          onQuickCapture={() => router.push("/site-walk/capture?quick=1")}
-          className="!px-0"
-        />
+      {/* Row 2: Primary actions */}
+      <SiteWalkV1ActionGrid
+        onNewWorksite={() => router.push("/site-walk/setup")}
+        onStartWalk={() => router.push("/site-walk/setup")}
+        onQuickCapture={() => router.push("/site-walk/capture?quick=1")}
+        className="!px-0 pb-4"
+      />
 
-        {/* Core tools row */}
-        <div className="grid grid-cols-3 gap-3 pt-4">
-          <ToolCard icon={FolderOpen} label="SlateDrop" onClick={() => setTab("slatedrop")} />
-          <ToolCard icon={MessageSquare} label="Coordination" onClick={() => setTab("coordination")} />
-          <ToolCard icon={Package} label="Deliverables" onClick={() => setTab("deliverables")} />
-        </div>
+      {/* Row 3: Core tools */}
+      <div className="grid grid-cols-3 gap-3 pb-5">
+        <ToolCard icon={FolderOpen} label="SlateDrop" onClick={() => setTab("slatedrop")} />
+        <ToolCard icon={MessageSquare} label="Coordination" onClick={() => setTab("coordination")} />
+        <ToolCard icon={Package} label="Deliverables" onClick={() => setTab("deliverables")} />
       </div>
 
-      {/* ── Work panel: fixed height, no flex growth ── */}
+      {/* Row 4: Work panel — fixed height, no flex growth */}
       <SiteWalkV1ListPanel
-        className="mt-5 mb-3 h-[300px] min-h-[285px] max-h-[305px] shrink-0"
+        className="min-h-0 overflow-hidden"
         recentContent={
           recentWalks.length > 0 ? (
             <WalkList walks={recentWalks} router={router} />

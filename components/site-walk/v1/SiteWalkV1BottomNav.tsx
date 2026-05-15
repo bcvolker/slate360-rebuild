@@ -60,7 +60,7 @@ export function SiteWalkV1BottomNav({
             type="button"
             onClick={() => onTabChange(id)}
             className={cn(
-              "flex flex-1 flex-col items-center justify-center gap-0.5 text-[10px] font-medium transition-colors",
+              "flex flex-1 flex-col items-center justify-center gap-0.5 text-[11px] font-medium transition-colors",
               active
                 ? "text-amber-500"
                 : "text-zinc-500 hover:text-zinc-300",
