@@ -159,25 +159,24 @@ function HomeView({
   return (
     <div className="flex h-full flex-col">
       {/* ── Top zone: actions ── */}
-      <div className="shrink-0">
+      <div className="shrink-0 pt-1">
         <SiteWalkV1ActionGrid
           onNewWorksite={() => router.push("/site-walk/setup")}
           onStartWalk={() => router.push("/site-walk/setup")}
           onQuickCapture={() => router.push("/site-walk/capture?quick=1")}
         />
 
-        {/* Secondary access row */}
-        <div className="grid grid-cols-3 gap-2 px-4 pb-2">
-          <SecondaryButton icon={FolderOpen} label="SlateDrop" onClick={() => setTab("slatedrop")} />
-          <SecondaryButton icon={MessageSquare} label="Coordination" onClick={() => setTab("coordination")} />
-          <SecondaryButton icon={Package} label="Deliverables" onClick={() => setTab("deliverables")} />
+        {/* Core tools row */}
+        <div className="grid grid-cols-3 gap-2.5 px-4 pb-1">
+          <ToolCard icon={FolderOpen} label="SlateDrop" onClick={() => setTab("slatedrop")} />
+          <ToolCard icon={MessageSquare} label="Coordination" onClick={() => setTab("coordination")} />
+          <ToolCard icon={Package} label="Deliverables" onClick={() => setTab("deliverables")} />
         </div>
-
       </div>
 
       {/* ── Work panel: fills remaining space, contained scroll ── */}
       <SiteWalkV1ListPanel
-        className="min-h-0 flex-1"
+        className="mt-3 mb-3 min-h-0 flex-1"
         recentContent={
           recentWalks.length > 0 ? (
             <WalkList walks={recentWalks} router={router} />
@@ -243,7 +242,7 @@ function WalkList({ walks, router }: { walks: HubWalk[]; router: RouterLike }) {
   );
 }
 
-function SecondaryButton({
+function ToolCard({
   icon: Icon,
   label,
   onClick,
@@ -256,9 +255,9 @@ function SecondaryButton({
     <button
       type="button"
       onClick={onClick}
-      className="flex h-10 items-center gap-2 rounded-lg border border-white/5 bg-white/[0.03] px-3 text-xs font-medium text-zinc-400 transition-colors hover:bg-white/[0.06] hover:text-zinc-200"
+      className="flex h-11 items-center gap-2 rounded-xl border border-white/6 bg-zinc-900/60 px-3 text-xs font-medium text-zinc-400 transition-colors hover:bg-zinc-800/80 hover:text-zinc-200 active:bg-zinc-800"
     >
-      <Icon className="size-4 shrink-0" />
+      <Icon className="size-4 shrink-0 text-zinc-500" />
       <span className="truncate">{label}</span>
     </button>
   );

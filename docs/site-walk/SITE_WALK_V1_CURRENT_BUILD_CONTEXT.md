@@ -107,7 +107,8 @@ A full backend audit was completed. Key findings for future V1 work:
 - Home shows real walks, worksites, and summary counts. Worksites shows real projects. SlateDrop/Coordination/Deliverables tabs route to existing production pages.
 - All V1 preview buttons route to existing pages — no mutations, no fake behavior.
 - Home command center refined: work panel uses Recent/Worksites/Shared/Needs Review tabs with real data. Contained scroll. Starred tab deferred.
-- Primary actions: Create Worksite, Walk from Worksite, Quick Walk. Summary KPI strip removed. No passive metrics on Home. Counts only in row metadata. No-op row actions removed from preview.
+- Primary actions: Create Worksite, Walk from Worksite, Quick Walk. No passive metrics on Home.
+- Visual polish: header h-14 with SlateLogo + "Site Walk" subtitle on Home, full tool icon row (Search/Bell/Share/Feedback/Avatar), balanced action cards, tool-card secondary row, bordered work panel with "Work" label and amber underline tabs. Contained scroll with pb-4, mt-3/mb-3 breathing room. Tool icons are visible but not yet wired to modals.
 
 ## Smoke Tests For Future Site Walk Work
 

@@ -8,6 +8,7 @@ import {
   MessageSquare,
   Package,
 } from "lucide-react";
+import { SlateLogo } from "@/components/shared/SlateLogo";
 import { SiteWalkV1Header } from "./SiteWalkV1Header";
 import {
   SiteWalkV1BottomNav,
@@ -53,8 +54,8 @@ export function SiteWalkV1Shell({
       {/* Desktop sidebar — visible at lg+ */}
       <aside className="hidden w-56 shrink-0 flex-col border-r border-white/10 bg-zinc-900/60 lg:flex">
         <div className="flex h-14 items-center gap-2 border-b border-white/10 px-4">
-          <span className="text-sm font-bold text-amber-500">Slate360</span>
-          <span className="text-xs text-zinc-500">Site Walk</span>
+          <SlateLogo size="sm" />
+          <span className="text-[10px] font-medium text-zinc-500">Site Walk</span>
         </div>
         <nav className="flex flex-1 flex-col gap-0.5 p-2">
           {sidebarItems.map(({ id, label, icon: Icon }) => {
@@ -88,6 +89,8 @@ export function SiteWalkV1Shell({
           primaryAction={primaryAction}
           overflowActions={overflowActions}
           showAvatar
+          showToolIcons={activeTab === "home"}
+          showBranding={activeTab === "home"}
         />
 
         <main className={cn("flex-1 overflow-y-auto", className)}>

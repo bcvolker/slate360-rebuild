@@ -38,25 +38,37 @@ export function SiteWalkV1ListPanel({
   };
 
   return (
-    <div className={cn("flex min-h-0 flex-1 flex-col px-4 pb-2", className)}>
+    <div
+      className={cn(
+        "mx-4 flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-white/6 bg-zinc-900/40",
+        className,
+      )}
+    >
       <Tabs defaultValue={defaultTab} className="flex min-h-0 flex-1 flex-col">
-        <TabsList className="h-9 w-full shrink-0 bg-white/5">
-          {tabDefs.map((tab) => (
-            <TabsTrigger
-              key={tab.value}
-              value={tab.value}
-              className="flex-1 rounded-lg text-xs data-[state=active]:bg-white/10 data-[state=active]:text-white"
-            >
-              {tab.label}
-            </TabsTrigger>
-          ))}
-        </TabsList>
+        {/* Panel header + tab strip */}
+        <div className="shrink-0 px-3 pt-2.5">
+          <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-zinc-600">
+            Work
+          </p>
+          <TabsList className="h-8 w-full bg-transparent p-0">
+            {tabDefs.map((tab) => (
+              <TabsTrigger
+                key={tab.value}
+                value={tab.value}
+                className="flex-1 rounded-none border-b-2 border-transparent pb-1.5 text-[11px] font-medium text-zinc-500 transition-colors data-[state=active]:border-amber-500 data-[state=active]:bg-transparent data-[state=active]:text-white data-[state=active]:shadow-none"
+              >
+                {tab.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </div>
 
+        {/* Scrollable content area */}
         {tabDefs.map((tab) => (
           <TabsContent
             key={tab.value}
             value={tab.value}
-            className="mt-2 min-h-0 flex-1 overflow-y-auto"
+            className="min-h-0 flex-1 overflow-y-auto px-3 pt-2 pb-4"
           >
             {contentMap[tab.value]}
           </TabsContent>

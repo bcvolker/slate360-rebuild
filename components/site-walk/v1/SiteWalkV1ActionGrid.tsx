@@ -45,16 +45,16 @@ export function SiteWalkV1ActionGrid({
   ];
 
   return (
-    <div className={cn("grid grid-cols-3 gap-3 px-4 py-3", className)}>
+    <div className={cn("grid grid-cols-3 gap-2.5 px-4 py-3", className)}>
       {actions.map(({ id, label, icon: Icon, onClick }) => (
         <button
           key={id}
           type="button"
           onClick={onClick}
-          className="flex flex-col items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-4 text-zinc-300 transition-colors hover:border-amber-500/30 hover:bg-white/10 hover:text-white"
+          className="flex min-h-[56px] flex-col items-center justify-center gap-1.5 rounded-xl border border-white/8 bg-white/[0.04] text-zinc-300 transition-colors hover:border-amber-500/25 hover:bg-white/[0.08] hover:text-white active:bg-white/[0.12]"
         >
-          <Icon className="size-6 text-amber-500" />
-          <span className="text-xs font-medium">{label}</span>
+          <Icon className="size-5 text-amber-500" />
+          <span className="text-[11px] font-medium leading-tight">{label}</span>
         </button>
       ))}
     </div>

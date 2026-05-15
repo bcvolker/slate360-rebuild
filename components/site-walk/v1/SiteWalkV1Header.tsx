@@ -5,6 +5,8 @@ import {
   MoreVertical,
   Search,
   Bell,
+  Share2,
+  MessageSquarePlus,
   User,
   Settings,
   CreditCard,
@@ -13,6 +15,7 @@ import {
   HelpCircle,
   LogOut,
 } from "lucide-react";
+import { SlateLogo } from "@/components/shared/SlateLogo";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -38,6 +41,10 @@ type SiteWalkV1HeaderProps = {
   };
   overflowActions?: HeaderAction[];
   showAvatar?: boolean;
+  /** Show the full header tool row (Search, Notifications, Share, Feedback). */
+  showToolIcons?: boolean;
+  /** When true, render Slate360 logo + subtitle instead of plain title. */
+  showBranding?: boolean;
   className?: string;
 };
 
@@ -47,12 +54,14 @@ export function SiteWalkV1Header({
   primaryAction,
   overflowActions,
   showAvatar = false,
+  showToolIcons = false,
+  showBranding = false,
   className,
 }: SiteWalkV1HeaderProps) {
   return (
     <header
       className={cn(
-        "flex h-14 items-center gap-2 border-b border-white/10 bg-zinc-900/80 px-4 backdrop-blur-sm",
+        "flex h-16 items-center gap-2 border-b border-white/10 bg-zinc-900/80 px-4 backdrop-blur-sm",
         className,
       )}
     >
@@ -68,9 +77,17 @@ export function SiteWalkV1Header({
         </Button>
       )}
 
-      <h1 className="min-w-0 flex-1 truncate text-base font-semibold text-white">
-        {title}
-      </h1>
+      {/* Brand or title */}
+      {showBranding ? (
+        <div className="flex min-w-0 flex-1 items-center gap-2.5">
+          <SlateLogo size="md" />
+          <span className="text-xs font-medium text-zinc-500">Site Walk</span>
+        </div>
+      ) : (
+        <h1 className="min-w-0 flex-1 truncate text-base font-semibold text-white">
+          {title}
+        </h1>
+      )}
 
       {primaryAction && (
         <Button
@@ -114,8 +131,31 @@ export function SiteWalkV1Header({
         </DropdownMenu>
       )}
 
+      {/* Tool icons — visible on branded Home header */}
+      {showToolIcons && (
+        <div className="flex items-center">
+          <ToolIcon icon={Search} label="Search" />
+          <ToolIcon icon={Bell} label="Notifications" />
+          <ToolIcon icon={Share2} label="Share" />
+          <ToolIcon icon={MessageSquarePlus} label="Feedback" />
+        </div>
+      )}
+
       {showAvatar && <AvatarMenu />}
     </header>
+  );
+}
+
+function ToolIcon({ icon: Icon, label }: { icon: typeof Search; label: string }) {
+  return (
+    <Button
+      variant="ghost"
+      size="icon-sm"
+      aria-label={label}
+      className="text-zinc-500 hover:text-white"
+    >
+      <Icon className="size-[18px]" />
+    </Button>
   );
 }
 

@@ -22,11 +22,12 @@ Audits which header tools exist in production and whether the V1 header currentl
 ## Current V1 Header Composition
 
 The V1 header (`SiteWalkV1Header.tsx`) currently shows:
-1. Back button (optional)
-2. Title
+1. Back button (optional, subpages only)
+2. SlateLogo (sm) + "Site Walk" subtitle (Home tab via `showBranding`) OR title text (subpages)
 3. Primary action button (optional)
 4. Overflow menu (optional)
-5. Avatar menu (always when `showAvatar=true`)
+5. Tool icon row: Search, Notifications, Share, Feedback (Home tab via `showToolIcons`) — **visible but not yet wired**
+6. Avatar menu (always when `showAvatar=true`) — **functional**
 
 ## Missing from V1 Header
 

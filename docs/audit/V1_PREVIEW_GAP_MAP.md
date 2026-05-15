@@ -22,7 +22,9 @@ The V1 preview at `/site-walk-v1-preview` is now wired to real read-only data:
 9. **All buttons route to existing pages** — no fake behavior, no mutations.
 10. **Deferred:** Shared With Me real collaborator data, Needs Review real item list, saved pin move/delete, plan sheet picker, deliverable creation form.
 11. **Home command center refined (2026-05-15):** Work panel uses Recent/Worksites/Shared/Needs Review tabs. Recent shows real walks. Worksites shows real projects with actions (Open/Walk from Worksite/Plans & Documents/SlateDrop/Collaborators/Deliverables). Contained scroll. Starred tab omitted (data field exists but unused).
-12. **Action labels renamed (2026-05-15):** Create Worksite, Walk from Worksite, Quick Walk. Summary KPI strip removed — no passive metrics on Home. Counts only appear as row metadata (item count, time ago). No-op row actions (Rename/Archive/Delete/Link Worksite) removed from walk rows in preview. "Create Report" renamed to "Create Deliverable" in walk row menus.
+12. **Action labels renamed (2026-05-15):** Create Worksite, Walk from Worksite, Quick Walk. Summary KPI strip removed. No-op row actions removed from walk rows. "Create Report" → "Create Deliverable."
+13. **Visual/layout polish (2026-05-15):** Header h-14 with SlateLogo (sm) + "Site Walk" subtitle on Home tab. Full tool icon row: Search, Notifications, Share, Feedback, Avatar. Subpage headers show title text instead of branding. Primary actions use min-h-[56px] balanced cards. Core tools row uses rounded-xl tool-card styling. Work panel is a bordered rounded-xl container with "Work" label + amber underline tabs. Contained scroll with pb-4. mt-3/mb-3 breathing room above/below work panel. Desktop sidebar also uses SlateLogo.
+14. **Header tool wiring status:** Search, Notifications, Share, Feedback icons are visible but not yet wired to modals/actions. They render as disabled visual buttons. Avatar menu is functional. Operations Console not exposed to normal users. Wiring is documented as deferred in V1_HEADER_TOOL_GAP_AUDIT.md.
 
 ## Home Tab
 
