@@ -157,28 +157,31 @@ function HomeView({
   }
 
   return (
-    <div className="grid grid-rows-[auto_auto_auto_minmax(285px,305px)] content-start px-4 pt-4 pb-3">
-      {/* Row 1: Module label */}
-      <p className="pb-3 text-[14px] font-bold uppercase tracking-[0.18em] text-amber-400">
-        Site Walk
-      </p>
+    <div className="grid h-full min-h-0 grid-rows-[1fr_minmax(285px,305px)] gap-y-3 px-4 pb-3">
+      {/* Zone 1: Command — grows to fill available space */}
+      <div className="flex min-h-0 flex-col justify-center gap-y-4">
+        {/* Label */}
+        <p className="text-[14px] font-bold uppercase tracking-[0.18em] text-amber-400">
+          Site Walk
+        </p>
 
-      {/* Row 2: Primary actions */}
-      <SiteWalkV1ActionGrid
-        onNewWorksite={() => router.push("/site-walk/setup")}
-        onStartWalk={() => router.push("/site-walk/setup")}
-        onQuickCapture={() => router.push("/site-walk/capture?quick=1")}
-        className="!px-0 pb-4"
-      />
+        {/* Primary actions */}
+        <SiteWalkV1ActionGrid
+          onNewWorksite={() => router.push("/site-walk/setup")}
+          onStartWalk={() => router.push("/site-walk/setup")}
+          onQuickCapture={() => router.push("/site-walk/capture?quick=1")}
+          className="!px-0"
+        />
 
-      {/* Row 3: Core tools */}
-      <div className="grid grid-cols-3 gap-3 pb-5">
-        <ToolCard icon={FolderOpen} label="SlateDrop" onClick={() => setTab("slatedrop")} />
-        <ToolCard icon={MessageSquare} label="Coordination" onClick={() => setTab("coordination")} />
-        <ToolCard icon={Package} label="Deliverables" onClick={() => setTab("deliverables")} />
+        {/* Core tools */}
+        <div className="grid grid-cols-3 gap-3">
+          <ToolCard icon={FolderOpen} label="SlateDrop" onClick={() => setTab("slatedrop")} />
+          <ToolCard icon={MessageSquare} label="Coordination" onClick={() => setTab("coordination")} />
+          <ToolCard icon={Package} label="Deliverables" onClick={() => setTab("deliverables")} />
+        </div>
       </div>
 
-      {/* Row 4: Work panel — fixed height, no flex growth */}
+      {/* Zone 2: Work panel — clamped 285–305px */}
       <SiteWalkV1ListPanel
         className="min-h-0 overflow-hidden"
         recentContent={
