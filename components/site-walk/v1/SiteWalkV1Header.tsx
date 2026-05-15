@@ -132,10 +132,10 @@ export function SiteWalkV1Header({
 
       {/* Tool icons — visible on branded Home header */}
       {showToolIcons && (
-        <div className="flex items-center">
+        <div className="flex items-center -mr-1.5">
           <ToolIcon icon={Search} label="Search" />
           <ToolIcon icon={Bell} label="Notifications" />
-          <ToolIcon icon={Share2} label="Share" />
+          <ToolIcon icon={Share2} label="Share" className="hidden min-[400px]:flex" />
           <ToolIcon icon={MessageSquarePlus} label="Feedback" />
         </div>
       )}
@@ -145,16 +145,26 @@ export function SiteWalkV1Header({
   );
 }
 
-function ToolIcon({ icon: Icon, label }: { icon: typeof Search; label: string }) {
+function ToolIcon({
+  icon: Icon,
+  label,
+  className,
+}: {
+  icon: typeof Search;
+  label: string;
+  className?: string;
+}) {
   return (
-    <Button
-      variant="ghost"
-      size="icon"
+    <button
+      type="button"
       aria-label={label}
-      className="text-zinc-500 hover:text-white"
+      className={cn(
+        "flex size-11 items-center justify-center text-zinc-500 transition-colors hover:text-white",
+        className,
+      )}
     >
       <Icon className="size-[18px]" />
-    </Button>
+    </button>
   );
 }
 
@@ -167,9 +177,11 @@ function AvatarMenu() {
         <button
           type="button"
           aria-label="Account menu"
-          className="flex size-8 shrink-0 items-center justify-center rounded-full bg-amber-600/20 text-xs font-bold text-amber-400 transition-colors hover:bg-amber-600/30"
+          className="flex size-11 shrink-0 items-center justify-center"
         >
-          S
+          <span className="flex size-7 items-center justify-center rounded-full bg-amber-600/20 text-[11px] font-bold text-amber-400 transition-colors hover:bg-amber-600/30">
+            S
+          </span>
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
@@ -189,6 +201,9 @@ function AvatarMenu() {
           <Building2 className="size-4" /> Organization
         </DropdownMenuItem>
         <DropdownMenuSeparator />
+        <DropdownMenuItem className="gap-2 text-zinc-300 min-[400px]:hidden">
+          <Share2 className="size-4" /> Share / Invite
+        </DropdownMenuItem>
         <DropdownMenuItem className="gap-2 text-zinc-300">
           <MessageSquare className="size-4" /> Feedback
         </DropdownMenuItem>
