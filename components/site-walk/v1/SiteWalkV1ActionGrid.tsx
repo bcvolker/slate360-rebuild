@@ -51,9 +51,9 @@ export function SiteWalkV1ActionGrid({
           key={id}
           type="button"
           onClick={onClick}
-          className="flex min-h-[92px] flex-col items-center justify-center gap-2.5 rounded-xl border border-white/8 bg-white/[0.04] px-2 text-zinc-300 transition-colors hover:border-amber-500/25 hover:bg-white/[0.08] hover:text-white active:bg-white/[0.12]"
+          className="flex min-h-[108px] flex-col items-center justify-center gap-3 rounded-xl border border-white/8 bg-white/[0.04] px-2 text-zinc-300 transition-colors hover:border-amber-500/25 hover:bg-white/[0.08] hover:text-white active:bg-white/[0.12]"
         >
-          <Icon className="size-7 text-amber-500" />
+          <Icon className="size-[30px] text-amber-500" />
           <span className="text-[14px] font-medium leading-tight text-center">{label}</span>
         </button>
       ))}

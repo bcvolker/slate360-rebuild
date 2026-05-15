@@ -64,7 +64,7 @@ export function WalkV1Row({
   return (
     <div
       className={cn(
-        "flex items-center gap-3 rounded-lg border border-white/5 bg-white/[0.03] px-3 py-3 transition-colors hover:bg-white/[0.06]",
+        "flex min-h-[72px] items-center gap-3 rounded-lg border border-white/5 bg-white/[0.03] px-3 py-3.5 transition-colors hover:bg-white/[0.06]",
         className,
       )}
     >

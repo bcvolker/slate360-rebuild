@@ -108,7 +108,7 @@ A full backend audit was completed. Key findings for future V1 work:
 - All V1 preview buttons route to existing pages — no mutations, no fake behavior.
 - Home command center refined: work panel uses Recent/Worksites/Shared/Needs Review tabs with real data. Contained scroll. Starred tab deferred.
 - Primary actions: Create Worksite, Walk from Worksite, Quick Walk. No passive metrics on Home.
-- Visual polish: header h-16 with SlateLogo. "SITE WALK" label text-[13px] amber-400. Full tool icons (Search/Bell/Share/Feedback/Avatar). Primary actions min-h-[92px] with size-7 icons, text-[14px]. Core tools h-16 with size-[22px] icons. Work panel min-h-[285px] max-h-[335px] flex-1, h-9 tabs with border-b-2 amber underline. Bottom fade. mb-3 to nav. No auto-spacer or dead blank areas. Tool icons visible but not yet wired.
+- Visual polish: header h-16 with SlateLogo. "SITE WALK" label text-[14px] amber-400. Full tool icons (Search/Bell/Share/Feedback/Avatar). Primary actions min-h-[108px] with size-[30px] icons. Core tools h-[72px] with size-6 icons. Work panel h-[300px] fixed (no flex-1/mt-auto). Walk rows min-h-[72px], ~3.5 visible. mt-5 gap, mb-3 gap. Bottom fade. Tool icons visible but not yet wired.
 
 ## Smoke Tests For Future Site Walk Work
 

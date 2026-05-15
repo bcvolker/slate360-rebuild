@@ -159,9 +159,9 @@ function HomeView({
   return (
     <div className="flex h-full flex-col">
       {/* ── Command zone ── */}
-      <div className="shrink-0 pt-5 pb-4">
+      <div className="shrink-0 px-4 pt-4">
         {/* Module label */}
-        <p className="px-4 pb-4 text-[13px] font-bold uppercase tracking-[0.18em] text-amber-400">
+        <p className="pb-3.5 text-[14px] font-bold uppercase tracking-[0.18em] text-amber-400">
           Site Walk
         </p>
 
@@ -169,19 +169,20 @@ function HomeView({
           onNewWorksite={() => router.push("/site-walk/setup")}
           onStartWalk={() => router.push("/site-walk/setup")}
           onQuickCapture={() => router.push("/site-walk/capture?quick=1")}
+          className="!px-0"
         />
 
         {/* Core tools row */}
-        <div className="grid grid-cols-3 gap-2.5 px-4 pt-2">
+        <div className="grid grid-cols-3 gap-3 pt-4">
           <ToolCard icon={FolderOpen} label="SlateDrop" onClick={() => setTab("slatedrop")} />
           <ToolCard icon={MessageSquare} label="Coordination" onClick={() => setTab("coordination")} />
           <ToolCard icon={Package} label="Deliverables" onClick={() => setTab("deliverables")} />
         </div>
       </div>
 
-      {/* ── Work panel: controlled height, no auto spacer ── */}
+      {/* ── Work panel: fixed height, no flex growth ── */}
       <SiteWalkV1ListPanel
-        className="mb-3 min-h-[285px] max-h-[335px] shrink-0 flex-1"
+        className="mt-5 mb-3 h-[300px] min-h-[285px] max-h-[305px] shrink-0"
         recentContent={
           recentWalks.length > 0 ? (
             <WalkList walks={recentWalks} router={router} />
@@ -260,9 +261,9 @@ function ToolCard({
     <button
       type="button"
       onClick={onClick}
-      className="flex h-16 items-center gap-3 rounded-xl border border-white/6 bg-zinc-900/60 px-3.5 text-[13px] font-medium text-zinc-400 transition-colors hover:bg-zinc-800/80 hover:text-zinc-200 active:bg-zinc-800"
+      className="flex h-[72px] items-center gap-3 rounded-xl border border-white/6 bg-zinc-900/60 px-3.5 text-[14px] font-medium text-zinc-400 transition-colors hover:bg-zinc-800/80 hover:text-zinc-200 active:bg-zinc-800"
     >
-      <Icon className="size-[22px] shrink-0 text-zinc-500" />
+      <Icon className="size-6 shrink-0 text-zinc-500" />
       <span>{label}</span>
     </button>
   );
