@@ -74,6 +74,29 @@ Do not redesign or simplify `/slatedrop` routes without understanding the folder
 - **Global Slate360 AppShell** visual migration to Graphite Glass + amber still needed — currently uses Dark Glass. Track A owns this.
 - **Site Walk capture review shell** and **Plan Walk viewer shell** both need redesigned V1 wrappers — deferred pending approved slices.
 
+## Session Handoff — 2026-05-15 (Dashboard V2 Slice 1 — App Launcher + Quick Actions)
+### What Changed
+- `app/preview/dashboard-v2/page.tsx`: CREATED — server component; calls `resolveServerOrgContext` + `resolveOrgEntitlements`; redirects unauthenticated; renders `DashboardV2Shell`.
+- `components/dashboard-v2/DashboardV2Shell.tsx`: CREATED — server component; `max-w-2xl` content column; renders AppLauncher + QuickActions; Activity Panel comment block reserved for Slice 2.
+- `components/dashboard-v2/DashboardV2AppLauncher.tsx`: CREATED — server component; Site Walk tile gated by `canAccessStandalonePunchwalk`; Twin tile intentionally absent (no real route); falls back to `DashboardV2EmptyState`.
+- `components/dashboard-v2/DashboardV2QuickActions.tsx`: CREATED — client component ("use client"); 2×2 grid; New Worksite → `/site-walk/setup`, Search → ⌘K dispatch, Upload Files → `/slatedrop`, Invite & Share → `useInviteShare().setOpen(true)`.
+- `components/dashboard-v2/DashboardV2EmptyState.tsx`: CREATED — pure component; icon + message + optional action link; no fake data.
+### Validation
+- `npm run typecheck`: PASS
+- `bash scripts/check-file-size.sh`: No size violations in new files
+- `get_errors` on all 5 files: 0 errors
+### What's Broken / Partially Done
+- Dashboard V2 Slice 2 (Activity Panel) NOT started — no fake rows added. Depends on real data loaders from `project_notifications` and `site_walk_assignments`.
+- Slate360 Twin tile intentionally absent — no real `/ceo/twin` route. Wire when Track B ships.
+- Preview route `/preview/dashboard-v2` is live but not committed/pushed — awaiting user approval.
+### Next Steps (ordered)
+1. User visually QA `/preview/dashboard-v2` (mobile + desktop)
+2. Approve and push Slice 1 commit to a feature branch (NOT main directly)
+3. Slice 2: Activity Panel — Alerts/Assigned/Recent tabs wired to real DB loaders
+4. Swap production `/dashboard` when V2 is approved (replace `CommandCenterContent` reference)
+### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md`: this handoff
+
 ## Session Handoff — 2026-05-15 (Track A: AppShell cleanup + V1 Dashboard)
 ### What Changed
 - `components/shared/CommandPalette.tsx`: fixed 3 stale app hrefs (`/apps/360-tour-builder` → `/tour-builder`, `/apps/design-studio` → `/design-studio`, `/apps/content-studio` → `/content-studio`). All still `comingSoon`/hidden in app-store mode.
