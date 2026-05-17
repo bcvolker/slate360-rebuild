@@ -74,6 +74,32 @@ Do not redesign or simplify `/slatedrop` routes without understanding the folder
 - **Global Slate360 AppShell** visual migration to Graphite Glass + amber still needed — currently uses Dark Glass. Track A owns this.
 - **Site Walk capture review shell** and **Plan Walk viewer shell** both need redesigned V1 wrappers — deferred pending approved slices.
 
+## Session Handoff — 2026-05-15 (Dashboard V2 Full-Shell Preview — Slice 1)
+### What Changed
+- `app/preview/dashboard-v2-full/page.tsx`: CREATED — server page OUTSIDE `(dashboard)` route group. Calls `resolveServerOrgContext`, `resolveOrgEntitlements`, `buildInviteShareData`. Redirects unauthenticated → `/login`. Passes all data to `DashboardV2FullShell`. Children = existing `DashboardV2Shell` (AppLauncher + QuickActions).
+- `components/dashboard-v2-full/DashboardV2NavConfig.ts`: CREATED — pure TS nav config. Exports `DashboardNavItem` interface + `DASHBOARD_V2_NAV` array (6 items, Operations Console `ownerOnly`+`mobileHidden`).
+- `components/dashboard-v2-full/DashboardV2Sidebar.tsx`: CREATED — "use client", `hidden lg:flex`, fixed 256px, Graphite Glass border, amber active state, SlateLogo at top.
+- `components/dashboard-v2-full/DashboardV2TopBar.tsx`: CREATED — "use client", `hidden lg:flex`, fixed `h-16 left-64`, search icon → `onSearchClick`, InviteShare via `useInviteShare`, bell → coordination inbox, `BetaFeedbackButton`, avatar initial → `/more`.
+- `components/dashboard-v2-full/DashboardV2MobileHeader.tsx`: CREATED — "use client", `lg:hidden`, fixed `h-14`, SlateLogo, bell + invite + avatar icons.
+- `components/dashboard-v2-full/DashboardV2MobileNav.tsx`: CREATED — "use client", `lg:hidden`, fixed bottom, 5 tabs (excludes ownerOnly), safe-area padding, amber active glow.
+- `components/dashboard-v2-full/DashboardV2FullShell.tsx`: CREATED — "use client", 127 lines. Mounts `TooltipProvider` + `InviteShareProvider`. `ShellInner` manages `paletteOpen`, ⌘K listener, `CommandPalette` (dynamic ssr:false), `InviteShareModal` (dynamic ssr:false). Desktop: sidebar + topbar + `lg:ml-64 lg:pt-16` main. Mobile: `pt-14 pb-[76px]` main + bottom nav.
+### Validation
+- `npm run typecheck`: No errors in any new file
+- `bash scripts/check-file-size.sh`: No size violations (largest = 127 lines)
+- `get_errors` on all files: 0 errors
+### What's Broken / Partially Done
+- `DashboardV2TopBar` section title is hardcoded "Dashboard" — Slice 2 should pass a dynamic title via context or prop.
+- Avatar initial pill has no dropdown — Slice 4 will add sign-out + settings dropdown.
+- No commit yet — awaiting user visual QA + approval.
+### Next Steps (ordered)
+1. User visually QA `/preview/dashboard-v2-full` on desktop and mobile
+2. Confirm ⌘K palette opens, invite modal opens, nav active states work
+3. Approve → commit both V2 preview sets to a feature branch (NOT main directly)
+4. Slice 2: Activity Panel — wire real data loaders from `project_notifications` + `site_walk_assignments`
+5. Production swap plan: when approved, move page content to `app/(dashboard)/dashboard/page.tsx` and strip AppShell from layout (or use parallel route group)
+### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md`: this handoff
+
 ## Session Handoff — 2026-05-15 (Dashboard V2 Slice 1 — App Launcher + Quick Actions)
 ### What Changed
 - `app/preview/dashboard-v2/page.tsx`: CREATED — server component; calls `resolveServerOrgContext` + `resolveOrgEntitlements`; redirects unauthenticated; renders `DashboardV2Shell`.
