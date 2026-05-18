@@ -4,66 +4,52 @@ import { HardDrive, Zap, CreditCard } from "lucide-react";
 export function DashboardV3StorageBilling({ usage }: { usage: any }) {
   if (!usage) {
     return (
-      <div className="flex h-full flex-col rounded-xl border border-white/5 bg-[#131820] p-6">
+      <div className="flex h-full flex-col rounded-xl border border-white/5 bg-[#131820] p-6 relative overflow-hidden">
         <h3 className="mb-4 text-sm font-semibold text-white tracking-tight">Storage & Billing</h3>
-        <div className="flex-1">
+        <div className="flex-1 min-h-[140px] flex flex-col justify-center">
           <DashboardV3EmptyState message="Usage data unavailable" actionText="Manage Billing" />
         </div>
       </div>
     );
   }
 
-  const storageUsed = usage.storageGbUsed || 0;
-  const storageLimit = usage.storageGbLimit || 10;
-  const storagePct = Math.min(100, (Number(storageUsed) / storageLimit) * 100);
+  const percent = Math.min(100, Math.round((parseFloat(usage.storageGbUsed) / usage.storageGbLimit) * 100)) || 0;
 
   return (
-    <div className="flex h-full flex-col rounded-xl border border-white/5 bg-[#131820] p-6">
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-sm font-semibold text-white tracking-tight">Storage & Billing</h3>
-        <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 hover:text-white cursor-pointer transition-colors">Manage</span>
+    <div className="flex h-full flex-col rounded-xl border border-white/5 bg-[#131820] p-6 relative overflow-hidden group">
+      <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
+        <HardDrive className="h-24 w-24" />
       </div>
+
+      <h3 className="mb-4 text-sm font-semibold text-white tracking-tight relative z-10">Storage & Billing</h3>
       
-      <div className="flex-1 space-y-6">
-        {/* Storage */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between text-xs font-medium">
-            <div className="flex items-center gap-1.5 text-zinc-300">
-              <HardDrive className="h-3.5 w-3.5 text-blue-400" />
-              Cloud Storage
-            </div>
-            <span className="text-white">{storageUsed} <span className="text-zinc-500">/ {storageLimit} GB</span></span>
+      <div className="flex-1 flex flex-col justify-between relative z-10">
+        <div>
+          <div className="flex items-end gap-2 mb-2">
+            <span className="text-3xl font-black text-white">{usage.storageGbUsed}</span>
+            <span className="text-sm font-medium text-zinc-400 mb-1">/ {usage.storageGbLimit} GB</span>
           </div>
-          <div className="w-full bg-white/[0.05] rounded-full h-1.5 overflow-hidden">
-            <div className="bg-blue-400 h-1.5 rounded-full" style={{ width: `${storagePct}%` }} />
-          </div>
+          <p className="text-xs text-zinc-500 font-medium tracking-wide uppercase">Total Volume Used</p>
         </div>
 
-        {/* Processing Credits */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between text-xs font-medium">
-            <div className="flex items-center gap-1.5 text-zinc-300">
-              <Zap className="h-3.5 w-3.5 text-amber-500" />
-              Processing Credits
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-xs font-semibold">
+              <span className="text-zinc-400">Current Plan</span>
+              <span className="text-amber-500 flex items-center gap-1"><Zap className="h-3 w-3" /> Pro Tier</span>
             </div>
-            <span className="text-zinc-500">Unavailable</span>
+            <div className="h-2 w-full rounded-full bg-white/5 overflow-hidden">
+              <div className="h-full rounded-full bg-amber-500" style={{ width: `${percent}%` }} />
+            </div>
+            <p className="text-[10px] text-zinc-500 font-medium">{percent}% of limit</p>
           </div>
-          <div className="w-full bg-white/[0.05] rounded-full h-1.5 overflow-hidden">
-             <div className="bg-zinc-700 h-1.5 rounded-full w-0" />
+
+          <div className="flex items-center gap-3 pt-4 border-t border-white/5">
+            <button className="flex items-center gap-1.5 text-xs font-semibold text-zinc-300 hover:text-white transition-colors">
+              <CreditCard className="h-3.5 w-3.5" /> Manage Billing
+            </button>
           </div>
         </div>
-
-        {/* Subscription */}
-        <div className="pt-2">
-          <div className="flex items-center gap-3 rounded-lg border border-white/5 bg-white/[0.02] p-3">
-            <CreditCard className="h-4 w-4 text-emerald-500" />
-            <div className="flex flex-col">
-              <span className="text-xs font-medium text-white">Current Plan</span>
-              <span className="text-[10px] text-zinc-500">Subscription data unavailable</span>
-            </div>
-          </div>
-        </div>
-
       </div>
     </div>
   );
