@@ -74,6 +74,82 @@ Do not redesign or simplify `/slatedrop` routes without understanding the folder
 - **Global Slate360 AppShell** visual migration to Graphite Glass + amber still needed — currently uses Dark Glass. Track A owns this.
 - **Site Walk capture review shell** and **Plan Walk viewer shell** both need redesigned V1 wrappers — deferred pending approved slices.
 
+## Session Handoff — 2026-05-17 (Dashboard V3 v0 Alignment & Backend Audit)
+### What Changed
+- Conducted read-only backend audit for Dashboard V3 (credits, billing, processing queue, notifications).
+- Aligned on v0-to-Copilot workflow for Dashboard V3 visual design.
+- Finalized v0 Prompt 1 (Graphite Glass, responsive grid, container-centric rail, compact widgets).
+### What's Broken / Partially Done
+- Dashboard V3 code implementation has not started. Awaiting v0 visual design approval.
+### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md`: this handoff
+### Next Steps (ordered)
+1. User runs Prompt 1 in v0.dev.
+2. User shares v0 screenshots/code for review.
+3. Iterate v0 design slice-by-slice.
+4. Copilot implements approved v0 design into `app/preview/dashboard-v3/`.
+
+## Session Handoff — 2026-05-17 (Dashboard V2 Full Shell — Slice 2B: Desktop Command Center Upgrade)
+### What Changed
+- `components/dashboard-v2-full/DashboardV2NavConfig.ts`: Added `DashboardNavSection` interface and `DASHBOARD_V2_NAV_SECTIONS` (3 sections: Workspace/Apps/Account). `DASHBOARD_V2_NAV` now derived from sections. Added `MapPin` for Site Walk. All 7 items use verified real routes. Deferred items documented in file header comments.
+- `components/dashboard-v2-full/DashboardV2Sidebar.tsx`: Full visual redesign. Now renders section labels ("Workspace", "Apps", "Account"). Active state: amber ring + amber icon chip + amber dot. Inactive: icon chip subtle hover. Footer shows live green dot + "V2 Preview". Uses `DashboardV2_NAV_SECTIONS`.
+- `components/dashboard-v2-full/DashboardV2Home.tsx`: Full redesign. Replaced plain header with visual gradient Command Center header card (amber ambient glow, "Command Center" eyebrow, workspace name, welcome line). Added `alertCount` badge → `/site-walk/deliverables` when real alerts exist. Added status strip (walks count + open items + draft deliverables) with real `HubSummary` data. New Worksite CTA moved into header. Same 2-col grid + rail structure preserved.
+- `components/dashboard-v2-full/DashboardV2HorizontalRail.tsx`: Full redesign. Cards wider (240px), now have top accent bar (amber/emerald/zinc based on real status), `overflow-hidden`, hover shadow glow. Shows `projectName` when available. Better empty state with icon + "Start a worksite" CTA. `ArrowRight` on "View all" link.
+- `components/dashboard-v2-full/DashboardV2ActivityPanel.tsx`: Tab reorder to Alerts | Messages | Assigned | Recent (per spec). Messages tab now renders a real "Open Inbox" link to `/coordination/inbox` instead of static text. Better empty states for all tabs. Styling tweaks (rounded-xl rows, min-h-[140px]).
+### Validation
+- `npm run typecheck`: PASS — no errors
+- `npm run build`: PASS — `ƒ /preview/dashboard-v2-full` at 11.4 kB / 247 kB
+- `npm run guard:architecture`: PASS
+- `bash scripts/check-file-size.sh`: No violations (largest = 180 lines)
+### What's Broken / Partially Done
+- Slice 3 deferred: `project_notifications` → Alerts rows, `site_walk_assignments` → Assigned rows, project cards in rail, SlateDrop recent files in rail
+- Messages tab links to `/coordination/inbox` but shows no real message rows (no messages table yet)
+- Avatar topbar has no dropdown (Slice 4)
+- NOT committed — awaiting user visual QA + approval
+### Untouched — confirmed
+- production `/dashboard`, `app/(dashboard)/layout.tsx`, AppShell, DashboardSidebar, DashboardTopBar, MobileTopBar, MobileBottomNav, WalledGardenDashboard, CommandCenterContent
+- existing `/preview/dashboard-v2` route and `DashboardV2Shell.tsx`
+- Site Walk capture files, CameraViewfinder, CaptureClientIsland, PlanViewerLeaflet, plan pin logic
+- Trigger, Supabase schema, migrations, API routes, storage/rasterization, billing
+- Digital Twin files (Track B)
+### Routes used
+- `/dashboard` ✅, `/projects` ✅, `/coordination/inbox` ✅, `/site-walk` ✅, `/slatedrop` ✅, `/more` ✅, `/operations-console` ✅, `/site-walk/setup` ✅, `/site-walk/walks` ✅, `/site-walk/deliverables` ✅, `/site-walk/assigned-work` ✅
+### Deferred (no real route)
+- `/deliverables` standalone, `/activity`, `/processing`, `/shared-links`, Digital Twin
+### Next Steps (ordered)
+1. User visual QA at `/preview/dashboard-v2-full` (desktop sidebar sections, command header, rail cards, activity tabs)
+2. Approve → commit as `feat(dashboard): v2 full shell slice 2B — desktop command center upgrade`
+3. Slice 3: wire `project_notifications` → Alerts tab rows, `site_walk_assignments` → Assigned tab rows, add project cards to rail
+4. Slice 4: avatar dropdown (sign-out + settings), dynamic topbar section title from pathname
+5. Production swap: replace `app/(dashboard)/dashboard/page.tsx` content when approved
+### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md`: this handoff
+
+## Session Handoff — 2026-05-17 (Dashboard V2 Full Shell — Slice 2: Desktop Command Center)
+### What Changed
+- `components/dashboard-v2-full/DashboardV2HorizontalRail.tsx`: CREATED — server component, ~104 lines. Shows real `HubWalk` sessions in a horizontal scroll rail. Status badges: `in_progress` → amber, `completed` → emerald, default → zinc. Cards link to `/site-walk/walks/${id}`. Empty state links to `/site-walk/setup`.
+- `components/dashboard-v2-full/DashboardV2ActivityPanel.tsx`: CREATED — `"use client"`, ~141 lines. 4 tabs: Alerts, Assigned, Recent, Messages. Wired to `HubSummary` + `walks`. Alerts → `/site-walk/deliverables` (needsReview) + `/site-walk` (unsynced). Assigned → `/site-walk/assigned-work`. Recent → last 6 walks. Messages → field coordination note. No fake rows.
+- `components/dashboard-v2-full/DashboardV2Home.tsx`: CREATED — server component, ~105 lines. `max-w-7xl` 2-col grid: left (AppLauncher + QuickActions), right (ActivityPanel 340px fixed). Full-width rail below grid. Replaces narrow `max-w-2xl` DashboardV2Shell.
+- `app/preview/dashboard-v2-full/page.tsx`: UPDATED — adds `loadSiteWalkHubData(orgId ?? null)` to the `Promise.all`. Passes `walks` + `summary` to `DashboardV2Home`. `DashboardV2Shell` removed from children.
+### Validation
+- `npm run typecheck`: PASS — no errors
+- `npm run build`: PASS — `ƒ /preview/dashboard-v2-full` at 10.8 kB / 247 kB
+- `npm run guard:architecture`: PASS — no forbidden import-direction violations
+- `bash scripts/check-file-size.sh`: No size violations (largest new file = 141 lines)
+### What's Broken / Partially Done
+- Slice 3 data wire-up deferred: `project_notifications` → Alerts tab, `site_walk_assignments` → Assigned tab, project cards in rail
+- Messages tab always shows static note — no messages table yet
+- Avatar in topbar has no dropdown (deferred to Slice 4)
+- Slice 2 NOT yet committed — awaiting user visual QA + approval
+### Next Steps (ordered)
+1. User visual QA at `/preview/dashboard-v2-full` (desktop 2-col grid, mobile stack, rail, activity tabs)
+2. Approve → commit as `feat(dashboard): v2 full shell slice 2 — desktop command center`
+3. Slice 3: wire `project_notifications` → Alerts, `site_walk_assignments` → Assigned, add project cards to rail
+4. Slice 4: avatar dropdown (sign-out + settings), dynamic topbar section title
+5. Production swap: when approved, replace `app/(dashboard)/dashboard/page.tsx` content + strip AppShell from layout
+### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md`: this handoff
+
 ## Session Handoff — 2026-05-15 (Dashboard V2 Full-Shell Preview — Slice 1)
 ### What Changed
 - `app/preview/dashboard-v2-full/page.tsx`: CREATED — server page OUTSIDE `(dashboard)` route group. Calls `resolveServerOrgContext`, `resolveOrgEntitlements`, `buildInviteShareData`. Redirects unauthenticated → `/login`. Passes all data to `DashboardV2FullShell`. Children = existing `DashboardV2Shell` (AppLauncher + QuickActions).

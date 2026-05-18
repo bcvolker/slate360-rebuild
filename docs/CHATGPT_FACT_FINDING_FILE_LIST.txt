@@ -18,6 +18,11 @@ docs/SLATE360_PRODUCT_DOCTRINE.md
 docs/APP_STORE_AND_OFFLINE_STRATEGY.md
 docs/ENTITLEMENTS_AND_PROJECT_MODEL.md
 docs/SLATEDROP_ARCHITECTURE.md
+docs/site-walk/SITE_WALK_V1_MOBILE_UX_DECISION_RECORD.md
+docs/site-walk/SITE_WALK_V1_UI_IMPLEMENTATION_PLAN.md
+docs/design/SLATE360_V1_DESIGN_TOKEN_PLAN.md
+docs/SLATE360_V1_APP_SHELL_UX_ARCHITECTURE.md
+docs/design/SLATE360_UNIFIED_DESIGN_SYSTEM_GAP_AUDIT.md
 .github/copilot-instructions.md
 CRITICAL_FAILURE_REPORT_MAY.md  [historical/stale for rasterization]
 SECOND_OPINION_DOSSIER.md       [historical]
@@ -57,6 +62,8 @@ app/login/page.tsx
 app/signup/page.tsx
 app/pending-verification/page.tsx
 app/beta-pending/page.tsx
+docs/design/SLATE360_V1_DESIGN_TOKEN_PLAN.md
+docs/design/SLATE360_UNIFIED_DESIGN_SYSTEM_GAP_AUDIT.md
 _archived_context/slate360-context/DESIGN_SYSTEM.md
 
 D. Site Walk Entry / Setup / Walks / Capture Shell
@@ -78,6 +85,8 @@ components/site-walk/capture/cameraViewfinderHelpers.ts
 app/site-walk/walks/page.tsx
 app/site-walk/walks/[id]/page.tsx
 app/site-walk/walks/active/[id]/page.tsx
+docs/site-walk/SITE_WALK_V1_MOBILE_UX_DECISION_RECORD.md
+docs/site-walk/SITE_WALK_V1_UI_IMPLEMENTATION_PLAN.md
 
 E. Plan Viewer / Long-Press / Pinning (Highest Priority)
 --------------------------------------------------------

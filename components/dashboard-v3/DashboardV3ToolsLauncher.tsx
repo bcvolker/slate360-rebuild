@@ -11,11 +11,18 @@ const TOOLS = [
 
 export function DashboardV3ToolsLauncher() {
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex flex-wrap items-center gap-3">
       {TOOLS.map((t, i) => (
-        <Button key={i} variant="outline" size="sm" className="h-9 gap-2 border-white/10 bg-white/5 text-zinc-300 hover:bg-white/10 hover:text-white" disabled>
-          <t.icon className="h-4 w-4" />
-          {t.label}
+        <Button 
+          key={i} 
+          variant="outline" 
+          size="sm" 
+          className="h-10 px-4 gap-2.5 border-white/10 bg-[#131820] text-zinc-300 hover:bg-white/5 hover:text-white transition-colors cursor-pointer"
+          aria-disabled="true"
+          onClick={(e) => { e.preventDefault(); }}
+        >
+          <t.icon className="h-4 w-4 text-amber-500" />
+          <span className="font-medium">{t.label}</span>
         </Button>
       ))}
     </div>
