@@ -9,7 +9,7 @@ export default function manifest(): MetadataRoute.Manifest {
     id: "/",
     // Installed PWA opens directly into the app. Middleware redirects to
     // /login if no session, then back to /dashboard on success.
-    start_url: "/dashboard",
+    start_url: "/app",
     scope: "/",
     display: "standalone",
     orientation: "portrait",

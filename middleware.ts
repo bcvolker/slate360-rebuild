@@ -1,5 +1,5 @@
 import { createServerClient } from "@supabase/ssr";
-import { NextResponse, type NextRequest } from "next/server";
+import { NextResponse, type NextRequest, userAgent } from "next/server";
 
 const INVITE_COOKIE_NAME = "slate360_invite_token";
 const INVITE_TOKEN_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -108,9 +108,21 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  
+  // Mobile / PWA App Shell Guard
+  const { device } = userAgent(request);
+  const isMobile = device.type === 'mobile' || device.type === 'tablet' || device.type === 'wearable';
+  
+  if (isMobile && pathname === "/dashboard") {
+    const url = request.nextUrl.clone();
+    url.pathname = "/app";
+    return NextResponse.redirect(url);
+  }
+  
   // Protect authenticated routes — redirect to login if not authenticated
   const isBetaProtectedRoute =
     pathname.startsWith("/dashboard") ||
+    pathname.startsWith("/app") ||
     pathname.startsWith("/projects") ||
     pathname.startsWith("/slatedrop") ||
     pathname.startsWith("/project-hub") ||
@@ -173,7 +185,7 @@ export async function middleware(request: NextRequest) {
   ];
   if (user && PHASE_1_BLOCKED_PATHS.some((p) => pathname.startsWith(p))) {
     const url = request.nextUrl.clone();
-    url.pathname = "/dashboard";
+    url.pathname = isMobile ? "/app" : "/dashboard";
     return NextResponse.redirect(url);
   }
 
@@ -211,7 +223,7 @@ export async function middleware(request: NextRequest) {
      pathname.startsWith("/project-hub"))
   ) {
     const url = request.nextUrl.clone();
-    url.pathname = "/dashboard";
+    url.pathname = isMobile ? "/app" : "/dashboard";
     return NextResponse.redirect(url);
   }
 
@@ -221,7 +233,7 @@ export async function middleware(request: NextRequest) {
     (pathname === "/login" || pathname === "/signup")
   ) {
     const url = request.nextUrl.clone();
-    url.pathname = "/dashboard";
+    url.pathname = isMobile ? "/app" : "/dashboard";
     return NextResponse.redirect(url);
   }
 
