@@ -1209,3 +1209,6 @@ The following files are now superseded by this document and have been archived o
 - `_archived_docs/*` (all files)
 - `docs/archive/*` (all files)
 
+
+### Desktop Dashboard (As of May 18, 2026)
+Dashboard V3 is the live desktop application for Slate360 deployed at `/dashboard`. It introduces the Graphite Glass visual language and stands separate from the Slate360 mobile/PWA App Shell, leveraging real database queries isolated inside RSC try/catch guard blocks.

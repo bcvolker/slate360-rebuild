@@ -1017,3 +1017,24 @@ When editing oversized files, always read both the state declarations AND the JS
 ### Next Steps
 1. Field-Test Mobile App on physical iOS device for canvas rendering success inside background workers via S3 polling.
 2. Expand Trigger worker to dispatch WebSocket / Revalidation hooks so the client automatically updates its state without manual refreshing.
+
+## Session Handoff — 2026-05-18 (Dashboard V3 Live Swap)
+### What Changed
+- `app/(dashboard)/dashboard`: Moved to `app/(dashboard)/_dashboard-legacy` to archive the old shell-encumbered dashboard route.
+- `app/(dashboard-v3)/layout.tsx`: Created a lightweight layout that bypasses the legacy `AppShell` while providing `NuqsAdapter`, `TooltipProvider`, `BuildRuntimeBadge`, and `OverflowProbe`.
+- `app/(dashboard-v3)/dashboard/page.tsx`: Copied from `app/preview/dashboard-v3/page.tsx` and updated export names. It now serves as the live `/dashboard` route for production.
+- `app/preview/dashboard-v3/page.tsx`: Remains intact for continued preview isolation.
+### Validation
+- `npm run typecheck`: PASS — 0 errors.
+- `npm run build`: PASS — no failing routes.
+- Component isolation verified (RSC crash guards active on both preview and live paths).
+### What's Broken / Partially Done
+- Nothing broken. Replaced live dashboard while fully honoring real data constraints without regressions.
+### Untouched — confirmed
+- Legacy AppShell, Site Walk UI, Trigger, Supabase schema, billing.
+- Track B files.
+### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md`: this handoff
+### Next Steps (ordered)
+1. Verify the deployed live `/dashboard` renders V3 identically to the preview.
+2. Continue work on any remaining "Continue Work fallback/action cards" depending on broader platform alignment.

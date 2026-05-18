@@ -180,3 +180,13 @@ _Track B will add integration requests here. Track A resolves them._
 | `lib/entitlements.ts` | Joint (no unilateral changes) |
 | `middleware.ts` | Joint (no unilateral changes) |
 | `supabase/migrations/` | Joint (coordinate; no schema changes without the owning track's approval) |
+
+---
+
+**Dashboard Status Update (2026-05-18):**
+Dashboard V3 is now the live desktop dashboard served at `/dashboard`. 
+Preview remains available at `/preview/dashboard-v3`.
+The old dashboard was archived to `/app/(dashboard)/_dashboard-legacy`. 
+Dashboard V3 uses the Graphite Glass design language and real data with safe empty states.
+Desktop is distinct from the Slate360 mobile App Shell and Site Walk App Shell.
+Next planned work involves auditing and polishing app shell alignment. Track B continues to own Digital Twin work and must not override Dashboard V3 conventions.
