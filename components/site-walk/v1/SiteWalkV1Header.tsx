@@ -16,6 +16,7 @@ import {
   LogOut,
 } from "lucide-react";
 import { SlateLogo } from "@/components/shared/SlateLogo";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -79,8 +80,22 @@ export function SiteWalkV1Header({
 
       {/* Brand or title */}
       {showBranding ? (
-        <div className="flex min-w-0 flex-1 items-center">
-          <SlateLogo size="md" />
+        <div className="flex min-w-0 flex-1 items-center gap-1">
+          <Link
+            href="/app"
+            aria-label="Back to Slate360"
+            className="flex size-9 items-center justify-center rounded-lg text-zinc-400 hover:bg-white/10 hover:text-white transition-colors mr-1"
+          >
+            <ArrowLeft className="size-5" />
+          </Link>
+          <div className="flex flex-col min-w-0">
+            <h1 className="truncate text-[15px] font-black tracking-tight text-white leading-tight">
+              Site Walk
+            </h1>
+            <p className="truncate text-[10px] uppercase tracking-[0.1em] text-amber-500/90 font-bold leading-tight">
+              Field Capture
+            </p>
+          </div>
         </div>
       ) : (
         <h1 className="min-w-0 flex-1 truncate text-base font-semibold text-white">
@@ -202,6 +217,9 @@ function AvatarMenu() {
         <DropdownMenuSeparator />
         <DropdownMenuItem className="gap-2 text-zinc-300 min-[400px]:hidden">
           <Share2 className="size-4" /> Share / Invite
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild className="gap-2 text-zinc-300 cursor-pointer">
+          <Link href="/app"><ArrowLeft className="size-4" /> Back to Slate360</Link>
         </DropdownMenuItem>
         <DropdownMenuItem className="gap-2 text-zinc-300">
           <MessageSquare className="size-4" /> Feedback

@@ -112,7 +112,7 @@ export function CommandCenterContent({
                   <TabsTrigger
                     key={tab.value}
                     value={tab.value}
-                    className="flex-1 rounded-none border-b-2 border-transparent py-2 text-[11px] font-medium text-zinc-500 transition-colors data-[state=active]:border-amber-500 data-[state=active]:bg-transparent data-[state=active]:text-white data-[state=active]:shadow-none"
+                    className="flex-1 rounded-none border-b-2 border-transparent py-2 text-[12px] font-medium text-zinc-500 transition-colors data-[state=active]:border-amber-500 data-[state=active]:bg-transparent data-[state=active]:text-white data-[state=active]:shadow-none"
                   >
                     {tab.label}
                   </TabsTrigger>
@@ -123,7 +123,7 @@ export function CommandCenterContent({
               <TabsContent
                 key={tab.value}
                 value={tab.value}
-                className="min-h-0 flex-1 overflow-y-auto px-4 py-6"
+                className="min-h-0 flex-1 overflow-y-auto px-3 pt-2 pb-6"
               >
                 <ActivityEmptyState icon={tab.icon} label={tab.emptyLabel} href={tab.href} />
               </TabsContent>
