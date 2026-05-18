@@ -19,7 +19,6 @@ export function DashboardV3ToolsLauncher() {
           size="sm" 
           className="h-10 px-4 gap-2.5 border-white/10 bg-[#131820] text-zinc-300 hover:bg-white/5 hover:text-white transition-colors cursor-pointer"
           aria-disabled="true"
-          onClick={(e) => { e.preventDefault(); }}
         >
           <t.icon className="h-4 w-4 text-amber-500" />
           <span className="font-medium">{t.label}</span>
