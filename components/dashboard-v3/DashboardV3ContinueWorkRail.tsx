@@ -37,14 +37,17 @@ export function DashboardV3ContinueWorkRail({ projects = [], walks = [] }: { pro
           </div>
         ))}
 
-        {fillerCards.map((card, i) => (
+        {fillerCards.map((card, i) => {
+          const Icon = card.icon;
+          return (
           <div key={`empty-${i}`} className="group relative w-[300px] flex-shrink-0 overflow-hidden rounded-xl border border-dashed border-white/10 bg-white/[0.01] hover:bg-white/[0.03] transition-colors aspect-[16/10] flex flex-col items-center justify-center p-6 text-center cursor-pointer snap-start">
             <div className={`flex h-12 w-12 items-center justify-center rounded-full mb-4 ${card.bg}`}>
-              <card.icon className={`h-6 w-6 ${card.color}`} />
+              <Icon className={`h-6 w-6 ${card.color}`} />
             </div>
             <span className="text-sm font-semibold text-zinc-300 group-hover:text-white transition-colors">{card.title}</span>
           </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
