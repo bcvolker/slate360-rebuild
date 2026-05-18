@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { MapPin, Plus, Search, Upload, Share2, Bell, MessageSquare, ClipboardList, Clock } from "lucide-react";
+import { MapPin, Plus, Search, Upload, Share2, Bell, MessageSquare, ClipboardList, Clock, Box, FolderOpen } from "lucide-react";
 import type { Entitlements } from "@/lib/entitlements";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useInviteShare } from "@/components/shared/InviteShareProvider";
@@ -80,24 +80,24 @@ export function CommandCenterContent({
         </p>
         <div className="grid grid-cols-2 gap-3">
           <QuickActionCard
-            label="New Worksite"
+            label="Create"
             icon={Plus}
-            href="/site-walk/setup"
+            href={hasSiteWalk ? "/site-walk/setup" : "#"}
+          />
+          <QuickActionCard
+            label="SlateDrop"
+            icon={FolderOpen}
+            href="/slatedrop"
+          />
+          <QuickActionCard
+            label="Deliverables"
+            icon={Box}
+            href="/projects"
           />
           <QuickActionCard
             label="Search"
             icon={Search}
             onClick={handleSearch}
-          />
-          <QuickActionCard
-            label="Upload Files"
-            icon={Upload}
-            href="/slatedrop"
-          />
-          <QuickActionCard
-            label="Invite & Share"
-            icon={Share2}
-            onClick={() => openInviteShare(true)}
           />
         </div>
       </section>
@@ -211,7 +211,7 @@ function ActivityEmptyState({
       <p className="text-xs text-zinc-600">{label}</p>
       {href && (
         <Link href={href} className="text-[11px] text-amber-500 hover:underline">
-          Open
+          View Alerts
         </Link>
       )}
     </div>

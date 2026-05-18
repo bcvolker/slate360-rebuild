@@ -81,7 +81,8 @@ export function MobileTopBar({
           <button
             type="button"
             onClick={() => openInviteShare(true)}
-            aria-label="Invite and Share"
+            aria-label="Invite to Slate360"
+            title="Invite to Slate360"
             className="h-9 w-9 flex items-center justify-center rounded-lg text-header-muted hover:text-amber-200 hover:bg-header-hover transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50 focus-visible:ring-offset-1 focus-visible:ring-offset-header-bg"
           >
             <Share2 className="h-[18px] w-[18px]" />
