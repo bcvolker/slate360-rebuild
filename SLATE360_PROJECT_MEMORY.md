@@ -74,20 +74,26 @@ Do not redesign or simplify `/slatedrop` routes without understanding the folder
 - **Global Slate360 AppShell** visual migration to Graphite Glass + amber still needed — currently uses Dark Glass. Track A owns this.
 - **Site Walk capture review shell** and **Plan Walk viewer shell** both need redesigned V1 wrappers — deferred pending approved slices.
 
-## Session Handoff — 2026-05-17 (Dashboard V3 v0 Alignment & Backend Audit)
+## Session Handoff — 2026-05-18
 ### What Changed
-- Conducted read-only backend audit for Dashboard V3 (credits, billing, processing queue, notifications).
-- Aligned on v0-to-Copilot workflow for Dashboard V3 visual design.
-- Finalized v0 Prompt 1 (Graphite Glass, responsive grid, container-centric rail, compact widgets).
+- `app/(dashboard-v3)/dashboard/page.tsx`: Deployed the desktop-only Dashboard V3 layout structure.
+- `next.config.ts`: Removed temporary route rewrites for `/v0`.
+- `app/manifest.ts`: Changed PWA `start_url` to `"/app"`.
+- `app/(apps)/app/page.tsx`: Created the new route for the mobile App Shell, rendering the `WalledGardenDashboard` and inheriting `AuthedAppShell` from layout.
+- `middleware.ts`: Intercepts `isMobile` userAgents hitting `/dashboard` and strictly navigates them to `/app`; injected logic so new logins correctly route based on device type.
+
 ### What's Broken / Partially Done
-- Dashboard V3 code implementation has not started. Awaiting v0 visual design approval.
+- Mobile routing base (Slice 1) is complete, but any missing components specifically for the WalledGardenDashboard remain hidden behind this route.
+- Further testing of the PWA start behavior is required on a physical iOS device to confirm the PWA intent completely bypasses layout restrictions.
+
 ### Context Files Updated
-- `SLATE360_PROJECT_MEMORY.md`: this handoff
+- `SLATE360_PROJECT_MEMORY.md`: Updated recent work log.
+- `_archived_context/docs/V0_WORKFLOW.md`: Archived instructions.
+
 ### Next Steps (ordered)
-1. User runs Prompt 1 in v0.dev.
-2. User shares v0 screenshots/code for review.
-3. Iterate v0 design slice-by-slice.
-4. Copilot implements approved v0 design into `app/preview/dashboard-v3/`.
+1. Verify the PWA launch behavior on a physical test device to confirm it routes to the new `/app` and displays the mobile navigation.
+2. Develop the additional mobile UI elements on the new `/app` surface.
+
 
 ## Session Handoff — 2026-05-17 (Dashboard V2 Full Shell — Slice 2B: Desktop Command Center Upgrade)
 ### What Changed
