@@ -4,7 +4,8 @@ import { Plus } from "lucide-react";
 import { WorksiteV1Row } from "@/components/site-walk/v1/WorksiteV1Row";
 import { Button } from "@/components/ui/button";
 import type { HubProject, HubWalk } from "@/lib/types/site-walk";
-import { type RouterLike, timeAgo, EmptyList } from "./v1-view-utils";
+import { type RouterLike, timeAgo } from "./v1-view-utils";
+import { MobileEmptyState } from "@/components/mobile-system";
 
 type WorksitesViewProps = {
   projects: HubProject[];
@@ -41,7 +42,7 @@ export function WorksitesView({ projects, walks, router }: WorksitesViewProps) {
       </div>
 
       {projects.length === 0 ? (
-        <EmptyList message="No worksites yet. Create a worksite to organize plans, captures, deliverables, and team collaboration." />
+        <MobileEmptyState title="No worksites yet." description="Create a worksite to organize plans, captures, deliverables, and team collaboration." />
       ) : (
         <div className="flex flex-col gap-1.5">
           {projects.map((p) => (

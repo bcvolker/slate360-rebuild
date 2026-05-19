@@ -40,6 +40,7 @@ export function SiteWalkV1ListPanel({
     <MobileTabbedPanel
       tabs={tabs}
       defaultTab={defaultTab}
+      minHeight="min-h-0"
       className={className}
     />
   );

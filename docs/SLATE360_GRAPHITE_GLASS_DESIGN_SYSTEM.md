@@ -117,5 +117,5 @@ The following shared primitives live in `components/mobile-system/`. **Both `/ap
 - **Slice 2** ✅ (88134a9): `/app` CommandCenterContent fully migrated to all 5 shared primitives.
 - **Slice 3** ✅ (84f1037): Site Walk header h-14, SiteWalkV1ActionGrid migrated, list panel border fixed.
 - **Slice 4** ✅ (feat(pwa) commit — May 2026): MobileAppButton created; /app apps use 2-col grid; SiteWalkV1ListPanel delegates to MobileTabbedPanel; HomeView uses MobileEmptyState + grid-rows-[auto_1fr]; blur unified.
-- **Slice 5** ✅ (fix(pwa) commit — May 2026): SiteWalkV1BottomNav moved from `fixed` to in-flow `shrink-0`; nav clearance now handled by flex column geometry.
+- **Slice 5** ✅ (fix(pwa) commit — May 2026): SiteWalkV1BottomNav moved from `fixed` to in-flow `shrink-0`; nav clearance now handled by flex column geometry. `SiteWalkV1ListPanel` passes `minHeight="min-h-0"` to prevent floor overflow on short viewports. `EmptyList` → `MobileEmptyState` in WorksitesView + SlateDropView.
 - **Slice 6** (next): Begin Site Walk capture/data-entry UI build.

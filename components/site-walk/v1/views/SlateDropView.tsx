@@ -2,7 +2,8 @@
 
 import { FolderOpen, Upload, Share2, Link as LinkIcon } from "lucide-react";
 import type { HubProject } from "@/lib/types/site-walk";
-import { type RouterLike, EmptyList } from "./v1-view-utils";
+import { type RouterLike } from "./v1-view-utils";
+import { MobileEmptyState } from "@/components/mobile-system";
 
 type SlateDropViewProps = {
   projects: HubProject[];
@@ -55,7 +56,7 @@ export function SlateDropView({ projects, router }: SlateDropViewProps) {
       )}
 
       {projects.length === 0 && (
-        <EmptyList message="No SlateDrop folders yet. Create a Worksite to organize plans, photos, captures, deliverables, and shared files." />
+        <MobileEmptyState title="No SlateDrop folders yet." description="Create a Worksite to organize plans, photos, captures, deliverables, and shared files." />
       )}
     </div>
   );

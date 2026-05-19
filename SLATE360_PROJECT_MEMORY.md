@@ -74,6 +74,33 @@ Do not redesign or simplify `/slatedrop` routes without understanding the folder
 - **Global Slate360 AppShell** visual migration to Graphite Glass + amber still needed — currently uses Dark Glass. Track A owns this.
 - **Site Walk capture review shell** and **Plan Walk viewer shell** both need redesigned V1 wrappers — deferred pending approved slices.
 
+## Session Handoff — 2026-05-20 (Site Walk Nav Fix + Codex Review — Slice 5)
+### What Changed
+- `components/site-walk/v1/SiteWalkV1BottomNav.tsx`: Removed `fixed bottom-0 z-40`. Now `shrink-0` in-flow inside shell flex column. Root cause of content-under-nav bug. Commit: `b77bb66`.
+- `docs/SLATE360_GRAPHITE_GLASS_DESIGN_SYSTEM.md`: Added Section 11 (Mobile Layout Geometry) with mandatory bottom-nav clearance rule, contained-panel scroll rule, and `grid-rows-[auto_1fr]` pattern. Added Section 12 (Shared Mobile Primitives table + migration status). Updated Slice 5 to include minHeight + view fixes.
+- `components/site-walk/v1/SiteWalkV1ListPanel.tsx`: Passes `minHeight="min-h-0"` to `MobileTabbedPanel` — prevents `min-h-[260px]` floor from overflowing `1fr` grid row on short viewports (iPhone SE).
+- `components/site-walk/v1/views/WorksitesView.tsx`: `EmptyList` → `MobileEmptyState`.
+- `components/site-walk/v1/views/SlateDropView.tsx`: `EmptyList` → `MobileEmptyState`.
+- `.github/copilot-instructions.md`: Updated timestamp (2026-05-20). Added Task Map entry for "Mobile/PWA/Site Walk UI" → `docs/SLATE360_GRAPHITE_GLASS_DESIGN_SYSTEM.md`. Added Non-Negotiables 13–16 (mobile-system primitives, shell family rule, bottom nav rule, empty states).
+
+### What's Broken / Partially Done
+- `EmptyList` still exists in `v1-view-utils.tsx` — now unused by all views. Safe to delete in a cleanup pass.
+- `/site-walk` shell overlays `AppShell` via `fixed inset-0 z-50` — known architecture issue, deferred.
+- Site Walk capture/data-entry page not yet built — this is **Slice 6 / the next major task**.
+- `MobileAppCard` (horizontal tile) is still exported but no longer consumed. Safe to remove in cleanup.
+- Deliverables/Coordination views in site-walk not audited for `EmptyList` usage — should check.
+
+### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md`: This handoff.
+- `docs/SLATE360_GRAPHITE_GLASS_DESIGN_SYSTEM.md`: Sections 11, 12 added; Slice 5 updated.
+- `.github/copilot-instructions.md`: Task Map + Non-Negotiables updated.
+
+### Next Steps (ordered)
+1. Verify live: `https://www.slate360.ai/site-walk` — confirm list panel stops above bottom nav.
+2. Verify live: `https://www.slate360.ai/app` — confirm app buttons side-by-side, no regression.
+3. Begin **Slice 6**: Site Walk capture/data-entry UI build (new page, new primitives if needed).
+4. Cleanup pass: delete `EmptyList` from `v1-view-utils.tsx`; remove `MobileAppCard` export if confirmed unused.
+
 ## Session Handoff — 2026-05-20 (Mobile Shell Finalization — Slice 4)
 ### What Changed
 - `components/mobile-system/mobileTokens.ts`: Added `appButtonBase`, `appButtonIconWrapper`, `appButtonIconClass` tokens for new compact vertical app launcher button.

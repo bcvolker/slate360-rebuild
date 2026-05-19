@@ -1,6 +1,6 @@
 # Slate360 — Copilot Instructions
 
-Last Updated: 2026-03-11
+Last Updated: 2026-05-20
 Repo: bcvolker/slate360-rebuild
 
 Read order for any new task:
@@ -27,6 +27,7 @@ Do not read the whole context tree by default.
 | Market Robot | `slate360-context/dashboard-tabs/market-robot/START_HERE.md` |
 | Backend/auth/billing/storage | `slate360-context/BACKEND.md` |
 | Dashboard or shared tab UI | `slate360-context/DASHBOARD.md`, `slate360-context/dashboard-tabs/MODULE_REGISTRY.md`, `slate360-context/dashboard-tabs/CUSTOMIZATION_SYSTEM.md` |
+| **Mobile/PWA/Site Walk UI** | **`docs/SLATE360_GRAPHITE_GLASS_DESIGN_SYSTEM.md`** (mandatory for any `/app`, `/site-walk`, or new mobile surface) |
 | Project Hub | `slate360-context/PROJECT_HUB.md` |
 | SlateDrop | `slate360-context/SLATEDROP.md` |
 | Widgets | `slate360-context/WIDGETS.md` |
@@ -49,6 +50,10 @@ Deep history files are reference-only unless the task needs them.
 10. Folder writes use `project_folders`, not `file_folders`.
 11. No mock data in production UI; show real empty/error states.
 12. After code changes, update the relevant context doc.
+13. **Mobile/PWA UI**: Use `components/mobile-system/` primitives. Never create one-off card/tab/nav/shell systems. If a primitive does not exist, create it there first, then consume it.
+14. **Shell family rule**: `/app` and `/site-walk` use `AppShell` / `SiteWalkV1Shell` + `mobile-system` primitives. Desktop pages use Dashboard V3. Auth/marketing use Graphite Glass auth/marketing templates. Do not cross-pollinate.
+15. **Bottom nav rule**: Place bottom navs as `shrink-0` in-flow items inside the shell flex column. Do NOT use `fixed` positioning when the shell is already `fixed inset-0 flex`. Fixed nav over flex-1 main causes content to slide under nav.
+16. **Empty states**: Use `MobileEmptyState` from `@/components/mobile-system` for all mobile empty states. Do not use inline `EmptyList` or one-off centered text divs.
 
 ## Pre-Edit Checklist (mandatory before touching any file)
 
