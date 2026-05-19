@@ -74,6 +74,28 @@ Do not redesign or simplify `/slatedrop` routes without understanding the folder
 - **Global Slate360 AppShell** visual migration to Graphite Glass + amber still needed — currently uses Dark Glass. Track A owns this.
 - **Site Walk capture review shell** and **Plan Walk viewer shell** both need redesigned V1 wrappers — deferred pending approved slices.
 
+## Session Handoff — 2026-05-19 (Mobile Design System Unification — Slices 2 + 3)
+### What Changed
+- `components/dashboard/command-center/CommandCenterContent.tsx`: **Slice 2** — migrated to shared mobile primitives. Removed inline `AppTile`, `QuickActionCard`, `ActivityEmptyState`. Now uses `MobileAppCard`, `MobileActionCard`, `MobileActionGrid`, `MobileTabbedPanel`, `MobileEmptyState`. File: 227 → 143 lines. Fixed `border-white/8` → `border-white/10`, `border-white/6` → `border-white/10`, `min-h-[90px]` → `min-h-[96px]`, `h-6 w-6` icons → `h-7 w-7`. Commit: `88134a9`.
+- `components/site-walk/v1/SiteWalkV1Header.tsx`: **Slice 3** — `h-16` → `h-14` (matches `MobileTopBar`, eliminates dual-header height mismatch).
+- `components/site-walk/v1/SiteWalkV1ActionGrid.tsx`: **Slice 3** — migrated to `MobileActionCard` + `MobileActionGrid`. Fixes `border-white/8` → `border-white/10`, `min-h-[100px]` → `min-h-[96px]`, `text-[14px]` → `text-[13px]`. File: 70 → 33 lines.
+- `components/site-walk/v1/SiteWalkV1ListPanel.tsx`: **Slice 3** — fixed `border-white/6` → `border-white/10`. Commit: `84f1037`.
+- Auth pages (`app/login`, `app/signup`, `app/forgot-password`, `app/pending-verification`): **Audited** — already Graphite Glass compliant (`#0B0F15` base, amber CTAs, dark glass cards). No changes needed.
+
+### What's Broken / Partially Done
+- Dual shell architecture (SiteWalkV1Shell uses `fixed inset-0 z-50`) still exists — but h-14 header alignment is now correct so both shells display at the same header height.
+- `SiteWalkV1ListPanel` still uses its own Radix Tabs (not `MobileTabbedPanel`) due to different API shape (named content slots vs tabs array). Works correctly, tokens are now correct.
+- Wider design system audit (coordination pages, settings, project hub, SlateDrop, operations console) not yet done.
+
+### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md`: Updated with this handoff.
+
+### Next Steps (ordered)
+1. Physical device test — verify `/app` and `/site-walk` header heights are now visually identical.
+2. Begin Site Walk capture flow (capture session creation, camera viewfinder, pin placement).
+3. Run broader design system audit across coordination, project hub, settings pages when time permits.
+4. Track B: Digital Twin Lite continues on `feature/digital-twin-lite` branch.
+
 ## Session Handoff — 2026-05-18
 ### What Changed
 - `app/(dashboard-v3)/dashboard/page.tsx`: Deployed the desktop-only Dashboard V3 layout structure.
