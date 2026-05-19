@@ -74,6 +74,31 @@ Do not redesign or simplify `/slatedrop` routes without understanding the folder
 - **Global Slate360 AppShell** visual migration to Graphite Glass + amber still needed — currently uses Dark Glass. Track A owns this.
 - **Site Walk capture review shell** and **Plan Walk viewer shell** both need redesigned V1 wrappers — deferred pending approved slices.
 
+## Session Handoff — 2026-05-20 (Mobile Shell Finalization — Slice 4)
+### What Changed
+- `components/mobile-system/mobileTokens.ts`: Added `appButtonBase`, `appButtonIconWrapper`, `appButtonIconClass` tokens for new compact vertical app launcher button.
+- `components/mobile-system/MobileAppButton.tsx`: **NEW** — compact vertical 2-col grid app launcher card (icon + title + subtitle). Replaces `MobileAppCard` (horizontal row) in "Your Apps". Supports href/disabled/badge/centering via className.
+- `components/mobile-system/index.ts`: Added `MobileAppButton` + `MobileAppButtonProps` exports.
+- `components/dashboard/command-center/CommandCenterContent.tsx`: Replaced `MobileAppCard` horizontal rows with `MobileAppButton` inside `MobileActionGrid` (always 2-col on all screens). Single app auto-centers via `col-span-2 mx-auto w-1/2`. Fixed `sm:grid-cols-2` bug (was 1-col on mobile).
+- `components/site-walk/v1/SiteWalkV1ListPanel.tsx`: Rewrote internals to delegate to `MobileTabbedPanel` (same named-props API preserved; HomeView unchanged).
+- `components/site-walk/v1/views/HomeView.tsx`: `EmptyList` → `MobileEmptyState` (5 instances). `grid-rows-[1fr_minmax(285px,305px)]` → `grid-rows-[auto_1fr]` (fixes blank gap above panel). Command zone `gap-y-5 pt-4` → `gap-y-3 pt-3`.
+- `components/site-walk/v1/SiteWalkV1Header.tsx`: `backdrop-blur-sm` → `backdrop-blur-md` (matches MobileTopBar).
+- Commit: `feat(pwa): finish shared mobile shell alignment` pushed to main.
+
+### What's Broken / Partially Done
+- `/site-walk` shell overlays AppShell via `fixed inset-0 z-50` — known architecture issue, deferred.
+- `EmptyList` still exists in `v1-view-utils.tsx` — used by other views (WorksitesView, DeliverablesView, CoordinationView, SlateDropView). Not replaced yet.
+- 13 files exceed 300-line limit (pre-existing, e.g. LocationMap.tsx 1892 lines, marketing-homepage.tsx 1164 lines) — not in scope.
+
+### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md`: This handoff.
+
+### Next Steps (ordered)
+1. Device-test `/app` — verify apps show side-by-side in 2-col grid on iPhone.
+2. Device-test `/site-walk` — verify blank gap is gone, panel fills space correctly.
+3. Replace `EmptyList` in remaining site-walk views (WorksitesView, DeliverablesView, CoordinationView, SlateDropView) with `MobileEmptyState`.
+4. Consider removing `MobileAppCard` if no other consumers exist.
+
 ## Session Handoff — 2026-05-19 (Mobile Design System Unification — Slices 2 + 3)
 ### What Changed
 - `components/dashboard/command-center/CommandCenterContent.tsx`: **Slice 2** — migrated to shared mobile primitives. Removed inline `AppTile`, `QuickActionCard`, `ActivityEmptyState`. Now uses `MobileAppCard`, `MobileActionCard`, `MobileActionGrid`, `MobileTabbedPanel`, `MobileEmptyState`. File: 227 → 143 lines. Fixed `border-white/8` → `border-white/10`, `border-white/6` → `border-white/10`, `min-h-[90px]` → `min-h-[96px]`, `h-6 w-6` icons → `h-7 w-7`. Commit: `88134a9`.
