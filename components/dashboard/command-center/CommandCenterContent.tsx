@@ -7,7 +7,7 @@ import type { Entitlements } from "@/lib/entitlements";
 import {
   MobileActionCard,
   MobileActionGrid,
-  MobileAppCard,
+  MobileAppButton,
   MobileTabbedPanel,
   MobileEmptyState,
 } from "@/components/mobile-system";
@@ -61,6 +61,7 @@ export function CommandCenterContent({
   };
 
   const hasSiteWalk = entitlements?.canAccessStandalonePunchwalk ?? false;
+  const appCount = (hasSiteWalk ? 1 : 0) + (isSlateCeo ? 1 : 0);
 
   return (
     <div className="mx-auto flex h-full w-full max-w-2xl flex-col gap-4 overflow-y-auto px-4 pb-6 pt-4 no-scrollbar">
@@ -70,34 +71,36 @@ export function CommandCenterContent({
         <p className="mb-2 text-[10px] font-black uppercase tracking-[0.18em] text-amber-400">
           Your Apps
         </p>
-        <div className="grid gap-3 sm:grid-cols-2">
-          {/* Site Walk — shown if entitlement present */}
-          {hasSiteWalk && (
-            <MobileAppCard
-              title="Site Walk"
-              subtitle="Field capture & deliverables"
-              icon={MapPin}
-              href="/site-walk"
-            />
-          )}
-          {isSlateCeo && (
-            <MobileAppCard
-              title="Slate360 Twin"
-              subtitle="Owner Preview"
-              icon={Box}
-              href="#"
-            />
-          )}
-          {/* No apps available */}
-          {!hasSiteWalk && (
-            <div className="col-span-full rounded-2xl border border-dashed border-white/10 px-4 py-8 text-center text-sm text-slate-500">
-              No apps in your plan.{" "}
-              <Link href="/more/billing" className="text-amber-400 hover:underline">
-                View plans
-              </Link>
-            </div>
-          )}
-        </div>
+        {appCount > 0 ? (
+          <MobileActionGrid>
+            {hasSiteWalk && (
+              <MobileAppButton
+                title="Site Walk"
+                subtitle="Field capture"
+                icon={MapPin}
+                href="/site-walk"
+                className={appCount === 1 ? "col-span-2 mx-auto w-1/2" : undefined}
+              />
+            )}
+            {isSlateCeo && (
+              <MobileAppButton
+                title="Slate360 Twin"
+                subtitle="Owner Preview"
+                icon={Box}
+                href="#"
+                badge="CEO"
+                className={appCount === 1 ? "col-span-2 mx-auto w-1/2" : undefined}
+              />
+            )}
+          </MobileActionGrid>
+        ) : (
+          <div className="rounded-2xl border border-dashed border-white/10 px-4 py-8 text-center text-sm text-slate-500">
+            No apps in your plan.{" "}
+            <Link href="/more/billing" className="text-amber-400 hover:underline">
+              View plans
+            </Link>
+          </div>
+        )}
       </section>
 
       {/* ── Section 2: Quick Actions ── */}

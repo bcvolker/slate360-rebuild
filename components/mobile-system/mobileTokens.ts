@@ -46,6 +46,14 @@ export const mobileTokens = {
     "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-amber-500/15 text-amber-400",
   appCardIconClass: "h-5 w-5",
 
+  // ── App launcher button (2-col grid, vertical layout for "Your Apps") ────
+  /** Compact vertical card: icon top, title + subtitle below. Lives in MobileActionGrid. */
+  appButtonBase:
+    "flex flex-col items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-4 text-center transition-colors hover:border-amber-500/25 hover:bg-white/[0.08] active:bg-white/[0.12]",
+  appButtonIconWrapper:
+    "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/15 text-amber-400",
+  appButtonIconClass: "h-5 w-5",
+
   // ── Contained scrolling panel ─────────────────────────────────────────────
   panelBase:
     "relative flex flex-col overflow-hidden rounded-xl border border-white/10 bg-white/[0.03]",

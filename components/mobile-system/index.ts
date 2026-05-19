@@ -14,6 +14,9 @@ export { MobileActionGrid } from "./MobileActionGrid";
 
 export { MobileAppCard } from "./MobileAppCard";
 
+export { MobileAppButton } from "./MobileAppButton";
+export type { MobileAppButtonProps } from "./MobileAppButton";
+
 export { MobileTabbedPanel } from "./MobileTabbedPanel";
 export type { MobilePanelTab } from "./MobileTabbedPanel";
 

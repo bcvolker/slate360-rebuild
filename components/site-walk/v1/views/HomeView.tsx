@@ -7,7 +7,8 @@ import { WalkV1Row } from "@/components/site-walk/v1/WalkV1Row";
 import type { V1NavTab } from "@/components/site-walk/v1/SiteWalkV1BottomNav";
 import type { HubProject, HubSummary, HubWalk } from "@/lib/types/site-walk";
 import { cn } from "@/lib/utils";
-import { type RouterLike, timeAgo, EmptyList } from "./v1-view-utils";
+import { MobileEmptyState } from "@/components/mobile-system";
+import { type RouterLike, timeAgo } from "./v1-view-utils";
 
 type HomeViewProps = {
   walks: HubWalk[];
@@ -35,14 +36,14 @@ export function HomeView({ walks, projects, summary, router, onQuickCapture }: H
     <div
       className={cn(
         "grid h-full min-h-0 gap-y-3 px-4 pb-3",
-        /* Portrait: stacked command + panel */
-        "grid-rows-[1fr_minmax(285px,305px)]",
+        /* Portrait: Zone 1 auto-sized, Zone 2 fills remaining space */
+        "grid-rows-[auto_1fr]",
         /* Landscape: side-by-side when viewport is short */
         "landscape:grid-cols-2 landscape:grid-rows-[1fr] landscape:gap-x-4 landscape:gap-y-0",
       )}
     >
-      {/* Zone 1: Command — grows to fill available space */}
-      <div className="flex min-h-0 flex-col justify-start gap-y-5 pt-4">
+      {/* Zone 1: Command — auto-sized to content */}
+      <div className="flex min-h-0 flex-col justify-start gap-y-3 pt-3">
         <p className="text-[14px] font-bold uppercase tracking-[0.18em] text-amber-400">
           Site Walk
         </p>
@@ -54,14 +55,14 @@ export function HomeView({ walks, projects, summary, router, onQuickCapture }: H
         />
       </div>
 
-      {/* Zone 2: Work panel — clamped 285–305px */}
+      {/* Zone 2: Work panel — fills remaining space */}
       <SiteWalkV1ListPanel
         className="min-h-0 overflow-hidden"
         recentContent={
           recentWalks.length > 0 ? (
             <WalkList walks={recentWalks} router={router} />
           ) : (
-            <EmptyList message="No recent walks. Start a walk or quick capture to see activity here." />
+            <MobileEmptyState title="No recent walks." description="Start a walk or quick capture to see activity here." />
           )
         }
         worksitesContent={
@@ -83,17 +84,18 @@ export function HomeView({ walks, projects, summary, router, onQuickCapture }: H
               ))}
             </div>
           ) : (
-            <EmptyList message="No worksites yet. Create a worksite to get started." />
+            <MobileEmptyState title="No worksites yet." description="Create a worksite to get started." />
           )
         }
-        sharedContent={<EmptyList message="No shared work yet." />}
+        sharedContent={<MobileEmptyState title="No shared work yet." />}
         reviewContent={
           summary.needsReview > 0 ? (
-            <EmptyList
-              message={`${summary.needsReview} item${summary.needsReview === 1 ? "" : "s"} need review. Open a walk to review resolved items.`}
+            <MobileEmptyState
+              title={`${summary.needsReview} item${summary.needsReview === 1 ? "" : "s"} need review.`}
+              description="Open a walk to review resolved items."
             />
           ) : (
-            <EmptyList message="Nothing needs review." />
+            <MobileEmptyState title="Nothing needs review." />
           )
         }
       />
