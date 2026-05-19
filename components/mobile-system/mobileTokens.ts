@@ -68,6 +68,8 @@ export const mobileTokens = {
   panelContent: "min-h-0 flex-1 overflow-y-auto px-3 pt-2 pb-6",
   panelBottomFade:
     "pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-[#0B0F15]/90 to-transparent",
+  moduleListPanelFrame: "h-full max-h-[min(34dvh,320px)]",
+  moduleListPanelContent: "pb-10",
 
   // ── Empty state ───────────────────────────────────────────────────────────
   emptyStateWrapper:

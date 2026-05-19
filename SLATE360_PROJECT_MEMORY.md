@@ -74,6 +74,35 @@ Do not redesign or simplify `/slatedrop` routes without understanding the folder
 - **Global Slate360 AppShell** visual migration to Graphite Glass + amber still needed — currently uses Dark Glass. Track A owns this.
 - **Site Walk capture review shell** and **Plan Walk viewer shell** both need redesigned V1 wrappers — deferred pending approved slices.
 
+## Session Handoff — 2026-05-20 (Site Walk List Panel Cap — Slice 8)
+### What Changed
+- `components/mobile-system/mobileTokens.ts`: Added `moduleListPanelFrame: "h-full max-h-[min(34dvh,320px)]"` and `moduleListPanelContent: "pb-10"`.
+- `components/mobile-system/MobileTabbedPanel.tsx`: Added optional `bodyClassName` prop, merged onto each scrollable `TabsContent` body.
+- `components/site-walk/v1/SiteWalkV1ListPanel.tsx`: Applies `mobileTokens.moduleListPanelFrame` to the panel frame and `mobileTokens.moduleListPanelContent` to the scroll body. This caps the Site Walk home list panel frame while preserving internal row scrolling.
+- `docs/SLATE360_GRAPHITE_GLASS_DESIGN_SYSTEM.md`: Added Mobile Module List Panel Cap rule and Slice 8 migration note.
+
+### Root Cause Fixed
+- The panel was no longer growing from row count, but `HomeView` still gave it the entire remaining `1fr` viewport area via `grid-rows-[auto_1fr]` plus `SiteWalkV1ListPanel className="h-full min-h-0"`. Without a max-height token, the panel frame could be legitimately too tall. The new cap limits visible frame height while `MobileTabbedPanel` keeps rows scrolling inside `TabsContent`.
+
+### What's Broken / Partially Done
+- Needs visual phone verification on the PR preview URL after Vercel deploys this commit.
+- Broader full-product design-system unification (marketing/auth/email/deliverables/dashboard) remains partial; this slice only unifies and caps mobile app shell/module-home behavior.
+
+### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md`: This handoff.
+- `docs/SLATE360_GRAPHITE_GLASS_DESIGN_SYSTEM.md`: Module list panel cap rule.
+
+### Cross-Track Safety Check
+- Track: A — AppShell + Site Walk UI System.
+- Branch: `fix/site-walk-panel-scroll-containment`.
+- Files touched: `components/mobile-system/mobileTokens.ts`, `components/mobile-system/MobileTabbedPanel.tsx`, `components/site-walk/v1/SiteWalkV1ListPanel.tsx`, `docs/SLATE360_GRAPHITE_GLASS_DESIGN_SYSTEM.md`, `SLATE360_PROJECT_MEMORY.md`.
+- Did NOT touch: Digital Twin, Trigger.dev, Supabase migrations, billing backend, middleware, routes, Dashboard V3 desktop layout, Site Walk capture, CameraViewfinder, CaptureClientIsland, PlanViewerLeaflet.
+
+### Next Steps (ordered)
+1. Validate: `npm run typecheck`, `npm run build`, `npm run guard:architecture`, `bash scripts/check-file-size.sh`.
+2. Review and push PR branch.
+3. Test `/site-walk` on PR preview with cache-bust query and confirm list panel frame visually ends above bottom nav.
+
 ## Session Handoff — 2026-05-20 (Shared Mobile Shell Consolidation — Slice 7)
 ### What Changed
 - `components/mobile-system/MobileAppShell.tsx`: New shared viewport/flex shell primitive for mobile app surfaces.

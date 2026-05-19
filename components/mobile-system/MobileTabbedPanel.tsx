@@ -38,6 +38,7 @@ interface MobileTabbedPanelProps {
    * Defaults to "min-h-[260px]" to match both shell's current render.
    */
   minHeight?: string;
+  bodyClassName?: string;
 }
 
 export function MobileTabbedPanel({
@@ -45,6 +46,7 @@ export function MobileTabbedPanel({
   defaultTab,
   className,
   minHeight = "min-h-[260px]",
+  bodyClassName,
 }: MobileTabbedPanelProps) {
   const defaultValue = defaultTab ?? tabs[0]?.value ?? "";
 
@@ -71,7 +73,7 @@ export function MobileTabbedPanel({
           <TabsContent
             key={tab.value}
             value={tab.value}
-            className={mobileTokens.panelContent}
+            className={cn(mobileTokens.panelContent, bodyClassName)}
           >
             {tab.content}
           </TabsContent>
