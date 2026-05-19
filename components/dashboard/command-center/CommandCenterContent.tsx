@@ -67,7 +67,7 @@ export function CommandCenterContent({
   const appCount = (hasSiteWalk ? 1 : 0) + (isSlateCeo ? 1 : 0);
 
   return (
-    <div className={cn("mx-auto flex min-h-0 w-full max-w-2xl flex-1 flex-col overflow-hidden px-4 py-4", mobileTokens.mobileHomeSectionGap)}>
+    <div className={cn("mx-auto flex min-h-0 w-full max-w-2xl flex-1 flex-col px-4 py-4", mobileTokens.mobileHomeSectionGap)}>
 
       {/* ── Section 1: Your Apps ── */}
       <MobileSection label="Your Apps" className="shrink-0">
