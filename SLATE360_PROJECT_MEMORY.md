@@ -74,6 +74,138 @@ Do not redesign or simplify `/slatedrop` routes without understanding the folder
 - **Global Slate360 AppShell** visual migration to Graphite Glass + amber still needed — currently uses Dark Glass. Track A owns this.
 - **Site Walk capture review shell** and **Plan Walk viewer shell** both need redesigned V1 wrappers — deferred pending approved slices.
 
+## Session Handoff — 2026-05-20 (Mobile Home Panel Sizing Calibration — Slice 9)
+### What Changed
+- `components/mobile-system/mobileTokens.ts`: Added/refined shared sizing tokens: `mobileHomeSectionGap`, `mobileActionCardHeight`, `mobileAppButtonHeight`, `mobileEmptyPanelHeight`, `mobileListPanelHeight`, `mobilePanelBottomGap`, `mobileTabbedPanelBodyPadding`, `mobileTabbedPanelScrollBody`. Relaxed list panel sizing from `34dvh/320px` to `40dvh/380px`; increased module scroll body bottom padding to `pb-12`.
+- `components/mobile-system/MobileActionCard.tsx`: Uses `mobileTokens.mobileActionCardHeight`.
+- `components/mobile-system/MobileAppButton.tsx`: Uses `mobileTokens.mobileAppButtonHeight`.
+- `components/dashboard/command-center/CommandCenterContent.tsx`: `/app` home uses `mobileTokens.mobileHomeSectionGap`; activity panel changed from remaining-space `h-full` inside `flex-1` section to compact `mobileTokens.mobileEmptyPanelHeight` inside a `shrink-0` section.
+- `components/site-walk/v1/views/HomeView.tsx`: Uses `mobileTokens.mobileHomeSectionGap` and `mobileTokens.mobilePanelBottomGap` for shared home rhythm.
+- `docs/SLATE360_GRAPHITE_GLASS_DESIGN_SYSTEM.md`: Added Mobile Home Visual Rhythm Rule and Slice 9 migration note.
+
+### Root Cause Fixed
+- `/app` activity panel was visually too tall because it used the full remaining shell height (`MobileSection min-h-0 flex-1` + `MobileTabbedPanel className="h-full"`) even for empty states.
+- `/site-walk` list panel became too constrained because the previous `max-h-[min(34dvh,320px)]` cap was too aggressive for 72px list rows. The updated list cap is `max-h-[min(40dvh,380px)]`, with extra internal bottom padding so rows can scroll above the fade.
+
+### What's Broken / Partially Done
+- Needs visual phone verification on PR #22 preview after Vercel deploys this commit.
+- Broader whole-product design-system unification remains partial outside the mobile app shell and Site Walk home surfaces.
+
+### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md`: This handoff.
+- `docs/SLATE360_GRAPHITE_GLASS_DESIGN_SYSTEM.md`: Mobile Home Visual Rhythm Rule.
+
+### Cross-Track Safety Check
+- Track: A — AppShell + Site Walk UI System.
+- Branch: `fix/site-walk-panel-scroll-containment`.
+- Files touched: `components/mobile-system/mobileTokens.ts`, `components/mobile-system/MobileActionCard.tsx`, `components/mobile-system/MobileAppButton.tsx`, `components/dashboard/command-center/CommandCenterContent.tsx`, `components/site-walk/v1/views/HomeView.tsx`, `docs/SLATE360_GRAPHITE_GLASS_DESIGN_SYSTEM.md`, `SLATE360_PROJECT_MEMORY.md`.
+- Did NOT touch: Digital Twin, Trigger.dev, Supabase migrations, billing backend, middleware, routes, Dashboard V3 desktop layout, Site Walk capture, CameraViewfinder, CaptureClientIsland, PlanViewerLeaflet.
+
+### Next Steps (ordered)
+1. Validate: `npm run typecheck`, `npm run build`, `npm run guard:architecture`, `bash scripts/check-file-size.sh`.
+2. Review and push PR branch.
+3. Test `/app` and `/site-walk` on PR preview with cache-bust query and confirm the empty panel is compact while the list panel shows comfortable rows.
+
+## Session Handoff — 2026-05-20 (Site Walk List Panel Cap — Slice 8)
+### What Changed
+- `components/mobile-system/mobileTokens.ts`: Added `moduleListPanelFrame: "h-full max-h-[min(34dvh,320px)]"` and `moduleListPanelContent: "pb-10"`.
+- `components/mobile-system/MobileTabbedPanel.tsx`: Added optional `bodyClassName` prop, merged onto each scrollable `TabsContent` body.
+- `components/site-walk/v1/SiteWalkV1ListPanel.tsx`: Applies `mobileTokens.moduleListPanelFrame` to the panel frame and `mobileTokens.moduleListPanelContent` to the scroll body. This caps the Site Walk home list panel frame while preserving internal row scrolling.
+- `docs/SLATE360_GRAPHITE_GLASS_DESIGN_SYSTEM.md`: Added Mobile Module List Panel Cap rule and Slice 8 migration note.
+
+### Root Cause Fixed
+- The panel was no longer growing from row count, but `HomeView` still gave it the entire remaining `1fr` viewport area via `grid-rows-[auto_1fr]` plus `SiteWalkV1ListPanel className="h-full min-h-0"`. Without a max-height token, the panel frame could be legitimately too tall. The new cap limits visible frame height while `MobileTabbedPanel` keeps rows scrolling inside `TabsContent`.
+
+### What's Broken / Partially Done
+- Needs visual phone verification on the PR preview URL after Vercel deploys this commit.
+- Broader full-product design-system unification (marketing/auth/email/deliverables/dashboard) remains partial; this slice only unifies and caps mobile app shell/module-home behavior.
+
+### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md`: This handoff.
+- `docs/SLATE360_GRAPHITE_GLASS_DESIGN_SYSTEM.md`: Module list panel cap rule.
+
+### Cross-Track Safety Check
+- Track: A — AppShell + Site Walk UI System.
+- Branch: `fix/site-walk-panel-scroll-containment`.
+- Files touched: `components/mobile-system/mobileTokens.ts`, `components/mobile-system/MobileTabbedPanel.tsx`, `components/site-walk/v1/SiteWalkV1ListPanel.tsx`, `docs/SLATE360_GRAPHITE_GLASS_DESIGN_SYSTEM.md`, `SLATE360_PROJECT_MEMORY.md`.
+- Did NOT touch: Digital Twin, Trigger.dev, Supabase migrations, billing backend, middleware, routes, Dashboard V3 desktop layout, Site Walk capture, CameraViewfinder, CaptureClientIsland, PlanViewerLeaflet.
+
+### Next Steps (ordered)
+1. Validate: `npm run typecheck`, `npm run build`, `npm run guard:architecture`, `bash scripts/check-file-size.sh`.
+2. Review and push PR branch.
+3. Test `/site-walk` on PR preview with cache-bust query and confirm list panel frame visually ends above bottom nav.
+
+## Session Handoff — 2026-05-20 (Shared Mobile Shell Consolidation — Slice 7)
+### What Changed
+- `components/mobile-system/MobileAppShell.tsx`: New shared viewport/flex shell primitive for mobile app surfaces.
+- `components/mobile-system/MobileTopBar.tsx`: New shared mobile header frame primitive with title/subtitle, back control, and left/right slots.
+- `components/mobile-system/MobileBottomNav.tsx`: New generic in-flow bottom nav primitive. Supports route-link nav (`/app`) and callback/tab nav (`/site-walk`).
+- `components/mobile-system/MobileSection.tsx`: New shared section label/spacing wrapper.
+- `components/mobile-system/index.ts`: Exports new shell primitives.
+- `components/dashboard/AppShell.tsx`: Platform app shell now imports and renders `MobileAppShell` + shared `MobileBottomNav`; `/app` gets a contained flex content region.
+- `components/dashboard/PlatformMobileTopBar.tsx`: New adapter that preserves Invite/Search/Feedback/Notifications/Account behavior while using shared `MobileTopBar` geometry.
+- `components/dashboard/command-center/CommandCenterContent.tsx`: Uses `MobileSection`; activity panel fills a controlled `flex-1 min-h-0` region with `MobileTabbedPanel className="h-full" minHeight="min-h-0"`.
+- `components/walled-garden-dashboard.tsx`: Participates in the flex height chain with `flex min-h-0 flex-1 overflow-hidden`.
+- `components/site-walk/v1/SiteWalkV1Shell.tsx`: Now renders through `MobileAppShell` and the shared `MobileBottomNav` primitive.
+- `components/site-walk/v1/SiteWalkV1Header.tsx`: Now renders through shared `MobileTopBar` while preserving Site Walk actions/avatar/menu behavior.
+- `components/site-walk/v1/SiteWalkV1BottomNav.tsx`: Converted to compatibility adapter over shared `MobileBottomNav`.
+- `components/site-walk/v1/views/HomeView.tsx`: Uses `MobileSection`; list panel now fills controlled row via `className="h-full min-h-0"`.
+- `docs/SLATE360_GRAPHITE_GLASS_DESIGN_SYSTEM.md`: Added shared shell contract + Slice 7 migration entry.
+- `docs/CONCURRENT_DEVELOPMENT_TRACKS.md`: Added Track A mobile shell contract.
+
+### What's Broken / Partially Done
+- Legacy `components/shared/MobileTopBar.tsx` and `components/shared/MobileBottomNav.tsx` still exist but are no longer used by `AppShell`; safe deprecation/removal should be done in a cleanup pass after grep confirms no consumers.
+- `components/site-walk/v1/SiteWalkV1BottomNav.tsx` remains as a compatibility adapter/type source; `SiteWalkV1Shell` uses shared `MobileBottomNav` directly.
+- Site Walk capture/data-entry page not yet built — next slice.
+
+### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md`: This handoff.
+- `docs/SLATE360_GRAPHITE_GLASS_DESIGN_SYSTEM.md`: Shared shell primitives + mandatory contract.
+- `docs/CONCURRENT_DEVELOPMENT_TRACKS.md`: Track A mobile shell contract.
+
+### Cross-Track Safety Check
+- Track: A — AppShell + Site Walk UI System.
+- Branch: `fix/site-walk-panel-scroll-containment`.
+- Files touched: mobile-system primitives, dashboard AppShell/mobile header adapter, `/app` command center wrapper, Site Walk V1 shell/header/nav/home, Track A docs/memory.
+- Did NOT touch: Digital Twin routes/components/APIs/workers, Trigger.dev twin jobs, Supabase migrations, billing backend, middleware, Dashboard V3 desktop layout, Site Walk capture, CameraViewfinder, CaptureClientIsland, PlanViewerLeaflet.
+
+### Next Steps (ordered)
+1. Run full validation: `npm run typecheck`, `npm run build`, `npm run guard:architecture`, `bash scripts/check-file-size.sh`.
+2. Visual smoke `/app` and `/site-walk` on mobile viewport: both should show shared in-flow header/nav rhythm and internally scrolling panels.
+3. Open PR / merge branch per repo guardrails, then begin Site Walk capture UI.
+
+## Session Handoff — 2026-05-20 (Site Walk Panel Scroll Containment — Slice 6)
+### What Changed
+- `components/site-walk/v1/SiteWalkV1Shell.tsx`: Changed `<main className="flex-1 overflow-y-auto">` → `<main className="flex-1 min-h-0 flex flex-col overflow-hidden">`. This makes main a flex container (not a scroll container), eliminating the WebKit `height: 100%` bug that made grid `1fr` rows auto-sized.
+- `components/site-walk/v1/views/HomeView.tsx`: Outer div changed from `grid h-full min-h-0 grid-rows-[auto_1fr]` to `flex-1 min-h-0 grid grid-rows-[auto_1fr] pt-3` — uses `flex-1` to fill main via flex propagation (not CSS percentage). Zone 1 changed from `flex min-h-0 flex-col justify-start gap-y-3 pt-3` to `shrink-0 flex flex-col gap-y-3` (pt-3 moved to outer).
+- `components/site-walk/v1/views/WorksitesView.tsx`: Outer div updated to `flex-1 min-h-0 overflow-y-auto flex flex-col gap-3 p-4` — self-contained page scroll within overflow-hidden main.
+- `components/site-walk/v1/views/SlateDropView.tsx`: Same treatment as WorksitesView.
+- `components/site-walk/v1/views/CoordinationView.tsx`: Same treatment.
+- `components/site-walk/v1/views/DeliverablesView.tsx`: Same treatment.
+- `docs/SLATE360_GRAPHITE_GLASS_DESIGN_SYSTEM.md`: Added Slice 6 to migration log; added "Contained Panel Height Rule" to Section 11.
+
+### Why Previous Fixes Failed (root cause analysis)
+1. `grid-rows-[auto_1fr]` alone (Slice 4): `1fr` requires the GRID to have a definite height. Grid used `h-full` → 100% of `<main>`.
+2. `<main>` had `overflow-y-auto` — WebKit/Safari resolves `height: 100%` inside `overflow-y-auto` flex items as `auto` (not the flex-allocated height). This is a documented browser bug.
+3. Grid height became `auto` → `1fr` row = `auto` → panel grew with content regardless of `overflow-hidden`/`min-h-0` fixes.
+4. The `min-h-0`, `overflow-hidden`, bottom-nav in-flow fixes all attacked SYMPTOMS. The ROOT CAUSE was always the `overflow-y-auto` + `h-full` chain.
+
+### What's Broken / Partially Done
+- `EmptyList` still exists in `v1-view-utils.tsx` — unused, safe to delete in cleanup.
+- `/site-walk` shell overlays `AppShell` via `fixed inset-0 z-50` — known architecture issue, deferred.
+- `MobileAppCard` (horizontal tile) exported but no longer consumed — safe to remove in cleanup.
+- Site Walk capture/data-entry page not yet built — this is **Slice 7 / the next major task**.
+
+### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md`: This handoff.
+- `docs/SLATE360_GRAPHITE_GLASS_DESIGN_SYSTEM.md`: Section 11 Contained Panel Height Rule added; Slice 6 migration log entry added.
+
+### Next Steps (ordered)
+1. Verify live on device: `/site-walk` panel is contained and scrolls internally (not page-level).
+2. Verify live: `/app` — no regression on app launcher or activity panel.
+3. Begin **Slice 7**: Site Walk capture/data-entry UI build.
+4. Cleanup: delete `EmptyList` from `v1-view-utils.tsx`; remove `MobileAppCard` export if unused.
+
 ## Session Handoff — 2026-05-20 (Site Walk Nav Fix + Codex Review — Slice 5)
 ### What Changed
 - `components/site-walk/v1/SiteWalkV1BottomNav.tsx`: Removed `fixed bottom-0 z-40`. Now `shrink-0` in-flow inside shell flex column. Root cause of content-under-nav bug. Commit: `b77bb66`.

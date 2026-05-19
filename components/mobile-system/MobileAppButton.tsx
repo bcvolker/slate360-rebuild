@@ -35,6 +35,7 @@ export function MobileAppButton({
 }: MobileAppButtonProps) {
   const base = cn(
     mobileTokens.appButtonBase,
+    mobileTokens.mobileAppButtonHeight,
     disabled && "pointer-events-none opacity-50",
     className,
   );

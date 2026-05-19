@@ -19,7 +19,7 @@ const sections: { icon: typeof FolderOpen; label: string; href: string }[] = [
 
 export function SlateDropView({ projects, router }: SlateDropViewProps) {
   return (
-    <div className="flex flex-col gap-4 p-4">
+    <div className="flex-1 min-h-0 overflow-y-auto flex flex-col gap-4 p-4">
       <div className="grid grid-cols-2 gap-2">
         {sections.map(({ icon: Icon, label, href }) => (
           <button

@@ -7,7 +7,7 @@ import { WalkV1Row } from "@/components/site-walk/v1/WalkV1Row";
 import type { V1NavTab } from "@/components/site-walk/v1/SiteWalkV1BottomNav";
 import type { HubProject, HubSummary, HubWalk } from "@/lib/types/site-walk";
 import { cn } from "@/lib/utils";
-import { MobileEmptyState } from "@/components/mobile-system";
+import { MobileEmptyState, MobileSection, mobileTokens } from "@/components/mobile-system";
 import { type RouterLike, timeAgo } from "./v1-view-utils";
 
 type HomeViewProps = {
@@ -35,7 +35,10 @@ export function HomeView({ walks, projects, summary, router, onQuickCapture }: H
   return (
     <div
       className={cn(
-        "grid h-full min-h-0 gap-y-3 px-4 pb-3",
+        /* flex-1 fills main's flex-col — no h-full percentage chain needed */
+        "flex-1 min-h-0 grid px-4 pt-3",
+        mobileTokens.mobileHomeSectionGap,
+        mobileTokens.mobilePanelBottomGap,
         /* Portrait: Zone 1 auto-sized, Zone 2 fills remaining space */
         "grid-rows-[auto_1fr]",
         /* Landscape: side-by-side when viewport is short */
@@ -43,21 +46,18 @@ export function HomeView({ walks, projects, summary, router, onQuickCapture }: H
       )}
     >
       {/* Zone 1: Command — auto-sized to content */}
-      <div className="flex min-h-0 flex-col justify-start gap-y-3 pt-3">
-        <p className="text-[14px] font-bold uppercase tracking-[0.18em] text-amber-400">
-          Site Walk
-        </p>
+      <MobileSection label="Site Walk" className="shrink-0">
         <SiteWalkV1ActionGrid
           onNewWorksite={() => router.push("/site-walk/setup")}
           onStartWalk={() => router.push("/site-walk/walks")}
           onQuickCapture={onQuickCapture}
           className="!px-0"
         />
-      </div>
+      </MobileSection>
 
       {/* Zone 2: Work panel — fills remaining space */}
       <SiteWalkV1ListPanel
-        className="min-h-0 overflow-hidden"
+        className="h-full min-h-0"
         recentContent={
           recentWalks.length > 0 ? (
             <WalkList walks={recentWalks} router={router} />

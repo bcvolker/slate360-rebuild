@@ -2,7 +2,9 @@
 
 import type { ReactNode } from "react";
 import { MobileTabbedPanel } from "@/components/mobile-system";
+import { mobileTokens } from "@/components/mobile-system";
 import type { MobilePanelTab } from "@/components/mobile-system";
+import { cn } from "@/lib/utils";
 
 export type ListTab = "recent" | "worksites" | "shared" | "review";
 
@@ -41,7 +43,8 @@ export function SiteWalkV1ListPanel({
       tabs={tabs}
       defaultTab={defaultTab}
       minHeight="min-h-0"
-      className={className}
+      className={cn(mobileTokens.mobileListPanelHeight, className)}
+      bodyClassName={mobileTokens.moduleListPanelContent}
     />
   );
 }

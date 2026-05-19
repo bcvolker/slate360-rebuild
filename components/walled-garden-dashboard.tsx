@@ -19,7 +19,7 @@ export default function WalledGardenDashboard({
   isSlateCeo = false,
 }: WalledGardenDashboardProps) {
   return (
-    <div className="h-full overflow-hidden">
+    <div className="flex min-h-0 flex-1 overflow-hidden">
       <CommandCenterContent
         entitlements={entitlements}
         isSlateCeo={isSlateCeo}

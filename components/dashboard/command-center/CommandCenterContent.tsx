@@ -4,12 +4,15 @@ import React from "react";
 import Link from "next/link";
 import { MapPin, Plus, Search, Bell, MessageSquare, ClipboardList, Clock, Box, FolderOpen } from "lucide-react";
 import type { Entitlements } from "@/lib/entitlements";
+import { cn } from "@/lib/utils";
 import {
   MobileActionCard,
   MobileActionGrid,
   MobileAppButton,
+  MobileSection,
   MobileTabbedPanel,
   MobileEmptyState,
+  mobileTokens,
 } from "@/components/mobile-system";
 import type { MobilePanelTab } from "@/components/mobile-system";
 
@@ -64,13 +67,10 @@ export function CommandCenterContent({
   const appCount = (hasSiteWalk ? 1 : 0) + (isSlateCeo ? 1 : 0);
 
   return (
-    <div className="mx-auto flex h-full w-full max-w-2xl flex-col gap-4 overflow-y-auto px-4 pb-6 pt-4 no-scrollbar">
+    <div className={cn("mx-auto flex min-h-0 w-full max-w-2xl flex-1 flex-col overflow-hidden px-4 py-4", mobileTokens.mobileHomeSectionGap)}>
 
       {/* ── Section 1: Your Apps ── */}
-      <section>
-        <p className="mb-2 text-[10px] font-black uppercase tracking-[0.18em] text-amber-400">
-          Your Apps
-        </p>
+      <MobileSection label="Your Apps" className="shrink-0">
         {appCount > 0 ? (
           <MobileActionGrid>
             {hasSiteWalk && (
@@ -101,13 +101,10 @@ export function CommandCenterContent({
             </Link>
           </div>
         )}
-      </section>
+      </MobileSection>
 
       {/* ── Section 2: Quick Actions ── */}
-      <section>
-        <p className="mb-2 text-[10px] font-black uppercase tracking-[0.18em] text-amber-400">
-          Quick Actions
-        </p>
+      <MobileSection label="Quick Actions" className="shrink-0">
         <MobileActionGrid>
           <MobileActionCard
             label="Create"
@@ -130,16 +127,17 @@ export function CommandCenterContent({
             onClick={handleSearch}
           />
         </MobileActionGrid>
-      </section>
+      </MobileSection>
 
       {/* ── Section 3: Activity Panel ── */}
-      <section className="min-h-0 flex-1">
+      <MobileSection className="shrink-0" contentClassName="min-h-0">
         <MobileTabbedPanel
           tabs={ACTIVITY_TABS}
           defaultTab="notifications"
-          minHeight="min-h-[260px]"
+          minHeight="min-h-0"
+          className={mobileTokens.mobileEmptyPanelHeight}
         />
-      </section>
+      </MobileSection>
     </div>
   );
 }

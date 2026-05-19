@@ -26,7 +26,7 @@ export function WorksitesView({ projects, walks, router }: WorksitesViewProps) {
   }
 
   return (
-    <div className="flex flex-col gap-3 p-4">
+    <div className="flex-1 min-h-0 overflow-y-auto flex flex-col gap-3 p-4">
       <div className="flex items-center justify-between">
         <p className="text-sm font-medium text-zinc-300">
           All Worksites ({projects.length})
