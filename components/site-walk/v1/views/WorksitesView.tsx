@@ -5,7 +5,8 @@ import { WorksiteV1Row } from "@/components/site-walk/v1/WorksiteV1Row";
 import { Button } from "@/components/ui/button";
 import type { HubProject, HubWalk } from "@/lib/types/site-walk";
 import { type RouterLike, timeAgo } from "./v1-view-utils";
-import { MobileEmptyState } from "@/components/mobile-system";
+import { MobileEmptyState, MobileComingSoonSheet } from "@/components/mobile-system";
+import { useState } from "react";
 
 type WorksitesViewProps = {
   projects: HubProject[];
@@ -14,6 +15,8 @@ type WorksitesViewProps = {
 };
 
 export function WorksitesView({ projects, walks, router }: WorksitesViewProps) {
+  const [comingSoonTitle, setComingSoonTitle] = useState<string | null>(null);
+
   const walksByProject = new Map<string, number>();
   const lastActivityByProject = new Map<string, string>();
   for (const w of walks) {
@@ -51,18 +54,25 @@ export function WorksitesView({ projects, walks, router }: WorksitesViewProps) {
               name={p.name}
               walkCount={walksByProject.get(p.id) ?? 0}
               lastActivity={timeAgo(lastActivityByProject.get(p.id) ?? null)}
-              onOpen={() => router.push(`/projects/${p.id}`)}
+              onOpen={() => setComingSoonTitle("Project Dashboard")}
               onStartWalk={() => router.push("/site-walk/setup")}
-              onPlansAndDocs={() => router.push(`/projects/${p.id}/slatedrop`)}
-              onSlateDrop={() => router.push(`/projects/${p.id}/slatedrop`)}
-              onCollaborators={() => router.push(`/projects/${p.id}/people`)}
-              onDeliverables={() => router.push("/site-walk/deliverables")}
+              onPlansAndDocs={() => setComingSoonTitle("Plans & Docs")}
+              onSlateDrop={() => setComingSoonTitle("SlateDrop")}
+              onCollaborators={() => setComingSoonTitle("Collaborators")}
+              onDeliverables={() => setComingSoonTitle("Deliverables")}
               onRename={() => {}}
               onArchive={() => {}}
               onDelete={() => {}}
             />
           ))}
         </div>
+      )}
+      {comingSoonTitle && (
+        <MobileComingSoonSheet
+          open={!!comingSoonTitle}
+          onOpenChange={(open) => !open && setComingSoonTitle(null)}
+          title={`${comingSoonTitle} on Mobile`}
+        />
       )}
     </div>
   );

@@ -3,7 +3,8 @@
 import { FolderOpen, Upload, Share2, Link as LinkIcon } from "lucide-react";
 import type { HubProject } from "@/lib/types/site-walk";
 import { type RouterLike } from "./v1-view-utils";
-import { MobileEmptyState } from "@/components/mobile-system";
+import { MobileEmptyState, MobileComingSoonSheet } from "@/components/mobile-system";
+import { useState } from "react";
 
 type SlateDropViewProps = {
   projects: HubProject[];
@@ -18,6 +19,8 @@ const sections: { icon: typeof FolderOpen; label: string; href: string }[] = [
 ];
 
 export function SlateDropView({ projects, router }: SlateDropViewProps) {
+  const [comingSoonTitle, setComingSoonTitle] = useState<string | null>(null);
+
   return (
     <div className="flex-1 min-h-0 overflow-y-auto flex flex-col gap-4 p-4">
       <div className="grid grid-cols-2 gap-2">
@@ -25,7 +28,7 @@ export function SlateDropView({ projects, router }: SlateDropViewProps) {
           <button
             key={label}
             type="button"
-            onClick={() => router.push(href)}
+            onClick={() => setComingSoonTitle(label)}
             className="flex items-center gap-2.5 rounded-lg border border-white/5 bg-white/[0.03] px-3 py-3 text-left text-sm font-medium text-zinc-300 transition-colors hover:bg-white/[0.06]"
           >
             <Icon className="size-4 shrink-0 text-zinc-500" />
@@ -44,7 +47,7 @@ export function SlateDropView({ projects, router }: SlateDropViewProps) {
               <button
                 key={p.id}
                 type="button"
-                onClick={() => router.push(`/projects/${p.id}/slatedrop`)}
+                onClick={() => setComingSoonTitle("Project Dashboard")}
                 className="flex items-center gap-2.5 rounded-lg border border-white/5 bg-white/[0.03] px-3 py-2.5 text-left text-sm text-zinc-300 transition-colors hover:bg-white/[0.06]"
               >
                 <FolderOpen className="size-4 shrink-0 text-amber-500/60" />
@@ -57,6 +60,13 @@ export function SlateDropView({ projects, router }: SlateDropViewProps) {
 
       {projects.length === 0 && (
         <MobileEmptyState title="No SlateDrop folders yet." description="Create a Worksite to organize plans, photos, captures, deliverables, and shared files." />
+      )}
+      {comingSoonTitle && (
+        <MobileComingSoonSheet
+          open={!!comingSoonTitle}
+          onOpenChange={(open) => !open && setComingSoonTitle(null)}
+          title={`${comingSoonTitle} on Mobile`}
+        />
       )}
     </div>
   );

@@ -1250,3 +1250,30 @@ When editing oversized files, always read both the state declarations AND the JS
 ### Next Steps (ordered)
 1. Verify the deployed live `/dashboard` renders V3 identically to the preview.
 2. Continue work on any remaining "Continue Work fallback/action cards" depending on broader platform alignment.
+
+## Session Handoff — 2026-05-19 (Mobile Layout Measured Calibration)
+### What Changed
+- `components/mobile-system/mobileTokens.ts`: Converted restrictive \`max-h-[min(40dvh,380px)]\` and \`h-[clamp(...)]\` panel heights to \`flex-1 min-h-[260px]\` to allow native expansion.
+- `components/mobile-system/MobileAppShell.tsx`: Swapped \`<main>\` styling from \`overflow-hidden\` to \`overflow-y-auto\` so flex items size naturally and the screen scrolls instead of squishing and clipping elements on tiny viewports like iPhone SE.
+- `components/dashboard/command-center/CommandCenterContent.tsx`: Removed \`overflow-hidden\` and \`pb-20\` (the bottom nav lies outside the flex body so it clears its own space).
+- Pull Request created: #23 (Fix: Mobile Layout Measured Calibration).
+### What's Broken / Partially Done
+- Nothing broken. Tests passed, PR created.
+### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md`: this handoff
+### Next Steps (ordered)
+1. Review and Merge PR #23.
+2. Confirm the Site Walk and Dashboard views behave beautifully on mobile.
+## Session Handoff — 2025-05-20
+### What Changed
+- `components/site-walk/v1/views/HomeView.tsx`: added `MobileComingSoonSheet` and wired it into callbacks to block legacy UI.
+- `components/site-walk/v1/views/WorksitesView.tsx`: added `MobileComingSoonSheet` to block legacy UI, and updated project routing.
+- `components/site-walk/v1/SiteWalkV1Shell.tsx`: wired the site walk bottom nav to use `MobileComingSoonSheet` interceptors.
+
+### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md`: Added memory notes about Capture-v2 design for mobile shells.
+
+### Next Steps (ordered)
+1. Verify the deployed app does not jump or scroll root UI, and bottom sheets pop safely.
+- capture should be built as /site-walk/capture-v2
+- capture should use an isolated fixed viewport capture shell, not generic site walk shell or dashboard shell

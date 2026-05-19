@@ -72,8 +72,8 @@ export const mobileTokens = {
    */
   panelTabTrigger:
     "flex-1 rounded-none border-b-2 border-transparent py-2 text-[12px] font-medium text-zinc-500 transition-colors data-[state=active]:border-amber-500 data-[state=active]:bg-transparent data-[state=active]:text-white data-[state=active]:shadow-none",
-  mobileEmptyPanelHeight: "h-[clamp(180px,26dvh,240px)]",
-  mobileListPanelHeight: "h-full max-h-[min(40dvh,380px)]",
+  mobileEmptyPanelHeight: "flex-1 min-h-[240px]",
+  mobileListPanelHeight: "flex-1 min-h-[240px]",
   mobileTabbedPanelBodyPadding,
   mobileTabbedPanelScrollBody,
   panelContent: `${mobileTabbedPanelScrollBody} ${mobileTabbedPanelBodyPadding}`,

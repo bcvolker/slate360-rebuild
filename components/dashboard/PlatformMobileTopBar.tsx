@@ -55,7 +55,7 @@ export function PlatformMobileTopBar({
               <HeaderIcon label="Report a bug or suggest a feature for Version 1" onClick={() => setFeedbackOpen(true)} icon={Bug} />
             )}
             <Link
-              href="/coordination/inbox"
+              href="/more"
               aria-label="Notifications and communication inbox"
               className="flex h-9 w-9 items-center justify-center rounded-lg text-zinc-500 transition-colors hover:bg-white/10 hover:text-amber-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50"
             >

@@ -7,8 +7,9 @@ import { WalkV1Row } from "@/components/site-walk/v1/WalkV1Row";
 import type { V1NavTab } from "@/components/site-walk/v1/SiteWalkV1BottomNav";
 import type { HubProject, HubSummary, HubWalk } from "@/lib/types/site-walk";
 import { cn } from "@/lib/utils";
-import { MobileEmptyState, MobileSection, mobileTokens } from "@/components/mobile-system";
+import { MobileEmptyState, MobileSection, mobileTokens, MobileComingSoonSheet } from "@/components/mobile-system";
 import { type RouterLike, timeAgo } from "./v1-view-utils";
+import { useState } from "react";
 
 type HomeViewProps = {
   walks: HubWalk[];
@@ -21,6 +22,8 @@ type HomeViewProps = {
 };
 
 export function HomeView({ walks, projects, summary, router, onQuickCapture }: HomeViewProps) {
+  const [comingSoonTitle, setComingSoonTitle] = useState<string | null>(null);
+
   const recentWalks = walks.slice(0, 20);
 
   const walksByProject = new Map<string, number>();
@@ -60,7 +63,7 @@ export function HomeView({ walks, projects, summary, router, onQuickCapture }: H
         className="h-full min-h-0"
         recentContent={
           recentWalks.length > 0 ? (
-            <WalkList walks={recentWalks} router={router} />
+            <WalkList walks={recentWalks} router={router} setComingSoonTitle={setComingSoonTitle} />
           ) : (
             <MobileEmptyState title="No recent walks." description="Start a walk or quick capture to see activity here." />
           )
@@ -74,12 +77,12 @@ export function HomeView({ walks, projects, summary, router, onQuickCapture }: H
                   name={p.name}
                   walkCount={walksByProject.get(p.id) ?? 0}
                   lastActivity={timeAgo(lastActivityByProject.get(p.id) ?? null)}
-                  onOpen={() => router.push(`/projects/${p.id}`)}
+                  onOpen={() => setComingSoonTitle("Project Dashboard")}
                   onStartWalk={() => router.push("/site-walk/setup")}
-                  onPlansAndDocs={() => router.push(`/projects/${p.id}/slatedrop`)}
-                  onSlateDrop={() => router.push(`/projects/${p.id}/slatedrop`)}
-                  onCollaborators={() => router.push(`/projects/${p.id}/people`)}
-                  onDeliverables={() => router.push("/site-walk/deliverables")}
+                  onPlansAndDocs={() => setComingSoonTitle("Plans & Docs")}
+                  onSlateDrop={() => setComingSoonTitle("SlateDrop")}
+                  onCollaborators={() => setComingSoonTitle("Collaborators")}
+                  onDeliverables={() => setComingSoonTitle("Deliverables")}
                 />
               ))}
             </div>
@@ -99,11 +102,18 @@ export function HomeView({ walks, projects, summary, router, onQuickCapture }: H
           )
         }
       />
+      {comingSoonTitle && (
+        <MobileComingSoonSheet
+          open={!!comingSoonTitle}
+          onOpenChange={(open) => !open && setComingSoonTitle(null)}
+          title={`${comingSoonTitle} on Mobile`}
+        />
+      )}
     </div>
   );
 }
 
-function WalkList({ walks, router }: { walks: HubWalk[]; router: RouterLike }) {
+function WalkList({ walks, router, setComingSoonTitle }: { walks: HubWalk[]; router: RouterLike, setComingSoonTitle: (title: string) => void }) {
   return (
     <div className="flex flex-col gap-1.5">
       {walks.map((w) => (
@@ -115,7 +125,7 @@ function WalkList({ walks, router }: { walks: HubWalk[]; router: RouterLike }) {
           itemCount={w.itemCount}
           lastUpdated={timeAgo(w.updatedAt)}
           onOpen={() => router.push(`/site-walk/walks/${w.id}`)}
-          onCreateReport={() => router.push(`/site-walk/deliverables?session=${w.id}`)}
+          onCreateReport={() => setComingSoonTitle("Deliverables")}
         />
       ))}
     </div>

@@ -15,7 +15,9 @@ import {
   MobileAppShell,
   MobileBottomNav,
   type MobileBottomNavItem,
+  MobileComingSoonSheet,
 } from "@/components/mobile-system";
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 
 type SiteWalkV1ShellProps = {
@@ -39,24 +41,6 @@ const sidebarItems: { id: V1NavTab; label: string; icon: typeof Home }[] = [
   { id: "deliverables", label: "Deliverables", icon: Package },
 ];
 
-function getMobileNavItems(
-  onTabChange: (tab: V1NavTab) => void,
-  useProjectLabel: boolean,
-): MobileBottomNavItem<V1NavTab>[] {
-  return [
-    { key: "home", label: "Home", icon: Home, onSelect: () => onTabChange("home") },
-    {
-      key: "worksites",
-      label: useProjectLabel ? "Projects" : "Worksites",
-      icon: MapPin,
-      onSelect: () => onTabChange("worksites"),
-    },
-    { key: "slatedrop", label: "SlateDrop", icon: FolderOpen, onSelect: () => onTabChange("slatedrop") },
-    { key: "coordination", label: "Coordination", icon: MessageSquare, onSelect: () => onTabChange("coordination") },
-    { key: "deliverables", label: "Deliverables", icon: Package, onSelect: () => onTabChange("deliverables") },
-  ];
-}
-
 export function SiteWalkV1Shell({
   title,
   activeTab,
@@ -69,8 +53,24 @@ export function SiteWalkV1Shell({
   children,
   className,
 }: SiteWalkV1ShellProps) {
+  const [comingSoonTitle, setComingSoonTitle] = useState<string | null>(null);
+
+  const navItems: MobileBottomNavItem<V1NavTab>[] = [
+    { key: "home", label: "Home", icon: Home, onSelect: () => onTabChange("home") },
+    {
+      key: "worksites",
+      label: useProjectLabel ? "Projects" : "Worksites",
+      icon: MapPin,
+      onSelect: () => onTabChange("worksites"),
+    },
+    { key: "slatedrop", label: "SlateDrop", icon: FolderOpen, onSelect: () => setComingSoonTitle("SlateDrop") },
+    { key: "coordination", label: "Coordination", icon: MessageSquare, onSelect: () => setComingSoonTitle("Coordination") },
+    { key: "deliverables", label: "Deliverables", icon: Package, onSelect: () => setComingSoonTitle("Deliverables") },
+  ];
+
   return (
-    <MobileAppShell
+    <>
+      <MobileAppShell
       className="fixed inset-0 z-50"
       sidebar={
         <aside className="hidden w-56 shrink-0 flex-col border-r border-white/10 bg-zinc-900/60 lg:flex">
@@ -117,13 +117,21 @@ export function SiteWalkV1Shell({
       bottomNav={
         showBottomNav ? (
           <MobileBottomNav
-            items={getMobileNavItems(onTabChange, useProjectLabel)}
+            items={navItems}
             activeKey={activeTab}
           />
         ) : undefined
       }
     >
       {children}
-    </MobileAppShell>
+      </MobileAppShell>
+      {comingSoonTitle && (
+        <MobileComingSoonSheet
+          open={!!comingSoonTitle}
+          onOpenChange={(open) => !open && setComingSoonTitle(null)}
+          title={`${comingSoonTitle} on Mobile`}
+        />
+      )}
+    </>
   );
 }
