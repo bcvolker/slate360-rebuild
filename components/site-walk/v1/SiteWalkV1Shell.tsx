@@ -10,10 +10,12 @@ import {
 } from "lucide-react";
 import { SlateLogo } from "@/components/shared/SlateLogo";
 import { SiteWalkV1Header } from "./SiteWalkV1Header";
+import type { V1NavTab } from "./SiteWalkV1BottomNav";
 import {
-  SiteWalkV1BottomNav,
-  type V1NavTab,
-} from "./SiteWalkV1BottomNav";
+  MobileAppShell,
+  MobileBottomNav,
+  type MobileBottomNavItem,
+} from "@/components/mobile-system";
 import { cn } from "@/lib/utils";
 
 type SiteWalkV1ShellProps = {
@@ -37,6 +39,24 @@ const sidebarItems: { id: V1NavTab; label: string; icon: typeof Home }[] = [
   { id: "deliverables", label: "Deliverables", icon: Package },
 ];
 
+function getMobileNavItems(
+  onTabChange: (tab: V1NavTab) => void,
+  useProjectLabel: boolean,
+): MobileBottomNavItem<V1NavTab>[] {
+  return [
+    { key: "home", label: "Home", icon: Home, onSelect: () => onTabChange("home") },
+    {
+      key: "worksites",
+      label: useProjectLabel ? "Projects" : "Worksites",
+      icon: MapPin,
+      onSelect: () => onTabChange("worksites"),
+    },
+    { key: "slatedrop", label: "SlateDrop", icon: FolderOpen, onSelect: () => onTabChange("slatedrop") },
+    { key: "coordination", label: "Coordination", icon: MessageSquare, onSelect: () => onTabChange("coordination") },
+    { key: "deliverables", label: "Deliverables", icon: Package, onSelect: () => onTabChange("deliverables") },
+  ];
+}
+
 export function SiteWalkV1Shell({
   title,
   activeTab,
@@ -50,39 +70,39 @@ export function SiteWalkV1Shell({
   className,
 }: SiteWalkV1ShellProps) {
   return (
-    <div className="fixed inset-0 z-50 flex overflow-hidden bg-[#0B0F15]">
-      {/* Desktop sidebar — visible at lg+ */}
-      <aside className="hidden w-56 shrink-0 flex-col border-r border-white/10 bg-zinc-900/60 lg:flex">
-        <div className="flex h-14 items-center gap-2 border-b border-white/10 px-4">
-          <SlateLogo size="sm" />
-          <span className="text-[10px] font-medium text-zinc-500">Site Walk</span>
-        </div>
-        <nav className="flex flex-1 flex-col gap-0.5 p-2">
-          {sidebarItems.map(({ id, label, icon: Icon }) => {
-            const displayLabel =
-              id === "worksites" && useProjectLabel ? "Projects" : label;
-            return (
-              <button
-                key={id}
-                type="button"
-                onClick={() => onTabChange(id)}
-                className={cn(
-                  "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                  activeTab === id
-                    ? "bg-white/10 text-white"
-                    : "text-zinc-400 hover:bg-white/5 hover:text-zinc-200",
-                )}
-              >
-                <Icon className="size-4" />
-                {displayLabel}
-              </button>
-            );
-          })}
-        </nav>
-      </aside>
-
-      {/* Main column */}
-      <div className="flex min-w-0 flex-1 flex-col">
+    <MobileAppShell
+      className="fixed inset-0 z-50"
+      sidebar={
+        <aside className="hidden w-56 shrink-0 flex-col border-r border-white/10 bg-zinc-900/60 lg:flex">
+          <div className="flex h-14 items-center gap-2 border-b border-white/10 px-4">
+            <SlateLogo size="sm" />
+            <span className="text-[10px] font-medium text-zinc-500">Site Walk</span>
+          </div>
+          <nav className="flex flex-1 flex-col gap-0.5 p-2">
+            {sidebarItems.map(({ id, label, icon: Icon }) => {
+              const displayLabel =
+                id === "worksites" && useProjectLabel ? "Projects" : label;
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => onTabChange(id)}
+                  className={cn(
+                    "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                    activeTab === id
+                      ? "bg-white/10 text-white"
+                      : "text-zinc-400 hover:bg-white/5 hover:text-zinc-200",
+                  )}
+                >
+                  <Icon className="size-4" />
+                  {displayLabel}
+                </button>
+              );
+            })}
+          </nav>
+        </aside>
+      }
+      header={
         <SiteWalkV1Header
           title={title}
           onBack={onBack}
@@ -92,19 +112,18 @@ export function SiteWalkV1Shell({
           showToolIcons={activeTab === "home"}
           showBranding={activeTab === "home"}
         />
-
-        <main className={cn("flex-1 min-h-0 flex flex-col overflow-hidden", className)}>
-          {children}
-        </main>
-
-        {showBottomNav && (
-          <SiteWalkV1BottomNav
-            activeTab={activeTab}
-            onTabChange={onTabChange}
-            useProjectLabel={useProjectLabel}
+      }
+      mainClassName={className}
+      bottomNav={
+        showBottomNav ? (
+          <MobileBottomNav
+            items={getMobileNavItems(onTabChange, useProjectLabel)}
+            activeKey={activeTab}
           />
-        )}
-      </div>
-    </div>
+        ) : undefined
+      }
+    >
+      {children}
+    </MobileAppShell>
   );
 }

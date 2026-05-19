@@ -1,26 +1,28 @@
 "use client";
 
 /**
- * AppShell — shared sidebar + topbar wrapper for all authenticated app surfaces.
+ * AppShell — shared sidebar + topbar wrapper for authenticated app surfaces.
  *
- * Use this in every top-level authenticated route layout so the sidebar
- * stays consistent: dashboard, site-walk, tours, projects list, slatedrop, etc.
- *
- * Project-detail sub-layouts (which use DashboardHeader instead) are intentionally
- * NOT wrapped — they have their own scoped chrome.
+ * Desktop keeps DashboardSidebar/DashboardTopBar. Mobile uses the shared
+ * mobile-system shell primitives so /app and module shells share geometry.
  */
 
 import { useEffect, useState, type ReactNode } from "react";
 import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
+import { Cloud, FolderOpen, Home, MessageSquare, User } from "lucide-react";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { DashboardSidebar } from "@/components/dashboard/command-center/DashboardSidebar";
 import { DashboardTopBar } from "@/components/dashboard/command-center/DashboardTopBar";
+import { PlatformMobileTopBar } from "@/components/dashboard/PlatformMobileTopBar";
 import { InviteShareProvider, useInviteShare } from "@/components/shared/InviteShareProvider";
-import { MobileTopBar } from "@/components/shared/MobileTopBar";
-import { MobileBottomNav } from "@/components/shared/MobileBottomNav";
+import {
+  MobileAppShell,
+  MobileBottomNav,
+  type MobileBottomNavItem,
+} from "@/components/mobile-system";
 import type { InviteShareData } from "@/lib/types/invite";
 
 interface AppShellProps {
@@ -32,23 +34,41 @@ interface AppShellProps {
   children: ReactNode;
 }
 
-function GlobalInviteModal({ data }: { data: InviteShareData }) {
-  const { open, setOpen } = useInviteShare();
-  if (!open) return null;
-  return <InviteShareModal open={open} onOpenChange={setOpen} {...data} />;
-}
+type PlatformNavKey = "home" | "projects" | "slatedrop" | "coordination" | "account";
 
 const SIDEBAR_PIN_KEY = "slate360.sidebar.pinned";
+
+const PLATFORM_NAV: MobileBottomNavItem<PlatformNavKey>[] = [
+  { key: "home", label: "Home", href: "/app", icon: Home },
+  { key: "projects", label: "Projects", href: "/projects", icon: FolderOpen },
+  { key: "slatedrop", label: "SlateDrop", href: "/slatedrop", icon: Cloud },
+  { key: "coordination", label: "Coordination", href: "/coordination/inbox", icon: MessageSquare },
+  { key: "account", label: "Account", href: "/more", icon: User },
+];
 
 const CommandPalette = dynamic(() => import("@/components/shared/CommandPalette"), {
   ssr: false,
   loading: () => null,
 });
 
-const InviteShareModal = dynamic(() => import("@/components/shared/InviteShareModal").then((mod) => mod.InviteShareModal), {
-  ssr: false,
-  loading: () => null,
-});
+const InviteShareModal = dynamic(
+  () => import("@/components/shared/InviteShareModal").then((mod) => mod.InviteShareModal),
+  { ssr: false, loading: () => null },
+);
+
+function activePlatformNavKey(pathname: string): PlatformNavKey {
+  if (pathname === "/" || pathname === "/dashboard" || pathname.startsWith("/app")) return "home";
+  if (pathname.startsWith("/projects") || pathname.startsWith("/project-hub")) return "projects";
+  if (pathname.startsWith("/slatedrop")) return "slatedrop";
+  if (pathname.startsWith("/coordination")) return "coordination";
+  return "account";
+}
+
+function GlobalInviteModal({ data }: { data: InviteShareData }) {
+  const { open, setOpen } = useInviteShare();
+  if (!open) return null;
+  return <InviteShareModal open={open} onOpenChange={setOpen} {...data} />;
+}
 
 export function AppShell({
   userName,
@@ -63,8 +83,7 @@ export function AppShell({
   const [paletteOpen, setPaletteOpen] = useState(false);
 
   const pathname = usePathname() ?? "";
-  // Active Site Walk task modes own the entire viewport — no app chrome.
-  // /site-walk Home uses V1Shell which provides its own header + bottom nav.
+  const usesContainedHomeLayout = pathname.startsWith("/app");
   const fullBleed =
     pathname === "/site-walk" ||
     pathname.startsWith("/site-walk/capture") ||
@@ -84,12 +103,11 @@ export function AppShell({
     }
   }, []);
 
-  // Global ⌘K / Ctrl+K listener so the palette works from anywhere.
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
-        e.preventDefault();
-        setPaletteOpen((v) => !v);
+    const onKey = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        setPaletteOpen((value) => !value);
       }
     };
     window.addEventListener("keydown", onKey);
@@ -110,83 +128,100 @@ export function AppShell({
 
   return (
     <TooltipProvider>
-     <InviteShareProvider>
-      {fullBleed ? (
-        <div className="fixed inset-0 h-[100dvh] w-full overflow-hidden bg-[#0B0F15] text-slate-50 dark">
-          {children}
-          <GlobalInviteModal data={inviteShareData} />
-        </div>
-      ) : (
-      <div className="dark relative flex h-[100dvh] w-full max-w-full flex-col overflow-hidden bg-[#0B0F15] text-slate-50">
-        <div className="hidden lg:block">
-          <DashboardSidebar
-            isOpen={sidebarOpen}
-            onClose={() => setSidebarOpen(false)}
-            hasOperationsConsoleAccess={hasOperationsConsoleAccess}
-          />
-        </div>
-
-        <Sheet open={mobileSidebarOpen} onOpenChange={setMobileSidebarOpen}>
-          <SheetContent
-            side="left"
-            showCloseButton={false}
-            className="w-64 p-0 !border-white/10 !bg-[#0B0F15] lg:hidden"
-          >
-            <DashboardSidebar
-              isOpen
-              isMobile
-              onClose={() => setMobileSidebarOpen(false)}
-              hasOperationsConsoleAccess={hasOperationsConsoleAccess}
-            />
-          </SheetContent>
-        </Sheet>
-
-        <div className="hidden lg:block">
-          <DashboardTopBar
-            isSidebarOpen={sidebarOpen}
-            userName={userName}
-            isBetaEligible={isBetaEligible}
-            showLogo={!sidebarOpen}
-            onMenuClick={() => {
-              if (typeof window !== "undefined" && window.innerWidth >= 1024) {
-                toggleSidebar();
-              } else {
-                setMobileSidebarOpen(true);
+      <InviteShareProvider>
+        {fullBleed ? (
+          <div className="fixed inset-0 h-[100dvh] w-full overflow-hidden bg-[#0B0F15] text-slate-50 dark">
+            {children}
+            <GlobalInviteModal data={inviteShareData} />
+          </div>
+        ) : (
+          <>
+            <MobileAppShell
+              className="relative"
+              sidebar={
+                <>
+                  <div className="hidden lg:block">
+                    <DashboardSidebar
+                      isOpen={sidebarOpen}
+                      onClose={() => setSidebarOpen(false)}
+                      hasOperationsConsoleAccess={hasOperationsConsoleAccess}
+                    />
+                  </div>
+                  <Sheet open={mobileSidebarOpen} onOpenChange={setMobileSidebarOpen}>
+                    <SheetContent
+                      side="left"
+                      showCloseButton={false}
+                      className="w-64 p-0 !border-white/10 !bg-[#0B0F15] lg:hidden"
+                    >
+                      <DashboardSidebar
+                        isOpen
+                        isMobile
+                        onClose={() => setMobileSidebarOpen(false)}
+                        hasOperationsConsoleAccess={hasOperationsConsoleAccess}
+                      />
+                    </SheetContent>
+                  </Sheet>
+                </>
               }
-            }}
-          />
-        </div>
+              header={
+                <>
+                  <div className="hidden lg:block">
+                    <DashboardTopBar
+                      isSidebarOpen={sidebarOpen}
+                      userName={userName}
+                      isBetaEligible={isBetaEligible}
+                      showLogo={!sidebarOpen}
+                      onMenuClick={() => {
+                        if (typeof window !== "undefined" && window.innerWidth >= 1024) {
+                          toggleSidebar();
+                        } else {
+                          setMobileSidebarOpen(true);
+                        }
+                      }}
+                    />
+                  </div>
+                  <PlatformMobileTopBar
+                    userName={userName}
+                    workspaceName={workspaceName ?? "Slate360"}
+                    isBetaEligible={isBetaEligible}
+                    onSearchClick={() => setPaletteOpen(true)}
+                  />
+                </>
+              }
+              mainClassName={cn(
+                "transition-all duration-300 lg:pt-16",
+                sidebarOpen ? "lg:pl-64" : "lg:pl-0",
+              )}
+              bottomNav={
+                <MobileBottomNav
+                  items={PLATFORM_NAV}
+                  activeKey={activePlatformNavKey(pathname)}
+                />
+              }
+            >
+              <div
+                className={cn(
+                  "min-h-0 flex-1 overscroll-contain scrollbar-none",
+                  usesContainedHomeLayout
+                    ? "flex flex-col overflow-hidden"
+                    : "overflow-y-auto pb-4 lg:pb-0",
+                )}
+              >
+                {children}
+              </div>
+            </MobileAppShell>
 
-        <MobileTopBar
-          userName={userName}
-          workspaceName={workspaceName ?? "Slate360"}
-          isBetaEligible={isBetaEligible}
-          onSearchClick={() => setPaletteOpen(true)}
-        />
-
-        <main
-          className={cn(
-            "flex min-h-0 flex-1 w-full min-w-0 flex-col overflow-hidden bg-[radial-gradient(circle_at_top,rgba(245,158,11,0.07),transparent_32%),#0B0F15] pt-14 pb-[76px] transition-all duration-300",
-            "lg:pt-16 lg:pb-0",
-            sidebarOpen ? "lg:pl-64" : "lg:pl-0"
-          )}
-        >
-          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-4 lg:pb-0 scrollbar-none">{children}</div>
-        </main>
-
-        <MobileBottomNav />
-
-        {paletteOpen && (
-          <CommandPalette
-            open={paletteOpen}
-            onOpenChange={setPaletteOpen}
-            hasOperationsConsoleAccess={hasOperationsConsoleAccess}
-          />
+            {paletteOpen && (
+              <CommandPalette
+                open={paletteOpen}
+                onOpenChange={setPaletteOpen}
+                hasOperationsConsoleAccess={hasOperationsConsoleAccess}
+              />
+            )}
+            <GlobalInviteModal data={inviteShareData} />
+          </>
         )}
-        <GlobalInviteModal data={inviteShareData} />
-      </div>
-      )}
-     </InviteShareProvider>
+      </InviteShareProvider>
     </TooltipProvider>
   );
 }

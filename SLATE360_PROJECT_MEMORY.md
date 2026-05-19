@@ -74,6 +74,45 @@ Do not redesign or simplify `/slatedrop` routes without understanding the folder
 - **Global Slate360 AppShell** visual migration to Graphite Glass + amber still needed — currently uses Dark Glass. Track A owns this.
 - **Site Walk capture review shell** and **Plan Walk viewer shell** both need redesigned V1 wrappers — deferred pending approved slices.
 
+## Session Handoff — 2026-05-20 (Shared Mobile Shell Consolidation — Slice 7)
+### What Changed
+- `components/mobile-system/MobileAppShell.tsx`: New shared viewport/flex shell primitive for mobile app surfaces.
+- `components/mobile-system/MobileTopBar.tsx`: New shared mobile header frame primitive with title/subtitle, back control, and left/right slots.
+- `components/mobile-system/MobileBottomNav.tsx`: New generic in-flow bottom nav primitive. Supports route-link nav (`/app`) and callback/tab nav (`/site-walk`).
+- `components/mobile-system/MobileSection.tsx`: New shared section label/spacing wrapper.
+- `components/mobile-system/index.ts`: Exports new shell primitives.
+- `components/dashboard/AppShell.tsx`: Platform app shell now imports and renders `MobileAppShell` + shared `MobileBottomNav`; `/app` gets a contained flex content region.
+- `components/dashboard/PlatformMobileTopBar.tsx`: New adapter that preserves Invite/Search/Feedback/Notifications/Account behavior while using shared `MobileTopBar` geometry.
+- `components/dashboard/command-center/CommandCenterContent.tsx`: Uses `MobileSection`; activity panel fills a controlled `flex-1 min-h-0` region with `MobileTabbedPanel className="h-full" minHeight="min-h-0"`.
+- `components/walled-garden-dashboard.tsx`: Participates in the flex height chain with `flex min-h-0 flex-1 overflow-hidden`.
+- `components/site-walk/v1/SiteWalkV1Shell.tsx`: Now renders through `MobileAppShell` and the shared `MobileBottomNav` primitive.
+- `components/site-walk/v1/SiteWalkV1Header.tsx`: Now renders through shared `MobileTopBar` while preserving Site Walk actions/avatar/menu behavior.
+- `components/site-walk/v1/SiteWalkV1BottomNav.tsx`: Converted to compatibility adapter over shared `MobileBottomNav`.
+- `components/site-walk/v1/views/HomeView.tsx`: Uses `MobileSection`; list panel now fills controlled row via `className="h-full min-h-0"`.
+- `docs/SLATE360_GRAPHITE_GLASS_DESIGN_SYSTEM.md`: Added shared shell contract + Slice 7 migration entry.
+- `docs/CONCURRENT_DEVELOPMENT_TRACKS.md`: Added Track A mobile shell contract.
+
+### What's Broken / Partially Done
+- Legacy `components/shared/MobileTopBar.tsx` and `components/shared/MobileBottomNav.tsx` still exist but are no longer used by `AppShell`; safe deprecation/removal should be done in a cleanup pass after grep confirms no consumers.
+- `components/site-walk/v1/SiteWalkV1BottomNav.tsx` remains as a compatibility adapter/type source; `SiteWalkV1Shell` uses shared `MobileBottomNav` directly.
+- Site Walk capture/data-entry page not yet built — next slice.
+
+### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md`: This handoff.
+- `docs/SLATE360_GRAPHITE_GLASS_DESIGN_SYSTEM.md`: Shared shell primitives + mandatory contract.
+- `docs/CONCURRENT_DEVELOPMENT_TRACKS.md`: Track A mobile shell contract.
+
+### Cross-Track Safety Check
+- Track: A — AppShell + Site Walk UI System.
+- Branch: `fix/site-walk-panel-scroll-containment`.
+- Files touched: mobile-system primitives, dashboard AppShell/mobile header adapter, `/app` command center wrapper, Site Walk V1 shell/header/nav/home, Track A docs/memory.
+- Did NOT touch: Digital Twin routes/components/APIs/workers, Trigger.dev twin jobs, Supabase migrations, billing backend, middleware, Dashboard V3 desktop layout, Site Walk capture, CameraViewfinder, CaptureClientIsland, PlanViewerLeaflet.
+
+### Next Steps (ordered)
+1. Run full validation: `npm run typecheck`, `npm run build`, `npm run guard:architecture`, `bash scripts/check-file-size.sh`.
+2. Visual smoke `/app` and `/site-walk` on mobile viewport: both should show shared in-flow header/nav rhythm and internally scrolling panels.
+3. Open PR / merge branch per repo guardrails, then begin Site Walk capture UI.
+
 ## Session Handoff — 2026-05-20 (Site Walk Panel Scroll Containment — Slice 6)
 ### What Changed
 - `components/site-walk/v1/SiteWalkV1Shell.tsx`: Changed `<main className="flex-1 overflow-y-auto">` → `<main className="flex-1 min-h-0 flex flex-col overflow-hidden">`. This makes main a flex container (not a scroll container), eliminating the WebKit `height: 100%` bug that made grid `1fr` rows auto-sized.

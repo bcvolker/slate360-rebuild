@@ -15,9 +15,9 @@ import {
   HelpCircle,
   LogOut,
 } from "lucide-react";
-import { SlateLogo } from "@/components/shared/SlateLogo";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { MobileTopBar } from "@/components/mobile-system";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -59,103 +59,66 @@ export function SiteWalkV1Header({
   showBranding = false,
   className,
 }: SiteWalkV1HeaderProps) {
+  const titleText = showBranding ? "Site Walk" : title;
+  const subtitle = showBranding ? "Field Capture" : undefined;
+
   return (
-    <header
-      className={cn(
-        "flex h-14 items-center gap-2 border-b border-white/10 bg-[#0B0F15]/88 px-4 backdrop-blur-md",
-        className,
-      )}
-    >
-      {onBack && (
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          onClick={onBack}
-          aria-label="Go back"
-          className="text-zinc-400 hover:text-white"
-        >
-          <ArrowLeft className="size-5" />
-        </Button>
-      )}
-
-      {/* Brand or title */}
-      {showBranding ? (
-        <div className="flex min-w-0 flex-1 items-center gap-1">
-          <Link
-            href="/app"
-            aria-label="Back to Slate360"
-            className="flex size-9 items-center justify-center rounded-lg text-zinc-400 hover:bg-white/10 hover:text-white transition-colors mr-1"
-          >
-            <ArrowLeft className="size-5" />
-          </Link>
-          <div className="flex flex-col min-w-0">
-            <h1 className="truncate text-[15px] font-black tracking-tight text-white leading-tight">
-              Site Walk
-            </h1>
-            <p className="truncate text-[10px] uppercase tracking-[0.1em] text-amber-500/90 font-bold leading-tight">
-              Field Capture
-            </p>
-          </div>
-        </div>
-      ) : (
-        <h1 className="min-w-0 flex-1 truncate text-base font-semibold text-white">
-          {title}
-        </h1>
-      )}
-
-      {primaryAction && (
-        <Button
-          size="sm"
-          onClick={primaryAction.onClick}
-          className="rounded-lg bg-amber-600 text-white hover:bg-amber-700"
-        >
-          {primaryAction.label}
-        </Button>
-      )}
-
-      {overflowActions && overflowActions.length > 0 && (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
+    <MobileTopBar
+      title={titleText}
+      subtitle={subtitle}
+      backHref={showBranding ? "/app" : undefined}
+      onBack={!showBranding ? onBack : undefined}
+      className={className}
+      rightSlot={
+        <>
+          {primaryAction && (
             <Button
-              variant="ghost"
-              size="icon-sm"
-              aria-label="More actions"
-              className="text-zinc-400 hover:text-white"
+              size="sm"
+              onClick={primaryAction.onClick}
+              className="rounded-lg bg-amber-600 text-white hover:bg-amber-700"
             >
-              <MoreVertical className="size-5" />
+              {primaryAction.label}
             </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent
-            align="end"
-            className="border-white/10 bg-[#0B0F15]"
-          >
-            {overflowActions.map((action) => (
-              <DropdownMenuItem
-                key={action.label}
-                onClick={action.onClick}
-                className={cn(
-                  "text-zinc-300",
-                  action.destructive && "text-red-400",
-                )}
-              >
-                {action.label}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      )}
+          )}
 
-      {/* Tool icons — visible on branded Home header */}
-      {showToolIcons && (
-        <div className="flex items-center -mr-1.5">
-          <ToolIcon icon={Bell} label="Notifications" />
-          <ToolIcon icon={Share2} label="Share" className="hidden min-[400px]:flex" />
-          <ToolIcon icon={MessageSquarePlus} label="Feedback" />
-        </div>
-      )}
+          {overflowActions && overflowActions.length > 0 && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  aria-label="More actions"
+                  className="text-zinc-400 hover:text-white"
+                >
+                  <MoreVertical className="size-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="border-white/10 bg-[#0B0F15]">
+                {overflowActions.map((action) => (
+                  <DropdownMenuItem
+                    key={action.label}
+                    onClick={action.onClick}
+                    className={cn("text-zinc-300", action.destructive && "text-red-400")}
+                  >
+                    {action.label}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
 
-      {showAvatar && <AvatarMenu />}
-    </header>
+          {showToolIcons && (
+            <div className="flex items-center -mr-1.5">
+              <ToolIcon icon={Bell} label="Notifications" />
+              <ToolIcon icon={Share2} label="Share" className="hidden min-[400px]:flex" />
+              <ToolIcon icon={MessageSquarePlus} label="Feedback" />
+            </div>
+          )}
+
+          {showAvatar && <AvatarMenu />}
+        </>
+      }
+    />
   );
 }
 

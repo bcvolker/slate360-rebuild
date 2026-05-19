@@ -120,6 +120,7 @@ When Track B needs a new navigation link or app-shell integration (e.g. "Digital
 
 | Item | Priority |
 |---|---|
+| Shared mobile shell contract (`MobileAppShell`, `MobileTopBar`, `MobileBottomNav`, `MobileSection`) | ✅ Implemented on Track A feature branch |
 | Quick Walk capture idle screen: replace "Capture field proof" with V1 prompt | High |
 | Global Slate360 AppShell V1 design migration (Graphite Glass + amber) | High |
 | Site Walk capture review shell (V1 redesign) | Medium |
@@ -166,6 +167,10 @@ _Track B will add integration requests here. Track A resolves them._
 
 | File / Area | Owner |
 |---|---|
+| `components/mobile-system/MobileAppShell.tsx` | Track A |
+| `components/mobile-system/MobileTopBar.tsx` | Track A |
+| `components/mobile-system/MobileBottomNav.tsx` | Track A |
+| `components/mobile-system/MobileSection.tsx` | Track A |
 | `components/dashboard/AppShell.tsx` | Track A |
 | `components/dashboard/MobileTopBar.tsx` | Track A |
 | `components/dashboard/MobileBottomNav.tsx` | Track A |
@@ -178,6 +183,19 @@ _Track B will add integration requests here. Track A resolves them._
 | `app/api/twin/**` (to be created) | Track B |
 | `src/trigger/twin-*.ts` (to be created) | Track B |
 | `lib/entitlements.ts` | Joint (no unilateral changes) |
+
+---
+
+## Mobile Shell Contract (Track A)
+
+As of the shared mobile shell consolidation, all mobile app surfaces must use the `components/mobile-system/` shell primitives:
+
+- `MobileAppShell` owns viewport height, flex column geometry, safe-area compatible header/nav slots, and overflow boundaries.
+- `MobileTopBar` owns mobile header frame height, border, title/subtitle rhythm, and left/right slot alignment.
+- `MobileBottomNav` owns in-flow bottom navigation geometry, safe-area padding, item sizing, and active state. Use route-link items for platform navigation and callback items for in-memory module tabs.
+- `MobileSection` owns section labels and section spacing.
+
+`/app` and `/site-walk` must not create separate mobile shell/header/bottom-nav systems. Future Site Walk capture UI should compose inside these primitives unless it intentionally enters a full-screen task mode that hides platform/module chrome.
 | `middleware.ts` | Joint (no unilateral changes) |
 | `supabase/migrations/` | Joint (coordinate; no schema changes without the owning track's approval) |
 

@@ -71,7 +71,7 @@ Desktop dashboard and mobile app shells are distinct experiences but must share 
 ## 10. Required Future-Chat Instruction
 **Every new chat working on UI must read this design-system doc plus \`SLATE360_PROJECT_MEMORY.md\` and \`CONCURRENT_DEVELOPMENT_TRACKS.md\` before making UI changes.**
 **Shell family rules (mandatory for every new surface):**
-- Mobile/PWA app pages (`/app`, `/site-walk`, and future apps) → use `mobile-system` primitives + one of the two approved shell families (AppShell or SiteWalkV1Shell)
+- Mobile/PWA app pages (`/app`, `/site-walk`, and future apps) → use `components/mobile-system/MobileAppShell` plus shared `MobileTopBar`, `MobileBottomNav`, `MobileSection`, and panel primitives
 - Desktop dashboard pages → use Dashboard V3 / desktop Graphite Glass patterns
 - Marketing / auth / email pages → use Graphite Glass marketing/auth/email templates
 - Do not create new one-off card/tab/nav/shell systems
@@ -86,6 +86,7 @@ Desktop dashboard and mobile app shells are distinct experiences but must share 
 - **Bottom Nav Clearance (MANDATORY)**: Any screen with a fixed or in-flow bottom nav must reserve clearance equal to nav height + `env(safe-area-inset-bottom)`. **Preferred pattern**: place the nav as a `shrink-0` in-flow item in the shell flex column (not `fixed`), so the `flex-1` main content area automatically stops above it. Do NOT use `pb` workarounds when children use `h-full`. Do NOT use `fixed` bottom nav unless the shell itself is NOT a fixed/full-viewport flex column.
 - **Contained Panel Scroll**: List/activity panels must scroll internally (`overflow-y-auto` inside the panel, `min-h-0` on the panel container). The PAGE must never scroll content under the nav — the PANEL scrolls.
 - **Contained Panel Height Rule (MANDATORY)**: To give a panel a definite height so `overflow-y-auto` works, propagate height via FLEX — NOT via CSS `height: 100%`. Specifically: make the shell `<main>` a `flex flex-col overflow-hidden` container; give the view component `flex-1 min-h-0` so it fills main via flex (not `h-full` percentage); inside the view, use a CSS Grid or flex column where the panel zone is `flex-1` or `1fr`. **Never use `h-full` inside an `overflow-y-auto` scroll container** — WebKit resolves this as `auto`, breaking all `1fr` grid rows inside.
+- **Shared Shell Contract (MANDATORY)**: `/app` and `/site-walk` must both import and render `MobileAppShell` from `components/mobile-system`. Their navs must use the generic `MobileBottomNav` primitive (route-link items for `/app`; in-memory tab items for `/site-walk`). Their section headings must use `MobileSection`. Do not add page-level `fixed` navs, custom bottom padding clearances, or independent header/nav systems for mobile app surfaces.
 - **Cross-Platform**: Desktop pages use the same visual tokens but DO NOT share the exact mobile layout constraints, retaining wider dashboard freedom.
 - **Global Adoption**: All future elements including auth, emails, marketing, and feature modules must implement these Graphite Glass tokens.
 
@@ -96,6 +97,10 @@ The following shared primitives live in `components/mobile-system/`. **Both `/ap
 | Primitive | File | Replaces |
 |---|---|---|
 | `mobileTokens` | `mobileTokens.ts` | Scattered class strings in shell components |
+| `MobileAppShell` | `MobileAppShell.tsx` | Independent `/app` and `/site-walk` height/nav geometry |
+| `MobileTopBar` | `MobileTopBar.tsx` | One-off mobile header frame geometry |
+| `MobileBottomNav` | `MobileBottomNav.tsx` | Fixed platform nav + separate Site Walk tab nav geometry |
+| `MobileSection` | `MobileSection.tsx` | One-off section labels/spacing in mobile home screens |
 | `MobileActionCard` | `MobileActionCard.tsx` | Inline `QuickActionCard` (CommandCenterContent) + `SiteWalkV1ActionGrid` buttons |
 | `MobileActionGrid` | `MobileActionGrid.tsx` | Inline `grid grid-cols-2 gap-3` divs |
 | `MobileAppCard` | `MobileAppCard.tsx` | Inline `AppTile` (CommandCenterContent) — horizontal row, for list use only |
@@ -120,4 +125,5 @@ The following shared primitives live in `components/mobile-system/`. **Both `/ap
 - **Slice 4** ✅ (feat(pwa) commit — May 2026): MobileAppButton created; /app apps use 2-col grid; SiteWalkV1ListPanel delegates to MobileTabbedPanel; HomeView uses MobileEmptyState + grid-rows-[auto_1fr]; blur unified.
 - **Slice 5** ✅ (fix(pwa) commit — May 2026): SiteWalkV1BottomNav moved from `fixed` to in-flow `shrink-0`; nav clearance now handled by flex column geometry. `SiteWalkV1ListPanel` passes `minHeight="min-h-0"` to prevent floor overflow on short viewports. `EmptyList` → `MobileEmptyState` in WorksitesView + SlateDropView.
 - **Slice 6** ✅ (fix(pwa): contained panel scroll — May 2026): Fixed Site Walk list panel scroll containment. Root cause: `<main overflow-y-auto>` in SiteWalkV1Shell caused `height: 100%` (`h-full`) on HomeView's CSS Grid to resolve as `auto` (WebKit bug — percentage heights in `overflow-y-auto` flex items can fail). This made `grid-rows: 1fr` become `auto` → panel grew with content. **Fix**: Changed `<main>` to `flex flex-col overflow-hidden` so HomeView uses `flex-1` (flex propagation, no percentage inheritance). Grid `1fr` row now gets a truly definite height. All non-HomeView views updated to `flex-1 min-h-0 overflow-y-auto` so they scroll within the contained main.
-- **Slice 7** (next): Begin Site Walk capture/data-entry UI build.
+- **Slice 7** ✅ (feat(pwa): shared mobile shell architecture — May 2026): `/app` and `/site-walk` now both render through `MobileAppShell`; both nav systems use shared `MobileBottomNav`; both mobile home screens use `MobileSection`; `/app` activity panel and `/site-walk` list panel both fill a controlled remaining-height region and scroll internally.
+- **Slice 8** (next): Begin Site Walk capture/data-entry UI build.

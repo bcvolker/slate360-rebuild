@@ -7,7 +7,7 @@ import { WalkV1Row } from "@/components/site-walk/v1/WalkV1Row";
 import type { V1NavTab } from "@/components/site-walk/v1/SiteWalkV1BottomNav";
 import type { HubProject, HubSummary, HubWalk } from "@/lib/types/site-walk";
 import { cn } from "@/lib/utils";
-import { MobileEmptyState } from "@/components/mobile-system";
+import { MobileEmptyState, MobileSection } from "@/components/mobile-system";
 import { type RouterLike, timeAgo } from "./v1-view-utils";
 
 type HomeViewProps = {
@@ -44,21 +44,18 @@ export function HomeView({ walks, projects, summary, router, onQuickCapture }: H
       )}
     >
       {/* Zone 1: Command — auto-sized to content */}
-      <div className="shrink-0 flex flex-col gap-y-3">
-        <p className="text-[14px] font-bold uppercase tracking-[0.18em] text-amber-400">
-          Site Walk
-        </p>
+      <MobileSection label="Site Walk" className="shrink-0">
         <SiteWalkV1ActionGrid
           onNewWorksite={() => router.push("/site-walk/setup")}
           onStartWalk={() => router.push("/site-walk/walks")}
           onQuickCapture={onQuickCapture}
           className="!px-0"
         />
-      </div>
+      </MobileSection>
 
       {/* Zone 2: Work panel — fills remaining space */}
       <SiteWalkV1ListPanel
-        className="min-h-0 overflow-hidden"
+        className="h-full min-h-0"
         recentContent={
           recentWalks.length > 0 ? (
             <WalkList walks={recentWalks} router={router} />
