@@ -62,7 +62,7 @@ export function SiteWalkV1Header({
   return (
     <header
       className={cn(
-        "flex h-16 items-center gap-2 border-b border-white/10 bg-[#0B0F15]/88 px-4 backdrop-blur-sm",
+        "flex h-14 items-center gap-2 border-b border-white/10 bg-[#0B0F15]/88 px-4 backdrop-blur-sm",
         className,
       )}
     >
