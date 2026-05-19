@@ -52,7 +52,7 @@ export function SiteWalkV1BottomNav({
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-40 lg:hidden rounded-t-3xl border-t border-white/10 bg-[#0B0F15]/88 shadow-lg backdrop-blur-md flex"
+      className="shrink-0 lg:hidden rounded-t-3xl border-t border-white/10 bg-[#0B0F15]/88 shadow-lg backdrop-blur-md flex"
       style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)", paddingTop: "4px" }}
     >
       <ul className="flex min-h-[70px] flex-1 items-stretch justify-around px-2 w-full">

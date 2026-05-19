@@ -70,15 +70,21 @@ Desktop dashboard and mobile app shells are distinct experiences but must share 
 
 ## 10. Required Future-Chat Instruction
 **Every new chat working on UI must read this design-system doc plus \`SLATE360_PROJECT_MEMORY.md\` and \`CONCURRENT_DEVELOPMENT_TRACKS.md\` before making UI changes.**
-
+**Shell family rules (mandatory for every new surface):**
+- Mobile/PWA app pages (`/app`, `/site-walk`, and future apps) → use `mobile-system` primitives + one of the two approved shell families (AppShell or SiteWalkV1Shell)
+- Desktop dashboard pages → use Dashboard V3 / desktop Graphite Glass patterns
+- Marketing / auth / email pages → use Graphite Glass marketing/auth/email templates
+- Do not create new one-off card/tab/nav/shell systems
+- If a needed shared primitive does not exist, create it in `components/mobile-system/` first, then consume it
 ## 11. Mobile Layout Geometry
 - **Page Padding**: Horizontal padding uses `px-4`. Vertical sections use gaps like `gap-4` or `gap-5`. Content begins closely under headers.
 - **Section Spacing**: Keep dead space to a minimum; use `pt-4` and top anchoring (`justify-start`) unless vertically centering a specific empty state.
 - **Card Radius**: App tiles, quick actions, and panels share rounded, consistent radii (e.g. `rounded-xl` or `rounded-2xl`).
-- **Quick Action Height**: Quick actions maintain a standardized hit target area (`min-h-[90px]`).
+- **Quick Action Height**: Quick actions maintain a standardized hit target area (`min-h-[96px]`).
+- **App Launcher Grid**: App launcher buttons ("Your Apps") use `MobileAppButton` (compact vertical: icon + title + subtitle) inside `MobileActionGrid` (always `grid-cols-2`, no responsive prefix). Single app centers with `col-span-2 mx-auto w-1/2`.
 - **Contained Panel Geometry**: Mobile scrolling lists are held in strict contained viewports to avoid bleed. They maintain standard nested tab heights, strict interior padding (`px-3 pt-2 pb-6`), and identical empty state scales.
-- **Bottom Nav**: Navigators float with safe-area spacing and distinct rounded top corners.
-- **App Cards Layout**: App cards sit symmetrically in a grid (e.g., `sm:grid-cols-2` scaling) sharing common icons and descriptions.
+- **Bottom Nav Clearance (MANDATORY)**: Any screen with a fixed or in-flow bottom nav must reserve clearance equal to nav height + `env(safe-area-inset-bottom)`. **Preferred pattern**: place the nav as a `shrink-0` in-flow item in the shell flex column (not `fixed`), so the `flex-1` main content area automatically stops above it. Do NOT use `pb` workarounds when children use `h-full`. Do NOT use `fixed` bottom nav unless the shell itself is NOT a fixed/full-viewport flex column.
+- **Contained Panel Scroll**: List/activity panels must scroll internally (`overflow-y-auto` inside the panel, `min-h-0` on the panel container). The PAGE must never scroll content under the nav — the PANEL scrolls.
 - **Cross-Platform**: Desktop pages use the same visual tokens but DO NOT share the exact mobile layout constraints, retaining wider dashboard freedom.
 - **Global Adoption**: All future elements including auth, emails, marketing, and feature modules must implement these Graphite Glass tokens.
 
@@ -91,7 +97,8 @@ The following shared primitives live in `components/mobile-system/`. **Both `/ap
 | `mobileTokens` | `mobileTokens.ts` | Scattered class strings in shell components |
 | `MobileActionCard` | `MobileActionCard.tsx` | Inline `QuickActionCard` (CommandCenterContent) + `SiteWalkV1ActionGrid` buttons |
 | `MobileActionGrid` | `MobileActionGrid.tsx` | Inline `grid grid-cols-2 gap-3` divs |
-| `MobileAppCard` | `MobileAppCard.tsx` | Inline `AppTile` (CommandCenterContent) |
+| `MobileAppCard` | `MobileAppCard.tsx` | Inline `AppTile` (CommandCenterContent) — horizontal row, for list use only |
+| `MobileAppButton` | `MobileAppButton.tsx` | App launcher 2-col grid button (vertical: icon + title + subtitle) |
 | `MobileTabbedPanel` | `MobileTabbedPanel.tsx` | Inline Tabs in CommandCenterContent + `SiteWalkV1ListPanel` |
 | `MobileEmptyState` | `MobileEmptyState.tsx` | Inline `ActivityEmptyState` + `EmptyList` utility |
 
@@ -106,8 +113,9 @@ The following shared primitives live in `components/mobile-system/`. **Both `/ap
 - Empty state padding: `py-8`
 
 ### Migration Status
-- **Slice 1** (current): Primitives created. No consumers changed.
-- **Slice 2** (next): Migrate `/app` `CommandCenterContent` to use shared primitives.
-- **Slice 3** (after Slice 2): Migrate `/site-walk` home shell to use shared primitives.
-- **Slice 4**: Screenshot QA on physical device.
-- **Slice 5**: Begin Site Walk capture/data-entry UI.
+- **Slice 1** ✅ (b7da100 — May 2026): Primitives created. No consumers changed.
+- **Slice 2** ✅ (88134a9): `/app` CommandCenterContent fully migrated to all 5 shared primitives.
+- **Slice 3** ✅ (84f1037): Site Walk header h-14, SiteWalkV1ActionGrid migrated, list panel border fixed.
+- **Slice 4** ✅ (feat(pwa) commit — May 2026): MobileAppButton created; /app apps use 2-col grid; SiteWalkV1ListPanel delegates to MobileTabbedPanel; HomeView uses MobileEmptyState + grid-rows-[auto_1fr]; blur unified.
+- **Slice 5** ✅ (fix(pwa) commit — May 2026): SiteWalkV1BottomNav moved from `fixed` to in-flow `shrink-0`; nav clearance now handled by flex column geometry.
+- **Slice 6** (next): Begin Site Walk capture/data-entry UI build.
