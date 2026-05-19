@@ -1,8 +1,29 @@
 const fs = require('fs');
-let content = fs.readFileSync('SLATE360_PROJECT_MEMORY.md', 'utf8');
-const lines = content.split('\n');
-const idx = lines.findIndex(l => l.startsWith('## Latest Session Handoff'));
-if(idx !== -1) {
-  content = lines.slice(0, idx).join('\n') + '\n## Latest Session Handoff — ' + new Date().toISOString().split('T')[0] + '\n\n### What Changed\n- `src/trigger/rasterize.ts`: Removed `@napi-rs/canvas`, switched to standard `canvas`, injected `DOMMatrix` and `ImageData` polyfills, and deferred `pdfjs-dist` to conditional dynamic imports so it passes the Trigger bundle phase.\n- `trigger.config.ts`: Added exact linux bindings for Cairo/Pango via `systemDependencies: ["libcairo2-dev", "libpango1.0-dev", "libjpeg-dev", "libgif-dev", "librsvg2-dev"]`.\n- `components/site-walk/capture/PlanToolbar.tsx`: Stripped standard layout format and fixed it as an absolute `<div className="absolute top-12 inset-x-2 z-50 pointer-events-none">` floating directly over the Leaflet map.\n- `components/site-walk/capture/VisualCaptureView.tsx`: Extracted Unified Bottom Rail to rigidly stick to `bottom-0` and set `pr-[160px]` padding to completely dodge the floating `CaptureDataBottomSheet` FAB.\n\n### What\'s Broken / Partially Done\n- All requested critical overrides are fully executed and actively deployed. The Vercel PDF block limit issue was successfully conquered via `trigger.dev` and all Native C++ compile errors have been routed around.\n\n### Context Files Updated\n- `SLATE360_PROJECT_MEMORY.md`: Logged success condition of the Enterprise Pipeline.\n\n### Next Steps\n1. Field-Test Mobile App on physical iOS device for canvas rendering success inside background workers via S3 polling.\n2. Expand Trigger worker to dispatch WebSocket / Revalidation hooks so the client automatically updates its state without manual refreshing.\n';
-  fs.writeFileSync('SLATE360_PROJECT_MEMORY.md', content);
+
+function addNote(file, note) {
+  if (fs.existsSync(file)) {
+    let content = fs.readFileSync(file, 'utf8');
+    if (!content.includes('Graphite Glass')) {
+      content = content + '\n' + note + '\n';
+      fs.writeFileSync(file, content);
+    }
+  }
 }
+
+const uiNote = `
+### UI / Design System Status (May 2026)
+1. Dashboard V3 is live desktop.
+2. \`/app\` is the mobile/PWA Slate360 shell.
+3. \`/site-walk\` is the Site Walk shell.
+4. Slate360 Graphite Glass design system is now the UI source of truth (\`docs/SLATE360_GRAPHITE_GLASS_DESIGN_SYSTEM.md\`).
+5. Future UI pages must follow the design-system contract.
+6. Avoid navy/brown drift and excessive amber fills.
+7. Track A owns app-shell/Site Walk UI.
+8. Track B owns Digital Twin and must align visually without touching Track A UI files.
+`;
+
+addNote('SLATE360_PROJECT_MEMORY.md', uiNote);
+addNote('docs/CONCURRENT_DEVELOPMENT_TRACKS.md', uiNote);
+addNote('SLATE360_MASTER_BUILD_PLAN.md', uiNote);
+
+console.log("Docs updated with UI notes");

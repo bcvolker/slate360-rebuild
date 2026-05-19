@@ -62,7 +62,7 @@ export function SiteWalkV1Header({
   return (
     <header
       className={cn(
-        "flex h-16 items-center gap-2 border-b border-white/10 bg-zinc-900/80 px-4 backdrop-blur-sm",
+        "flex h-16 items-center gap-2 border-b border-white/10 bg-[#0B0F15]/88 px-4 backdrop-blur-sm",
         className,
       )}
     >
@@ -127,7 +127,7 @@ export function SiteWalkV1Header({
           </DropdownMenuTrigger>
           <DropdownMenuContent
             align="end"
-            className="border-white/10 bg-zinc-900"
+            className="border-white/10 bg-[#0B0F15]"
           >
             {overflowActions.map((action) => (
               <DropdownMenuItem
@@ -200,7 +200,7 @@ function AvatarMenu() {
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="end"
-        className="min-w-[180px] border-white/10 bg-zinc-900"
+        className="min-w-[180px] border-white/10 bg-[#0B0F15]"
       >
         <DropdownMenuItem className="gap-2 text-zinc-300">
           <User className="size-4" /> Account
