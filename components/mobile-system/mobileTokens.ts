@@ -8,6 +8,9 @@
  * If a value needs updating, update it here and it applies everywhere.
  */
 
+const mobileTabbedPanelScrollBody = "min-h-0 flex-1 overflow-y-auto";
+const mobileTabbedPanelBodyPadding = "px-3 pt-2 pb-6";
+
 export const mobileTokens = {
   // ── Canvas ───────────────────────────────────────────────────────────────
   /** Base page background (graphite). Use as bg-[#0B0F15]. */
@@ -16,6 +19,8 @@ export const mobileTokens = {
   // ── Layout ───────────────────────────────────────────────────────────────
   pagePaddingX: "px-4",
   sectionGap: "gap-4",
+  mobileHomeSectionGap: "gap-3",
+  mobilePanelBottomGap: "pb-3",
 
   // ── Section label (e.g. "YOUR APPS", "QUICK ACTIONS") ────────────────────
   sectionLabel:
@@ -27,6 +32,7 @@ export const mobileTokens = {
    * Adopted size: 96px.
    */
   actionCardHeight: "min-h-[96px]",
+  mobileActionCardHeight: "min-h-[96px]",
   actionCardBase:
     "flex flex-col items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] text-zinc-300 transition-colors hover:border-amber-500/25 hover:bg-white/[0.08] hover:text-white active:bg-white/[0.12]",
 
@@ -50,6 +56,7 @@ export const mobileTokens = {
   /** Compact vertical card: icon top, title + subtitle below. Lives in MobileActionGrid. */
   appButtonBase:
     "flex flex-col items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-4 text-center transition-colors hover:border-amber-500/25 hover:bg-white/[0.08] active:bg-white/[0.12]",
+  mobileAppButtonHeight: "min-h-[104px]",
   appButtonIconWrapper:
     "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/15 text-amber-400",
   appButtonIconClass: "h-5 w-5",
@@ -65,11 +72,14 @@ export const mobileTokens = {
    */
   panelTabTrigger:
     "flex-1 rounded-none border-b-2 border-transparent py-2 text-[12px] font-medium text-zinc-500 transition-colors data-[state=active]:border-amber-500 data-[state=active]:bg-transparent data-[state=active]:text-white data-[state=active]:shadow-none",
-  panelContent: "min-h-0 flex-1 overflow-y-auto px-3 pt-2 pb-6",
+  mobileEmptyPanelHeight: "h-[clamp(180px,26dvh,240px)]",
+  mobileListPanelHeight: "h-full max-h-[min(40dvh,380px)]",
+  mobileTabbedPanelBodyPadding,
+  mobileTabbedPanelScrollBody,
+  panelContent: `${mobileTabbedPanelScrollBody} ${mobileTabbedPanelBodyPadding}`,
   panelBottomFade:
     "pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-[#0B0F15]/90 to-transparent",
-  moduleListPanelFrame: "h-full max-h-[min(34dvh,320px)]",
-  moduleListPanelContent: "pb-10",
+  moduleListPanelContent: "pb-12",
 
   // ── Empty state ───────────────────────────────────────────────────────────
   emptyStateWrapper:

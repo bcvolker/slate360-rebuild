@@ -7,7 +7,7 @@ import { WalkV1Row } from "@/components/site-walk/v1/WalkV1Row";
 import type { V1NavTab } from "@/components/site-walk/v1/SiteWalkV1BottomNav";
 import type { HubProject, HubSummary, HubWalk } from "@/lib/types/site-walk";
 import { cn } from "@/lib/utils";
-import { MobileEmptyState, MobileSection } from "@/components/mobile-system";
+import { MobileEmptyState, MobileSection, mobileTokens } from "@/components/mobile-system";
 import { type RouterLike, timeAgo } from "./v1-view-utils";
 
 type HomeViewProps = {
@@ -36,7 +36,9 @@ export function HomeView({ walks, projects, summary, router, onQuickCapture }: H
     <div
       className={cn(
         /* flex-1 fills main's flex-col — no h-full percentage chain needed */
-        "flex-1 min-h-0 grid gap-y-3 px-4 pt-3 pb-3",
+        "flex-1 min-h-0 grid px-4 pt-3",
+        mobileTokens.mobileHomeSectionGap,
+        mobileTokens.mobilePanelBottomGap,
         /* Portrait: Zone 1 auto-sized, Zone 2 fills remaining space */
         "grid-rows-[auto_1fr]",
         /* Landscape: side-by-side when viewport is short */

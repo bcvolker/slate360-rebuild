@@ -74,6 +74,38 @@ Do not redesign or simplify `/slatedrop` routes without understanding the folder
 - **Global Slate360 AppShell** visual migration to Graphite Glass + amber still needed — currently uses Dark Glass. Track A owns this.
 - **Site Walk capture review shell** and **Plan Walk viewer shell** both need redesigned V1 wrappers — deferred pending approved slices.
 
+## Session Handoff — 2026-05-20 (Mobile Home Panel Sizing Calibration — Slice 9)
+### What Changed
+- `components/mobile-system/mobileTokens.ts`: Added/refined shared sizing tokens: `mobileHomeSectionGap`, `mobileActionCardHeight`, `mobileAppButtonHeight`, `mobileEmptyPanelHeight`, `mobileListPanelHeight`, `mobilePanelBottomGap`, `mobileTabbedPanelBodyPadding`, `mobileTabbedPanelScrollBody`. Relaxed list panel sizing from `34dvh/320px` to `40dvh/380px`; increased module scroll body bottom padding to `pb-12`.
+- `components/mobile-system/MobileActionCard.tsx`: Uses `mobileTokens.mobileActionCardHeight`.
+- `components/mobile-system/MobileAppButton.tsx`: Uses `mobileTokens.mobileAppButtonHeight`.
+- `components/dashboard/command-center/CommandCenterContent.tsx`: `/app` home uses `mobileTokens.mobileHomeSectionGap`; activity panel changed from remaining-space `h-full` inside `flex-1` section to compact `mobileTokens.mobileEmptyPanelHeight` inside a `shrink-0` section.
+- `components/site-walk/v1/views/HomeView.tsx`: Uses `mobileTokens.mobileHomeSectionGap` and `mobileTokens.mobilePanelBottomGap` for shared home rhythm.
+- `docs/SLATE360_GRAPHITE_GLASS_DESIGN_SYSTEM.md`: Added Mobile Home Visual Rhythm Rule and Slice 9 migration note.
+
+### Root Cause Fixed
+- `/app` activity panel was visually too tall because it used the full remaining shell height (`MobileSection min-h-0 flex-1` + `MobileTabbedPanel className="h-full"`) even for empty states.
+- `/site-walk` list panel became too constrained because the previous `max-h-[min(34dvh,320px)]` cap was too aggressive for 72px list rows. The updated list cap is `max-h-[min(40dvh,380px)]`, with extra internal bottom padding so rows can scroll above the fade.
+
+### What's Broken / Partially Done
+- Needs visual phone verification on PR #22 preview after Vercel deploys this commit.
+- Broader whole-product design-system unification remains partial outside the mobile app shell and Site Walk home surfaces.
+
+### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md`: This handoff.
+- `docs/SLATE360_GRAPHITE_GLASS_DESIGN_SYSTEM.md`: Mobile Home Visual Rhythm Rule.
+
+### Cross-Track Safety Check
+- Track: A — AppShell + Site Walk UI System.
+- Branch: `fix/site-walk-panel-scroll-containment`.
+- Files touched: `components/mobile-system/mobileTokens.ts`, `components/mobile-system/MobileActionCard.tsx`, `components/mobile-system/MobileAppButton.tsx`, `components/dashboard/command-center/CommandCenterContent.tsx`, `components/site-walk/v1/views/HomeView.tsx`, `docs/SLATE360_GRAPHITE_GLASS_DESIGN_SYSTEM.md`, `SLATE360_PROJECT_MEMORY.md`.
+- Did NOT touch: Digital Twin, Trigger.dev, Supabase migrations, billing backend, middleware, routes, Dashboard V3 desktop layout, Site Walk capture, CameraViewfinder, CaptureClientIsland, PlanViewerLeaflet.
+
+### Next Steps (ordered)
+1. Validate: `npm run typecheck`, `npm run build`, `npm run guard:architecture`, `bash scripts/check-file-size.sh`.
+2. Review and push PR branch.
+3. Test `/app` and `/site-walk` on PR preview with cache-bust query and confirm the empty panel is compact while the list panel shows comfortable rows.
+
 ## Session Handoff — 2026-05-20 (Site Walk List Panel Cap — Slice 8)
 ### What Changed
 - `components/mobile-system/mobileTokens.ts`: Added `moduleListPanelFrame: "h-full max-h-[min(34dvh,320px)]"` and `moduleListPanelContent: "pb-10"`.

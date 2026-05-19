@@ -38,7 +38,7 @@ export function MobileActionCard({
 }: MobileActionCardProps) {
   const base = cn(
     mobileTokens.actionCardBase,
-    mobileTokens.actionCardHeight,
+    mobileTokens.mobileActionCardHeight,
     mobileTokens.focusRing,
     disabled && "pointer-events-none opacity-50",
     className,

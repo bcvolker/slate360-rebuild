@@ -86,7 +86,8 @@ Desktop dashboard and mobile app shells are distinct experiences but must share 
 - **Bottom Nav Clearance (MANDATORY)**: Any screen with a fixed or in-flow bottom nav must reserve clearance equal to nav height + `env(safe-area-inset-bottom)`. **Preferred pattern**: place the nav as a `shrink-0` in-flow item in the shell flex column (not `fixed`), so the `flex-1` main content area automatically stops above it. Do NOT use `pb` workarounds when children use `h-full`. Do NOT use `fixed` bottom nav unless the shell itself is NOT a fixed/full-viewport flex column.
 - **Contained Panel Scroll**: List/activity panels must scroll internally (`overflow-y-auto` inside the panel, `min-h-0` on the panel container). The PAGE must never scroll content under the nav — the PANEL scrolls.
 - **Contained Panel Height Rule (MANDATORY)**: To give a panel a definite height so `overflow-y-auto` works, propagate height via FLEX — NOT via CSS `height: 100%`. Specifically: make the shell `<main>` a `flex flex-col overflow-hidden` container; give the view component `flex-1 min-h-0` so it fills main via flex (not `h-full` percentage); inside the view, use a CSS Grid or flex column where the panel zone is `flex-1` or `1fr`. **Never use `h-full` inside an `overflow-y-auto` scroll container** — WebKit resolves this as `auto`, breaking all `1fr` grid rows inside.
-- **Mobile Module List Panel Cap (MANDATORY)**: Populated module-home list panels must use a capped visible frame and internal body scroll. Use `mobileTokens.moduleListPanelFrame` (`h-full max-h-[min(34dvh,320px)]`) on the panel frame and keep row content inside `MobileTabbedPanel`'s `overflow-y-auto` body. This prevents a real row list from visually dominating the viewport while preserving the same contained-panel rhythm as `/app` activity panels.
+- **Mobile Home Visual Rhythm Rule (MANDATORY)**: App home screens may have different content, but must share sizing tokens. Empty panels use `mobileTokens.mobileEmptyPanelHeight` so they feel useful without becoming huge blank cards. Populated module list panels use `mobileTokens.mobileListPanelHeight` so they show roughly 3–4 useful rows on iPhone-sized screens and scroll internally. Panels must end above the bottom nav with clear breathing room, avoiding both extremes: oversized empty panels and clipped list panels.
+- **Mobile Module List Panel Cap (MANDATORY)**: Populated module-home list panels must use a capped visible frame and internal body scroll. Use `mobileTokens.mobileListPanelHeight` (`h-full max-h-[min(40dvh,380px)]`) on the panel frame and keep row content inside `MobileTabbedPanel`'s `overflow-y-auto` body. This prevents a real row list from visually dominating the viewport while preserving the same contained-panel rhythm as `/app` activity panels.
 - **Shared Shell Contract (MANDATORY)**: `/app` and `/site-walk` must both import and render `MobileAppShell` from `components/mobile-system`. Their navs must use the generic `MobileBottomNav` primitive (route-link items for `/app`; in-memory tab items for `/site-walk`). Their section headings must use `MobileSection`. Do not add page-level `fixed` navs, custom bottom padding clearances, or independent header/nav systems for mobile app surfaces.
 - **Cross-Platform**: Desktop pages use the same visual tokens but DO NOT share the exact mobile layout constraints, retaining wider dashboard freedom.
 - **Global Adoption**: All future elements including auth, emails, marketing, and feature modules must implement these Graphite Glass tokens.
@@ -111,12 +112,16 @@ The following shared primitives live in `components/mobile-system/`. **Both `/ap
 
 ### Token Values (Slice 1 — May 2026)
 - Action card height: `min-h-[96px]` (unified from /app 90px and /site-walk 100px)
+- App button height: `min-h-[104px]`
+- Mobile home section gap: `gap-3`
 - Action icon: `h-7 w-7` / `size-7` (unified to 28px for iPhone readability)
 - Action label: `text-[13px] font-medium`
 - Panel border: `border-white/10`
 - Panel background: `bg-white/[0.03]`
 - Panel tab height: `h-9`
-- Module list panel cap: `h-full max-h-[min(34dvh,320px)]`
+- Empty panel height: `h-[clamp(180px,26dvh,240px)]`
+- Module list panel cap: `h-full max-h-[min(40dvh,380px)]`
+- Tabbed panel body: `min-h-0 flex-1 overflow-y-auto px-3 pt-2 pb-6`
 - Active tab: `border-b-2 border-amber-500 text-white`
 - Empty state padding: `py-8`
 
@@ -129,4 +134,5 @@ The following shared primitives live in `components/mobile-system/`. **Both `/ap
 - **Slice 6** ✅ (fix(pwa): contained panel scroll — May 2026): Fixed Site Walk list panel scroll containment. Root cause: `<main overflow-y-auto>` in SiteWalkV1Shell caused `height: 100%` (`h-full`) on HomeView's CSS Grid to resolve as `auto` (WebKit bug — percentage heights in `overflow-y-auto` flex items can fail). This made `grid-rows: 1fr` become `auto` → panel grew with content. **Fix**: Changed `<main>` to `flex flex-col overflow-hidden` so HomeView uses `flex-1` (flex propagation, no percentage inheritance). Grid `1fr` row now gets a truly definite height. All non-HomeView views updated to `flex-1 min-h-0 overflow-y-auto` so they scroll within the contained main.
 - **Slice 7** ✅ (feat(pwa): shared mobile shell architecture — May 2026): `/app` and `/site-walk` now both render through `MobileAppShell`; both nav systems use shared `MobileBottomNav`; both mobile home screens use `MobileSection`; `/app` activity panel and `/site-walk` list panel both fill a controlled remaining-height region and scroll internally.
 - **Slice 8** ✅ (fix(pwa): cap Site Walk home list panel height — May 2026): Added `mobileTokens.moduleListPanelFrame` and applied it to `SiteWalkV1ListPanel` so populated Site Walk lists cap their visible frame at `min(34dvh,320px)` and continue scrolling rows internally. Added `MobileTabbedPanel.bodyClassName` to give module-list bodies extra bottom scroll padding without changing `/app`.
-- **Slice 9** (next): Begin Site Walk capture/data-entry UI build.
+- **Slice 9** ✅ (fix(pwa): calibrate mobile home panel sizing — May 2026): Added shared mobile home sizing tokens (`mobileHomeSectionGap`, `mobileActionCardHeight`, `mobileAppButtonHeight`, `mobileEmptyPanelHeight`, `mobileListPanelHeight`, `mobilePanelBottomGap`, `mobileTabbedPanelBodyPadding`, `mobileTabbedPanelScrollBody`). `/app` activity panel now uses compact empty-panel height instead of filling all remaining space. `/site-walk` list panel cap relaxed from `34dvh/320px` to `40dvh/380px` with more scroll-body bottom padding.
+- **Slice 10** (next): Begin Site Walk capture/data-entry UI build.

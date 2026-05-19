@@ -4,6 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { MapPin, Plus, Search, Bell, MessageSquare, ClipboardList, Clock, Box, FolderOpen } from "lucide-react";
 import type { Entitlements } from "@/lib/entitlements";
+import { cn } from "@/lib/utils";
 import {
   MobileActionCard,
   MobileActionGrid,
@@ -11,6 +12,7 @@ import {
   MobileSection,
   MobileTabbedPanel,
   MobileEmptyState,
+  mobileTokens,
 } from "@/components/mobile-system";
 import type { MobilePanelTab } from "@/components/mobile-system";
 
@@ -65,7 +67,7 @@ export function CommandCenterContent({
   const appCount = (hasSiteWalk ? 1 : 0) + (isSlateCeo ? 1 : 0);
 
   return (
-    <div className="mx-auto flex min-h-0 w-full max-w-2xl flex-1 flex-col gap-4 overflow-hidden px-4 py-4">
+    <div className={cn("mx-auto flex min-h-0 w-full max-w-2xl flex-1 flex-col overflow-hidden px-4 py-4", mobileTokens.mobileHomeSectionGap)}>
 
       {/* ── Section 1: Your Apps ── */}
       <MobileSection label="Your Apps" className="shrink-0">
@@ -128,12 +130,12 @@ export function CommandCenterContent({
       </MobileSection>
 
       {/* ── Section 3: Activity Panel ── */}
-      <MobileSection className="min-h-0 flex-1" contentClassName="h-full min-h-0">
+      <MobileSection className="shrink-0" contentClassName="min-h-0">
         <MobileTabbedPanel
           tabs={ACTIVITY_TABS}
           defaultTab="notifications"
           minHeight="min-h-0"
-          className="h-full"
+          className={mobileTokens.mobileEmptyPanelHeight}
         />
       </MobileSection>
     </div>

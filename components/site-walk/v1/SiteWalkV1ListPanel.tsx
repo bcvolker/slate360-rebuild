@@ -43,7 +43,7 @@ export function SiteWalkV1ListPanel({
       tabs={tabs}
       defaultTab={defaultTab}
       minHeight="min-h-0"
-      className={cn(mobileTokens.moduleListPanelFrame, className)}
+      className={cn(mobileTokens.mobileListPanelHeight, className)}
       bodyClassName={mobileTokens.moduleListPanelContent}
     />
   );
