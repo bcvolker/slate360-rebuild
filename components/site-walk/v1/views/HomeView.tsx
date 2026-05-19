@@ -42,7 +42,7 @@ export function HomeView({ walks, projects, summary, router, onQuickCapture }: H
       )}
     >
       {/* Zone 1: Command — grows to fill available space */}
-      <div className="flex min-h-0 flex-col justify-center gap-y-5">
+      <div className="flex min-h-0 flex-col justify-start gap-y-5 pt-4">
         <p className="text-[14px] font-bold uppercase tracking-[0.18em] text-amber-400">
           Site Walk
         </p>

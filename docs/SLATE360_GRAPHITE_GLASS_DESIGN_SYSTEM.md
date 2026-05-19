@@ -70,3 +70,14 @@ Desktop dashboard and mobile app shells are distinct experiences but must share 
 
 ## 10. Required Future-Chat Instruction
 **Every new chat working on UI must read this design-system doc plus \`SLATE360_PROJECT_MEMORY.md\` and \`CONCURRENT_DEVELOPMENT_TRACKS.md\` before making UI changes.**
+
+## 11. Mobile Layout Geometry
+- **Page Padding**: Horizontal padding uses `px-4`. Vertical sections use gaps like `gap-4` or `gap-5`. Content begins closely under headers.
+- **Section Spacing**: Keep dead space to a minimum; use `pt-4` and top anchoring (`justify-start`) unless vertically centering a specific empty state.
+- **Card Radius**: App tiles, quick actions, and panels share rounded, consistent radii (e.g. `rounded-xl` or `rounded-2xl`).
+- **Quick Action Height**: Quick actions maintain a standardized hit target area (`min-h-[90px]`).
+- **Contained Panel Geometry**: Mobile scrolling lists are held in strict contained viewports to avoid bleed. They maintain standard nested tab heights, strict interior padding (`px-3 pt-2 pb-6`), and identical empty state scales.
+- **Bottom Nav**: Navigators float with safe-area spacing and distinct rounded top corners.
+- **App Cards Layout**: App cards sit symmetrically in a grid (e.g., `sm:grid-cols-2` scaling) sharing common icons and descriptions.
+- **Cross-Platform**: Desktop pages use the same visual tokens but DO NOT share the exact mobile layout constraints, retaining wider dashboard freedom.
+- **Global Adoption**: All future elements including auth, emails, marketing, and feature modules must implement these Graphite Glass tokens.

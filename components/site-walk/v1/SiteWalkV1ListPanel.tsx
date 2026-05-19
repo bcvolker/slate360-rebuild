@@ -40,7 +40,7 @@ export function SiteWalkV1ListPanel({
   return (
     <div
       className={cn(
-        "relative flex flex-col overflow-hidden rounded-xl border border-white/6 bg-zinc-900/40",
+        "relative flex flex-col overflow-hidden rounded-xl border border-white/6 bg-white/[0.03]",
         className,
       )}
     >
@@ -73,7 +73,7 @@ export function SiteWalkV1ListPanel({
       </Tabs>
 
       {/* Bottom fade — scroll affordance */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-zinc-900/90 to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-[#0B0F15]/90 to-transparent" />
     </div>
   );
 }

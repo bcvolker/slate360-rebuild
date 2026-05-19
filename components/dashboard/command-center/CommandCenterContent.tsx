@@ -42,7 +42,7 @@ export function CommandCenterContent({
         <p className="mb-2 text-[10px] font-black uppercase tracking-[0.18em] text-amber-400">
           Your Apps
         </p>
-        <div className="grid gap-3">
+        <div className="grid gap-3 sm:grid-cols-2">
           {/* Site Walk — shown if entitlement present */}
           {hasSiteWalk && (
             <AppTile
@@ -52,15 +52,14 @@ export function CommandCenterContent({
               icon={MapPin}
             />
           )}
-          {/*
-           * Slate360 Twin tile intentionally omitted.
-           * Track B must provide a real route (e.g. /ceo/twin) before this tile
-           * can be wired. Once Track B ships:
-           *   1. Add a real href here (e.g. href="/ceo/twin").
-           *   2. Gate with isSlateCeo (already passed as prop).
-           *   3. Remove this comment block.
-           * Do NOT add a placeholder or Coming Soon tile.
-           */}
+          {isSlateCeo && (
+            <AppTile
+              href="#"
+              name="Slate360 Twin"
+              tagline="Owner Preview"
+              icon={Box}
+            />
+          )}
           {/* No apps available */}
           {!hasSiteWalk && (
             <div className="col-span-full rounded-2xl border border-dashed border-white/10 px-4 py-8 text-center text-sm text-slate-500">
@@ -104,7 +103,7 @@ export function CommandCenterContent({
 
       {/* ── Section 3: Activity Panel ── */}
       <section className="min-h-0 flex-1">
-        <div className="relative flex flex-col overflow-hidden rounded-xl border border-white/6 bg-zinc-900/40 min-h-[260px]">
+        <div className="relative flex flex-col overflow-hidden rounded-xl border border-white/6 bg-white/[0.03] min-h-[260px]">
           <Tabs defaultValue="notifications" className="flex min-h-0 flex-1 flex-col">
             <div className="shrink-0 border-b border-white/5 px-3">
               <TabsList className="h-9 w-full bg-transparent p-0">
@@ -130,7 +129,7 @@ export function CommandCenterContent({
             ))}
           </Tabs>
           {/* Bottom fade — scroll affordance */}
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-zinc-900/90 to-transparent" />
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-[#0B0F15]/90 to-transparent" />
         </div>
       </section>
     </div>
