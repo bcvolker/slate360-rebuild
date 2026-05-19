@@ -93,7 +93,7 @@ export function SiteWalkV1Shell({
           showBranding={activeTab === "home"}
         />
 
-        <main className={cn("flex-1 overflow-y-auto", className)}>
+        <main className={cn("flex-1 min-h-0 flex flex-col overflow-hidden", className)}>
           {children}
         </main>
 

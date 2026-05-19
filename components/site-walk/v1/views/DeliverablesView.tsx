@@ -29,7 +29,7 @@ const categories: { icon: typeof FileText; label: string }[] = [
 
 export function DeliverablesView({ router }: { router: RouterLike }) {
   return (
-    <div className="flex flex-col gap-4 p-4">
+    <div className="flex-1 min-h-0 overflow-y-auto flex flex-col gap-4 p-4">
       <div className="flex items-center justify-between">
         <p className="text-sm font-medium text-zinc-300">Deliverables</p>
         <Button

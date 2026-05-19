@@ -35,7 +35,8 @@ export function HomeView({ walks, projects, summary, router, onQuickCapture }: H
   return (
     <div
       className={cn(
-        "grid h-full min-h-0 gap-y-3 px-4 pb-3",
+        /* flex-1 fills main's flex-col — no h-full percentage chain needed */
+        "flex-1 min-h-0 grid gap-y-3 px-4 pt-3 pb-3",
         /* Portrait: Zone 1 auto-sized, Zone 2 fills remaining space */
         "grid-rows-[auto_1fr]",
         /* Landscape: side-by-side when viewport is short */
@@ -43,7 +44,7 @@ export function HomeView({ walks, projects, summary, router, onQuickCapture }: H
       )}
     >
       {/* Zone 1: Command — auto-sized to content */}
-      <div className="flex min-h-0 flex-col justify-start gap-y-3 pt-3">
+      <div className="shrink-0 flex flex-col gap-y-3">
         <p className="text-[14px] font-bold uppercase tracking-[0.18em] text-amber-400">
           Site Walk
         </p>

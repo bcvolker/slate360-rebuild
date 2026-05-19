@@ -56,7 +56,7 @@ const sections: {
 
 export function CoordinationView({ router }: { router: RouterLike }) {
   return (
-    <div className="flex flex-col gap-2 p-4">
+    <div className="flex-1 min-h-0 overflow-y-auto flex flex-col gap-2 p-4">
       {sections.map(({ icon: Icon, label, desc, href }) => (
         <button
           key={label}

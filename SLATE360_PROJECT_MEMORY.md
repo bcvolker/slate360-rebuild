@@ -74,6 +74,38 @@ Do not redesign or simplify `/slatedrop` routes without understanding the folder
 - **Global Slate360 AppShell** visual migration to Graphite Glass + amber still needed — currently uses Dark Glass. Track A owns this.
 - **Site Walk capture review shell** and **Plan Walk viewer shell** both need redesigned V1 wrappers — deferred pending approved slices.
 
+## Session Handoff — 2026-05-20 (Site Walk Panel Scroll Containment — Slice 6)
+### What Changed
+- `components/site-walk/v1/SiteWalkV1Shell.tsx`: Changed `<main className="flex-1 overflow-y-auto">` → `<main className="flex-1 min-h-0 flex flex-col overflow-hidden">`. This makes main a flex container (not a scroll container), eliminating the WebKit `height: 100%` bug that made grid `1fr` rows auto-sized.
+- `components/site-walk/v1/views/HomeView.tsx`: Outer div changed from `grid h-full min-h-0 grid-rows-[auto_1fr]` to `flex-1 min-h-0 grid grid-rows-[auto_1fr] pt-3` — uses `flex-1` to fill main via flex propagation (not CSS percentage). Zone 1 changed from `flex min-h-0 flex-col justify-start gap-y-3 pt-3` to `shrink-0 flex flex-col gap-y-3` (pt-3 moved to outer).
+- `components/site-walk/v1/views/WorksitesView.tsx`: Outer div updated to `flex-1 min-h-0 overflow-y-auto flex flex-col gap-3 p-4` — self-contained page scroll within overflow-hidden main.
+- `components/site-walk/v1/views/SlateDropView.tsx`: Same treatment as WorksitesView.
+- `components/site-walk/v1/views/CoordinationView.tsx`: Same treatment.
+- `components/site-walk/v1/views/DeliverablesView.tsx`: Same treatment.
+- `docs/SLATE360_GRAPHITE_GLASS_DESIGN_SYSTEM.md`: Added Slice 6 to migration log; added "Contained Panel Height Rule" to Section 11.
+
+### Why Previous Fixes Failed (root cause analysis)
+1. `grid-rows-[auto_1fr]` alone (Slice 4): `1fr` requires the GRID to have a definite height. Grid used `h-full` → 100% of `<main>`.
+2. `<main>` had `overflow-y-auto` — WebKit/Safari resolves `height: 100%` inside `overflow-y-auto` flex items as `auto` (not the flex-allocated height). This is a documented browser bug.
+3. Grid height became `auto` → `1fr` row = `auto` → panel grew with content regardless of `overflow-hidden`/`min-h-0` fixes.
+4. The `min-h-0`, `overflow-hidden`, bottom-nav in-flow fixes all attacked SYMPTOMS. The ROOT CAUSE was always the `overflow-y-auto` + `h-full` chain.
+
+### What's Broken / Partially Done
+- `EmptyList` still exists in `v1-view-utils.tsx` — unused, safe to delete in cleanup.
+- `/site-walk` shell overlays `AppShell` via `fixed inset-0 z-50` — known architecture issue, deferred.
+- `MobileAppCard` (horizontal tile) exported but no longer consumed — safe to remove in cleanup.
+- Site Walk capture/data-entry page not yet built — this is **Slice 7 / the next major task**.
+
+### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md`: This handoff.
+- `docs/SLATE360_GRAPHITE_GLASS_DESIGN_SYSTEM.md`: Section 11 Contained Panel Height Rule added; Slice 6 migration log entry added.
+
+### Next Steps (ordered)
+1. Verify live on device: `/site-walk` panel is contained and scrolls internally (not page-level).
+2. Verify live: `/app` — no regression on app launcher or activity panel.
+3. Begin **Slice 7**: Site Walk capture/data-entry UI build.
+4. Cleanup: delete `EmptyList` from `v1-view-utils.tsx`; remove `MobileAppCard` export if unused.
+
 ## Session Handoff — 2026-05-20 (Site Walk Nav Fix + Codex Review — Slice 5)
 ### What Changed
 - `components/site-walk/v1/SiteWalkV1BottomNav.tsx`: Removed `fixed bottom-0 z-40`. Now `shrink-0` in-flow inside shell flex column. Root cause of content-under-nav bug. Commit: `b77bb66`.
