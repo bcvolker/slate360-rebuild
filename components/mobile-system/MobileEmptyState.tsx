@@ -1,0 +1,72 @@
+"use client";
+
+/**
+ * MobileEmptyState — shared empty state component for mobile panels.
+ *
+ * Replaces:
+ *  - Inline ActivityEmptyState in CommandCenterContent (/app)
+ *  - EmptyList utility in v1-view-utils (/site-walk HomeView)
+ *
+ * One standard geometry so /app and /site-walk empty states match.
+ *
+ * Slice 1: component created only. No consumers changed yet.
+ */
+
+import Link from "next/link";
+import { cn } from "@/lib/utils";
+import { mobileTokens } from "./mobileTokens";
+import type { ElementType } from "react";
+
+interface MobileEmptyStateProps {
+  /** Optional icon to display above the title. */
+  icon?: ElementType;
+  /** Primary empty state message. */
+  title: string;
+  /** Optional secondary description. */
+  description?: string;
+  /** CTA label. Requires either actionHref or onAction. */
+  actionLabel?: string;
+  /** Routes via Link when provided. */
+  actionHref?: string;
+  /** Fires a callback when no href is provided. */
+  onAction?: () => void;
+  className?: string;
+}
+
+export function MobileEmptyState({
+  icon: Icon,
+  title,
+  description,
+  actionLabel,
+  actionHref,
+  onAction,
+  className,
+}: MobileEmptyStateProps) {
+  return (
+    <div className={cn(mobileTokens.emptyStateWrapper, className)}>
+      {Icon && <Icon className={mobileTokens.emptyStateIcon} />}
+
+      <p className={mobileTokens.emptyStateText}>{title}</p>
+
+      {description && (
+        <p className="text-[11px] text-zinc-700 leading-snug">{description}</p>
+      )}
+
+      {actionLabel && actionHref && (
+        <Link href={actionHref} className={mobileTokens.emptyStateAction}>
+          {actionLabel}
+        </Link>
+      )}
+
+      {actionLabel && onAction && !actionHref && (
+        <button
+          type="button"
+          onClick={onAction}
+          className={mobileTokens.emptyStateAction}
+        >
+          {actionLabel}
+        </button>
+      )}
+    </div>
+  );
+}

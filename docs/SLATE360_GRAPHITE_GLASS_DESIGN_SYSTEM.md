@@ -81,3 +81,33 @@ Desktop dashboard and mobile app shells are distinct experiences but must share 
 - **App Cards Layout**: App cards sit symmetrically in a grid (e.g., `sm:grid-cols-2` scaling) sharing common icons and descriptions.
 - **Cross-Platform**: Desktop pages use the same visual tokens but DO NOT share the exact mobile layout constraints, retaining wider dashboard freedom.
 - **Global Adoption**: All future elements including auth, emails, marketing, and feature modules must implement these Graphite Glass tokens.
+
+## 12. Shared Mobile Primitives
+
+The following shared primitives live in `components/mobile-system/`. **Both `/app` and `/site-walk` must migrate to these before new Site Walk capture UI is built.**
+
+| Primitive | File | Replaces |
+|---|---|---|
+| `mobileTokens` | `mobileTokens.ts` | Scattered class strings in shell components |
+| `MobileActionCard` | `MobileActionCard.tsx` | Inline `QuickActionCard` (CommandCenterContent) + `SiteWalkV1ActionGrid` buttons |
+| `MobileActionGrid` | `MobileActionGrid.tsx` | Inline `grid grid-cols-2 gap-3` divs |
+| `MobileAppCard` | `MobileAppCard.tsx` | Inline `AppTile` (CommandCenterContent) |
+| `MobileTabbedPanel` | `MobileTabbedPanel.tsx` | Inline Tabs in CommandCenterContent + `SiteWalkV1ListPanel` |
+| `MobileEmptyState` | `MobileEmptyState.tsx` | Inline `ActivityEmptyState` + `EmptyList` utility |
+
+### Token Values (Slice 1 — May 2026)
+- Action card height: `min-h-[96px]` (unified from /app 90px and /site-walk 100px)
+- Action icon: `h-7 w-7` / `size-7` (unified to 28px for iPhone readability)
+- Action label: `text-[13px] font-medium`
+- Panel border: `border-white/10`
+- Panel background: `bg-white/[0.03]`
+- Panel tab height: `h-9`
+- Active tab: `border-b-2 border-amber-500 text-white`
+- Empty state padding: `py-8`
+
+### Migration Status
+- **Slice 1** (current): Primitives created. No consumers changed.
+- **Slice 2** (next): Migrate `/app` `CommandCenterContent` to use shared primitives.
+- **Slice 3** (after Slice 2): Migrate `/site-walk` home shell to use shared primitives.
+- **Slice 4**: Screenshot QA on physical device.
+- **Slice 5**: Begin Site Walk capture/data-entry UI.
