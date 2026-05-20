@@ -58,9 +58,9 @@ export function HomeView({ walks, projects, summary, router, onQuickCapture }: H
         />
       </MobileSection>
 
-      {/* Zone 2: Work panel — capped so action cards above aren't squished */}
+      {/* Zone 2: Work panel — capped to ~3 visible rows */}
       <SiteWalkV1ListPanel
-        className="min-h-0 max-h-[48vh]"
+        className="min-h-0 max-h-[230px]"
         recentContent={
           recentWalks.length > 0 ? (
             <WalkList walks={recentWalks} router={router} setComingSoonTitle={setComingSoonTitle} />
