@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { MapPin, Plus, Search, Bell, MessageSquare, ClipboardList, Clock, Box, FolderOpen } from "lucide-react";
 import type { Entitlements } from "@/lib/entitlements";
@@ -12,6 +12,8 @@ import {
   MobileSection,
   MobileTabbedPanel,
   MobileEmptyState,
+  MobileComingSoonSheet,
+  MobileCreateSheet,
   mobileTokens,
 } from "@/components/mobile-system";
 import type { MobilePanelTab } from "@/components/mobile-system";
@@ -55,6 +57,9 @@ export function CommandCenterContent({
   entitlements = null,
   isSlateCeo = false,
 }: CommandCenterContentProps) {
+  const [comingSoonTitle, setComingSoonTitle] = useState<string | null>(null);
+  const [createSheetOpen, setCreateSheetOpen] = useState(false);
+
   const handleSearch = () => {
     if (typeof window === "undefined") return;
     // Trigger the global ⌘K CommandPalette via the same keyboard event AppShell listens for.
@@ -67,7 +72,7 @@ export function CommandCenterContent({
   const appCount = (hasSiteWalk ? 1 : 0) + (isSlateCeo ? 1 : 0);
 
   return (
-    <div className={cn("mx-auto flex min-h-0 w-full max-w-2xl flex-1 flex-col overflow-hidden px-4 py-4", mobileTokens.mobileHomeSectionGap)}>
+    <div className={cn("mx-auto flex min-h-0 w-full max-w-2xl flex-1 flex-col overflow-y-auto px-4 py-4", mobileTokens.mobileHomeSectionGap)}>
 
       {/* ── Section 1: Your Apps ── */}
       <MobileSection label="Your Apps" className="shrink-0">
@@ -109,17 +114,17 @@ export function CommandCenterContent({
           <MobileActionCard
             label="Create"
             icon={Plus}
-            href={hasSiteWalk ? "/site-walk/setup" : "#"}
+            onClick={() => setCreateSheetOpen(true)}
           />
           <MobileActionCard
             label="SlateDrop"
             icon={FolderOpen}
-            href="/slatedrop"
+            onClick={() => setComingSoonTitle("SlateDrop")}
           />
           <MobileActionCard
             label="Deliverables"
             icon={Box}
-            href="/projects"
+            onClick={() => setComingSoonTitle("Deliverables")}
           />
           <MobileActionCard
             label="Search"
@@ -138,6 +143,18 @@ export function CommandCenterContent({
           className={mobileTokens.mobileEmptyPanelHeight}
         />
       </MobileSection>
+
+      {comingSoonTitle && (
+        <MobileComingSoonSheet
+          open={!!comingSoonTitle}
+          onOpenChange={(open) => !open && setComingSoonTitle(null)}
+          title={`${comingSoonTitle} on Mobile`}
+        />
+      )}
+      <MobileCreateSheet
+        open={createSheetOpen}
+        onOpenChange={setCreateSheetOpen}
+      />
     </div>
   );
 }

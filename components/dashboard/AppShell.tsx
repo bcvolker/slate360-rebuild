@@ -22,6 +22,7 @@ import {
   MobileAppShell,
   MobileBottomNav,
   type MobileBottomNavItem,
+  MobileComingSoonSheet,
 } from "@/components/mobile-system";
 import type { InviteShareData } from "@/lib/types/invite";
 
@@ -37,14 +38,6 @@ interface AppShellProps {
 type PlatformNavKey = "home" | "projects" | "slatedrop" | "coordination" | "account";
 
 const SIDEBAR_PIN_KEY = "slate360.sidebar.pinned";
-
-const PLATFORM_NAV: MobileBottomNavItem<PlatformNavKey>[] = [
-  { key: "home", label: "Home", href: "/app", icon: Home },
-  { key: "projects", label: "Projects", href: "/projects", icon: FolderOpen },
-  { key: "slatedrop", label: "SlateDrop", href: "/slatedrop", icon: Cloud },
-  { key: "coordination", label: "Coordination", href: "/coordination/inbox", icon: MessageSquare },
-  { key: "account", label: "Account", href: "/more", icon: User },
-];
 
 const CommandPalette = dynamic(() => import("@/components/shared/CommandPalette"), {
   ssr: false,
@@ -81,6 +74,7 @@ export function AppShell({
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
+  const [comingSoonTitle, setComingSoonTitle] = useState<string | null>(null);
 
   const pathname = usePathname() ?? "";
   const usesContainedHomeLayout = pathname.startsWith("/app");
@@ -88,6 +82,24 @@ export function AppShell({
     pathname === "/site-walk" ||
     pathname.startsWith("/site-walk/capture") ||
     /^\/site-walk\/walks\/active\/[^/]+/.test(pathname);
+
+  const navItems: MobileBottomNavItem<PlatformNavKey>[] = [
+    { key: "home", label: "Home", href: "/app", icon: Home },
+    { key: "projects", label: "Projects", onSelect: () => setComingSoonTitle("Projects"), icon: FolderOpen },
+    {
+      key: "slatedrop",
+      label: "SlateDrop",
+      icon: Cloud,
+      onSelect: () => setComingSoonTitle("SlateDrop"),
+    },
+    {
+      key: "coordination",
+      label: "Coordination",
+      icon: MessageSquare,
+      onSelect: () => setComingSoonTitle("Coordination"),
+    },
+    { key: "account", label: "Account", href: "/more", icon: User },
+  ];
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -194,7 +206,7 @@ export function AppShell({
               )}
               bottomNav={
                 <MobileBottomNav
-                  items={PLATFORM_NAV}
+                  items={navItems}
                   activeKey={activePlatformNavKey(pathname)}
                 />
               }
@@ -219,6 +231,13 @@ export function AppShell({
               />
             )}
             <GlobalInviteModal data={inviteShareData} />
+            {comingSoonTitle && (
+              <MobileComingSoonSheet
+                open={!!comingSoonTitle}
+                onOpenChange={(open) => !open && setComingSoonTitle(null)}
+                title={`${comingSoonTitle} on Mobile`}
+              />
+            )}
           </>
         )}
       </InviteShareProvider>
