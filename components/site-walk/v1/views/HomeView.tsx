@@ -49,7 +49,7 @@ export function HomeView({ walks, projects, summary, router, onQuickCapture }: H
       )}
     >
       {/* Zone 1: Command — auto-sized to content */}
-      <MobileSection label="Site Walk" className="shrink-0">
+      <MobileSection label="Site Walk" brandLabel className="shrink-0">
         <SiteWalkV1ActionGrid
           onNewWorksite={() => router.push("/site-walk/setup")}
           onStartWalk={() => router.push("/site-walk/walks")}
@@ -58,9 +58,9 @@ export function HomeView({ walks, projects, summary, router, onQuickCapture }: H
         />
       </MobileSection>
 
-      {/* Zone 2: Work panel — fills remaining space */}
+      {/* Zone 2: Work panel — capped to ~3 visible rows */}
       <SiteWalkV1ListPanel
-        className="h-full min-h-0"
+        className="min-h-0 max-h-[230px]"
         recentContent={
           recentWalks.length > 0 ? (
             <WalkList walks={recentWalks} router={router} setComingSoonTitle={setComingSoonTitle} />

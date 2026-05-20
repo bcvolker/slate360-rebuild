@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 
 const ROOT_PATHS = new Set<string>([
   "/",
+  "/app",
   "/dashboard",
   "/site-walk",
   "/more",
