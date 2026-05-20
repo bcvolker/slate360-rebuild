@@ -1277,3 +1277,40 @@ When editing oversized files, always read both the state declarations AND the JS
 1. Verify the deployed app does not jump or scroll root UI, and bottom sheets pop safely.
 - capture should be built as /site-walk/capture-v2
 - capture should use an isolated fixed viewport capture shell, not generic site walk shell or dashboard shell
+
+## Session Handoff — 2026-05-20 (Backend Architecture Audit & Migrations)
+### What Changed
+- **Audit**: Completed a comprehensive read-only fact-finding audit analyzing the readiness of the backend for Dashboard V3 AEC widgets and the new Site Walk Capture V2 application.
+- **Migration & APIs**: Created and pushed the required minimal backend integrations for Site Walk Capture V2 foundational build:
+   - `supabase/migrations/20260520000000_add_get_nearby_photos.sql`: Haversine geographic locator RPC for Ghost Mode matching.
+   - `app/api/site-walk/nearby/route.ts`: API endpoint securely calling the new `get_nearby_photos` RPC.
+   - `app/api/site-walk/session/attach/route.ts`: API endpoint allowing mid-walk attachment of an ad-hoc quick walk session to a project.
+- **Push**: Changes merged via branch `fix/mobile-shell-route-guardrails` into Git and pushed `db push` to the remote Supabase. Typechecks passed.
+
+### What's Broken / Partially Done
+- The Site Walk Capture V2 **frontend** (e.g. `app/site-walk/capture-v2`) is not built yet. The required APIs and data models are fully ready for the V1 development phase.
+
+### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md`: This handoff.
+
+### Next Steps (ordered)
+1. Begin UI/frontend implementation of the Site Walk Capture V2 loop using the isolated `CaptureV2Shell`.
+2. Connect the `PhotoAngleStrip` components relying on the relational items implementation.
+3. Wire the newly created `/api/site-walk/nearby` endpoint to the Ghost/Before-After opacity overlay UI.
+
+## Session Handoff — 2026-05-20 (Mobile Safety Pass & Capture-v2 Readiness)
+### What Changed
+- **Audit**: Completed a strict routing review. `fix/mobile-shell-route-guardrails` (PR #24) correctly guards mobile shell apps with `MobileComingSoonSheet` and stops bleeding into desktop UIs.
+- **Refinement**: Created a new branch `fix/mobile-readability-color-balance` (PR #25) that safely refines the Graphite Glass design system typography. Increased baseline text from text-[10px]/xs to text-[11px]/sm inside `mobileTokens.ts`, `MobileActionCard`, `MobileAppButton`, `MobileTopBar`, and `MobileBottomNav`. Tuned dark amber usage away from broad swaths towards semantic accents with improved neutral zinc contrasts.
+- **Rules**: Wrote `SITE_WALK_CAPTURE_V2_V0_RULES` into the session context to cap V0 AI design outputs successfully.
+
+### What's Broken / Partially Done
+- `capture-v2` architecture is laid out in project memory but not coded.
+- `PR #24` has 1 pending failed check due to the standard known block (Vercel Preview passes safely).
+
+### Context Files Updated
+- `SLATE360_PROJECT_MEMORY.md`: Added V0 capture rules.
+
+### Next Steps (ordered)
+1. Merge PR #24 and PR #25 after review.
+2. Initialize `app/site-walk/capture-v2/page.tsx` pulling from `CaptureV2Shell`.
