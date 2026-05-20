@@ -27,7 +27,7 @@ export const mobileTokens = {
     "mb-2 text-[11px] font-bold uppercase tracking-[0.15em] text-zinc-400/90",
   // ── Brand-accented Section label (e.g. "SITE WALK") ─────────────────────
   brandSectionLabel:
-    "mb-2 text-[11px] font-bold uppercase tracking-[0.15em] text-amber-500/90",
+    "mb-2 text-[13px] font-bold uppercase tracking-[0.12em] text-amber-500/90",
 
   // ── Action card ──────────────────────────────────────────────────────────
   /**

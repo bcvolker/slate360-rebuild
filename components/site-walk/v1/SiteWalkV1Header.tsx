@@ -18,6 +18,7 @@ import {
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { MobileTopBar } from "@/components/mobile-system";
+import { SlateLogo } from "@/components/shared/SlateLogo";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -64,11 +65,10 @@ export function SiteWalkV1Header({
 
   return (
     <MobileTopBar
-      title={titleText}
-      subtitle={subtitle}
-      titleClassName={showBranding ? "text-white" : undefined}
-      subtitleClassName={showBranding ? "text-amber-500" : undefined}
-      backHref={showBranding ? "/app" : undefined}
+      title={showBranding ? "" : titleText}
+      subtitle={showBranding ? undefined : subtitle}
+      leftSlot={showBranding ? <SlateLogo size="sm" /> : undefined}
+      backHref={showBranding ? undefined : undefined}
       onBack={!showBranding ? onBack : undefined}
       className={className}
       rightSlot={
