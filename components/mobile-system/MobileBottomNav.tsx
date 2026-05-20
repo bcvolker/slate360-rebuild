@@ -54,7 +54,7 @@ export function MobileBottomNav<Key extends string = string>({
                 strokeWidth={active ? 2.5 : 2}
                 className={cn("transition-transform", active && "-translate-y-0.5")}
               />
-              <span className={cn("truncate text-[10px] font-medium leading-none", active && "font-semibold")}>
+              <span className={cn("truncate text-[11px] font-medium leading-none", active && "font-semibold")}>
                 {label}
               </span>
             </>

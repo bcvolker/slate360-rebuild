@@ -49,7 +49,7 @@ export function MobileActionCard({
       <Icon className={mobileTokens.actionIconClass} />
       <span className={mobileTokens.actionLabelClass}>{label}</span>
       {description && (
-        <span className="text-[11px] text-zinc-500 text-center leading-tight">
+        <span className="text-[12px] text-zinc-400 font-medium mt-0.5 text-center leading-tight">
           {description}
         </span>
       )}

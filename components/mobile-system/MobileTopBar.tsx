@@ -55,11 +55,11 @@ export function MobileTopBar({
         <div className="flex min-w-0 flex-1 items-center gap-2">
           {leftSlot ?? backControl}
           <div className="min-w-0 flex-1">
-            <h1 className="truncate text-[15px] font-black leading-tight tracking-tight text-white">
+            <h1 className="truncate text-[16px] font-semibold leading-tight tracking-tight text-white">
               {title}
             </h1>
             {subtitle && (
-              <p className="truncate text-[10px] font-bold uppercase leading-tight tracking-[0.1em] text-amber-500/90">
+              <p className="truncate text-[11px] font-bold uppercase leading-tight tracking-[0.1em] text-zinc-400 mt-0.5">
                 {subtitle}
               </p>
             )}
