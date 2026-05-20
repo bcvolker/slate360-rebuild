@@ -20,19 +20,22 @@ export const mobileTokens = {
   pagePaddingX: "px-4",
   sectionGap: "gap-4",
   mobileHomeSectionGap: "gap-3",
-  mobilePanelBottomGap: "pb-3",
+  mobilePanelBottomGap: "pb-4",
 
   // ── Section label (e.g. "YOUR APPS", "QUICK ACTIONS") ────────────────────
   sectionLabel:
-    "mb-2 text-[11px] font-bold uppercase tracking-[0.15em] text-zinc-400",
+    "mb-2 text-[11px] font-bold uppercase tracking-[0.15em] text-zinc-400/90",
+  // ── Brand-accented Section label (e.g. "SITE WALK") ─────────────────────
+  brandSectionLabel:
+    "mb-2 text-[11px] font-bold uppercase tracking-[0.15em] text-amber-500/90",
 
   // ── Action card ──────────────────────────────────────────────────────────
   /**
    * Balanced value between /app 90px and /site-walk 100px.
    * Adopted size: 96px.
    */
-  actionCardHeight: "min-h-[96px]",
-  mobileActionCardHeight: "min-h-[96px]",
+  actionCardHeight: "min-h-[90px]",
+  mobileActionCardHeight: "min-h-[90px]",
   actionCardBase:
     "flex flex-col items-center justify-center gap-2 rounded-xl border border-white/5 bg-white/[0.04] text-zinc-300 transition-colors hover:border-amber-500/30 hover:bg-white/[0.08] hover:text-white active:bg-white/[0.12]",
 
@@ -55,7 +58,7 @@ export const mobileTokens = {
   /** Compact vertical card: icon top, title + subtitle below. Lives in MobileActionGrid. */
   appButtonBase:
     "flex flex-col items-center justify-center gap-2 rounded-xl border border-white/5 bg-white/[0.04] px-3 py-4 text-center transition-colors hover:border-amber-500/30 hover:bg-white/[0.08] active:bg-white/[0.12]",
-  mobileAppButtonHeight: "min-h-[104px]",
+  mobileAppButtonHeight: "min-h-[96px]",
   appButtonIconWrapper:
     "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/[0.06] text-amber-500",
   appButtonIconClass: "h-5 w-5",
@@ -70,8 +73,8 @@ export const mobileTokens = {
    */
   panelTabTrigger:
     "flex-1 rounded-none border-b-2 border-transparent py-2 text-[13px] font-medium text-zinc-500 transition-colors data-[state=active]:border-amber-500 data-[state=active]:bg-transparent data-[state=active]:text-zinc-100 data-[state=active]:shadow-none",
-  mobileEmptyPanelHeight: "flex-1 min-h-[240px]",
-  mobileListPanelHeight: "flex-1 min-h-[240px]",
+  mobileEmptyPanelHeight: "flex-1 min-h-0",
+  mobileListPanelHeight: "flex-1 min-h-0",
   mobileTabbedPanelBodyPadding,
   mobileTabbedPanelScrollBody,
   panelContent: `${mobileTabbedPanelScrollBody} ${mobileTabbedPanelBodyPadding}`,

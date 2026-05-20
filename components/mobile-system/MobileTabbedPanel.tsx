@@ -45,7 +45,7 @@ export function MobileTabbedPanel({
   tabs,
   defaultTab,
   className,
-  minHeight = "min-h-[260px]",
+  minHeight = "min-h-0",
   bodyClassName,
 }: MobileTabbedPanelProps) {
   const defaultValue = defaultTab ?? tabs[0]?.value ?? "";

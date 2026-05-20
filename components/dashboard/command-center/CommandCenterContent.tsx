@@ -72,7 +72,7 @@ export function CommandCenterContent({
   const appCount = (hasSiteWalk ? 1 : 0) + (isSlateCeo ? 1 : 0);
 
   return (
-    <div className={cn("mx-auto flex min-h-0 w-full max-w-2xl flex-1 flex-col overflow-y-auto px-4 py-4", mobileTokens.mobileHomeSectionGap)}>
+    <div className={cn("mx-auto flex min-h-0 w-full max-w-2xl flex-1 flex-col px-4 pt-4 pb-4", mobileTokens.mobileHomeSectionGap)}>
 
       {/* ── Section 1: Your Apps ── */}
       <MobileSection label="Your Apps" className="shrink-0">
@@ -135,12 +135,12 @@ export function CommandCenterContent({
       </MobileSection>
 
       {/* ── Section 3: Activity Panel ── */}
-      <MobileSection className="shrink-0" contentClassName="min-h-0">
+      <MobileSection className="flex-1 min-h-0 flex flex-col" contentClassName="flex-1 min-h-0 flex flex-col">
         <MobileTabbedPanel
           tabs={ACTIVITY_TABS}
           defaultTab="notifications"
           minHeight="min-h-0"
-          className={mobileTokens.mobileEmptyPanelHeight}
+          className="flex-1 min-h-0"
         />
       </MobileSection>
 

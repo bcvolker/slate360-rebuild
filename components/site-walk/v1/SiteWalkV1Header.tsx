@@ -66,6 +66,8 @@ export function SiteWalkV1Header({
     <MobileTopBar
       title={titleText}
       subtitle={subtitle}
+      titleClassName={showBranding ? "text-white" : undefined}
+      subtitleClassName={showBranding ? "text-amber-500" : undefined}
       backHref={showBranding ? "/app" : undefined}
       onBack={!showBranding ? onBack : undefined}
       className={className}

@@ -8,6 +8,8 @@ import { cn } from "@/lib/utils";
 type MobileTopBarProps = {
   title: string;
   subtitle?: string;
+  titleClassName?: string;
+  subtitleClassName?: string;
   backHref?: string;
   onBack?: () => void;
   leftSlot?: ReactNode;
@@ -18,6 +20,8 @@ type MobileTopBarProps = {
 export function MobileTopBar({
   title,
   subtitle,
+  titleClassName,
+  subtitleClassName,
   backHref,
   onBack,
   leftSlot,
@@ -55,11 +59,21 @@ export function MobileTopBar({
         <div className="flex min-w-0 flex-1 items-center gap-2">
           {leftSlot ?? backControl}
           <div className="min-w-0 flex-1">
-            <h1 className="truncate text-[16px] font-semibold leading-tight tracking-tight text-white">
+            <h1
+              className={cn(
+                "truncate text-[16px] font-semibold leading-tight tracking-tight text-white",
+                titleClassName
+              )}
+            >
               {title}
             </h1>
             {subtitle && (
-              <p className="truncate text-[11px] font-bold uppercase leading-tight tracking-[0.1em] text-zinc-400 mt-0.5">
+              <p
+                className={cn(
+                  "truncate text-[11px] font-bold uppercase leading-tight tracking-[0.1em] text-zinc-400 mt-0.5",
+                  subtitleClassName
+                )}
+              >
                 {subtitle}
               </p>
             )}
