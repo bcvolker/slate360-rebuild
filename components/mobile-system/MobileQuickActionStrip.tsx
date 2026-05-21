@@ -3,7 +3,7 @@
 import Link from "next/link";
 import type { ElementType } from "react";
 import { cn } from "@/lib/utils";
-import { mobileTokens } from "./mobileTokens";
+import { mobileTokens, type MobileQuickActionAccent } from "./mobileTokens";
 
 export type MobileQuickActionItem = {
   label: string;
@@ -11,7 +11,15 @@ export type MobileQuickActionItem = {
   href?: string;
   onClick?: () => void;
   disabled?: boolean;
+  accent?: MobileQuickActionAccent;
   "aria-label"?: string;
+};
+
+const accentIconClass: Record<MobileQuickActionAccent, string> = {
+  primary: "text-amber-400",
+  info: "text-cyan-400/90",
+  neutral: "text-zinc-300",
+  muted: "text-zinc-400",
 };
 
 type MobileQuickActionStripProps = {
@@ -19,9 +27,6 @@ type MobileQuickActionStripProps = {
   className?: string;
 };
 
-/**
- * Compact single-row quick actions for /app (Create, SlateDrop, Deliverables, Search).
- */
 export function MobileQuickActionStrip({ actions, className }: MobileQuickActionStripProps) {
   return (
     <div
@@ -43,6 +48,7 @@ function QuickActionButton({
   href,
   onClick,
   disabled = false,
+  accent = "neutral",
   "aria-label": ariaLabel,
 }: MobileQuickActionItem) {
   const base = cn(
@@ -53,7 +59,10 @@ function QuickActionButton({
 
   const inner = (
     <>
-      <Icon className={mobileTokens.quickActionStripIcon} aria-hidden />
+      <Icon
+        className={cn(mobileTokens.quickActionStripIcon, accentIconClass[accent])}
+        aria-hidden
+      />
       <span className={mobileTokens.quickActionStripLabel}>{label}</span>
     </>
   );

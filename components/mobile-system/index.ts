@@ -36,6 +36,7 @@ export { MobileAppCard } from "./MobileAppCard";
 
 export { MobileAppButton } from "./MobileAppButton";
 export type { MobileAppButtonProps } from "./MobileAppButton";
+export type { MobileAppAccent, MobileQuickActionAccent } from "./mobileTokens";
 
 export { MobileTabbedPanel } from "./MobileTabbedPanel";
 export type { MobilePanelTab } from "./MobileTabbedPanel";

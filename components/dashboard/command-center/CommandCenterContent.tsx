@@ -116,11 +116,12 @@ export function CommandCenterContent({
 
   const quickActions: MobileQuickActionItem[] = useMemo(
     () => [
-      { label: "Create", icon: Plus, onClick: () => setCreateSheetOpen(true) },
-      { label: "SlateDrop", icon: FolderOpen, onClick: () => openBlockedNotice("slatedrop") },
+      { label: "Create", icon: Plus, accent: "primary", onClick: () => setCreateSheetOpen(true) },
+      { label: "SlateDrop", icon: FolderOpen, accent: "info", onClick: () => openBlockedNotice("slatedrop") },
       {
         label: "Deliverables",
         icon: Box,
+        accent: "primary",
         onClick: () => {
           setComingSoonTitle("Deliverables");
           setComingSoonDescription(
@@ -128,7 +129,7 @@ export function CommandCenterContent({
           );
         },
       },
-      { label: "Search", icon: Search, onClick: handleSearch },
+      { label: "Search", icon: Search, accent: "muted", onClick: handleSearch },
     ],
     [openBlockedNotice, handleSearch],
   );
@@ -143,11 +144,10 @@ export function CommandCenterContent({
           <div
             className={cn(
               "mx-auto flex w-full max-w-2xl flex-col",
-              mobileTokens.mobileHomeSectionGap,
-              mobileTokens.mobileHomeUpperBottomPad,
+              mobileTokens.mobileHomeContentGap,
             )}
           >
-            <MobileSection label="Your Apps" className="shrink-0">
+            <MobileSection label="Your Apps" showAccentLine className="shrink-0">
               {appCount > 0 ? (
                 <MobileActionGrid>
                   {hasSiteWalk && (
@@ -156,6 +156,7 @@ export function CommandCenterContent({
                       subtitle="Field capture"
                       icon={MapPin}
                       href="/site-walk"
+                      accent="primary"
                       className={appCount === 1 ? "col-span-2 mx-auto w-1/2" : undefined}
                     />
                   )}
@@ -166,14 +167,15 @@ export function CommandCenterContent({
                       icon={Box}
                       href="#"
                       badge="CEO"
+                      accent="info"
                       className={appCount === 1 ? "col-span-2 mx-auto w-1/2" : undefined}
                     />
                   )}
                 </MobileActionGrid>
               ) : (
-                <div className="rounded-xl border border-dashed border-white/10 px-4 py-6 text-center text-sm text-slate-500">
+                <div className="rounded-xl border border-dashed border-white/10 px-4 py-5 text-center text-sm text-zinc-500">
                   No apps in your plan.{" "}
-                  <Link href="/more/billing" className="text-amber-400 hover:underline">
+                  <Link href="/more/billing" className="text-amber-400/90 hover:underline">
                     View plans
                   </Link>
                 </div>

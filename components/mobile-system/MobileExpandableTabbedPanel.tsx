@@ -2,9 +2,6 @@
 
 /**
  * MobileExpandableTabbedPanel — unified collapsible activity dock for /app and /site-walk.
- *
- * Collapsed: ~2.5 rows, bottom-anchored, 12px above bottom nav, scroll fade at bottom.
- * Expanded: fixed tall sheet overlays upper content; bottom nav stays visible.
  */
 
 import { useCallback, useId, useState, type ReactNode } from "react";
@@ -17,7 +14,6 @@ import type { MobilePanelTab } from "./MobileTabbedPanel";
 type MobileExpandableTabbedPanelProps = {
   tabs: MobilePanelTab[];
   defaultTab?: string;
-  /** Scrollable page content above the dock (apps, actions, module intro). */
   upper?: ReactNode;
   className?: string;
 };
@@ -120,19 +116,19 @@ export function MobileExpandableTabbedPanel({
           onClick={collapse}
         />
       )}
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-        <div
-          className={cn(
-            "min-h-0 flex-1 overflow-y-auto overscroll-contain",
-            mobileTokens.mobileExpandablePanelUpperScroll,
-            expanded && "overflow-hidden",
-          )}
-        >
+      {/* Launcher block + dock sit at bottom; no flex-1 scroll dead zone between them */}
+      <div
+        className={cn(
+          "flex min-h-0 flex-1 flex-col justify-end overflow-y-auto overscroll-contain",
+          mobileTokens.mobileDockTopGap,
+        )}
+      >
+        <div className={cn("shrink-0", mobileTokens.mobileExpandablePanelUpperScroll)}>
           {upper}
         </div>
         <div
           className={cn(
-            "mt-auto shrink-0",
+            "shrink-0",
             expanded && mobileTokens.mobileExpandablePanelCollapsedHeight,
           )}
         >

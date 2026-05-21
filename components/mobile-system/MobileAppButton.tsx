@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { mobileTokens } from "./mobileTokens";
+import { mobileTokens, type MobileAppAccent } from "./mobileTokens";
 import type { ElementType } from "react";
 
 export interface MobileAppButtonProps {
@@ -12,8 +12,16 @@ export interface MobileAppButtonProps {
   href?: string;
   badge?: string;
   disabled?: boolean;
+  /** primary = Site Walk (amber), info = Twin/cyan, neutral = default */
+  accent?: MobileAppAccent;
   className?: string;
 }
+
+const accentIconWrapper: Record<MobileAppAccent, string> = {
+  primary: mobileTokens.mobileIconBgPrimary,
+  info: mobileTokens.mobileIconBgInfo,
+  neutral: mobileTokens.mobileIconBgNeutral,
+};
 
 export function MobileAppButton({
   title,
@@ -22,11 +30,13 @@ export function MobileAppButton({
   href,
   badge,
   disabled = false,
+  accent = "primary",
   className,
 }: MobileAppButtonProps) {
   const base = cn(
     mobileTokens.appButtonBase,
-    mobileTokens.mobileAppButtonHeight,
+    mobileTokens.mobileAppLauncherTileHeight,
+    accent === "primary" && mobileTokens.mobileBrandWarmGlow,
     mobileTokens.focusRing,
     disabled && "pointer-events-none opacity-50",
     className,
@@ -34,16 +44,12 @@ export function MobileAppButton({
 
   const inner = (
     <>
-      <span className={mobileTokens.appButtonIconWrapper}>
+      <span className={cn(mobileTokens.appButtonIconWrapper, accentIconWrapper[accent])}>
         <Icon className={mobileTokens.appButtonIconClass} />
       </span>
       <p className={mobileTokens.appButtonTitleClass}>{title}</p>
       {subtitle && <p className={mobileTokens.appButtonSubtitleClass}>{subtitle}</p>}
-      {badge && (
-        <span className="mt-0.5 rounded-full bg-cyan-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-cyan-400">
-          {badge}
-        </span>
-      )}
+      {badge && <span className={mobileTokens.appBadgeInfo}>{badge}</span>}
     </>
   );
 

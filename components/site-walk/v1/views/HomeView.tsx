@@ -47,11 +47,10 @@ export function HomeView({ walks, projects, summary, router, onQuickCapture }: H
           <div
             className={cn(
               "mx-auto flex w-full max-w-2xl flex-col",
-              mobileTokens.mobileHomeSectionGap,
-              mobileTokens.mobileHomeUpperBottomPad,
+              mobileTokens.mobileHomeContentGap,
             )}
           >
-            <div className="flex items-center gap-3" data-testid="site-walk-module-intro">
+            <div className="flex items-center gap-2.5" data-testid="site-walk-module-intro">
               <MobileShellBackToApp />
               <div className="min-w-0">
                 <h1 className={mobileTokens.moduleTitle}>SITE WALK</h1>
