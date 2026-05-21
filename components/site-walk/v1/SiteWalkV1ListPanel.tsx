@@ -2,7 +2,6 @@
 
 import type { ReactNode } from "react";
 import { MobileExpandableTabbedPanel } from "@/components/mobile-system";
-import { mobileTokens } from "@/components/mobile-system";
 import type { MobilePanelTab } from "@/components/mobile-system";
 import { cn } from "@/lib/utils";
 
@@ -45,7 +44,6 @@ export function SiteWalkV1ListPanel({
       defaultTab={defaultTab}
       upper={upper}
       className={cn("min-h-0 flex-1", className)}
-      bodyClassName={mobileTokens.moduleListPanelContent}
     />
   );
 }

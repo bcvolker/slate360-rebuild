@@ -1,10 +1,10 @@
 "use client";
 
 /**
- * MobileExpandableTabbedPanel — collapsible activity dock for /app and /site-walk.
+ * MobileExpandableTabbedPanel — unified collapsible activity dock for /app and /site-walk.
  *
- * Collapsed: compact tabbed preview above bottom nav (12px gap).
- * Expanded: overlays page content upward without resizing cards above.
+ * Collapsed: ~2.5 rows, bottom-anchored, 12px above bottom nav, scroll fade at bottom.
+ * Expanded: fixed tall sheet overlays upper content; bottom nav stays visible.
  */
 
 import { useCallback, useId, useState, type ReactNode } from "react";
@@ -20,7 +20,6 @@ type MobileExpandableTabbedPanelProps = {
   /** Scrollable page content above the dock (apps, actions, module intro). */
   upper?: ReactNode;
   className?: string;
-  bodyClassName?: string;
 };
 
 export function MobileExpandableTabbedPanel({
@@ -28,7 +27,6 @@ export function MobileExpandableTabbedPanel({
   defaultTab,
   upper,
   className,
-  bodyClassName,
 }: MobileExpandableTabbedPanelProps) {
   const [expanded, setExpanded] = useState(false);
   const panelId = useId();
@@ -38,13 +36,23 @@ export function MobileExpandableTabbedPanel({
   const dock = (
     <div
       className={cn(
-        mobileTokens.expandablePanelOuter,
-        expanded && mobileTokens.expandablePanelExpandedPosition,
-        className,
+        mobileTokens.mobileExpandablePanelOuter,
+        expanded && mobileTokens.mobileExpandablePanelExpandedPosition,
       )}
     >
-      <div className={cn(mobileTokens.expandablePanelDock, expanded && mobileTokens.expandablePanelDockExpanded)}>
-        <div className={mobileTokens.expandablePanelChrome}>
+      <div
+        data-testid="mobile-expandable-panel-frame"
+        className={cn(
+          mobileTokens.mobileExpandablePanelFrame,
+          expanded
+            ? cn(
+                mobileTokens.mobileExpandablePanelExpandedHeight,
+                mobileTokens.mobileExpandablePanelFrameExpanded,
+              )
+            : mobileTokens.mobileExpandablePanelCollapsedHeight,
+        )}
+      >
+        <div className={mobileTokens.mobileExpandablePanelChrome}>
           <button
             type="button"
             className={cn(
@@ -56,7 +64,7 @@ export function MobileExpandableTabbedPanel({
             aria-label={expanded ? "Collapse activity panel" : "Expand activity panel"}
             onClick={toggle}
           >
-            <span className={mobileTokens.expandablePanelHandle} aria-hidden />
+            <span className={mobileTokens.mobileExpandablePanelHandle} aria-hidden />
           </button>
           <button
             type="button"
@@ -82,48 +90,55 @@ export function MobileExpandableTabbedPanel({
           tabs={tabs}
           defaultTab={defaultTab}
           minHeight="min-h-0"
-          className={cn(
-            "border-0 bg-transparent shadow-none",
+          className={mobileTokens.mobileExpandablePanelTabbedFill}
+          bodyClassName={
             expanded
-              ? mobileTokens.expandablePanelExpandedFrame
-              : mobileTokens.expandablePanelCollapsedFrame,
-          )}
-          bodyClassName={cn(
-            expanded
-              ? mobileTokens.expandablePanelExpandedBody
-              : mobileTokens.expandablePanelCollapsedBody,
-            bodyClassName,
-          )}
-          showBottomFade={expanded}
+              ? mobileTokens.mobileExpandablePanelExpandedBody
+              : mobileTokens.mobileExpandablePanelCollapsedBody
+          }
+          showBottomFade
+          bottomFadeClassName={mobileTokens.mobileExpandablePanelFade}
         />
       </div>
     </div>
   );
 
   if (!upper) {
-    return dock;
+    return <div className={cn("relative flex min-h-0 flex-1 flex-col", className)}>{dock}</div>;
   }
 
   return (
-    <div className={cn("relative flex min-h-0 flex-1 flex-col overflow-hidden", className)}>
+    <div
+      data-testid="mobile-expandable-panel-host"
+      className={cn("relative flex min-h-0 flex-1 flex-col overflow-hidden", className)}
+    >
       {expanded && (
         <button
           type="button"
-          className={mobileTokens.expandablePanelBackdrop}
+          className={mobileTokens.mobileExpandablePanelBackdrop}
           aria-label="Close activity panel"
           onClick={collapse}
         />
       )}
-      <div
-        className={cn(
-          "flex-1 min-h-0 overflow-y-auto overscroll-contain",
-          mobileTokens.expandablePanelUpperScroll,
-          expanded && "overflow-hidden",
-        )}
-      >
-        {upper}
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+        <div
+          className={cn(
+            "min-h-0 flex-1 overflow-y-auto overscroll-contain",
+            mobileTokens.mobileExpandablePanelUpperScroll,
+            expanded && "overflow-hidden",
+          )}
+        >
+          {upper}
+        </div>
+        <div
+          className={cn(
+            "mt-auto shrink-0",
+            expanded && mobileTokens.mobileExpandablePanelCollapsedHeight,
+          )}
+        >
+          {dock}
+        </div>
       </div>
-      {dock}
     </div>
   );
 }

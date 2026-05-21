@@ -6,7 +6,12 @@
  * Slice 1: primitives only. /app and /site-walk migrations happen in Slice 2 and 3.
  */
 
-export { mobileTokens } from "./mobileTokens";
+export {
+  mobileTokens,
+  MOBILE_PANEL_ROW_HEIGHT_PX,
+  MOBILE_PANEL_COLLAPSED_BODY_PX,
+  MOBILE_PANEL_COLLAPSED_FRAME_PX,
+} from "./mobileTokens";
 export { MobileShellBrand } from "./MobileShellBrand";
 export { MobileShellBackToApp } from "./MobileShellBackToApp";
 export { MobileShellBrandMark } from "./MobileShellBrandMark";
