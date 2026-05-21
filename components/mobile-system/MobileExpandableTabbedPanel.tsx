@@ -33,15 +33,15 @@ export function MobileExpandableTabbedPanel({
   const collapse = useCallback(() => setExpanded(false), []);
   const toggle = useCallback(() => setExpanded((value) => !value), []);
 
-  const isBottomSheet = !upper;
+  const isHomeDock = !upper;
 
   const dock = (
     <div
       className={cn(
-        isBottomSheet
+        isHomeDock
           ? "relative z-30 w-full"
           : mobileTokens.mobileExpandablePanelOuter,
-        !isBottomSheet &&
+        !isHomeDock &&
           expanded &&
           mobileTokens.mobileExpandablePanelExpandedPosition,
       )}
@@ -53,12 +53,12 @@ export function MobileExpandableTabbedPanel({
           mobileTokens.mobileExpandablePanelFrame,
           expanded
             ? cn(
-                isBottomSheet
+                isHomeDock
                   ? mobileTokens.mobileHomeDockExpandedHeight
                   : mobileTokens.mobileExpandablePanelExpandedHeight,
                 mobileTokens.mobileExpandablePanelFrameExpanded,
               )
-            : isBottomSheet
+            : isHomeDock
               ? mobileTokens.mobileHomeDockCollapsedHeight
               : mobileTokens.mobileExpandablePanelCollapsedHeight,
         )}
@@ -105,7 +105,7 @@ export function MobileExpandableTabbedPanel({
           bodyClassName={
             expanded
               ? mobileTokens.mobileExpandablePanelExpandedBody
-              : isBottomSheet
+              : isHomeDock
                 ? mobileTokens.mobileHomeDockCollapsedBody
                 : mobileTokens.mobileExpandablePanelCollapsedBody
           }
@@ -116,11 +116,12 @@ export function MobileExpandableTabbedPanel({
     </div>
   );
 
-  if (isBottomSheet) {
+  if (isHomeDock) {
     return (
       <div
-        data-expandable-panel-version="bottom-sheet-v1"
-        data-panel-mode="bottom-sheet"
+        data-expandable-panel-version="fixed-region-v1"
+        data-panel-mode="fixed-region"
+        data-dock-width-mode="full-shell"
         data-expanded-state={expanded ? "true" : "false"}
         data-collapsed-height={MOBILE_HOME_DOCK_COLLAPSED_CLAMP}
         data-expanded-height={MOBILE_HOME_DOCK_EXPANDED_CLAMP}

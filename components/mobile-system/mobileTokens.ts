@@ -14,8 +14,8 @@ export const MOBILE_PANEL_COLLAPSED_FRAME_PX = 264;
 export const MOBILE_BOTTOM_NAV_HEIGHT_PX = 74;
 export const MOBILE_HOME_DOCK_GAP_PX = 12;
 export const MOBILE_HOME_DOCK_CONTENT_PAD_PX = 16;
-export const MOBILE_HOME_DOCK_COLLAPSED_CLAMP = "clamp(240px,30dvh,300px)";
-export const MOBILE_HOME_DOCK_EXPANDED_CLAMP = "clamp(420px,62dvh,560px)";
+export const MOBILE_HOME_DOCK_COLLAPSED_CLAMP = "clamp(240px,30dvh,320px)";
+export const MOBILE_HOME_DOCK_EXPANDED_CLAMP = "clamp(400px,55dvh,520px)";
 
 const mobileTabbedPanelScrollBody = "min-h-0 flex-1 overflow-y-auto";
 const mobileTabbedPanelBodyPadding = "px-3 pt-2 pb-3";
@@ -33,11 +33,22 @@ export const mobileTokens = {
   mobileShellContentTopGap: "pt-3",
   mobileShellContentPaddingX: "px-4",
   mobileShellContentStackGap: "gap-1.5",
-  /** MobileHomeLayout — anchored bottom sheet (dock overlays main, not flex-flow child) */
-  mobileHomeLayoutRoot: "relative h-full min-h-0 overflow-hidden",
+  /** MobileHomeLayout — balanced fixed regions (/app + /site-walk) */
+  mobileHomeLayoutRoot:
+    "flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden",
+  mobileHomeUpperRegion:
+    "relative z-0 flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain",
+  mobileHomeUpperInner:
+    "mx-auto flex w-full max-w-2xl flex-1 flex-col px-4 pt-3 pb-2",
+  mobileHomeContentStack: "flex min-h-0 flex-1 flex-col gap-1.5",
+  mobileHomePrimaryActionsRegion:
+    "flex min-h-[min(22dvh,180px)] flex-1 flex-col",
+  mobileHomeDockTopSpacer: "mx-4 h-2 max-h-2 shrink-0",
+  mobileHomeDockRegion: "relative z-10 w-full shrink-0 px-4 pb-3",
+  mobileHomeDockInner: "mx-auto w-full max-w-2xl",
+  /** Legacy anchored bottom sheet tokens (deprecated) */
   mobileHomeContentScroll: "relative z-0 h-full min-h-0 overflow-y-auto overscroll-contain",
   mobileHomeContentInner: "mx-auto w-full max-w-2xl",
-  mobileHomeContentStack: "flex flex-col",
   mobileHomeContentBottomPadding:
     "pb-[calc(clamp(240px,30dvh,300px)+12px+16px)]",
   mobileHomeDockHost: "pointer-events-none absolute inset-x-0 z-20 px-4",
@@ -45,9 +56,9 @@ export const mobileTokens = {
   mobileHomeDockHostInner: "pointer-events-auto w-full",
   mobileHomeDockGap: "12px",
   mobileHomeDockCollapsedHeight:
-    "h-[clamp(240px,30dvh,300px)] max-h-[clamp(240px,30dvh,300px)] min-h-[clamp(240px,30dvh,300px)] shrink-0",
+    "h-[clamp(240px,30dvh,320px)] max-h-[clamp(240px,30dvh,320px)] min-h-[clamp(240px,30dvh,320px)] shrink-0",
   mobileHomeDockExpandedHeight:
-    "h-[clamp(420px,62dvh,560px)] max-h-[clamp(420px,62dvh,560px)] min-h-[clamp(420px,62dvh,560px)] shrink-0",
+    "h-[clamp(400px,55dvh,520px)] max-h-[clamp(400px,55dvh,520px)] min-h-[clamp(400px,55dvh,520px)] shrink-0",
   mobileHomeDockCollapsedBody: "min-h-0 flex-1 overflow-y-auto overscroll-contain",
   /** Legacy flex-flow allocation (deprecated — kept for reference) */
   mobileHomeContentZone: "flex min-h-0 flex-1 flex-col pt-3",
@@ -117,19 +128,19 @@ export const mobileTokens = {
   actionLabelClass: "text-[11px] font-medium leading-tight text-center",
 
   // ── Quick action strip (/app) ───────────────────────────────────────────
-  quickActionStripRow: "grid grid-cols-4 gap-1.5",
-  quickActionGridRow: "grid grid-cols-2 gap-1.5",
+  quickActionStripRow: "grid h-full min-h-[58px] grid-cols-4 gap-1.5",
+  quickActionGridRow: "grid h-full min-h-[min(22dvh,180px)] grid-cols-2 auto-rows-fr gap-1.5",
   quickActionStripButton:
-    "flex min-h-[50px] flex-col items-center justify-center gap-0.5 rounded-xl border border-white/[0.06] bg-white/[0.04] px-0.5 py-1.5 text-zinc-300 transition-colors hover:border-amber-500/20 hover:bg-white/[0.07] hover:text-white active:bg-white/[0.11]",
+    "flex h-full min-h-[58px] flex-col items-center justify-center gap-0.5 rounded-xl border border-white/[0.06] bg-white/[0.04] px-0.5 py-1.5 text-zinc-300 transition-colors hover:border-amber-500/20 hover:bg-white/[0.07] hover:text-white active:bg-white/[0.11]",
   quickActionGridButton:
-    "flex min-h-[56px] h-full flex-col items-center justify-center gap-0.5 rounded-xl border border-white/[0.06] bg-white/[0.04] px-1 py-2 text-zinc-300 transition-colors hover:border-amber-500/20 hover:bg-white/[0.07] hover:text-white active:bg-white/[0.11]",
+    "flex h-full min-h-[64px] flex-col items-center justify-center gap-0.5 rounded-xl border border-white/[0.06] bg-white/[0.04] px-1 py-2 text-zinc-300 transition-colors hover:border-amber-500/20 hover:bg-white/[0.07] hover:text-white active:bg-white/[0.11]",
   quickActionStripIcon: "h-[18px] w-[18px] shrink-0",
   quickActionStripLabel: "text-[10px] font-medium leading-tight text-center text-zinc-300",
 
   // ── App launcher tile (/app Your Apps) ───────────────────────────────────
   appButtonBase:
     "flex flex-col items-center justify-center gap-0.5 rounded-xl border border-white/[0.06] bg-white/[0.04] px-2 py-1.5 text-center transition-colors hover:border-amber-500/20 hover:bg-white/[0.07] active:bg-white/[0.09]",
-  mobileAppLauncherTileHeight: "h-[92px] min-h-0 max-h-[96px]",
+  mobileAppLauncherTileHeight: "h-[100px] min-h-0 max-h-[104px]",
   appButtonIconWrapper:
     "flex h-7 w-7 shrink-0 items-center justify-center rounded-lg",
   appButtonIconClass: "h-3.5 w-3.5",
