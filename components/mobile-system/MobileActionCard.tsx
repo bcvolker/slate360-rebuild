@@ -1,19 +1,11 @@
 "use client";
 
-/**
- * MobileActionCard — shared 2×2 action card for mobile shells.
- *
- * Used by:
- *  - /app  CommandCenterContent Quick Actions (replaces inline QuickActionCard)
- *  - /site-walk HomeView action grid (replaces SiteWalkV1ActionGrid buttons)
- *
- * Slice 1: component created only. No consumers changed yet.
- */
-
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { mobileTokens } from "./mobileTokens";
 import type { ElementType } from "react";
+
+type MobileActionCardVariant = "default" | "module";
 
 interface MobileActionCardProps {
   icon: ElementType;
@@ -22,6 +14,7 @@ interface MobileActionCardProps {
   href?: string;
   onClick?: () => void;
   disabled?: boolean;
+  variant?: MobileActionCardVariant;
   "aria-label"?: string;
   className?: string;
 }
@@ -33,12 +26,15 @@ export function MobileActionCard({
   href,
   onClick,
   disabled = false,
+  variant = "default",
   "aria-label": ariaLabel,
   className,
 }: MobileActionCardProps) {
+  const isModule = variant === "module";
+
   const base = cn(
     mobileTokens.actionCardBase,
-    mobileTokens.mobileActionCardHeight,
+    isModule ? mobileTokens.moduleActionCardHeight : mobileTokens.mobileActionCardHeight,
     mobileTokens.focusRing,
     disabled && "pointer-events-none opacity-50",
     className,
@@ -46,10 +42,12 @@ export function MobileActionCard({
 
   const inner = (
     <>
-      <Icon className={mobileTokens.actionIconClass} />
+      <Icon
+        className={isModule ? mobileTokens.moduleActionIconClass : mobileTokens.actionIconClass}
+      />
       <span className={mobileTokens.actionLabelClass}>{label}</span>
       {description && (
-        <span className="text-[12px] text-zinc-400 font-medium mt-0.5 text-center leading-tight">
+        <span className="mt-0.5 text-center text-[11px] font-medium leading-tight text-zinc-500">
           {description}
         </span>
       )}

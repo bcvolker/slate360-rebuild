@@ -2,8 +2,7 @@
 
 import { Plus, Play, Camera, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { MobileActionCard } from "@/components/mobile-system/MobileActionCard";
-import { MobileActionGrid } from "@/components/mobile-system/MobileActionGrid";
+import { MobileActionCard, MobileActionGrid } from "@/components/mobile-system";
 
 type SiteWalkV1ActionGridProps = {
   onNewWorksite?: () => void;
@@ -21,11 +20,31 @@ export function SiteWalkV1ActionGrid({
   className,
 }: SiteWalkV1ActionGridProps) {
   return (
-    <MobileActionGrid className={cn("px-4", className)}>
-      <MobileActionCard label="Create Worksite" icon={Plus} onClick={onNewWorksite ?? (() => {})} />
-      <MobileActionCard label="Walk from Worksite" icon={Play} onClick={onStartWalk ?? (() => {})} />
-      <MobileActionCard label="Quick Walk" icon={Camera} onClick={onQuickCapture ?? (() => {})} />
-      <MobileActionCard label="Search" icon={Search} onClick={onSearch ?? (() => {})} />
+    <MobileActionGrid className={cn(className)} data-testid="site-walk-action-grid">
+      <MobileActionCard
+        variant="module"
+        label="Create Worksite"
+        icon={Plus}
+        onClick={onNewWorksite ?? (() => {})}
+      />
+      <MobileActionCard
+        variant="module"
+        label="Walk from Worksite"
+        icon={Play}
+        onClick={onStartWalk ?? (() => {})}
+      />
+      <MobileActionCard
+        variant="module"
+        label="Quick Walk"
+        icon={Camera}
+        onClick={onQuickCapture ?? (() => {})}
+      />
+      <MobileActionCard
+        variant="module"
+        label="Search"
+        icon={Search}
+        onClick={onSearch ?? (() => {})}
+      />
     </MobileActionGrid>
   );
 }

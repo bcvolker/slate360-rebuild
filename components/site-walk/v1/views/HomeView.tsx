@@ -14,6 +14,7 @@ import {
 } from "@/components/mobile-system";
 import { type RouterLike, timeAgo } from "./v1-view-utils";
 import { useState } from "react";
+import { cn } from "@/lib/utils";
 
 type HomeViewProps = {
   walks: HubWalk[];
@@ -21,7 +22,6 @@ type HomeViewProps = {
   summary: HubSummary;
   router: RouterLike;
   setTab: (t: V1NavTab) => void;
-  /** Override for Quick Walk — parent provides session-creation + navigate logic. */
   onQuickCapture?: () => void;
 };
 
@@ -44,21 +44,24 @@ export function HomeView({ walks, projects, summary, router, onQuickCapture }: H
       <SiteWalkV1ListPanel
         className="min-h-0 flex-1"
         upper={
-          <div className="mx-auto flex w-full max-w-2xl flex-col gap-3">
-            <div className="flex items-start gap-2.5">
-              <MobileShellBackToApp className="size-10 shrink-0" />
-              <div className="min-w-0 pt-0.5">
-                <p className={mobileTokens.sectionLabel}>SITE WALK</p>
-                <p className="text-[12px] leading-snug text-zinc-500">
-                  Field capture &amp; deliverables
-                </p>
+          <div
+            className={cn(
+              "mx-auto flex w-full max-w-2xl flex-col",
+              mobileTokens.mobileHomeSectionGap,
+              mobileTokens.mobileHomeUpperBottomPad,
+            )}
+          >
+            <div className="flex items-center gap-3" data-testid="site-walk-module-intro">
+              <MobileShellBackToApp />
+              <div className="min-w-0">
+                <h1 className={mobileTokens.moduleTitle}>SITE WALK</h1>
+                <p className={mobileTokens.moduleSubtitle}>Field capture &amp; deliverables</p>
               </div>
             </div>
             <SiteWalkV1ActionGrid
               onNewWorksite={() => router.push("/site-walk/setup")}
               onStartWalk={() => router.push("/site-walk/walks")}
               onQuickCapture={onQuickCapture}
-              className="!px-0"
             />
           </div>
         }

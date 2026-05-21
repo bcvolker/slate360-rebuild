@@ -27,6 +27,9 @@ export { MobileSection } from "./MobileSection";
 
 export { MobileActionCard } from "./MobileActionCard";
 
+export { MobileQuickActionStrip } from "./MobileQuickActionStrip";
+export type { MobileQuickActionItem } from "./MobileQuickActionStrip";
+
 export { MobileActionGrid } from "./MobileActionGrid";
 
 export { MobileAppCard } from "./MobileAppCard";

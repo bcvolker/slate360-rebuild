@@ -13,11 +13,16 @@ import type { ReactNode } from "react";
 interface MobileActionGridProps {
   children: ReactNode;
   className?: string;
+  "data-testid"?: string;
 }
 
-export function MobileActionGrid({ children, className }: MobileActionGridProps) {
+export function MobileActionGrid({
+  children,
+  className,
+  "data-testid": dataTestId,
+}: MobileActionGridProps) {
   return (
-    <div className={cn("grid grid-cols-2 gap-3", className)}>
+    <div data-testid={dataTestId} className={cn("grid grid-cols-2 gap-2.5", className)}>
       {children}
     </div>
   );

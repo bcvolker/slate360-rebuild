@@ -6,7 +6,6 @@ import { MapPin, Plus, Search, Bell, MessageSquare, ClipboardList, Clock, Box, F
 import type { Entitlements } from "@/lib/entitlements";
 import { cn } from "@/lib/utils";
 import {
-  MobileActionCard,
   MobileActionGrid,
   MobileAppButton,
   MobileSection,
@@ -14,9 +13,10 @@ import {
   MobileEmptyState,
   MobileComingSoonSheet,
   MobileCreateSheet,
+  MobileQuickActionStrip,
   mobileTokens,
 } from "@/components/mobile-system";
-import type { MobilePanelTab } from "@/components/mobile-system";
+import type { MobilePanelTab, MobileQuickActionItem } from "@/components/mobile-system";
 import {
   MOBILE_BLOCKED_DESCRIPTIONS,
   MOBILE_BLOCKED_LABELS,
@@ -26,11 +26,6 @@ import { useIsMobile } from "@/hooks/use-mobile";
 
 interface CommandCenterContentProps {
   entitlements?: Entitlements | null;
-  /**
-   * True for Slate360 CEO/owner.
-   * Reserved for when Track B provides a real /ceo/twin route.
-   * Intentionally unused until that route exists.
-   */
   isSlateCeo?: boolean;
 }
 
@@ -109,15 +104,34 @@ export function CommandCenterContent({
     window.history.replaceState({}, "", "/app");
   }, [openBlockedNotice]);
 
-  const handleSearch = () => {
+  const handleSearch = useCallback(() => {
     if (typeof window === "undefined") return;
     window.dispatchEvent(
       new KeyboardEvent("keydown", { key: "k", metaKey: true, bubbles: true }),
     );
-  };
+  }, []);
 
   const hasSiteWalk = entitlements?.canAccessStandalonePunchwalk ?? false;
   const appCount = (hasSiteWalk ? 1 : 0) + (isSlateCeo ? 1 : 0);
+
+  const quickActions: MobileQuickActionItem[] = useMemo(
+    () => [
+      { label: "Create", icon: Plus, onClick: () => setCreateSheetOpen(true) },
+      { label: "SlateDrop", icon: FolderOpen, onClick: () => openBlockedNotice("slatedrop") },
+      {
+        label: "Deliverables",
+        icon: Box,
+        onClick: () => {
+          setComingSoonTitle("Deliverables");
+          setComingSoonDescription(
+            "Deliverables are being rebuilt for mobile. Use Site Walk on desktop to manage reports until the new experience ships.",
+          );
+        },
+      },
+      { label: "Search", icon: Search, onClick: handleSearch },
+    ],
+    [openBlockedNotice, handleSearch],
+  );
 
   return (
     <>
@@ -126,7 +140,13 @@ export function CommandCenterContent({
         tabs={activityTabs}
         defaultTab="notifications"
         upper={
-          <div className={cn("mx-auto w-full max-w-2xl", mobileTokens.mobileHomeSectionGap, "flex flex-col")}>
+          <div
+            className={cn(
+              "mx-auto flex w-full max-w-2xl flex-col",
+              mobileTokens.mobileHomeSectionGap,
+              mobileTokens.mobileHomeUpperBottomPad,
+            )}
+          >
             <MobileSection label="Your Apps" className="shrink-0">
               {appCount > 0 ? (
                 <MobileActionGrid>
@@ -142,7 +162,7 @@ export function CommandCenterContent({
                   {isSlateCeo && (
                     <MobileAppButton
                       title="Slate360 Twin"
-                      subtitle="Owner Preview"
+                      subtitle="Digital Twin"
                       icon={Box}
                       href="#"
                       badge="CEO"
@@ -151,7 +171,7 @@ export function CommandCenterContent({
                   )}
                 </MobileActionGrid>
               ) : (
-                <div className="rounded-2xl border border-dashed border-white/10 px-4 py-8 text-center text-sm text-slate-500">
+                <div className="rounded-xl border border-dashed border-white/10 px-4 py-6 text-center text-sm text-slate-500">
                   No apps in your plan.{" "}
                   <Link href="/more/billing" className="text-amber-400 hover:underline">
                     View plans
@@ -161,29 +181,7 @@ export function CommandCenterContent({
             </MobileSection>
 
             <MobileSection label="Quick Actions" className="shrink-0">
-              <MobileActionGrid>
-                <MobileActionCard
-                  label="Create"
-                  icon={Plus}
-                  onClick={() => setCreateSheetOpen(true)}
-                />
-                <MobileActionCard
-                  label="SlateDrop"
-                  icon={FolderOpen}
-                  onClick={() => openBlockedNotice("slatedrop")}
-                />
-                <MobileActionCard
-                  label="Deliverables"
-                  icon={Box}
-                  onClick={() => {
-                    setComingSoonTitle("Deliverables");
-                    setComingSoonDescription(
-                      "Deliverables are being rebuilt for mobile. Use Site Walk on desktop to manage reports until the new experience ships.",
-                    );
-                  }}
-                />
-                <MobileActionCard label="Search" icon={Search} onClick={handleSearch} />
-              </MobileActionGrid>
+              <MobileQuickActionStrip actions={quickActions} />
             </MobileSection>
           </div>
         }

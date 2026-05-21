@@ -28,22 +28,37 @@ export const mobileTokens = {
   // ── Layout ───────────────────────────────────────────────────────────────
   pagePaddingX: "px-4",
   sectionGap: "gap-4",
-  mobileHomeSectionGap: "gap-3",
+  mobileHomeSectionGap: "gap-2.5",
+  /** Space between upper launcher content and expandable dock */
+  mobileHomeUpperBottomPad: "pb-2",
   mobilePanelBottomGap: "pb-3",
 
   // ── Section label (e.g. "YOUR APPS", "QUICK ACTIONS") ────────────────────
   sectionLabel:
-    "mb-2 text-[11px] font-bold uppercase tracking-[0.15em] text-zinc-400",
+    "mb-1.5 text-[11px] font-bold uppercase tracking-[0.15em] text-zinc-400",
 
-  // ── Action card ──────────────────────────────────────────────────────────
+  // ── Module home title (/site-walk below global header) ───────────────────
+  moduleTitle: "text-[20px] font-bold leading-tight tracking-tight text-amber-400",
+  moduleSubtitle: "mt-0.5 text-[13px] leading-snug text-zinc-400",
+
+  // ── Action card (2×2 module grids — Site Walk primary actions) ───────────
   actionCardHeight: "min-h-[96px]",
   mobileActionCardHeight: "min-h-[96px]",
+  moduleActionCardHeight: "min-h-[84px]",
   actionCardBase:
-    "flex flex-col items-center justify-center gap-2 rounded-xl border border-white/5 bg-white/[0.04] text-zinc-300 transition-colors hover:border-amber-500/30 hover:bg-white/[0.08] hover:text-white active:bg-white/[0.12]",
-  actionIconClass: "h-7 w-7 text-zinc-400",
-  actionLabelClass: "text-[13px] font-medium leading-tight text-center",
+    "flex flex-col items-center justify-center gap-1.5 rounded-xl border border-white/5 bg-white/[0.04] text-zinc-300 transition-colors hover:border-amber-500/30 hover:bg-white/[0.08] hover:text-white active:bg-white/[0.12]",
+  actionIconClass: "h-6 w-6 text-zinc-400",
+  moduleActionIconClass: "h-6 w-6 text-amber-500/90",
+  actionLabelClass: "text-[12px] font-medium leading-tight text-center",
 
-  // ── App card (horizontal tile for "Your Apps") ───────────────────────────
+  // ── Quick action strip (/app single row) ─────────────────────────────────
+  quickActionStripRow: "grid grid-cols-4 gap-2",
+  quickActionStripButton:
+    "flex min-h-[56px] flex-col items-center justify-center gap-1 rounded-xl border border-white/5 bg-white/[0.04] px-1 py-2 text-zinc-300 transition-colors hover:border-amber-500/30 hover:bg-white/[0.08] hover:text-white active:bg-white/[0.12]",
+  quickActionStripIcon: "h-5 w-5 shrink-0 text-zinc-400",
+  quickActionStripLabel: "text-[10px] font-medium leading-tight text-center",
+
+  // ── App launcher button (2-col grid, compact for growth rows) ─────────────
   appCardBase:
     "flex items-center gap-4 rounded-2xl border border-white/5 bg-white/[0.03] px-4 py-4 transition-colors hover:border-amber-500/30 hover:bg-white/[0.06] active:bg-white/[0.09]",
   appCardIconWrapper:
@@ -51,11 +66,13 @@ export const mobileTokens = {
   appCardIconClass: "h-5 w-5",
 
   appButtonBase:
-    "flex flex-col items-center justify-center gap-2 rounded-xl border border-white/5 bg-white/[0.04] px-3 py-4 text-center transition-colors hover:border-amber-500/30 hover:bg-white/[0.08] active:bg-white/[0.12]",
-  mobileAppButtonHeight: "min-h-[104px]",
+    "flex flex-col items-center justify-center gap-1.5 rounded-xl border border-white/5 bg-white/[0.04] px-2 py-3 text-center transition-colors hover:border-amber-500/30 hover:bg-white/[0.08] active:bg-white/[0.12]",
+  mobileAppButtonHeight: "min-h-[76px]",
   appButtonIconWrapper:
-    "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/[0.06] text-amber-500",
-  appButtonIconClass: "h-5 w-5",
+    "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/[0.06] text-amber-500",
+  appButtonIconClass: "h-4 w-4",
+  appButtonTitleClass: "text-[13px] font-semibold leading-tight text-white",
+  appButtonSubtitleClass: "text-[11px] leading-tight text-zinc-400",
 
   // ── Contained scrolling panel (inner tab body) ───────────────────────────
   panelBase:
@@ -82,7 +99,7 @@ export const mobileTokens = {
   mobileExpandablePanelOuter: "relative z-30 shrink-0 w-full px-4 pb-3",
   mobileExpandablePanelExpandedPosition:
     "absolute inset-x-0 bottom-0 z-40 w-full px-4 pb-3",
-  mobileExpandablePanelUpperScroll: "px-4 py-4",
+  mobileExpandablePanelUpperScroll: "px-4 py-3",
   mobileExpandablePanelBackdrop:
     "absolute inset-0 z-20 bg-black/50 backdrop-blur-[2px] lg:hidden",
   mobileExpandablePanelFrame:
