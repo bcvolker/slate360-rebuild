@@ -10,6 +10,13 @@ export const MOBILE_PANEL_ROW_GAP_PX = 6;
 export const MOBILE_PANEL_COLLAPSED_BODY_PX = 192;
 export const MOBILE_PANEL_COLLAPSED_FRAME_PX = 264;
 
+/** MobileBottomNav content band: min-h-[70px] + pt-[4px] (nav sits below main, in shell flow). */
+export const MOBILE_BOTTOM_NAV_HEIGHT_PX = 74;
+export const MOBILE_HOME_DOCK_GAP_PX = 12;
+export const MOBILE_HOME_DOCK_CONTENT_PAD_PX = 16;
+export const MOBILE_HOME_DOCK_COLLAPSED_CLAMP = "clamp(240px,30dvh,300px)";
+export const MOBILE_HOME_DOCK_EXPANDED_CLAMP = "clamp(420px,62dvh,560px)";
+
 const mobileTabbedPanelScrollBody = "min-h-0 flex-1 overflow-y-auto";
 const mobileTabbedPanelBodyPadding = "px-3 pt-2 pb-3";
 
@@ -26,10 +33,25 @@ export const mobileTokens = {
   mobileShellContentTopGap: "pt-3",
   mobileShellContentPaddingX: "px-4",
   mobileShellContentStackGap: "gap-1.5",
-  /** MobileHomeLayout — shared viewport allocation model */
-  mobileHomeLayoutRoot: "relative flex min-h-0 flex-1 flex-col overflow-hidden",
+  /** MobileHomeLayout — anchored bottom sheet (dock overlays main, not flex-flow child) */
+  mobileHomeLayoutRoot: "relative h-full min-h-0 overflow-hidden",
+  mobileHomeContentScroll: "relative z-0 h-full min-h-0 overflow-y-auto overscroll-contain",
+  mobileHomeContentInner: "mx-auto w-full max-w-2xl",
+  mobileHomeContentStack: "flex flex-col",
+  mobileHomeContentBottomPadding:
+    "pb-[calc(clamp(240px,30dvh,300px)+12px+16px)]",
+  mobileHomeDockHost: "pointer-events-none absolute inset-x-0 z-20 px-4",
+  mobileHomeDockBottomOffset: "bottom-3",
+  mobileHomeDockHostInner: "pointer-events-auto w-full",
+  mobileHomeDockGap: "12px",
+  mobileHomeDockCollapsedHeight:
+    "h-[clamp(240px,30dvh,300px)] max-h-[clamp(240px,30dvh,300px)] min-h-[clamp(240px,30dvh,300px)] shrink-0",
+  mobileHomeDockExpandedHeight:
+    "h-[clamp(420px,62dvh,560px)] max-h-[clamp(420px,62dvh,560px)] min-h-[clamp(420px,62dvh,560px)] shrink-0",
+  mobileHomeDockCollapsedBody: "min-h-0 flex-1 overflow-y-auto overscroll-contain",
+  /** Legacy flex-flow allocation (deprecated — kept for reference) */
   mobileHomeContentZone: "flex min-h-0 flex-1 flex-col pt-3",
-  mobileHomeContentStack: "mx-auto flex min-h-0 w-full max-w-2xl flex-1 flex-col",
+  mobileHomeContentStackLegacy: "mx-auto flex min-h-0 w-full max-w-2xl flex-1 flex-col",
   mobileHomePrimaryActionsZone: "flex min-h-0 flex-1 flex-col",
   mobileHomeContentDockSpacer:
     "shrink-0 h-[clamp(8px,2dvh,24px)] min-h-2 max-h-6",
@@ -96,7 +118,7 @@ export const mobileTokens = {
 
   // ── Quick action strip (/app) ───────────────────────────────────────────
   quickActionStripRow: "grid grid-cols-4 gap-1.5",
-  quickActionGridRow: "grid grid-cols-2 auto-rows-fr gap-1.5 min-h-[128px] flex-1",
+  quickActionGridRow: "grid grid-cols-2 gap-1.5",
   quickActionStripButton:
     "flex min-h-[50px] flex-col items-center justify-center gap-0.5 rounded-xl border border-white/[0.06] bg-white/[0.04] px-0.5 py-1.5 text-zinc-300 transition-colors hover:border-amber-500/20 hover:bg-white/[0.07] hover:text-white active:bg-white/[0.11]",
   quickActionGridButton:

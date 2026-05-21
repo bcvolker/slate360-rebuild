@@ -19,10 +19,9 @@ type MobileHomeLayoutProps = {
 /**
  * Shared vertical composition for /app and /site-walk home surfaces.
  *
- * Viewport allocation:
- * - content zone (flex-1, starts near header, primary actions may grow)
- * - capped content→dock spacer
- * - dock zone (shrink-0, dock anchored above bottom nav)
+ * Dock model: anchored bottom sheet above the in-flow bottom nav (nav lives
+ * in MobileAppShell, outside main). Upper content scrolls with bottom padding;
+ * the dock is absolutely positioned — no flex spacer reserves empty gap.
  */
 export function MobileHomeLayout({
   route,
@@ -33,32 +32,43 @@ export function MobileHomeLayout({
 }: MobileHomeLayoutProps) {
   return (
     <div
-      data-mobile-home-layout-version="home-layout-v2"
+      data-mobile-home-layout-version="anchored-dock-v1"
       data-mobile-route={route}
       className={cn(mobileTokens.mobileHomeLayoutRoot, className)}
     >
       <div
         className={cn(
-          mobileTokens.mobileHomeContentZone,
-          mobileTokens.mobileShellContentPaddingX,
+          mobileTokens.mobileHomeContentScroll,
+          mobileTokens.mobileHomeContentBottomPadding,
         )}
       >
         <div
           className={cn(
-            mobileTokens.mobileHomeContentStack,
-            mobileTokens.mobileShellContentStackGap,
+            mobileTokens.mobileHomeContentInner,
+            mobileTokens.mobileShellContentPaddingX,
+            mobileTokens.mobileShellContentTopGap,
           )}
         >
-          <div className="shrink-0">{contentTop}</div>
-          {primaryActions ? (
-            <div className={mobileTokens.mobileHomePrimaryActionsZone}>{primaryActions}</div>
-          ) : null}
+          <div
+            className={cn(
+              mobileTokens.mobileHomeContentStack,
+              mobileTokens.mobileShellContentStackGap,
+            )}
+          >
+            <div className="shrink-0">{contentTop}</div>
+            {primaryActions ? <div className="shrink-0">{primaryActions}</div> : null}
+          </div>
         </div>
       </div>
 
-      <div className={mobileTokens.mobileHomeContentDockSpacer} aria-hidden />
-
-      <div className={mobileTokens.mobileHomeDockZone}>{dock}</div>
+      <div
+        className={cn(
+          mobileTokens.mobileHomeDockHost,
+          mobileTokens.mobileHomeDockBottomOffset,
+        )}
+      >
+        <div className={mobileTokens.mobileHomeDockHostInner}>{dock}</div>
+      </div>
     </div>
   );
 }

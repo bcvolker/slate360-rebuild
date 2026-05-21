@@ -43,7 +43,7 @@ export function SiteWalkV1ListPanel({
       tabs={tabs}
       defaultTab={defaultTab}
       upper={upper}
-      className={cn("min-h-0 flex-1", className)}
+      className={cn(upper ? "min-h-0 flex-1" : undefined, className)}
     />
   );
 }

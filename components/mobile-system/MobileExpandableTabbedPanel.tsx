@@ -7,7 +7,11 @@
 import { useCallback, useId, useState, type ReactNode } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { mobileTokens } from "./mobileTokens";
+import {
+  MOBILE_HOME_DOCK_COLLAPSED_CLAMP,
+  MOBILE_HOME_DOCK_EXPANDED_CLAMP,
+  mobileTokens,
+} from "./mobileTokens";
 import { MobileTabbedPanel } from "./MobileTabbedPanel";
 import type { MobilePanelTab } from "./MobileTabbedPanel";
 
@@ -29,11 +33,17 @@ export function MobileExpandableTabbedPanel({
   const collapse = useCallback(() => setExpanded(false), []);
   const toggle = useCallback(() => setExpanded((value) => !value), []);
 
+  const isBottomSheet = !upper;
+
   const dock = (
     <div
       className={cn(
-        mobileTokens.mobileExpandablePanelOuter,
-        expanded && mobileTokens.mobileExpandablePanelExpandedPosition,
+        isBottomSheet
+          ? "relative z-30 w-full"
+          : mobileTokens.mobileExpandablePanelOuter,
+        !isBottomSheet &&
+          expanded &&
+          mobileTokens.mobileExpandablePanelExpandedPosition,
       )}
     >
       <div
@@ -43,10 +53,14 @@ export function MobileExpandableTabbedPanel({
           mobileTokens.mobileExpandablePanelFrame,
           expanded
             ? cn(
-                mobileTokens.mobileExpandablePanelExpandedHeight,
+                isBottomSheet
+                  ? mobileTokens.mobileHomeDockExpandedHeight
+                  : mobileTokens.mobileExpandablePanelExpandedHeight,
                 mobileTokens.mobileExpandablePanelFrameExpanded,
               )
-            : mobileTokens.mobileExpandablePanelCollapsedHeight,
+            : isBottomSheet
+              ? mobileTokens.mobileHomeDockCollapsedHeight
+              : mobileTokens.mobileExpandablePanelCollapsedHeight,
         )}
       >
         <div className={mobileTokens.mobileExpandablePanelChrome}>
@@ -91,7 +105,9 @@ export function MobileExpandableTabbedPanel({
           bodyClassName={
             expanded
               ? mobileTokens.mobileExpandablePanelExpandedBody
-              : mobileTokens.mobileExpandablePanelCollapsedBody
+              : isBottomSheet
+                ? mobileTokens.mobileHomeDockCollapsedBody
+                : mobileTokens.mobileExpandablePanelCollapsedBody
           }
           showBottomFade
           bottomFadeClassName={mobileTokens.mobileExpandablePanelFade}
@@ -100,22 +116,23 @@ export function MobileExpandableTabbedPanel({
     </div>
   );
 
-  if (!upper) {
+  if (isBottomSheet) {
     return (
       <div
-        data-expandable-panel-version="capped-spacer-v2"
-        data-expanded={expanded ? "true" : "false"}
-        className={cn("relative w-full shrink-0", className)}
+        data-expandable-panel-version="bottom-sheet-v1"
+        data-panel-mode="bottom-sheet"
+        data-expanded-state={expanded ? "true" : "false"}
+        data-collapsed-height={MOBILE_HOME_DOCK_COLLAPSED_CLAMP}
+        data-expanded-height={MOBILE_HOME_DOCK_EXPANDED_CLAMP}
+        className={cn("relative w-full", className)}
       >
         {expanded && (
-          <>
-            <button
-              type="button"
-              className="fixed inset-0 z-20 bg-black/50 backdrop-blur-[2px] lg:hidden"
-              aria-label="Close activity panel"
-              onClick={collapse}
-            />
-          </>
+          <button
+            type="button"
+            className="fixed inset-0 z-10 bg-black/50 backdrop-blur-[2px] lg:hidden"
+            aria-label="Close activity panel"
+            onClick={collapse}
+          />
         )}
         {dock}
       </div>

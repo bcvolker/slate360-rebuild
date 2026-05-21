@@ -174,7 +174,7 @@ export function CommandCenterContent({
           </MobileSection>
         }
         primaryActions={
-          <MobileSection label="Quick Actions" showAccentLine="cool" className="flex min-h-0 flex-1 flex-col">
+          <MobileSection label="Quick Actions" showAccentLine="cool" className="shrink-0">
             <MobileQuickActionStrip actions={quickActions} />
           </MobileSection>
         }
