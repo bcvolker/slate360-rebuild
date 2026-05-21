@@ -4,7 +4,6 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { MapPin, Plus, Search, Bell, MessageSquare, ClipboardList, Clock, Box, FolderOpen } from "lucide-react";
 import type { Entitlements } from "@/lib/entitlements";
-import { cn } from "@/lib/utils";
 import {
   MobileActionGrid,
   MobileAppButton,
@@ -14,7 +13,7 @@ import {
   MobileComingSoonSheet,
   MobileCreateSheet,
   MobileQuickActionStrip,
-  mobileTokens,
+  MobileHomeLayout,
 } from "@/components/mobile-system";
 import type { MobilePanelTab, MobileQuickActionItem } from "@/components/mobile-system";
 import {
@@ -136,56 +135,55 @@ export function CommandCenterContent({
 
   return (
     <>
-      <MobileExpandableTabbedPanel
-        className="min-h-0 flex-1"
-        tabs={activityTabs}
-        defaultTab="notifications"
-        upper={
-          <div
-            className={cn(
-              "mx-auto flex w-full max-w-2xl flex-col",
-              mobileTokens.mobileShellContentStackGap,
+      <MobileHomeLayout
+        route="app"
+        contentTop={
+          <MobileSection label="Your Apps" showAccentLine className="shrink-0">
+            {appCount > 0 ? (
+              <MobileActionGrid>
+                {hasSiteWalk && (
+                  <MobileAppButton
+                    title="Site Walk"
+                    subtitle="Field capture"
+                    icon={MapPin}
+                    href="/site-walk"
+                    accent="primary"
+                    className={appCount === 1 ? "col-span-2 mx-auto w-1/2" : undefined}
+                  />
+                )}
+                {isSlateCeo && (
+                  <MobileAppButton
+                    title="Slate360 Twin"
+                    subtitle="Digital Twin"
+                    icon={Box}
+                    href="#"
+                    badge="CEO"
+                    accent="info"
+                    className={appCount === 1 ? "col-span-2 mx-auto w-1/2" : undefined}
+                  />
+                )}
+              </MobileActionGrid>
+            ) : (
+              <div className="rounded-xl border border-dashed border-white/10 px-4 py-5 text-center text-sm text-zinc-500">
+                No apps in your plan.{" "}
+                <Link href="/more/billing" className="text-amber-400/90 hover:underline">
+                  View plans
+                </Link>
+              </div>
             )}
-          >
-            <MobileSection label="Your Apps" showAccentLine className="shrink-0">
-              {appCount > 0 ? (
-                <MobileActionGrid>
-                  {hasSiteWalk && (
-                    <MobileAppButton
-                      title="Site Walk"
-                      subtitle="Field capture"
-                      icon={MapPin}
-                      href="/site-walk"
-                      accent="primary"
-                      className={appCount === 1 ? "col-span-2 mx-auto w-1/2" : undefined}
-                    />
-                  )}
-                  {isSlateCeo && (
-                    <MobileAppButton
-                      title="Slate360 Twin"
-                      subtitle="Digital Twin"
-                      icon={Box}
-                      href="#"
-                      badge="CEO"
-                      accent="info"
-                      className={appCount === 1 ? "col-span-2 mx-auto w-1/2" : undefined}
-                    />
-                  )}
-                </MobileActionGrid>
-              ) : (
-                <div className="rounded-xl border border-dashed border-white/10 px-4 py-5 text-center text-sm text-zinc-500">
-                  No apps in your plan.{" "}
-                  <Link href="/more/billing" className="text-amber-400/90 hover:underline">
-                    View plans
-                  </Link>
-                </div>
-              )}
-            </MobileSection>
-
-            <MobileSection label="Quick Actions" showAccentLine="cool" className="shrink-0">
-              <MobileQuickActionStrip actions={quickActions} />
-            </MobileSection>
-          </div>
+          </MobileSection>
+        }
+        primaryActions={
+          <MobileSection label="Quick Actions" showAccentLine="cool" className="shrink-0">
+            <MobileQuickActionStrip actions={quickActions} />
+          </MobileSection>
+        }
+        dock={
+          <MobileExpandableTabbedPanel
+            className="h-full min-h-0 flex-1"
+            tabs={activityTabs}
+            defaultTab="notifications"
+          />
         }
       />
 

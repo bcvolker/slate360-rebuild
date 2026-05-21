@@ -23,10 +23,16 @@ export const mobileTokens = {
   mobileHomeContentGap: "gap-1.5",
   mobileHomeSectionGap: "gap-1.5",
   /** Shared shell vertical rhythm (/app + /site-walk) */
-  mobileShellContentTopGap: "pt-5",
+  mobileShellContentTopGap: "pt-3",
   mobileShellContentPaddingX: "px-4",
   mobileShellContentStackGap: "gap-1.5",
-  /** Capped gap between upper launcher block and dock — must not grow unbounded */
+  /** MobileHomeLayout — shared viewport allocation model */
+  mobileHomeLayoutRoot: "flex min-h-0 flex-1 flex-col overflow-hidden",
+  mobileHomeContentZone: "shrink-0 pt-3",
+  mobileHomeContentDockSpacer:
+    "shrink-0 h-[clamp(8px,2dvh,24px)] min-h-2 max-h-6",
+  mobileHomeDockZone: "flex min-h-0 flex-1 flex-col overflow-hidden",
+  /** Capped gap between upper launcher block and dock — legacy upper-in-panel path */
   mobileShellDockSpacerMin: "min-h-3",
   mobileShellDockSpacerMax: "max-h-12",
   mobileShellDockSpacerPreferred: "h-[clamp(12px,3dvh,32px)]",
@@ -72,7 +78,7 @@ export const mobileTokens = {
   moduleTitleAccent: "text-amber-400/75",
   moduleSubtitle: "mt-0.5 text-[13px] leading-snug text-zinc-400",
   moduleBackButton:
-    "flex size-10 shrink-0 items-center justify-center rounded-xl border border-white/[0.06] bg-white/[0.04] text-amber-400/90 transition-colors hover:border-amber-500/20 hover:bg-white/[0.07] active:bg-white/[0.11]",
+    "flex size-10 shrink-0 items-center justify-center rounded-xl border border-white/[0.06] bg-white/[0.04] text-zinc-400 transition-colors hover:border-amber-500/20 hover:bg-white/[0.07] hover:text-amber-400/90 active:bg-white/[0.11]",
 
   // ── Action card (Site Walk 2×2 module actions) ─────────────────────────
   actionCardHeight: "min-h-[96px]",
@@ -134,7 +140,7 @@ export const mobileTokens = {
   mobileExpandablePanelHandle: "block h-1 w-10 rounded-full bg-white/25",
   mobileExpandablePanelFade:
     "pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-[#0B0F15] via-[#0B0F15]/85 to-transparent z-[1]",
-  mobileExpandablePanelOuter: "relative z-30 shrink-0 w-full px-4 pb-3",
+  mobileExpandablePanelOuter: "relative z-30 flex h-full min-h-0 w-full shrink-0 flex-col px-4 pb-3",
   mobileExpandablePanelExpandedPosition:
     "absolute inset-x-0 bottom-0 z-40 w-full px-4 pb-3",
   mobileExpandablePanelUpperScroll: "px-4",
@@ -146,11 +152,11 @@ export const mobileTokens = {
     "shadow-[0_-12px_40px_rgba(0,0,0,0.55)] ring-1 ring-white/10",
   mobileExpandablePanelChrome:
     "flex shrink-0 items-center gap-1 border-b border-white/10 px-2",
-  mobileExpandablePanelCollapsedHeight: "h-[264px] max-h-[264px] min-h-[264px]",
+  mobileExpandablePanelCollapsedHeight: "flex min-h-[264px] h-full flex-col",
   mobileExpandablePanelExpandedHeight:
     "h-[min(52dvh,480px)] max-h-[min(52dvh,480px)] min-h-[min(52dvh,480px)]",
   mobileExpandablePanelCollapsedBody:
-    "h-[192px] max-h-[192px] min-h-0 overflow-y-auto overscroll-contain",
+    "min-h-[192px] flex-1 overflow-y-auto overscroll-contain",
   mobileExpandablePanelExpandedBody: "min-h-0 flex-1 overflow-y-auto overscroll-contain",
   mobileExpandablePanelTabbedFill: "flex min-h-0 flex-1 flex-col border-0 bg-transparent shadow-none",
 

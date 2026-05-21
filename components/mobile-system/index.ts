@@ -43,6 +43,8 @@ export type { MobilePanelTab } from "./MobileTabbedPanel";
 
 export { MobileExpandableTabbedPanel } from "./MobileExpandableTabbedPanel";
 
+export { MobileHomeLayout } from "./MobileHomeLayout";
+
 export { MobileEmptyState } from "./MobileEmptyState";
 export { MobileComingSoonSheet } from "./MobileComingSoonSheet";
 export { MobileCreateSheet } from "./MobileCreateSheet";

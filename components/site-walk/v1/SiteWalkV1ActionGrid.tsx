@@ -23,24 +23,28 @@ export function SiteWalkV1ActionGrid({
     <MobileActionGrid className={cn(className)} data-testid="site-walk-action-grid">
       <MobileActionCard
         variant="module"
+        accent="primary"
         label="Create Worksite"
         icon={Plus}
         onClick={onNewWorksite ?? (() => {})}
       />
       <MobileActionCard
         variant="module"
+        accent="info"
         label="Walk from Worksite"
         icon={Play}
         onClick={onStartWalk ?? (() => {})}
       />
       <MobileActionCard
         variant="module"
+        accent="warm"
         label="Quick Walk"
         icon={Camera}
         onClick={onQuickCapture ?? (() => {})}
       />
       <MobileActionCard
         variant="module"
+        accent="muted"
         label="Search"
         icon={Search}
         onClick={onSearch ?? (() => {})}

@@ -45,7 +45,10 @@ export function MobileExpandableTabbedPanel({
                 mobileTokens.mobileExpandablePanelExpandedHeight,
                 mobileTokens.mobileExpandablePanelFrameExpanded,
               )
-            : mobileTokens.mobileExpandablePanelCollapsedHeight,
+            : cn(
+                mobileTokens.mobileExpandablePanelCollapsedHeight,
+                "flex-1",
+              ),
         )}
       >
         <div className={mobileTokens.mobileExpandablePanelChrome}>
@@ -100,7 +103,14 @@ export function MobileExpandableTabbedPanel({
   );
 
   if (!upper) {
-    return <div className={cn("relative flex min-h-0 flex-1 flex-col", className)}>{dock}</div>;
+    return (
+      <div
+        data-expandable-panel-version="capped-spacer-v1"
+        className={cn("relative flex h-full min-h-0 flex-1 flex-col", className)}
+      >
+        {dock}
+      </div>
+    );
   }
 
   return (

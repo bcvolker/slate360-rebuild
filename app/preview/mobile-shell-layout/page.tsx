@@ -13,11 +13,11 @@ import { SiteWalkV1ActionGrid } from "@/components/site-walk/v1/SiteWalkV1Action
 import {
   MobileExpandableTabbedPanel,
   MobileEmptyState,
+  MobileHomeLayout,
   MobileSection,
   MobileShellBackToApp,
   mobileTokens,
 } from "@/components/mobile-system";
-import { cn } from "@/lib/utils";
 
 const mockTabs = [
   {
@@ -73,35 +73,32 @@ export default function MobileShellLayoutPreviewPage() {
         </MobileShellFrame>
 
         <MobileShellFrame surface="site-walk">
-          <MobileExpandableTabbedPanel
-            className="min-h-0 flex-1"
-            tabs={mockTabs}
-            defaultTab="recent"
-            upper={
-              <div
-                className={cn(
-                  "mx-auto flex w-full max-w-2xl flex-col",
-                  mobileTokens.mobileShellContentStackGap,
-                )}
-              >
-                <MobileSection showAccentLine className="shrink-0">
-                  <div
-                    className="flex items-center gap-2.5"
-                    data-testid="site-walk-module-intro"
-                  >
-                    <MobileShellBackToApp />
-                    <div className="min-w-0">
-                      <h1 className={mobileTokens.moduleTitle}>
-                        SITE <span className={mobileTokens.moduleTitleAccent}>WALK</span>
-                      </h1>
-                      <p className={mobileTokens.moduleSubtitle}>Field capture &amp; deliverables</p>
-                    </div>
+          <MobileHomeLayout
+            route="site-walk"
+            contentTop={
+              <MobileSection showAccentLine className="shrink-0">
+                <div className="flex items-center gap-2.5" data-testid="site-walk-module-intro">
+                  <MobileShellBackToApp />
+                  <div className="min-w-0">
+                    <h1 className={mobileTokens.moduleTitle}>
+                      SITE <span className={mobileTokens.moduleTitleAccent}>WALK</span>
+                    </h1>
+                    <p className={mobileTokens.moduleSubtitle}>Field capture &amp; deliverables</p>
                   </div>
-                </MobileSection>
-                <MobileSection label="Actions" showAccentLine="cool" className="shrink-0">
-                  <SiteWalkV1ActionGrid />
-                </MobileSection>
-              </div>
+                </div>
+              </MobileSection>
+            }
+            primaryActions={
+              <MobileSection label="Actions" showAccentLine="cool" className="shrink-0">
+                <SiteWalkV1ActionGrid />
+              </MobileSection>
+            }
+            dock={
+              <MobileExpandableTabbedPanel
+                className="h-full min-h-0 flex-1"
+                tabs={mockTabs}
+                defaultTab="recent"
+              />
             }
           />
         </MobileShellFrame>
