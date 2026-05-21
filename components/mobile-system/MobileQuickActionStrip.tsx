@@ -32,7 +32,7 @@ export function MobileQuickActionStrip({ actions, className }: MobileQuickAction
   return (
     <div
       data-testid="mobile-quick-action-strip"
-      className={cn(mobileTokens.quickActionStripRow, className)}
+      className={cn(mobileTokens.appQuickActionStripRow, className)}
       role="toolbar"
       aria-label="Quick actions"
     >
@@ -53,7 +53,7 @@ function QuickActionButton({
   "aria-label": ariaLabel,
 }: MobileQuickActionItem) {
   const base = cn(
-    mobileTokens.quickActionStripButton,
+    mobileTokens.appQuickActionStripButton,
     mobileTokens.focusRing,
     disabled && "pointer-events-none opacity-50",
   );

@@ -32,7 +32,7 @@ function ActionButton({ label, icon: Icon, accent, onClick }: ActionSpec) {
     <button
       type="button"
       onClick={onClick}
-      className={cn(mobileTokens.quickActionGridButton, mobileTokens.focusRing)}
+      className={cn(mobileTokens.siteWalkActionGridButton, mobileTokens.focusRing)}
       aria-label={label}
     >
       <Icon className={cn(mobileTokens.quickActionStripIcon, accentIconClass[accent])} aria-hidden />
@@ -61,7 +61,7 @@ export function SiteWalkV1ActionGrid({
   return (
     <div
       data-testid="site-walk-action-grid"
-      className={cn(mobileTokens.quickActionGridRow, className)}
+      className={cn(mobileTokens.siteWalkActionGridRow, className)}
       role="toolbar"
       aria-label="Site Walk actions"
     >

@@ -43,6 +43,7 @@ export const mobileTokens = {
   mobileHomeContentStack: "flex min-h-0 flex-1 flex-col gap-1.5",
   mobileHomePrimaryActionsRegion:
     "flex min-h-[min(22dvh,180px)] flex-1 flex-col",
+  mobileHomeAppPrimaryActionsRegion: "flex shrink-0 flex-col",
   mobileHomeDockTopSpacer: "mx-4 h-2 max-h-2 shrink-0",
   mobileHomeDockRegion: "relative z-10 w-full shrink-0 px-4 pb-3",
   mobileHomeDockInner: "mx-auto w-full max-w-2xl",
@@ -127,11 +128,22 @@ export const mobileTokens = {
   actionIconClass: "h-5 w-5 text-zinc-400",
   actionLabelClass: "text-[11px] font-medium leading-tight text-center",
 
-  // ── Quick action strip (/app) ───────────────────────────────────────────
-  quickActionStripRow: "grid h-full min-h-[58px] grid-cols-4 gap-1.5",
+  // ── /app quick action strip (compact single row — do not share height with Site Walk) ──
+  appQuickActionStripRow: "grid grid-cols-4 gap-1.5",
+  appQuickActionStripButton:
+    "flex h-[62px] max-h-[62px] flex-col items-center justify-center gap-0.5 rounded-xl border border-white/[0.06] bg-white/[0.04] px-1 py-1.5 text-zinc-300 transition-colors hover:border-amber-500/20 hover:bg-white/[0.07] hover:text-white active:bg-white/[0.11]",
+  // ── Site Walk 2×2 action grid (preserve current proportions) ─────────────
+  siteWalkActionGridRow: "grid h-full min-h-[min(22dvh,180px)] grid-cols-2 auto-rows-fr gap-1.5",
+  siteWalkActionGridButton:
+    "flex h-full min-h-[64px] flex-col items-center justify-center gap-0.5 rounded-xl border border-white/[0.06] bg-white/[0.04] px-1 py-2 text-zinc-300 transition-colors hover:border-amber-500/20 hover:bg-white/[0.07] hover:text-white active:bg-white/[0.11]",
+  /** @deprecated Use appQuickActionStripRow */
+  quickActionStripRow: "grid grid-cols-4 gap-1.5",
+  /** @deprecated Use siteWalkActionGridRow */
   quickActionGridRow: "grid h-full min-h-[min(22dvh,180px)] grid-cols-2 auto-rows-fr gap-1.5",
+  /** @deprecated Use appQuickActionStripButton */
   quickActionStripButton:
-    "flex h-full min-h-[58px] flex-col items-center justify-center gap-0.5 rounded-xl border border-white/[0.06] bg-white/[0.04] px-0.5 py-1.5 text-zinc-300 transition-colors hover:border-amber-500/20 hover:bg-white/[0.07] hover:text-white active:bg-white/[0.11]",
+    "flex h-[62px] max-h-[62px] flex-col items-center justify-center gap-0.5 rounded-xl border border-white/[0.06] bg-white/[0.04] px-1 py-1.5 text-zinc-300 transition-colors hover:border-amber-500/20 hover:bg-white/[0.07] hover:text-white active:bg-white/[0.11]",
+  /** @deprecated Use siteWalkActionGridButton */
   quickActionGridButton:
     "flex h-full min-h-[64px] flex-col items-center justify-center gap-0.5 rounded-xl border border-white/[0.06] bg-white/[0.04] px-1 py-2 text-zinc-300 transition-colors hover:border-amber-500/20 hover:bg-white/[0.07] hover:text-white active:bg-white/[0.11]",
   quickActionStripIcon: "h-[18px] w-[18px] shrink-0",
@@ -140,7 +152,7 @@ export const mobileTokens = {
   // ── App launcher tile (/app Your Apps) ───────────────────────────────────
   appButtonBase:
     "flex flex-col items-center justify-center gap-0.5 rounded-xl border border-white/[0.06] bg-white/[0.04] px-2 py-1.5 text-center transition-colors hover:border-amber-500/20 hover:bg-white/[0.07] active:bg-white/[0.09]",
-  mobileAppLauncherTileHeight: "h-[100px] min-h-0 max-h-[104px]",
+  mobileAppLauncherTileHeight: "h-[118px] min-h-0 max-h-[124px]",
   appButtonIconWrapper:
     "flex h-7 w-7 shrink-0 items-center justify-center rounded-lg",
   appButtonIconClass: "h-3.5 w-3.5",

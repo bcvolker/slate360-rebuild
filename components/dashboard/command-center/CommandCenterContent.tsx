@@ -174,13 +174,8 @@ export function CommandCenterContent({
           </MobileSection>
         }
         primaryActions={
-          <MobileSection
-            label="Quick Actions"
-            showAccentLine="cool"
-            className="flex min-h-0 flex-1 flex-col"
-            contentClassName="flex min-h-0 flex-1 flex-col"
-          >
-            <MobileQuickActionStrip actions={quickActions} className="flex-1" />
+          <MobileSection label="Quick Actions" showAccentLine="cool" className="shrink-0">
+            <MobileQuickActionStrip actions={quickActions} />
           </MobileSection>
         }
         dock={

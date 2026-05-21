@@ -42,7 +42,15 @@ export function MobileHomeLayout({
           <div className={mobileTokens.mobileHomeContentStack}>
             <div className="shrink-0">{contentTop}</div>
             {primaryActions ? (
-              <div className={mobileTokens.mobileHomePrimaryActionsRegion}>{primaryActions}</div>
+              <div
+                className={
+                  route === "app"
+                    ? mobileTokens.mobileHomeAppPrimaryActionsRegion
+                    : mobileTokens.mobileHomePrimaryActionsRegion
+                }
+              >
+                {primaryActions}
+              </div>
             ) : null}
           </div>
         </div>
