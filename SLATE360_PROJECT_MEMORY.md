@@ -1,11 +1,21 @@
 # Slate360 — Project Memory
 
-Last Updated: 2026-05-13
+Last Updated: 2026-05-21
 Repo: bcvolker/slate360-rebuild
-Branch: main
+Branch: main (active development — push to production after validation)
 Live: https://www.slate360.ai
 
 This file is the default new-chat attachment. Keep it short. Read this first, then only pull the docs required for the task.
+
+## Live-main workflow (2026-05-21)
+
+During active pre-user development, Cursor and other agents may **work directly on `main`** and push to production after validation so the user can test changes on the live PWA (`/app`, `/site-walk`, `/dashboard`). Use small commits, validate first, and provide cache-busted production URLs after each push. **Do not use preview deploys** unless explicitly requested.
+
+Full procedure: **`SLATE360_LIVE_MAIN_WORKFLOW.md`**.
+
+Restore point before this workflow: branch **`backup/pre-live-main-workflow`** / tag **`pre-live-main-workflow`** @ `33ab09c`.
+
+Use feature branches only for high-risk changes (migrations, middleware, billing, Trigger.dev, destructive refactors).
 
 ## AI Agent Access & Backend Autonomy
 
@@ -34,7 +44,7 @@ Recommended read order:
 
 | Track | Owns | Branch |
 |---|---|---|
-| **Track A — AppShell + Site Walk UI** | Global AppShell design, Site Walk V1 UI, Graphite Glass design system, capture/plan shell visual work | `main` |
+| **Track A — AppShell + Site Walk UI** | Global AppShell design, Site Walk V1 UI, Graphite Glass design system, capture/plan shell visual work | `main` (live production deploys) |
 | **Track B — Digital Twin Lite** | CEO-gated Digital Twin app, drone processing, multipart upload, GPU worker, twin APIs/viewers/share | `feature/digital-twin-lite` |
 
 **Hard rules (enforced by both tracks):**

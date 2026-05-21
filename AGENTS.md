@@ -21,8 +21,22 @@ Slate360 is not a demo app. It is a production SaaS product being prepared for i
 
 ## Git Rules
 
-- No direct pushes to `main`.
-- Work on feature branches.
+### Live-main workflow (active pre-user development)
+
+During early development (no external users), agents may **work directly on `main`** and push to production after validation so the owner can test on the live PWA at https://www.slate360.ai.
+
+Read `SLATE360_LIVE_MAIN_WORKFLOW.md` before every session.
+
+- Default branch: **`main`** unless the user explicitly requests a feature branch.
+- Do **not** use Vercel preview links unless explicitly asked.
+- Small, reversible commits; validate before every push (`typecheck`, `build`, `guard:architecture`).
+- After push: confirm production via `/api/deploy-info` and provide cache-busted URLs.
+- Restore point: branch `backup/pre-live-main-workflow` / tag `pre-live-main-workflow`.
+
+Use **feature branches** for high-risk work: migrations, auth/middleware, billing, Trigger.dev, destructive refactors, or post-launch user-facing risk.
+
+### General
+
 - Do not use `git add .`.
 - Keep changes narrow and reviewable.
 
