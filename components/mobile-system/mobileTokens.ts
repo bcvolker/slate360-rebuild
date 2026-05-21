@@ -22,7 +22,14 @@ export const mobileTokens = {
   /** Vertical gap between Your Apps, Quick Actions, module intro, etc. */
   mobileHomeContentGap: "gap-1.5",
   mobileHomeSectionGap: "gap-1.5",
-  /** Gap between upper launcher block and expandable dock */
+  /** Shared shell vertical rhythm (/app + /site-walk) */
+  mobileShellContentTopGap: "pt-5",
+  mobileShellContentPaddingX: "px-4",
+  mobileShellContentStackGap: "gap-1.5",
+  /** Flex spacer between upper launcher block and dock (grows, does not push content down) */
+  mobileShellDockSpacerMin: "min-h-3",
+  mobileShellDockGap: "gap-0",
+  /** Gap between upper launcher block and expandable dock — prefer mobileShellDockSpacerMin */
   mobileDockTopGap: "gap-1.5",
   mobilePanelBottomGap: "pb-3",
 
@@ -50,19 +57,22 @@ export const mobileTokens = {
   sectionLabelAccentCool: "mb-1.5 h-0.5 w-6 rounded-full bg-cyan-500/25",
 
   // ── Module home title (/site-walk) ───────────────────────────────────────
-  moduleTitle: "text-[19px] font-bold leading-tight tracking-tight text-amber-400/80",
+  moduleTitle: "text-[18px] font-bold leading-tight tracking-tight text-zinc-100",
+  moduleTitleAccent: "text-amber-400/75",
   moduleSubtitle: "mt-0.5 text-[13px] leading-snug text-zinc-400",
   moduleBackButton:
-    "flex size-11 shrink-0 items-center justify-center rounded-xl border border-amber-500/25 bg-amber-500/6 text-amber-400/85 shadow-[0_0_8px_rgba(245,158,11,0.08)] transition-colors hover:border-amber-500/35 hover:bg-amber-500/10 hover:text-amber-300/90",
+    "flex size-10 shrink-0 items-center justify-center rounded-xl border border-white/[0.06] bg-white/[0.04] text-amber-400/90 transition-colors hover:border-amber-500/20 hover:bg-white/[0.07] active:bg-white/[0.11]",
 
   // ── Action card (Site Walk 2×2 module actions) ─────────────────────────
   actionCardHeight: "min-h-[96px]",
   mobileActionCardHeight: "min-h-[96px]",
   moduleActionCardHeight: "min-h-[72px]",
+  moduleActionIconWrapper:
+    "mb-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-amber-500/10",
+  moduleActionIconClass: "h-3.5 w-3.5 text-amber-400/90",
   actionCardBase:
     "flex flex-col items-center justify-center gap-0.5 rounded-xl border border-white/[0.06] bg-white/[0.04] text-zinc-300 transition-colors hover:border-amber-500/20 hover:bg-white/[0.07] hover:text-white active:bg-white/[0.11]",
   actionIconClass: "h-5 w-5 text-zinc-400",
-  moduleActionIconClass: "h-5 w-5 text-amber-400/75",
   actionLabelClass: "text-[11px] font-medium leading-tight text-center",
 
   // ── Quick action strip (/app) ───────────────────────────────────────────
@@ -116,7 +126,7 @@ export const mobileTokens = {
   mobileExpandablePanelOuter: "relative z-30 shrink-0 w-full px-4 pb-3",
   mobileExpandablePanelExpandedPosition:
     "absolute inset-x-0 bottom-0 z-40 w-full px-4 pb-3",
-  mobileExpandablePanelUpperScroll: "px-4 pt-2",
+  mobileExpandablePanelUpperScroll: "px-4",
   mobileExpandablePanelBackdrop:
     "absolute inset-0 z-20 bg-black/50 backdrop-blur-[2px] lg:hidden",
   mobileExpandablePanelFrame:
@@ -135,7 +145,7 @@ export const mobileTokens = {
 
   expandablePanelOuter: "relative z-30 shrink-0 w-full px-4 pb-3",
   expandablePanelExpandedPosition: "absolute inset-x-0 bottom-0 z-40 w-full px-4 pb-3",
-  expandablePanelUpperScroll: "px-4 pt-2",
+  expandablePanelUpperScroll: "px-4",
   expandablePanelBackdrop: "absolute inset-0 z-20 bg-black/50 backdrop-blur-[2px] lg:hidden",
   expandablePanelDock:
     "flex w-full flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#0B0F15]/92 shadow-[0_-4px_24px_rgba(0,0,0,0.35)] backdrop-blur-md transition-[height] duration-200 ease-out",

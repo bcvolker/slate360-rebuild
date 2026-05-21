@@ -144,7 +144,7 @@ export function CommandCenterContent({
           <div
             className={cn(
               "mx-auto flex w-full max-w-2xl flex-col",
-              mobileTokens.mobileHomeContentGap,
+              mobileTokens.mobileShellContentStackGap,
             )}
           >
             <MobileSection label="Your Apps" showAccentLine className="shrink-0">

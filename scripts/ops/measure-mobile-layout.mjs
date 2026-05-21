@@ -19,7 +19,6 @@ async function rect(page, selector) {
       top: Math.round(r.top),
       bottom: Math.round(r.bottom),
       height: Math.round(r.height),
-      width: Math.round(r.width),
     };
   });
 }
@@ -29,32 +28,37 @@ async function measureSurface(page, surface) {
   await page.locator(rootSel).scrollIntoViewIfNeeded();
   await page.waitForTimeout(300);
 
+  const header = await rect(page, `${rootSel} [data-testid="mock-mobile-header"]`);
+  const bottomNav = await rect(page, `${rootSel} [data-testid="mock-mobile-bottom-nav"]`);
+  const dockFrame = await rect(page, `${rootSel} [data-testid="mobile-expandable-panel-frame"]`);
+
   if (surface === "app") {
-    const appCard = await rect(page, `${rootSel} [data-testid="mobile-app-button"]`);
+    const sectionLabel = await rect(page, `${rootSel} [data-testid="mobile-section-label"]`);
     const quickStrip = await rect(page, `${rootSel} [data-testid="mobile-quick-action-strip"]`);
-    const dockFrame = await rect(page, `${rootSel} [data-testid="mobile-expandable-panel-frame"]`);
     return {
-      appCardHeight: appCard.height,
-      quickActionStripHeight: quickStrip.height,
+      headerBottomY: header.bottom,
+      yourAppsLabelTopY: sectionLabel.top,
+      topGapHeaderToContent: sectionLabel.top - header.bottom,
       quickActionBottomY: quickStrip.bottom,
       dockTopY: dockFrame.top,
-      gapQuickActionsToDock: dockFrame.top - quickStrip.bottom,
       dockBottomY: dockFrame.bottom,
+      bottomNavTopY: bottomNav.top,
+      gapDockToNav: bottomNav.top - dockFrame.bottom,
     };
   }
 
   const moduleIntro = await rect(page, `${rootSel} [data-testid="site-walk-module-intro"]`);
-  const actionCard = await rect(page, `${rootSel} [data-testid="site-walk-action-grid"] button`);
   const actionGrid = await rect(page, `${rootSel} [data-testid="site-walk-action-grid"]`);
-  const dockFrame = await rect(page, `${rootSel} [data-testid="mobile-expandable-panel-frame"]`);
 
   return {
-    moduleTitleAreaHeight: moduleIntro.height,
-    actionCardHeight: actionCard.height,
+    headerBottomY: header.bottom,
+    moduleTitleTopY: moduleIntro.top,
+    topGapHeaderToContent: moduleIntro.top - header.bottom,
     actionGridBottomY: actionGrid.bottom,
     dockTopY: dockFrame.top,
-    gapActionGridToDock: dockFrame.top - actionGrid.bottom,
     dockBottomY: dockFrame.bottom,
+    bottomNavTopY: bottomNav.top,
+    gapDockToNav: bottomNav.top - dockFrame.bottom,
   };
 }
 

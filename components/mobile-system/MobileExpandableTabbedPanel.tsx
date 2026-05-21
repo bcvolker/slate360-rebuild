@@ -116,17 +116,22 @@ export function MobileExpandableTabbedPanel({
           onClick={collapse}
         />
       )}
-      {/* Top spacer absorbs extra viewport height; launcher + dock stay tightly stacked above bottom nav */}
+      {/* Upper content at top; flex spacer grows between content and dock */}
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-        <div className="min-h-0 flex-1" aria-hidden />
         <div
           className={cn(
-            "flex shrink-0 flex-col",
-            mobileTokens.mobileDockTopGap,
-            mobileTokens.mobileExpandablePanelUpperScroll,
+            "shrink-0",
+            mobileTokens.mobileShellContentTopGap,
+            mobileTokens.mobileShellContentPaddingX,
           )}
         >
           {upper}
+        </div>
+        <div
+          className={cn("min-h-0 flex-1", mobileTokens.mobileShellDockSpacerMin)}
+          aria-hidden
+        />
+        <div className={cn("shrink-0", mobileTokens.mobileShellDockGap)}>
           <div
             className={cn(
               "shrink-0",

@@ -9,6 +9,7 @@ import type { HubProject, HubSummary, HubWalk } from "@/lib/types/site-walk";
 import {
   MobileEmptyState,
   MobileShellBackToApp,
+  MobileSection,
   mobileTokens,
   MobileComingSoonSheet,
 } from "@/components/mobile-system";
@@ -47,21 +48,27 @@ export function HomeView({ walks, projects, summary, router, onQuickCapture }: H
           <div
             className={cn(
               "mx-auto flex w-full max-w-2xl flex-col",
-              mobileTokens.mobileHomeContentGap,
+              mobileTokens.mobileShellContentStackGap,
             )}
           >
-            <div className="flex items-center gap-2.5" data-testid="site-walk-module-intro">
-              <MobileShellBackToApp />
-              <div className="min-w-0">
-                <h1 className={mobileTokens.moduleTitle}>SITE WALK</h1>
-                <p className={mobileTokens.moduleSubtitle}>Field capture &amp; deliverables</p>
+            <MobileSection showAccentLine className="shrink-0">
+              <div className="flex items-center gap-2.5" data-testid="site-walk-module-intro">
+                <MobileShellBackToApp />
+                <div className="min-w-0">
+                  <h1 className={mobileTokens.moduleTitle}>
+                    SITE <span className={mobileTokens.moduleTitleAccent}>WALK</span>
+                  </h1>
+                  <p className={mobileTokens.moduleSubtitle}>Field capture &amp; deliverables</p>
+                </div>
               </div>
-            </div>
-            <SiteWalkV1ActionGrid
-              onNewWorksite={() => router.push("/site-walk/setup")}
-              onStartWalk={() => router.push("/site-walk/walks")}
-              onQuickCapture={onQuickCapture}
-            />
+            </MobileSection>
+            <MobileSection label="Actions" showAccentLine="cool" className="shrink-0">
+              <SiteWalkV1ActionGrid
+                onNewWorksite={() => router.push("/site-walk/setup")}
+                onStartWalk={() => router.push("/site-walk/walks")}
+                onQuickCapture={onQuickCapture}
+              />
+            </MobileSection>
           </div>
         }
         recentContent={

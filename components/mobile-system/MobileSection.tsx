@@ -32,8 +32,20 @@ export function MobileSection({
               aria-hidden
             />
           )}
-          <p className={mobileTokens.sectionLabel}>{label}</p>
+          <p className={mobileTokens.sectionLabel} data-testid="mobile-section-label">
+            {label}
+          </p>
         </div>
+      )}
+      {!label && showAccentLine && (
+        <span
+          className={
+            showAccentLine === "cool"
+              ? mobileTokens.sectionLabelAccentCool
+              : mobileTokens.sectionLabelAccent
+          }
+          aria-hidden
+        />
       )}
       <div className={cn(contentClassName)}>{children}</div>
     </section>

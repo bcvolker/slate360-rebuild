@@ -42,9 +42,13 @@ export function MobileActionCard({
 
   const inner = (
     <>
-      <Icon
-        className={isModule ? mobileTokens.moduleActionIconClass : mobileTokens.actionIconClass}
-      />
+      {isModule ? (
+        <span className={mobileTokens.moduleActionIconWrapper}>
+          <Icon className={mobileTokens.moduleActionIconClass} />
+        </span>
+      ) : (
+        <Icon className={mobileTokens.actionIconClass} />
+      )}
       <span className={mobileTokens.actionLabelClass}>{label}</span>
       {description && (
         <span className="mt-0.5 text-center text-[11px] font-medium leading-tight text-zinc-500">
