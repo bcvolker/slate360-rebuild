@@ -28,11 +28,13 @@ type MobileQuickActionStripProps = {
   className?: string;
 };
 
+/** /app Quick Actions — compact 2×2 grid (not a single-row strip). */
 export function MobileQuickActionStrip({ actions, className }: MobileQuickActionStripProps) {
   return (
     <div
-      data-testid="mobile-quick-action-strip"
-      className={cn(mobileTokens.appQuickActionStripRow, className)}
+      data-testid="mobile-quick-action-grid"
+      data-app-quick-action-layout="grid-2x2"
+      className={cn(mobileTokens.appQuickActionGrid, className)}
       role="toolbar"
       aria-label="Quick actions"
     >
@@ -53,7 +55,7 @@ function QuickActionButton({
   "aria-label": ariaLabel,
 }: MobileQuickActionItem) {
   const base = cn(
-    mobileTokens.appQuickActionStripButton,
+    mobileTokens.appQuickActionCard,
     mobileTokens.focusRing,
     disabled && "pointer-events-none opacity-50",
   );
@@ -61,10 +63,10 @@ function QuickActionButton({
   const inner = (
     <>
       <Icon
-        className={cn(mobileTokens.quickActionStripIcon, accentIconClass[accent])}
+        className={cn(mobileTokens.appQuickActionIcon, accentIconClass[accent])}
         aria-hidden
       />
-      <span className={mobileTokens.quickActionStripLabel}>{label}</span>
+      <span className={mobileTokens.appQuickActionLabel}>{label}</span>
     </>
   );
 

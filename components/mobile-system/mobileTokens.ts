@@ -44,6 +44,9 @@ export const mobileTokens = {
   mobileHomePrimaryActionsRegion:
     "flex min-h-[min(22dvh,180px)] flex-1 flex-col",
   mobileHomeAppPrimaryActionsRegion: "flex shrink-0 flex-col",
+  mobileHomeAppContentStack: "flex shrink-0 flex-col gap-1.5",
+  mobileHomeAppUpperInner:
+    "mx-auto flex w-full max-w-2xl shrink-0 flex-col px-4 pt-3 pb-2",
   mobileHomeDockTopSpacer: "mx-4 h-2 max-h-2 shrink-0",
   mobileHomeDockRegion: "relative z-10 w-full shrink-0 px-4 pb-3",
   mobileHomeDockInner: "mx-auto w-full max-w-2xl",
@@ -128,8 +131,15 @@ export const mobileTokens = {
   actionIconClass: "h-5 w-5 text-zinc-400",
   actionLabelClass: "text-[11px] font-medium leading-tight text-center",
 
-  // ── /app quick action strip (compact single row — do not share height with Site Walk) ──
+  // ── /app quick action 2×2 grid (do not share layout/height with Site Walk) ──
+  appQuickActionGrid: "grid grid-cols-2 gap-2",
+  appQuickActionCard:
+    "flex h-[76px] flex-col items-center justify-center gap-0.5 rounded-xl border border-white/[0.06] bg-white/[0.04] px-1 py-2 text-zinc-300 transition-colors hover:border-amber-500/20 hover:bg-white/[0.07] hover:text-white active:bg-white/[0.11]",
+  appQuickActionIcon: "h-[18px] w-[18px] shrink-0",
+  appQuickActionLabel: "text-[10px] font-medium leading-tight text-center text-zinc-300",
+  /** @deprecated Use appQuickActionGrid — legacy 1-row strip */
   appQuickActionStripRow: "grid grid-cols-4 gap-1.5",
+  /** @deprecated Use appQuickActionCard */
   appQuickActionStripButton:
     "flex h-[62px] max-h-[62px] flex-col items-center justify-center gap-0.5 rounded-xl border border-white/[0.06] bg-white/[0.04] px-1 py-1.5 text-zinc-300 transition-colors hover:border-amber-500/20 hover:bg-white/[0.07] hover:text-white active:bg-white/[0.11]",
   // ── Site Walk 2×2 action grid (preserve current proportions) ─────────────

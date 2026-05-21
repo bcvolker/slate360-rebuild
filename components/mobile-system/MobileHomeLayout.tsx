@@ -38,8 +38,20 @@ export function MobileHomeLayout({
       className={cn(mobileTokens.mobileHomeLayoutRoot, className)}
     >
       <div className={mobileTokens.mobileHomeUpperRegion}>
-        <div className={mobileTokens.mobileHomeUpperInner}>
-          <div className={mobileTokens.mobileHomeContentStack}>
+        <div
+          className={
+            route === "app"
+              ? mobileTokens.mobileHomeAppUpperInner
+              : mobileTokens.mobileHomeUpperInner
+          }
+        >
+          <div
+            className={
+              route === "app"
+                ? mobileTokens.mobileHomeAppContentStack
+                : mobileTokens.mobileHomeContentStack
+            }
+          >
             <div className="shrink-0">{contentTop}</div>
             {primaryActions ? (
               <div
