@@ -26,14 +26,14 @@ export const mobileTokens = {
   mobileShellContentTopGap: "pt-3",
   mobileShellContentPaddingX: "px-4",
   mobileShellContentStackGap: "gap-1.5",
-  /** MobileHomeLayout — shared viewport allocation model */
-  mobileHomeLayoutRoot: "relative flex min-h-0 flex-1 flex-col overflow-hidden",
-  mobileHomeContentZone: "flex min-h-0 flex-1 flex-col pt-3",
-  mobileHomeContentStack: "mx-auto flex min-h-0 w-full max-w-2xl flex-1 flex-col",
-  mobileHomePrimaryActionsZone: "flex min-h-0 flex-1 flex-col",
+  /** MobileHomeLayout v3 — CSS grid viewport allocation (no unbounded flex spacers) */
+  mobileHomeLayoutRoot:
+    "relative grid min-h-0 flex-1 grid-rows-[auto_minmax(0,1fr)_auto_auto] overflow-hidden",
+  mobileHomeContentTopRow: "min-h-0 shrink-0 pt-3",
+  mobileHomePrimaryActionsRow: "flex min-h-0 flex-col overflow-hidden",
   mobileHomeContentDockSpacer:
-    "shrink-0 h-[clamp(8px,2dvh,24px)] min-h-2 max-h-6",
-  mobileHomeDockZone: "relative shrink-0",
+    "shrink-0 h-[clamp(12px,2dvh,28px)] min-h-3 max-h-7",
+  mobileHomeDockZone: "relative min-h-0 shrink-0",
   /** Capped gap between upper launcher block and dock — legacy upper-in-panel path */
   mobileShellDockSpacerMin: "min-h-3",
   mobileShellDockSpacerMax: "max-h-12",
@@ -95,12 +95,12 @@ export const mobileTokens = {
   actionLabelClass: "text-[11px] font-medium leading-tight text-center",
 
   // ── Quick action strip (/app) ───────────────────────────────────────────
-  quickActionStripRow: "grid grid-cols-4 gap-1.5",
-  quickActionGridRow: "grid grid-cols-2 auto-rows-fr gap-1.5 min-h-[128px] flex-1",
+  quickActionStripRow: "grid h-full min-h-0 grid-cols-4 gap-1.5",
+  quickActionGridRow: "grid h-full min-h-0 grid-cols-2 auto-rows-fr gap-1.5",
   quickActionStripButton:
-    "flex min-h-[50px] flex-col items-center justify-center gap-0.5 rounded-xl border border-white/[0.06] bg-white/[0.04] px-0.5 py-1.5 text-zinc-300 transition-colors hover:border-amber-500/20 hover:bg-white/[0.07] hover:text-white active:bg-white/[0.11]",
+    "flex h-full min-h-[clamp(52px,14dvh,88px)] flex-col items-center justify-center gap-0.5 rounded-xl border border-white/[0.06] bg-white/[0.04] px-0.5 py-1.5 text-zinc-300 transition-colors hover:border-amber-500/20 hover:bg-white/[0.07] hover:text-white active:bg-white/[0.11]",
   quickActionGridButton:
-    "flex min-h-[56px] h-full flex-col items-center justify-center gap-0.5 rounded-xl border border-white/[0.06] bg-white/[0.04] px-1 py-2 text-zinc-300 transition-colors hover:border-amber-500/20 hover:bg-white/[0.07] hover:text-white active:bg-white/[0.11]",
+    "flex h-full min-h-[clamp(52px,14dvh,88px)] flex-col items-center justify-center gap-0.5 rounded-xl border border-white/[0.06] bg-white/[0.04] px-1 py-2 text-zinc-300 transition-colors hover:border-amber-500/20 hover:bg-white/[0.07] hover:text-white active:bg-white/[0.11]",
   quickActionStripIcon: "h-[18px] w-[18px] shrink-0",
   quickActionStripLabel: "text-[10px] font-medium leading-tight text-center text-zinc-300",
 
@@ -152,18 +152,19 @@ export const mobileTokens = {
   mobileExpandablePanelBackdrop:
     "absolute inset-0 z-20 bg-black/50 backdrop-blur-[2px] lg:hidden",
   mobileExpandablePanelFrame:
-    "flex w-full flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#0B0F15]/92 shadow-[0_-4px_24px_rgba(0,0,0,0.35)] backdrop-blur-md transition-[height] duration-200 ease-out",
+    "box-border flex w-full flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#0B0F15]/92 shadow-[0_-4px_24px_rgba(0,0,0,0.35)] backdrop-blur-md transition-[height,max-height] duration-200 ease-out",
   mobileExpandablePanelFrameExpanded:
     "shadow-[0_-12px_40px_rgba(0,0,0,0.55)] ring-1 ring-white/10",
   mobileExpandablePanelChrome:
     "flex shrink-0 items-center gap-1 border-b border-white/10 px-2",
   mobileExpandablePanelCollapsedHeight: "h-[264px] max-h-[264px] min-h-[264px] shrink-0",
   mobileExpandablePanelExpandedHeight:
-    "h-[min(52dvh,480px)] max-h-[min(52dvh,480px)] min-h-[min(52dvh,480px)] shrink-0",
+    "h-[min(56dvh,460px)] max-h-[min(56dvh,460px)] min-h-[min(56dvh,460px)] shrink-0",
   mobileExpandablePanelCollapsedBody:
     "h-[192px] max-h-[192px] min-h-0 overflow-y-auto overscroll-contain",
   mobileExpandablePanelExpandedBody: "min-h-0 flex-1 overflow-y-auto overscroll-contain",
-  mobileExpandablePanelTabbedFill: "flex min-h-0 flex-1 flex-col border-0 bg-transparent shadow-none",
+  mobileExpandablePanelTabbedFill:
+    "flex min-h-0 flex-1 flex-col border-0 bg-transparent shadow-none ring-0 rounded-none",
 
   expandablePanelOuter: "relative z-30 shrink-0 w-full px-4 pb-3",
   expandablePanelExpandedPosition: "absolute inset-x-0 bottom-0 z-40 w-full px-4 pb-3",
