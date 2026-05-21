@@ -16,10 +16,11 @@ export type MobileQuickActionItem = {
 };
 
 const accentIconClass: Record<MobileQuickActionAccent, string> = {
-  primary: "text-amber-400",
-  info: "text-cyan-400/90",
-  neutral: "text-zinc-300",
-  muted: "text-zinc-400",
+  primary: mobileTokens.mobileAccentPrimary,
+  info: mobileTokens.mobileAccentInfo,
+  neutral: mobileTokens.mobileAccentNeutralBright,
+  muted: mobileTokens.mobileAccentMuted,
+  warm: mobileTokens.mobileAccentWarm,
 };
 
 type MobileQuickActionStripProps = {

@@ -121,7 +121,7 @@ export function CommandCenterContent({
       {
         label: "Deliverables",
         icon: Box,
-        accent: "primary",
+        accent: "warm",
         onClick: () => {
           setComingSoonTitle("Deliverables");
           setComingSoonDescription(
@@ -182,7 +182,7 @@ export function CommandCenterContent({
               )}
             </MobileSection>
 
-            <MobileSection label="Quick Actions" className="shrink-0">
+            <MobileSection label="Quick Actions" showAccentLine="cool" className="shrink-0">
               <MobileQuickActionStrip actions={quickActions} />
             </MobileSection>
           </div>

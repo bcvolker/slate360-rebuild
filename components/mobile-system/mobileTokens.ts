@@ -20,68 +20,72 @@ export const mobileTokens = {
   pagePaddingX: "px-4",
   sectionGap: "gap-4",
   /** Vertical gap between Your Apps, Quick Actions, module intro, etc. */
-  mobileHomeContentGap: "gap-2",
-  mobileHomeSectionGap: "gap-2",
+  mobileHomeContentGap: "gap-1.5",
+  mobileHomeSectionGap: "gap-1.5",
   /** Gap between upper launcher block and expandable dock */
-  mobileDockTopGap: "gap-2",
+  mobileDockTopGap: "gap-1.5",
   mobilePanelBottomGap: "pb-3",
 
   // ── Semantic accents (Graphite Glass — restrained, not yellow-heavy) ───
-  mobileAccentPrimary: "text-amber-400",
-  mobileAccentPrimaryMuted: "text-amber-400/90",
-  mobileAccentInfo: "text-cyan-400",
+  mobileAccentPrimary: "text-amber-400/90",
+  mobileAccentPrimaryMuted: "text-amber-400/80",
+  mobileAccentInfo: "text-cyan-400/90",
   mobileAccentNeutral: "text-zinc-400",
   mobileAccentNeutralBright: "text-zinc-200",
+  mobileAccentMuted: "text-zinc-400/90",
+  mobileAccentWarm: "text-amber-400/70",
   mobileAccentSuccess: "text-emerald-400",
   mobileAccentDanger: "text-red-400",
-  mobileBrandWarmBorder: "border-amber-500/30",
-  mobileBrandWarmGlow: "shadow-[0_0_10px_rgba(245,158,11,0.12)]",
-  mobileIconBgPrimary: "bg-amber-500/12 text-amber-400",
-  mobileIconBgInfo: "bg-cyan-500/12 text-cyan-400",
+  mobileBrandWarmBorder: "border-amber-500/25",
+  mobileBrandWarmGlow: "shadow-[0_0_8px_rgba(245,158,11,0.08)]",
+  mobileBrandCoolGlow: "shadow-[0_0_8px_rgba(34,211,238,0.08)]",
+  mobileIconBgPrimary: "bg-amber-500/10 text-amber-400/90",
+  mobileIconBgInfo: "bg-cyan-500/10 text-cyan-400/90",
   mobileIconBgNeutral: "bg-white/[0.06] text-zinc-300",
 
   // ── Section labels ───────────────────────────────────────────────────────
   sectionLabel:
     "mb-1 text-[11px] font-bold uppercase tracking-[0.15em] text-zinc-300",
-  sectionLabelAccent: "mb-1.5 h-0.5 w-6 rounded-full bg-amber-500/35",
+  sectionLabelAccent: "mb-1.5 h-0.5 w-6 rounded-full bg-amber-500/30",
+  sectionLabelAccentCool: "mb-1.5 h-0.5 w-6 rounded-full bg-cyan-500/25",
 
   // ── Module home title (/site-walk) ───────────────────────────────────────
-  moduleTitle: "text-[19px] font-bold leading-tight tracking-tight text-amber-400/90",
+  moduleTitle: "text-[19px] font-bold leading-tight tracking-tight text-amber-400/80",
   moduleSubtitle: "mt-0.5 text-[13px] leading-snug text-zinc-400",
   moduleBackButton:
-    "flex size-11 shrink-0 items-center justify-center rounded-xl border border-amber-500/30 bg-amber-500/8 text-amber-400/90 shadow-[0_0_10px_rgba(245,158,11,0.15)] transition-colors hover:border-amber-500/45 hover:bg-amber-500/12 hover:text-amber-300",
+    "flex size-11 shrink-0 items-center justify-center rounded-xl border border-amber-500/25 bg-amber-500/6 text-amber-400/85 shadow-[0_0_8px_rgba(245,158,11,0.08)] transition-colors hover:border-amber-500/35 hover:bg-amber-500/10 hover:text-amber-300/90",
 
   // ── Action card (Site Walk 2×2 module actions) ─────────────────────────
   actionCardHeight: "min-h-[96px]",
   mobileActionCardHeight: "min-h-[96px]",
-  moduleActionCardHeight: "min-h-[78px]",
+  moduleActionCardHeight: "min-h-[72px]",
   actionCardBase:
-    "flex flex-col items-center justify-center gap-1 rounded-xl border border-white/5 bg-white/[0.04] text-zinc-300 transition-colors hover:border-amber-500/25 hover:bg-white/[0.08] hover:text-white active:bg-white/[0.12]",
+    "flex flex-col items-center justify-center gap-0.5 rounded-xl border border-white/[0.06] bg-white/[0.04] text-zinc-300 transition-colors hover:border-amber-500/20 hover:bg-white/[0.07] hover:text-white active:bg-white/[0.11]",
   actionIconClass: "h-5 w-5 text-zinc-400",
-  moduleActionIconClass: "h-5 w-5 text-amber-400/85",
+  moduleActionIconClass: "h-5 w-5 text-amber-400/75",
   actionLabelClass: "text-[11px] font-medium leading-tight text-center",
 
   // ── Quick action strip (/app) ───────────────────────────────────────────
   quickActionStripRow: "grid grid-cols-4 gap-1.5",
   quickActionStripButton:
-    "flex min-h-[52px] flex-col items-center justify-center gap-0.5 rounded-xl border border-white/5 bg-white/[0.04] px-0.5 py-1.5 text-zinc-300 transition-colors hover:border-amber-500/25 hover:bg-white/[0.08] hover:text-white active:bg-white/[0.12]",
+    "flex min-h-[50px] flex-col items-center justify-center gap-0.5 rounded-xl border border-white/[0.06] bg-white/[0.04] px-0.5 py-1.5 text-zinc-300 transition-colors hover:border-amber-500/20 hover:bg-white/[0.07] hover:text-white active:bg-white/[0.11]",
   quickActionStripIcon: "h-[18px] w-[18px] shrink-0",
   quickActionStripLabel: "text-[10px] font-medium leading-tight text-center text-zinc-300",
 
   // ── App launcher tile (/app Your Apps) ───────────────────────────────────
   appButtonBase:
-    "flex flex-col items-center justify-center gap-1 rounded-xl border border-white/5 bg-white/[0.04] px-2 py-2.5 text-center transition-colors hover:border-amber-500/25 hover:bg-white/[0.08] active:bg-white/[0.1]",
-  mobileAppLauncherTileHeight: "min-h-[88px]",
+    "flex flex-col items-center justify-center gap-0.5 rounded-xl border border-white/[0.06] bg-white/[0.04] px-2 py-1.5 text-center transition-colors hover:border-amber-500/20 hover:bg-white/[0.07] active:bg-white/[0.09]",
+  mobileAppLauncherTileHeight: "h-[92px] min-h-0 max-h-[96px]",
   appButtonIconWrapper:
-    "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg",
-  appButtonIconClass: "h-4 w-4",
-  appButtonTitleClass: "text-[12px] font-semibold leading-tight text-white",
-  appButtonSubtitleClass: "text-[10px] leading-tight text-zinc-500",
+    "flex h-7 w-7 shrink-0 items-center justify-center rounded-lg",
+  appButtonIconClass: "h-3.5 w-3.5",
+  appButtonTitleClass: "text-[11px] font-semibold leading-tight text-white",
+  appButtonSubtitleClass: "text-[10px] leading-tight text-zinc-500/90",
   appBadgeInfo:
     "mt-0.5 rounded-full bg-cyan-500/12 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-cyan-400/90",
 
   // Legacy alias
-  mobileAppButtonHeight: "min-h-[88px]",
+  mobileAppButtonHeight: "h-[92px] min-h-0 max-h-[96px]",
   appCardBase:
     "flex items-center gap-4 rounded-2xl border border-white/5 bg-white/[0.03] px-4 py-4 transition-colors hover:border-amber-500/30 hover:bg-white/[0.06] active:bg-white/[0.09]",
   appCardIconWrapper:
@@ -163,4 +167,4 @@ export const mobileTokens = {
 } as const;
 
 export type MobileAppAccent = "primary" | "info" | "neutral";
-export type MobileQuickActionAccent = "primary" | "info" | "neutral" | "muted";
+export type MobileQuickActionAccent = "primary" | "info" | "neutral" | "muted" | "warm";

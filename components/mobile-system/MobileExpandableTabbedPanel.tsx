@@ -116,23 +116,25 @@ export function MobileExpandableTabbedPanel({
           onClick={collapse}
         />
       )}
-      {/* Launcher block + dock sit at bottom; no flex-1 scroll dead zone between them */}
-      <div
-        className={cn(
-          "flex min-h-0 flex-1 flex-col justify-end overflow-y-auto overscroll-contain",
-          mobileTokens.mobileDockTopGap,
-        )}
-      >
-        <div className={cn("shrink-0", mobileTokens.mobileExpandablePanelUpperScroll)}>
-          {upper}
-        </div>
+      {/* Top spacer absorbs extra viewport height; launcher + dock stay tightly stacked above bottom nav */}
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+        <div className="min-h-0 flex-1" aria-hidden />
         <div
           className={cn(
-            "shrink-0",
-            expanded && mobileTokens.mobileExpandablePanelCollapsedHeight,
+            "flex shrink-0 flex-col",
+            mobileTokens.mobileDockTopGap,
+            mobileTokens.mobileExpandablePanelUpperScroll,
           )}
         >
-          {dock}
+          {upper}
+          <div
+            className={cn(
+              "shrink-0",
+              expanded && mobileTokens.mobileExpandablePanelCollapsedHeight,
+            )}
+          >
+            {dock}
+          </div>
         </div>
       </div>
     </div>

@@ -22,7 +22,7 @@ export function MobileActionGrid({
   "data-testid": dataTestId,
 }: MobileActionGridProps) {
   return (
-    <div data-testid={dataTestId} className={cn("grid grid-cols-2 gap-2.5", className)}>
+    <div data-testid={dataTestId} className={cn("grid grid-cols-2 gap-2", className)}>
       {children}
     </div>
   );

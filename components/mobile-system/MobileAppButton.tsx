@@ -23,6 +23,12 @@ const accentIconWrapper: Record<MobileAppAccent, string> = {
   neutral: mobileTokens.mobileIconBgNeutral,
 };
 
+const accentBorderClass: Record<MobileAppAccent, string | undefined> = {
+  primary: mobileTokens.mobileBrandWarmBorder,
+  info: "border-cyan-500/20",
+  neutral: undefined,
+};
+
 export function MobileAppButton({
   title,
   subtitle,
@@ -36,7 +42,9 @@ export function MobileAppButton({
   const base = cn(
     mobileTokens.appButtonBase,
     mobileTokens.mobileAppLauncherTileHeight,
+    accentBorderClass[accent],
     accent === "primary" && mobileTokens.mobileBrandWarmGlow,
+    accent === "info" && mobileTokens.mobileBrandCoolGlow,
     mobileTokens.focusRing,
     disabled && "pointer-events-none opacity-50",
     className,
@@ -55,11 +63,15 @@ export function MobileAppButton({
 
   if (href && !disabled) {
     return (
-      <Link href={href} className={base}>
+      <Link href={href} className={base} data-testid="mobile-app-button">
         {inner}
       </Link>
     );
   }
 
-  return <div className={base}>{inner}</div>;
+  return (
+    <div className={base} data-testid="mobile-app-button">
+      {inner}
+    </div>
+  );
 }

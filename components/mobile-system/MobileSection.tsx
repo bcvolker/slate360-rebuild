@@ -4,8 +4,8 @@ import { mobileTokens } from "./mobileTokens";
 
 type MobileSectionProps = {
   label?: string;
-  /** Subtle amber accent line above section label (/app warmth) */
-  showAccentLine?: boolean;
+  /** Subtle accent line above section label — warm (amber) or cool (cyan) */
+  showAccentLine?: boolean | "warm" | "cool";
   children: ReactNode;
   className?: string;
   contentClassName?: string;
@@ -22,7 +22,16 @@ export function MobileSection({
     <section className={className}>
       {label && (
         <div className="mb-1">
-          {showAccentLine && <span className={mobileTokens.sectionLabelAccent} aria-hidden />}
+          {showAccentLine && (
+            <span
+              className={
+                showAccentLine === "cool"
+                  ? mobileTokens.sectionLabelAccentCool
+                  : mobileTokens.sectionLabelAccent
+              }
+              aria-hidden
+            />
+          )}
           <p className={mobileTokens.sectionLabel}>{label}</p>
         </div>
       )}
