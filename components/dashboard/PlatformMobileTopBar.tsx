@@ -14,9 +14,8 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { BetaFeedbackModal } from "@/components/shared/BetaFeedbackModal";
 import { BackButton } from "@/components/shared/BackButton";
-import { SlateIcon } from "@/components/shared/SlateIcon";
 import { useInviteShare } from "@/components/shared/InviteShareProvider";
-import { MobileTopBar } from "@/components/mobile-system";
+import { MobileShellBrandMark, MobileTopBar } from "@/components/mobile-system";
 
 type PlatformMobileTopBarProps = {
   userName: string;
@@ -41,9 +40,7 @@ export function PlatformMobileTopBar({
         leftSlot={
           <>
             <BackButton />
-            <Link href="/dashboard" className="flex shrink-0 items-center" aria-label="Slate360 home">
-              <SlateIcon className="h-9 w-9 rounded-lg drop-shadow-[0_0_10px_rgba(245,158,11,0.35)]" />
-            </Link>
+            <MobileShellBrandMark href="/app" />
             <ChevronDown className="h-3.5 w-3.5 shrink-0 text-zinc-500" />
           </>
         }

@@ -1,4 +1,5 @@
 import { createServerClient } from "@supabase/ssr";
+import { resolveMobileLegacyRedirect } from "@/lib/mobile-route-policy";
 import { NextResponse, type NextRequest, userAgent } from "next/server";
 
 const INVITE_COOKIE_NAME = "slate360_invite_token";
@@ -118,7 +119,19 @@ export async function middleware(request: NextRequest) {
     url.pathname = "/app";
     return NextResponse.redirect(url);
   }
-  
+
+  // Mobile quarantine: keep users in /app and Site Walk V1 — not legacy desktop UI.
+  if (user && isMobile) {
+    const mobileRedirect = resolveMobileLegacyRedirect(pathname);
+    if (mobileRedirect) {
+      const url = request.nextUrl.clone();
+      const [path, query] = mobileRedirect.split("?");
+      url.pathname = path;
+      url.search = query ? `?${query}` : "";
+      return NextResponse.redirect(url);
+    }
+  }
+
   // Protect authenticated routes — redirect to login if not authenticated
   const isBetaProtectedRoute =
     pathname.startsWith("/dashboard") ||

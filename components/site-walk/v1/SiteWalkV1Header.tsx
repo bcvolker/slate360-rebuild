@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { MobileTopBar } from "@/components/mobile-system";
+import { MobileShellBrandMark, MobileTopBar } from "@/components/mobile-system";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -66,7 +66,20 @@ export function SiteWalkV1Header({
     <MobileTopBar
       title={titleText}
       subtitle={subtitle}
-      backHref={showBranding ? "/app" : undefined}
+      leftSlot={
+        showBranding ? (
+          <>
+            <Link
+              href="/app"
+              aria-label="Back to Slate360"
+              className="flex size-9 shrink-0 items-center justify-center rounded-lg text-zinc-400 transition-colors hover:bg-white/10 hover:text-white"
+            >
+              <ArrowLeft className="size-5" />
+            </Link>
+            <MobileShellBrandMark href="/app" />
+          </>
+        ) : undefined
+      }
       onBack={!showBranding ? onBack : undefined}
       className={className}
       rightSlot={
