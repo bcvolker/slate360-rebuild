@@ -89,4 +89,8 @@ export const mobileTokens = {
   // ── Focus ring ───────────────────────────────────────────────────────────
   focusRing:
     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50 focus-visible:ring-offset-1 focus-visible:ring-offset-[#0B0F15]",
+
+  // ── Mobile shell header brand (S-mark + Slate360 label) ─────────────────
+  shellBrandLabel:
+    "text-[17px] font-semibold leading-none tracking-tight text-white",
 } as const;

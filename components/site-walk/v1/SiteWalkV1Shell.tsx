@@ -8,7 +8,7 @@ import {
   MessageSquare,
   Package,
 } from "lucide-react";
-import { MobileShellBrandMark } from "@/components/mobile-system";
+import { MobileShellBrand } from "@/components/mobile-system";
 import { SiteWalkV1Header } from "./SiteWalkV1Header";
 import type { V1NavTab } from "./SiteWalkV1BottomNav";
 import {
@@ -74,9 +74,8 @@ export function SiteWalkV1Shell({
       className="fixed inset-0 z-50"
       sidebar={
         <aside className="hidden w-56 shrink-0 flex-col border-r border-white/10 bg-zinc-900/60 lg:flex">
-          <div className="flex h-14 items-center gap-2 border-b border-white/10 px-4">
-            <MobileShellBrandMark href="/app" iconClassName="h-8 w-8" />
-            <span className="text-[10px] font-medium text-zinc-500">Site Walk</span>
+          <div className="flex h-14 items-center border-b border-white/10 px-4">
+            <MobileShellBrand href="/app" iconClassName="h-8 w-8" />
           </div>
           <nav className="flex flex-1 flex-col gap-0.5 p-2">
             {sidebarItems.map(({ id, label, icon: Icon }) => {
@@ -104,13 +103,10 @@ export function SiteWalkV1Shell({
       }
       header={
         <SiteWalkV1Header
-          title={title}
-          onBack={onBack}
           primaryAction={primaryAction}
           overflowActions={overflowActions}
           showAvatar
           showToolIcons={activeTab === "home"}
-          showBranding={activeTab === "home"}
         />
       }
       mainClassName={className}

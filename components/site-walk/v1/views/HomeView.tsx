@@ -49,7 +49,7 @@ export function HomeView({ walks, projects, summary, router, onQuickCapture }: H
       )}
     >
       {/* Zone 1: Command — auto-sized to content */}
-      <MobileSection label="Site Walk" className="shrink-0">
+      <MobileSection label="SITE WALK" className="shrink-0">
         <SiteWalkV1ActionGrid
           onNewWorksite={() => router.push("/site-walk/setup")}
           onStartWalk={() => router.push("/site-walk/walks")}

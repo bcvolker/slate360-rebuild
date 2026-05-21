@@ -6,8 +6,10 @@ import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 type MobileTopBarProps = {
-  title: string;
+  title?: string;
   subtitle?: string;
+  /** When true, only leftSlot/rightSlot render — no title column (ecosystem brand header). */
+  hideTitle?: boolean;
   backHref?: string;
   onBack?: () => void;
   leftSlot?: ReactNode;
@@ -16,8 +18,9 @@ type MobileTopBarProps = {
 };
 
 export function MobileTopBar({
-  title,
+  title = "",
   subtitle,
+  hideTitle = false,
   backHref,
   onBack,
   leftSlot,
@@ -54,16 +57,22 @@ export function MobileTopBar({
       <div className="flex h-14 min-w-0 items-center justify-between gap-2 overflow-hidden">
         <div className="flex min-w-0 flex-1 items-center gap-2">
           {leftSlot ?? backControl}
-          <div className="min-w-0 flex-1">
-            <h1 className="truncate text-[16px] font-semibold leading-tight tracking-tight text-white">
-              {title}
-            </h1>
-            {subtitle && (
-              <p className="truncate text-[11px] font-bold uppercase leading-tight tracking-[0.1em] text-zinc-400 mt-0.5">
-                {subtitle}
-              </p>
-            )}
-          </div>
+          {!hideTitle && (title || subtitle) ? (
+            <div className="min-w-0 flex-1">
+              {title ? (
+                <h1 className="truncate text-[16px] font-semibold leading-tight tracking-tight text-white">
+                  {title}
+                </h1>
+              ) : null}
+              {subtitle ? (
+                <p className="truncate text-[11px] font-bold uppercase leading-tight tracking-[0.1em] text-zinc-400 mt-0.5">
+                  {subtitle}
+                </p>
+              ) : null}
+            </div>
+          ) : leftSlot ? (
+            <div className="min-w-0 flex-1" aria-hidden />
+          ) : null}
         </div>
         {rightSlot && <div className="flex shrink-0 items-center">{rightSlot}</div>}
       </div>

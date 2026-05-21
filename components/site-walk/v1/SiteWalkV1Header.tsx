@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  ArrowLeft,
   MoreVertical,
   Search,
   Bell,
@@ -14,10 +13,11 @@ import {
   MessageSquare,
   HelpCircle,
   LogOut,
+  ArrowLeft,
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { MobileShellBrandMark, MobileTopBar } from "@/components/mobile-system";
+import { MobileShellBrand, MobileTopBar } from "@/components/mobile-system";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -34,8 +34,6 @@ type HeaderAction = {
 };
 
 type SiteWalkV1HeaderProps = {
-  title: string;
-  onBack?: () => void;
   primaryAction?: {
     label: string;
     onClick: () => void;
@@ -44,44 +42,21 @@ type SiteWalkV1HeaderProps = {
   showAvatar?: boolean;
   /** Show the full header tool row (Search, Notifications, Share, Feedback). */
   showToolIcons?: boolean;
-  /** When true, render Slate360 logo + subtitle instead of plain title. */
-  showBranding?: boolean;
   className?: string;
 };
 
 export function SiteWalkV1Header({
-  title,
-  onBack,
   primaryAction,
   overflowActions,
   showAvatar = false,
   showToolIcons = false,
-  showBranding = false,
   className,
 }: SiteWalkV1HeaderProps) {
-  const titleText = showBranding ? "Site Walk" : title;
-  const subtitle = showBranding ? "Field Capture" : undefined;
-
   return (
     <MobileTopBar
-      title={titleText}
-      subtitle={subtitle}
-      leftSlot={
-        showBranding ? (
-          <>
-            <Link
-              href="/app"
-              aria-label="Back to Slate360"
-              className="flex size-9 shrink-0 items-center justify-center rounded-lg text-zinc-400 transition-colors hover:bg-white/10 hover:text-white"
-            >
-              <ArrowLeft className="size-5" />
-            </Link>
-            <MobileShellBrandMark href="/app" />
-          </>
-        ) : undefined
-      }
-      onBack={!showBranding ? onBack : undefined}
+      hideTitle
       className={className}
+      leftSlot={<MobileShellBrand href="/app" />}
       rightSlot={
         <>
           {primaryAction && (
@@ -157,8 +132,6 @@ function ToolIcon({
     </button>
   );
 }
-
-/* --- Avatar / profile dropdown --- */
 
 function AvatarMenu() {
   return (

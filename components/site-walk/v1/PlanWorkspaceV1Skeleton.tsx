@@ -24,13 +24,9 @@ export function PlanWorkspaceV1Skeleton({
   onBack,
   className,
 }: PlanWorkspaceV1SkeletonProps) {
-  const headerTitle = `${worksiteName} — ${walkTitle}`;
-
   return (
     <div className={cn("flex h-[100dvh] flex-col bg-zinc-950", className)}>
       <SiteWalkV1Header
-        title={headerTitle}
-        onBack={onBack}
         primaryAction={{ label: "Capture", onClick: () => {} }}
       />
 

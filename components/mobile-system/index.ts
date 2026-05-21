@@ -7,6 +7,8 @@
  */
 
 export { mobileTokens } from "./mobileTokens";
+export { MobileShellBrand } from "./MobileShellBrand";
+export { MobileShellBackToApp } from "./MobileShellBackToApp";
 export { MobileShellBrandMark } from "./MobileShellBrandMark";
 
 export { MobileAppShell } from "./MobileAppShell";

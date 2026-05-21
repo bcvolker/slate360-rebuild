@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Bell, Bug, ChevronDown, Search, Share2 } from "lucide-react";
+import { Bell, Bug, Search, Share2 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,9 +13,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { BetaFeedbackModal } from "@/components/shared/BetaFeedbackModal";
-import { BackButton } from "@/components/shared/BackButton";
 import { useInviteShare } from "@/components/shared/InviteShareProvider";
-import { MobileShellBrandMark, MobileTopBar } from "@/components/mobile-system";
+import { MobileShellBrand, MobileTopBar } from "@/components/mobile-system";
 
 type PlatformMobileTopBarProps = {
   userName: string;
@@ -26,7 +25,6 @@ type PlatformMobileTopBarProps = {
 
 export function PlatformMobileTopBar({
   userName,
-  workspaceName = "Slate360",
   isBetaEligible = false,
   onSearchClick,
 }: PlatformMobileTopBarProps) {
@@ -36,14 +34,8 @@ export function PlatformMobileTopBar({
   return (
     <>
       <MobileTopBar
-        title={workspaceName || userName || "Workspace"}
-        leftSlot={
-          <>
-            <BackButton />
-            <MobileShellBrandMark href="/app" />
-            <ChevronDown className="h-3.5 w-3.5 shrink-0 text-zinc-500" />
-          </>
-        }
+        hideTitle
+        leftSlot={<MobileShellBrand href="/app" />}
         rightSlot={
           <>
             <HeaderIcon label="Invite to Slate360" onClick={() => openInviteShare(true)} icon={Share2} />
