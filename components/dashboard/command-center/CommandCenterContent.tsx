@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { MapPin, Plus, Search, Bell, MessageSquare, ClipboardList, Clock, Box, FolderOpen } from "lucide-react";
 import type { Entitlements } from "@/lib/entitlements";
@@ -17,6 +17,7 @@ import {
   mobileTokens,
 } from "@/components/mobile-system";
 import type { MobilePanelTab } from "@/components/mobile-system";
+import { MOBILE_BLOCKED_LABELS, type MobileBlockedModule } from "@/lib/mobile-route-policy";
 
 interface CommandCenterContentProps {
   entitlements?: Entitlements | null;
@@ -59,6 +60,15 @@ export function CommandCenterContent({
 }: CommandCenterContentProps) {
   const [comingSoonTitle, setComingSoonTitle] = useState<string | null>(null);
   const [createSheetOpen, setCreateSheetOpen] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const blocked = params.get("blocked") as MobileBlockedModule | null;
+    if (!blocked || !(blocked in MOBILE_BLOCKED_LABELS)) return;
+    setComingSoonTitle(MOBILE_BLOCKED_LABELS[blocked]);
+    window.history.replaceState({}, "", "/app");
+  }, []);
 
   const handleSearch = () => {
     if (typeof window === "undefined") return;

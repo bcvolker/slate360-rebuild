@@ -75,8 +75,8 @@ function PlansDocsPanel({ project }: { project: SetupProject | null }) {
       <h2 className="mt-1 text-xl font-black text-slate-50">Plan room and project documents</h2>
       <p className="mt-2 text-sm leading-6 text-slate-400">Upload plan sets, specs, instructions, and supporting files into the Site Visit folder system before crews start capture.</p>
       <div className="mt-5 grid gap-3 sm:grid-cols-2">
-        <Link href="/site-walk/plans" className="rounded-2xl border border-slate-700/60 bg-slate-800/60 p-4 text-sm font-black text-slate-50 hover:border-amber-400/50 hover:bg-amber-500/10 transition"><UploadCloud className="mb-3 h-6 w-6 text-amber-400" />Open Plan Room</Link>
-        <Link href={project ? `/projects/${project.id}/slatedrop` : "/site-walk/slatedrop"} className="rounded-2xl border border-slate-700/60 bg-slate-800/60 p-4 text-sm font-black text-slate-50 hover:border-amber-400/50 hover:bg-amber-500/10 transition"><UploadCloud className="mb-3 h-6 w-6 text-amber-400" />Open Site Walk Files</Link>
+        <Link href="/site-walk/setup" className="rounded-2xl border border-slate-700/60 bg-slate-800/60 p-4 text-sm font-black text-slate-50 hover:border-amber-400/50 hover:bg-amber-500/10 transition"><UploadCloud className="mb-3 h-6 w-6 text-amber-400" />Open Plan Room</Link>
+        <Link href="/site-walk" className="rounded-2xl border border-slate-700/60 bg-slate-800/60 p-4 text-sm font-black text-slate-50 hover:border-amber-400/50 hover:bg-amber-500/10 transition"><UploadCloud className="mb-3 h-6 w-6 text-amber-400" />Open Site Walk Files</Link>
       </div>
     </section>
   );

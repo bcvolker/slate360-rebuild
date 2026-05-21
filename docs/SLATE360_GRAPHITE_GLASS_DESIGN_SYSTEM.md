@@ -109,6 +109,12 @@ The following shared primitives live in `components/mobile-system/`. **Both `/ap
 | `MobileAppButton` | `MobileAppButton.tsx` | App launcher 2-col grid button (vertical: icon + title + subtitle) |
 | `MobileTabbedPanel` | `MobileTabbedPanel.tsx` | Inline Tabs in CommandCenterContent + `SiteWalkV1ListPanel` |
 | `MobileEmptyState` | `MobileEmptyState.tsx` | Inline `ActivityEmptyState` + `EmptyList` utility |
+| `MobileShellBrandMark` | `MobileShellBrandMark.tsx` | Mixed `SlateIcon` vs `SlateLogo` in mobile headers |
+
+### Mobile brand mark (mandatory)
+- Platform `/app` shell and module app shells (Site Walk V1, future apps) must use **`MobileShellBrandMark`** (`SlateIcon` S-mark, `h-9 w-9`, amber glow).
+- Do **not** use the horizontal `SlateLogo` wordmark in mobile top bars — desktop sidebars and marketing may still use `SlateLogo`.
+- Module title/subtitle (e.g. "Site Walk" / "Field Capture") belong in `MobileTopBar` title slots, not as a substitute logo.
 
 ### Token Values (Slice 1 — May 2026)
 - Action card height: `min-h-[96px]` (unified from /app 90px and /site-walk 100px)

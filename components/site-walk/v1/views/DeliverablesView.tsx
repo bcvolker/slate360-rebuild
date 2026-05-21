@@ -13,7 +13,8 @@ import {
   Package,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import type { RouterLike } from "./v1-view-utils";
+import { MobileComingSoonSheet } from "@/components/mobile-system";
+import { useState } from "react";
 
 const categories: { icon: typeof FileText; label: string }[] = [
   { icon: Eye, label: "Visual Walk Summary" },
@@ -27,7 +28,11 @@ const categories: { icon: typeof FileText; label: string }[] = [
   { icon: FileDown, label: "PDF Export" },
 ];
 
-export function DeliverablesView({ router }: { router: RouterLike }) {
+export function DeliverablesView() {
+  const [comingSoonOpen, setComingSoonOpen] = useState(false);
+
+  const openComingSoon = () => setComingSoonOpen(true);
+
   return (
     <div className="flex-1 min-h-0 overflow-y-auto flex flex-col gap-4 p-4">
       <div className="flex items-center justify-between">
@@ -35,7 +40,7 @@ export function DeliverablesView({ router }: { router: RouterLike }) {
         <Button
           size="sm"
           className="gap-1.5 rounded-lg bg-amber-600 text-white hover:bg-amber-700"
-          onClick={() => router.push("/site-walk/deliverables")}
+          onClick={openComingSoon}
         >
           <Plus className="size-3.5" />
           Create Deliverable
@@ -51,7 +56,7 @@ export function DeliverablesView({ router }: { router: RouterLike }) {
             <button
               key={label}
               type="button"
-              onClick={() => router.push("/site-walk/deliverables")}
+              onClick={openComingSoon}
               className="flex items-center gap-1.5 rounded-lg border border-white/5 bg-white/[0.03] px-2.5 py-1.5 text-xs font-medium text-zinc-400 transition-colors hover:border-amber-500/20 hover:bg-white/[0.06] hover:text-zinc-200"
             >
               <Icon className="size-3.5" />
@@ -63,11 +68,18 @@ export function DeliverablesView({ router }: { router: RouterLike }) {
 
       <button
         type="button"
-        onClick={() => router.push("/site-walk/deliverables")}
+        onClick={openComingSoon}
         className="mt-2 rounded-lg border border-white/5 bg-white/[0.03] px-4 py-3 text-left text-sm text-zinc-300 transition-colors hover:bg-white/[0.06]"
       >
         View all deliverables →
       </button>
+
+      <MobileComingSoonSheet
+        open={comingSoonOpen}
+        onOpenChange={setComingSoonOpen}
+        title="Deliverables on Mobile"
+        description="A new deliverables experience is coming with the Site Walk capture refresh. Legacy deliverables pages stay on desktop for now."
+      />
     </div>
   );
 }

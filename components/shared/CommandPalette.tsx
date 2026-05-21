@@ -29,6 +29,8 @@ import {
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { shouldHideInAppStoreMode } from "@/lib/app-store-mode";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { MOBILE_DISABLED_COMMAND_IDS } from "@/lib/mobile-route-policy";
 
 interface PaletteItem {
   id: string;
@@ -75,6 +77,7 @@ export default function CommandPalette({
   hasOperationsConsoleAccess = false,
 }: CommandPaletteProps) {
   const router = useRouter();
+  const isMobile = useIsMobile();
   const [search, setSearch] = useState("");
 
   // Global ⌘K / Ctrl+K toggle
@@ -96,6 +99,10 @@ export default function CommandPalette({
   async function runItem(item: PaletteItem) {
     onOpenChange(false);
     if (item.action === "navigate" && item.href) {
+      if (item.id === "nav-cc") {
+        router.push(isMobile ? "/app" : "/dashboard");
+        return;
+      }
       router.push(item.href);
     } else if (item.action === "signout") {
       const supabase = createClient();
@@ -104,7 +111,12 @@ export default function CommandPalette({
     }
   }
 
-  const visible = ITEMS.filter((i) => (!i.internalOnly || hasOperationsConsoleAccess) && !shouldHideInAppStoreMode(i.comingSoon));
+  const visible = ITEMS.filter(
+    (i) =>
+      (!i.internalOnly || hasOperationsConsoleAccess) &&
+      !shouldHideInAppStoreMode(i.comingSoon) &&
+      !(isMobile && MOBILE_DISABLED_COMMAND_IDS.has(i.id)),
+  );
   const groups = ["Navigate", "Apps", "Create", "Account"] as const;
 
   if (!open) return null;

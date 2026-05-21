@@ -17,8 +17,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { MobileTopBar } from "@/components/mobile-system";
-import { SlateLogo } from "@/components/shared/SlateLogo";
+import { MobileShellBrandMark, MobileTopBar } from "@/components/mobile-system";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -65,8 +64,8 @@ export function SiteWalkV1Header({
 
   return (
     <MobileTopBar
-      title={showBranding ? "" : titleText}
-      subtitle={showBranding ? undefined : subtitle}
+      title={titleText}
+      subtitle={subtitle}
       leftSlot={
         showBranding ? (
           <>
@@ -77,7 +76,7 @@ export function SiteWalkV1Header({
             >
               <ArrowLeft className="size-5" />
             </Link>
-            <SlateLogo size="sm" />
+            <MobileShellBrandMark href="/app" />
           </>
         ) : undefined
       }

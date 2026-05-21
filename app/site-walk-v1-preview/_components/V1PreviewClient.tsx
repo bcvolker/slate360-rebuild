@@ -71,8 +71,8 @@ export function V1PreviewClient({
         <WorksitesView projects={projects} walks={walks} router={router} />
       )}
       {tab === "slatedrop" && <SlateDropView projects={projects} router={router} />}
-      {tab === "coordination" && <CoordinationView router={router} />}
-      {tab === "deliverables" && <DeliverablesView router={router} />}
+      {tab === "coordination" && <CoordinationView />}
+      {tab === "deliverables" && <DeliverablesView />}
     </SiteWalkV1Shell>
   );
 }

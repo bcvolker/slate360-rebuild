@@ -74,6 +74,24 @@ Do not redesign or simplify `/slatedrop` routes without understanding the folder
 - **Global Slate360 AppShell** visual migration to Graphite Glass + amber still needed — currently uses Dark Glass. Track A owns this.
 - **Site Walk capture review shell** and **Plan Walk viewer shell** both need redesigned V1 wrappers — deferred pending approved slices.
 
+## Session Handoff — 2026-05-20 (Mobile legacy route quarantine + shell brand mark)
+
+### What changed
+- `lib/mobile-route-policy.ts`: Shared mobile quarantine prefixes and `?blocked=` labels.
+- `middleware.ts`: Mobile redirect for legacy desktop routes + legacy Site Walk sub-routes.
+- `components/mobile-system/MobileShellBrandMark.tsx`: Canonical `SlateIcon` brand for all mobile app shells.
+- `PlatformMobileTopBar`, `SiteWalkV1Header`, `SiteWalkV1Shell`: Unified mobile logo (was `SlateIcon` vs `SlateLogo` wordmark).
+- Site Walk V1 `DeliverablesView` / `CoordinationView`: `MobileComingSoonSheet` instead of legacy page navigation.
+- `CommandPalette`: Hides desktop-only items on mobile; Command Center → `/app` on mobile.
+- `CommandCenterContent`: Shows coming-soon sheet when middleware sends `?blocked=`.
+- Setup plan link: `/site-walk/plans` → `/site-walk/setup` (dead route removed).
+- Docs: `SLATE360_PARALLEL_BUILD_RULES.md`, design-system brand mark rule.
+
+### Route policy (quick reference)
+- Desktop home: `/dashboard` (V3). Mobile home: `/app`.
+- No mobile Project Hub app. SlateDrop is filesystem, not an app.
+- See `SLATE360_PARALLEL_BUILD_RULES.md` for full quarantine list.
+
 ## Session Handoff — 2026-05-20 (Mobile Home Panel Sizing Calibration — Slice 9)
 ### What Changed
 - `components/mobile-system/mobileTokens.ts`: Added/refined shared sizing tokens: `mobileHomeSectionGap`, `mobileActionCardHeight`, `mobileAppButtonHeight`, `mobileEmptyPanelHeight`, `mobileListPanelHeight`, `mobilePanelBottomGap`, `mobileTabbedPanelBodyPadding`, `mobileTabbedPanelScrollBody`. Relaxed list panel sizing from `34dvh/320px` to `40dvh/380px`; increased module scroll body bottom padding to `pb-12`.
