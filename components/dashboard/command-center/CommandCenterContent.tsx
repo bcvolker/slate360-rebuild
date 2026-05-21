@@ -182,6 +182,7 @@ export function CommandCenterContent({
           <MobileExpandableTabbedPanel
             tabs={activityTabs}
             defaultTab="notifications"
+            homeDockVariant="app"
           />
         }
       />

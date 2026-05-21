@@ -20,6 +20,8 @@ type MobileExpandableTabbedPanelProps = {
   defaultTab?: string;
   upper?: ReactNode;
   className?: string;
+  /** Tighter collapsed dock profile for /app home only; Site Walk uses default. */
+  homeDockVariant?: "app" | "site-walk";
 };
 
 export function MobileExpandableTabbedPanel({
@@ -27,6 +29,7 @@ export function MobileExpandableTabbedPanel({
   defaultTab,
   upper,
   className,
+  homeDockVariant = "site-walk",
 }: MobileExpandableTabbedPanelProps) {
   const [expanded, setExpanded] = useState(false);
   const panelId = useId();
@@ -59,7 +62,9 @@ export function MobileExpandableTabbedPanel({
                 mobileTokens.mobileExpandablePanelFrameExpanded,
               )
             : isHomeDock
-              ? mobileTokens.mobileHomeDockCollapsedHeight
+              ? homeDockVariant === "app"
+                ? mobileTokens.mobileHomeAppDockCollapsedHeight
+                : mobileTokens.mobileHomeDockCollapsedHeight
               : mobileTokens.mobileExpandablePanelCollapsedHeight,
         )}
       >

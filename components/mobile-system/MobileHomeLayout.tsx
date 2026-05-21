@@ -68,7 +68,14 @@ export function MobileHomeLayout({
         </div>
       </div>
 
-      <div className={mobileTokens.mobileHomeDockTopSpacer} aria-hidden />
+      <div
+        className={
+          route === "app"
+            ? mobileTokens.mobileHomeAppDockTopSpacer
+            : mobileTokens.mobileHomeDockTopSpacer
+        }
+        aria-hidden
+      />
 
       <div className={mobileTokens.mobileHomeDockRegion}>
         <div className={mobileTokens.mobileHomeDockInner}>{dock}</div>

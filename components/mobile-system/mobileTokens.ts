@@ -44,9 +44,10 @@ export const mobileTokens = {
   mobileHomePrimaryActionsRegion:
     "flex min-h-[min(22dvh,180px)] flex-1 flex-col",
   mobileHomeAppPrimaryActionsRegion: "flex shrink-0 flex-col",
-  mobileHomeAppContentStack: "flex shrink-0 flex-col gap-1.5",
+  mobileHomeAppContentStack: "flex shrink-0 flex-col gap-1",
   mobileHomeAppUpperInner:
-    "mx-auto flex w-full max-w-2xl shrink-0 flex-col px-4 pt-3 pb-2",
+    "mx-auto flex w-full max-w-2xl shrink-0 flex-col px-4 pt-3 pb-1",
+  mobileHomeAppDockTopSpacer: "mx-4 h-1 max-h-1 shrink-0",
   mobileHomeDockTopSpacer: "mx-4 h-2 max-h-2 shrink-0",
   mobileHomeDockRegion: "relative z-10 w-full shrink-0 px-4 pb-3",
   mobileHomeDockInner: "mx-auto w-full max-w-2xl",
@@ -61,6 +62,8 @@ export const mobileTokens = {
   mobileHomeDockGap: "12px",
   mobileHomeDockCollapsedHeight:
     "h-[clamp(240px,30dvh,320px)] max-h-[clamp(240px,30dvh,320px)] min-h-[clamp(240px,30dvh,320px)] shrink-0",
+  mobileHomeAppDockCollapsedHeight:
+    "h-[clamp(228px,28dvh,300px)] max-h-[clamp(228px,28dvh,300px)] min-h-[clamp(228px,28dvh,300px)] shrink-0",
   mobileHomeDockExpandedHeight:
     "h-[clamp(400px,55dvh,520px)] max-h-[clamp(400px,55dvh,520px)] min-h-[clamp(400px,55dvh,520px)] shrink-0",
   mobileHomeDockCollapsedBody: "min-h-0 flex-1 overflow-y-auto overscroll-contain",
@@ -134,9 +137,9 @@ export const mobileTokens = {
   // ── /app quick action 2×2 grid (do not share layout/height with Site Walk) ──
   appQuickActionGrid: "grid grid-cols-2 gap-2",
   appQuickActionCard:
-    "flex h-[76px] flex-col items-center justify-center gap-0.5 rounded-xl border border-white/[0.06] bg-white/[0.04] px-1 py-2 text-zinc-300 transition-colors hover:border-amber-500/20 hover:bg-white/[0.07] hover:text-white active:bg-white/[0.11]",
-  appQuickActionIcon: "h-[18px] w-[18px] shrink-0",
-  appQuickActionLabel: "text-[10px] font-medium leading-tight text-center text-zinc-300",
+    "flex h-[108px] flex-col items-center justify-center gap-1 rounded-xl border border-white/[0.06] bg-white/[0.04] px-1.5 py-2.5 text-zinc-300 transition-colors hover:border-amber-500/20 hover:bg-white/[0.07] hover:text-white active:bg-white/[0.11]",
+  appQuickActionIcon: "h-5 w-5 shrink-0",
+  appQuickActionLabel: "text-[11px] font-medium leading-tight text-center text-zinc-300",
   /** @deprecated Use appQuickActionGrid — legacy 1-row strip */
   appQuickActionStripRow: "grid grid-cols-4 gap-1.5",
   /** @deprecated Use appQuickActionCard */
