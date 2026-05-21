@@ -105,6 +105,7 @@ export function MobileExpandableTabbedPanel({
 
   return (
     <div
+      data-expandable-panel-version="capped-spacer-v1"
       data-testid="mobile-expandable-panel-host"
       className={cn("relative flex min-h-0 flex-1 flex-col overflow-hidden", className)}
     >
@@ -127,10 +128,7 @@ export function MobileExpandableTabbedPanel({
         >
           {upper}
         </div>
-        <div
-          className={cn("min-h-0 flex-1", mobileTokens.mobileShellDockSpacerMin)}
-          aria-hidden
-        />
+        <div className={mobileTokens.mobileShellDockSpacer} aria-hidden />
         <div className={cn("shrink-0", mobileTokens.mobileShellDockGap)}>
           <div
             className={cn(

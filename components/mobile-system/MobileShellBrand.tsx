@@ -32,7 +32,8 @@ export function MobileShellBrand({
     >
       <SlateIcon
         className={cn(
-          "h-9 w-9 shrink-0 rounded-lg drop-shadow-[0_0_10px_rgba(245,158,11,0.35)]",
+          "h-9 w-9 shrink-0 rounded-lg",
+          mobileTokens.mobileBrandIconGlow,
           iconClassName,
         )}
       />

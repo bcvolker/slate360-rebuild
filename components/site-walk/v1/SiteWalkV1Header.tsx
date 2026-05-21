@@ -26,6 +26,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { mobileTokens } from "@/components/mobile-system/mobileTokens";
 
 type HeaderAction = {
   label: string;
@@ -63,7 +64,7 @@ export function SiteWalkV1Header({
             <Button
               size="sm"
               onClick={primaryAction.onClick}
-              className="rounded-lg bg-amber-600 text-white hover:bg-amber-700"
+              className={mobileTokens.mobilePrimaryButton}
             >
               {primaryAction.label}
             </Button>
@@ -123,10 +124,7 @@ function ToolIcon({
     <button
       type="button"
       aria-label={label}
-      className={cn(
-        "flex size-11 items-center justify-center text-zinc-500 transition-colors hover:text-white",
-        className,
-      )}
+      className={cn(mobileTokens.mobileHeaderToolIcon, className)}
     >
       <Icon className="size-[18px]" />
     </button>
@@ -142,7 +140,7 @@ function AvatarMenu() {
           aria-label="Account menu"
           className="flex size-11 shrink-0 items-center justify-center"
         >
-          <span className="flex size-7 items-center justify-center rounded-full bg-amber-600/20 text-[11px] font-bold text-amber-400 transition-colors hover:bg-amber-600/30">
+          <span className={mobileTokens.mobileAvatarRing}>
             S
           </span>
         </button>

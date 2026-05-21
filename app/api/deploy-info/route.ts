@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-const DEPLOY_MARKER = "deploy-check-2026-02-26-01";
+const DEPLOY_MARKER = "deploy-check-2026-05-21-01";
 
 export async function GET() {
   const payload = {

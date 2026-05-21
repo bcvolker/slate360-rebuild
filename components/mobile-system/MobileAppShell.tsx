@@ -9,6 +9,8 @@ type MobileAppShellProps = {
   className?: string;
   bodyClassName?: string;
   mainClassName?: string;
+  /** Real-route verification marker for /app or /site-walk shell content */
+  mobileRoute?: "app" | "site-walk";
 };
 
 export function MobileAppShell({
@@ -19,9 +21,12 @@ export function MobileAppShell({
   className,
   bodyClassName,
   mainClassName,
+  mobileRoute,
 }: MobileAppShellProps) {
   return (
     <div
+      data-mobile-shell-version="layout-v4"
+      data-mobile-route={mobileRoute}
       className={cn(
         "dark flex h-[100dvh] w-full max-w-full overflow-hidden bg-[#0B0F15] text-slate-50",
         className,

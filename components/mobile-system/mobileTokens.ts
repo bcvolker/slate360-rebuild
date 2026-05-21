@@ -26,8 +26,12 @@ export const mobileTokens = {
   mobileShellContentTopGap: "pt-5",
   mobileShellContentPaddingX: "px-4",
   mobileShellContentStackGap: "gap-1.5",
-  /** Flex spacer between upper launcher block and dock (grows, does not push content down) */
+  /** Capped gap between upper launcher block and dock — must not grow unbounded */
   mobileShellDockSpacerMin: "min-h-3",
+  mobileShellDockSpacerMax: "max-h-12",
+  mobileShellDockSpacerPreferred: "h-[clamp(12px,3dvh,32px)]",
+  mobileShellDockSpacer:
+    "shrink-0 min-h-3 max-h-12 h-[clamp(12px,3dvh,32px)]",
   mobileShellDockGap: "gap-0",
   /** Gap between upper launcher block and expandable dock — prefer mobileShellDockSpacerMin */
   mobileDockTopGap: "gap-1.5",
@@ -45,7 +49,14 @@ export const mobileTokens = {
   mobileAccentDanger: "text-red-400",
   mobileBrandWarmBorder: "border-amber-500/25",
   mobileBrandWarmGlow: "shadow-[0_0_8px_rgba(245,158,11,0.08)]",
+  mobileBrandIconGlow: "drop-shadow-[0_0_10px_rgba(245,158,11,0.15)]",
   mobileBrandCoolGlow: "shadow-[0_0_8px_rgba(34,211,238,0.08)]",
+  mobilePrimaryButton:
+    "rounded-lg bg-amber-500/90 text-white hover:bg-amber-500",
+  mobileAvatarRing:
+    "flex size-7 items-center justify-center rounded-full bg-amber-500/12 text-[11px] font-bold text-amber-400/90 transition-colors hover:bg-amber-500/18",
+  mobileHeaderToolIcon:
+    "flex size-11 items-center justify-center text-zinc-500 transition-colors hover:text-zinc-200",
   mobileIconBgPrimary: "bg-amber-500/10 text-amber-400/90",
   mobileIconBgInfo: "bg-cyan-500/10 text-cyan-400/90",
   mobileIconBgNeutral: "bg-white/[0.06] text-zinc-300",

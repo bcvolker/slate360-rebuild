@@ -72,6 +72,7 @@ export function SiteWalkV1Shell({
     <>
       <MobileAppShell
       className="fixed inset-0 z-50"
+      mobileRoute="site-walk"
       sidebar={
         <aside className="hidden w-56 shrink-0 flex-col border-r border-white/10 bg-zinc-900/60 lg:flex">
           <div className="flex h-14 items-center border-b border-white/10 px-4">

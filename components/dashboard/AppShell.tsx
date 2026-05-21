@@ -150,6 +150,7 @@ export function AppShell({
           <>
             <MobileAppShell
               className="relative"
+              mobileRoute={usesContainedHomeLayout ? "app" : undefined}
               sidebar={
                 <>
                   <div className="hidden lg:block">

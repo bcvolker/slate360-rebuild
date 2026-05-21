@@ -14,6 +14,7 @@ const nextConfig: NextConfig = {
   generateBuildId: () => buildId,
   env: {
     NEXT_PUBLIC_BUILD_ID: buildId,
+    NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA: process.env.VERCEL_GIT_COMMIT_SHA ?? "",
   },
   eslint: { ignoreDuringBuilds: false },
   typescript: { ignoreBuildErrors: false },

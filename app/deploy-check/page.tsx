@@ -1,11 +1,17 @@
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-const DEPLOY_MARKER = "deploy-check-2026-02-26-01";
+const DEPLOY_MARKER = "deploy-check-2026-05-21-01";
 
 export default function DeployCheckPage() {
+  const commit = process.env.VERCEL_GIT_COMMIT_SHA ?? "(local)";
   return (
-    <main className="min-h-screen bg-background px-6 py-10 text-zinc-100">
+    <main
+      data-deploy-check="true"
+      data-deploy-marker={DEPLOY_MARKER}
+      data-deploy-commit={commit}
+      className="min-h-screen bg-background px-6 py-10 text-zinc-100"
+    >
       <div className="mx-auto max-w-2xl rounded-xl border border-zinc-800 p-6 shadow-sm">
         <h1 className="text-xl font-bold">Deployment Check</h1>
         <p className="mt-3 text-sm text-zinc-400">
@@ -16,7 +22,7 @@ export default function DeployCheckPage() {
             <span className="font-semibold">Marker:</span> {DEPLOY_MARKER}
           </div>
           <div className="mt-1">
-            <span className="font-semibold">Commit:</span> {process.env.VERCEL_GIT_COMMIT_SHA ?? "(local)"}
+            <span className="font-semibold">Commit:</span> {commit}
           </div>
           <div className="mt-1">
             <span className="font-semibold">Branch:</span> {process.env.VERCEL_GIT_COMMIT_REF ?? "(local)"}
