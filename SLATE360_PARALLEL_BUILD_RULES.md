@@ -15,9 +15,16 @@ Use with `SLATE360_PROJECT_MEMORY.md` and `docs/SLATE360_GRAPHITE_GLASS_DESIGN_S
 
 Mobile users must **not** land on legacy desktop-first UI from direct URLs or in-app links.
 
-**Redirect to `/app?blocked=<module>`** (shows `MobileComingSoonSheet`):
+**Redirect to `/app?blocked=<module>`** (shows `MobileComingSoonSheet` with explanation):
 
-- `/projects`, `/project-hub`, `/slatedrop`, `/settings`, `/my-work`, `/coordination`, `/my-account`
+| Route | `?blocked=` value |
+|-------|-------------------|
+| `/projects`, `/project-hub` | `projects` |
+| `/slatedrop` | `slatedrop` |
+| `/settings` | `settings` |
+| `/my-work` | `my-work` |
+| `/coordination` | `coordination` |
+| `/my-account` | `account` |
 
 **Redirect to `/site-walk`** (Site Walk V1 home):
 
@@ -43,6 +50,7 @@ Desktop users keep existing routes unless already blocked by Phase 1 middleware 
 - Mobile platform + module shells: `MobileAppShell`, `MobileTopBar`, `MobileBottomNav`, `MobileShellBrandMark`.
 - Do not introduce per-page mobile headers or duplicate bottom navs.
 - Site Walk V1 tabs must not `router.push` into legacy sub-routes until replacement UI ships (use `MobileComingSoonSheet`).
+- New parallel build screens must not import or reuse legacy desktop page components.
 
 ## Do not touch (parallel tracks)
 

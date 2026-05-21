@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { MapPin, Plus, Search, Bell, MessageSquare, ClipboardList, Clock, Box, FolderOpen } from "lucide-react";
 import type { Entitlements } from "@/lib/entitlements";
@@ -17,7 +17,12 @@ import {
   mobileTokens,
 } from "@/components/mobile-system";
 import type { MobilePanelTab } from "@/components/mobile-system";
-import { MOBILE_BLOCKED_LABELS, type MobileBlockedModule } from "@/lib/mobile-route-policy";
+import {
+  MOBILE_BLOCKED_DESCRIPTIONS,
+  MOBILE_BLOCKED_LABELS,
+  type MobileBlockedModule,
+} from "@/lib/mobile-route-policy";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface CommandCenterContentProps {
   entitlements?: Entitlements | null;
@@ -29,46 +34,77 @@ interface CommandCenterContentProps {
   isSlateCeo?: boolean;
 }
 
-// ── Activity tabs ─────────────────────────────────────────────────────────────
-
-const ACTIVITY_TABS: MobilePanelTab[] = [
-  {
-    value: "notifications",
-    label: "Alerts",
-    content: <MobileEmptyState icon={Bell} title="No new notifications" actionLabel="View inbox" actionHref="/coordination/inbox" />,
-  },
-  {
-    value: "messages",
-    label: "Messages",
-    content: <MobileEmptyState icon={MessageSquare} title="No unread messages" actionLabel="View inbox" actionHref="/coordination/inbox" />,
-  },
-  {
-    value: "assigned",
-    label: "Assigned",
-    content: <MobileEmptyState icon={ClipboardList} title="No assigned work" actionLabel="View assigned" actionHref="/site-walk/assigned-work" />,
-  },
-  {
-    value: "recent",
-    label: "Recent",
-    content: <MobileEmptyState icon={Clock} title="No recent activity" />,
-  },
-];
-
 export function CommandCenterContent({
   entitlements = null,
   isSlateCeo = false,
 }: CommandCenterContentProps) {
+  const isMobile = useIsMobile();
   const [comingSoonTitle, setComingSoonTitle] = useState<string | null>(null);
+  const [comingSoonDescription, setComingSoonDescription] = useState<string | undefined>();
   const [createSheetOpen, setCreateSheetOpen] = useState(false);
+
+  const openBlockedNotice = useCallback((module: MobileBlockedModule) => {
+    setComingSoonTitle(MOBILE_BLOCKED_LABELS[module]);
+    setComingSoonDescription(MOBILE_BLOCKED_DESCRIPTIONS[module]);
+  }, []);
+
+  const activityTabs: MobilePanelTab[] = useMemo(
+    () => [
+      {
+        value: "notifications",
+        label: "Alerts",
+        content: (
+          <MobileEmptyState
+            icon={Bell}
+            title="No new notifications"
+            actionLabel={isMobile ? "Coordination on desktop" : "View inbox"}
+            actionHref={isMobile ? undefined : "/coordination/inbox"}
+            onAction={isMobile ? () => openBlockedNotice("coordination") : undefined}
+          />
+        ),
+      },
+      {
+        value: "messages",
+        label: "Messages",
+        content: (
+          <MobileEmptyState
+            icon={MessageSquare}
+            title="No unread messages"
+            actionLabel={isMobile ? "Coordination on desktop" : "View inbox"}
+            actionHref={isMobile ? undefined : "/coordination/inbox"}
+            onAction={isMobile ? () => openBlockedNotice("coordination") : undefined}
+          />
+        ),
+      },
+      {
+        value: "assigned",
+        label: "Assigned",
+        content: (
+          <MobileEmptyState
+            icon={ClipboardList}
+            title="No assigned work"
+            actionLabel="View assigned"
+            actionHref="/site-walk/assigned-work"
+          />
+        ),
+      },
+      {
+        value: "recent",
+        label: "Recent",
+        content: <MobileEmptyState icon={Clock} title="No recent activity" />,
+      },
+    ],
+    [isMobile, openBlockedNotice],
+  );
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
     const blocked = params.get("blocked") as MobileBlockedModule | null;
     if (!blocked || !(blocked in MOBILE_BLOCKED_LABELS)) return;
-    setComingSoonTitle(MOBILE_BLOCKED_LABELS[blocked]);
+    openBlockedNotice(blocked);
     window.history.replaceState({}, "", "/app");
-  }, []);
+  }, [openBlockedNotice]);
 
   const handleSearch = () => {
     if (typeof window === "undefined") return;
@@ -129,12 +165,17 @@ export function CommandCenterContent({
           <MobileActionCard
             label="SlateDrop"
             icon={FolderOpen}
-            onClick={() => setComingSoonTitle("SlateDrop")}
+            onClick={() => openBlockedNotice("slatedrop")}
           />
           <MobileActionCard
             label="Deliverables"
             icon={Box}
-            onClick={() => setComingSoonTitle("Deliverables")}
+            onClick={() => {
+              setComingSoonTitle("Deliverables");
+              setComingSoonDescription(
+                "Deliverables are being rebuilt for mobile. Use Site Walk on desktop to manage reports until the new experience ships.",
+              );
+            }}
           />
           <MobileActionCard
             label="Search"
@@ -147,7 +188,7 @@ export function CommandCenterContent({
       {/* ── Section 3: Activity Panel ── */}
       <MobileSection className="flex-1 min-h-0 flex flex-col" contentClassName="flex-1 min-h-0 flex flex-col">
         <MobileTabbedPanel
-          tabs={ACTIVITY_TABS}
+          tabs={activityTabs}
           defaultTab="notifications"
           minHeight="min-h-0"
           className="flex-1 min-h-0"
@@ -157,8 +198,14 @@ export function CommandCenterContent({
       {comingSoonTitle && (
         <MobileComingSoonSheet
           open={!!comingSoonTitle}
-          onOpenChange={(open) => !open && setComingSoonTitle(null)}
+          onOpenChange={(open) => {
+            if (!open) {
+              setComingSoonTitle(null);
+              setComingSoonDescription(undefined);
+            }
+          }}
           title={`${comingSoonTitle} on Mobile`}
+          description={comingSoonDescription}
         />
       )}
       <MobileCreateSheet
