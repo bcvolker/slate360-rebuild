@@ -58,8 +58,9 @@ export function HomeView({ walks, projects, summary, router, onQuickCapture }: H
           </MobileSection>
         }
         primaryActions={
-          <MobileSection label="Actions" showAccentLine="cool" className="shrink-0">
+          <MobileSection label="Actions" showAccentLine="cool" className="flex min-h-0 flex-1 flex-col">
             <SiteWalkV1ActionGrid
+              className="flex-1"
               onNewWorksite={() => router.push("/site-walk/setup")}
               onStartWalk={() => router.push("/site-walk/walks")}
               onQuickCapture={onQuickCapture}
@@ -68,7 +69,6 @@ export function HomeView({ walks, projects, summary, router, onQuickCapture }: H
         }
         dock={
           <SiteWalkV1ListPanel
-            className="h-full min-h-0 flex-1"
             recentContent={
               recentWalks.length > 0 ? (
                 <WalkList walks={recentWalks} router={router} setComingSoonTitle={setComingSoonTitle} />

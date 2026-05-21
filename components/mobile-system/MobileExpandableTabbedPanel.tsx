@@ -38,6 +38,7 @@ export function MobileExpandableTabbedPanel({
     >
       <div
         data-testid="mobile-expandable-panel-frame"
+        data-expandable-panel-state={expanded ? "expanded" : "collapsed"}
         className={cn(
           mobileTokens.mobileExpandablePanelFrame,
           expanded
@@ -45,10 +46,7 @@ export function MobileExpandableTabbedPanel({
                 mobileTokens.mobileExpandablePanelExpandedHeight,
                 mobileTokens.mobileExpandablePanelFrameExpanded,
               )
-            : cn(
-                mobileTokens.mobileExpandablePanelCollapsedHeight,
-                "flex-1",
-              ),
+            : mobileTokens.mobileExpandablePanelCollapsedHeight,
         )}
       >
         <div className={mobileTokens.mobileExpandablePanelChrome}>
@@ -105,9 +103,20 @@ export function MobileExpandableTabbedPanel({
   if (!upper) {
     return (
       <div
-        data-expandable-panel-version="capped-spacer-v1"
-        className={cn("relative flex h-full min-h-0 flex-1 flex-col", className)}
+        data-expandable-panel-version="capped-spacer-v2"
+        data-expanded={expanded ? "true" : "false"}
+        className={cn("relative w-full shrink-0", className)}
       >
+        {expanded && (
+          <>
+            <button
+              type="button"
+              className="fixed inset-0 z-20 bg-black/50 backdrop-blur-[2px] lg:hidden"
+              aria-label="Close activity panel"
+              onClick={collapse}
+            />
+          </>
+        )}
         {dock}
       </div>
     );
@@ -115,7 +124,8 @@ export function MobileExpandableTabbedPanel({
 
   return (
     <div
-      data-expandable-panel-version="capped-spacer-v1"
+      data-expandable-panel-version="capped-spacer-v2"
+      data-expanded={expanded ? "true" : "false"}
       data-testid="mobile-expandable-panel-host"
       className={cn("relative flex min-h-0 flex-1 flex-col overflow-hidden", className)}
     >
@@ -127,7 +137,6 @@ export function MobileExpandableTabbedPanel({
           onClick={collapse}
         />
       )}
-      {/* Upper content at top; flex spacer grows between content and dock */}
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
         <div
           className={cn(
@@ -139,16 +148,7 @@ export function MobileExpandableTabbedPanel({
           {upper}
         </div>
         <div className={mobileTokens.mobileShellDockSpacer} aria-hidden />
-        <div className={cn("shrink-0", mobileTokens.mobileShellDockGap)}>
-          <div
-            className={cn(
-              "shrink-0",
-              expanded && mobileTokens.mobileExpandablePanelCollapsedHeight,
-            )}
-          >
-            {dock}
-          </div>
-        </div>
+        <div className={cn("shrink-0", mobileTokens.mobileShellDockGap)}>{dock}</div>
       </div>
     </div>
   );

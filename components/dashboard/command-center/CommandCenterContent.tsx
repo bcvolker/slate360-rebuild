@@ -174,13 +174,12 @@ export function CommandCenterContent({
           </MobileSection>
         }
         primaryActions={
-          <MobileSection label="Quick Actions" showAccentLine="cool" className="shrink-0">
+          <MobileSection label="Quick Actions" showAccentLine="cool" className="flex min-h-0 flex-1 flex-col">
             <MobileQuickActionStrip actions={quickActions} />
           </MobileSection>
         }
         dock={
           <MobileExpandableTabbedPanel
-            className="h-full min-h-0 flex-1"
             tabs={activityTabs}
             defaultTab="notifications"
           />

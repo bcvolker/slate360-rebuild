@@ -2,7 +2,7 @@
 
 import { Plus, Play, Camera, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { MobileActionCard, MobileActionGrid } from "@/components/mobile-system";
+import { mobileTokens, type MobileQuickActionAccent } from "@/components/mobile-system/mobileTokens";
 
 type SiteWalkV1ActionGridProps = {
   onNewWorksite?: () => void;
@@ -12,6 +12,38 @@ type SiteWalkV1ActionGridProps = {
   className?: string;
 };
 
+const accentIconClass: Record<MobileQuickActionAccent, string> = {
+  primary: mobileTokens.mobileAccentPrimary,
+  info: mobileTokens.mobileAccentInfo,
+  neutral: mobileTokens.mobileAccentNeutralBright,
+  muted: mobileTokens.mobileAccentMuted,
+  warm: mobileTokens.mobileAccentWarm,
+};
+
+type ActionSpec = {
+  label: string;
+  icon: typeof Plus;
+  accent: MobileQuickActionAccent;
+  onClick?: () => void;
+};
+
+function ActionButton({ label, icon: Icon, accent, onClick }: ActionSpec) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(mobileTokens.quickActionGridButton, mobileTokens.focusRing)}
+      aria-label={label}
+    >
+      <Icon className={cn(mobileTokens.quickActionStripIcon, accentIconClass[accent])} aria-hidden />
+      <span className={mobileTokens.quickActionStripLabel}>{label}</span>
+    </button>
+  );
+}
+
+/**
+ * Site Walk 2×2 action grid — uses the same quick-action token language as /app.
+ */
 export function SiteWalkV1ActionGrid({
   onNewWorksite,
   onStartWalk,
@@ -19,36 +51,23 @@ export function SiteWalkV1ActionGrid({
   onSearch,
   className,
 }: SiteWalkV1ActionGridProps) {
+  const actions: ActionSpec[] = [
+    { label: "Create Worksite", icon: Plus, accent: "primary", onClick: onNewWorksite },
+    { label: "Walk from Worksite", icon: Play, accent: "info", onClick: onStartWalk },
+    { label: "Quick Walk", icon: Camera, accent: "warm", onClick: onQuickCapture },
+    { label: "Search", icon: Search, accent: "muted", onClick: onSearch },
+  ];
+
   return (
-    <MobileActionGrid className={cn(className)} data-testid="site-walk-action-grid">
-      <MobileActionCard
-        variant="module"
-        accent="primary"
-        label="Create Worksite"
-        icon={Plus}
-        onClick={onNewWorksite ?? (() => {})}
-      />
-      <MobileActionCard
-        variant="module"
-        accent="info"
-        label="Walk from Worksite"
-        icon={Play}
-        onClick={onStartWalk ?? (() => {})}
-      />
-      <MobileActionCard
-        variant="module"
-        accent="warm"
-        label="Quick Walk"
-        icon={Camera}
-        onClick={onQuickCapture ?? (() => {})}
-      />
-      <MobileActionCard
-        variant="module"
-        accent="muted"
-        label="Search"
-        icon={Search}
-        onClick={onSearch ?? (() => {})}
-      />
-    </MobileActionGrid>
+    <div
+      data-testid="site-walk-action-grid"
+      className={cn(mobileTokens.quickActionGridRow, className)}
+      role="toolbar"
+      aria-label="Site Walk actions"
+    >
+      {actions.map((action) => (
+        <ActionButton key={action.label} {...action} onClick={action.onClick ?? (() => {})} />
+      ))}
+    </div>
   );
 }

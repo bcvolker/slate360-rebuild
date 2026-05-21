@@ -11,7 +11,7 @@ type MobileHomeLayoutProps = {
   contentTop: ReactNode;
   /** Secondary action row/grid (quick actions, module actions) */
   primaryActions?: ReactNode;
-  /** Expandable activity dock — should be MobileExpandableTabbedPanel without upper */
+  /** Expandable activity dock — MobileExpandableTabbedPanel without upper */
   dock: ReactNode;
   className?: string;
 };
@@ -20,9 +20,9 @@ type MobileHomeLayoutProps = {
  * Shared vertical composition for /app and /site-walk home surfaces.
  *
  * Viewport allocation:
- * - content zone (shrink-0, starts near header)
+ * - content zone (flex-1, starts near header, primary actions may grow)
  * - capped content→dock spacer
- * - dock zone (flex-1, dock anchored above bottom nav, grows to fill remainder)
+ * - dock zone (shrink-0, dock anchored above bottom nav)
  */
 export function MobileHomeLayout({
   route,
@@ -33,7 +33,7 @@ export function MobileHomeLayout({
 }: MobileHomeLayoutProps) {
   return (
     <div
-      data-mobile-home-layout-version="home-layout-v1"
+      data-mobile-home-layout-version="home-layout-v2"
       data-mobile-route={route}
       className={cn(mobileTokens.mobileHomeLayoutRoot, className)}
     >
@@ -45,12 +45,14 @@ export function MobileHomeLayout({
       >
         <div
           className={cn(
-            "mx-auto flex w-full max-w-2xl flex-col",
+            mobileTokens.mobileHomeContentStack,
             mobileTokens.mobileShellContentStackGap,
           )}
         >
           <div className="shrink-0">{contentTop}</div>
-          {primaryActions ? <div className="shrink-0">{primaryActions}</div> : null}
+          {primaryActions ? (
+            <div className={mobileTokens.mobileHomePrimaryActionsZone}>{primaryActions}</div>
+          ) : null}
         </div>
       </div>
 
