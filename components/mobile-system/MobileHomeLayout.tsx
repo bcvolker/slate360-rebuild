@@ -5,21 +5,24 @@ import { cn } from "@/lib/utils";
 import { mobileTokens } from "./mobileTokens";
 
 type MobileHomeLayoutProps = {
+  /** Real-route verification marker */
   route: "app" | "site-walk";
+  /** Primary content block (app tiles, module intro, etc.) */
   contentTop: ReactNode;
+  /** Secondary action row/grid (quick actions, module actions) */
   primaryActions?: ReactNode;
+  /** Expandable activity dock — MobileExpandableTabbedPanel without upper */
   dock: ReactNode;
   className?: string;
 };
 
 /**
- * Shared grid-based vertical composition for /app and /site-walk home surfaces.
+ * Shared vertical composition for /app and /site-walk home surfaces.
  *
- * Rows:
- * 1. contentTop (auto)
- * 2. primaryActions (minmax(0,1fr) — children must stretch to h-full)
- * 3. capped spacer (auto)
- * 4. dock (auto, fixed collapsed height)
+ * Viewport allocation:
+ * - content zone (flex-1, starts near header, primary actions may grow)
+ * - capped content→dock spacer
+ * - dock zone (shrink-0, dock anchored above bottom nav)
  */
 export function MobileHomeLayout({
   route,
@@ -30,35 +33,28 @@ export function MobileHomeLayout({
 }: MobileHomeLayoutProps) {
   return (
     <div
-      data-mobile-home-layout-version="home-layout-v3"
+      data-mobile-home-layout-version="home-layout-v2"
       data-mobile-route={route}
       className={cn(mobileTokens.mobileHomeLayoutRoot, className)}
     >
       <div
         className={cn(
-          mobileTokens.mobileHomeContentTopRow,
+          mobileTokens.mobileHomeContentZone,
           mobileTokens.mobileShellContentPaddingX,
         )}
       >
-        <div className={cn("mx-auto w-full max-w-2xl", mobileTokens.mobileShellContentStackGap)}>
-          {contentTop}
-        </div>
-      </div>
-
-      {primaryActions ? (
         <div
           className={cn(
-            mobileTokens.mobileHomePrimaryActionsRow,
-            mobileTokens.mobileShellContentPaddingX,
+            mobileTokens.mobileHomeContentStack,
+            mobileTokens.mobileShellContentStackGap,
           )}
         >
-          <div className={cn("mx-auto flex h-full min-h-0 w-full max-w-2xl flex-col")}>
-            {primaryActions}
-          </div>
+          <div className="shrink-0">{contentTop}</div>
+          {primaryActions ? (
+            <div className={mobileTokens.mobileHomePrimaryActionsZone}>{primaryActions}</div>
+          ) : null}
         </div>
-      ) : (
-        <div className={mobileTokens.mobileHomePrimaryActionsRow} aria-hidden />
-      )}
+      </div>
 
       <div className={mobileTokens.mobileHomeContentDockSpacer} aria-hidden />
 

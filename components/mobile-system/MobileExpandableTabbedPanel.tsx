@@ -7,10 +7,7 @@
 import { useCallback, useId, useState, type ReactNode } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { cn } from "@/lib/utils";
-import {
-  MOBILE_PANEL_COLLAPSED_FRAME_PX,
-  mobileTokens,
-} from "./mobileTokens";
+import { mobileTokens } from "./mobileTokens";
 import { MobileTabbedPanel } from "./MobileTabbedPanel";
 import type { MobilePanelTab } from "./MobileTabbedPanel";
 
@@ -42,9 +39,6 @@ export function MobileExpandableTabbedPanel({
       <div
         data-testid="mobile-expandable-panel-frame"
         data-expandable-panel-state={expanded ? "expanded" : "collapsed"}
-        data-expanded-state={expanded ? "true" : "false"}
-        data-collapsed-height={MOBILE_PANEL_COLLAPSED_FRAME_PX}
-        data-expanded-height="min(56dvh,460px)"
         className={cn(
           mobileTokens.mobileExpandablePanelFrame,
           expanded
@@ -109,24 +103,19 @@ export function MobileExpandableTabbedPanel({
   if (!upper) {
     return (
       <div
-        data-expandable-panel-version="capped-spacer-v3"
-        data-expanded-state={expanded ? "true" : "false"}
+        data-expandable-panel-version="capped-spacer-v2"
+        data-expanded={expanded ? "true" : "false"}
         className={cn("relative w-full shrink-0", className)}
       >
         {expanded && (
-          <button
-            type="button"
-            className="fixed inset-0 z-20 bg-black/50 backdrop-blur-[2px] lg:hidden"
-            aria-label="Close activity panel"
-            onClick={collapse}
-          />
-        )}
-        {expanded && (
-          <div
-            style={{ height: MOBILE_PANEL_COLLAPSED_FRAME_PX }}
-            className="shrink-0"
-            aria-hidden
-          />
+          <>
+            <button
+              type="button"
+              className="fixed inset-0 z-20 bg-black/50 backdrop-blur-[2px] lg:hidden"
+              aria-label="Close activity panel"
+              onClick={collapse}
+            />
+          </>
         )}
         {dock}
       </div>
@@ -135,8 +124,8 @@ export function MobileExpandableTabbedPanel({
 
   return (
     <div
-      data-expandable-panel-version="capped-spacer-v3"
-      data-expanded-state={expanded ? "true" : "false"}
+      data-expandable-panel-version="capped-spacer-v2"
+      data-expanded={expanded ? "true" : "false"}
       data-testid="mobile-expandable-panel-host"
       className={cn("relative flex min-h-0 flex-1 flex-col overflow-hidden", className)}
     >

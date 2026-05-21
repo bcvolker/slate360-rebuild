@@ -45,7 +45,7 @@ export function HomeView({ walks, projects, summary, router, onQuickCapture }: H
       <MobileHomeLayout
         route="site-walk"
         contentTop={
-          <MobileSection showAccentLine="warm" className="shrink-0">
+          <MobileSection showAccentLine className="shrink-0">
             <div className="flex items-center gap-2.5" data-testid="site-walk-module-intro">
               <MobileShellBackToApp />
               <div className="min-w-0">
@@ -58,14 +58,9 @@ export function HomeView({ walks, projects, summary, router, onQuickCapture }: H
           </MobileSection>
         }
         primaryActions={
-          <MobileSection
-            label="Actions"
-            showAccentLine="cool"
-            className="flex h-full min-h-0 flex-col"
-            contentClassName="flex min-h-0 flex-1 flex-col"
-          >
+          <MobileSection label="Actions" showAccentLine="cool" className="flex min-h-0 flex-1 flex-col">
             <SiteWalkV1ActionGrid
-              className="h-full min-h-0"
+              className="flex-1"
               onNewWorksite={() => router.push("/site-walk/setup")}
               onStartWalk={() => router.push("/site-walk/walks")}
               onQuickCapture={onQuickCapture}
