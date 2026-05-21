@@ -32,6 +32,8 @@ export type { MobileAppButtonProps } from "./MobileAppButton";
 export { MobileTabbedPanel } from "./MobileTabbedPanel";
 export type { MobilePanelTab } from "./MobileTabbedPanel";
 
+export { MobileExpandableTabbedPanel } from "./MobileExpandableTabbedPanel";
+
 export { MobileEmptyState } from "./MobileEmptyState";
 export { MobileComingSoonSheet } from "./MobileComingSoonSheet";
 export { MobileCreateSheet } from "./MobileCreateSheet";

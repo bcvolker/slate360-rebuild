@@ -6,8 +6,12 @@ import { WorksiteV1Row } from "@/components/site-walk/v1/WorksiteV1Row";
 import { WalkV1Row } from "@/components/site-walk/v1/WalkV1Row";
 import type { V1NavTab } from "@/components/site-walk/v1/SiteWalkV1BottomNav";
 import type { HubProject, HubSummary, HubWalk } from "@/lib/types/site-walk";
-import { cn } from "@/lib/utils";
-import { MobileEmptyState, MobileSection, mobileTokens, MobileComingSoonSheet } from "@/components/mobile-system";
+import {
+  MobileEmptyState,
+  MobileShellBackToApp,
+  mobileTokens,
+  MobileComingSoonSheet,
+} from "@/components/mobile-system";
 import { type RouterLike, timeAgo } from "./v1-view-utils";
 import { useState } from "react";
 
@@ -36,36 +40,37 @@ export function HomeView({ walks, projects, summary, router, onQuickCapture }: H
   }
 
   return (
-    <div
-      className={cn(
-        /* flex-1 fills main's flex-col — no h-full percentage chain needed */
-        "flex-1 min-h-0 grid px-4 pt-3",
-        mobileTokens.mobileHomeSectionGap,
-        mobileTokens.mobilePanelBottomGap,
-        /* Portrait: Zone 1 auto-sized, Zone 2 fills remaining space */
-        "grid-rows-[auto_1fr]",
-        /* Landscape: side-by-side when viewport is short */
-        "landscape:grid-cols-2 landscape:grid-rows-[1fr] landscape:gap-x-4 landscape:gap-y-0",
-      )}
-    >
-      {/* Zone 1: Command — auto-sized to content */}
-      <MobileSection label="SITE WALK" className="shrink-0">
-        <SiteWalkV1ActionGrid
-          onNewWorksite={() => router.push("/site-walk/setup")}
-          onStartWalk={() => router.push("/site-walk/walks")}
-          onQuickCapture={onQuickCapture}
-          className="!px-0"
-        />
-      </MobileSection>
-
-      {/* Zone 2: Work panel — fills remaining space */}
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
       <SiteWalkV1ListPanel
-        className="h-full min-h-0"
+        className="min-h-0 flex-1"
+        upper={
+          <div className="mx-auto flex w-full max-w-2xl flex-col gap-3">
+            <div className="flex items-start gap-2.5">
+              <MobileShellBackToApp className="size-10 shrink-0" />
+              <div className="min-w-0 pt-0.5">
+                <p className={mobileTokens.sectionLabel}>SITE WALK</p>
+                <p className="text-[12px] leading-snug text-zinc-500">
+                  Field capture &amp; deliverables
+                </p>
+              </div>
+            </div>
+            <SiteWalkV1ActionGrid
+              onNewWorksite={() => router.push("/site-walk/setup")}
+              onStartWalk={() => router.push("/site-walk/walks")}
+              onQuickCapture={onQuickCapture}
+              className="!px-0"
+            />
+          </div>
+        }
         recentContent={
           recentWalks.length > 0 ? (
             <WalkList walks={recentWalks} router={router} setComingSoonTitle={setComingSoonTitle} />
           ) : (
-            <MobileEmptyState title="No recent walks." description="Start a walk or quick capture to see activity here." />
+            <MobileEmptyState
+              compact
+              title="No recent walks."
+              description="Start a walk or quick capture to see activity here."
+            />
           )
         }
         worksitesContent={
@@ -87,18 +92,19 @@ export function HomeView({ walks, projects, summary, router, onQuickCapture }: H
               ))}
             </div>
           ) : (
-            <MobileEmptyState title="No worksites yet." description="Create a worksite to get started." />
+            <MobileEmptyState compact title="No worksites yet." description="Create a worksite to get started." />
           )
         }
-        sharedContent={<MobileEmptyState title="No shared work yet." />}
+        sharedContent={<MobileEmptyState compact title="No shared work yet." />}
         reviewContent={
           summary.needsReview > 0 ? (
             <MobileEmptyState
+              compact
               title={`${summary.needsReview} item${summary.needsReview === 1 ? "" : "s"} need review.`}
               description="Open a walk to review resolved items."
             />
           ) : (
-            <MobileEmptyState title="Nothing needs review." />
+            <MobileEmptyState compact title="Nothing needs review." />
           )
         }
       />
@@ -113,7 +119,15 @@ export function HomeView({ walks, projects, summary, router, onQuickCapture }: H
   );
 }
 
-function WalkList({ walks, router, setComingSoonTitle }: { walks: HubWalk[]; router: RouterLike, setComingSoonTitle: (title: string) => void }) {
+function WalkList({
+  walks,
+  router,
+  setComingSoonTitle,
+}: {
+  walks: HubWalk[];
+  router: RouterLike;
+  setComingSoonTitle: (title: string) => void;
+}) {
   return (
     <div className="flex flex-col gap-1.5">
       {walks.map((w) => (

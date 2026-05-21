@@ -32,6 +32,8 @@ interface MobileTabbedPanelProps {
    * Defaults to the first tab if omitted.
    */
   defaultTab?: string;
+  /** Optional id for aria-controls from expandable dock chrome. */
+  id?: string;
   className?: string;
   /**
    * Minimum panel height.
@@ -39,19 +41,23 @@ interface MobileTabbedPanelProps {
    */
   minHeight?: string;
   bodyClassName?: string;
+  /** Bottom scroll fade — off when collapsed dock shows only a preview strip. */
+  showBottomFade?: boolean;
 }
 
 export function MobileTabbedPanel({
   tabs,
   defaultTab,
+  id,
   className,
   minHeight = "min-h-[260px]",
   bodyClassName,
+  showBottomFade = true,
 }: MobileTabbedPanelProps) {
   const defaultValue = defaultTab ?? tabs[0]?.value ?? "";
 
   return (
-    <div className={cn(mobileTokens.panelBase, minHeight, className)}>
+    <div id={id} className={cn(mobileTokens.panelBase, minHeight, className)}>
       <Tabs defaultValue={defaultValue} className="flex min-h-0 flex-1 flex-col">
         {/* Tab strip */}
         <div className={mobileTokens.panelTabStripWrapper}>
@@ -80,8 +86,7 @@ export function MobileTabbedPanel({
         ))}
       </Tabs>
 
-      {/* Bottom fade — scroll affordance */}
-      <div className={mobileTokens.panelBottomFade} />
+      {showBottomFade && <div className={mobileTokens.panelBottomFade} />}
     </div>
   );
 }

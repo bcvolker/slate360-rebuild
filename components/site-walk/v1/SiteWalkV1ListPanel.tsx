@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { MobileTabbedPanel } from "@/components/mobile-system";
+import { MobileExpandableTabbedPanel } from "@/components/mobile-system";
 import { mobileTokens } from "@/components/mobile-system";
 import type { MobilePanelTab } from "@/components/mobile-system";
 import { cn } from "@/lib/utils";
@@ -14,14 +14,14 @@ type SiteWalkV1ListPanelProps = {
   worksitesContent: ReactNode;
   sharedContent: ReactNode;
   reviewContent: ReactNode;
+  /** Page content above the dock (module intro + action grid). */
+  upper?: ReactNode;
   className?: string;
 };
 
 /**
- * SiteWalkV1ListPanel — contained scrolling panel with tabs for Site Walk HomeView.
- *
- * Preserves the named-content-prop API so HomeView requires no changes.
- * Internally delegates to MobileTabbedPanel for consistent tab styling.
+ * SiteWalkV1ListPanel — expandable tabbed dock for Site Walk HomeView.
+ * Uses the same MobileExpandableTabbedPanel primitive as /app.
  */
 export function SiteWalkV1ListPanel({
   defaultTab = "recent",
@@ -29,6 +29,7 @@ export function SiteWalkV1ListPanel({
   worksitesContent,
   sharedContent,
   reviewContent,
+  upper,
   className,
 }: SiteWalkV1ListPanelProps) {
   const tabs: MobilePanelTab[] = [
@@ -39,11 +40,11 @@ export function SiteWalkV1ListPanel({
   ];
 
   return (
-    <MobileTabbedPanel
+    <MobileExpandableTabbedPanel
       tabs={tabs}
       defaultTab={defaultTab}
-      minHeight="min-h-0"
-      className={cn(mobileTokens.mobileListPanelHeight, className)}
+      upper={upper}
+      className={cn("min-h-0 flex-1", className)}
       bodyClassName={mobileTokens.moduleListPanelContent}
     />
   );

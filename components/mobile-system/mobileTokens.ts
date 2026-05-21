@@ -72,6 +72,26 @@ export const mobileTokens = {
     "flex-1 rounded-none border-b-2 border-transparent py-2 text-[13px] font-medium text-zinc-500 transition-colors data-[state=active]:border-amber-500 data-[state=active]:bg-transparent data-[state=active]:text-zinc-100 data-[state=active]:shadow-none",
   mobileEmptyPanelHeight: "flex-1 min-h-[240px]",
   mobileListPanelHeight: "flex-1 min-h-[240px]",
+
+  // ── Expandable activity dock (/app + /site-walk) ───────────────────────
+  /** 12px gap between dock bottom and bottom nav (pb-3). */
+  expandablePanelOuter: "relative z-30 shrink-0 px-4 pb-3",
+  expandablePanelExpandedPosition: "absolute inset-x-0 bottom-0 z-40 px-4 pb-3",
+  expandablePanelUpperScroll: "px-4 py-4",
+  expandablePanelBackdrop:
+    "absolute inset-0 z-20 bg-black/50 backdrop-blur-[2px] lg:hidden",
+  expandablePanelDock:
+    "overflow-hidden rounded-2xl border border-white/10 bg-[#0B0F15]/92 shadow-[0_-4px_24px_rgba(0,0,0,0.35)] backdrop-blur-md",
+  expandablePanelDockExpanded:
+    "shadow-[0_-12px_40px_rgba(0,0,0,0.55)] ring-1 ring-white/10",
+  expandablePanelChrome:
+    "flex items-center gap-1 border-b border-white/10 px-2",
+  expandablePanelHandle: "block h-1 w-10 rounded-full bg-white/25",
+  expandablePanelCollapsedFrame: "max-h-[148px] min-h-0",
+  expandablePanelExpandedFrame: "max-h-[min(68dvh,560px)] min-h-0",
+  expandablePanelCollapsedBody: "max-h-[96px] overflow-y-auto overscroll-contain",
+  expandablePanelExpandedBody:
+    "max-h-[min(calc(68dvh-108px),480px)] overflow-y-auto overscroll-contain",
   mobileTabbedPanelBodyPadding,
   mobileTabbedPanelScrollBody,
   panelContent: `${mobileTabbedPanelScrollBody} ${mobileTabbedPanelBodyPadding}`,
@@ -82,6 +102,8 @@ export const mobileTokens = {
   // ── Empty state ───────────────────────────────────────────────────────────
   emptyStateWrapper:
     "flex flex-col items-center justify-center gap-3 py-8 text-center",
+  emptyStateWrapperCompact:
+    "flex flex-col items-center justify-center gap-1.5 py-3 text-center",
   emptyStateIcon: "h-7 w-7 text-zinc-500",
   emptyStateText: "text-[13px] text-zinc-400 font-medium",
   emptyStateAction: "text-[12px] font-medium text-amber-500 hover:text-amber-400 hover:underline",

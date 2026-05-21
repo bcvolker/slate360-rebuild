@@ -20,6 +20,8 @@ import type { ElementType } from "react";
 interface MobileEmptyStateProps {
   /** Optional icon to display above the title. */
   icon?: ElementType;
+  /** Tighter geometry for collapsed expandable dock previews. */
+  compact?: boolean;
   /** Primary empty state message. */
   title: string;
   /** Optional secondary description. */
@@ -35,6 +37,7 @@ interface MobileEmptyStateProps {
 
 export function MobileEmptyState({
   icon: Icon,
+  compact = false,
   title,
   description,
   actionLabel,
@@ -43,7 +46,12 @@ export function MobileEmptyState({
   className,
 }: MobileEmptyStateProps) {
   return (
-    <div className={cn(mobileTokens.emptyStateWrapper, className)}>
+    <div
+      className={cn(
+        compact ? mobileTokens.emptyStateWrapperCompact : mobileTokens.emptyStateWrapper,
+        className,
+      )}
+    >
       {Icon && <Icon className={mobileTokens.emptyStateIcon} />}
 
       <p className={mobileTokens.emptyStateText}>{title}</p>

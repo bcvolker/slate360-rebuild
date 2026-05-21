@@ -10,7 +10,7 @@ import {
   MobileActionGrid,
   MobileAppButton,
   MobileSection,
-  MobileTabbedPanel,
+  MobileExpandableTabbedPanel,
   MobileEmptyState,
   MobileComingSoonSheet,
   MobileCreateSheet,
@@ -55,6 +55,7 @@ export function CommandCenterContent({
         label: "Alerts",
         content: (
           <MobileEmptyState
+            compact
             icon={Bell}
             title="No new notifications"
             actionLabel={isMobile ? "Coordination on desktop" : "View inbox"}
@@ -68,6 +69,7 @@ export function CommandCenterContent({
         label: "Messages",
         content: (
           <MobileEmptyState
+            compact
             icon={MessageSquare}
             title="No unread messages"
             actionLabel={isMobile ? "Coordination on desktop" : "View inbox"}
@@ -81,6 +83,7 @@ export function CommandCenterContent({
         label: "Assigned",
         content: (
           <MobileEmptyState
+            compact
             icon={ClipboardList}
             title="No assigned work"
             actionLabel="View assigned"
@@ -91,7 +94,7 @@ export function CommandCenterContent({
       {
         value: "recent",
         label: "Recent",
-        content: <MobileEmptyState icon={Clock} title="No recent activity" />,
+        content: <MobileEmptyState compact icon={Clock} title="No recent activity" />,
       },
     ],
     [isMobile, openBlockedNotice],
@@ -108,7 +111,6 @@ export function CommandCenterContent({
 
   const handleSearch = () => {
     if (typeof window === "undefined") return;
-    // Trigger the global ⌘K CommandPalette via the same keyboard event AppShell listens for.
     window.dispatchEvent(
       new KeyboardEvent("keydown", { key: "k", metaKey: true, bubbles: true }),
     );
@@ -118,82 +120,74 @@ export function CommandCenterContent({
   const appCount = (hasSiteWalk ? 1 : 0) + (isSlateCeo ? 1 : 0);
 
   return (
-    <div className={cn("mx-auto flex min-h-0 w-full max-w-2xl flex-1 flex-col overflow-y-auto px-4 py-4", mobileTokens.mobileHomeSectionGap)}>
+    <>
+      <MobileExpandableTabbedPanel
+        className="min-h-0 flex-1"
+        tabs={activityTabs}
+        defaultTab="notifications"
+        upper={
+          <div className={cn("mx-auto w-full max-w-2xl", mobileTokens.mobileHomeSectionGap, "flex flex-col")}>
+            <MobileSection label="Your Apps" className="shrink-0">
+              {appCount > 0 ? (
+                <MobileActionGrid>
+                  {hasSiteWalk && (
+                    <MobileAppButton
+                      title="Site Walk"
+                      subtitle="Field capture"
+                      icon={MapPin}
+                      href="/site-walk"
+                      className={appCount === 1 ? "col-span-2 mx-auto w-1/2" : undefined}
+                    />
+                  )}
+                  {isSlateCeo && (
+                    <MobileAppButton
+                      title="Slate360 Twin"
+                      subtitle="Owner Preview"
+                      icon={Box}
+                      href="#"
+                      badge="CEO"
+                      className={appCount === 1 ? "col-span-2 mx-auto w-1/2" : undefined}
+                    />
+                  )}
+                </MobileActionGrid>
+              ) : (
+                <div className="rounded-2xl border border-dashed border-white/10 px-4 py-8 text-center text-sm text-slate-500">
+                  No apps in your plan.{" "}
+                  <Link href="/more/billing" className="text-amber-400 hover:underline">
+                    View plans
+                  </Link>
+                </div>
+              )}
+            </MobileSection>
 
-      {/* ── Section 1: Your Apps ── */}
-      <MobileSection label="Your Apps" className="shrink-0">
-        {appCount > 0 ? (
-          <MobileActionGrid>
-            {hasSiteWalk && (
-              <MobileAppButton
-                title="Site Walk"
-                subtitle="Field capture"
-                icon={MapPin}
-                href="/site-walk"
-                className={appCount === 1 ? "col-span-2 mx-auto w-1/2" : undefined}
-              />
-            )}
-            {isSlateCeo && (
-              <MobileAppButton
-                title="Slate360 Twin"
-                subtitle="Owner Preview"
-                icon={Box}
-                href="#"
-                badge="CEO"
-                className={appCount === 1 ? "col-span-2 mx-auto w-1/2" : undefined}
-              />
-            )}
-          </MobileActionGrid>
-        ) : (
-          <div className="rounded-2xl border border-dashed border-white/10 px-4 py-8 text-center text-sm text-slate-500">
-            No apps in your plan.{" "}
-            <Link href="/more/billing" className="text-amber-400 hover:underline">
-              View plans
-            </Link>
+            <MobileSection label="Quick Actions" className="shrink-0">
+              <MobileActionGrid>
+                <MobileActionCard
+                  label="Create"
+                  icon={Plus}
+                  onClick={() => setCreateSheetOpen(true)}
+                />
+                <MobileActionCard
+                  label="SlateDrop"
+                  icon={FolderOpen}
+                  onClick={() => openBlockedNotice("slatedrop")}
+                />
+                <MobileActionCard
+                  label="Deliverables"
+                  icon={Box}
+                  onClick={() => {
+                    setComingSoonTitle("Deliverables");
+                    setComingSoonDescription(
+                      "Deliverables are being rebuilt for mobile. Use Site Walk on desktop to manage reports until the new experience ships.",
+                    );
+                  }}
+                />
+                <MobileActionCard label="Search" icon={Search} onClick={handleSearch} />
+              </MobileActionGrid>
+            </MobileSection>
           </div>
-        )}
-      </MobileSection>
-
-      {/* ── Section 2: Quick Actions ── */}
-      <MobileSection label="Quick Actions" className="shrink-0">
-        <MobileActionGrid>
-          <MobileActionCard
-            label="Create"
-            icon={Plus}
-            onClick={() => setCreateSheetOpen(true)}
-          />
-          <MobileActionCard
-            label="SlateDrop"
-            icon={FolderOpen}
-            onClick={() => openBlockedNotice("slatedrop")}
-          />
-          <MobileActionCard
-            label="Deliverables"
-            icon={Box}
-            onClick={() => {
-              setComingSoonTitle("Deliverables");
-              setComingSoonDescription(
-                "Deliverables are being rebuilt for mobile. Use Site Walk on desktop to manage reports until the new experience ships.",
-              );
-            }}
-          />
-          <MobileActionCard
-            label="Search"
-            icon={Search}
-            onClick={handleSearch}
-          />
-        </MobileActionGrid>
-      </MobileSection>
-
-      {/* ── Section 3: Activity Panel ── */}
-      <MobileSection className="shrink-0" contentClassName="min-h-0">
-        <MobileTabbedPanel
-          tabs={activityTabs}
-          defaultTab="notifications"
-          minHeight="min-h-0"
-          className={mobileTokens.mobileEmptyPanelHeight}
-        />
-      </MobileSection>
+        }
+      />
 
       {comingSoonTitle && (
         <MobileComingSoonSheet
@@ -208,11 +202,7 @@ export function CommandCenterContent({
           description={comingSoonDescription}
         />
       )}
-      <MobileCreateSheet
-        open={createSheetOpen}
-        onOpenChange={setCreateSheetOpen}
-      />
-    </div>
+      <MobileCreateSheet open={createSheetOpen} onOpenChange={setCreateSheetOpen} />
+    </>
   );
 }
-
