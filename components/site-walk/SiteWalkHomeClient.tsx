@@ -190,7 +190,12 @@ export function SiteWalkHomeClient({
 
   return (
 
-    <SiteWalkV1Shell title={title} activeTab={tab} onTabChange={handleTabChange}>
+    <SiteWalkV1Shell
+      title={title}
+      activeTab={tab}
+      onTabChange={handleTabChange}
+      className="flex min-h-0 flex-1 flex-col"
+    >
 
       {tab === "home" && (
 

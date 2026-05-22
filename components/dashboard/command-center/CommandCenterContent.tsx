@@ -156,6 +156,7 @@ export function CommandCenterContent({
     <>
       <MobileHomeLayout
         route="app"
+        className="min-h-screen"
         contentTop={
           <section className="shrink-0">
             <AppSectionHeader label="Your Apps" />

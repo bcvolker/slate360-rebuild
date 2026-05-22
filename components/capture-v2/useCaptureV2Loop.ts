@@ -280,15 +280,11 @@ export function useCaptureV2Loop({ sessionId, projectId, initialItemId, launchId
 
   function handleMultiFileDrop(files: File[]) {
     if (files.length === 0 || fileHandler.busy) return;
-    const [first, ...rest] = files;
-    intentRef.current = { source: "quick_capture", input: "upload" };
-    fileHandler.setIntent(intentRef.current);
-    triggerHapticSuccess();
-    fileHandler.handleFile(first, true);
-    for (const file of rest) {
+    for (const file of files) {
       intentRef.current = { source: "quick_capture", input: "upload" };
       fileHandler.setIntent(intentRef.current);
-      fileHandler.handleFile(file, true);
+      triggerHapticSuccess();
+      fileHandler.handleFile(file, false);
     }
   }
 

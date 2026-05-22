@@ -63,9 +63,7 @@ export function MobileExpandableTabbedPanel({
                 mobileTokens.mobileExpandablePanelFrameExpanded,
               )
             : isHomeDock
-              ? homeDockVariant === "app"
-                ? mobileTokens.mobileHomeAppDockCollapsedHeight
-                : mobileTokens.mobileHomeDockCollapsedHeight
+              ? "flex min-h-[12rem] min-h-0 flex-1 flex-col"
               : mobileTokens.mobileExpandablePanelCollapsedHeight,
         )}
       >
@@ -119,7 +117,7 @@ export function MobileExpandableTabbedPanel({
         data-expanded-state={expanded ? "true" : "false"}
         data-collapsed-height={MOBILE_HOME_DOCK_COLLAPSED_CLAMP}
         data-expanded-height={MOBILE_HOME_DOCK_EXPANDED_CLAMP}
-        className={cn("relative w-full", expanded && "z-50", className)}
+        className={cn("relative flex min-h-0 w-full flex-1 flex-col", expanded && "z-50", className)}
       >
         {expanded && (
           <button

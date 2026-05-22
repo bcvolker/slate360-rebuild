@@ -9,6 +9,8 @@ export * from "./capture-v2-smart-chips";
 export { CaptureNoSsrBoundary } from "./CaptureNoSsrBoundary";
 export { CaptureV2Shell } from "./CaptureV2Shell";
 export { CaptureV2TaskHeader } from "./CaptureV2TaskHeader";
+export { CaptureV2MobileField } from "./CaptureV2MobileField";
+export { CaptureV2DesktopStudio } from "./CaptureV2DesktopStudio";
 export { CaptureV2Orchestrator } from "./CaptureV2Orchestrator";
 export { CaptureV2Viewfinder } from "./CaptureV2Viewfinder";
 export { FastTrackActionBar } from "./FastTrackActionBar";

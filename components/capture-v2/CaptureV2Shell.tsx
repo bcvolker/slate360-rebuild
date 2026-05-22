@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSiteWalkSession } from "@/components/site-walk/SiteWalkSessionProvider";
 import { CaptureV2Orchestrator } from "./CaptureV2Orchestrator";
 import { CaptureV2TaskHeader } from "./CaptureV2TaskHeader";
@@ -21,6 +21,16 @@ type Props = {
 export function CaptureV2Shell(props: Props) {
   const { session } = props;
   const { capturedItems } = useSiteWalkSession();
+  const [isDesktop, setIsDesktop] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const media = window.matchMedia("(min-width: 768px)");
+    const sync = () => setIsDesktop(media.matches);
+    sync();
+    media.addEventListener("change", sync);
+    return () => media.removeEventListener("change", sync);
+  }, []);
 
   const stopLabel = useMemo(() => {
     const count = capturedItems.length;
@@ -34,7 +44,7 @@ export function CaptureV2Shell(props: Props) {
   return (
     <main className="relative flex h-screen min-h-0 w-full flex-col overflow-hidden bg-[#0B0F15] text-white">
       <CaptureV2TaskHeader session={session} stopLabel={stopLabel} contextLabel={contextLabel} />
-      <CaptureV2Orchestrator {...props} />
+      <CaptureV2Orchestrator {...props} isDesktop={isDesktop} />
     </main>
   );
 }
