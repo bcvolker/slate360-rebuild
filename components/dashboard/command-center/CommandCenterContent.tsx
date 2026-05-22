@@ -3,8 +3,9 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { MapPin, Plus, Search, Bell, MessageSquare, ClipboardList, Clock, FolderOpen } from "lucide-react";
+import { MapPin, Plus, Search, Share2, Bell, MessageSquare, ClipboardList, Clock, FolderOpen } from "lucide-react";
 import type { Entitlements } from "@/lib/entitlements";
+import { useInviteShare } from "@/components/shared/InviteShareProvider";
 import {
   MobileActionGrid,
   MobileAppButton,
@@ -26,6 +27,7 @@ export function CommandCenterContent({
   entitlements = null,
 }: CommandCenterContentProps) {
   const router = useRouter();
+  const { setOpen: openInviteShare } = useInviteShare();
   const [createSheetOpen, setCreateSheetOpen] = useState(false);
 
   useEffect(() => {
@@ -99,8 +101,14 @@ export function CommandCenterContent({
       { label: "Create", icon: Plus, accent: "primary", onClick: () => setCreateSheetOpen(true) },
       { label: "SlateDrop", icon: FolderOpen, accent: "info", onClick: () => router.push("/slatedrop") },
       { label: "Search", icon: Search, accent: "muted", onClick: handleSearch },
+      {
+        label: "Invite & Share",
+        icon: Share2,
+        accent: "neutral",
+        onClick: () => openInviteShare(true),
+      },
     ],
-    [handleSearch, router],
+    [handleSearch, openInviteShare, router],
   );
 
   return (
@@ -113,11 +121,11 @@ export function CommandCenterContent({
               <MobileActionGrid>
                 <MobileAppButton
                   title="Site Walk"
-                  subtitle="Field capture"
+                  subtitle="Field capture & deliverables"
                   icon={MapPin}
                   href="/site-walk"
                   accent="primary"
-                  className="col-span-2 mx-auto w-1/2"
+                  className="col-span-2 w-full"
                 />
               </MobileActionGrid>
             ) : (

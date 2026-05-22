@@ -43,7 +43,7 @@ export const mobileTokens = {
   mobileHomeContentStack: "flex min-h-0 flex-1 flex-col gap-2.5",
   mobileHomePrimaryActionsRegion: "flex min-h-0 flex-1 flex-col",
   mobileHomeAppPrimaryActionsRegion: "shrink-0 flex flex-col",
-  mobileHomeAppContentStack: "flex min-h-0 flex-1 flex-col justify-evenly",
+  mobileHomeAppContentStack: "flex min-h-0 flex-1 flex-col gap-2.5",
   mobileHomeAppUpperInner:
     "mx-auto flex w-full max-w-2xl flex-1 min-h-0 flex-col px-4 pt-3 pb-2",
   mobileHomeAppDockTopSpacer: "mx-4 h-1.5 max-h-1.5 shrink-0",
@@ -62,7 +62,7 @@ export const mobileTokens = {
   mobileHomeDockCollapsedHeight:
     "h-[clamp(240px,30dvh,320px)] max-h-[clamp(240px,30dvh,320px)] min-h-[clamp(240px,30dvh,320px)] shrink-0",
   mobileHomeAppDockCollapsedHeight:
-    "h-[clamp(228px,28dvh,300px)] max-h-[clamp(228px,28dvh,300px)] min-h-[clamp(228px,28dvh,300px)] shrink-0",
+    "h-[clamp(188px,22dvh,248px)] max-h-[clamp(188px,22dvh,248px)] min-h-[clamp(188px,22dvh,248px)] shrink-0",
   mobileHomeDockExpandedHeight:
     "h-[clamp(400px,55dvh,520px)] max-h-[clamp(400px,55dvh,520px)] min-h-[clamp(400px,55dvh,520px)] shrink-0",
   mobileHomeDockCollapsedBody: "min-h-0 flex-1 overflow-y-auto overscroll-contain",
