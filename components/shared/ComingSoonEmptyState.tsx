@@ -40,8 +40,8 @@ export function ComingSoonEmptyState({
         {description ? (
           <p className="mt-2 text-sm text-zinc-500">{description}</p>
         ) : null}
-        <span className="mt-5 inline-flex items-center rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-          Coming soon
+        <span className="mt-5 inline-flex items-center rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs font-medium text-zinc-400">
+          Not available
         </span>
       </div>
     </div>

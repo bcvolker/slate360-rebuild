@@ -21,7 +21,7 @@ export default function ContentStudioShell({ user, tier, isCeo, internalAccess }
       title="Content Studio"
       icon={Layers}
       accent="#EC4899"
-      status="coming-soon"
+      status="under-development"
       requiredTier="standard"
     >
       <div className="flex flex-col items-center justify-center rounded-2xl border border-app bg-app-card py-16">

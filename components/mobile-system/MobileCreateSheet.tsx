@@ -1,13 +1,12 @@
 "use client";
 
-import { ReactNode } from "react";
+import Link from "next/link";
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { Hammer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface MobileCreateSheetProps {
@@ -27,18 +26,22 @@ export function MobileCreateSheet({ open, onOpenChange }: MobileCreateSheetProps
         </SheetHeader>
         <div className="mt-8 flex flex-col gap-4">
           <Button
-            onClick={() => onOpenChange(false)}
+            asChild
             variant="outline"
             className="w-full bg-white/5 border-white/10 text-zinc-300 hover:bg-white/10 hover:text-white"
           >
-            Create Worksite (Coming Soon)
+            <Link href="/projects?new=1" onClick={() => onOpenChange(false)}>
+              Create Project
+            </Link>
           </Button>
           <Button
-            onClick={() => onOpenChange(false)}
+            asChild
             variant="outline"
             className="w-full bg-white/5 border-white/10 text-zinc-300 hover:bg-white/10 hover:text-white"
           >
-            Create Project (Coming Soon)
+            <Link href="/site-walk/setup" onClick={() => onOpenChange(false)}>
+              Start Site Walk
+            </Link>
           </Button>
           <Button
             onClick={() => onOpenChange(false)}

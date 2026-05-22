@@ -18,7 +18,7 @@ export default function TabWireframe({ tab, onBack, onOpenSlateDrop }: { tab: Da
     "market":         "Marketplace listings, procurement workflows, and vendor management.",
     "athlete360":     "Athletic performance tracking, recruitment tools, and 360° athlete profiles.",
   };
-  const desc = descMap[tab.id] ?? `The ${tab.label} workspace is coming soon.`;
+  const desc = descMap[tab.id] ?? `${tab.label} opens from its dedicated workspace when available in your plan.`;
   return (
     <div className="flex flex-col items-center justify-center py-20 text-center">
       <div

@@ -204,14 +204,32 @@ export default function DashboardMyAccount({
               </span>
               <ArrowRight size={12} className="text-zinc-500" />
             </Link>
-            <button className="w-full flex items-center justify-between p-3 rounded-xl bg-white/[0.04]/50 border border-app/50 hover:bg-white/[0.04] transition-colors text-left">
+            <Link
+              href="/settings"
+              className="w-full flex items-center justify-between p-3 rounded-xl bg-white/[0.04]/50 border border-app/50 hover:bg-white/[0.04] transition-colors"
+            >
               <span className="text-xs font-semibold text-zinc-300">
-                2FA status
+                Account settings
+              </span>
+              <ArrowRight size={12} className="text-zinc-500" />
+            </Link>
+            <div className="flex items-center justify-between p-3 rounded-xl bg-white/[0.04]/50 border border-app/50">
+              <span className="text-xs font-semibold text-zinc-300">
+                Two-factor authentication
               </span>
               <span className="text-[11px] font-semibold text-zinc-500">
-                Coming soon
+                Not configured
               </span>
-            </button>
+            </div>
+            <Link
+              href="/more/account#delete-account"
+              className="w-full flex items-center justify-between p-3 rounded-xl bg-rose-950/20 border border-rose-900/40 hover:bg-rose-950/30 transition-colors"
+            >
+              <span className="text-xs font-semibold text-rose-300">
+                Delete account
+              </span>
+              <ArrowRight size={12} className="text-rose-400" />
+            </Link>
             <div className="p-3 rounded-xl bg-white/[0.04]/50 border border-app/50">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-semibold text-zinc-300">
@@ -261,6 +279,13 @@ export default function DashboardMyAccount({
             generatedApiKey={generatedApiKey}
           />
         )}
+      </div>
+
+      <div className="mt-8 flex flex-wrap gap-3 border-t border-white/10 pt-4 text-xs font-semibold text-zinc-500">
+        <Link href="/more/support" className="hover:text-amber-200">Help &amp; support</Link>
+        <Link href="/privacy" className="hover:text-amber-200">Privacy</Link>
+        <Link href="/terms" className="hover:text-amber-200">Terms</Link>
+        <Link href="/more/account#delete-account" className="hover:text-rose-300">Delete account</Link>
       </div>
     </div>
   );

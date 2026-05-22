@@ -6,11 +6,6 @@ const REDIRECT_ROUTES: Record<string, { href: string; hoverColor?: string }> = {
   "integrations":   { href: "/integrations",   hoverColor: "#1D4ED8" },
   "analytics":      { href: "/analytics",      hoverColor: "#1D4ED8" },
   "operations-console": { href: "/operations-console", hoverColor: "#1D4ED8" },
-  "design-studio":  { href: "/design-studio" },
-  "content-studio": { href: "/content-studio" },
-  "tours":          { href: "/tours" },
-  "geospatial":     { href: "/geospatial" },
-  "virtual-studio": { href: "/virtual-studio" },
 };
 
 export function hasRedirectRoute(tabId: string): boolean {

@@ -10,7 +10,6 @@ import type { Entitlements } from "@/lib/entitlements";
 
 interface WalledGardenDashboardProps {
   entitlements?: Entitlements | null;
-  /** True for Slate360 CEO/owner — unlocks Twin app tile. */
   isSlateCeo?: boolean;
 }
 

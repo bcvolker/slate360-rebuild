@@ -21,7 +21,7 @@ export default function GeospatialShell({ user, tier, isCeo, internalAccess }: P
       title="Geospatial"
       icon={Globe}
       accent="#059669"
-      status="coming-soon"
+      status="under-development"
       requiredTier="standard"
     >
       <div className="flex flex-col items-center justify-center rounded-2xl border border-app bg-app-card py-16">

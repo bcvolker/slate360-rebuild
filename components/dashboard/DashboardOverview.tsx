@@ -126,14 +126,9 @@ export default function DashboardOverview({
                       if (tab.id === "slatedrop") { onOpenSlateDrop(); return; }
                       const routeMap: Record<string, string> = {
                         "project-hub": "/project-hub",
-                        "design-studio": "/design-studio",
-                        "content-studio": "/content-studio",
-                        "tours": "/tours",
                         "analytics": "/analytics",
                         "my-account": "/more",
                         "operations-console": "/operations-console",
-                        "market": "/market",
-                        "athlete360": "/athlete360",
                       };
                       const route = routeMap[tab.id];
                       if (tab.locked) {

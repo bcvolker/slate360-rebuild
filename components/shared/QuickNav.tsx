@@ -4,51 +4,33 @@ import { useState } from "react";
 import Link from "next/link";
 import {
   ChevronDown,
-  LayoutDashboard,
-  
-  Compass,
-  Palette,
-  Layers,
-  Globe,
-  Film,
-  BarChart3,
+  Cloud,
   FolderKanban,
+  LayoutDashboard,
+  MapPin,
+  MessageSquare,
   User,
   Shield,
   type LucideIcon,
 } from "lucide-react";
 import { getEntitlements, type Tier } from "@/lib/entitlements";
-import { shouldHideInAppStoreMode } from "@/lib/app-store-mode";
 
 interface NavItem {
   label: string;
   href: string;
   icon: LucideIcon;
-  /** Entitlements key to check — if undefined, always shown */
   gate?: keyof ReturnType<typeof getEntitlements>;
-  /** Internal admin surface visibility, separate from tier entitlements. */
   internalKey?: "operationsConsole";
-  /** Hidden from tester-facing navigation in Phase 1 beta. */
-  phase1Hidden?: boolean;
-  /** Marks the item as a preview / not-yet-shipped surface. */
-  comingSoon?: boolean;
 }
 
-// Apps are listed in canonical order with equal styling — no app takes precedence.
-// During beta, all four apps are surfaced for every signed-in user; the
-// `comingSoon` flag drives the "Soon" pill. Entitlement keys remain on the
-// items for the post-beta switch back to per-org gating.
 const NAV_ITEMS: NavItem[] = [
-  { label: "Command Center", href: "/dashboard",       icon: LayoutDashboard },
-  { label: "Projects",       href: "/projects",        icon: FolderKanban },
-    { label: "360 Tours",      href: "/apps/360-tour-builder",    icon: Compass,   comingSoon: true },
-  { label: "Design Studio",  href: "/apps/design-studio",       icon: Palette,   comingSoon: true },
-  { label: "Content Studio", href: "/apps/content-studio",      icon: Layers,    comingSoon: true },
-  { label: "Geospatial",     href: "/geospatial",      icon: Globe,        gate: "canAccessGeospatial", phase1Hidden: true },
-  { label: "Virtual Studio", href: "/virtual-studio",  icon: Film,         gate: "canAccessVirtual", phase1Hidden: true },
-  { label: "Analytics",      href: "/analytics",       icon: BarChart3,    gate: "canAccessAnalytics", phase1Hidden: true },
-  { label: "Account",        href: "/more",            icon: User },
-  { label: "Operations Console", href: "/operations-console",         icon: Shield,       internalKey: "operationsConsole" },
+  { label: "Command Center", href: "/dashboard", icon: LayoutDashboard },
+  { label: "Projects", href: "/projects", icon: FolderKanban },
+  { label: "Site Walk", href: "/site-walk", icon: MapPin, gate: "canAccessStandalonePunchwalk" },
+  { label: "SlateDrop", href: "/slatedrop", icon: Cloud },
+  { label: "Coordination", href: "/coordination/inbox", icon: MessageSquare },
+  { label: "Account", href: "/more", icon: User },
+  { label: "Operations Console", href: "/operations-console", icon: Shield, internalKey: "operationsConsole" },
 ];
 
 interface QuickNavProps {
@@ -59,13 +41,9 @@ interface QuickNavProps {
 
 export default function QuickNav({ tier, isCeo = false, internalAccess }: QuickNavProps) {
   const [open, setOpen] = useState(false);
-  // CEO override affects entitlements only for the actual CEO account.
   const ent = tier ? getEntitlements(tier, { isSlateCeo: isCeo }) : null;
 
   const visibleItems = NAV_ITEMS.filter((item) => {
-    if (shouldHideInAppStoreMode(item.comingSoon)) return false;
-    // Phase 1 beta: hide placeholder modules from tester navigation
-    if (item.phase1Hidden) return false;
     if (item.internalKey) {
       if (internalAccess) return Boolean(internalAccess[item.internalKey]);
       return isCeo;
@@ -100,11 +78,6 @@ export default function QuickNav({ tier, isCeo = false, internalAccess }: QuickN
                 >
                   <Icon size={14} />
                   <span className="flex-1">{item.label}</span>
-                  {item.comingSoon && (
-                    <span className="rounded-full border border-app bg-white/[0.04] px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-muted-foreground">
-                      Soon
-                    </span>
-                  )}
                 </Link>
               );
             })}

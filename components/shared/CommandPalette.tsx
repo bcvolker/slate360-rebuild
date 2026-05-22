@@ -12,15 +12,13 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Command } from "cmdk";
 import {
-  Compass,
-  FileText,
   FolderKanban,
   FolderPlus,
   Inbox,
   LayoutDashboard,
   LogOut,
-  
-  Palette,
+  MapPin,
+  MessageSquare,
   Search,
   Settings,
   Shield,
@@ -28,9 +26,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { shouldHideInAppStoreMode } from "@/lib/app-store-mode";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { MOBILE_DISABLED_COMMAND_IDS } from "@/lib/mobile-route-policy";
 
 interface PaletteItem {
   id: string;
@@ -39,30 +35,21 @@ interface PaletteItem {
   shortcut?: string;
   action: "navigate" | "signout";
   href?: string;
-  group: "Navigate" | "Apps" | "Create" | "Account";
+  group: "Navigate" | "Create" | "Account";
   internalOnly?: boolean;
-  comingSoon?: boolean;
 }
 
 const ITEMS: PaletteItem[] = [
-  // Navigate
-  { id: "nav-cc",       group: "Navigate", label: "Command Center",  icon: LayoutDashboard, action: "navigate", href: "/dashboard",   shortcut: "G C" },
-  { id: "nav-projects", group: "Navigate", label: "Projects",        icon: FolderKanban,    action: "navigate", href: "/projects",    shortcut: "G P" },
-  { id: "nav-slatedrop",group: "Navigate", label: "SlateDrop",       icon: Inbox,           action: "navigate", href: "/slatedrop",   shortcut: "G D" },
-  { id: "nav-account",  group: "Navigate", label: "Account Hub",     icon: User,            action: "navigate", href: "/more",        shortcut: "G A" },
-  { id: "nav-ops",      group: "Navigate", label: "Operations Console", icon: Shield,       action: "navigate", href: "/operations-console", internalOnly: true },
-
-  // Apps
-  { id: "app-tours",    group: "Apps", label: "360 Tours",      icon: Compass,   action: "navigate", href: "/tour-builder",   comingSoon: true },
-  { id: "app-design",   group: "Apps", label: "Design Studio",  icon: Palette,   action: "navigate", href: "/design-studio",  comingSoon: true },
-  { id: "app-content",  group: "Apps", label: "Content Studio", icon: FileText,  action: "navigate", href: "/content-studio", comingSoon: true },
-
-  // Create
-  { id: "new-project",  group: "Create", label: "New Project",   icon: FolderPlus, action: "navigate", href: "/projects?new=1",  shortcut: "C P" },
-  
-  // Account
+  { id: "nav-cc", group: "Navigate", label: "Command Center", icon: LayoutDashboard, action: "navigate", href: "/dashboard", shortcut: "G C" },
+  { id: "nav-projects", group: "Navigate", label: "Projects", icon: FolderKanban, action: "navigate", href: "/projects", shortcut: "G P" },
+  { id: "nav-slatedrop", group: "Navigate", label: "SlateDrop", icon: Inbox, action: "navigate", href: "/slatedrop", shortcut: "G D" },
+  { id: "nav-sitewalk", group: "Navigate", label: "Site Walk", icon: MapPin, action: "navigate", href: "/site-walk" },
+  { id: "nav-coordination", group: "Navigate", label: "Coordination Inbox", icon: MessageSquare, action: "navigate", href: "/coordination/inbox" },
+  { id: "nav-account", group: "Navigate", label: "Account Hub", icon: User, action: "navigate", href: "/more", shortcut: "G A" },
+  { id: "nav-ops", group: "Navigate", label: "Operations Console", icon: Shield, action: "navigate", href: "/operations-console", internalOnly: true },
+  { id: "new-project", group: "Create", label: "New Project", icon: FolderPlus, action: "navigate", href: "/projects?new=1", shortcut: "C P" },
   { id: "acc-settings", group: "Account", label: "Account Settings", icon: Settings, action: "navigate", href: "/settings" },
-  { id: "acc-signout",  group: "Account", label: "Sign out",  icon: LogOut,   action: "signout" },
+  { id: "acc-signout", group: "Account", label: "Sign out", icon: LogOut, action: "signout" },
 ];
 
 interface CommandPaletteProps {
@@ -80,7 +67,6 @@ export default function CommandPalette({
   const isMobile = useIsMobile();
   const [search, setSearch] = useState("");
 
-  // Global ⌘K / Ctrl+K toggle
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
@@ -111,13 +97,8 @@ export default function CommandPalette({
     }
   }
 
-  const visible = ITEMS.filter(
-    (i) =>
-      (!i.internalOnly || hasOperationsConsoleAccess) &&
-      !shouldHideInAppStoreMode(i.comingSoon) &&
-      !(isMobile && MOBILE_DISABLED_COMMAND_IDS.has(i.id)),
-  );
-  const groups = ["Navigate", "Apps", "Create", "Account"] as const;
+  const visible = ITEMS.filter((item) => !item.internalOnly || hasOperationsConsoleAccess);
+  const groups = ["Navigate", "Create", "Account"] as const;
 
   if (!open) return null;
 
@@ -126,10 +107,8 @@ export default function CommandPalette({
       className="fixed inset-0 z-[100] flex items-start justify-center pt-[15vh] px-4"
       onClick={() => onOpenChange(false)}
     >
-      {/* Backdrop */}
       <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" />
 
-      {/* Palette */}
       <div
         className="relative w-full max-w-xl rounded-2xl border border-white/10 bg-[#151A23] shadow-2xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}
@@ -174,11 +153,6 @@ export default function CommandPalette({
                       >
                         <Icon className="h-4 w-4 text-zinc-400" />
                         <span className="flex-1">{item.label}</span>
-                        {item.comingSoon && (
-                          <span className="rounded-full border border-app bg-white/[0.04] px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-zinc-500">
-                            Soon
-                          </span>
-                        )}
                         {item.shortcut && (
                           <kbd className="rounded border border-app bg-white/[0.04] px-1.5 py-0.5 text-[10px] font-mono text-zinc-500">
                             {item.shortcut}

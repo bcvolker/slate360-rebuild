@@ -21,7 +21,7 @@ export default function VirtualStudioShell({ user, tier, isCeo, internalAccess }
       title="Virtual Studio"
       icon={Film}
       accent="#2563EB"
-      status="coming-soon"
+      status="under-development"
       requiredTier="standard"
     >
       <div className="flex flex-col items-center justify-center rounded-2xl border border-app bg-app-card py-16">

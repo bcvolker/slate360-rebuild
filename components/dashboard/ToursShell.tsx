@@ -21,7 +21,7 @@ export default function ToursShell({ user, tier, isCeo, internalAccess }: Props)
       title="360 Tours"
       icon={Compass}
       accent="#0891B2"
-      status="coming-soon"
+      status="under-development"
       requiredTier="standard"
     >
       <div className="flex flex-col items-center justify-center rounded-2xl border border-app bg-app-card py-16">

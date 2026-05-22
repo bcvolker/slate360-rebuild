@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Bell, Bug, Search, Share2 } from "lucide-react";
+import { Bell, Bug, FileText, LifeBuoy, Search, Share2, Shield, Trash2, User } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -44,8 +44,8 @@ export function PlatformMobileTopBar({
               <HeaderIcon label="Report a bug or suggest a feature for Version 1" onClick={() => setFeedbackOpen(true)} icon={Bug} />
             )}
             <Link
-              href="/more"
-              aria-label="Notifications and communication inbox"
+              href="/coordination/inbox"
+              aria-label="Coordination inbox"
               className="flex h-8 w-8 items-center justify-center rounded-lg text-zinc-500 transition-colors hover:bg-white/10 hover:text-amber-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50"
             >
               <Bell className="h-[15px] w-[15px]" />
@@ -100,15 +100,39 @@ function AccountMenu({ userName }: { userName: string }) {
         </DropdownMenuLabel>
         <DropdownMenuSeparator className="bg-border/50" />
         <DropdownMenuItem asChild className="cursor-pointer text-xs hover:bg-amber-500/10 hover:text-amber-200">
-          <Link href="/more/account">Account</Link>
+          <Link href="/settings">
+            <User className="mr-2 h-3.5 w-3.5" />
+            Profile &amp; settings
+          </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild className="cursor-pointer text-xs hover:bg-amber-500/10 hover:text-amber-200">
-          <Link href="/more/billing">Billing &amp; Apps</Link>
+          <Link href="/more/support">
+            <LifeBuoy className="mr-2 h-3.5 w-3.5" />
+            Help &amp; support
+          </Link>
         </DropdownMenuItem>
+        <DropdownMenuItem asChild className="cursor-pointer text-xs hover:bg-amber-500/10 hover:text-amber-200">
+          <Link href="/privacy">
+            <Shield className="mr-2 h-3.5 w-3.5" />
+            Privacy policy
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild className="cursor-pointer text-xs hover:bg-amber-500/10 hover:text-amber-200">
+          <Link href="/terms">
+            <FileText className="mr-2 h-3.5 w-3.5" />
+            Terms of service
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild className="cursor-pointer text-xs hover:bg-amber-500/10 hover:text-amber-200">
+          <Link href="/more/account#delete-account">
+            <Trash2 className="mr-2 h-3.5 w-3.5" />
+            Delete account
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator className="bg-border/50" />
         <DropdownMenuItem asChild className="cursor-pointer text-xs hover:bg-amber-500/10 hover:text-amber-200">
           <Link href="/more">Account Hub</Link>
         </DropdownMenuItem>
-        <DropdownMenuSeparator className="bg-border/50" />
         <DropdownMenuItem
           className="cursor-pointer text-xs hover:bg-destructive/10 hover:text-destructive"
           onClick={() => {

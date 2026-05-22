@@ -54,8 +54,7 @@ export default function AccountPreferencesCard({
           >
             <option value="overview">Command Center</option>
             <option value="projects">Projects</option>
-            <option value="tours">360 Tours</option>
-            <option value="content-studio">Content Studio</option>
+            <option value="my-account">Account</option>
           </select>
         </div>
         <div className="p-3 rounded-xl bg-white/[0.04]/50 border border-app/50">

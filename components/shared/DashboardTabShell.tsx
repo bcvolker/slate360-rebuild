@@ -7,7 +7,7 @@ import TrialBanner from "@/components/shared/TrialBanner";
 import WidgetCustomizeDrawer from "@/components/widgets/WidgetCustomizeDrawer";
 import { type Tier, tierMeetsRequirement } from "@/lib/entitlements";
 
-export type TabStatus = "coming-soon" | "under-development" | "live";
+export type TabStatus = "under-development" | "live";
 
 export interface DashboardTabShellProps {
   user: { name: string; email: string; avatar?: string };
@@ -31,7 +31,7 @@ export default function DashboardTabShell({
   title,
   icon: Icon,
   accent = "#F59E0B",
-  status = "coming-soon",
+  status = "live",
   isCeo = false,
   internalAccess,
   requiredTier,
@@ -63,11 +63,6 @@ export default function DashboardTabShell({
             {status === "under-development" && (
               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-900/30 text-amber-400 border border-amber-700/50">
                 Under Development
-              </span>
-            )}
-            {status === "coming-soon" && (
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-white/[0.04] text-zinc-400 border border-app">
-                Coming Soon
               </span>
             )}
           </div>

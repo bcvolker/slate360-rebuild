@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import GlassCard from "@/components/shared/GlassCard";
 import { Shield, KeyRound, Monitor, Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -86,11 +87,14 @@ export default function AccountSecurityTab({ overview, userEmail, loading }: Pro
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs font-semibold text-slate-200">Export My Data</p>
-              <p className="text-[10px] text-slate-500">Download a copy of all your account data.</p>
+              <p className="text-[10px] text-slate-500">Request a copy of your account data from support.</p>
             </div>
-            <button className="rounded-xl bg-amber-500/5 hover:bg-amber-500/10 border border-white/10 px-3 py-2 text-[10px] font-semibold text-slate-300 hover:bg-amber-500/10 hover:bg-amber-500/15 transition-colors">
-              Request Export
-            </button>
+            <a
+              href="mailto:support@slate360.ai?subject=Data%20export%20request"
+              className="rounded-xl bg-amber-500/5 hover:bg-amber-500/10 border border-white/10 px-3 py-2 text-[10px] font-semibold text-slate-300 transition-colors"
+            >
+              Email support
+            </a>
           </div>
           <div className="h-px bg-amber-500/5 hover:bg-amber-500/10" />
           <div className="flex items-center justify-between">
@@ -98,9 +102,12 @@ export default function AccountSecurityTab({ overview, userEmail, loading }: Pro
               <p className="text-xs font-semibold text-red-400">Delete Account</p>
               <p className="text-[10px] text-slate-500">Permanently delete your account and all associated data.</p>
             </div>
-            <button className="rounded-xl bg-red-950/30 border border-red-900/50 px-3 py-2 text-[10px] font-semibold text-red-400 hover:bg-red-950/50 transition-colors">
-              Request Deletion
-            </button>
+            <Link
+              href="/more/account#delete-account"
+              className="rounded-xl bg-red-950/30 border border-red-900/50 px-3 py-2 text-[10px] font-semibold text-red-400 hover:bg-red-950/50 transition-colors"
+            >
+              Delete account
+            </Link>
           </div>
         </div>
       </GlassCard>

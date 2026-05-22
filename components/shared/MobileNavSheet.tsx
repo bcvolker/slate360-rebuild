@@ -4,15 +4,11 @@ import { useState } from "react";
 import Link from "next/link";
 import {
   Menu,
+  Cloud,
   LayoutDashboard,
   MapPin,
-  Compass,
-  Palette,
-  Layers,
-  Globe,
-  Film,
-  BarChart3,
   FolderKanban,
+  MessageSquare,
   User,
   Shield,
   type LucideIcon,
@@ -25,7 +21,6 @@ import {
 } from "@/components/ui/sheet";
 import { SlateLogoOnLight } from "@/components/shared/SlateLogoOnLight";
 import { getEntitlements, type Tier } from "@/lib/entitlements";
-import { shouldHideInAppStoreMode } from "@/lib/app-store-mode";
 
 interface NavItem {
   label: string;
@@ -33,22 +28,16 @@ interface NavItem {
   icon: LucideIcon;
   gate?: keyof ReturnType<typeof getEntitlements>;
   internalKey?: "operationsConsole";
-  phase1Hidden?: boolean;
-  comingSoon?: boolean;
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { label: "Command Center",href: "/dashboard",      icon: LayoutDashboard },
-  { label: "Projects",      href: "/projects",       icon: FolderKanban },
-  { label: "Site Walk",     href: "/site-walk",                icon: MapPin },
-  { label: "360 Tours",     href: "/apps/360-tour-builder",    icon: Compass,   comingSoon: true },
-  { label: "Design Studio", href: "/apps/design-studio",       icon: Palette,   comingSoon: true },
-  { label: "Content Studio",href: "/apps/content-studio",      icon: Layers,    comingSoon: true },
-  { label: "Geospatial",    href: "/geospatial",     icon: Globe,         gate: "canAccessGeospatial", phase1Hidden: true },
-  { label: "Virtual Studio",href: "/virtual-studio", icon: Film,          gate: "canAccessVirtual", phase1Hidden: true },
-  { label: "Analytics",     href: "/analytics",      icon: BarChart3,     gate: "canAccessAnalytics", phase1Hidden: true },
-  { label: "Account",       href: "/more",           icon: User },
-  { label: "Operations Console", href: "/operations-console",        icon: Shield,        internalKey: "operationsConsole" },
+  { label: "Command Center", href: "/dashboard", icon: LayoutDashboard },
+  { label: "Projects", href: "/projects", icon: FolderKanban },
+  { label: "Site Walk", href: "/site-walk", icon: MapPin, gate: "canAccessStandalonePunchwalk" },
+  { label: "SlateDrop", href: "/slatedrop", icon: Cloud },
+  { label: "Coordination", href: "/coordination/inbox", icon: MessageSquare },
+  { label: "Account", href: "/more", icon: User },
+  { label: "Operations Console", href: "/operations-console", icon: Shield, internalKey: "operationsConsole" },
 ];
 
 interface MobileNavSheetProps {
@@ -66,9 +55,6 @@ export default function MobileNavSheet({
   const ent = tier ? getEntitlements(tier, { isSlateCeo: isCeo }) : null;
 
   const visibleItems = NAV_ITEMS.filter((item) => {
-    if (shouldHideInAppStoreMode(item.comingSoon)) return false;
-    // Phase 1 beta: hide placeholder modules from tester navigation
-    if (item.phase1Hidden) return false;
     if (item.internalKey) {
       return internalAccess ? Boolean(internalAccess[item.internalKey]) : isCeo;
     }
@@ -81,7 +67,6 @@ export default function MobileNavSheet({
 
   return (
     <>
-      {/* Hamburger trigger — only visible on mobile */}
       <button
         className="sm:hidden w-9 h-9 rounded-xl flex items-center justify-center text-white transition-colors hover:bg-white/10 hover:text-amber-200"
         onClick={() => setOpen(true)}
@@ -101,11 +86,10 @@ export default function MobileNavSheet({
             </SheetTitle>
           </SheetHeader>
           <nav className="flex flex-col gap-1 px-4 py-4 overflow-y-auto max-h-[calc(100dvh-5rem)]">
-            {/* Home link */}
             <Link
-              href="/"
+              href="/app"
               onClick={() => setOpen(false)}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-foreground hover:text-cobalt hover:bg-cobalt/5 transition-colors"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-foreground hover:text-amber-200 hover:bg-white/[0.04] transition-colors"
             >
               <SlateLogoOnLight className="h-4 w-auto flex-shrink-0" />
               Home
@@ -122,11 +106,6 @@ export default function MobileNavSheet({
                 >
                   <Icon size={16} className="text-zinc-400 flex-shrink-0" />
                   <span className="flex-1">{item.label}</span>
-                  {item.comingSoon && (
-                    <span className="rounded-full border border-app bg-white/[0.04] px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-muted-foreground">
-                      Soon
-                    </span>
-                  )}
                 </Link>
               );
             })}

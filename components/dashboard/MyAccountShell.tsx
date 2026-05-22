@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import {
@@ -191,10 +192,21 @@ export default function MyAccountShell({ user, orgName, tier, role, isAdmin, isC
         )}
         {activeTab !== "profile" && activeTab !== "notifications" && activeTab !== "security" && activeTab !== "billing" && activeTab !== "data" && (
           <div className="rounded-2xl border border-white/10 bg-white/5 p-8 text-center">
-            <p className="text-sm text-zinc-400">This section is coming soon.</p>
+            <p className="text-sm text-zinc-400">This section is not available here.</p>
+            <a href="/settings" className="mt-3 inline-block text-sm font-semibold text-amber-400 hover:underline">
+              Open account settings
+            </a>
           </div>
         )}
         </div>
+      </div>
+
+      <div className="mt-8 flex flex-wrap gap-3 border-t border-white/10 pt-4 text-xs font-semibold text-zinc-500">
+        <Link href="/settings" className="hover:text-amber-200">Profile &amp; settings</Link>
+        <Link href="/more/support" className="hover:text-amber-200">Help &amp; support</Link>
+        <Link href="/privacy" className="hover:text-amber-200">Privacy</Link>
+        <Link href="/terms" className="hover:text-amber-200">Terms</Link>
+        <Link href="/more/account#delete-account" className="hover:text-rose-300">Delete account</Link>
       </div>
     </DashboardTabShell>
   );
