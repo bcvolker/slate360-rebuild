@@ -17,7 +17,7 @@ type MobileHomeLayoutProps = {
 };
 
 const HOME_LAYOUT_ROOT =
-  "relative flex h-full min-h-0 w-full flex-grow flex-col overflow-hidden";
+  "relative flex h-full w-full flex-col overflow-hidden bg-[#0B0F15]";
 
 const HOME_DOCK_PANEL =
   "flex min-h-0 w-full flex-1 flex-col mt-4 overflow-hidden rounded-t-[24px] border-t border-white/[0.05] bg-slate-900/60 backdrop-blur-xl";
@@ -76,7 +76,7 @@ export function MobileHomeLayout({
         </div>
       </div>
 
-      <div className={cn(mobileTokens.mobileHomeDockRegion, "min-h-0 flex-1")}>
+      <div className="relative z-10 min-h-0 w-full flex-1 px-4 pb-0">
         <div className={cn(mobileTokens.mobileHomeDockInner, "flex min-h-0 h-full flex-1 flex-col")}>
           <div className={HOME_DOCK_PANEL}>{dock}</div>
         </div>

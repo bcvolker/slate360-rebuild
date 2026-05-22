@@ -393,12 +393,19 @@ export function LogEntryDrawer({
   );
 
   if (isMobileInline) {
+    const inlineMaxHeight =
+      keyboardOffset > 0
+        ? `calc(100% - ${keyboardOffset}px)`
+        : maxHeightPx
+          ? `${maxHeightPx}px`
+          : undefined;
+
     return (
       <div
         id={CAPTURE_V2_LAYER_IDS.logDrawer}
         className={`${CAPTURE_V2_LAYERS.drawer} relative flex min-h-0 flex-1 flex-col overflow-hidden border-t border-white/[0.05] bg-[#0B0F15]/95 backdrop-blur-xl md:hidden`}
         style={{
-          maxHeight: maxHeightPx ? `${maxHeightPx}px` : undefined,
+          maxHeight: inlineMaxHeight,
         }}
         onFocusCapture={handleFormFocus}
         onBlurCapture={handleFormBlur}
@@ -482,7 +489,7 @@ function LogEntryFormBody({
           onBlur={onNotesBlur}
           rows={4}
           placeholder="Type what happened, what changed, and who owns the next action…"
-          className="mt-2 w-full min-h-[5rem] resize-y rounded-2xl border border-white/[0.07] bg-white/[0.02] px-4 py-3 text-base leading-6 text-slate-100 outline-none placeholder:text-slate-500 focus:min-h-[120px] focus:border-white/15 focus:ring-1 focus:ring-white/10"
+          className="mt-2 min-h-[140px] w-full resize-none rounded-xl border border-white/[0.07] bg-slate-900/40 p-3 text-base leading-6 text-slate-100 outline-none placeholder:text-slate-500 focus:border-amber-500/50"
           style={{ WebkitUserSelect: "text", userSelect: "text" }}
           onPointerDown={(event) => event.stopPropagation()}
         />

@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { createPortal } from "react-dom";
 import { FileUp, Loader2, Paperclip, Trash2, X } from "lucide-react";
-import { CAPTURE_V2_LAYERS } from "@/components/capture-v2/layers";
 import { PHOTO_ATTACHMENT_MAX_FILE_BYTES, PHOTO_ATTACHMENT_MAX_FILES, type PhotoAttachmentFile, type PhotoAttachmentPin } from "@/lib/site-walk/photo-attachments";
 import { PhotoAttachmentFilePreviewModal } from "./PhotoAttachmentFilePreviewModal";
 import { PhotoAttachmentFileThumbnail } from "./PhotoAttachmentFileThumbnail";
@@ -194,9 +193,7 @@ export function PhotoAttachmentPins({ sessionId, pins, draftPin, transform, onDr
 
       {draftPin && portalMounted
         ? createPortal(
-            <div
-              className={`fixed inset-0 ${CAPTURE_V2_LAYERS.attachmentModal} flex items-center justify-center bg-black/25 p-4`}
-            >
+            <div className="fixed inset-0 z-[3000] flex items-center justify-center bg-black/25 p-4">
               <div className="max-h-[78dvh] w-full max-w-md overflow-y-auto rounded-[1.5rem] border border-white/15 bg-zinc-950/94 p-3 text-white shadow-2xl backdrop-blur-xl no-scrollbar">
                 <div className="flex items-start justify-between gap-3">
                   <div>
@@ -283,9 +280,7 @@ export function PhotoAttachmentPins({ sessionId, pins, draftPin, transform, onDr
 
       {editingPinId && portalMounted
         ? createPortal(
-            <div
-              className={`fixed inset-0 ${CAPTURE_V2_LAYERS.attachmentModal} flex items-center justify-center bg-black/25 p-4`}
-            >
+            <div className="fixed inset-0 z-[3000] flex items-center justify-center bg-black/25 p-4">
               <div className="max-h-[78dvh] w-full max-w-md overflow-y-auto rounded-[1.5rem] border border-cyan-300/20 bg-slate-950/95 p-3 text-white shadow-2xl backdrop-blur-xl no-scrollbar">
                 <div className="flex items-start justify-between gap-3">
                   <div>

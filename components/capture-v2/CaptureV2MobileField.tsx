@@ -22,7 +22,6 @@ type Props = {
   setNotesFocused: (focused: boolean) => void;
   savingNext: boolean;
   onSaveAndNext: () => Promise<void>;
-  onVoiceNoteOnly: () => Promise<void>;
   onAddAnotherAngle: () => void;
 };
 
@@ -37,7 +36,6 @@ export function CaptureV2MobileField({
   setNotesFocused,
   savingNext,
   onSaveAndNext,
-  onVoiceNoteOnly,
   onAddAnotherAngle,
 }: Props) {
   const showHubOverlay = !loop.activePreview && phase !== "drawer";
@@ -65,12 +63,7 @@ export function CaptureV2MobileField({
           notesFocused={notesFocused}
         />
 
-        {showHubOverlay && (
-          <CaptureV2ActionHub
-            loop={loop}
-            onVoiceNoteOnly={() => void onVoiceNoteOnly()}
-          />
-        )}
+        {showHubOverlay && <CaptureV2ActionHub loop={loop} />}
 
         {showCaptureChrome && (
           <>

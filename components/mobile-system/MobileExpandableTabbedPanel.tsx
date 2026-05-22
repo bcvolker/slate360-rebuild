@@ -58,12 +58,12 @@ export function MobileExpandableTabbedPanel({
           expanded
             ? cn(
                 isHomeDock
-                  ? "flex h-full min-h-0 flex-grow flex-col"
+                  ? "flex h-full min-h-0 flex-1 flex-col"
                   : mobileTokens.mobileExpandablePanelExpandedHeight,
                 mobileTokens.mobileExpandablePanelFrameExpanded,
               )
             : isHomeDock
-              ? "flex h-full min-h-0 flex-grow flex-col"
+              ? "flex h-full min-h-0 flex-1 flex-col"
               : mobileTokens.mobileExpandablePanelCollapsedHeight,
         )}
       >

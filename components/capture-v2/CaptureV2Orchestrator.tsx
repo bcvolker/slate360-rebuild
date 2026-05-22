@@ -57,11 +57,6 @@ export function CaptureV2Orchestrator(props: Props) {
     loop.openPickerDirect("camera", "quick_capture");
   }, [autoOpenCamera, isDesktop, loop]);
 
-  async function handleVoiceNoteOnly() {
-    await loop.startVoiceNoteOnly();
-    setPhase("drawer");
-  }
-
   async function handleSaveAndNext() {
     setSavingNext(true);
     try {
@@ -105,7 +100,6 @@ export function CaptureV2Orchestrator(props: Props) {
       setNotesFocused={setNotesFocused}
       savingNext={savingNext}
       onSaveAndNext={handleSaveAndNext}
-      onVoiceNoteOnly={handleVoiceNoteOnly}
       onAddAnotherAngle={handleAddAnotherAngle}
     />
   );
