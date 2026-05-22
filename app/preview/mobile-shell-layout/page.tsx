@@ -89,8 +89,13 @@ export default function MobileShellLayoutPreviewPage() {
               </MobileSection>
             }
             primaryActions={
-              <MobileSection label="Actions" showAccentLine="cool" className="shrink-0">
-                <SiteWalkV1ActionGrid />
+              <MobileSection
+                label="Actions"
+                showAccentLine="cool"
+                className="flex min-h-0 flex-1 flex-col"
+                contentClassName="flex min-h-0 flex-1 flex-col"
+              >
+                <SiteWalkV1ActionGrid className="min-h-0 flex-1" />
               </MobileSection>
             }
             dock={
