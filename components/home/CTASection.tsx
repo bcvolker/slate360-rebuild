@@ -12,11 +12,10 @@ export default function CTASection({ onGetStarted }: CTASectionProps) {
     <section className="py-24 bg-background">
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center">
         <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
-          Ready to transform your project documentation?
+          Ready to connect field capture with office delivery?
         </h2>
         <p className="text-lg text-muted-foreground mb-8">
-          Join 500+ construction teams already using Slate360. Start your free
-          trial today.
+          Request Foundational Release access for Site Walk and the Slate360 platform.
         </p>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
           <Button
@@ -24,15 +23,16 @@ export default function CTASection({ onGetStarted }: CTASectionProps) {
             onClick={onGetStarted}
             className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-gold-glow text-base px-8"
           >
-            Start Free Trial
+            Request access
             <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
           <Button
             size="lg"
             variant="outline"
+            asChild
             className="border-border text-foreground hover:bg-muted/50 text-base px-8"
           >
-            Schedule Demo
+            <a href="/install">Install on device</a>
           </Button>
         </div>
       </div>

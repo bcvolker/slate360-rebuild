@@ -88,7 +88,7 @@ export default function LoginModal({ open, onOpenChange }: LoginModalProps) {
           <p className="text-center text-sm text-muted-foreground">
             Don&apos;t have an account?{" "}
             <a href="/signup" className="text-primary hover:underline">
-              Start free trial
+              Request access
             </a>
           </p>
         </form>

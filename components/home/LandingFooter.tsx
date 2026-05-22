@@ -15,7 +15,7 @@ export default function LandingFooter() {
               <SlateLogoOnLight className="h-7 w-auto" />
             </Link>
             <p className="text-sm text-muted-foreground">
-              The complete platform for construction documentation.
+              Field-to-office construction documentation. Site Walk first.
             </p>
           </div>
 

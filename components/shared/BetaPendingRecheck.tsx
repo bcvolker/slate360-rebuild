@@ -18,16 +18,13 @@ export default function BetaPendingRecheck() {
 
   return (
     <button
+      type="button"
       onClick={handleRecheck}
       disabled={isPending}
-      className="inline-flex items-center gap-2 rounded-md border border-app bg-white/[0.04] px-4 py-2 text-sm font-medium text-zinc-200 hover:bg-white/[0.06] hover:text-foreground transition-colors disabled:opacity-50"
+      className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-3 text-sm font-semibold text-slate-200 transition-colors hover:border-amber-500/40 hover:text-amber-200 disabled:opacity-50"
     >
       <RefreshCw className={`h-4 w-4 ${isPending ? "animate-spin" : ""}`} />
-      {isPending
-        ? "Checking…"
-        : checked
-          ? "Check again"
-          : "Check my status"}
+      {isPending ? "Checking…" : checked ? "Check again" : "Check my status"}
     </button>
   );
 }

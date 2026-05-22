@@ -4,7 +4,6 @@ import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import {
   APP_PRICING,
-  BUNDLE_PRICING,
   CREDIT_PACK_OPTIONS,
   STORAGE_ADDON_OPTIONS,
   COLLABORATOR_ADDON_OPTIONS,
@@ -14,7 +13,6 @@ import {
   type AppTier,
 } from "@/components/home/pricing-data";
 import { PricingTierCard } from "@/components/home/pricing/PricingTierCard";
-import { EnterpriseCard } from "@/components/home/pricing/EnterpriseCard";
 import {
   BillingToggle,
   TierSwitch,
@@ -27,7 +25,7 @@ interface PricingSectionProps {
 
 /** Per-app accent — matches the App Showcase border-t color on the homepage. */
 const APP_ACCENT: Record<AppPricing["id"], string> = {
-  site_walk: "border-t-cobalt",
+  site_walk: "border-t-amber-500",
   tours: "border-t-emerald-500",
   design_studio: "border-t-violet-500",
   content_studio: "border-t-amber-500",
@@ -43,44 +41,36 @@ export default function PricingSection({ onGetStarted }: PricingSectionProps) {
     content_studio: "pro",
   });
 
-  const masterBundle = BUNDLE_PRICING.find((b) => b.id === "total");
-  const otherBundles = BUNDLE_PRICING.filter(
-    (b) => b.id !== "total" && !b.enterpriseCustom,
-  );
-  const enterpriseBundle = BUNDLE_PRICING.find((b) => b.enterpriseCustom);
+  const publicApps = APP_PRICING.filter((app) => app.id === "site_walk");
 
   return (
-    <section id="pricing" className="py-24 bg-slate-50">
+    <section id="pricing" className="py-24 bg-[#0B0F15] text-slate-200">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        {/* Header */}
         <div className="text-center mb-10">
-          <Badge className="mb-4 bg-cobalt/10 text-cobalt border border-cobalt/30 hover:bg-cobalt/15">
-            Pricing
+          <Badge className="mb-4 border-amber-500/30 bg-amber-500/10 text-amber-200">
+            Foundational Release
           </Badge>
-          <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight mb-4">
-            Subscribe to one app, build a stack, or unlock the platform
+          <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight mb-4">
+            Site Walk access — approval-gated today
           </h2>
-          <p className="mx-auto max-w-2xl text-lg text-slate-600 leading-relaxed">
-            Every app available standalone. Bundle for a lower per-app cost. Cancel anytime.
+          <p className="mx-auto max-w-2xl text-lg text-slate-400 leading-relaxed">
+            Reference pricing for Site Walk is shown below. Self-serve billing is not active during the
+            Foundational Release — request access and the team will onboard your workspace.
           </p>
         </div>
 
-        {/* Monthly / Annual toggle */}
         <BillingToggle period={period} onChange={setPeriod} />
 
-        {/* ──────────────────────────────────────────────────────────────
-            A LA CARTE APPS — single card per app with Basic/Pro mini-toggle
-            ────────────────────────────────────────────────────────────── */}
         <div className="mt-14">
           <div className="text-center mb-8">
-            <h3 className="text-xl font-semibold text-slate-900">À la carte apps</h3>
+            <h3 className="text-xl font-semibold text-white">Site Walk</h3>
             <p className="text-sm text-slate-500 mt-1">
-              Pick the app you need. Switch tier inside each card.
+              Tier reference for when billing is enabled for your account.
             </p>
           </div>
 
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {APP_PRICING.map((app) => {
+          <div className="mx-auto grid max-w-2xl gap-6 sm:grid-cols-2">
+            {publicApps.map((app) => {
               const selected = appTier[app.id] ?? "pro";
               const tier: AppTier = selected === "pro" ? app.pro : app.basic;
               return (
@@ -96,7 +86,7 @@ export default function PricingSection({ onGetStarted }: PricingSectionProps) {
                     tagline={app.tagline}
                     tier={tier}
                     period={period}
-                    cta={`Start ${app.name}`}
+                    cta="Request access"
                     onCta={onGetStarted}
                     highlight={selected === "pro"}
                     accentBorder={APP_ACCENT[app.id]}
@@ -105,106 +95,6 @@ export default function PricingSection({ onGetStarted }: PricingSectionProps) {
               );
             })}
           </div>
-        </div>
-
-        {/* ──────────────────────────────────────────────────────────────
-            THE MASTER BUNDLE — Total Platform, prominent, cobalt halo
-            ────────────────────────────────────────────────────────────── */}
-        {masterBundle?.pro && masterBundle?.basic && (
-          <div className="mt-20">
-            <div className="text-center mb-8">
-              <Badge className="mb-3 bg-cobalt text-white shadow-md shadow-cobalt/30">
-                Best Value
-              </Badge>
-              <h3 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
-                {masterBundle.name}
-              </h3>
-              <p className="text-sm text-slate-600 mt-2 max-w-xl mx-auto leading-relaxed">
-                The full ecosystem in one subscription — every app, shared
-                storage, shared credits, one bill.
-              </p>
-            </div>
-
-            <div className="relative max-w-4xl mx-auto">
-              {/* Cobalt halo behind the featured card */}
-              <div
-                aria-hidden
-                className="absolute inset-0 -m-2 rounded-3xl bg-gradient-to-br from-cobalt/20 via-cobalt/10 to-transparent blur-2xl"
-              />
-              <div className="relative grid gap-6 sm:grid-cols-2">
-                <PricingTierCard
-                  groupName={masterBundle.name}
-                  tagline={masterBundle.tagline}
-                  tier={masterBundle.basic}
-                  period={period}
-                  cta="Get Total Platform Basic"
-                  onCta={onGetStarted}
-                />
-                <PricingTierCard
-                  groupName={masterBundle.name}
-                  tagline={masterBundle.tagline}
-                  tier={masterBundle.pro}
-                  period={period}
-                  cta="Get Total Platform Pro"
-                  onCta={onGetStarted}
-                  feature
-                  badge="Most Popular"
-                />
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ──────────────────────────────────────────────────────────────
-            OTHER BUNDLES + ENTERPRISE
-            ────────────────────────────────────────────────────────────── */}
-        <div className="mt-20">
-          <div className="text-center mb-8">
-            <h3 className="text-xl font-semibold text-slate-900">More bundles</h3>
-            <p className="text-sm text-slate-500 mt-1">
-              Pair related apps for a lower per-app cost.
-            </p>
-          </div>
-
-          <div className="space-y-10">
-            {otherBundles.map((bundle) => (
-              <div key={bundle.id}>
-                <div className="text-center mb-4">
-                  <div className="text-base font-semibold text-slate-900">{bundle.name}</div>
-                  <div className="text-xs text-slate-500">{bundle.tagline}</div>
-                </div>
-                <div className="grid sm:grid-cols-2 gap-6 max-w-3xl mx-auto">
-                  {bundle.basic && (
-                    <PricingTierCard
-                      groupName={bundle.name}
-                      tagline=""
-                      tier={bundle.basic}
-                      period={period}
-                      cta={`Get ${bundle.name} Basic`}
-                      onCta={onGetStarted}
-                    />
-                  )}
-                  {bundle.pro && (
-                    <PricingTierCard
-                      groupName={bundle.name}
-                      tagline=""
-                      tier={bundle.pro}
-                      period={period}
-                      cta={`Get ${bundle.name} Pro`}
-                      onCta={onGetStarted}
-                      highlight
-                    />
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {enterpriseBundle && (
-            <div className="mt-12 max-w-md mx-auto">
-              <EnterpriseCard bundle={enterpriseBundle} onContact={onGetStarted} />
-            </div>
-          )}
         </div>
 
         {/* Add-ons row */}

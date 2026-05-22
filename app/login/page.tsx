@@ -65,7 +65,7 @@ function LoginForm() {
           <SlateLogo />
         </Link>
         <Link href="/signup" className="text-sm text-slate-300 hover:text-white">
-          No account? <span className="font-semibold text-cobalt">Sign up free</span>
+          No account? <span className="font-semibold text-primary">Request access</span>
         </Link>
       </div>
 
@@ -136,7 +136,7 @@ function LoginForm() {
                 </button>
               </div>
               <div className="text-right mt-1.5">
-                <Link href="/forgot-password" className="text-xs text-slate-600 hover:text-cobalt transition-colors">Forgot password?</Link>
+                <Link href="/forgot-password" className="text-xs text-slate-600 hover:text-primary transition-colors">Forgot password?</Link>
               </div>
             </div>
             <button
@@ -149,7 +149,7 @@ function LoginForm() {
 
           <p className="text-center text-xs text-slate-600 mt-6">
             No account?{" "}
-            <Link href="/signup" className="font-semibold text-cobalt hover:underline">Start a free trial</Link>
+            <Link href="/signup" className="font-semibold text-primary hover:underline">Create an account</Link>
           </p>
         </div>
       </div>

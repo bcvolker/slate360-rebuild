@@ -29,17 +29,16 @@ export default function HeroSection({ onGetStarted }: HeroSectionProps) {
         {/* Badge */}
         <Badge className="mb-6 bg-primary/10 text-primary border-primary/20 hover:bg-primary/20">
           <Zap className="mr-1 h-3 w-3" />
-          The Nervous System
+          Foundational Release
         </Badge>
 
-        {/* Headline */}
         <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold tracking-tight text-foreground mb-6 text-balance">
-          for Construction Deliverables
+          Field-to-office construction documentation
         </h1>
 
-        {/* Subheadline */}
         <p className="mx-auto max-w-2xl text-lg sm:text-xl text-muted-foreground mb-10 text-pretty">
-          Slate360 Core + powerful add-ons. One place for tours, site walks, client portals, and secure file sharing. Client links never break.
+          Site Walk captures site conditions in context and turns them into branded deliverables — on
+          shared SlateDrop and Coordination infrastructure.
         </p>
 
         {/* CTA Buttons */}
@@ -49,16 +48,19 @@ export default function HeroSection({ onGetStarted }: HeroSectionProps) {
             onClick={onGetStarted}
             className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-gold-glow text-base px-8"
           >
-            Start Free Trial
+            Request access
             <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
           <Button
             size="lg"
             variant="outline"
+            asChild
             className="border-border text-foreground hover:bg-muted/50 text-base px-8"
           >
-            <Play className="mr-2 h-4 w-4" />
-            Watch Demo
+            <a href="/install">
+              <Play className="mr-2 h-4 w-4" />
+              Install on device
+            </a>
           </Button>
         </div>
 

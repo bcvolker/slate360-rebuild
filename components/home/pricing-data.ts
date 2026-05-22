@@ -84,13 +84,9 @@ export const COLLABORATOR_ADDON_OPTIONS: CollaboratorAddonOption[] = [
 ];
 
 export const PRICING_DISCLAIMER =
-  "Plans include monthly storage and processing credit allotments shown above. " +
-  "Heavy back-end usage — large media uploads, AI deliverable generation beyond " +
-  "included credits, extended share-link retention, and overage storage — may incur " +
-  "additional usage-based charges billed against your account. Usage is visible in " +
-  "your billing dashboard before any overage applies, and you can cap or disable " +
-  "overages at any time. Annual plans are billed yearly and include two months free. " +
-  "Prices are USD and exclude applicable taxes.";
+  "Foundational Release: self-serve billing may not be available until enabled for your account. " +
+  "Reference pricing above applies to Site Walk when paid plans launch. Usage-based charges, storage, and credits " +
+  "will be visible in-product before any overage applies. Prices are USD and exclude applicable taxes.";
 
 // Re-export tier arrays for convenience.
 export { APP_PRICING } from "./pricing/app-tiers";

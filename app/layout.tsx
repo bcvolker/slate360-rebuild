@@ -18,9 +18,9 @@ const geistSans = Geist({
 });
 
 export const metadata: Metadata = {
-  title: "Slate360 — The All-In-One Construction Platform",
+  title: "Slate360 — Field-to-office construction documentation",
   description:
-    "Slate360 gives construction teams, architects, and project managers a complete platform to manage, visualize, and deliver building projects.",
+    "Slate360 connects site capture with office review. Site Walk turns contextual field documentation into branded deliverables.",
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,

@@ -157,11 +157,13 @@ export default function SignupPage() {
       <div className="flex-1 flex items-center justify-center px-4 py-12">
         <div className="auth-card">
           <div className="mb-8">
-            <h1 className="text-2xl font-black mb-1 text-slate-900">Start your free trial</h1>
-            <p className="text-sm text-slate-600">No credit card required. All modules included.</p>
+            <h1 className="text-2xl font-black mb-1 text-slate-900">Request Foundational Release access</h1>
+            <p className="text-sm text-slate-600">
+              Create your account. After email confirmation, the Slate360 team reviews each request before workspace access is granted.
+            </p>
             {selectedPlan && (
               <p className="text-xs text-slate-600 mt-2">
-                Plan selected: <span className="font-semibold text-slate-900 capitalize">{selectedPlan}</span> · {selectedBilling}
+                Interest noted: <span className="font-semibold text-slate-900 capitalize">{selectedPlan}</span> · {selectedBilling}
               </p>
             )}
           </div>
@@ -230,7 +232,7 @@ export default function SignupPage() {
                   className="mt-0.5 h-4 w-4 rounded border-input accent-primary cursor-pointer" />
                 <span className="text-xs text-slate-600 leading-relaxed">
                   I agree to the{" "}
-                  <Link href="/terms" target="_blank" rel="noopener noreferrer" className="font-semibold text-slate-900 underline hover:text-cobalt">Terms of Service</Link>{" "}
+                  <Link href="/terms" target="_blank" rel="noopener noreferrer" className="font-semibold text-slate-900 underline hover:text-primary">Terms of Service</Link>{" "}
                   <span className="text-destructive font-bold">*</span>
                 </span>
               </label>
@@ -239,7 +241,7 @@ export default function SignupPage() {
                   className="mt-0.5 h-4 w-4 rounded border-input accent-primary cursor-pointer" />
                 <span className="text-xs text-slate-600 leading-relaxed">
                   I agree to the{" "}
-                  <Link href="/privacy" target="_blank" rel="noopener noreferrer" className="font-semibold text-slate-900 underline hover:text-cobalt">Privacy Policy</Link>{" "}
+                  <Link href="/privacy" target="_blank" rel="noopener noreferrer" className="font-semibold text-slate-900 underline hover:text-primary">Privacy Policy</Link>{" "}
                   and consent to receiving product updates{" "}
                   <span className="text-destructive font-bold">*</span>
                 </span>
@@ -248,7 +250,7 @@ export default function SignupPage() {
 
             <button type="submit" disabled={loading || !!oauthLoading || !agreeTerms || !agreePrivacy || (!!TURNSTILE_KEY && !cfToken)}
               className="auth-btn-primary disabled:cursor-not-allowed">
-              {loading ? <Loader2 size={16} className="animate-spin" /> : <>Create account <ArrowRight size={15} /></>}
+              {loading ? <Loader2 size={16} className="animate-spin" /> : <>Submit request <ArrowRight size={15} /></>}
             </button>
 
             {/* Honeypot — visually hidden, off-screen. Bots fill it; real users never see it. */}

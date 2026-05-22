@@ -14,13 +14,13 @@ interface PricingTierCardProps {
   period: BillingPeriod;
   cta: string;
   onCta: () => void;
-  /** Pro-tier visual emphasis: cobalt rim + soft cobalt glow. */
+  /** Pro-tier visual emphasis: amber-500 rim + soft amber-500 glow. */
   highlight?: boolean;
-  /** Master-bundle treatment: stronger cobalt halo + cobalt CTA. */
+  /** Master-bundle treatment: stronger amber-500 halo + amber-500 CTA. */
   feature?: boolean;
   /** Optional ribbon ("Most Popular", "Best Value"). */
   badge?: string;
-  /** Optional colored top accent (e.g. "border-t-cobalt"). */
+  /** Optional colored top accent (e.g. "border-t-amber-500"). */
   accentBorder?: string;
 }
 
@@ -51,18 +51,18 @@ export function PricingTierCard({
       className={cn(
         "relative flex flex-col bg-white rounded-2xl ring-1 ring-slate-200/80 shadow-[0_10px_30px_rgba(15,23,42,0.06)]",
         "transition-transform duration-300 hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(15,23,42,0.10)]",
-        highlight && "ring-cobalt/40 shadow-[0_15px_40px_rgba(245,158,11,0.15)]",
-        feature && "ring-2 ring-cobalt/50 shadow-[0_10px_40px_rgba(245,158,11,0.20)]",
+        highlight && "ring-amber-500/40 shadow-[0_15px_40px_rgba(245,158,11,0.15)]",
+        feature && "ring-2 ring-amber-500/50 shadow-[0_10px_40px_rgba(245,158,11,0.20)]",
         accentBorder && `border-t-4 ${accentBorder}`,
       )}
     >
       {badge && (
-        <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-cobalt text-white shadow-md shadow-cobalt/30">
+        <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-amber-500 text-white shadow-md shadow-amber-500/30">
           {badge}
         </Badge>
       )}
       <CardHeader className="text-center pb-2">
-        <div className="text-[11px] font-semibold uppercase tracking-wider text-cobalt mb-1">
+        <div className="text-[11px] font-semibold uppercase tracking-wider text-amber-500 mb-1">
           {tier.label}
         </div>
         <CardTitle className="text-lg text-slate-900">{groupName}</CardTitle>
@@ -83,7 +83,7 @@ export function PricingTierCard({
         <ul className="space-y-2 mb-6 text-left flex-1">
           {tier.features.map((featureItem) => (
             <li key={featureItem} className="flex items-start gap-2 text-xs">
-              <Check className="h-3.5 w-3.5 text-cobalt flex-shrink-0 mt-0.5" />
+              <Check className="h-3.5 w-3.5 text-amber-500 flex-shrink-0 mt-0.5" />
               <span className="text-slate-700 leading-relaxed">{featureItem}</span>
             </li>
           ))}
@@ -93,7 +93,7 @@ export function PricingTierCard({
           className={cn(
             "w-full",
             highlight || feature
-              ? "bg-cobalt hover:bg-cobalt-hover text-white shadow-md shadow-cobalt/30 hover:shadow-lg hover:shadow-cobalt/40"
+              ? "bg-amber-600 hover:bg-amber-500 text-slate-950 shadow-md shadow-amber-500/30 hover:shadow-lg hover:shadow-amber-500/40"
               : "bg-slate-900 hover:bg-slate-800 text-white",
           )}
         >

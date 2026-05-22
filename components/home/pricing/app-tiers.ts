@@ -1,6 +1,6 @@
 /**
- * Per-app pricing tiers — mirrors SKUS in lib/billing/cost-model.ts.
- * All four apps treated equally; no app takes precedence in copy.
+ * Public marketing pricing — Site Walk only during Foundational Release.
+ * Full SKU catalog lives in lib/billing/cost-model.ts for in-app billing.
  */
 import type { AppPricing } from "@/components/home/pricing-data";
 
@@ -39,113 +39,6 @@ export const APP_PRICING: AppPricing[] = [
         "Full project management",
         "PDF-attachment email channel",
         "25 GB storage · 1,000 credits / mo",
-      ],
-    },
-  },
-  {
-    id: "tours",
-    name: "360 Tours",
-    tagline: "Navigable 360 scenes pinned to project context",
-    basic: {
-      label: "Basic",
-      monthlyUsd: 119,
-      annualUsd: 1190,
-      storageGB: 25,
-      monthlyCredits: 800,
-      collaboratorsIncluded: 0,
-      features: [
-        "360° panoramic capture and stitching",
-        "Hotspot navigation between scenes",
-        "Floor-plan overlay",
-        "Embeddable hosted viewer",
-        "25 GB storage · 800 credits / mo",
-      ],
-    },
-    pro: {
-      label: "Pro",
-      monthlyUsd: 199,
-      annualUsd: 1990,
-      storageGB: 100,
-      monthlyCredits: 3000,
-      collaboratorsIncluded: 3,
-      features: [
-        "Everything in Basic",
-        "Up to 3 collaborators",
-        "Project-bound mode",
-        "Cross-app: pin Site Walk findings inside scenes",
-        "Branded tour packaging",
-        "100 GB storage · 3,000 credits / mo",
-      ],
-    },
-  },
-  {
-    id: "design_studio",
-    name: "Design Studio",
-    tagline: "2D plan and 3D model review with markup",
-    basic: {
-      label: "Basic",
-      monthlyUsd: 119,
-      annualUsd: 1190,
-      storageGB: 25,
-      monthlyCredits: 800,
-      collaboratorsIncluded: 0,
-      features: [
-        "Upload, view, and review 2D plans and 3D models",
-        "Measurement and annotation tools",
-        "Before/after comparison",
-        "Branded export packages",
-        "25 GB storage · 800 credits / mo",
-      ],
-    },
-    pro: {
-      label: "Pro",
-      monthlyUsd: 199,
-      annualUsd: 1990,
-      storageGB: 100,
-      monthlyCredits: 3000,
-      collaboratorsIncluded: 3,
-      features: [
-        "Everything in Basic",
-        "Up to 3 collaborators",
-        "Project-bound mode",
-        "AI-assisted design context generation",
-        "Multi-format export (DWG, IFC, GLB, PDF)",
-        "100 GB storage · 3,000 credits / mo",
-      ],
-    },
-  },
-  {
-    id: "content_studio",
-    name: "Content Studio",
-    tagline: "Media editing, packaging, and proposal-ready output",
-    basic: {
-      label: "Basic",
-      monthlyUsd: 119,
-      annualUsd: 1190,
-      storageGB: 25,
-      monthlyCredits: 800,
-      collaboratorsIncluded: 0,
-      features: [
-        "Photo and video upload, edit, and packaging",
-        "Branded templates and proposal layouts",
-        "Hosted share with viewer comments",
-        "25 GB storage · 800 credits / mo",
-      ],
-    },
-    pro: {
-      label: "Pro",
-      monthlyUsd: 199,
-      annualUsd: 1990,
-      storageGB: 100,
-      monthlyCredits: 3000,
-      collaboratorsIncluded: 3,
-      features: [
-        "Everything in Basic",
-        "Up to 3 collaborators",
-        "Project-bound mode",
-        "AI captioning and copy generation",
-        "Advanced video rendering and 360 export",
-        "100 GB storage · 3,000 credits / mo",
       ],
     },
   },

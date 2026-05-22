@@ -1,15 +1,19 @@
 import Link from "next/link";
+import { SlateLogo } from "@/components/shared/SlateLogo";
 
 export default function NotFound() {
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center bg-background text-zinc-100 p-6">
-      <h1 className="text-6xl font-bold text-[#3B82F6]">404</h1>
-      <p className="mt-4 text-lg text-zinc-400">Page not found</p>
+    <main className="dark flex min-h-screen flex-col items-center justify-center bg-[#0B0F15] p-6 text-slate-200">
+      <Link href="/" className="mb-10">
+        <SlateLogo size="lg" />
+      </Link>
+      <p className="text-6xl font-bold text-amber-400">404</p>
+      <p className="mt-4 text-lg text-slate-400">This page could not be found.</p>
       <Link
         href="/"
-        className="mt-6 rounded-lg bg-[#3B82F6] px-6 py-2.5 text-sm font-medium text-zinc-950 hover:bg-[#3B82F6]/80 transition-colors"
+        className="mt-8 inline-flex items-center justify-center rounded-full bg-amber-600 px-6 py-2.5 text-sm font-semibold text-slate-950 transition-colors hover:bg-amber-500"
       >
-        Back to Home
+        Back to home
       </Link>
     </main>
   );

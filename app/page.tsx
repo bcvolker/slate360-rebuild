@@ -2,8 +2,9 @@ import { createClient } from "@/lib/supabase/server";
 import MarketingHomepage from "@/components/marketing-homepage";
 
 export const metadata = {
-  title: 'Slate360 - The connected app ecosystem for construction work',
-  description: 'Run Site Walk, 360 Tours, Design Studio, Content Studio, SlateDrop, and Coordination from one connected construction app ecosystem.',
+  title: "Slate360 — Field-to-office construction documentation",
+  description:
+    "Slate360 connects site capture with office review. Site Walk turns contextual field documentation into branded deliverables, with SlateDrop and Coordination keeping projects aligned.",
 };
 
 export default async function RootPage() {
@@ -12,8 +13,5 @@ export default async function RootPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Logged-in users may still want to view the marketing homepage
-  // (e.g. clicking the Slate360 logo from the dashboard). The marketing
-  // component swaps its CTAs based on isLoggedIn, so we just render it.
   return <MarketingHomepage isLoggedIn={!!user} />;
 }

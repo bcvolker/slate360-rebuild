@@ -1,34 +1,43 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import InstallClient from "@/components/install/InstallClient";
+import { SlateLogo } from "@/components/shared/SlateLogo";
 
-export const metadata = { title: "Install Slate360" };
+export const metadata = {
+  title: "Install Slate360",
+  description: "Install the Slate360 PWA on your phone or tablet for the best Site Walk field experience.",
+};
 
 export default function InstallPage() {
   return (
-    <main className="min-h-screen bg-app text-foreground px-4 py-8">
+    <main className="dark min-h-screen bg-[#0B0F15] text-slate-200 px-4 py-8">
       <div className="mx-auto max-w-xl space-y-6">
-        <Link
-          href="/"
-          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
-        >
-          <ArrowLeft className="h-4 w-4" /> Back to home
-        </Link>
-
-        <header className="space-y-2">
-          <h1 className="text-3xl font-bold leading-tight">Install Slate360</h1>
-          <p className="text-muted-foreground text-sm">
-            Slate360 installs as an app directly from your browser — no App Store, no
-            download. Follow the steps for your device below.
-          </p>
+        <header className="flex items-center justify-between border-b border-white/10 pb-4">
+          <Link href="/">
+            <SlateLogo />
+          </Link>
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 text-sm text-slate-400 transition-colors hover:text-amber-300"
+          >
+            <ArrowLeft className="h-4 w-4" /> Home
+          </Link>
         </header>
+
+        <div className="space-y-2">
+          <h1 className="text-3xl font-bold leading-tight text-white">Install Slate360</h1>
+          <p className="text-sm leading-relaxed text-slate-400">
+            Install Slate360 from your browser for a full-screen app experience on iOS and Android — ideal
+            for Site Walk in the field. No app store required.
+          </p>
+        </div>
 
         <InstallClient />
 
-        <div className="pt-4 border-t border-app">
+        <div className="border-t border-white/10 pt-4">
           <Link
-            href="/dashboard"
-            className="inline-flex items-center justify-center h-12 px-6 rounded-md border border-app text-sm font-semibold hover:bg-app-card"
+            href="/login"
+            className="inline-flex h-12 items-center justify-center rounded-full border border-white/15 px-6 text-sm font-semibold text-slate-200 transition-colors hover:border-amber-500/40 hover:text-amber-200"
           >
             Continue in browser instead
           </Link>

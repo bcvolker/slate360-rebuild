@@ -1,17 +1,12 @@
 import {
   MapPin,
-  Building2,
-  Sparkles,
+  FolderSync,
   Users,
   Camera,
   Clock,
   Shield,
   type LucideIcon,
 } from "lucide-react";
-
-// ──────────────────────────────────────────────────────────────────────────────
-// TYPES
-// ──────────────────────────────────────────────────────────────────────────────
 
 export type DemoType = "video" | "360" | "3d";
 
@@ -41,14 +36,7 @@ export interface TestimonialItem {
   avatar: string;
 }
 
-// Pricing data lives in components/home/pricing-data.ts (and the
-// pricing/ subfolder). It is intentionally NOT re-exported here so the
-// public homepage has a single canonical source for SKU numbers.
-
-// ──────────────────────────────────────────────────────────────────────────────
-// DATA
-// ──────────────────────────────────────────────────────────────────────────────
-
+/** Public marketing: Site Walk is the only featured app. */
 export const APPS: AppItem[] = [
   {
     id: "site-walk",
@@ -58,14 +46,14 @@ export const APPS: AppItem[] = [
       "Walk a job with your phone or tablet to capture conditions, photos, notes, and tagged fields as you go — then turn what you saw into punch lists, branded reports, and proposals without retyping a thing.",
     icon: MapPin,
     features: [
-      "Take photos and notes as you walk the job — no clipboard, no retyping later",
-      "Every photo automatically tagged with where it was taken, when, and the weather",
-      "Speak instead of type — voice notes are transcribed for you",
-      "Mark up photos with arrows, circles, and callouts to point out exactly what matters",
-      "Drop photos onto floor plans so anyone can see what you saw and where",
-      "Turn a finished walk into a punch list, branded report, or proposal in one tap",
-      "Send to clients, owners, or trades by email or share link — no app required to view",
-      "Works offline on the job site and syncs as soon as you're back on signal",
+      "Take photos and notes as you walk the job",
+      "Every capture tied to location, time, and plan context",
+      "Voice notes transcribed for faster documentation",
+      "Mark up photos to show exactly what matters",
+      "Drop captures onto floor plans for reviewers",
+      "Turn a walk into punch lists and branded reports",
+      "Share deliverables by email or secure link",
+      "Works offline on site; syncs when you reconnect",
     ],
     demoType: "video",
     demoUrl:
@@ -73,88 +61,50 @@ export const APPS: AppItem[] = [
     demoPoster:
       "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&q=80",
   },
+];
+
+export const PLATFORM_HIGHLIGHTS = [
   {
-    id: "360-tours",
-    name: "360 Tours",
-    tagline: "Immersive walkthroughs with project context",
-    description:
-      "Create immersive 360 walkthroughs with hotspots, floor plans, and branded sharing so clients and stakeholders can explore remotely with context.",
-    icon: Building2,
-    features: [
-      "360° panoramic capture",
-      "Interactive hotspot navigation",
-      "Floor plan integration",
-      "Embed anywhere",
-    ],
-    demoType: "360",
-    demoUrl:
-      "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1600&q=80",
+    id: "slatedrop",
+    name: "SlateDrop",
+    tagline: "Secure file delivery tied to projects",
+    icon: FolderSync,
   },
   {
-    id: "design-studio",
-    name: "Design Studio",
-    tagline: "Connected 2D and 3D design review",
-    description:
-      "Review plans, generate and present 3D models, and move through design decisions in connected 2D and 3D workspaces.",
-    icon: Sparkles,
-    features: [
-      "Before/after comparisons",
-      "Measurement annotations",
-      "Brand customization",
-      "Export in multiple formats",
-    ],
-    demoType: "3d",
-    demoUrl:
-      "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&q=80",
+    id: "coordination",
+    name: "Coordination",
+    tagline: "Contacts and permissions across teams",
+    icon: Users,
   },
 ];
 
+/** Non-numeric trust signals — no fabricated usage stats. */
 export const STATS: StatItem[] = [
-  { value: "500+", label: "Construction Teams", icon: Users },
-  { value: "2M+", label: "Photos Captured", icon: Camera },
-  { value: "50%", label: "Time Saved", icon: Clock },
-  { value: "99.9%", label: "Uptime", icon: Shield },
-];
-
-export const TESTIMONIALS: TestimonialItem[] = [
-  {
-    quote:
-      "Slate360 transformed how we document our projects. Clients love the virtual tours and our team saves hours every week.",
-    author: "Sarah Chen",
-    role: "Project Manager",
-    company: "BuildRight Construction",
-    avatar: "SC",
-  },
-  {
-    quote:
-      "The geolocated, time-stamped progress photos have eliminated disputes about timeline and work completion. Worth every penny.",
-    author: "Marcus Johnson",
-    role: "Site Superintendent",
-    company: "Apex Builders",
-    avatar: "MJ",
-  },
-  {
-    quote:
-      "We\u2019ve reduced site visits by 40% thanks to the 360 Tours. Our remote stakeholders feel like they\u2019re actually there.",
-    author: "Elena Rodriguez",
-    role: "Operations Director",
-    company: "Metro Development",
-    avatar: "ER",
-  },
+  { value: "Field", label: "Capture on site", icon: Camera },
+  { value: "Office", label: "Review with context", icon: Users },
+  { value: "Minutes", label: "To branded outputs", icon: Clock },
+  { value: "Secure", label: "Sharing controls", icon: Shield },
 ];
 
 export const FOOTER_LINKS: Record<string, { label: string; href: string }[]> = {
   Product: [
-    { label: "Site Walk", href: "/site-walk" },
-    { label: "SlateDrop", href: "/slatedrop" },
-    { label: "Pricing", href: "/plans" },
-  ],
-  Resources: [
-    { label: "Documentation", href: "mailto:hello@slate360.ai?subject=Documentation" },
-    { label: "Contact", href: "mailto:hello@slate360.ai" },
+    { label: "Site Walk", href: "/apps/site-walk" },
+    { label: "Install", href: "/install" },
+    { label: "Request access", href: "/signup" },
   ],
   Legal: [
-    { label: "Privacy Policy", href: "/privacy" },
-    { label: "Terms of Service", href: "/terms" },
+    { label: "Privacy", href: "/privacy" },
+    { label: "Terms", href: "/terms" },
   ],
 };
+
+export const TESTIMONIALS: TestimonialItem[] = [
+  {
+    quote:
+      "We are onboarding founding teams to Site Walk first — their stories will appear here as the Foundational Release grows.",
+    author: "Slate360",
+    role: "Founding teams",
+    company: "Early access",
+    avatar: "",
+  },
+];

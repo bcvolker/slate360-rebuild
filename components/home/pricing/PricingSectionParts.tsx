@@ -57,7 +57,7 @@ function ToggleButton({
       className={cn(
         "px-5 py-2 rounded-full text-sm font-medium transition-colors",
         active
-          ? "bg-cobalt text-white shadow-md shadow-cobalt/30"
+          ? "bg-amber-600 text-white shadow-md shadow-amber-600/30"
           : "text-slate-600 hover:text-slate-900",
       )}
     >
@@ -101,7 +101,7 @@ export function TierSwitch({
         className={cn(
           "px-3 py-1 rounded-full transition-colors",
           value === "pro"
-            ? "bg-cobalt text-white shadow-sm shadow-cobalt/30"
+            ? "bg-amber-600 text-white shadow-sm shadow-amber-600/30"
             : "text-slate-500 hover:text-slate-900",
         )}
       >

@@ -21,11 +21,10 @@ export default function AppShowcaseSection() {
             Our Products
           </Badge>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-4">
-            Three powerful apps, one platform
+            Site Walk — first in the Foundational Release
           </h2>
           <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
-            Everything you need to document, visualize, and present construction
-            projects professionally.
+            Contextual site documentation and branded deliverables, on Slate360 platform infrastructure.
           </p>
         </div>
 
@@ -68,13 +67,14 @@ function AppShowcase({ app, reversed }: { app: AppItem; reversed: boolean }) {
             </li>
           ))}
         </ul>
-        <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
-          Learn More
-          <ChevronRight className="ml-1 h-4 w-4" />
+        <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90">
+          <a href="/apps/site-walk">
+            Learn more
+            <ChevronRight className="ml-1 h-4 w-4" />
+          </a>
         </Button>
       </div>
 
-      {/* Demo */}
       <div className={cn(reversed && "lg:col-start-1 lg:row-start-1")}>
         <InteractiveDemo app={app} />
       </div>

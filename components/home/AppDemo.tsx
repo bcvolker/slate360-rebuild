@@ -72,7 +72,7 @@ export default function AppDemo({ type, modelSrc, panoramaSrc, label }: AppDemoP
       )}
       {type === "placeholder" && (
         <div className="flex items-center justify-center h-full">
-          <p className="text-sm text-muted-foreground">Demo coming soon</p>
+          <p className="text-sm text-muted-foreground">Preview</p>
         </div>
       )}
     </>
@@ -90,7 +90,7 @@ export default function AppDemo({ type, modelSrc, panoramaSrc, label }: AppDemoP
             type="button"
             onClick={() => setExpanded(true)}
             aria-label="Expand viewer"
-            className="absolute top-2 right-2 z-10 inline-flex h-9 w-9 items-center justify-center rounded-full bg-background/80 backdrop-blur border border-border text-foreground hover:bg-background hover:border-cobalt/40 transition-colors shadow-md"
+            className="absolute top-2 right-2 z-10 inline-flex h-9 w-9 items-center justify-center rounded-full bg-background/80 backdrop-blur border border-border text-foreground hover:bg-background hover:border-amber-500/40 transition-colors shadow-md"
           >
             <Maximize2 className="h-4 w-4" />
           </button>
@@ -106,13 +106,13 @@ export default function AppDemo({ type, modelSrc, panoramaSrc, label }: AppDemoP
           className="fixed inset-0 z-[1000] h-[100dvh] w-screen bg-black/95 backdrop-blur flex flex-col isolate"
           role="dialog"
           aria-modal="true"
-          aria-label={`Expanded ${label ?? "demo"} viewer`}
+          aria-label={`Expanded ${label ?? "preview"} viewer`}
           onClick={(e) => {
             if (e.target === e.currentTarget) setExpanded(false);
           }}
         >
           <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 shrink-0 bg-black/60">
-            <span className="text-sm text-foreground/80 truncate">{label ?? "Demo"}</span>
+            <span className="text-sm text-foreground/80 truncate">{label ?? "Preview"}</span>
             <button
               type="button"
               onClick={() => setExpanded(false)}

@@ -50,63 +50,78 @@ export default function SignupConfirmation({
   return (
     <div className="auth-page">
       <div className="auth-topbar">
-        <Link href="/"><SlateLogo /></Link>
+        <Link href="/">
+          <SlateLogo />
+        </Link>
       </div>
-      <div className="flex-1 flex items-center justify-center px-4 py-12">
+      <div className="flex flex-1 items-center justify-center px-4 py-12">
         <div className="auth-card text-center">
-          <CheckCircle2 size={48} className={`mx-auto mb-4 ${emailSent ? "text-primary" : "text-amber-400"}`} />
-          <h2 className="text-2xl font-black mb-2 text-foreground">
-            {emailSent ? "Check your email" : "Account created!"}
+          <CheckCircle2 size={48} className="mx-auto mb-4 text-amber-400" />
+          <h2 className="mb-2 text-2xl font-black text-slate-900">
+            {emailSent ? "Check your email" : "Account already exists"}
           </h2>
           {emailSent ? (
             <>
-              <p className="text-muted-foreground mb-4">
-                We sent a confirmation link to <strong className="text-foreground">{email}</strong>. Click it to activate your account.
+              <p className="mb-4 text-sm text-slate-600">
+                We sent a confirmation link to <strong className="text-slate-900">{email}</strong>.
+                Click it to verify your email.
               </p>
               {selectedPlan && (
-                <p className="text-xs text-muted-foreground mb-3">
-                  Your {selectedPlan} ({selectedBilling}) selection is saved — after confirmation, sign in and continue checkout.
+                <p className="mb-3 text-xs text-slate-600">
+                  We noted your interest in <span className="font-semibold text-slate-900 capitalize">{selectedPlan}</span> (
+                  {selectedBilling}). After you sign in, the team will align your workspace during Foundational Release onboarding.
                 </p>
               )}
-              <Link
-                href="/login"
-                className="inline-flex items-center justify-center rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-gold-glow transition-colors hover:bg-primary/90 mb-4"
-              >
-                Already confirmed? Sign in →
-              </Link>
-              <p className="text-xs text-muted-foreground mb-2">
-                Confirmed on another device? Click above to sign in here.
+              <p className="mb-4 text-xs text-slate-600">
+                Once verified, sign in. Workspace access is granted after Slate360 reviews your request.
               </p>
-              <p className="text-xs text-muted-foreground">
+              <Link href="/login" className="auth-btn-primary mb-4 max-w-xs mx-auto">
+                Already confirmed? Sign in
+              </Link>
+              <p className="mb-2 text-xs text-slate-600">
+                Confirmed on another device? Use the button above to sign in here.
+              </p>
+              <p className="text-xs text-slate-600">
                 Didn&apos;t get the email? Check spam or{" "}
-                <button onClick={handleResendConfirmation} disabled={resending} className="text-primary underline disabled:opacity-50">
+                <button
+                  type="button"
+                  onClick={handleResendConfirmation}
+                  disabled={resending}
+                  className="font-semibold text-primary underline disabled:opacity-50"
+                >
                   {resending ? "sending…" : "resend it"}
-                </button>.
+                </button>
+                .
               </p>
               {resendResult && (
-                <p className={`text-xs mt-2 ${resendResult.includes("sent") ? "text-emerald-400" : "text-destructive"}`}>
+                <p
+                  className={`mt-2 text-xs ${resendResult.includes("sent") ? "text-emerald-600" : "text-destructive"}`}
+                >
                   {resendResult}
                 </p>
               )}
             </>
           ) : (
             <>
-              <p className="text-muted-foreground mb-4">
+              <p className="mb-4 text-sm text-slate-600">
                 {apiError ?? "An account with this email already exists."}
               </p>
-              <Link
-                href="/login"
-                className="inline-flex items-center justify-center rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-gold-glow transition-colors hover:bg-primary/90 mb-3"
-              >
+              <Link href="/login" className="auth-btn-primary mb-3 max-w-xs mx-auto">
                 Sign in
               </Link>
-              <p className="text-xs text-muted-foreground mt-2">
+              <p className="mt-2 text-xs text-slate-600">
                 Forgot your password?{" "}
-                <Link href="/forgot-password" className="text-primary underline">Reset it here</Link>.
+                <Link href="/forgot-password" className="font-semibold text-primary underline">
+                  Reset it here
+                </Link>
+                .
               </p>
-              <p className="text-xs text-muted-foreground mt-3">
+              <p className="mt-3 text-xs text-slate-600">
                 Wrong email?{" "}
-                <button onClick={onRetry} className="text-primary underline">Try a different address</button>
+                <button type="button" onClick={onRetry} className="font-semibold text-primary underline">
+                  Try a different address
+                </button>
+                .
               </p>
             </>
           )}

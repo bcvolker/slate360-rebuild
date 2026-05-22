@@ -18,7 +18,7 @@ export function EnterpriseCard({ bundle, onContact }: EnterpriseCardProps) {
         Enterprise
       </Badge>
       <CardHeader className="text-center pb-2">
-        <div className="text-[11px] font-semibold uppercase tracking-wider text-cobalt mb-1">
+        <div className="text-[11px] font-semibold uppercase tracking-wider text-amber-600 mb-1">
           Custom
         </div>
         <CardTitle className="text-lg text-slate-900">{bundle.name}</CardTitle>
@@ -36,7 +36,7 @@ export function EnterpriseCard({ bundle, onContact }: EnterpriseCardProps) {
         <ul className="space-y-2 mb-6 text-left flex-1">
           {bundle.features.map((feature) => (
             <li key={feature} className="flex items-start gap-2 text-xs">
-              <Check className="h-3.5 w-3.5 text-cobalt flex-shrink-0 mt-0.5" />
+              <Check className="h-3.5 w-3.5 text-amber-600 flex-shrink-0 mt-0.5" />
               <span className="text-slate-700 leading-relaxed">{feature}</span>
             </li>
           ))}

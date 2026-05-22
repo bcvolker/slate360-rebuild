@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import type { AppItem } from "@/components/home/landing-data";
 
 // ──────────────────────────────────────────────────────────────────────────────
-// ROUTER — picks the right demo based on demoType
+// ROUTER — picks the right preview based on demoType
 // ──────────────────────────────────────────────────────────────────────────────
 
 export function InteractiveDemo({ app }: { app: AppItem }) {
@@ -45,14 +45,14 @@ function VideoDemo({ app }: { app: AppItem }) {
           <>
             <img
               src={app.demoPoster ?? app.demoUrl}
-              alt={`${app.name} demo`}
+              alt={`${app.name} preview`}
               className="w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
               <button
                 onClick={() => setIsPlaying(true)}
                 className="flex h-16 w-16 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-gold-glow transition-transform hover:scale-110"
-                aria-label={`Play ${app.name} demo`}
+                aria-label={`Play ${app.name} preview`}
               >
                 <Play className="h-6 w-6 ml-1" />
               </button>
@@ -61,7 +61,7 @@ function VideoDemo({ app }: { app: AppItem }) {
         )}
         <Badge className="absolute top-4 left-4 bg-background/80 text-foreground border-border">
           <Camera className="mr-1 h-3 w-3" />
-          Site Walk Demo
+          Site Walk preview
         </Badge>
       </div>
     </Card>

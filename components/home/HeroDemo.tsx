@@ -79,7 +79,7 @@ export default function HeroDemo() {
     }
     return (
       <div className="flex items-center justify-center h-full text-muted-foreground">
-        <p className="text-sm">Video demo coming soon</p>
+        <p className="text-sm text-muted-foreground">Site Walk capture preview</p>
       </div>
     );
   };
@@ -98,7 +98,7 @@ export default function HeroDemo() {
           type="button"
           onClick={() => setExpanded(true)}
           aria-label="Expand viewer"
-          className="absolute top-2 right-2 z-10 inline-flex h-9 w-9 items-center justify-center rounded-full bg-background/80 backdrop-blur border border-border text-foreground hover:bg-background hover:border-cobalt/40 transition-colors shadow-md"
+          className="absolute top-2 right-2 z-10 inline-flex h-9 w-9 items-center justify-center rounded-full bg-background/80 backdrop-blur border border-border text-foreground hover:bg-background hover:border-amber-500/40 transition-colors shadow-md"
         >
           <Maximize2 className="h-4 w-4" />
         </button>
@@ -109,7 +109,7 @@ export default function HeroDemo() {
           className="fixed inset-0 z-[1000] h-[100dvh] w-screen bg-black/95 backdrop-blur flex flex-col isolate"
           role="dialog"
           aria-modal="true"
-          aria-label="Expanded demo viewer"
+          aria-label="Expanded preview viewer"
           onClick={(e) => {
             // Click outside the viewer body closes — viewer stops propagation below
             if (e.target === e.currentTarget) setExpanded(false);
