@@ -3,11 +3,11 @@
  * Validates the token against `slate_drop_links`, generates a
  * time-limited presigned S3 URL, and renders the file inline.
  */
-import { notFound } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { s3, BUCKET } from "@/lib/s3";
+import { TokenStatePage } from "@/components/external-portal";
 import ShareViewer from "./ShareViewer";
 
 export const dynamic = "force-dynamic";
@@ -16,32 +16,32 @@ type PageProps = { params: Promise<{ token: string }> };
 
 export default async function SharePage({ params }: PageProps) {
   const { token } = await params;
-  if (!token || token.length < 10) notFound();
+  if (!token || token.length < 10) {
+    return <TokenStatePage state="invalid" badge="Shared file" />;
+  }
 
   const admin = createAdminClient();
 
-  // Look up the share link
   const { data: link, error } = await admin
     .from("slate_drop_links")
     .select("id, file_id, role, expires_at, created_by")
     .eq("token", token)
     .single();
 
-  if (error || !link) notFound();
+  if (error || !link) {
+    return <TokenStatePage state="invalid" badge="Shared file" />;
+  }
 
-  // Check expiry
   if (link.expires_at && new Date(link.expires_at) < new Date()) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center space-y-3 p-8">
-          <h1 className="text-2xl font-black text-zinc-100">Link Expired</h1>
-          <p className="text-sm text-zinc-400">This share link has expired. Please request a new one.</p>
-        </div>
-      </div>
+      <TokenStatePage
+        state="expired"
+        badge="Shared file"
+        description="This share link has expired. Please request a new one from the sender."
+      />
     );
   }
 
-  // Fetch file metadata
   const { data: unifiedFile, error: unifiedFileError } = await admin
     .from("unified_files")
     .select("id, name, mime_type, size_bytes, storage_key, status")
@@ -77,16 +77,14 @@ export default async function SharePage({ params }: PageProps) {
 
   if (unifiedFileError || legacyFileError || !file || !file.storageKey || file.status === "archived") {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center space-y-3 p-8">
-          <h1 className="text-2xl font-black text-zinc-100">File Not Found</h1>
-          <p className="text-sm text-zinc-400">The shared file is no longer available.</p>
-        </div>
-      </div>
+      <TokenStatePage
+        state="unavailable"
+        badge="Shared file"
+        description="The shared file is no longer available. It may have been removed or archived."
+      />
     );
   }
 
-  // Generate a presigned URL (1 hour)
   const command = new GetObjectCommand({ Bucket: BUCKET, Key: file.storageKey });
   const presignedUrl = await getSignedUrl(s3, command, { expiresIn: 3600 });
 

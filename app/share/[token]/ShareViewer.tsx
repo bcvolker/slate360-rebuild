@@ -4,8 +4,13 @@
  */
 "use client";
 
-import { useState } from "react";
-import { Download, FileText, ExternalLink, Eye } from "lucide-react";
+import { Download, ExternalLink, Eye, Lock } from "lucide-react";
+import {
+  ExternalPortalShell,
+  PortalGlassCard,
+  PortalPrimaryLink,
+  PortalSecondaryLink,
+} from "@/components/external-portal";
 
 function formatBytes(bytes: number): string {
   if (bytes === 0) return "0 B";
@@ -28,111 +33,113 @@ export default function ShareViewer({
   presignedUrl: string;
   canDownload: boolean;
 }) {
-  const [loaded, setLoaded] = useState(false);
-
   const isPdf = fileType.includes("pdf");
-  const isImage = fileType.startsWith("image/") || /\.(png|jpe?g|gif|webp|svg|bmp)$/i.test(fileName);
-  const isVideo = fileType.startsWith("video/") || /\.(mp4|webm|mov|avi)$/i.test(fileName);
+  const isImage =
+    fileType.startsWith("image/") ||
+    /\.(png|jpe?g|gif|webp|svg|bmp)$/i.test(fileName);
+  const isVideo =
+    fileType.startsWith("video/") || /\.(mp4|webm|mov|avi)$/i.test(fileName);
+
+  const headerActions = (
+    <>
+      {canDownload ? (
+        <PortalPrimaryLink href={presignedUrl} download={fileName}>
+          <Download size={14} aria-hidden />
+          Download
+        </PortalPrimaryLink>
+      ) : null}
+      <PortalSecondaryLink
+        href={presignedUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <ExternalLink size={14} aria-hidden />
+        Open
+      </PortalSecondaryLink>
+    </>
+  );
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      {/* Header bar */}
-      <header className="bg-card border-b border-zinc-800 px-4 py-3 flex items-center justify-between shadow-sm shrink-0">
-        <div className="flex items-center gap-3 min-w-0">
-          <div className="w-9 h-9 rounded-lg bg-[#3B82F6]/10 flex items-center justify-center shrink-0">
-            <FileText size={18} className="text-[#3B82F6]" />
+    <ExternalPortalShell
+      portalLabel="Shared file"
+      title={fileName}
+      subtitle={
+        canDownload
+          ? `${formatBytes(fileSize)} · View and download`
+          : `${formatBytes(fileSize)} · View only`
+      }
+      headerActions={headerActions}
+      showFooter
+    >
+      <main className="flex flex-1 flex-col overflow-auto p-4 sm:p-6">
+        {!canDownload ? (
+          <div className="mb-4 flex items-center gap-2 rounded-xl border border-amber-500/25 bg-amber-500/10 px-3 py-2 text-xs text-amber-100">
+            <Lock size={14} className="shrink-0 text-amber-300" aria-hidden />
+            <span>Download is not permitted for this link. You can view or open the file only.</span>
           </div>
-          <div className="min-w-0">
-            <h1 className="text-sm font-bold text-zinc-100 truncate">{fileName}</h1>
-            <p className="text-[10px] text-zinc-500">{formatBytes(fileSize)} · Shared via Slate360</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2 shrink-0">
-          {canDownload && (
-            <a
-              href={presignedUrl}
-              download={fileName}
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold text-foreground transition-all hover:opacity-90"
-              style={{ backgroundColor: "#3B82F6" }}
-            >
-              <Download size={13} /> Download
-            </a>
-          )}
-          <a
-            href={presignedUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold text-gray-700 border border-gray-200 hover:bg-gray-100 transition-colors"
-          >
-            <ExternalLink size={13} /> Open
-          </a>
-        </div>
-      </header>
+        ) : null}
+        {isPdf ? (
+          <PortalGlassCard className="flex flex-1 flex-col overflow-hidden !p-0">
+            <iframe
+              src={presignedUrl}
+              className="min-h-[calc(100vh-11rem)] w-full flex-1 rounded-xl bg-[#0f141c]"
+              title={fileName}
+            />
+          </PortalGlassCard>
+        ) : null}
 
-      {/* File preview */}
-      <main className="flex-1 flex items-center justify-center p-4 overflow-auto">
-        {isPdf && (
-          <iframe
-            src={presignedUrl}
-            className="w-full max-w-5xl rounded-xl border border-gray-200 shadow-lg bg-white"
-            style={{ height: "calc(100vh - 120px)" }}
-            title={fileName}
-            onLoad={() => setLoaded(true)}
-          />
-        )}
-        {isImage && (
-          <div className="flex flex-col items-center gap-4 max-w-4xl w-full">
+        {isImage ? (
+          <div className="mx-auto flex w-full max-w-5xl flex-1 items-center justify-center">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={presignedUrl}
               alt={fileName}
-              className="max-w-full max-h-[calc(100vh-160px)] rounded-xl border border-gray-200 shadow-lg object-contain bg-white"
-              onLoad={() => setLoaded(true)}
+              className="max-h-[calc(100vh-11rem)] max-w-full rounded-2xl border border-white/10 object-contain shadow-lg"
             />
           </div>
-        )}
-        {isVideo && (
+        ) : null}
+
+        {isVideo ? (
           <video
             src={presignedUrl}
             controls
-            className="max-w-4xl w-full rounded-xl border border-gray-200 shadow-lg bg-black"
-            style={{ maxHeight: "calc(100vh - 140px)" }}
-            onLoadedData={() => setLoaded(true)}
+            className="mx-auto max-h-[calc(100vh-11rem)] w-full max-w-4xl rounded-2xl border border-white/10 bg-black"
           />
-        )}
-        {!isPdf && !isImage && !isVideo && (
-          <div className="text-center space-y-4 py-16">
-            <div className="w-20 h-20 rounded-2xl bg-gray-100 flex items-center justify-center mx-auto">
-              <Eye size={32} className="text-gray-400" />
-            </div>
-            <div>
-              <h2 className="text-lg font-bold text-gray-900 mb-1">{fileName}</h2>
-              <p className="text-sm text-gray-500">{formatBytes(fileSize)}</p>
-            </div>
-            <p className="text-xs text-gray-400">
-              Preview not available for this file type.
-              {canDownload && " Download the file to view it."}
-            </p>
-            {canDownload && (
-              <a
-                href={presignedUrl}
-                download={fileName}
-                className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-sm font-semibold text-foreground transition-all hover:opacity-90"
-                style={{ backgroundColor: "#3B82F6" }}
-              >
-                <Download size={15} /> Download File
-              </a>
-            )}
-          </div>
-        )}
-      </main>
+        ) : null}
 
-      {/* Footer */}
-      <footer className="bg-white border-t border-gray-100 py-2 text-center">
-        <p className="text-[10px] text-gray-400">
-          Powered by <span className="font-bold text-gray-600">Slate360</span> · Secure file sharing
-        </p>
-      </footer>
-    </div>
+        {!isPdf && !isImage && !isVideo ? (
+          <div className="mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center">
+            <PortalGlassCard className="w-full text-center">
+              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-white/10 bg-white/5">
+                <Eye size={28} className="text-slate-400" aria-hidden />
+              </div>
+              <h2 className="text-lg font-bold text-white">{fileName}</h2>
+              <p className="mt-1 text-sm text-slate-400">{formatBytes(fileSize)}</p>
+              <p className="mt-3 text-xs text-slate-500">
+                Preview is not available for this file type.
+                {canDownload ? " Download the file to open it locally." : " Open in a new tab if your device supports this format."}
+              </p>
+              <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
+                {canDownload ? (
+                  <PortalPrimaryLink href={presignedUrl} download={fileName}>
+                    <Download size={15} aria-hidden />
+                    Download file
+                  </PortalPrimaryLink>
+                ) : (
+                  <PortalSecondaryLink
+                    href={presignedUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <ExternalLink size={15} aria-hidden />
+                    Open file
+                  </PortalSecondaryLink>
+                )}
+              </div>
+            </PortalGlassCard>
+          </div>
+        ) : null}
+      </main>
+    </ExternalPortalShell>
   );
 }

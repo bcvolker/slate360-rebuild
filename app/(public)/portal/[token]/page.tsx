@@ -3,16 +3,17 @@
  *
  * Serves deliverables (tours, reports, walks) via `deliverable_access_tokens`.
  * Separated from the legacy SlateDrop file-share route at /share/[token].
- * Applies the org's Walled Garden branding (logo, colors, font).
- *
- * This is the server-side fetching skeleton — UI will be added later.
  */
-import { notFound } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getOrgBranding } from "@/lib/server/branding";
 import type { OrgBranding } from "@/lib/types/branding";
 import { DEFAULT_BRANDING } from "@/lib/types/branding";
 import type { OrgFeatureFlags } from "@/lib/entitlements";
+import {
+  ExternalPortalShell,
+  PortalGlassCard,
+  TokenStatePage,
+} from "@/components/external-portal";
 
 export const dynamic = "force-dynamic";
 
@@ -32,13 +33,12 @@ type PageProps = { params: Promise<{ token: string }> };
 
 export default async function DeliverableSharePage({ params }: PageProps) {
   const { token } = await params;
-  if (!token || token.length < 10) notFound();
+  if (!token || token.length < 10) {
+    return <TokenStatePage state="invalid" badge="Client portal" />;
+  }
 
   const admin = createAdminClient();
 
-  // ── 1. Atomically claim a view (TOCTOU-safe) ────────────────
-  // Single UPDATE checks all validity conditions and increments view_count
-  // in one atomic operation. Returns the updated row on success, empty on denial.
   const { data: claimed } = await admin.rpc("claim_deliverable_view", {
     p_token: token,
   });
@@ -46,13 +46,8 @@ export default async function DeliverableSharePage({ params }: PageProps) {
   const access = Array.isArray(claimed) ? claimed[0] : claimed;
 
   if (access) {
-    // View successfully claimed — continue to render
     const dat = access as DeliverableToken;
 
-    // ── 2. Check org feature flags for graceful degradation ────
-    // If the org has lost the flag required for this deliverable type
-    // (e.g. standalone_tour_builder cancelled), we still serve the content
-    // but mark it as downgraded so the viewer can apply a watermark.
     let isDowngraded = false;
     const { data: flags } = await admin
       .from("org_feature_flags")
@@ -69,7 +64,6 @@ export default async function DeliverableSharePage({ params }: PageProps) {
       isDowngraded = true;
     }
 
-    // ── 3. Fetch org branding for Walled Garden chrome ─────────
     let branding: OrgBranding;
     try {
       branding = await getOrgBranding(dat.org_id);
@@ -79,64 +73,81 @@ export default async function DeliverableSharePage({ params }: PageProps) {
 
     return (
       <div
-        className="min-h-screen bg-background"
-        style={{
-          "--brand-primary": branding.primary_color,
-          "--brand-accent": branding.accent_color,
-          "--brand-font": branding.font_family,
-        } as React.CSSProperties}
+        style={
+          {
+            "--brand-primary": branding.primary_color,
+            "--brand-accent": branding.accent_color,
+            "--brand-font": branding.font_family,
+          } as React.CSSProperties
+        }
       >
-        <header className="flex h-14 items-center gap-3 border-b px-6">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={branding.logo_url} alt={branding.brand_name} className="h-7" />
-          <span className="text-sm font-medium text-muted-foreground">
-            {branding.brand_name}
-          </span>
-        </header>
-
-        {isDowngraded && (
-          <div className="flex items-center justify-between border-y border-primary/20 bg-primary/10 px-6 py-3 text-sm text-foreground">
-            <span>
-              This content was created with a paid plan that is no longer active.
-            </span>
-            <a
-              href="https://slate360.ai/pricing"
-              className="ml-4 font-semibold text-primary underline underline-offset-4"
-            >
-              Upgrade to Remove Watermark
-            </a>
-          </div>
-        )}
-
-        <main className="relative mx-auto max-w-4xl p-8">
-          {isDowngraded && (
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-10 select-none"
-            >
-              <span className="rotate-[-35deg] text-6xl font-black uppercase tracking-widest text-foreground">
-                Watermark
+        <ExternalPortalShell
+          portalLabel="Client portal"
+          title={branding.brand_name}
+          subtitle={`${formatDeliverableType(dat.deliverable_type)} · ${formatRole(dat.role)} access`}
+          orgName={branding.brand_name}
+          orgLogoUrl={branding.logo_url}
+        >
+          {isDowngraded ? (
+            <div className="border-b border-amber-500/25 bg-amber-500/10 px-4 py-3 text-center text-sm text-amber-100 sm:px-6">
+              <span>
+                This content was created with a plan that is no longer active on this account.
               </span>
+              <a
+                href="https://www.slate360.ai/pricing"
+                className="ml-2 font-semibold text-amber-300 underline underline-offset-4"
+              >
+                View plans
+              </a>
             </div>
-          )}
-          <p className="text-sm text-muted-foreground">
-            Deliverable: <strong>{dat.deliverable_type}</strong> &middot; Role: {dat.role}
-          </p>
-          {/* TODO: Route to type-specific viewer (TourViewer, ReportViewer, etc.)
-              Pass isDowngraded={isDowngraded} to the viewer component when built. */}
-        </main>
+          ) : null}
+
+          <main className="relative mx-auto flex w-full max-w-3xl flex-1 flex-col px-4 py-8 sm:px-6">
+            {isDowngraded ? (
+              <div
+                aria-hidden
+                className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-[0.07] select-none"
+              >
+                <span className="rotate-[-35deg] text-6xl font-black uppercase tracking-widest text-white">
+                  {branding.brand_name}
+                </span>
+              </div>
+            ) : null}
+
+            <PortalGlassCard className="relative text-center">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={branding.logo_url}
+                alt={branding.brand_name}
+                className="mx-auto mb-4 h-10 object-contain"
+              />
+              <h2 className="text-lg font-bold text-white">
+                {formatDeliverableType(dat.deliverable_type)} deliverable
+              </h2>
+              <p className="mt-2 text-sm leading-relaxed text-slate-400">
+                Your secure link is active. This {formatDeliverableType(dat.deliverable_type).toLowerCase()}{" "}
+                deliverable is shared on behalf of {branding.brand_name}. Contact them if you need
+                the files in another format.
+              </p>
+              <p className="mt-4 text-xs text-slate-500">
+                Access level: <span className="font-medium text-slate-300">{formatRole(dat.role)}</span>
+              </p>
+            </PortalGlassCard>
+          </main>
+        </ExternalPortalShell>
       </div>
     );
   }
 
-  // ── Claim denied — determine reason for user-friendly message ──
   const { data: tokenRow } = await admin
     .from("deliverable_access_tokens")
     .select("is_revoked, expires_at, max_views, view_count")
     .eq("token", token)
-    .single();
+    .maybeSingle();
 
-  if (!tokenRow) notFound();
+  if (!tokenRow) {
+    return <TokenStatePage state="invalid" badge="Client portal" />;
+  }
 
   const row = tokenRow as {
     is_revoked: boolean;
@@ -146,27 +157,46 @@ export default async function DeliverableSharePage({ params }: PageProps) {
   };
 
   if (row.is_revoked) {
-    return <ExpiredView reason="This link has been revoked." />;
+    return (
+      <TokenStatePage
+        state="revoked"
+        badge="Client portal"
+        description="This link has been revoked."
+      />
+    );
   }
   if (row.expires_at && new Date(row.expires_at) < new Date()) {
-    return <ExpiredView reason="This link has expired." />;
+    return (
+      <TokenStatePage
+        state="expired"
+        badge="Client portal"
+        description="This link has expired."
+      />
+    );
   }
   if (row.max_views !== null && row.view_count >= row.max_views) {
-    return <ExpiredView reason="This link has reached its maximum number of views." />;
+    return (
+      <TokenStatePage
+        state="max_views"
+        badge="Client portal"
+        description="This link has reached its maximum number of views."
+      />
+    );
   }
 
-  // Shouldn't reach here, but safety fallback
-  notFound();
+  return (
+    <TokenStatePage
+      state="unavailable"
+      badge="Client portal"
+      description="This link could not be opened. Request a new link from the sender."
+    />
+  );
 }
 
-/** Shared dead-link view for expired / revoked / capped tokens. */
-function ExpiredView({ reason }: { reason: string }) {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="space-y-3 p-8 text-center">
-        <h1 className="text-2xl font-bold">Link Unavailable</h1>
-        <p className="text-sm text-muted-foreground">{reason}</p>
-      </div>
-    </div>
-  );
+function formatDeliverableType(type: string): string {
+  return type.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function formatRole(role: string): string {
+  return role.charAt(0).toUpperCase() + role.slice(1);
 }

@@ -2,12 +2,27 @@
 
 import { useRef, useState } from "react";
 import { CheckCircle2, Loader2, UploadCloud } from "lucide-react";
+import {
+  ExternalPortalShell,
+  PortalGlassCard,
+  PortalPrimaryCta,
+  type PortalTokenState,
+  TokenStatePage,
+} from "@/components/external-portal";
 
 type UploadedItem = {
   name: string;
   ok: boolean;
   message: string;
 };
+
+function mapUploadError(message: string): PortalTokenState | null {
+  const lower = message.toLowerCase();
+  if (lower.includes("expired")) return "expired";
+  if (lower.includes("invalid") || lower.includes("403")) return "invalid";
+  if (lower.includes("permission") || lower.includes("denied")) return "denied";
+  return null;
+}
 
 export default function UploadPortalClient({
   token,
@@ -22,6 +37,14 @@ export default function UploadPortalClient({
   const [dragOver, setDragOver] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [results, setResults] = useState<UploadedItem[]>([]);
+  const [fatalState, setFatalState] = useState<PortalTokenState | null>(null);
+
+  const successCount = results.filter((r) => r.ok).length;
+  const failCount = results.length - successCount;
+  const allSucceeded =
+    results.length > 0 && successCount === results.length && !uploading;
+  const partialSuccess =
+    results.length > 0 && successCount > 0 && failCount > 0 && !uploading;
 
   const uploadFiles = async (fileList: FileList) => {
     const files = Array.from(fileList);
@@ -46,7 +69,14 @@ export default function UploadPortalClient({
 
         const reservePayload = await reserveResponse.json().catch(() => ({}));
         if (!reserveResponse.ok) {
-          throw new Error(reservePayload?.error ?? "Failed to reserve upload URL");
+          const msg = String(reservePayload?.error ?? "Failed to reserve upload URL");
+          const mapped = mapUploadError(msg);
+          if (mapped) {
+            setFatalState(mapped);
+            setUploading(false);
+            return;
+          }
+          throw new Error(msg);
         }
 
         const putResponse = await fetch(reservePayload.uploadUrl, {
@@ -61,9 +91,19 @@ export default function UploadPortalClient({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ fileId: reservePayload.fileId, publicToken: token }),
         });
-        if (!completeResponse.ok) throw new Error("Upload finalization failed");
+        if (!completeResponse.ok) {
+          const completePayload = await completeResponse.json().catch(() => ({}));
+          const msg = String(completePayload?.error ?? "Upload finalization failed");
+          const mapped = mapUploadError(msg);
+          if (mapped) {
+            setFatalState(mapped);
+            setUploading(false);
+            return;
+          }
+          throw new Error(msg);
+        }
 
-        nextResults.push({ name: file.name, ok: true, message: "Uploaded successfully" });
+        nextResults.push({ name: file.name, ok: true, message: "Uploaded" });
       } catch (error) {
         nextResults.push({
           name: file.name,
@@ -73,21 +113,48 @@ export default function UploadPortalClient({
       }
     }
 
-    setResults((prev) => [...nextResults, ...prev].slice(0, 12));
+    setResults((prev) => [...nextResults, ...prev].slice(0, 20));
     setUploading(false);
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-[#F7F8FA] p-6 md:p-10">
-      <div className="mx-auto w-full max-w-2xl">
-        <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm md:p-8">
-          <div className="text-center">
-            <h1 className="text-2xl font-black text-gray-900">SlateDrop Request Upload</h1>
-            <p className="mt-2 text-sm text-gray-500">
-              Secure file delivery portal for <span className="font-semibold text-gray-700">{projectName}</span>
-            </p>
-          </div>
+  if (fatalState) {
+    return <TokenStatePage state={fatalState} badge="File upload" />;
+  }
 
+  if (allSucceeded && results.length > 0) {
+    return (
+      <TokenStatePage
+        state="success"
+        badge="File upload"
+        title="Upload complete"
+        description={`${successCount} file${successCount === 1 ? "" : "s"} delivered securely to ${projectName}. You may close this window.`}
+        actions={
+          <PortalPrimaryCta type="button" onClick={() => setResults([])}>
+            Upload more files
+          </PortalPrimaryCta>
+        }
+      />
+    );
+  }
+
+  return (
+    <ExternalPortalShell
+      portalLabel="File upload"
+      title="SlateDrop request upload"
+      subtitle={`Secure delivery for ${projectName}`}
+      orgName={projectName}
+    >
+      <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-4 py-8 sm:px-6">
+        {partialSuccess ? (
+          <div className="mb-4 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+            <span className="font-semibold text-amber-200">
+              {successCount} of {results.length} files uploaded.
+            </span>{" "}
+            Review failed items below, then add any remaining files.
+          </div>
+        ) : null}
+
+        <PortalGlassCard>
           <div
             onDragOver={(event) => {
               event.preventDefault();
@@ -99,28 +166,33 @@ export default function UploadPortalClient({
               setDragOver(false);
               if (!uploading) void uploadFiles(event.dataTransfer.files);
             }}
-            className={`mt-6 rounded-2xl border-2 border-dashed p-8 text-center transition ${
-              dragOver ? "border-[#3B82F6] bg-[#3B82F6]/5" : "border-gray-300 bg-gray-50"
+            className={`rounded-2xl border-2 border-dashed p-8 text-center transition ${
+              dragOver
+                ? "border-amber-400/60 bg-amber-500/5"
+                : "border-white/15 bg-white/[0.02]"
             }`}
           >
-            <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-white shadow-sm">
-              {uploading ? <Loader2 size={24} className="animate-spin text-[#3B82F6]" /> : <UploadCloud size={24} className="text-[#3B82F6]" />}
+            <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/5">
+              {uploading ? (
+                <Loader2 size={24} className="animate-spin text-amber-400" />
+              ) : (
+                <UploadCloud size={24} className="text-amber-400" />
+              )}
             </div>
 
-            <p className="text-sm font-semibold text-gray-800">
+            <p className="text-sm font-semibold text-white">
               {uploading ? "Uploading files…" : "Drag and drop files here"}
             </p>
-            <p className="mt-1 text-xs text-gray-500">or</p>
+            <p className="mt-1 text-xs text-slate-400">or</p>
 
-            <button
+            <PortalPrimaryCta
               type="button"
-              onClick={() => inputRef.current?.click()}
+              className="mt-4"
               disabled={uploading}
-              className="mt-3 rounded-xl px-4 py-2 text-sm font-semibold text-foreground disabled:opacity-60"
-              style={{ backgroundColor: "#3B82F6" }}
+              onClick={() => inputRef.current?.click()}
             >
-              Select Files
-            </button>
+              Select files
+            </PortalPrimaryCta>
 
             <input
               ref={inputRef}
@@ -134,26 +206,46 @@ export default function UploadPortalClient({
             />
           </div>
 
-          {results.length > 0 ? (
-            <div className="mt-6 space-y-2">
+          {results.length === 0 ? (
+            <p className="mt-4 text-center text-xs text-slate-400">
+              No files uploaded yet. Add one or more files to deliver them to the project folder.
+            </p>
+          ) : (
+            <ul className="mt-6 space-y-2">
               {results.map((item, index) => (
-                <div
+                <li
                   key={`${item.name}-${index}`}
                   className={`flex items-center justify-between rounded-xl border px-3 py-2 text-sm ${
-                    item.ok ? "border-emerald-200 bg-emerald-50" : "border-red-200 bg-red-50"
+                    item.ok
+                      ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-100"
+                      : "border-red-500/30 bg-red-500/10 text-red-100"
                   }`}
                 >
                   <span className="truncate pr-3">{item.name}</span>
                   <span className="inline-flex shrink-0 items-center gap-1 text-xs font-semibold">
-                    {item.ok ? <CheckCircle2 size={12} /> : null}
+                    {item.ok ? <CheckCircle2 size={12} aria-hidden /> : null}
                     {item.message}
                   </span>
-                </div>
+                </li>
               ))}
+            </ul>
+          )}
+
+          {partialSuccess ? (
+            <div className="mt-4 flex justify-center">
+              <PortalPrimaryCta
+                type="button"
+                onClick={() => {
+                  if (failCount === 0) return;
+                  setResults((prev) => prev.filter((r) => r.ok));
+                }}
+              >
+                Dismiss failed items
+              </PortalPrimaryCta>
             </div>
           ) : null}
-        </div>
-      </div>
-    </div>
+        </PortalGlassCard>
+      </main>
+    </ExternalPortalShell>
   );
 }

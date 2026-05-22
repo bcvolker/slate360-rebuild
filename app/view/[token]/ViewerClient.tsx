@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight, X, Info, Share2, Printer } from "lucide-react";
 import type { ViewerDeliverable } from "@/lib/site-walk/viewer-types";
-import { ItemRenderers } from "@/components/site-walk/viewer/ItemRenderers";
+import { ExternalPortalShell, PublicItemStage } from "@/components/external-portal";
 import { cn } from "@/lib/utils";
 import CommentThread from "./CommentThread";
 
@@ -81,84 +81,71 @@ export default function ViewerClient({ deliverable, token }: Props) {
   };
 
   if (!activeItem) {
-    return (
-      <div className="p-8 text-center text-slate-400">
-        This deliverable has no items yet.
-      </div>
-    );
+    return null;
   }
 
   const meta = activeItem.metadata ?? {};
   const vis = deliverable.metadataVisibility ?? {};
 
-  return (
-    <div className="flex flex-col h-full w-full relative">
-      {/* Top bar */}
-      <header className="h-14 shrink-0 flex items-center justify-between px-4 bg-[#151A23] border-b border-white/10 z-10">
-        <div className="flex items-center gap-3 min-w-0">
-          {deliverable.senderLogo && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={deliverable.senderLogo}
-              alt=""
-              className="h-7 w-7 rounded object-contain bg-white/5 p-0.5"
-            />
-          )}
-          <div className="min-w-0">
-            <h1 className="font-semibold text-sm text-foreground truncate">
-              {deliverable.title}
-            </h1>
-            <p className="text-[11px] text-slate-400 truncate">
-              Shared by {deliverable.senderName}
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-1">
-          <span className="text-xs text-slate-400 mr-2 hidden sm:inline">
-            {activeIndex + 1} / {items.length}
-          </span>
-          <button
-            type="button"
-            onClick={handleShare}
-            className="p-2 hover:bg-cobalt/15 hover:text-cobalt rounded transition-colors text-slate-300"
-            aria-label="Share"
-          >
-            <Share2 size={16} />
-          </button>
-          <button
-            type="button"
-            onClick={() => window.print()}
-            className="p-2 hover:bg-cobalt/15 hover:text-cobalt rounded transition-colors text-slate-300 hidden sm:block"
-            aria-label="Print"
-          >
-            <Printer size={16} />
-          </button>
-          <button
-            type="button"
-            onClick={() => setPanelOpen((v) => !v)}
-            className={cn(
-              "p-2 rounded transition-colors",
-              panelOpen
-                ? "bg-cobalt/15 text-cobalt"
-                : "text-slate-300 hover:bg-cobalt/15 hover:text-cobalt"
-            )}
-            aria-label="Toggle details"
-          >
-            <Info size={16} />
-          </button>
-        </div>
-      </header>
+  const headerActions = (
+    <>
+      <span className="mr-1 hidden text-xs text-slate-400 sm:inline">
+        {activeIndex + 1} / {items.length}
+      </span>
+      <button
+        type="button"
+        onClick={handleShare}
+        className="rounded-lg p-2 text-slate-300 transition-colors hover:bg-amber-500/15 hover:text-amber-300"
+        aria-label="Share"
+      >
+        <Share2 size={16} />
+      </button>
+      <button
+        type="button"
+        onClick={() => window.print()}
+        className="hidden rounded-lg p-2 text-slate-300 transition-colors hover:bg-amber-500/15 hover:text-amber-300 sm:block"
+        aria-label="Print"
+      >
+        <Printer size={16} />
+      </button>
+      <button
+        type="button"
+        onClick={() => setPanelOpen((v) => !v)}
+        className={cn(
+          "rounded-lg p-2 transition-colors",
+          panelOpen
+            ? "bg-amber-500/15 text-amber-300"
+            : "text-slate-300 hover:bg-amber-500/15 hover:text-amber-300",
+        )}
+        aria-label="Toggle details"
+      >
+        <Info size={16} />
+      </button>
+    </>
+  );
 
+  return (
+    <ExternalPortalShell
+      variant="immersive"
+      showFooter={false}
+      portalLabel="Deliverable review"
+      title={deliverable.title}
+      subtitle={`Shared by ${deliverable.senderName}`}
+      orgLogoUrl={deliverable.senderLogo}
+      headerActions={headerActions}
+      className="h-screen"
+    >
+      <div className="relative flex h-full min-h-0 w-full flex-1 flex-col">
       {/* Stage + side panel */}
-      <div className="flex-1 flex overflow-hidden relative">
+      <div className="relative flex min-h-0 flex-1 overflow-hidden">
         <div className="flex-1 relative flex items-center justify-center bg-black">
-          <ItemRenderers item={activeItem} />
+          <PublicItemStage item={activeItem} />
 
           {activeIndex > 0 && (
             <button
               type="button"
               onClick={() => navigate(-1)}
-              className="absolute left-3 p-3 bg-[#151A23]/80 hover:bg-cobalt text-primary-foreground rounded-full backdrop-blur z-20 transition-colors"
+              className="absolute left-3 z-20 rounded-full bg-[#151A23]/80 p-3 text-[#0C0A09] backdrop-blur transition-colors hover:bg-amber-400"
               aria-label="Previous"
             >
               <ChevronLeft size={20} />
@@ -168,7 +155,7 @@ export default function ViewerClient({ deliverable, token }: Props) {
             <button
               type="button"
               onClick={() => navigate(1)}
-              className="absolute right-3 p-3 bg-[#151A23]/80 hover:bg-cobalt text-primary-foreground rounded-full backdrop-blur z-20 transition-colors"
+              className="absolute right-3 z-20 rounded-full bg-[#151A23]/80 p-3 text-[#0C0A09] backdrop-blur transition-colors hover:bg-amber-400"
               aria-label="Next"
             >
               <ChevronRight size={20} />
@@ -241,7 +228,7 @@ export default function ViewerClient({ deliverable, token }: Props) {
             className={cn(
               "h-14 min-w-[88px] bg-black border-2 rounded overflow-hidden relative transition-all",
               activeIndex === idx
-                ? "border-cobalt shadow-[0_0_16px_-2px_rgba(245,158,11,0.6)]"
+                ? "border-amber-400 shadow-[0_0_16px_-2px_rgba(245,158,11,0.55)]"
                 : "border-transparent opacity-60 hover:opacity-100"
             )}
             aria-label={`Go to item ${idx + 1}`}
@@ -257,7 +244,8 @@ export default function ViewerClient({ deliverable, token }: Props) {
           </button>
         ))}
       </footer>
-    </div>
+      </div>
+    </ExternalPortalShell>
   );
 }
 

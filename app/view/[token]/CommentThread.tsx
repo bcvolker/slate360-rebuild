@@ -60,14 +60,24 @@ export default function CommentThread({ deliverableId, itemId, token }: Props) {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [linkClosed, setLinkClosed] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     const load = () => {
       fetch(`/api/view/${token}/comments?itemId=${encodeURIComponent(itemId)}`)
-        .then((r) => r.json())
+        .then(async (r) => {
+          if (r.status === 404) {
+            if (!cancelled) {
+              setLinkClosed(true);
+              setComments([]);
+            }
+            return null;
+          }
+          return r.json();
+        })
         .then((data) => {
-          if (cancelled) return;
+          if (cancelled || data === null) return;
           setComments(Array.isArray(data?.comments) ? data.comments : []);
         })
         .catch(() => !cancelled && setError("Could not load comments."))
@@ -109,6 +119,11 @@ export default function CommentThread({ deliverableId, itemId, token }: Props) {
         }),
       });
       if (!res.ok) {
+        if (res.status === 404) {
+          setLinkClosed(true);
+          setError("This review link has expired or is no longer valid.");
+          return;
+        }
         const j = await res.json().catch(() => null);
         setError(j?.error ?? "Could not post comment.");
         return;
@@ -124,9 +139,17 @@ export default function CommentThread({ deliverableId, itemId, token }: Props) {
     }
   }
 
+  if (linkClosed) {
+    return (
+      <div className="mt-6 rounded-lg border border-amber-500/25 bg-amber-500/10 px-3 py-3 text-xs text-amber-100">
+        Feedback is closed because this review link has expired or been revoked.
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col gap-4 mt-6 border-t border-white/10 pt-6">
-      <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2">
+    <div className="mt-6 flex flex-col gap-4 border-t border-white/10 pt-6">
+      <h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-foreground">
         Feedback ({comments.length})
         {comments.some((c) => c.comment_intent === "approve") && (
           <CheckCircle2 size={14} className="text-emerald-400" aria-label="Has approval" />
@@ -142,7 +165,7 @@ export default function CommentThread({ deliverableId, itemId, token }: Props) {
             placeholder="Your name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="bg-transparent text-sm text-foreground placeholder-slate-500 outline-none border-b border-white/10 pb-1.5 focus:border-cobalt transition-colors"
+            className="border-b border-white/10 bg-transparent pb-1.5 text-sm text-foreground outline-none transition-colors placeholder:text-slate-500 focus:border-amber-400"
             required
             maxLength={120}
           />
@@ -151,7 +174,7 @@ export default function CommentThread({ deliverableId, itemId, token }: Props) {
             placeholder="Email (optional)"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="bg-transparent text-sm text-foreground placeholder-slate-500 outline-none border-b border-white/10 pb-1.5 focus:border-cobalt transition-colors"
+            className="border-b border-white/10 bg-transparent pb-1.5 text-sm text-foreground outline-none transition-colors placeholder:text-slate-500 focus:border-amber-400"
           />
         </div>
 
@@ -195,7 +218,7 @@ export default function CommentThread({ deliverableId, itemId, token }: Props) {
           <button
             type="submit"
             disabled={submitting || !body.trim() || !name.trim()}
-            className="text-cobalt hover:text-foreground disabled:opacity-40 p-2 transition-colors"
+            className="rounded-lg p-2 text-amber-400 transition-colors hover:bg-amber-500/15 hover:text-amber-200 disabled:opacity-40"
             aria-label="Send comment"
           >
             {submitting ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
@@ -216,7 +239,7 @@ export default function CommentThread({ deliverableId, itemId, token }: Props) {
             <div key={c.id} className="text-sm">
               <div className="flex justify-between items-baseline mb-1 gap-2">
                 <div className="flex items-center gap-2 min-w-0">
-                  <span className="font-medium text-cobalt truncate">{c.author_name}</span>
+                  <span className="truncate font-medium text-amber-300">{c.author_name}</span>
                   {intentBadge(c.comment_intent)}
                 </div>
                 <span className="text-[10px] text-slate-500 whitespace-nowrap">
