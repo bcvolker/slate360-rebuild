@@ -48,6 +48,35 @@ export function itemHasUnsavedDraft(isActive: boolean, saveState?: string) {
   return isActive && saveState === "dirty";
 }
 
+/** Sync label for persisted items on the walk summary screen (no active draft). */
+export function deriveCaptureV2StoredItemSyncKind(
+  item: Pick<CaptureItemRecord, "id" | "sync_state" | "upload_state">,
+): CaptureV2ItemSyncKind {
+  if (
+    item.sync_state === "failed" ||
+    item.sync_state === "conflict" ||
+    item.upload_state === "failed"
+  ) {
+    return "sync_error";
+  }
+  if (item.sync_state === "syncing" || item.upload_state === "uploading") return "saving";
+  if (
+    item.sync_state === "pending" ||
+    item.upload_state === "queued" ||
+    item.id.startsWith("item-")
+  ) {
+    return "offline_queued";
+  }
+  return "saved";
+}
+
+export function itemNeedsCaptureDetails(item: {
+  title?: string | null;
+  description?: string | null;
+}) {
+  return !item.title?.trim() || !item.description?.trim();
+}
+
 export const CAPTURE_V2_ITEM_SYNC_LABEL: Record<CaptureV2ItemSyncKind, string> = {
   saved: "Saved",
   saving: "Saving",
