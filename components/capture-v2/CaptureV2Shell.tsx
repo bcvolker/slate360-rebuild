@@ -32,7 +32,7 @@ export function CaptureV2Shell(props: Props) {
     : session.project_name ?? "Plan Walk";
 
   return (
-    <main className="relative flex h-full min-h-0 w-full flex-grow flex-col overflow-hidden bg-[#0B0F15] pb-safe text-white">
+    <main className="relative flex h-screen min-h-0 w-full flex-col overflow-hidden bg-[#0B0F15] text-white">
       <CaptureV2TaskHeader session={session} stopLabel={stopLabel} contextLabel={contextLabel} />
       <CaptureV2Orchestrator {...props} />
     </main>

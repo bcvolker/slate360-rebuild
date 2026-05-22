@@ -83,7 +83,7 @@ export function MobileHomeLayout({
         aria-hidden
       />
 
-      <div className={mobileTokens.mobileHomeDockRegion}>
+      <div className={cn(mobileTokens.mobileHomeDockRegion, "mt-auto")}>
         <div className={mobileTokens.mobileHomeDockInner}>{dock}</div>
       </div>
     </div>

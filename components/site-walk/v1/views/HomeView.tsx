@@ -57,7 +57,7 @@ export function HomeView({
   return (
     <MobileHomeLayout
       route="site-walk"
-      className="flex flex-col flex-grow justify-between pb-safe"
+      className="flex min-h-0 h-full flex-1 flex-col flex-grow justify-between pb-safe"
       contentTop={
         <MobileSection showAccentLine className="shrink-0">
           <div className="flex items-center gap-3" data-testid="site-walk-module-intro">

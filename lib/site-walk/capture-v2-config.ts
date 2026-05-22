@@ -1,7 +1,10 @@
 import { SITE_WALK_CAPTURE_V2_ROUTES } from "@/lib/site-walk/capture-v2-routes";
 
-/** Side-by-side V2 testing flag — set NEXT_PUBLIC_CAPTURE_V2=true in .env.local */
-export const CAPTURE_V2_ENABLED = process.env.NEXT_PUBLIC_CAPTURE_V2 === "true";
+/**
+ * Active cutover — routes flag-aware launchers to /site-walk/capture-v2.
+ * Set NEXT_PUBLIC_CAPTURE_V2=false to fall back to legacy capture during rollback.
+ */
+export const CAPTURE_V2_ENABLED = process.env.NEXT_PUBLIC_CAPTURE_V2 !== "false";
 
 const V1_CAPTURE_BASE = "/site-walk/capture" as const;
 

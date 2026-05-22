@@ -51,7 +51,7 @@ export const mobileTokens = {
     "mx-auto flex w-full max-w-2xl shrink-0 flex-col px-4 pt-2 pb-0",
   mobileHomeAppDockTopSpacer: "h-0 max-h-0 shrink-0 overflow-hidden",
   mobileHomeDockTopSpacer: "h-0 max-h-0 shrink-0 overflow-hidden",
-  mobileHomeDockRegion: "relative z-10 w-full shrink-0 px-4 pb-3",
+  mobileHomeDockRegion: "relative z-10 w-full shrink-0 px-4 pb-0",
   mobileHomeDockInner: "mx-auto w-full max-w-2xl",
   /** Legacy anchored bottom sheet tokens (deprecated) */
   mobileHomeContentScroll: "relative z-0 h-full min-h-0 overflow-y-auto overscroll-contain",
