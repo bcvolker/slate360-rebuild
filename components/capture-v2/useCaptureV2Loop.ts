@@ -1,20 +1,13 @@
 "use client";
 
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type ChangeEvent,
-  type MouseEvent,
-} from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type MouseEvent } from "react";
 import { useCaptureContext } from "@/components/site-walk/capture/CaptureContext";
 import type { CameraRequestSource } from "@/components/site-walk/capture/capture-camera-events";
 import { useCaptureFileHandler, type CaptureIntent } from "@/components/site-walk/capture/useCaptureFileHandler";
 import { useCaptureItems } from "@/components/site-walk/capture/useCaptureItems";
 import { readQuickCaptureLaunch, removeQuickCaptureLaunch } from "@/lib/site-walk/quick-capture-launch";
 import { triggerHapticSuccess } from "@/lib/utils/trigger-haptic";
+import { flushCaptureV2Details } from "./capture-v2-save-details";
 import {
   deriveCaptureV2MachineState,
   type CaptureV2MachineState,
@@ -39,6 +32,9 @@ export function useCaptureV2Loop({ sessionId, projectId, initialItemId, launchId
   const [openingNextPicker, setOpeningNextPicker] = useState(false);
   const [externalError, setExternalError] = useState<string | null>(null);
   const [isDesktop, setIsDesktop] = useState(false);
+  const [locationLabel, setLocationLabel] = useState("");
+  const [detailsSaving, setDetailsSaving] = useState(false);
+  const [detailSaveError, setDetailSaveError] = useState<string | null>(null);
 
   const captureItems = useCaptureItems({ sessionId, projectId });
   const fileHandler = useCaptureFileHandler({
@@ -48,6 +44,11 @@ export function useCaptureV2Loop({ sessionId, projectId, initialItemId, launchId
     activeItem: captureItems.activeItem,
     onAngleCaptureFile: captureItems.savePhotoAngle,
   });
+
+  useEffect(() => {
+    setLocationLabel(captureItems.activeItem?.location_label ?? "");
+    setDetailSaveError(null);
+  }, [captureItems.activeItem?.id, captureItems.activeItem?.location_label]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -121,12 +122,15 @@ export function useCaptureV2Loop({ sessionId, projectId, initialItemId, launchId
         pendingUploadError: fileHandler.pendingUploadError,
         activePreview: fileHandler.activePreview,
         activeItem: captureItems.activeItem,
-        externalError,
+        externalError: detailSaveError ?? externalError,
+        detailsSaving,
       }),
     [
       advancingStop,
       captureItems.activeItem,
       captureItems.saveState,
+      detailSaveError,
+      detailsSaving,
       externalError,
       fileHandler.activePreview,
       fileHandler.confirmingUpload,
@@ -172,9 +176,32 @@ export function useCaptureV2Loop({ sessionId, projectId, initialItemId, launchId
     fileHandler.handleFile(file, confirmBeforeAttach);
   }
 
+  const flushDetails = useCallback(async () => {
+    const { activeItem, draft } = captureItems;
+    if (!activeItem || !draft) return;
+    setDetailsSaving(true);
+    setDetailSaveError(null);
+    const result = await flushCaptureV2Details({
+      sessionId,
+      activeItem,
+      draft,
+      locationLabel,
+    });
+    setDetailsSaving(false);
+    if (!result.ok) {
+      setDetailSaveError(result.error);
+      setExternalError(result.error);
+      return;
+    }
+    if (result.item) captureItems.selectItem(result.item);
+  }, [captureItems, locationLabel, sessionId]);
+
+  const flushDetailsRef = useRef(flushDetails);
+  flushDetailsRef.current = flushDetails;
+
   function saveAndNextStop() {
     setAdvancingStop(true);
-    captureItems.flushCurrentDraft().catch((error) => {
+    void flushDetailsRef.current().catch((error) => {
       console.error("[capture-v2] Save & Next draft flush failed", error);
     });
     fileHandler.setActivePreview(null);
@@ -197,7 +224,7 @@ export function useCaptureV2Loop({ sessionId, projectId, initialItemId, launchId
         saveAndNextStopRef.current();
         return;
       case "draft_dirty":
-        void captureItems.flushCurrentDraft();
+        void flushDetails();
         return;
       case "error":
         fileHandler.resetStatus();
@@ -208,7 +235,7 @@ export function useCaptureV2Loop({ sessionId, projectId, initialItemId, launchId
       default:
         return;
     }
-  }, [captureItems, fileHandler, isDesktop, machineState, openPickerDirect]);
+  }, [captureItems, fileHandler, flushDetails, isDesktop, machineState, openPickerDirect]);
 
   function handleDrop(file: File | undefined) {
     if (!file || fileHandler.busy) return;
@@ -231,6 +258,11 @@ export function useCaptureV2Loop({ sessionId, projectId, initialItemId, launchId
     handleDrop,
     externalError,
     setExternalError,
+    locationLabel,
+    setLocationLabel,
+    detailsSaving,
+    detailSaveError,
+    flushDetails,
   };
 }
 

@@ -60,7 +60,16 @@ export const CAPTURE_V2_STATUS_RING_CLASS: Record<string, string> = {
 };
 
 /** Smart chip templates for LogEntryDrawer quick classification inserts. */
-export const CAPTURE_V2_SMART_CHIPS = ["Safety", "Drywall", "Mechanical", "Progress"] as const;
+export const CAPTURE_V2_SMART_CHIPS = [
+  "Safety",
+  "Progress",
+  "Issue",
+  "Completed",
+  "Needs Review",
+  "Electrical",
+  "Mechanical",
+  "Drywall",
+] as const;
 
 export type CaptureV2SmartChip = (typeof CAPTURE_V2_SMART_CHIPS)[number];
 

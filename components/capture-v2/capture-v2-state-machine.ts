@@ -24,6 +24,7 @@ type DeriveArgs = {
   pendingUploadError: string | null;
   activePreview: unknown | null;
   activeItem: unknown | null;
+  detailsSaving: boolean;
   externalError: string | null;
 };
 
@@ -31,6 +32,7 @@ export function deriveCaptureV2MachineState(args: DeriveArgs): CaptureV2MachineS
   if (args.externalError || args.pendingUploadError || args.uploadStatusKind === "error") {
     return "error";
   }
+  if (args.detailsSaving) return "saving_details";
   if (args.advancingStop) return "advancing_stop";
   if (args.openingNextPicker || args.openingPicker) {
     return args.openingNextPicker ? "opening_next_picker" : "opening_picker";

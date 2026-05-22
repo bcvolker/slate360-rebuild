@@ -138,9 +138,28 @@ export function CaptureV2Orchestrator(props: Props) {
 
             )}
 
-            {phase === "viewfinder" && <CaptureV2Viewfinder loop={loop} />}
-
-            {phase === "drawer" && <CaptureV2DetailDrawer loop={loop} />}
+            {phase === "viewfinder" && (
+              <>
+                <CaptureV2Viewfinder loop={loop} />
+                {loop.activeItem && (
+                  <CaptureV2DetailDrawer
+                    loop={loop}
+                    projectId={session.project_id}
+                    mode="mobile-overlay"
+                    onClose={() => setPhase("viewfinder")}
+                  />
+                )}
+              </>
+            )}
+            {phase === "drawer" && (
+              <CaptureV2DetailDrawer
+                loop={loop}
+                projectId={session.project_id}
+                mode="mobile-full"
+                initialDetent="expanded"
+                onClose={() => setPhase("viewfinder")}
+              />
+            )}
 
             {phase === "plan" && (
 
@@ -155,45 +174,28 @@ export function CaptureV2Orchestrator(props: Props) {
 
 
           <aside className="hidden min-h-0 w-[40%] flex-col overflow-hidden border-l border-white/5 bg-slate-950/40 md:flex">
-
-            <DesktopDetailPanel
-
-              session={session}
-
-              phase={phase}
-
-              stopLabel={stopLabel}
-
-              contextLabel={contextLabel}
-
-              capturedCount={capturedCount}
-
-              machineState={loop.machineState}
-
-              saveState={loop.saveState}
-
-              uploadMessage={loop.status.message}
-
-              showPlanCanvas={showPlanCanvas}
-
-              planSetCount={planSets.length}
-
-              planSheetCount={planSheets.length}
-
-              activePreview={loop.activePreview}
-
-            />
-
-            {loop.activeItem && phase !== "drawer" && (
-
-              <div className="min-h-0 flex-1 overflow-hidden border-t border-white/5">
-
-                <CaptureV2DetailDrawer loop={loop} />
-
-              </div>
-
+            {loop.activeItem ? (
+              <CaptureV2DetailDrawer
+                loop={loop}
+                projectId={session.project_id}
+                mode="desktop"
+              />
+            ) : (
+              <DesktopDetailPanel
+                session={session}
+                phase={phase}
+                stopLabel={stopLabel}
+                contextLabel={contextLabel}
+                capturedCount={capturedCount}
+                machineState={loop.machineState}
+                saveState={loop.saveState}
+                uploadMessage={loop.status.message}
+                showPlanCanvas={showPlanCanvas}
+                planSetCount={planSets.length}
+                planSheetCount={planSheets.length}
+                activePreview={loop.activePreview}
+              />
             )}
-
           </aside>
 
         </div>
