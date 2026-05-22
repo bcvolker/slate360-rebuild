@@ -43,6 +43,9 @@ export type SiteWalkDeliverable = {
   email_snapshot_s3_key: string | null;
   allow_viewer_responses: boolean;
   allow_viewer_download: boolean;
+  async_job_progress: number;
+  async_job_status: "queued" | "processing" | "complete" | "failed" | "cancelled";
+  async_error_log: string | null;
   created_at: string;
   updated_at: string;
 };

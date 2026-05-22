@@ -11,24 +11,29 @@ import {
   MobileShellBackToApp,
   MobileSection,
   mobileTokens,
-  MobileComingSoonSheet,
   MobileHomeLayout,
 } from "@/components/mobile-system";
 import { type RouterLike, timeAgo } from "./v1-view-utils";
-import { useState } from "react";
 
 type HomeViewProps = {
   walks: HubWalk[];
   projects: HubProject[];
   summary: HubSummary;
   router: RouterLike;
-  setTab: (t: V1NavTab) => void;
+  setTab?: (t: V1NavTab) => void;
   onQuickCapture?: () => void;
 };
 
-export function HomeView({ walks, projects, summary, router, onQuickCapture }: HomeViewProps) {
-  const [comingSoonTitle, setComingSoonTitle] = useState<string | null>(null);
-
+export function HomeView({
+  walks,
+  projects,
+  summary,
+  router,
+  setTab,
+  onQuickCapture,
+}: HomeViewProps) {
+  const openDeliverables = () =>
+    setTab ? setTab("deliverables") : router.push("/site-walk/deliverables");
   const recentWalks = walks.slice(0, 20);
 
   const walksByProject = new Map<string, number>();
@@ -41,106 +46,99 @@ export function HomeView({ walks, projects, summary, router, onQuickCapture }: H
   }
 
   return (
-    <>
-      <MobileHomeLayout
-        route="site-walk"
-        contentTop={
-          <MobileSection showAccentLine className="shrink-0">
-            <div className="flex items-center gap-3" data-testid="site-walk-module-intro">
-              <MobileShellBackToApp />
-              <div className="min-w-0">
-                <h1 className={mobileTokens.moduleTitle}>
-                  SITE <span className={mobileTokens.moduleTitleAccent}>WALK</span>
-                </h1>
-                <p className={mobileTokens.moduleSubtitle}>Field capture &amp; deliverables</p>
-              </div>
+    <MobileHomeLayout
+      route="site-walk"
+      contentTop={
+        <MobileSection showAccentLine className="shrink-0">
+          <div className="flex items-center gap-3" data-testid="site-walk-module-intro">
+            <MobileShellBackToApp />
+            <div className="min-w-0">
+              <h1 className={mobileTokens.moduleTitle}>
+                SITE <span className={mobileTokens.moduleTitleAccent}>WALK</span>
+              </h1>
+              <p className={mobileTokens.moduleSubtitle}>Field capture &amp; deliverables</p>
             </div>
-          </MobileSection>
-        }
-        primaryActions={
-          <MobileSection
-            label="Actions"
-            showAccentLine="cool"
-            className="flex min-h-0 flex-1 flex-col"
-            contentClassName="flex min-h-0 flex-1 flex-col"
-          >
-            <SiteWalkV1ActionGrid
-              className="min-h-0 flex-1"
-              onNewWorksite={() => router.push("/site-walk/setup")}
-              onStartWalk={() => router.push("/site-walk/walks")}
-              onQuickCapture={onQuickCapture}
-            />
-          </MobileSection>
-        }
-        dock={
-          <SiteWalkV1ListPanel
-            recentContent={
-              recentWalks.length > 0 ? (
-                <WalkList walks={recentWalks} router={router} setComingSoonTitle={setComingSoonTitle} />
-              ) : (
-                <MobileEmptyState
-                  compact
-                  title="No recent walks."
-                  description="Start a walk or quick capture to see activity here."
-                />
-              )
-            }
-            worksitesContent={
-              projects.length > 0 ? (
-                <div className="flex flex-col gap-1.5">
-                  {projects.map((p) => (
-                    <WorksiteV1Row
-                      key={p.id}
-                      name={p.name}
-                      walkCount={walksByProject.get(p.id) ?? 0}
-                      lastActivity={timeAgo(lastActivityByProject.get(p.id) ?? null)}
-                      onOpen={() => setComingSoonTitle("Project Dashboard")}
-                      onStartWalk={() => router.push("/site-walk/setup")}
-                      onPlansAndDocs={() => setComingSoonTitle("Plans & Docs")}
-                      onSlateDrop={() => setComingSoonTitle("SlateDrop")}
-                      onCollaborators={() => setComingSoonTitle("Collaborators")}
-                      onDeliverables={() => setComingSoonTitle("Deliverables")}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <MobileEmptyState compact title="No worksites yet." description="Create a worksite to get started." />
-              )
-            }
-            sharedContent={<MobileEmptyState compact title="No shared work yet." />}
-            reviewContent={
-              summary.needsReview > 0 ? (
-                <MobileEmptyState
-                  compact
-                  title={`${summary.needsReview} item${summary.needsReview === 1 ? "" : "s"} need review.`}
-                  description="Open a walk to review resolved items."
-                />
-              ) : (
-                <MobileEmptyState compact title="Nothing needs review." />
-              )
-            }
+          </div>
+        </MobileSection>
+      }
+      primaryActions={
+        <MobileSection
+          label="Actions"
+          showAccentLine="cool"
+          className="flex min-h-0 flex-1 flex-col"
+          contentClassName="flex min-h-0 flex-1 flex-col"
+        >
+          <SiteWalkV1ActionGrid
+            className="min-h-0 flex-1"
+            onNewWorksite={() => router.push("/site-walk/setup")}
+            onStartWalk={() => router.push("/site-walk/walks")}
+            onQuickCapture={onQuickCapture}
           />
-        }
-      />
-      {comingSoonTitle && (
-        <MobileComingSoonSheet
-          open={!!comingSoonTitle}
-          onOpenChange={(open) => !open && setComingSoonTitle(null)}
-          title={`${comingSoonTitle} on Mobile`}
+        </MobileSection>
+      }
+      dock={
+        <SiteWalkV1ListPanel
+          recentContent={
+            recentWalks.length > 0 ? (
+              <WalkList walks={recentWalks} router={router} onDeliverables={openDeliverables} />
+            ) : (
+              <MobileEmptyState
+                compact
+                title="No recent walks."
+                description="Start a walk or quick capture to see activity here."
+              />
+            )
+          }
+          worksitesContent={
+            projects.length > 0 ? (
+              <div className="flex flex-col gap-1.5">
+                {projects.map((p) => (
+                  <WorksiteV1Row
+                    key={p.id}
+                    name={p.name}
+                    walkCount={walksByProject.get(p.id) ?? 0}
+                    lastActivity={timeAgo(lastActivityByProject.get(p.id) ?? null)}
+                    onOpen={() => router.push("/site-walk/walks")}
+                    onStartWalk={() => router.push("/site-walk/setup")}
+                    onPlansAndDocs={() => router.push("/site-walk/setup")}
+                    onSlateDrop={() => router.push(`/projects/${encodeURIComponent(p.id)}/slatedrop`)}
+                    onCollaborators={() => router.push("/site-walk/setup")}
+                    onDeliverables={openDeliverables}
+                  />
+                ))}
+              </div>
+            ) : (
+              <MobileEmptyState compact title="No worksites yet." description="Create a worksite to get started." />
+            )
+          }
+          sharedContent={<MobileEmptyState compact title="No shared work yet." />}
+          reviewContent={
+            summary.needsReview > 0 ? (
+              <MobileEmptyState
+                compact
+                title={`${summary.needsReview} item${summary.needsReview === 1 ? "" : "s"} need review.`}
+                description="Open a walk to review resolved items."
+                actionLabel="Open walks"
+                actionHref="/site-walk/walks"
+              />
+            ) : (
+              <MobileEmptyState compact title="Nothing needs review." />
+            )
+          }
         />
-      )}
-    </>
+      }
+    />
   );
 }
 
 function WalkList({
   walks,
   router,
-  setComingSoonTitle,
+  onDeliverables,
 }: {
   walks: HubWalk[];
   router: RouterLike;
-  setComingSoonTitle: (title: string) => void;
+  onDeliverables: () => void;
 }) {
   return (
     <div className="flex flex-col gap-1.5">
@@ -159,7 +157,11 @@ function WalkList({
                 : `/site-walk/capture?session=${encodeURIComponent(w.id)}`,
             )
           }
-          onCreateReport={() => setComingSoonTitle("Deliverables")}
+          onCreateReport={() =>
+            w.status === "completed"
+              ? router.push(`/site-walk/walks/${encodeURIComponent(w.id)}`)
+              : onDeliverables()
+          }
         />
       ))}
     </div>

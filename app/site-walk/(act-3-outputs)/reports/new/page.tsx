@@ -10,16 +10,18 @@ export default async function ReportBuilderPage() {
   if (!ctx.user) redirect(`/login?next=/site-walk/reports/new`);
 
   return (
-    <div className="p-4 md:p-6 max-w-[1600px] mx-auto h-full flex flex-col">
+    <main className="flex h-full min-h-0 flex-col overflow-hidden">
+      <div className="mx-auto flex min-h-0 w-full max-w-[1600px] flex-1 flex-col overflow-y-auto p-4 no-scrollbar md:p-6">
       <div className="mb-6 flex items-center justify-between shrink-0">
         <div>
           <h1 className="text-2xl font-black text-white">Deliverable Builder</h1>
           <p className="mt-1 text-sm text-slate-400">Assemble field data into a branded report</p>
         </div>
       </div>
-      <div className="flex-1 min-h-0">
+      <div className="min-h-0 flex-1">
         <ReportBuilderClient />
       </div>
-    </div>
+      </div>
+    </main>
   );
 }

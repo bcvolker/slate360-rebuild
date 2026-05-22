@@ -6,6 +6,7 @@ import type {
   HubSummary,
   HubWalk,
 } from "@/lib/types/site-walk";
+import { excludeDeletedSiteWalkItems } from "@/lib/site-walk/item-filters";
 
 /* ------------------------------------------------------------------ */
 /*  Shared read-only loader for Site Walk hub data.                    */
@@ -77,6 +78,7 @@ export async function loadSiteWalkHubData(
         .from("site_walk_items")
         .select("item_status, sync_state")
         .eq("org_id", orgId)
+        .is("deleted_at", null)
         .limit(1000),
       admin
         .from("site_walk_deliverables")
@@ -151,11 +153,13 @@ async function loadItemCounts(
   sessionIds: string[],
 ) {
   if (sessionIds.length === 0) return new Map<string, number>();
-  const { data } = await admin
+  let query = admin
     .from("site_walk_items")
     .select("session_id")
     .eq("org_id", orgId)
     .in("session_id", sessionIds);
+  query = excludeDeletedSiteWalkItems(query);
+  const { data } = await query;
   const counts = new Map<string, number>();
   for (const row of (data ?? []) as CountRow[])
     counts.set(row.session_id, (counts.get(row.session_id) ?? 0) + 1);

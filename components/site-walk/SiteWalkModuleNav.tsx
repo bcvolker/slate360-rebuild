@@ -3,28 +3,53 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import GlassCard from "@/components/shared/GlassCard";
+import { MobileShellBrand, MobileTopBar } from "@/components/mobile-system";
 
 type Props = {
   orgName?: string | null;
 };
 
-export function SiteWalkModuleNav({ orgName }: Props) {
-  const pathname = usePathname() ?? "/site-walk";
+export function resolveSiteWalkRouteTitle(pathname: string): string {
+  if (pathname.startsWith("/site-walk/setup")) return "Setup";
+  if (pathname.startsWith("/site-walk/walks/") && pathname !== "/site-walk/walks") {
+    return "Walk Review";
+  }
+  if (pathname.startsWith("/site-walk/walks")) return "Walks";
+  if (pathname.startsWith("/site-walk/deliverables")) return "Deliverables";
+  if (pathname.startsWith("/site-walk/reports")) return "Reports";
+  if (pathname.startsWith("/site-walk/assigned-work")) return "Assigned Work";
+  if (pathname.startsWith("/site-walk/progression")) return "Progress";
+  if (pathname.startsWith("/site-walk/items")) return "Items";
+  if (pathname.startsWith("/site-walk/more")) return "More";
+  if (pathname.startsWith("/site-walk/slatedrop")) return "SlateDrop";
+  if (pathname.startsWith("/site-walk/capture")) return "Capture";
+  return "Site Walk";
+}
 
-  if (pathname === "/site-walk") return null;
+/** Sub-route header for non-home Site Walk pages inside MobileAppShell. */
+export function SiteWalkSubRouteHeader({ orgName }: Props) {
+  const pathname = usePathname() ?? "/site-walk";
+  const title = resolveSiteWalkRouteTitle(pathname);
 
   return (
-    <div className="sticky top-0 z-30 bg-[#0B0F15]/92 px-3 pt-2 backdrop-blur-xl sm:px-6 lg:px-8">
-      <GlassCard className="mx-auto flex max-w-7xl items-center justify-between gap-3 rounded-2xl px-3 py-2">
-        <div className="min-w-0">
-          <p className="text-[10px] font-black uppercase tracking-[0.18em] text-amber-400">Site Walk</p>
-          <p className="truncate text-xs font-bold text-slate-400">{orgName ?? "Field workspace"}</p>
-        </div>
-        <Link href="/site-walk" className="inline-flex min-h-9 shrink-0 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-3 text-xs font-black text-slate-200 transition hover:border-amber-400/60 hover:text-amber-200">
-          <ArrowLeft className="h-3.5 w-3.5" /> Home
+    <MobileTopBar
+      title={title}
+      subtitle={orgName ?? "Field workspace"}
+      leftSlot={
+        <Link
+          href="/site-walk"
+          className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.04] px-2.5 text-xs font-semibold text-zinc-200 transition-colors hover:border-amber-400/40 hover:text-amber-100"
+        >
+          <ArrowLeft className="size-3.5" />
+          Home
         </Link>
-      </GlassCard>
-    </div>
+      }
+      rightSlot={<MobileShellBrand href="/app" iconClassName="h-7 w-7" />}
+    />
   );
+}
+
+/** @deprecated Use SiteWalkSubRouteHeader via SiteWalkShell. Kept for import compatibility. */
+export function SiteWalkModuleNav({ orgName }: Props) {
+  return <SiteWalkSubRouteHeader orgName={orgName} />;
 }

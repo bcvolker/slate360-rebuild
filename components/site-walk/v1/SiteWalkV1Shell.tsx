@@ -15,9 +15,7 @@ import {
   MobileAppShell,
   MobileBottomNav,
   type MobileBottomNavItem,
-  MobileComingSoonSheet,
 } from "@/components/mobile-system";
-import { useState } from "react";
 import { cn } from "@/lib/utils";
 
 type SiteWalkV1ShellProps = {
@@ -53,8 +51,6 @@ export function SiteWalkV1Shell({
   children,
   className,
 }: SiteWalkV1ShellProps) {
-  const [comingSoonTitle, setComingSoonTitle] = useState<string | null>(null);
-
   const navItems: MobileBottomNavItem<V1NavTab>[] = [
     { key: "home", label: "Home", icon: Home, onSelect: () => onTabChange("home") },
     {
@@ -63,9 +59,9 @@ export function SiteWalkV1Shell({
       icon: MapPin,
       onSelect: () => onTabChange("worksites"),
     },
-    { key: "slatedrop", label: "SlateDrop", icon: FolderOpen, onSelect: () => setComingSoonTitle("SlateDrop") },
-    { key: "coordination", label: "Coordination", icon: MessageSquare, onSelect: () => setComingSoonTitle("Coordination") },
-    { key: "deliverables", label: "Deliverables", icon: Package, onSelect: () => setComingSoonTitle("Deliverables") },
+    { key: "slatedrop", label: "SlateDrop", icon: FolderOpen, onSelect: () => onTabChange("slatedrop") },
+    { key: "coordination", label: "Coordination", icon: MessageSquare, onSelect: () => onTabChange("coordination") },
+    { key: "deliverables", label: "Deliverables", icon: Package, onSelect: () => onTabChange("deliverables") },
   ];
 
   return (
@@ -107,7 +103,6 @@ export function SiteWalkV1Shell({
           primaryAction={primaryAction}
           overflowActions={overflowActions}
           showAvatar
-          showToolIcons={activeTab === "home"}
         />
       }
       mainClassName={className}
@@ -122,13 +117,6 @@ export function SiteWalkV1Shell({
     >
       {children}
       </MobileAppShell>
-      {comingSoonTitle && (
-        <MobileComingSoonSheet
-          open={!!comingSoonTitle}
-          onOpenChange={(open) => !open && setComingSoonTitle(null)}
-          title={`${comingSoonTitle} on Mobile`}
-        />
-      )}
     </>
   );
 }

@@ -1,85 +1,114 @@
 "use client";
 
-import {
-  Plus,
-  FileText,
-  Camera,
-  Eye,
-  Globe,
-  CuboidIcon,
-  Clock,
-  FileDown,
-  CheckSquare,
-  Package,
-} from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { Plus, FileText, Clock, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { MobileComingSoonSheet } from "@/components/mobile-system";
-import { useState } from "react";
+import { MobileEmptyState } from "@/components/mobile-system";
+import { type RouterLike } from "./v1-view-utils";
 
-const categories: { icon: typeof FileText; label: string }[] = [
-  { icon: Eye, label: "Visual Walk Summary" },
-  { icon: CheckSquare, label: "Punch / Issue Package" },
-  { icon: FileText, label: "Proposal Package" },
-  { icon: Camera, label: "Before & After" },
-  { icon: Clock, label: "Progress Timeline" },
-  { icon: Globe, label: "360 Tour" },
-  { icon: CuboidIcon, label: "3D Model Review" },
-  { icon: Package, label: "Closeout Record" },
-  { icon: FileDown, label: "PDF Export" },
-];
+export type V1DeliverableRow = {
+  id: string;
+  title: string;
+  deliverable_type: string;
+  status: string;
+  created_at: string;
+  share_token: string | null;
+};
 
-export function DeliverablesView() {
-  const [comingSoonOpen, setComingSoonOpen] = useState(false);
+type DeliverablesViewProps = {
+  deliverables?: V1DeliverableRow[];
+  router?: RouterLike;
+};
 
-  const openComingSoon = () => setComingSoonOpen(true);
+const STATUS_STYLE: Record<string, string> = {
+  draft: "text-zinc-400",
+  in_review: "text-amber-300",
+  approved: "text-emerald-300",
+  shared: "text-teal-300",
+  published: "text-teal-300",
+  archived: "text-zinc-500",
+};
 
+export function DeliverablesView({ deliverables = [], router: routerProp }: DeliverablesViewProps) {
+  const routerFromHook = useRouter();
+  const router = routerProp ?? routerFromHook;
   return (
-    <div className="flex-1 min-h-0 overflow-y-auto flex flex-col gap-4 p-4">
-      <div className="flex items-center justify-between">
+    <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4 pb-[max(env(safe-area-inset-bottom),1rem)]">
+      <div className="flex shrink-0 items-center justify-between gap-2">
         <p className="text-sm font-medium text-zinc-300">Deliverables</p>
         <Button
           size="sm"
           className="gap-1.5 rounded-lg bg-amber-600 text-white hover:bg-amber-700"
-          onClick={openComingSoon}
+          onClick={() => router.push("/site-walk/walks")}
         >
           <Plus className="size-3.5" />
-          Create Deliverable
+          From Walk
         </Button>
       </div>
 
-      <div>
-        <p className="mb-2 text-xs font-medium uppercase tracking-wider text-zinc-600">
-          Deliverable types
-        </p>
-        <div className="flex flex-wrap gap-2">
-          {categories.map(({ icon: Icon, label }) => (
-            <button
-              key={label}
-              type="button"
-              onClick={openComingSoon}
-              className="flex items-center gap-1.5 rounded-lg border border-white/5 bg-white/[0.03] px-2.5 py-1.5 text-xs font-medium text-zinc-400 transition-colors hover:border-amber-500/20 hover:bg-white/[0.06] hover:text-zinc-200"
+      {deliverables.length === 0 ? (
+        <MobileEmptyState
+          icon={FileText}
+          title="No deliverables yet"
+          description="Complete a walk, review captures, then create a deliverable from the walk summary."
+          actionLabel="Open walks"
+          actionHref="/site-walk/walks"
+        />
+      ) : (
+        <div className="flex flex-col gap-2">
+          {deliverables.map((d) => (
+            <article
+              key={d.id}
+              className="rounded-xl border border-white/10 bg-white/[0.03] p-3"
             >
-              <Icon className="size-3.5" />
-              {label}
-            </button>
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-amber-400/80">
+                    {d.deliverable_type.replace(/_/g, " ")}
+                  </p>
+                  <h3 className="mt-0.5 truncate text-sm font-semibold text-white">
+                    {d.title || "Untitled deliverable"}
+                  </h3>
+                  <p className="mt-1 flex items-center gap-1 text-xs text-zinc-500">
+                    <Clock className="size-3" />
+                    {new Date(d.created_at).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    })}
+                    <span className="mx-1">·</span>
+                    <span className={STATUS_STYLE[d.status] ?? STATUS_STYLE.draft}>
+                      {d.status.replace(/_/g, " ")}
+                    </span>
+                  </p>
+                </div>
+                {d.share_token && (
+                  <Link
+                    href={`/share/deliverable/${d.share_token}`}
+                    className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] text-zinc-400 hover:text-amber-200"
+                    title="Open shared deliverable"
+                  >
+                    <ExternalLink className="size-4" />
+                  </Link>
+                )}
+              </div>
+            </article>
           ))}
+          <Link
+            href="/site-walk/deliverables"
+            className="mt-1 hidden rounded-lg border border-white/10 bg-white/[0.02] px-4 py-3 text-center text-sm font-medium text-zinc-300 transition-colors hover:bg-white/[0.05] md:block"
+          >
+            View all deliverables
+          </Link>
+          <Link
+            href="/site-walk?tab=deliverables"
+            className="mt-1 rounded-lg border border-white/10 bg-white/[0.02] px-4 py-3 text-center text-sm font-medium text-zinc-300 transition-colors hover:bg-white/[0.05] md:hidden"
+          >
+            View all deliverables
+          </Link>
         </div>
-      </div>
-
-      <button
-        type="button"
-        onClick={openComingSoon}
-        className="mt-2 rounded-lg border border-white/5 bg-white/[0.03] px-4 py-3 text-left text-sm text-zinc-300 transition-colors hover:bg-white/[0.06]"
-      >
-        View all deliverables →
-      </button>
-
-      <MobileComingSoonSheet
-        open={comingSoonOpen}
-        onOpenChange={setComingSoonOpen}
-        title="Deliverables on Mobile"
-        description="A new deliverables experience is coming with the Site Walk capture refresh. Legacy deliverables pages stay on desktop for now."
-      />
+      )}
     </div>
   );
 }

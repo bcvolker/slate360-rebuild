@@ -2,17 +2,17 @@ import Link from "next/link";
 import { FileText, FolderOpen, LayoutTemplate, Users } from "lucide-react";
 
 const items = [
-  { label: "Files & SlateDrop", description: "Browse files and shared drops", href: "/site-walk/slatedrop", icon: FolderOpen },
+  { label: "Files & SlateDrop", description: "Browse files and shared drops", href: "/slatedrop", icon: FolderOpen },
   { label: "Templates", description: "Punch list templates", href: "/site-walk/setup", icon: LayoutTemplate },
   { label: "Contacts", description: "Project contacts and assignees", href: "/site-walk/setup", icon: Users },
-  { label: "Deliverables", description: "Exported reports and docs", href: "/site-walk/deliverables", icon: FileText },
+  { label: "Deliverables", description: "Exported reports and docs", href: "/site-walk?tab=deliverables", icon: FileText },
 ];
 
 export default function SiteWalkMorePage() {
   return (
-    <main className="min-h-[calc(100dvh-96px)] bg-[radial-gradient(circle_at_top,rgba(245,158,11,0.14),transparent_34%),#0B0F15] px-4 py-4 text-slate-50 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-xl space-y-4">
-        <h1 className="text-2xl font-black">More</h1>
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+      <div className="mx-auto flex min-h-0 w-full max-w-xl flex-1 flex-col gap-4 overflow-y-auto px-4 py-4 pb-[max(env(safe-area-inset-bottom),1rem)]">
+        <h1 className="text-2xl font-black text-white">More</h1>
         <div className="space-y-2">
           {items.map(({ label, description, href, icon: Icon }) => (
             <Link
@@ -31,6 +31,6 @@ export default function SiteWalkMorePage() {
           ))}
         </div>
       </div>
-    </main>
+    </div>
   );
 }

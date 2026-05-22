@@ -1,5 +1,3 @@
-import Link from "next/link";
-import { ArrowRight } from "lucide-react";
 import { getEntitlements, resolveModularEntitlements } from "@/lib/entitlements";
 import type { OrgAppSubscriptions } from "@/lib/entitlements";
 import { resolveServerOrgContext } from "@/lib/server/org-context";
@@ -23,12 +21,12 @@ export default async function SiteWalkSetupPage() {
 
   if (!context.user || !context.orgId) {
     return (
-      <main className="dark min-h-[100dvh] bg-[#0B0F15] px-4 py-6 text-slate-100 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-3xl rounded-3xl border border-white/10 bg-white/5 p-6 shadow-lg backdrop-blur-md">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-4 py-4 text-slate-100 sm:px-6 lg:px-8">
+        <div className="mx-auto w-full max-w-3xl overflow-y-auto rounded-3xl border border-white/10 bg-white/5 p-6 shadow-lg backdrop-blur-md">
           <h1 className="text-2xl font-black text-white">Sign in required</h1>
           <p className="mt-2 text-sm text-slate-300">Site Walk setup needs an organization workspace.</p>
         </div>
-      </main>
+      </div>
     );
   }
 
@@ -46,8 +44,8 @@ export default async function SiteWalkSetupPage() {
   const tier = resolveSetupTier(context.tier, context.isSlateCeo, subscriptionsResult.data ?? null);
 
   return (
-    <main className="dark min-h-[100dvh] bg-[#0B0F15] px-4 py-6 text-slate-100 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-5xl space-y-5">
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden text-slate-100">
+      <div className="mx-auto flex min-h-0 w-full max-w-5xl flex-1 flex-col gap-4 overflow-y-auto px-4 py-4 pb-[max(env(safe-area-inset-bottom),1rem)] no-scrollbar sm:px-6 lg:px-8">
         <SiteWalkSetupClient
           brandSettings={(orgResult.data?.brand_settings ?? {}) as BrandSettings}
           contacts={(contactsResult.data ?? []) as SetupContact[]}
@@ -56,12 +54,8 @@ export default async function SiteWalkSetupPage() {
           projects={projects}
           tier={tier}
         />
-
-        <Link href="/site-walk" className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-bold text-slate-100 backdrop-blur-md hover:border-white/20 hover:bg-white/10">
-          Back to Site Walk <ArrowRight className="h-4 w-4" />
-        </Link>
       </div>
-    </main>
+    </div>
   );
 }
 

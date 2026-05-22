@@ -42,6 +42,9 @@ export type SiteWalkSession = {
   session_type: SiteWalkSessionType;
   sync_state: SiteWalkSyncState;
   last_synced_at: string | null;
+  capture_v2_version: string | null;
+  last_sync_error: string | null;
+  created_offline_at: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -93,6 +96,9 @@ export type SiteWalkItem = {
   tags: string[];
   trade: string | null;
   category: string | null;
+  last_sync_error: string | null;
+  retry_count: number;
+  deleted_at: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -117,6 +123,9 @@ export type UpdateSessionPayload = {
   session_type?: SiteWalkSessionType;
   sync_state?: SiteWalkSyncState;
   last_synced_at?: string | null;
+  capture_v2_version?: string | null;
+  last_sync_error?: string | null;
+  created_offline_at?: string | null;
 };
 
 export type CreateItemPayload = {

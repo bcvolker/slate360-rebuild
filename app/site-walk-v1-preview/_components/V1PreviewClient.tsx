@@ -64,7 +64,6 @@ export function V1PreviewClient({
           projects={projects}
           summary={summary}
           router={router}
-          setTab={setTab}
         />
       )}
       {tab === "worksites" && (

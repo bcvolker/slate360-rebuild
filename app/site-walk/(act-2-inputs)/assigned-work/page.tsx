@@ -11,8 +11,8 @@ export default async function SiteWalkAssignedWorkPage() {
   const assignments = context.orgId && context.user ? await loadAssignments(context.orgId, context.user.id) : [];
 
   return (
-    <main className="min-h-[calc(100dvh-96px)] overflow-y-auto bg-[radial-gradient(circle_at_top,rgba(245,158,11,0.07),transparent_34%),#0B0F15] px-4 py-4 text-slate-50 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-5xl space-y-4">
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden text-slate-50">
+      <div className="mx-auto flex min-h-0 w-full max-w-5xl flex-1 flex-col gap-4 overflow-y-auto px-4 py-4 pb-[max(env(safe-area-inset-bottom),1rem)] no-scrollbar sm:px-6 lg:px-8">
         <div>
           <p className="text-xs font-black uppercase tracking-[0.2em] text-amber-400">Site Walk</p>
           <h1 className="mt-1 text-2xl font-black">Assigned Work</h1>
@@ -38,7 +38,7 @@ export default async function SiteWalkAssignedWorkPage() {
           )}
         </section>
       </div>
-    </main>
+    </div>
   );
 }
 

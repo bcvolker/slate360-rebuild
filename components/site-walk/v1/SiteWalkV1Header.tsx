@@ -1,20 +1,6 @@
 "use client";
 
-import {
-  MoreVertical,
-  Search,
-  Bell,
-  Share2,
-  MessageSquarePlus,
-  User,
-  Settings,
-  CreditCard,
-  Building2,
-  MessageSquare,
-  HelpCircle,
-  LogOut,
-  ArrowLeft,
-} from "lucide-react";
+import { MoreVertical, User, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { MobileShellBrand, MobileTopBar } from "@/components/mobile-system";
@@ -41,8 +27,6 @@ type SiteWalkV1HeaderProps = {
   };
   overflowActions?: HeaderAction[];
   showAvatar?: boolean;
-  /** Show the full header tool row (Search, Notifications, Share, Feedback). */
-  showToolIcons?: boolean;
   className?: string;
 };
 
@@ -50,7 +34,6 @@ export function SiteWalkV1Header({
   primaryAction,
   overflowActions,
   showAvatar = false,
-  showToolIcons = false,
   className,
 }: SiteWalkV1HeaderProps) {
   return (
@@ -96,38 +79,10 @@ export function SiteWalkV1Header({
             </DropdownMenu>
           )}
 
-          {showToolIcons && (
-            <div className="flex items-center -mr-1.5">
-              <ToolIcon icon={Bell} label="Notifications" />
-              <ToolIcon icon={Share2} label="Share" className="hidden min-[400px]:flex" />
-              <ToolIcon icon={MessageSquarePlus} label="Feedback" />
-            </div>
-          )}
-
           {showAvatar && <AvatarMenu />}
         </>
       }
     />
-  );
-}
-
-function ToolIcon({
-  icon: Icon,
-  label,
-  className,
-}: {
-  icon: typeof Search;
-  label: string;
-  className?: string;
-}) {
-  return (
-    <button
-      type="button"
-      aria-label={label}
-      className={cn(mobileTokens.mobileHeaderToolIcon, className)}
-    >
-      <Icon className="size-[15px]" />
-    </button>
   );
 }
 
@@ -149,34 +104,11 @@ function AvatarMenu() {
         align="end"
         className="min-w-[180px] border-white/10 bg-[#0B0F15]"
       >
-        <DropdownMenuItem className="gap-2 text-zinc-300">
-          <User className="size-4" /> Account
-        </DropdownMenuItem>
-        <DropdownMenuItem className="gap-2 text-zinc-300">
-          <Settings className="size-4" /> Settings
-        </DropdownMenuItem>
-        <DropdownMenuItem className="gap-2 text-zinc-300">
-          <CreditCard className="size-4" /> Billing
-        </DropdownMenuItem>
-        <DropdownMenuItem className="gap-2 text-zinc-300">
-          <Building2 className="size-4" /> Organization
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem className="gap-2 text-zinc-300 min-[400px]:hidden">
-          <Share2 className="size-4" /> Share / Invite
+        <DropdownMenuItem asChild className="gap-2 text-zinc-300 cursor-pointer">
+          <Link href="/more"><User className="size-4" /> Account</Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild className="gap-2 text-zinc-300 cursor-pointer">
           <Link href="/app"><ArrowLeft className="size-4" /> Back to Slate360</Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem className="gap-2 text-zinc-300">
-          <MessageSquare className="size-4" /> Feedback
-        </DropdownMenuItem>
-        <DropdownMenuItem className="gap-2 text-zinc-300">
-          <HelpCircle className="size-4" /> Help
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem className="gap-2 text-red-400">
-          <LogOut className="size-4" /> Sign Out
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

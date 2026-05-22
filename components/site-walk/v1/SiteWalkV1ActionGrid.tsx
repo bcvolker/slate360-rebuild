@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus, Play, Camera, Search } from "lucide-react";
+import { Plus, Play, Camera } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { mobileTokens, type MobileQuickActionAccent } from "@/components/mobile-system/mobileTokens";
 
@@ -8,7 +8,6 @@ type SiteWalkV1ActionGridProps = {
   onNewWorksite?: () => void;
   onStartWalk?: () => void;
   onQuickCapture?: () => void;
-  onSearch?: () => void;
   className?: string;
 };
 
@@ -48,25 +47,23 @@ export function SiteWalkV1ActionGrid({
   onNewWorksite,
   onStartWalk,
   onQuickCapture,
-  onSearch,
   className,
 }: SiteWalkV1ActionGridProps) {
   const actions: ActionSpec[] = [
     { label: "Create Worksite", icon: Plus, accent: "primary", onClick: onNewWorksite },
     { label: "Walk from Worksite", icon: Play, accent: "info", onClick: onStartWalk },
     { label: "Quick Walk", icon: Camera, accent: "warm", onClick: onQuickCapture },
-    { label: "Search", icon: Search, accent: "muted", onClick: onSearch },
-  ];
+  ].filter((action): action is ActionSpec & { onClick: () => void } => Boolean(action.onClick));
 
   return (
     <div
       data-testid="site-walk-action-grid"
-      className={cn(mobileTokens.siteWalkActionGridRow, className)}
+      className={cn(mobileTokens.siteWalkActionGridRow, "grid-cols-3", className)}
       role="toolbar"
       aria-label="Site Walk actions"
     >
       {actions.map((action) => (
-        <ActionButton key={action.label} {...action} onClick={action.onClick ?? (() => {})} />
+        <ActionButton key={action.label} {...action} />
       ))}
     </div>
   );

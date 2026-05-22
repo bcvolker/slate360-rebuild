@@ -20,8 +20,8 @@ export default async function SiteWalkSlateDropPage() {
   }
 
   return (
-    <main className="min-h-[calc(100dvh-96px)] bg-[radial-gradient(circle_at_top,rgba(245,158,11,0.14),transparent_34%),#0B0F15] px-4 py-4 text-slate-50 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-5xl space-y-4">
+    <main className="flex h-full min-h-0 flex-col overflow-hidden bg-[radial-gradient(circle_at_top,rgba(245,158,11,0.14),transparent_34%),#0B0F15] text-slate-50">
+      <div className="mx-auto flex min-h-0 w-full max-w-5xl flex-1 flex-col gap-4 overflow-y-auto px-4 py-4 no-scrollbar sm:px-6 lg:px-8">
         <section className="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-lg backdrop-blur-md">
           <div className="flex items-center gap-3">
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-500 text-white"><FolderOpen className="h-6 w-6" /></div>

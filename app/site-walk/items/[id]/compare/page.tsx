@@ -30,7 +30,8 @@ export default function CompareItemPage({ params }: { params: Promise<{ id: stri
   }, [id]);
 
   return (
-    <main className="min-h-screen bg-slate-950 px-4 py-6 text-slate-100 md:px-8">
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden text-slate-100">
+      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-4 py-4 pb-[max(env(safe-area-inset-bottom),1rem)] no-scrollbar md:px-8">
       <header className="mx-auto mb-4 flex max-w-6xl items-center gap-3">
         <Link href="/site-walk" className="inline-flex items-center gap-1 rounded-2xl border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-black uppercase tracking-wider text-slate-200 hover:text-white">
           <ArrowLeft className="h-4 w-4" /> Back
@@ -61,7 +62,8 @@ export default function CompareItemPage({ params }: { params: Promise<{ id: stri
       {pair && !pair.before && !pair.after && !loading && (
         <p className="mx-auto mt-6 max-w-6xl rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-slate-300">No paired item found. Link this capture to a previous one from the bottom sheet to enable before/after.</p>
       )}
-    </main>
+      </div>
+    </div>
   );
 }
 

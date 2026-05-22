@@ -12,7 +12,7 @@ type Response = { groups?: Group[]; error?: string };
 
 export default function ProgressionPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-slate-950 px-4 py-10 text-slate-400">Loading…</div>}>
+    <Suspense fallback={<div className="flex h-full items-center justify-center px-4 py-10 text-slate-400">Loading…</div>}>
       <ProgressionPageInner />
     </Suspense>
   );
@@ -43,9 +43,10 @@ function ProgressionPageInner() {
   }, [projectId]);
 
   return (
-    <main className="min-h-screen bg-slate-950 px-4 py-6 text-slate-100 md:px-8">
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden text-slate-100">
+      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-4 py-4 pb-[max(env(safe-area-inset-bottom),1rem)] no-scrollbar md:px-8">
       <header className="mx-auto mb-4 flex max-w-6xl items-center gap-3">
-        <Link href="/site-walk" className="inline-flex items-center gap-1 rounded-2xl border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-black uppercase tracking-wider text-slate-200 hover:text-white">
+        <Link href="/site-walk/walks" className="inline-flex items-center gap-1 rounded-2xl border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-black uppercase tracking-wider text-slate-200 hover:text-white">
           <ArrowLeft className="h-4 w-4" /> Back
         </Link>
         <div>
@@ -72,7 +73,7 @@ function ProgressionPageInner() {
         <p className="mx-auto max-w-6xl rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-slate-300">No progression chains yet. In the capture bottom sheet, tap <strong>Link to Previous (Progression)</strong> to start one.</p>
       )}
 
-      <div className="mx-auto grid max-w-6xl gap-4">
+      <div className="mx-auto grid max-w-6xl gap-4 pb-6">
         {groups.map((group) => (
           <GlassCard key={group.location} className="p-4">
             <h2 className="mb-3 text-sm font-black uppercase tracking-[0.18em] text-amber-300">{group.location}</h2>
@@ -91,7 +92,8 @@ function ProgressionPageInner() {
           </GlassCard>
         ))}
       </div>
-    </main>
+      </div>
+    </div>
   );
 }
 

@@ -3,8 +3,7 @@
 import { FolderOpen, Upload, Share2, Link as LinkIcon } from "lucide-react";
 import type { HubProject } from "@/lib/types/site-walk";
 import { type RouterLike } from "./v1-view-utils";
-import { MobileEmptyState, MobileComingSoonSheet } from "@/components/mobile-system";
-import { useState } from "react";
+import { MobileEmptyState } from "@/components/mobile-system";
 
 type SlateDropViewProps = {
   projects: HubProject[];
@@ -19,16 +18,14 @@ const sections: { icon: typeof FolderOpen; label: string; href: string }[] = [
 ];
 
 export function SlateDropView({ projects, router }: SlateDropViewProps) {
-  const [comingSoonTitle, setComingSoonTitle] = useState<string | null>(null);
-
   return (
-    <div className="flex-1 min-h-0 overflow-y-auto flex flex-col gap-4 p-4">
+    <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4 pb-[max(env(safe-area-inset-bottom),1rem)]">
       <div className="grid grid-cols-2 gap-2">
         {sections.map(({ icon: Icon, label, href }) => (
           <button
             key={label}
             type="button"
-            onClick={() => setComingSoonTitle(label)}
+            onClick={() => router.push(href)}
             className="flex items-center gap-2.5 rounded-lg border border-white/5 bg-white/[0.03] px-3 py-3 text-left text-sm font-medium text-zinc-300 transition-colors hover:bg-white/[0.06]"
           >
             <Icon className="size-4 shrink-0 text-zinc-500" />
@@ -37,7 +34,7 @@ export function SlateDropView({ projects, router }: SlateDropViewProps) {
         ))}
       </div>
 
-      {projects.length > 0 && (
+      {projects.length > 0 ? (
         <div>
           <p className="mb-2 text-xs font-medium uppercase tracking-wider text-zinc-600">
             Worksite folders
@@ -47,7 +44,7 @@ export function SlateDropView({ projects, router }: SlateDropViewProps) {
               <button
                 key={p.id}
                 type="button"
-                onClick={() => setComingSoonTitle("Project Dashboard")}
+                onClick={() => router.push(`/projects/${encodeURIComponent(p.id)}/slatedrop`)}
                 className="flex items-center gap-2.5 rounded-lg border border-white/5 bg-white/[0.03] px-3 py-2.5 text-left text-sm text-zinc-300 transition-colors hover:bg-white/[0.06]"
               >
                 <FolderOpen className="size-4 shrink-0 text-amber-500/60" />
@@ -56,16 +53,12 @@ export function SlateDropView({ projects, router }: SlateDropViewProps) {
             ))}
           </div>
         </div>
-      )}
-
-      {projects.length === 0 && (
-        <MobileEmptyState title="No SlateDrop folders yet." description="Create a Worksite to organize plans, photos, captures, deliverables, and shared files." />
-      )}
-      {comingSoonTitle && (
-        <MobileComingSoonSheet
-          open={!!comingSoonTitle}
-          onOpenChange={(open) => !open && setComingSoonTitle(null)}
-          title={`${comingSoonTitle} on Mobile`}
+      ) : (
+        <MobileEmptyState
+          title="No SlateDrop folders yet."
+          description="Create a worksite to organize plans, photos, captures, deliverables, and shared files."
+          actionLabel="Create worksite"
+          actionHref="/site-walk/setup"
         />
       )}
     </div>
