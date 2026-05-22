@@ -37,11 +37,11 @@ export const mobileTokens = {
   mobileHomeLayoutRoot:
     "flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden",
   mobileHomeUpperRegion:
-    "relative z-0 flex min-h-0 flex-1 flex-col overflow-hidden",
+    "relative z-0 flex shrink-0 flex-col overflow-hidden",
   mobileHomeUpperInner:
-    "mx-auto flex w-full max-w-2xl flex-1 min-h-0 flex-col px-4 pt-3 pb-2",
-  mobileHomeContentStack: "flex min-h-0 flex-1 flex-col gap-2.5",
-  mobileHomePrimaryActionsRegion: "flex min-h-0 flex-1 flex-col",
+    "mx-auto flex w-full max-w-2xl shrink-0 flex-col px-4 pt-3 pb-0",
+  mobileHomeContentStack: "flex shrink-0 flex-col gap-2",
+  mobileHomePrimaryActionsRegion: "shrink-0 flex flex-col",
   mobileHomeAppPrimaryActionsRegion: "shrink-0 flex flex-col",
   /** /app upper block — shrink to content so the activity dock sits directly below Quick Actions */
   mobileHomeAppUpperRegion:
@@ -50,7 +50,7 @@ export const mobileTokens = {
   mobileHomeAppUpperInner:
     "mx-auto flex w-full max-w-2xl shrink-0 flex-col px-4 pt-2 pb-0",
   mobileHomeAppDockTopSpacer: "h-0 max-h-0 shrink-0 overflow-hidden",
-  mobileHomeDockTopSpacer: "mx-4 h-1.5 max-h-1.5 shrink-0",
+  mobileHomeDockTopSpacer: "h-0 max-h-0 shrink-0 overflow-hidden",
   mobileHomeDockRegion: "relative z-10 w-full shrink-0 px-4 pb-3",
   mobileHomeDockInner: "mx-auto w-full max-w-2xl",
   /** Legacy anchored bottom sheet tokens (deprecated) */
@@ -152,10 +152,13 @@ export const mobileTokens = {
   /** @deprecated Use appQuickActionCard */
   appQuickActionStripButton:
     "flex h-[50px] max-h-[50px] flex-col items-center justify-center gap-0.5 rounded-xl border border-white/[0.06] bg-white/[0.04] px-1 py-1.5 text-zinc-300 transition-colors hover:border-amber-500/20 hover:bg-white/[0.07] hover:text-white active:bg-white/[0.11]",
-  // ── Site Walk 2×2 action grid — fills space between intro and dock ─────────
-  siteWalkActionGridRow: "grid h-full min-h-0 flex-1 grid-cols-2 auto-rows-fr gap-2.5",
+  // ── Site Walk home 2×2 action grid — compact fixed-height cards with subtext ──
+  siteWalkActionGridRow: "grid shrink-0 grid-cols-2 gap-2.5",
   siteWalkActionGridButton:
-    "flex h-full min-h-[72px] flex-col items-center justify-center gap-1 rounded-xl border border-white/[0.06] bg-white/[0.04] px-2 py-2 text-zinc-300 transition-colors hover:border-amber-500/20 hover:bg-white/[0.07] hover:text-white active:bg-white/[0.11]",
+    "flex h-[92px] flex-col items-start justify-center gap-0.5 rounded-xl border border-white/[0.06] bg-white/[0.04] px-3 py-2.5 text-left text-zinc-300 transition-colors hover:border-amber-500/20 hover:bg-white/[0.07] hover:text-white active:bg-white/[0.11]",
+  siteWalkActionGridIcon: "mb-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white/[0.06]",
+  siteWalkActionGridLabel: "text-[12px] font-semibold leading-tight text-zinc-100",
+  siteWalkActionGridSubtext: "text-[10px] font-medium leading-snug text-zinc-500",
   /** @deprecated Use appQuickActionStripRow */
   quickActionStripRow: "grid grid-cols-4 gap-1.5",
   /** @deprecated Use siteWalkActionGridRow */

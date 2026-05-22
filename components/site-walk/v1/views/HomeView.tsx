@@ -33,7 +33,9 @@ export function HomeView({
   onQuickCapture,
 }: HomeViewProps) {
   const openDeliverables = () =>
-    setTab ? setTab("deliverables") : router.push("/site-walk/deliverables");
+    setTab ? setTab("deliverables") : router.push("/site-walk?tab=deliverables");
+  const openWorksites = () =>
+    setTab ? setTab("worksites") : router.push("/site-walk?tab=worksites");
   const recentWalks = walks.slice(0, 20);
 
   const walksByProject = new Map<string, number>();
@@ -62,17 +64,12 @@ export function HomeView({
         </MobileSection>
       }
       primaryActions={
-        <MobileSection
-          label="Actions"
-          showAccentLine="cool"
-          className="flex min-h-0 flex-1 flex-col"
-          contentClassName="flex min-h-0 flex-1 flex-col"
-        >
+        <MobileSection label="Actions" showAccentLine="cool" className="shrink-0">
           <SiteWalkV1ActionGrid
-            className="min-h-0 flex-1"
-            onNewWorksite={() => router.push("/site-walk/setup")}
-            onStartWalk={() => router.push("/site-walk/walks")}
             onQuickCapture={onQuickCapture}
+            onNewWorksite={() => router.push("/site-walk/setup")}
+            onWalkFromWorksite={openWorksites}
+            onReviewDeliver={openDeliverables}
           />
         </MobileSection>
       }

@@ -1,13 +1,14 @@
 "use client";
 
-import { Plus, Play, Camera } from "lucide-react";
+import { Camera, MapPin, Play, Package } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { mobileTokens, type MobileQuickActionAccent } from "@/components/mobile-system/mobileTokens";
 
 type SiteWalkV1ActionGridProps = {
-  onNewWorksite?: () => void;
-  onStartWalk?: () => void;
   onQuickCapture?: () => void;
+  onNewWorksite?: () => void;
+  onWalkFromWorksite?: () => void;
+  onReviewDeliver?: () => void;
   className?: string;
 };
 
@@ -21,49 +22,85 @@ const accentIconClass: Record<MobileQuickActionAccent, string> = {
 
 type ActionSpec = {
   label: string;
-  icon: typeof Plus;
+  subtext: string;
+  icon: typeof Camera;
   accent: MobileQuickActionAccent;
-  onClick?: () => void;
+  onClick: () => void;
 };
 
-function ActionButton({ label, icon: Icon, accent, onClick }: ActionSpec) {
+function ActionCard({ label, subtext, icon: Icon, accent, onClick }: ActionSpec) {
   return (
     <button
       type="button"
       onClick={onClick}
       className={cn(mobileTokens.siteWalkActionGridButton, mobileTokens.focusRing)}
-      aria-label={label}
+      aria-label={`${label} — ${subtext}`}
     >
-      <Icon className={cn(mobileTokens.quickActionStripIcon, accentIconClass[accent])} aria-hidden />
-      <span className={mobileTokens.quickActionStripLabel}>{label}</span>
+      <span className={cn(mobileTokens.siteWalkActionGridIcon, accentIconClass[accent])} aria-hidden>
+        <Icon className="h-[18px] w-[18px]" />
+      </span>
+      <span className={mobileTokens.siteWalkActionGridLabel}>{label}</span>
+      <span className={mobileTokens.siteWalkActionGridSubtext}>{subtext}</span>
     </button>
   );
 }
 
-/**
- * Site Walk 2×2 action grid — uses the same quick-action token language as /app.
- */
+/** Site Walk home — compact 2×2 action grid with subtext (no flex-grow stretch). */
 export function SiteWalkV1ActionGrid({
-  onNewWorksite,
-  onStartWalk,
   onQuickCapture,
+  onNewWorksite,
+  onWalkFromWorksite,
+  onReviewDeliver,
   className,
 }: SiteWalkV1ActionGridProps) {
-  const actions: ActionSpec[] = [
-    { label: "Create Worksite", icon: Plus, accent: "primary", onClick: onNewWorksite },
-    { label: "Walk from Worksite", icon: Play, accent: "info", onClick: onStartWalk },
-    { label: "Quick Walk", icon: Camera, accent: "warm", onClick: onQuickCapture },
-  ].filter((action): action is ActionSpec & { onClick: () => void } => Boolean(action.onClick));
+  const actions: ActionSpec[] = [];
+  if (onQuickCapture) {
+    actions.push({
+      label: "Quick Walk",
+      subtext: "Start capturing now",
+      icon: Camera,
+      accent: "warm",
+      onClick: onQuickCapture,
+    });
+  }
+  if (onNewWorksite) {
+    actions.push({
+      label: "New Worksite",
+      subtext: "Create field project",
+      icon: MapPin,
+      accent: "primary",
+      onClick: onNewWorksite,
+    });
+  }
+  if (onWalkFromWorksite) {
+    actions.push({
+      label: "Walk from Worksite",
+      subtext: "Use saved context",
+      icon: Play,
+      accent: "info",
+      onClick: onWalkFromWorksite,
+    });
+  }
+  if (onReviewDeliver) {
+    actions.push({
+      label: "Review & Deliver",
+      subtext: "Reports and outputs",
+      icon: Package,
+      accent: "neutral",
+      onClick: onReviewDeliver,
+    });
+  }
 
   return (
     <div
       data-testid="site-walk-action-grid"
-      className={cn(mobileTokens.siteWalkActionGridRow, "grid-cols-3", className)}
+      data-site-walk-action-layout="grid-2x2"
+      className={cn(mobileTokens.siteWalkActionGridRow, className)}
       role="toolbar"
       aria-label="Site Walk actions"
     >
       {actions.map((action) => (
-        <ActionButton key={action.label} {...action} />
+        <ActionCard key={action.label} {...action} />
       ))}
     </div>
   );
