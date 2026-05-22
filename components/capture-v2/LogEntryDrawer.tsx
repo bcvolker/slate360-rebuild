@@ -1,13 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type PointerEvent } from "react";
-import { Loader2, Camera, RefreshCw, Sparkles, X } from "lucide-react";
+import { useCallback, useEffect, useRef, useState, type FocusEvent, type PointerEvent } from "react";
+import { Camera, Loader2, Sparkles, X } from "lucide-react";
 import { motion, type PanInfo } from "framer-motion";
-import {
-  CAPTURE_ITEM_STATUSES,
-  CAPTURE_PRIORITIES,
-  type CaptureItemDraft,
-} from "@/lib/types/site-walk-capture";
+import type { CaptureItemDraft } from "@/lib/types/site-walk-capture";
 import { CAPTURE_V2_LAYER_IDS, CAPTURE_V2_LAYERS } from "./layers";
 import { CaptureV2PrimaryAction } from "./CaptureV2PrimaryAction";
 import { CaptureV2SaveStatus } from "./CaptureV2SaveStatus";
@@ -30,8 +26,11 @@ type Props = {
 };
 
 const selectClass =
-  "mt-1 h-10 w-full rounded-2xl border border-white/10 bg-black/35 px-3 text-xs font-black text-slate-100 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-500/20 disabled:opacity-50";
-const labelClass = "text-[10px] font-black uppercase tracking-[0.16em] text-slate-500";
+  "mt-1 h-10 w-full rounded-xl border border-white/[0.07] bg-white/[0.02] px-3 text-sm font-medium text-slate-100 outline-none focus:border-white/20 focus:ring-1 focus:ring-white/10 disabled:opacity-50";
+const labelClass = "text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500";
+
+const DRAWER_ITEM_STATUSES = ["open", "in_progress", "resolved"] as const;
+const DRAWER_PRIORITIES = ["low", "medium", "high", "critical"] as const;
 
 const DETENT_RATIO: Record<CaptureV2DrawerDetent, number> = {
   default: 0.6,
@@ -48,7 +47,7 @@ function isFormField(element: EventTarget | null): boolean {
   return tag === "TEXTAREA" || tag === "SELECT" || tag === "INPUT";
 }
 
-function useDrawerViewportBounds(detent: CaptureV2DrawerDetent) {
+function useDrawerViewportBounds(detent: CaptureV2DrawerDetent, keyboardActive: boolean) {
   const [maxHeightPx, setMaxHeightPx] = useState<number | null>(null);
   const [keyboardOffset, setKeyboardOffset] = useState(0);
 
@@ -64,9 +63,8 @@ function useDrawerViewportBounds(detent: CaptureV2DrawerDetent) {
       setKeyboardOffset(keyboard);
 
       const visibleHeight = vv?.height ?? layoutHeight;
-      const ratio = DETENT_RATIO[detent];
-      const target = Math.round(visibleHeight * ratio);
-      setMaxHeightPx(target);
+      const ratio = keyboardActive || keyboard > 0 ? 1 : DETENT_RATIO[detent];
+      setMaxHeightPx(Math.round(visibleHeight * ratio));
     };
 
     update();
@@ -78,7 +76,7 @@ function useDrawerViewportBounds(detent: CaptureV2DrawerDetent) {
       window.visualViewport?.removeEventListener("scroll", update);
       window.removeEventListener("resize", update);
     };
-  }, [detent]);
+  }, [detent, keyboardActive]);
 
   return { maxHeightPx, keyboardOffset };
 }
@@ -114,10 +112,11 @@ export function LogEntryDrawer({
     createFollowUpStop,
   } = loop;
 
-  const { maxHeightPx, keyboardOffset } = useDrawerViewportBounds(detent);
   const dismissLocked = formFieldFocused || notesFocused;
   const isMobileInline = mode === "mobile-full";
   const isDesktopPanel = mode === "desktop";
+  const { maxHeightPx, keyboardOffset } = useDrawerViewportBounds(detent, dismissLocked);
+  const keyboardOpen = keyboardOffset > 0;
 
   const syncNotesFocus = useCallback(
     (focused: boolean) => {
@@ -131,14 +130,14 @@ export function LogEntryDrawer({
     if (!activeItem) syncNotesFocus(false);
   }, [activeItem, syncNotesFocus]);
 
-  function handleFormFocus(event: React.FocusEvent) {
+  function handleFormFocus(event: FocusEvent) {
     if (isFormField(event.target)) setFormFieldFocused(true);
     if (event.target instanceof HTMLTextAreaElement && event.target.name === "field-notes") {
       syncNotesFocus(true);
     }
   }
 
-  function handleFormBlur(event: React.FocusEvent) {
+  function handleFormBlur(event: FocusEvent) {
     const next = event.relatedTarget;
     if (next instanceof HTMLElement && event.currentTarget.contains(next)) return;
     window.setTimeout(() => {
@@ -182,7 +181,7 @@ export function LogEntryDrawer({
     if (isDesktopPanel) {
       return (
         <div className="flex min-h-0 flex-1 flex-col items-center justify-center px-6 text-center">
-          <p className="text-sm font-semibold text-slate-400">
+          <p className="text-sm font-medium text-slate-400">
             Capture a photo first. Details autosave against the active item.
           </p>
         </div>
@@ -190,6 +189,41 @@ export function LogEntryDrawer({
     }
     return null;
   }
+
+  const saveAction = (
+    <CaptureV2PrimaryAction
+      state={machineState}
+      isDesktop={isDesktop}
+      onAction={handlePrimaryAction}
+    />
+  );
+
+  const secondaryActions = (
+    <div className="space-y-2">
+      <button
+        type="button"
+        disabled={loop.busy || detailsSaving}
+        onMouseDown={(event) => event.preventDefault()}
+        onTouchStart={(event) => event.preventDefault()}
+        onClick={() => onAddAnotherAngle?.()}
+        className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-white/[0.07] bg-white/[0.02] px-4 py-2.5 text-sm text-slate-300 transition hover:border-white/15 hover:bg-white/[0.04] hover:text-slate-100 disabled:opacity-60"
+      >
+        <Camera className="h-4 w-4 shrink-0" />
+        Add Another Angle
+      </button>
+
+      <button
+        type="button"
+        disabled={followUpBusy || detailsSaving}
+        onMouseDown={(event) => event.preventDefault()}
+        onTouchStart={(event) => event.preventDefault()}
+        onClick={() => void handleCreateFollowUp()}
+        className="w-full py-2 text-center text-xs font-medium text-slate-500 underline-offset-2 transition hover:text-slate-300 hover:underline disabled:opacity-50"
+      >
+        {followUpBusy ? "Creating follow-up…" : "Create follow-up stop"}
+      </button>
+    </div>
+  );
 
   const formBody = (
     <LogEntryFormBody
@@ -201,55 +235,12 @@ export function LogEntryDrawer({
       onPatch={patchDraft}
       onLocationChange={patchLocation}
       onNotesChange={(value) => patchDraft({ notes: value })}
+      onNotesFocus={() => syncNotesFocus(true)}
+      onNotesBlur={() => syncNotesFocus(false)}
       onContentPointerDown={handleContentPointerDown}
       selectClass={selectClass}
       labelClass={labelClass}
     />
-  );
-
-  const footer = (
-    <div
-      className="shrink-0 space-y-2 border-t border-white/10 bg-slate-950/95 pt-3"
-      style={{
-        paddingBottom: isDesktopPanel
-          ? "0.75rem"
-          : `max(${keyboardOffset}px, env(safe-area-inset-bottom, 0px), 0.75rem)`,
-      }}
-    >
-      <button
-        type="button"
-        disabled={loop.busy || detailsSaving}
-        onMouseDown={(event) => event.preventDefault()}
-        onTouchStart={(event) => event.preventDefault()}
-        onClick={() => onAddAnotherAngle?.()}
-        className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] px-4 text-sm font-black text-slate-100 transition hover:border-sky-400/30 hover:bg-sky-500/10 disabled:opacity-60"
-      >
-        <Camera className="h-4 w-4" />
-        Add Another Angle
-      </button>
-
-      <button
-        type="button"
-        disabled={followUpBusy || detailsSaving}
-        onMouseDown={(event) => event.preventDefault()}
-        onTouchStart={(event) => event.preventDefault()}
-        onClick={() => void handleCreateFollowUp()}
-        className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] px-4 text-sm font-black text-slate-100 transition hover:border-amber-400/30 hover:bg-amber-500/10 disabled:opacity-60"
-      >
-        {followUpBusy ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
-        ) : (
-          <RefreshCw className="h-4 w-4" />
-        )}
-        Create Follow-Up
-      </button>
-
-      <CaptureV2PrimaryAction
-        state={machineState}
-        isDesktop={isDesktop}
-        onAction={handlePrimaryAction}
-      />
-    </div>
   );
 
   const aiSection = (
@@ -260,7 +251,7 @@ export function LogEntryDrawer({
         onMouseDown={(event) => event.preventDefault()}
         onTouchStart={(event) => event.preventDefault()}
         onClick={() => void formatNotesWithAi()}
-        className="mt-3 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 text-sm font-black text-amber-100 disabled:opacity-60"
+        className="mt-3 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-white/[0.07] bg-white/[0.02] px-4 text-sm font-medium text-slate-300 transition hover:border-white/15 hover:bg-white/[0.04] disabled:opacity-60"
       >
         {aiState === "formatting" ? (
           <Loader2 className="h-4 w-4 animate-spin" />
@@ -270,7 +261,7 @@ export function LogEntryDrawer({
         AI Format Note
       </button>
       {aiMessage && (
-        <p className="mt-2 rounded-2xl border border-amber-500/20 bg-amber-500/10 px-3 py-2 text-xs font-bold text-amber-100">
+        <p className="mt-2 rounded-xl border border-white/[0.07] bg-white/[0.02] px-3 py-2 text-xs font-medium text-slate-300">
           {aiMessage}
         </p>
       )}
@@ -279,15 +270,9 @@ export function LogEntryDrawer({
 
   if (isDesktopPanel) {
     return (
-      <div
-        className="flex min-h-0 flex-1 flex-col overflow-hidden"
-        aria-label="Log entry inspector"
-      >
-        <div className="shrink-0 border-b border-white/5 px-4 pb-3 pt-4">
-          <p className="text-[11px] font-black uppercase tracking-[0.22em] text-amber-300/80">
-            Log Entry
-          </p>
-          <h2 className="mt-1 truncate text-lg font-black text-white">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden" aria-label="Log entry inspector">
+        <div className="shrink-0 border-b border-white/[0.05] px-4 pb-3 pt-4">
+          <h2 className="truncate text-lg font-semibold text-white">
             {draft.title || activeItem.title || "Captured stop"}
           </h2>
           <CaptureV2SaveStatus
@@ -302,13 +287,16 @@ export function LogEntryDrawer({
             textareaRef={notesRef}
             notes={draft.notes}
             onNotesChange={(value) => patchDraft({ notes: value })}
-            className="mb-3 pb-1"
+            className="mb-3"
           />
           {formBody}
           {aiSection}
         </div>
 
-        <div className="px-4">{footer}</div>
+        <div className="shrink-0 space-y-2 border-t border-white/[0.05] px-4 py-3">
+          {secondaryActions}
+          {saveAction}
+        </div>
       </div>
     );
   }
@@ -319,11 +307,11 @@ export function LogEntryDrawer({
         type="button"
         onClick={cycleDetent}
         disabled={dismissLocked}
-        className="inline-flex h-9 flex-1 flex-col items-center justify-center rounded-xl border border-white/10 bg-white/[0.03] px-2 disabled:opacity-50"
+        className="inline-flex h-9 flex-1 flex-col items-center justify-center rounded-xl border border-white/[0.07] bg-white/[0.02] px-2 disabled:opacity-50"
         aria-label={`Drawer height: ${detent === "expanded" ? "full screen" : "60 percent"}`}
       >
-        <span className="h-1 w-10 rounded-full bg-white/25" />
-        <span className="mt-1 text-[9px] font-black uppercase tracking-wider text-slate-500">
+        <span className="h-1 w-10 rounded-full bg-white/20" />
+        <span className="mt-1 text-[9px] font-medium uppercase tracking-wider text-slate-500">
           {detent === "expanded" ? "Full" : "60%"}
         </span>
       </button>
@@ -331,7 +319,8 @@ export function LogEntryDrawer({
         <button
           type="button"
           onClick={onClose}
-          className="absolute right-3 top-2 inline-flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-white/80"
+          disabled={dismissLocked}
+          className="absolute right-3 top-2 inline-flex h-9 w-9 items-center justify-center rounded-xl border border-white/[0.07] bg-white/[0.02] text-slate-300 disabled:opacity-50"
           aria-label="Close log entry"
         >
           <X className="h-4 w-4" />
@@ -340,14 +329,25 @@ export function LogEntryDrawer({
     </div>
   );
 
+  const scrollFooter = (
+    <div
+      className="shrink-0 space-y-2 border-t border-white/[0.05] pt-3"
+      style={{
+        paddingBottom: keyboardOpen
+          ? "0.5rem"
+          : `max(env(safe-area-inset-bottom, 0px), 0.75rem)`,
+      }}
+    >
+      {secondaryActions}
+      {!keyboardOpen && saveAction}
+    </div>
+  );
+
   const mobileContent = (
     <>
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-4">
         <div className="shrink-0 pb-2">
-          <p className="text-[11px] font-black uppercase tracking-[0.22em] text-amber-300/80">
-            Log Entry
-          </p>
-          <h2 className="truncate text-base font-black text-white">
+          <h2 className="truncate text-base font-semibold text-white">
             {draft.title || activeItem.title || "Captured stop"}
           </h2>
           <CaptureV2SaveStatus
@@ -357,32 +357,31 @@ export function LogEntryDrawer({
           />
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain no-scrollbar pb-2">
-          {!keyboardOffset && (
-            <SmartClassificationChips
-              textareaRef={notesRef}
-              notes={draft.notes}
-              onNotesChange={(value) => patchDraft({ notes: value })}
-              className="mb-3 pb-1"
-            />
-          )}
-          {formBody}
-          {detent === "expanded" && aiSection}
-        </div>
-
-        {footer}
-      </div>
-
-      {keyboardOffset > 0 && (
         <div
-          className={`${CAPTURE_V2_LAYERS.copilot} fixed inset-x-0 border-t border-white/10 bg-slate-950/95 px-3 py-2 backdrop-blur-xl`}
-          style={{ bottom: keyboardOffset }}
+          className="min-h-0 flex-1 overflow-y-auto overscroll-contain no-scrollbar pb-2"
+          style={{
+            paddingBottom: keyboardOpen ? `${keyboardOffset + 88}px` : undefined,
+          }}
         >
           <SmartClassificationChips
             textareaRef={notesRef}
             notes={draft.notes}
             onNotesChange={(value) => patchDraft({ notes: value })}
+            className="mb-3"
           />
+          {formBody}
+          {detent === "expanded" && aiSection}
+        </div>
+
+        {scrollFooter}
+      </div>
+
+      {keyboardOpen && (
+        <div
+          className={`${CAPTURE_V2_LAYERS.copilot} fixed inset-x-0 z-[60] border-t border-white/[0.05] bg-[#0B0F15]/95 px-4 py-2 backdrop-blur-xl`}
+          style={{ bottom: keyboardOffset }}
+        >
+          {saveAction}
         </div>
       )}
     </>
@@ -392,7 +391,7 @@ export function LogEntryDrawer({
     return (
       <div
         id={CAPTURE_V2_LAYER_IDS.logDrawer}
-        className={`${CAPTURE_V2_LAYERS.drawer} relative flex min-h-0 flex-1 flex-col overflow-hidden border-t border-white/10 bg-slate-950/97 backdrop-blur-xl md:hidden`}
+        className={`${CAPTURE_V2_LAYERS.drawer} relative flex min-h-0 flex-1 flex-col overflow-hidden border-t border-white/[0.05] bg-[#0B0F15]/95 backdrop-blur-xl md:hidden`}
         onFocusCapture={handleFormFocus}
         onBlurCapture={handleFormBlur}
         aria-label="Log entry drawer"
@@ -408,12 +407,19 @@ export function LogEntryDrawer({
       id={CAPTURE_V2_LAYER_IDS.logDrawer}
       drag={dismissLocked ? false : "y"}
       dragConstraints={{ top: 0, bottom: 0 }}
-      dragElastic={0.12}
+      dragElastic={0.08}
+      dragMomentum={false}
+      onDragStart={(event) => {
+        if (dismissLocked) event.preventDefault();
+      }}
       onDragEnd={handleDragEnd}
       animate={{ height: maxHeightPx ?? "60dvh" }}
       transition={{ type: "spring", stiffness: 420, damping: 36 }}
-      className={`${CAPTURE_V2_LAYERS.drawer} pointer-events-auto fixed inset-x-0 bottom-0 z-[45] flex flex-col overflow-hidden rounded-t-[1.5rem] border-t border-white/10 bg-slate-950/97 shadow-[0_-20px_50px_rgba(0,0,0,0.45)] backdrop-blur-xl md:hidden`}
-      style={{ maxHeight: maxHeightPx ? `${maxHeightPx}px` : "60dvh" }}
+      className={`${CAPTURE_V2_LAYERS.drawer} pointer-events-auto fixed inset-x-0 bottom-0 z-[45] flex flex-col overflow-hidden rounded-t-[1.5rem] border-t border-white/[0.05] bg-[#0B0F15]/95 shadow-[0_-20px_50px_rgba(0,0,0,0.45)] backdrop-blur-xl md:hidden`}
+      style={{
+        maxHeight: maxHeightPx ? `${maxHeightPx}px` : "60dvh",
+        bottom: keyboardOpen ? keyboardOffset : 0,
+      }}
       onFocusCapture={handleFormFocus}
       onBlurCapture={handleFormBlur}
       aria-label="Log entry drawer"
@@ -433,6 +439,8 @@ type FormBodyProps = {
   onPatch: (patch: Partial<CaptureItemDraft>) => void;
   onLocationChange: (value: string) => void;
   onNotesChange: (value: string) => void;
+  onNotesFocus: () => void;
+  onNotesBlur: () => void;
   onContentPointerDown: (event: PointerEvent<HTMLDivElement>) => void;
   selectClass: string;
   labelClass: string;
@@ -447,6 +455,8 @@ function LogEntryFormBody({
   onPatch,
   onLocationChange,
   onNotesChange,
+  onNotesFocus,
+  onNotesBlur,
   onContentPointerDown,
   selectClass,
   labelClass,
@@ -460,9 +470,11 @@ function LogEntryFormBody({
           name="field-notes"
           value={draft.notes}
           onChange={(event) => onNotesChange(event.target.value)}
-          rows={5}
+          onFocus={onNotesFocus}
+          onBlur={onNotesBlur}
+          rows={4}
           placeholder="Type what happened, what changed, and who owns the next action…"
-          className="mt-2 w-full rounded-3xl border border-white/10 bg-black/35 px-4 py-3 text-base leading-6 text-slate-100 outline-none placeholder:text-slate-600 focus:border-amber-400 focus:ring-2 focus:ring-amber-500/20"
+          className="mt-2 w-full min-h-[5rem] resize-y rounded-2xl border border-white/[0.07] bg-white/[0.02] px-4 py-3 text-base leading-6 text-slate-100 outline-none placeholder:text-slate-500 focus:min-h-[120px] focus:border-white/15 focus:ring-1 focus:ring-white/10"
           style={{ WebkitUserSelect: "text", userSelect: "text" }}
           onPointerDown={(event) => event.stopPropagation()}
         />
@@ -479,7 +491,7 @@ function LogEntryFormBody({
             className={selectClass}
             onPointerDown={(event) => event.stopPropagation()}
           >
-            {CAPTURE_ITEM_STATUSES.map((status) => (
+            {DRAWER_ITEM_STATUSES.map((status) => (
               <option key={status} value={status}>
                 {formatOption(status)}
               </option>
@@ -497,7 +509,7 @@ function LogEntryFormBody({
             className={selectClass}
             onPointerDown={(event) => event.stopPropagation()}
           >
-            {CAPTURE_PRIORITIES.map((priority) => (
+            {DRAWER_PRIORITIES.map((priority) => (
               <option key={priority} value={priority}>
                 {formatOption(priority)}
               </option>
@@ -549,7 +561,7 @@ function LogEntryFormBody({
         <input
           value={locationLabel}
           onChange={(event) => onLocationChange(event.target.value)}
-          className="mt-1 w-full rounded-2xl border border-white/10 bg-black/35 px-3 py-2.5 text-sm font-semibold text-white outline-none ring-amber-400/40 focus:ring-2"
+          className="mt-1 w-full rounded-xl border border-white/[0.07] bg-white/[0.02] px-3 py-2.5 text-sm font-medium text-slate-100 outline-none placeholder:text-slate-500 focus:border-white/15 focus:ring-1 focus:ring-white/10"
           placeholder="e.g. Level 2 · East corridor"
           onPointerDown={(event) => event.stopPropagation()}
         />

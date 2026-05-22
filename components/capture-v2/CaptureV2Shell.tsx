@@ -34,7 +34,7 @@ export function CaptureV2Shell(props: Props) {
 
   const stopLabel = useMemo(() => {
     const count = capturedItems.length;
-    return count > 0 ? `Stop ${count + 1}` : "Stop 1";
+    return `Stop ${Math.max(1, count)}`;
   }, [capturedItems.length]);
 
   const contextLabel = session.is_ad_hoc

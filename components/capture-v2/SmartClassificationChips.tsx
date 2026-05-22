@@ -60,18 +60,18 @@ export function SmartClassificationChips({
 
   return (
     <div
-      className={`flex gap-2 overflow-x-auto no-scrollbar ${className}`}
+      className={`flex gap-2 overflow-x-auto pb-1 no-scrollbar ${className}`}
       role="toolbar"
-      aria-label="Smart classification tags"
+      aria-label="Classification tags"
     >
-      {CAPTURE_V2_SMART_CHIPS.filter((chip) => chip !== "Completed").map((chip) => (
+      {CAPTURE_V2_SMART_CHIPS.map((chip) => (
         <button
           key={chip}
           type="button"
           onMouseDown={(event) => event.preventDefault()}
           onTouchStart={(event) => event.preventDefault()}
           onClick={() => handleChip(chip)}
-          className="shrink-0 rounded-full border border-white/10 bg-white/[0.06] px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-slate-200 transition hover:border-amber-400/40 hover:bg-amber-500/10 hover:text-amber-100"
+          className="shrink-0 rounded-lg border border-white/[0.08] bg-white/[0.02] px-3 py-1.5 text-xs font-medium text-slate-200 transition hover:border-white/15 hover:bg-white/[0.04] hover:text-white"
         >
           {chip}
         </button>

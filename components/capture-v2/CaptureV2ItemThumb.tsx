@@ -18,6 +18,7 @@ type Props = {
   saveState?: string;
   detailsSaving?: boolean;
   detailSaveError?: string | null;
+  imageUrlOverride?: string | null;
   onSelect: () => void;
 };
 
@@ -29,9 +30,10 @@ export function CaptureV2ItemThumb({
   saveState,
   detailsSaving,
   detailSaveError,
+  imageUrlOverride,
   onSelect,
 }: Props) {
-  const imageUrl = getCaptureImageUrl(item);
+  const imageUrl = imageUrlOverride ?? getCaptureImageUrl(item);
   const syncKind = deriveCaptureV2ItemSyncKind({
     item,
     isActive,

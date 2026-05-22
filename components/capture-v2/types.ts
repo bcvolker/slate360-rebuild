@@ -64,10 +64,9 @@ export const CAPTURE_V2_SMART_CHIPS = [
   "Safety",
   "Progress",
   "Issue",
-  "Completed",
   "Needs Review",
-  "Electrical",
   "Mechanical",
+  "Electrical",
   "Drywall",
 ] as const;
 
