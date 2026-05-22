@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Cloud, CloudOff, Loader2, LogOut } from "lucide-react";
-import { Fragment, useMemo, useState } from "react";
+import { ArrowLeft, LogOut } from "lucide-react";
+import { Fragment, useState } from "react";
 import { useSiteWalkSession } from "@/components/site-walk/SiteWalkSessionProvider";
 import { buildCaptureSummaryUrl } from "@/lib/site-walk/capture-v2-config";
+import { CaptureV2SessionSyncBadge } from "./CaptureV2SyncBadge";
 import { CAPTURE_V2_LAYERS } from "./layers";
 import type { CaptureV2Session } from "./session-types";
 
@@ -74,10 +75,11 @@ export function CaptureV2TaskHeader({ session, stopLabel, contextLabel, onBack }
           </p>
         </div>
 
-        <CaptureV2SyncBadge
+        <CaptureV2SessionSyncBadge
           isOnline={isOnline}
           isSyncing={isSyncing}
           pendingUploadCount={pendingUploadCount}
+          className="hidden shrink-0 sm:inline-flex"
         />
 
         <button
@@ -139,44 +141,5 @@ export function CaptureV2TaskHeader({ session, stopLabel, contextLabel, onBack }
         </div>
       )}
     </Fragment>
-  );
-}
-
-function CaptureV2SyncBadge({
-  isOnline,
-  isSyncing,
-  pendingUploadCount,
-}: {
-  isOnline: boolean;
-  isSyncing: boolean;
-  pendingUploadCount: number;
-}) {
-  const label = useMemo(() => {
-    if (!isOnline) return pendingUploadCount > 0 ? `Offline · ${pendingUploadCount} pending` : "Offline";
-    if (isSyncing) return "Syncing";
-    if (pendingUploadCount > 0) return `${pendingUploadCount} pending`;
-    return "Synced";
-  }, [isOnline, isSyncing, pendingUploadCount]);
-
-  const tone =
-    !isOnline || pendingUploadCount > 0
-      ? "border-amber-400/30 bg-amber-500/10 text-amber-200"
-      : isSyncing
-        ? "border-amber-400/30 bg-amber-500/10 text-amber-200"
-        : "border-emerald-400/25 bg-emerald-500/10 text-emerald-200";
-
-  return (
-    <span
-      className={`hidden shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-black sm:inline-flex ${tone}`}
-    >
-      {isSyncing ? (
-        <Loader2 className="h-3 w-3 animate-spin" />
-      ) : isOnline ? (
-        <Cloud className="h-3 w-3" />
-      ) : (
-        <CloudOff className="h-3 w-3" />
-      )}
-      {label}
-    </span>
   );
 }

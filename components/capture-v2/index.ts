@@ -15,5 +15,8 @@ export { CaptureV2DesktopInspector } from "./CaptureV2DesktopInspector";
 export { CaptureV2MobileDrawer } from "./CaptureV2MobileDrawer";
 export { CaptureV2PrimaryAction } from "./CaptureV2PrimaryAction";
 export { CaptureV2SaveStatus } from "./CaptureV2SaveStatus";
+export { CaptureV2Filmstrip } from "./CaptureV2Filmstrip";
+export { CaptureV2ItemThumb } from "./CaptureV2ItemThumb";
+export { CaptureV2SyncBadge, CaptureV2SessionSyncBadge, CaptureV2ItemSyncBadge } from "./CaptureV2SyncBadge";
 export { useCaptureV2Loop } from "./useCaptureV2Loop";
 export { useCaptureV2DetailDrawer } from "./useCaptureV2DetailDrawer";

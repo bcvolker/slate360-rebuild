@@ -14,6 +14,8 @@ import { CaptureV2ActionHub } from "./CaptureV2ActionHub";
 
 import { CaptureV2DetailDrawer } from "./CaptureV2DetailDrawer";
 
+import { CaptureV2Filmstrip } from "./CaptureV2Filmstrip";
+
 import { CaptureV2Viewfinder } from "./CaptureV2Viewfinder";
 
 import { useCaptureV2Loop } from "./useCaptureV2Loop";
@@ -21,6 +23,8 @@ import { useCaptureV2Loop } from "./useCaptureV2Loop";
 import type { CaptureV2UiPhase } from "./types";
 
 import type { CaptureV2Session } from "./session-types";
+
+import type { CaptureItemRecord } from "@/lib/types/site-walk-capture";
 
 import type { SiteWalkPlanSet, SiteWalkPlanSheet } from "@/lib/types/site-walk";
 
@@ -110,7 +114,12 @@ export function CaptureV2Orchestrator(props: Props) {
 
   const capturedCount = Math.max(loop.items.length, capturedItems.length);
 
-
+  function handleFilmstripSelect(item: CaptureItemRecord) {
+    loop.focusFilmstripItem(item);
+    if (phase === "hub" || phase === "plan" || phase === "summary") {
+      setPhase("viewfinder");
+    }
+  }
 
   return (
 
@@ -201,6 +210,8 @@ export function CaptureV2Orchestrator(props: Props) {
         </div>
 
 
+
+        <CaptureV2Filmstrip loop={loop} onSelectItem={handleFilmstripSelect} />
 
         <MobilePhaseBar phase={phase} onSelectPhase={setPhase} showPlanCanvas={showPlanCanvas} />
 

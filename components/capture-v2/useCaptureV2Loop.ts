@@ -7,6 +7,8 @@ import { useCaptureFileHandler, type CaptureIntent } from "@/components/site-wal
 import { useCaptureItems } from "@/components/site-walk/capture/useCaptureItems";
 import { readQuickCaptureLaunch, removeQuickCaptureLaunch } from "@/lib/site-walk/quick-capture-launch";
 import { triggerHapticSuccess } from "@/lib/utils/trigger-haptic";
+import { getCaptureImageUrl } from "@/lib/site-walk/capture-image-url";
+import type { CaptureItemRecord } from "@/lib/types/site-walk-capture";
 import { flushCaptureV2Details } from "./capture-v2-save-details";
 import {
   deriveCaptureV2MachineState,
@@ -244,6 +246,25 @@ export function useCaptureV2Loop({ sessionId, projectId, initialItemId, launchId
     fileHandler.handleFile(file, true);
   }
 
+  const focusFilmstripItem = useCallback(
+    (item: CaptureItemRecord) => {
+      captureItems.selectItem(item);
+      setExternalError(null);
+      setDetailSaveError(null);
+      const imageUrl = getCaptureImageUrl(item);
+      if (imageUrl) {
+        fileHandler.setActivePreview({
+          url: imageUrl,
+          title: item.title?.trim() || "Captured photo",
+          itemId: item.id,
+        });
+      } else {
+        fileHandler.setActivePreview(null);
+      }
+    },
+    [captureItems, fileHandler],
+  );
+
   return {
     ...captureItems,
     ...fileHandler,
@@ -263,6 +284,7 @@ export function useCaptureV2Loop({ sessionId, projectId, initialItemId, launchId
     detailsSaving,
     detailSaveError,
     flushDetails,
+    focusFilmstripItem,
   };
 }
 
