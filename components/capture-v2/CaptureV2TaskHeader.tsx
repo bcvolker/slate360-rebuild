@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, LogOut } from "lucide-react";
 import { Fragment, useState } from "react";
 import { useSiteWalkSession } from "@/components/site-walk/SiteWalkSessionProvider";
-import { buildCaptureSummaryUrl } from "@/lib/site-walk/capture-v2-config";
+import { buildCaptureV2SummaryUrl } from "@/lib/site-walk/capture-v2-config";
 import { CaptureV2SessionSyncBadge } from "./CaptureV2SyncBadge";
 import { CAPTURE_V2_LAYERS } from "./layers";
 import type { CaptureV2Session } from "./session-types";
@@ -39,7 +39,7 @@ export function CaptureV2TaskHeader({ session, stopLabel, contextLabel, onBack }
         }),
       });
       if (!response.ok) throw new Error("Could not end walk");
-      router.push(buildCaptureSummaryUrl(session.id));
+      router.push(buildCaptureV2SummaryUrl(session.id));
     } catch {
       setExitOpen(false);
     } finally {
