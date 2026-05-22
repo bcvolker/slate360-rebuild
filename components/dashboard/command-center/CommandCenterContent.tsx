@@ -3,32 +3,72 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { MapPin, Plus, Search, Share2, Bell, MessageSquare, ClipboardList, Clock, FolderOpen } from "lucide-react";
+import {
+  MapPin,
+  Plus,
+  Search,
+  Bell,
+  MessageSquare,
+  ClipboardList,
+  Clock,
+  FolderOpen,
+  Sparkles,
+} from "lucide-react";
 import type { Entitlements } from "@/lib/entitlements";
-import { useInviteShare } from "@/components/shared/InviteShareProvider";
 import {
   MobileActionGrid,
   MobileAppButton,
-  MobileSection,
   MobileExpandableTabbedPanel,
   MobileEmptyState,
   MobileCreateSheet,
   MobileQuickActionStrip,
   MobileHomeLayout,
+  mobileTokens,
 } from "@/components/mobile-system";
 import type { MobilePanelTab, MobileQuickActionItem } from "@/components/mobile-system";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
 
 interface CommandCenterContentProps {
   entitlements?: Entitlements | null;
   isSlateCeo?: boolean;
 }
 
+function AppSectionHeader({
+  label,
+  accent = "warm",
+}: {
+  label: string;
+  accent?: "warm" | "cool";
+}) {
+  return (
+    <div className="mb-2">
+      <span
+        className={
+          accent === "cool"
+            ? mobileTokens.appHomeSectionLabelAccentCool
+            : mobileTokens.appHomeSectionLabelAccent
+        }
+        aria-hidden
+      />
+      <p className={mobileTokens.appHomeSectionLabel} data-testid="mobile-section-label">
+        {label}
+      </p>
+    </div>
+  );
+}
+
 export function CommandCenterContent({
   entitlements = null,
 }: CommandCenterContentProps) {
   const router = useRouter();
-  const { setOpen: openInviteShare } = useInviteShare();
   const [createSheetOpen, setCreateSheetOpen] = useState(false);
+  const [twinInfoOpen, setTwinInfoOpen] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -102,13 +142,13 @@ export function CommandCenterContent({
       { label: "SlateDrop", icon: FolderOpen, accent: "info", onClick: () => router.push("/slatedrop") },
       { label: "Search", icon: Search, accent: "muted", onClick: handleSearch },
       {
-        label: "Invite & Share",
-        icon: Share2,
+        label: "Coordination",
+        icon: MessageSquare,
         accent: "neutral",
-        onClick: () => openInviteShare(true),
+        onClick: () => router.push("/coordination/inbox"),
       },
     ],
-    [handleSearch, openInviteShare, router],
+    [handleSearch, router],
   );
 
   return (
@@ -116,16 +156,25 @@ export function CommandCenterContent({
       <MobileHomeLayout
         route="app"
         contentTop={
-          <MobileSection label="Your Apps" showAccentLine className="shrink-0">
+          <section className="shrink-0">
+            <AppSectionHeader label="Your Apps" />
             {hasSiteWalk ? (
               <MobileActionGrid>
                 <MobileAppButton
                   title="Site Walk"
-                  subtitle="Field capture & deliverables"
+                  subtitle="Field capture"
                   icon={MapPin}
                   href="/site-walk"
                   accent="primary"
-                  className="col-span-2 w-full"
+                />
+                <MobileAppButton
+                  title="Digital Twin"
+                  subtitle="Site intelligence"
+                  icon={Sparkles}
+                  accent="info"
+                  locked
+                  badge="Preparing"
+                  onPress={() => setTwinInfoOpen(true)}
                 />
               </MobileActionGrid>
             ) : (
@@ -136,12 +185,13 @@ export function CommandCenterContent({
                 </Link>
               </div>
             )}
-          </MobileSection>
+          </section>
         }
         primaryActions={
-          <MobileSection label="Quick Actions" showAccentLine="cool" className="shrink-0">
+          <section className="shrink-0">
+            <AppSectionHeader label="Quick Actions" accent="cool" />
             <MobileQuickActionStrip actions={quickActions} />
-          </MobileSection>
+          </section>
         }
         dock={
           <MobileExpandableTabbedPanel
@@ -153,6 +203,29 @@ export function CommandCenterContent({
       />
 
       <MobileCreateSheet open={createSheetOpen} onOpenChange={setCreateSheetOpen} />
+
+      <Sheet open={twinInfoOpen} onOpenChange={setTwinInfoOpen}>
+        <SheetContent
+          side="bottom"
+          className="rounded-t-3xl border-t border-white/10 bg-[#0B0F15] p-6 pb-12 text-slate-50 sm:max-w-none"
+        >
+          <SheetHeader className="space-y-2 text-left">
+            <SheetTitle className="text-xl font-semibold text-slate-50">Digital Twin</SheetTitle>
+          </SheetHeader>
+          <p className="mt-4 text-sm leading-6 text-zinc-400">
+            Digital Twin is being prepared for your account. Site Walk field capture ships first;
+            your live site model and intelligence layer will appear here when ready.
+          </p>
+          <Button
+            type="button"
+            variant="ghost"
+            className="mt-6 w-full text-zinc-400 hover:text-white"
+            onClick={() => setTwinInfoOpen(false)}
+          >
+            Close
+          </Button>
+        </SheetContent>
+      </Sheet>
     </>
   );
 }

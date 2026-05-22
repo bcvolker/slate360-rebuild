@@ -37,7 +37,13 @@ export function MobileHomeLayout({
       data-mobile-route={route}
       className={cn(mobileTokens.mobileHomeLayoutRoot, className)}
     >
-      <div className={mobileTokens.mobileHomeUpperRegion}>
+      <div
+        className={
+          route === "app"
+            ? mobileTokens.mobileHomeAppUpperRegion
+            : mobileTokens.mobileHomeUpperRegion
+        }
+      >
         <div
           className={
             route === "app"
