@@ -6,7 +6,6 @@ import { WorksiteV1Row } from "@/components/site-walk/v1/WorksiteV1Row";
 import { WalkV1Row } from "@/components/site-walk/v1/WalkV1Row";
 import type { V1NavTab } from "@/components/site-walk/v1/SiteWalkV1BottomNav";
 import type { HubProject, HubSummary, HubWalk } from "@/lib/types/site-walk";
-import { buildWalkResumeUrl } from "@/lib/site-walk/capture-v2-config";
 import {
   MobileEmptyState,
   MobileShellBackToApp,
@@ -153,7 +152,13 @@ function WalkList({
           status={w.status}
           itemCount={w.itemCount}
           lastUpdated={timeAgo(w.updatedAt)}
-          onOpen={() => router.push(buildWalkResumeUrl(w.id, w.status))}
+          onOpen={() =>
+            router.push(
+              w.status === "completed"
+                ? `/site-walk/walks/${encodeURIComponent(w.id)}`
+                : `/site-walk/capture?session=${encodeURIComponent(w.id)}`,
+            )
+          }
           onCreateReport={() => setComingSoonTitle("Deliverables")}
         />
       ))}
