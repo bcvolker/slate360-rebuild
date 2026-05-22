@@ -21,7 +21,7 @@ export function MobileSection({
   return (
     <section className={className}>
       {label && (
-        <div className="mb-1">
+        <div className="mb-1.5">
           {showAccentLine && (
             <span
               className={

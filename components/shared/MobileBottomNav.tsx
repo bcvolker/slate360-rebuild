@@ -35,7 +35,12 @@ const PLATFORM_NAV: NavItem[] = [
 
 const SITE_WALK_NAV: NavItem[] = [
   { label: "Home", href: "/site-walk", icon: Home, matchPrefixes: ["/site-walk$"] },
-  { label: "Walks", href: "/site-walk/walks", icon: Footprints, matchPrefixes: ["/site-walk/walks", "/site-walk/capture", "/site-walk/board"] },
+  {
+    label: "Walks",
+    href: "/site-walk/walks",
+    icon: Footprints,
+    matchPrefixes: ["/site-walk/walks", "/site-walk/capture", "/site-walk/capture-v2", "/site-walk/board"],
+  },
   { label: "Deliverables", href: "/site-walk/deliverables", icon: FileText, matchPrefixes: ["/site-walk/deliverables", "/site-walk/present"] },
   { label: "More", href: "/site-walk/more", icon: MoreHorizontal, matchPrefixes: ["/site-walk/more", "/site-walk/slatedrop", "/site-walk/files", "/site-walk/templates", "/site-walk/contacts", "/site-walk/plans"] },
 ];
@@ -58,7 +63,7 @@ export function MobileBottomNav() {
       )}
       style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)", paddingTop: "4px" }}
     >
-      <ul className="flex min-h-[70px] items-stretch justify-around px-2">
+      <ul className="flex min-h-[58px] items-stretch justify-around px-2">
         {items.map((item) => {
           const Icon = item.icon;
           const active = item.matchPrefixes.some((p) => {
@@ -86,11 +91,11 @@ export function MobileBottomNav() {
                   />
                 )}
                 <Icon
-                  size={22}
+                  size={18}
                   strokeWidth={active ? 2.5 : 2}
                   className={cn("transition-transform", active && "-translate-y-0.5")}
                 />
-                <span className={cn("text-[10px] font-medium leading-none", active && "font-semibold")}>
+                <span className={cn("text-[9px] font-medium leading-none", active && "font-semibold")}>
                   {item.label}
                 </span>
               </Link>

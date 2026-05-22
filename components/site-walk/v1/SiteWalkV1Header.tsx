@@ -126,7 +126,7 @@ function ToolIcon({
       aria-label={label}
       className={cn(mobileTokens.mobileHeaderToolIcon, className)}
     >
-      <Icon className="size-[18px]" />
+      <Icon className="size-[15px]" />
     </button>
   );
 }
@@ -138,7 +138,7 @@ function AvatarMenu() {
         <button
           type="button"
           aria-label="Account menu"
-          className="flex size-11 shrink-0 items-center justify-center"
+          className="flex size-9 shrink-0 items-center justify-center"
         >
           <span className={mobileTokens.mobileAvatarRing}>
             S

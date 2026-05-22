@@ -34,7 +34,7 @@ export function MobileBottomNav<Key extends string = string>({
       )}
       style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)", paddingTop: "4px" }}
     >
-      <ul className="flex min-h-[70px] w-full items-stretch justify-around px-2">
+      <ul className="flex min-h-[58px] w-full items-stretch justify-around px-2">
         {items.map(({ key, label, icon: Icon, href, onSelect }) => {
           const active = activeKey === key;
           const itemClassName = cn(
@@ -50,11 +50,11 @@ export function MobileBottomNav<Key extends string = string>({
                 />
               )}
               <Icon
-                size={22}
+                size={18}
                 strokeWidth={active ? 2.5 : 2}
                 className={cn("transition-transform", active && "-translate-y-0.5")}
               />
-              <span className={cn("truncate text-[11px] font-medium leading-none", active && "font-semibold")}>
+              <span className={cn("truncate text-[10px] font-medium leading-none", active && "font-semibold")}>
                 {label}
               </span>
             </>

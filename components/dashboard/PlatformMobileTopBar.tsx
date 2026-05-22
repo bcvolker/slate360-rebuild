@@ -46,9 +46,9 @@ export function PlatformMobileTopBar({
             <Link
               href="/more"
               aria-label="Notifications and communication inbox"
-              className="flex h-9 w-9 items-center justify-center rounded-lg text-zinc-500 transition-colors hover:bg-white/10 hover:text-amber-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50"
+              className="flex h-8 w-8 items-center justify-center rounded-lg text-zinc-500 transition-colors hover:bg-white/10 hover:text-amber-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50"
             >
-              <Bell className="h-[18px] w-[18px]" />
+              <Bell className="h-[15px] w-[15px]" />
             </Link>
             <AccountMenu userName={userName} />
           </>
@@ -74,9 +74,9 @@ function HeaderIcon({
       onClick={onClick}
       aria-label={label}
       title={label}
-      className="flex h-9 w-9 items-center justify-center rounded-lg text-zinc-500 transition-colors hover:bg-white/10 hover:text-amber-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50"
+      className="flex h-8 w-8 items-center justify-center rounded-lg text-zinc-500 transition-colors hover:bg-white/10 hover:text-amber-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50"
     >
-      <Icon className="h-[18px] w-[18px]" />
+      <Icon className="h-[15px] w-[15px]" />
     </button>
   );
 }
@@ -86,10 +86,10 @@ function AccountMenu({ userName }: { userName: string }) {
     <DropdownMenu>
       <DropdownMenuTrigger
         aria-label="Account menu"
-        className="flex h-9 w-9 items-center justify-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50"
+        className="flex h-8 w-8 items-center justify-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50"
       >
-        <Avatar className="h-8 w-8 border border-amber-500/40">
-          <AvatarFallback className="bg-amber-500/15 text-[12px] font-semibold text-amber-200">
+        <Avatar className="h-7 w-7 border border-amber-500/40">
+          <AvatarFallback className="bg-amber-500/15 text-[11px] font-semibold text-amber-200">
             {userName ? userName.charAt(0).toUpperCase() : "U"}
           </AvatarFallback>
         </Avatar>

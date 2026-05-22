@@ -6,6 +6,7 @@ import { WorksiteV1Row } from "@/components/site-walk/v1/WorksiteV1Row";
 import { WalkV1Row } from "@/components/site-walk/v1/WalkV1Row";
 import type { V1NavTab } from "@/components/site-walk/v1/SiteWalkV1BottomNav";
 import type { HubProject, HubSummary, HubWalk } from "@/lib/types/site-walk";
+import { buildWalkResumeUrl } from "@/lib/site-walk/capture-v2-config";
 import {
   MobileEmptyState,
   MobileShellBackToApp,
@@ -46,7 +47,7 @@ export function HomeView({ walks, projects, summary, router, onQuickCapture }: H
         route="site-walk"
         contentTop={
           <MobileSection showAccentLine className="shrink-0">
-            <div className="flex items-center gap-2.5" data-testid="site-walk-module-intro">
+            <div className="flex items-center gap-3" data-testid="site-walk-module-intro">
               <MobileShellBackToApp />
               <div className="min-w-0">
                 <h1 className={mobileTokens.moduleTitle}>
@@ -152,7 +153,7 @@ function WalkList({
           status={w.status}
           itemCount={w.itemCount}
           lastUpdated={timeAgo(w.updatedAt)}
-          onOpen={() => router.push(`/site-walk/walks/${w.id}`)}
+          onOpen={() => router.push(buildWalkResumeUrl(w.id, w.status))}
           onCreateReport={() => setComingSoonTitle("Deliverables")}
         />
       ))}
