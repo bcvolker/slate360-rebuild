@@ -96,8 +96,8 @@ async function loadProjectPlanRoom(projectId: string, orgId: string) {
 
 function NoActiveSession() {
   return (
-    <main className="flex h-full min-h-0 flex-col overflow-hidden bg-[#0B0F15] text-slate-50">
-      <div className="flex min-h-0 flex-1 items-center justify-center px-4 pb-[max(env(safe-area-inset-bottom),1rem)] pt-[max(env(safe-area-inset-top),1rem)]">
+    <main className="relative flex h-full min-h-0 w-full flex-grow flex-col overflow-hidden bg-[#0B0F15] pb-safe text-slate-50">
+      <div className="flex min-h-0 flex-1 items-center justify-center px-4 pt-[max(env(safe-area-inset-top),1rem)]">
         <div className="w-full max-w-md rounded-3xl border border-white/10 bg-slate-900/60 p-6 text-center shadow-lg shadow-black/40 backdrop-blur-md">
           <p className="text-xs font-black uppercase tracking-[0.2em] text-amber-400">Capture</p>
           <h1 className="mt-2 text-2xl font-black text-white">Start a walk first</h1>

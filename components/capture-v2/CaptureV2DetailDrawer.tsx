@@ -1,7 +1,6 @@
 "use client";
 
-import { CaptureV2DesktopInspector } from "./CaptureV2DesktopInspector";
-import { CaptureV2MobileDrawer } from "./CaptureV2MobileDrawer";
+import { LogEntryDrawer } from "./LogEntryDrawer";
 import { useCaptureV2DetailDrawer } from "./useCaptureV2DetailDrawer";
 import type { CaptureV2DrawerDetent } from "./useCaptureV2DetailDrawer";
 import type { CaptureV2Loop } from "./useCaptureV2Loop";
@@ -11,6 +10,9 @@ type Props = {
   projectId: string | null;
   mode: "mobile-overlay" | "mobile-full" | "desktop";
   initialDetent?: CaptureV2DrawerDetent;
+  notesFocused?: boolean;
+  onNotesFocusChange?: (focused: boolean) => void;
+  onAddAnotherAngle?: () => void;
   onClose?: () => void;
 };
 
@@ -19,30 +21,21 @@ export function CaptureV2DetailDrawer({
   projectId,
   mode,
   initialDetent = "default",
+  notesFocused,
+  onNotesFocusChange,
+  onAddAnotherAngle,
   onClose,
 }: Props) {
   const drawer = useCaptureV2DetailDrawer(loop, projectId, initialDetent);
 
-  if (mode === "desktop") {
-    return <CaptureV2DesktopInspector loop={loop} drawer={drawer} />;
-  }
-
-  if (mode === "mobile-full") {
-    return (
-      <CaptureV2MobileDrawer
-        loop={loop}
-        drawer={drawer}
-        presentation="full"
-        onClose={onClose}
-      />
-    );
-  }
-
   return (
-    <CaptureV2MobileDrawer
+    <LogEntryDrawer
       loop={loop}
       drawer={drawer}
-      presentation="overlay"
+      mode={mode}
+      notesFocused={notesFocused}
+      onNotesFocusChange={onNotesFocusChange}
+      onAddAnotherAngle={onAddAnotherAngle}
       onClose={onClose}
     />
   );

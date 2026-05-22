@@ -6,6 +6,7 @@ import { withAppAuth } from "@/lib/server/api-auth";
 import { ok, badRequest, serverError } from "@/lib/server/api-response";
 import type { ItemStatus, ItemPriority, WorkflowType } from "@/lib/types/site-walk";
 import { notifyAssignment } from "@/lib/site-walk/notify-assignment";
+import { excludeDeletedSiteWalkItems } from "@/lib/site-walk/item-filters";
 
 type BulkPayload = {
   item_ids: string[];
@@ -39,12 +40,16 @@ export const PATCH = (req: NextRequest) =>
       return badRequest("No valid fields to update");
     }
 
-    const { data, error } = await admin
+    let updateQuery = admin
       .from("site_walk_items")
       .update(updates)
       .in("id", body.item_ids)
-      .eq("org_id", orgId)
-      .select("id, session_id, title, item_status, priority, workflow_type, assigned_to, due_date");
+      .eq("org_id", orgId);
+    updateQuery = excludeDeletedSiteWalkItems(updateQuery);
+
+    const { data, error } = await updateQuery.select(
+      "id, session_id, title, item_status, priority, workflow_type, assigned_to, due_date",
+    );
 
     if (error) return serverError(error.message);
 

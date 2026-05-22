@@ -1,6 +1,8 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { CaptureProvider } from "@/components/site-walk/capture/CaptureContext";
+import { SiteWalkSessionProvider } from "@/components/site-walk/SiteWalkSessionProvider";
 import type { CaptureV2Session } from "./session-types";
 import type { SiteWalkPlanSet, SiteWalkPlanSheet } from "@/lib/types/site-walk";
 
@@ -21,13 +23,19 @@ const CaptureV2Shell = dynamic(
 );
 
 export function CaptureNoSsrBoundary(props: Props) {
-  return <CaptureV2Shell {...props} />;
+  return (
+    <SiteWalkSessionProvider sessionId={props.session.id}>
+      <CaptureProvider>
+        <CaptureV2Shell {...props} />
+      </CaptureProvider>
+    </SiteWalkSessionProvider>
+  );
 }
 
 function CaptureV2ShellLoading() {
   return (
-    <main className="flex h-full min-h-0 flex-col overflow-hidden bg-[#0B0F15] text-slate-50">
-      <div className="flex min-h-0 flex-1 items-center justify-center px-4 pb-[max(env(safe-area-inset-bottom),1rem)] pt-[max(env(safe-area-inset-top),1rem)]">
+    <main className="relative flex h-full min-h-0 w-full flex-grow flex-col overflow-hidden bg-[#0B0F15] pb-safe text-white">
+      <div className="flex min-h-0 flex-1 items-center justify-center px-4 pt-[max(env(safe-area-inset-top),1rem)]">
         <div className="w-full max-w-md rounded-3xl border border-white/10 bg-slate-900/60 p-6 text-center text-sm font-bold text-slate-300 shadow-lg shadow-black/40 backdrop-blur-md">
           Loading capture…
         </div>

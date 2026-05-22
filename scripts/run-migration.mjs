@@ -15,7 +15,7 @@ try {
     if (match) {
       const key = match[1].trim();
       const val = match[2].trim().replace(/^["']|["']$/g, "");
-      if (!process.env[key]) process.env[key] = val;
+      if (val) process.env[key] = val;
     }
   }
 } catch { /* ignore */ }

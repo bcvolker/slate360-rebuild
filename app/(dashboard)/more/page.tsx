@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Building2, ChevronRight, CreditCard, HardDrive, LifeBuoy, MessageSquare, User, Wrench } from "lucide-react";
+import { Building2, ChevronRight, CreditCard, FileText, HardDrive, LifeBuoy, MessageSquare, Shield, Trash2, User, Wrench } from "lucide-react";
 import { getEntitlements } from "@/lib/entitlements";
 import { resolveServerOrgContext } from "@/lib/server/org-context";
 import { resolveUsageTruth } from "@/lib/server/usage-truth";
@@ -17,6 +17,14 @@ type MoreItem = {
   icon: typeof User;
 };
 
+type EssentialItem = {
+  label: string;
+  href: string;
+  detail: string;
+  icon: typeof User;
+  external?: boolean;
+};
+
 export default async function MorePage() {
   const ctx = await resolveServerOrgContext();
   const entitlements = getEntitlements(ctx.tier, { isSlateCeo: ctx.isSlateCeo });
@@ -30,6 +38,14 @@ export default async function MorePage() {
     { label: "Coordination", href: "/more/coordination", detail: "Inbox, contacts, calendar", icon: MessageSquare },
     { label: "Storage", href: "/more/storage", detail: "SlateDrop files and usage", badge: storageLabel, icon: HardDrive },
     { label: "Legal / Support", href: "/more/support", detail: "Policies, support, feedback", icon: LifeBuoy },
+  ];
+
+  const essentials: EssentialItem[] = [
+    { label: "Profile & settings", href: "/settings", detail: "Name, preferences, password, and security", icon: User },
+    { label: "Help & support", href: "/more/support", detail: "Email support and workspace help", icon: LifeBuoy },
+    { label: "Privacy policy", href: "/privacy", detail: "How Slate360 handles your data", icon: Shield },
+    { label: "Terms of service", href: "/terms", detail: "Platform subscription and use terms", icon: FileText },
+    { label: "Delete account", href: "/more/account#delete-account", detail: "Permanently remove your account", icon: Trash2 },
   ];
 
   if (ctx.hasOperationsConsoleAccess) {
@@ -46,6 +62,31 @@ export default async function MorePage() {
           <SummaryTile label="Plan" value={entitlements.label} />
           <SummaryTile label="Storage" value={storageLabel} />
         </div>
+      </section>
+
+      <section className="overflow-hidden rounded-3xl border border-white/10 bg-white/5 shadow-lg backdrop-blur-md">
+        <div className="border-b border-white/10 px-4 py-3">
+          <p className="text-[11px] font-black uppercase tracking-[0.18em] text-amber-400">Account essentials</p>
+        </div>
+        {essentials.map((item) => {
+          const Icon = item.icon;
+          return (
+            <Link
+              key={item.label}
+              href={item.href}
+              className="flex min-h-14 items-center gap-3 border-b border-white/10 px-4 transition hover:bg-amber-500/10 last:border-b-0"
+            >
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/[0.06] text-amber-200">
+                <Icon className="h-4 w-4" />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-sm font-black text-white">{item.label}</span>
+                <span className="mt-0.5 block truncate text-xs font-bold text-slate-400">{item.detail}</span>
+              </span>
+              <ChevronRight className="h-4 w-4 text-slate-500" />
+            </Link>
+          );
+        })}
       </section>
 
       <section className="overflow-hidden rounded-3xl border border-white/10 bg-white/5 shadow-lg backdrop-blur-md">

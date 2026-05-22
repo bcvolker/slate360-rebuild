@@ -1,0 +1,559 @@
+"use client";
+
+import { useCallback, useEffect, useRef, useState, type PointerEvent } from "react";
+import { Loader2, Camera, RefreshCw, Sparkles, X } from "lucide-react";
+import { motion, type PanInfo } from "framer-motion";
+import {
+  CAPTURE_ITEM_STATUSES,
+  CAPTURE_PRIORITIES,
+  type CaptureItemDraft,
+} from "@/lib/types/site-walk-capture";
+import { CAPTURE_V2_LAYER_IDS, CAPTURE_V2_LAYERS } from "./layers";
+import { CaptureV2PrimaryAction } from "./CaptureV2PrimaryAction";
+import { CaptureV2SaveStatus } from "./CaptureV2SaveStatus";
+import { SmartClassificationChips } from "./SmartClassificationChips";
+import type { CaptureV2DrawerDetent } from "./useCaptureV2DetailDrawer";
+import type { useCaptureV2DetailDrawer } from "./useCaptureV2DetailDrawer";
+import type { CaptureV2Loop } from "./useCaptureV2Loop";
+
+type DrawerHook = ReturnType<typeof useCaptureV2DetailDrawer>;
+
+type Props = {
+  loop: CaptureV2Loop;
+  drawer: DrawerHook;
+  mode: "mobile-overlay" | "mobile-full" | "desktop";
+  initialDetent?: CaptureV2DrawerDetent;
+  notesFocused?: boolean;
+  onNotesFocusChange?: (focused: boolean) => void;
+  onAddAnotherAngle?: () => void;
+  onClose?: () => void;
+};
+
+const selectClass =
+  "mt-1 h-10 w-full rounded-2xl border border-white/10 bg-black/35 px-3 text-xs font-black text-slate-100 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-500/20 disabled:opacity-50";
+const labelClass = "text-[10px] font-black uppercase tracking-[0.16em] text-slate-500";
+
+const DETENT_RATIO: Record<CaptureV2DrawerDetent, number> = {
+  default: 0.6,
+  expanded: 1,
+};
+
+function formatOption(value: string) {
+  return value.replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+function isFormField(element: EventTarget | null): boolean {
+  if (!(element instanceof HTMLElement)) return false;
+  const tag = element.tagName;
+  return tag === "TEXTAREA" || tag === "SELECT" || tag === "INPUT";
+}
+
+function useDrawerViewportBounds(detent: CaptureV2DrawerDetent) {
+  const [maxHeightPx, setMaxHeightPx] = useState<number | null>(null);
+  const [keyboardOffset, setKeyboardOffset] = useState(0);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const update = () => {
+      const vv = window.visualViewport;
+      const layoutHeight = window.innerHeight;
+      const keyboard = vv
+        ? Math.max(0, layoutHeight - vv.height - vv.offsetTop)
+        : 0;
+      setKeyboardOffset(keyboard);
+
+      const visibleHeight = vv?.height ?? layoutHeight;
+      const ratio = DETENT_RATIO[detent];
+      const target = Math.round(visibleHeight * ratio);
+      setMaxHeightPx(target);
+    };
+
+    update();
+    window.visualViewport?.addEventListener("resize", update);
+    window.visualViewport?.addEventListener("scroll", update);
+    window.addEventListener("resize", update);
+    return () => {
+      window.visualViewport?.removeEventListener("resize", update);
+      window.visualViewport?.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
+    };
+  }, [detent]);
+
+  return { maxHeightPx, keyboardOffset };
+}
+
+export function LogEntryDrawer({
+  loop,
+  drawer,
+  mode,
+  notesFocused = false,
+  onNotesFocusChange,
+  onAddAnotherAngle,
+  onClose,
+}: Props) {
+  const notesRef = useRef<HTMLTextAreaElement>(null);
+  const [formFieldFocused, setFormFieldFocused] = useState(false);
+  const [followUpBusy, setFollowUpBusy] = useState(false);
+  const { detent, setDetent, cycleDetent, locationLabel, patchLocation, tradeSettings } = drawer;
+
+  const {
+    activeItem,
+    draft,
+    patchDraft,
+    assignees,
+    machineState,
+    isDesktop,
+    handlePrimaryAction,
+    saveState,
+    detailsSaving,
+    detailSaveError,
+    formatNotesWithAi,
+    aiState,
+    aiMessage,
+    createFollowUpStop,
+  } = loop;
+
+  const { maxHeightPx, keyboardOffset } = useDrawerViewportBounds(detent);
+  const dismissLocked = formFieldFocused || notesFocused;
+  const isMobileInline = mode === "mobile-full";
+  const isDesktopPanel = mode === "desktop";
+
+  const syncNotesFocus = useCallback(
+    (focused: boolean) => {
+      setFormFieldFocused(focused);
+      onNotesFocusChange?.(focused);
+    },
+    [onNotesFocusChange],
+  );
+
+  useEffect(() => {
+    if (!activeItem) syncNotesFocus(false);
+  }, [activeItem, syncNotesFocus]);
+
+  function handleFormFocus(event: React.FocusEvent) {
+    if (isFormField(event.target)) setFormFieldFocused(true);
+    if (event.target instanceof HTMLTextAreaElement && event.target.name === "field-notes") {
+      syncNotesFocus(true);
+    }
+  }
+
+  function handleFormBlur(event: React.FocusEvent) {
+    const next = event.relatedTarget;
+    if (next instanceof HTMLElement && event.currentTarget.contains(next)) return;
+    window.setTimeout(() => {
+      const active = document.activeElement;
+      if (active instanceof HTMLElement && event.currentTarget.contains(active)) return;
+      setFormFieldFocused(false);
+      if (notesRef.current && document.activeElement !== notesRef.current) {
+        syncNotesFocus(false);
+      }
+    }, 0);
+  }
+
+  function handleContentPointerDown(event: PointerEvent<HTMLDivElement>) {
+    const target = event.target;
+    if (!(target instanceof HTMLElement)) return;
+    if (target.closest("button, a, input, textarea, select, [contenteditable='true']")) return;
+    if (notesRef.current) notesRef.current.blur();
+  }
+
+  function handleDragEnd(_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) {
+    if (dismissLocked) return;
+    if (info.offset.y > 80) {
+      if (detent === "expanded") setDetent("default");
+      else onClose?.();
+      return;
+    }
+    if (info.offset.y < -60) setDetent("expanded");
+  }
+
+  async function handleCreateFollowUp() {
+    if (followUpBusy || !activeItem) return;
+    setFollowUpBusy(true);
+    try {
+      await createFollowUpStop();
+    } finally {
+      setFollowUpBusy(false);
+    }
+  }
+
+  if (!activeItem || !draft) {
+    if (isDesktopPanel) {
+      return (
+        <div className="flex min-h-0 flex-1 flex-col items-center justify-center px-6 text-center">
+          <p className="text-sm font-semibold text-slate-400">
+            Capture a photo first. Details autosave against the active item.
+          </p>
+        </div>
+      );
+    }
+    return null;
+  }
+
+  const formBody = (
+    <LogEntryFormBody
+      draft={draft}
+      locationLabel={locationLabel}
+      assignees={assignees}
+      tradeOptions={tradeSettings.trades}
+      notesRef={notesRef}
+      onPatch={patchDraft}
+      onLocationChange={patchLocation}
+      onNotesChange={(value) => patchDraft({ notes: value })}
+      onContentPointerDown={handleContentPointerDown}
+      selectClass={selectClass}
+      labelClass={labelClass}
+    />
+  );
+
+  const footer = (
+    <div
+      className="shrink-0 space-y-2 border-t border-white/10 bg-slate-950/95 pt-3"
+      style={{
+        paddingBottom: isDesktopPanel
+          ? "0.75rem"
+          : `max(${keyboardOffset}px, env(safe-area-inset-bottom, 0px), 0.75rem)`,
+      }}
+    >
+      <button
+        type="button"
+        disabled={loop.busy || detailsSaving}
+        onMouseDown={(event) => event.preventDefault()}
+        onTouchStart={(event) => event.preventDefault()}
+        onClick={() => onAddAnotherAngle?.()}
+        className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] px-4 text-sm font-black text-slate-100 transition hover:border-sky-400/30 hover:bg-sky-500/10 disabled:opacity-60"
+      >
+        <Camera className="h-4 w-4" />
+        Add Another Angle
+      </button>
+
+      <button
+        type="button"
+        disabled={followUpBusy || detailsSaving}
+        onMouseDown={(event) => event.preventDefault()}
+        onTouchStart={(event) => event.preventDefault()}
+        onClick={() => void handleCreateFollowUp()}
+        className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] px-4 text-sm font-black text-slate-100 transition hover:border-amber-400/30 hover:bg-amber-500/10 disabled:opacity-60"
+      >
+        {followUpBusy ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : (
+          <RefreshCw className="h-4 w-4" />
+        )}
+        Create Follow-Up
+      </button>
+
+      <CaptureV2PrimaryAction
+        state={machineState}
+        isDesktop={isDesktop}
+        onAction={handlePrimaryAction}
+      />
+    </div>
+  );
+
+  const aiSection = (
+    <>
+      <button
+        type="button"
+        disabled={aiState === "formatting" || !draft.notes.trim()}
+        onMouseDown={(event) => event.preventDefault()}
+        onTouchStart={(event) => event.preventDefault()}
+        onClick={() => void formatNotesWithAi()}
+        className="mt-3 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 text-sm font-black text-amber-100 disabled:opacity-60"
+      >
+        {aiState === "formatting" ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : (
+          <Sparkles className="h-4 w-4" />
+        )}
+        AI Format Note
+      </button>
+      {aiMessage && (
+        <p className="mt-2 rounded-2xl border border-amber-500/20 bg-amber-500/10 px-3 py-2 text-xs font-bold text-amber-100">
+          {aiMessage}
+        </p>
+      )}
+    </>
+  );
+
+  if (isDesktopPanel) {
+    return (
+      <div
+        className="flex min-h-0 flex-1 flex-col overflow-hidden"
+        aria-label="Log entry inspector"
+      >
+        <div className="shrink-0 border-b border-white/5 px-4 pb-3 pt-4">
+          <p className="text-[11px] font-black uppercase tracking-[0.22em] text-amber-300/80">
+            Log Entry
+          </p>
+          <h2 className="mt-1 truncate text-lg font-black text-white">
+            {draft.title || activeItem.title || "Captured stop"}
+          </h2>
+          <CaptureV2SaveStatus
+            saveState={saveState}
+            detailSaveError={detailSaveError}
+            detailsSaving={detailsSaving}
+          />
+        </div>
+
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-3 no-scrollbar">
+          <SmartClassificationChips
+            textareaRef={notesRef}
+            notes={draft.notes}
+            onNotesChange={(value) => patchDraft({ notes: value })}
+            className="mb-3 pb-1"
+          />
+          {formBody}
+          {aiSection}
+        </div>
+
+        <div className="px-4">{footer}</div>
+      </div>
+    );
+  }
+
+  const mobileHeader = (
+    <div className="relative flex shrink-0 items-center gap-2 px-3 pb-2 pt-2">
+      <button
+        type="button"
+        onClick={cycleDetent}
+        disabled={dismissLocked}
+        className="inline-flex h-9 flex-1 flex-col items-center justify-center rounded-xl border border-white/10 bg-white/[0.03] px-2 disabled:opacity-50"
+        aria-label={`Drawer height: ${detent === "expanded" ? "full screen" : "60 percent"}`}
+      >
+        <span className="h-1 w-10 rounded-full bg-white/25" />
+        <span className="mt-1 text-[9px] font-black uppercase tracking-wider text-slate-500">
+          {detent === "expanded" ? "Full" : "60%"}
+        </span>
+      </button>
+      {onClose && (
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute right-3 top-2 inline-flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-white/80"
+          aria-label="Close log entry"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      )}
+    </div>
+  );
+
+  const mobileContent = (
+    <>
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-4">
+        <div className="shrink-0 pb-2">
+          <p className="text-[11px] font-black uppercase tracking-[0.22em] text-amber-300/80">
+            Log Entry
+          </p>
+          <h2 className="truncate text-base font-black text-white">
+            {draft.title || activeItem.title || "Captured stop"}
+          </h2>
+          <CaptureV2SaveStatus
+            saveState={saveState}
+            detailSaveError={detailSaveError}
+            detailsSaving={detailsSaving}
+          />
+        </div>
+
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain no-scrollbar pb-2">
+          {!keyboardOffset && (
+            <SmartClassificationChips
+              textareaRef={notesRef}
+              notes={draft.notes}
+              onNotesChange={(value) => patchDraft({ notes: value })}
+              className="mb-3 pb-1"
+            />
+          )}
+          {formBody}
+          {detent === "expanded" && aiSection}
+        </div>
+
+        {footer}
+      </div>
+
+      {keyboardOffset > 0 && (
+        <div
+          className={`${CAPTURE_V2_LAYERS.copilot} fixed inset-x-0 border-t border-white/10 bg-slate-950/95 px-3 py-2 backdrop-blur-xl`}
+          style={{ bottom: keyboardOffset }}
+        >
+          <SmartClassificationChips
+            textareaRef={notesRef}
+            notes={draft.notes}
+            onNotesChange={(value) => patchDraft({ notes: value })}
+          />
+        </div>
+      )}
+    </>
+  );
+
+  if (isMobileInline) {
+    return (
+      <div
+        id={CAPTURE_V2_LAYER_IDS.logDrawer}
+        className={`${CAPTURE_V2_LAYERS.drawer} relative flex min-h-0 flex-1 flex-col overflow-hidden border-t border-white/10 bg-slate-950/97 backdrop-blur-xl md:hidden`}
+        onFocusCapture={handleFormFocus}
+        onBlurCapture={handleFormBlur}
+        aria-label="Log entry drawer"
+      >
+        {mobileHeader}
+        {mobileContent}
+      </div>
+    );
+  }
+
+  return (
+    <motion.div
+      id={CAPTURE_V2_LAYER_IDS.logDrawer}
+      drag={dismissLocked ? false : "y"}
+      dragConstraints={{ top: 0, bottom: 0 }}
+      dragElastic={0.12}
+      onDragEnd={handleDragEnd}
+      animate={{ height: maxHeightPx ?? "60dvh" }}
+      transition={{ type: "spring", stiffness: 420, damping: 36 }}
+      className={`${CAPTURE_V2_LAYERS.drawer} pointer-events-auto fixed inset-x-0 bottom-0 z-[45] flex flex-col overflow-hidden rounded-t-[1.5rem] border-t border-white/10 bg-slate-950/97 shadow-[0_-20px_50px_rgba(0,0,0,0.45)] backdrop-blur-xl md:hidden`}
+      style={{ maxHeight: maxHeightPx ? `${maxHeightPx}px` : "60dvh" }}
+      onFocusCapture={handleFormFocus}
+      onBlurCapture={handleFormBlur}
+      aria-label="Log entry drawer"
+    >
+      {mobileHeader}
+      {mobileContent}
+    </motion.div>
+  );
+}
+
+type FormBodyProps = {
+  draft: CaptureItemDraft;
+  locationLabel: string;
+  assignees: CaptureV2Loop["assignees"];
+  tradeOptions: string[];
+  notesRef: React.RefObject<HTMLTextAreaElement | null>;
+  onPatch: (patch: Partial<CaptureItemDraft>) => void;
+  onLocationChange: (value: string) => void;
+  onNotesChange: (value: string) => void;
+  onContentPointerDown: (event: PointerEvent<HTMLDivElement>) => void;
+  selectClass: string;
+  labelClass: string;
+};
+
+function LogEntryFormBody({
+  draft,
+  locationLabel,
+  assignees,
+  tradeOptions,
+  notesRef,
+  onPatch,
+  onLocationChange,
+  onNotesChange,
+  onContentPointerDown,
+  selectClass,
+  labelClass,
+}: FormBodyProps) {
+  return (
+    <div className="space-y-3" onPointerDownCapture={onContentPointerDown}>
+      <label className="block text-left">
+        <span className={labelClass}>Field note</span>
+        <textarea
+          ref={notesRef}
+          name="field-notes"
+          value={draft.notes}
+          onChange={(event) => onNotesChange(event.target.value)}
+          rows={5}
+          placeholder="Type what happened, what changed, and who owns the next action…"
+          className="mt-2 w-full rounded-3xl border border-white/10 bg-black/35 px-4 py-3 text-base leading-6 text-slate-100 outline-none placeholder:text-slate-600 focus:border-amber-400 focus:ring-2 focus:ring-amber-500/20"
+          style={{ WebkitUserSelect: "text", userSelect: "text" }}
+          onPointerDown={(event) => event.stopPropagation()}
+        />
+      </label>
+
+      <div className="grid gap-2 sm:grid-cols-2">
+        <label className="block text-left">
+          <span className={labelClass}>Status</span>
+          <select
+            value={draft.status}
+            onChange={(event) =>
+              onPatch({ status: event.target.value as CaptureItemDraft["status"] })
+            }
+            className={selectClass}
+            onPointerDown={(event) => event.stopPropagation()}
+          >
+            {CAPTURE_ITEM_STATUSES.map((status) => (
+              <option key={status} value={status}>
+                {formatOption(status)}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="block text-left">
+          <span className={labelClass}>Priority</span>
+          <select
+            value={draft.priority}
+            onChange={(event) =>
+              onPatch({ priority: event.target.value as CaptureItemDraft["priority"] })
+            }
+            className={selectClass}
+            onPointerDown={(event) => event.stopPropagation()}
+          >
+            {CAPTURE_PRIORITIES.map((priority) => (
+              <option key={priority} value={priority}>
+                {formatOption(priority)}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+
+      <div className="grid gap-2 sm:grid-cols-2">
+        <label className="block text-left">
+          <span className={labelClass}>Category</span>
+          <select
+            value={draft.trade}
+            onChange={(event) => onPatch({ trade: event.target.value })}
+            className={selectClass}
+            onPointerDown={(event) => event.stopPropagation()}
+          >
+            <option value="">Select category…</option>
+            {tradeOptions.map((trade) => (
+              <option key={trade} value={trade}>
+                {trade}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="block text-left">
+          <span className={labelClass}>Assignee</span>
+          <select
+            value={draft.assignedTo}
+            onChange={(event) => onPatch({ assignedTo: event.target.value })}
+            className={selectClass}
+            onPointerDown={(event) => event.stopPropagation()}
+          >
+            <option value="">Unassigned</option>
+            {assignees
+              .filter((assignee) => assignee.assignable)
+              .map((assignee) => (
+                <option key={assignee.id} value={assignee.id}>
+                  {assignee.label}
+                </option>
+              ))}
+          </select>
+        </label>
+      </div>
+
+      <label className="block text-left">
+        <span className={labelClass}>Room / area / location</span>
+        <input
+          value={locationLabel}
+          onChange={(event) => onLocationChange(event.target.value)}
+          className="mt-1 w-full rounded-2xl border border-white/10 bg-black/35 px-3 py-2.5 text-sm font-semibold text-white outline-none ring-amber-400/40 focus:ring-2"
+          placeholder="e.g. Level 2 · East corridor"
+          onPointerDown={(event) => event.stopPropagation()}
+        />
+      </label>
+    </div>
+  );
+}

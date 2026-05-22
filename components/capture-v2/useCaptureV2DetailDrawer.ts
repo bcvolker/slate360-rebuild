@@ -5,9 +5,9 @@ import { useProjectCaptureSettings } from "@/lib/hooks/useProjectCaptureSettings
 import { CAPTURE_V2_DRAWER_CHIPS } from "./capture-v2-smart-chips";
 import type { CaptureV2Loop } from "./useCaptureV2Loop";
 
-export type CaptureV2DrawerDetent = "compact" | "default" | "expanded";
+export type CaptureV2DrawerDetent = "default" | "expanded";
 
-const DETENT_ORDER: CaptureV2DrawerDetent[] = ["compact", "default", "expanded"];
+const DETENT_ORDER: CaptureV2DrawerDetent[] = ["default", "expanded"];
 
 export function useCaptureV2DetailDrawer(
   loop: CaptureV2Loop,

@@ -2,25 +2,28 @@
 
 
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ChangeEvent } from "react";
 
+import { LayoutGroup } from "framer-motion";
 import { PendingUploadPreviewModal } from "@/components/site-walk/capture/PendingUploadPreviewModal";
 
 import { useSiteWalkSession } from "@/components/site-walk/SiteWalkSessionProvider";
 
 import { CAPTURE_V2_LAYERS } from "./layers";
 
-import { CaptureV2ActionHub } from "./CaptureV2ActionHub";
-
 import { CaptureV2DetailDrawer } from "./CaptureV2DetailDrawer";
 
+import { CaptureV2ActionHub } from "./CaptureV2ActionHub";
+
 import { CaptureV2Filmstrip } from "./CaptureV2Filmstrip";
+
+import { FastTrackActionBar } from "./FastTrackActionBar";
 
 import { CaptureV2Viewfinder } from "./CaptureV2Viewfinder";
 
 import { useCaptureV2Loop } from "./useCaptureV2Loop";
 
-import type { CaptureV2UiPhase } from "./types";
+import { resolveCaptureV2DrawerPhase, type CaptureV2UiPhase } from "./types";
 
 import type { CaptureV2Session } from "./session-types";
 
@@ -85,6 +88,10 @@ export function CaptureV2Orchestrator(props: Props) {
   const { capturedItems } = useSiteWalkSession();
 
   const [phase, setPhase] = useState<CaptureV2UiPhase>(() => resolveInitialPhase(props));
+  const [activeAngleId, setActiveAngleId] = useState<string | null>(null);
+  const [savingNext, setSavingNext] = useState(false);
+  const [notesFocused, setNotesFocused] = useState(false);
+  const resolvedPhase = resolveCaptureV2DrawerPhase(phase);
 
   useEffect(() => {
     if (loop.activePreview && phase !== "viewfinder" && phase !== "drawer") {
@@ -116,9 +123,32 @@ export function CaptureV2Orchestrator(props: Props) {
 
   function handleFilmstripSelect(item: CaptureItemRecord) {
     loop.focusFilmstripItem(item);
+    setActiveAngleId(null);
     if (phase === "hub" || phase === "plan" || phase === "summary") {
       setPhase("viewfinder");
     }
+  }
+
+  async function handleVoiceNoteOnly() {
+    await loop.startVoiceNoteOnly();
+    setPhase("drawer");
+  }
+
+  async function handleSaveAndNext() {
+    setSavingNext(true);
+    try {
+      await loop.saveAndNextStop();
+      setActiveAngleId(null);
+      setPhase("viewfinder");
+    } finally {
+      setSavingNext(false);
+    }
+  }
+
+  function handleAddAnotherAngle() {
+    setNotesFocused(false);
+    setPhase("viewfinder");
+    loop.addAnotherAngle();
   }
 
   return (
@@ -127,67 +157,85 @@ export function CaptureV2Orchestrator(props: Props) {
 
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
 
+        <LayoutGroup id="capture-v2-shell">
         <div className="flex min-h-0 flex-1 overflow-hidden md:flex-row">
 
-          <section className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden md:w-[60%]">
+          <section className="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden md:w-[60%]">
 
-            {phase === "hub" && (
-
+            {resolvedPhase === "hub" && (
               <CaptureV2ActionHub
-
                 session={session}
-
                 loop={loop}
-
                 capturedCount={capturedCount}
-
                 onOpenDrawer={() => setPhase("drawer")}
-
+                onVoiceNoteOnly={() => void handleVoiceNoteOnly()}
               />
-
             )}
 
-            {phase === "viewfinder" && (
+            {(resolvedPhase === "viewfinder" || resolvedPhase === "drawer") && (
               <>
-                <CaptureV2Viewfinder loop={loop} />
-                {loop.activeItem && (
-                  <CaptureV2DetailDrawer
-                    loop={loop}
-                    projectId={session.project_id}
-                    mode="mobile-overlay"
-                    onClose={() => setPhase("viewfinder")}
-                  />
-                )}
+                <CaptureV2Viewfinder
+                  sessionId={session.id}
+                  loop={loop}
+                  activeAngleId={activeAngleId}
+                  notesFocused={notesFocused}
+                />
+                <FastTrackActionBar
+                  loop={loop}
+                  activeAngleId={activeAngleId}
+                  onSelectAngle={setActiveAngleId}
+                  onOpenDrawer={() => setPhase("drawer")}
+                  onSaveAndNext={() => void handleSaveAndNext()}
+                  saving={savingNext}
+                />
               </>
             )}
-            {phase === "drawer" && (
+
+            {resolvedPhase === "viewfinder" && loop.activeItem && (
+              <CaptureV2DetailDrawer
+                loop={loop}
+                projectId={session.project_id}
+                mode="mobile-overlay"
+                notesFocused={notesFocused}
+                onNotesFocusChange={setNotesFocused}
+                onAddAnotherAngle={handleAddAnotherAngle}
+                onClose={() => setPhase("viewfinder")}
+              />
+            )}
+            {resolvedPhase === "drawer" && (
               <CaptureV2DetailDrawer
                 loop={loop}
                 projectId={session.project_id}
                 mode="mobile-full"
                 initialDetent="expanded"
+                notesFocused={notesFocused}
+                onNotesFocusChange={setNotesFocused}
+                onAddAnotherAngle={handleAddAnotherAngle}
                 onClose={() => setPhase("viewfinder")}
               />
             )}
 
-            {phase === "plan" && (
+            {resolvedPhase === "plan" && (
 
               <PlanPlaceholder showPlanCanvas={showPlanCanvas} planCount={planSheets.length} />
 
             )}
 
-            {phase === "summary" && <SummaryPlaceholder />}
+            {resolvedPhase === "summary" && <SummaryPlaceholder />}
 
           </section>
 
 
 
-          <aside className="hidden min-h-0 w-[40%] flex-col overflow-hidden border-l border-white/5 bg-slate-950/40 md:flex">
+          <aside className="hidden min-h-0 w-96 shrink-0 flex-col overflow-hidden border-l border-white/[0.07] bg-slate-900/50 backdrop-blur-xl md:flex">
             {loop.activeItem ? (
               <CaptureV2DetailDrawer
                 loop={loop}
                 projectId={session.project_id}
                 mode="desktop"
+                notesFocused={notesFocused}
+                onNotesFocusChange={setNotesFocused}
+                onAddAnotherAngle={handleAddAnotherAngle}
               />
             ) : (
               <DesktopDetailPanel
@@ -208,8 +256,7 @@ export function CaptureV2Orchestrator(props: Props) {
           </aside>
 
         </div>
-
-
+        </LayoutGroup>
 
         <CaptureV2Filmstrip loop={loop} onSelectItem={handleFilmstripSelect} />
 
@@ -220,29 +267,60 @@ export function CaptureV2Orchestrator(props: Props) {
 
 
       {loop.pendingUpload && (
-
         <PendingUploadPreviewModal
-
           fileName={loop.pendingUpload.file.name}
-
           imageUrl={loop.pendingUpload.url}
-
           busy={loop.busy || loop.confirmingUpload}
-
           errorMessage={loop.pendingUploadError}
-
           onCancel={loop.cancelPendingUpload}
-
           onConfirmAttach={loop.confirmPendingUpload}
-
         />
-
       )}
 
+      <CaptureV2HiddenFileInputs loop={loop} />
     </>
-
   );
+}
 
+function CaptureV2HiddenFileInputs({ loop }: { loop: ReturnType<typeof useCaptureV2Loop> }) {
+  function onDesktopFilesChange(event: ChangeEvent<HTMLInputElement>) {
+    event.stopPropagation();
+    const files = event.currentTarget.files;
+    event.currentTarget.value = "";
+    if (!files?.length) return;
+    loop.handleMultiFileDrop(Array.from(files));
+  }
+
+  return (
+    <>
+      <input
+        ref={loop.cameraInputRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        className="hidden"
+        onClick={loop.resetFileInputClick}
+        onChange={(event) => loop.handleDirectFileChange(event, false)}
+      />
+      <input
+        ref={loop.uploadInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onClick={loop.resetFileInputClick}
+        onChange={(event) => loop.handleDirectFileChange(event, true)}
+      />
+      <input
+        ref={loop.desktopMultiInputRef}
+        type="file"
+        accept="image/*"
+        multiple
+        className="hidden"
+        onClick={loop.resetFileInputClick}
+        onChange={onDesktopFilesChange}
+      />
+    </>
+  );
 }
 
 

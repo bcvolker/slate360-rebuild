@@ -7,6 +7,7 @@
 import { NextRequest } from "next/server";
 import { withAppAuth } from "@/lib/server/api-auth";
 import { ok, badRequest, serverError } from "@/lib/server/api-response";
+import { excludeDeletedSiteWalkItems } from "@/lib/site-walk/item-filters";
 
 export const GET = (req: NextRequest) =>
   withAppAuth("punchwalk", req, async ({ admin, orgId }) => {
@@ -27,10 +28,13 @@ export const GET = (req: NextRequest) =>
     // Get item counts per session
     const sessionIds = sessions.map((s) => s.id);
 
-    const { data: itemCounts } = await admin
+    let itemCountQuery = admin
       .from("site_walk_items")
       .select("session_id")
       .in("session_id", sessionIds);
+    itemCountQuery = excludeDeletedSiteWalkItems(itemCountQuery);
+
+    const { data: itemCounts } = await itemCountQuery;
 
     const { data: assignmentCounts } = await admin
       .from("site_walk_assignments")

@@ -11,6 +11,7 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { NextRequest, NextResponse } from "next/server";
 import { BUCKET, s3 } from "@/lib/s3";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { excludeDeletedSiteWalkItems } from "@/lib/site-walk/item-filters";
 
 const TOKEN_RE = /^[A-Za-z0-9_-]{16,64}$/;
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -39,11 +40,10 @@ export async function GET(
     return NextResponse.json({ error: "Expired" }, { status: 410 });
   }
 
-  const { data: item } = await admin
-    .from("site_walk_items")
-    .select("id, s3_key, session_id")
-    .eq("id", itemId)
-    .maybeSingle();
+  let itemQuery = admin.from("site_walk_items").select("id, s3_key, session_id").eq("id", itemId);
+  itemQuery = excludeDeletedSiteWalkItems(itemQuery);
+
+  const { data: item } = await itemQuery.maybeSingle();
 
   if (!item || item.session_id !== del.session_id || !item.s3_key) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });

@@ -1,38 +1,59 @@
 "use client";
 
-import { useState, type DragEvent } from "react";
-import { Camera, FileImage } from "lucide-react";
+import { useEffect, useMemo } from "react";
+import { motion } from "framer-motion";
+import { isMarkupData } from "@/lib/site-walk/markup-types";
+import { getCaptureImageUrl } from "@/lib/site-walk/capture-image-url";
+import { getItemPhotoAttachmentPins } from "@/lib/site-walk/photo-attachments";
+import { getPhotoAngleImageUrl } from "@/lib/site-walk/photo-angles";
 import { CaptureUploadBadge } from "@/components/site-walk/capture/CaptureUploadBadge";
-import { CAPTURE_V2_LAYER_IDS, CAPTURE_V2_LAYERS } from "./layers";
-import { CaptureV2PrimaryAction } from "./CaptureV2PrimaryAction";
+import { PhotoMarkupCanvas } from "@/components/site-walk/capture/PhotoMarkupCanvas";
+import { CAPTURE_V2_LAYER_IDS, CAPTURE_V2_LAYERS, CAPTURE_V2_PIP_LAYOUT_ID } from "./layers";
 import type { CaptureV2Loop } from "./useCaptureV2Loop";
 
 type Props = {
+  sessionId: string;
   loop: CaptureV2Loop;
+  activeAngleId?: string | null;
+  notesFocused?: boolean;
 };
 
-export function CaptureV2Viewfinder({ loop }: Props) {
-  const [dragActive, setDragActive] = useState(false);
-  const {
-    activePreview,
-    busy,
-    status,
-    machineState,
-    isDesktop,
-    cameraInputRef,
-    uploadInputRef,
-    openPickerDirect,
-    handlePrimaryAction,
-    handleDirectFileChange,
-    resetFileInputClick,
-    handleDrop,
-  } = loop;
+export function CaptureV2Viewfinder({ sessionId, loop, activeAngleId = null, notesFocused = false }: Props) {
+  const { activePreview, activeItem, status, saveMarkupData, savePhotoAttachmentPins } = loop;
 
-  function onDrop(event: DragEvent<HTMLDivElement>) {
-    event.preventDefault();
-    event.stopPropagation();
-    setDragActive(false);
-    handleDrop(event.dataTransfer.files[0]);
+  const previewUrl = useMemo(() => {
+    if (!activePreview) return null;
+    if (activeAngleId && activeItem) {
+      return getPhotoAngleImageUrl(activeItem, activeAngleId) ?? activePreview.url;
+    }
+    return activePreview.url;
+  }, [activeAngleId, activeItem, activePreview]);
+
+  useEffect(() => {
+    if (status.kind !== "complete" && status.kind !== "idle") return;
+    if (!activePreview?.url.startsWith("blob:")) return;
+    const persistedUrl = activeItem ? getCaptureImageUrl(activeItem) : null;
+    if (persistedUrl && persistedUrl !== activePreview.url && !persistedUrl.startsWith("blob:")) {
+      URL.revokeObjectURL(activePreview.url);
+      loop.setActivePreview({
+        url: persistedUrl,
+        title: activePreview.title,
+        itemId: activePreview.itemId,
+      });
+    }
+  }, [activeItem, activePreview, loop, status.kind]);
+
+  if (!activePreview || !previewUrl) {
+    return (
+      <div
+        id={CAPTURE_V2_LAYER_IDS.canvasBase}
+        className={`relative ${CAPTURE_V2_LAYERS.canvas} flex min-h-0 flex-1 flex-col items-center justify-center overflow-hidden bg-zinc-950 px-6 text-center`}
+      >
+        <p className="text-sm font-semibold text-slate-400">
+          Capture from the hub or fast-track bar to preview here instantly.
+        </p>
+      </div>
+    );
   }
 
   return (
@@ -40,124 +61,44 @@ export function CaptureV2Viewfinder({ loop }: Props) {
       id={CAPTURE_V2_LAYER_IDS.canvasBase}
       className={`relative ${CAPTURE_V2_LAYERS.canvas} flex min-h-0 flex-1 flex-col overflow-hidden bg-zinc-950`}
     >
-      {activePreview ? (
-        <div className="relative min-h-0 flex-1 overflow-hidden">
-          <img
-            src={activePreview.url}
-            alt={activePreview.title}
-            className="h-full w-full object-contain"
-            draggable={false}
-          />
-          <CaptureUploadBadge kind={status.kind} />
-          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent px-4 pb-[max(env(safe-area-inset-bottom),1rem)] pt-10">
-            <p className="truncate text-sm font-black text-white">{activePreview.title}</p>
-            <p className="mt-1 text-xs font-semibold text-slate-300">{status.message}</p>
-            <div className="mt-3 grid gap-2 sm:grid-cols-2">
-              <button
-                type="button"
-                onClick={() => openPickerDirect("camera", "next_item")}
-                disabled={busy}
-                className="min-h-12 rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-sm font-black text-white disabled:opacity-60"
-              >
-                <span className="inline-flex items-center gap-2">
-                  <Camera className="h-4 w-4" /> Another photo
-                </span>
-              </button>
-              <CaptureV2PrimaryAction
-                state={machineState}
-                isDesktop={isDesktop}
-                onAction={handlePrimaryAction}
-              />
-            </div>
-          </div>
-        </div>
-      ) : (
-        <div className="flex min-h-0 flex-1 flex-col items-center justify-center px-5 pb-[max(env(safe-area-inset-bottom),1rem)] pt-4 text-center">
-          <Camera className="h-12 w-12 text-amber-400 md:hidden" />
-          <FileImage className="hidden h-12 w-12 text-amber-400 md:block" />
-          <h2 className="mt-4 text-2xl font-black text-white">Capture field proof</h2>
-          <p className="mt-2 max-w-lg text-sm leading-6 text-slate-400">
-            One tap opens the native picker in this gesture. Preview appears immediately while upload
-            and offline sync continue in the background.
-          </p>
-
-          <div className="mt-6 grid w-full max-w-xl gap-3 md:hidden">
-            <button
-              type="button"
-              onClick={() => openPickerDirect("camera", "quick_capture")}
-              disabled={busy}
-              className="min-h-16 rounded-3xl bg-amber-500 px-5 py-4 text-lg font-black text-slate-950 shadow-lg shadow-amber-500/20 disabled:opacity-60"
-            >
-              <span className="inline-flex items-center gap-2">
-                <Camera className="h-5 w-5" /> Take Photo
-              </span>
-            </button>
-            <button
-              type="button"
-              onClick={() => openPickerDirect("upload", "quick_capture")}
-              disabled={busy}
-              className="min-h-16 rounded-3xl border border-white/15 bg-white/10 px-5 py-4 text-lg font-black text-white disabled:opacity-60"
-            >
-              <span className="inline-flex items-center gap-2">
-                <FileImage className="h-5 w-5" /> Camera Roll
-              </span>
-            </button>
-          </div>
-
-          <div
-            onDragOver={(event) => {
-              event.preventDefault();
-              setDragActive(true);
-            }}
-            onDragLeave={() => setDragActive(false)}
-            onDrop={onDrop}
-            className={`mt-6 hidden w-full max-w-2xl rounded-3xl border-2 border-dashed p-10 transition md:flex md:min-h-64 md:flex-col md:items-center md:justify-center ${
-              dragActive ? "border-amber-500 bg-amber-500/10" : "border-white/15 bg-white/[0.04]"
-            }`}
+      <div className="relative min-h-0 flex-1 overflow-hidden pb-24">
+        {!notesFocused ? (
+          <motion.div
+            layoutId={CAPTURE_V2_PIP_LAYOUT_ID}
+            className="absolute inset-0 overflow-hidden"
+            transition={{ type: "spring", stiffness: 380, damping: 34 }}
           >
-            <p className="text-2xl font-black text-white">Drag &amp; Drop Photos Here</p>
-            <p className="mt-2 text-sm leading-6 text-slate-400">
-              Desktop mode is upload-first for job-trailer workflows.
-            </p>
-            <button
-              type="button"
-              onClick={() => openPickerDirect("upload", "quick_capture")}
-              disabled={busy}
-              className="mt-6 min-h-12 rounded-2xl bg-amber-500 px-6 py-3 text-sm font-black text-slate-950 hover:bg-amber-400 disabled:opacity-60"
-            >
-              <span className="inline-flex items-center gap-2">
-                <FileImage className="h-5 w-5" /> Select Photos from Computer
-              </span>
-            </button>
-          </div>
-
-          <div className="mt-6 w-full max-w-xl md:max-w-2xl">
-            <CaptureV2PrimaryAction
-              state={machineState}
-              isDesktop={isDesktop}
-              onAction={handlePrimaryAction}
+            <PhotoMarkupCanvas
+              imageUrl={previewUrl}
+              title={activePreview.title}
+              sessionId={sessionId}
+              markupEnabled
+              initialMarkup={isMarkupData(activeItem?.markup_data) ? activeItem.markup_data : undefined}
+              attachmentPins={getItemPhotoAttachmentPins(activeItem)}
+              onAttachmentPinsChange={(pins) => {
+                void savePhotoAttachmentPins(activePreview.itemId, pins);
+              }}
+              onMarkupChange={(markup) => {
+                void saveMarkupData(activePreview.itemId, markup);
+              }}
             />
-          </div>
-        </div>
-      )}
-
-      <input
-        ref={cameraInputRef}
-        type="file"
-        accept="image/*"
-        capture="environment"
-        className="hidden"
-        onClick={resetFileInputClick}
-        onChange={(event) => handleDirectFileChange(event, false)}
-      />
-      <input
-        ref={uploadInputRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onClick={resetFileInputClick}
-        onChange={(event) => handleDirectFileChange(event, true)}
-      />
+          </motion.div>
+        ) : (
+          <motion.div
+            layoutId={CAPTURE_V2_PIP_LAYOUT_ID}
+            className={`absolute right-3 top-3 ${CAPTURE_V2_LAYERS.pipPreview} h-24 w-24 overflow-hidden rounded-xl border border-white/20 bg-black/60 shadow-2xl`}
+            transition={{ type: "spring", stiffness: 380, damping: 34 }}
+          >
+            <img
+              src={previewUrl}
+              alt={activePreview.title}
+              className="h-full w-full object-cover"
+              draggable={false}
+            />
+          </motion.div>
+        )}
+        <CaptureUploadBadge kind={status.kind} />
+      </div>
     </div>
   );
 }

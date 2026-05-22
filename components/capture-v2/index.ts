@@ -1,3 +1,6 @@
+export { CaptureTaskShellLayout } from "./CaptureTaskShellLayout";
+export { SessionExitModal } from "./SessionExitModal";
+export { SharedCaptureTaskHeader } from "./SharedCaptureTaskHeader";
 export * from "./types";
 export * from "./layers";
 export * from "./session-types";
@@ -8,8 +11,11 @@ export { CaptureV2Shell } from "./CaptureV2Shell";
 export { CaptureV2TaskHeader } from "./CaptureV2TaskHeader";
 export { CaptureV2Orchestrator } from "./CaptureV2Orchestrator";
 export { CaptureV2Viewfinder } from "./CaptureV2Viewfinder";
+export { FastTrackActionBar } from "./FastTrackActionBar";
 export { CaptureV2ActionHub } from "./CaptureV2ActionHub";
 export { CaptureV2DetailDrawer } from "./CaptureV2DetailDrawer";
+export { LogEntryDrawer } from "./LogEntryDrawer";
+export { SmartClassificationChips } from "./SmartClassificationChips";
 export { CaptureV2DetailForm } from "./CaptureV2DetailForm";
 export { CaptureV2DesktopInspector } from "./CaptureV2DesktopInspector";
 export { CaptureV2MobileDrawer } from "./CaptureV2MobileDrawer";

@@ -2,12 +2,14 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type MouseEvent } from "react";
 import { useCaptureContext } from "@/components/site-walk/capture/CaptureContext";
+import { useSiteWalkSession } from "@/components/site-walk/SiteWalkSessionProvider";
 import type { CameraRequestSource } from "@/components/site-walk/capture/capture-camera-events";
 import { useCaptureFileHandler, type CaptureIntent } from "@/components/site-walk/capture/useCaptureFileHandler";
 import { useCaptureItems } from "@/components/site-walk/capture/useCaptureItems";
 import { readQuickCaptureLaunch, removeQuickCaptureLaunch } from "@/lib/site-walk/quick-capture-launch";
 import { triggerHapticSuccess } from "@/lib/utils/trigger-haptic";
 import { getCaptureImageUrl } from "@/lib/site-walk/capture-image-url";
+import { SITE_WALK_OFFLINE_EVENT } from "@/lib/site-walk/offline-db";
 import type { CaptureItemRecord } from "@/lib/types/site-walk-capture";
 import { flushCaptureV2Details } from "./capture-v2-save-details";
 import {
@@ -24,10 +26,14 @@ type Args = {
 
 export function useCaptureV2Loop({ sessionId, projectId, initialItemId, launchId }: Args) {
   const captureCtx = useCaptureContext();
+  const { syncOfflineItems } = useSiteWalkSession();
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const uploadInputRef = useRef<HTMLInputElement>(null);
+  const desktopMultiInputRef = useRef<HTMLInputElement>(null);
   const intentRef = useRef<CaptureIntent>({ source: "quick_capture", input: "camera" });
   const consumedLaunchRef = useRef<string | null>(null);
+  const previewBlobRef = useRef<string | null>(null);
+  const pendingFollowUpParentRef = useRef<string | null>(null);
 
   const [openingPicker, setOpeningPicker] = useState(false);
   const [advancingStop, setAdvancingStop] = useState(false);
@@ -53,6 +59,22 @@ export function useCaptureV2Loop({ sessionId, projectId, initialItemId, launchId
   }, [captureItems.activeItem?.id, captureItems.activeItem?.location_label]);
 
   useEffect(() => {
+    const parentId = pendingFollowUpParentRef.current;
+    const item = captureItems.activeItem;
+    const draft = captureItems.draft;
+    if (!parentId || !item || !draft) return;
+    if (draft.beforeItemId === parentId) {
+      pendingFollowUpParentRef.current = null;
+      return;
+    }
+    captureItems.patchDraft({
+      beforeItemId: parentId,
+      itemRelationship: "after",
+    });
+    pendingFollowUpParentRef.current = null;
+  }, [captureItems.activeItem?.id, captureItems.draft, captureItems.patchDraft]);
+
+  useEffect(() => {
     if (typeof window === "undefined") return;
     const media = window.matchMedia("(min-width: 768px)");
     const sync = () => setIsDesktop(media.matches);
@@ -66,6 +88,38 @@ export function useCaptureV2Loop({ sessionId, projectId, initialItemId, launchId
     return () => cleanup();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionId]);
+
+  useEffect(() => {
+    const url = fileHandler.activePreview?.url;
+    if (url?.startsWith("blob:")) previewBlobRef.current = url;
+  }, [fileHandler.activePreview?.url]);
+
+  useEffect(() => {
+    if (fileHandler.status.kind !== "complete" && fileHandler.status.kind !== "idle") return;
+    const blobUrl = previewBlobRef.current;
+    if (!blobUrl) return;
+    const item = captureItems.activeItem;
+    const persistedUrl = item ? getCaptureImageUrl(item) : null;
+    if (persistedUrl && persistedUrl !== blobUrl && !persistedUrl.startsWith("blob:")) {
+      URL.revokeObjectURL(blobUrl);
+      previewBlobRef.current = null;
+      if (fileHandler.activePreview?.url === blobUrl) {
+        fileHandler.setActivePreview({
+          url: persistedUrl,
+          title: fileHandler.activePreview.title,
+          itemId: fileHandler.activePreview.itemId,
+        });
+      }
+    }
+  }, [captureItems.activeItem, fileHandler, fileHandler.activePreview, fileHandler.status.kind]);
+
+  const setIntent = useCallback(
+    (intent: CaptureIntent) => {
+      intentRef.current = intent;
+      fileHandler.setIntent(intent);
+    },
+    [fileHandler],
+  );
 
   useEffect(() => {
     if (!initialItemId || captureItems.activeItem?.id === initialItemId) return;
@@ -87,6 +141,15 @@ export function useCaptureV2Loop({ sessionId, projectId, initialItemId, launchId
       return removeQuickCaptureLaunch(launchId);
     });
   }, [fileHandler, launchId]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const flushWhenOnline = () => {
+      if (navigator.onLine) void syncOfflineItems();
+    };
+    window.addEventListener(SITE_WALK_OFFLINE_EVENT, flushWhenOnline);
+    return () => window.removeEventListener(SITE_WALK_OFFLINE_EVENT, flushWhenOnline);
+  }, [syncOfflineItems]);
 
   const openPickerDirect = useCallback(
     (input: "camera" | "upload", source: CameraRequestSource) => {
@@ -201,21 +264,82 @@ export function useCaptureV2Loop({ sessionId, projectId, initialItemId, launchId
   const flushDetailsRef = useRef(flushDetails);
   flushDetailsRef.current = flushDetails;
 
-  function saveAndNextStop() {
+  function revokePreviewBlob() {
+    const blobUrl = previewBlobRef.current ?? fileHandler.activePreview?.url;
+    if (blobUrl?.startsWith("blob:")) {
+      URL.revokeObjectURL(blobUrl);
+      previewBlobRef.current = null;
+    }
+  }
+
+  async function startVoiceNoteOnly() {
+    setExternalError(null);
+    await fileHandler.saveTextNote("Voice note", "voice");
+    triggerHapticSuccess();
+  }
+
+  function handleMultiFileDrop(files: File[]) {
+    if (files.length === 0 || fileHandler.busy) return;
+    const [first, ...rest] = files;
+    intentRef.current = { source: "quick_capture", input: "upload" };
+    fileHandler.setIntent(intentRef.current);
+    triggerHapticSuccess();
+    fileHandler.handleFile(first, true);
+    for (const file of rest) {
+      intentRef.current = { source: "quick_capture", input: "upload" };
+      fileHandler.setIntent(intentRef.current);
+      fileHandler.handleFile(file, true);
+    }
+  }
+
+  async function saveAndNextStop() {
     setAdvancingStop(true);
-    void flushDetailsRef.current().catch((error) => {
-      console.error("[capture-v2] Save & Next draft flush failed", error);
-    });
-    fileHandler.setActivePreview(null);
-    captureItems.deselectItem();
-    setAdvancingStop(false);
-    setOpeningNextPicker(true);
-    openPickerDirect(isDesktop ? "upload" : "camera", "next_item");
-    setOpeningNextPicker(false);
+    try {
+      await flushDetailsRef.current();
+      await captureItems.flushCurrentDraft();
+      triggerHapticSuccess();
+      revokePreviewBlob();
+      fileHandler.setActivePreview(null);
+      captureItems.deselectItem();
+      openPickerDirect(isDesktop ? "upload" : "camera", "next_item");
+    } catch (error) {
+      console.error("[capture-v2] Save & Next failed", error);
+    } finally {
+      setAdvancingStop(false);
+    }
+  }
+
+  async function createFollowUpStop() {
+    const parentItem = captureItems.activeItem;
+    if (!parentItem) return;
+    setAdvancingStop(true);
+    try {
+      await flushDetailsRef.current();
+      await captureItems.flushCurrentDraft();
+      pendingFollowUpParentRef.current = parentItem.id;
+      triggerHapticSuccess();
+      revokePreviewBlob();
+      fileHandler.setActivePreview(null);
+      captureItems.deselectItem();
+      openPickerDirect(isDesktop ? "upload" : "camera", "next_item");
+    } catch (error) {
+      console.error("[capture-v2] Create follow-up failed", error);
+    } finally {
+      setAdvancingStop(false);
+    }
   }
 
   const saveAndNextStopRef = useRef(saveAndNextStop);
   saveAndNextStopRef.current = saveAndNextStop;
+
+  const addAnotherAngle = useCallback(() => {
+    if (!captureItems.activeItem) return;
+    setExternalError(null);
+    const input = isDesktop ? "upload" : "camera";
+    intentRef.current = { source: "angle", input };
+    fileHandler.setIntent({ source: "angle", input });
+    openPickerDirect(input, "angle");
+  }, [captureItems.activeItem, fileHandler, isDesktop, openPickerDirect]);
 
   const handlePrimaryAction = useCallback(() => {
     switch (machineState) {
@@ -272,11 +396,14 @@ export function useCaptureV2Loop({ sessionId, projectId, initialItemId, launchId
     machineState,
     cameraInputRef,
     uploadInputRef,
+    desktopMultiInputRef,
     openPickerDirect,
+    setIntent,
     handlePrimaryAction,
     handleDirectFileChange,
     resetFileInputClick,
     handleDrop,
+    handleMultiFileDrop,
     externalError,
     setExternalError,
     locationLabel,
@@ -285,6 +412,10 @@ export function useCaptureV2Loop({ sessionId, projectId, initialItemId, launchId
     detailSaveError,
     flushDetails,
     focusFilmstripItem,
+    startVoiceNoteOnly,
+    saveAndNextStop,
+    createFollowUpStop,
+    addAnotherAngle,
   };
 }
 

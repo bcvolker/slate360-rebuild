@@ -13,6 +13,7 @@ import {
   mobileTokens,
   MobileHomeLayout,
 } from "@/components/mobile-system";
+import { buildCaptureLaunchUrl } from "@/lib/site-walk/capture-v2-config";
 import { type RouterLike, timeAgo } from "./v1-view-utils";
 
 type HomeViewProps = {
@@ -56,6 +57,7 @@ export function HomeView({
   return (
     <MobileHomeLayout
       route="site-walk"
+      className="flex flex-col flex-grow justify-between pb-safe"
       contentTop={
         <MobileSection showAccentLine className="shrink-0">
           <div className="flex items-center gap-3" data-testid="site-walk-module-intro">
@@ -155,9 +157,7 @@ function WalkList({
           status={w.status}
           itemCount={w.itemCount}
           lastUpdated={timeAgo(w.updatedAt)}
-          onOpen={() =>
-            router.push(`/site-walk/capture?session=${encodeURIComponent(w.id)}`)
-          }
+          onOpen={() => router.push(buildCaptureLaunchUrl({ session: w.id }))}
           onCreateReport={onDeliverables}
         />
       ))}

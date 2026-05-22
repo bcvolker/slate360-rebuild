@@ -8,6 +8,7 @@ import { ok, badRequest, serverError } from "@/lib/server/api-response";
 import { bridgePhotoToSlateDrop } from "@/lib/site-walk/slatedrop-bridge";
 import { recordSiteWalkUsage } from "@/lib/site-walk/metering";
 import { trackStorageUsed } from "@/lib/slatedrop/track-storage";
+import { excludeDeletedSiteWalkItems } from "@/lib/site-walk/item-filters";
 import { SITE_WALK_ITEM_TYPES, type CreateItemPayload } from "@/lib/types/site-walk";
 
 export const GET = (req: NextRequest) =>
@@ -16,11 +17,14 @@ export const GET = (req: NextRequest) =>
     if (!sessionId) return badRequest("session_id is required");
     if (!orgId) return badRequest("Organization context required");
 
-    const { data, error } = await admin
+    let query = admin
       .from("site_walk_items")
       .select("*")
       .eq("session_id", sessionId)
-      .eq("org_id", orgId)
+      .eq("org_id", orgId);
+    query = excludeDeletedSiteWalkItems(query);
+
+    const { data, error } = await query
       .order("sort_order", { ascending: true })
       .order("created_at", { ascending: true });
 
@@ -59,6 +63,7 @@ export const POST = (req: NextRequest) =>
       existingQuery = body.client_item_id
         ? existingQuery.eq("client_item_id", body.client_item_id)
         : existingQuery.eq("client_mutation_id", body.client_mutation_id as string);
+      existingQuery = excludeDeletedSiteWalkItems(existingQuery);
 
       const { data: existing, error: existingError } = await existingQuery.maybeSingle();
       if (existingError) return serverError(existingError.message);
@@ -66,10 +71,13 @@ export const POST = (req: NextRequest) =>
     }
 
     // Get next sort_order
-    const { data: lastItem } = await admin
+    let lastItemQuery = admin
       .from("site_walk_items")
       .select("sort_order")
-      .eq("session_id", body.session_id)
+      .eq("session_id", body.session_id);
+    lastItemQuery = excludeDeletedSiteWalkItems(lastItemQuery);
+
+    const { data: lastItem } = await lastItemQuery
       .order("sort_order", { ascending: false })
       .limit(1)
       .single();

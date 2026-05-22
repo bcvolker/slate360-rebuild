@@ -2,28 +2,22 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import {
   MapPin,
-  Building2,
-  Palette,
-  FileText,
   Check,
   ArrowRight,
   ArrowLeft,
+  FolderSync,
+  Users,
   type LucideIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { SlateLogo } from "@/components/shared/SlateLogo";
-
-/* ── App data ─────────────────────────────────────────────────── */
 
 interface AppInfo {
   name: string;
   tagline: string;
   description: string;
   icon: LucideIcon;
-  comingSoon?: boolean;
-  statusLabel?: string;
   features: { title: string; detail: string }[];
   highlights: string[];
 }
@@ -33,106 +27,30 @@ const APP_DATA: Record<string, AppInfo> = {
     name: "Site Walk",
     tagline: "Capture context. Create deliverables.",
     description:
-      "Capture site conditions in context, document observations as you walk, and turn field documentation into punch lists, branded reports, proposals, and searchable project records.",
+      "Walk the project with your phone or tablet, document observations in context, and turn field capture into punch lists, branded reports, and shareable deliverables — without rebuilding the story back at the office.",
     icon: MapPin,
-    comingSoon: true,
-    statusLabel: "On the Way — Coming Soon",
     features: [
-      { title: "GPS-Tagged Capture", detail: "Every photo is automatically tagged with GPS coordinates, date, weather, and orientation." },
-      { title: "Automated Timelines", detail: "Progress timelines build themselves as you capture — no manual logging required." },
-      { title: "Weather & Date Stamping", detail: "Automatic weather overlay and timestamp on every capture for legal-grade documentation." },
-      { title: "One-Click Client Sharing", detail: "Generate a shareable link instantly. Clients see a polished progress report, no login required." },
-      { title: "Compare Over Time", detail: "Side-by-side before/after comparisons from the exact same GPS position across visits." },
-      { title: "AI Issue Detection", detail: "AI flags potential issues like standing water, missing materials, or safety hazards." },
-      { title: "Offline Mode", detail: "Capture in the field without cell service. Everything syncs when you reconnect." },
-      { title: "PDF Report Export", detail: "One-click export to branded PDF reports for stakeholder presentations and compliance." },
+      { title: "Contextual capture", detail: "Photos, voice, and notes stay tied to project location, time, and plan context." },
+      { title: "Plan-aware documentation", detail: "Drop captures onto floor plans so reviewers see what you saw and where." },
+      { title: "Branded outputs", detail: "Turn a finished walk into client-ready PDFs and share links with your branding." },
+      { title: "Field and office alignment", detail: "The same record supports supers in the field and coordinators in the office." },
+      { title: "Offline on site", detail: "Capture without signal; sync when connectivity returns." },
+      { title: "Secure sharing", detail: "Share deliverables with stakeholders who do not need a full account." },
     ],
     highlights: [
-      "First app launching on Slate360",
-      "Works on iOS, Android, and web",
-      "Integrates with Project Hub",
-    ],
-  },
-  "360-tour-builder": {
-    name: "360 Tour Builder",
-    tagline: "Immersive walkthroughs with project context",
-    description:
-      "Build immersive 360 walkthroughs with hotspots, floor plans, branded sharing, and client-friendly remote exploration that keeps project context intact.",
-    icon: Building2,
-    comingSoon: true,
-    statusLabel: "Under Development — Coming Soon",
-    features: [
-      { title: "Drag-and-Drop Creation", detail: "Upload your 360° photos and arrange scenes visually. Connect them with hotspot links." },
-      { title: "Interactive Hotspots", detail: "Add info points, links, images, and video overlays to any position in a 360° scene." },
-      { title: "Embed Anywhere", detail: "Embed tours on your website with a single line of code, or share a direct link." },
-      { title: "Client Portal Auto-Gen", detail: "Every tour automatically creates a branded client portal with password protection." },
-      { title: "Analytics & Tracking", detail: "See who viewed your tour, how long they spent, and which scenes got the most attention." },
-      { title: "Floor Plan Integration", detail: "Overlay an interactive floor plan so viewers can jump to any room from a bird's-eye map." },
-      { title: "Before / After", detail: "Show progress over time with side-by-side 360° comparisons from the same vantage point." },
-      { title: "White-Label Branding", detail: "Replace Slate360 branding with your own logo, colors, and domain for enterprise clients." },
-    ],
-    highlights: [
-      "Used by top construction firms",
-      "Unlimited scenes per tour",
-      "Downgrade Law protection — links never break",
-    ],
-  },
-  "design-studio": {
-    name: "Design Studio",
-    tagline: "Connected 2D and 3D design review",
-    description:
-      "Review plans, generate and present 3D models, annotate decisions, and move between 2D and 3D design workflows without breaking the client-ready presentation flow.",
-    icon: Palette,
-    comingSoon: true,
-    statusLabel: "Under Development — Coming Soon",
-    features: [
-      { title: "GLB / glTF Support", detail: "Upload industry-standard 3D model formats directly. No conversion needed." },
-      { title: "Interactive Viewer", detail: "Clients can rotate, zoom, and pan your models in their browser — no software required." },
-      { title: "Shareable Model Links", detail: "Generate a link to your model with optional password protection and expiry." },
-      { title: "Annotation & Markup", detail: "Pin notes, measurements, and comments directly onto the 3D surface." },
-      { title: "Before / After", detail: "Compare two model versions side-by-side to show design evolution." },
-      { title: "Material Editing", detail: "Swap materials and textures in real-time to explore design options with clients." },
-      { title: "Lighting Control", detail: "Adjust scene lighting to preview how models look under different conditions." },
-      { title: "Measurement Tools", detail: "Take precise measurements directly on the 3D model surface." },
-    ],
-    highlights: [
-      "Works with Revit, SketchUp, Blender exports",
-      "No plugins or downloads needed",
-      "Integrates with Project Hub deliverables",
-    ],
-  },
-  "content-studio": {
-    name: "Content Studio",
-    tagline: "Branded media and content delivery",
-    description:
-      "Edit standard and 360 video, organize project media, and produce branded client and marketing deliverables from one connected content workspace.",
-    icon: FileText,
-    comingSoon: true,
-    statusLabel: "Under Development — Coming Soon",
-    features: [
-      { title: "Asset Library", detail: "Upload and organize photos, videos, PDFs, and documents in a searchable central library." },
-      { title: "Collections", detail: "Group assets into themed collections for projects, clients, or milestones." },
-      { title: "Client Galleries", detail: "Generate shareable galleries with optional download permissions and password protection." },
-      { title: "Bulk Upload", detail: "Drag and drop hundreds of files at once. Auto-tagging keeps everything organized." },
-      { title: "Smart Search", detail: "Find any asset instantly with full-text search, tag filters, and date ranges." },
-      { title: "Version History", detail: "Track changes to assets over time. Restore previous versions with one click." },
-      { title: "Download Controls", detail: "Set per-asset or per-collection download permissions — view-only, download, or full access." },
-      { title: "Fast Delivery", detail: "CDN-powered delivery ensures assets load fast for clients anywhere in the world." },
-    ],
-    highlights: [
-      "Works with all common file formats",
-      "Integrates with SlateDrop",
-      "Pairs with Design Studio in the Studio Bundle",
+      "First app in the Slate360 Foundational Release",
+      "Built for iOS, Android, and web",
+      "Connected to project hub and SlateDrop",
     ],
   },
 };
 
-/* ── Page ──────────────────────────────────────────────────────── */
+const PLATFORM_SLUGS = new Set(["slatedrop", "coordination"]);
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const app = APP_DATA[slug];
-  if (!app) return { title: "App Not Found — Slate360" };
+  if (!app) return { title: "Not Found — Slate360" };
   return {
     title: `${app.name} — Slate360`,
     description: app.tagline,
@@ -141,69 +59,72 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function AppDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
+
+  if (PLATFORM_SLUGS.has(slug)) {
+    notFound();
+  }
+
   const app = APP_DATA[slug];
   if (!app) notFound();
 
   const Icon = app.icon;
 
   return (
-    <div className="dark min-h-screen bg-background text-foreground">
-      {/* Header */}
-      <header className="sticky top-0 z-50 h-16 border-b border-border bg-background/90 backdrop-blur-xl">
-        <div className="container mx-auto h-full px-4 flex items-center justify-between">
+    <div className="dark min-h-screen bg-[#0B0F15] text-slate-200">
+      <header className="sticky top-0 z-50 h-16 border-b border-white/10 bg-[#0B0F15]/90 backdrop-blur-xl">
+        <div className="container mx-auto flex h-full items-center justify-between px-4">
           <div className="flex items-center gap-4">
             <Link href="/" className="flex items-center">
               <SlateLogo />
             </Link>
             <Link
-              href="/#apps"
-              className="flex items-center gap-1 text-sm text-muted-foreground hover:text-primary transition-colors"
+              href="/#product"
+              className="flex items-center gap-1 text-sm text-slate-400 transition-colors hover:text-amber-300"
             >
               <ArrowLeft className="h-4 w-4" />
-              All Apps
+              Home
             </Link>
           </div>
-          <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90">
-            <Link href={app.comingSoon ? "/signup" : "/signup"}>{app.comingSoon ? "Join Waitlist" : "Subscribe Now"}</Link>
+          <Button asChild className="bg-amber-600 text-slate-950 hover:bg-amber-500">
+            <Link href="/signup">Request access</Link>
           </Button>
         </div>
       </header>
 
       <main className="container mx-auto max-w-5xl px-4 py-16">
-        {/* Hero */}
-        <div className="text-center mb-16">
-          <div className="mb-6 inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/15">
-            <Icon className="h-8 w-8 text-primary" />
+        <div className="mb-16 text-center">
+          <div className="mb-6 inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-500/15 ring-1 ring-amber-500/25">
+            <Icon className="h-8 w-8 text-amber-400" />
           </div>
-          <h1 className="text-4xl sm:text-5xl font-bold mb-4">{app.name}</h1>
-          {app.statusLabel && (
-            <span className="inline-block mb-4 rounded-full bg-amber-500/20 px-4 py-1 text-sm font-medium text-amber-400 border border-amber-500/30">
-              {app.statusLabel}
-            </span>
-          )}
-          <p className="mb-4 text-xl font-medium text-primary">{app.tagline}</p>
-          <p className="mx-auto max-w-2xl text-lg text-muted-foreground">{app.description}</p>
-          <div className="flex flex-wrap justify-center gap-3 mt-6">
+          <h1 className="mb-4 text-4xl font-bold sm:text-5xl">{app.name}</h1>
+          <span className="mb-4 inline-block rounded-full border border-amber-500/30 bg-amber-500/10 px-4 py-1 text-sm font-medium text-amber-200">
+            Foundational Release
+          </span>
+          <p className="mb-4 text-xl font-medium text-amber-300">{app.tagline}</p>
+          <p className="mx-auto max-w-2xl text-lg leading-relaxed text-slate-400">{app.description}</p>
+          <div className="mt-6 flex flex-wrap justify-center gap-3">
             {app.highlights.map((h) => (
-              <Badge key={h} variant="outline" className="border-primary/30 bg-primary/5 text-primary">
+              <span
+                key={h}
+                className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-sm text-slate-300"
+              >
                 {h}
-              </Badge>
+              </span>
             ))}
           </div>
         </div>
 
-        {/* Features Grid */}
-        <div className="grid gap-4 sm:grid-cols-2 mb-16">
+        <div className="mb-16 grid gap-4 sm:grid-cols-2">
           {app.features.map((f) => (
-            <Card key={f.title} className="border-border bg-card/70 transition-colors hover:border-primary/30">
+            <Card key={f.title} className="border-white/10 bg-white/5 transition-colors hover:border-amber-500/25">
               <CardContent className="p-5">
                 <div className="flex items-start gap-3">
-                  <div className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-primary/15">
-                    <Check className="h-3 w-3 text-primary" />
+                  <div className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-amber-500/20">
+                    <Check className="h-3 w-3 text-amber-400" />
                   </div>
                   <div>
-                    <h3 className="mb-1 font-semibold text-foreground">{f.title}</h3>
-                    <p className="text-sm text-muted-foreground">{f.detail}</p>
+                    <h3 className="mb-1 font-semibold text-slate-100">{f.title}</h3>
+                    <p className="text-sm text-slate-400">{f.detail}</p>
                   </div>
                 </div>
               </CardContent>
@@ -211,34 +132,51 @@ export default async function AppDetailPage({ params }: { params: Promise<{ slug
           ))}
         </div>
 
-        {/* CTA */}
-        <div className="border-t border-border py-12 text-center">
-          <h2 className="text-2xl font-bold mb-3">
-            {app.comingSoon
-              ? `${app.name} is coming soon`
-              : `Ready to get started with ${app.name}?`}
-          </h2>
-          <p className="mb-6 text-muted-foreground">
-            {app.comingSoon
-              ? `Sign up to be notified when ${app.name} launches.`
-              : `Subscribe to Slate360 and start using ${app.name} today.`}
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-8 text-center backdrop-blur-md">
+          <h2 className="mb-3 text-2xl font-bold">Request Foundational Release access</h2>
+          <p className="mb-6 text-slate-400">
+            Create an account, confirm your email, and the Slate360 team will review your request before workspace access is granted.
           </p>
-          <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <Button asChild size="lg" className="bg-primary px-8 text-primary-foreground hover:bg-primary/90">
+          <div className="flex flex-col justify-center gap-4 sm:flex-row">
+            <Button asChild size="lg" className="bg-amber-600 px-8 text-slate-950 hover:bg-amber-500">
               <Link href="/signup">
-                {app.comingSoon ? "Join Waitlist" : "Subscribe Now"}
+                Create account
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
-            <Button asChild variant="outline" size="lg" className="border-border text-muted-foreground hover:border-primary hover:text-primary">
-              <Link href="/#apps">View All Apps</Link>
+            <Button asChild variant="outline" size="lg" className="border-white/15 text-slate-200 hover:border-amber-500/40 hover:text-amber-200">
+              <Link href="/login">Sign in</Link>
             </Button>
           </div>
         </div>
+
+        <div className="mt-12 grid gap-4 sm:grid-cols-2">
+          <Card className="border-white/10 bg-white/5">
+            <CardContent className="flex gap-4 p-6">
+              <FolderSync className="h-8 w-8 shrink-0 text-teal-300/90" />
+              <div>
+                <h3 className="font-semibold text-slate-100">SlateDrop</h3>
+                <p className="mt-1 text-sm text-slate-400">
+                  Shared file delivery and project storage that keeps deliverables tied to the right job.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="border-white/10 bg-white/5">
+            <CardContent className="flex gap-4 p-6">
+              <Users className="h-8 w-8 shrink-0 text-teal-300/90" />
+              <div>
+                <h3 className="font-semibold text-slate-100">Coordination</h3>
+                <p className="mt-1 text-sm text-slate-400">
+                  Contacts, permissions, and project context so field capture and office review stay aligned.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-border py-8 text-center text-sm text-muted-foreground">
+      <footer className="border-t border-white/10 py-8 text-center text-sm text-slate-500">
         <p>&copy; {new Date().getFullYear()} Slate360. All rights reserved.</p>
       </footer>
     </div>

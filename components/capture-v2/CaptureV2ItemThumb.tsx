@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, Camera, FileText } from "lucide-react";
+import { AlertTriangle, Camera, FileText, ShieldAlert } from "lucide-react";
 import { getCaptureImageUrl } from "@/lib/site-walk/capture-image-url";
 import type { CaptureItemRecord } from "@/lib/types/site-walk-capture";
 import { CaptureV2ItemSyncBadge } from "./CaptureV2SyncBadge";
@@ -53,12 +53,12 @@ export function CaptureV2ItemThumb({
       aria-label={`${label}, ${syncKind}${unsaved ? ", unsaved changes" : ""}`}
       className={`group relative flex w-[4.75rem] shrink-0 flex-col gap-1 rounded-2xl border p-1 text-left transition ${
         isActive
-          ? "border-amber-400/60 bg-amber-500/15 shadow-lg shadow-amber-500/10"
-          : "border-white/10 bg-white/[0.04] hover:border-white/20 hover:bg-white/[0.06]"
+          ? "border-amber-400/70 bg-amber-500/15 shadow-lg shadow-amber-500/10"
+          : "border-white/10 bg-white/[0.04] hover:border-white/25 hover:bg-white/[0.06]"
       }`}
     >
       <div
-        className={`relative aspect-[4/5] overflow-hidden rounded-xl bg-black/50 ring-2 ring-offset-1 ring-offset-slate-950 ${ringClass}`}
+        className={`relative aspect-[4/5] overflow-hidden rounded-xl bg-black/50 ring-[3px] ring-offset-2 ring-offset-slate-950 ${ringClass}`}
       >
         {imageUrl ? (
           <img src={imageUrl} alt="" className="h-full w-full object-cover" draggable={false} />
@@ -77,7 +77,17 @@ export function CaptureV2ItemThumb({
         </div>
 
         <div className="absolute right-1 top-1">
-          <CaptureV2ItemSyncBadge kind={syncKind} compact />
+          {syncKind === "offline_queued" ? (
+            <span
+              className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-amber-400/50 bg-amber-500/20 text-amber-200 shadow-sm shadow-amber-500/30"
+              title="Cached locally — not synced yet"
+              aria-label="Cached locally — not synced yet"
+            >
+              <ShieldAlert className="h-3 w-3" />
+            </span>
+          ) : (
+            <CaptureV2ItemSyncBadge kind={syncKind} compact />
+          )}
         </div>
 
         {unsaved && (

@@ -54,11 +54,18 @@ export async function queueOfflineCapture(params: QueueCaptureParams): Promise<C
 
 export async function queueOfflineItemPatch(sessionId: string, item: CaptureItemRecord, patch: UpdateItemPayload) {
   const localClientItemId = item.client_item_id ?? (item.id.startsWith("item-") ? item.id : undefined);
+  const clientMutationId = createOfflineId("mutation");
+  const now = new Date().toISOString();
   await enqueueOfflineMutation({
     kind: "item_patch",
     url: `/api/site-walk/items/${encodeURIComponent(item.id)}`,
     method: "PATCH",
-    body: { ...patch, sync_state: "synced" },
+    body: {
+      ...patch,
+      sync_state: "synced",
+      client_mutation_id: clientMutationId,
+      local_updated_at: now,
+    },
     sessionId,
     localClientItemId,
   });
@@ -95,6 +102,8 @@ async function enqueuePlanTargetMutation(sessionId: string, clientItemId: string
 
 function localItemFromBody(body: Record<string, unknown>, clientItemId: string, clientMutationId: string, previewUrl: string | null): CaptureItemRecord {
   const now = new Date().toISOString();
+  const localCreatedAt =
+    typeof body.local_created_at === "string" ? body.local_created_at : now;
   return {
     id: clientItemId,
     session_id: String(body.session_id ?? ""),
@@ -113,7 +122,7 @@ function localItemFromBody(body: Record<string, unknown>, clientItemId: string, 
     upload_state: body.upload_state === "queued" ? "queued" : "none",
     markup_data: null,
     local_preview_url: previewUrl,
-    created_at: now,
-    updated_at: now,
+    created_at: localCreatedAt,
+    updated_at: typeof body.local_updated_at === "string" ? body.local_updated_at : now,
   };
 }

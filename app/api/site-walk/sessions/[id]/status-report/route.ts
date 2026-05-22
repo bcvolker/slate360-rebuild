@@ -9,6 +9,7 @@ import { NextRequest } from "next/server";
 import { withAppAuth } from "@/lib/server/api-auth";
 import { ok, badRequest, notFound, serverError } from "@/lib/server/api-response";
 import type { IdRouteContext } from "@/lib/types/api";
+import { excludeDeletedSiteWalkItems } from "@/lib/site-walk/item-filters";
 import { buildStatusReportContent, type StatusReportSourceItem } from "@/lib/site-walk/status-report";
 
 export const POST = (req: NextRequest, ctx: IdRouteContext) =>
@@ -25,12 +26,14 @@ export const POST = (req: NextRequest, ctx: IdRouteContext) =>
 
     if (!session) return notFound("Session not found");
 
-    const { data: rows, error } = await admin
+    let itemsQuery = admin
       .from("site_walk_items")
       .select("id, item_type, title, description, s3_key, item_status, priority, created_at")
       .eq("session_id", sessionId)
-      .eq("org_id", orgId)
-      .order("sort_order", { ascending: true });
+      .eq("org_id", orgId);
+    itemsQuery = excludeDeletedSiteWalkItems(itemsQuery);
+
+    const { data: rows, error } = await itemsQuery.order("sort_order", { ascending: true });
 
     if (error) return serverError(error.message);
 

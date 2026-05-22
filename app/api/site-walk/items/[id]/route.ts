@@ -1,7 +1,7 @@
 /**
  * GET    /api/site-walk/items/[id]  — get a single item
  * PATCH  /api/site-walk/items/[id]  — update item fields
- * DELETE /api/site-walk/items/[id]  — permanently delete an item
+ * DELETE /api/site-walk/items/[id]  — soft-delete an item (sets deleted_at)
  */
 import { NextRequest } from "next/server";
 import { withAppAuth } from "@/lib/server/api-auth";
@@ -9,6 +9,7 @@ import { ok, badRequest, notFound, serverError } from "@/lib/server/api-response
 import type { IdRouteContext } from "@/lib/types/api";
 import type { UpdateItemPayload } from "@/lib/types/site-walk";
 import { notifyAssignment } from "@/lib/site-walk/notify-assignment";
+import { excludeDeletedSiteWalkItems } from "@/lib/site-walk/item-filters";
 import { isMarkupData } from "@/lib/site-walk/markup-types";
 
 export const GET = (req: NextRequest, ctx: IdRouteContext) =>
@@ -16,12 +17,14 @@ export const GET = (req: NextRequest, ctx: IdRouteContext) =>
     if (!orgId) return badRequest("Organization context required");
     const { id } = await ctx.params;
 
-    const { data, error } = await admin
+    let query = admin
       .from("site_walk_items")
       .select("*")
       .eq("id", id)
-      .eq("org_id", orgId)
-      .single();
+      .eq("org_id", orgId);
+    query = excludeDeletedSiteWalkItems(query);
+
+    const { data, error } = await query.single();
 
     if (error || !data) return notFound("Item not found");
     return ok({ item: data });
@@ -69,13 +72,14 @@ export const PATCH = (req: NextRequest, ctx: IdRouteContext) =>
       return badRequest("No valid fields to update");
     }
 
-    const { data, error } = await admin
+    let updateQuery = admin
       .from("site_walk_items")
       .update(updates)
       .eq("id", id)
-      .eq("org_id", orgId)
-      .select()
-      .single();
+      .eq("org_id", orgId);
+    updateQuery = excludeDeletedSiteWalkItems(updateQuery);
+
+    const { data, error } = await updateQuery.select().single();
 
     if (error) return serverError(error.message);
     if (!data) return notFound("Item not found");
@@ -106,12 +110,16 @@ export const DELETE = (req: NextRequest, ctx: IdRouteContext) =>
     if (!orgId) return badRequest("Organization context required");
     const { id } = await ctx.params;
 
-    const { error } = await admin
+    let deleteQuery = admin
       .from("site_walk_items")
-      .delete()
+      .update({ deleted_at: new Date().toISOString() })
       .eq("id", id)
       .eq("org_id", orgId);
+    deleteQuery = excludeDeletedSiteWalkItems(deleteQuery);
+
+    const { data, error } = await deleteQuery.select("id").maybeSingle();
 
     if (error) return serverError(error.message);
-    return ok({ deleted: true });
+    if (!data) return notFound("Item not found");
+    return ok({ deleted: true, soft: true });
   });

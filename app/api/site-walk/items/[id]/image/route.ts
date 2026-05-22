@@ -11,6 +11,7 @@ import { badRequest, notFound, serverError } from "@/lib/server/api-response";
 import { getPhotoAngleById } from "@/lib/site-walk/photo-angles";
 import { BUCKET, s3 } from "@/lib/s3";
 import type { IdRouteContext } from "@/lib/types/api";
+import { excludeDeletedSiteWalkItems } from "@/lib/site-walk/item-filters";
 
 export const GET = (req: NextRequest, ctx: IdRouteContext) =>
   withAppAuth("punchwalk", req, async ({ admin, orgId }) => {
@@ -18,12 +19,14 @@ export const GET = (req: NextRequest, ctx: IdRouteContext) =>
 
     const { id } = await ctx.params;
     const angleId = req.nextUrl.searchParams.get("angle_id");
-    const { data: item, error } = await admin
+    let itemQuery = admin
       .from("site_walk_items")
       .select("s3_key, item_type, title, metadata")
       .eq("id", id)
-      .eq("org_id", orgId)
-      .maybeSingle();
+      .eq("org_id", orgId);
+    itemQuery = excludeDeletedSiteWalkItems(itemQuery);
+
+    const { data: item, error } = await itemQuery.maybeSingle();
 
     if (error) return serverError(error.message);
     if (!item) return notFound("Item image not found");

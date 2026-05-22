@@ -12,18 +12,17 @@ import { NextRequest } from "next/server";
 import { withAppAuth } from "@/lib/server/api-auth";
 import { ok, badRequest, notFound, serverError } from "@/lib/server/api-response";
 import type { IdRouteContext } from "@/lib/types/api";
+import { excludeDeletedSiteWalkItems } from "@/lib/site-walk/item-filters";
 
 export const GET = (req: NextRequest, ctx: IdRouteContext) =>
   withAppAuth("punchwalk", req, async ({ admin, orgId }) => {
     if (!orgId) return badRequest("Organization context required");
     const { id } = await ctx.params;
 
-    const { data: anchor, error: anchorError } = await admin
-      .from("site_walk_items")
-      .select("*")
-      .eq("id", id)
-      .eq("org_id", orgId)
-      .maybeSingle();
+    let anchorQuery = admin.from("site_walk_items").select("*").eq("id", id).eq("org_id", orgId);
+    anchorQuery = excludeDeletedSiteWalkItems(anchorQuery);
+
+    const { data: anchor, error: anchorError } = await anchorQuery.maybeSingle();
 
     if (anchorError) return serverError(anchorError.message);
     if (!anchor) return notFound("Item not found");
@@ -33,20 +32,23 @@ export const GET = (req: NextRequest, ctx: IdRouteContext) =>
 
     if (anchor.before_item_id) {
       after = anchor;
-      const { data: parent } = await admin
+      let parentQuery = admin
         .from("site_walk_items")
         .select("*")
         .eq("id", anchor.before_item_id)
-        .eq("org_id", orgId)
-        .maybeSingle();
+        .eq("org_id", orgId);
+      parentQuery = excludeDeletedSiteWalkItems(parentQuery);
+      const { data: parent } = await parentQuery.maybeSingle();
       before = parent ?? null;
     } else {
       before = anchor;
-      const { data: child } = await admin
+      let childQuery = admin
         .from("site_walk_items")
         .select("*")
         .eq("before_item_id", anchor.id)
-        .eq("org_id", orgId)
+        .eq("org_id", orgId);
+      childQuery = excludeDeletedSiteWalkItems(childQuery);
+      const { data: child } = await childQuery
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();

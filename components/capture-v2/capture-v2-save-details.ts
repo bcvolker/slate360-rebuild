@@ -3,6 +3,7 @@ import {
   patchLocalItem,
 } from "@/components/site-walk/capture/capture-draft-save";
 import { publishCaptureItemFocus } from "@/components/site-walk/capture/capture-item-events";
+import { createOfflineId } from "@/lib/site-walk/offline-db";
 import { queueOfflineItemPatch } from "@/lib/site-walk/offline-capture";
 import type { CaptureItemDraft, CaptureItemRecord } from "@/lib/types/site-walk-capture";
 
@@ -42,7 +43,11 @@ export async function flushCaptureV2Details(args: {
     const response = await fetch(`/api/site-walk/items/${encodeURIComponent(itemId)}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({
+        ...payload,
+        client_mutation_id: createOfflineId("mutation"),
+        local_updated_at: new Date().toISOString(),
+      }),
     });
     const data = (await response.json().catch(() => null)) as {
       item?: CaptureItemRecord;

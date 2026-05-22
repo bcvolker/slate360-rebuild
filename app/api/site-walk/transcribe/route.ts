@@ -32,6 +32,7 @@ import {
   meteringBlockedResponse,
   recordSiteWalkUsage,
 } from "@/lib/site-walk/metering";
+import { excludeDeletedSiteWalkItems } from "@/lib/site-walk/item-filters";
 
 const MAX_AUDIO_BYTES = 25 * 1024 * 1024;
 
@@ -53,12 +54,14 @@ export const POST = (req: NextRequest) =>
     }
     const force = req.nextUrl.searchParams.get("force") === "1";
 
-    const { data: item, error: itemErr } = await admin
+    let itemQuery = admin
       .from("site_walk_items")
       .select("id, project_id, session_id, audio_s3_key, metadata")
       .eq("id", body.item_id)
-      .eq("org_id", orgId)
-      .maybeSingle<ItemRow>();
+      .eq("org_id", orgId);
+    itemQuery = excludeDeletedSiteWalkItems(itemQuery);
+
+    const { data: item, error: itemErr } = await itemQuery.maybeSingle<ItemRow>();
 
     if (itemErr) return serverError(itemErr.message);
     if (!item) return notFound("Item not found");

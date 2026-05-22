@@ -20,9 +20,8 @@ type Props = {
 };
 
 const DETENT_HEIGHT: Record<CaptureV2DrawerDetent, string> = {
-  compact: "max-h-[24dvh]",
-  default: "max-h-[48dvh]",
-  expanded: "max-h-[min(88dvh,calc(100dvh-env(safe-area-inset-top)))]",
+  default: "max-h-[60dvh]",
+  expanded: "max-h-[min(100dvh,calc(100dvh-env(safe-area-inset-top)))]",
 };
 
 export function CaptureV2MobileDrawer({ loop, drawer, presentation, onClose }: Props) {
@@ -46,7 +45,6 @@ export function CaptureV2MobileDrawer({ loop, drawer, presentation, onClose }: P
   if (!activeItem || !draft) return null;
 
   const { locationLabel, patchLocation, detent, cycleDetent, applyChip, chips } = drawer;
-  const isCompact = detent === "compact" && presentation === "overlay";
   const isInline = presentation === "full";
 
   return (
@@ -105,14 +103,14 @@ export function CaptureV2MobileDrawer({ loop, drawer, presentation, onClose }: P
             locationLabel={locationLabel}
             assignees={assignees}
             tradeOptions={drawer.tradeSettings.trades}
-            compact={isCompact && detent === "compact"}
+            compact={false}
             onPatch={patchDraft}
             onLocationChange={patchLocation}
             onApplyChip={applyChip}
             chips={chips}
           />
 
-          {detent !== "compact" && (
+          {detent === "expanded" && (
             <button
               type="button"
               disabled={aiState === "formatting" || !draft.notes.trim()}
@@ -123,7 +121,7 @@ export function CaptureV2MobileDrawer({ loop, drawer, presentation, onClose }: P
             </button>
           )}
 
-          {aiMessage && detent !== "compact" && (
+          {aiMessage && detent === "expanded" && (
             <p className="mt-2 rounded-2xl border border-amber-500/20 bg-amber-500/10 px-3 py-2 text-xs font-bold text-amber-100">
               {aiMessage}
             </p>

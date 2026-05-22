@@ -1,12 +1,27 @@
-import { notFound } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { DeliverableViewer } from "@/components/site-walk/DeliverableViewer";
+import {
+  resolveSiteWalkShareToken,
+  SharedDeliverableDocument,
+  siteWalkDenyToPortalState,
+  TokenStatePage,
+} from "@/components/external-portal";
 import { headers } from "next/headers";
 
 type Props = { params: Promise<{ token: string }> };
 
 export default async function SharedDeliverablePage({ params }: Props) {
   const { token } = await params;
+  const gate = await resolveSiteWalkShareToken(token);
+
+  if (!gate.ok) {
+    return (
+      <TokenStatePage
+        state={siteWalkDenyToPortalState(gate.reason)}
+        badge="Shared deliverable"
+      />
+    );
+  }
+
   const admin = createAdminClient();
 
   const { data: del } = await admin
@@ -18,26 +33,16 @@ export default async function SharedDeliverablePage({ params }: Props) {
     .eq("status", "shared")
     .single();
 
-  if (!del || del.share_revoked) notFound();
-
-  // Check expiry
-  if (del.share_expires_at && new Date(del.share_expires_at) < new Date()) {
-    notFound();
+  if (!del) {
+    return <TokenStatePage state="unavailable" badge="Shared deliverable" />;
   }
 
-  // Check max views
-  if (del.share_max_views && del.share_view_count >= del.share_max_views) {
-    notFound();
-  }
-
-  // Fetch org branding
   const { data: org } = await admin
     .from("organizations")
     .select("name, deliverable_logo_s3_key")
     .eq("id", del.org_id)
     .single();
 
-  // Log view + increment counter
   const hdrs = await headers();
   const ip = hdrs.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
   const ua = hdrs.get("user-agent") ?? "unknown";
@@ -54,7 +59,7 @@ export default async function SharedDeliverablePage({ params }: Props) {
     .eq("id", del.id);
 
   return (
-    <DeliverableViewer
+    <SharedDeliverableDocument
       title={del.title}
       deliverableType={del.deliverable_type}
       content={del.content ?? []}

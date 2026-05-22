@@ -5,13 +5,14 @@ import { getEntitlements } from "@/lib/entitlements";
 import { resolveServerOrgContext, type ServerOrgContext } from "@/lib/server/org-context";
 import { resolveUsageTruth, type UsageTruth } from "@/lib/server/usage-truth";
 import { BillingPortalButton } from "../_components/BillingPortalButton";
+import { AccountDeletionPanel } from "../_components/AccountDeletionPanel";
 
 export const metadata = { title: "More — Slate360" };
 
 type SectionKey = "account" | "organization" | "billing" | "coordination" | "storage" | "support";
 type Metric = { label: string; value: string };
 type SectionAction = { label: string; detail: string; href: string; icon: LucideIcon; external?: boolean };
-type SectionDetails = { title: string; eyebrow: string; description: string; icon: LucideIcon; metrics: Metric[]; actions: SectionAction[]; showBillingPortal?: boolean; billingDisabledReason?: string };
+type SectionDetails = { title: string; eyebrow: string; description: string; icon: LucideIcon; metrics: Metric[]; actions: SectionAction[]; showBillingPortal?: boolean; billingDisabledReason?: string; showDeletionPanel?: boolean };
 
 const SECTION_KEYS = new Set<SectionKey>(["account", "organization", "billing", "coordination", "storage", "support"]);
 
@@ -44,8 +45,10 @@ export default async function MoreSectionPage({ params }: { params: Promise<{ se
 
       <section className="overflow-hidden rounded-3xl border border-white/10 bg-white/5 shadow-lg backdrop-blur-md">
         {details.showBillingPortal ? <BillingPortalButton disabledReason={details.billingDisabledReason} /> : null}
-        {details.actions.map((action) => <ActionRow key={action.href} action={action} />)}
+        {details.actions.map((action) => <ActionRow key={`${action.label}-${action.href}`} action={action} />)}
       </section>
+
+      {details.showDeletionPanel ? <AccountDeletionPanel /> : null}
     </div>
   );
 }
@@ -61,12 +64,15 @@ function buildSection(section: SectionKey, ctx: ServerOrgContext, planLabel: str
     account: {
       title: "Account",
       eyebrow: "Profile & security",
-      description: "Manage the identity and security controls used across Slate360, Site Walk, SlateDrop, and future apps.",
+      description: "Manage profile, security, legal links, and account deletion from the mobile Account Hub.",
       icon: User,
       metrics: [{ label: "Email", value: email }, { label: "Plan", value: planLabel }, { label: "Role", value: role }],
+      showDeletionPanel: true,
       actions: [
-        { label: "Open account workspace", detail: "Profile, preferences, billing summary, and delete controls.", href: "/settings", icon: User },
-        { label: "Security controls", detail: "Password reset and account danger-zone workflow.", href: "/settings", icon: Shield },
+        { label: "Profile & settings", detail: "Update profile, password, and security preferences.", href: "/settings", icon: User },
+        { label: "Help & support", detail: "Email support for billing, access, and product questions.", href: "/more/support", icon: LifeBuoy },
+        { label: "Privacy policy", detail: "Review Slate360 data and privacy commitments.", href: "/privacy", icon: Shield },
+        { label: "Terms of service", detail: "Review platform subscription and acceptable-use terms.", href: "/terms", icon: LifeBuoy },
         { label: "Communication inbox", detail: "Messages, file-share alerts, and team responses.", href: "/coordination/inbox", icon: Inbox },
       ],
     },
@@ -100,7 +106,7 @@ function buildSection(section: SectionKey, ctx: ServerOrgContext, planLabel: str
       eyebrow: "Team operations",
       description: "Jump into the shared tools that coordinate messages, project contacts, deadlines, and handoffs.",
       icon: MessageSquare,
-      metrics: [{ label: "Inbox", value: "Open" }, { label: "Contacts", value: "Available" }, { label: "Calendar", value: "Available" }],
+      metrics: [{ label: "Inbox", value: "Messages" }, { label: "Contacts", value: "Directory" }, { label: "Calendar", value: "Schedule" }],
       actions: [
         { label: "Inbox", detail: "Messages, file shares, feedback replies, and unread work.", href: "/coordination/inbox", icon: Inbox },
         { label: "Contacts", detail: "Stakeholders for Site Walk, SlateDrop, and project communication.", href: "/coordination/contacts", icon: UsersRound },
@@ -124,7 +130,7 @@ function buildSection(section: SectionKey, ctx: ServerOrgContext, planLabel: str
       eyebrow: "Help",
       description: "Get to support, policies, and app feedback without dropping into old public-page styling first.",
       icon: LifeBuoy,
-      metrics: [{ label: "Support", value: "Email" }, { label: "Privacy", value: "Available" }, { label: "Terms", value: "Available" }],
+      metrics: [{ label: "Support", value: "Email" }, { label: "Privacy", value: "Policy" }, { label: "Terms", value: "Policy" }],
       actions: [
         { label: "Email support", detail: "Send support, billing, or account questions to Slate360.", href: "mailto:support@slate360.ai", icon: Mail, external: true },
         { label: "Privacy policy", detail: "Review Slate360 data and privacy commitments.", href: "/privacy", icon: Shield },

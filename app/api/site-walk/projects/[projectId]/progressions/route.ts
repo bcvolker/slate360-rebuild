@@ -11,6 +11,7 @@ import { NextRequest } from "next/server";
 import { withAppAuth } from "@/lib/server/api-auth";
 import { ok, badRequest, serverError } from "@/lib/server/api-response";
 import type { IdRouteContext } from "@/lib/types/api";
+import { excludeDeletedSiteWalkItems } from "@/lib/site-walk/item-filters";
 
 type ProjectRouteContext = { params: Promise<{ projectId: string }> };
 
@@ -22,12 +23,15 @@ export const GET = (req: NextRequest, ctx: IdRouteContext | ProjectRouteContext)
     if (!projectId) return badRequest("projectId is required");
 
     // Items that explicitly carry a progression role
-    const { data: roleRows, error: roleError } = await admin
+    let roleQuery = admin
       .from("site_walk_items")
       .select("*")
       .eq("org_id", orgId)
       .eq("project_id", projectId)
-      .in("item_relationship", ["before", "after", "progress"])
+      .in("item_relationship", ["before", "after", "progress"]);
+    roleQuery = excludeDeletedSiteWalkItems(roleQuery);
+
+    const { data: roleRows, error: roleError } = await roleQuery
       .order("location_label", { ascending: true })
       .order("created_at", { ascending: true });
 
@@ -41,12 +45,15 @@ export const GET = (req: NextRequest, ctx: IdRouteContext | ProjectRouteContext)
     const knownIds = new Set(items.map((item) => item.id));
     const missingIds = [...referencedIds].filter((id) => !knownIds.has(id));
     if (missingIds.length > 0) {
-      const { data: parents } = await admin
+      let parentQuery = admin
         .from("site_walk_items")
         .select("*")
         .eq("org_id", orgId)
         .eq("project_id", projectId)
         .in("id", missingIds);
+      parentQuery = excludeDeletedSiteWalkItems(parentQuery);
+
+      const { data: parents } = await parentQuery;
       if (parents) items.push(...parents);
     }
 

@@ -1,11 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { CaptureProvider } from "@/components/site-walk/capture/CaptureContext";
-import {
-  SiteWalkSessionProvider,
-  useSiteWalkSession,
-} from "@/components/site-walk/SiteWalkSessionProvider";
+import { useSiteWalkSession } from "@/components/site-walk/SiteWalkSessionProvider";
 import { CaptureV2Orchestrator } from "./CaptureV2Orchestrator";
 import { CaptureV2TaskHeader } from "./CaptureV2TaskHeader";
 import type { CaptureV2Session } from "./session-types";
@@ -23,16 +19,6 @@ type Props = {
 };
 
 export function CaptureV2Shell(props: Props) {
-  return (
-    <SiteWalkSessionProvider sessionId={props.session.id}>
-      <CaptureProvider>
-        <CaptureV2ShellInner {...props} />
-      </CaptureProvider>
-    </SiteWalkSessionProvider>
-  );
-}
-
-function CaptureV2ShellInner(props: Props) {
   const { session } = props;
   const { capturedItems } = useSiteWalkSession();
 
@@ -46,7 +32,7 @@ function CaptureV2ShellInner(props: Props) {
     : session.project_name ?? "Plan Walk";
 
   return (
-    <main className="flex h-full min-h-0 w-full flex-col overflow-hidden bg-[#0B0F15] text-slate-50">
+    <main className="relative flex h-full min-h-0 w-full flex-grow flex-col overflow-hidden bg-[#0B0F15] pb-safe text-white">
       <CaptureV2TaskHeader session={session} stopLabel={stopLabel} contextLabel={contextLabel} />
       <CaptureV2Orchestrator {...props} />
     </main>

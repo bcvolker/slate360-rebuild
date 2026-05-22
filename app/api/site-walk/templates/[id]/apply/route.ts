@@ -7,6 +7,7 @@ import { withAppAuth } from "@/lib/server/api-auth";
 import { ok, badRequest, notFound, serverError } from "@/lib/server/api-response";
 import type { IdRouteContext } from "@/lib/types/api";
 import type { ChecklistEntry } from "@/lib/types/site-walk";
+import { excludeDeletedSiteWalkItems } from "@/lib/site-walk/item-filters";
 
 type ApplyPayload = { session_id: string };
 
@@ -32,10 +33,13 @@ export const POST = (req: NextRequest, ctx: IdRouteContext) =>
     if (!entries.length) return badRequest("Template has no checklist items");
 
     // Get current max sort_order
-    const { data: maxItem } = await admin
+    let maxOrderQuery = admin
       .from("site_walk_items")
       .select("sort_order")
-      .eq("session_id", body.session_id)
+      .eq("session_id", body.session_id);
+    maxOrderQuery = excludeDeletedSiteWalkItems(maxOrderQuery);
+
+    const { data: maxItem } = await maxOrderQuery
       .order("sort_order", { ascending: false })
       .limit(1)
       .single();

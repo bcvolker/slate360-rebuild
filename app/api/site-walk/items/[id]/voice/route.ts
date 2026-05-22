@@ -17,6 +17,7 @@ import { withAppAuth } from "@/lib/server/api-auth";
 import { ok, badRequest, notFound, serverError } from "@/lib/server/api-response";
 import { uploadBuffer } from "@/lib/s3-utils";
 import type { IdRouteContext } from "@/lib/types/api";
+import { excludeDeletedSiteWalkItems } from "@/lib/site-walk/item-filters";
 
 const MAX_BYTES = 25 * 1024 * 1024;
 const ALLOWED = new Set(["audio/webm", "audio/ogg", "audio/mp4", "audio/mpeg", "audio/wav"]);
@@ -26,12 +27,10 @@ export const POST = (req: NextRequest, ctx: IdRouteContext) =>
     if (!orgId) return badRequest("Organization required");
     const { id } = await ctx.params;
 
-    const { data: item, error: itemErr } = await admin
-      .from("site_walk_items")
-      .select("id, item_type")
-      .eq("id", id)
-      .eq("org_id", orgId)
-      .maybeSingle();
+    let itemQuery = admin.from("site_walk_items").select("id, item_type").eq("id", id).eq("org_id", orgId);
+    itemQuery = excludeDeletedSiteWalkItems(itemQuery);
+
+    const { data: item, error: itemErr } = await itemQuery.maybeSingle();
 
     if (itemErr) return serverError(itemErr.message);
     if (!item) return notFound("Item not found");
