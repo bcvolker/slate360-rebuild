@@ -13,6 +13,7 @@ import {
   Clock,
   FolderOpen,
   Sparkles,
+  Package,
 } from "lucide-react";
 import type { Entitlements } from "@/lib/entitlements";
 import {
@@ -142,10 +143,10 @@ export function CommandCenterContent({
       { label: "SlateDrop", icon: FolderOpen, accent: "info", onClick: () => router.push("/slatedrop") },
       { label: "Search", icon: Search, accent: "muted", onClick: handleSearch },
       {
-        label: "Coordination",
-        icon: MessageSquare,
+        label: "Deliverables",
+        icon: Package,
         accent: "neutral",
-        onClick: () => router.push("/coordination/inbox"),
+        href: "/site-walk?tab=deliverables",
       },
     ],
     [handleSearch, router],

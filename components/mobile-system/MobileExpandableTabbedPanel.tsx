@@ -42,11 +42,12 @@ export function MobileExpandableTabbedPanel({
     <div
       className={cn(
         isHomeDock
-          ? "relative z-30 w-full"
+          ? "relative z-30 w-full pointer-events-auto"
           : mobileTokens.mobileExpandablePanelOuter,
-        !isHomeDock &&
-          expanded &&
-          mobileTokens.mobileExpandablePanelExpandedPosition,
+        expanded &&
+          (isHomeDock
+            ? mobileTokens.mobileExpandablePanelExpandedPosition
+            : mobileTokens.mobileExpandablePanelExpandedPosition),
       )}
     >
       <div
@@ -72,7 +73,7 @@ export function MobileExpandableTabbedPanel({
           <button
             type="button"
             className={cn(
-              "flex min-h-[28px] flex-1 flex-col items-center justify-center gap-1 py-1",
+              mobileTokens.mobileExpandablePanelToggleButton,
               mobileTokens.focusRing,
             )}
             aria-expanded={expanded}
@@ -81,22 +82,10 @@ export function MobileExpandableTabbedPanel({
             onClick={toggle}
           >
             <span className={mobileTokens.mobileExpandablePanelHandle} aria-hidden />
-          </button>
-          <button
-            type="button"
-            className={cn(
-              "flex size-9 shrink-0 items-center justify-center rounded-lg text-zinc-400 transition-colors hover:bg-white/10 hover:text-white",
-              mobileTokens.focusRing,
-            )}
-            aria-expanded={expanded}
-            aria-controls={panelId}
-            aria-label={expanded ? "Collapse panel" : "Expand panel"}
-            onClick={toggle}
-          >
             {expanded ? (
-              <ChevronDown className="size-5" aria-hidden />
+              <ChevronDown className="size-5 shrink-0" aria-hidden />
             ) : (
-              <ChevronUp className="size-5" aria-hidden />
+              <ChevronUp className="size-5 shrink-0" aria-hidden />
             )}
           </button>
         </div>
@@ -124,23 +113,23 @@ export function MobileExpandableTabbedPanel({
   if (isHomeDock) {
     return (
       <div
-        data-expandable-panel-version="fixed-region-v1"
+        data-expandable-panel-version="fixed-region-v2"
         data-panel-mode="fixed-region"
         data-dock-width-mode="full-shell"
         data-expanded-state={expanded ? "true" : "false"}
         data-collapsed-height={MOBILE_HOME_DOCK_COLLAPSED_CLAMP}
         data-expanded-height={MOBILE_HOME_DOCK_EXPANDED_CLAMP}
-        className={cn("relative w-full", className)}
+        className={cn("relative w-full", expanded && "z-50", className)}
       >
         {expanded && (
           <button
             type="button"
-            className="fixed inset-0 z-10 bg-black/50 backdrop-blur-[2px] lg:hidden"
+            className="fixed inset-0 z-40 bg-black/50 backdrop-blur-[2px] lg:hidden"
             aria-label="Close activity panel"
             onClick={collapse}
           />
         )}
-        {dock}
+        <div className={cn(expanded && "relative z-50")}>{dock}</div>
       </div>
     );
   }

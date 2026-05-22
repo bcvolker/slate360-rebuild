@@ -221,7 +221,9 @@ export const mobileTokens = {
   mobileExpandablePanelFrameExpanded:
     "shadow-[0_-12px_40px_rgba(0,0,0,0.55)] ring-1 ring-white/10",
   mobileExpandablePanelChrome:
-    "flex shrink-0 items-center gap-1 border-b border-white/10 px-2",
+    "flex min-h-11 w-full shrink-0 touch-manipulation",
+  mobileExpandablePanelToggleButton:
+    "flex min-h-11 w-full flex-1 items-center justify-center gap-2 border-b border-white/10 px-3 py-2 text-zinc-400 transition-colors hover:bg-white/[0.04] active:bg-white/[0.08]",
   mobileExpandablePanelCollapsedHeight: "h-[264px] max-h-[264px] min-h-[264px] shrink-0",
   mobileExpandablePanelExpandedHeight:
     "h-[min(52dvh,480px)] max-h-[min(52dvh,480px)] min-h-[min(52dvh,480px)] shrink-0",
