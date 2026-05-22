@@ -58,14 +58,8 @@ export function HomeView({ walks, projects, summary, router, onQuickCapture }: H
           </MobileSection>
         }
         primaryActions={
-          <MobileSection
-            label="Actions"
-            showAccentLine="cool"
-            className="flex min-h-0 flex-1 flex-col"
-            contentClassName="flex min-h-0 flex-1 flex-col"
-          >
+          <MobileSection label="Actions" showAccentLine="cool" className="shrink-0">
             <SiteWalkV1ActionGrid
-              className="flex-1"
               onNewWorksite={() => router.push("/site-walk/setup")}
               onStartWalk={() => router.push("/site-walk/walks")}
               onQuickCapture={onQuickCapture}

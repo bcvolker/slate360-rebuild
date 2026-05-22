@@ -16,7 +16,7 @@ export function MobileShellBackToApp({ className }: MobileShellBackToAppProps) {
       aria-label="Back to Slate360"
       className={cn(mobileTokens.moduleBackButton, mobileTokens.focusRing, className)}
     >
-      <ArrowLeft className="size-[15px]" strokeWidth={2.5} aria-hidden />
+      <ArrowLeft className="size-[18px]" strokeWidth={2.5} aria-hidden />
     </Link>
   );
 }
