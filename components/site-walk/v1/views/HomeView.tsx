@@ -1,7 +1,7 @@
 "use client";
 
 import { SiteWalkV1ActionGrid } from "@/components/site-walk/v1/SiteWalkV1ActionGrid";
-import { SiteWalkV1ListPanel } from "@/components/site-walk/v1/SiteWalkV1ListPanel";
+import { SiteWalkV1ListPanel, type ListTab } from "@/components/site-walk/v1/SiteWalkV1ListPanel";
 import { WorksiteV1Row } from "@/components/site-walk/v1/WorksiteV1Row";
 import { WalkV1Row } from "@/components/site-walk/v1/WalkV1Row";
 import type { V1NavTab } from "@/components/site-walk/v1/SiteWalkV1BottomNav";
@@ -21,6 +21,8 @@ type HomeViewProps = {
   summary: HubSummary;
   router: RouterLike;
   setTab?: (t: V1NavTab) => void;
+  dockTab?: ListTab;
+  openHomeDock?: (panel: ListTab) => void;
   onQuickCapture?: () => void;
 };
 
@@ -30,12 +32,16 @@ export function HomeView({
   summary,
   router,
   setTab,
+  dockTab = "recent",
+  openHomeDock,
   onQuickCapture,
 }: HomeViewProps) {
   const openDeliverables = () =>
     setTab ? setTab("deliverables") : router.push("/site-walk?tab=deliverables");
   const openWorksites = () =>
     setTab ? setTab("worksites") : router.push("/site-walk?tab=worksites");
+  const openRecent = () =>
+    openHomeDock ? openHomeDock("recent") : router.push("/site-walk?tab=recent");
   const recentWalks = walks.slice(0, 20);
 
   const walksByProject = new Map<string, number>();
@@ -75,6 +81,8 @@ export function HomeView({
       }
       dock={
         <SiteWalkV1ListPanel
+          key={dockTab}
+          defaultTab={dockTab}
           recentContent={
             recentWalks.length > 0 ? (
               <WalkList walks={recentWalks} router={router} onDeliverables={openDeliverables} />
@@ -95,7 +103,7 @@ export function HomeView({
                     name={p.name}
                     walkCount={walksByProject.get(p.id) ?? 0}
                     lastActivity={timeAgo(lastActivityByProject.get(p.id) ?? null)}
-                    onOpen={() => router.push("/site-walk/walks")}
+                    onOpen={openWorksites}
                     onStartWalk={() => router.push("/site-walk/setup")}
                     onPlansAndDocs={() => router.push("/site-walk/setup")}
                     onSlateDrop={() => router.push(`/projects/${encodeURIComponent(p.id)}/slatedrop`)}
@@ -116,7 +124,7 @@ export function HomeView({
                 title={`${summary.needsReview} item${summary.needsReview === 1 ? "" : "s"} need review.`}
                 description="Open a walk to review resolved items."
                 actionLabel="Open walks"
-                actionHref="/site-walk/walks"
+                onAction={openRecent}
               />
             ) : (
               <MobileEmptyState compact title="Nothing needs review." />
@@ -148,17 +156,9 @@ function WalkList({
           itemCount={w.itemCount}
           lastUpdated={timeAgo(w.updatedAt)}
           onOpen={() =>
-            router.push(
-              w.status === "completed"
-                ? `/site-walk/walks/${encodeURIComponent(w.id)}`
-                : `/site-walk/capture?session=${encodeURIComponent(w.id)}`,
-            )
+            router.push(`/site-walk/capture?session=${encodeURIComponent(w.id)}`)
           }
-          onCreateReport={() =>
-            w.status === "completed"
-              ? router.push(`/site-walk/walks/${encodeURIComponent(w.id)}`)
-              : onDeliverables()
-          }
+          onCreateReport={onDeliverables}
         />
       ))}
     </div>

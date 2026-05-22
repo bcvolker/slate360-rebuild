@@ -14,6 +14,8 @@ import type { HubProject, HubSummary, HubWalk } from "@/lib/types/site-walk";
 
 import { buildCaptureLaunchUrl } from "@/lib/site-walk/capture-v2-config";
 
+import type { ListTab } from "@/components/site-walk/v1/SiteWalkV1ListPanel";
+
 import { HomeView } from "@/components/site-walk/v1/views/HomeView";
 
 import { WorksitesView } from "@/components/site-walk/v1/views/WorksitesView";
@@ -31,12 +33,16 @@ import {
 } from "@/components/site-walk/v1/views/DeliverablesView";
 
 const V1_NAV_TABS = ["home", "worksites", "slatedrop", "coordination", "deliverables"] as const;
+const HOME_DOCK_TABS = ["recent", "shared", "review"] as const;
 
-function parseV1NavTab(value: string | null): V1NavTab | null {
-  if (value && (V1_NAV_TABS as readonly string[]).includes(value)) {
-    return value as V1NavTab;
+function parseSiteWalkTab(value: string | null): { navTab: V1NavTab; dockTab: ListTab } {
+  if (value && (HOME_DOCK_TABS as readonly string[]).includes(value)) {
+    return { navTab: "home", dockTab: value as ListTab };
   }
-  return null;
+  if (value && (V1_NAV_TABS as readonly string[]).includes(value)) {
+    return { navTab: value as V1NavTab, dockTab: "recent" };
+  }
+  return { navTab: "home", dockTab: "recent" };
 }
 
 type Props = {
@@ -103,16 +109,24 @@ export function SiteWalkHomeClient({
 
   const router = useRouter();
   const searchParams = useSearchParams();
-  const tabFromUrl = parseV1NavTab(searchParams?.get("tab") ?? null);
+  const tabFromUrl = parseSiteWalkTab(searchParams?.get("tab") ?? null);
 
-  const [tab, setTab] = useState<V1NavTab>(tabFromUrl ?? "home");
+  const [tab, setTab] = useState<V1NavTab>(tabFromUrl.navTab);
+  const [dockTab, setDockTab] = useState<ListTab>(tabFromUrl.dockTab);
 
   const [startingQuickWalk, setStartingQuickWalk] = useState(false);
 
   useEffect(() => {
-    const next = parseV1NavTab(searchParams?.get("tab") ?? null);
-    if (next) setTab(next);
+    const next = parseSiteWalkTab(searchParams?.get("tab") ?? null);
+    setTab(next.navTab);
+    setDockTab(next.dockTab);
   }, [searchParams]);
+
+  function openHomeDock(panel: ListTab) {
+    setTab("home");
+    setDockTab(panel);
+    router.push(`/site-walk?tab=${panel}`);
+  }
 
   const title = shellTitle(tab, orgName);
 
@@ -192,6 +206,10 @@ export function SiteWalkHomeClient({
 
           setTab={setTab}
 
+          dockTab={dockTab}
+
+          openHomeDock={openHomeDock}
+
           onQuickCapture={handleQuickCapture}
 
         />
@@ -210,7 +228,11 @@ export function SiteWalkHomeClient({
 
       {tab === "deliverables" && (
 
-        <DeliverablesView deliverables={deliverables} router={router} />
+        <DeliverablesView
+          deliverables={deliverables}
+          router={router}
+          openHomeDock={openHomeDock}
+        />
 
       )}
 

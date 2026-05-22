@@ -19,6 +19,7 @@ export type V1DeliverableRow = {
 type DeliverablesViewProps = {
   deliverables?: V1DeliverableRow[];
   router?: RouterLike;
+  openHomeDock?: (panel: "recent") => void;
 };
 
 const STATUS_STYLE: Record<string, string> = {
@@ -30,9 +31,15 @@ const STATUS_STYLE: Record<string, string> = {
   archived: "text-zinc-500",
 };
 
-export function DeliverablesView({ deliverables = [], router: routerProp }: DeliverablesViewProps) {
+export function DeliverablesView({
+  deliverables = [],
+  router: routerProp,
+  openHomeDock,
+}: DeliverablesViewProps) {
   const routerFromHook = useRouter();
   const router = routerProp ?? routerFromHook;
+  const openRecent = () =>
+    openHomeDock ? openHomeDock("recent") : router.push("/site-walk?tab=recent");
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4 pb-[max(env(safe-area-inset-bottom),1rem)]">
       <div className="flex shrink-0 items-center justify-between gap-2">
@@ -40,7 +47,7 @@ export function DeliverablesView({ deliverables = [], router: routerProp }: Deli
         <Button
           size="sm"
           className="gap-1.5 rounded-lg bg-amber-600 text-white hover:bg-amber-700"
-          onClick={() => router.push("/site-walk/walks")}
+          onClick={openRecent}
         >
           <Plus className="size-3.5" />
           From Walk
@@ -53,7 +60,7 @@ export function DeliverablesView({ deliverables = [], router: routerProp }: Deli
           title="No deliverables yet"
           description="Complete a walk, review captures, then create a deliverable from the walk summary."
           actionLabel="Open walks"
-          actionHref="/site-walk/walks"
+          onAction={openRecent}
         />
       ) : (
         <div className="flex flex-col gap-2">

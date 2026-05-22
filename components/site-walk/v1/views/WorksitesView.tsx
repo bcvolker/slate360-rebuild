@@ -3,6 +3,7 @@
 import { Plus } from "lucide-react";
 import { WorksiteV1Row } from "@/components/site-walk/v1/WorksiteV1Row";
 import { Button } from "@/components/ui/button";
+import type { V1NavTab } from "@/components/site-walk/v1/SiteWalkV1BottomNav";
 import type { HubProject, HubWalk } from "@/lib/types/site-walk";
 import { type RouterLike, timeAgo } from "./v1-view-utils";
 import { MobileEmptyState } from "@/components/mobile-system";
@@ -11,7 +12,7 @@ type WorksitesViewProps = {
   projects: HubProject[];
   walks: HubWalk[];
   router: RouterLike;
-  setTab?: (tab: "deliverables" | "slatedrop") => void;
+  setTab?: (tab: V1NavTab) => void;
 };
 
 export function WorksitesView({ projects, walks, router, setTab }: WorksitesViewProps) {
@@ -25,6 +26,11 @@ export function WorksitesView({ projects, walks, router, setTab }: WorksitesView
       lastActivityByProject.set(w.projectId, w.updatedAt);
     }
   }
+
+  const openWorksites = () =>
+    setTab ? setTab("worksites") : router.push("/site-walk?tab=worksites");
+  const openDeliverables = () =>
+    setTab ? setTab("deliverables") : router.push("/site-walk?tab=deliverables");
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-4 pb-[max(env(safe-area-inset-bottom),1rem)]">
@@ -55,14 +61,12 @@ export function WorksitesView({ projects, walks, router, setTab }: WorksitesView
               name={p.name}
               walkCount={walksByProject.get(p.id) ?? 0}
               lastActivity={timeAgo(lastActivityByProject.get(p.id) ?? null)}
-              onOpen={() => router.push("/site-walk/walks")}
+              onOpen={openWorksites}
               onStartWalk={() => router.push("/site-walk/setup")}
               onPlansAndDocs={() => router.push("/site-walk/setup")}
               onSlateDrop={() => router.push(`/projects/${encodeURIComponent(p.id)}/slatedrop`)}
               onCollaborators={() => router.push("/site-walk/setup")}
-              onDeliverables={() =>
-                setTab ? setTab("deliverables") : router.push("/site-walk/deliverables")
-              }
+              onDeliverables={openDeliverables}
             />
           ))}
         </div>
