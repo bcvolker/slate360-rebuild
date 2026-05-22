@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, Camera, FileText, MapPin, PackageCheck, PenLine } from "lucide-react";
 import { resolveServerOrgContext } from "@/lib/server/org-context";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { excludeDeletedSiteWalkItems } from "@/lib/site-walk/item-filters";
+import { buildCaptureLaunchUrl } from "@/lib/site-walk/capture-v2-config";
 
 // This route is the Act 2 walk review screen: a contained mobile-first list of captures before deliverables.
 type Props = { params: Promise<{ sessionId: string }> };
@@ -15,9 +17,16 @@ export default async function WalkReviewPage({ params }: Props) {
   if (!context.user || !context.orgId) return notFound();
 
   const admin = createAdminClient();
+  let itemsQuery = admin
+    .from("site_walk_items")
+    .select("id, item_type, title, description, location_label, priority, item_status, tags, created_at")
+    .eq("session_id", sessionId)
+    .eq("org_id", context.orgId);
+  itemsQuery = excludeDeletedSiteWalkItems(itemsQuery);
+
   const [{ data: sessionRow }, { data: itemRows }] = await Promise.all([
     admin.from("site_walk_sessions").select("id, title, status, project_id, projects(name)").eq("id", sessionId).eq("org_id", context.orgId).maybeSingle<SessionRow>(),
-    admin.from("site_walk_items").select("id, item_type, title, description, location_label, priority, item_status, tags, created_at").eq("session_id", sessionId).eq("org_id", context.orgId).order("created_at", { ascending: false }),
+    itemsQuery.order("created_at", { ascending: false }),
   ]);
 
   if (!sessionRow) return notFound();
@@ -25,7 +34,7 @@ export default async function WalkReviewPage({ params }: Props) {
   const items = (itemRows ?? []) as ItemRow[];
 
   return (
-    <main className="fixed inset-0 flex h-[100dvh] flex-col overflow-hidden bg-[radial-gradient(circle_at_top,rgba(245,158,11,0.07),transparent_34%),#0B0F15] text-white">
+    <main className="flex h-full min-h-0 flex-col overflow-hidden bg-[radial-gradient(circle_at_top,rgba(245,158,11,0.07),transparent_34%),#0B0F15] text-white">
       <header className="shrink-0 border-b border-white/10 bg-[#0B0F15]/92 px-4 py-3 shadow-[0_18px_60px_rgba(0,0,0,0.35)] backdrop-blur-xl">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-3">
           <Link href="/site-walk/walks" className="inline-flex h-10 items-center gap-2 rounded-2xl border border-white/15 bg-white/5 px-3 text-sm font-black text-slate-100"><ArrowLeft className="h-4 w-4" /> Walks</Link>
@@ -59,7 +68,7 @@ function EmptyReview({ sessionId }: { sessionId: string }) {
       <Camera className="mx-auto h-8 w-8 text-amber-300" />
       <h2 className="mt-3 text-xl font-black">No captures yet</h2>
       <p className="mx-auto mt-2 max-w-sm text-sm font-bold text-slate-400">Start with one photo, markup, or note before creating deliverables.</p>
-      <Link href={`/site-walk/capture?session=${encodeURIComponent(sessionId)}&quick=camera`} className="mt-5 inline-flex rounded-2xl bg-amber-500 px-5 py-3 text-sm font-black text-slate-950">Capture first photo</Link>
+      <Link href={buildCaptureLaunchUrl({ session: sessionId, quick: "camera" })} className="mt-5 inline-flex rounded-2xl bg-amber-500 px-5 py-3 text-sm font-black text-slate-950">Capture first photo</Link>
     </div>
   );
 }
@@ -70,7 +79,7 @@ function CaptureReviewCard({ item, index, sessionId }: { item: ItemRow; index: n
   const location = getLocationLabel(item);
   const notes = item.description?.trim() || "No note added yet.";
   return (
-    <Link href={`/site-walk/capture?session=${encodeURIComponent(sessionId)}&item=${encodeURIComponent(item.id)}`} className="grid grid-cols-[96px_minmax(0,1fr)] gap-3 rounded-[1.6rem] border border-white/10 bg-white/[0.05] p-2 shadow-[0_18px_50px_rgba(0,0,0,0.22)] backdrop-blur-md transition hover:border-amber-400/35 hover:bg-white/[0.08]">
+    <Link href={buildCaptureLaunchUrl({ session: sessionId, item: item.id })} className="grid grid-cols-[96px_minmax(0,1fr)] gap-3 rounded-[1.6rem] border border-white/10 bg-white/[0.05] p-2 shadow-[0_18px_50px_rgba(0,0,0,0.22)] backdrop-blur-md transition hover:border-amber-400/35 hover:bg-white/[0.08]">
         <div className="relative h-28 overflow-hidden rounded-2xl border border-amber-400/20 bg-slate-900">
         {thumbUrl ? <img src={thumbUrl} alt="" className="h-full w-full object-cover" /> : <div className="flex h-full items-center justify-center"><FileText className="h-6 w-6 text-slate-500" /></div>}
         <span className="absolute left-2 top-2 rounded-full bg-slate-950/80 px-2 py-0.5 text-[10px] font-black text-amber-200">#{index}</span>

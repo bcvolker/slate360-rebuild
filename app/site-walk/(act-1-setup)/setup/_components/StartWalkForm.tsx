@@ -6,6 +6,7 @@ import { ChevronDown, FileUp, Play, Plus } from "lucide-react";
 import type { SiteWalkSessionType } from "@/lib/types/site-walk";
 import { PlanUploaderCard } from "@/components/site-walk/PlanUploaderCard";
 import type { SetupProject } from "./setup-types";
+import { buildCaptureLaunchUrl } from "@/lib/site-walk/capture-v2-config";
 
 type Props = {
   projects: SetupProject[];
@@ -78,7 +79,7 @@ export function StartWalkForm({ projects }: Props) {
       const body = (await res.json()) as { session?: { id: string } };
       const sessionId = body.session?.id;
       if (!sessionId) throw new Error("No session ID returned from server");
-      router.push(`/site-walk/capture?session=${sessionId}`);
+      router.push(buildCaptureLaunchUrl({ session: sessionId }));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to start walk. Please try again.");
       setSubmitting(false);

@@ -4,10 +4,12 @@ import type { LiveWalkSummary } from "@/components/site-walk/live/live-walk-type
 import { elapsedLabel } from "@/components/site-walk/live/live-walk-utils";
 import { resolveServerOrgContext } from "@/lib/server/org-context";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { excludeDeletedSiteWalkItems } from "@/lib/site-walk/item-filters";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { s3, BUCKET } from "@/lib/s3";
 import { DeleteWalkButton } from "@/components/site-walk/walks/DeleteWalkButton";
+import { buildCaptureLaunchUrl, buildWalkResumeUrl } from "@/lib/site-walk/capture-v2-config";
 
 type SessionRow = {
   id: string;
@@ -32,8 +34,8 @@ export default async function SiteWalksPage() {
   const itemCount = walks.reduce((sum, walk) => sum + walk.itemCount, 0);
 
   return (
-    <main className="flex h-full min-h-0 flex-col overflow-hidden bg-[radial-gradient(circle_at_top,rgba(245,158,11,0.07),transparent_34%),#0B0F15] px-4 py-4 text-slate-50 sm:px-6 lg:px-8">
-      <div className="mx-auto flex min-h-0 w-full max-w-7xl flex-1 flex-col gap-3">
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+      <div className="mx-auto flex min-h-0 w-full max-w-7xl flex-1 flex-col gap-3 px-4 py-4 sm:px-6 lg:px-8">
         <section className="shrink-0 rounded-3xl border border-white/10 bg-white/[0.045] p-3 backdrop-blur-xl">
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
@@ -80,7 +82,7 @@ export default async function SiteWalksPage() {
           </div>
         </div>
       </div>
-    </main>
+    </div>
   );
 }
 
@@ -133,6 +135,23 @@ function WalkCard({ walk }: { walk: LiveWalkSummary }) {
             <Metric icon={<Clock className="h-3.5 w-3.5" />} label="Elapsed" value={elapsedLabel(walk.startedAt)} />
             <Metric icon={<Activity className="h-3.5 w-3.5" />} label="Items" value={String(walk.itemCount)} />
           </div>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {isComplete ? (
+              <Link
+                href={buildWalkResumeUrl(walk.id, walk.status)}
+                className="inline-flex min-h-10 items-center rounded-2xl border border-white/15 bg-white/5 px-3 text-xs font-black text-white hover:border-amber-400/40"
+              >
+                View report
+              </Link>
+            ) : (
+              <Link
+                href={buildCaptureLaunchUrl({ session: walk.id })}
+                className="inline-flex min-h-10 items-center rounded-2xl bg-amber-500 px-3 text-xs font-black text-slate-950 hover:bg-amber-400"
+              >
+                Resume walk
+              </Link>
+            )}
+          </div>
         </div>
       </div>
     </div>
@@ -175,18 +194,21 @@ async function loadWalks(orgId: string): Promise<LiveWalkSummary[]> {
   const creatorIds = Array.from(new Set(rows.map((r) => r.created_by)));
 
   const [{ data: itemRows }, { data: profiles }, { data: firstPhotos }] = await Promise.all([
-    admin.from("site_walk_items").select("session_id").eq("org_id", orgId).in("session_id", sessionIds),
+    excludeDeletedSiteWalkItems(
+      admin.from("site_walk_items").select("session_id").eq("org_id", orgId).in("session_id", sessionIds),
+    ),
     admin.from("profiles").select("id, email, full_name, display_name").in("id", creatorIds),
-    // Fetch the earliest photo item per session
-    admin
-      .from("site_walk_items")
-      .select("session_id, s3_key")
-      .eq("org_id", orgId)
-      .in("session_id", sessionIds)
-      .eq("item_type", "photo")
-      .not("s3_key", "is", null)
-      .order("captured_at", { ascending: true })
-      .limit(sessionIds.length * 2),
+    excludeDeletedSiteWalkItems(
+      admin
+        .from("site_walk_items")
+        .select("session_id, s3_key")
+        .eq("org_id", orgId)
+        .in("session_id", sessionIds)
+        .eq("item_type", "photo")
+        .not("s3_key", "is", null)
+        .order("captured_at", { ascending: true })
+        .limit(sessionIds.length * 2),
+    ),
   ]);
 
   const counts = countItems((itemRows ?? []) as CountRow[]);
