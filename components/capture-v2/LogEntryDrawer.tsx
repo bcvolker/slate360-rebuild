@@ -360,6 +360,11 @@ export function LogEntryDrawer({
         <div
           className="min-h-0 flex-1 overflow-y-auto overscroll-contain no-scrollbar pb-2"
           style={{
+            maxHeight: keyboardOpen
+              ? maxHeightPx
+                ? `${Math.max(120, maxHeightPx - keyboardOffset - 160)}px`
+                : `calc(100% - ${keyboardOffset}px)`
+              : undefined,
             paddingBottom: keyboardOpen ? `${keyboardOffset + 88}px` : undefined,
           }}
         >
@@ -392,6 +397,9 @@ export function LogEntryDrawer({
       <div
         id={CAPTURE_V2_LAYER_IDS.logDrawer}
         className={`${CAPTURE_V2_LAYERS.drawer} relative flex min-h-0 flex-1 flex-col overflow-hidden border-t border-white/[0.05] bg-[#0B0F15]/95 backdrop-blur-xl md:hidden`}
+        style={{
+          maxHeight: maxHeightPx ? `${maxHeightPx}px` : undefined,
+        }}
         onFocusCapture={handleFormFocus}
         onBlurCapture={handleFormBlur}
         aria-label="Log entry drawer"

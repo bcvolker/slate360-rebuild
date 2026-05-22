@@ -7,6 +7,7 @@ export const CAPTURE_V2_LAYERS = {
   filmstrip: "z-20",
   fastTrack: "z-20",
   drawer: "z-40",
+  attachmentModal: "z-[55]",
   copilot: "z-[45]",
   taskHeader: "z-50",
   pipPreview: "z-50",

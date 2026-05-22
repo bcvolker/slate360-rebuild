@@ -33,6 +33,19 @@ function CaptureV2SyncPill() {
   );
 }
 
+function formatWalkName(session: CaptureV2Session): string {
+  if (session.title?.trim()) return session.title.trim();
+  if (session.project_name?.trim()) return session.project_name.trim();
+  if (session.is_ad_hoc && session.started_at) {
+    const dateLabel = new Date(session.started_at).toLocaleDateString(undefined, {
+      month: "short",
+      day: "numeric",
+    });
+    return `Quick Walk — ${dateLabel}`;
+  }
+  return "Current walk";
+}
+
 export function CaptureV2TaskHeader({ session, stopLabel, contextLabel, onBack }: Props) {
   const router = useRouter();
   const [exitOpen, setExitOpen] = useState(false);
@@ -66,9 +79,10 @@ export function CaptureV2TaskHeader({ session, stopLabel, contextLabel, onBack }
   return (
     <>
       <SharedCaptureTaskHeader
-        walkName={session.title || session.project_name || "Current walk"}
+        walkName={formatWalkName(session)}
         stopLabel={stopLabel}
         contextLabel={contextLabel}
+        isAdHoc={session.is_ad_hoc}
         backLabel={onBack ? "Back" : "Site Walk"}
         onBack={onBack}
         rightSlot={<CaptureV2SyncPill />}
