@@ -22,7 +22,7 @@ export function DashboardV3ContinueWorkRail({ projects = [], walks = [] }: { pro
         </Button>
       </div>
 
-      <div className="flex gap-4 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-hide">
+      <div className="custom-scrollbar flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2">
         {realItems.map((item, i) => (
           <div key={`real-${i}`} className="group relative flex-shrink-0 w-[300px] overflow-hidden rounded-xl border border-white/10 bg-[#131820] aspect-[16/10] flex flex-col justify-end p-5 hover:border-white/20 transition-all cursor-pointer snap-start">
             <div className="absolute inset-0 bg-gradient-to-t from-[#0B0F15]/90 via-[#0B0F15]/40 to-transparent z-0" />

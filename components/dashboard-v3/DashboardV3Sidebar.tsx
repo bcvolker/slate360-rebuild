@@ -9,8 +9,11 @@ import {
   FolderGit2,
   Home,
   Inbox,
+  LogOut,
   Map,
+  Settings,
   Settings2,
+  User,
   Users,
 } from "lucide-react";
 import Link from "next/link";
@@ -67,6 +70,9 @@ const NAV_GROUPS: NavGroup[] = [
 const FOLDER_ROW =
   "flex cursor-pointer items-center justify-between px-4 py-2 text-xs font-semibold uppercase tracking-wider text-zinc-500 transition-colors duration-150 hover:text-white";
 
+const FOOTER_ROW =
+  "flex cursor-pointer select-none items-center gap-3 rounded-xl px-2 py-2 text-zinc-400 transition-colors hover:bg-white/5 hover:text-[#F8FAFC]";
+
 export function DashboardV3Sidebar() {
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(() =>
     Object.fromEntries(NAV_GROUPS.map((group) => [group.id, group.defaultExpanded])),
@@ -79,12 +85,12 @@ export function DashboardV3Sidebar() {
   return (
     <aside className="flex h-screen w-[270px] flex-col overflow-hidden border-r border-white/5 bg-[#0B0F15] text-sm">
       <div className="flex h-[68px] shrink-0 items-center px-6">
-        <Link href="/" aria-label="Slate360 home">
+        <Link href="/app" className="block cursor-pointer" aria-label="Slate360 cockpit hub">
           <Slate360Logo variant="dark" />
         </Link>
       </div>
 
-      <div className="scrollbar-hide flex-1 overflow-y-auto px-2 py-4">
+      <div className="custom-scrollbar flex-1 overflow-y-auto px-2 py-4">
         <div className="space-y-2">
           {NAV_GROUPS.map((group) => {
             const expanded = expandedGroups[group.id];
@@ -127,6 +133,21 @@ export function DashboardV3Sidebar() {
             );
           })}
         </div>
+      </div>
+
+      <div className="relative z-50 mt-auto flex shrink-0 flex-col gap-2 border-t border-white/[0.05] bg-[#0B0F15] p-4">
+        <Link href="/more/account" className={FOOTER_ROW}>
+          <User className="h-4 w-4" />
+          <span>Account</span>
+        </Link>
+        <Link href="/settings" className={FOOTER_ROW}>
+          <Settings className="h-4 w-4" />
+          <span>Settings</span>
+        </Link>
+        <Link href="/auth/logout" className={FOOTER_ROW}>
+          <LogOut className="h-4 w-4" />
+          <span>Log Out</span>
+        </Link>
       </div>
     </aside>
   );

@@ -56,7 +56,7 @@ export function DashboardV3Shell({ data }: DashboardV3ShellProps) {
           <button
             type="button"
             onClick={() => setSidebarOpen((open) => !open)}
-            className="absolute left-4 top-1/2 z-10 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-lg border border-white/[0.05] bg-[#131820] text-zinc-400 transition-colors hover:border-white/10 hover:text-white"
+            className="absolute left-4 top-1/2 z-30 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-lg border border-white/[0.05] bg-[#131820] text-zinc-400 transition-colors hover:border-white/10 hover:text-white"
             aria-label={sidebarOpen ? "Collapse navigation" : "Expand navigation"}
           >
             {sidebarOpen ? (
