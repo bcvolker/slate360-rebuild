@@ -9,10 +9,11 @@ import {
 } from "@/components/marketing-launchpad/marketing-styles";
 import {
   ENTERPRISE_PLAN,
-  PRODUCT_LINE_OPTIONS,
-  PRODUCT_PRICING,
+  PRICING_TIERS,
+  formatAnnualPrice,
+  formatEffectiveMonthly,
   type BillingCadence,
-  type ProductLine,
+  type PricingTier,
 } from "@/components/marketing-launchpad/pricing-data";
 import { cn } from "@/lib/utils";
 
@@ -44,13 +45,7 @@ function ToggleButton({
   );
 }
 
-function PricingCard({
-  tier,
-  cadence,
-}: {
-  tier: (typeof PRODUCT_PRICING)[ProductLine]["basic"];
-  cadence: BillingCadence;
-}) {
+function PricingCard({ tier, cadence }: { tier: PricingTier; cadence: BillingCadence }) {
   const isAnnual = cadence === "annual";
 
   return (
@@ -60,12 +55,9 @@ function PricingCard({
         {isAnnual ? (
           <>
             <p className="text-4xl font-bold tracking-tight text-[#00E699]">
-              ${tier.annual}
-              <span className="text-lg font-medium text-[#A3AED0]">/yr</span>
+              {formatAnnualPrice(tier)}
             </p>
-            <p className="text-sm text-[#A3AED0]">
-              ${Math.round(tier.annual / 12)}/mo effective
-            </p>
+            <p className="text-sm text-[#A3AED0]">{formatEffectiveMonthly(tier)} billed annually</p>
           </>
         ) : (
           <p className="text-4xl font-bold tracking-tight text-[#00E699]">
@@ -74,7 +66,7 @@ function PricingCard({
           </p>
         )}
       </div>
-      <ul className="mt-6 space-y-3">
+      <ul className="mt-6 flex flex-1 flex-col space-y-3">
         {tier.features.map((feature) => (
           <li key={feature} className="flex items-start gap-2.5 text-base text-[#F8FAFC]">
             <span
@@ -96,9 +88,6 @@ function PricingCard({
 
 export function MarketingPricingSection() {
   const [cadence, setCadence] = useState<BillingCadence>("annual");
-  const [productLine, setProductLine] = useState<ProductLine>("site-walk");
-
-  const pricing = PRODUCT_PRICING[productLine];
 
   return (
     <section id="pricing-matrix-section" className={`${TILE_SECTION} items-center`}>
@@ -116,33 +105,18 @@ export function MarketingPricingSection() {
               Annual Billing (Save 17%)
             </ToggleButton>
           </div>
-
-          <div className={TOGGLE_GROUP}>
-            {PRODUCT_LINE_OPTIONS.map((option) => (
-              <ToggleButton
-                key={option.id}
-                active={productLine === option.id}
-                onClick={() => setProductLine(option.id)}
-              >
-                {option.label}
-              </ToggleButton>
-            ))}
-          </div>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-3">
-          <PricingCard tier={pricing.basic} cadence={cadence} />
-          <PricingCard tier={pricing.pro} cadence={cadence} />
+        <div className="grid gap-6 lg:grid-cols-2 xl:grid-cols-4">
+          {PRICING_TIERS.map((tier) => (
+            <PricingCard key={tier.id} tier={tier} cadence={cadence} />
+          ))}
 
           <article className={PRICING_CARD}>
             <h3 className="text-xl font-bold text-[#FFFFFF] lg:text-2xl">
               {ENTERPRISE_PLAN.name}
             </h3>
-            <p className="mt-4 text-base leading-relaxed text-[#A3AED0]">
-              Custom organizational deployment with dedicated support, security controls, and
-              volume pricing tailored to your portfolio.
-            </p>
-            <ul className="mt-6 space-y-3">
+            <ul className="mt-6 flex flex-1 flex-col space-y-3">
               {ENTERPRISE_PLAN.features.map((feature) => (
                 <li key={feature} className="flex items-start gap-2.5 text-base text-[#F8FAFC]">
                   <span

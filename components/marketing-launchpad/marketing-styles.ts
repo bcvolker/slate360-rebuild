@@ -33,16 +33,16 @@ export const APP_STORE_BTN =
 export const NAV_LINK =
   "text-base font-medium text-slate-300 transition-colors duration-150 hover:text-[#00E699]";
 
-export const FEATURE_GRID = "mb-6 grid grid-cols-1 gap-x-10 gap-y-5 sm:grid-cols-2";
+export const FEATURE_LIST = "mb-6 flex flex-col gap-5";
 
 export const FEATURE_CHEVRON =
-  "mr-2 select-none text-xl font-bold leading-none text-[#00E699] drop-shadow-[0_0_8px_rgba(0,230,153,0.6)]";
+  "shrink-0 select-none text-xl font-bold leading-none text-[#00E699] drop-shadow-[0_0_8px_rgba(0,230,153,0.5)]";
 
 export const FEATURE_ITEM =
-  "flex items-start font-sans text-base font-normal tracking-wide text-slate-200";
+  "flex items-start gap-2 text-base font-normal tracking-wide text-slate-200";
 
 export const PRICING_CARD =
   "flex h-full flex-col rounded-xl border border-white/[0.08] bg-slate-900/40 p-8 backdrop-blur-sm";
 
 export const PRICING_CTA =
-  "mt-6 inline-flex w-full items-center justify-center rounded-xl bg-[#00E699] py-4 text-sm font-semibold tracking-tight text-[#0B0F15] transition-all hover:bg-[#00CC88] active:scale-[0.99]";
+  "mt-auto inline-flex w-full items-center justify-center rounded-xl bg-[#00E699] py-4 text-sm font-semibold tracking-tight text-[#0B0B15] transition-all hover:bg-[#00CC88]";
