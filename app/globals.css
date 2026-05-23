@@ -5,30 +5,22 @@
 @custom-variant dark (&:is(.dark *));
 
 /* ─────────────────────────────────────────────────────────────────
-   Slate360 Theme (consolidated 2026-04-23)
+   Slate360 Theme — Graphite Matrix (2026-05-22)
    Single source of truth. Three layers only:
      1. @theme inline   — Tailwind v4 token registration.
-     2. :root           — canonical CSS vars (shadcn + app-shell + brand).
-     3. @utility        — named utilities used in className strings.
+     2. :root / .dark    — canonical CSS vars (shadcn + app-shell + brand).
+     3. @utility         — named utilities used in className strings.
 
-   Header isolation: --header-bg / --header-fg / --header-border are
-   permanently dark regardless of any future light-theme migration of
-   the body. Logo lives on --header-bg, do not retheme it.
+   Graphite Matrix palette:
+     --graphite-canvas   #0B0F15  page / shell base
+     --graphite-primary  #00E699  Cybernetic Krypton Teal — CTAs, rings
+     --graphite-text-header #FFFFFF
+     --graphite-text-body   #F8FAFC
+     --graphite-muted       #A3AED0  borders, metadata
 
+   Header isolation: --header-* tokens stay permanently dark.
    White-label hook: --primary / --ring fall back through --brand-primary
    (injected on <body> from org branding cookie in app/layout.tsx).
-
-   Removed in this consolidation:
-     - duplicate --slate-* alias block (no real consumers)
-     - duplicate --text-primary / --text-secondary / --text-muted
-       (use --foreground / --muted-foreground / shadcn-native instead)
-     - duplicate --surface-page / --surface-card / --surface-glass /
-       --surface-light / --border-glass (folded into --background /
-       --card / --app-glass / --border)
-     - --status-* block (zero consumers)
-     - .dark mirror block (app forces <html class="dark"> always; if a
-       light theme is added later, redefine vars under :root and let
-       .dark override)
    ───────────────────────────────────────────────────────────────── */
 
 @theme inline {
@@ -67,10 +59,15 @@
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
 
-  /* Brand + header tokens registered for Tailwind v4 (used as bg-cobalt,
-     text-cobalt, bg-header, etc — see @utility blocks below). */
-  --color-cobalt: #F59E0B;
-  --color-cobalt-hover: #D97706;
+  /* Graphite Matrix brand tokens (Tailwind: bg-graphite-primary, etc.) */
+  --color-graphite-canvas: var(--graphite-canvas);
+  --color-graphite-primary: var(--graphite-primary);
+  --color-graphite-header: var(--graphite-text-header);
+  --color-graphite-body: var(--graphite-text-body);
+  --color-graphite-muted: var(--graphite-muted);
+  /* Legacy cobalt alias — now maps to Graphite primary teal */
+  --color-cobalt: var(--graphite-primary);
+  --color-cobalt-hover: #00CC88;
   --color-steel: #94A3B8;
   --color-glass: var(--app-glass);
   --color-header-bg: var(--header-bg);
@@ -98,8 +95,15 @@
 }
 
 :root {
-  --radius: 1rem;
+  --radius: 0.75rem;
   color-scheme: light;
+
+  /* ── Graphite Matrix canonical tokens ───────────────────────── */
+  --graphite-canvas: #0B0F15;
+  --graphite-primary: #00E699;
+  --graphite-text-header: #FFFFFF;
+  --graphite-text-body: #F8FAFC;
+  --graphite-muted: #A3AED0;
 
   /* ── shadcn canonical surface + text (PREMIUM LIGHT 2026-04-23) ──
      Inner-app pages, cards, popovers, and authenticated dashboards now
@@ -125,10 +129,10 @@
   --input: #CBD5E1;
 
   /* ── Brand (white-label override via --brand-primary on <body>) ── */
-  --primary: var(--brand-primary, #F59E0B);  /* amber-500 — canonical brand accent */
-  --primary-foreground: #0C0A09;             /* near-black — WCAG AA on amber */
-  --primary-hover: #D97706;                  /* amber-600 */
-  --ring: var(--brand-primary, #F59E0B);     /* amber focus ring — all interactive elements */
+  --primary: var(--brand-primary, var(--graphite-primary));
+  --primary-foreground: #0B0F15;
+  --primary-hover: #00CC88;
+  --ring: var(--brand-primary, var(--graphite-primary));
 
   /* ── Charts (oklch — keep distinct hues for data viz) ──────── */
   --chart-1: oklch(0.488 0.243 264.376);
@@ -141,7 +145,7 @@
   --sidebar: #0B0F15;
   --sidebar-foreground: #F8FAFC;
   --sidebar-primary: var(--primary);
-  --sidebar-primary-foreground: #0C0A09;     /* near-black — readable on amber sidebar primary */
+  --sidebar-primary-foreground: #0B0F15;
   --sidebar-accent: #1e2533;
   --sidebar-accent-foreground: #F8FAFC;
   --sidebar-border: rgba(255, 255, 255, 0.10);
@@ -167,8 +171,8 @@
   --app-border-strong: #94A3B8;               /* slate-400 — used on hover */
   --app-glass: rgba(11, 15, 21, 0.80);
   --app-backdrop-blur: 20px;
-  --app-glow-amber: 0 0 12px rgba(245, 158, 11, 0.18);
-  --app-glow-amber-strong: 0 0 20px 0 rgba(245, 158, 11, 0.35), 0 4px 12px 0 rgba(245, 158, 11, 0.22);
+  --app-glow-teal: 0 0 12px rgba(0, 230, 153, 0.18);
+  --app-glow-teal-strong: 0 0 20px 0 rgba(0, 230, 153, 0.35), 0 4px 12px 0 rgba(0, 230, 153, 0.22);
   --app-shadow-card: 0 1px 2px 0 rgba(15, 23, 42, 0.04), 0 1px 3px 0 rgba(15, 23, 42, 0.08);
   --app-shadow-elevated: 0 8px 24px -8px rgba(15, 23, 42, 0.16), 0 2px 6px -2px rgba(15, 23, 42, 0.08);
 
@@ -204,8 +208,8 @@
   --field-contrast-fg: #0F172A;          /* slate-900 — body text */
   --field-contrast-muted: #334155;       /* slate-700 — secondary text */
   --field-contrast-border: #475569;      /* slate-600 — bold separators */
-  --field-contrast-primary: #B45309;     /* amber-700 — strong accent for buttons */
-  --field-contrast-focus: #92400E;       /* amber-800 — focus ring */
+  --field-contrast-primary: #00E699;
+  --field-contrast-focus: #00CC88;
 }
 
 /* Dark-palette opt-in. The premium light tokens above are the default
@@ -219,7 +223,7 @@
    across both light and dark surfaces. */
 .dark {
   color-scheme: dark;
-  --background: #0B0F15;
+  --background: var(--graphite-canvas);
   --foreground: #F8FAFC;
   --card: #151A23;
   --card-foreground: #F8FAFC;
@@ -362,11 +366,11 @@
 }
 
 @utility shadow-gold-glow {
-  box-shadow: 0 0 20px 0 rgba(245, 158, 11, 0.40), 0 4px 12px 0 rgba(245, 158, 11, 0.25);
+  box-shadow: 0 0 20px 0 rgba(0, 230, 153, 0.40), 0 4px 12px 0 rgba(0, 230, 153, 0.25);
 }
 
 @utility shadow-app-glow {
-  box-shadow: var(--app-glow-amber);
+  box-shadow: var(--app-glow-teal);
 }
 
 /* ─────────────────────────────────────────────────────────────────
@@ -382,25 +386,51 @@
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(51, 65, 85, 0.60);
-  border-radius: 1.5rem;
+  border-radius: 0.75rem;
   box-shadow: 0 8px 32px -4px rgba(0, 0, 0, 0.40), 0 2px 6px -2px rgba(0, 0, 0, 0.25);
   transition: border-color 150ms ease, background-color 150ms ease;
 }
 
-/* Amber primary button — replaces cobalt for all shell CTAs */
-@utility btn-amber-solid {
-  background-color: #F59E0B;
-  color: #0C0A09;
-  transition: background-color 150ms ease, box-shadow 150ms ease;
+/* Teal primary button — Graphite Matrix shell CTAs */
+@utility btn-teal-solid {
+  background-color: #00E699;
+  color: #0B0F15;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  border-radius: 0.75rem;
+  transition: background-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
   &:hover {
-    background-color: #D97706;
-    box-shadow: 0 0 14px rgba(245, 158, 11, 0.30);
+    background-color: #00CC88;
+    box-shadow: 0 0 14px rgba(0, 230, 153, 0.30);
+  }
+  &:active {
+    transform: scale(0.99);
   }
 }
 
-/* Amber glow shadow for FAB / primary shell buttons */
+/* Legacy alias — prefer btn-teal-solid */
+@utility btn-amber-solid {
+  background-color: #00E699;
+  color: #0B0F15;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  border-radius: 0.75rem;
+  transition: background-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
+  &:hover {
+    background-color: #00CC88;
+    box-shadow: 0 0 14px rgba(0, 230, 153, 0.30);
+  }
+  &:active {
+    transform: scale(0.99);
+  }
+}
+
+@utility shadow-teal-glow {
+  box-shadow: 0 0 20px 0 rgba(0, 230, 153, 0.35), 0 4px 12px 0 rgba(0, 230, 153, 0.20);
+}
+
 @utility shadow-amber-glow {
-  box-shadow: 0 0 20px 0 rgba(245, 158, 11, 0.35), 0 4px 12px 0 rgba(245, 158, 11, 0.20);
+  box-shadow: 0 0 20px 0 rgba(0, 230, 153, 0.35), 0 4px 12px 0 rgba(0, 230, 153, 0.20);
 }
 
 @utility bg-app-page {
@@ -424,7 +454,7 @@
 @utility surface-raised {
   background-color: var(--app-card);
   border: 1px solid var(--app-border);
-  border-radius: 1rem;
+  border-radius: 0.75rem;
   box-shadow: var(--app-shadow-card);
   transition: box-shadow 200ms ease, border-color 200ms ease, transform 200ms ease, background-color 200ms ease;
 }
@@ -432,7 +462,7 @@
 @utility surface-raised-interactive {
   background-color: var(--app-card);
   border: 1px solid var(--app-border);
-  border-radius: 1rem;
+  border-radius: 0.75rem;
   box-shadow: var(--app-shadow-card);
   transition: box-shadow 200ms ease, border-color 200ms ease, transform 200ms ease, background-color 200ms ease;
   &:hover {
@@ -471,8 +501,8 @@
     border-color: #94A3B8;              /* slate-400 */
   }
   &:focus {
-    border-color: #F59E0B;
-    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.20);
+    border-color: var(--graphite-primary);
+    box-shadow: 0 0 0 3px rgba(0, 230, 153, 0.20);
   }
   &:disabled {
     background-color: #F1F5F9;
@@ -501,9 +531,9 @@
   color: #334155;                       /* slate-700 */
   transition: border-color 150ms ease, background-color 150ms ease, color 150ms ease;
   &:hover {
-    border-color: #F59E0B;
-    background-color: rgba(245, 158, 11, 0.08);
-    color: #D97706;
+    border-color: var(--graphite-primary);
+    background-color: rgba(0, 230, 153, 0.08);
+    color: #00CC88;
   }
 }
 
@@ -526,11 +556,11 @@
 
 /* ── Cobalt hover utilities (used by app shell) ── */
 @utility bg-cobalt-soft {
-  background-color: rgba(245, 158, 11, 0.10);
+  background-color: rgba(0, 230, 153, 0.10);
 }
 
 @utility bg-cobalt-soft-strong {
-  background-color: rgba(245, 158, 11, 0.16);
+  background-color: rgba(0, 230, 153, 0.16);
 }
 
 @utility text-cobalt {
@@ -538,7 +568,7 @@
 }
 
 @utility text-cobalt-hover {
-  color: #FCD34D; /* Amber-300 — lighter so it reads on dark */
+  color: #00CC88;
 }
 
 @utility border-cobalt {
@@ -546,20 +576,35 @@
 }
 
 @utility border-cobalt-soft {
-  border-color: rgba(245, 158, 11, 0.40);
+  border-color: rgba(0, 230, 153, 0.40);
 }
 
 /* ── Branded buttons ── */
+@utility btn-teal-soft {
+  background: linear-gradient(180deg, rgba(0, 230, 153, 0.92), rgba(0, 204, 136, 0.92));
+  color: #0B0F15;
+  border: 1px solid rgba(0, 230, 153, 0.45);
+  border-radius: 0.75rem;
+  box-shadow: var(--app-glow-teal);
+  transition: all 0.18s ease;
+}
+.btn-teal-soft:hover {
+  background: linear-gradient(180deg, rgba(0, 230, 153, 1), rgba(0, 204, 136, 1));
+  box-shadow: var(--app-glow-teal-strong);
+  transform: translateY(-1px);
+}
+
 @utility btn-amber-soft {
-  background: linear-gradient(180deg, rgba(245, 158, 11, 0.92), rgba(217, 119, 6, 0.92));
-  color: #0C0A09;
-  border: 1px solid rgba(245, 158, 11, 0.45);
-  box-shadow: var(--app-glow-amber);
+  background: linear-gradient(180deg, rgba(0, 230, 153, 0.92), rgba(0, 204, 136, 0.92));
+  color: #0B0F15;
+  border: 1px solid rgba(0, 230, 153, 0.45);
+  border-radius: 0.75rem;
+  box-shadow: var(--app-glow-teal);
   transition: all 0.18s ease;
 }
 .btn-amber-soft:hover {
-  background: linear-gradient(180deg, rgba(245, 158, 11, 1), rgba(217, 119, 6, 1));
-  box-shadow: var(--app-glow-amber-strong);
+  background: linear-gradient(180deg, rgba(0, 230, 153, 1), rgba(0, 204, 136, 1));
+  box-shadow: var(--app-glow-teal-strong);
   transform: translateY(-1px);
 }
 
@@ -593,12 +638,12 @@
    the SlateLogo + nav remains consistent across the app shell.
    ───────────────────────────────────────────────────────────────── */
 @utility auth-page {
-  @apply min-h-screen flex flex-col text-slate-50;
-  background-color: #0B0F15;
+  @apply min-h-screen flex flex-col text-[#F8FAFC];
+  background-color: var(--graphite-canvas);
   background-image:
-    radial-gradient(ellipse at top, rgba(245, 158, 11, 0.15), transparent 36%),
-    radial-gradient(ellipse at bottom right, rgba(217, 119, 6, 0.07), transparent 50%),
-    linear-gradient(180deg, #0B0F15 0%, #111827 100%);
+    radial-gradient(ellipse at top, rgba(0, 230, 153, 0.12), transparent 36%),
+    radial-gradient(ellipse at bottom right, rgba(0, 204, 136, 0.06), transparent 50%),
+    linear-gradient(180deg, var(--graphite-canvas) 0%, #111827 100%);
   background-attachment: fixed;
   color-scheme: dark;
 }
@@ -617,57 +662,55 @@
 }
 
 @utility auth-card {
-  @apply w-full max-w-md rounded-2xl border border-white/10 bg-white/5 p-8 text-slate-50 backdrop-blur-md;
-  ring-width: 1px;
-  --tw-ring-color: rgba(255, 255, 255, 0.10);
-  box-shadow:
-    0 25px 50px -12px rgba(0, 0, 0, 0.45),
-    0 0 0 1px rgba(255, 255, 255, 0.08);
+  @apply w-full max-w-md rounded-xl border border-white/[0.05] bg-slate-900/40 p-8 text-[#F8FAFC] backdrop-blur-2xl shadow-2xl;
 }
 
-.auth-card .text-slate-900 { color: #F8FAFC; }
+.auth-card .text-slate-900 { color: var(--graphite-text-body); }
 .auth-card .text-slate-700,
 .auth-card .text-slate-600,
-.auth-card .text-slate-500 { color: #94A3B8; }
+.auth-card .text-slate-500 { color: var(--graphite-muted); }
 .auth-card .text-primary,
-.auth-card .text-cobalt { color: #FCD34D; } /* amber-300 — readable on dark glass */
+.auth-card .text-cobalt { color: var(--graphite-primary); }
 
 @utility auth-input {
-  @apply w-full min-h-[44px] rounded-xl border px-4 py-3 text-sm text-slate-50 placeholder:text-slate-500 transition-all focus:outline-none focus:ring-2;
-  border-color: rgba(255, 255, 255, 0.10);
-  background: rgba(255, 255, 255, 0.05);
-  --tw-ring-color: rgba(245, 158, 11, 0.32);
+  @apply w-full h-11 rounded-xl border px-3.5 text-sm text-white font-normal placeholder:text-slate-500 transition-all focus:outline-none focus:ring-1;
+  border-color: rgba(255, 255, 255, 0.07);
+  background: rgba(15, 23, 42, 0.60);
+  --tw-ring-color: rgba(0, 230, 153, 0.60);
 }
-.auth-input:focus { border-color: #F59E0B; }
+.auth-input:focus { border-color: rgba(0, 230, 153, 0.60); }
 
 @utility auth-label {
-  @apply mb-1.5 block text-[0.7rem] font-semibold uppercase tracking-[0.14em] text-slate-400;
+  @apply mb-1.5 block text-[0.7rem] font-semibold uppercase tracking-[0.14em];
+  color: var(--graphite-muted);
 }
 
 @utility auth-btn-primary {
-  @apply w-full flex items-center justify-center gap-2 py-3.5 rounded-full font-semibold text-sm transition-all hover:scale-[1.02] disabled:opacity-50 disabled:scale-100;
-  color: #0C0A09;
-  background-color: #D97706;
-  box-shadow: 0 0 15px rgba(245, 158, 11, 0.30), 0 8px 20px -4px rgba(245, 158, 11, 0.25);
+  @apply w-full flex items-center justify-center gap-2 h-11 rounded-xl font-semibold text-sm tracking-tight transition-all disabled:opacity-50;
+  color: #0B0F15;
+  background-color: #00E699;
+  box-shadow: 0 8px 20px -4px rgba(0, 230, 153, 0.25);
 }
-.auth-btn-primary:hover { background-color: #F59E0B; }
+.auth-btn-primary:hover { background-color: #00CC88; }
+.auth-btn-primary:active { transform: scale(0.985); }
 
 @utility auth-btn-oauth {
-  @apply w-full flex items-center justify-center gap-3 rounded-xl border px-4 py-3 text-sm font-medium text-slate-200 transition-colors disabled:opacity-50;
-  border-color: rgba(255, 255, 255, 0.16);
-  background: rgba(255, 255, 255, 0.05);
+  @apply w-full flex items-center justify-center gap-3 h-11 rounded-xl border px-4 text-sm font-medium transition-colors disabled:opacity-50;
+  border-color: rgba(255, 255, 255, 0.07);
+  background: rgba(15, 23, 42, 0.60);
+  color: var(--graphite-text-body);
 }
 .auth-btn-oauth:hover {
-  background: rgba(255, 255, 255, 0.10);
-  border-color: rgba(245, 158, 11, 0.50);
-  color: #FCD34D;
+  background: rgba(15, 23, 42, 0.80);
+  border-color: rgba(0, 230, 153, 0.40);
+  color: var(--graphite-text-header);
 }
 
 @utility auth-link {
-  color: #FCD34D; /* amber-300 — readable on dark glass */
+  color: var(--graphite-primary);
   transition: color 0.15s ease;
 }
-.auth-link:hover { color: #F59E0B; } /* amber-500 */
+.auth-link:hover { color: #00CC88; }
 
 @utility auth-divider-line {
   @apply w-full border-t;
@@ -681,9 +724,9 @@
 
 @utility auth-error {
   @apply mb-4 rounded-xl border p-3 text-sm;
-  color: #B91C1C; /* red-700 */
-  background: #FEF2F2; /* red-50 */
-  border-color: #FECACA; /* red-200 */
+  color: #FCA5A5;
+  background: rgba(127, 29, 29, 0.35);
+  border-color: rgba(239, 68, 68, 0.30);
 }
 
 .scroll-snapped-transform {

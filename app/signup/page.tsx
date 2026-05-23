@@ -7,7 +7,15 @@ import { createClient } from "@/lib/supabase/client";
 import { Eye, EyeOff, ArrowRight, Loader2 } from "lucide-react";
 import SignupConfirmation from "@/components/auth/SignupConfirmation";
 import { SignupDemographics } from "@/components/auth/SignupDemographics";
-import { SlateLogo } from "@/components/shared/SlateLogo";
+import { AuthGlassShell } from "@/components/auth/AuthGlassShell";
+import {
+  AUTH_ERROR,
+  AUTH_INPUT,
+  AUTH_LABEL,
+  AUTH_LINK,
+  AUTH_OAUTH,
+  AUTH_SUBMIT,
+} from "@/components/auth/auth-styles";
 
 const TURNSTILE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "";
 
@@ -146,38 +154,39 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="auth-page">
-      <div className="auth-topbar">
-        <Link href="/"><SlateLogo /></Link>
-        <Link href="/login" className="text-sm text-slate-300 hover:text-white">
-          Have an account? <span className="font-semibold text-primary">Sign in</span>
-        </Link>
+    <AuthGlassShell
+      footer={
+        <>
+          Have an account?{" "}
+          <Link href="/login" className={AUTH_LINK}>
+            Sign in
+          </Link>
+        </>
+      }
+    >
+      <div className="mb-8">
+        <h1 className="mb-1 text-2xl font-bold text-[#FFFFFF]">Request Foundational Release access</h1>
+        <p className="text-sm text-[#F8FAFC]">
+          Create your account. After email confirmation, the Slate360 team reviews each request before workspace access is granted.
+        </p>
+        {selectedPlan && (
+          <p className="mt-2 text-xs text-[#A3AED0]">
+            Interest noted:{" "}
+            <span className="font-semibold capitalize text-[#FFFFFF]">{selectedPlan}</span> · {selectedBilling}
+          </p>
+        )}
       </div>
 
-      <div className="flex-1 flex items-center justify-center px-4 py-12">
-        <div className="auth-card">
-          <div className="mb-8">
-            <h1 className="text-2xl font-black mb-1 text-slate-900">Request Foundational Release access</h1>
-            <p className="text-sm text-slate-600">
-              Create your account. After email confirmation, the Slate360 team reviews each request before workspace access is granted.
-            </p>
-            {selectedPlan && (
-              <p className="text-xs text-slate-600 mt-2">
-                Interest noted: <span className="font-semibold text-slate-900 capitalize">{selectedPlan}</span> · {selectedBilling}
-              </p>
-            )}
-          </div>
-
-          <div className="space-y-3 mb-6">
-            <button onClick={() => handleOAuth("google")} disabled={!!oauthLoading || loading}
-              className="auth-btn-oauth">
+      <div className="mb-6 space-y-3">
+        <button type="button" onClick={() => handleOAuth("google")} disabled={!!oauthLoading || loading}
+          className={AUTH_OAUTH}>
               {oauthLoading === "google" ? <Loader2 size={16} className="animate-spin" /> : (
                 <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
               )}
               Continue with Google
             </button>
-            <button onClick={() => handleOAuth("azure")} disabled={!!oauthLoading || loading}
-              className="auth-btn-oauth">
+        <button type="button" onClick={() => handleOAuth("azure")} disabled={!!oauthLoading || loading}
+          className={AUTH_OAUTH}>
               {oauthLoading === "azure" ? <Loader2 size={16} className="animate-spin" /> : (
                 <svg width="16" height="16" viewBox="0 0 23 23"><path fill="#f35325" d="M0 0h11v11H0z"/><path fill="#81bc06" d="M12 0h11v11H12z"/><path fill="#05a6f0" d="M0 12h11v11H0z"/><path fill="#ffba08" d="M12 12h11v11H12z"/></svg>
               )}
@@ -185,35 +194,39 @@ export default function SignupPage() {
             </button>
           </div>
 
-          <div className="relative mb-6">
-            <div className="absolute inset-0 flex items-center"><div className="auth-divider-line" /></div>
-            <div className="relative flex justify-center"><span className="auth-divider-text">or sign up with email</span></div>
+      <div className="relative mb-6">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-white/[0.07]" />
+        </div>
+        <div className="relative flex justify-center">
+          <span className="bg-[#0B0F15]/80 px-3 text-xs text-[#A3AED0]">or sign up with email</span>
+        </div>
+      </div>
+
+      {error ? <div className={`mb-4 ${AUTH_ERROR}`}>{error}</div> : null}
+
+      <form onSubmit={handleSignup} className="space-y-4">
+        <div>
+          <label className={AUTH_LABEL}>Full name *</label>
+          <input type="text" required value={name} onChange={(e) => setName(e.target.value)} placeholder="Jane Smith"
+            className={AUTH_INPUT} />
+        </div>
+        <div>
+          <label className={AUTH_LABEL}>Work email</label>
+          <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@yourcompany.com"
+            className={AUTH_INPUT} />
+        </div>
+        <div>
+          <label className={AUTH_LABEL}>Password</label>
+          <div className="relative">
+            <input type={showPass ? "text" : "password"} required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="At least 8 characters"
+              minLength={8}
+              className={`${AUTH_INPUT} pr-11`} />
+            <button type="button" onClick={() => setShowPass(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#A3AED0] hover:text-[#FFFFFF]">
+              {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
+            </button>
           </div>
-
-          {error && <div className="auth-error">{error}</div>}
-
-          <form onSubmit={handleSignup} className="space-y-4">
-            <div>
-              <label className="auth-label">Full name *</label>
-              <input type="text" required value={name} onChange={(e) => setName(e.target.value)} placeholder="Jane Smith"
-                className="auth-input" />
-            </div>
-            <div>
-              <label className="auth-label">Work email</label>
-              <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@yourcompany.com"
-                className="auth-input" />
-            </div>
-            <div>
-              <label className="auth-label">Password</label>
-              <div className="relative">
-                <input type={showPass ? "text" : "password"} required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="At least 8 characters"
-                  minLength={8}
-                  className="auth-input pr-11" />
-                <button type="button" onClick={() => setShowPass(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-900">
-                  {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
-                </button>
-              </div>
-            </div>
+        </div>
 
             {/* Optional demographic fields — helps tailor your experience */}
             <SignupDemographics
@@ -229,27 +242,27 @@ export default function SignupPage() {
             <div className="space-y-2.5 pt-1">
               <label className="flex items-start gap-3 cursor-pointer">
                 <input type="checkbox" required checked={agreeTerms} onChange={(e) => setAgreeTerms(e.target.checked)}
-                  className="mt-0.5 h-4 w-4 rounded border-input accent-primary cursor-pointer" />
-                <span className="text-xs text-slate-600 leading-relaxed">
+                  className="mt-0.5 h-4 w-4 rounded border-white/20 accent-[#00E699] cursor-pointer" />
+                <span className="text-xs text-[#A3AED0] leading-relaxed">
                   I agree to the{" "}
-                  <Link href="/terms" target="_blank" rel="noopener noreferrer" className="font-semibold text-slate-900 underline hover:text-primary">Terms of Service</Link>{" "}
-                  <span className="text-destructive font-bold">*</span>
+                  <Link href="/terms" target="_blank" rel="noopener noreferrer" className={`underline ${AUTH_LINK}`}>Terms of Service</Link>{" "}
+                  <span className="text-red-400 font-bold">*</span>
                 </span>
               </label>
               <label className="flex items-start gap-3 cursor-pointer">
                 <input type="checkbox" required checked={agreePrivacy} onChange={(e) => setAgreePrivacy(e.target.checked)}
-                  className="mt-0.5 h-4 w-4 rounded border-input accent-primary cursor-pointer" />
-                <span className="text-xs text-slate-600 leading-relaxed">
+                  className="mt-0.5 h-4 w-4 rounded border-white/20 accent-[#00E699] cursor-pointer" />
+                <span className="text-xs text-[#A3AED0] leading-relaxed">
                   I agree to the{" "}
-                  <Link href="/privacy" target="_blank" rel="noopener noreferrer" className="font-semibold text-slate-900 underline hover:text-primary">Privacy Policy</Link>{" "}
+                  <Link href="/privacy" target="_blank" rel="noopener noreferrer" className={`underline ${AUTH_LINK}`}>Privacy Policy</Link>{" "}
                   and consent to receiving product updates{" "}
-                  <span className="text-destructive font-bold">*</span>
+                  <span className="text-red-400 font-bold">*</span>
                 </span>
               </label>
             </div>
 
             <button type="submit" disabled={loading || !!oauthLoading || !agreeTerms || !agreePrivacy || (!!TURNSTILE_KEY && !cfToken)}
-              className="auth-btn-primary disabled:cursor-not-allowed">
+              className={AUTH_SUBMIT}>
               {loading ? <Loader2 size={16} className="animate-spin" /> : <>Submit request <ArrowRight size={15} /></>}
             </button>
 
@@ -275,17 +288,14 @@ export default function SignupPage() {
                 data-theme="dark"
               />
             )}
-          </form>
+      </form>
 
-          {/* Turnstile script — loaded lazily, only when key is configured */}
-          {TURNSTILE_KEY && (
-            <Script
-              src="https://challenges.cloudflare.com/turnstile/v0/api.js"
-              strategy="lazyOnload"
-            />
-          )}
-        </div>
-      </div>
-    </div>
+      {TURNSTILE_KEY && (
+        <Script
+          src="https://challenges.cloudflare.com/turnstile/v0/api.js"
+          strategy="lazyOnload"
+        />
+      )}
+    </AuthGlassShell>
   );
 }

@@ -3,7 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
-import { SlateLogo } from "@/components/shared/SlateLogo";
+import { AuthGlassShell } from "@/components/auth/AuthGlassShell";
+import { AUTH_LINK, AUTH_SUBMIT } from "@/components/auth/auth-styles";
 
 interface SignupConfirmationProps {
   email: string;
@@ -48,85 +49,77 @@ export default function SignupConfirmation({
   }
 
   return (
-    <div className="auth-page">
-      <div className="auth-topbar">
-        <Link href="/">
-          <SlateLogo />
-        </Link>
-      </div>
-      <div className="flex flex-1 items-center justify-center px-4 py-12">
-        <div className="auth-card text-center">
-          <CheckCircle2 size={48} className="mx-auto mb-4 text-amber-400" />
-          <h2 className="mb-2 text-2xl font-black text-slate-900">
-            {emailSent ? "Check your email" : "Account already exists"}
-          </h2>
-          {emailSent ? (
-            <>
-              <p className="mb-4 text-sm text-slate-600">
-                We sent a confirmation link to <strong className="text-slate-900">{email}</strong>.
-                Click it to verify your email.
+    <AuthGlassShell>
+      <div className="text-center">
+        <CheckCircle2 size={48} className="mx-auto mb-4 text-[#00E699]" />
+        <h2 className="mb-2 text-2xl font-bold text-[#FFFFFF]">
+          {emailSent ? "Check your email" : "Account already exists"}
+        </h2>
+        {emailSent ? (
+          <>
+            <p className="mb-4 text-sm text-[#F8FAFC]">
+              We sent a confirmation link to <strong className="text-[#FFFFFF]">{email}</strong>.
+              Click it to verify your email.
+            </p>
+            {selectedPlan && (
+              <p className="mb-3 text-xs text-[#A3AED0]">
+                We noted your interest in{" "}
+                <span className="font-semibold capitalize text-[#FFFFFF]">{selectedPlan}</span> ({selectedBilling}).
+                After you sign in, the team will align your workspace during Foundational Release onboarding.
               </p>
-              {selectedPlan && (
-                <p className="mb-3 text-xs text-slate-600">
-                  We noted your interest in <span className="font-semibold text-slate-900 capitalize">{selectedPlan}</span> (
-                  {selectedBilling}). After you sign in, the team will align your workspace during Foundational Release onboarding.
-                </p>
-              )}
-              <p className="mb-4 text-xs text-slate-600">
-                Once verified, sign in. Workspace access is granted after Slate360 reviews your request.
+            )}
+            <p className="mb-4 text-xs text-[#A3AED0]">
+              Once verified, sign in. Workspace access is granted after Slate360 reviews your request.
+            </p>
+            <Link href="/login" className={`${AUTH_SUBMIT} mb-4 max-w-xs mx-auto`}>
+              Already confirmed? Sign in
+            </Link>
+            <p className="mb-2 text-xs text-[#A3AED0]">
+              Confirmed on another device? Use the button above to sign in here.
+            </p>
+            <p className="text-xs text-[#A3AED0]">
+              Didn&apos;t get the email? Check spam or{" "}
+              <button
+                type="button"
+                onClick={handleResendConfirmation}
+                disabled={resending}
+                className={`font-semibold underline disabled:opacity-50 ${AUTH_LINK}`}
+              >
+                {resending ? "sending…" : "resend it"}
+              </button>
+              .
+            </p>
+            {resendResult && (
+              <p className={`mt-2 text-xs ${resendResult.includes("sent") ? "text-[#00E699]" : "text-red-300"}`}>
+                {resendResult}
               </p>
-              <Link href="/login" className="auth-btn-primary mb-4 max-w-xs mx-auto">
-                Already confirmed? Sign in
+            )}
+          </>
+        ) : (
+          <>
+            <p className="mb-4 text-sm text-[#F8FAFC]">
+              {apiError ?? "An account with this email already exists."}
+            </p>
+            <Link href="/login" className={`${AUTH_SUBMIT} mb-3 max-w-xs mx-auto`}>
+              Sign in
+            </Link>
+            <p className="mt-2 text-xs text-[#A3AED0]">
+              Forgot your password?{" "}
+              <Link href="/forgot-password" className={`underline ${AUTH_LINK}`}>
+                Reset it here
               </Link>
-              <p className="mb-2 text-xs text-slate-600">
-                Confirmed on another device? Use the button above to sign in here.
-              </p>
-              <p className="text-xs text-slate-600">
-                Didn&apos;t get the email? Check spam or{" "}
-                <button
-                  type="button"
-                  onClick={handleResendConfirmation}
-                  disabled={resending}
-                  className="font-semibold text-primary underline disabled:opacity-50"
-                >
-                  {resending ? "sending…" : "resend it"}
-                </button>
-                .
-              </p>
-              {resendResult && (
-                <p
-                  className={`mt-2 text-xs ${resendResult.includes("sent") ? "text-emerald-600" : "text-destructive"}`}
-                >
-                  {resendResult}
-                </p>
-              )}
-            </>
-          ) : (
-            <>
-              <p className="mb-4 text-sm text-slate-600">
-                {apiError ?? "An account with this email already exists."}
-              </p>
-              <Link href="/login" className="auth-btn-primary mb-3 max-w-xs mx-auto">
-                Sign in
-              </Link>
-              <p className="mt-2 text-xs text-slate-600">
-                Forgot your password?{" "}
-                <Link href="/forgot-password" className="font-semibold text-primary underline">
-                  Reset it here
-                </Link>
-                .
-              </p>
-              <p className="mt-3 text-xs text-slate-600">
-                Wrong email?{" "}
-                <button type="button" onClick={onRetry} className="font-semibold text-primary underline">
-                  Try a different address
-                </button>
-                .
-              </p>
-            </>
-          )}
-        </div>
+              .
+            </p>
+            <p className="mt-3 text-xs text-[#A3AED0]">
+              Wrong email?{" "}
+              <button type="button" onClick={onRetry} className={`underline ${AUTH_LINK}`}>
+                Try a different address
+              </button>
+              .
+            </p>
+          </>
+        )}
       </div>
-    </div>
+    </AuthGlassShell>
   );
 }
