@@ -79,7 +79,9 @@ export function DashboardV3Sidebar() {
   return (
     <aside className="flex h-screen w-[270px] flex-col overflow-hidden border-r border-white/5 bg-[#0B0F15] text-sm">
       <div className="flex h-[68px] shrink-0 items-center px-6">
-        <Slate360Logo variant="dark" />
+        <Link href="/" aria-label="Slate360 home">
+          <Slate360Logo variant="dark" />
+        </Link>
       </div>
 
       <div className="scrollbar-hide flex-1 overflow-y-auto px-2 py-4">

@@ -2,11 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import {
-  TILE_SECTION,
-  PRICING_CARD,
-  PRICING_CTA,
-} from "@/components/marketing-launchpad/marketing-styles";
+import { PRICING_CARD, PRICING_CTA } from "@/components/marketing-launchpad/marketing-styles";
 import {
   ENTERPRISE_PLAN,
   PRICING_TIERS,
@@ -90,7 +86,10 @@ export function MarketingPricingSection() {
   const [cadence, setCadence] = useState<BillingCadence>("annual");
 
   return (
-    <section id="pricing-matrix-section" className={`${TILE_SECTION} items-center`}>
+    <section
+      id="pricing-matrix-section"
+      className="relative flex h-auto w-full flex-col items-center justify-center border-none bg-[#0B0F15] px-6 py-24 shadow-none"
+    >
       <div className="mx-auto w-full max-w-[1400px]">
         <h2 className="mb-10 text-center text-3xl font-bold tracking-tight text-[#FFFFFF] lg:text-4xl">
           Subscription Engine
@@ -135,11 +134,11 @@ export function MarketingPricingSection() {
           </article>
         </div>
 
-        <p className="mt-8 text-center text-sm leading-relaxed text-[#A3AED0]">
-          Slate360 ensures total infrastructure data control. High-volume processing workflows
-          requiring capacity beyond standard subscription allotments can top up data or credit
-          meters at cost. We never mark up raw cloud processing costs; you pay exactly what you
-          process.
+        <p className="mx-auto mt-8 max-w-3xl text-center text-sm leading-relaxed text-[#A3AED0]">
+          Buy additional processing meters and credits at direct infrastructure cost with zero
+          markups. Slate360 ensures total infrastructure data control — high-volume workflows can
+          top up data or credit meters at cost. We never mark up raw cloud processing; you pay
+          exactly what you process.
         </p>
       </div>
     </section>

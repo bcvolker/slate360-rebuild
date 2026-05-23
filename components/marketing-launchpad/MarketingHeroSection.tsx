@@ -1,13 +1,21 @@
 import Link from "next/link";
 import Image from "next/image";
 import { HeroMediaFrame } from "@/components/marketing-launchpad/MarketingExpandableMediaFrame";
-import { APP_STORE_BTN, BODY_COPY, TEXT_COLUMN, TILE_ROW, TILE_SECTION } from "@/components/marketing-launchpad/marketing-styles";
+import { BODY_COPY, TEXT_COLUMN, TILE_ROW, TILE_SECTION } from "@/components/marketing-launchpad/marketing-styles";
 
 export function MarketingHeroSection() {
   return (
     <section className={TILE_SECTION}>
       <div className={TILE_ROW}>
         <div className={`${TEXT_COLUMN} order-1`}>
+          <div className="mb-6 flex w-auto flex-row items-center gap-4">
+            <Link href="/install" aria-label="Download on the App Store">
+              <Image src="/uploads/app-store-badge.svg" alt="" width={120} height={36} className="h-9 w-auto" />
+            </Link>
+            <Link href="/install" aria-label="Get it on Google Play">
+              <Image src="/uploads/google-play-badge.svg" alt="" width={135} height={36} className="h-9 w-auto" />
+            </Link>
+          </div>
           <h1 className="mb-3 text-3xl font-bold tracking-tight text-white lg:text-5xl">
             SLATE360 // REALITY INTELLIGENCE
           </h1>
@@ -21,12 +29,6 @@ export function MarketingHeroSection() {
               className="flex w-full items-center justify-center rounded-xl bg-[#00E699] px-6 py-4 text-sm font-semibold tracking-tight text-[#0B0F15] transition-all hover:bg-[#00CC88] active:scale-[0.99] sm:w-auto"
             >
               Launch Studio Workspace
-            </Link>
-            <Link href="/install" className={APP_STORE_BTN} aria-label="Download on the App Store">
-              <Image src="/uploads/app-store-badge.svg" alt="" width={120} height={36} className="h-9 w-auto" />
-            </Link>
-            <Link href="/install" className={APP_STORE_BTN} aria-label="Get it on Google Play">
-              <Image src="/uploads/google-play-badge.svg" alt="" width={135} height={36} className="h-9 w-auto" />
             </Link>
           </div>
           <div className="flex flex-wrap gap-3">

@@ -1,7 +1,6 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { cn } from "@/lib/utils";
 const ModelViewerClient = dynamic(() => import("@/components/ModelViewerClient"), { ssr: false });
 const PanoramaViewer = dynamic(() => import("@/components/marketing-launchpad/PanoramaViewer"), {
   ssr: false,
@@ -20,46 +19,21 @@ type MarketingMediaPanelProps = {
   sizeTier?: "hero" | "tile";
 };
 
-const VIEWER_ASPECT_BOX =
-  "w-full bg-slate-900/40 border border-white/[0.08] rounded-xl relative flex items-center justify-center overflow-hidden shadow-[0_0_50px_rgba(0,230,153,0.01)]";
+const MEDIA_ASPECT_FRAME =
+  "w-full aspect-[16/10] bg-slate-900/40 border border-white/[0.08] rounded-xl relative flex items-center justify-center overflow-hidden shadow-[0_0_50px_rgba(0,230,153,0.01)]";
 
 function ViewerShell({
   children,
   mode,
-  sizeTier,
 }: {
   children: React.ReactNode;
   mode: MarketingMediaPanelProps["mode"];
-  sizeTier?: NonNullable<MarketingMediaPanelProps["sizeTier"]>;
 }) {
-  if (mode === "fullscreen") {
-    return (
-      <div className="relative h-full w-full [&>*]:absolute [&>*]:inset-0 [&>*]:h-full [&>*]:w-full">
-        {children}
-      </div>
-    );
+  if (mode === "fullscreen" || mode === "preview") {
+    return <div className="relative h-full w-full overflow-hidden">{children}</div>;
   }
 
-  if (mode === "preview") {
-    return (
-      <div className="relative h-full w-full [&>*]:absolute [&>*]:inset-0 [&>*]:h-full [&>*]:w-full">
-        {children}
-      </div>
-    );
-  }
-
-  return (
-    <div
-      className={cn(
-        VIEWER_ASPECT_BOX,
-        (sizeTier ?? "tile") === "hero" ? "aspect-[16/10]" : "aspect-[16/8]",
-      )}
-    >
-      <div className="absolute inset-0 [&>*]:absolute [&>*]:inset-0 [&>*]:h-full [&>*]:w-full">
-        {children}
-      </div>
-    </div>
-  );
+  return <div className={MEDIA_ASPECT_FRAME}>{children}</div>;
 }
 
 function BlueprintMapPanel() {
@@ -131,10 +105,9 @@ function MediaContent({ variant }: { variant: MarketingMediaVariant }) {
 export function MarketingMediaPanel({
   variant,
   mode = "default",
-  sizeTier = variant === "hero-model" ? "hero" : "tile",
 }: MarketingMediaPanelProps) {
   return (
-    <ViewerShell mode={mode} sizeTier={sizeTier}>
+    <ViewerShell mode={mode}>
       <MediaContent variant={variant} />
     </ViewerShell>
   );
