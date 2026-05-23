@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
-import AuthedAppShell from "@/components/dashboard/AuthedAppShell";
+import StudioAuthedShell from "@/components/studio-ui/StudioAuthedShell";
 
 export default function SlateDropLayout({ children }: { children: ReactNode }) {
-  return <AuthedAppShell>{children}</AuthedAppShell>;
+  return <StudioAuthedShell>{children}</StudioAuthedShell>;
 }

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { FolderOpen, FileText } from "lucide-react";
-import LocationMap from "@/components/dashboard/LocationMap";
+import ProjectLocationMap from "@/components/shared/ProjectLocationMap";
 import {
   WeatherWidgetBody,
   FinancialWidgetBody,
@@ -112,7 +112,7 @@ export default function ProjectHubWidgetBody({
   if (id === "location") {
     return (
       <div className={isExpanded ? "min-h-[400px] flex flex-col" : "min-h-[200px] flex flex-col"}>
-        <LocationMap compact={!isExpanded} expanded={isExpanded} />
+        <ProjectLocationMap compact={!isExpanded} expanded={isExpanded} />
       </div>
     );
   }

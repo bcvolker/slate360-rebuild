@@ -30,7 +30,7 @@ import { loadWidgetPrefs, saveWidgetPrefs, WIDGET_PREFS_SCHEMA_VERSION } from "@
 import { WeatherWidgetBody } from "@/components/widgets/WidgetBodies";
 import type { WidgetMeta, WidgetPref, WidgetSize } from "@/lib/widgets/widget-meta";
 import { getWidgetSpan } from "@/lib/widgets/widget-meta";
-import LocationMap from "@/components/dashboard/LocationMap";
+import ProjectLocationMap from "@/components/shared/ProjectLocationMap";
 import { useProjectProfile } from "@/lib/hooks/useProjectProfile";
 import { resolveProjectLocation } from "@/lib/project-hub/resolve-project-location";
 import type { Tier } from "@/lib/entitlements";
@@ -252,12 +252,7 @@ export default function ProjectDashboardGrid({
     if (id === "location") {
       return (
         <div className={isExpanded ? "min-h-[400px] flex flex-col" : "min-h-[200px] flex flex-col"}>
-          <LocationMap
-            center={resolvedLocation.center ?? undefined}
-            locationLabel={locationStr}
-            compact={!isExpanded}
-            expanded={isExpanded}
-          />
+          <ProjectLocationMap compact={!isExpanded} expanded={isExpanded} />
         </div>
       );
     }

@@ -1,17 +1,11 @@
-import { createClient } from "@/lib/supabase/server";
-import MarketingHomepage from "@/components/marketing-homepage";
+import { MarketingLaunchpad } from "@/components/marketing-launchpad/MarketingLaunchpad";
 
 export const metadata = {
-  title: "Slate360 — Field-to-office construction documentation",
+  title: "Slate360 — Reality Intelligence",
   description:
-    "Slate360 connects site capture with office review. Site Walk turns contextual field documentation into branded deliverables, with SlateDrop and Coordination keeping projects aligned.",
+    "Precision reality capture for construction workflows. Capture site conditions instantly with Site Walk; inspect structural environments with interactive Digital Twins.",
 };
 
-export default async function RootPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  return <MarketingHomepage isLoggedIn={!!user} />;
+export default function RootPage() {
+  return <MarketingLaunchpad />;
 }

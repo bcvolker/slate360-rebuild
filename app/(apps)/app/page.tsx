@@ -8,7 +8,7 @@ export const metadata = {
 };
 
 export default async function MobileAppRootPage() {
-  const { user, orgId, isSlateCeo } = await resolveServerOrgContext();
+  const { user, orgId, orgName, isSlateCeo } = await resolveServerOrgContext();
 
   if (!orgId && user) {
     try {
@@ -19,11 +19,8 @@ export default async function MobileAppRootPage() {
   }
 
   const entitlements = await resolveOrgEntitlements(orgId ?? null);
+  void entitlements;
+  void isSlateCeo;
 
-  return (
-    <WalledGardenDashboard
-      entitlements={entitlements}
-      isSlateCeo={isSlateCeo}
-    />
-  );
+  return <WalledGardenDashboard workspaceName={orgName} />;
 }

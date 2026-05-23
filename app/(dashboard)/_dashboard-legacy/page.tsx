@@ -2,7 +2,6 @@ import { resolveServerOrgContext } from "@/lib/server/org-context";
 import { redirect } from "next/navigation";
 import WalledGardenDashboard from "@/components/walled-garden-dashboard";
 import { ensureUserOrganization } from "@/lib/server/org-bootstrap";
-import { resolveOrgEntitlements } from "@/lib/server/org-feature-flags";
 
 export const metadata = {
   title: "Slate360 — Home",
@@ -13,7 +12,6 @@ export default async function DashboardPage() {
     user,
     orgId,
     orgName,
-    isSlateCeo,
   } = await resolveServerOrgContext();
   if (!user) redirect("/login");
 
@@ -25,12 +23,5 @@ export default async function DashboardPage() {
     }
   }
 
-  const entitlements = await resolveOrgEntitlements(orgId ?? null);
-
-  return (
-    <WalledGardenDashboard
-      entitlements={entitlements}
-      isSlateCeo={isSlateCeo}
-    />
-  );
+  return <WalledGardenDashboard workspaceName={orgName} />;
 }

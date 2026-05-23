@@ -1,250 +1,140 @@
 "use client";
 
-
-
-import { useEffect, useState } from "react";
-
-import { useRouter, useSearchParams } from "next/navigation";
-
-import { SiteWalkV1Shell } from "@/components/site-walk/v1/SiteWalkV1Shell";
-
-import type { V1NavTab } from "@/components/site-walk/v1/SiteWalkV1BottomNav";
-
-import type { HubProject, HubSummary, HubWalk } from "@/lib/types/site-walk";
-
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { ArrowRight, Camera, FileText, FolderOpen } from "lucide-react";
+import { SiteWalkShell } from "@/components/site-walk/SiteWalkShell";
 import { buildCaptureLaunchUrl } from "@/lib/site-walk/capture-v2-config";
-
-import type { ListTab } from "@/components/site-walk/v1/SiteWalkV1ListPanel";
-
-import { HomeView } from "@/components/site-walk/v1/views/HomeView";
-
-import { WorksitesView } from "@/components/site-walk/v1/views/WorksitesView";
-
-import { SlateDropView } from "@/components/site-walk/v1/views/SlateDropView";
-
-import { CoordinationView } from "@/components/site-walk/v1/views/CoordinationView";
-
-import {
-
-  DeliverablesView,
-
-  type V1DeliverableRow,
-
-} from "@/components/site-walk/v1/views/DeliverablesView";
-
-const V1_NAV_TABS = ["home", "worksites", "slatedrop", "coordination", "deliverables"] as const;
-const HOME_DOCK_TABS = ["recent", "shared", "review"] as const;
-
-function parseSiteWalkTab(value: string | null): { navTab: V1NavTab; dockTab: ListTab } {
-  if (value && (HOME_DOCK_TABS as readonly string[]).includes(value)) {
-    return { navTab: "home", dockTab: value as ListTab };
-  }
-  if (value && (V1_NAV_TABS as readonly string[]).includes(value)) {
-    return { navTab: value as V1NavTab, dockTab: "recent" };
-  }
-  return { navTab: "home", dockTab: "recent" };
-}
+import type { HubProject, HubSummary, HubWalk } from "@/lib/types/site-walk";
+import type { HubDeliverableRow } from "@/lib/types/site-walk-hub";
 
 type Props = {
-
   orgName: string | null;
-
-  userInitial: string;
-
   projects: HubProject[];
-
   walks: HubWalk[];
-
   summary: HubSummary;
-
-  deliverables: V1DeliverableRow[];
-
+  deliverables: HubDeliverableRow[];
 };
 
-
-
-function shellTitle(tab: V1NavTab, orgName: string | null): string {
-
-  switch (tab) {
-
-    case "home":
-
-      return orgName ? `${orgName} · Site Walk` : "Site Walk";
-
-    case "worksites":
-
-      return "Worksites";
-
-    case "slatedrop":
-
-      return "SlateDrop";
-
-    case "coordination":
-
-      return "Coordination";
-
-    case "deliverables":
-
-      return "Deliverables";
-
-  }
-
-}
-
-
-
-export function SiteWalkHomeClient({
-
-  orgName,
-
-  projects,
-
-  walks,
-
-  summary,
-
-  deliverables,
-
-}: Props) {
-
+export function SiteWalkHomeClient({ orgName, projects, walks, summary, deliverables }: Props) {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const tabFromUrl = parseSiteWalkTab(searchParams?.get("tab") ?? null);
-
-  const [tab, setTab] = useState<V1NavTab>(tabFromUrl.navTab);
-  const [dockTab, setDockTab] = useState<ListTab>(tabFromUrl.dockTab);
-
-  const [startingQuickWalk, setStartingQuickWalk] = useState(false);
-
-  useEffect(() => {
-    const next = parseSiteWalkTab(searchParams?.get("tab") ?? null);
-    setTab(next.navTab);
-    setDockTab(next.dockTab);
-  }, [searchParams]);
-
-  function openHomeDock(panel: ListTab) {
-    setTab("home");
-    setDockTab(panel);
-    router.push(`/site-walk?tab=${panel}`);
-  }
-
-  const title = shellTitle(tab, orgName);
-
-  function handleTabChange(next: V1NavTab) {
-    if (next === "coordination") {
-      router.push("/coordination/inbox");
-      return;
-    }
-    setTab(next);
-  }
 
   async function handleQuickCapture() {
-
-    if (startingQuickWalk) return;
-
-    setStartingQuickWalk(true);
-
-    try {
-
-      const dateLabel = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" });
-
-      const res = await fetch("/api/site-walk/sessions", {
-
-        method: "POST",
-
-        headers: { "Content-Type": "application/json" },
-
-        body: JSON.stringify({
-
-          title: `Quick Walk — ${dateLabel}`,
-
-          session_type: "general",
-
-          metadata: { started_at: new Date().toISOString(), started_from: "v1_home_quick" },
-
-        }),
-
-      });
-
-      if (!res.ok) throw new Error(`Session create failed: ${res.status}`);
-
-      const body = (await res.json()) as { session?: { id?: string } };
-
-      const sessionId = body?.session?.id;
-
-      if (!sessionId) throw new Error("No session ID returned");
-
-      router.push(buildCaptureLaunchUrl({ session: sessionId, quick: "camera" }));
-
-    } catch (err) {
-
-      console.error("[SiteWalkHomeClient] Quick Walk error:", err);
-
-      setStartingQuickWalk(false);
-
-    }
-
+    const dateLabel = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    const res = await fetch("/api/site-walk/sessions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: `Quick Walk — ${dateLabel}`,
+        session_type: "general",
+        metadata: { started_at: new Date().toISOString(), started_from: "hub_quick" },
+      }),
+    });
+    if (!res.ok) return;
+    const body = (await res.json()) as { session?: { id?: string } };
+    if (!body.session?.id) return;
+    router.push(buildCaptureLaunchUrl({ session: body.session.id, quick: "camera" }));
   }
 
-
-
   return (
+    <SiteWalkShell orgName={orgName}>
+      <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto p-4 pb-24">
+        <div>
+          <p className="text-xs font-medium uppercase tracking-[0.14em] text-[#A3AED0]">Site Walk</p>
+          <h1 className="mt-2 text-2xl font-semibold text-[#FFFFFF]">
+            {orgName ? `${orgName} · Field Hub` : "Site Walk Hub"}
+          </h1>
+          <p className="mt-3 text-sm text-[#F8FAFC]">
+            Single-handed field tracking, predictive tag chips classification, and instant document
+            deliverable field report compilation.
+          </p>
+        </div>
 
-    <SiteWalkV1Shell
-      title={title}
-      activeTab={tab}
-      onTabChange={handleTabChange}
-      className="flex min-h-0 flex-1 flex-col"
-    >
+        <div className="grid gap-3 sm:grid-cols-2">
+          <button
+            type="button"
+            onClick={() => void handleQuickCapture()}
+            className="flex items-center gap-3 rounded-xl border border-white/[0.07] bg-white/[0.02] p-4 text-left transition-all hover:bg-white/[0.04] active:scale-[0.99]"
+          >
+            <Camera className="h-5 w-5 text-[#00E699]" />
+            <span className="font-medium text-[#FFFFFF]">Start Quick Capture</span>
+          </button>
+          <Link
+            href="/site-walk/walks"
+            className="flex items-center gap-3 rounded-xl border border-white/[0.07] bg-white/[0.02] p-4 transition-all hover:bg-white/[0.04]"
+          >
+            <FolderOpen className="h-5 w-5 text-[#00E699]" />
+            <span className="font-medium text-[#FFFFFF]">Open Walk Sessions</span>
+          </Link>
+          <Link
+            href="/site-walk/deliverables"
+            className="flex items-center gap-3 rounded-xl border border-white/[0.07] bg-white/[0.02] p-4 transition-all hover:bg-white/[0.04]"
+          >
+            <FileText className="h-5 w-5 text-[#00E699]" />
+            <span className="font-medium text-[#FFFFFF]">Deliverables</span>
+          </Link>
+          <Link
+            href="/design-studio"
+            className="flex items-center gap-3 rounded-xl border border-white/[0.07] bg-white/[0.02] p-4 transition-all hover:bg-white/[0.04]"
+          >
+            <ArrowRight className="h-5 w-5 text-[#00E699]" />
+            <span className="font-medium text-[#FFFFFF]">Digital Twins</span>
+          </Link>
+        </div>
 
-      {tab === "home" && (
+        <section className="rounded-xl border border-white/[0.07] bg-white/[0.02] p-4">
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-sm font-semibold text-[#FFFFFF]">Recent Walks</h2>
+            <span className="text-xs text-[#A3AED0]">{walks.length} total</span>
+          </div>
+          <ul className="mt-4 space-y-3">
+            {walks.slice(0, 5).map((walk) => (
+              <li key={walk.id}>
+                <Link
+                  href={`/site-walk/walks/${walk.id}`}
+                  className="flex items-center justify-between rounded-xl border border-white/[0.05] px-3 py-2 text-sm transition-colors hover:bg-white/[0.03]"
+                >
+                  <span className="truncate text-[#F8FAFC]">{walk.title}</span>
+                  <span className="shrink-0 text-xs text-[#A3AED0]">{walk.itemCount} items</span>
+                </Link>
+              </li>
+            ))}
+            {walks.length === 0 ? (
+              <li className="text-sm text-[#A3AED0]">No walks yet. Start a quick capture to begin.</li>
+            ) : null}
+          </ul>
+        </section>
 
-        <HomeView
+        <section className="rounded-xl border border-white/[0.07] bg-white/[0.02] p-4">
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-sm font-semibold text-[#FFFFFF]">Projects</h2>
+            <span className="text-xs text-[#A3AED0]">{projects.length} active</span>
+          </div>
+          <ul className="mt-4 space-y-3">
+            {projects.slice(0, 4).map((project) => (
+              <li key={project.id} className="text-sm text-[#F8FAFC]">
+                {project.name}
+              </li>
+            ))}
+            {projects.length === 0 ? (
+              <li className="text-sm text-[#A3AED0]">No projects linked yet.</li>
+            ) : null}
+          </ul>
+        </section>
 
-          walks={walks}
-
-          projects={projects}
-
-          summary={summary}
-
-          router={router}
-
-          setTab={setTab}
-
-          dockTab={dockTab}
-
-          openHomeDock={openHomeDock}
-
-          onQuickCapture={handleQuickCapture}
-
-        />
-
-      )}
-
-      {tab === "worksites" && (
-
-        <WorksitesView projects={projects} walks={walks} router={router} setTab={setTab} />
-
-      )}
-
-      {tab === "slatedrop" && <SlateDropView projects={projects} router={router} />}
-
-      {tab === "coordination" && <CoordinationView />}
-
-      {tab === "deliverables" && (
-
-        <DeliverablesView
-          deliverables={deliverables}
-          router={router}
-          openHomeDock={openHomeDock}
-        />
-
-      )}
-
-    </SiteWalkV1Shell>
-
+        {deliverables.length > 0 ? (
+          <section className="rounded-xl border border-white/[0.07] bg-white/[0.02] p-4">
+            <h2 className="text-sm font-semibold text-[#FFFFFF]">Recent Deliverables</h2>
+            <ul className="mt-4 space-y-3">
+              {deliverables.slice(0, 4).map((item) => (
+                <li key={item.id} className="text-sm text-[#F8FAFC]">
+                  {item.title}
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
+      </div>
+    </SiteWalkShell>
   );
-
 }
-
-

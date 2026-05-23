@@ -5,7 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import BuildRuntimeBadge from "@/components/shared/BuildRuntimeBadge";
 import OverflowProbe from "@/components/shared/OverflowProbe";
 import { resolveServerOrgContext } from "@/lib/server/org-context";
-import { AppShell } from "@/components/dashboard/AppShell";
+import { StudioAppShell } from "@/components/studio-ui/StudioAppShell";
 import { buildInviteShareData } from "@/lib/server/invite-share-data";
 import { isBetaMode } from "@/lib/beta-mode";
 
@@ -15,7 +15,7 @@ type DashboardRouteLayoutProps = {
 
 export default async function DashboardRouteLayout({ children }: DashboardRouteLayoutProps) {
   const ctx = await resolveServerOrgContext();
-  const { user, isBetaApproved, hasOperationsConsoleAccess, orgId, orgName, isSlateCeo, isSlateStaff } = ctx;
+  const { user, isBetaApproved, orgId, orgName, isSlateCeo, isSlateStaff } = ctx;
   if (!user) redirect("/login");
   if (!isBetaApproved) redirect("/beta-pending");
 
@@ -26,19 +26,18 @@ export default async function DashboardRouteLayout({ children }: DashboardRouteL
 
   const inviteShareData = await buildInviteShareData(user, orgId);
   const isBetaEligible = isBetaMode() || isBetaApproved || isSlateCeo || isSlateStaff;
+  void isBetaEligible;
 
   return (
     <NuqsAdapter>
       <TooltipProvider>
-        <AppShell
+        <StudioAppShell
           userName={userName}
           workspaceName={orgName ?? "Slate360"}
-          hasOperationsConsoleAccess={hasOperationsConsoleAccess}
           inviteShareData={inviteShareData}
-          isBetaEligible={isBetaEligible}
         >
           {children}
-        </AppShell>
+        </StudioAppShell>
         <Suspense fallback={null}>
           <BuildRuntimeBadge />
         </Suspense>

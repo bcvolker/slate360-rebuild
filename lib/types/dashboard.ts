@@ -144,3 +144,44 @@ export interface DashTab {
   /** minimum tier needed to unlock this tab (shown in UpgradeGate) */
   requiredTier?: import("@/lib/entitlements").Tier;
 }
+
+export interface WidgetRendererContext {
+  user: { name: string; email: string; avatar?: string };
+  tier: import("@/lib/entitlements").Tier;
+  entitlements: {
+    maxCredits: number;
+    maxStorageGB: number;
+    maxSeats: number;
+    label: string;
+    canViewSlateDropWidget: boolean;
+    canManageSeats: boolean;
+  };
+  userCoords: { lat: number; lng: number } | null;
+  liveWeather: LiveWeatherState | null;
+  liveSeatMembers: Array<{ name: string; role: string; email: string; active: boolean }>;
+  liveContacts: DashboardContact[];
+  liveProjects: DashboardProject[];
+  liveJobs: DashboardJob[];
+  liveFinancial: Array<{ month: string; credits: number }>;
+  liveContinueWorking: DashboardWidgetsPayload["continueWorking"];
+  creditsUsed: number;
+  storageUsed: number;
+  financialMax: number;
+  billingBusy: string | null;
+  billingError: string | null;
+  handleBuyCredits: () => void;
+  handleUpgradePlan: () => void;
+  suggestTitle: string;
+  suggestDesc: string;
+  suggestPriority: "low" | "medium" | "high";
+  suggestLoading: boolean;
+  suggestDone: boolean;
+  setSuggestTitle: (v: string) => void;
+  setSuggestDesc: (v: string) => void;
+  setSuggestPriority: (v: "low" | "medium" | "high") => void;
+  handleSuggestFeature: () => void;
+  weatherLogged: boolean;
+  setWeatherLogged: (v: boolean) => void;
+  setWidgetPrefs: React.Dispatch<React.SetStateAction<import("@/lib/widgets/widget-meta").WidgetPref[]>>;
+  setPrefsDirty: (v: boolean) => void;
+}

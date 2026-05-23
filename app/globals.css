@@ -685,3 +685,14 @@
   background: #FEF2F2; /* red-50 */
   border-color: #FECACA; /* red-200 */
 }
+
+.scroll-snapped-transform {
+  opacity: 0.96;
+  transform: scale(0.985);
+}
+
+.snap-start.scroll-snapped-transform,
+.snap-start:focus-within.scroll-snapped-transform {
+  opacity: 1;
+  transform: scale(1);
+}

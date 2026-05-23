@@ -5,7 +5,7 @@ import { useQueryState, parseAsString } from "nuqs";
 import { createClient } from "@/lib/supabase/client";
 import { getEntitlements, type Tier } from "@/lib/entitlements";
 import { canCreateFullProject } from "@/lib/project-access";
-import type { WidgetRendererContext } from "@/components/dashboard/DashboardWidgetRenderer";
+import type { WidgetRendererContext } from "@/lib/types/dashboard";
 import type {
   DashboardContact as Contact,
   DashboardWidgetsPayload,
