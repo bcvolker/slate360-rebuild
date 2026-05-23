@@ -3,14 +3,19 @@ import { resolveServerOrgContext } from "@/lib/server/org-context";
 import { ensureUserOrganization } from "@/lib/server/org-bootstrap";
 import { resolveUsageTruth } from "@/lib/server/usage-truth";
 import { createClient } from "@/lib/supabase/server";
+import { isMobileServerLayout } from "@/lib/server/device-layout";
+import { buildInviteShareData } from "@/lib/server/invite-share-data";
 import { DashboardV3Shell } from "@/components/dashboard-v3/DashboardV3Shell";
+import { StudioAppShell } from "@/components/studio-ui/StudioAppShell";
+import { MobileAppRootContent } from "@/components/studio-ui/MobileAppRootContent";
 
 export const metadata = {
   title: "Slate360 — Home",
 };
 
 export default async function MobileAppRootPage() {
-  const { user, orgId, isSlateCeo, role } = await resolveServerOrgContext();
+  const isMobile = await isMobileServerLayout();
+  const { user, orgId, orgName, isSlateCeo, role } = await resolveServerOrgContext();
 
   if (!user) {
     redirect("/login");
@@ -25,6 +30,23 @@ export default async function MobileAppRootPage() {
   }
 
   const activeOrgId = orgId ?? (await resolveServerOrgContext()).orgId;
+
+  const userName =
+    (user.user_metadata?.name as string | undefined) ?? user.email ?? "";
+
+  if (isMobile) {
+    const inviteShareData = await buildInviteShareData(user, activeOrgId);
+
+    return (
+      <StudioAppShell
+        userName={userName}
+        workspaceName={orgName ?? "Slate360"}
+        inviteShareData={inviteShareData}
+      >
+        <MobileAppRootContent />
+      </StudioAppShell>
+    );
+  }
 
   if (!activeOrgId) {
     return (

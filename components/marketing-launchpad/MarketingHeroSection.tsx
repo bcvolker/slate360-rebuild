@@ -8,20 +8,34 @@ export function MarketingHeroSection() {
     <section className={TILE_SECTION}>
       <div className={TILE_ROW}>
         <div className={`${TEXT_COLUMN} order-1`}>
-          <div className="mb-6 flex w-auto flex-row items-center gap-4">
+          <div className="mb-6 flex w-auto flex-row items-center gap-5">
             <Link href="/install" aria-label="Download on the App Store">
-              <Image src="/uploads/app-store-badge.svg" alt="" width={120} height={36} className="h-9 w-auto" />
+              <Image
+                src="/uploads/app-store-badge.svg"
+                alt=""
+                width={140}
+                height={40}
+                className="h-10 w-auto transform transition hover:scale-[1.02] active:scale-[0.99]"
+              />
             </Link>
             <Link href="/install" aria-label="Get it on Google Play">
-              <Image src="/uploads/google-play-badge.svg" alt="" width={135} height={36} className="h-9 w-auto" />
+              <Image
+                src="/uploads/google-play-badge.svg"
+                alt=""
+                width={158}
+                height={40}
+                className="h-10 w-auto transform transition hover:scale-[1.02] active:scale-[0.99]"
+              />
             </Link>
           </div>
           <h1 className="mb-3 text-3xl font-bold tracking-tight text-white lg:text-5xl">
             SLATE360 // REALITY INTELLIGENCE
           </h1>
           <p className={BODY_COPY}>
-            Precision reality capture for construction workflows. Capture site conditions instantly with
-            Site Walk; inspect structural environments with interactive Digital Twins.
+            One connected native app ecosystem engineered for precision construction workflows. Capture
+            high-fidelity structural data instantly in the field using our native mobile capture engines;
+            inspect, measure, and analyze full spatial environments inside your synchronized cloud desktop
+            studio.
           </p>
           <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center lg:mb-0 lg:mt-8">
             <Link

@@ -45,4 +45,4 @@ export const PRICING_CARD =
   "flex h-full flex-col rounded-xl border border-white/[0.08] bg-slate-900/40 p-8 backdrop-blur-sm";
 
 export const PRICING_CTA =
-  "mt-auto inline-flex w-full items-center justify-center rounded-xl bg-[#00E699] py-4 text-sm font-semibold tracking-tight text-[#0B0B15] transition-all hover:bg-[#00CC88]";
+  "mt-8 inline-flex w-full items-center justify-center rounded-xl bg-[#00E699] py-4 text-sm font-semibold tracking-tight text-[#0B0F15] transition-all hover:bg-[#00CC88]";

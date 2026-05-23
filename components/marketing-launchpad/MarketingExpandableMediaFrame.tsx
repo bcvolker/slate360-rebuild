@@ -12,15 +12,19 @@ import {
 
 type MarketingExpandableMediaFrameProps = {
   variant: MarketingMediaVariant;
+  sizeTier?: "hero" | "tile";
 };
 
-export function MarketingExpandableMediaFrame({ variant }: MarketingExpandableMediaFrameProps) {
+export function MarketingExpandableMediaFrame({
+  variant,
+  sizeTier = "tile",
+}: MarketingExpandableMediaFrameProps) {
   const [portalOpen, setPortalOpen] = useState(false);
 
   return (
     <>
       <div className={`${MEDIA_COLUMN} hidden lg:flex`}>
-        <MarketingMediaPanel variant={variant} />
+        <MarketingMediaPanel variant={variant} sizeTier={sizeTier} />
       </div>
 
       <div className="lg:hidden">
@@ -31,7 +35,7 @@ export function MarketingExpandableMediaFrame({ variant }: MarketingExpandableMe
           aria-label="Expand fullscreen interactive studio"
         >
           <div className="absolute inset-0 overflow-hidden rounded-xl">
-            <MarketingMediaPanel variant={variant} mode="preview" />
+            <MarketingMediaPanel variant={variant} mode="preview" sizeTier={sizeTier} />
           </div>
           <span className={MOBILE_EXPAND_LABEL}>✦ Tap to Expand Fullscreen Interactive Studio</span>
         </button>
@@ -46,5 +50,5 @@ export function MarketingExpandableMediaFrame({ variant }: MarketingExpandableMe
 }
 
 export function HeroMediaFrame() {
-  return <MarketingExpandableMediaFrame variant="hero-model" />;
+  return <MarketingExpandableMediaFrame variant="hero-model" sizeTier="hero" />;
 }
