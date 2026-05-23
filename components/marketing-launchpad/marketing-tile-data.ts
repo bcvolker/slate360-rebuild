@@ -12,15 +12,15 @@ export type MarketingTile = {
 };
 
 export const SITE_WALK_CAPTURE_TILE: MarketingTile = {
-  id: "site-walk-section-start",
+  id: "site-walk-start",
   title: "Site Walk Field Engine",
   description:
     "Stop filling your device camera roll with uncontextualized field pictures. Walk the project site using your smartphone or tablet to capture conditions seamlessly in real-time. Every photo is automatically bound to its project location context, timestamped, and geolocated instantly.",
   features: [
-    { icon: "📱", title: "Smart Mobile Capture", body: "Walk through any space with your phone or tablet to document exactly what it looks like." },
-    { icon: "📝", title: "Instant Organized Notes", body: "Type notes right alongside your photos so you never forget the details." },
-    { icon: "📋", title: "One-Click Visual Reports", body: "Instantly turn your photo walk into a beautifully polished document to share with your team or clients." },
-    { icon: "🚫", title: "Zero Photo Clutter", body: "Keep your personal phone camera roll completely empty—all project photos stay safely organized inside the app." },
+    { icon: "📱", title: "Smart Mobile Capture", body: "Document any space with your phone or tablet as you walk." },
+    { icon: "📝", title: "Instant Organized Notes", body: "Attach notes beside every photo so details never get lost." },
+    { icon: "📋", title: "One-Click Visual Reports", body: "Turn a walk into a polished shareable document instantly." },
+    { icon: "🚫", title: "Zero Photo Clutter", body: "Keep project photos organized inside the app, not your camera roll." },
   ],
   ctaLabel: "Learn More About Site Walk →",
   ctaHref: "/product/site-walk",
@@ -30,12 +30,12 @@ export const SITE_WALK_CAPTURE_TILE: MarketingTile = {
 export const SITE_WALK_MAPS_TILE: MarketingTile = {
   title: "Precision Plan Pinning",
   description:
-    "Link your visual data directly to your structural coordinates. Long-press any set of drawings or floor plan sheets inside the mobile app to drop high-visibility interactive tracking pins. Attach standard progress photos or select raw 360° equirectangular panoramas directly from your local phone memory to preserve total field context.",
+    "Link your visual data directly to your structural coordinates. Long-press any set of drawings or floor plan sheets inside the mobile app to drop high-visibility interactive tracking pins.",
   features: [
-    { icon: "🗺️", title: "Interactive Pin Mapping", body: "Tap on a map or drawing sheet to drop a pin exactly where your photo was taken." },
-    { icon: "👻", title: "Ghost Layer Overlays", body: "See a transparent ghost view of a past photo right on your live screen, allowing you to perfectly line up a new shot from the exact same angle to see changes over time." },
-    { icon: "🔄", title: "Panoramic 360° Photo Support", body: "Seamlessly upload immersive 360° panoramas directly from your phone's memory to view a complete room at once." },
-    { icon: "📥", title: "Easy Data Exports", body: "Share your mapped-out visual timelines cleanly via email or web link with absolute structural security." },
+    { icon: "🗺️", title: "Interactive Pin Mapping", body: "Drop a pin exactly where each photo was taken on a plan sheet." },
+    { icon: "👻", title: "Ghost Layer Overlays", body: "Line up new shots from the exact same angle as past captures." },
+    { icon: "🔄", title: "Panoramic 360° Support", body: "Upload immersive panoramas directly from your phone memory." },
+    { icon: "📥", title: "Easy Data Exports", body: "Share mapped visual timelines via email or secure web link." },
   ],
   ctaLabel: "Explore Plan Workflows →",
   ctaHref: "/product/site-walk",
@@ -44,14 +44,15 @@ export const SITE_WALK_MAPS_TILE: MarketingTile = {
 };
 
 export const DIGITAL_TWIN_TILE: MarketingTile = {
+  id: "digital-twin-start",
   title: "Digital Twin Real-World Simulation",
   description:
-    "Generate highly accurate, immersive 3D spatial environments. By combining smartphone walkthrough photogrammetry data feeds with high-altitude drone photogrammetry and tripod LiDAR laser scans, Slate360 compiles comprehensive interior and exterior structural twin models automatically.",
+    "Generate highly accurate, immersive 3D spatial environments. Slate360 compiles comprehensive interior and exterior structural twin models from mobile walkthroughs, drone scans, and LiDAR feeds.",
   features: [
-    { icon: "🏗️", title: "Interactive 3D Exploring", body: "Use your mouse or touch screen to smoothly orbit and inspect a life-like 3D model of your space." },
-    { icon: "📹", title: "Mobile to 3D Automation", body: "Create realistic, interactive environments simply by walking through a property with your smartphone camera." },
-    { icon: "✈️", title: "Drone Scan Integration", body: "Pull in high-resolution aerial scans to render flawless exterior overviews and roofs." },
-    { icon: "💻", title: "Zero Installation Needed", body: "Your clients and stakeholders can click a link and step inside the 3D space instantly from any web browser." },
+    { icon: "🏗️", title: "Interactive 3D Exploring", body: "Orbit and inspect a life-like 3D model with touch or mouse." },
+    { icon: "📹", title: "Mobile to 3D Automation", body: "Build interactive environments by walking through with your phone." },
+    { icon: "✈️", title: "Drone Scan Integration", body: "Import aerial scans for exterior overviews and roof coverage." },
+    { icon: "💻", title: "Zero Installation Needed", body: "Stakeholders step inside from any web browser via a link." },
   ],
   ctaLabel: "Learn More About Twins →",
   ctaHref: "/product/digital-twin",
@@ -61,12 +62,12 @@ export const DIGITAL_TWIN_TILE: MarketingTile = {
 export const PANORAMA_TILE: MarketingTile = {
   title: "360° Panoramic Environments",
   description:
-    "Explore internal building envelopes with absolute spatial continuity. Walk through site histories step-by-step using geolocated panoramic hotspots, allowing owners, architects, and lenders to monitor physical status updates remotely without leaving the office workspace.",
+    "Explore internal building envelopes with absolute spatial continuity. Walk through site histories using geolocated panoramic hotspots so remote teams can monitor status without leaving the office.",
   features: [
-    { icon: "🔄", title: "Fluid 360° Traversal", body: "Click navigable target hotspots to smoothly leap from room to room inside a panoramic walkthrough." },
-    { icon: "🔀", title: "Before-and-After Timelines", body: "Stack historical property scans side-by-side to visually audit changes or check structural progress." },
-    { icon: "📐", title: "Digital Measurement Tools", body: "Calculate heights, widths, and clearance dimensions directly on the virtual 3D canvas model." },
-    { icon: "🔒", title: "Secure Multi-User Access", body: "Easily invite third-party lenders, clients, or remote team members to inspect precise visual histories securely." },
+    { icon: "🔄", title: "Fluid 360° Traversal", body: "Leap room to room inside a panoramic walkthrough." },
+    { icon: "🔀", title: "Before-and-After Timelines", body: "Stack historical scans to audit changes over time." },
+    { icon: "📐", title: "Digital Measurement Tools", body: "Calculate dimensions directly on the virtual canvas." },
+    { icon: "🔒", title: "Secure Multi-User Access", body: "Invite clients and lenders to inspect visual histories securely." },
   ],
   ctaLabel: "Explore Reality Capture →",
   ctaHref: "/product/digital-twin",

@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { z } from "zod";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { badRequest, ok, serverError } from "@/lib/server/api-response";
 
 const ContactSchema = z.object({
@@ -22,7 +23,24 @@ export async function POST(req: NextRequest) {
   }
 
   const { name, email, message } = parsed.data;
-  console.info("[contact] inbound message", { name, email, messageLength: message.length });
+  const admin = createAdminClient();
+  const { error } = await admin.from("beta_feedback").insert({
+    type: "other",
+    title: `[Contact] ${name}`,
+    description: `From: ${email}\n\n${message}`,
+    app_area: "public-contact",
+    page_url: "/contact",
+    status: "new",
+  });
+
+  if (error) {
+    if (error.code === "PGRST205" || error.code === "42P01") {
+      console.info("[contact] beta_feedback table missing; logged message", { name, email });
+      return ok({ ok: true });
+    }
+    console.error("[contact] insert failed", error.message);
+    return serverError("Unable to store message. Please try again later.");
+  }
 
   return ok({ ok: true });
 }

@@ -16,8 +16,8 @@ type MarketingMediaPanelProps = {
   variant: "hero-model" | "capture" | "maps" | "twin" | "panorama";
 };
 
-function ViewerShell({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <div className={cn(VIEWER_FRAME, className)}>{children}</div>;
+function ViewerShell({ children }: { children: React.ReactNode }) {
+  return <div className={cn(VIEWER_FRAME, "w-full")}>{children}</div>;
 }
 
 function BlueprintMapPanel() {
@@ -28,28 +28,26 @@ function BlueprintMapPanel() {
   ];
 
   return (
-    <div className="relative h-full w-full bg-[#0B0F15] p-6">
-      <div className="relative h-full w-full rounded-xl border border-white/[0.06] bg-slate-900/50">
-        <div className="absolute inset-4 grid grid-cols-6 grid-rows-4 gap-1 opacity-40">
-          {Array.from({ length: 24 }).map((_, i) => (
-            <div key={i} className="border border-white/[0.06]" />
-          ))}
-        </div>
-        {pins.map((pin) => (
-          <button
-            key={pin.label}
-            type="button"
-            className="absolute flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-1"
-            style={{ top: pin.top, left: pin.left }}
-            aria-label={`Plan pin: ${pin.label}`}
-          >
-            <span className="flex h-8 w-8 items-center justify-center rounded-xl border border-[#00E699]/40 bg-[#00E699]/20 text-xs font-bold text-[#00E699]">
-              ●
-            </span>
-            <span className="text-[10px] font-medium text-[#A3AED0]">{pin.label}</span>
-          </button>
+    <div className="relative h-full w-full bg-[#0B0F15] p-4">
+      <div className="absolute inset-4 grid grid-cols-6 grid-rows-4 gap-1 opacity-30">
+        {Array.from({ length: 24 }).map((_, i) => (
+          <div key={i} className="border border-white/[0.06]" />
         ))}
       </div>
+      {pins.map((pin) => (
+        <button
+          key={pin.label}
+          type="button"
+          className="absolute flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-1"
+          style={{ top: pin.top, left: pin.left }}
+          aria-label={`Plan pin: ${pin.label}`}
+        >
+          <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#00E699]/20 text-xs font-bold text-[#00E699]">
+            ●
+          </span>
+          <span className="text-[10px] font-medium text-[#A3AED0]">{pin.label}</span>
+        </button>
+      ))}
     </div>
   );
 }
@@ -102,7 +100,7 @@ export function MarketingMediaPanel({ variant }: MarketingMediaPanelProps) {
 
 export function HeroMediaFrame() {
   return (
-    <div className="flex w-full flex-1 items-center justify-center lg:w-[60%]">
+    <div className="flex w-full items-center justify-center lg:w-[45%]">
       <MarketingMediaPanel variant="hero-model" />
     </div>
   );

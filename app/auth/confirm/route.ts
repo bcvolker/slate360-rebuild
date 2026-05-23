@@ -12,7 +12,7 @@ export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const token_hash = searchParams.get("token_hash");
   const type = searchParams.get("type") as EmailOtpType | null;
-  const next = searchParams.get("next") ?? "/dashboard";
+  const next = searchParams.get("next") ?? "/app";
 
   if (token_hash && type) {
     const supabase = await createClient();
@@ -29,7 +29,7 @@ export async function GET(request: Request) {
           sendWelcomeEmail({
             to: user.email,
             name: user.user_metadata?.full_name,
-            confirmUrl: `${origin}/dashboard`,
+            confirmUrl: `${origin}/app`,
           }).catch(() => {});
         }
       } catch {} // non-blocking — don't fail the redirect

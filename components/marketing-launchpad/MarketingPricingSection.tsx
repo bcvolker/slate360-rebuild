@@ -9,30 +9,13 @@ import {
   TOGGLE_BTN_ACTIVE,
   TOGGLE_BTN_IDLE,
 } from "@/components/marketing-launchpad/marketing-styles";
-
-type Billing = "monthly" | "annual";
-type ProductLine = "site-walk" | "digital-twin" | "bundle" | "enterprise";
-
-const PRODUCT_TABS: { id: ProductLine; label: string }[] = [
-  { id: "site-walk", label: "📷 Site Walk" },
-  { id: "digital-twin", label: "🌐 Digital Twin" },
-  { id: "bundle", label: "📦 Connected Bundle" },
-  { id: "enterprise", label: "🏢 Enterprise" },
-];
-
-const PRICING: Record<
-  Exclude<ProductLine, "enterprise">,
-  { basic: { monthly: number; annual: number }; pro: { monthly: number; annual: number } }
-> = {
-  "site-walk": { basic: { monthly: 66, annual: 790 }, pro: { monthly: 108, annual: 1290 } },
-  "digital-twin": { basic: { monthly: 99, annual: 1180 }, pro: { monthly: 166, annual: 1990 } },
-  bundle: { basic: { monthly: 133, annual: 1590 }, pro: { monthly: 224, annual: 2690 } },
-};
-
-function formatPrice(amount: number, billing: Billing) {
-  if (billing === "monthly") return `$${amount}/mo`;
-  return `$${amount.toLocaleString()}/yr`;
-}
+import {
+  type Billing,
+  type ProductLine,
+  PRODUCT_TABS,
+  PLAN_CATALOG,
+  formatPlanPrice,
+} from "@/components/marketing-launchpad/pricing-data";
 
 function ToggleRow({
   options,
@@ -60,8 +43,9 @@ function ToggleRow({
 }
 
 export function MarketingPricingSection() {
-  const [billing, setBilling] = useState<Billing>("monthly");
+  const [billing, setBilling] = useState<Billing>("annual");
   const [product, setProduct] = useState<ProductLine>("site-walk");
+  const plans = PLAN_CATALOG[product];
 
   return (
     <section id="pricing-matrix-section" className={`${TILE_SECTION} items-center`}>
@@ -72,58 +56,38 @@ export function MarketingPricingSection() {
 
         <ToggleRow
           options={[
-            { id: "monthly", label: "Monthly" },
-            { id: "annual", label: "Annual (Save 17%)" },
+            { id: "monthly", label: "Monthly Billing" },
+            { id: "annual", label: "Annual Billing (Save 17%)" },
           ]}
           value={billing}
           onChange={(id) => setBilling(id as Billing)}
         />
 
         <div className="mt-4">
-          <ToggleRow options={PRODUCT_TABS} value={product} onChange={(id) => setProduct(id as ProductLine)} />
+          <ToggleRow
+            options={PRODUCT_TABS}
+            value={product}
+            onChange={(id) => setProduct(id as ProductLine)}
+          />
         </div>
 
-        {product === "enterprise" ? (
-          <article className={`${PRICING_CARD} mt-8 text-center`}>
-            <h3 className="text-xl font-bold text-[#FFFFFF]">Enterprise Monolith</h3>
-            <p className="mt-4 text-lg font-semibold text-[#00E699]">Custom Volume Pricing // Let&apos;s Talk</p>
-            <p className="mt-4 text-sm leading-relaxed text-[#F8FAFC]">
-              Unlimited organizational seats, dedicated processing channels, and custom volume pricing
-              for large-scale reality capture programs.
-            </p>
-            <Link
-              href="/contact"
-              className="mt-6 inline-flex w-full max-w-xs items-center justify-center rounded-xl bg-[#00E699] py-3 text-sm font-semibold tracking-tight text-[#0B0F15] transition-all hover:bg-[#00CC88] active:scale-[0.99]"
-            >
-              Contact Sales
-            </Link>
-          </article>
-        ) : (
-          <div className="mt-8 grid gap-6 md:grid-cols-2">
-            {(["basic", "pro"] as const).map((tier) => {
-              const row = PRICING[product][tier];
-              const price = billing === "monthly" ? row.monthly : row.annual;
-              const label = tier === "basic" ? "Basic" : "Pro";
-              return (
-                <article key={tier} className={PRICING_CARD}>
-                  <h3 className="text-xl font-bold capitalize text-[#FFFFFF]">
-                    {PRODUCT_TABS.find((t) => t.id === product)?.label.replace(/^[^\s]+\s/, "")} {label}
-                  </h3>
-                  <p className="mt-2 text-sm font-semibold text-[#00E699]">
-                    {formatPrice(price, billing)}
-                    {billing === "annual" ? " value row" : ""}
-                  </p>
-                  <Link
-                    href={`/signup?plan=${product}&tier=${tier}&billing=${billing}`}
-                    className="mt-6 inline-flex w-full items-center justify-center rounded-xl bg-[#00E699] py-3 text-sm font-semibold tracking-tight text-[#0B0F15] transition-all hover:bg-[#00CC88] active:scale-[0.99]"
-                  >
-                    Request Access
-                  </Link>
-                </article>
-              );
-            })}
-          </div>
-        )}
+        <div className="mt-8 grid gap-6 md:grid-cols-2">
+          {plans.map((plan) => (
+            <article key={plan.id} className={PRICING_CARD}>
+              <h3 className="text-xl font-bold text-[#FFFFFF]">{plan.name}</h3>
+              <p className="mt-2 text-sm font-semibold text-[#00E699]">
+                {formatPlanPrice(plan, billing)}
+              </p>
+              <p className="mt-4 flex-1 text-sm leading-relaxed text-slate-200">{plan.features}</p>
+              <Link
+                href={`/signup?plan=${plan.id}&billing=${billing}`}
+                className="mt-6 inline-flex w-full items-center justify-center rounded-xl bg-[#00E699] py-3 text-sm font-semibold tracking-tight text-[#0B0F15] transition-all hover:bg-[#00CC88] active:scale-[0.99]"
+              >
+                {plan.button}
+              </Link>
+            </article>
+          ))}
+        </div>
 
         <p className="mt-8 text-center text-sm leading-relaxed text-[#A3AED0]">
           Slate360 ensures total infrastructure data control. High-volume processing workflows requiring

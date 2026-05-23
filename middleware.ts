@@ -114,7 +114,7 @@ export async function middleware(request: NextRequest) {
   const { device } = userAgent(request);
   const isMobile = device.type === 'mobile' || device.type === 'tablet' || device.type === 'wearable';
   
-  if (isMobile && pathname === "/dashboard") {
+  if (pathname === "/dashboard") {
     const url = request.nextUrl.clone();
     url.pathname = "/app";
     return NextResponse.redirect(url);
@@ -198,7 +198,7 @@ export async function middleware(request: NextRequest) {
   ];
   if (user && PHASE_1_BLOCKED_PATHS.some((p) => pathname.startsWith(p))) {
     const url = request.nextUrl.clone();
-    url.pathname = isMobile ? "/app" : "/dashboard";
+    url.pathname = "/app";
     return NextResponse.redirect(url);
   }
 
@@ -236,7 +236,7 @@ export async function middleware(request: NextRequest) {
      pathname.startsWith("/project-hub"))
   ) {
     const url = request.nextUrl.clone();
-    url.pathname = isMobile ? "/app" : "/dashboard";
+    url.pathname = "/app";
     return NextResponse.redirect(url);
   }
 
@@ -246,7 +246,7 @@ export async function middleware(request: NextRequest) {
     (pathname === "/login" || pathname === "/signup")
   ) {
     const url = request.nextUrl.clone();
-    url.pathname = isMobile ? "/app" : "/dashboard";
+    url.pathname = "/app";
     return NextResponse.redirect(url);
   }
 

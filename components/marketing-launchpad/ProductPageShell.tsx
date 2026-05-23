@@ -12,7 +12,7 @@ export function ProductPageShell({ title, children }: ProductPageShellProps) {
     <div className="min-h-screen bg-[#0B0F15]">
       <header className="flex h-20 items-center justify-between border-b border-white/[0.05] bg-[#0B0F15]/80 px-6 backdrop-blur-xl lg:px-12">
         <Link href="/" aria-label="Slate360 home">
-          <Slate360Logo variant="dark" className="text-lg" />
+          <Slate360Logo variant="dark" />
         </Link>
         <nav className="flex items-center gap-8">
           <Link href="/#site-walk-section-start" className={NAV_LINK}>
