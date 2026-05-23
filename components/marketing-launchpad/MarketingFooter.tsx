@@ -15,7 +15,7 @@ const GOVERNANCE_LINKS = [
 
 export function MarketingFooter() {
   return (
-    <footer className="snap-start border-t border-white/[0.05] bg-[#0B0F15] px-6 py-12 lg:px-12">
+    <footer className="border-t border-white/[0.05] bg-[#0B0F15] px-6 py-12 lg:snap-start lg:px-12">
       <div className="mx-auto grid max-w-[1400px] grid-cols-2 gap-8 text-sm text-[#A3AED0] md:grid-cols-4">
         <div>
           <Slate360Logo variant="dark" />

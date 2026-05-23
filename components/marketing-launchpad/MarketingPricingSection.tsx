@@ -9,7 +9,7 @@ import { SHOWCASE_PLANS } from "@/components/marketing-launchpad/pricing-data";
 export function MarketingPricingSection() {
   return (
     <section id="pricing-matrix-section" className={`${TILE_SECTION} items-center`}>
-      <div className="mx-auto w-full max-w-[1400px]">
+      <div className="mx-auto w-full">
         <h2 className="mb-10 text-center text-3xl font-bold tracking-tight text-[#FFFFFF] lg:text-4xl">
           Subscription Engine
         </h2>
@@ -32,7 +32,7 @@ export function MarketingPricingSection() {
                 {plan.features.map((feature) => (
                   <li key={feature} className="flex items-start gap-2.5 text-base text-[#F8FAFC]">
                     <span aria-hidden className="shrink-0 text-[#00E699]">
-                      ✓
+                      »
                     </span>
                     <span>{feature}</span>
                   </li>

@@ -6,6 +6,9 @@ const S_EMBLEM_UPPER =
 const S_EMBLEM_LOWER =
   "M80.23,43.82l-17.16,9.69,60.64,34.72c.16.09.57.32.57.97s-.42.89-.57.97l-38.47,21.48-3.26,1.82-3.26-1.82-59.83-33.4v19.27s58.99,32.94,58.99,32.94c1.27.71,2.69,1.07,4.1,1.07s2.83-.36,4.1-1.07l55.02-30.72v-20.91l-60.88-35.01Z";
 
+const SYMBOL_CLASS =
+  "h-6 w-auto block shrink-0 text-[#00E699] lg:h-8";
+
 type Slate360LogoProps = {
   variant?: "dark" | "light";
   className?: string;
@@ -19,8 +22,8 @@ export function Slate360Logo({
 }: Slate360LogoProps) {
   const wordmarkClass =
     variant === "light"
-      ? "font-sans font-bold tracking-[0.15em] text-2xl text-slate-900 select-none ml-4"
-      : "font-sans font-bold tracking-[0.15em] text-2xl text-white select-none ml-4";
+      ? "font-sans font-bold tracking-[0.12em] text-lg text-slate-900 select-none ml-2 lg:text-2xl lg:tracking-[0.15em] lg:ml-4"
+      : "font-sans font-bold tracking-[0.12em] text-lg text-white select-none ml-2 lg:text-2xl lg:tracking-[0.15em] lg:ml-4";
 
   return (
     <div className={cn("inline-flex items-center shrink-0", className)}>
@@ -30,7 +33,7 @@ export function Slate360Logo({
         role="img"
         aria-hidden={showWordmark}
         aria-label={showWordmark ? undefined : "Slate360"}
-        className="h-8 w-auto block shrink-0 text-[#00E699]"
+        className={SYMBOL_CLASS}
       >
         <defs>
           <linearGradient id="slate360-emblem-gradient" x1="0%" y1="0%" x2="0%" y2="100%">

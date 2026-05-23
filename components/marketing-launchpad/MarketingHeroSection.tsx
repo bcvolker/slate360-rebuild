@@ -1,24 +1,24 @@
 import Link from "next/link";
 import Image from "next/image";
-import { HeroMediaFrame } from "@/components/marketing-launchpad/MarketingMediaPanel";
+import { HeroMediaFrame } from "@/components/marketing-launchpad/MarketingExpandableMediaFrame";
 import { APP_STORE_BTN, BODY_COPY, TEXT_COLUMN, TILE_SECTION } from "@/components/marketing-launchpad/marketing-styles";
 
 export function MarketingHeroSection() {
   return (
     <section className={TILE_SECTION}>
-      <div className="mx-auto flex h-full w-full max-w-[1400px] flex-col lg:flex-row lg:items-center lg:gap-8">
-        <div className={TEXT_COLUMN}>
-          <h1 className="text-4xl font-bold leading-tight tracking-tight text-white lg:text-5xl">
+      <div className="mx-auto flex h-full w-full flex-col lg:flex-row lg:items-center lg:gap-10">
+        <div className={`${TEXT_COLUMN} order-1`}>
+          <h1 className="mb-3 text-3xl font-bold tracking-tight text-white lg:text-5xl">
             SLATE360 // REALITY INTELLIGENCE
           </h1>
-          <p className={`mt-6 ${BODY_COPY}`}>
+          <p className={BODY_COPY}>
             Precision reality capture for construction workflows. Capture site conditions instantly with
             Site Walk; inspect structural environments with interactive Digital Twins.
           </p>
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+          <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center lg:mb-0 lg:mt-8">
             <Link
               href="/login"
-              className="flex items-center justify-center rounded-xl bg-[#00E699] px-6 py-4 text-sm font-semibold tracking-tight text-[#0B0F15] transition-all hover:bg-[#00CC88] active:scale-[0.99] w-full sm:w-auto"
+              className="flex w-full items-center justify-center rounded-xl bg-[#00E699] px-6 py-4 text-sm font-semibold tracking-tight text-[#0B0F15] transition-all hover:bg-[#00CC88] active:scale-[0.99] sm:w-auto"
             >
               Launch Studio Workspace
             </Link>
@@ -29,7 +29,7 @@ export function MarketingHeroSection() {
               <Image src="/uploads/google-play-badge.svg" alt="" width={135} height={36} className="h-9 w-auto" />
             </Link>
           </div>
-          <div className="mt-4 flex flex-wrap gap-3">
+          <div className="flex flex-wrap gap-3">
             <Link
               href="#pricing-matrix-section"
               className="rounded-xl border border-white/[0.08] bg-slate-900/40 px-6 py-3 text-sm font-semibold tracking-tight text-[#F8FAFC] transition-all hover:border-[#00E699]/40 active:scale-[0.99]"
@@ -38,7 +38,9 @@ export function MarketingHeroSection() {
             </Link>
           </div>
         </div>
-        <HeroMediaFrame />
+        <div className="order-2 w-full">
+          <HeroMediaFrame />
+        </div>
       </div>
     </section>
   );

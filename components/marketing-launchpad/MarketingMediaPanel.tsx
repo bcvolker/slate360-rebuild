@@ -12,13 +12,43 @@ const SITE_WALK_VIDEO =
 const PANORAMA_SRC = "/uploads/pletchers.jpg";
 const MODEL_SRC = "/uploads/csb-stadium-model.glb";
 
+export type MarketingMediaVariant = "hero-model" | "capture" | "maps" | "twin" | "panorama";
+
 type MarketingMediaPanelProps = {
-  variant: "hero-model" | "capture" | "maps" | "twin" | "panorama";
+  variant: MarketingMediaVariant;
+  mode?: "default" | "preview" | "fullscreen";
 };
 
-function ViewerShell({ children }: { children: React.ReactNode }) {
+function ViewerShell({
+  children,
+  mode,
+}: {
+  children: React.ReactNode;
+  mode: MarketingMediaPanelProps["mode"];
+}) {
+  if (mode === "fullscreen") {
+    return (
+      <div className="relative h-full w-full [&>*]:absolute [&>*]:inset-0 [&>*]:h-full [&>*]:w-full">
+        {children}
+      </div>
+    );
+  }
+
+  if (mode === "preview") {
+    return (
+      <div className="relative h-full w-full [&>*]:absolute [&>*]:inset-0 [&>*]:h-full [&>*]:w-full">
+        {children}
+      </div>
+    );
+  }
+
   return (
-    <div className={cn(VIEWER_FRAME, "h-full w-full [&>*]:absolute [&>*]:inset-0 [&>*]:h-full [&>*]:w-full")}>
+    <div
+      className={cn(
+        VIEWER_FRAME,
+        "h-full w-full [&>*]:absolute [&>*]:inset-0 [&>*]:h-full [&>*]:w-full",
+      )}
+    >
       {children}
     </div>
   );
@@ -56,56 +86,44 @@ function BlueprintMapPanel() {
   );
 }
 
-export function MarketingMediaPanel({ variant }: MarketingMediaPanelProps) {
+function MediaContent({ variant }: { variant: MarketingMediaVariant }) {
   if (variant === "hero-model" || variant === "twin") {
     return (
-      <ViewerShell>
-        <ModelViewerClient
-          src={MODEL_SRC}
-          alt="Interactive structural environment twin"
-          cameraOrbit="45deg 65deg 107%"
-          shadowIntensity={1}
-          shadowSoftness={1}
-        />
-      </ViewerShell>
+      <ModelViewerClient
+        src={MODEL_SRC}
+        alt="Interactive structural environment twin"
+        cameraOrbit="45deg 65deg 107%"
+        shadowIntensity={1}
+        shadowSoftness={1}
+      />
     );
   }
 
   if (variant === "capture") {
     return (
-      <ViewerShell>
-        <video
-          className="h-full w-full object-cover"
-          src={SITE_WALK_VIDEO}
-          autoPlay
-          loop
-          muted
-          playsInline
-          aria-label="Site Walk product walkthrough"
-        />
-      </ViewerShell>
+      <video
+        className="h-full w-full object-cover"
+        src={SITE_WALK_VIDEO}
+        autoPlay
+        loop
+        muted
+        playsInline
+        aria-label="Site Walk product walkthrough"
+      />
     );
   }
 
   if (variant === "maps") {
-    return (
-      <ViewerShell>
-        <BlueprintMapPanel />
-      </ViewerShell>
-    );
+    return <BlueprintMapPanel />;
   }
 
-  return (
-    <ViewerShell>
-      <PanoramaViewer src={PANORAMA_SRC} />
-    </ViewerShell>
-  );
+  return <PanoramaViewer src={PANORAMA_SRC} />;
 }
 
-export function HeroMediaFrame() {
+export function MarketingMediaPanel({ variant, mode = "default" }: MarketingMediaPanelProps) {
   return (
-    <div className="flex w-full items-center justify-center lg:w-[55%]">
-      <MarketingMediaPanel variant="hero-model" />
-    </div>
+    <ViewerShell mode={mode}>
+      <MediaContent variant={variant} />
+    </ViewerShell>
   );
 }
