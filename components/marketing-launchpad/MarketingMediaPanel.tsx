@@ -19,29 +19,21 @@ type MarketingMediaPanelProps = {
   sizeTier?: "hero" | "tile";
 };
 
-const MEDIA_ASPECT_BASE =
-  "bg-slate-900/40 border border-white/[0.08] rounded-xl relative flex items-center justify-center overflow-hidden shadow-[0_0_50px_rgba(0,230,153,0.01)]";
-
-const HERO_MEDIA_FRAME = `w-full aspect-[16/10] ${MEDIA_ASPECT_BASE} lg:scale-[1.05] lg:origin-center`;
-
-const TILE_MEDIA_FRAME = `w-full aspect-[16/8] ${MEDIA_ASPECT_BASE}`;
+const UNIFIED_MEDIA_FRAME =
+  "w-full aspect-[16/10] bg-slate-900/40 border border-white/[0.08] rounded-xl relative flex items-center justify-center overflow-hidden shadow-[0_0_50px_rgba(0,230,153,0.01)]";
 
 function ViewerShell({
   children,
   mode,
-  sizeTier = "tile",
 }: {
   children: React.ReactNode;
   mode: MarketingMediaPanelProps["mode"];
-  sizeTier: MarketingMediaPanelProps["sizeTier"];
 }) {
   if (mode === "fullscreen" || mode === "preview") {
     return <div className="relative overflow-hidden">{children}</div>;
   }
 
-  return (
-    <div className={sizeTier === "hero" ? HERO_MEDIA_FRAME : TILE_MEDIA_FRAME}>{children}</div>
-  );
+  return <div className={UNIFIED_MEDIA_FRAME}>{children}</div>;
 }
 
 function BlueprintMapPanel() {
@@ -116,7 +108,7 @@ export function MarketingMediaPanel({
   sizeTier = "tile",
 }: MarketingMediaPanelProps) {
   return (
-    <ViewerShell mode={mode} sizeTier={sizeTier}>
+    <ViewerShell mode={mode}>
       <MediaContent variant={variant} />
     </ViewerShell>
   );

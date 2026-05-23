@@ -10,7 +10,7 @@ export const TILE_ROW =
 export const BODY_COPY = "text-base font-normal text-slate-300 leading-relaxed mb-6 lg:max-w-2xl lg:text-lg";
 
 export const TILE_SECTION =
-  "relative block h-auto w-full bg-[#0B0F15] px-6 py-16 pt-28 lg:flex lg:h-[100dvh] lg:snap-start lg:overflow-hidden lg:px-12 lg:py-0 lg:pb-10";
+  "w-full min-h-screen h-auto bg-[#0B0F15] px-6 py-12 md:py-16 lg:py-0 lg:h-[100dvh] flex flex-col lg:flex-row items-center justify-center lg:snap-start lg:overflow-hidden lg:px-12 relative border-none";
 
 export const MOBILE_CANVAS =
   "relative mb-6 flex w-full cursor-pointer flex-col items-center justify-center rounded-xl border border-white/10 bg-slate-900/50 aspect-[4/3]";
