@@ -1,75 +1,87 @@
 "use client";
 
-import Link from "next/link";
-import { Slate360Logo } from "@/components/studio-ui/LogoProvider";
+import { useState } from "react";
+import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { DashboardV3Sidebar } from "./DashboardV3Sidebar";
+import { DashboardV3Topbar } from "./DashboardV3Topbar";
+import { DashboardV3Hero } from "./DashboardV3Hero";
+import { DashboardV3ContinueWorkRail } from "./DashboardV3ContinueWorkRail";
+import { DashboardV3ProcessingQueue } from "./DashboardV3ProcessingQueue";
+import { DashboardV3StorageBilling } from "./DashboardV3StorageBilling";
 
-const WORKSPACE_CARDS = [
-  {
-    emoji: "📷",
-    title: "Open Site Walk Workspace",
-    description: "Mobile field capture, plan pinning, and visual reporting.",
-    href: "/site-walk",
-  },
-  {
-    emoji: "🌐",
-    title: "Open Digital Twin Studio",
-    description: "Immersive 3D environments, panoramas, and reality capture review.",
-    href: "/product/digital-twin",
-  },
-] as const;
-
-type DashboardV3ShellProps = {
-  workspaceName?: string | null;
+export type DashboardV3Data = {
+  roleName?: string;
+  alerts?: unknown[];
+  latestProject?: { id?: string; name?: string; created_at?: string } | null;
+  recentProjects?: { id?: string; name?: string; created_at?: string }[];
+  recentWalks?: { id?: string; name?: string; created_at?: string }[];
+  myWork?: { id?: string; name?: string; created_at?: string }[];
+  coordinationAlerts?: unknown[];
+  processingJobs?: {
+    id?: string;
+    filename?: string;
+    status?: string;
+    processing_progress?: number;
+    created_at?: string;
+  }[];
+  usage?: {
+    storageGbUsed: string;
+    storageGbLimit: number;
+  } | null;
 };
 
-export function DashboardV3Shell({ workspaceName }: DashboardV3ShellProps) {
+type DashboardV3ShellProps = {
+  data: DashboardV3Data;
+};
+
+export function DashboardV3Shell({ data }: DashboardV3ShellProps) {
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+
   return (
-    <div className="flex min-h-[100dvh] flex-col bg-[#0B0F15] text-slate-200">
-      <header className="flex h-20 items-center justify-between border-b border-white/10 px-6 lg:px-10">
-        <Link href="/" aria-label="Slate360 home">
-          <Slate360Logo variant="dark" />
-        </Link>
-        {workspaceName ? (
-          <p className="truncate text-sm text-[#A3AED0]">{workspaceName}</p>
-        ) : null}
-      </header>
-
-      <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col justify-center px-6 py-12">
-        <h1 className="text-center text-3xl font-bold tracking-tight text-white">
-          Slate360 Workspace
-        </h1>
-        <p className="mt-3 text-center text-sm text-slate-300">
-          Choose your workspace. Site Walk is the primary field engine for Phase 1 release.
-        </p>
-
-        <div className="mt-10 grid gap-6 md:grid-cols-2">
-          {WORKSPACE_CARDS.map((card) => (
-            <Link
-              key={card.href}
-              href={card.href}
-              className="group flex min-h-[240px] flex-col justify-between rounded-xl border border-white/10 bg-slate-900/30 p-8 transition-all hover:border-[#00E699]/40 hover:bg-slate-900/50 active:scale-[0.99]"
-            >
-              <div>
-                <span className="text-3xl" aria-hidden>{card.emoji}</span>
-                <h2 className="mt-4 text-xl font-bold text-white">{card.title}</h2>
-                <p className="mt-3 text-sm leading-relaxed text-slate-300">{card.description}</p>
-              </div>
-              <span className="mt-6 inline-flex w-fit rounded-xl bg-[#00E699] px-5 py-2.5 text-sm font-semibold text-[#0B0F15] transition-colors group-hover:bg-[#00CC88]">
-                Enter
-              </span>
-            </Link>
-          ))}
+    <div className="flex min-h-[100dvh] bg-[#0B0F15] text-slate-200">
+      <div
+        className={cn(
+          "shrink-0 overflow-hidden border-r border-white/[0.05] bg-[#0B0F15] transition-[width] duration-200",
+          sidebarOpen ? "w-[270px]" : "w-0",
+        )}
+      >
+        <div className="w-[270px]">
+          <DashboardV3Sidebar />
         </div>
-      </main>
+      </div>
 
-      <footer className="border-t border-white/10 px-6 py-6 text-center">
-        <Link
-          href="/contact"
-          className="text-sm font-medium text-[#00E699] transition-colors hover:text-[#00CC88]"
-        >
-          Send Feedback
-        </Link>
-      </footer>
+      <div className="flex min-w-0 flex-1 flex-col">
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => setSidebarOpen((open) => !open)}
+            className="absolute left-4 top-1/2 z-10 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-lg border border-white/[0.05] bg-[#131820] text-zinc-400 transition-colors hover:border-white/10 hover:text-white"
+            aria-label={sidebarOpen ? "Collapse navigation" : "Expand navigation"}
+          >
+            {sidebarOpen ? (
+              <PanelLeftClose className="h-4 w-4" />
+            ) : (
+              <PanelLeftOpen className="h-4 w-4" />
+            )}
+          </button>
+          <DashboardV3Topbar roleName={data.roleName ?? "Member"} />
+        </div>
+
+        <main className="flex-1 space-y-8 overflow-y-auto p-7">
+          <DashboardV3Hero project={data.latestProject ?? null} />
+
+          <DashboardV3ContinueWorkRail
+            projects={data.recentProjects ?? []}
+            walks={data.recentWalks ?? []}
+          />
+
+          <div className="grid gap-6 lg:grid-cols-2">
+            <DashboardV3ProcessingQueue jobs={data.processingJobs ?? []} />
+            <DashboardV3StorageBilling usage={data.usage ?? null} />
+          </div>
+        </main>
+      </div>
     </div>
   );
 }

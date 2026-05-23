@@ -14,7 +14,7 @@ export const PRICING_TIERS: PricingTier[] = [
   {
     id: "site-walk-pro",
     name: "Site Walk Workspace Pro",
-    monthly: 130,
+    monthly: 66,
     annual: 1290,
     annualEffectiveMonthly: 108,
     features: [
@@ -29,7 +29,7 @@ export const PRICING_TIERS: PricingTier[] = [
   {
     id: "digital-twin-pro",
     name: "Digital Twin Reality Studio",
-    monthly: 199,
+    monthly: 99,
     annual: 1990,
     annualEffectiveMonthly: 166,
     features: [

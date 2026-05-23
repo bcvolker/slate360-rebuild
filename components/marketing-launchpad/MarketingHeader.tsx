@@ -9,8 +9,8 @@ import { NAV_LINK } from "@/components/marketing-launchpad/marketing-styles";
 import { cn } from "@/lib/utils";
 
 const PRODUCT_LINKS = [
-  { label: "📷 Site Walk Field Engine", href: "#site-walk-start" },
-  { label: "🌐 Digital Twin Studio", href: "#digital-twin-start" },
+  { label: "Site Walk Field Engine", href: "#site-walk-start" },
+  { label: "Digital Twin Studio", href: "#digital-twin-start" },
 ] as const;
 
 const MOBILE_NAV_LINKS = [
