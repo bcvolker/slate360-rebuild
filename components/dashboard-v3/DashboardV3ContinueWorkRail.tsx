@@ -2,7 +2,7 @@ import { ChevronRight, FolderPlus, UploadCloud, Map, AppWindow, Clock } from "lu
 import { Button } from "@/components/ui/button";
 
 const EMPTY_ACTION_CARDS = [
-  { id: "create", title: "Create New Workspace", icon: FolderPlus, color: "text-amber-500", bg: "bg-amber-500/10" },
+  { id: "create", title: "Create New Workspace", icon: FolderPlus, color: "text-[#00E699]", bg: "bg-[#00E699]/10" },
   { id: "upload", title: "Upload to SlateDrop", icon: UploadCloud, color: "text-blue-500", bg: "bg-blue-500/10" },
   { id: "sitewalk", title: "Open Site Walk", icon: Map, color: "text-emerald-500", bg: "bg-emerald-500/10" },
   { id: "twin", title: "Start Digital Twin", icon: AppWindow, color: "text-purple-500", bg: "bg-purple-500/10" }
@@ -17,7 +17,7 @@ export function DashboardV3ContinueWorkRail({ projects = [], walks = [] }: { pro
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold text-white tracking-tight">Continue Work</h3>
-        <Button variant="link" size="sm" className="h-auto p-0 text-xs font-semibold text-amber-500 hover:text-amber-400 group">
+        <Button variant="link" size="sm" className="group h-auto p-0 text-xs font-semibold text-[#00E699] hover:text-[#00CC88]">
           View all <ChevronRight className="h-3.5 w-3.5 ml-0.5 transition-transform group-hover:translate-x-0.5" />
         </Button>
       </div>
@@ -41,7 +41,7 @@ export function DashboardV3ContinueWorkRail({ projects = [], walks = [] }: { pro
           const Icon = card.icon;
           return (
           <div key={`empty-${i}`} className="group relative w-[300px] flex-shrink-0 overflow-hidden rounded-xl border border-dashed border-white/10 bg-white/[0.01] hover:bg-white/[0.03] transition-colors aspect-[16/10] flex flex-col items-center justify-center p-6 text-center cursor-pointer snap-start">
-            <div className={`flex h-12 w-12 items-center justify-center rounded-full mb-4 ${card.bg}`}>
+            <div className={`mb-4 flex h-12 w-12 items-center justify-center rounded-xl ${card.bg}`}>
               <Icon className={`h-6 w-6 ${card.color}`} />
             </div>
             <span className="text-sm font-semibold text-zinc-300 group-hover:text-white transition-colors">{card.title}</span>

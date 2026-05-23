@@ -22,8 +22,8 @@ export function DashboardV3Hero({ project }: { project: any }) {
       {/* Content */}
       <div className="relative z-10 flex flex-col h-full justify-end max-w-2xl">
         <div className="mb-3">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-amber-500 backdrop-blur-md">
-            <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+          <span className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-[#00E699] backdrop-blur-md">
+            <span className="h-1.5 w-1.5 animate-pulse rounded-xl bg-[#00E699]"></span>
             {subtitle}
           </span>
         </div>
@@ -34,12 +34,12 @@ export function DashboardV3Hero({ project }: { project: any }) {
 
         <div className="flex items-center gap-3">
           {hasProject ? (
-            <Button className="bg-amber-500 text-[#0B0F15] hover:bg-amber-400 font-semibold gap-2 border-0">
+            <Button className="gap-2 border-0 bg-[#00E699] font-semibold text-[#F8FAFC] hover:bg-[#00CC88]">
               <FolderGit2 className="h-4 w-4" />
               Open Workspace
             </Button>
           ) : (
-            <Button className="bg-amber-500 text-[#0B0F15] hover:bg-amber-400 font-semibold gap-2 border-0">
+            <Button className="gap-2 border-0 bg-[#00E699] font-semibold text-[#F8FAFC] hover:bg-[#00CC88]">
               <Plus className="h-4 w-4" />
               Create New
             </Button>

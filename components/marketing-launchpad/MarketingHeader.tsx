@@ -38,9 +38,9 @@ export function MarketingHeader() {
   }, []);
 
   return (
-    <header className="fixed top-0 z-50 h-16 w-full border-b border-white/[0.05] bg-[#0B0F15]/90 backdrop-blur-xl">
+    <header className="absolute top-0 z-50 h-16 w-full border-none bg-transparent">
       <div className="relative mx-auto grid h-full w-full grid-cols-[auto_1fr_auto] items-center px-6 lg:px-12">
-        <Link href="/" aria-label="Slate360 home" className="shrink-0">
+        <Link href="/" aria-label="Slate360 home">
           <Slate360Logo variant="dark" />
         </Link>
 

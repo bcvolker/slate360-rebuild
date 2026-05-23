@@ -6,7 +6,7 @@ export function DashboardV3CoordinationPanel({ alerts = [] }: { alerts: any[] })
       <h3 className="mb-4 text-sm font-semibold text-white tracking-tight">Coordination</h3>
       <div className="flex items-center gap-5 border-b border-white/10 pb-4 mb-4">
         {['Alerts', 'Messages', 'Shared', 'Assigned', 'Access'].map((t, i) => (
-          <span key={i} className={`text-[11px] font-bold uppercase tracking-wider cursor-pointer ${i===0 ? 'text-amber-500' : 'text-zinc-500 hover:text-zinc-300 transition-colors'}`}>{t}</span>
+          <span key={i} className={`cursor-pointer text-[11px] font-bold uppercase tracking-wider ${i===0 ? 'text-[#00E699]' : 'text-zinc-500 transition-colors hover:text-zinc-300'}`}>{t}</span>
         ))}
       </div>
       <div className="flex-1 min-h-[180px] flex flex-col justify-center">

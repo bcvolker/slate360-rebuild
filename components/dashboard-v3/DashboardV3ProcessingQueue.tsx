@@ -15,7 +15,7 @@ export function DashboardV3ProcessingQueue({ jobs = [] }: { jobs: any[] }) {
              {jobs.map((j, i) => (
                <div key={i} className="flex items-center justify-between rounded-lg p-3 bg-white/[0.02] border border-white/5 text-sm hover:border-white/10 transition-colors">
                  <span className="text-zinc-300 font-medium">Job {j.id?.substring(0,6) || "processing..."}</span>
-                 <span className="text-amber-500 text-xs font-bold uppercase">Processing</span>
+                 <span className="text-xs font-bold uppercase text-[#00E699]">Processing</span>
                </div>
              ))}
           </div>

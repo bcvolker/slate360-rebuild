@@ -1,52 +1,130 @@
-import { SlateLogo } from "@/components/shared/SlateLogo";
-import { Home, FolderGit2, CalendarCheck2, Inbox, Share2, Layers, Map, AppWindow, Users, Shield, Settings, CreditCard, Settings2, HelpCircle, Lightbulb, Bug } from "lucide-react";
+"use client";
+
+import { useState } from "react";
+import {
+  AppWindow,
+  CalendarCheck2,
+  ChevronDown,
+  CreditCard,
+  FolderGit2,
+  Home,
+  Inbox,
+  Map,
+  Settings2,
+  Users,
+} from "lucide-react";
 import Link from "next/link";
+import { Slate360Logo } from "@/components/studio-ui/LogoProvider";
 import { cn } from "@/lib/utils";
 
-const NAV_GROUPS = [
-  { label: "Command Center", items: [{ icon: Home, label: "Dashboard", href: "#", active: true }, { icon: FolderGit2, label: "Projects", href: "#" }, { icon: CalendarCheck2, label: "Deliverables", href: "#" }, { icon: Inbox, label: "Coordination", href: "#" }] },
-  { label: "Files & Sharing", items: [{ icon: Layers, label: "SlateDrop", href: "#" }, { icon: Share2, label: "Shared Links", href: "#" }] },
-  { label: "Apps", items: [{ icon: Map, label: "Site Walk", href: "#" }, { icon: AppWindow, label: "Slate360 Twin", href: "#" }] },
-  { label: "Organization", items: [{ icon: Users, label: "Team & Access", href: "#" }, { icon: Users, label: "Collaborators", href: "#" }, { icon: Shield, label: "Permissions", href: "#" }] },
-  { label: "Admin", items: [{ icon: Settings, label: "Account", href: "#" }, { icon: CreditCard, label: "Billing & Usage", href: "#" }, { icon: Settings2, label: "Ops Console", href: "#" }] },
+type NavItem = {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  href: string;
+  active?: boolean;
+};
+
+type NavGroup = {
+  id: string;
+  label: string;
+  defaultExpanded: boolean;
+  items: NavItem[];
+};
+
+const NAV_GROUPS: NavGroup[] = [
+  {
+    id: "command-center",
+    label: "Command Center",
+    defaultExpanded: true,
+    items: [
+      { icon: Home, label: "Dashboard", href: "#", active: true },
+      { icon: FolderGit2, label: "Projects", href: "#" },
+      { icon: CalendarCheck2, label: "Deliverables", href: "#" },
+      { icon: Inbox, label: "Coordination", href: "#" },
+    ],
+  },
+  {
+    id: "core-workspace",
+    label: "Core Workspace Apps",
+    defaultExpanded: true,
+    items: [
+      { icon: Map, label: "Site Walk Field Hub", href: "#" },
+      { icon: AppWindow, label: "Digital Twin Studio", href: "#" },
+    ],
+  },
+  {
+    id: "system-admin",
+    label: "System Administration",
+    defaultExpanded: false,
+    items: [
+      { icon: Users, label: "Team Access", href: "#" },
+      { icon: CreditCard, label: "Billing & Usage", href: "#" },
+      { icon: Settings2, label: "Ops Console", href: "#" },
+    ],
+  },
 ];
 
-const FOOTER_ITEMS = [
-  { icon: HelpCircle, label: "Help", href: "#" },
-  { icon: Lightbulb, label: "Suggest Feature", href: "#" },
-  { icon: Bug, label: "Report Bug", href: "#" },
-];
+const FOLDER_ROW =
+  "flex cursor-pointer items-center justify-between px-4 py-2 text-xs font-semibold uppercase tracking-wider text-zinc-500 transition-colors duration-150 hover:text-white";
 
 export function DashboardV3Sidebar() {
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(() =>
+    Object.fromEntries(NAV_GROUPS.map((group) => [group.id, group.defaultExpanded])),
+  );
+
+  const toggleGroup = (groupId: string) => {
+    setExpandedGroups((current) => ({ ...current, [groupId]: !current[groupId] }));
+  };
+
   return (
-    <aside className="flex w-[270px] flex-col border-r border-white/5 bg-[#0B0F15] h-screen overflow-hidden text-sm">
+    <aside className="flex h-screen w-[270px] flex-col overflow-hidden border-r border-white/5 bg-[#0B0F15] text-sm">
       <div className="flex h-[68px] shrink-0 items-center px-6">
-        <SlateLogo size="md" />
+        <Slate360Logo variant="dark" />
       </div>
-      <div className="flex-1 overflow-y-auto px-4 py-4 scrollbar-hide">
-        <div className="space-y-6">
-          {NAV_GROUPS.map((g, i) => (
-            <div key={i}>
-              <div className="mb-2 px-2 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">{g.label}</div>
-              <div className="space-y-0.5">
-                {g.items.map((item, j) => (
-                  <Link key={j} href={item.href} className={cn("flex cursor-pointer select-none items-center gap-3 rounded-md px-2 py-2 text-zinc-400 transition-colors hover:bg-white/5 hover:text-zinc-100", item.active && "bg-white/10 text-white font-medium")}>
-                    <item.icon className="h-4 w-4" />
-                    <span>{item.label}</span>
-                  </Link>
-                ))}
+
+      <div className="scrollbar-hide flex-1 overflow-y-auto px-2 py-4">
+        <div className="space-y-2">
+          {NAV_GROUPS.map((group) => {
+            const expanded = expandedGroups[group.id];
+
+            return (
+              <div key={group.id}>
+                <button
+                  type="button"
+                  className={FOLDER_ROW}
+                  onClick={() => toggleGroup(group.id)}
+                  aria-expanded={expanded}
+                >
+                  <span>{group.label}</span>
+                  <ChevronDown
+                    className={cn(
+                      "h-3.5 w-3.5 transition-transform duration-150",
+                      expanded ? "rotate-0" : "-rotate-90",
+                    )}
+                  />
+                </button>
+
+                {expanded ? (
+                  <div className="space-y-0.5 px-2 pb-2">
+                    {group.items.map((item) => (
+                      <Link
+                        key={item.label}
+                        href={item.href}
+                        className={cn(
+                          "flex cursor-pointer select-none items-center gap-3 rounded-xl px-2 py-2 text-zinc-400 transition-colors hover:bg-white/5 hover:text-[#F8FAFC]",
+                          item.active && "bg-white/10 font-medium text-[#F8FAFC]",
+                        )}
+                      >
+                        <item.icon className="h-4 w-4" />
+                        <span>{item.label}</span>
+                      </Link>
+                    ))}
+                  </div>
+                ) : null}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
-      </div>
-      <div className="border-t border-white/5 p-4 space-y-0.5 shrink-0">
-        {FOOTER_ITEMS.map((item, i) => (
-          <Link key={i} href={item.href} className="flex cursor-pointer select-none items-center gap-3 rounded-md px-2 py-2 text-zinc-400 transition-colors hover:bg-white/5 hover:text-zinc-100">
-            <item.icon className="h-4 w-4" />
-            <span>{item.label}</span>
-          </Link>
-        ))}
       </div>
     </aside>
   );

@@ -36,10 +36,10 @@ export function DashboardV3StorageBilling({ usage }: { usage: any }) {
           <div className="space-y-2">
             <div className="flex items-center justify-between text-xs font-semibold">
               <span className="text-zinc-400">Current Plan</span>
-              <span className="text-amber-500 flex items-center gap-1"><Zap className="h-3 w-3" /> Pro Tier</span>
+              <span className="flex items-center gap-1 text-[#00E699]"><Zap className="h-3 w-3" /> Pro Tier</span>
             </div>
-            <div className="h-2 w-full rounded-full bg-white/5 overflow-hidden">
-              <div className="h-full rounded-full bg-amber-500" style={{ width: `${percent}%` }} />
+            <div className="h-2 w-full overflow-hidden rounded-xl bg-white/5">
+              <div className="h-full rounded-xl bg-[#00E699]" style={{ width: `${percent}%` }} />
             </div>
             <p className="text-[10px] text-zinc-500 font-medium">{percent}% of limit</p>
           </div>
