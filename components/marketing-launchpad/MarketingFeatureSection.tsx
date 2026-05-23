@@ -4,8 +4,8 @@ import { MarketingMediaPanel } from "@/components/marketing-launchpad/MarketingM
 import {
   BODY_COPY,
   CTA_LINK,
-  FEATURE_CELL,
   FEATURE_GRID,
+  FEATURE_ITEM,
   MEDIA_COLUMN,
   TEXT_COLUMN,
   TILE_SECTION,
@@ -22,9 +22,11 @@ function FeatureCopy({ tile }: { tile: MarketingTile }) {
       <p className={`mt-5 ${BODY_COPY}`}>{tile.description}</p>
       <ul className={FEATURE_GRID}>
         {tile.features.map((feature) => (
-          <li key={feature.title} className={FEATURE_CELL}>
-            <span aria-hidden className="mr-1.5">{feature.icon}</span>
-            <span className="font-medium text-white">{feature.title}:</span> {feature.body}
+          <li key={feature} className={FEATURE_ITEM}>
+            <span aria-hidden className="shrink-0 text-[#00E699]">
+              ✓
+            </span>
+            <span>{feature}</span>
           </li>
         ))}
       </ul>

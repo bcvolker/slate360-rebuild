@@ -17,7 +17,11 @@ type MarketingMediaPanelProps = {
 };
 
 function ViewerShell({ children }: { children: React.ReactNode }) {
-  return <div className={cn(VIEWER_FRAME, "w-full")}>{children}</div>;
+  return (
+    <div className={cn(VIEWER_FRAME, "h-full w-full [&>*]:absolute [&>*]:inset-0 [&>*]:h-full [&>*]:w-full")}>
+      {children}
+    </div>
+  );
 }
 
 function BlueprintMapPanel() {
@@ -100,7 +104,7 @@ export function MarketingMediaPanel({ variant }: MarketingMediaPanelProps) {
 
 export function HeroMediaFrame() {
   return (
-    <div className="flex w-full items-center justify-center lg:w-[45%]">
+    <div className="flex w-full items-center justify-center lg:w-[55%]">
       <MarketingMediaPanel variant="hero-model" />
     </div>
   );

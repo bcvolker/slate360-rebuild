@@ -1,88 +1,44 @@
-"use client";
-
 import Link from "next/link";
-import { useState } from "react";
 import {
   TILE_SECTION,
   PRICING_CARD,
-  TOGGLE_BTN,
-  TOGGLE_BTN_ACTIVE,
-  TOGGLE_BTN_IDLE,
+  PRICING_CTA,
 } from "@/components/marketing-launchpad/marketing-styles";
-import {
-  type Billing,
-  type ProductLine,
-  PRODUCT_TABS,
-  PLAN_CATALOG,
-  formatPlanPrice,
-} from "@/components/marketing-launchpad/pricing-data";
-
-function ToggleRow({
-  options,
-  value,
-  onChange,
-}: {
-  options: { id: string; label: string }[];
-  value: string;
-  onChange: (id: string) => void;
-}) {
-  return (
-    <div className="flex flex-wrap justify-center gap-2">
-      {options.map((opt) => (
-        <button
-          key={opt.id}
-          type="button"
-          onClick={() => onChange(opt.id)}
-          className={`${TOGGLE_BTN} ${value === opt.id ? TOGGLE_BTN_ACTIVE : TOGGLE_BTN_IDLE}`}
-        >
-          {opt.label}
-        </button>
-      ))}
-    </div>
-  );
-}
+import { SHOWCASE_PLANS } from "@/components/marketing-launchpad/pricing-data";
 
 export function MarketingPricingSection() {
-  const [billing, setBilling] = useState<Billing>("annual");
-  const [product, setProduct] = useState<ProductLine>("site-walk");
-  const plans = PLAN_CATALOG[product];
-
   return (
     <section id="pricing-matrix-section" className={`${TILE_SECTION} items-center`}>
-      <div className="mx-auto w-full max-w-5xl">
-        <h2 className="mb-8 text-center text-3xl font-bold tracking-tight text-[#FFFFFF] lg:text-4xl">
+      <div className="mx-auto w-full max-w-[1400px]">
+        <h2 className="mb-10 text-center text-3xl font-bold tracking-tight text-[#FFFFFF] lg:text-4xl">
           Subscription Engine
         </h2>
 
-        <ToggleRow
-          options={[
-            { id: "monthly", label: "Monthly Billing" },
-            { id: "annual", label: "Annual Billing (Save 17%)" },
-          ]}
-          value={billing}
-          onChange={(id) => setBilling(id as Billing)}
-        />
-
-        <div className="mt-4">
-          <ToggleRow
-            options={PRODUCT_TABS}
-            value={product}
-            onChange={(id) => setProduct(id as ProductLine)}
-          />
-        </div>
-
-        <div className="mt-8 grid gap-6 md:grid-cols-2">
-          {plans.map((plan) => (
+        <div className="grid gap-6 lg:grid-cols-2">
+          {SHOWCASE_PLANS.map((plan) => (
             <article key={plan.id} className={PRICING_CARD}>
-              <h3 className="text-xl font-bold text-[#FFFFFF]">{plan.name}</h3>
-              <p className="mt-2 text-sm font-semibold text-[#00E699]">
-                {formatPlanPrice(plan, billing)}
-              </p>
-              <p className="mt-4 flex-1 text-sm leading-relaxed text-slate-200">{plan.features}</p>
-              <Link
-                href={`/signup?plan=${plan.id}&billing=${billing}`}
-                className="mt-6 inline-flex w-full items-center justify-center rounded-xl bg-[#00E699] py-3 text-sm font-semibold tracking-tight text-[#0B0F15] transition-all hover:bg-[#00CC88] active:scale-[0.99]"
-              >
+              <h3 className="text-xl font-bold text-[#FFFFFF] lg:text-2xl">{plan.name}</h3>
+              <div className="mt-4 flex flex-wrap items-baseline gap-x-4 gap-y-1">
+                <p className="text-4xl font-bold tracking-tight text-[#00E699]">
+                  ${plan.annualMonthly}
+                  <span className="text-lg font-medium text-[#A3AED0]">/mo</span>
+                </p>
+                <p className="text-sm text-[#A3AED0]">billed annually</p>
+                <p className="text-sm text-[#A3AED0]">
+                  or ${plan.monthly}/mo monthly
+                </p>
+              </div>
+              <ul className="mt-6 space-y-3">
+                {plan.features.map((feature) => (
+                  <li key={feature} className="flex items-start gap-2.5 text-base text-[#F8FAFC]">
+                    <span aria-hidden className="shrink-0 text-[#00E699]">
+                      ✓
+                    </span>
+                    <span>{feature}</span>
+                  </li>
+                ))}
+              </ul>
+              <Link href={`/signup?plan=${plan.id}`} className={PRICING_CTA}>
                 {plan.button}
               </Link>
             </article>

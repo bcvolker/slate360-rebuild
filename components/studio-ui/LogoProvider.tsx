@@ -19,19 +19,18 @@ export function Slate360Logo({
 }: Slate360LogoProps) {
   const wordmarkClass =
     variant === "light"
-      ? "ml-3 select-none font-sans text-xl font-bold tracking-[0.12em] text-slate-900"
-      : "ml-3 select-none font-sans text-xl font-bold tracking-[0.12em] text-white";
+      ? "font-sans font-bold tracking-[0.15em] text-2xl text-slate-900 select-none ml-4"
+      : "font-sans font-bold tracking-[0.15em] text-2xl text-white select-none ml-4";
 
   return (
-    <div className={cn("inline-flex items-center", className)}>
+    <div className={cn("inline-flex items-center shrink-0", className)}>
       <svg
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 142.6 142.6"
-        preserveAspectRatio="xMidYMid meet"
         role="img"
         aria-hidden={showWordmark}
         aria-label={showWordmark ? undefined : "Slate360"}
-        className="block h-7 w-auto shrink-0 text-[#00E699]"
+        className="h-8 w-auto block shrink-0 text-[#00E699]"
       >
         <defs>
           <linearGradient id="slate360-emblem-gradient" x1="0%" y1="0%" x2="0%" y2="100%">

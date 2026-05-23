@@ -1,7 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
+import { Slate360Logo } from "@/components/studio-ui/LogoProvider";
 import {
   AUTH_CANVAS,
   AUTH_CARD,
@@ -98,9 +100,14 @@ export function ContactPageShell() {
   return (
     <div className={AUTH_CANVAS}>
       <div className={`${AUTH_CARD} max-w-lg`}>
+        <div className="mb-8 flex justify-center">
+          <Link href="/" aria-label="Slate360 home">
+            <Slate360Logo variant="dark" />
+          </Link>
+        </div>
         <h1 className="mb-2 text-center text-2xl font-bold text-[#FFFFFF]">Contact Slate360</h1>
         <p className="mb-8 text-center text-sm text-[#A3AED0]">
-          Reach the team for access requests, enterprise pricing, or product questions.
+          Reach the team for access requests, enterprise pricing, or product feedback.
         </p>
         <ContactForm />
       </div>
