@@ -1,72 +1,109 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { Camera, Globe2, MapPin, Orbit } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { GLASS_MEDIA_FRAME, MOBILE_MEDIA_FRAME } from "@/components/marketing-launchpad/marketing-styles";
+import { VIEWER_FRAME } from "@/components/marketing-launchpad/marketing-styles";
 
 const ModelViewerClient = dynamic(() => import("@/components/ModelViewerClient"), { ssr: false });
+const PanoramaViewer = dynamic(() => import("@/components/home/PanoramaViewer"), { ssr: false });
+
+const SITE_WALK_VIDEO =
+  "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
+const PANORAMA_SRC = "/uploads/pletchers.jpg";
+const MODEL_SRC = "/uploads/csb-stadium-model.glb";
 
 type MarketingMediaPanelProps = {
   variant: "hero-model" | "capture" | "maps" | "twin" | "panorama";
-  className?: string;
 };
 
-const PANEL_COPY = {
-  capture: { icon: Camera, label: "Mobile field capture workspace" },
-  maps: { icon: MapPin, label: "Interactive plan pin mapping" },
-  twin: { icon: Orbit, label: "Digital twin 3D environment" },
-  panorama: { icon: Globe2, label: "360° panoramic traversal" },
-} as const;
+function ViewerShell({ children, className }: { children: React.ReactNode; className?: string }) {
+  return <div className={cn(VIEWER_FRAME, className)}>{children}</div>;
+}
 
-function IllustrationPanel({ variant }: { variant: keyof typeof PANEL_COPY }) {
-  const { icon: Icon, label } = PANEL_COPY[variant];
+function BlueprintMapPanel() {
+  const pins = [
+    { top: "22%", left: "28%", label: "Entry" },
+    { top: "48%", left: "62%", label: "Core" },
+    { top: "70%", left: "38%", label: "West wing" },
+  ];
+
   return (
-    <div className="flex h-full w-full flex-col items-center justify-center gap-4 bg-gradient-to-br from-slate-900/80 via-[#0B0F15] to-slate-900/60 p-8">
-      <div className="flex h-16 w-16 items-center justify-center rounded-xl border border-[#00E699]/20 bg-[#00E699]/10">
-        <Icon className="h-8 w-8 text-[#00E699]" aria-hidden />
+    <div className="relative h-full w-full bg-[#0B0F15] p-6">
+      <div className="relative h-full w-full rounded-xl border border-white/[0.06] bg-slate-900/50">
+        <div className="absolute inset-4 grid grid-cols-6 grid-rows-4 gap-1 opacity-40">
+          {Array.from({ length: 24 }).map((_, i) => (
+            <div key={i} className="border border-white/[0.06]" />
+          ))}
+        </div>
+        {pins.map((pin) => (
+          <button
+            key={pin.label}
+            type="button"
+            className="absolute flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-1"
+            style={{ top: pin.top, left: pin.left }}
+            aria-label={`Plan pin: ${pin.label}`}
+          >
+            <span className="flex h-8 w-8 items-center justify-center rounded-xl border border-[#00E699]/40 bg-[#00E699]/20 text-xs font-bold text-[#00E699]">
+              ●
+            </span>
+            <span className="text-[10px] font-medium text-[#A3AED0]">{pin.label}</span>
+          </button>
+        ))}
       </div>
-      <p className="max-w-xs text-center text-sm text-[#A3AED0]">{label}</p>
     </div>
   );
 }
 
-export function MarketingMediaPanel({ variant, className }: MarketingMediaPanelProps) {
-  const frameClass = cn(MOBILE_MEDIA_FRAME, className);
-
+export function MarketingMediaPanel({ variant }: MarketingMediaPanelProps) {
   if (variant === "hero-model" || variant === "twin") {
     return (
-      <div className={frameClass}>
+      <ViewerShell>
         <ModelViewerClient
-          src="/uploads/csb-stadium-model.glb"
+          src={MODEL_SRC}
           alt="Interactive structural environment twin"
           cameraOrbit="45deg 65deg 107%"
           shadowIntensity={1}
           shadowSoftness={1}
         />
-      </div>
+      </ViewerShell>
+    );
+  }
+
+  if (variant === "capture") {
+    return (
+      <ViewerShell>
+        <video
+          className="h-full w-full object-cover"
+          src={SITE_WALK_VIDEO}
+          autoPlay
+          loop
+          muted
+          playsInline
+          aria-label="Site Walk product walkthrough"
+        />
+      </ViewerShell>
+    );
+  }
+
+  if (variant === "maps") {
+    return (
+      <ViewerShell>
+        <BlueprintMapPanel />
+      </ViewerShell>
     );
   }
 
   return (
-    <div className={frameClass}>
-      <IllustrationPanel variant={variant} />
-    </div>
+    <ViewerShell>
+      <PanoramaViewer src={PANORAMA_SRC} />
+    </ViewerShell>
   );
 }
 
 export function HeroMediaFrame() {
   return (
     <div className="flex w-full flex-1 items-center justify-center lg:w-[60%]">
-      <div className={cn(GLASS_MEDIA_FRAME, "aspect-[4/3] min-h-[280px] lg:aspect-auto lg:min-h-[420px]")}>
-        <ModelViewerClient
-          src="/uploads/csb-stadium-model.glb"
-          alt="Interactive structural environment twin"
-          cameraOrbit="45deg 65deg 107%"
-          shadowIntensity={1}
-          shadowSoftness={1}
-        />
-      </div>
+      <MarketingMediaPanel variant="hero-model" />
     </div>
   );
 }

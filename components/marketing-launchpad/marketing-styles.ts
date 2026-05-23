@@ -1,8 +1,5 @@
-export const GLASS_MEDIA_FRAME =
-  "flex h-full w-[85%] items-center justify-center overflow-hidden rounded-xl border border-white/[0.08] bg-slate-900/40 shadow-[0_0_50px_rgba(0,230,153,0.03)]";
-
-export const MOBILE_MEDIA_FRAME =
-  "mt-6 aspect-[4/3] w-full overflow-hidden rounded-xl border border-white/[0.08] bg-slate-900/40 shadow-[0_0_50px_rgba(0,230,153,0.03)] lg:mt-0 lg:aspect-auto lg:h-full lg:w-[85%]";
+export const VIEWER_FRAME =
+  "relative flex w-full aspect-[16/10] items-center justify-center overflow-hidden rounded-xl border border-white/[0.08] bg-slate-900/30 shadow-[0_0_50px_rgba(0,230,153,0.02)] backdrop-blur-xl";
 
 export const TILE_SECTION =
   "relative flex h-[100dvh] w-full snap-start scroll-snapped-transform px-6 pb-10 pt-28 lg:px-12";
@@ -13,5 +10,16 @@ export const CTA_LINK =
 export const NAV_LINK =
   "text-base font-medium text-slate-300 transition-colors duration-150 hover:text-[#00E699]";
 
+export const FEATURE_LINE = "text-sm font-normal tracking-wide text-slate-200";
+
 export const PRICING_CARD =
   "flex h-full flex-col rounded-xl border border-white/[0.08] bg-slate-900/40 p-8 backdrop-blur-sm";
+
+export const TOGGLE_BTN =
+  "rounded-xl border px-4 py-2 text-sm font-medium transition-all duration-150";
+
+export const TOGGLE_BTN_ACTIVE =
+  "border-[#00E699]/50 bg-[#00E699]/15 text-[#00E699]";
+
+export const TOGGLE_BTN_IDLE =
+  "border-white/[0.08] bg-slate-900/30 text-slate-300 hover:border-white/[0.14] hover:text-white";

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { MarketingTile } from "@/components/marketing-launchpad/marketing-tile-data";
 import { MarketingMediaPanel } from "@/components/marketing-launchpad/MarketingMediaPanel";
-import { CTA_LINK, TILE_SECTION } from "@/components/marketing-launchpad/marketing-styles";
+import { CTA_LINK, FEATURE_LINE, TILE_SECTION } from "@/components/marketing-launchpad/marketing-styles";
 
 type MarketingFeatureSectionProps = {
   tile: MarketingTile;
@@ -12,14 +12,11 @@ function FeatureCopy({ tile }: { tile: MarketingTile }) {
     <div className="flex w-full flex-col justify-center lg:w-[40%]">
       <h2 className="text-3xl font-bold tracking-tight text-[#FFFFFF] lg:text-4xl">{tile.title}</h2>
       <p className="mt-5 text-base leading-relaxed text-[#F8FAFC]">{tile.description}</p>
-      <ul className="mt-6 grid gap-4">
+      <ul className="mt-6 space-y-2.5">
         {tile.features.map((feature) => (
-          <li key={feature.title} className="rounded-xl border border-white/[0.05] bg-slate-900/30 p-4">
-            <p className="text-sm font-semibold text-[#FFFFFF]">
-              <span aria-hidden className="mr-2">{feature.icon}</span>
-              {feature.title}
-            </p>
-            <p className="mt-1 text-sm leading-relaxed text-[#A3AED0]">{feature.body}</p>
+          <li key={feature.title} className={FEATURE_LINE}>
+            <span aria-hidden className="mr-2">{feature.icon}</span>
+            <span className="font-medium text-[#FFFFFF]">{feature.title}:</span> {feature.body}
           </li>
         ))}
       </ul>

@@ -23,18 +23,19 @@ export function Slate360Logo({
 }: Slate360LogoProps) {
   const textClass =
     variant === "light"
-      ? "font-sans font-semibold text-slate-900 tracking-[0.14em] text-[16px]"
-      : "font-sans font-semibold text-slate-100 tracking-[0.14em] text-[16px]";
+      ? "font-sans font-semibold tracking-[0.14em] text-slate-900"
+      : "font-sans font-semibold tracking-[0.14em] text-slate-100";
 
   return (
-    <div className={cn("inline-flex items-center gap-3", className)}>
+    <div className={cn("inline-flex items-center gap-[0.65em] leading-none", className)}>
       <svg
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 142.6 142.6"
+        preserveAspectRatio="xMidYMid meet"
         role="img"
         aria-hidden={showWordmark}
         aria-label={showWordmark ? undefined : "Slate360"}
-        className={cn("h-9 w-9 shrink-0", emblemClassName)}
+        className={cn("h-[1em] w-[1em] shrink-0", emblemClassName)}
       >
         <defs>
           <linearGradient id="slate360-emblem-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -45,7 +46,9 @@ export function Slate360Logo({
         <path fill="url(#slate360-emblem-gradient)" d={S_EMBLEM_UPPER} />
         <path fill="url(#slate360-emblem-gradient)" d={S_EMBLEM_LOWER} />
       </svg>
-      {showWordmark ? <span className={cn(textClass, wordmarkClassName)}>SLATE360</span> : null}
+      {showWordmark ? (
+        <span className={cn("text-base", textClass, wordmarkClassName)}>SLATE360</span>
+      ) : null}
     </div>
   );
 }
@@ -55,6 +58,7 @@ export function Slate360EmblemIcon({ className }: { className?: string }) {
     <svg
       xmlns="http://www.w3.org/2000/svg"
       viewBox="0 0 142.6 142.6"
+      preserveAspectRatio="xMidYMid meet"
       role="img"
       aria-label="Slate360"
       className={cn("h-full w-full", className)}

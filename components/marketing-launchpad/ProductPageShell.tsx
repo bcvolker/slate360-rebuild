@@ -12,7 +12,7 @@ export function ProductPageShell({ title, children }: ProductPageShellProps) {
     <div className="min-h-screen bg-[#0B0F15]">
       <header className="flex h-20 items-center justify-between border-b border-white/[0.05] bg-[#0B0F15]/80 px-6 backdrop-blur-xl lg:px-12">
         <Link href="/" aria-label="Slate360 home">
-          <Slate360Logo variant="dark" />
+          <Slate360Logo variant="dark" className="text-lg" />
         </Link>
         <nav className="flex items-center gap-8">
           <Link href="/#site-walk-section-start" className={NAV_LINK}>
@@ -36,6 +36,12 @@ export function ProductPageShell({ title, children }: ProductPageShellProps) {
             className="rounded-xl bg-[#00E699] px-6 py-3 text-sm font-semibold text-[#0B0F15] transition-all hover:bg-[#00CC88] active:scale-[0.99]"
           >
             Request Access
+          </Link>
+          <Link
+            href="/contact"
+            className="rounded-xl border border-white/[0.08] px-6 py-3 text-sm font-semibold text-[#F8FAFC] transition-all hover:border-[#00E699]/40"
+          >
+            Contact Sales
           </Link>
           <Link
             href="/"

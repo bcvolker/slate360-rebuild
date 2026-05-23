@@ -18,7 +18,7 @@ export function MarketingFooter() {
     <footer className="snap-start border-t border-white/[0.05] bg-[#0B0F15] px-6 py-12 lg:px-12">
       <div className="mx-auto grid max-w-[1400px] grid-cols-2 gap-8 text-sm text-[#A3AED0] md:grid-cols-4">
         <div>
-          <Slate360Logo variant="dark" emblemClassName="h-5 w-5" wordmarkClassName="text-[13px]" />
+          <Slate360Logo variant="dark" wordmarkClassName="text-[13px]" />
           <p className="mt-4 leading-relaxed">
             Slate360 is primarily a mobile app ecosystem for iOS and Android. Desktop Studio access is
             provided as a secondary cloud environment.
@@ -52,9 +52,9 @@ export function MarketingFooter() {
           <p className="mb-3 font-semibold text-[#FFFFFF]">Corporate</p>
           <ul className="space-y-2">
             <li>
-              <a href="mailto:support@slate360.com" className="transition-colors hover:text-[#00E699]">
-                support@slate360.com
-              </a>
+              <Link href="/contact" className="transition-colors hover:text-[#00E699]">
+                Contact
+              </Link>
             </li>
             <li>
               <Link href="/operations-console/feedback" className="transition-colors hover:text-[#00E699]">

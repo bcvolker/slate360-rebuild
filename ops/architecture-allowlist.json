@@ -11,6 +11,7 @@
     "app/api/weather/reverse-geocode/route.ts",
     "app/api/view/**/route.ts",
     "app/api/email/send/route.ts",
-    "app/api/projects/view-mode/route.ts"
+    "app/api/projects/view-mode/route.ts",
+    "app/api/contact/route.ts"
   ]
 }
