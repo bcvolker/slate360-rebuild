@@ -5,7 +5,9 @@ import { cn } from "@/lib/utils";
 import { VIEWER_FRAME } from "@/components/marketing-launchpad/marketing-styles";
 
 const ModelViewerClient = dynamic(() => import("@/components/ModelViewerClient"), { ssr: false });
-const PanoramaViewer = dynamic(() => import("@/components/home/PanoramaViewer"), { ssr: false });
+const PanoramaViewer = dynamic(() => import("@/components/marketing-launchpad/PanoramaViewer"), {
+  ssr: false,
+});
 
 const SITE_WALK_VIDEO =
   "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
