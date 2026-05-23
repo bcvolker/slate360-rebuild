@@ -1,8 +1,11 @@
 export const VIEWER_FRAME =
-  "w-full lg:w-[55%] aspect-[16/10] bg-slate-900/40 border border-white/[0.08] rounded-xl relative flex items-center justify-center overflow-hidden shadow-[0_0_50px_rgba(0,230,153,0.01)]";
+  "w-full aspect-[16/10] bg-slate-900/40 border border-white/[0.08] rounded-xl relative flex items-center justify-center overflow-hidden shadow-[0_0_50px_rgba(0,230,153,0.01)]";
 
-export const TEXT_COLUMN = "flex w-full flex-col justify-center lg:w-[45%]";
-export const MEDIA_COLUMN = "flex w-full items-center justify-center lg:justify-end";
+export const TEXT_COLUMN = "flex w-full flex-col justify-center lg:min-w-0";
+export const MEDIA_COLUMN = "flex w-full items-center justify-center lg:min-w-0 lg:justify-end";
+
+export const TILE_ROW =
+  "mx-auto flex h-full w-full flex-col lg:grid lg:grid-cols-[55fr_55fr] lg:items-center lg:gap-10";
 
 export const BODY_COPY = "text-base font-normal text-slate-300 leading-relaxed mb-6 lg:max-w-2xl lg:text-lg";
 

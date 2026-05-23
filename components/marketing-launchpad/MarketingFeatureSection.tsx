@@ -8,6 +8,7 @@ import {
   FEATURE_GRID,
   FEATURE_ITEM,
   TEXT_COLUMN,
+  TILE_ROW,
   TILE_SECTION,
 } from "@/components/marketing-launchpad/marketing-styles";
 
@@ -40,15 +41,18 @@ function FeatureCopy({ tile }: { tile: MarketingTile }) {
 }
 
 export function MarketingFeatureSection({ tile }: MarketingFeatureSectionProps) {
+  const copyOrder = tile.reversed ? "order-1 lg:order-2" : "order-1";
+  const mediaOrder = tile.reversed ? "order-2 lg:order-1" : "order-2";
+
   return (
     <section id={tile.id} className={TILE_SECTION}>
-      <div
-        className={`mx-auto flex h-full w-full flex-col lg:flex-row lg:items-center lg:gap-10 ${
-          tile.reversed ? "lg:flex-row-reverse" : ""
-        }`}
-      >
-        <FeatureCopy tile={tile} />
-        <MarketingExpandableMediaFrame variant={tile.media} />
+      <div className={TILE_ROW}>
+        <div className={copyOrder}>
+          <FeatureCopy tile={tile} />
+        </div>
+        <div className={mediaOrder}>
+          <MarketingExpandableMediaFrame variant={tile.media} />
+        </div>
       </div>
     </section>
   );

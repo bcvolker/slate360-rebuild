@@ -1,12 +1,12 @@
 import Link from "next/link";
 import Image from "next/image";
 import { HeroMediaFrame } from "@/components/marketing-launchpad/MarketingExpandableMediaFrame";
-import { APP_STORE_BTN, BODY_COPY, TEXT_COLUMN, TILE_SECTION } from "@/components/marketing-launchpad/marketing-styles";
+import { APP_STORE_BTN, BODY_COPY, TEXT_COLUMN, TILE_ROW, TILE_SECTION } from "@/components/marketing-launchpad/marketing-styles";
 
 export function MarketingHeroSection() {
   return (
     <section className={TILE_SECTION}>
-      <div className="mx-auto flex h-full w-full flex-col lg:flex-row lg:items-center lg:gap-10">
+      <div className={TILE_ROW}>
         <div className={`${TEXT_COLUMN} order-1`}>
           <h1 className="mb-3 text-3xl font-bold tracking-tight text-white lg:text-5xl">
             SLATE360 // REALITY INTELLIGENCE
