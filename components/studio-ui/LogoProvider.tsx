@@ -9,12 +9,16 @@ const S_EMBLEM_LOWER =
 type Slate360LogoProps = {
   variant?: "dark" | "light";
   className?: string;
+  emblemClassName?: string;
+  wordmarkClassName?: string;
   showWordmark?: boolean;
 };
 
 export function Slate360Logo({
   variant = "dark",
   className,
+  emblemClassName,
+  wordmarkClassName,
   showWordmark = true,
 }: Slate360LogoProps) {
   const textClass =
@@ -30,7 +34,7 @@ export function Slate360Logo({
         role="img"
         aria-hidden={showWordmark}
         aria-label={showWordmark ? undefined : "Slate360"}
-        className="h-9 w-9 shrink-0"
+        className={cn("h-9 w-9 shrink-0", emblemClassName)}
       >
         <defs>
           <linearGradient id="slate360-emblem-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -41,7 +45,7 @@ export function Slate360Logo({
         <path fill="url(#slate360-emblem-gradient)" d={S_EMBLEM_UPPER} />
         <path fill="url(#slate360-emblem-gradient)" d={S_EMBLEM_LOWER} />
       </svg>
-      {showWordmark ? <span className={textClass}>SLATE360</span> : null}
+      {showWordmark ? <span className={cn(textClass, wordmarkClassName)}>SLATE360</span> : null}
     </div>
   );
 }

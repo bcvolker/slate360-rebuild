@@ -13,7 +13,12 @@ export function AuthGlassShell({ children, footer }: AuthGlassShellProps) {
       <div className={AUTH_CARD}>
         <div className="mb-8 flex justify-center">
           <Link href="/" aria-label="Slate360 home">
-            <Slate360Logo variant="dark" />
+            <Slate360Logo
+              variant="dark"
+              className="mb-6 h-10 w-auto transition-all duration-150"
+              emblemClassName="h-10 w-10"
+              wordmarkClassName="text-[18px]"
+            />
           </Link>
         </div>
         {children}
