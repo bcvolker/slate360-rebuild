@@ -12,6 +12,7 @@ Permanent execution record for design-system unification passes. Composer 2.5 mu
 | Track 2 | Unified Viewer Frame Sizing Parity | COMPLETE |
 | Track 3 | Mobile Spacing Padding Normalization | COMPLETE |
 | Track 4 | Mobile App Shell Amber Purge & Launcher Assembly | COMPLETE |
+| Track 5 | Global Layout Scrollport Unlocking Pass | COMPLETE |
 
 ---
 
@@ -70,3 +71,18 @@ Each pass entry must include: date, prompt summary, files changed, validation re
 **Validation:** `npm run typecheck` PASS · `npm run build` PASS (warnings only, pre-existing)
 
 **Tracks updated:** Track 1 COMPLETE · Track 2 COMPLETE · Track 3 COMPLETE · Track 4 COMPLETE
+
+---
+
+### Pass 2 — 2026-05-23 (scrollport unlock)
+
+**Prompt:** Global layout scrollport unlocking pass — destroy pricing container height constraint lock, liberate desktop scroll from legacy viewport freeze.
+
+**Files changed:**
+- `components/marketing-launchpad/MarketingPricingSection.tsx` — section wrapper stripped of flex/viewport constraints; forced free-flow vertical track with `overflow-visible`, `py-28`, `lg:px-12`
+- `components/marketing-launchpad/MarketingLaunchpad.tsx` — parent container stripped of `lg:h-[100dvh]`, snap scroll, and `overflow-y-scroll` height lock
+- `SLATE360_BUILD_LANE.md` — Track 5 appended to active matrix
+
+**Validation:** `npm run typecheck` PASS · `npm run build` PASS (warnings only, pre-existing)
+
+**Tracks updated:** Track 5 COMPLETE

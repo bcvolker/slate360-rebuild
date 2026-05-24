@@ -88,7 +88,7 @@ export function MarketingPricingSection() {
   return (
     <section
       id="pricing-matrix-section"
-      className="relative flex h-auto w-full scroll-mt-20 flex-col items-center justify-center border-none bg-[#0B0F15] px-6 py-24 shadow-none"
+      className="w-full h-auto min-h-0 block relative bg-[#0B0F15] py-28 px-6 lg:px-12 border-none overflow-visible clear-both"
     >
       <div className="mx-auto w-full max-w-[1400px]">
         <h2 className="mb-10 text-center text-3xl font-bold tracking-tight text-[#FFFFFF] lg:text-4xl">

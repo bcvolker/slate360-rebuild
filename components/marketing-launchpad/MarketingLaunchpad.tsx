@@ -14,7 +14,7 @@ import {
 
 export function MarketingLaunchpad() {
   return (
-    <div className="h-auto scroll-smooth bg-[#0B0F15] lg:h-[100dvh] lg:snap-y lg:snap-mandatory lg:overflow-y-scroll">
+    <div className="w-full h-auto min-h-0 block relative bg-[#0B0F15] scroll-smooth overflow-visible">
       <MarketingHeader />
       <MarketingHeroSection />
       <MarketingFeatureSection tile={SITE_WALK_CAPTURE_TILE} />
