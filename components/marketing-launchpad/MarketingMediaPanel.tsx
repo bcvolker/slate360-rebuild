@@ -20,10 +20,20 @@ type MarketingMediaPanelProps = {
 };
 
 const UNIFIED_MEDIA_FRAME =
-  "w-full max-w-[540px] aspect-[16/10] bg-slate-900/40 border border-white/[0.08] rounded-xl relative flex items-center justify-center overflow-hidden shadow-[0_0_50px_rgba(0,230,153,0.01)] lg:justify-self-end";
+  "w-full max-w-[540px] aspect-[16/10] bg-slate-900/40 border border-white/[0.08] rounded-xl relative flex items-center justify-center overflow-hidden shadow-[0_0_50px_rgba(0,230,153,0.01)] mx-auto lg:justify-self-center";
 
-function ViewerShell({ children }: { children: React.ReactNode }) {
-  return <div className={UNIFIED_MEDIA_FRAME}>{children}</div>;
+const FULLSCREEN_MEDIA_FRAME =
+  "relative flex h-full w-full items-center justify-center overflow-hidden bg-slate-900/40";
+
+function ViewerShell({
+  children,
+  mode,
+}: {
+  children: React.ReactNode;
+  mode?: "default" | "preview" | "fullscreen";
+}) {
+  const frameClass = mode === "fullscreen" ? FULLSCREEN_MEDIA_FRAME : UNIFIED_MEDIA_FRAME;
+  return <div className={frameClass}>{children}</div>;
 }
 
 function BlueprintMapPanel() {
@@ -98,7 +108,7 @@ export function MarketingMediaPanel({
   sizeTier = "tile",
 }: MarketingMediaPanelProps) {
   return (
-    <ViewerShell>
+    <ViewerShell mode={mode}>
       <MediaContent variant={variant} />
     </ViewerShell>
   );

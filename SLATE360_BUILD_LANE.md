@@ -15,6 +15,9 @@ Permanent execution record for design-system unification passes. Composer 2.5 mu
 | Track 5 | Global Layout Scrollport Unlocking Pass | COMPLETE |
 | Track 6 | Desktop Framework Viewport Max-Width Locking | COMPLETE |
 | Track 7 | Interactive 3D Touch Pointer Intercept Gate | COMPLETE |
+| Track 8 | Desktop Symmetrical Grid Refactoring | COMPLETE |
+| Track 9 | Studio Portal Stacking Context & Close Elevation | COMPLETE |
+| Track 10 | Full-Bleed Portal Media Sizing | COMPLETE |
 
 ---
 
@@ -110,3 +113,27 @@ Each pass entry must include: date, prompt summary, files changed, validation re
 **Validation:** `npm run typecheck` PASS · `npm run build` PASS (warnings only, pre-existing)
 
 **Tracks updated:** Track 6 COMPLETE · Track 7 COMPLETE
+
+---
+
+### Pass 1 — 2026-05-24 (symmetrical grid + portal stacking)
+
+**Prompt:** Pass 1 design system stabilization — symmetrical 50/50 desktop grid, mobile header rail separation, studio portal close elevation, full-bleed portal media sizing.
+
+**Files changed (5):**
+| File | Lines (approx) | Delta |
+|------|----------------|-------|
+| `SLATE360_BUILD_LANE.md` | 130 | Track 8–10 matrix + pass entry |
+| `components/marketing-launchpad/marketing-styles.ts` | 49 | TILE_ROW 50/50 grid; MEDIA_COLUMN center anchor |
+| `components/marketing-launchpad/MarketingMediaPanel.tsx` | 113 | UNIFIED_MEDIA_FRAME centering; fullscreen branch |
+| `components/marketing-launchpad/MarketingHeader.tsx` | 139 | mobile `px-4` + `justify-between` edge rail |
+| `components/marketing-launchpad/MarketingMobileStudioPortal.tsx` | 55 | z-index close elevation, scrim, pt-14 canvas |
+
+**Changes:**
+- Track 8: Replaced `lg:grid-cols-[55fr_45fr]` with balanced `lg:grid-cols-2`; media column anchored `justify-center` with `mx-auto lg:justify-self-center` frame.
+- Track 9: Close button elevated to `z-[5010]` with `pointer-events-auto`; click-outside scrim at `z-[5005]`; canvas wrapper `pt-14` flex column.
+- Track 10: `ViewerShell` branches on `mode === "fullscreen"` — drops `max-w-[540px]`, `aspect-[16/10]`, and `rounded-xl` for full-bleed portal presentation.
+
+**Validation:** `npm run typecheck` PASS · `npm run build` PASS (warnings only, pre-existing)
+
+**Tracks updated:** Track 8 COMPLETE · Track 9 COMPLETE · Track 10 COMPLETE
