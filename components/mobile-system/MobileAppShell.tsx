@@ -37,7 +37,7 @@ export function MobileAppShell({
         {header}
         <main
           className={cn(
-            "flex min-h-0 flex-1 flex-col overflow-hidden bg-[radial-gradient(circle_at_top,rgba(245,158,11,0.07),transparent_32%),#0B0F15]",
+            "flex min-h-0 flex-1 flex-col overflow-hidden bg-[#0B0F15]",
             mainClassName,
           )}
         >

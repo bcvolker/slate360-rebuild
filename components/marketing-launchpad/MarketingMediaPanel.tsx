@@ -22,17 +22,7 @@ type MarketingMediaPanelProps = {
 const UNIFIED_MEDIA_FRAME =
   "w-full aspect-[16/10] bg-slate-900/40 border border-white/[0.08] rounded-xl relative flex items-center justify-center overflow-hidden shadow-[0_0_50px_rgba(0,230,153,0.01)]";
 
-function ViewerShell({
-  children,
-  mode,
-}: {
-  children: React.ReactNode;
-  mode: MarketingMediaPanelProps["mode"];
-}) {
-  if (mode === "fullscreen" || mode === "preview") {
-    return <div className="relative overflow-hidden">{children}</div>;
-  }
-
+function ViewerShell({ children }: { children: React.ReactNode }) {
   return <div className={UNIFIED_MEDIA_FRAME}>{children}</div>;
 }
 
@@ -108,7 +98,7 @@ export function MarketingMediaPanel({
   sizeTier = "tile",
 }: MarketingMediaPanelProps) {
   return (
-    <ViewerShell mode={mode}>
+    <ViewerShell>
       <MediaContent variant={variant} />
     </ViewerShell>
   );

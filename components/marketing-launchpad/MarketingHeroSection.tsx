@@ -37,14 +37,6 @@ export function MarketingHeroSection() {
             inspect, measure, and analyze full spatial environments inside your synchronized cloud desktop
             studio.
           </p>
-          <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center lg:mb-0 lg:mt-8">
-            <Link
-              href="/login"
-              className="flex w-full items-center justify-center rounded-xl bg-[#00E699] px-6 py-4 text-sm font-semibold tracking-tight text-[#0B0F15] transition-all hover:bg-[#00CC88] active:scale-[0.99] sm:w-auto"
-            >
-              Launch Studio Workspace
-            </Link>
-          </div>
           <div className="flex flex-wrap gap-3">
             <Link
               href="#pricing-matrix-section"

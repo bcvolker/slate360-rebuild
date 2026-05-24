@@ -1,123 +1,32 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { Bell, ClipboardList, Clock, FolderOpen, MapPin, MessageSquare, Plus, Search } from "lucide-react";
-import {
-  MobileActionGrid,
-  MobileAppButton,
-  MobileEmptyState,
-  MobileExpandableTabbedPanel,
-  MobileHomeLayout,
-  MobileQuickActionStrip,
-  mobileTokens,
-} from "@/components/mobile-system";
-import type { MobilePanelTab, MobileQuickActionItem } from "@/components/mobile-system";
-
-function AppSectionHeader({ label }: { label: string }) {
-  return (
-    <div className="mb-2">
-      <span className={mobileTokens.appHomeSectionLabelAccent} aria-hidden />
-      <p className={mobileTokens.appHomeSectionLabel}>{label}</p>
-    </div>
-  );
-}
+import Link from "next/link";
+import { MapPin } from "lucide-react";
 
 export function MobileAppRootContent() {
-  const router = useRouter();
-
-  const activityTabs: MobilePanelTab[] = [
-    {
-      value: "notifications",
-      label: "Alerts",
-      content: (
-        <MobileEmptyState
-          compact
-          icon={Bell}
-          title="No new notifications"
-          actionLabel="View inbox"
-          actionHref="/coordination/inbox"
-        />
-      ),
-    },
-    {
-      value: "messages",
-      label: "Messages",
-      content: (
-        <MobileEmptyState
-          compact
-          icon={MessageSquare}
-          title="No unread messages"
-          actionLabel="View inbox"
-          actionHref="/coordination/inbox"
-        />
-      ),
-    },
-    {
-      value: "assigned",
-      label: "Assigned",
-      content: (
-        <MobileEmptyState
-          compact
-          icon={ClipboardList}
-          title="No assigned work"
-          actionLabel="View assigned"
-          actionHref="/site-walk/assigned-work"
-        />
-      ),
-    },
-    {
-      value: "recent",
-      label: "Recent",
-      content: <MobileEmptyState compact icon={Clock} title="No recent activity" />,
-    },
-  ];
-
-  const quickActions: MobileQuickActionItem[] = [
-    { label: "Create", icon: Plus, accent: "primary", onClick: () => router.push("/projects") },
-    { label: "SlateDrop", icon: FolderOpen, accent: "info", onClick: () => router.push("/slatedrop") },
-    {
-      label: "Search",
-      icon: Search,
-      accent: "muted",
-      onClick: () => {
-        window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true, bubbles: true }));
-      },
-    },
-  ];
-
   return (
-    <MobileHomeLayout
-      route="app"
-      contentTop={
-        <section className="shrink-0">
-          <AppSectionHeader label="Your Apps" />
-          <MobileActionGrid>
-            <MobileAppButton
-              title="Site Walk"
-              subtitle="Field capture"
-              icon={MapPin}
-              href="/site-walk"
-              accent="primary"
-            />
-          </MobileActionGrid>
-          <p className="mt-4 text-sm leading-relaxed text-[#A3AED0]">
-            Launch Site Walk to capture geolocated field conditions, plan pins, and deliverable reports from
-            your device.
-          </p>
-        </section>
-      }
-      primaryActions={
-        <section className="shrink-0">
-          <div className="mb-2">
-            <span className={mobileTokens.appHomeSectionLabelAccentCool} aria-hidden />
-            <p className={mobileTokens.appHomeSectionLabel}>Quick Actions</p>
+    <div className="flex flex-1 flex-col overflow-y-auto px-4 py-6">
+      <section className="flex flex-col gap-5">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-widest text-[#A3AED0]">Your Apps</p>
+          <h1 className="mt-1 text-xl font-bold tracking-tight text-[#FFFFFF]">Field Hub</h1>
+        </div>
+
+        <Link
+          href="/site-walk"
+          className="flex flex-col gap-4 rounded-xl border border-white/[0.08] bg-slate-900/40 p-5 transition-all hover:border-[#00E699]/30 active:scale-[0.99]"
+        >
+          <span className="flex h-12 w-12 items-center justify-center rounded-xl border border-[#00E699]/20 bg-[#00E699]/10">
+            <MapPin className="h-6 w-6 text-[#00E699]" />
+          </span>
+          <div>
+            <p className="text-base font-semibold text-[#FFFFFF]">Site Walk Field Hub</p>
+            <p className="mt-1.5 text-sm leading-relaxed text-[#A3AED0]">
+              Capture geolocated field conditions, plan pins, and deliverable reports from your device.
+            </p>
           </div>
-          <MobileQuickActionStrip actions={quickActions} />
-        </section>
-      }
-      dock={
-        <MobileExpandableTabbedPanel tabs={activityTabs} defaultTab="notifications" homeDockVariant="app" />
-      }
-    />
+        </Link>
+      </section>
+    </div>
   );
 }
