@@ -13,6 +13,8 @@ Permanent execution record for design-system unification passes. Composer 2.5 mu
 | Track 3 | Mobile Spacing Padding Normalization | COMPLETE |
 | Track 4 | Mobile App Shell Amber Purge & Launcher Assembly | COMPLETE |
 | Track 5 | Global Layout Scrollport Unlocking Pass | COMPLETE |
+| Track 6 | Desktop Framework Viewport Max-Width Locking | COMPLETE |
+| Track 7 | Interactive 3D Touch Pointer Intercept Gate | COMPLETE |
 
 ---
 
@@ -86,3 +88,25 @@ Each pass entry must include: date, prompt summary, files changed, validation re
 **Validation:** `npm run typecheck` PASS · `npm run build` PASS (warnings only, pre-existing)
 
 **Tracks updated:** Track 5 COMPLETE
+
+---
+
+### Pass 1 — 2026-05-24 (desktop width clamp + scroll intercept gate)
+
+**Prompt:** Pass 1 greenfield alignment loop — desktop media panel max-width lock, 3D scroll intercept gate, mobile header hamburger rail separation, build lane ledger update.
+
+**Files changed:**
+- `components/marketing-launchpad/MarketingMediaPanel.tsx` — `UNIFIED_MEDIA_FRAME` capped at `max-w-[540px]` with `lg:justify-self-end`
+- `components/ModelViewerClient.tsx` — scroll intercept gate: `pointer-events-none` default + glass badge toggle to `pointer-events-auto`
+- `components/marketing-launchpad/MarketingHeader.tsx` — mobile flex `justify-between` rail; hamburger pinned far-right with `shrink-0`
+- `components/design-studio/ModelEditorClient.tsx` — `scrollInterceptGate={false}` to preserve editor direct interaction
+- `SLATE360_BUILD_LANE.md` — Track 6 + Track 7 appended
+
+**Changes:**
+- Track 6: Decoupled desktop media frame from fluid grid column fractions via absolute `max-w-[540px]` clamp on `UNIFIED_MEDIA_FRAME`.
+- Track 7: Wrapped model-viewer in pointer-events gate; floating glass badge `[ ✦ Tap to Rotate 3D Model ]` enables canvas interaction on tap.
+- Mobile header: flex layout on small viewports prevents logo/hamburger collision; desktop grid preserved at `md+`.
+
+**Validation:** `npm run typecheck` PASS · `npm run build` PASS (warnings only, pre-existing)
+
+**Tracks updated:** Track 6 COMPLETE · Track 7 COMPLETE

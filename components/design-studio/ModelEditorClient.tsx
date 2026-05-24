@@ -216,7 +216,11 @@ export function ModelEditorClient({ modelId, onBack }: ModelEditorClientProps) {
         {/* 3D Viewer */}
         <div className="flex-1 overflow-hidden rounded-lg bg-card">
           {viewableFile ? (
-            <ModelViewerClient src={viewableFile.s3_key} alt={model.title} />
+            <ModelViewerClient
+              src={viewableFile.s3_key}
+              alt={model.title}
+              scrollInterceptGate={false}
+            />
           ) : (
             <div className="flex h-full items-center justify-center text-sm text-zinc-500">
               <div className="text-center">

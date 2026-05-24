@@ -39,16 +39,16 @@ export function MarketingHeader() {
 
   return (
     <header className="absolute top-0 z-50 h-16 w-full bg-transparent border-none">
-      <div className="relative mx-auto grid h-full w-full grid-cols-[minmax(280px,auto)_1fr_auto] items-center px-6 lg:px-12">
+      <div className="relative mx-auto flex h-full w-full items-center justify-between px-6 md:grid md:grid-cols-[minmax(280px,auto)_1fr_auto] md:items-center lg:px-12">
         <Link
           href="/"
           aria-label="Slate360 home"
-          className="absolute left-6 top-6 z-50 origin-left scale-125 select-none tracking-wide"
+          className="relative z-50 shrink-0 origin-left scale-125 select-none tracking-wide md:absolute md:left-6 md:top-6"
         >
           <Slate360Logo variant="dark" />
         </Link>
 
-        <nav className="hidden md:flex items-center justify-self-end gap-8 col-start-2">
+        <nav className="hidden md:flex items-center justify-self-end gap-8 md:col-start-2">
           <Popover.Root open={productOpen} onOpenChange={setProductOpen}>
             <Popover.Trigger asChild>
               <button type="button" className={NAV_LINK} aria-haspopup="dialog">
@@ -85,7 +85,7 @@ export function MarketingHeader() {
 
         <button
           type="button"
-          className={cn(HAMBURGER_BTN, "justify-self-end")}
+          className={cn(HAMBURGER_BTN, "ml-auto shrink-0 md:col-start-3 md:ml-0 md:justify-self-end")}
           aria-label={mobileOpen ? "Close navigation menu" : "Open navigation menu"}
           aria-expanded={mobileOpen}
           onClick={() => setMobileOpen((open) => !open)}

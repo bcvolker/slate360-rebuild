@@ -8,8 +8,9 @@
  * `orientation` because React does NOT reliably pass JSX props/spread to
  * custom web‑component elements via `setAttribute`.
  */
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import Script from "next/script";
+import { cn } from "@/lib/utils";
 
 interface ModelViewerClientProps {
   src: string;
@@ -19,6 +20,7 @@ interface ModelViewerClientProps {
   shadowIntensity?: number;
   shadowSoftness?: number;
   interactive?: boolean;
+  scrollInterceptGate?: boolean;
 }
 
 export default function ModelViewerClient({
@@ -29,8 +31,10 @@ export default function ModelViewerClient({
   shadowIntensity,
   shadowSoftness,
   interactive = true,
+  scrollInterceptGate = true,
 }: ModelViewerClientProps) {
   const ref = useRef<HTMLElement>(null);
+  const [interactionEnabled, setInteractionEnabled] = useState(!scrollInterceptGate);
 
   const defaultStyle: React.CSSProperties = {
     width: "100%",
@@ -57,7 +61,7 @@ export default function ModelViewerClient({
     el.setAttribute("field-of-view", "30deg");
     el.setAttribute("min-camera-orbit", "auto auto 50%");
     el.setAttribute("max-camera-orbit", "auto auto 400%");
-    if (interactive) {
+    if (interactive && interactionEnabled) {
       el.setAttribute("camera-controls", "");
       el.removeAttribute("interaction-prompt");
       el.removeAttribute("disable-tap");
@@ -66,17 +70,36 @@ export default function ModelViewerClient({
       el.setAttribute("interaction-prompt", "none");
       el.setAttribute("disable-tap", "");
     }
-  }, [cameraOrbit, shadowIntensity, shadowSoftness, interactive]);
+  }, [cameraOrbit, shadowIntensity, shadowSoftness, interactive, interactionEnabled]);
 
   return (
     <>
-      {/* @ts-ignore — model-viewer is a custom web component */}
-      <model-viewer
-        ref={ref}
-        src={src}
-        alt={alt}
-        style={style ?? defaultStyle}
-      />
+      <div
+        className={cn(
+          "relative h-full w-full",
+          scrollInterceptGate && !interactionEnabled
+            ? "pointer-events-none"
+            : "pointer-events-auto",
+        )}
+      >
+        {/* @ts-ignore — model-viewer is a custom web component */}
+        <model-viewer
+          ref={ref}
+          src={src}
+          alt={alt}
+          style={style ?? defaultStyle}
+        />
+        {scrollInterceptGate && !interactionEnabled ? (
+          <button
+            type="button"
+            onClick={() => setInteractionEnabled(true)}
+            className="pointer-events-auto absolute bottom-3 left-1/2 z-10 -translate-x-1/2 rounded-full border border-white/[0.12] bg-[#0B0F15]/75 px-4 py-2 text-xs font-medium tracking-wide text-slate-300 shadow-lg backdrop-blur-xl transition-all duration-150 hover:border-[#00E699]/30 hover:text-[#00E699] active:scale-[0.98]"
+            aria-label="Enable 3D model rotation"
+          >
+            [ ✦ Tap to Rotate 3D Model ]
+          </button>
+        ) : null}
+      </div>
       <Script
         type="module"
         src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"
