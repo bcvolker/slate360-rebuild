@@ -25,6 +25,10 @@ type MobileExpandableTabbedPanelProps = {
 };
 
 const HOME_NAV_BOTTOM_OFFSET = "bottom-[calc(62px+env(safe-area-inset-bottom,0px))]";
+const HOME_DOCK_COLLAPSED_BODY =
+  "h-[180px] max-h-[180px] min-h-0 overflow-hidden overscroll-contain";
+const HOME_DOCK_COLLAPSED_FADE =
+  "pointer-events-none absolute inset-x-0 bottom-0 z-[3] h-14 bg-gradient-to-t from-[#0B0F15] via-[#0B0F15]/95 to-transparent";
 
 export function MobileExpandableTabbedPanel({
   tabs,
@@ -80,6 +84,7 @@ export function MobileExpandableTabbedPanel({
             className={cn(
               mobileTokens.mobileExpandablePanelToggleButton,
               mobileTokens.focusRing,
+              !expanded && isHomeDock && "text-[#6EA7A0]",
             )}
             aria-expanded={expanded}
             aria-controls={panelId}
@@ -88,9 +93,15 @@ export function MobileExpandableTabbedPanel({
           >
             <span className={mobileTokens.mobileExpandablePanelHandle} aria-hidden />
             {expanded ? (
-              <ChevronDown className="size-5 shrink-0" aria-hidden />
+              <ChevronDown className="size-6 shrink-0 text-zinc-400" aria-hidden />
             ) : (
-              <ChevronUp className="size-5 shrink-0" aria-hidden />
+              <ChevronUp
+                className={cn(
+                  "size-6 shrink-0",
+                  isHomeDock ? "text-[#6EA7A0] drop-shadow-[0_0_8px_rgba(110,167,160,0.45)]" : "text-zinc-400",
+                )}
+                aria-hidden
+              />
             )}
           </button>
         </div>
@@ -105,19 +116,14 @@ export function MobileExpandableTabbedPanel({
             expanded
               ? mobileTokens.mobileExpandablePanelExpandedBody
               : isHomeDock
-                ? mobileTokens.mobileHomeDockCollapsedBody
+                ? HOME_DOCK_COLLAPSED_BODY
                 : mobileTokens.mobileExpandablePanelCollapsedBody
           }
           showBottomFade
           bottomFadeClassName={mobileTokens.mobileExpandablePanelFade}
         />
 
-        {!expanded && isHomeDock ? (
-          <div
-            className="pointer-events-none absolute inset-x-0 bottom-0 z-[2] h-10 bg-gradient-to-t from-[#0B0F15] via-[#0B0F15]/85 to-transparent"
-            aria-hidden
-          />
-        ) : null}
+        {!expanded && isHomeDock ? <div className={HOME_DOCK_COLLAPSED_FADE} aria-hidden /> : null}
       </div>
     </div>
   );
@@ -135,7 +141,7 @@ export function MobileExpandableTabbedPanel({
               />
               <div
                 className={cn(
-                  "pointer-events-none fixed inset-x-0 z-[48] w-full px-4 pb-3",
+                  "pointer-events-none fixed inset-x-0 z-50 w-full px-4 pb-3",
                   HOME_NAV_BOTTOM_OFFSET,
                 )}
               >

@@ -1,8 +1,17 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import type { ElementType } from "react";
+import { Cloud, FolderOpen, Home, MessageSquare, User } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+export type MobilePlatformNavKey =
+  | "home"
+  | "projects"
+  | "slatedrop"
+  | "coordination"
+  | "account";
 
 export type MobileBottomNavItem<Key extends string = string> = {
   key: Key;
@@ -11,6 +20,36 @@ export type MobileBottomNavItem<Key extends string = string> = {
   href?: string;
   onSelect?: () => void;
 };
+
+/** V1 platform doctrine — Home | Projects | SlateDrop | Coordination | Account */
+export const MOBILE_PLATFORM_NAV_ITEMS: MobileBottomNavItem<MobilePlatformNavKey>[] = [
+  { key: "home", label: "Home", href: "/app", icon: Home },
+  { key: "projects", label: "Projects", href: "/projects", icon: FolderOpen },
+  { key: "slatedrop", label: "SlateDrop", href: "/slatedrop", icon: Cloud },
+  {
+    key: "coordination",
+    label: "Coordination",
+    href: "/coordination/inbox",
+    icon: MessageSquare,
+  },
+  { key: "account", label: "Account", href: "/more", icon: User },
+];
+
+export function resolveMobilePlatformNavKey(pathname: string): MobilePlatformNavKey {
+  if (pathname.startsWith("/projects") || pathname.startsWith("/project-hub")) {
+    return "projects";
+  }
+  if (pathname.startsWith("/slatedrop")) return "slatedrop";
+  if (pathname.startsWith("/coordination")) return "coordination";
+  if (
+    pathname.startsWith("/more") ||
+    pathname.startsWith("/settings") ||
+    pathname.startsWith("/my-account")
+  ) {
+    return "account";
+  }
+  return "home";
+}
 
 type MobileBottomNavProps<Key extends string = string> = {
   items: MobileBottomNavItem<Key>[];
@@ -25,18 +64,25 @@ export function MobileBottomNav<Key extends string = string>({
   ariaLabel = "Primary",
   className,
 }: MobileBottomNavProps<Key>) {
+  const pathname = usePathname() ?? "";
+  const usePlatformDoctrine = ariaLabel === "Platform";
+  const navItems = usePlatformDoctrine ? MOBILE_PLATFORM_NAV_ITEMS : items;
+  const navActiveKey = usePlatformDoctrine
+    ? resolveMobilePlatformNavKey(pathname)
+    : activeKey;
+
   return (
     <nav
       aria-label={ariaLabel}
       className={cn(
-        "shrink-0 lg:hidden rounded-t-3xl border-t border-white/10 bg-[#0B0F15]/88 shadow-lg backdrop-blur-md",
+        "relative z-30 shrink-0 lg:hidden rounded-t-3xl border-t border-white/10 bg-[#0B0F15]/88 shadow-lg backdrop-blur-md",
         className,
       )}
       style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)", paddingTop: "4px" }}
     >
       <ul className="flex min-h-[58px] w-full items-stretch justify-around px-2">
-        {items.map(({ key, label, icon: Icon, href, onSelect }) => {
-          const active = activeKey === key;
+        {navItems.map(({ key, label, icon: Icon, href, onSelect }) => {
+          const active = navActiveKey === key;
           const itemClassName = cn(
             "relative flex h-full w-full flex-col items-center justify-center gap-1 rounded-lg py-2 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6EA7A0]/50",
             active ? "bg-[#6EA7A0]/10 text-[#6EA7A0]" : "text-zinc-500 hover:bg-white/5 hover:text-zinc-300",

@@ -107,13 +107,13 @@ export function MobileAppRootContent() {
         route="app"
         contentTop={
           <section className="shrink-0">
-            <div className="mb-2">
+            <div className="mb-1.5">
               <p className="text-xs font-semibold uppercase tracking-widest text-[#A3AED0]">
                 Your Apps
               </p>
-              <h1 className="mt-0.5 text-xl font-bold tracking-tight text-[#FFFFFF]">Field Hub</h1>
+              <h1 className="text-xl font-bold tracking-tight text-[#FFFFFF]">Field Hub</h1>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-2.5">
               <MobileAppLauncherGrid />
               <button
                 type="button"
@@ -135,7 +135,7 @@ export function MobileAppRootContent() {
         }
         primaryActions={
           <section className="shrink-0">
-            <div className="mb-2">
+            <div className="mb-1.5">
               <span className={mobileTokens.appHomeSectionLabelAccentCool} aria-hidden />
               <p className={mobileTokens.appHomeSectionLabel}>Quick Actions</p>
             </div>
