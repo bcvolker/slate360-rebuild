@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
   const size = params.get("size") || "800x450";
   const maptype = params.get("maptype") || "roadmap";
   const markers = params.getAll("markers");
-  const path = params.get("path");
+  const paths = params.getAll("path");
 
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
   if (!apiKey) {
@@ -35,8 +35,8 @@ export async function GET(req: NextRequest) {
   for (const m of markers) {
     url.searchParams.append("markers", m);
   }
-  if (path) {
-    url.searchParams.set("path", path);
+  for (const p of paths) {
+    url.searchParams.append("path", p);
   }
 
   try {

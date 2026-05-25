@@ -1,8 +1,11 @@
+export type LatLng = { lat: number; lng: number };
+
 export type ResolvedProjectLocation = {
   label: string;
   lat: number | null;
   lng: number | null;
-  center: { lat: number; lng: number } | null;
+  center: LatLng | null;
+  boundary: LatLng[];
 };
 
 type ResolveLocationOptions = {
@@ -25,6 +28,20 @@ function parseMaybeNumber(value: unknown): number | null {
 
 function toTrimmedString(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
+}
+
+function parseBoundary(value: unknown): LatLng[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((point) => {
+      if (!point || typeof point !== "object") return null;
+      const record = point as Record<string, unknown>;
+      const lat = parseMaybeNumber(record.lat);
+      const lng = parseMaybeNumber(record.lng);
+      if (lat === null || lng === null) return null;
+      return { lat, lng };
+    })
+    .filter((point): point is LatLng => point !== null);
 }
 
 export function resolveProjectLocation(
@@ -50,12 +67,14 @@ export function resolveProjectLocation(
 
   let lat: number | null = null;
   let lng: number | null = null;
+  let boundary: LatLng[] = [];
   let locationLabel = "";
 
   if (locationValue && typeof locationValue === "object") {
     const locationObj = locationValue as Record<string, unknown>;
     lat = parseMaybeNumber(locationObj.lat);
     lng = parseMaybeNumber(locationObj.lng);
+    boundary = parseBoundary(locationObj.boundary);
     locationLabel = toTrimmedString(locationObj.address) || toTrimmedString(locationObj.label);
   } else {
     locationLabel = toTrimmedString(locationValue);
@@ -84,5 +103,6 @@ export function resolveProjectLocation(
     lat,
     lng,
     center: lat !== null && lng !== null ? { lat, lng } : null,
+    boundary,
   };
 }
