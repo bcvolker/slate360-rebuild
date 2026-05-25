@@ -9,7 +9,13 @@ import { MobileAppShell, MobileBottomNav, type MobileBottomNavItem } from "@/com
 import { InviteShareProvider, useInviteShare } from "@/components/shared/InviteShareProvider";
 import { Slate360Logo } from "@/components/studio-ui/LogoProvider";
 import { StudioMobileHeaderActions } from "@/components/studio-ui/StudioMobileHeaderActions";
-import { isSiteWalkFullBleedPath } from "@/lib/site-walk/site-walk-shell-paths";
+import { isSiteWalkPassthroughShellPath } from "@/lib/site-walk/site-walk-shell-paths";
+
+/** Site Walk sub-routes and task surfaces keep their own chrome; home stays in platform shell. */
+function isSiteWalkPlatformBypassPath(pathname: string): boolean {
+  if (pathname === "/site-walk") return false;
+  return pathname.startsWith("/site-walk/");
+}
 import type { InviteShareData } from "@/lib/types/invite";
 
 const InviteShareModal = dynamic(
@@ -44,7 +50,8 @@ type StudioAppShellProps = {
 
 function StudioAppShellInner({ inviteShareData, children }: StudioAppShellProps) {
   const pathname = usePathname() ?? "";
-  const fullBleed = isSiteWalkFullBleedPath(pathname);
+  const fullBleed =
+    isSiteWalkPlatformBypassPath(pathname) || isSiteWalkPassthroughShellPath(pathname);
   const activeKey = activeNavKey(pathname);
   const { open: inviteOpen, setOpen: setInviteOpen } = useInviteShare();
 

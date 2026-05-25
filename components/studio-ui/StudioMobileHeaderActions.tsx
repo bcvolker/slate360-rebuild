@@ -14,8 +14,8 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://slate360.ai";
 const iconButtonClass = cn(
   "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl",
   "border border-white/[0.06] bg-white/[0.03] text-[#A3AED0]",
-  "transition-colors hover:border-[#00E699]/25 hover:bg-white/[0.06] hover:text-[#FFFFFF]",
-  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00E699]/40",
+  "transition-colors hover:border-[#6EA7A0]/25 hover:bg-white/[0.06] hover:text-[#FFFFFF]",
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6EA7A0]/40",
 );
 
 type StudioMobileHeaderActionsProps = {
@@ -89,7 +89,7 @@ export function StudioMobileHeaderActions({ inviteShareData }: StudioMobileHeade
                 </p>
                 <button
                   type="button"
-                  className="mt-3 flex h-10 w-full items-center justify-center rounded-xl border border-[#00E699]/30 bg-[#00E699]/10 text-sm font-medium text-[#00E699] transition-colors hover:bg-[#00E699]/15"
+                  className="mt-3 flex h-10 w-full items-center justify-center rounded-xl border border-[#6EA7A0]/30 bg-[#6EA7A0]/10 text-sm font-medium text-[#6EA7A0] transition-colors hover:bg-[#6EA7A0]/15"
                   onClick={() => {
                     setQrOpen(false);
                     openInviteShare(true);

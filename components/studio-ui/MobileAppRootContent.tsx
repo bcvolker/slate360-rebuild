@@ -44,7 +44,7 @@ export function MobileAppRootContent() {
         label: "Deliverables",
         icon: Package,
         accent: "neutral",
-        href: "/site-walk?tab=deliverables",
+        href: "/site-walk/deliverables",
       },
     ],
     [handleSearch],

@@ -1,12 +1,22 @@
 "use client";
 
+import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowRight, Camera, FileText, FolderOpen } from "lucide-react";
-import { SiteWalkShell } from "@/components/site-walk/SiteWalkShell";
+import { Camera, ClipboardList, FileText, FolderOpen, MapPin } from "lucide-react";
+import {
+  MobileEmptyState,
+  MobileExpandableTabbedPanel,
+  MobileHomeLayout,
+  mobileTokens,
+} from "@/components/mobile-system";
+import type { MobilePanelTab } from "@/components/mobile-system";
 import { buildCaptureLaunchUrl } from "@/lib/site-walk/capture-v2-config";
+import { cn } from "@/lib/utils";
 import type { HubProject, HubSummary, HubWalk } from "@/lib/types/site-walk";
 import type { HubDeliverableRow } from "@/lib/types/site-walk-hub";
+
+const TEAL = "#6EA7A0";
 
 type Props = {
   orgName: string | null;
@@ -16,7 +26,38 @@ type Props = {
   deliverables: HubDeliverableRow[];
 };
 
-export function SiteWalkHomeClient({ orgName, projects, walks, summary, deliverables }: Props) {
+function ActionLink({
+  href,
+  label,
+  subtext,
+  icon: Icon,
+}: {
+  href: string;
+  label: string;
+  subtext: string;
+  icon: typeof Camera;
+}) {
+  return (
+    <Link
+      href={href}
+      className={cn(mobileTokens.siteWalkActionGridButton, mobileTokens.focusRing)}
+    >
+      <span
+        className={cn(
+          mobileTokens.siteWalkActionGridIcon,
+          "border border-[#6EA7A0]/20 bg-[#6EA7A0]/10 text-[#6EA7A0]",
+        )}
+        aria-hidden
+      >
+        <Icon className="h-[18px] w-[18px]" />
+      </span>
+      <span className={mobileTokens.siteWalkActionGridLabel}>{label}</span>
+      <span className={mobileTokens.siteWalkActionGridSubtext}>{subtext}</span>
+    </Link>
+  );
+}
+
+export function SiteWalkHomeClient({ orgName, projects, walks, deliverables }: Props) {
   const router = useRouter();
 
   async function handleQuickCapture() {
@@ -36,105 +77,149 @@ export function SiteWalkHomeClient({ orgName, projects, walks, summary, delivera
     router.push(buildCaptureLaunchUrl({ session: body.session.id, quick: "camera" }));
   }
 
-  return (
-    <SiteWalkShell orgName={orgName}>
-      <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto p-4 pb-24">
-        <div>
-          <p className="text-xs font-medium uppercase tracking-[0.14em] text-[#A3AED0]">Site Walk</p>
-          <h1 className="mt-2 text-2xl font-semibold text-[#FFFFFF]">
-            {orgName ? `${orgName} · Field Hub` : "Site Walk Hub"}
-          </h1>
-          <p className="mt-3 text-sm text-[#F8FAFC]">
-            Single-handed field tracking, predictive tag chips classification, and instant document
-            deliverable field report compilation.
-          </p>
-        </div>
-
-        <div className="grid gap-3 sm:grid-cols-2">
-          <button
-            type="button"
-            onClick={() => void handleQuickCapture()}
-            className="flex items-center gap-3 rounded-xl border border-white/[0.07] bg-white/[0.02] p-4 text-left transition-all hover:bg-white/[0.04] active:scale-[0.99]"
-          >
-            <Camera className="h-5 w-5 text-[#00E699]" />
-            <span className="font-medium text-[#FFFFFF]">Start Quick Capture</span>
-          </button>
-          <Link
-            href="/site-walk/walks"
-            className="flex items-center gap-3 rounded-xl border border-white/[0.07] bg-white/[0.02] p-4 transition-all hover:bg-white/[0.04]"
-          >
-            <FolderOpen className="h-5 w-5 text-[#00E699]" />
-            <span className="font-medium text-[#FFFFFF]">Open Walk Sessions</span>
-          </Link>
-          <Link
-            href="/site-walk/deliverables"
-            className="flex items-center gap-3 rounded-xl border border-white/[0.07] bg-white/[0.02] p-4 transition-all hover:bg-white/[0.04]"
-          >
-            <FileText className="h-5 w-5 text-[#00E699]" />
-            <span className="font-medium text-[#FFFFFF]">Deliverables</span>
-          </Link>
-          <Link
-            href="/design-studio"
-            className="flex items-center gap-3 rounded-xl border border-white/[0.07] bg-white/[0.02] p-4 transition-all hover:bg-white/[0.04]"
-          >
-            <ArrowRight className="h-5 w-5 text-[#00E699]" />
-            <span className="font-medium text-[#FFFFFF]">Digital Twins</span>
-          </Link>
-        </div>
-
-        <section className="rounded-xl border border-white/[0.07] bg-white/[0.02] p-4">
-          <div className="flex items-center justify-between gap-3">
-            <h2 className="text-sm font-semibold text-[#FFFFFF]">Recent Walks</h2>
-            <span className="text-xs text-[#A3AED0]">{walks.length} total</span>
-          </div>
-          <ul className="mt-4 space-y-3">
-            {walks.slice(0, 5).map((walk) => (
-              <li key={walk.id}>
-                <Link
-                  href={`/site-walk/walks/${walk.id}`}
-                  className="flex items-center justify-between rounded-xl border border-white/[0.05] px-3 py-2 text-sm transition-colors hover:bg-white/[0.03]"
-                >
-                  <span className="truncate text-[#F8FAFC]">{walk.title}</span>
-                  <span className="shrink-0 text-xs text-[#A3AED0]">{walk.itemCount} items</span>
-                </Link>
-              </li>
-            ))}
-            {walks.length === 0 ? (
-              <li className="text-sm text-[#A3AED0]">No walks yet. Start a quick capture to begin.</li>
-            ) : null}
-          </ul>
-        </section>
-
-        <section className="rounded-xl border border-white/[0.07] bg-white/[0.02] p-4">
-          <div className="flex items-center justify-between gap-3">
-            <h2 className="text-sm font-semibold text-[#FFFFFF]">Projects</h2>
-            <span className="text-xs text-[#A3AED0]">{projects.length} active</span>
-          </div>
-          <ul className="mt-4 space-y-3">
-            {projects.slice(0, 4).map((project) => (
-              <li key={project.id} className="text-sm text-[#F8FAFC]">
-                {project.name}
-              </li>
-            ))}
-            {projects.length === 0 ? (
-              <li className="text-sm text-[#A3AED0]">No projects linked yet.</li>
-            ) : null}
-          </ul>
-        </section>
-
-        {deliverables.length > 0 ? (
-          <section className="rounded-xl border border-white/[0.07] bg-white/[0.02] p-4">
-            <h2 className="text-sm font-semibold text-[#FFFFFF]">Recent Deliverables</h2>
-            <ul className="mt-4 space-y-3">
-              {deliverables.slice(0, 4).map((item) => (
-                <li key={item.id} className="text-sm text-[#F8FAFC]">
-                  {item.title}
+  const dockTabs: MobilePanelTab[] = useMemo(
+    () => [
+      {
+        value: "recent",
+        label: "Recent Walks",
+        content:
+          walks.length > 0 ? (
+            <ul className="space-y-2">
+              {walks.slice(0, 8).map((walk) => (
+                <li key={walk.id}>
+                  <Link
+                    href={`/site-walk/walks/${walk.id}`}
+                    className="flex items-center justify-between rounded-xl border border-white/[0.05] px-3 py-2.5 text-sm transition-colors hover:bg-white/[0.03]"
+                  >
+                    <span className="truncate text-[#F8FAFC]">{walk.title}</span>
+                    <span className="shrink-0 text-xs text-[#A3AED0]">{walk.itemCount} items</span>
+                  </Link>
                 </li>
               ))}
             </ul>
-          </section>
-        ) : null}
-      </div>
-    </SiteWalkShell>
+          ) : (
+            <MobileEmptyState
+              compact
+              icon={Camera}
+              title="No walks yet"
+              actionLabel="Start quick capture"
+              onAction={() => void handleQuickCapture()}
+            />
+          ),
+      },
+      {
+        value: "projects",
+        label: "Projects",
+        content:
+          projects.length > 0 ? (
+            <ul className="space-y-2">
+              {projects.slice(0, 8).map((project) => (
+                <li
+                  key={project.id}
+                  className="rounded-xl border border-white/[0.05] px-3 py-2.5 text-sm text-[#F8FAFC]"
+                >
+                  {project.name}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <MobileEmptyState compact icon={MapPin} title="No projects linked yet" />
+          ),
+      },
+      {
+        value: "deliverables",
+        label: "Deliverables",
+        content:
+          deliverables.length > 0 ? (
+            <ul className="space-y-2">
+              {deliverables.slice(0, 8).map((item) => (
+                <li key={item.id}>
+                  <Link
+                    href="/site-walk/deliverables"
+                    className="block rounded-xl border border-white/[0.05] px-3 py-2.5 text-sm text-[#F8FAFC] transition-colors hover:bg-white/[0.03]"
+                  >
+                    {item.title}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <MobileEmptyState
+              compact
+              icon={FileText}
+              title="No deliverables yet"
+              actionLabel="View deliverables"
+              actionHref="/site-walk/deliverables"
+            />
+          ),
+      },
+    ],
+    [deliverables, projects, walks],
+  );
+
+  return (
+    <MobileHomeLayout
+      route="site-walk"
+      contentTop={
+        <section className="shrink-0 pb-1">
+          <p className="text-xs font-semibold uppercase tracking-widest text-[#A3AED0]">
+            Site Walk
+          </p>
+          <h1 className="text-xl font-bold tracking-tight text-[#FFFFFF]">
+            {orgName ? `${orgName} · Field Hub` : "Field Hub"}
+          </h1>
+        </section>
+      }
+      primaryActions={
+        <section className="mt-1 shrink-0">
+          <div className="mb-2">
+            <span
+              className="mb-1.5 block h-0.5 w-8 rounded-full"
+              style={{ backgroundColor: `${TEAL}55` }}
+              aria-hidden
+            />
+            <p className={mobileTokens.appHomeSectionLabel}>Quick Actions</p>
+          </div>
+          <div className={mobileTokens.siteWalkActionGridRow}>
+            <button
+              type="button"
+              onClick={() => void handleQuickCapture()}
+              className={cn(mobileTokens.siteWalkActionGridButton, mobileTokens.focusRing)}
+            >
+              <span
+                className={cn(
+                  mobileTokens.siteWalkActionGridIcon,
+                  "border border-[#6EA7A0]/20 bg-[#6EA7A0]/10 text-[#6EA7A0]",
+                )}
+                aria-hidden
+              >
+                <Camera className="h-[18px] w-[18px]" />
+              </span>
+              <span className={mobileTokens.siteWalkActionGridLabel}>Quick Walk</span>
+              <span className={mobileTokens.siteWalkActionGridSubtext}>Start capturing now</span>
+            </button>
+            <ActionLink
+              href="/site-walk/walks"
+              label="Walk Sessions"
+              subtext="Review saved walks"
+              icon={FolderOpen}
+            />
+            <ActionLink
+              href="/site-walk/deliverables"
+              label="Deliverables"
+              subtext="Reports and outputs"
+              icon={FileText}
+            />
+            <ActionLink
+              href="/site-walk/assigned-work"
+              label="Assigned Work"
+              subtext="Tasks in the field"
+              icon={ClipboardList}
+            />
+          </div>
+        </section>
+      }
+      dock={<MobileExpandableTabbedPanel tabs={dockTabs} defaultTab="recent" className="pt-1" />}
+    />
   );
 }
