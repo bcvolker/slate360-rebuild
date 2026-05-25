@@ -11,8 +11,10 @@ import type {
 import type { ItemPriority, ItemStatus } from "@/lib/types/site-walk-core";
 import type { SiteWalkItemType, SiteWalkSyncState, SiteWalkUploadState } from "@/lib/types/site-walk";
 
+export const dynamic = "force-dynamic";
+
 type Props = {
-  searchParams: Promise<{ session?: string }>;
+  searchParams: Promise<{ session?: string; finished?: string; saved?: string }>;
 };
 
 type SessionRow = {
@@ -42,7 +44,9 @@ type ItemRow = {
 };
 
 export default async function CaptureV2SummaryPage({ searchParams }: Props) {
-  const { session: sessionId } = await searchParams;
+  const { session: sessionId, finished, saved } = await searchParams;
+  const justFinished = finished === "1";
+  const savedCount = saved ? Number.parseInt(saved, 10) : null;
   const context = await resolveServerOrgContext();
 
   if (!context.user || !context.orgId || !sessionId) {
@@ -87,7 +91,15 @@ export default async function CaptureV2SummaryPage({ searchParams }: Props) {
 
   const stats = computeCaptureV2SummaryStats(items, session.lastSyncedAt);
 
-  return <CaptureV2Summary session={session} items={items} stats={stats} />;
+  return (
+    <CaptureV2Summary
+      session={session}
+      items={items}
+      stats={stats}
+      justFinished={justFinished}
+      savedCount={Number.isFinite(savedCount) ? savedCount : null}
+    />
+  );
 }
 
 function mapSummaryItems(rows: ItemRow[]): CaptureV2SummaryItem[] {

@@ -52,6 +52,18 @@ export function buildCaptureSummaryUrl(sessionId: string): string {
   return `/site-walk/walks/${encodeURIComponent(sessionId)}`;
 }
 
+/** Summary URL after finishing a stop-draft walk — shows success banner with saved count. */
+export function buildCaptureSummaryFinishedUrl(sessionId: string, savedCount: number): string {
+  if (!CAPTURE_V2_ENABLED) {
+    return buildCaptureSummaryUrl(sessionId);
+  }
+  const params = new URLSearchParams();
+  params.set("session", sessionId);
+  params.set("finished", "1");
+  params.set("saved", String(Math.max(0, savedCount)));
+  return `${SITE_WALK_CAPTURE_V2_ROUTES.summary}?${params.toString()}`;
+}
+
 /** Resume an in-progress walk (capture) or open completed review. */
 export function buildWalkResumeUrl(sessionId: string, status: string): string {
   if (status === "completed") {

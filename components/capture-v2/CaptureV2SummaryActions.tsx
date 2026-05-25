@@ -8,9 +8,16 @@ import { buildCaptureV2LaunchUrl, buildCaptureV2SummaryUrl } from "@/lib/site-wa
 type Props = {
   sessionId: string;
   sessionStatus: string;
+  projectId?: string | null;
+  projectName?: string | null;
 };
 
-export function CaptureV2SummaryActions({ sessionId, sessionStatus }: Props) {
+export function CaptureV2SummaryActions({
+  sessionId,
+  sessionStatus,
+  projectId = null,
+  projectName = null,
+}: Props) {
   const router = useRouter();
   const [ending, setEnding] = useState(false);
   const [endError, setEndError] = useState<string | null>(null);
@@ -69,6 +76,15 @@ export function CaptureV2SummaryActions({ sessionId, sessionStatus }: Props) {
           Walk completed
         </Link>
       )}
+
+      {projectId ? (
+        <Link
+          href={`/projects/${encodeURIComponent(projectId)}/field`}
+          className="flex min-h-11 w-full items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] px-4 text-sm font-black text-slate-200 hover:border-amber-400/30"
+        >
+          {projectName ? `Project: ${projectName}` : "Project field tab"}
+        </Link>
+      ) : null}
 
       <Link
         href="/site-walk"

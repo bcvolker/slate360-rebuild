@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, Camera } from "lucide-react";
+import { ArrowLeft, Camera, CheckCircle2, FolderKanban } from "lucide-react";
 import { buildCaptureV2LaunchUrl } from "@/lib/site-walk/capture-v2-config";
 import { CaptureV2SummaryActions } from "./CaptureV2SummaryActions";
 import { CaptureV2SummaryItemCard } from "./CaptureV2SummaryItemCard";
@@ -16,13 +16,16 @@ type Props = {
   session: CaptureV2SummarySession;
   items: CaptureV2SummaryItem[];
   stats: Stats;
+  justFinished?: boolean;
+  savedCount?: number | null;
 };
 
-export function CaptureV2Summary({ session, items, stats }: Props) {
+export function CaptureV2Summary({ session, items, stats, justFinished = false, savedCount = null }: Props) {
   const orderedItems = [...items].sort(
     (a, b) => Date.parse(a.createdAt) - Date.parse(b.createdAt),
   );
   const contextLabel = session.isAdHoc ? "Quick Walk" : session.projectName ?? "Plan Walk";
+  const displaySavedCount = savedCount ?? stats.totalItems;
 
   return (
     <main className="flex h-full min-h-0 flex-col overflow-hidden bg-[radial-gradient(circle_at_top,rgba(245,158,11,0.07),transparent_34%),#0B0F15] text-white">
@@ -43,6 +46,39 @@ export function CaptureV2Summary({ session, items, stats }: Props) {
             </Link>
           )}
         </div>
+
+        {justFinished ? (
+          <div className="mx-auto mt-4 max-w-6xl rounded-2xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-3">
+            <div className="flex items-start gap-3">
+              <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-300" />
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-black text-emerald-100">Walk finished</p>
+                <p className="mt-0.5 text-xs font-semibold text-emerald-100/80">
+                  {displaySavedCount > 0
+                    ? `${displaySavedCount} capture${displaySavedCount === 1 ? "" : "s"} saved to this walk.`
+                    : "Walk marked complete. Add captures anytime from Site Walk."}
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {session.projectId ? (
+                    <Link
+                      href={`/projects/${encodeURIComponent(session.projectId)}/field`}
+                      className="inline-flex min-h-9 items-center gap-2 rounded-xl border border-emerald-300/25 bg-emerald-400/10 px-3 text-xs font-black text-emerald-50"
+                    >
+                      <FolderKanban className="h-3.5 w-3.5" />
+                      {session.projectName ? `Back to ${session.projectName}` : "Back to project"}
+                    </Link>
+                  ) : null}
+                  <Link
+                    href="/site-walk/walks"
+                    className="inline-flex min-h-9 items-center rounded-xl border border-white/10 bg-white/[0.04] px-3 text-xs font-black text-slate-200"
+                  >
+                    Walk list
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : null}
 
         <div className="mx-auto mt-4 max-w-6xl">
           <p className="text-[11px] font-black uppercase tracking-[0.22em] text-amber-300/80">
@@ -78,7 +114,12 @@ export function CaptureV2Summary({ session, items, stats }: Props) {
         <aside className="shrink-0 border-t border-white/10 bg-slate-950/50 px-4 py-4 md:w-80 md:border-l md:border-t-0">
           <div className="space-y-5 pb-[max(env(safe-area-inset-bottom),0.75rem)]">
             <CaptureV2SummaryStats stats={stats} sessionStatus={session.status} />
-            <CaptureV2SummaryActions sessionId={session.id} sessionStatus={session.status} />
+            <CaptureV2SummaryActions
+              sessionId={session.id}
+              sessionStatus={session.status}
+              projectId={session.projectId}
+              projectName={session.projectName}
+            />
           </div>
         </aside>
       </div>
