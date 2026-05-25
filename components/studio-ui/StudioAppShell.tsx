@@ -1,13 +1,21 @@
 "use client";
 
 import type { ReactNode } from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { FolderOpen, Home, MapPin, User } from "lucide-react";
 import { MobileAppShell, MobileBottomNav, type MobileBottomNavItem } from "@/components/mobile-system";
+import { InviteShareProvider, useInviteShare } from "@/components/shared/InviteShareProvider";
 import { Slate360Logo } from "@/components/studio-ui/LogoProvider";
+import { StudioMobileHeaderActions } from "@/components/studio-ui/StudioMobileHeaderActions";
 import { isSiteWalkFullBleedPath } from "@/lib/site-walk/site-walk-shell-paths";
 import type { InviteShareData } from "@/lib/types/invite";
+
+const InviteShareModal = dynamic(
+  () => import("@/components/shared/InviteShareModal").then((mod) => mod.InviteShareModal),
+  { ssr: false },
+);
 
 type NavKey = "home" | "site-walk" | "projects" | "account";
 
@@ -34,34 +42,50 @@ type StudioAppShellProps = {
   children: ReactNode;
 };
 
-export function StudioAppShell({ userName, workspaceName, children }: StudioAppShellProps) {
+function StudioAppShellInner({ inviteShareData, children }: StudioAppShellProps) {
   const pathname = usePathname() ?? "";
   const fullBleed = isSiteWalkFullBleedPath(pathname);
   const activeKey = activeNavKey(pathname);
+  const { open: inviteOpen, setOpen: setInviteOpen } = useInviteShare();
 
   if (fullBleed) {
     return <div className="fixed inset-0 h-[100dvh] w-full overflow-hidden bg-[#0B0F15]">{children}</div>;
   }
 
   return (
-    <MobileAppShell
-      className="relative min-h-[100dvh]"
-      mobileRoute="app"
-      header={
-        <header className="flex h-14 shrink-0 items-center justify-between border-b border-white/[0.05] bg-[#0B0F15]/90 px-4 backdrop-blur-xl">
-          <Link href="/app" className="shrink-0">
-            <Slate360Logo variant="dark" />
-          </Link>
-          <div className="min-w-0 text-right">
-            <p className="truncate text-sm font-medium text-[#FFFFFF]">{workspaceName ?? "Slate360"}</p>
-            <p className="truncate text-xs text-[#A3AED0]">{userName}</p>
-          </div>
-        </header>
-      }
-      bottomNav={<MobileBottomNav items={NAV_ITEMS} activeKey={activeKey} ariaLabel="Platform" />}
-      mainClassName="min-h-0"
-    >
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">{children}</div>
-    </MobileAppShell>
+    <>
+      <MobileAppShell
+        className="relative min-h-[100dvh]"
+        mobileRoute="app"
+        header={
+          <header className="flex h-14 shrink-0 items-center justify-between border-b border-white/[0.05] bg-[#0B0F15]/90 px-4 backdrop-blur-xl">
+            <Link href="/app" className="shrink-0">
+              <Slate360Logo variant="dark" />
+            </Link>
+            <StudioMobileHeaderActions inviteShareData={inviteShareData} />
+          </header>
+        }
+        bottomNav={<MobileBottomNav items={NAV_ITEMS} activeKey={activeKey} ariaLabel="Platform" />}
+        mainClassName="min-h-0"
+      >
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">{children}</div>
+      </MobileAppShell>
+
+      {inviteOpen ? (
+        <InviteShareModal
+          open={inviteOpen}
+          onOpenChange={setInviteOpen}
+          {...inviteShareData}
+        />
+      ) : null}
+    </>
+  );
+}
+
+export function StudioAppShell(props: StudioAppShellProps) {
+  return (
+    <InviteShareProvider>
+      <StudioAppShellInner {...props} />
+    </InviteShareProvider>
   );
 }

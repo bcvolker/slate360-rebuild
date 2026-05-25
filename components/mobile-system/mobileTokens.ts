@@ -7,15 +7,15 @@
 
 export const MOBILE_PANEL_ROW_HEIGHT_PX = 72;
 export const MOBILE_PANEL_ROW_GAP_PX = 6;
-export const MOBILE_PANEL_COLLAPSED_BODY_PX = 192;
-export const MOBILE_PANEL_COLLAPSED_FRAME_PX = 264;
+export const MOBILE_PANEL_COLLAPSED_BODY_PX = 180;
+export const MOBILE_PANEL_COLLAPSED_FRAME_PX = 252;
 
 /** MobileBottomNav content band: min-h-[58px] + pt-[4px] (nav sits below main, in shell flow). */
 export const MOBILE_BOTTOM_NAV_HEIGHT_PX = 62;
 export const MOBILE_HOME_DOCK_GAP_PX = 12;
 export const MOBILE_HOME_DOCK_CONTENT_PAD_PX = 16;
 export const MOBILE_HOME_DOCK_COLLAPSED_CLAMP = "clamp(240px,30dvh,320px)";
-export const MOBILE_HOME_DOCK_EXPANDED_CLAMP = "clamp(400px,55dvh,520px)";
+export const MOBILE_HOME_DOCK_EXPANDED_CLAMP = "60dvh";
 
 const mobileTabbedPanelScrollBody = "min-h-0 flex-1 overflow-y-auto";
 const mobileTabbedPanelBodyPadding = "px-3 pt-2 pb-3";
@@ -65,10 +65,11 @@ export const mobileTokens = {
   mobileHomeDockCollapsedHeight:
     "h-[clamp(240px,30dvh,320px)] max-h-[clamp(240px,30dvh,320px)] min-h-[clamp(240px,30dvh,320px)] shrink-0",
   mobileHomeAppDockCollapsedHeight:
-    "h-[clamp(200px,26dvh,272px)] max-h-[clamp(200px,26dvh,272px)] min-h-[clamp(200px,26dvh,272px)] shrink-0",
+    "h-[252px] max-h-[252px] min-h-[252px] shrink-0",
   mobileHomeDockExpandedHeight:
-    "h-[clamp(400px,55dvh,520px)] max-h-[clamp(400px,55dvh,520px)] min-h-[clamp(400px,55dvh,520px)] shrink-0",
-  mobileHomeDockCollapsedBody: "min-h-0 flex-1 overflow-y-auto overscroll-contain",
+    "h-[60dvh] max-h-[60dvh] min-h-[60dvh] shrink-0",
+  mobileHomeDockCollapsedBody:
+    "h-[180px] max-h-[180px] min-h-0 overflow-y-auto overscroll-contain",
   /** Legacy flex-flow allocation (deprecated — kept for reference) */
   mobileHomeContentZone: "flex min-h-0 flex-1 flex-col pt-3",
   mobileHomeContentStackLegacy: "mx-auto flex min-h-0 w-full max-w-2xl flex-1 flex-col",
@@ -227,11 +228,11 @@ export const mobileTokens = {
     "flex min-h-11 w-full shrink-0 touch-manipulation",
   mobileExpandablePanelToggleButton:
     "flex min-h-11 w-full flex-1 items-center justify-center gap-2 border-b border-white/10 px-3 py-2 text-zinc-400 transition-colors hover:bg-white/[0.04] active:bg-white/[0.08]",
-  mobileExpandablePanelCollapsedHeight: "h-[264px] max-h-[264px] min-h-[264px] shrink-0",
+  mobileExpandablePanelCollapsedHeight: "h-[252px] max-h-[252px] min-h-[252px] shrink-0",
   mobileExpandablePanelExpandedHeight:
-    "h-[min(52dvh,480px)] max-h-[min(52dvh,480px)] min-h-[min(52dvh,480px)] shrink-0",
+    "h-[60dvh] max-h-[60dvh] min-h-[60dvh] shrink-0",
   mobileExpandablePanelCollapsedBody:
-    "h-[192px] max-h-[192px] min-h-0 overflow-y-auto overscroll-contain",
+    "h-[180px] max-h-[180px] min-h-0 overflow-y-auto overscroll-contain",
   mobileExpandablePanelExpandedBody: "min-h-0 flex-1 overflow-y-auto overscroll-contain",
   mobileExpandablePanelTabbedFill: "flex min-h-0 flex-1 flex-col border-0 bg-transparent shadow-none",
 
@@ -244,11 +245,10 @@ export const mobileTokens = {
   expandablePanelDockExpanded: "shadow-[0_-12px_40px_rgba(0,0,0,0.55)] ring-1 ring-white/10",
   expandablePanelChrome: "flex shrink-0 items-center gap-1 border-b border-white/10 px-2",
   expandablePanelHandle: "block h-1 w-10 rounded-full bg-white/25",
-  expandablePanelCollapsedFrame: "h-[264px] max-h-[264px] min-h-[264px]",
-  expandablePanelExpandedFrame:
-    "h-[min(52dvh,480px)] max-h-[min(52dvh,480px)] min-h-[min(52dvh,480px)]",
+  expandablePanelCollapsedFrame: "h-[252px] max-h-[252px] min-h-[252px]",
+  expandablePanelExpandedFrame: "h-[60dvh] max-h-[60dvh] min-h-[60dvh]",
   expandablePanelCollapsedBody:
-    "h-[192px] max-h-[192px] min-h-0 overflow-y-auto overscroll-contain",
+    "h-[180px] max-h-[180px] min-h-0 overflow-y-auto overscroll-contain",
   expandablePanelExpandedBody: "min-h-0 flex-1 overflow-y-auto overscroll-contain",
   moduleListPanelContent: "pb-3",
   mobileHomeUpperBottomPad: "pb-0",
