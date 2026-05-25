@@ -62,10 +62,12 @@ function StudioAppShellInner({ inviteShareData, children }: StudioAppShellProps)
             className="flex h-14 shrink-0 items-center justify-between border-b border-white/[0.05] bg-[#0B0F15]/90 px-4 backdrop-blur-xl"
             style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}
           >
-            <Link href="/app" className="shrink-0">
+            <Link href="/app" className="min-w-0 shrink-0">
               <Slate360Logo variant="dark" />
             </Link>
-            <StudioMobileHeaderActions inviteShareData={inviteShareData} />
+            <div className="ml-auto flex shrink-0 items-center [&>div:first-child]:flex-row-reverse">
+              <StudioMobileHeaderActions inviteShareData={inviteShareData} />
+            </div>
           </header>
         }
         bottomNav={<MobileBottomNav items={NAV_ITEMS} activeKey={activeKey} ariaLabel="Platform" />}

@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo, useState } from "react";
 import {
+  AppWindow,
   Bell,
   ClipboardList,
   Clock,
@@ -12,6 +13,7 @@ import {
   Search,
 } from "lucide-react";
 import {
+  MobileComingSoonSheet,
   MobileCreateSheet,
   MobileEmptyState,
   MobileExpandableTabbedPanel,
@@ -24,6 +26,7 @@ import { MobileAppLauncherGrid } from "@/components/studio-ui/MobileAppLauncherG
 
 export function MobileAppRootContent() {
   const [createSheetOpen, setCreateSheetOpen] = useState(false);
+  const [digitalTwinSheetOpen, setDigitalTwinSheetOpen] = useState(false);
 
   const handleSearch = useCallback(() => {
     if (typeof window === "undefined") return;
@@ -110,7 +113,24 @@ export function MobileAppRootContent() {
               </p>
               <h1 className="mt-0.5 text-xl font-bold tracking-tight text-[#FFFFFF]">Field Hub</h1>
             </div>
-            <MobileAppLauncherGrid />
+            <div className="grid grid-cols-2 gap-3">
+              <MobileAppLauncherGrid />
+              <button
+                type="button"
+                onClick={() => setDigitalTwinSheetOpen(true)}
+                className="flex min-h-[148px] flex-col gap-3 rounded-xl border border-[#6EA7A0]/35 bg-slate-900/40 p-4 text-left transition-all hover:bg-slate-900/55 active:scale-[0.99]"
+              >
+                <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-[#6EA7A0]/20 bg-[#6EA7A0]/10">
+                  <AppWindow className="h-5 w-5 text-[#6EA7A0]" strokeWidth={1.75} />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold leading-tight text-[#FFFFFF]">Digital Twin</p>
+                  <p className="mt-1 line-clamp-1 text-xs leading-snug text-[#A3AED0]">
+                    Interactive 3D reality studio.
+                  </p>
+                </div>
+              </button>
+            </div>
           </section>
         }
         primaryActions={
@@ -125,6 +145,12 @@ export function MobileAppRootContent() {
         dock={<MobileExpandableTabbedPanel tabs={activityTabs} defaultTab="alerts" />}
       />
       <MobileCreateSheet open={createSheetOpen} onOpenChange={setCreateSheetOpen} />
+      <MobileComingSoonSheet
+        open={digitalTwinSheetOpen}
+        onOpenChange={setDigitalTwinSheetOpen}
+        title="Digital Twin Studio — Coming in next update"
+        description="Digital Twin field tools will arrive in a future app update. Site Walk remains available today."
+      />
     </>
   );
 }

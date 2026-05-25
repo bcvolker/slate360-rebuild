@@ -5,6 +5,7 @@
  */
 
 import { useCallback, useEffect, useId, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { usePathname } from "next/navigation";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -23,6 +24,8 @@ type MobileExpandableTabbedPanelProps = {
   className?: string;
 };
 
+const HOME_NAV_BOTTOM_OFFSET = "bottom-[calc(62px+env(safe-area-inset-bottom,0px))]";
+
 export function MobileExpandableTabbedPanel({
   tabs,
   defaultTab,
@@ -31,6 +34,7 @@ export function MobileExpandableTabbedPanel({
 }: MobileExpandableTabbedPanelProps) {
   const pathname = usePathname();
   const [expanded, setExpanded] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const panelId = useId();
   const collapse = useCallback(() => setExpanded(false), []);
   const toggle = useCallback(() => setExpanded((value) => !value), []);
@@ -39,21 +43,26 @@ export function MobileExpandableTabbedPanel({
     setExpanded(false);
   }, [pathname]);
 
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const isHomeDock = !upper;
 
   const dock = (
     <div
       className={cn(
         isHomeDock
-          ? "relative z-30 w-full pointer-events-auto"
+          ? cn("relative w-full pointer-events-auto", !expanded && "z-30")
           : mobileTokens.mobileExpandablePanelOuter,
-        expanded && mobileTokens.mobileExpandablePanelExpandedPosition,
+        expanded && !isHomeDock && mobileTokens.mobileExpandablePanelExpandedPosition,
       )}
     >
       <div
         data-testid="mobile-expandable-panel-frame"
         data-expandable-panel-state={expanded ? "expanded" : "collapsed"}
         className={cn(
+          "relative",
           mobileTokens.mobileExpandablePanelFrame,
           expanded
             ? cn(
@@ -102,35 +111,56 @@ export function MobileExpandableTabbedPanel({
           showBottomFade
           bottomFadeClassName={mobileTokens.mobileExpandablePanelFade}
         />
+
+        {!expanded && isHomeDock ? (
+          <div
+            className="pointer-events-none absolute inset-x-0 bottom-0 z-[2] h-10 bg-gradient-to-t from-[#0B0F15] via-[#0B0F15]/85 to-transparent"
+            aria-hidden
+          />
+        ) : null}
       </div>
     </div>
   );
 
   if (isHomeDock) {
+    const expandedOverlay =
+      expanded && mounted
+        ? createPortal(
+            <>
+              <button
+                type="button"
+                className="fixed inset-0 z-[45] bg-black/50 backdrop-blur-[2px] lg:hidden"
+                aria-label="Close activity panel"
+                onClick={collapse}
+              />
+              <div
+                className={cn(
+                  "pointer-events-none fixed inset-x-0 z-[48] w-full px-4 pb-3",
+                  HOME_NAV_BOTTOM_OFFSET,
+                )}
+              >
+                <div className="pointer-events-auto w-full">{dock}</div>
+              </div>
+            </>,
+            document.body,
+          )
+        : null;
+
     return (
-      <div
-        data-expandable-panel-version="fixed-region-v2"
-        data-panel-mode="fixed-region"
-        data-dock-width-mode="full-shell"
-        data-expanded-state={expanded ? "true" : "false"}
-        data-collapsed-height={MOBILE_HOME_DOCK_COLLAPSED_CLAMP}
-        data-expanded-height={MOBILE_HOME_DOCK_EXPANDED_CLAMP}
-        className={cn(
-          "relative flex w-full flex-col",
-          expanded ? "z-50 h-full min-h-0 flex-grow" : "mt-auto shrink-0",
-          className,
-        )}
-      >
-        {expanded && (
-          <button
-            type="button"
-            className="fixed inset-0 z-40 bg-black/50 backdrop-blur-[2px] lg:hidden"
-            aria-label="Close activity panel"
-            onClick={collapse}
-          />
-        )}
-        <div className={cn(expanded && "relative z-50")}>{dock}</div>
-      </div>
+      <>
+        <div
+          data-expandable-panel-version="fixed-region-v2"
+          data-panel-mode="fixed-region"
+          data-dock-width-mode="full-shell"
+          data-expanded-state={expanded ? "true" : "false"}
+          data-collapsed-height={MOBILE_HOME_DOCK_COLLAPSED_CLAMP}
+          data-expanded-height={MOBILE_HOME_DOCK_EXPANDED_CLAMP}
+          className={cn("relative mt-auto flex w-full shrink-0 flex-col", className)}
+        >
+          {!expanded ? dock : null}
+        </div>
+        {expandedOverlay}
+      </>
     );
   }
 
