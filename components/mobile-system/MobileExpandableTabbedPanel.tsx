@@ -61,7 +61,7 @@ export function MobileExpandableTabbedPanel({
                 mobileTokens.mobileExpandablePanelFrameExpanded,
               )
             : isHomeDock
-              ? "flex h-full min-h-0 flex-1 flex-col"
+              ? mobileTokens.mobileHomeAppDockCollapsedHeight
               : mobileTokens.mobileExpandablePanelCollapsedHeight,
         )}
       >
@@ -116,8 +116,8 @@ export function MobileExpandableTabbedPanel({
         data-collapsed-height={MOBILE_HOME_DOCK_COLLAPSED_CLAMP}
         data-expanded-height={MOBILE_HOME_DOCK_EXPANDED_CLAMP}
         className={cn(
-          "relative flex h-full min-h-0 w-full flex-grow flex-col",
-          expanded && "z-50",
+          "relative flex w-full flex-col",
+          expanded ? "z-50 h-full min-h-0 flex-grow" : "mt-auto shrink-0",
           className,
         )}
       >
