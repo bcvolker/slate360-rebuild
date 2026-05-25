@@ -1,11 +1,17 @@
 import Link from "next/link";
 import { CalendarDays, Inbox, Users2, type LucideIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { mobileTokens } from "@/components/mobile-system/mobileTokens";
 
 const tabs: { label: string; href: string; icon: LucideIcon }[] = [
   { label: "Inbox",    href: "/coordination/inbox",    icon: Inbox },
   { label: "Contacts", href: "/coordination/contacts",  icon: Users2 },
   { label: "Calendar", href: "/coordination/calendar",  icon: CalendarDays },
 ];
+
+const navCardBase =
+  "rounded-xl border border-white/[0.06] bg-white/[0.04] p-4 transition-colors hover:border-[#6EA7A0]/25 hover:bg-white/[0.07]";
+const navCardSelected = "border-[#6EA7A0]/35 bg-slate-900/40";
 
 export function CoordinationHubShell({
   active,
@@ -20,13 +26,22 @@ export function CoordinationHubShell({
   children: React.ReactNode;
 }) {
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-5 px-4 py-5 text-slate-50 sm:px-6 lg:px-8 lg:py-8">
-      <section className="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-lg backdrop-blur-md sm:p-6">
-        <p className="text-[11px] font-black uppercase tracking-[0.18em] text-amber-200">{eyebrow}</p>
-        <h1 className="mt-1 text-2xl font-black text-white sm:text-3xl">{title}</h1>
+    <div
+      className={cn(
+        "mx-auto flex w-full max-w-6xl flex-col text-zinc-100",
+        mobileTokens.mobileShellContentPaddingX,
+        mobileTokens.mobileShellContentTopGap,
+        mobileTokens.mobileShellContentStackGap,
+        "pb-5 sm:px-6 lg:px-8 lg:pb-8",
+      )}
+    >
+      <section className="rounded-xl border border-white/[0.06] bg-white/[0.04] px-4 py-4 sm:px-5 sm:py-5">
+        <span className={mobileTokens.sectionLabelAccentCool} aria-hidden />
+        <p className="text-xs font-semibold uppercase tracking-widest text-[#A3AED0]">{eyebrow}</p>
+        <h1 className="mt-1 text-xl font-bold tracking-tight text-white sm:text-2xl">{title}</h1>
       </section>
 
-      <nav className="grid gap-3 sm:grid-cols-3" aria-label="Coordination sections">
+      <nav className="grid gap-2.5 sm:grid-cols-3" aria-label="Coordination sections">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const selected = active === tab.href.replace("/coordination/", "");
@@ -35,13 +50,13 @@ export function CoordinationHubShell({
               key={tab.href}
               href={tab.href}
               aria-current={selected ? "page" : undefined}
-              className={`rounded-3xl border p-4 shadow-lg backdrop-blur-md transition hover:border-amber-400/70 hover:bg-amber-500/10 ${selected ? "border-amber-400/70 bg-amber-500/15" : "border-white/10 bg-white/5"}`}
+              className={cn(navCardBase, selected && navCardSelected)}
             >
               <div className="flex items-center gap-3">
-                <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-500 text-white ring-1 ring-white/10">
-                  <Icon className="h-5 w-5" />
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#6EA7A0]/20 bg-[#6EA7A0]/10">
+                  <Icon className="h-4 w-4 text-[#6EA7A0]" strokeWidth={1.75} />
                 </span>
-                <p className="text-sm font-black text-white">{tab.label}</p>
+                <p className="text-sm font-semibold text-zinc-100">{tab.label}</p>
               </div>
             </Link>
           );

@@ -16,7 +16,10 @@ import { cn } from "@/lib/utils";
 import type { HubProject, HubSummary, HubWalk } from "@/lib/types/site-walk";
 import type { HubDeliverableRow } from "@/lib/types/site-walk-hub";
 
-const TEAL = "#6EA7A0";
+const SITE_WALK_ICON =
+  "border border-[#6EA7A0]/20 bg-[#6EA7A0]/10 text-[#6EA7A0]";
+const DOCK_EMPTY_ACTION =
+  "text-[12px] font-medium text-[#6EA7A0] hover:text-[#6EA7A0]/80 hover:underline";
 
 type Props = {
   orgName: string | null;
@@ -40,12 +43,12 @@ function ActionLink({
   return (
     <Link
       href={href}
-      className={cn(mobileTokens.siteWalkActionGridButton, mobileTokens.focusRing)}
+      className={cn(mobileTokens.siteWalkActionGridButton, "h-[96px]", mobileTokens.focusRing)}
     >
       <span
         className={cn(
           mobileTokens.siteWalkActionGridIcon,
-          "border border-[#6EA7A0]/20 bg-[#6EA7A0]/10 text-[#6EA7A0]",
+          SITE_WALK_ICON,
         )}
         aria-hidden
       >
@@ -57,7 +60,7 @@ function ActionLink({
   );
 }
 
-export function SiteWalkHomeClient({ orgName, projects, walks, deliverables }: Props) {
+export function SiteWalkHomeClient({ projects, walks, deliverables }: Props) {
   const router = useRouter();
 
   async function handleQuickCapture() {
@@ -103,6 +106,7 @@ export function SiteWalkHomeClient({ orgName, projects, walks, deliverables }: P
               icon={Camera}
               title="No walks yet"
               actionLabel="Start quick capture"
+              actionClassName={DOCK_EMPTY_ACTION}
               onAction={() => void handleQuickCapture()}
             />
           ),
@@ -149,6 +153,7 @@ export function SiteWalkHomeClient({ orgName, projects, walks, deliverables }: P
               icon={FileText}
               title="No deliverables yet"
               actionLabel="View deliverables"
+              actionClassName={DOCK_EMPTY_ACTION}
               actionHref="/site-walk/deliverables"
             />
           ),
@@ -160,37 +165,28 @@ export function SiteWalkHomeClient({ orgName, projects, walks, deliverables }: P
   return (
     <MobileHomeLayout
       route="site-walk"
-      contentTop={
-        <section className="shrink-0 pb-1">
-          <p className="text-xs font-semibold uppercase tracking-widest text-[#A3AED0]">
-            Site Walk
-          </p>
-          <h1 className="text-xl font-bold tracking-tight text-[#FFFFFF]">
-            {orgName ? `${orgName} · Field Hub` : "Field Hub"}
-          </h1>
-        </section>
-      }
+      contentTop={null}
       primaryActions={
-        <section className="mt-1 shrink-0">
+        <section className="shrink-0">
           <div className="mb-2">
-            <span
-              className="mb-1.5 block h-0.5 w-8 rounded-full"
-              style={{ backgroundColor: `${TEAL}55` }}
-              aria-hidden
-            />
+            <h1 className="text-xl font-bold tracking-tight text-[#FFFFFF]">Site Walk</h1>
+          </div>
+          <div className="mb-2">
+            <span className={mobileTokens.appHomeSectionLabelAccentCool} aria-hidden />
             <p className={mobileTokens.appHomeSectionLabel}>Quick Actions</p>
           </div>
           <div className={mobileTokens.siteWalkActionGridRow}>
             <button
               type="button"
               onClick={() => void handleQuickCapture()}
-              className={cn(mobileTokens.siteWalkActionGridButton, mobileTokens.focusRing)}
+              className={cn(
+                mobileTokens.siteWalkActionGridButton,
+                "h-[96px]",
+                mobileTokens.focusRing,
+              )}
             >
               <span
-                className={cn(
-                  mobileTokens.siteWalkActionGridIcon,
-                  "border border-[#6EA7A0]/20 bg-[#6EA7A0]/10 text-[#6EA7A0]",
-                )}
+                className={cn(mobileTokens.siteWalkActionGridIcon, SITE_WALK_ICON)}
                 aria-hidden
               >
                 <Camera className="h-[18px] w-[18px]" />
@@ -217,9 +213,13 @@ export function SiteWalkHomeClient({ orgName, projects, walks, deliverables }: P
               icon={ClipboardList}
             />
           </div>
+          <div
+            className="mt-2.5 h-px w-full bg-gradient-to-r from-transparent via-white/[0.08] to-transparent"
+            aria-hidden
+          />
         </section>
       }
-      dock={<MobileExpandableTabbedPanel tabs={dockTabs} defaultTab="recent" className="pt-1" />}
+      dock={<MobileExpandableTabbedPanel tabs={dockTabs} defaultTab="recent" className="pt-0" />}
     />
   );
 }

@@ -33,6 +33,7 @@ interface MobileEmptyStateProps {
   /** Fires a callback when no href is provided. */
   onAction?: () => void;
   className?: string;
+  actionClassName?: string;
 }
 
 export function MobileEmptyState({
@@ -44,7 +45,9 @@ export function MobileEmptyState({
   actionHref,
   onAction,
   className,
+  actionClassName,
 }: MobileEmptyStateProps) {
+  const actionStyles = actionClassName ?? mobileTokens.emptyStateAction;
   return (
     <div
       className={cn(
@@ -61,7 +64,7 @@ export function MobileEmptyState({
       )}
 
       {actionLabel && actionHref && (
-        <Link href={actionHref} className={mobileTokens.emptyStateAction}>
+        <Link href={actionHref} className={actionStyles}>
           {actionLabel}
         </Link>
       )}
@@ -70,7 +73,7 @@ export function MobileEmptyState({
         <button
           type="button"
           onClick={onAction}
-          className={mobileTokens.emptyStateAction}
+          className={actionStyles}
         >
           {actionLabel}
         </button>

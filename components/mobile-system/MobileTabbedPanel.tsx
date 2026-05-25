@@ -24,6 +24,7 @@ interface MobileTabbedPanelProps {
   bodyClassName?: string;
   showBottomFade?: boolean;
   bottomFadeClassName?: string;
+  tabTriggerClassName?: string;
 }
 
 export function MobileTabbedPanel({
@@ -35,6 +36,7 @@ export function MobileTabbedPanel({
   bodyClassName,
   showBottomFade = true,
   bottomFadeClassName,
+  tabTriggerClassName,
 }: MobileTabbedPanelProps) {
   const defaultValue = defaultTab ?? tabs[0]?.value ?? "";
 
@@ -47,7 +49,7 @@ export function MobileTabbedPanel({
               <TabsTrigger
                 key={tab.value}
                 value={tab.value}
-                className={mobileTokens.panelTabTrigger}
+                className={tabTriggerClassName ?? mobileTokens.panelTabTrigger}
               >
                 {tab.label}
               </TabsTrigger>

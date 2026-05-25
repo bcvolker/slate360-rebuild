@@ -24,6 +24,9 @@ import {
 import type { MobilePanelTab, MobileQuickActionItem } from "@/components/mobile-system";
 import { MobileAppLauncherGrid } from "@/components/studio-ui/MobileAppLauncherGrid";
 
+const DOCK_EMPTY_ACTION =
+  "text-[12px] font-medium text-[#6EA7A0] hover:text-[#6EA7A0]/80 hover:underline";
+
 export function MobileAppRootContent() {
   const [createSheetOpen, setCreateSheetOpen] = useState(false);
   const [digitalTwinSheetOpen, setDigitalTwinSheetOpen] = useState(false);
@@ -60,6 +63,7 @@ export function MobileAppRootContent() {
             icon={Bell}
             title="No active alerts"
             actionLabel="View inbox"
+            actionClassName={DOCK_EMPTY_ACTION}
             actionHref="/coordination/inbox"
           />
         ),
@@ -73,6 +77,7 @@ export function MobileAppRootContent() {
             icon={MessageSquare}
             title="No unread messages"
             actionLabel="View inbox"
+            actionClassName={DOCK_EMPTY_ACTION}
             actionHref="/coordination/inbox"
           />
         ),
@@ -86,6 +91,7 @@ export function MobileAppRootContent() {
             icon={ClipboardList}
             title="No assigned tasks"
             actionLabel="View assigned work"
+            actionClassName={DOCK_EMPTY_ACTION}
             actionHref="/site-walk/assigned-work"
           />
         ),
