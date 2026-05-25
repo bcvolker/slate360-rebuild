@@ -43,7 +43,7 @@ function ActionLink({
   return (
     <Link
       href={href}
-      className={cn(mobileTokens.siteWalkActionGridButton, "h-[96px]", mobileTokens.focusRing)}
+      className={cn(mobileTokens.siteWalkActionGridButton, "h-[110px]", mobileTokens.focusRing)}
     >
       <span
         className={cn(
@@ -168,8 +168,19 @@ export function SiteWalkHomeClient({ projects, walks, deliverables }: Props) {
       contentTop={null}
       primaryActions={
         <section className="shrink-0">
-          <div className="mb-2">
-            <h1 className="text-xl font-bold tracking-tight text-[#FFFFFF]">Site Walk</h1>
+          <div className="mb-2 flex items-center gap-3">
+            <span
+              className={cn(
+                "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl",
+                SITE_WALK_ICON,
+              )}
+              aria-hidden
+            >
+              <MapPin className="h-[18px] w-[18px]" strokeWidth={1.75} />
+            </span>
+            <h1 className={cn(mobileTokens.moduleTitle, "min-w-0")}>
+              SITE <span className="text-[#6EA7A0]/85">WALK</span>
+            </h1>
           </div>
           <div className="mb-2">
             <span className={mobileTokens.appHomeSectionLabelAccentCool} aria-hidden />
@@ -181,7 +192,7 @@ export function SiteWalkHomeClient({ projects, walks, deliverables }: Props) {
               onClick={() => void handleQuickCapture()}
               className={cn(
                 mobileTokens.siteWalkActionGridButton,
-                "h-[96px]",
+                "h-[110px]",
                 mobileTokens.focusRing,
               )}
             >
@@ -213,13 +224,11 @@ export function SiteWalkHomeClient({ projects, walks, deliverables }: Props) {
               icon={ClipboardList}
             />
           </div>
-          <div
-            className="mt-2.5 h-px w-full bg-gradient-to-r from-transparent via-white/[0.08] to-transparent"
-            aria-hidden
-          />
         </section>
       }
-      dock={<MobileExpandableTabbedPanel tabs={dockTabs} defaultTab="recent" className="pt-0" />}
+      dock={
+        <MobileExpandableTabbedPanel tabs={dockTabs} defaultTab="recent" className="pt-1" />
+      }
     />
   );
 }

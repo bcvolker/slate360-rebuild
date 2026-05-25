@@ -11,6 +11,7 @@ import {
   DIGITAL_TWIN_TILE,
   PANORAMA_TILE,
 } from "@/components/marketing-launchpad/marketing-tile-data";
+import { MARKETING_TAIL } from "@/components/marketing-launchpad/marketing-styles";
 
 export function MarketingLaunchpad() {
   return (
@@ -21,8 +22,10 @@ export function MarketingLaunchpad() {
       <MarketingFeatureSection tile={SITE_WALK_MAPS_TILE} />
       <MarketingFeatureSection tile={DIGITAL_TWIN_TILE} />
       <MarketingFeatureSection tile={PANORAMA_TILE} />
-      <MarketingPricingSection />
-      <MarketingFooter />
+      <div className={MARKETING_TAIL}>
+        <MarketingPricingSection />
+        <MarketingFooter />
+      </div>
     </div>
   );
 }

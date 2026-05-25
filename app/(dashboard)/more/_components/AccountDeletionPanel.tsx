@@ -37,18 +37,18 @@ export function AccountDeletionPanel() {
   return (
     <section
       id="delete-account"
-      className="rounded-3xl border border-rose-500/20 bg-rose-950/20 p-5 shadow-lg backdrop-blur-md"
+      className="rounded-xl border border-rose-500/20 bg-rose-950/20 p-5"
     >
-      <p className="text-[11px] font-black uppercase tracking-[0.18em] text-rose-300">Danger zone</p>
-      <h2 className="mt-1 text-lg font-black text-white">Delete account</h2>
-      <p className="mt-2 text-sm font-bold leading-6 text-slate-400">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-rose-300">Danger zone</p>
+      <h2 className="mt-1 text-lg font-bold text-white">Delete account</h2>
+      <p className="mt-2 text-sm font-medium leading-6 text-zinc-400">
         Permanently delete your Slate360 account and revoke access to all workspace data.
       </p>
 
       {!showConfirm ? (
         <Button
           type="button"
-          className="mt-4 rounded-2xl bg-rose-500/10 px-5 font-black text-rose-300 hover:bg-rose-500 hover:text-white"
+          className="mt-4 rounded-xl bg-rose-500/10 px-5 font-semibold text-rose-300 hover:bg-rose-500 hover:text-white"
           onClick={() => setShowConfirm(true)}
         >
           Delete account
@@ -56,7 +56,7 @@ export function AccountDeletionPanel() {
       ) : (
         <div className="mt-4 space-y-3">
           <p className="text-sm font-bold text-slate-300">
-            Type <code className="rounded-lg bg-rose-500/20 px-2 py-1 text-xs font-black text-rose-200">DELETE MY ACCOUNT</code> to confirm.
+            Type <code className="rounded-lg bg-rose-500/20 px-2 py-1 text-xs font-semibold text-rose-200">DELETE MY ACCOUNT</code> to confirm.
           </p>
           <Input
             value={confirmation}
@@ -68,7 +68,7 @@ export function AccountDeletionPanel() {
           <div className="flex flex-wrap gap-2">
             <Button
               type="button"
-              className="rounded-2xl bg-rose-600 font-black text-white hover:bg-rose-500"
+              className="rounded-xl bg-rose-600 font-semibold text-white hover:bg-rose-500"
               onClick={handleDelete}
               disabled={deleting || confirmation !== "DELETE MY ACCOUNT"}
             >

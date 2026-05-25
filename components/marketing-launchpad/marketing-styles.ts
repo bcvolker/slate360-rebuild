@@ -1,7 +1,8 @@
 export const VIEWER_FRAME =
   "w-full lg:w-full aspect-[16/10] bg-slate-900/40 border border-white/[0.08] rounded-xl relative flex items-center justify-center overflow-hidden shadow-[0_0_50px_rgba(0,230,153,0.01)]";
 
-export const TEXT_COLUMN = "flex w-full flex-col justify-center lg:min-w-0";
+export const TEXT_COLUMN =
+  "flex w-full flex-col justify-center lg:min-w-0 lg:px-8 xl:px-10";
 export const MEDIA_COLUMN = "flex w-full items-center justify-center lg:min-w-0 lg:justify-center";
 
 export const TILE_ROW =
@@ -16,7 +17,13 @@ export const TILE_SECTION_SNAP =
   "w-full min-h-screen px-6 py-12 md:py-16 lg:py-0 lg:h-[100dvh] lg:snap-start lg:overflow-hidden flex flex-col lg:flex-row items-center justify-center relative border-none pt-28 lg:px-12 lg:pb-10";
 
 export const TILE_SECTION_FLOW =
-  "w-full h-auto min-h-0 block relative bg-[#0B0F15] py-28 px-6 lg:px-12 border-none overflow-visible clear-both";
+  "w-full h-auto min-h-0 block relative bg-[#0B0F15] py-28 px-6 lg:px-12 border-none overflow-visible clear-both lg:snap-none";
+
+export const MARKETING_TAIL =
+  "w-full lg:snap-none";
+
+export const MARKETING_FOOTER =
+  "border-t border-white/[0.05] bg-[#0B0F15] px-6 py-12 lg:px-12";
 
 export const MOBILE_CANVAS =
   "relative mb-6 flex w-full cursor-pointer flex-col items-center justify-center rounded-xl border border-white/10 bg-slate-900/50 aspect-[4/3]";

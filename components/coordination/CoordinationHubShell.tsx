@@ -12,6 +12,8 @@ const tabs: { label: string; href: string; icon: LucideIcon }[] = [
 const navCardBase =
   "rounded-xl border border-white/[0.06] bg-white/[0.04] p-4 transition-colors hover:border-[#6EA7A0]/25 hover:bg-white/[0.07]";
 const navCardSelected = "border-[#6EA7A0]/35 bg-slate-900/40";
+const navIconWell =
+  "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#6EA7A0]/30 bg-[#6EA7A0]/10 text-[#6EA7A0]";
 
 export function CoordinationHubShell({
   active,
@@ -53,8 +55,8 @@ export function CoordinationHubShell({
               className={cn(navCardBase, selected && navCardSelected)}
             >
               <div className="flex items-center gap-3">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#6EA7A0]/20 bg-[#6EA7A0]/10">
-                  <Icon className="h-4 w-4 text-[#6EA7A0]" strokeWidth={1.75} />
+                <span className={navIconWell}>
+                  <Icon className="h-4 w-4" strokeWidth={1.75} />
                 </span>
                 <p className="text-sm font-semibold text-zinc-100">{tab.label}</p>
               </div>

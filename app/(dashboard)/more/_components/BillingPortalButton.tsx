@@ -32,14 +32,14 @@ export function BillingPortalButton({ disabledReason }: Props) {
       type="button"
       onClick={openPortal}
       disabled={busy || Boolean(disabledReason)}
-      className="flex w-full min-h-16 items-center gap-3 border-b border-white/10 px-4 text-left transition last:border-b-0 hover:bg-amber-500/10 disabled:cursor-not-allowed disabled:opacity-65"
+      className="flex w-full min-h-16 items-center gap-3 border-b border-white/[0.06] px-4 text-left transition last:border-b-0 hover:bg-white/[0.04] disabled:cursor-not-allowed disabled:opacity-65"
     >
-      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-amber-500 text-slate-950">
-        {busy ? <Loader2 className="h-5 w-5 animate-spin" /> : <CreditCard className="h-5 w-5" />}
+      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-[#6EA7A0]/20 bg-[#6EA7A0]/10 text-[#6EA7A0]">
+        {busy ? <Loader2 className="h-5 w-5 animate-spin" /> : <CreditCard className="h-5 w-5" strokeWidth={1.75} />}
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block text-sm font-black text-white">Manage subscription</span>
-        <span className="mt-0.5 block text-xs font-bold text-slate-400">
+        <span className="block text-sm font-semibold text-white">Manage subscription</span>
+        <span className="mt-0.5 block text-xs font-medium text-zinc-400">
           {disabledReason ?? "Open Stripe to update cards, invoices, and plan details."}
         </span>
         {error ? <span className="mt-1 block text-xs font-bold text-rose-300">{error}</span> : null}

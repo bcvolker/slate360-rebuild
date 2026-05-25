@@ -20,7 +20,7 @@ const HOME_LAYOUT_ROOT =
   "relative flex h-full w-full flex-col overflow-hidden bg-[#0B0F15]";
 
 const HOME_DOCK_PANEL =
-  "flex min-h-0 w-full flex-1 flex-col mt-2 overflow-hidden";
+  "flex min-h-0 w-full shrink-0 flex-col overflow-hidden";
 
 /**
  * Shared vertical composition for /app and /site-walk home surfaces.

@@ -61,8 +61,8 @@ export function AccountSettingsClient({
     <div className="grid gap-4 lg:grid-cols-[minmax(220px,0.32fr)_1fr]">
       <GlassCard className="p-3 h-fit sticky top-6">
         <div className="mb-3 px-2 py-2">
-          <p className="text-[11px] font-black uppercase tracking-[0.18em] text-amber-400">Account</p>
-          <h2 className="mt-1 truncate text-lg font-black text-white">{orgName ?? "Personal workspace"}</h2>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-[#A3AED0]">Account</p>
+          <h2 className="mt-1 truncate text-lg font-bold text-white">{orgName ?? "Personal workspace"}</h2>
         </div>
         <nav className="space-y-1" aria-label="Account sections">
           {TABS.map((tab) => {
@@ -74,8 +74,10 @@ export function AccountSettingsClient({
                 type="button"
                 onClick={() => setActiveTab(tab.key)}
                 className={cn(
-                  "flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-left text-sm font-black transition",
-                  active ? "bg-amber-500 text-slate-950" : "text-slate-300 hover:bg-white/[0.06] hover:text-amber-200",
+                  "flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm font-semibold transition",
+                  active
+                    ? "border border-[#6EA7A0]/25 bg-[#6EA7A0]/10 text-[#6EA7A0]"
+                    : "text-zinc-300 hover:bg-white/[0.06] hover:text-zinc-100",
                 )}
               >
                 <Icon className="h-4 w-4" />
@@ -427,12 +429,12 @@ function SecurityPanel({
 function PanelHeader({ icon: Icon, label, title }: { icon: typeof UserRound; label: string; title: string }) {
   return (
     <div className="flex items-center gap-4">
-      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-400/20 to-amber-600/5 text-amber-400 ring-1 ring-amber-500/30 shadow-[0_0_15px_rgba(245,158,11,0.1)]">
-        <Icon className="h-6 w-6" />
+      <div className="flex h-14 w-14 items-center justify-center rounded-xl border border-[#6EA7A0]/20 bg-[#6EA7A0]/10 text-[#6EA7A0]">
+        <Icon className="h-6 w-6" strokeWidth={1.75} />
       </div>
       <div>
-        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-500/80 mb-1">{label}</p>
-        <h2 className="text-2xl font-black text-white">{title}</h2>
+        <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.15em] text-[#A3AED0]">{label}</p>
+        <h2 className="text-2xl font-bold text-white">{title}</h2>
       </div>
     </div>
   );

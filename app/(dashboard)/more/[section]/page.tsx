@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Building2, CalendarDays, ChevronRight, CreditCard, HardDrive, Inbox, LifeBuoy, Mail, MessageSquare, Shield, Upload, User, UsersRound, type LucideIcon } from "lucide-react";
+import { mobileTokens } from "@/components/mobile-system";
 import { getEntitlements } from "@/lib/entitlements";
 import { resolveServerOrgContext, type ServerOrgContext } from "@/lib/server/org-context";
 import { resolveUsageTruth, type UsageTruth } from "@/lib/server/usage-truth";
@@ -16,6 +17,10 @@ type SectionDetails = { title: string; eyebrow: string; description: string; ico
 
 const SECTION_KEYS = new Set<SectionKey>(["account", "organization", "billing", "coordination", "storage", "support"]);
 
+const accountIconWell =
+  "flex shrink-0 items-center justify-center rounded-lg border border-[#6EA7A0]/20 bg-[#6EA7A0]/10 text-[#6EA7A0]";
+const accountRowHover = "transition hover:bg-white/[0.04]";
+
 export default async function MoreSectionPage({ params }: { params: Promise<{ section: string }> }) {
   const { section } = await params;
   if (!SECTION_KEYS.has(section as SectionKey)) notFound();
@@ -27,23 +32,27 @@ export default async function MoreSectionPage({ params }: { params: Promise<{ se
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-4 px-4 py-5 pb-28 text-slate-50 sm:px-6 lg:px-8 lg:py-8 lg:pb-8">
-      <Link href="/more" className="inline-flex min-h-10 w-fit items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-3 text-sm font-bold text-slate-200 hover:bg-white/10">
+      <Link
+        href="/more"
+        className="inline-flex min-h-10 w-fit items-center gap-2 rounded-xl border border-white/[0.06] bg-white/[0.04] px-3 text-sm font-medium text-zinc-400 transition-colors hover:border-[#6EA7A0]/20 hover:bg-white/[0.07] hover:text-[#6EA7A0]"
+      >
         <ArrowLeft className="h-4 w-4" /> Account Hub
       </Link>
 
-      <section className="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-lg backdrop-blur-md">
-        <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-500 text-slate-950 ring-1 ring-amber-300/30">
-          <Icon className="h-6 w-6" />
+      <section className={`${mobileTokens.panelBase} p-5`}>
+        <span className={`${accountIconWell} h-12 w-12`}>
+          <Icon className="h-6 w-6" strokeWidth={1.75} />
         </span>
-        <p className="mt-4 text-[11px] font-black uppercase tracking-[0.18em] text-amber-400">{details.eyebrow}</p>
-        <h1 className="mt-2 text-xl font-black text-white">{details.title}</h1>
-        <p className="mt-2 text-sm font-bold leading-6 text-slate-400">{details.description}</p>
+        <span className={mobileTokens.sectionLabelAccentCool} aria-hidden />
+        <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.15em] text-[#A3AED0]">{details.eyebrow}</p>
+        <h1 className="mt-2 text-xl font-bold tracking-tight text-white">{details.title}</h1>
+        <p className="mt-2 text-sm font-medium leading-6 text-zinc-400">{details.description}</p>
         <div className="mt-4 grid gap-2 sm:grid-cols-3">
           {details.metrics.map((metric) => <MetricCard key={metric.label} metric={metric} />)}
         </div>
       </section>
 
-      <section className="overflow-hidden rounded-3xl border border-white/10 bg-white/5 shadow-lg backdrop-blur-md">
+      <section className={`overflow-hidden ${mobileTokens.panelBase}`}>
         {details.showBillingPortal ? <BillingPortalButton disabledReason={details.billingDisabledReason} /> : null}
         {details.actions.map((action) => <ActionRow key={`${action.label}-${action.href}`} action={action} />)}
       </section>
@@ -143,7 +152,7 @@ function buildSection(section: SectionKey, ctx: ServerOrgContext, planLabel: str
 
 function ActionRow({ action }: { action: SectionAction }) {
   const Icon = action.icon;
-  const className = "flex min-h-16 items-center gap-3 border-b border-white/10 px-4 transition last:border-b-0 hover:bg-amber-500/10";
+  const className = `flex min-h-16 items-center gap-3 border-b border-white/[0.06] px-4 last:border-b-0 ${accountRowHover}`;
   const content = <RowContent icon={Icon} label={action.label} detail={action.detail} />;
   if (action.external) return <a href={action.href} className={className}>{content}</a>;
   return <Link href={action.href} className={className}>{content}</Link>;
@@ -152,15 +161,15 @@ function ActionRow({ action }: { action: SectionAction }) {
 function RowContent({ icon: Icon, label, detail }: { icon: LucideIcon; label: string; detail: string }) {
   return (
     <>
-      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-amber-500 text-slate-950"><Icon className="h-5 w-5" /></span>
-      <span className="min-w-0 flex-1"><span className="block text-sm font-black text-white">{label}</span><span className="mt-0.5 block text-xs font-bold text-slate-400">{detail}</span></span>
-      <ChevronRight className="h-4 w-4 text-slate-500" />
+      <span className={`${accountIconWell} h-10 w-10`}><Icon className="h-5 w-5" strokeWidth={1.75} /></span>
+      <span className="min-w-0 flex-1"><span className="block text-sm font-semibold text-white">{label}</span><span className="mt-0.5 block text-xs font-medium text-zinc-400">{detail}</span></span>
+      <ChevronRight className="h-4 w-4 text-zinc-500" />
     </>
   );
 }
 
 function MetricCard({ metric }: { metric: Metric }) {
-  return <div className="min-w-0 rounded-2xl border border-white/10 bg-slate-950/45 px-3 py-2"><p className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">{metric.label}</p><p className="mt-1 truncate text-xs font-black text-slate-200">{metric.value}</p></div>;
+  return <div className="min-w-0 rounded-xl border border-white/[0.06] bg-white/[0.03] px-3 py-2"><p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-500">{metric.label}</p><p className="mt-1 truncate text-xs font-medium text-zinc-200">{metric.value}</p></div>;
 }
 
 function emptyUsage(): UsageTruth {
