@@ -24,22 +24,35 @@ function buildPhotoPin(draft: CaptureStopDraftRecord): PhotoAttachmentPin[] {
   ];
 }
 
-function draftHasContent(draft: CaptureStopDraftRecord) {
+export function draftHasCaptureContent(draft: CaptureStopDraftRecord) {
   return Boolean(draft.photoS3Key || draft.notes.trim() || draft.classification || draft.pinPct);
 }
+
+export type PromoteCaptureV2DraftsOptions = {
+  /** Promote any stop draft with content, not only stops marked complete. */
+  finishingWalk?: boolean;
+};
 
 export type PromoteCaptureV2DraftsResult = {
   promotedCount: number;
 };
 
-/** Promote completed stop drafts into persisted site_walk_items. */
+function buildStopClientItemId(sessionId: string, stopId: string) {
+  return `cv2stop-${sessionId}-${stopId}`;
+}
+
+/** Promote stop drafts into persisted site_walk_items. */
 export async function promoteCaptureV2StopDrafts(
   sessionId: string,
   store: CaptureV2StopDraftStore,
   stopLabels: StopLabelMap,
+  options: PromoteCaptureV2DraftsOptions = {},
 ): Promise<PromoteCaptureV2DraftsResult> {
   const drafts = Object.values(store.stops)
-    .filter((draft) => draft.complete && draftHasContent(draft))
+    .filter((draft) => {
+      if (!draftHasCaptureContent(draft)) return false;
+      return options.finishingWalk ? true : draft.complete;
+    })
     .sort((a, b) => a.savedAt.localeCompare(b.savedAt));
 
   let promotedCount = 0;
@@ -63,8 +76,8 @@ export async function promoteCaptureV2StopDrafts(
         capture_v2_stop_id: draft.stopId,
       },
       captureMode: draft.photoS3Key ? "camera" : "text",
-      clientItemId: createOfflineId("item"),
-      clientMutationId: createOfflineId("mutation"),
+      clientItemId: buildStopClientItemId(sessionId, draft.stopId),
+      clientMutationId: buildStopClientItemId(sessionId, `${draft.stopId}-mut`),
     });
 
     const response = await fetch("/api/site-walk/items", {

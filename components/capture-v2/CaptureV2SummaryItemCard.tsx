@@ -14,9 +14,10 @@ type Props = {
   sessionId: string;
   item: CaptureV2SummaryItem;
   stopNumber: number;
+  highlight?: boolean;
 };
 
-export function CaptureV2SummaryItemCard({ sessionId, item, stopNumber }: Props) {
+export function CaptureV2SummaryItemCard({ sessionId, item, stopNumber, highlight = false }: Props) {
   const isPhoto = item.itemType === "photo";
   const thumbUrl = isPhoto ? `/api/site-walk/items/${encodeURIComponent(item.id)}/image` : null;
   const syncKind = deriveCaptureV2StoredItemSyncKind({
@@ -33,7 +34,11 @@ export function CaptureV2SummaryItemCard({ sessionId, item, stopNumber }: Props)
   return (
     <Link
       href={focusHref}
-      className="group grid grid-cols-[5.5rem_minmax(0,1fr)_auto] items-center gap-3 rounded-[1.4rem] border border-white/10 bg-white/[0.05] p-2 shadow-[0_12px_40px_rgba(0,0,0,0.2)] transition hover:border-amber-400/30 hover:bg-white/[0.07]"
+      className={`group grid grid-cols-[5.5rem_minmax(0,1fr)_auto] items-center gap-3 rounded-[1.4rem] border p-2 shadow-[0_12px_40px_rgba(0,0,0,0.2)] transition hover:border-amber-400/30 hover:bg-white/[0.07] ${
+        highlight
+          ? "border-emerald-400/35 bg-emerald-500/[0.08] ring-1 ring-emerald-400/20"
+          : "border-white/10 bg-white/[0.05]"
+      }`}
     >
       <div className="relative aspect-[4/5] overflow-hidden rounded-xl border border-white/10 bg-slate-900">
         {thumbUrl ? (

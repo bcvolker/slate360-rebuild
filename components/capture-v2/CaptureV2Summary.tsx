@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, Camera, CheckCircle2, FolderKanban } from "lucide-react";
+import { ArrowLeft, Camera, CheckCircle2, FolderKanban, ListChecks } from "lucide-react";
 import { buildCaptureV2LaunchUrl } from "@/lib/site-walk/capture-v2-config";
 import { CaptureV2SummaryActions } from "./CaptureV2SummaryActions";
 import { CaptureV2SummaryItemCard } from "./CaptureV2SummaryItemCard";
@@ -26,6 +26,9 @@ export function CaptureV2Summary({ session, items, stats, justFinished = false, 
   );
   const contextLabel = session.isAdHoc ? "Quick Walk" : session.projectName ?? "Plan Walk";
   const displaySavedCount = savedCount ?? stats.totalItems;
+  const savedItems = justFinished
+    ? orderedItems.slice(Math.max(0, orderedItems.length - Math.max(displaySavedCount, 0)))
+    : orderedItems;
 
   return (
     <main className="flex h-full min-h-0 flex-col overflow-hidden bg-[radial-gradient(circle_at_top,rgba(245,158,11,0.07),transparent_34%),#0B0F15] text-white">
@@ -58,6 +61,30 @@ export function CaptureV2Summary({ session, items, stats, justFinished = false, 
                     ? `${displaySavedCount} capture${displaySavedCount === 1 ? "" : "s"} saved to this walk.`
                     : "Walk marked complete. Add captures anytime from Site Walk."}
                 </p>
+                {savedItems.length > 0 ? (
+                  <div className="mt-3 rounded-xl border border-emerald-300/15 bg-emerald-950/20 px-3 py-2.5">
+                    <p className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.16em] text-emerald-200/80">
+                      <ListChecks className="h-3.5 w-3.5" />
+                      Saved captures
+                    </p>
+                    <ul className="mt-2 space-y-1.5">
+                      {savedItems.map((item, index) => (
+                        <li
+                          key={item.id}
+                          className="truncate text-sm font-semibold text-emerald-50/95"
+                        >
+                          {index + 1}. {item.title?.trim() || item.description?.trim() || "Capture"}
+                        </li>
+                      ))}
+                    </ul>
+                    {orderedItems.length > savedItems.length ? (
+                      <p className="mt-2 text-[11px] font-semibold text-emerald-100/70">
+                        Plus {orderedItems.length - savedItems.length} earlier capture
+                        {orderedItems.length - savedItems.length === 1 ? "" : "s"} on this walk.
+                      </p>
+                    ) : null}
+                  </div>
+                ) : null}
                 <div className="mt-3 flex flex-wrap gap-2">
                   {session.projectId ? (
                     <Link
@@ -74,6 +101,14 @@ export function CaptureV2Summary({ session, items, stats, justFinished = false, 
                   >
                     Walk list
                   </Link>
+                  {orderedItems.length > 0 ? (
+                    <a
+                      href="#walk-captures"
+                      className="inline-flex min-h-9 items-center rounded-xl border border-emerald-300/20 bg-emerald-400/10 px-3 text-xs font-black text-emerald-50"
+                    >
+                      View all captures
+                    </a>
+                  ) : null}
                 </div>
               </div>
             </div>
@@ -94,7 +129,7 @@ export function CaptureV2Summary({ session, items, stats, justFinished = false, 
       </header>
 
       <div className="mx-auto flex min-h-0 w-full max-w-6xl flex-1 flex-col overflow-hidden md:flex-row">
-        <section className="min-h-0 flex-1 overflow-y-auto px-4 py-4 no-scrollbar">
+        <section id="walk-captures" className="min-h-0 flex-1 overflow-y-auto px-4 py-4 no-scrollbar">
           <div className="space-y-3 pb-[calc(1rem+env(safe-area-inset-bottom))] md:pb-4">
             {orderedItems.length === 0 ? (
               <EmptySummary sessionId={session.id} />
@@ -105,6 +140,7 @@ export function CaptureV2Summary({ session, items, stats, justFinished = false, 
                   sessionId={session.id}
                   item={item}
                   stopNumber={index + 1}
+                  highlight={justFinished && savedItems.some((saved) => saved.id === item.id)}
                 />
               ))
             )}

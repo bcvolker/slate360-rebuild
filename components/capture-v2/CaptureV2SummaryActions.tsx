@@ -3,7 +3,14 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { buildCaptureV2LaunchUrl, buildCaptureV2SummaryUrl } from "@/lib/site-walk/capture-v2-config";
+import {
+  buildCaptureSummaryFinishedUrl,
+  buildCaptureV2LaunchUrl,
+  buildCaptureV2SummaryUrl,
+} from "@/lib/site-walk/capture-v2-config";
+import { finalizeCaptureV2Walk } from "@/lib/site-walk-v2/finalize-capture-v2-walk";
+import { loadCaptureV2StopDraftStore } from "@/lib/site-walk-v2/capture-stop-drafts";
+import { draftHasCaptureContent } from "@/lib/site-walk-v2/promote-capture-v2-drafts";
 
 type Props = {
   sessionId: string;
@@ -27,6 +34,23 @@ export function CaptureV2SummaryActions({
     setEnding(true);
     setEndError(null);
     try {
+      const { store, metadata } = await loadCaptureV2StopDraftStore(sessionId);
+      const hasDrafts = Object.values(store.stops).some(draftHasCaptureContent);
+
+      if (hasDrafts) {
+        const stopLabels = Object.fromEntries(
+          Object.keys(store.stops).map((stopId) => [stopId, stopId]),
+        );
+        const { promotedCount } = await finalizeCaptureV2Walk({
+          sessionId,
+          store,
+          metadata,
+          stopLabels,
+        });
+        router.push(buildCaptureSummaryFinishedUrl(sessionId, promotedCount));
+        return;
+      }
+
       const response = await fetch(`/api/site-walk/sessions/${encodeURIComponent(sessionId)}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -36,8 +60,9 @@ export function CaptureV2SummaryActions({
           last_synced_at: new Date().toISOString(),
         }),
       });
-      if (!response.ok) throw new Error("Could not mark walk complete");
-      router.refresh();
+      const data = (await response.json().catch(() => null)) as { error?: string } | null;
+      if (!response.ok) throw new Error(data?.error ?? "Could not mark walk complete");
+      router.push(buildCaptureSummaryFinishedUrl(sessionId, 0));
     } catch (error) {
       setEndError(error instanceof Error ? error.message : "Could not end walk");
     } finally {

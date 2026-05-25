@@ -5,10 +5,9 @@ import { useRouter } from "next/navigation";
 import type { CaptureClassification, CaptureStopSummary, MarkupTool } from "./capture-flow-types";
 import { buildCaptureSummaryFinishedUrl } from "@/lib/site-walk/capture-v2-config";
 import { resolveCaptureDraftPreviewUrl } from "@/lib/site-walk-v2/capture-photo-upload";
-import { promoteCaptureV2StopDrafts } from "@/lib/site-walk-v2/promote-capture-v2-drafts";
+import { finalizeCaptureV2Walk } from "@/lib/site-walk-v2/finalize-capture-v2-walk";
 import {
   CAPTURE_V2_STOP_DRAFTS_KEY,
-  clearCaptureV2StopDraftStore,
   draftPayloadsEqual,
   EMPTY_STOP_DRAFT,
   loadCaptureV2StopDraftStore,
@@ -208,34 +207,36 @@ export function useCaptureFlowPersistence({ sessionId, stops, initialStopIndex =
     [isDirty, loadStopDraft, stopIndex],
   );
 
-  const finishWalk = useCallback(async () => {
-    const store = storeRef.current;
-    if (!store) {
-      throw new Error("Walk data was not loaded. Close and reopen capture, then try again.");
-    }
-    setSaveState("finishing");
-    setSaveError(null);
-    const stopLabels = Object.fromEntries(stops.map((stop) => [stop.id, stop.label]));
-    const { promotedCount } = await promoteCaptureV2StopDrafts(sessionId, store, stopLabels);
-    await clearCaptureV2StopDraftStore(sessionId, metadataRef.current);
-    metadataRef.current = { ...metadataRef.current };
-    delete metadataRef.current[CAPTURE_V2_STOP_DRAFTS_KEY];
-    storeRef.current = null;
-    const response = await fetch(`/api/site-walk/sessions/${encodeURIComponent(sessionId)}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        status: "completed",
-        sync_state: "synced",
-        last_synced_at: new Date().toISOString(),
-      }),
-    });
-    const data = (await response.json().catch(() => null)) as { error?: string } | null;
-    if (!response.ok) {
-      throw new Error(data?.error ?? "Could not mark walk complete");
-    }
-    router.push(buildCaptureSummaryFinishedUrl(sessionId, promotedCount));
-  }, [router, sessionId, stops]);
+  const finishWalk = useCallback(
+    async (storeOverride?: CaptureV2StopDraftStore) => {
+      const store = storeOverride ?? storeRef.current;
+      if (!store) {
+        throw new Error("Walk data was not loaded. Close and reopen capture, then try again.");
+      }
+
+      setSaveState("finishing");
+      setSaveError(null);
+
+      try {
+        const stopLabels = Object.fromEntries(stops.map((stop) => [stop.id, stop.label]));
+        const { promotedCount, metadata } = await finalizeCaptureV2Walk({
+          sessionId,
+          store,
+          metadata: metadataRef.current,
+          stopLabels,
+        });
+        metadataRef.current = metadata;
+        delete metadataRef.current[CAPTURE_V2_STOP_DRAFTS_KEY];
+        storeRef.current = null;
+        router.push(buildCaptureSummaryFinishedUrl(sessionId, promotedCount));
+      } catch (error) {
+        setSaveState("error");
+        setSaveError(error instanceof Error ? error.message : "Could not finish walk");
+        throw error;
+      }
+    },
+    [router, sessionId, stops],
+  );
 
   const handleSaveAndNext = useCallback(async () => {
     const store = await persistCurrentStop(true);
@@ -243,10 +244,9 @@ export function useCaptureFlowPersistence({ sessionId, stops, initialStopIndex =
     const nextIndex = stopIndex + 1;
     if (nextIndex >= stops.length) {
       try {
-        await finishWalk();
-      } catch (error) {
-        setSaveState("error");
-        setSaveError(error instanceof Error ? error.message : "Could not finish walk");
+        await finishWalk(store);
+      } catch {
+        // saveState/saveError already set in finishWalk
       }
       return;
     }
