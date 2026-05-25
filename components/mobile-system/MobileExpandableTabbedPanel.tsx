@@ -24,11 +24,15 @@ type MobileExpandableTabbedPanelProps = {
   className?: string;
 };
 
+/** 62px in-flow bottom nav band (mobileTokens MOBILE_BOTTOM_NAV_HEIGHT_PX). */
 const HOME_NAV_BOTTOM_OFFSET = "bottom-[calc(62px+env(safe-area-inset-bottom,0px))]";
+/** 180px body = 2.5 × 72px row target (MOBILE_PANEL_COLLAPSED_BODY_PX). */
 const HOME_DOCK_COLLAPSED_BODY =
   "h-[180px] max-h-[180px] min-h-0 overflow-hidden overscroll-contain";
 const HOME_DOCK_COLLAPSED_FADE =
-  "pointer-events-none absolute inset-x-0 bottom-0 z-[3] h-14 bg-gradient-to-t from-[#0B0F15] via-[#0B0F15]/95 to-transparent";
+  "pointer-events-none absolute inset-x-0 bottom-0 z-[4] h-[72px] bg-gradient-to-t from-[#0B0F15] from-35% via-[#0B0F15]/92 via-65% to-transparent";
+const HOME_DOCK_COLLAPSED_CHEVRON =
+  "size-7 shrink-0 text-[#6EA7A0] drop-shadow-[0_0_10px_rgba(110,167,160,0.55)]";
 
 export function MobileExpandableTabbedPanel({
   tabs,
@@ -57,7 +61,7 @@ export function MobileExpandableTabbedPanel({
     <div
       className={cn(
         isHomeDock
-          ? cn("relative w-full pointer-events-auto", !expanded && "z-30")
+          ? cn("relative w-full pointer-events-auto", !expanded && "z-10")
           : mobileTokens.mobileExpandablePanelOuter,
         expanded && !isHomeDock && mobileTokens.mobileExpandablePanelExpandedPosition,
       )}
@@ -84,24 +88,27 @@ export function MobileExpandableTabbedPanel({
             className={cn(
               mobileTokens.mobileExpandablePanelToggleButton,
               mobileTokens.focusRing,
-              !expanded && isHomeDock && "text-[#6EA7A0]",
+              !expanded && isHomeDock && "flex-col gap-1 py-1.5 text-[#6EA7A0]",
             )}
             aria-expanded={expanded}
             aria-controls={panelId}
             aria-label={expanded ? "Collapse activity panel" : "Expand activity panel"}
             onClick={toggle}
           >
-            <span className={mobileTokens.mobileExpandablePanelHandle} aria-hidden />
-            {expanded ? (
-              <ChevronDown className="size-6 shrink-0 text-zinc-400" aria-hidden />
+            {!expanded && isHomeDock ? (
+              <>
+                <ChevronUp className={HOME_DOCK_COLLAPSED_CHEVRON} aria-hidden />
+                <span className={mobileTokens.mobileExpandablePanelHandle} aria-hidden />
+              </>
             ) : (
-              <ChevronUp
-                className={cn(
-                  "size-6 shrink-0",
-                  isHomeDock ? "text-[#6EA7A0] drop-shadow-[0_0_8px_rgba(110,167,160,0.45)]" : "text-zinc-400",
+              <>
+                <span className={mobileTokens.mobileExpandablePanelHandle} aria-hidden />
+                {expanded ? (
+                  <ChevronDown className="size-6 shrink-0 text-zinc-400" aria-hidden />
+                ) : (
+                  <ChevronUp className="size-6 shrink-0 text-zinc-400" aria-hidden />
                 )}
-                aria-hidden
-              />
+              </>
             )}
           </button>
         </div>
@@ -119,7 +126,7 @@ export function MobileExpandableTabbedPanel({
                 ? HOME_DOCK_COLLAPSED_BODY
                 : mobileTokens.mobileExpandablePanelCollapsedBody
           }
-          showBottomFade
+          showBottomFade={expanded || !isHomeDock}
           bottomFadeClassName={mobileTokens.mobileExpandablePanelFade}
         />
 
@@ -141,7 +148,7 @@ export function MobileExpandableTabbedPanel({
               />
               <div
                 className={cn(
-                  "pointer-events-none fixed inset-x-0 z-50 w-full px-4 pb-3",
+                  "pointer-events-none fixed inset-x-0 z-[50] w-full px-4",
                   HOME_NAV_BOTTOM_OFFSET,
                 )}
               >
@@ -161,7 +168,7 @@ export function MobileExpandableTabbedPanel({
           data-expanded-state={expanded ? "true" : "false"}
           data-collapsed-height={MOBILE_HOME_DOCK_COLLAPSED_CLAMP}
           data-expanded-height={MOBILE_HOME_DOCK_EXPANDED_CLAMP}
-          className={cn("relative mt-auto flex w-full shrink-0 flex-col", className)}
+          className={cn("relative mt-auto flex w-full shrink-0 flex-col pb-3", className)}
         >
           {!expanded ? dock : null}
         </div>

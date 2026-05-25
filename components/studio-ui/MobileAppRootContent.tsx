@@ -106,8 +106,8 @@ export function MobileAppRootContent() {
       <MobileHomeLayout
         route="app"
         contentTop={
-          <section className="shrink-0">
-            <div className="mb-1.5">
+          <section className="shrink-0 pb-1">
+            <div className="mb-2">
               <p className="text-xs font-semibold uppercase tracking-widest text-[#A3AED0]">
                 Your Apps
               </p>
@@ -134,15 +134,21 @@ export function MobileAppRootContent() {
           </section>
         }
         primaryActions={
-          <section className="shrink-0">
-            <div className="mb-1.5">
+          <section className="mt-1 shrink-0">
+            <div className="mb-2">
               <span className={mobileTokens.appHomeSectionLabelAccentCool} aria-hidden />
               <p className={mobileTokens.appHomeSectionLabel}>Quick Actions</p>
             </div>
             <MobileQuickActionStrip actions={quickActions} />
           </section>
         }
-        dock={<MobileExpandableTabbedPanel tabs={activityTabs} defaultTab="alerts" />}
+        dock={
+          <MobileExpandableTabbedPanel
+            tabs={activityTabs}
+            defaultTab="alerts"
+            className="pt-1"
+          />
+        }
       />
       <MobileCreateSheet open={createSheetOpen} onOpenChange={setCreateSheetOpen} />
       <MobileComingSoonSheet

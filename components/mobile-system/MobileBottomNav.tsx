@@ -51,6 +51,11 @@ export function resolveMobilePlatformNavKey(pathname: string): MobilePlatformNav
   return "home";
 }
 
+function shouldUsePlatformDoctrine(pathname: string, ariaLabel: string): boolean {
+  if (ariaLabel === "Platform") return true;
+  return !pathname.startsWith("/site-walk");
+}
+
 type MobileBottomNavProps<Key extends string = string> = {
   items: MobileBottomNavItem<Key>[];
   activeKey: Key;
@@ -65,7 +70,7 @@ export function MobileBottomNav<Key extends string = string>({
   className,
 }: MobileBottomNavProps<Key>) {
   const pathname = usePathname() ?? "";
-  const usePlatformDoctrine = ariaLabel === "Platform";
+  const usePlatformDoctrine = shouldUsePlatformDoctrine(pathname, ariaLabel);
   const navItems = usePlatformDoctrine ? MOBILE_PLATFORM_NAV_ITEMS : items;
   const navActiveKey = usePlatformDoctrine
     ? resolveMobilePlatformNavKey(pathname)
@@ -73,9 +78,9 @@ export function MobileBottomNav<Key extends string = string>({
 
   return (
     <nav
-      aria-label={ariaLabel}
+      aria-label={usePlatformDoctrine ? "Platform" : ariaLabel}
       className={cn(
-        "relative z-30 shrink-0 lg:hidden rounded-t-3xl border-t border-white/10 bg-[#0B0F15]/88 shadow-lg backdrop-blur-md",
+        "relative z-20 shrink-0 lg:hidden rounded-t-3xl border-t border-white/10 bg-[#0B0F15]/88 shadow-lg backdrop-blur-md",
         className,
       )}
       style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)", paddingTop: "4px" }}
