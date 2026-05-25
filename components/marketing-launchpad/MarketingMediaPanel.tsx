@@ -19,8 +19,11 @@ type MarketingMediaPanelProps = {
   sizeTier?: "hero" | "tile";
 };
 
-const UNIFIED_MEDIA_FRAME =
-  "w-full max-w-[540px] aspect-[16/10] bg-slate-900/40 border border-white/[0.08] rounded-xl relative flex items-center justify-center overflow-hidden shadow-[0_0_50px_rgba(0,230,153,0.01)] mx-auto lg:justify-self-center";
+const TILE_MEDIA_FRAME =
+  "relative mx-auto flex aspect-[16/10] w-full max-w-[640px] items-center justify-center overflow-hidden rounded-xl border border-white/[0.08] bg-slate-900/40 shadow-[0_0_50px_rgba(0,230,153,0.01)] lg:justify-self-center lg:max-w-[min(100%,640px)] xl:max-w-[min(100%,660px)]";
+
+const HERO_MEDIA_FRAME =
+  "relative mx-auto flex aspect-[16/10] w-full max-w-[640px] items-center justify-center overflow-hidden rounded-xl border border-white/[0.08] bg-slate-900/40 shadow-[0_0_50px_rgba(0,230,153,0.01)] lg:justify-self-center lg:max-w-[min(100%,640px)] xl:max-w-[min(100%,660px)]";
 
 const FULLSCREEN_MEDIA_FRAME =
   "relative h-full w-full overflow-hidden bg-[#0B0F15] [&>*]:absolute [&>*]:inset-0 [&>*]:h-full [&>*]:w-full";
@@ -28,11 +31,18 @@ const FULLSCREEN_MEDIA_FRAME =
 function ViewerShell({
   children,
   mode,
+  sizeTier = "tile",
 }: {
   children: React.ReactNode;
   mode?: "default" | "preview" | "fullscreen";
+  sizeTier?: "hero" | "tile";
 }) {
-  const frameClass = mode === "fullscreen" ? FULLSCREEN_MEDIA_FRAME : UNIFIED_MEDIA_FRAME;
+  const frameClass =
+    mode === "fullscreen"
+      ? FULLSCREEN_MEDIA_FRAME
+      : sizeTier === "hero"
+        ? HERO_MEDIA_FRAME
+        : TILE_MEDIA_FRAME;
   return <div className={frameClass}>{children}</div>;
 }
 
@@ -115,7 +125,7 @@ export function MarketingMediaPanel({
   sizeTier = "tile",
 }: MarketingMediaPanelProps) {
   return (
-    <ViewerShell mode={mode}>
+    <ViewerShell mode={mode} sizeTier={sizeTier}>
       <MediaContent variant={variant} mode={mode} />
     </ViewerShell>
   );

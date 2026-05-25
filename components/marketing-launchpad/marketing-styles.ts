@@ -2,28 +2,35 @@ export const VIEWER_FRAME =
   "w-full lg:w-full aspect-[16/10] bg-slate-900/40 border border-white/[0.08] rounded-xl relative flex items-center justify-center overflow-hidden shadow-[0_0_50px_rgba(0,230,153,0.01)]";
 
 export const TEXT_COLUMN =
-  "flex w-full flex-col justify-center lg:min-w-0 lg:px-8 xl:px-10";
-export const MEDIA_COLUMN = "flex w-full items-center justify-center lg:min-w-0 lg:justify-center";
+  "flex w-full flex-col justify-center lg:min-w-0 lg:max-w-[34rem]";
+export const HERO_TEXT_COLUMN =
+  "flex w-full flex-col justify-center lg:min-w-0 lg:max-w-[36rem]";
+export const MEDIA_COLUMN =
+  "flex w-full items-center justify-center lg:min-w-0 lg:justify-center lg:self-center";
 
 export const TILE_ROW =
-  "mx-auto flex h-full w-full flex-col lg:grid lg:grid-cols-2 lg:items-center lg:gap-10";
+  "mx-auto flex h-full w-full max-w-[1400px] flex-col lg:grid lg:grid-cols-2 lg:items-center lg:gap-4 lg:px-2 xl:gap-5";
 
-export const BODY_COPY = "text-base font-normal text-slate-300 leading-relaxed mb-6 lg:max-w-2xl lg:text-lg";
+export const BODY_COPY =
+  "text-base font-normal text-slate-300 leading-relaxed mb-4 lg:mb-3 lg:max-w-2xl lg:text-lg";
 
 export const TILE_SECTION =
   "w-full min-h-screen px-6 py-12 md:py-16 lg:py-0 lg:h-[100dvh] flex flex-col lg:flex-row items-center justify-center relative border-none";
 
 export const TILE_SECTION_SNAP =
-  "w-full min-h-screen px-6 py-12 md:py-16 lg:py-0 lg:h-[100dvh] lg:snap-start lg:overflow-hidden flex flex-col lg:flex-row items-center justify-center relative border-none pt-28 lg:px-12 lg:pb-10";
+  "relative flex w-full min-h-screen flex-col items-center justify-center border-none px-6 py-10 pt-20 md:py-12 md:pt-20 lg:h-[100dvh] lg:snap-start lg:flex-row lg:overflow-hidden lg:px-10 lg:justify-center lg:py-3 lg:pt-[4.25rem] lg:pb-2";
+
+export const TILE_SECTION_SNAP_LAST =
+  "relative flex w-full min-h-screen flex-col items-center justify-center border-none px-6 py-10 pt-20 md:py-12 md:pt-20 lg:min-h-[92dvh] lg:snap-end lg:flex-row lg:overflow-hidden lg:px-10 lg:justify-center lg:py-3 lg:pt-[4.25rem] lg:pb-2";
 
 export const TILE_SECTION_FLOW =
-  "w-full h-auto min-h-0 block relative bg-[#0B0F15] py-28 px-6 lg:px-12 border-none overflow-visible clear-both lg:snap-none";
+  "relative block h-auto min-h-0 w-full scroll-mt-20 overflow-visible border-none bg-[#0B0F15] px-6 py-14 clear-both lg:scroll-mt-24 lg:px-10 lg:pb-36 lg:pt-20";
 
 export const MARKETING_TAIL =
-  "w-full lg:snap-none";
+  "flex w-full flex-col lg:snap-none lg:pb-8";
 
 export const MARKETING_FOOTER =
-  "border-t border-white/[0.05] bg-[#0B0F15] px-6 py-12 lg:px-12";
+  "border-t border-white/[0.05] bg-[#0B0F15] px-6 py-10 lg:px-10 lg:pb-16";
 
 export const MOBILE_CANVAS =
   "relative mb-6 flex w-full cursor-pointer flex-col items-center justify-center rounded-xl border border-white/10 bg-slate-900/50 aspect-[4/3]";
@@ -46,7 +53,7 @@ export const APP_STORE_BTN =
 export const NAV_LINK =
   "text-base font-medium text-slate-300 transition-colors duration-150 hover:text-[#00E699]";
 
-export const FEATURE_LIST = "mb-6 flex flex-col gap-5";
+export const FEATURE_LIST = "mb-4 flex flex-col gap-3 lg:mb-3 lg:gap-2.5";
 
 export const FEATURE_CHEVRON =
   "shrink-0 select-none text-xl font-bold leading-none text-[#00E699] drop-shadow-[0_0_8px_rgba(0,230,153,0.5)]";

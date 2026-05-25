@@ -15,13 +15,13 @@ import { MARKETING_TAIL } from "@/components/marketing-launchpad/marketing-style
 
 export function MarketingLaunchpad() {
   return (
-    <div className="w-full h-auto scroll-smooth bg-[#0B0F15] lg:h-[100dvh] lg:snap-y lg:snap-mandatory lg:overflow-y-scroll lg:overscroll-y-contain overflow-visible">
+    <div className="h-auto w-full scroll-smooth bg-[#0B0F15] lg:h-[100dvh] lg:snap-y lg:snap-proximity lg:overflow-y-auto lg:overscroll-y-contain lg:scroll-pt-20 lg:scroll-pb-52">
       <MarketingHeader />
       <MarketingHeroSection />
       <MarketingFeatureSection tile={SITE_WALK_CAPTURE_TILE} />
       <MarketingFeatureSection tile={SITE_WALK_MAPS_TILE} />
       <MarketingFeatureSection tile={DIGITAL_TWIN_TILE} />
-      <MarketingFeatureSection tile={PANORAMA_TILE} />
+      <MarketingFeatureSection tile={PANORAMA_TILE} isLast />
       <div className={MARKETING_TAIL}>
         <MarketingPricingSection />
         <MarketingFooter />

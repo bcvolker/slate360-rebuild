@@ -7,19 +7,22 @@ import {
   FEATURE_CHEVRON,
   FEATURE_LIST,
   FEATURE_ITEM,
+  MEDIA_COLUMN,
   TEXT_COLUMN,
   TILE_ROW,
   TILE_SECTION_SNAP,
+  TILE_SECTION_SNAP_LAST,
 } from "@/components/marketing-launchpad/marketing-styles";
 
 type MarketingFeatureSectionProps = {
   tile: MarketingTile;
+  isLast?: boolean;
 };
 
 function FeatureCopy({ tile }: { tile: MarketingTile }) {
   return (
     <div className={TEXT_COLUMN}>
-      <h2 className="mb-3 text-3xl font-bold tracking-tight text-white lg:text-4xl lg:text-[#FFFFFF]">
+      <h2 className="mb-2 text-3xl font-bold tracking-tight text-white lg:mb-2 lg:text-4xl lg:text-[#FFFFFF]">
         {tile.title}
       </h2>
       <p className={BODY_COPY}>{tile.description}</p>
@@ -33,24 +36,25 @@ function FeatureCopy({ tile }: { tile: MarketingTile }) {
           </li>
         ))}
       </ul>
-      <Link href={tile.ctaHref} className={`${CTA_LINK} mt-2 w-fit lg:mt-8`}>
+      <Link href={tile.ctaHref} className={`${CTA_LINK} mt-2 w-fit lg:mt-5`}>
         {tile.ctaLabel}
       </Link>
     </div>
   );
 }
 
-export function MarketingFeatureSection({ tile }: MarketingFeatureSectionProps) {
+export function MarketingFeatureSection({ tile, isLast = false }: MarketingFeatureSectionProps) {
   const copyOrder = tile.reversed ? "order-1 lg:order-2" : "order-1";
   const mediaOrder = tile.reversed ? "order-2 lg:order-1" : "order-2";
+  const sectionClass = isLast ? TILE_SECTION_SNAP_LAST : TILE_SECTION_SNAP;
 
   return (
-    <section id={tile.id} className={TILE_SECTION_SNAP}>
+    <section id={tile.id} className={sectionClass}>
       <div className={TILE_ROW}>
         <div className={copyOrder}>
           <FeatureCopy tile={tile} />
         </div>
-        <div className={mediaOrder}>
+        <div className={`${MEDIA_COLUMN} ${mediaOrder}`}>
           <MarketingExpandableMediaFrame variant={tile.media} />
         </div>
       </div>

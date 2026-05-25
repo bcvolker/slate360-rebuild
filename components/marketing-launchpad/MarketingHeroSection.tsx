@@ -1,14 +1,20 @@
 import Link from "next/link";
 import Image from "next/image";
 import { HeroMediaFrame } from "@/components/marketing-launchpad/MarketingExpandableMediaFrame";
-import { BODY_COPY, TEXT_COLUMN, TILE_ROW, TILE_SECTION_SNAP } from "@/components/marketing-launchpad/marketing-styles";
+import {
+  BODY_COPY,
+  HERO_TEXT_COLUMN,
+  MEDIA_COLUMN,
+  TILE_ROW,
+  TILE_SECTION_SNAP,
+} from "@/components/marketing-launchpad/marketing-styles";
 
 export function MarketingHeroSection() {
   return (
     <section className={TILE_SECTION_SNAP}>
       <div className={TILE_ROW}>
-        <div className={`${TEXT_COLUMN} order-1`}>
-          <div className="mb-6 flex w-auto flex-row items-center gap-5">
+        <div className={`${HERO_TEXT_COLUMN} order-1`}>
+          <div className="mb-4 flex w-auto flex-row items-center gap-5 lg:mb-5">
             <Link href="/install" aria-label="Download on the App Store">
               <Image
                 src="/uploads/app-store-badge.svg"
@@ -28,7 +34,7 @@ export function MarketingHeroSection() {
               />
             </Link>
           </div>
-          <h1 className="mb-3 text-3xl font-bold tracking-tight text-white lg:text-5xl">
+          <h1 className="mb-2 text-3xl font-bold tracking-tight text-white lg:mb-2 lg:text-5xl">
             SLATE360 // REALITY INTELLIGENCE
           </h1>
           <p className={BODY_COPY}>
@@ -46,7 +52,7 @@ export function MarketingHeroSection() {
             </Link>
           </div>
         </div>
-        <div className="order-2 w-full">
+        <div className={`${MEDIA_COLUMN} order-2`}>
           <HeroMediaFrame />
         </div>
       </div>
