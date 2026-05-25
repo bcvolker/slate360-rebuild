@@ -58,7 +58,10 @@ function StudioAppShellInner({ inviteShareData, children }: StudioAppShellProps)
         className="relative min-h-[100dvh]"
         mobileRoute="app"
         header={
-          <header className="flex h-14 shrink-0 items-center justify-between border-b border-white/[0.05] bg-[#0B0F15]/90 px-4 backdrop-blur-xl">
+          <header
+            className="flex h-14 shrink-0 items-center justify-between border-b border-white/[0.05] bg-[#0B0F15]/90 px-4 backdrop-blur-xl"
+            style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}
+          >
             <Link href="/app" className="shrink-0">
               <Slate360Logo variant="dark" />
             </Link>

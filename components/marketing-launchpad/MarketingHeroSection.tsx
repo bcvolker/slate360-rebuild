@@ -1,11 +1,11 @@
 import Link from "next/link";
 import Image from "next/image";
 import { HeroMediaFrame } from "@/components/marketing-launchpad/MarketingExpandableMediaFrame";
-import { BODY_COPY, TEXT_COLUMN, TILE_ROW, TILE_SECTION } from "@/components/marketing-launchpad/marketing-styles";
+import { BODY_COPY, TEXT_COLUMN, TILE_ROW, TILE_SECTION_SNAP } from "@/components/marketing-launchpad/marketing-styles";
 
 export function MarketingHeroSection() {
   return (
-    <section className={TILE_SECTION}>
+    <section className={TILE_SECTION_SNAP}>
       <div className={TILE_ROW}>
         <div className={`${TEXT_COLUMN} order-1`}>
           <div className="mb-6 flex w-auto flex-row items-center gap-5">

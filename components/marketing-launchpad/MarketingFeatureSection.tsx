@@ -9,7 +9,7 @@ import {
   FEATURE_ITEM,
   TEXT_COLUMN,
   TILE_ROW,
-  TILE_SECTION,
+  TILE_SECTION_SNAP,
 } from "@/components/marketing-launchpad/marketing-styles";
 
 type MarketingFeatureSectionProps = {
@@ -45,7 +45,7 @@ export function MarketingFeatureSection({ tile }: MarketingFeatureSectionProps) 
   const mediaOrder = tile.reversed ? "order-2 lg:order-1" : "order-2";
 
   return (
-    <section id={tile.id} className={TILE_SECTION}>
+    <section id={tile.id} className={TILE_SECTION_SNAP}>
       <div className={TILE_ROW}>
         <div className={copyOrder}>
           <FeatureCopy tile={tile} />

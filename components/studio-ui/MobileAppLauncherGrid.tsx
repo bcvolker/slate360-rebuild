@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import type { ElementType } from "react";
-import { Camera, Globe2 } from "lucide-react";
+import { Camera } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export type InstalledAppCard = {
@@ -19,25 +19,13 @@ export type InstalledAppCard = {
 export const INSTALLED_APPS: InstalledAppCard[] = [
   {
     id: "site-walk",
-    title: "Site Walk Field Engine",
-    subtext:
-      "Single-handed mobile photo capture, blueprint drawing pin mapping, and automated field data stamping.",
+    title: "Site Walk",
+    subtext: "Capture photos and map pins to plans.",
     href: "/site-walk",
     icon: Camera,
     borderClass: "border-[#00E699]",
     iconWrapperClass: "border border-[#00E699]/20 bg-[#00E699]/10",
     iconClass: "text-[#00E699]",
-  },
-  {
-    id: "digital-twin",
-    title: "Digital Twin Reality Studio",
-    subtext:
-      "Immersive 3D property modeling, aerial drone photogrammetry scan tracking, and panoramic hotspots.",
-    href: "/design-studio",
-    icon: Globe2,
-    borderClass: "border-white/[0.05]",
-    iconWrapperClass: "border border-white/[0.06] bg-white/[0.04]",
-    iconClass: "text-[#FFFFFF]",
   },
 ];
 
@@ -63,7 +51,7 @@ function AppLauncherCard({ app }: { app: InstalledAppCard }) {
       </span>
       <div className="min-w-0">
         <p className="text-sm font-semibold leading-tight text-[#FFFFFF]">{app.title}</p>
-        <p className="mt-1.5 text-xs leading-relaxed text-[#A3AED0]">{app.subtext}</p>
+        <p className="mt-1 line-clamp-1 text-xs leading-snug text-[#A3AED0]">{app.subtext}</p>
       </div>
     </Link>
   );

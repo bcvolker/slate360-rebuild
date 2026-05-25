@@ -23,7 +23,7 @@ const UNIFIED_MEDIA_FRAME =
   "w-full max-w-[540px] aspect-[16/10] bg-slate-900/40 border border-white/[0.08] rounded-xl relative flex items-center justify-center overflow-hidden shadow-[0_0_50px_rgba(0,230,153,0.01)] mx-auto lg:justify-self-center";
 
 const FULLSCREEN_MEDIA_FRAME =
-  "relative flex h-full w-full items-center justify-center overflow-hidden bg-slate-900/40";
+  "relative h-full w-full overflow-hidden bg-[#0B0F15] [&>*]:absolute [&>*]:inset-0 [&>*]:h-full [&>*]:w-full";
 
 function ViewerShell({
   children,
@@ -68,7 +68,13 @@ function BlueprintMapPanel() {
   );
 }
 
-function MediaContent({ variant }: { variant: MarketingMediaVariant }) {
+function MediaContent({
+  variant,
+  mode,
+}: {
+  variant: MarketingMediaVariant;
+  mode?: "default" | "preview" | "fullscreen";
+}) {
   if (variant === "hero-model" || variant === "twin") {
     return (
       <ModelViewerClient
@@ -77,6 +83,7 @@ function MediaContent({ variant }: { variant: MarketingMediaVariant }) {
         cameraOrbit="45deg 65deg 107%"
         shadowIntensity={1}
         shadowSoftness={1}
+        scrollInterceptGate={mode !== "fullscreen"}
       />
     );
   }
@@ -109,7 +116,7 @@ export function MarketingMediaPanel({
 }: MarketingMediaPanelProps) {
   return (
     <ViewerShell mode={mode}>
-      <MediaContent variant={variant} />
+      <MediaContent variant={variant} mode={mode} />
     </ViewerShell>
   );
 }

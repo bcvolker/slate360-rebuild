@@ -6,7 +6,6 @@ import {
   MobileEmptyState,
   MobileExpandableTabbedPanel,
   MobileHomeLayout,
-  mobileTokens,
 } from "@/components/mobile-system";
 import type { MobilePanelTab } from "@/components/mobile-system";
 import { MobileAppLauncherGrid } from "@/components/studio-ui/MobileAppLauncherGrid";
@@ -69,22 +68,18 @@ export function MobileAppRootContent() {
       route="app"
       contentTop={
         <section className="shrink-0">
-          <div className="mb-3">
+          <div className="mb-2">
             <p className="text-xs font-semibold uppercase tracking-widest text-[#A3AED0]">
               Your Apps
             </p>
-            <h1 className="mt-1 text-xl font-bold tracking-tight text-[#FFFFFF]">Field Hub</h1>
+            <h1 className="mt-0.5 text-xl font-bold tracking-tight text-[#FFFFFF]">Field Hub</h1>
           </div>
           <MobileAppLauncherGrid />
         </section>
       }
       dock={
-        <div className={mobileTokens.mobileHomeAppDockCollapsedHeight}>
-          <MobileExpandableTabbedPanel
-            tabs={activityTabs}
-            defaultTab="alerts"
-            homeDockVariant="app"
-          />
+        <div className="flex min-h-0 w-full flex-1 flex-col">
+          <MobileExpandableTabbedPanel tabs={activityTabs} defaultTab="alerts" />
         </div>
       }
     />

@@ -4,7 +4,8 @@
  * MobileExpandableTabbedPanel — unified collapsible activity dock for /app and /site-walk.
  */
 
-import { useCallback, useId, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useId, useState, type ReactNode } from "react";
+import { usePathname } from "next/navigation";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -20,8 +21,6 @@ type MobileExpandableTabbedPanelProps = {
   defaultTab?: string;
   upper?: ReactNode;
   className?: string;
-  /** Tighter collapsed dock profile for /app home only; Site Walk uses default. */
-  homeDockVariant?: "app" | "site-walk";
 };
 
 export function MobileExpandableTabbedPanel({
@@ -29,12 +28,16 @@ export function MobileExpandableTabbedPanel({
   defaultTab,
   upper,
   className,
-  homeDockVariant = "site-walk",
 }: MobileExpandableTabbedPanelProps) {
+  const pathname = usePathname();
   const [expanded, setExpanded] = useState(false);
   const panelId = useId();
   const collapse = useCallback(() => setExpanded(false), []);
   const toggle = useCallback(() => setExpanded((value) => !value), []);
+
+  useEffect(() => {
+    setExpanded(false);
+  }, [pathname]);
 
   const isHomeDock = !upper;
 
@@ -44,10 +47,7 @@ export function MobileExpandableTabbedPanel({
         isHomeDock
           ? "relative z-30 w-full pointer-events-auto"
           : mobileTokens.mobileExpandablePanelOuter,
-        expanded &&
-          (isHomeDock
-            ? mobileTokens.mobileExpandablePanelExpandedPosition
-            : mobileTokens.mobileExpandablePanelExpandedPosition),
+        expanded && mobileTokens.mobileExpandablePanelExpandedPosition,
       )}
     >
       <div
@@ -57,9 +57,7 @@ export function MobileExpandableTabbedPanel({
           mobileTokens.mobileExpandablePanelFrame,
           expanded
             ? cn(
-                isHomeDock
-                  ? "flex h-full min-h-0 flex-1 flex-col"
-                  : mobileTokens.mobileExpandablePanelExpandedHeight,
+                mobileTokens.mobileExpandablePanelExpandedHeight,
                 mobileTokens.mobileExpandablePanelFrameExpanded,
               )
             : isHomeDock

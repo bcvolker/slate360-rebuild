@@ -38,15 +38,15 @@ export function MobileBottomNav<Key extends string = string>({
         {items.map(({ key, label, icon: Icon, href, onSelect }) => {
           const active = activeKey === key;
           const itemClassName = cn(
-            "relative flex h-full w-full flex-col items-center justify-center gap-1 rounded-lg py-2 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50",
-            active ? "bg-amber-500/10 text-amber-500" : "text-zinc-500 hover:bg-white/5 hover:text-zinc-300",
+            "relative flex h-full w-full flex-col items-center justify-center gap-1 rounded-lg py-2 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6EA7A0]/50",
+            active ? "bg-[#6EA7A0]/10 text-[#6EA7A0]" : "text-zinc-500 hover:bg-white/5 hover:text-zinc-300",
           );
           const content = (
             <>
               {active && (
                 <span
                   aria-hidden
-                  className="absolute left-1/2 top-0 h-[2px] w-8 -translate-x-1/2 rounded-b-full bg-amber-500 shadow-[0_2px_8px_rgba(245,158,11,0.45)]"
+                  className="absolute left-1/2 top-0 h-[2px] w-8 -translate-x-1/2 rounded-b-full bg-[#6EA7A0] shadow-[0_2px_8px_rgba(110,167,160,0.45)]"
                 />
               )}
               <Icon

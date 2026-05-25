@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { PRICING_CARD, PRICING_CTA } from "@/components/marketing-launchpad/marketing-styles";
+import { PRICING_CARD, PRICING_CTA, TILE_SECTION_FLOW } from "@/components/marketing-launchpad/marketing-styles";
 import {
   ENTERPRISE_PLAN,
   PRICING_TIERS,
@@ -88,7 +88,7 @@ export function MarketingPricingSection() {
   return (
     <section
       id="pricing-matrix-section"
-      className="w-full h-auto min-h-0 block relative bg-[#0B0F15] py-28 px-6 lg:px-12 border-none overflow-visible clear-both"
+      className={TILE_SECTION_FLOW}
     >
       <div className="mx-auto w-full max-w-[1400px]">
         <h2 className="mb-10 text-center text-3xl font-bold tracking-tight text-[#FFFFFF] lg:text-4xl">
