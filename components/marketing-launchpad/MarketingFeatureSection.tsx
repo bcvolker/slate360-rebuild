@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 
 type MarketingFeatureSectionProps = {
   tile: MarketingTile;
+  sectionClassName?: string;
 };
 
 function FeatureCopy({ tile, reversed }: { tile: MarketingTile; reversed?: boolean }) {
@@ -42,14 +43,17 @@ function FeatureCopy({ tile, reversed }: { tile: MarketingTile; reversed?: boole
   );
 }
 
-export function MarketingFeatureSection({ tile }: MarketingFeatureSectionProps) {
+export function MarketingFeatureSection({
+  tile,
+  sectionClassName = TILE_SECTION_SNAP,
+}: MarketingFeatureSectionProps) {
   const copyOrder = tile.reversed ? "order-1 lg:order-2" : "order-1";
   const mediaOrder = tile.reversed ? "order-2 lg:order-1" : "order-2";
   const copyAlign = tile.reversed ? "lg:justify-self-end" : "lg:justify-self-start";
   const mediaAlign = tile.reversed ? "lg:justify-self-start" : "lg:justify-self-end";
 
   return (
-    <section id={tile.id} className={TILE_SECTION_SNAP}>
+    <section id={tile.id} className={sectionClassName}>
       <div className={TILE_ROW}>
         <div className={cn(copyOrder, copyAlign)}>
           <FeatureCopy tile={tile} reversed={tile.reversed} />

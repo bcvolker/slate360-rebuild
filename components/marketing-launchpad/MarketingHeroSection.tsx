@@ -9,9 +9,13 @@ import {
   TILE_SECTION_SNAP,
 } from "@/components/marketing-launchpad/marketing-styles";
 
-export function MarketingHeroSection() {
+type MarketingHeroSectionProps = {
+  sectionClassName?: string;
+};
+
+export function MarketingHeroSection({ sectionClassName = TILE_SECTION_SNAP }: MarketingHeroSectionProps) {
   return (
-    <section className={TILE_SECTION_SNAP}>
+    <section className={sectionClassName}>
       <div className={TILE_ROW}>
         <div className={`${HERO_TEXT_COLUMN} order-1 lg:justify-self-start`}>
           <div className="mb-4 flex w-auto flex-row items-center gap-5 lg:mb-5">

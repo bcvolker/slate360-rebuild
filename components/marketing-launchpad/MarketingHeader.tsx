@@ -24,7 +24,24 @@ const DROPDOWN_ITEM =
 const HAMBURGER_BTN =
   "flex h-10 w-10 items-center justify-center rounded-xl border border-white/[0.08] bg-slate-900/40 text-slate-300 transition-all duration-150 hover:border-[#00E699]/30 hover:text-[#00E699] active:scale-[0.98] md:hidden";
 
-export function MarketingHeader() {
+type MarketingHeaderProps = {
+  /** Homepage uses transparent dark chrome over the graphite canvas. */
+  variant?: "homepage" | "default";
+};
+
+const HEADER_VARIANT = {
+  homepage:
+    "absolute top-0 z-50 h-16 w-full border-none bg-transparent supports-[backdrop-filter]:backdrop-blur-[2px]",
+  default:
+    "sticky top-0 z-50 h-16 w-full border-b border-white/[0.06] bg-[#0B0F15]/90 backdrop-blur-xl",
+} as const;
+
+const MOBILE_MENU_VARIANT = {
+  homepage: "bg-[#0B0F15]/95",
+  default: "bg-[#0B0F15]/95",
+} as const;
+
+export function MarketingHeader({ variant = "default" }: MarketingHeaderProps) {
   const [productOpen, setProductOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -38,7 +55,7 @@ export function MarketingHeader() {
   }, []);
 
   return (
-    <header className="absolute top-0 z-50 h-16 w-full bg-transparent border-none">
+    <header className={HEADER_VARIANT[variant]}>
       <div className="relative mx-auto flex h-full w-full items-center justify-between px-4 md:grid md:grid-cols-[minmax(280px,auto)_1fr_auto] md:items-center md:px-6 lg:px-12">
         <Link
           href="/"
@@ -95,7 +112,9 @@ export function MarketingHeader() {
       </div>
 
       {mobileOpen ? (
-        <div className="absolute left-0 right-0 top-16 border-b border-white/[0.08] bg-[#0B0F15]/95 px-6 py-4 backdrop-blur-2xl md:hidden">
+        <div
+          className={`absolute left-0 right-0 top-16 border-b border-white/[0.08] px-6 py-4 backdrop-blur-2xl md:hidden ${MOBILE_MENU_VARIANT[variant]}`}
+        >
           <div className="space-y-1">
             <p className="px-3 py-2 text-xs font-semibold uppercase tracking-widest text-[#A3AED0]">
               Product

@@ -729,6 +729,35 @@
   border-color: rgba(239, 68, 68, 0.30);
 }
 
+/* ── Marketing homepage scroll snap (desktop only, scoped) ───────── */
+@media (min-width: 1024px) {
+  html:has([data-marketing-homepage]) {
+    scroll-snap-type: y proximity;
+    scroll-behavior: smooth;
+  }
+
+  [data-marketing-homepage] .marketing-snap-section {
+    scroll-snap-align: start;
+    scroll-snap-stop: normal;
+    min-height: 100dvh;
+  }
+
+  [data-marketing-homepage] .marketing-flow-section {
+    scroll-snap-align: none;
+  }
+}
+
+@media (max-width: 1023px) {
+  html:has([data-marketing-homepage]) {
+    scroll-snap-type: none;
+  }
+
+  [data-marketing-homepage] .marketing-snap-section {
+    scroll-snap-align: unset;
+    min-height: auto;
+  }
+}
+
 .scroll-snapped-transform {
   opacity: 0.96;
   transform: scale(0.985);

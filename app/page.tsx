@@ -1,4 +1,4 @@
-import { MarketingLaunchpad } from "@/components/marketing-launchpad/MarketingLaunchpad";
+import { MarketingHomepage } from "@/components/marketing/MarketingHomepage";
 
 export const metadata = {
   title: "Slate360 — Reality Intelligence",
@@ -7,5 +7,5 @@ export const metadata = {
 };
 
 export default function RootPage() {
-  return <MarketingLaunchpad />;
+  return <MarketingHomepage />;
 }
