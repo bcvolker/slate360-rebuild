@@ -13,7 +13,7 @@ export function MarketingHeroSection() {
   return (
     <section className={TILE_SECTION_SNAP}>
       <div className={TILE_ROW}>
-        <div className={`${HERO_TEXT_COLUMN} order-1`}>
+        <div className={`${HERO_TEXT_COLUMN} order-1 lg:justify-self-start`}>
           <div className="mb-4 flex w-auto flex-row items-center gap-5 lg:mb-5">
             <Link href="/install" aria-label="Download on the App Store">
               <Image
@@ -52,7 +52,7 @@ export function MarketingHeroSection() {
             </Link>
           </div>
         </div>
-        <div className={`${MEDIA_COLUMN} order-2`}>
+        <div className={`${MEDIA_COLUMN} order-2 lg:justify-self-end`}>
           <HeroMediaFrame />
         </div>
       </div>

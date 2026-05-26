@@ -13,9 +13,10 @@ import {
 } from "@/components/marketing-launchpad/marketing-tile-data";
 import { MARKETING_TAIL } from "@/components/marketing-launchpad/marketing-styles";
 
+/** Homepage marketing shell — natural document scroll (no snap container). */
 export function MarketingLaunchpad() {
   return (
-    <div className="h-auto w-full bg-[#0B0F15] lg:h-[100dvh] lg:snap-y lg:snap-proximity lg:overflow-y-auto lg:overscroll-y-contain lg:scroll-pt-20 lg:scroll-pb-56">
+    <div className="h-auto w-full bg-[#0B0F15]">
       <MarketingHeader />
       <MarketingHeroSection />
       <MarketingFeatureSection tile={SITE_WALK_CAPTURE_TILE} />

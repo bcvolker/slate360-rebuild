@@ -12,19 +12,20 @@ import {
   TILE_ROW,
   TILE_SECTION_SNAP,
 } from "@/components/marketing-launchpad/marketing-styles";
+import { cn } from "@/lib/utils";
 
 type MarketingFeatureSectionProps = {
   tile: MarketingTile;
 };
 
-function FeatureCopy({ tile }: { tile: MarketingTile }) {
+function FeatureCopy({ tile, reversed }: { tile: MarketingTile; reversed?: boolean }) {
   return (
-    <div className={TEXT_COLUMN}>
+    <div className={cn(TEXT_COLUMN, reversed && "lg:items-end lg:text-right")}>
       <h2 className="mb-3 text-3xl font-bold tracking-tight text-white lg:mb-3 lg:text-4xl lg:text-[#FFFFFF]">
         {tile.title}
       </h2>
       <p className={BODY_COPY}>{tile.description}</p>
-      <ul className={FEATURE_LIST}>
+      <ul className={cn(FEATURE_LIST, reversed && "lg:items-end")}>
         {tile.features.map((feature) => (
           <li key={feature} className={FEATURE_ITEM}>
             <span aria-hidden className={FEATURE_CHEVRON}>
@@ -44,14 +45,16 @@ function FeatureCopy({ tile }: { tile: MarketingTile }) {
 export function MarketingFeatureSection({ tile }: MarketingFeatureSectionProps) {
   const copyOrder = tile.reversed ? "order-1 lg:order-2" : "order-1";
   const mediaOrder = tile.reversed ? "order-2 lg:order-1" : "order-2";
+  const copyAlign = tile.reversed ? "lg:justify-self-end" : "lg:justify-self-start";
+  const mediaAlign = tile.reversed ? "lg:justify-self-start" : "lg:justify-self-end";
 
   return (
     <section id={tile.id} className={TILE_SECTION_SNAP}>
       <div className={TILE_ROW}>
-        <div className={copyOrder}>
-          <FeatureCopy tile={tile} />
+        <div className={cn(copyOrder, copyAlign)}>
+          <FeatureCopy tile={tile} reversed={tile.reversed} />
         </div>
-        <div className={`${MEDIA_COLUMN} ${mediaOrder}`}>
+        <div className={cn(MEDIA_COLUMN, mediaOrder, mediaAlign)}>
           <MarketingExpandableMediaFrame variant={tile.media} />
         </div>
       </div>

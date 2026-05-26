@@ -3,9 +3,11 @@
 import Link from "next/link";
 import { useState } from "react";
 import {
+  PRICING_BLOCK,
   PRICING_CARD,
   PRICING_CTA,
-  PRICING_TILE,
+  PRICING_INFO_PANEL,
+  PRICING_LIMITS_PANEL,
   TILE_SECTION_FLOW,
 } from "@/components/marketing-launchpad/marketing-styles";
 import {
@@ -25,10 +27,7 @@ import {
 import { cn } from "@/lib/utils";
 
 const TOGGLE_GROUP =
-  "inline-flex flex-wrap items-center justify-center gap-1 rounded-xl border border-white/[0.08] bg-slate-900/40 p-1.5";
-
-const LIMITS_CARD =
-  "flex h-full flex-col rounded-xl border border-white/[0.08] bg-slate-900/40 p-6 lg:p-7";
+  "inline-flex flex-wrap items-center justify-center gap-1 rounded-xl border border-white/[0.08] bg-slate-900/30 p-1.5";
 
 function ToggleButton({
   active,
@@ -98,7 +97,7 @@ function PricingCard({ tier, cadence }: { tier: PricingTier; cadence: BillingCad
 
 function TierLimitsCard({ tier }: { tier: PricingTier }) {
   return (
-    <article className={LIMITS_CARD}>
+    <article className={PRICING_LIMITS_PANEL}>
       <h3 className="text-lg font-bold text-[#FFFFFF]">{tier.name}</h3>
       <p className="mt-4 text-sm font-medium leading-snug text-[#F8FAFC]">
         {formatStorageLimit(tier.limits.storageGb)}
@@ -115,7 +114,7 @@ function TierLimitsCard({ tier }: { tier: PricingTier }) {
 
 function EnterpriseLimitsCard() {
   return (
-    <article className={LIMITS_CARD}>
+    <article className={PRICING_LIMITS_PANEL}>
       <h3 className="text-lg font-bold text-[#FFFFFF]">{ENTERPRISE_PLAN.name}</h3>
       <p className="mt-4 text-sm font-medium leading-snug text-[#F8FAFC]">
         Tailored storage, credit pools, and seat volume
@@ -135,15 +134,14 @@ export function MarketingPricingSection() {
 
   return (
     <section id="pricing-matrix-section" className={TILE_SECTION_FLOW}>
-      <div className="mx-auto flex w-full max-w-[1400px] flex-col gap-10 lg:gap-14">
-        <article className={PRICING_TILE}>
+      <div className="mx-auto flex w-full max-w-[1400px] flex-col gap-16 lg:gap-24">
+        <div className={PRICING_BLOCK}>
           <div className="mx-auto mb-8 max-w-3xl text-center lg:mb-10">
             <h2 className="text-3xl font-bold tracking-tight text-[#FFFFFF] lg:text-4xl">
               Plans &amp; Pricing
             </h2>
             <p className="mt-4 text-base leading-relaxed text-[#A3AED0] lg:text-lg">
-              Choose the workspace that matches your field and studio workflows. Every tier includes
-              core capture, mapping, and collaboration features listed below.
+              Choose the workspace that matches your field and studio workflows.
             </p>
           </div>
 
@@ -190,17 +188,16 @@ export function MarketingPricingSection() {
               </Link>
             </article>
           </div>
-        </article>
+        </div>
 
-        <article className={PRICING_TILE}>
+        <div className={PRICING_BLOCK}>
           <div className="mx-auto mb-8 max-w-3xl text-center lg:mb-10">
             <h2 className="text-3xl font-bold tracking-tight text-[#FFFFFF] lg:text-4xl">
               Data, Credits &amp; Fair Usage
             </h2>
             <p className="mt-4 text-base leading-relaxed text-[#A3AED0] lg:text-lg">
-              Every plan includes fixed storage and processing credit pools that reset on your billing
-              date. Purchase additional capacity at direct infrastructure cost whenever you need
-              headroom.
+              Fixed storage and processing pools reset on your billing date. Top up at direct
+              infrastructure cost when you need headroom.
             </p>
           </div>
 
@@ -211,8 +208,8 @@ export function MarketingPricingSection() {
             <EnterpriseLimitsCard />
           </div>
 
-          <div className="mt-10 grid gap-6 lg:mt-12 lg:grid-cols-2 lg:gap-8">
-            <div className="rounded-xl border border-[#00E699]/15 bg-[#00E699]/[0.04] p-6 lg:p-8">
+          <div className="mt-10 grid gap-8 lg:mt-12 lg:grid-cols-2 lg:gap-10">
+            <div className={PRICING_INFO_PANEL}>
               <h3 className="text-lg font-semibold text-[#FFFFFF] lg:text-xl">{TOP_UP_POLICY.headline}</h3>
               <p className="mt-3 text-sm leading-relaxed text-[#A3AED0] lg:text-base">
                 {TOP_UP_POLICY.body}
@@ -222,7 +219,7 @@ export function MarketingPricingSection() {
               </p>
             </div>
 
-            <div className="rounded-xl border border-white/[0.08] bg-slate-900/40 p-6 lg:p-8">
+            <div className={PRICING_INFO_PANEL}>
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#00E699]/80">
                 Processing credits are used for
               </p>
@@ -239,22 +236,22 @@ export function MarketingPricingSection() {
             </div>
           </div>
 
-          <div className="mt-8 grid gap-6 lg:mt-10 lg:grid-cols-2 lg:gap-8">
-            <div className="rounded-xl border border-white/[0.08] bg-slate-900/40 p-6 lg:p-8">
+          <div className="mt-8 grid gap-6 border-t border-white/[0.06] pt-8 lg:mt-10 lg:grid-cols-2 lg:gap-8 lg:pt-10">
+            <div>
               <h3 className="text-lg font-semibold text-[#FFFFFF]">{BUNDLE_COMPARISON.headline}</h3>
               <p className="mt-3 text-sm leading-relaxed text-[#A3AED0] lg:text-base">
                 {BUNDLE_COMPARISON.body}
               </p>
             </div>
 
-            <div className="rounded-xl border border-white/[0.08] bg-slate-900/40 p-6 lg:p-8">
+            <div>
               <h3 className="text-lg font-semibold text-[#FFFFFF]">{FAIR_USAGE.headline}</h3>
               <p className="mt-3 text-sm leading-relaxed text-[#A3AED0] lg:text-base">
                 {FAIR_USAGE.body}
               </p>
             </div>
           </div>
-        </article>
+        </div>
       </div>
     </section>
   );

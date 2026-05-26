@@ -5,7 +5,6 @@ import type { MarketingMediaVariant } from "@/components/marketing-launchpad/Mar
 import { MarketingMediaPanel } from "@/components/marketing-launchpad/MarketingMediaPanel";
 import { MarketingMobileStudioPortal } from "@/components/marketing-launchpad/MarketingMobileStudioPortal";
 import {
-  MEDIA_COLUMN,
   MOBILE_CANVAS,
   MOBILE_EXPAND_LABEL,
 } from "@/components/marketing-launchpad/marketing-styles";
@@ -23,7 +22,7 @@ export function MarketingExpandableMediaFrame({
 
   return (
     <>
-      <div className={`${MEDIA_COLUMN} hidden lg:flex`}>
+      <div className="hidden w-full lg:flex lg:justify-center">
         <MarketingMediaPanel variant={variant} sizeTier={sizeTier} />
       </div>
 

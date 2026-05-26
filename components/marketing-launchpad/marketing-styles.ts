@@ -6,10 +6,10 @@ export const TEXT_COLUMN =
 export const HERO_TEXT_COLUMN =
   "flex w-full flex-col justify-center lg:min-w-0 lg:max-w-[36rem]";
 export const MEDIA_COLUMN =
-  "flex w-full items-center justify-center lg:min-w-0 lg:justify-center lg:self-center";
+  "flex w-full items-center justify-center lg:min-w-0 lg:w-full lg:max-w-none";
 
 export const TILE_ROW =
-  "mx-auto flex h-full w-full max-w-[1400px] flex-col gap-y-12 md:gap-y-14 lg:grid lg:grid-cols-2 lg:items-center lg:gap-x-5 lg:gap-y-0 lg:px-2 xl:gap-x-6";
+  "mx-auto flex h-full w-full max-w-[1400px] flex-col gap-y-12 md:gap-y-14 lg:grid lg:grid-cols-2 lg:items-center lg:gap-x-12 lg:gap-y-0 lg:px-2 xl:gap-x-16";
 
 export const BODY_COPY =
   "text-base font-normal text-slate-300 leading-relaxed mb-5 lg:mb-4 lg:max-w-2xl lg:text-lg";
@@ -18,16 +18,21 @@ export const TILE_SECTION =
   "w-full min-h-screen px-6 py-12 md:py-16 lg:py-0 lg:h-[100dvh] flex flex-col lg:flex-row items-center justify-center relative border-none";
 
 export const TILE_SECTION_SNAP =
-  "relative flex w-full min-h-screen flex-col items-center justify-center border-none px-6 py-10 pt-20 md:py-12 md:pt-20 lg:h-[100dvh] lg:snap-start lg:flex-row lg:overflow-hidden lg:px-10 lg:justify-center lg:py-4 lg:pt-[4.25rem] lg:pb-4";
+  "relative flex w-full min-h-screen scroll-mt-20 flex-col items-center justify-center border-none px-6 py-10 pt-20 md:py-12 md:pt-20 lg:scroll-mt-24 lg:flex-row lg:px-10 lg:justify-center lg:py-16 lg:pt-[4.25rem] lg:pb-16";
 
 export const TILE_SECTION_FLOW =
   "relative block h-auto min-h-0 w-full scroll-mt-20 overflow-visible border-none bg-[#0B0F15] px-6 py-16 clear-both lg:scroll-mt-24 lg:px-10 lg:pb-40 lg:pt-24";
 
-export const MARKETING_TAIL =
-  "flex w-full flex-col lg:snap-none lg:snap-align-none lg:pb-10";
+export const MARKETING_TAIL = "flex w-full flex-col lg:pb-10";
 
-export const PRICING_TILE =
-  "mx-auto w-full max-w-[1400px] rounded-2xl border border-white/[0.08] bg-slate-900/25 px-6 py-10 backdrop-blur-sm md:px-8 md:py-12 lg:px-10 lg:py-14";
+export const PRICING_BLOCK =
+  "mx-auto w-full max-w-[1400px] scroll-mt-20 lg:scroll-mt-24";
+
+export const PRICING_LIMITS_PANEL =
+  "flex h-full flex-col rounded-xl bg-slate-900/20 p-6 lg:p-7";
+
+export const PRICING_INFO_PANEL =
+  "rounded-xl bg-slate-900/20 p-6 lg:p-8";
 
 export const MARKETING_FOOTER =
   "border-t border-white/[0.05] bg-[#0B0F15] px-6 py-10 lg:px-10 lg:pb-16";
@@ -62,7 +67,7 @@ export const FEATURE_ITEM =
   "flex items-start gap-2 text-base font-normal tracking-wide text-slate-200";
 
 export const PRICING_CARD =
-  "flex h-full flex-col rounded-xl border border-white/[0.08] bg-slate-900/40 p-8 backdrop-blur-sm";
+  "flex h-full flex-col rounded-xl bg-slate-900/20 p-6 lg:p-7";
 
 export const PRICING_CTA =
   "mt-8 inline-flex w-full items-center justify-center rounded-xl bg-[#00E699] py-4 text-sm font-semibold tracking-tight text-[#0B0F15] transition-all hover:bg-[#00CC88]";

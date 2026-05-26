@@ -28,6 +28,9 @@ const HERO_MEDIA_FRAME =
 const FULLSCREEN_MEDIA_FRAME =
   "relative h-full w-full overflow-hidden bg-[#0B0F15] [&>*]:absolute [&>*]:inset-0 [&>*]:h-full [&>*]:w-full";
 
+const PREVIEW_MEDIA_FRAME =
+  "relative h-full w-full overflow-hidden rounded-xl border border-white/[0.08] bg-slate-900/40 shadow-[0_0_50px_rgba(0,230,153,0.01)]";
+
 function ViewerShell({
   children,
   mode,
@@ -40,9 +43,11 @@ function ViewerShell({
   const frameClass =
     mode === "fullscreen"
       ? FULLSCREEN_MEDIA_FRAME
-      : sizeTier === "hero"
-        ? HERO_MEDIA_FRAME
-        : TILE_MEDIA_FRAME;
+      : mode === "preview"
+        ? PREVIEW_MEDIA_FRAME
+        : sizeTier === "hero"
+          ? HERO_MEDIA_FRAME
+          : TILE_MEDIA_FRAME;
   return <div className={frameClass}>{children}</div>;
 }
 
