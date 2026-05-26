@@ -92,6 +92,18 @@ export const PROCESSING_CREDIT_USES = [
   "GPU-intensive rendering and export pipelines",
 ] as const;
 
+export const BUNDLE_COMPARISON = {
+  headline: "Connected Project Bundle",
+  body:
+    "The bundle combines Site Walk Workspace Pro and Digital Twin Reality Studio into one subscription with a unified project workspace across both native apps. Storage and processing allotments match the combined individual tiers — 150 GB storage and 5,500 monthly processing credits — so teams running both workflows get one bill and one shared data pool.",
+} as const;
+
+export const FAIR_USAGE = {
+  headline: "Fair usage & billing cycle resets",
+  body:
+    "Included storage and processing credits reset on your billing date each cycle — unused allotments do not roll over. Fair usage policies prevent automated abuse of GPU pipelines; typical field and studio workflows stay well within included limits. Enterprise plans can negotiate custom reset windows and volume caps.",
+} as const;
+
 export const TOP_UP_POLICY = {
   headline: "At-cost top-ups — no markup",
   body:

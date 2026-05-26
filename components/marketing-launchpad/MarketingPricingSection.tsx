@@ -2,9 +2,16 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { PRICING_CARD, PRICING_CTA, TILE_SECTION_FLOW } from "@/components/marketing-launchpad/marketing-styles";
 import {
+  PRICING_CARD,
+  PRICING_CTA,
+  PRICING_TILE,
+  TILE_SECTION_FLOW,
+} from "@/components/marketing-launchpad/marketing-styles";
+import {
+  BUNDLE_COMPARISON,
   ENTERPRISE_PLAN,
+  FAIR_USAGE,
   PRICING_TIERS,
   PROCESSING_CREDIT_USES,
   TOP_UP_POLICY,
@@ -20,8 +27,8 @@ import { cn } from "@/lib/utils";
 const TOGGLE_GROUP =
   "inline-flex flex-wrap items-center justify-center gap-1 rounded-xl border border-white/[0.08] bg-slate-900/40 p-1.5";
 
-const LIMITS_STRIP =
-  "mt-4 rounded-lg border border-[#00E699]/15 bg-[#00E699]/[0.04] px-4 py-3";
+const LIMITS_CARD =
+  "flex h-full flex-col rounded-xl border border-white/[0.08] bg-slate-900/40 p-6 lg:p-7";
 
 function ToggleButton({
   active,
@@ -48,24 +55,6 @@ function ToggleButton({
   );
 }
 
-function TierLimitsStrip({ tier }: { tier: PricingTier }) {
-  return (
-    <div className={LIMITS_STRIP}>
-      <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#00E699]/80">
-        Included every billing cycle
-      </p>
-      <p className="mt-1.5 text-sm font-medium leading-snug text-[#F8FAFC]">
-        {formatStorageLimit(tier.limits.storageGb)}
-        <span className="mx-2 text-[#A3AED0]/60">·</span>
-        {formatCreditLimit(tier.limits.monthlyCredits)}
-      </p>
-      <p className="mt-1 text-xs leading-relaxed text-[#A3AED0]">
-        Top up storage or credits at cost when you exceed these allotments.
-      </p>
-    </div>
-  );
-}
-
 function PricingCard({ tier, cadence }: { tier: PricingTier; cadence: BillingCadence }) {
   const isAnnual = cadence === "annual";
 
@@ -87,8 +76,7 @@ function PricingCard({ tier, cadence }: { tier: PricingTier; cadence: BillingCad
           </p>
         )}
       </div>
-      <TierLimitsStrip tier={tier} />
-      <ul className="mt-5 flex flex-1 flex-col space-y-3">
+      <ul className="mt-6 flex flex-1 flex-col space-y-3">
         {tier.features.map((feature) => (
           <li key={feature} className="flex items-start gap-2.5 text-base text-[#F8FAFC]">
             <span
@@ -108,93 +96,165 @@ function PricingCard({ tier, cadence }: { tier: PricingTier; cadence: BillingCad
   );
 }
 
+function TierLimitsCard({ tier }: { tier: PricingTier }) {
+  return (
+    <article className={LIMITS_CARD}>
+      <h3 className="text-lg font-bold text-[#FFFFFF]">{tier.name}</h3>
+      <p className="mt-4 text-sm font-medium leading-snug text-[#F8FAFC]">
+        {formatStorageLimit(tier.limits.storageGb)}
+      </p>
+      <p className="mt-2 text-sm font-medium leading-snug text-[#F8FAFC]">
+        {formatCreditLimit(tier.limits.monthlyCredits)}
+      </p>
+      <p className="mt-4 text-xs leading-relaxed text-[#A3AED0]">
+        Resets each billing cycle. Top up at cost when you exceed these allotments.
+      </p>
+    </article>
+  );
+}
+
+function EnterpriseLimitsCard() {
+  return (
+    <article className={LIMITS_CARD}>
+      <h3 className="text-lg font-bold text-[#FFFFFF]">{ENTERPRISE_PLAN.name}</h3>
+      <p className="mt-4 text-sm font-medium leading-snug text-[#F8FAFC]">
+        Tailored storage, credit pools, and seat volume
+      </p>
+      <p className="mt-2 text-sm font-medium leading-snug text-[#F8FAFC]">
+        Custom processing pipelines and priority queues
+      </p>
+      <p className="mt-4 text-xs leading-relaxed text-[#A3AED0]">
+        Volume caps and reset windows negotiated per organization.
+      </p>
+    </article>
+  );
+}
+
 export function MarketingPricingSection() {
   const [cadence, setCadence] = useState<BillingCadence>("annual");
 
   return (
     <section id="pricing-matrix-section" className={TILE_SECTION_FLOW}>
-      <div className="mx-auto w-full max-w-[1400px]">
-        <div className="mx-auto mb-8 max-w-3xl text-center lg:mb-10">
-          <h2 className="text-3xl font-bold tracking-tight text-[#FFFFFF] lg:text-4xl">
-            Subscription Engine
-          </h2>
-          <p className="mt-3 text-base leading-relaxed text-[#A3AED0] lg:mt-4 lg:text-lg">
-            Every tier includes a fixed monthly storage allotment and processing credit pool. Limits
-            reset on your billing date — buy more at direct infrastructure cost whenever you need
-            headroom.
-          </p>
-        </div>
-
-        <div className="mb-8 flex flex-col items-center gap-4 lg:mb-10 lg:gap-5">
-          <div className={TOGGLE_GROUP} role="group" aria-label="Billing cadence">
-            <ToggleButton active={cadence === "monthly"} onClick={() => setCadence("monthly")}>
-              Monthly Billing
-            </ToggleButton>
-            <ToggleButton active={cadence === "annual"} onClick={() => setCadence("annual")}>
-              Annual Billing (Save 17%)
-            </ToggleButton>
+      <div className="mx-auto flex w-full max-w-[1400px] flex-col gap-10 lg:gap-14">
+        <article className={PRICING_TILE}>
+          <div className="mx-auto mb-8 max-w-3xl text-center lg:mb-10">
+            <h2 className="text-3xl font-bold tracking-tight text-[#FFFFFF] lg:text-4xl">
+              Plans &amp; Pricing
+            </h2>
+            <p className="mt-4 text-base leading-relaxed text-[#A3AED0] lg:text-lg">
+              Choose the workspace that matches your field and studio workflows. Every tier includes
+              core capture, mapping, and collaboration features listed below.
+            </p>
           </div>
-          <p className="max-w-xl text-center text-sm text-[#A3AED0]">
-            Annual billing applies a 17% discount versus paying month-to-month on the same tier.
-          </p>
-        </div>
 
-        <div className="grid gap-6 lg:grid-cols-2 lg:gap-7 xl:grid-cols-4 xl:gap-6">
-          {PRICING_TIERS.map((tier) => (
-            <PricingCard key={tier.id} tier={tier} cadence={cadence} />
-          ))}
+          <div className="mb-8 flex flex-col items-center gap-4 lg:mb-10 lg:gap-5">
+            <div className={TOGGLE_GROUP} role="group" aria-label="Billing cadence">
+              <ToggleButton active={cadence === "monthly"} onClick={() => setCadence("monthly")}>
+                Monthly Billing
+              </ToggleButton>
+              <ToggleButton active={cadence === "annual"} onClick={() => setCadence("annual")}>
+                Annual Billing (Save 17%)
+              </ToggleButton>
+            </div>
+            <p className="max-w-xl text-center text-sm text-[#A3AED0]">
+              Annual billing applies a 17% discount versus paying month-to-month on the same tier.
+            </p>
+          </div>
 
-          <article className={PRICING_CARD}>
-            <h3 className="text-xl font-bold text-[#FFFFFF] lg:text-2xl">{ENTERPRISE_PLAN.name}</h3>
-            <div className={`${LIMITS_STRIP} mt-4`}>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#00E699]/80">
-                Custom infrastructure caps
+          <div className="grid gap-6 lg:grid-cols-2 lg:gap-7 xl:grid-cols-4 xl:gap-6">
+            {PRICING_TIERS.map((tier) => (
+              <PricingCard key={tier.id} tier={tier} cadence={cadence} />
+            ))}
+
+            <article className={PRICING_CARD}>
+              <h3 className="text-xl font-bold text-[#FFFFFF] lg:text-2xl">{ENTERPRISE_PLAN.name}</h3>
+              <div className="mt-4 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                <p className="text-3xl font-bold tracking-tight text-[#00E699]">Custom</p>
+                <p className="text-sm text-[#A3AED0]">Volume pricing for 25+ seats</p>
+              </div>
+              <ul className="mt-6 flex flex-1 flex-col space-y-3">
+                {ENTERPRISE_PLAN.features.map((feature) => (
+                  <li key={feature} className="flex items-start gap-2.5 text-base text-[#F8FAFC]">
+                    <span
+                      aria-hidden
+                      className="mr-0 shrink-0 select-none text-xl font-bold leading-none text-[#00E699] drop-shadow-[0_0_8px_rgba(0,230,153,0.6)]"
+                    >
+                      »
+                    </span>
+                    <span>{feature}</span>
+                  </li>
+                ))}
+              </ul>
+              <Link href="/contact" className={PRICING_CTA}>
+                {ENTERPRISE_PLAN.cta}
+              </Link>
+            </article>
+          </div>
+        </article>
+
+        <article className={PRICING_TILE}>
+          <div className="mx-auto mb-8 max-w-3xl text-center lg:mb-10">
+            <h2 className="text-3xl font-bold tracking-tight text-[#FFFFFF] lg:text-4xl">
+              Data, Credits &amp; Fair Usage
+            </h2>
+            <p className="mt-4 text-base leading-relaxed text-[#A3AED0] lg:text-lg">
+              Every plan includes fixed storage and processing credit pools that reset on your billing
+              date. Purchase additional capacity at direct infrastructure cost whenever you need
+              headroom.
+            </p>
+          </div>
+
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6">
+            {PRICING_TIERS.map((tier) => (
+              <TierLimitsCard key={tier.id} tier={tier} />
+            ))}
+            <EnterpriseLimitsCard />
+          </div>
+
+          <div className="mt-10 grid gap-6 lg:mt-12 lg:grid-cols-2 lg:gap-8">
+            <div className="rounded-xl border border-[#00E699]/15 bg-[#00E699]/[0.04] p-6 lg:p-8">
+              <h3 className="text-lg font-semibold text-[#FFFFFF] lg:text-xl">{TOP_UP_POLICY.headline}</h3>
+              <p className="mt-3 text-sm leading-relaxed text-[#A3AED0] lg:text-base">
+                {TOP_UP_POLICY.body}
               </p>
-              <p className="mt-1.5 text-sm font-medium leading-snug text-[#F8FAFC]">
-                Tailored storage, credit pools, and seat volume for large portfolios
+              <p className="mt-3 text-sm leading-relaxed text-[#A3AED0] lg:text-base">
+                {TOP_UP_POLICY.creditNote}
               </p>
             </div>
-            <ul className="mt-5 flex flex-1 flex-col space-y-3">
-              {ENTERPRISE_PLAN.features.map((feature) => (
-                <li key={feature} className="flex items-start gap-2.5 text-base text-[#F8FAFC]">
-                  <span
-                    aria-hidden
-                    className="mr-0 shrink-0 select-none text-xl font-bold leading-none text-[#00E699] drop-shadow-[0_0_8px_rgba(0,230,153,0.6)]"
-                  >
-                    »
-                  </span>
-                  <span>{feature}</span>
-                </li>
-              ))}
-            </ul>
-            <Link href="/contact" className={PRICING_CTA}>
-              {ENTERPRISE_PLAN.cta}
-            </Link>
-          </article>
-        </div>
 
-        <div className="mx-auto mt-10 max-w-4xl rounded-xl border border-white/[0.08] bg-slate-900/40 p-6 lg:mt-12 lg:p-8">
-          <h3 className="text-lg font-semibold text-[#FFFFFF] lg:text-xl">{TOP_UP_POLICY.headline}</h3>
-          <p className="mt-3 text-sm leading-relaxed text-[#A3AED0] lg:text-base">{TOP_UP_POLICY.body}</p>
-          <p className="mt-3 text-sm leading-relaxed text-[#A3AED0] lg:text-base">
-            {TOP_UP_POLICY.creditNote}
-          </p>
-          <div className="mt-5 border-t border-white/[0.06] pt-5">
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#00E699]/80">
-              Processing credits are used for
-            </p>
-            <ul className="mt-3 grid gap-2 sm:grid-cols-2">
-              {PROCESSING_CREDIT_USES.map((use) => (
-                <li key={use} className="flex items-start gap-2 text-sm text-[#F8FAFC]">
-                  <span aria-hidden className="mt-0.5 shrink-0 text-[#00E699]">
-                    »
-                  </span>
-                  <span>{use}</span>
-                </li>
-              ))}
-            </ul>
+            <div className="rounded-xl border border-white/[0.08] bg-slate-900/40 p-6 lg:p-8">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#00E699]/80">
+                Processing credits are used for
+              </p>
+              <ul className="mt-4 grid gap-2.5 sm:grid-cols-2">
+                {PROCESSING_CREDIT_USES.map((use) => (
+                  <li key={use} className="flex items-start gap-2 text-sm text-[#F8FAFC]">
+                    <span aria-hidden className="mt-0.5 shrink-0 text-[#00E699]">
+                      »
+                    </span>
+                    <span>{use}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
-        </div>
+
+          <div className="mt-8 grid gap-6 lg:mt-10 lg:grid-cols-2 lg:gap-8">
+            <div className="rounded-xl border border-white/[0.08] bg-slate-900/40 p-6 lg:p-8">
+              <h3 className="text-lg font-semibold text-[#FFFFFF]">{BUNDLE_COMPARISON.headline}</h3>
+              <p className="mt-3 text-sm leading-relaxed text-[#A3AED0] lg:text-base">
+                {BUNDLE_COMPARISON.body}
+              </p>
+            </div>
+
+            <div className="rounded-xl border border-white/[0.08] bg-slate-900/40 p-6 lg:p-8">
+              <h3 className="text-lg font-semibold text-[#FFFFFF]">{FAIR_USAGE.headline}</h3>
+              <p className="mt-3 text-sm leading-relaxed text-[#A3AED0] lg:text-base">
+                {FAIR_USAGE.body}
+              </p>
+            </div>
+          </div>
+        </article>
       </div>
     </section>
   );

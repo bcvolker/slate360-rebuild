@@ -11,18 +11,16 @@ import {
   TEXT_COLUMN,
   TILE_ROW,
   TILE_SECTION_SNAP,
-  TILE_SECTION_SNAP_LAST,
 } from "@/components/marketing-launchpad/marketing-styles";
 
 type MarketingFeatureSectionProps = {
   tile: MarketingTile;
-  isLast?: boolean;
 };
 
 function FeatureCopy({ tile }: { tile: MarketingTile }) {
   return (
     <div className={TEXT_COLUMN}>
-      <h2 className="mb-2 text-3xl font-bold tracking-tight text-white lg:mb-2 lg:text-4xl lg:text-[#FFFFFF]">
+      <h2 className="mb-3 text-3xl font-bold tracking-tight text-white lg:mb-3 lg:text-4xl lg:text-[#FFFFFF]">
         {tile.title}
       </h2>
       <p className={BODY_COPY}>{tile.description}</p>
@@ -43,13 +41,12 @@ function FeatureCopy({ tile }: { tile: MarketingTile }) {
   );
 }
 
-export function MarketingFeatureSection({ tile, isLast = false }: MarketingFeatureSectionProps) {
+export function MarketingFeatureSection({ tile }: MarketingFeatureSectionProps) {
   const copyOrder = tile.reversed ? "order-1 lg:order-2" : "order-1";
   const mediaOrder = tile.reversed ? "order-2 lg:order-1" : "order-2";
-  const sectionClass = isLast ? TILE_SECTION_SNAP_LAST : TILE_SECTION_SNAP;
 
   return (
-    <section id={tile.id} className={sectionClass}>
+    <section id={tile.id} className={TILE_SECTION_SNAP}>
       <div className={TILE_ROW}>
         <div className={copyOrder}>
           <FeatureCopy tile={tile} />
