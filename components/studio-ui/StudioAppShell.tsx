@@ -11,13 +11,17 @@ import { InviteShareProvider, useInviteShare } from "@/components/shared/InviteS
 import { Slate360Logo } from "@/components/studio-ui/LogoProvider";
 import { StudioMobileHeaderActions } from "@/components/studio-ui/StudioMobileHeaderActions";
 import { isSiteWalkPassthroughShellPath } from "@/lib/site-walk/site-walk-shell-paths";
+import {
+  isDigitalTwinPassthroughShellPath,
+  isDigitalTwinPlatformBypassPath,
+} from "@/lib/digital-twin/digital-twin-shell-paths";
+import type { InviteShareData } from "@/lib/types/invite";
 
 /** Site Walk sub-routes and task surfaces keep their own chrome; home stays in platform shell. */
 function isSiteWalkPlatformBypassPath(pathname: string): boolean {
   if (pathname === "/site-walk") return false;
   return pathname.startsWith("/site-walk/");
 }
-import type { InviteShareData } from "@/lib/types/invite";
 
 const InviteShareModal = dynamic(
   () => import("@/components/shared/InviteShareModal").then((mod) => mod.InviteShareModal),
@@ -52,9 +56,12 @@ type StudioAppShellProps = {
 function StudioAppShellInner({ inviteShareData, children }: StudioAppShellProps) {
   const pathname = usePathname() ?? "";
   const fullBleed =
-    isSiteWalkPlatformBypassPath(pathname) || isSiteWalkPassthroughShellPath(pathname);
+    isSiteWalkPlatformBypassPath(pathname) ||
+    isSiteWalkPassthroughShellPath(pathname) ||
+    isDigitalTwinPlatformBypassPath(pathname) ||
+    isDigitalTwinPassthroughShellPath(pathname);
   const activeKey = activeNavKey(pathname);
-  const isSiteWalkHome = pathname === "/site-walk";
+  const isModuleHome = pathname === "/site-walk" || pathname === "/digital-twin";
   const { open: inviteOpen, setOpen: setInviteOpen } = useInviteShare();
 
   if (fullBleed) {
@@ -75,11 +82,11 @@ function StudioAppShellInner({ inviteShareData, children }: StudioAppShellProps)
               href="/app"
               className={cn(
                 "flex min-w-0 shrink-0 items-center rounded-lg transition-colors hover:bg-white/[0.04] active:bg-white/[0.07]",
-                isSiteWalkHome ? "gap-1 pr-1.5" : "",
+                isModuleHome ? "gap-1 pr-1.5" : "",
               )}
-              aria-label={isSiteWalkHome ? "Back to Slate360 home" : "Slate360 home"}
+              aria-label={isModuleHome ? "Back to Slate360 home" : "Slate360 home"}
             >
-              {isSiteWalkHome ? (
+              {isModuleHome ? (
                 <ChevronLeft
                   className="size-5 shrink-0 text-zinc-400"
                   strokeWidth={2}

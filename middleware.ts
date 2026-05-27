@@ -140,6 +140,7 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith("/slatedrop") ||
     pathname.startsWith("/project-hub") ||
     pathname.startsWith("/site-walk") ||
+    pathname.startsWith("/digital-twin") ||
     pathname.startsWith("/my-account") ||
     pathname.startsWith("/more") ||
     pathname.startsWith("/coordination") ||

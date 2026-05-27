@@ -53,7 +53,7 @@ export function resolveMobilePlatformNavKey(pathname: string): MobilePlatformNav
 
 function shouldUsePlatformDoctrine(pathname: string, ariaLabel: string): boolean {
   if (ariaLabel === "Platform") return true;
-  return !pathname.startsWith("/site-walk");
+  return !pathname.startsWith("/site-walk") && !pathname.startsWith("/digital-twin");
 }
 
 type MobileBottomNavProps<Key extends string = string> = {

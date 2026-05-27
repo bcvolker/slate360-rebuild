@@ -9,8 +9,8 @@ type MobileAppShellProps = {
   className?: string;
   bodyClassName?: string;
   mainClassName?: string;
-  /** Real-route verification marker for /app or /site-walk shell content */
-  mobileRoute?: "app" | "site-walk";
+  /** Real-route verification marker for /app or module shell content */
+  mobileRoute?: "app" | "site-walk" | "digital-twin";
 };
 
 export function MobileAppShell({

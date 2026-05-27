@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import type { ElementType } from "react";
-import { Camera } from "lucide-react";
+import { AppWindow, Camera } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export type InstalledAppCard = {
@@ -26,6 +26,16 @@ export const INSTALLED_APPS: InstalledAppCard[] = [
     borderClass: "border-[#00E699]",
     iconWrapperClass: "border border-[#00E699]/20 bg-[#00E699]/10",
     iconClass: "text-[#00E699]",
+  },
+  {
+    id: "digital-twin",
+    title: "Digital Twin",
+    subtext: "Interactive 3D reality studio.",
+    href: "/digital-twin",
+    icon: AppWindow,
+    borderClass: "border-[#6EA7A0]/35",
+    iconWrapperClass: "border border-[#6EA7A0]/20 bg-[#6EA7A0]/10",
+    iconClass: "text-[#6EA7A0]",
   },
 ];
 

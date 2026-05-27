@@ -6,7 +6,7 @@ import { mobileTokens } from "./mobileTokens";
 
 type MobileHomeLayoutProps = {
   /** Real-route verification marker */
-  route: "app" | "site-walk";
+  route: "app" | "site-walk" | "digital-twin";
   /** Primary content block (app tiles, module intro, etc.) */
   contentTop: ReactNode;
   /** Secondary action row/grid (quick actions, module actions) */
@@ -37,6 +37,7 @@ export function MobileHomeLayout({
   className,
 }: MobileHomeLayoutProps) {
   const isApp = route === "app";
+  const isModuleHome = route === "site-walk" || route === "digital-twin";
 
   const upperBlock = (
     <div
@@ -77,10 +78,10 @@ export function MobileHomeLayout({
     </div>
   );
 
-  if (!isApp) {
+  if (isModuleHome) {
     return (
       <div
-        data-mobile-home-layout-version="site-walk-balanced-dock-v2"
+        data-mobile-home-layout-version="module-home-balanced-dock-v2"
         data-dock-width-mode="full-shell"
         data-mobile-route={route}
         className={cn(HOME_LAYOUT_ROOT, className)}
