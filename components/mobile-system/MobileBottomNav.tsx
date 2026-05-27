@@ -90,14 +90,14 @@ export function MobileBottomNav<Key extends string = string>({
           const active = navActiveKey === key;
           const itemClassName = cn(
             "relative flex h-full w-full flex-col items-center justify-center gap-1 rounded-lg py-2 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6EA7A0]/50",
-            active ? "bg-[#6EA7A0]/10 text-[#6EA7A0]" : "text-zinc-500 hover:bg-white/5 hover:text-zinc-300",
+            active ? "bg-[#85CBC3]/12 text-[#85CBC3]" : "text-zinc-300 hover:bg-white/5 hover:text-zinc-100",
           );
           const content = (
             <>
               {active && (
                 <span
                   aria-hidden
-                  className="absolute left-1/2 top-0 h-[2px] w-8 -translate-x-1/2 rounded-b-full bg-[#6EA7A0] shadow-[0_2px_8px_rgba(110,167,160,0.45)]"
+                  className="absolute left-1/2 top-0 h-[2px] w-8 -translate-x-1/2 rounded-b-full bg-[#85CBC3] shadow-[0_2px_8px_rgba(133,203,195,0.45)]"
                 />
               )}
               <Icon

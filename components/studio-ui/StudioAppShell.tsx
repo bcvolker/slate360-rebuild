@@ -88,7 +88,7 @@ function StudioAppShellInner({ inviteShareData, children }: StudioAppShellProps)
             >
               {isModuleHome ? (
                 <ChevronLeft
-                  className="size-5 shrink-0 text-zinc-400"
+                  className="size-5 shrink-0 text-zinc-200"
                   strokeWidth={2}
                   aria-hidden
                 />

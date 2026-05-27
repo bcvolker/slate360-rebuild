@@ -23,7 +23,7 @@ import type { MobilePanelTab, MobileQuickActionItem } from "@/components/mobile-
 import { MobileAppLauncherGrid } from "@/components/studio-ui/MobileAppLauncherGrid";
 
 const DOCK_EMPTY_ACTION =
-  "text-[12px] font-medium text-[#6EA7A0] hover:text-[#6EA7A0]/80 hover:underline";
+  "text-[12px] font-medium text-[#85CBC3] hover:text-[#85CBC3]/85 hover:underline";
 
 export function MobileAppRootContent() {
   const [createSheetOpen, setCreateSheetOpen] = useState(false);
@@ -111,7 +111,7 @@ export function MobileAppRootContent() {
         contentTop={
           <section className="shrink-0 pb-1">
             <div className="mb-1.5">
-              <p className="text-xs font-semibold uppercase tracking-widest text-[#A3AED0]">
+              <p className="text-xs font-semibold uppercase tracking-widest text-zinc-300">
                 Your Apps
               </p>
             </div>

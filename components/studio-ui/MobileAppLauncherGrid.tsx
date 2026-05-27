@@ -61,7 +61,7 @@ function AppLauncherCard({ app }: { app: InstalledAppCard }) {
       </span>
       <div className="min-w-0">
         <p className="text-sm font-semibold leading-tight text-[#FFFFFF]">{app.title}</p>
-        <p className="mt-1 line-clamp-1 text-xs leading-snug text-[#A3AED0]">{app.subtext}</p>
+        <p className="mt-1 line-clamp-1 text-xs leading-snug text-zinc-400">{app.subtext}</p>
       </div>
     </Link>
   );

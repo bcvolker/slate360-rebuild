@@ -19,7 +19,7 @@ import type { HubDeliverableRow } from "@/lib/types/site-walk-hub";
 const SITE_WALK_ICON =
   "border border-[#6EA7A0]/20 bg-[#6EA7A0]/10 text-[#6EA7A0]";
 const DOCK_EMPTY_ACTION =
-  "text-[12px] font-medium text-[#6EA7A0] hover:text-[#6EA7A0]/80 hover:underline";
+  "text-[12px] font-medium text-[#85CBC3] hover:text-[#85CBC3]/85 hover:underline";
 
 type Props = {
   orgName: string | null;
@@ -99,7 +99,7 @@ export function SiteWalkHomeClient({ projects, walks, deliverables }: Props) {
                     className="flex items-center justify-between rounded-xl border border-white/[0.05] px-3 py-2.5 text-sm transition-colors hover:bg-white/[0.03]"
                   >
                     <span className="truncate text-[#F8FAFC]">{walk.title}</span>
-                    <span className="shrink-0 text-xs text-[#A3AED0]">{walk.itemCount} items</span>
+                    <span className="shrink-0 text-xs text-zinc-400">{walk.itemCount} items</span>
                   </Link>
                 </li>
               ))}

@@ -17,7 +17,7 @@ import type { HubTwin, HubTwinProject } from "@/lib/types/digital-twin-hub";
 const TWIN_ICON =
   "border border-[#6EA7A0]/20 bg-[#6EA7A0]/10 text-[#6EA7A0]";
 const DOCK_EMPTY_ACTION =
-  "text-[12px] font-medium text-[#6EA7A0] hover:text-[#6EA7A0]/80 hover:underline";
+  "text-[12px] font-medium text-[#85CBC3] hover:text-[#85CBC3]/85 hover:underline";
 
 type Props = {
   orgName: string | null;
@@ -80,7 +80,7 @@ export function DigitalTwinHomeClient({ twins, projects }: Props) {
                     className="flex items-center justify-between gap-2 rounded-xl border border-white/[0.05] px-3 py-2.5 text-sm transition-colors hover:bg-white/[0.03]"
                   >
                     <span className="min-w-0 truncate text-[#F8FAFC]">{twin.title}</span>
-                    <span className="shrink-0 text-xs capitalize text-[#A3AED0]">
+                    <span className="shrink-0 text-xs capitalize text-zinc-400">
                       {formatTwinStatus(twin.status)}
                     </span>
                   </Link>
