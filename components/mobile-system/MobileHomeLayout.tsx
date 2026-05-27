@@ -19,8 +19,12 @@ type MobileHomeLayoutProps = {
 const HOME_LAYOUT_ROOT =
   "relative flex h-full w-full flex-col overflow-hidden bg-[#0B0F15]";
 
+/** /app: dock fills remaining viewport below upper content */
 const HOME_DOCK_PANEL =
   "mt-auto flex min-h-0 w-full shrink-0 flex-col overflow-hidden";
+
+/** /site-walk: ~4px between quick actions and collapsed dock (MOBILE_HOME_DOCK_GAP_PX) */
+const SITE_WALK_DOCK_TOP_GAP = "pt-1";
 
 /**
  * Shared vertical composition for /app and /site-walk home surfaces.
@@ -32,6 +36,68 @@ export function MobileHomeLayout({
   dock,
   className,
 }: MobileHomeLayoutProps) {
+  const isApp = route === "app";
+
+  const upperBlock = (
+    <div
+      className={
+        isApp ? mobileTokens.mobileHomeAppUpperRegion : mobileTokens.mobileHomeUpperRegion
+      }
+    >
+      <div
+        className={
+          isApp ? mobileTokens.mobileHomeAppUpperInner : mobileTokens.mobileHomeUpperInner
+        }
+      >
+        <div
+          className={
+            isApp ? mobileTokens.mobileHomeAppContentStack : mobileTokens.mobileHomeContentStack
+          }
+        >
+          <div className="shrink-0">{contentTop}</div>
+          {primaryActions ? (
+            <div
+              className={
+                isApp
+                  ? mobileTokens.mobileHomeAppPrimaryActionsRegion
+                  : mobileTokens.mobileHomePrimaryActionsRegion
+              }
+            >
+              {primaryActions}
+            </div>
+          ) : null}
+        </div>
+      </div>
+    </div>
+  );
+
+  if (!isApp) {
+    return (
+      <div
+        data-mobile-home-layout-version="site-walk-pinned-dock-v1"
+        data-dock-width-mode="full-shell"
+        data-mobile-route={route}
+        className={cn(HOME_LAYOUT_ROOT, className)}
+      >
+        {/*
+          Single flex-1 column with justify-end: any free height stays above the
+          upper+dock block, not between title/quick actions and the dock.
+        */}
+        <div className="flex min-h-0 flex-1 flex-col justify-end overflow-hidden">
+          {upperBlock}
+          <div
+            className={cn(
+              "relative z-10 w-full shrink-0 px-4 pb-1",
+              SITE_WALK_DOCK_TOP_GAP,
+            )}
+          >
+            <div className={mobileTokens.mobileHomeDockInner}>{dock}</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       data-mobile-home-layout-version="stretch-dock-v2"
@@ -39,45 +105,14 @@ export function MobileHomeLayout({
       data-mobile-route={route}
       className={cn(HOME_LAYOUT_ROOT, className)}
     >
-      <div
-        className={
-          route === "app"
-            ? mobileTokens.mobileHomeAppUpperRegion
-            : mobileTokens.mobileHomeUpperRegion
-        }
-      >
-        <div
-          className={
-            route === "app"
-              ? mobileTokens.mobileHomeAppUpperInner
-              : mobileTokens.mobileHomeUpperInner
-          }
-        >
-          <div
-            className={
-              route === "app"
-                ? mobileTokens.mobileHomeAppContentStack
-                : mobileTokens.mobileHomeContentStack
-            }
-          >
-            <div className="shrink-0">{contentTop}</div>
-            {primaryActions ? (
-              <div
-                className={
-                  route === "app"
-                    ? mobileTokens.mobileHomeAppPrimaryActionsRegion
-                    : mobileTokens.mobileHomePrimaryActionsRegion
-                }
-              >
-                {primaryActions}
-              </div>
-            ) : null}
-          </div>
-        </div>
-      </div>
-
+      {upperBlock}
       <div className="relative z-10 min-h-0 w-full flex-1 px-4 pb-0">
-        <div className={cn(mobileTokens.mobileHomeDockInner, "flex min-h-0 h-full flex-1 flex-col")}>
+        <div
+          className={cn(
+            mobileTokens.mobileHomeDockInner,
+            "flex min-h-0 h-full flex-1 flex-col",
+          )}
+        >
           <div className={HOME_DOCK_PANEL}>{dock}</div>
         </div>
       </div>
