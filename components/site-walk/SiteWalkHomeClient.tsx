@@ -43,7 +43,11 @@ function ActionLink({
   return (
     <Link
       href={href}
-      className={cn(mobileTokens.siteWalkActionGridButton, "h-[110px]", mobileTokens.focusRing)}
+      className={cn(
+        mobileTokens.siteWalkActionGridButton,
+        "h-full min-h-[118px]",
+        mobileTokens.focusRing,
+      )}
     >
       <span
         className={cn(
@@ -167,8 +171,8 @@ export function SiteWalkHomeClient({ projects, walks, deliverables }: Props) {
       route="site-walk"
       contentTop={null}
       primaryActions={
-        <section className="shrink-0">
-          <div className="mb-2 flex items-center gap-3">
+        <section className="flex min-h-0 flex-1 flex-col gap-2">
+          <div className="flex shrink-0 items-center gap-3">
             <span
               className={cn(
                 "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl",
@@ -182,17 +186,22 @@ export function SiteWalkHomeClient({ projects, walks, deliverables }: Props) {
               SITE WALK
             </h1>
           </div>
-          <div className="mb-2">
+          <div className="shrink-0">
             <span className={mobileTokens.appHomeSectionLabelAccentCool} aria-hidden />
             <p className={mobileTokens.appHomeSectionLabel}>Quick Actions</p>
           </div>
-          <div className={mobileTokens.siteWalkActionGridRow}>
+          <div
+            className={cn(
+              mobileTokens.siteWalkActionGridRow,
+              "min-h-0 flex-1 auto-rows-fr",
+            )}
+          >
             <button
               type="button"
               onClick={() => void handleQuickCapture()}
               className={cn(
                 mobileTokens.siteWalkActionGridButton,
-                "h-[110px]",
+                "h-full min-h-[118px]",
                 mobileTokens.focusRing,
               )}
             >

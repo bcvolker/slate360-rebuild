@@ -41,17 +41,23 @@ export function MobileHomeLayout({
   const upperBlock = (
     <div
       className={
-        isApp ? mobileTokens.mobileHomeAppUpperRegion : mobileTokens.mobileHomeUpperRegion
+        isApp
+          ? mobileTokens.mobileHomeAppUpperRegion
+          : "relative z-0 flex min-h-0 flex-1 flex-col overflow-hidden"
       }
     >
       <div
         className={
-          isApp ? mobileTokens.mobileHomeAppUpperInner : mobileTokens.mobileHomeUpperInner
+          isApp
+            ? mobileTokens.mobileHomeAppUpperInner
+            : "mx-auto flex w-full max-w-2xl min-h-0 flex-1 flex-col px-4 pt-3 pb-0"
         }
       >
         <div
           className={
-            isApp ? mobileTokens.mobileHomeAppContentStack : mobileTokens.mobileHomeContentStack
+            isApp
+              ? mobileTokens.mobileHomeAppContentStack
+              : "flex min-h-0 flex-1 flex-col gap-2"
           }
         >
           <div className="shrink-0">{contentTop}</div>
@@ -60,7 +66,7 @@ export function MobileHomeLayout({
               className={
                 isApp
                   ? mobileTokens.mobileHomeAppPrimaryActionsRegion
-                  : mobileTokens.mobileHomePrimaryActionsRegion
+                  : "flex min-h-0 flex-1 flex-col"
               }
             >
               {primaryActions}
@@ -74,17 +80,17 @@ export function MobileHomeLayout({
   if (!isApp) {
     return (
       <div
-        data-mobile-home-layout-version="site-walk-pinned-dock-v1"
+        data-mobile-home-layout-version="site-walk-balanced-dock-v2"
         data-dock-width-mode="full-shell"
         data-mobile-route={route}
         className={cn(HOME_LAYOUT_ROOT, className)}
       >
         {/*
-          Single flex-1 column with justify-end: any free height stays above the
-          upper+dock block, not between title/quick actions and the dock.
+          Upper block absorbs free height (no justify-end void above title).
+          Dock stays shrink-0 directly under quick actions (~4px pt-1, pb-1).
         */}
-        <div className="flex min-h-0 flex-1 flex-col justify-end overflow-hidden">
-          {upperBlock}
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">{upperBlock}</div>
           <div
             className={cn(
               "relative z-10 w-full shrink-0 px-4 pb-1",
