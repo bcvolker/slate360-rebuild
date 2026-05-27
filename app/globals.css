@@ -731,18 +731,26 @@
 
 /* ── Marketing homepage scroll snap (desktop only, scoped) ───────── */
 @media (min-width: 1024px) {
-  html:has([data-marketing-homepage]) {
-    scroll-snap-type: y proximity;
-    scroll-behavior: smooth;
-    scroll-padding-top: 4.25rem;
+  html:has([data-marketing-homepage]),
+  html:has([data-marketing-homepage]) body {
+    height: 100%;
+    overflow: hidden;
+    scroll-snap-type: none;
   }
 
   /*
-   * Mirror snap on body — Chrome often promotes body as the scroll container;
-   * without this, html-only snap-type can feel like free scrolling.
+   * marketing-snap-showcase: the homepage root is the dedicated scroll container.
+   * Document scroll on html/body does not reliably honor snap-align; scrolling here
+   * keeps hero + feature tiles on proximity snap and releases cleanly into pricing.
    */
-  html:has([data-marketing-homepage]) body {
+  [data-marketing-homepage].marketing-snap-showcase,
+  [data-marketing-homepage] {
+    height: 100dvh;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
     scroll-snap-type: y proximity;
+    scroll-behavior: smooth;
     scroll-padding-top: 4.25rem;
   }
 
@@ -770,6 +778,16 @@
 @media (max-width: 1023px) {
   html:has([data-marketing-homepage]),
   html:has([data-marketing-homepage]) body {
+    height: auto;
+    overflow: visible;
+    scroll-snap-type: none;
+    scroll-padding-top: 0;
+  }
+
+  [data-marketing-homepage].marketing-snap-showcase,
+  [data-marketing-homepage] {
+    height: auto;
+    overflow: visible;
     scroll-snap-type: none;
     scroll-padding-top: 0;
   }
