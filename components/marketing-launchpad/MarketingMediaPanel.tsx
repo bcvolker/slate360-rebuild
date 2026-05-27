@@ -66,9 +66,8 @@ function BlueprintMapPanel() {
         ))}
       </div>
       {pins.map((pin) => (
-        <button
+        <div
           key={pin.label}
-          type="button"
           className="absolute flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-1"
           style={{ top: pin.top, left: pin.left }}
           aria-label={`Plan pin: ${pin.label}`}
@@ -77,7 +76,7 @@ function BlueprintMapPanel() {
             ●
           </span>
           <span className="text-[10px] font-medium text-[#A3AED0]">{pin.label}</span>
-        </button>
+        </div>
       ))}
     </div>
   );
