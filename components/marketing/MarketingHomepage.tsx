@@ -37,16 +37,20 @@ export function MarketingHomepage() {
 
       <div className="marketing-snap-track">
         <MarketingHeroSection sectionClassName={MARKETING_SNAP_SECTION} />
-        {SNAP_TILES.map((tile) => (
+        {SNAP_TILES.map((tile, index) => (
           <MarketingFeatureSection
             key={tile.title}
             tile={tile}
-            sectionClassName={MARKETING_SNAP_SECTION}
+            sectionClassName={
+              index === SNAP_TILES.length - 1
+                ? `${MARKETING_SNAP_SECTION} marketing-snap-section--release`
+                : MARKETING_SNAP_SECTION
+            }
           />
         ))}
       </div>
 
-      <div className={MARKETING_TAIL}>
+      <div className={`${MARKETING_TAIL} marketing-tail`}>
         <MarketingHomepagePricing />
         <MarketingFooter />
       </div>

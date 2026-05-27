@@ -734,26 +734,49 @@
   html:has([data-marketing-homepage]) {
     scroll-snap-type: y proximity;
     scroll-behavior: smooth;
+    scroll-padding-top: 4.25rem;
+  }
+
+  /*
+   * Mirror snap on body — Chrome often promotes body as the scroll container;
+   * without this, html-only snap-type can feel like free scrolling.
+   */
+  html:has([data-marketing-homepage]) body {
+    scroll-snap-type: y proximity;
+    scroll-padding-top: 4.25rem;
   }
 
   [data-marketing-homepage] .marketing-snap-section {
     scroll-snap-align: start;
     scroll-snap-stop: normal;
+    box-sizing: border-box;
+    height: 100dvh;
     min-height: 100dvh;
   }
 
-  [data-marketing-homepage] .marketing-flow-section {
+  /* Last feature tile: weaker stop so scroll releases into pricing naturally */
+  [data-marketing-homepage] .marketing-snap-section--release {
+    scroll-snap-stop: normal;
+    scroll-margin-bottom: 2rem;
+  }
+
+  [data-marketing-homepage] .marketing-flow-section,
+  [data-marketing-homepage] .marketing-tail {
     scroll-snap-align: none;
+    scroll-snap-stop: normal;
   }
 }
 
 @media (max-width: 1023px) {
-  html:has([data-marketing-homepage]) {
+  html:has([data-marketing-homepage]),
+  html:has([data-marketing-homepage]) body {
     scroll-snap-type: none;
+    scroll-padding-top: 0;
   }
 
   [data-marketing-homepage] .marketing-snap-section {
     scroll-snap-align: unset;
+    height: auto;
     min-height: auto;
   }
 }
