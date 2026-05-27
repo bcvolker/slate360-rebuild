@@ -178,8 +178,8 @@ export function SiteWalkHomeClient({ projects, walks, deliverables }: Props) {
             >
               <MapPin className="h-[18px] w-[18px]" strokeWidth={1.75} />
             </span>
-            <h1 className={cn(mobileTokens.moduleTitle, "min-w-0")}>
-              SITE <span className="text-[#6EA7A0]/85">WALK</span>
+            <h1 className={cn(mobileTokens.moduleTitle, "min-w-0 text-[#FFFFFF]")}>
+              SITE WALK
             </h1>
           </div>
           <div className="mb-2">

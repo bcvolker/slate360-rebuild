@@ -12,7 +12,7 @@ export const MOBILE_PANEL_COLLAPSED_FRAME_PX = 252;
 
 /** MobileBottomNav content band: min-h-[58px] + pt-[4px] (nav sits below main, in shell flow). */
 export const MOBILE_BOTTOM_NAV_HEIGHT_PX = 62;
-export const MOBILE_HOME_DOCK_GAP_PX = 12;
+export const MOBILE_HOME_DOCK_GAP_PX = 4;
 export const MOBILE_HOME_DOCK_CONTENT_PAD_PX = 16;
 export const MOBILE_HOME_DOCK_COLLAPSED_CLAMP = "clamp(240px,30dvh,320px)";
 export const MOBILE_HOME_DOCK_EXPANDED_CLAMP = "60dvh";
@@ -145,7 +145,7 @@ export const mobileTokens = {
   // ── /app quick action 2×2 grid (do not share layout/height with Site Walk) ──
   appQuickActionGrid: "grid grid-cols-2 gap-2.5",
   appQuickActionCard:
-    "flex h-[88px] flex-col items-center justify-center gap-1 rounded-xl border border-white/[0.06] bg-white/[0.04] px-1.5 py-2 text-zinc-300 transition-colors hover:border-amber-500/20 hover:bg-white/[0.07] hover:text-white active:bg-white/[0.11]",
+    "flex h-[88px] flex-col items-center justify-center gap-1 rounded-xl border border-white/[0.06] bg-white/[0.04] px-1.5 py-2 text-zinc-300 transition-all hover:border-amber-500/20 hover:bg-white/[0.07] hover:text-white active:-translate-y-0.5 active:border-amber-500/30 active:bg-white/[0.11] active:ring-2 active:ring-amber-500/50",
   appQuickActionIcon: "h-5 w-5 shrink-0",
   appQuickActionLabel: "text-[12px] font-medium leading-tight text-center text-zinc-200",
   /** @deprecated Use appQuickActionGrid — legacy 1-row strip */
@@ -156,7 +156,7 @@ export const mobileTokens = {
   // ── Site Walk home 2×2 action grid — compact fixed-height cards with subtext ──
   siteWalkActionGridRow: "grid shrink-0 grid-cols-2 gap-2.5",
   siteWalkActionGridButton:
-    "flex h-[92px] flex-col items-start justify-center gap-0.5 rounded-xl border border-white/[0.06] bg-white/[0.04] px-3 py-2.5 text-left text-zinc-300 transition-colors hover:border-amber-500/20 hover:bg-white/[0.07] hover:text-white active:bg-white/[0.11]",
+    "flex h-[92px] flex-col items-start justify-center gap-0.5 rounded-xl border border-white/[0.06] bg-white/[0.04] px-3 py-2.5 text-left text-zinc-300 transition-all hover:border-amber-500/20 hover:bg-white/[0.07] hover:text-white active:-translate-y-0.5 active:border-amber-500/30 active:bg-white/[0.11] active:ring-2 active:ring-amber-500/50",
   siteWalkActionGridIcon: "mb-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white/[0.06]",
   siteWalkActionGridLabel: "text-[12px] font-semibold leading-tight text-zinc-100",
   siteWalkActionGridSubtext: "text-[10px] font-medium leading-snug text-zinc-500",
