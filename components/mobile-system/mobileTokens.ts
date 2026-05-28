@@ -210,11 +210,37 @@ export const mobileTokens = {
   actionIconClass: "h-6 w-6 text-emerald-400/85",
   actionLabelClass: "text-base font-bold leading-tight text-white",
 
-  // ── /app quick action aliases ─────────────────────────────────────────────
-  appQuickActionGrid: mobileHomeActionGrid,
-  appQuickActionCard: mobileHomeActionCard,
-  appQuickActionIcon: "h-6 w-6 shrink-0 text-emerald-400/85",
-  appQuickActionLabel: "text-base font-bold leading-tight text-white",
+  // ── /app home — launcher primary, quick actions secondary ────────────────
+  /** /app scroll region — extra breathing room for Your Apps */
+  appHomeScrollInner:
+    "mx-auto flex w-full max-w-2xl flex-col gap-4 px-4 pt-3 pb-4",
+  /** /app dock stack — tighter gap between compact quick actions and activity panel */
+  appHomeDockStack: "flex w-full shrink-0 flex-col gap-2.5",
+  appHomeQuickActionsSectionLabel:
+    "text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-300",
+  appHomeQuickActionsSectionAccent: "mb-1 block h-0.5 w-6 rounded-full bg-emerald-400/25",
+  appHomeQuickActionGrid: "grid shrink-0 grid-cols-2 gap-2 auto-rows-fr",
+  appHomeQuickActionCard:
+    "flex min-h-[84px] flex-col items-start justify-center gap-0.5 rounded-xl border border-emerald-500/12 bg-white/[0.04] px-2.5 py-2 text-left text-zinc-100 transition-all hover:border-emerald-400/18 hover:bg-white/[0.06] hover:text-white active:-translate-y-0.5 active:border-emerald-400/22 active:bg-white/[0.08] active:ring-2 active:ring-emerald-400/20",
+  appHomeQuickActionIconWrapper:
+    "mb-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-emerald-400/18 bg-emerald-400/8",
+  appHomeQuickActionIcon: "h-5 w-5 shrink-0 text-emerald-400/80",
+  appHomeQuickActionTitle: "text-sm font-semibold leading-tight text-zinc-100",
+  appHomeLauncherGrid: "grid shrink-0 grid-cols-2 gap-3 auto-rows-fr",
+  appHomeLauncherCard:
+    "flex min-h-[124px] flex-col items-start justify-center gap-1.5 rounded-xl border border-emerald-500/18 bg-white/[0.06] px-3.5 py-3 text-left text-zinc-100 transition-all hover:border-emerald-400/25 hover:bg-white/[0.09] hover:text-white active:-translate-y-0.5 active:border-emerald-400/30 active:bg-white/[0.12] active:ring-2 active:ring-emerald-400/25",
+  appHomeLauncherIconWrapper:
+    "mb-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-emerald-400/22 bg-emerald-400/10",
+  appHomeLauncherIcon: "h-6 w-6 shrink-0 text-emerald-400/90",
+  appHomeLauncherTitle: "text-base font-bold leading-tight text-white",
+  appHomeLauncherSubtitle: "text-sm font-medium leading-snug text-zinc-200",
+
+  // ── /app quick action aliases (legacy — prefer appHomeQuickAction*) ─────
+  appQuickActionGrid: "grid shrink-0 grid-cols-2 gap-2 auto-rows-fr",
+  appQuickActionCard:
+    "flex min-h-[84px] flex-col items-start justify-center gap-0.5 rounded-xl border border-emerald-500/12 bg-white/[0.04] px-2.5 py-2 text-left text-zinc-100 transition-all hover:border-emerald-400/18 hover:bg-white/[0.06] hover:text-white active:-translate-y-0.5 active:border-emerald-400/22 active:bg-white/[0.08] active:ring-2 active:ring-emerald-400/20",
+  appQuickActionIcon: "h-5 w-5 shrink-0 text-emerald-400/80",
+  appQuickActionLabel: "text-sm font-semibold leading-tight text-zinc-100",
   /** @deprecated Use appQuickActionGrid — legacy 1-row strip */
   appQuickActionStripRow: "grid grid-cols-4 gap-1.5",
   /** @deprecated Use appQuickActionCard */
@@ -251,9 +277,10 @@ export const mobileTokens = {
   appButtonSubtitleClass: "text-xs leading-tight text-zinc-200",
   appBadgeInfo:
     "mt-0.5 rounded-full bg-teal-400/12 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-teal-300",
-  /** Launcher cards — same component tokens as quick actions */
-  mobileAppLauncherCard: mobileHomeActionCard,
-  mobileAppLauncherCardGrid: mobileHomeActionGrid,
+  /** Launcher cards — /app uses appHomeLauncher* tokens via MobileAppLauncherGrid */
+  mobileAppLauncherCard:
+    "flex min-h-[124px] flex-col items-start justify-center gap-1.5 rounded-xl border border-emerald-500/18 bg-white/[0.06] px-3.5 py-3 text-left text-zinc-100 transition-all hover:border-emerald-400/25 hover:bg-white/[0.09] hover:text-white active:-translate-y-0.5 active:border-emerald-400/30 active:bg-white/[0.12] active:ring-2 active:ring-emerald-400/25",
+  mobileAppLauncherCardGrid: "grid shrink-0 grid-cols-2 gap-3 auto-rows-fr",
   mobileAppLauncherTitle: "text-base font-bold leading-tight text-white",
   mobileAppLauncherSubtitle: "text-sm font-medium leading-snug text-zinc-200",
   mobileAppLauncherIconWrapper:

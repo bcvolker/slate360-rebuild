@@ -21,10 +21,21 @@ export type MobileQuickActionItem = {
 type MobileQuickActionStripProps = {
   actions: MobileQuickActionItem[];
   className?: string;
+  cardClassName?: string;
+  iconWrapperClassName?: string;
+  iconClassName?: string;
+  titleClassName?: string;
 };
 
 /** Shared 2×2 quick action grid — same cards as module homes and launcher tiles. */
-export function MobileQuickActionStrip({ actions, className }: MobileQuickActionStripProps) {
+export function MobileQuickActionStrip({
+  actions,
+  className,
+  cardClassName,
+  iconWrapperClassName,
+  iconClassName,
+  titleClassName,
+}: MobileQuickActionStripProps) {
   return (
     <MobileHomeActionGrid
       className={className}
@@ -40,6 +51,10 @@ export function MobileQuickActionStrip({ actions, className }: MobileQuickAction
           onClick={action.onClick}
           disabled={action.disabled}
           aria-label={action["aria-label"]}
+          className={cardClassName}
+          iconWrapperClassName={iconWrapperClassName}
+          iconClassName={iconClassName}
+          titleClassName={titleClassName}
         />
       ))}
     </MobileHomeActionGrid>

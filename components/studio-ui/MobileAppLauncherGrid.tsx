@@ -5,6 +5,7 @@ import { AppWindow, Camera } from "lucide-react";
 import {
   MobileHomeActionCard,
   MobileHomeActionGrid,
+  mobileTokens,
 } from "@/components/mobile-system";
 
 export type InstalledAppCard = {
@@ -32,6 +33,27 @@ export const INSTALLED_APPS: InstalledAppCard[] = [
   },
 ];
 
+function AppLauncherCard(props: {
+  title: string;
+  subtext: string;
+  icon: ElementType;
+  href: string;
+}) {
+  return (
+    <MobileHomeActionCard
+      title={props.title}
+      subtext={props.subtext}
+      icon={props.icon}
+      href={props.href}
+      className={mobileTokens.appHomeLauncherCard}
+      iconWrapperClassName={mobileTokens.appHomeLauncherIconWrapper}
+      iconClassName={mobileTokens.appHomeLauncherIcon}
+      titleClassName={mobileTokens.appHomeLauncherTitle}
+      subtextClassName={mobileTokens.appHomeLauncherSubtitle}
+    />
+  );
+}
+
 export function MobileAppLauncherGrid({ apps = INSTALLED_APPS }: { apps?: InstalledAppCard[] }) {
   const count = apps.length;
 
@@ -41,7 +63,7 @@ export function MobileAppLauncherGrid({ apps = INSTALLED_APPS }: { apps?: Instal
 
   if (count === 1) {
     return (
-      <MobileHomeActionCard
+      <AppLauncherCard
         title={apps[0]!.title}
         subtext={apps[0]!.subtext}
         icon={apps[0]!.icon}
@@ -52,10 +74,10 @@ export function MobileAppLauncherGrid({ apps = INSTALLED_APPS }: { apps?: Instal
 
   if (count === 3) {
     return (
-      <div className="flex flex-col gap-2.5">
-        <MobileHomeActionGrid>
+      <div className="flex flex-col gap-3">
+        <MobileHomeActionGrid className={mobileTokens.appHomeLauncherGrid}>
           {apps.slice(0, 2).map((app) => (
-            <MobileHomeActionCard
+            <AppLauncherCard
               key={app.id}
               title={app.title}
               subtext={app.subtext}
@@ -65,8 +87,8 @@ export function MobileAppLauncherGrid({ apps = INSTALLED_APPS }: { apps?: Instal
           ))}
         </MobileHomeActionGrid>
         <div className="flex justify-center">
-          <div className="w-[calc((100%-0.625rem)/2)]">
-            <MobileHomeActionCard
+          <div className="w-[calc((100%-0.75rem)/2)]">
+            <AppLauncherCard
               title={apps[2]!.title}
               subtext={apps[2]!.subtext}
               icon={apps[2]!.icon}
@@ -79,9 +101,9 @@ export function MobileAppLauncherGrid({ apps = INSTALLED_APPS }: { apps?: Instal
   }
 
   return (
-    <MobileHomeActionGrid>
+    <MobileHomeActionGrid className={mobileTokens.appHomeLauncherGrid}>
       {apps.slice(0, count === 2 ? 2 : 4).map((app) => (
-        <MobileHomeActionCard
+        <AppLauncherCard
           key={app.id}
           title={app.title}
           subtext={app.subtext}

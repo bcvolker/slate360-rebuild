@@ -104,9 +104,19 @@ export function MobileAppRootContent() {
 
   const dockContent = useMemo(
     () => (
-      <div className={mobileTokens.mobileShellDockStack}>
-        <MobileQuickActionsSection>
-          <MobileQuickActionStrip actions={quickActions} />
+      <div className={mobileTokens.appHomeDockStack}>
+        <MobileQuickActionsSection
+          labelClassName={mobileTokens.appHomeQuickActionsSectionLabel}
+          accentClassName={mobileTokens.appHomeQuickActionsSectionAccent}
+        >
+          <MobileQuickActionStrip
+            actions={quickActions}
+            className={mobileTokens.appHomeQuickActionGrid}
+            cardClassName={mobileTokens.appHomeQuickActionCard}
+            iconWrapperClassName={mobileTokens.appHomeQuickActionIconWrapper}
+            iconClassName={mobileTokens.appHomeQuickActionIcon}
+            titleClassName={mobileTokens.appHomeQuickActionTitle}
+          />
         </MobileQuickActionsSection>
         <MobileExpandableTabbedPanel tabs={activityTabs} defaultTab="alerts" />
       </div>
@@ -120,7 +130,7 @@ export function MobileAppRootContent() {
     <>
       <div
         data-mobile-route="app"
-        className={mobileTokens.mobileShellScrollInner}
+        className={mobileTokens.appHomeScrollInner}
       >
         <section className={mobileTokens.mobileHomeSection}>
           <div className={mobileTokens.mobileHomeSectionHeader}>

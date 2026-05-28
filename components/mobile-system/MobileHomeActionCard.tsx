@@ -15,6 +15,10 @@ export type MobileHomeActionCardProps = {
   selected?: boolean;
   "aria-label"?: string;
   className?: string;
+  iconWrapperClassName?: string;
+  iconClassName?: string;
+  titleClassName?: string;
+  subtextClassName?: string;
 };
 
 /** Shared home action card — launcher tiles and quick actions (all shells). */
@@ -28,23 +32,34 @@ export function MobileHomeActionCard({
   selected = false,
   "aria-label": ariaLabel,
   className,
+  iconWrapperClassName,
+  iconClassName,
+  titleClassName,
+  subtextClassName,
 }: MobileHomeActionCardProps) {
   const cardClass = cn(
-    mobileTokens.mobileHomeActionCard,
+    className ?? mobileTokens.mobileHomeActionCard,
     selected && mobileTokens.mobileHomeActionCardSelected,
     mobileTokens.focusRing,
     disabled && "pointer-events-none opacity-50",
-    className,
   );
 
   const inner = (
     <>
-      <span className={mobileTokens.mobileHomeActionIconWrapper} aria-hidden>
-        <Icon className={mobileTokens.mobileHomeActionIcon} strokeWidth={1.75} />
+      <span
+        className={iconWrapperClassName ?? mobileTokens.mobileHomeActionIconWrapper}
+        aria-hidden
+      >
+        <Icon
+          className={iconClassName ?? mobileTokens.mobileHomeActionIcon}
+          strokeWidth={1.75}
+        />
       </span>
-      <span className={mobileTokens.mobileHomeActionTitle}>{title}</span>
+      <span className={titleClassName ?? mobileTokens.mobileHomeActionTitle}>{title}</span>
       {subtext ? (
-        <span className={mobileTokens.mobileHomeActionSubtext}>{subtext}</span>
+        <span className={subtextClassName ?? mobileTokens.mobileHomeActionSubtext}>
+          {subtext}
+        </span>
       ) : null}
     </>
   );
