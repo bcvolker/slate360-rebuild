@@ -21,11 +21,19 @@ export { MobileShell, useMobileShellDock } from "./MobileShell";
 
 export { MobilePlatformHeader } from "./MobilePlatformHeader";
 export { MobileHeaderActions } from "./MobileHeaderActions";
+export { MobileHeaderOverlays } from "./MobileHeaderOverlays";
+export { MobileModalProvider, useMobileModal } from "./MobileModalContext";
+export { MobileInboxClient } from "./MobileInboxClient";
 
 export { MobileTopBar } from "./MobileTopBar";
 
-export { MobileBottomNav } from "./MobileBottomNav";
-export type { MobileBottomNavItem } from "./MobileBottomNav";
+export {
+  MobileBottomNav,
+  MobilePlatformBottomNav,
+  MOBILE_PLATFORM_NAV_ITEMS,
+  resolveMobilePlatformNavKey,
+} from "./MobileBottomNav";
+export type { MobileBottomNavItem, MobilePlatformNavKey } from "./MobileBottomNav";
 
 export { MobileSection } from "./MobileSection";
 

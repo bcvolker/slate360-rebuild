@@ -1,6 +1,6 @@
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
-import { CoordinationHubShell } from "@/components/coordination/CoordinationHubShell";
-import { InboxTabs } from "@/components/coordination/InboxTabs";
+import { MobileInboxClient } from "@/components/mobile-system/MobileInboxClient";
 import { resolveServerOrgContext } from "@/lib/server/org-context";
 
 export const metadata = { title: "Inbox — Slate360" };
@@ -11,12 +11,8 @@ export default async function CoordinationInboxPage() {
   if (!ctx.user) redirect("/login?next=/coordination/inbox");
 
   return (
-    <CoordinationHubShell
-      active="inbox"
-      eyebrow="Coordination"
-      title="Inbox"
-    >
-      <InboxTabs />
-    </CoordinationHubShell>
+    <Suspense fallback={null}>
+      <MobileInboxClient />
+    </Suspense>
   );
 }

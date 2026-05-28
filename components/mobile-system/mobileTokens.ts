@@ -165,6 +165,20 @@ export const mobileTokens = {
   mobileBottomNavItemIdle: "text-zinc-300 hover:bg-white/5 hover:text-zinc-100",
   mobileBottomNavActiveIndicator:
     "absolute left-1/2 top-0 h-[2px] w-8 -translate-x-1/2 rounded-b-full bg-teal-400 shadow-[0_2px_8px_rgba(45,212,191,0.35)]",
+  mobileBottomNavBar:
+    "relative z-20 shrink-0 rounded-t-3xl border-t border-white/10 bg-[#0B0F15]/88 shadow-lg backdrop-blur-md",
+  mobileModalOverlay:
+    "fixed inset-0 z-[1000] flex items-center justify-center bg-black/70 p-4 backdrop-blur-md",
+  mobileModalPanel:
+    "relative w-full max-w-sm rounded-xl border border-white/10 bg-[#0B0F15]/95 p-4 shadow-[0_24px_80px_rgba(0,0,0,0.55)] backdrop-blur-xl",
+  mobilePageScrollInner:
+    "mx-auto flex w-full max-w-2xl flex-col gap-3 px-4 pt-3 pb-28",
+  mobileGlassRowLink:
+    "flex min-h-14 items-center gap-3 border-b border-white/[0.06] px-4 transition-colors last:border-b-0 hover:bg-white/[0.04]",
+  mobileIconWell:
+    "flex shrink-0 items-center justify-center rounded-lg border border-teal-400/20 bg-teal-400/10 text-teal-400/90",
+  mobileEyebrowLabel:
+    "text-[11px] font-semibold uppercase tracking-[0.15em] text-zinc-400",
   mobileHeaderToolIcon:
     "flex size-9 items-center justify-center text-zinc-100 transition-colors hover:text-white",
   mobileIconBgPrimary: "border border-teal-400/20 bg-teal-400/10 text-teal-400/90",

@@ -3,12 +3,12 @@
 import type { ReactNode } from "react";
 import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
-import { FolderOpen, Home, MapPin, User } from "lucide-react";
 import {
+  MobileHeaderOverlays,
+  MobileModalProvider,
+  MobilePlatformBottomNav,
   MobilePlatformHeader,
   MobileShell,
-  MobileBottomNav,
-  type MobileBottomNavItem,
 } from "@/components/mobile-system";
 import { InviteShareProvider, useInviteShare } from "@/components/shared/InviteShareProvider";
 import { isSiteWalkPassthroughShellPath } from "@/lib/site-walk/site-walk-shell-paths";
@@ -29,24 +29,6 @@ const InviteShareModal = dynamic(
   { ssr: false },
 );
 
-type NavKey = "home" | "site-walk" | "projects" | "account";
-
-const NAV_ITEMS: MobileBottomNavItem<NavKey>[] = [
-  { key: "home", label: "Home", href: "/app", icon: Home },
-  { key: "site-walk", label: "Site Walk", href: "/site-walk", icon: MapPin },
-  { key: "projects", label: "Projects", href: "/projects", icon: FolderOpen },
-  { key: "account", label: "Account", href: "/more", icon: User },
-];
-
-function activeNavKey(pathname: string): NavKey {
-  if (pathname.startsWith("/site-walk")) return "site-walk";
-  if (pathname.startsWith("/projects") || pathname.startsWith("/project-hub")) return "projects";
-  if (pathname.startsWith("/more") || pathname.startsWith("/settings") || pathname.startsWith("/my-account")) {
-    return "account";
-  }
-  return "home";
-}
-
 type StudioAppShellProps = {
   userName: string;
   workspaceName?: string | null;
@@ -61,7 +43,6 @@ function StudioAppShellInner({ inviteShareData, children }: StudioAppShellProps)
     isSiteWalkPassthroughShellPath(pathname) ||
     isDigitalTwinPlatformBypassPath(pathname) ||
     isDigitalTwinPassthroughShellPath(pathname);
-  const activeKey = activeNavKey(pathname);
   const isModuleHome = pathname === "/site-walk" || pathname === "/digital-twin";
   const mobileRoute = pathname.startsWith("/site-walk")
     ? "site-walk"
@@ -76,7 +57,7 @@ function StudioAppShellInner({ inviteShareData, children }: StudioAppShellProps)
     <MobileShell
       mobileRoute={mobileRoute}
       header={<MobilePlatformHeader showBackToApp={isModuleHome} inviteShareData={inviteShareData} />}
-      bottomNav={<MobileBottomNav items={NAV_ITEMS} activeKey={activeKey} ariaLabel="Platform" />}
+      bottomNav={<MobilePlatformBottomNav />}
     >
       {children}
     </MobileShell>
@@ -85,6 +66,7 @@ function StudioAppShellInner({ inviteShareData, children }: StudioAppShellProps)
   return (
     <>
       {content}
+      <MobileHeaderOverlays />
       {inviteOpen ? (
         <InviteShareModal
           open={inviteOpen}
@@ -99,7 +81,9 @@ function StudioAppShellInner({ inviteShareData, children }: StudioAppShellProps)
 export function StudioAppShell(props: StudioAppShellProps) {
   return (
     <InviteShareProvider inviteShareData={props.inviteShareData}>
-      <StudioAppShellInner {...props} />
+      <MobileModalProvider>
+        <StudioAppShellInner {...props} />
+      </MobileModalProvider>
     </InviteShareProvider>
   );
 }

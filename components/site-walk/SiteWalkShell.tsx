@@ -2,17 +2,16 @@
 
 import type { ReactNode } from "react";
 import { usePathname } from "next/navigation";
-import { MobileAppShell, MobilePlatformHeader } from "@/components/mobile-system";
+import {
+  MobileAppShell,
+  MobilePlatformBottomNav,
+  MobilePlatformHeader,
+} from "@/components/mobile-system";
 import { isSiteWalkPassthroughShellPath } from "@/lib/site-walk/site-walk-shell-paths";
 import { resolveSiteWalkRouteTitle } from "./SiteWalkModuleNav";
 
 /**
  * Site Walk sub-route shell — mobile app viewport for setup, walks, outputs, and more.
- *
- * Uses the same MobileAppShell contract as module home on `/site-walk`:
- * fixed full viewport, internal scroll only, safe-area aware bottom padding in pages.
- *
- * Capture routes overlay this shell with their own fixed task layout (unchanged).
  */
 export function SiteWalkShell({
   children,
@@ -43,6 +42,7 @@ export function SiteWalkShell({
           subtitle={orgName ?? "Field workspace"}
         />
       }
+      bottomNav={<MobilePlatformBottomNav />}
       mainClassName="min-h-0"
     >
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">{children}</div>

@@ -22,7 +22,7 @@ export type MobileBottomNavItem<Key extends string = string> = {
   onSelect?: () => void;
 };
 
-/** V1 platform doctrine — Home | Projects | SlateDrop | Coordination | Account */
+/** Unified platform bottom nav — Home | Projects | SlateDrop | Coordination | Account */
 export const MOBILE_PLATFORM_NAV_ITEMS: MobileBottomNavItem<MobilePlatformNavKey>[] = [
   { key: "home", label: "Home", href: "/app", icon: Home },
   { key: "projects", label: "Projects", href: "/projects", icon: FolderOpen },
@@ -33,7 +33,7 @@ export const MOBILE_PLATFORM_NAV_ITEMS: MobileBottomNavItem<MobilePlatformNavKey
     href: "/coordination/inbox",
     icon: MessageSquare,
   },
-  { key: "account", label: "Account", href: "/more", icon: User },
+  { key: "account", label: "Account", href: "/more/account", icon: User },
 ];
 
 export function resolveMobilePlatformNavKey(pathname: string): MobilePlatformNavKey {
@@ -52,11 +52,6 @@ export function resolveMobilePlatformNavKey(pathname: string): MobilePlatformNav
   return "home";
 }
 
-function shouldUsePlatformDoctrine(pathname: string, ariaLabel: string): boolean {
-  if (ariaLabel === "Platform") return true;
-  return !pathname.startsWith("/site-walk") && !pathname.startsWith("/digital-twin");
-}
-
 type MobileBottomNavProps<Key extends string = string> = {
   items: MobileBottomNavItem<Key>[];
   activeKey: Key;
@@ -67,40 +62,25 @@ type MobileBottomNavProps<Key extends string = string> = {
 export function MobileBottomNav<Key extends string = string>({
   items,
   activeKey,
-  ariaLabel = "Primary",
+  ariaLabel = "Platform",
   className,
 }: MobileBottomNavProps<Key>) {
-  const pathname = usePathname() ?? "";
-  const usePlatformDoctrine = shouldUsePlatformDoctrine(pathname, ariaLabel);
-  const navItems = usePlatformDoctrine ? MOBILE_PLATFORM_NAV_ITEMS : items;
-  const navActiveKey = usePlatformDoctrine
-    ? resolveMobilePlatformNavKey(pathname)
-    : activeKey;
-
   return (
     <nav
-      aria-label={usePlatformDoctrine ? "Platform" : ariaLabel}
-      className={cn(
-        "relative z-20 shrink-0 lg:hidden rounded-t-3xl border-t border-white/10 bg-[#0B0F15]/88 shadow-lg backdrop-blur-md",
-        className,
-      )}
+      aria-label={ariaLabel}
+      className={cn(mobileTokens.mobileBottomNavBar, className)}
       style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)", paddingTop: "4px" }}
     >
       <ul className="flex min-h-[58px] w-full items-stretch justify-around px-2">
-        {navItems.map(({ key, label, icon: Icon, href, onSelect }) => {
-          const active = navActiveKey === key;
+        {items.map(({ key, label, icon: Icon, href, onSelect }) => {
+          const active = activeKey === key;
           const itemClassName = cn(
             "relative flex h-full w-full flex-col items-center justify-center gap-1 rounded-lg py-2 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400/50",
             active ? mobileTokens.mobileBottomNavItemActive : mobileTokens.mobileBottomNavItemIdle,
           );
           const content = (
             <>
-              {active && (
-                <span
-                  aria-hidden
-                  className={mobileTokens.mobileBottomNavActiveIndicator}
-                />
-              )}
+              {active && <span aria-hidden className={mobileTokens.mobileBottomNavActiveIndicator} />}
               <Icon
                 size={18}
                 strokeWidth={active ? 2.5 : 2}
@@ -128,5 +108,19 @@ export function MobileBottomNav<Key extends string = string>({
         })}
       </ul>
     </nav>
+  );
+}
+
+/** Canonical bottom nav for /app, /site-walk, and /digital-twin shells. */
+export function MobilePlatformBottomNav({ className }: { className?: string }) {
+  const pathname = usePathname() ?? "";
+  const activeKey = resolveMobilePlatformNavKey(pathname);
+  return (
+    <MobileBottomNav
+      items={MOBILE_PLATFORM_NAV_ITEMS}
+      activeKey={activeKey}
+      ariaLabel="Platform"
+      className={className}
+    />
   );
 }
