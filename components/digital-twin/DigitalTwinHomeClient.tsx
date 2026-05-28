@@ -14,11 +14,6 @@ import type { MobilePanelTab } from "@/components/mobile-system";
 import { cn } from "@/lib/utils";
 import type { HubTwin, HubTwinProject } from "@/lib/types/digital-twin-hub";
 
-const TWIN_ICON =
-  "border border-[#6EA7A0]/20 bg-[#6EA7A0]/10 text-[#6EA7A0]";
-const DOCK_EMPTY_ACTION =
-  "text-[12px] font-medium text-[#85CBC3] hover:text-[#85CBC3]/85 hover:underline";
-
 type Props = {
   orgName: string | null;
   twins: HubTwin[];
@@ -39,14 +34,10 @@ function ActionLink({
   return (
     <Link
       href={href}
-      className={cn(
-        mobileTokens.siteWalkActionGridButton,
-        "h-full min-h-[118px]",
-        mobileTokens.focusRing,
-      )}
+      className={cn(mobileTokens.siteWalkActionGridButton, mobileTokens.focusRing)}
     >
-      <span className={cn(mobileTokens.siteWalkActionGridIcon, TWIN_ICON)} aria-hidden>
-        <Icon className="h-[18px] w-[18px]" />
+      <span className={mobileTokens.siteWalkActionGridIcon} aria-hidden>
+        <Icon className={mobileTokens.mobileIconChipIconMd} />
       </span>
       <span className={mobileTokens.siteWalkActionGridLabel}>{label}</span>
       <span className={mobileTokens.siteWalkActionGridSubtext}>{subtext}</span>
@@ -93,7 +84,7 @@ export function DigitalTwinHomeClient({ twins, projects }: Props) {
               icon={Boxes}
               title="No twins yet"
               actionLabel="Start quick capture"
-              actionClassName={DOCK_EMPTY_ACTION}
+              actionClassName={mobileTokens.mobileDockEmptyAction}
               onAction={handleQuickCapture}
             />
           ),
@@ -121,7 +112,7 @@ export function DigitalTwinHomeClient({ twins, projects }: Props) {
               icon={FolderOpen}
               title="No workspaces linked yet"
               actionLabel="View projects"
-              actionClassName={DOCK_EMPTY_ACTION}
+              actionClassName={mobileTokens.mobileDockEmptyAction}
               actionHref="/projects"
             />
           ),
@@ -150,20 +141,17 @@ export function DigitalTwinHomeClient({ twins, projects }: Props) {
         <section className="flex min-h-0 flex-1 flex-col gap-2">
           <div className="flex shrink-0 items-center gap-3">
             <span
-              className={cn(
-                "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl",
-                TWIN_ICON,
-              )}
+              className={cn(mobileTokens.mobileIconChip, mobileTokens.mobileIconChipLg)}
               aria-hidden
             >
-              <AppWindow className="h-[18px] w-[18px]" strokeWidth={1.75} />
+              <AppWindow className={mobileTokens.mobileIconChipIconLg} strokeWidth={1.75} />
             </span>
-            <h1 className={cn(mobileTokens.moduleTitle, "min-w-0 text-[#FFFFFF]")}>
+            <h1 className={cn(mobileTokens.moduleTitle, "min-w-0")}>
               DIGITAL TWIN
             </h1>
           </div>
           <div className="shrink-0">
-            <span className={mobileTokens.appHomeSectionLabelAccentCool} aria-hidden />
+            <span className={mobileTokens.appHomeSectionLabelAccent} aria-hidden />
             <p className={mobileTokens.appHomeSectionLabel}>Quick Actions</p>
           </div>
           <div
@@ -175,14 +163,10 @@ export function DigitalTwinHomeClient({ twins, projects }: Props) {
             <button
               type="button"
               onClick={handleQuickCapture}
-              className={cn(
-                mobileTokens.siteWalkActionGridButton,
-                "h-full min-h-[118px]",
-                mobileTokens.focusRing,
-              )}
+              className={cn(mobileTokens.siteWalkActionGridButton, mobileTokens.focusRing)}
             >
-              <span className={cn(mobileTokens.siteWalkActionGridIcon, TWIN_ICON)} aria-hidden>
-                <Scan className="h-[18px] w-[18px]" />
+              <span className={mobileTokens.siteWalkActionGridIcon} aria-hidden>
+                <Scan className={mobileTokens.mobileIconChipIconMd} />
               </span>
               <span className={mobileTokens.siteWalkActionGridLabel}>Quick Capture</span>
               <span className={mobileTokens.siteWalkActionGridSubtext}>

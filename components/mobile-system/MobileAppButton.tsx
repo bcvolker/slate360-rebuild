@@ -15,20 +15,20 @@ export interface MobileAppButtonProps {
   /** Locked app tile — clickable when onPress is set (no navigation). */
   locked?: boolean;
   onPress?: () => void;
-  /** primary = Site Walk (amber), info = Twin/cyan, neutral = default */
+  /** Unified teal accent for all app launcher tiles */
   accent?: MobileAppAccent;
   className?: string;
 }
 
 const accentIconWrapper: Record<MobileAppAccent, string> = {
-  primary: mobileTokens.mobileIconBgPrimary,
-  info: mobileTokens.mobileIconBgInfo,
-  neutral: mobileTokens.mobileIconBgNeutral,
+  primary: mobileTokens.mobileIconChip,
+  info: mobileTokens.mobileIconChip,
+  neutral: mobileTokens.mobileIconChip,
 };
 
 const accentBorderClass: Record<MobileAppAccent, string | undefined> = {
-  primary: mobileTokens.mobileBrandWarmBorder,
-  info: "border-cyan-500/20",
+  primary: undefined,
+  info: undefined,
   neutral: undefined,
 };
 
@@ -49,11 +49,9 @@ export function MobileAppButton({
     mobileTokens.appButtonBase,
     mobileTokens.mobileAppLauncherTileHeight,
     accentBorderClass[accent],
-    accent === "primary" && mobileTokens.mobileBrandWarmGlow,
-    accent === "info" && mobileTokens.mobileBrandCoolGlow,
     mobileTokens.focusRing,
     locked && !isInteractiveLocked && "pointer-events-none opacity-50",
-    locked && isInteractiveLocked && "cursor-pointer opacity-90 hover:border-cyan-500/25 hover:bg-white/[0.07]",
+    locked && isInteractiveLocked && "cursor-pointer opacity-90 hover:border-white/15 hover:bg-white/[0.08]",
     disabled && !locked && "pointer-events-none opacity-50",
     className,
   );

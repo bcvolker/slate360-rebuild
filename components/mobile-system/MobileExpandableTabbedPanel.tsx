@@ -29,13 +29,6 @@ const HOME_NAV_BOTTOM_OFFSET = "bottom-[calc(62px+env(safe-area-inset-bottom,0px
 /** 180px body = 2.5 × 72px row target (MOBILE_PANEL_COLLAPSED_BODY_PX). */
 const HOME_DOCK_COLLAPSED_BODY =
   "h-[180px] max-h-[180px] min-h-0 overflow-hidden overscroll-contain";
-const HOME_DOCK_COLLAPSED_FADE =
-  "pointer-events-none absolute inset-x-0 bottom-0 z-[4] h-[72px] bg-gradient-to-t from-[#0B0F15] from-35% via-[#0B0F15]/92 via-65% to-transparent";
-const HOME_DOCK_COLLAPSED_CHEVRON = "size-7 shrink-0 text-[#85CBC3]";
-const HOME_DOCK_TAB_TRIGGER =
-  "flex-1 rounded-none border-b-2 border-transparent py-2 text-[13px] font-medium text-zinc-200 transition-colors data-[state=active]:border-[#85CBC3] data-[state=active]:bg-transparent data-[state=active]:text-white data-[state=active]:shadow-none";
-const HOME_DOCK_FOCUS_RING =
-  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6EA7A0]/50 focus-visible:ring-offset-1 focus-visible:ring-offset-[#0B0F15]";
 
 export function MobileExpandableTabbedPanel({
   tabs,
@@ -90,8 +83,8 @@ export function MobileExpandableTabbedPanel({
             type="button"
             className={cn(
               mobileTokens.mobileExpandablePanelToggleButton,
-              isHomeDock ? HOME_DOCK_FOCUS_RING : mobileTokens.focusRing,
-              !expanded && isHomeDock && "flex-col gap-1 py-1.5 text-[#6EA7A0]",
+              mobileTokens.focusRing,
+              !expanded && isHomeDock && mobileTokens.mobileExpandablePanelToggleAccent,
             )}
             aria-expanded={expanded}
             aria-controls={panelId}
@@ -100,7 +93,7 @@ export function MobileExpandableTabbedPanel({
           >
             {!expanded && isHomeDock ? (
               <>
-                <ChevronUp className={HOME_DOCK_COLLAPSED_CHEVRON} aria-hidden />
+                <ChevronUp className={mobileTokens.mobileExpandablePanelChevron} aria-hidden />
                 <span className={mobileTokens.mobileExpandablePanelHandle} aria-hidden />
               </>
             ) : (
@@ -131,10 +124,12 @@ export function MobileExpandableTabbedPanel({
           }
           showBottomFade={expanded || !isHomeDock}
           bottomFadeClassName={mobileTokens.mobileExpandablePanelFade}
-          tabTriggerClassName={isHomeDock ? HOME_DOCK_TAB_TRIGGER : undefined}
+          tabTriggerClassName={mobileTokens.mobileExpandablePanelTabTrigger}
         />
 
-        {!expanded && isHomeDock ? <div className={HOME_DOCK_COLLAPSED_FADE} aria-hidden /> : null}
+        {!expanded && isHomeDock ? (
+          <div className={mobileTokens.mobileExpandablePanelCollapsedBodyFade} aria-hidden />
+        ) : null}
       </div>
     </div>
   );

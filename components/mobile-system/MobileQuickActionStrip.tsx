@@ -16,11 +16,11 @@ export type MobileQuickActionItem = {
 };
 
 const accentIconClass: Record<MobileQuickActionAccent, string> = {
-  primary: mobileTokens.mobileAccentPrimary,
-  info: mobileTokens.mobileAccentInfo,
-  neutral: mobileTokens.mobileAccentNeutralBright,
-  muted: mobileTokens.mobileAccentMuted,
-  warm: mobileTokens.mobileAccentWarm,
+  primary: mobileTokens.appQuickActionIcon,
+  info: mobileTokens.appQuickActionIcon,
+  neutral: mobileTokens.appQuickActionIcon,
+  muted: mobileTokens.appQuickActionIcon,
+  warm: mobileTokens.appQuickActionIcon,
 };
 
 type MobileQuickActionStripProps = {
@@ -63,7 +63,7 @@ function QuickActionButton({
   const inner = (
     <>
       <Icon
-        className={cn(mobileTokens.appQuickActionIcon, accentIconClass[accent])}
+        className={accentIconClass[accent]}
         aria-hidden
       />
       <span className={mobileTokens.appQuickActionLabel}>{label}</span>

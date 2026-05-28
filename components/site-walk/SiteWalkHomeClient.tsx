@@ -16,11 +16,6 @@ import { cn } from "@/lib/utils";
 import type { HubProject, HubSummary, HubWalk } from "@/lib/types/site-walk";
 import type { HubDeliverableRow } from "@/lib/types/site-walk-hub";
 
-const SITE_WALK_ICON =
-  "border border-[#6EA7A0]/20 bg-[#6EA7A0]/10 text-[#6EA7A0]";
-const DOCK_EMPTY_ACTION =
-  "text-[12px] font-medium text-[#85CBC3] hover:text-[#85CBC3]/85 hover:underline";
-
 type Props = {
   orgName: string | null;
   projects: HubProject[];
@@ -43,20 +38,10 @@ function ActionLink({
   return (
     <Link
       href={href}
-      className={cn(
-        mobileTokens.siteWalkActionGridButton,
-        "h-full min-h-[118px]",
-        mobileTokens.focusRing,
-      )}
+      className={cn(mobileTokens.siteWalkActionGridButton, mobileTokens.focusRing)}
     >
-      <span
-        className={cn(
-          mobileTokens.siteWalkActionGridIcon,
-          SITE_WALK_ICON,
-        )}
-        aria-hidden
-      >
-        <Icon className="h-[18px] w-[18px]" />
+      <span className={mobileTokens.siteWalkActionGridIcon} aria-hidden>
+        <Icon className={mobileTokens.mobileIconChipIconMd} />
       </span>
       <span className={mobileTokens.siteWalkActionGridLabel}>{label}</span>
       <span className={mobileTokens.siteWalkActionGridSubtext}>{subtext}</span>
@@ -110,7 +95,7 @@ export function SiteWalkHomeClient({ projects, walks, deliverables }: Props) {
               icon={Camera}
               title="No walks yet"
               actionLabel="Start quick capture"
-              actionClassName={DOCK_EMPTY_ACTION}
+              actionClassName={mobileTokens.mobileDockEmptyAction}
               onAction={() => void handleQuickCapture()}
             />
           ),
@@ -157,7 +142,7 @@ export function SiteWalkHomeClient({ projects, walks, deliverables }: Props) {
               icon={FileText}
               title="No deliverables yet"
               actionLabel="View deliverables"
-              actionClassName={DOCK_EMPTY_ACTION}
+              actionClassName={mobileTokens.mobileDockEmptyAction}
               actionHref="/site-walk/deliverables"
             />
           ),
@@ -174,20 +159,17 @@ export function SiteWalkHomeClient({ projects, walks, deliverables }: Props) {
         <section className="flex min-h-0 flex-1 flex-col gap-2">
           <div className="flex shrink-0 items-center gap-3">
             <span
-              className={cn(
-                "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl",
-                SITE_WALK_ICON,
-              )}
+              className={cn(mobileTokens.mobileIconChip, mobileTokens.mobileIconChipLg)}
               aria-hidden
             >
-              <MapPin className="h-[18px] w-[18px]" strokeWidth={1.75} />
+              <MapPin className={mobileTokens.mobileIconChipIconLg} strokeWidth={1.75} />
             </span>
-            <h1 className={cn(mobileTokens.moduleTitle, "min-w-0 text-[#FFFFFF]")}>
+            <h1 className={cn(mobileTokens.moduleTitle, "min-w-0")}>
               SITE WALK
             </h1>
           </div>
           <div className="shrink-0">
-            <span className={mobileTokens.appHomeSectionLabelAccentCool} aria-hidden />
+            <span className={mobileTokens.appHomeSectionLabelAccent} aria-hidden />
             <p className={mobileTokens.appHomeSectionLabel}>Quick Actions</p>
           </div>
           <div
@@ -199,17 +181,10 @@ export function SiteWalkHomeClient({ projects, walks, deliverables }: Props) {
             <button
               type="button"
               onClick={() => void handleQuickCapture()}
-              className={cn(
-                mobileTokens.siteWalkActionGridButton,
-                "h-full min-h-[118px]",
-                mobileTokens.focusRing,
-              )}
+              className={cn(mobileTokens.siteWalkActionGridButton, mobileTokens.focusRing)}
             >
-              <span
-                className={cn(mobileTokens.siteWalkActionGridIcon, SITE_WALK_ICON)}
-                aria-hidden
-              >
-                <Camera className="h-[18px] w-[18px]" />
+              <span className={mobileTokens.siteWalkActionGridIcon} aria-hidden>
+                <Camera className={mobileTokens.mobileIconChipIconMd} />
               </span>
               <span className={mobileTokens.siteWalkActionGridLabel}>Quick Walk</span>
               <span className={mobileTokens.siteWalkActionGridSubtext}>Start capturing now</span>

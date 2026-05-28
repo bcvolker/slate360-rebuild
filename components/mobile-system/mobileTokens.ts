@@ -88,132 +88,167 @@ export const mobileTokens = {
   mobileDockTopGap: "gap-1.5",
   mobilePanelBottomGap: "pb-3",
 
-  // ── Semantic accents (Graphite Glass — restrained, not yellow-heavy) ───
-  mobileAccentPrimary: "text-amber-400/90",
-  mobileAccentPrimaryMuted: "text-amber-400/80",
-  mobileAccentInfo: "text-cyan-400/90",
-  mobileAccentNeutral: "text-zinc-300",
+  // ── Semantic accents (Graphite Glass — muted teal, no amber in shells) ───
+  mobileTeal: "text-teal-400/90",
+  mobileTealBright: "text-teal-300",
+  mobileTealMuted: "text-teal-400/75",
+  mobileTealBorder: "border-teal-400/25",
+  mobileTealBorderHover: "hover:border-teal-400/30",
+  mobileTealBgSubtle: "bg-teal-400/10",
+  mobileTealBorderSubtle: "border-teal-400/20",
+  mobileAccentPrimary: "text-teal-400/90",
+  mobileAccentPrimaryMuted: "text-teal-400/80",
+  mobileAccentInfo: "text-teal-400/90",
+  mobileAccentNeutral: "text-zinc-200",
   mobileAccentNeutralBright: "text-zinc-100",
-  mobileAccentMuted: "text-zinc-300",
-  mobileAccentWarm: "text-amber-400/70",
-  mobileAccentSuccess: "text-emerald-400",
+  mobileAccentMuted: "text-zinc-200",
+  mobileAccentWarm: "text-teal-400/80",
+  mobileAccentSuccess: "text-teal-400/90",
   mobileAccentDanger: "text-red-400",
-  mobileBrandWarmBorder: "border-amber-500/25",
-  mobileBrandWarmGlow: "shadow-[0_0_8px_rgba(245,158,11,0.08)]",
-  mobileBrandIconGlow: "drop-shadow-[0_0_10px_rgba(245,158,11,0.15)]",
-  mobileBrandCoolGlow: "shadow-[0_0_8px_rgba(34,211,238,0.08)]",
+  mobileBrandWarmBorder: "border-teal-400/25",
+  mobileBrandWarmGlow: "shadow-[0_0_8px_rgba(45,212,191,0.08)]",
+  mobileBrandIconGlow: "drop-shadow-[0_0_10px_rgba(45,212,191,0.12)]",
+  mobileBrandCoolGlow: "shadow-[0_0_8px_rgba(45,212,191,0.08)]",
   mobilePrimaryButton:
-    "rounded-lg bg-amber-500/90 text-white hover:bg-amber-500",
+    "rounded-lg bg-teal-500/90 text-white hover:bg-teal-500",
   mobileAvatarRing:
-    "flex size-6 items-center justify-center rounded-full bg-amber-500/12 text-[10px] font-bold text-amber-400/90 transition-colors hover:bg-amber-500/18",
+    "flex size-6 items-center justify-center rounded-full bg-teal-400/12 text-[10px] font-bold text-teal-300 transition-colors hover:bg-teal-400/18",
   mobileHeaderToolIcon:
-    "flex size-9 items-center justify-center text-zinc-200 transition-colors hover:text-white",
-  mobileIconBgPrimary: "bg-amber-500/10 text-amber-400/90",
-  mobileIconBgInfo: "bg-cyan-500/10 text-cyan-400/90",
-  mobileIconBgNeutral: "bg-white/[0.06] text-zinc-300",
+    "flex size-9 items-center justify-center text-zinc-100 transition-colors hover:text-white",
+  mobileIconBgPrimary: "border border-teal-400/20 bg-teal-400/10 text-teal-400/90",
+  mobileIconBgInfo: "border border-teal-400/20 bg-teal-400/10 text-teal-400/90",
+  mobileIconBgNeutral: "border border-teal-400/20 bg-teal-400/10 text-teal-400/90",
+  /** Shared icon chip — one shape/color across all mobile shells */
+  mobileIconChip:
+    "flex shrink-0 items-center justify-center rounded-lg border border-teal-400/20 bg-teal-400/10 text-teal-400/90",
+  mobileIconChipMd: "h-8 w-8",
+  mobileIconChipLg: "h-10 w-10 rounded-xl",
+  mobileIconChipIconMd: "h-5 w-5",
+  mobileIconChipIconLg: "h-5 w-5",
+  /** Shared glass card surface — background, border, radius, tap states */
+  mobileGlassCardSurface:
+    "rounded-xl border border-white/10 bg-white/[0.05] text-zinc-100 transition-all hover:border-white/15 hover:bg-white/[0.08] hover:text-white active:-translate-y-0.5 active:border-teal-400/30 active:bg-white/[0.11] active:ring-2 active:ring-teal-400/30",
+  mobileGlassCardSelected:
+    "border-teal-400/35 bg-white/[0.07] ring-1 ring-teal-400/25",
+  mobileDockEmptyAction:
+    "text-sm font-medium text-teal-300 hover:text-teal-200 hover:underline",
 
   // ── Section labels ───────────────────────────────────────────────────────
   sectionLabel:
-    "mb-1 text-[11px] font-bold uppercase tracking-[0.15em] text-zinc-200",
+    "mb-1 text-xs font-bold uppercase tracking-[0.15em] text-zinc-100",
   /** /app home section titles — larger than module sub-routes */
   appHomeSectionLabel:
     "text-xs font-black uppercase tracking-[0.2em] text-zinc-100",
-  appHomeSectionLabelAccent: "mb-1.5 block h-0.5 w-8 rounded-full bg-amber-500/35",
-  appHomeSectionLabelAccentCool: "mb-1.5 block h-0.5 w-8 rounded-full bg-cyan-500/30",
-  sectionLabelAccent: "mb-1.5 h-0.5 w-6 rounded-full bg-amber-500/30",
-  sectionLabelAccentCool: "mb-1.5 h-0.5 w-6 rounded-full bg-cyan-500/25",
+  appHomeSectionLabelAccent: "mb-1.5 block h-0.5 w-8 rounded-full bg-teal-400/35",
+  appHomeSectionLabelAccentCool: "mb-1.5 block h-0.5 w-8 rounded-full bg-teal-400/35",
+  sectionLabelAccent: "mb-1.5 h-0.5 w-6 rounded-full bg-teal-400/30",
+  sectionLabelAccentCool: "mb-1.5 h-0.5 w-6 rounded-full bg-teal-400/30",
 
-  // ── Module home title (/site-walk) ───────────────────────────────────────
-  moduleTitle: "text-[18px] font-bold leading-tight tracking-tight text-zinc-100",
-  moduleTitleAccent: "text-amber-400/75",
-  moduleSubtitle: "mt-0.5 text-[13px] leading-snug text-zinc-300",
+  // ── Module home title (/site-walk, /digital-twin) ───────────────────────
+  moduleTitle: "text-xl font-bold leading-tight tracking-tight text-white",
+  moduleTitleAccent: "text-teal-400/75",
+  moduleSubtitle: "mt-0.5 text-sm leading-snug text-zinc-200",
   moduleBackButton:
-    "flex size-10 shrink-0 items-center justify-center rounded-xl border border-white/[0.06] bg-white/[0.04] text-zinc-200 transition-colors hover:border-amber-500/20 hover:bg-white/[0.07] hover:text-white active:bg-white/[0.11]",
+    "flex size-10 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.05] text-zinc-100 transition-colors hover:border-teal-400/25 hover:bg-white/[0.08] hover:text-white active:bg-white/[0.11]",
 
-  // ── Action card (Site Walk 2×2 module actions) ─────────────────────────
-  actionCardHeight: "min-h-[78px]",
-  mobileActionCardHeight: "min-h-[78px]",
-  moduleActionCardHeight: "min-h-[58px]",
-  moduleActionIconWrapper:
-    "mb-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-amber-500/10",
-  moduleActionIconClass: "h-3 w-3 text-amber-400/90",
+  // ── Action card (shared surface + module 2×2 quick actions) ─────────────
+  actionCardHeight: "min-h-[88px]",
+  mobileActionCardHeight: "min-h-[88px]",
+  moduleActionCardHeight: "min-h-[88px]",
+  moduleActionIconWrapper: "mb-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-teal-400/20 bg-teal-400/10",
+  moduleActionIconClass: "h-5 w-5 text-teal-400/90",
   actionCardBase:
-    "flex flex-col items-center justify-center gap-0.5 rounded-xl border border-white/[0.06] bg-white/[0.04] text-zinc-300 transition-colors hover:border-amber-500/20 hover:bg-white/[0.07] hover:text-white active:bg-white/[0.11]",
-  actionIconClass: "h-4 w-4 text-zinc-300",
-  actionLabelClass: "text-[10px] font-medium leading-tight text-center",
+    "flex flex-col items-center justify-center gap-1 rounded-xl border border-white/10 bg-white/[0.05] text-zinc-100 transition-all hover:border-white/15 hover:bg-white/[0.08] hover:text-white active:-translate-y-0.5 active:border-teal-400/30 active:bg-white/[0.11] active:ring-2 active:ring-teal-400/30",
+  actionIconClass: "h-5 w-5 text-teal-400/90",
+  actionLabelClass: "text-sm font-semibold leading-tight text-center text-white",
 
-  // ── /app quick action 2×2 grid (do not share layout/height with Site Walk) ──
+  // ── /app quick action 2×2 grid ───────────────────────────────────────────
   appQuickActionGrid: "grid grid-cols-2 gap-2.5",
   appQuickActionCard:
-    "flex h-[88px] flex-col items-center justify-center gap-1 rounded-xl border border-white/[0.06] bg-white/[0.04] px-1.5 py-2 text-zinc-100 transition-all hover:border-amber-500/20 hover:bg-white/[0.07] hover:text-white active:-translate-y-0.5 active:border-amber-500/30 active:bg-white/[0.11] active:ring-2 active:ring-amber-500/50",
-  appQuickActionIcon: "h-5 w-5 shrink-0",
-  appQuickActionLabel: "text-[12px] font-medium leading-tight text-center text-white",
+    "flex h-[92px] flex-col items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.05] px-2 py-2.5 text-zinc-100 transition-all hover:border-white/15 hover:bg-white/[0.08] hover:text-white active:-translate-y-0.5 active:border-teal-400/30 active:bg-white/[0.11] active:ring-2 active:ring-teal-400/30",
+  appQuickActionIcon: "h-6 w-6 shrink-0 text-teal-400/90",
+  appQuickActionLabel: "text-sm font-semibold leading-tight text-center text-white",
   /** @deprecated Use appQuickActionGrid — legacy 1-row strip */
   appQuickActionStripRow: "grid grid-cols-4 gap-1.5",
   /** @deprecated Use appQuickActionCard */
   appQuickActionStripButton:
-    "flex h-[50px] max-h-[50px] flex-col items-center justify-center gap-0.5 rounded-xl border border-white/[0.06] bg-white/[0.04] px-1 py-1.5 text-zinc-300 transition-colors hover:border-amber-500/20 hover:bg-white/[0.07] hover:text-white active:bg-white/[0.11]",
-  // ── Site Walk home 2×2 action grid — compact fixed-height cards with subtext ──
+    "flex h-[50px] max-h-[50px] flex-col items-center justify-center gap-0.5 rounded-xl border border-white/10 bg-white/[0.05] px-1 py-1.5 text-zinc-200 transition-colors hover:border-white/15 hover:bg-white/[0.08] hover:text-white active:bg-white/[0.11]",
+  // ── Module home 2×2 action grid — shared glass card with subtext ─────────
   siteWalkActionGridRow: "grid shrink-0 grid-cols-2 gap-2.5",
   siteWalkActionGridButton:
-    "flex h-[92px] flex-col items-start justify-center gap-0.5 rounded-xl border border-white/[0.06] bg-white/[0.04] px-3 py-2.5 text-left text-zinc-100 transition-all hover:border-amber-500/20 hover:bg-white/[0.07] hover:text-white active:-translate-y-0.5 active:border-amber-500/30 active:bg-white/[0.11] active:ring-2 active:ring-amber-500/50",
-  siteWalkActionGridIcon: "mb-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white/[0.06]",
-  siteWalkActionGridLabel: "text-[12px] font-semibold leading-tight text-white",
-  siteWalkActionGridSubtext: "text-[10px] font-medium leading-snug text-zinc-300",
+    "flex min-h-[120px] flex-col items-start justify-center gap-1 rounded-xl border border-white/10 bg-white/[0.05] px-3.5 py-3 text-left text-zinc-100 transition-all hover:border-white/15 hover:bg-white/[0.08] hover:text-white active:-translate-y-0.5 active:border-teal-400/30 active:bg-white/[0.11] active:ring-2 active:ring-teal-400/30",
+  siteWalkActionGridIcon: "mb-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-teal-400/20 bg-teal-400/10",
+  siteWalkActionGridLabel: "text-sm font-bold leading-tight text-white",
+  siteWalkActionGridSubtext: "text-xs font-medium leading-snug text-zinc-200",
   /** @deprecated Use appQuickActionStripRow */
   quickActionStripRow: "grid grid-cols-4 gap-1.5",
   /** @deprecated Use siteWalkActionGridRow */
   quickActionGridRow: "grid h-full min-h-0 flex-1 grid-cols-2 auto-rows-fr gap-2.5",
   /** @deprecated Use appQuickActionStripButton */
   quickActionStripButton:
-    "flex h-[50px] max-h-[50px] flex-col items-center justify-center gap-0.5 rounded-xl border border-white/[0.06] bg-white/[0.04] px-1 py-1.5 text-zinc-300 transition-colors hover:border-amber-500/20 hover:bg-white/[0.07] hover:text-white active:bg-white/[0.11]",
+    "flex h-[50px] max-h-[50px] flex-col items-center justify-center gap-0.5 rounded-xl border border-white/10 bg-white/[0.05] px-1 py-1.5 text-zinc-200 transition-colors hover:border-white/15 hover:bg-white/[0.08] hover:text-white active:bg-white/[0.11]",
   /** @deprecated Use siteWalkActionGridButton */
   quickActionGridButton:
-    "flex h-full min-h-[72px] flex-col items-center justify-center gap-1 rounded-xl border border-white/[0.06] bg-white/[0.04] px-2 py-2 text-zinc-300 transition-colors hover:border-amber-500/20 hover:bg-white/[0.07] hover:text-white active:bg-white/[0.11]",
-  quickActionStripIcon: "h-[18px] w-[18px] shrink-0",
-  quickActionStripLabel: "text-[11px] font-medium leading-tight text-center text-zinc-200",
+    "flex h-full min-h-[88px] flex-col items-center justify-center gap-1 rounded-xl border border-white/10 bg-white/[0.05] px-2 py-2 text-zinc-100 transition-colors hover:border-white/15 hover:bg-white/[0.08] hover:text-white active:bg-white/[0.11]",
+  quickActionStripIcon: "h-5 w-5 shrink-0 text-teal-400/90",
+  quickActionStripLabel: "text-sm font-medium leading-tight text-center text-zinc-100",
 
   // ── App launcher tile (/app Your Apps) ───────────────────────────────────
   appButtonBase:
-    "flex flex-col items-center justify-center gap-0.5 rounded-xl border border-white/[0.06] bg-white/[0.04] px-2 py-1.5 text-center transition-colors hover:border-amber-500/20 hover:bg-white/[0.07] active:bg-white/[0.09]",
+    "flex flex-col items-center justify-center gap-1 rounded-xl border border-white/10 bg-white/[0.05] px-2 py-2 text-center transition-all hover:border-white/15 hover:bg-white/[0.08] active:bg-white/[0.11] active:ring-2 active:ring-teal-400/30",
   mobileAppLauncherTileHeight: "h-[110px] min-h-0 max-h-[116px]",
   appButtonIconWrapper:
-    "flex h-7 w-7 shrink-0 items-center justify-center rounded-lg",
-  appButtonIconClass: "h-3.5 w-3.5",
-  appButtonTitleClass: "text-[11px] font-semibold leading-tight text-white",
-  appButtonSubtitleClass: "text-[10px] leading-tight text-zinc-300",
+    "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-teal-400/20 bg-teal-400/10",
+  appButtonIconClass: "h-5 w-5 text-teal-400/90",
+  appButtonTitleClass: "text-sm font-bold leading-tight text-white",
+  appButtonSubtitleClass: "text-xs leading-tight text-zinc-200",
   appBadgeInfo:
-    "mt-0.5 rounded-full bg-cyan-500/12 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-cyan-400/90",
+    "mt-0.5 rounded-full bg-teal-400/12 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-teal-300",
+  /** /app Your Apps launcher cards — shared with module action card surface */
+  mobileAppLauncherCard:
+    "flex min-h-[148px] flex-col gap-3 rounded-xl border border-white/10 bg-white/[0.05] p-4 transition-all hover:border-white/15 hover:bg-white/[0.08] active:-translate-y-0.5 active:border-teal-400/30 active:bg-white/[0.11] active:ring-2 active:ring-teal-400/30",
+  mobileAppLauncherCardGrid: "grid grid-cols-2 gap-3",
+  mobileAppLauncherTitle: "text-base font-bold leading-tight text-white",
+  mobileAppLauncherSubtitle: "mt-1 line-clamp-1 text-sm leading-snug text-zinc-200",
+  mobileAppLauncherIconWrapper:
+    "flex h-11 w-11 items-center justify-center rounded-xl border border-teal-400/20 bg-teal-400/10",
+  mobileAppLauncherIcon: "h-6 w-6 text-teal-400/90",
 
   // Legacy alias
   mobileAppButtonHeight: "h-[76px] min-h-0 max-h-[78px]",
   appCardBase:
-    "flex items-center gap-4 rounded-2xl border border-white/5 bg-white/[0.03] px-4 py-4 transition-colors hover:border-amber-500/30 hover:bg-white/[0.06] active:bg-white/[0.09]",
+    "flex items-center gap-4 rounded-xl border border-white/10 bg-white/[0.05] px-4 py-4 transition-colors hover:border-white/15 hover:bg-white/[0.08] active:bg-white/[0.11]",
   appCardIconWrapper:
-    "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/[0.06] text-amber-500",
-  appCardIconClass: "h-5 w-5",
+    "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-teal-400/20 bg-teal-400/10 text-teal-400/90",
+  appCardIconClass: "h-6 w-6",
 
   // ── Contained scrolling panel ─────────────────────────────────────────────
   panelBase:
-    "relative flex flex-col overflow-hidden rounded-xl border border-white/5 bg-white/[0.03]",
-  panelTabStripWrapper: "shrink-0 border-b border-white/5 px-3",
-  panelTabList: "h-9 w-full bg-transparent p-0",
+    "relative flex flex-col overflow-hidden rounded-xl border border-white/10 bg-white/[0.06]",
+  panelTabStripWrapper: "shrink-0 border-b border-white/10 px-3",
+  panelTabList: "h-10 w-full bg-transparent p-0",
   panelTabTrigger:
-    "flex-1 rounded-none border-b-2 border-transparent py-2 text-[13px] font-medium text-zinc-200 transition-colors data-[state=active]:border-amber-500 data-[state=active]:bg-transparent data-[state=active]:text-white data-[state=active]:shadow-none",
+    "flex-1 rounded-none border-b-2 border-transparent py-2.5 text-sm font-semibold text-zinc-200 transition-colors data-[state=active]:border-teal-400 data-[state=active]:bg-transparent data-[state=active]:text-white data-[state=active]:shadow-none",
   mobileEmptyPanelHeight: "flex-1 min-h-[240px]",
   mobileListPanelHeight: "flex-1 min-h-[240px]",
   mobileTabbedPanelBodyPadding,
   mobileTabbedPanelScrollBody,
   panelContent: `${mobileTabbedPanelScrollBody} ${mobileTabbedPanelBodyPadding}`,
   panelBottomFade:
-    "pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-[#0B0F15] via-[#0B0F15]/80 to-transparent",
+    "pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-[#0B0F15] via-[#0B0F15]/90 to-transparent z-[1]",
 
   // ── Expandable activity dock ──────────────────────────────────────────────
   mobilePanelRowsCollapsedTarget: MOBILE_PANEL_COLLAPSED_BODY_PX,
   mobileExpandablePanelBottomGap: "pb-3",
-  mobileExpandablePanelHandle: "block h-1 w-10 rounded-full bg-white/25",
+  mobileExpandablePanelHandle: "block h-1.5 w-12 rounded-full bg-white/40",
   mobileExpandablePanelFade:
-    "pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-[#0B0F15] via-[#0B0F15]/85 to-transparent z-[1]",
+    "pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-[#0B0F15] via-[#0B0F15]/92 to-transparent z-[1]",
+  mobileExpandablePanelCollapsedBodyFade:
+    "pointer-events-none absolute inset-x-0 bottom-0 z-[4] h-[72px] bg-gradient-to-t from-[#0B0F15] from-35% via-[#0B0F15]/94 via-65% to-transparent",
+  mobileExpandablePanelChevron: "size-7 shrink-0 text-teal-300",
+  mobileExpandablePanelTabTrigger:
+    "flex-1 rounded-none border-b-2 border-transparent py-2.5 text-sm font-semibold text-zinc-200 transition-colors data-[state=active]:border-teal-400 data-[state=active]:bg-transparent data-[state=active]:text-white data-[state=active]:shadow-none",
+  mobileExpandablePanelToggleAccent: "flex-col gap-1 py-1.5 text-teal-400/90",
   mobileExpandablePanelOuter: "relative z-30 w-full shrink-0 px-4 pb-3",
   mobileExpandablePanelExpandedPosition:
     "fixed inset-x-0 z-40 w-full px-4 pb-3 bottom-[calc(62px+env(safe-area-inset-bottom,0px))]",
@@ -221,13 +256,13 @@ export const mobileTokens = {
   mobileExpandablePanelBackdrop:
     "absolute inset-0 z-20 bg-black/50 backdrop-blur-[2px] lg:hidden",
   mobileExpandablePanelFrame:
-    "flex w-full flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#0B0F15]/92 shadow-[0_-4px_24px_rgba(0,0,0,0.35)] backdrop-blur-md transition-[height] duration-200 ease-out",
+    "flex w-full flex-col overflow-hidden rounded-xl border border-white/15 bg-white/[0.06] shadow-[0_-4px_24px_rgba(0,0,0,0.35)] backdrop-blur-md transition-[height] duration-200 ease-out",
   mobileExpandablePanelFrameExpanded:
-    "shadow-[0_-12px_40px_rgba(0,0,0,0.55)] ring-1 ring-white/10",
+    "shadow-[0_-12px_40px_rgba(0,0,0,0.55)] ring-1 ring-white/15",
   mobileExpandablePanelChrome:
     "flex min-h-11 w-full shrink-0 touch-manipulation",
   mobileExpandablePanelToggleButton:
-    "flex min-h-11 w-full flex-1 items-center justify-center gap-2 border-b border-white/10 px-3 py-2 text-zinc-200 transition-colors hover:bg-white/[0.04] active:bg-white/[0.08]",
+    "flex min-h-11 w-full flex-1 items-center justify-center gap-2 border-b border-white/15 px-3 py-2 text-zinc-100 transition-colors hover:bg-white/[0.05] active:bg-white/[0.09]",
   mobileExpandablePanelCollapsedHeight: "h-[252px] max-h-[252px] min-h-[252px] shrink-0",
   mobileExpandablePanelExpandedHeight:
     "h-[60dvh] max-h-[60dvh] min-h-[60dvh] shrink-0",
@@ -241,10 +276,10 @@ export const mobileTokens = {
   expandablePanelUpperScroll: "px-4",
   expandablePanelBackdrop: "absolute inset-0 z-20 bg-black/50 backdrop-blur-[2px] lg:hidden",
   expandablePanelDock:
-    "flex w-full flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#0B0F15]/92 shadow-[0_-4px_24px_rgba(0,0,0,0.35)] backdrop-blur-md transition-[height] duration-200 ease-out",
-  expandablePanelDockExpanded: "shadow-[0_-12px_40px_rgba(0,0,0,0.55)] ring-1 ring-white/10",
-  expandablePanelChrome: "flex shrink-0 items-center gap-1 border-b border-white/10 px-2",
-  expandablePanelHandle: "block h-1 w-10 rounded-full bg-white/25",
+    "flex w-full flex-col overflow-hidden rounded-xl border border-white/15 bg-white/[0.06] shadow-[0_-4px_24px_rgba(0,0,0,0.35)] backdrop-blur-md transition-[height] duration-200 ease-out",
+  expandablePanelDockExpanded: "shadow-[0_-12px_40px_rgba(0,0,0,0.55)] ring-1 ring-white/15",
+  expandablePanelChrome: "flex shrink-0 items-center gap-1 border-b border-white/15 px-2",
+  expandablePanelHandle: "block h-1.5 w-12 rounded-full bg-white/40",
   expandablePanelCollapsedFrame: "h-[252px] max-h-[252px] min-h-[252px]",
   expandablePanelExpandedFrame: "h-[60dvh] max-h-[60dvh] min-h-[60dvh]",
   expandablePanelCollapsedBody:
@@ -257,12 +292,12 @@ export const mobileTokens = {
     "flex flex-col items-center justify-center gap-3 py-8 text-center",
   emptyStateWrapperCompact:
     "flex flex-col items-center justify-center gap-1.5 py-2 text-center",
-  emptyStateIcon: "h-7 w-7 text-zinc-300",
-  emptyStateText: "text-[13px] text-zinc-200 font-medium",
-  emptyStateAction: "text-[12px] font-medium text-amber-500 hover:text-amber-400 hover:underline",
+  emptyStateIcon: "h-8 w-8 text-zinc-200",
+  emptyStateText: "text-sm text-zinc-100 font-medium",
+  emptyStateAction: "text-sm font-medium text-teal-300 hover:text-teal-200 hover:underline",
 
   focusRing:
-    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50 focus-visible:ring-offset-1 focus-visible:ring-offset-[#0B0F15]",
+    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400/50 focus-visible:ring-offset-1 focus-visible:ring-offset-[#0B0F15]",
 
   shellBrandLabel:
     "text-[17px] font-semibold leading-none tracking-tight text-white",

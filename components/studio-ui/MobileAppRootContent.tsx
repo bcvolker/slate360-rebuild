@@ -22,9 +22,6 @@ import {
 import type { MobilePanelTab, MobileQuickActionItem } from "@/components/mobile-system";
 import { MobileAppLauncherGrid } from "@/components/studio-ui/MobileAppLauncherGrid";
 
-const DOCK_EMPTY_ACTION =
-  "text-[12px] font-medium text-[#85CBC3] hover:text-[#85CBC3]/85 hover:underline";
-
 export function MobileAppRootContent() {
   const [createSheetOpen, setCreateSheetOpen] = useState(false);
 
@@ -60,7 +57,7 @@ export function MobileAppRootContent() {
             icon={Bell}
             title="No active alerts"
             actionLabel="View inbox"
-            actionClassName={DOCK_EMPTY_ACTION}
+            actionClassName={mobileTokens.mobileDockEmptyAction}
             actionHref="/coordination/inbox"
           />
         ),
@@ -74,7 +71,7 @@ export function MobileAppRootContent() {
             icon={MessageSquare}
             title="No unread messages"
             actionLabel="View inbox"
-            actionClassName={DOCK_EMPTY_ACTION}
+            actionClassName={mobileTokens.mobileDockEmptyAction}
             actionHref="/coordination/inbox"
           />
         ),
@@ -88,7 +85,7 @@ export function MobileAppRootContent() {
             icon={ClipboardList}
             title="No assigned tasks"
             actionLabel="View assigned work"
-            actionClassName={DOCK_EMPTY_ACTION}
+            actionClassName={mobileTokens.mobileDockEmptyAction}
             actionHref="/site-walk/assigned-work"
           />
         ),
@@ -121,7 +118,7 @@ export function MobileAppRootContent() {
         primaryActions={
           <section className="mt-1 shrink-0">
             <div className="mb-2">
-              <span className={mobileTokens.appHomeSectionLabelAccentCool} aria-hidden />
+              <span className={mobileTokens.appHomeSectionLabelAccent} aria-hidden />
               <p className={mobileTokens.appHomeSectionLabel}>Quick Actions</p>
             </div>
             <MobileQuickActionStrip actions={quickActions} />
