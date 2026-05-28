@@ -111,7 +111,7 @@ export function MobileAppRootContent() {
         contentTop={
           <section className="shrink-0 pb-1">
             <div className="mb-1.5">
-              <p className="text-xs font-semibold uppercase tracking-widest text-zinc-300">
+              <p className="text-xs font-semibold uppercase tracking-widest text-zinc-200">
                 Your Apps
               </p>
             </div>

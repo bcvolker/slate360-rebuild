@@ -90,7 +90,7 @@ export function MobileBottomNav<Key extends string = string>({
           const active = navActiveKey === key;
           const itemClassName = cn(
             "relative flex h-full w-full flex-col items-center justify-center gap-1 rounded-lg py-2 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6EA7A0]/50",
-            active ? "bg-[#85CBC3]/12 text-[#85CBC3]" : "text-zinc-300 hover:bg-white/5 hover:text-zinc-100",
+            active ? "bg-[#85CBC3]/12 text-[#B0EDE8]" : "text-zinc-300 hover:bg-white/5 hover:text-zinc-100",
           );
           const content = (
             <>

@@ -80,7 +80,7 @@ export function DigitalTwinHomeClient({ twins, projects }: Props) {
                     className="flex items-center justify-between gap-2 rounded-xl border border-white/[0.05] px-3 py-2.5 text-sm transition-colors hover:bg-white/[0.03]"
                   >
                     <span className="min-w-0 truncate text-[#F8FAFC]">{twin.title}</span>
-                    <span className="shrink-0 text-xs capitalize text-zinc-400">
+                    <span className="shrink-0 text-xs capitalize text-zinc-300">
                       {formatTwinStatus(twin.status)}
                     </span>
                   </Link>

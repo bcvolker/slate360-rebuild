@@ -107,14 +107,14 @@ export const mobileTokens = {
   mobileAvatarRing:
     "flex size-6 items-center justify-center rounded-full bg-amber-500/12 text-[10px] font-bold text-amber-400/90 transition-colors hover:bg-amber-500/18",
   mobileHeaderToolIcon:
-    "flex size-9 items-center justify-center text-zinc-300 transition-colors hover:text-zinc-100",
+    "flex size-9 items-center justify-center text-zinc-200 transition-colors hover:text-white",
   mobileIconBgPrimary: "bg-amber-500/10 text-amber-400/90",
   mobileIconBgInfo: "bg-cyan-500/10 text-cyan-400/90",
   mobileIconBgNeutral: "bg-white/[0.06] text-zinc-300",
 
   // ── Section labels ───────────────────────────────────────────────────────
   sectionLabel:
-    "mb-1 text-[11px] font-bold uppercase tracking-[0.15em] text-zinc-300",
+    "mb-1 text-[11px] font-bold uppercase tracking-[0.15em] text-zinc-200",
   /** /app home section titles — larger than module sub-routes */
   appHomeSectionLabel:
     "text-xs font-black uppercase tracking-[0.2em] text-zinc-100",
@@ -126,9 +126,9 @@ export const mobileTokens = {
   // ── Module home title (/site-walk) ───────────────────────────────────────
   moduleTitle: "text-[18px] font-bold leading-tight tracking-tight text-zinc-100",
   moduleTitleAccent: "text-amber-400/75",
-  moduleSubtitle: "mt-0.5 text-[13px] leading-snug text-zinc-400",
+  moduleSubtitle: "mt-0.5 text-[13px] leading-snug text-zinc-300",
   moduleBackButton:
-    "flex size-10 shrink-0 items-center justify-center rounded-xl border border-white/[0.06] bg-white/[0.04] text-zinc-400 transition-colors hover:border-amber-500/20 hover:bg-white/[0.07] hover:text-amber-400/90 active:bg-white/[0.11]",
+    "flex size-10 shrink-0 items-center justify-center rounded-xl border border-white/[0.06] bg-white/[0.04] text-zinc-200 transition-colors hover:border-amber-500/20 hover:bg-white/[0.07] hover:text-white active:bg-white/[0.11]",
 
   // ── Action card (Site Walk 2×2 module actions) ─────────────────────────
   actionCardHeight: "min-h-[78px]",
@@ -139,15 +139,15 @@ export const mobileTokens = {
   moduleActionIconClass: "h-3 w-3 text-amber-400/90",
   actionCardBase:
     "flex flex-col items-center justify-center gap-0.5 rounded-xl border border-white/[0.06] bg-white/[0.04] text-zinc-300 transition-colors hover:border-amber-500/20 hover:bg-white/[0.07] hover:text-white active:bg-white/[0.11]",
-  actionIconClass: "h-4 w-4 text-zinc-400",
+  actionIconClass: "h-4 w-4 text-zinc-300",
   actionLabelClass: "text-[10px] font-medium leading-tight text-center",
 
   // ── /app quick action 2×2 grid (do not share layout/height with Site Walk) ──
   appQuickActionGrid: "grid grid-cols-2 gap-2.5",
   appQuickActionCard:
-    "flex h-[88px] flex-col items-center justify-center gap-1 rounded-xl border border-white/[0.06] bg-white/[0.04] px-1.5 py-2 text-zinc-200 transition-all hover:border-amber-500/20 hover:bg-white/[0.07] hover:text-white active:-translate-y-0.5 active:border-amber-500/30 active:bg-white/[0.11] active:ring-2 active:ring-amber-500/50",
+    "flex h-[88px] flex-col items-center justify-center gap-1 rounded-xl border border-white/[0.06] bg-white/[0.04] px-1.5 py-2 text-zinc-100 transition-all hover:border-amber-500/20 hover:bg-white/[0.07] hover:text-white active:-translate-y-0.5 active:border-amber-500/30 active:bg-white/[0.11] active:ring-2 active:ring-amber-500/50",
   appQuickActionIcon: "h-5 w-5 shrink-0",
-  appQuickActionLabel: "text-[12px] font-medium leading-tight text-center text-zinc-100",
+  appQuickActionLabel: "text-[12px] font-medium leading-tight text-center text-white",
   /** @deprecated Use appQuickActionGrid — legacy 1-row strip */
   appQuickActionStripRow: "grid grid-cols-4 gap-1.5",
   /** @deprecated Use appQuickActionCard */
@@ -156,10 +156,10 @@ export const mobileTokens = {
   // ── Site Walk home 2×2 action grid — compact fixed-height cards with subtext ──
   siteWalkActionGridRow: "grid shrink-0 grid-cols-2 gap-2.5",
   siteWalkActionGridButton:
-    "flex h-[92px] flex-col items-start justify-center gap-0.5 rounded-xl border border-white/[0.06] bg-white/[0.04] px-3 py-2.5 text-left text-zinc-200 transition-all hover:border-amber-500/20 hover:bg-white/[0.07] hover:text-white active:-translate-y-0.5 active:border-amber-500/30 active:bg-white/[0.11] active:ring-2 active:ring-amber-500/50",
+    "flex h-[92px] flex-col items-start justify-center gap-0.5 rounded-xl border border-white/[0.06] bg-white/[0.04] px-3 py-2.5 text-left text-zinc-100 transition-all hover:border-amber-500/20 hover:bg-white/[0.07] hover:text-white active:-translate-y-0.5 active:border-amber-500/30 active:bg-white/[0.11] active:ring-2 active:ring-amber-500/50",
   siteWalkActionGridIcon: "mb-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white/[0.06]",
-  siteWalkActionGridLabel: "text-[12px] font-semibold leading-tight text-zinc-100",
-  siteWalkActionGridSubtext: "text-[10px] font-medium leading-snug text-zinc-400",
+  siteWalkActionGridLabel: "text-[12px] font-semibold leading-tight text-white",
+  siteWalkActionGridSubtext: "text-[10px] font-medium leading-snug text-zinc-300",
   /** @deprecated Use appQuickActionStripRow */
   quickActionStripRow: "grid grid-cols-4 gap-1.5",
   /** @deprecated Use siteWalkActionGridRow */
@@ -181,7 +181,7 @@ export const mobileTokens = {
     "flex h-7 w-7 shrink-0 items-center justify-center rounded-lg",
   appButtonIconClass: "h-3.5 w-3.5",
   appButtonTitleClass: "text-[11px] font-semibold leading-tight text-white",
-  appButtonSubtitleClass: "text-[10px] leading-tight text-zinc-400",
+  appButtonSubtitleClass: "text-[10px] leading-tight text-zinc-300",
   appBadgeInfo:
     "mt-0.5 rounded-full bg-cyan-500/12 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-cyan-400/90",
 
@@ -199,7 +199,7 @@ export const mobileTokens = {
   panelTabStripWrapper: "shrink-0 border-b border-white/5 px-3",
   panelTabList: "h-9 w-full bg-transparent p-0",
   panelTabTrigger:
-    "flex-1 rounded-none border-b-2 border-transparent py-2 text-[13px] font-medium text-zinc-400 transition-colors data-[state=active]:border-amber-500 data-[state=active]:bg-transparent data-[state=active]:text-white data-[state=active]:shadow-none",
+    "flex-1 rounded-none border-b-2 border-transparent py-2 text-[13px] font-medium text-zinc-300 transition-colors data-[state=active]:border-amber-500 data-[state=active]:bg-transparent data-[state=active]:text-white data-[state=active]:shadow-none",
   mobileEmptyPanelHeight: "flex-1 min-h-[240px]",
   mobileListPanelHeight: "flex-1 min-h-[240px]",
   mobileTabbedPanelBodyPadding,
@@ -227,7 +227,7 @@ export const mobileTokens = {
   mobileExpandablePanelChrome:
     "flex min-h-11 w-full shrink-0 touch-manipulation",
   mobileExpandablePanelToggleButton:
-    "flex min-h-11 w-full flex-1 items-center justify-center gap-2 border-b border-white/10 px-3 py-2 text-zinc-300 transition-colors hover:bg-white/[0.04] active:bg-white/[0.08]",
+    "flex min-h-11 w-full flex-1 items-center justify-center gap-2 border-b border-white/10 px-3 py-2 text-zinc-200 transition-colors hover:bg-white/[0.04] active:bg-white/[0.08]",
   mobileExpandablePanelCollapsedHeight: "h-[252px] max-h-[252px] min-h-[252px] shrink-0",
   mobileExpandablePanelExpandedHeight:
     "h-[60dvh] max-h-[60dvh] min-h-[60dvh] shrink-0",
@@ -257,8 +257,8 @@ export const mobileTokens = {
     "flex flex-col items-center justify-center gap-3 py-8 text-center",
   emptyStateWrapperCompact:
     "flex flex-col items-center justify-center gap-1.5 py-2 text-center",
-  emptyStateIcon: "h-7 w-7 text-zinc-400",
-  emptyStateText: "text-[13px] text-zinc-300 font-medium",
+  emptyStateIcon: "h-7 w-7 text-zinc-300",
+  emptyStateText: "text-[13px] text-zinc-200 font-medium",
   emptyStateAction: "text-[12px] font-medium text-amber-500 hover:text-amber-400 hover:underline",
 
   focusRing:

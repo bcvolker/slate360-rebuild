@@ -99,7 +99,7 @@ export function SiteWalkHomeClient({ projects, walks, deliverables }: Props) {
                     className="flex items-center justify-between rounded-xl border border-white/[0.05] px-3 py-2.5 text-sm transition-colors hover:bg-white/[0.03]"
                   >
                     <span className="truncate text-[#F8FAFC]">{walk.title}</span>
-                    <span className="shrink-0 text-xs text-zinc-400">{walk.itemCount} items</span>
+                    <span className="shrink-0 text-xs text-zinc-300">{walk.itemCount} items</span>
                   </Link>
                 </li>
               ))}

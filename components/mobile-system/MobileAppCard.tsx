@@ -49,7 +49,7 @@ export function MobileAppCard({
       </span>
       <div className="min-w-0 flex-1">
         <p className="text-sm font-black text-white">{title}</p>
-        <p className="text-xs text-zinc-500">{subtitle}</p>
+        <p className="text-xs text-zinc-300">{subtitle}</p>
       </div>
       {badge && (
         <span className="shrink-0 rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-400">

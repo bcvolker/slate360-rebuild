@@ -60,7 +60,7 @@ export function MobileEmptyState({
       <p className={mobileTokens.emptyStateText}>{title}</p>
 
       {description && (
-        <p className="text-[11px] text-zinc-400 leading-snug">{description}</p>
+        <p className="text-[11px] text-zinc-300 leading-snug">{description}</p>
       )}
 
       {actionLabel && actionHref && (

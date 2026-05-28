@@ -13,7 +13,7 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://slate360.ai";
 
 const iconButtonClass = cn(
   "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl",
-  "border border-white/[0.06] bg-white/[0.03] text-zinc-300",
+  "border border-white/[0.06] bg-white/[0.03] text-zinc-200",
   "transition-colors hover:border-[#85CBC3]/30 hover:bg-white/[0.06] hover:text-white",
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#85CBC3]/45",
 );

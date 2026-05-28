@@ -31,7 +31,7 @@ export function MobileTopBar({
     <Link
       href={backHref}
       aria-label="Go back"
-      className="flex size-9 shrink-0 items-center justify-center rounded-lg text-zinc-400 transition-colors hover:bg-white/10 hover:text-white"
+      className="flex size-9 shrink-0 items-center justify-center rounded-lg text-zinc-200 transition-colors hover:bg-white/10 hover:text-white"
     >
       <ArrowLeft className="size-5" />
     </Link>
@@ -40,7 +40,7 @@ export function MobileTopBar({
       type="button"
       onClick={onBack}
       aria-label="Go back"
-      className="flex size-9 shrink-0 items-center justify-center rounded-lg text-zinc-400 transition-colors hover:bg-white/10 hover:text-white"
+      className="flex size-9 shrink-0 items-center justify-center rounded-lg text-zinc-200 transition-colors hover:bg-white/10 hover:text-white"
     >
       <ArrowLeft className="size-5" />
     </button>
@@ -65,7 +65,7 @@ export function MobileTopBar({
                 </h1>
               ) : null}
               {subtitle ? (
-                <p className="truncate text-[11px] font-bold uppercase leading-tight tracking-[0.1em] text-zinc-400 mt-0.5">
+                <p className="truncate text-[11px] font-bold uppercase leading-tight tracking-[0.1em] text-zinc-300 mt-0.5">
                   {subtitle}
                 </p>
               ) : null}
