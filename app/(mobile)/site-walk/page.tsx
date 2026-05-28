@@ -5,7 +5,12 @@ import { SiteWalkHomeClient } from "@/components/site-walk/SiteWalkHomeClient";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { HubDeliverableRow } from "@/lib/types/site-walk-hub";
 
-export default async function SiteWalkPage() {
+export const metadata = {
+  title: "Site Walk — Slate360",
+  description: "Field capture, plan walks, and deliverables for construction teams.",
+};
+
+export default async function SiteWalkHomePage() {
   const context = await resolveServerOrgContext();
   const { projects, walks, summary } = await loadSiteWalkHubData(context.orgId);
   const deliverables = context.orgId ? await loadRecentDeliverables(context.orgId) : [];
