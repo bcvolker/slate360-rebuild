@@ -47,7 +47,7 @@ export function MobileActionCard({
     primary: mobileTokens.moduleActionIconClass,
     info: "h-3.5 w-3.5 text-cyan-400/90",
     neutral: "h-3.5 w-3.5 text-zinc-300",
-    muted: "h-3.5 w-3.5 text-zinc-400",
+    muted: "h-3.5 w-3.5 text-zinc-300",
     warm: "h-3.5 w-3.5 text-amber-400/70",
   };
 

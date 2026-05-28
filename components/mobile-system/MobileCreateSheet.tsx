@@ -46,7 +46,7 @@ export function MobileCreateSheet({ open, onOpenChange }: MobileCreateSheetProps
           <Button
             onClick={() => onOpenChange(false)}
             variant="ghost"
-            className="w-full text-zinc-400 hover:text-white"
+            className="w-full text-zinc-200 hover:text-white"
           >
             Cancel
           </Button>

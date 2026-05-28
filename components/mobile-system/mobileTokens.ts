@@ -199,7 +199,7 @@ export const mobileTokens = {
   panelTabStripWrapper: "shrink-0 border-b border-white/5 px-3",
   panelTabList: "h-9 w-full bg-transparent p-0",
   panelTabTrigger:
-    "flex-1 rounded-none border-b-2 border-transparent py-2 text-[13px] font-medium text-zinc-300 transition-colors data-[state=active]:border-amber-500 data-[state=active]:bg-transparent data-[state=active]:text-white data-[state=active]:shadow-none",
+    "flex-1 rounded-none border-b-2 border-transparent py-2 text-[13px] font-medium text-zinc-200 transition-colors data-[state=active]:border-amber-500 data-[state=active]:bg-transparent data-[state=active]:text-white data-[state=active]:shadow-none",
   mobileEmptyPanelHeight: "flex-1 min-h-[240px]",
   mobileListPanelHeight: "flex-1 min-h-[240px]",
   mobileTabbedPanelBodyPadding,
