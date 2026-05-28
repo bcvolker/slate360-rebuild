@@ -1,9 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { SlateIcon } from "@/components/shared/SlateIcon";
+import { Slate360Logo } from "@/components/studio-ui/LogoProvider";
 import { cn } from "@/lib/utils";
-import { mobileTokens } from "./mobileTokens";
 
 type MobileShellBrandProps = {
   /** Home target for the brand cluster. Platform + module shells use /app. */
@@ -15,8 +14,8 @@ type MobileShellBrandProps = {
 };
 
 /**
- * Canonical Slate360 brand for mobile app shells: S-mark + “Slate360” label.
- * Use in /app and module shells (/site-walk, etc.) so headers match exactly.
+ * Canonical Slate360 brand for mobile app shells: green S emblem + “SLATE360” wordmark.
+ * Uses Slate360Logo — not the legacy SlateIcon app tile.
  */
 export function MobileShellBrand({
   href = "/app",
@@ -27,19 +26,15 @@ export function MobileShellBrand({
   return (
     <Link
       href={href}
-      className={cn("flex min-w-0 items-center gap-2.5", className)}
+      className={cn("flex min-w-0 items-center", className)}
       aria-label="Slate360 home"
     >
-      <SlateIcon
-        className={cn(
-          "h-9 w-9 shrink-0 rounded-lg",
-          mobileTokens.mobileBrandIconGlow,
-          iconClassName,
-        )}
+      <Slate360Logo
+        variant="dark"
+        size="header"
+        showWordmark={!iconOnly}
+        className={iconClassName}
       />
-      {!iconOnly && (
-        <span className={cn("truncate", mobileTokens.shellBrandLabel)}>Slate360</span>
-      )}
     </Link>
   );
 }

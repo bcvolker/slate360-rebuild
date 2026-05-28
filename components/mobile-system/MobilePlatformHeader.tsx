@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { ArrowLeft, ChevronLeft } from "lucide-react";
-import { SlateIcon } from "@/components/shared/SlateIcon";
+import { Slate360Logo } from "@/components/studio-ui/LogoProvider";
 import { cn } from "@/lib/utils";
 import { MobileHeaderActions } from "./MobileHeaderActions";
 import { MobileShellBrand } from "./MobileShellBrand";
@@ -57,10 +57,7 @@ export function MobilePlatformHeader({
               strokeWidth={2}
               aria-hidden
             />
-            <SlateIcon
-              className={cn("h-9 w-9 shrink-0 rounded-lg", mobileTokens.mobileBrandIconGlow)}
-            />
-            <span className={cn("truncate", mobileTokens.shellBrandLabel)}>Slate360</span>
+            <Slate360Logo variant="dark" size="header" />
           </Link>
         ) : (
           <MobileShellBrand href="/app" />

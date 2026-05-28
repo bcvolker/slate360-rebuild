@@ -6,45 +6,56 @@ const S_EMBLEM_UPPER =
 const S_EMBLEM_LOWER =
   "M80.23,43.82l-17.16,9.69,60.64,34.72c.16.09.57.32.57.97s-.42.89-.57.97l-38.47,21.48-3.26,1.82-3.26-1.82-59.83-33.4v19.27s58.99,32.94,58.99,32.94c1.27.71,2.69,1.07,4.1,1.07s2.83-.36,4.1-1.07l55.02-30.72v-20.91l-60.88-35.01Z";
 
-const SYMBOL_CLASS = "h-8 w-auto block shrink-0 text-[#00E699] font-sans";
-
-const WORDMARK_CLASS =
-  "font-sans font-bold tracking-[0.14em] text-2xl text-white select-none ml-4";
-
-const WORDMARK_LIGHT_CLASS =
-  "font-sans font-bold tracking-[0.14em] text-2xl text-slate-900 select-none ml-4";
+const LOGO_SIZES = {
+  default: {
+    symbol: "h-8 w-auto block shrink-0",
+    wordmarkDark: "font-sans font-bold tracking-[0.14em] text-2xl text-white select-none ml-4",
+    wordmarkLight: "font-sans font-bold tracking-[0.14em] text-2xl text-slate-900 select-none ml-4",
+    gradientId: "slate360-emblem-gradient",
+  },
+  header: {
+    symbol: "h-7 w-auto block shrink-0",
+    wordmarkDark: "font-sans font-bold tracking-[0.14em] text-base text-white select-none ml-2.5",
+    wordmarkLight: "font-sans font-bold tracking-[0.14em] text-base text-slate-900 select-none ml-2.5",
+    gradientId: "slate360-emblem-gradient-header",
+  },
+} as const;
 
 type Slate360LogoProps = {
   variant?: "dark" | "light";
+  /** Compact sizing for mobile shell header (h-14 bar). */
+  size?: keyof typeof LOGO_SIZES;
   className?: string;
   showWordmark?: boolean;
 };
 
 export function Slate360Logo({
   variant = "dark",
+  size = "default",
   className,
   showWordmark = true,
 }: Slate360LogoProps) {
-  const wordmarkClass = variant === "light" ? WORDMARK_LIGHT_CLASS : WORDMARK_CLASS;
+  const scale = LOGO_SIZES[size];
+  const wordmarkClass = variant === "light" ? scale.wordmarkLight : scale.wordmarkDark;
 
   return (
-    <div className={cn("inline-flex items-center shrink-0", className)}>
+    <div className={cn("inline-flex min-w-0 items-center shrink-0", className)}>
       <svg
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 142.6 142.6"
         role="img"
         aria-hidden={showWordmark}
         aria-label={showWordmark ? undefined : "Slate360"}
-        className={SYMBOL_CLASS}
+        className={scale.symbol}
       >
         <defs>
-          <linearGradient id="slate360-emblem-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+          <linearGradient id={scale.gradientId} x1="0%" y1="0%" x2="0%" y2="100%">
             <stop offset="0%" stopColor="#00E699" />
             <stop offset="100%" stopColor="#1E293B" />
           </linearGradient>
         </defs>
-        <path fill="url(#slate360-emblem-gradient)" d={S_EMBLEM_UPPER} />
-        <path fill="url(#slate360-emblem-gradient)" d={S_EMBLEM_LOWER} />
+        <path fill={`url(#${scale.gradientId})`} d={S_EMBLEM_UPPER} />
+        <path fill={`url(#${scale.gradientId})`} d={S_EMBLEM_LOWER} />
       </svg>
       {showWordmark ? <span className={wordmarkClass}>SLATE360</span> : null}
     </div>
