@@ -30,38 +30,27 @@ export function MobileHomeLayout({
   dock,
   className,
 }: MobileHomeLayoutProps) {
-  const isApp = route === "app";
-
-  const upperRegionClass = isApp
-    ? mobileTokens.mobileHomeAppUpperRegion
-    : "relative z-0 flex min-h-0 flex-1 flex-col overflow-hidden";
-
-  const upperInnerClass = isApp
-    ? mobileTokens.mobileHomeAppUpperInner
-    : "mx-auto flex w-full max-w-2xl min-h-0 flex-1 flex-col px-4 pt-3 pb-0";
-
-  const contentStackClass = isApp
-    ? mobileTokens.mobileHomeAppContentStack
-    : "flex min-h-0 flex-1 flex-col gap-2";
-
-  const primaryActionsClass = isApp
-    ? mobileTokens.mobileHomeAppPrimaryActionsRegion
-    : "flex min-h-0 flex-1 flex-col";
-
   return (
     <div
-      data-mobile-home-layout-version="unified-balanced-dock-v3"
+      data-mobile-home-layout-version="unified-balanced-dock-v4"
       data-dock-width-mode="full-shell"
       data-mobile-route={route}
       className={cn(HOME_LAYOUT_ROOT, className)}
     >
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-        <div className={cn("flex min-h-0 flex-1 flex-col overflow-hidden", upperRegionClass)}>
-          <div className={upperInnerClass}>
-            <div className={contentStackClass}>
-              <div className="shrink-0">{contentTop}</div>
+        <div
+          className={cn(
+            "flex min-h-0 flex-1 flex-col overflow-hidden",
+            mobileTokens.mobileHomeUpperRegion,
+          )}
+        >
+          <div className={mobileTokens.mobileHomeUpperInner}>
+            <div className={mobileTokens.mobileHomeContentStack}>
+              {contentTop ? <div className="shrink-0">{contentTop}</div> : null}
               {primaryActions ? (
-                <div className={primaryActionsClass}>{primaryActions}</div>
+                <div className={mobileTokens.mobileHomePrimaryActionsRegion}>
+                  {primaryActions}
+                </div>
               ) : null}
             </div>
           </div>

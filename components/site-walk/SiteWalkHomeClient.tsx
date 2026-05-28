@@ -7,6 +7,8 @@ import { Camera, ClipboardList, FileText, FolderOpen, MapPin } from "lucide-reac
 import {
   MobileEmptyState,
   MobileExpandableTabbedPanel,
+  MobileHomeActionCard,
+  MobileHomeActionGrid,
   MobileHomeLayout,
   mobileTokens,
 } from "@/components/mobile-system";
@@ -23,42 +25,6 @@ type Props = {
   summary: HubSummary;
   deliverables: HubDeliverableRow[];
 };
-
-function ActionLink({
-  href,
-  label,
-  subtext,
-  icon: Icon,
-}: {
-  href: string;
-  label: string;
-  subtext: string;
-  icon: typeof Camera;
-}) {
-  return (
-    <Link
-      href={href}
-      className={cn(mobileTokens.mobileQuickActionCardModule, mobileTokens.focusRing)}
-    >
-      <span
-        className={cn(
-          mobileTokens.mobileQuickActionIconWrapper,
-          mobileTokens.mobileQuickActionIconWrapperModuleAccent,
-        )}
-        aria-hidden
-      >
-        <Icon
-          className={cn(
-            mobileTokens.mobileQuickActionIcon,
-            mobileTokens.mobileQuickActionIconModuleAccent,
-          )}
-        />
-      </span>
-      <span className={mobileTokens.mobileQuickActionLabel}>{label}</span>
-      <span className={mobileTokens.mobileQuickActionSubtext}>{subtext}</span>
-    </Link>
-  );
-}
 
 export function SiteWalkHomeClient({ projects, walks, deliverables }: Props) {
   const router = useRouter();
@@ -167,7 +133,7 @@ export function SiteWalkHomeClient({ projects, walks, deliverables }: Props) {
       route="site-walk"
       contentTop={null}
       primaryActions={
-        <section className="flex min-h-0 flex-1 flex-col gap-2">
+        <section className={cn(mobileTokens.mobileHomePrimaryActionsRegion, "gap-2")}>
           <div className="flex shrink-0 items-center gap-3">
             <span
               className={cn(mobileTokens.mobileIconChip, mobileTokens.mobileIconChipLg)}
@@ -175,63 +141,41 @@ export function SiteWalkHomeClient({ projects, walks, deliverables }: Props) {
             >
               <MapPin className={mobileTokens.mobileIconChipIconLg} strokeWidth={1.75} />
             </span>
-            <h1 className={cn(mobileTokens.moduleTitle, "min-w-0")}>
-              SITE WALK
-            </h1>
+            <h1 className={cn(mobileTokens.moduleTitle, "min-w-0")}>SITE WALK</h1>
           </div>
-          <div className="shrink-0">
+          <div className={mobileTokens.mobileHomeSectionHeader}>
             <span className={mobileTokens.appHomeSectionLabelAccent} aria-hidden />
             <p className={mobileTokens.appHomeSectionLabel}>Quick Actions</p>
           </div>
-          <div
-            className={cn(mobileTokens.mobileQuickActionGrid, "min-h-0 flex-1")}
-          >
-            <button
-              type="button"
+          <MobileHomeActionGrid className="min-h-0 flex-1">
+            <MobileHomeActionCard
+              title="Quick Walk"
+              subtext="Start capturing now"
+              icon={Camera}
               onClick={() => void handleQuickCapture()}
-              className={cn(mobileTokens.mobileQuickActionCardModule, mobileTokens.focusRing)}
-            >
-              <span
-                className={cn(
-                  mobileTokens.mobileQuickActionIconWrapper,
-                  mobileTokens.mobileQuickActionIconWrapperModuleAccent,
-                )}
-                aria-hidden
-              >
-                <Camera
-                  className={cn(
-                    mobileTokens.mobileQuickActionIcon,
-                    mobileTokens.mobileQuickActionIconModuleAccent,
-                  )}
-                />
-              </span>
-              <span className={mobileTokens.mobileQuickActionLabel}>Quick Walk</span>
-              <span className={mobileTokens.mobileQuickActionSubtext}>Start capturing now</span>
-            </button>
-            <ActionLink
-              href="/site-walk/walks"
-              label="Walk Sessions"
+            />
+            <MobileHomeActionCard
+              title="Walk Sessions"
               subtext="Review saved walks"
               icon={FolderOpen}
+              href="/site-walk/walks"
             />
-            <ActionLink
-              href="/site-walk/deliverables"
-              label="Deliverables"
+            <MobileHomeActionCard
+              title="Deliverables"
               subtext="Reports and outputs"
               icon={FileText}
+              href="/site-walk/deliverables"
             />
-            <ActionLink
-              href="/site-walk/assigned-work"
-              label="Assigned Work"
+            <MobileHomeActionCard
+              title="Assigned Work"
               subtext="Tasks in the field"
               icon={ClipboardList}
+              href="/site-walk/assigned-work"
             />
-          </div>
+          </MobileHomeActionGrid>
         </section>
       }
-      dock={
-        <MobileExpandableTabbedPanel tabs={dockTabs} defaultTab="recent" />
-      }
+      dock={<MobileExpandableTabbedPanel tabs={dockTabs} defaultTab="recent" />}
     />
   );
 }

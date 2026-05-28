@@ -20,10 +20,10 @@ export const MOBILE_HOME_DOCK_EXPANDED_CLAMP = "60dvh";
 const mobileTabbedPanelScrollBody = "min-h-0 flex-1 overflow-y-auto";
 const mobileTabbedPanelBodyPadding = "px-3 pt-2 pb-3";
 
-/** Shared quick-action card surface — one size/spacing for all mobile home shells */
-const mobileQuickActionCardSurface =
-  "flex min-h-[112px] rounded-xl border border-white/10 bg-white/[0.05] px-3 py-2.5 text-zinc-100 transition-all hover:border-white/15 hover:bg-white/[0.08] hover:text-white active:-translate-y-0.5 active:bg-white/[0.11] active:ring-2 active:ring-teal-400/30";
-const mobileQuickActionGrid = "grid shrink-0 grid-cols-2 gap-2.5 auto-rows-fr";
+/** Shared home action card — launcher tiles + quick actions (all shells) */
+const mobileHomeActionCard =
+  "flex min-h-[112px] flex-col items-start justify-center gap-1 rounded-xl border border-emerald-500/15 bg-white/[0.05] px-3 py-2.5 text-left text-zinc-100 transition-all hover:border-emerald-400/22 hover:bg-white/[0.08] hover:text-white active:-translate-y-0.5 active:border-emerald-400/28 active:bg-white/[0.11] active:ring-2 active:ring-emerald-400/25";
+const mobileHomeActionGrid = "grid shrink-0 grid-cols-2 gap-2.5 auto-rows-fr";
 
 export const mobileTokens = {
   pageBgHex: "#0B0F15",
@@ -38,22 +38,24 @@ export const mobileTokens = {
   mobileShellContentTopGap: "pt-3",
   mobileShellContentPaddingX: "px-4",
   mobileShellContentStackGap: "gap-3",
-  /** MobileHomeLayout — balanced fixed regions (/app + /site-walk) */
+  /** MobileHomeLayout — unified upper + dock regions (all shells) */
   mobileHomeLayoutRoot:
     "flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden",
   mobileHomeUpperRegion:
-    "relative z-0 flex shrink-0 flex-col overflow-hidden",
+    "relative z-0 flex min-h-0 flex-1 flex-col overflow-hidden",
   mobileHomeUpperInner:
-    "mx-auto flex w-full max-w-2xl shrink-0 flex-col px-4 pt-3 pb-0",
-  mobileHomeContentStack: "flex shrink-0 flex-col gap-2",
-  mobileHomePrimaryActionsRegion: "shrink-0 flex flex-col",
-  mobileHomeAppPrimaryActionsRegion: "shrink-0 flex flex-col",
-  /** /app upper block — shrink to content so the activity dock sits directly below Quick Actions */
+    "mx-auto flex w-full max-w-2xl min-h-0 flex-1 flex-col px-4 pt-3 pb-0",
+  mobileHomeContentStack: "flex min-h-0 flex-1 flex-col gap-2",
+  mobileHomePrimaryActionsRegion: "flex min-h-0 flex-1 flex-col",
+  mobileHomeSection: "shrink-0",
+  mobileHomeSectionHeader: "mb-1.5",
+  /** @deprecated Aliases — use mobileHomeUpperRegion */
+  mobileHomeAppPrimaryActionsRegion: "flex min-h-0 flex-1 flex-col",
   mobileHomeAppUpperRegion:
-    "relative z-0 flex shrink-0 flex-col overflow-hidden",
-  mobileHomeAppContentStack: "flex shrink-0 flex-col gap-2",
+    "relative z-0 flex min-h-0 flex-1 flex-col overflow-hidden",
+  mobileHomeAppContentStack: "flex min-h-0 flex-1 flex-col gap-2",
   mobileHomeAppUpperInner:
-    "mx-auto flex w-full max-w-2xl shrink-0 flex-col px-4 pt-2 pb-0",
+    "mx-auto flex w-full max-w-2xl min-h-0 flex-1 flex-col px-4 pt-3 pb-0",
   mobileHomeAppDockTopSpacer: "h-0 max-h-0 shrink-0 overflow-hidden",
   mobileHomeDockTopSpacer: "h-0 max-h-0 shrink-0 overflow-hidden",
   mobileHomeDockRegion: "relative z-10 w-full shrink-0 px-4 pt-1 pb-1",
@@ -70,7 +72,8 @@ export const mobileTokens = {
   mobileHomeDockHostInner: "pointer-events-auto w-full",
   mobileHomeDockGap: "12px",
   mobileHomeDockCollapsedHeight:
-    "h-[clamp(240px,30dvh,320px)] max-h-[clamp(240px,30dvh,320px)] min-h-[clamp(240px,30dvh,320px)] shrink-0",
+    "h-[252px] max-h-[252px] min-h-[252px] shrink-0",
+  /** @deprecated Alias — use mobileHomeDockCollapsedHeight */
   mobileHomeAppDockCollapsedHeight:
     "h-[252px] max-h-[252px] min-h-[252px] shrink-0",
   mobileHomeDockExpandedHeight:
@@ -158,17 +161,27 @@ export const mobileTokens = {
   moduleBackButton:
     "flex size-10 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.05] text-zinc-100 transition-colors hover:border-teal-400/25 hover:bg-white/[0.08] hover:text-white active:bg-white/[0.11]",
 
-  // ── Shared home quick actions (all shells — one sizing system) ───────────
-  mobileQuickActionGrid,
-  mobileQuickActionCardSurface,
-  mobileQuickActionCardApp: `${mobileQuickActionCardSurface} flex-col items-center justify-center gap-1.5 text-center`,
-  mobileQuickActionCardModule: `${mobileQuickActionCardSurface} flex-col items-start justify-center gap-1 text-left border-emerald-500/15 hover:border-emerald-400/22 active:border-emerald-400/28`,
-  mobileQuickActionIconWrapper:
-    "mb-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-teal-400/20 bg-teal-400/10",
-  mobileQuickActionIconWrapperModuleAccent:
-    "border-emerald-400/20 bg-emerald-400/10",
-  mobileQuickActionIcon: "h-5 w-5 shrink-0 text-teal-400/90",
-  mobileQuickActionIconModuleAccent: "text-emerald-400/85",
+  // ── Shared home action cards (launcher + quick actions — all shells) ─────
+  mobileHomeActionGrid,
+  mobileHomeActionCard,
+  mobileHomeActionCardSelected:
+    "border-emerald-400/28 bg-white/[0.07] ring-1 ring-emerald-400/20",
+  mobileHomeActionIconWrapper:
+    "mb-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-emerald-400/20 bg-emerald-400/10",
+  mobileHomeActionIcon: "h-5 w-5 shrink-0 text-emerald-400/85",
+  mobileHomeActionTitle: "text-sm font-bold leading-tight text-white",
+  mobileHomeActionSubtext: "text-xs font-medium leading-snug text-zinc-200",
+
+  // ── Legacy aliases (launcher + quick action tokens) ───────────────────────
+  mobileQuickActionGrid: mobileHomeActionGrid,
+  mobileQuickActionCard: mobileHomeActionCard,
+  mobileQuickActionCardSurface: mobileHomeActionCard,
+  mobileQuickActionCardApp: mobileHomeActionCard,
+  mobileQuickActionCardModule: mobileHomeActionCard,
+  mobileQuickActionIconWrapper: "mb-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-emerald-400/20 bg-emerald-400/10",
+  mobileQuickActionIconWrapperModuleAccent: "",
+  mobileQuickActionIcon: "h-5 w-5 shrink-0 text-emerald-400/85",
+  mobileQuickActionIconModuleAccent: "",
   mobileQuickActionLabel: "text-sm font-bold leading-tight text-white",
   mobileQuickActionSubtext: "text-xs font-medium leading-snug text-zinc-200",
 
@@ -179,25 +192,23 @@ export const mobileTokens = {
   moduleActionIconWrapper:
     "mb-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-emerald-400/20 bg-emerald-400/10",
   moduleActionIconClass: "h-5 w-5 text-emerald-400/85",
-  actionCardBase: mobileQuickActionCardSurface,
-  actionIconClass: "h-5 w-5 text-teal-400/90",
-  actionLabelClass: "text-sm font-bold leading-tight text-center text-white",
+  actionCardBase: mobileHomeActionCard,
+  actionIconClass: "h-5 w-5 text-emerald-400/85",
+  actionLabelClass: "text-sm font-bold leading-tight text-white",
 
-  // ── /app quick action 2×2 grid (aliases) ─────────────────────────────────
-  appQuickActionGrid: mobileQuickActionGrid,
-  appQuickActionCard:
-    "flex min-h-[112px] flex-col items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.05] px-3 py-2.5 text-center text-zinc-100 transition-all hover:border-white/15 hover:bg-white/[0.08] hover:text-white active:-translate-y-0.5 active:bg-white/[0.11] active:ring-2 active:ring-teal-400/30",
-  appQuickActionIcon: "h-5 w-5 shrink-0 text-teal-400/90",
-  appQuickActionLabel: "text-sm font-bold leading-tight text-center text-white",
+  // ── /app quick action aliases ─────────────────────────────────────────────
+  appQuickActionGrid: mobileHomeActionGrid,
+  appQuickActionCard: mobileHomeActionCard,
+  appQuickActionIcon: "h-5 w-5 shrink-0 text-emerald-400/85",
+  appQuickActionLabel: "text-sm font-bold leading-tight text-white",
   /** @deprecated Use appQuickActionGrid — legacy 1-row strip */
   appQuickActionStripRow: "grid grid-cols-4 gap-1.5",
   /** @deprecated Use appQuickActionCard */
   appQuickActionStripButton:
     "flex h-[50px] max-h-[50px] flex-col items-center justify-center gap-0.5 rounded-xl border border-white/10 bg-white/[0.05] px-1 py-1.5 text-zinc-200 transition-colors hover:border-white/15 hover:bg-white/[0.08] hover:text-white active:bg-white/[0.11]",
   // ── Module home 2×2 action grid (aliases) ───────────────────────────────
-  siteWalkActionGridRow: mobileQuickActionGrid,
-  siteWalkActionGridButton:
-    "flex min-h-[112px] flex-col items-start justify-center gap-1 rounded-xl border border-emerald-500/15 bg-white/[0.05] px-3 py-2.5 text-left text-zinc-100 transition-all hover:border-emerald-400/22 hover:bg-white/[0.08] hover:text-white active:-translate-y-0.5 active:border-emerald-400/28 active:bg-white/[0.11] active:ring-2 active:ring-emerald-400/25",
+  siteWalkActionGridRow: mobileHomeActionGrid,
+  siteWalkActionGridButton: mobileHomeActionCard,
   siteWalkActionGridIcon:
     "mb-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-emerald-400/20 bg-emerald-400/10",
   siteWalkActionGridLabel: "text-sm font-bold leading-tight text-white",
@@ -226,15 +237,14 @@ export const mobileTokens = {
   appButtonSubtitleClass: "text-xs leading-tight text-zinc-200",
   appBadgeInfo:
     "mt-0.5 rounded-full bg-teal-400/12 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-teal-300",
-  /** /app Your Apps launcher cards */
-  mobileAppLauncherCard:
-    "flex min-h-[132px] flex-col gap-2.5 rounded-xl border border-white/10 bg-white/[0.05] p-3.5 transition-all hover:border-white/15 hover:bg-white/[0.08] active:-translate-y-0.5 active:border-teal-400/30 active:bg-white/[0.11] active:ring-2 active:ring-teal-400/30",
-  mobileAppLauncherCardGrid: "grid grid-cols-2 gap-2.5",
-  mobileAppLauncherTitle: "text-base font-bold leading-tight text-white",
-  mobileAppLauncherSubtitle: "mt-0.5 line-clamp-1 text-sm leading-snug text-zinc-200",
+  /** Launcher cards — same component tokens as quick actions */
+  mobileAppLauncherCard: mobileHomeActionCard,
+  mobileAppLauncherCardGrid: mobileHomeActionGrid,
+  mobileAppLauncherTitle: "text-sm font-bold leading-tight text-white",
+  mobileAppLauncherSubtitle: "text-xs font-medium leading-snug text-zinc-200",
   mobileAppLauncherIconWrapper:
-    "flex h-10 w-10 items-center justify-center rounded-xl border border-teal-400/20 bg-teal-400/10",
-  mobileAppLauncherIcon: "h-5 w-5 text-teal-400/90",
+    "mb-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-emerald-400/20 bg-emerald-400/10",
+  mobileAppLauncherIcon: "h-5 w-5 shrink-0 text-emerald-400/85",
 
   // Legacy alias
   mobileAppButtonHeight: "h-[76px] min-h-0 max-h-[78px]",

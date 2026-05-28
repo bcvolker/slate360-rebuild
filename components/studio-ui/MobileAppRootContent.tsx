@@ -106,8 +106,8 @@ export function MobileAppRootContent() {
       <MobileHomeLayout
         route="app"
         contentTop={
-          <section className="shrink-0">
-            <div className="mb-1.5">
+          <section className={mobileTokens.mobileHomeSection}>
+            <div className={mobileTokens.mobileHomeSectionHeader}>
               <span className={mobileTokens.appHomeSectionLabelAccent} aria-hidden />
               <p className={mobileTokens.appHomeSectionLabel}>Your Apps</p>
             </div>
@@ -115,8 +115,8 @@ export function MobileAppRootContent() {
           </section>
         }
         primaryActions={
-          <section className="shrink-0">
-            <div className="mb-1.5">
+          <section className={mobileTokens.mobileHomeSection}>
+            <div className={mobileTokens.mobileHomeSectionHeader}>
               <span className={mobileTokens.appHomeSectionLabelAccent} aria-hidden />
               <p className={mobileTokens.appHomeSectionLabel}>Quick Actions</p>
             </div>

@@ -7,6 +7,8 @@ import { AppWindow, Boxes, FolderOpen, Scan, Upload } from "lucide-react";
 import {
   MobileEmptyState,
   MobileExpandableTabbedPanel,
+  MobileHomeActionCard,
+  MobileHomeActionGrid,
   MobileHomeLayout,
   mobileTokens,
 } from "@/components/mobile-system";
@@ -19,42 +21,6 @@ type Props = {
   twins: HubTwin[];
   projects: HubTwinProject[];
 };
-
-function ActionLink({
-  href,
-  label,
-  subtext,
-  icon: Icon,
-}: {
-  href: string;
-  label: string;
-  subtext: string;
-  icon: typeof Scan;
-}) {
-  return (
-    <Link
-      href={href}
-      className={cn(mobileTokens.mobileQuickActionCardModule, mobileTokens.focusRing)}
-    >
-      <span
-        className={cn(
-          mobileTokens.mobileQuickActionIconWrapper,
-          mobileTokens.mobileQuickActionIconWrapperModuleAccent,
-        )}
-        aria-hidden
-      >
-        <Icon
-          className={cn(
-            mobileTokens.mobileQuickActionIcon,
-            mobileTokens.mobileQuickActionIconModuleAccent,
-          )}
-        />
-      </span>
-      <span className={mobileTokens.mobileQuickActionLabel}>{label}</span>
-      <span className={mobileTokens.mobileQuickActionSubtext}>{subtext}</span>
-    </Link>
-  );
-}
 
 function formatTwinStatus(status: string) {
   return status.replace(/_/g, " ");
@@ -149,7 +115,7 @@ export function DigitalTwinHomeClient({ twins, projects }: Props) {
       route="digital-twin"
       contentTop={null}
       primaryActions={
-        <section className="flex min-h-0 flex-1 flex-col gap-2">
+        <section className={cn(mobileTokens.mobileHomePrimaryActionsRegion, "gap-2")}>
           <div className="flex shrink-0 items-center gap-3">
             <span
               className={cn(mobileTokens.mobileIconChip, mobileTokens.mobileIconChipLg)}
@@ -157,65 +123,41 @@ export function DigitalTwinHomeClient({ twins, projects }: Props) {
             >
               <AppWindow className={mobileTokens.mobileIconChipIconLg} strokeWidth={1.75} />
             </span>
-            <h1 className={cn(mobileTokens.moduleTitle, "min-w-0")}>
-              DIGITAL TWIN
-            </h1>
+            <h1 className={cn(mobileTokens.moduleTitle, "min-w-0")}>DIGITAL TWIN</h1>
           </div>
-          <div className="shrink-0">
+          <div className={mobileTokens.mobileHomeSectionHeader}>
             <span className={mobileTokens.appHomeSectionLabelAccent} aria-hidden />
             <p className={mobileTokens.appHomeSectionLabel}>Quick Actions</p>
           </div>
-          <div
-            className={cn(mobileTokens.mobileQuickActionGrid, "min-h-0 flex-1")}
-          >
-            <button
-              type="button"
+          <MobileHomeActionGrid className="min-h-0 flex-1">
+            <MobileHomeActionCard
+              title="Quick Capture"
+              subtext="Camera and LiDAR when available"
+              icon={Scan}
               onClick={handleQuickCapture}
-              className={cn(mobileTokens.mobileQuickActionCardModule, mobileTokens.focusRing)}
-            >
-              <span
-                className={cn(
-                  mobileTokens.mobileQuickActionIconWrapper,
-                  mobileTokens.mobileQuickActionIconWrapperModuleAccent,
-                )}
-                aria-hidden
-              >
-                <Scan
-                  className={cn(
-                    mobileTokens.mobileQuickActionIcon,
-                    mobileTokens.mobileQuickActionIconModuleAccent,
-                  )}
-                />
-              </span>
-              <span className={mobileTokens.mobileQuickActionLabel}>Quick Capture</span>
-              <span className={mobileTokens.mobileQuickActionSubtext}>
-                Camera and LiDAR when available
-              </span>
-            </button>
-            <ActionLink
-              href="/digital-twin/upload"
-              label="Upload from Phone"
+            />
+            <MobileHomeActionCard
+              title="Upload from Phone"
               subtext="360 video or drone footage"
               icon={Upload}
+              href="/digital-twin/upload"
             />
-            <ActionLink
-              href="/digital-twin/twins"
-              label="My Twins"
+            <MobileHomeActionCard
+              title="My Twins"
               subtext="View existing twins"
               icon={Boxes}
+              href="/digital-twin/twins"
             />
-            <ActionLink
-              href="/projects"
-              label="Projects"
+            <MobileHomeActionCard
+              title="Projects"
               subtext="Workspace context"
               icon={FolderOpen}
+              href="/projects"
             />
-          </div>
+          </MobileHomeActionGrid>
         </section>
       }
-      dock={
-        <MobileExpandableTabbedPanel tabs={dockTabs} defaultTab="recent" />
-      }
+      dock={<MobileExpandableTabbedPanel tabs={dockTabs} defaultTab="recent" />}
     />
   );
 }

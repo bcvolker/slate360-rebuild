@@ -1,9 +1,11 @@
 "use client";
 
-import Link from "next/link";
 import type { ElementType } from "react";
-import { cn } from "@/lib/utils";
 import { mobileTokens, type MobileQuickActionAccent } from "./mobileTokens";
+import {
+  MobileHomeActionCard,
+  MobileHomeActionGrid,
+} from "./MobileHomeActionCard";
 
 export type MobileQuickActionItem = {
   label: string;
@@ -11,16 +13,9 @@ export type MobileQuickActionItem = {
   href?: string;
   onClick?: () => void;
   disabled?: boolean;
+  /** @deprecated Accent is unified — all shells use mobileHomeActionCard tokens */
   accent?: MobileQuickActionAccent;
   "aria-label"?: string;
-};
-
-const accentIconClass: Record<MobileQuickActionAccent, string> = {
-  primary: mobileTokens.mobileQuickActionIcon,
-  info: mobileTokens.mobileQuickActionIcon,
-  neutral: mobileTokens.mobileQuickActionIcon,
-  muted: mobileTokens.mobileQuickActionIcon,
-  warm: mobileTokens.mobileQuickActionIcon,
 };
 
 type MobileQuickActionStripProps = {
@@ -28,65 +23,25 @@ type MobileQuickActionStripProps = {
   className?: string;
 };
 
-/** /app Quick Actions — compact 2×2 grid (not a single-row strip). */
+/** Shared 2×2 quick action grid — same cards as module homes and launcher tiles. */
 export function MobileQuickActionStrip({ actions, className }: MobileQuickActionStripProps) {
   return (
-    <div
-      data-testid="mobile-quick-action-grid"
-      data-app-quick-action-layout="grid-2x2"
-      className={cn(mobileTokens.mobileQuickActionGrid, className)}
-      role="toolbar"
+    <MobileHomeActionGrid
+      className={className}
       aria-label="Quick actions"
+      data-testid="mobile-quick-action-grid"
     >
       {actions.map((action) => (
-        <QuickActionButton key={action.label} {...action} />
+        <MobileHomeActionCard
+          key={action.label}
+          title={action.label}
+          icon={action.icon}
+          href={action.href}
+          onClick={action.onClick}
+          disabled={action.disabled}
+          aria-label={action["aria-label"]}
+        />
       ))}
-    </div>
-  );
-}
-
-function QuickActionButton({
-  label,
-  icon: Icon,
-  href,
-  onClick,
-  disabled = false,
-  accent = "neutral",
-  "aria-label": ariaLabel,
-}: MobileQuickActionItem) {
-  const base = cn(
-    mobileTokens.mobileQuickActionCardApp,
-    mobileTokens.focusRing,
-    disabled && "pointer-events-none opacity-50",
-  );
-
-  const inner = (
-    <>
-      <Icon
-        className={accentIconClass[accent]}
-        aria-hidden
-      />
-      <span className={mobileTokens.mobileQuickActionLabel}>{label}</span>
-    </>
-  );
-
-  if (href && !disabled) {
-    return (
-      <Link href={href} className={base} aria-label={ariaLabel ?? label}>
-        {inner}
-      </Link>
-    );
-  }
-
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      className={base}
-      aria-label={ariaLabel ?? label}
-    >
-      {inner}
-    </button>
+    </MobileHomeActionGrid>
   );
 }

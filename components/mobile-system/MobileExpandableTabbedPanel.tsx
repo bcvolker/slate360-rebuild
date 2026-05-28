@@ -74,7 +74,7 @@ export function MobileExpandableTabbedPanel({
                 mobileTokens.mobileExpandablePanelFrameExpanded,
               )
             : isHomeDock
-              ? mobileTokens.mobileHomeAppDockCollapsedHeight
+              ? mobileTokens.mobileHomeDockCollapsedHeight
               : mobileTokens.mobileExpandablePanelCollapsedHeight,
         )}
       >
