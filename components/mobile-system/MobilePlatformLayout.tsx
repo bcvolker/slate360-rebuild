@@ -10,6 +10,7 @@ import {
   MobilePlatformHeader,
   MobileShell,
 } from "@/components/mobile-system";
+import { resolveMobilePlatformHeaderMeta } from "@/components/mobile-system/MobileBottomNav";
 import { InviteShareProvider, useInviteShare } from "@/components/shared/InviteShareProvider";
 import type { InviteShareData } from "@/lib/types/invite";
 
@@ -24,13 +25,27 @@ type MobilePlatformLayoutProps = {
   children: ReactNode;
 };
 
+function shouldPassthroughDesktopShell(pathname: string): boolean {
+  if (pathname === "/app") return true;
+  if (
+    pathname.startsWith("/projects") ||
+    pathname.startsWith("/slatedrop") ||
+    pathname.startsWith("/coordination") ||
+    pathname.startsWith("/more") ||
+    pathname.startsWith("/settings")
+  ) {
+    return true;
+  }
+  return false;
+}
+
 function MobilePlatformLayoutInner({
   inviteShareData,
   isMobileDevice,
   children,
 }: MobilePlatformLayoutProps) {
   const pathname = usePathname() ?? "";
-  const isModuleHome = pathname === "/site-walk" || pathname === "/digital-twin";
+  const headerMeta = resolveMobilePlatformHeaderMeta(pathname);
   const mobileRoute = pathname.startsWith("/site-walk")
     ? "site-walk"
     : pathname.startsWith("/digital-twin")
@@ -38,7 +53,7 @@ function MobilePlatformLayoutInner({
       : "app";
   const { open: inviteOpen, setOpen: setInviteOpen } = useInviteShare();
 
-  if (!isMobileDevice && pathname === "/app") {
+  if (!isMobileDevice && shouldPassthroughDesktopShell(pathname)) {
     return <>{children}</>;
   }
 
@@ -48,7 +63,9 @@ function MobilePlatformLayoutInner({
         mobileRoute={mobileRoute}
         header={
           <MobilePlatformHeader
-            showBackToApp={isModuleHome}
+            showBackToApp={headerMeta.showBackToApp}
+            title={headerMeta.title}
+            subtitle={headerMeta.subtitle}
             inviteShareData={inviteShareData}
           />
         }
@@ -68,7 +85,7 @@ function MobilePlatformLayoutInner({
   );
 }
 
-/** Clean mobile platform shell for /app, /site-walk, and /digital-twin home surfaces. */
+/** Clean mobile platform shell for (mobile) route group surfaces. */
 export function MobilePlatformLayout({
   inviteShareData,
   isMobileDevice,

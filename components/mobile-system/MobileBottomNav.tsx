@@ -30,11 +30,31 @@ export const MOBILE_PLATFORM_NAV_ITEMS: MobileBottomNavItem<MobilePlatformNavKey
   {
     key: "coordination",
     label: "Coordination",
-    href: "/coordination/inbox",
+    href: "/coordination",
     icon: MessageSquare,
   },
   { key: "account", label: "Account", href: "/more/account", icon: User },
 ];
+
+/** Routes that use the clean (mobile) platform shell and bottom nav. */
+export const MOBILE_PLATFORM_ROUTE_PREFIXES = [
+  "/app",
+  "/site-walk",
+  "/digital-twin",
+  "/projects",
+  "/project-hub",
+  "/slatedrop",
+  "/coordination",
+  "/more",
+  "/settings",
+  "/my-account",
+] as const;
+
+export function isMobilePlatformRoute(pathname: string): boolean {
+  return MOBILE_PLATFORM_ROUTE_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+  );
+}
 
 export function resolveMobilePlatformNavKey(pathname: string): MobilePlatformNavKey {
   if (pathname.startsWith("/projects") || pathname.startsWith("/project-hub")) {
@@ -50,6 +70,19 @@ export function resolveMobilePlatformNavKey(pathname: string): MobilePlatformNav
     return "account";
   }
   return "home";
+}
+
+export type MobilePlatformHeaderMeta = {
+  title?: string;
+  subtitle?: string;
+  showBackToApp?: boolean;
+};
+
+export function resolveMobilePlatformHeaderMeta(pathname: string): MobilePlatformHeaderMeta {
+  if (pathname === "/site-walk" || pathname === "/digital-twin") {
+    return { showBackToApp: true };
+  }
+  return {};
 }
 
 type MobileBottomNavProps<Key extends string = string> = {
@@ -95,7 +128,12 @@ export function MobileBottomNav<Key extends string = string>({
           return (
             <li key={key} className="min-w-0 flex-1 px-0.5">
               {href ? (
-                <Link href={href} className={itemClassName} aria-current={active ? "page" : undefined}>
+                <Link
+                  href={href}
+                  prefetch
+                  className={itemClassName}
+                  aria-current={active ? "page" : undefined}
+                >
                   {content}
                 </Link>
               ) : (
@@ -111,7 +149,7 @@ export function MobileBottomNav<Key extends string = string>({
   );
 }
 
-/** Canonical bottom nav for /app, /site-walk, and /digital-twin shells. */
+/** Canonical bottom nav for clean (mobile) platform shells. */
 export function MobilePlatformBottomNav({ className }: { className?: string }) {
   const pathname = usePathname() ?? "";
   const activeKey = resolveMobilePlatformNavKey(pathname);

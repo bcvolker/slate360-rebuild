@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
-  ArrowLeft,
   ChevronRight,
   Inbox,
   LifeBuoy,
@@ -13,7 +12,7 @@ import { mobileTokens } from "@/components/mobile-system";
 import { cn } from "@/lib/utils";
 import { getEntitlements } from "@/lib/entitlements";
 import { resolveServerOrgContext } from "@/lib/server/org-context";
-import { AccountDeletionPanel } from "../_components/AccountDeletionPanel";
+import { AccountDeletionPanel } from "@/app/(dashboard)/more/_components/AccountDeletionPanel";
 
 export const metadata = { title: "Account — Slate360" };
 
@@ -68,16 +67,6 @@ export default async function MoreAccountPage() {
 
   return (
     <div className={mobileTokens.mobilePageScrollInner}>
-      <Link
-        href="/more"
-        className={cn(
-          "inline-flex min-h-10 w-fit items-center gap-2 rounded-xl border border-white/10 bg-white/[0.05] px-3 text-sm font-medium text-zinc-200 transition-colors hover:border-teal-400/25 hover:bg-white/[0.08]",
-        )}
-      >
-        <ArrowLeft className="h-4 w-4" aria-hidden />
-        Account Hub
-      </Link>
-
       <section className={cn(mobileTokens.panelBase, "p-5")}>
         <span className={cn(mobileTokens.mobileIconWell, "h-12 w-12")} aria-hidden>
           <User className="h-6 w-6" strokeWidth={1.75} />
@@ -88,7 +77,7 @@ export default async function MoreAccountPage() {
         <p className={mobileTokens.moduleSubtitle}>
           Manage profile, security, legal links, and account deletion.
         </p>
-        <div className="mt-4 grid gap-2 sm:grid-cols-3">
+        <div className="mt-4 grid gap-2 sm:grid-cols-2">
           <MetricTile label="Email" value={email} />
           <MetricTile label="Plan" value={entitlements.label} />
           <MetricTile label="Workspace" value={orgName} />

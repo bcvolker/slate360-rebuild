@@ -32,9 +32,23 @@ export {
   MobileBottomNav,
   MobilePlatformBottomNav,
   MOBILE_PLATFORM_NAV_ITEMS,
+  MOBILE_PLATFORM_ROUTE_PREFIXES,
+  isMobilePlatformRoute,
   resolveMobilePlatformNavKey,
+  resolveMobilePlatformHeaderMeta,
 } from "./MobileBottomNav";
-export type { MobileBottomNavItem, MobilePlatformNavKey } from "./MobileBottomNav";
+export type {
+  MobileBottomNavItem,
+  MobilePlatformHeaderMeta,
+  MobilePlatformNavKey,
+} from "./MobileBottomNav";
+
+export { MobileProjectsClient } from "./MobileProjectsClient";
+export { MobileSlateDropClient, SLATEDROP_FOLDER_ICONS } from "./MobileSlateDropClient";
+export { MobileCoordinationHubClient } from "./MobileCoordinationHubClient";
+export { MobileContactsClient } from "./MobileContactsClient";
+export type { MobileContactRow } from "./MobileContactsClient";
+export { MobileCalendarClient } from "./MobileCalendarClient";
 
 export { MobileSection } from "./MobileSection";
 
