@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { MobileShell } from "./MobileShell";
 
 type MobileAppShellProps = {
   header?: ReactNode;
@@ -13,6 +14,7 @@ type MobileAppShellProps = {
   mobileRoute?: "app" | "site-walk" | "digital-twin";
 };
 
+/** @deprecated Prefer MobileShell — kept for module sub-route shells. */
 export function MobileAppShell({
   header,
   bottomNav,
@@ -24,27 +26,23 @@ export function MobileAppShell({
   mobileRoute,
 }: MobileAppShellProps) {
   return (
-    <div
-      data-mobile-shell-version="layout-v4"
-      data-mobile-route={mobileRoute}
-      className={cn(
-        "dark flex h-[100dvh] w-full max-w-full overflow-hidden bg-[#0B0F15] text-slate-50",
-        className,
-      )}
-    >
-      {sidebar}
-      <div className={cn("flex min-w-0 flex-1 flex-col overflow-hidden", bodyClassName)}>
-        {header}
-        <main
+    <MobileShell
+      className={className}
+      mobileRoute={mobileRoute}
+      header={header}
+      bottomNav={bottomNav}
+      sidebar={sidebar}
+      scroll={
+        <div
           className={cn(
-            "flex min-h-0 flex-1 flex-col overflow-hidden bg-[#0B0F15]",
+            "flex min-h-0 flex-col",
             mainClassName,
+            bodyClassName,
           )}
         >
           {children}
-        </main>
-        {bottomNav}
-      </div>
-    </div>
+        </div>
+      }
+    />
   );
 }

@@ -15,9 +15,9 @@ import {
   MobileCreateSheet,
   MobileEmptyState,
   MobileExpandableTabbedPanel,
-  MobileHomeLayout,
   MobileQuickActionStrip,
   mobileTokens,
+  useMobileShellDock,
 } from "@/components/mobile-system";
 import type { MobilePanelTab, MobileQuickActionItem } from "@/components/mobile-system";
 import { MobileAppLauncherGrid } from "@/components/studio-ui/MobileAppLauncherGrid";
@@ -101,32 +101,31 @@ export function MobileAppRootContent() {
     [],
   );
 
+  useMobileShellDock(
+    <MobileExpandableTabbedPanel tabs={activityTabs} defaultTab="alerts" />,
+  );
+
   return (
     <>
-      <MobileHomeLayout
-        route="app"
-        contentTop={
-          <section className={mobileTokens.mobileHomeSection}>
-            <div className={mobileTokens.mobileHomeSectionHeader}>
-              <span className={mobileTokens.appHomeSectionLabelAccent} aria-hidden />
-              <p className={mobileTokens.appHomeSectionLabel}>Your Apps</p>
-            </div>
-            <MobileAppLauncherGrid />
-          </section>
-        }
-        primaryActions={
-          <section className={mobileTokens.mobileHomeSection}>
-            <div className={mobileTokens.mobileHomeSectionHeader}>
-              <span className={mobileTokens.appHomeSectionLabelAccent} aria-hidden />
-              <p className={mobileTokens.appHomeSectionLabel}>Quick Actions</p>
-            </div>
-            <MobileQuickActionStrip actions={quickActions} />
-          </section>
-        }
-        dock={
-          <MobileExpandableTabbedPanel tabs={activityTabs} defaultTab="alerts" />
-        }
-      />
+      <div
+        data-mobile-route="app"
+        className={mobileTokens.mobileShellScrollInner}
+      >
+        <section className={mobileTokens.mobileHomeSection}>
+          <div className={mobileTokens.mobileHomeSectionHeader}>
+            <span className={mobileTokens.appHomeSectionLabelAccent} aria-hidden />
+            <p className={mobileTokens.appHomeSectionLabel}>Your Apps</p>
+          </div>
+          <MobileAppLauncherGrid />
+        </section>
+        <section className={mobileTokens.mobileHomeSection}>
+          <div className={mobileTokens.mobileHomeSectionHeader}>
+            <span className={mobileTokens.appHomeSectionLabelAccent} aria-hidden />
+            <p className={mobileTokens.appHomeSectionLabel}>Quick Actions</p>
+          </div>
+          <MobileQuickActionStrip actions={quickActions} />
+        </section>
+      </div>
       <MobileCreateSheet open={createSheetOpen} onOpenChange={setCreateSheetOpen} />
     </>
   );

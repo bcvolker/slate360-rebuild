@@ -13,6 +13,8 @@ export const MOBILE_PANEL_COLLAPSED_FRAME_PX = 252;
 /** MobileBottomNav content band: min-h-[58px] + pt-[4px] (nav sits below main, in shell flow). */
 export const MOBILE_BOTTOM_NAV_HEIGHT_PX = 62;
 export const MOBILE_HOME_DOCK_GAP_PX = 4;
+export const MOBILE_COLLAPSED_DOCK_GAP_PX = 12;
+export const MOBILE_QUICK_ACTION_MIN_HEIGHT_PX = 112;
 export const MOBILE_HOME_DOCK_CONTENT_PAD_PX = 16;
 export const MOBILE_HOME_DOCK_COLLAPSED_CLAMP = "clamp(240px,30dvh,320px)";
 export const MOBILE_HOME_DOCK_EXPANDED_CLAMP = "60dvh";
@@ -21,8 +23,8 @@ const mobileTabbedPanelScrollBody = "min-h-0 flex-1 overflow-y-auto";
 const mobileTabbedPanelBodyPadding = "px-3 pt-2 pb-3";
 
 /** Shared home action card — launcher tiles + quick actions (all shells) */
-const mobileHomeActionCard =
-  "flex min-h-[112px] flex-col items-start justify-center gap-1 rounded-xl border border-emerald-500/15 bg-white/[0.05] px-3 py-2.5 text-left text-zinc-100 transition-all hover:border-emerald-400/22 hover:bg-white/[0.08] hover:text-white active:-translate-y-0.5 active:border-emerald-400/28 active:bg-white/[0.11] active:ring-2 active:ring-emerald-400/25";
+const quickActionMinHeightClass = "min-h-[112px]";
+const mobileHomeActionCard = `flex ${quickActionMinHeightClass} flex-col items-start justify-center gap-1 rounded-xl border border-emerald-500/15 bg-white/[0.05] px-3 py-2.5 text-left text-zinc-100 transition-all hover:border-emerald-400/22 hover:bg-white/[0.08] hover:text-white active:-translate-y-0.5 active:border-emerald-400/28 active:bg-white/[0.11] active:ring-2 active:ring-emerald-400/25`;
 const mobileHomeActionGrid = "grid shrink-0 grid-cols-2 gap-2.5 auto-rows-fr";
 
 export const mobileTokens = {
@@ -38,6 +40,18 @@ export const mobileTokens = {
   mobileShellContentTopGap: "pt-3",
   mobileShellContentPaddingX: "px-4",
   mobileShellContentStackGap: "gap-3",
+  /** MobileShell — gap between scroll content and dock (12px top) */
+  collapsedDockGap: "pt-3 pb-2",
+  /** MobileShell dock slot — sizes to content, no fixed frame height */
+  collapsedDockHeight: "w-full shrink-0",
+  /** Shared quick action / launcher tile minimum height */
+  quickActionMinHeight: quickActionMinHeightClass,
+  /** Bottom fade on MobileShell scroll region above dock */
+  scrollContentBottomFade:
+    "pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-10 bg-gradient-to-t from-[#0B0F15]/80 via-[#0B0F15]/35 to-transparent",
+  /** Inner padding for home scroll surfaces inside MobileShell */
+  mobileShellScrollInner:
+    "mx-auto flex w-full max-w-2xl flex-col gap-3 px-4 pt-3 pb-3",
   /** MobileHomeLayout — unified upper + dock regions (all shells) */
   mobileHomeLayoutRoot:
     "flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden",
@@ -71,11 +85,9 @@ export const mobileTokens = {
   mobileHomeDockBottomOffset: "bottom-3",
   mobileHomeDockHostInner: "pointer-events-auto w-full",
   mobileHomeDockGap: "12px",
-  mobileHomeDockCollapsedHeight:
-    "h-[252px] max-h-[252px] min-h-[252px] shrink-0",
-  /** @deprecated Alias — use mobileHomeDockCollapsedHeight */
-  mobileHomeAppDockCollapsedHeight:
-    "h-[252px] max-h-[252px] min-h-[252px] shrink-0",
+  mobileHomeDockCollapsedHeight: "w-full shrink-0",
+  /** @deprecated Alias — use collapsedDockHeight */
+  mobileHomeAppDockCollapsedHeight: "w-full shrink-0",
   mobileHomeDockExpandedHeight:
     "h-[60dvh] max-h-[60dvh] min-h-[60dvh] shrink-0",
   mobileHomeDockCollapsedBody:
@@ -186,9 +198,9 @@ export const mobileTokens = {
   mobileQuickActionSubtext: "text-xs font-medium leading-snug text-zinc-200",
 
   // ── Action card (legacy aliases → shared quick action tokens) ───────────
-  actionCardHeight: "min-h-[112px]",
-  mobileActionCardHeight: "min-h-[112px]",
-  moduleActionCardHeight: "min-h-[112px]",
+  actionCardHeight: quickActionMinHeightClass,
+  mobileActionCardHeight: quickActionMinHeightClass,
+  moduleActionCardHeight: quickActionMinHeightClass,
   moduleActionIconWrapper:
     "mb-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-emerald-400/20 bg-emerald-400/10",
   moduleActionIconClass: "h-5 w-5 text-emerald-400/85",
@@ -295,7 +307,7 @@ export const mobileTokens = {
     "flex min-h-11 w-full shrink-0 touch-manipulation",
   mobileExpandablePanelToggleButton:
     "flex min-h-11 w-full flex-1 items-center justify-center gap-2 border-b border-white/15 px-3 py-2 text-zinc-100 transition-colors hover:bg-white/[0.05] active:bg-white/[0.09]",
-  mobileExpandablePanelCollapsedHeight: "h-[252px] max-h-[252px] min-h-[252px] shrink-0",
+  mobileExpandablePanelCollapsedHeight: "w-full shrink-0",
   mobileExpandablePanelExpandedHeight:
     "h-[60dvh] max-h-[60dvh] min-h-[60dvh] shrink-0",
   mobileExpandablePanelCollapsedBody:
@@ -312,7 +324,7 @@ export const mobileTokens = {
   expandablePanelDockExpanded: "shadow-[0_-12px_40px_rgba(0,0,0,0.55)] ring-1 ring-white/15",
   expandablePanelChrome: "flex shrink-0 items-center gap-1 border-b border-white/15 px-2",
   expandablePanelHandle: "block h-1.5 w-12 rounded-full bg-white/40",
-  expandablePanelCollapsedFrame: "h-[252px] max-h-[252px] min-h-[252px]",
+  expandablePanelCollapsedFrame: "w-full shrink-0",
   expandablePanelExpandedFrame: "h-[60dvh] max-h-[60dvh] min-h-[60dvh]",
   expandablePanelCollapsedBody:
     "h-[180px] max-h-[180px] min-h-0 overflow-y-auto overscroll-contain",

@@ -5,7 +5,7 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronLeft, FolderOpen, Home, MapPin, User } from "lucide-react";
-import { MobileAppShell, MobileBottomNav, type MobileBottomNavItem } from "@/components/mobile-system";
+import { MobileShell, MobileBottomNav, type MobileBottomNavItem } from "@/components/mobile-system";
 import { cn } from "@/lib/utils";
 import { InviteShareProvider, useInviteShare } from "@/components/shared/InviteShareProvider";
 import { Slate360Logo } from "@/components/studio-ui/LogoProvider";
@@ -62,6 +62,11 @@ function StudioAppShellInner({ inviteShareData, children }: StudioAppShellProps)
     isDigitalTwinPassthroughShellPath(pathname);
   const activeKey = activeNavKey(pathname);
   const isModuleHome = pathname === "/site-walk" || pathname === "/digital-twin";
+  const mobileRoute = pathname.startsWith("/site-walk")
+    ? "site-walk"
+    : pathname.startsWith("/digital-twin")
+      ? "digital-twin"
+      : "app";
   const { open: inviteOpen, setOpen: setInviteOpen } = useInviteShare();
 
   if (fullBleed) {
@@ -70,9 +75,9 @@ function StudioAppShellInner({ inviteShareData, children }: StudioAppShellProps)
 
   return (
     <>
-      <MobileAppShell
+      <MobileShell
         className="relative min-h-[100dvh]"
-        mobileRoute="app"
+        mobileRoute={mobileRoute}
         header={
           <header
             className="flex h-14 shrink-0 items-center justify-between border-b border-white/[0.05] bg-[#0B0F15]/90 px-4 backdrop-blur-xl"
@@ -101,10 +106,9 @@ function StudioAppShellInner({ inviteShareData, children }: StudioAppShellProps)
           </header>
         }
         bottomNav={<MobileBottomNav items={NAV_ITEMS} activeKey={activeKey} ariaLabel="Platform" />}
-        mainClassName="min-h-0"
       >
-        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">{children}</div>
-      </MobileAppShell>
+        {children}
+      </MobileShell>
 
       {inviteOpen ? (
         <InviteShareModal

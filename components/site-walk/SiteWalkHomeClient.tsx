@@ -9,8 +9,8 @@ import {
   MobileExpandableTabbedPanel,
   MobileHomeActionCard,
   MobileHomeActionGrid,
-  MobileHomeLayout,
   mobileTokens,
+  useMobileShellDock,
 } from "@/components/mobile-system";
 import type { MobilePanelTab } from "@/components/mobile-system";
 import { buildCaptureLaunchUrl } from "@/lib/site-walk/capture-v2-config";
@@ -128,54 +128,54 @@ export function SiteWalkHomeClient({ projects, walks, deliverables }: Props) {
     [deliverables, projects, walks],
   );
 
+  useMobileShellDock(
+    <MobileExpandableTabbedPanel tabs={dockTabs} defaultTab="recent" />,
+  );
+
   return (
-    <MobileHomeLayout
-      route="site-walk"
-      contentTop={null}
-      primaryActions={
-        <section className={cn(mobileTokens.mobileHomePrimaryActionsRegion, "gap-2")}>
-          <div className="flex shrink-0 items-center gap-3">
-            <span
-              className={cn(mobileTokens.mobileIconChip, mobileTokens.mobileIconChipLg)}
-              aria-hidden
-            >
-              <MapPin className={mobileTokens.mobileIconChipIconLg} strokeWidth={1.75} />
-            </span>
-            <h1 className={cn(mobileTokens.moduleTitle, "min-w-0")}>SITE WALK</h1>
-          </div>
-          <div className={mobileTokens.mobileHomeSectionHeader}>
-            <span className={mobileTokens.appHomeSectionLabelAccent} aria-hidden />
-            <p className={mobileTokens.appHomeSectionLabel}>Quick Actions</p>
-          </div>
-          <MobileHomeActionGrid className="min-h-0 flex-1">
-            <MobileHomeActionCard
-              title="Quick Walk"
-              subtext="Start capturing now"
-              icon={Camera}
-              onClick={() => void handleQuickCapture()}
-            />
-            <MobileHomeActionCard
-              title="Walk Sessions"
-              subtext="Review saved walks"
-              icon={FolderOpen}
-              href="/site-walk/walks"
-            />
-            <MobileHomeActionCard
-              title="Deliverables"
-              subtext="Reports and outputs"
-              icon={FileText}
-              href="/site-walk/deliverables"
-            />
-            <MobileHomeActionCard
-              title="Assigned Work"
-              subtext="Tasks in the field"
-              icon={ClipboardList}
-              href="/site-walk/assigned-work"
-            />
-          </MobileHomeActionGrid>
-        </section>
-      }
-      dock={<MobileExpandableTabbedPanel tabs={dockTabs} defaultTab="recent" />}
-    />
+    <div
+      data-mobile-route="site-walk"
+      className={cn(mobileTokens.mobileShellScrollInner, "gap-2")}
+    >
+      <div className="flex shrink-0 items-center gap-3">
+        <span
+          className={cn(mobileTokens.mobileIconChip, mobileTokens.mobileIconChipLg)}
+          aria-hidden
+        >
+          <MapPin className={mobileTokens.mobileIconChipIconLg} strokeWidth={1.75} />
+        </span>
+        <h1 className={cn(mobileTokens.moduleTitle, "min-w-0")}>SITE WALK</h1>
+      </div>
+      <div className={mobileTokens.mobileHomeSectionHeader}>
+        <span className={mobileTokens.appHomeSectionLabelAccent} aria-hidden />
+        <p className={mobileTokens.appHomeSectionLabel}>Quick Actions</p>
+      </div>
+      <MobileHomeActionGrid aria-label="Quick actions">
+        <MobileHomeActionCard
+          title="Quick Walk"
+          subtext="Start capturing now"
+          icon={Camera}
+          onClick={() => void handleQuickCapture()}
+        />
+        <MobileHomeActionCard
+          title="Walk Sessions"
+          subtext="Review saved walks"
+          icon={FolderOpen}
+          href="/site-walk/walks"
+        />
+        <MobileHomeActionCard
+          title="Deliverables"
+          subtext="Reports and outputs"
+          icon={FileText}
+          href="/site-walk/deliverables"
+        />
+        <MobileHomeActionCard
+          title="Assigned Work"
+          subtext="Tasks in the field"
+          icon={ClipboardList}
+          href="/site-walk/assigned-work"
+        />
+      </MobileHomeActionGrid>
+    </div>
   );
 }

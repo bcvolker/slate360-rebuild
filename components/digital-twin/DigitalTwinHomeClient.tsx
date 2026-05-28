@@ -9,8 +9,8 @@ import {
   MobileExpandableTabbedPanel,
   MobileHomeActionCard,
   MobileHomeActionGrid,
-  MobileHomeLayout,
   mobileTokens,
+  useMobileShellDock,
 } from "@/components/mobile-system";
 import type { MobilePanelTab } from "@/components/mobile-system";
 import { cn } from "@/lib/utils";
@@ -110,54 +110,54 @@ export function DigitalTwinHomeClient({ twins, projects }: Props) {
     [projects, twins],
   );
 
+  useMobileShellDock(
+    <MobileExpandableTabbedPanel tabs={dockTabs} defaultTab="recent" />,
+  );
+
   return (
-    <MobileHomeLayout
-      route="digital-twin"
-      contentTop={null}
-      primaryActions={
-        <section className={cn(mobileTokens.mobileHomePrimaryActionsRegion, "gap-2")}>
-          <div className="flex shrink-0 items-center gap-3">
-            <span
-              className={cn(mobileTokens.mobileIconChip, mobileTokens.mobileIconChipLg)}
-              aria-hidden
-            >
-              <AppWindow className={mobileTokens.mobileIconChipIconLg} strokeWidth={1.75} />
-            </span>
-            <h1 className={cn(mobileTokens.moduleTitle, "min-w-0")}>DIGITAL TWIN</h1>
-          </div>
-          <div className={mobileTokens.mobileHomeSectionHeader}>
-            <span className={mobileTokens.appHomeSectionLabelAccent} aria-hidden />
-            <p className={mobileTokens.appHomeSectionLabel}>Quick Actions</p>
-          </div>
-          <MobileHomeActionGrid className="min-h-0 flex-1">
-            <MobileHomeActionCard
-              title="Quick Capture"
-              subtext="Camera and LiDAR when available"
-              icon={Scan}
-              onClick={handleQuickCapture}
-            />
-            <MobileHomeActionCard
-              title="Upload from Phone"
-              subtext="360 video or drone footage"
-              icon={Upload}
-              href="/digital-twin/upload"
-            />
-            <MobileHomeActionCard
-              title="My Twins"
-              subtext="View existing twins"
-              icon={Boxes}
-              href="/digital-twin/twins"
-            />
-            <MobileHomeActionCard
-              title="Projects"
-              subtext="Workspace context"
-              icon={FolderOpen}
-              href="/projects"
-            />
-          </MobileHomeActionGrid>
-        </section>
-      }
-      dock={<MobileExpandableTabbedPanel tabs={dockTabs} defaultTab="recent" />}
-    />
+    <div
+      data-mobile-route="digital-twin"
+      className={cn(mobileTokens.mobileShellScrollInner, "gap-2")}
+    >
+      <div className="flex shrink-0 items-center gap-3">
+        <span
+          className={cn(mobileTokens.mobileIconChip, mobileTokens.mobileIconChipLg)}
+          aria-hidden
+        >
+          <AppWindow className={mobileTokens.mobileIconChipIconLg} strokeWidth={1.75} />
+        </span>
+        <h1 className={cn(mobileTokens.moduleTitle, "min-w-0")}>DIGITAL TWIN</h1>
+      </div>
+      <div className={mobileTokens.mobileHomeSectionHeader}>
+        <span className={mobileTokens.appHomeSectionLabelAccent} aria-hidden />
+        <p className={mobileTokens.appHomeSectionLabel}>Quick Actions</p>
+      </div>
+      <MobileHomeActionGrid aria-label="Quick actions">
+        <MobileHomeActionCard
+          title="Quick Capture"
+          subtext="Camera and LiDAR when available"
+          icon={Scan}
+          onClick={handleQuickCapture}
+        />
+        <MobileHomeActionCard
+          title="Upload from Phone"
+          subtext="360 video or drone footage"
+          icon={Upload}
+          href="/digital-twin/upload"
+        />
+        <MobileHomeActionCard
+          title="My Twins"
+          subtext="View existing twins"
+          icon={Boxes}
+          href="/digital-twin/twins"
+        />
+        <MobileHomeActionCard
+          title="Projects"
+          subtext="Workspace context"
+          icon={FolderOpen}
+          href="/projects"
+        />
+      </MobileHomeActionGrid>
+    </div>
   );
 }

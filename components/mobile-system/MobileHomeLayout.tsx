@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { mobileTokens } from "./mobileTokens";
+import { useMobileShellDock } from "./MobileShell";
 
 type MobileHomeLayoutProps = {
   /** Real-route verification marker */
@@ -16,12 +17,9 @@ type MobileHomeLayoutProps = {
   className?: string;
 };
 
-const HOME_LAYOUT_ROOT =
-  "relative flex h-full w-full flex-col overflow-hidden bg-[#0B0F15]";
-
 /**
- * Shared vertical composition for /app, /site-walk, and /digital-twin home surfaces.
- * Upper content flexes; dock stays shrink-0 above bottom nav with a small gap.
+ * @deprecated Use MobileShell scroll content + useMobileShellDock instead.
+ * Kept for preview/quarantine routes during migration.
  */
 export function MobileHomeLayout({
   route,
@@ -30,37 +28,23 @@ export function MobileHomeLayout({
   dock,
   className,
 }: MobileHomeLayoutProps) {
+  useMobileShellDock(dock);
+
   return (
     <div
-      data-mobile-home-layout-version="unified-balanced-dock-v4"
+      data-mobile-home-layout-version="mobile-shell-v1"
       data-dock-width-mode="full-shell"
       data-mobile-route={route}
-      className={cn(HOME_LAYOUT_ROOT, className)}
+      className={cn(mobileTokens.mobileShellScrollInner, className)}
     >
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-        <div
-          className={cn(
-            "flex min-h-0 flex-1 flex-col overflow-hidden",
-            mobileTokens.mobileHomeUpperRegion,
-          )}
-        >
-          <div className={mobileTokens.mobileHomeUpperInner}>
-            <div className={mobileTokens.mobileHomeContentStack}>
-              {contentTop ? <div className="shrink-0">{contentTop}</div> : null}
-              {primaryActions ? (
-                <div className={mobileTokens.mobileHomePrimaryActionsRegion}>
-                  {primaryActions}
-                </div>
-              ) : null}
-            </div>
-          </div>
-        </div>
-        <div className={mobileTokens.mobileHomeDockRegion}>
-          <div className={mobileTokens.mobileHomeDockInner}>{dock}</div>
-        </div>
-      </div>
+      {contentTop ? <div className="shrink-0">{contentTop}</div> : null}
+      {primaryActions ? (
+        <div className={mobileTokens.mobileHomeSection}>{primaryActions}</div>
+      ) : null}
     </div>
   );
 }
 
-export { HOME_LAYOUT_ROOT };
+/** @deprecated Use MobileShell outer container classes */
+export const HOME_LAYOUT_ROOT =
+  "relative flex h-full w-full flex-col overflow-hidden bg-[#0B0F15]";

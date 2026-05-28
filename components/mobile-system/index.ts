@@ -17,6 +17,7 @@ export { MobileShellBackToApp } from "./MobileShellBackToApp";
 export { MobileShellBrandMark } from "./MobileShellBrandMark";
 
 export { MobileAppShell } from "./MobileAppShell";
+export { MobileShell, useMobileShellDock } from "./MobileShell";
 
 export { MobileTopBar } from "./MobileTopBar";
 

@@ -74,7 +74,7 @@ export function MobileExpandableTabbedPanel({
                 mobileTokens.mobileExpandablePanelFrameExpanded,
               )
             : isHomeDock
-              ? mobileTokens.mobileHomeDockCollapsedHeight
+              ? mobileTokens.collapsedDockHeight
               : mobileTokens.mobileExpandablePanelCollapsedHeight,
         )}
       >
@@ -169,7 +169,6 @@ export function MobileExpandableTabbedPanel({
           data-expanded-height={MOBILE_HOME_DOCK_EXPANDED_CLAMP}
           className={cn(
             "relative flex w-full shrink-0 flex-col",
-            mobileTokens.mobileHomeDockBottomGap,
             className,
           )}
         >
