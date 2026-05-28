@@ -2,9 +2,9 @@
 
 import type { ReactNode } from "react";
 import { usePathname } from "next/navigation";
-import { MobileAppShell } from "@/components/mobile-system";
+import { MobileAppShell, MobilePlatformHeader } from "@/components/mobile-system";
 import { isDigitalTwinPassthroughShellPath } from "@/lib/digital-twin/digital-twin-shell-paths";
-import { DigitalTwinSubRouteHeader } from "./DigitalTwinModuleNav";
+import { resolveDigitalTwinRouteTitle } from "./DigitalTwinModuleNav";
 
 /**
  * Digital Twin sub-route shell — mobile viewport for capture, upload, twins, and more.
@@ -33,7 +33,13 @@ export function DigitalTwinShell({
     <MobileAppShell
       className="fixed inset-0 z-50"
       mobileRoute="digital-twin"
-      header={<DigitalTwinSubRouteHeader orgName={orgName} />}
+      header={
+        <MobilePlatformHeader
+          backHref="/digital-twin"
+          title={resolveDigitalTwinRouteTitle(pathname)}
+          subtitle={orgName ?? "Reality capture workspace"}
+        />
+      }
       mainClassName="min-h-0"
     >
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">{children}</div>

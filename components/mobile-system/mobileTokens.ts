@@ -137,6 +137,34 @@ export const mobileTokens = {
     "rounded-lg bg-teal-500/90 text-white hover:bg-teal-500",
   mobileAvatarRing:
     "flex size-6 items-center justify-center rounded-full bg-teal-400/12 text-[10px] font-bold text-teal-300 transition-colors hover:bg-teal-400/18",
+  /** Platform header bar — Graphite Glass chrome for all mobile shells */
+  mobileHeaderBar:
+    "flex h-14 shrink-0 items-center justify-between border-b border-white/10 bg-[#0B0F15]/90 px-4 backdrop-blur-xl",
+  mobileHeaderBrandLink:
+    "flex min-w-0 shrink-0 items-center gap-2 rounded-lg transition-colors hover:bg-white/[0.04] active:bg-white/[0.07]",
+  mobileHeaderBackChevron: "size-5 shrink-0 text-zinc-200",
+  mobileHeaderIconButton:
+    "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/[0.06] bg-white/[0.03] text-zinc-200 transition-colors hover:border-teal-400/30 hover:bg-white/[0.06] hover:text-white",
+  mobileHeaderIconSize: "h-[18px] w-[18px]",
+  mobileHeaderActionsRow: "ml-auto flex shrink-0 items-center gap-1.5",
+  mobileHeaderPopover:
+    "absolute right-0 top-[calc(100%+8px)] z-50 w-[min(280px,calc(100vw-2rem))] rounded-xl border border-white/10 bg-[#0B0F15]/95 p-4 shadow-[0_12px_40px_rgba(0,0,0,0.55)] backdrop-blur-md",
+  mobileHeaderPopoverLabel:
+    "text-xs font-semibold uppercase tracking-[0.12em] text-zinc-400",
+  mobileHeaderPopoverSubtext:
+    "mt-3 text-center text-[11px] leading-snug text-zinc-400",
+  mobileHeaderPopoverCta:
+    "mt-3 flex h-10 w-full items-center justify-center rounded-xl border border-teal-400/30 bg-teal-400/10 text-sm font-medium text-teal-300 transition-colors hover:bg-teal-400/15",
+  mobileHeaderSubrouteBack:
+    "inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.05] px-2.5 text-xs font-semibold text-zinc-200 transition-colors hover:border-teal-400/25 hover:bg-white/[0.08] hover:text-white",
+  mobileHeaderTitle:
+    "truncate text-[16px] font-semibold leading-tight tracking-tight text-white",
+  mobileHeaderSubtitle:
+    "truncate text-[11px] font-bold uppercase leading-tight tracking-[0.1em] text-zinc-300 mt-0.5",
+  mobileBottomNavItemActive: "bg-teal-400/12 text-teal-200",
+  mobileBottomNavItemIdle: "text-zinc-300 hover:bg-white/5 hover:text-zinc-100",
+  mobileBottomNavActiveIndicator:
+    "absolute left-1/2 top-0 h-[2px] w-8 -translate-x-1/2 rounded-b-full bg-teal-400 shadow-[0_2px_8px_rgba(45,212,191,0.35)]",
   mobileHeaderToolIcon:
     "flex size-9 items-center justify-center text-zinc-100 transition-colors hover:text-white",
   mobileIconBgPrimary: "border border-teal-400/20 bg-teal-400/10 text-teal-400/90",

@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import type { ElementType } from "react";
 import { Cloud, FolderOpen, Home, MessageSquare, User } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { mobileTokens } from "./mobileTokens";
 
 export type MobilePlatformNavKey =
   | "home"
@@ -89,15 +90,15 @@ export function MobileBottomNav<Key extends string = string>({
         {navItems.map(({ key, label, icon: Icon, href, onSelect }) => {
           const active = navActiveKey === key;
           const itemClassName = cn(
-            "relative flex h-full w-full flex-col items-center justify-center gap-1 rounded-lg py-2 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6EA7A0]/50",
-            active ? "bg-[#85CBC3]/12 text-[#B0EDE8]" : "text-zinc-300 hover:bg-white/5 hover:text-zinc-100",
+            "relative flex h-full w-full flex-col items-center justify-center gap-1 rounded-lg py-2 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400/50",
+            active ? mobileTokens.mobileBottomNavItemActive : mobileTokens.mobileBottomNavItemIdle,
           );
           const content = (
             <>
               {active && (
                 <span
                   aria-hidden
-                  className="absolute left-1/2 top-0 h-[2px] w-8 -translate-x-1/2 rounded-b-full bg-[#85CBC3] shadow-[0_2px_8px_rgba(133,203,195,0.45)]"
+                  className={mobileTokens.mobileBottomNavActiveIndicator}
                 />
               )}
               <Icon

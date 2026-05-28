@@ -2,14 +2,15 @@
 
 import type { ReactNode } from "react";
 import dynamic from "next/dynamic";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronLeft, FolderOpen, Home, MapPin, User } from "lucide-react";
-import { MobileShell, MobileBottomNav, type MobileBottomNavItem } from "@/components/mobile-system";
-import { cn } from "@/lib/utils";
+import { FolderOpen, Home, MapPin, User } from "lucide-react";
+import {
+  MobilePlatformHeader,
+  MobileShell,
+  MobileBottomNav,
+  type MobileBottomNavItem,
+} from "@/components/mobile-system";
 import { InviteShareProvider, useInviteShare } from "@/components/shared/InviteShareProvider";
-import { Slate360Logo } from "@/components/studio-ui/LogoProvider";
-import { StudioMobileHeaderActions } from "@/components/studio-ui/StudioMobileHeaderActions";
 import { isSiteWalkPassthroughShellPath } from "@/lib/site-walk/site-walk-shell-paths";
 import {
   isDigitalTwinPassthroughShellPath,
@@ -69,46 +70,21 @@ function StudioAppShellInner({ inviteShareData, children }: StudioAppShellProps)
       : "app";
   const { open: inviteOpen, setOpen: setInviteOpen } = useInviteShare();
 
-  if (fullBleed) {
-    return <div className="fixed inset-0 h-[100dvh] w-full overflow-hidden bg-[#0B0F15]">{children}</div>;
-  }
+  const content = fullBleed ? (
+    <div className="fixed inset-0 h-[100dvh] w-full overflow-hidden bg-[#0B0F15]">{children}</div>
+  ) : (
+    <MobileShell
+      mobileRoute={mobileRoute}
+      header={<MobilePlatformHeader showBackToApp={isModuleHome} inviteShareData={inviteShareData} />}
+      bottomNav={<MobileBottomNav items={NAV_ITEMS} activeKey={activeKey} ariaLabel="Platform" />}
+    >
+      {children}
+    </MobileShell>
+  );
 
   return (
     <>
-      <MobileShell
-        mobileRoute={mobileRoute}
-        header={
-          <header
-            className="flex h-14 shrink-0 items-center justify-between border-b border-white/[0.05] bg-[#0B0F15]/90 px-4 backdrop-blur-xl"
-            style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}
-          >
-            <Link
-              href="/app"
-              className={cn(
-                "flex min-w-0 shrink-0 items-center rounded-lg transition-colors hover:bg-white/[0.04] active:bg-white/[0.07]",
-                isModuleHome ? "gap-1 pr-1.5" : "",
-              )}
-              aria-label={isModuleHome ? "Back to Slate360 home" : "Slate360 home"}
-            >
-              {isModuleHome ? (
-                <ChevronLeft
-                  className="size-5 shrink-0 text-zinc-200"
-                  strokeWidth={2}
-                  aria-hidden
-                />
-              ) : null}
-              <Slate360Logo variant="dark" />
-            </Link>
-            <div className="ml-auto flex shrink-0 items-center [&>div:first-child]:flex-row-reverse">
-              <StudioMobileHeaderActions inviteShareData={inviteShareData} />
-            </div>
-          </header>
-        }
-        bottomNav={<MobileBottomNav items={NAV_ITEMS} activeKey={activeKey} ariaLabel="Platform" />}
-      >
-        {children}
-      </MobileShell>
-
+      {content}
       {inviteOpen ? (
         <InviteShareModal
           open={inviteOpen}
@@ -122,7 +98,7 @@ function StudioAppShellInner({ inviteShareData, children }: StudioAppShellProps)
 
 export function StudioAppShell(props: StudioAppShellProps) {
   return (
-    <InviteShareProvider>
+    <InviteShareProvider inviteShareData={props.inviteShareData}>
       <StudioAppShellInner {...props} />
     </InviteShareProvider>
   );

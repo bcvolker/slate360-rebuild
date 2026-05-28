@@ -19,6 +19,9 @@ export { MobileShellBrandMark } from "./MobileShellBrandMark";
 export { MobileAppShell } from "./MobileAppShell";
 export { MobileShell, useMobileShellDock } from "./MobileShell";
 
+export { MobilePlatformHeader } from "./MobilePlatformHeader";
+export { MobileHeaderActions } from "./MobileHeaderActions";
+
 export { MobileTopBar } from "./MobileTopBar";
 
 export { MobileBottomNav } from "./MobileBottomNav";

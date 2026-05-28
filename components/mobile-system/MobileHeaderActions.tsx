@@ -5,44 +5,40 @@ import Link from "next/link";
 import { Bell, Bug, QrCode, User } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { BetaFeedbackModal } from "@/components/shared/BetaFeedbackModal";
-import { useInviteShare } from "@/components/shared/InviteShareProvider";
+import { useInviteShare, useInviteShareData } from "@/components/shared/InviteShareProvider";
 import { cn } from "@/lib/utils";
+import { mobileTokens } from "./mobileTokens";
 import type { InviteShareData } from "@/lib/types/invite";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://slate360.ai";
 
-const iconButtonClass = cn(
-  "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl",
-  "border border-white/[0.06] bg-white/[0.03] text-zinc-200",
-  "transition-colors hover:border-[#85CBC3]/30 hover:bg-white/[0.06] hover:text-white",
-  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#85CBC3]/45",
-);
-
-type StudioMobileHeaderActionsProps = {
-  inviteShareData: InviteShareData;
+type MobileHeaderActionsProps = {
+  inviteShareData?: InviteShareData;
+  className?: string;
 };
 
-export function StudioMobileHeaderActions({ inviteShareData }: StudioMobileHeaderActionsProps) {
+export function MobileHeaderActions({ inviteShareData: inviteShareDataProp, className }: MobileHeaderActionsProps) {
+  const inviteShareDataFromContext = useInviteShareData();
+  const inviteShareData = inviteShareDataProp ?? inviteShareDataFromContext;
   const { setOpen: openInviteShare } = useInviteShare();
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [qrOpen, setQrOpen] = useState(false);
   const qrAnchorRef = useRef<HTMLDivElement>(null);
 
-  const inviteLink = `${APP_URL}/signup?ref=${encodeURIComponent(inviteShareData.userId)}&launch=1`;
+  const inviteLink = inviteShareData
+    ? `${APP_URL}/signup?ref=${encodeURIComponent(inviteShareData.userId)}&launch=1`
+    : null;
+  const iconButtonClass = cn(mobileTokens.mobileHeaderIconButton, mobileTokens.focusRing);
 
   return (
     <>
-      <div className="flex shrink-0 items-center gap-1.5">
+      <div className={cn(mobileTokens.mobileHeaderActionsRow, className)}>
         <Link href="/more/account" className={iconButtonClass} aria-label="Account settings">
-          <User className="h-[18px] w-[18px]" strokeWidth={1.75} />
+          <User className={mobileTokens.mobileHeaderIconSize} strokeWidth={1.75} />
         </Link>
 
-        <Link
-          href="/coordination/inbox"
-          className={iconButtonClass}
-          aria-label="Notifications and alerts"
-        >
-          <Bell className="h-[18px] w-[18px]" strokeWidth={1.75} />
+        <Link href="/coordination/inbox" className={iconButtonClass} aria-label="Notifications and alerts">
+          <Bell className={mobileTokens.mobileHeaderIconSize} strokeWidth={1.75} />
         </Link>
 
         <button
@@ -51,7 +47,7 @@ export function StudioMobileHeaderActions({ inviteShareData }: StudioMobileHeade
           aria-label="Report a bug or suggest a feature"
           onClick={() => setFeedbackOpen(true)}
         >
-          <Bug className="h-[18px] w-[18px]" strokeWidth={1.75} />
+          <Bug className={mobileTokens.mobileHeaderIconSize} strokeWidth={1.75} />
         </button>
 
         <div ref={qrAnchorRef} className="relative">
@@ -60,12 +56,19 @@ export function StudioMobileHeaderActions({ inviteShareData }: StudioMobileHeade
             className={iconButtonClass}
             aria-label="Share project invite QR code"
             aria-expanded={qrOpen}
-            onClick={() => setQrOpen((open) => !open)}
+            disabled={!inviteLink}
+            onClick={() => {
+              if (!inviteLink) {
+                openInviteShare(true);
+                return;
+              }
+              setQrOpen((open) => !open);
+            }}
           >
-            <QrCode className="h-[18px] w-[18px]" strokeWidth={1.75} />
+            <QrCode className={mobileTokens.mobileHeaderIconSize} strokeWidth={1.75} />
           </button>
 
-          {qrOpen ? (
+          {qrOpen && inviteLink ? (
             <>
               <button
                 type="button"
@@ -76,20 +79,18 @@ export function StudioMobileHeaderActions({ inviteShareData }: StudioMobileHeade
               <div
                 role="dialog"
                 aria-label="Invite QR code"
-                className="absolute right-0 top-[calc(100%+8px)] z-50 w-[min(280px,calc(100vw-2rem))] rounded-xl border border-white/10 bg-[#0B0F15]/95 p-4 shadow-[0_12px_40px_rgba(0,0,0,0.55)] backdrop-blur-md"
+                className={mobileTokens.mobileHeaderPopover}
               >
-                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#A3AED0]">
-                  Field invite QR
-                </p>
+                <p className={mobileTokens.mobileHeaderPopoverLabel}>Field invite QR</p>
                 <div className="mt-3 flex justify-center rounded-xl border border-white/[0.06] bg-white p-3">
                   <QRCodeSVG value={inviteLink} size={168} level="M" includeMargin={false} />
                 </div>
-                <p className="mt-3 text-center text-[11px] leading-snug text-[#A3AED0]">
+                <p className={mobileTokens.mobileHeaderPopoverSubtext}>
                   Scan or share to sync project contacts on-site.
                 </p>
                 <button
                   type="button"
-                  className="mt-3 flex h-10 w-full items-center justify-center rounded-xl border border-[#6EA7A0]/30 bg-[#6EA7A0]/10 text-sm font-medium text-[#6EA7A0] transition-colors hover:bg-[#6EA7A0]/15"
+                  className={cn(mobileTokens.mobileHeaderPopoverCta, mobileTokens.focusRing)}
                   onClick={() => {
                     setQrOpen(false);
                     openInviteShare(true);

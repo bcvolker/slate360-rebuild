@@ -1,6 +1,13 @@
 "use client";
 
-import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
+import type { InviteShareData } from "@/lib/types/invite";
 
 interface InviteShareContextValue {
   open: boolean;
@@ -8,11 +15,21 @@ interface InviteShareContextValue {
 }
 
 const InviteShareContext = createContext<InviteShareContextValue | null>(null);
+const InviteShareDataContext = createContext<InviteShareData | null>(null);
 
-export function InviteShareProvider({ children }: { children: ReactNode }) {
+type InviteShareProviderProps = {
+  children: ReactNode;
+  inviteShareData?: InviteShareData;
+};
+
+export function InviteShareProvider({ children, inviteShareData }: InviteShareProviderProps) {
   const [open, setOpen] = useState(false);
-  const value = useMemo(() => ({ open, setOpen }), [open]);
-  return <InviteShareContext.Provider value={value}>{children}</InviteShareContext.Provider>;
+  const modalValue = useMemo(() => ({ open, setOpen }), [open]);
+  return (
+    <InviteShareDataContext.Provider value={inviteShareData ?? null}>
+      <InviteShareContext.Provider value={modalValue}>{children}</InviteShareContext.Provider>
+    </InviteShareDataContext.Provider>
+  );
 }
 
 export function useInviteShare(): InviteShareContextValue {
@@ -21,4 +38,8 @@ export function useInviteShare(): InviteShareContextValue {
     throw new Error("useInviteShare must be used within an InviteShareProvider");
   }
   return ctx;
+}
+
+export function useInviteShareData(): InviteShareData | null {
+  return useContext(InviteShareDataContext);
 }
