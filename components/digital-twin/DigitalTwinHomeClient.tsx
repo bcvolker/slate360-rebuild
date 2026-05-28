@@ -9,6 +9,7 @@ import {
   MobileExpandableTabbedPanel,
   MobileHomeActionCard,
   MobileHomeActionGrid,
+  MobileQuickActionsSection,
   mobileTokens,
   useMobileShellDock,
 } from "@/components/mobile-system";
@@ -110,15 +111,47 @@ export function DigitalTwinHomeClient({ twins, projects }: Props) {
     [projects, twins],
   );
 
-  useMobileShellDock(
-    <MobileExpandableTabbedPanel tabs={dockTabs} defaultTab="recent" />,
+  const dockContent = useMemo(
+    () => (
+      <div className={mobileTokens.mobileShellDockStack}>
+        <MobileQuickActionsSection>
+          <MobileHomeActionGrid aria-label="Quick actions">
+            <MobileHomeActionCard
+              title="Quick Capture"
+              subtext="Camera and LiDAR when available"
+              icon={Scan}
+              onClick={handleQuickCapture}
+            />
+            <MobileHomeActionCard
+              title="Upload from Phone"
+              subtext="360 video or drone footage"
+              icon={Upload}
+              href="/digital-twin/upload"
+            />
+            <MobileHomeActionCard
+              title="My Twins"
+              subtext="View existing twins"
+              icon={Boxes}
+              href="/digital-twin/twins"
+            />
+            <MobileHomeActionCard
+              title="Projects"
+              subtext="Workspace context"
+              icon={FolderOpen}
+              href="/projects"
+            />
+          </MobileHomeActionGrid>
+        </MobileQuickActionsSection>
+        <MobileExpandableTabbedPanel tabs={dockTabs} defaultTab="recent" />
+      </div>
+    ),
+    [dockTabs],
   );
 
+  useMobileShellDock(dockContent);
+
   return (
-    <div
-      data-mobile-route="digital-twin"
-      className={cn(mobileTokens.mobileShellScrollInner, "gap-2")}
-    >
+    <div data-mobile-route="digital-twin" className={mobileTokens.mobileShellScrollInner}>
       <div className="flex shrink-0 items-center gap-3">
         <span
           className={cn(mobileTokens.mobileIconChip, mobileTokens.mobileIconChipLg)}
@@ -128,36 +161,6 @@ export function DigitalTwinHomeClient({ twins, projects }: Props) {
         </span>
         <h1 className={cn(mobileTokens.moduleTitle, "min-w-0")}>DIGITAL TWIN</h1>
       </div>
-      <div className={mobileTokens.mobileHomeSectionHeader}>
-        <span className={mobileTokens.appHomeSectionLabelAccent} aria-hidden />
-        <p className={mobileTokens.appHomeSectionLabel}>Quick Actions</p>
-      </div>
-      <MobileHomeActionGrid aria-label="Quick actions">
-        <MobileHomeActionCard
-          title="Quick Capture"
-          subtext="Camera and LiDAR when available"
-          icon={Scan}
-          onClick={handleQuickCapture}
-        />
-        <MobileHomeActionCard
-          title="Upload from Phone"
-          subtext="360 video or drone footage"
-          icon={Upload}
-          href="/digital-twin/upload"
-        />
-        <MobileHomeActionCard
-          title="My Twins"
-          subtext="View existing twins"
-          icon={Boxes}
-          href="/digital-twin/twins"
-        />
-        <MobileHomeActionCard
-          title="Projects"
-          subtext="Workspace context"
-          icon={FolderOpen}
-          href="/projects"
-        />
-      </MobileHomeActionGrid>
     </div>
   );
 }

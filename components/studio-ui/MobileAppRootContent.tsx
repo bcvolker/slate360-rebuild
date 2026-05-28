@@ -15,6 +15,7 @@ import {
   MobileCreateSheet,
   MobileEmptyState,
   MobileExpandableTabbedPanel,
+  MobileQuickActionsSection,
   MobileQuickActionStrip,
   mobileTokens,
   useMobileShellDock,
@@ -101,9 +102,19 @@ export function MobileAppRootContent() {
     [],
   );
 
-  useMobileShellDock(
-    <MobileExpandableTabbedPanel tabs={activityTabs} defaultTab="alerts" />,
+  const dockContent = useMemo(
+    () => (
+      <div className={mobileTokens.mobileShellDockStack}>
+        <MobileQuickActionsSection>
+          <MobileQuickActionStrip actions={quickActions} />
+        </MobileQuickActionsSection>
+        <MobileExpandableTabbedPanel tabs={activityTabs} defaultTab="alerts" />
+      </div>
+    ),
+    [activityTabs, quickActions],
   );
+
+  useMobileShellDock(dockContent);
 
   return (
     <>
@@ -117,13 +128,6 @@ export function MobileAppRootContent() {
             <p className={mobileTokens.appHomeSectionLabel}>Your Apps</p>
           </div>
           <MobileAppLauncherGrid />
-        </section>
-        <section className={mobileTokens.mobileHomeSection}>
-          <div className={mobileTokens.mobileHomeSectionHeader}>
-            <span className={mobileTokens.appHomeSectionLabelAccent} aria-hidden />
-            <p className={mobileTokens.appHomeSectionLabel}>Quick Actions</p>
-          </div>
-          <MobileQuickActionStrip actions={quickActions} />
         </section>
       </div>
       <MobileCreateSheet open={createSheetOpen} onOpenChange={setCreateSheetOpen} />

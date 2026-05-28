@@ -9,6 +9,7 @@ import {
   MobileExpandableTabbedPanel,
   MobileHomeActionCard,
   MobileHomeActionGrid,
+  MobileQuickActionsSection,
   mobileTokens,
   useMobileShellDock,
 } from "@/components/mobile-system";
@@ -128,15 +129,47 @@ export function SiteWalkHomeClient({ projects, walks, deliverables }: Props) {
     [deliverables, projects, walks],
   );
 
-  useMobileShellDock(
-    <MobileExpandableTabbedPanel tabs={dockTabs} defaultTab="recent" />,
+  const dockContent = useMemo(
+    () => (
+      <div className={mobileTokens.mobileShellDockStack}>
+        <MobileQuickActionsSection>
+          <MobileHomeActionGrid aria-label="Quick actions">
+            <MobileHomeActionCard
+              title="Quick Walk"
+              subtext="Start capturing now"
+              icon={Camera}
+              onClick={() => void handleQuickCapture()}
+            />
+            <MobileHomeActionCard
+              title="Walk Sessions"
+              subtext="Review saved walks"
+              icon={FolderOpen}
+              href="/site-walk/walks"
+            />
+            <MobileHomeActionCard
+              title="Deliverables"
+              subtext="Reports and outputs"
+              icon={FileText}
+              href="/site-walk/deliverables"
+            />
+            <MobileHomeActionCard
+              title="Assigned Work"
+              subtext="Tasks in the field"
+              icon={ClipboardList}
+              href="/site-walk/assigned-work"
+            />
+          </MobileHomeActionGrid>
+        </MobileQuickActionsSection>
+        <MobileExpandableTabbedPanel tabs={dockTabs} defaultTab="recent" />
+      </div>
+    ),
+    [dockTabs],
   );
 
+  useMobileShellDock(dockContent);
+
   return (
-    <div
-      data-mobile-route="site-walk"
-      className={cn(mobileTokens.mobileShellScrollInner, "gap-2")}
-    >
+    <div data-mobile-route="site-walk" className={mobileTokens.mobileShellScrollInner}>
       <div className="flex shrink-0 items-center gap-3">
         <span
           className={cn(mobileTokens.mobileIconChip, mobileTokens.mobileIconChipLg)}
@@ -146,36 +179,6 @@ export function SiteWalkHomeClient({ projects, walks, deliverables }: Props) {
         </span>
         <h1 className={cn(mobileTokens.moduleTitle, "min-w-0")}>SITE WALK</h1>
       </div>
-      <div className={mobileTokens.mobileHomeSectionHeader}>
-        <span className={mobileTokens.appHomeSectionLabelAccent} aria-hidden />
-        <p className={mobileTokens.appHomeSectionLabel}>Quick Actions</p>
-      </div>
-      <MobileHomeActionGrid aria-label="Quick actions">
-        <MobileHomeActionCard
-          title="Quick Walk"
-          subtext="Start capturing now"
-          icon={Camera}
-          onClick={() => void handleQuickCapture()}
-        />
-        <MobileHomeActionCard
-          title="Walk Sessions"
-          subtext="Review saved walks"
-          icon={FolderOpen}
-          href="/site-walk/walks"
-        />
-        <MobileHomeActionCard
-          title="Deliverables"
-          subtext="Reports and outputs"
-          icon={FileText}
-          href="/site-walk/deliverables"
-        />
-        <MobileHomeActionCard
-          title="Assigned Work"
-          subtext="Tasks in the field"
-          icon={ClipboardList}
-          href="/site-walk/assigned-work"
-        />
-      </MobileHomeActionGrid>
     </div>
   );
 }

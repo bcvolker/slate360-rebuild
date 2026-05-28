@@ -32,6 +32,7 @@ export { MobileHomeActionCard, MobileHomeActionGrid } from "./MobileHomeActionCa
 
 export { MobileQuickActionStrip } from "./MobileQuickActionStrip";
 export type { MobileQuickActionItem } from "./MobileQuickActionStrip";
+export { MobileQuickActionsSection } from "./MobileQuickActionsSection";
 
 export { MobileActionGrid } from "./MobileActionGrid";
 

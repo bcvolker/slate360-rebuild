@@ -65,7 +65,7 @@ export function MobileShell({
   return (
     <MobileShellDockContext.Provider value={{ setDock: setRegisteredDock }}>
       <div
-        data-mobile-shell-version="unified-v1"
+        data-mobile-shell-version="unified-v2"
         data-mobile-route={mobileRoute}
         className={cn(
           "dark flex h-[100dvh] w-full max-w-full flex-col overflow-hidden bg-[#0B0F15] text-slate-50",
@@ -77,7 +77,7 @@ export function MobileShell({
           {header ? <div className="shrink-0">{header}</div> : null}
 
           <div className="flex min-h-0 flex-1 flex-col">
-            <div className="relative min-h-0 flex-1 overflow-y-auto overscroll-contain">
+            <div className="relative flex min-h-0 flex-1 overflow-y-auto overscroll-contain">
               {scrollContent}
               <div
                 className={mobileTokens.scrollContentBottomFade}

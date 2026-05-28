@@ -76,7 +76,6 @@ function StudioAppShellInner({ inviteShareData, children }: StudioAppShellProps)
   return (
     <>
       <MobileShell
-        className="relative min-h-[100dvh]"
         mobileRoute={mobileRoute}
         header={
           <header
