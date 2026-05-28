@@ -20,6 +20,11 @@ export const MOBILE_HOME_DOCK_EXPANDED_CLAMP = "60dvh";
 const mobileTabbedPanelScrollBody = "min-h-0 flex-1 overflow-y-auto";
 const mobileTabbedPanelBodyPadding = "px-3 pt-2 pb-3";
 
+/** Shared quick-action card surface — one size/spacing for all mobile home shells */
+const mobileQuickActionCardSurface =
+  "flex min-h-[112px] rounded-xl border border-white/10 bg-white/[0.05] px-3 py-2.5 text-zinc-100 transition-all hover:border-white/15 hover:bg-white/[0.08] hover:text-white active:-translate-y-0.5 active:bg-white/[0.11] active:ring-2 active:ring-teal-400/30";
+const mobileQuickActionGrid = "grid shrink-0 grid-cols-2 gap-2.5 auto-rows-fr";
+
 export const mobileTokens = {
   pageBgHex: "#0B0F15",
 
@@ -51,7 +56,9 @@ export const mobileTokens = {
     "mx-auto flex w-full max-w-2xl shrink-0 flex-col px-4 pt-2 pb-0",
   mobileHomeAppDockTopSpacer: "h-0 max-h-0 shrink-0 overflow-hidden",
   mobileHomeDockTopSpacer: "h-0 max-h-0 shrink-0 overflow-hidden",
-  mobileHomeDockRegion: "relative z-10 w-full shrink-0 px-4 pb-0",
+  mobileHomeDockRegion: "relative z-10 w-full shrink-0 px-4 pt-1 pb-1",
+  mobileHomeDockTopGap: "pt-1",
+  mobileHomeDockBottomGap: "pb-1",
   mobileHomeDockInner: "mx-auto w-full max-w-2xl",
   /** Legacy anchored bottom sheet tokens (deprecated) */
   mobileHomeContentScroll: "relative z-0 h-full min-h-0 overflow-y-auto overscroll-contain",
@@ -121,10 +128,10 @@ export const mobileTokens = {
   /** Shared icon chip — one shape/color across all mobile shells */
   mobileIconChip:
     "flex shrink-0 items-center justify-center rounded-lg border border-teal-400/20 bg-teal-400/10 text-teal-400/90",
-  mobileIconChipMd: "h-9 w-9",
-  mobileIconChipLg: "h-11 w-11 rounded-xl",
-  mobileIconChipIconMd: "h-6 w-6",
-  mobileIconChipIconLg: "h-6 w-6",
+  mobileIconChipMd: "h-8 w-8",
+  mobileIconChipLg: "h-10 w-10 rounded-xl",
+  mobileIconChipIconMd: "h-5 w-5",
+  mobileIconChipIconLg: "h-5 w-5",
   /** Shared glass card surface — background, border, radius, tap states */
   mobileGlassCardSurface:
     "rounded-xl border border-white/10 bg-white/[0.05] text-zinc-100 transition-all hover:border-white/15 hover:bg-white/[0.08] hover:text-white active:-translate-y-0.5 active:border-teal-400/30 active:bg-white/[0.11] active:ring-2 active:ring-teal-400/30",
@@ -151,35 +158,50 @@ export const mobileTokens = {
   moduleBackButton:
     "flex size-10 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.05] text-zinc-100 transition-colors hover:border-teal-400/25 hover:bg-white/[0.08] hover:text-white active:bg-white/[0.11]",
 
-  // ── Action card (shared surface + module 2×2 quick actions) ─────────────
-  actionCardHeight: "min-h-[88px]",
-  mobileActionCardHeight: "min-h-[88px]",
-  moduleActionCardHeight: "min-h-[88px]",
-  moduleActionIconWrapper: "mb-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-teal-400/20 bg-teal-400/10",
-  moduleActionIconClass: "h-6 w-6 text-teal-400/90",
-  actionCardBase:
-    "flex flex-col items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.05] text-zinc-100 transition-all hover:border-white/15 hover:bg-white/[0.08] hover:text-white active:-translate-y-0.5 active:border-teal-400/30 active:bg-white/[0.11] active:ring-2 active:ring-teal-400/30",
-  actionIconClass: "h-6 w-6 text-teal-400/90",
-  actionLabelClass: "text-base font-bold leading-tight text-center text-white",
+  // ── Shared home quick actions (all shells — one sizing system) ───────────
+  mobileQuickActionGrid,
+  mobileQuickActionCardSurface,
+  mobileQuickActionCardApp: `${mobileQuickActionCardSurface} flex-col items-center justify-center gap-1.5 text-center`,
+  mobileQuickActionCardModule: `${mobileQuickActionCardSurface} flex-col items-start justify-center gap-1 text-left border-emerald-500/15 hover:border-emerald-400/22 active:border-emerald-400/28`,
+  mobileQuickActionIconWrapper:
+    "mb-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-teal-400/20 bg-teal-400/10",
+  mobileQuickActionIconWrapperModuleAccent:
+    "border-emerald-400/20 bg-emerald-400/10",
+  mobileQuickActionIcon: "h-5 w-5 shrink-0 text-teal-400/90",
+  mobileQuickActionIconModuleAccent: "text-emerald-400/85",
+  mobileQuickActionLabel: "text-sm font-bold leading-tight text-white",
+  mobileQuickActionSubtext: "text-xs font-medium leading-snug text-zinc-200",
 
-  // ── /app quick action 2×2 grid ───────────────────────────────────────────
-  appQuickActionGrid: "grid grid-cols-2 gap-2.5",
+  // ── Action card (legacy aliases → shared quick action tokens) ───────────
+  actionCardHeight: "min-h-[112px]",
+  mobileActionCardHeight: "min-h-[112px]",
+  moduleActionCardHeight: "min-h-[112px]",
+  moduleActionIconWrapper:
+    "mb-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-emerald-400/20 bg-emerald-400/10",
+  moduleActionIconClass: "h-5 w-5 text-emerald-400/85",
+  actionCardBase: mobileQuickActionCardSurface,
+  actionIconClass: "h-5 w-5 text-teal-400/90",
+  actionLabelClass: "text-sm font-bold leading-tight text-center text-white",
+
+  // ── /app quick action 2×2 grid (aliases) ─────────────────────────────────
+  appQuickActionGrid: mobileQuickActionGrid,
   appQuickActionCard:
-    "flex min-h-[100px] flex-col items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.05] px-2.5 py-3 text-zinc-100 transition-all hover:border-white/15 hover:bg-white/[0.08] hover:text-white active:-translate-y-0.5 active:border-teal-400/30 active:bg-white/[0.11] active:ring-2 active:ring-teal-400/30",
-  appQuickActionIcon: "h-7 w-7 shrink-0 text-teal-400/90",
-  appQuickActionLabel: "text-base font-bold leading-tight text-center text-white",
+    "flex min-h-[112px] flex-col items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.05] px-3 py-2.5 text-center text-zinc-100 transition-all hover:border-white/15 hover:bg-white/[0.08] hover:text-white active:-translate-y-0.5 active:bg-white/[0.11] active:ring-2 active:ring-teal-400/30",
+  appQuickActionIcon: "h-5 w-5 shrink-0 text-teal-400/90",
+  appQuickActionLabel: "text-sm font-bold leading-tight text-center text-white",
   /** @deprecated Use appQuickActionGrid — legacy 1-row strip */
   appQuickActionStripRow: "grid grid-cols-4 gap-1.5",
   /** @deprecated Use appQuickActionCard */
   appQuickActionStripButton:
     "flex h-[50px] max-h-[50px] flex-col items-center justify-center gap-0.5 rounded-xl border border-white/10 bg-white/[0.05] px-1 py-1.5 text-zinc-200 transition-colors hover:border-white/15 hover:bg-white/[0.08] hover:text-white active:bg-white/[0.11]",
-  // ── Module home 2×2 action grid — shared glass card with subtext ─────────
-  siteWalkActionGridRow: "grid shrink-0 grid-cols-2 gap-2.5",
+  // ── Module home 2×2 action grid (aliases) ───────────────────────────────
+  siteWalkActionGridRow: mobileQuickActionGrid,
   siteWalkActionGridButton:
-    "flex min-h-[128px] flex-col items-start justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.05] px-3.5 py-3.5 text-left text-zinc-100 transition-all hover:border-white/15 hover:bg-white/[0.08] hover:text-white active:-translate-y-0.5 active:border-teal-400/30 active:bg-white/[0.11] active:ring-2 active:ring-teal-400/30",
-  siteWalkActionGridIcon: "mb-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-teal-400/20 bg-teal-400/10",
-  siteWalkActionGridLabel: "text-base font-bold leading-tight text-white",
-  siteWalkActionGridSubtext: "text-sm font-medium leading-snug text-zinc-200",
+    "flex min-h-[112px] flex-col items-start justify-center gap-1 rounded-xl border border-emerald-500/15 bg-white/[0.05] px-3 py-2.5 text-left text-zinc-100 transition-all hover:border-emerald-400/22 hover:bg-white/[0.08] hover:text-white active:-translate-y-0.5 active:border-emerald-400/28 active:bg-white/[0.11] active:ring-2 active:ring-emerald-400/25",
+  siteWalkActionGridIcon:
+    "mb-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-emerald-400/20 bg-emerald-400/10",
+  siteWalkActionGridLabel: "text-sm font-bold leading-tight text-white",
+  siteWalkActionGridSubtext: "text-xs font-medium leading-snug text-zinc-200",
   /** @deprecated Use appQuickActionStripRow */
   quickActionStripRow: "grid grid-cols-4 gap-1.5",
   /** @deprecated Use siteWalkActionGridRow */
@@ -190,8 +212,8 @@ export const mobileTokens = {
   /** @deprecated Use siteWalkActionGridButton */
   quickActionGridButton:
     "flex h-full min-h-[88px] flex-col items-center justify-center gap-1 rounded-xl border border-white/10 bg-white/[0.05] px-2 py-2 text-zinc-100 transition-colors hover:border-white/15 hover:bg-white/[0.08] hover:text-white active:bg-white/[0.11]",
-  quickActionStripIcon: "h-6 w-6 shrink-0 text-teal-400/90",
-  quickActionStripLabel: "text-base font-semibold leading-tight text-center text-zinc-100",
+  quickActionStripIcon: "h-5 w-5 shrink-0 text-teal-400/90",
+  quickActionStripLabel: "text-sm font-bold leading-tight text-center text-zinc-100",
 
   // ── App launcher tile (/app Your Apps) ───────────────────────────────────
   appButtonBase:
@@ -204,15 +226,15 @@ export const mobileTokens = {
   appButtonSubtitleClass: "text-xs leading-tight text-zinc-200",
   appBadgeInfo:
     "mt-0.5 rounded-full bg-teal-400/12 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-teal-300",
-  /** /app Your Apps launcher cards — shared with module action card surface */
+  /** /app Your Apps launcher cards */
   mobileAppLauncherCard:
-    "flex min-h-[148px] flex-col gap-3 rounded-xl border border-white/10 bg-white/[0.05] p-4 transition-all hover:border-white/15 hover:bg-white/[0.08] active:-translate-y-0.5 active:border-teal-400/30 active:bg-white/[0.11] active:ring-2 active:ring-teal-400/30",
-  mobileAppLauncherCardGrid: "grid grid-cols-2 gap-3",
-  mobileAppLauncherTitle: "text-lg font-bold leading-tight text-white",
-  mobileAppLauncherSubtitle: "mt-1 line-clamp-1 text-base leading-snug text-zinc-200",
+    "flex min-h-[132px] flex-col gap-2.5 rounded-xl border border-white/10 bg-white/[0.05] p-3.5 transition-all hover:border-white/15 hover:bg-white/[0.08] active:-translate-y-0.5 active:border-teal-400/30 active:bg-white/[0.11] active:ring-2 active:ring-teal-400/30",
+  mobileAppLauncherCardGrid: "grid grid-cols-2 gap-2.5",
+  mobileAppLauncherTitle: "text-base font-bold leading-tight text-white",
+  mobileAppLauncherSubtitle: "mt-0.5 line-clamp-1 text-sm leading-snug text-zinc-200",
   mobileAppLauncherIconWrapper:
-    "flex h-12 w-12 items-center justify-center rounded-xl border border-teal-400/20 bg-teal-400/10",
-  mobileAppLauncherIcon: "h-7 w-7 text-teal-400/90",
+    "flex h-10 w-10 items-center justify-center rounded-xl border border-teal-400/20 bg-teal-400/10",
+  mobileAppLauncherIcon: "h-5 w-5 text-teal-400/90",
 
   // Legacy alias
   mobileAppButtonHeight: "h-[76px] min-h-0 max-h-[78px]",

@@ -34,13 +34,24 @@ function ActionLink({
   return (
     <Link
       href={href}
-      className={cn(mobileTokens.siteWalkActionGridButton, mobileTokens.focusRing)}
+      className={cn(mobileTokens.mobileQuickActionCardModule, mobileTokens.focusRing)}
     >
-      <span className={mobileTokens.siteWalkActionGridIcon} aria-hidden>
-        <Icon className={mobileTokens.mobileIconChipIconMd} />
+      <span
+        className={cn(
+          mobileTokens.mobileQuickActionIconWrapper,
+          mobileTokens.mobileQuickActionIconWrapperModuleAccent,
+        )}
+        aria-hidden
+      >
+        <Icon
+          className={cn(
+            mobileTokens.mobileQuickActionIcon,
+            mobileTokens.mobileQuickActionIconModuleAccent,
+          )}
+        />
       </span>
-      <span className={mobileTokens.siteWalkActionGridLabel}>{label}</span>
-      <span className={mobileTokens.siteWalkActionGridSubtext}>{subtext}</span>
+      <span className={mobileTokens.mobileQuickActionLabel}>{label}</span>
+      <span className={mobileTokens.mobileQuickActionSubtext}>{subtext}</span>
     </Link>
   );
 }
@@ -155,21 +166,29 @@ export function DigitalTwinHomeClient({ twins, projects }: Props) {
             <p className={mobileTokens.appHomeSectionLabel}>Quick Actions</p>
           </div>
           <div
-            className={cn(
-              mobileTokens.siteWalkActionGridRow,
-              "min-h-0 flex-1 auto-rows-fr",
-            )}
+            className={cn(mobileTokens.mobileQuickActionGrid, "min-h-0 flex-1")}
           >
             <button
               type="button"
               onClick={handleQuickCapture}
-              className={cn(mobileTokens.siteWalkActionGridButton, mobileTokens.focusRing)}
+              className={cn(mobileTokens.mobileQuickActionCardModule, mobileTokens.focusRing)}
             >
-              <span className={mobileTokens.siteWalkActionGridIcon} aria-hidden>
-                <Scan className={mobileTokens.mobileIconChipIconMd} />
+              <span
+                className={cn(
+                  mobileTokens.mobileQuickActionIconWrapper,
+                  mobileTokens.mobileQuickActionIconWrapperModuleAccent,
+                )}
+                aria-hidden
+              >
+                <Scan
+                  className={cn(
+                    mobileTokens.mobileQuickActionIcon,
+                    mobileTokens.mobileQuickActionIconModuleAccent,
+                  )}
+                />
               </span>
-              <span className={mobileTokens.siteWalkActionGridLabel}>Quick Capture</span>
-              <span className={mobileTokens.siteWalkActionGridSubtext}>
+              <span className={mobileTokens.mobileQuickActionLabel}>Quick Capture</span>
+              <span className={mobileTokens.mobileQuickActionSubtext}>
                 Camera and LiDAR when available
               </span>
             </button>
@@ -195,7 +214,7 @@ export function DigitalTwinHomeClient({ twins, projects }: Props) {
         </section>
       }
       dock={
-        <MobileExpandableTabbedPanel tabs={dockTabs} defaultTab="recent" className="pt-1" />
+        <MobileExpandableTabbedPanel tabs={dockTabs} defaultTab="recent" />
       }
     />
   );

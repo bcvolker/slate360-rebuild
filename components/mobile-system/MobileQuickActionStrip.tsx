@@ -16,11 +16,11 @@ export type MobileQuickActionItem = {
 };
 
 const accentIconClass: Record<MobileQuickActionAccent, string> = {
-  primary: mobileTokens.appQuickActionIcon,
-  info: mobileTokens.appQuickActionIcon,
-  neutral: mobileTokens.appQuickActionIcon,
-  muted: mobileTokens.appQuickActionIcon,
-  warm: mobileTokens.appQuickActionIcon,
+  primary: mobileTokens.mobileQuickActionIcon,
+  info: mobileTokens.mobileQuickActionIcon,
+  neutral: mobileTokens.mobileQuickActionIcon,
+  muted: mobileTokens.mobileQuickActionIcon,
+  warm: mobileTokens.mobileQuickActionIcon,
 };
 
 type MobileQuickActionStripProps = {
@@ -34,7 +34,7 @@ export function MobileQuickActionStrip({ actions, className }: MobileQuickAction
     <div
       data-testid="mobile-quick-action-grid"
       data-app-quick-action-layout="grid-2x2"
-      className={cn(mobileTokens.appQuickActionGrid, className)}
+      className={cn(mobileTokens.mobileQuickActionGrid, className)}
       role="toolbar"
       aria-label="Quick actions"
     >
@@ -55,7 +55,7 @@ function QuickActionButton({
   "aria-label": ariaLabel,
 }: MobileQuickActionItem) {
   const base = cn(
-    mobileTokens.appQuickActionCard,
+    mobileTokens.mobileQuickActionCardApp,
     mobileTokens.focusRing,
     disabled && "pointer-events-none opacity-50",
   );
@@ -66,7 +66,7 @@ function QuickActionButton({
         className={accentIconClass[accent]}
         aria-hidden
       />
-      <span className={mobileTokens.appQuickActionLabel}>{label}</span>
+      <span className={mobileTokens.mobileQuickActionLabel}>{label}</span>
     </>
   );
 

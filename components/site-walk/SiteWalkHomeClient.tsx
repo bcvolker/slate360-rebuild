@@ -38,13 +38,24 @@ function ActionLink({
   return (
     <Link
       href={href}
-      className={cn(mobileTokens.siteWalkActionGridButton, mobileTokens.focusRing)}
+      className={cn(mobileTokens.mobileQuickActionCardModule, mobileTokens.focusRing)}
     >
-      <span className={mobileTokens.siteWalkActionGridIcon} aria-hidden>
-        <Icon className={mobileTokens.mobileIconChipIconMd} />
+      <span
+        className={cn(
+          mobileTokens.mobileQuickActionIconWrapper,
+          mobileTokens.mobileQuickActionIconWrapperModuleAccent,
+        )}
+        aria-hidden
+      >
+        <Icon
+          className={cn(
+            mobileTokens.mobileQuickActionIcon,
+            mobileTokens.mobileQuickActionIconModuleAccent,
+          )}
+        />
       </span>
-      <span className={mobileTokens.siteWalkActionGridLabel}>{label}</span>
-      <span className={mobileTokens.siteWalkActionGridSubtext}>{subtext}</span>
+      <span className={mobileTokens.mobileQuickActionLabel}>{label}</span>
+      <span className={mobileTokens.mobileQuickActionSubtext}>{subtext}</span>
     </Link>
   );
 }
@@ -173,21 +184,29 @@ export function SiteWalkHomeClient({ projects, walks, deliverables }: Props) {
             <p className={mobileTokens.appHomeSectionLabel}>Quick Actions</p>
           </div>
           <div
-            className={cn(
-              mobileTokens.siteWalkActionGridRow,
-              "min-h-0 flex-1 auto-rows-fr",
-            )}
+            className={cn(mobileTokens.mobileQuickActionGrid, "min-h-0 flex-1")}
           >
             <button
               type="button"
               onClick={() => void handleQuickCapture()}
-              className={cn(mobileTokens.siteWalkActionGridButton, mobileTokens.focusRing)}
+              className={cn(mobileTokens.mobileQuickActionCardModule, mobileTokens.focusRing)}
             >
-              <span className={mobileTokens.siteWalkActionGridIcon} aria-hidden>
-                <Camera className={mobileTokens.mobileIconChipIconMd} />
+              <span
+                className={cn(
+                  mobileTokens.mobileQuickActionIconWrapper,
+                  mobileTokens.mobileQuickActionIconWrapperModuleAccent,
+                )}
+                aria-hidden
+              >
+                <Camera
+                  className={cn(
+                    mobileTokens.mobileQuickActionIcon,
+                    mobileTokens.mobileQuickActionIconModuleAccent,
+                  )}
+                />
               </span>
-              <span className={mobileTokens.siteWalkActionGridLabel}>Quick Walk</span>
-              <span className={mobileTokens.siteWalkActionGridSubtext}>Start capturing now</span>
+              <span className={mobileTokens.mobileQuickActionLabel}>Quick Walk</span>
+              <span className={mobileTokens.mobileQuickActionSubtext}>Start capturing now</span>
             </button>
             <ActionLink
               href="/site-walk/walks"
@@ -211,7 +230,7 @@ export function SiteWalkHomeClient({ projects, walks, deliverables }: Props) {
         </section>
       }
       dock={
-        <MobileExpandableTabbedPanel tabs={dockTabs} defaultTab="recent" className="pt-1" />
+        <MobileExpandableTabbedPanel tabs={dockTabs} defaultTab="recent" />
       }
     />
   );
