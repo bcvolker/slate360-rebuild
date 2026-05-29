@@ -7,6 +7,8 @@ export type TierLimits = {
 
 export type PricingTier = {
   id: string;
+  app: "site-walk" | "digital-twin";
+  tier: "basic" | "pro";
   name: string;
   monthly: number;
   annual: number;
@@ -16,10 +18,32 @@ export type PricingTier = {
   cta: string;
 };
 
-export const PRICING_TIERS: PricingTier[] = [
+export const SITE_WALK_TIERS: PricingTier[] = [
+  {
+    id: "site-walk-basic",
+    app: "site-walk",
+    tier: "basic",
+    name: "Site Walk Basic",
+    monthly: 49,
+    annual: 490,
+    annualEffectiveMonthly: 41,
+    limits: {
+      storageGb: 10,
+      monthlyCredits: 400,
+    },
+    features: [
+      "Worksite-based field capture and note workflows",
+      "Mobile photo capture with automatic timestamp metadata",
+      "Branded PDF reports and secure share links",
+      "Offline capture queue with sync when reconnected",
+    ],
+    cta: "Start Site Walk Basic",
+  },
   {
     id: "site-walk-pro",
-    name: "Site Walk Workspace Pro",
+    app: "site-walk",
+    tier: "pro",
+    name: "Site Walk Pro",
     monthly: 66,
     annual: 1290,
     annualEffectiveMonthly: 108,
@@ -28,16 +52,41 @@ export const PRICING_TIERS: PricingTier[] = [
       monthlyCredits: 1000,
     },
     features: [
-      "Full Site Walk field capture and note workflows",
+      "Everything in Basic, plus full Project workspaces",
       "Blueprint plan pinning with ghost overlay alignment",
-      "Branded PDF report generation and secure share links",
-      "Offline-first capture with automatic sync",
+      "Advanced deliverable templates and audit trails",
+      "Priority processing for plan rasterization jobs",
     ],
     cta: "Start Site Walk Pro",
   },
+];
+
+export const DIGITAL_TWIN_TIERS: PricingTier[] = [
+  {
+    id: "digital-twin-basic",
+    app: "digital-twin",
+    tier: "basic",
+    name: "Digital Twin Basic",
+    monthly: 79,
+    annual: 790,
+    annualEffectiveMonthly: 66,
+    limits: {
+      storageGb: 50,
+      monthlyCredits: 1500,
+    },
+    features: [
+      "360° panorama capture and hotspot navigation",
+      "Browser-based immersive room-to-room traversal",
+      "Secure share links for remote stakeholders",
+      "Timeline comparisons across capture sessions",
+    ],
+    cta: "Start Digital Twin Basic",
+  },
   {
     id: "digital-twin-pro",
-    name: "Digital Twin Reality Studio",
+    app: "digital-twin",
+    tier: "pro",
+    name: "Digital Twin Pro",
     monthly: 99,
     annual: 1990,
     annualEffectiveMonthly: 166,
@@ -46,41 +95,27 @@ export const PRICING_TIERS: PricingTier[] = [
       monthlyCredits: 4500,
     },
     features: [
-      "Photogrammetry mesh generation from mobile walkthroughs",
-      "360° panorama stitching and hotspot navigation",
+      "Everything in Basic, plus photogrammetry mesh generation",
       "Drone photogrammetry import for exterior coverage",
-      "Browser-based 3D inspection and timeline comparisons",
+      "Browser-based 3D inspection and measurement tools",
+      "Priority GPU processing queues for heavy workloads",
     ],
     cta: "Start Digital Twin Pro",
   },
-  {
-    id: "bundle-pro",
-    name: "Connected Project Bundle",
-    monthly: 270,
-    annual: 2690,
-    annualEffectiveMonthly: 224,
-    limits: {
-      storageGb: 150,
-      monthlyCredits: 5500,
-    },
-    features: [
-      "Site Walk Pro + Digital Twin Pro in one subscription",
-      "Unified project workspace across both native apps",
-      "Combined storage and processing allotments from both tiers",
-    ],
-    cta: "Start Connected Bundle",
-  },
 ];
 
+/** @deprecated Use SITE_WALK_TIERS / DIGITAL_TWIN_TIERS — kept for legacy signup links */
+export const PRICING_TIERS: PricingTier[] = [...SITE_WALK_TIERS, ...DIGITAL_TWIN_TIERS];
+
 export const ENTERPRISE_PLAN = {
-  name: "Enterprise Custom",
+  name: "Enterprise",
   features: [
     "Custom volume seat allocations for organizations 25+",
-    "Dedicated project onboarding and priority data processing channels",
+    "Negotiated storage pools and priority processing channels",
     "White-label client deliverables and custom viewer branding",
-    "Volume pricing and flexible infrastructure caps tailored to your portfolio",
+    "Dedicated onboarding and flexible infrastructure caps",
   ],
-  cta: "Contact Enterprise Sales for Bulk Seat Quotes",
+  cta: "Contact Sales",
 };
 
 export const PROCESSING_CREDIT_USES = [
@@ -91,15 +126,15 @@ export const PROCESSING_CREDIT_USES = [
 ] as const;
 
 export const BUNDLE_COMPARISON = {
-  headline: "Connected Project Bundle",
+  headline: "Running both apps",
   body:
-    "The bundle combines Site Walk Workspace Pro and Digital Twin Reality Studio into one subscription with a unified project workspace across both native apps. Storage and processing allotments match the combined individual tiers — 150 GB storage and 5,500 monthly processing credits — so teams running both workflows get one bill and one shared data pool.",
+    "Site Walk Pro and Digital Twin Pro can be subscribed independently or combined. Each app includes its own storage and processing pool — subscribe to both when your team needs field documentation and spatial inspection in the same portfolio.",
 } as const;
 
 export const FAIR_USAGE = {
   headline: "Fair usage & billing cycle resets",
   body:
-    "Included storage and processing credits reset on your billing date each cycle — unused allotments do not roll over. Fair usage policies prevent automated abuse of GPU pipelines; typical field and studio workflows stay well within included limits. Enterprise plans can negotiate custom reset windows and volume caps.",
+    "Included storage and processing credits reset on your billing date each cycle — unused allotments do not roll over. Fair usage policies prevent automated abuse of GPU pipelines; typical field and studio workflows stay well within included limits. Enterprise plans negotiate custom reset windows and volume caps.",
 } as const;
 
 export const TOP_UP_POLICY = {
@@ -128,4 +163,8 @@ export function formatAnnualPrice(tier: PricingTier): string {
 
 export function formatEffectiveMonthly(tier: PricingTier): string {
   return `$${tier.annualEffectiveMonthly}/mo`;
+}
+
+export function formatMonthlyPrice(tier: PricingTier): string {
+  return `$${tier.monthly}`;
 }

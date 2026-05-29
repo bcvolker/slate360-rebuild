@@ -19,10 +19,10 @@ const MOBILE_NAV_LINKS = [
 ] as const;
 
 const DROPDOWN_ITEM =
-  "block rounded-lg p-3 text-sm font-medium text-slate-300 transition-all duration-150 hover:bg-white/[0.03] hover:text-[#00E699]";
+  "block rounded-lg p-3 text-sm font-medium text-zinc-300 transition-all duration-150 hover:bg-white/[0.03] hover:text-teal-300/90";
 
 const HAMBURGER_BTN =
-  "flex h-10 w-10 items-center justify-center rounded-xl border border-white/[0.08] bg-slate-900/40 text-slate-300 transition-all duration-150 hover:border-[#00E699]/30 hover:text-[#00E699] active:scale-[0.98] md:hidden";
+  "flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-zinc-300 transition-all duration-150 hover:border-teal-400/25 hover:text-teal-300/90 active:scale-[0.98] md:hidden";
 
 type MarketingHeaderProps = {
   /** Homepage uses transparent dark chrome over the graphite canvas. */
@@ -116,7 +116,7 @@ export function MarketingHeader({ variant = "default" }: MarketingHeaderProps) {
           className={`absolute left-0 right-0 top-16 border-b border-white/[0.08] px-6 py-4 backdrop-blur-2xl md:hidden ${MOBILE_MENU_VARIANT[variant]}`}
         >
           <div className="space-y-1">
-            <p className="px-3 py-2 text-xs font-semibold uppercase tracking-widest text-[#A3AED0]">
+            <p className="px-3 py-2 text-xs font-semibold uppercase tracking-widest text-zinc-400">
               Product
             </p>
             {PRODUCT_LINKS.map((link) => (

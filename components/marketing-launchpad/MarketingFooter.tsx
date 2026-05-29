@@ -17,7 +17,7 @@ const GOVERNANCE_LINKS = [
 export function MarketingFooter() {
   return (
     <footer className={MARKETING_FOOTER}>
-      <div className="mx-auto grid max-w-[1400px] grid-cols-2 gap-8 text-sm text-[#A3AED0] md:grid-cols-4">
+      <div className="mx-auto grid max-w-[1400px] grid-cols-2 gap-8 text-sm text-zinc-400 md:grid-cols-4">
         <div>
           <Slate360Logo variant="dark" />
           <p className="mt-4 leading-relaxed">
@@ -26,11 +26,11 @@ export function MarketingFooter() {
           </p>
         </div>
         <div>
-          <p className="mb-3 font-semibold text-[#FFFFFF]">Ecosystem Tools</p>
+          <p className="mb-3 font-semibold text-white">Ecosystem Tools</p>
           <ul className="space-y-2">
             {ECOSYSTEM_LINKS.map((link) => (
               <li key={link.href}>
-                <Link href={link.href} className="transition-colors hover:text-[#00E699]">
+                <Link href={link.href} className="transition-colors hover:text-teal-300/90">
                   {link.label}
                 </Link>
               </li>
@@ -38,11 +38,11 @@ export function MarketingFooter() {
           </ul>
         </div>
         <div>
-          <p className="mb-3 font-semibold text-[#FFFFFF]">Governance Tiers</p>
+          <p className="mb-3 font-semibold text-white">Governance Tiers</p>
           <ul className="space-y-2">
             {GOVERNANCE_LINKS.map((link) => (
               <li key={link.href}>
-                <Link href={link.href} className="transition-colors hover:text-[#00E699]">
+                <Link href={link.href} className="transition-colors hover:text-teal-300/90">
                   {link.label}
                 </Link>
               </li>
@@ -50,15 +50,15 @@ export function MarketingFooter() {
           </ul>
         </div>
         <div>
-          <p className="mb-3 font-semibold text-[#FFFFFF]">Corporate</p>
+          <p className="mb-3 font-semibold text-white">Corporate</p>
           <ul className="space-y-2">
             <li>
-              <Link href="/contact" className="transition-colors hover:text-[#00E699]">
+              <Link href="/contact" className="transition-colors hover:text-teal-300/90">
                 Contact
               </Link>
             </li>
             <li>
-              <Link href="/contact" className="transition-colors hover:text-[#00E699]">
+              <Link href="/contact" className="transition-colors hover:text-teal-300/90">
                 Send Feedback
               </Link>
             </li>

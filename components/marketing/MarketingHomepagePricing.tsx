@@ -4,120 +4,108 @@ import Link from "next/link";
 import { useState } from "react";
 import {
   MARKETING_FLOW_SECTION,
+  MARKETING_HEADING,
+  MARKETING_PRICE,
+  MARKETING_PRICE_META,
+  MARKETING_SECTION_LABEL,
+  MARKETING_SUBHEAD,
   PRICING_BLOCK,
   PRICING_CTA,
+  PRICING_CTA_SECONDARY,
   TILE_CONTENT,
   TILE_CONTENT_ACCENT,
   TILE_CONTENT_COMPACT,
+  TOGGLE_BUTTON_ACTIVE,
+  TOGGLE_BUTTON_IDLE,
   TOGGLE_GROUP,
 } from "@/components/marketing/marketing-homepage-styles";
 import {
   BUNDLE_COMPARISON,
+  DIGITAL_TWIN_TIERS,
   ENTERPRISE_PLAN,
   FAIR_USAGE,
-  PRICING_TIERS,
   PROCESSING_CREDIT_USES,
+  SITE_WALK_TIERS,
   TOP_UP_POLICY,
   formatAnnualPrice,
   formatCreditLimit,
   formatEffectiveMonthly,
+  formatMonthlyPrice,
   formatStorageLimit,
   type BillingCadence,
   type PricingTier,
 } from "@/components/marketing-launchpad/pricing-data";
 import { cn } from "@/lib/utils";
 
-const PRIMARY_TIERS = PRICING_TIERS.filter(
-  (tier) => tier.id === "site-walk-pro" || tier.id === "digital-twin-pro",
-);
-const BUNDLE_TIER = PRICING_TIERS.find((tier) => tier.id === "bundle-pro");
+const ALL_TIERS = [...SITE_WALK_TIERS, ...DIGITAL_TWIN_TIERS];
 
-const LIMITS_ROWS = [
-  ...PRICING_TIERS.map((tier) => ({
-    id: tier.id,
-    name: tier.name,
-    storageGb: tier.limits.storageGb,
-    monthlyCredits: tier.limits.monthlyCredits,
-  })),
-  {
-    id: "enterprise",
-    name: ENTERPRISE_PLAN.name,
-    storageGb: null as number | null,
-    monthlyCredits: null as number | null,
-  },
-] as const;
-
-type LimitsTabId = (typeof LIMITS_ROWS)[number]["id"];
-
-function ToggleButton({
-  active,
-  onClick,
-  children,
+function CadenceToggle({
+  cadence,
+  onChange,
 }: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
+  cadence: BillingCadence;
+  onChange: (cadence: BillingCadence) => void;
 }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        "rounded-lg px-5 py-2.5 text-sm font-medium transition-all duration-150",
-        active
-          ? "border border-[#00E699]/30 bg-[#00E699]/10 text-[#00E699]"
-          : "border border-transparent text-slate-400 hover:text-slate-200",
-      )}
-    >
-      {children}
-    </button>
-  );
-}
-
-function FeatureChevron() {
-  return (
-    <span
-      aria-hidden
-      className={cn("mr-0 shrink-0 select-none text-xl font-bold leading-none", TILE_CONTENT_ACCENT)}
-    >
-      »
-    </span>
-  );
-}
-
-function PriceBlock({ tier, cadence }: { tier: PricingTier; cadence: BillingCadence }) {
-  const isAnnual = cadence === "annual";
-
-  return (
-    <div className="mt-4 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-      {isAnnual ? (
-        <>
-          <p className="text-4xl font-bold tracking-tight text-[#00E699]">
-            {formatAnnualPrice(tier)}
-          </p>
-          <p className="text-sm text-[#A3AED0]">{formatEffectiveMonthly(tier)} billed annually</p>
-        </>
-      ) : (
-        <p className="text-4xl font-bold tracking-tight text-[#00E699]">
-          ${tier.monthly}
-          <span className="text-lg font-medium text-[#A3AED0]">/mo</span>
-        </p>
-      )}
+    <div className={TOGGLE_GROUP} role="group" aria-label="Billing cadence">
+      <button
+        type="button"
+        onClick={() => onChange("monthly")}
+        className={cadence === "monthly" ? TOGGLE_BUTTON_ACTIVE : TOGGLE_BUTTON_IDLE}
+      >
+        Monthly
+      </button>
+      <button
+        type="button"
+        onClick={() => onChange("annual")}
+        className={cadence === "annual" ? TOGGLE_BUTTON_ACTIVE : TOGGLE_BUTTON_IDLE}
+      >
+        Annual (save 17%)
+      </button>
     </div>
   );
 }
 
-function PrimaryPricingTile({ tier, cadence }: { tier: PricingTier; cadence: BillingCadence }) {
+function FeatureLine({ feature }: { feature: string }) {
+  return (
+    <li className="flex items-start gap-2.5 text-sm text-zinc-200 lg:text-base">
+      <span aria-hidden className={cn("mt-0.5 shrink-0 select-none text-base font-semibold", TILE_CONTENT_ACCENT)}>
+        ›
+      </span>
+      <span>{feature}</span>
+    </li>
+  );
+}
+
+function PriceDisplay({ tier, cadence }: { tier: PricingTier; cadence: BillingCadence }) {
+  if (cadence === "annual") {
+    return (
+      <div className="mt-4 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+        <p className={MARKETING_PRICE}>{formatAnnualPrice(tier)}</p>
+        <p className={MARKETING_PRICE_META}>{formatEffectiveMonthly(tier)} billed annually</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-4 flex flex-wrap items-baseline gap-x-2 gap-y-1">
+      <p className={MARKETING_PRICE}>
+        {formatMonthlyPrice(tier)}
+        <span className="text-lg font-medium text-zinc-400">/mo</span>
+      </p>
+    </div>
+  );
+}
+
+function TierCard({ tier, cadence }: { tier: PricingTier; cadence: BillingCadence }) {
   return (
     <article className={TILE_CONTENT}>
-      <h3 className="text-xl font-bold text-[#FFFFFF] lg:text-2xl">{tier.name}</h3>
-      <PriceBlock tier={tier} cadence={cadence} />
-      <ul className="mt-5 flex flex-1 flex-col space-y-2.5">
+      <p className={MARKETING_SECTION_LABEL}>{tier.tier === "basic" ? "Essential" : "Professional"}</p>
+      <h3 className="mt-1 text-xl font-bold text-white lg:text-2xl">{tier.name}</h3>
+      <PriceDisplay tier={tier} cadence={cadence} />
+      <ul className="mt-5 flex flex-1 flex-col gap-2.5">
         {tier.features.map((feature) => (
-          <li key={feature} className="flex items-start gap-2.5 text-sm text-[#F8FAFC] lg:text-base">
-            <FeatureChevron />
-            <span>{feature}</span>
-          </li>
+          <FeatureLine key={feature} feature={feature} />
         ))}
       </ul>
       <Link href={`/signup?plan=${tier.id}`} className={PRICING_CTA}>
@@ -127,179 +115,114 @@ function PrimaryPricingTile({ tier, cadence }: { tier: PricingTier; cadence: Bil
   );
 }
 
-function SecondaryPricingTile({
+function AppPricingGroup({
   title,
+  description,
+  tiers,
   cadence,
-  monthly,
-  annual,
-  annualEffectiveMonthly,
-  priceLabel,
-  priceSubtext,
-  features,
-  cta,
-  ctaHref,
 }: {
   title: string;
+  description: string;
+  tiers: PricingTier[];
   cadence: BillingCadence;
-  monthly?: number;
-  annual?: number;
-  annualEffectiveMonthly?: number;
-  priceLabel?: string;
-  priceSubtext?: string;
-  features: string[];
-  cta: string;
-  ctaHref: string;
 }) {
   return (
-    <article className={TILE_CONTENT_COMPACT}>
-      <h3 className="text-lg font-bold text-[#FFFFFF]">{title}</h3>
-      <div className="mt-3 flex flex-wrap items-baseline gap-x-2 gap-y-1">
-        {priceLabel ? (
-          <>
-            <p className="text-2xl font-bold tracking-tight text-[#00E699]">{priceLabel}</p>
-            {priceSubtext ? <p className="text-sm text-[#A3AED0]">{priceSubtext}</p> : null}
-          </>
-        ) : cadence === "annual" && annual != null && annualEffectiveMonthly != null ? (
-          <>
-            <p className="text-2xl font-bold tracking-tight text-[#00E699]">
-              ${annual.toLocaleString("en-US")}/yr
-            </p>
-            <p className="text-sm text-[#A3AED0]">${annualEffectiveMonthly}/mo billed annually</p>
-          </>
-        ) : monthly != null ? (
-          <p className="text-2xl font-bold tracking-tight text-[#00E699]">
-            ${monthly}
-            <span className="text-base font-medium text-[#A3AED0]">/mo</span>
-          </p>
-        ) : null}
+    <div className="space-y-5">
+      <div className="max-w-2xl">
+        <p className={MARKETING_SECTION_LABEL}>{title}</p>
+        <h3 className="mt-1 text-xl font-bold text-white lg:text-2xl">{description}</h3>
       </div>
+      <div className="grid gap-4 sm:grid-cols-2 lg:gap-6">
+        {tiers.map((tier) => (
+          <TierCard key={tier.id} tier={tier} cadence={cadence} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function EnterpriseCard() {
+  return (
+    <article className={TILE_CONTENT_COMPACT}>
+      <p className={MARKETING_SECTION_LABEL}>Negotiated</p>
+      <h3 className="mt-1 text-lg font-bold text-white lg:text-xl">{ENTERPRISE_PLAN.name}</h3>
+      <p className="mt-3 text-2xl font-bold tracking-tight text-white">Custom pricing</p>
+      <p className="mt-1 text-sm text-zinc-400">Volume agreements for 25+ seats</p>
       <ul className="mt-4 space-y-2">
-        {features.map((feature) => (
-          <li key={feature} className="flex items-start gap-2 text-sm text-[#F8FAFC]">
-            <FeatureChevron />
-            <span>{feature}</span>
-          </li>
+        {ENTERPRISE_PLAN.features.map((feature) => (
+          <FeatureLine key={feature} feature={feature} />
         ))}
       </ul>
-      <Link href={ctaHref} className={`${PRICING_CTA} mt-5 py-3`}>
-        {cta}
+      <Link href="/contact" className={PRICING_CTA_SECONDARY}>
+        {ENTERPRISE_PLAN.cta}
       </Link>
     </article>
   );
 }
 
-function LimitsTab({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
+function LimitsTable() {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        "rounded-lg px-3 py-2 text-left text-sm font-medium transition-colors",
-        active
-          ? "bg-[#00E699]/10 text-[#00E699]"
-          : "text-[#A3AED0] hover:text-[#F8FAFC]",
-      )}
-    >
-      {children}
-    </button>
+    <div className="overflow-x-auto rounded-xl border border-white/10 bg-white/[0.03]">
+      <table className="w-full min-w-[520px] text-left text-sm">
+        <thead>
+          <tr className="border-b border-white/10 text-zinc-400">
+            <th className="px-4 py-3 font-semibold">Plan</th>
+            <th className="px-4 py-3 font-semibold">Storage</th>
+            <th className="px-4 py-3 font-semibold">Processing credits</th>
+          </tr>
+        </thead>
+        <tbody>
+          {ALL_TIERS.map((tier) => (
+            <tr key={tier.id} className="border-b border-white/[0.06] last:border-b-0">
+              <td className="px-4 py-3 font-medium text-zinc-100">{tier.name}</td>
+              <td className="px-4 py-3 text-zinc-300">{formatStorageLimit(tier.limits.storageGb)}</td>
+              <td className="px-4 py-3 text-zinc-300">{formatCreditLimit(tier.limits.monthlyCredits)}</td>
+            </tr>
+          ))}
+          <tr>
+            <td className="px-4 py-3 font-medium text-zinc-100">{ENTERPRISE_PLAN.name}</td>
+            <td className="px-4 py-3 text-zinc-300" colSpan={2}>
+              Custom pools negotiated per organization
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   );
 }
 
 function DataCreditsSection() {
-  const [activeTab, setActiveTab] = useState<LimitsTabId>("site-walk-pro");
-  const activeRow = LIMITS_ROWS.find((row) => row.id === activeTab) ?? LIMITS_ROWS[0];
-
   return (
     <div className={PRICING_BLOCK}>
-      <div className="mx-auto mb-6 max-w-3xl text-center lg:mb-8">
-        <h2 className="text-3xl font-bold tracking-tight text-[#FFFFFF] lg:text-4xl">
-          Data, Credits &amp; Fair Usage
-        </h2>
-        <p className="mt-3 text-base leading-relaxed text-[#A3AED0] lg:text-lg">
-          Fixed storage and processing pools reset on your billing date. Top up at direct
-          infrastructure cost when you need headroom.
+      <div className="mx-auto mb-6 max-w-3xl lg:mb-8">
+        <h2 className={MARKETING_HEADING}>Data, credits &amp; fair usage</h2>
+        <p className={MARKETING_SUBHEAD}>
+          Fixed storage and processing pools reset on your billing date. Top up at direct infrastructure
+          cost when you need headroom.
         </p>
       </div>
 
-      <div className="rounded-xl border border-white/[0.06] bg-slate-900/20 p-4 lg:p-6">
-        <p className="mb-3 text-xs font-semibold uppercase tracking-[0.14em] text-[#A3AED0]">
-          Included allotments by plan
-        </p>
-        <div
-          className="mb-5 flex flex-wrap gap-1 border-b border-white/[0.06] pb-4"
-          role="tablist"
-          aria-label="Plan allotments"
-        >
-          {LIMITS_ROWS.map((row) => (
-            <LimitsTab
-              key={row.id}
-              active={activeTab === row.id}
-              onClick={() => setActiveTab(row.id)}
-            >
-              {row.name.replace(" Workspace Pro", "").replace(" Reality Studio", "")}
-            </LimitsTab>
-          ))}
-        </div>
+      <LimitsTable />
 
-        <div role="tabpanel" className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <p className="text-xs font-medium uppercase tracking-wide text-[#A3AED0]">Storage</p>
-            <p className="mt-1 text-lg font-semibold text-[#F8FAFC]">
-              {activeRow.storageGb != null
-                ? formatStorageLimit(activeRow.storageGb)
-                : "Custom volume negotiated per organization"}
-            </p>
-          </div>
-          <div>
-            <p className="text-xs font-medium uppercase tracking-wide text-[#A3AED0]">
-              Processing credits
-            </p>
-            <p className="mt-1 text-lg font-semibold text-[#F8FAFC]">
-              {activeRow.monthlyCredits != null
-                ? formatCreditLimit(activeRow.monthlyCredits)
-                : "Custom pools and priority queues"}
-            </p>
-          </div>
-        </div>
-        <p className="mt-4 text-xs leading-relaxed text-[#A3AED0]">
-          Allotments reset each billing cycle. Unused storage and credits do not roll over.
-        </p>
-      </div>
-
-      <div className="mt-8 grid gap-8 border-t border-white/[0.06] pt-8 lg:grid-cols-3 lg:gap-10">
+      <div className="mt-8 grid gap-8 border-t border-white/10 pt-8 lg:grid-cols-3 lg:gap-10">
         <div>
-          <h3 className="text-base font-semibold text-[#FFFFFF]">{TOP_UP_POLICY.headline}</h3>
-          <p className="mt-2 text-sm leading-relaxed text-[#A3AED0]">{TOP_UP_POLICY.body}</p>
-          <p className="mt-2 text-sm leading-relaxed text-[#A3AED0]">{TOP_UP_POLICY.creditNote}</p>
+          <h3 className="text-base font-semibold text-white">{TOP_UP_POLICY.headline}</h3>
+          <p className="mt-2 text-sm leading-relaxed text-zinc-400">{TOP_UP_POLICY.body}</p>
+          <p className="mt-2 text-sm leading-relaxed text-zinc-400">{TOP_UP_POLICY.creditNote}</p>
         </div>
-
         <div>
-          <h3 className="text-base font-semibold text-[#FFFFFF]">Processing credits are used for</h3>
+          <h3 className="text-base font-semibold text-white">Processing credits are used for</h3>
           <ul className="mt-3 space-y-1.5">
             {PROCESSING_CREDIT_USES.map((use) => (
-              <li key={use} className="flex items-start gap-2 text-sm text-[#F8FAFC]">
-                <span aria-hidden className="shrink-0 text-[#00E699]">
-                  »
-                </span>
-                <span>{use}</span>
-              </li>
+              <FeatureLine key={use} feature={use} />
             ))}
           </ul>
         </div>
-
         <div>
-          <h3 className="text-base font-semibold text-[#FFFFFF]">{BUNDLE_COMPARISON.headline}</h3>
-          <p className="mt-2 text-sm leading-relaxed text-[#A3AED0]">{BUNDLE_COMPARISON.body}</p>
-          <h3 className="mt-5 text-base font-semibold text-[#FFFFFF]">{FAIR_USAGE.headline}</h3>
-          <p className="mt-2 text-sm leading-relaxed text-[#A3AED0]">{FAIR_USAGE.body}</p>
+          <h3 className="text-base font-semibold text-white">{BUNDLE_COMPARISON.headline}</h3>
+          <p className="mt-2 text-sm leading-relaxed text-zinc-400">{BUNDLE_COMPARISON.body}</p>
+          <h3 className="mt-5 text-base font-semibold text-white">{FAIR_USAGE.headline}</h3>
+          <p className="mt-2 text-sm leading-relaxed text-zinc-400">{FAIR_USAGE.body}</p>
         </div>
       </div>
     </div>
@@ -310,61 +233,42 @@ export function MarketingHomepagePricing() {
   const [cadence, setCadence] = useState<BillingCadence>("annual");
 
   return (
-    <section id="pricing-matrix-section" className={MARKETING_FLOW_SECTION}>
-      <div className="mx-auto flex w-full max-w-[1400px] flex-col gap-14 lg:gap-20">
+    <section id="pricing-matrix-section" className={cn(MARKETING_FLOW_SECTION, "marketing-flow-section")}>
+      <div className="mx-auto flex w-full max-w-[1400px] flex-col gap-12 lg:gap-16">
         <div className={PRICING_BLOCK}>
           <div className="mx-auto mb-6 max-w-3xl text-center lg:mb-8">
-            <h2 className="text-3xl font-bold tracking-tight text-[#FFFFFF] lg:text-4xl">
-              Plans &amp; Pricing
-            </h2>
-            <p className="mt-3 text-base leading-relaxed text-[#A3AED0] lg:text-lg">
-              Choose the workspace that matches your field and studio workflows.
+            <h2 className={MARKETING_HEADING}>Plans &amp; pricing</h2>
+            <p className={MARKETING_SUBHEAD}>
+              Two native apps — each with an essential tier and a professional tier. Enterprise agreements
+              are negotiated for larger organizations.
             </p>
           </div>
 
-          <div className="mb-6 flex flex-col items-center gap-3 lg:mb-8 lg:gap-4">
-            <div className={TOGGLE_GROUP} role="group" aria-label="Billing cadence">
-              <ToggleButton active={cadence === "monthly"} onClick={() => setCadence("monthly")}>
-                Monthly Billing
-              </ToggleButton>
-              <ToggleButton active={cadence === "annual"} onClick={() => setCadence("annual")}>
-                Annual Billing (Save 17%)
-              </ToggleButton>
-            </div>
-            <p className="max-w-xl text-center text-sm text-[#A3AED0]">
+          <div className="mb-8 flex flex-col items-center gap-3 lg:gap-4">
+            <CadenceToggle cadence={cadence} onChange={setCadence} />
+            <p className="max-w-xl text-center text-sm text-zinc-400">
               Annual billing applies a 17% discount versus paying month-to-month on the same tier.
             </p>
           </div>
 
-          <div className="grid gap-6 lg:grid-cols-2 lg:gap-8">
-            {PRIMARY_TIERS.map((tier) => (
-              <PrimaryPricingTile key={tier.id} tier={tier} cadence={cadence} />
-            ))}
+          <div className="flex flex-col gap-10 lg:gap-12">
+            <AppPricingGroup
+              title="Field documentation"
+              description="Site Walk"
+              tiers={SITE_WALK_TIERS}
+              cadence={cadence}
+            />
+            <AppPricingGroup
+              title="Spatial inspection"
+              description="Digital Twin"
+              tiers={DIGITAL_TWIN_TIERS}
+              cadence={cadence}
+            />
           </div>
 
-          {BUNDLE_TIER ? (
-            <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:mt-8 lg:gap-6">
-              <SecondaryPricingTile
-                title={BUNDLE_TIER.name}
-                cadence={cadence}
-                monthly={BUNDLE_TIER.monthly}
-                annual={BUNDLE_TIER.annual}
-                annualEffectiveMonthly={BUNDLE_TIER.annualEffectiveMonthly}
-                features={BUNDLE_TIER.features}
-                cta={BUNDLE_TIER.cta}
-                ctaHref={`/signup?plan=${BUNDLE_TIER.id}`}
-              />
-              <SecondaryPricingTile
-                title={ENTERPRISE_PLAN.name}
-                cadence={cadence}
-                priceLabel="Custom"
-                priceSubtext="Volume pricing for 25+ seats"
-                features={ENTERPRISE_PLAN.features}
-                cta={ENTERPRISE_PLAN.cta}
-                ctaHref="/contact"
-              />
-            </div>
-          ) : null}
+          <div className="mt-8 lg:mt-10">
+            <EnterpriseCard />
+          </div>
         </div>
 
         <DataCreditsSection />

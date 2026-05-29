@@ -50,7 +50,7 @@ export function MarketingHeroSection({ sectionClassName = TILE_SECTION_SNAP }: M
           <div className="flex flex-wrap gap-3">
             <Link
               href="#pricing-matrix-section"
-              className="rounded-xl border border-white/[0.08] bg-slate-900/40 px-6 py-3 text-sm font-semibold tracking-tight text-[#F8FAFC] transition-all hover:border-[#00E699]/40 active:scale-[0.99]"
+              className="rounded-xl border border-white/10 bg-white/[0.04] px-6 py-3 text-sm font-semibold tracking-tight text-zinc-100 transition-all hover:border-teal-400/25 hover:bg-white/[0.07] active:scale-[0.99]"
             >
               Review System Pricing
             </Link>
