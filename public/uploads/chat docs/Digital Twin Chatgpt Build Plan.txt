@@ -1,0 +1,1183 @@
+Slate360 Digital Twin Master Build Plan
+Executive Summary
+
+Slate360 Digital Twin is no longer just a 3D viewer concept. The platform direction has evolved into a:
+
+Cloud-based reality capture ecosystem
+Interactive construction walkthrough platform
+Browser-native collaboration environment
+Visual coordination and communication system
+Digital twin hosting and delivery platform
+Mobile-first field capture workflow
+Lightweight VDC coordination environment
+
+The long-term competitive moat is NOT reconstruction alone.
+
+The moat is:
+
+frictionless uploads
+cloud processing
+beautiful browser delivery
+mobile collection
+client-friendly sharing
+collaboration
+visual coordination
+zero software installs
+seamless indoor/outdoor workflows
+hosted interactive deliverables
+
+The architecture and implementation strategy below is designed around:
+
+Fast monetizable deployment
+Minimal training requirements
+Mobile simplicity
+Heavy cloud processing
+Desktop workstation power
+Scalability
+Future enterprise expansion
+Low operational risk
+Strong UX polish
+Reuse of existing Slate360 infrastructure
+Product Positioning
+Recommended Marketing Positioning (Critical)
+
+DO NOT market the initial product as:
+
+survey-grade
+engineering-certified
+legal-grade reconstruction
+professional land-survey replacement
+
+Instead position it as:
+
+“Interactive Construction Walkthrough & Visual Coordination Platform”
+
+This positioning:
+
+reduces legal exposure
+reduces customer expectation mismatch
+speeds development
+improves adoption
+lowers support burden
+matches actual user value
+Core Value Proposition
+
+Slate360 Digital Twin allows construction teams, owners, architects, engineers, and stakeholders to:
+
+virtually walk jobsites remotely
+document progress visually
+compare design intent against reality
+collaborate through interactive comments and measurements
+reduce site visits
+centralize visual project information
+share immersive walkthroughs instantly through the browser
+Technology Stack
+Existing Reusable Infrastructure Already Present
+
+The current Slate360 platform already includes major infrastructure components:
+
+Authentication & Entitlements
+
+Existing:
+
+AppShell.tsx
+resolveServerOrgContext()
+withAuth()
+withAppAuth()
+UserEntitlements system
+org-based permissions
+CEO role gating
+Storage Infrastructure
+
+Existing:
+
+Cloudflare R2 integration
+s3.ts helper
+signed upload patterns
+unified_files table
+preview/thumbnail infrastructure
+processing status patterns
+Realtime Infrastructure
+
+Existing:
+
+Supabase realtime
+usePlanSheetsRealtime pattern
+processing status architecture
+websocket-ready event flows
+Viewer Infrastructure
+
+Existing:
+
+TourPanoViewer.tsx
+ModelViewerClient.tsx
+ItemRenderers.tsx
+360 infrastructure
+GLB/GLTF rendering
+Processing Infrastructure
+
+Existing:
+
+Trigger.dev
+rasterize.ts job pattern
+queue/job architecture
+webhook patterns
+Sharing Infrastructure
+
+Existing:
+
+tokenized sharing
+share/[token] patterns
+embed support patterns
+view tracking
+expiry/revocation support
+System Architecture
+Mobile App Responsibilities
+
+The mobile app should remain:
+
+lightweight
+battery-efficient
+simple
+intuitive
+upload-focused
+Mobile App SHOULD Handle
+capture
+upload
+lightweight viewing
+comments/pins
+sharing
+notifications
+project selection
+quick walkthroughs
+LiDAR collection
+metadata capture
+offline queueing
+Mobile App SHOULD NOT Handle
+Gaussian training
+reconstruction
+CAD alignment
+clipping planes
+heavy editing
+processing
+sectioning
+rendering optimization
+
+Everything heavy should remain cloud or desktop.
+
+Desktop Portal Responsibilities
+
+The desktop portal becomes the:
+
+Full Digital Twin Workstation
+
+Desktop handles:
+
+SuperSplat editing
+clipping planes
+section views
+CAD overlays
+measurements
+alignment
+publishing
+exports
+analytics
+permissions
+versioning
+collaboration management
+walkthrough presentations
+Universal File Pipeline
+Supported File Types
+Photos
+
+Supported:
+
+.jpg
+.jpeg
+.png
+.webp
+.dng
+RAW formats (future)
+Videos
+
+Supported:
+
+.mp4
+.mov
+360 video
+Important Processing Note
+
+Photogrammetry engines do NOT process video directly.
+
+Cloud workers must:
+
+extract keyframes using FFmpeg
+normalize frames
+optimize resolution
+create image datasets
+LiDAR / Point Clouds
+
+Supported:
+
+.ply
+.las
+.laz
+.pts
+.e57
+CAD / BIM
+
+Supported:
+
+.glb
+.gltf
+.ifc (future)
+.fbx
+.obj
+Telemetry
+
+Supported:
+
+.srt
+EXIF GPS
+.csv
+IMU metadata
+Capture Workflow
+Mobile Collection Workflow
+User Flow
+Step 1 — Create Twin
+
+User taps:
+
+Create Twin
+Quick Walkthrough
+Capture Site
+Step 2 — Project Selection
+
+User:
+
+selects project
+creates project
+assigns worksite
+enters metadata
+Step 3 — Capture Type
+
+User selects:
+
+Photo Walkthrough
+Video Walkthrough
+360 Capture
+Drone Upload
+Quick LiDAR Scan
+Mixed Capture
+Step 4 — Capture Session
+
+App automatically:
+
+records GPS
+records IMU
+tracks device orientation
+compresses media
+estimates upload size
+estimates processing time
+estimates cost
+queues uploads
+Step 5 — Upload Review
+
+User sees:
+
+thumbnails
+estimated time
+estimated cost
+upload size
+processing mode
+storage impact
+Step 6 — Upload & Process
+
+System:
+
+authorizes Stripe hold
+begins multipart upload
+creates processing job
+enters realtime tracking
+In-App LiDAR Capture
+Recommended Open-Source Foundation
+
+Use:
+
+Waley-Z/ios-depth-point-cloud
+Apple Scene Depth sample
+stovetopman/nw2026
+
+Wrap as:
+
+Capacitor native plugin
+In-App UX
+
+User taps:
+
+“Quick LiDAR Scan”
+
+The app:
+
+launches ARKit
+records camera frames
+records LiDAR depth
+records IMU poses
+exports .PLY
+auto-uploads package
+Why This Matters
+
+This keeps users fully inside Slate360.
+
+No:
+
+Polycam
+Scaniverse
+third-party transfers
+manual export workflows
+Sensor Fusion Pipeline
+How Indoor + Outdoor Alignment Works
+Core Engine
+
+Primary technologies:
+
+COLMAP
+Nerfstudio
+Splatfacto
+gsplat
+Alignment Method
+Structure from Motion (SfM)
+
+The engine:
+
+detects feature points
+matches features across images
+reconstructs camera poses
+builds spatial geometry
+Interior/Exterior Bridging
+
+To connect indoor and outdoor:
+
+Users must:
+
+walk through doors
+walk through transitions
+capture overlap areas
+
+The engine uses overlap frames to:
+
+lock coordinate systems
+unify geometry
+merge environments
+LiDAR Depth Priors
+
+Phone LiDAR scans become:
+
+“Depth Priors”
+
+Depth priors:
+
+force accurate scale
+improve geometry
+reduce drift
+improve reconstruction stability
+Accuracy Strategy
+Critical Legal Positioning
+
+DO NOT claim:
+
+legal survey accuracy
+engineering certification
+guaranteed tolerances
+Viewer Disclaimer
+
+Every viewer should display:
+
+“Measurements are approximate and intended for visual coordination only. Not for legal, structural, or survey use.”
+Actual Accuracy Strategy
+Relative Accuracy
+
+The system CAN achieve:
+
+strong relative measurements
+good coordination accuracy
+visually reliable dimensions
+Absolute Accuracy
+
+Requires:
+
+RTK
+GCPs
+survey workflows
+licensed surveyors
+
+This should remain optional enterprise functionality later.
+
+Reconstruction Pipeline
+Cloud Processing Architecture
+Core Flow
+
+Browser/App → Next.js API → R2 → Trigger.dev → GPU Worker → R2 → Webhook → Supabase → Viewer
+
+Recommended GPU Stack
+Core Technologies
+
+Use:
+
+Nerfstudio
+gsplat
+COLMAP
+FFmpeg
+OpenCV
+Infrastructure
+
+Use:
+
+RunPod
+Modal
+Trigger.dev
+Processing Stages
+Upload Stage
+validate files
+verify metadata
+organize assets
+Frame Extraction
+extract video frames
+normalize resolution
+remove duplicates
+Quality Analysis
+blur detection
+exposure scoring
+overlap analysis
+drift estimation
+Reconstruction
+COLMAP
+Gaussian training
+LiDAR fusion
+Optimization
+generate .spz
+generate previews
+generate thumbnails
+mobile optimization
+Publishing
+upload outputs
+update jobs
+notify users
+finalize billing
+Processing Modes
+Fast Draft Mode
+
+Purpose:
+
+rapid previews
+lower GPU cost
+mobile-friendly
+
+Characteristics:
+
+lower resolution
+fewer iterations
+faster completion
+lower storage
+High Quality Mode
+
+Purpose:
+
+premium deliverables
+client presentation
+marketing visuals
+
+Characteristics:
+
+full resolution
+advanced training
+longer processing
+higher GPU cost
+Viewer Architecture
+Recommended Viewer Stack
+Core Rendering
+
+Use:
+
+React Three Fiber
+Three.js
+@react-three/drei
+Gaussian Viewing
+
+Recommended:
+
+GaussianSplats3D
+sparkjsdev/spark
+Desktop Editing
+
+Recommended:
+
+SuperSplat (PlayCanvas)
+Why SuperSplat
+
+SuperSplat provides:
+
+editing
+cropping
+Walk Mode
+streamed LOD
+clipping
+measurements
+optimization
+pinning
+collision
+sectioning
+Mobile Optimization
+Use .spz Format
+
+SPZ advantages:
+
+dramatically smaller
+faster loading
+lower memory
+mobile-safe
+CDN-friendly
+Viewer Features
+Core Viewer Tools
+Orbit Mode
+orbit
+pan
+zoom
+Walk Mode
+first-person navigation
+collision support
+immersive walkthroughs
+Measurements
+
+Raycasting-based:
+
+point-to-point measurements
+floating labels
+unit switching
+Pins & Comments
+
+Pins support:
+
+text
+images
+PDFs
+issue status
+assignee
+priority
+timestamps
+Layers Panel
+
+Controls:
+
+CAD visibility
+opacity
+overlays
+comparisons
+Section View / Clipping Planes
+
+Users can:
+
+slice buildings
+cut roofs
+reveal interiors
+inspect systems
+“Open Like a Book”
+
+Advanced presentation mode:
+
+duplicated model halves
+hinge rotation
+interior reveal
+Before / After Compare
+
+Supports:
+
+schedule progress
+existing vs design
+milestone comparison
+Presentation Mode
+
+Features:
+
+cinematic orbit
+fullscreen
+auto-tour
+hidden UI
+branding overlay
+CAD & BIM Integration
+CAD Overlay Strategy
+IMPORTANT
+
+CAD does NOT improve reconstruction.
+
+CAD represents:
+
+Design Intent
+
+The twin represents:
+
+Existing Conditions
+Workflow
+User Imports
+.glb
+.gltf
+.ifc
+Manual Alignment
+
+Use:
+
+XYZ sliders
+rotation sliders
+opacity controls
+layer toggles
+Clash Visualization
+
+Users compare:
+
+design vs reality
+installed vs planned
+field conditions vs BIM
+Future Enterprise Features
+
+Potential:
+
+automatic alignment
+clash detection
+IFC parsing
+BIM metadata
+Sharing & Collaboration
+Public Share System
+Share Links
+
+Format:
+
+slate360.ai/share/twin/[token]
+
+Share Features
+expiry
+passwords
+max views
+revocation
+embed support
+analytics
+Embed Support
+
+iframe-based:
+
+responsive
+branded
+fullscreen capable
+client websites
+Collaboration
+
+Realtime support:
+
+comments
+measurements
+pins
+status changes
+multiplayer review
+Notifications
+User Notifications
+Trigger Events
+upload complete
+processing started
+processing complete
+processing failed
+comments added
+pins assigned
+viewer opened
+Delivery Methods
+email
+push notifications
+in-app alerts
+realtime feed
+
+Recommended:
+
+Resend
+SendGrid
+Storage Strategy
+Critical Cost Protection
+
+Storage WILL explode if unmanaged.
+
+Required Lifecycle Policies
+Auto Archive
+
+Move inactive assets to:
+
+cold storage
+archive tiers
+Cleanup Rules
+
+Support:
+
+delete raw after processing
+retention periods
+cleanup automation
+Compression
+
+Always:
+
+optimize outputs
+generate .spz
+compress previews
+Quotas
+
+Track:
+
+org storage
+project storage
+user storage
+processing minutes
+GPU credits
+Billing Strategy
+Stripe Architecture
+Auth & Capture Pattern
+Before Upload
+
+System:
+
+estimates processing cost
+authorizes payment hold
+does NOT charge yet
+During Upload
+
+Multipart upload runs.
+
+On Success
+
+GPU worker completes.
+
+Webhook:
+
+finalizes processing
+captures Stripe payment
+On Failure
+
+If:
+
+upload fails
+processing fails
+worker crashes
+
+Then:
+
+Payment hold expires automatically.
+
+User is NOT charged.
+
+Usage Protection
+Required Controls
+Trial Users
+
+Limit:
+
+uploads
+storage
+processing
+twin count
+viewer quality
+Cost Transparency
+
+Always show:
+
+estimated cost
+estimated time
+storage impact
+quality tier
+Enterprise Features
+
+Reserved for:
+
+CAD overlays
+collaboration
+high-res processing
+advanced exports
+long-term hosting
+Mobile Performance Strategy
+Preventing Mobile Crashes
+Required Optimizations
+Use .spz
+Progressive Loading
+Streamed LOD
+Lazy Loading
+Quality Modes
+
+Provide:
+
+Mobile Optimized
+Desktop Quality
+Dynamic Imports
+
+Never load heavy viewers until needed.
+
+Capture Best Practices
+In-App User Guidance
+Lighting
+
+Recommend:
+
+overcast days
+consistent lighting
+locked white balance
+locked exposure
+Phoenix Sun / Bright Conditions
+
+Use:
+
+ND filters
+underexposure
+avoid blown highlights
+Coverage
+
+Users should:
+
+overlap photos heavily
+walk slowly
+avoid rapid turns
+cover transitions carefully
+Reflections
+
+Warn users:
+
+mirrors
+glass
+reflective surfaces
+
+can create artifacts.
+
+Dashboard Redesign Strategy
+New Dashboard Philosophy
+
+The dashboard should feel like:
+
+A Visual Command Center
+
+NOT:
+
+admin tables
+generic SaaS panels
+empty widgets
+Dashboard Layout
+Left Sidebar
+Apps
+Site Walk
+Digital Twin
+360 Tours
+Design Studio
+Content Studio
+
+Locked apps:
+
+grayed out
+Upgrade badge
+Global Tools
+SlateDrop
+Notifications
+Messages
+Projects
+Admin
+
+CEO-only:
+
+Operations Console
+Billing Analytics
+User Management
+Hero Zone
+
+Large visual carousel:
+
+active projects
+recent twins
+featured walkthroughs
+
+Interactive thumbnails:
+
+previews
+3D snippets
+status indicators
+Quick Actions
+
+Buttons:
+
+New Site Walk
+Create Twin
+Upload Files
+Build 360 Tour
+Invite Collaborator
+Activity Feed
+
+Tabs:
+
+Notifications
+Messages
+Tasks
+Recent Activity
+Processing Jobs
+CEO Operations Console
+Required Rebuild
+Critical Security Fixes
+
+Add:
+
+Cloudflare Turnstile
+email OTP verification
+rate limiting
+Operations Layout
+Zone A — Financial Engine
+
+Display:
+
+MRR
+churn
+subscribers
+GPU costs
+storage burn
+Zone B — Alerts & Simulations
+
+Includes:
+
+infrastructure alerts
+GPU saturation
+pricing simulator
+Zone C — User & Entitlements
+
+Use:
+
+TanStack Table
+
+Supports:
+
+mass select
+feature toggles
+approvals
+search
+filters
+Full Feature Roadmap
+Stage 1 — Hosted Walkthrough MVP
+
+Features:
+
+uploads
+sharing
+360 photos
+GLB viewing
+comments
+embeds
+lightweight viewer
+
+Goal:
+
+Monetizable Fast
+Stage 2 — Collaboration Layer
+
+Features:
+
+measurements
+pins
+realtime comments
+collaboration
+overlays
+
+Goal:
+
+Workflow Coordination
+Stage 3 — Gaussian Splats
+
+Features:
+
+.splat
+.spz
+SuperSplat
+clipping
+desktop editing
+
+Goal:
+
+Premium Visual Experience
+Stage 4 — Full Cloud Reconstruction
+
+Features:
+
+COLMAP
+Nerfstudio
+LiDAR fusion
+automation
+GPU orchestration
+
+Goal:
+
+Enterprise Twin Platform
+Recommended Open Source Stack
+Primary Recommendations
+Viewer / Editor
+SuperSplat
+GaussianSplats3D
+React Three Fiber
+drei
+Uploads
+Uppy
+tus
+@aws-sdk/lib-storage
+Processing
+Nerfstudio
+gsplat
+COLMAP
+FFmpeg
+Collaboration
+Supabase realtime
+Trigger.dev
+Native LiDAR
+Waley-Z/ios-depth-point-cloud
+ARKit Scene Depth
+CAD
+three-cad-viewer
+Final Strategic Recommendations
+MOST IMPORTANT
+
+The product should prioritize:
+
+simplicity
+visual quality
+speed
+sharing
+browser delivery
+collaboration
+
+before:
+
+perfect reconstruction
+advanced automation
+survey-grade workflows
+Biggest Opportunity
+
+The winning experience is:
+
+“Upload messy site data today and send a stunning interactive browser walkthrough tomorrow.”
+
+That is the true differentiator.
+
+Final Build Order
+Foundational MVP
+Prompt 1A
+
+DB scaffold
+
+Prompt 1B
+
+Multipart uploads
+
+Prompt 2
+
+Hosted viewer system
+
+Prompt 3
+
+Public share + embeds
+
+Prompt 4
+
+Annotations + comments
+
+Prompt 5
+
+360 integration
+
+Prompt 6
+
+Gaussian viewer
+
+Prompt 7
+
+Desktop editor
+
+Prompt 8
+
+Measurements
+
+Prompt 9
+
+Clipping + CAD overlays
+
+Prompt 10
+
+GPU orchestration
+
+Prompt 11
+
+Native LiDAR capture
+
+Final Recommendation
+
+You now have:
+
+enough backend infrastructure
+enough upload infrastructure
+enough realtime infrastructure
+enough sharing infrastructure
+enough viewer infrastructure
+
+to begin implementation immediately.
+
+The correct path is:
+
+hosted walkthroughs first
+collaboration second
+Gaussian splats third
+automated reconstruction fourth
+
+This minimizes risk, speeds monetization, improves UX, and creates a much more manageable development path for Slate360.
+
+I created a comprehensive master document for the Slate360 Digital Twin platform that consolidates and organizes:
+
+Full Digital Twin architecture
+Mobile + desktop workflow strategy
+Cloud processing pipeline
+Viewer/editor stack
+Gaussian splatting strategy
+LiDAR integration strategy
+CAD/BIM alignment workflows
+Share/embed/collaboration systems
+Storage + billing protections
+Dashboard redesign direction
+CEO operations console strategy
+Upload pipeline architecture
+Legal/accuracy positioning
+UX/UI recommendations
+Performance optimization strategies
+Open-source integrations
+Feature roadmap
+Final build order
+
+The document is structured as a real implementation blueprint rather than scattered brainstorming, and it incorporates the strongest recommendations from:
+
+Grok
+ChatGPT
+Gemini
+Copilot audits
+Earlier Slate360 planning
+Current open-source tooling trends (mid-2026)
+
+It also reorganizes the product into the correct strategic direction:
+
+“Interactive Construction Walkthrough & Visual Coordination Platform”
+
+instead of prematurely positioning it as a survey-grade reconstruction platform.
+
+The next major step is creating:
+
+The full Copilot/Grok Build Prompt Sequence
+The production-ready file/folder architecture map
+Backend migration verification prompts
+UI wireframe/page-by-page specifications
+Marketing copy for:
+homepage hero
+Learn More pages
+subscription tiers
+Digital Twin sales messaging
+The exact PR-by-PR build execution system
+The full readiness audit prompt package for Grok Build + Composer
+
+Those should be done as a second master document because they will be extremely large and highly detailed.

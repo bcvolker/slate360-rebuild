@@ -1,0 +1,1695 @@
+Slate360 Full UI Build Plan
+
+Part 1: Current State Inventory
+
+What Already Exists and Works
+
+Backend (complete — do not touch):
+
+
+
+
+
+Auth/signup/login/approval, entitlements (3 billing models), Stripe/billing
+
+
+
+Site Walk: sessions CRUD, captures, plan rasterization (Trigger.dev), pin creation, deliverables, SlateDrop, coordination/inbox/calendar/contacts, collaborator invites
+
+
+
+53 API routes under app/api/site-walk/*
+
+
+
+DB tables for Twin 360: digital_twin_spaces, digital_twin_captures, digital_twin_processing_jobs
+
+
+
+Operations console, bug reports, account deletion, privacy/terms
+
+Mobile Shell (complete — 9 slices merged):
+All primitives live in components/mobile-system/:
+MobileAppShell, MobileTopBar, MobileBottomNav, MobileSection, MobileActionCard, MobileActionGrid, MobileAppButton, MobileTabbedPanel, MobileEmptyState, MobileShellBrandMark
+
+Both /app and /site-walk already route through MobileAppShell.
+
+Dashboard (partial — desktop):
+DashboardV3Shell is live at /dashboard with real data. Graphite Glass + Amber language.
+
+Homepage (debt-laden but functional):
+
+
+
+
+
+[components/marketing/MarketingHomepage.tsx](components/marketing/MarketingHomepage.tsx) — 70-line orchestrator
+
+
+
+[components/marketing-launchpad/marketing-styles.ts](components/marketing-launchpad/marketing-styles.ts) — scattered token strings (teal/emerald drift)
+
+
+
+[components/marketing-launchpad/marketing-tile-data.ts](components/marketing-launchpad/marketing-tile-data.ts) — 4 tiles (2 Site Walk, 2 Twin/Panorama)
+
+
+
+Viewer stack reusable: ModelViewerClient.tsx, PanoramaViewer.tsx, ViewerControlDock.tsx, MarketingMediaPanel.tsx, MarketingExpandableMediaFrame.tsx, MarketingMobileStudioPortal.tsx
+
+
+
+Pricing: components/marketing-launchpad/pricing-data.ts (plan IDs frozen: site-walk-basic, site-walk-pro, digital-twin-basic, digital-twin-pro)
+
+
+
+CSS scroll hooks: data-marketing-homepage, marketing-snap-showcase, marketing-snap-track, marketing-snap-section, marketing-flow-section, marketing-tail (all in app/globals.css)
+
+Clean-room handoff already written:
+[docs/HOMEPAGE_CLEAN_ROOM_HANDOFF.md](docs/HOMEPAGE_CLEAN_ROOM_HANDOFF.md) defines exact workflow, file scaffold, frozen contracts, and dual-AI validation gates.
+
+What Has Debt / Is Broken
+
+
+
+
+
+Homepage CSS: scattered hex values, teal/emerald drift vs. approved green/blue spec, hero viewer exceptions, one-off selectors
+
+
+
+marketing-styles.ts: teal tokens when spec says green (#00E699) + blue (#3D8EFF)
+
+
+
+Tile copy: Digital Twin must be renamed to Twin 360 in marketing
+
+
+
+No learn-more product pages for Site Walk or Twin 360
+
+
+
+Site Walk UI migration: 8 steps defined in docs/launch/V1_UI_MIGRATION_SEQUENCE.md, ~Steps 1-3 done, Steps 4–8 pending
+
+
+
+Twin 360 UI: Track B — not started. DB tables exist, no API routes or UI
+
+
+
+App icons, splash screens, Capacitor wrapper: missing
+
+
+
+Part 2: Design System Architecture
+
+Two-Layer Token System (the unification)
+
+The Slate360 design system has two legal contexts that share a foundation but diverge in accent:
+
+Layer 0 — Shared Foundation (both surfaces)
+
+Canvas:       #0B0F15
+Surface:      #0D1219
+Alt Surface:  #101722
+Heading:      #FFFFFF
+Body Text:    #F8FAFC
+Muted Text:   #A3AED0
+Border Soft:  rgba(255,255,255,0.08)
+Border Bright: rgba(255,255,255,0.14)
+Font (UI/body): Inter
+Font (heads/labels): Space Grotesk
+
+Layer 1a — Marketing tokens (public pages: /, /site-walk, /twin-360, /pricing)
+
+Primary accent:    #00E699 (Green — Site Walk, action, field capture)
+Secondary accent:  #3D8EFF (Blue — Twin 360, data, models)
+Green Glow:        rgba(0,230,153,0.08)
+Blue Glow:         rgba(61,142,255,0.08)
+Feature dot: green for Site Walk tiles, blue for Twin 360 tiles
+
+Layer 1b — Authenticated tokens (app shells, dashboard, product surfaces)
+
+Primary accent:    amber-500 (#F59E0B) — CTA, active nav, interactive
+Active state:      amber-500/10 bg + text-amber-500
+Status success:    emerald-400
+Status warning:    amber-400
+Status error:      red-400
+
+Resolution rule: The homepage and all public marketing pages use Layer 1a (green/blue). The authenticated app (dashboard, /app, /site-walk, /twin-360 product surfaces) uses Layer 1b (amber). Both sit on the same #0B0F15 canvas and share typography.
+
+The new components/marketing-v2/marketing-v2-tokens.ts will be the authoritative Layer 1a token file. The existing components/mobile-system/mobileTokens.ts is the Layer 1b authority.
+
+
+
+Part 3: Build Phases
+
+Phase 0 — Design Token Foundation (prerequisite, ~1 session)
+
+Create components/marketing-v2/marketing-v2-tokens.ts:
+
+
+
+
+
+Replace all teal/emerald/amber with green (#00E699) + blue (#3D8EFF) for marketing
+
+
+
+Export all layout class strings (TILE_ROW, TEXT_COLUMN, VIEWER_FRAME, etc.) from one file
+
+
+
+Ensure marketing-styles.ts (launchpad) remains for backward compat during soak period
+
+
+
+Create docs/design/SLATE360_V1_DESIGN_TOKEN_PLAN.md if not already complete (referenced in handoff doc)
+
+Phase 1 — Homepage Clean-Room Rebuild (~2–3 sessions)
+
+Already scoped in [docs/HOMEPAGE_CLEAN_ROOM_HANDOFF.md](docs/HOMEPAGE_CLEAN_ROOM_HANDOFF.md). Follow exactly.
+
+Target scaffold:
+
+components/marketing-v2/
+├── MarketingHomepageV2.tsx          # Orchestrator (~70 lines)
+├── marketing-v2-tokens.ts           # All tokens (~100 lines)
+├── marketing-v2-tiles.ts            # Tile + hero copy data (~90 lines, "Twin 360" naming)
+├── MIGRATION_NOTES.md
+├── sections/
+│   ├── HomepageHeader.tsx           # Wrap MarketingHeader w/ green/blue tokens (~120 lines)
+│   ├── HomepageHeroSection.tsx      # Hero copy, app badges, HeroMedia (~80 lines)
+│   ├── HomepageFeatureSection.tsx   # Data-driven tile loop (~70 lines)
+│   ├── HomepagePricingSection.tsx   # Imports pricing-data.ts (~120 lines)
+│   ├── HomepagePricingTierCard.tsx  # Single tier card (~60 lines)
+│   ├── HomepagePricingLimits.tsx    # Limits table (~100 lines)
+│   └── HomepageFooter.tsx           # Footer w/ green/blue tokens (~80 lines)
+└── media/
+    └── HomepageHeroMedia.tsx        # Thin wrapper (~15 lines)
+
+Frozen contracts (must not change):
+
+
+
+
+
+Anchor IDs: site-walk-start, digital-twin-start, pricing-matrix-section
+
+
+
+Plan IDs: site-walk-basic, site-walk-pro, digital-twin-basic, digital-twin-pro
+
+
+
+Signup pattern: /signup?plan={tier.id}
+
+
+
+DOM hooks: all marketing-snap-* and marketing-flow-section classes
+
+
+
+Viewer stack: reuse verbatim from components/marketing-launchpad/
+
+Route seam swap (only after Grok validates):
+
+// app/(public)/page.tsx
+import { MarketingHomepageV2 } from "@/components/marketing-v2/MarketingHomepageV2";
+
+Validation gates before merge: typecheck → build → Playwright e2e (update hero copy + #pricing-matrix-section selector).
+
+Phase 2 — Learn More Pages (~2 sessions)
+
+Two public pages, each scoped under app/(public)/:
+
+
+
+
+
+app/(public)/site-walk/page.tsx → components/marketing-v2/product-pages/SiteWalkProductPage.tsx
+
+
+
+app/(public)/twin-360/page.tsx → components/marketing-v2/product-pages/Twin360ProductPage.tsx
+
+Each page uses the same HomepageFeatureSection tile system. Expand content for each app:
+
+
+
+
+
+Site Walk: 6 feature tiles (field capture, plan pins, offline, deliverables, coordination, share)
+
+
+
+Twin 360: 6 feature tiles (360 panorama, 3D models, spatial docs, asset linking, model handoff, client records)
+
+Both pages reuse: HomepageHeader, HomepageFooter, viewer stack, marketing-v2-tokens.ts.
+
+Phase 3 — Auth Surface Polish (~1 session)
+
+Login and signup already function. Polish only:
+
+
+
+
+
+Align login/signup to shared foundation tokens (#0B0F15, glass panels, amber CTA)
+
+
+
+Ensure no teal/emerald leaks in auth surfaces
+
+
+
+Files: app/login/page.tsx, app/signup/page.tsx and their components
+
+Phase 4 — Dashboard Desktop Polish (~1–2 sessions)
+
+DashboardV3Shell is live. Remaining work:
+
+
+
+
+
+Avatar menu wired to real user data
+
+
+
+Usage meter connected to resolveUsageTruth
+
+
+
+Notification bell wired to real notification source
+
+
+
+canCreateFullProject() for Worksite vs Project label
+
+
+
+No "Coming Soon" or dead buttons
+
+Phase 5 — Site Walk UI Migration (Steps 4–8 from V1_UI_MIGRATION_SEQUENCE.md, ~4–5 sessions)
+
+Follow [docs/launch/V1_UI_MIGRATION_SEQUENCE.md](docs/launch/V1_UI_MIGRATION_SEQUENCE.md) strictly:
+
+
+
+
+
+Step 4: SlateDrop tab wired
+
+
+
+Step 5: Coordination tab wired
+
+
+
+Step 6: Deliverables tab with creation form (POST /api/site-walk/deliverables)
+
+
+
+Step 7: Plan workspace in V1 chrome (wrap PlanViewerLeaflet.tsx — DO NOT TOUCH internals)
+
+
+
+Step 8: Capture workspace V1 header
+
+
+
+Step 9: Saved pin move + delete (PATCH/DELETE /api/site-walk/pins/[id])
+
+
+
+Step 10: Deliverable creation form
+
+
+
+Step 11: App-store cleanup (remove "Coming Soon", redirect dead routes)
+
+Critical rule: Never touch PlanViewerLeaflet.tsx, CaptureContext.tsx, rasterize.ts, or any pin save logic.
+
+Phase 6 — Twin 360 Build (Track B, feature branch, ~6–8 sessions)
+
+Branch: feature/digital-twin-lite (from main after Phase 5 merges)
+
+Sequence:
+
+
+
+
+
+CEO-gated app entry in /app launcher (request Track A to add AppShell integration)
+
+
+
+Twin 360 mobile hub: app/(mobile)/twin-360/page.tsx using MobileAppShell + amber tokens
+
+
+
+Upload flow: multipart drone/GLB upload → POST /api/twin/upload → SlateDrop-backed
+
+
+
+Processing status: poll digital_twin_processing_jobs table
+
+
+
+3D viewer: components/twin/TwinViewer.tsx (reuse ModelViewerClient.tsx)
+
+
+
+360 panorama viewer: reuse PanoramaViewer.tsx
+
+
+
+Share routes: app/share/twin/[token]/page.tsx
+
+
+
+Desktop viewer: richer model review experience
+
+Phase 7 — App Store Prep (~2–3 sessions)
+
+
+
+
+
+Capacitor wrapper: npx cap init, iOS + Android targets
+
+
+
+App icons: all required sizes from existing 512px asset
+
+
+
+Splash screens: light + dark variants
+
+
+
+apple-touch-icon.png in /public
+
+
+
+Info.plist permission descriptions (camera, location, photos)
+
+
+
+AndroidManifest.xml equivalents
+
+
+
+Reviewer account setup (human task)
+
+
+
+Part 4: External AI Handoff Brief
+
+Use this section as a copy-ready brief for another AI assistant.
+
+Context for External AI
+
+Project: Slate360 — a reality intelligence SaaS platform for field capture, site walks, 360 documentation, digital twin review, and delivery workflows.
+
+Live URL: https://www.slate360.ai
+
+Tech stack: Next.js 15 (App Router), TypeScript, Tailwind CSS, Supabase (auth + database), Trigger.dev (background jobs), Stripe (billing), Vercel (deployment), Capacitor (native wrapper — pending)
+
+Repository rules:
+
+
+
+
+
+All files ≤300 lines (target ≤150)
+
+
+
+No hardcoded hex values in component files — all from token files
+
+
+
+No "Coming Soon", fake metrics, dead buttons, or placeholder language in authenticated surfaces
+
+
+
+Validate with npm run typecheck && npm run build before every commit
+
+
+
+Work on main branch directly (no external users yet); use feature branch for Twin 360
+
+What backend is already done (do not rebuild):
+Auth, billing (Stripe), entitlements (3 models), all Site Walk API routes (53 routes), SlateDrop file backbone, coordination/inbox/calendar, deliverables (22 types), Trigger.dev plan rasterization, Supabase tables for digital twins. Backend is complete — only frontend UI is needed.
+
+What the external AI should build:
+
+
+
+
+
+Homepage clean-room (components/marketing-v2/) per the spec in docs/HOMEPAGE_CLEAN_ROOM_HANDOFF.md
+
+
+
+Learn more pages: /site-walk and /twin-360
+
+
+
+Auth surface polish (login/signup already functional)
+
+
+
+Site Walk UI migration (wrap existing data logic in V1 chrome — do not rebuild data layer)
+
+
+
+Twin 360 mobile and desktop UI (on feature branch)
+
+Design system:
+
+
+
+
+
+Marketing/public: #0B0F15 canvas, #00E699 green (Site Walk), #3D8EFF blue (Twin 360), Inter + Space Grotesk
+
+
+
+Authenticated/product: same canvas, amber-500 accent, Graphite Glass
+
+
+
+One token file per surface layer; no scattered hex in component files
+
+Forbidden zones (never touch):
+
+
+
+
+
+lib/entitlements.ts, lib/entitlements-modular.ts
+
+
+
+app/api/billing/*, app/api/stripe/*
+
+
+
+components/marketing-launchpad/pricing-data.ts (plan IDs are frozen)
+
+
+
+middleware.ts
+
+
+
+components/site-walk/capture/PlanViewerLeaflet.tsx and all capture internals
+
+
+
+src/trigger/rasterize.ts
+
+
+
+supabase/migrations/*
+
+Key frozen contracts:
+
+
+
+
+
+Anchor IDs: site-walk-start, digital-twin-start, pricing-matrix-section
+
+
+
+Plan IDs: site-walk-basic, site-walk-pro, digital-twin-basic, digital-twin-pro
+
+
+
+Signup URL: /signup?plan={tier.id}
+
+
+
+App name: "Twin 360" on marketing (not "Digital Twin"); internal routes/DB remain digital-twin
+
+File to read first: docs/HOMEPAGE_CLEAN_ROOM_HANDOFF.md — it defines the exact workflow, validation gates, and file scaffold for the homepage. Then read docs/SLATE360_GRAPHITE_GLASS_DESIGN_SYSTEM.md for authenticated surfaces.
+
+
+
+Part 5: Complete Build Rules & Safety Mechanisms
+
+This section is the authoritative rule set for any AI working on this repo. Every rule below is enforced — either by automated guard scripts, git hooks, or explicit owner policy. Violations cause build failure, type errors, or roll-back requests.
+
+
+
+Rule 1 — File Line Limit (HARD CEILING)
+
+Every file inside app/, components/, or lib/ must stay strictly under 300 lines. Target is ≤150 lines.
+
+
+
+
+
+At 250 lines, extract logic into dedicated leaf components, custom hooks, or type files.
+
+
+
+No exceptions. Files over 300 lines block the architecture guard: npm run guard:architecture.
+
+
+
+Orchestrator files (root homepage component, shell wrappers) should be 60–80 lines. They compose — they do not implement.
+
+
+
+Rule 2 — Token-Only Colors (NO HARDCODED HEX IN COMPONENTS)
+
+All color values must come from token files. Never write a hex value, rgba(), or Tailwind palette class directly in a component or page file.
+
+Token files:
+
+
+
+
+
+Marketing/public: components/marketing-v2/marketing-v2-tokens.ts (Layer 1a)
+
+
+
+Authenticated/product: components/mobile-system/mobileTokens.ts (Layer 1b)
+
+
+
+Global CSS variables: app/globals.css → --s360-* tokens
+
+Banned in component files:
+
+
+
+
+
+#00E699, #3D8EFF, #0B0F15, any hex value
+
+
+
+bg-black, bg-slate-900, bg-zinc-*, text-orange-*, text-amber-* (naked palette classes)
+
+
+
+rgba() inline style values
+
+
+
+style={{ color: ... }} or style={{ background: ... }}
+
+Correct pattern:
+
+// Wrong
+<div className="bg-[#0B0F15] text-[#00E699]">
+// Correct — import from token file
+import { V2_PAGE_ROOT, V2_GREEN_ACCENT } from "@/components/marketing-v2/marketing-v2-tokens";
+<div className={V2_PAGE_ROOT}>
+
+
+
+Rule 3 — No Vibe-Coded Content (ZERO TOLERANCE)
+
+These strings are permanently banned from any file inside app/, components/, or any user-facing surface:
+
+
+
+
+
+Coming Soon
+
+
+
+beta / Beta
+
+
+
+demo / Demo
+
+
+
+placeholder / Placeholder
+
+
+
+test / Test (except in e2e/ and *.test.ts files)
+
+
+
+Lorem ipsum
+
+
+
+fake / mock / filler
+
+
+
+Non-actionable metrics (a metric displayed that the user cannot click or act on)
+
+
+
+Dead buttons (buttons that have no handler or route to a 404)
+
+V1 is a Foundational Release — not a beta. The app reviewer from Apple or Google must see a complete, working product.
+
+
+
+Rule 4 — Design System Identity Rules
+
+Marketing/public surfaces (/, /site-walk, /twin-360, auth pages):
+
+
+
+
+
+Background: #0B0F15
+
+
+
+Primary accent: #00E699 (green — Site Walk, action)
+
+
+
+Secondary accent: #3D8EFF (blue — Twin 360, data)
+
+
+
+Feature chevron: » in teal, never emoji, never icon
+
+
+
+No pill-shaped buttons (rounded-full is banned on CTAs)
+
+
+
+Feature lists: flex items-start gap-2 text-slate-200 text-base font-normal
+
+Authenticated/product surfaces (/app, /site-walk app, /dashboard):
+
+
+
+
+
+Background: #0B0F15
+
+
+
+Accent: amber-500 — CTA, active nav, interactive state
+
+
+
+Active state background: amber-500/10
+
+
+
+Glass cards: bg-white/[0.04], border border-white/10
+
+
+
+No decorative gradients, no marketing hero language
+
+Both surfaces share:
+
+
+
+
+
+Inter for UI/body text
+
+
+
+Space Grotesk for headings, wordmark, technical labels
+
+
+
+Rounded corners: rounded-xl (cards), rounded-md (controls) — never rounded-full
+
+Logo constants (never change):
+
+
+
+
+
+Desktop: absolute left-6 lg:left-12 top-1/2 -translate-y-1/2, icon h-8 text-[#00E699], wordmark text-2xl font-bold tracking-[0.15em] text-white ml-4
+
+
+
+Mobile: icon h-6 text-[#00E699], wordmark text-lg font-bold tracking-[0.12em] text-white ml-2
+
+
+
+Rule 5 — Mobile Layout Rules (MANDATORY)
+
+Banned on mobile content blocks:
+
+
+
+
+
+h-[100dvh] and h-screen on content-heavy containers
+
+
+
+snap-start on any block that has real scrollable content
+
+
+
+fixed bottom nav (use in-flow shrink-0 instead)
+
+
+
+h-full inside an overflow-y-auto parent (WebKit resolves as auto, breaks 1fr grid rows)
+
+Required patterns:
+
+
+
+
+
+Shell: flex flex-col overflow-hidden on <main>
+
+
+
+Panels: flex-1 min-h-0 so flex propagates height
+
+
+
+Panel scroll: overflow-y-auto on the panel, not the page
+
+
+
+Bottom nav clearance: in-flow shrink-0 nav; flex-1 main content fills remaining space
+
+
+
+Touch targets: minimum 44px height on all interactive controls
+
+
+
+Horizontal padding: px-4 for content; px-6 for sections
+
+Mobile vs Desktop fork rule:
+
+
+
+
+
+Desktop (≥1024px): asymmetric grid, 55% text / 45% media, lg:h-[100dvh] lg:snap-start
+
+
+
+Mobile (<1024px): fluid scroll, w-full h-auto py-16 px-6 block
+
+
+
+Rule 6 — Shell Hierarchy (DO NOT CREATE NEW SHELLS)
+
+These are the only valid shell containers. Do not invent new ones.
+
+
+
+
+
+
+
+Surface
+
+
+
+Shell
+
+
+
+Route
+
+
+
+
+
+Marketing/public
+
+
+
+PublicSiteChrome → own header per page
+
+
+
+app/(public)/
+
+
+
+
+
+Mobile PWA
+
+
+
+MobileAppShell + MobileTopBar + MobileBottomNav
+
+
+
+app/(mobile)/
+
+
+
+
+
+Site Walk app
+
+
+
+MobileAppShell (same) + Site Walk internal nav
+
+
+
+app/site-walk/
+
+
+
+
+
+Desktop dashboard
+
+
+
+DashboardV3Shell
+
+
+
+/dashboard
+
+
+
+
+
+Capture task
+
+
+
+CaptureShell (full-screen, no shared chrome)
+
+
+
+/site-walk/capture
+
+Do not:
+
+
+
+
+
+Create per-page mobile headers
+
+
+
+Add a second bottom nav to any screen
+
+
+
+Import desktop dashboard components into mobile routes
+
+
+
+Create new card/tab/nav systems from scratch — use components/mobile-system/ primitives
+
+
+
+Rule 7 — Routing Rules
+
+Authenticated entry point: All authenticated logins route to /app (mobile) or /dashboard (desktop). Never to /site-walk directly.
+
+Mobile quarantine — these routes redirect mobile users to /app?blocked=<module>:
+
+
+
+
+
+/projects, /project-hub, /slatedrop, /settings, /my-work, /coordination, /my-account
+
+Allowed mobile routes: /site-walk, /site-walk/setup, /site-walk/walks, /site-walk/capture, /more
+
+Site Walk exits: Legacy sub-routes (/site-walk/deliverables, /site-walk/reports, /site-walk/more, /site-walk/plans) redirect to /site-walk.
+
+Hidden apps (must not appear in any nav, app launcher, or route):
+
+
+
+
+
+360 Tours, Design Studio, Content Studio, Geospatial, Virtual Studio
+
+
+
+These routes exist in app/(apps)/ but must stay hidden via lib/app-store-mode.ts and entitlement gates
+
+
+
+Rule 8 — Validation Before Every Commit
+
+Run all three before pushing to main:
+
+npm run typecheck      # TypeScript — must pass with zero errors
+npm run build          # Next.js production build — must pass
+npm run guard:architecture   # File size + architecture guard
+
+On Windows (PowerShell):
+
+npm run typecheck; npm run build; npm run guard:file-size-regression
+
+Do not push if any step fails. Do not hide failures. Do not mark a task complete if the build is broken.
+
+
+
+Rule 9 — Forbidden Zones (Never Touch Without Explicit Approval)
+
+
+
+
+
+
+
+Path / System
+
+
+
+Why frozen
+
+
+
+
+
+lib/entitlements.ts, lib/entitlements-modular.ts
+
+
+
+Billing feature gates — wrong change = all users locked out
+
+
+
+
+
+app/api/billing/*, app/api/stripe/*
+
+
+
+Stripe — financial consequences
+
+
+
+
+
+components/marketing-launchpad/pricing-data.ts
+
+
+
+Plan IDs are frozen contracts used in signup URLs
+
+
+
+
+
+middleware.ts
+
+
+
+Auth routing, mobile quarantine, beta gates — wrong change = broken app for all users
+
+
+
+
+
+components/site-walk/capture/**
+
+
+
+Active capture V2 — any touch risks breaking the core walk loop
+
+
+
+
+
+components/site-walk/capture/PlanViewerLeaflet.tsx
+
+
+
+Leaflet plan viewer — pin creation, pan/zoom, plan image loading
+
+
+
+
+
+components/site-walk/capture/CaptureContext.tsx
+
+
+
+Capture state — pin-to-item linking, save flow
+
+
+
+
+
+src/trigger/rasterize.ts
+
+
+
+Trigger.dev PDF rasterization — working, do not disturb
+
+
+
+
+
+supabase/migrations/*
+
+
+
+Database schema — migrations are one-way
+
+
+
+
+
+lib/s3.ts, lib/s3-utils.ts
+
+
+
+R2/S3 storage — file paths are in the DB
+
+
+
+
+
+app/auth/*
+
+
+
+Supabase auth callbacks — login loop
+
+
+
+Rule 10 — Git and Branch Rules
+
+Default branch: main (direct push during pre-user development)
+Restore point: branch backup/pre-live-main-workflow / tag pre-live-main-workflow at commit 33ab09c
+
+Use main for:
+
+
+
+
+
+Homepage, marketing, learn-more pages
+
+
+
+Site Walk UI migration (visual chrome only)
+
+
+
+Dashboard wiring
+
+
+
+Auth polish
+
+
+
+Token foundation
+
+Use feature branch (feature/digital-twin-lite) for:
+
+
+
+
+
+Twin 360 build (Track B) — all new components/twin/*, app/api/twin/*, src/trigger/twin-*.ts
+
+
+
+Any change touching middleware.ts
+
+
+
+Supabase migrations
+
+
+
+Stripe/billing
+
+
+
+Capacitor native wrapper
+
+Git hygiene:
+
+
+
+
+
+git add . is banned — stage files individually
+
+
+
+Small, reversible commits — one logical change per commit
+
+
+
+After push: verify production via GET https://www.slate360.ai/api/deploy-info
+
+
+
+Provide cache-busted test URLs: https://www.slate360.ai/app?v=<short-sha>
+
+
+
+Rule 11 — Track Ownership (Concurrent Development)
+
+Two tracks own separate file trees and must not cross:
+
+Track A (on main) owns:
+
+
+
+
+
+components/mobile-system/**
+
+
+
+components/site-walk/** (visual wrapper only — not capture internals)
+
+
+
+app/site-walk/** (visual routes)
+
+
+
+components/dashboard/**
+
+
+
+components/marketing/**, components/marketing-launchpad/**
+
+
+
+components/marketing-v2/** (new)
+
+
+
+app/(public)/**
+
+
+
+app/(mobile)/**
+
+Track B (on feature/digital-twin-lite) owns:
+
+
+
+
+
+components/twin/** (to be created)
+
+
+
+app/api/twin/** (to be created)
+
+
+
+app/(mobile)/twin-360/** (to be created — note: route may be digital-twin internally)
+
+
+
+src/trigger/twin-*.ts (to be created)
+
+Shared (joint approval required):
+
+
+
+
+
+lib/entitlements.ts
+
+
+
+middleware.ts
+
+
+
+supabase/migrations/*
+
+
+
+Rule 12 — App Store Content Policy
+
+The V1 release is an invite-only Foundational Release — not a beta. Apple and Google reviewers must see a complete, working product.
+
+Required for submission:
+
+
+
+
+
+A dedicated pre-approved reviewer account with seeded data (project + walk + deliverable)
+
+
+
+Camera, microphone, and location permission pre-prompt UI (shown before native OS prompt)
+
+
+
+Account deletion accessible from within the app
+
+
+
+Privacy policy link accessible from within the app
+
+
+
+No placeholder screens, no Coming Soon, no dead buttons in any reviewer-visible route
+
+
+
+Capacitor native wrapper compiled to genuine iOS .ipa and Android .aab
+
+
+
+App icons (1024×1024 master), splash screens (light + dark), apple-touch-icon.png
+
+Banned from App Store listing copy:
+
+
+
+
+
+"beta", "test", "demo", "early access", "coming soon", "pilot", "unfinished"
+
+Approved copy:
+
+
+
+
+
+"Foundational Release", "Invite-only access", "Access pending approval"
+
+
+
+Rule 13 — Offline and Native Rules
+
+
+
+
+
+Site Walk capture (Act 2) is offline-first — photos and metadata must save to device immediately via IndexedDB and Capacitor Filesystem
+
+
+
+The service worker (app/sw.ts) is disabled via kill switch — do not re-enable for offline capture
+
+
+
+Offline queue: IndexedDB site-walk-queue store; syncs to R2/Supabase when network available
+
+
+
+Capacitor plugins required: @capacitor/camera, @capacitor/filesystem, @capacitor/geolocation, @capacitor/network
+
+
+
+Next.js static export (output: 'export') decision must be made before Capacitor build begins — this affects SSR
+
+
+
+Rule 14 — What Is Already Built (Do Not Rebuild)
+
+Any AI working on this project must read this before touching any data layer:
+
+
+
+
+
+
+
+System
+
+
+
+Status
+
+
+
+Do not rebuild
+
+
+
+
+
+Auth (signup/login/approval)
+
+
+
+Complete
+
+
+
+Use lib/supabase/client.ts, server.ts
+
+
+
+
+
+Entitlements (3 models)
+
+
+
+Complete
+
+
+
+resolveOrgEntitlements() in lib/entitlements.ts
+
+
+
+
+
+Stripe/billing
+
+
+
+Complete
+
+
+
+All routes in app/api/billing/*
+
+
+
+
+
+Site Walk sessions/items/pins/plans
+
+
+
+Complete
+
+
+
+53 API routes in app/api/site-walk/*
+
+
+
+
+
+Plan rasterization (Trigger.dev)
+
+
+
+Complete, working
+
+
+
+src/trigger/rasterize.ts
+
+
+
+
+
+SlateDrop file backbone
+
+
+
+Complete
+
+
+
+17 auto-folders, full upload/download/share
+
+
+
+
+
+Coordination (inbox/calendar/contacts)
+
+
+
+Complete
+
+
+
+Routes in app/api/coordination/*
+
+
+
+
+
+Deliverables (22 types, 9 modes)
+
+
+
+Complete
+
+
+
+Routes in app/api/site-walk/deliverables/*
+
+
+
+
+
+Collaborator invites
+
+
+
+Complete
+
+
+
+Per-project with seat limits
+
+
+
+
+
+Operations console
+
+
+
+Complete
+
+
+
+Owner-only
+
+
+
+
+
+Bug reports + feature suggestions
+
+
+
+Complete
+
+
+
+beta_feedback + feature_suggestions tables
+
+
+
+
+
+Mobile shell primitives (9 slices)
+
+
+
+Complete
+
+
+
+components/mobile-system/* — all 36 files
+
+
+
+
+
+Dashboard V3 (desktop)
+
+
+
+Live
+
+
+
+DashboardV3Shell at /dashboard
+
+
+
+
+
+Twin 360 DB tables
+
+
+
+Exists
+
+
+
+digital_twin_spaces, digital_twin_captures, digital_twin_processing_jobs
+
+
+
+Part 6: Recommended AI Tooling Per Phase
+
+
+
+
+
+
+
+Phase
+
+
+
+Recommended AI
+
+
+
+Why
+
+
+
+
+
+Homepage clean-room (Phase 1)
+
+
+
+Composer 2.5 (Cursor separate window) or Claude Opus
+
+
+
+Large CSS architecture + token system
+
+
+
+
+
+Homepage validation
+
+
+
+Grok Build (terminal)
+
+
+
+Contract audit + typecheck/build loop
+
+
+
+
+
+Learn More pages (Phase 2)
+
+
+
+Same AI as homepage (design continuity)
+
+
+
+Reuses same tile system
+
+
+
+
+
+Site Walk migration (Phase 5)
+
+
+
+This Cursor session (Track A)
+
+
+
+Deep repo context, careful about capture
+
+
+
+
+
+Twin 360 UI (Phase 6)
+
+
+
+Feature branch session
+
+
+
+Isolated, won't touch capture
+
+
+
+Sequencing Summary
+
+Phase 0: Token foundation         → marketing-v2-tokens.ts created
+Phase 1: Homepage clean-room      → components/marketing-v2/ built + merged
+Phase 2: Learn More pages         → /site-walk, /twin-360 product pages
+Phase 3: Auth polish              → login/signup aligned to tokens
+Phase 4: Dashboard desktop        → DashboardV3Shell wired + polished
+Phase 5: Site Walk migration      → Steps 4–11 of V1_UI_MIGRATION_SEQUENCE.md
+Phase 6: Twin 360 UI              → Track B feature branch
+Phase 7: App Store prep           → Capacitor, icons, splash, manifests
+
+Estimated effort at 3–4 sessions/day: 4–6 weeks to complete Phase 1–7.
+Minimum for App Store submission (Phases 1, 5, 7): 2–3 weeks.
+
+
+
+The 14 rules now documented in Part 5 of the plan cover every safety mechanism in the repo:
+
+Rule 1 — 300-line hard ceiling (enforced by npm run guard:architecture)
+Rule 2 — Token-only colors (no hex in component files)
+Rule 3 — Zero tolerance for vibe-coded content (Coming Soon, beta, fake data, dead buttons)
+Rule 4 — Design system identity (green/blue for marketing, amber for product, exact logo constants)
+Rule 5 — Mobile layout rules (banned patterns that cause WebKit scroll bugs, required flex geometry)
+Rule 6 — Shell hierarchy (only the four valid shells; no new ones)
+Rule 7 — Routing rules (mobile quarantine, hidden apps, authenticated entry points)
+Rule 8 — Validation before every commit (typecheck + build + guard:architecture)
+Rule 9 — The full forbidden zones list (entitlements, Stripe, Trigger.dev, capture internals, migrations)
+Rule 10 — Git and branch rules (main vs feature branch, staged commits only, deploy verification)
+Rule 11 — Track A/B ownership map (what each concurrent track owns and must not touch)
+Rule 12 — App Store content policy (reviewer account, permission pre-prompts, banned copy)
+Rule 13 — Offline and native rules (IndexedDB capture, disabled service worker, Capacitor)
+Rule 14 — What is already built (the full inventory so nothing gets accidentally rebuilt)
+You can give an external AI the full contents of this plan file and it will have everything needed to understand the project, respect the safety boundaries, and know exactly what to build versus what to leave alone. The question of whether it can build everything is really a question of context window and session continuity — the scope is large enough that it will require multiple focused sessions per phase rather than one single prompt.
+
+
+The plan now contains the complete, problem-free shell specification as Part 8. Here's what was documented and why it matters:
+
+What the spec covers for each of the three shells:
+
+Slate 360 Platform Shell (/app)
+
+Header: S-mark brand lockup left, bell (notifications sheet), QR code (install link share), avatar (account menu) right
+Content: "Your Apps" 2-col launcher grid (Site Walk green, Twin 360 blue) + "Quick Actions" compact 2×2 + expandable activity dock (Recent / Worksites / Shared / Alerts tabs)
+Nav: Home | Projects | SlateDrop | Coordination | Account — all route-link based
+Site Walk App Shell (/site-walk)
+
+Header: Back-to-Slate360 arrow left, app name/subtitle center, sync status + search + more right
+Content: 2×2 action grid (Quick Walk / New Worksite / Walk from Worksite / Review & Deliver) + expandable dock (Recent / Worksites / Shared / Needs Review)
+Nav: Home | Worksites | SlateDrop | Coordination | Deliverables — in-memory tab switching inside shell (no legacy route redirects)
+Accent: #00E699 green throughout
+Twin 360 App Shell (/digital-twin)
+
+Identical structure to Site Walk — header, 2×2 grid, expandable dock — just different content
+Accent shifts from #00E699 green → #3D8EFF blue everywhere (icon chips, nav indicator, panel tabs, CTAs)
+Action grid: New Capture / My Spaces / Upload Files / Review & Share
+Nav: Home | Spaces | Upload | Review | Account
+The reuse table at the end tells the external AI exactly which 8 components to share and what the only changing props are — making it impossible to accidentally create three separate shell systems.

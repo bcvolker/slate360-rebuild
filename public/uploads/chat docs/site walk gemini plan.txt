@@ -1,0 +1,365 @@
+Executive System Overview: SiteWalk Field EngineThe SiteWalk Field Engine (formerly PunchWalk) is a high-performance, container-centric application tailored for construction management, progress tracking, and on-site visual documentation. Within the Slate360 product family, SiteWalk functions as an independent standalone runtime ecosystem. It isolates field capturing operations from the platform dashboard, allowing users to coordinate site conditions directly over rasterized multi-layer floor plans.  The core architectural requirement of SiteWalk is Strict Resource Isolation. All structural models, inspection paths, and blueprint layers are bound to a specific workspace container (Project or Worksite). The application is designed to function smoothly on real-world construction environments under constrained network bandwidth or localized offline states, offloading heavy calculations asynchronously to background cloud processing clusters.  🎨 SECTION 1: DETAILED SCREEN ARCHITECTURE & USER WORKFLOWSFollowing the global platform user-interface contract, every card panel, sliding menu container, list row, and action button must lock into a sharp, structural rectangular curvature of exactly 12px (rounded-xl). Pill configurations, rounded circles, and generic outline borders are strictly prohibited. The design operates under the Graphite Glass visual framework utilizing page canvas color backgrounds of deep charcoal #0B0F15, thin translucent border tokens border-white/0.05, and cybernetic krypton teal #00E699 for active semantic highlights, active states, and tracking indicator pins.  ┌────────────────────────────────────────────────────────┐
+│ [←] SLATE360 // SiteWalk Field Hub  [👤 Account] [⚙️]  │ ◄ Fixed 56px Top Header Bar
+├────────────────────────────────────────────────────────┤
+│                                                        │
+│  QUICK ACTION CREATOR COCKPIT                          │
+│  ┌─────────────────────────┐ ┌───────────────────────┐ │
+│  │ [ + Create Worksite ]   │ │ [ ▻ Walk Workspace ]  │ │ ◄ 2x2 Clean Layout Matrix Grid
+│  ├─────────────────────────┤ ├───────────────────────┤ │
+│  │ [ 📷 Quick Walk ]       │ │ [ 🔍 Search Records ] │ │
+│  └─────────────────────────┘ └───────────────────────┘ │
+│                                                        │
+│  CONTAINED ACTIVE RECORD MANIFEST FEED                 │
+│  ┌──────────────────────────────────────────────────┐  │
+│  │ [ Recent Walkthrough Activity Logs ]             │  │
+│  │ • Level 2 Deck Pour Structural Trace [Queued]     │  │ ◄ 2.5 Visible Data Rows Height
+│  │ • Main Mechanical Room Inspection    [Complete]   │  │   Bottom Gradient Shading Fade
+│  │                                                  │  │   Slides Up to 60dvh Screen
+│  └──────────────────────────────────────────────────┘  │
+├────────────────────────────────────────────────────────┤
+│ 🏠 Home  │  📷 Walk  │  📁 Projects │ 🌐 Files │ 👤 Acct│ ◄ 5-Tab Unified Nav Layout
+└────────────────────────────────────────────────────────┘
+📱 Mobile Viewport Engine Interface FrameworkScreen 1: Act 1 Master Hub Launcher (app/site-walk/page.tsx):Top Navigation Chrome: A fixed 56px top header bar displaying left-aligned platform identifiers (SLATE360 // SiteWalk Field Hub) styled in text-white font-sans font-bold tracking-tight. To maximize viewable mapping space, no generic back-arrow assets sit inside the row; instead, the logo text element cluster handles the programmatic router push back to the root application workspace launcher (/app), flanked by a left-facing chevron indicator arrow: [ ← ] SLATE360.  Quick Action Cockpit: A clean 2x2 grid matrix layout layout positioning four high-contrast touch-target action panels above the feed: [ + Create Worksite ], [ ▻ Walk from Worksite ], [ 📷 Quick Walk ] (direct hardware capture gate), and [ 🔍 Search Workspace Records ].  Contained Activity Feed: Below the action cockpit, the Recent Activity segment initializes. To conserve layout space, the list view container locks to a height displaying exactly 2.5 visible data rows. A clean linear opacity gradient shading mask overlay (bg-gradient-to-t from-[#0B0F15] via-[#0B0F15]/85 to-transparent) tracks across the base interior edge of the scrollbox, signaling to field operators that further data columns can be swiped through.  Screen 2: Act 2 Layered Plan Surveyor Canvas (app/site-walk/(act-2-inputs)/page.tsx):Hardware Viewport Canvas: Mounts a full-bleed, hardware-accelerated pan-and-zoom matrix engine parsing multi-layered PDF floor plan sets. Tap action controls toggle between two operational gesture states via a local client state hook (toolMode === "pan" | "pin"):  pan: Full multi-touch touch gestures translate the vector sheet canvas across the screen view ports; all blueprint annotation interactive elements are set to pointer-events-none.  pin: Panning matrices are instantly frozen. Tap inputs register precise floating X/Y coordinate percentages relative to the sheet scale bounding box parameters, rendering an optimistic tracking node.  The Sheet-on-Sheet Hierarchy (Pinning Plans on Plans): If an area contains nested sub-drawings (e.g., an architectural detail plan sheet or an engineering MEP blowout callout diagram), tapping that specific zone drops a deep-linked regional tracking pin node. Tapping this parent pin invokes a floating glass window showing a blueprint miniature preview. Tapping the preview executes an inner transition that opens the child PDF plan drawing directly on top of the master canvas layout coordinate stack.  Screen 3: Act 2 Action-Gated Mobile Capture Overlay:Stacking Depth Matrix: Triggered instantly upon dropping a progress pin. This layer mounts using an explicit stacking priority configuration to paint cleanly over all map panes: className="fixed inset-0 z-[5000] h-[100dvh] w-screen bg-[#0B0F15] flex flex-col justify-between overflow-hidden".  Viewfinder Content Core: Connects directly to the device native camera stream API. Along the upper margin, it overlays a low-profile text input box container styled as an un-bordered dark glass card (bg-[#0B0F15]/80 backdrop-blur-md border border-white/0.05 p-4 rounded-xl) containing a single-line input field for Stop Title and a multi-line input box for Field Observations / Notes.  The Ghost-Layer Transparency Slider: To allow inspectors to verify construction progression accurately, a low-profile horizontal range slider (type="range" min="0" max="1" step="0.01") overlays right above the shutter buttons. Moving this slider adjusts the alpha blending opacity (style={{ opacity: ghostAlpha }}) of an un-clamped historical photo layout layer from a prior walk session, mapping it directly on top of the live camera stream so changes can be matched visually.  Screen 4: Act 3 Post-Walk Summary Manifest (app/site-walk/(act-3-outputs)/page.tsx):Data Verification Center: Serves as the user record inspection hub before cloud synchronization. It displays a contained, vertically scrolling list panel framework (flex-1 overflow-y-auto space-y-3 custom-scrollbar) mapping out every collected stop entry sequentially.  The Contextual Row Menu: Every stop row item features an image thumbnail thumbnail locked to a strict width-driven aspect frame parameter (w-16 h-16 object-cover rounded-xl border border-white/0.1 bg-slate-900) flanked by title headings and observation notes in text-zinc-500. The right rail of each card mounts a visible ··· 3-dot ellipsis button. Clicking it triggers a hover drop context menu containing explicit edit macros: [ ✎ Edit Record Details ] (re-opens viewports), [ ⧉ Duplicate Stop Node ] (clones item parameters), and [ ✕ Soft-Delete Entry ] (removes the item from the sequence array tracking tree instantly).  🗄️ SECTION 2: TRANS-FILE DIRECTORY STRUCTURE INDICESTo insulate the SiteWalk Field Engine completely from secondary app directories (such as the Digital Twin tracks), all new components, layouts, hooks, styles, and routes must occupy an isolated file tree structure on your disk.  📁 app/site-walk/
+├── 📄 layout.tsx                       # Full-Bleed Task Shell (Suppresses Platform Bars)
+├── 📄 page.tsx                         # Act 1 Master Hub Entry Route
+├── 📁 (act-2-inputs)/
+│   └── 📄 page.tsx                     # Act 2 Surveyor Canvas & Capture Router
+└── 📁 (act-3-outputs)/
+    └── 📄 page.tsx                     # Act 3 Post-Walk Summary Manifest Page
+📁 components/site-walk/
+├── 📄 SiteWalkHubLauncher.tsx          # Presentational Home Feed & CTA Matrix
+├── 📄 LayeredPlanCanvas.tsx            # Leaflet-gated Vector Pan/Zoom Engine
+├── 📄 CameraCaptureOverlay.tsx         # Full-Bleed Viewfinder Camera Stream Stack
+├── 📄 GhostLayerSlider.tsx             # Alpha-Blending Transparency Slider
+├── 📄 SketchMarkupCanvas.tsx           # Un-clamped Vector Touch Drawing Box
+├── 📄 WalkSummaryManifest.tsx          # Post-Walk Inspection Summary Feed
+└── 📄 DeliverablesExportCenter.tsx     # Trigger.dev Automated PDF Report Generator
+📁 lib/hooks/site-walk/
+├── 📄 useSiteWalkUpload.ts             # Direct-to-R2 Presigned Multipart Hook
+├── 📄 useSiteWalkRealtime.ts           # Supabase Job Progress Realtime Listener
+└── 📄 useBlueprintRasterizer.ts        # Trigger.dev Raster Task Dispatcher
+🗄️ SECTION 3: THE PIPELINE LOGIC (PINNING PLANS ON PLANS WITH TRIGGER.DEV)The architectural mechanism enabling a field operator to drop a plan sheet onto an existing vector drawing relies on a coordinated handoff between the client browser, a Supabase ledger, and a serverless Trigger.dev worker task running out-of-Vercel.  [ CLIENT TERMINAL ]                                        [ TRIGGER.DEV CLOUD ]
+         │                                                           │
+ (Uploads Parent PDF)                                                │
+         │ ───► [ S3 / Cloudflare R2 ]                               │
+         │                                                           │
+ (Inserts Job Row via Hook)                                          │
+         │ ───► [ Supabase DB ] ───(Trigger Task Event)────────────► │
+         │                                                           │
+         │                                                  Runs plan.rasterize
+         │                                                  • Extracts PDF Layers
+         │                                                  • Bursts Pages to WebP
+         │                                                  • Generates Resolution Matrix
+         │                                                           │
+ [ CANVAS VIEWPORTS ] ◄───(Realtime Status: Ready)─────────── [ EXPORTS IMAGES ]
+1. The Multi-Layer Execution PipelineIngestion & Encryption Generation: The user opens the layout workspace and uploads a multi-page vector architectural plan set PDF. The file bypasses Next.js API routes and streams directly to Cloudflare R2 using a Presigned Multipart URL managed via @aws-sdk/lib-storage.  Job Enqueue Transaction: Upon upload verification, an API endpoint inserts a new row into plan_raster_jobs set to queued and immediately dispatches a background processing task over to Trigger.dev:  TypeScriptawait tasks.trigger("plan.rasterize", { planSetId, orgId, storageKey });
+3.  **The Trigger.dev Rasterization Engine Task:** The worker spins up an isolated node instance. It fetches the source vector PDF from R2, initializes `pdfjs-dist` to parse internal sheet data, and executes an automated script loop to burst individual pages.
+4.  **Coordinate Mapping & Tiling Execution:** The processing task checks if a parent vector position exists. If a user pins *Sheet B (Detail Blowout)* onto *Sheet A (Master Architectural Floor Plan)*, the worker maps the relative coordinate inputs and leverages `@napi-rs/canvas` + `sharp` to parse the vector lines into multi-resolution rasterized WebP image tiles. It writes these output layers back into R2 under an organized folder tree: `orgs/{orgId}/site_walk/rasterized/{sheetId}/{z}/{x}/{y}.webp`.
+5.  **Realtime Stacking Re-Alignment UI:** Once the files are successfully written, the worker updates the data row in the database, setting `status = 'completed'` and appending the public `viewer_url` keys. Your custom client hook `usePlanSheetsRealtime.ts` intercepts this event change payload instantly, updating the Leaflet canvas viewport dynamically. The child plan sheet displays as a crisp, interactive vector rectangle overlay pinned precisely onto the master layout drawing.
+
+---
+
+### 🗄️ SECTION 4: PRODUCTION DATABASE MIGRATION SCHEMAS
+
+To stand up the underlying data ledgers required for plan positioning, tracking jobs, and permission controls with proper Row-Level Security (RLS), pass this complete SQL migration script to your backend agent[cite: 2].
+
+#### Migration Script: `20260528000000_sitewalk_field_engine.sql`
+```sql
+-- =============================================================================
+-- SLATE360 SITEWALK FIELD ENGINE CORE METADATA SCHEMAS
+-- IDEMPOTENT PRODUCTION-GRADE TRANS-FILE LEDGER ARCHITECTURE
+-- =============================================================================
+
+-- ── 1. CORE TRANSACTION PIPELINE ENUMS ───────────────────────────────────────
+CREATE TYPE public.sitewalk_job_status AS ENUM ('queued', 'processing', 'completed', 'failed');
+CREATE TYPE public.sitewalk_item_kind AS ENUM ('photo_standard', 'photo_360', 'video_loop', 'blueprint_link', 'thermal_map');
+
+-- ── 2. SITEWALK PLAN SETS (Master Drawing Containers) ────────────────────────
+CREATE TABLE IF NOT EXISTS public.site_walk_plan_sets (
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    org_id          UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
+    project_id      UUID NOT NULL REFERENCES public.projects(id) ON DELETE CASCADE,
+    created_by      UUID NOT NULL REFERENCES auth.users(id) ON DELETE SET NULL,
+    title           TEXT NOT NULL,
+    version_label   TEXT NOT NULL DEFAULT 'v1.0',
+    is_active       BOOLEAN NOT NULL DEFAULT true,
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp(),
+    updated_at      TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp()
+);
+
+-- ── 3. SITEWALK PLAN SHEETS (Individual Layered Vector Matrices) ─────────────
+CREATE TABLE IF NOT EXISTS public.site_walk_plan_sheets (
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    plan_set_id     UUID NOT NULL REFERENCES public.site_walk_plan_sets(id) ON DELETE CASCADE,
+    org_id          UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
+    parent_sheet_id UUID REFERENCES public.site_walk_plan_sheets(id) ON DELETE SET NULL, -- Self-reference for sheet-on-sheet pinning
+    title           TEXT NOT NULL,
+    sheet_number    TEXT,
+    source_pdf_key  TEXT NOT NULL,
+    rasterized_key  TEXT, -- Path to output WebP asset directory root
+    scale_factor    DOUBLE PRECISION NOT NULL DEFAULT 1.0,
+    parent_pin_x    DOUBLE PRECISION, -- Percentage coordinates if pinned on parent drawing
+    parent_pin_y    DOUBLE PRECISION,
+    metadata        JSONB NOT NULL DEFAULT '{}'::jsonb,
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp(),
+    updated_at      TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp()
+);
+
+-- ── 4. PLAN RASTERIZATION JOBS (Trigger.dev Cloud Queue Ledger) ─────────────
+CREATE TABLE IF NOT EXISTS public.plan_raster_jobs (
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    plan_set_id     UUID NOT NULL REFERENCES public.site_walk_plan_sets(id) ON DELETE CASCADE,
+    org_id          UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
+    status          public.sitewalk_job_status NOT NULL DEFAULT 'queued',
+    progress_pct    INTEGER NOT NULL DEFAULT 0 CHECK (progress_pct BETWEEN 0 AND 100),
+    attempts        INTEGER NOT NULL DEFAULT 0 CHECK (attempts >= 0),
+    max_attempts    INTEGER NOT NULL DEFAULT 3,
+    error_text      TEXT,
+    trigger_run_id  TEXT,
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp(),
+    updated_at      TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp()
+);
+
+-- ── 5. SITEWALK CAPTURE SESSIONS (The Individual Walk Tracks) ─────────────────
+CREATE TABLE IF NOT EXISTS public.site_walk_sessions (
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    org_id          UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
+    project_id      UUID NOT NULL REFERENCES public.projects(id) ON DELETE CASCADE,
+    plan_set_id     UUID REFERENCES public.site_walk_plan_sets(id) ON DELETE SET NULL,
+    created_by      UUID NOT NULL REFERENCES auth.users(id) ON DELETE SET NULL,
+    title           TEXT NOT NULL,
+    walk_date       DATE NOT NULL DEFAULT current_date,
+    metadata        JSONB NOT NULL DEFAULT '{}'::jsonb,
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp(),
+    updated_at      TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp()
+);
+
+-- ── 6. SITEWALK INSPECTION PINS (The Spatial Coordinate Anchors) ──────────────
+CREATE TABLE IF NOT EXISTS public.site_walk_pins (
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    session_id      UUID NOT NULL REFERENCES public.site_walk_sessions(id) ON DELETE CASCADE,
+    sheet_id        UUID NOT NULL REFERENCES public.site_walk_plan_sheets(id) ON DELETE CASCADE,
+    org_id          UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
+    created_by      UUID NOT NULL REFERENCES auth.users(id) ON DELETE SET NULL,
+    pin_number      INTEGER NOT NULL,
+    coordinate_x    DOUBLE PRECISION NOT NULL, -- Relative percentage width on sheet
+    coordinate_y    DOUBLE PRECISION NOT NULL, -- Relative percentage height on sheet
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp(),
+    updated_at      TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp(),
+    CONSTRAINT unique_session_pin_num UNIQUE (session_id, pin_number)
+);
+
+-- ── 7. SITEWALK ITEMS RECORDINGS (The Captured Visual Artifact Assets) ───────
+CREATE TABLE IF NOT EXISTS public.site_walk_items (
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    pin_id          UUID NOT NULL REFERENCES public.site_walk_pins(id) ON DELETE CASCADE,
+    org_id          UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
+    unified_file_id UUID REFERENCES public.unified_files(id) ON DELETE SET NULL,
+    item_type       public.sitewalk_item_kind NOT NULL DEFAULT 'photo_standard',
+    storage_key     TEXT NOT NULL,
+    caption         TEXT,
+    observation_notes TEXT,
+    metadata        JSONB NOT NULL DEFAULT '{}'::jsonb, -- Stores weather, timestamps, device types
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp(),
+    updated_at      TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp()
+);
+
+-- ── 8. ROW-LEVEL SECURITY (RLS) POLICIES & SECURITY GUARDS ──────────────────
+ALTER TABLE public.site_walk_plan_sets ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.site_walk_plan_sheets ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.plan_raster_jobs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.site_walk_sessions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.site_walk_pins ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.site_walk_items ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY sw_plan_sets_guard ON public.site_walk_plan_sets
+    FOR ALL TO authenticated USING (public.user_can_access_project(project_id));
+
+CREATE POLICY sw_plan_sheets_guard ON public.site_walk_plan_sheets
+    FOR ALL TO authenticated USING (org_id IN (SELECT org_id FROM public.organization_members WHERE user_id = auth.uid()));
+
+CREATE POLICY sw_jobs_guard ON public.plan_raster_jobs
+    FOR SELECT TO authenticated USING (org_id IN (SELECT org_id FROM public.organization_members WHERE user_id = auth.uid()));
+
+CREATE POLICY sw_sessions_guard ON public.site_walk_sessions
+    FOR ALL TO authenticated USING (public.user_can_access_project(project_id));
+
+CREATE POLICY sw_pins_guard ON public.site_walk_pins
+    FOR ALL TO authenticated USING (org_id IN (SELECT org_id FROM public.organization_members WHERE user_id = auth.uid()));
+
+CREATE POLICY sw_items_guard ON public.site_walk_items
+    FOR ALL TO authenticated USING (org_id IN (SELECT org_id FROM public.organization_members WHERE user_id = auth.uid()));
+
+-- ── 9. REALTIME PUBLICATION REGISTRY DO BLOCK ────────────────────────────────
+DO $$
+DECLARE tbl TEXT;
+BEGIN
+    FOREACH tbl IN ARRAY ARRAY['site_walk_plan_sheets', 'plan_raster_jobs', 'site_walk_sessions', 'site_walk_pins', 'site_walk_items']
+    LOOP
+        IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND tablename = tbl) THEN
+            EXECUTE format('ALTER PUBLICATION supabase_realtime ADD TABLE public.%I', tbl);
+        END IF;
+    END LOOP;
+END $$;
+
+-- ── 10. TIMESTAMPTZ AUTOMATED COLUMNS MAINTENANCE TRIGGERS ──────────────────
+CREATE OR REPLACE FUNCTION public.maintain_sitewalk_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = clock_timestamp();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_sw_plan_sets_sync BEFORE UPDATE ON public.site_walk_plan_sets FOR EACH ROW EXECUTE FUNCTION public.maintain_sitewalk_updated_at();
+CREATE TRIGGER trg_sw_plan_sheets_sync BEFORE UPDATE ON public.site_walk_plan_sheets FOR EACH ROW EXECUTE FUNCTION public.maintain_sitewalk_updated_at();
+CREATE TRIGGER trg_sw_jobs_sync BEFORE UPDATE ON public.plan_raster_jobs FOR EACH ROW EXECUTE FUNCTION public.maintain_sitewalk_updated_at();
+CREATE TRIGGER trg_sw_sessions_sync BEFORE UPDATE ON public.site_walk_sessions FOR EACH ROW EXECUTE FUNCTION public.maintain_sitewalk_updated_at();
+CREATE TRIGGER trg_sw_pins_sync BEFORE UPDATE ON public.site_walk_pins FOR EACH ROW EXECUTE FUNCTION public.maintain_sitewalk_updated_at();
+CREATE TRIGGER trg_sw_items_sync BEFORE UPDATE ON public.site_walk_items FOR EACH ROW EXECUTE FUNCTION public.maintain_sitewalk_updated_at();
+🚀 SECTION 5: SEQUENTIAL DEVELOPMENT LAUNCH PROMPTS FOR GROK BUILDThis series of explicit, highly technical prompt cards is designed for copy-pasting directly into Grok Build or your primary interface code runner. Follow this sequence precisely, performing compile validation loops after each file is generated.  📋 Prompt 1: Act 1 Home Hub Launcher ViewportMarkdownRole: Lead Mobile UX UI Systems Engineer & Design System Specialist
+Context: We are constructing the Act 1 primary Home Hub launcher presentational view for our standalone SiteWalk mobile application shell. 
+
+Please create a clean, responsive presentational client component file at `components/site-walk/SiteWalkHubLauncher.tsx`.
+
+Strict Engineering Specifications:
+1. Sizing Parameters: Lock the root workspace body background color to a solid `#0B0F15` deep graphite canvas. Enforce a sharp curvature constraint of exactly 12px (`rounded-xl`) across every button node, interactive feed box, and utility layout card. pill configurations are strictly banned.
+2. The Top Header Navigation Row: Build a fixed 56px top header element bar. Display left-aligned brand typography text reading "SLATE360 // SiteWalk Field Hub" in text-white font-sans font-bold tracking-tight. To maintain max mapping workspace real estate, do not add a dedicated back button row; the logo typography cluster itself must trigger the router pop back to the main app launcher hub (`/app`), flanking the title strings cleanly with a high-contrast left chevon arrow: `[ ← ] SLATE360`.
+3. The Action Launch Grid: Directly below the header bar, mount four un-bordered glass component action buttons arranged in a symmetrical 2x2 grid matrix layout:
+   - Card 1: [ + Create Worksite Workspace ] (Border highlight text color: `#00E699`).
+   - Card 2: [ ▻ Walk from Worksite ] (Translucent borders token `border-white/0.05`).
+   - Card 3: [ 📷 Quick Walk Capture ] (Direct route gate to absolute hardware capture overlays).
+   - Card 4: [ 🔍 Search Workspace Records ]
+4. The Contained Activity Manifest Feed: Below the grid, build a Recent Activity section. The scrollbox element container must lock to a height displaying exactly 2.5 visible data rows. Apply a continuous linear background opacity gradient shading overlay mask (`bg-gradient-to-t from-[#0B0F15] via-transparent to-transparent`) directly on top of the bottom edge of the box to visually guide scrollability. Every walk history row must display a crisp tracking title, progress status badges, and localized execution timestamps.
+
+Verify layout compiler parameters before code output: run `npm run typecheck && npm run build`. Ensure zero error loops.
+📋 Prompt 2: Act 2 Multi-Layer Viewport Canvas (Sheet Pinning)MarkdownRole: Principal Graphics Systems Architect & Leaflet Viewport Specialist
+Context: The home hub launcher feed is operational [PASS]. We are executing Prompt 2 to construct the Act 2 Layered PDF Floor Plan Pan-and-Zoom Canvas engine.
+
+Please create a new core viewport mapping file at `components/site-walk/LayeredPlanCanvas.tsx`.
+
+Strict Architectural Specifications:
+1. Canvas Configuration: Initialize a hardware-accelerated 2D projection view window (using standard Leaflet map view models or hardware-gated raw transform CSS matrices) contained cleanly inside a `rounded-xl` layout overflow boundary window.
+2. State Machine Gesture Allocation: Wire a local React state flag tracking mutual exclusion input paths (`gestureLockMode === "pan" | "pin"`):
+   - When set to `pan`, touch gestures translate the background sheet matrix coordinate layers; all blueprint marker pins are set to `pointer-events-none`.
+   - When set to `pin`, canvas translation transforms are frozen. Individual tap touch interactions query the explicit X/Y position fractions relative to the sheet canvas layer size bounds, triggering an event callback hook: `onPinLocationSelected({ x, y })`.
+3. The Sheet-on-Sheet Overlay Matrix (Pinning Plans on Plans): Map out dropped tracking pin nodes across the vector drawing layer using our canonical Cybernetic Krypton Teal token color (`bg-[#00E699] text-[#0B0F15] font-mono h-6 w-6 rounded-xl flex items-center justify-center font-bold shadow-[0_0_12px_rgba(0,230,153,0.4)]`).
+4. Detail Sheet Nesting Handler: If a pin record object maps a `child_sheet_id` reference attribute, intercept single tap interactions to launch a floating context card overlay displaying an interactive miniature blueprint preview. Tapping the preview container must execute an internal layer swap operation that unmounts the current background map plane and initializes the child plan sheet vector layer directly in place, allowing unlimited nested sheet-on-sheet walkthrough tracks.
+
+Verify compilation safety before delivering code output. Keep lines of code under 300.
+📋 Prompt 3: Act 2 Action-Gated Camera Capture OverlayMarkdownRole: Lead Mobile Framework Integration Engineer & API Specialist
+Context: The multi-layered blueprint drawing canvas compiles smoothly [PASS]. We are executing Prompt 3 to build the absolute action-gated camera capture view.
+
+Please create a new absolute overlay component file at `components/site-walk/CameraCaptureOverlay.tsx`.
+
+Strict Specifications:
+1. Stacking Depth context: Mount this layer inside an absolute full-bleed window format explicitly elevated to ride cleanly above all viewports: `className="fixed inset-0 z-[5000] h-[100dvh] w-screen bg-[#0B0F15] flex flex-col justify-between overflow-hidden"`.
+2. Device Viewfinder Core: Initialize a live media capture viewport bound to the native hardware camera API stream (`navigator.mediaDevices.getUserMedia`). If stream generation hooks time out, immediately render a dark graphite card template containing a camera icon asset to prevent white loading flashes.
+3. Upper Context Metadata Form: Overlay an un-bordered glass text card along the top margin line of the camera window: `className="absolute top-4 inset-x-4 z-10 p-4 bg-[#0B0F15]/80 backdrop-blur-md border border-white/0.05 rounded-xl flex flex-col gap-3"`. Provide a single-line input field for `Stop Title` and a multi-line input box for `Field Observations / Notes`.
+4. High-Contrast Bottom Shutter Buttons: Along the safe-area base line of the screen view, mount an inline flex row tracking three prominent touch targets:
+   - Left side: Circular layout button mapping `[ ✕ Cancel Stop ]` (escapes capture state with zero mutations).
+   - Center: The Primary Capture Trigger. A massive circle box (`h-16 w-16 bg-[#00E699] rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(0,230,153,0.3)]`).
+   - Right side: Rectangular action layout button mapping `[ ✓ Save Stop ]` (commits memory data logs to the walk array).
+
+Keep code files under 300 lines of code. Run project validation typecheck scripts.
+📋 Prompt 4: Historical Ghost-Layer Opacity SliderMarkdownRole: Lead Interaction Shader Engineer & Core UI Developer
+Context: Camera viewfinders and metadata fields operate cleanly [PASS]. We are executing Prompt 4 to embed the historical comparison Ghost-Layer transparency mechanics.
+
+Please create a new layer module file at `components/site-walk/GhostLayerSlider.tsx`.
+
+Strict Specifications:
+1. Core Mission: This module gives inspectors the ability to visually overlay an image from an earlier walk session directly over the live viewfinder stream to verify construction changes in real-time.
+2. Stacking Intermediate Layer: Position this component directly behind the upper text fields and in front of the active camera video pipeline window. Enforce a full-bleed absolute fill layout: `className="absolute inset-0 z-10 pointer-events-none w-full h-full object-cover"`.
+3. Alpha Blending Interpolation: Bind the historical comparison photo image asset opacity property directly to a local coordinate number state hook tracking user selections (`ghostAlpha` scaling seamlessly from `0.00` to `1.00` via a custom range matrix): `style={{ opacity: ghostAlpha }}`. 
+4. The Ergonomic Control Rail: Overlay a horizontal range selector slider row directly inside the safe zone immediately above the core bottom camera shutter panels. Structure the container layout string cleanly: `className="absolute bottom-24 inset-x-4 z-20 px-4 py-3 bg-[#0B0F15]/90 backdrop-blur-md border border-white/0.05 rounded-xl flex items-center gap-4 shadow-xl"`. Include a `text-xs font-bold text-zinc-400 uppercase tracking-wider` identifier displaying "Ghost Alpha Alignment" and a range track (`type="range" min="0" max="1" step="0.01"`) running a custom teal selection thumb.
+
+Verify file compliance: line counts under 300. Run verification typecheck loops.
+📋 Prompt 5: Act 2 Un-Clamped Touch Sketch CanvasMarkdownRole: Principal Canvas Vector Engineer & Mobile Interaction Architect
+Context: Ghost comparison sliders compile correctly [PASS]. We are executing Prompt 5 to build the un-clamped touch vector drawing box layer.
+
+Please create a new utility component file at `components/site-walk/SketchMarkupCanvas.tsx`.
+
+Strict Specifications:
+1. Target Interface window: This layer overlays directly over a captured image frame to allow field operators to quickly sketch redline directives on-site using their thumbs.
+2. Coordinate Stacking Context: Layer the layout window absolutely full-bleed directly inside the active capture overview track: `className="absolute inset-0 z-20 h-full w-full bg-transparent overflow-hidden touch-none"`.
+3. Core HTML5 Vector Engine: Wire standard pointer event listeners (`onTouchStart`, `onTouchMove`, `onTouchEnd`) to draw smooth vector lines onto the HTML5 context canvas. Enforce strict brush variables: line thickness must lock to exactly `4px`, and the stroke color token must match our unified platform highlight teal: `#00E699`.
+4. Event Leak Prevention Isolation: Ensure all input loops run an explicit `e.stopPropagation()` and `e.preventDefault()` invocation. This blocks mobile browsers from accidentally triggering double-tap container zoom scales or causing underlying blueprint map page displacement panning while the operator is drawing sketches.
+5. Floating Actions Toolbar: Center a compact horizontal action card along the right rail border line of the canvas interface. Expose two clean rectangular buttons (`rounded-xl bg-[#0B0F15]/90 backdrop-blur-md border border-white/0.05 px-3 py-2 text-xs font-bold font-sans text-white hover:text-[#00E699]`):
+   - Button 1: [ ⎌ Undo Stroke ] (Pops the last vector tracking index out of memory buffers).
+   - Button 2: [ 🗑 Clear Drawing ] (Wipes the context clear).
+
+Verify file lines stay under 300. Run project packaging compilation testing.
+📋 Prompt 6: Act 3 Post-Walk Summary Manifest FeedMarkdownRole: Principal Frontend Systems Architect & Data Verification Specialist
+Context: All Act 2 collection modules are compiled successfully [PASS]. We are executing Prompt 6 to stand up the Act 3 Post-Walk Summary Manifest page elements.
+
+Please create a fresh presentational client component file at `components/site-walk/WalkSummaryManifest.tsx`.
+
+Strict Specifications:
+1. Bounding Geometry: Force the layout sheet to lock cleanly inside a vertical flex format tracking perfectly to mobile safe-area dimensions: `className="w-full flex-1 flex flex-col min-h-0 bg-[#0B0F15] overflow-hidden px-4 pt-6"`.
+2. Unified Data Log List: Build a vertically scrolling list layout port (`flex-1 overflow-y-auto space-y-3 pr-1 custom-scrollbar`) mapping collected walk stops sequentially. Every single stop card must use our un-bordered graphite glass card layout conventions:
+   - Card frame: `className="w-full bg-[#131820]/40 border border-white/0.05 p-4 rounded-xl flex items-center gap-4 relative justify-between"`
+   - Image Thumbnail: Left-aligned, rendering a visual preview box tracking our strict aspect limit metrics: `className="w-16 h-16 object-cover rounded-xl shrink-0 border border-white/0.1 bg-slate-900"`.
+   - Data block info: Centered column elements displaying the index ranking (`#1`, `#2`, `#3`), the custom `Stop Title`, and an observation notes log snippet string in text-zinc-500.
+3. Far-Right Item Context Menu: Position an explicit vertical ellipsis text macro row (`···`) on the far right margin rail of each card node. Clicking this indicator launches a compact action dropdown panel overlay mapping out custom item mutations:
+   - Command A: [ ✎ Adjust Stop Parameters ] (Re-opens viewports and cameras for corrections).
+   - Command B: [ ⧉ Duplicate Entry Node ] (Clones data attributes and appends a duplicate item onto the tracking array).
+   - Command C: [ ✕ Remove Stop Record ] (Executes an immediate soft-delete filter slicing the item out of active memory logs).
+
+Run comprehensive compiler checking sweeps (`npm run typecheck && npm run build`). Keep files under 300 lines.
+📋 Prompt 7: The Master Unified State Controller Gateway RouteMarkdownRole: Lead Core Full-Stack Systems Architect & Route Coordinator
+Context: Presentational modules for Acts 1, 2, and 3 are compiled [PASS]. We are executing Prompt 7 to assemble the master unified state controller route page.
+
+Please completely overwrite the core layout router file located at `app/site-walk/(act-2-inputs)/page.tsx` (or your active walk processing center gateway).
+
+Strict Engineering Specifications:
+1. Operational Architecture: This file is the primary single state coordinator for the active walk session. It orchestrates user paths using an active state tracking variable: `currentAct === "setup" | "canvas" | "capture" | "manifest"`.
+2. Initial Launch State Seeding: On initial page initialize load, return the presentational `<SiteWalkHubLauncher />` view layer. Bind its primary action triggers to initialize a clean walk data array and advance the engine state tracker over to `canvas`.
+3. Stacking Viewport Control (Act 2 Operations):
+   - When `currentAct === "canvas"`, mount the full-screen presentational `<LayeredPlanCanvas />` vector pane layout sheet. 
+   - Tapping a coordinate location drops an optimistic tracking vector, caches the position fractions, and advances the layout state cleanly over to `capture`.
+   - When `currentAct === "capture"`, mount our full-bleed presentational `<CameraCaptureOverlay />` viewfinder component. Wiring cancel loops drops the user back to `canvas`. Saving flushes captured buffers into the main walk data array object list and returns the viewport back to `canvas` mode.
+4. Concluding Toolbar: Mount a high-contrast floating action header bar labeled `[ ✦ Conclude Active Site Walk Path ]` along the upper display margin lines of the canvas screen. Tapping this button executes a state shift that advances the application directly over into the `<WalkSummaryManifest />` review layout.
+5. Database Synchronization Trigger: Along the bottom footer line of the summary manifest sheet, embed a wide high-contrast teal button: `className="w-full bg-[#00E699] text-[#0B0F15] font-bold py-4 rounded-xl text-center hover:bg-[#00CC88] transition-all cursor-pointer font-sans"`. Label it explicitly as `[ ✦ Commit Structural Walk Record to Cloud Workspace ]`. Connect its event listener to run a secure database transaction POST mutation parsing data straight to our production endpoints.
+
+Verify complete project file compilation before final main deployments are committed. Keep lines under 300.
+📋 Prompt 8: Trigger.dev Automated PDF Report Generation TaskMarkdownRole: Principal Cloud Ingestion Engineer & Devops Pipeline Specialist
+Context: State machines and database transfer pipelines compile smoothly [PASS]. We are executing Prompt 8 to write the backend report compiling automation worker task.
+
+Please create a new background cloud worker script document file at `src/trigger/twin-process.ts` (or your active task folder asset).
+
+Strict Technical Specifications:
+1. Task Registration Architecture: Configure a new task item framework mapped straight to your project Trigger.dev configurations tracking ID metrics: `task.id === "site_walk.generate_report"`. Set a strict timeout constraint to prevent runaway compute fees: `timeout: 900` (15 minutes).
+2. Asynchronous Payload Processing: The task worker must intercept an incoming payload containing the unique `sessionId`, `orgId`, and S3 tracking references. Initialize a secure admin-gated Supabase connection to collect all related rows from `site_walk_pins` and `site_walk_items` matching the walk path context.
+3. Report Document Assembly Compilation: Loop through the aggregated database arrays. Leverage the pre-installed `@react-pdf/renderer` and `pdfjs-dist` libraries to programmatically build an elegant, corporate-branded AEC engineering field report document completely off-Vercel.
+4. Page Formatting Metrics: Every page of the generated report must cleanly isolate a single walk stop item node. Render the high-resolution RGB image frame, stamp localized geolocated weather statistics text strings, display structural coordinate percentages, map the drawing sheet source, and append observation comments text notes.
+5. Export & DB Update Callback: Write the finalized output binary buffer document directly into your Cloudflare R2 bucket under the target namespace identifier key: `orgs/{orgId}/site_walk/reports/{sessionId}.pdf`. Execute a service-role database mutation updating the parent session table row state over to `completed`, and map the live `pdf_storage_key` access endpoints.
+
+Ensure the python or node script compilation remains fully idempotent. Keep code files under 300 lines.
+📋 Prompt 9: Cross-Browser Scrollbar Consistency OverridesAgent Target: Cursor Composer 2.5 (Ctrl + I)Lanes Tracked: Global layout override matricesExecution Script:MarkdownRole: Lead Design System Infrastructure Specialist & Styles Enforcer
+Context: Viewport layers and automation workers are stable [PASS]. We are executing Prompt 9 to apply cross-browser custom scrollbar visibility parameters.
+
+Please open your global platform stylesheet document located at `app/globals.css`.
+
+Strict Specifications:
+1. Target Objective: The horizontal continue-work rails and post-walk manifest lists suffer from cross-browser scrollbar failures on non-Chrome environments (Firefox and legacy Edge layouts). We are extending our stylesheet tracking classes to inject standard, high-contrast scrolling parameters universally.
+2. Symmetrical Rail Tokens Overwrite: Locate your active WebKit custom scrollbar classes (lines 743–750). Maintain the existing WebKit pseudo-selectors (`::-webkit-scrollbar` set to 4px dimensions, and `::-webkit-scrollbar-thumb` mapped to clear white opacity variations), and inject standard, cross-browser CSS semantic properties right into the `.custom-scrollbar` primitive block root:
+   - Scrollbar Sizing: `scrollbar-width: thin;`
+   - Scrollbar Colors: `scrollbar-color: rgba(255, 255, 255, 0.15) transparent;`
+   - Edge Layout Parameters: `-ms-overflow-style: auto;`
+3. Card Spacing Verification: Open your stylesheet layout overrides. Ensure that any instances of `scrollbar-hide` or custom hidden overflow flags are programmatically stripped out of our active app navigation paths, guaranteeing that users running high-density layout sheets across any browser interface can navigate list cards smoothly.
+
+Verify complete project code compilation passes typecheck gates successfully.
+📋 Prompt 10: Full-Bleed Task Shell Enforcer LayoutAgent Target: Cursor Composer 2.5 (Ctrl + I)Lanes Tracked: Absolute task shell definitions and deployment validationExecution Script:MarkdownRole: Principal Platform Release Engineer & Structural Layout Specialist
+Context: All components, viewport canvas modules, and drawing layers are styled and compiled [PASS]. We are executing Prompt 10 to implement the full-bleed task shell layout enforcer to protect our application workspace.
+
+Please open your top-level layout route container wrapper file at `app/site-walk/layout.tsx`.
+
+Strict Specifications:
+1. Structural Core Mission: To prevent dual navigation layouts and maximize camera drawable space during intense on-site fields data collection, the Site Walk app view must completely eliminate the global web platform navigation menus.
+2. Layout Shell Realignment: Completely wrap your child rendering nodes inside our clean, minimal authentication gate framework wrapper (**`StudioAuthedShell`**), completely bypassing your desktop navigation sidebars and mobile bottom tab row panels.
+3. Full-Bleed Environment Enforcer: Force the section wrapper layout classes to lock into an absolute, zero-padding, hardware-accelerated full-bleed canvas port framework:
+   - Overwrite code: `className="w-full h-[100dvh] min-h-0 block relative bg-[#0B0F15] overflow-hidden p-0 m-0 border-none select-none touch-none overscroll-none"`
+4. Stacking Context Security: Ensure that no underlying layout padding constraints or layout weight factors (`pt-28` overrides) can bleed into this view container tree from parent layout scopes, providing a clean canvas for your step-by-step app code to compile perfectly.
+
+Run your comprehensive, root-level verification gates: `npm run typecheck && npm run build && npm run guard:architecture`. Ensure the project reports 100% success metrics.
+🔍 SECTION 6: THE GRANULAR REVIEW CHECKLIST (QA MANUAL GATES)Before committing any generated file to main or initializing product deployment passes, verify your workspace against this explicit verification checklist:  The 100dvh Scrollport Test (Desktop Verification): Open your desktop monitor browser. Inspect the master scroll port boundary loops. Confirm that the root window container is bounded tightly to the layout framework wrapper and that individual hero feature elements snap completely flush to viewport edges without creating layout gaps or continuous white text page drift.  The 12px Curvature Verification (Visual Check): Scan every newly injected touch-target button, descriptive text field overlay container, image thumbnail box, and sidebar context component. Their corners must match a strict rectangular curvature profile of exactly 12px (rounded-xl). Smooth rounded circles or hard zero-pixel edges mean the generator broke code styling rules.  The 2.5-Row Opacity Shading Test (Mobile Verification): Fire up your mobile hardware simulation workspace[cite: 2]. Open the Act 1 launcher activity feeds and check the vertical height boundaries[cite: 2]. The box frame must display exactly 2.5 lines of data tracking log columns[cite: 2]. Verify that the base edge applies a clean linear gradient shading mask overlay to guide scrolling intent naturally without crowding adjacent panels[cite: 2].The Event Intercept Gate Check (Touch Validation): Open a nested child plan drawing within the surveyor canvas mapping pane[cite: 2]. Ensure that double tapping or tracing drawing strokes onto the vector sketch box performs a full e.stopPropagation() event block, preventing mobile device web views from triggering accidental scaling zooms or layout displacement panning[cite: 2].By running this modular code generation stream, your new workspace agent has everything required to build, compile, and deploy the entire SiteWalk Field Engine platform safely with zero architectural friction! Let's get Prompt 1 executed.  

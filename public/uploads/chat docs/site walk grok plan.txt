@@ -1,0 +1,322 @@
+Unified Product & Architecture Blueprint
+To eliminate the mobile layout failures, gesture conflicts, and data-sync instabilities found in previous iterations, Site Walk V2 is architected around a strict State Machine and a Responsive 3-Layer Visual Hierarchy. Built using existing mobile-system primitives, it runs inside a single, high-contrast, immersive view container (app/site-walk/capture-v2/page.tsx).
+
+text┌────────────────────────────────────────────────────────────────────────┐
+│ TOP BAR (Translucent, Fixed)                                           │
+│ [X] Close (returns context)           [🟢 Synced / 🟡 Queued: 3] Pill  │
+├────────────────────────────────────────────────────────────────────────┤
+│ LAYER 1: BASE CANVAS (z-0 / z-10 for Scene Maps)                       │
+│                                                                        │
+│  • Full-Screen Camera Viewfinder / Photo Review Canvas                 │
+│  • Server-Rasterized Leaflet Plan Tiles / Georeferenced Google Map    │
+│  • Center Crosshair [ + ] with Fixed Drop Pin Target                  │
+│                                                                        │
+├────────────────────────────────────────────────────────────────────────┤
+│ LAYER 2: FAST-TRACK ACTION & STATUS BAR (z-20)                         │
+│                                                                        │
+│   [^ Log Details]   [ 🖼️ ] [ 🖼️ ] [ 🖼️ ] (Filmstrip)   [Save & Next]   │
+├────────────────────────────────────────────────────────────────────────┤
+│ LAYER 3: LOG ENTRY DRAWER & GHOST OVERLAYS (z-40)                      │
+│                                                                        │
+│  • 60% / 100% Snap Sheets (visualViewport Responsive, No Swipe-Close)   │
+│  • Floating Picture-in-Picture (PiP) Interactive Thumbnail Element     │
+│  • Chronological Location History Carousel + Opacity Overlay Slider    │
+└────────────────────────────────────────────────────────────────────────┘
+The Responsive 3-Layer Layout Engine
+
+Layer 1: Base Canvas (z-0 / z-10 for Scene Maps): Manages primary spatial inputs. Toggles state-dependently between the native CameraViewfinder, the existing SVG PhotoMarkupCanvas wrapper, and the PlanViewerLeaflet window. Plan navigation utilizes the server-rasterized WebP tile engine—browser-side client rasterization of high-format raw PDFs is strictly off-limits.
+Layer 2: Fast-Track Action Bar (z-20): Fixed to the absolute bottom of the active viewport. Contains the multi-angle PhotoAngleStrip (Stop Filmstrip), the live IndexedDB mutation counter token (useSiteWalkOfflineSync), and the glowing amber primary action button (Save & Next).
+Layer 3: Log Entry Drawer (z-40): A custom structured container governed by framer-motion layout constraints. Features explicit snap-points (60% default layout, 100% full-screen layout) with a physical drag handle and absolute close control. Swipe-to-close gestures are programmatically disabled when form inputs are active to prevent data loss.
+
+Mobile Ergonomics & Technical Guardrails
+
+The Picture-in-Picture (PiP) Flying Element: When text areas inside the data entry panel gain focus, a framer-motion shared layout handler animates the marked-up photo from Layer 1 into a w-24 h-24 rounded-xl border border-white/20 shadow-2xl floating tile in the top right quadrant. This frees up screen real estate for typing and form completion on smaller mobile viewports.
+iOS Safari Visual Viewport Isolation: All structural layout boundaries use flex flex-col flex-1 min-h-0 propagation. Absolute positioned panels use dynamic heights driven by window.visualViewport.height through a custom hook (useVisualViewport). This ensures that when the software keyboard activates, layout surfaces shrink appropriately rather than bleeding beyond screen bounds or hiding crucial submission actions.
+Safe Hardware Haptics Wrapper: Physical vibrations use a strict wrapper checking client compliance:
+  TypeScript
+
+   &nbsp;&nbsp;export const triggerHaptic = (type: 'light' | 'success' | 'warning') => { &nbsp;&nbsp;&nbsp;&nbsp;if (typeof window !== 'undefined' && 'vibrate' in navigator) { &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const patterns = { light: 15, success: [20, 40, 20], warning: [50, 100, 50] }; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;try { navigator.vibrate(patterns[type]); } catch (e) { /* no-op */ } &nbsp;&nbsp;&nbsp;&nbsp;} &nbsp;&nbsp;}; &nbsp;&nbsp;
+
+Strict Capture State Machine Specification
+The lifecycle of every item, pin, and metadata transaction inside /site-walk/capture-v2 is governed by a unified finite state machine (useCaptureV2Machine.ts). This structure completely prevents overlapping event states, button-click duplication, and layout canvas locks.
+
+text┌───────────────┐
+       │     IDLE      │◄────────────────────────────────────────┐
+       └───────┬───────┘                                         │
+               │ ActionHub Select                                │
+               ▼                                                 │
+       ┌───────────────┐                                         │
+ ┌────►│    PICKING    │                                         │
+ │     └───────┬───────┘                                         │
+ │             │ Photo / File Acquired                           │
+ │             ▼                                                 │
+ │     ┌───────────────┐                                         │
+ │     │  PREVIEWING   │◄────────────────┐                       │
+ │     └───────┬───────┘                 │                       │
+ │             │ Open Drawer / Form      │ Add Angle             │
+ │             ▼                         │                       │
+ │     ┌───────────────┐                 │                       │
+ │     │  EDITING_LOG  ├─────────────────┘                       │
+ │     └───────┬───────┘                                         │
+ │             │ Save & Next / Finish                            │
+ │             ▼                                                 │
+ │     ┌───────────────┐                                         │
+ │     │   UPLOADING   │                                         │
+ │     └───────┬───────┘                                         │
+ │             │ S3/R2 Presign Complete                          │
+ │             ▼                                                 │
+ │     ┌───────────────┐                                         │
+ │     │  RECONCILING  │                                         │
+ │     └───────┬───────┘                                         │
+ │             ├─────────────────────────┐                       │
+ │             │ Online Sync Success     │ Offline Mode Engaged  │
+ │             ▼                         ▼                       │
+ │     ┌───────────────┐         ┌───────────────┐               │
+ │     │    SAVED      │         │QUEUED_OFFLINE │               │
+ │     └───────┬───────┘         └───────┬───────┘               │
+ │             │                         │                       │
+ └─────────────┴───────────┬─────────────┴───────────────────────┘
+                           │ Plan Mode Retain
+                           ▼
+                   ┌───────────────┐
+                   │RETURNING_PLAN │
+                   └───────────────┘
+State Definitions & Event Rules
+
+IDLE: Waiting for initialization. The base viewport is active. Action Hub drawer is accessible.
+PICKING: Device camera or local file browser is actively engaged via native system bridges. All background UI interaction is locked.
+PREVIEWING: Media asset loaded into Layer 1. The inline SVG/canvas markup system is mounted and active. Key actions: DRAW, TOGGLE_GHOST, OPEN_LOG.
+EDITING_LOG: Layer 3 sheet is raised. Text inputs are active. useVisualViewport monitors interface measurements. Micro-interactions transition the asset view to a floating PiP configuration on input focus.
+UPLOADING: Media payload is processed locally (converted to optimized WebP format). The system hits the presigned PUT API route, reserving metadata placeholders via unique client_item_id hooks.
+RECONCILING: The database metadata row is written. The engine checks local network sockets.
+SAVED: Data completely written to remote tables (site_walk_items). Clear state parameters, wipe transactional cache keys, and flash the success haptic pattern.
+QUEUED_OFFLINE: Active network drop detected. The payload is written to the IndexedDB mutation cache using useSiteWalkOfflineSync. The system increments the local background queue manager token.
+RETURNING_PLAN: Specific clean-up state for plan-pin workflows. Re-centers the Leaflet map around the authoritative plan_sheet_id point, rendering the newly assigned pin item without structural mutation.
+Cursor Composer Prompt Sequence (Slices 1–7)
+Execute the following prompts sequentially within Cursor Composer (Cmd + I) using the Compressor 2.5 context engine. Ensure each slice is verified in-browser and tested via mobile device simulation before initializing the next stage.
+Prompt 1: Preflight Integration Audit & State Machine Construction
+Markdown
+
+textRole: Senior Full-Stack Architect
+Context: We are initializing the parallel build for Site Walk Capture V2 under `app/site-walk/capture-v2`. We must establish a bulletproof state engine and import our core database enums without changing legacy paths.
+
+Instructions:
+1. Index and audit these system files to map existing models:
+   - app/site-walk/capture
+   - components/site-walk/capture/**
+   - lib/server/api-auth
+   - useSiteWalkOfflineSync
+   - site-walk-capture.ts (Check canonical status/priority enums)
+2. Construct the central state machine hook `lib/hooks/useCaptureV2Machine.ts`. Define a rigid TypeScript state configuration tracking these precise statuses: 'idle' | 'picking' | 'previewing' | 'editingLog' | 'uploading' | 'reconciling' | 'saved' | 'queuedOffline' | 'returningToPlan'.
+3. Implement a strict type definition file `components/capture-v2/types.ts` that imports and maps data schemas from our backend context. Ensure the Status field explicitly enforces database enums: 'open' | 'in_progress' | 'resolved' | 'verified' | 'closed' | 'na'. Priority must map to: 'low' | 'medium' | 'high' | 'critical'.
+4. Do not insert placeholder logic or components yet. Produce the state machine file, the central type validation files, and a comprehensive structural log summarizing existing components to import.
+
+Action: Write the core type contracts and state machine. Do not modify existing legacy capture routes.
+Prompt 2: Interactive Location Scene Setter Integration
+Markdown
+textRole: Senior Geospatial Engineer
+Context: Before the walk session starts, we must establish spatial context by initializing an interactive map dashboard zone using our active Google Maps implementation.
+Files to reference: `@/components/capture-v2/types.ts`, `@app/api/weather/route.ts`
+
+Instructions:
+1. Build `components/capture-v2/LocationSceneSetter.tsx` using `@vis.gl/react-google-maps`. It must integrate cleanly within our Graphite Glass system using canvas color `#0B0F15`, borders `border-white/[0.07]`, and subtle ambient glows.
+2. Implement on-demand client geolocation via standard `navigator.geolocation.getCurrentPosition`. Do not watch coordinates continuously to protect mobile battery lifecycles. Ensure accurate fallback if permissions are denied.
+3. Allow users to tap the map to drop essential logistics pins: "Job Trailer", "Material Drop Zone", and "Site Access Gate". Store coordinates as standard floats directly inside the session's workspace context metadata.
+4. Integrate a compact Google Places search input field inside a glassmorphic floating panel to allow rapid address lookups. When selected, automatically center the georeferenced satellite viewport and reverse-geocode the address utilizing our active backend routes.
+5. Provide a visible "Begin Walk Session" action layout that transfers the derived geospatial payload (`lat`, `lng`, `address`) directly into the unified capture shell initialization pipeline.
+
+Action: Create the LocationSceneSetter layout and map component. Ensure touch parameters do not cause mobile viewport layout shifting.
+Prompt 3: Immersive Shell & Fast-Track Action Bar
+Markdown
+textRole: Senior Mobile UI/UX Engineer
+Context: We are building the container skeleton for Site Walk V2. This view must be completely optimized for fast-track field navigation and prevent common iOS webkit gesture bleeding.
+Files to reference: `@components/capture-v2/types.ts`, `useSiteWalkOfflineSync`
+
+Instructions:
+1. Build `app/site-walk/capture-v2/page.tsx` wrapping the layout inside `CaptureV2Container.tsx`. Enforce strict layout rules: do not use `h-[100dvh]` or `overflow-hidden` at the root wrapper as it breaks in Safari. Instead, use a structured flex container (`flex flex-col h-screen flex-grow min-h-0 relative bg-black`).
+2. Add a persistent, minimalist top bar (`h-14 w-full px-4 flex justify-between items-center border-b border-white/[0.07] bg-slate-950/40 backdrop-blur-md z-50`). 
+   - Left side: Close action returning safely to previous layout context.
+   - Right side: Mount the active `useSiteWalkOfflineSync` engine. Render a physical status pill ("Synced" in `text-emerald-400` with a steady dot, or "Queued: [count] items" in `text-amber-500` with a subtle pulsing animation). The pill must be interactive: tapping it forces an explicit sync processing loop.
+3. Build the Fast-Track Action Bar (`FastTrackActionBar.tsx`) positioned at `absolute bottom-0 inset-x-0 pb-safe z-20`. Design it as a dense graphite glass banner.
+   - Left: A large button labeled `[^ Log]` to raise the details sheet.
+   - Center: The horizontal scrolling `PhotoAngleStrip` displaying square stop thumbnails (min 48px width for easy thumb targeting).
+   - Right: A prominent amber button `Save & Next` (`bg-amber-500 text-black font-semibold px-6 py-3 rounded-xl shadow-[0_0_15px_rgba(245,158,11,0.2)]`).
+4. Integrate a verified feature-detection haptics engine wrapper into the primary action taps. Ensure it safely drops back to a safe no-op on non-compliant Safari clients.
+
+Action: Construct the shell page layout, the sync status bar components, and the fast-track operation panel.
+Prompt 4: Log Entry Drawer & Picture-in-Picture Engine
+Markdown
+textRole: Senior Framer Motion Engineer
+Context: We need to build the Layer 3 Log Entry bottom sheet. This component handles core metadata logs and must bypass mobile viewport keyboard occlusion failures using a custom Picture-in-Picture (PiP) interaction.
+Files to reference: `PhotoMarkupCanvas` from legacy capture, `useVisualViewport` custom hook model.
+
+Instructions:
+1. Build `components/capture-v2/LogEntryDrawer.tsx` powered by `framer-motion`. Set rigid sheet detents: 60% view default height, 100% fullscreen height. Implement a solid top drag bar and an explicit close icon button in the top corner. Disable native swipe gestures when fields are actively focused.
+2. **Keyboard Safety Integration:** Use dynamic styles bound to `window.visualViewport.height` to automatically scale down the maximum sheet height when the keyboard opens. Ensure the primary validation buttons are never hidden beneath the virtual layout window.
+3. **The PiP Animation Loop:** Wire up shared layout properties using `framer-motion`. When the text input area receives `onFocus`, the main photo preview element from Layer 1 must smoothly scale down and fly into the top right quadrant as a `w-24 h-24 rounded-xl border border-white/20 shadow-2xl z-50` floating element. On input `onBlur`, it must return smoothly to its native layout position.
+4. **Data Fields Setup:** - Note field: Large `<textarea>` with an integrated microphone icon on the right edge. Explicitly document that this binds to native on-device offline keyboard dictation.
+   - Smart Chips Panel: A horizontal scrolling ribbon of instant templates ("Safety", "Drywall", "Mechanical", "Progress"). Tapping a chip appends that explicit text string directly into the active cursor position of the textarea.
+   - Taxonomy Dropdowns: Clean dark-glass select menus mapping precisely to our canonical database enums for Status, Priority, and Action Required. Include the inline settings icon calling our legacy `onOpenManageTrades` taxonomy modifier routes.
+
+Action: Deploy the interactive LogEntryDrawer panel complete with visualViewport constraints and the PiP asset flying transition.
+Prompt 5: Leaflet Plan Viewer & Crosshair Pinning System
+Markdown
+textRole: Senior Full-Stack GIS Lead
+Context: We are building the plan-based capture interface for Layer 1. We must enforce strict pin lifecycle handling to stop duplicate element creation and prevent gesture conflicts with map panning.
+Files to reference: `PlanViewerLeaflet`, `PlanPin`, `useCaptureV2Machine`
+
+Instructions:
+1. Mount the `PlanViewerLeaflet` engine into Layer 1 (`z-0`). It must render server-rasterized plan images only. Any client-side PDF processing engines are strictly prohibited.
+2. Implement a permanent static `[ + ]` crosshair target fixed in the dead center of the layout window. This element must ignore events (`pointer-events-none`). Directly below it, render a floating absolute-positioned action element: `[ 📍 Drop Pin Here ]`. Clicking this captures the center coordinates as precise percentages and passes them to the state machine's `attachedItem` creation pipeline.
+3. Create an explicit top-level toolbar toggle: "Edit Pin Locations". 
+   - At rest: Leaflet pan and zoom are completely unconstrained. Tapping saved pins brings up the new "Graphite Glass Peek Card". Drag parameters are blocked.
+   - When active: Drop down a bright warning banner ("Pin Edit Mode Active — Map Locked"). Freeze Leaflet pan/zoom states completely. Allow active pins to be dragged smoothly. Saving a moved pin must fire a single precise `PATCH` query updating the coordinates on the original authoritative pin identifier. **Creating duplicate clone pins on relocation is completely blocked.**
+4. **The Graphite Glass Peek Card:** When a pin is clicked in normal navigation mode, show a small glassmorphism popup (`bg-slate-900/90 backdrop-blur-xl border border-white/[0.07] p-3 rounded-xl shadow-2xl max-w-xs`). Render a real thumbnail preview of the captured photo, its priority enum, a short preview snippet of the note, and a prominent `[ ⤢ View Log ]` link that transitions the state engine smoothly to the `editingLog` drawer phase.
+
+Action: Implement the crosshair blueprint navigator, explicit edit mode configuration, and the pin preview peek card.
+Prompt 6: GPS-Enhanced Ghost Mode Integration
+Markdown
+textRole: Senior Mobile Data Specialist
+Context: We are building the location-aware "Ghost Mode / Time Travel" engine. This system must interface cleanly with our custom Haversine GPS RPC database route to pull chronological historical images based on current position coordinates.
+Files to reference: `20260520000000_add_get_nearby_photos.sql`, `/api/site-walk/nearby`
+
+Instructions:
+1. Build `components/capture-v2/GhostModeManager.tsx`. When the user taps the translucent `[ 👻 Compare ]` action button on the camera interface, trigger an on-demand coordinate resolution using our safe geolocator hook.
+2. If GPS access is denied or unavailable indoors, gracefully drop back to a structured location scoping chain: search for matching items via the current `plan_sheet_id`, then by active `session_id`, and finally by global `project_id` history. Display a clear, transparent status label to the user ("Scoping: Project Archive (GPS unavailable)").
+3. When matching items are returned from the `/api/site-walk/nearby` endpoint, render them inside a horizontal scrolling history drawer. Each thumbnail card must explicitly show its creation timestamp and author context.
+4. When a historical photo is selected from the carousel, layer it directly over the live viewfinder canvas inside Layer 1. Render a clean vertical or horizontal opacity slider component on the screen edge, adjusting the overlay alpha value smoothly from 0.0 to 1.0. The mapped payload must be correctly associated via the `before_item_id` schema database property upon save.
+5. Provide a secondary button `[ ⏳ View Location Timeline ]` inside this overlay that renders a vertical, chronological scrolling timeline list modal detailing every historic capture sequence taken at this structural coordinate.
+
+Action: Deploy the GPS Ghost Mode manager, opacity composition slider, and location timeline components.
+Prompt 7: Walk Summary & Production-Ready Deliverable Loop
+Markdown
+textRole: Senior Production Systems Lead
+Context: We are building the final post-walk reconciliation dashboard view at `/site-walk/capture-v2/summary`. This view must act on real production data sets and handle real organization member data.
+Files to reference: `/api/site-walk/items`, `site-walk-collaboration.ts`
+
+Instructions:
+1. Build `components/capture-v2/WalkSummaryScreen.tsx`. It must load and render a clean, high-density list of all items captured during the current active session. No mock text blocks or hardcoded names are permitted.
+2. Create a clean row component `SummaryItemCard`. Display the real image preview with its integrated canvas vector markups, alongside the note descriptions and enum status badges. 
+3. **Real Assignment Integration:** Inside each card, implement an `[ Assign Work ]` drop-down menu icon. This menu must execute a live query fetching true org and project data lines from `project_members` and teams. Selecting a user must issue a secure metadata patch to `assigned_to`, instantly shifting its structural status badge.
+4. **Cinematic Preview Simulator:** At the screen header, add a `[ ▶️ Play Cinematic Preview ]` option. This must open an immersive full-screen slideshow canvas that sequences through every photo, rendering its associated vector annotations and playing back recorded voice notes using browser audio modules.
+5. **The Production Deliverable Loop:** Design a massive, sticky bottom button layout: `[ 🚀 Generate Deliverables & Reports ]`. Clicking this must prompt a clean modal to select the desired delivery template ('photo_log' | 'field_report' | 'cinematic_presentation'). Trigger a real `POST` mutation query to the deliverables API route, displaying an explicit, styled progress loader bar during background compilation, and handle any network failures with clear actionable warning screens.
+
+Action: Create the comprehensive Walk Summary dashboard, project member assignment modules, and the secure report generation pipeline.
+
+Continuous Deployment Validation Checklist
+To keep your mobile PWA builds perfectly stable across Cursor generations and prevent layout bugs from hitting production, run this inspection routine on a real mobile device after applying each prompt slice:
+Hardware Navigation & Viewport Validation
+
+
+ Open the PWA on an iOS or Android device. Verify that no global web application navigation or browser native footers clip the bottom edge of the layout container.
+ Verify that dragging your thumb down from the top bar does not initiate a browser-level "pull-to-refresh" sequence that reloads the runtime state.
+ Confirm all touch-interactive layouts (buttons, chips, select fields) have a spatial canvas footprint of at least 44px × 44px.
+
+
+Software Keyboard Ergonomics Test
+
+
+ Open the Log Entry drawer, tap inside the main notes textarea, and wait for the keyboard to slide up.
+ Confirm that the dynamic layout hook triggers: verify that the main asset smoothly flies into the upper right corner as a distinct Picture-in-Picture window.
+ Check the submission buttons at the base of the drawer. Verify that they sit completely clear of the keyboard layout plane, can be tapped cleanly, and do not cause focus blurring or interface jittering.
+
+
+Spatial Pinning & Lifecycle Check
+
+
+ Mount a large server-rasterized plan layout sheet. Zoom into a specific room quadrant and verify that performance remains fluid without crashing the webview process.
+ Tap the Drop Pin action layout. Verify that a haptic buzz fires and drops a precise, numbered node directly beneath the target center crosshair.
+ Engage the "Edit Pin Locations" utility toggle. Verify that plan panning locks, drag a node to a different wall location, hit save, and confirm via network inspector that a single PATCH mutation fires on the existing item index without creating duplicate pins.
+
+
+Ghost Mode & Location Math Validation
+
+
+ Tap the 👻 Compare element. Deny GPS tracking permissions on the device prompt. Verify that the system handles the exception gracefully, bypassing the failure screen to load recent photos from the active project workspace instead.
+ Re-enable GPS access, trigger Ghost mode, and select a historical asset card. Use the opacity slider to verify the overlay composition changes smoothly from invisible to completely solid without dropping rendering frame-rates.
+
+
+Network Drop & Offline Resilience Test
+
+
+ Drop the mobile device into Airplane Mode mid-walk. Take a photo, apply a series of vector markups, fill out the Log Entry fields, and hit Save & Next.
+ Verify that the state engine completes the operational sequence without freezing, flags the item state locally, increments the sync pill status count token, and returns the workspace context cleanly to the viewfinder or plan sheet.
+ Restore cellular network connectivity. Tap the sync pill indicator, trigger an explicit upload sweep, and verify that the background queue clears all pending entries sequentially, resolving local client IDs into verified database rows.
+✅ Feedback on the Revised 7-Prompt Production-Grade Site Walk V2 Plan
+This plan is a significant improvement over earlier versions. It is production-minded, correctly prioritizes heavy reuse of existing components (PhotoMarkupCanvas, server-rasterized plans via Leaflet, useSiteWalkOfflineSync, before_item_id, existing APIs, optimistic client IDs), enforces a strict state machine to prevent the overlapping-state bugs from V1, and uses proper mobile primitives (flex-1 min-h-0, visualViewport for iOS keyboard handling, framer-motion for PiP). The 3-layer z-index model with explicit snap points and disabled swipe-close during input is smart. Prompt 2's LocationSceneSetter with Google Maps integration is forward-looking and aligns perfectly with your broader 3D/360/spatial vision.
+It should produce something stable and usable on real devices if followed strictly.
+Critical Issues & Potential Problems
+Performance & Battery
+
+Ghost Mode (Prompt 6): On-demand GPS + Haversine RPC + image carousel is acceptable, but repeated calls or loading many historic thumbnails can drain battery and feel slow on poor connections. Make the "nearby" query aggressively cached and lazy-load images.
+Canvas + Multiple Animations + Realtime: PhotoMarkupCanvas + framer-motion PiP + Leaflet + potential Supabase listeners on items/pins can cause jank on mid-range devices during long walks. Recommend explicit useMemo/useCallback, throttled listeners, and offloading heavy canvas work.
+Leaflet on complex/large plans: Server-rasterized WebP tiles are good, but very large or high-detail plans can still feel heavy. Ensure tile caching and bounds limiting.
+
+Ease of Use, Intuitiveness & Accessibility
+
+State Machine Transitions: Powerful for correctness, but if visual states (banners, disabled panning, "Ghost Active", "Edit Pins Mode") are not extremely clear and consistent, users will get lost. Add persistent mode indicators and easy "Exit Mode" affordances.
+PiP Animation + Keyboard: The flying thumbnail is clever, but on very small screens or with long notes it can still feel cramped. Make the Log Entry sheet reliably expandable to full screen.
+Accessibility: In a dark Graphite Glass theme, ensure high contrast on chips/badges, minimum 44×44 px targets (already noted), and good focus states. Screen reader support for dynamic states/modes and the filmstrip needs attention. Test with VoiceOver/TalkBack.
+Ghost Fallback UX: When GPS is denied or unavailable, the fallback to project/workspace history must be obvious and not feel like a failure.
+Pin Edit Mode: Freezing the entire map during edit is safe but can feel jarring. Consider a lighter "lock pan, allow pin drag only" approach with clear visual feedback.
+
+Aesthetics, Layout & Other Risks
+
+Adding Google Maps (Prompt 2), Ghost carousel, PiP, Peek Cards, and collaboration UI in summary can feel crowded if spacing and layering aren't perfect. The plan's z-index discipline helps, but test visual density on real phones.
+"Cinematic Preview" (Prompt 7) is exciting but could be heavy for V1 — consider it a nice-to-have or make it lightweight (simple sequenced modal rather than full video export initially).
+Offline + realtime reconciliation edge cases (conflict resolution UI) are not deeply specified — this can bite in multi-user scenarios.
+No explicit mention of real-time multi-user presence (avatars/cursors on shared map or plan) beyond post-walk assignments. This is a missed opportunity for the collaborative bridge you want.
+
+Overall, the plan is low-risk and executable. The biggest threats to speed/functionality are mobile rendering/animation overhead and GPS handling. Intuitiveness depends heavily on clear visual mode feedback.
+High-Value Missing Features (High-Scale, Cross-Industry)
+These would benefit construction pros, realtors doing property walks, pool/landscape service techs, facility managers, inspectors, and many other field roles:
+
+Real-time Collaborative Presence — Avatars or colored cursors/pins showing who else is actively on the same walk/session (via existing Supabase Realtime). Huge for multi-person or long-distance coordination.
+Smart / AI-Assisted Tagging & Suggestions — Auto-suggest classifications or notes based on location history, similar past captures, or even lightweight on-device vision (photo content hints). Reduces typing in gloves/glare.
+Template Libraries & Quick Starts — Reusable "walk templates" (common issue sets for different trades or property types) that pre-populate Log Entry fields.
+Offline-First Full Experience with Clear Sync UI — Already partially there, but make queued items easily reviewable/editable before sync, with conflict resolution prompts.
+Map-Centric Project Overview + Heatmap/Timeline — A spatial dashboard showing all captures/pins on a map with filters and time-based playback. Bridges field data to office oversight beautifully.
+Voice-to-Structured Data — Beyond transcription: parse spoken notes into suggested tags, priority, or even auto-create follow-up tasks.
+Flexible Export & Sharing Options — One-tap to PDF, branded link, simple slideshow, or direct to email/Slack/Teams with preview.
+Search & Filter Across All History — Global or per-project search for past captures by location, tag, date, user, or note text (with map or list results).
+
+These are mostly frontend + queries on existing data models. They dramatically increase daily usability and perceived value across industries.
+5 Easy-to-Add Innovative Features (Low Backend, Low Complexity, No Crowding)
+These can slot into the existing layers without major new backend work:
+
+One-Tap "Create Follow-Up from This" — From any saved item or pin, instantly duplicate as a new capture with pre-linked before/after relationship and copied location/context.
+Visual Progress Timeline per Location/Pin — Tap any pin (current or historic) to see a clean chronological strip of all photos/notes at that exact spot, across walks and users.
+Smart Quick-Actions in Viewfinder — Context-aware floating buttons (e.g., "Mark Safety Issue", "Add Progress Photo", "Voice Note Only") that shortcut straight into Log Entry with suggested fields.
+Lightweight "Cinematic Walk Preview" Modal — Simple sequenced modal (not full export) that plays through captures with markups and optional voice playback. Great sales/demo tool.
+Location-Based Smart Suggestions — When starting a walk or opening Log Entry at a known GPS/plan location, surface the most common recent classifications or notes from that spot for one-tap reuse.
+
+These feel cutting-edge and delightful while staying lightweight.
+Visual/Interactive Scene-Setting with Maps & 3D (High Strategic Value)
+Prompt 2 already starts this with Google Maps integration in LocationSceneSetter — excellent. Expand it as a core differentiator:
+
+When starting from a workspace/project, show an interactive map (Google Maps via @vis.gl/react-google-maps or similar) where users can:
+Auto-detect or search current location + reverse geocode to address.
+Draw simple polygons for site/project boundaries.
+Drop logistics pins ("Job Trailer", "Access Gate", "Material Zone", assigned sub areas).
+
+All subsequent captures, pins, and Log Entries are geo-associated to this scene.
+Collaboration win for higher-tier users: Share the map view with subs/collaborators. Subs see highlighted assigned zones and can navigate to them. PMs in the office get a live spatial overview of where data is being collected.
+Future-proofing: This geo-layer becomes the natural home for dropping 360 views, simple Gaussian splat/3D model thumbnails or links, drone overlays, or time-based 4D scrubbing later. A single "scene" can host multiple walks, before/afters, and rich deliverables.
+Field-to-Office Bridge: Subs document visually on the shared map. Office users review spatial progress, assign new zones on the map, and generate location-aware reports/links. Directions sharing ("Navigate to my assigned area") becomes trivial.
+
+This turns Slate360 into a true spatial coordination platform rather than just another form app. It directly supports your long-term 360/3D/Digital Twin vision and gives organizations (especially those managing distant projects or subcontractors) a compelling reason to adopt — professional, visual, interactive deliverables that reduce disputes and improve oversight.
+Implementation can stay non-crowding: Make the map/scene setter optional or prominent only when starting from a project/workspace. In active capture it collapses to a small header thumbnail or "View Site Map" button. Use existing coordinate fields + a lightweight scene association.
+Overall Assessment & Recommendations
+This 7-prompt plan is production-ready and executable. It will give you a fast, stable, intuitive core experience that reuses your strong backend. The main risks are mobile rendering overhead and ensuring visual clarity around modes/Ghost fallbacks.
+To make it significantly superior (even to much larger competitors):
+
+Lean into the spatial + collaborative + visual deliverable combination. The map/scene setter + location-aware Ghost + real-time presence/assignments + cinematic previews create a "field truth layer" that feels modern and indispensable.
+Emphasize the field-to-office bridge for higher-tier users: easy assignment on the map, scoped views for subs, live updates, and professional interactive outputs. This is where you can win against generic tools — subs see value and upsell themselves, PMs get oversight without extra tools.
+Add the easy innovative features and cross-industry capabilities listed above — they increase daily usefulness without complexity.
+Keep the UI layered and explicit (modes, clear banners, generous targets). Test obsessively on real devices (keyboard, gestures, offline, GPS states, multi-user).
+
+The plan already positions you well. With the map integration, stronger collaboration signals, and the easy high-value additions, Site Walk V2 can feel noticeably more capable, collaborative, and future-proof than most competing field apps — while remaining buildable in focused slices.
+This is ready to hand back to the other AI. The foundation is strong; these enhancements make it excellent and differentiated. Let me know which prompt or slice you'd like to refine next, or if you want me to draft specific additions (e.g., enhanced Ghost with GPS + timeline, map scene details, or collaboration UI patterns).
+
+
+

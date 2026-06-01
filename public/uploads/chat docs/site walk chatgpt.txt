@@ -1,0 +1,1312 @@
+Your Phase 2B report confirms the legacy /site-walk/walks route still exists and direct/capture-exit paths may still reach it, even though active V1 shell links were changed away from it. That means the old UI should not be deleted yet; it should be quarantined, replaced, redirected, and only later removed.
+
+Site Walk Master Build Plan
+Product goal
+
+Site Walk is the field documentation, coordination, and deliverables app inside Slate360.
+
+The core workflow is:
+
+Walk the site → capture stops → add context → review stops → create deliverables → share/save
+
+The app must be:
+
+mobile-first
+app-store-ready
+easy enough for field users with minimal training
+usable in bright outdoor conditions
+thumb-friendly
+offline-tolerant
+fast to start
+not dependent on plans/PDFs unless the user chooses a plan-based walk
+powerful enough to create branded deliverables
+connected to SlateDrop as the file spine
+compatible with future Digital Twin, 360, and advanced deliverables
+Core product rule
+
+Site Walk must be valuable on its own, but become more powerful when bundled with other Slate360 apps later.
+
+For now:
+
+Site Walk is active.
+Digital Twin is visible/locked/preparing.
+Other apps are not shown in the app-store version.
+Do not show incomplete apps.
+Do not show “Coming Soon.”
+Do not leave dead buttons.
+Do not route users to legacy screens from the mobile shell.
+Current strategic issue
+
+The app is still a hybrid:
+
+/app is mostly fixed.
+/site-walk home has a newer 2×2 action grid.
+But old pages still appear when clicking into setup, walks, capture, deliverables, and some exit flows.
+/site-walk/setup is still a legacy setup workbook.
+/site-walk/walks is still a legacy page.
+/site-walk/capture is still V1 capture.
+Capture V2 exists but is direct URL / flag-gated.
+Deliverables is still sparse.
+Worksites is not yet a full workflow.
+
+So the build strategy should be:
+
+Quarantine → Replace → Redirect → Delete later
+
+Do not delete legacy pages yet.
+
+The correct Site Walk information architecture
+Global Slate360 shell
+
+The Slate360 shell contains apps and global tools.
+
+/app
+
+The Slate360 app shell should show:
+
+Your Apps
+
+Site Walk — active
+Digital Twin — locked/preparing
+
+Quick Actions
+
+Create
+SlateDrop
+Search
+Deliverables
+
+Bottom nav
+
+Home
+Projects
+SlateDrop
+Coordination
+Account
+
+Site Walk itself has its own internal bottom nav.
+
+Site Walk internal shell
+/site-walk
+
+This is the Site Walk app home.
+
+Header
+
+Should show:
+
+Back to Slate360
+Site Walk
+Field capture & deliverables
+Optional sync/offline status
+Primary action grid
+
+A 2×2 compact grid:
+
+Quick Walk
+Start capturing now
+No worksite required
+No plan required
+Opens capture immediately
+New Worksite
+Create field project
+Opens new mobile-first worksite creation flow
+Should not open old /site-walk/setup
+Walk from Worksite
+Use saved context
+Opens in-shell worksite picker
+Should not route to old /site-walk/walks
+Review & Deliver
+Reports and outputs
+Opens in-shell deliverables/review area
+Should not route to old standalone deliverables page if mobile-quarantined
+Lower contained panel
+
+Tabs:
+
+Recent
+Worksites
+Shared
+Needs Review
+
+The panel should:
+
+fill remaining height above bottom nav
+internally scroll
+expand/collapse reliably
+not create body/page scroll
+not leave large blank gaps
+Site Walk bottom nav
+
+Inside Site Walk:
+
+Home
+Worksites
+SlateDrop
+Coordination
+Deliverables
+Screen-by-screen app map
+1. Site Walk Home
+
+Route:
+
+/site-walk
+
+Purpose:
+
+Main command screen for the Site Walk app.
+
+Visible sections:
+
+Header
+Action grid
+Recent/Worksites/Shared/Needs Review contained panel
+Bottom nav
+
+Primary actions:
+
+Quick Walk
+New Worksite
+Walk from Worksite
+Review & Deliver
+
+No legacy pages should open from this screen.
+
+2. Quick Walk
+
+Purpose:
+
+Fastest possible capture workflow.
+
+User does not need:
+
+a worksite
+a project
+a plan
+a setup workbook
+
+Flow:
+
+User taps Quick Walk
+App creates a walk/session
+App opens capture
+User captures stops
+User reviews stops
+User may assign the walk to a worksite later
+User can create deliverables from the walk
+
+Important:
+
+Quick Walk should not force plan upload or project setup.
+
+3. New Worksite
+
+Purpose:
+
+Create a lightweight Site Walk field project/worksite.
+
+This replaces the old setup workbook.
+
+New Worksite screen or sheet
+
+Fields:
+
+Worksite name
+Location/address optional
+Client/company optional
+Description/scope optional
+Default walk type optional
+Contacts optional later
+Plan optional later
+
+Buttons:
+
+Create & Start Walk
+Create Only
+Cancel
+
+After creation, show options:
+
+Start Walk
+Add Plan
+Add Contacts
+Open Worksite
+
+Important:
+
+Do not force plan upload.
+
+4. Walk from Worksite
+
+Purpose:
+
+Start a walk from an existing worksite.
+
+Worksite picker
+
+Fields/features:
+
+search worksites
+list worksites
+show last activity
+show number of walks
+show open items
+tap row to open action sheet
+
+Row actions:
+
+Start Walk
+Open Worksite
+View Walks
+View Deliverables
+Walk setup from worksite
+
+Fields:
+
+Walk title
+Walk type/template:
+General progress
+Punch list
+QA/QC
+Safety
+Pre-install
+Closeout
+Custom
+Plan:
+No plan
+Select existing plan
+Upload plan
+Team/collaborators optional
+
+Buttons:
+
+Start Capture
+Save Draft
+Back
+5. Worksite Detail
+
+Purpose:
+
+A persistent container for all work related to that location/project.
+
+Tabs:
+
+Overview
+Walks
+Stops
+Plans
+Files
+Contacts
+Deliverables
+Overview
+
+Shows:
+
+worksite name
+address/location
+client/company
+active walks
+open issues
+last activity
+recent deliverables
+
+Buttons:
+
+Start Walk
+Add Plan
+Add Contact
+Create Deliverable
+Walks tab
+
+Shows:
+
+in-progress walks
+completed walks
+collaborator-submitted walks
+walks needing review
+
+Actions:
+
+resume
+review
+create deliverable
+archive
+delete
+Stops tab
+
+Shows all stops across the worksite.
+
+Filters:
+
+all
+open
+assigned
+high priority
+needs details
+unsynced
+with attachments
+with markup
+Plans tab
+
+Shows uploaded plans.
+
+Future features:
+
+plan-based pinning
+sheet selector
+plan layers
+plan-linked stops
+Files tab
+
+Shows SlateDrop worksite folder.
+
+Folders:
+
+Walks
+Photos
+Attachments
+Plans
+Deliverables
+Shared Links
+Contacts tab
+
+Shows project/worksite contacts.
+
+Fields:
+
+name
+company
+role
+email
+phone
+notes
+Deliverables tab
+
+Shows deliverables generated from this worksite.
+
+6. Capture Screen
+
+Purpose:
+
+Capture field stops.
+
+Current state:
+
+V1 capture is active by normal routing.
+Capture V2 exists by direct URL.
+Do not enable Capture V2 globally until ready.
+
+Final desired capture flow:
+
+Empty capture state
+
+Shows:
+
+title: Capture field proof
+Take Photo
+Camera Roll
+optional voice/text note
+After capture
+
+Shows:
+
+photo preview
+stop number
+detail drawer
+filmstrip
+sync status
+Capture top bar
+
+Shows:
+
+Site Walk / back
+Stop number
+walk title
+End / Review
+Capture detail drawer
+
+Tabs:
+
+Details
+Attachments
+Markup
+Details tab
+
+Fields:
+
+title
+field note
+status
+priority
+category
+trade
+location/room/area
+assignee
+due date
+
+Smart chips:
+
+Safety
+Progress
+Issue
+Completed
+Needs Review
+Electrical
+Mechanical
+Drywall
+
+Buttons:
+
+Save Details
+Save & Next Stop
+Finish Walk & Review
+Attachments tab
+
+Options:
+
+Camera
+Camera Roll
+SlateDrop file
+Voice note
+PDF/file attachment
+
+Buttons:
+
+Add Attachment
+Remove
+Save
+Markup tab
+
+Tools:
+
+select
+pen
+rectangle
+circle
+arrow
+text
+color
+stroke width
+undo
+redo
+delete
+
+Buttons:
+
+Save Markup
+Reset
+Finish Walk & Review
+Filmstrip
+
+Shows captured stops:
+
+thumbnail
+stop number
+sync state
+missing info warning
+
+Actions:
+
+tap stop to edit
+long press / menu:
+duplicate
+delete
+move/reorder
+mark complete
+add attachment
+create task
+7. Walk Review / Stops List
+
+This is critical.
+
+This is the screen where every stop in a walk is listed before deliverables.
+
+Route concept:
+
+/site-walk/walks/[sessionId]/review
+
+or current Capture V2 summary route:
+
+/site-walk/capture-v2/summary?session=<SESSION_ID>
+Header
+
+Shows:
+
+walk title
+worksite/project
+date/time
+sync status
+item count
+
+Buttons:
+
+Continue Capture
+Finish Walk
+Create Deliverable
+More
+Summary cards
+
+Stats:
+
+total stops
+stops needing notes
+open issues
+assigned items
+unsynced items
+photos/files count
+Filters
+All
+Needs Details
+Open
+High Priority
+Assigned
+Unsynced
+With Attachments
+With Markup
+Search
+
+Search:
+
+title
+notes
+trade
+room/location
+assignee
+Stop cards
+
+Each stop card shows:
+
+thumbnail
+stop number
+title
+note preview
+status
+priority
+trade/category
+assignee
+due date
+sync badge
+attachment count
+markup indicator
+
+Tap card:
+
+opens stop detail editor
+
+Swipe/menu actions:
+
+edit
+add note
+add attachment
+mark complete
+assign
+duplicate
+delete
+move to another walk/worksite
+create task
+include/exclude from deliverable
+
+Bulk actions:
+
+select multiple stops
+assign
+change status
+change priority
+include in deliverable
+export selected
+delete selected
+8. Stop Detail Editor
+
+Opened from the Walk Review / Stops List.
+
+Tabs:
+
+Details
+Photo / Markup
+Attachments
+Activity
+
+Buttons:
+
+Save
+Previous Stop
+Next Stop
+Back to Review
+Include in Deliverable
+9. Deliverables
+
+Deliverables are generated from walks/stops.
+
+Deliverables home
+
+Tabs:
+
+Drafts
+Ready
+Shared
+Templates
+
+Cards show:
+
+deliverable name
+type
+source walk/worksite
+last edited
+shared status
+
+Buttons:
+
+Create Deliverable
+Open Draft
+Share
+Duplicate
+Create Deliverable flow
+
+Step 1 — Choose type:
+
+Punch list
+Field report
+Progress report
+Inspection report
+Proposal / estimate support
+Photo log
+Issue report
+
+Step 2 — Choose source:
+
+current walk
+multiple walks
+worksite
+selected stops only
+
+Step 3 — Select stops:
+
+all
+filtered
+manual
+
+Step 4 — Organize:
+
+by location
+by trade
+by priority
+by status
+custom order
+
+Step 5 — Branding:
+
+company logo
+colors
+header/footer
+client info
+prepared by
+
+Step 6 — Preview:
+
+mobile preview
+PDF preview
+web link preview
+
+Step 7 — Share/save:
+
+save to SlateDrop
+email link
+text link
+download PDF
+copy share link
+SlateDrop relationship
+
+SlateDrop is the file spine.
+
+Site Walk files should eventually be organized as:
+
+SlateDrop
+  Site Walk
+    Quick Walks
+    Worksites
+      [Worksite Name]
+        Walks
+        Photos
+        Attachments
+        Plans
+        Deliverables
+        Shared Links
+
+Rules:
+
+every captured photo saves to SlateDrop
+every attachment saves to SlateDrop
+every markup saves to SlateDrop
+every deliverable saves to SlateDrop
+if a user upgrades subscription, old worksite/field project data must not be lost
+Subscription / role model
+
+Lower Site Walk tier:
+
+create field projects/worksites
+quick walks
+basic capture
+basic deliverables
+basic SlateDrop access
+
+Higher Site Walk tier:
+
+full project management
+schedules
+budgets
+RFIs
+submittals
+collaborators
+project folder structure
+executive/organization visibility
+more advanced deliverables
+
+Collaborator role:
+
+limited app access
+can contribute to assigned walks
+can capture assigned observations
+can submit back to subscriber
+should not have full account/admin access
+
+Executive viewer:
+
+read-only high-level view
+can see what users are doing across projects
+helpful for ASU leadership testing
+Guardrails for every build prompt
+Do not stage/commit API routes unless explicitly asked.
+Do not stage/commit migrations unless explicitly asked.
+Do not enable NEXT_PUBLIC_CAPTURE_V2.
+Do not delete legacy pages until replacements are proven.
+Do not create fake buttons.
+Do not use href="#".
+Do not show Coming Soon in authenticated app UI.
+Do not route mobile users to legacy /site-walk/walks.
+Do not route New Worksite to old setup once replacement exists.
+Use real data when possible.
+Use honest empty states.
+Keep mobile layout within viewport.
+Use internal scrolling panels, not full-page scroll.
+Run:
+npm run typecheck
+npm run build
+Return:
+files changed
+validation results
+commit hash
+risks
+phone test URL
+Master Prompt 1 — Full audit and strategy reset
+
+Use this first in a fresh Composer/Cursor chat.
+
+You are my Principal Full-Stack Mobile App Architect for Slate360.
+
+Treat this as a fresh source-of-truth handoff. Do not rely on prior chat memory.
+
+Project
+
+Slate360 is an app-first/mobile-first platform for the built environment.
+
+The current app-store-focused build should include:
+
+Slate360 app shell
+Site Walk app
+Digital Twin visible as locked/preparing until built
+No 360 Tours, Design Studio, or Content Studio in this app-store build
+
+Site Walk is the first functional app.
+
+Current strategic problem
+
+The Site Walk app still feels like a hybrid of new shell and old legacy pages.
+
+We are no longer trying to patch legacy pages forever. The strategy is:
+
+Quarantine old legacy pages from active mobile flows.
+Build/route to new mobile-first Site Walk screens.
+Redirect/bypass old routes from mobile users where safe.
+Keep legacy pages temporarily only as fallbacks.
+Delete/archive old pages only after grep proves nothing active depends on them.
+
+Do not delete old pages yet.
+
+Already completed work to verify
+
+Composer previously worked on:
+
+/app command center:
+Site Walk tile
+Digital Twin locked/preparing tile
+Quick Actions: Create, SlateDrop, Search, Deliverables
+Bottom nav: Home, Projects, SlateDrop, Coordination, Account
+Site Walk home:
+2×2 action grid:
+Quick Walk
+New Worksite
+Walk from Worksite
+Review & Deliver
+Site Walk route quarantine:
+attempted to keep active mobile shell links away from /site-walk/walks
+old /site-walk/walks still exists
+capture exit paths may still use legacy routes
+Capture V2:
+exists behind direct URL only
+do not enable NEXT_PUBLIC_CAPTURE_V2
+normal Quick Walk still routes to V1 capture
+Immediate problem
+
+Old pages still appear after clicking around.
+
+Examples:
+
+New Worksite still opens old /site-walk/setup.
+Direct /site-walk/walks still opens old UI.
+V1 capture still shows old UI.
+Deliverables is sparse.
+Worksites lacks a complete detail flow.
+Site Walk home may have a layout gap above the bottom nav.
+Some capture exit paths may still send users to old pages.
+Desired Site Walk workflow
+
+Site Walk should support:
+
+Site Walk Home
+Quick Walk
+New Worksite
+Walk from Worksite
+Worksite detail
+Capture
+Walk Review / Stops List
+Stop Detail Editor
+Deliverables
+SlateDrop integration
+Coordination/collaboration
+Future plan-based walks
+Audit before coding
+
+Do not code yet.
+
+Inspect the repo and return:
+
+Current local HEAD.
+Current origin/main HEAD if available.
+Modified/untracked files.
+Whether Phase 2A and 2B commits are present.
+Exact active route/component for:
+/site-walk
+Quick Walk
+New Worksite
+Walk from Worksite
+Review & Deliver
+Worksites bottom nav
+Deliverables bottom nav
+Recent walk row
+Worksite row
+Capture exit
+Which actions still route to old pages.
+Which old pages are still reachable only by direct URL.
+Which old pages are still reachable from normal app clicks.
+Which files/components are the new mobile-first source of truth.
+Which legacy files should be bypassed.
+Whether any Composer commits should be reverted.
+Whether the best strategy is:
+continue patching current V1 shell,
+create a new clean Site Walk source-of-truth component,
+add new routes and redirect /site-walk to them,
+use a feature flag,
+middleware-quarantine old routes.
+First safest coding step.
+Do not delete old pages yet
+
+Before any deletion, prove:
+
+no imports depend on them
+no routes link to them
+no capture exit path uses them
+no middleware expects them
+no email/deep links use them
+Return
+
+Return a detailed audit report and the first recommended coding prompt.
+
+Master Prompt 2 — Implement new source-of-truth route map
+
+Use this after the audit confirms the next safe step.
+
+Composer, implement the new Site Walk mobile source-of-truth route map.
+
+Do not enable NEXT_PUBLIC_CAPTURE_V2.
+Do not delete legacy pages.
+Do not modify API routes.
+Do not modify migrations.
+Do not commit docs or ops scripts.
+Do not touch BUG-079 or plan viewer.
+Do not stage unrelated files.
+
+Goal
+
+Make the active Site Walk app-shell buttons open the new mobile-first Site Walk screens instead of legacy pages.
+
+Required route behavior
+/site-walk
+
+Must render the new mobile-first Site Walk home:
+
+Header: Site Walk / Field capture & deliverables
+2×2 action grid:
+Quick Walk
+New Worksite
+Walk from Worksite
+Review & Deliver
+Contained panel:
+Recent
+Worksites
+Shared
+Needs Review
+Bottom nav:
+Home
+Worksites
+SlateDrop
+Coordination
+Deliverables
+Quick Walk
+
+Behavior:
+
+Create walk/session using existing safe session creation path.
+Route to current V1 capture while NEXT_PUBLIC_CAPTURE_V2=false.
+Do not force worksite/project/plan setup.
+New Worksite
+
+Do not open old /site-walk/setup.
+
+Create a new mobile-first worksite creation screen or sheet.
+
+Fields:
+
+Worksite name
+Location/address optional
+Client/company optional
+Description optional
+
+Buttons:
+
+Create & Start Walk
+Create Only
+Cancel
+
+After create:
+
+if Create & Start Walk: create worksite then start walk
+if Create Only: return to Worksites tab or open worksite detail
+
+Use existing backend/API only if safe. If no safe create API exists, stop and report. Do not fake saving.
+
+Walk from Worksite
+
+Do not route to /site-walk/walks.
+
+Open in-shell Worksites picker/list.
+
+User can:
+
+select worksite
+start walk
+open worksite detail
+Review & Deliver
+
+Open in-shell Deliverables tab.
+
+Do not route to /site-walk/deliverables if mobile-quarantined.
+
+Worksites tab
+
+Must be an in-shell mobile view, not old /site-walk/walks.
+
+Show:
+
+All Worksites
+New Worksite
+worksite rows
+each row:
+name
+walk count
+last activity
+menu
+
+Tap row:
+
+open new worksite detail if implemented
+otherwise open a safe in-shell action sheet
+do not go to /site-walk/walks
+Deliverables tab
+
+Show honest current state:
+
+drafts
+ready
+shared
+templates if implemented
+empty state if none
+
+Buttons:
+
+From Walk
+Open Recent Walks
+no fake generation
+no Coming Soon
+Recent / Needs Review
+
+Rows should not route to old /site-walk/walks.
+
+Recent walk row should route to:
+
+capture if in progress
+walk review/stops list if complete and implemented
+otherwise safe capture/review route that exists
+Layout requirements
+Mobile-first
+100dvh app screen
+no body scroll
+internal scrolling panels
+bottom nav stable
+no huge gaps
+no tall stretched action cards
+no old orange desktop-style pages
+no href="#"
+no Coming Soon
+Validation
+
+Run:
+
+npm run typecheck
+npm run build
+
+Grep edited files for:
+
+href="#"
+Coming Soon
+coming soon
+/site-walk/walks
+
+Any remaining /site-walk/walks references must be classified.
+
+Commit
+
+If validation passes, commit only intended files as:
+
+fix(site-walk): route app shell to mobile-first screens
+
+Return:
+
+Files changed
+Route map before/after
+Buttons and destinations
+Legacy routes still reachable and why
+Validation results
+Commit hash
+Remaining risks
+Phone test URL
+Master Prompt 3 — Full build sequence
+
+Use this as the step-by-step execution plan after the route map is stable.
+
+Composer, use this as the Site Walk build sequence. Do not build all steps at once. Execute only the step I explicitly approve.
+
+Global guardrails
+Do not enable NEXT_PUBLIC_CAPTURE_V2 unless explicitly approved.
+Do not delete legacy pages until explicitly approved.
+Do not commit API routes unless explicitly approved.
+Do not commit migrations unless explicitly approved.
+Do not use href="#".
+Do not show Coming Soon.
+Do not create fake buttons.
+Do not route users to old /site-walk/walks from the mobile shell.
+Run npm run typecheck and npm run build for every slice.
+Commit each slice separately.
+Phase A — Route quarantine and layout stabilization
+
+A1. Confirm /site-walk home is the new mobile source of truth.
+A2. Fix bottom gap by making the contained panel fill remaining height.
+A3. Remove all active mobile links to /site-walk/walks.
+A4. Add middleware or mobile redirect for /site-walk/walks only after confirming no active flow depends on it.
+A5. Keep legacy pages as fallback until replacement screens exist.
+
+Phase B — New Worksite replacement
+
+Build a mobile-first New Worksite sheet/screen.
+
+Fields:
+
+Worksite name
+Location/address optional
+Client/company optional
+Description optional
+
+Buttons:
+
+Create & Start Walk
+Create Only
+Cancel
+
+Do not use old /site-walk/setup for New Worksite.
+
+If safe API exists, wire it.
+If no safe API exists, stop and report what API is needed.
+
+Phase C — Walk from Worksite flow
+
+Build in-shell worksite picker.
+
+Features:
+
+search
+worksite rows
+start walk
+open worksite
+new worksite
+
+Do not route to /site-walk/walks.
+
+Phase D — Worksite detail
+
+Build worksite detail with tabs:
+
+Overview
+Walks
+Stops
+Plans
+Files
+Contacts
+Deliverables
+
+Use real data where available.
+Use honest empty states where not.
+
+Phase E — Walk Review / Stops List
+
+Build a mobile-first walk review screen.
+
+Show:
+
+walk title
+worksite/project
+date
+sync status
+total stops
+stops needing details
+unsynced items
+photos/files count
+
+Stop cards show:
+
+thumbnail
+stop number
+title
+notes preview
+status
+priority
+category/trade
+assignee
+due date
+sync state
+attachment count
+markup indicator
+
+Actions:
+
+edit
+add note
+add attachment
+mark complete
+assign
+duplicate
+delete
+include/exclude from deliverable
+create task
+Phase F — Deliverables foundation
+
+Build deliverables home:
+
+Tabs:
+
+Drafts
+Ready
+Shared
+Templates
+
+Create flow:
+
+Choose type
+Choose source
+Select stops
+Organize
+Branding
+Preview
+Share/save
+
+Do not fake PDF generation. If backend generation is not ready, build only real draft/selection UI and honest save states.
+
+Phase G — Capture V2 integration
+
+Only after Site Walk route map is stable:
+
+add owner-only/tester-only Capture V2 entry
+do not flip global flag
+test capture → detail drawer → filmstrip → summary
+then decide when to route Quick Walk to Capture V2
+Phase H — Plan-based walks / BUG-079
+
+Do not patch React-PDF endlessly.
+
+Use a mobile-safe plan approach:
+
+server-rasterized plan tiles/images
+mobile pan/zoom layer
+pin capture
+pin list
+plan-linked stops
+
+Build this as its own controlled slice.
+
+Phase I — Legacy deletion
+
+Only after:
+
+no active links to legacy routes
+no imports
+no capture exits
+no middleware dependencies
+no email/deep links
+replacement screens verified
+
+Then archive or delete old pages.
+
+For each phase
+
+Return:
+
+Files changed
+UX behavior
+Routes changed
+Validation results
+Commit hash
+Risks
+Phone test URL
+Recommended immediate path
+
+I would do this now:
+
+Ask the assistant to audit current route state with Master Prompt 1.
+Then choose one of two directions:
+If current V1 shell can be salvaged: run the source-of-truth route map prompt.
+If current shell is too tangled: create a new clean Site Walk source-of-truth component and make /site-walk render that.
+Fix New Worksite next, because that is the most obviously wrong legacy screen.
+Fix Walk Review / Stops List after that, because it is the bridge between capture and deliverables.
+Only then resume Capture V2 and plan-viewer work.
+
+The most important principle is this:
+
+Every visible Site Walk button must open a new mobile-first screen, an in-shell tab, or a real working route. If it opens old /site-walk/setup, old /site-walk/walks, or an old orange legacy screen, that button is not done.

@@ -1,0 +1,4452 @@
+
+
+
+
+"Significantly Expanded Screen-by-Screen Wireframe Descriptions
+
+Below is a much more detailed, production-ready specification. I’ve expanded every screen with precise layout hierarchy, component breakdowns, visual styling (to match your existing Slate360 app), states, interactions, and data requirements.
+
+This level of detail is designed so you can directly paste sections into v0, Cursor, or share with other AI assistants for implementation.
+
+Global Design Rules (Apply to All Screens)
+
+
+
+
+
+Theme: Dark background (#0B0F15 or similar), dark glass cards with subtle borders, amber (#FFB800 or #00E699 green accents for active states).
+
+
+
+Typography: Clean sans-serif, good hierarchy.
+
+
+
+Cards: Rounded-2xl, subtle shadow or border, consistent padding.
+
+
+
+Buttons: Primary = solid amber/green with white text. Secondary = outlined or glass style.
+
+
+
+Credit Display: Always visible in header or top bar. Shows remaining credits + impact of current action.
+
+
+
+Loading States: Skeleton loaders for lists and cards.
+
+
+
+Empty States: Friendly illustration + clear call-to-action.
+
+
+
+Consistency: Match the style of the screenshot you shared (green active border on Site Walk, dark cards, bottom nav, header with logo + icons).
+
+MOBILE – Digital Twin (Inside Slate360 App Shell)
+
+Mobile Screen 1: Digital Twin Home
+
+Purpose: Main landing screen after tapping Digital Twin from the app launcher or bottom nav.
+
+Layout Hierarchy (Top to Bottom)
+
+
+
+
+
+Header Bar (fixed)
+
+
+
+
+
+Left: Slate360 logo + “Digital Twin” text
+
+
+
+Right: Row of icons (QR code, bug report, notifications, profile avatar)
+
+
+
+Below header (subtle): Credit pill (shows “248 Credits” with amber/green color). Tapping it opens the Credit Top-Up modal.
+
+
+
+Hero / Primary Action Section
+
+
+
+
+
+Large rounded card (full width, ~120px height)
+
+
+
+Inside: Big “+ New Capture” button (solid amber/green background, white text, large icon)
+
+
+
+Subtitle text: “Start a new 3D reality capture”
+
+
+
+Recent Spaces Section
+
+
+
+
+
+Section header: “Recent Spaces” + “See all” link (right aligned)
+
+
+
+Horizontal scrollable row of space cards (or vertical list if preferred)
+
+
+
+Each card: Thumbnail (left), Space name, Status badge, Last updated, small credit usage indicator
+
+
+
+Processing Queue Section (only visible if jobs exist)
+
+
+
+
+
+Section header: “Processing Queue”
+
+
+
+Compact list of active jobs (space name + progress bar + estimated time)
+
+
+
+Quick Stats Row (4 small cards in a row)
+
+
+
+
+
+Total Spaces | Storage Used | Credits Remaining | Active Jobs
+
+Buttons & Interactions
+
+
+
+
+
+Tap credit pill → Credit Top-Up modal
+
+
+
+Tap “+ New Capture” → New Capture Setup flow (Step 1)
+
+
+
+Tap any space card → Space Detail screen
+
+
+
+Tap job in queue → Processing Status screen
+
+
+
+Pull to refresh supported
+
+States
+
+
+
+
+
+Empty: Big friendly message + “Start your first capture” button
+
+
+
+Loading: Skeleton cards for spaces and stats
+
+
+
+Error: Retry button + error message
+
+Mobile Screen 2: New Capture Setup (3-Step Wizard)
+
+Progress Indicator: Top bar showing Step 1 of 3 with back arrow.
+
+Step 1 – Project / Space Selection
+
+
+
+
+
+Search bar at very top
+
+
+
+List of existing Projects the user can access (cards or list rows)
+
+
+
+Each row shows: Project name + number of existing spaces
+
+
+
+Bottom floating button: “Create New Project”
+
+
+
+Selected item has green/amber border + checkmark
+
+Step 2 – Capture Type
+
+
+
+
+
+Three large selectable cards stacked vertically:
+
+
+
+
+
+Phone Walk – Icon + title + description (“Capture interior spaces with your phone camera”)
+
+
+
+Add to Existing Space – Icon + title + description (“Add drone footage or 360 photos to a previous capture”)
+
+
+
+New Mixed Capture – Icon + title + description (“Start fresh and combine phone + drone + 360 later”)
+
+
+
+Each card shows estimated credit range
+
+Step 3 – Capture Settings
+
+
+
+
+
+Text input: Space Title (smart default based on project + date)
+
+
+
+Segmented control: Preview | Production
+
+
+
+Live cost estimator box (amber border): “This will use ~XX credits and ~XX GB storage”
+
+
+
+Toggle: “Send me a notification when ready”
+
+
+
+Final primary button: “Begin Capture”
+
+Transitions
+
+
+
+
+
+Smooth horizontal slide between steps
+
+
+
+Progress bar updates at top
+
+Mobile Screen 3: Capture Screen
+
+Layout
+
+
+
+
+
+Full-bleed camera preview (uses native device camera)
+
+
+
+Top overlay bar (semi-transparent dark glass):
+
+
+
+
+
+Left: Space name + Processing tier badge
+
+
+
+Right: Estimated credits that will be used
+
+
+
+Center overlay: Subtle tracking grid + feature points (green dots when tracking well)
+
+
+
+Bottom control bar (dark glass):
+
+
+
+
+
+Left: Pause button (circular)
+
+
+
+Center: Large red Record / Stop button (changes shape when recording)
+
+
+
+Right: Cancel button (with confirmation dialog)
+
+Live On-Screen Indicators
+
+
+
+
+
+Tracking Quality bar (top left, color-coded)
+
+
+
+Blur Warning toast (appears temporarily when quality drops)
+
+
+
+Coverage % (bottom center)
+
+
+
+Timer + live file size estimate
+
+States
+
+
+
+
+
+Pre-recording: Helper text “Move slowly and steadily for best results”
+
+
+
+Recording: Red pulsing indicator + live timer
+
+
+
+Paused: Yellow state with resume button
+
+Mobile Screen 4: Review & Upload
+
+Layout
+
+
+
+
+
+Header: “Review Your Capture”
+
+
+
+Main scrollable area:
+
+
+
+
+
+Horizontal filmstrip of key frames + video player
+
+
+
+Below: Quality breakdown cards (4 small cards: Tracking, Blur, Coverage, Lighting)
+
+
+
+Prominent box: Credit & Storage Impact (shows exact deduction)
+
+
+
+Processing Tier confirmation (can still switch here)
+
+
+
+Toggle: Process now vs Save as Draft
+
+Buttons
+
+
+
+
+
+Retake (bottom left)
+
+
+
+Save as Draft (secondary)
+
+
+
+Primary full-width button: Upload & Process (shows loading spinner + progress %)
+
+Special Behavior
+
+
+
+
+
+If “Add to Existing Space” was chosen, show confirmation text: “This will be added to: [Space Name]”
+
+
+
+Warning banner if credits are low
+
+Mobile Screen 5: Processing Status
+
+Layout
+
+
+
+
+
+Centered large status icon + big text status
+
+
+
+Progress bar with percentage and step text (“Uploading frames…”, “Building 3D model…”, etc.)
+
+
+
+Estimated time remaining
+
+
+
+Credit deduction line
+
+
+
+Optional: “View in background” button
+
+States
+
+
+
+
+
+Uploading → Queued → Processing → Ready (green check + “View Model” button appears)
+
+
+
+Failed: Red error state + Retry + Support options
+
+Mobile Screen 6: Model Viewer (Light Mobile Version)
+
+Layout
+
+
+
+
+
+Full screen 3D viewer area
+
+
+
+Top floating header: Space name + Share button
+
+
+
+Bottom floating toolbar:
+
+
+
+
+
+Pin / Comment
+
+
+
+Measure
+
+
+
+Layers
+
+
+
+More (⋯) → action sheet
+
+Interactions
+
+
+
+
+
+Orbit, pinch zoom, double-tap to reset
+
+
+
+Tap to drop pin → opens comment input
+
+
+
+Two-tap measurement
+
+Buttons
+
+
+
+
+
+Share Link
+
+
+
+Add Comment / Pin
+
+
+
+Measure
+
+
+
+“Continue on Desktop” (if web session detected)
+
+DESKTOP – Digital Twin Section (Sidebar)
+
+Desktop Page 1: Overview
+
+Layout
+
+
+
+
+
+Top header bar with page title + big “+ New Space” button (amber)
+
+
+
+Hero card (large): Shows most important/active space with quick action buttons
+
+
+
+Stats row: 4 metric cards
+
+
+
+Two-column grid below:
+
+
+
+
+
+Left column (wider): Recent Spaces grid
+
+
+
+Right column: Processing Queue + Recent Activity feed
+
+Interactions
+
+
+
+
+
+Clicking any space card opens Space Detail
+
+
+
+Quick actions on hero card allow fast navigation
+
+Desktop Page 2: My Spaces
+
+Layout
+
+
+
+
+
+Top bar: Search input + Filter chips + “+ New Space” button
+
+
+
+Main content: Responsive grid of space cards (or table toggle)
+
+
+
+Each card contains: Thumbnail, Name, Status, Storage bar, Credits used, Last updated, quick action buttons on hover
+
+Card Hover State
+
+
+
+
+
+Reveals: Share, Upload More Data, ⋯ menu
+
+Desktop Page 3: Space Detail (Main Workstation) – Most Important Screen
+
+Overall Layout (3-column feel)
+
+
+
+
+
+Top sticky bar: Space name | Status badge | Credit impact | Action buttons (Share, Embed, Upload More Data, Export PDF)
+
+
+
+Left/Main area: Large 3D Viewer
+
+
+
+Right sidebar (fixed width, collapsible): Tabbed panels (Processing Status | Assets | Pins & Comments | Activity)
+
+
+
+Floating or bottom panel (optional): Quick tools
+
+3D Viewer Details
+
+
+
+
+
+Full canvas with orbit/pan/zoom
+
+
+
+Top floating toolbar with tools
+
+
+
+Right-click context menu inside viewer
+
+Right Sidebar – Tabbed Panels
+
+
+
+
+
+Processing Status – Current job progress + controls
+
+
+
+Assets – List of all files + big “Upload More Data” button (supports mixed phone + drone + 360)
+
+
+
+Pins & Comments – Threaded list with ability to add new
+
+
+
+Activity Log
+
+Key Flows
+
+
+
+
+
+Upload More Data: Opens file picker. After upload, user chooses:
+
+
+
+
+
+Create new model version, or
+
+
+
+Incremental update to existing model
+
+
+
+Credit cost preview is shown before confirming
+
+
+
+Clear messaging when adding data to a space that already has phone captures
+
+Studio Toolkit Drawer (Pro)
+
+
+
+
+
+Slides in from right
+
+
+
+Contains: Sun study controls, BIM alignment sliders, Punch List PDF generator, QR code, Unit converter, Storage summary
+
+Desktop Page 4: Processing Queue
+
+Layout
+
+
+
+
+
+Clean table with columns: Space | Type | Status | Progress | Credits | Time | Actions
+
+
+
+Row click opens the related Space Detail
+
+
+
+Action buttons: Cancel (queued only), Retry (failed)
+
+Desktop Page 5: Shared Links
+
+Layout
+
+
+
+
+
+Top: “Create New Link” button
+
+
+
+Table with columns: Name | Space | Permission Level | Views | Expires | Status
+
+
+
+Row actions: Copy, Edit, Revoke
+
+Create Link Modal
+
+
+
+
+
+Fields: Link name, Permission level (View / Annotate / Download), Expiry date, Password, Branding options (logo upload for Pro)
+
+Desktop Page 6: Studio Toolkit Drawer
+
+Slide-out panel containing:
+
+
+
+
+
+Sun/Shadow Study controls with timeline slider
+
+
+
+BIM Alignment controls (X/Y/Z sliders + scale + rotation)
+
+
+
+One-click Punch List PDF generator
+
+
+
+Quick QR code for mobile upload to this space
+
+
+
+AEC unit converter
+
+
+
+Current space storage & credit usage summary
+
+Summary – Ready to Share
+
+You now have:
+
+
+
+
+
+The exact fact-finding prompt for credits
+
+
+
+Significantly more detailed wireframe-style descriptions for every major screen (Mobile + Desktop)
+
+
+
+Layout hierarchy, components, buttons, states, interactions, and mixed-capture handling
+
+
+
+Consistency rules matching your existing app style
+
+
+
+Below is a significantly deeper version. I’ve expanded every major screen with:
+
+
+
+
+
+Precise layout hierarchy and spacing
+
+
+
+Component inventory with suggested names
+
+
+
+Visual styling notes (to match your existing Slate360 app)
+
+
+
+Detailed interactions and micro-animations
+
+
+
+All states (empty, loading, error, success)
+
+
+
+Data requirements
+
+
+
+Accessibility / mobile considerations
+
+
+
+How it ties into credits, mixed capture workflow, and pricing tiers
+
+I’ll start with the Fact-Finding Prompt you asked for, then deliver the expanded UI spec.
+
+1. Fact-Finding Prompt – Credit Purchasing System
+
+Copy and paste this to Composer:
+
+text
+
+Role: Senior Backend Engineer
+
+We need a complete understanding of the current credit purchasing and top-up system so we can design and wire the Digital Twin UI correctly.
+
+Please answer the following with as much detail as possible:
+
+1. Does the platform already support one-time credit top-ups (buying extra credits without changing subscription tier)?
+2. Where is the user’s current credit balance currently displayed in the mobile app and on the desktop dashboard?
+3. Is there already a Stripe-powered flow for purchasing additional credits (one-time payments)?
+4. How are credit balances and usage tracked (organization level, user level, or both)?
+5. Are there existing UI components, routes, or modals for “Buy Credits”, “Top Up Credits”, or credit purchase flows?
+6. What currently happens when a user runs out of credits during upload or job creation? Is there any upsell or blocking behavior?
+7. How is the new Digital Twin entitlement system (`requireDigitalTwinAccess`, `assertDigitalTwinProcessingEntitlement`) connected to credit checks?
+
+Please provide a clear summary of what exists today and exactly what still needs to be built for Digital Twin credit top-ups on both mobile and desktop.
+
+2. Highly Detailed Wireframe Specifications (Ready for Grok Build Prompts)
+
+These descriptions are written at a level you can copy sections directly into prompts for Grok Build. I’ve gone much deeper than before.
+
+Global Rules (Apply Everywhere)
+
+
+
+
+
+Match the visual language from the screenshot you shared: dark theme, green active borders on selected items, rounded cards, subtle glass effects, amber/green accents for primary actions.
+
+
+
+Credit balance must be visible and tappable on almost every screen.
+
+
+
+All credit-impacting actions must show a live cost preview.
+
+
+
+Mixed capture support (phone first → add drone/360 later) must be clearly communicated in the UI.
+
+
+
+Mobile: Thumb-friendly, large tap targets, minimal scrolling where possible.
+
+
+
+Desktop: Clean, spacious but not empty, consistent with the new Dashboard V3 direction.
+
+MOBILE – Digital Twin Flow
+
+Mobile Screen 1: Digital Twin Home
+
+Layout Hierarchy (from top to bottom)
+
+
+
+
+
+Header Bar (fixed, 56–64px)
+
+
+
+
+
+Left: Slate360 logo (green S) + “Digital Twin” text (bold, white)
+
+
+
+Right: Horizontal icon row — QR scanner, Bug report, Notifications (with red dot if unread), Profile avatar (circular)
+
+
+
+Directly below header: Credit pill (pill-shaped, dark glass, shows “248 Credits” in amber text). Tapping anywhere on the pill opens the Credit Top-Up modal.
+
+
+
+Primary Action Hero Card (full-width, ~110–130px height, rounded-3xl)
+
+
+
+
+
+Large centered “+ New Capture” button (solid amber/green background, white text, camera icon, large tap target)
+
+
+
+Subtle subtitle below button: “Start a new 3D reality model”
+
+
+
+Recent Spaces Section
+
+
+
+
+
+Section header row: “Recent Spaces” (left, semibold) + “See all” (right, tappable, smaller text)
+
+
+
+Horizontal scrollable list of space cards (each card ~160–180px wide)
+
+
+
+
+
+Card content: Small thumbnail (left), Space name (bold), Status badge (colored pill), Last updated (small text), tiny credit usage indicator
+
+
+
+Processing Queue Section (conditionally rendered)
+
+
+
+
+
+Only appears if there are active jobs.
+
+
+
+Section header: “Processing Queue”
+
+
+
+Compact vertical list of job rows (space name + progress bar + time remaining)
+
+
+
+Quick Stats Row
+
+
+
+
+
+4 equal-width small cards in a horizontal row
+
+
+
+Labels: Total Spaces | Storage Used | Credits Left | Active Jobs
+
+States
+
+
+
+
+
+Empty state: Centered illustration + message “No spaces yet” + large “Start your first capture” button
+
+
+
+Loading: Skeleton versions of the hero card and space cards
+
+
+
+Error: Retry button + message
+
+Interactions
+
+
+
+
+
+Credit pill → Credit Top-Up modal (with pricing tiers visible)
+
+
+
+New Capture → New Capture Setup flow
+
+
+
+Space card tap → Space Detail screen
+
+
+
+Job row tap → Processing Status screen
+
+Mobile Screen 2: New Capture Setup (3-Step Wizard)
+
+Global Elements
+
+
+
+
+
+Top progress bar (Step X of 3) with back arrow on left
+
+
+
+Smooth horizontal slide transitions between steps
+
+
+
+Live credit impact shown on every step where relevant
+
+Step 1 – Project Selection
+
+
+
+
+
+Search bar at top (with clear icon)
+
+
+
+Scrollable list of Project cards/rows
+
+
+
+Each row: Project name + number of spaces inside it + small chevron
+
+
+
+Bottom floating action: “Create New Project” (full-width glass button)
+
+
+
+Selected project has green/amber border + subtle checkmark
+
+Step 2 – Capture Type
+
+
+
+
+
+Three large, vertically stacked selectable cards (good thumb spacing)
+
+
+
+
+
+Phone Walk – Icon + title + 2-line description + estimated credit range
+
+
+
+Add to Existing Space – Same structure + note “You can add drone/360 data later”
+
+
+
+New Mixed Capture – Same structure + note explaining future additions
+
+
+
+Selected card gets green/amber border and slight scale-up
+
+Step 3 – Capture Settings
+
+
+
+
+
+Text field: Space Title (pre-filled smart suggestion, editable)
+
+
+
+Segmented control: Preview | Production (with clear labels and credit difference)
+
+
+
+Prominent cost estimator box (amber border, dark glass):
+
+
+
+
+
+“Estimated cost: XX credits”
+
+
+
+“Estimated storage: XX GB”
+
+
+
+“Processing time: ~XX minutes”
+
+
+
+Toggle row: “Notify me when complete” (with switch)
+
+
+
+Final primary button (full width): “Begin Capture”
+
+Mobile Screen 3: Capture Screen
+
+Layout
+
+
+
+
+
+True full-screen camera feed
+
+
+
+Top overlay bar (semi-transparent dark glass, ~48px):
+
+
+
+
+
+Left: Truncated space name + small Processing tier badge
+
+
+
+Right: Live credit cost estimate
+
+
+
+Center overlays:
+
+
+
+
+
+Subtle tracking grid + green feature points (when tracking is good)
+
+
+
+Tracking Quality bar (top-left, color-coded green/yellow/red)
+
+
+
+Coverage percentage (bottom-center, large readable text)
+
+
+
+Bottom control bar (dark glass, safe-area aware):
+
+
+
+
+
+Left: Circular Pause button
+
+
+
+Center: Large prominent Record/Stop button (red when idle, changes to square stop when recording, with pulse animation)
+
+
+
+Right: Cancel button (smaller, with confirmation sheet)
+
+Live Feedback
+
+
+
+
+
+Blur Warning toast appears from bottom when quality drops
+
+
+
+“Move slowly” helper text fades in/out during recording
+
+
+
+Live timer + file size estimate (updates every second)
+
+States
+
+
+
+
+
+Pre-recording
+
+
+
+Recording (red pulsing ring around button)
+
+
+
+Paused (yellow state)
+
+
+
+Post-stop → auto-navigates to Review screen with nice transition
+
+Mobile Screen 4: Review & Upload
+
+Layout
+
+
+
+
+
+Header: “Review Your Capture” + back button
+
+
+
+Scrollable main content:
+
+
+
+
+
+Horizontal filmstrip of captured frames (with play icon on video)
+
+
+
+Video player preview (tap to play)
+
+
+
+Quality breakdown section: 4 small cards in 2x2 grid (Tracking, Blur, Coverage, Lighting) with scores and color indicators
+
+
+
+Prominent Credit & Storage Impact card (amber border)
+
+
+
+Processing Tier confirmation row (can still change)
+
+
+
+Toggle: “Process now” vs “Save as Draft”
+
+Buttons
+
+
+
+
+
+Retake (secondary, left)
+
+
+
+Save as Draft (secondary)
+
+
+
+Primary full-width: Upload & Process (loading state shows progress bar + “Uploading… XX%”)
+
+Special Logic
+
+
+
+
+
+If user selected “Add to Existing Space”, show confirmation text with the target space name
+
+
+
+Low-credit warning banner appears if remaining credits are insufficient
+
+Mobile Screen 5: Processing Status
+
+Layout
+
+
+
+
+
+Centered large status icon (changes based on state)
+
+
+
+Large status text below icon
+
+
+
+Progress bar with percentage
+
+
+
+Step-by-step description text (e.g., “Analyzing frames…”, “Generating Gaussian splat…”, “Optimizing model…”)
+
+
+
+Credit deduction line
+
+
+
+Estimated time remaining
+
+Buttons
+
+
+
+
+
+View Model (only enabled when Ready – becomes prominent)
+
+
+
+Back to Home
+
+
+
+View in Background (minimizes to a persistent notification style bar)
+
+States
+
+
+
+
+
+Uploading / Queued / Processing / Ready / Failed
+
+
+
+Failed state includes error message + Retry button + “Contact Support” link
+
+Mobile Screen 6: Model Viewer (Light Mobile Version)
+
+Layout
+
+
+
+
+
+Full-screen 3D viewer canvas
+
+
+
+Top floating header bar (dark glass): Space name (left) + Share button (right)
+
+
+
+Bottom floating toolbar (dark glass, safe area):
+
+
+
+
+
+Pin/Comment icon button
+
+
+
+Measure icon button
+
+
+
+Layers icon button
+
+
+
+More (⋯) button → opens action sheet with additional options
+
+Interactions
+
+
+
+
+
+Standard 3D navigation (orbit, pinch zoom, double-tap reset)
+
+
+
+Tap on model → drops a pin + opens comment input sheet
+
+
+
+Two-tap measurement flow with live distance display
+
+Buttons & Flows
+
+
+
+
+
+Share Link → opens share options sheet
+
+
+
+Add Comment / Pin
+
+
+
+Measure
+
+
+
+“Open on Desktop” (appears if user has an active web session)
+
+DESKTOP – Digital Twin Section (From Sidebar)
+
+Desktop Page 3: Space Detail (Main Workstation) – Deepest Detail
+
+This is the most important and complex screen. Treat it as a mini application inside the dashboard.
+
+Overall Layout Structure
+
+
+
+
+
+Top Sticky Bar (64px, dark glass):
+
+
+
+
+
+Left: Space name (editable on click) + Status badge
+
+
+
+Center/Right: Credit impact summary
+
+
+
+Far right: Action buttons row — Share, Embed, Upload More Data, Export Punch List PDF
+
+
+
+Main Content Area:
+
+
+
+
+
+Large central 3D Viewer (takes ~65-70% of width)
+
+
+
+Right sidebar (fixed ~320-360px, collapsible): Tabbed information panels
+
+
+
+Floating Toolbar (above or inside viewer): Pins | Measure | Clip Planes | Layers | Walk Mode | Fullscreen
+
+Right Sidebar – Detailed Tab Structure
+
+Tab 1: Processing Status
+
+
+
+
+
+Current job status + progress
+
+
+
+Real-time log of processing steps
+
+
+
+Controls: Pause, Cancel, Re-process with different tier
+
+Tab 2: Assets
+
+
+
+
+
+List of all uploaded files (grouped by type: Phone, Drone, 360, Other)
+
+
+
+Each item shows filename, size, upload date, status
+
+
+
+Big primary button at top: Upload More Data
+
+
+
+
+
+Clicking opens file picker (multi-select supported)
+
+
+
+After selection: Confirmation modal showing credit cost + choice between “New Version” or “Incremental Update”
+
+
+
+Clear messaging: “This space already contains phone capture data. Adding drone/360 will improve model quality.”
+
+Tab 3: Pins & Comments
+
+
+
+
+
+Threaded list of all pins/comments
+
+
+
+Ability to add new pin from here or from viewer
+
+
+
+Filters: All / Open / Resolved
+
+
+
+Real-time updates
+
+Tab 4: Activity Log
+
+
+
+
+
+Chronological list of all actions on this space
+
+Key Interactions & Micro-details
+
+
+
+
+
+Right-click inside the 3D viewer opens context menu: Add Pin Here, Measure from Here, etc.
+
+
+
+Hovering a pin in the list highlights it in the 3D viewer (and vice versa)
+
+
+
+“Upload More Data” flow must clearly communicate the mixed capture scenario and credit implications
+
+
+
+Studio Toolkit button (Pro only) slides in a drawer from the right containing advanced tools
+
+Studio Toolkit Drawer (Pro) – Expanded
+
+
+
+
+
+Header with close button
+
+
+
+Sections:
+
+
+
+
+
+Sun / Shadow Study (timeline slider + date picker + live preview in viewer)
+
+
+
+BIM Alignment (X/Y/Z sliders + Scale + Rotation + Opacity control + live overlay in viewer)
+
+
+
+One-Click Punch List PDF (with options for what to include)
+
+
+
+Quick QR Code (for mobile upload directly to this space)
+
+
+
+AEC Unit Converter
+
+
+
+Current space storage & credit usage summary with “Top Up” button
+
+
+
+Global Rules (Apply to All Screens)
+
+
+
+
+
+Header: Remains exactly as in your screenshot (Slate360 logo + title, QR/Bug/Notification/Profile icons). Credit pill is added next to the profile icon and is tappable.
+
+
+
+Theme: Dark glass cards, rounded-2xl/3xl, amber/green accents for primary actions, consistent with your current app.
+
+
+
+Credit Display: Always visible and tappable. Shows remaining credits + live cost preview on actions that consume credits.
+
+
+
+Mixed Capture Support: UI must clearly communicate when a space already has phone data and allow adding drone/360 later without forcing a full re-process.
+
+
+
+Mobile: Thumb-friendly, large tap targets, minimal cognitive load.
+
+
+
+Desktop: Clean, spacious, consistent with Dashboard V3 direction.
+
+
+
+Backend Integration: Every major button that triggers upload, processing, or sharing must call the existing P0 APIs (/api/twin/upload/init, /complete, enqueueGaussianSplatJob, etc.).
+
+MOBILE – Digital Twin Flow (Inside Slate360 App Shell)
+
+Entry Point: User taps the Digital Twin tile in the “Your Apps” section (as shown in your screenshot). The app launches the Digital Twin flow while keeping the same header and bottom navigation style.
+
+Mobile Screen 1: Digital Twin Home
+
+Layout Hierarchy
+
+
+
+
+
+Fixed Header (same as screenshot)
+
+
+
+Credit Pill (added to header, right side, tappable)
+
+
+
+Hero Card (full width, large “+ New Capture” button)
+
+
+
+Recent Spaces section (horizontal scroll or vertical list)
+
+
+
+Processing Queue section (conditional)
+
+
+
+Quick Stats row (4 small cards)
+
+Detailed Components
+
+
+
+
+
+CreditPill: Shows remaining credits + color (green if healthy, amber if low). Tap opens CreditTopUpModal.
+
+
+
+NewCaptureHeroCard: Large primary button with camera icon.
+
+
+
+SpaceCard: Thumbnail + name + status badge + last updated + small credit usage.
+
+
+
+ProcessingJobRow: Compact row with progress bar.
+
+Buttons & Backend
+
+
+
+
+
++ New Capture → Navigates to New Capture Setup flow.
+
+
+
+Space card tap → Opens Space Detail screen.
+
+
+
+Credit pill tap → CreditTopUpModal (calls backend to fetch current balance and available top-up packages).
+
+
+
+Processing job row → Opens Processing Status screen (polls digital_twin_processing_jobs via realtime or polling).
+
+States
+
+
+
+
+
+Empty: Friendly empty state + CTA button.
+
+
+
+Loading: Skeleton cards.
+
+
+
+Error: Retry + error message.
+
+Backend Behind This Screen
+
+
+
+
+
+Fetches list of digital_twin_spaces the user has access to (via RLS).
+
+
+
+Fetches active digital_twin_processing_jobs.
+
+
+
+Credit balance comes from org feature flags / usage ledger.
+
+Mobile Screen 2: New Capture Setup (3-Step Wizard)
+
+Global Elements
+
+
+
+
+
+Progress indicator at top (Step X of 3)
+
+
+
+Back arrow
+
+
+
+Live credit impact shown where relevant
+
+Step 1 – Project Selection
+
+
+
+
+
+Search bar
+
+
+
+List of accessible Projects
+
+
+
+“Create New Project” floating button at bottom
+
+
+
+Selected item has green border
+
+Step 2 – Capture Type
+
+
+
+
+
+Three large selectable cards:
+
+
+
+
+
+Phone Walk
+
+
+
+Add to Existing Space (shows list of existing spaces if chosen)
+
+
+
+New Mixed Capture
+
+
+
+Each card shows estimated credit range and description of mixed workflow.
+
+Step 3 – Capture Settings
+
+
+
+
+
+Editable Space Title field (smart default)
+
+
+
+Segmented control: Preview | Production
+
+
+
+Live estimator box showing credits, storage, and estimated time
+
+
+
+Toggle: Notify when complete
+
+
+
+Final button: “Begin Capture”
+
+Backend
+
+
+
+
+
+On “Begin Capture”: Creates digital_twin_space (if new) and digital_twin_capture record with device_class = 'phone', upload_tier, etc.
+
+
+
+Prepares for multipart upload session.
+
+Mobile Screen 3: Capture Screen
+
+Layout
+
+
+
+
+
+Full-screen native camera
+
+
+
+Top overlay bar (space name + tier + credit cost)
+
+
+
+Center tracking overlay (grid + feature points)
+
+
+
+Bottom control bar with large Record/Stop button, Pause, and Cancel
+
+Live Indicators
+
+
+
+
+
+Tracking Quality bar
+
+
+
+Blur warning toast
+
+
+
+Coverage %
+
+
+
+Timer + file size
+
+Buttons
+
+
+
+
+
+Record / Stop (primary, red when active)
+
+
+
+Pause
+
+
+
+Cancel (confirmation sheet)
+
+Backend
+
+
+
+
+
+While recording: Local buffering + quality scoring on device.
+
+
+
+On Stop: Prepares CapturePackage (poses, images, IMU, quality.json) for upload.
+
+Mobile Screen 4: Review & Upload
+
+Layout
+
+
+
+
+
+Header
+
+
+
+Horizontal filmstrip + video preview
+
+
+
+Quality breakdown (4 cards)
+
+
+
+Credit & Storage Impact box (prominent)
+
+
+
+Processing Tier confirmation
+
+
+
+Toggle: Process now / Save as Draft
+
+Buttons
+
+
+
+
+
+Retake
+
+
+
+Save as Draft (creates draft digital_twin_capture)
+
+
+
+Upload & Process (primary)
+
+Backend Flow (Critical)
+
+
+
+
+
+Calls /api/twin/upload/init → creates digital_twin_capture_assets + multipart session.
+
+
+
+Browser/mobile performs resumable PUTs to R2.
+
+
+
+Calls /api/twin/upload/complete → bridges to unified_files, calls finalizeTwinCaptureAfterUpload (storage metering + job enqueue).
+
+
+
+enqueueGaussianSplatJob creates digital_twin_processing_jobs row and triggers twin.gaussian_splat via Trigger.dev.
+
+Mobile Screen 5: Processing Status
+
+Layout
+
+
+
+
+
+Large centered status + icon
+
+
+
+Progress bar
+
+
+
+Step description
+
+
+
+Credit deduction notice
+
+
+
+Estimated time
+
+Buttons
+
+
+
+
+
+View Model (when Ready)
+
+
+
+Back to Home
+
+
+
+View in Background
+
+Backend
+
+
+
+
+
+Listens to realtime updates on digital_twin_processing_jobs and digital_twin_captures.
+
+
+
+When status becomes ready, published_model_id is set.
+
+Mobile Screen 6: Model Viewer (Light)
+
+Layout
+
+
+
+
+
+Full-screen 3D viewer
+
+
+
+Top floating header (name + Share)
+
+
+
+Bottom floating toolbar (Pin, Measure, Layers, More)
+
+Features
+
+
+
+
+
+Basic 3D navigation
+
+
+
+Tap-to-pin + comment
+
+
+
+Simple two-tap measurement
+
+
+
+“Open on Desktop” link
+
+Backend
+
+
+
+
+
+Loads presigned URL from digital_twin_models.
+
+
+
+Pins/comments write to digital_twin_pins / digital_twin_pin_comments (realtime).
+
+DESKTOP – Digital Twin Section (From Sidebar)
+
+When user clicks Digital Twin in the left sidebar of the dashboard, they enter this dedicated section. The header stays the same as the current dashboard. Sidebar navigation appears under “Digital Twin”.
+
+Sidebar Navigation (under Digital Twin)
+
+
+
+
+
+Overview
+
+
+
+My Spaces
+
+
+
+Processing Queue
+
+
+
+Shared Links
+
+
+
+Studio Toolkit (Pro only, grayed for Basic)
+
+
+
+Billing & Credits
+
+Desktop Page 1: Overview
+
+Layout
+
+
+
+
+
+Top bar with “+ New Space” button
+
+
+
+Hero card (most active space)
+
+
+
+4 stat cards
+
+
+
+Two-column: Recent Spaces grid + Processing Queue + Activity feed
+
+Buttons
+
+
+
+
+
+New Space → My Spaces or direct creation flow
+
+
+
+Quick actions on hero card
+
+
+
+Space cards → Space Detail
+
+Backend
+
+
+
+
+
+Aggregates data from digital_twin_spaces, digital_twin_processing_jobs, and usage events.
+
+Desktop Page 2: My Spaces
+
+Layout
+
+
+
+
+
+Search + Filters + “+ New Space”
+
+
+
+Responsive grid (or table) of SpaceCard components
+
+
+
+Each card: Thumbnail, name, status, storage bar, credits used, last updated, quick actions on hover
+
+Backend
+
+
+
+
+
+Fetches list with proper RLS (user_can_access_project).
+
+Desktop Page 3: Space Detail (Main Workstation) – Most Detailed
+
+Overall Layout
+
+
+
+
+
+Sticky top bar: Name | Status | Credit impact | Buttons (Share, Embed, Upload More Data, Export PDF)
+
+
+
+Large central 3D Viewer
+
+
+
+Right sidebar (collapsible, ~340px): Tabbed panels
+
+
+
+Floating toolbar above viewer
+
+3D Viewer
+
+
+
+
+
+Full canvas with orbit/pan/zoom
+
+
+
+Top floating toolbar: Pins | Measure | Clip | Layers | Walk Mode | Fullscreen
+
+
+
+Right-click context menu
+
+Right Sidebar Tabs
+
+Tab 1: Processing Status
+
+
+
+
+
+Current job details + progress
+
+
+
+Controls to re-process with different tier
+
+Tab 2: Assets
+
+
+
+
+
+Grouped list (Phone / Drone / 360 / Other)
+
+
+
+Upload More Data button (opens file picker)
+
+
+
+
+
+After selection: Modal showing credit cost + choice “New Version” or “Incremental Update”
+
+
+
+Clear note if space already has phone data
+
+Tab 3: Pins & Comments
+
+
+
+
+
+Threaded list + real-time updates
+
+
+
+Ability to add from list or viewer
+
+Tab 4: Activity
+
+Key Backend Behind Major Buttons
+
+
+
+
+
+Upload More Data: Calls the same multipart upload flow (/api/twin/upload/init → complete). Creates new digital_twin_capture_assets linked to the existing digital_twin_space. Triggers new or incremental job.
+
+
+
+Create Share Link: Creates digital_twin_share_tokens row + calls atomic claim function on view.
+
+
+
+Export Punch List PDF: Backend aggregates pins, comments, measurements, and assets → generates PDF via Trigger.dev or worker.
+
+
+
+Re-process: Creates new digital_twin_processing_jobs row with chosen tier.
+
+Studio Toolkit Drawer (Pro)
+
+
+
+
+
+Slides from right
+
+
+
+Sun/Shadow controls (updates viewer in real time via WebGL)
+
+
+
+BIM Alignment sliders (live transform on GLB overlay if present)
+
+
+
+One-click Punch List PDF generator
+
+
+
+Quick QR for mobile upload to this space
+
+
+
+Credit & storage summary + Top Up button
+
+Desktop Page 4: Processing Queue
+
+Layout
+
+
+
+
+
+Table with columns: Space | Type | Status | Progress | Credits | Started | Actions
+
+
+
+Row click → opens Space Detail
+
+
+
+Cancel / Retry buttons (contextual)
+
+Backend
+
+
+
+
+
+Queries digital_twin_processing_jobs with proper filters and RLS.
+
+
+
+Cancel calls update on the job row (with permission check).
+
+Desktop Page 5: Shared Links
+
+Layout
+
+
+
+
+
+“Create New Link” button
+
+
+
+Table: Name | Space | Role | Views | Expires | Status
+
+
+
+Row actions: Copy, Edit, Revoke
+
+Create Link Modal
+
+
+
+
+
+Fields for name, permission level, expiry, password, branding (logo upload for Pro)
+
+
+
+Backend: Creates digital_twin_share_tokens + optional branding snapshot.
+
+Desktop Page 6: Billing & Credits
+
+Layout
+
+
+
+
+
+Current balance + usage chart
+
+
+
+Subscription tier badge (Basic/Pro)
+
+
+
+Credit history table
+
+
+
+“Buy More Credits” section with the four top-up packages ($19 / $39 / $69 / $119)
+
+
+
+Link to manage subscription
+
+Backend
+
+
+
+
+
+Fetches from digital_twin_usage_events and org subscription data.
+
+
+
+Top-up buttons call Stripe one-time payment flow.
+
+Ready-to-Use Prompts for Grok Build
+
+You can copy these directly.
+
+Prompt 1 – Mobile Digital Twin Home Screen
+
+text
+
+Build the Digital Twin Home screen inside the existing Slate360 mobile app shell. Match the visual style from the provided screenshot. Include a tappable CreditPill in the header, a large New Capture hero card, horizontal Recent Spaces list, conditional Processing Queue, and Quick Stats row. Support empty, loading, and error states. Credit pill should open a top-up modal.
+
+Prompt 2 – Mobile Capture Flow (All 3 Steps + Capture + Review)
+
+text
+
+Build the full New Capture Setup wizard (3 steps), Capture Screen with live quality indicators, and Review & Upload screen. Use the existing Slate360 dark glass style. Include live credit cost estimators. On Upload & Process, simulate or call the multipart upload flow and show Processing Status screen with realtime progress.
+
+Prompt 3 – Desktop Space Detail Workstation
+
+text
+
+Build the main Space Detail page for Digital Twin on desktop. Large central 3D viewer, right sidebar with 4 tabs (Processing Status, Assets, Pins & Comments, Activity), top action bar, floating toolbar, and slide-out Studio Toolkit drawer for Pro users. Support Upload More Data flow for mixed phone + drone/360 captures with credit preview and version choice. Match Dashboard V3 dark glass aesthetic.
+
+Would you like me to generate the remaining individual prompts for Overview, My Spaces, Processing Queue, Shared Links, and the Credit Top-Up modal right now, or is the above set sufficient to start building with Grok Build?
+
+
+
+COMPLETE, MAXIMUM-DETAIL SPECIFICATION Digital Twin – Mobile App + Desktop Workstation (Everything from tapping the Digital Twin button onward – one single document)
+
+This is the full, expanded version you asked for. It includes every screen, every button, every nav element, layout hierarchy, components, states, interactions, data, backend processing, mixed capture workflow, credit integration, and ready-to-paste prompts for Grok Build.
+
+1. Fact-Finding Prompt – Credit Purchasing System
+
+text
+
+Role: Senior Backend Engineer
+
+We need a complete understanding of the current credit purchasing and top-up system so the Digital Twin UI can be wired correctly.
+
+Please answer in detail:
+
+1. Does the platform support one-time credit top-ups (buying extra credits without changing subscription tier)?
+2. Where is the user’s current credit balance displayed in the mobile app and on the desktop dashboard today?
+3. Is there already a Stripe flow for one-time credit purchases?
+4. How are credit balances and usage tracked (organization level vs user level)?
+5. Are there existing components, routes, or modals for “Buy Credits” / “Top Up”?
+6. What happens when a user has insufficient credits during upload or job creation? Is there an upsell prompt?
+7. How does the new Digital Twin entitlement system connect to credit checks?
+
+Give a clear summary of what exists and what still needs to be built for Digital Twin credit top-ups on both mobile and desktop.
+
+2. Locked Pricing + Credit Top-Ups (Reference)
+
+Site Walk
+
+
+
+
+
+Basic: $49/mo – 10 GB, 50 credits
+
+
+
+Pro: $89/mo – 100 GB, 200 credits + collaborators + full PM tools
+
+Digital Twin
+
+
+
+
+
+Basic: $79/mo – 25 GB, 100 credits, 1 published twin/month
+
+
+
+Pro: $149/mo – 100 GB, 400 credits, unlimited twins, desktop tools, embed, branding
+
+Bundles
+
+
+
+
+
+Monthly: $119
+
+
+
+Annual: $1,190
+
+Credit Top-Ups (available on phone and desktop)
+
+
+
+
+
+100 credits → $19
+
+
+
+250 credits → $39
+
+
+
+500 credits → $69
+
+
+
+1,000 credits → $119
+
+3. MOBILE – Digital Twin Flow (Inside Slate360 App Shell)
+
+Entry Point: User taps the Digital Twin tile in the “Your Apps” section (green active border as shown in your screenshot). The flow launches while keeping the exact same header style (logo + icons) and bottom navigation pattern as Site Walk.
+
+Mobile Screen 1: Digital Twin Home
+
+Layout Hierarchy (Top → Bottom)
+
+
+
+
+
+Fixed Header (identical to screenshot): Slate360 logo (green S) + “Digital Twin” text + right-side icons (QR, Bug, Notifications with red dot, Profile avatar). Added: CreditPill next to profile (dark glass pill showing “248 Credits” in amber text). Tapping it opens CreditTopUpModal.
+
+
+
+Hero / Primary Action Card (full-width, rounded-3xl, ~120px height, subtle glass effect)
+
+
+
+
+
+Large centered “+ New Capture” button (solid amber/green background, white text, camera icon, large tap target ~56px height)
+
+
+
+Subtle subtitle: “Start a new 3D reality model”
+
+
+
+Recent Spaces Section
+
+
+
+
+
+Header row: “Recent Spaces” (semibold) + “See all” (right, tappable, smaller text with chevron)
+
+
+
+Horizontal scrollable list of SpaceCard components (~170px wide each)
+
+
+
+
+
+Each card: Small thumbnail (left), Space name (bold), Status badge (colored pill: Ready / Processing / Draft), Last updated, tiny credit usage indicator
+
+
+
+Processing Queue Section (only shown if active jobs exist)
+
+
+
+
+
+Header: “Processing Queue”
+
+
+
+Compact vertical list of ProcessingJobRow components (space name + progress bar + time remaining)
+
+
+
+Quick Stats Row
+
+
+
+
+
+4 equal-width small cards: Total Spaces | Storage Used | Credits Remaining | Active Jobs
+
+Buttons & Interactions
+
+
+
+
+
+CreditPill tap → CreditTopUpModal (fetches current balance + available packages from backend)
+
+
+
++ New Capture → New Capture Setup flow (Step 1)
+
+
+
+Any SpaceCard tap → Space Detail screen
+
+
+
+ProcessingJobRow tap → Processing Status screen
+
+
+
+Pull-to-refresh supported on the whole screen
+
+States
+
+
+
+
+
+Empty: Centered illustration + “No spaces yet” message + large “Start your first capture” button
+
+
+
+Loading: Skeleton versions of hero card, space cards, and stats
+
+
+
+Error: Retry button + error message
+
+Backend Processing
+
+
+
+
+
+Fetches digital_twin_spaces the user/org has access to (via RLS + user_can_access_project)
+
+
+
+Fetches active digital_twin_processing_jobs with realtime subscription
+
+
+
+Credit balance comes from org usage ledger / feature flags
+
+Mobile Screen 2: New Capture Setup (3-Step Wizard)
+
+Global Elements
+
+
+
+
+
+Top progress bar (“Step 1 of 3”) + back arrow
+
+
+
+Smooth horizontal slide transitions
+
+
+
+Live credit impact shown on relevant steps
+
+Step 1 – Project Selection
+
+
+
+
+
+Search bar at top
+
+
+
+Scrollable list of Project rows/cards the user can access
+
+
+
+Each row: Project name + number of existing spaces + small chevron
+
+
+
+Bottom floating button: “Create New Project”
+
+
+
+Selected project has green/amber border + checkmark
+
+Step 2 – Capture Type
+
+
+
+
+
+Three large vertically stacked selectable cards (good thumb spacing, ~90px height each):
+
+
+
+
+
+Phone Walk – Icon + title + description (“Capture interior with your phone”) + estimated credit range
+
+
+
+Add to Existing Space – Same + note “You can add drone or 360 data later”
+
+
+
+New Mixed Capture – Same + note explaining future additions
+
+
+
+Selected card gets green/amber border and slight elevation
+
+Step 3 – Capture Settings
+
+
+
+
+
+Text field: Space Title (pre-filled smart default based on project + date, fully editable)
+
+
+
+Segmented control: Preview | Production (with clear labels and credit difference)
+
+
+
+Prominent live estimator box (amber border, dark glass):
+
+
+
+
+
+“Estimated credits: XX”
+
+
+
+“Estimated storage: XX GB”
+
+
+
+“Estimated processing time: ~XX min”
+
+
+
+Toggle row: “Notify me when processing is complete” (switch)
+
+
+
+Final primary button (full-width, large): “Begin Capture”
+
+Backend
+
+
+
+
+
+On final button: Creates digital_twin_space (if new) and digital_twin_capture record (device_class = 'phone', upload_tier, capture_status = 'draft')
+
+
+
+Prepares multipart upload session metadata
+
+Mobile Screen 3: Capture Screen
+
+Layout
+
+
+
+
+
+True full-screen native camera preview
+
+
+
+Top overlay bar (semi-transparent dark glass, ~48px safe-area aware):
+
+
+
+
+
+Left: Truncated space name + small Processing tier badge
+
+
+
+Right: Live credit cost estimate
+
+
+
+Center overlays:
+
+
+
+
+
+Subtle tracking grid + green feature points (when tracking quality is good)
+
+
+
+Tracking Quality bar (top-left, color-coded green/yellow/red)
+
+
+
+Coverage percentage (bottom-center, large readable text)
+
+
+
+Bottom control bar (dark glass, safe-area aware):
+
+
+
+
+
+Left: Circular Pause button
+
+
+
+Center: Large prominent Record/Stop button (red when idle, changes to square stop when recording, with pulse animation)
+
+
+
+Right: Cancel button (smaller, opens confirmation sheet)
+
+Live Feedback
+
+
+
+
+
+Blur Warning toast appears from bottom when quality drops
+
+
+
+“Move slowly and steadily” helper text fades in/out
+
+
+
+Live timer + file size estimate (updates every second)
+
+States
+
+
+
+
+
+Pre-recording: Helper text visible
+
+
+
+Recording: Red pulsing ring + live metrics
+
+
+
+Paused: Yellow state with resume button
+
+
+
+Post-stop: Auto-transition to Review screen with smooth animation
+
+Backend
+
+
+
+
+
+Local on-device buffering + quality scoring while recording
+
+
+
+On Stop: Prepares structured CapturePackage (poses.json, images, IMU, quality.json) ready for upload
+
+Mobile Screen 4: Review & Upload
+
+Layout
+
+
+
+
+
+Header: “Review Your Capture”
+
+
+
+Scrollable main content:
+
+
+
+
+
+Horizontal filmstrip of key frames + tappable video player preview
+
+
+
+Below: Quality breakdown section (4 small cards in 2x2 grid: Tracking, Blur, Coverage, Lighting) with scores and color indicators
+
+
+
+Prominent Credit & Storage Impact card (amber border, shows exact deduction)
+
+
+
+Processing Tier confirmation row (still changeable)
+
+
+
+Toggle: “Process now” vs “Save as Draft”
+
+Buttons
+
+
+
+
+
+Retake (secondary, left side)
+
+
+
+Save as Draft (secondary)
+
+
+
+Primary full-width button: Upload & Process (loading state shows progress bar + “Uploading… XX%”)
+
+Special Behavior
+
+
+
+
+
+If “Add to Existing Space” was chosen earlier, show confirmation text with target space name
+
+
+
+Low-credit warning banner appears if remaining credits are insufficient for the chosen tier
+
+Backend Flow (Full Chain)
+
+
+
+
+
+Calls /api/twin/upload/init → creates digital_twin_capture_assets + multipart session in digital_twin_multipart_uploads
+
+
+
+Mobile performs resumable PUT uploads directly to R2 (using presigned URLs)
+
+
+
+On completion: Calls /api/twin/upload/complete → bridges to unified_files (source = 'digital_twin'), calls finalizeTwinCaptureAfterUpload (storage metering + status update)
+
+
+
+enqueueGaussianSplatJob creates digital_twin_processing_jobs row (status = queued) and dispatches twin.gaussian_splat via Trigger.dev
+
+
+
+Realtime updates pushed to client via Supabase
+
+Mobile Screen 5: Processing Status
+
+Layout
+
+
+
+
+
+Large centered status icon + big status text
+
+
+
+Progress bar with percentage
+
+
+
+Step-by-step description (“Analyzing frames…”, “Generating 3D model…”, “Optimizing…”, etc.)
+
+
+
+Credit deduction notice
+
+
+
+Estimated time remaining
+
+Buttons
+
+
+
+
+
+View Model (only enabled when status = Ready – becomes prominent green button)
+
+
+
+Back to Home
+
+
+
+View in Background (minimizes to persistent bar at bottom)
+
+States
+
+
+
+
+
+Uploading → Queued → Processing → Ready (green check + “View Model” appears)
+
+
+
+Failed: Red error state + error message + Retry button + “Contact Support” link
+
+Backend
+
+
+
+
+
+Client subscribes to realtime changes on digital_twin_processing_jobs and digital_twin_captures
+
+
+
+When job completes, published_model_id is populated on the space
+
+Mobile Screen 6: Model Viewer (Light Mobile Version)
+
+Layout
+
+
+
+
+
+Full-screen 3D viewer canvas
+
+
+
+Top floating header bar (dark glass): Space name (left) + Share button (right)
+
+
+
+Bottom floating toolbar (dark glass, safe area):
+
+
+
+
+
+Pin / Comment icon button
+
+
+
+Measure icon button
+
+
+
+Layers icon button
+
+
+
+More (⋯) → opens action sheet
+
+Interactions
+
+
+
+
+
+Standard 3D navigation (orbit, pinch zoom, double-tap reset)
+
+
+
+Tap on model → drops pin + opens bottom sheet for comment input
+
+
+
+Two-tap measurement flow with live distance overlay
+
+Buttons & Flows
+
+
+
+
+
+Share Link → opens share options bottom sheet
+
+
+
+Add Comment / Pin
+
+
+
+Measure
+
+
+
+“Open on Desktop” (appears if active web session detected)
+
+Backend
+
+
+
+
+
+Loads presigned URL from digital_twin_models.storage_key
+
+
+
+Pin creation writes to digital_twin_pins + digital_twin_pin_comments (realtime synced)
+
+DESKTOP – Digital Twin Section (From Sidebar)
+
+When the user clicks Digital Twin in the left sidebar of the main dashboard, they enter a dedicated section. The top header remains consistent with the current dashboard. A secondary sidebar appears under “Digital Twin”.
+
+Sidebar Navigation (under Digital Twin)
+
+
+
+
+
+Overview
+
+
+
+My Spaces
+
+
+
+Processing Queue
+
+
+
+Shared Links
+
+
+
+Studio Toolkit (Pro only – grayed out for Basic users)
+
+
+
+Billing & Credits
+
+Desktop Page 1: Overview
+
+Layout
+
+
+
+
+
+Top header bar with page title + large “+ New Space” button (amber)
+
+
+
+Hero card (large, prominent): Shows most active/recent space with quick action buttons
+
+
+
+Stats row: 4 metric cards (Total Spaces | Storage Used | Credits Remaining | Active Jobs)
+
+
+
+Two-column grid below:
+
+
+
+
+
+Left (wider): Recent Spaces grid
+
+
+
+Right: Processing Queue list + Recent Activity feed
+
+Buttons
+
+
+
+
+
++ New Space → My Spaces or quick creation
+
+
+
+Quick action buttons on hero card (View, Share, Upload More Data)
+
+
+
+Any space card → opens Space Detail
+
+Backend
+
+
+
+
+
+Aggregates data from digital_twin_spaces, digital_twin_processing_jobs, and digital_twin_usage_events
+
+Desktop Page 2: My Spaces
+
+Layout
+
+
+
+
+
+Top bar: Search input + Filter chips (All / Mine / Shared / Processing) + “+ New Space” button
+
+
+
+Main content: Responsive grid of SpaceCard components (switchable to table view)
+
+
+
+Each card: Thumbnail, Name, Status badge, Storage progress bar, Credits used this month, Last updated, quick action buttons on hover
+
+Card Hover State
+
+
+
+
+
+Reveals quick buttons: Share, Upload More Data, ⋯ menu (Edit, Archive, Delete)
+
+Backend
+
+
+
+
+
+Fetches list with RLS (user_can_access_project)
+
+Desktop Page 3: Space Detail (Main Workstation) – Core Screen
+
+Overall Layout
+
+
+
+
+
+Sticky Top Bar: Space name (editable) | Status badge | Credit impact | Action buttons (Share, Embed, Upload More Data, Export Punch List PDF)
+
+
+
+Main Area: Large central 3D Viewer
+
+
+
+Right Sidebar (fixed ~340px, collapsible): Tabbed panels
+
+
+
+Floating Toolbar (above viewer): Pins | Measure | Clip Planes | Layers | Walk Mode | Fullscreen
+
+3D Viewer
+
+
+
+
+
+Full canvas with orbit/pan/zoom
+
+
+
+Top floating toolbar with tools
+
+
+
+Right-click context menu inside viewer (Add Pin, Measure from here, etc.)
+
+Right Sidebar – Detailed Tabs
+
+Tab 1: Processing Status
+
+
+
+
+
+Current job status, progress, step log
+
+
+
+Controls: Re-process with different tier, Cancel (if queued)
+
+Tab 2: Assets
+
+
+
+
+
+Grouped list (Phone Captures / Drone / 360 / Other)
+
+
+
+Each item shows filename, size, upload date, status
+
+
+
+Big primary button at top: Upload More Data
+
+
+
+
+
+Opens file picker (multi-select)
+
+
+
+Confirmation modal shows credit cost + choice: “Create New Version” or “Incremental Update”
+
+
+
+Clear messaging if space already contains phone data: “This space already has phone capture data. Adding drone/360 will improve overall model quality.”
+
+Tab 3: Pins & Comments
+
+
+
+
+
+Threaded list with real-time updates
+
+
+
+Ability to add new pin/comment from list or directly from viewer (highlight syncs both ways)
+
+Tab 4: Activity Log
+
+
+
+
+
+Chronological list of all actions
+
+Key Backend Behind Major Buttons
+
+
+
+
+
+Upload More Data: Same multipart flow (/api/twin/upload/init → complete). Creates new digital_twin_capture_assets linked to existing digital_twin_space. Triggers new or incremental digital_twin_processing_jobs.
+
+
+
+Create Share Link: Opens modal → creates digital_twin_share_tokens + optional branding snapshot. Uses atomic claim_digital_twin_share_view on access.
+
+
+
+Export Punch List PDF: Backend aggregates pins, comments, measurements, and assets → generates PDF via worker and returns download link.
+
+
+
+Re-process: Creates new digital_twin_processing_jobs row with chosen tier and dispatches Trigger task.
+
+Studio Toolkit Drawer (Pro Users)
+
+
+
+
+
+Slides in from right
+
+
+
+Sections:
+
+
+
+
+
+Sun / Shadow Study (timeline slider + date picker + live WebGL update in viewer)
+
+
+
+BIM Alignment (X/Y/Z sliders + Scale + Rotation + Opacity + live GLB overlay)
+
+
+
+One-Click Punch List PDF generator (with include/exclude options)
+
+
+
+Quick QR Code (for mobile upload directly to this space)
+
+
+
+AEC Unit Converter
+
+
+
+Current space storage & credit usage summary + “Top Up Credits” button
+
+Desktop Page 4: Processing Queue
+
+Layout
+
+
+
+
+
+Clean table with columns: Space | Job Type | Status | Progress | Credits | Started | Actions
+
+
+
+Row click → opens related Space Detail
+
+
+
+Contextual action buttons: Cancel (queued only), Retry (failed only)
+
+Backend
+
+
+
+
+
+Queries digital_twin_processing_jobs with RLS and proper filters
+
+
+
+Cancel/Retry updates job row with permission checks
+
+Desktop Page 5: Shared Links
+
+Layout
+
+
+
+
+
+Top: “Create New Link” button + search/filter
+
+
+
+Table: Name | Space | Role (View / Annotate / Download) | Views | Expires | Status
+
+
+
+Row actions: Copy Link, Edit, Revoke
+
+Create New Link Modal
+
+
+
+
+
+Fields: Link name, Permission level, Expiry date, Password (optional), Branding options (logo upload – Pro)
+
+
+
+Backend: Creates digital_twin_share_tokens row + optional branding snapshot in JSONB
+
+Desktop Page 6: Billing & Credits
+
+Layout
+
+
+
+
+
+Current balance + monthly usage chart
+
+
+
+Current subscription tier badge (Basic/Pro)
+
+
+
+Credit history table (date, type, amount, space)
+
+
+
+“Buy More Credits” section with the four top-up packages clearly displayed
+
+
+
+Link to manage full subscription
+
+Backend
+
+
+
+
+
+Fetches from digital_twin_usage_events and org subscription data
+
+
+
+Top-up buttons initiate Stripe one-time PaymentIntent flow
+
+Ready-to-Use Prompts for Grok Build
+
+Prompt – Mobile Digital Twin Home + Capture Flow
+
+text
+
+Build the full Mobile Digital Twin flow inside the existing Slate360 app shell (match the visual style from the provided screenshot). Include: tappable CreditPill in header, Digital Twin Home screen with hero card and Recent Spaces, 3-step New Capture Setup wizard, full Capture Screen with live quality indicators, Review & Upload screen, and Processing Status screen. Support empty/loading/error states. On Upload & Process, integrate with the multipart upload flow and show realtime progress. All credit-impacting actions must show live cost previews.
+
+Prompt – Desktop Space Detail Workstation (Core Screen)
+
+text
+
+Build the main Space Detail workstation page for Digital Twin on desktop. Large central 3D viewer with floating toolbar, right sidebar with 4 tabs (Processing Status, Assets, Pins & Comments, Activity), sticky top action bar, and slide-out Studio Toolkit drawer for Pro users. Implement the Upload More Data flow with credit preview and version choice (New Version vs Incremental). Support mixed phone + drone/360 capture messaging. Match Dashboard V3 dark glass aesthetic. Include realtime updates for jobs and pins.
+
+Prompt – Desktop Overview + My Spaces + Processing Queue + Shared Links
+
+text
+
+Build the Overview, My Spaces, Processing Queue, and Shared Links pages for the Digital Twin desktop section. Use consistent dark glass cards, responsive grid/table views, and the same sidebar navigation. Include search, filters, hover quick actions, and modals for Create New Link and Credit Top-Up. All data fetching should respect existing RLS patterns.
+
+Prompt – Credit Top-Up Modal (Mobile + Desktop)
+
+text
+
+Build a reusable Credit Top-Up modal that works on both mobile and desktop. Show current balance, four purchase packages ($19/$39/$69/$119), and integrate with Stripe one-time payment flow. Show loading and success states. Match the existing Slate360 dark glass style.
+
+This is the complete, detailed specification in one place. You now have everything needed to create precise prompts for Grok Build or Cursor.
+
+✅ COMPLETE, MAXIMUM-GRANULAR SPECIFICATION
+Digital Twin System – Full UI + Workflow + Prompts for Grok Build
+This is one comprehensive document with everything you requested. It includes:
+
+High-level explanations of the entire process, workflow, mobile vs desktop differences, deliverables lifecycle, creation, processing, tracking, sharing, editing, and leveraging.
+Extremely granular, production-ready prompts for Grok Build (broken down by screen/flow with layout, components, interactions, states, data, backend calls, and consistency rules).
+Feature lists per screen.
+Backend processing behind every major button and upload.
+Mixed capture workflow (phone first → add drone/360 later).
+Credit integration on every relevant screen.
+Consistency with your existing Slate360 app shell (from the screenshot).
+
+You can copy sections directly into Grok Build.
+
+Part 1: High-Level System Overview (For Context When Prompting Grok Build)
+Core Philosophy
+
+Mobile App = Lightweight data collector (fast, reliable capture on phone, minimal processing on device).
+Desktop = Heavy workstation (full editing, collaboration, advanced tools, sharing/embedding).
+Users can start on phone and continue/add data on desktop without losing work.
+Everything ties into the existing Slate360 platform (unified_files, R2, entitlements, realtime, Stripe).
+
+End-to-End Workflow (High Level)
+
+Creation (Mobile or Desktop)
+Mobile: User walks a space with phone → records video/photos with quality scoring → reviews → uploads.
+Desktop: User can upload drone footage, 360 images, .PLY, or add to an existing space created on phone.
+
+Processing
+Upload goes through multipart resumable flow to R2.
+Backend creates digital_twin_capture + assets → enqueues digital_twin_processing_jobs.
+Trigger.dev runs twin.gaussian_splat (currently placeholder, will become real 3DGS + LiDAR fusion later).
+Output: Published .spz model (or preview) stored in R2, linked via digital_twin_models.
+
+Tracking & Delivery to User
+Realtime updates on job status (queued → processing → ready).
+User sees progress on mobile Processing Status screen or desktop Processing Queue / Space Detail.
+When ready, published_model_id is set and model becomes viewable.
+
+Deliverables User Gets
+Interactive 3D model (Gaussian splat)
+Pins, threaded comments, measurements
+Branded shareable links (view / annotate / download)
+Embed codes (for websites)
+Punch List PDF export
+Future: Sun study, BIM alignment overlays, etc.
+
+Sharing & Leveraging
+Create share tokens with roles, expiry, password, branding (logo for Pro).
+Public viewer at /share/twin/[token] (atomic view counting).
+Embed code for external websites (Pro feature).
+Users (especially Pro) can create twins for clients and embed/brand them.
+
+Editing & Iteration
+Mobile: Basic pins/comments on light viewer.
+Desktop: Full workstation — add more data (Upload More Data), re-process with different tier, align BIM, run sun studies, export PDFs, manage pins/comments in bulk.
+Mixed workflow: Phone capture first → later add drone/360 on desktop → choose incremental update or new version (credits charged accordingly).
+
+
+Mobile vs Desktop Split (Clear Difference)
+
+Mobile: Capture-focused, fast, one-handed friendly, simple viewer. Goal = get data into the cloud quickly with good quality scoring.
+Desktop: Full power — heavy editing, collaboration, advanced tools (Studio Toolkit), sharing/embedding, credit management, multi-asset workflows. This is where most value and monetization happens.
+
+Credit System Integration
+
+Credits are shown everywhere (header pill on mobile, prominent displays on desktop).
+Every upload/processing action shows live cost preview.
+Top-up available directly in app and dashboard (one-time Stripe purchases).
+Low-credit warnings appear before expensive actions.
+Pro tier gets more monthly credits + priority.
+
+
+Part 2: Granular Prompts for Grok Build
+Copy these directly. They are written at maximum detail level.
+Prompt 1: Mobile Digital Twin Home Screen (After Tapping Digital Twin Tile)
+textBuild the Digital Twin Home screen that appears after the user taps the Digital Twin tile in the Slate360 mobile app launcher (match the exact visual style from the provided screenshot: dark theme, green active borders, rounded cards, header with logo + icons).
+
+Requirements:
+- Keep the exact same header as the screenshot (Slate360 logo + "Digital Twin" text + right-side icons: QR, Bug, Notifications with red dot, Profile avatar).
+- Add a tappable CreditPill next to the profile icon showing remaining credits (e.g. "248 Credits") in amber text. Tapping it must open a Credit Top-Up modal.
+- Large hero card with prominent "+ New Capture" button (solid amber/green background, white text, camera icon).
+- Section "Recent Spaces" with horizontal scrollable list of SpaceCard components (thumbnail + name + status badge + last updated + small credit usage).
+- Conditional "Processing Queue" section (only if active jobs exist) with compact job rows showing progress.
+- Bottom Quick Stats row with 4 small cards: Total Spaces | Storage Used | Credits Remaining | Active Jobs.
+- Support empty state (friendly message + big CTA), loading (skeletons), and error states (retry button).
+- All credit-impacting elements must show live cost awareness.
+- Pull-to-refresh supported.
+- Tapping any SpaceCard navigates to Space Detail screen.
+- Tapping a job row navigates to Processing Status screen.
+
+Use the same bottom navigation pattern as Site Walk. Make it feel lightweight and fast.
+Prompt 2: Full Mobile New Capture Setup + Capture + Review + Processing Status Flow
+textBuild the complete mobile capture flow for Digital Twin inside the Slate360 app shell.
+
+Include these connected screens with smooth transitions:
+
+1. New Capture Setup (3-step wizard with top progress bar "Step X of 3"):
+   - Step 1: Project Selection (search + list of projects + "Create New Project" floating button). Selected project has green/amber border.
+   - Step 2: Capture Type (3 large vertically stacked cards: Phone Walk, Add to Existing Space, New Mixed Capture). Each shows description and credit estimate. Selected card has border + elevation. Clearly explain mixed workflow.
+   - Step 3: Capture Settings (editable Space Title, Preview vs Production segmented control, live estimator box showing credits/storage/time, "Notify when complete" toggle). Final button "Begin Capture".
+
+2. Capture Screen: Full-screen native camera with top overlay (space name + tier + credit cost), center tracking grid + feature points, live indicators (Tracking Quality bar, Coverage %, Blur warning toast), bottom control bar with large red Record/Stop button (with pulse), Pause, and Cancel (confirmation sheet). Helper text "Move slowly and steadily".
+
+3. Review & Upload: Horizontal filmstrip + video preview, quality breakdown cards (Tracking/Blur/Coverage/Lighting), prominent Credit & Storage Impact box, tier confirmation, Process now vs Save as Draft toggle. Primary button "Upload & Process" with loading progress. Show warning if low credits. If "Add to Existing Space", confirm target space name.
+
+4. Processing Status: Large centered status + icon, progress bar, step descriptions ("Analyzing frames…", "Generating model…"), credit deduction, estimated time. Button "View Model" only when Ready. "View in Background" option. Failed state with Retry.
+
+All screens must show live credit impact. On "Upload & Process" simulate or integrate the real multipart flow (init → complete → job enqueue) and transition to Processing Status with realtime updates. Match dark glass style from screenshot. Make it thumb-friendly with large tap targets.
+Prompt 3: Desktop Space Detail Workstation (Most Important Screen)
+textBuild the main Space Detail workstation page for the Digital Twin desktop section (accessed by clicking Digital Twin in the main dashboard sidebar).
+
+Use Dashboard V3 dark glass aesthetic (consistent with other desktop pages).
+
+Layout:
+- Sticky top bar: Editable space name | Status badge | Credit impact summary | Action buttons row (Share, Embed, Upload More Data, Export Punch List PDF).
+- Large central 3D Viewer canvas (takes majority of space) with orbit/pan/zoom.
+- Floating toolbar above viewer: Pins | Measure | Clip Planes | Layers | Walk Mode | Fullscreen.
+- Right sidebar (~340px, collapsible): 4 tabs (Processing Status, Assets, Pins & Comments, Activity).
+- Right-click context menu inside viewer (Add Pin, Measure from here, etc.).
+- Hover sync between pins in sidebar and viewer.
+
+Right Sidebar Details:
+- Processing Status tab: Current job progress, step log, re-process controls with tier choice.
+- Assets tab: Grouped list (Phone / Drone / 360 / Other) + big "Upload More Data" button. After file selection, show confirmation modal with credit cost + choice "New Version" or "Incremental Update". Show clear message if space already has phone data.
+- Pins & Comments tab: Threaded real-time list + ability to add from here or viewer.
+- Activity tab: Chronological log.
+
+Additional:
+- Slide-out Studio Toolkit drawer (triggered by button, Pro only) containing: Sun/Shadow controls (live WebGL update), BIM Alignment sliders (live overlay), Punch List PDF generator, Quick QR code, AEC Unit Converter, storage/credit summary + Top Up button.
+- "Upload More Data" must support mixed capture workflow and show credit preview before upload.
+- All major actions must call or simulate the real backend APIs (multipart upload, job enqueue, share token creation, etc.).
+- Realtime updates for jobs and pins/comments.
+
+Make it feel like a premium workstation while staying consistent with the overall Slate360 desktop style.
+Prompt 4: Desktop Overview + My Spaces + Processing Queue + Shared Links + Billing
+textBuild the following connected desktop pages for the Digital Twin section (accessed via sidebar under Digital Twin). Use consistent Dashboard V3 dark glass style.
+
+1. Overview: Top bar with "+ New Space", hero card for most active space with quick actions, 4 stat cards, two-column layout (Recent Spaces grid + Processing Queue + Activity feed).
+
+2. My Spaces: Search + filters + "+ New Space", responsive grid of SpaceCard components (or table toggle). Each card shows thumbnail, name, status, storage bar, credits used, last updated. Hover reveals quick actions (Share, Upload More Data, menu).
+
+3. Processing Queue: Clean table (Space | Type | Status | Progress | Credits | Started | Actions). Row click opens Space Detail. Contextual Cancel/Retry buttons.
+
+4. Shared Links: "Create New Link" button + table (Name | Space | Role | Views | Expires | Status). Row actions: Copy, Edit, Revoke. Create modal with permission level, expiry, password, branding options (Pro).
+
+5. Billing & Credits: Current balance + usage chart, tier badge, credit history table, clearly displayed top-up packages ($19/$39/$69/$119), link to manage subscription.
+
+All pages must show credit balance prominently. Support empty/loading/error states. Data fetching must respect existing RLS patterns. "Upload More Data" and credit top-up flows must integrate with backend.
+Prompt 5: Credit Top-Up Modal (Reusable for Mobile + Desktop)
+textBuild a reusable Credit Top-Up modal that works on both mobile and desktop inside the Slate360 app.
+
+Show:
+- Current credit balance prominently.
+- Four purchase package cards clearly laid out ($19 for 100 credits, $39 for 250, $69 for 500, $119 for 1,000).
+- "Buy Now" buttons that trigger Stripe one-time payment flow.
+- Loading state during purchase.
+- Success state with updated balance.
+- Low-balance warning context when opened from a credit-impacting action.
+
+Match the dark glass style. Make it feel integrated with the existing billing system.
+
+Part 3: Additional Helpful Details for Grok Build
+Mixed Capture Workflow (Critical to Implement Correctly)
+
+Mobile: User can choose "Add to Existing Space" or "New Mixed Capture".
+Desktop: In Space Detail → Assets tab → "Upload More Data" clearly explains the scenario and offers version choice.
+Backend: New assets are added to the same digital_twin_space. Job creation allows incremental or full re-process. Credits charged based on new data size + tier.
+
+Deliverables Lifecycle (Explain in Comments or Docs)
+
+Created via upload → processed into model → delivered via realtime + viewer.
+Shared via tokens with roles/expiry/branding.
+Edited on desktop (pins, alignment, re-process).
+Leveraged via embed codes (Pro) or client sharing.
+
+States to Implement on Every Screen
+
+Empty, Loading (skeletons), Error (retry), Success, Low-credit warning.
+
+This should give Grok Build everything needed to generate high-quality, consistent code.
+Would you like me to generate even more granular component-level prompts next (e.g., exact structure for SpaceCard, 3DViewerToolbar, or the UploadMoreDataModal with all fields and validation)? Or is this level sufficient to start?
+
+Deep component breakdowns (SpaceCard, 3DViewerToolbar, UploadMoreDataModal)
+Full recipient experience for shared interactive models
+Every major button/feature and what it does
+Navigation, security, password protection, commenting
+Mixed capture workflow
+Backend processing behind actions
+
+
+High-Level Workflow Summary (For Context)
+Mobile App = Fast data collection tool (phone capture → upload → basic viewer).
+Desktop = Full workstation (view, edit, add data, collaborate, share, embed).
+Users can start on phone and continue on desktop.
+Deliverables (interactive 3D models) are created via cloud processing, tracked in realtime, and delivered via viewer links or embeds.
+Recipients get secure, role-based access (view/annotate/download) with optional password and branding.
+
+1. Deep Component Breakdowns
+Component: SpaceCard (Used on Mobile Home, Desktop My Spaces, Overview)
+Visual Layout
+
+Rounded-2xl dark glass card with subtle border.
+Left side: Thumbnail image (aspect-video, shows latest model preview or placeholder).
+Right side content stack:
+Top row: Space name (bold, white) + Status badge (colored pill: Ready = green, Processing = amber, Draft = gray).
+Middle: Small metadata row (Last updated date + Storage used in GB).
+Bottom: Tiny credit usage indicator for the month (e.g., “47 credits used”).
+
+
+Data Displayed
+
+name
+status (from digital_twin_spaces.status)
+last_updated (from updated_at)
+storage_used_gb (calculated from assets)
+thumbnail_url (presigned from latest model or first asset)
+credits_used_this_month (from usage events)
+
+Interactions
+
+Tap/Click anywhere on card → Navigates to Space Detail screen.
+Hover (desktop only) → Reveals quick action buttons: Share, Upload More Data, ⋯ menu.
+Long press (mobile) → Opens context menu with same actions.
+
+States
+
+Normal
+Hover (desktop)
+Selected (green/amber border when in a list with selection)
+Loading (skeleton version)
+Error (red border + retry)
+
+Backend
+
+Data comes from digital_twin_spaces joined with latest digital_twin_models and aggregated usage.
+
+Grok Build Prompt for SpaceCard
+textCreate a reusable SpaceCard component for the Digital Twin section.
+
+Visual style: Dark glass card with rounded-2xl, subtle border, matching the existing Slate360 app screenshot style.
+
+Layout (from left to right):
+- Thumbnail (aspect-video, shows model preview or placeholder)
+- Content stack:
+  - Space name (bold)
+  - Status badge (colored pill: Ready=green, Processing=amber, Draft=gray)
+  - Metadata row: Last updated + Storage used
+  - Small credit usage indicator
+
+Props: space object (name, status, last_updated, storage_used_gb, thumbnail_url, credits_used)
+
+Interactions:
+- Click/tap → navigate to Space Detail
+- Desktop hover → show quick actions (Share, Upload More Data, menu)
+- Long press on mobile → context menu
+
+Support loading skeleton and error states.
+Make it consistent with Site Walk card styles.
+
+Component: 3DViewerToolbar (Desktop Space Detail)
+Layout
+
+Horizontal floating bar above the 3D canvas (dark glass, rounded-xl).
+Buttons from left to right with good spacing:
+Pins (icon + label)
+Measure (icon + label)
+Clip Planes (icon + label)
+Layers (icon + label)
+Walk Mode (icon + label)
+Fullscreen (icon only, right side)
+
+
+What Each Button Does
+
+Pins: Toggles pin mode. Clicking in viewer drops a pin and opens comment input sheet/modal.
+Measure: Enters measurement mode. User clicks two points on the model → shows live distance + saves measurement to digital_twin_measurements table.
+Clip Planes: Opens controls (or activates clipping). Allows creating section cuts through the model (especially useful with BIM overlays).
+Layers: Opens panel to toggle visibility of different asset types (Phone captures, Drone, 360, BIM overlay, Annotations).
+Walk Mode: Switches viewer to first-person/walkthrough navigation (good for interior reviews).
+Fullscreen: Expands viewer to full screen.
+
+Interactions
+
+Active tool gets amber/green highlight.
+Tools that require viewer interaction (Pins, Measure, Clip) change cursor style in the canvas.
+Changes are saved in realtime to the database where applicable.
+
+Grok Build Prompt for 3DViewerToolbar
+textCreate a floating 3DViewerToolbar component for the Digital Twin desktop Space Detail page.
+
+Style: Dark glass horizontal bar with rounded-xl, subtle border, matching Slate360 aesthetic.
+
+Buttons (left to right):
+- Pins (icon + text)
+- Measure (icon + text)
+- Clip Planes (icon + text)
+- Layers (icon + text)
+- Walk Mode (icon + text)
+- Fullscreen (icon only, right-aligned)
+
+Behavior:
+- Clicking a tool activates it and highlights the button.
+- Pins/Measure/Clip should change the viewer cursor and enable specific interactions in the 3D canvas.
+- Layers should open a side panel or dropdown to toggle visibility of different data layers.
+- All changes that affect data (pins, measurements, clips) should save to the backend in realtime where applicable.
+
+Make it responsive and consistent with other toolbar styles in the app.
+
+Component: UploadMoreDataModal (Desktop – Triggered from Assets tab)
+Purpose: Allow users to add more files (drone, 360, .PLY, etc.) to an existing space, supporting the mixed capture workflow.
+Layout (Modal – Centered, dark glass, rounded-3xl)
+
+Header: “Upload More Data to [Space Name]”
+Body sections (scrollable if needed):Section 1: File Selection
+Large drag-and-drop zone or “Choose Files” button.
+Supports multiple files.
+Shows selected files list with name, size, type icon.
+Section 2: Mixed Capture Context (if space already has phone data)
+Info banner: “This space already contains phone capture data. Adding drone or 360 footage will improve model quality.”
+Section 3: Processing Options
+Radio buttons or segmented control:
+Incremental Update (recommended – processes only new data, lower credit cost)
+Create New Version (full re-process of everything, higher credit cost, creates new published model)
+
+Section 4: Credit & Storage Preview
+Live calculated box showing:
+Estimated credits required
+Estimated additional storage
+Current remaining credits (with warning if insufficient)
+“Top Up Credits” link (opens credit modal)
+
+Section 5: Advanced Options (collapsible)
+Processing Tier: Preview vs Production (default = current space tier)
+Notify me when complete (toggle)
+
+Footer buttons:
+Cancel (secondary)
+Upload & Process (primary, disabled until files selected and credits sufficient)
+
+
+Validation Rules
+
+At least one file must be selected.
+File types allowed: video, images, .ply, .glb (with size limits).
+If remaining credits < estimated cost → show warning and disable primary button until user tops up.
+Show clear error if upload fails partway through.
+
+Backend Flow
+
+User selects files → frontend estimates size → shows cost preview.
+On “Upload & Process”:
+Calls /api/twin/upload/init for each file or batch.
+Performs multipart upload to R2.
+On complete: Creates digital_twin_capture_assets linked to the space.
+Calls enqueueGaussianSplatJob with appropriate flags for incremental vs full.
+
+Job status updates in realtime in the Assets tab and Processing Queue.
+
+Grok Build Prompt for UploadMoreDataModal
+textCreate a detailed UploadMoreDataModal component for the Digital Twin desktop Space Detail page.
+
+Style: Centered modal with dark glass background, rounded-3xl, consistent with Slate360 design.
+
+Content sections:
+1. Header with space name.
+2. Drag & drop file zone + "Choose Files" button. Show list of selected files with remove option.
+3. If the space already has phone data, show an info banner explaining mixed capture benefits.
+4. Processing mode selection: "Incremental Update" (default, lower cost) vs "Create New Version" (full re-process).
+5. Prominent live credit & storage cost preview box. Show current remaining credits. If insufficient, show warning and link to top-up.
+6. Optional advanced settings (collapsible): Processing Tier selector, "Notify when complete" toggle.
+
+Footer: Cancel + primary "Upload & Process" button (disabled until files selected and credits ok).
+
+Validation:
+- Require at least one file.
+- Disable upload if credits insufficient.
+- Show progress during upload if possible.
+
+On submit, trigger the real multipart upload flow and job enqueue. Update UI in real time via the parent component.
+
+2. Recipient Experience for Shared Interactive Models (Very Detailed)
+How Recipients Receive the Model
+
+Creator clicks “Create Share Link” → configures role, expiry, password, branding.
+System creates digital_twin_share_tokens record.
+Link is copied or sent (email, Slack, etc.).
+Recipient opens the link → lands on public viewer at /share/twin/[token].
+
+Security & Access Control
+
+Token is unguessable (UUID + random string).
+Backend uses atomic claim_digital_twin_share_view() function (prevents race conditions on view counting).
+RLS policies ensure the token only grants access to the specific space’s data.
+Optional password protection (hashed in DB).
+Role-based permissions: View only / Can annotate (add pins/comments) / Can download.
+Token can be revoked instantly by creator.
+Expiry date supported.
+
+Navigation in the Interactive Model (Public Viewer)
+
+Same 3D viewer as desktop but read-only or limited based on role.
+Controls: Orbit, pan, zoom, Walk Mode (if enabled).
+If role allows annotation: Can drop pins and add comments (saved to digital_twin_pin_comments with share_token_id).
+Comments are threaded and visible to others with access.
+Measurements may be allowed depending on role.
+Branded header (logo + company name) for Pro users.
+
+What Recipients Can Do
+
+View the 3D model interactively.
+Add comments/pins (if permitted).
+Download assets (if permitted).
+Leave feedback that the creator sees in real time on desktop.
+
+How Comments Work
+
+Comments are stored in digital_twin_pin_comments.
+Linked to a pin position in the model (x,y,z or yaw/pitch for 360).
+Realtime updates so creator and other viewers see new comments immediately.
+Creator can resolve or reply from the desktop Pins & Comments tab.
+
+
+3. Additional Granular Prompts for Grok Build
+Prompt – Full Recipient Public Viewer Experience
+textBuild the public share viewer at /share/twin/[token].
+
+Style: Clean, branded if branding data exists, dark glass aesthetic.
+
+Features:
+- 3D viewer with navigation controls (orbit, zoom, Walk Mode if enabled).
+- If token allows annotation: Allow dropping pins and adding threaded comments. Comments should save in realtime.
+- Show branded header (logo + name) if the creator added branding (Pro feature).
+- Optional password gate before showing the model.
+- Role-based UI: Hide download or annotation tools if not permitted.
+- Footer with “Powered by Slate360” and link to create their own account.
+
+Use the atomic claim function on load. Support expired/revoked token states with clear messages.
+Prompt – Commenting & Pinning System (Mobile + Desktop + Public Viewer)
+textImplement the full pinning and commenting system across Mobile Model Viewer, Desktop Space Detail, and Public Share Viewer.
+
+Features:
+- Tap/click in 3D viewer to drop a pin at that 3D coordinate.
+- Open comment input (bottom sheet on mobile, modal/panel on desktop).
+- Threaded comments with replies.
+- Real-time updates using Supabase subscriptions.
+- Ability to resolve pins (Pro/creator only).
+- Store position as JSONB (x,y,z or yaw/pitch for 360).
+
+Backend: Write to digital_twin_pins and digital_twin_pin_comments tables. Link comments to share_token_id when coming from public viewer.
+
+Part 1: High-Level Architecture & Approach (For Grok Build Context)
+Core Split
+
+Mobile App: Lightweight capture tool. Goal = fast, reliable data collection with quality feedback. Minimal on-device processing. Heavy lifting happens in the cloud.
+Desktop: Full workstation. Goal = editing, collaboration, advanced tools, sharing/embedding, and iteration (including adding more data to phone-created spaces).
+
+Key Design Principles
+
+Every credit-consuming action must show a live cost preview before execution.
+Mixed capture workflow (phone first → add drone/360 later) must be clearly communicated in the UI.
+Realtime updates for job status, pins, and comments (via Supabase subscriptions).
+Consistent “Dark Glass + Amber/Green accent” visual language from the existing Slate360 app.
+State management should be local-first with clear lifting when needed (avoid over-globalizing state early).
+Error handling must be graceful with user-friendly messages and retry options.
+Loading states should use skeleton loaders or inline spinners, never blocking the whole screen unnecessarily.
+
+High-Level Data Flow
+
+User action (button click / file select) → Frontend validation + credit preview.
+API call (e.g., /api/twin/upload/init or job enqueue).
+Backend creates DB records + triggers processing (Trigger.dev).
+Realtime subscription updates UI (job status, new pins/comments).
+Success → Toast notification + state update. Failure → Error toast + retry option.
+
+
+Part 2: Mid-Level Component & Screen Overviews
+SpaceCard
+Reusable card showing one Digital Twin space. Used on Home (mobile), My Spaces, and Overview (desktop). Displays key metadata and supports quick actions. Clicking opens the full Space Detail workstation.
+3DViewerToolbar
+Floating toolbar that controls interactions inside the 3D canvas on desktop Space Detail. Each tool changes viewer behavior and may trigger data writes.
+UploadMoreDataModal
+Modal for adding additional files (drone, 360, etc.) to an existing space. Supports the mixed capture workflow and shows live credit impact.
+Key Screens
+
+Mobile: Home → Capture Setup (3 steps) → Capture → Review & Upload → Processing Status → Model Viewer
+Desktop: Overview → My Spaces → Space Detail (main workstation) → Processing Queue / Shared Links / Billing
+
+
+Part 3: Ultra-Granular Prompts for Grok Build
+Below are highly detailed prompts. Each includes state management strategy, exact API integration points, micro-interactions, validation, and data flow.
+Prompt 1: SpaceCard Component (Granular)
+textCreate a reusable SpaceCard component for Digital Twin.
+
+High-level behavior: Displays summary of one space. Clicking navigates to Space Detail. Supports hover quick actions on desktop and long-press context menu on mobile.
+
+Mid-level layout:
+- Thumbnail (aspect-video, left)
+- Content stack (right): Name (bold), Status badge (colored pill), Metadata row (last updated + storage), Credit usage indicator
+
+Granular requirements:
+
+State management:
+- Use local React state for hover state (desktop only).
+- Receive `space` object as prop. Do not manage data fetching inside this component.
+- Expose `onClick` and `onQuickAction` callbacks to parent.
+
+API integration points:
+- None directly in this component (data comes from parent).
+- When quick action is triggered (e.g. Share), call parent handler which will open modals or navigate.
+
+Micro-interactions:
+- Hover (desktop): Subtle scale + shadow lift. Quick action buttons fade in.
+- Tap/Click: Ripple effect or scale-down animation.
+- Status badge: Color changes based on status prop (Ready=green, Processing=amber with subtle pulse, Draft=gray).
+- Long press on mobile: Haptic feedback + context menu appears from bottom.
+
+Validation & Edge cases:
+- Handle missing thumbnail gracefully (show placeholder icon).
+- Truncate long space names with ellipsis.
+- Show "N/A" or skeleton if metadata is loading.
+
+Data shape expected:
+interface Space {
+  id: string;
+  name: string;
+  status: 'ready' | 'processing' | 'draft';
+  last_updated: string;
+  storage_used_gb: number;
+  thumbnail_url?: string;
+  credits_used_this_month?: number;
+}
+
+Make it consistent with existing Site Walk card styles in the Slate360 app.
+Prompt 2: 3DViewerToolbar Component (Granular)
+textCreate a floating 3DViewerToolbar component for the desktop Space Detail page.
+
+High-level behavior: Controls interactions with the 3D model. Activating a tool changes cursor/behavior in the canvas and may enable data creation (pins, measurements).
+
+Mid-level layout:
+- Horizontal dark glass bar with rounded corners.
+- Buttons: Pins, Measure, Clip Planes, Layers, Walk Mode, Fullscreen (right-aligned).
+
+Granular requirements:
+
+State management:
+- Use local state to track the currently active tool (`activeTool: string | null`).
+- When a tool is active, communicate with parent 3D viewer component via callbacks or context (e.g. `onToolChange`).
+- For tools that create data (Pins, Measure), the parent should handle saving to backend.
+
+API integration points:
+- Pins tool active → On canvas click, parent creates pin via API (`POST /api/twin/pins` or direct Supabase insert with RLS).
+- Measure tool → On second click, save measurement to `digital_twin_measurements`.
+- Changes should trigger realtime updates where applicable.
+
+Micro-interactions:
+- Active tool button gets amber/green background + subtle glow.
+- Cursor in 3D canvas changes based on active tool (crosshair for pins/measure, etc.).
+- Tooltips on hover (with short description of what the tool does).
+- When tool is active, show a small "Exit tool" or "Done" hint near the toolbar.
+- Loading state: If saving a pin/measurement fails, show error toast and revert UI state.
+
+Validation:
+- Only one tool active at a time.
+- Disable tools that require Pro features for Basic users (show tooltip explaining upgrade).
+
+Integration with parent:
+- Parent 3D viewer component should listen to `activeTool` and enable/disable raycasting, measurement lines, clipping planes, etc. accordingly.
+Prompt 3: UploadMoreDataModal (Granular – Most Complex)
+textCreate the UploadMoreDataModal component triggered from the Assets tab in desktop Space Detail.
+
+High-level behavior: Allows adding more files to an existing space (supports mixed phone + drone/360 workflow). Shows live credit impact and handles upload + job enqueue.
+
+Mid-level layout:
+- Modal with header, scrollable body, and footer buttons.
+- Sections: File selection (drag & drop + button), Mixed capture info banner (if applicable), Processing mode selection, Credit preview box, Advanced options (collapsible).
+
+Granular requirements:
+
+State management (use React hooks or lightweight store):
+- `selectedFiles: File[]`
+- `processingMode: 'incremental' | 'new_version'`
+- `estimatedCredits: number` (calculated client-side or from backend preview endpoint)
+- `isUploading: boolean`
+- `uploadProgress: number` (0-100)
+- `error: string | null`
+
+API integration points (exact flow):
+1. On file selection or mode change → Call backend preview endpoint (or calculate locally) to get `estimatedCredits` and `estimatedStorage`.
+2. On "Upload & Process":
+   - Validate credits >= estimatedCredits (if not, show error + open top-up modal).
+   - Call `/api/twin/upload/init` (creates multipart session + asset records).
+   - Perform resumable uploads to R2 using presigned URLs.
+   - On each part success → update local `uploadProgress`.
+   - On complete → Call `/api/twin/upload/complete`.
+   - Then call job enqueue logic (`enqueueGaussianSplatJob`) with `processingMode` flag.
+   - Listen to realtime updates on the new job.
+
+Micro-interactions:
+- Drag & drop zone: Highlight on dragover, show "Drop files here".
+- File list: Each file shows name, size, remove button (X). Removing updates cost estimate.
+- Credit preview box: Updates live when files or mode changes. Amber border if cost is high relative to balance. Red/warning if insufficient credits.
+- Upload progress: Show linear progress bar + percentage during multipart upload. Individual file progress if possible.
+- Success: Close modal + show success toast ("Files uploaded. Processing started.") + refresh Assets list and Processing Queue via parent state or realtime.
+- Error: Show toast with message. Allow retry of failed uploads. Keep selected files so user doesn't have to re-select.
+
+Validation:
+- At least 1 file required.
+- Disable primary button during upload or if credits insufficient.
+- File type/size validation with clear error messages.
+- Show clear explanation of "Incremental Update" vs "New Version" with credit difference.
+
+Mixed capture messaging:
+- If the space already contains phone captures, show a prominent info banner explaining benefits of adding more data.
+
+Parent communication:
+- On success, call `onUploadComplete(newAssets)` so parent can optimistically update UI.
+Prompt 4: Recipient Public Viewer + Commenting Flow (Granular)
+textBuild the public share viewer experience at /share/twin/[token] and the commenting/pinning system that works across mobile viewer, desktop viewer, and public viewer.
+
+High-level: Recipients open a secure link and interact with the model based on their token permissions. Creators see comments in realtime on desktop.
+
+Granular requirements:
+
+State management:
+- Token validation state (loading, valid, expired, invalid, password required).
+- Viewer interaction state (active tool if annotation allowed: pin mode, measure mode).
+- Comments state: Array of pins + threaded comments, updated via realtime subscription.
+
+API / Backend integration points:
+- On page load: Call `claim_digital_twin_share_view(token)` (atomic function) to validate and increment view count.
+- If password protected: Show password input first. Validate against hashed value.
+- Pin creation (if role allows): `POST` to pins table with position (x,y,z or yaw/pitch) + optional `share_token_id`.
+- Comment creation: Insert into `digital_twin_pin_comments` with `pin_id` and `share_token_id`.
+- Use Supabase realtime subscription on `digital_twin_pin_comments` filtered by space or token.
+
+Micro-interactions:
+- Password gate: Clean input with show/hide toggle. On submit, loading spinner. Wrong password = shake animation + error message.
+- 3D Viewer: Standard controls + conditional tools based on role.
+  - If annotation allowed: Tap/click to drop pin → bottom sheet or modal opens for comment input.
+  - Measurement: Two-tap flow with live distance line and save option.
+- Comment list: Real-time append of new comments (smooth scroll to bottom on new comment).
+- Toast messages: "Comment added", "Pin created", "Link expired", etc.
+- Loading states: Skeleton comments while fetching, spinner during save.
+
+Security & UX notes:
+- Never expose internal IDs.
+- Role enforcement must happen on both frontend (hide tools) and backend (RLS + token checks).
+- Password is optional per token.
+- Comments from public viewers should be clearly marked (e.g., "Via share link").
+
+Navigation in viewer:
+- Orbit, pan, zoom, double-tap reset, Walk Mode (if enabled by creator).
+- Pinch zoom on mobile.
+
+Additional Granular Recommendations for Grok Build
+State Management Strategy Recommendation
+
+Use React hooks + Context for most screens (keep it simple).
+Lift state to parent only when multiple child components need it (e.g., active tool in viewer + toolbar).
+For complex flows like UploadMoreDataModal, manage state locally inside the modal and communicate via callbacks/props.
+Use Supabase realtime subscriptions for job status and comments (not polling).
+
+Error Handling Pattern (Recommended)
+
+All async actions wrapped in try/catch.
+On error: Show toast with user-friendly message + "Retry" button where possible.
+Log detailed errors to console (or error tracking) for debugging.
+Never leave user stuck with a broken state — always provide a way back.
+
+Toast & Notification Pattern
+
+Use a global toast system (e.g., sonner or custom).
+Success toasts: Green accent, auto-dismiss after 3-4s.
+Error toasts: Red accent, longer duration or manual dismiss.
+Credit-related toasts: Amber accent when low or after top-up.
+
+Exact Supabase client usage (imports, queries, realtime subscriptions, RLS-aware calls)
+Optimistic UI update patterns
+Animation library recommendations + specific animation specs (using Framer Motion — the best fit for Next.js + Tailwind)
+Micro-interactions (loading spinners, toasts, transitions, hover effects, error states)
+State management approach
+Error handling & rollback logic
+
+These prompts are written so Grok Build can generate clean, correct code.
+
+Recommended Technical Stack (Include in All Prompts)
+
+Supabase Client: Use the project’s existing client from @/lib/supabase/client (or createClient from @supabase/supabase-js).
+State Management: React hooks + useState / useOptimistic (React 19). Lift state only when truly needed.
+Animations: Framer Motion (framer-motion).
+Toasts: Sonner (recommended) or a custom Framer Motion toast system.
+Realtime: Supabase channel().on('postgres_changes') or project realtime hooks.
+
+
+Prompt 1: SpaceCard Component (Granular with Optimistic + Animations)
+textCreate a reusable SpaceCard component for the Digital Twin section.
+
+Style: Match the existing Slate360 app (dark glass cards, rounded-2xl, subtle borders, green/amber accents).
+
+Layout:
+- Thumbnail (aspect-video)
+- Content stack: Space name (bold), Status badge (colored pill), Metadata (last updated + storage), Credit usage indicator
+
+Props:
+interface Space {
+  id: string;
+  name: string;
+  status: 'ready' | 'processing' | 'draft';
+  last_updated: string;
+  storage_used_gb: number;
+  thumbnail_url?: string;
+  credits_used_this_month?: number;
+}
+
+Granular Requirements:
+
+State Management:
+- Use local React state only for hover (desktop) and long-press (mobile).
+- Do not fetch data inside this component.
+
+Optimistic Updates: None needed in this component (read-only display).
+
+Animations (Framer Motion):
+- Hover (desktop): scale(1.02) + shadow lift with 200ms ease-out.
+- Tap/Click: scale(0.985) with quick return.
+- Status badge: subtle pulse animation when status === 'processing'.
+- Long press on mobile: scale + haptic-style feedback.
+
+Micro-interactions:
+- Skeleton loading state using Framer Motion opacity pulse.
+- Error state: red border + shake animation on retry.
+
+Interactions:
+- Click/tap → navigate to Space Detail (use Next.js router or parent callback).
+- Desktop hover → reveal quick action buttons (Share, Upload More Data, menu) with fade-in.
+- Long press on mobile → open bottom sheet context menu.
+
+API Integration: None in this component. Data comes from parent via props.
+
+Error Handling: Gracefully handle missing thumbnail (show placeholder icon with fade-in).
+
+Prompt 2: UploadMoreDataModal (Highly Granular – Critical Component)
+textCreate the UploadMoreDataModal component for the Digital Twin desktop Space Detail page.
+
+Style: Centered dark glass modal, rounded-3xl, consistent with Slate360 design. Use Framer Motion for enter/exit animations (scale + opacity, 200ms ease-out).
+
+State Management (use React hooks):
+- selectedFiles: File[]
+- processingMode: 'incremental' | 'new_version' (default: 'incremental')
+- estimatedCredits: number
+- isUploading: boolean
+- uploadProgress: number (0-100)
+- error: string | null
+
+Optimistic UI Updates:
+- When files are selected or processingMode changes, immediately calculate and display estimated credits/storage (optimistic).
+- During multipart upload: Show linear progress bar + percentage. Update progress optimistically per part success.
+- On success: Immediately add new assets to the parent Assets list (optimistic insert) before server confirmation.
+- On error during upload: Revert optimistic assets and show error toast with retry option.
+
+Exact Supabase / API Integration Points:
+
+1. On file selection or mode change:
+   - Call a preview function or calculate client-side to update `estimatedCredits`.
+
+2. On "Upload & Process" click:
+   - First validate credits >= estimatedCredits.
+   - If insufficient → show error toast + open CreditTopUpModal.
+   - Call `/api/twin/upload/init` (creates multipart session + asset records).
+   - Perform resumable PUT uploads to R2 using presigned URLs from the response.
+   - Track progress per part and update `uploadProgress` state.
+   - On complete: Call `/api/twin/upload/complete`.
+   - Then trigger job enqueue (`enqueueGaussianSplatJob` with processingMode flag).
+   - Subscribe to realtime updates on the new `digital_twin_processing_jobs` row.
+
+3. On success: Call parent callback `onUploadComplete(newAssets)` so parent can optimistically update the Assets tab.
+
+Micro-interactions & Animations (Framer Motion):
+- Drag & drop zone: Scale + border color change on dragover.
+- File list items: Fade-in on add, slide-out on remove.
+- Credit preview box: Subtle scale + color change when cost is high or insufficient.
+- Upload progress: Smooth animated progress bar (use Framer Motion `animate` or CSS transition).
+- Success: Modal close with scale-down animation + success toast.
+- Error: Toast with red accent + shake on the modal if critical error.
+
+Validation:
+- Require at least 1 file.
+- Disable primary button while uploading or if credits insufficient.
+- Show clear file type/size errors.
+
+Mixed Capture Messaging:
+- If the space already has phone data, show a prominent info banner explaining benefits of adding more data.
+
+Error Handling:
+- Partial upload failure: Allow retry of failed files while keeping successful ones.
+- Show user-friendly error messages (e.g., "Upload failed. Please check your connection.").
+
+Prompt 3: 3DViewerToolbar + Pin/Comment Creation Flow (Granular)
+textCreate the 3DViewerToolbar component and integrate it with pin/comment creation in the desktop Space Detail 3D viewer.
+
+Style: Floating dark glass horizontal bar above the canvas.
+
+Buttons: Pins, Measure, Clip Planes, Layers, Walk Mode, Fullscreen.
+
+Granular Requirements:
+
+State Management:
+- `activeTool: string | null` (local state in toolbar or lifted to parent viewer).
+- When a tool is active, communicate to parent 3D viewer component.
+
+Optimistic UI Updates (for Pins & Comments):
+- When user drops a pin (while Pins tool is active):
+  - Immediately add a temporary pin to the local pins array with optimistic ID.
+  - Show the pin in the viewer right away.
+  - Open comment input sheet/modal.
+  - On successful Supabase insert → replace optimistic pin with real data.
+  - On error → remove optimistic pin + show error toast.
+
+Exact Supabase Client Calls:
+
+Import: `import { createClient } from '@/lib/supabase/client';` (or project equivalent).
+
+For creating a pin:
+```ts
+const supabase = createClient();
+const { data, error } = await supabase
+  .from('digital_twin_pins')
+  .insert({
+    space_id: currentSpaceId,
+    position: { x, y, z }, // or yaw/pitch for 360
+    title: commentTitle,
+    created_by: user.id
+  })
+  .select()
+  .single();
+For realtime comments/pins:
+TypeScriptconst channel = supabase
+  .channel('pins-comments')
+  .on('postgres_changes', { 
+    event: '*', 
+    schema: 'public', 
+    table: 'digital_twin_pin_comments',
+    filter: `space_id=eq.${spaceId}`
+  }, (payload) => {
+    // Update local state optimistically or merge
+  })
+  .subscribe();
+Micro-interactions & Animations (Framer Motion):
+
+Tool button active state: scale(1.05) + background color change with spring animation.
+Pin drop: Scale-up animation on creation (optimistic).
+New comment: Fade-in + slight slide from bottom.
+Error on save: Toast + revert optimistic state with shake on the temporary pin.
+
+Error Handling:
+
+If pin/comment save fails, remove optimistic item and show toast: "Failed to save comment. Please try again."
+Retry button in toast or inline.
+
+Integration:
+
+Parent 3D viewer component should handle raycasting when Pins or Measure tool is active.
+Pass activeTool and callbacks (onPinCreated, onMeasurementCreated) to the toolbar.
+
+text---
+
+### Prompt 4: Processing Status Screen + Realtime Updates (Granular)
+
+```text
+Build the Processing Status screen (mobile) and equivalent section in desktop Space Detail.
+
+Granular Requirements:
+
+State Management:
+- `jobStatus`: 'uploading' | 'queued' | 'processing' | 'ready' | 'failed'
+- `progress`: number
+- `currentStep`: string
+- Use Supabase realtime subscription to keep these in sync.
+
+Optimistic + Realtime Updates:
+- On upload complete, optimistically set status to 'queued'.
+- Subscribe to changes on `digital_twin_processing_jobs`:
+```ts
+supabase
+  .channel('job-updates')
+  .on('postgres_changes', {
+    event: 'UPDATE',
+    schema: 'public',
+    table: 'digital_twin_processing_jobs',
+    filter: `id=eq.${jobId}`
+  }, (payload) => {
+    updateLocalJobState(payload.new);
+  })
+  .subscribe();
+Micro-interactions:
+
+Progress bar: Smooth animated width change (Framer Motion or CSS transition).
+Status text: Fade transition between steps.
+When status becomes 'ready': Scale-up animation on "View Model" button + confetti or success toast (optional).
+Failed state: Red theme + retry button with loading spinner on click.
+
+Error Handling:
+
+If job fails, show clear message and offer retry (which creates a new job).
+
+API/Realtime:
+
+Initial data: Fetch current job on mount.
+Ongoing: Realtime subscription for live updates.
+
+text---
+
+### Additional Recommendations for Grok Build
+
+**Animation Library**: Use **Framer Motion** for all animations. Recommended patterns:
+- Modals: `initial={{ opacity: 0, scale: 0.95 }}` → `animate={{ opacity: 1, scale: 1 }}`
+- Toasts: Slide in from bottom or top with spring physics.
+- Progress bars & status changes: `layout` prop + `transition` for smooth updates.
+- Hover states: `whileHover={{ scale: 1.02 }}`
+
+**Toast System**: Use **Sonner** for clean, accessible toasts. Customize colors to match amber/green theme.
+
+**Error & Loading Pattern** (Standardize across components):
+- All async actions wrapped in try/catch.
+- Show inline spinner or skeleton during loading.
+- On error: Toast + optional inline error message with retry.
+
+Would you like me to now generate the **next batch** of ultra-granular prompts focused on:
+- Realtime subscription setup across multiple components
+- Credit balance optimistic updates after top-up
+- Public share viewer + password gate flow
+- Full optimistic update pattern for pin/comment creation (with rollback)
+
+
+
+
+
+
+

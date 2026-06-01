@@ -1,0 +1,250 @@
+Establish User IntentBased on the extensive project background and your request, your intent is to secure a unified, production-grade, end-to-end technical blueprint to fully build out and implement the Digital Twin Reality Studio module. This module will integrate seamlessly inside your desktop Dashboard V3 shell and the mobile Capacitor/PWA wrapper, alongside the existing Site Walk application.To achieve this without any visual or structural regressions, the plan must combine hyper-granular technical specs, explicit open-source dependencies, foolproof database migrations, complete front-and-backend architectural code tracks, and a sequential series of ready-to-run execution prompts.🎨 SECTION 1: THE DISCRETE APPLICATION LAYOUTS & USER WORKFLOWSTo prevent "Card Salad" layout creep or technical debt from bleeding into your primary workspace files, the Digital Twin application operates under a strict Container-Centric Isolation Design. Features are never exposed as floating, disconnected pages; rather, they are safely encapsulated within an app-agnostic, entitlement-gated workspace layout.1. Mobile App Shell (Lightweight Capture Engine)┌────────────────────────────────────────────────────────┐
+│ [←] SLATE360 // Reality Studio       [👤] [🔔] [💬] [🔗] │ ◄ Fixed 56px Top Header
+├────────────────────────────────────────────────────────┤
+│                                                        │
+│  TWIN CONTAINER SELECTOR                               │
+│  ┌──────────────────────────────────────────────────┐  │
+│  │ 📁 Select Active Project/Worksite Workspace...   │  │
+│  └──────────────────────────────────────────────────┘  │
+│                                                        │
+│  NATIVE STREAM CAPTURE ENGINE COCKPIT                 │
+│  ┌──────────────────────────────────────────────────┐  │
+│  │                                                  │  │
+│  │  [  •  ] LIVE CAMERA ARKIT / ARCORE VIEWFINDER   │  │
+│  │                                                  │  │
+│  │  Tracking Quality: NORMAL                        │  │
+│  │  Feature Density Matrix: [✦ ✦ ✦ ✦ ✦ ]            │  │
+│  │                                                  │  │
+│  │                                                  │  │
+│  └──────────────────────────────────────────────────┘  │
+│                                                        │
+│ ┌────────────────────────────────────────────────────┐ │
+│ │ ─── CONTAINED UPLOAD QUEUE MANIFEST OVERLAY ───    │ │
+│ │  Current Sessions   Pending Sync   Recent Transfers │ │ ◄ Default: 2.5 Row Height
+│ │  • Stadium East Rafters Scan (420 MB) [Queued]      │ │   Bottom Shading Overlay
+│ │  • Classroom 254 Core Data (112 MB)  [Complete]    │ │   Slides Up to 60% Screen
+│ └────────────────────────────────────────────────────┘ │
+├────────────────────────────────────────────────────────┤
+│ 🏠 Home  │  📷 Walk  │  📁 Projects │ 🌐 Files │ 👤 Acct│ ◄ 5-Tab Unified Nav Contract
+└────────────────────────────────────────────────────────┘
+Screen 1: Digital Twin Mobile Home Launcher: Adheres strictly to the dark graphite glass system (#0B0F15). The right rail of the top bar features your high-contrast utility icons: Account profile token, notification bell tracking real-time events, and a help dialog trigger. A prominent credit telemetry pill displays the organization's credit balance (e.g., 248 Credits) in high-contrast amber. Tapping it invokes the Stripe top-up frame instantly.Screen 2: The 3-Step Guided Capture Wizard:Step 1 (Project Selection): A search-gated selector mapping available container projects. Selected targets illuminate with a strict 12px rounded rectangular border (rounded-xl) and a Cybernetic Krypton Teal (#00E699) checkmark.Step 2 (Capture Mode selection): Large stacked target cards mapping Quick Phone Walk, Add Drone/360 Data to Existing Space, or New Mixed Capture Mode. It explicitly details estimated telemetry ranges and computing credit baselines.Step 3 (Capture Settings): Auto-generates a smart space title string (e.g., Project_ASU_Rm254_2026-05-26). It presents a segmented execution choice toggle between Preview Tier and Production Quality Tier, accompanied by an absolute cost estimation warning panel.Screen 3: The Native Stream Capture Viewfinder: Launches a full-bleed camera feed locked to 1080p at 30 FPS to optimize thermal bounds. The upper margin displays a semi-transparent floating glass banner tracking active frame sampling speedometers. If an operator swings the device too fast, a high-visibility text warning flashes: [ ✦ SLOW DOWN: MOTION BLUR DETECTED ]. The background thread renders subtle, real-time feature point dots over physical surfaces to guide coverage tracking visually without loading dense meshing vectors into phone memory.Screen 4: The Post-Scan Multi-Part Queue Dashboard: Triggered automatically upon session termination. It displays a horizontal asset filmstrip, a 4-card performance index (Tracking, Blur, Coverage, Lighting), and an explicit processing cost readout. The transfer loop maps straight onto your server-signed, direct-to-R2 parallel multipart upload hook to guarantee absolute multi-gigabyte stability.2. Desktop Web Portal (The High-Fidelity VDC Workstation)┌────────────────────────────────────────────────────────────────────────────────────────┐
+│ SLATE360   │ Dashboard > Project Hub > ASU Classroom 254              [👤 bc] [🔔] [💬]│
+├────────────┴───────────────────────────────────────────────────────────────────────────┤
+│                                                                                        │
+│  ┌────────────────────────────────────────────────────────┐ ┌────────────────────────┐ │
+│  │ 🛠️ HIGH-FIDELITY WEBGL SPATIAL VIEWER CANVAS           │ │  COORDINATION PANEL    │ │
+│  │ ┌────────────────────────────────────────────────────┐ │ │ [Alerts] Messages Sync │ │
+│  │ │                                                    │ │ ├────────────────────────┤ │
+│  │ │  [ ✦ Sun Study ] [ 📐 Measure ] [ ⧉ CAD Overlay ]  │ │ │ • Processing Complete  │ │
+│  │ │                                                    │ │ │ • Comment from client  │ │
+│  │ │     (Photorealistic Gaussian Splat Engine)         │ │ └────────────────────────┘ │
+│  │ │                                                    │ │ ┌────────────────────────┐ │
+│  │ └────────────────────────────────────────────────────┘ │ │  PROCESSING QUEUE      │ │
+│  │                                                        │ │  ● Stadium Scan...  45%│ │
+│  │  [ ⏸ Pause ]   [ 🔄 Re-Process ]   [ 🔗 Export PDF ]   │ │  ● Room 254 Splat...100%│ │
+│  └────────────────────────────────────────────────────────┘ └────────────────────────┘ │
+│                                                                                        │
+│ ┌────────────────────────────────────────────────────────────────────────────────────┐ │
+│ │ ─── CONTAINED "MY WORK" BROWSER CONTROL MATRICES ───────────────────────────────── │ │
+│ │ [ Recent Captures ]   Favorites   Project Data assets   Client Deliverables Shared │ │
+│ │ 📄 Building_A_Facade_Scan.spz      Gaussian Splat     Ready       24 MB     [ ··· ] │ │
+│ │ 🌐 Site_Walk_Level_2_Orthomosaic.tif Ortho Map          Processing  142 MB    [ ··· ] │ │
+│ └────────────────────────────────────────────────────────────────────────────────────┘ │
+└────────────────────────────────────────────────────────────────────────────────────────┘
+The Desktop Workspace Layout Grid: A flawless, balanced grid block layout system that eliminates large blank space voids by wrapping tracking elements in strict flex constraints (max-h-[350px] flex-grow).The Main Workstation Core Viewport: Occupies a wide 65% left-aligned block layout sheet. It initializes your hardware-accelerated React Three Fiber (R3F) 3D Viewport Engine, streaming highly compressed, core-optimized .spz neural splat files natively at 60 FPS in any browser window.The Symmetrical Subcomponent Panels (The Right Utility Column): Occupies a precise 35% tracking block layout split symmetrically into two distinct modules:The Coordination Panel (Top 60% Height Block): A contained scrolling thread mapping system messages, alerts, and client review commentary with internal tabs.The Processing Queue Panel (Bottom 40% Height Block): Tracks background serverless GPU operations. It renders a maximum of three horizontal rows with subtle progress indicator lines and status light colors tracking execution channels (Amber = Processing, Green = Completed, Red = Failed).🗄️ SECTION 2: INDEPENDENT CODE DIRECTORIES & SYSTEM BLUEPRINTSTo maintain absolute architectural safety and insulation between your concurrent product lines, all Digital Twin code files, modules, components, and pipelines must reside exclusively within separate, isolated directory roots.The tracking boundaries follow this strict structural layout map:📁 root/
+├── 📁 supabase/migrations/
+│   ├── 📄 20260526100000_digital_twin_foundation.sql      # Database Relational Schemas
+│   ├── 📄 20260526100100_digital_twin_multipart_uploads.sql # S3/R2 Multipart Trackers
+│   ├── 📄 20260526100200_digital_twin_processing_jobs.sql  # GPU Execution Queues
+│   ├── 📄 20260526100300_digital_twin_viewer_workspace.sql # Shaders, Sliders & Annotations
+│   ├── 📄 20260526100400_digital_twin_share_tokens.sql     # Public Portals & Audit Logs
+│   ├── 📄 20260526100500_digital_twin_entitlements_billing.sql # Credit Telemetry Metrics
+│   └── 📄 20260526100600_digital_twin_realtime_rls.sql     # Realtime Publications
+├── 📁 app/
+│   ├── 📁 (dashboard)/digital-twin/
+│   │   ├── 📄 layout.tsx                                   # Beta access context enforcer
+│   │   ├── 📄 page.tsx                                     # Desktop command center launcher
+│   │   └── 📁 [id]/
+│   │       ├── 📄 page.tsx                                 # Workstation details sheet
+│   │       └── 📄 editor/page.tsx                          # Desktop clipping canvas views
+│   └── 📁 share/twin/[token]/
+│       └── 📄 page.tsx                                     # White-labeled public portal
+├── 📁 app/api/digital-twin/
+│   ├── 📁 multipart/
+│   │   ├── 📄 create/route.ts                              # Initialize S3 Multipart Upload
+│   │   ├── 📄 sign-part/route.ts                           # Generate individual segment URLs
+│   │   └── 📄 complete/route.ts                            # Complete upload and enqueue job
+│   ├── 📁 jobs/
+│   │   └── 📄 route.ts                                     # Sync background worker states
+│   └── 📁 reports/punch/
+│       └── 📄 route.ts                                     # PDF report aggregation endpoint
+├── 📁 components/digital-twin/
+│   ├── 📄 SplatVolumeViewer.tsx                            # R3F WebGL Canvas Box Container
+│   ├── 📄 StudioBimViewport.tsx                            # Translucent CAD Overlay Mesh Layer
+│   ├── 📄 StudioToolkitDrawer.tsx                          # Slide-out contextual AEC tool drawer
+│   └── 📄 DigitalTwinReviewCard.tsx                        # Mobile data verification widget
+├── 📁 server/workers/
+│   └── 📄 spatial_processor.py                             # Modal.com serverless GPU worker
+└── 📁 ios/App/App/Plugins/
+    └── 📄 S360SpatialCaptureEngine.swift                   # Native iOS ARKit capture filter
+🛰️ SECTION 3: THE 10-PROMPT SEQUENTIAL IMPLEMENTATION STREAM(Execute these prompts one by one inside your developer AI assistant channels. Never move to the next prompt block until the current track compiles perfectly via terminal check pipelines)🔬 Prompt 1: Database Scaffolding & Security PublicationAgent Target: Cursor Composer 2.5 (Ctrl + I)Lanes Tracked: feature/digital-twin-lite branch initializationExecution Script:MarkdownRole: Lead Database Systems Architect & Supabase Release Engineer
+Context: We are initializing the core data engine for the Slate360 Digital Twin Reality Studio. You are commanded to execute a clean database scaffolding pass strictly following our decoupled container conventions.
+
+Do not write or modify any frontend pages or layout views on this pass.
+
+Please create and run these seven idempotent SQL database migration documents inside `supabase/migrations/`:
+1. `20260526100000_digital_twin_foundation.sql`: Sets up `digital_twin_spaces` (the project workspace container), `digital_twin_captures` (session indicators), `digital_twin_capture_assets` (file tracks), and `digital_twin_models` (compiled outputs), matching existing `unified_files` structural conventions.
+2. `20260526100100_digital_twin_multipart_uploads.sql`: Standing up tables for tracking chunked, large-file data streams safely on disk.
+3. `20260526100200_digital_twin_processing_jobs.sql`: Creates the background GPU job tracking ledger queue. Inject the atomic worker claim function `claim_next_spatial_processing_job(p_worker_id)` utilizing a strict `FOR UPDATE SKIP LOCKED` database statement to ensure multiple serverless nodes never collide.
+4. `20260526100300_digital_twin_viewer_workspace.sql`: Constructs tables for logging spatial annotations pins, vector measurement coordinates, saved view states, and BIM CAD cross-check translations.
+5. `20260526100400_digital_twin_share_tokens.sql`: Assembles tokenized share links. Inject the `claim_digital_twin_share_view(p_token)` security definer function to handle atomic view counter increments safely.
+6. `20260526100500_digital_twin_entitlements_billing.sql`: Sets up organization feature flags, modular subscriptions check constraints (`none`, `basic`, `pro`), and the `digital_twin_usage_events` telemetry meter.
+7. `20260526100600_digital_twin_realtime_rls.sql`: Forcefully registers all seven tables into the active `supabase_realtime` publication stream.
+
+Ensure every single statement is idempotent. Enforce proper Row-Level Security (RLS) policies using the standard project team member checks helper functions (`public.user_can_access_project`). Run `supabase db push` to verify database health.
+🔬 Prompt 2: Direct-to-R2 Presigned Multipart Upload EndpointsAgent Target: Cursor Composer 2.5 (Ctrl + I)Lanes Tracked: API route registration passesExecution Script:MarkdownRole: Principal Backend Node Systems Architect & Storage Lifecycle Specialist
+Context: Database schemas are deployed and verified [PASS]. We are executing Prompt 2 to establish a high-volume direct multipart chunked upload bridge to bypass Vercel serverless function timeouts.
+
+Do not write user interface layouts or display grids on this pass.
+
+Please create three new Next.js API routes inside `app/api/digital-twin/multipart/`:
+1. `create/route.ts`: Initializes the multipart upload session. It must parse incoming file headers, call the S3 Client `CreateMultipartUploadCommand` using our shared client from `lib/s3.ts`, and return a unique server-issued `uploadId` and canonical key string to the frontend client. Never expose raw AWS/R2 keys to the client browser.
+2. `sign-part/route.ts`: Accepts an active `uploadId`, `key`, and integer `partNumber`. It must generate a secure, presigned part upload URL using the `@aws-sdk/s3-request-presigner` package with a short 15-minute expiration boundary window.
+3. `complete/route.ts`: Receives the completed parts array map containing individual part numbers and matching `ETag` hashes. It must invoke the `CompleteMultipartUploadCommand` to finalize the binary file assembly inside the bucket, insert a corresponding record into `unified_files` with the source context set to `digital_twin`, and append a new row into `drone_processing_jobs` with the state initialized as `queued`.
+
+Enforce strict authorization gates on every route wrapper using our platform's canonical context wrapper (`withAuth`). Ensure all modifications pass compilation checks.
+🔬 Prompt 3: Native iOS ARKit Capture Filter CoreAgent Target: Grok Build (or your dedicated terminal agent)Lanes Tracked: Native device framework bindingsExecution Script:MarkdownRole: Expert Production-Grade iOS Swift Mobile Framework Architect
+Context: Backend ingestion endpoints are stable [PASS]. We are executing Prompt 3 to construct the lightweight native data logging engine for iOS.
+
+Please create a native Swift core tracking class file at `ios/App/App/Plugins/S360SpatialCaptureEngine.swift`.
+
+Strict Structural Specifications:
+1. Session Threading: Instantiate an `ARSession` running an `ARWorldTrackingConfiguration` equipped with `.sceneDepth` frame semantics enabled (if device hardware features a LiDAR array). Intercept incoming `ARFrame` pulses inside the `didUpdate frame` session delegate callback loop at 30 FPS, and immediately offload them to a concurrent background serial thread (`DispatchQueue(label: "ai.slate360.spatial.capture")`).
+2. Intelligent Keyframe Filtering Downsampling: Query the device positional transform matrices every loop cycle. Discard the frame unless the device has moved linearly by more than 15cm ($\Delta x > 0.15\text{m}$) or rotated angularly by more than 15 degrees ($\Delta \theta > 0.2618\text{ rad}$) since the last saved keyframe to minimize data weight.
+3. Native Motion Blur Rejection Gate: Before saving an accepted keyframe, cast the pixel buffer array into an Apple Accelerate framework `vImage_Buffer` matrix. Run a fast 3x3 Laplacian edge convolution filter natively to calculate the image variance. If the variance registers below our blur threshold cutoff of `12.0`, discard the keyframe instantly.
+4. Grayscale Normalization & Serialization: Compress accepted RGB frames into JPEGs. Convert raw, erratic LiDAR point-clouds into single-channel, 16-bit grayscale depth PNG files where 1 unit equals exactly 1mm of physical real-world distance. Serialize these tracks into a sandboxed directory alongside a standard Colmap-compatible `transforms.json` pose matrix.
+
+Ensure the entire implementation is written under 300 lines of code. Compile natively via Xcode toolchain scripts to verify absolute safety.
+🔬 Prompt 4: Telemetry Streaming Bridge & Frontend Capture viewAgent Target: Cursor Composer 2.5 (Ctrl + I)Lanes Tracked: Bridge event listeners and mobile viewpointsExecution Script:MarkdownRole: Lead Mobile UX Architect & Capacitor Bridge Specialist
+Context: Native Swift spatial tracking engines are stable [PASS]. We are executing Prompt 4 to wire the telemetry streaming event bridge and mobile cockpit viewpoints.
+
+Please modify your bridge controller files and create your mobile viewfinder elements:
+1. The 10Hz Telemetry Broadcast Pass: Configure the native plugin to calculate tracking metrics and emit them across the Capacitor bridge at a throttled rate of exactly 10Hz (10 times per second). Define the broadcast JSON frame payload tracking variables string: `trackingState`, `keyframeCount`, `motionBlurScore`, `isBlurTriggered`, `lidarCoverageRatio`, and `estimatedPackageSizeMb`.
+2. The Guided Mobile Capture Cockpit View: Create a new mobile page file at `components/digital-twin/MobileCaptureScreen.tsx`. Wire up our real-time 10Hz telemetry event listeners to drive an interactive room trace canvas overlay. The viewfinder layer must stay thin and lightweight, rendering simple feature point dots over physical walls instead of drawing heavy meshes.
+3. Symmetrical Action Controls: Position large, thumb-friendly touch targets matching our strict `rounded-xl` (12px) architecture parameters along the base floor line of the phone display. Add a toggle button for `[ ⏸ Pause Capture ]` which completely halts disk write sequences while keeping the camera view active, allowing operators to navigate field obstructions safely without warping positional transform tracking matrices.
+
+Verify file sizes stay under 300 lines. Run `npm run typecheck` to secure a clean validation pass.
+🔬 Prompt 5: Post-Scan Review Card & Estimator DashboardAgent Target: Cursor Composer 2.5 (Ctrl + I)Lanes Tracked: Mobile upload manifests and credit metersExecution Script:MarkdownRole: SaaS Billing Engine Specialist & Core Frontend Architect
+Context: Viewfinder telemetry streams are stable [PASS]. We are executing Prompt 5 to implement the finger-friendly post-capture review view and billing calculator dashboard widget.
+
+Please create a new component file at `components/digital-twin/DigitalTwinReviewCard.tsx`.
+
+Strict Specifications:
+1. Visual Design: Encapsulate the entire interface inside a dark graphite glass card box container running a strict rectangular curvature of exactly 12px (`rounded-xl`), with all legacy amber styling parameters removed.
+2. Contained Manifest List: Build a summary manifest list section locked to display exactly 2.5 rows of data. Apply a smooth linear opacity gradient fade block overlaying the text along the bottom interior edge to signal to users that more captured assets can be scrolled through.
+3. Telemetry Credit Meter Calculator: Embed an immutable cost readout calculator box. It must analyze the total captured frame metrics and zipped package size bytes parameters to project a transparent, clear-text computation fee estimate directly before upload:
+   - Formula tracking calculation: Total credits required equals `frameCount` multiplied by 1.25.
+4. Stripe Auth-and-Capture Hold Trigger: Position two large, equal-width action buttons side-by-side along the card base line. The primary button `[ ✦ Approve and Synchronize Twin ]` must initiate a secure payment intent call to Stripe's APIs to place a financial authorization hold on the organization's card file, then trigger our chunked resumable upload hook (`useMultipartDroneUpload.ts`).
+
+Ensure the full script stays under 300 lines of code. Run compilation checks to guarantee absolute success.
+🔬 Prompt 6: Mobile Launcher Matrix IntegrationAgent Target: Cursor Composer 2.5 (Ctrl + I)Lanes Tracked: App-agnostic launcher roots and navigationExecution Script:MarkdownRole: Principal Platform Integration Engineer & Mobile Shell Enforcer
+Context: Mobile review cards and upload pipelines are compiled [PASS]. We are executing Prompt 6 to integrate the app-agnostic launcher roots and include your new module cleanly within the dynamic mobile app grid.
+
+Please modify your main mobile launcher files:
+1. Open your post-login entry route at `app/(apps)/app/page.tsx` and your mobile layout content tree at `components/studio-ui/MobileAppRootContent.tsx`.
+2. Completely remove the legacy "Coming Soon" or beta text placeholder sheets assigned to the Digital Twin action block. 
+3. Re-code the entry launcher using a Dynamic Scaling Grid Engine that programmatically counts active app components to guarantee immediate App Store compliance:
+   - If exactly 2 apps are active (Site Walk Engine and Slate360 Twin), render them side-by-side inside a symmetric, balanced 2-column layout row.
+   - If a 3rd app is added later, position 2 cards side-by-side on Row 1 and place the 3rd app box cleanly centered directly on the row below it.
+   - If 4 apps accumulate, snap the launcher layout automatically into a square 2x2 grid view matrix layout sheet.
+4. Premium App Tiles Sizing: Ensure each app tile uses our strict `12px` rounded-xl borders, a clean vector asset graphics icon, a sharp title heading label, and zero non-functional description labels.
+
+Run `npm run typecheck && npm run build` to verify that the app shell compiles cleanly without any visual regressions.
+🔬 Prompt 7: WebGL 3D Splat Viewport EngineAgent Target: Grok Build (or your high-performance WebGL agent)Lanes Tracked: 3D graphics canvas and hardware clip planesExecution Script:MarkdownRole: Principal WebGL Graphics Engineer & React Three Fiber Specialist
+Context: Mobile collection systems are deployed [PASS]. We are executing Prompt 7 to stand up the heavy 3D rendering canvas for our premium desktop workstation views.
+
+Please create a high-performance 3D canvas component file at `components/digital-twin/SplatVolumeViewer.tsx`.
+
+Strict Engineering Specifications:
+1. Target Canvas: Mount a full-bleed WebGL rendering container locked inside a deep graphite `#0B0F15` background layout wrapper using a `rounded-xl` boundary clipping mask.
+2. Compressed Neural Streaming: Wire an optimized binary splat loader component using `@react-three/fiber` and `Three.js` vectors to stream Niantic's hyper-compressed `.spz` neural splat files natively at 60 FPS.
+3. GPU Hardware Clipping Planes: Set `localClippingEnabled={true}` explicitly on your WebGL context global renderer. Construct an array of 6 mathematical clipping box planes mapping to interactive user sliders:
+   - Planes: Left, Right, Front, Back, Floor, and Ceiling.
+   - Execution: The clipping parameters must execute directly on the client GPU hardware shader thread to make unwanted elements (like roofs, ceilings, or floating ghost artifacts) instantly transparent in real-time, completely bypassing heavy cloud computing file refactoring overhead.
+4. Exploded Dollhouse View ("Open Like a Book"): Implement a dual-mesh transform matrix. Load the splat model twice exactly overlapping. Attach opposing clipping plane masks to hide the left half of Mesh A and the right half of Mesh B. Assign a customizable hinge pivot axis to the shared center boundary, allowing a desktop timeline slider to rotate Mesh A open smoothly like a book to reveal full interior room cross-sections.
+
+Verify component compilation stability. Keep lines of code under 300.
+🔬 Prompt 8: The Translucent CAD Overlay & Sun TrackerAgent Target: Grok Build (or your high-performance WebGL agent)Lanes Tracked: Sensor fusion alignment layers and solar study componentsExecution Script:MarkdownRole: Principal VDC Systems Engineer & 3D Interaction Architect
+Context: WebGL clipping viewports are compiled [PASS]. We are executing Prompt 8 to embed the translucent CAD overlay cross-check system and solar sun-shadow studies.
+
+Please create a fresh secondary 3D sub-component document file at `components/digital-twin/StudioBimViewport.tsx`.
+
+Strict Specifications:
+1. Translucent CAD Overlay Mesh: Import an architect's architectural blueprint `.glb` or `.gltf` model file inside the Three.js scene loop using the `@react-three/drei` `useGLTF` hook. Bind its visual properties to apply an explicit wireframe configuration (`wireframe={true}`) with a translucent color layout (`color="#00E699"`, `opacity={0.35}`).
+2. Manual Position Alignment Sliders: Wire the CAD primitive wrapper position and rotation vectors to read variable transform states passed down from the parent dashboard sliders: `position={[bimX, bimY, bimZ]}` and `scale={bimScale}`. This allows users to manually nudge and shift the design-intent CAD drawing directly over real-world concrete splat models to perform instant manual Clash Detection.
+3. High-Fidelity Solar Tracker Light: Mount an active `THREE.DirectionalLight` system equipped with high-resolution shadow maps (2048x2048 canvas density buffers) inside the scene. Connect its directional trajectory position vector to track a numerical input variable parameter (`sunTimelineHour`, scaling from 0 to 24 via a slider control). The engine must dynamically compute solar paths based on the project's lat/lng coordinates and project real-world mathematical shadow lines onto the construction model automatically.
+
+Verify file compilation state metrics. Ensure code lines stay under 300.
+🔬 Prompt 9: The Slide-Out UI Toolkit Drawer PanelAgent Target: Cursor Composer 2.5 (Ctrl + I)Lanes Tracked: Desktop workstation context controllersExecution Script:MarkdownRole: Lead SaaS UI/UX Product Engineer & Layout Specialist
+Context: 3D viewport canvas layers and alignment shaders are stable [PASS]. We are executing Prompt 9 to build the slide-out contextual AEC tool drawer interface.
+
+Please create a fresh component document file at `components/digital-twin/StudioToolkitDrawer.tsx`.
+
+Strict Design Specifications:
+1. Geometry Layout: Mount an absolute, slide-out context drawer panel anchored flush to the right boundary rail line of the workstation window area: `className="absolute top-0 right-0 h-full w-[340px] bg-[#0B0F15]/95 backdrop-blur-xl border-l border-white/0.05 z-40 flex flex-col min-h-0 shadow-[-10px_0_30px_rgba(0,0,0,0.5)]"`. Every inner selector, slider handle, input block, and action row must utilize a sharp, structural rectangular curvature of exactly 12px (`rounded-xl`).
+2. Module A: Solar Sunlight study controls containing a clear horizonal range slider connected to your `sunTimelineHour` state to drive the WebGL shadow light vectors.
+3. Module B: BIM Model Alignment Sliders containing 4 discrete coordinate fine-tuning input rows with high-contrast text metrics mapping `bimX`, `bimY`, `bimZ`, and `globalScale` values.
+4. Module C: Quick-Drop Project QR Code displaying an interactive QR canvas pointing to the project's anonymous upload link, allowing field subcontractors to quickly scan and drop photos into SlateDrop without creating accounts.
+5. Module D: Instant AEC Unit Calculator, building a zero-dependency client-side calculator converting decimal feet to architectural fractional inches and concrete cubic yards.
+6. Module E: One-Click Punch List PDF Generator button containing a Hammer icon button. Connecting this row must call an API POST route at `/api/digital-twin/reports/punch`, fetching active annotations data points, and compiling a clean, white-labeled client field report utilizing our pre-installed `@react-pdf/renderer` tool.
+
+Verify code length stays strictly under 300 lines. Run `npm run typecheck` to verify layout symmetry.
+🔬 Prompt 10: Serverless GPU Modal Cloud Worker ExecutionAgent Target: Grok Build (or your Python pipeline agent)Lanes Tracked: Cloud infrastructure task jobs and webhooksExecution Script:MarkdownRole: Lead Cloud Infrastructure Release Engineer & Python DevOps Specialist
+Context: Desktop workstation drawer components and user interfaces are compiled [PASS]. We are executing Prompt 10 to construct the serverless GPU pipeline worker script.
+
+Please create an independent Python cloud orchestration script file at `server/workers/spatial_processor.py`.
+
+Strict Infrastructure Specifications:
+1. Serverless Container Blueprint: Define a Modal container image (`Image.debian_slim`) pre-loaded with python 3.11, CUDA processing libraries, and AEC packages (`nerfstudio`, `gdown`, `torch`, `colmap`, and `boto3`).
+2. Safe Hardware Scaling: Decorate the execution method to scale dynamically on an demand serverless NVIDIA H100 GPU instance. Enforce a strict 10-minute timeout compute wall (`timeout=600`) to completely eliminate runaway infrastructure data charges.
+3. Ingestion & Neural Training Sequence: The python worker must intercept incoming S3 zip bucket references, un-pack the folder data, auto-downscale dense image arrays to 2K resolution if VRAM thresholds are breached, and run an open-source Structure from Motion (SfM) COLMAP feature matching routine using your custom `transforms.json` coordinates.
+4. Auto-Masking & Compression Output: The engine must automatically apply a black circular mask vector overlay over the bottom 15% (the Nadir) of every processed 360-video frame to cleanly eliminate the camera stick and the field operator from the final model geometry. Compile the final output into a compact `.spz` binary file, upload the asset back to your R2 project directory, and hit a secure backend webhook POST request to update your Supabase job row state over to `completed`.
+
+Verify script compilation health. Maintain clean documentation strings throughout.
+🔍 SECTION 4: THE USER VERIFICATION CHECKLIST (QA GATES)To guarantee your team maintains absolute codebase control on every single iteration pass, enforce these rigorous terminal and visual testing check commands after each file is updated:📊 1. The Terminal Architecture Compilation GateRun these execution strings inside your root Cursor code terminal to verify code health:Bash# Verify that no typings mismatch, missing imports, or file variables break the build
+npm run typecheck
+
+# Package the codebase onto a local build configuration to verify compile validation
+npm run build
+
+# Enforce strict system safety rules to block file monolith growth or un-isolated routes
+npm run guard:architecture
+🎨 2. The Designer's Human Factors Visual AuditWhen testing the visual layouts inside your browser window, your eye must confirm these structural design requirements:The Curvature Rule Check: Zoom in and inspect the border frames of every newly generated card, dashboard slider row, input block, and button element. They must use a sharp, structural rectangular curvature of exactly 12px (rounded-xl). Rounded pills or generic square edges are strictly barred.The Color Token Check: Scan the main landing page and secondary tool sheets. Ensure all legacy orange amber overrides and generic blue administrative highlights are completely gone. The only valid highlight accent permitted for active routes, loading states, progress bars, and focus borders is Cybernetic Krypton Teal (#00E699).The 2.5-Row Contained Shading Rule: Check the horizontal Continue Work carousels and the vertical My Work contained browser lists. The scrolling area box heights must lock cleanly to display exactly 2.5 rows of content. The bottom interior edge must apply a smooth linear opacity gradient fade block overlaying the rows, signaling scrollability to the operator.📈 SECTION 5: HIGH-FIDELITY MARKETING & EDUCATION CONTENT(Deploy this high-end copy across your public landing screens and deep-dive product pages to establish technical authority and protect your organization from liability risks)🚀 1. The Public Homepage Hero Headline Row (High-Level PWA Pitch)SLATE360 // REALITY INTELLIGENCE
+ONE NATIVE APP ECOSYSTEM ENGINEERED FOR PRECISION CONSTRUCTION WORKFLOWS.
+
+Stop filling your device camera roll with uncontextualized field pictures. Walk the project site using your smartphone or tablet to capture high-fidelity spatial conditions seamlessly inside our synchronized cloud desktop studio. Virtually walk through jobs, analyze construction-progress timelines, verify design-intent against structural CAD files, and communicate with contractors through interactive pins — saving your engineering teams hours of driving to the site every single week.
+
+[ Download on App Store ]   [ Get it on Google Play ]   [ Review System Pricing ]
+📐 2. The Deep-Dive Product Detail Screen Content (The "Learn More" Portal)Unified Indoor/Outdoor Reality Capture: Traditional platforms freeze up your workflows by separating your data loops—forcing you into walled interior mapping networks or disconnected exterior drone surveying charts. Slate360 obliterates these walls. Our platform functions as an agile, universal ingestion pipeline that accepts any mix of raw field data: uncompressed smartphone video streams, hardware LiDAR point-clouds, aerial drone photogrammetry maps, and panoramic 360 camera footage. By compiling these inputs inside our cloud serverless computing layers, your organization gains a seamless, unified, and immersive 3D digital model mapping your entire asset interior and exterior structures simultaneously in high resolution.Advanced VDC Clash Detection & Layering: Reality capture is empty if it cannot be verified against architectural design intent. Inside our premium desktop workstation cockpit, project managers can upload an architect’s structural .ifc, .glb, or .gltf CAD file directly over the live 3D terrain scan. By utilizing precise manual translation alignment sliders and opacity layer visibility toggles, engineers can perform instant, micro-level Clash Detection. Spot discrepancies instantly, verify that plumbing stacks or structural columns match blueprint coordinates before concrete pours begin, and visually communicate structural alignments to all remote stakeholders with zero specialized software downloads.Multiplayer Real-Time Collaboration & PDF Exports: Turn your spatial project models into a live, interactive communication sandbox. Field inspectors and outside clients can tap anywhere inside the WebGL viewer canvas to drop high-visibility, project-tracked pin nodes. Every pin houses threaded discussion columns, description notes, priority statuses, and custom photo attachments. Because data synchronizes instantly over secure, tokenized public links running server-side database transaction streams, remote stakeholders can view, measure, and text notes live with no login or account setup barriers. With a single click, the platform compiles your active pins, comments, and viewport snapshots into a professional, formatted AEC field punch list report page—ready to email straight to subcontractors to close communication loops instantly.⚖️ 3. The Structural Legal Liability Disclaimer Badge(This text must be permanently hardcoded in sharp, legible font families along the base footer rail of every interactive public viewer canvas window)⚠️ REGULATORY COMPLIANCE DATA DISCLAIMER BOARD:
+All measurements, spatial cross-sections, volumetric boundary estimations, and CAD alignment overlays displayed inside this interactive studio viewer canvas are approximate and engineered exclusively for visual context, progress documentation, and project coordination use cases. These models are not survey-grade maps, contain no licensed geometric certifications, and do not represent structural engineering analysis or legal property boundaries. Slate360 is not liable for structural field variances or installation errors resulting from individual relative ruler calculations inside this browser view port.
+🎓 SECTION 6: THE ACADEMIC TEXTBOOK COMPENDIUM (Neural Rendering Demystified)(Include this educational appendix inside your pitch decks and engineering documentation libraries to explain the core science powering your processing workers)1. Structure from Motion (SfM) & Camera Position TrackingBefore a computer can compile thousands of flat, unarranged smartphone photos and drone video frames into a coherent 3D model space, it must calculate mathematically where the camera was physically floating in the air for every single frame. This spatial geometry calculation process is called Structure from Motion (SfM), and the platform utilizes an open-source computer vision engine called COLMAP to execute it inside your cloud GPU workers.  The SfM pipeline runs in three discrete mathematical phases:Feature Extraction & Scale-Invariant Matching: The computer analyzes every pixel of an image, locating millions of highly stable, high-contrast visual anchors—such as a specific scratch on a concrete slab, a brick corner intersection, or a steel column bolt hole. It converts these points into mathematical descriptors and scans through every other photo in the dataset, identifying where those identical feature descriptors reappear across different angles.  Bundle Adjustment Triangulation: By calculating the geometric parallax angle shift of those identical feature points between different overlapping images, the engine runs complex matrix inversion algorithms to reverse-engineer the absolute 3D position vector ($X, Y, Z$) and rotational camera orientation angle (Pitch, Roll, Yaw) for every single frame exposure.  The Scale-Prior Bridge: Photogrammetry calculation math is inherently scale-less; a model of a toy dollhouse and a model of a massive sports stadium can look mathematically identical to a computer if they contain the same relative feature points. To force your drone and 360 models to snap into true real-world dimensions, our plugin injects your iPhone’s native LiDAR point-cloud data (.ply) straight into the SfM calculation thread. The engine reads the millimeter-accurate distance depths recorded by the physical LiDAR sensor and uses them as an absolute Depth Prior, forcing the full visual scene to snap into perfect, real-world metric scale with absolute geometric fidelity.  2. Neural Radiance Fields (NeRF) vs. 3D Gaussian Splatting (3DGS)Once camera positions are locked, the engine transitions to neural rendering to generate the continuous 3D digital model deliverable. Understanding the core difference between these frameworks dictates why your platform prioritizes Gaussian Splatting for production use:    [ NEURAL RADIANCE FIELDS (NeRF) ]            [ 3D GAUSSIAN SPLATTING (3DGS) ]
+┌───────────────────────────────────────┐   ┌───────────────────────────────────────┐
+│ • Continuous Volumetric Grid Scene    │   │ • Millions of Explicit 3D Ellipses    │
+│ • Requires heavy Neural Network MLP   │   │ • Point-Based Rasterization Math      │
+│ • Ray-marching query delays rendering │   │ • Instantly drawn via WebGL shaders   │
+│ ❌ SLOW: 2-3 FPS on standard phones   │   │ ✅ FAST: 60 FPS on standard phones   │
+└───────────────────────────────────────┘   └───────────────────────────────────────┘
+Neural Radiance Fields (NeRF): A NeRF represents a 3D scene completely inside the weight matrices of a continuous Multilayer Perceptron (MLP) neural network. When a user looks at a model, the browser must fire thousands of virtual light rays through every single screen pixel, query the full neural network structure repeatedly to compute the color density and light opacity metrics for those coordinate points, and compile them onto the screen. Because this continuous ray-marching math requires immense processing cycles, NeRF models are incredibly slow to draw—frequently dropping down to a laggy 2–3 FPS on standard smartphones and tablets.3D Gaussian Splatting (3DGS): Gaussian Splatting skips neural network network queries entirely during playback. Instead, it converts your spatial data into millions of explicit, independent, and flexible 3D mathematical ellipses ("splats") floating in space. Every individual splat contains fixed structural properties: its absolute 3D center position, scale factors along three axes, orientation vectors, a light opacity value, and standard Spherical Harmonics (SH) parameters that dictate how the splat changes color depending on the angle you view it from (capturing stunning, photorealistic light reflections and shadows perfectly).  Because these splats represent concrete geometric points rather than an abstract neural field, they can be projected and rasterized onto a browser canvas instantly using basic, native WebGL and WebGPU shader codes. This allows your complex construction site models to render in full, crisp photorealism at a silky-smooth 60 frames per second on almost any standard mobile phone or web browser with zero software downloads required. It is the definitive standard for industrial VDC reality coordination.  🚀 SECTION 7: THE CORE READINESS DIRECTIVE FOR GROK BUILD(Copy and paste this final block directly into your secondary AI assistant stream to initialize the core implementation loops safely)MarkdownRole: Lead Mobile Systems Architect & Core UI Systems Release Engineer
+Context: Our master database framework migrations are fully executed, our server-side direct multipart upload routes are operational, and our native iOS ARKit downsampling filters are compiled on the feature branch [PASS]. We are ready to execute the unified frontend page setups for Dashboard V3 and our mobile capture views.
+
+Do not write boilerplate code templates or invent placeholder files. You are commanded to execute a direct, line-level component implementation sprints loop against our isolated tracks.
+
+Please review our on-disk coordinates and implement the visual systems across these files:
+1. Open a new file at `components/digital-twin/MobileCaptureScreen.tsx` and implement Prompt 4 to establish the mobile viewfinder overlays and the 10Hz telemetry event bridge lines.
+2. Create `components/studio-ui/DigitalTwinReviewCard.tsx` and implement Prompt 5 to stand up the post-capture review progress list blocks and Stripe authorization hold calculators.
+3. Open `components/studio-ui/MobileAppRootContent.tsx` and implement Prompt 6 to overwrite the launcher grid rows with our dynamic scaling icon matrix.
+4. Open `components/digital-twin/SplatVolumeViewer.tsx` and implement Prompt 7 to deploy the React Three Fiber WebGL 3D canvas and the GPU hardware clipping plane shaders.
+5. Create `components/digital-twin/StudioBimViewport.tsx` and implement Prompt 8 to write the translucent wireframe CAD overlay matrices and the solar azimuth trajectory lighting models.
+6. Create `components/digital-twin/StudioToolkitDrawer.tsx` and implement Prompt 9 to build the slide-out AEC tool drawer controllers panel.
+
+Every file created must stay strictly under 300 lines of code. Enforce our strict `.cursorrules` visual contract universally: every structural container card, input box, menu row, and action button must utilize a sharp, rectangular curvature of exactly 12px (`rounded-xl`). Pill shapes and generic text outline fields are strictly forbidden. Run our full validation loop (`npm run typecheck && npm run build`) after every step to verify absolute codebase stability. Let's initialize the core build passes now.
