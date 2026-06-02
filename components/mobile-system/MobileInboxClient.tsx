@@ -27,8 +27,11 @@ export function MobileInboxClient() {
   return (
     <div className={mobileTokens.mobilePageScrollInner}>
       <section className={cn(mobileTokens.panelBase, "p-5")}>
+        <span className={cn(mobileTokens.mobileIconWell, "h-12 w-12")} aria-hidden>
+          <Inbox className="h-6 w-6" strokeWidth={1.75} />
+        </span>
         <span className={mobileTokens.sectionLabelAccentCool} aria-hidden />
-        <p className={mobileTokens.mobileEyebrowLabel}>Coordination</p>
+        <p className={cn("mt-4", mobileTokens.mobileEyebrowLabel)}>Coordination</p>
         <h1 className={cn("mt-1", mobileTokens.moduleTitle)}>Inbox</h1>
         <p className={mobileTokens.moduleSubtitle}>
           Messages, notifications, and team coordination in one place.

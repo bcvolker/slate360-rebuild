@@ -10,7 +10,7 @@ import {
   MobilePlatformHeader,
   MobileShell,
 } from "@/components/mobile-system";
-import { resolveMobilePlatformHeaderMeta } from "@/components/mobile-system/MobileBottomNav";
+import { resolveMainMobileHeaderMeta } from "@/components/mobile-system/mainMobileTabs";
 import { InviteShareProvider, useInviteShare } from "@/components/shared/InviteShareProvider";
 import type { InviteShareData } from "@/lib/types/invite";
 
@@ -45,7 +45,7 @@ function MobilePlatformLayoutInner({
   children,
 }: MobilePlatformLayoutProps) {
   const pathname = usePathname() ?? "";
-  const headerMeta = resolveMobilePlatformHeaderMeta(pathname);
+  const headerMeta = resolveMainMobileHeaderMeta(pathname);
   const mobileRoute = pathname.startsWith("/site-walk")
     ? "site-walk"
     : pathname.startsWith("/digital-twin")

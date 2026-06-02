@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { resolveServerOrgContext } from "@/lib/server/org-context";
 import { ensureUserOrganization } from "@/lib/server/org-bootstrap";
@@ -13,7 +14,7 @@ export const metadata = {
 
 export default async function MobileAppRootPage() {
   const isMobile = await isMobileServerLayout();
-  const { user, orgId, orgName, isSlateCeo, role } = await resolveServerOrgContext();
+  const { user, orgId, isSlateCeo, role } = await resolveServerOrgContext();
 
   if (!user) {
     redirect("/login");
@@ -30,7 +31,11 @@ export default async function MobileAppRootPage() {
   const activeOrgId = orgId ?? (await resolveServerOrgContext()).orgId;
 
   if (isMobile) {
-    return <MobileAppRootContent />;
+    return (
+      <Suspense fallback={null}>
+        <MobileAppRootContent />
+      </Suspense>
+    );
   }
 
   if (!activeOrgId) {

@@ -29,6 +29,19 @@ export { MobileInboxClient } from "./MobileInboxClient";
 export { MobileTopBar } from "./MobileTopBar";
 
 export {
+  mainMobileTabs,
+  MAIN_MOBILE_TAB_ROUTE_PREFIXES,
+  isMainMobileTabRoute,
+  resolveMainMobileTabKey,
+  resolveMainMobileHeaderMeta,
+} from "./mainMobileTabs";
+export type {
+  MainMobileTab,
+  MainMobileTabKey,
+  MainMobileHeaderMeta,
+} from "./mainMobileTabs";
+
+export {
   MobileBottomNav,
   MobilePlatformBottomNav,
   MOBILE_PLATFORM_NAV_ITEMS,
