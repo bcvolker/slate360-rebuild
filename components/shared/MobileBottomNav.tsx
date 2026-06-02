@@ -15,7 +15,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, FolderOpen, Cloud, Footprints, FileText, MessageSquare, MoreHorizontal, User } from "lucide-react";
+import { Home, FolderOpen, Cloud, Footprints, FileText, MessageSquare, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface NavItem {
@@ -42,7 +42,6 @@ const SITE_WALK_NAV: NavItem[] = [
     matchPrefixes: ["/site-walk/walks", "/site-walk/capture", "/site-walk/capture-v2", "/site-walk/board"],
   },
   { label: "Deliverables", href: "/site-walk/deliverables", icon: FileText, matchPrefixes: ["/site-walk/deliverables", "/site-walk/present"] },
-  { label: "More", href: "/site-walk/more", icon: MoreHorizontal, matchPrefixes: ["/site-walk/more", "/site-walk/slatedrop", "/site-walk/files", "/site-walk/templates", "/site-walk/contacts", "/site-walk/plans"] },
 ];
 
 function pickNav(pathname: string): NavItem[] {
