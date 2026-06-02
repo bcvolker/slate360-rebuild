@@ -1,9 +1,13 @@
 import type { Metadata, Viewport } from "next";
 import { Geist } from "next/font/google";
+import { PWA_PLACEHOLDER_ICONS } from "@/lib/pwa/icon-assets";
 import { readBrandingCookie } from "@/lib/server/branding";
 import { ClientProviders } from "@/components/providers/ClientProviders";
 import { ThemeScript } from "@/components/providers/ThemeProvider";
 import "./globals.css";
+
+// PLACEHOLDER ICON — pending final green/blue brand mark, do not ship to store as-is.
+const { icon192, icon512 } = PWA_PLACEHOLDER_ICONS;
 
 // Force dynamic rendering for all routes. Slate360 is a fully authenticated
 // SaaS — there is no benefit to static generation, and the Sentry debug-id
@@ -32,15 +36,13 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: "/favicon.ico", sizes: "32x32", type: "image/x-icon" },
-      { url: "/uploads/icon-192.png", sizes: "192x192", type: "image/png" },
-      { url: "/uploads/icon-512.png", sizes: "512x512", type: "image/png" },
-      { url: "/icon-v2.svg", type: "image/svg+xml" },
+      { url: icon192, sizes: "192x192", type: "image/png" },
+      { url: icon512, sizes: "512x512", type: "image/png" },
     ],
-    shortcut: "/favicon.ico",
+    shortcut: icon192,
     apple: [
-      { url: "/uploads/icon-192.png", sizes: "192x192", type: "image/png" },
-      { url: "/uploads/icon-512.png", sizes: "512x512", type: "image/png" },
+      { url: icon192, sizes: "192x192", type: "image/png" },
+      { url: icon512, sizes: "512x512", type: "image/png" },
     ],
   },
 };

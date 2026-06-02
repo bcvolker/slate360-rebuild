@@ -1,5 +1,6 @@
 /// <reference lib="webworker" />
 import type { PrecacheEntry, SerwistGlobalConfig } from "serwist";
+import { KILL_SWITCH_VERSION } from "@/lib/pwa/sw-version";
 
 declare global {
   interface WorkerGlobalScope extends SerwistGlobalConfig {
@@ -8,8 +9,6 @@ declare global {
 }
 
 declare const self: ServiceWorkerGlobalScope & typeof globalThis;
-
-const KILL_SWITCH_VERSION = "2026-05-12-build-02";
 
 const ignoredPrecacheManifest = self.__SW_MANIFEST;
 void ignoredPrecacheManifest;

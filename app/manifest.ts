@@ -1,4 +1,8 @@
 import type { MetadataRoute } from "next";
+import { PWA_PLACEHOLDER_ICONS } from "@/lib/pwa/icon-assets";
+
+// PLACEHOLDER ICON — pending final green/blue brand mark, do not ship to store as-is.
+const { icon192, icon512, icon512Maskable } = PWA_PLACEHOLDER_ICONS;
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
@@ -19,28 +23,22 @@ export default function manifest(): MetadataRoute.Manifest {
     categories: ["business", "productivity"],
     icons: [
       {
-        src: "/uploads/icon-192.png",
+        src: icon192,
         sizes: "192x192",
         type: "image/png",
         purpose: "any",
       },
       {
-        src: "/uploads/icon-512.png",
+        src: icon512,
         sizes: "512x512",
         type: "image/png",
         purpose: "any",
       },
       {
-        src: "/uploads/icon-512-maskable.png",
+        src: icon512Maskable,
         sizes: "512x512",
         type: "image/png",
         purpose: "maskable",
-      },
-      {
-        src: "/uploads/slate360-favicon-v2.svg",
-        sizes: "any",
-        type: "image/svg+xml",
-        purpose: "any",
       },
     ],
     screenshots: [

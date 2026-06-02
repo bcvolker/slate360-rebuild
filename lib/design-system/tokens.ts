@@ -214,11 +214,9 @@ export const assets = {
   logo: "/uploads/slate360-logo-reversed-v2.svg",
   /** Absolute URL for emails and external contexts */
   logoAbsolute: "https://www.slate360.ai/uploads/slate360-logo-reversed-v2.svg",
-  /** Favicon (cache-busted v2) */
-  favicon: "/icon-v2.svg",
-  /** Upload-directory favicon */
-  faviconUpload: "/uploads/slate360-favicon-v2.svg",
-  /** PWA icons */
+  /** PLACEHOLDER ICON — pending final green/blue brand mark, do not ship to store as-is. */
+  favicon: "/uploads/icon-192.png",
+  faviconUpload: "/uploads/icon-512.png",
   icon192: "/uploads/icon-192.png",
   icon512: "/uploads/icon-512.png",
   icon512Maskable: "/uploads/icon-512-maskable.png",
