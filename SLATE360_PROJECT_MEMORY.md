@@ -7,7 +7,7 @@ Live: https://www.slate360.ai
 
 ## Validated baseline (2026-06-02)
 
-**Commit:** `38884fe7` — supersedes `07621d30`.
+**Commit:** `788ea577` — supersedes `07621d30`.
 
 **Phase:** App-store prep — mobile shell consolidation + field visibility.
 
@@ -17,7 +17,7 @@ Live: https://www.slate360.ai
 |--------|--------|
 | `413e5d2d` | Shared `MobilePlatformShell` — single orchestrator for header + bottom nav |
 | `07621d30` | Project memory baseline hash fix |
-| `38884fe7` | Field visibility — portrait lock, solid `#00E699` / `#3D8EFF` primary CTAs, bottom-nav outdoor contrast |
+| `788ea577` | Field visibility — portrait lock, solid `#00E699` / `#3D8EFF` primary CTAs, bottom-nav outdoor contrast |
 
 **Stash warning:** Do **not** `git stash pop` or `git stash apply` on `stash@{4}` (WIP before homepage cleanup) or `stash@{5}` (cursor-temp-before-push) — obsolete bulk work will collide with current main.
 
