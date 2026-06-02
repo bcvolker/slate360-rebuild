@@ -94,6 +94,16 @@ export const appShell = {
   activeScale: "0.99",
 } as const;
 
+/* ── Field visibility (outdoor / mobile shell primary actions) ─ */
+
+export const fieldVisibility = {
+  canvasDark: "#0B0F15",
+  siteWalkGreen: "#00E699",
+  siteWalkGreenHover: "#00D88A",
+  twin360Blue: "#3D8EFF",
+  twin360BlueHover: "#3580E6",
+} as const;
+
 /* ── Module Accent Colors ───────────────────────────────────── */
 
 export const modules = {
@@ -106,6 +116,8 @@ export const modules = {
   analytics: "#6366F1",
   market: "#6366F1",
   slatedrop: "#3B82F6",
+  siteWalk: fieldVisibility.siteWalkGreen,
+  twin360: fieldVisibility.twin360Blue,
 } as const;
 
 /* ── Status Colors ──────────────────────────────────────────── */

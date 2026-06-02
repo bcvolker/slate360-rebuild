@@ -7,9 +7,17 @@ Live: https://www.slate360.ai
 
 ## Validated baseline (2026-06-02)
 
-**Commit:** `413e5d2d` — supersedes `aae63e40`.
+**Commit:** `38884fe7` — supersedes `07621d30`.
 
-**Slice:** Shared mobile platform shell — `MobilePlatformShell` is now the single orchestrator for header + `MobileShell` + bottom nav + overlays. `(mobile)/layout` delegates through thin `MobilePlatformLayout`. `StudioAppShell` retains full-bleed passthrough for Site Walk / Digital Twin sub-routes and delegates non-bleed paths to `MobilePlatformShellFrame` (live for `app/(dashboard)/*` surfaces such as `/more`, `/project-hub`, `/settings`).
+**Phase:** App-store prep — mobile shell consolidation + field visibility.
+
+**Slice ledger:**
+
+| Commit | Slice |
+|--------|--------|
+| `413e5d2d` | Shared `MobilePlatformShell` — single orchestrator for header + bottom nav |
+| `07621d30` | Project memory baseline hash fix |
+| `38884fe7` | Field visibility — portrait lock, solid `#00E699` / `#3D8EFF` primary CTAs, bottom-nav outdoor contrast |
 
 **Stash warning:** Do **not** `git stash pop` or `git stash apply` on `stash@{4}` (WIP before homepage cleanup) or `stash@{5}` (cursor-temp-before-push) — obsolete bulk work will collide with current main.
 

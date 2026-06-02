@@ -101,9 +101,13 @@
   /* ── Graphite Matrix canonical tokens ───────────────────────── */
   --graphite-canvas: #0B0F15;
   --graphite-primary: #00E699;
+  --twin360-blue: #3D8EFF;
   --graphite-text-header: #FFFFFF;
   --graphite-text-body: #F8FAFC;
   --graphite-muted: #A3AED0;
+  /* Mobile shell field-primary CTAs — overridden per data-mobile-route on MobileShell */
+  --mobile-field-primary-bg: var(--graphite-primary);
+  --mobile-field-primary-fg: var(--graphite-canvas);
 
   /* ── shadcn canonical surface + text (PREMIUM LIGHT 2026-04-23) ──
      Inner-app pages, cards, popovers, and authenticated dashboards now
@@ -629,6 +633,28 @@
   scrollbar-width: none;
 }
 .no-scrollbar::-webkit-scrollbar { display: none; }
+
+/* ─────────────────────────────────────────────────────────────────
+   Mobile PWA — portrait-first + field-primary route accents
+   Manifest orientation: portrait (app/manifest.ts) is authoritative.
+   Meta fallback: screen-orientation in app/layout.tsx head.
+   ───────────────────────────────────────────────────────────────── */
+[data-mobile-route="digital-twin"] {
+  --mobile-field-primary-bg: var(--twin360-blue);
+  --mobile-field-primary-fg: var(--graphite-canvas);
+}
+
+[data-mobile-route="site-walk"],
+[data-mobile-route="app"] {
+  --mobile-field-primary-bg: var(--graphite-primary);
+  --mobile-field-primary-fg: var(--graphite-canvas);
+}
+
+@media (orientation: landscape) and (max-height: 31rem) and (display-mode: standalone) {
+  html {
+    overflow-x: hidden;
+  }
+}
 
 /* ─────────────────────────────────────────────────────────────────
    Auth Page Shared Styles

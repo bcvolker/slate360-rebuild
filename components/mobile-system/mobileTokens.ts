@@ -24,7 +24,7 @@ const mobileTabbedPanelBodyPadding = "px-3 pt-2 pb-3";
 
 /** Shared home action card — launcher tiles + quick actions (all shells) */
 const quickActionMinHeightClass = "min-h-[112px]";
-const mobileHomeActionCard = `flex ${quickActionMinHeightClass} flex-col items-start justify-center gap-1 rounded-xl border border-emerald-500/15 bg-white/[0.05] px-3 py-2.5 text-left text-zinc-100 transition-all hover:border-emerald-400/22 hover:bg-white/[0.08] hover:text-white active:-translate-y-0.5 active:border-emerald-400/28 active:bg-white/[0.11] active:ring-2 active:ring-emerald-400/25`;
+const mobileHomeActionCard = `flex ${quickActionMinHeightClass} flex-col items-start justify-center gap-1 rounded-xl border border-transparent bg-[var(--mobile-field-primary-bg)] px-3 py-2.5 text-left text-[var(--mobile-field-primary-fg)] shadow-[0_2px_12px_rgba(0,0,0,0.32)] transition-all hover:brightness-[0.97] active:brightness-[0.92] active:scale-[0.99]`;
 const mobileHomeActionGrid = "grid shrink-0 grid-cols-2 gap-2.5 auto-rows-fr";
 
 export const mobileTokens = {
@@ -134,7 +134,7 @@ export const mobileTokens = {
   mobileBrandIconGlow: "drop-shadow-[0_0_10px_rgba(45,212,191,0.12)]",
   mobileBrandCoolGlow: "shadow-[0_0_8px_rgba(45,212,191,0.08)]",
   mobilePrimaryButton:
-    "rounded-lg bg-teal-500/90 text-white hover:bg-teal-500",
+    "rounded-lg bg-[var(--mobile-field-primary-bg)] font-semibold text-[var(--mobile-field-primary-fg)] shadow-[0_2px_10px_rgba(0,0,0,0.28)] hover:brightness-[0.97] active:brightness-[0.92]",
   mobileAvatarRing:
     "flex size-6 items-center justify-center rounded-full bg-teal-400/12 text-[10px] font-bold text-teal-300 transition-colors hover:bg-teal-400/18",
   /** Platform header bar — Graphite Glass chrome for all mobile shells */
@@ -161,12 +161,13 @@ export const mobileTokens = {
     "truncate text-[16px] font-semibold leading-tight tracking-tight text-white",
   mobileHeaderSubtitle:
     "truncate text-[11px] font-bold uppercase leading-tight tracking-[0.1em] text-zinc-300 mt-0.5",
-  mobileBottomNavItemActive: "bg-teal-400/12 text-teal-200",
-  mobileBottomNavItemIdle: "text-zinc-300 hover:bg-white/5 hover:text-zinc-100",
+  mobileBottomNavItemActive: "bg-white/[0.14] font-semibold text-white",
+  mobileBottomNavItemIdle:
+    "text-zinc-100/90 hover:bg-white/[0.07] hover:text-white",
   mobileBottomNavActiveIndicator:
-    "absolute left-1/2 top-0 h-[2px] w-8 -translate-x-1/2 rounded-b-full bg-teal-400 shadow-[0_2px_8px_rgba(45,212,191,0.35)]",
+    "absolute left-1/2 top-0 h-[2.5px] w-10 -translate-x-1/2 rounded-b-full bg-[var(--mobile-field-primary-bg)] shadow-[0_2px_12px_rgba(0,0,0,0.35)]",
   mobileBottomNavBar:
-    "relative z-20 shrink-0 rounded-t-3xl border-t border-white/10 bg-[#0B0F15]/88 shadow-lg backdrop-blur-md",
+    "relative z-20 shrink-0 rounded-t-3xl border-t border-white/20 bg-[#0B0F15]/96 shadow-[0_-10px_28px_rgba(0,0,0,0.5)] backdrop-blur-lg",
   mobileModalOverlay:
     "fixed inset-0 z-[1000] flex items-center justify-center bg-black/70 p-4 backdrop-blur-md",
   mobileModalPanel:
@@ -221,12 +222,14 @@ export const mobileTokens = {
   mobileHomeActionGrid,
   mobileHomeActionCard,
   mobileHomeActionCardSelected:
-    "border-emerald-400/28 bg-white/[0.07] ring-1 ring-emerald-400/20",
+    "brightness-[0.97] ring-2 ring-[var(--mobile-field-primary-fg)]/30",
   mobileHomeActionIconWrapper:
-    "mb-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-emerald-400/20 bg-emerald-400/10",
-  mobileHomeActionIcon: "h-6 w-6 shrink-0 text-emerald-400/85",
-  mobileHomeActionTitle: "text-base font-bold leading-tight text-white",
-  mobileHomeActionSubtext: "text-sm font-medium leading-snug text-zinc-200",
+    "mb-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-[var(--mobile-field-primary-fg)]/20 bg-[var(--mobile-field-primary-fg)]/12",
+  mobileHomeActionIcon: "h-6 w-6 shrink-0 text-[var(--mobile-field-primary-fg)]",
+  mobileHomeActionTitle:
+    "text-base font-bold leading-tight text-[var(--mobile-field-primary-fg)]",
+  mobileHomeActionSubtext:
+    "text-sm font-medium leading-snug text-[var(--mobile-field-primary-fg)]/85",
 
   // ── Legacy aliases (launcher + quick action tokens) ───────────────────────
   mobileQuickActionGrid: mobileHomeActionGrid,
@@ -234,23 +237,27 @@ export const mobileTokens = {
   mobileQuickActionCardSurface: mobileHomeActionCard,
   mobileQuickActionCardApp: mobileHomeActionCard,
   mobileQuickActionCardModule: mobileHomeActionCard,
-  mobileQuickActionIconWrapper: "mb-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-emerald-400/20 bg-emerald-400/10",
+  mobileQuickActionIconWrapper:
+    "mb-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-[var(--mobile-field-primary-fg)]/20 bg-[var(--mobile-field-primary-fg)]/12",
   mobileQuickActionIconWrapperModuleAccent: "",
-  mobileQuickActionIcon: "h-6 w-6 shrink-0 text-emerald-400/85",
+  mobileQuickActionIcon: "h-6 w-6 shrink-0 text-[var(--mobile-field-primary-fg)]",
   mobileQuickActionIconModuleAccent: "",
-  mobileQuickActionLabel: "text-base font-bold leading-tight text-white",
-  mobileQuickActionSubtext: "text-sm font-medium leading-snug text-zinc-200",
+  mobileQuickActionLabel:
+    "text-base font-bold leading-tight text-[var(--mobile-field-primary-fg)]",
+  mobileQuickActionSubtext:
+    "text-sm font-medium leading-snug text-[var(--mobile-field-primary-fg)]/85",
 
   // ── Action card (legacy aliases → shared quick action tokens) ───────────
   actionCardHeight: quickActionMinHeightClass,
   mobileActionCardHeight: quickActionMinHeightClass,
   moduleActionCardHeight: quickActionMinHeightClass,
   moduleActionIconWrapper:
-    "mb-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-emerald-400/20 bg-emerald-400/10",
-  moduleActionIconClass: "h-6 w-6 text-emerald-400/85",
+    "mb-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-[var(--mobile-field-primary-fg)]/20 bg-[var(--mobile-field-primary-fg)]/12",
+  moduleActionIconClass: "h-6 w-6 text-[var(--mobile-field-primary-fg)]",
   actionCardBase: mobileHomeActionCard,
-  actionIconClass: "h-6 w-6 text-emerald-400/85",
-  actionLabelClass: "text-base font-bold leading-tight text-white",
+  actionIconClass: "h-6 w-6 text-[var(--mobile-field-primary-fg)]",
+  actionLabelClass:
+    "text-base font-bold leading-tight text-[var(--mobile-field-primary-fg)]",
 
   // ── /app home — launcher primary, quick actions secondary ────────────────
   /** /app scroll region — extra breathing room for Your Apps */
@@ -263,11 +270,12 @@ export const mobileTokens = {
   appHomeQuickActionsSectionAccent: "mb-1 block h-0.5 w-6 rounded-full bg-emerald-400/25",
   appHomeQuickActionGrid: "grid shrink-0 grid-cols-2 gap-2 auto-rows-fr",
   appHomeQuickActionCard:
-    "flex min-h-[84px] flex-col items-start justify-center gap-0.5 rounded-xl border border-emerald-500/12 bg-white/[0.04] px-2.5 py-2 text-left text-zinc-100 transition-all hover:border-emerald-400/18 hover:bg-white/[0.06] hover:text-white active:-translate-y-0.5 active:border-emerald-400/22 active:bg-white/[0.08] active:ring-2 active:ring-emerald-400/20",
+    "flex min-h-[84px] flex-col items-start justify-center gap-0.5 rounded-xl border border-transparent bg-[var(--mobile-field-primary-bg)] px-2.5 py-2 text-left text-[var(--mobile-field-primary-fg)] shadow-[0_2px_10px_rgba(0,0,0,0.28)] transition-all hover:brightness-[0.97] active:brightness-[0.92] active:scale-[0.99]",
   appHomeQuickActionIconWrapper:
-    "mb-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-emerald-400/18 bg-emerald-400/8",
-  appHomeQuickActionIcon: "h-5 w-5 shrink-0 text-emerald-400/80",
-  appHomeQuickActionTitle: "text-sm font-semibold leading-tight text-zinc-100",
+    "mb-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[var(--mobile-field-primary-fg)]/20 bg-[var(--mobile-field-primary-fg)]/12",
+  appHomeQuickActionIcon: "h-5 w-5 shrink-0 text-[var(--mobile-field-primary-fg)]",
+  appHomeQuickActionTitle:
+    "text-sm font-bold leading-tight text-[var(--mobile-field-primary-fg)]",
   appHomeLauncherGrid: "grid shrink-0 grid-cols-2 gap-3 auto-rows-fr",
   appHomeLauncherCard:
     "flex min-h-[124px] flex-col items-start justify-center gap-1.5 rounded-xl border border-emerald-500/18 bg-white/[0.06] px-3.5 py-3 text-left text-zinc-100 transition-all hover:border-emerald-400/25 hover:bg-white/[0.09] hover:text-white active:-translate-y-0.5 active:border-emerald-400/30 active:bg-white/[0.12] active:ring-2 active:ring-emerald-400/25",
@@ -280,9 +288,10 @@ export const mobileTokens = {
   // ── /app quick action aliases (legacy — prefer appHomeQuickAction*) ─────
   appQuickActionGrid: "grid shrink-0 grid-cols-2 gap-2 auto-rows-fr",
   appQuickActionCard:
-    "flex min-h-[84px] flex-col items-start justify-center gap-0.5 rounded-xl border border-emerald-500/12 bg-white/[0.04] px-2.5 py-2 text-left text-zinc-100 transition-all hover:border-emerald-400/18 hover:bg-white/[0.06] hover:text-white active:-translate-y-0.5 active:border-emerald-400/22 active:bg-white/[0.08] active:ring-2 active:ring-emerald-400/20",
-  appQuickActionIcon: "h-5 w-5 shrink-0 text-emerald-400/80",
-  appQuickActionLabel: "text-sm font-semibold leading-tight text-zinc-100",
+    "flex min-h-[84px] flex-col items-start justify-center gap-0.5 rounded-xl border border-transparent bg-[var(--mobile-field-primary-bg)] px-2.5 py-2 text-left text-[var(--mobile-field-primary-fg)] shadow-[0_2px_10px_rgba(0,0,0,0.28)] transition-all hover:brightness-[0.97] active:brightness-[0.92] active:scale-[0.99]",
+  appQuickActionIcon: "h-5 w-5 shrink-0 text-[var(--mobile-field-primary-fg)]",
+  appQuickActionLabel:
+    "text-sm font-bold leading-tight text-[var(--mobile-field-primary-fg)]",
   /** @deprecated Use appQuickActionGrid — legacy 1-row strip */
   appQuickActionStripRow: "grid grid-cols-4 gap-1.5",
   /** @deprecated Use appQuickActionCard */
@@ -292,9 +301,11 @@ export const mobileTokens = {
   siteWalkActionGridRow: mobileHomeActionGrid,
   siteWalkActionGridButton: mobileHomeActionCard,
   siteWalkActionGridIcon:
-    "mb-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-emerald-400/20 bg-emerald-400/10",
-  siteWalkActionGridLabel: "text-base font-bold leading-tight text-white",
-  siteWalkActionGridSubtext: "text-sm font-medium leading-snug text-zinc-200",
+    "mb-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-[var(--mobile-field-primary-fg)]/20 bg-[var(--mobile-field-primary-fg)]/12",
+  siteWalkActionGridLabel:
+    "text-base font-bold leading-tight text-[var(--mobile-field-primary-fg)]",
+  siteWalkActionGridSubtext:
+    "text-sm font-medium leading-snug text-[var(--mobile-field-primary-fg)]/85",
   /** @deprecated Use appQuickActionStripRow */
   quickActionStripRow: "grid grid-cols-4 gap-1.5",
   /** @deprecated Use siteWalkActionGridRow */

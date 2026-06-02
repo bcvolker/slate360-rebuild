@@ -12,6 +12,7 @@ export default function manifest(): MetadataRoute.Manifest {
     start_url: "/app",
     scope: "/",
     display: "standalone",
+    /** Portrait-first field PWA — CSS/meta fallback in globals.css + layout head */
     orientation: "portrait",
     background_color: "#0B0F15",
     theme_color: "#0B0F15",
