@@ -6,9 +6,7 @@ import { usePathname } from "next/navigation";
 import {
   MobileHeaderOverlays,
   MobileModalProvider,
-  MobilePlatformBottomNav,
-  MobilePlatformHeader,
-  MobileShell,
+  MobilePlatformShellFrame,
 } from "@/components/mobile-system";
 import { InviteShareProvider, useInviteShare } from "@/components/shared/InviteShareProvider";
 import { isSiteWalkPassthroughShellPath } from "@/lib/site-walk/site-walk-shell-paths";
@@ -18,7 +16,7 @@ import {
 } from "@/lib/digital-twin/digital-twin-shell-paths";
 import type { InviteShareData } from "@/lib/types/invite";
 
-/** Site Walk sub-routes and task surfaces keep their own chrome; home stays in platform shell. */
+/** Site Walk sub-routes keep their own chrome; module home uses (mobile)/MobilePlatformShell. */
 function isSiteWalkPlatformBypassPath(pathname: string): boolean {
   if (pathname === "/site-walk") return false;
   return pathname.startsWith("/site-walk/");
@@ -43,38 +41,30 @@ function StudioAppShellInner({ inviteShareData, children }: StudioAppShellProps)
     isSiteWalkPassthroughShellPath(pathname) ||
     isDigitalTwinPlatformBypassPath(pathname) ||
     isDigitalTwinPassthroughShellPath(pathname);
-  const isModuleHome = pathname === "/site-walk" || pathname === "/digital-twin";
-  const mobileRoute = pathname.startsWith("/site-walk")
-    ? "site-walk"
-    : pathname.startsWith("/digital-twin")
-      ? "digital-twin"
-      : "app";
   const { open: inviteOpen, setOpen: setInviteOpen } = useInviteShare();
 
-  const content = fullBleed ? (
-    <div className="fixed inset-0 h-[100dvh] w-full overflow-hidden bg-[#0B0F15]">{children}</div>
-  ) : (
-    <MobileShell
-      mobileRoute={mobileRoute}
-      header={<MobilePlatformHeader showBackToApp={isModuleHome} inviteShareData={inviteShareData} />}
-      bottomNav={<MobilePlatformBottomNav />}
-    >
-      {children}
-    </MobileShell>
-  );
+  if (fullBleed) {
+    return (
+      <>
+        <div className="fixed inset-0 h-[100dvh] w-full overflow-hidden bg-[#0B0F15]">
+          {children}
+        </div>
+        <MobileHeaderOverlays />
+        {inviteOpen ? (
+          <InviteShareModal
+            open={inviteOpen}
+            onOpenChange={setInviteOpen}
+            {...inviteShareData}
+          />
+        ) : null}
+      </>
+    );
+  }
 
   return (
-    <>
-      {content}
-      <MobileHeaderOverlays />
-      {inviteOpen ? (
-        <InviteShareModal
-          open={inviteOpen}
-          onOpenChange={setInviteOpen}
-          {...inviteShareData}
-        />
-      ) : null}
-    </>
+    <MobilePlatformShellFrame inviteShareData={inviteShareData}>
+      {children}
+    </MobilePlatformShellFrame>
   );
 }
 

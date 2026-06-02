@@ -78,3 +78,11 @@ export function resolveMainMobileHeaderMeta(pathname: string): MainMobileHeaderM
   }
   return {};
 }
+
+export type MobileShellRoute = "app" | "site-walk" | "digital-twin";
+
+export function resolveMobileRoute(pathname: string): MobileShellRoute {
+  if (pathname.startsWith("/site-walk")) return "site-walk";
+  if (pathname.startsWith("/digital-twin")) return "digital-twin";
+  return "app";
+}

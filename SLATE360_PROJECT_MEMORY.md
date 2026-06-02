@@ -1,9 +1,17 @@
 # Slate360 — Project Memory
 
-Last Updated: 2026-05-21
+Last Updated: 2026-06-02
 Repo: bcvolker/slate360-rebuild
 Branch: main (active development — push to production after validation)
 Live: https://www.slate360.ai
+
+## Validated baseline (2026-06-02)
+
+**Commit:** `520910ab` — supersedes `aae63e40`.
+
+**Slice:** Shared mobile platform shell — `MobilePlatformShell` is now the single orchestrator for header + `MobileShell` + bottom nav + overlays. `(mobile)/layout` delegates through thin `MobilePlatformLayout`. `StudioAppShell` retains full-bleed passthrough for Site Walk / Digital Twin sub-routes and delegates non-bleed paths to `MobilePlatformShellFrame` (live for `app/(dashboard)/*` surfaces such as `/more`, `/project-hub`, `/settings`).
+
+**Stash warning:** Do **not** `git stash pop` or `git stash apply` on `stash@{4}` (WIP before homepage cleanup) or `stash@{5}` (cursor-temp-before-push) — obsolete bulk work will collide with current main.
 
 This file is the default new-chat attachment. Keep it short. Read this first, then only pull the docs required for the task.
 

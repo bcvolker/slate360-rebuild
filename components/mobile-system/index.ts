@@ -20,6 +20,11 @@ export { MobileAppShell } from "./MobileAppShell";
 export { MobileShell, useMobileShellDock } from "./MobileShell";
 
 export { MobilePlatformLayout } from "./MobilePlatformLayout";
+export {
+  MobilePlatformShell,
+  MobilePlatformShellFrame,
+  shouldPassthroughDesktopShell,
+} from "./MobilePlatformShell";
 export { MobilePlatformHeader } from "./MobilePlatformHeader";
 export { MobileHeaderActions } from "./MobileHeaderActions";
 export { MobileHeaderOverlays } from "./MobileHeaderOverlays";
@@ -34,11 +39,13 @@ export {
   isMainMobileTabRoute,
   resolveMainMobileTabKey,
   resolveMainMobileHeaderMeta,
+  resolveMobileRoute,
 } from "./mainMobileTabs";
 export type {
   MainMobileTab,
   MainMobileTabKey,
   MainMobileHeaderMeta,
+  MobileShellRoute,
 } from "./mainMobileTabs";
 
 export {
