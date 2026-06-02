@@ -4,7 +4,7 @@ import sharp from "sharp";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-const src = resolve("public/uploads/slate360-icon-cobalt-v2.svg");
+const src = resolve("assets/brand/slate360-icon.svg");
 const svg = readFileSync(src);
 
 const targets = [

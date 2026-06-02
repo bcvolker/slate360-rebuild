@@ -214,9 +214,10 @@ export const assets = {
   logo: "/uploads/slate360-logo-reversed-v2.svg",
   /** Absolute URL for emails and external contexts */
   logoAbsolute: "https://www.slate360.ai/uploads/slate360-logo-reversed-v2.svg",
-  /** PLACEHOLDER ICON — pending final green/blue brand mark, do not ship to store as-is. */
-  favicon: "/uploads/icon-192.png",
+  /** Green Slate360 app icon (generated from assets/brand/slate360-icon.svg) */
+  favicon: "/uploads/favicon-32.png",
   faviconUpload: "/uploads/icon-512.png",
+  appleTouch: "/uploads/apple-touch-icon.png",
   icon192: "/uploads/icon-192.png",
   icon512: "/uploads/icon-512.png",
   icon512Maskable: "/uploads/icon-512-maskable.png",

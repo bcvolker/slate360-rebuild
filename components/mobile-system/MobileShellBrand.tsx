@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Slate360Logo } from "@/components/studio-ui/LogoProvider";
+import { SlateIcon } from "@/components/shared/SlateIcon";
 import { cn } from "@/lib/utils";
 
 type MobileShellBrandProps = {
@@ -14,8 +15,7 @@ type MobileShellBrandProps = {
 };
 
 /**
- * Canonical Slate360 brand for mobile app shells: green S emblem + “SLATE360” wordmark.
- * Uses Slate360Logo — not the legacy SlateIcon app tile.
+ * Canonical Slate360 brand for mobile app shells — green emblem matches PWA install icon.
  */
 export function MobileShellBrand({
   href = "/app",
@@ -29,12 +29,16 @@ export function MobileShellBrand({
       className={cn("flex min-w-0 items-center", className)}
       aria-label="Slate360 home"
     >
-      <Slate360Logo
-        variant="dark"
-        size="header"
-        showWordmark={!iconOnly}
-        className={iconClassName}
-      />
+      {iconOnly ? (
+        <SlateIcon className={cn("h-9 w-9 shrink-0", iconClassName)} />
+      ) : (
+        <Slate360Logo
+          variant="dark"
+          size="header"
+          showWordmark
+          className={iconClassName}
+        />
+      )}
     </Link>
   );
 }

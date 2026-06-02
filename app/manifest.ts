@@ -1,8 +1,7 @@
 import type { MetadataRoute } from "next";
-import { PWA_PLACEHOLDER_ICONS } from "@/lib/pwa/icon-assets";
+import { PWA_ICONS } from "@/lib/pwa/icon-assets";
 
-// PLACEHOLDER ICON — pending final green/blue brand mark, do not ship to store as-is.
-const { icon192, icon512, icon512Maskable } = PWA_PLACEHOLDER_ICONS;
+const { icon192, icon512, icon512Maskable } = PWA_ICONS;
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
