@@ -1,7 +1,7 @@
 /**
  * SlateIcon — standalone Slate360 app icon mark (matches assets/brand/slate360-icon.svg).
  *
- * Green gradient upper arm (#00E699 → #0f2a21), white lower arm, #0B0F15 canvas.
+ * Both S arms use green gradient (#00E699 → #1E293B), #0B0F15 canvas.
  * Used in mobile headers, PWA surfaces, and anywhere the icon-only mark appears.
  */
 
@@ -33,12 +33,12 @@ export function SlateIcon({ className, ...svgProps }: SlateIconProps) {
       <defs>
         <linearGradient id={gradientId} x1="0%" y1="0%" x2="0%" y2="100%">
           <stop offset="0%" stopColor="#00E699" />
-          <stop offset="100%" stopColor="#0f2a21" />
+          <stop offset="100%" stopColor="#1E293B" />
         </linearGradient>
       </defs>
       <rect width="189.2" height="186.47" rx="30.69" ry="30.69" fill="#0B0F15" />
       <path fill={`url(#${gradientId})`} d={S_EMBLEM_UPPER} />
-      <path fill="#ffffff" d={S_EMBLEM_LOWER} />
+      <path fill={`url(#${gradientId})`} d={S_EMBLEM_LOWER} />
     </svg>
   );
 }
