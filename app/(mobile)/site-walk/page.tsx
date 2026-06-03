@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { resolveServerOrgContext } from "@/lib/server/org-context";
 import { loadSiteWalkHubData } from "@/lib/site-walk/load-hub-data";
+import { loadMobileAssignments } from "@/lib/mobile/load-mobile-assignments";
 import { SiteWalkHomeClient } from "@/components/site-walk/SiteWalkHomeClient";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { HubDeliverableRow } from "@/lib/types/site-walk-hub";
@@ -14,6 +15,10 @@ export default async function SiteWalkHomePage() {
   const context = await resolveServerOrgContext();
   const { projects, walks, summary } = await loadSiteWalkHubData(context.orgId);
   const deliverables = context.orgId ? await loadRecentDeliverables(context.orgId) : [];
+  const assignments =
+    context.orgId && context.user
+      ? await loadMobileAssignments(context.orgId, context.user.id)
+      : [];
 
   return (
     <Suspense fallback={null}>
@@ -23,6 +28,7 @@ export default async function SiteWalkHomePage() {
         walks={walks}
         summary={summary}
         deliverables={deliverables}
+        assignments={assignments}
       />
     </Suspense>
   );

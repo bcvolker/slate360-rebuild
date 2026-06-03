@@ -2,19 +2,21 @@
 
 import { useMemo } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { Camera, ClipboardList, FileText, FolderOpen, MapPin } from "lucide-react";
 import {
   MobileEmptyState,
   MobileExpandableTabbedPanel,
   MobileHomeActionCard,
   MobileHomeActionGrid,
+  MobileHomeListRow,
   MobileQuickActionsSection,
   mobileTokens,
   useMobileShellDock,
 } from "@/components/mobile-system";
 import type { MobilePanelTab } from "@/components/mobile-system";
+import type { MobileHomeAssignment } from "@/lib/mobile/load-mobile-assignments";
 import { buildCaptureLaunchUrl } from "@/lib/site-walk/capture-v2-config";
+import { buildSiteWalkDockRows, SiteWalkHomeFill } from "@/components/site-walk/SiteWalkHomeFill";
 import { cn } from "@/lib/utils";
 import type { HubProject, HubSummary, HubWalk } from "@/lib/types/site-walk";
 import type { HubDeliverableRow } from "@/lib/types/site-walk-hub";
@@ -25,9 +27,42 @@ type Props = {
   walks: HubWalk[];
   summary: HubSummary;
   deliverables: HubDeliverableRow[];
+  assignments: MobileHomeAssignment[];
 };
 
-export function SiteWalkHomeClient({ projects, walks, deliverables }: Props) {
+function DockRowList({
+  rows,
+}: {
+  rows: {
+    key: string;
+    title: string;
+    meta?: string;
+    href?: string;
+    metaTone?: "neutral" | "primary" | "info";
+  }[];
+}) {
+  return (
+    <div className="space-y-2">
+      {rows.map((row) => (
+        <MobileHomeListRow
+          key={row.key}
+          title={row.title}
+          meta={row.meta}
+          metaTone={row.metaTone}
+          href={row.href}
+        />
+      ))}
+    </div>
+  );
+}
+
+export function SiteWalkHomeClient({
+  projects,
+  walks,
+  summary,
+  deliverables,
+  assignments,
+}: Props) {
   const router = useRouter();
 
   async function handleQuickCapture() {
@@ -47,26 +82,19 @@ export function SiteWalkHomeClient({ projects, walks, deliverables }: Props) {
     router.push(buildCaptureLaunchUrl({ session: body.session.id, quick: "camera" }));
   }
 
+  const dockRows = useMemo(
+    () => buildSiteWalkDockRows(walks, projects, deliverables, assignments, summary),
+    [assignments, deliverables, projects, summary, walks],
+  );
+
   const dockTabs: MobilePanelTab[] = useMemo(
     () => [
       {
         value: "recent",
         label: "Recent Walks",
         content:
-          walks.length > 0 ? (
-            <ul className="space-y-2">
-              {walks.slice(0, 8).map((walk) => (
-                <li key={walk.id}>
-                  <Link
-                    href={`/site-walk/walks/${walk.id}`}
-                    className="flex items-center justify-between rounded-xl border border-white/[0.05] px-3 py-2.5 text-sm transition-colors hover:bg-white/[0.03]"
-                  >
-                    <span className="truncate text-[#F8FAFC]">{walk.title}</span>
-                    <span className="shrink-0 text-xs text-zinc-300">{walk.itemCount} items</span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
+          dockRows.walks.length > 0 ? (
+            <DockRowList rows={dockRows.walks} />
           ) : (
             <MobileEmptyState
               compact
@@ -82,17 +110,8 @@ export function SiteWalkHomeClient({ projects, walks, deliverables }: Props) {
         value: "projects",
         label: "Projects",
         content:
-          projects.length > 0 ? (
-            <ul className="space-y-2">
-              {projects.slice(0, 8).map((project) => (
-                <li
-                  key={project.id}
-                  className="rounded-xl border border-white/[0.05] px-3 py-2.5 text-sm text-[#F8FAFC]"
-                >
-                  {project.name}
-                </li>
-              ))}
-            </ul>
+          dockRows.projects.length > 0 ? (
+            <DockRowList rows={dockRows.projects} />
           ) : (
             <MobileEmptyState compact icon={MapPin} title="No projects linked yet" />
           ),
@@ -101,19 +120,8 @@ export function SiteWalkHomeClient({ projects, walks, deliverables }: Props) {
         value: "deliverables",
         label: "Deliverables",
         content:
-          deliverables.length > 0 ? (
-            <ul className="space-y-2">
-              {deliverables.slice(0, 8).map((item) => (
-                <li key={item.id}>
-                  <Link
-                    href="/site-walk/deliverables"
-                    className="block rounded-xl border border-white/[0.05] px-3 py-2.5 text-sm text-[#F8FAFC] transition-colors hover:bg-white/[0.03]"
-                  >
-                    {item.title}
-                  </Link>
-                </li>
-              ))}
-            </ul>
+          dockRows.deliverables.length > 0 ? (
+            <DockRowList rows={dockRows.deliverables} />
           ) : (
             <MobileEmptyState
               compact
@@ -126,7 +134,7 @@ export function SiteWalkHomeClient({ projects, walks, deliverables }: Props) {
           ),
       },
     ],
-    [deliverables, projects, walks],
+    [dockRows],
   );
 
   const dockContent = useMemo(
@@ -179,6 +187,14 @@ export function SiteWalkHomeClient({ projects, walks, deliverables }: Props) {
         </span>
         <h1 className={cn(mobileTokens.moduleTitle, "min-w-0")}>SITE WALK</h1>
       </div>
+
+      <SiteWalkHomeFill
+        projects={projects}
+        walks={walks}
+        summary={summary}
+        deliverables={deliverables}
+        assignments={assignments}
+      />
     </div>
   );
 }

@@ -5,6 +5,7 @@ import { ensureUserOrganization } from "@/lib/server/org-bootstrap";
 import { resolveUsageTruth } from "@/lib/server/usage-truth";
 import { createClient } from "@/lib/supabase/server";
 import { isMobileServerLayout } from "@/lib/server/device-layout";
+import { loadMobileAppHomeData } from "@/lib/mobile/load-app-home-data";
 import { DashboardV3Shell } from "@/components/dashboard-v3/DashboardV3Shell";
 import { MobileAppRootContent } from "@/components/studio-ui/MobileAppRootContent";
 
@@ -31,9 +32,10 @@ export default async function MobileAppRootPage() {
   const activeOrgId = orgId ?? (await resolveServerOrgContext()).orgId;
 
   if (isMobile) {
+    const homeData = await loadMobileAppHomeData(activeOrgId, user.id);
     return (
       <Suspense fallback={null}>
-        <MobileAppRootContent />
+        <MobileAppRootContent homeData={homeData} />
       </Suspense>
     );
   }

@@ -56,9 +56,45 @@ export const mobileTokens = {
   /** Bottom fade on MobileShell scroll region above dock */
   scrollContentBottomFade:
     "pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-8 bg-gradient-to-t from-[#0B0F15]/55 via-[#0B0F15]/20 to-transparent",
-  /** Inner padding for home scroll surfaces inside MobileShell */
+  /** Inner padding for home scroll surfaces inside MobileShell — flex-1 fills viewport */
   mobileShellScrollInner:
-    "mx-auto flex w-full max-w-2xl flex-col gap-3 px-4 pt-3 pb-3",
+    "mx-auto flex min-h-full w-full max-w-2xl flex-1 flex-col gap-3 px-4 pt-3 pb-3",
+  /** flex-1 middle region between header block and bottom dock */
+  mobileHomeFillRegion: "flex min-h-0 flex-1 flex-col gap-3",
+  mobileHomeSectionLabelAccentPrimary:
+    "mb-1.5 block h-0.5 w-8 rounded-full bg-[color-mix(in_srgb,var(--graphite-primary)_35%,transparent)]",
+  mobileHomeSectionLabelAccentInfo:
+    "mb-1.5 block h-0.5 w-8 rounded-full bg-[color-mix(in_srgb,var(--twin360-blue)_35%,transparent)]",
+  mobileHomeSectionTitle:
+    "text-xs font-black uppercase tracking-[0.2em] text-zinc-100",
+  mobileHomeHeroCard:
+    "flex min-h-14 w-full flex-col justify-center gap-1 rounded-xl border border-[color-mix(in_srgb,var(--graphite-primary)_28%,transparent)] bg-[color-mix(in_srgb,var(--graphite-primary)_8%,transparent)] px-4 py-3 text-left transition-colors hover:border-[color-mix(in_srgb,var(--graphite-primary)_40%,transparent)] hover:bg-[color-mix(in_srgb,var(--graphite-primary)_12%,transparent)] active:scale-[0.99]",
+  mobileHomeHeroTitle:
+    "text-base font-bold text-[color-mix(in_srgb,var(--graphite-primary)_92%,white)]",
+  mobileHomeHeroSubtext:
+    "text-sm font-medium text-[color-mix(in_srgb,var(--graphite-primary)_58%,var(--graphite-muted))]",
+  mobileHomeRailScroll:
+    "flex gap-2 overflow-x-auto overscroll-x-contain pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+  mobileHomeRailCard:
+    "flex min-h-14 min-w-[148px] max-w-[196px] shrink-0 flex-col justify-center gap-0.5 rounded-xl border border-white/10 bg-white/[0.05] px-3 py-2.5 text-left transition-colors hover:border-[color-mix(in_srgb,var(--twin360-blue)_30%,transparent)] hover:bg-white/[0.08] active:scale-[0.99]",
+  mobileHomeRailCardTitle: "truncate text-sm font-semibold text-zinc-100",
+  mobileHomeRailCardMeta: "truncate text-xs text-zinc-400",
+  mobileHomeRowLink:
+    "flex min-h-14 items-center justify-between gap-3 rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-2 transition-colors hover:border-white/[0.14] hover:bg-white/[0.07] active:scale-[0.99]",
+  mobileHomeRowTitle: "min-w-0 truncate text-sm font-semibold text-zinc-100",
+  mobileHomeRowMeta: "shrink-0 text-xs text-zinc-400",
+  mobileHomeRowMetaPrimary:
+    "shrink-0 text-xs font-medium text-[color-mix(in_srgb,var(--graphite-primary)_80%,white)]",
+  mobileHomeRowMetaInfo:
+    "shrink-0 text-xs font-medium text-[color-mix(in_srgb,var(--twin360-blue)_80%,white)]",
+  mobileHomeContainedList:
+    "relative min-h-0 max-h-[min(280px,36dvh)] flex-1 overflow-hidden rounded-xl border border-white/10 bg-white/[0.04]",
+  mobileHomeContainedListScroll:
+    "max-h-[min(280px,36dvh)] overflow-y-auto overscroll-contain px-2 py-2",
+  mobileHomeContainedListInner: "space-y-2",
+  /** Alias — bottom fade on contained home lists */
+  mobileHomeListBottomFade:
+    "pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-10 rounded-b-xl bg-gradient-to-t from-[#0B0F15]/80 via-[#0B0F15]/30 to-transparent",
   /** MobileHomeLayout — unified upper + dock regions (all shells) */
   mobileHomeLayoutRoot:
     "flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden",
@@ -265,9 +301,9 @@ export const mobileTokens = {
     "text-base font-bold leading-tight text-[var(--mobile-quick-action-title-fg)]",
 
   // ── /app home — launcher primary, quick actions secondary ────────────────
-  /** /app scroll region — extra breathing room for Your Apps */
+  /** /app scroll region — extra breathing room for Your Apps; flex-1 fills viewport */
   appHomeScrollInner:
-    "mx-auto flex w-full max-w-2xl flex-col gap-4 px-4 pt-3 pb-4",
+    "mx-auto flex min-h-full w-full max-w-2xl flex-1 flex-col gap-4 px-4 pt-3 pb-4",
   /** /app dock stack — tighter gap between compact quick actions and activity panel */
   appHomeDockStack: "flex w-full shrink-0 flex-col gap-2.5",
   appHomeQuickActionsSectionLabel:

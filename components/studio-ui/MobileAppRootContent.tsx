@@ -15,15 +15,48 @@ import {
   MobileCreateSheet,
   MobileEmptyState,
   MobileExpandableTabbedPanel,
+  MobileHomeListRow,
   MobileQuickActionsSection,
   MobileQuickActionStrip,
   mobileTokens,
   useMobileShellDock,
 } from "@/components/mobile-system";
 import type { MobilePanelTab, MobileQuickActionItem } from "@/components/mobile-system";
+import type { MobileAppHomeData } from "@/lib/mobile/load-app-home-data";
+import { buildAppHomeDockContent, MobileAppHomeFill } from "@/components/studio-ui/MobileAppHomeFill";
 import { MobileAppLauncherGrid } from "@/components/studio-ui/MobileAppLauncherGrid";
 
-export function MobileAppRootContent() {
+type MobileAppRootContentProps = {
+  homeData: MobileAppHomeData;
+};
+
+function DockRowList({
+  rows,
+}: {
+  rows: {
+    key: string;
+    title: string;
+    meta?: string;
+    href?: string;
+    metaTone?: "neutral" | "primary" | "info";
+  }[];
+}) {
+  return (
+    <div className="space-y-2">
+      {rows.map((row) => (
+        <MobileHomeListRow
+          key={row.key}
+          title={row.title}
+          meta={row.meta}
+          metaTone={row.metaTone}
+          href={row.href}
+        />
+      ))}
+    </div>
+  );
+}
+
+export function MobileAppRootContent({ homeData }: MobileAppRootContentProps) {
   const [createSheetOpen, setCreateSheetOpen] = useState(false);
 
   const handleSearch = useCallback(() => {
@@ -32,6 +65,8 @@ export function MobileAppRootContent() {
       new KeyboardEvent("keydown", { key: "k", metaKey: true, bubbles: true }),
     );
   }, []);
+
+  const dockPayload = useMemo(() => buildAppHomeDockContent(homeData), [homeData]);
 
   const quickActions: MobileQuickActionItem[] = useMemo(
     () => [
@@ -47,21 +82,25 @@ export function MobileAppRootContent() {
     ],
     [handleSearch],
   );
+
   const activityTabs: MobilePanelTab[] = useMemo(
     () => [
       {
         value: "alerts",
         label: "Alerts",
-        content: (
-          <MobileEmptyState
-            compact
-            icon={Bell}
-            title="No active alerts"
-            actionLabel="View inbox"
-            actionClassName={mobileTokens.mobileDockEmptyAction}
-            actionHref="/coordination/inbox"
-          />
-        ),
+        content:
+          dockPayload.alerts.length > 0 ? (
+            <DockRowList rows={dockPayload.alerts} />
+          ) : (
+            <MobileEmptyState
+              compact
+              icon={Bell}
+              title="No active alerts"
+              actionLabel="View inbox"
+              actionClassName={mobileTokens.mobileDockEmptyAction}
+              actionHref="/coordination/inbox"
+            />
+          ),
       },
       {
         value: "messages",
@@ -80,26 +119,57 @@ export function MobileAppRootContent() {
       {
         value: "assigned",
         label: "Assigned Tasks",
-        content: (
-          <MobileEmptyState
-            compact
-            icon={ClipboardList}
-            title="No assigned tasks"
-            actionLabel="View assigned work"
-            actionClassName={mobileTokens.mobileDockEmptyAction}
-            actionHref="/site-walk/assigned-work"
-          />
-        ),
+        content:
+          dockPayload.assigned.length > 0 ? (
+            <DockRowList
+              rows={dockPayload.assigned.map((row) => ({
+                ...row,
+                metaTone: "primary" as const,
+              }))}
+            />
+          ) : homeData.hubSummary.openItems > 0 ? (
+            <DockRowList
+              rows={[
+                {
+                  key: "open-items",
+                  title: `${homeData.hubSummary.openItems} open field item${homeData.hubSummary.openItems !== 1 ? "s" : ""}`,
+                  meta: "View assigned work",
+                  metaTone: "primary" as const,
+                  href: "/site-walk/assigned-work",
+                },
+              ]}
+            />
+          ) : (
+            <MobileEmptyState
+              compact
+              icon={ClipboardList}
+              title="No assigned tasks"
+              actionLabel="View assigned work"
+              actionClassName={mobileTokens.mobileDockEmptyAction}
+              actionHref="/site-walk/assigned-work"
+            />
+          ),
       },
       {
         value: "recent",
         label: "Recent Activity",
-        content: (
-          <MobileEmptyState compact icon={Clock} title="No recent activity" />
-        ),
+        content:
+          dockPayload.recent.length > 0 ? (
+            <DockRowList
+              rows={dockPayload.recent.map((row) => ({
+                key: row.key,
+                title: row.title,
+                meta: row.meta,
+                href: row.href,
+                metaTone: row.metaTone,
+              }))}
+            />
+          ) : (
+            <MobileEmptyState compact icon={Clock} title="No recent activity" />
+          ),
       },
     ],
-    [],
+    [dockPayload, homeData.hubSummary.openItems],
   );
 
   const dockContent = useMemo(
@@ -128,10 +198,7 @@ export function MobileAppRootContent() {
 
   return (
     <>
-      <div
-        data-mobile-route="app"
-        className={mobileTokens.appHomeScrollInner}
-      >
+      <div data-mobile-route="app" className={mobileTokens.appHomeScrollInner}>
         <section className={mobileTokens.mobileHomeSection}>
           <div className={mobileTokens.mobileHomeSectionHeader}>
             <span className={mobileTokens.appHomeSectionLabelAccent} aria-hidden />
@@ -139,6 +206,8 @@ export function MobileAppRootContent() {
           </div>
           <MobileAppLauncherGrid />
         </section>
+
+        <MobileAppHomeFill data={homeData} />
       </div>
       <MobileCreateSheet open={createSheetOpen} onOpenChange={setCreateSheetOpen} />
     </>

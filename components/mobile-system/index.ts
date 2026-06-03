@@ -76,6 +76,10 @@ export { MobileActionCard } from "./MobileActionCard";
 
 export { MobileHomeActionCard, MobileHomeActionGrid } from "./MobileHomeActionCard";
 
+export { MobileHomeContainedList } from "./MobileHomeContainedList";
+export { MobileHomeSectionBlock } from "./MobileHomeSectionBlock";
+export { MobileHomeListRow } from "./MobileHomeListRow";
+
 export { MobileQuickActionStrip } from "./MobileQuickActionStrip";
 export type { MobileQuickActionItem } from "./MobileQuickActionStrip";
 export { MobileQuickActionsSection } from "./MobileQuickActionsSection";
