@@ -12,6 +12,8 @@ export { CaptureV2TaskHeader } from "./CaptureV2TaskHeader";
 export { CaptureV2MobileField } from "./CaptureV2MobileField";
 export { CaptureV2DesktopStudio } from "./CaptureV2DesktopStudio";
 export { CaptureV2Orchestrator } from "./CaptureV2Orchestrator";
+export { CaptureCanvasShell } from "./CaptureCanvasShell";
+export type { CaptureCanvasLayer, CaptureCanvasShellProps } from "./CaptureCanvasShell";
 export { CaptureV2Viewfinder } from "./CaptureV2Viewfinder";
 export { FastTrackActionBar } from "./FastTrackActionBar";
 export { CaptureV2ActionHub } from "./CaptureV2ActionHub";
