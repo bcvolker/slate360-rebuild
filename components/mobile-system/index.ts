@@ -8,6 +8,8 @@
 
 export {
   mobileTokens,
+  mobileHomeTokens,
+  appHomeLauncherCardPrimaryBase,
   MOBILE_PANEL_ROW_HEIGHT_PX,
   MOBILE_PANEL_COLLAPSED_BODY_PX,
   MOBILE_PANEL_COLLAPSED_FRAME_PX,
