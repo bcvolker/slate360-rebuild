@@ -120,6 +120,42 @@ export const modules = {
   twin360: fieldVisibility.twin360Blue,
 } as const;
 
+/** Mobile home visual hierarchy — CSS var names mirror globals.css :root */
+export const mobileHomeHierarchy = {
+  appCard: {
+    surface: "var(--mobile-app-card-bg)",
+    border: "var(--mobile-app-card-border)",
+    borderPrimary: "var(--mobile-app-card-border-primary)",
+    borderInfo: "var(--mobile-app-card-border-info)",
+    glowPrimary: "var(--mobile-app-card-glow-primary)",
+    glowInfo: "var(--mobile-app-card-glow-info)",
+    shadow: "var(--mobile-app-card-shadow)",
+    titleFg: "var(--mobile-app-card-title-fg)",
+    subtitleFg: "var(--mobile-app-card-subtitle-fg)",
+    iconBgPrimary: "var(--mobile-app-card-icon-bg-primary)",
+    iconBorderPrimary: "var(--mobile-app-card-icon-border-primary)",
+    iconFgPrimary: "var(--mobile-app-card-icon-fg-primary)",
+    iconBgInfo: "var(--mobile-app-card-icon-bg-info)",
+    iconBorderInfo: "var(--mobile-app-card-icon-border-info)",
+    iconFgInfo: "var(--mobile-app-card-icon-fg-info)",
+  },
+  quickAction: {
+    surface: "var(--mobile-quick-action-bg)",
+    border: "var(--mobile-quick-action-border)",
+    fg: "var(--mobile-quick-action-fg)",
+    titleFg: "var(--mobile-quick-action-title-fg)",
+    subtitleFg: "var(--mobile-quick-action-subtitle-fg)",
+    iconBg: "var(--mobile-quick-action-icon-bg)",
+    iconBorder: "var(--mobile-quick-action-icon-border)",
+    shadow: "var(--mobile-quick-action-shadow)",
+  },
+  /** Solid fill reserved for single primary CTAs only (e.g. Start Walk) */
+  primaryCta: {
+    bg: "var(--mobile-field-primary-bg)",
+    fg: "var(--mobile-field-primary-fg)",
+  },
+} as const;
+
 /* ── Status Colors ──────────────────────────────────────────── */
 
 export const status = {

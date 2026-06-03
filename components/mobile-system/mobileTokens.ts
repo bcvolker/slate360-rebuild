@@ -22,10 +22,15 @@ export const MOBILE_HOME_DOCK_EXPANDED_CLAMP = "60dvh";
 const mobileTabbedPanelScrollBody = "min-h-0 flex-1 overflow-y-auto";
 const mobileTabbedPanelBodyPadding = "px-3 pt-2 pb-3";
 
-/** Shared home action card — launcher tiles + quick actions (all shells) */
+/** Shared home action card — secondary quick actions (translucent glass, green accent) */
 const quickActionMinHeightClass = "min-h-[112px]";
-const mobileHomeActionCard = `flex ${quickActionMinHeightClass} flex-col items-start justify-center gap-1 rounded-xl border border-transparent bg-[var(--mobile-field-primary-bg)] px-3 py-2.5 text-left text-[var(--mobile-field-primary-fg)] shadow-[0_2px_12px_rgba(0,0,0,0.32)] transition-all hover:brightness-[0.97] active:brightness-[0.92] active:scale-[0.99]`;
+const mobileQuickActionCardSurface =
+  "rounded-xl border border-[var(--mobile-quick-action-border)] bg-[var(--mobile-quick-action-bg)] shadow-[var(--mobile-quick-action-shadow)] transition-all hover:border-[color-mix(in_srgb,var(--graphite-primary)_14%,transparent)] hover:bg-[color-mix(in_srgb,white_6%,transparent)] active:scale-[0.99]";
+const mobileHomeActionCard = `flex ${quickActionMinHeightClass} flex-col items-start justify-center gap-1 px-3 py-2.5 text-left ${mobileQuickActionCardSurface}`;
 const mobileHomeActionGrid = "grid shrink-0 grid-cols-2 gap-2.5 auto-rows-fr";
+/** Elevated app launcher card — primary destination (green accent glow) */
+const appHomeLauncherCardPrimaryBase =
+  "flex min-h-[128px] flex-col items-start justify-center gap-1.5 rounded-2xl border bg-[var(--mobile-app-card-bg)] px-3.5 py-3.5 text-left backdrop-blur-md transition-all hover:bg-[color-mix(in_srgb,white_9%,transparent)] active:-translate-y-0.5";
 
 export const mobileTokens = {
   pageBgHex: "#0B0F15",
@@ -222,14 +227,14 @@ export const mobileTokens = {
   mobileHomeActionGrid,
   mobileHomeActionCard,
   mobileHomeActionCardSelected:
-    "brightness-[0.97] ring-2 ring-[var(--mobile-field-primary-fg)]/30",
+    "ring-2 ring-[color-mix(in_srgb,var(--graphite-primary)_28%,transparent)] bg-[color-mix(in_srgb,white_7%,transparent)]",
   mobileHomeActionIconWrapper:
-    "mb-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-[var(--mobile-field-primary-fg)]/20 bg-[var(--mobile-field-primary-fg)]/12",
-  mobileHomeActionIcon: "h-6 w-6 shrink-0 text-[var(--mobile-field-primary-fg)]",
+    "mb-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-[var(--mobile-quick-action-icon-border)] bg-[var(--mobile-quick-action-icon-bg)]",
+  mobileHomeActionIcon: "h-6 w-6 shrink-0 text-[var(--mobile-quick-action-fg)]",
   mobileHomeActionTitle:
-    "text-base font-bold leading-tight text-[var(--mobile-field-primary-fg)]",
+    "text-base font-bold leading-tight text-[var(--mobile-quick-action-title-fg)]",
   mobileHomeActionSubtext:
-    "text-sm font-medium leading-snug text-[var(--mobile-field-primary-fg)]/85",
+    "text-sm font-medium leading-snug text-[var(--mobile-quick-action-subtitle-fg)]",
 
   // ── Legacy aliases (launcher + quick action tokens) ───────────────────────
   mobileQuickActionGrid: mobileHomeActionGrid,
@@ -238,26 +243,26 @@ export const mobileTokens = {
   mobileQuickActionCardApp: mobileHomeActionCard,
   mobileQuickActionCardModule: mobileHomeActionCard,
   mobileQuickActionIconWrapper:
-    "mb-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-[var(--mobile-field-primary-fg)]/20 bg-[var(--mobile-field-primary-fg)]/12",
+    "mb-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-[var(--mobile-quick-action-icon-border)] bg-[var(--mobile-quick-action-icon-bg)]",
   mobileQuickActionIconWrapperModuleAccent: "",
-  mobileQuickActionIcon: "h-6 w-6 shrink-0 text-[var(--mobile-field-primary-fg)]",
+  mobileQuickActionIcon: "h-6 w-6 shrink-0 text-[var(--mobile-quick-action-fg)]",
   mobileQuickActionIconModuleAccent: "",
   mobileQuickActionLabel:
-    "text-base font-bold leading-tight text-[var(--mobile-field-primary-fg)]",
+    "text-base font-bold leading-tight text-[var(--mobile-quick-action-title-fg)]",
   mobileQuickActionSubtext:
-    "text-sm font-medium leading-snug text-[var(--mobile-field-primary-fg)]/85",
+    "text-sm font-medium leading-snug text-[var(--mobile-quick-action-subtitle-fg)]",
 
   // ── Action card (legacy aliases → shared quick action tokens) ───────────
   actionCardHeight: quickActionMinHeightClass,
   mobileActionCardHeight: quickActionMinHeightClass,
   moduleActionCardHeight: quickActionMinHeightClass,
   moduleActionIconWrapper:
-    "mb-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-[var(--mobile-field-primary-fg)]/20 bg-[var(--mobile-field-primary-fg)]/12",
-  moduleActionIconClass: "h-6 w-6 text-[var(--mobile-field-primary-fg)]",
+    "mb-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-[var(--mobile-quick-action-icon-border)] bg-[var(--mobile-quick-action-icon-bg)]",
+  moduleActionIconClass: "h-6 w-6 text-[var(--mobile-quick-action-fg)]",
   actionCardBase: mobileHomeActionCard,
-  actionIconClass: "h-6 w-6 text-[var(--mobile-field-primary-fg)]",
+  actionIconClass: "h-6 w-6 text-[var(--mobile-quick-action-fg)]",
   actionLabelClass:
-    "text-base font-bold leading-tight text-[var(--mobile-field-primary-fg)]",
+    "text-base font-bold leading-tight text-[var(--mobile-quick-action-title-fg)]",
 
   // ── /app home — launcher primary, quick actions secondary ────────────────
   /** /app scroll region — extra breathing room for Your Apps */
@@ -267,31 +272,41 @@ export const mobileTokens = {
   appHomeDockStack: "flex w-full shrink-0 flex-col gap-2.5",
   appHomeQuickActionsSectionLabel:
     "text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-300",
-  appHomeQuickActionsSectionAccent: "mb-1 block h-0.5 w-6 rounded-full bg-emerald-400/25",
+  appHomeQuickActionsSectionAccent:
+    "mb-1 block h-0.5 w-6 rounded-full bg-[color-mix(in_srgb,var(--graphite-primary)_25%,transparent)]",
   appHomeQuickActionGrid: "grid shrink-0 grid-cols-2 gap-2 auto-rows-fr",
-  appHomeQuickActionCard:
-    "flex min-h-[84px] flex-col items-start justify-center gap-0.5 rounded-xl border border-transparent bg-[var(--mobile-field-primary-bg)] px-2.5 py-2 text-left text-[var(--mobile-field-primary-fg)] shadow-[0_2px_10px_rgba(0,0,0,0.28)] transition-all hover:brightness-[0.97] active:brightness-[0.92] active:scale-[0.99]",
+  appHomeQuickActionCard: `flex min-h-[84px] flex-col items-start justify-center gap-0.5 px-2.5 py-2 text-left ${mobileQuickActionCardSurface}`,
   appHomeQuickActionIconWrapper:
-    "mb-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[var(--mobile-field-primary-fg)]/20 bg-[var(--mobile-field-primary-fg)]/12",
-  appHomeQuickActionIcon: "h-5 w-5 shrink-0 text-[var(--mobile-field-primary-fg)]",
+    "mb-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[var(--mobile-quick-action-icon-border)] bg-[var(--mobile-quick-action-icon-bg)]",
+  appHomeQuickActionIcon: "h-5 w-5 shrink-0 text-[var(--mobile-quick-action-fg)]",
   appHomeQuickActionTitle:
-    "text-sm font-bold leading-tight text-[var(--mobile-field-primary-fg)]",
+    "text-sm font-bold leading-tight text-[var(--mobile-quick-action-title-fg)]",
   appHomeLauncherGrid: "grid shrink-0 grid-cols-2 gap-3 auto-rows-fr",
+  appHomeLauncherCardPrimary: `${appHomeLauncherCardPrimaryBase} border-[var(--mobile-app-card-border-primary)] shadow-[var(--mobile-app-card-glow-primary),var(--mobile-app-card-shadow)] hover:border-[color-mix(in_srgb,var(--graphite-primary)_38%,transparent)] active:ring-2 active:ring-[color-mix(in_srgb,var(--graphite-primary)_28%,transparent)]`,
+  appHomeLauncherCardInfo: `${appHomeLauncherCardPrimaryBase} border-[var(--mobile-app-card-border-info)] shadow-[var(--mobile-app-card-glow-info),var(--mobile-app-card-shadow)] hover:border-[color-mix(in_srgb,var(--twin360-blue)_38%,transparent)] active:ring-2 active:ring-[color-mix(in_srgb,var(--twin360-blue)_28%,transparent)]`,
+  /** @deprecated Use appHomeLauncherCardPrimary or appHomeLauncherCardInfo */
   appHomeLauncherCard:
-    "flex min-h-[124px] flex-col items-start justify-center gap-1.5 rounded-xl border border-emerald-500/18 bg-white/[0.06] px-3.5 py-3 text-left text-zinc-100 transition-all hover:border-emerald-400/25 hover:bg-white/[0.09] hover:text-white active:-translate-y-0.5 active:border-emerald-400/30 active:bg-white/[0.12] active:ring-2 active:ring-emerald-400/25",
+    `${appHomeLauncherCardPrimaryBase} border-[var(--mobile-app-card-border-primary)] shadow-[var(--mobile-app-card-glow-primary),var(--mobile-app-card-shadow)] hover:border-[color-mix(in_srgb,var(--graphite-primary)_38%,transparent)] active:ring-2 active:ring-[color-mix(in_srgb,var(--graphite-primary)_28%,transparent)]`,
+  appHomeLauncherIconWrapperPrimary:
+    "mb-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[var(--mobile-app-card-icon-border-primary)] bg-[var(--mobile-app-card-icon-bg-primary)]",
+  appHomeLauncherIconPrimary: "h-6 w-6 shrink-0 text-[var(--mobile-app-card-icon-fg-primary)]",
+  appHomeLauncherIconWrapperInfo:
+    "mb-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[var(--mobile-app-card-icon-border-info)] bg-[var(--mobile-app-card-icon-bg-info)]",
+  appHomeLauncherIconInfo: "h-6 w-6 shrink-0 text-[var(--mobile-app-card-icon-fg-info)]",
+  /** @deprecated Use appHomeLauncherIconWrapperPrimary */
   appHomeLauncherIconWrapper:
-    "mb-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-emerald-400/22 bg-emerald-400/10",
-  appHomeLauncherIcon: "h-6 w-6 shrink-0 text-emerald-400/90",
-  appHomeLauncherTitle: "text-base font-bold leading-tight text-white",
-  appHomeLauncherSubtitle: "text-sm font-medium leading-snug text-zinc-200",
+    "mb-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[var(--mobile-app-card-icon-border-primary)] bg-[var(--mobile-app-card-icon-bg-primary)]",
+  /** @deprecated Use appHomeLauncherIconPrimary */
+  appHomeLauncherIcon: "h-6 w-6 shrink-0 text-[var(--mobile-app-card-icon-fg-primary)]",
+  appHomeLauncherTitle: "text-base font-bold leading-tight text-[var(--mobile-app-card-title-fg)]",
+  appHomeLauncherSubtitle: "text-sm font-medium leading-snug text-[var(--mobile-app-card-subtitle-fg)]",
 
   // ── /app quick action aliases (legacy — prefer appHomeQuickAction*) ─────
   appQuickActionGrid: "grid shrink-0 grid-cols-2 gap-2 auto-rows-fr",
-  appQuickActionCard:
-    "flex min-h-[84px] flex-col items-start justify-center gap-0.5 rounded-xl border border-transparent bg-[var(--mobile-field-primary-bg)] px-2.5 py-2 text-left text-[var(--mobile-field-primary-fg)] shadow-[0_2px_10px_rgba(0,0,0,0.28)] transition-all hover:brightness-[0.97] active:brightness-[0.92] active:scale-[0.99]",
-  appQuickActionIcon: "h-5 w-5 shrink-0 text-[var(--mobile-field-primary-fg)]",
+  appQuickActionCard: `flex min-h-[84px] flex-col items-start justify-center gap-0.5 px-2.5 py-2 text-left ${mobileQuickActionCardSurface}`,
+  appQuickActionIcon: "h-5 w-5 shrink-0 text-[var(--mobile-quick-action-fg)]",
   appQuickActionLabel:
-    "text-sm font-bold leading-tight text-[var(--mobile-field-primary-fg)]",
+    "text-sm font-bold leading-tight text-[var(--mobile-quick-action-title-fg)]",
   /** @deprecated Use appQuickActionGrid — legacy 1-row strip */
   appQuickActionStripRow: "grid grid-cols-4 gap-1.5",
   /** @deprecated Use appQuickActionCard */
@@ -301,11 +316,11 @@ export const mobileTokens = {
   siteWalkActionGridRow: mobileHomeActionGrid,
   siteWalkActionGridButton: mobileHomeActionCard,
   siteWalkActionGridIcon:
-    "mb-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-[var(--mobile-field-primary-fg)]/20 bg-[var(--mobile-field-primary-fg)]/12",
+    "mb-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-[var(--mobile-quick-action-icon-border)] bg-[var(--mobile-quick-action-icon-bg)]",
   siteWalkActionGridLabel:
-    "text-base font-bold leading-tight text-[var(--mobile-field-primary-fg)]",
+    "text-base font-bold leading-tight text-[var(--mobile-quick-action-title-fg)]",
   siteWalkActionGridSubtext:
-    "text-sm font-medium leading-snug text-[var(--mobile-field-primary-fg)]/85",
+    "text-sm font-medium leading-snug text-[var(--mobile-quick-action-subtitle-fg)]",
   /** @deprecated Use appQuickActionStripRow */
   quickActionStripRow: "grid grid-cols-4 gap-1.5",
   /** @deprecated Use siteWalkActionGridRow */
@@ -331,14 +346,27 @@ export const mobileTokens = {
   appBadgeInfo:
     "mt-0.5 rounded-full bg-teal-400/12 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-teal-300",
   /** Launcher cards — /app uses appHomeLauncher* tokens via MobileAppLauncherGrid */
+  mobileAppLauncherCardPrimary:
+    `${appHomeLauncherCardPrimaryBase} border-[var(--mobile-app-card-border-primary)] shadow-[var(--mobile-app-card-glow-primary),var(--mobile-app-card-shadow)] hover:border-[color-mix(in_srgb,var(--graphite-primary)_38%,transparent)] active:ring-2 active:ring-[color-mix(in_srgb,var(--graphite-primary)_28%,transparent)]`,
+  mobileAppLauncherCardInfo:
+    `${appHomeLauncherCardPrimaryBase} border-[var(--mobile-app-card-border-info)] shadow-[var(--mobile-app-card-glow-info),var(--mobile-app-card-shadow)] hover:border-[color-mix(in_srgb,var(--twin360-blue)_38%,transparent)] active:ring-2 active:ring-[color-mix(in_srgb,var(--twin360-blue)_28%,transparent)]`,
+  /** @deprecated Use mobileAppLauncherCardPrimary */
   mobileAppLauncherCard:
-    "flex min-h-[124px] flex-col items-start justify-center gap-1.5 rounded-xl border border-emerald-500/18 bg-white/[0.06] px-3.5 py-3 text-left text-zinc-100 transition-all hover:border-emerald-400/25 hover:bg-white/[0.09] hover:text-white active:-translate-y-0.5 active:border-emerald-400/30 active:bg-white/[0.12] active:ring-2 active:ring-emerald-400/25",
+    `${appHomeLauncherCardPrimaryBase} border-[var(--mobile-app-card-border-primary)] shadow-[var(--mobile-app-card-glow-primary),var(--mobile-app-card-shadow)] hover:border-[color-mix(in_srgb,var(--graphite-primary)_38%,transparent)] active:ring-2 active:ring-[color-mix(in_srgb,var(--graphite-primary)_28%,transparent)]`,
   mobileAppLauncherCardGrid: "grid shrink-0 grid-cols-2 gap-3 auto-rows-fr",
-  mobileAppLauncherTitle: "text-base font-bold leading-tight text-white",
-  mobileAppLauncherSubtitle: "text-sm font-medium leading-snug text-zinc-200",
+  mobileAppLauncherTitle: "text-base font-bold leading-tight text-[var(--mobile-app-card-title-fg)]",
+  mobileAppLauncherSubtitle: "text-sm font-medium leading-snug text-[var(--mobile-app-card-subtitle-fg)]",
+  mobileAppLauncherIconWrapperPrimary:
+    "mb-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-[var(--mobile-app-card-icon-border-primary)] bg-[var(--mobile-app-card-icon-bg-primary)]",
+  mobileAppLauncherIconPrimary: "h-6 w-6 shrink-0 text-[var(--mobile-app-card-icon-fg-primary)]",
+  mobileAppLauncherIconWrapperInfo:
+    "mb-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-[var(--mobile-app-card-icon-border-info)] bg-[var(--mobile-app-card-icon-bg-info)]",
+  mobileAppLauncherIconInfo: "h-6 w-6 shrink-0 text-[var(--mobile-app-card-icon-fg-info)]",
+  /** @deprecated Use mobileAppLauncherIconWrapperPrimary */
   mobileAppLauncherIconWrapper:
-    "mb-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-emerald-400/20 bg-emerald-400/10",
-  mobileAppLauncherIcon: "h-6 w-6 shrink-0 text-emerald-400/85",
+    "mb-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-[var(--mobile-app-card-icon-border-primary)] bg-[var(--mobile-app-card-icon-bg-primary)]",
+  /** @deprecated Use mobileAppLauncherIconPrimary */
+  mobileAppLauncherIcon: "h-6 w-6 shrink-0 text-[var(--mobile-app-card-icon-fg-primary)]",
 
   // Legacy alias
   mobileAppButtonHeight: "h-[76px] min-h-0 max-h-[78px]",

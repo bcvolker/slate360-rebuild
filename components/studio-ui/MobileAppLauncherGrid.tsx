@@ -33,21 +33,41 @@ export const INSTALLED_APPS: InstalledAppCard[] = [
   },
 ];
 
+const LAUNCHER_STYLES = {
+  "site-walk": {
+    card: mobileTokens.appHomeLauncherCardPrimary,
+    iconWrapper: mobileTokens.appHomeLauncherIconWrapperPrimary,
+    icon: mobileTokens.appHomeLauncherIconPrimary,
+  },
+  "digital-twin": {
+    card: mobileTokens.appHomeLauncherCardInfo,
+    iconWrapper: mobileTokens.appHomeLauncherIconWrapperInfo,
+    icon: mobileTokens.appHomeLauncherIconInfo,
+  },
+} as const;
+
+function launcherStylesFor(appId: string) {
+  return LAUNCHER_STYLES[appId as keyof typeof LAUNCHER_STYLES] ?? LAUNCHER_STYLES["site-walk"];
+}
+
 function AppLauncherCard(props: {
+  id: string;
   title: string;
   subtext: string;
   icon: ElementType;
   href: string;
 }) {
+  const styles = launcherStylesFor(props.id);
+
   return (
     <MobileHomeActionCard
       title={props.title}
       subtext={props.subtext}
       icon={props.icon}
       href={props.href}
-      className={mobileTokens.appHomeLauncherCard}
-      iconWrapperClassName={mobileTokens.appHomeLauncherIconWrapper}
-      iconClassName={mobileTokens.appHomeLauncherIcon}
+      className={styles.card}
+      iconWrapperClassName={styles.iconWrapper}
+      iconClassName={styles.icon}
       titleClassName={mobileTokens.appHomeLauncherTitle}
       subtextClassName={mobileTokens.appHomeLauncherSubtitle}
     />
@@ -64,6 +84,7 @@ export function MobileAppLauncherGrid({ apps = INSTALLED_APPS }: { apps?: Instal
   if (count === 1) {
     return (
       <AppLauncherCard
+        id={apps[0]!.id}
         title={apps[0]!.title}
         subtext={apps[0]!.subtext}
         icon={apps[0]!.icon}
@@ -79,6 +100,7 @@ export function MobileAppLauncherGrid({ apps = INSTALLED_APPS }: { apps?: Instal
           {apps.slice(0, 2).map((app) => (
             <AppLauncherCard
               key={app.id}
+              id={app.id}
               title={app.title}
               subtext={app.subtext}
               icon={app.icon}
@@ -89,6 +111,7 @@ export function MobileAppLauncherGrid({ apps = INSTALLED_APPS }: { apps?: Instal
         <div className="flex justify-center">
           <div className="w-[calc((100%-0.75rem)/2)]">
             <AppLauncherCard
+              id={apps[2]!.id}
               title={apps[2]!.title}
               subtext={apps[2]!.subtext}
               icon={apps[2]!.icon}
@@ -105,6 +128,7 @@ export function MobileAppLauncherGrid({ apps = INSTALLED_APPS }: { apps?: Instal
       {apps.slice(0, count === 2 ? 2 : 4).map((app) => (
         <AppLauncherCard
           key={app.id}
+          id={app.id}
           title={app.title}
           subtext={app.subtext}
           icon={app.icon}

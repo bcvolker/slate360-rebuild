@@ -180,6 +180,32 @@
   --app-shadow-card: 0 1px 2px 0 rgba(15, 23, 42, 0.04), 0 1px 3px 0 rgba(15, 23, 42, 0.08);
   --app-shadow-elevated: 0 8px 24px -8px rgba(15, 23, 42, 0.16), 0 2px 6px -2px rgba(15, 23, 42, 0.08);
 
+  /* ── Mobile home hierarchy (/app launcher primary, quick actions secondary) ── */
+  --mobile-app-card-bg: color-mix(in srgb, white 7%, transparent);
+  --mobile-app-card-border: color-mix(in srgb, white 12%, transparent);
+  --mobile-app-card-border-primary: color-mix(in srgb, var(--graphite-primary) 30%, transparent);
+  --mobile-app-card-border-info: color-mix(in srgb, var(--twin360-blue) 30%, transparent);
+  --mobile-app-card-glow-primary: var(--app-glow-teal-strong);
+  --mobile-app-card-glow-info: 0 0 20px 0 color-mix(in srgb, var(--twin360-blue) 34%, transparent),
+    0 4px 14px 0 color-mix(in srgb, var(--twin360-blue) 18%, transparent);
+  --mobile-app-card-shadow: var(--app-shadow-elevated);
+  --mobile-app-card-title-fg: var(--graphite-text-header);
+  --mobile-app-card-subtitle-fg: var(--graphite-muted);
+  --mobile-app-card-icon-bg-primary: color-mix(in srgb, var(--graphite-primary) 12%, transparent);
+  --mobile-app-card-icon-border-primary: color-mix(in srgb, var(--graphite-primary) 22%, transparent);
+  --mobile-app-card-icon-fg-primary: color-mix(in srgb, var(--graphite-primary) 88%, white);
+  --mobile-app-card-icon-bg-info: color-mix(in srgb, var(--twin360-blue) 12%, transparent);
+  --mobile-app-card-icon-border-info: color-mix(in srgb, var(--twin360-blue) 22%, transparent);
+  --mobile-app-card-icon-fg-info: color-mix(in srgb, var(--twin360-blue) 88%, white);
+  --mobile-quick-action-bg: color-mix(in srgb, white 4%, transparent);
+  --mobile-quick-action-border: color-mix(in srgb, white 8%, transparent);
+  --mobile-quick-action-fg: var(--graphite-primary);
+  --mobile-quick-action-title-fg: color-mix(in srgb, var(--graphite-primary) 92%, white);
+  --mobile-quick-action-subtitle-fg: color-mix(in srgb, var(--graphite-primary) 62%, var(--graphite-muted));
+  --mobile-quick-action-icon-bg: color-mix(in srgb, var(--graphite-primary) 10%, transparent);
+  --mobile-quick-action-icon-border: color-mix(in srgb, var(--graphite-primary) 16%, transparent);
+  --mobile-quick-action-shadow: 0 2px 10px color-mix(in srgb, black 28%, transparent);
+
   /* ── Steel / teal accent (consumed by btn-teal-outline, text-teal) ── */
   --accent-teal: #CBD5E1;
   --accent-teal-soft: rgba(203, 213, 225, 0.18);
