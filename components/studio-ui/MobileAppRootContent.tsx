@@ -23,11 +23,13 @@ import {
 } from "@/components/mobile-system";
 import type { MobilePanelTab, MobileQuickActionItem } from "@/components/mobile-system";
 import type { MobileAppHomeData } from "@/lib/mobile/load-app-home-data";
+import type { MobileLauncherAppView } from "@/lib/mobile/mobile-launcher-app-types";
 import { buildAppHomeDockContent, MobileAppHomeFill } from "@/components/studio-ui/MobileAppHomeFill";
 import { MobileAppLauncherGrid } from "@/components/studio-ui/MobileAppLauncherGrid";
 
 type MobileAppRootContentProps = {
   homeData: MobileAppHomeData;
+  launcherApps: MobileLauncherAppView[];
 };
 
 function DockRowList({
@@ -56,7 +58,7 @@ function DockRowList({
   );
 }
 
-export function MobileAppRootContent({ homeData }: MobileAppRootContentProps) {
+export function MobileAppRootContent({ homeData, launcherApps }: MobileAppRootContentProps) {
   const [createSheetOpen, setCreateSheetOpen] = useState(false);
 
   const handleSearch = useCallback(() => {
@@ -204,7 +206,7 @@ export function MobileAppRootContent({ homeData }: MobileAppRootContentProps) {
             <span className={mobileTokens.appHomeSectionLabelAccent} aria-hidden />
             <p className={mobileTokens.appHomeSectionLabel}>Your Apps</p>
           </div>
-          <MobileAppLauncherGrid />
+          <MobileAppLauncherGrid apps={launcherApps} />
         </section>
 
         <MobileAppHomeFill data={homeData} />

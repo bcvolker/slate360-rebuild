@@ -129,6 +129,24 @@ export const mobileHomeTokens = {
   appHomeLauncherIcon: "h-6 w-6 shrink-0 text-[var(--mobile-app-card-icon-fg-primary)]",
   appHomeLauncherTitle: "text-base font-bold leading-tight text-[var(--mobile-app-card-title-fg)]",
   appHomeLauncherSubtitle: "text-sm font-medium leading-snug text-[var(--mobile-app-card-subtitle-fg)]",
+  appHomeLauncherStatusSubline:
+    "text-xs font-semibold text-[color-mix(in_srgb,var(--graphite-primary)_72%,var(--graphite-muted))]",
+  appHomeLauncherStatusSublineInfo:
+    "text-xs font-semibold text-[color-mix(in_srgb,var(--twin360-blue)_72%,var(--graphite-muted))]",
+  appHomeLauncherTileMinTarget: "min-h-14",
+  appHomeLauncherTileRadius: "rounded-xl",
+  appHomeLauncherHeroCard:
+    "flex min-h-[140px] w-full flex-col items-start justify-center gap-2 rounded-xl border px-4 py-4 text-left backdrop-blur-md",
+  appHomeLauncherPairGrid: "grid w-full shrink-0 grid-cols-2 gap-3 auto-rows-fr",
+  appHomeLauncherQuadGrid: "grid w-full shrink-0 grid-cols-2 gap-3 auto-rows-fr",
+  appHomeLauncherRail:
+    "flex gap-2 overflow-x-auto overscroll-x-contain pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+  appHomeLauncherRailTile: "min-w-[min(72vw,260px)] max-w-[280px] shrink-0",
+  appHomeLauncherLockedCard:
+    "relative opacity-55 saturate-[0.42] cursor-pointer",
+  appHomeLauncherLockBadge:
+    "pointer-events-none absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-xl border border-white/10 bg-black/40 text-zinc-300",
+  appHomeLauncherUpsellSheet: "p-6 pb-12",
   appQuickActionGrid: "grid shrink-0 grid-cols-2 gap-2 auto-rows-fr",
   appQuickActionCard: `flex min-h-[84px] flex-col items-start justify-center gap-0.5 px-2.5 py-2 text-left ${mobileAppHomeQuickActionCardSurface}`,
   appQuickActionIcon: "h-5 w-5 shrink-0 text-[var(--mobile-quick-action-fg)]",

@@ -6,6 +6,10 @@ import { resolveUsageTruth } from "@/lib/server/usage-truth";
 import { createClient } from "@/lib/supabase/server";
 import { isMobileServerLayout } from "@/lib/server/device-layout";
 import { loadMobileAppHomeData } from "@/lib/mobile/load-app-home-data";
+import { buildMobileLauncherApps } from "@/lib/mobile/mobile-launcher-apps";
+import { resolveOrgEntitlements } from "@/lib/server/org-feature-flags";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { resolveDigitalTwinEntitlement } from "@/lib/twin/processing-entitlement";
 import { DashboardV3Shell } from "@/components/dashboard-v3/DashboardV3Shell";
 import { MobileAppRootContent } from "@/components/studio-ui/MobileAppRootContent";
 
@@ -33,9 +37,17 @@ export default async function MobileAppRootPage() {
 
   if (isMobile) {
     const homeData = await loadMobileAppHomeData(activeOrgId, user.id);
+    const entitlements = await resolveOrgEntitlements(activeOrgId);
+    const admin = createAdminClient();
+    const twinEntitlement = await resolveDigitalTwinEntitlement(admin, {
+      userId: user.id,
+      userEmail: user.email,
+      orgId: activeOrgId,
+    });
+    const launcherApps = buildMobileLauncherApps(entitlements, twinEntitlement, homeData);
     return (
       <Suspense fallback={null}>
-        <MobileAppRootContent homeData={homeData} />
+        <MobileAppRootContent homeData={homeData} launcherApps={launcherApps} />
       </Suspense>
     );
   }
