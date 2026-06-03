@@ -1,13 +1,9 @@
 "use client";
 
-import Link from "next/link";
-import {
-  MobileHomeContainedList,
-  MobileHomeListRow,
-  MobileHomeSectionBlock,
-  mobileTokens,
-} from "@/components/mobile-system";
+import { mobileTokens } from "@/components/mobile-system";
 import type { MobileAppHomeData } from "@/lib/mobile/load-app-home-data";
+import { MobileAppHomeSlateDropFolderGrid } from "@/components/studio-ui/MobileAppHomeSlateDropFolderGrid";
+import type { HomeSlateDropFolder } from "@/components/studio-ui/MobileAppHomeSlateDropFolderGrid";
 
 type MobileAppHomeFillProps = {
   data: MobileAppHomeData;
@@ -119,42 +115,78 @@ function buildActivityRows(data: MobileAppHomeData) {
   return rows;
 }
 
+/** SlateDrop folder tiles for the /app home scroll body — derived from existing home data. */
+export function buildHomeSlateDropFolders(data: MobileAppHomeData): HomeSlateDropFolder[] {
+  const folders: HomeSlateDropFolder[] = [];
+  const seen = new Set<string>();
+
+  const pushFolder = (folder: HomeSlateDropFolder) => {
+    if (seen.has(folder.id)) return;
+    seen.add(folder.id);
+    folders.push(folder);
+  };
+
+  pushFolder({
+    id: "general-files",
+    label: "General Files",
+    href: "/slatedrop/general-files",
+    tone: "system",
+  });
+
+  pushFolder({
+    id: "site-walk-files",
+    label: "Site Walk Files",
+    href: "/slatedrop/site-walk-files",
+    tone: "project",
+  });
+
+  for (const walk of data.recentWalks.slice(0, 4)) {
+    pushFolder({
+      id: `walk-${walk.id}`,
+      label: walk.title,
+      href: "/slatedrop/site-walk-files",
+      tone: "project",
+    });
+  }
+
+  for (const deliverable of data.recentDeliverables.slice(0, 2)) {
+    pushFolder({
+      id: `deliverable-${deliverable.id}`,
+      label: deliverable.title,
+      href: "/slatedrop/site-walk-files",
+      tone: "project",
+    });
+  }
+
+  for (const upload of data.recentSlateDrop.slice(0, 3)) {
+    const label = upload.filename.replace(/\.[^.]+$/, "") || upload.filename;
+    pushFolder({
+      id: `upload-${upload.id}`,
+      label,
+      href: "/slatedrop/general-files",
+      tone: "workspace",
+    });
+  }
+
+  for (const job of data.processingQueue.slice(0, 2)) {
+    const label = job.filename.replace(/\.[^.]+$/, "") || job.filename;
+    pushFolder({
+      id: `processing-${job.id}`,
+      label,
+      href: "/slatedrop/general-files",
+      tone: "workspace",
+    });
+  }
+
+  return folders;
+}
+
 export function MobileAppHomeFill({ data }: MobileAppHomeFillProps) {
-  const recentItems = buildRecentRailItems(data);
-  const activityRows = buildActivityRows(data);
+  const folders = buildHomeSlateDropFolders(data);
 
   return (
     <div className={mobileTokens.mobileHomeFillRegion}>
-      {recentItems.length > 0 ? (
-        <MobileHomeSectionBlock label="Recent" accent="info">
-          <div className={mobileTokens.mobileHomeRailScroll}>
-            {recentItems.map((item) => (
-              <Link key={item.key} href={item.href} className={mobileTokens.mobileHomeRailCard}>
-                <span className={mobileTokens.mobileHomeRailCardTitle}>{item.title}</span>
-                <span className={mobileTokens.mobileHomeRailCardMeta}>{item.meta}</span>
-              </Link>
-            ))}
-          </div>
-        </MobileHomeSectionBlock>
-      ) : null}
-
-      <MobileHomeSectionBlock label="Activity" accent="primary">
-        {activityRows.length > 0 ? (
-          <MobileHomeContainedList>
-            {activityRows.map((row) => (
-              <MobileHomeListRow
-                key={row.key}
-                title={row.title}
-                meta={row.meta}
-                metaTone={row.metaTone}
-                href={row.href}
-              />
-            ))}
-          </MobileHomeContainedList>
-        ) : (
-          <p className="px-1 py-4 text-sm text-zinc-400">No recent activity.</p>
-        )}
-      </MobileHomeSectionBlock>
+      <MobileAppHomeSlateDropFolderGrid folders={folders} />
     </div>
   );
 }

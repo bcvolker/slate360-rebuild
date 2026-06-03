@@ -33,13 +33,11 @@ const LAUNCHER_STYLES = {
     card: mobileTokens.appHomeLauncherCardPrimary,
     iconWrapper: mobileTokens.appHomeLauncherIconWrapperPrimary,
     icon: mobileTokens.appHomeLauncherIconPrimary,
-    status: mobileTokens.appHomeLauncherStatusSubline,
   },
   info: {
     card: mobileTokens.appHomeLauncherCardInfo,
     iconWrapper: mobileTokens.appHomeLauncherIconWrapperInfo,
     icon: mobileTokens.appHomeLauncherIconInfo,
-    status: mobileTokens.appHomeLauncherStatusSublineInfo,
   },
 } as const;
 
@@ -126,7 +124,6 @@ function LauncherTile({
   const Icon = LAUNCHER_ICONS[app.id] ?? AppWindow;
   const styles = LAUNCHER_STYLES[app.accent];
   const locked = app.access === "upsell";
-  const statusLine = app.statusSubline;
   const subtext = locked ? "Add to your workspace to launch." : app.subtext;
 
   const cardClass = cn(
@@ -160,9 +157,6 @@ function LauncherTile({
           locked ? `${app.title} — upgrade required` : `Open ${app.title}`
         }
       />
-      {statusLine && !locked ? (
-        <p className={cn("mt-1.5 px-1", styles.status)}>{statusLine}</p>
-      ) : null}
     </div>
   );
 
