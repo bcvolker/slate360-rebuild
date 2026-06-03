@@ -175,25 +175,8 @@ export function MobileAppRootContent({ homeData, launcherApps }: MobileAppRootCo
   );
 
   const dockContent = useMemo(
-    () => (
-      <div className={mobileTokens.appHomeDockStack}>
-        <MobileQuickActionsSection
-          labelClassName={mobileTokens.appHomeQuickActionsSectionLabel}
-          accentClassName={mobileTokens.appHomeQuickActionsSectionAccent}
-        >
-          <MobileQuickActionStrip
-            actions={quickActions}
-            className={mobileTokens.appHomeQuickActionGrid}
-            cardClassName={mobileTokens.appHomeQuickActionCard}
-            iconWrapperClassName={mobileTokens.appHomeQuickActionIconWrapper}
-            iconClassName={mobileTokens.appHomeQuickActionIcon}
-            titleClassName={mobileTokens.appHomeQuickActionTitle}
-          />
-        </MobileQuickActionsSection>
-        <MobileExpandableTabbedPanel tabs={activityTabs} defaultTab="alerts" />
-      </div>
-    ),
-    [activityTabs, quickActions],
+    () => <MobileExpandableTabbedPanel tabs={activityTabs} defaultTab="alerts" />,
+    [activityTabs],
   );
 
   useMobileShellDock(dockContent);
@@ -208,6 +191,17 @@ export function MobileAppRootContent({ homeData, launcherApps }: MobileAppRootCo
           </div>
           <MobileAppLauncherGrid apps={launcherApps} />
         </section>
+
+        <MobileQuickActionsSection>
+          <MobileQuickActionStrip
+            actions={quickActions}
+            className={mobileTokens.appHomeQuickActionGrid}
+            cardClassName={mobileTokens.appHomeQuickActionCard}
+            iconWrapperClassName={mobileTokens.appHomeQuickActionIconWrapper}
+            iconClassName={mobileTokens.appHomeQuickActionIcon}
+            titleClassName={mobileTokens.appHomeQuickActionTitle}
+          />
+        </MobileQuickActionsSection>
 
         <MobileAppHomeFill data={homeData} />
       </div>

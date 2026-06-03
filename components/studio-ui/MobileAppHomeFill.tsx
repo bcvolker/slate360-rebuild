@@ -1,6 +1,5 @@
 "use client";
 
-import { mobileTokens } from "@/components/mobile-system";
 import type { MobileAppHomeData } from "@/lib/mobile/load-app-home-data";
 import { MobileAppHomeSlateDropFolderGrid } from "@/components/studio-ui/MobileAppHomeSlateDropFolderGrid";
 import type { HomeSlateDropFolder } from "@/components/studio-ui/MobileAppHomeSlateDropFolderGrid";
@@ -185,9 +184,7 @@ export function MobileAppHomeFill({ data }: MobileAppHomeFillProps) {
   const folders = buildHomeSlateDropFolders(data);
 
   return (
-    <div className={mobileTokens.mobileHomeFillRegion}>
-      <MobileAppHomeSlateDropFolderGrid folders={folders} />
-    </div>
+    <MobileAppHomeSlateDropFolderGrid folders={folders} />
   );
 }
 

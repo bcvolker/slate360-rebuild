@@ -103,8 +103,15 @@ export const mobileHomeTokens = {
   appHomeSectionLabel:
     "text-xs font-black uppercase tracking-[0.2em] text-zinc-100",
   appHomeSectionLabelAccent: "mb-1.5 block h-0.5 w-8 rounded-full bg-teal-400/35",
+  appHomeSectionLabelRow: "mb-1.5 flex items-end justify-between gap-3",
+  appHomeSectionLabelBlock: "min-w-0",
+  appHomeSectionLabelActions: "flex shrink-0 items-center gap-2 pb-0.5",
+  appHomeSectionLabelIconButton:
+    "inline-flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,white_9%,transparent)] text-zinc-200 transition-colors hover:border-[color-mix(in_srgb,white_16%,transparent)] hover:bg-[color-mix(in_srgb,white_12%,transparent)] active:scale-[0.98]",
+  appHomeSectionLabelTextLink:
+    "text-xs font-semibold text-zinc-200 transition-colors hover:text-white",
   appHomeScrollInner:
-    "mx-auto flex min-h-full w-full max-w-2xl flex-1 flex-col gap-4 px-4 pt-3 pb-4",
+    "mx-auto flex min-h-full w-full max-w-2xl flex-1 flex-col gap-3 px-4 pt-3 pb-4",
   appHomeDockStack: "flex w-full shrink-0 flex-col gap-2.5",
   appHomeQuickActionsSectionLabel:
     "text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-300",
@@ -152,23 +159,14 @@ export const mobileHomeTokens = {
     "pointer-events-none absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-xl border border-white/10 bg-black/40 text-zinc-300",
   appHomeLauncherUpsellSheet: "p-6 pb-12",
   appHomeSlateDropWindow:
-    "flex flex-col overflow-hidden rounded-xl border-2 border-[var(--app-border-strong)] bg-[var(--mobile-app-card-bg)] shadow-[var(--mobile-app-card-shadow)]",
-  appHomeSlateDropHeader:
-    "flex shrink-0 items-center gap-2 border-b border-[var(--mobile-app-card-border)] px-3 py-2.5",
-  appHomeSlateDropHeaderIcon:
-    "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[var(--mobile-app-card-border-info)] bg-[var(--mobile-app-card-icon-bg-info)] text-[var(--mobile-app-card-icon-fg-info)]",
-  appHomeSlateDropHeaderTitle:
-    "min-w-0 truncate text-sm font-bold text-[var(--mobile-app-card-title-fg)]",
-  appHomeSlateDropHeaderMeta:
-    "shrink-0 text-xs font-medium text-[var(--mobile-app-card-subtitle-fg)]",
-  appHomeSlateDropHeaderSpacer: "min-w-0 flex-1",
-  appHomeSlateDropHeaderControl:
-    "inline-flex min-h-9 shrink-0 items-center gap-1 rounded-lg border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,white_9%,transparent)] px-2.5 text-xs font-semibold text-zinc-100 transition-colors hover:border-[color-mix(in_srgb,white_16%,transparent)] hover:bg-[color-mix(in_srgb,white_12%,transparent)] active:scale-[0.99]",
-  appHomeSlateDropBody: "min-h-0 overflow-y-auto overscroll-contain p-3",
-  appHomeSlateDropBodyTwoRows: "max-h-[min(240px,calc(66vw+0.5rem))]",
-  appHomeSlateDropGrid: "grid grid-cols-3 gap-2",
+    "relative flex flex-col overflow-hidden rounded-xl border-2 border-[var(--app-border-strong)] bg-[var(--mobile-app-card-bg)] shadow-[var(--mobile-app-card-shadow)]",
+  appHomeSlateDropBody: "relative min-h-0 overflow-y-auto overscroll-contain p-2",
+  appHomeSlateDropBodyScrollCap: "max-h-[min(118px,calc(25vw+3.25rem))]",
+  appHomeSlateDropScrollFade:
+    "pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-6 rounded-b-xl bg-gradient-to-t from-[color-mix(in_srgb,var(--background)_88%,transparent)] via-[color-mix(in_srgb,var(--background)_35%,transparent)] to-transparent",
+  appHomeSlateDropGrid: "grid grid-cols-4 gap-1.5",
   appHomeSlateDropTile:
-    "flex aspect-square min-w-0 flex-col items-center justify-center gap-1.5 rounded-xl border p-2 text-center transition-all active:scale-[0.98]",
+    "flex aspect-square min-w-0 flex-col items-center justify-center gap-1 rounded-lg border px-1 py-1.5 text-center transition-all active:scale-[0.98]",
   appHomeSlateDropTileProject:
     "border-[var(--mobile-app-card-border-primary)] bg-[color-mix(in_srgb,var(--graphite-primary)_8%,transparent)] hover:border-[color-mix(in_srgb,var(--graphite-primary)_24%,transparent)] hover:bg-[color-mix(in_srgb,var(--graphite-primary)_12%,transparent)]",
   appHomeSlateDropTileWorkspace:
@@ -181,7 +179,8 @@ export const mobileHomeTokens = {
   appHomeSlateDropTileIconWorkspace: "text-[var(--mobile-app-card-icon-fg-info)]",
   appHomeSlateDropTileIconSystem: "text-zinc-200",
   appHomeSlateDropTileIconNew: "text-zinc-300",
-  appHomeSlateDropTileLabel: "line-clamp-2 w-full text-[11px] font-semibold leading-tight text-zinc-100",
+  appHomeSlateDropTileLabel:
+    "w-full min-w-0 truncate text-[10px] font-semibold leading-tight text-zinc-100",
   appQuickActionGrid: "grid shrink-0 grid-cols-2 gap-2 auto-rows-fr",
   appQuickActionCard: `flex min-h-[84px] flex-col items-start justify-center gap-0.5 px-2.5 py-2 text-left ${mobileAppHomeQuickActionCardSurface}`,
   appQuickActionIcon: "h-5 w-5 shrink-0 text-[var(--mobile-quick-action-fg)]",
