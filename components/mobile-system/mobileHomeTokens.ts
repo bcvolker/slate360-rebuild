@@ -188,6 +188,19 @@ export const mobileHomeTokens = {
   appHomeSlateDropTileLabel:
     "min-w-0 flex-1 truncate text-sm font-semibold leading-tight text-zinc-100",
   appHomeSlateDropTileIcon: "h-6 w-6 shrink-0 text-[var(--mobile-folder-icon-fg)]",
+  appHomeSlateDropTileIconGreen: "h-6 w-6 shrink-0 text-[var(--mobile-folder-icon-fg-green)]",
+  appHomeSlateDropTileIconNewGreen:
+    "h-6 w-6 shrink-0 text-[color-mix(in_srgb,var(--mobile-folder-icon-fg-green)_72%,var(--mobile-bottom-nav-fg-inactive))]",
+  siteWalkStartWalkGrid: "grid w-full shrink-0 grid-cols-2 gap-3 auto-rows-fr",
+  siteWalkStartWalkCard:
+    "flex min-h-[152px] flex-col items-start justify-center gap-2 rounded-2xl border border-[var(--mobile-app-card-border-primary)] bg-[var(--mobile-app-card-bg)] px-4 py-4 text-left shadow-[var(--mobile-app-card-glow-primary),var(--mobile-app-card-shadow)] backdrop-blur-md transition-all hover:border-[color-mix(in_srgb,var(--graphite-primary)_38%,transparent)] active:ring-2 active:ring-[color-mix(in_srgb,var(--graphite-primary)_28%,transparent)] active:scale-[0.99]",
+  siteWalkStartWalkIconWrapper:
+    "mb-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[var(--mobile-app-card-icon-border-primary)] bg-[var(--mobile-app-card-icon-bg-primary)]",
+  siteWalkStartWalkIcon: "h-7 w-7 shrink-0 text-[var(--mobile-app-card-icon-fg-primary)]",
+  siteWalkStartWalkTitle: "text-lg font-bold leading-tight text-[var(--mobile-app-card-title-fg)]",
+  siteWalkStartWalkSubtext: "text-sm font-medium leading-snug text-[var(--mobile-app-card-subtitle-fg)]",
+  siteWalkHomeSectionLabelAccent:
+    "mb-1.5 block h-0.5 w-8 rounded-full bg-[color-mix(in_srgb,var(--graphite-primary)_35%,transparent)]",
   appQuickActionGrid: "grid shrink-0 grid-cols-2 gap-2 auto-rows-fr",
   appQuickActionCard: `flex min-h-[84px] flex-col items-start justify-center gap-0.5 px-2.5 py-2 text-left ${mobileAppHomeQuickActionCardSurface}`,
   appQuickActionIcon: "h-5 w-5 shrink-0 text-[var(--mobile-quick-action-fg)]",

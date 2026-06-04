@@ -15,8 +15,15 @@ export type HomeSlateDropFolder = {
 
 type SortMode = "name" | "type";
 
-type MobileAppHomeSlateDropFolderGridProps = {
+export type MobileHomeSlateDropFolderGridProps = {
   folders: HomeSlateDropFolder[];
+  sectionLabel?: string;
+  openHref?: string;
+  newFolderHref?: string;
+  sectionAriaLabel?: string;
+  folderIconClassName?: string;
+  newFolderIconClassName?: string;
+  labelAccentClassName?: string;
 };
 
 const TYPE_ORDER: Record<HomeSlateDropFolder["tone"], number> = {
@@ -24,6 +31,16 @@ const TYPE_ORDER: Record<HomeSlateDropFolder["tone"], number> = {
   workspace: 1,
   system: 2,
 };
+
+const SLATEDROP_DEFAULTS = {
+  sectionLabel: "SlateDrop",
+  openHref: "/slatedrop",
+  newFolderHref: "/slatedrop/new-folder",
+  sectionAriaLabel: "SlateDrop",
+  folderIconClassName: mobileTokens.appHomeSlateDropTileIcon,
+  newFolderIconClassName: mobileTokens.appHomeSlateDropTileIconNew,
+  labelAccentClassName: mobileTokens.appHomeSectionLabelAccent,
+} as const;
 
 function sortFolders(folders: HomeSlateDropFolder[], mode: SortMode): HomeSlateDropFolder[] {
   const next = [...folders];
@@ -39,9 +56,16 @@ function sortFolders(folders: HomeSlateDropFolder[], mode: SortMode): HomeSlateD
 
 const folderCardSurface = mobileTokens.appHomeSlateDropTileProject;
 
-export function MobileAppHomeSlateDropFolderGrid({
+export function MobileHomeSlateDropFolderGrid({
   folders,
-}: MobileAppHomeSlateDropFolderGridProps) {
+  sectionLabel = SLATEDROP_DEFAULTS.sectionLabel,
+  openHref = SLATEDROP_DEFAULTS.openHref,
+  newFolderHref = SLATEDROP_DEFAULTS.newFolderHref,
+  sectionAriaLabel = SLATEDROP_DEFAULTS.sectionAriaLabel,
+  folderIconClassName = SLATEDROP_DEFAULTS.folderIconClassName,
+  newFolderIconClassName = SLATEDROP_DEFAULTS.newFolderIconClassName,
+  labelAccentClassName = SLATEDROP_DEFAULTS.labelAccentClassName,
+}: MobileHomeSlateDropFolderGridProps) {
   const [sortMode, setSortMode] = useState<SortMode>("type");
   const sortedFolders = useMemo(
     () => sortFolders(folders, sortMode),
@@ -50,11 +74,11 @@ export function MobileAppHomeSlateDropFolderGrid({
   const showScrollAffordance = sortedFolders.length >= 3;
 
   return (
-    <section className={mobileTokens.appHomeSlateDropSection} aria-label="SlateDrop">
+    <section className={mobileTokens.appHomeSlateDropSection} aria-label={sectionAriaLabel}>
       <div className={mobileTokens.appHomeSectionLabelRow}>
         <div className={mobileTokens.appHomeSectionLabelBlock}>
-          <span className={mobileTokens.appHomeSectionLabelAccent} aria-hidden />
-          <p className={mobileTokens.appHomeSectionLabel}>SlateDrop</p>
+          <span className={labelAccentClassName} aria-hidden />
+          <p className={mobileTokens.appHomeSectionLabel}>{sectionLabel}</p>
         </div>
         <div className={mobileTokens.appHomeSectionLabelActions}>
           <button
@@ -65,7 +89,7 @@ export function MobileAppHomeSlateDropFolderGrid({
           >
             <ArrowUpDown className="h-4 w-4 shrink-0" strokeWidth={1.75} aria-hidden />
           </button>
-          <Link href="/slatedrop" className={mobileTokens.appHomeSectionLabelTextLink}>
+          <Link href={openHref} className={mobileTokens.appHomeSectionLabelTextLink}>
             Open
           </Link>
         </div>
@@ -79,24 +103,21 @@ export function MobileAppHomeSlateDropFolderGrid({
                 key={folder.id}
                 href={folder.href}
                 className={cn(mobileTokens.appHomeSlateDropCard, folderCardSurface)}
-                aria-label={`Open ${folder.label} in SlateDrop`}
+                aria-label={`Open ${folder.label} in ${sectionLabel}`}
               >
-                <Folder
-                  className={mobileTokens.appHomeSlateDropTileIcon}
-                  strokeWidth={1.75}
-                />
+                <Folder className={folderIconClassName} strokeWidth={1.75} />
                 <span className={mobileTokens.appHomeSlateDropTileLabel}>{folder.label}</span>
               </Link>
             ))}
             <Link
-              href="/slatedrop/new-folder"
+              href={newFolderHref}
               className={cn(
                 mobileTokens.appHomeSlateDropCard,
                 mobileTokens.appHomeSlateDropTileNew,
               )}
-              aria-label="Create new folder in SlateDrop"
+              aria-label={`Create new folder in ${sectionLabel}`}
             >
-              <Plus className={mobileTokens.appHomeSlateDropTileIconNew} strokeWidth={1.75} />
+              <Plus className={newFolderIconClassName} strokeWidth={1.75} />
               <span className={mobileTokens.appHomeSlateDropTileLabel}>New folder</span>
             </Link>
           </div>
@@ -107,4 +128,13 @@ export function MobileAppHomeSlateDropFolderGrid({
       </div>
     </section>
   );
+}
+
+/** Slate360 /app home — default blue folder icons and /slatedrop links. */
+export function MobileAppHomeSlateDropFolderGrid({
+  folders,
+}: {
+  folders: HomeSlateDropFolder[];
+}) {
+  return <MobileHomeSlateDropFolderGrid folders={folders} />;
 }

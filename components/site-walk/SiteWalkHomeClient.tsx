@@ -1,23 +1,28 @@
 "use client";
 
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { Camera, ClipboardList, FileText, FolderOpen, MapPin } from "lucide-react";
+import {
+  Camera,
+  ClipboardList,
+  FileText,
+  FolderOpen,
+  MapPin,
+} from "lucide-react";
 import {
   MobileEmptyState,
   MobileExpandableTabbedPanel,
   MobileHomeActionCard,
-  MobileHomeActionGrid,
   MobileHomeListRow,
   MobileQuickActionsSection,
+  MobileQuickActionStrip,
   mobileTokens,
   useMobileShellDock,
 } from "@/components/mobile-system";
-import type { MobilePanelTab } from "@/components/mobile-system";
+import type { MobilePanelTab, MobileQuickActionItem } from "@/components/mobile-system";
 import type { MobileHomeAssignment } from "@/lib/mobile/load-mobile-assignments";
 import { buildCaptureLaunchUrl } from "@/lib/site-walk/capture-v2-config";
 import { buildSiteWalkDockRows, SiteWalkHomeFill } from "@/components/site-walk/SiteWalkHomeFill";
-import { cn } from "@/lib/utils";
 import type { HubProject, HubSummary, HubWalk } from "@/lib/types/site-walk";
 import type { HubDeliverableRow } from "@/lib/types/site-walk-hub";
 
@@ -56,6 +61,21 @@ function DockRowList({
   );
 }
 
+function pickActiveWorksite(walks: HubWalk[], projects: HubProject[]) {
+  if (walks.length > 0) {
+    const latest = walks[0]!;
+    return {
+      label: latest.projectName ?? latest.title,
+      projectId: latest.projectId,
+      walkId: latest.id,
+    };
+  }
+  if (projects.length > 0) {
+    return { label: projects[0]!.name, projectId: projects[0]!.id, walkId: null };
+  }
+  return null;
+}
+
 export function SiteWalkHomeClient({
   projects,
   walks,
@@ -64,8 +84,9 @@ export function SiteWalkHomeClient({
   assignments,
 }: Props) {
   const router = useRouter();
+  const worksite = useMemo(() => pickActiveWorksite(walks, projects), [projects, walks]);
 
-  async function handleQuickCapture() {
+  const handleQuickCapture = useCallback(async () => {
     const dateLabel = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" });
     const res = await fetch("/api/site-walk/sessions", {
       method: "POST",
@@ -80,11 +101,48 @@ export function SiteWalkHomeClient({
     const body = (await res.json()) as { session?: { id?: string } };
     if (!body.session?.id) return;
     router.push(buildCaptureLaunchUrl({ session: body.session.id, quick: "camera" }));
-  }
+  }, [router]);
+
+  const handleProjectWalk = useCallback(async () => {
+    const dateLabel = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    const label = worksite?.label ?? projects[0]?.name ?? "Project Walk";
+    const res = await fetch("/api/site-walk/sessions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: `${label} — ${dateLabel}`,
+        session_type: "general",
+        project_id: worksite?.projectId ?? projects[0]?.id ?? undefined,
+        metadata: {
+          started_at: new Date().toISOString(),
+          started_from: "hub_hero",
+        },
+      }),
+    });
+    if (!res.ok) return;
+    const body = (await res.json()) as { session?: { id?: string } };
+    if (!body.session?.id) return;
+    router.push(buildCaptureLaunchUrl({ session: body.session.id, quick: "camera" }));
+  }, [projects, router, worksite]);
 
   const dockRows = useMemo(
     () => buildSiteWalkDockRows(walks, projects, deliverables, assignments, summary),
     [assignments, deliverables, projects, summary, walks],
+  );
+
+  const quickActions: MobileQuickActionItem[] = useMemo(
+    () => [
+      { label: "Walk Sessions", icon: FolderOpen, accent: "primary", href: "/site-walk/walks" },
+      { label: "Deliverables", icon: FileText, accent: "primary", href: "/site-walk/deliverables" },
+      {
+        label: "Assigned Work",
+        icon: ClipboardList,
+        accent: "primary",
+        href: "/site-walk/assigned-work",
+      },
+      { label: "Projects", icon: MapPin, accent: "primary", href: "/projects" },
+    ],
+    [],
   );
 
   const dockTabs: MobilePanelTab[] = useMemo(
@@ -134,59 +192,67 @@ export function SiteWalkHomeClient({
           ),
       },
     ],
-    [dockRows],
+    [dockRows, handleQuickCapture],
   );
 
   const dockContent = useMemo(
-    () => (
-      <div className={mobileTokens.mobileShellDockStack}>
-        <MobileQuickActionsSection>
-          <MobileHomeActionGrid aria-label="Quick actions">
-            <MobileHomeActionCard
-              title="Quick Walk"
-              subtext="Start capturing now"
-              icon={Camera}
-              onClick={() => void handleQuickCapture()}
-            />
-            <MobileHomeActionCard
-              title="Walk Sessions"
-              subtext="Review saved walks"
-              icon={FolderOpen}
-              href="/site-walk/walks"
-            />
-            <MobileHomeActionCard
-              title="Deliverables"
-              subtext="Reports and outputs"
-              icon={FileText}
-              href="/site-walk/deliverables"
-            />
-            <MobileHomeActionCard
-              title="Assigned Work"
-              subtext="Tasks in the field"
-              icon={ClipboardList}
-              href="/site-walk/assigned-work"
-            />
-          </MobileHomeActionGrid>
-        </MobileQuickActionsSection>
-        <MobileExpandableTabbedPanel tabs={dockTabs} defaultTab="recent" />
-      </div>
-    ),
+    () => <MobileExpandableTabbedPanel tabs={dockTabs} defaultTab="recent" />,
     [dockTabs],
   );
 
   useMobileShellDock(dockContent);
 
+  const projectWalkSubtext = worksite
+    ? `Capture at ${worksite.label}`
+    : projects.length > 0
+      ? `Start at ${projects[0]!.name}`
+      : "Link a project to capture on site";
+
   return (
-    <div data-mobile-route="site-walk" className={mobileTokens.mobileShellScrollInner}>
-      <div className="flex shrink-0 items-center gap-3">
-        <span
-          className={cn(mobileTokens.mobileIconChip, mobileTokens.mobileIconChipLg)}
-          aria-hidden
-        >
-          <MapPin className={mobileTokens.mobileIconChipIconLg} strokeWidth={1.75} />
-        </span>
-        <h1 className={cn(mobileTokens.moduleTitle, "min-w-0")}>SITE WALK</h1>
-      </div>
+    <div data-mobile-route="site-walk" className={mobileTokens.appHomeScrollInner}>
+      <section className={mobileTokens.mobileHomeSection}>
+        <div className={mobileTokens.mobileHomeSectionHeader}>
+          <span className={mobileTokens.siteWalkHomeSectionLabelAccent} aria-hidden />
+          <p className={mobileTokens.appHomeSectionLabel}>Start Walk</p>
+        </div>
+        <div className={mobileTokens.siteWalkStartWalkGrid}>
+          <MobileHomeActionCard
+            title="Quick Walk"
+            subtext="Start capturing now"
+            icon={Camera}
+            onClick={() => void handleQuickCapture()}
+            className={mobileTokens.siteWalkStartWalkCard}
+            iconWrapperClassName={mobileTokens.siteWalkStartWalkIconWrapper}
+            iconClassName={mobileTokens.siteWalkStartWalkIcon}
+            titleClassName={mobileTokens.siteWalkStartWalkTitle}
+            subtextClassName={mobileTokens.siteWalkStartWalkSubtext}
+            aria-label="Start a quick walk"
+          />
+          <MobileHomeActionCard
+            title="Project Walk"
+            subtext={projectWalkSubtext}
+            icon={MapPin}
+            onClick={() => void handleProjectWalk()}
+            className={mobileTokens.siteWalkStartWalkCard}
+            iconWrapperClassName={mobileTokens.siteWalkStartWalkIconWrapper}
+            iconClassName={mobileTokens.siteWalkStartWalkIcon}
+            titleClassName={mobileTokens.siteWalkStartWalkTitle}
+            subtextClassName={mobileTokens.siteWalkStartWalkSubtext}
+            aria-label="Start a project walk"
+          />
+        </div>
+      </section>
+
+      <MobileQuickActionsSection
+        labelClassName={mobileTokens.appHomeSectionLabel}
+        accentClassName={mobileTokens.siteWalkHomeSectionLabelAccent}
+      >
+        <MobileQuickActionStrip
+          actions={quickActions}
+          className={mobileTokens.appHomeQuickActionGrid}
+          cardClassName={mobileTokens.appHomeQuickActionCard}
+        />
+      </MobileQuickActionsSection>
 
       <SiteWalkHomeFill
         projects={projects}

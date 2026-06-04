@@ -198,6 +198,7 @@
   --mobile-expandable-panel-bg: var(--surface-zinc);
   --mobile-expandable-panel-border: var(--surface-zinc-border);
   --mobile-folder-icon-fg: var(--twin360-blue);
+  --mobile-folder-icon-fg-green: var(--graphite-primary);
 
   /* ── Mobile home hierarchy (/app launcher primary, quick actions secondary) ── */
   --mobile-app-card-bg: var(--surface-zinc);
