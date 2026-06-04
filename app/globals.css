@@ -180,10 +180,23 @@
   --app-shadow-card: 0 1px 2px 0 rgba(15, 23, 42, 0.04), 0 1px 3px 0 rgba(15, 23, 42, 0.08);
   --app-shadow-elevated: 0 8px 24px -8px rgba(15, 23, 42, 0.16), 0 2px 6px -2px rgba(15, 23, 42, 0.08);
 
+  /* ── Zinc surface system (mobile shell — lifted neutral, restrained borders) ── */
+  --surface-zinc: #27272A;
+  --surface-zinc-border: color-mix(in srgb, white 14%, transparent);
+  --accent-border-green: color-mix(in srgb, var(--graphite-primary) 28%, transparent);
+  --accent-border-blue: color-mix(in srgb, var(--twin360-blue) 28%, transparent);
+  --mobile-bottom-nav-bg: #16181D;
+  --mobile-bottom-nav-border: var(--surface-zinc-border);
+  --mobile-bottom-nav-fg-active: var(--graphite-primary);
+  --mobile-bottom-nav-fg-inactive: #A1A1AA;
+  --mobile-expandable-panel-bg: var(--surface-zinc);
+  --mobile-expandable-panel-border: var(--surface-zinc-border);
+  --mobile-folder-icon-fg: var(--twin360-blue);
+
   /* ── Mobile home hierarchy (/app launcher primary, quick actions secondary) ── */
-  --mobile-app-card-bg: color-mix(in srgb, white 7%, transparent);
-  --mobile-app-card-bg-info: color-mix(in srgb, var(--twin360-blue) 7%, transparent);
-  --mobile-app-card-border: color-mix(in srgb, white 12%, transparent);
+  --mobile-app-card-bg: var(--surface-zinc);
+  --mobile-app-card-bg-info: color-mix(in srgb, var(--twin360-blue) 7%, var(--surface-zinc));
+  --mobile-app-card-border: var(--surface-zinc-border);
   --mobile-app-card-border-primary: color-mix(in srgb, var(--graphite-primary) 30%, transparent);
   --mobile-app-card-border-info: color-mix(in srgb, var(--twin360-blue) 30%, transparent);
   --mobile-app-card-glow-primary: var(--app-glow-teal-strong);
@@ -198,13 +211,13 @@
   --mobile-app-card-icon-bg-info: color-mix(in srgb, var(--twin360-blue) 12%, transparent);
   --mobile-app-card-icon-border-info: color-mix(in srgb, var(--twin360-blue) 22%, transparent);
   --mobile-app-card-icon-fg-info: color-mix(in srgb, var(--twin360-blue) 88%, white);
-  --mobile-quick-action-bg: color-mix(in srgb, white 9%, transparent);
-  --mobile-quick-action-border: color-mix(in srgb, white 14%, transparent);
+  --mobile-quick-action-bg: var(--surface-zinc);
+  --mobile-quick-action-border: var(--surface-zinc-border);
   --mobile-quick-action-fg: var(--graphite-primary);
   --mobile-quick-action-title-fg: color-mix(in srgb, var(--graphite-primary) 92%, white);
   --mobile-quick-action-subtitle-fg: color-mix(in srgb, var(--graphite-primary) 62%, var(--graphite-muted));
-  --mobile-quick-action-icon-bg: color-mix(in srgb, white 8%, transparent);
-  --mobile-quick-action-icon-border: color-mix(in srgb, white 16%, transparent);
+  --mobile-quick-action-icon-bg: color-mix(in srgb, var(--graphite-primary) 8%, var(--surface-zinc));
+  --mobile-quick-action-icon-border: var(--accent-border-green);
   --mobile-quick-action-shadow: 0 2px 10px color-mix(in srgb, black 28%, transparent);
 
   /* ── Steel / teal accent (consumed by btn-teal-outline, text-teal) ── */

@@ -15,7 +15,7 @@ export const appHomeLauncherCardInfoBase =
 
 /** Shared quick-action card surface for /app home quick actions */
 const mobileAppHomeQuickActionCardSurface =
-  "rounded-xl border border-[var(--mobile-quick-action-border)] bg-[var(--mobile-quick-action-bg)] shadow-[var(--mobile-quick-action-shadow)] transition-all hover:border-[color-mix(in_srgb,white_18%,transparent)] hover:bg-[color-mix(in_srgb,white_12%,transparent)] active:scale-[0.99]";
+  "rounded-xl border border-[var(--mobile-quick-action-border)] bg-[var(--mobile-quick-action-bg)] shadow-[var(--mobile-quick-action-shadow)] transition-all hover:border-[var(--accent-border-green)] hover:bg-[color-mix(in_srgb,var(--surface-zinc)_92%,white)] active:scale-[0.99]";
 
 export const mobileHomeTokens = {
   mobileHomeContentGap: "gap-3",
@@ -159,7 +159,7 @@ export const mobileHomeTokens = {
     "pointer-events-none absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-xl border border-white/10 bg-black/40 text-zinc-300",
   appHomeLauncherUpsellSheet: "p-6 pb-12",
   appHomeSlateDropWindow:
-    "relative flex flex-col overflow-hidden rounded-xl border-2 border-[var(--app-border-strong)] bg-[var(--mobile-app-card-bg)] shadow-[var(--mobile-app-card-shadow)]",
+    "relative flex flex-col overflow-hidden rounded-xl border border-[var(--surface-zinc-border)] bg-[var(--surface-zinc)] shadow-[var(--mobile-quick-action-shadow)]",
   appHomeSlateDropBody: "relative min-h-0 overflow-y-auto overscroll-contain p-2",
   appHomeSlateDropBodyScrollCap: "max-h-[min(118px,calc(25vw+3.25rem))]",
   appHomeSlateDropScrollFade:
@@ -167,18 +167,20 @@ export const mobileHomeTokens = {
   appHomeSlateDropGrid: "grid grid-cols-4 gap-1.5",
   appHomeSlateDropTile:
     "flex aspect-square min-w-0 flex-col items-center justify-center gap-1 rounded-lg border px-1 py-1.5 text-center transition-all active:scale-[0.98]",
+  appHomeSlateDropTileSurface:
+    "border-[var(--surface-zinc-border)] bg-[var(--surface-zinc)] hover:border-[color-mix(in_srgb,var(--surface-zinc-border)_70%,white)] hover:bg-[color-mix(in_srgb,var(--surface-zinc)_92%,white)]",
   appHomeSlateDropTileProject:
-    "border-[var(--mobile-app-card-border-primary)] bg-[color-mix(in_srgb,var(--graphite-primary)_8%,transparent)] hover:border-[color-mix(in_srgb,var(--graphite-primary)_24%,transparent)] hover:bg-[color-mix(in_srgb,var(--graphite-primary)_12%,transparent)]",
+    "border-[var(--surface-zinc-border)] bg-[var(--surface-zinc)] hover:border-[color-mix(in_srgb,var(--surface-zinc-border)_70%,white)] hover:bg-[color-mix(in_srgb,var(--surface-zinc)_92%,white)]",
   appHomeSlateDropTileWorkspace:
-    "border-[var(--mobile-app-card-border-info)] bg-[color-mix(in_srgb,var(--twin360-blue)_8%,transparent)] hover:border-[color-mix(in_srgb,var(--twin360-blue)_24%,transparent)] hover:bg-[color-mix(in_srgb,var(--twin360-blue)_12%,transparent)]",
+    "border-[var(--surface-zinc-border)] bg-[var(--surface-zinc)] hover:border-[color-mix(in_srgb,var(--surface-zinc-border)_70%,white)] hover:bg-[color-mix(in_srgb,var(--surface-zinc)_92%,white)]",
   appHomeSlateDropTileSystem:
-    "border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,white_7%,transparent)] hover:border-[color-mix(in_srgb,white_16%,transparent)] hover:bg-[color-mix(in_srgb,white_10%,transparent)]",
+    "border-[var(--surface-zinc-border)] bg-[var(--surface-zinc)] hover:border-[color-mix(in_srgb,var(--surface-zinc-border)_70%,white)] hover:bg-[color-mix(in_srgb,var(--surface-zinc)_92%,white)]",
   appHomeSlateDropTileNew:
-    "border-dashed border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,white_5%,transparent)] hover:border-[color-mix(in_srgb,white_16%,transparent)] hover:bg-[color-mix(in_srgb,white_8%,transparent)]",
-  appHomeSlateDropTileIconProject: "text-[var(--mobile-app-card-icon-fg-primary)]",
-  appHomeSlateDropTileIconWorkspace: "text-[var(--mobile-app-card-icon-fg-info)]",
-  appHomeSlateDropTileIconSystem: "text-zinc-200",
-  appHomeSlateDropTileIconNew: "text-zinc-300",
+    "border-dashed border-[var(--surface-zinc-border)] bg-[color-mix(in_srgb,var(--surface-zinc)_88%,transparent)] hover:border-[color-mix(in_srgb,var(--surface-zinc-border)_70%,white)] hover:bg-[color-mix(in_srgb,var(--surface-zinc)_92%,white)]",
+  appHomeSlateDropTileIconProject: "text-[var(--mobile-folder-icon-fg)]",
+  appHomeSlateDropTileIconWorkspace: "text-[var(--mobile-folder-icon-fg)]",
+  appHomeSlateDropTileIconSystem: "text-[var(--mobile-folder-icon-fg)]",
+  appHomeSlateDropTileIconNew: "text-[color-mix(in_srgb,var(--mobile-folder-icon-fg)_72%,var(--mobile-bottom-nav-fg-inactive))]",
   appHomeSlateDropTileLabel:
     "w-full min-w-0 truncate text-[10px] font-semibold leading-tight text-zinc-100",
   appQuickActionGrid: "grid shrink-0 grid-cols-2 gap-2 auto-rows-fr",
@@ -226,7 +228,7 @@ export const mobileHomeTokens = {
 
   siteWalkActionGridRow: "grid shrink-0 grid-cols-2 gap-2.5 auto-rows-fr",
   siteWalkActionGridButton:
-    "flex min-h-[112px] flex-col items-start justify-center gap-1 px-3 py-2.5 text-left rounded-xl border border-[var(--mobile-quick-action-border)] bg-[var(--mobile-quick-action-bg)] shadow-[var(--mobile-quick-action-shadow)] transition-all hover:border-[color-mix(in_srgb,var(--graphite-primary)_14%,transparent)] hover:bg-[color-mix(in_srgb,white_6%,transparent)] active:scale-[0.99]",
+    "flex min-h-[112px] flex-col items-start justify-center gap-1 px-3 py-2.5 text-left rounded-xl border border-[var(--mobile-quick-action-border)] bg-[var(--mobile-quick-action-bg)] shadow-[var(--mobile-quick-action-shadow)] transition-all hover:border-[var(--accent-border-green)] hover:bg-[color-mix(in_srgb,var(--surface-zinc)_92%,white)] active:scale-[0.99]",
   quickActionStripRow: "grid grid-cols-4 gap-1.5",
   quickActionGridRow: "grid h-full min-h-0 flex-1 grid-cols-2 auto-rows-fr gap-2.5",
   quickActionStripButton:
@@ -241,9 +243,10 @@ export const mobileHomeTokens = {
   expandablePanelUpperScroll: "px-4",
   expandablePanelBackdrop: "absolute inset-0 z-20 bg-black/50 backdrop-blur-[2px] lg:hidden",
   expandablePanelDock:
-    "flex w-full flex-col overflow-hidden rounded-xl border border-white/15 bg-white/[0.06] shadow-[0_-4px_24px_rgba(0,0,0,0.35)] backdrop-blur-md transition-[height] duration-200 ease-out",
-  expandablePanelDockExpanded: "shadow-[0_-12px_40px_rgba(0,0,0,0.55)] ring-1 ring-white/15",
-  expandablePanelChrome: "flex shrink-0 items-center gap-1 border-b border-white/15 px-2",
+    "flex w-full flex-col overflow-hidden rounded-xl border border-[var(--mobile-expandable-panel-border)] bg-[var(--mobile-expandable-panel-bg)] shadow-[0_-4px_24px_rgba(0,0,0,0.35)] backdrop-blur-md transition-[height] duration-200 ease-out",
+  expandablePanelDockExpanded: "shadow-[0_-12px_40px_rgba(0,0,0,0.55)]",
+  expandablePanelChrome:
+    "flex shrink-0 items-center gap-1 border-b border-[var(--mobile-expandable-panel-border)] px-2",
   expandablePanelHandle: "block h-1.5 w-12 rounded-full bg-white/40",
   expandablePanelCollapsedFrame: "w-full shrink-0",
   expandablePanelExpandedFrame: "h-[60dvh] max-h-[60dvh] min-h-[60dvh]",

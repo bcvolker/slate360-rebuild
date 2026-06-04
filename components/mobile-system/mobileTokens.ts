@@ -29,7 +29,7 @@ const mobileTabbedPanelBodyPadding = "px-3 pt-2 pb-3";
 /** Shared home action card — secondary quick actions (translucent glass, green accent) */
 const quickActionMinHeightClass = "min-h-[112px]";
 const mobileQuickActionCardSurface =
-  "rounded-xl border border-[var(--mobile-quick-action-border)] bg-[var(--mobile-quick-action-bg)] shadow-[var(--mobile-quick-action-shadow)] transition-all hover:border-[color-mix(in_srgb,var(--graphite-primary)_14%,transparent)] hover:bg-[color-mix(in_srgb,white_6%,transparent)] active:scale-[0.99]";
+  "rounded-xl border border-[var(--mobile-quick-action-border)] bg-[var(--mobile-quick-action-bg)] shadow-[var(--mobile-quick-action-shadow)] transition-all hover:border-[var(--accent-border-green)] hover:bg-[color-mix(in_srgb,var(--surface-zinc)_92%,white)] active:scale-[0.99]";
 const mobileHomeActionCard = `flex ${quickActionMinHeightClass} flex-col items-start justify-center gap-1 px-3 py-2.5 text-left ${mobileQuickActionCardSurface}`;
 const mobileHomeActionGrid = "grid shrink-0 grid-cols-2 gap-2.5 auto-rows-fr";
 
@@ -117,13 +117,14 @@ export const mobileTokens = {
     "truncate text-[16px] font-semibold leading-tight tracking-tight text-white",
   mobileHeaderSubtitle:
     "truncate text-[11px] font-bold uppercase leading-tight tracking-[0.1em] text-zinc-300 mt-0.5",
-  mobileBottomNavItemActive: "bg-white/[0.14] font-semibold text-white",
+  mobileBottomNavItemActive:
+    "font-semibold text-[var(--mobile-bottom-nav-fg-active)]",
   mobileBottomNavItemIdle:
-    "text-zinc-100/90 hover:bg-white/[0.07] hover:text-white",
+    "text-[var(--mobile-bottom-nav-fg-inactive)] hover:bg-[color-mix(in_srgb,var(--surface-zinc)_88%,white)] hover:text-[color-mix(in_srgb,var(--mobile-bottom-nav-fg-inactive)_85%,white)]",
   mobileBottomNavActiveIndicator:
-    "absolute left-1/2 top-0 h-[2.5px] w-10 -translate-x-1/2 rounded-b-full bg-[var(--mobile-field-primary-bg)] shadow-[0_2px_12px_rgba(0,0,0,0.35)]",
+    "absolute left-1/2 top-0 h-[2.5px] w-10 -translate-x-1/2 rounded-b-full bg-[var(--mobile-bottom-nav-fg-active)] shadow-[0_2px_12px_color-mix(in_srgb,var(--graphite-primary)_35%,transparent)]",
   mobileBottomNavBar:
-    "relative z-20 shrink-0 rounded-t-3xl border-t border-white/20 bg-[#0B0F15]/96 shadow-[0_-10px_28px_rgba(0,0,0,0.5)] backdrop-blur-lg",
+    "relative z-20 shrink-0 rounded-t-3xl border-t border-[var(--mobile-bottom-nav-border)] bg-[var(--mobile-bottom-nav-bg)] shadow-[0_-10px_28px_rgba(0,0,0,0.5)] backdrop-blur-lg",
   mobileModalOverlay:
     "fixed inset-0 z-[1000] flex items-center justify-center bg-black/70 p-4 backdrop-blur-md",
   mobileModalPanel:
@@ -253,13 +254,13 @@ export const mobileTokens = {
   mobileExpandablePanelBackdrop:
     "absolute inset-0 z-20 bg-black/50 backdrop-blur-[2px] lg:hidden",
   mobileExpandablePanelFrame:
-    "flex w-full flex-col overflow-hidden rounded-xl border border-white/15 bg-white/[0.06] shadow-[0_-4px_24px_rgba(0,0,0,0.35)] backdrop-blur-md transition-[height] duration-200 ease-out",
+    "flex w-full flex-col overflow-hidden rounded-xl border border-[var(--mobile-expandable-panel-border)] bg-[var(--mobile-expandable-panel-bg)] shadow-[0_-4px_24px_rgba(0,0,0,0.35)] backdrop-blur-md transition-[height] duration-200 ease-out",
   mobileExpandablePanelFrameExpanded:
-    "shadow-[0_-12px_40px_rgba(0,0,0,0.55)] ring-1 ring-white/15",
+    "shadow-[0_-12px_40px_rgba(0,0,0,0.55)]",
   mobileExpandablePanelChrome:
     "flex min-h-11 w-full shrink-0 touch-manipulation",
   mobileExpandablePanelToggleButton:
-    "flex min-h-11 w-full flex-1 items-center justify-center gap-2 border-b border-white/15 px-3 py-2 text-zinc-100 transition-colors hover:bg-white/[0.05] active:bg-white/[0.09]",
+    "flex min-h-11 w-full flex-1 items-center justify-center gap-2 border-b border-[var(--mobile-expandable-panel-border)] px-3 py-2 text-zinc-100 transition-colors hover:bg-[color-mix(in_srgb,var(--surface-zinc)_92%,white)] active:bg-[color-mix(in_srgb,var(--surface-zinc)_88%,white)]",
   mobileExpandablePanelCollapsedHeight: "w-full shrink-0",
   mobileExpandablePanelExpandedHeight:
     "h-[60dvh] max-h-[60dvh] min-h-[60dvh] shrink-0",

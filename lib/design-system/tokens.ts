@@ -122,6 +122,12 @@ export const modules = {
 
 /** Mobile home visual hierarchy — CSS var names mirror globals.css :root */
 export const mobileHomeHierarchy = {
+  zinc: {
+    surface: "var(--surface-zinc)",
+    border: "var(--surface-zinc-border)",
+    accentBorderGreen: "var(--accent-border-green)",
+    accentBorderBlue: "var(--accent-border-blue)",
+  },
   appCard: {
     surface: "var(--mobile-app-card-bg)",
     border: "var(--mobile-app-card-border)",
