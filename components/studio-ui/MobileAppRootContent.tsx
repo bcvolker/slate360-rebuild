@@ -74,11 +74,11 @@ export function MobileAppRootContent({ homeData, launcherApps }: MobileAppRootCo
     () => [
       { label: "Create", icon: Plus, accent: "primary", onClick: () => setCreateSheetOpen(true) },
       { label: "SlateDrop", icon: FolderOpen, accent: "info", href: "/slatedrop" },
-      { label: "Search", icon: Search, accent: "muted", onClick: handleSearch },
+      { label: "Search", icon: Search, accent: "info", onClick: handleSearch },
       {
         label: "Deliverables",
         icon: Package,
-        accent: "neutral",
+        accent: "primary",
         href: "/site-walk/deliverables",
       },
     ],
@@ -197,9 +197,6 @@ export function MobileAppRootContent({ homeData, launcherApps }: MobileAppRootCo
             actions={quickActions}
             className={mobileTokens.appHomeQuickActionGrid}
             cardClassName={mobileTokens.appHomeQuickActionCard}
-            iconWrapperClassName={mobileTokens.appHomeQuickActionIconWrapper}
-            iconClassName={mobileTokens.appHomeQuickActionIcon}
-            titleClassName={mobileTokens.appHomeQuickActionTitle}
           />
         </MobileQuickActionsSection>
 

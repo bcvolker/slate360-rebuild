@@ -3,7 +3,7 @@
 import Link from "next/link";
 import type { ElementType, ReactNode } from "react";
 import { cn } from "@/lib/utils";
-import { mobileTokens } from "./mobileTokens";
+import { mobileTokens, type MobileQuickActionAccent } from "./mobileTokens";
 
 export type MobileHomeActionCardProps = {
   title: string;
@@ -13,6 +13,8 @@ export type MobileHomeActionCardProps = {
   onClick?: () => void;
   disabled?: boolean;
   selected?: boolean;
+  /** Green (primary) or blue (info) quick-action accent */
+  accent?: Extract<MobileQuickActionAccent, "primary" | "info">;
   "aria-label"?: string;
   className?: string;
   iconWrapperClassName?: string;
@@ -30,6 +32,7 @@ export function MobileHomeActionCard({
   onClick,
   disabled = false,
   selected = false,
+  accent = "primary",
   "aria-label": ariaLabel,
   className,
   iconWrapperClassName,
@@ -37,6 +40,7 @@ export function MobileHomeActionCard({
   titleClassName,
   subtextClassName,
 }: MobileHomeActionCardProps) {
+  const isInfo = accent === "info";
   const cardClass = cn(
     className ?? mobileTokens.mobileHomeActionCard,
     selected && mobileTokens.mobileHomeActionCardSelected,
@@ -47,15 +51,30 @@ export function MobileHomeActionCard({
   const inner = (
     <>
       <span
-        className={iconWrapperClassName ?? mobileTokens.mobileHomeActionIconWrapper}
+        className={
+          iconWrapperClassName ??
+          (isInfo
+            ? mobileTokens.mobileHomeActionIconWrapperInfo
+            : mobileTokens.mobileHomeActionIconWrapper)
+        }
         aria-hidden
       >
         <Icon
-          className={iconClassName ?? mobileTokens.mobileHomeActionIcon}
+          className={
+            iconClassName ??
+            (isInfo ? mobileTokens.mobileHomeActionIconInfo : mobileTokens.mobileHomeActionIcon)
+          }
           strokeWidth={1.75}
         />
       </span>
-      <span className={titleClassName ?? mobileTokens.mobileHomeActionTitle}>{title}</span>
+      <span
+        className={
+          titleClassName ??
+          (isInfo ? mobileTokens.mobileHomeActionTitleInfo : mobileTokens.mobileHomeActionTitle)
+        }
+      >
+        {title}
+      </span>
       {subtext ? (
         <span className={subtextClassName ?? mobileTokens.mobileHomeActionSubtext}>
           {subtext}

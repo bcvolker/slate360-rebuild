@@ -37,25 +37,7 @@ function sortFolders(folders: HomeSlateDropFolder[], mode: SortMode): HomeSlateD
   });
 }
 
-function tileToneClass(tone: HomeSlateDropFolder["tone"]) {
-  switch (tone) {
-    case "project":
-      return {
-        tile: mobileTokens.appHomeSlateDropTileProject,
-        icon: mobileTokens.appHomeSlateDropTileIconProject,
-      };
-    case "workspace":
-      return {
-        tile: mobileTokens.appHomeSlateDropTileWorkspace,
-        icon: mobileTokens.appHomeSlateDropTileIconWorkspace,
-      };
-    default:
-      return {
-        tile: mobileTokens.appHomeSlateDropTileSystem,
-        icon: mobileTokens.appHomeSlateDropTileIconSystem,
-      };
-  }
-}
+const folderCardSurface = mobileTokens.appHomeSlateDropTileProject;
 
 export function MobileAppHomeSlateDropFolderGrid({
   folders,
@@ -65,8 +47,7 @@ export function MobileAppHomeSlateDropFolderGrid({
     () => sortFolders(folders, sortMode),
     [folders, sortMode],
   );
-  const tileCount = sortedFolders.length + 1;
-  const showScrollAffordance = tileCount > 4;
+  const showScrollAffordance = sortedFolders.length >= 3;
 
   return (
     <section className={mobileTokens.mobileHomeSection} aria-label="SlateDrop">
@@ -91,39 +72,31 @@ export function MobileAppHomeSlateDropFolderGrid({
       </div>
 
       <div className={mobileTokens.appHomeSlateDropWindow}>
-        <div
-          className={cn(
-            mobileTokens.appHomeSlateDropBody,
-            mobileTokens.appHomeSlateDropBodyScrollCap,
-          )}
-        >
-          <div className={mobileTokens.appHomeSlateDropGrid}>
-            {sortedFolders.map((folder) => {
-              const tone = tileToneClass(folder.tone);
-              return (
-                <Link
-                  key={folder.id}
-                  href={folder.href}
-                  className={cn(mobileTokens.appHomeSlateDropTile, tone.tile)}
-                  aria-label={`Open ${folder.label} in SlateDrop`}
-                >
-                  <Folder className={cn("h-5 w-5 shrink-0", tone.icon)} strokeWidth={1.75} />
-                  <span className={mobileTokens.appHomeSlateDropTileLabel}>{folder.label}</span>
-                </Link>
-              );
-            })}
+        <div className={mobileTokens.appHomeSlateDropBody}>
+          <div className={mobileTokens.appHomeSlateDropRow}>
+            {sortedFolders.map((folder) => (
+              <Link
+                key={folder.id}
+                href={folder.href}
+                className={cn(mobileTokens.appHomeSlateDropCard, folderCardSurface)}
+                aria-label={`Open ${folder.label} in SlateDrop`}
+              >
+                <Folder
+                  className={mobileTokens.appHomeSlateDropTileIcon}
+                  strokeWidth={1.75}
+                />
+                <span className={mobileTokens.appHomeSlateDropTileLabel}>{folder.label}</span>
+              </Link>
+            ))}
             <Link
               href="/slatedrop/new-folder"
               className={cn(
-                mobileTokens.appHomeSlateDropTile,
+                mobileTokens.appHomeSlateDropCard,
                 mobileTokens.appHomeSlateDropTileNew,
               )}
               aria-label="Create new folder in SlateDrop"
             >
-              <Plus
-                className={cn("h-5 w-5 shrink-0", mobileTokens.appHomeSlateDropTileIconNew)}
-                strokeWidth={1.75}
-              />
+              <Plus className={mobileTokens.appHomeSlateDropTileIconNew} strokeWidth={1.75} />
               <span className={mobileTokens.appHomeSlateDropTileLabel}>New folder</span>
             </Link>
           </div>

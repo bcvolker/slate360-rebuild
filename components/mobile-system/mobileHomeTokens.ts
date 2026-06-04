@@ -160,13 +160,15 @@ export const mobileHomeTokens = {
   appHomeLauncherUpsellSheet: "p-6 pb-12",
   appHomeSlateDropWindow:
     "relative flex flex-col overflow-hidden rounded-xl border border-[var(--surface-zinc-border)] bg-[var(--surface-zinc)] shadow-[var(--mobile-quick-action-shadow)]",
-  appHomeSlateDropBody: "relative min-h-0 overflow-y-auto overscroll-contain p-2",
-  appHomeSlateDropBodyScrollCap: "max-h-[min(118px,calc(25vw+3.25rem))]",
+  appHomeSlateDropBody:
+    "overflow-x-auto overflow-y-hidden overscroll-x-contain px-2 py-2 [-webkit-overflow-scrolling:touch]",
+  appHomeSlateDropRow: "flex h-14 flex-nowrap items-stretch gap-2",
   appHomeSlateDropScrollFade:
-    "pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-6 rounded-b-xl bg-gradient-to-t from-[color-mix(in_srgb,var(--background)_88%,transparent)] via-[color-mix(in_srgb,var(--background)_35%,transparent)] to-transparent",
-  appHomeSlateDropGrid: "grid grid-cols-4 gap-1.5",
+    "pointer-events-none absolute inset-y-2 right-0 z-[1] w-10 rounded-r-xl bg-gradient-to-l from-[var(--surface-zinc)] via-[color-mix(in_srgb,var(--surface-zinc)_55%,transparent)] to-transparent",
+  appHomeSlateDropCard:
+    "flex h-14 min-w-[var(--mobile-slatedrop-card-min-width)] shrink-0 flex-row items-center gap-2.5 rounded-lg border px-3 transition-all active:scale-[0.98]",
   appHomeSlateDropTile:
-    "flex aspect-square min-w-0 flex-col items-center justify-center gap-1 rounded-lg border px-1 py-1.5 text-center transition-all active:scale-[0.98]",
+    "flex h-14 min-w-[var(--mobile-slatedrop-card-min-width)] shrink-0 flex-row items-center gap-2.5 rounded-lg border px-3 transition-all active:scale-[0.98]",
   appHomeSlateDropTileSurface:
     "border-[var(--surface-zinc-border)] bg-[var(--surface-zinc)] hover:border-[color-mix(in_srgb,var(--surface-zinc-border)_70%,white)] hover:bg-[color-mix(in_srgb,var(--surface-zinc)_92%,white)]",
   appHomeSlateDropTileProject:
@@ -180,9 +182,11 @@ export const mobileHomeTokens = {
   appHomeSlateDropTileIconProject: "text-[var(--mobile-folder-icon-fg)]",
   appHomeSlateDropTileIconWorkspace: "text-[var(--mobile-folder-icon-fg)]",
   appHomeSlateDropTileIconSystem: "text-[var(--mobile-folder-icon-fg)]",
-  appHomeSlateDropTileIconNew: "text-[color-mix(in_srgb,var(--mobile-folder-icon-fg)_72%,var(--mobile-bottom-nav-fg-inactive))]",
+  appHomeSlateDropTileIconNew:
+    "h-6 w-6 shrink-0 text-[color-mix(in_srgb,var(--mobile-folder-icon-fg)_72%,var(--mobile-bottom-nav-fg-inactive))]",
   appHomeSlateDropTileLabel:
-    "w-full min-w-0 truncate text-[10px] font-semibold leading-tight text-zinc-100",
+    "min-w-0 flex-1 truncate text-sm font-semibold leading-tight text-zinc-100",
+  appHomeSlateDropTileIcon: "h-6 w-6 shrink-0 text-[var(--mobile-folder-icon-fg)]",
   appQuickActionGrid: "grid shrink-0 grid-cols-2 gap-2 auto-rows-fr",
   appQuickActionCard: `flex min-h-[84px] flex-col items-start justify-center gap-0.5 px-2.5 py-2 text-left ${mobileAppHomeQuickActionCardSurface}`,
   appQuickActionIcon: "h-5 w-5 shrink-0 text-[var(--mobile-quick-action-fg)]",

@@ -50,6 +50,7 @@ export function MobileQuickActionStrip({
           href={action.href}
           onClick={action.onClick}
           disabled={action.disabled}
+          accent={action.accent === "info" ? "info" : "primary"}
           aria-label={action["aria-label"]}
           className={cardClassName}
           iconWrapperClassName={iconWrapperClassName}

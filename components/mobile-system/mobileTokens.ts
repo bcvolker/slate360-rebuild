@@ -95,12 +95,12 @@ export const mobileTokens = {
     "flex size-6 items-center justify-center rounded-full bg-teal-400/12 text-[10px] font-bold text-teal-300 transition-colors hover:bg-teal-400/18",
   /** Platform header bar — Graphite Glass chrome for all mobile shells */
   mobileHeaderBar:
-    "flex h-14 shrink-0 items-center justify-between border-b border-white/10 bg-[#0B0F15]/90 px-4 backdrop-blur-xl",
+    "flex h-14 shrink-0 items-center justify-between border-b border-[var(--mobile-header-border)] bg-[var(--mobile-header-bg)] px-4 backdrop-blur-xl",
   mobileHeaderBrandLink:
     "flex min-w-0 shrink-0 items-center gap-2 rounded-lg transition-colors hover:bg-white/[0.04] active:bg-white/[0.07]",
   mobileHeaderBackChevron: "size-5 shrink-0 text-zinc-200",
   mobileHeaderIconButton:
-    "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/[0.06] bg-white/[0.03] text-zinc-200 transition-colors hover:border-teal-400/30 hover:bg-white/[0.06] hover:text-white",
+    "flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[var(--mobile-header-icon-border)] bg-[var(--mobile-header-icon-bg)] text-[var(--mobile-header-icon-fg)] transition-colors hover:border-[var(--accent-border-blue)] hover:bg-[color-mix(in_srgb,var(--twin360-blue)_10%,var(--surface-zinc))]",
   mobileHeaderIconSize: "h-[18px] w-[18px]",
   mobileHeaderActionsRow: "ml-auto flex shrink-0 items-center gap-1.5",
   mobileHeaderPopover:
@@ -178,9 +178,14 @@ export const mobileTokens = {
     "ring-2 ring-[color-mix(in_srgb,var(--graphite-primary)_28%,transparent)] bg-[color-mix(in_srgb,white_7%,transparent)]",
   mobileHomeActionIconWrapper:
     "mb-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-[var(--mobile-quick-action-icon-border)] bg-[var(--mobile-quick-action-icon-bg)]",
+  mobileHomeActionIconWrapperInfo:
+    "mb-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-[var(--mobile-quick-action-icon-border-info)] bg-[var(--mobile-quick-action-icon-bg-info)]",
   mobileHomeActionIcon: "h-6 w-6 shrink-0 text-[var(--mobile-quick-action-fg)]",
+  mobileHomeActionIconInfo: "h-6 w-6 shrink-0 text-[var(--mobile-quick-action-fg-info)]",
   mobileHomeActionTitle:
     "text-base font-bold leading-tight text-[var(--mobile-quick-action-title-fg)]",
+  mobileHomeActionTitleInfo:
+    "text-base font-bold leading-tight text-[var(--mobile-quick-action-title-fg-info)]",
   mobileHomeActionSubtext:
     "text-sm font-medium leading-snug text-[var(--mobile-quick-action-subtitle-fg)]",
 

@@ -153,7 +153,16 @@ export const mobileHomeHierarchy = {
     subtitleFg: "var(--mobile-quick-action-subtitle-fg)",
     iconBg: "var(--mobile-quick-action-icon-bg)",
     iconBorder: "var(--mobile-quick-action-icon-border)",
+    fgInfo: "var(--mobile-quick-action-fg-info)",
+    titleFgInfo: "var(--mobile-quick-action-title-fg-info)",
+    iconBgInfo: "var(--mobile-quick-action-icon-bg-info)",
+    iconBorderInfo: "var(--mobile-quick-action-icon-border-info)",
     shadow: "var(--mobile-quick-action-shadow)",
+  },
+  header: {
+    bg: "var(--mobile-header-bg)",
+    border: "var(--mobile-header-border)",
+    iconFg: "var(--mobile-header-icon-fg)",
   },
   /** Solid fill reserved for single primary CTAs only (e.g. Start Walk) */
   primaryCta: {

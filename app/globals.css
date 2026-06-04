@@ -189,6 +189,12 @@
   --mobile-bottom-nav-border: var(--surface-zinc-border);
   --mobile-bottom-nav-fg-active: var(--graphite-primary);
   --mobile-bottom-nav-fg-inactive: #A1A1AA;
+  --mobile-header-bg: var(--mobile-bottom-nav-bg);
+  --mobile-header-border: var(--mobile-bottom-nav-border);
+  --mobile-header-icon-fg: var(--twin360-blue);
+  --mobile-header-icon-bg: color-mix(in srgb, white 5%, var(--surface-zinc));
+  --mobile-header-icon-border: var(--surface-zinc-border);
+  --mobile-slatedrop-card-min-width: calc((100vw - 3rem) / 3.5);
   --mobile-expandable-panel-bg: var(--surface-zinc);
   --mobile-expandable-panel-border: var(--surface-zinc-border);
   --mobile-folder-icon-fg: var(--twin360-blue);
@@ -218,6 +224,10 @@
   --mobile-quick-action-subtitle-fg: color-mix(in srgb, var(--graphite-primary) 62%, var(--graphite-muted));
   --mobile-quick-action-icon-bg: color-mix(in srgb, var(--graphite-primary) 8%, var(--surface-zinc));
   --mobile-quick-action-icon-border: var(--accent-border-green);
+  --mobile-quick-action-fg-info: var(--twin360-blue);
+  --mobile-quick-action-title-fg-info: color-mix(in srgb, var(--twin360-blue) 92%, white);
+  --mobile-quick-action-icon-bg-info: color-mix(in srgb, var(--twin360-blue) 8%, var(--surface-zinc));
+  --mobile-quick-action-icon-border-info: var(--accent-border-blue);
   --mobile-quick-action-shadow: 0 2px 10px color-mix(in srgb, black 28%, transparent);
 
   /* ── Steel / teal accent (consumed by btn-teal-outline, text-teal) ── */
