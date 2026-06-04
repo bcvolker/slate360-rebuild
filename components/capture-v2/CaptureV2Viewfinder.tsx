@@ -15,6 +15,7 @@ type Props = {
   loop: CaptureV2Loop;
   activeAngleId?: string | null;
   notesFocused?: boolean;
+  markupEnabled?: boolean;
 };
 
 function resolvePreviewUrl(
@@ -39,6 +40,7 @@ export function CaptureV2Viewfinder({
   loop,
   activeAngleId = null,
   notesFocused = false,
+  markupEnabled = true,
 }: Props) {
   const { activePreview, activeItem, saveMarkupData, savePhotoAttachmentPins } = loop;
   const [imgFallback, setImgFallback] = useState<string | null>(null);
@@ -86,7 +88,7 @@ export function CaptureV2Viewfinder({
                 imageUrl={displayUrl}
                 title={activePreview.title}
                 sessionId={sessionId}
-                markupEnabled
+                markupEnabled={markupEnabled}
                 initialMarkup={isMarkupData(activeItem?.markup_data) ? activeItem.markup_data : undefined}
                 attachmentPins={getItemPhotoAttachmentPins(activeItem)}
                 onAttachmentPinsChange={(pins) => {

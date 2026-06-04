@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { CAPTURE_CANVAS_SHELL_ENABLED } from "@/lib/site-walk/capture-v2-config";
 import { CaptureV2DesktopStudio } from "./CaptureV2DesktopStudio";
 import { CaptureV2MobileField } from "./CaptureV2MobileField";
+import { NoPlansCaptureCanvas } from "./NoPlansCaptureCanvas";
 import { useCaptureV2Loop } from "./useCaptureV2Loop";
 import type { CaptureV2UiPhase } from "./types";
 import type { CaptureV2Session } from "./session-types";
@@ -51,11 +53,13 @@ export function CaptureV2Orchestrator(props: Props) {
   const [savingNext, setSavingNext] = useState(false);
   const [notesFocused, setNotesFocused] = useState(false);
 
+  const useNoPlansCanvas = CAPTURE_CANVAS_SHELL_ENABLED && !showPlanCanvas && !isDesktop;
+
   useEffect(() => {
-    if (!autoOpenCamera || isDesktop || openedCameraRef.current) return;
+    if (!autoOpenCamera || isDesktop || openedCameraRef.current || useNoPlansCanvas) return;
     openedCameraRef.current = true;
     loop.openPickerDirect("camera", "quick_capture");
-  }, [autoOpenCamera, isDesktop, loop]);
+  }, [autoOpenCamera, isDesktop, loop, useNoPlansCanvas]);
 
   async function handleSaveAndNext() {
     setSavingNext(true);
@@ -85,6 +89,15 @@ export function CaptureV2Orchestrator(props: Props) {
         savingNext={savingNext}
         onSaveAndNext={handleSaveAndNext}
       />
+    );
+  }
+
+  if (useNoPlansCanvas) {
+    const contextLabel = session.is_ad_hoc
+      ? "Quick Walk"
+      : session.project_name?.trim() || "Walk";
+    return (
+      <NoPlansCaptureCanvas session={session} loop={loop} contextLabel={contextLabel} />
     );
   }
 

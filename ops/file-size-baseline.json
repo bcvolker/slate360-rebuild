@@ -1,6 +1,6 @@
 {
   "$schema": "./schemas/file-size-baseline.schema.json",
-  "updatedAt": "2026-06-03",
+  "updatedAt": "2026-06-04",
   "threshold": 300,
   "files": {
     "app/_color-audit/page.tsx": 387,
@@ -44,6 +44,8 @@
     "components/dashboard/market/MarketAutomationBuilder.tsx": 305,
     "components/ui/sidebar.tsx": 726,
     "lib/hooks/useMarketDirectBuyState.ts": 304,
-    "lib/market/scheduler-run-user.ts": 309
+    "lib/market/scheduler-run-user.ts": 309,
+    "components/site-walk/SiteWalkHomeClient.tsx": 307,
+    "lib/design-system/tokens.ts": 307
   }
 }

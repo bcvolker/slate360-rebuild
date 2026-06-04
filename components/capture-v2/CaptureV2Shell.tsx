@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useSiteWalkSession } from "@/components/site-walk/SiteWalkSessionProvider";
+import { CAPTURE_CANVAS_SHELL_ENABLED } from "@/lib/site-walk/capture-v2-config";
 import { CaptureV2Orchestrator } from "./CaptureV2Orchestrator";
 import { CaptureV2TaskHeader } from "./CaptureV2TaskHeader";
 import type { CaptureV2Session } from "./session-types";
@@ -41,9 +42,14 @@ export function CaptureV2Shell(props: Props) {
     ? "Quick Walk"
     : session.project_name ?? "Plan Walk";
 
+  const hideLegacyHeader =
+    CAPTURE_CANVAS_SHELL_ENABLED && !props.showPlanCanvas && !isDesktop;
+
   return (
-    <main className="relative flex h-screen min-h-0 w-full flex-col overflow-hidden bg-[#0B0F15] text-white">
-      <CaptureV2TaskHeader session={session} stopLabel={stopLabel} contextLabel={contextLabel} />
+    <main className="relative flex h-screen min-h-0 w-full flex-col overflow-hidden bg-[var(--graphite-canvas)] text-[var(--graphite-text-header)]">
+      {!hideLegacyHeader ? (
+        <CaptureV2TaskHeader session={session} stopLabel={stopLabel} contextLabel={contextLabel} />
+      ) : null}
       <CaptureV2Orchestrator {...props} isDesktop={isDesktop} />
     </main>
   );
