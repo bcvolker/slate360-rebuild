@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
+  Building2,
   Camera,
   ClipboardList,
   FileText,
@@ -22,7 +23,13 @@ import {
 import type { MobilePanelTab, MobileQuickActionItem } from "@/components/mobile-system";
 import type { MobileHomeAssignment } from "@/lib/mobile/load-mobile-assignments";
 import { buildCaptureLaunchUrl } from "@/lib/site-walk/capture-v2-config";
+import {
+  filterHubProjectsForWalkStart,
+  walkStartCreateRoute,
+  type SiteWalkWalkStartTier,
+} from "@/lib/site-walk/resolve-walk-start-tier";
 import { buildSiteWalkDockRows, SiteWalkHomeFill } from "@/components/site-walk/SiteWalkHomeFill";
+import { SiteWalkWalkTargetSheet } from "@/components/site-walk/SiteWalkWalkTargetSheet";
 import type { HubProject, HubSummary, HubWalk } from "@/lib/types/site-walk";
 import type { HubDeliverableRow } from "@/lib/types/site-walk-hub";
 
@@ -33,6 +40,7 @@ type Props = {
   summary: HubSummary;
   deliverables: HubDeliverableRow[];
   assignments: MobileHomeAssignment[];
+  walkStartTier: SiteWalkWalkStartTier;
 };
 
 function DockRowList({
@@ -61,20 +69,25 @@ function DockRowList({
   );
 }
 
-function pickActiveWorksite(walks: HubWalk[], projects: HubProject[]) {
-  if (walks.length > 0) {
-    const latest = walks[0]!;
-    return {
-      label: latest.projectName ?? latest.title,
-      projectId: latest.projectId,
-      walkId: latest.id,
-    };
-  }
-  if (projects.length > 0) {
-    return { label: projects[0]!.name, projectId: projects[0]!.id, walkId: null };
-  }
-  return null;
-}
+const SCOPED_WALK_COPY: Record<
+  SiteWalkWalkStartTier,
+  { title: string; icon: typeof MapPin; emptySubtext: string; startedFrom: string; ariaLabel: string }
+> = {
+  workspace: {
+    title: "Workspace Walk",
+    icon: Building2,
+    emptySubtext: "Create a workspace to capture on site",
+    startedFrom: "hub_workspace_walk",
+    ariaLabel: "Start a workspace walk",
+  },
+  project: {
+    title: "Project Walk",
+    icon: MapPin,
+    emptySubtext: "Create a project to capture on site",
+    startedFrom: "hub_project_walk",
+    ariaLabel: "Start a project walk",
+  },
+};
 
 export function SiteWalkHomeClient({
   projects,
@@ -82,9 +95,47 @@ export function SiteWalkHomeClient({
   summary,
   deliverables,
   assignments,
+  walkStartTier,
 }: Props) {
   const router = useRouter();
-  const worksite = useMemo(() => pickActiveWorksite(walks, projects), [projects, walks]);
+  const [targetSheetOpen, setTargetSheetOpen] = useState(false);
+
+  const walkTargets = useMemo(
+    () => filterHubProjectsForWalkStart(projects, walkStartTier),
+    [projects, walkStartTier],
+  );
+
+  const scopedCopy = SCOPED_WALK_COPY[walkStartTier];
+
+  const scopedWalkSubtext = useMemo(() => {
+    if (walkTargets.length === 1) return `Capture at ${walkTargets[0]!.name}`;
+    if (walkTargets.length > 1) return `Choose from ${walkTargets.length} ${walkStartTier === "project" ? "projects" : "workspaces"}`;
+    return scopedCopy.emptySubtext;
+  }, [scopedCopy.emptySubtext, walkStartTier, walkTargets]);
+
+  const startScopedSession = useCallback(
+    async (project: HubProject) => {
+      const dateLabel = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" });
+      const res = await fetch("/api/site-walk/sessions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: `${project.name} — ${dateLabel}`,
+          session_type: "general",
+          project_id: project.id,
+          metadata: {
+            started_at: new Date().toISOString(),
+            started_from: scopedCopy.startedFrom,
+          },
+        }),
+      });
+      if (!res.ok) return;
+      const body = (await res.json()) as { session?: { id?: string } };
+      if (!body.session?.id) return;
+      router.push(buildCaptureLaunchUrl({ session: body.session.id, quick: "camera" }));
+    },
+    [router, scopedCopy.startedFrom],
+  );
 
   const handleQuickCapture = useCallback(async () => {
     const dateLabel = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" });
@@ -103,27 +154,13 @@ export function SiteWalkHomeClient({
     router.push(buildCaptureLaunchUrl({ session: body.session.id, quick: "camera" }));
   }, [router]);
 
-  const handleProjectWalk = useCallback(async () => {
-    const dateLabel = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" });
-    const label = worksite?.label ?? projects[0]?.name ?? "Project Walk";
-    const res = await fetch("/api/site-walk/sessions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        title: `${label} — ${dateLabel}`,
-        session_type: "general",
-        project_id: worksite?.projectId ?? projects[0]?.id ?? undefined,
-        metadata: {
-          started_at: new Date().toISOString(),
-          started_from: "hub_hero",
-        },
-      }),
-    });
-    if (!res.ok) return;
-    const body = (await res.json()) as { session?: { id?: string } };
-    if (!body.session?.id) return;
-    router.push(buildCaptureLaunchUrl({ session: body.session.id, quick: "camera" }));
-  }, [projects, router, worksite]);
+  const handleScopedWalk = useCallback(() => {
+    if (walkTargets.length === 0) {
+      router.push(walkStartCreateRoute(walkStartTier));
+      return;
+    }
+    setTargetSheetOpen(true);
+  }, [router, walkStartTier, walkTargets.length]);
 
   const dockRows = useMemo(
     () => buildSiteWalkDockRows(walks, projects, deliverables, assignments, summary),
@@ -202,11 +239,7 @@ export function SiteWalkHomeClient({
 
   useMobileShellDock(dockContent);
 
-  const projectWalkSubtext = worksite
-    ? `Capture at ${worksite.label}`
-    : projects.length > 0
-      ? `Start at ${projects[0]!.name}`
-      : "Link a project to capture on site";
+  const ScopedIcon = scopedCopy.icon;
 
   return (
     <div data-mobile-route="site-walk" className={mobileTokens.appHomeScrollInner}>
@@ -229,16 +262,16 @@ export function SiteWalkHomeClient({
             aria-label="Start a quick walk"
           />
           <MobileHomeActionCard
-            title="Project Walk"
-            subtext={projectWalkSubtext}
-            icon={MapPin}
-            onClick={() => void handleProjectWalk()}
+            title={scopedCopy.title}
+            subtext={scopedWalkSubtext}
+            icon={ScopedIcon}
+            onClick={handleScopedWalk}
             className={mobileTokens.siteWalkStartWalkCard}
             iconWrapperClassName={mobileTokens.siteWalkStartWalkIconWrapper}
             iconClassName={mobileTokens.siteWalkStartWalkIcon}
             titleClassName={mobileTokens.siteWalkStartWalkTitle}
             subtextClassName={mobileTokens.siteWalkStartWalkSubtext}
-            aria-label="Start a project walk"
+            aria-label={scopedCopy.ariaLabel}
           />
         </div>
       </section>
@@ -260,6 +293,14 @@ export function SiteWalkHomeClient({
         summary={summary}
         deliverables={deliverables}
         assignments={assignments}
+      />
+
+      <SiteWalkWalkTargetSheet
+        open={targetSheetOpen}
+        onOpenChange={setTargetSheetOpen}
+        tier={walkStartTier}
+        targets={walkTargets}
+        onSelect={(project) => void startScopedSession(project)}
       />
     </div>
   );

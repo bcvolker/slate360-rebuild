@@ -32,6 +32,7 @@ export type HubProject = {
   description: string | null;
   status: string;
   createdAt: string;
+  projectType: string;
 };
 
 export type HubWalk = {

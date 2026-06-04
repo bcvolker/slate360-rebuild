@@ -37,6 +37,7 @@ type ProjectRow = {
   description: string | null;
   status: string;
   created_at: string;
+  project_type: string | null;
 };
 
 type CountRow = { session_id: string };
@@ -60,7 +61,7 @@ export async function loadSiteWalkHubData(
     await Promise.all([
       admin
         .from("projects")
-        .select("id, name, description, status, created_at")
+        .select("id, name, description, status, created_at, project_type")
         .eq("org_id", orgId)
         .eq("status", "active")
         .order("created_at", { ascending: false })
@@ -105,6 +106,7 @@ export async function loadSiteWalkHubData(
       description: p.description,
       status: p.status,
       createdAt: p.created_at,
+      projectType: p.project_type ?? "field",
     }),
   );
 

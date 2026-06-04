@@ -4,6 +4,7 @@ import { loadSiteWalkHubData } from "@/lib/site-walk/load-hub-data";
 import { loadMobileAssignments } from "@/lib/mobile/load-mobile-assignments";
 import { SiteWalkHomeClient } from "@/components/site-walk/SiteWalkHomeClient";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { resolveSiteWalkWalkStartTier } from "@/lib/site-walk/resolve-walk-start-tier";
 import type { HubDeliverableRow } from "@/lib/types/site-walk-hub";
 
 export const metadata = {
@@ -20,6 +21,10 @@ export default async function SiteWalkHomePage() {
       ? await loadMobileAssignments(context.orgId, context.user.id)
       : [];
 
+  const walkStartTier = context.orgId
+    ? await loadWalkStartTier(context.orgId, context.tier, context.isSlateCeo)
+    : ("workspace" as const);
+
   return (
     <Suspense fallback={null}>
       <SiteWalkHomeClient
@@ -29,9 +34,26 @@ export default async function SiteWalkHomePage() {
         summary={summary}
         deliverables={deliverables}
         assignments={assignments}
+        walkStartTier={walkStartTier}
       />
     </Suspense>
   );
+}
+
+async function loadWalkStartTier(
+  orgId: string,
+  rawTier: string,
+  isSlateCeo: boolean,
+) {
+  const admin = createAdminClient();
+  const { data } = await admin
+    .from("org_app_subscriptions")
+    .select(
+      "site_walk, tours, slatedrop, design_studio, content_studio, bundle, storage_addon_gb, credit_addon_balance",
+    )
+    .eq("org_id", orgId)
+    .maybeSingle();
+  return resolveSiteWalkWalkStartTier(rawTier, isSlateCeo, data);
 }
 
 async function loadRecentDeliverables(orgId: string): Promise<HubDeliverableRow[]> {
