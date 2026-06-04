@@ -103,7 +103,8 @@ export const mobileHomeTokens = {
   appHomeSectionLabel:
     "text-xs font-black uppercase tracking-[0.2em] text-zinc-100",
   appHomeSectionLabelAccent: "mb-1.5 block h-0.5 w-8 rounded-full bg-teal-400/35",
-  appHomeSectionLabelRow: "mb-1.5 flex items-end justify-between gap-3",
+  appHomeSectionLabelRow: "mb-1 flex items-end justify-between gap-3",
+  appHomeSlateDropSection: "shrink-0",
   appHomeSectionLabelBlock: "min-w-0",
   appHomeSectionLabelActions: "flex shrink-0 items-center gap-2 pb-0.5",
   appHomeSectionLabelIconButton:
@@ -111,7 +112,7 @@ export const mobileHomeTokens = {
   appHomeSectionLabelTextLink:
     "text-xs font-semibold text-zinc-200 transition-colors hover:text-white",
   appHomeScrollInner:
-    "mx-auto flex min-h-full w-full max-w-2xl flex-1 flex-col gap-3 px-4 pt-3 pb-4",
+    "mx-auto flex min-h-full w-full max-w-2xl flex-1 flex-col justify-evenly gap-3 px-4 pt-3 pb-3",
   appHomeDockStack: "flex w-full shrink-0 flex-col gap-2.5",
   appHomeQuickActionsSectionLabel:
     "text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-300",
@@ -159,9 +160,9 @@ export const mobileHomeTokens = {
     "pointer-events-none absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-xl border border-white/10 bg-black/40 text-zinc-300",
   appHomeLauncherUpsellSheet: "p-6 pb-12",
   appHomeSlateDropWindow:
-    "relative flex flex-col overflow-hidden rounded-xl border border-[var(--surface-zinc-border)] bg-[var(--surface-zinc)] shadow-[var(--mobile-quick-action-shadow)]",
+    "relative flex w-full shrink-0 flex-col overflow-hidden rounded-xl border border-[var(--surface-zinc-border)] bg-[var(--surface-zinc)] shadow-[var(--mobile-quick-action-shadow)]",
   appHomeSlateDropBody:
-    "overflow-x-auto overflow-y-hidden overscroll-x-contain px-2 py-2 [-webkit-overflow-scrolling:touch]",
+    "overflow-x-auto overflow-y-hidden overscroll-x-contain px-2 py-1 [-webkit-overflow-scrolling:touch]",
   appHomeSlateDropRow: "flex h-14 flex-nowrap items-stretch gap-2",
   appHomeSlateDropScrollFade:
     "pointer-events-none absolute inset-y-2 right-0 z-[1] w-10 rounded-r-xl bg-gradient-to-l from-[var(--surface-zinc)] via-[color-mix(in_srgb,var(--surface-zinc)_55%,transparent)] to-transparent",

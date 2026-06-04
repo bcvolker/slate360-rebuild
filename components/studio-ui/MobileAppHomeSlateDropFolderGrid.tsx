@@ -50,7 +50,7 @@ export function MobileAppHomeSlateDropFolderGrid({
   const showScrollAffordance = sortedFolders.length >= 3;
 
   return (
-    <section className={mobileTokens.mobileHomeSection} aria-label="SlateDrop">
+    <section className={mobileTokens.appHomeSlateDropSection} aria-label="SlateDrop">
       <div className={mobileTokens.appHomeSectionLabelRow}>
         <div className={mobileTokens.appHomeSectionLabelBlock}>
           <span className={mobileTokens.appHomeSectionLabelAccent} aria-hidden />
