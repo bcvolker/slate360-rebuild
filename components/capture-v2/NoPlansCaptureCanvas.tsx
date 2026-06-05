@@ -32,6 +32,8 @@ export function NoPlansCaptureCanvas({ session, loop, contextLabel }: Props) {
   const showPreview = Boolean(loop.activePreview?.url);
   const previewUrl = resolveCaptureV2PreviewUrl(loop.activeItem, loop.activePreview?.url);
   const previewTitle = loop.activePreview?.title?.trim() || "Captured photo";
+  const previewLocalFallback =
+    loop.activePreview?.url?.startsWith("blob:") ? loop.activePreview.url : loop.activeItem?.local_preview_url ?? null;
 
   const handleCanvasTap = useCallback(() => {
     setTopBarCollapsed((value) => !value);
@@ -111,7 +113,7 @@ export function NoPlansCaptureCanvas({ session, loop, contextLabel }: Props) {
       <div
         role="button"
         tabIndex={0}
-        className="relative mx-2 mb-1 mt-1 flex min-h-0 flex-[3] flex-col overflow-hidden rounded-2xl border border-[var(--surface-zinc-border)] bg-[var(--surface-zinc)]"
+        className="relative mx-2 mb-0 mt-1 flex min-h-0 flex-[3] flex-col overflow-hidden rounded-2xl border border-[var(--surface-zinc-border)] bg-[var(--surface-zinc)]"
         onClick={handleCanvasTap}
         onKeyDown={(event) => {
           if (event.key === "Enter" || event.key === " ") {
@@ -122,9 +124,13 @@ export function NoPlansCaptureCanvas({ session, loop, contextLabel }: Props) {
         aria-label="Toggle capture controls"
       >
         {showPreview && previewUrl ? (
-          <CaptureV2StaticPreview imageUrl={previewUrl} title={previewTitle} />
+          <CaptureV2StaticPreview
+            imageUrl={previewUrl}
+            title={previewTitle}
+            localFallbackUrl={previewLocalFallback}
+          />
         ) : (
-          <CaptureV2LiveCamera camera={camera} facingMode={facingMode} />
+          <CaptureV2LiveCamera camera={camera} facingMode={facingMode} autoStart />
         )}
         <CaptureV2LiveCameraBusyOverlay busy={loop.busy} />
       </div>

@@ -99,19 +99,16 @@ export function useCaptureV2Loop({ sessionId, projectId, initialItemId, launchId
 
   useEffect(() => {
     if (fileHandler.status.kind !== "complete" && fileHandler.status.kind !== "idle") return;
+    const preview = fileHandler.activePreview;
+    if (!preview) return;
+    if (preview.url.startsWith("blob:")) return;
     const item = captureItems.activeItem;
-    const nextUrl = resolveCaptureV2PreviewUrl(item, fileHandler.activePreview?.url);
-    if (!nextUrl || !fileHandler.activePreview) return;
-    if (fileHandler.activePreview.url === nextUrl) return;
-    const blobUrl = previewBlobRef.current;
-    if (blobUrl && nextUrl.startsWith("blob:") && blobUrl !== nextUrl) {
-      URL.revokeObjectURL(blobUrl);
-      previewBlobRef.current = null;
-    }
+    const nextUrl = resolveCaptureV2PreviewUrl(item, preview.url);
+    if (!nextUrl || preview.url === nextUrl) return;
     fileHandler.setActivePreview({
       url: nextUrl,
-      title: fileHandler.activePreview.title,
-      itemId: fileHandler.activePreview.itemId,
+      title: preview.title,
+      itemId: preview.itemId,
     });
   }, [captureItems.activeItem, fileHandler, fileHandler.activePreview, fileHandler.status.kind]);
 

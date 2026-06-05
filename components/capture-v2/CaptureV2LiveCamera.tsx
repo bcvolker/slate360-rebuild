@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Camera } from "lucide-react";
 import type { useCamera } from "@/lib/hooks/useCamera";
 import { CAPTURE_V2_LAYER_IDS, CAPTURE_V2_LAYERS } from "./layers";
@@ -13,22 +13,43 @@ type CameraApi = ReturnType<typeof useCamera>;
 type Props = {
   camera: CameraApi;
   facingMode?: "user" | "environment";
+  autoStart?: boolean;
   onStartCamera?: () => void;
 };
+
+function isPermissionDeniedError(message: string | null) {
+  if (!message) return false;
+  const normalized = message.toLowerCase();
+  return normalized.includes("permission denied") || normalized.includes("notallowederror");
+}
 
 export function CaptureV2LiveCamera({
   camera,
   facingMode = "environment",
+  autoStart = false,
   onStartCamera,
 }: Props) {
-  const { videoRef, isStreaming, error, startCamera } = camera;
+  const { videoRef, isStreaming, error, startCamera, clearError } = camera;
   const [scale, setScale] = useState(1);
+  const autoStartAttemptedRef = useRef(false);
   const pinchRef = useRef<{ distance: number; scale: number } | null>(null);
 
   const handleStart = useCallback(async () => {
     onStartCamera?.();
+    clearError();
     await startCamera(facingMode);
-  }, [facingMode, onStartCamera, startCamera]);
+  }, [clearError, facingMode, onStartCamera, startCamera]);
+
+  useEffect(() => {
+    if (!autoStart || autoStartAttemptedRef.current || isStreaming) return;
+    autoStartAttemptedRef.current = true;
+    void startCamera(facingMode);
+  }, [autoStart, facingMode, isStreaming, startCamera]);
+
+  useEffect(() => {
+    if (!autoStart || isStreaming || !error || !isPermissionDeniedError(error)) return;
+    clearError();
+  }, [autoStart, clearError, error, isStreaming]);
 
   function onTouchStart(event: React.TouchEvent) {
     if (event.touches.length === 2) {

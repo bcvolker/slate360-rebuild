@@ -15,6 +15,7 @@ type UseCameraReturn = {
   error: string | null;
   startCamera: (facingMode?: "user" | "environment") => Promise<void>;
   stopCamera: () => void;
+  clearError: () => void;
   capturePhoto: () => CaptureResult | null;
 };
 
@@ -125,5 +126,7 @@ export function useCamera(): UseCameraReturn {
     };
   }, [isStreaming]);
 
-  return { videoRef, isStreaming, error, startCamera, stopCamera, capturePhoto };
+  const clearError = useCallback(() => setError(null), []);
+
+  return { videoRef, isStreaming, error, startCamera, stopCamera, clearError, capturePhoto };
 }

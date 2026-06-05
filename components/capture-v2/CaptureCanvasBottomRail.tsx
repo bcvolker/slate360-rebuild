@@ -19,15 +19,15 @@ export function CaptureCanvasBottomRail({
 }: Props) {
   return (
     <div
-      className={`${CAPTURE_V2_LAYERS.fastTrack} relative shrink-0 px-4 pb-[max(calc(1.5rem+env(safe-area-inset-bottom)),1.75rem)] pt-2`}
+      className={`${CAPTURE_V2_LAYERS.fastTrack} relative shrink-0 px-4 pb-[max(calc(0.75rem+env(safe-area-inset-bottom)),1rem)] pt-1`}
     >
       <div className="flex flex-col items-center">
         {showHint ? (
-          <p className="mb-4 w-full text-center text-[10px] font-semibold tracking-wide text-[var(--graphite-muted)]">
+          <p className="mb-2 w-full text-center text-[10px] font-semibold tracking-wide text-[var(--graphite-muted)]">
             Tap to capture · hold for sources
           </p>
         ) : null}
-        <div className="flex w-full justify-center pb-6">
+        <div className="flex w-full justify-center">
           <button
             type="button"
             disabled={busy}

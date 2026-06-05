@@ -91,7 +91,7 @@ export function CaptureStopFilmstrip({
         {!collapsed && (
           <div
             id="capture-canvas-stop-tracker-scroll"
-            className="flex min-h-[5.5rem] gap-3 overflow-x-auto px-3 pb-2 pt-1 no-scrollbar"
+            className="flex min-h-[4.75rem] gap-2.5 overflow-x-auto px-3 pb-1.5 pt-1 no-scrollbar"
             role="listbox"
             aria-label="Stop thumbnails"
           >
@@ -202,7 +202,7 @@ function StopFilmstripThumb({
   const longPressRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const resolvedUrl = resolveCaptureV2ThumbUrl(item, previewOverride);
   const borderClass = selected
-    ? "border-[color-mix(in_srgb,var(--graphite-primary)_55%,transparent)]"
+    ? "border-[var(--accent-border-green)] ring-2 ring-[var(--accent-border-green)] ring-offset-1 ring-offset-[color-mix(in_srgb,var(--graphite-canvas)_92%,transparent)]"
     : "border-[var(--surface-zinc-border)]";
 
   useEffect(() => {
