@@ -60,43 +60,72 @@ export function CaptureV2LiveCamera({
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
     >
-      {isStreaming ? (
-        <div className="relative min-h-0 flex-1 overflow-hidden">
-          <video
-            ref={videoRef}
-            playsInline
-            muted
-            autoPlay
-            className="h-full w-full object-cover transition-transform duration-75"
-            style={{ transform: `scale(${scale})` }}
-          />
-        </div>
-      ) : (
-        <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-4 px-6 text-center">
-          <span className="flex h-14 w-14 items-center justify-center rounded-2xl border border-[var(--mobile-app-card-icon-border-primary)] bg-[var(--mobile-app-card-icon-bg-primary)] text-[var(--mobile-app-card-icon-fg-primary)]">
-            <Camera className="h-7 w-7" strokeWidth={1.75} />
-          </span>
-          <div className="space-y-1">
-            <p className="text-sm font-bold text-[var(--graphite-text-header)]">Live camera</p>
-            <p className="text-xs font-medium leading-snug text-[var(--graphite-muted)]">
-              Tap below to enable the camera. Pinch to zoom once streaming.
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={(event) => {
-              event.stopPropagation();
-              void handleStart();
-            }}
-            className="inline-flex min-h-11 items-center justify-center rounded-xl border border-[var(--mobile-app-card-border-primary)] bg-[var(--mobile-app-card-bg)] px-5 text-sm font-bold text-[var(--graphite-text-header)] shadow-[var(--mobile-app-card-shadow)] transition active:scale-[0.99]"
-          >
-            Enable camera
-          </button>
-          {error ? (
-            <p className="text-xs font-medium text-[var(--graphite-muted)]">{error}</p>
-          ) : null}
-        </div>
-      )}
+      <video
+        ref={videoRef}
+        playsInline
+        muted
+        autoPlay
+        className={`absolute inset-0 z-[1] h-full w-full object-cover transition-transform duration-75 ${
+          isStreaming && !error ? "opacity-100" : "pointer-events-none opacity-0"
+        }`}
+        style={{ transform: `scale(${scale})` }}
+      />
+
+      {error ? (
+        <CameraErrorState error={error} onRetry={() => void handleStart()} />
+      ) : !isStreaming ? (
+        <CameraEnableState onEnable={(event) => {
+          event.stopPropagation();
+          void handleStart();
+        }} />
+      ) : null}
+    </div>
+  );
+}
+
+function CameraEnableState({ onEnable }: { onEnable: (event: React.MouseEvent) => void }) {
+  return (
+    <div className="relative z-[2] flex min-h-0 flex-1 flex-col items-center justify-center gap-4 px-6 text-center">
+      <span className="flex h-14 w-14 items-center justify-center rounded-2xl border border-[var(--mobile-app-card-icon-border-primary)] bg-[var(--mobile-app-card-icon-bg-primary)] text-[var(--mobile-app-card-icon-fg-primary)]">
+        <Camera className="h-7 w-7" strokeWidth={1.75} />
+      </span>
+      <div className="space-y-1">
+        <p className="text-sm font-bold text-[var(--graphite-text-header)]">Live camera</p>
+        <p className="text-xs font-medium leading-snug text-[var(--graphite-muted)]">
+          Tap below to enable the camera. Pinch to zoom once streaming.
+        </p>
+      </div>
+      <button
+        type="button"
+        onClick={onEnable}
+        className="inline-flex min-h-11 items-center justify-center rounded-xl border border-[var(--mobile-app-card-border-primary)] bg-[var(--mobile-app-card-bg)] px-5 text-sm font-bold text-[var(--graphite-text-header)] shadow-[var(--mobile-app-card-shadow)] transition active:scale-[0.99]"
+      >
+        Enable camera
+      </button>
+    </div>
+  );
+}
+
+function CameraErrorState({ error, onRetry }: { error: string; onRetry: () => void }) {
+  return (
+    <div className="relative z-[2] flex min-h-0 flex-1 flex-col items-center justify-center gap-4 px-6 text-center">
+      <span className="flex h-14 w-14 items-center justify-center rounded-2xl border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--surface-zinc)_88%,transparent)] text-[var(--graphite-muted)]">
+        <Camera className="h-7 w-7" strokeWidth={1.75} />
+      </span>
+      <div className="space-y-1">
+        <p className="text-sm font-bold text-[var(--graphite-text-header)]">Camera unavailable</p>
+        <p className="text-xs font-medium leading-snug text-[var(--graphite-muted)]">{error}</p>
+      </div>
+      <button
+        type="button"
+        onClick={(event) => {
+          event.stopPropagation();
+          onRetry();
+        }}
+        className="inline-flex min-h-11 items-center justify-center rounded-xl border border-[var(--mobile-app-card-border-primary)] bg-[var(--mobile-app-card-bg)] px-5 text-sm font-bold text-[var(--graphite-text-header)] shadow-[var(--mobile-app-card-shadow)] transition active:scale-[0.99]"
+      >
+        Retry camera
+      </button>
     </div>
   );
 }

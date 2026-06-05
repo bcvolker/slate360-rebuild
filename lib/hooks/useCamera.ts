@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 type CaptureResult = {
   blob: Blob;
@@ -18,6 +18,24 @@ type UseCameraReturn = {
   capturePhoto: () => CaptureResult | null;
 };
 
+function mapCameraError(err: unknown): string {
+  if (err instanceof DOMException) {
+    if (err.name === "NotAllowedError") {
+      return "Camera permission denied. Allow camera access in Settings, then tap Retry.";
+    }
+    if (err.name === "NotFoundError") {
+      return "No camera found on this device.";
+    }
+    if (err.name === "NotReadableError") {
+      return "Camera is in use by another app. Close it and tap Retry.";
+    }
+    if (err.name === "OverconstrainedError") {
+      return "This camera mode is not available on this device.";
+    }
+  }
+  return err instanceof Error ? err.message : "Camera unavailable";
+}
+
 export function useCamera(): UseCameraReturn {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -25,32 +43,62 @@ export function useCamera(): UseCameraReturn {
   const [error, setError] = useState<string | null>(null);
 
   const stopCamera = useCallback(() => {
-    streamRef.current?.getTracks().forEach((t) => t.stop());
+    streamRef.current?.getTracks().forEach((track) => track.stop());
     streamRef.current = null;
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
     setIsStreaming(false);
   }, []);
 
-  const startCamera = useCallback(
-    async (facingMode: "user" | "environment" = "environment") => {
-      setError(null);
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode, width: { ideal: 1920 }, height: { ideal: 1080 } },
-          audio: false,
-        });
-        streamRef.current = stream;
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          await videoRef.current.play();
-        }
-        setIsStreaming(true);
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : "Camera access denied";
-        setError(msg);
-      }
-    },
-    [],
-  );
+  const startCamera = useCallback(async (facingMode: "user" | "environment" = "environment") => {
+    setError(null);
+    streamRef.current?.getTracks().forEach((track) => track.stop());
+    streamRef.current = null;
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+    setIsStreaming(false);
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode, width: { ideal: 1920 }, height: { ideal: 1080 } },
+        audio: false,
+      });
+      streamRef.current = stream;
+      setIsStreaming(true);
+    } catch (err) {
+      setError(mapCameraError(err));
+      setIsStreaming(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    const stream = streamRef.current;
+    if (!isStreaming || !video || !stream) return;
+
+    let cancelled = false;
+    video.srcObject = stream;
+
+    void video
+      .play()
+      .then(() => {
+        if (!cancelled) setError(null);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        setError(mapCameraError(err));
+        stream.getTracks().forEach((track) => track.stop());
+        streamRef.current = null;
+        video.srcObject = null;
+        setIsStreaming(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isStreaming]);
 
   const capturePhoto = useCallback((): CaptureResult | null => {
     const video = videoRef.current;

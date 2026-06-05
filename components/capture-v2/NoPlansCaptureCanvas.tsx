@@ -86,10 +86,17 @@ export function NoPlansCaptureCanvas({ session, loop, contextLabel }: Props) {
         onFlipCamera={() => void handleFlipCamera()}
       />
 
-      <button
-        type="button"
+      <div
+        role="button"
+        tabIndex={0}
         className="relative mx-2 mb-1 mt-2 flex min-h-0 flex-[3] flex-col overflow-hidden rounded-2xl border border-[var(--surface-zinc-border)] bg-[var(--surface-zinc)]"
         onClick={handleCanvasTap}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            handleCanvasTap();
+          }
+        }}
         aria-label="Toggle capture controls"
       >
         {showPreview ? (
@@ -104,7 +111,7 @@ export function NoPlansCaptureCanvas({ session, loop, contextLabel }: Props) {
           <CaptureV2LiveCamera camera={camera} facingMode={facingMode} />
         )}
         <CaptureV2LiveCameraBusyOverlay busy={loop.busy} />
-      </button>
+      </div>
 
       <CaptureStopFilmstrip loop={loop} onSelectItem={handleSelectStop} />
 
