@@ -7,7 +7,8 @@ import { CaptureCanvasBottomRail } from "./CaptureCanvasBottomRail";
 import { CaptureCanvasTopBar } from "./CaptureCanvasTopBar";
 import { CaptureStopFilmstrip } from "./CaptureStopFilmstrip";
 import { CaptureV2LiveCamera, CaptureV2LiveCameraBusyOverlay } from "./CaptureV2LiveCamera";
-import { CaptureV2Viewfinder } from "./CaptureV2Viewfinder";
+import { CaptureV2StaticPreview } from "./CaptureV2StaticPreview";
+import { resolveCaptureV2PreviewUrl } from "./capture-v2-preview-url";
 import type { CaptureV2Session } from "./session-types";
 import type { CaptureV2Loop } from "./useCaptureV2Loop";
 
@@ -29,6 +30,8 @@ export function NoPlansCaptureCanvas({ session, loop, contextLabel }: Props) {
 
   const stopCount = loop.items.length;
   const showPreview = Boolean(loop.activePreview?.url);
+  const previewUrl = resolveCaptureV2PreviewUrl(loop.activeItem, loop.activePreview?.url);
+  const previewTitle = loop.activePreview?.title?.trim() || "Captured photo";
 
   const handleCanvasTap = useCallback(() => {
     setTopBarCollapsed((value) => !value);
@@ -43,10 +46,17 @@ export function NoPlansCaptureCanvas({ session, loop, contextLabel }: Props) {
     [loop],
   );
 
+  const returnToLiveCamera = useCallback(async () => {
+    loop.setActivePreview(null);
+    if (!camera.isStreaming) {
+      await camera.startCamera(facingMode);
+    }
+  }, [camera, facingMode, loop]);
+
   const handleShutterTap = useCallback(() => {
     if (holdStubRef.current) return;
     if (showPreview) {
-      loop.openPickerDirect("camera", "next_item");
+      void returnToLiveCamera();
       return;
     }
     if (!camera.isStreaming) return;
@@ -56,13 +66,24 @@ export function NoPlansCaptureCanvas({ session, loop, contextLabel }: Props) {
     if (!result) return;
     const file = new File([result.blob], `capture-${Date.now()}.jpg`, { type: "image/jpeg" });
     ingestFile(file);
-  }, [camera, ingestFile, loop, showPreview]);
+  }, [camera, ingestFile, returnToLiveCamera, showPreview]);
 
   const handleSelectStop = useCallback(
     (item: Parameters<typeof loop.focusFilmstripItem>[0]) => {
       loop.focusFilmstripItem(item);
     },
     [loop],
+  );
+
+  const handleDeleteStop = useCallback(
+    async (item: Parameters<typeof loop.deleteStop>[0]) => {
+      const result = await loop.deleteStop(item);
+      if (!result.ok) return;
+      if (showPreview) {
+        await returnToLiveCamera();
+      }
+    },
+    [loop, returnToLiveCamera, showPreview],
   );
 
   const handleFlipCamera = useCallback(async () => {
@@ -79,6 +100,7 @@ export function NoPlansCaptureCanvas({ session, loop, contextLabel }: Props) {
         contextLabel={contextLabel}
         stopCount={stopCount}
         collapsed={topBarCollapsed}
+        overlay={false}
         flashOn={flashOn}
         onToggleFlash={() => setFlashOn((value) => !value)}
         showFlip={!showPreview && camera.isStreaming}
@@ -89,7 +111,7 @@ export function NoPlansCaptureCanvas({ session, loop, contextLabel }: Props) {
       <div
         role="button"
         tabIndex={0}
-        className="relative mx-2 mb-1 mt-2 flex min-h-0 flex-[3] flex-col overflow-hidden rounded-2xl border border-[var(--surface-zinc-border)] bg-[var(--surface-zinc)]"
+        className="relative mx-2 mb-1 mt-1 flex min-h-0 flex-[3] flex-col overflow-hidden rounded-2xl border border-[var(--surface-zinc-border)] bg-[var(--surface-zinc)]"
         onClick={handleCanvasTap}
         onKeyDown={(event) => {
           if (event.key === "Enter" || event.key === " ") {
@@ -99,25 +121,24 @@ export function NoPlansCaptureCanvas({ session, loop, contextLabel }: Props) {
         }}
         aria-label="Toggle capture controls"
       >
-        {showPreview ? (
-          <div className="pointer-events-none min-h-0 flex-1">
-            <CaptureV2Viewfinder
-              sessionId={session.id}
-              loop={loop}
-              markupEnabled={false}
-            />
-          </div>
+        {showPreview && previewUrl ? (
+          <CaptureV2StaticPreview imageUrl={previewUrl} title={previewTitle} />
         ) : (
           <CaptureV2LiveCamera camera={camera} facingMode={facingMode} />
         )}
         <CaptureV2LiveCameraBusyOverlay busy={loop.busy} />
       </div>
 
-      <CaptureStopFilmstrip loop={loop} onSelectItem={handleSelectStop} />
+      <CaptureStopFilmstrip
+        loop={loop}
+        onSelectItem={handleSelectStop}
+        onDeleteItem={handleDeleteStop}
+        deletingItemId={loop.deletingStopId}
+      />
 
       <CaptureCanvasBottomRail
         busy={loop.busy}
-        showHint={!camera.isStreaming && !showPreview}
+        showHint={!showPreview && !camera.isStreaming}
         onShutterTap={handleShutterTap}
         onShutterHoldStart={() => {
           holdStubRef.current = true;
@@ -126,32 +147,6 @@ export function NoPlansCaptureCanvas({ session, loop, contextLabel }: Props) {
           holdStubRef.current = false;
         }}
       />
-
-      <CaptureV2HiddenInputs loop={loop} />
     </div>
-  );
-}
-
-function CaptureV2HiddenInputs({ loop }: { loop: CaptureV2Loop }) {
-  return (
-    <>
-      <input
-        ref={loop.cameraInputRef}
-        type="file"
-        accept="image/*"
-        capture="environment"
-        className="hidden"
-        onClick={loop.resetFileInputClick}
-        onChange={(event) => loop.handleDirectFileChange(event, false)}
-      />
-      <input
-        ref={loop.uploadInputRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onClick={loop.resetFileInputClick}
-        onChange={(event) => loop.handleDirectFileChange(event, false)}
-      />
-    </>
   );
 }

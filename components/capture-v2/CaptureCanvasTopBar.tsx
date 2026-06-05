@@ -17,6 +17,7 @@ type Props = {
   onFlipCamera?: () => void;
   showFlip?: boolean;
   showFlash?: boolean;
+  overlay?: boolean;
 };
 
 function LabeledControl({
@@ -46,11 +47,12 @@ export function CaptureCanvasTopBar({
   onFlipCamera,
   showFlip = false,
   showFlash = false,
+  overlay = true,
 }: Props) {
   const router = useRouter();
   const reviewHref = buildCaptureSummaryUrl(sessionId);
 
-  if (collapsed) {
+  if (collapsed && overlay) {
     return (
       <div
         className={`${CAPTURE_V2_LAYERS.taskHeader} pointer-events-none absolute inset-x-0 top-0 z-30 h-10`}
@@ -59,9 +61,17 @@ export function CaptureCanvasTopBar({
     );
   }
 
+  if (collapsed && !overlay) {
+    return null;
+  }
+
+  const positionClass = overlay
+    ? "absolute inset-x-0 top-0 z-30"
+    : "relative z-10 shrink-0";
+
   return (
     <header
-      className={`${CAPTURE_V2_LAYERS.taskHeader} absolute inset-x-0 top-0 z-30 flex items-start justify-between gap-2 px-3 pb-2 pt-[max(env(safe-area-inset-top),0.5rem)]`}
+      className={`${CAPTURE_V2_LAYERS.taskHeader} ${positionClass} flex items-start justify-between gap-2 px-3 pb-2 pt-[max(env(safe-area-inset-top),0.5rem)]`}
     >
       <LabeledControl label="Back">
         <button
@@ -81,7 +91,7 @@ export function CaptureCanvasTopBar({
         <span className="block truncate text-xs font-bold text-[var(--graphite-text-header)]">
           {contextLabel}
         </span>
-        <span className="block text-[10px] font-semibold text-[var(--graphite-primary)]">
+        <span className="block truncate text-[10px] font-semibold text-[var(--graphite-primary)]">
           {stopCount} {stopCount === 1 ? "stop" : "stops"} · Review
         </span>
       </Link>
@@ -98,7 +108,9 @@ export function CaptureCanvasTopBar({
               <FlipHorizontal className="h-5 w-5" />
             </button>
           </LabeledControl>
-        ) : null}
+        ) : (
+          <div className="w-10 shrink-0" aria-hidden />
+        )}
         {showFlash ? (
           <LabeledControl label="Flash">
             <button
@@ -115,7 +127,9 @@ export function CaptureCanvasTopBar({
               )}
             </button>
           </LabeledControl>
-        ) : null}
+        ) : (
+          <div className="w-10 shrink-0" aria-hidden />
+        )}
       </div>
     </header>
   );

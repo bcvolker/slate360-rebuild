@@ -8,9 +8,10 @@ import { useCaptureFileHandler, type CaptureIntent } from "@/components/site-wal
 import { useCaptureItems } from "@/components/site-walk/capture/useCaptureItems";
 import { readQuickCaptureLaunch, removeQuickCaptureLaunch } from "@/lib/site-walk/quick-capture-launch";
 import { triggerHapticSuccess } from "@/lib/utils/trigger-haptic";
-import { getCaptureImageUrl } from "@/lib/site-walk/capture-image-url";
 import { SITE_WALK_OFFLINE_EVENT } from "@/lib/site-walk/offline-db";
 import type { CaptureItemRecord } from "@/lib/types/site-walk-capture";
+import { deleteCaptureV2Stop } from "./capture-v2-delete-stop";
+import { resolveCaptureV2PreviewUrl } from "./capture-v2-preview-url";
 import { flushCaptureV2Details } from "./capture-v2-save-details";
 import {
   deriveCaptureV2MachineState,
@@ -43,6 +44,8 @@ export function useCaptureV2Loop({ sessionId, projectId, initialItemId, launchId
   const [locationLabel, setLocationLabel] = useState("");
   const [detailsSaving, setDetailsSaving] = useState(false);
   const [detailSaveError, setDetailSaveError] = useState<string | null>(null);
+  const [deletedStopKeys, setDeletedStopKeys] = useState<Set<string>>(() => new Set());
+  const [deletingStopId, setDeletingStopId] = useState<string | null>(null);
 
   const captureItems = useCaptureItems({ sessionId, projectId });
   const fileHandler = useCaptureFileHandler({
@@ -96,22 +99,31 @@ export function useCaptureV2Loop({ sessionId, projectId, initialItemId, launchId
 
   useEffect(() => {
     if (fileHandler.status.kind !== "complete" && fileHandler.status.kind !== "idle") return;
-    const blobUrl = previewBlobRef.current;
-    if (!blobUrl) return;
     const item = captureItems.activeItem;
-    const persistedUrl = item ? getCaptureImageUrl(item) : null;
-    if (persistedUrl && persistedUrl !== blobUrl && !persistedUrl.startsWith("blob:")) {
+    const nextUrl = resolveCaptureV2PreviewUrl(item, fileHandler.activePreview?.url);
+    if (!nextUrl || !fileHandler.activePreview) return;
+    if (fileHandler.activePreview.url === nextUrl) return;
+    const blobUrl = previewBlobRef.current;
+    if (blobUrl && nextUrl.startsWith("blob:") && blobUrl !== nextUrl) {
       URL.revokeObjectURL(blobUrl);
       previewBlobRef.current = null;
-      if (fileHandler.activePreview?.url === blobUrl) {
-        fileHandler.setActivePreview({
-          url: persistedUrl,
-          title: fileHandler.activePreview.title,
-          itemId: fileHandler.activePreview.itemId,
-        });
-      }
     }
+    fileHandler.setActivePreview({
+      url: nextUrl,
+      title: fileHandler.activePreview.title,
+      itemId: fileHandler.activePreview.itemId,
+    });
   }, [captureItems.activeItem, fileHandler, fileHandler.activePreview, fileHandler.status.kind]);
+
+  const visibleItems = useMemo(
+    () =>
+      captureItems.items.filter((item) => {
+        if (deletedStopKeys.has(item.id)) return false;
+        if (item.client_item_id && deletedStopKeys.has(item.client_item_id)) return false;
+        return true;
+      }),
+    [captureItems.items, deletedStopKeys],
+  );
 
   const setIntent = useCallback(
     (intent: CaptureIntent) => {
@@ -371,7 +383,7 @@ export function useCaptureV2Loop({ sessionId, projectId, initialItemId, launchId
       captureItems.selectItem(item);
       setExternalError(null);
       setDetailSaveError(null);
-      const imageUrl = getCaptureImageUrl(item);
+      const imageUrl = resolveCaptureV2PreviewUrl(item, null);
       if (imageUrl) {
         fileHandler.setActivePreview({
           url: imageUrl,
@@ -385,8 +397,43 @@ export function useCaptureV2Loop({ sessionId, projectId, initialItemId, launchId
     [captureItems, fileHandler],
   );
 
+  const deleteStop = useCallback(
+    async (item: CaptureItemRecord) => {
+      setDeletingStopId(item.id);
+      setExternalError(null);
+      try {
+        const result = await deleteCaptureV2Stop(item);
+        if (!result.ok) {
+          setExternalError(result.error);
+          return result;
+        }
+        const keys = [item.id, item.client_item_id].filter(Boolean) as string[];
+        setDeletedStopKeys((current) => {
+          const next = new Set(current);
+          keys.forEach((key) => next.add(key));
+          return next;
+        });
+        if (
+          captureItems.activeItem &&
+          (captureItems.activeItem.id === item.id ||
+            (!!captureItems.activeItem.client_item_id &&
+              captureItems.activeItem.client_item_id === item.client_item_id))
+        ) {
+          fileHandler.setActivePreview(null);
+          captureItems.deselectItem();
+        }
+        triggerHapticSuccess();
+        return result;
+      } finally {
+        setDeletingStopId(null);
+      }
+    },
+    [captureItems, fileHandler],
+  );
+
   return {
     ...captureItems,
+    items: visibleItems,
     ...fileHandler,
     isDesktop,
     machineState,
@@ -408,6 +455,8 @@ export function useCaptureV2Loop({ sessionId, projectId, initialItemId, launchId
     detailSaveError,
     flushDetails,
     focusFilmstripItem,
+    deleteStop,
+    deletingStopId,
     startVoiceNoteOnly,
     saveAndNextStop,
     createFollowUpStop,

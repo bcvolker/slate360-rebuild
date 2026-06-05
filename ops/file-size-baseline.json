@@ -21,7 +21,7 @@
     "components/Navbar.tsx": 316,
     "components/calendar/CalendarWidget.tsx": 466,
     "components/capture-v2/LogEntryDrawer.tsx": 586,
-    "components/capture-v2/useCaptureV2Loop.ts": 418,
+    "components/capture-v2/useCaptureV2Loop.ts": 467,
     "components/dashboard/DashboardClient.tsx": 1961,
     "components/dashboard/DashboardWidgetRenderer.tsx": 547,
     "components/dashboard/LocationMap.tsx": 1892,
