@@ -2,17 +2,63 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
-First, run the development server:
+### Local dev server (phone-friendly)
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
+
+Starts Next.js on all interfaces (`0.0.0.0`) and prints LAN URLs on startup:
+
+- **Local:** `http://localhost:3000`
+- **LAN:** `http://<your-LAN-IP>:3000` (for a phone on the same Wi‑Fi)
+
+Find your computer's LAN IP:
+
+- **macOS:** `ipconfig getifaddr en0` (or `en1` if en0 is empty)
+- **Windows:** `ipconfig` → IPv4 Address on your Wi‑Fi adapter
+
+You may need to allow Node/Next through your OS firewall the first time.
+
+**Camera / capture on a phone** needs a secure context — plain `http://<LAN-IP>` will not run `getUserMedia`. Use HTTPS locally:
+
+```bash
+npm run dev:https
+```
+
+Open `https://<LAN-IP>:3000` on the phone and **accept the self-signed certificate once** (Safari/Chrome will warn; proceed for local dev only).
+
+**Phone not on the same Wi‑Fi?** Expose the already-running dev server with a temporary public HTTPS URL:
+
+```bash
+# Terminal 1
+npm run dev:https
+
+# Terminal 2
+npm run dev:tunnel
+```
+
+`dev:tunnel` runs Cloudflare Tunnel (`cloudflared tunnel --url http://localhost:3000`). An alternative is [ngrok](https://ngrok.com/) (`ngrok http 3000`).
+
+### Dev screen sandbox (local only)
+
+`/dev/screens` is a UI sandbox for isolated screen previews with mock data. It returns **404 in production** (`NODE_ENV=production`) and is never deployed as a product surface.
+
+- Index + device toggle (mobile ~390px frame / desktop)
+- **Capture canvas** — no-plans capture UI with four mock stops
+- **Note / review** — field notes + Save affordance (keyboard-offset test hook via `?keyboard=280`)
+
+Example: `http://localhost:3000/dev/screens?screen=capture&device=mobile`
+
+Mock data lives in `lib/dev/mock-site-walk.ts`.
+
+### Golden-path e2e (Playwright)
+
+```bash
+npm run test:e2e
+```
+
+Runs mobile (390×844) and desktop (1280×720) Chromium projects. Seed suite: `e2e/dev-screens-golden-path.spec.ts` (sandbox capture + note/review smoke). Real start-walk → capture → save flows will extend this once screens are integrated.
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 

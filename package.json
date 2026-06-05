@@ -6,7 +6,9 @@
     "node": ">=20.0.0"
   },
   "scripts": {
-    "dev": "NEXT_TELEMETRY_DISABLED=1 next dev",
+    "dev": "node scripts/dev/next-dev-lan.mjs",
+    "dev:https": "node scripts/dev/next-dev-lan.mjs --https",
+    "dev:tunnel": "cloudflared tunnel --url http://localhost:3000",
     "build": "node scripts/ops/next-production-build.mjs",
     "typecheck": "tsc --noEmit",
     "guard:file-size-regression": "node scripts/ops/check-file-size-regression.mjs",
