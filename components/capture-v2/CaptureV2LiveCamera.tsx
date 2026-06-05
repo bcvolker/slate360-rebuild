@@ -55,7 +55,7 @@ export function CaptureV2LiveCamera({
   return (
     <div
       id={CAPTURE_V2_LAYER_IDS.canvasBase}
-      className={`relative ${CAPTURE_V2_LAYERS.canvas} flex min-h-0 flex-1 flex-col overflow-hidden bg-[var(--graphite-canvas)] ${CANVAS_OS_SAFETY}`}
+      className={`relative ${CAPTURE_V2_LAYERS.canvas} flex min-h-0 flex-1 flex-col overflow-hidden border border-[var(--surface-zinc-border)] bg-[var(--surface-zinc)] ${CANVAS_OS_SAFETY}`}
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}

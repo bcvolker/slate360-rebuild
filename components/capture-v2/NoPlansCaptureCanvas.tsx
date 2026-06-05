@@ -82,12 +82,13 @@ export function NoPlansCaptureCanvas({ session, loop, contextLabel }: Props) {
         flashOn={flashOn}
         onToggleFlash={() => setFlashOn((value) => !value)}
         showFlip={!showPreview && camera.isStreaming}
+        showFlash={!showPreview && camera.isStreaming}
         onFlipCamera={() => void handleFlipCamera()}
       />
 
       <button
         type="button"
-        className="relative flex min-h-0 flex-[3] flex-col overflow-hidden"
+        className="relative mx-2 mb-1 mt-2 flex min-h-0 flex-[3] flex-col overflow-hidden rounded-2xl border border-[var(--surface-zinc-border)] bg-[var(--surface-zinc)]"
         onClick={handleCanvasTap}
         aria-label="Toggle capture controls"
       >
@@ -109,6 +110,7 @@ export function NoPlansCaptureCanvas({ session, loop, contextLabel }: Props) {
 
       <CaptureCanvasBottomRail
         busy={loop.busy}
+        showHint={!camera.isStreaming && !showPreview}
         onShutterTap={handleShutterTap}
         onShutterHoldStart={() => {
           holdStubRef.current = true;

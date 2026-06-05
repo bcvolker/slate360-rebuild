@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ChevronDown, ChevronUp } from "lucide-react";
-import { CaptureRegistryThumbnail, ensureCaptureTypesInstalled } from "@/lib/site-walk/capture-types";
+import { Camera, ChevronDown, ChevronUp } from "lucide-react";
+import { getCaptureImageUrl } from "@/lib/site-walk/capture-image-url";
+import { ensureCaptureTypesInstalled } from "@/lib/site-walk/capture-types";
 import type { CaptureItemRecord } from "@/lib/types/site-walk-capture";
 import { CAPTURE_V2_LAYERS } from "./layers";
 import type { CaptureV2Loop } from "./useCaptureV2Loop";
@@ -78,12 +79,12 @@ export function CaptureStopFilmstrip({
       {!collapsed && (
         <div
           id="capture-canvas-stop-tracker-scroll"
-          className="flex min-h-[5.5rem] gap-2 overflow-x-auto px-3 pb-2 pt-1 no-scrollbar"
+          className="flex min-h-[5.5rem] gap-3 overflow-x-auto px-3 pb-2 pt-1 no-scrollbar"
           role="listbox"
           aria-label="Stop thumbnails"
         >
           {orderedItems.length === 0 ? (
-            <div className="flex min-h-[4.75rem] min-w-full items-center justify-center rounded-2xl border border-dashed border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_88%,transparent)] px-4 py-3 text-center">
+            <div className="flex min-h-[4.75rem] min-w-full items-center justify-center rounded-2xl border border-dashed border-[var(--accent-border-green)] bg-[color-mix(in_srgb,var(--surface-zinc)_55%,var(--graphite-canvas))] px-4 py-3 text-center">
               <p className="text-xs font-medium leading-snug text-[var(--graphite-muted)]">
                 Saved stops appear here as numbered thumbnails.
               </p>
@@ -108,11 +109,11 @@ export function CaptureStopFilmstrip({
                   aria-selected={isActive}
                   className="shrink-0"
                 >
-                  <CaptureRegistryThumbnail
+                  <StopFilmstripThumb
                     item={item}
-                    selected={isActive}
                     stopNumber={stopNumber}
-                    imageUrlOverride={previewOverride}
+                    selected={isActive}
+                    imageUrl={previewOverride}
                     onSelect={() => onSelectItem(item)}
                   />
                 </div>
@@ -122,5 +123,49 @@ export function CaptureStopFilmstrip({
         </div>
       )}
     </section>
+  );
+}
+
+type ThumbProps = {
+  item: CaptureItemRecord;
+  stopNumber: number;
+  selected: boolean;
+  imageUrl: string | null;
+  onSelect: () => void;
+};
+
+function StopFilmstripThumb({ item, stopNumber, selected, imageUrl, onSelect }: ThumbProps) {
+  const resolvedUrl = imageUrl ?? getCaptureImageUrl(item);
+  const borderClass = selected
+    ? "border-[color-mix(in_srgb,var(--graphite-primary)_55%,transparent)]"
+    : "border-[var(--surface-zinc-border)]";
+
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      aria-current={selected ? "true" : undefined}
+      aria-label={`Stop ${stopNumber}`}
+      className="flex shrink-0 flex-col items-center gap-1.5 bg-transparent p-0"
+    >
+      <span
+        className={`text-[10px] font-bold tabular-nums ${
+          selected ? "text-[var(--graphite-primary)]" : "text-[var(--graphite-muted)]"
+        }`}
+      >
+        {stopNumber}
+      </span>
+      <div
+        className={`h-[3.75rem] w-[3.75rem] overflow-hidden rounded-lg border ${borderClass}`}
+      >
+        {resolvedUrl ? (
+          <img src={resolvedUrl} alt="" className="h-full w-full object-cover" draggable={false} />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center text-[var(--graphite-muted)]">
+            <Camera className="h-4 w-4" />
+          </div>
+        )}
+      </div>
+    </button>
   );
 }

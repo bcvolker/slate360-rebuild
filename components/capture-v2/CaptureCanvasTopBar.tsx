@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Flashlight, FlashlightOff, FlipHorizontal } from "lucide-react";
@@ -15,7 +16,25 @@ type Props = {
   onToggleFlash: () => void;
   onFlipCamera?: () => void;
   showFlip?: boolean;
+  showFlash?: boolean;
 };
+
+function LabeledControl({
+  label,
+  children,
+}: {
+  label: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className="flex flex-col items-center gap-0.5">
+      {children}
+      <span className="text-[9px] font-semibold leading-none text-[var(--graphite-muted)]">
+        {label}
+      </span>
+    </div>
+  );
+}
 
 export function CaptureCanvasTopBar({
   sessionId,
@@ -26,6 +45,7 @@ export function CaptureCanvasTopBar({
   onToggleFlash,
   onFlipCamera,
   showFlip = false,
+  showFlash = false,
 }: Props) {
   const router = useRouter();
   const reviewHref = buildCaptureSummaryUrl(sessionId);
@@ -41,16 +61,18 @@ export function CaptureCanvasTopBar({
 
   return (
     <header
-      className={`${CAPTURE_V2_LAYERS.taskHeader} absolute inset-x-0 top-0 z-30 flex items-center justify-between gap-2 px-3 pb-2 pt-[max(env(safe-area-inset-top),0.5rem)]`}
+      className={`${CAPTURE_V2_LAYERS.taskHeader} absolute inset-x-0 top-0 z-30 flex items-start justify-between gap-2 px-3 pb-2 pt-[max(env(safe-area-inset-top),0.5rem)]`}
     >
-      <button
-        type="button"
-        onClick={() => router.push("/site-walk")}
-        className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_82%,transparent)] text-[var(--graphite-text-header)] backdrop-blur-md transition active:scale-[0.98]"
-        aria-label="Back to Site Walk home"
-      >
-        <ArrowLeft className="h-5 w-5" />
-      </button>
+      <LabeledControl label="Back">
+        <button
+          type="button"
+          onClick={() => router.push("/site-walk")}
+          className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_82%,transparent)] text-[var(--graphite-text-header)] backdrop-blur-md transition active:scale-[0.98]"
+          aria-label="Back to Site Walk home"
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </button>
+      </LabeledControl>
 
       <Link
         href={reviewHref}
@@ -64,30 +86,36 @@ export function CaptureCanvasTopBar({
         </span>
       </Link>
 
-      <div className="flex shrink-0 items-center gap-1.5">
+      <div className="flex shrink-0 items-start gap-1.5">
         {showFlip && onFlipCamera ? (
-          <button
-            type="button"
-            onClick={onFlipCamera}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_82%,transparent)] text-[var(--graphite-text-header)] backdrop-blur-md transition active:scale-[0.98]"
-            aria-label="Flip camera"
-          >
-            <FlipHorizontal className="h-5 w-5" />
-          </button>
+          <LabeledControl label="Flip">
+            <button
+              type="button"
+              onClick={onFlipCamera}
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_82%,transparent)] text-[var(--graphite-text-header)] backdrop-blur-md transition active:scale-[0.98]"
+              aria-label="Flip camera"
+            >
+              <FlipHorizontal className="h-5 w-5" />
+            </button>
+          </LabeledControl>
         ) : null}
-        <button
-          type="button"
-          onClick={onToggleFlash}
-          className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_82%,transparent)] text-[var(--graphite-text-header)] backdrop-blur-md transition active:scale-[0.98]"
-          aria-label={flashOn ? "Flash on (stub)" : "Flash off (stub)"}
-          aria-pressed={flashOn}
-        >
-          {flashOn ? (
-            <Flashlight className="h-5 w-5 text-[var(--graphite-primary)]" />
-          ) : (
-            <FlashlightOff className="h-5 w-5" />
-          )}
-        </button>
+        {showFlash ? (
+          <LabeledControl label="Flash">
+            <button
+              type="button"
+              onClick={onToggleFlash}
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_82%,transparent)] text-[var(--graphite-text-header)] backdrop-blur-md transition active:scale-[0.98]"
+              aria-label={flashOn ? "Flash on" : "Flash off"}
+              aria-pressed={flashOn}
+            >
+              {flashOn ? (
+                <Flashlight className="h-5 w-5 text-[var(--graphite-primary)]" />
+              ) : (
+                <FlashlightOff className="h-5 w-5" />
+              )}
+            </button>
+          </LabeledControl>
+        ) : null}
       </div>
     </header>
   );
