@@ -48,6 +48,11 @@ export function TwinCaptureScreen({
   const [topCollapsed, setTopCollapsed] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const { recording, paused } = videoRecorder;
+  const [videoWalkSupported, setVideoWalkSupported] = useState(true);
+
+  useEffect(() => {
+    setVideoWalkSupported(isTwinVideoRecordingSupported());
+  }, []);
 
   const estimatedBytes =
     photoCount * PHOTO_EST_BYTES + videoSeconds * VIDEO_EST_BYTES_PER_SEC;
