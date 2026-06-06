@@ -48,6 +48,7 @@
     "v0-staging",
     "app/_deprecated",
     "_v0_drop",
-    "_quarantine_v1"
+    "_quarantine_v1",
+    "scripts/ops/smoke-digital-twin-job-callback-runner.ts"
   ]
 }

@@ -69,14 +69,14 @@ export async function deductCredits(
   const newBalance = currentBalance - amount;
 
   // Deduct with optimistic concurrency (check balance hasn't changed)
-  const { error: updateErr, count } = await supabase
+  const { error: updateErr, data: updatedRows } = await supabase
     .from("organizations")
     .update({ credits_balance: newBalance })
     .eq("id", orgId)
     .eq("credits_balance", currentBalance) // optimistic lock
     .select("id");
 
-  if (updateErr || !count) {
+  if (updateErr || !updatedRows?.length) {
     return { ok: false, error: "Balance changed concurrently — retry" };
   }
 

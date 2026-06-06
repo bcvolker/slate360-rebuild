@@ -13,6 +13,7 @@ const triggerEnvNames = [
   "CLOUDFLARE_ACCOUNT_ID",
   "R2_ACCESS_KEY_ID",
   "R2_SECRET_ACCESS_KEY",
+  "MODAL_TWIN_ENDPOINT",
 ];
 
 export default defineConfig({

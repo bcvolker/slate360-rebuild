@@ -1,0 +1,214 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { deductCredits } from "@/lib/credits/idempotency";
+import { computeTwinProcessingCredits } from "@/lib/twin/processing-credits";
+
+type AdminClient = SupabaseClient;
+
+export type TwinWorkerCallbackPayload = {
+  jobId: string;
+  status: "completed" | "failed";
+  outputKey?: string;
+  modelFormat?: "spz" | "ply" | "glb";
+  fileSizeBytes?: number;
+  processedAssetIds?: string[];
+  newAssetIds?: string[];
+  errorLog?: string;
+  costCredits?: number;
+  bounds?: Record<string, unknown>;
+  qualityMetrics?: Record<string, unknown>;
+};
+
+export type TwinJobCallbackResult = {
+  ok: boolean;
+  status: number;
+  error?: string;
+  modelId?: string;
+  creditsCharged?: number;
+  idempotent?: boolean;
+};
+
+export async function handleTwinJobCallback(
+  admin: AdminClient,
+  body: TwinWorkerCallbackPayload,
+): Promise<TwinJobCallbackResult> {
+  if (!body?.jobId || !body.status) {
+    return { ok: false, status: 400, error: "jobId and status are required" };
+  }
+
+  const { data: job, error: jobError } = await admin
+    .from("digital_twin_processing_jobs")
+    .select(
+      "id, org_id, space_id, capture_id, status, output_format, job_type, credits_charged, output_model_id",
+    )
+    .eq("id", body.jobId)
+    .maybeSingle();
+
+  if (jobError) return { ok: false, status: 500, error: jobError.message };
+  if (!job) return { ok: false, status: 404, error: "Job not found" };
+
+  if (job.status === "completed") {
+    return {
+      ok: true,
+      status: 200,
+      modelId: job.output_model_id ?? undefined,
+      creditsCharged: job.credits_charged ?? 0,
+      idempotent: true,
+    };
+  }
+
+  if (job.status === "failed" && body.status === "failed") {
+    return { ok: true, status: 200, idempotent: true };
+  }
+
+  if (body.status === "failed") {
+    const { error } = await admin
+      .from("digital_twin_processing_jobs")
+      .update({
+        status: "failed",
+        error_text: body.errorLog ?? "Worker reported failure",
+        completed_at: new Date().toISOString(),
+      })
+      .eq("id", job.id);
+
+    if (error) return { ok: false, status: 500, error: error.message };
+
+    if (job.capture_id) {
+      await admin
+        .from("digital_twin_captures")
+        .update({ capture_status: "failed", error_text: body.errorLog ?? "Processing failed" })
+        .eq("id", job.capture_id)
+        .eq("org_id", job.org_id);
+    }
+
+    return { ok: true, status: 200 };
+  }
+
+  if (!body.outputKey) {
+    return { ok: false, status: 400, error: "outputKey is required for completed callbacks" };
+  }
+
+  const modelFormat = body.modelFormat ?? job.output_format ?? "spz";
+  const chargeAssetIds = (body.newAssetIds?.length ? body.newAssetIds : body.processedAssetIds) ?? [];
+
+  const { data: chargeAssets } = chargeAssetIds.length
+    ? await admin
+        .from("digital_twin_capture_assets")
+        .select("id, asset_kind, file_size_bytes")
+        .in("id", chargeAssetIds)
+        .eq("org_id", job.org_id)
+    : { data: [] as { id: string; asset_kind: string; file_size_bytes: number }[] };
+
+  const creditsToCharge = computeTwinProcessingCredits(chargeAssets ?? [], modelFormat);
+  const idempotencyKey = `dt-job:${job.id}`;
+
+  const deduct = await deductCredits(
+    admin,
+    job.org_id,
+    creditsToCharge,
+    idempotencyKey,
+    `Digital Twin ${job.job_type ?? "gaussian_splat"} job ${job.id}`,
+  );
+
+  if (!deduct.ok) {
+    return { ok: false, status: 409, error: deduct.error ?? "Credit deduction failed" };
+  }
+
+  const { count: existingModelCount } = await admin
+    .from("digital_twin_models")
+    .select("id", { count: "exact", head: true })
+    .eq("space_id", job.space_id)
+    .eq("org_id", job.org_id)
+    .is("deleted_at", null);
+
+  const isPrimary = (existingModelCount ?? 0) === 0;
+  const fileSizeBytes = body.fileSizeBytes ?? 0;
+  const qualityMetrics = {
+    ...(body.qualityMetrics ?? {}),
+    fileSizeBytes,
+    processedAssetCount: body.processedAssetIds?.length ?? 0,
+    newAssetCount: body.newAssetIds?.length ?? 0,
+  };
+
+  const { data: space } = await admin
+    .from("digital_twin_spaces")
+    .select("title")
+    .eq("id", job.space_id)
+    .maybeSingle();
+
+  const { data: model, error: modelError } = await admin
+    .from("digital_twin_models")
+    .insert({
+      org_id: job.org_id,
+      space_id: job.space_id,
+      capture_id: job.capture_id,
+      processing_job_id: job.id,
+      title: space?.title ? `${space.title} model` : "Twin model",
+      model_format: modelFormat,
+      storage_key: body.outputKey,
+      file_size_bytes: fileSizeBytes,
+      bounds: body.bounds ?? {},
+      quality_metrics: qualityMetrics,
+      is_primary: isPrimary,
+      status: "ready",
+    })
+    .select("id")
+    .single();
+
+  if (modelError || !model?.id) {
+    return { ok: false, status: 500, error: modelError?.message ?? "Failed to create model" };
+  }
+
+  const completedAt = new Date().toISOString();
+
+  await admin
+    .from("digital_twin_processing_jobs")
+    .update({
+      status: "completed",
+      progress_pct: 100,
+      output_storage_key: body.outputKey,
+      output_model_id: model.id,
+      credits_charged: creditsToCharge,
+      completed_at: completedAt,
+      error_text: null,
+    })
+    .eq("id", job.id);
+
+  if (job.capture_id) {
+    await admin
+      .from("digital_twin_captures")
+      .update({ capture_status: "ready" })
+      .eq("id", job.capture_id)
+      .eq("org_id", job.org_id);
+  }
+
+  if (isPrimary) {
+    await admin
+      .from("digital_twin_spaces")
+      .update({ published_model_id: model.id, status: "ready" })
+      .eq("id", job.space_id)
+      .eq("org_id", job.org_id);
+  }
+
+  await admin.from("digital_twin_usage_events").insert({
+    org_id: job.org_id,
+    space_id: job.space_id,
+    capture_id: job.capture_id,
+    event_type: "gaussian_splat_job",
+    quantity: creditsToCharge,
+    unit: "credits",
+    source_table: "digital_twin_processing_jobs",
+    source_id: job.id,
+    metadata: {
+      modelId: model.id,
+      outputKey: body.outputKey,
+      newAssetIds: body.newAssetIds ?? [],
+    },
+  });
+
+  return {
+    ok: true,
+    status: 200,
+    modelId: model.id,
+    creditsCharged: creditsToCharge,
+  };
+}

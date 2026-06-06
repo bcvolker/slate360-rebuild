@@ -5,6 +5,8 @@ import { assertDigitalTwinProcessingEntitlement } from "@/lib/twin/processing-en
 
 export const runtime = "nodejs";
 
+const triggerRequestOptions = { clientConfig: { previewBranch: "" } };
+
 type JobBody = {
   capture_id: string;
   output_format?: "spz" | "ply" | "glb";
@@ -84,7 +86,38 @@ export const POST = (req: NextRequest) =>
         .eq("id", capture.id)
         .eq("org_id", orgId);
 
-      return ok({ job });
+      try {
+        const { tasks } = await import("@trigger.dev/sdk/v3");
+        const handle = await tasks.trigger(
+          "twin.gaussian_splat",
+          { jobId: job.id },
+          undefined,
+          triggerRequestOptions,
+        );
+        console.info("[POST /api/digital-twin/jobs] Trigger dispatch accepted", {
+          jobId: job.id,
+          runId: handle.id,
+        });
+      } catch (dispatchErr) {
+        const msg = dispatchErr instanceof Error ? dispatchErr.message : String(dispatchErr);
+        console.error("[POST /api/digital-twin/jobs] Trigger dispatch failed:", msg);
+        await admin
+          .from("digital_twin_processing_jobs")
+          .update({
+            status: "failed",
+            error_text: `Dispatch error: ${msg}`,
+            completed_at: new Date().toISOString(),
+          })
+          .eq("id", job.id);
+        await admin
+          .from("digital_twin_captures")
+          .update({ capture_status: "failed", error_text: `Dispatch error: ${msg}` })
+          .eq("id", capture.id)
+          .eq("org_id", orgId);
+        return serverError(`Failed to dispatch processing job: ${msg}`);
+      }
+
+      return ok({ job, triggerDispatched: true });
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to create job";
       if (message.includes("Digital Twin access required")) return forbidden(message);
