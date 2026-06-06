@@ -48,7 +48,7 @@ export async function resolveTwinShareAnnotate(
   }
 
   const role = row.role as TwinShareRole;
-  if (options?.requireAnnotate && role !== "annotate" && role !== "download") {
+  if (options?.requireAnnotate && role !== "annotate") {
     return { ok: false, reason: "forbidden" };
   }
 

@@ -7,6 +7,7 @@ import {
   type PortalTokenState,
 } from "@/components/external-portal";
 import { TwinShareAnnotateShell } from "@/components/digital-twin/TwinShareAnnotateShell";
+import { TwinShareDownloadButton } from "@/components/digital-twin/TwinShareDownloadButton";
 import { TwinViewerDisclaimer } from "@/components/digital-twin/TwinViewerDisclaimer";
 import type { TwinViewerKind } from "@/lib/digital-twin/viewer-format";
 import { twinAccent } from "@/lib/digital-twin/twin-accent";
@@ -22,6 +23,7 @@ export function TwinShareViewer({
   viewerKind,
   shareToken,
   canAnnotate = false,
+  canDownload = false,
   tokenState,
 }: {
   embed: boolean;
@@ -33,6 +35,7 @@ export function TwinShareViewer({
   viewerKind: TwinViewerKind;
   shareToken?: string;
   canAnnotate?: boolean;
+  canDownload?: boolean;
   tokenState?: PortalTokenState | null;
 }) {
   if (tokenState) {
@@ -53,7 +56,16 @@ export function TwinShareViewer({
   ) : null;
 
   if (embed) {
-    return <div className="fixed inset-0 bg-[#0B0F15]">{viewer}</div>;
+    return (
+      <div className="fixed inset-0 flex flex-col bg-[#0B0F15]">
+        <div className="min-h-0 flex-1">{viewer}</div>
+        {canDownload && shareToken ? (
+          <div className="shrink-0 border-t border-white/10 p-3">
+            <TwinShareDownloadButton shareToken={shareToken} />
+          </div>
+        ) : null}
+      </div>
+    );
   }
 
   return (
@@ -69,6 +81,9 @@ export function TwinShareViewer({
         <PortalGlassCard className="min-h-0 flex-1 overflow-hidden !p-3">
           {viewer}
         </PortalGlassCard>
+        {canDownload && shareToken ? (
+          <TwinShareDownloadButton shareToken={shareToken} />
+        ) : null}
         <TwinViewerDisclaimer />
         <p className="text-center text-[10px] text-zinc-500">
           Powered by{" "}

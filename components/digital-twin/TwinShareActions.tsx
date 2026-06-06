@@ -1,9 +1,17 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { Check, Link2, Loader2, Ban } from "lucide-react";
+import { IconBan, IconCheck, IconLink, IconLoader2 } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import { twinAccent } from "@/lib/digital-twin/twin-accent";
+
+export type TwinShareRole = "view" | "annotate" | "download";
+
+const ROLE_OPTIONS: { id: TwinShareRole; label: string; hint: string }[] = [
+  { id: "view", label: "View only", hint: "Interactive viewer" },
+  { id: "annotate", label: "Annotate", hint: "Pins, comments, measure" },
+  { id: "download", label: "Download", hint: "Viewer + model file" },
+];
 
 type Props = {
   spaceId: string;
@@ -11,6 +19,7 @@ type Props = {
 };
 
 export function TwinShareActions({ spaceId, className }: Props) {
+  const [role, setRole] = useState<TwinShareRole>("view");
   const [token, setToken] = useState<string | null>(null);
   const [busy, setBusy] = useState<"create" | "revoke" | null>(null);
   const [copied, setCopied] = useState(false);
@@ -27,7 +36,7 @@ export function TwinShareActions({ spaceId, className }: Props) {
       const res = await fetch("/api/digital-twin/share/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ space_id: spaceId, role: "view" }),
+        body: JSON.stringify({ space_id: spaceId, role }),
       });
       const data = (await res.json().catch(() => ({}))) as {
         share_url?: string;
@@ -48,7 +57,7 @@ export function TwinShareActions({ spaceId, className }: Props) {
     } finally {
       setBusy(null);
     }
-  }, [spaceId]);
+  }, [role, spaceId]);
 
   const revokeLink = useCallback(async () => {
     if (!token) return;
@@ -75,38 +84,61 @@ export function TwinShareActions({ spaceId, className }: Props) {
   }, [token]);
 
   return (
-    <div className={cn("flex flex-wrap items-center gap-2", className)}>
-      <button
-        type="button"
-        onClick={() => void createAndCopy()}
-        disabled={busy !== null}
-        className={cn(twinAccent.button, "inline-flex items-center gap-1.5")}
-      >
-        {busy === "create" ? (
-          <Loader2 className="size-3.5 animate-spin" aria-hidden />
-        ) : copied ? (
-          <Check className="size-3.5" aria-hidden />
-        ) : (
-          <Link2 className="size-3.5" aria-hidden />
-        )}
-        {copied ? "Link copied" : "Copy share link"}
-      </button>
+    <div className={cn("flex flex-col gap-2", className)}>
+      <fieldset className="flex flex-wrap gap-2">
+        <legend className="sr-only">Share role</legend>
+        {ROLE_OPTIONS.map((option) => {
+          const active = role === option.id;
+          return (
+            <button
+              key={option.id}
+              type="button"
+              onClick={() => setRole(option.id)}
+              className={cn(
+                "min-h-10 rounded-xl border px-3 py-2 text-left text-xs transition-colors",
+                active ? twinAccent.button : "border-white/10 text-zinc-400 hover:text-zinc-200",
+              )}
+            >
+              <span className="block font-semibold">{option.label}</span>
+              <span className="block text-[10px] opacity-80">{option.hint}</span>
+            </button>
+          );
+        })}
+      </fieldset>
 
-      {token && !revoked ? (
+      <div className="flex flex-wrap items-center gap-2">
         <button
           type="button"
-          onClick={() => void revokeLink()}
+          onClick={() => void createAndCopy()}
           disabled={busy !== null}
-          className={cn(twinAccent.buttonDanger, "inline-flex items-center gap-1.5")}
+          className={cn(twinAccent.button, "inline-flex items-center gap-1.5")}
         >
-          {busy === "revoke" ? (
-            <Loader2 className="size-3.5 animate-spin" aria-hidden />
+          {busy === "create" ? (
+            <IconLoader2 className="size-3.5 animate-spin" stroke={1.75} />
+          ) : copied ? (
+            <IconCheck className="size-3.5" stroke={1.75} />
           ) : (
-            <Ban className="size-3.5" aria-hidden />
+            <IconLink className="size-3.5" stroke={1.75} />
           )}
-          Revoke link
+          {copied ? "Link copied" : "Copy share link"}
         </button>
-      ) : null}
+
+        {token && !revoked ? (
+          <button
+            type="button"
+            onClick={() => void revokeLink()}
+            disabled={busy !== null}
+            className={cn(twinAccent.buttonDanger, "inline-flex items-center gap-1.5")}
+          >
+            {busy === "revoke" ? (
+              <IconLoader2 className="size-3.5 animate-spin" stroke={1.75} />
+            ) : (
+              <IconBan className="size-3.5" stroke={1.75} />
+            )}
+            Revoke link
+          </button>
+        ) : null}
+      </div>
 
       {revoked ? <p className="text-xs text-zinc-400">Share link revoked.</p> : null}
       {error ? <p className="text-xs text-red-300">{error}</p> : null}
