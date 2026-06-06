@@ -107,6 +107,26 @@ export function TwinAuthenticatedViewer({
     [measureActive, measureA, spaceId, modelId, onMeasurementSaved],
   );
 
+  const sceneOverlay = useMemo(
+    () => (
+      <TwinSceneOverlays
+        pins={overlayPins}
+        measurements={overlayMeasurements}
+        showPins={layerVisible.pins ?? true}
+        showMeasurements={layerVisible.measurements ?? true}
+        previewPoint={measureActive ? measureA : null}
+      />
+    ),
+    [
+      overlayPins,
+      overlayMeasurements,
+      layerVisible.pins,
+      layerVisible.measurements,
+      measureActive,
+      measureA,
+    ],
+  );
+
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-2">
       <div className="relative min-h-[50vh] flex-1 md:min-h-[60vh]">
