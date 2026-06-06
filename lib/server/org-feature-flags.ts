@@ -43,7 +43,7 @@ export async function loadOrgFeatureFlags(orgId: string | null): Promise<OrgFeat
 
     if (error || !data) return EMPTY_FLAGS;
 
-    return {
+    const flags: OrgFeatureFlags = {
       standalone_tour_builder: data.standalone_tour_builder === true,
       standalone_punchwalk: data.standalone_punchwalk === true,
       standalone_design_studio: data.standalone_design_studio === true,
@@ -52,6 +52,12 @@ export async function loadOrgFeatureFlags(orgId: string | null): Promise<OrgFeat
       tour_builder_seat_limit: Number(data.tour_builder_seat_limit) || 0,
       tour_builder_seats_used: Number(data.tour_builder_seats_used) || 0,
     };
+
+    if (isBetaMode()) {
+      flags.standalone_digital_twin = true;
+    }
+
+    return flags;
   } catch {
     return EMPTY_FLAGS;
   }

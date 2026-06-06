@@ -1,11 +1,12 @@
 import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { isBetaMode } from "@/lib/beta-mode";
 import { isOwnerEmail } from "@/lib/server/beta-access";
 
 type AdminClient = SupabaseClient;
 
-export type DigitalTwinEntitlementSource = "ceo" | "approved" | "org_flag" | "none";
+export type DigitalTwinEntitlementSource = "ceo" | "beta" | "approved" | "org_flag" | "none";
 
 export type DigitalTwinEntitlement = {
   allowed: boolean;
@@ -27,6 +28,10 @@ export async function resolveDigitalTwinEntitlement(
 ): Promise<DigitalTwinEntitlement> {
   if (isOwnerEmail(params.userEmail)) {
     return { allowed: true, source: "ceo", subscriptionTier: "pro" };
+  }
+
+  if (isBetaMode()) {
+    return { allowed: true, source: "beta", subscriptionTier: "pro" };
   }
 
   const { data: profile } = await admin

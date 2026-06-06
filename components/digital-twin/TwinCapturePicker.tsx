@@ -7,14 +7,16 @@ import { mobileTokens } from "@/components/mobile-system";
 import { twinAccent } from "@/lib/digital-twin/twin-accent";
 import { cn } from "@/lib/utils";
 import type { HubTwin, HubTwinProject } from "@/lib/types/digital-twin-hub";
+import { CreateTwinSpaceForm } from "./CreateTwinSpaceForm";
 
 type Props = {
   spaces: HubTwin[];
   projects: HubTwinProject[];
   onStart: (selection: { spaceId: string; projectId: string; spaceTitle: string }) => void;
+  onSpaceCreated?: (space: HubTwin) => void;
 };
 
-export function TwinCapturePicker({ spaces, projects, onStart }: Props) {
+export function TwinCapturePicker({ spaces, projects, onStart, onSpaceCreated }: Props) {
   const [spaceId, setSpaceId] = useState(spaces[0]?.id ?? "");
   const [projectId, setProjectId] = useState(
     spaces[0]?.projectId ?? projects[0]?.id ?? "",
@@ -52,13 +54,14 @@ export function TwinCapturePicker({ spaces, projects, onStart }: Props) {
         </div>
 
         {spaces.length === 0 ? (
-          <p className="text-[13px] text-zinc-400">
-            Create a twin workspace from{" "}
-            <Link href="/projects" className={twinAccent.link}>
-              a project
-            </Link>{" "}
-            first, then return here to capture.
-          </p>
+          <CreateTwinSpaceForm
+            projects={projects}
+            onCreated={(space) => {
+              onSpaceCreated?.(space);
+              setSpaceId(space.id);
+              if (space.projectId) setProjectId(space.projectId);
+            }}
+          />
         ) : (
           <>
             <label className="flex flex-col gap-1 text-xs text-zinc-400">
@@ -93,6 +96,15 @@ export function TwinCapturePicker({ spaces, projects, onStart }: Props) {
                 </select>
               </label>
             ) : null}
+
+            <CreateTwinSpaceForm
+              projects={projects}
+              onCreated={(space) => {
+                onSpaceCreated?.(space);
+                setSpaceId(space.id);
+                if (space.projectId) setProjectId(space.projectId);
+              }}
+            />
           </>
         )}
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { IconLoader2 } from "@tabler/icons-react";
 import { twinAccent } from "@/lib/digital-twin/twin-accent";
 import { cn } from "@/lib/utils";
@@ -27,6 +27,7 @@ type Selection = {
 };
 
 export function TwinCaptureFlow({ spaces, projects }: Props) {
+  const [localSpaces, setLocalSpaces] = useState(spaces);
   const [step, setStep] = useState<Step>("picker");
   const [selection, setSelection] = useState<Selection | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
@@ -42,6 +43,14 @@ export function TwinCaptureFlow({ spaces, projects }: Props) {
   } = useMultipartTwinUpload();
 
   const resolveGpsFix = useTwinGpsFix();
+
+  useEffect(() => {
+    setLocalSpaces(spaces);
+  }, [spaces]);
+
+  const handleSpaceCreated = useCallback((space: HubTwin) => {
+    setLocalSpaces((prev) => [space, ...prev.filter((row) => row.id !== space.id)]);
+  }, []);
 
   const handlePickerStart = useCallback((next: Selection) => {
     setSelection(next);
@@ -97,7 +106,14 @@ export function TwinCaptureFlow({ spaces, projects }: Props) {
   const canQueue = allComplete && (creditEstimate?.sufficient ?? false) && !queueBusy;
 
   if (step === "picker") {
-    return <TwinCapturePicker spaces={spaces} projects={projects} onStart={handlePickerStart} />;
+    return (
+      <TwinCapturePicker
+        spaces={localSpaces}
+        projects={projects}
+        onStart={handlePickerStart}
+        onSpaceCreated={handleSpaceCreated}
+      />
+    );
   }
 
   if (step === "capture" && selection) {

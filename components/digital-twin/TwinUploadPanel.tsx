@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Loader2, Pause, Play, Upload, XCircle } from "lucide-react";
 import { mobileTokens } from "@/components/mobile-system";
@@ -10,6 +10,7 @@ import { useMultipartTwinUpload } from "@/hooks/useMultipartTwinUpload";
 import { useTwinGpsFix } from "@/hooks/useTwinGpsFix";
 import type { HubTwin, HubTwinProject } from "@/lib/types/digital-twin-hub";
 import { useTwinCreditEstimate } from "@/hooks/useTwinCreditEstimate";
+import { CreateTwinSpaceForm } from "./CreateTwinSpaceForm";
 import { TwinCreditGate } from "./TwinCreditGate";
 import { TwinJobStatus } from "./TwinJobStatus";
 
@@ -25,11 +26,16 @@ function formatBytes(bytes: number): string {
 }
 
 export function TwinUploadPanel({ spaces, projects }: Props) {
+  const [localSpaces, setLocalSpaces] = useState(spaces);
   const [spaceId, setSpaceId] = useState(spaces[0]?.id ?? "");
   const [projectId, setProjectId] = useState(
     spaces[0]?.projectId ?? projects[0]?.id ?? "",
   );
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+
+  useEffect(() => {
+    setLocalSpaces(spaces);
+  }, [spaces]);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const {
     files,
@@ -47,18 +53,24 @@ export function TwinUploadPanel({ spaces, projects }: Props) {
   const resolveGpsFix = useTwinGpsFix();
 
   const selectedSpace = useMemo(
-    () => spaces.find((row) => row.id === spaceId) ?? null,
-    [spaceId, spaces],
+    () => localSpaces.find((row) => row.id === spaceId) ?? null,
+    [localSpaces, spaceId],
   );
 
   const onSpaceChange = useCallback(
     (nextSpaceId: string) => {
       setSpaceId(nextSpaceId);
-      const space = spaces.find((row) => row.id === nextSpaceId);
+      const space = localSpaces.find((row) => row.id === nextSpaceId);
       if (space?.projectId) setProjectId(space.projectId);
     },
-    [spaces],
+    [localSpaces],
   );
+
+  const handleSpaceCreated = useCallback((space: HubTwin) => {
+    setLocalSpaces((prev) => [space, ...prev.filter((row) => row.id !== space.id)]);
+    setSpaceId(space.id);
+    if (space.projectId) setProjectId(space.projectId);
+  }, []);
 
   const onFileChange = useCallback((list: FileList | null) => {
     if (!list?.length) return;
@@ -120,18 +132,8 @@ export function TwinUploadPanel({ spaces, projects }: Props) {
           </div>
         </div>
 
-        {spaces.length === 0 ? (
-          <p className="text-[13px] text-zinc-400">
-            Create a twin workspace first from{" "}
-            <Link href="/digital-twin/capture" className={twinAccent.link}>
-              Quick Capture
-            </Link>{" "}
-            or{" "}
-            <Link href="/digital-twin/twins" className={twinAccent.link}>
-              My Twins
-            </Link>
-            .
-          </p>
+        {localSpaces.length === 0 ? (
+          <CreateTwinSpaceForm projects={projects} onCreated={handleSpaceCreated} />
         ) : (
           <>
             <label className="flex flex-col gap-1 text-xs text-zinc-400">
@@ -142,7 +144,7 @@ export function TwinUploadPanel({ spaces, projects }: Props) {
                 className="min-h-[44px] rounded-xl border border-white/10 bg-white/[0.04] px-3 text-sm text-zinc-100"
                 disabled={isRunning}
               >
-                {spaces.map((space) => (
+                {localSpaces.map((space) => (
                   <option key={space.id} value={space.id}>
                     {space.title}
                     {space.projectName ? ` · ${space.projectName}` : ""}
@@ -268,6 +270,8 @@ export function TwinUploadPanel({ spaces, projects }: Props) {
             {captureId ? <TwinJobStatus captureId={captureId} spaceId={spaceId} /> : null}
 
             {statusMessage ? <p className="text-xs text-zinc-300">{statusMessage}</p> : null}
+
+            <CreateTwinSpaceForm projects={projects} onCreated={handleSpaceCreated} />
           </>
         )}
 
