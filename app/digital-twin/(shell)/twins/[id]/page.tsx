@@ -2,6 +2,9 @@ import { resolveServerOrgContext } from "@/lib/server/org-context";
 import { loadTwinSpaceViewerData } from "@/lib/digital-twin/load-space-viewer";
 import { TwinModelViewer } from "@/components/digital-twin/TwinModelViewer";
 import { TwinShareActions } from "@/components/digital-twin/TwinShareActions";
+import { TwinCollaborationPanel } from "@/components/digital-twin/TwinCollaborationPanel";
+import { TwinLayersPanel } from "@/components/digital-twin/TwinLayersPanel";
+import { TwinMeasurementsList } from "@/components/digital-twin/TwinMeasurementsList";
 import { TwinViewerDisclaimer } from "@/components/digital-twin/TwinViewerDisclaimer";
 import { MobileEmptyState } from "@/components/mobile-system";
 import { Boxes } from "lucide-react";
@@ -40,6 +43,14 @@ export default async function DigitalTwinViewerPage({ params }: Props) {
           modelUrl={viewer.modelUrl}
           modelTitle={viewer.modelTitle}
         />
+      </div>
+
+      <div className="mt-4 grid gap-3 lg:grid-cols-2">
+        <TwinCollaborationPanel spaceId={viewer.spaceId} />
+        <div className="space-y-3">
+          <TwinLayersPanel />
+          <TwinMeasurementsList spaceId={viewer.spaceId} />
+        </div>
       </div>
 
       <div className="mt-4 space-y-3">

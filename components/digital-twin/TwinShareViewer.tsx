@@ -6,7 +6,7 @@ import {
   TokenStatePage,
   type PortalTokenState,
 } from "@/components/external-portal";
-import { TwinModelViewer } from "@/components/digital-twin/TwinModelViewer";
+import { TwinShareAnnotateShell } from "@/components/digital-twin/TwinShareAnnotateShell";
 import { TwinViewerDisclaimer } from "@/components/digital-twin/TwinViewerDisclaimer";
 import type { TwinViewerKind } from "@/lib/digital-twin/viewer-format";
 import { twinAccent } from "@/lib/digital-twin/twin-accent";
@@ -18,7 +18,10 @@ export function TwinShareViewer({
   orgName,
   modelUrl,
   modelTitle,
+  modelId,
   viewerKind,
+  shareToken,
+  canAnnotate = false,
   tokenState,
 }: {
   embed: boolean;
@@ -26,25 +29,31 @@ export function TwinShareViewer({
   orgName?: string | null;
   modelUrl: string;
   modelTitle: string;
+  modelId?: string | null;
   viewerKind: TwinViewerKind;
+  shareToken?: string;
+  canAnnotate?: boolean;
   tokenState?: PortalTokenState | null;
 }) {
   if (tokenState) {
     return (
-      <TokenStatePage
-        state={tokenState}
-        badge="Shared twin"
-        showShell={!embed}
-      />
+      <TokenStatePage state={tokenState} badge="Shared twin" showShell={!embed} />
     );
   }
 
+  const viewer = shareToken ? (
+    <TwinShareAnnotateShell
+      shareToken={shareToken}
+      canAnnotate={canAnnotate}
+      viewerKind={viewerKind}
+      modelUrl={modelUrl}
+      modelTitle={modelTitle}
+      modelId={modelId}
+    />
+  ) : null;
+
   if (embed) {
-    return (
-      <div className="fixed inset-0 bg-[#0B0F15]">
-        <TwinModelViewer viewerKind={viewerKind} modelUrl={modelUrl} modelTitle={modelTitle} />
-      </div>
-    );
+    return <div className="fixed inset-0 bg-[#0B0F15]">{viewer}</div>;
   }
 
   return (
@@ -57,8 +66,8 @@ export function TwinShareViewer({
       showFooter
     >
       <main className="flex min-h-0 flex-1 flex-col gap-3 p-3 sm:p-4">
-        <PortalGlassCard className="min-h-0 flex-1 overflow-hidden !p-0">
-          <TwinModelViewer viewerKind={viewerKind} modelUrl={modelUrl} modelTitle={modelTitle} />
+        <PortalGlassCard className="min-h-0 flex-1 overflow-hidden !p-3">
+          {viewer}
         </PortalGlassCard>
         <TwinViewerDisclaimer />
         <p className="text-center text-[10px] text-zinc-500">

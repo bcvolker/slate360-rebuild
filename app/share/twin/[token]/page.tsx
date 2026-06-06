@@ -109,6 +109,8 @@ export default async function SharedTwinPage({ params, searchParams }: Props) {
 
   const viewerKind = resolveTwinViewerKind(model.model_format, model.storage_key);
 
+  const canAnnotate = claimed.role === "annotate" || claimed.role === "download";
+
   return (
     <TwinShareViewer
       embed={embed}
@@ -116,7 +118,10 @@ export default async function SharedTwinPage({ params, searchParams }: Props) {
       orgName={orgResult.data?.name ?? null}
       modelUrl={modelUrl}
       modelTitle={model.title}
+      modelId={model.id}
       viewerKind={viewerKind}
+      shareToken={token}
+      canAnnotate={canAnnotate}
     />
   );
 }
