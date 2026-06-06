@@ -39,23 +39,33 @@ const DEFAULT_LAYERS: Layer[] = [
   },
 ];
 
+export type TwinLayerVisibility = Record<string, boolean>;
+
+export function defaultTwinLayerVisibility(layers = DEFAULT_LAYERS): TwinLayerVisibility {
+  return Object.fromEntries(layers.map((l) => [l.id, l.defaultVisible]));
+}
+
 export function TwinLayersPanel({
   layers = DEFAULT_LAYERS,
+  visible: controlledVisible,
   onToggle,
 }: {
   layers?: Layer[];
+  visible?: TwinLayerVisibility;
   onToggle?: (layerId: string, visible: boolean) => void;
 }) {
-  const [visible, setVisible] = useState<Record<string, boolean>>(() =>
-    Object.fromEntries(layers.map((l) => [l.id, l.defaultVisible])),
+  const [internalVisible, setInternalVisible] = useState<TwinLayerVisibility>(() =>
+    defaultTwinLayerVisibility(layers),
   );
 
+  const visible = controlledVisible ?? internalVisible;
+
   const toggle = (id: string) => {
-    setVisible((prev) => {
-      const next = { ...prev, [id]: !prev[id] };
-      onToggle?.(id, next[id]);
-      return next;
-    });
+    const next = !visible[id];
+    if (controlledVisible === undefined) {
+      setInternalVisible((prev) => ({ ...prev, [id]: next }));
+    }
+    onToggle?.(id, next);
   };
 
   return (
@@ -66,7 +76,7 @@ export function TwinLayersPanel({
       </div>
       <ul className="space-y-2">
         {layers.map((layer) => {
-          const isOn = visible[layer.id];
+          const isOn = visible[layer.id] ?? layer.defaultVisible;
           return (
             <li key={layer.id}>
               <button

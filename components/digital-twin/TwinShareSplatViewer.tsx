@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Canvas, extend, useThree, type ThreeEvent } from "@react-three/fiber";
 import { OrbitControls, PointerLockControls } from "@react-three/drei";
 import { AlertTriangle, Loader2 } from "lucide-react";
@@ -62,6 +62,8 @@ function SparkSplatScene({
   pickEnabled,
   onPick,
   cameraMode,
+  modelVisible,
+  overlay,
 }: {
   url: string;
   maxSplats: number;
@@ -69,6 +71,8 @@ function SparkSplatScene({
   pickEnabled: boolean;
   onPick?: (point: TwinPickPoint) => void;
   cameraMode: CameraMode;
+  modelVisible: boolean;
+  overlay?: ReactNode;
 }) {
   const gl = useThree((state) => state.gl);
   const sparkArgs = useMemo(() => ({ renderer: gl, enableLod: true }), [gl]);
@@ -79,9 +83,12 @@ function SparkSplatScene({
 
   return (
     <>
-      <sparkRenderer args={[sparkArgs]}>
-        <splatMesh args={[splatArgs]} rotation={[Math.PI, 0, 0]} />
-      </sparkRenderer>
+      <group visible={modelVisible}>
+        <sparkRenderer args={[sparkArgs]}>
+          <splatMesh args={[splatArgs]} rotation={[Math.PI, 0, 0]} />
+        </sparkRenderer>
+      </group>
+      {overlay}
       <PickProxy enabled={pickEnabled} onPick={onPick} />
       {cameraMode === "orbit" ? (
         <OrbitControls makeDefault enablePan enableZoom enableRotate />
@@ -98,12 +105,16 @@ export function TwinShareSplatViewer({
   pickEnabled = false,
   onPick,
   cameraMode = "orbit",
+  modelVisible = true,
+  overlay,
 }: {
   src: string;
   className?: string;
   pickEnabled?: boolean;
   onPick?: (point: TwinPickPoint) => void;
   cameraMode?: CameraMode;
+  modelVisible?: boolean;
+  overlay?: ReactNode;
 }) {
   const maxSplats = useMobileSplatBudget();
   const [loadState, setLoadState] = useState<LoadState>("loading");
@@ -161,6 +172,8 @@ export function TwinShareSplatViewer({
           pickEnabled={pickEnabled}
           onPick={onPick}
           cameraMode={cameraMode}
+          modelVisible={modelVisible}
+          overlay={overlay}
         />
       </Canvas>
     </div>
