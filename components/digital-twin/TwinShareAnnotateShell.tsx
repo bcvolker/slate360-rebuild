@@ -26,20 +26,13 @@ type CommentRow = {
   subject_type?: string;
   author_display: string | null;
   body: string;
-  parent_id: string | null;
-  created_at: string;
 };
-
-type PinRow = {
-  id: string;
-  title: string;
-  body: string | null;
-  position: { x: number; y: number; z: number };
-  pin_status: string;
-};
+type PinRow = { id: string; title: string };
 
 const APPROX_DISCLAIMER =
   "Approximate — for visual coordination, not survey. Requires metric scale.";
+const fieldClass =
+  "w-full rounded-xl border border-white/10 bg-[#0B0F15]/60 px-3 py-2 text-xs text-zinc-100 placeholder:text-zinc-500";
 
 function dist(a: TwinPickPoint, b: TwinPickPoint) {
   return Math.hypot(b.x - a.x, b.y - a.y, b.z - a.z);
@@ -194,24 +187,11 @@ export function TwinShareAnnotateShell({
     }
   };
 
-  const toolBtn = (id: Tool, label: string, icon: React.ReactNode) => (
-    <button
-      type="button"
-      onClick={() => {
-        setTool(id);
-        setMeasureA(null);
-        setError(null);
-      }}
-      disabled={!canAnnotate && id !== "view"}
-      className={cn(
-        "inline-flex items-center gap-1 rounded-xl border px-2.5 py-1.5 text-[11px] font-semibold transition-colors disabled:opacity-40",
-        tool === id ? twinAccent.button : "border-white/10 text-zinc-400 hover:text-zinc-200",
-      )}
-    >
-      {icon}
-      {label}
-    </button>
-  );
+  const selectTool = (id: Tool) => {
+    setTool(id);
+    setMeasureA(null);
+    setError(null);
+  };
 
   const thread = useMemo(
     () => comments.filter((c) => c.subject_type !== "pin"),
@@ -240,27 +220,33 @@ export function TwinShareAnnotateShell({
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
-        {toolBtn("view", "View", <Orbit className="size-3.5" aria-hidden />)}
-        {canAnnotate ? (
-          <>
-            {toolBtn("comment", "Comment", <MessageSquare className="size-3.5" aria-hidden />)}
-            {toolBtn("pin", "Pin", <MapPin className="size-3.5" aria-hidden />)}
-            {measureReady
-              ? toolBtn("measure", "Measure", <Ruler className="size-3.5" aria-hidden />)
-              : null}
-          </>
-        ) : null}
+        {(["view", "comment", "pin", "measure"] as Tool[]).map((id) => {
+          if (id !== "view" && !canAnnotate) return null;
+          if (id === "measure" && !measureReady) return null;
+          const icons = { view: Orbit, comment: MessageSquare, pin: MapPin, measure: Ruler };
+          const Icon = icons[id];
+          return (
+            <button
+              key={id}
+              type="button"
+              onClick={() => selectTool(id)}
+              className={cn(
+                "inline-flex items-center gap-1 rounded-xl border px-2.5 py-1.5 text-[11px] font-semibold capitalize transition-colors disabled:opacity-40",
+                tool === id ? twinAccent.button : "border-white/10 text-zinc-400 hover:text-zinc-200",
+              )}
+            >
+              <Icon className="size-3.5" aria-hidden />
+              {id}
+            </button>
+          );
+        })}
         {viewerKind === "splat" ? (
           <button
             type="button"
             onClick={() => setCameraMode((m) => (m === "orbit" ? "walk" : "orbit"))}
             className={cn(twinAccent.button, "inline-flex items-center gap-1 text-[11px]")}
           >
-            {cameraMode === "orbit" ? (
-              <Footprints className="size-3.5" aria-hidden />
-            ) : (
-              <Orbit className="size-3.5" aria-hidden />
-            )}
+            {cameraMode === "orbit" ? <Footprints className="size-3.5" aria-hidden /> : <Orbit className="size-3.5" aria-hidden />}
             {cameraMode === "orbit" ? "Walk" : "Orbit"}
           </button>
         ) : null}
@@ -273,7 +259,7 @@ export function TwinShareAnnotateShell({
             value={authorName}
             onChange={(e) => setAuthorName(e.target.value)}
             placeholder="Your name"
-            className="w-full rounded-xl border border-white/10 bg-[#0B0F15]/60 px-3 py-2 text-xs text-zinc-100 placeholder:text-zinc-500"
+            className={fieldClass}
           />
           {tool === "comment" ? (
             <>
@@ -282,7 +268,7 @@ export function TwinShareAnnotateShell({
                 onChange={(e) => setCommentBody(e.target.value)}
                 placeholder="Comment or question"
                 rows={3}
-                className="w-full resize-none rounded-xl border border-white/10 bg-[#0B0F15]/60 px-3 py-2 text-xs text-zinc-100 placeholder:text-zinc-500"
+                className={cn(fieldClass, "resize-none")}
               />
               <button type="button" onClick={() => void submitComment()} className={twinAccent.button}>
                 Post comment
@@ -294,7 +280,7 @@ export function TwinShareAnnotateShell({
               value={pinTitle}
               onChange={(e) => setPinTitle(e.target.value)}
               placeholder="Pin title — then tap the model"
-              className="w-full rounded-xl border border-white/10 bg-[#0B0F15]/60 px-3 py-2 text-xs text-zinc-100 placeholder:text-zinc-500"
+              className={fieldClass}
             />
           ) : null}
           {tool === "measure" ? (
@@ -307,20 +293,14 @@ export function TwinShareAnnotateShell({
       ) : null}
 
       {error ? <p className="text-xs text-red-300">{error}</p> : null}
-
       <div className="max-h-40 space-y-2 overflow-y-auto rounded-xl border border-white/[0.06] p-3">
         <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Activity</p>
-        {thread.length === 0 && pins.length === 0 ? (
-          <p className="text-xs text-zinc-500">No comments or pins yet.</p>
-        ) : null}
+        {thread.length === 0 && pins.length === 0 ? <p className="text-xs text-zinc-500">No comments or pins yet.</p> : null}
         {thread.map((c) => (
-            <div key={c.id} className="text-xs text-zinc-300">
-              <span className={cn("font-semibold", twinAccent.text)}>
-                {c.author_display ?? "Guest"}
-              </span>
-              : {c.body}
-            </div>
-          ))}
+          <div key={c.id} className="text-xs text-zinc-300">
+            <span className={cn("font-semibold", twinAccent.text)}>{c.author_display ?? "Guest"}</span>: {c.body}
+          </div>
+        ))}
         {pins.map((p) => (
           <div key={p.id} className="text-xs text-zinc-300">
             <span className={cn("font-semibold", twinAccent.text)}>Pin</span>: {p.title}
