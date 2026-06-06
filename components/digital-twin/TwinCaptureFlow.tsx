@@ -9,6 +9,7 @@ import { useTwinGpsFix } from "@/hooks/useTwinGpsFix";
 import type { HubTwin, HubTwinProject } from "@/lib/types/digital-twin-hub";
 import { TwinCapturePicker } from "./TwinCapturePicker";
 import { TwinCaptureScreen } from "./TwinCaptureScreen";
+import { TwinJobStatus } from "./TwinJobStatus";
 
 type Props = {
   spaces: HubTwin[];
@@ -150,6 +151,10 @@ export function TwinCaptureFlow({ spaces, projects }: Props) {
           >
             {queueBusy ? "Queuing…" : "Queue processing job"}
           </button>
+        ) : null}
+
+        {captureId && selection ? (
+          <TwinJobStatus captureId={captureId} spaceId={selection.spaceId} />
         ) : null}
 
         {captureId ? (

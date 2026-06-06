@@ -8,8 +8,8 @@ import { twinAccent } from "@/lib/digital-twin/twin-accent";
 import { cn } from "@/lib/utils";
 import { useMultipartTwinUpload } from "@/hooks/useMultipartTwinUpload";
 import { useTwinGpsFix } from "@/hooks/useTwinGpsFix";
-import { useTwinJobRealtime } from "@/hooks/useTwinJobRealtime";
 import type { HubTwin, HubTwinProject } from "@/lib/types/digital-twin-hub";
+import { TwinJobStatus } from "./TwinJobStatus";
 
 type Props = {
   spaces: HubTwin[];
@@ -29,8 +29,6 @@ export function TwinUploadPanel({ spaces, projects }: Props) {
   );
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
-  const [jobId, setJobId] = useState<string | null>(null);
-
   const {
     files,
     captureId,
@@ -44,7 +42,6 @@ export function TwinUploadPanel({ spaces, projects }: Props) {
     singleMaxBytes,
   } = useMultipartTwinUpload();
 
-  const { job } = useTwinJobRealtime(captureId);
   const resolveGpsFix = useTwinGpsFix();
 
   const selectedSpace = useMemo(
@@ -65,7 +62,6 @@ export function TwinUploadPanel({ spaces, projects }: Props) {
     if (!list?.length) return;
     setSelectedFiles(Array.from(list));
     setStatusMessage(null);
-    setJobId(null);
   }, []);
 
   const canUpload = Boolean(spaceId && projectId && selectedFiles.length && !isRunning);
@@ -73,7 +69,6 @@ export function TwinUploadPanel({ spaces, projects }: Props) {
   const handleStart = useCallback(async () => {
     if (!spaceId || !projectId || !selectedFiles.length) return;
     setStatusMessage(null);
-    setJobId(null);
 
     try {
       const gps = await resolveGpsFix();
@@ -95,7 +90,6 @@ export function TwinUploadPanel({ spaces, projects }: Props) {
   const handleEnqueue = useCallback(async () => {
     try {
       const result = await enqueueJob("spz");
-      setJobId(result.job.id);
       setStatusMessage(`Processing job queued (${result.job.id})`);
     } catch (err) {
       setStatusMessage(err instanceof Error ? err.message : "Failed to queue job");
@@ -262,12 +256,7 @@ export function TwinUploadPanel({ spaces, projects }: Props) {
               </p>
             ) : null}
 
-            {jobId || job ? (
-              <p className="text-xs text-zinc-400">
-                Job {jobId ?? job?.id}: {job?.status ?? "queued"}
-                {typeof job?.progress_pct === "number" ? ` · ${job.progress_pct}%` : ""}
-              </p>
-            ) : null}
+            {captureId ? <TwinJobStatus captureId={captureId} spaceId={spaceId} /> : null}
 
             {statusMessage ? <p className="text-xs text-zinc-300">{statusMessage}</p> : null}
           </>
