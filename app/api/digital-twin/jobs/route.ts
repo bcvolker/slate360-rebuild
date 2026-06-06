@@ -1,6 +1,10 @@
 import { NextRequest } from "next/server";
 import { withAuth } from "@/lib/server/api-auth";
 import { ok, badRequest, forbidden, notFound, serverError } from "@/lib/server/api-response";
+import {
+  assertTwinJobCredits,
+  InsufficientTwinCreditsError,
+} from "@/lib/twin/job-credits-estimate";
 import { assertDigitalTwinProcessingEntitlement } from "@/lib/twin/processing-entitlement";
 
 export const runtime = "nodejs";
@@ -59,6 +63,15 @@ export const POST = (req: NextRequest) =>
 
       if (assetsError) return serverError(assetsError.message);
       if (!assets?.length) return badRequest("No ready assets on capture");
+
+      try {
+        await assertTwinJobCredits(admin, orgId, body.capture_id, outputFormat);
+      } catch (creditErr) {
+        if (creditErr instanceof InsufficientTwinCreditsError) {
+          return badRequest(creditErr.message);
+        }
+        throw creditErr;
+      }
 
       const inputAssetIds = assets.map((row) => row.id);
 

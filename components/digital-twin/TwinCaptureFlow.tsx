@@ -9,7 +9,9 @@ import { useTwinGpsFix } from "@/hooks/useTwinGpsFix";
 import type { HubTwin, HubTwinProject } from "@/lib/types/digital-twin-hub";
 import { TwinCapturePicker } from "./TwinCapturePicker";
 import { TwinCaptureScreen } from "./TwinCaptureScreen";
+import { TwinCreditGate } from "./TwinCreditGate";
 import { TwinJobStatus } from "./TwinJobStatus";
+import { useTwinCreditEstimate } from "@/hooks/useTwinCreditEstimate";
 
 type Props = {
   spaces: HubTwin[];
@@ -91,6 +93,8 @@ export function TwinCaptureFlow({ spaces, projects }: Props) {
   }, [enqueueJob]);
 
   const allComplete = files.length > 0 && files.every((row) => row.status === "complete");
+  const { estimate: creditEstimate } = useTwinCreditEstimate(captureId, allComplete);
+  const canQueue = allComplete && (creditEstimate?.sufficient ?? false) && !queueBusy;
 
   if (step === "picker") {
     return <TwinCapturePicker spaces={spaces} projects={projects} onStart={handlePickerStart} />;
@@ -143,10 +147,14 @@ export function TwinCaptureFlow({ spaces, projects }: Props) {
         ) : null}
 
         {allComplete && captureId ? (
+          <TwinCreditGate captureId={captureId} enabled={allComplete} />
+        ) : null}
+
+        {allComplete && captureId ? (
           <button
             type="button"
             onClick={() => void handleEnqueue()}
-            disabled={queueBusy}
+            disabled={!canQueue}
             className={cn(twinAccent.button, "w-full min-h-[44px]")}
           >
             {queueBusy ? "Queuing…" : "Queue processing job"}

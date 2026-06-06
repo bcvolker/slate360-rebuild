@@ -9,6 +9,8 @@ import { cn } from "@/lib/utils";
 import { useMultipartTwinUpload } from "@/hooks/useMultipartTwinUpload";
 import { useTwinGpsFix } from "@/hooks/useTwinGpsFix";
 import type { HubTwin, HubTwinProject } from "@/lib/types/digital-twin-hub";
+import { useTwinCreditEstimate } from "@/hooks/useTwinCreditEstimate";
+import { TwinCreditGate } from "./TwinCreditGate";
 import { TwinJobStatus } from "./TwinJobStatus";
 
 type Props = {
@@ -97,6 +99,8 @@ export function TwinUploadPanel({ spaces, projects }: Props) {
   }, [enqueueJob]);
 
   const allComplete = files.length > 0 && files.every((row) => row.status === "complete");
+  const { estimate: creditEstimate } = useTwinCreditEstimate(captureId, allComplete);
+  const canQueue = allComplete && (creditEstimate?.sufficient ?? false);
 
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain px-4 py-4">
@@ -241,9 +245,14 @@ export function TwinUploadPanel({ spaces, projects }: Props) {
             </div>
 
             {allComplete && captureId ? (
+              <TwinCreditGate captureId={captureId} enabled={allComplete} />
+            ) : null}
+
+            {allComplete && captureId ? (
               <button
                 type="button"
                 onClick={() => void handleEnqueue()}
+                disabled={!canQueue}
                 className={cn(twinAccent.button, "w-full min-h-[44px]")}
               >
                 Queue processing job
