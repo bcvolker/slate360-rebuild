@@ -98,6 +98,7 @@ export async function withAppAuth(
       punchwalk: "canAccessStandalonePunchwalk",
       design_studio: "canAccessStandaloneDesignStudio",
       content_studio: "canAccessStandaloneContentStudio",
+      digital_twin: "canAccessStandaloneDigitalTwin",
     } as const)[appId];
     const canAccess = entitlements[key];
     if (!canAccess) {

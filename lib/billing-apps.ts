@@ -8,7 +8,7 @@
 
 import type { AppId, AppTier, BundleId, StorageAddonId } from "@/lib/entitlements-modular";
 
-export type StandaloneAppId = "tour_builder" | "punchwalk" | "design_studio" | "content_studio";
+export type StandaloneAppId = "tour_builder" | "punchwalk" | "design_studio" | "content_studio" | "digital_twin";
 
 export type AppBillingCycle = "monthly"; // annual can be added later
 
@@ -57,10 +57,25 @@ export const STANDALONE_APP_PLANS: Record<StandaloneAppId, StandaloneAppPlan> = 
       monthly: process.env.STRIPE_PRICE_APP_CONTENT_STUDIO_MONTHLY,
     },
   },
+  digital_twin: {
+    appId: "digital_twin",
+    label: "Digital Twin",
+    description: "Capture, process, and share interactive 3D twins",
+    monthlyPriceUsd: 49,
+    priceIds: {
+      monthly: process.env.STRIPE_PRICE_APP_DIGITAL_TWIN_MONTHLY,
+    },
+  },
 };
 
 export function isStandaloneAppId(value: string | null | undefined): value is StandaloneAppId {
-  return value === "tour_builder" || value === "punchwalk" || value === "design_studio" || value === "content_studio";
+  return (
+    value === "tour_builder" ||
+    value === "punchwalk" ||
+    value === "design_studio" ||
+    value === "content_studio" ||
+    value === "digital_twin"
+  );
 }
 
 export function getAppPriceId(appId: StandaloneAppId, cycle: AppBillingCycle = "monthly"): string | null {
@@ -131,6 +146,14 @@ export const MODULAR_APP_PLANS: Record<ModularPlanKey, ModularStripePlan> = {
   content_studio_pro: {
     appId: "content_studio", tier: "pro", label: "Content Studio Pro", monthlyPriceUsd: 99,
     priceId: process.env.STRIPE_PRICE_CONTENTSTUDIO_PRO,
+  },
+  digital_twin_basic: {
+    appId: "digital_twin", tier: "basic", label: "Digital Twin Basic", monthlyPriceUsd: 49,
+    priceId: process.env.STRIPE_PRICE_DIGITALTWIN_BASIC,
+  },
+  digital_twin_pro: {
+    appId: "digital_twin", tier: "pro", label: "Digital Twin Pro", monthlyPriceUsd: 99,
+    priceId: process.env.STRIPE_PRICE_DIGITALTWIN_PRO,
   },
 };
 

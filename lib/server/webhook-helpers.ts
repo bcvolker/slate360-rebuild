@@ -83,13 +83,14 @@ export async function addPurchasedCredits(orgId: string, creditAmount: number) {
 }
 
 /** Toggle standalone app feature flag for an org. */
-export async function upsertAppFlag(orgId: string, appId: "tour_builder" | "punchwalk" | "design_studio" | "content_studio", active: boolean) {
+export async function upsertAppFlag(orgId: string, appId: "tour_builder" | "punchwalk" | "design_studio" | "content_studio" | "digital_twin", active: boolean) {
   const admin = createAdminClient();
   const FLAG_COL: Record<string, string> = {
     tour_builder: "standalone_tour_builder",
     punchwalk: "standalone_punchwalk",
     design_studio: "standalone_design_studio",
     content_studio: "standalone_content_studio",
+    digital_twin: "standalone_digital_twin",
   };
   const col = FLAG_COL[appId] ?? "standalone_punchwalk";
 

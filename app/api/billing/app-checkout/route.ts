@@ -20,15 +20,17 @@ import { loadOrgFeatureFlags } from "@/lib/server/org-feature-flags";
 export const runtime = "nodejs";
 
 /** Map app ID → the feature flag column that indicates an active subscription */
-const APP_FLAG_KEY: Record<StandaloneAppId, "standalone_tour_builder" | "standalone_punchwalk" | "standalone_design_studio" | "standalone_content_studio"> = {
+const APP_FLAG_KEY: Record<StandaloneAppId, "standalone_tour_builder" | "standalone_punchwalk" | "standalone_design_studio" | "standalone_content_studio" | "standalone_digital_twin"> = {
   tour_builder: "standalone_tour_builder",
   punchwalk: "standalone_punchwalk",
   design_studio: "standalone_design_studio",
   content_studio: "standalone_content_studio",
+  digital_twin: "standalone_digital_twin",
 };
 
 function getAppSuccessPath(appId: StandaloneAppId | string): string {
   if (appId === "tour_builder") return "/tour-builder?welcome=true";
+  if (appId === "digital_twin") return "/digital-twin?welcome=true";
   if (appId === "site_walk") return "/site-walk?welcome=true";
   if (appId === "tours") return "/tours?welcome=true";
   return "/dashboard?welcome=true";

@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 /** App IDs in the ecosystem. */
-export type AppId = "site_walk" | "tours" | "slatedrop" | "design_studio" | "content_studio";
+export type AppId = "site_walk" | "tours" | "slatedrop" | "design_studio" | "content_studio" | "digital_twin";
 
 /** Per-app subscription tiers. */
 export type AppTier = "none" | "basic" | "pro";
@@ -73,6 +73,10 @@ const APP_TIER_LIMITS: Record<AppId, Record<Exclude<AppTier, "none">, Omit<AppLi
     basic: { storageGB: 5, creditsPerMonth: 150, seats: 1, monthlyPrice: 49 },
     pro:   { storageGB: 25, creditsPerMonth: 500, seats: 1, monthlyPrice: 99 },
   },
+  digital_twin: {
+    basic: { storageGB: 5, creditsPerMonth: 100, seats: 1, monthlyPrice: 49 },
+    pro:   { storageGB: 25, creditsPerMonth: 400, seats: 1, monthlyPrice: 99 },
+  },
 };
 
 /** Trial limits (tiny, keeps us on free infra tiers). */
@@ -131,6 +135,7 @@ export interface OrgAppSubscriptions {
   slatedrop: AppTier;
   design_studio: AppTier;
   content_studio: AppTier;
+  digital_twin: AppTier;
   bundle: BundleId | null;
   storageAddonGB: number;
   creditAddonBalance: number;
@@ -142,13 +147,14 @@ const EMPTY_SUBSCRIPTIONS: OrgAppSubscriptions = {
   slatedrop: "none",
   design_studio: "none",
   content_studio: "none",
+  digital_twin: "none",
   bundle: null,
   storageAddonGB: 0,
   creditAddonBalance: 0,
 };
 
 /** All app IDs for iteration. */
-export const ALL_APP_IDS: AppId[] = ["site_walk", "tours", "slatedrop", "design_studio", "content_studio"];
+export const ALL_APP_IDS: AppId[] = ["site_walk", "tours", "slatedrop", "design_studio", "content_studio", "digital_twin"];
 
 /**
  * Resolve modular entitlements from per-app subscriptions.
@@ -167,6 +173,7 @@ export function resolveModularEntitlements(
     slatedrop: maxTier(s.slatedrop, bundle?.apps.slatedrop),
     design_studio: maxTier(s.design_studio, bundle?.apps.design_studio),
     content_studio: maxTier(s.content_studio, bundle?.apps.content_studio),
+    digital_twin: maxTier(s.digital_twin, bundle?.apps.digital_twin),
   };
 
   const isTrial = Object.values(effectiveTiers).every((t) => t === "none") && !bundle;

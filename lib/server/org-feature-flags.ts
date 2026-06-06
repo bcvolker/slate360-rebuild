@@ -11,6 +11,7 @@ const EMPTY_FLAGS: OrgFeatureFlags = {
   standalone_punchwalk: false,
   standalone_design_studio: false,
   standalone_content_studio: false,
+  standalone_digital_twin: false,
   tour_builder_seat_limit: 0,
   tour_builder_seats_used: 0,
 };
@@ -21,6 +22,7 @@ const APP_ENTITLEMENT_KEY: Record<StandaloneAppId, keyof Entitlements> = {
   punchwalk: "canAccessStandalonePunchwalk",
   design_studio: "canAccessStandaloneDesignStudio",
   content_studio: "canAccessStandaloneContentStudio",
+  digital_twin: "canAccessStandaloneDigitalTwin",
 };
 
 /**
@@ -35,7 +37,7 @@ export async function loadOrgFeatureFlags(orgId: string | null): Promise<OrgFeat
     const admin = createAdminClient();
     const { data, error } = await admin
       .from("org_feature_flags")
-      .select("standalone_tour_builder, standalone_punchwalk, standalone_design_studio, standalone_content_studio, tour_builder_seat_limit, tour_builder_seats_used")
+      .select("standalone_tour_builder, standalone_punchwalk, standalone_design_studio, standalone_content_studio, standalone_digital_twin, tour_builder_seat_limit, tour_builder_seats_used")
       .eq("org_id", orgId)
       .maybeSingle();
 
@@ -46,6 +48,7 @@ export async function loadOrgFeatureFlags(orgId: string | null): Promise<OrgFeat
       standalone_punchwalk: data.standalone_punchwalk === true,
       standalone_design_studio: data.standalone_design_studio === true,
       standalone_content_studio: data.standalone_content_studio === true,
+      standalone_digital_twin: data.standalone_digital_twin === true,
       tour_builder_seat_limit: Number(data.tour_builder_seat_limit) || 0,
       tour_builder_seats_used: Number(data.tour_builder_seats_used) || 0,
     };
@@ -74,7 +77,7 @@ export async function resolveOrgEntitlements(orgId: string | null): Promise<Enti
     loadOrgFeatureFlags(orgId),
     admin
       .from("org_app_subscriptions")
-      .select("site_walk, tours, slatedrop, design_studio, content_studio, bundle, storage_addon_gb, credit_addon_balance")
+      .select("site_walk, tours, slatedrop, design_studio, content_studio, digital_twin, bundle, storage_addon_gb, credit_addon_balance")
       .eq("org_id", orgId)
       .maybeSingle(),
   ]);
@@ -90,6 +93,7 @@ export async function resolveOrgEntitlements(orgId: string | null): Promise<Enti
       slatedrop: modularResult.data.slatedrop ?? "none",
       design_studio: modularResult.data.design_studio ?? "none",
       content_studio: modularResult.data.content_studio ?? "none",
+      digital_twin: modularResult.data.digital_twin ?? "none",
       bundle: modularResult.data.bundle ?? null,
       storageAddonGB: modularResult.data.storage_addon_gb ?? 0,
       creditAddonBalance: modularResult.data.credit_addon_balance ?? 0,
@@ -110,6 +114,9 @@ export async function resolveOrgEntitlements(orgId: string | null): Promise<Enti
     if (modular.apps.content_studio.active && !modular.isTrial) {
       base.canAccessStandaloneContentStudio = true;
     }
+    if (modular.apps.digital_twin.active && !modular.isTrial) {
+      base.canAccessStandaloneDigitalTwin = true;
+    }
   }
 
   // Beta-mode override: every beta tester gets full app access so they can
@@ -129,6 +136,7 @@ export async function resolveOrgEntitlements(orgId: string | null): Promise<Enti
     base.canAccessStandalonePunchwalk = true;
     base.canAccessStandaloneDesignStudio = true;
     base.canAccessStandaloneContentStudio = true;
+    base.canAccessStandaloneDigitalTwin = true;
   }
 
   return base;
