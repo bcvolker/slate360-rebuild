@@ -2,18 +2,25 @@ import "server-only";
 
 import { createAdminClient } from "@/lib/supabase/admin";
 import { resolveDigitalTwinModelUrl } from "./resolve-model-url";
-import { resolveTwinViewerKind, type TwinViewerKind } from "./viewer-format";
+import { resolveTwinViewerKind } from "./viewer-format";
+import type { TwinGpsMetadata, TwinSpaceViewerData } from "./viewer-types";
 
-export type TwinSpaceViewerData = {
-  spaceId: string;
-  spaceTitle: string;
-  spaceStatus: string;
-  modelId: string;
-  modelTitle: string;
-  modelFormat: string;
-  modelUrl: string;
-  viewerKind: TwinViewerKind;
-};
+export type { TwinSpaceViewerData } from "./viewer-types";
+
+function parseCaptureGps(metadata: unknown): TwinGpsMetadata | null {
+  if (!metadata || typeof metadata !== "object") return null;
+  const gps = (metadata as Record<string, unknown>).gps;
+  if (!gps || typeof gps !== "object") return null;
+  const g = gps as Record<string, unknown>;
+  if (typeof g.lat !== "number" || typeof g.lng !== "number") return null;
+  return {
+    lat: g.lat,
+    lng: g.lng,
+    ...(typeof g.alt === "number" ? { alt: g.alt } : {}),
+    ...(typeof g.accuracy === "number" ? { accuracy: g.accuracy } : {}),
+    ...(typeof g.capturedAt === "string" ? { capturedAt: g.capturedAt } : {}),
+  };
+}
 
 export async function loadTwinSpaceViewerData(
   spaceId: string,
@@ -53,6 +60,18 @@ export async function loadTwinSpaceViewerData(
   const modelUrl = await resolveDigitalTwinModelUrl(model.storage_key);
   const viewerKind = resolveTwinViewerKind(model.model_format, model.storage_key);
 
+  const { data: latestCapture } = await admin
+    .from("digital_twin_captures")
+    .select("capture_metadata")
+    .eq("space_id", spaceId)
+    .eq("org_id", orgId)
+    .is("deleted_at", null)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const latestGps = parseCaptureGps(latestCapture?.capture_metadata ?? null);
+
   return {
     spaceId: space.id,
     spaceTitle: space.title,
@@ -62,5 +81,6 @@ export async function loadTwinSpaceViewerData(
     modelFormat: model.model_format,
     modelUrl,
     viewerKind,
+    latestGps,
   };
 }
