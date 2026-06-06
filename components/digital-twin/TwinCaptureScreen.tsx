@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { IconCameraRotate, IconX } from "@tabler/icons-react";
 import { useCamera } from "@/lib/hooks/useCamera";
-import { useTwinVideoRecorder } from "@/hooks/useTwinVideoRecorder";
+import { isTwinVideoRecordingSupported, useTwinVideoRecorder } from "@/hooks/useTwinVideoRecorder";
 import { twinAccent } from "@/lib/digital-twin/twin-accent";
 import { formatTwinBytes } from "@/lib/digital-twin/format-bytes";
 import { TwinCaptureFooter } from "./TwinCaptureFooter";
@@ -216,7 +216,9 @@ export function TwinCaptureScreen({
         isStreaming={camera.isStreaming}
         photoCount={photoCount}
         videoSeconds={videoSeconds}
+        videoWalkSupported={videoWalkSupported}
         onModeChange={(entry) => {
+          if (entry === "video_walk" && !videoWalkSupported) return;
           if (recording) void handleStopRecording();
           setMode(entry);
         }}

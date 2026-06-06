@@ -2,6 +2,15 @@
 
 import { useCallback, useRef, useState } from "react";
 
+export function isTwinVideoRecordingSupported(): boolean {
+  if (typeof window === "undefined" || typeof MediaRecorder === "undefined") return false;
+  return (
+    MediaRecorder.isTypeSupported("video/webm;codecs=vp9") ||
+    MediaRecorder.isTypeSupported("video/webm") ||
+    MediaRecorder.isTypeSupported("video/mp4")
+  );
+}
+
 export function useTwinVideoRecorder() {
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
@@ -9,6 +18,7 @@ export function useTwinVideoRecorder() {
   const [paused, setPaused] = useState(false);
 
   const startRecording = useCallback((stream: MediaStream) => {
+    if (!isTwinVideoRecordingSupported()) return;
     chunksRef.current = [];
     const mimeType = MediaRecorder.isTypeSupported("video/webm;codecs=vp9")
       ? "video/webm;codecs=vp9"

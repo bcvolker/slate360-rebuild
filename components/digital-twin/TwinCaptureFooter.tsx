@@ -19,6 +19,7 @@ type Props = {
   isStreaming: boolean;
   photoCount: number;
   videoSeconds: number;
+  videoWalkSupported?: boolean;
   onModeChange: (mode: CaptureMode) => void;
   onBurst: () => void;
   onCancel: () => void;
@@ -35,6 +36,7 @@ export function TwinCaptureFooter({
   isStreaming,
   photoCount,
   videoSeconds,
+  videoWalkSupported = true,
   onModeChange,
   onBurst,
   onCancel,
@@ -69,6 +71,12 @@ export function TwinCaptureFooter({
           );
         })}
       </div>
+
+      {!videoWalkSupported ? (
+        <p className="mb-2 text-center text-[10px] text-[var(--graphite-muted)]">
+          Video walk is not supported in this browser — use photo burst instead.
+        </p>
+      ) : null}
 
       {mode === "photo_burst" ? (
         <div className="flex flex-col items-center">
