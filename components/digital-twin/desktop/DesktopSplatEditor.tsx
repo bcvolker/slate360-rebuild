@@ -5,11 +5,7 @@ import Link from "next/link";
 import { IconAlertTriangle, IconDeviceFloppy, IconLoader2 } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import { twinAccent } from "@/lib/digital-twin/twin-accent";
-import {
-  defaultOpForTool,
-  type TwinEditList,
-  type TwinEditTool,
-} from "@/lib/digital-twin/edit-list-types";
+import { defaultOpForTool, type TwinEditList } from "@/lib/digital-twin/edit-list-types";
 import { DesktopSplatToolRail, type DesktopSplatTool } from "./DesktopSplatToolRail";
 import { DesktopSplatViewport } from "./DesktopSplatViewport";
 import { DesktopSplatLayers } from "./DesktopSplatLayers";
@@ -47,13 +43,13 @@ export function DesktopSplatEditor({
 
   const handlePick = useCallback(
     (point: { x: number; y: number; z: number }) => {
-      if (!pickEnabled || activeTool === "select") return;
-      const op = defaultOpForTool(activeTool as TwinEditTool, [point.x, point.y, point.z]);
+      if (activeTool === "select") return;
+      const op = defaultOpForTool(activeTool, [point.x, point.y, point.z]);
       setEditList((prev) => [...prev, op]);
       setDirty(true);
       showToast(`${op.label} placed`);
     },
-    [activeTool, pickEnabled],
+    [activeTool],
   );
 
   const toggleLayer = (id: string) => {
