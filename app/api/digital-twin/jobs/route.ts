@@ -1,0 +1,95 @@
+import { NextRequest } from "next/server";
+import { withAuth } from "@/lib/server/api-auth";
+import { ok, badRequest, forbidden, notFound, serverError } from "@/lib/server/api-response";
+import { assertDigitalTwinProcessingEntitlement } from "@/lib/twin/processing-entitlement";
+
+export const runtime = "nodejs";
+
+type JobBody = {
+  capture_id: string;
+  output_format?: "spz" | "ply" | "glb";
+  job_type?: "gaussian_splat" | "photogrammetry_mesh" | "lidar_fusion";
+  lidar_prior_asset_id?: string | null;
+};
+
+const OUTPUT_FORMATS = new Set(["spz", "ply", "glb"]);
+const JOB_TYPES = new Set(["gaussian_splat", "photogrammetry_mesh", "lidar_fusion"]);
+
+export const POST = (req: NextRequest) =>
+  withAuth(req, async ({ user, admin, orgId }) => {
+    if (!orgId) return badRequest("Organization context required");
+
+    const body = (await req.json().catch(() => null)) as JobBody | null;
+    if (!body?.capture_id) return badRequest("capture_id is required");
+
+    const outputFormat = body.output_format ?? "spz";
+    const jobType = body.job_type ?? "gaussian_splat";
+
+    if (!OUTPUT_FORMATS.has(outputFormat)) return badRequest("Invalid output_format");
+    if (!JOB_TYPES.has(jobType)) return badRequest("Invalid job_type");
+
+    try {
+      await assertDigitalTwinProcessingEntitlement(admin, {
+        orgId,
+        userId: user.id,
+        userEmail: user.email,
+        captureId: body.capture_id,
+      });
+
+      const { data: capture, error: captureError } = await admin
+        .from("digital_twin_captures")
+        .select("id, space_id, capture_status")
+        .eq("id", body.capture_id)
+        .eq("org_id", orgId)
+        .is("deleted_at", null)
+        .maybeSingle();
+
+      if (captureError) return serverError(captureError.message);
+      if (!capture) return notFound("Capture not found");
+
+      const { data: assets, error: assetsError } = await admin
+        .from("digital_twin_capture_assets")
+        .select("id, status, asset_kind")
+        .eq("capture_id", body.capture_id)
+        .eq("org_id", orgId)
+        .eq("status", "ready")
+        .is("deleted_at", null);
+
+      if (assetsError) return serverError(assetsError.message);
+      if (!assets?.length) return badRequest("No ready assets on capture");
+
+      const inputAssetIds = assets.map((row) => row.id);
+
+      const { data: job, error: jobError } = await admin
+        .from("digital_twin_processing_jobs")
+        .insert({
+          org_id: orgId,
+          space_id: capture.space_id,
+          capture_id: capture.id,
+          created_by: user.id,
+          job_type: jobType,
+          status: "queued",
+          input_asset_ids: inputAssetIds,
+          output_format: outputFormat,
+          lidar_prior_asset_id: body.lidar_prior_asset_id ?? null,
+        })
+        .select("id, status, progress_pct, output_format, job_type")
+        .single();
+
+      if (jobError || !job) return serverError(jobError?.message ?? "Failed to create job");
+
+      await admin
+        .from("digital_twin_captures")
+        .update({ capture_status: "processing" })
+        .eq("id", capture.id)
+        .eq("org_id", orgId);
+
+      return ok({ job });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to create job";
+      if (message.includes("Digital Twin access required")) return forbidden(message);
+      if (message.includes("Processing already active")) return forbidden(message);
+      console.error("[POST /api/digital-twin/jobs]", err);
+      return serverError(message);
+    }
+  });
