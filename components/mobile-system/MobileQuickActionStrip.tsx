@@ -1,6 +1,6 @@
 "use client";
 
-import type { ElementType } from "react";
+import type { AppIcon } from "@/lib/types/app-icon";
 import { mobileTokens, type MobileQuickActionAccent } from "./mobileTokens";
 import {
   MobileHomeActionCard,
@@ -9,7 +9,7 @@ import {
 
 export type MobileQuickActionItem = {
   label: string;
-  icon: ElementType;
+  icon: AppIcon;
   href?: string;
   onClick?: () => void;
   disabled?: boolean;

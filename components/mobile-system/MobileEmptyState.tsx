@@ -15,11 +15,11 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { mobileTokens } from "./mobileTokens";
-import type { ElementType } from "react";
+import type { AppIcon } from "@/lib/types/app-icon";
 
 interface MobileEmptyStateProps {
   /** Optional icon to display above the title. */
-  icon?: ElementType;
+  icon?: AppIcon;
   /** Tighter geometry for collapsed expandable dock previews. */
   compact?: boolean;
   /** Primary empty state message. */

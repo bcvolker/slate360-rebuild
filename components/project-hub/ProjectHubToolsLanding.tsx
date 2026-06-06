@@ -11,7 +11,7 @@ import {
   Receipt,
   Wrench,
 } from "lucide-react";
-import type { ElementType } from "react";
+import type { AppIcon } from "@/lib/types/app-icon";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -20,7 +20,7 @@ type ToolModule = {
   title: string;
   description: string;
   segment: string;
-  icon: ElementType;
+  icon: AppIcon;
   /** When false, card is non-navigable until the sub-route ships. */
   routable: boolean;
 };

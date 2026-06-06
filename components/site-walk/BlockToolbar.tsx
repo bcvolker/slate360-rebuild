@@ -9,6 +9,7 @@ import {
   Plus,
 } from "lucide-react";
 import type { BlockType } from "@/lib/types/blocks";
+import type { AppIcon } from "@/lib/types/app-icon";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -21,7 +22,7 @@ interface BlockToolbarProps {
   onAddBlock: (type: BlockType) => void;
 }
 
-const BLOCK_OPTIONS: { type: BlockType; label: string; icon: React.ElementType }[] = [
+const BLOCK_OPTIONS: { type: BlockType; label: string; icon: AppIcon }[] = [
   { type: "heading", label: "Heading", icon: Heading2 },
   { type: "text", label: "Text", icon: Type },
   { type: "image", label: "Image", icon: ImageIcon },

@@ -1,4 +1,4 @@
-import type { ElementType } from "react";
+import type { AppIcon } from "@/lib/types/app-icon";
 import { Cloud, FolderOpen, Home, MessageSquare, User } from "lucide-react";
 
 export type MainMobileTabKey =
@@ -11,7 +11,7 @@ export type MainMobileTabKey =
 export type MainMobileTab<Key extends string = string> = {
   key: Key;
   label: string;
-  icon: ElementType;
+  icon: AppIcon;
   href?: string;
   onSelect?: () => void;
 };

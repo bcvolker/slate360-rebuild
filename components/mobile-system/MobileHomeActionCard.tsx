@@ -1,14 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import type { ElementType, ReactNode } from "react";
+import type { ReactNode } from "react";
+import type { AppIcon } from "@/lib/types/app-icon";
 import { cn } from "@/lib/utils";
 import { mobileTokens, type MobileQuickActionAccent } from "./mobileTokens";
 
 export type MobileHomeActionCardProps = {
   title: string;
   subtext?: string;
-  icon: ElementType;
+  icon: AppIcon;
   href?: string;
   onClick?: () => void;
   disabled?: boolean;

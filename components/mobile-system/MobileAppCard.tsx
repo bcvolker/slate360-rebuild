@@ -13,12 +13,12 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { mobileTokens } from "./mobileTokens";
-import type { ElementType } from "react";
+import type { AppIcon } from "@/lib/types/app-icon";
 
 interface MobileAppCardProps {
   title: string;
   subtitle: string;
-  icon: ElementType;
+  icon: AppIcon;
   href?: string;
   badge?: string;
   disabled?: boolean;

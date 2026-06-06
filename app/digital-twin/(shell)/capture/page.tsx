@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Scan } from "lucide-react";
 import { mobileTokens } from "@/components/mobile-system";
+import { twinAccent } from "@/lib/digital-twin/twin-accent";
 import { cn } from "@/lib/utils";
 
 function detectLidarHint(): string {
@@ -33,7 +34,12 @@ export default function DigitalTwinCapturePage() {
     <div className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain px-4 py-4">
       <div className="flex flex-col gap-3 rounded-xl border border-white/[0.06] bg-white/[0.04] p-4">
         <div className="flex items-center gap-3">
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#6EA7A0]/20 bg-[#6EA7A0]/10 text-[#6EA7A0]">
+          <span
+            className={cn(
+              "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border",
+              twinAccent.iconChip,
+            )}
+          >
             <Scan className="h-5 w-5" />
           </span>
           <div className="min-w-0">
@@ -57,7 +63,7 @@ export default function DigitalTwinCapturePage() {
         </Link>
         <Link
           href="/digital-twin/twins"
-          className="text-center text-xs font-medium text-[#6EA7A0] hover:text-[#6EA7A0]/80 hover:underline"
+          className={cn("text-center text-xs", twinAccent.link)}
         >
           View captured twins
         </Link>

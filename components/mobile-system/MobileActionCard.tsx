@@ -3,12 +3,12 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { mobileTokens, type MobileQuickActionAccent } from "./mobileTokens";
-import type { ElementType } from "react";
+import type { AppIcon } from "@/lib/types/app-icon";
 
 type MobileActionCardVariant = "default" | "module";
 
 interface MobileActionCardProps {
-  icon: ElementType;
+  icon: AppIcon;
   label: string;
   description?: string;
   href?: string;

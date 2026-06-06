@@ -3,12 +3,12 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { mobileTokens, type MobileAppAccent } from "./mobileTokens";
-import type { ElementType } from "react";
+import type { AppIcon } from "@/lib/types/app-icon";
 
 export interface MobileAppButtonProps {
   title: string;
   subtitle?: string;
-  icon: ElementType;
+  icon: AppIcon;
   href?: string;
   badge?: string;
   disabled?: boolean;

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, type ElementType } from "react";
+import { useState } from "react";
+import type { AppIcon } from "@/lib/types/app-icon";
 import {
   AppWindow,
   Box,
@@ -19,7 +20,7 @@ import { cn } from "@/lib/utils";
 import type { MobileLauncherAppView } from "@/lib/mobile/mobile-launcher-app-types";
 import { MobileAppLauncherUpsellSheet } from "./MobileAppLauncherUpsellSheet";
 
-const LAUNCHER_ICONS: Record<string, ElementType> = {
+const LAUNCHER_ICONS: Record<string, AppIcon> = {
   "site-walk": Camera,
   "twin-360": AppWindow,
   "360-tours": Compass,

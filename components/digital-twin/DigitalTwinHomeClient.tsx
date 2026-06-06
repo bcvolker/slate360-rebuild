@@ -15,6 +15,7 @@ import {
 } from "@/components/mobile-system";
 import type { MobilePanelTab } from "@/components/mobile-system";
 import { cn } from "@/lib/utils";
+import { twinAccent } from "@/lib/digital-twin/twin-accent";
 import type { HubTwin, HubTwinProject } from "@/lib/types/digital-twin-hub";
 
 type Props = {
@@ -45,7 +46,7 @@ export function DigitalTwinHomeClient({ twins, projects }: Props) {
               {twins.slice(0, 8).map((twin) => (
                 <li key={twin.id}>
                   <Link
-                    href={`/digital-twin/twins?space=${twin.id}`}
+                    href={`/digital-twin/twins/${twin.id}`}
                     className="flex items-center justify-between gap-2 rounded-xl border border-white/[0.05] px-3 py-2.5 text-sm transition-colors hover:bg-white/[0.03]"
                   >
                     <span className="min-w-0 truncate text-[#F8FAFC]">{twin.title}</span>
@@ -154,7 +155,7 @@ export function DigitalTwinHomeClient({ twins, projects }: Props) {
     <div data-mobile-route="digital-twin" className={mobileTokens.mobileShellScrollInner}>
       <div className="flex shrink-0 items-center gap-3">
         <span
-          className={cn(mobileTokens.mobileIconChip, mobileTokens.mobileIconChipLg)}
+          className={cn("flex shrink-0 items-center justify-center", twinAccent.iconChip, mobileTokens.mobileIconChipLg)}
           aria-hidden
         >
           <AppWindow className={mobileTokens.mobileIconChipIconLg} strokeWidth={1.75} />
