@@ -53,7 +53,7 @@ export async function deductCredits(
   // Fetch current balance
   const { data: org, error: orgErr } = await supabase
     .from("organizations")
-    .select("credit_balance")
+    .select("credits_balance")
     .eq("id", orgId)
     .single();
 
@@ -61,7 +61,7 @@ export async function deductCredits(
     return { ok: false, error: "Could not fetch org balance" };
   }
 
-  const currentBalance = org.credit_balance ?? 0;
+  const currentBalance = org.credits_balance ?? 0;
   if (currentBalance < amount) {
     return { ok: false, error: `Insufficient credits: need ${amount}, have ${currentBalance}` };
   }
@@ -71,9 +71,9 @@ export async function deductCredits(
   // Deduct with optimistic concurrency (check balance hasn't changed)
   const { error: updateErr, count } = await supabase
     .from("organizations")
-    .update({ credit_balance: newBalance })
+    .update({ credits_balance: newBalance })
     .eq("id", orgId)
-    .eq("credit_balance", currentBalance) // optimistic lock
+    .eq("credits_balance", currentBalance) // optimistic lock
     .select("id");
 
   if (updateErr || !count) {
@@ -130,7 +130,7 @@ export async function addCredits(
   // Fetch current balance
   const { data: org, error: orgErr } = await supabase
     .from("organizations")
-    .select("credit_balance")
+    .select("credits_balance")
     .eq("id", orgId)
     .single();
 
@@ -138,12 +138,12 @@ export async function addCredits(
     return { ok: false, error: "Could not fetch org balance" };
   }
 
-  const currentBalance = org.credit_balance ?? 0;
+  const currentBalance = org.credits_balance ?? 0;
   const newBalance = currentBalance + amount;
 
   const { error: updateErr } = await supabase
     .from("organizations")
-    .update({ credit_balance: newBalance })
+    .update({ credits_balance: newBalance })
     .eq("id", orgId);
 
   if (updateErr) {
