@@ -2,11 +2,11 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
-import { Loader2, MapPin, MessageSquare, Ruler, Footprints, Orbit } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { twinAccent } from "@/lib/digital-twin/twin-accent";
 import type { TwinViewerKind } from "@/lib/digital-twin/viewer-format";
 import type { TwinPickPoint } from "@/components/digital-twin/TwinShareSplatViewer";
+import { TwinShareToolStrip, type TwinShareCameraMode, type TwinShareTool } from "./TwinShareToolStrip";
 
 const TwinShareSplatViewer = dynamic(
   () =>
@@ -17,9 +17,6 @@ const TwinModelViewer = dynamic(
   () => import("@/components/digital-twin/TwinModelViewer").then((m) => m.TwinModelViewer),
   { ssr: false },
 );
-
-type Tool = "view" | "pin" | "comment" | "measure";
-type CameraMode = "orbit" | "walk";
 
 type CommentRow = {
   id: string;
@@ -53,8 +50,8 @@ export function TwinShareAnnotateShell({
   modelTitle: string;
   modelId?: string | null;
 }) {
-  const [tool, setTool] = useState<Tool>("view");
-  const [cameraMode, setCameraMode] = useState<CameraMode>("orbit");
+  const [tool, setTool] = useState<TwinShareTool>("view");
+  const [cameraMode, setCameraMode] = useState<TwinShareCameraMode>("orbit");
   const [authorName, setAuthorName] = useState("");
   const [commentBody, setCommentBody] = useState("");
   const [pinTitle, setPinTitle] = useState("");
@@ -187,7 +184,7 @@ export function TwinShareAnnotateShell({
     }
   };
 
-  const selectTool = (id: Tool) => {
+  const selectTool = (id: TwinShareTool) => {
     setTool(id);
     setMeasureA(null);
     setError(null);
@@ -219,39 +216,16 @@ export function TwinShareAnnotateShell({
         ) : null}
       </div>
 
-      <div className="flex flex-wrap items-center gap-2">
-        {(["view", "comment", "pin", "measure"] as Tool[]).map((id) => {
-          if (id !== "view" && !canAnnotate) return null;
-          if (id === "measure" && !measureReady) return null;
-          const icons = { view: Orbit, comment: MessageSquare, pin: MapPin, measure: Ruler };
-          const Icon = icons[id];
-          return (
-            <button
-              key={id}
-              type="button"
-              onClick={() => selectTool(id)}
-              className={cn(
-                "inline-flex items-center gap-1 rounded-xl border px-2.5 py-1.5 text-[11px] font-semibold capitalize transition-colors disabled:opacity-40",
-                tool === id ? twinAccent.button : "border-white/10 text-zinc-400 hover:text-zinc-200",
-              )}
-            >
-              <Icon className="size-3.5" aria-hidden />
-              {id}
-            </button>
-          );
-        })}
-        {viewerKind === "splat" ? (
-          <button
-            type="button"
-            onClick={() => setCameraMode((m) => (m === "orbit" ? "walk" : "orbit"))}
-            className={cn(twinAccent.button, "inline-flex items-center gap-1 text-[11px]")}
-          >
-            {cameraMode === "orbit" ? <Footprints className="size-3.5" aria-hidden /> : <Orbit className="size-3.5" aria-hidden />}
-            {cameraMode === "orbit" ? "Walk" : "Orbit"}
-          </button>
-        ) : null}
-        {busy ? <Loader2 className={cn("size-4 animate-spin", twinAccent.spinner)} aria-hidden /> : null}
-      </div>
+      <TwinShareToolStrip
+        tool={tool}
+        cameraMode={cameraMode}
+        canAnnotate={canAnnotate}
+        measureReady={measureReady}
+        viewerKind={viewerKind}
+        busy={busy}
+        onSelectTool={selectTool}
+        onToggleCameraMode={() => setCameraMode((m) => (m === "orbit" ? "walk" : "orbit"))}
+      />
 
       {canAnnotate ? (
         <div className="space-y-2 rounded-xl border border-white/[0.08] bg-white/[0.03] p-3">

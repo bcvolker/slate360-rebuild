@@ -55,6 +55,7 @@
     "@sparkjsdev/spark": "^2.1.0",
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.97.0",
+    "@tabler/icons-react": "^3.44.0",
     "@trigger.dev/sdk": "^4.4.5",
     "@types/three": "^0.184.1",
     "@types/uuid": "^10.0.0",

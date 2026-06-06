@@ -1,27 +1,27 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import {
-  ArrowLeft,
-  FlipHorizontal,
-  ImageIcon,
-  Pause,
-  Play,
-  Square,
-  Video,
-  X,
-} from "lucide-react";
+import { IconCameraRotate, IconX } from "@tabler/icons-react";
 import { useCamera } from "@/lib/hooks/useCamera";
+import { useTwinVideoRecorder } from "@/hooks/useTwinVideoRecorder";
 import { twinAccent } from "@/lib/digital-twin/twin-accent";
-import { formatTwinBytes } from "@/lib/dev/mock-twin-capture";
+import { formatTwinBytes } from "@/lib/digital-twin/format-bytes";
+import { TwinCaptureFooter } from "./TwinCaptureFooter";
 import { TwinCaptureLiveCamera } from "./TwinCaptureLiveCamera";
 
 type CaptureMode = "photo_burst" | "video_walk";
 
+export type TwinCaptureFinishResult = {
+  files: File[];
+  photoCount: number;
+  videoSeconds: number;
+  estimatedBytes: number;
+};
+
 type Props = {
   spaceName?: string;
   onCancel?: () => void;
-  onFinish?: (stats: { photoCount: number; videoSeconds: number; estimatedBytes: number }) => void;
+  onFinish?: (result: TwinCaptureFinishResult) => void;
 };
 
 const PHOTO_EST_BYTES = 2_400_000;
@@ -39,14 +39,15 @@ export function TwinCaptureScreen({
   onFinish,
 }: Props) {
   const camera = useCamera();
+  const videoRecorder = useTwinVideoRecorder();
+  const capturedFilesRef = useRef<File[]>([]);
   const [mode, setMode] = useState<CaptureMode>("photo_burst");
   const [facingMode, setFacingMode] = useState<"user" | "environment">("environment");
   const [photoCount, setPhotoCount] = useState(0);
   const [videoSeconds, setVideoSeconds] = useState(0);
-  const [recording, setRecording] = useState(false);
-  const [paused, setPaused] = useState(false);
   const [topCollapsed, setTopCollapsed] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const { recording, paused } = videoRecorder;
 
   const estimatedBytes =
     photoCount * PHOTO_EST_BYTES + videoSeconds * VIDEO_EST_BYTES_PER_SEC;
@@ -83,27 +84,39 @@ export function TwinCaptureScreen({
     if (!camera.isStreaming) return;
     const result = camera.capturePhoto();
     if (!result) return;
+    const index = photoCount + 1;
+    const file = new File([result.blob], `photo_${Date.now()}_${index}.jpg`, {
+      type: "image/jpeg",
+    });
+    capturedFilesRef.current.push(file);
     setPhotoCount((value) => value + 1);
-  }, [camera]);
+  }, [camera, photoCount]);
+
+  const getActiveStream = useCallback((): MediaStream | null => {
+    const src = camera.videoRef.current?.srcObject;
+    return src instanceof MediaStream ? src : null;
+  }, [camera.videoRef]);
 
   const handleRecordToggle = useCallback(() => {
     if (!recording) {
-      setRecording(true);
-      setPaused(false);
+      const stream = getActiveStream();
+      if (!stream) return;
+      videoRecorder.startRecording(stream);
       return;
     }
     if (paused) {
-      setPaused(false);
+      videoRecorder.resumeRecording();
       return;
     }
-    setPaused(true);
-  }, [paused, recording]);
+    videoRecorder.pauseRecording();
+  }, [getActiveStream, paused, recording, videoRecorder]);
 
   const handleStopRecording = useCallback(() => {
-    setRecording(false);
-    setPaused(false);
     stopTimer();
-  }, [stopTimer]);
+    void videoRecorder.stopRecording().then((file) => {
+      if (file) capturedFilesRef.current.push(file);
+    });
+  }, [stopTimer, videoRecorder]);
 
   const handleCancel = useCallback(() => {
     stopTimer();
@@ -111,10 +124,20 @@ export function TwinCaptureScreen({
     onCancel?.();
   }, [camera, onCancel, stopTimer]);
 
-  const handleFinish = useCallback(() => {
+  const handleFinish = useCallback(async () => {
     stopTimer();
-    onFinish?.({ photoCount, videoSeconds, estimatedBytes });
-  }, [estimatedBytes, onFinish, photoCount, stopTimer, videoSeconds]);
+    if (recording) {
+      const videoFile = await videoRecorder.stopRecording();
+      if (videoFile) capturedFilesRef.current.push(videoFile);
+    }
+    camera.stopCamera();
+    onFinish?.({
+      files: [...capturedFilesRef.current],
+      photoCount,
+      videoSeconds,
+      estimatedBytes,
+    });
+  }, [camera, estimatedBytes, onFinish, photoCount, recording, stopTimer, videoRecorder, videoSeconds]);
 
   return (
     <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden bg-[var(--graphite-canvas)] touch-manipulation select-none">
@@ -126,7 +149,7 @@ export function TwinCaptureScreen({
             className="inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_82%,transparent)] text-[var(--graphite-text-header)] backdrop-blur-md transition active:scale-[0.98]"
             aria-label="Cancel capture"
           >
-            <X className="h-5 w-5" />
+            <IconX className="h-5 w-5" stroke={1.75} />
           </button>
 
           <div className="min-w-0 flex-1 rounded-xl border border-[var(--accent-border-blue)] bg-[color-mix(in_srgb,var(--graphite-canvas)_88%,transparent)] px-3 py-2 text-center backdrop-blur-md">
@@ -145,7 +168,7 @@ export function TwinCaptureScreen({
             className="inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_82%,transparent)] text-[var(--graphite-text-header)] backdrop-blur-md transition active:scale-[0.98] disabled:opacity-40"
             aria-label="Flip camera"
           >
-            <FlipHorizontal className="h-5 w-5" />
+            <IconCameraRotate className="h-5 w-5" stroke={1.75} />
           </button>
         </header>
       )}
@@ -186,103 +209,27 @@ export function TwinCaptureScreen({
         )}
       </div>
 
-      <footer className="relative z-30 shrink-0 border-t border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_92%,transparent)] px-4 pb-[max(calc(0.75rem+env(safe-area-inset-bottom)),1rem)] pt-3 backdrop-blur-xl">
-        <div className="mb-3 flex gap-2">
-          {(["photo_burst", "video_walk"] as const).map((entry) => {
-            const active = mode === entry;
-            return (
-              <button
-                key={entry}
-                type="button"
-                onClick={() => {
-                  if (recording) handleStopRecording();
-                  setMode(entry);
-                }}
-                className={`flex min-h-14 flex-1 items-center justify-center gap-2 rounded-xl border text-sm font-bold transition active:scale-[0.99] ${
-                  active
-                    ? "border-[var(--accent-border-blue)] bg-[color-mix(in_srgb,var(--twin360-blue)_14%,transparent)] text-[var(--twin360-blue)]"
-                    : "border-[var(--mobile-app-card-border)] text-[var(--graphite-muted)]"
-                }`}
-              >
-                {entry === "photo_burst" ? (
-                  <ImageIcon className="h-4 w-4" />
-                ) : (
-                  <Video className="h-4 w-4" />
-                )}
-                {entry === "photo_burst" ? "Photo burst" : "Video walk"}
-              </button>
-            );
-          })}
-        </div>
-
-        {mode === "photo_burst" ? (
-          <div className="flex flex-col items-center">
-            <p className="mb-2 text-[10px] font-semibold tracking-wide text-[var(--graphite-muted)]">
-              Tap shutter for each frame · walk the perimeter slowly
-            </p>
-            <button
-              type="button"
-              disabled={!camera.isStreaming}
-              onClick={handleBurst}
-              className="relative flex h-[4.25rem] w-[4.25rem] items-center justify-center rounded-full border-[3px] border-[color-mix(in_srgb,var(--twin360-blue)_55%,transparent)] bg-[var(--twin360-blue)] shadow-[var(--mobile-app-card-glow-info)] transition active:scale-95 disabled:opacity-50"
-              aria-label="Capture photo"
-            >
-              <span className="h-[3.25rem] w-[3.25rem] rounded-full border-2 border-[color-mix(in_srgb,var(--graphite-canvas)_35%,transparent)] bg-[color-mix(in_srgb,white_22%,var(--twin360-blue))]" />
-            </button>
-          </div>
-        ) : (
-          <div className="flex items-center justify-center gap-4">
-            <button
-              type="button"
-              onClick={handleCancel}
-              className={`min-h-14 min-w-[4.5rem] rounded-xl px-3 text-xs font-bold ${twinAccent.buttonDanger}`}
-            >
-              Cancel
-            </button>
-            {recording ? (
-              <>
-                <button
-                  type="button"
-                  onClick={handleRecordToggle}
-                  className={`inline-flex min-h-14 min-w-14 items-center justify-center rounded-xl border ${twinAccent.button}`}
-                  aria-label={paused ? "Resume recording" : "Pause recording"}
-                >
-                  {paused ? <Play className="h-5 w-5" /> : <Pause className="h-5 w-5" />}
-                </button>
-                <button
-                  type="button"
-                  onClick={handleStopRecording}
-                  className="inline-flex min-h-14 min-w-14 items-center justify-center rounded-xl border border-[var(--mobile-app-card-border)] bg-[var(--surface-zinc)] text-[var(--graphite-text-header)]"
-                  aria-label="Stop recording"
-                >
-                  <Square className="h-5 w-5 fill-current" />
-                </button>
-              </>
-            ) : (
-              <button
-                type="button"
-                disabled={!camera.isStreaming}
-                onClick={() => setRecording(true)}
-                className="relative flex h-[4.25rem] w-[4.25rem] items-center justify-center rounded-full border-[3px] border-[color-mix(in_srgb,var(--twin360-blue)_55%,transparent)] bg-[var(--twin360-blue)] shadow-[var(--mobile-app-card-glow-info)] transition active:scale-95 disabled:opacity-50"
-                aria-label="Start recording"
-              >
-                <span className="h-[3.25rem] w-[3.25rem] rounded-full border-2 border-[color-mix(in_srgb,var(--graphite-canvas)_35%,transparent)] bg-[color-mix(in_srgb,white_22%,var(--twin360-blue))]" />
-              </button>
-            )}
-          </div>
-        )}
-
-        {(photoCount > 0 || videoSeconds > 0) && (
-          <button
-            type="button"
-            onClick={handleFinish}
-            className={`mt-3 flex min-h-14 w-full items-center justify-center gap-2 rounded-xl text-sm font-bold ${twinAccent.button}`}
-          >
-            <ArrowLeft className="h-4 w-4 rotate-180" />
-            Continue to submission
-          </button>
-        )}
-      </footer>
+      <TwinCaptureFooter
+        mode={mode}
+        recording={recording}
+        paused={paused}
+        isStreaming={camera.isStreaming}
+        photoCount={photoCount}
+        videoSeconds={videoSeconds}
+        onModeChange={(entry) => {
+          if (recording) void handleStopRecording();
+          setMode(entry);
+        }}
+        onBurst={handleBurst}
+        onCancel={handleCancel}
+        onRecordToggle={handleRecordToggle}
+        onStopRecording={handleStopRecording}
+        onStartRecording={() => {
+          const stream = getActiveStream();
+          if (stream) videoRecorder.startRecording(stream);
+        }}
+        onFinish={() => void handleFinish()}
+      />
     </div>
   );
 }
