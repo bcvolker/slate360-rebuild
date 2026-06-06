@@ -3026,10 +3026,12 @@ export type Database = {
       digital_twin_models: {
         Row: {
           bounds: Json
+          camera_path: Json
           capture_id: string | null
           created_at: string
           deleted_at: string | null
           deleted_by: string | null
+          edit_list: Json
           file_size_bytes: number
           georef: Json
           id: string
@@ -3048,10 +3050,12 @@ export type Database = {
         }
         Insert: {
           bounds?: Json
+          camera_path?: Json
           capture_id?: string | null
           created_at?: string
           deleted_at?: string | null
           deleted_by?: string | null
+          edit_list?: Json
           file_size_bytes?: number
           georef?: Json
           id?: string
@@ -3070,10 +3074,12 @@ export type Database = {
         }
         Update: {
           bounds?: Json
+          camera_path?: Json
           capture_id?: string | null
           created_at?: string
           deleted_at?: string | null
           deleted_by?: string | null
+          edit_list?: Json
           file_size_bytes?: number
           georef?: Json
           id?: string
