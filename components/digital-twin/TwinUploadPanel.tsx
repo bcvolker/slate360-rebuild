@@ -7,6 +7,7 @@ import { mobileTokens } from "@/components/mobile-system";
 import { twinAccent } from "@/lib/digital-twin/twin-accent";
 import { cn } from "@/lib/utils";
 import { useMultipartTwinUpload } from "@/hooks/useMultipartTwinUpload";
+import { useTwinGpsFix } from "@/hooks/useTwinGpsFix";
 import { useTwinJobRealtime } from "@/hooks/useTwinJobRealtime";
 import type { HubTwin, HubTwinProject } from "@/lib/types/digital-twin-hub";
 
@@ -44,6 +45,7 @@ export function TwinUploadPanel({ spaces, projects }: Props) {
   } = useMultipartTwinUpload();
 
   const { job } = useTwinJobRealtime(captureId);
+  const resolveGpsFix = useTwinGpsFix();
 
   const selectedSpace = useMemo(
     () => spaces.find((row) => row.id === spaceId) ?? null,
@@ -74,11 +76,13 @@ export function TwinUploadPanel({ spaces, projects }: Props) {
     setJobId(null);
 
     try {
+      const gps = await resolveGpsFix();
       await startUpload(
         {
           spaceId,
           projectId,
           title: selectedSpace?.title ?? "Phone upload",
+          gps,
         },
         selectedFiles,
       );
@@ -86,7 +90,7 @@ export function TwinUploadPanel({ spaces, projects }: Props) {
     } catch (err) {
       setStatusMessage(err instanceof Error ? err.message : "Upload failed");
     }
-  }, [projectId, selectedFiles, selectedSpace?.title, spaceId, startUpload]);
+  }, [projectId, resolveGpsFix, selectedFiles, selectedSpace?.title, spaceId, startUpload]);
 
   const handleEnqueue = useCallback(async () => {
     try {

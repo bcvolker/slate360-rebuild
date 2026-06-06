@@ -17,6 +17,7 @@ import {
   resolveOrCreateCapture,
   resolveTwinSpace,
   TWIN_SINGLE_UPLOAD_MAX_BYTES,
+  type TwinGpsFix,
 } from "@/lib/twin/upload-helpers";
 
 export const runtime = "nodejs";
@@ -27,6 +28,7 @@ type PresignBody = {
   project_id: string;
   capture_id?: string;
   title?: string;
+  gps?: TwinGpsFix;
   filename: string;
   contentType: string;
   sizeBytes: number;
@@ -68,6 +70,7 @@ export const POST = (req: NextRequest) =>
           userId: user.id,
           captureId: body.capture_id,
           title: body.title,
+          gps: body.gps,
         });
 
         await assertDigitalTwinProcessingEntitlement(admin, {

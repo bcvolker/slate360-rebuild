@@ -13,6 +13,7 @@ import {
   resolveTwinSpace,
   TWIN_MULTIPART_PART_BYTES,
   type TwinFileDescriptor,
+  type TwinGpsFix,
 } from "@/lib/twin/upload-helpers";
 
 export const runtime = "nodejs";
@@ -22,6 +23,7 @@ type InitBody = {
   project_id: string;
   capture_id?: string;
   title?: string;
+  gps?: TwinGpsFix;
   files: TwinFileDescriptor[];
 };
 
@@ -57,6 +59,7 @@ export const POST = (req: NextRequest) =>
         userId: user.id,
         captureId: body.capture_id,
         title: body.title,
+        gps: body.gps,
       });
 
       await assertDigitalTwinProcessingEntitlement(admin, {

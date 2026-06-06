@@ -8,11 +8,19 @@ import {
 import { twinApiPost } from "@/hooks/twin-upload-api";
 import { runMultipartTwinUpload, runSingleTwinUpload } from "@/hooks/twin-upload-runners";
 
+export type TwinGpsFix = {
+  lat: number;
+  lng: number;
+  alt?: number;
+  accuracy?: number;
+};
+
 export type TwinUploadTarget = {
   spaceId: string;
   projectId: string;
   captureId?: string;
   title?: string;
+  gps?: TwinGpsFix;
 };
 
 export type TwinFileUploadState = {
@@ -93,6 +101,7 @@ export function useMultipartTwinUpload() {
             project_id: target.projectId,
             capture_id: target.captureId ?? captureId ?? undefined,
             title: target.title,
+            gps: target.gps,
             files: multipartCandidates.map((file) => ({
               filename: file.name,
               contentType: file.type || "application/octet-stream",

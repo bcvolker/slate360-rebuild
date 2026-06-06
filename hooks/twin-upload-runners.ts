@@ -30,6 +30,7 @@ export async function runSingleTwinUpload(
     project_id: target.projectId,
     capture_id: target.captureId ?? ctx.captureId ?? undefined,
     title: target.title,
+    gps: target.gps,
     filename: file.name,
     contentType: file.type || "application/octet-stream",
     sizeBytes: file.size,

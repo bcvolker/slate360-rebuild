@@ -15,6 +15,13 @@ export type TwinFileDescriptor = {
   assetKind?: string;
 };
 
+export type TwinGpsFix = {
+  lat: number;
+  lng: number;
+  alt?: number;
+  accuracy?: number;
+};
+
 export function buildTwinStorageKey(
   orgId: string,
   spaceId: string,
@@ -64,6 +71,49 @@ export async function resolveTwinSpace(
   return data;
 }
 
+export async function applyCaptureGpsMetadata(
+  admin: AdminClient,
+  captureId: string,
+  orgId: string,
+  gps: TwinGpsFix | null | undefined,
+): Promise<void> {
+  if (!gps || typeof gps.lat !== "number" || typeof gps.lng !== "number") return;
+
+  const { data: capture, error: readError } = await admin
+    .from("digital_twin_captures")
+    .select("capture_metadata")
+    .eq("id", captureId)
+    .eq("org_id", orgId)
+    .maybeSingle();
+
+  if (readError) throw new Error(readError.message);
+  if (!capture) return;
+
+  const existing =
+    capture.capture_metadata && typeof capture.capture_metadata === "object"
+      ? (capture.capture_metadata as Record<string, unknown>)
+      : {};
+
+  const { error } = await admin
+    .from("digital_twin_captures")
+    .update({
+      capture_metadata: {
+        ...existing,
+        gps: {
+          lat: gps.lat,
+          lng: gps.lng,
+          ...(typeof gps.alt === "number" ? { alt: gps.alt } : {}),
+          ...(typeof gps.accuracy === "number" ? { accuracy: gps.accuracy } : {}),
+          capturedAt: new Date().toISOString(),
+        },
+      },
+    })
+    .eq("id", captureId)
+    .eq("org_id", orgId);
+
+  if (error) throw new Error(error.message);
+}
+
 export async function resolveOrCreateCapture(
   admin: AdminClient,
   params: {
@@ -73,6 +123,7 @@ export async function resolveOrCreateCapture(
     userId: string;
     captureId?: string | null;
     title?: string | null;
+    gps?: TwinGpsFix | null;
   },
 ) {
   if (params.captureId) {
@@ -88,8 +139,22 @@ export async function resolveOrCreateCapture(
 
     if (error) throw new Error(error.message);
     if (!data) throw new Error("Capture not found");
+    await applyCaptureGpsMetadata(admin, data.id, params.orgId, params.gps);
     return data;
   }
+
+  const captureMetadata =
+    params.gps && typeof params.gps.lat === "number" && typeof params.gps.lng === "number"
+      ? {
+          gps: {
+            lat: params.gps.lat,
+            lng: params.gps.lng,
+            ...(typeof params.gps.alt === "number" ? { alt: params.gps.alt } : {}),
+            ...(typeof params.gps.accuracy === "number" ? { accuracy: params.gps.accuracy } : {}),
+            capturedAt: new Date().toISOString(),
+          },
+        }
+      : {};
 
   const { data, error } = await admin
     .from("digital_twin_captures")
@@ -100,6 +165,7 @@ export async function resolveOrCreateCapture(
       created_by: params.userId,
       title: params.title ?? "Upload session",
       capture_status: "draft",
+      capture_metadata: captureMetadata,
     })
     .select("id, space_id, project_id, capture_status")
     .single();
