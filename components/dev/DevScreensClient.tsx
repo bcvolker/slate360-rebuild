@@ -5,17 +5,25 @@ import { useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import { DevCaptureCanvasSandbox } from "./DevCaptureCanvasSandbox";
 import { DevNoteReviewSandbox } from "./DevNoteReviewSandbox";
+import { DevTwinCaptureSandbox } from "./DevTwinCaptureSandbox";
+import { DevTwinUploadSandbox } from "./DevTwinUploadSandbox";
+import { DevTwinViewerSandbox } from "./DevTwinViewerSandbox";
+import { DevTwinWizardSandbox } from "./DevTwinWizardSandbox";
 import { DevScreenFrame, type DevDeviceMode } from "./DevScreenFrame";
 
 const SCREENS = [
   { id: "capture", label: "Capture canvas", description: "No-plans camera canvas with mock stops." },
   { id: "note-review", label: "Note / review", description: "Field notes + primary save affordance." },
+  { id: "twin-capture", label: "Twin capture", description: "Full-bleed camera, burst + video walk controls." },
+  { id: "twin-wizard", label: "Twin wizard", description: "Space picker, output options, live cost calculator." },
+  { id: "twin-upload", label: "Twin upload", description: "Mock review & upload progress state." },
+  { id: "twin-viewer", label: "Twin viewer", description: "Splat viewer + mock queue/share state." },
 ] as const;
 
 type ScreenId = (typeof SCREENS)[number]["id"];
 
 function parseScreen(value: string | null): ScreenId | null {
-  if (value === "capture" || value === "note-review") return value;
+  if (value === "capture" || value === "note-review" || value === "twin-viewer") return value;
   return null;
 }
 
@@ -104,6 +112,14 @@ export function DevScreensClient() {
         <DevScreenFrame mode={device} title={activeMeta?.label ?? screen}>
           {screen === "capture" ? (
             <DevCaptureCanvasSandbox />
+          ) : screen === "twin-capture" ? (
+            <DevTwinCaptureSandbox />
+          ) : screen === "twin-wizard" ? (
+            <DevTwinWizardSandbox />
+          ) : screen === "twin-upload" ? (
+            <DevTwinUploadSandbox />
+          ) : screen === "twin-viewer" ? (
+            <DevTwinViewerSandbox />
           ) : (
             <DevNoteReviewSandbox keyboardSim={Number.isFinite(keyboardSim) ? keyboardSim : undefined} />
           )}
