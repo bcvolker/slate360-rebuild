@@ -92,8 +92,16 @@ export async function deductCredits(
     });
 
   if (txErr) {
-    // Transaction record failed but deduction succeeded — log but don't fail
     console.error("[deductCredits] Failed to record transaction:", txErr.message);
+    const { error: rollbackErr } = await supabase
+      .from("organizations")
+      .update({ credits_balance: currentBalance })
+      .eq("id", orgId)
+      .eq("credits_balance", newBalance);
+    if (rollbackErr) {
+      console.error("[deductCredits] Balance rollback failed:", rollbackErr.message);
+    }
+    return { ok: false, error: "Failed to record credit transaction" };
   }
 
   return { ok: true, newBalance };
@@ -162,6 +170,15 @@ export async function addCredits(
 
   if (txErr) {
     console.error("[addCredits] Failed to record transaction:", txErr.message);
+    const { error: rollbackErr } = await supabase
+      .from("organizations")
+      .update({ credits_balance: currentBalance })
+      .eq("id", orgId)
+      .eq("credits_balance", newBalance);
+    if (rollbackErr) {
+      console.error("[addCredits] Balance rollback failed:", rollbackErr.message);
+    }
+    return { ok: false, error: "Failed to record credit transaction" };
   }
 
   return { ok: true, newBalance };
