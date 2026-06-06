@@ -1,10 +1,9 @@
 import { resolveServerOrgContext } from "@/lib/server/org-context";
 import { loadTwinSpaceViewerData } from "@/lib/digital-twin/load-space-viewer";
-import { TwinModelViewer } from "@/components/digital-twin/TwinModelViewer";
+import { TwinViewerWorkspace } from "@/components/digital-twin/TwinViewerWorkspace";
+import { TwinGpsDisplay } from "@/components/digital-twin/TwinGpsDisplay";
+import { DesktopWorkspaceLinks } from "@/components/digital-twin/desktop/DesktopWorkspaceLinks";
 import { TwinShareActions } from "@/components/digital-twin/TwinShareActions";
-import { TwinCollaborationPanel } from "@/components/digital-twin/TwinCollaborationPanel";
-import { TwinLayersPanel } from "@/components/digital-twin/TwinLayersPanel";
-import { TwinMeasurementsList } from "@/components/digital-twin/TwinMeasurementsList";
 import { TwinViewerDisclaimer } from "@/components/digital-twin/TwinViewerDisclaimer";
 import { MobileEmptyState } from "@/components/mobile-system";
 import { Boxes } from "lucide-react";
@@ -32,26 +31,16 @@ export default async function DigitalTwinViewerPage({ params }: Props) {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-4 py-4">
-      <div className="mb-3">
-        <p className="truncate text-sm font-semibold text-zinc-100">{viewer.spaceTitle}</p>
-        <p className="mt-0.5 text-xs capitalize text-zinc-400">{viewer.spaceStatus.replace(/_/g, " ")}</p>
-      </div>
-
-      <div className="min-h-[50vh] flex-1">
-        <TwinModelViewer
-          viewerKind={viewer.viewerKind}
-          modelUrl={viewer.modelUrl}
-          modelTitle={viewer.modelTitle}
-        />
-      </div>
-
-      <div className="mt-4 grid gap-3 lg:grid-cols-2">
-        <TwinCollaborationPanel spaceId={viewer.spaceId} />
-        <div className="space-y-3">
-          <TwinLayersPanel />
-          <TwinMeasurementsList spaceId={viewer.spaceId} />
+      <div className="mb-3 space-y-2">
+        <div>
+          <p className="truncate text-sm font-semibold text-zinc-100">{viewer.spaceTitle}</p>
+          <p className="mt-0.5 text-xs capitalize text-zinc-400">{viewer.spaceStatus.replace(/_/g, " ")}</p>
         </div>
+        <DesktopWorkspaceLinks spaceId={viewer.spaceId} />
       </div>
+
+      <TwinGpsDisplay gps={viewer.latestGps} />
+      <TwinViewerWorkspace viewer={viewer} />
 
       <div className="mt-4 space-y-3">
         <TwinShareActions spaceId={viewer.spaceId} />

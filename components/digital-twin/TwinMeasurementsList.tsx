@@ -14,7 +14,13 @@ type Measurement = {
   created_at: string;
 };
 
-export function TwinMeasurementsList({ spaceId }: { spaceId: string }) {
+export function TwinMeasurementsList({
+  spaceId,
+  refreshToken = 0,
+}: {
+  spaceId: string;
+  refreshToken?: number;
+}) {
   const [rows, setRows] = useState<Measurement[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -39,7 +45,7 @@ export function TwinMeasurementsList({ spaceId }: { spaceId: string }) {
 
   useEffect(() => {
     void load();
-  }, [load]);
+  }, [load, refreshToken]);
 
   return (
     <section className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-3">

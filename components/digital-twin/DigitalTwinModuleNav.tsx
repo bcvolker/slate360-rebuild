@@ -3,6 +3,9 @@
 export function resolveDigitalTwinRouteTitle(pathname: string): string {
   if (pathname.startsWith("/digital-twin/capture")) return "Quick Capture";
   if (pathname.startsWith("/digital-twin/upload")) return "Upload";
+  if (pathname.includes("/editor")) return "Splat Editor";
+  if (pathname.includes("/cinematic")) return "Cinematic Path";
+  if (pathname.includes("/progression")) return "Progression";
   if (pathname.match(/^\/digital-twin\/twins\/[^/]+$/)) return "Twin Viewer";
   if (pathname.startsWith("/digital-twin/twins")) return "My Twins";
   return "Digital Twin";
