@@ -47,10 +47,11 @@ npm run dev:tunnel
 - Index + device toggle (mobile ~390px frame / desktop)
 - **Capture canvas** — no-plans capture UI with four mock stops
 - **Note / review** — field notes + Save affordance (keyboard-offset test hook via `?keyboard=280`)
+- **Twin viewer** — splat preview with mock processing queue + share token (`lib/dev/mock-twin.ts`)
 
-Example: `http://localhost:3000/dev/screens?screen=capture&device=mobile`
+Example: `http://localhost:3000/dev/screens?screen=twin-viewer&device=mobile`
 
-Mock data lives in `lib/dev/mock-site-walk.ts`.
+Mock data: `lib/dev/mock-site-walk.ts` (Site Walk), `lib/dev/mock-twin.ts` (Digital Twin).
 
 ### Golden-path e2e (Playwright)
 

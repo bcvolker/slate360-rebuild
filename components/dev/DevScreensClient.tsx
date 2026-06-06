@@ -23,8 +23,8 @@ const SCREENS = [
 type ScreenId = (typeof SCREENS)[number]["id"];
 
 function parseScreen(value: string | null): ScreenId | null {
-  if (value === "capture" || value === "note-review" || value === "twin-viewer") return value;
-  return null;
+  if (!value) return null;
+  return SCREENS.some((entry) => entry.id === value) ? (value as ScreenId) : null;
 }
 
 function parseDevice(value: string | null): DevDeviceMode {
