@@ -89,7 +89,13 @@ async function main() {
 
   const prefix = `__dt_pipe_${Date.now()}__`;
   const cleanup = [];
-  const results = { multipart: "pending", storage: "pending", abort: "pending", job: "pending" };
+  const results = {
+    multipart: "pending",
+    storage: "pending",
+    storageQuota: "pending",
+    abort: "pending",
+    job: "pending",
+  };
 
   try {
     const { data: org } = await admin.from("organizations").select("id").limit(1).single();
@@ -233,14 +239,35 @@ async function main() {
       .select("org_storage_used_bytes")
       .eq("id", org.id)
       .single();
+    const { data: quotaBeforeRpc, error: quotaBeforeError } = await admin.rpc("get_storage_used", {
+      p_org_id: org.id,
+    });
     await admin.rpc("increment_org_storage", { target_org_id: org.id, bytes_delta: FILE_BYTES });
     const { data: orgAfter } = await admin
       .from("organizations")
       .select("org_storage_used_bytes")
       .eq("id", org.id)
       .single();
-    const delta = Number(orgAfter?.org_storage_used_bytes) - Number(orgBefore?.org_storage_used_bytes);
-    results.storage = delta >= FILE_BYTES ? `pass (+${delta} org_storage_used_bytes)` : `fail: delta=${delta}`;
+    const { data: quotaAfterRpc, error: quotaAfterError } = await admin.rpc("get_storage_used", {
+      p_org_id: org.id,
+    });
+    const columnDelta =
+      Number(orgAfter?.org_storage_used_bytes) - Number(orgBefore?.org_storage_used_bytes);
+    results.storage =
+      columnDelta >= FILE_BYTES
+        ? `pass (+${columnDelta} org_storage_used_bytes)`
+        : `fail: delta=${columnDelta}`;
+
+    if (quotaBeforeError || quotaAfterError) {
+      results.storageQuota = `fail: rpc ${quotaBeforeError?.message ?? quotaAfterError?.message}`;
+    } else {
+      const quotaDelta = Number(quotaAfterRpc) - Number(quotaBeforeRpc);
+      const columnMatchesQuota = Number(quotaAfterRpc) === Number(orgAfter?.org_storage_used_bytes);
+      results.storageQuota =
+        quotaDelta >= FILE_BYTES && columnMatchesQuota
+          ? `pass (+${quotaDelta} via get_storage_used)`
+          : `fail: quotaDelta=${quotaDelta} columnMatch=${columnMatchesQuota}`;
+    }
 
     const abortKey = buildTwinKey(org.id, space.id, capture.id, "abort.bin");
     const abortCreated = await s3.send(
@@ -316,6 +343,7 @@ async function main() {
     console.log("[smoke-dt-pipeline] Results:");
     console.log(`  multipart complete: ${results.multipart}`);
     console.log(`  storage metering:   ${results.storage}`);
+    console.log(`  storage quota RPC:  ${results.storageQuota}`);
     console.log(`  abort:              ${results.abort}`);
     console.log(`  job queued:         ${results.job}`);
 
