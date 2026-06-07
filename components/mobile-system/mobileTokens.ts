@@ -122,7 +122,7 @@ export const mobileTokens = {
   mobileBottomNavItemIdle:
     "text-[var(--mobile-bottom-nav-fg-inactive)] hover:bg-[color-mix(in_srgb,var(--surface-zinc)_88%,white)] hover:text-[color-mix(in_srgb,var(--mobile-bottom-nav-fg-inactive)_85%,white)]",
   mobileBottomNavActiveIndicator:
-    "absolute left-1/2 top-0 h-[2.5px] w-10 -translate-x-1/2 rounded-b-full bg-[var(--mobile-bottom-nav-fg-active)] shadow-[0_2px_12px_color-mix(in_srgb,var(--graphite-primary)_35%,transparent)]",
+    "absolute left-1/2 top-0 h-[2.5px] w-10 -translate-x-1/2 rounded-b-full bg-[var(--mobile-bottom-nav-fg-active)] shadow-[0_2px_12px_var(--mobile-shell-accent-glow)]",
   mobileBottomNavBar:
     "relative z-20 shrink-0 rounded-t-3xl border-t border-[var(--mobile-bottom-nav-border)] bg-[var(--mobile-bottom-nav-bg)] shadow-[0_-10px_28px_rgba(0,0,0,0.5)] backdrop-blur-lg",
   mobileModalOverlay:
@@ -155,7 +155,7 @@ export const mobileTokens = {
   mobileGlassCardSelected:
     "border-teal-400/35 bg-white/[0.07] ring-1 ring-teal-400/25",
   mobileDockEmptyAction:
-    "text-sm font-medium text-teal-300 hover:text-teal-200 hover:underline",
+    "text-sm font-medium text-[color-mix(in_srgb,var(--mobile-shell-accent)_80%,white)] hover:text-[color-mix(in_srgb,var(--mobile-shell-accent)_92%,white)] hover:underline",
 
   // ── Section labels ───────────────────────────────────────────────────────
   sectionLabel:
@@ -231,7 +231,7 @@ export const mobileTokens = {
   panelTabStripWrapper: "shrink-0 border-b border-white/10 px-3",
   panelTabList: "h-10 w-full bg-transparent p-0",
   panelTabTrigger:
-    "flex-1 rounded-none border-b-2 border-transparent py-2.5 text-sm font-semibold text-zinc-200 transition-colors data-[state=active]:border-teal-400 data-[state=active]:bg-transparent data-[state=active]:text-white data-[state=active]:shadow-none",
+    "flex-1 rounded-none border-b-2 border-transparent py-2.5 text-sm font-semibold text-zinc-200 transition-colors data-[state=active]:border-[var(--mobile-shell-accent)] data-[state=active]:bg-transparent data-[state=active]:text-white data-[state=active]:shadow-none",
   mobileEmptyPanelHeight: "flex-1 min-h-[240px]",
   mobileListPanelHeight: "flex-1 min-h-[240px]",
   mobileTabbedPanelBodyPadding,
@@ -248,10 +248,12 @@ export const mobileTokens = {
     "pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-[#0B0F15]/55 via-[#0B0F15]/20 to-transparent z-[1]",
   mobileExpandablePanelCollapsedBodyFade:
     "pointer-events-none absolute inset-x-0 bottom-0 z-[4] h-14 bg-gradient-to-t from-[#0B0F15]/70 from-45% via-[#0B0F15]/30 via-75% to-transparent",
-  mobileExpandablePanelChevron: "size-7 shrink-0 text-teal-300",
+  mobileExpandablePanelChevron:
+    "size-7 shrink-0 text-[color-mix(in_srgb,var(--mobile-shell-accent)_80%,white)]",
   mobileExpandablePanelTabTrigger:
-    "flex-1 rounded-none border-b-2 border-transparent py-2.5 text-sm font-semibold text-zinc-200 transition-colors data-[state=active]:border-teal-400 data-[state=active]:bg-transparent data-[state=active]:text-white data-[state=active]:shadow-none",
-  mobileExpandablePanelToggleAccent: "flex-col gap-1 py-1.5 text-teal-400/90",
+    "flex-1 rounded-none border-b-2 border-transparent py-2.5 text-sm font-semibold text-zinc-200 transition-colors data-[state=active]:border-[var(--mobile-shell-accent)] data-[state=active]:bg-transparent data-[state=active]:text-white data-[state=active]:shadow-none",
+  mobileExpandablePanelToggleAccent:
+    "flex-col gap-1 py-1.5 text-[color-mix(in_srgb,var(--mobile-shell-accent)_90%,transparent)]",
   mobileExpandablePanelOuter: "relative z-30 w-full shrink-0 px-4 pb-3",
   mobileExpandablePanelExpandedPosition:
     "fixed inset-x-0 z-40 w-full px-4 pb-3 bottom-[calc(62px+env(safe-area-inset-bottom,0px))]",
@@ -282,10 +284,11 @@ export const mobileTokens = {
     "flex flex-col items-center justify-center gap-1.5 py-2 text-center",
   emptyStateIcon: "h-8 w-8 text-zinc-200",
   emptyStateText: "text-sm text-zinc-100 font-medium",
-  emptyStateAction: "text-sm font-medium text-teal-300 hover:text-teal-200 hover:underline",
+  emptyStateAction:
+    "text-sm font-medium text-[color-mix(in_srgb,var(--mobile-shell-accent)_80%,white)] hover:text-[color-mix(in_srgb,var(--mobile-shell-accent)_92%,white)] hover:underline",
 
   focusRing:
-    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400/50 focus-visible:ring-offset-1 focus-visible:ring-offset-[#0B0F15]",
+    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mobile-shell-accent-ring)] focus-visible:ring-offset-1 focus-visible:ring-offset-[#0B0F15]",
 
   shellBrandLabel:
     "text-[17px] font-semibold leading-none tracking-tight text-white",

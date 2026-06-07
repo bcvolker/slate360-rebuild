@@ -48,7 +48,7 @@ export function MobileBottomNav<Key extends string = string>({
         {items.map(({ key, label, icon: Icon, href, onSelect }) => {
           const active = activeKey === key;
           const itemClassName = cn(
-            "relative flex h-full w-full flex-col items-center justify-center gap-1 rounded-lg py-2 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400/50",
+            "relative flex h-full w-full flex-col items-center justify-center gap-1 rounded-lg py-2 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mobile-shell-accent-ring)]",
             active ? mobileTokens.mobileBottomNavItemActive : mobileTokens.mobileBottomNavItemIdle,
           );
           const content = (

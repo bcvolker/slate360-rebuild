@@ -9,6 +9,7 @@ import { createPortal } from "react-dom";
 import { usePathname } from "next/navigation";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { resolveMobileRoute } from "./mainMobileTabs";
 import {
   MOBILE_HOME_DOCK_EXPANDED_CLAMP,
   mobileTokens,
@@ -36,7 +37,8 @@ export function MobileExpandableTabbedPanel({
   upper,
   className,
 }: MobileExpandableTabbedPanelProps) {
-  const pathname = usePathname();
+  const pathname = usePathname() ?? "";
+  const mobileRoute = resolveMobileRoute(pathname);
   const [expanded, setExpanded] = useState(false);
   const [mounted, setMounted] = useState(false);
   const panelId = useId();
@@ -136,7 +138,7 @@ export function MobileExpandableTabbedPanel({
     const expandedOverlay =
       expanded && mounted
         ? createPortal(
-            <>
+            <div data-mobile-route={mobileRoute}>
               <button
                 type="button"
                 className={mobileTokens.mobileExpandablePanelBackdrop}
@@ -151,7 +153,7 @@ export function MobileExpandableTabbedPanel({
               >
                 <div className="pointer-events-auto w-full">{dock}</div>
               </div>
-            </>,
+            </div>,
             document.body,
           )
         : null;

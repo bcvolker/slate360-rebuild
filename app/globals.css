@@ -185,9 +185,15 @@
   --surface-zinc-border: color-mix(in srgb, white 14%, transparent);
   --accent-border-green: color-mix(in srgb, var(--graphite-primary) 28%, transparent);
   --accent-border-blue: color-mix(in srgb, var(--twin360-blue) 28%, transparent);
+  /* Module shell accent — green default; digital-twin overrides below */
+  --mobile-shell-accent: var(--graphite-primary);
+  --mobile-shell-accent-soft: color-mix(in srgb, var(--mobile-shell-accent) 75%, white);
+  --mobile-shell-accent-border: color-mix(in srgb, var(--mobile-shell-accent) 28%, transparent);
+  --mobile-shell-accent-ring: color-mix(in srgb, var(--mobile-shell-accent) 50%, transparent);
+  --mobile-shell-accent-glow: color-mix(in srgb, var(--mobile-shell-accent) 35%, transparent);
   --mobile-bottom-nav-bg: #16181D;
   --mobile-bottom-nav-border: var(--surface-zinc-border);
-  --mobile-bottom-nav-fg-active: var(--graphite-primary);
+  --mobile-bottom-nav-fg-active: var(--mobile-shell-accent);
   --mobile-bottom-nav-fg-inactive: #A1A1AA;
   --mobile-header-bg: var(--mobile-bottom-nav-bg);
   --mobile-header-border: var(--mobile-bottom-nav-border);
@@ -691,12 +697,19 @@
    Meta fallback: screen-orientation in app/layout.tsx head.
    ───────────────────────────────────────────────────────────────── */
 [data-mobile-route="digital-twin"] {
+  --mobile-shell-accent: var(--twin360-blue);
   --mobile-field-primary-bg: var(--twin360-blue);
   --mobile-field-primary-fg: var(--graphite-canvas);
+  --mobile-quick-action-fg: var(--twin360-blue);
+  --mobile-quick-action-title-fg: color-mix(in srgb, var(--twin360-blue) 92%, white);
+  --mobile-quick-action-subtitle-fg: color-mix(in srgb, var(--twin360-blue) 62%, var(--graphite-muted));
+  --mobile-quick-action-icon-bg: color-mix(in srgb, var(--twin360-blue) 8%, var(--surface-zinc));
+  --mobile-quick-action-icon-border: var(--accent-border-blue);
 }
 
 [data-mobile-route="site-walk"],
 [data-mobile-route="app"] {
+  --mobile-shell-accent: var(--graphite-primary);
   --mobile-field-primary-bg: var(--graphite-primary);
   --mobile-field-primary-fg: var(--graphite-canvas);
 }

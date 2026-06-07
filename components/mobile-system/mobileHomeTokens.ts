@@ -41,11 +41,11 @@ export const mobileHomeTokens = {
   mobileHomeRailCardTitle: "truncate text-sm font-semibold text-zinc-100",
   mobileHomeRailCardMeta: "truncate text-xs text-zinc-400",
   mobileHomeRowLink:
-    "flex min-h-14 items-center justify-between gap-3 rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-2 transition-colors hover:border-white/[0.14] hover:bg-white/[0.07] active:scale-[0.99]",
+    "flex min-h-14 items-center justify-between gap-3 rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-2 transition-colors hover:border-[var(--mobile-shell-accent-border)] hover:bg-white/[0.07] active:scale-[0.99]",
   mobileHomeRowTitle: "min-w-0 truncate text-sm font-semibold text-zinc-100",
   mobileHomeRowMeta: "shrink-0 text-xs text-zinc-400",
   mobileHomeRowMetaPrimary:
-    "shrink-0 text-xs font-medium text-[color-mix(in_srgb,var(--graphite-primary)_80%,white)]",
+    "shrink-0 text-xs font-medium text-[color-mix(in_srgb,var(--mobile-shell-accent)_80%,white)]",
   mobileHomeRowMetaInfo:
     "shrink-0 text-xs font-medium text-[color-mix(in_srgb,var(--twin360-blue)_80%,white)]",
   mobileHomeContainedList:
