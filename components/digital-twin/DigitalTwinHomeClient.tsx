@@ -1,21 +1,35 @@
 "use client";
 
-import { useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { AppWindow, Boxes, FolderOpen, Scan, Upload } from "lucide-react";
+import {
+  Activity,
+  Boxes,
+  MapPin,
+  Scan,
+  Share2,
+  Upload,
+} from "lucide-react";
 import {
   MobileEmptyState,
   MobileExpandableTabbedPanel,
   MobileHomeActionCard,
-  MobileHomeActionGrid,
+  MobileHomeListRow,
   MobileQuickActionsSection,
+  MobileQuickActionStrip,
   mobileTokens,
   useMobileShellDock,
 } from "@/components/mobile-system";
-import type { MobilePanelTab } from "@/components/mobile-system";
-import { cn } from "@/lib/utils";
-import { twinAccent } from "@/lib/digital-twin/twin-accent";
+import type { MobilePanelTab, MobileQuickActionItem } from "@/components/mobile-system";
+import {
+  buildDigitalTwinDockRows,
+  DigitalTwinHomeFill,
+} from "@/components/digital-twin/DigitalTwinHomeFill";
+import { DigitalTwinProjectTargetSheet } from "@/components/digital-twin/DigitalTwinProjectTargetSheet";
+import {
+  buildTwinCaptureLaunchUrl,
+  buildTwinUploadLaunchUrl,
+} from "@/lib/digital-twin/twin-capture-launch";
 import type { HubTwin, HubTwinProject } from "@/lib/types/digital-twin-hub";
 
 type Props = {
@@ -24,16 +38,92 @@ type Props = {
   projects: HubTwinProject[];
 };
 
-function formatTwinStatus(status: string) {
-  return status.replace(/_/g, " ");
+function DockRowList({
+  rows,
+}: {
+  rows: {
+    key: string;
+    title: string;
+    meta?: string;
+    href?: string;
+    metaTone?: "neutral" | "primary" | "info";
+  }[];
+}) {
+  return (
+    <div className="space-y-2">
+      {rows.map((row) => (
+        <MobileHomeListRow
+          key={row.key}
+          title={row.title}
+          meta={row.meta}
+          metaTone={row.metaTone}
+          href={row.href}
+        />
+      ))}
+    </div>
+  );
 }
 
 export function DigitalTwinHomeClient({ twins, projects }: Props) {
   const router = useRouter();
+  const [targetSheetOpen, setTargetSheetOpen] = useState(false);
 
-  function handleQuickCapture() {
-    router.push("/digital-twin/capture");
-  }
+  const scanFromProjectSubtext = useMemo(() => {
+    if (projects.length === 1) return `Capture for ${projects[0]!.name}`;
+    if (projects.length > 1) return `Choose from ${projects.length} projects`;
+    return "Create a project to scan with full context";
+  }, [projects]);
+
+  const handleQuickScan = useCallback(() => {
+    router.push(buildTwinCaptureLaunchUrl({ mode: "quick" }));
+  }, [router]);
+
+  const handleScanFromProject = useCallback(() => {
+    if (projects.length === 0) {
+      router.push("/projects");
+      return;
+    }
+    setTargetSheetOpen(true);
+  }, [projects.length, router]);
+
+  const handleProjectSelected = useCallback(
+    (project: HubTwinProject) => {
+      router.push(
+        buildTwinCaptureLaunchUrl({ projectId: project.id, mode: "project" }),
+      );
+    },
+    [router],
+  );
+
+  const dockRows = useMemo(
+    () => buildDigitalTwinDockRows(twins, projects),
+    [projects, twins],
+  );
+
+  const quickActions: MobileQuickActionItem[] = useMemo(
+    () => [
+      { label: "My Twins", icon: Boxes, accent: "info", href: "/digital-twin/twins" },
+      {
+        label: "Upload Assets",
+        icon: Upload,
+        accent: "info",
+        href: buildTwinUploadLaunchUrl({ mode: "quick" }),
+      },
+      {
+        label: "Shared",
+        icon: Share2,
+        accent: "info",
+        href: "/digital-twin/twins",
+      },
+      {
+        label: "Processing",
+        icon: Activity,
+        accent: "info",
+        href: "/digital-twin/twins",
+      },
+    ],
+    [],
+  );
 
   const dockTabs: MobilePanelTab[] = useMemo(
     () => [
@@ -41,30 +131,16 @@ export function DigitalTwinHomeClient({ twins, projects }: Props) {
         value: "recent",
         label: "Recent Twins",
         content:
-          twins.length > 0 ? (
-            <ul className="space-y-2">
-              {twins.slice(0, 8).map((twin) => (
-                <li key={twin.id}>
-                  <Link
-                    href={`/digital-twin/twins/${twin.id}`}
-                    className="flex items-center justify-between gap-2 rounded-xl border border-white/[0.05] px-3 py-2.5 text-sm transition-colors hover:bg-white/[0.03]"
-                  >
-                    <span className="min-w-0 truncate text-[#F8FAFC]">{twin.title}</span>
-                    <span className="shrink-0 text-xs capitalize text-zinc-300">
-                      {formatTwinStatus(twin.status)}
-                    </span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
+          dockRows.twins.length > 0 ? (
+            <DockRowList rows={dockRows.twins} />
           ) : (
             <MobileEmptyState
               compact
               icon={Boxes}
               title="No twins yet"
-              actionLabel="Start quick capture"
+              actionLabel="Start quick scan"
               actionClassName={mobileTokens.mobileDockEmptyAction}
-              onAction={handleQuickCapture}
+              onAction={handleQuickScan}
             />
           ),
       },
@@ -72,28 +148,10 @@ export function DigitalTwinHomeClient({ twins, projects }: Props) {
         value: "projects",
         label: "Workspaces",
         content:
-          projects.length > 0 ? (
-            <ul className="space-y-2">
-              {projects.slice(0, 8).map((project) => (
-                <li key={project.id}>
-                  <Link
-                    href={`/projects/${project.id}`}
-                    className="block rounded-xl border border-white/[0.05] px-3 py-2.5 text-sm text-[#F8FAFC] transition-colors hover:bg-white/[0.03]"
-                  >
-                    {project.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
+          dockRows.projects.length > 0 ? (
+            <DockRowList rows={dockRows.projects} />
           ) : (
-            <MobileEmptyState
-              compact
-              icon={FolderOpen}
-              title="No workspaces linked yet"
-              actionLabel="View projects"
-              actionClassName={mobileTokens.mobileDockEmptyAction}
-              actionHref="/projects"
-            />
+            <MobileEmptyState compact icon={MapPin} title="No workspaces linked yet" />
           ),
       },
       {
@@ -102,66 +160,79 @@ export function DigitalTwinHomeClient({ twins, projects }: Props) {
         content: (
           <MobileEmptyState
             compact
-            icon={AppWindow}
+            icon={Share2}
             title="Nothing shared with you yet"
             description="Twins shared by teammates will appear here."
           />
         ),
       },
     ],
-    [projects, twins],
+    [dockRows, handleQuickScan],
   );
 
   const dockContent = useMemo(
-    () => (
-      <div className={mobileTokens.mobileShellDockStack}>
-        <MobileQuickActionsSection>
-          <MobileHomeActionGrid aria-label="Quick actions">
-            <MobileHomeActionCard
-              title="Quick Capture"
-              subtext="Camera and LiDAR when available"
-              icon={Scan}
-              onClick={handleQuickCapture}
-            />
-            <MobileHomeActionCard
-              title="Upload from Phone"
-              subtext="360 video or drone footage"
-              icon={Upload}
-              href="/digital-twin/upload"
-            />
-            <MobileHomeActionCard
-              title="My Twins"
-              subtext="View existing twins"
-              icon={Boxes}
-              href="/digital-twin/twins"
-            />
-            <MobileHomeActionCard
-              title="Projects"
-              subtext="Workspace context"
-              icon={FolderOpen}
-              href="/projects"
-            />
-          </MobileHomeActionGrid>
-        </MobileQuickActionsSection>
-        <MobileExpandableTabbedPanel tabs={dockTabs} defaultTab="recent" />
-      </div>
-    ),
+    () => <MobileExpandableTabbedPanel tabs={dockTabs} defaultTab="recent" />,
     [dockTabs],
   );
 
   useMobileShellDock(dockContent);
 
   return (
-    <div data-mobile-route="digital-twin" className={mobileTokens.mobileShellScrollInner}>
-      <div className="flex shrink-0 items-center gap-3">
-        <span
-          className={cn("flex shrink-0 items-center justify-center", twinAccent.iconChip, mobileTokens.mobileIconChipLg)}
-          aria-hidden
-        >
-          <AppWindow className={mobileTokens.mobileIconChipIconLg} strokeWidth={1.75} />
-        </span>
-        <h1 className={cn(mobileTokens.moduleTitle, "min-w-0")}>DIGITAL TWIN</h1>
-      </div>
+    <div data-mobile-route="digital-twin" className={mobileTokens.appHomeScrollInner}>
+      <section className={mobileTokens.mobileHomeSection}>
+        <div className={mobileTokens.mobileHomeSectionHeader}>
+          <span className={mobileTokens.twin360HomeSectionLabelAccent} aria-hidden />
+          <p className={mobileTokens.appHomeSectionLabel}>Start Scan</p>
+        </div>
+        <div className={mobileTokens.twin360StartScanGrid}>
+          <MobileHomeActionCard
+            title="Quick Scan"
+            subtext="Walk a space and capture now"
+            icon={Scan}
+            onClick={handleQuickScan}
+            accent="info"
+            className={mobileTokens.twin360StartScanCard}
+            iconWrapperClassName={mobileTokens.twin360StartScanIconWrapper}
+            iconClassName={mobileTokens.twin360StartScanIcon}
+            titleClassName={mobileTokens.twin360StartScanTitle}
+            subtextClassName={mobileTokens.twin360StartScanSubtext}
+            aria-label="Start a quick scan"
+          />
+          <MobileHomeActionCard
+            title="Scan from Project"
+            subtext={scanFromProjectSubtext}
+            icon={MapPin}
+            onClick={handleScanFromProject}
+            accent="info"
+            className={mobileTokens.twin360StartScanCard}
+            iconWrapperClassName={mobileTokens.twin360StartScanIconWrapper}
+            iconClassName={mobileTokens.twin360StartScanIcon}
+            titleClassName={mobileTokens.twin360StartScanTitle}
+            subtextClassName={mobileTokens.twin360StartScanSubtext}
+            aria-label="Scan from a project"
+          />
+        </div>
+      </section>
+
+      <MobileQuickActionsSection
+        labelClassName={mobileTokens.appHomeSectionLabel}
+        accentClassName={mobileTokens.twin360HomeSectionLabelAccent}
+      >
+        <MobileQuickActionStrip
+          actions={quickActions}
+          className={mobileTokens.appHomeQuickActionGrid}
+          cardClassName={mobileTokens.twin360QuickActionCard}
+        />
+      </MobileQuickActionsSection>
+
+      <DigitalTwinHomeFill twins={twins} projects={projects} />
+
+      <DigitalTwinProjectTargetSheet
+        open={targetSheetOpen}
+        onOpenChange={setTargetSheetOpen}
+        projects={projects}
+        onSelect={handleProjectSelected}
+      />
     </div>
   );
 }

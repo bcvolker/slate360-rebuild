@@ -17,6 +17,8 @@ import { TwinJobStatus } from "./TwinJobStatus";
 type Props = {
   spaces: HubTwin[];
   projects: HubTwinProject[];
+  initialProjectId?: string | null;
+  lockProject?: boolean;
 };
 
 function formatBytes(bytes: number): string {
@@ -25,17 +27,32 @@ function formatBytes(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-export function TwinUploadPanel({ spaces, projects }: Props) {
-  const [localSpaces, setLocalSpaces] = useState(spaces);
-  const [spaceId, setSpaceId] = useState(spaces[0]?.id ?? "");
+export function TwinUploadPanel({
+  spaces,
+  projects,
+  initialProjectId,
+  lockProject = false,
+}: Props) {
+  const scopedSpaces = useMemo(() => {
+    if (!lockProject || !initialProjectId) return spaces;
+    return spaces.filter((space) => space.projectId === initialProjectId);
+  }, [initialProjectId, lockProject, spaces]);
+
+  const scopedProjects = useMemo(() => {
+    if (!lockProject || !initialProjectId) return projects;
+    return projects.filter((project) => project.id === initialProjectId);
+  }, [initialProjectId, lockProject, projects]);
+
+  const [localSpaces, setLocalSpaces] = useState(scopedSpaces);
+  const [spaceId, setSpaceId] = useState(scopedSpaces[0]?.id ?? "");
   const [projectId, setProjectId] = useState(
-    spaces[0]?.projectId ?? projects[0]?.id ?? "",
+    initialProjectId ?? scopedSpaces[0]?.projectId ?? scopedProjects[0]?.id ?? "",
   );
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
   useEffect(() => {
-    setLocalSpaces(spaces);
-  }, [spaces]);
+    setLocalSpaces(scopedSpaces);
+  }, [scopedSpaces]);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const {
     files,
@@ -127,13 +144,19 @@ export function TwinUploadPanel({ spaces, projects }: Props) {
             <Upload className="h-5 w-5" />
           </span>
           <div className="min-w-0">
-            <h2 className="text-sm font-semibold text-zinc-100">Upload from Phone</h2>
-            <p className="text-xs text-zinc-400">360 video or drone footage on device</p>
+            <h2 className="text-sm font-semibold text-zinc-100">Upload Assets</h2>
+            <p className="text-xs text-zinc-400">
+              Phone files, camera roll, or field uploads for this twin
+            </p>
           </div>
         </div>
 
         {localSpaces.length === 0 ? (
-          <CreateTwinSpaceForm projects={projects} onCreated={handleSpaceCreated} />
+          <CreateTwinSpaceForm
+            projects={scopedProjects}
+            lockedProjectId={lockProject ? initialProjectId ?? undefined : undefined}
+            onCreated={handleSpaceCreated}
+          />
         ) : (
           <>
             <label className="flex flex-col gap-1 text-xs text-zinc-400">

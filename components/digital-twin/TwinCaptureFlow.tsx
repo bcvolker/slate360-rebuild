@@ -16,6 +16,8 @@ import { useTwinCreditEstimate } from "@/hooks/useTwinCreditEstimate";
 type Props = {
   spaces: HubTwin[];
   projects: HubTwinProject[];
+  initialProjectId?: string | null;
+  lockProject?: boolean;
 };
 
 type Step = "picker" | "capture" | "upload";
@@ -26,7 +28,12 @@ type Selection = {
   spaceTitle: string;
 };
 
-export function TwinCaptureFlow({ spaces, projects }: Props) {
+export function TwinCaptureFlow({
+  spaces,
+  projects,
+  initialProjectId,
+  lockProject = false,
+}: Props) {
   const [localSpaces, setLocalSpaces] = useState(spaces);
   const [step, setStep] = useState<Step>("picker");
   const [selection, setSelection] = useState<Selection | null>(null);
@@ -110,6 +117,8 @@ export function TwinCaptureFlow({ spaces, projects }: Props) {
       <TwinCapturePicker
         spaces={localSpaces}
         projects={projects}
+        initialProjectId={initialProjectId}
+        lockProject={lockProject}
         onStart={handlePickerStart}
         onSpaceCreated={handleSpaceCreated}
       />

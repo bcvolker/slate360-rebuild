@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import Link from "next/link";
 import { IconChevronRight, IconScan } from "@tabler/icons-react";
 import { mobileTokens } from "@/components/mobile-system";
@@ -12,28 +12,51 @@ import { CreateTwinSpaceForm } from "./CreateTwinSpaceForm";
 type Props = {
   spaces: HubTwin[];
   projects: HubTwinProject[];
+  initialProjectId?: string | null;
+  lockProject?: boolean;
   onStart: (selection: { spaceId: string; projectId: string; spaceTitle: string }) => void;
   onSpaceCreated?: (space: HubTwin) => void;
 };
 
-export function TwinCapturePicker({ spaces, projects, onStart, onSpaceCreated }: Props) {
-  const [spaceId, setSpaceId] = useState(spaces[0]?.id ?? "");
+export function TwinCapturePicker({
+  spaces,
+  projects,
+  initialProjectId,
+  lockProject = false,
+  onStart,
+  onSpaceCreated,
+}: Props) {
+  const scopedSpaces = useMemo(() => {
+    if (!lockProject || !initialProjectId) return spaces;
+    return spaces.filter((space) => space.projectId === initialProjectId);
+  }, [initialProjectId, lockProject, spaces]);
+
+  const scopedProjects = useMemo(() => {
+    if (!lockProject || !initialProjectId) return projects;
+    return projects.filter((project) => project.id === initialProjectId);
+  }, [initialProjectId, lockProject, projects]);
+
+  const [spaceId, setSpaceId] = useState(scopedSpaces[0]?.id ?? "");
   const [projectId, setProjectId] = useState(
-    spaces[0]?.projectId ?? projects[0]?.id ?? "",
+    initialProjectId ?? scopedSpaces[0]?.projectId ?? scopedProjects[0]?.id ?? "",
   );
 
-  const selectedSpace = spaces.find((row) => row.id === spaceId) ?? null;
+  const selectedSpace = scopedSpaces.find((row) => row.id === spaceId) ?? null;
 
   const onSpaceChange = useCallback(
     (nextSpaceId: string) => {
       setSpaceId(nextSpaceId);
-      const space = spaces.find((row) => row.id === nextSpaceId);
+      const space = scopedSpaces.find((row) => row.id === nextSpaceId);
       if (space?.projectId) setProjectId(space.projectId);
     },
-    [spaces],
+    [scopedSpaces],
   );
 
   const canStart = Boolean(spaceId && projectId);
+  const heading = lockProject ? "Scan from Project" : "Quick Scan";
+  const subheading = lockProject
+    ? "Capture with project files and workspace context"
+    : "Walk the space and capture photos or video";
 
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain px-4 py-4">
@@ -48,14 +71,15 @@ export function TwinCapturePicker({ spaces, projects, onStart, onSpaceCreated }:
             <IconScan className="h-5 w-5" stroke={1.75} />
           </span>
           <div className="min-w-0">
-            <h2 className="text-sm font-semibold text-zinc-100">Quick Capture</h2>
-            <p className="text-xs text-zinc-400">Walk the space and capture photos or video</p>
+            <h2 className="text-sm font-semibold text-zinc-100">{heading}</h2>
+            <p className="text-xs text-zinc-400">{subheading}</p>
           </div>
         </div>
 
-        {spaces.length === 0 ? (
+        {scopedSpaces.length === 0 ? (
           <CreateTwinSpaceForm
-            projects={projects}
+            projects={scopedProjects}
+            lockedProjectId={lockProject ? initialProjectId ?? undefined : undefined}
             onCreated={(space) => {
               onSpaceCreated?.(space);
               setSpaceId(space.id);
@@ -71,7 +95,7 @@ export function TwinCapturePicker({ spaces, projects, onStart, onSpaceCreated }:
                 onChange={(e) => onSpaceChange(e.target.value)}
                 className="min-h-[44px] rounded-xl border border-white/10 bg-white/[0.04] px-3 text-sm text-zinc-100"
               >
-                {spaces.map((space) => (
+                {scopedSpaces.map((space) => (
                   <option key={space.id} value={space.id}>
                     {space.title}
                     {space.projectName ? ` · ${space.projectName}` : ""}
@@ -80,7 +104,7 @@ export function TwinCapturePicker({ spaces, projects, onStart, onSpaceCreated }:
               </select>
             </label>
 
-            {projects.length > 1 && !selectedSpace?.projectId ? (
+            {scopedProjects.length > 1 && !selectedSpace?.projectId && !lockProject ? (
               <label className="flex flex-col gap-1 text-xs text-zinc-400">
                 Project
                 <select
@@ -88,7 +112,7 @@ export function TwinCapturePicker({ spaces, projects, onStart, onSpaceCreated }:
                   onChange={(e) => setProjectId(e.target.value)}
                   className="min-h-[44px] rounded-xl border border-white/10 bg-white/[0.04] px-3 text-sm text-zinc-100"
                 >
-                  {projects.map((project) => (
+                  {scopedProjects.map((project) => (
                     <option key={project.id} value={project.id}>
                       {project.name}
                     </option>
@@ -98,7 +122,8 @@ export function TwinCapturePicker({ spaces, projects, onStart, onSpaceCreated }:
             ) : null}
 
             <CreateTwinSpaceForm
-              projects={projects}
+              projects={scopedProjects}
+              lockedProjectId={lockProject ? initialProjectId ?? undefined : undefined}
               onCreated={(space) => {
                 onSpaceCreated?.(space);
                 setSpaceId(space.id);
@@ -120,7 +145,7 @@ export function TwinCapturePicker({ spaces, projects, onStart, onSpaceCreated }:
           }
           className={cn(
             "inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold",
-            mobileTokens.mobilePrimaryButton,
+            twinAccent.button,
             mobileTokens.focusRing,
             !canStart && "pointer-events-none opacity-50",
           )}

@@ -10,17 +10,27 @@ type Props = {
   projects: HubTwinProject[];
   onCreated: (space: HubTwin) => void;
   className?: string;
+  /** When set, new workspaces attach to this project only. */
+  lockedProjectId?: string;
 };
 
-export function CreateTwinSpaceForm({ projects, onCreated, className }: Props) {
+export function CreateTwinSpaceForm({
+  projects,
+  onCreated,
+  className,
+  lockedProjectId,
+}: Props) {
   const [title, setTitle] = useState("");
-  const [projectId, setProjectId] = useState(projects[0]?.id ?? "");
+  const [projectId, setProjectId] = useState(
+    lockedProjectId ?? projects[0]?.id ?? "",
+  );
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleCreate = useCallback(async () => {
     const trimmed = title.trim();
-    if (!trimmed || !projectId) return;
+    const effectiveProjectId = lockedProjectId ?? projectId;
+    if (!trimmed || !effectiveProjectId) return;
 
     setBusy(true);
     setError(null);
@@ -29,7 +39,7 @@ export function CreateTwinSpaceForm({ projects, onCreated, className }: Props) {
       const res = await fetch("/api/digital-twin/spaces", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: trimmed, project_id: projectId }),
+        body: JSON.stringify({ title: trimmed, project_id: effectiveProjectId }),
       });
       const data = (await res.json().catch(() => ({}))) as {
         space?: HubTwin;
@@ -47,7 +57,7 @@ export function CreateTwinSpaceForm({ projects, onCreated, className }: Props) {
     } finally {
       setBusy(false);
     }
-  }, [onCreated, projectId, title]);
+  }, [lockedProjectId, onCreated, projectId, title]);
 
   if (!projects.length) {
     return (
@@ -66,21 +76,30 @@ export function CreateTwinSpaceForm({ projects, onCreated, className }: Props) {
     >
       <p className="mb-2 text-xs font-semibold text-zinc-300">Create twin workspace</p>
 
-      <label className="mb-2 flex flex-col gap-1 text-xs text-zinc-400">
-        Project
-        <select
-          value={projectId}
-          onChange={(e) => setProjectId(e.target.value)}
-          className="min-h-[44px] rounded-xl border border-white/10 bg-white/[0.04] px-3 text-sm text-zinc-100"
-          disabled={busy}
-        >
-          {projects.map((project) => (
-            <option key={project.id} value={project.id}>
-              {project.name}
-            </option>
-          ))}
-        </select>
-      </label>
+      {lockedProjectId ? (
+        <p className="mb-2 text-xs text-zinc-400">
+          Project:{" "}
+          <span className="font-semibold text-zinc-200">
+            {projects.find((row) => row.id === lockedProjectId)?.name ?? "Selected project"}
+          </span>
+        </p>
+      ) : (
+        <label className="mb-2 flex flex-col gap-1 text-xs text-zinc-400">
+          Project
+          <select
+            value={projectId}
+            onChange={(e) => setProjectId(e.target.value)}
+            className="min-h-[44px] rounded-xl border border-white/10 bg-white/[0.04] px-3 text-sm text-zinc-100"
+            disabled={busy}
+          >
+            {projects.map((project) => (
+              <option key={project.id} value={project.id}>
+                {project.name}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
 
       <label className="mb-3 flex flex-col gap-1 text-xs text-zinc-400">
         Workspace name
@@ -96,7 +115,7 @@ export function CreateTwinSpaceForm({ projects, onCreated, className }: Props) {
       <button
         type="button"
         onClick={() => void handleCreate()}
-        disabled={busy || !title.trim() || !projectId}
+        disabled={busy || !title.trim() || !(lockedProjectId ?? projectId)}
         className={cn(twinAccent.button, "inline-flex w-full min-h-[44px] items-center justify-center gap-2")}
       >
         {busy ? (
