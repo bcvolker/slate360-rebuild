@@ -41,6 +41,8 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
+.tsbuildinfo-scoped
+tsconfig.typecheck-scoped.json
 next-env.d.ts
 .gitnexus
 

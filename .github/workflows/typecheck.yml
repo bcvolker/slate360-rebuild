@@ -1,0 +1,33 @@
+name: typecheck
+
+on:
+  push:
+    branches:
+      - main
+      - feature/digital-twin-lite
+  pull_request:
+    branches:
+      - main
+      - feature/digital-twin-lite
+
+jobs:
+  typecheck:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Full project typecheck
+        run: npm run typecheck
+        env:
+          NODE_OPTIONS: --max-old-space-size=12288

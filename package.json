@@ -11,6 +11,7 @@
     "dev:tunnel": "cloudflared tunnel --url http://localhost:3000",
     "build": "node scripts/ops/next-production-build.mjs",
     "typecheck": "tsc --noEmit",
+    "typecheck:changed": "node scripts/ops/typecheck-scoped.mjs",
     "guard:file-size-regression": "node scripts/ops/check-file-size-regression.mjs",
     "guard:architecture": "node scripts/ops/check-architecture-guardrails.mjs",
     "guard:build-stability": "node scripts/ops/check-build-stability.mjs",

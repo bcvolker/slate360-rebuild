@@ -51,10 +51,33 @@ Use **feature branches** for high-risk work: migrations, auth/middleware, billin
 
 ## Validation Rules
 
-Before marking implementation work complete, run:
+Use **validation tiers** — do not require a full-repo typecheck for every isolated change.
 
-1. `npm run typecheck`
-2. `npm run build`
-3. Relevant guardrails for the touched area
+### Tier A — isolated / marketing / single-feature (local)
+
+Before marking work complete:
+
+1. `npm run typecheck:changed` (default: git-changed `.ts`/`.tsx` vs `main`) **or** scope a directory:
+   `npm run typecheck:changed -- app/(public)`
+2. ESLint on staged files (via `lint-staged` on commit, or `npx eslint <paths>`)
+3. `npm run build`
+4. Relevant guardrails for the touched area (`guard:architecture`, etc.)
+
+### Tier B — full type safety (CI / pre-merge to `main`)
+
+Full project typecheck runs in GitHub Actions (`.github/workflows/typecheck.yml`) on every push/PR to `main` and `feature/digital-twin-lite`:
+
+```bash
+NODE_OPTIONS=--max-old-space-size=12288 npm run typecheck
+```
+
+Run Tier B locally only when you have headroom (Linux/WSL or a machine that does not OOM). **A local full typecheck OOM must not block Tier A work** — rely on CI for the full gate.
 
 Do not hide failures. Do not fix unrelated failures without explicit approval.
+
+## Windows Agent Conventions
+
+- **PowerShell chaining:** use `;` to sequence commands, not `&&` (e.g. `npm run build; npm run guard:architecture`).
+- **Scoped typecheck:** `npm run typecheck:changed -- app/(public)/_components` — pass any repo-relative directory or `.ts`/`.tsx` file after `--`.
+- **Git-changed default:** `npm run typecheck:changed` with no args diffs against `main` (or `origin/main`).
+- **Full typecheck:** prefer CI; local `npm run typecheck` may exhaust Node heap on large diffs.
