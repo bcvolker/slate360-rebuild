@@ -1,7 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { IconLoader2 } from "@tabler/icons-react";
+import { formatQuickScanSpaceTitle } from "@/lib/digital-twin/quick-scan-title";
 import { twinAccent } from "@/lib/digital-twin/twin-accent";
 import { cn } from "@/lib/utils";
 import { useMultipartTwinUpload } from "@/hooks/useMultipartTwinUpload";
@@ -18,7 +21,10 @@ type Props = {
   projects: HubTwinProject[];
   initialProjectId?: string | null;
   lockProject?: boolean;
+  quickMode?: boolean;
 };
+
+type QuickBootState = "idle" | "loading" | "error" | "done";
 
 type Step = "picker" | "capture" | "upload";
 
@@ -33,12 +39,17 @@ export function TwinCaptureFlow({
   projects,
   initialProjectId,
   lockProject = false,
+  quickMode = false,
 }: Props) {
+  const router = useRouter();
+  const skipPicker = quickMode && !lockProject;
   const [localSpaces, setLocalSpaces] = useState(spaces);
-  const [step, setStep] = useState<Step>("picker");
+  const [step, setStep] = useState<Step>(skipPicker ? "capture" : "picker");
   const [selection, setSelection] = useState<Selection | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [queueBusy, setQueueBusy] = useState(false);
+  const [quickBoot, setQuickBoot] = useState<QuickBootState>(skipPicker ? "loading" : "idle");
+  const [quickBootError, setQuickBootError] = useState<string | null>(null);
 
   const {
     files,
@@ -54,6 +65,66 @@ export function TwinCaptureFlow({
   useEffect(() => {
     setLocalSpaces(spaces);
   }, [spaces]);
+
+  useEffect(() => {
+    if (!skipPicker || quickBoot !== "loading") return;
+
+    let cancelled = false;
+
+    async function bootQuickScan() {
+      const project = projects[0];
+      if (!project) {
+        if (!cancelled) {
+          setQuickBootError("Create an active project before starting a quick scan.");
+          setQuickBoot("error");
+        }
+        return;
+      }
+
+      const title = formatQuickScanSpaceTitle();
+
+      try {
+        const res = await fetch("/api/digital-twin/spaces", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ title, project_id: project.id }),
+        });
+        const data = (await res.json().catch(() => ({}))) as {
+          space?: HubTwin;
+          error?: string;
+        };
+
+        if (!res.ok || !data.space?.id) {
+          throw new Error(data.error ?? "Could not create workspace");
+        }
+
+        if (cancelled) return;
+
+        setLocalSpaces((prev) => [data.space!, ...prev.filter((row) => row.id !== data.space!.id)]);
+        setSelection({
+          spaceId: data.space.id,
+          projectId: project.id,
+          spaceTitle: title,
+        });
+        setQuickBoot("done");
+        setStep("capture");
+      } catch (err) {
+        if (!cancelled) {
+          setQuickBootError(err instanceof Error ? err.message : "Quick scan setup failed");
+          setQuickBoot("error");
+        }
+      }
+    }
+
+    void bootQuickScan();
+    return () => {
+      cancelled = true;
+    };
+  }, [projects, quickBoot, skipPicker]);
+
+  const handleExitQuickFlow = useCallback(() => {
+    router.push("/digital-twin");
+  }, [router]);
 
   const handleSpaceCreated = useCallback((space: HubTwin) => {
     setLocalSpaces((prev) => [space, ...prev.filter((row) => row.id !== space.id)]);
@@ -112,6 +183,26 @@ export function TwinCaptureFlow({
   const { estimate: creditEstimate } = useTwinCreditEstimate(captureId, allComplete);
   const canQueue = allComplete && (creditEstimate?.sufficient ?? false) && !queueBusy;
 
+  if (quickBoot === "loading") {
+    return (
+      <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 px-4 py-8">
+        <IconLoader2 className={cn("h-8 w-8 animate-spin", twinAccent.spinner)} />
+        <p className="text-sm text-zinc-400">Preparing quick scan…</p>
+      </div>
+    );
+  }
+
+  if (quickBoot === "error") {
+    return (
+      <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 px-4 py-8 text-center">
+        <p className="text-sm text-zinc-300">{quickBootError ?? "Quick scan could not start."}</p>
+        <Link href="/projects" className={cn("text-sm font-semibold", twinAccent.link)}>
+          Go to projects
+        </Link>
+      </div>
+    );
+  }
+
   if (step === "picker") {
     return (
       <TwinCapturePicker
@@ -129,7 +220,7 @@ export function TwinCaptureFlow({
     return (
       <TwinCaptureScreen
         spaceName={selection.spaceTitle}
-        onCancel={() => setStep("picker")}
+        onCancel={skipPicker ? handleExitQuickFlow : () => setStep("picker")}
         onFinish={(result) => void handleCaptureFinish(result.files)}
       />
     );
@@ -200,10 +291,10 @@ export function TwinCaptureFlow({
 
         <button
           type="button"
-          onClick={() => setStep("picker")}
+          onClick={skipPicker ? handleExitQuickFlow : () => setStep("picker")}
           className="text-center text-xs text-zinc-400 hover:text-zinc-200"
         >
-          Back to workspace picker
+          {skipPicker ? "Back to Digital Twin" : "Back to workspace picker"}
         </button>
       </div>
     </div>

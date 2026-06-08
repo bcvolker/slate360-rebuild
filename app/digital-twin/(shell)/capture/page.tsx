@@ -12,6 +12,7 @@ export default async function DigitalTwinCapturePage({ searchParams }: PageProps
   const params = await searchParams;
   const initialProjectId = params.projectId?.trim() || null;
   const lockProject = params.mode === "project" && Boolean(initialProjectId);
+  const quickMode = params.mode === "quick";
 
   return (
     <TwinCaptureFlow
@@ -19,6 +20,7 @@ export default async function DigitalTwinCapturePage({ searchParams }: PageProps
       projects={projects}
       initialProjectId={initialProjectId}
       lockProject={lockProject}
+      quickMode={quickMode}
     />
   );
 }
