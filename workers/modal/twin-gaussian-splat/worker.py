@@ -467,6 +467,8 @@ def run_pipeline(job: JobInput, work_root: Path) -> dict[str, Any]:
             "@playcanvas/splat-transform",
             str(ply_path),
             str(spz_path),
+            "--spz-version",
+            "3",
         ]
     )
 
