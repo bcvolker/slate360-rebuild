@@ -34,7 +34,7 @@ export function TwinModelViewer({
   modelTitle: string;
 }) {
   if (viewerKind === "splat") {
-    return <SplatViewer src={modelUrl} className="min-h-[50vh] md:min-h-[60vh]" />;
+    return <SplatViewer src={modelUrl} className="h-full min-h-[280px]" />;
   }
 
   if (viewerKind === "model") {

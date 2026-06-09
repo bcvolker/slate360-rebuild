@@ -196,12 +196,12 @@ export function TwinShareAnnotateShell({
   );
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-3">
-      <div className="relative min-h-[40vh] flex-1">
+    <div className="flex h-full min-h-0 flex-col gap-2 overflow-hidden sm:gap-3">
+      <div className="relative min-h-0 flex-1 overflow-hidden">
         {viewerKind === "splat" ? (
           <TwinShareSplatViewer
             src={modelUrl}
-            className="min-h-[40vh] md:min-h-[50vh]"
+            className="h-full min-h-0"
             pickEnabled={pickEnabled}
             onPick={(pt) => void handlePick(pt)}
             cameraMode={cameraMode}
@@ -210,26 +210,27 @@ export function TwinShareAnnotateShell({
           <TwinModelViewer viewerKind={viewerKind} modelUrl={modelUrl} modelTitle={modelTitle} />
         )}
         {toast ? (
-          <p className="absolute bottom-3 left-1/2 z-20 -translate-x-1/2 rounded-xl border border-white/10 bg-[#0B0F15]/90 px-3 py-1.5 text-xs text-zinc-100">
+          <p className="absolute bottom-3 left-1/2 z-20 -translate-x-1/2 rounded-xl border border-[var(--accent-border-blue)] bg-[color-mix(in_srgb,var(--graphite-canvas)_90%,transparent)] px-3 py-1.5 text-xs text-zinc-100 backdrop-blur-md">
             {toast}
           </p>
         ) : null}
       </div>
 
-      <TwinShareToolStrip
-        tool={tool}
-        cameraMode={cameraMode}
-        canAnnotate={canAnnotate}
-        measureReady={measureReady}
-        viewerKind={viewerKind}
-        busy={busy}
-        onSelectTool={selectTool}
-        onToggleCameraMode={() => setCameraMode((m) => (m === "orbit" ? "walk" : "orbit"))}
-      />
+      <div className="shrink-0 space-y-2 overflow-y-auto pb-1 sm:max-h-[38vh]">
+        <TwinShareToolStrip
+          tool={tool}
+          cameraMode={cameraMode}
+          canAnnotate={canAnnotate}
+          measureReady={measureReady}
+          viewerKind={viewerKind}
+          busy={busy}
+          onSelectTool={selectTool}
+          onToggleCameraMode={() => setCameraMode((m) => (m === "orbit" ? "walk" : "orbit"))}
+        />
 
-      {canAnnotate ? (
-        <div className="space-y-2 rounded-xl border border-white/[0.08] bg-white/[0.03] p-3">
-          <input
+        {canAnnotate ? (
+          <div className="space-y-2 rounded-xl border border-[var(--accent-border-blue)] bg-[color-mix(in_srgb,var(--twin360-blue)_5%,transparent)] p-3">
+            <input
             value={authorName}
             onChange={(e) => setAuthorName(e.target.value)}
             placeholder="Your name"
@@ -263,23 +264,27 @@ export function TwinShareAnnotateShell({
               {APPROX_DISCLAIMER}
             </p>
           ) : null}
-        </div>
-      ) : null}
+          </div>
+        ) : null}
 
-      {error ? <p className="text-xs text-red-300">{error}</p> : null}
-      <div className="max-h-40 space-y-2 overflow-y-auto rounded-xl border border-white/[0.06] p-3">
-        <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Activity</p>
-        {thread.length === 0 && pins.length === 0 ? <p className="text-xs text-zinc-500">No comments or pins yet.</p> : null}
-        {thread.map((c) => (
-          <div key={c.id} className="text-xs text-zinc-300">
-            <span className={cn("font-semibold", twinAccent.text)}>{c.author_display ?? "Guest"}</span>: {c.body}
-          </div>
-        ))}
-        {pins.map((p) => (
-          <div key={p.id} className="text-xs text-zinc-300">
-            <span className={cn("font-semibold", twinAccent.text)}>Pin</span>: {p.title}
-          </div>
-        ))}
+        {error ? <p className="text-xs text-red-300">{error}</p> : null}
+        <div className="max-h-32 space-y-2 overflow-y-auto rounded-xl border border-[var(--accent-border-blue)] bg-[color-mix(in_srgb,var(--graphite-canvas)_80%,transparent)] p-3 sm:max-h-40">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Activity</p>
+          {thread.length === 0 && pins.length === 0 ? (
+            <p className="text-xs text-zinc-500">No comments or pins yet.</p>
+          ) : null}
+          {thread.map((c) => (
+            <div key={c.id} className="text-xs text-zinc-300">
+              <span className={cn("font-semibold", twinAccent.text)}>{c.author_display ?? "Guest"}</span>:{" "}
+              {c.body}
+            </div>
+          ))}
+          {pins.map((p) => (
+            <div key={p.id} className="text-xs text-zinc-300">
+              <span className={cn("font-semibold", twinAccent.text)}>Pin</span>: {p.title}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

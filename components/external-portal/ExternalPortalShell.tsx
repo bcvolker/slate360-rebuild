@@ -12,6 +12,7 @@ export function ExternalPortalShell({
   orgLogoUrl,
   headerActions,
   variant = "default",
+  accent = "default",
   showFooter = true,
   className,
 }: {
@@ -23,22 +24,27 @@ export function ExternalPortalShell({
   orgLogoUrl?: string | null;
   headerActions?: ReactNode;
   variant?: "default" | "immersive";
+  accent?: "default" | "twin";
   showFooter?: boolean;
   className?: string;
 }) {
   const immersive = variant === "immersive";
+  const twinAccent = accent === "twin";
 
   return (
     <div
       className={cn(
-        "min-h-screen flex flex-col bg-[#0B0F15] text-slate-100",
-        immersive ? "h-screen overflow-hidden" : "",
+        "min-h-screen flex flex-col bg-[var(--graphite-canvas)] text-[var(--graphite-text-body)]",
+        immersive ? "h-[100dvh] overflow-hidden" : "",
         className,
       )}
     >
       <header
         className={cn(
-          "shrink-0 border-b border-white/10 bg-[rgba(21,26,35,0.92)] backdrop-blur-md",
+          "shrink-0 border-b backdrop-blur-md",
+          twinAccent
+            ? "border-[var(--accent-border-blue)] bg-[color-mix(in_srgb,var(--graphite-canvas)_88%,transparent)]"
+            : "border-white/10 bg-[rgba(21,26,35,0.92)]",
           immersive ? "h-14" : "",
         )}
       >
@@ -50,9 +56,22 @@ export function ExternalPortalShell({
         >
           <div className="flex min-w-0 items-center gap-3">
             <SlateLogo size="sm" className="shrink-0" />
-            <div className="hidden h-5 w-px bg-white/15 sm:block" aria-hidden />
+            <div
+              className={cn(
+                "hidden h-5 w-px sm:block",
+                twinAccent ? "bg-[var(--accent-border-blue)]" : "bg-white/15",
+              )}
+              aria-hidden
+            />
             <div className="min-w-0">
-              <p className="truncate text-[10px] font-bold uppercase tracking-widest text-slate-500">
+              <p
+                className={cn(
+                  "truncate text-[10px] font-bold uppercase tracking-widest",
+                  twinAccent
+                    ? "text-[color-mix(in_srgb,var(--twin360-blue)_62%,var(--graphite-muted))]"
+                    : "text-slate-500",
+                )}
+              >
                 {portalLabel}
               </p>
               {title ? (

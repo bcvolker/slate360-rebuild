@@ -77,7 +77,7 @@ export function TwinViewerWorkspace({ viewer }: Props) {
 
   return (
     <>
-      <div className="min-h-[50vh] flex-1">
+      <div className="min-h-[min(52vh,520px)] flex-1 md:min-h-[min(68vh,720px)]">
         <TwinAuthenticatedViewer
           spaceId={viewer.spaceId}
           modelId={viewer.modelId}

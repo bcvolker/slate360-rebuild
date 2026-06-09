@@ -2,7 +2,6 @@
 
 import {
   ExternalPortalShell,
-  PortalGlassCard,
   TokenStatePage,
   type PortalTokenState,
 } from "@/components/external-portal";
@@ -57,10 +56,10 @@ export function TwinShareViewer({
 
   if (embed) {
     return (
-      <div className="fixed inset-0 flex flex-col bg-[#0B0F15]">
-        <div className="min-h-0 flex-1">{viewer}</div>
+      <div className="fixed inset-0 flex flex-col bg-[var(--graphite-canvas)]">
+        <div className="relative min-h-0 flex-1">{viewer}</div>
         {canDownload && shareToken ? (
-          <div className="shrink-0 border-t border-white/10 p-3">
+          <div className="shrink-0 border-t border-[var(--accent-border-blue)] p-3">
             <TwinShareDownloadButton shareToken={shareToken} />
           </div>
         ) : null}
@@ -75,27 +74,29 @@ export function TwinShareViewer({
       subtitle={orgName ? `Shared by ${orgName}` : "Interactive 3D model"}
       orgName={orgName ?? undefined}
       variant="immersive"
-      showFooter
+      accent="twin"
+      showFooter={false}
     >
-      <main className="flex min-h-0 flex-1 flex-col gap-3 p-3 sm:p-4">
-        <PortalGlassCard className="min-h-0 flex-1 overflow-hidden !p-3">
-          {viewer}
-        </PortalGlassCard>
-        {canDownload && shareToken ? (
-          <TwinShareDownloadButton shareToken={shareToken} />
-        ) : null}
-        <TwinViewerDisclaimer />
-        <p className="text-center text-[10px] text-zinc-500">
-          Powered by{" "}
-          <a
-            href="https://www.slate360.ai"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={cn("font-semibold", twinAccent.text, twinAccent.textHover)}
-          >
-            Slate360
-          </a>
-        </p>
+      <main className="flex min-h-0 flex-1 flex-col overflow-hidden">
+        <div className="relative min-h-0 flex-1 overflow-hidden">{viewer}</div>
+
+        <div className="shrink-0 space-y-2 border-t border-[var(--accent-border-blue)] bg-[color-mix(in_srgb,var(--graphite-canvas)_92%,transparent)] px-3 py-2 sm:px-4 sm:py-3">
+          {canDownload && shareToken ? (
+            <TwinShareDownloadButton shareToken={shareToken} />
+          ) : null}
+          <TwinViewerDisclaimer className="px-1 text-center text-[11px] leading-relaxed text-[var(--graphite-muted)]" />
+          <p className="text-center text-[10px] text-[var(--graphite-muted)]">
+            Powered by{" "}
+            <a
+              href="https://www.slate360.ai"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={cn("font-semibold", twinAccent.text, twinAccent.textHover)}
+            >
+              Slate360
+            </a>
+          </p>
+        </div>
       </main>
     </ExternalPortalShell>
   );

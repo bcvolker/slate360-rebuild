@@ -129,11 +129,11 @@ export function TwinAuthenticatedViewer({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-2">
-      <div className="relative min-h-[50vh] flex-1 md:min-h-[60vh]">
+      <div className="relative min-h-[min(52vh,520px)] flex-1 overflow-hidden md:min-h-[min(68vh,720px)]">
         {splatReady ? (
           <TwinShareSplatViewer
             src={modelUrl}
-            className="h-full min-h-[50vh] md:min-h-[60vh]"
+            className="h-full min-h-0"
             pickEnabled={pickEnabled}
             onPick={(pt) => void handlePick(pt)}
             modelVisible={layerVisible.model ?? true}
@@ -143,7 +143,7 @@ export function TwinAuthenticatedViewer({
           <TwinModelViewer viewerKind={viewerKind} modelUrl={modelUrl} modelTitle={modelTitle} />
         )}
         {toast ? (
-          <p className="absolute bottom-3 left-1/2 z-20 -translate-x-1/2 rounded-xl border border-white/10 bg-[#0B0F15]/90 px-3 py-1.5 text-xs text-zinc-100">
+          <p className="absolute bottom-3 left-1/2 z-20 -translate-x-1/2 rounded-xl border border-[var(--accent-border-blue)] bg-[color-mix(in_srgb,var(--graphite-canvas)_90%,transparent)] px-3 py-1.5 text-xs text-zinc-100 backdrop-blur-md">
             {toast}
           </p>
         ) : null}
