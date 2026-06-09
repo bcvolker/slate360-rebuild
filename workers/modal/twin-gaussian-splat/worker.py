@@ -55,6 +55,9 @@ gpu_image = (
         "curl",
         "ca-certificates",
         "gnupg",
+        "xvfb",
+        "libxcb1",
+        "libxkbcommon0",
     )
     .run_commands(
         "curl -fsSL https://deb.nodesource.com/setup_20.x | bash -",
@@ -72,8 +75,7 @@ gpu_image = (
     .run_commands(
         "pip install torch==2.5.1 torchvision==0.20.1 "
         "--index-url https://download.pytorch.org/whl/cu121",
-        "pip install nerfstudio==1.1.5",
-        "python -c \"import nerfstudio; print('nerfstudio', nerfstudio.__version__)\"",
+        "pip install nerfstudio==1.1.5"
     )
 )
 
@@ -103,6 +105,8 @@ def quality_speed_iterations(quality: str, speed: str) -> int:
 
 def run_cmd(cmd: list[str], *, cwd: Path | None = None, env: dict[str, str] | None = None) -> None:
     merged_env = os.environ.copy()
+    # COLMAP (via nerfstudio) needs a headless Qt platform on Modal GPU containers.
+    merged_env["QT_QPA_PLATFORM"] = "offscreen"
     if env:
         merged_env.update(env)
     proc = subprocess.run(
@@ -235,11 +239,9 @@ def materialize_images(
             continue
 
         if ext in IMAGE_EXTENSIONS:
-            dest = images_dir / f"{stem}_{idx:04d}{ext if ext != '.heic' else '.jpg'}"
-            if ext in {".heic", ".heif"}:
-                run_cmd(["ffmpeg", "-y", "-i", str(src), str(dest)])
-            else:
-                shutil.copy2(src, dest)
+            dest = images_dir / f"{stem}_{idx:04d}.jpg"
+            # COLMAP on Debian often lacks PNG decode in FreeImage; normalize to JPEG.
+            run_cmd(["ffmpeg", "-y", "-i", str(src), "-q:v", "2", str(dest)])
             stats["photos"] += 1
             continue
 
@@ -397,8 +399,15 @@ def run_pipeline(job: JobInput, work_root: Path) -> dict[str, Any]:
 
     run_cmd(
         [
+            "xvfb-run",
+            "-a",
+            "-s",
+            "-screen 0 800x600x24",
             "ns-process-data",
             "images",
+            "--matching-method",
+            "exhaustive",
+            "--no-gpu",
             "--data",
             str(images_dir),
             "--output-dir",
