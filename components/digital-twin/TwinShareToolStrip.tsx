@@ -1,12 +1,12 @@
 "use client";
 
-import { Loader2, MapPin, MessageSquare, Orbit, Ruler, Footprints } from "lucide-react";
+import { Loader2, MapPin, MessageSquare, Orbit, Ruler } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { twinAccent } from "@/lib/digital-twin/twin-accent";
 import type { TwinViewerKind } from "@/lib/digital-twin/viewer-format";
 
 export type TwinShareTool = "view" | "pin" | "comment" | "measure";
-export type TwinShareCameraMode = "orbit" | "walk";
+export type TwinShareCameraMode = "interior" | "orbit";
 
 type Props = {
   tool: TwinShareTool;
@@ -58,12 +58,12 @@ export function TwinShareToolStrip({
           onClick={onToggleCameraMode}
           className={cn(twinAccent.button, "inline-flex items-center gap-1 text-[11px]")}
         >
-          {cameraMode === "orbit" ? (
-            <Footprints className="size-3.5" aria-hidden />
-          ) : (
+          {cameraMode === "interior" ? (
             <Orbit className="size-3.5" aria-hidden />
+          ) : (
+            <Orbit className="size-3.5 rotate-180" aria-hidden />
           )}
-          {cameraMode === "orbit" ? "Walk" : "Orbit"}
+          {cameraMode === "interior" ? "Orbit inspect" : "Interior"}
         </button>
       ) : null}
       {busy ? <Loader2 className={cn("size-4 animate-spin", twinAccent.spinner)} aria-hidden /> : null}

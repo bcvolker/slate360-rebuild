@@ -53,7 +53,7 @@ export function TwinShareAnnotateShell({
 }) {
   const viewerRef = useRef<SplatViewerHandle | null>(null);
   const [tool, setTool] = useState<TwinShareTool>("view");
-  const [cameraMode, setCameraMode] = useState<TwinShareCameraMode>("orbit");
+  const [cameraMode, setCameraMode] = useState<TwinShareCameraMode>("interior");
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [authorName, setAuthorName] = useState("");
   const [commentBody, setCommentBody] = useState("");
@@ -216,7 +216,7 @@ export function TwinShareAnnotateShell({
             viewerKind={viewerKind}
             busy={busy}
             onSelectTool={selectTool}
-            onToggleCameraMode={() => setCameraMode((m) => (m === "orbit" ? "walk" : "orbit"))}
+            onToggleCameraMode={() => setCameraMode((m) => (m === "interior" ? "orbit" : "interior"))}
           />
           <div className="space-y-2 rounded-xl border border-[var(--accent-border-blue)] bg-[color-mix(in_srgb,var(--twin360-blue)_5%,transparent)] p-3">
             <input
@@ -282,8 +282,8 @@ export function TwinShareAnnotateShell({
     <TwinViewerCanvasShell
       viewerRef={viewerRef}
       cameraMode={cameraMode}
-      walkAvailable={splatReady}
-      onToggleCameraMode={() => setCameraMode((m) => (m === "orbit" ? "walk" : "orbit"))}
+      orbitToggleAvailable={splatReady}
+      onToggleCameraMode={() => setCameraMode((m) => (m === "interior" ? "orbit" : "interior"))}
       commentsOpen={commentsOpen}
       onToggleComments={() => setCommentsOpen((open) => !open)}
       commentCount={commentCount}

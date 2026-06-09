@@ -51,7 +51,7 @@ export function TwinAuthenticatedViewer({
   onMeasurementSaved,
 }: Props) {
   const viewerRef = useRef<SplatViewerHandle | null>(null);
-  const [cameraMode, setCameraMode] = useState<TwinViewerCameraMode>("orbit");
+  const [cameraMode, setCameraMode] = useState<TwinViewerCameraMode>("interior");
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [measureActive, setMeasureActive] = useState(false);
   const [measureA, setMeasureA] = useState<TwinPickPoint | null>(null);
@@ -149,8 +149,8 @@ export function TwinAuthenticatedViewer({
     <TwinViewerCanvasShell
       viewerRef={viewerRef}
       cameraMode={cameraMode}
-      walkAvailable={splatReady}
-      onToggleCameraMode={() => setCameraMode((m) => (m === "orbit" ? "walk" : "orbit"))}
+      orbitToggleAvailable={splatReady}
+      onToggleCameraMode={() => setCameraMode((m) => (m === "interior" ? "orbit" : "interior"))}
       commentsOpen={commentsOpen}
       onToggleComments={() => setCommentsOpen((open) => !open)}
       commentCount={commentCount}

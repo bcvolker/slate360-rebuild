@@ -10,7 +10,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { Canvas, extend, useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
+import { Canvas, extend, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import { AlertTriangle, Loader2 } from "lucide-react";
 import * as THREE from "three";
@@ -22,7 +22,14 @@ import {
 } from "@sparkjsdev/spark";
 import { cn } from "@/lib/utils";
 import { twinAccent } from "@/lib/digital-twin/twin-accent";
-import { frameSplatMesh, type SplatCameraFrame } from "@/lib/digital-twin/splat-camera-frame";
+import { CameraTweenRunner } from "@/lib/digital-twin/camera-tween";
+import {
+  directionFromYawPitch,
+  eyePositionFromHit,
+  type InteriorCameraFrame,
+} from "@/lib/digital-twin/interior-camera-frame";
+import { frameSplatMesh, getSplatSceneBounds, type SplatCameraFrame } from "@/lib/digital-twin/splat-camera-frame";
+import { raycastSplatMesh } from "@/lib/digital-twin/splat-raycast";
 
 extend({ SparkRenderer: SparkRendererImpl, SplatMesh: SplatMeshImpl });
 
@@ -31,11 +38,14 @@ export const SPLAT_VIEWER_SURFACE =
 
 const MOBILE_MAX_SPLATS = 80_000;
 const DESKTOP_MAX_SPLATS = 250_000;
-const WALK_LOOK_SENSITIVITY = 0.003;
-const WALK_MOVE_SPEED = 2.5;
+const LOOK_SENSITIVITY = 0.0035;
+const ZOOM_WHEEL_FACTOR = 1.08;
+const MIN_ZOOM = 0.55;
+const MAX_ZOOM = 2.4;
+const TAP_DRAG_THRESHOLD_PX = 8;
 
 type LoadState = "loading" | "ready" | "error";
-type CameraMode = "orbit" | "walk";
+export type CameraMode = "interior" | "orbit";
 
 export type TwinPickPoint = { x: number; y: number; z: number };
 
@@ -57,158 +67,244 @@ function useMobileSplatBudget() {
   return maxSplats;
 }
 
-function PickProxy({
-  enabled,
+function InteriorNavigation({
+  mesh,
+  active,
+  pickEnabled,
   onPick,
+  defaultFrameRef,
+  resetToken,
+  zoomRef,
+  onInteriorStateChange,
 }: {
-  enabled: boolean;
+  mesh: SplatMesh;
+  active: boolean;
+  pickEnabled: boolean;
   onPick?: (point: TwinPickPoint) => void;
+  defaultFrameRef: React.MutableRefObject<InteriorCameraFrame | null>;
+  resetToken: number;
+  zoomRef: React.MutableRefObject<number>;
+  onInteriorStateChange: (frame: InteriorCameraFrame, zoom: number) => void;
 }) {
-  const handleClick = useCallback(
-    (event: ThreeEvent<MouseEvent>) => {
-      if (!enabled || !onPick) return;
-      event.stopPropagation();
-      const p = event.point;
-      onPick({ x: p.x, y: p.y, z: p.z });
-    },
-    [enabled, onPick],
-  );
-
-  return (
-    <mesh visible={false} onClick={handleClick}>
-      <sphereGeometry args={[4, 32, 32]} />
-      <meshBasicMaterial transparent opacity={0} depthWrite={false} />
-    </mesh>
-  );
-}
-
-function WalkControls({ active }: { active: boolean }) {
   const { camera, gl } = useThree();
-  const moveRef = useRef({ forward: 0, right: 0 });
-  const lookRef = useRef({ dragging: false, lastX: 0, lastY: 0, pointerId: -1 });
-  const yawRef = useRef(0);
-  const pitchRef = useRef(0);
-  const forwardVec = useMemo(() => new THREE.Vector3(), []);
-  const rightVec = useMemo(() => new THREE.Vector3(), []);
-  const upVec = useMemo(() => new THREE.Vector3(0, 1, 0), []);
+  const boundsRef = useRef<THREE.Box3 | null>(null);
+  const stateRef = useRef({ yaw: 0, pitch: 0, position: new THREE.Vector3() });
+  const tweenRef = useRef(new CameraTweenRunner());
+  const pointerRef = useRef({
+    dragging: false,
+    moved: false,
+    pointerId: -1,
+    lastX: 0,
+    lastY: 0,
+    pinchActive: false,
+    pinchStartDistance: 0,
+    pinchStartZoom: 1,
+  });
   const lookTarget = useMemo(() => new THREE.Vector3(), []);
+  const forward = useMemo(() => new THREE.Vector3(), []);
+  const tweenScratch = useMemo(
+    () => ({ position: new THREE.Vector3(), yaw: 0, pitch: 0 }),
+    [],
+  );
+
+  const applyStateToCamera = useCallback(() => {
+    if (!(camera instanceof THREE.PerspectiveCamera)) return;
+    const { position, yaw, pitch } = stateRef.current;
+    camera.position.copy(position);
+    directionFromYawPitch(yaw, pitch, forward);
+    lookTarget.copy(position).add(forward);
+    camera.lookAt(lookTarget);
+  }, [camera, forward, lookTarget]);
+
+  const syncDefaultFrame = useCallback(() => {
+    if (!(camera instanceof THREE.PerspectiveCamera) || !mesh?.isInitialized) return;
+    const frame = frameSplatMesh(mesh, camera, null);
+    defaultFrameRef.current = frame;
+    boundsRef.current = getSplatSceneBounds(mesh);
+    stateRef.current.position.copy(frame.position);
+    stateRef.current.yaw = frame.yaw;
+    stateRef.current.pitch = frame.pitch;
+    zoomRef.current = frame.zoom;
+    tweenRef.current.cancel();
+    applyStateToCamera();
+    onInteriorStateChange(frame, zoomRef.current);
+  }, [applyStateToCamera, camera, defaultFrameRef, mesh, onInteriorStateChange, zoomRef]);
+
+  useEffect(() => {
+    if (!active || !mesh?.isInitialized) return;
+    syncDefaultFrame();
+  }, [active, mesh, syncDefaultFrame]);
+
+  useEffect(() => {
+    if (!active || resetToken <= 0) return;
+    syncDefaultFrame();
+  }, [active, resetToken, syncDefaultFrame]);
 
   useEffect(() => {
     if (!active) return;
-
-    const direction = new THREE.Vector3();
-    camera.getWorldDirection(direction);
-    yawRef.current = Math.atan2(direction.x, direction.z);
-    pitchRef.current = Math.asin(THREE.MathUtils.clamp(direction.y, -1, 1));
-  }, [active, camera]);
-
-  useEffect(() => {
-    if (!active) return;
-
-    const onKeyDown = (event: KeyboardEvent) => {
-      switch (event.code) {
-        case "KeyW":
-        case "ArrowUp":
-          moveRef.current.forward = 1;
-          break;
-        case "KeyS":
-        case "ArrowDown":
-          moveRef.current.forward = -1;
-          break;
-        case "KeyA":
-        case "ArrowLeft":
-          moveRef.current.right = -1;
-          break;
-        case "KeyD":
-        case "ArrowRight":
-          moveRef.current.right = 1;
-          break;
-      }
-    };
-
-    const onKeyUp = (event: KeyboardEvent) => {
-      switch (event.code) {
-        case "KeyW":
-        case "ArrowUp":
-        case "KeyS":
-        case "ArrowDown":
-          moveRef.current.forward = 0;
-          break;
-        case "KeyA":
-        case "ArrowLeft":
-        case "KeyD":
-        case "ArrowRight":
-          moveRef.current.right = 0;
-          break;
-      }
-    };
 
     const canvas = gl.domElement;
 
+    const onWheel = (event: WheelEvent) => {
+      event.preventDefault();
+      const factor = event.deltaY > 0 ? ZOOM_WHEEL_FACTOR : 1 / ZOOM_WHEEL_FACTOR;
+      zoomRef.current = THREE.MathUtils.clamp(zoomRef.current * factor, MIN_ZOOM, MAX_ZOOM);
+    };
+
     const onPointerDown = (event: PointerEvent) => {
-      if (event.button !== 0) return;
-      lookRef.current.dragging = true;
-      lookRef.current.pointerId = event.pointerId;
-      lookRef.current.lastX = event.clientX;
-      lookRef.current.lastY = event.clientY;
+      if (event.button !== 0 && event.pointerType !== "touch") return;
+      pointerRef.current.dragging = true;
+      pointerRef.current.moved = false;
+      pointerRef.current.pointerId = event.pointerId;
+      pointerRef.current.lastX = event.clientX;
+      pointerRef.current.lastY = event.clientY;
+
+      if (event.pointerType === "touch" && (event as PointerEvent & { isPrimary?: boolean }).isPrimary !== false) {
+        // pinch handled on move with second touch
+      }
     };
 
     const onPointerMove = (event: PointerEvent) => {
-      if (!lookRef.current.dragging || event.pointerId !== lookRef.current.pointerId) return;
-      const dx = event.clientX - lookRef.current.lastX;
-      const dy = event.clientY - lookRef.current.lastY;
-      lookRef.current.lastX = event.clientX;
-      lookRef.current.lastY = event.clientY;
-      yawRef.current -= dx * WALK_LOOK_SENSITIVITY;
-      pitchRef.current = THREE.MathUtils.clamp(
-        pitchRef.current - dy * WALK_LOOK_SENSITIVITY,
-        -Math.PI / 2 + 0.12,
-        Math.PI / 2 - 0.12,
+      if (event.pointerType === "touch" && event.isPrimary === false) return;
+
+      if (pointerRef.current.pinchActive && event.pointerType === "touch") {
+        return;
+      }
+
+      if (!pointerRef.current.dragging || event.pointerId !== pointerRef.current.pointerId) return;
+
+      const dx = event.clientX - pointerRef.current.lastX;
+      const dy = event.clientY - pointerRef.current.lastY;
+      if (Math.hypot(dx, dy) > TAP_DRAG_THRESHOLD_PX) {
+        pointerRef.current.moved = true;
+        tweenRef.current.cancel();
+      }
+
+      pointerRef.current.lastX = event.clientX;
+      pointerRef.current.lastY = event.clientY;
+
+      if (!pointerRef.current.moved) return;
+
+      stateRef.current.yaw -= dx * LOOK_SENSITIVITY;
+      stateRef.current.pitch = THREE.MathUtils.clamp(
+        stateRef.current.pitch - dy * LOOK_SENSITIVITY,
+        -Math.PI / 2 + 0.1,
+        Math.PI / 2 - 0.1,
+      );
+      applyStateToCamera();
+    };
+
+    const navigateToHit = (clientX: number, clientY: number) => {
+      if (!(camera instanceof THREE.PerspectiveCamera)) return;
+      const hit = raycastSplatMesh(mesh, camera, clientX, clientY, canvas);
+      if (!hit) return;
+
+      if (pickEnabled && onPick) {
+        onPick({ x: hit.point.x, y: hit.point.y, z: hit.point.z });
+        return;
+      }
+
+      const floorY = boundsRef.current?.min.y ?? hit.point.y - 1.6;
+      const destination = eyePositionFromHit(hit.point, floorY, camera.position);
+
+      tweenRef.current.start(
+        {
+          position: stateRef.current.position.clone(),
+          yaw: stateRef.current.yaw,
+          pitch: stateRef.current.pitch,
+        },
+        {
+          position: destination,
+          yaw: stateRef.current.yaw,
+          pitch: 0,
+        },
       );
     };
 
-    const endDrag = (event: PointerEvent) => {
-      if (event.pointerId !== lookRef.current.pointerId) return;
-      lookRef.current.dragging = false;
-      lookRef.current.pointerId = -1;
+    const onPointerUp = (event: PointerEvent) => {
+      if (event.pointerId !== pointerRef.current.pointerId) return;
+
+      const wasTap = pointerRef.current.dragging && !pointerRef.current.moved;
+      pointerRef.current.dragging = false;
+      pointerRef.current.pointerId = -1;
+
+      if (wasTap) {
+        navigateToHit(event.clientX, event.clientY);
+      }
     };
 
-    window.addEventListener("keydown", onKeyDown);
-    window.addEventListener("keyup", onKeyUp);
+    const onTouchStart = (event: TouchEvent) => {
+      if (event.touches.length === 2) {
+        pointerRef.current.pinchActive = true;
+        pointerRef.current.pinchStartDistance = Math.hypot(
+          event.touches[0].clientX - event.touches[1].clientX,
+          event.touches[0].clientY - event.touches[1].clientY,
+        );
+        pointerRef.current.pinchStartZoom = zoomRef.current;
+        pointerRef.current.dragging = false;
+        pointerRef.current.moved = true;
+      }
+    };
+
+    const onTouchMove = (event: TouchEvent) => {
+      if (!pointerRef.current.pinchActive || event.touches.length < 2) return;
+      event.preventDefault();
+      const distance = Math.hypot(
+        event.touches[0].clientX - event.touches[1].clientX,
+        event.touches[0].clientY - event.touches[1].clientY,
+      );
+      const ratio = distance / Math.max(pointerRef.current.pinchStartDistance, 1);
+      zoomRef.current = THREE.MathUtils.clamp(
+        pointerRef.current.pinchStartZoom / ratio,
+        MIN_ZOOM,
+        MAX_ZOOM,
+      );
+    };
+
+    const onTouchEnd = (event: TouchEvent) => {
+      if (event.touches.length < 2) {
+        pointerRef.current.pinchActive = false;
+      }
+    };
+
+    canvas.addEventListener("wheel", onWheel, { passive: false });
     canvas.addEventListener("pointerdown", onPointerDown);
     window.addEventListener("pointermove", onPointerMove);
-    window.addEventListener("pointerup", endDrag);
-    window.addEventListener("pointercancel", endDrag);
+    window.addEventListener("pointerup", onPointerUp);
+    canvas.addEventListener("pointercancel", onPointerUp);
+    canvas.addEventListener("touchstart", onTouchStart, { passive: true });
+    canvas.addEventListener("touchmove", onTouchMove, { passive: false });
+    canvas.addEventListener("touchend", onTouchEnd);
+    canvas.addEventListener("touchcancel", onTouchEnd);
 
     return () => {
-      window.removeEventListener("keydown", onKeyDown);
-      window.removeEventListener("keyup", onKeyUp);
+      canvas.removeEventListener("wheel", onWheel);
       canvas.removeEventListener("pointerdown", onPointerDown);
       window.removeEventListener("pointermove", onPointerMove);
-      window.removeEventListener("pointerup", endDrag);
-      window.removeEventListener("pointercancel", endDrag);
-      moveRef.current.forward = 0;
-      moveRef.current.right = 0;
-      lookRef.current.dragging = false;
+      window.removeEventListener("pointerup", onPointerUp);
+      canvas.removeEventListener("pointercancel", onPointerUp);
+      canvas.removeEventListener("touchstart", onTouchStart);
+      canvas.removeEventListener("touchmove", onTouchMove);
+      canvas.removeEventListener("touchend", onTouchEnd);
+      canvas.removeEventListener("touchcancel", onTouchEnd);
+      pointerRef.current.dragging = false;
+      pointerRef.current.pinchActive = false;
     };
-  }, [active, gl]);
+  }, [active, applyStateToCamera, camera, forward, gl, mesh, onPick, pickEnabled, zoomRef]);
 
-  useFrame((_, delta) => {
-    if (!active) return;
+  useFrame(() => {
+    if (!active || !(camera instanceof THREE.PerspectiveCamera)) return;
 
-    forwardVec.set(
-      Math.sin(yawRef.current) * Math.cos(pitchRef.current),
-      Math.sin(pitchRef.current),
-      Math.cos(yawRef.current) * Math.cos(pitchRef.current),
-    );
-    rightVec.crossVectors(forwardVec, upVec).normalize();
+    if (tweenRef.current.step(performance.now(), tweenScratch)) {
+      stateRef.current.position.copy(tweenScratch.position);
+      stateRef.current.yaw = tweenScratch.yaw;
+      stateRef.current.pitch = tweenScratch.pitch;
+      applyStateToCamera();
+    }
 
-    const speed = WALK_MOVE_SPEED * delta;
-    camera.position.addScaledVector(forwardVec, moveRef.current.forward * speed);
-    camera.position.addScaledVector(rightVec, moveRef.current.right * speed);
-
-    lookTarget.copy(camera.position).add(forwardVec);
-    camera.lookAt(lookTarget);
+    const baseFov = 60;
+    camera.fov = THREE.MathUtils.clamp(baseFov / zoomRef.current, 25, 85);
+    camera.updateProjectionMatrix();
   });
 
   return null;
@@ -218,10 +314,12 @@ function SplatCameraController({
   mesh,
   resetToken,
   onDefaultFrame,
+  cameraMode,
 }: {
   mesh: SplatMesh | null;
   resetToken: number;
   onDefaultFrame: (frame: SplatCameraFrame) => void;
+  cameraMode: CameraMode;
 }) {
   const { camera, controls } = useThree();
   const framedRef = useRef(false);
@@ -232,24 +330,25 @@ function SplatCameraController({
 
   const applyDefaultFrame = useCallback(() => {
     if (!mesh?.isInitialized || !(camera instanceof THREE.PerspectiveCamera)) return;
+    if (cameraMode !== "orbit") return;
     const orbit = controls as OrbitControlsImpl | null;
     const frame = frameSplatMesh(mesh, camera, orbit);
     onDefaultFrame(frame);
-  }, [mesh, camera, controls, onDefaultFrame]);
+  }, [mesh, camera, controls, onDefaultFrame, cameraMode]);
 
   useEffect(() => {
-    if (!mesh?.isInitialized || framedRef.current) return;
+    if (!mesh?.isInitialized || framedRef.current || cameraMode !== "orbit") return;
     const id = window.requestAnimationFrame(() => {
       framedRef.current = true;
       applyDefaultFrame();
     });
     return () => window.cancelAnimationFrame(id);
-  }, [mesh, applyDefaultFrame]);
+  }, [mesh, applyDefaultFrame, cameraMode]);
 
   useEffect(() => {
-    if (resetToken <= 0) return;
+    if (resetToken <= 0 || cameraMode !== "orbit") return;
     applyDefaultFrame();
-  }, [resetToken, applyDefaultFrame]);
+  }, [resetToken, applyDefaultFrame, cameraMode]);
 
   return null;
 }
@@ -258,32 +357,40 @@ function ControlsBridge({
   apiRef,
   cameraMode,
   onRecenter,
+  zoomRef,
 }: {
   apiRef: React.MutableRefObject<SplatViewerHandle | null>;
   cameraMode: CameraMode;
   onRecenter: () => void;
+  zoomRef: React.MutableRefObject<number>;
 }) {
-  const { camera, controls } = useThree();
+  const { controls } = useThree();
   const orbit = controls as OrbitControlsImpl | null;
 
   useEffect(() => {
     apiRef.current = {
       zoomIn: () => {
-        if (cameraMode !== "orbit" || !orbit) return;
-        orbit.dollyIn(1.2);
-        orbit.update();
+        if (cameraMode === "orbit") {
+          orbit?.dollyIn(1.2);
+          orbit?.update();
+          return;
+        }
+        zoomRef.current = THREE.MathUtils.clamp(zoomRef.current / ZOOM_WHEEL_FACTOR, MIN_ZOOM, MAX_ZOOM);
       },
       zoomOut: () => {
-        if (cameraMode !== "orbit" || !orbit) return;
-        orbit.dollyOut(1.2);
-        orbit.update();
+        if (cameraMode === "orbit") {
+          orbit?.dollyOut(1.2);
+          orbit?.update();
+          return;
+        }
+        zoomRef.current = THREE.MathUtils.clamp(zoomRef.current * ZOOM_WHEEL_FACTOR, MIN_ZOOM, MAX_ZOOM);
       },
       recenter: onRecenter,
     };
     return () => {
       apiRef.current = null;
     };
-  }, [apiRef, cameraMode, orbit, camera, onRecenter]);
+  }, [apiRef, cameraMode, orbit, onRecenter, zoomRef]);
 
   return null;
 }
@@ -302,6 +409,8 @@ function SparkSplatScene({
   onDefaultFrame,
   controlsApiRef,
   onRecenter,
+  defaultFrameRef,
+  zoomRef,
 }: {
   url: string;
   maxSplats: number;
@@ -316,8 +425,11 @@ function SparkSplatScene({
   onDefaultFrame: (frame: SplatCameraFrame) => void;
   controlsApiRef: React.MutableRefObject<SplatViewerHandle | null>;
   onRecenter: () => void;
+  defaultFrameRef: React.MutableRefObject<InteriorCameraFrame | null>;
+  zoomRef: React.MutableRefObject<number>;
 }) {
   const gl = useThree((state) => state.gl);
+  const meshRef = useRef<SplatMesh>(null);
   const [loadedMesh, setLoadedMesh] = useState<SplatMesh | null>(null);
 
   useEffect(() => {
@@ -331,12 +443,23 @@ function SparkSplatScene({
       lod: true,
       maxSplats,
       onLoad: (mesh: SplatMesh) => {
+        meshRef.current = mesh;
         onMeshReady(mesh);
         setLoadedMesh(mesh);
         onReady();
       },
     }),
     [url, maxSplats, onMeshReady, onReady],
+  );
+
+  useEffect(() => {
+    if (!loadedMesh) return;
+    loadedMesh.raycastable = true;
+  }, [loadedMesh]);
+
+  const handleInteriorStateChange = useCallback(
+    (_frame: InteriorCameraFrame, _zoom: number) => {},
+    [],
   );
 
   return (
@@ -347,20 +470,37 @@ function SparkSplatScene({
         </sparkRenderer>
       </group>
       {loadedMesh ? (
-        <SplatCameraController
-          mesh={loadedMesh}
-          resetToken={resetToken}
-          onDefaultFrame={onDefaultFrame}
-        />
+        <>
+          <SplatCameraController
+            mesh={loadedMesh}
+            resetToken={resetToken}
+            onDefaultFrame={onDefaultFrame}
+            cameraMode={cameraMode}
+          />
+          {cameraMode === "interior" ? (
+            <InteriorNavigation
+              mesh={loadedMesh}
+              active
+              pickEnabled={pickEnabled}
+              onPick={onPick}
+              defaultFrameRef={defaultFrameRef}
+              resetToken={resetToken}
+              zoomRef={zoomRef}
+              onInteriorStateChange={handleInteriorStateChange}
+            />
+          ) : null}
+        </>
       ) : null}
       {overlay}
-      <PickProxy enabled={pickEnabled} onPick={onPick} />
-      <ControlsBridge apiRef={controlsApiRef} cameraMode={cameraMode} onRecenter={onRecenter} />
+      <ControlsBridge
+        apiRef={controlsApiRef}
+        cameraMode={cameraMode}
+        onRecenter={onRecenter}
+        zoomRef={zoomRef}
+      />
       {cameraMode === "orbit" ? (
         <OrbitControls makeDefault enablePan enableZoom enableRotate />
-      ) : (
-        <WalkControls active />
-      )}
+      ) : null}
     </>
   );
 }
@@ -383,7 +523,7 @@ export const SplatViewerCore = forwardRef<
     className,
     pickEnabled = false,
     onPick,
-    cameraMode = "orbit",
+    cameraMode = "interior",
     modelVisible = true,
     overlay,
   },
@@ -394,6 +534,8 @@ export const SplatViewerCore = forwardRef<
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [resetToken, setResetToken] = useState(0);
   const controlsApiRef = useRef<SplatViewerHandle | null>(null);
+  const defaultFrameRef = useRef<InteriorCameraFrame | null>(null);
+  const zoomRef = useRef(1);
 
   const handleReady = useCallback(() => setLoadState("ready"), []);
   const handleMeshReady = useCallback((_mesh: SplatMesh) => {}, []);
@@ -414,6 +556,7 @@ export const SplatViewerCore = forwardRef<
     setLoadState("loading");
     setErrorMessage(null);
     setResetToken(0);
+    zoomRef.current = 1;
 
     const timeout = window.setTimeout(() => {
       setLoadState((current) => {
@@ -475,6 +618,8 @@ export const SplatViewerCore = forwardRef<
           onDefaultFrame={handleDefaultFrame}
           controlsApiRef={controlsApiRef}
           onRecenter={handleRecenter}
+          defaultFrameRef={defaultFrameRef}
+          zoomRef={zoomRef}
         />
       </Canvas>
     </div>

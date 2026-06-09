@@ -16,7 +16,7 @@ export const TwinShareSplatViewer = forwardRef<
     className?: string;
     pickEnabled?: boolean;
     onPick?: (point: TwinPickPoint) => void;
-    cameraMode?: "orbit" | "walk";
+    cameraMode?: "interior" | "orbit";
     modelVisible?: boolean;
     overlay?: React.ReactNode;
     showResetView?: boolean;
@@ -27,7 +27,7 @@ export const TwinShareSplatViewer = forwardRef<
     className,
     pickEnabled = false,
     onPick,
-    cameraMode = "orbit",
+    cameraMode = "interior",
     modelVisible = true,
     overlay,
     showResetView = false,

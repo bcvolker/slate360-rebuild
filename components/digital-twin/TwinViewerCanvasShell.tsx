@@ -7,12 +7,13 @@ import {
   type TwinViewerCameraMode,
 } from "@/components/digital-twin/TwinViewerControlsOverlay";
 import type { SplatViewerHandle } from "@/components/digital-twin/splat-viewer-core";
+import { useVisualViewportBottomInset } from "@/lib/hooks/useVisualViewportBottomInset";
 
 type Props = {
   children: ReactNode;
   viewerRef: React.RefObject<SplatViewerHandle | null>;
   cameraMode: TwinViewerCameraMode;
-  walkAvailable: boolean;
+  orbitToggleAvailable: boolean;
   onToggleCameraMode: () => void;
   commentsOpen: boolean;
   onToggleComments: () => void;
@@ -23,11 +24,13 @@ type Props = {
   topHint?: ReactNode;
 };
 
+const CONTROLS_BASE_OFFSET_PX = 72;
+
 export function TwinViewerCanvasShell({
   children,
   viewerRef,
   cameraMode,
-  walkAvailable,
+  orbitToggleAvailable,
   onToggleCameraMode,
   commentsOpen,
   onToggleComments,
@@ -39,6 +42,7 @@ export function TwinViewerCanvasShell({
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const viewportBottomInset = useVisualViewportBottomInset();
 
   useEffect(() => {
     const onChange = () => {
@@ -58,21 +62,31 @@ export function TwinViewerCanvasShell({
     await el.requestFullscreen();
   }, []);
 
+  const controlsBottom = `calc(env(safe-area-inset-bottom, 0px) + ${viewportBottomInset + CONTROLS_BASE_OFFSET_PX}px)`;
+  const toastBottom = `calc(env(safe-area-inset-bottom, 0px) + ${viewportBottomInset + CONTROLS_BASE_OFFSET_PX + 72}px)`;
+
   return (
-    <div ref={containerRef} className="relative h-full min-h-0 w-full overflow-hidden bg-[var(--graphite-canvas)]">
+    <div
+      ref={containerRef}
+      className="relative h-full min-h-0 w-full overflow-hidden bg-[var(--graphite-canvas)]"
+      style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
+    >
       {children}
 
       <div className="pointer-events-none absolute inset-0 z-20">
         {topHint ? (
-          <div className="pointer-events-auto absolute left-3 top-3 z-30 max-w-[min(100%,20rem)]">
+          <div className="pointer-events-auto absolute left-3 top-[max(0.75rem,env(safe-area-inset-top))] z-30 max-w-[min(100%,20rem)]">
             {topHint}
           </div>
         ) : null}
 
-        <div className="pointer-events-auto absolute bottom-[max(0.75rem,env(safe-area-inset-bottom))] left-1/2 z-30 -translate-x-1/2">
+        <div
+          className="pointer-events-auto absolute left-1/2 z-30 -translate-x-1/2"
+          style={{ bottom: controlsBottom }}
+        >
           <TwinViewerControlsOverlay
             cameraMode={cameraMode}
-            walkAvailable={walkAvailable}
+            orbitToggleAvailable={orbitToggleAvailable}
             isFullscreen={isFullscreen}
             onToggleCameraMode={onToggleCameraMode}
             onZoomIn={() => viewerRef.current?.zoomIn()}
@@ -82,7 +96,7 @@ export function TwinViewerCanvasShell({
           />
         </div>
 
-        <div className="pointer-events-auto absolute right-3 top-3 z-30 md:bottom-auto md:top-1/2 md:-translate-y-1/2">
+        <div className="pointer-events-auto absolute right-3 top-[max(0.75rem,env(safe-area-inset-top))] z-30 md:bottom-auto md:top-1/2 md:-translate-y-1/2">
           <TwinCommentsOverlay
             open={commentsOpen}
             onToggle={onToggleComments}
@@ -94,7 +108,10 @@ export function TwinViewerCanvasShell({
         </div>
 
         {toast ? (
-          <p className="pointer-events-none absolute bottom-[5.5rem] left-1/2 z-30 max-w-[90%] -translate-x-1/2 rounded-xl border border-[var(--accent-border-blue)] bg-[color-mix(in_srgb,var(--graphite-canvas)_90%,transparent)] px-3 py-1.5 text-center text-xs text-zinc-100 backdrop-blur-md">
+          <p
+            className="pointer-events-none absolute left-1/2 z-30 max-w-[90%] -translate-x-1/2 rounded-xl border border-[var(--accent-border-blue)] bg-[color-mix(in_srgb,var(--graphite-canvas)_90%,transparent)] px-3 py-1.5 text-center text-xs text-zinc-100 backdrop-blur-md"
+            style={{ bottom: toastBottom }}
+          >
             {toast}
           </p>
         ) : null}

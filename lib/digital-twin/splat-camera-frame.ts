@@ -1,14 +1,15 @@
 import * as THREE from "three";
 import type { SplatMesh } from "@sparkjsdev/spark";
+import {
+  applyInteriorCameraFrame,
+  computeInteriorStartFrame,
+  type InteriorCameraFrame,
+} from "@/lib/digital-twin/interior-camera-frame";
 
-export type SplatCameraFrame = {
-  position: THREE.Vector3;
-  target: THREE.Vector3;
-};
+export type SplatCameraFrame = InteriorCameraFrame;
 
 const TMP_CENTER = new THREE.Vector3();
 const TMP_SIZE = new THREE.Vector3();
-const TMP_DIR = new THREE.Vector3();
 
 /** Trim axis-aligned bounds toward the centroid to de-emphasize edge floaters. */
 export function trimSplatBounds(box: THREE.Box3, trimFraction = 0.12): THREE.Box3 {
@@ -38,44 +39,12 @@ export function getSplatSceneBounds(mesh: SplatMesh): THREE.Box3 {
   return trimSplatBounds(mesh.getBoundingBox(true));
 }
 
-export function computeSplatCameraFrame(
-  box: THREE.Box3,
-  camera: THREE.PerspectiveCamera,
-  padding = 1.6,
-): SplatCameraFrame {
-  box.getCenter(TMP_CENTER);
-  box.getSize(TMP_SIZE);
-
-  const maxDim = Math.max(TMP_SIZE.x, TMP_SIZE.y, TMP_SIZE.z, 0.25);
-  const aspect = Math.max(camera.aspect || 1, 0.25);
-  const fovRad = THREE.MathUtils.degToRad(camera.fov);
-
-  const fitHeightDistance = maxDim / (2 * Math.tan(fovRad / 2));
-  const fitWidthDistance = fitHeightDistance / aspect;
-  const distance = padding * Math.max(fitHeightDistance, fitWidthDistance);
-
-  TMP_DIR.set(0, 0.28, 1).normalize();
-  const position = TMP_CENTER.clone().add(TMP_DIR.multiplyScalar(distance));
-
-  return {
-    position,
-    target: TMP_CENTER.clone(),
-  };
-}
-
 export function applySplatCameraFrame(
   camera: THREE.PerspectiveCamera,
   controls: { target: THREE.Vector3; update: () => void } | null,
   frame: SplatCameraFrame,
 ) {
-  camera.position.copy(frame.position);
-  camera.lookAt(frame.target);
-  camera.updateProjectionMatrix();
-
-  if (controls) {
-    controls.target.copy(frame.target);
-    controls.update();
-  }
+  applyInteriorCameraFrame(camera, controls, frame);
 }
 
 export function frameSplatMesh(
@@ -83,7 +52,7 @@ export function frameSplatMesh(
   camera: THREE.PerspectiveCamera,
   controls: { target: THREE.Vector3; update: () => void } | null,
 ): SplatCameraFrame {
-  const frame = computeSplatCameraFrame(getSplatSceneBounds(mesh), camera);
-  applySplatCameraFrame(camera, controls, frame);
+  const frame = computeInteriorStartFrame(getSplatSceneBounds(mesh), camera);
+  applyInteriorCameraFrame(camera, controls, frame);
   return frame;
 }
