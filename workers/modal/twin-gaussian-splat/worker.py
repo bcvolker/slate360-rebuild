@@ -45,7 +45,7 @@ worker_secret = modal.Secret.from_name(SECRET_NAME)
 web_image = modal.Image.debian_slim(python_version="3.11").pip_install("fastapi[standard]")
 
 gpu_image = (
-    modal.Image.debian_slim(python_version="3.11")
+    modal.Image.debian_slim(python_version="3.10")
     .apt_install(
         "ffmpeg",
         "git",
@@ -70,12 +70,20 @@ gpu_image = (
     .pip_install(
         "boto3==1.35.99",
         "requests==2.32.3",
-        "numpy==2.2.1",
     )
     .run_commands(
-        "pip install torch==2.5.1 torchvision==0.20.1 "
+        # torch 2.4.1+cu121: matches gsplat 1.4.0 prebuilt wheel index pt24cu121.
+        "pip install torch==2.4.1 torchvision==0.19.1 "
         "--index-url https://download.pytorch.org/whl/cu121",
-        "pip install nerfstudio==1.1.5"
+        "pip install ninja numpy jaxtyping rich",
+        "pip install nerfstudio==1.1.5",
+        # Override PyPI gsplat (no bundled CUDA ops) with prebuilt wheel for pt24cu121.
+        "pip install gsplat==1.4.0 --force-reinstall --no-deps "
+        "--index-url https://docs.gsplat.studio/whl/pt24cu121",
+        "pip install tensorboard",
+        "python -c \"import torch; from gsplat.cuda._backend import _C; "
+        "assert _C is not None, 'gsplat CUDA ops missing'; "
+        "print('gsplat ok:', torch.__version__, getattr(_C, 'CameraModelType', None))\"",
     )
 )
 
@@ -428,6 +436,8 @@ def run_pipeline(job: JobInput, work_root: Path) -> dict[str, Any]:
             str(train_dir),
             "--max-num-iterations",
             str(iterations),
+            "--vis",
+            "tensorboard",
             "--viewer.quit-on-train-completion",
             "True",
             "--pipeline.model.use-scale-regularization",
