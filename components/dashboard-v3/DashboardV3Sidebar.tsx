@@ -52,7 +52,7 @@ const NAV_GROUPS: NavGroup[] = [
     defaultExpanded: true,
     items: [
       { icon: Map, label: "Site Walk Field Hub", href: "#" },
-      { icon: AppWindow, label: "Digital Twin Studio", href: "#" },
+      { icon: AppWindow, label: "Twin 360 Studio", href: "/digital-twin" },
     ],
   },
   {
