@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useState } from "react";
 import type { TwinViewerKind } from "@/lib/digital-twin/viewer-format";
 import { TwinAuthenticatedViewer } from "./TwinAuthenticatedViewer";
-import { TwinCollaborationPanel } from "./TwinCollaborationPanel";
 import {
   TwinLayersPanel,
   defaultTwinLayerVisibility,
@@ -76,8 +75,8 @@ export function TwinViewerWorkspace({ viewer }: Props) {
   };
 
   return (
-    <>
-      <div className="min-h-[min(52vh,520px)] flex-1 md:min-h-[min(68vh,720px)]">
+    <div className="flex min-h-0 flex-1 flex-col gap-3">
+      <div className="relative min-h-0 flex-1">
         <TwinAuthenticatedViewer
           spaceId={viewer.spaceId}
           modelId={viewer.modelId}
@@ -91,13 +90,10 @@ export function TwinViewerWorkspace({ viewer }: Props) {
         />
       </div>
 
-      <div className="mt-4 grid gap-3 lg:grid-cols-2">
-        <TwinCollaborationPanel spaceId={viewer.spaceId} />
-        <div className="space-y-3">
-          <TwinLayersPanel visible={layerVisible} onToggle={handleLayerToggle} />
-          <TwinMeasurementsList spaceId={viewer.spaceId} refreshToken={measureRefresh} />
-        </div>
+      <div className="shrink-0 grid gap-3 lg:grid-cols-2">
+        <TwinLayersPanel visible={layerVisible} onToggle={handleLayerToggle} />
+        <TwinMeasurementsList spaceId={viewer.spaceId} refreshToken={measureRefresh} />
       </div>
-    </>
+    </div>
   );
 }

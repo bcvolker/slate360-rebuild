@@ -1,9 +1,9 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import type { TwinViewerKind } from "@/lib/digital-twin/viewer-format";
-import type { TwinPickPoint } from "@/components/digital-twin/TwinShareSplatViewer";
+import type { SplatViewerHandle, TwinPickPoint } from "@/components/digital-twin/TwinShareSplatViewer";
 import { twinPickDistance } from "@/lib/digital-twin/measure-helpers";
 import type { TwinLayerVisibility } from "./TwinLayersPanel";
 import {
@@ -12,6 +12,9 @@ import {
   type TwinOverlayPin,
 } from "./TwinSceneOverlays";
 import { TwinMeasureTool } from "./TwinMeasureTool";
+import { TwinViewerCanvasShell } from "./TwinViewerCanvasShell";
+import { TwinCollaborationPanel } from "./TwinCollaborationPanel";
+import type { TwinViewerCameraMode } from "./TwinViewerControlsOverlay";
 
 const TwinShareSplatViewer = dynamic(
   () =>
@@ -47,11 +50,15 @@ export function TwinAuthenticatedViewer({
   overlayMeasurements,
   onMeasurementSaved,
 }: Props) {
+  const viewerRef = useRef<SplatViewerHandle | null>(null);
+  const [cameraMode, setCameraMode] = useState<TwinViewerCameraMode>("orbit");
+  const [commentsOpen, setCommentsOpen] = useState(false);
   const [measureActive, setMeasureActive] = useState(false);
   const [measureA, setMeasureA] = useState<TwinPickPoint | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const [commentCount, setCommentCount] = useState(0);
 
   const splatReady = viewerKind === "splat";
   const pickEnabled = measureActive && splatReady;
@@ -127,46 +134,67 @@ export function TwinAuthenticatedViewer({
     ],
   );
 
-  return (
-    <div className="flex min-h-0 flex-1 flex-col gap-2">
-      <div className="relative min-h-[min(52vh,520px)] flex-1 overflow-hidden md:min-h-[min(68vh,720px)]">
-        {splatReady ? (
-          <TwinShareSplatViewer
-            src={modelUrl}
-            className="h-full min-h-0"
-            pickEnabled={pickEnabled}
-            onPick={(pt) => void handlePick(pt)}
-            modelVisible={layerVisible.model ?? true}
-            overlay={sceneOverlay}
-          />
-        ) : (
-          <TwinModelViewer viewerKind={viewerKind} modelUrl={modelUrl} modelTitle={modelTitle} />
-        )}
-        {toast ? (
-          <p className="absolute bottom-3 left-1/2 z-20 -translate-x-1/2 rounded-xl border border-[var(--accent-border-blue)] bg-[color-mix(in_srgb,var(--graphite-canvas)_90%,transparent)] px-3 py-1.5 text-xs text-zinc-100 backdrop-blur-md">
-            {toast}
-          </p>
-        ) : null}
-      </div>
-
-      <TwinMeasureTool
-        active={measureActive}
-        hasFirstPoint={measureA !== null}
-        busy={busy}
-        splatReady={splatReady}
-        onToggle={() => {
-          if (measureActive) {
-            cancelMeasure();
-          } else {
-            setMeasureActive(true);
-            setMeasureA(null);
-            setError(null);
-          }
-        }}
-        onCancel={cancelMeasure}
+  const commentsContent = (
+    <div className="space-y-2 pb-2">
+      <TwinCollaborationPanel
+        spaceId={spaceId}
+        onCountsChange={setCommentCount}
+        compact
       />
-
       {error ? <p className="text-xs text-red-300">{error}</p> : null}
     </div>
+  );
+
+  return (
+    <TwinViewerCanvasShell
+      viewerRef={viewerRef}
+      cameraMode={cameraMode}
+      walkAvailable={splatReady}
+      onToggleCameraMode={() => setCameraMode((m) => (m === "orbit" ? "walk" : "orbit"))}
+      commentsOpen={commentsOpen}
+      onToggleComments={() => setCommentsOpen((open) => !open)}
+      commentCount={commentCount}
+      commentsTitle="Collaboration"
+      commentsContent={commentsContent}
+      toast={toast}
+      topHint={
+        splatReady ? (
+          <div className="flex flex-wrap items-center gap-2">
+            <TwinMeasureTool
+              active={measureActive}
+              hasFirstPoint={measureA !== null}
+              busy={busy}
+              splatReady={splatReady}
+              onToggle={() => {
+                if (measureActive) {
+                  cancelMeasure();
+                } else {
+                  setMeasureActive(true);
+                  setMeasureA(null);
+                  setError(null);
+                }
+              }}
+              onCancel={cancelMeasure}
+            />
+          </div>
+        ) : null
+      }
+    >
+      {splatReady ? (
+        <TwinShareSplatViewer
+          ref={viewerRef}
+          src={modelUrl}
+          pickEnabled={pickEnabled}
+          onPick={(pt) => void handlePick(pt)}
+          modelVisible={layerVisible.model ?? true}
+          overlay={sceneOverlay}
+          cameraMode={cameraMode}
+        />
+      ) : (
+        <div className="absolute inset-0">
+          <TwinModelViewer viewerKind={viewerKind} modelUrl={modelUrl} modelTitle={modelTitle} />
+        </div>
+      )}
+    </TwinViewerCanvasShell>
   );
 }

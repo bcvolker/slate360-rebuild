@@ -34,12 +34,12 @@ export function TwinModelViewer({
   modelTitle: string;
 }) {
   if (viewerKind === "splat") {
-    return <SplatViewer src={modelUrl} className="h-full min-h-[280px]" />;
+    return <SplatViewer src={modelUrl} className="absolute inset-0" />;
   }
 
   if (viewerKind === "model") {
     return (
-      <div className="min-h-[50vh] overflow-hidden rounded-xl md:min-h-[60vh]">
+      <div className="absolute inset-0 overflow-hidden">
         <ModelViewerClient
           src={modelUrl}
           alt={modelTitle}
@@ -52,14 +52,14 @@ export function TwinModelViewer({
 
   if (viewerKind === "pano") {
     return (
-      <div className="min-h-[50vh] overflow-hidden rounded-xl md:min-h-[60vh]">
+      <div className="absolute inset-0 overflow-hidden">
         <TourPanoViewer src={modelUrl} />
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-[280px] flex-col items-center justify-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 text-center">
+    <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 border border-white/[0.08] bg-white/[0.03] px-4 text-center">
       <AlertTriangle className={cn("size-7", twinAccent.text)} aria-hidden />
       <p className="text-sm font-medium text-zinc-200">Viewer not available for this format yet</p>
       <p className="text-xs text-zinc-500">This model type will be supported in a future update.</p>

@@ -1,30 +1,42 @@
 "use client";
 
-import { SplatViewerCore, type TwinPickPoint } from "@/components/digital-twin/splat-viewer-core";
+import { forwardRef } from "react";
+import {
+  SplatViewerCore,
+  type SplatViewerHandle,
+  type TwinPickPoint,
+} from "@/components/digital-twin/splat-viewer-core";
 
-export type { TwinPickPoint };
+export type { TwinPickPoint, SplatViewerHandle };
 
-export function TwinShareSplatViewer({
-  src,
-  className,
-  pickEnabled = false,
-  onPick,
-  cameraMode = "orbit",
-  modelVisible = true,
-  overlay,
-  showResetView = true,
-}: {
-  src: string;
-  className?: string;
-  pickEnabled?: boolean;
-  onPick?: (point: TwinPickPoint) => void;
-  cameraMode?: "orbit" | "walk";
-  modelVisible?: boolean;
-  overlay?: React.ReactNode;
-  showResetView?: boolean;
-}) {
+export const TwinShareSplatViewer = forwardRef<
+  SplatViewerHandle,
+  {
+    src: string;
+    className?: string;
+    pickEnabled?: boolean;
+    onPick?: (point: TwinPickPoint) => void;
+    cameraMode?: "orbit" | "walk";
+    modelVisible?: boolean;
+    overlay?: React.ReactNode;
+    showResetView?: boolean;
+  }
+>(function TwinShareSplatViewer(
+  {
+    src,
+    className,
+    pickEnabled = false,
+    onPick,
+    cameraMode = "orbit",
+    modelVisible = true,
+    overlay,
+    showResetView = false,
+  },
+  ref,
+) {
   return (
     <SplatViewerCore
+      ref={ref}
       src={src}
       className={className}
       pickEnabled={pickEnabled}
@@ -35,4 +47,4 @@ export function TwinShareSplatViewer({
       showResetView={showResetView}
     />
   );
-}
+});

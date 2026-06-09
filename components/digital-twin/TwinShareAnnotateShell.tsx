@@ -1,11 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { cn } from "@/lib/utils";
 import { twinAccent } from "@/lib/digital-twin/twin-accent";
 import type { TwinViewerKind } from "@/lib/digital-twin/viewer-format";
-import type { TwinPickPoint } from "@/components/digital-twin/TwinShareSplatViewer";
+import type { SplatViewerHandle, TwinPickPoint } from "@/components/digital-twin/TwinShareSplatViewer";
+import { TwinViewerCanvasShell } from "@/components/digital-twin/TwinViewerCanvasShell";
 import { TwinShareToolStrip, type TwinShareCameraMode, type TwinShareTool } from "./TwinShareToolStrip";
 
 const TwinShareSplatViewer = dynamic(
@@ -50,8 +51,10 @@ export function TwinShareAnnotateShell({
   modelTitle: string;
   modelId?: string | null;
 }) {
+  const viewerRef = useRef<SplatViewerHandle | null>(null);
   const [tool, setTool] = useState<TwinShareTool>("view");
   const [cameraMode, setCameraMode] = useState<TwinShareCameraMode>("orbit");
+  const [commentsOpen, setCommentsOpen] = useState(false);
   const [authorName, setAuthorName] = useState("");
   const [commentBody, setCommentBody] = useState("");
   const [pinTitle, setPinTitle] = useState("");
@@ -64,6 +67,7 @@ export function TwinShareAnnotateShell({
 
   const pickEnabled = canAnnotate && (tool === "pin" || tool === "measure");
   const measureReady = viewerKind === "splat" || viewerKind === "model";
+  const splatReady = viewerKind === "splat";
 
   const refresh = useCallback(async () => {
     const [cRes, pRes] = await Promise.all([
@@ -93,6 +97,7 @@ export function TwinShareAnnotateShell({
       if (tool === "pin") {
         if (!authorName.trim() || !pinTitle.trim()) {
           setError("Enter your name and pin title first.");
+          setCommentsOpen(true);
           return;
         }
         setBusy(true);
@@ -116,6 +121,7 @@ export function TwinShareAnnotateShell({
           await refresh();
         } catch (err) {
           setError(err instanceof Error ? err.message : "Pin failed");
+          setCommentsOpen(true);
         } finally {
           setBusy(false);
         }
@@ -188,6 +194,7 @@ export function TwinShareAnnotateShell({
     setTool(id);
     setMeasureA(null);
     setError(null);
+    if (id !== "view") setCommentsOpen(true);
   };
 
   const thread = useMemo(
@@ -195,97 +202,108 @@ export function TwinShareAnnotateShell({
     [comments],
   );
 
-  return (
-    <div className="flex h-full min-h-0 flex-col gap-2 overflow-hidden sm:gap-3">
-      <div className="relative min-h-0 flex-1 overflow-hidden">
-        {viewerKind === "splat" ? (
-          <TwinShareSplatViewer
-            src={modelUrl}
-            className="h-full min-h-0"
-            pickEnabled={pickEnabled}
-            onPick={(pt) => void handlePick(pt)}
+  const commentCount = thread.length + pins.length;
+
+  const commentsContent = (
+    <div className="space-y-3 pb-2">
+      {canAnnotate ? (
+        <>
+          <TwinShareToolStrip
+            tool={tool}
             cameraMode={cameraMode}
+            canAnnotate={canAnnotate}
+            measureReady={measureReady}
+            viewerKind={viewerKind}
+            busy={busy}
+            onSelectTool={selectTool}
+            onToggleCameraMode={() => setCameraMode((m) => (m === "orbit" ? "walk" : "orbit"))}
           />
-        ) : (
-          <TwinModelViewer viewerKind={viewerKind} modelUrl={modelUrl} modelTitle={modelTitle} />
-        )}
-        {toast ? (
-          <p className="absolute bottom-3 left-1/2 z-20 -translate-x-1/2 rounded-xl border border-[var(--accent-border-blue)] bg-[color-mix(in_srgb,var(--graphite-canvas)_90%,transparent)] px-3 py-1.5 text-xs text-zinc-100 backdrop-blur-md">
-            {toast}
-          </p>
-        ) : null}
-      </div>
-
-      <div className="shrink-0 space-y-2 overflow-y-auto pb-1 sm:max-h-[38vh]">
-        <TwinShareToolStrip
-          tool={tool}
-          cameraMode={cameraMode}
-          canAnnotate={canAnnotate}
-          measureReady={measureReady}
-          viewerKind={viewerKind}
-          busy={busy}
-          onSelectTool={selectTool}
-          onToggleCameraMode={() => setCameraMode((m) => (m === "orbit" ? "walk" : "orbit"))}
-        />
-
-        {canAnnotate ? (
           <div className="space-y-2 rounded-xl border border-[var(--accent-border-blue)] bg-[color-mix(in_srgb,var(--twin360-blue)_5%,transparent)] p-3">
             <input
-            value={authorName}
-            onChange={(e) => setAuthorName(e.target.value)}
-            placeholder="Your name"
-            className={fieldClass}
-          />
-          {tool === "comment" ? (
-            <>
-              <textarea
-                value={commentBody}
-                onChange={(e) => setCommentBody(e.target.value)}
-                placeholder="Comment or question"
-                rows={3}
-                className={cn(fieldClass, "resize-none")}
-              />
-              <button type="button" onClick={() => void submitComment()} className={twinAccent.button}>
-                Post comment
-              </button>
-            </>
-          ) : null}
-          {tool === "pin" ? (
-            <input
-              value={pinTitle}
-              onChange={(e) => setPinTitle(e.target.value)}
-              placeholder="Pin title — then tap the model"
+              value={authorName}
+              onChange={(e) => setAuthorName(e.target.value)}
+              placeholder="Your name"
               className={fieldClass}
             />
-          ) : null}
-          {tool === "measure" ? (
-            <p className="text-[10px] leading-relaxed text-zinc-400">
-              {measureA ? "Tap second point on model." : "Tap two points on the pick proxy mesh."}{" "}
-              {APPROX_DISCLAIMER}
-            </p>
-          ) : null}
+            {tool === "comment" ? (
+              <>
+                <textarea
+                  value={commentBody}
+                  onChange={(e) => setCommentBody(e.target.value)}
+                  placeholder="Comment or question"
+                  rows={3}
+                  className={cn(fieldClass, "resize-none")}
+                />
+                <button type="button" onClick={() => void submitComment()} className={twinAccent.button}>
+                  Post comment
+                </button>
+              </>
+            ) : null}
+            {tool === "pin" ? (
+              <input
+                value={pinTitle}
+                onChange={(e) => setPinTitle(e.target.value)}
+                placeholder="Pin title — then tap the model"
+                className={fieldClass}
+              />
+            ) : null}
+            {tool === "measure" ? (
+              <p className="text-[10px] leading-relaxed text-zinc-400">
+                {measureA ? "Tap second point on model." : "Tap two points on the pick proxy mesh."}{" "}
+                {APPROX_DISCLAIMER}
+              </p>
+            ) : null}
           </div>
-        ) : null}
+        </>
+      ) : null}
 
-        {error ? <p className="text-xs text-red-300">{error}</p> : null}
-        <div className="max-h-32 space-y-2 overflow-y-auto rounded-xl border border-[var(--accent-border-blue)] bg-[color-mix(in_srgb,var(--graphite-canvas)_80%,transparent)] p-3 sm:max-h-40">
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Activity</p>
-          {thread.length === 0 && pins.length === 0 ? (
-            <p className="text-xs text-zinc-500">No comments or pins yet.</p>
-          ) : null}
-          {thread.map((c) => (
-            <div key={c.id} className="text-xs text-zinc-300">
-              <span className={cn("font-semibold", twinAccent.text)}>{c.author_display ?? "Guest"}</span>:{" "}
-              {c.body}
-            </div>
-          ))}
-          {pins.map((p) => (
-            <div key={p.id} className="text-xs text-zinc-300">
-              <span className={cn("font-semibold", twinAccent.text)}>Pin</span>: {p.title}
-            </div>
-          ))}
-        </div>
+      {error ? <p className="text-xs text-red-300">{error}</p> : null}
+
+      <div className="space-y-2">
+        {thread.length === 0 && pins.length === 0 ? (
+          <p className="text-xs text-zinc-500">No comments or pins yet.</p>
+        ) : null}
+        {thread.map((c) => (
+          <div key={c.id} className="text-xs text-zinc-300">
+            <span className={cn("font-semibold", twinAccent.text)}>{c.author_display ?? "Guest"}</span>:{" "}
+            {c.body}
+          </div>
+        ))}
+        {pins.map((p) => (
+          <div key={p.id} className="text-xs text-zinc-300">
+            <span className={cn("font-semibold", twinAccent.text)}>Pin</span>: {p.title}
+          </div>
+        ))}
       </div>
     </div>
+  );
+
+  return (
+    <TwinViewerCanvasShell
+      viewerRef={viewerRef}
+      cameraMode={cameraMode}
+      walkAvailable={splatReady}
+      onToggleCameraMode={() => setCameraMode((m) => (m === "orbit" ? "walk" : "orbit"))}
+      commentsOpen={commentsOpen}
+      onToggleComments={() => setCommentsOpen((open) => !open)}
+      commentCount={commentCount}
+      commentsTitle="Activity"
+      commentsContent={commentsContent}
+      toast={toast}
+    >
+      {splatReady ? (
+        <TwinShareSplatViewer
+          ref={viewerRef}
+          src={modelUrl}
+          pickEnabled={pickEnabled}
+          onPick={(pt) => void handlePick(pt)}
+          cameraMode={cameraMode}
+        />
+      ) : (
+        <div className="absolute inset-0">
+          <TwinModelViewer viewerKind={viewerKind} modelUrl={modelUrl} modelTitle={modelTitle} />
+        </div>
+      )}
+    </TwinViewerCanvasShell>
   );
 }

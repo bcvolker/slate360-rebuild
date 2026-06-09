@@ -26,7 +26,15 @@ type Pin = {
 
 const PIN_STATUSES = ["open", "in_progress", "resolved", "closed"] as const;
 
-export function TwinCollaborationPanel({ spaceId }: { spaceId: string }) {
+export function TwinCollaborationPanel({
+  spaceId,
+  onCountsChange,
+  compact = false,
+}: {
+  spaceId: string;
+  onCountsChange?: (count: number) => void;
+  compact?: boolean;
+}) {
   const [comments, setComments] = useState<Comment[]>([]);
   const [pins, setPins] = useState<Pin[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -47,11 +55,16 @@ export function TwinCollaborationPanel({ spaceId }: { spaceId: string }) {
       setError(data.error ?? "Could not load collaboration");
       return;
     }
-    setComments(data.comments ?? []);
-    setPins(data.pins ?? []);
+    const nextComments = data.comments ?? [];
+    const nextPins = data.pins ?? [];
+    setComments(nextComments);
+    setPins(nextPins);
     setUnreadCount(data.unread_count ?? 0);
     setError(null);
-  }, [spaceId]);
+    onCountsChange?.(
+      nextComments.filter((c) => c.share_token_id && c.subject_type !== "pin").length + nextPins.length,
+    );
+  }, [spaceId, onCountsChange]);
 
   useEffect(() => {
     void load();
@@ -117,23 +130,27 @@ export function TwinCollaborationPanel({ spaceId }: { spaceId: string }) {
   };
 
   return (
-    <section className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-3">
-      <div className="mb-3 flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <MessageSquare className={cn("size-4", twinAccent.text)} aria-hidden />
-          <h2 className="text-sm font-semibold text-zinc-100">Collaboration</h2>
+    <section className={cn(compact ? "p-0" : "rounded-xl border border-white/[0.08] bg-white/[0.03] p-3")}>
+      {!compact ? (
+        <div className="mb-3 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <MessageSquare className={cn("size-4", twinAccent.text)} aria-hidden />
+            <h2 className="text-sm font-semibold text-zinc-100">Collaboration</h2>
+          </div>
+          {unreadCount > 0 ? (
+            <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-bold", twinAccent.iconChip)}>
+              {unreadCount} new
+            </span>
+          ) : null}
+          {busy ? <Loader2 className={cn("size-4 animate-spin", twinAccent.spinner)} aria-hidden /> : null}
         </div>
-        {unreadCount > 0 ? (
-          <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-bold", twinAccent.iconChip)}>
-            {unreadCount} new
-          </span>
-        ) : null}
-        {busy ? <Loader2 className={cn("size-4 animate-spin", twinAccent.spinner)} aria-hidden /> : null}
-      </div>
+      ) : busy ? (
+        <Loader2 className={cn("mb-2 size-4 animate-spin", twinAccent.spinner)} aria-hidden />
+      ) : null}
 
       {error ? <p className="mb-2 text-xs text-red-300">{error}</p> : null}
 
-      <div className="max-h-56 space-y-3 overflow-y-auto">
+      <div className={cn("space-y-3 overflow-y-auto", compact ? "" : "max-h-56")}>
         {shareComments.length === 0 ? (
           <p className="text-xs text-zinc-500">No share-link comments yet.</p>
         ) : null}

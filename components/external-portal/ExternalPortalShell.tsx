@@ -1,3 +1,4 @@
+import { SlateIcon } from "@/components/shared/SlateIcon";
 import { SlateLogo } from "@/components/shared/SlateLogo";
 import { cn } from "@/lib/utils";
 import type { ReactNode } from "react";
@@ -55,7 +56,11 @@ export function ExternalPortalShell({
           )}
         >
           <div className="flex min-w-0 items-center gap-3">
-            <SlateLogo size="sm" className="shrink-0" />
+            {twinAccent ? (
+              <SlateIcon className="h-9 w-9 shrink-0" />
+            ) : (
+              <SlateLogo size="sm" className="shrink-0" />
+            )}
             <div
               className={cn(
                 "hidden h-5 w-px sm:block",

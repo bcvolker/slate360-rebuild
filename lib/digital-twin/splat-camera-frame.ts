@@ -41,7 +41,7 @@ export function getSplatSceneBounds(mesh: SplatMesh): THREE.Box3 {
 export function computeSplatCameraFrame(
   box: THREE.Box3,
   camera: THREE.PerspectiveCamera,
-  padding = 1.3,
+  padding = 1.6,
 ): SplatCameraFrame {
   box.getCenter(TMP_CENTER);
   box.getSize(TMP_SIZE);

@@ -9,8 +9,6 @@ import { TwinShareAnnotateShell } from "@/components/digital-twin/TwinShareAnnot
 import { TwinShareDownloadButton } from "@/components/digital-twin/TwinShareDownloadButton";
 import { TwinViewerDisclaimer } from "@/components/digital-twin/TwinViewerDisclaimer";
 import type { TwinViewerKind } from "@/lib/digital-twin/viewer-format";
-import { twinAccent } from "@/lib/digital-twin/twin-accent";
-import { cn } from "@/lib/utils";
 
 export function TwinShareViewer({
   embed,
@@ -56,10 +54,10 @@ export function TwinShareViewer({
 
   if (embed) {
     return (
-      <div className="fixed inset-0 flex flex-col bg-[var(--graphite-canvas)]">
-        <div className="relative min-h-0 flex-1">{viewer}</div>
+      <div className="fixed inset-0 bg-[var(--graphite-canvas)]">
+        {viewer}
         {canDownload && shareToken ? (
-          <div className="shrink-0 border-t border-[var(--accent-border-blue)] p-3">
+          <div className="pointer-events-auto absolute right-3 top-3 z-30">
             <TwinShareDownloadButton shareToken={shareToken} />
           </div>
         ) : null}
@@ -77,26 +75,18 @@ export function TwinShareViewer({
       accent="twin"
       showFooter={false}
     >
-      <main className="flex min-h-0 flex-1 flex-col overflow-hidden">
-        <div className="relative min-h-0 flex-1 overflow-hidden">{viewer}</div>
-
-        <div className="shrink-0 space-y-2 border-t border-[var(--accent-border-blue)] bg-[color-mix(in_srgb,var(--graphite-canvas)_92%,transparent)] px-3 py-2 sm:px-4 sm:py-3">
+      <main className="relative min-h-0 flex-1 overflow-hidden">
+        {viewer}
+        <div className="pointer-events-none absolute left-3 top-3 z-10">
           {canDownload && shareToken ? (
-            <TwinShareDownloadButton shareToken={shareToken} />
+            <div className="pointer-events-auto">
+              <TwinShareDownloadButton shareToken={shareToken} />
+            </div>
           ) : null}
-          <TwinViewerDisclaimer className="px-1 text-center text-[11px] leading-relaxed text-[var(--graphite-muted)]" />
-          <p className="text-center text-[10px] text-[var(--graphite-muted)]">
-            Powered by{" "}
-            <a
-              href="https://www.slate360.ai"
-              target="_blank"
-              rel="noopener noreferrer"
-              className={cn("font-semibold", twinAccent.text, twinAccent.textHover)}
-            >
-              Slate360
-            </a>
-          </p>
         </div>
+        <p className="pointer-events-none absolute bottom-[5.75rem] left-1/2 z-10 hidden max-w-md -translate-x-1/2 text-center text-[10px] leading-relaxed text-[var(--graphite-muted)] sm:block">
+          <TwinViewerDisclaimer className="inline" />
+        </p>
       </main>
     </ExternalPortalShell>
   );
