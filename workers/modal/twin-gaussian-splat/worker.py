@@ -102,6 +102,32 @@ def output_storage_key(org_id: str, space_id: str, job_id: str) -> str:
     return f"orgs/{org_id}/digital-twin/{space_id}/models/{job_id}.spz"
 
 
+def splat_transform_clean_export(ply_path: Path, spz_path: Path) -> None:
+    """Conservative post-export cleanup: low opacity, spiky scales, floaters."""
+    run_cmd(
+        [
+            "npx",
+            "-y",
+            "@playcanvas/splat-transform",
+            "-w",
+            str(ply_path),
+            "--filter-nan",
+            "--filter-value",
+            "opacity,gte,0.05",
+            "--filter-value",
+            "scale_0,lte,0.5",
+            "--filter-value",
+            "scale_1,lte,0.5",
+            "--filter-value",
+            "scale_2,lte,0.5",
+            "--filter-floaters",
+            str(spz_path),
+            "--spz-version",
+            "3",
+        ]
+    )
+
+
 def quality_speed_iterations(quality: str, speed: str) -> int:
     base = {"draft": 15_000, "standard": 30_000, "high": 45_000}.get(quality, 30_000)
     if speed == "fast":
@@ -460,17 +486,7 @@ def run_pipeline(job: JobInput, work_root: Path) -> dict[str, Any]:
 
     ply_path = find_latest_file(export_dir, "**/*.ply")
     spz_path = export_dir / "model.spz"
-    run_cmd(
-        [
-            "npx",
-            "-y",
-            "@playcanvas/splat-transform",
-            str(ply_path),
-            str(spz_path),
-            "--spz-version",
-            "3",
-        ]
-    )
+    splat_transform_clean_export(ply_path, spz_path)
 
     if not spz_path.is_file():
         raise RuntimeError("SPZ export did not produce model.spz")
