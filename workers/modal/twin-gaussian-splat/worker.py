@@ -128,6 +128,17 @@ def splat_transform_clean_export(ply_path: Path, spz_path: Path) -> None:
     )
 
 
+# splatfacto default; explicit conservative cull (cleaner than splatfacto-big's 0.005).
+CULL_ALPHA_THRESH = 0.1
+
+
+def resolve_matching_method(ingest_stats: dict[str, int]) -> str:
+    """Video frame sequences are ordered — sequential COLMAP matching is faster and stabler."""
+    if ingest_stats.get("videos", 0) > 0:
+        return "sequential"
+    return "exhaustive"
+
+
 def quality_speed_iterations(quality: str, speed: str) -> int:
     base = {"draft": 15_000, "standard": 30_000, "high": 45_000}.get(quality, 30_000)
     if speed == "fast":
@@ -300,6 +311,17 @@ def find_latest_file(root: Path, pattern: str) -> Path:
     return max(matches, key=lambda p: p.stat().st_mtime)
 
 
+def _ply_vertex_count(ply_path: Path) -> int:
+    with ply_path.open("rb") as fh:
+        while True:
+            line = fh.readline().decode("ascii", errors="ignore").strip()
+            if line == "end_header":
+                break
+            if line.startswith("element vertex"):
+                return int(line.split()[-1])
+    raise RuntimeError(f"Could not parse vertex count from {ply_path}")
+
+
 def compute_ply_bounds(ply_path: Path) -> dict[str, dict[str, float]]:
     import numpy as np
 
@@ -430,6 +452,7 @@ def run_pipeline(job: JobInput, work_root: Path) -> dict[str, Any]:
     ingest_stats = materialize_images(
         source_dir, images_dir, job.source_keys, job.is360_flags
     )
+    matching_method = resolve_matching_method(ingest_stats)
 
     run_cmd(
         [
@@ -440,7 +463,7 @@ def run_pipeline(job: JobInput, work_root: Path) -> dict[str, Any]:
             "ns-process-data",
             "images",
             "--matching-method",
-            "exhaustive",
+            matching_method,
             "--no-gpu",
             "--data",
             str(images_dir),
@@ -468,6 +491,10 @@ def run_pipeline(job: JobInput, work_root: Path) -> dict[str, Any]:
             "True",
             "--pipeline.model.use-scale-regularization",
             "True",
+            "--pipeline.model.cull-alpha-thresh",
+            str(CULL_ALPHA_THRESH),
+            "--pipeline.datamanager.dataparser.orientation-method",
+            "up",
         ],
         env={"CUDA_VISIBLE_DEVICES": "0"},
     )
@@ -492,6 +519,7 @@ def run_pipeline(job: JobInput, work_root: Path) -> dict[str, Any]:
         raise RuntimeError("SPZ export did not produce model.spz")
 
     bounds = compute_ply_bounds(ply_path)
+    splat_count = _ply_vertex_count(ply_path)
     out_key = output_storage_key(job.org_id, job.space_id, job.job_id)
     s3.upload_file(
         str(spz_path),
@@ -513,6 +541,10 @@ def run_pipeline(job: JobInput, work_root: Path) -> dict[str, Any]:
             "sourceCount": len(job.source_keys),
             "ingest": ingest_stats,
             "configPath": str(config_path),
+            "matchingMethod": matching_method,
+            "orientationMethod": "up",
+            "cullAlphaThresh": CULL_ALPHA_THRESH,
+            "splatCount": splat_count,
         },
     }
 
