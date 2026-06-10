@@ -40,6 +40,13 @@ async function measureThumbCount(page, thumbCount) {
     const centerX = (rect) => rect.left + rect.width / 2;
     const centerY = (rect) => rect.top + rect.height / 2;
 
+    const sheet = document.querySelector('[data-capture-chrome="source-picker-sheet"]');
+    const firstRow = document.querySelector('[data-capture-chrome="source-picker-row"]');
+    const sheetRect = sheet?.getBoundingClientRect();
+    const rowRect = firstRow?.getBoundingClientRect();
+    const sheetStyle = sheet ? window.getComputedStyle(sheet) : null;
+    const bottomPad = sheetStyle ? Number.parseFloat(sheetStyle.paddingBottom || "0") : null;
+
     return {
       thumbCount: count,
       viewportWidth: frameRect.width,
@@ -54,8 +61,53 @@ async function measureThumbCount(page, thumbCount) {
       shutterCenterY: centerY(shutterRect),
       ghostToShutterCenterDeltaY: centerY(ghostRect) - centerY(shutterRect),
       endToShutterCenterDeltaY: centerY(endRect) - centerY(shutterRect),
+      sourcePickerOpen: Boolean(sheet),
+      sourcePickerHeightPx: sheetRect?.height ?? null,
+      sourcePickerRowHeightPx: rowRect?.height ?? null,
+      sourcePickerBottomPadPx: bottomPad,
+      shutterCenterDeltaXWithPicker: sheet ? centerX(shutterRect) - viewportCenterX : null,
     };
   }, thumbCount);
+}
+
+async function measureSourcePicker(page) {
+  const url = `${baseUrl}${path}&thumbs=0&picker=open&photo360=locked`;
+  await page.goto(url, { waitUntil: "domcontentloaded", timeout: 60_000 });
+  await page.waitForSelector('[data-dev-device="mobile"]', { timeout: 30_000 });
+  await page.waitForSelector('[data-capture-chrome="source-picker-sheet"]', { timeout: 30_000 });
+  await page.waitForSelector('[data-capture-chrome="shutter"]', { timeout: 30_000 });
+  await page.waitForTimeout(600);
+
+  return page.evaluate(() => {
+    const frame =
+      document.querySelector('[data-dev-device="mobile"]') ??
+      document.querySelector('[data-capture-canvas="no-plans"]');
+    const shutter = document.querySelector('[data-capture-chrome="shutter"]');
+    const sheet = document.querySelector('[data-capture-chrome="source-picker-sheet"]');
+    const firstRow = document.querySelector('[data-capture-chrome="source-picker-row"]');
+    if (!frame || !shutter || !sheet || !firstRow) return null;
+
+    const frameRect = frame.getBoundingClientRect();
+    const shutterRect = shutter.getBoundingClientRect();
+    const sheetRect = sheet.getBoundingClientRect();
+    const rowRect = firstRow.getBoundingClientRect();
+    const sheetStyle = window.getComputedStyle(sheet);
+    const bottomPad = Number.parseFloat(sheetStyle.paddingBottom || "0");
+    const viewportCenterX = frameRect.left + frameRect.width / 2;
+    const shutterCenterX = shutterRect.left + shutterRect.width / 2;
+
+    return {
+      viewportWidth: frameRect.width,
+      viewportHeight: frameRect.height,
+      shutterCenterDeltaX: shutterCenterX - viewportCenterX,
+      sourcePickerOpen: true,
+      sourcePickerHeightPx: sheetRect.height,
+      sourcePickerRowHeightPx: rowRect.height,
+      sourcePickerBottomPadPx: bottomPad,
+      sourcePickerSnapRatio: sheetRect.height / frameRect.height,
+      shutterCenterDeltaXWithPicker: shutterCenterX - viewportCenterX,
+    };
+  });
 }
 
 async function main() {
@@ -77,8 +129,14 @@ async function main() {
       results.push(sample);
     }
 
+    const pickerSample = await measureSourcePicker(page);
+
     console.log(
-      JSON.stringify({ baseUrl, path, viewport: { width: 390, height: 844 }, results }, null, 2),
+      JSON.stringify(
+        { baseUrl, path, viewport: { width: 390, height: 844 }, results, pickerSample },
+        null,
+        2,
+      ),
     );
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);

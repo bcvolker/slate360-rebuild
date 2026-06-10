@@ -159,6 +159,14 @@ export function useDevCaptureLoop(options: Options = {}) {
     return { ok: true as const };
   }, [activeItemId]);
 
+  const savePhotoAttachmentPins = useCallback(async (itemId: string, pins: CaptureItemRecord["photo_attachment_pins"]) => {
+    setItems((current) =>
+      current.map((item) =>
+        item.id === itemId ? { ...item, photo_attachment_pins: pins } : item,
+      ),
+    );
+  }, []);
+
   const loop = {
     items,
     activeItem,
@@ -169,9 +177,12 @@ export function useDevCaptureLoop(options: Options = {}) {
     setIntent: (intent: CaptureIntent) => {
       intentRef.current = intent;
     },
+    setExternalError: () => undefined,
     handleFile,
     focusFilmstripItem,
     deleteStop,
+    savePhotoAttachmentPins,
+    saveMarkupData: async () => undefined,
   } as unknown as CaptureV2Loop;
 
   return loop;

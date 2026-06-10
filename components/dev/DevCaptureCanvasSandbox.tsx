@@ -19,6 +19,7 @@ function parseThumbCount(value: string | null): (typeof DEV_CAPTURE_THUMB_COUNTS
 export function DevCaptureCanvasSandbox() {
   const searchParams = useSearchParams();
   const thumbCount = parseThumbCount(searchParams?.get("thumbs") ?? null);
+  const openPickerOnMount = searchParams?.get("picker") === "open";
   const loop = useDevCaptureLoop({ thumbCount, liveMode: true });
 
   const measureKey = useMemo(
@@ -51,6 +52,8 @@ export function DevCaptureCanvasSandbox() {
         session={DEV_MOCK_SESSION}
         loop={loop}
         contextLabel={DEV_MOCK_CONTEXT_LABEL}
+        photo360Entitled={searchParams?.get("photo360") !== "locked"}
+        devOpenSourcePicker={openPickerOnMount}
       />
       <pre id="dev-capture-chrome-measure" className="sr-only" aria-hidden />
     </div>

@@ -12,6 +12,11 @@ export type CaptureChromeMeasure = {
   shutterCenterY: number;
   ghostToShutterCenterDeltaY: number;
   endToShutterCenterDeltaY: number;
+  sourcePickerOpen: boolean;
+  sourcePickerHeightPx: number | null;
+  sourcePickerRowHeightPx: number | null;
+  sourcePickerBottomPadPx: number | null;
+  shutterCenterDeltaXWithPicker: number | null;
 };
 
 function centerX(rect: DOMRect) {
@@ -43,6 +48,14 @@ export function measureCaptureChromeLayout(thumbCount: number): CaptureChromeMea
 
   const shutterCenterX = centerX(shutterRect);
   const shutterCenterDeltaX = shutterCenterX - viewportCenterX;
+  const sheet = document.querySelector<HTMLElement>('[data-capture-chrome="source-picker-sheet"]');
+  const firstRow = document.querySelector<HTMLElement>('[data-capture-chrome="source-picker-row"]');
+  const sheetRect = sheet?.getBoundingClientRect();
+  const rowRect = firstRow?.getBoundingClientRect();
+  const sheetStyle = sheet ? window.getComputedStyle(sheet) : null;
+  const bottomPad = sheetStyle
+    ? Number.parseFloat(sheetStyle.paddingBottom || "0")
+    : null;
 
   return {
     thumbCount,
@@ -58,5 +71,10 @@ export function measureCaptureChromeLayout(thumbCount: number): CaptureChromeMea
     shutterCenterY: centerY(shutterRect),
     ghostToShutterCenterDeltaY: centerY(ghostRect) - centerY(shutterRect),
     endToShutterCenterDeltaY: centerY(endRect) - centerY(shutterRect),
+    sourcePickerOpen: Boolean(sheet),
+    sourcePickerHeightPx: sheetRect?.height ?? null,
+    sourcePickerRowHeightPx: rowRect?.height ?? null,
+    sourcePickerBottomPadPx: bottomPad,
+    shutterCenterDeltaXWithPicker: sheet ? shutterCenterDeltaX : null,
   };
 }
