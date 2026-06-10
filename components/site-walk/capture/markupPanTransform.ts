@@ -6,19 +6,46 @@ import type { PointerPoint, Transform } from "./markupCanvasGeometry";
 import { clamp, distance } from "./markupCanvasGeometry";
 
 export type PanAnchor = { x: number; y: number; origin: Transform };
-export type PinchAnchor = { distance: number; scale: number };
+export type PinchAnchor = { distance: number; scale: number; centerX: number; centerY: number; origin: Transform };
 
 /** Start a pinch gesture from two active pointers. */
-export function beginPinch(pointers: Map<number, PointerPoint>, currentScale: number): PinchAnchor | null {
+export function beginPinch(
+  pointers: Map<number, PointerPoint>,
+  currentScale: number,
+  currentTransform: Transform = { x: 0, y: 0, scale: currentScale },
+): PinchAnchor | null {
   if (pointers.size !== 2) return null;
   const [a, b] = Array.from(pointers.values());
-  return { distance: distance(a, b), scale: currentScale };
+  return {
+    distance: distance(a, b),
+    scale: currentScale,
+    centerX: (a.x + b.x) / 2,
+    centerY: (a.y + b.y) / 2,
+    origin: currentTransform,
+  };
 }
 
 /** Compute the next scale during an active pinch. */
 export function computePinchScale(pointers: Map<number, PointerPoint>, anchor: PinchAnchor, minScale = 0.75, maxScale = 4): number {
   const [a, b] = Array.from(pointers.values());
   return clamp((distance(a, b) / anchor.distance) * anchor.scale, minScale, maxScale);
+}
+
+/** Pinch zoom with two-finger pan while zoomed. */
+export function computePinchTransform(
+  pointers: Map<number, PointerPoint>,
+  anchor: PinchAnchor,
+  minScale = 1,
+  maxScale = 4,
+): Transform {
+  const [a, b] = Array.from(pointers.values());
+  const centerX = (a.x + b.x) / 2;
+  const centerY = (a.y + b.y) / 2;
+  return {
+    x: anchor.origin.x + (centerX - anchor.centerX),
+    y: anchor.origin.y + (centerY - anchor.centerY),
+    scale: clamp((distance(a, b) / anchor.distance) * anchor.scale, minScale, maxScale),
+  };
 }
 
 /** Compute the next pan transform from a pointer move. */
