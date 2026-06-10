@@ -132,6 +132,19 @@ def splat_transform_clean_export(ply_path: Path, spz_path: Path) -> None:
 CULL_ALPHA_THRESH = 0.1
 
 
+def apply_orientation_override(processed_dir: Path, method: str = "up") -> None:
+    """Nerfstudio 1.1.5 reads orientation_override from transforms.json (no ns-train CLI flag)."""
+    transforms_path = processed_dir / "transforms.json"
+    if not transforms_path.is_file():
+        raise RuntimeError(f"Missing transforms.json in {processed_dir}")
+    data = json.loads(transforms_path.read_text(encoding="utf-8"))
+    data["orientation_override"] = method
+    transforms_path.write_text(
+        json.dumps(data, indent=2) + "\n",
+        encoding="utf-8",
+    )
+
+
 def resolve_matching_method(ingest_stats: dict[str, int]) -> str:
     """Video frame sequences are ordered — sequential COLMAP matching is faster and stabler."""
     if ingest_stats.get("videos", 0) > 0:
@@ -473,6 +486,7 @@ def run_pipeline(job: JobInput, work_root: Path) -> dict[str, Any]:
             "2",
         ]
     )
+    apply_orientation_override(processed_dir, "up")
 
     iterations = quality_speed_iterations(job.quality, job.speed)
     run_cmd(
@@ -493,8 +507,6 @@ def run_pipeline(job: JobInput, work_root: Path) -> dict[str, Any]:
             "True",
             "--pipeline.model.cull-alpha-thresh",
             str(CULL_ALPHA_THRESH),
-            "--pipeline.datamanager.dataparser.orientation-method",
-            "up",
         ],
         env={"CUDA_VISIBLE_DEVICES": "0"},
     )
