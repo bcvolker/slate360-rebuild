@@ -54,7 +54,7 @@ export function MobileContactsClient({ contacts }: MobileContactsClientProps) {
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             placeholder="Search contacts"
-            className="h-11 w-full rounded-xl border border-white/10 bg-[#0B0F15]/60 pl-10 pr-4 text-sm text-white outline-none placeholder:text-zinc-500 focus:border-teal-400/40 focus:ring-2 focus:ring-teal-400/15"
+            className="h-11 w-full rounded-xl border border-white/10 bg-[#0B0F15]/60 pl-10 pr-4 text-sm text-white outline-none placeholder:text-zinc-500 focus:border-white/25 focus:ring-2 focus:ring-white/10"
           />
         </div>
       </div>

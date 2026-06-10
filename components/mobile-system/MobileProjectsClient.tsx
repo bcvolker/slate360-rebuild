@@ -80,7 +80,7 @@ export function MobileProjectsClient() {
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             placeholder="Search projects"
-            className="h-11 w-full rounded-xl border border-white/10 bg-[#0B0F15]/60 pl-10 pr-4 text-sm text-white outline-none placeholder:text-zinc-500 focus:border-teal-400/40 focus:ring-2 focus:ring-teal-400/15"
+            className="h-11 w-full rounded-xl border border-white/10 bg-[#0B0F15]/60 pl-10 pr-4 text-sm text-white outline-none placeholder:text-zinc-500 focus:border-white/25 focus:ring-2 focus:ring-white/10"
           />
         </div>
       </div>
@@ -118,7 +118,7 @@ export function MobileProjectsClient() {
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-sm font-semibold text-white">{project.name}</span>
                   <span className="mt-0.5 flex items-center gap-1 truncate text-xs text-zinc-400">
-                    <MapPin className="h-3 w-3 shrink-0 text-teal-400/70" aria-hidden />
+                    <MapPin className="h-3 w-3 shrink-0 text-zinc-400" aria-hidden />
                     {location.label || "No location"}
                   </span>
                 </span>
@@ -134,7 +134,7 @@ export function MobileProjectsClient() {
         onClick={() => setWizardOpen(true)}
         className={cn(
           mobileTokens.mobilePrimaryButton,
-          "fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom))] right-4 z-30 inline-flex h-14 w-14 items-center justify-center rounded-full shadow-[0_0_18px_rgba(45,212,191,0.25)]",
+          "fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom))] right-4 z-30 inline-flex h-14 w-14 items-center justify-center rounded-full",
         )}
         aria-label="Create project"
       >

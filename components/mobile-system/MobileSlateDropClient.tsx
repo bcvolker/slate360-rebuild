@@ -61,7 +61,7 @@ export function MobileSlateDropClient({ browseRows, storageLabel }: MobileSlateD
           </Link>
           <Link
             href="/slatedrop/new-folder"
-            className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-white/10 bg-white/[0.05] px-4 text-sm font-semibold text-zinc-100 transition-colors hover:border-teal-400/25 hover:bg-white/[0.08]"
+            className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-white/10 bg-white/[0.05] px-4 text-sm font-semibold text-zinc-100 transition-colors hover:border-white/15 hover:bg-white/[0.08]"
           >
             <Plus className="h-4 w-4" aria-hidden />
             New folder
@@ -96,7 +96,7 @@ export function MobileSlateDropClient({ browseRows, storageLabel }: MobileSlateD
               className={cn(
                 "rounded-lg px-2 py-2 text-center text-[11px] font-semibold transition-colors",
                 active
-                  ? "bg-teal-400/15 text-teal-200"
+                  ? "bg-white/[0.08] text-zinc-100"
                   : "text-zinc-400 hover:bg-white/[0.05] hover:text-zinc-200",
               )}
               aria-current={active ? "page" : undefined}

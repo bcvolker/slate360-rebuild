@@ -31,7 +31,7 @@ export function MobileComingSoonSheet({
         className="rounded-t-3xl border-t border-white/10 bg-[#0B0F15] p-6 pb-12 sm:max-w-none text-slate-50"
       >
         <SheetHeader className="text-left space-y-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-teal-400/10 text-teal-400/90">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/[0.06] text-zinc-200">
             <Hammer className="h-6 w-6" />
           </div>
           <div className="space-y-1">
@@ -44,7 +44,7 @@ export function MobileComingSoonSheet({
         <div className="mt-8 flex justify-end">
           <Button
             onClick={() => onOpenChange(false)}
-            className="w-full bg-teal-500/90 text-white hover:bg-teal-500"
+            className="w-full bg-zinc-100 text-zinc-900 hover:bg-white"
           >
             Got it
           </Button>

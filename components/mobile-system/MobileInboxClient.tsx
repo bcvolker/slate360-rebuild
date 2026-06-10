@@ -85,7 +85,7 @@ export function MobileInboxClient() {
                   className={cn(
                     mobileTokens.panelTabTrigger,
                     "flex-1 text-center",
-                    isActive && "border-teal-400 text-white",
+                    isActive && "border-white text-white",
                   )}
                 >
                   {tab.label}
@@ -126,7 +126,7 @@ export function MobileInboxClient() {
                 })
               ) : (
                 <>
-                  <div className="rounded-xl border border-teal-400/20 bg-teal-400/10 p-4">
+                  <div className="rounded-xl border border-white/10 bg-white/[0.05] p-4">
                     <p className="text-sm font-medium leading-relaxed text-zinc-200">
                       Welcome. Assigned walks and project notifications appear here when your team
                       shares work with you.
@@ -179,7 +179,7 @@ function EmptyInboxRow({
         "flex items-center gap-3 border-dashed px-4 py-4 opacity-80",
       )}
     >
-      <Icon className="h-5 w-5 shrink-0 text-teal-400/80" strokeWidth={1.75} />
+      <Icon className="h-5 w-5 shrink-0 text-zinc-300" strokeWidth={1.75} />
       <div>
         <p className="text-sm font-semibold text-zinc-200">{title}</p>
         <p className="text-xs text-zinc-400">{detail}</p>

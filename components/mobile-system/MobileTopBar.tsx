@@ -49,7 +49,7 @@ export function MobileTopBar({
   return (
     <header
       className={cn(
-        "shrink-0 lg:hidden border-b border-white/10 bg-[#0B0F15]/88 px-3 shadow-lg backdrop-blur-md",
+        "shrink-0 lg:hidden border-b border-white/10 bg-[#0B0F15]/88 px-3 backdrop-blur-md",
         className,
       )}
       style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}
