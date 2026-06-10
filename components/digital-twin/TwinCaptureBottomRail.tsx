@@ -1,36 +1,37 @@
 "use client";
 
 import { Check, Flashlight } from "lucide-react";
-import type { TwinCaptureMode } from "@/hooks/useTwinCaptureSession";
 import { TWIN_CAPTURE_CHROME } from "@/lib/digital-twin/twin-capture-chrome-layout";
+import { TWIN_CAPTURE_GLASS, TWIN_CAPTURE_GLASS_SQUARE } from "./twin-capture-glass";
 import { TWIN_CAPTURE_POLISH } from "./twin-capture-polish-tokens";
+import type { TwinCaptureMode } from "./useTwinCaptureSession";
 
 type Props = {
   hidden?: boolean;
   mode: TwinCaptureMode;
   isRecording: boolean;
   isStreaming: boolean;
+  needsResume?: boolean;
   torchSupported: boolean;
   torchOn: boolean;
   hasContent: boolean;
+  finishing?: boolean;
   coverageProgress: number;
   onTorchToggle: () => void;
   onShutterTap: () => void;
   onDone: () => void;
 };
 
-function glassSquareClass() {
-  return "border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_72%,transparent)] text-[var(--graphite-text-header)] backdrop-blur-md";
-}
-
 export function TwinCaptureBottomRail({
   hidden,
   mode,
   isRecording,
   isStreaming,
+  needsResume = false,
   torchSupported,
   torchOn,
   hasContent,
+  finishing = false,
   coverageProgress,
   onTorchToggle,
   onShutterTap,
@@ -44,15 +45,20 @@ export function TwinCaptureBottomRail({
   const progressDeg = Math.round(Math.min(1, Math.max(0, coverageProgress)) * 360);
   const ringInset = TWIN_CAPTURE_POLISH.coverageRingWidthPx;
   const innerSize = TWIN_CAPTURE_CHROME.shutterSizePx - ringInset * 2;
+  const shutterEnabled = needsResume || (isStreaming && !needsResume);
 
   return (
     <div className="pointer-events-none absolute inset-x-0 bottom-0 z-30">
       <p
-        className="pointer-events-none absolute inset-x-0 text-center text-[11px] font-medium text-[var(--graphite-muted)]"
+        className={`pointer-events-none absolute inset-x-0 mx-auto w-fit max-w-[90%] px-3 py-1 text-center text-[11px] font-medium text-[var(--graphite-text-header)] ${TWIN_CAPTURE_GLASS}`}
         style={{ bottom: `calc(${TWIN_CAPTURE_CHROME.hintBottomPx}px + ${safeBottom})` }}
         data-twin-chrome="hint"
       >
-        tap square = end clip · check = review
+        {needsResume
+          ? "tap to resume camera"
+          : photosMode
+            ? "tap shutter = start/stop frames · check = review"
+            : "tap square = end clip · check = review"}
       </p>
 
       <div
@@ -70,7 +76,7 @@ export function TwinCaptureBottomRail({
               type="button"
               onClick={onTorchToggle}
               data-twin-chrome="light-button"
-              className={`inline-flex items-center justify-center justify-self-start rounded-xl transition active:scale-[0.98] ${glassSquareClass()} ${
+              className={`inline-flex items-center justify-center justify-self-start transition active:scale-[0.98] ${TWIN_CAPTURE_GLASS_SQUARE} ${
                 torchOn ? "border-[var(--accent-border-blue)] text-[var(--twin360-blue)]" : ""
               }`}
               style={{
@@ -78,7 +84,7 @@ export function TwinCaptureBottomRail({
                 height: TWIN_CAPTURE_CHROME.lightButtonSizePx,
               }}
               aria-pressed={torchOn}
-              aria-label="Toggle torch"
+              aria-label={torchOn ? "Turn torch off" : "Turn torch on"}
             >
               <Flashlight className="h-5 w-5" />
             </button>
@@ -104,19 +110,21 @@ export function TwinCaptureBottomRail({
             />
             <button
               type="button"
-              disabled={!isStreaming}
+              disabled={!shutterEnabled}
               onClick={onShutterTap}
               data-twin-chrome="shutter"
               className="absolute left-1/2 top-1/2 inline-flex -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-[var(--graphite-canvas)] transition active:scale-95 disabled:opacity-50"
               style={{ width: innerSize, height: innerSize }}
               aria-label={
-                photosMode
-                  ? isRecording
-                    ? "Stop photo capture"
-                    : "Start photo capture"
-                  : isRecording
-                    ? "End clip"
-                    : "Start recording"
+                needsResume
+                  ? "Resume camera"
+                  : photosMode
+                    ? isRecording
+                      ? "Stop photo capture"
+                      : "Start photo capture"
+                    : isRecording
+                      ? "End clip"
+                      : "Start recording"
               }
             >
               {showStopSquare ? (
@@ -141,7 +149,7 @@ export function TwinCaptureBottomRail({
 
           <button
             type="button"
-            disabled={!hasContent}
+            disabled={!hasContent || finishing}
             onClick={onDone}
             data-twin-chrome="done-button"
             className="inline-flex items-center justify-center justify-self-end rounded-full bg-[var(--twin360-blue)] text-[var(--graphite-canvas)] shadow-[var(--mobile-app-card-glow-info)] transition active:scale-[0.98] disabled:opacity-35"
@@ -155,19 +163,23 @@ export function TwinCaptureBottomRail({
           </button>
         </div>
 
-        <div className="mt-1 grid grid-cols-[1fr_auto_1fr] text-[11px] leading-none">
+        <div className="mt-1 grid grid-cols-[1fr_auto_1fr] gap-1 text-[11px] leading-none">
           {torchSupported ? (
-            <span className="justify-self-start font-medium text-[var(--graphite-muted)]">Light</span>
+            <span
+              className={`justify-self-start px-2 py-0.5 font-medium text-[var(--graphite-text-header)] ${TWIN_CAPTURE_GLASS}`}
+            >
+              {torchOn ? "Light on" : "Light"}
+            </span>
           ) : (
             <span aria-hidden />
           )}
           <span aria-hidden />
           <span
-            className={`justify-self-end font-semibold ${
+            className={`justify-self-end px-2 py-0.5 font-semibold ${TWIN_CAPTURE_GLASS} ${
               hasContent ? "text-[var(--twin360-blue)]" : "text-[var(--graphite-muted)]"
             }`}
           >
-            Done
+            {finishing ? "Preparing…" : "Done"}
           </span>
         </div>
       </div>

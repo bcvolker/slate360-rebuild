@@ -23,7 +23,7 @@ export function TwinCaptureCoveragePill({ hidden, coveragePct, paceState }: Prop
       style={{ top: `calc(max(env(safe-area-inset-top), 0px) + ${topOffset}px)` }}
       data-twin-chrome="coverage-pill"
     >
-      <span className="inline-flex flex-col items-end gap-0.5 rounded-full border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_72%,transparent)] px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-wide backdrop-blur-md">
+      <span className="inline-flex flex-col items-end gap-0.5 rounded-full border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_70%,transparent)] px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-wide backdrop-blur-md">
         <span className="text-[var(--twin360-blue)]">COVERAGE {coveragePct}%</span>
         {paceState ? (
           <span

@@ -1,6 +1,6 @@
 "use client";
 
-import { formatTwinClipLabel, type TwinCaptureClip } from "@/hooks/useTwinCaptureSession";
+import { formatTwinClipLabel, type TwinCaptureClip } from "./useTwinCaptureSession";
 import { TWIN_CAPTURE_CHROME } from "@/lib/digital-twin/twin-capture-chrome-layout";
 
 type Props = {

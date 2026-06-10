@@ -1,7 +1,8 @@
 "use client";
 
-import type { PhotoIntervalSec, TwinCaptureMode } from "@/hooks/useTwinCaptureSession";
 import { TWIN_CAPTURE_CHROME } from "@/lib/digital-twin/twin-capture-chrome-layout";
+import { TWIN_CAPTURE_GLASS } from "./twin-capture-glass";
+import type { PhotoIntervalSec, TwinCaptureMode } from "./useTwinCaptureSession";
 
 type Props = {
   hidden?: boolean;
@@ -26,49 +27,47 @@ export function TwinCaptureModeSelector({
 
   return (
     <div
-      className="pointer-events-auto absolute inset-x-0 z-20 flex items-center justify-center gap-6"
+      className="pointer-events-auto absolute inset-x-0 z-20 flex items-center justify-center"
       style={{ bottom: `calc(${TWIN_CAPTURE_CHROME.modeSelectorBottomPx}px + ${safeBottom})` }}
       data-twin-chrome="mode-selector"
       role="tablist"
       aria-label="Capture mode"
     >
-      {(["video", "photos"] as const).map((entry) => {
-        const active = mode === entry;
-        const label = entry === "video" ? "VIDEO" : "PHOTOS";
-        return (
-          <div key={entry} className="flex items-center gap-2">
+      <div className={`inline-flex items-center gap-1 p-1 ${TWIN_CAPTURE_GLASS}`}>
+        {(["video", "photos"] as const).map((entry) => {
+          const active = mode === entry;
+          const label = entry === "video" ? "VIDEO" : "PHOTOS";
+          return (
             <button
+              key={entry}
               type="button"
               role="tab"
               aria-selected={active}
               disabled={modeLocked && !active}
               onClick={() => onModeChange(entry)}
-              className={`relative pb-1 font-mono text-xs font-semibold uppercase tracking-wide transition disabled:opacity-40 ${
-                active ? "text-[var(--twin360-blue)]" : "text-[var(--graphite-muted)]"
+              className={`rounded-full px-3 py-1 font-mono text-[10px] font-semibold uppercase tracking-wide transition disabled:opacity-40 ${
+                active
+                  ? "bg-[color-mix(in_srgb,var(--twin360-blue)_18%,transparent)] text-[var(--twin360-blue)]"
+                  : "text-[var(--graphite-muted)]"
               }`}
             >
               {label}
-              {active ? (
-                <span
-                  className="absolute inset-x-0 bottom-0 h-[2px] rounded-full bg-[var(--twin360-blue)]"
-                  aria-hidden
-                />
-              ) : null}
             </button>
-            {entry === "photos" && active ? (
-              <button
-                type="button"
-                disabled={modeLocked}
-                onClick={onCycleInterval}
-                className="rounded-md border border-[var(--accent-border-blue)] bg-[color-mix(in_srgb,var(--twin360-blue)_10%,transparent)] px-1.5 py-0.5 font-mono text-[10px] font-semibold tabular-nums text-[var(--twin360-blue)] disabled:opacity-40"
-                aria-label={`Photo interval ${photoInterval} seconds`}
-              >
-                {photoInterval}s
-              </button>
-            ) : null}
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
+
+      {mode === "photos" ? (
+        <button
+          type="button"
+          disabled={modeLocked}
+          onClick={onCycleInterval}
+          className={`ml-2 px-2 py-1 font-mono text-[10px] font-semibold tabular-nums text-[var(--twin360-blue)] disabled:opacity-40 ${TWIN_CAPTURE_GLASS}`}
+          aria-label={`Photo interval ${photoInterval} seconds`}
+        >
+          {photoInterval}s
+        </button>
+      ) : null}
     </div>
   );
 }
