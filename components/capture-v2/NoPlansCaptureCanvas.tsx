@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { useCamera } from "@/lib/hooks/useCamera";
 import { triggerHapticSuccess } from "@/lib/utils/trigger-haptic";
+import { CAPTURE_CANVAS_CHROME } from "./capture-canvas-chrome-layout";
 import { CaptureCanvasBottomRail } from "./CaptureCanvasBottomRail";
 import { CaptureCanvasTopBar } from "./CaptureCanvasTopBar";
 import { CaptureStopFilmstrip } from "./CaptureStopFilmstrip";
@@ -21,22 +22,65 @@ type Props = {
   contextLabel: string;
 };
 
+function CaptureV2HiddenFileInputs({ loop }: { loop: CaptureV2Loop }) {
+  return (
+    <>
+      <input
+        ref={loop.cameraInputRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        className="hidden"
+        onClick={loop.resetFileInputClick}
+        onChange={(event) => loop.handleDirectFileChange(event, false)}
+      />
+      <input
+        ref={loop.uploadInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onClick={loop.resetFileInputClick}
+        onChange={(event) => loop.handleDirectFileChange(event, false)}
+      />
+    </>
+  );
+}
+
 export function NoPlansCaptureCanvas({ session, loop, contextLabel }: Props) {
   const camera = useCamera();
-  const [topBarCollapsed, setTopBarCollapsed] = useState(false);
-  const [flashOn, setFlashOn] = useState(false);
+  const [chromeVisible, setChromeVisible] = useState(true);
   const [facingMode, setFacingMode] = useState<"user" | "environment">("environment");
-  const holdStubRef = useRef(false);
 
-  const stopCount = loop.items.length;
   const showPreview = Boolean(loop.activePreview?.url);
   const previewUrl = resolveCaptureV2PreviewUrl(loop.activeItem, loop.activePreview?.url);
   const previewTitle = loop.activePreview?.title?.trim() || "Captured photo";
   const previewLocalFallback =
     loop.activePreview?.url?.startsWith("blob:") ? loop.activePreview.url : loop.activeItem?.local_preview_url ?? null;
 
+  const orderedItems = useMemo(
+    () => [...loop.items].sort((a, b) => Date.parse(a.created_at) - Date.parse(b.created_at)),
+    [loop.items],
+  );
+
+  const stopNumber = useMemo(() => {
+    if (loop.activeItem) {
+      const index = orderedItems.findIndex(
+        (item) =>
+          item.id === loop.activeItem?.id ||
+          (loop.activeItem?.client_item_id &&
+            item.client_item_id === loop.activeItem.client_item_id),
+      );
+      if (index >= 0) return index + 1;
+    }
+    return orderedItems.length + 1;
+  }, [loop.activeItem, orderedItems]);
+
+  const headerLabel = session.is_ad_hoc
+    ? `QUICK WALK · STOP ${stopNumber}`
+    : `${contextLabel.toUpperCase()} · STOP ${stopNumber}`;
+
   const handleCanvasTap = useCallback(() => {
-    setTopBarCollapsed((value) => !value);
+    setChromeVisible((value) => !value);
   }, []);
 
   const ingestFile = useCallback(
@@ -56,19 +100,20 @@ export function NoPlansCaptureCanvas({ session, loop, contextLabel }: Props) {
   }, [camera, facingMode, loop]);
 
   const handleShutterTap = useCallback(() => {
-    if (holdStubRef.current) return;
     if (showPreview) {
       void returnToLiveCamera();
       return;
     }
     if (!camera.isStreaming) return;
-    const video = camera.videoRef.current;
-    if (!video) return;
     const result = camera.capturePhoto();
     if (!result) return;
     const file = new File([result.blob], `capture-${Date.now()}.jpg`, { type: "image/jpeg" });
     ingestFile(file);
   }, [camera, ingestFile, returnToLiveCamera, showPreview]);
+
+  const handleShutterHold = useCallback(() => {
+    loop.openPickerDirect("upload", "quick_capture");
+  }, [loop]);
 
   const handleSelectStop = useCallback(
     (item: Parameters<typeof loop.focusFilmstripItem>[0]) => {
@@ -88,32 +133,14 @@ export function NoPlansCaptureCanvas({ session, loop, contextLabel }: Props) {
     [loop, returnToLiveCamera, showPreview],
   );
 
-  const handleFlipCamera = useCallback(async () => {
-    const next = facingMode === "environment" ? "user" : "environment";
-    setFacingMode(next);
-    camera.stopCamera();
-    await camera.startCamera(next);
-  }, [camera, facingMode]);
+  const safeBottom = "env(safe-area-inset-bottom)";
 
   return (
     <div className={CANVAS_ROOT_CLASS} data-capture-canvas="no-plans">
-      <CaptureCanvasTopBar
-        sessionId={session.id}
-        contextLabel={contextLabel}
-        stopCount={stopCount}
-        collapsed={topBarCollapsed}
-        overlay={false}
-        flashOn={flashOn}
-        onToggleFlash={() => setFlashOn((value) => !value)}
-        showFlip={!showPreview && camera.isStreaming}
-        showFlash={!showPreview && camera.isStreaming}
-        onFlipCamera={() => void handleFlipCamera()}
-      />
-
       <div
         role="button"
         tabIndex={0}
-        className="relative mx-2 mb-0 mt-1 flex min-h-0 flex-[3] flex-col overflow-hidden rounded-2xl border border-[var(--surface-zinc-border)] bg-[var(--surface-zinc)]"
+        className="relative min-h-0 flex-1 overflow-hidden"
         onClick={handleCanvasTap}
         onKeyDown={(event) => {
           if (event.key === "Enter" || event.key === " ") {
@@ -128,31 +155,46 @@ export function NoPlansCaptureCanvas({ session, loop, contextLabel }: Props) {
             imageUrl={previewUrl}
             title={previewTitle}
             localFallbackUrl={previewLocalFallback}
+            fullBleed
           />
         ) : (
-          <CaptureV2LiveCamera camera={camera} facingMode={facingMode} autoStart />
+          <CaptureV2LiveCamera camera={camera} facingMode={facingMode} autoStart fullBleed />
         )}
         <CaptureV2LiveCameraBusyOverlay busy={loop.busy} />
       </div>
 
-      <CaptureStopFilmstrip
-        loop={loop}
-        onSelectItem={handleSelectStop}
-        onDeleteItem={handleDeleteStop}
-        deletingItemId={loop.deletingStopId}
+      <CaptureCanvasTopBar
+        headerLabel={headerLabel}
+        hidden={!chromeVisible}
+        onToggleChrome={() => setChromeVisible((value) => !value)}
       />
+
+      <div
+        className="pointer-events-none absolute inset-x-0 z-20"
+        style={{
+          bottom: `calc(${CAPTURE_CANVAS_CHROME.filmstripBottomPx}px + ${safeBottom})`,
+          paddingLeft: CAPTURE_CANVAS_CHROME.sideInsetPx,
+          paddingRight: CAPTURE_CANVAS_CHROME.sideInsetPx,
+        }}
+      >
+        <CaptureStopFilmstrip
+          variant="overlay"
+          loop={loop}
+          hidden={!chromeVisible}
+          onSelectItem={handleSelectStop}
+          onDeleteItem={handleDeleteStop}
+          deletingItemId={loop.deletingStopId}
+        />
+      </div>
 
       <CaptureCanvasBottomRail
         busy={loop.busy}
-        showHint={!showPreview && !camera.isStreaming}
+        hidden={!chromeVisible}
         onShutterTap={handleShutterTap}
-        onShutterHoldStart={() => {
-          holdStubRef.current = true;
-        }}
-        onShutterHoldEnd={() => {
-          holdStubRef.current = false;
-        }}
+        onShutterHold={handleShutterHold}
       />
+
+      <CaptureV2HiddenFileInputs loop={loop} />
     </div>
   );
 }
