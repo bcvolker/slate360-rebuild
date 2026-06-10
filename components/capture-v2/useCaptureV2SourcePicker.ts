@@ -223,6 +223,23 @@ export function useCaptureV2SourcePicker({
     [applyIntent, camera, close, ingestLivePhoto, rows],
   );
 
+  const attachToPin = useCallback(
+    (pin: PhotoAttachmentPin, kind: "file" | "photo") => {
+      const ctx = {
+        mode: "attach" as const,
+        source: "quick_capture" as const,
+        attachPoint: { xPct: pin.xPct, yPct: pin.yPct },
+        existingPinId: pin.id,
+      };
+      contextRef.current = ctx;
+      setContext(ctx);
+      loop.setExternalError(null);
+      const ref = kind === "file" ? fileInputRef : rollInputRef;
+      ref.current?.click();
+    },
+    [loop],
+  );
+
   const sheetTitle = context?.mode === "attach" ? "Attach here" : "Add capture source";
   const sheetSubtitle =
     context?.mode === "attach"
@@ -242,5 +259,6 @@ export function useCaptureV2SourcePicker({
     fileInputRef,
     photo360InputRef,
     onInputChange,
+    attachToPin,
   };
 }

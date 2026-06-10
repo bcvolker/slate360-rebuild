@@ -27,8 +27,10 @@ async function measureThumbCount(page, thumbCount) {
   if (thumbCount > 0) {
     const toggle = page.locator('[data-capture-chrome="filmstrip-toggle"]');
     if (await toggle.count()) {
-      await toggle.click();
-      await page.waitForSelector("#capture-canvas-stop-tracker-scroll", { timeout: 10_000 });
+      await toggle.click({ force: true });
+      await page.waitForSelector('[data-capture-chrome="filmstrip-toggle"][aria-expanded="true"]', {
+        timeout: 10_000,
+      });
     }
   }
 
@@ -187,6 +189,70 @@ async function measureSourcePicker(page) {
   });
 }
 
+async function measurePinPopover(page) {
+  const url = `${baseUrl}${path}&mode=captured&popover=open&thumbs=1`;
+  await page.goto(url, { waitUntil: "networkidle", timeout: 120_000 });
+  await page.waitForSelector('[data-capture-canvas="no-plans"]', { state: "attached", timeout: 90_000 });
+  await page.waitForSelector('[data-capture-chrome="pin-popover"]', { timeout: 30_000 });
+  await page.waitForTimeout(800);
+
+  return page.evaluate(() => {
+    const frame =
+      document.querySelector('[data-dev-device="mobile"]') ??
+      document.querySelector('[data-capture-canvas="no-plans"]');
+    const popover = document.querySelector('[data-capture-chrome="pin-popover"]');
+    const actionRows = Array.from(document.querySelectorAll('[data-capture-chrome="pin-action-row"]'));
+    const closeButton = document.querySelector('[data-capture-chrome="pin-popover-close"]');
+    const labelInput = document.querySelector('[data-capture-chrome="pin-label-input"]');
+    if (!frame || !popover) return null;
+
+    const frameRect = frame.getBoundingClientRect();
+    const popoverRect = popover.getBoundingClientRect();
+    const rowHeights = actionRows.map((row) => row.getBoundingClientRect().height);
+    const closeRect = closeButton?.getBoundingClientRect();
+    const labelRect = labelInput?.getBoundingClientRect();
+    const withinViewport =
+      popoverRect.left >= frameRect.left - 1 &&
+      popoverRect.right <= frameRect.right + 1 &&
+      popoverRect.top >= frameRect.top - 1 &&
+      popoverRect.bottom <= frameRect.bottom + 1;
+
+    return {
+      viewportWidth: frameRect.width,
+      viewportHeight: frameRect.height,
+      cardWidthPx: Math.round(popoverRect.width),
+      cardLeftPx: Math.round(popoverRect.left - frameRect.left),
+      cardRightPx: Math.round(popoverRect.right - frameRect.left),
+      cardTopPx: Math.round(popoverRect.top - frameRect.top),
+      cardBottomPx: Math.round(popoverRect.bottom - frameRect.top),
+      withinViewport,
+      minActionRowHeightPx: rowHeights.length > 0 ? Math.min(...rowHeights) : 0,
+      minCloseTapPx: closeRect ? Math.min(closeRect.width, closeRect.height) : 0,
+      minLabelTapPx: labelRect ? Math.min(labelRect.width, labelRect.height) : 0,
+    };
+  });
+}
+
+function assertPinPopover(sample) {
+  const failures = [];
+  const MIN_TAP_PX = 44;
+  const CARD_WIDTH_TARGET = 280;
+  if (!sample.withinViewport) failures.push("pin popover overflows viewport");
+  if (Math.abs(sample.cardWidthPx - CARD_WIDTH_TARGET) > 6) {
+    failures.push(`pin popover width ${sample.cardWidthPx}px expected ~${CARD_WIDTH_TARGET}px`);
+  }
+  if (sample.minActionRowHeightPx > 0 && sample.minActionRowHeightPx < MIN_TAP_PX) {
+    failures.push(`pin action row height ${sample.minActionRowHeightPx}px below ${MIN_TAP_PX}px`);
+  }
+  if (sample.minCloseTapPx > 0 && sample.minCloseTapPx < MIN_TAP_PX) {
+    failures.push(`pin close tap ${sample.minCloseTapPx}px below ${MIN_TAP_PX}px`);
+  }
+  if (sample.minLabelTapPx > 0 && sample.minLabelTapPx < MIN_TAP_PX) {
+    failures.push(`pin label tap ${sample.minLabelTapPx}px below ${MIN_TAP_PX}px`);
+  }
+  return failures;
+}
+
 async function main() {
   let browser;
   try {
@@ -214,10 +280,20 @@ async function main() {
     }
 
     const pickerSample = await measureSourcePicker(page);
+    const popoverSample = await measurePinPopover(page);
+    if (!popoverSample) {
+      console.error("[measure-capture-chrome] Missing pin popover nodes");
+      process.exit(1);
+    }
+    const popoverFailures = assertPinPopover(popoverSample);
+    if (popoverFailures.length > 0) {
+      console.error(`[measure-capture-chrome] popover failures: ${popoverFailures.join("; ")}`);
+      process.exit(1);
+    }
 
     console.log(
       JSON.stringify(
-        { baseUrl, path, viewport: { width: 390, height: 844 }, results, pickerSample },
+        { baseUrl, path, viewport: { width: 390, height: 844 }, results, pickerSample, popoverSample },
         null,
         2,
       ),

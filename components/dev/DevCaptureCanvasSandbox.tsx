@@ -20,7 +20,14 @@ export function DevCaptureCanvasSandbox() {
   const searchParams = useSearchParams();
   const thumbCount = parseThumbCount(searchParams?.get("thumbs") ?? null);
   const openPickerOnMount = searchParams?.get("picker") === "open";
-  const loop = useDevCaptureLoop({ thumbCount, liveMode: true });
+  const capturedMode = searchParams?.get("mode") === "captured";
+  const openPinPopover = searchParams?.get("popover") === "open";
+  const loop = useDevCaptureLoop({
+    thumbCount: capturedMode ? Math.max(thumbCount, 1) : thumbCount,
+    liveMode: !capturedMode,
+    capturedMode,
+    measurePin: openPinPopover,
+  });
 
   const measureKey = useMemo(
     () => `${thumbCount}:${loop.items.length}`,
@@ -54,6 +61,7 @@ export function DevCaptureCanvasSandbox() {
         contextLabel={DEV_MOCK_CONTEXT_LABEL}
         photo360Entitled={searchParams?.get("photo360") !== "locked"}
         devOpenSourcePicker={openPickerOnMount}
+        devOpenPinPopover={openPinPopover}
       />
       <pre id="dev-capture-chrome-measure" className="sr-only" aria-hidden />
     </div>

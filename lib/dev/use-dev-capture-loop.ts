@@ -12,7 +12,19 @@ type PreviewState = { url: string; title: string; itemId: string } | null;
 type Options = {
   thumbCount?: number;
   liveMode?: boolean;
+  capturedMode?: boolean;
+  measurePin?: boolean;
 };
+
+const DEV_MEASURE_PIN = {
+  id: "dev-measure-pin",
+  xPct: 50,
+  yPct: 42,
+  label: "Untitled",
+  note: "",
+  files: [],
+  createdAt: "2026-06-04T18:00:00.000Z",
+} as const;
 
 function sortItems(items: CaptureItemRecord[]) {
   return [...items].sort((a, b) => Date.parse(a.created_at) - Date.parse(b.created_at));
@@ -58,9 +70,25 @@ function sliceSeedItems(thumbCount?: number) {
   return sortItems([...source, ...extras]);
 }
 
+function withMeasurePin(items: CaptureItemRecord[], enabled: boolean) {
+  if (!enabled || items.length === 0) return items;
+  const [first, ...rest] = items;
+  return [
+    {
+      ...first,
+      photo_attachment_pins: [DEV_MEASURE_PIN],
+    },
+    ...rest,
+  ];
+}
+
 export function useDevCaptureLoop(options: Options = {}) {
-  const liveMode = options.liveMode ?? false;
-  const seedItems = useMemo(() => sliceSeedItems(options.thumbCount), [options.thumbCount]);
+  const capturedMode = options.capturedMode ?? false;
+  const liveMode = capturedMode ? false : (options.liveMode ?? false);
+  const seedItems = useMemo(
+    () => withMeasurePin(sliceSeedItems(options.thumbCount), options.measurePin ?? false),
+    [options.measurePin, options.thumbCount],
+  );
   const [items, setItems] = useState<CaptureItemRecord[]>(() => seedItems);
   const [activeItemId, setActiveItemId] = useState<string | null>(() =>
     liveMode ? null : (seedItems[0]?.id ?? null),

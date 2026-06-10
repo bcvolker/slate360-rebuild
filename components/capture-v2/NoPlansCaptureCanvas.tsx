@@ -35,6 +35,7 @@ type Props = {
     onReturnToPlan: () => void;
   } | null;
   initialDetailsOpen?: boolean;
+  devOpenPinPopover?: boolean;
 };
 
 function CaptureV2HiddenFileInputs({ loop }: { loop: CaptureV2Loop }) {
@@ -70,6 +71,7 @@ export function NoPlansCaptureCanvas({
   returnFromSummary = false,
   planPinFlow = null,
   initialDetailsOpen = false,
+  devOpenPinPopover = false,
 }: Props) {
   const canvas = useNoPlansCaptureCanvas({
     session,
@@ -142,7 +144,9 @@ export function NoPlansCaptureCanvas({
             }}
             onPlacePin={canvas.handlePlacePin}
             onAttachHere={canvas.handleAttachHere}
-            onAttachToPin={canvas.handleAttachToPin}
+            onAttachFileToPin={canvas.handleAttachFileToPin}
+            onAttachPhotoToPin={canvas.handleAttachPhotoToPin}
+            openPinId={devOpenPinPopover ? "dev-measure-pin" : null}
           />
         ) : null}
         <CaptureV2LiveCameraBusyOverlay busy={loop.busy} />
@@ -154,7 +158,13 @@ export function NoPlansCaptureCanvas({
       </div>
 
       <CaptureCanvasTopBar
-        headerLabel={canvas.showPreview ? canvas.capturedHeaderLabel : canvas.liveHeaderLabel}
+        headerLabel={
+          canvas.angleCaptureMode
+            ? canvas.angleHeaderLabel
+            : canvas.showPreview
+              ? canvas.capturedHeaderLabel
+              : canvas.liveHeaderLabel
+        }
         hidden={!canvas.chromeVisible}
         onToggleChrome={() => canvas.setChromeVisible((value) => !value)}
         onBack={planPinFlow ? planPinFlow.onReturnToPlan : undefined}
@@ -196,15 +206,21 @@ export function NoPlansCaptureCanvas({
       <CaptureCanvasBottomRail
         busy={loop.busy}
         hidden={!canvas.chromeVisible}
-        variant={canvas.showPreview ? "captured" : "live"}
+        variant={canvas.showPreview && !canvas.angleCaptureMode ? "captured" : "live"}
         captureBlocked={canvas.captureBlocked}
         torchSupported={canvas.torch.torchSupported}
         torchOn={canvas.torch.torchOn}
         ghostOn={canvas.ghostOn}
         ghostAvailable={canvas.ghostAvailable}
         onTorchToggle={() => void canvas.torch.handleTorchToggle()}
-        onShutterTap={canvas.showPreview ? canvas.handleShutterTapCaptured : canvas.handleShutterTapLive}
-        onShutterHold={canvas.showPreview ? undefined : canvas.handleShutterHold}
+        onShutterTap={
+          canvas.angleCaptureMode
+            ? () => void canvas.handleShutterTapAngle()
+            : canvas.showPreview
+              ? canvas.handleShutterTapCaptured
+              : canvas.handleShutterTapLive
+        }
+        onShutterHold={canvas.showPreview && !canvas.angleCaptureMode ? undefined : canvas.handleShutterHold}
         onGhostTap={canvas.handleGhostTap}
         onEndTap={canvas.sessionExit.openExitModal}
         onDetailsTap={() => canvas.setDetailsOpen(true)}
@@ -222,7 +238,7 @@ export function NoPlansCaptureCanvas({
             onPromoteAngle={canvas.handlePromoteAngle}
             onAddAngle={() => {
               canvas.setDetailsOpen(false);
-              loop.addAnotherAngle();
+              canvas.enterAngleCaptureMode();
             }}
             onBack={() => canvas.handleReviewBack()}
           />

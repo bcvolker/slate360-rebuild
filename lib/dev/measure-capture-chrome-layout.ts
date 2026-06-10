@@ -1,5 +1,19 @@
 import { CAPTURE_CANVAS_CHROME } from "@/components/capture-v2/capture-canvas-chrome-layout";
 
+export type PinPopoverMeasure = {
+  viewportWidth: number;
+  viewportHeight: number;
+  cardWidthPx: number;
+  cardLeftPx: number;
+  cardRightPx: number;
+  cardTopPx: number;
+  cardBottomPx: number;
+  withinViewport: boolean;
+  minActionRowHeightPx: number;
+  minCloseTapPx: number;
+  minLabelTapPx: number;
+};
+
 export type CaptureChromeMeasure = {
   thumbCount: number;
   viewportWidth: number;
@@ -143,5 +157,65 @@ export function assertCaptureChromeLayout(sample: CaptureChromeMeasure): string[
     failures.push(`overlaps: ${sample.overlapPairs.join(", ")}`);
   }
 
+  return failures;
+}
+
+export function measurePinPopoverLayout(): PinPopoverMeasure | null {
+  const frame =
+    document.querySelector<HTMLElement>('[data-dev-device="mobile"]') ??
+    document.querySelector<HTMLElement>('[data-capture-canvas="no-plans"]');
+  const popover = document.querySelector<HTMLElement>('[data-capture-chrome="pin-popover"]');
+  const actionRows = Array.from(
+    document.querySelectorAll<HTMLElement>('[data-capture-chrome="pin-action-row"]'),
+  );
+  const closeButton = document.querySelector<HTMLElement>('[data-capture-chrome="pin-popover-close"]');
+  const labelInput = document.querySelector<HTMLElement>('[data-capture-chrome="pin-label-input"]');
+  if (!frame || !popover) return null;
+
+  const frameRect = frame.getBoundingClientRect();
+  const popoverRect = popover.getBoundingClientRect();
+  const rowHeights = actionRows.map((row) => row.getBoundingClientRect().height);
+  const closeRect = closeButton?.getBoundingClientRect();
+  const labelRect = labelInput?.getBoundingClientRect();
+
+  const withinViewport =
+    popoverRect.left >= frameRect.left - 1 &&
+    popoverRect.right <= frameRect.right + 1 &&
+    popoverRect.top >= frameRect.top - 1 &&
+    popoverRect.bottom <= frameRect.bottom + 1;
+
+  return {
+    viewportWidth: frameRect.width,
+    viewportHeight: frameRect.height,
+    cardWidthPx: Math.round(popoverRect.width),
+    cardLeftPx: Math.round(popoverRect.left - frameRect.left),
+    cardRightPx: Math.round(popoverRect.right - frameRect.left),
+    cardTopPx: Math.round(popoverRect.top - frameRect.top),
+    cardBottomPx: Math.round(popoverRect.bottom - frameRect.top),
+    withinViewport,
+    minActionRowHeightPx: rowHeights.length > 0 ? Math.min(...rowHeights) : 0,
+    minCloseTapPx: closeRect ? Math.min(closeRect.width, closeRect.height) : 0,
+    minLabelTapPx: labelRect ? Math.min(labelRect.width, labelRect.height) : 0,
+  };
+}
+
+export function assertPinPopoverLayout(sample: PinPopoverMeasure): string[] {
+  const failures: string[] = [];
+  const MIN_TAP_PX = 44;
+  const CARD_WIDTH_TARGET = 280;
+
+  if (!sample.withinViewport) failures.push("pin popover overflows viewport");
+  if (Math.abs(sample.cardWidthPx - CARD_WIDTH_TARGET) > 6) {
+    failures.push(`pin popover width ${sample.cardWidthPx}px expected ~${CARD_WIDTH_TARGET}px`);
+  }
+  if (sample.minActionRowHeightPx > 0 && sample.minActionRowHeightPx < MIN_TAP_PX) {
+    failures.push(`pin action row height ${sample.minActionRowHeightPx}px below ${MIN_TAP_PX}px`);
+  }
+  if (sample.minCloseTapPx > 0 && sample.minCloseTapPx < MIN_TAP_PX) {
+    failures.push(`pin close tap ${sample.minCloseTapPx}px below ${MIN_TAP_PX}px`);
+  }
+  if (sample.minLabelTapPx > 0 && sample.minLabelTapPx < MIN_TAP_PX) {
+    failures.push(`pin label tap ${sample.minLabelTapPx}px below ${MIN_TAP_PX}px`);
+  }
   return failures;
 }

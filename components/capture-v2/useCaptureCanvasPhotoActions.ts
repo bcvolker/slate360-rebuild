@@ -63,7 +63,7 @@ export function useCaptureCanvasPhotoActions({
         id: `photo-pin-${Date.now()}`,
         xPct,
         yPct,
-        label: "Pin",
+        label: "Untitled",
         note: "",
         files: [],
         createdAt: new Date().toISOString(),
@@ -86,15 +86,18 @@ export function useCaptureCanvasPhotoActions({
     [activeItem, sourcePicker],
   );
 
-  const handleAttachToPin = useCallback(
+  const handleAttachFileToPin = useCallback(
     (pin: PhotoAttachmentPin) => {
       if (!activeItem) return;
-      sourcePicker.open({
-        mode: "attach",
-        source: "quick_capture",
-        attachPoint: { xPct: pin.xPct, yPct: pin.yPct },
-        existingPinId: pin.id,
-      });
+      sourcePicker.attachToPin(pin, "file");
+    },
+    [activeItem, sourcePicker],
+  );
+
+  const handleAttachPhotoToPin = useCallback(
+    (pin: PhotoAttachmentPin) => {
+      if (!activeItem) return;
+      sourcePicker.attachToPin(pin, "photo");
     },
     [activeItem, sourcePicker],
   );
@@ -105,6 +108,7 @@ export function useCaptureCanvasPhotoActions({
     handlePromoteAngle,
     handlePlacePin,
     handleAttachHere,
-    handleAttachToPin,
+    handleAttachFileToPin,
+    handleAttachPhotoToPin,
   };
 }

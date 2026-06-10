@@ -19,7 +19,9 @@ type Props = {
   onAttachmentPinsChange?: (pins: PhotoAttachmentPin[]) => void;
   onPlacePin?: (xPct: number, yPct: number) => void;
   onAttachHere?: (xPct: number, yPct: number) => void;
-  onAttachToPin?: (pin: PhotoAttachmentPin) => void;
+  onAttachFileToPin?: (pin: PhotoAttachmentPin) => void;
+  onAttachPhotoToPin?: (pin: PhotoAttachmentPin) => void;
+  openPinId?: string | null;
 };
 
 export function CaptureV2PhotoMarkupCanvas({
@@ -32,7 +34,9 @@ export function CaptureV2PhotoMarkupCanvas({
   onAttachmentPinsChange,
   onPlacePin,
   onAttachHere,
-  onAttachToPin,
+  onAttachFileToPin,
+  onAttachPhotoToPin,
+  openPinId,
 }: Props) {
   const canvas = useCaptureV2PhotoCanvasState({
     imageUrl,
@@ -80,7 +84,9 @@ export function CaptureV2PhotoMarkupCanvas({
           transform={canvas.transform}
           stageRef={canvas.stageRef}
           onPinsChange={(pins) => onAttachmentPinsChange?.(pins)}
-          onAttachFile={(pin) => onAttachToPin?.(pin)}
+          onAttachFile={(pin) => onAttachFileToPin?.(pin)}
+          onAttachPhoto={(pin) => onAttachPhotoToPin?.(pin)}
+          openPinId={openPinId}
         />
         {canvas.editingTextId ? (
           <TextEditor

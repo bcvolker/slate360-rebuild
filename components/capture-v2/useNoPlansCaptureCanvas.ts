@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCamera } from "@/lib/hooks/useCamera";
 import { buildCaptureV2SummaryUrl } from "@/lib/site-walk/capture-v2-config";
+import { compressCaptureFile } from "@/lib/site-walk/image-compression";
 import { getPhotoAngleImageUrl } from "@/lib/site-walk/photo-angles";
 import { triggerHapticSuccess } from "@/lib/utils/trigger-haptic";
 import { VECTOR_TOOL_EVENT } from "@/components/site-walk/capture/UnifiedVectorToolbar";
@@ -65,8 +66,9 @@ export function useNoPlansCaptureCanvas({
   const torch = useCaptureCanvasTorch(camera);
 
   const markupEnabled = activeTool === "markup";
-  const showPreview = Boolean(loop.activePreview?.url);
-  const cameraPaused = showPreview || detailsOpen;
+  const angleCaptureMode = activeTool === "angle";
+  const showPreview = Boolean(loop.activePreview?.url) && !angleCaptureMode;
+  const cameraPaused = (Boolean(loop.activePreview?.url) && !angleCaptureMode) || detailsOpen;
   const previewUrl = resolveCaptureV2PreviewUrl(loop.activeItem, loop.activePreview?.url);
   const activeItem = loop.activeItem;
   const itemId = loop.activePreview?.itemId ?? activeItem?.id ?? "";
@@ -97,6 +99,7 @@ export function useNoPlansCaptureCanvas({
       ? `QUICK WALK · STOP ${stopNumber}`
       : `${contextLabel.toUpperCase()} · STOP ${stopNumber}`;
   const capturedHeaderLabel = `STOP ${stopNumber} · SAVED ✓`;
+  const angleHeaderLabel = `STOP ${stopNumber} · ANGLE`;
 
   const displayUrl = useMemo(() => {
     if (!showPreview || !loop.activePreview) return previewUrl;
@@ -124,12 +127,12 @@ export function useNoPlansCaptureCanvas({
   }, [ghostAvailable]);
 
   useEffect(() => {
-    if (!showPreview) {
+    if (!showPreview && activeTool !== "angle") {
       setActiveTool(null);
       setActiveAngleId(null);
       setFilmstripExpanded(false);
     }
-  }, [showPreview]);
+  }, [activeTool, showPreview]);
 
   useEffect(() => {
     if (!markupEnabled) return;
@@ -236,18 +239,68 @@ export function useNoPlansCaptureCanvas({
     [loop, returnToLiveCamera, showPreview],
   );
 
+  const enterAngleCaptureMode = useCallback(() => {
+    if (!activeItem) return;
+    setActiveTool("angle");
+    setActiveAngleId(null);
+    setCaptureBlocked(false);
+    loop.setActivePreview(null);
+    loop.setIntent({ source: "angle", input: "camera" });
+    if (camera.needsUserResume) return;
+    if (camera.streamAlive) {
+      void camera.reattachVideo();
+      return;
+    }
+    void camera.startCamera(facingMode);
+  }, [activeItem, camera, facingMode, loop]);
+
   const handleSelectTool = useCallback(
     (tool: CaptureCanvasTool) => {
       if (tool === "angle") {
-        setActiveTool(null);
-        loop.setActivePreview(null);
-        loop.addAnotherAngle();
+        enterAngleCaptureMode();
         return;
       }
       setActiveTool((current) => (current === tool ? null : tool));
     },
-    [loop],
+    [enterAngleCaptureMode],
   );
+
+  const handleShutterTapAngle = useCallback(async () => {
+    if (!activeItem) return;
+    if (!camera.streamAlive || camera.needsUserResume || !camera.hasLiveFrames) {
+      setCaptureBlocked(true);
+      return;
+    }
+    const result = camera.capturePhoto();
+    if (!result) {
+      setCaptureBlocked(true);
+      return;
+    }
+    setCaptureBlocked(false);
+    const previewUrl = URL.createObjectURL(result.blob);
+    try {
+      const file = new File([result.blob], `angle-${Date.now()}.jpg`, { type: "image/jpeg" });
+      const compressed = await compressCaptureFile(file);
+      const angleRecord = await loop.savePhotoAngle(activeItem.id, compressed, previewUrl, "camera");
+      setActiveTool(null);
+      const nextAngleId = angleRecord?.id ?? null;
+      setActiveAngleId(nextAngleId);
+      const refreshedItem = loop.activeItem ?? activeItem;
+      const imageUrl =
+        (nextAngleId ? getPhotoAngleImageUrl(refreshedItem, nextAngleId) : null) ??
+        getPhotoAngleImageUrl(refreshedItem, null) ??
+        previewUrl;
+      loop.setActivePreview({
+        url: imageUrl,
+        title: activeItem.title?.trim() || "Captured photo",
+        itemId: activeItem.id,
+      });
+      triggerHapticSuccess();
+    } catch (error) {
+      URL.revokeObjectURL(previewUrl);
+      loop.setExternalError(error instanceof Error ? error.message : "Angle capture failed.");
+    }
+  }, [activeItem, camera, loop]);
 
   useEffect(() => {
     if (!returnFromSummary || !loop.activeItem || openedReviewRef.current) return;
@@ -295,9 +348,13 @@ export function useNoPlansCaptureCanvas({
     stopNumber,
     liveHeaderLabel,
     capturedHeaderLabel,
+    angleHeaderLabel,
+    angleCaptureMode,
     handleCanvasTap,
     handleShutterTapLive,
+    handleShutterTapAngle,
     handleShutterTapCaptured: planActions.handleShutterTapCaptured,
+    enterAngleCaptureMode,
     handleShutterHold,
     handleSelectStop,
     handleDeleteStop,
