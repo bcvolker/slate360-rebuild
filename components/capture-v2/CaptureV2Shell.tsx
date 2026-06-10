@@ -17,6 +17,7 @@ type Props = {
   initialItemId: string | null;
   planSets: SiteWalkPlanSet[];
   planSheets: SiteWalkPlanSheet[];
+  photo360Entitled?: boolean;
 };
 
 export function CaptureV2Shell(props: Props) {

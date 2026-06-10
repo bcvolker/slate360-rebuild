@@ -12,6 +12,7 @@ import { resolveCaptureV2PreviewUrl } from "./capture-v2-preview-url";
 import type { CaptureV2Session } from "./session-types";
 import type { CaptureItemRecord } from "@/lib/types/site-walk-capture";
 import type { CaptureV2Loop } from "./useCaptureV2Loop";
+import { useCaptureV2SourcePicker } from "./useCaptureV2SourcePicker";
 
 export type CaptureCanvasTool = "markup" | "pin" | "angle";
 
@@ -19,9 +20,17 @@ type Args = {
   session: CaptureV2Session;
   loop: CaptureV2Loop;
   contextLabel: string;
+  photo360Entitled: boolean;
+  devOpenSourcePicker?: boolean;
 };
 
-export function useNoPlansCaptureCanvas({ session, loop, contextLabel }: Args) {
+export function useNoPlansCaptureCanvas({
+  session,
+  loop,
+  contextLabel,
+  photo360Entitled,
+  devOpenSourcePicker = false,
+}: Args) {
   const camera = useCamera();
   const [chromeVisible, setChromeVisible] = useState(true);
   const [facingMode, setFacingMode] = useState<"user" | "environment">("environment");
@@ -119,9 +128,36 @@ export function useNoPlansCaptureCanvas({ session, loop, contextLabel }: Args) {
     setActiveTool(null);
   }, [loop]);
 
+  const sourcePicker = useCaptureV2SourcePicker({
+    sessionId: session.id,
+    loop,
+    camera,
+    photo360Entitled,
+    ingestLivePhoto: ingestFile,
+  });
+
   const handleShutterHold = useCallback(() => {
-    loop.openPickerDirect("upload", "quick_capture");
-  }, [loop]);
+    sourcePicker.open({ mode: "new_stop", source: "quick_capture" });
+  }, [sourcePicker]);
+
+  const handleAttachHere = useCallback(
+    (xPct: number, yPct: number) => {
+      if (!activeItem) return;
+      sourcePicker.open({
+        mode: "attach",
+        source: "quick_capture",
+        attachPoint: { xPct, yPct },
+      });
+    },
+    [activeItem, sourcePicker],
+  );
+
+  useEffect(() => {
+    if (!devOpenSourcePicker) return;
+    sourcePicker.open({ mode: "new_stop", source: "quick_capture" });
+    // Dev-only mount helper — intentional single fire when sandbox sets picker=open.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [devOpenSourcePicker]);
 
   const handleSelectStop = useCallback(
     (item: CaptureItemRecord) => {
@@ -234,6 +270,8 @@ export function useNoPlansCaptureCanvas({ session, loop, contextLabel }: Args) {
     handleSelectAngle,
     handlePromoteAngle,
     handlePinTap,
+    handleAttachHere,
+    sourcePicker,
     loop,
     session,
   };

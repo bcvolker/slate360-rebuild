@@ -82,7 +82,7 @@ export function CaptureCanvasBottomRail({
 
   const safeBottom = "env(safe-area-inset-bottom)";
   const hintText = captured
-    ? "long-press photo = pin · shutter = next stop"
+    ? "long-press = attach here · shutter = next stop"
     : "tap = capture · hold = sources";
 
   const liveShutterClass =

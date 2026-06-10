@@ -20,6 +20,7 @@ type Props = {
   planSets: SiteWalkPlanSet[];
   planSheets: SiteWalkPlanSheet[];
   isDesktop: boolean;
+  photo360Entitled?: boolean;
 };
 
 function resolveInitialPhase(props: Props): CaptureV2UiPhase {
@@ -38,6 +39,7 @@ export function CaptureV2Orchestrator(props: Props) {
     initialItemId,
     isDesktop,
     autoOpenCamera,
+    photo360Entitled = false,
   } = props;
 
   const loop = useCaptureV2Loop({
@@ -97,7 +99,12 @@ export function CaptureV2Orchestrator(props: Props) {
       ? "Quick Walk"
       : session.project_name?.trim() || "Walk";
     return (
-      <NoPlansCaptureCanvas session={session} loop={loop} contextLabel={contextLabel} />
+      <NoPlansCaptureCanvas
+        session={session}
+        loop={loop}
+        contextLabel={contextLabel}
+        photo360Entitled={photo360Entitled}
+      />
     );
   }
 

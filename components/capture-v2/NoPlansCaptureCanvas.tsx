@@ -14,6 +14,7 @@ import { CAPTURE_V2_LAYERS } from "./layers";
 import { CaptureV2LiveCamera, CaptureV2LiveCameraBusyOverlay } from "./CaptureV2LiveCamera";
 import type { CaptureV2Session } from "./session-types";
 import type { CaptureV2Loop } from "./useCaptureV2Loop";
+import { CaptureV2SourcePickerSheet } from "./CaptureV2SourcePickerSheet";
 import { useNoPlansCaptureCanvas } from "./useNoPlansCaptureCanvas";
 
 const CANVAS_ROOT_CLASS =
@@ -23,6 +24,8 @@ type Props = {
   session: CaptureV2Session;
   loop: CaptureV2Loop;
   contextLabel: string;
+  photo360Entitled?: boolean;
+  devOpenSourcePicker?: boolean;
 };
 
 function CaptureV2HiddenFileInputs({ loop }: { loop: CaptureV2Loop }) {
@@ -49,8 +52,20 @@ function CaptureV2HiddenFileInputs({ loop }: { loop: CaptureV2Loop }) {
   );
 }
 
-export function NoPlansCaptureCanvas({ session, loop, contextLabel }: Props) {
-  const canvas = useNoPlansCaptureCanvas({ session, loop, contextLabel });
+export function NoPlansCaptureCanvas({
+  session,
+  loop,
+  contextLabel,
+  photo360Entitled = false,
+  devOpenSourcePicker = false,
+}: Props) {
+  const canvas = useNoPlansCaptureCanvas({
+    session,
+    loop,
+    contextLabel,
+    photo360Entitled,
+    devOpenSourcePicker,
+  });
   const safeBottom = "env(safe-area-inset-bottom)";
 
   return (
@@ -88,6 +103,7 @@ export function NoPlansCaptureCanvas({ session, loop, contextLabel }: Props) {
               if (canvas.itemId) void loop.savePhotoAttachmentPins(canvas.itemId, pins);
             }}
             onPinTap={canvas.handlePinTap}
+            onAttachHere={canvas.handleAttachHere}
           />
         ) : (
           <CaptureV2LiveCamera camera={canvas.camera} facingMode={canvas.facingMode} autoStart fullBleed />
@@ -172,6 +188,43 @@ export function NoPlansCaptureCanvas({ session, loop, contextLabel }: Props) {
       ) : null}
 
       <CaptureV2HiddenFileInputs loop={loop} />
+      <CaptureV2SourcePickerSheet
+        open={canvas.sourcePicker.isOpen}
+        title={canvas.sourcePicker.sheetTitle}
+        subtitle={canvas.sourcePicker.sheetSubtitle}
+        rows={canvas.sourcePicker.rows}
+        onClose={canvas.sourcePicker.close}
+        onSelect={canvas.sourcePicker.selectRow}
+      />
+      <input
+        ref={canvas.sourcePicker.cameraInputRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        className="hidden"
+        onChange={canvas.sourcePicker.onInputChange("take_photo")}
+      />
+      <input
+        ref={canvas.sourcePicker.rollInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={canvas.sourcePicker.onInputChange("camera_roll")}
+      />
+      <input
+        ref={canvas.sourcePicker.fileInputRef}
+        type="file"
+        accept="*/*"
+        className="hidden"
+        onChange={canvas.sourcePicker.onInputChange("upload_file")}
+      />
+      <input
+        ref={canvas.sourcePicker.photo360InputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={canvas.sourcePicker.onInputChange("photo_360")}
+      />
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { resolveServerOrgContext } from "@/lib/server/org-context";
+import { resolveOrgEntitlements } from "@/lib/server/org-feature-flags";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { CaptureNoSsrBoundary } from "@/components/capture-v2/CaptureNoSsrBoundary";
 import type { CaptureV2Session } from "@/components/capture-v2/session-types";
@@ -52,6 +53,9 @@ export default async function CaptureV2Page({ searchParams }: Props) {
     : { planSets: [], sheets: [] };
   const showPlanCanvas = plan !== "skip" && !!session.project_id;
   const showStartChoice = showPlanCanvas && !plan && !quick && !item;
+  const entitlements = await resolveOrgEntitlements(context.orgId);
+  const photo360Entitled =
+    entitlements.canAccessTourBuilder || entitlements.canAccessStandaloneTourBuilder;
 
   return (
     <CaptureNoSsrBoundary
@@ -63,6 +67,7 @@ export default async function CaptureV2Page({ searchParams }: Props) {
       initialItemId={item ?? null}
       planSets={planRoom.planSets}
       planSheets={planRoom.sheets}
+      photo360Entitled={photo360Entitled}
     />
   );
 }
