@@ -95,13 +95,19 @@ export default async function MobileAppRootPage() {
 
   const latestProject = latestProjects[0] ?? null;
 
-  let alarms: { id: string; message: string; severity: string; created_at: string }[] = [];
+  let alarms: {
+    id: string;
+    title: string;
+    message: string;
+    link_path: string | null;
+    created_at: string;
+  }[] = [];
   try {
     const res = await supabase
       .from("project_notifications")
-      .select("id, message, severity, created_at")
-      .eq("org_id", activeOrgId)
-      .is("read_at", null)
+      .select("id, title, message, link_path, created_at")
+      .eq("user_id", user.id)
+      .eq("is_read", false)
       .order("created_at", { ascending: false })
       .limit(5);
     alarms = res.data ?? [];

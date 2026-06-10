@@ -74,10 +74,10 @@ function buildActivityRows(data: MobileAppHomeData) {
   for (const alert of data.alerts.slice(0, 5)) {
     rows.push({
       key: `alert-${alert.id}`,
-      title: alert.message,
-      meta: alert.severity,
+      title: alert.title,
+      meta: alert.message,
       metaTone: "neutral",
-      href: "/coordination/inbox",
+      href: alert.linkPath ?? "/coordination/inbox",
     });
   }
 

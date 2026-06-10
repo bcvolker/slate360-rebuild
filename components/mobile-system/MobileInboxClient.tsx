@@ -1,8 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { CalendarDays, Inbox, MessageSquare, Users2 } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+import { useNotificationsState } from "@/lib/hooks/useNotificationsState";
 import { cn } from "@/lib/utils";
 import { mobileTokens } from "./mobileTokens";
 
@@ -23,6 +26,13 @@ export function MobileInboxClient() {
   const pathname = usePathname() ?? "/coordination/inbox";
   const searchParams = useSearchParams();
   const active = (searchParams?.get("tab") ?? "notifications") as InboxTabKey;
+  const supabase = createClient();
+  const { unreadNotifications, notificationsLoading, loadUnreadNotifications } =
+    useNotificationsState(supabase);
+
+  useEffect(() => {
+    void loadUnreadNotifications();
+  }, [loadUnreadNotifications]);
 
   return (
     <div className={mobileTokens.mobilePageScrollInner}>
@@ -88,17 +98,47 @@ export function MobileInboxClient() {
         <div className={mobileTokens.panelContent}>
           {active === "notifications" && (
             <div className="space-y-3">
-              <div className="rounded-xl border border-teal-400/20 bg-teal-400/10 p-4">
-                <p className="text-sm font-medium leading-relaxed text-zinc-200">
-                  Welcome. Assigned walks and project notifications appear here when your team
-                  shares work with you.
-                </p>
-              </div>
-              <EmptyInboxRow
-                icon={Inbox}
-                title="No notifications"
-                detail="You are caught up for now."
-              />
+              {notificationsLoading ? (
+                <p className="text-sm text-zinc-400">Loading notifications…</p>
+              ) : unreadNotifications.length > 0 ? (
+                unreadNotifications.map((notification) => {
+                  const href =
+                    notification.link_path?.replace(/^\/project-hub(?=\/|$)/, "/projects") ??
+                    `/projects/${notification.project_id}`;
+                  return (
+                    <Link
+                      key={notification.id}
+                      href={href}
+                      className={cn(
+                        mobileTokens.mobileGlassCardSurface,
+                        "block px-4 py-4 transition-colors hover:bg-white/[0.03]",
+                      )}
+                    >
+                      <p className="text-sm font-semibold text-zinc-100">{notification.title}</p>
+                      <p className="mt-1 text-xs leading-relaxed text-zinc-400">
+                        {notification.message}
+                      </p>
+                      <p className="mt-2 text-[11px] text-zinc-500">
+                        {new Date(notification.created_at).toLocaleString()}
+                      </p>
+                    </Link>
+                  );
+                })
+              ) : (
+                <>
+                  <div className="rounded-xl border border-teal-400/20 bg-teal-400/10 p-4">
+                    <p className="text-sm font-medium leading-relaxed text-zinc-200">
+                      Welcome. Assigned walks and project notifications appear here when your team
+                      shares work with you.
+                    </p>
+                  </div>
+                  <EmptyInboxRow
+                    icon={Inbox}
+                    title="No notifications"
+                    detail="You are caught up for now."
+                  />
+                </>
+              )}
             </div>
           )}
 

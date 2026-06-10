@@ -8,8 +8,9 @@ import { loadMobileAssignments, type MobileHomeAssignment } from "./load-mobile-
 
 export type MobileAppHomeAlert = {
   id: string;
+  title: string;
   message: string;
-  severity: string;
+  linkPath: string | null;
   createdAt: string;
 };
 
@@ -108,13 +109,15 @@ export async function loadMobileAppHomeData(
       .neq("status", "completed")
       .order("created_at", { ascending: false })
       .limit(5),
-    supabase
-      .from("project_notifications")
-      .select("id, message, severity, created_at")
-      .eq("org_id", orgId)
-      .is("read_at", null)
-      .order("created_at", { ascending: false })
-      .limit(8),
+    userId
+      ? supabase
+          .from("project_notifications")
+          .select("id, title, message, link_path, created_at")
+          .eq("user_id", userId)
+          .eq("is_read", false)
+          .order("created_at", { ascending: false })
+          .limit(8)
+      : Promise.resolve({ data: [], error: null }),
   ]);
 
   return {
@@ -140,12 +143,15 @@ export async function loadMobileAppHomeData(
       status: row.status,
       createdAt: row.created_at,
     })),
-    alerts: (alertsRes.data ?? []).map((row) => ({
-      id: row.id,
-      message: row.message,
-      severity: row.severity,
-      createdAt: row.created_at,
-    })),
+    alerts: userId
+      ? (alertsRes.data ?? []).map((row) => ({
+          id: row.id,
+          title: row.title,
+          message: row.message,
+          linkPath: row.link_path,
+          createdAt: row.created_at,
+        }))
+      : [],
     assignments,
     hubSummary: hub.summary,
   };
