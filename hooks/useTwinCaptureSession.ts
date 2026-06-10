@@ -34,6 +34,8 @@ export function formatTwinClipLabel(clip: TwinCaptureClip): string {
 type Args = {
   camera: CameraApi;
   videoRecorder: RecorderApi;
+  devSeedClipCount?: number;
+  devInitialMode?: TwinCaptureMode;
 };
 
 export type TwinCaptureClipReviewPayload = {
@@ -46,10 +48,26 @@ export type TwinCaptureClipReviewPayload = {
   thumbnailUrl: string | null;
 };
 
-export function useTwinCaptureSession({ camera, videoRecorder }: Args) {
+function buildMockClips(count: number): TwinCaptureClip[] {
+  return Array.from({ length: count }, (_, index) => ({
+    id: `dev-clip-${index + 1}`,
+    index: index + 1,
+    mode: "video" as const,
+    durationSeconds: 12 + index * 3,
+    frameCount: 1,
+    recording: false,
+  }));
+}
+
+export function useTwinCaptureSession({
+  camera,
+  videoRecorder,
+  devSeedClipCount,
+  devInitialMode,
+}: Args) {
   const capturedFilesRef = useRef<File[]>([]);
   const clipFilesRef = useRef<Map<string, File[]>>(new Map());
-  const [mode, setMode] = useState<TwinCaptureMode>("video");
+  const [mode, setMode] = useState<TwinCaptureMode>(devInitialMode ?? "video");
   const [clips, setClips] = useState<TwinCaptureClip[]>([]);
   const [activeClipId, setActiveClipId] = useState<string | null>(null);
   const [photoInterval, setPhotoInterval] = useState<PhotoIntervalSec>(1);
@@ -81,6 +99,11 @@ export function useTwinCaptureSession({ camera, videoRecorder }: Args) {
     stopDurationTimer();
     stopPhotoInterval();
   }, [stopDurationTimer, stopPhotoInterval]);
+
+  useEffect(() => {
+    if (!devSeedClipCount || devSeedClipCount <= 0) return;
+    setClips(buildMockClips(devSeedClipCount));
+  }, [devSeedClipCount]);
 
   useEffect(() => {
     if (!isRecording || !activeClipId) {

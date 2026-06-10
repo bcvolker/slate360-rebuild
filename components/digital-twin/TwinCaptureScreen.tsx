@@ -6,6 +6,7 @@ import { useTwinVideoRecorder } from "@/hooks/useTwinVideoRecorder";
 import {
   useTwinCaptureSession,
   type TwinCaptureClipReviewPayload,
+  type TwinCaptureMode,
 } from "@/hooks/useTwinCaptureSession";
 import {
   getTwinVideoTrack,
@@ -33,6 +34,8 @@ type Props = {
   spaceName?: string;
   onCancel?: () => void;
   onFinish?: (result: TwinCaptureFinishResult) => void;
+  devSeedClipCount?: number;
+  devInitialMode?: TwinCaptureMode;
 };
 
 const PHOTO_EST_BYTES = 2_400_000;
@@ -49,10 +52,17 @@ export function TwinCaptureScreen({
   spaceName = "Lobby — Level 1",
   onCancel,
   onFinish,
+  devSeedClipCount,
+  devInitialMode,
 }: Props) {
   const camera = useCamera();
   const videoRecorder = useTwinVideoRecorder();
-  const session = useTwinCaptureSession({ camera, videoRecorder });
+  const session = useTwinCaptureSession({
+    camera,
+    videoRecorder,
+    devSeedClipCount,
+    devInitialMode,
+  });
   const [chromeVisible, setChromeVisible] = useState(true);
   const facingMode = "environment";
   const [torchOn, setTorchOn] = useState(false);
