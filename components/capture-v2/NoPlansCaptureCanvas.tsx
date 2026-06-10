@@ -27,6 +27,12 @@ type Props = {
   photo360Entitled?: boolean;
   devOpenSourcePicker?: boolean;
   returnFromSummary?: boolean;
+  planPinFlow?: {
+    projectLabel: string;
+    stopNumber: number;
+    onReturnToPlan: () => void;
+  } | null;
+  initialDetailsOpen?: boolean;
 };
 
 function CaptureV2HiddenFileInputs({ loop }: { loop: CaptureV2Loop }) {
@@ -60,6 +66,8 @@ export function NoPlansCaptureCanvas({
   photo360Entitled = false,
   devOpenSourcePicker = false,
   returnFromSummary = false,
+  planPinFlow = null,
+  initialDetailsOpen = false,
 }: Props) {
   const canvas = useNoPlansCaptureCanvas({
     session,
@@ -68,6 +76,8 @@ export function NoPlansCaptureCanvas({
     photo360Entitled,
     devOpenSourcePicker,
     returnFromSummary,
+    planPinFlow,
+    initialDetailsOpen,
   });
   const safeBottom = "env(safe-area-inset-bottom)";
 
@@ -118,6 +128,7 @@ export function NoPlansCaptureCanvas({
         headerLabel={canvas.showPreview ? canvas.capturedHeaderLabel : canvas.liveHeaderLabel}
         hidden={!canvas.chromeVisible}
         onToggleChrome={() => canvas.setChromeVisible((value) => !value)}
+        onBack={planPinFlow ? planPinFlow.onReturnToPlan : undefined}
       />
 
       {canvas.showPreview && canvas.markupEnabled ? (

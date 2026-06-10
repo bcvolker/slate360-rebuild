@@ -15,6 +15,7 @@ import type { CaptureV2Session } from "./session-types";
 import type { CaptureItemRecord } from "@/lib/types/site-walk-capture";
 import type { CaptureV2Loop } from "./useCaptureV2Loop";
 import { useCaptureV2SourcePicker } from "./useCaptureV2SourcePicker";
+import { usePlanPinCaptureActions } from "./usePlanPinCaptureActions";
 
 export type CaptureCanvasTool = "markup" | "pin" | "angle";
 
@@ -25,6 +26,12 @@ type Args = {
   photo360Entitled: boolean;
   devOpenSourcePicker?: boolean;
   returnFromSummary?: boolean;
+  planPinFlow?: {
+    projectLabel: string;
+    stopNumber: number;
+    onReturnToPlan: () => void;
+  } | null;
+  initialDetailsOpen?: boolean;
 };
 
 export function useNoPlansCaptureCanvas({
@@ -34,6 +41,8 @@ export function useNoPlansCaptureCanvas({
   photo360Entitled,
   devOpenSourcePicker = false,
   returnFromSummary = false,
+  planPinFlow = null,
+  initialDetailsOpen = false,
 }: Args) {
   const router = useRouter();
   const camera = useCamera();
@@ -58,6 +67,7 @@ export function useNoPlansCaptureCanvas({
   );
 
   const stopNumber = useMemo(() => {
+    if (planPinFlow) return planPinFlow.stopNumber;
     if (activeItem) {
       const index = orderedItems.findIndex(
         (item) =>
@@ -67,9 +77,11 @@ export function useNoPlansCaptureCanvas({
       if (index >= 0) return index + 1;
     }
     return orderedItems.length + 1;
-  }, [activeItem, orderedItems]);
+  }, [activeItem, orderedItems, planPinFlow]);
 
-  const liveHeaderLabel = session.is_ad_hoc
+  const liveHeaderLabel = planPinFlow
+    ? `${planPinFlow.projectLabel.toUpperCase()} · STOP ${stopNumber}`
+    : session.is_ad_hoc
     ? `QUICK WALK · STOP ${stopNumber}`
     : `${contextLabel.toUpperCase()} · STOP ${stopNumber}`;
   const capturedHeaderLabel = `STOP ${stopNumber} · SAVED ✓`;
@@ -108,11 +120,11 @@ export function useNoPlansCaptureCanvas({
 
   const ingestFile = useCallback(
     (file: File) => {
-      loop.setIntent({ source: "quick_capture", input: "camera" });
+      loop.setIntent({ source: planPinFlow ? "plan_pin" : "quick_capture", input: "camera" });
       loop.handleFile(file, false);
       triggerHapticSuccess();
     },
-    [loop],
+    [loop, planPinFlow],
   );
 
   const handleCanvasTap = useCallback(() => {
@@ -128,11 +140,16 @@ export function useNoPlansCaptureCanvas({
     ingestFile(file);
   }, [camera, ingestFile]);
 
-  const handleShutterTapCaptured = useCallback(() => {
-    void loop.saveAndNextStop();
-    setActiveAngleId(null);
-    setActiveTool(null);
-  }, [loop]);
+  const planActions = usePlanPinCaptureActions(
+    loop,
+    planPinFlow,
+    setDetailsOpen,
+    setActiveAngleId,
+    setActiveTool,
+    detailsOpen,
+  );
+
+  const handleShutterTapCaptured = planActions.handleShutterTapCaptured;
 
   const sourcePicker = useCaptureV2SourcePicker({
     sessionId: session.id,
@@ -143,8 +160,9 @@ export function useNoPlansCaptureCanvas({
   });
 
   const handleShutterHold = useCallback(() => {
+    if (planPinFlow) return;
     sourcePicker.open({ mode: "new_stop", source: "quick_capture" });
-  }, [sourcePicker]);
+  }, [planPinFlow, sourcePicker]);
 
   const handleAttachHere = useCallback(
     (xPct: number, yPct: number) => {
@@ -253,13 +271,19 @@ export function useNoPlansCaptureCanvas({
     setDetailsOpen(true);
   }, [loop.activeItem, loop.focusFilmstripItem, returnFromSummary, loop]);
 
+  useEffect(() => {
+    if (!initialDetailsOpen || !loop.activeItem) return;
+    setDetailsOpen(true);
+  }, [initialDetailsOpen, loop.activeItem]);
+
   const handleReviewBack = useCallback(() => {
     if (returnFromSummary) {
       router.push(buildCaptureV2SummaryUrl(session.id));
       return;
     }
+    if (planActions.handleReviewBackForPlan()) return;
     setDetailsOpen(false);
-  }, [returnFromSummary, router, session.id]);
+  }, [planActions, returnFromSummary, router, session.id]);
 
   return {
     camera,
@@ -293,6 +317,7 @@ export function useNoPlansCaptureCanvas({
     handlePinTap,
     handleAttachHere,
     handleReviewBack,
+    planPinFlow,
     sourcePicker,
     loop,
     session,

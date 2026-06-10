@@ -23,9 +23,10 @@ type Args = {
   projectId: string | null;
   initialItemId?: string | null;
   launchId?: string | null;
+  onPlanCaptureSaved?: (pin: import("@/lib/types/site-walk").SiteWalkPin | null) => void;
 };
 
-export function useCaptureV2Loop({ sessionId, projectId, initialItemId, launchId }: Args) {
+export function useCaptureV2Loop({ sessionId, projectId, initialItemId, launchId, onPlanCaptureSaved }: Args) {
   const captureCtx = useCaptureContext();
   const { syncOfflineItems } = useSiteWalkSession();
   const cameraInputRef = useRef<HTMLInputElement>(null);
@@ -54,6 +55,7 @@ export function useCaptureV2Loop({ sessionId, projectId, initialItemId, launchId
     clearTarget: captureCtx.clearPlanTarget,
     activeItem: captureItems.activeItem,
     onAngleCaptureFile: captureItems.savePhotoAngle,
+    onPlanCaptureSaved,
   });
 
   useEffect(() => {

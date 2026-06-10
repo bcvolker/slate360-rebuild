@@ -9,9 +9,10 @@ type Props = {
   headerLabel: string;
   hidden?: boolean;
   onToggleChrome: () => void;
+  onBack?: () => void;
 };
 
-export function CaptureCanvasTopBar({ headerLabel, hidden = false, onToggleChrome }: Props) {
+export function CaptureCanvasTopBar({ headerLabel, hidden = false, onToggleChrome, onBack }: Props) {
   const router = useRouter();
 
   if (hidden) return null;
@@ -31,9 +32,9 @@ export function CaptureCanvasTopBar({ headerLabel, hidden = false, onToggleChrom
       >
         <button
           type="button"
-          onClick={() => router.push("/site-walk")}
+          onClick={onBack ?? (() => router.push("/site-walk"))}
           className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[var(--graphite-text-header)] transition active:scale-[0.98]"
-          aria-label="Back to Site Walk home"
+          aria-label="Back"
         >
           <ChevronLeft className="h-5 w-5" />
         </button>
