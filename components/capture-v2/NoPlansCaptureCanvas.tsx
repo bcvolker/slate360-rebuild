@@ -15,6 +15,7 @@ import { CaptureV2LiveCamera, CaptureV2LiveCameraBusyOverlay } from "./CaptureV2
 import type { CaptureV2Session } from "./session-types";
 import type { CaptureV2Loop } from "./useCaptureV2Loop";
 import { CaptureV2SourcePickerSheet } from "./CaptureV2SourcePickerSheet";
+import { SessionExitModal } from "./SessionExitModal";
 import { useNoPlansCaptureCanvas } from "./useNoPlansCaptureCanvas";
 
 const CANVAS_ROOT_CLASS =
@@ -84,27 +85,31 @@ export function NoPlansCaptureCanvas({
   return (
     <div className={CANVAS_ROOT_CLASS} data-capture-canvas="no-plans">
       <div
-        role={canvas.showPreview ? undefined : "button"}
-        tabIndex={canvas.showPreview ? undefined : 0}
+        role="button"
+        tabIndex={0}
         className="relative min-h-0 flex-1 overflow-hidden"
-        onClick={canvas.showPreview ? undefined : canvas.handleCanvasTap}
-        onKeyDown={
-          canvas.showPreview
-            ? undefined
-            : (event) => {
-                if (event.key === "Enter" || event.key === " ") {
-                  event.preventDefault();
-                  canvas.handleCanvasTap();
-                }
-              }
-        }
-        aria-label={canvas.showPreview ? undefined : "Toggle capture controls"}
+        onClick={canvas.handleCanvasTap}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            canvas.handleCanvasTap();
+          }
+        }}
+        aria-label="Toggle capture controls"
       >
+        <CaptureV2LiveCamera
+          camera={canvas.camera}
+          facingMode={canvas.facingMode}
+          autoStart
+          fullBleed
+          hidden={canvas.cameraPaused}
+          captureBlocked={canvas.captureBlocked}
+        />
+
         {canvas.showPreview && canvas.displayUrl ? (
           <CaptureCanvasCapturedPhoto
             sessionId={session.id}
             imageUrl={canvas.displayUrl}
-            title={canvas.previewTitle}
             markupEnabled={canvas.markupEnabled}
             pinMode={canvas.pinMode}
             initialPins={getItemPhotoAttachmentPins(canvas.activeItem)}
@@ -119,9 +124,7 @@ export function NoPlansCaptureCanvas({
             onAttachHere={canvas.handleAttachHere}
             onAttachToPin={canvas.handleAttachToPin}
           />
-        ) : (
-          <CaptureV2LiveCamera camera={canvas.camera} facingMode={canvas.facingMode} autoStart fullBleed />
-        )}
+        ) : null}
         <CaptureV2LiveCameraBusyOverlay busy={loop.busy} />
       </div>
 
@@ -178,8 +181,14 @@ export function NoPlansCaptureCanvas({
         busy={loop.busy}
         hidden={!canvas.chromeVisible}
         variant={canvas.showPreview ? "captured" : "live"}
+        captureBlocked={canvas.captureBlocked}
+        torchSupported={canvas.torch.torchSupported}
+        torchOn={canvas.torch.torchOn}
+        onTorchToggle={() => void canvas.torch.handleTorchToggle()}
         onShutterTap={canvas.showPreview ? canvas.handleShutterTapCaptured : canvas.handleShutterTapLive}
         onShutterHold={canvas.showPreview ? undefined : canvas.handleShutterHold}
+        onGhostTap={() => canvas.setChromeVisible(false)}
+        onEndTap={canvas.sessionExit.openExitModal}
         onDetailsTap={() => canvas.setDetailsOpen(true)}
       />
 
@@ -201,6 +210,15 @@ export function NoPlansCaptureCanvas({
           />
         </div>
       ) : null}
+
+      <SessionExitModal
+        open={canvas.sessionExit.exitOpen}
+        ending={canvas.sessionExit.ending}
+        error={canvas.sessionExit.endError}
+        onClose={canvas.sessionExit.closeExitModal}
+        onExit={canvas.sessionExit.exitWalk}
+        onEnd={() => void canvas.sessionExit.endWalk()}
+      />
 
       <CaptureV2HiddenFileInputs loop={loop} />
       <CaptureV2SourcePickerSheet

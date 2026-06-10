@@ -4,9 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCamera } from "@/lib/hooks/useCamera";
 import { buildCaptureV2SummaryUrl } from "@/lib/site-walk/capture-v2-config";
-import { getCaptureImageUrl } from "@/lib/site-walk/capture-image-url";
 import { getPhotoAngleImageUrl } from "@/lib/site-walk/photo-angles";
-import { getItemPhotoAttachmentPins, type PhotoAttachmentPin } from "@/lib/site-walk/photo-attachments";
 import { triggerHapticSuccess } from "@/lib/utils/trigger-haptic";
 import { VECTOR_TOOL_EVENT } from "@/components/site-walk/capture/UnifiedVectorToolbar";
 import { readCaptureMarkupColor } from "./capture-canvas-markup-colors";
@@ -14,6 +12,10 @@ import { resolveCaptureV2PreviewUrl } from "./capture-v2-preview-url";
 import type { CaptureV2Session } from "./session-types";
 import type { CaptureItemRecord } from "@/lib/types/site-walk-capture";
 import type { CaptureV2Loop } from "./useCaptureV2Loop";
+import { useCaptureCanvasPhotoActions } from "./useCaptureCanvasPhotoActions";
+import { useCaptureCanvasSessionExit } from "./useCaptureCanvasSessionExit";
+import { useCaptureCanvasStreamLifecycle } from "./useCaptureCanvasStreamLifecycle";
+import { useCaptureCanvasTorch } from "./useCaptureCanvasTorch";
 import { useCaptureV2SourcePicker } from "./useCaptureV2SourcePicker";
 import { usePlanPinCaptureActions } from "./usePlanPinCaptureActions";
 
@@ -47,19 +49,28 @@ export function useNoPlansCaptureCanvas({
   const router = useRouter();
   const camera = useCamera();
   const [chromeVisible, setChromeVisible] = useState(true);
-  const [facingMode, setFacingMode] = useState<"user" | "environment">("environment");
+  const [facingMode] = useState<"user" | "environment">("environment");
   const [activeTool, setActiveTool] = useState<CaptureCanvasTool | null>(null);
   const [activeAngleId, setActiveAngleId] = useState<string | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const [captureBlocked, setCaptureBlocked] = useState(false);
   const openedReviewRef = useRef(false);
+
+  const sessionExit = useCaptureCanvasSessionExit({
+    session,
+    onBeforeExit: () => camera.stopCamera(),
+  });
+  const torch = useCaptureCanvasTorch(camera);
 
   const markupEnabled = activeTool === "markup";
   const pinMode = activeTool === "pin";
   const showPreview = Boolean(loop.activePreview?.url);
+  const cameraPaused = showPreview || detailsOpen;
   const previewUrl = resolveCaptureV2PreviewUrl(loop.activeItem, loop.activePreview?.url);
-  const previewTitle = loop.activePreview?.title?.trim() || "Captured photo";
   const activeItem = loop.activeItem;
   const itemId = loop.activePreview?.itemId ?? activeItem?.id ?? "";
+
+  useCaptureCanvasStreamLifecycle({ camera, facingMode, cameraPaused });
 
   const orderedItems = useMemo(
     () => [...loop.items].sort((a, b) => Date.parse(a.created_at) - Date.parse(b.created_at)),
@@ -82,8 +93,8 @@ export function useNoPlansCaptureCanvas({
   const liveHeaderLabel = planPinFlow
     ? `${planPinFlow.projectLabel.toUpperCase()} · STOP ${stopNumber}`
     : session.is_ad_hoc
-    ? `QUICK WALK · STOP ${stopNumber}`
-    : `${contextLabel.toUpperCase()} · STOP ${stopNumber}`;
+      ? `QUICK WALK · STOP ${stopNumber}`
+      : `${contextLabel.toUpperCase()} · STOP ${stopNumber}`;
   const capturedHeaderLabel = `STOP ${stopNumber} · SAVED ✓`;
 
   const displayUrl = useMemo(() => {
@@ -110,12 +121,19 @@ export function useNoPlansCaptureCanvas({
     );
   }, [markupEnabled]);
 
+  useEffect(() => {
+    setCaptureBlocked(!camera.hasLiveFrames && camera.videoAttached && !camera.needsUserResume);
+  }, [camera.hasLiveFrames, camera.needsUserResume, camera.videoAttached]);
+
   const returnToLiveCamera = useCallback(async () => {
     loop.setActivePreview(null);
     setActiveTool(null);
-    if (!camera.isStreaming) {
-      await camera.startCamera(facingMode);
+    if (camera.needsUserResume) return;
+    if (camera.streamAlive) {
+      await camera.reattachVideo();
+      return;
     }
+    await camera.startCamera(facingMode);
   }, [camera, facingMode, loop]);
 
   const ingestFile = useCallback(
@@ -128,14 +146,20 @@ export function useNoPlansCaptureCanvas({
   );
 
   const handleCanvasTap = useCallback(() => {
-    if (showPreview) return;
     setChromeVisible((value) => !value);
-  }, [showPreview]);
+  }, []);
 
   const handleShutterTapLive = useCallback(() => {
-    if (!camera.isStreaming) return;
+    if (!camera.streamAlive || camera.needsUserResume || !camera.hasLiveFrames) {
+      setCaptureBlocked(true);
+      return;
+    }
     const result = camera.capturePhoto();
-    if (!result) return;
+    if (!result) {
+      setCaptureBlocked(true);
+      return;
+    }
+    setCaptureBlocked(false);
     const file = new File([result.blob], `capture-${Date.now()}.jpg`, { type: "image/jpeg" });
     ingestFile(file);
   }, [camera, ingestFile]);
@@ -149,8 +173,6 @@ export function useNoPlansCaptureCanvas({
     detailsOpen,
   );
 
-  const handleShutterTapCaptured = planActions.handleShutterTapCaptured;
-
   const sourcePicker = useCaptureV2SourcePicker({
     sessionId: session.id,
     loop,
@@ -159,27 +181,22 @@ export function useNoPlansCaptureCanvas({
     ingestLivePhoto: ingestFile,
   });
 
+  const photoActions = useCaptureCanvasPhotoActions({
+    loop,
+    activeItem,
+    itemId,
+    sourcePicker,
+    setActiveAngleId,
+  });
+
   const handleShutterHold = useCallback(() => {
     if (planPinFlow) return;
     sourcePicker.open({ mode: "new_stop", source: "quick_capture" });
   }, [planPinFlow, sourcePicker]);
 
-  const handleAttachHere = useCallback(
-    (xPct: number, yPct: number) => {
-      if (!activeItem) return;
-      sourcePicker.open({
-        mode: "attach",
-        source: "quick_capture",
-        attachPoint: { xPct, yPct },
-      });
-    },
-    [activeItem, sourcePicker],
-  );
-
   useEffect(() => {
     if (!devOpenSourcePicker) return;
     sourcePicker.open({ mode: "new_stop", source: "quick_capture" });
-    // Dev-only mount helper — intentional single fire when sandbox sets picker=open.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [devOpenSourcePicker]);
 
@@ -195,9 +212,7 @@ export function useNoPlansCaptureCanvas({
     async (item: CaptureItemRecord) => {
       const result = await loop.deleteStop(item);
       if (!result.ok) return;
-      if (showPreview) {
-        await returnToLiveCamera();
-      }
+      if (showPreview) await returnToLiveCamera();
     },
     [loop, returnToLiveCamera, showPreview],
   );
@@ -207,80 +222,13 @@ export function useNoPlansCaptureCanvas({
       if (tool === "angle") {
         setActiveTool(null);
         loop.setActivePreview(null);
-        void camera.startCamera(facingMode);
         loop.addAnotherAngle();
         return;
       }
       setActiveTool((current) => (current === tool ? null : tool));
     },
-    [camera, facingMode, loop],
+    [loop],
   );
-
-  const handleSelectMain = useCallback(() => {
-    setActiveAngleId(null);
-    if (!loop.activePreview || !activeItem) return;
-    const url = getCaptureImageUrl(activeItem) ?? loop.activePreview.url;
-    loop.setActivePreview({ url, title: loop.activePreview.title, itemId: loop.activePreview.itemId });
-  }, [activeItem, loop]);
-
-  const handleSelectAngle = useCallback(
-    (angleId: string) => {
-      setActiveAngleId(angleId);
-      if (!loop.activePreview || !activeItem) return;
-      const url = getPhotoAngleImageUrl(activeItem, angleId) ?? loop.activePreview.url;
-      loop.setActivePreview({ url, title: loop.activePreview.title, itemId: loop.activePreview.itemId });
-    },
-    [activeItem, loop],
-  );
-
-  const handlePromoteAngle = useCallback(
-    (angleId: string) => {
-      if (!loop.activePreview || !activeItem) return;
-      const url = getPhotoAngleImageUrl(activeItem, angleId);
-      if (!url) return;
-      setActiveAngleId(null);
-      loop.setActivePreview({ url, title: loop.activePreview.title, itemId: loop.activePreview.itemId });
-      triggerHapticSuccess();
-    },
-    [activeItem, loop],
-  );
-
-  const handlePlacePin = useCallback(
-    (xPct: number, yPct: number) => {
-      if (!itemId || !activeItem) return;
-      const pins = getItemPhotoAttachmentPins(activeItem);
-      const newPin: PhotoAttachmentPin = {
-        id: `photo-pin-${Date.now()}`,
-        xPct,
-        yPct,
-        label: "Pin",
-        note: "",
-        files: [],
-        createdAt: new Date().toISOString(),
-      };
-      void loop.savePhotoAttachmentPins(itemId, [...pins, newPin]);
-      triggerHapticSuccess();
-    },
-    [activeItem, itemId, loop],
-  );
-
-  const handleAttachToPin = useCallback(
-    (pin: PhotoAttachmentPin) => {
-      if (!activeItem) return;
-      sourcePicker.open({
-        mode: "attach",
-        source: "quick_capture",
-        attachPoint: { xPct: pin.xPct, yPct: pin.yPct },
-        existingPinId: pin.id,
-      });
-    },
-    [activeItem, sourcePicker],
-  );
-
-  useEffect(() => {
-    if (showPreview) return;
-    if (!camera.isStreaming) void camera.startCamera(facingMode);
-  }, [camera, facingMode, showPreview]);
 
   useEffect(() => {
     if (!returnFromSummary || !loop.activeItem || openedReviewRef.current) return;
@@ -312,10 +260,11 @@ export function useNoPlansCaptureCanvas({
     activeAngleId,
     detailsOpen,
     setDetailsOpen,
+    captureBlocked,
     markupEnabled,
     pinMode,
     showPreview,
-    previewTitle,
+    cameraPaused,
     activeItem,
     itemId,
     displayUrl,
@@ -324,20 +273,17 @@ export function useNoPlansCaptureCanvas({
     capturedHeaderLabel,
     handleCanvasTap,
     handleShutterTapLive,
-    handleShutterTapCaptured,
+    handleShutterTapCaptured: planActions.handleShutterTapCaptured,
     handleShutterHold,
     handleSelectStop,
     handleDeleteStop,
     handleSelectTool,
-    handleSelectMain,
-    handleSelectAngle,
-    handlePromoteAngle,
-    handlePlacePin,
-    handleAttachToPin,
-    handleAttachHere,
+    ...photoActions,
     handleReviewBack,
     planPinFlow,
     sourcePicker,
+    sessionExit,
+    torch,
     loop,
     session,
   };
