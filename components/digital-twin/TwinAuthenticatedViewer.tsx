@@ -154,13 +154,16 @@ export function TwinAuthenticatedViewer({
       commentsTitle="Collaboration"
       commentsContent={commentsContent}
       toast={toast}
-      footerHint={
-        splatReady ? (
-          <p className="text-[10px] leading-relaxed text-[var(--graphite-muted)]">
-            Double-tap to walk in · Home resets overview.
-          </p>
-        ) : null
-      }
+      showDiscoveryHint={splatReady}
+      cameraMode={cameraMode}
+      onToggleCameraMode={() => {
+        if (cameraMode === "interior") {
+          viewerRef.current?.recenter();
+          setCameraMode("orbit");
+          return;
+        }
+        setCameraMode("interior");
+      }}
       topHint={
         splatReady ? (
           <div className="flex flex-wrap items-center gap-2">

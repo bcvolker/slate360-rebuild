@@ -287,11 +287,16 @@ export function TwinShareAnnotateShell({
       commentsTitle="Activity"
       commentsContent={commentsContent}
       toast={toast}
-      footerHint={
-        <p className="text-[10px] leading-relaxed text-[var(--graphite-muted)]">
-          Double-tap the model to walk in. Drag to orbit · pinch to zoom.
-        </p>
-      }
+      showDiscoveryHint={splatReady}
+      cameraMode={cameraMode}
+      onToggleCameraMode={() => {
+        if (cameraMode === "interior") {
+          viewerRef.current?.recenter();
+          setCameraMode("orbit");
+          return;
+        }
+        setCameraMode("interior");
+      }}
     >
       {splatReady ? (
         <TwinShareSplatViewer
