@@ -53,7 +53,7 @@ export function TwinShareAnnotateShell({
 }) {
   const viewerRef = useRef<SplatViewerHandle | null>(null);
   const [tool, setTool] = useState<TwinShareTool>("view");
-  const [cameraMode, setCameraMode] = useState<TwinShareCameraMode>("interior");
+  const [cameraMode, setCameraMode] = useState<TwinShareCameraMode>("orbit");
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [authorName, setAuthorName] = useState("");
   const [commentBody, setCommentBody] = useState("");
@@ -281,15 +281,17 @@ export function TwinShareAnnotateShell({
   return (
     <TwinViewerCanvasShell
       viewerRef={viewerRef}
-      cameraMode={cameraMode}
-      orbitToggleAvailable={splatReady}
-      onToggleCameraMode={() => setCameraMode((m) => (m === "interior" ? "orbit" : "interior"))}
       commentsOpen={commentsOpen}
       onToggleComments={() => setCommentsOpen((open) => !open)}
       commentCount={commentCount}
       commentsTitle="Activity"
       commentsContent={commentsContent}
       toast={toast}
+      footerHint={
+        <p className="text-[10px] leading-relaxed text-[var(--graphite-muted)]">
+          Double-tap the model to walk in. Drag to orbit · pinch to zoom.
+        </p>
+      }
     >
       {splatReady ? (
         <TwinShareSplatViewer
@@ -298,6 +300,7 @@ export function TwinShareAnnotateShell({
           pickEnabled={pickEnabled}
           onPick={(pt) => void handlePick(pt)}
           cameraMode={cameraMode}
+          onCameraModeChange={setCameraMode}
         />
       ) : (
         <div className="absolute inset-0">

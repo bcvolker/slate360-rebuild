@@ -84,8 +84,8 @@ export function TwinShareViewer({
             </div>
           ) : null}
         </div>
-        <p className="pointer-events-none absolute bottom-[5.75rem] left-1/2 z-10 hidden max-w-md -translate-x-1/2 text-center text-[10px] leading-relaxed text-[var(--graphite-muted)] sm:block">
-          <TwinViewerDisclaimer className="inline" />
+        <p className="pointer-events-none absolute left-3 top-[calc(max(0.75rem,env(safe-area-inset-top))+2.75rem)] z-10 max-w-xs text-[10px] leading-relaxed text-[var(--graphite-muted)]">
+          <TwinViewerDisclaimer className="inline text-left" />
         </p>
       </main>
     </ExternalPortalShell>

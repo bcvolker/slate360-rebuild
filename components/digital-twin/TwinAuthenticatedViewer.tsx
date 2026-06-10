@@ -51,7 +51,7 @@ export function TwinAuthenticatedViewer({
   onMeasurementSaved,
 }: Props) {
   const viewerRef = useRef<SplatViewerHandle | null>(null);
-  const [cameraMode, setCameraMode] = useState<TwinViewerCameraMode>("interior");
+  const [cameraMode, setCameraMode] = useState<TwinViewerCameraMode>("orbit");
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [measureActive, setMeasureActive] = useState(false);
   const [measureA, setMeasureA] = useState<TwinPickPoint | null>(null);
@@ -148,15 +148,19 @@ export function TwinAuthenticatedViewer({
   return (
     <TwinViewerCanvasShell
       viewerRef={viewerRef}
-      cameraMode={cameraMode}
-      orbitToggleAvailable={splatReady}
-      onToggleCameraMode={() => setCameraMode((m) => (m === "interior" ? "orbit" : "interior"))}
       commentsOpen={commentsOpen}
       onToggleComments={() => setCommentsOpen((open) => !open)}
       commentCount={commentCount}
       commentsTitle="Collaboration"
       commentsContent={commentsContent}
       toast={toast}
+      footerHint={
+        splatReady ? (
+          <p className="text-[10px] leading-relaxed text-[var(--graphite-muted)]">
+            Double-tap to walk in · Home resets overview.
+          </p>
+        ) : null
+      }
       topHint={
         splatReady ? (
           <div className="flex flex-wrap items-center gap-2">
@@ -189,6 +193,7 @@ export function TwinAuthenticatedViewer({
           modelVisible={layerVisible.model ?? true}
           overlay={sceneOverlay}
           cameraMode={cameraMode}
+          onCameraModeChange={setCameraMode}
         />
       ) : (
         <div className="absolute inset-0">

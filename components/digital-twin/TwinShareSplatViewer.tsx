@@ -19,7 +19,7 @@ export const TwinShareSplatViewer = forwardRef<
     cameraMode?: "interior" | "orbit";
     modelVisible?: boolean;
     overlay?: React.ReactNode;
-    showResetView?: boolean;
+    onCameraModeChange?: (mode: "interior" | "orbit") => void;
   }
 >(function TwinShareSplatViewer(
   {
@@ -27,10 +27,10 @@ export const TwinShareSplatViewer = forwardRef<
     className,
     pickEnabled = false,
     onPick,
-    cameraMode = "interior",
+    cameraMode = "orbit",
     modelVisible = true,
     overlay,
-    showResetView = false,
+    onCameraModeChange,
   },
   ref,
 ) {
@@ -44,7 +44,7 @@ export const TwinShareSplatViewer = forwardRef<
       cameraMode={cameraMode}
       modelVisible={modelVisible}
       overlay={overlay}
-      showResetView={showResetView}
+      onCameraModeChange={onCameraModeChange}
     />
   );
 });

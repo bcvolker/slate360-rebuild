@@ -1,12 +1,17 @@
 import * as THREE from "three";
 import type { SplatMesh } from "@sparkjsdev/spark";
 import {
+  applyExteriorCameraFrame,
+  computeExteriorOverviewFrame,
+  type ExteriorCameraFrame,
+} from "@/lib/digital-twin/exterior-camera-frame";
+import {
   applyInteriorCameraFrame,
   computeInteriorStartFrame,
   type InteriorCameraFrame,
 } from "@/lib/digital-twin/interior-camera-frame";
 
-export type SplatCameraFrame = InteriorCameraFrame;
+export type SplatCameraFrame = InteriorCameraFrame | ExteriorCameraFrame;
 
 const TMP_CENTER = new THREE.Vector3();
 const TMP_SIZE = new THREE.Vector3();
@@ -47,12 +52,31 @@ export function applySplatCameraFrame(
   applyInteriorCameraFrame(camera, controls, frame);
 }
 
+export function frameSplatMeshExterior(
+  mesh: SplatMesh,
+  camera: THREE.PerspectiveCamera,
+  controls: { target: THREE.Vector3; update: () => void } | null,
+): ExteriorCameraFrame {
+  const frame = computeExteriorOverviewFrame(getSplatSceneBounds(mesh), camera);
+  applyExteriorCameraFrame(camera, controls, frame);
+  return frame;
+}
+
+export function frameSplatMeshInterior(
+  mesh: SplatMesh,
+  camera: THREE.PerspectiveCamera,
+  controls: { target: THREE.Vector3; update: () => void } | null,
+): InteriorCameraFrame {
+  const frame = computeInteriorStartFrame(getSplatSceneBounds(mesh), camera);
+  applyInteriorCameraFrame(camera, controls, frame);
+  return frame;
+}
+
+/** Default share/auth framing: elevated exterior overview. */
 export function frameSplatMesh(
   mesh: SplatMesh,
   camera: THREE.PerspectiveCamera,
   controls: { target: THREE.Vector3; update: () => void } | null,
-): SplatCameraFrame {
-  const frame = computeInteriorStartFrame(getSplatSceneBounds(mesh), camera);
-  applyInteriorCameraFrame(camera, controls, frame);
-  return frame;
+): ExteriorCameraFrame {
+  return frameSplatMeshExterior(mesh, camera, controls);
 }
