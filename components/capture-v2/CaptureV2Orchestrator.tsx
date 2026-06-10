@@ -2,9 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import { CAPTURE_CANVAS_SHELL_ENABLED } from "@/lib/site-walk/capture-v2-config";
+import { usePlanSheetsRealtime } from "@/lib/hooks/usePlanSheetsRealtime";
 import { CaptureV2DesktopStudio } from "./CaptureV2DesktopStudio";
 import { CaptureV2MobileField } from "./CaptureV2MobileField";
 import { NoPlansCaptureCanvas } from "./NoPlansCaptureCanvas";
+import { WithPlansCaptureCanvas } from "./plan-canvas/WithPlansCaptureCanvas";
 import { useCaptureV2Loop } from "./useCaptureV2Loop";
 import type { CaptureV2UiPhase } from "./types";
 import type { CaptureV2Session } from "./session-types";
@@ -58,6 +60,8 @@ export function CaptureV2Orchestrator(props: Props) {
   const [notesFocused, setNotesFocused] = useState(false);
 
   const useNoPlansCanvas = CAPTURE_CANVAS_SHELL_ENABLED && !showPlanCanvas && !isDesktop;
+  const useWithPlansCanvas = CAPTURE_CANVAS_SHELL_ENABLED && showPlanCanvas && !isDesktop;
+  const livePlanSheets = usePlanSheetsRealtime(planSheets, session.project_id);
 
   useEffect(() => {
     if (!autoOpenCamera || isDesktop || openedCameraRef.current || useNoPlansCanvas) return;
@@ -88,7 +92,7 @@ export function CaptureV2Orchestrator(props: Props) {
         session={session}
         loop={loop}
         planSets={planSets}
-        planSheets={planSheets}
+        planSheets={livePlanSheets}
         showPlanCanvas={showPlanCanvas}
         savingNext={savingNext}
         onSaveAndNext={handleSaveAndNext}
@@ -107,6 +111,17 @@ export function CaptureV2Orchestrator(props: Props) {
         contextLabel={contextLabel}
         photo360Entitled={photo360Entitled}
         returnFromSummary={returnFromSummary}
+      />
+    );
+  }
+
+  if (useWithPlansCanvas) {
+    return (
+      <WithPlansCaptureCanvas
+        session={session}
+        loop={loop}
+        planSets={planSets}
+        planSheets={livePlanSheets}
       />
     );
   }

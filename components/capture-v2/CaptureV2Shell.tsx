@@ -44,8 +44,7 @@ export function CaptureV2Shell(props: Props) {
     ? "Quick Walk"
     : session.project_name ?? "Plan Walk";
 
-  const hideLegacyHeader =
-    CAPTURE_CANVAS_SHELL_ENABLED && !props.showPlanCanvas && !isDesktop;
+  const hideLegacyHeader = CAPTURE_CANVAS_SHELL_ENABLED && !isDesktop;
 
   return (
     <main className="relative flex h-screen min-h-0 w-full flex-col overflow-hidden bg-[var(--graphite-canvas)] text-[var(--graphite-text-header)]">
