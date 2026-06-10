@@ -1,0 +1,292 @@
+"use client";
+
+import { useCallback, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { IconLoader2 } from "@tabler/icons-react";
+import { SlateDropFilePickerModal } from "@/components/slatedrop/SlateDropFilePickerModal";
+import { useMultipartTwinUpload } from "@/hooks/useMultipartTwinUpload";
+import { useTwinGpsFix } from "@/hooks/useTwinGpsFix";
+import { useTwinProcessingEstimate } from "@/hooks/useTwinProcessingEstimate";
+import {
+  clearTwinCapturePendingSession,
+  getTwinCapturePendingSession,
+  type TwinReviewAddedSource,
+} from "@/lib/digital-twin/twin-capture-pending-session";
+import { fetchSlateDropFileAsBlob } from "@/lib/digital-twin/twin-review-fetch";
+import {
+  classifyTwinMedia,
+  countTwinEstimateFrames,
+  twinMediaToAssetKind,
+} from "@/lib/digital-twin/twin-review-media";
+import type { TwinProcessingQuality } from "@/lib/twin/processing-estimate-types";
+import type { TwinCreditAsset } from "@/lib/twin/processing-credits";
+import { twinAccent } from "@/lib/digital-twin/twin-accent";
+import { cn } from "@/lib/utils";
+import { TwinCaptureCreditsSheet } from "./TwinCaptureCreditsSheet";
+import { TwinCaptureReviewClips } from "./TwinCaptureReviewClips";
+import { TwinCaptureReviewEstimateCard } from "./TwinCaptureReviewEstimateCard";
+import { TwinCaptureReviewQuality } from "./TwinCaptureReviewQuality";
+import { TwinCaptureReviewSources } from "./TwinCaptureReviewSources";
+import { TwinCaptureReviewTopBar } from "./TwinCaptureReviewTopBar";
+import { TwinJobStatus } from "./TwinJobStatus";
+
+type Props = {
+  canUseHighQuality: boolean;
+};
+
+export function TwinCaptureReviewScreen({ canUseHighQuality }: Props) {
+  const router = useRouter();
+  const session = getTwinCapturePendingSession();
+  const resolveGpsFix = useTwinGpsFix();
+  const upload = useMultipartTwinUpload();
+
+  const [scanName, setScanName] = useState(session?.selection.spaceTitle ?? "");
+  const [quality, setQuality] = useState<TwinProcessingQuality>("standard");
+  const [addedSources, setAddedSources] = useState<TwinReviewAddedSource[]>([]);
+  const [slateDropOpen, setSlateDropOpen] = useState(false);
+  const [creditsSheetOpen, setCreditsSheetOpen] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [jobQueued, setJobQueued] = useState(false);
+
+  const clipFiles = useMemo(
+    () => (session?.clips ?? []).flatMap((clip) => clip.files),
+    [session?.clips],
+  );
+
+  const captureCategories = useMemo(
+    () => clipFiles.map((file) => classifyTwinMedia(file)),
+    [clipFiles],
+  );
+
+  const localAddedFiles = useMemo(
+    () =>
+      addedSources
+        .filter((row): row is TwinReviewAddedSource & { file: File } => row.origin !== "slatedrop")
+        .map((row) => row.file),
+    [addedSources],
+  );
+
+  const estimateFiles = useMemo(
+    () => [
+      ...clipFiles,
+      ...localAddedFiles,
+      ...addedSources
+        .filter((row) => row.origin === "slatedrop")
+        .map((row) =>
+          new File([], row.pickerFile.name, {
+            type: row.pickerFile.type || "application/octet-stream",
+          }),
+        ),
+    ],
+    [addedSources, clipFiles, localAddedFiles],
+  );
+
+  const creditSources = useMemo<TwinCreditAsset[]>(
+    () =>
+      estimateFiles.map((file) => ({
+        asset_kind: twinMediaToAssetKind(file),
+        file_size_bytes: file.size,
+      })),
+    [estimateFiles],
+  );
+
+  const frameCount = useMemo(() => countTwinEstimateFrames(estimateFiles), [estimateFiles]);
+  const totalDurationSeconds = useMemo(
+    () => (session?.clips ?? []).reduce((sum, clip) => sum + clip.durationSeconds, 0),
+    [session?.clips],
+  );
+
+  const { estimate, loading: estimateLoading, error: estimateError } = useTwinProcessingEstimate({
+    sources: creditSources,
+    frameCount,
+    quality,
+    enabled: creditSources.length > 0,
+  });
+
+  const handleBack = useCallback(() => {
+    router.push("/digital-twin/capture");
+  }, [router]);
+
+  const handleAddFiles = useCallback((files: File[], origin: "camera_roll" | "files") => {
+    setAddedSources((prev) => [
+      ...prev,
+      ...files.map((file) => ({
+        id: `local-${Date.now()}-${file.name}`,
+        origin,
+        file,
+      })),
+    ]);
+  }, []);
+
+  const handleCreateTwin = useCallback(async () => {
+    if (!session || submitting) return;
+    setSubmitting(true);
+    setSubmitError(null);
+
+    try {
+      const slatedropFiles = await Promise.all(
+        addedSources
+          .filter((row) => row.origin === "slatedrop")
+          .map((row) => fetchSlateDropFileAsBlob(row.pickerFile)),
+      );
+      const allFiles = [...clipFiles, ...localAddedFiles, ...slatedropFiles];
+      if (!allFiles.length) throw new Error("Add at least one source");
+
+      const gps = await resolveGpsFix();
+      const title = scanName.trim() || session.selection.spaceTitle;
+      await upload.startUpload(
+        {
+          spaceId: session.selection.spaceId,
+          projectId: session.selection.projectId,
+          title,
+          gps,
+        },
+        allFiles,
+      );
+      await upload.enqueueJob("spz");
+      setJobQueued(true);
+      clearTwinCapturePendingSession();
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : "Could not create twin");
+    } finally {
+      setSubmitting(false);
+    }
+  }, [
+    addedSources,
+    clipFiles,
+    localAddedFiles,
+    resolveGpsFix,
+    scanName,
+    session,
+    submitting,
+    upload,
+  ]);
+
+  if (!session) {
+    return (
+      <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-2 px-4 text-center">
+        <p className="text-sm text-[var(--graphite-muted)]">No capture session found.</p>
+        <button type="button" onClick={handleBack} className={cn("text-sm font-semibold", twinAccent.link)}>
+          Back to capture
+        </button>
+      </div>
+    );
+  }
+
+  const lowCredits = estimate && !estimate.sufficient;
+
+  return (
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-[var(--graphite-canvas)]">
+      <TwinCaptureReviewTopBar onBack={handleBack} />
+
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 pb-28 pt-3 space-y-4">
+        <label className="block space-y-1">
+          <span className="text-xs font-medium text-[var(--graphite-muted)]">
+            Name this scan (optional — can name later)
+          </span>
+          <input
+            type="text"
+            value={scanName}
+            onChange={(event) => setScanName(event.target.value)}
+            className="w-full rounded-xl border border-[var(--mobile-app-card-border)] bg-[var(--surface-zinc)] px-3 py-2.5 text-sm text-[var(--graphite-text-header)] outline-none focus:border-[var(--accent-border-blue)]"
+          />
+        </label>
+
+        <TwinCaptureReviewClips
+          clips={session.clips}
+          totalDurationSeconds={totalDurationSeconds}
+          frameCount={frameCount}
+        />
+
+        <TwinCaptureReviewSources
+          projectId={session.selection.projectId}
+          addedSources={addedSources}
+          captureCategories={captureCategories}
+          onAddFiles={handleAddFiles}
+          onRemoveSource={(id) =>
+            setAddedSources((prev) => prev.filter((row) => row.id !== id))
+          }
+          onOpenSlateDrop={() => setSlateDropOpen(true)}
+        />
+
+        <TwinCaptureReviewEstimateCard
+          estimate={estimate}
+          loading={estimateLoading}
+          error={estimateError}
+          onAddCredits={() => setCreditsSheetOpen(true)}
+        />
+
+        {lowCredits ? (
+          <div className="rounded-xl border border-red-500/40 bg-red-500/10 px-3 py-2 text-xs text-red-200">
+            This job needs ~{estimate.creditsRequired} credits — you have {estimate.creditsBalance}
+          </div>
+        ) : null}
+
+        <TwinCaptureReviewQuality
+          quality={quality}
+          canUseHigh={canUseHighQuality}
+          onChange={setQuality}
+        />
+
+        {upload.isRunning ? (
+          <p className="inline-flex items-center gap-2 text-xs text-[var(--graphite-muted)]">
+            <IconLoader2 className={cn("h-3.5 w-3.5 animate-spin", twinAccent.spinner)} />
+            Uploading… {upload.overallProgress}%
+          </p>
+        ) : null}
+
+        {jobQueued && upload.captureId ? (
+          <TwinJobStatus captureId={upload.captureId} spaceId={session.selection.spaceId} />
+        ) : null}
+
+        {submitError ? <p className="text-xs text-red-300">{submitError}</p> : null}
+      </div>
+
+      <div
+        className="shrink-0 border-t border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_92%,transparent)] px-3 pt-3 backdrop-blur-xl"
+        style={{ paddingBottom: `max(12px, env(safe-area-inset-bottom))` }}
+      >
+        <button
+          type="button"
+          disabled={
+            submitting || upload.isRunning || jobQueued || !estimate || Boolean(lowCredits)
+          }
+          onClick={() => void handleCreateTwin()}
+          className="flex min-h-12 w-full items-center justify-center rounded-xl bg-[var(--twin360-blue)] text-sm font-bold text-[var(--graphite-canvas)] disabled:opacity-50"
+        >
+          {submitting || upload.isRunning
+            ? "Creating twin…"
+            : `Create twin · ~${estimate?.creditsRequired ?? "—"} credits`}
+        </button>
+        <p className="mt-2 text-center text-[11px] text-[var(--graphite-muted)]">
+          we&apos;ll notify you when it&apos;s ready — find it in My Twins
+        </p>
+      </div>
+
+      <SlateDropFilePickerModal
+        open={slateDropOpen}
+        projectId={session.selection.projectId}
+        onClose={() => setSlateDropOpen(false)}
+        onConfirm={(files) => {
+          setAddedSources((prev) => [
+            ...prev,
+            ...files.map((file) => ({
+              id: `sd-${file.id}`,
+              origin: "slatedrop" as const,
+              pickerFile: file,
+            })),
+          ]);
+          setSlateDropOpen(false);
+        }}
+        title="Add from SlateDrop"
+      />
+
+      <TwinCaptureCreditsSheet
+        open={creditsSheetOpen}
+        creditsRequired={estimate?.creditsRequired ?? 0}
+        onClose={() => setCreditsSheetOpen(false)}
+      />
+    </div>
+  );
+}
