@@ -76,7 +76,7 @@ export function TwinCapturePicker({
       <div
         className={cn(
           "flex flex-col gap-4 p-4",
-          mobileTokens.twin360StartScanCard,
+          mobileTokens.siteWalkStartWalkCard,
           "min-h-0 shadow-none active:scale-100 active:ring-0",
         )}
       >
@@ -90,12 +90,8 @@ export function TwinCapturePicker({
             <IconScan className="h-5 w-5" stroke={1.75} />
           </span>
           <div className="min-w-0">
-            <h2 className="text-base font-bold leading-tight text-[var(--mobile-app-card-title-fg-info)]">
-              {heading}
-            </h2>
-            <p className="mt-0.5 text-sm font-medium leading-snug text-[var(--mobile-app-card-subtitle-fg-info)]">
-              {subheading}
-            </p>
+            <h2 className={mobileTokens.siteWalkStartWalkTitle}>{heading}</h2>
+            <p className={cn("mt-0.5", mobileTokens.siteWalkStartWalkSubtext)}>{subheading}</p>
           </div>
         </div>
 
