@@ -1,17 +1,19 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
-import { useCamera } from "@/lib/hooks/useCamera";
-import { triggerHapticSuccess } from "@/lib/utils/trigger-haptic";
+import { getItemPhotoAttachmentPins } from "@/lib/site-walk/photo-attachments";
 import { CAPTURE_CANVAS_CHROME } from "./capture-canvas-chrome-layout";
+import { CaptureCanvasAngleThumbs } from "./CaptureCanvasAngleThumbs";
 import { CaptureCanvasBottomRail } from "./CaptureCanvasBottomRail";
+import { CaptureCanvasCapturedPhoto } from "./CaptureCanvasCapturedPhoto";
+import { CaptureCanvasMarkupToolbar } from "./CaptureCanvasMarkupToolbar";
+import { CaptureCanvasRightToolRail } from "./CaptureCanvasRightToolRail";
 import { CaptureCanvasTopBar } from "./CaptureCanvasTopBar";
 import { CaptureStopFilmstrip } from "./CaptureStopFilmstrip";
+import { CaptureV2DetailDrawer } from "./CaptureV2DetailDrawer";
 import { CaptureV2LiveCamera, CaptureV2LiveCameraBusyOverlay } from "./CaptureV2LiveCamera";
-import { CaptureV2StaticPreview } from "./CaptureV2StaticPreview";
-import { resolveCaptureV2PreviewUrl } from "./capture-v2-preview-url";
 import type { CaptureV2Session } from "./session-types";
 import type { CaptureV2Loop } from "./useCaptureV2Loop";
+import { useNoPlansCaptureCanvas } from "./useNoPlansCaptureCanvas";
 
 const CANVAS_ROOT_CLASS =
   "relative flex min-h-0 flex-1 flex-col overflow-hidden bg-[var(--graphite-canvas)] touch-manipulation select-none [-webkit-touch-callout:none] [-webkit-user-select:none]";
@@ -47,152 +49,121 @@ function CaptureV2HiddenFileInputs({ loop }: { loop: CaptureV2Loop }) {
 }
 
 export function NoPlansCaptureCanvas({ session, loop, contextLabel }: Props) {
-  const camera = useCamera();
-  const [chromeVisible, setChromeVisible] = useState(true);
-  const [facingMode, setFacingMode] = useState<"user" | "environment">("environment");
-
-  const showPreview = Boolean(loop.activePreview?.url);
-  const previewUrl = resolveCaptureV2PreviewUrl(loop.activeItem, loop.activePreview?.url);
-  const previewTitle = loop.activePreview?.title?.trim() || "Captured photo";
-  const previewLocalFallback =
-    loop.activePreview?.url?.startsWith("blob:") ? loop.activePreview.url : loop.activeItem?.local_preview_url ?? null;
-
-  const orderedItems = useMemo(
-    () => [...loop.items].sort((a, b) => Date.parse(a.created_at) - Date.parse(b.created_at)),
-    [loop.items],
-  );
-
-  const stopNumber = useMemo(() => {
-    if (loop.activeItem) {
-      const index = orderedItems.findIndex(
-        (item) =>
-          item.id === loop.activeItem?.id ||
-          (loop.activeItem?.client_item_id &&
-            item.client_item_id === loop.activeItem.client_item_id),
-      );
-      if (index >= 0) return index + 1;
-    }
-    return orderedItems.length + 1;
-  }, [loop.activeItem, orderedItems]);
-
-  const headerLabel = session.is_ad_hoc
-    ? `QUICK WALK · STOP ${stopNumber}`
-    : `${contextLabel.toUpperCase()} · STOP ${stopNumber}`;
-
-  const handleCanvasTap = useCallback(() => {
-    setChromeVisible((value) => !value);
-  }, []);
-
-  const ingestFile = useCallback(
-    (file: File) => {
-      loop.setIntent({ source: "quick_capture", input: "camera" });
-      loop.handleFile(file, false);
-      triggerHapticSuccess();
-    },
-    [loop],
-  );
-
-  const returnToLiveCamera = useCallback(async () => {
-    loop.setActivePreview(null);
-    if (!camera.isStreaming) {
-      await camera.startCamera(facingMode);
-    }
-  }, [camera, facingMode, loop]);
-
-  const handleShutterTap = useCallback(() => {
-    if (showPreview) {
-      void returnToLiveCamera();
-      return;
-    }
-    if (!camera.isStreaming) return;
-    const result = camera.capturePhoto();
-    if (!result) return;
-    const file = new File([result.blob], `capture-${Date.now()}.jpg`, { type: "image/jpeg" });
-    ingestFile(file);
-  }, [camera, ingestFile, returnToLiveCamera, showPreview]);
-
-  const handleShutterHold = useCallback(() => {
-    loop.openPickerDirect("upload", "quick_capture");
-  }, [loop]);
-
-  const handleSelectStop = useCallback(
-    (item: Parameters<typeof loop.focusFilmstripItem>[0]) => {
-      loop.focusFilmstripItem(item);
-    },
-    [loop],
-  );
-
-  const handleDeleteStop = useCallback(
-    async (item: Parameters<typeof loop.deleteStop>[0]) => {
-      const result = await loop.deleteStop(item);
-      if (!result.ok) return;
-      if (showPreview) {
-        await returnToLiveCamera();
-      }
-    },
-    [loop, returnToLiveCamera, showPreview],
-  );
-
+  const canvas = useNoPlansCaptureCanvas({ session, loop, contextLabel });
   const safeBottom = "env(safe-area-inset-bottom)";
 
   return (
     <div className={CANVAS_ROOT_CLASS} data-capture-canvas="no-plans">
       <div
-        role="button"
-        tabIndex={0}
+        role={canvas.showPreview ? undefined : "button"}
+        tabIndex={canvas.showPreview ? undefined : 0}
         className="relative min-h-0 flex-1 overflow-hidden"
-        onClick={handleCanvasTap}
-        onKeyDown={(event) => {
-          if (event.key === "Enter" || event.key === " ") {
-            event.preventDefault();
-            handleCanvasTap();
-          }
-        }}
-        aria-label="Toggle capture controls"
+        onClick={canvas.showPreview ? undefined : canvas.handleCanvasTap}
+        onKeyDown={
+          canvas.showPreview
+            ? undefined
+            : (event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  canvas.handleCanvasTap();
+                }
+              }
+        }
+        aria-label={canvas.showPreview ? undefined : "Toggle capture controls"}
       >
-        {showPreview && previewUrl ? (
-          <CaptureV2StaticPreview
-            imageUrl={previewUrl}
-            title={previewTitle}
-            localFallbackUrl={previewLocalFallback}
-            fullBleed
+        {canvas.showPreview && canvas.displayUrl ? (
+          <CaptureCanvasCapturedPhoto
+            sessionId={session.id}
+            imageUrl={canvas.displayUrl}
+            title={canvas.previewTitle}
+            markupEnabled={canvas.markupEnabled}
+            pinMode={canvas.pinMode}
+            initialPins={getItemPhotoAttachmentPins(canvas.activeItem)}
+            initialMarkup={canvas.activeItem?.markup_data}
+            onMarkupChange={(markup) => {
+              if (canvas.itemId) void loop.saveMarkupData(canvas.itemId, markup);
+            }}
+            onPinsChange={(pins) => {
+              if (canvas.itemId) void loop.savePhotoAttachmentPins(canvas.itemId, pins);
+            }}
+            onPinTap={canvas.handlePinTap}
           />
         ) : (
-          <CaptureV2LiveCamera camera={camera} facingMode={facingMode} autoStart fullBleed />
+          <CaptureV2LiveCamera camera={canvas.camera} facingMode="environment" autoStart fullBleed />
         )}
         <CaptureV2LiveCameraBusyOverlay busy={loop.busy} />
       </div>
 
       <CaptureCanvasTopBar
-        headerLabel={headerLabel}
-        hidden={!chromeVisible}
-        onToggleChrome={() => setChromeVisible((value) => !value)}
+        headerLabel={canvas.showPreview ? canvas.capturedHeaderLabel : canvas.liveHeaderLabel}
+        hidden={!canvas.chromeVisible}
+        onToggleChrome={() => canvas.setChromeVisible((value) => !value)}
       />
 
-      <div
-        className="pointer-events-none absolute inset-x-0 z-20"
-        style={{
-          bottom: `calc(${CAPTURE_CANVAS_CHROME.filmstripBottomPx}px + ${safeBottom})`,
-          paddingLeft: CAPTURE_CANVAS_CHROME.sideInsetPx,
-          paddingRight: CAPTURE_CANVAS_CHROME.sideInsetPx,
-        }}
-      >
-        <CaptureStopFilmstrip
-          variant="overlay"
-          loop={loop}
-          hidden={!chromeVisible}
-          onSelectItem={handleSelectStop}
-          onDeleteItem={handleDeleteStop}
-          deletingItemId={loop.deletingStopId}
+      {canvas.showPreview && canvas.markupEnabled ? (
+        <div
+          className="pointer-events-auto absolute left-3 right-3 z-30 flex justify-center"
+          style={{
+            top: `calc(max(env(safe-area-inset-top), ${CAPTURE_CANVAS_CHROME.topInsetPx}px) + ${CAPTURE_CANVAS_CHROME.topBarHeightPx}px + 8px)`,
+          }}
+        >
+          <CaptureCanvasMarkupToolbar />
+        </div>
+      ) : null}
+
+      <CaptureCanvasRightToolRail
+        hidden={!canvas.chromeVisible || !canvas.showPreview}
+        activeTool={canvas.activeTool}
+        onSelectTool={canvas.handleSelectTool}
+      />
+
+      {canvas.showPreview && canvas.activeItem ? (
+        <CaptureCanvasAngleThumbs
+          hidden={!canvas.chromeVisible}
+          item={canvas.activeItem}
+          activeAngleId={canvas.activeAngleId}
+          onSelectMain={canvas.handleSelectMain}
+          onSelectAngle={canvas.handleSelectAngle}
+          onPromoteAngle={canvas.handlePromoteAngle}
         />
-      </div>
+      ) : (
+        <div
+          className="pointer-events-none absolute inset-x-0 z-20"
+          style={{
+            bottom: `calc(${CAPTURE_CANVAS_CHROME.filmstripBottomPx}px + ${safeBottom})`,
+            paddingLeft: CAPTURE_CANVAS_CHROME.sideInsetPx,
+            paddingRight: CAPTURE_CANVAS_CHROME.sideInsetPx,
+          }}
+        >
+          <CaptureStopFilmstrip
+            variant="overlay"
+            loop={loop}
+            hidden={!canvas.chromeVisible}
+            onSelectItem={canvas.handleSelectStop}
+            onDeleteItem={canvas.handleDeleteStop}
+            deletingItemId={loop.deletingStopId}
+          />
+        </div>
+      )}
 
       <CaptureCanvasBottomRail
         busy={loop.busy}
-        hidden={!chromeVisible}
-        onShutterTap={handleShutterTap}
-        onShutterHold={handleShutterHold}
+        hidden={!canvas.chromeVisible}
+        variant={canvas.showPreview ? "captured" : "live"}
+        onShutterTap={canvas.showPreview ? canvas.handleShutterTapCaptured : canvas.handleShutterTapLive}
+        onShutterHold={canvas.showPreview ? undefined : canvas.handleShutterHold}
+        onDetailsTap={() => canvas.setDetailsOpen(true)}
       />
+
+      {canvas.detailsOpen && canvas.activeItem ? (
+        <CaptureV2DetailDrawer
+          loop={loop}
+          projectId={session.project_id}
+          mode="mobile-overlay"
+          onClose={() => canvas.setDetailsOpen(false)}
+          onAddAnotherAngle={() => loop.addAnotherAngle()}
+        />
+      ) : null}
 
       <CaptureV2HiddenFileInputs loop={loop} />
     </div>
