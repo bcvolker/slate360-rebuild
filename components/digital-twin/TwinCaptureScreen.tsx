@@ -5,6 +5,7 @@ import { TwinCaptureBottomRail } from "./TwinCaptureBottomRail";
 import { TwinCaptureClipChips } from "./TwinCaptureClipChips";
 import { TwinCaptureClipGhost } from "./TwinCaptureClipGhost";
 import { TwinCaptureCoveragePill } from "./TwinCaptureCoveragePill";
+import { TwinCaptureDebugOverlay } from "./TwinCaptureDebugOverlay";
 import { TwinCaptureHudToast } from "./TwinCaptureHudToast";
 import { TwinCaptureLidarChip } from "./TwinCaptureLidarChip";
 import { TwinCaptureLevelLine } from "./TwinCaptureLevelLine";
@@ -49,6 +50,7 @@ type Props = {
   devMotionOverride?: number | null;
   devForceGhost?: boolean;
   devGhostFrameUrl?: string | null;
+  debug?: boolean;
 };
 
 const PHOTO_EST_BYTES = 2_400_000;
@@ -73,6 +75,7 @@ export function TwinCaptureScreen({
   devMotionOverride = null,
   devForceGhost = false,
   devGhostFrameUrl = null,
+  debug = false,
 }: Props) {
   const camera = useTwinCaptureCamera();
   const videoRecorder = useTwinCaptureVideoRecorder();
@@ -95,6 +98,7 @@ export function TwinCaptureScreen({
   });
 
   const [chromeVisible, setChromeVisible] = useState(true);
+  const [lastShutterTapAt, setLastShutterTapAt] = useState<number | null>(null);
   const facingMode = "environment";
   const [torchOn, setTorchOn] = useState(false);
   const [torchSupported, setTorchSupported] = useState(false);
@@ -160,6 +164,18 @@ export function TwinCaptureScreen({
     if (videoRecorder.error) showToast(videoRecorder.error);
   }, [showToast, videoRecorder.error]);
 
+  useEffect(() => {
+    if (recording) setChromeVisible(true);
+  }, [recording]);
+
+  const setChromeVisibleSafe = useCallback(
+    (next: boolean | ((value: boolean) => boolean)) => {
+      if (recording) return;
+      setChromeVisible(next);
+    },
+    [recording],
+  );
+
   const handleTorchToggle = useCallback(async () => {
     const stream = camera.videoRef.current?.srcObject;
     if (!(stream instanceof MediaStream)) return;
@@ -206,6 +222,7 @@ export function TwinCaptureScreen({
   }, [camera, estimatedBytes, finishing, onFinish, photoCount, session, showToast, videoSeconds]);
 
   const handleShutterTap = useCallback(() => {
+    setLastShutterTapAt(Date.now());
     if (!sensorsRequestedRef.current) {
       sensorsRequestedRef.current = true;
       void sensors.requestPermission();
@@ -223,8 +240,8 @@ export function TwinCaptureScreen({
       void camera.resumeCamera(facingMode);
       return;
     }
-    setChromeVisible((value) => !value);
-  }, [camera, facingMode, recording]);
+    setChromeVisibleSafe((value) => !value);
+  }, [camera, facingMode, recording, setChromeVisibleSafe]);
 
   return (
     <div
@@ -267,7 +284,7 @@ export function TwinCaptureScreen({
           headerLabel={headerLabel}
           hidden={!chromeVisible}
           onBack={handleCancel}
-          onToggleChrome={() => setChromeVisible((value) => !value)}
+          onToggleChrome={() => setChromeVisibleSafe((value) => !value)}
         />
 
         <TwinCaptureHudToast
@@ -313,6 +330,21 @@ export function TwinCaptureScreen({
           onDone={() => void handleFinish()}
         />
       </div>
+
+      {debug ? (
+        <TwinCaptureDebugOverlay
+          chromeVisible={chromeVisible}
+          recording={recording}
+          recSeconds={session.recSeconds}
+          cameraStreaming={camera.isStreaming}
+          needsResume={camera.needsResume}
+          cameraError={camera.error}
+          recorderRecording={videoRecorder.recording}
+          recorderError={videoRecorder.error}
+          sensorPermission={sensors.permission}
+          lastShutterTapAt={lastShutterTapAt}
+        />
+      ) : null}
     </div>
   );
 }

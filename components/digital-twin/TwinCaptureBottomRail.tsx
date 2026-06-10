@@ -74,7 +74,10 @@ export function TwinCaptureBottomRail({
           {torchSupported ? (
             <button
               type="button"
-              onClick={onTorchToggle}
+              onClick={(event) => {
+                event.stopPropagation();
+                onTorchToggle();
+              }}
               data-twin-chrome="light-button"
               className={`inline-flex items-center justify-center justify-self-start transition active:scale-[0.98] ${TWIN_CAPTURE_GLASS_SQUARE} ${
                 torchOn ? "border-[var(--accent-border-blue)] text-[var(--twin360-blue)]" : ""
@@ -111,7 +114,10 @@ export function TwinCaptureBottomRail({
             <button
               type="button"
               disabled={!shutterEnabled}
-              onClick={onShutterTap}
+              onClick={(event) => {
+                event.stopPropagation();
+                onShutterTap();
+              }}
               data-twin-chrome="shutter"
               className="absolute left-1/2 top-1/2 inline-flex -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-[var(--graphite-canvas)] transition active:scale-95 disabled:opacity-50"
               style={{ width: innerSize, height: innerSize }}
@@ -150,7 +156,10 @@ export function TwinCaptureBottomRail({
           <button
             type="button"
             disabled={!hasContent || finishing}
-            onClick={onDone}
+            onClick={(event) => {
+              event.stopPropagation();
+              onDone();
+            }}
             data-twin-chrome="done-button"
             className="inline-flex items-center justify-center justify-self-end rounded-full bg-[var(--twin360-blue)] text-[var(--graphite-canvas)] shadow-[var(--mobile-app-card-glow-info)] transition active:scale-[0.98] disabled:opacity-35"
             style={{
