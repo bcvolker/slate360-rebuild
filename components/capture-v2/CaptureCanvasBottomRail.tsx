@@ -7,6 +7,7 @@ import { CAPTURE_V2_LAYERS } from "./layers";
 
 const HOLD_MS = 550;
 const MOVE_CANCEL_PX = 8;
+const SHUTTER_RING_PX = (CAPTURE_CANVAS_CHROME.shutterSizePx - CAPTURE_CANVAS_CHROME.shutterInnerPx) / 2;
 
 type Props = {
   busy: boolean;
@@ -84,9 +85,10 @@ export function CaptureCanvasBottomRail({
     ? "long-press photo = pin · shutter = next stop"
     : "tap = capture · hold = sources";
 
-  const shutterClass = captured
-    ? "border-[3px] border-[var(--graphite-primary)] bg-[color-mix(in_srgb,var(--graphite-primary)_25%,transparent)] shadow-none"
-    : "bg-[var(--graphite-primary)] shadow-[var(--mobile-app-card-glow-primary)]";
+  const liveShutterClass =
+    "bg-[var(--graphite-primary)] shadow-none border-0";
+  const capturedShutterClass =
+    "border-[3px] border-[var(--graphite-primary)] bg-[color-mix(in_srgb,var(--graphite-primary)_25%,transparent)] shadow-none";
 
   return (
     <div className={`${CAPTURE_V2_LAYERS.fastTrack} pointer-events-none absolute inset-x-0 bottom-0 z-30`}>
@@ -129,7 +131,9 @@ export function CaptureCanvasBottomRail({
             onPointerUp={handleShutterPointerEnd}
             onPointerCancel={handleShutterPointerEnd}
             onPointerLeave={handleShutterPointerEnd}
-            className={`inline-flex items-center justify-center justify-self-center rounded-full transition active:scale-95 disabled:opacity-50 ${shutterClass}`}
+            className={`inline-flex items-center justify-center justify-self-center rounded-full transition active:scale-95 disabled:opacity-50 ${
+              captured ? capturedShutterClass : liveShutterClass
+            }`}
             style={{
               width: CAPTURE_CANVAS_CHROME.shutterSizePx,
               height: CAPTURE_CANVAS_CHROME.shutterSizePx,
@@ -138,10 +142,11 @@ export function CaptureCanvasBottomRail({
             aria-label={captured ? "Capture next stop" : "Capture photo"}
           >
             <span
-              className="rounded-full border-2 border-[var(--graphite-canvas)] bg-[color-mix(in_srgb,var(--graphite-canvas)_88%,transparent)]"
+              className="rounded-full border-[var(--graphite-canvas)] bg-transparent"
               style={{
                 width: CAPTURE_CANVAS_CHROME.shutterInnerPx,
                 height: CAPTURE_CANVAS_CHROME.shutterInnerPx,
+                borderWidth: SHUTTER_RING_PX,
               }}
             />
           </button>
@@ -151,7 +156,7 @@ export function CaptureCanvasBottomRail({
               type="button"
               disabled={busy}
               onClick={() => onDetailsTap?.()}
-              className="inline-flex items-center justify-center justify-self-end rounded-full bg-[var(--graphite-primary)] text-[var(--graphite-canvas)] shadow-[var(--mobile-app-card-glow-primary)] transition active:scale-[0.98] disabled:opacity-50"
+              className="inline-flex items-center justify-center justify-self-end rounded-full bg-[var(--graphite-primary)] text-[var(--graphite-canvas)] shadow-none transition active:scale-[0.98] disabled:opacity-50"
               style={{
                 width: CAPTURE_CANVAS_CHROME.detailsButtonPx,
                 height: CAPTURE_CANVAS_CHROME.detailsButtonPx,
