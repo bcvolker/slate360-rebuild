@@ -4,10 +4,15 @@ import Link from "next/link";
 import { useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import { DevCaptureCanvasSandbox, DEV_CAPTURE_THUMB_COUNTS } from "./DevCaptureCanvasSandbox";
+import { DevWithPlansCaptureSandbox } from "./DevWithPlansCaptureSandbox";
 import { DevNoteReviewSandbox } from "./DevNoteReviewSandbox";
 import { DevWalkReviewSandbox } from "./DevWalkReviewSandbox";
 import { DEV_WALK_REVIEW_STOP_COUNTS } from "@/lib/dev/mock-walk-review";
 import { DevTwinCaptureSandbox, DEV_TWIN_CLIP_COUNTS } from "./DevTwinCaptureSandbox";
+import {
+  DEV_TWIN_COVERAGE_PRESETS,
+  DEV_TWIN_ROLL_PRESETS,
+} from "@/components/digital-twin/twin-capture-polish-dev";
 import { DevTwinReviewSandbox } from "./DevTwinReviewSandbox";
 import { DevTwinUploadSandbox } from "./DevTwinUploadSandbox";
 import { DevTwinViewerSandbox } from "./DevTwinViewerSandbox";
@@ -16,6 +21,7 @@ import { DevScreenFrame, type DevDeviceMode } from "./DevScreenFrame";
 
 const SCREENS = [
   { id: "capture", label: "Capture canvas", description: "No-plans camera canvas with mock stops." },
+  { id: "capture-plans", label: "Capture plan canvas", description: "With-plans mobile canvas, 12-sheet mock set." },
   { id: "walk-review", label: "Walk review", description: "End-of-walk stop grid with pinned actions." },
   { id: "note-review", label: "Note / review", description: "Field notes + primary save affordance." },
   { id: "twin-capture", label: "Twin capture", description: "Full-bleed camera, burst + video walk controls." },
@@ -71,6 +77,8 @@ export function DevScreensClient() {
     switch (screen) {
       case "capture":
         return <DevCaptureCanvasSandbox />;
+      case "capture-plans":
+        return <DevWithPlansCaptureSandbox />;
       case "walk-review":
         return <DevWalkReviewSandbox />;
       case "note-review":
@@ -160,6 +168,28 @@ export function DevScreensClient() {
           </>
         ) : null}
 
+        {screen === "capture-plans" ? (
+          <>
+            <span className="mx-1 h-5 w-px bg-[var(--mobile-app-card-border)]" aria-hidden />
+            <Link
+              href={`/dev/screens?screen=capture-plans&device=${device}&frameW=390&frameH=844`}
+              className="rounded-lg border border-[var(--accent-border-green)] px-2.5 py-1.5 text-[11px] font-bold text-[var(--graphite-text-header)]"
+            >
+              390×844
+            </Link>
+            <Link
+              href={`/dev/screens?screen=capture-plans&device=${device}&frameW=390&frameH=844&picker=open`}
+              className={`rounded-lg border px-2.5 py-1.5 text-[11px] font-bold ${
+                searchParams?.get("picker") === "open"
+                  ? "border-[var(--accent-border-green)] text-[var(--graphite-text-header)]"
+                  : "border-[var(--mobile-app-card-border)] text-[var(--graphite-muted)]"
+              }`}
+            >
+              picker open
+            </Link>
+          </>
+        ) : null}
+
         {screen === "capture" ? (
           <>
             <span className="mx-1 h-5 w-px bg-[var(--mobile-app-card-border)]" aria-hidden />
@@ -217,6 +247,48 @@ export function DevScreensClient() {
                 </Link>
               );
             })}
+            {DEV_TWIN_COVERAGE_PRESETS.map((pct) => {
+              const active = Number.parseInt(searchParams?.get("coverage") ?? "-1", 10) === pct;
+              return (
+                <Link
+                  key={pct}
+                  href={twinCaptureHref(device, searchParams, { coverage: String(pct) })}
+                  className={`rounded-lg border px-2.5 py-1.5 text-[11px] font-bold tabular-nums ${
+                    active
+                      ? "border-[var(--accent-border-green)] text-[var(--graphite-text-header)]"
+                      : "border-[var(--mobile-app-card-border)] text-[var(--graphite-muted)]"
+                  }`}
+                >
+                  {pct}%
+                </Link>
+              );
+            })}
+            {DEV_TWIN_ROLL_PRESETS.map((roll) => {
+              const active = Number.parseInt(searchParams?.get("roll") ?? "", 10) === roll;
+              return (
+                <Link
+                  key={roll}
+                  href={twinCaptureHref(device, searchParams, { roll: String(roll) })}
+                  className={`rounded-lg border px-2.5 py-1.5 text-[11px] font-bold tabular-nums ${
+                    active
+                      ? "border-[var(--accent-border-green)] text-[var(--graphite-text-header)]"
+                      : "border-[var(--mobile-app-card-border)] text-[var(--graphite-muted)]"
+                  }`}
+                >
+                  roll {roll}°
+                </Link>
+              );
+            })}
+            <Link
+              href={twinCaptureHref(device, searchParams, { ghost: "1", clips: "1" })}
+              className={`rounded-lg border px-2.5 py-1.5 text-[11px] font-bold ${
+                searchParams?.get("ghost") === "1"
+                  ? "border-[var(--accent-border-green)] text-[var(--graphite-text-header)]"
+                  : "border-[var(--mobile-app-card-border)] text-[var(--graphite-muted)]"
+              }`}
+            >
+              ghost
+            </Link>
           </>
         ) : null}
 
