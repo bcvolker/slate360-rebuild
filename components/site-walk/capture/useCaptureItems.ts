@@ -9,6 +9,7 @@ import type { UpdateItemPayload } from "@/lib/types/site-walk";
 import { useCaptureItemFocus } from "./capture-item-events";
 import { saveCaptureAngle } from "./capture-angle-save";
 import { buildDraftPayload, patchLocalItem } from "./capture-draft-save";
+import { mapSuggestedClassification } from "@/lib/site-walk/format-notes-ai";
 import { captureItemToDraft, type CaptureAssignee, type CaptureItemDraft, type CaptureItemRecord } from "@/lib/types/site-walk-capture";
 
 type ItemsResponse = { items?: CaptureItemRecord[]; error?: string };
@@ -181,10 +182,12 @@ export function useCaptureItems({ sessionId, projectId }: HookArgs) {
       setAiMessage(data?.error ?? "AI formatting failed.");
       return;
     }
+    const suggestedClassification = mapSuggestedClassification(data?.suggestedClassification);
     patchDraft({
       notes: cleanedNotes,
       tags: mergeTags(draft.tags, data?.suggestedClassification),
       priority: normalizePriority(data?.suggestedPriority),
+      ...(suggestedClassification ? { classification: suggestedClassification } : {}),
     });
     setAiState("idle");
     setAiMessage("AI cleaned the notes and suggested tags. Autosave will run next.");
