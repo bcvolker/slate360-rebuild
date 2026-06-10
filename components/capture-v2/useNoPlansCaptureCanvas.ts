@@ -206,6 +206,7 @@ export function useNoPlansCaptureCanvas({ session, loop, contextLabel }: Args) {
 
   return {
     camera,
+    facingMode,
     chromeVisible,
     setChromeVisible,
     activeTool,

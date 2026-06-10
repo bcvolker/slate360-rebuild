@@ -89,7 +89,7 @@ export function NoPlansCaptureCanvas({ session, loop, contextLabel }: Props) {
             onPinTap={canvas.handlePinTap}
           />
         ) : (
-          <CaptureV2LiveCamera camera={canvas.camera} facingMode="environment" autoStart fullBleed />
+          <CaptureV2LiveCamera camera={canvas.camera} facingMode={canvas.facingMode} autoStart fullBleed />
         )}
         <CaptureV2LiveCameraBusyOverlay busy={loop.busy} />
       </div>
