@@ -14,6 +14,7 @@ type Props = {
   camera: CameraApi;
   facingMode?: "user" | "environment";
   autoStart?: boolean;
+  fullBleed?: boolean;
   onStartCamera?: () => void;
 };
 
@@ -27,6 +28,7 @@ export function CaptureV2LiveCamera({
   camera,
   facingMode = "environment",
   autoStart = false,
+  fullBleed = false,
   onStartCamera,
 }: Props) {
   const { videoRef, isStreaming, error, startCamera, clearError } = camera;
@@ -76,7 +78,11 @@ export function CaptureV2LiveCamera({
   return (
     <div
       id={CAPTURE_V2_LAYER_IDS.canvasBase}
-      className={`relative ${CAPTURE_V2_LAYERS.canvas} flex min-h-0 flex-1 flex-col overflow-hidden border border-[var(--surface-zinc-border)] bg-[var(--surface-zinc)] ${CANVAS_OS_SAFETY}`}
+      className={`relative ${CAPTURE_V2_LAYERS.canvas} flex min-h-0 flex-1 flex-col overflow-hidden bg-[var(--surface-zinc)] ${CANVAS_OS_SAFETY} ${
+        fullBleed
+          ? "absolute inset-0 h-full w-full border-0"
+          : "border border-[var(--surface-zinc-border)]"
+      }`}
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
