@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { deductCredits } from "@/lib/credits/idempotency";
+import { notifyTwinJobOutcome } from "@/lib/twin/notify-twin-job-complete";
 import { computeTwinProcessingCredits } from "@/lib/twin/processing-credits";
 
 type AdminClient = SupabaseClient;
@@ -38,7 +39,7 @@ export async function handleTwinJobCallback(
   const { data: job, error: jobError } = await admin
     .from("digital_twin_processing_jobs")
     .select(
-      "id, org_id, space_id, capture_id, status, output_format, job_type, credits_charged, output_model_id",
+      "id, org_id, space_id, capture_id, created_by, status, output_format, job_type, credits_charged, output_model_id, created_at",
     )
     .eq("id", body.jobId)
     .maybeSingle();
@@ -78,6 +79,25 @@ export async function handleTwinJobCallback(
         .update({ capture_status: "failed", error_text: body.errorLog ?? "Processing failed" })
         .eq("id", job.capture_id)
         .eq("org_id", job.org_id);
+    }
+
+    const { data: failedSpace } = await admin
+      .from("digital_twin_spaces")
+      .select("project_id, created_by, title, created_at")
+      .eq("id", job.space_id)
+      .maybeSingle();
+
+    const failedUserId = job.created_by ?? failedSpace?.created_by;
+    if (failedUserId && failedSpace?.project_id) {
+      await notifyTwinJobOutcome({
+        admin,
+        userId: failedUserId,
+        projectId: failedSpace.project_id,
+        spaceId: job.space_id,
+        spaceTitle: failedSpace.title,
+        referenceDate: job.created_at ?? failedSpace.created_at,
+        outcome: "failed",
+      });
     }
 
     return { ok: true, status: 200 };
@@ -131,7 +151,7 @@ export async function handleTwinJobCallback(
 
   const { data: space } = await admin
     .from("digital_twin_spaces")
-    .select("title")
+    .select("project_id, created_by, title, created_at")
     .eq("id", job.space_id)
     .maybeSingle();
 
@@ -204,6 +224,19 @@ export async function handleTwinJobCallback(
       newAssetIds: body.newAssetIds ?? [],
     },
   });
+
+  const notifyUserId = job.created_by ?? space?.created_by;
+  if (notifyUserId && space?.project_id) {
+    await notifyTwinJobOutcome({
+      admin,
+      userId: notifyUserId,
+      projectId: space.project_id,
+      spaceId: job.space_id,
+      spaceTitle: space.title,
+      referenceDate: job.created_at ?? space.created_at,
+      outcome: "completed",
+    });
+  }
 
   return {
     ok: true,
