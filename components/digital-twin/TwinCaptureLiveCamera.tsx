@@ -11,6 +11,7 @@ type Props = {
   camera: CameraApi;
   facingMode?: "user" | "environment";
   autoStart?: boolean;
+  fullBleed?: boolean;
 };
 
 function isPermissionDeniedError(message: string | null) {
@@ -23,6 +24,7 @@ export function TwinCaptureLiveCamera({
   camera,
   facingMode = "environment",
   autoStart = true,
+  fullBleed = false,
 }: Props) {
   const { videoRef, isStreaming, error, startCamera, clearError } = camera;
   const [scale, setScale] = useState(1);
@@ -63,9 +65,13 @@ export function TwinCaptureLiveCamera({
     setScale(Math.min(3, Math.max(1, pinchRef.current.scale * ratio)));
   }
 
+  const rootClass = fullBleed
+    ? "absolute inset-0 overflow-hidden bg-[var(--graphite-canvas)] touch-manipulation select-none [-webkit-touch-callout:none] [-webkit-user-select:none]"
+    : "relative flex min-h-0 flex-1 flex-col overflow-hidden bg-[var(--graphite-canvas)] touch-manipulation select-none [-webkit-touch-callout:none] [-webkit-user-select:none]";
+
   return (
     <div
-      className="relative flex min-h-0 flex-1 flex-col overflow-hidden bg-[var(--graphite-canvas)] touch-manipulation select-none [-webkit-touch-callout:none] [-webkit-user-select:none]"
+      className={rootClass}
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
       onTouchEnd={() => {
