@@ -106,33 +106,10 @@ def output_storage_key(org_id: str, space_id: str, job_id: str) -> str:
     return f"orgs/{org_id}/digital-twin/{space_id}/models/{job_id}.spz"
 
 
-def resolve_vulkan_icd() -> str:
-    """Prefer NVIDIA ICD on Modal GPU workers; fall back to Mesa Lavapipe."""
-    icd_dir = Path("/usr/share/vulkan/icd.d")
-    if not icd_dir.is_dir():
-        raise RuntimeError("Vulkan ICD directory missing (/usr/share/vulkan/icd.d)")
-    for name in (
-        "nvidia_icd.json",
-        "nvidia_icd.x86_64.json",
-        "lvp_icd.x86_64.json",
-        "intel_icd.x86_64.json",
-    ):
-        candidate = icd_dir / name
-        if candidate.is_file():
-            return str(candidate)
-    available = sorted(p.name for p in icd_dir.glob("*.json"))
-    raise RuntimeError(f"No Vulkan ICD found under {icd_dir} (have: {available})")
-
-
 def splat_transform_clean_export(ply_path: Path, spz_path: Path) -> None:
-    """Conservative post-export cleanup: low opacity, spiky scales, floaters."""
-    runtime_dir = ply_path.parent / "xdg-runtime"
-    runtime_dir.mkdir(parents=True, exist_ok=True)
-    vulkan_icd = resolve_vulkan_icd()
+    """Conservative CPU-only post-export cleanup: low opacity and spiky scales."""
     run_cmd(
         [
-            "xvfb-run",
-            "-a",
             "npx",
             "-y",
             "@playcanvas/splat-transform",
@@ -147,16 +124,10 @@ def splat_transform_clean_export(ply_path: Path, spz_path: Path) -> None:
             "scale_1,lte,0.5",
             "--filter-value",
             "scale_2,lte,0.5",
-            "--filter-floaters",
             str(spz_path),
             "--spz-version",
             "3",
-        ],
-        env={
-            "XDG_RUNTIME_DIR": str(runtime_dir),
-            "VK_ICD_FILENAMES": vulkan_icd,
-            "NVIDIA_VISIBLE_DEVICES": os.environ.get("NVIDIA_VISIBLE_DEVICES", "all"),
-        },
+        ]
     )
 
 
