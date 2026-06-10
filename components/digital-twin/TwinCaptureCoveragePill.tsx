@@ -1,6 +1,7 @@
 "use client";
 
 import { TWIN_CAPTURE_CHROME } from "@/lib/digital-twin/twin-capture-chrome-layout";
+import { TWIN_CAPTURE_GLASS, TWIN_CAPTURE_HUD_TEXT } from "./twin-capture-glass";
 import { TWIN_CAPTURE_POLISH, type TwinCapturePaceState } from "./twin-capture-polish-tokens";
 
 type Props = {
@@ -23,12 +24,12 @@ export function TwinCaptureCoveragePill({ hidden, coveragePct, paceState }: Prop
       style={{ top: `calc(max(env(safe-area-inset-top), 0px) + ${topOffset}px)` }}
       data-twin-chrome="coverage-pill"
     >
-      <span className="inline-flex flex-col items-end gap-0.5 rounded-full border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_70%,transparent)] px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-wide backdrop-blur-md">
-        <span className="text-[var(--twin360-blue)]">COVERAGE {coveragePct}%</span>
+      <span className={`inline-flex flex-col items-end gap-0.5 px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-wide ${TWIN_CAPTURE_GLASS}`}>
+        <span className="font-extrabold text-[var(--twin360-blue)]">COVERAGE {coveragePct}%</span>
         {paceState ? (
           <span
             className={
-              paceState === "slow" ? "text-red-300" : "text-[var(--graphite-muted)]"
+              paceState === "slow" ? "font-semibold text-[var(--destructive)]" : TWIN_CAPTURE_HUD_TEXT
             }
           >
             {paceState === "slow" ? "SLOW DOWN" : "PACE GOOD"}

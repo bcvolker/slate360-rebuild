@@ -1,5 +1,7 @@
 "use client";
 
+import { TWIN_CAPTURE_GLASS_SQUARE, TWIN_CAPTURE_HUD_TEXT } from "./twin-capture-glass";
+
 type Props = {
   imageUrl: string | null;
   opacity: number;
@@ -24,7 +26,7 @@ export function TwinCaptureClipGhost({ imageUrl, opacity, visible }: Props) {
       />
       <p
         data-twin-chrome="clip-ghost-caption"
-        className="relative max-w-[85%] rounded-lg border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_55%,transparent)] px-3 py-2 text-center text-xs font-medium text-[var(--graphite-text-body)] backdrop-blur-sm"
+        className={`relative max-w-[85%] px-3 py-2 text-center text-xs font-semibold ${TWIN_CAPTURE_HUD_TEXT} ${TWIN_CAPTURE_GLASS_SQUARE}`}
       >
         Align with your last clip, then record
       </p>

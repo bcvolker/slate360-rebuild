@@ -273,7 +273,10 @@ export function TwinCaptureScreen({
           onResume={() => void camera.resumeCamera(facingMode)}
         />
 
-        <TwinCaptureLevelLine rollDeg={sensors.rollDeg} supported={sensors.orientationSupported} />
+        <TwinCaptureLevelLine
+          rollDeg={sensors.rollDeg}
+          supported={sensors.levelLineActive}
+        />
         <TwinCaptureClipGhost
           imageUrl={ghost.ghostUrl}
           opacity={ghost.ghostOpacity}
@@ -318,6 +321,7 @@ export function TwinCaptureScreen({
           hidden={!chromeVisible}
           mode={session.mode}
           isRecording={recording}
+          recSeconds={session.recSeconds}
           isStreaming={streamReady}
           needsResume={camera.needsResume}
           torchSupported={torchSupported}
@@ -336,12 +340,23 @@ export function TwinCaptureScreen({
           chromeVisible={chromeVisible}
           recording={recording}
           recSeconds={session.recSeconds}
+          clipCount={session.clips.length}
+          completedClipCount={session.clips.filter(
+            (clip) =>
+              !clip.recording && (clip.frameCount > 0 || clip.durationSeconds > 0),
+          ).length}
           cameraStreaming={camera.isStreaming}
           needsResume={camera.needsResume}
           cameraError={camera.error}
           recorderRecording={videoRecorder.recording}
           recorderError={videoRecorder.error}
           sensorPermission={sensors.permission}
+          levelLineActive={sensors.levelLineActive}
+          lastOrientationEventAt={sensors.lastOrientationEventAt}
+          ghostFrameCaptured={ghost.ghostDebug.ghostFrameCaptured}
+          ghostFrameByteSize={ghost.ghostDebug.ghostFrameByteSize}
+          ghostMounted={ghost.ghostDebug.ghostMounted}
+          lastFrameCaptureAt={ghost.ghostDebug.lastFrameCaptureAt}
           lastShutterTapAt={lastShutterTapAt}
         />
       ) : null}

@@ -1,7 +1,7 @@
 "use client";
 
 import { TWIN_CAPTURE_CHROME } from "@/lib/digital-twin/twin-capture-chrome-layout";
-import { TWIN_CAPTURE_GLASS } from "./twin-capture-glass";
+import { TWIN_CAPTURE_GLASS, TWIN_CAPTURE_HUD_TEXT } from "./twin-capture-glass";
 import type { PhotoIntervalSec, TwinCaptureMode } from "./useTwinCaptureSession";
 
 type Props = {
@@ -48,7 +48,7 @@ export function TwinCaptureModeSelector({
               className={`rounded-full px-3 py-1 font-mono text-[10px] font-semibold uppercase tracking-wide transition disabled:opacity-40 ${
                 active
                   ? "bg-[color-mix(in_srgb,var(--twin360-blue)_18%,transparent)] text-[var(--twin360-blue)]"
-                  : "text-[var(--graphite-muted)]"
+                  : TWIN_CAPTURE_HUD_TEXT
               }`}
             >
               {label}

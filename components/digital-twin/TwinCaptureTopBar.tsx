@@ -23,7 +23,7 @@ export function TwinCaptureTopBar({ headerLabel, hidden, onBack, onToggleChrome 
       }}
     >
       <div
-        className="flex items-center gap-2 border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_72%,transparent)] px-3 backdrop-blur-md"
+        className="flex items-center gap-2 border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_85%,transparent)] px-3 backdrop-blur-md"
         style={{
           borderRadius: TWIN_CAPTURE_CHROME.topBarRadiusPx,
           height: TWIN_CAPTURE_CHROME.topBarHeightPx,

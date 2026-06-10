@@ -38,6 +38,7 @@ export function useTwinCaptureDeviceSensors({
   const [orientationSupported, setOrientationSupported] = useState(
     devRollOverride !== null && devRollOverride !== undefined,
   );
+  const [lastOrientationEventAt, setLastOrientationEventAt] = useState<number | null>(null);
   const [paceState, setPaceState] = useState<TwinCapturePaceState>(() =>
     devMotionSpeedOverride !== null && devMotionSpeedOverride !== undefined
       ? resolveTwinPaceState(devMotionSpeedOverride)
@@ -45,6 +46,7 @@ export function useTwinCaptureDeviceSensors({
   );
 
   const sensorsActive = enabled && permission === "granted";
+  const levelLineActive = permission === "granted";
 
   const requestPermission = useCallback(async (): Promise<TwinSensorPermission> => {
     if (devRollOverride !== null) return "granted";
@@ -53,10 +55,13 @@ export function useTwinCaptureDeviceSensors({
 
     const next = await requestIosSensorPermission();
     setPermission(next);
-    if (next !== "granted") {
+    if (next === "granted") {
+      setOrientationSupported(true);
+    } else {
       setOrientationSupported(false);
       setRollDeg(null);
       setPaceState(null);
+      setLastOrientationEventAt(null);
     }
     return next;
   }, [devRollOverride, permission]);
@@ -66,6 +71,7 @@ export function useTwinCaptureDeviceSensors({
       setRollDeg(devRollOverride);
       setOrientationSupported(true);
       setPermission("granted");
+      setLastOrientationEventAt(Date.now());
     }
   }, [devRollOverride]);
 
@@ -81,7 +87,9 @@ export function useTwinCaptureDeviceSensors({
 
     let active = true;
     const onOrientation = (event: DeviceOrientationEvent) => {
-      if (!active || event.gamma === null) return;
+      if (!active) return;
+      setLastOrientationEventAt(Date.now());
+      if (event.gamma === null) return;
       setOrientationSupported(true);
       setRollDeg(event.gamma);
     };
@@ -119,6 +127,8 @@ export function useTwinCaptureDeviceSensors({
   return {
     rollDeg,
     orientationSupported,
+    levelLineActive,
+    lastOrientationEventAt,
     paceState,
     permission,
     requestPermission,

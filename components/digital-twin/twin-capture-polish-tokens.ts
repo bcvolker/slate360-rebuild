@@ -6,10 +6,10 @@ export const TWIN_CAPTURE_POLISH = {
   /** deg/s — angular velocity above this triggers SLOW DOWN */
   paceSlowThresholdDegPerSec: 48,
   levelToleranceDeg: 3,
-  ghostOpacity: 0.4,
+  ghostOpacity: 0.45,
   ghostFadeMs: 1500,
-  levelLineOpacity: 0.28,
-  levelLineLevelOpacity: 0.42,
+  levelLineOpacity: 0.62,
+  levelLineLevelOpacity: 0.82,
   coverageRingWidthPx: 3,
   coveragePillTopGapPx: 8,
 } as const;

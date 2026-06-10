@@ -1,5 +1,10 @@
 /** Grab a JPEG data URL from the live twin capture video element. */
 
+export function estimateTwinCaptureDataUrlBytes(dataUrl: string): number {
+  const base64 = dataUrl.split(",")[1] ?? "";
+  return Math.round((base64.length * 3) / 4);
+}
+
 export function grabTwinCaptureVideoFrame(
   video: HTMLVideoElement | null | undefined,
 ): string | null {
