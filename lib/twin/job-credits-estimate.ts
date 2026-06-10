@@ -1,15 +1,22 @@
 import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { computeTwinProcessingCredits } from "@/lib/twin/processing-credits";
+import { computeTwinProcessingCredits, type TwinCreditAsset } from "@/lib/twin/processing-credits";
+import { computeTwinSourcesProcessingEstimate } from "@/lib/twin/job-processing-estimate";
+import type {
+  TwinJobCreditEstimate,
+  TwinProcessingQuality,
+} from "@/lib/twin/processing-estimate-types";
 
 type AdminClient = SupabaseClient;
 
-export type TwinJobCreditEstimate = {
-  creditsRequired: number;
-  creditsBalance: number;
-  sufficient: boolean;
-  assetCount: number;
+export type { TwinJobCreditEstimate, TwinProcessingQuality };
+
+export type TwinSourcesEstimateInput = {
+  sources: TwinCreditAsset[];
+  outputFormat?: "spz" | "ply" | "glb";
+  quality?: TwinProcessingQuality;
+  frameCount?: number;
 };
 
 export async function resolveTwinJobCreditEstimate(
@@ -45,6 +52,43 @@ export async function resolveTwinJobCreditEstimate(
     creditsBalance,
     sufficient: creditsBalance >= creditsRequired,
     assetCount: assets?.length ?? 0,
+  };
+}
+
+export async function resolveTwinSourcesJobEstimate(
+  admin: AdminClient,
+  orgId: string,
+  input: TwinSourcesEstimateInput,
+): Promise<TwinJobCreditEstimate> {
+  const outputFormat = input.outputFormat ?? "spz";
+  const quality = input.quality ?? "standard";
+  const sources = input.sources ?? [];
+
+  const processing = computeTwinSourcesProcessingEstimate(
+    sources,
+    outputFormat,
+    quality,
+    input.frameCount,
+  );
+
+  const { data: org, error: orgError } = await admin
+    .from("organizations")
+    .select("credits_balance")
+    .eq("id", orgId)
+    .single();
+
+  if (orgError) throw new Error(orgError.message);
+
+  const creditsBalance = Number(org?.credits_balance ?? 0);
+  const creditsRequired = processing.creditsRequired;
+
+  return {
+    creditsRequired,
+    creditsBalance,
+    sufficient: creditsBalance >= creditsRequired,
+    assetCount: processing.assetCount,
+    estimatedMinutes: processing.estimatedMinutes,
+    frameCount: processing.frameCount,
   };
 }
 
