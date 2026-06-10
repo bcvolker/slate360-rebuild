@@ -10,13 +10,17 @@ import {
   computeInteriorStartFrame,
   type InteriorCameraFrame,
 } from "@/lib/digital-twin/interior-camera-frame";
+import {
+  buildSplatBoundsReport,
+  computePercentileSplatBounds,
+} from "@/lib/digital-twin/splat-bounds";
 
 export type SplatCameraFrame = InteriorCameraFrame | ExteriorCameraFrame;
 
 const TMP_CENTER = new THREE.Vector3();
 const TMP_SIZE = new THREE.Vector3();
 
-/** Trim axis-aligned bounds toward the centroid to de-emphasize edge floaters. */
+/** Trim axis-aligned bounds toward the centroid (fallback when percentile sampling is empty). */
 export function trimSplatBounds(box: THREE.Box3, trimFraction = 0.12): THREE.Box3 {
   if (box.isEmpty()) return box.clone();
 
@@ -40,8 +44,16 @@ export function trimSplatBounds(box: THREE.Box3, trimFraction = 0.12): THREE.Box
   return trimmed.isEmpty() ? box.clone() : trimmed;
 }
 
+/** Framing bounds: percentile-trimmed world-space splat centers (2nd–98th). */
 export function getSplatSceneBounds(mesh: SplatMesh): THREE.Box3 {
+  const percentileBox = computePercentileSplatBounds(mesh);
+  if (!percentileBox.isEmpty()) return percentileBox;
   return trimSplatBounds(mesh.getBoundingBox(true));
+}
+
+export function logSplatFramingBounds(mesh: SplatMesh, label = "splat-frame") {
+  const report = buildSplatBoundsReport(mesh);
+  console.info(`[${label}] framing bounds`, report);
 }
 
 export function applySplatCameraFrame(
@@ -49,7 +61,11 @@ export function applySplatCameraFrame(
   controls: { target: THREE.Vector3; update: () => void } | null,
   frame: SplatCameraFrame,
 ) {
-  applyInteriorCameraFrame(camera, controls, frame);
+  if ("yaw" in frame) {
+    applyInteriorCameraFrame(camera, controls, frame);
+    return;
+  }
+  applyExteriorCameraFrame(camera, controls, frame);
 }
 
 export function frameSplatMeshExterior(
