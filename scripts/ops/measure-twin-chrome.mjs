@@ -47,18 +47,13 @@ async function waitForStreaming(page) {
 }
 
 async function measureScenario(page, scenario) {
-  const url = `${baseUrl}/dev/screens?screen=twin-capture&device=mobile&clips=${scenario.clips}&mode=${scenario.mode}`;
-  await page.goto(url, { waitUntil: "domcontentloaded", timeout: 60_000 });
-  await page.waitForSelector('[data-dev-device="mobile"]', { timeout: 30_000 });
+  const stateQuery = scenario.recording ? "&state=recording" : "";
+  const url = `${baseUrl}/dev/screens?screen=twin-capture&device=mobile&clips=${scenario.clips}&mode=${scenario.mode}${stateQuery}`;
+  await page.goto(url, { waitUntil: "domcontentloaded", timeout: 120_000 });
+  await page.waitForSelector('[data-dev-device="mobile"]', { timeout: 90_000 });
   await page.locator('[data-dev-device="mobile"]').scrollIntoViewIfNeeded();
-  await page.waitForSelector('[data-twin-chrome="shutter"]', { timeout: 30_000 });
+  await page.waitForSelector('[data-twin-chrome="shutter"]', { timeout: 90_000 });
   await waitForStreaming(page);
-
-  if (scenario.recording && scenario.mode === "video") {
-    await page.locator('[data-twin-chrome="shutter"]').click();
-    await page.waitForTimeout(900);
-  }
-
   await page.waitForTimeout(400);
 
   const sample = await page.evaluate(({ label, clips, mode, recording }) => {

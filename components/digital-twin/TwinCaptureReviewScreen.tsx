@@ -42,6 +42,7 @@ type Props = {
   devPreview?: {
     estimate: TwinJobCreditEstimate;
     openCreditsSheet?: boolean;
+    session?: TwinCapturePendingSession;
   };
 };
 
@@ -51,9 +52,11 @@ export function TwinCaptureReviewScreen({ canUseHighQuality, devPreview }: Props
   const upload = useMultipartTwinUpload();
 
   const [session, setSession] = useState<TwinCapturePendingSession | null>(() =>
-    getTwinCapturePendingSession(),
+    devPreview?.session ?? getTwinCapturePendingSession(),
   );
-  const [sessionReady, setSessionReady] = useState(() => Boolean(getTwinCapturePendingSession()));
+  const [sessionReady, setSessionReady] = useState(() =>
+    Boolean(devPreview?.session ?? getTwinCapturePendingSession()),
+  );
   const [scanName, setScanName] = useState(session?.selection.spaceTitle ?? "");
   const [quality, setQuality] = useState<TwinProcessingQuality>("standard");
   const [addedSources, setAddedSources] = useState<TwinReviewAddedSource[]>([]);
@@ -65,6 +68,7 @@ export function TwinCaptureReviewScreen({ canUseHighQuality, devPreview }: Props
   const [checkoutNotice, setCheckoutNotice] = useState<string | null>(null);
 
   useEffect(() => {
+    if (devPreview?.session) return;
     if (session) return;
     let cancelled = false;
     void restoreTwinCaptureReviewState().then((restored) => {
@@ -217,7 +221,10 @@ export function TwinCaptureReviewScreen({ canUseHighQuality, devPreview }: Props
 
   if (!sessionReady) {
     return (
-      <div className="flex min-h-0 flex-1 items-center justify-center px-4 text-sm text-[var(--graphite-muted)]">
+      <div
+        className="flex min-h-0 flex-1 items-center justify-center px-4 text-sm text-[var(--graphite-muted)]"
+        data-twin-review="loading"
+      >
         Loading review…
       </div>
     );

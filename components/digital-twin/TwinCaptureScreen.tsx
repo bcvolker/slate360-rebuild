@@ -36,6 +36,7 @@ type Props = {
   onFinish?: (result: TwinCaptureFinishResult) => void;
   devSeedClipCount?: number;
   devInitialMode?: TwinCaptureMode;
+  devForceRecording?: boolean;
 };
 
 const PHOTO_EST_BYTES = 2_400_000;
@@ -54,6 +55,7 @@ export function TwinCaptureScreen({
   onFinish,
   devSeedClipCount,
   devInitialMode,
+  devForceRecording,
 }: Props) {
   const camera = useCamera();
   const videoRecorder = useTwinVideoRecorder();
@@ -72,7 +74,8 @@ export function TwinCaptureScreen({
   const scopeLabel = projectName?.trim()
     ? projectName.trim().toUpperCase()
     : "QUICK SCAN";
-  const headerLabel = session.isRecording
+  const recording = devForceRecording || session.isRecording;
+  const headerLabel = recording
     ? `${scopeLabel} · REC ${formatRecTimer(session.recSeconds)}`
     : `${scopeLabel} · READY`;
 
@@ -127,9 +130,9 @@ export function TwinCaptureScreen({
   }, [camera, estimatedBytes, onFinish, photoCount, session, videoSeconds]);
 
   const handleCanvasTap = useCallback(() => {
-    if (session.isRecording) return;
+    if (recording) return;
     setChromeVisible((value) => !value);
-  }, [session.isRecording]);
+  }, [recording]);
 
   return (
     <div
@@ -137,12 +140,12 @@ export function TwinCaptureScreen({
       data-twin-capture-screen
     >
       <div
-        role={session.isRecording ? undefined : "button"}
-        tabIndex={session.isRecording ? undefined : 0}
+        role={recording ? undefined : "button"}
+        tabIndex={recording ? undefined : 0}
         className="relative min-h-0 flex-1 overflow-hidden"
-        onClick={session.isRecording ? undefined : handleCanvasTap}
+        onClick={recording ? undefined : handleCanvasTap}
         onKeyDown={
-          session.isRecording
+          recording
             ? undefined
             : (event) => {
                 if (event.key === "Enter" || event.key === " ") {
@@ -151,7 +154,7 @@ export function TwinCaptureScreen({
                 }
               }
         }
-        aria-label={session.isRecording ? undefined : "Toggle capture controls"}
+        aria-label={recording ? undefined : "Toggle capture controls"}
       >
         <TwinCaptureLiveCamera camera={camera} facingMode={facingMode} autoStart fullBleed />
 
@@ -174,7 +177,7 @@ export function TwinCaptureScreen({
           hidden={!chromeVisible}
           mode={session.mode}
           photoInterval={session.photoInterval}
-          modeLocked={session.isRecording}
+          modeLocked={recording}
           onModeChange={session.handleModeChange}
           onCycleInterval={session.cyclePhotoInterval}
         />
@@ -182,7 +185,7 @@ export function TwinCaptureScreen({
         <TwinCaptureBottomRail
           hidden={!chromeVisible}
           mode={session.mode}
-          isRecording={session.isRecording}
+          isRecording={recording}
           isStreaming={camera.isStreaming}
           torchSupported={torchSupported}
           torchOn={torchOn}

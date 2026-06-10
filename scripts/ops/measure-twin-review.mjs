@@ -29,8 +29,8 @@ async function measureViewport(browser, viewport) {
   });
   const page = await context.newPage();
   const url = `${baseUrl}/dev/screens?screen=twin-review&device=mobile&credits=low&sheet=open${viewport.query}`;
-  await page.goto(url, { waitUntil: "domcontentloaded", timeout: 60_000 });
-  await page.waitForSelector('[data-twin-review="screen"]', { timeout: 30_000 });
+  await page.goto(url, { waitUntil: "domcontentloaded", timeout: 120_000 });
+  await page.waitForSelector('[data-twin-review="screen"]', { timeout: 90_000 });
   await page.locator('[data-dev-device="mobile"]').scrollIntoViewIfNeeded();
   await page.waitForSelector('[data-twin-review="credits-sheet"]', { timeout: 15_000 });
   await page.waitForTimeout(300);
