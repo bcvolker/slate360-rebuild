@@ -2,7 +2,11 @@
 
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { TwinCommentsOverlay } from "@/components/digital-twin/TwinCommentsOverlay";
-import { TwinViewerControlsOverlay } from "@/components/digital-twin/TwinViewerControlsOverlay";
+import {
+  TwinViewerControlsOverlay,
+  type TwinViewerCameraMode,
+} from "@/components/digital-twin/TwinViewerControlsOverlay";
+import { TwinViewerDiscoveryHint } from "@/components/digital-twin/TwinViewerDiscoveryHint";
 import type { SplatViewerHandle } from "@/components/digital-twin/splat-viewer-core";
 import { useVisualViewportBottomInset } from "@/lib/hooks/useVisualViewportBottomInset";
 
@@ -17,6 +21,9 @@ type Props = {
   toast?: string | null;
   topHint?: ReactNode;
   footerHint?: ReactNode;
+  showDiscoveryHint?: boolean;
+  cameraMode?: TwinViewerCameraMode;
+  onToggleCameraMode?: () => void;
 };
 
 const MOBILE_CONTROLS_OFFSET_PX = 16;
@@ -32,6 +39,9 @@ export function TwinViewerCanvasShell({
   toast,
   topHint,
   footerHint,
+  showDiscoveryHint = false,
+  cameraMode = "orbit",
+  onToggleCameraMode,
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -57,6 +67,7 @@ export function TwinViewerCanvasShell({
 
   const mobileControlsBottom = `calc(env(safe-area-inset-bottom, 0px) + ${viewportBottomInset + MOBILE_CONTROLS_OFFSET_PX}px)`;
   const toastBottom = `calc(env(safe-area-inset-bottom, 0px) + ${viewportBottomInset + 72}px)`;
+  const discoveryBottom = `calc(env(safe-area-inset-bottom, 0px) + ${viewportBottomInset + 64}px)`;
 
   return (
     <div
@@ -64,7 +75,7 @@ export function TwinViewerCanvasShell({
       className="relative h-full min-h-0 w-full overflow-hidden bg-[var(--graphite-canvas)]"
       style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
     >
-      {children}
+      <div className="relative z-0 h-full min-h-0 w-full">{children}</div>
 
       <div className="pointer-events-none absolute inset-0 z-20">
         {topHint ? (
@@ -79,15 +90,24 @@ export function TwinViewerCanvasShell({
           </div>
         ) : null}
 
+        {showDiscoveryHint ? (
+          <div
+            className="pointer-events-none absolute inset-x-0 z-20 flex justify-center px-4"
+            style={{ bottom: discoveryBottom }}
+          >
+            <TwinViewerDiscoveryHint className="max-w-sm" />
+          </div>
+        ) : null}
+
         <div
           className="pointer-events-auto absolute left-1/2 z-30 -translate-x-1/2 md:bottom-4 md:left-auto md:right-4 md:translate-x-0"
           style={{ bottom: mobileControlsBottom }}
         >
           <TwinViewerControlsOverlay
             isFullscreen={isFullscreen}
-            onZoomIn={() => viewerRef.current?.zoomIn()}
-            onZoomOut={() => viewerRef.current?.zoomOut()}
+            cameraMode={cameraMode}
             onRecenter={() => viewerRef.current?.recenter()}
+            onToggleCameraMode={() => onToggleCameraMode?.()}
             onToggleFullscreen={() => void toggleFullscreen()}
           />
         </div>
