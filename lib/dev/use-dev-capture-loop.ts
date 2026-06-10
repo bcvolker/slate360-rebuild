@@ -177,12 +177,17 @@ export function useDevCaptureLoop(options: Options = {}) {
     setIntent: (intent: CaptureIntent) => {
       intentRef.current = intent;
     },
-    setExternalError: () => undefined,
+    setExternalError: (_message?: string | null) => undefined,
     handleFile,
     focusFilmstripItem,
     deleteStop,
     savePhotoAttachmentPins,
     saveMarkupData: async () => undefined,
+    flushDetails: async () => undefined,
+    saveAndNextStop: async () => undefined,
+    addAnotherAngle: () => undefined,
+    cameraInputRef: { current: null },
+    uploadInputRef: { current: null },
   } as unknown as CaptureV2Loop;
 
   return loop;
