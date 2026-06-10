@@ -62,13 +62,22 @@ async function resolveShareToken(modelPrefix) {
       .maybeSingle();
     model = res.data;
   } else {
-    const res = await admin
+    const byId = await admin
       .from("digital_twin_models")
       .select("id, space_id")
       .ilike("id", `${modelPrefix}%`)
       .limit(1)
       .maybeSingle();
-    model = res.data;
+    model = byId.data;
+    if (!model) {
+      const byKey = await admin
+        .from("digital_twin_models")
+        .select("id, space_id")
+        .ilike("storage_key", `%${modelPrefix}%`)
+        .limit(1)
+        .maybeSingle();
+      model = byKey.data;
+    }
   }
 
   if (!model?.space_id) throw new Error(`Model not found for prefix ${modelPrefix}`);
@@ -117,7 +126,7 @@ async function waitForFraming(page) {
   await page.waitForFunction(
     () => {
       const report = window.__TWIN_SPLAT_FRAMING__;
-      return Boolean(report?.fullyVisible && report?.screenRect);
+      return Boolean(report?.screenRect);
     },
     undefined,
     { timeout: 120_000 },
@@ -134,9 +143,15 @@ async function main() {
   const token = await resolveShareToken(modelPrefix);
   const shareUrl = `${baseUrl}/share/twin/${token}`;
 
+  const headless = process.env.HEADED !== "1";
   const browser = await chromium.launch({
-    headless: true,
-    args: ["--use-gl=angle", "--use-angle=swiftshader"],
+    headless,
+    args: [
+      "--enable-unsafe-swiftshader",
+      "--ignore-gpu-blocklist",
+      "--use-gl=angle",
+      "--use-angle=swiftshader",
+    ],
   });
 
   const results = [];
@@ -155,7 +170,19 @@ async function main() {
   }
 
   const failures = results.filter((row) => !row.fullyVisible);
-  console.log(JSON.stringify({ modelPrefix, token, shareUrl, results }, null, 2));
+  console.log(
+    JSON.stringify(
+      {
+        modelPrefix,
+        token,
+        shareUrl,
+        productionUrl: `https://www.slate360.ai/share/twin/${token}?v=74ef6cb4`,
+        results,
+      },
+      null,
+      2,
+    ),
+  );
 
   if (failures.length) {
     console.error(
