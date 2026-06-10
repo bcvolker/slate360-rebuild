@@ -15,7 +15,7 @@ export const appHomeLauncherCardInfoBase =
 
 /** Shared quick-action card surface for /app home quick actions */
 const mobileAppHomeQuickActionCardSurface =
-  "rounded-xl border border-[var(--mobile-quick-action-border)] bg-[var(--mobile-quick-action-bg)] shadow-[var(--mobile-quick-action-shadow)] transition-all hover:border-[var(--accent-border-green)] hover:bg-[color-mix(in_srgb,var(--surface-zinc)_92%,white)] active:scale-[0.99]";
+  "rounded-xl border border-[var(--mobile-quick-action-border)] bg-[var(--mobile-quick-action-bg)] transition-all hover:border-[var(--accent-border-green)] hover:bg-[color-mix(in_srgb,var(--surface-zinc)_92%,white)] active:scale-[0.99]";
 
 export const mobileHomeTokens = {
   mobileHomeContentGap: "gap-3",
@@ -102,7 +102,7 @@ export const mobileHomeTokens = {
 
   appHomeSectionLabel:
     "text-xs font-black uppercase tracking-[0.2em] text-zinc-100",
-  appHomeSectionLabelAccent: "mb-1.5 block h-0.5 w-8 rounded-full bg-teal-400/35",
+  appHomeSectionLabelAccent: "mb-1.5 block h-0.5 w-8 rounded-full bg-white/25",
   appHomeSectionLabelRow: "mb-1 flex items-end justify-between gap-3",
   appHomeSlateDropSection: "shrink-0",
   appHomeSectionLabelBlock: "min-w-0",
@@ -126,10 +126,10 @@ export const mobileHomeTokens = {
   appHomeQuickActionTitle:
     "text-sm font-bold leading-tight text-[var(--mobile-quick-action-title-fg)]",
   appHomeLauncherGrid: "grid shrink-0 grid-cols-2 gap-3 auto-rows-fr",
-  appHomeLauncherCardPrimary: `${appHomeLauncherCardPrimaryBase} border-[var(--mobile-app-card-border-primary)] shadow-[var(--mobile-app-card-glow-primary),var(--mobile-app-card-shadow)] hover:border-[color-mix(in_srgb,var(--graphite-primary)_38%,transparent)] active:ring-2 active:ring-[color-mix(in_srgb,var(--graphite-primary)_28%,transparent)]`,
-  appHomeLauncherCardInfo: `${appHomeLauncherCardInfoBase} border-[var(--mobile-app-card-border-info)] shadow-[var(--mobile-app-card-glow-info),var(--mobile-app-card-shadow)] hover:border-[color-mix(in_srgb,var(--twin360-blue)_38%,transparent)] active:ring-2 active:ring-[color-mix(in_srgb,var(--twin360-blue)_28%,transparent)]`,
+  appHomeLauncherCardPrimary: `${appHomeLauncherCardPrimaryBase} border-[var(--mobile-app-card-border-primary)] hover:border-[color-mix(in_srgb,var(--graphite-primary)_38%,transparent)] active:ring-2 active:ring-[color-mix(in_srgb,var(--graphite-primary)_28%,transparent)]`,
+  appHomeLauncherCardInfo: `${appHomeLauncherCardInfoBase} border-[var(--mobile-app-card-border-info)] hover:border-[color-mix(in_srgb,var(--twin360-blue)_38%,transparent)] active:ring-2 active:ring-[color-mix(in_srgb,var(--twin360-blue)_28%,transparent)]`,
   appHomeLauncherCard:
-    `${appHomeLauncherCardPrimaryBase} border-[var(--mobile-app-card-border-primary)] shadow-[var(--mobile-app-card-glow-primary),var(--mobile-app-card-shadow)] hover:border-[color-mix(in_srgb,var(--graphite-primary)_38%,transparent)] active:ring-2 active:ring-[color-mix(in_srgb,var(--graphite-primary)_28%,transparent)]`,
+    `${appHomeLauncherCardPrimaryBase} border-[var(--mobile-app-card-border-primary)] hover:border-[color-mix(in_srgb,var(--graphite-primary)_38%,transparent)] active:ring-2 active:ring-[color-mix(in_srgb,var(--graphite-primary)_28%,transparent)]`,
   appHomeLauncherIconWrapperPrimary:
     "mb-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[var(--mobile-app-card-icon-border-primary)] bg-[var(--mobile-app-card-icon-bg-primary)]",
   appHomeLauncherIconPrimary: "h-6 w-6 shrink-0 text-[var(--mobile-app-card-icon-fg-primary)]",
@@ -160,7 +160,7 @@ export const mobileHomeTokens = {
     "pointer-events-none absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-xl border border-white/10 bg-black/40 text-zinc-300",
   appHomeLauncherUpsellSheet: "p-6 pb-12",
   appHomeSlateDropWindow:
-    "relative flex w-full shrink-0 flex-col overflow-hidden rounded-xl border border-[var(--surface-zinc-border)] bg-[var(--surface-zinc)] shadow-[var(--mobile-quick-action-shadow)]",
+    "relative flex w-full shrink-0 flex-col overflow-hidden rounded-xl border border-[var(--surface-zinc-border)] bg-[var(--surface-zinc)]",
   appHomeSlateDropBody:
     "overflow-x-auto overflow-y-hidden overscroll-x-contain px-2 py-1 [-webkit-overflow-scrolling:touch]",
   appHomeSlateDropRow: "flex h-14 flex-nowrap items-stretch gap-2",
@@ -193,7 +193,7 @@ export const mobileHomeTokens = {
     "h-6 w-6 shrink-0 text-[color-mix(in_srgb,var(--mobile-folder-icon-fg-green)_72%,var(--mobile-bottom-nav-fg-inactive))]",
   siteWalkStartWalkGrid: "grid w-full shrink-0 grid-cols-2 gap-3 auto-rows-fr",
   siteWalkStartWalkCard:
-    "flex min-h-[152px] flex-col items-start justify-center gap-2 rounded-2xl border border-[var(--mobile-app-card-border-primary)] bg-[var(--mobile-app-card-bg)] px-4 py-4 text-left shadow-[var(--mobile-app-card-glow-primary),var(--mobile-app-card-shadow)] backdrop-blur-md transition-all hover:border-[color-mix(in_srgb,var(--graphite-primary)_38%,transparent)] active:ring-2 active:ring-[color-mix(in_srgb,var(--graphite-primary)_28%,transparent)] active:scale-[0.99]",
+    "flex min-h-[152px] flex-col items-start justify-center gap-2 rounded-2xl border border-[var(--mobile-app-card-border-primary)] bg-[var(--mobile-app-card-bg)] px-4 py-4 text-left backdrop-blur-md transition-all hover:border-[color-mix(in_srgb,var(--graphite-primary)_38%,transparent)] active:ring-2 active:ring-[color-mix(in_srgb,var(--graphite-primary)_28%,transparent)] active:scale-[0.99]",
   siteWalkStartWalkIconWrapper:
     "mb-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[var(--mobile-app-card-icon-border-primary)] bg-[var(--mobile-app-card-icon-bg-primary)]",
   siteWalkStartWalkIcon: "h-7 w-7 shrink-0 text-[var(--mobile-app-card-icon-fg-primary)]",
@@ -204,7 +204,7 @@ export const mobileHomeTokens = {
 
   twin360StartScanGrid: "grid w-full shrink-0 grid-cols-2 gap-3 auto-rows-fr",
   twin360StartScanCard:
-    "flex min-h-[152px] flex-col items-start justify-center gap-2 rounded-2xl border border-[var(--mobile-app-card-border-info)] bg-[var(--mobile-app-card-bg-info)] px-4 py-4 text-left shadow-[var(--mobile-app-card-glow-info),var(--mobile-app-card-shadow)] backdrop-blur-md transition-all hover:border-[color-mix(in_srgb,var(--twin360-blue)_38%,transparent)] active:ring-2 active:ring-[color-mix(in_srgb,var(--twin360-blue)_28%,transparent)] active:scale-[0.99]",
+    "flex min-h-[152px] flex-col items-start justify-center gap-2 rounded-2xl border border-[var(--mobile-app-card-border-info)] bg-[var(--mobile-app-card-bg-info)] px-4 py-4 text-left backdrop-blur-md transition-all hover:border-[color-mix(in_srgb,var(--twin360-blue)_38%,transparent)] active:ring-2 active:ring-[color-mix(in_srgb,var(--twin360-blue)_28%,transparent)] active:scale-[0.99]",
   twin360StartScanIconWrapper:
     "mb-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[var(--mobile-app-card-icon-border-info)] bg-[var(--mobile-app-card-icon-bg-info)]",
   twin360StartScanIcon: "h-7 w-7 shrink-0 text-[var(--mobile-app-card-icon-fg-info)]",
@@ -213,9 +213,9 @@ export const mobileHomeTokens = {
   twin360HomeSectionLabelAccent:
     "mb-1.5 block h-0.5 w-8 rounded-full bg-[color-mix(in_srgb,var(--twin360-blue)_35%,transparent)]",
   twin360QuickActionCardSurface:
-    "rounded-xl border border-[var(--mobile-quick-action-border)] bg-[var(--mobile-quick-action-bg)] shadow-[var(--mobile-quick-action-shadow)] transition-all hover:border-[var(--accent-border-blue)] hover:bg-[color-mix(in_srgb,var(--surface-zinc)_92%,white)] active:scale-[0.99]",
+    "rounded-xl border border-[var(--mobile-quick-action-border)] bg-[var(--mobile-quick-action-bg)] transition-all hover:border-[var(--accent-border-blue)] hover:bg-[color-mix(in_srgb,var(--surface-zinc)_92%,white)] active:scale-[0.99]",
   twin360QuickActionCard:
-    "flex min-h-[84px] flex-col items-start justify-center gap-0.5 px-2.5 py-2 text-left rounded-xl border border-[var(--mobile-quick-action-border)] bg-[var(--mobile-quick-action-bg)] shadow-[var(--mobile-quick-action-shadow)] transition-all hover:border-[var(--accent-border-blue)] hover:bg-[color-mix(in_srgb,var(--surface-zinc)_92%,white)] active:scale-[0.99]",
+    "flex min-h-[84px] flex-col items-start justify-center gap-0.5 px-2.5 py-2 text-left rounded-xl border border-[var(--mobile-quick-action-border)] bg-[var(--mobile-quick-action-bg)] transition-all hover:border-[var(--accent-border-blue)] hover:bg-[color-mix(in_srgb,var(--surface-zinc)_92%,white)] active:scale-[0.99]",
   appHomeSlateDropTileIconBlue: "h-6 w-6 shrink-0 text-[var(--mobile-folder-icon-fg)]",
   appHomeSlateDropTileIconNewBlue:
     "h-6 w-6 shrink-0 text-[color-mix(in_srgb,var(--mobile-folder-icon-fg)_72%,var(--mobile-bottom-nav-fg-inactive))]",
@@ -228,21 +228,21 @@ export const mobileHomeTokens = {
   appQuickActionStripButton:
     "flex h-[50px] max-h-[50px] flex-col items-center justify-center gap-0.5 rounded-xl border border-white/10 bg-white/[0.05] px-1 py-1.5 text-zinc-200 transition-colors hover:border-white/15 hover:bg-white/[0.08] hover:text-white active:bg-white/[0.11]",
   appButtonBase:
-    "flex flex-col items-center justify-center gap-1 rounded-xl border border-white/10 bg-white/[0.05] px-2 py-2 text-center transition-all hover:border-white/15 hover:bg-white/[0.08] active:bg-white/[0.11] active:ring-2 active:ring-teal-400/30",
+    "flex flex-col items-center justify-center gap-1 rounded-xl border border-white/10 bg-white/[0.05] px-2 py-2 text-center transition-all hover:border-white/15 hover:bg-white/[0.08] active:bg-white/[0.11] active:ring-2 active:ring-white/15",
   mobileAppLauncherTileHeight: "h-[110px] min-h-0 max-h-[116px]",
   appButtonIconWrapper:
-    "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-teal-400/20 bg-teal-400/10",
-  appButtonIconClass: "h-5 w-5 text-teal-400/90",
+    "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/[0.05]",
+  appButtonIconClass: "h-5 w-5 text-zinc-200",
   appButtonTitleClass: "text-sm font-bold leading-tight text-white",
   appButtonSubtitleClass: "text-xs leading-tight text-zinc-200",
   appBadgeInfo:
-    "mt-0.5 rounded-full bg-teal-400/12 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-teal-300",
+    "mt-0.5 rounded-full bg-white/[0.08] px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-zinc-300",
   mobileAppLauncherCardPrimary:
-    `${appHomeLauncherCardPrimaryBase} border-[var(--mobile-app-card-border-primary)] shadow-[var(--mobile-app-card-glow-primary),var(--mobile-app-card-shadow)] hover:border-[color-mix(in_srgb,var(--graphite-primary)_38%,transparent)] active:ring-2 active:ring-[color-mix(in_srgb,var(--graphite-primary)_28%,transparent)]`,
+    `${appHomeLauncherCardPrimaryBase} border-[var(--mobile-app-card-border-primary)] hover:border-[color-mix(in_srgb,var(--graphite-primary)_38%,transparent)] active:ring-2 active:ring-[color-mix(in_srgb,var(--graphite-primary)_28%,transparent)]`,
   mobileAppLauncherCardInfo:
-    `${appHomeLauncherCardInfoBase} border-[var(--mobile-app-card-border-info)] shadow-[var(--mobile-app-card-glow-info),var(--mobile-app-card-shadow)] hover:border-[color-mix(in_srgb,var(--twin360-blue)_38%,transparent)] active:ring-2 active:ring-[color-mix(in_srgb,var(--twin360-blue)_28%,transparent)]`,
+    `${appHomeLauncherCardInfoBase} border-[var(--mobile-app-card-border-info)] hover:border-[color-mix(in_srgb,var(--twin360-blue)_38%,transparent)] active:ring-2 active:ring-[color-mix(in_srgb,var(--twin360-blue)_28%,transparent)]`,
   mobileAppLauncherCard:
-    `${appHomeLauncherCardPrimaryBase} border-[var(--mobile-app-card-border-primary)] shadow-[var(--mobile-app-card-glow-primary),var(--mobile-app-card-shadow)] hover:border-[color-mix(in_srgb,var(--graphite-primary)_38%,transparent)] active:ring-2 active:ring-[color-mix(in_srgb,var(--graphite-primary)_28%,transparent)]`,
+    `${appHomeLauncherCardPrimaryBase} border-[var(--mobile-app-card-border-primary)] hover:border-[color-mix(in_srgb,var(--graphite-primary)_38%,transparent)] active:ring-2 active:ring-[color-mix(in_srgb,var(--graphite-primary)_28%,transparent)]`,
   mobileAppLauncherCardGrid: "grid shrink-0 grid-cols-2 gap-3 auto-rows-fr",
   mobileAppLauncherTitle: "text-base font-bold leading-tight text-[var(--mobile-app-card-title-fg)]",
   mobileAppLauncherSubtitle: "text-sm font-medium leading-snug text-[var(--mobile-app-card-subtitle-fg)]",
@@ -259,19 +259,19 @@ export const mobileHomeTokens = {
   appCardBase:
     "flex items-center gap-4 rounded-xl border border-white/10 bg-white/[0.05] px-4 py-4 transition-colors hover:border-white/15 hover:bg-white/[0.08] active:bg-white/[0.11]",
   appCardIconWrapper:
-    "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-teal-400/20 bg-teal-400/10 text-teal-400/90",
+    "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.05] text-zinc-200",
   appCardIconClass: "h-6 w-6",
 
   siteWalkActionGridRow: "grid shrink-0 grid-cols-2 gap-2.5 auto-rows-fr",
   siteWalkActionGridButton:
-    "flex min-h-[112px] flex-col items-start justify-center gap-1 px-3 py-2.5 text-left rounded-xl border border-[var(--mobile-quick-action-border)] bg-[var(--mobile-quick-action-bg)] shadow-[var(--mobile-quick-action-shadow)] transition-all hover:border-[var(--accent-border-green)] hover:bg-[color-mix(in_srgb,var(--surface-zinc)_92%,white)] active:scale-[0.99]",
+    "flex min-h-[112px] flex-col items-start justify-center gap-1 px-3 py-2.5 text-left rounded-xl border border-[var(--mobile-quick-action-border)] bg-[var(--mobile-quick-action-bg)] transition-all hover:border-[var(--accent-border-green)] hover:bg-[color-mix(in_srgb,var(--surface-zinc)_92%,white)] active:scale-[0.99]",
   quickActionStripRow: "grid grid-cols-4 gap-1.5",
   quickActionGridRow: "grid h-full min-h-0 flex-1 grid-cols-2 auto-rows-fr gap-2.5",
   quickActionStripButton:
     "flex h-[50px] max-h-[50px] flex-col items-center justify-center gap-0.5 rounded-xl border border-white/10 bg-white/[0.05] px-1 py-1.5 text-zinc-200 transition-colors hover:border-white/15 hover:bg-white/[0.08] hover:text-white active:bg-white/[0.11]",
   quickActionGridButton:
     "flex h-full min-h-[88px] flex-col items-center justify-center gap-1 rounded-xl border border-white/10 bg-white/[0.05] px-2 py-2 text-zinc-100 transition-colors hover:border-white/15 hover:bg-white/[0.08] hover:text-white active:bg-white/[0.11]",
-  quickActionStripIcon: "h-5 w-5 shrink-0 text-teal-400/90",
+  quickActionStripIcon: "h-5 w-5 shrink-0 text-zinc-200",
   quickActionStripLabel: "text-sm font-bold leading-tight text-center text-zinc-100",
 
   expandablePanelOuter: "relative z-30 shrink-0 w-full px-4 pb-3",
@@ -279,8 +279,8 @@ export const mobileHomeTokens = {
   expandablePanelUpperScroll: "px-4",
   expandablePanelBackdrop: "absolute inset-0 z-20 bg-black/50 backdrop-blur-[2px] lg:hidden",
   expandablePanelDock:
-    "flex w-full flex-col overflow-hidden rounded-xl border border-[var(--mobile-expandable-panel-border)] bg-[var(--mobile-expandable-panel-bg)] shadow-[0_-4px_24px_rgba(0,0,0,0.35)] backdrop-blur-md transition-[height] duration-200 ease-out",
-  expandablePanelDockExpanded: "shadow-[0_-12px_40px_rgba(0,0,0,0.55)]",
+    "flex w-full flex-col overflow-hidden rounded-xl border border-[var(--mobile-expandable-panel-border)] bg-[var(--mobile-expandable-panel-bg)] backdrop-blur-md transition-[height] duration-200 ease-out",
+  expandablePanelDockExpanded: "",
   expandablePanelChrome:
     "flex shrink-0 items-center gap-1 border-b border-[var(--mobile-expandable-panel-border)] px-2",
   expandablePanelHandle: "block h-1.5 w-12 rounded-full bg-white/40",
