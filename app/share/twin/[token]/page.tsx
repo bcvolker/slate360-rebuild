@@ -102,12 +102,14 @@ export default async function SharedTwinPage({ params, searchParams }: Props) {
     );
   }
 
+  const viewerKind = resolveTwinViewerKind(model.model_format, model.storage_key);
+
   const [modelUrl, orgResult] = await Promise.all([
-    resolveDigitalTwinModelUrl(model.storage_key),
+    viewerKind === "splat"
+      ? Promise.resolve(`/api/share/twin/${token}/splat`)
+      : resolveDigitalTwinModelUrl(model.storage_key),
     admin.from("organizations").select("name").eq("id", claimed.org_id).maybeSingle(),
   ]);
-
-  const viewerKind = resolveTwinViewerKind(model.model_format, model.storage_key);
 
   const canAnnotate = claimed.role === "annotate";
   const canDownload = claimed.role === "download";

@@ -11,6 +11,7 @@ type Props = {
   imageUrl: string;
   title: string;
   localFallbackUrl?: string | null;
+  fullBleed?: boolean;
 };
 
 function pickStableLocalUrl(imageUrl: string, localFallbackUrl?: string | null): string | null {
@@ -19,7 +20,12 @@ function pickStableLocalUrl(imageUrl: string, localFallbackUrl?: string | null):
   return null;
 }
 
-export function CaptureV2StaticPreview({ imageUrl, title, localFallbackUrl }: Props) {
+export function CaptureV2StaticPreview({
+  imageUrl,
+  title,
+  localFallbackUrl,
+  fullBleed = false,
+}: Props) {
   const stableLocalRef = useRef<string | null>(pickStableLocalUrl(imageUrl, localFallbackUrl));
   const [displayUrl, setDisplayUrl] = useState(imageUrl);
   const [loadFailed, setLoadFailed] = useState(false);
@@ -109,7 +115,11 @@ export function CaptureV2StaticPreview({ imageUrl, title, localFallbackUrl }: Pr
   return (
     <div
       id={CAPTURE_V2_LAYER_IDS.canvasBase}
-      className={`relative ${CAPTURE_V2_LAYERS.canvas} flex min-h-0 flex-1 flex-col overflow-hidden border border-[var(--surface-zinc-border)] bg-[var(--surface-zinc)] ${CANVAS_OS_SAFETY}`}
+      className={`relative ${CAPTURE_V2_LAYERS.canvas} flex min-h-0 flex-1 flex-col overflow-hidden bg-[var(--surface-zinc)] ${CANVAS_OS_SAFETY} ${
+        fullBleed
+          ? "absolute inset-0 h-full w-full border-0"
+          : "border border-[var(--surface-zinc-border)]"
+      }`}
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
