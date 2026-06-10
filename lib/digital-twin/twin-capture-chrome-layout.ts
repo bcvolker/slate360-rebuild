@@ -12,7 +12,7 @@ export const TWIN_CAPTURE_CHROME = {
   shutterRaisePx: 16,
   shutterStopPx: 22,
   hintBottomPx: 12,
-  lightButtonSizePx: 50,
+  lightButtonSizePx: 48,
   doneButtonSizePx: 56,
   modeSelectorRowPx: 36,
   modeSelectorBottomPx: 167,

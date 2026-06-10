@@ -314,14 +314,16 @@ export function TwinCaptureScreen({
           mode={session.mode}
           photoInterval={session.photoInterval}
           modeLocked={recording}
+          isRecording={recording}
+          recSeconds={session.recSeconds}
           onModeChange={session.handleModeChange}
           onCycleInterval={session.cyclePhotoInterval}
         />
         <TwinCaptureBottomRail
           hidden={!chromeVisible}
           mode={session.mode}
+          clipCount={session.clips.length}
           isRecording={recording}
-          recSeconds={session.recSeconds}
           isStreaming={streamReady}
           needsResume={camera.needsResume}
           torchSupported={torchSupported}

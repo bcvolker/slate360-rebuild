@@ -13,8 +13,8 @@ import type { TwinCaptureMode } from "./useTwinCaptureSession";
 type Props = {
   hidden?: boolean;
   mode: TwinCaptureMode;
+  clipCount: number;
   isRecording: boolean;
-  recSeconds: number;
   isStreaming: boolean;
   needsResume?: boolean;
   torchSupported: boolean;
@@ -27,17 +27,11 @@ type Props = {
   onDone: () => void;
 };
 
-function formatRecTimer(seconds: number): string {
-  const m = Math.floor(seconds / 60);
-  const s = seconds % 60;
-  return `${m}:${s.toString().padStart(2, "0")}`;
-}
-
 export function TwinCaptureBottomRail({
   hidden,
   mode,
+  clipCount,
   isRecording,
-  recSeconds,
   isStreaming,
   needsResume = false,
   torchSupported,
@@ -58,6 +52,12 @@ export function TwinCaptureBottomRail({
   const innerSize = TWIN_CAPTURE_CHROME.shutterSizePx - ringInset * 2;
   const shutterEnabled = needsResume || (isStreaming && !needsResume);
   const recRed = "var(--destructive)";
+  const prominentDone = hasContent && !isRecording && !finishing;
+  const hintText = needsResume
+    ? "tap to resume camera"
+    : clipCount >= 1 && !isRecording
+      ? "tap blue to add another clip · Done when finished"
+      : "tap blue to start · red to stop · check = review";
 
   return (
     <div className="pointer-events-none absolute inset-x-0 bottom-0 z-30">
@@ -66,11 +66,7 @@ export function TwinCaptureBottomRail({
         style={{ bottom: `calc(${TWIN_CAPTURE_CHROME.hintBottomPx}px + ${safeBottom})` }}
         data-twin-chrome="hint"
       >
-        {needsResume
-          ? "tap to resume camera"
-          : photosMode
-            ? "tap blue to start · red to stop · check = review"
-            : "tap blue to start · red to stop · check = review"}
+        {hintText}
       </p>
 
       <div
@@ -91,8 +87,10 @@ export function TwinCaptureBottomRail({
                 onTorchToggle();
               }}
               data-twin-chrome="light-button"
-              className={`inline-flex items-center justify-center justify-self-start transition active:scale-[0.98] ${TWIN_CAPTURE_GLASS_SQUARE} ${TWIN_CAPTURE_HUD_TEXT} ${
-                torchOn ? "border-[var(--accent-border-blue)] text-[var(--twin360-blue)]" : ""
+              className={`inline-flex items-center justify-center justify-self-start transition active:scale-[0.98] ${TWIN_CAPTURE_GLASS_SQUARE} ${
+                torchOn
+                  ? "border-[var(--accent-border-blue)] bg-[color-mix(in_srgb,var(--twin360-blue)_22%,transparent)] text-[var(--twin360-blue)] ring-2 ring-[var(--accent-border-blue)] ring-offset-1 ring-offset-transparent"
+                  : TWIN_CAPTURE_HUD_TEXT
               }`}
               style={{
                 width: TWIN_CAPTURE_CHROME.lightButtonSizePx,
@@ -101,7 +99,7 @@ export function TwinCaptureBottomRail({
               aria-pressed={torchOn}
               aria-label={torchOn ? "Turn torch off" : "Turn torch on"}
             >
-              <Flashlight className="h-5 w-5" />
+              <Flashlight className={`h-5 w-5 ${torchOn ? "fill-current" : ""}`} />
             </button>
           ) : (
             <span aria-hidden />
@@ -116,16 +114,6 @@ export function TwinCaptureBottomRail({
             }}
             data-twin-chrome="coverage-ring"
           >
-            {isRecording ? (
-              <span
-                className={`pointer-events-none absolute inset-x-0 bottom-full mb-2 mx-auto w-fit whitespace-nowrap px-2.5 py-1 font-mono text-[13px] font-semibold tracking-wide text-white ${TWIN_CAPTURE_GLASS}`}
-                data-twin-chrome="rec-timer-chip"
-                aria-live="polite"
-              >
-                <span className="text-[var(--destructive)]">●</span> REC {formatRecTimer(recSeconds)}
-              </span>
-            ) : null}
-
             {!isRecording && progressDeg > 0 ? (
               <div
                 className="pointer-events-none absolute -inset-[3px] rounded-full"
@@ -189,13 +177,18 @@ export function TwinCaptureBottomRail({
 
           <button
             type="button"
-            disabled={!hasContent || finishing}
+            disabled={!hasContent || finishing || isRecording}
             onClick={(event) => {
               event.stopPropagation();
               onDone();
             }}
             data-twin-chrome="done-button"
-            className="inline-flex items-center justify-center justify-self-end rounded-full bg-[var(--twin360-blue)] text-[var(--graphite-canvas)] shadow-[var(--mobile-app-card-glow-info)] transition active:scale-[0.98] disabled:opacity-35"
+            data-twin-chrome-prominent={prominentDone ? "true" : "false"}
+            className={`inline-flex items-center justify-center justify-self-end rounded-full text-[var(--graphite-canvas)] transition active:scale-[0.98] ${
+              prominentDone
+                ? "bg-[var(--twin360-blue)] shadow-[var(--mobile-app-card-glow-info)]"
+                : "bg-[var(--twin360-blue)] opacity-35"
+            } disabled:pointer-events-none`}
             style={{
               width: TWIN_CAPTURE_CHROME.doneButtonSizePx,
               height: TWIN_CAPTURE_CHROME.doneButtonSizePx,
@@ -219,8 +212,8 @@ export function TwinCaptureBottomRail({
           <span aria-hidden />
           <span
             className={`justify-self-end px-2 py-0.5 font-semibold ${TWIN_CAPTURE_GLASS} ${
-              hasContent ? "text-[var(--twin360-blue)]" : TWIN_CAPTURE_HUD_TEXT
-            }`}
+              prominentDone ? "text-[var(--twin360-blue)]" : TWIN_CAPTURE_HUD_TEXT
+            } ${prominentDone ? "" : "opacity-50"}`}
           >
             {finishing ? "Preparing…" : "Done"}
           </span>

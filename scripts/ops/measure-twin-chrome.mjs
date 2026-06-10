@@ -55,14 +55,90 @@ function overlaps(a, b) {
 }
 
 async function waitForStreaming(page) {
+  await page.locator('[data-dev-device="mobile"]').scrollIntoViewIfNeeded();
   await page.waitForFunction(
     () => {
-      const shutter = document.querySelector('[data-twin-chrome="shutter"]');
+      const shutter = document.querySelector('[data-dev-device="mobile"] [data-twin-chrome="shutter"]');
       return shutter instanceof HTMLButtonElement && !shutter.disabled;
     },
     undefined,
     { timeout: 45_000 },
   );
+}
+
+function estimateDataUrlBytes(dataUrl) {
+  const base64 = dataUrl.split(",")[1] ?? "";
+  return Math.round((base64.length * 3) / 4);
+}
+
+async function clickShutter(page) {
+  await page.locator('[data-dev-device="mobile"]').scrollIntoViewIfNeeded();
+  await page.waitForFunction(
+    () => {
+      const shutter = document.querySelector('[data-dev-device="mobile"] [data-twin-chrome="shutter"]');
+      return shutter instanceof HTMLButtonElement && !shutter.disabled;
+    },
+    undefined,
+    { timeout: 15_000 },
+  );
+  await page.evaluate(() => {
+    const shutter = document.querySelector('[data-dev-device="mobile"] [data-twin-chrome="shutter"]');
+    if (!(shutter instanceof HTMLButtonElement) || shutter.disabled) {
+      throw new Error("shutter not ready");
+    }
+    shutter.click();
+  });
+}
+
+async function assertGhostOnClip2Recording(page) {
+  const url = `${baseUrl}/dev/screens?screen=twin-capture&device=mobile&clips=0&mode=video`;
+  await page.goto(url, { waitUntil: "domcontentloaded", timeout: 120_000 });
+  await page.waitForSelector('[data-dev-device="mobile"]', { state: "attached", timeout: 90_000 });
+  await page.locator('[data-dev-device="mobile"]').scrollIntoViewIfNeeded();
+  await page.waitForSelector('[data-twin-chrome="shutter"]', { timeout: 90_000 });
+  await waitForStreaming(page);
+
+  await clickShutter(page);
+  await page.waitForSelector('[data-twin-chrome="rec-timer-chip"]', { timeout: 10_000 });
+  await page.waitForTimeout(1200);
+  await clickShutter(page);
+  await page.waitForSelector('[data-twin-chrome="rec-timer-chip"]', { state: "hidden", timeout: 10_000 });
+  await page.waitForTimeout(600);
+
+  await clickShutter(page);
+  await page.waitForSelector('[data-twin-chrome="rec-timer-chip"]', { timeout: 10_000 });
+  await page.waitForTimeout(500);
+
+  const ghostAssert = await page.evaluate(() => {
+    const ghost = document.querySelector('[data-twin-chrome="clip-ghost"]');
+    const img = document.querySelector('[data-twin-chrome="clip-ghost-frame"]');
+    if (!ghost || !(img instanceof HTMLImageElement)) {
+      return { ok: false, reason: "ghost overlay or frame image missing" };
+    }
+    const rect = ghost.getBoundingClientRect();
+    const opacity = Number.parseFloat(getComputedStyle(ghost).opacity || "0");
+    const src = img.currentSrc || img.src || "";
+    const byteSize =
+      src.startsWith("data:") && src.includes(",")
+        ? Math.round(((src.split(",")[1] ?? "").length * 3) / 4)
+        : 0;
+    return {
+      ok: opacity > 0 && rect.width > 0 && rect.height > 0 && byteSize > 0,
+      opacity,
+      width: Math.round(rect.width),
+      height: Math.round(rect.height),
+      byteSize,
+      hasSrc: src.length > 0,
+    };
+  });
+
+  if (!ghostAssert.ok) {
+    throw new Error(
+      `[measure-twin-chrome] ghost clip-2 assertion failed: ${JSON.stringify(ghostAssert)}`,
+    );
+  }
+
+  return ghostAssert;
 }
 
 async function measureScenario(page, scenario) {
@@ -72,7 +148,7 @@ async function measureScenario(page, scenario) {
   const ghostQuery = scenario.ghost ? "&ghost=1" : "";
   const url = `${baseUrl}/dev/screens?screen=twin-capture&device=mobile&clips=${scenario.clips}&mode=${scenario.mode}${stateQuery}${coverageQuery}${rollQuery}${ghostQuery}`;
   await page.goto(url, { waitUntil: "domcontentloaded", timeout: 120_000 });
-  await page.waitForSelector('[data-dev-device="mobile"]', { timeout: 90_000 });
+  await page.waitForSelector('[data-dev-device="mobile"]', { state: "attached", timeout: 90_000 });
   await page.locator('[data-dev-device="mobile"]').scrollIntoViewIfNeeded();
   await page.waitForSelector('[data-twin-chrome="shutter"]', { timeout: 90_000 });
   await waitForStreaming(page);
@@ -82,6 +158,7 @@ async function measureScenario(page, scenario) {
     const frame = document.querySelector('[data-dev-device="mobile"]');
     const shutter = document.querySelector('[data-twin-chrome="shutter"]');
     const modeSelector = document.querySelector('[data-twin-chrome="mode-selector"]');
+    const recChip = document.querySelector('[data-twin-chrome="rec-timer-chip"]');
     const clipChips = document.querySelector('[data-twin-chrome="clip-chips"]');
     const light = document.querySelector('[data-twin-chrome="light-button"]');
     const done = document.querySelector('[data-twin-chrome="done-button"]');
@@ -90,6 +167,8 @@ async function measureScenario(page, scenario) {
     const coverageRing = document.querySelector('[data-twin-chrome="coverage-ring"]');
     const clipGhost = document.querySelector('[data-twin-chrome="clip-ghost-caption"]');
     if (!frame || !shutter || !modeSelector) return null;
+    if (recording && !recChip) return null;
+    if (!recording && !modeSelector.querySelector("button")) return null;
 
     const frameRect = frame.getBoundingClientRect();
     const viewportCenterX = frameRect.left + frameRect.width / 2;
@@ -138,6 +217,8 @@ async function measureScenario(page, scenario) {
       coverageRingVisible: Boolean(coverageRing),
       levelLineVisible: Boolean(levelLine),
       ghostVisible: Boolean(document.querySelector('[data-twin-chrome="clip-ghost"]')),
+      recChipVisible: Boolean(recChip),
+      modePillVisible: Boolean(!recording && modeSelector.querySelector("button")),
       coveragePillVisible: Boolean(coveragePill),
       viewportWidth: Math.round(frameRect.width),
       viewportHeight: Math.round(frameRect.height),
@@ -174,6 +255,9 @@ async function main() {
     });
     const page = await context.newPage();
 
+    const ghostClip2 = await assertGhostOnClip2Recording(page);
+    console.error(`[measure-twin-chrome] ghost clip-2 assertion PASS: ${JSON.stringify(ghostClip2)}`);
+
     const results = [];
     for (const scenario of SCENARIOS) {
       results.push(await measureScenario(page, scenario));
@@ -195,6 +279,7 @@ async function main() {
           baseUrl,
           viewport: { width: 390, height: 844 },
           fakeMedia: true,
+          ghostClip2Assertion: ghostClip2,
           results,
         },
         null,

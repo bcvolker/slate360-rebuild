@@ -30,18 +30,24 @@ function countCompletedClips(clips: TwinCaptureClip[]): number {
   ).length;
 }
 
-function captureGhostFrame(
+function captureGhostFrameWithRetry(
   videoRef: React.RefObject<HTMLVideoElement | null>,
   onResult: (frame: string | null) => void,
+  attempt = 0,
 ) {
-  const immediate = grabTwinCaptureVideoFrame(videoRef.current);
-  if (immediate) {
-    onResult(immediate);
+  const frame = grabTwinCaptureVideoFrame(videoRef.current);
+  if (frame) {
+    onResult(frame);
     return;
   }
-  requestAnimationFrame(() => {
-    onResult(grabTwinCaptureVideoFrame(videoRef.current));
-  });
+  if (attempt >= 10) {
+    onResult(null);
+    return;
+  }
+  const delayMs = attempt < 4 ? 32 : 80;
+  window.setTimeout(() => {
+    captureGhostFrameWithRetry(videoRef, onResult, attempt + 1);
+  }, delayMs);
 }
 
 export function useTwinCaptureClipGhost({
@@ -54,6 +60,10 @@ export function useTwinCaptureClipGhost({
 }: Args) {
   const lastFrameRef = useRef<string | null>(devGhostFrameUrl);
   const prevIsRecordingRef = useRef(isRecording);
+  const isRecordingRef = useRef(isRecording);
+  const clipsRef = useRef(clips);
+  isRecordingRef.current = isRecording;
+  clipsRef.current = clips;
   const fadeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [ghostUrl, setGhostUrl] = useState<string | null>(devForceGhost ? devGhostFrameUrl : null);
@@ -67,15 +77,37 @@ export function useTwinCaptureClipGhost({
     lastFrameCaptureAt: null,
   });
 
-  const applyFrameCapture = useCallback((frame: string | null) => {
-    if (frame) lastFrameRef.current = frame;
-    setGhostDebug((prev) => ({
-      ...prev,
-      ghostFrameCaptured: Boolean(frame),
-      ghostFrameByteSize: frame ? estimateTwinCaptureDataUrlBytes(frame) : 0,
-      lastFrameCaptureAt: frame ? Date.now() : prev.lastFrameCaptureAt,
-    }));
+  const clearGhostTimers = useCallback(() => {
+    if (fadeTimerRef.current) clearTimeout(fadeTimerRef.current);
+    if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+    fadeTimerRef.current = null;
+    hideTimerRef.current = null;
   }, []);
+
+  const showGhost = useCallback(
+    (url: string) => {
+      clearGhostTimers();
+      setGhostUrl(url);
+      setGhostOpacity(TWIN_CAPTURE_POLISH.ghostOpacity);
+    },
+    [clearGhostTimers],
+  );
+
+  const applyFrameCapture = useCallback(
+    (frame: string | null) => {
+      if (frame) lastFrameRef.current = frame;
+      setGhostDebug((prev) => ({
+        ...prev,
+        ghostFrameCaptured: Boolean(frame),
+        ghostFrameByteSize: frame ? estimateTwinCaptureDataUrlBytes(frame) : 0,
+        lastFrameCaptureAt: frame ? Date.now() : prev.lastFrameCaptureAt,
+      }));
+      if (frame && isRecordingRef.current && countCompletedClips(clipsRef.current) >= 1) {
+        showGhost(frame);
+      }
+    },
+    [showGhost],
+  );
 
   useEffect(() => {
     if (devGhostFrameUrl) lastFrameRef.current = devGhostFrameUrl;
@@ -87,53 +119,29 @@ export function useTwinCaptureClipGhost({
     setGhostOpacity(TWIN_CAPTURE_POLISH.ghostOpacity);
   }, [devForceGhost, devGhostFrameUrl]);
 
-  const clearGhostTimers = useCallback(() => {
-    if (fadeTimerRef.current) clearTimeout(fadeTimerRef.current);
-    if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
-    fadeTimerRef.current = null;
-    hideTimerRef.current = null;
-  }, []);
-
   useEffect(() => () => clearGhostTimers(), [clearGhostTimers]);
 
-  const showGhost = useCallback(
-    (url: string) => {
-      clearGhostTimers();
-      setGhostUrl(url);
-      setGhostOpacity(TWIN_CAPTURE_POLISH.ghostOpacity);
-    },
-    [clearGhostTimers],
-  );
-
   const handleShutterTap = useCallback(() => {
-    const wasRecording = prevIsRecordingRef.current;
-    const completedBefore = countCompletedClips(clips);
-
-    if (wasRecording) {
-      captureGhostFrame(videoRef, applyFrameCapture);
-    }
-
     onShutterTap();
-
-    if (!wasRecording && completedBefore >= 1 && lastFrameRef.current) {
-      showGhost(lastFrameRef.current);
-    }
-  }, [applyFrameCapture, clips, onShutterTap, showGhost, videoRef]);
+  }, [onShutterTap]);
 
   useEffect(() => {
     const wasRecording = prevIsRecordingRef.current;
     prevIsRecordingRef.current = isRecording;
 
     if (wasRecording && !isRecording) {
-      captureGhostFrame(videoRef, applyFrameCapture);
+      captureGhostFrameWithRetry(videoRef, applyFrameCapture);
     }
   }, [applyFrameCapture, isRecording, videoRef]);
 
   useEffect(() => {
-    if (isRecording && countCompletedClips(clips) >= 1 && lastFrameRef.current) {
+    const completed = countCompletedClips(clips);
+
+    if (isRecording && completed >= 1 && lastFrameRef.current) {
       showGhost(lastFrameRef.current);
       return;
     }
+
     if (!isRecording && ghostUrl) {
       clearGhostTimers();
       fadeTimerRef.current = setTimeout(() => {

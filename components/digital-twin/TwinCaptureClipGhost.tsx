@@ -20,6 +20,7 @@ export function TwinCaptureClipGhost({ imageUrl, opacity, visible }: Props) {
       <img
         src={imageUrl}
         alt=""
+        data-twin-chrome="clip-ghost-frame"
         className="absolute inset-0 h-full w-full object-cover"
         draggable={false}
         aria-hidden
