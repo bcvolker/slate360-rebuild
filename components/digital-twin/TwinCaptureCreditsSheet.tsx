@@ -13,10 +13,18 @@ const PACK_PRICES: Record<CreditPackId, string> = {
 type Props = {
   open: boolean;
   creditsRequired: number;
+  returnTo?: string;
+  onBeforeCheckout?: () => Promise<void>;
   onClose: () => void;
 };
 
-export function TwinCaptureCreditsSheet({ open, creditsRequired, onClose }: Props) {
+export function TwinCaptureCreditsSheet({
+  open,
+  creditsRequired,
+  returnTo = "/digital-twin/capture/review",
+  onBeforeCheckout,
+  onClose,
+}: Props) {
   const [busyPack, setBusyPack] = useState<CreditPackId | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -26,10 +34,11 @@ export function TwinCaptureCreditsSheet({ open, creditsRequired, onClose }: Prop
     setBusyPack(packId);
     setError(null);
     try {
+      await onBeforeCheckout?.();
       const res = await fetch("/api/billing/credits/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ packId }),
+        body: JSON.stringify({ packId, return_to: returnTo }),
       });
       const data = (await res.json().catch(() => ({}))) as { url?: string; error?: string };
       if (!res.ok || !data.url) throw new Error(data.error ?? "Checkout failed");

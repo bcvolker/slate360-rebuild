@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { findOrCreateStripeCustomer, getAuthenticatedOrgContext } from "@/lib/billing-server";
 import { getCreditPack } from "@/lib/billing";
+import { buildCreditsCheckoutUrls, resolveCreditsCheckoutReturnPath } from "@/lib/billing/credits-checkout-return";
 import { getRequestOrigin, getStripeClient } from "@/lib/stripe";
 
 export const runtime = "nodejs";
@@ -14,6 +15,7 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json().catch(() => ({}));
     const packId = typeof body.packId === "string" ? body.packId : "starter";
+    const returnPath = resolveCreditsCheckoutReturnPath(body.return_to);
     const pack = getCreditPack(packId);
 
     if (!pack?.priceId) {
@@ -35,13 +37,14 @@ export async function POST(req: NextRequest) {
     });
 
     const origin = getRequestOrigin(req);
+    const { success_url, cancel_url } = buildCreditsCheckoutUrls(origin, returnPath);
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       customer: customerId,
       line_items: [{ price: pack.priceId, quantity: 1 }],
       allow_promotion_codes: true,
-      success_url: `${origin}/dashboard?credits=success`,
-      cancel_url: `${origin}/dashboard?credits=cancelled`,
+      success_url,
+      cancel_url,
       metadata: {
         kind: "credits",
         pack_id: pack.id,
