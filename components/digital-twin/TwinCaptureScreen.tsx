@@ -1,15 +1,21 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import { IconCameraRotate, IconX } from "@tabler/icons-react";
+import { useCallback, useEffect, useState } from "react";
 import { useCamera } from "@/lib/hooks/useCamera";
-import { isTwinVideoRecordingSupported, useTwinVideoRecorder } from "@/hooks/useTwinVideoRecorder";
-import { twinAccent } from "@/lib/digital-twin/twin-accent";
-import { formatTwinBytes } from "@/lib/digital-twin/format-bytes";
-import { TwinCaptureFooter } from "./TwinCaptureFooter";
+import { useTwinVideoRecorder } from "@/hooks/useTwinVideoRecorder";
+import { useTwinCaptureSession } from "@/hooks/useTwinCaptureSession";
+import {
+  getTwinVideoTrack,
+  isTwinDepthSupported,
+  isTwinTorchSupported,
+  setTwinTorch,
+} from "@/lib/digital-twin/twin-capture-device";
+import { TwinCaptureBottomRail } from "./TwinCaptureBottomRail";
+import { TwinCaptureClipChips } from "./TwinCaptureClipChips";
+import { TwinCaptureLidarChip } from "./TwinCaptureLidarChip";
 import { TwinCaptureLiveCamera } from "./TwinCaptureLiveCamera";
-
-type CaptureMode = "photo_burst" | "video_walk";
+import { TwinCaptureModeSelector } from "./TwinCaptureModeSelector";
+import { TwinCaptureTopBar } from "./TwinCaptureTopBar";
 
 export type TwinCaptureFinishResult = {
   files: File[];
@@ -19,6 +25,7 @@ export type TwinCaptureFinishResult = {
 };
 
 type Props = {
+  projectName?: string | null;
   spaceName?: string;
   onCancel?: () => void;
   onFinish?: (result: TwinCaptureFinishResult) => void;
@@ -27,216 +34,150 @@ type Props = {
 const PHOTO_EST_BYTES = 2_400_000;
 const VIDEO_EST_BYTES_PER_SEC = 1_850_000;
 
-function formatTimer(seconds: number): string {
+function formatRecTimer(seconds: number): string {
   const m = Math.floor(seconds / 60);
   const s = seconds % 60;
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
 export function TwinCaptureScreen({
+  projectName,
   spaceName = "Lobby — Level 1",
   onCancel,
   onFinish,
 }: Props) {
   const camera = useCamera();
   const videoRecorder = useTwinVideoRecorder();
-  const capturedFilesRef = useRef<File[]>([]);
-  const [mode, setMode] = useState<CaptureMode>("photo_burst");
-  const [facingMode, setFacingMode] = useState<"user" | "environment">("environment");
-  const [photoCount, setPhotoCount] = useState(0);
-  const [videoSeconds, setVideoSeconds] = useState(0);
-  const [topCollapsed, setTopCollapsed] = useState(false);
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const { recording, paused } = videoRecorder;
-  const [videoWalkSupported, setVideoWalkSupported] = useState(true);
+  const session = useTwinCaptureSession({ camera, videoRecorder });
+  const [chromeVisible, setChromeVisible] = useState(true);
+  const facingMode = "environment";
+  const [torchOn, setTorchOn] = useState(false);
+  const [torchSupported, setTorchSupported] = useState(false);
+  const [depthSupported, setDepthSupported] = useState(false);
+
+  const scopeLabel = projectName?.trim()
+    ? projectName.trim().toUpperCase()
+    : "QUICK SCAN";
+  const headerLabel = session.isRecording
+    ? `${scopeLabel} · REC ${formatRecTimer(session.recSeconds)}`
+    : `${scopeLabel} · READY`;
+
+  const photoCount = session.clips.reduce((sum, clip) => sum + clip.frameCount, 0);
+  const videoSeconds = session.clips
+    .filter((clip) => clip.mode === "video")
+    .reduce((sum, clip) => sum + clip.durationSeconds, 0);
+  const estimatedBytes = photoCount * PHOTO_EST_BYTES + videoSeconds * VIDEO_EST_BYTES_PER_SEC;
 
   useEffect(() => {
-    setVideoWalkSupported(isTwinVideoRecordingSupported());
+    setDepthSupported(isTwinDepthSupported());
   }, []);
-
-  const estimatedBytes =
-    photoCount * PHOTO_EST_BYTES + videoSeconds * VIDEO_EST_BYTES_PER_SEC;
-  const showGuidance = mode === "video_walk" && recording && !paused;
-
-  const stopTimer = useCallback(() => {
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-      timerRef.current = null;
-    }
-  }, []);
-
-  useEffect(() => () => stopTimer(), [stopTimer]);
 
   useEffect(() => {
-    if (mode !== "video_walk" || !recording || paused) {
-      stopTimer();
+    if (!camera.isStreaming) {
+      setTorchSupported(false);
       return;
     }
-    timerRef.current = setInterval(() => {
-      setVideoSeconds((value) => value + 1);
-    }, 1000);
-    return stopTimer;
-  }, [mode, paused, recording, stopTimer]);
+    const stream = camera.videoRef.current?.srcObject;
+    const track = getTwinVideoTrack(stream instanceof MediaStream ? stream : null);
+    setTorchSupported(isTwinTorchSupported(track));
+  }, [camera.isStreaming, camera.videoRef]);
 
-  const handleFlip = useCallback(async () => {
-    const next = facingMode === "environment" ? "user" : "environment";
-    setFacingMode(next);
-    camera.stopCamera();
-    await camera.startCamera(next);
-  }, [camera, facingMode]);
-
-  const handleBurst = useCallback(() => {
-    if (!camera.isStreaming) return;
-    const result = camera.capturePhoto();
-    if (!result) return;
-    const index = photoCount + 1;
-    const file = new File([result.blob], `photo_${Date.now()}_${index}.jpg`, {
-      type: "image/jpeg",
-    });
-    capturedFilesRef.current.push(file);
-    setPhotoCount((value) => value + 1);
-  }, [camera, photoCount]);
-
-  const getActiveStream = useCallback((): MediaStream | null => {
-    const src = camera.videoRef.current?.srcObject;
-    return src instanceof MediaStream ? src : null;
-  }, [camera.videoRef]);
-
-  const handleRecordToggle = useCallback(() => {
-    if (!recording) {
-      const stream = getActiveStream();
-      if (!stream) return;
-      videoRecorder.startRecording(stream);
-      return;
+  const handleTorchToggle = useCallback(async () => {
+    const stream = camera.videoRef.current?.srcObject;
+    const track = getTwinVideoTrack(stream instanceof MediaStream ? stream : null);
+    if (!track) return;
+    const next = !torchOn;
+    try {
+      await setTwinTorch(track, next);
+      setTorchOn(next);
+    } catch {
+      setTorchOn(false);
     }
-    if (paused) {
-      videoRecorder.resumeRecording();
-      return;
-    }
-    videoRecorder.pauseRecording();
-  }, [getActiveStream, paused, recording, videoRecorder]);
-
-  const handleStopRecording = useCallback(() => {
-    stopTimer();
-    void videoRecorder.stopRecording().then((file) => {
-      if (file) capturedFilesRef.current.push(file);
-    });
-  }, [stopTimer, videoRecorder]);
+  }, [camera.videoRef, torchOn]);
 
   const handleCancel = useCallback(() => {
-    stopTimer();
     camera.stopCamera();
     onCancel?.();
-  }, [camera, onCancel, stopTimer]);
+  }, [camera, onCancel]);
 
   const handleFinish = useCallback(async () => {
-    stopTimer();
-    if (recording) {
-      const videoFile = await videoRecorder.stopRecording();
-      if (videoFile) capturedFilesRef.current.push(videoFile);
-    }
+    const files = await session.collectFiles();
     camera.stopCamera();
     onFinish?.({
-      files: [...capturedFilesRef.current],
+      files,
       photoCount,
       videoSeconds,
       estimatedBytes,
     });
-  }, [camera, estimatedBytes, onFinish, photoCount, recording, stopTimer, videoRecorder, videoSeconds]);
+  }, [camera, estimatedBytes, onFinish, photoCount, session, videoSeconds]);
+
+  const handleCanvasTap = useCallback(() => {
+    if (session.isRecording) return;
+    setChromeVisible((value) => !value);
+  }, [session.isRecording]);
 
   return (
-    <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden bg-[var(--graphite-canvas)] touch-manipulation select-none">
-      {!topCollapsed && (
-        <header className="relative z-30 flex shrink-0 items-center gap-2 border-b border-[var(--mobile-app-card-border)] px-3 pb-2 pt-[max(env(safe-area-inset-top),0.5rem)]">
-          <button
-            type="button"
-            onClick={handleCancel}
-            className="inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_82%,transparent)] text-[var(--graphite-text-header)] backdrop-blur-md transition active:scale-[0.98]"
-            aria-label="Cancel capture"
-          >
-            <IconX className="h-5 w-5" stroke={1.75} />
-          </button>
-
-          <div className="min-w-0 flex-1 rounded-xl border border-[var(--accent-border-blue)] bg-[color-mix(in_srgb,var(--graphite-canvas)_88%,transparent)] px-3 py-2 text-center backdrop-blur-md">
-            <p className="truncate text-xs font-bold text-[var(--graphite-text-header)]">
-              {spaceName}
-            </p>
-            <p className={`truncate text-[10px] font-semibold ${twinAccent.text}`}>
-              {photoCount} photos · {formatTimer(videoSeconds)} · {formatTwinBytes(estimatedBytes)}
-            </p>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => void handleFlip()}
-            disabled={!camera.isStreaming}
-            className="inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_82%,transparent)] text-[var(--graphite-text-header)] backdrop-blur-md transition active:scale-[0.98] disabled:opacity-40"
-            aria-label="Flip camera"
-          >
-            <IconCameraRotate className="h-5 w-5" stroke={1.75} />
-          </button>
-        </header>
-      )}
-
+    <div
+      className="relative flex min-h-0 flex-1 flex-col overflow-hidden bg-[var(--graphite-canvas)] touch-manipulation select-none"
+      data-twin-capture-screen
+    >
       <div
-        role="button"
-        tabIndex={0}
+        role={session.isRecording ? undefined : "button"}
+        tabIndex={session.isRecording ? undefined : 0}
         className="relative min-h-0 flex-1 overflow-hidden"
-        onClick={() => setTopCollapsed((value) => !value)}
-        onKeyDown={(event) => {
-          if (event.key === "Enter" || event.key === " ") {
-            event.preventDefault();
-            setTopCollapsed((value) => !value);
-          }
-        }}
-        aria-label="Toggle capture chrome"
+        onClick={session.isRecording ? undefined : handleCanvasTap}
+        onKeyDown={
+          session.isRecording
+            ? undefined
+            : (event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  handleCanvasTap();
+                }
+              }
+        }
+        aria-label={session.isRecording ? undefined : "Toggle capture controls"}
       >
-        <TwinCaptureLiveCamera camera={camera} facingMode={facingMode} />
+        <TwinCaptureLiveCamera camera={camera} facingMode={facingMode} autoStart fullBleed />
 
-        {showGuidance && (
-          <div className="pointer-events-none absolute inset-x-0 top-4 z-20 flex justify-center px-4">
-            <p className="rounded-xl border border-[var(--accent-border-blue)] bg-[color-mix(in_srgb,var(--graphite-canvas)_72%,transparent)] px-4 py-2 text-center text-xs font-bold tracking-wide text-[var(--graphite-text-header)] backdrop-blur-md">
-              Move slowly — keep the scene in frame
-            </p>
-          </div>
-        )}
+        <TwinCaptureTopBar
+          headerLabel={headerLabel}
+          hidden={!chromeVisible}
+          onBack={handleCancel}
+          onToggleChrome={() => setChromeVisible((value) => !value)}
+        />
 
-        {recording && (
-          <div className="pointer-events-none absolute left-4 top-4 z-20 flex items-center gap-2 rounded-xl border border-red-500/30 bg-[color-mix(in_srgb,var(--graphite-canvas)_70%,transparent)] px-3 py-1.5 backdrop-blur-md">
-            <span
-              className={`h-2.5 w-2.5 rounded-full ${paused ? "bg-[var(--graphite-muted)]" : "animate-pulse bg-red-500"}`}
-              aria-hidden
-            />
-            <span className="text-[11px] font-bold uppercase tracking-wider text-red-200">
-              {paused ? "Paused" : "Recording"}
-            </span>
-          </div>
-        )}
+        <TwinCaptureLidarChip hidden={!chromeVisible} visible={depthSupported} />
+
+        <TwinCaptureClipChips
+          hidden={!chromeVisible}
+          clips={session.clips}
+          activeClipId={session.activeClipId}
+        />
+
+        <TwinCaptureModeSelector
+          hidden={!chromeVisible}
+          mode={session.mode}
+          photoInterval={session.photoInterval}
+          modeLocked={session.isRecording}
+          onModeChange={session.handleModeChange}
+          onCycleInterval={session.cyclePhotoInterval}
+        />
+
+        <TwinCaptureBottomRail
+          hidden={!chromeVisible}
+          mode={session.mode}
+          isRecording={session.isRecording}
+          isStreaming={camera.isStreaming}
+          torchSupported={torchSupported}
+          torchOn={torchOn}
+          hasContent={session.hasContent}
+          onTorchToggle={() => void handleTorchToggle()}
+          onShutterTap={session.handleShutterTap}
+          onDone={() => void handleFinish()}
+        />
       </div>
 
-      <TwinCaptureFooter
-        mode={mode}
-        recording={recording}
-        paused={paused}
-        isStreaming={camera.isStreaming}
-        photoCount={photoCount}
-        videoSeconds={videoSeconds}
-        videoWalkSupported={videoWalkSupported}
-        onModeChange={(entry) => {
-          if (entry === "video_walk" && !videoWalkSupported) return;
-          if (recording) void handleStopRecording();
-          setMode(entry);
-        }}
-        onBurst={handleBurst}
-        onCancel={handleCancel}
-        onRecordToggle={handleRecordToggle}
-        onStopRecording={handleStopRecording}
-        onStartRecording={() => {
-          const stream = getActiveStream();
-          if (stream) videoRecorder.startRecording(stream);
-        }}
-        onFinish={() => void handleFinish()}
-      />
     </div>
   );
 }

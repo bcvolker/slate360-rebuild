@@ -217,8 +217,10 @@ export function TwinCaptureFlow({
   }
 
   if (step === "capture" && selection) {
+    const projectName = projects.find((row) => row.id === selection.projectId)?.name ?? null;
     return (
       <TwinCaptureScreen
+        projectName={projectName}
         spaceName={selection.spaceTitle}
         onCancel={skipPicker ? handleExitQuickFlow : () => setStep("picker")}
         onFinish={(result) => void handleCaptureFinish(result.files)}
