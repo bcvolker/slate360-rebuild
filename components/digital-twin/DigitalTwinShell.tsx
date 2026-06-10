@@ -7,7 +7,10 @@ import {
   MobilePlatformBottomNav,
   MobilePlatformHeader,
 } from "@/components/mobile-system";
-import { isDigitalTwinPassthroughShellPath } from "@/lib/digital-twin/digital-twin-shell-paths";
+import {
+  DIGITAL_TWIN_MOBILE_ROUTE,
+  isDigitalTwinPassthroughShellPath,
+} from "@/lib/digital-twin/digital-twin-shell-paths";
 import { resolveDigitalTwinRouteTitle } from "./DigitalTwinModuleNav";
 
 /** Digital Twin sub-route shell — mobile viewport for capture, upload, twins, and more. */
@@ -22,7 +25,10 @@ export function DigitalTwinShell({
 
   if (isDigitalTwinPassthroughShellPath(pathname)) {
     return (
-      <div className="flex h-full min-h-0 w-full flex-col overflow-hidden bg-[#0B0F15]">
+      <div
+        data-mobile-route={DIGITAL_TWIN_MOBILE_ROUTE}
+        className="fixed inset-0 z-50 flex h-[100dvh] min-h-0 w-full flex-col overflow-hidden bg-[#0B0F15]"
+      >
         {children}
       </div>
     );
@@ -31,7 +37,7 @@ export function DigitalTwinShell({
   return (
     <MobileAppShell
       className="fixed inset-0 z-50"
-      mobileRoute="digital-twin"
+      mobileRoute={DIGITAL_TWIN_MOBILE_ROUTE}
       header={
         <MobilePlatformHeader
           backHref="/digital-twin"

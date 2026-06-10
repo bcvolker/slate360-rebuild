@@ -11,9 +11,11 @@ import {
 import { InviteShareProvider, useInviteShare } from "@/components/shared/InviteShareProvider";
 import { isSiteWalkPassthroughShellPath } from "@/lib/site-walk/site-walk-shell-paths";
 import {
+  DIGITAL_TWIN_MOBILE_ROUTE,
   isDigitalTwinPassthroughShellPath,
   isDigitalTwinPlatformBypassPath,
 } from "@/lib/digital-twin/digital-twin-shell-paths";
+import { resolveMobileRoute } from "@/components/mobile-system/mainMobileTabs";
 import type { InviteShareData } from "@/lib/types/invite";
 
 /** Site Walk sub-routes keep their own chrome; module home uses (mobile)/MobilePlatformShell. */
@@ -44,9 +46,18 @@ function StudioAppShellInner({ inviteShareData, children }: StudioAppShellProps)
   const { open: inviteOpen, setOpen: setInviteOpen } = useInviteShare();
 
   if (fullBleed) {
+    const mobileRoute = resolveMobileRoute(pathname);
+    const routeAccent =
+      mobileRoute === DIGITAL_TWIN_MOBILE_ROUTE || mobileRoute === "site-walk"
+        ? mobileRoute
+        : undefined;
+
     return (
       <>
-        <div className="fixed inset-0 h-[100dvh] w-full overflow-hidden bg-[#0B0F15]">
+        <div
+          data-mobile-route={routeAccent}
+          className="fixed inset-0 h-[100dvh] w-full overflow-hidden bg-[#0B0F15]"
+        >
           {children}
         </div>
         <MobileHeaderOverlays />

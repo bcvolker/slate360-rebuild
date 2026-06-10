@@ -178,7 +178,7 @@ export function DigitalTwinHomeClient({ twins, projects }: Props) {
   useMobileShellDock(dockContent);
 
   return (
-    <div data-mobile-route="digital-twin" className={mobileTokens.appHomeScrollInner}>
+    <div className={mobileTokens.appHomeScrollInner}>
       <section className={mobileTokens.mobileHomeSection}>
         <div className={mobileTokens.mobileHomeSectionHeader}>
           <span className={mobileTokens.twin360HomeSectionLabelAccent} aria-hidden />
