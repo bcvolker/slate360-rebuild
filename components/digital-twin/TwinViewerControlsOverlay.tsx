@@ -1,21 +1,15 @@
 "use client";
 
-import {
-  Home,
-  Maximize2,
-  Minimize2,
-  Minus,
-  Plus,
-} from "lucide-react";
+import { Footprints, Home, Map, Maximize2, Minimize2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export type TwinViewerCameraMode = "interior" | "orbit";
 
 type Props = {
   isFullscreen: boolean;
-  onZoomIn: () => void;
-  onZoomOut: () => void;
+  cameraMode: TwinViewerCameraMode;
   onRecenter: () => void;
+  onToggleCameraMode: () => void;
   onToggleFullscreen: () => void;
   className?: string;
 };
@@ -25,12 +19,14 @@ const btnClass =
 
 export function TwinViewerControlsOverlay({
   isFullscreen,
-  onZoomIn,
-  onZoomOut,
+  cameraMode,
   onRecenter,
+  onToggleCameraMode,
   onToggleFullscreen,
   className,
 }: Props) {
+  const inWalkMode = cameraMode === "interior";
+
   return (
     <div
       className={cn(
@@ -40,21 +36,23 @@ export function TwinViewerControlsOverlay({
       role="toolbar"
       aria-label="3D viewer controls"
     >
-      <button type="button" onClick={onZoomOut} className={btnClass} aria-label="Zoom out" title="Zoom out">
-        <Minus className="size-4" aria-hidden />
-      </button>
-      <button type="button" onClick={onZoomIn} className={btnClass} aria-label="Zoom in" title="Zoom in">
-        <Plus className="size-4" aria-hidden />
-      </button>
-      <span className="mx-0.5 h-5 w-px bg-white/10" aria-hidden />
       <button
         type="button"
         onClick={onRecenter}
         className={btnClass}
-        aria-label="Overview"
-        title="Back to overview"
+        aria-label="Home — reset overview"
+        title="Home"
       >
         <Home className="size-4" aria-hidden />
+      </button>
+      <button
+        type="button"
+        onClick={onToggleCameraMode}
+        className={btnClass}
+        aria-label={inWalkMode ? "Switch to overview" : "Switch to walk mode"}
+        title={inWalkMode ? "Overview" : "Walk inside"}
+      >
+        {inWalkMode ? <Map className="size-4" aria-hidden /> : <Footprints className="size-4" aria-hidden />}
       </button>
       <button
         type="button"
