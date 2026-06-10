@@ -2,6 +2,8 @@
 
 import { useCallback, useMemo, useRef, useState } from "react";
 import type { ChangeEvent } from "react";
+import { resolveCaptureV2PreviewUrl } from "@/components/capture-v2/capture-v2-preview-url";
+import { publishCaptureItemFocus } from "@/components/site-walk/capture/capture-item-events";
 import { getCaptureType } from "@/lib/site-walk/capture-types/registry";
 import "@/lib/site-walk/capture-types";
 import { buildCaptureV2SourcePickerRows } from "@/lib/capture-v2/source-picker-rows";
@@ -13,6 +15,7 @@ import type { PhotoAttachmentPin } from "@/lib/site-walk/photo-attachments";
 import { getItemPhotoAttachmentPins } from "@/lib/site-walk/photo-attachments";
 import { uploadPhotoAttachmentFile } from "@/lib/site-walk/upload-photo-attachment-file";
 import { triggerHapticSuccess } from "@/lib/utils/trigger-haptic";
+import type { CaptureItemRecord } from "@/lib/types/site-walk-capture";
 import type { CaptureV2Loop } from "./useCaptureV2Loop";
 import type { useCamera } from "@/lib/hooks/useCamera";
 
@@ -25,6 +28,48 @@ type Args = {
   photo360Entitled: boolean;
   ingestLivePhoto: (file: File) => void;
 };
+
+function commitPersistedStop(
+  loop: CaptureV2Loop,
+  item: CaptureItemRecord,
+  localPreviewUrl?: string | null,
+) {
+  publishCaptureItemFocus({ item, reason: "captured", focus: true });
+  const previewUrl = resolveCaptureV2PreviewUrl(item, localPreviewUrl ?? null);
+  if (previewUrl) {
+    loop.setActivePreview({
+      url: previewUrl,
+      title: item.title?.trim() || "Captured item",
+      itemId: item.id,
+    });
+  } else {
+    loop.setActivePreview(null);
+  }
+  triggerHapticSuccess();
+}
+
+async function persistNewStop(
+  rowId: "photo_360" | "file_attachment",
+  file: File,
+  sessionId: string,
+  loop: CaptureV2Loop,
+  applyIntent: (input: "camera" | "upload") => void,
+) {
+  const localPreviewUrl = rowId === "photo_360" ? URL.createObjectURL(file) : null;
+  try {
+    const { item } = await getCaptureType(rowId).persist(
+      { mode: "create", meta: { kind: rowId }, blob: file },
+      { sessionId, projectId: null, locationLabel: "" },
+    );
+    applyIntent("upload");
+    commitPersistedStop(loop, item, localPreviewUrl);
+  } catch (error) {
+    if (localPreviewUrl) URL.revokeObjectURL(localPreviewUrl);
+    loop.setExternalError(
+      error instanceof Error ? error.message : "Capture upload failed.",
+    );
+  }
+}
 
 export function useCaptureV2SourcePicker({
   sessionId,
@@ -89,26 +134,11 @@ export function useCaptureV2SourcePicker({
   const handleNewStopFile = useCallback(
     async (file: File, rowId: CaptureV2SourcePickerRowId) => {
       if (rowId === "photo_360") {
-        try {
-          await getCaptureType("photo_360").persist(
-            { mode: "create", meta: { kind: "photo_360" }, blob: file },
-            { sessionId, projectId: null, locationLabel: "" },
-          );
-        } catch (error) {
-          const message =
-            error instanceof Error
-              ? error.message
-              : "360 photo capture is not wired yet";
-          loop.setExternalError(
-            `${message} — gap: photo_360 persist + SITE_WALK_ITEM_TYPES not first-class.`,
-          );
-        }
+        await persistNewStop("photo_360", file, sessionId, loop, applyIntent);
         return;
       }
       if (rowId === "upload_file" && !file.type.startsWith("image/")) {
-        loop.setExternalError(
-          "File stops need file_attachment persist — not wired for new-stop ingest yet. Use attach-here on a photo for PDFs.",
-        );
+        await persistNewStop("file_attachment", file, sessionId, loop, applyIntent);
         return;
       }
       applyIntent(rowId === "camera_roll" || rowId === "upload_file" ? "upload" : "camera");
@@ -125,12 +155,6 @@ export function useCaptureV2SourcePicker({
       close();
       if (ctx.mode === "attach" && ctx.attachPoint) {
         try {
-          if (rowId === "photo_360") {
-            loop.setExternalError(
-              "360 photo attachment uses photo_360 item ingest — not wired. Attach a flat photo or document instead.",
-            );
-            return;
-          }
           if (rowId === "take_photo") {
             applyIntent("camera");
             await attachFileToPhoto(file, ctx.attachPoint);

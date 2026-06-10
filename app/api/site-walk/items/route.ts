@@ -83,7 +83,7 @@ export const POST = (req: NextRequest) =>
       .single();
 
     const nextOrder = (lastItem?.sort_order ?? -1) + 1;
-    const fileBackedItem = ["photo", "video"].includes(body.item_type);
+    const fileBackedItem = ["photo", "video", "photo_360", "file_attachment"].includes(body.item_type);
     const metadata = body.metadata && typeof body.metadata === "object"
       ? (body.metadata as Record<string, unknown>)
       : {};

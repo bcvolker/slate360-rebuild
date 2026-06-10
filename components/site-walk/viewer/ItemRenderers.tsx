@@ -1,7 +1,13 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import type { ViewerItem } from "@/lib/site-walk/viewer-types";
 import { Sparkles } from "lucide-react";
+
+const TourPanoViewer = dynamic(
+  () => import("@/components/tours/TourPanoViewer").then((m) => m.TourPanoViewer),
+  { ssr: false },
+);
 
 /**
  * Type-aware viewer item renderer. Phase 1 ships photo/video/voice/note;
@@ -30,6 +36,15 @@ export function ItemRenderers({ item }: { item: ViewerItem }) {
             />
           )}
         </div>
+      );
+
+    case "photo_360":
+      return item.url ? (
+        <div className="relative h-full w-full min-h-[400px]">
+          <TourPanoViewer src={item.url} />
+        </div>
+      ) : (
+        <Placeholder label={item.title || "360 Photo"} />
       );
 
     case "video":
@@ -69,7 +84,6 @@ export function ItemRenderers({ item }: { item: ViewerItem }) {
         </div>
       );
 
-    case "photo_360":
     case "tour_360":
     case "model_3d":
     case "thermal":
