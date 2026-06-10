@@ -18,7 +18,10 @@ export function TwinCaptureReviewEstimateCard({
   onAddCredits,
 }: Props) {
   return (
-    <section className="rounded-xl border border-[var(--mobile-app-card-border)] bg-[var(--surface-zinc)] p-3">
+    <section
+      className="rounded-xl border border-[var(--mobile-app-card-border)] bg-[var(--surface-zinc)] p-3"
+      data-twin-review="estimate"
+    >
       {loading ? (
         <p className="text-xs text-[var(--graphite-muted)]">Updating estimate…</p>
       ) : null}

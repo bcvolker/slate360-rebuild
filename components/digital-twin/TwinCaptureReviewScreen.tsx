@@ -25,7 +25,7 @@ import {
   countTwinEstimateFrames,
   twinMediaToAssetKind,
 } from "@/lib/digital-twin/twin-review-media";
-import type { TwinProcessingQuality } from "@/lib/twin/processing-estimate-types";
+import type { TwinJobCreditEstimate, TwinProcessingQuality } from "@/lib/twin/processing-estimate-types";
 import type { TwinCreditAsset } from "@/lib/twin/processing-credits";
 import { twinAccent } from "@/lib/digital-twin/twin-accent";
 import { cn } from "@/lib/utils";
@@ -39,9 +39,13 @@ import { TwinJobStatus } from "./TwinJobStatus";
 
 type Props = {
   canUseHighQuality: boolean;
+  devPreview?: {
+    estimate: TwinJobCreditEstimate;
+    openCreditsSheet?: boolean;
+  };
 };
 
-export function TwinCaptureReviewScreen({ canUseHighQuality }: Props) {
+export function TwinCaptureReviewScreen({ canUseHighQuality, devPreview }: Props) {
   const router = useRouter();
   const resolveGpsFix = useTwinGpsFix();
   const upload = useMultipartTwinUpload();
@@ -136,12 +140,19 @@ export function TwinCaptureReviewScreen({ canUseHighQuality }: Props) {
     [session?.clips],
   );
 
-  const { estimate, loading: estimateLoading, error: estimateError } = useTwinProcessingEstimate({
-    sources: creditSources,
-    frameCount,
-    quality,
-    enabled: creditSources.length > 0,
-  });
+  const { estimate: liveEstimate, loading: estimateLoading, error: estimateError } =
+    useTwinProcessingEstimate({
+      sources: creditSources,
+      frameCount,
+      quality,
+      enabled: !devPreview && creditSources.length > 0,
+    });
+  const estimate = devPreview?.estimate ?? liveEstimate;
+  const estimateLoadingState = devPreview ? false : estimateLoading;
+
+  useEffect(() => {
+    if (devPreview?.openCreditsSheet) setCreditsSheetOpen(true);
+  }, [devPreview?.openCreditsSheet]);
 
   const handleBack = useCallback(() => {
     router.push("/digital-twin/capture");
@@ -226,10 +237,16 @@ export function TwinCaptureReviewScreen({ canUseHighQuality }: Props) {
   const lowCredits = estimate && !estimate.sufficient;
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-[var(--graphite-canvas)]">
+    <div
+      className="flex min-h-0 flex-1 flex-col overflow-hidden bg-[var(--graphite-canvas)]"
+      data-twin-review="screen"
+    >
       <TwinCaptureReviewTopBar onBack={handleBack} />
 
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 pb-28 pt-3 space-y-4">
+      <div
+        className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 pb-28 pt-3 space-y-4"
+        data-twin-review="scroll"
+      >
         <label className="block space-y-1">
           <span className="text-xs font-medium text-[var(--graphite-muted)]">
             Name this scan (optional — can name later)
@@ -261,7 +278,7 @@ export function TwinCaptureReviewScreen({ canUseHighQuality }: Props) {
 
         <TwinCaptureReviewEstimateCard
           estimate={estimate}
-          loading={estimateLoading}
+          loading={estimateLoadingState}
           error={estimateError}
           onAddCredits={() => setCreditsSheetOpen(true)}
         />
@@ -273,7 +290,10 @@ export function TwinCaptureReviewScreen({ canUseHighQuality }: Props) {
         ) : null}
 
         {lowCredits ? (
-          <div className="rounded-xl border border-red-500/40 bg-red-500/10 px-3 py-2 text-xs text-red-200">
+          <div
+            className="rounded-xl border border-red-500/40 bg-red-500/10 px-3 py-2 text-xs text-red-200"
+            data-twin-review="low-credits"
+          >
             This job needs ~{estimate.creditsRequired} credits — you have {estimate.creditsBalance}
           </div>
         ) : null}
@@ -301,6 +321,7 @@ export function TwinCaptureReviewScreen({ canUseHighQuality }: Props) {
       <div
         className="shrink-0 border-t border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_92%,transparent)] px-3 pt-3 backdrop-blur-xl"
         style={{ paddingBottom: `max(12px, env(safe-area-inset-bottom))` }}
+        data-twin-review="action-bar"
       >
         <button
           type="button"

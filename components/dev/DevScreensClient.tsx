@@ -5,7 +5,8 @@ import { useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import { DevCaptureCanvasSandbox, DEV_CAPTURE_THUMB_COUNTS } from "./DevCaptureCanvasSandbox";
 import { DevNoteReviewSandbox } from "./DevNoteReviewSandbox";
-import { DevTwinCaptureSandbox } from "./DevTwinCaptureSandbox";
+import { DevTwinCaptureSandbox, DEV_TWIN_CLIP_COUNTS } from "./DevTwinCaptureSandbox";
+import { DevTwinReviewSandbox } from "./DevTwinReviewSandbox";
 import { DevTwinUploadSandbox } from "./DevTwinUploadSandbox";
 import { DevTwinViewerSandbox } from "./DevTwinViewerSandbox";
 import { DevTwinWizardSandbox } from "./DevTwinWizardSandbox";
@@ -15,6 +16,7 @@ const SCREENS = [
   { id: "capture", label: "Capture canvas", description: "No-plans camera canvas with mock stops." },
   { id: "note-review", label: "Note / review", description: "Field notes + primary save affordance." },
   { id: "twin-capture", label: "Twin capture", description: "Full-bleed camera, burst + video walk controls." },
+  { id: "twin-review", label: "Twin review", description: "Post-capture review, estimate, and create twin." },
   { id: "twin-wizard", label: "Twin wizard", description: "Space picker, output options, live cost calculator." },
   { id: "twin-upload", label: "Twin upload", description: "Mock review & upload progress state." },
   { id: "twin-viewer", label: "Twin viewer", description: "Splat viewer + mock queue/share state." },
@@ -31,16 +33,57 @@ function parseDevice(value: string | null): DevDeviceMode {
   return value === "desktop" ? "desktop" : "mobile";
 }
 
+function parseFrameSize(searchParams: URLSearchParams | null) {
+  const width = Number.parseInt(searchParams?.get("frameW") ?? "", 10);
+  const height = Number.parseInt(searchParams?.get("frameH") ?? "", 10);
+  return {
+    frameWidth: Number.isFinite(width) && width > 0 ? width : undefined,
+    frameHeight: Number.isFinite(height) && height > 0 ? height : undefined,
+  };
+}
+
+function twinCaptureHref(device: DevDeviceMode, searchParams: URLSearchParams | null, patch: Record<string, string>) {
+  const params = new URLSearchParams();
+  params.set("screen", "twin-capture");
+  params.set("device", device);
+  params.set("clips", searchParams?.get("clips") ?? "0");
+  params.set("mode", searchParams?.get("mode") ?? "video");
+  for (const [key, value] of Object.entries(patch)) params.set(key, value);
+  return `/dev/screens?${params.toString()}`;
+}
+
 export function DevScreensClient() {
   const searchParams = useSearchParams();
   const screen = parseScreen(searchParams?.get("screen") ?? null);
   const device = parseDevice(searchParams?.get("device") ?? null);
   const keyboardSim = Number.parseInt(searchParams?.get("keyboard") ?? "", 10);
+  const { frameWidth, frameHeight } = parseFrameSize(searchParams);
 
   const activeMeta = useMemo(
     () => SCREENS.find((entry) => entry.id === screen) ?? null,
     [screen],
   );
+
+  const sandbox = (() => {
+    switch (screen) {
+      case "capture":
+        return <DevCaptureCanvasSandbox />;
+      case "note-review":
+        return <DevNoteReviewSandbox keyboardSim={Number.isFinite(keyboardSim) ? keyboardSim : undefined} />;
+      case "twin-capture":
+        return <DevTwinCaptureSandbox />;
+      case "twin-review":
+        return <DevTwinReviewSandbox />;
+      case "twin-wizard":
+        return <DevTwinWizardSandbox />;
+      case "twin-upload":
+        return <DevTwinUploadSandbox />;
+      case "twin-viewer":
+        return <DevTwinViewerSandbox />;
+      default:
+        return null;
+    }
+  })();
 
   return (
     <div className="flex min-h-[100dvh] flex-col bg-[var(--graphite-canvas)] text-[var(--graphite-text-body)]">
@@ -94,6 +137,60 @@ export function DevScreensClient() {
           </>
         ) : null}
 
+        {screen === "twin-capture" ? (
+          <>
+            <span className="mx-1 h-5 w-px bg-[var(--mobile-app-card-border)]" aria-hidden />
+            {DEV_TWIN_CLIP_COUNTS.map((count) => {
+              const active = Number.parseInt(searchParams?.get("clips") ?? "0", 10) === count;
+              return (
+                <Link
+                  key={count}
+                  href={twinCaptureHref(device, searchParams, { clips: String(count) })}
+                  className={`rounded-lg border px-2.5 py-1.5 text-[11px] font-bold tabular-nums ${
+                    active
+                      ? "border-[var(--accent-border-green)] text-[var(--graphite-text-header)]"
+                      : "border-[var(--mobile-app-card-border)] text-[var(--graphite-muted)]"
+                  }`}
+                >
+                  {count} clips
+                </Link>
+              );
+            })}
+            {(["video", "photos"] as const).map((mode) => {
+              const active = (searchParams?.get("mode") ?? "video") === mode;
+              return (
+                <Link
+                  key={mode}
+                  href={twinCaptureHref(device, searchParams, { mode })}
+                  className={`rounded-lg border px-2.5 py-1.5 text-[11px] font-bold uppercase ${
+                    active
+                      ? "border-[var(--accent-border-green)] text-[var(--graphite-text-header)]"
+                      : "border-[var(--mobile-app-card-border)] text-[var(--graphite-muted)]"
+                  }`}
+                >
+                  {mode}
+                </Link>
+              );
+            })}
+          </>
+        ) : null}
+
+        {screen === "twin-review" ? (
+          <>
+            <span className="mx-1 h-5 w-px bg-[var(--mobile-app-card-border)]" aria-hidden />
+            <Link
+              href={`/dev/screens?screen=twin-review&device=${device}&credits=low&sheet=open`}
+              className={`rounded-lg border px-2.5 py-1.5 text-[11px] font-bold ${
+                searchParams?.get("credits") === "low"
+                  ? "border-[var(--accent-border-green)] text-[var(--graphite-text-header)]"
+                  : "border-[var(--mobile-app-card-border)] text-[var(--graphite-muted)]"
+              }`}
+            >
+              low credits
+            </Link>
+          </>
+        ) : null}
+
         <span className="mx-1 h-5 w-px bg-[var(--mobile-app-card-border)]" aria-hidden />
 
         {(["mobile", "desktop"] as const).map((mode) => {
@@ -131,20 +228,13 @@ export function DevScreensClient() {
           ))}
         </div>
       ) : (
-        <DevScreenFrame mode={device} title={activeMeta?.label ?? screen}>
-          {screen === "capture" ? (
-            <DevCaptureCanvasSandbox />
-          ) : screen === "twin-capture" ? (
-            <DevTwinCaptureSandbox />
-          ) : screen === "twin-wizard" ? (
-            <DevTwinWizardSandbox />
-          ) : screen === "twin-upload" ? (
-            <DevTwinUploadSandbox />
-          ) : screen === "twin-viewer" ? (
-            <DevTwinViewerSandbox />
-          ) : (
-            <DevNoteReviewSandbox keyboardSim={Number.isFinite(keyboardSim) ? keyboardSim : undefined} />
-          )}
+        <DevScreenFrame
+          mode={device}
+          title={activeMeta?.label ?? screen}
+          frameWidth={frameWidth}
+          frameHeight={frameHeight}
+        >
+          {sandbox}
         </DevScreenFrame>
       )}
     </div>

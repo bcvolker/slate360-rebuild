@@ -54,6 +54,7 @@ export function TwinCaptureCreditsSheet({
       <div
         role="dialog"
         aria-modal="true"
+        data-twin-review="credits-sheet"
         className="w-full max-w-lg rounded-t-2xl border border-[var(--mobile-app-card-border)] bg-[var(--surface-zinc)] p-4 pb-[max(1rem,env(safe-area-inset-bottom))]"
       >
         <div className="mb-3 flex items-center justify-between">

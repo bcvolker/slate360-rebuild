@@ -10,6 +10,7 @@ export function TwinCaptureReviewTopBar({ onBack }: Props) {
   return (
     <header
       className="shrink-0"
+      data-twin-review="top-bar"
       style={{
         paddingTop: `max(env(safe-area-inset-top), 12px)`,
         paddingLeft: 12,
