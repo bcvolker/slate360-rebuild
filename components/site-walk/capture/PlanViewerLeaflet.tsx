@@ -1,32 +1,19 @@
 "use client";
 
-/**
- * PlanViewerLeaflet — mobile-first plan viewer using Leaflet.js.
- *
- * Replaces react-pdf for mobile. Displays server-rasterized WebP images of
- * plan pages using Leaflet's CRS.Simple (pixel coordinates, not lat/lng).
- *
- * Why Leaflet:
- * - Uses <img> tags, not <canvas> — no WebKit canvas memory budget issues
- * - Native pinch/zoom/pan on all mobile browsers
- * - 42KB gzipped — tiny bundle
- * - CRS.Simple is designed for image overlays (floor plans, blueprints)
- */
-
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Loader2 } from "lucide-react";
 import L from "leaflet";
 import { ImageOverlay, MapContainer, Marker } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
+import { Loader2 } from "lucide-react";
 import type { SiteWalkPlanSet, SiteWalkPlanSheet } from "@/lib/types/site-walk";
+import { capturePlanFitPadding } from "@/lib/site-walk/capture-plan-canvas-tokens";
+import { fitPlanLeafletMap } from "@/lib/site-walk/plan-leaflet-fit";
 import type { LayerFilter } from "./plan-layer-types";
 import type { PlanViewerPin } from "./PlanPin";
 import { PlanQuickActionMenu } from "./PlanQuickActionMenu";
 import { PlanToolbar } from "./PlanToolbar";
 import { PlanViewerLeafletEvents } from "./PlanViewerLeafletEvents";
-import { buildPages, type QuickMenuState } from "./planViewerModel";
-
-const SAVED_PIN_STOP_EVENTS = ["pointerdown", "pointerup", "click", "contextmenu", "touchstart", "touchend"] as const;
+import type { PlanPage, QuickMenuState } from "./planViewerModel";
 
 type Props = {
   projectId?: string | null;
@@ -36,17 +23,18 @@ type Props = {
   items?: { id: string; title?: string; description?: string | null }[];
   onCaptureRequest?: (input: "camera" | "upload") => void;
   onSelectItem?: (itemId: string) => void;
+  hideToolbar?: boolean;
+  pageIndex?: number;
+  onPageIndexChange?: (index: number) => void;
+  sheetImageUrls?: Record<string, string>;
+  fitPadding?: ReturnType<typeof capturePlanFitPadding>;
+  allowPinPlacement?: boolean;
 };
 
-/** Convert percentage-based pin to Leaflet CRS.Simple coordinates. */
 function pinToLatLng(pin: { x_pct: number; y_pct: number }, width: number, height: number): L.LatLngExpression {
-  return [
-    (pin.y_pct / 100) * height,
-    (pin.x_pct / 100) * width,
-  ];
+  return [(pin.y_pct / 100) * height, (pin.x_pct / 100) * width];
 }
 
-/** Create an amber or grey numbered pin icon. */
 function createPinIcon(label: string, amber: boolean): L.DivIcon {
   return L.divIcon({
     className: "",
@@ -56,58 +44,117 @@ function createPinIcon(label: string, amber: boolean): L.DivIcon {
   });
 }
 
-function isolateSavedPinMarker(marker: L.Marker) {
-  const element = marker.getElement();
-  if (!element) return;
-  const stopPropagation = (event: Event) => {
-    event.stopPropagation();
-  };
-  for (const eventName of SAVED_PIN_STOP_EVENTS) {
-    element.addEventListener(eventName, stopPropagation);
-  }
-  marker.once("remove", () => {
-    for (const eventName of SAVED_PIN_STOP_EVENTS) {
-      element.removeEventListener(eventName, stopPropagation);
-    }
-  });
-}
-
-export function PlanViewerLeaflet({ projectId, sessionId = "current-session", planSets = [], sheets = [], items = [], onCaptureRequest, onSelectItem }: Props) {
-  const [pageIndex, setPageIndex] = useState(0);
-  const [pdfPageCount] = useState(0);
+export function PlanViewerLeaflet({
+  projectId,
+  sessionId = "current-session",
+  planSets = [],
+  sheets = [],
+  items = [],
+  onCaptureRequest,
+  onSelectItem,
+  hideToolbar = false,
+  pageIndex: controlledPageIndex,
+  onPageIndexChange,
+  sheetImageUrls,
+  fitPadding,
+  allowPinPlacement = true,
+}: Props) {
+  const [internalPageIndex, setInternalPageIndex] = useState(0);
   const [pins, setPins] = useState<PlanViewerPin[]>([]);
   const [filter, setFilter] = useState<LayerFilter>("all");
   const [quickMenu, setQuickMenu] = useState<QuickMenuState>(null);
   const mapRef = useRef<L.Map | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  const activePlanSet = useMemo(() => planSets.find((ps) => ps.processing_status === "ready") ?? planSets[0] ?? null, [planSets]);
-  const planSheets = useMemo(() => activePlanSet ? sheets.filter((s) => s.plan_set_id === activePlanSet.id) : [], [activePlanSet, sheets]);
-  const pages = useMemo(() => buildPages(activePlanSet, planSheets, pdfPageCount), [activePlanSet, planSheets, pdfPageCount]);
+  const pageIndex = controlledPageIndex ?? internalPageIndex;
+  const setPageIndex = onPageIndexChange ?? setInternalPageIndex;
+  const padding = fitPadding ?? capturePlanFitPadding();
+
+  const activePlanSet = useMemo(
+    () => planSets.find((ps) => ps.processing_status === "ready") ?? planSets[0] ?? null,
+    [planSets],
+  );
+  const planSheets = useMemo(
+    () =>
+      activePlanSet
+        ? [...sheets.filter((s) => s.plan_set_id === activePlanSet.id)].sort(
+            (a, b) => a.sort_order - b.sort_order || a.sheet_number - b.sheet_number,
+          )
+        : [],
+    [activePlanSet, sheets],
+  );
+  const pages = useMemo<PlanPage[]>(
+    () =>
+      planSheets.map((sheet, index) => ({
+        key: sheet.id,
+        label: sheet.sheet_name?.trim() || `Sheet ${sheet.sheet_number}`,
+        pageNumber: index + 1,
+        sheetId: sheet.id,
+      })),
+    [planSheets],
+  );
   const safePageIndex = pages.length > 0 ? Math.min(pageIndex, pages.length - 1) : 0;
   const activePage = pages[safePageIndex] ?? null;
-
-  // Find the rasterized sheet for the active page
   const activeSheet = planSheets.find((s) => s.id === activePage?.sheetId) ?? null;
   const hasRasterized = Boolean(activeSheet?.rasterized_key && activeSheet.rasterized_width && activeSheet.rasterized_height);
   const imageWidth = activeSheet?.rasterized_width ?? 2048;
   const imageHeight = activeSheet?.rasterized_height ?? 1448;
-  const imageUrl = activeSheet?.rasterized_key ? `/api/site-walk/plan-sheets/${activeSheet.id}/image` : null;
+  const imageUrl =
+    activeSheet && sheetImageUrls?.[activeSheet.id]
+      ? sheetImageUrls[activeSheet.id]
+      : activeSheet?.rasterized_key
+        ? `/api/site-walk/plan-sheets/${activeSheet.id}/image`
+        : null;
+  const bounds = useMemo<L.LatLngBoundsExpression>(
+    () => [[0, 0], [imageHeight, imageWidth]],
+    [imageHeight, imageWidth],
+  );
 
-  // Leaflet bounds for CRS.Simple: [[0,0], [height, width]]
-  const bounds = useMemo<L.LatLngBoundsExpression>(() => [[0, 0], [imageHeight, imageWidth]], [imageHeight, imageWidth]);
+  const refitMap = useCallback(() => {
+    const map = mapRef.current;
+    if (!map || !hasRasterized) return;
+    fitPlanLeafletMap(map, activeSheet, imageWidth, imageHeight, padding);
+  }, [activeSheet, hasRasterized, imageHeight, imageWidth, padding]);
 
-  // Fetch pins for the active sheet
   useEffect(() => {
-    if (!activePage?.sheetId) { setPins([]); return; }
+    refitMap();
+  }, [activeSheet?.id, hasRasterized, refitMap]);
+
+  useEffect(() => {
+    const node = containerRef.current;
+    if (!node) return;
+    const observer = new ResizeObserver(() => refitMap());
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [refitMap]);
+
+  useEffect(() => {
+    if (!activePage?.sheetId) {
+      setPins([]);
+      return;
+    }
     let cancelled = false;
     fetch(`/api/site-walk/pins?plan_sheet_id=${encodeURIComponent(activePage.sheetId)}`, { cache: "no-store" })
-      .then((r) => r.ok ? r.json() as Promise<{ pins?: Array<{ id: string; client_pin_id: string | null; plan_sheet_id: string; x_pct: number; y_pct: number; pin_number: number | null; label: string | null; session_id: string; item_id: string | null }> }> : null)
+      .then((r) => (r.ok ? (r.json() as Promise<{ pins?: Array<{ id: string; client_pin_id: string | null; plan_sheet_id: string; x_pct: number; y_pct: number; pin_number: number | null; label: string | null; session_id: string; item_id: string | null }> }>) : null))
       .then((data) => {
         if (cancelled || !data?.pins) return;
-        setPins(data.pins.map((p, i) => ({ id: p.id, client_pin_id: p.client_pin_id, x_pct: p.x_pct, y_pct: p.y_pct, session_id: p.session_id, label: p.pin_number ? String(p.pin_number).padStart(2, "0") : String(i + 1).padStart(2, "0"), amber: p.session_id === sessionId, item_id: p.item_id })));
+        setPins(
+          data.pins.map((p, i) => ({
+            id: p.id,
+            client_pin_id: p.client_pin_id,
+            x_pct: p.x_pct,
+            y_pct: p.y_pct,
+            session_id: p.session_id,
+            label: p.pin_number ? String(p.pin_number).padStart(2, "0") : String(i + 1).padStart(2, "0"),
+            amber: p.session_id === sessionId,
+            item_id: p.item_id,
+          })),
+        );
       })
       .catch(() => undefined);
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [activePage?.sheetId, sessionId]);
 
   const visiblePins = pins.filter((pin) => {
@@ -116,58 +163,19 @@ export function PlanViewerLeaflet({ projectId, sessionId = "current-session", pl
     return true;
   });
 
-  const captureDisabledReason = activePage && !activePage.sheetId ? "Sheet is still syncing." : undefined;
-
-  function handlePinClick(pinId: string) {
-    const pin = pins.find((p) => p.id === pinId);
-    if (!pin) return;
-    if (pin.item_id) {
-      const canOpenItem = items.some((item) => item.id === pin.item_id);
-      if (canOpenItem) {
-        onSelectItem?.(pin.item_id);
-        return;
-      }
-      setQuickMenu({ pinId: isUuid(pin.id) ? pin.id : null, clientPinId: pin.client_pin_id ?? null, xPct: pin.x_pct, yPct: pin.y_pct, isSavedPin: true });
-    } else {
-      const isSavedPin = isUuid(pin.id);
-      setQuickMenu({ pinId: isSavedPin ? pin.id : null, clientPinId: pin.client_pin_id ?? (!isSavedPin ? pin.id : null), xPct: pin.x_pct, yPct: pin.y_pct, isSavedPin });
-    }
-  }
-
-  function handleDraftPinMove(pinId: string, latLng: L.LatLng, final = false) {
-    const yPct = clampPercent((latLng.lat / imageHeight) * 100);
-    const xPct = clampPercent((latLng.lng / imageWidth) * 100);
-    setPins((current) => current.map((pin) => pin.id === pinId ? { ...pin, x_pct: xPct, y_pct: yPct } : pin));
-    setQuickMenu((current) => {
-      if (!current) return current;
-      const movingPin = pins.find((pin) => pin.id === pinId);
-      const sameDraft = current.clientPinId && (current.clientPinId === movingPin?.client_pin_id || current.clientPinId === pinId);
-      const sameSaved = current.pinId && current.pinId === pinId;
-      if (!sameDraft && !sameSaved) return current;
-      return { ...current, xPct, yPct };
-    });
-    if (final) console.log("[PLAN_WALK] draft pin moved", { pinId, xPct, yPct });
-  }
-
-  function handleDraftPinDragStart() {
-    mapRef.current?.dragging.disable();
-  }
-
-  function handleDraftPinDragEnd(pinId: string, event: L.LeafletEvent) {
-    const marker = event.target as L.Marker;
-    handleDraftPinMove(pinId, marker.getLatLng(), true);
-    mapRef.current?.dragging.enable();
-  }
-
-  const handleMapCreated = useCallback((map: L.Map) => {
-    mapRef.current = map;
-  }, []);
+  const handleMapCreated = useCallback(
+    (map: L.Map) => {
+      mapRef.current = map;
+      if (hasRasterized) fitPlanLeafletMap(map, activeSheet, imageWidth, imageHeight, padding);
+    },
+    [activeSheet, hasRasterized, imageHeight, imageWidth, padding],
+  );
 
   return (
-    <div className="absolute inset-0 select-none overflow-hidden bg-black text-white" style={{ WebkitTouchCallout: "none" }}>
-      {/* Leaflet map container */}
+    <div ref={containerRef} className="absolute inset-0 select-none overflow-hidden bg-black text-white" style={{ WebkitTouchCallout: "none" }}>
       {hasRasterized && imageUrl ? (
         <MapContainer
+          key={activeSheet?.id ?? "plan-map"}
           crs={L.CRS.Simple}
           bounds={bounds}
           maxBounds={L.latLngBounds([[-imageHeight * 0.1, -imageWidth * 0.1], [imageHeight * 1.1, imageWidth * 1.1]])}
@@ -182,24 +190,11 @@ export function PlanViewerLeaflet({ projectId, sessionId = "current-session", pl
           ref={handleMapCreated}
         >
           <ImageOverlay url={imageUrl} bounds={bounds} />
-          <PlanViewerLeafletEvents toolMode="pan" imageWidth={imageWidth} imageHeight={imageHeight} sessionId={sessionId} pins={pins} setPins={setPins} setQuickMenu={setQuickMenu} />
+          {allowPinPlacement ? (
+            <PlanViewerLeafletEvents toolMode="pan" imageWidth={imageWidth} imageHeight={imageHeight} sessionId={sessionId} pins={pins} setPins={setPins} setQuickMenu={setQuickMenu} />
+          ) : null}
           {visiblePins.map((pin) => (
-            <Marker
-              key={pin.id}
-              position={pinToLatLng(pin, imageWidth, imageHeight)}
-              icon={createPinIcon(pin.label, pin.amber)}
-              draggable={isDraftPin(pin)}
-              eventHandlers={{
-                add: (event) => { if (!isDraftPin(pin)) isolateSavedPinMarker(event.target as L.Marker); },
-                click: (event) => { if (!isDraftPin(pin)) stopLeafletEvent(event); handlePinClick(pin.id); },
-                contextmenu: (event) => { if (!isDraftPin(pin)) stopLeafletEvent(event); handlePinClick(pin.id); },
-                mousedown: (event) => { if (!isDraftPin(pin)) stopLeafletEvent(event); },
-                mouseup: (event) => { if (!isDraftPin(pin)) stopLeafletEvent(event); },
-                dragstart: () => { if (isDraftPin(pin)) handleDraftPinDragStart(); },
-                drag: (event) => { if (isDraftPin(pin)) handleDraftPinMove(pin.id, (event.target as L.Marker).getLatLng()); },
-                dragend: (event) => { if (isDraftPin(pin)) handleDraftPinDragEnd(pin.id, event); },
-              }}
-            />
+            <Marker key={pin.id} position={pinToLatLng(pin, imageWidth, imageHeight)} icon={createPinIcon(pin.label, pin.amber)} />
           ))}
         </MapContainer>
       ) : (
@@ -207,25 +202,30 @@ export function PlanViewerLeaflet({ projectId, sessionId = "current-session", pl
           <Loader2 className="h-8 w-8 animate-spin text-amber-500" />
           <p className="text-sm font-black text-white">Loading plan…</p>
           <p className="text-xs font-semibold text-slate-400">
-            {!activePlanSet ? "No plan sets found for this project." : !hasRasterized ? "Plan is being processed. The image will appear shortly." : "Loading image…"}
+            {!activePlanSet ? "No plan sets found for this project." : "Plan is being processed. The image will appear shortly."}
           </p>
         </div>
       )}
-      {/* Plan toolbar */}
-      <PlanToolbar
-        fileUrl={null}
-        pages={pages.map((p) => ({ key: p.key, label: p.label, pageNumber: p.pageNumber }))}
-        activeIndex={safePageIndex}
-        zoomPercent={mapRef.current ? Math.round(Math.pow(2, mapRef.current.getZoom()) * 100) : 100}
-        filter={filter}
-        pinCount={visiblePins.length}
-        onSelect={setPageIndex}
-        onZoom={(delta) => { if (mapRef.current) delta > 0 ? mapRef.current.zoomIn(0.5) : mapRef.current.zoomOut(0.5); }}
-        onChangeFilter={setFilter}
-      />
 
-      {/* Quick action menu for pin */}
-      {quickMenu && (
+      {!hideToolbar ? (
+        <PlanToolbar
+          fileUrl={null}
+          pages={pages.map((p) => ({ key: p.key, label: p.label, pageNumber: p.pageNumber }))}
+          activeIndex={safePageIndex}
+          zoomPercent={mapRef.current ? Math.round(Math.pow(2, mapRef.current.getZoom()) * 100) : 100}
+          filter={filter}
+          pinCount={visiblePins.length}
+          onSelect={setPageIndex}
+          onZoom={(delta) => {
+            if (!mapRef.current) return;
+            if (delta > 0) mapRef.current.zoomIn(0.5);
+            else mapRef.current.zoomOut(0.5);
+          }}
+          onChangeFilter={setFilter}
+        />
+      ) : null}
+
+      {quickMenu ? (
         <PlanQuickActionMenu
           pinId={quickMenu.pinId}
           clientPinId={quickMenu.clientPinId}
@@ -233,30 +233,11 @@ export function PlanViewerLeaflet({ projectId, sessionId = "current-session", pl
           planSheetId={activePage?.sheetId ?? ""}
           xPct={quickMenu.xPct}
           yPct={quickMenu.yPct}
-          captureDisabledReason={captureDisabledReason}
+          captureDisabledReason={activePage && !activePage.sheetId ? "Sheet is still syncing." : undefined}
           onClose={() => setQuickMenu(null)}
           onCaptureRequest={onCaptureRequest}
         />
-      )}
+      ) : null}
     </div>
   );
-}
-
-function stopLeafletEvent(event: L.LeafletEvent) {
-  const sourceEvent = "originalEvent" in event ? event.originalEvent : null;
-  if (sourceEvent instanceof Event) {
-    L.DomEvent.stop(sourceEvent);
-  }
-}
-
-function isUuid(value: string) {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
-}
-
-function isDraftPin(pin: PlanViewerPin) {
-  return !pin.item_id && !isUuid(pin.id);
-}
-
-function clampPercent(value: number) {
-  return Math.min(100, Math.max(0, value));
 }
