@@ -125,6 +125,21 @@ async function main() {
   const first = await handleTwinJobCallback(admin, payload);
   if (!first.ok) throw new Error(`Completed callback failed: ${first.error}`);
 
+  const { data: completedNotification } = await admin
+    .from("project_notifications")
+    .select("id, user_id, project_id, title, message, link_path, is_read, created_at")
+    .eq("user_id", member.user_id)
+    .eq("link_path", `/digital-twin/twins/${space!.id}`)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (!completedNotification?.id || completedNotification.title !== "Your twin is ready") {
+    throw new Error(`Completion notification missing: ${JSON.stringify(completedNotification)}`);
+  }
+  cleanup.push(async () => {
+    await admin.from("project_notifications").delete().eq("id", completedNotification.id);
+  });
+
   const { data: model } = await admin
     .from("digital_twin_models")
     .select("id, storage_key, is_primary, status")
@@ -200,6 +215,21 @@ async function main() {
   });
   if (!failed.ok) throw new Error(`Failed callback errored: ${failed.error}`);
 
+  const { data: failedNotification } = await admin
+    .from("project_notifications")
+    .select("id, user_id, project_id, title, message, link_path, is_read, created_at")
+    .eq("user_id", member.user_id)
+    .eq("link_path", "/digital-twin/capture/review")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (!failedNotification?.id || failedNotification.title !== "Your scan couldn't be processed") {
+    throw new Error(`Failure notification missing: ${JSON.stringify(failedNotification)}`);
+  }
+  cleanup.push(async () => {
+    await admin.from("project_notifications").delete().eq("id", failedNotification.id);
+  });
+
   const { data: failAfter } = await admin
     .from("digital_twin_processing_jobs")
     .select("status, error_text, credits_charged")
@@ -224,8 +254,10 @@ async function main() {
   console.log("[smoke-dt-callback-runner] Results:");
   console.log(`  HMAC verify:          pass`);
   console.log(`  completed callback:   pass (model=${model.id}, charged=${chargedFirst})`);
+  console.log(`  completion notify:    pass (${JSON.stringify(completedNotification)})`);
   console.log(`  idempotent retry:     pass`);
   console.log(`  failed callback:      pass (no charge)`);
+  console.log(`  failure notify:       pass (${JSON.stringify(failedNotification)})`);
 
   for (const fn of cleanup.reverse()) {
     try {
