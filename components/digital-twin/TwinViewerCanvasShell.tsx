@@ -6,7 +6,7 @@ import {
   TwinViewerControlsOverlay,
   type TwinViewerCameraMode,
 } from "@/components/digital-twin/TwinViewerControlsOverlay";
-import { TwinViewerDiscoveryHint } from "@/components/digital-twin/TwinViewerDiscoveryHint";
+import { TwinViewerFooterDisclaimer } from "@/components/digital-twin/TwinViewerDisclaimer";
 import type { SplatViewerHandle } from "@/components/digital-twin/splat-viewer-core";
 import { useVisualViewportBottomInset } from "@/lib/hooks/useVisualViewportBottomInset";
 
@@ -19,14 +19,12 @@ type Props = {
   commentsTitle?: string;
   commentsContent: ReactNode;
   toast?: string | null;
-  topHint?: ReactNode;
-  footerHint?: ReactNode;
-  showDiscoveryHint?: boolean;
+  showDisclaimer?: boolean;
   cameraMode?: TwinViewerCameraMode;
   onToggleCameraMode?: () => void;
 };
 
-const MOBILE_CONTROLS_OFFSET_PX = 16;
+const MOBILE_CONTROLS_OFFSET_PX = 12;
 
 export function TwinViewerCanvasShell({
   children,
@@ -37,9 +35,7 @@ export function TwinViewerCanvasShell({
   commentsTitle,
   commentsContent,
   toast,
-  topHint,
-  footerHint,
-  showDiscoveryHint = false,
+  showDisclaimer = true,
   cameraMode = "orbit",
   onToggleCameraMode,
 }: Props) {
@@ -65,43 +61,21 @@ export function TwinViewerCanvasShell({
     await el.requestFullscreen();
   }, []);
 
-  const mobileControlsBottom = `calc(env(safe-area-inset-bottom, 0px) + ${viewportBottomInset + MOBILE_CONTROLS_OFFSET_PX}px)`;
-  const toastBottom = `calc(env(safe-area-inset-bottom, 0px) + ${viewportBottomInset + 72}px)`;
-  const discoveryBottom = `calc(env(safe-area-inset-bottom, 0px) + ${viewportBottomInset + 64}px)`;
+  const controlsBottom = `calc(env(safe-area-inset-bottom, 0px) + ${viewportBottomInset + MOBILE_CONTROLS_OFFSET_PX}px)`;
+  const disclaimerBottom = `calc(env(safe-area-inset-bottom, 0px) + ${viewportBottomInset + 4}px)`;
+  const toastBottom = `calc(env(safe-area-inset-bottom, 0px) + ${viewportBottomInset + 56}px)`;
 
   return (
     <div
       ref={containerRef}
       className="relative h-full min-h-0 w-full overflow-hidden bg-[var(--graphite-canvas)]"
-      style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
     >
       <div className="relative z-0 h-full min-h-0 w-full">{children}</div>
 
       <div className="pointer-events-none absolute inset-0 z-20">
-        {topHint ? (
-          <div className="pointer-events-auto absolute left-3 top-[max(0.75rem,env(safe-area-inset-top))] z-30 max-w-[min(100%,18rem)]">
-            {topHint}
-          </div>
-        ) : null}
-
-        {footerHint ? (
-          <div className="pointer-events-none absolute bottom-[calc(env(safe-area-inset-bottom,0px)+4.5rem)] left-3 z-20 max-w-[min(100%,16rem)] md:bottom-auto md:left-3 md:top-[calc(max(0.75rem,env(safe-area-inset-top))+3.25rem)]">
-            {footerHint}
-          </div>
-        ) : null}
-
-        {showDiscoveryHint ? (
-          <div
-            className="pointer-events-none absolute inset-x-0 z-20 flex justify-center px-4"
-            style={{ bottom: discoveryBottom }}
-          >
-            <TwinViewerDiscoveryHint className="max-w-sm" />
-          </div>
-        ) : null}
-
         <div
-          className="pointer-events-auto absolute left-1/2 z-30 -translate-x-1/2 md:bottom-4 md:left-auto md:right-4 md:translate-x-0"
-          style={{ bottom: mobileControlsBottom }}
+          className="pointer-events-auto absolute left-1/2 z-30 -translate-x-1/2 md:left-auto md:right-3 md:translate-x-0"
+          style={{ bottom: controlsBottom }}
         >
           <TwinViewerControlsOverlay
             isFullscreen={isFullscreen}
@@ -112,7 +86,7 @@ export function TwinViewerCanvasShell({
           />
         </div>
 
-        <div className="pointer-events-auto absolute right-3 top-[max(0.75rem,env(safe-area-inset-top))] z-30 md:bottom-auto md:top-1/2 md:-translate-y-1/2">
+        <div className="pointer-events-auto absolute right-3 top-[max(0.75rem,env(safe-area-inset-top))] z-30">
           <TwinCommentsOverlay
             open={commentsOpen}
             onToggle={onToggleComments}
@@ -122,6 +96,15 @@ export function TwinViewerCanvasShell({
             {commentsContent}
           </TwinCommentsOverlay>
         </div>
+
+        {showDisclaimer ? (
+          <div
+            className="pointer-events-none absolute inset-x-0 z-10 flex justify-center px-3"
+            style={{ bottom: disclaimerBottom }}
+          >
+            <TwinViewerFooterDisclaimer className="relative" />
+          </div>
+        ) : null}
 
         {toast ? (
           <p

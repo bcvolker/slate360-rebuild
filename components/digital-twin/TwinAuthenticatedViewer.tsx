@@ -136,6 +136,24 @@ export function TwinAuthenticatedViewer({
 
   const commentsContent = (
     <div className="space-y-2 pb-2">
+      {splatReady ? (
+        <TwinMeasureTool
+          active={measureActive}
+          hasFirstPoint={measureA !== null}
+          busy={busy}
+          splatReady={splatReady}
+          onToggle={() => {
+            if (measureActive) {
+              cancelMeasure();
+            } else {
+              setMeasureActive(true);
+              setMeasureA(null);
+              setError(null);
+            }
+          }}
+          onCancel={cancelMeasure}
+        />
+      ) : null}
       <TwinCollaborationPanel
         spaceId={spaceId}
         onCountsChange={setCommentCount}
@@ -154,7 +172,7 @@ export function TwinAuthenticatedViewer({
       commentsTitle="Collaboration"
       commentsContent={commentsContent}
       toast={toast}
-      showDiscoveryHint={splatReady}
+      showDisclaimer={false}
       cameraMode={cameraMode}
       onToggleCameraMode={() => {
         if (cameraMode === "interior") {
@@ -164,28 +182,6 @@ export function TwinAuthenticatedViewer({
         }
         setCameraMode("interior");
       }}
-      topHint={
-        splatReady ? (
-          <div className="flex flex-wrap items-center gap-2">
-            <TwinMeasureTool
-              active={measureActive}
-              hasFirstPoint={measureA !== null}
-              busy={busy}
-              splatReady={splatReady}
-              onToggle={() => {
-                if (measureActive) {
-                  cancelMeasure();
-                } else {
-                  setMeasureActive(true);
-                  setMeasureA(null);
-                  setError(null);
-                }
-              }}
-              onCancel={cancelMeasure}
-            />
-          </div>
-        ) : null
-      }
     >
       {splatReady ? (
         <TwinShareSplatViewer

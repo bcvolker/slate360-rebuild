@@ -7,7 +7,6 @@ import {
 } from "@/components/external-portal";
 import { TwinShareAnnotateShell } from "@/components/digital-twin/TwinShareAnnotateShell";
 import { TwinShareDownloadButton } from "@/components/digital-twin/TwinShareDownloadButton";
-import { TwinViewerDisclaimer } from "@/components/digital-twin/TwinViewerDisclaimer";
 import type { TwinViewerKind } from "@/lib/digital-twin/viewer-format";
 
 export function TwinShareViewer({
@@ -77,16 +76,11 @@ export function TwinShareViewer({
     >
       <main className="relative min-h-0 flex-1 overflow-hidden">
         {viewer}
-        <div className="pointer-events-none absolute left-3 top-3 z-10">
-          {canDownload && shareToken ? (
-            <div className="pointer-events-auto">
-              <TwinShareDownloadButton shareToken={shareToken} />
-            </div>
-          ) : null}
-        </div>
-        <p className="pointer-events-none absolute left-3 top-[calc(max(0.75rem,env(safe-area-inset-top))+2.75rem)] z-10 max-w-xs text-[10px] leading-relaxed text-[var(--graphite-muted)]">
-          <TwinViewerDisclaimer className="inline text-left" />
-        </p>
+        {canDownload && shareToken ? (
+          <div className="pointer-events-auto absolute left-3 top-[max(0.75rem,env(safe-area-inset-top))] z-30">
+            <TwinShareDownloadButton shareToken={shareToken} />
+          </div>
+        ) : null}
       </main>
     </ExternalPortalShell>
   );

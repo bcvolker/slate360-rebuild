@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown, ChevronUp, MessageSquare, X } from "lucide-react";
+import { ChevronDown, MessageSquare, MoreHorizontal, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { twinAccent } from "@/lib/digital-twin/twin-accent";
 import type { ReactNode } from "react";
@@ -28,18 +28,18 @@ export function TwinCommentsOverlay({
         <button
           type="button"
           onClick={onToggle}
-          className={cn(
-            twinAccent.button,
-            "inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-[11px] font-semibold shadow-[0_4px_24px_rgba(0,0,0,0.4)]",
-          )}
+          className="relative inline-flex size-10 items-center justify-center rounded-xl border border-white/10 bg-[color-mix(in_srgb,var(--graphite-canvas)_70%,transparent)] text-zinc-200 shadow-[0_4px_24px_rgba(0,0,0,0.35)] backdrop-blur-md"
           aria-expanded={false}
+          aria-label={`${title}${count > 0 ? ` (${count})` : ""}`}
+          title={title}
+          data-twin-chrome="viewer-overflow"
         >
-          <MessageSquare className="size-3.5" aria-hidden />
-          {title}
+          <MoreHorizontal className="size-4" aria-hidden />
           {count > 0 ? (
-            <span className="rounded-full bg-white/15 px-1.5 py-0.5 text-[10px]">{count}</span>
+            <span className="absolute -right-1 -top-1 flex size-4 items-center justify-center rounded-full bg-[var(--twin360-blue)] text-[9px] font-bold text-[var(--graphite-canvas)]">
+              {count > 9 ? "9+" : count}
+            </span>
           ) : null}
-          <ChevronUp className="size-3.5 opacity-70" aria-hidden />
         </button>
       ) : (
         <div

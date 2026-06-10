@@ -14,8 +14,11 @@ type Props = {
   className?: string;
 };
 
+const glassCluster =
+  "flex items-center gap-0.5 rounded-xl border border-white/10 bg-[color-mix(in_srgb,var(--graphite-canvas)_70%,transparent)] p-0.5 shadow-[0_6px_24px_rgba(0,0,0,0.35)] backdrop-blur-md";
+
 const btnClass =
-  "inline-flex size-11 min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-zinc-200 transition-colors hover:bg-white/10 active:bg-white/15";
+  "inline-flex size-10 items-center justify-center rounded-lg text-zinc-200 transition-colors hover:bg-white/10 active:bg-white/15";
 
 export function TwinViewerControlsOverlay({
   isFullscreen,
@@ -29,12 +32,10 @@ export function TwinViewerControlsOverlay({
 
   return (
     <div
-      className={cn(
-        "pointer-events-auto flex items-center gap-0.5 rounded-xl border border-white/10 bg-[color-mix(in_srgb,var(--graphite-canvas)_78%,transparent)] p-1 shadow-[0_6px_24px_rgba(0,0,0,0.4)] backdrop-blur-xl",
-        className,
-      )}
+      className={cn(glassCluster, className)}
       role="toolbar"
       aria-label="3D viewer controls"
+      data-twin-chrome="viewer-controls"
     >
       <button
         type="button"
@@ -49,8 +50,8 @@ export function TwinViewerControlsOverlay({
         type="button"
         onClick={onToggleCameraMode}
         className={btnClass}
-        aria-label={inWalkMode ? "Switch to overview" : "Switch to walk mode"}
-        title={inWalkMode ? "Overview" : "Walk inside"}
+        aria-label={inWalkMode ? "Switch to orbit overview" : "Switch to walk mode"}
+        title={inWalkMode ? "Orbit" : "Walk"}
       >
         {inWalkMode ? <Map className="size-4" aria-hidden /> : <Footprints className="size-4" aria-hidden />}
       </button>

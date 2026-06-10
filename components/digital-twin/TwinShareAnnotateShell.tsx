@@ -287,7 +287,6 @@ export function TwinShareAnnotateShell({
       commentsTitle="Activity"
       commentsContent={commentsContent}
       toast={toast}
-      showDiscoveryHint={splatReady}
       cameraMode={cameraMode}
       onToggleCameraMode={() => {
         if (cameraMode === "interior") {
