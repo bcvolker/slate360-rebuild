@@ -3,7 +3,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { useCamera } from "@/lib/hooks/useCamera";
 import { useTwinVideoRecorder } from "@/hooks/useTwinVideoRecorder";
-import { useTwinCaptureSession } from "@/hooks/useTwinCaptureSession";
+import {
+  useTwinCaptureSession,
+  type TwinCaptureClipReviewPayload,
+} from "@/hooks/useTwinCaptureSession";
 import {
   getTwinVideoTrack,
   isTwinDepthSupported,
@@ -19,6 +22,7 @@ import { TwinCaptureTopBar } from "./TwinCaptureTopBar";
 
 export type TwinCaptureFinishResult = {
   files: File[];
+  clips: TwinCaptureClipReviewPayload[];
   photoCount: number;
   videoSeconds: number;
   estimatedBytes: number;
@@ -101,10 +105,11 @@ export function TwinCaptureScreen({
   }, [camera, onCancel]);
 
   const handleFinish = useCallback(async () => {
-    const files = await session.collectFiles();
+    const review = await session.collectForReview();
     camera.stopCamera();
     onFinish?.({
-      files,
+      files: review.allFiles,
+      clips: review.clips,
       photoCount,
       videoSeconds,
       estimatedBytes,

@@ -2,12 +2,9 @@
 
 import { useEffect, useState } from "react";
 
-export type TwinCreditEstimate = {
-  creditsRequired: number;
-  creditsBalance: number;
-  sufficient: boolean;
-  assetCount: number;
-};
+import type { TwinJobCreditEstimate } from "@/lib/twin/processing-estimate-types";
+
+export type TwinCreditEstimate = TwinJobCreditEstimate;
 
 export function useTwinCreditEstimate(captureId: string | null, enabled = true) {
   const [estimate, setEstimate] = useState<TwinCreditEstimate | null>(null);

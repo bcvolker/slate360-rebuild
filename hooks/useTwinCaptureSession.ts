@@ -36,8 +36,19 @@ type Args = {
   videoRecorder: RecorderApi;
 };
 
+export type TwinCaptureClipReviewPayload = {
+  id: string;
+  index: number;
+  mode: TwinCaptureMode;
+  durationSeconds: number;
+  frameCount: number;
+  files: File[];
+  thumbnailUrl: string | null;
+};
+
 export function useTwinCaptureSession({ camera, videoRecorder }: Args) {
   const capturedFilesRef = useRef<File[]>([]);
+  const clipFilesRef = useRef<Map<string, File[]>>(new Map());
   const [mode, setMode] = useState<TwinCaptureMode>("video");
   const [clips, setClips] = useState<TwinCaptureClip[]>([]);
   const [activeClipId, setActiveClipId] = useState<string | null>(null);
@@ -98,6 +109,8 @@ export function useTwinCaptureSession({ camera, videoRecorder }: Args) {
       if (!result) return;
       const file = new File([result.blob], `photo_${Date.now()}.jpg`, { type: "image/jpeg" });
       capturedFilesRef.current.push(file);
+      const bucket = clipFilesRef.current.get(clipId) ?? [];
+      clipFilesRef.current.set(clipId, [...bucket, file]);
       setClips((prev) =>
         prev.map((clip) =>
           clip.id === clipId ? { ...clip, frameCount: clip.frameCount + 1 } : clip,
@@ -165,6 +178,7 @@ export function useTwinCaptureSession({ camera, videoRecorder }: Args) {
     const file = await videoRecorder.stopRecording();
     if (file && clipId) {
       capturedFilesRef.current.push(file);
+      clipFilesRef.current.set(clipId, [file]);
       setClips((prev) =>
         prev.map((clip) =>
           clip.id === clipId
@@ -203,18 +217,40 @@ export function useTwinCaptureSession({ camera, videoRecorder }: Args) {
     [isRecording],
   );
 
-  const collectFiles = useCallback(async (): Promise<File[]> => {
+  const collectForReview = useCallback(async (): Promise<{
+    clips: TwinCaptureClipReviewPayload[];
+    allFiles: File[];
+  }> => {
     stopPhotoInterval();
     stopDurationTimer();
     if (videoRecording) {
       const file = await videoRecorder.stopRecording();
-      if (file) capturedFilesRef.current.push(file);
+      if (file && activeClipId) {
+        capturedFilesRef.current.push(file);
+        clipFilesRef.current.set(activeClipId, [file]);
+      }
       if (activeClipId) finalizeClip(activeClipId);
     }
     if (photoAutoActive) stopPhotoClip();
-    return [...capturedFilesRef.current];
+
+    const clipsPayload = clips.map((clip) => {
+      const files = clipFilesRef.current.get(clip.id) ?? [];
+      const thumbFile = files.find((row) => row.type.startsWith("image/"));
+      return {
+        id: clip.id,
+        index: clip.index,
+        mode: clip.mode,
+        durationSeconds: clip.durationSeconds,
+        frameCount: clip.frameCount,
+        files,
+        thumbnailUrl: thumbFile ? URL.createObjectURL(thumbFile) : null,
+      };
+    });
+
+    return { clips: clipsPayload, allFiles: [...capturedFilesRef.current] };
   }, [
     activeClipId,
+    clips,
     finalizeClip,
     photoAutoActive,
     stopDurationTimer,
@@ -223,6 +259,11 @@ export function useTwinCaptureSession({ camera, videoRecorder }: Args) {
     videoRecording,
     videoRecorder,
   ]);
+
+  const collectFiles = useCallback(async (): Promise<File[]> => {
+    const review = await collectForReview();
+    return review.allFiles;
+  }, [collectForReview]);
 
   return {
     mode,
@@ -238,6 +279,7 @@ export function useTwinCaptureSession({ camera, videoRecorder }: Args) {
     handleModeChange,
     cyclePhotoInterval,
     collectFiles,
+    collectForReview,
     getActiveStream,
   };
 }
