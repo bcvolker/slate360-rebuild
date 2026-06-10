@@ -13,12 +13,13 @@ export function resolvePlanLeafletBounds(
 }
 
 export function fitPlanLeafletMap(
-  map: L.Map,
+  map: L.Map | null | undefined,
   sheet: Pick<SiteWalkPlanSheet, "metadata"> | null | undefined,
   imageWidth: number,
   imageHeight: number,
   padding: CapturePlanFitPadding,
 ) {
+  if (!map) return;
   const bounds = resolvePlanLeafletBounds(sheet, imageWidth, imageHeight);
   map.fitBounds(bounds, {
     paddingTopLeft: [padding.left, padding.top],

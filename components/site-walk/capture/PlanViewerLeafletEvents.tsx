@@ -5,51 +5,116 @@ import L from "leaflet";
 import { useMap, useMapEvents } from "react-leaflet";
 import type { PlanViewerPin } from "./PlanPin";
 import { createClientPinId, type QuickMenuState } from "./planViewerModel";
+import { PLAN_PIN_MARKER } from "@/lib/capture-v2/plan-pin-marker-tokens";
+
+export type PlanPinDropPayload = {
+  clientPinId: string;
+  planSheetId: string;
+  xPct: number;
+  yPct: number;
+  pinNumber: number;
+  pin: PlanViewerPin;
+};
 
 type Props = {
   toolMode: "pan" | "draw";
   imageWidth: number;
   imageHeight: number;
   sessionId: string;
+  planSheetId: string;
   pins: PlanViewerPin[];
   setPins: Dispatch<SetStateAction<PlanViewerPin[]>>;
   setQuickMenu: Dispatch<SetStateAction<QuickMenuState>>;
+  onPinDropped?: (payload: PlanPinDropPayload) => void;
+  onPersistPin?: (pin: PlanViewerPin) => Promise<{ id: string } | null>;
+  useSourcePickerFlow?: boolean;
 };
 
-const LONG_PRESS_MS = 550;
 const MOVE_CANCEL_PX = 10;
 
-export function PlanViewerLeafletEvents({ toolMode, imageWidth, imageHeight, sessionId, pins, setPins, setQuickMenu }: Props) {
+export function PlanViewerLeafletEvents({
+  toolMode,
+  imageWidth,
+  imageHeight,
+  sessionId,
+  planSheetId,
+  pins,
+  setPins,
+  setQuickMenu,
+  onPinDropped,
+  onPersistPin,
+  useSourcePickerFlow = false,
+}: Props) {
   const map = useMap();
   const timerRef = useRef<number | null>(null);
   const pressRef = useRef<{ pointerId: number; x: number; y: number; pointerCount: number } | null>(null);
   const pointerCountRef = useRef(0);
-  const lastCreateAtRef = useRef(0);
+  const sessionPinCount = pins.filter((pin) => pin.session_id === sessionId).length;
 
   const createPinAtLatLng = useCallback((latLng: L.LatLng) => {
-    if (Date.now() - lastCreateAtRef.current < 700) return;
     const yPct = (latLng.lat / imageHeight) * 100;
     const xPct = (latLng.lng / imageWidth) * 100;
     if (xPct < 0 || xPct > 100 || yPct < 0 || yPct > 100) return;
-    lastCreateAtRef.current = Date.now();
     const clientPinId = createClientPinId();
+    const pinNumber = sessionPinCount + 1;
     const newPin: PlanViewerPin = {
       id: clientPinId,
       client_pin_id: clientPinId,
       x_pct: xPct,
       y_pct: yPct,
       session_id: sessionId,
-      label: String(pins.length + 1).padStart(2, "0"),
+      label: String(pinNumber).padStart(2, "0"),
       amber: true,
       item_id: null,
     };
-    console.log("[PLAN_WALK] draft pin created", { clientPinId });
-    console.log("[PLAN_WALK] coordinates calculated", { xPct, yPct, clientPinId });
     setPins((current) => [...current, newPin]);
-    setQuickMenu({ clientPinId, xPct, yPct });
-    console.log("[PLAN_WALK] action sheet visible");
+
+    const finalizeDrop = (serverId: string | null) => {
+      const reconciled = { ...newPin, id: serverId ?? newPin.id };
+      if (useSourcePickerFlow && onPinDropped) {
+        onPinDropped({
+          clientPinId,
+          planSheetId,
+          xPct,
+          yPct,
+          pinNumber,
+          pin: reconciled,
+        });
+        return;
+      }
+      setQuickMenu({ clientPinId, xPct, yPct });
+    };
+
+    if (onPersistPin) {
+      void onPersistPin(newPin).then((saved) => {
+        if (!saved?.id) {
+          finalizeDrop(null);
+          return;
+        }
+        setPins((current) =>
+          current.map((entry) =>
+            entry.client_pin_id === clientPinId ? { ...entry, id: saved.id } : entry,
+          ),
+        );
+        finalizeDrop(saved.id);
+      });
+      return;
+    }
+
+    finalizeDrop(null);
     if (navigator.vibrate) navigator.vibrate(50);
-  }, [imageHeight, imageWidth, pins.length, sessionId, setPins, setQuickMenu]);
+  }, [
+    imageHeight,
+    imageWidth,
+    onPersistPin,
+    onPinDropped,
+    planSheetId,
+    sessionId,
+    sessionPinCount,
+    setPins,
+    setQuickMenu,
+    useSourcePickerFlow,
+  ]);
 
   useEffect(() => {
     if (toolMode === "draw") map.dragging.disable();
@@ -87,7 +152,7 @@ export function PlanViewerLeafletEvents({ toolMode, imageWidth, imageHeight, ses
         console.log("[PLAN_WALK] long press detected");
         createPinAtLatLng(latLng);
         pressRef.current = null;
-      }, LONG_PRESS_MS);
+      }, PLAN_PIN_MARKER.longPressMs);
     }
 
     function handlePointerMove(event: PointerEvent) {

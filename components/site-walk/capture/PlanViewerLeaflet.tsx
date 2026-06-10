@@ -5,43 +5,45 @@ import L from "leaflet";
 import { ImageOverlay, MapContainer, Marker } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import { Loader2 } from "lucide-react";
-import type { SiteWalkPlanSet, SiteWalkPlanSheet } from "@/lib/types/site-walk";
+import { createPlanPinMarkerIcon } from "@/components/capture-v2/plan-canvas/plan-pin-marker-icon";
 import { capturePlanFitPadding } from "@/lib/site-walk/capture-plan-canvas-tokens";
 import { fitPlanLeafletMap } from "@/lib/site-walk/plan-leaflet-fit";
+import type { SiteWalkPlanSet, SiteWalkPlanSheet } from "@/lib/types/site-walk";
 import type { LayerFilter } from "./plan-layer-types";
 import type { PlanViewerPin } from "./PlanPin";
 import { PlanQuickActionMenu } from "./PlanQuickActionMenu";
 import { PlanToolbar } from "./PlanToolbar";
-import { PlanViewerLeafletEvents } from "./PlanViewerLeafletEvents";
+import { PlanViewerLeafletEvents, type PlanPinDropPayload } from "./PlanViewerLeafletEvents";
 import type { PlanPage, QuickMenuState } from "./planViewerModel";
+import { usePlanViewerLeafletPins } from "./usePlanViewerLeafletPins";
 
 type Props = {
   projectId?: string | null;
   sessionId?: string;
   planSets?: SiteWalkPlanSet[];
   sheets?: SiteWalkPlanSheet[];
-  items?: { id: string; title?: string; description?: string | null }[];
+  items?: { id: string; title?: string; description?: string | null; thumbnail_url?: string | null }[];
   onCaptureRequest?: (input: "camera" | "upload") => void;
   onSelectItem?: (itemId: string) => void;
+  onPinDropped?: (payload: PlanPinDropPayload) => void;
+  onSessionPinTap?: (pin: PlanViewerPin) => void;
   hideToolbar?: boolean;
   pageIndex?: number;
   onPageIndexChange?: (index: number) => void;
   sheetImageUrls?: Record<string, string>;
   fitPadding?: ReturnType<typeof capturePlanFitPadding>;
   allowPinPlacement?: boolean;
+  useSourcePickerFlow?: boolean;
+  pinRefreshKey?: number;
+  devExposeMap?: boolean;
 };
 
 function pinToLatLng(pin: { x_pct: number; y_pct: number }, width: number, height: number): L.LatLngExpression {
   return [(pin.y_pct / 100) * height, (pin.x_pct / 100) * width];
 }
 
-function createPinIcon(label: string, amber: boolean): L.DivIcon {
-  return L.divIcon({
-    className: "",
-    iconSize: [28, 36],
-    iconAnchor: [14, 36],
-    html: `<div style="display:flex;flex-direction:column;align-items:center"><div style="width:28px;height:28px;border-radius:50%;background:${amber ? "#f59e0b" : "#64748b"};color:${amber ? "#0c0a09" : "#fff"};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;border:2px solid ${amber ? "#fbbf24" : "#94a3b8"};box-shadow:0 2px 8px rgba(0,0,0,0.3)">${label}</div><div style="width:2px;height:8px;background:${amber ? "#f59e0b" : "#64748b"};border-radius:1px"></div></div>`,
-  });
+function isUuid(value: string) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 }
 
 export function PlanViewerLeaflet({
@@ -52,15 +54,19 @@ export function PlanViewerLeaflet({
   items = [],
   onCaptureRequest,
   onSelectItem,
+  onPinDropped,
+  onSessionPinTap,
   hideToolbar = false,
   pageIndex: controlledPageIndex,
   onPageIndexChange,
   sheetImageUrls,
   fitPadding,
   allowPinPlacement = true,
+  useSourcePickerFlow = false,
+  pinRefreshKey = 0,
+  devExposeMap = false,
 }: Props) {
   const [internalPageIndex, setInternalPageIndex] = useState(0);
-  const [pins, setPins] = useState<PlanViewerPin[]>([]);
   const [filter, setFilter] = useState<LayerFilter>("all");
   const [quickMenu, setQuickMenu] = useState<QuickMenuState>(null);
   const mapRef = useRef<L.Map | null>(null);
@@ -110,6 +116,13 @@ export function PlanViewerLeaflet({
     [imageHeight, imageWidth],
   );
 
+  const { pins, setPins, persistPin } = usePlanViewerLeafletPins({
+    planSheetId: activePage?.sheetId,
+    sessionId,
+    projectId,
+    pinRefreshKey,
+  });
+
   const refitMap = useCallback(() => {
     const map = mapRef.current;
     if (!map || !hasRasterized) return;
@@ -128,35 +141,6 @@ export function PlanViewerLeaflet({
     return () => observer.disconnect();
   }, [refitMap]);
 
-  useEffect(() => {
-    if (!activePage?.sheetId) {
-      setPins([]);
-      return;
-    }
-    let cancelled = false;
-    fetch(`/api/site-walk/pins?plan_sheet_id=${encodeURIComponent(activePage.sheetId)}`, { cache: "no-store" })
-      .then((r) => (r.ok ? (r.json() as Promise<{ pins?: Array<{ id: string; client_pin_id: string | null; plan_sheet_id: string; x_pct: number; y_pct: number; pin_number: number | null; label: string | null; session_id: string; item_id: string | null }> }>) : null))
-      .then((data) => {
-        if (cancelled || !data?.pins) return;
-        setPins(
-          data.pins.map((p, i) => ({
-            id: p.id,
-            client_pin_id: p.client_pin_id,
-            x_pct: p.x_pct,
-            y_pct: p.y_pct,
-            session_id: p.session_id,
-            label: p.pin_number ? String(p.pin_number).padStart(2, "0") : String(i + 1).padStart(2, "0"),
-            amber: p.session_id === sessionId,
-            item_id: p.item_id,
-          })),
-        );
-      })
-      .catch(() => undefined);
-    return () => {
-      cancelled = true;
-    };
-  }, [activePage?.sheetId, sessionId]);
-
   const visiblePins = pins.filter((pin) => {
     if (filter === "none") return false;
     if (filter === "current") return pin.session_id === sessionId;
@@ -164,11 +148,39 @@ export function PlanViewerLeaflet({
   });
 
   const handleMapCreated = useCallback(
-    (map: L.Map) => {
+    (map: L.Map | null) => {
+      if (!map) return;
       mapRef.current = map;
+      if (devExposeMap && typeof window !== "undefined") {
+        const win = window as Window & {
+          __devPlanLeafletMap?: L.Map;
+          __devPlanImageSize?: { width: number; height: number };
+        };
+        win.__devPlanLeafletMap = map;
+        win.__devPlanImageSize = { width: imageWidth, height: imageHeight };
+      }
       if (hasRasterized) fitPlanLeafletMap(map, activeSheet, imageWidth, imageHeight, padding);
     },
-    [activeSheet, hasRasterized, imageHeight, imageWidth, padding],
+    [activeSheet, devExposeMap, hasRasterized, imageHeight, imageWidth, padding],
+  );
+
+  const handleMarkerTap = useCallback(
+    (pin: PlanViewerPin) => {
+      if (pin.session_id !== sessionId) return;
+      if (pin.item_id && onSessionPinTap) {
+        onSessionPinTap(pin);
+        return;
+      }
+      if (useSourcePickerFlow) return;
+      setQuickMenu({
+        pinId: isUuid(pin.id) ? pin.id : null,
+        clientPinId: pin.client_pin_id ?? pin.id,
+        xPct: pin.x_pct,
+        yPct: pin.y_pct,
+        isSavedPin: Boolean(pin.item_id),
+      });
+    },
+    [onSessionPinTap, sessionId, useSourcePickerFlow],
   );
 
   return (
@@ -191,11 +203,44 @@ export function PlanViewerLeaflet({
         >
           <ImageOverlay url={imageUrl} bounds={bounds} />
           {allowPinPlacement ? (
-            <PlanViewerLeafletEvents toolMode="pan" imageWidth={imageWidth} imageHeight={imageHeight} sessionId={sessionId} pins={pins} setPins={setPins} setQuickMenu={setQuickMenu} />
+            <PlanViewerLeafletEvents
+              toolMode="pan"
+              imageWidth={imageWidth}
+              imageHeight={imageHeight}
+              sessionId={sessionId}
+              planSheetId={activePage?.sheetId ?? ""}
+              pins={pins}
+              setPins={setPins}
+              setQuickMenu={setQuickMenu}
+              onPinDropped={onPinDropped}
+              onPersistPin={persistPin}
+              useSourcePickerFlow={useSourcePickerFlow}
+            />
           ) : null}
-          {visiblePins.map((pin) => (
-            <Marker key={pin.id} position={pinToLatLng(pin, imageWidth, imageHeight)} icon={createPinIcon(pin.label, pin.amber)} />
-          ))}
+          {visiblePins.map((pin) => {
+            const currentSession = pin.session_id === sessionId;
+            const captured = Boolean(pin.item_id);
+            return (
+              <Marker
+                key={pin.client_pin_id ?? pin.id}
+                position={pinToLatLng(pin, imageWidth, imageHeight)}
+                icon={createPlanPinMarkerIcon({
+                  label: pin.label,
+                  currentSession,
+                  captured,
+                  xPct: pin.x_pct,
+                  yPct: pin.y_pct,
+                })}
+                eventHandlers={
+                  currentSession
+                    ? {
+                        click: () => handleMarkerTap(pin),
+                      }
+                    : undefined
+                }
+              />
+            );
+          })}
         </MapContainer>
       ) : (
         <div className="flex h-full w-full flex-col items-center justify-center gap-3 px-6 text-center">
@@ -225,7 +270,7 @@ export function PlanViewerLeaflet({
         />
       ) : null}
 
-      {quickMenu ? (
+      {quickMenu && !useSourcePickerFlow ? (
         <PlanQuickActionMenu
           pinId={quickMenu.pinId}
           clientPinId={quickMenu.clientPinId}
@@ -241,3 +286,5 @@ export function PlanViewerLeaflet({
     </div>
   );
 }
+
+export type { PlanPinDropPayload };
