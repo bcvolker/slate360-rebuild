@@ -28,6 +28,7 @@ export function TwinCaptureModeSelector({
     <div
       className="pointer-events-auto absolute inset-x-0 z-20 flex items-center justify-center gap-6"
       style={{ bottom: `calc(${TWIN_CAPTURE_CHROME.modeSelectorBottomPx}px + ${safeBottom})` }}
+      data-twin-chrome="mode-selector"
       role="tablist"
       aria-label="Capture mode"
     >

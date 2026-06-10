@@ -16,10 +16,11 @@ export function TwinCaptureClipChips({ hidden, clips }: Props) {
 
   return (
     <div
-      className="pointer-events-none absolute left-0 z-20 flex max-w-[88%] gap-2 overflow-x-auto no-scrollbar px-3"
+      className="pointer-events-none absolute inset-x-0 z-20 flex justify-start gap-2 overflow-x-auto no-scrollbar px-3"
       style={{
         bottom: `calc(${TWIN_CAPTURE_CHROME.clipChipsBottomPx}px + ${safeBottom})`,
       }}
+      data-twin-chrome="clip-chips"
       aria-label="Recorded clips"
     >
       {clips.map((clip) => {

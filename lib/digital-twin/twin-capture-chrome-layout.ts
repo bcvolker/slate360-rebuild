@@ -6,7 +6,7 @@ export const TWIN_CAPTURE_CHROME = {
   sideInsetPx: 12,
   railSideInsetPx: 16,
   railLabelBottomPx: 44,
-  shutterBottomPx: 116,
+  railLabelRowPx: 15,
   shutterSizePx: 72,
   shutterInnerPx: 58,
   shutterRaisePx: 16,
@@ -15,30 +15,35 @@ export const TWIN_CAPTURE_CHROME = {
   lightButtonSizePx: 50,
   doneButtonSizePx: 56,
   modeSelectorRowPx: 36,
-  modeSelectorBottomPx: 208,
-  clipChipsBottomPx: 256,
+  modeSelectorBottomPx: 167,
+  clipChipsBottomPx: 215,
+  clipChipsRowPx: 28,
   lidarChipTopGapPx: 8,
   chromeClearancePx: 20,
+  clipToModeGapPx: 12,
 } as const;
 
 export function measureTwinCaptureClearance(viewportHeightPx: number) {
-  const shutterTopFromBottom =
-    TWIN_CAPTURE_CHROME.shutterBottomPx + TWIN_CAPTURE_CHROME.shutterSizePx;
+  const shutterBottomFromBottom =
+    TWIN_CAPTURE_CHROME.railLabelBottomPx +
+    TWIN_CAPTURE_CHROME.railLabelRowPx +
+    TWIN_CAPTURE_CHROME.shutterRaisePx;
+  const shutterTopFromBottom = shutterBottomFromBottom + TWIN_CAPTURE_CHROME.shutterSizePx;
   const modeBottomFromBottom = TWIN_CAPTURE_CHROME.modeSelectorBottomPx;
   const modeTopFromBottom = modeBottomFromBottom + TWIN_CAPTURE_CHROME.modeSelectorRowPx;
   const clipBottomFromBottom = TWIN_CAPTURE_CHROME.clipChipsBottomPx;
   const hintTopFromBottom = TWIN_CAPTURE_CHROME.hintBottomPx + 14;
-  const shutterHintGapPx = TWIN_CAPTURE_CHROME.shutterBottomPx - hintTopFromBottom;
+  const shutterHintGapPx = shutterBottomFromBottom - hintTopFromBottom;
 
   return {
     viewportHeightPx,
     shutterTopFromBottomPx: shutterTopFromBottom,
+    shutterBottomFromBottomPx: shutterBottomFromBottom,
     modeSelectorBottomFromBottomPx: modeBottomFromBottom,
     modeSelectorTopFromBottomPx: modeTopFromBottom,
-    modeToShutterGapPx: modeTopFromBottom - shutterTopFromBottom,
+    modeToShutterGapPx: modeBottomFromBottom - shutterTopFromBottom,
     clipChipsBottomFromBottomPx: clipBottomFromBottom,
     clipToModeGapPx: clipBottomFromBottom - modeTopFromBottom,
-    shutterBottomFromBottomPx: TWIN_CAPTURE_CHROME.shutterBottomPx,
     hintTopFromBottomPx: hintTopFromBottom,
     shutterToHintGapPx: shutterHintGapPx,
   };
