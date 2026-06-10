@@ -14,6 +14,7 @@ import {
   buildSplatBoundsReport,
   computePercentileSplatBounds,
 } from "@/lib/digital-twin/splat-bounds";
+import { applyOverviewHomeFrame } from "@/lib/digital-twin/splat-overview-home";
 
 export type SplatCameraFrame = InteriorCameraFrame | ExteriorCameraFrame;
 
@@ -71,11 +72,9 @@ export function applySplatCameraFrame(
 export function frameSplatMeshExterior(
   mesh: SplatMesh,
   camera: THREE.PerspectiveCamera,
-  controls: { target: THREE.Vector3; update: () => void } | null,
+  controls: { target: THREE.Vector3; minDistance?: number; maxDistance?: number; update: () => void } | null,
 ): ExteriorCameraFrame {
-  const frame = computeExteriorOverviewFrame(getSplatSceneBounds(mesh), camera);
-  applyExteriorCameraFrame(camera, controls, frame);
-  return frame;
+  return applyOverviewHomeFrame(mesh, camera, controls ?? null);
 }
 
 export function frameSplatMeshInterior(
