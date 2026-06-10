@@ -1,23 +1,21 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import type { AppIcon } from "@/lib/types/app-icon";
 import {
   AppWindow,
   Box,
   Brush,
   Camera,
+  ChevronRight,
   Cloud,
   Compass,
   Lock,
 } from "lucide-react";
-import {
-  MobileHomeActionCard,
-  MobileHomeActionGrid,
-  mobileTokens,
-} from "@/components/mobile-system";
+import { appHomeTokens } from "@/components/studio-ui/app-home-tokens";
 import { cn } from "@/lib/utils";
-import type { MobileLauncherAppView } from "@/lib/mobile/mobile-launcher-app-types";
+import type { MobileLauncherAppAccent, MobileLauncherAppView } from "@/lib/mobile/mobile-launcher-app-types";
 import { MobileAppLauncherUpsellSheet } from "./MobileAppLauncherUpsellSheet";
 
 const LAUNCHER_ICONS: Record<string, AppIcon> = {
@@ -29,18 +27,31 @@ const LAUNCHER_ICONS: Record<string, AppIcon> = {
   slatedrop: Cloud,
 };
 
-const LAUNCHER_STYLES = {
+const ACCENT_STYLES = {
   primary: {
-    card: mobileTokens.appHomeLauncherCardPrimary,
-    iconWrapper: mobileTokens.appHomeLauncherIconWrapperPrimary,
-    icon: mobileTokens.appHomeLauncherIconPrimary,
+    tile: appHomeTokens.launcherTilePrimary,
+    iconChip: appHomeTokens.launcherIconChipPrimary,
+    icon: appHomeTokens.launcherIconPrimary,
+    status: appHomeTokens.launcherStatusPrimary,
+    chevron: appHomeTokens.launcherChevronPrimary,
   },
   info: {
-    card: mobileTokens.appHomeLauncherCardInfo,
-    iconWrapper: mobileTokens.appHomeLauncherIconWrapperInfo,
-    icon: mobileTokens.appHomeLauncherIconInfo,
+    tile: appHomeTokens.launcherTileInfo,
+    iconChip: appHomeTokens.launcherIconChipInfo,
+    icon: appHomeTokens.launcherIconInfo,
+    status: appHomeTokens.launcherStatusInfo,
+    chevron: appHomeTokens.launcherChevronInfo,
   },
-} as const;
+} as const satisfies Record<
+  MobileLauncherAppAccent,
+  {
+    tile: string;
+    iconChip: string;
+    icon: string;
+    status: string;
+    chevron: string;
+  }
+>;
 
 type MobileAppLauncherGridProps = {
   apps: MobileLauncherAppView[];
@@ -48,9 +59,7 @@ type MobileAppLauncherGridProps = {
 
 export function MobileAppLauncherGrid({ apps }: MobileAppLauncherGridProps) {
   const [upsellApp, setUpsellApp] = useState<MobileLauncherAppView | null>(null);
-  if (apps.length === 0) {
-    return null;
-  }
+  if (apps.length === 0) return null;
 
   return (
     <>
@@ -71,18 +80,15 @@ function LauncherLayout({
 
   if (count === 1) {
     return (
-      <LauncherTile
-        app={apps[0]!}
-        variant="hero"
-        className="w-full"
-        onUpsell={onUpsell}
-      />
+      <div className={appHomeTokens.launcherStack} data-testid="launcher-layout-1">
+        <LauncherTile app={apps[0]!} onUpsell={onUpsell} />
+      </div>
     );
   }
 
   if (count === 2) {
     return (
-      <div className={mobileTokens.appHomeLauncherPairGrid}>
+      <div className={appHomeTokens.launcherStack} data-testid="launcher-layout-2">
         {apps.map((app) => (
           <LauncherTile key={app.id} app={app} onUpsell={onUpsell} />
         ))}
@@ -90,76 +96,108 @@ function LauncherLayout({
     );
   }
 
-  if (count <= 4) {
+  if (count === 3) {
     return (
-      <MobileHomeActionGrid className={mobileTokens.appHomeLauncherQuadGrid}>
-        {apps.map((app) => (
-          <LauncherTile key={app.id} app={app} onUpsell={onUpsell} />
-        ))}
-      </MobileHomeActionGrid>
+      <div className={appHomeTokens.launcherStack} data-testid="launcher-layout-3">
+        <LauncherTile app={apps[0]!} onUpsell={onUpsell} />
+        <div className={appHomeTokens.launcherPairRow}>
+          {apps.slice(1).map((app) => (
+            <LauncherTile key={app.id} app={app} compact onUpsell={onUpsell} />
+          ))}
+        </div>
+      </div>
     );
   }
 
+  if (count === 4) {
+    return (
+      <div className={appHomeTokens.launcherQuadGrid} data-testid="launcher-layout-4">
+        {apps.map((app) => (
+          <LauncherTile key={app.id} app={app} compact onUpsell={onUpsell} />
+        ))}
+      </div>
+    );
+  }
+
+  const head = apps.slice(0, 4);
+  const tail = apps.slice(4);
+
   return (
-    <div className={mobileTokens.appHomeLauncherRail}>
-      {apps.map((app) => (
-        <div key={app.id} className={mobileTokens.appHomeLauncherRailTile}>
-          <LauncherTile app={app} onUpsell={onUpsell} />
-        </div>
-      ))}
+    <div className={appHomeTokens.launcherStack} data-testid="launcher-layout-5plus">
+      <div className={appHomeTokens.launcherQuadGrid}>
+        {head.map((app) => (
+          <LauncherTile key={app.id} app={app} compact onUpsell={onUpsell} />
+        ))}
+      </div>
+      <div className={appHomeTokens.launcherRail}>
+        {tail.map((app) => (
+          <div key={app.id} className={appHomeTokens.launcherRailTile}>
+            <LauncherTile app={app} onUpsell={onUpsell} />
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
 
 function LauncherTile({
   app,
-  variant = "tile",
-  className,
+  compact = false,
   onUpsell,
 }: {
   app: MobileLauncherAppView;
-  variant?: "hero" | "tile";
-  className?: string;
+  compact?: boolean;
   onUpsell: (app: MobileLauncherAppView) => void;
 }) {
   const Icon = LAUNCHER_ICONS[app.id] ?? AppWindow;
-  const styles = LAUNCHER_STYLES[app.accent];
+  const styles = ACCENT_STYLES[app.accent];
   const locked = app.access === "upsell";
-  const subtext = locked ? "Add to your workspace to launch." : app.subtext;
+  const status =
+    locked
+      ? "Add to workspace to launch"
+      : app.statusSubline ?? (compact ? "Open" : "Ready when you are");
 
-  const cardClass = cn(
-    styles.card,
-    mobileTokens.appHomeLauncherTileRadius,
-    mobileTokens.appHomeLauncherTileMinTarget,
-    variant === "hero" && mobileTokens.appHomeLauncherHeroCard,
-    locked && mobileTokens.appHomeLauncherLockedCard,
-    className,
+  const className = cn(
+    appHomeTokens.launcherTileBase,
+    styles.tile,
+    locked && appHomeTokens.launcherTileLocked,
+    "relative",
   );
 
   const body = (
-    <div className={variant === "hero" ? "relative w-full" : "relative"}>
+    <>
       {locked ? (
-        <span className={mobileTokens.appHomeLauncherLockBadge} aria-hidden>
-          <Lock className="h-4 w-4" strokeWidth={1.75} />
+        <span className={appHomeTokens.launcherLockBadge} aria-hidden>
+          <Lock className="h-3.5 w-3.5" strokeWidth={1.75} />
         </span>
       ) : null}
-      <MobileHomeActionCard
-        title={app.title}
-        subtext={subtext}
-        icon={Icon}
-        href={locked ? undefined : app.href}
-        onClick={locked ? () => onUpsell(app) : undefined}
-        className={cardClass}
-        iconWrapperClassName={styles.iconWrapper}
-        iconClassName={styles.icon}
-        titleClassName={mobileTokens.appHomeLauncherTitle}
-        subtextClassName={mobileTokens.appHomeLauncherSubtitle}
-        aria-label={
-          locked ? `${app.title} — upgrade required` : `Open ${app.title}`
-        }
-      />
-    </div>
+      <span className={styles.iconChip} aria-hidden>
+        <Icon className={styles.icon} strokeWidth={1.75} />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className={cn(appHomeTokens.launcherTitle, "block")}>{app.title}</span>
+        <span className={cn(styles.status, "mt-0.5 block")}>{status}</span>
+      </span>
+      <ChevronRight className={styles.chevron} strokeWidth={2} aria-hidden />
+    </>
   );
 
-  return body;
+  if (locked) {
+    return (
+      <button
+        type="button"
+        className={className}
+        aria-label={`${app.title} — upgrade required`}
+        onClick={() => onUpsell(app)}
+      >
+        {body}
+      </button>
+    );
+  }
+
+  return (
+    <Link href={app.href} className={className} aria-label={`Open ${app.title}`}>
+      {body}
+    </Link>
+  );
 }
