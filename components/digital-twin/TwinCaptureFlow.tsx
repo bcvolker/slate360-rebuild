@@ -186,9 +186,12 @@ export function TwinCaptureFlow({
 
   if (quickBoot === "loading") {
     return (
-      <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 px-4 py-8">
+      <div
+        className="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 px-4 py-8"
+        data-twin-capture-boot="loading"
+      >
         <IconLoader2 className={cn("h-8 w-8 animate-spin", twinAccent.spinner)} />
-        <p className="text-sm text-zinc-400">Preparing quick scan…</p>
+        <p className="text-sm font-medium text-zinc-300">Preparing quick scan…</p>
       </div>
     );
   }

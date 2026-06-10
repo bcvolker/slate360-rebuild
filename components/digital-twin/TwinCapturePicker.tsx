@@ -18,6 +18,11 @@ type Props = {
   onSpaceCreated?: (space: HubTwin) => void;
 };
 
+const fieldLabelClass =
+  "text-[11px] font-bold uppercase tracking-[0.12em] text-zinc-400";
+const fieldControlClass =
+  "min-h-[44px] rounded-xl border border-white/10 bg-white/[0.05] px-3 text-sm text-zinc-100 backdrop-blur-sm";
+
 export function TwinCapturePicker({
   spaces,
   projects,
@@ -59,8 +64,22 @@ export function TwinCapturePicker({
     : "Walk the space and capture photos or video";
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain px-4 py-4">
-      <div className="flex flex-col gap-3 rounded-xl border border-white/[0.06] bg-white/[0.04] p-4">
+    <div
+      className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain px-4 py-4"
+      data-twin-capture-picker
+    >
+      <div className={mobileTokens.mobileHomeSectionHeader}>
+        <span className={mobileTokens.twin360HomeSectionLabelAccent} aria-hidden />
+        <p className={mobileTokens.appHomeSectionLabel}>Start Scan</p>
+      </div>
+
+      <div
+        className={cn(
+          "flex flex-col gap-4 p-4",
+          mobileTokens.twin360StartScanCard,
+          "min-h-0 shadow-none active:scale-100 active:ring-0",
+        )}
+      >
         <div className="flex items-center gap-3">
           <span
             className={cn(
@@ -71,8 +90,12 @@ export function TwinCapturePicker({
             <IconScan className="h-5 w-5" stroke={1.75} />
           </span>
           <div className="min-w-0">
-            <h2 className="text-sm font-semibold text-zinc-100">{heading}</h2>
-            <p className="text-xs text-zinc-400">{subheading}</p>
+            <h2 className="text-base font-bold leading-tight text-[var(--mobile-app-card-title-fg-info)]">
+              {heading}
+            </h2>
+            <p className="mt-0.5 text-sm font-medium leading-snug text-[var(--mobile-app-card-subtitle-fg-info)]">
+              {subheading}
+            </p>
           </div>
         </div>
 
@@ -88,12 +111,12 @@ export function TwinCapturePicker({
           />
         ) : (
           <>
-            <label className="flex flex-col gap-1 text-xs text-zinc-400">
-              Twin workspace
+            <label className="flex flex-col gap-1.5">
+              <span className={fieldLabelClass}>Twin workspace</span>
               <select
                 value={spaceId}
                 onChange={(e) => onSpaceChange(e.target.value)}
-                className="min-h-[44px] rounded-xl border border-white/10 bg-white/[0.04] px-3 text-sm text-zinc-100"
+                className={fieldControlClass}
               >
                 {scopedSpaces.map((space) => (
                   <option key={space.id} value={space.id}>
@@ -105,12 +128,12 @@ export function TwinCapturePicker({
             </label>
 
             {scopedProjects.length > 1 && !selectedSpace?.projectId && !lockProject ? (
-              <label className="flex flex-col gap-1 text-xs text-zinc-400">
-                Project
+              <label className="flex flex-col gap-1.5">
+                <span className={fieldLabelClass}>Project</span>
                 <select
                   value={projectId}
                   onChange={(e) => setProjectId(e.target.value)}
-                  className="min-h-[44px] rounded-xl border border-white/10 bg-white/[0.04] px-3 text-sm text-zinc-100"
+                  className={fieldControlClass}
                 >
                   {scopedProjects.map((project) => (
                     <option key={project.id} value={project.id}>
@@ -145,7 +168,7 @@ export function TwinCapturePicker({
           }
           className={cn(
             "inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold",
-            twinAccent.button,
+            mobileTokens.mobilePrimaryButton,
             mobileTokens.focusRing,
             !canStart && "pointer-events-none opacity-50",
           )}
