@@ -1,0 +1,94 @@
+"use client";
+
+import { useState } from "react";
+import {
+  ArrowUpRight,
+  Circle,
+  MousePointer2,
+  Pencil,
+  Square,
+  Trash2,
+  Type,
+} from "lucide-react";
+import { VECTOR_TOOL_EVENT, type VectorTool } from "@/components/site-walk/capture/UnifiedVectorToolbar";
+import { CAPTURE_CANVAS_MARKUP_COLOR } from "./capture-canvas-markup-color";
+
+const TOOLS = [
+  { label: "Select", value: "select", icon: MousePointer2 },
+  { label: "Draw", value: "draw", icon: Pencil },
+  { label: "Box", value: "box", icon: Square },
+  { label: "Circle", value: "circle", icon: Circle },
+  { label: "Arrow", value: "arrow", icon: ArrowUpRight },
+  { label: "Text", value: "text", icon: Type },
+] as const;
+
+function publish(tool: VectorTool, color: string, strokeWidth: number, deleteSelected = false) {
+  window.dispatchEvent(
+    new CustomEvent(VECTOR_TOOL_EVENT, { detail: { tool, color, strokeWidth, deleteSelected } }),
+  );
+}
+
+export function CaptureCanvasMarkupToolbar({ hidden }: { hidden?: boolean }) {
+  const [activeTool, setActiveTool] = useState<VectorTool>("draw");
+  const [strokeWidth, setStrokeWidth] = useState(5);
+
+  if (hidden) return null;
+
+  return (
+    <div
+      className="pointer-events-auto flex items-center gap-1 rounded-xl border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_78%,transparent)] p-1 backdrop-blur-md"
+      role="toolbar"
+      aria-label="Markup tools"
+    >
+      {TOOLS.map((tool) => {
+        const Icon = tool.icon;
+        const active = activeTool === tool.value;
+        return (
+          <button
+            key={tool.value}
+            type="button"
+            onClick={() => {
+              setActiveTool(tool.value);
+              publish(tool.value, CAPTURE_CANVAS_MARKUP_COLOR, strokeWidth);
+            }}
+            className={`inline-flex h-9 w-9 items-center justify-center rounded-lg border transition ${
+              active
+                ? "border-[var(--accent-border-green)] bg-[color-mix(in_srgb,var(--graphite-primary)_18%,transparent)] text-[var(--graphite-primary)]"
+                : "border-transparent text-[var(--graphite-muted)] hover:text-[var(--graphite-text-body)]"
+            }`}
+            aria-label={tool.label}
+          >
+            <Icon className="h-4 w-4" />
+          </button>
+        );
+      })}
+      <button
+        type="button"
+        onClick={() => publish(activeTool, CAPTURE_CANVAS_MARKUP_COLOR, strokeWidth, true)}
+        className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]"
+        aria-label="Delete selected"
+      >
+        <Trash2 className="h-4 w-4" />
+      </button>
+      <div className="ml-1 flex gap-1 border-l border-[var(--mobile-app-card-border)] pl-1">
+        {[3, 5, 8].map((width) => (
+          <button
+            key={width}
+            type="button"
+            onClick={() => {
+              setStrokeWidth(width);
+              publish(activeTool, CAPTURE_CANVAS_MARKUP_COLOR, width);
+            }}
+            className={`h-7 min-w-7 rounded-md px-1 text-[10px] font-semibold tabular-nums ${
+              strokeWidth === width
+                ? "bg-[color-mix(in_srgb,var(--graphite-primary)_18%,transparent)] text-[var(--graphite-primary)]"
+                : "text-[var(--graphite-muted)]"
+            }`}
+          >
+            {width}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
