@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { IconLoader2 } from "@tabler/icons-react";
 import { SlateDropFilePickerModal } from "@/components/slatedrop/SlateDropFilePickerModal";
@@ -10,8 +10,15 @@ import { useTwinProcessingEstimate } from "@/hooks/useTwinProcessingEstimate";
 import {
   clearTwinCapturePendingSession,
   getTwinCapturePendingSession,
+  setTwinCapturePendingSession,
+  type TwinCapturePendingSession,
   type TwinReviewAddedSource,
 } from "@/lib/digital-twin/twin-capture-pending-session";
+import {
+  clearTwinCaptureReviewPersistedState,
+  persistTwinCaptureReviewForCheckout,
+  restoreTwinCaptureReviewState,
+} from "@/lib/digital-twin/twin-capture-pending-persist";
 import { fetchSlateDropFileAsBlob } from "@/lib/digital-twin/twin-review-fetch";
 import {
   classifyTwinMedia,
@@ -36,10 +43,13 @@ type Props = {
 
 export function TwinCaptureReviewScreen({ canUseHighQuality }: Props) {
   const router = useRouter();
-  const session = getTwinCapturePendingSession();
   const resolveGpsFix = useTwinGpsFix();
   const upload = useMultipartTwinUpload();
 
+  const [session, setSession] = useState<TwinCapturePendingSession | null>(() =>
+    getTwinCapturePendingSession(),
+  );
+  const [sessionReady, setSessionReady] = useState(() => Boolean(getTwinCapturePendingSession()));
   const [scanName, setScanName] = useState(session?.selection.spaceTitle ?? "");
   const [quality, setQuality] = useState<TwinProcessingQuality>("standard");
   const [addedSources, setAddedSources] = useState<TwinReviewAddedSource[]>([]);
@@ -48,6 +58,35 @@ export function TwinCaptureReviewScreen({ canUseHighQuality }: Props) {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [jobQueued, setJobQueued] = useState(false);
+  const [checkoutNotice, setCheckoutNotice] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (session) return;
+    let cancelled = false;
+    void restoreTwinCaptureReviewState().then((restored) => {
+      if (cancelled) return;
+      if (restored) {
+        setTwinCapturePendingSession(restored.session);
+        setSession(restored.session);
+        setScanName(restored.scanName);
+        setQuality(restored.quality);
+        setAddedSources(restored.addedSources);
+      }
+      setSessionReady(true);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [session]);
+
+  useEffect(() => {
+    const credits = new URLSearchParams(window.location.search).get("credits");
+    if (credits === "success") {
+      setCheckoutNotice("Credits added — your scan is still here.");
+    } else if (credits === "cancelled") {
+      setCheckoutNotice("Checkout cancelled — your scan is still here.");
+    }
+  }, []);
 
   const clipFiles = useMemo(
     () => (session?.clips ?? []).flatMap((clip) => clip.files),
@@ -144,9 +183,10 @@ export function TwinCaptureReviewScreen({ canUseHighQuality }: Props) {
         },
         allFiles,
       );
-      await upload.enqueueJob("spz");
+      await upload.enqueueJob("spz", quality);
       setJobQueued(true);
       clearTwinCapturePendingSession();
+      clearTwinCaptureReviewPersistedState();
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : "Could not create twin");
     } finally {
@@ -157,11 +197,20 @@ export function TwinCaptureReviewScreen({ canUseHighQuality }: Props) {
     clipFiles,
     localAddedFiles,
     resolveGpsFix,
+    quality,
     scanName,
     session,
     submitting,
     upload,
   ]);
+
+  if (!sessionReady) {
+    return (
+      <div className="flex min-h-0 flex-1 items-center justify-center px-4 text-sm text-[var(--graphite-muted)]">
+        Loading review…
+      </div>
+    );
+  }
 
   if (!session) {
     return (
@@ -216,6 +265,12 @@ export function TwinCaptureReviewScreen({ canUseHighQuality }: Props) {
           error={estimateError}
           onAddCredits={() => setCreditsSheetOpen(true)}
         />
+
+        {checkoutNotice ? (
+          <div className="rounded-xl border border-[var(--accent-border-blue)] bg-[color-mix(in_srgb,var(--twin360-blue)_10%,transparent)] px-3 py-2 text-xs text-[var(--graphite-text-body)]">
+            {checkoutNotice}
+          </div>
+        ) : null}
 
         {lowCredits ? (
           <div className="rounded-xl border border-red-500/40 bg-red-500/10 px-3 py-2 text-xs text-red-200">
@@ -285,6 +340,16 @@ export function TwinCaptureReviewScreen({ canUseHighQuality }: Props) {
       <TwinCaptureCreditsSheet
         open={creditsSheetOpen}
         creditsRequired={estimate?.creditsRequired ?? 0}
+        returnTo="/digital-twin/capture/review"
+        onBeforeCheckout={async () => {
+          if (!session) return;
+          await persistTwinCaptureReviewForCheckout({
+            session,
+            scanName,
+            quality,
+            addedSources,
+          });
+        }}
         onClose={() => setCreditsSheetOpen(false)}
       />
     </div>

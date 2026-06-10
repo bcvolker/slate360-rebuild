@@ -2,7 +2,10 @@ import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { computeTwinProcessingCredits, type TwinCreditAsset } from "@/lib/twin/processing-credits";
-import { computeTwinSourcesProcessingEstimate } from "@/lib/twin/job-processing-estimate";
+import {
+  applyTwinQualityCredits,
+  computeTwinSourcesProcessingEstimate,
+} from "@/lib/twin/job-processing-estimate";
 import type {
   TwinJobCreditEstimate,
   TwinProcessingQuality,
@@ -24,6 +27,7 @@ export async function resolveTwinJobCreditEstimate(
   orgId: string,
   captureId: string,
   outputFormat: "spz" | "ply" | "glb" = "spz",
+  quality: TwinProcessingQuality = "standard",
 ): Promise<TwinJobCreditEstimate> {
   const { data: assets, error: assetsError } = await admin
     .from("digital_twin_capture_assets")
@@ -35,7 +39,8 @@ export async function resolveTwinJobCreditEstimate(
 
   if (assetsError) throw new Error(assetsError.message);
 
-  const creditsRequired = computeTwinProcessingCredits(assets ?? [], outputFormat);
+  const baseCredits = computeTwinProcessingCredits(assets ?? [], outputFormat);
+  const creditsRequired = applyTwinQualityCredits(baseCredits, quality);
 
   const { data: org, error: orgError } = await admin
     .from("organizations")
@@ -109,8 +114,15 @@ export async function assertTwinJobCredits(
   orgId: string,
   captureId: string,
   outputFormat: "spz" | "ply" | "glb" = "spz",
+  quality: TwinProcessingQuality = "standard",
 ): Promise<TwinJobCreditEstimate> {
-  const estimate = await resolveTwinJobCreditEstimate(admin, orgId, captureId, outputFormat);
+  const estimate = await resolveTwinJobCreditEstimate(
+    admin,
+    orgId,
+    captureId,
+    outputFormat,
+    quality,
+  );
   if (!estimate.sufficient) {
     throw new InsufficientTwinCreditsError(estimate.creditsRequired, estimate.creditsBalance);
   }

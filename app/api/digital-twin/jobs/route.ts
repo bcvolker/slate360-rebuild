@@ -6,8 +6,37 @@ import {
   InsufficientTwinCreditsError,
 } from "@/lib/twin/job-credits-estimate";
 import { assertDigitalTwinProcessingEntitlement } from "@/lib/twin/processing-entitlement";
+import { isOwnerEmail } from "@/lib/server/beta-access";
+import type { TwinProcessingQuality } from "@/lib/twin/processing-estimate-types";
 
 export const runtime = "nodejs";
+
+const QUALITY_TIERS = new Set<TwinProcessingQuality>(["standard", "high"]);
+
+function parseQuality(value: unknown): TwinProcessingQuality {
+  return value === "high" ? "high" : "standard";
+}
+
+async function assertTwinHighQualityEntitlement(
+  admin: Parameters<typeof assertDigitalTwinProcessingEntitlement>[0],
+  orgId: string,
+  userEmail: string | null | undefined,
+  quality: TwinProcessingQuality,
+) {
+  if (quality !== "high") return;
+  if (isOwnerEmail(userEmail)) return;
+
+  const { data, error } = await admin
+    .from("org_app_subscriptions")
+    .select("digital_twin")
+    .eq("org_id", orgId)
+    .maybeSingle();
+
+  if (error) throw new Error(error.message);
+  if (data?.digital_twin !== "pro") {
+    throw new Error("High quality requires a Pro Digital Twin subscription");
+  }
+}
 
 const triggerRequestOptions = { clientConfig: { previewBranch: "" } };
 
@@ -16,6 +45,7 @@ type JobBody = {
   output_format?: "spz" | "ply" | "glb";
   job_type?: "gaussian_splat" | "photogrammetry_mesh" | "lidar_fusion";
   lidar_prior_asset_id?: string | null;
+  quality?: string;
 };
 
 const OUTPUT_FORMATS = new Set(["spz", "ply", "glb"]);
@@ -30,9 +60,11 @@ export const POST = (req: NextRequest) =>
 
     const outputFormat = body.output_format ?? "spz";
     const jobType = body.job_type ?? "gaussian_splat";
+    const quality = parseQuality(body.quality);
 
     if (!OUTPUT_FORMATS.has(outputFormat)) return badRequest("Invalid output_format");
     if (!JOB_TYPES.has(jobType)) return badRequest("Invalid job_type");
+    if (!QUALITY_TIERS.has(quality)) return badRequest("Invalid quality");
 
     try {
       await assertDigitalTwinProcessingEntitlement(admin, {
@@ -64,8 +96,10 @@ export const POST = (req: NextRequest) =>
       if (assetsError) return serverError(assetsError.message);
       if (!assets?.length) return badRequest("No ready assets on capture");
 
+      await assertTwinHighQualityEntitlement(admin, orgId, user.email, quality);
+
       try {
-        await assertTwinJobCredits(admin, orgId, body.capture_id, outputFormat);
+        await assertTwinJobCredits(admin, orgId, body.capture_id, outputFormat, quality);
       } catch (creditErr) {
         if (creditErr instanceof InsufficientTwinCreditsError) {
           return badRequest(creditErr.message);
@@ -103,7 +137,7 @@ export const POST = (req: NextRequest) =>
         const { tasks } = await import("@trigger.dev/sdk/v3");
         const handle = await tasks.trigger(
           "twin.gaussian_splat",
-          { jobId: job.id },
+          { jobId: job.id, quality },
           undefined,
           triggerRequestOptions,
         );
@@ -135,6 +169,7 @@ export const POST = (req: NextRequest) =>
       const message = err instanceof Error ? err.message : "Failed to create job";
       if (message.includes("Digital Twin access required")) return forbidden(message);
       if (message.includes("Processing already active")) return forbidden(message);
+      if (message.includes("High quality requires")) return forbidden(message);
       console.error("[POST /api/digital-twin/jobs]", err);
       return serverError(message);
     }

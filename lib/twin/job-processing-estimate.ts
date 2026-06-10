@@ -38,6 +38,13 @@ export function estimateTwinProcessingMinutes(
   return Math.max(1, Math.round(minutes));
 }
 
+export function applyTwinQualityCredits(
+  baseCredits: number,
+  quality: TwinProcessingQuality = "standard",
+): number {
+  return Math.max(1, Math.round(baseCredits * QUALITY_CREDIT_MULTIPLIER[quality]));
+}
+
 export function computeTwinSourcesProcessingEstimate(
   assets: TwinCreditAsset[],
   outputFormat: "spz" | "ply" | "glb" = "spz",
@@ -46,10 +53,7 @@ export function computeTwinSourcesProcessingEstimate(
 ): TwinProcessingEstimate {
   const assetCount = assets.length;
   const baseCredits = computeTwinProcessingCredits(assets, outputFormat);
-  const creditsRequired = Math.max(
-    1,
-    Math.round(baseCredits * QUALITY_CREDIT_MULTIPLIER[quality]),
-  );
+  const creditsRequired = applyTwinQualityCredits(baseCredits, quality);
   const resolvedFrames =
     frameCount ??
     Math.max(

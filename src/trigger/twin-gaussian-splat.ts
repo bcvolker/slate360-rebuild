@@ -33,8 +33,9 @@ async function markJobFailed(
 export const twinGaussianSplatTask = task({
   id: "twin.gaussian_splat",
   maxDuration: 120,
-  run: async (payload: { jobId: string }) => {
+  run: async (payload: { jobId: string; quality?: string }) => {
     const { jobId } = payload;
+    const quality = payload.quality === "high" ? "high" : "standard";
     const supabase = getSupabase();
 
     const { data: job, error: jobError } = await supabase
@@ -82,7 +83,7 @@ export const twinGaussianSplatTask = task({
       captureId: job.capture_id,
       sourceKeys: readyAssets.map((row) => row.storage_key as string),
       is360Flags: readyAssets.map((row) => row.asset_kind === "panorama_360"),
-      quality: "standard",
+      quality,
       speed: "standard",
       modelType: job.job_type ?? "gaussian_splat",
       newAssetIds: readyAssets.map((row) => row.id),

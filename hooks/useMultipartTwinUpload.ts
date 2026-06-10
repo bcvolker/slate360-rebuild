@@ -7,6 +7,7 @@ import {
 } from "@/lib/twin/upload-constants";
 import { twinApiPost } from "@/hooks/twin-upload-api";
 import { runMultipartTwinUpload, runSingleTwinUpload } from "@/hooks/twin-upload-runners";
+import type { TwinProcessingQuality } from "@/lib/twin/processing-estimate-types";
 
 export type TwinGpsFix = {
   lat: number;
@@ -188,11 +189,14 @@ export function useMultipartTwinUpload() {
   }, [files]);
 
   const enqueueJob = useCallback(
-    async (outputFormat: "spz" | "ply" | "glb" = "spz") => {
+    async (
+      outputFormat: "spz" | "ply" | "glb" = "spz",
+      quality: TwinProcessingQuality = "standard",
+    ) => {
       if (!captureId) throw new Error("No capture id — upload assets first");
       return twinApiPost<{ job: { id: string; status: string; progress_pct: number } }>(
         "/api/digital-twin/jobs",
-        { capture_id: captureId, output_format: outputFormat },
+        { capture_id: captureId, output_format: outputFormat, quality },
       );
     },
     [captureId],
