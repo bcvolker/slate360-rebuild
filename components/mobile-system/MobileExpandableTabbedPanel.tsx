@@ -22,11 +22,14 @@ type MobileExpandableTabbedPanelProps = {
   defaultTab?: string;
   upper?: ReactNode;
   className?: string;
+  /** Optional count badge beside collapsed label (home dock). */
+  badgeCount?: number;
+  /** Collapsed chrome height — defaults to 56px; /app home uses 40px. */
+  collapsedHeightPx?: number;
 };
 
-/** Collapsed dock chrome only — grabber, label, chevron (~56px). */
-const COLLAPSED_DOCK_HEIGHT_PX = 56;
-const COLLAPSED_DOCK_FRAME = "h-14 max-h-14 min-h-14 shrink-0 overflow-hidden";
+/** Collapsed dock chrome only — grabber, label, chevron. */
+const DEFAULT_COLLAPSED_DOCK_HEIGHT_PX = 56;
 
 /** 62px in-flow bottom nav band (mobileTokens MOBILE_BOTTOM_NAV_HEIGHT_PX). */
 const HOME_NAV_BOTTOM_OFFSET = "bottom-[calc(62px+env(safe-area-inset-bottom,0px))]";
@@ -36,6 +39,8 @@ export function MobileExpandableTabbedPanel({
   defaultTab,
   upper,
   className,
+  badgeCount,
+  collapsedHeightPx = DEFAULT_COLLAPSED_DOCK_HEIGHT_PX,
 }: MobileExpandableTabbedPanelProps) {
   const pathname = usePathname() ?? "";
   const mobileRoute = resolveMobileRoute(pathname);
@@ -69,15 +74,24 @@ export function MobileExpandableTabbedPanel({
         data-testid="mobile-expandable-panel-frame"
         data-expandable-panel-state={expanded ? "expanded" : "collapsed"}
         className={cn(
-          "relative",
+          "relative shrink-0 overflow-hidden",
           mobileTokens.mobileExpandablePanelFrame,
           expanded
             ? cn(
                 mobileTokens.mobileExpandablePanelExpandedHeight,
                 mobileTokens.mobileExpandablePanelFrameExpanded,
               )
-            : COLLAPSED_DOCK_FRAME,
+            : null,
         )}
+        style={
+          expanded
+            ? undefined
+            : {
+                height: collapsedHeightPx,
+                minHeight: collapsedHeightPx,
+                maxHeight: collapsedHeightPx,
+              }
+        }
       >
         <div
           className={cn(
@@ -90,7 +104,7 @@ export function MobileExpandableTabbedPanel({
             className={cn(
               mobileTokens.mobileExpandablePanelToggleButton,
               mobileTokens.focusRing,
-              !expanded && "min-h-0 h-full gap-2 border-b-0 py-2",
+              !expanded && "min-h-0 h-full gap-2 border-b-0 py-1.5",
             )}
             aria-expanded={expanded}
             aria-controls={panelId}
@@ -100,8 +114,13 @@ export function MobileExpandableTabbedPanel({
             <span className={mobileTokens.mobileExpandablePanelHandle} aria-hidden />
             {!expanded ? (
               <>
-                <span className="min-w-0 flex-1 truncate text-center text-sm font-semibold text-zinc-200">
-                  Activity
+                <span className="flex min-w-0 flex-1 items-center justify-center gap-2">
+                  <span className="truncate text-sm font-semibold text-zinc-200">Activity</span>
+                  {badgeCount != null && badgeCount > 0 ? (
+                    <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full border border-[#2A3340] bg-[#11161E] px-1.5 text-[10px] font-semibold tabular-nums text-[#F8FAFC]">
+                      {badgeCount > 99 ? "99+" : badgeCount}
+                    </span>
+                  ) : null}
                 </span>
                 <ChevronUp
                   className={mobileTokens.mobileExpandablePanelChevron}
@@ -165,7 +184,7 @@ export function MobileExpandableTabbedPanel({
           data-panel-mode="fixed-region"
           data-dock-width-mode="full-shell"
           data-expanded-state={expanded ? "true" : "false"}
-          data-collapsed-height={`${COLLAPSED_DOCK_HEIGHT_PX}px`}
+          data-collapsed-height={`${collapsedHeightPx}px`}
           data-expanded-height={MOBILE_HOME_DOCK_EXPANDED_CLAMP}
           className={cn(
             "relative flex w-full shrink-0 flex-col",
@@ -183,7 +202,7 @@ export function MobileExpandableTabbedPanel({
     <div
       data-expandable-panel-version="capped-spacer-v3"
       data-expanded={expanded ? "true" : "false"}
-      data-collapsed-height={`${COLLAPSED_DOCK_HEIGHT_PX}px`}
+      data-collapsed-height={`${collapsedHeightPx}px`}
       data-testid="mobile-expandable-panel-host"
       className={cn("relative flex min-h-0 flex-1 flex-col overflow-hidden", className)}
     >

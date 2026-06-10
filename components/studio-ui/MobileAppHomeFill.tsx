@@ -1,12 +1,205 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import type { MobileAppHomeData } from "@/lib/mobile/load-app-home-data";
-import { MobileAppHomeSlateDropFolderGrid } from "@/components/studio-ui/MobileAppHomeSlateDropFolderGrid";
+import { appHomeTokens } from "@/components/studio-ui/app-home-tokens";
+import { MobileAppSectionLabel } from "@/components/studio-ui/MobileAppSectionLabel";
 import type { HomeSlateDropFolder } from "@/components/studio-ui/MobileAppHomeSlateDropFolderGrid";
 
 type MobileAppHomeFillProps = {
   data: MobileAppHomeData;
 };
+
+type StorageSummary = {
+  storageUsedGb: number;
+  storageLimitGb: number;
+  filesAddedToday: number;
+};
+
+const DEFAULT_STORAGE_LIMIT_GB = 10;
+
+function isToday(iso: string): boolean {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return false;
+  const now = new Date();
+  return (
+    date.getFullYear() === now.getFullYear() &&
+    date.getMonth() === now.getMonth() &&
+    date.getDate() === now.getDate()
+  );
+}
+
+function countFilesAddedToday(data: MobileAppHomeData): number {
+  const ids = new Set<string>();
+  for (const file of data.recentSlateDrop) {
+    if (isToday(file.createdAt)) ids.add(file.id);
+  }
+  for (const job of data.processingQueue) {
+    if (isToday(job.createdAt)) ids.add(job.id);
+  }
+  return ids.size;
+}
+
+function formatGb(value: number): string {
+  if (value >= 10) return value.toFixed(1);
+  if (value >= 1) return value.toFixed(1);
+  return value.toFixed(2);
+}
+
+function StorageRing({ usedGb, limitGb }: { usedGb: number; limitGb: number }) {
+  const ratio = limitGb > 0 ? Math.min(usedGb / limitGb, 1) : 0;
+  const radius = 20;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference * (1 - ratio);
+
+  return (
+    <svg
+      width="48"
+      height="48"
+      viewBox="0 0 48 48"
+      className="shrink-0"
+      aria-hidden
+    >
+      <circle cx="24" cy="24" r={radius} fill="none" stroke="#2A3340" strokeWidth="3" />
+      <circle
+        cx="24"
+        cy="24"
+        r={radius}
+        fill="none"
+        stroke="#3D8EFF"
+        strokeWidth="3"
+        strokeLinecap="round"
+        strokeDasharray={circumference}
+        strokeDashoffset={offset}
+        transform="rotate(-90 24 24)"
+      />
+    </svg>
+  );
+}
+
+/** SlateDrop folder chips for the /app home portal card. */
+export function buildHomeSlateDropFolders(data: MobileAppHomeData): HomeSlateDropFolder[] {
+  const folders: HomeSlateDropFolder[] = [];
+  const seen = new Set<string>();
+
+  const pushFolder = (folder: HomeSlateDropFolder) => {
+    if (seen.has(folder.id)) return;
+    seen.add(folder.id);
+    folders.push(folder);
+  };
+
+  pushFolder({
+    id: "general-files",
+    label: "General Files",
+    href: "/slatedrop/general-files",
+    tone: "system",
+  });
+
+  pushFolder({
+    id: "site-walk-files",
+    label: "Site Walk Files",
+    href: "/slatedrop/site-walk-files",
+    tone: "project",
+  });
+
+  for (const walk of data.recentWalks.slice(0, 3)) {
+    pushFolder({
+      id: `walk-${walk.id}`,
+      label: walk.title,
+      href: "/slatedrop/site-walk-files",
+      tone: "project",
+    });
+  }
+
+  for (const upload of data.recentSlateDrop.slice(0, 3)) {
+    const label = upload.filename.replace(/\.[^.]+$/, "") || upload.filename;
+    pushFolder({
+      id: `upload-${upload.id}`,
+      label,
+      href: "/slatedrop/general-files",
+      tone: "workspace",
+    });
+  }
+
+  return folders;
+}
+
+export function MobileAppHomeFill({ data }: MobileAppHomeFillProps) {
+  const [storage, setStorage] = useState<StorageSummary>(() => ({
+    storageUsedGb: 0,
+    storageLimitGb: DEFAULT_STORAGE_LIMIT_GB,
+    filesAddedToday: countFilesAddedToday(data),
+  }));
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadStorage() {
+      try {
+        const res = await fetch("/api/dashboard/summary", { cache: "no-store" });
+        if (!res.ok) return;
+        const payload = (await res.json()) as { storageUsedGb?: number };
+        if (cancelled) return;
+        setStorage((prev) => ({
+          ...prev,
+          storageUsedGb: Number(payload.storageUsedGb ?? 0),
+          filesAddedToday: countFilesAddedToday(data),
+        }));
+      } catch {
+        // keep graceful fallback
+      }
+    }
+
+    void loadStorage();
+    return () => {
+      cancelled = true;
+    };
+  }, [data]);
+
+  const folders = useMemo(() => buildHomeSlateDropFolders(data).slice(0, 3), [data]);
+  const filesTodayLabel =
+    storage.filesAddedToday === 1
+      ? "1 file added today"
+      : `${storage.filesAddedToday} files added today`;
+
+  return (
+    <section className={appHomeTokens.section} aria-label="SlateDrop portal">
+      <div className={appHomeTokens.sectionHeader}>
+        <MobileAppSectionLabel>SlateDrop Portal</MobileAppSectionLabel>
+      </div>
+      <div className={appHomeTokens.slateDropCard} data-testid="slatedrop-portal-card">
+        <div className={appHomeTokens.slateDropRow}>
+          <div className={appHomeTokens.slateDropRingWrap}>
+            <StorageRing usedGb={storage.storageUsedGb} limitGb={storage.storageLimitGb} />
+          </div>
+          <div className={appHomeTokens.slateDropStats}>
+            <p className={appHomeTokens.slateDropUsage}>
+              {formatGb(storage.storageUsedGb)} GB of {storage.storageLimitGb} GB
+            </p>
+            <p className={appHomeTokens.slateDropMeta}>{filesTodayLabel}</p>
+          </div>
+          <Link href="/slatedrop" className={appHomeTokens.slateDropOpenPill}>
+            Open
+          </Link>
+        </div>
+        {folders.length > 0 ? (
+          <div className={appHomeTokens.slateDropFolderRow}>
+            {folders.map((folder) => (
+              <Link
+                key={folder.id}
+                href={folder.href}
+                className={appHomeTokens.slateDropFolderChip}
+              >
+                {folder.label}
+              </Link>
+            ))}
+          </div>
+        ) : null}
+      </div>
+    </section>
+  );
+}
 
 type RecentRailItem = {
   key: string;
@@ -114,80 +307,6 @@ function buildActivityRows(data: MobileAppHomeData) {
   return rows;
 }
 
-/** SlateDrop folder tiles for the /app home scroll body — derived from existing home data. */
-export function buildHomeSlateDropFolders(data: MobileAppHomeData): HomeSlateDropFolder[] {
-  const folders: HomeSlateDropFolder[] = [];
-  const seen = new Set<string>();
-
-  const pushFolder = (folder: HomeSlateDropFolder) => {
-    if (seen.has(folder.id)) return;
-    seen.add(folder.id);
-    folders.push(folder);
-  };
-
-  pushFolder({
-    id: "general-files",
-    label: "General Files",
-    href: "/slatedrop/general-files",
-    tone: "system",
-  });
-
-  pushFolder({
-    id: "site-walk-files",
-    label: "Site Walk Files",
-    href: "/slatedrop/site-walk-files",
-    tone: "project",
-  });
-
-  for (const walk of data.recentWalks.slice(0, 4)) {
-    pushFolder({
-      id: `walk-${walk.id}`,
-      label: walk.title,
-      href: "/slatedrop/site-walk-files",
-      tone: "project",
-    });
-  }
-
-  for (const deliverable of data.recentDeliverables.slice(0, 2)) {
-    pushFolder({
-      id: `deliverable-${deliverable.id}`,
-      label: deliverable.title,
-      href: "/slatedrop/site-walk-files",
-      tone: "project",
-    });
-  }
-
-  for (const upload of data.recentSlateDrop.slice(0, 3)) {
-    const label = upload.filename.replace(/\.[^.]+$/, "") || upload.filename;
-    pushFolder({
-      id: `upload-${upload.id}`,
-      label,
-      href: "/slatedrop/general-files",
-      tone: "workspace",
-    });
-  }
-
-  for (const job of data.processingQueue.slice(0, 2)) {
-    const label = job.filename.replace(/\.[^.]+$/, "") || job.filename;
-    pushFolder({
-      id: `processing-${job.id}`,
-      label,
-      href: "/slatedrop/general-files",
-      tone: "workspace",
-    });
-  }
-
-  return folders;
-}
-
-export function MobileAppHomeFill({ data }: MobileAppHomeFillProps) {
-  const folders = buildHomeSlateDropFolders(data);
-
-  return (
-    <MobileAppHomeSlateDropFolderGrid folders={folders} />
-  );
-}
-
 /** Dock tab payloads for /app — mirrors fill data sources. */
 export function buildAppHomeDockContent(data: MobileAppHomeData) {
   const activityRows = buildActivityRows(data);
@@ -208,8 +327,7 @@ export function buildAppHomeDockContent(data: MobileAppHomeData) {
       href: item.href,
       metaTone: item.tone,
     })),
-    hasAlerts: activityRows.some((row) => row.key.startsWith("alert-") || row.key.startsWith("hub-")),
-    hasAssigned: data.assignments.length > 0 || data.hubSummary.openItems > 0,
-    hasRecent: recentItems.length > 0,
+    activityCount:
+      activityRows.length + data.assignments.length + recentItems.length,
   };
 }

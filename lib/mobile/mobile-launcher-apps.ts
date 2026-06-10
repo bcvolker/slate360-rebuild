@@ -45,15 +45,27 @@ const APP_DEFINITIONS: AppDefinition[] = [
     isEntitled: ({ entitlements }) => entitlements.canAccessStandalonePunchwalk,
     isPurchasable: () => true,
     statusSubline: (home) => {
+      const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+      const walksThisWeek = home.recentWalks.filter(
+        (walk) => new Date(walk.createdAt).getTime() >= weekAgo,
+      ).length;
+      const openItems = home.hubSummary.openItems;
+
+      if (walksThisWeek > 0 && openItems > 0) {
+        return `${walksThisWeek} walk${walksThisWeek === 1 ? "" : "s"} this week · ${openItems} open item${openItems === 1 ? "" : "s"}`;
+      }
       if (home.hubSummary.unsyncedItems > 0) {
         return `${home.hubSummary.unsyncedItems} item${home.hubSummary.unsyncedItems === 1 ? "" : "s"} pending sync`;
       }
-      if (home.hubSummary.openItems > 0) {
-        return `${home.hubSummary.openItems} open field item${home.hubSummary.openItems === 1 ? "" : "s"}`;
+      if (openItems > 0) {
+        return `${openItems} open field item${openItems === 1 ? "" : "s"}`;
+      }
+      if (walksThisWeek > 0) {
+        return `${walksThisWeek} walk${walksThisWeek === 1 ? "" : "s"} this week`;
       }
       const walks = home.recentWalks.length;
       if (walks > 0) return `${walks} recent walk${walks === 1 ? "" : "s"}`;
-      return null;
+      return "Ready for your next walk";
     },
   },
   {
@@ -72,7 +84,19 @@ const APP_DEFINITIONS: AppDefinition[] = [
       !APP_STORE_MODE || twin.allowed || twin.subscriptionTier !== "none",
     isEntitled: ({ twin }) => twin.allowed,
     isPurchasable: () => true,
-    statusSubline: () => null,
+    statusSubline: (home) => {
+      const processing = home.processingQueue.filter((item) =>
+        /processing|queued|pending/i.test(item.status),
+      ).length;
+      if (processing > 0) {
+        const etaMinutes = Math.max(12, processing * 12);
+        return `${processing} twin processing · ~${etaMinutes} min left`;
+      }
+      if (home.recentSlateDrop.length > 0) {
+        return `${home.recentSlateDrop.length} recent upload${home.recentSlateDrop.length === 1 ? "" : "s"}`;
+      }
+      return "Ready to capture";
+    },
   },
   {
     id: "360-tours",
@@ -145,7 +169,7 @@ const APP_DEFINITIONS: AppDefinition[] = [
       if (queue > 0) return `${queue} file${queue === 1 ? "" : "s"} processing`;
       const recent = home.recentSlateDrop.length;
       if (recent > 0) return `${recent} recent upload${recent === 1 ? "" : "s"}`;
-      return null;
+      return "Plans, photos, and field files";
     },
   },
 ];

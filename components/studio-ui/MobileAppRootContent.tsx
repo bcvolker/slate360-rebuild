@@ -1,31 +1,29 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo } from "react";
 import {
   Bell,
   ClipboardList,
   Clock,
-  FolderOpen,
-  MessageSquare,
-  Package,
-  Plus,
+  FolderPlus,
+  QrCode,
   Search,
 } from "lucide-react";
 import {
-  MobileCreateSheet,
   MobileEmptyState,
   MobileExpandableTabbedPanel,
   MobileHomeListRow,
-  MobileQuickActionsSection,
-  MobileQuickActionStrip,
   mobileTokens,
   useMobileShellDock,
 } from "@/components/mobile-system";
-import type { MobilePanelTab, MobileQuickActionItem } from "@/components/mobile-system";
+import type { MobilePanelTab } from "@/components/mobile-system";
+import { useInviteShare } from "@/components/shared/InviteShareProvider";
 import type { MobileAppHomeData } from "@/lib/mobile/load-app-home-data";
 import type { MobileLauncherAppView } from "@/lib/mobile/mobile-launcher-app-types";
+import { appHomeTokens } from "@/components/studio-ui/app-home-tokens";
 import { buildAppHomeDockContent, MobileAppHomeFill } from "@/components/studio-ui/MobileAppHomeFill";
 import { MobileAppLauncherGrid } from "@/components/studio-ui/MobileAppLauncherGrid";
+import { MobileAppSectionLabel } from "@/components/studio-ui/MobileAppSectionLabel";
 
 type MobileAppRootContentProps = {
   homeData: MobileAppHomeData;
@@ -59,7 +57,7 @@ function DockRowList({
 }
 
 export function MobileAppRootContent({ homeData, launcherApps }: MobileAppRootContentProps) {
-  const [createSheetOpen, setCreateSheetOpen] = useState(false);
+  const { setOpen: setInviteOpen } = useInviteShare();
 
   const handleSearch = useCallback(() => {
     if (typeof window === "undefined") return;
@@ -69,21 +67,6 @@ export function MobileAppRootContent({ homeData, launcherApps }: MobileAppRootCo
   }, []);
 
   const dockPayload = useMemo(() => buildAppHomeDockContent(homeData), [homeData]);
-
-  const quickActions: MobileQuickActionItem[] = useMemo(
-    () => [
-      { label: "Create", icon: Plus, accent: "primary", onClick: () => setCreateSheetOpen(true) },
-      { label: "SlateDrop", icon: FolderOpen, accent: "info", href: "/slatedrop" },
-      { label: "Search", icon: Search, accent: "info", onClick: handleSearch },
-      {
-        label: "Deliverables",
-        icon: Package,
-        accent: "primary",
-        href: "/site-walk/deliverables",
-      },
-    ],
-    [handleSearch],
-  );
 
   const activityTabs: MobilePanelTab[] = useMemo(
     () => [
@@ -105,22 +88,8 @@ export function MobileAppRootContent({ homeData, launcherApps }: MobileAppRootCo
           ),
       },
       {
-        value: "messages",
-        label: "Messages",
-        content: (
-          <MobileEmptyState
-            compact
-            icon={MessageSquare}
-            title="No unread messages"
-            actionLabel="View inbox"
-            actionClassName={mobileTokens.mobileDockEmptyAction}
-            actionHref="/coordination/inbox"
-          />
-        ),
-      },
-      {
-        value: "assigned",
-        label: "Assigned Tasks",
+        value: "tasks",
+        label: "Tasks",
         content:
           dockPayload.assigned.length > 0 ? (
             <DockRowList
@@ -154,7 +123,7 @@ export function MobileAppRootContent({ homeData, launcherApps }: MobileAppRootCo
       },
       {
         value: "recent",
-        label: "Recent Activity",
+        label: "Recent",
         content:
           dockPayload.recent.length > 0 ? (
             <DockRowList
@@ -175,34 +144,53 @@ export function MobileAppRootContent({ homeData, launcherApps }: MobileAppRootCo
   );
 
   const dockContent = useMemo(
-    () => <MobileExpandableTabbedPanel tabs={activityTabs} defaultTab="alerts" />,
-    [activityTabs],
+    () => (
+      <MobileExpandableTabbedPanel
+        tabs={activityTabs}
+        defaultTab="alerts"
+        badgeCount={dockPayload.activityCount}
+        collapsedHeightPx={40}
+      />
+    ),
+    [activityTabs, dockPayload.activityCount],
   );
 
   useMobileShellDock(dockContent);
 
   return (
-    <>
-      <div data-mobile-route="app" className={mobileTokens.appHomeScrollInner}>
-        <section className={mobileTokens.mobileHomeSection}>
-          <div className={mobileTokens.mobileHomeSectionHeader}>
-            <span className={mobileTokens.appHomeSectionLabelAccent} aria-hidden />
-            <p className={mobileTokens.appHomeSectionLabel}>Your Apps</p>
-          </div>
-          <MobileAppLauncherGrid apps={launcherApps} />
-        </section>
+    <div data-mobile-route="app" className={appHomeTokens.scrollInner}>
+      <section className={appHomeTokens.section}>
+        <div className={appHomeTokens.sectionHeader}>
+          <MobileAppSectionLabel data-testid="mobile-section-label">Your Apps</MobileAppSectionLabel>
+        </div>
+        <MobileAppLauncherGrid apps={launcherApps} />
+      </section>
 
-        <MobileQuickActionsSection>
-          <MobileQuickActionStrip
-            actions={quickActions}
-            className={mobileTokens.appHomeQuickActionGrid}
-            cardClassName={mobileTokens.appHomeQuickActionCard}
-          />
-        </MobileQuickActionsSection>
+      <section className={appHomeTokens.section}>
+        <div className={appHomeTokens.sectionHeader}>
+          <MobileAppSectionLabel>Quick Actions</MobileAppSectionLabel>
+        </div>
+        <div className={appHomeTokens.quickActionGrid} data-testid="mobile-quick-action-strip">
+          <button
+            type="button"
+            className={appHomeTokens.quickActionCard}
+            onClick={() => setInviteOpen(true)}
+          >
+            <QrCode className={appHomeTokens.quickActionIcon} strokeWidth={1.75} aria-hidden />
+            <span className={appHomeTokens.quickActionLabel}>Invite &amp; share</span>
+          </button>
+          <a href="/projects" className={appHomeTokens.quickActionCard}>
+            <FolderPlus className={appHomeTokens.quickActionIcon} strokeWidth={1.75} aria-hidden />
+            <span className={appHomeTokens.quickActionLabel}>New project</span>
+          </a>
+          <button type="button" className={appHomeTokens.quickActionCard} onClick={handleSearch}>
+            <Search className={appHomeTokens.quickActionIcon} strokeWidth={1.75} aria-hidden />
+            <span className={appHomeTokens.quickActionLabel}>Search</span>
+          </button>
+        </div>
+      </section>
 
-        <MobileAppHomeFill data={homeData} />
-      </div>
-      <MobileCreateSheet open={createSheetOpen} onOpenChange={setCreateSheetOpen} />
-    </>
+      <MobileAppHomeFill data={homeData} />
+    </div>
   );
 }
