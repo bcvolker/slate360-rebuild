@@ -42,6 +42,7 @@ export function TwinCaptureFlow({
   quickMode = false,
 }: Props) {
   const router = useRouter();
+  const [debugCapture, setDebugCapture] = useState(false);
   const skipPicker = quickMode && !lockProject;
   const [localSpaces, setLocalSpaces] = useState(spaces);
   const [step, setStep] = useState<Step>(skipPicker ? "capture" : "picker");
@@ -64,6 +65,11 @@ export function TwinCaptureFlow({
   useEffect(() => {
     setLocalSpaces(spaces);
   }, [spaces]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setDebugCapture(params.get("debug") === "1");
+  }, []);
 
   useEffect(() => {
     if (!skipPicker || quickBoot !== "loading") return;
@@ -228,6 +234,7 @@ export function TwinCaptureFlow({
         spaceName={selection.spaceTitle}
         onCancel={skipPicker ? handleExitQuickFlow : () => setStep("picker")}
         onFinish={handleCaptureFinish}
+        debug={debugCapture}
       />
     );
   }
