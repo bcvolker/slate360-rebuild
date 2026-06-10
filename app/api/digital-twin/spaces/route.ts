@@ -2,12 +2,14 @@ import { NextRequest } from "next/server";
 import { withAuth } from "@/lib/server/api-auth";
 import { ok, badRequest, forbidden, notFound, serverError } from "@/lib/server/api-response";
 import { resolveDigitalTwinEntitlement } from "@/lib/twin/processing-entitlement";
+import { resolveOrCreateQuickScanProject } from "@/lib/digital-twin/resolve-quick-scan-project";
 
 export const runtime = "nodejs";
 
 type CreateBody = {
   title: string;
-  project_id: string;
+  project_id?: string;
+  quick_scan?: boolean;
 };
 
 export const POST = (req: NextRequest) =>
@@ -23,19 +25,27 @@ export const POST = (req: NextRequest) =>
 
     const body = (await req.json().catch(() => null)) as CreateBody | null;
     const title = body?.title?.trim();
-    const projectId = body?.project_id?.trim();
-    if (!title || !projectId) return badRequest("title and project_id are required");
+    const quickScan = body?.quick_scan === true;
+    const projectIdInput = body?.project_id?.trim();
+    if (!title) return badRequest("title is required");
+    if (!quickScan && !projectIdInput) return badRequest("project_id is required");
 
-    const { data: project, error: projectError } = await admin
-      .from("projects")
-      .select("id, name, org_id, status")
-      .eq("id", projectId)
-      .eq("org_id", orgId)
-      .eq("status", "active")
-      .maybeSingle();
+    let project: { id: string; name: string };
+    if (quickScan) {
+      project = await resolveOrCreateQuickScanProject(admin, orgId, user.id);
+    } else {
+      const { data: resolved, error: projectError } = await admin
+        .from("projects")
+        .select("id, name, org_id, status")
+        .eq("id", projectIdInput!)
+        .eq("org_id", orgId)
+        .eq("status", "active")
+        .maybeSingle();
 
-    if (projectError) return serverError(projectError.message);
-    if (!project) return notFound("Project not found");
+      if (projectError) return serverError(projectError.message);
+      if (!resolved) return notFound("Project not found");
+      project = { id: resolved.id, name: resolved.name };
+    }
 
     const { data: space, error: insertError } = await admin
       .from("digital_twin_spaces")

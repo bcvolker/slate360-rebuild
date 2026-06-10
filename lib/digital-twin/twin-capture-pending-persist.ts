@@ -102,7 +102,7 @@ function addedFileKey(sourceId: string) {
   return `added:${sourceId}`;
 }
 
-export async function persistTwinCaptureReviewForCheckout(args: {
+export async function persistTwinCaptureReviewState(args: {
   session: TwinCapturePendingSession;
   scanName: string;
   quality: TwinProcessingQuality;
@@ -167,6 +167,9 @@ export async function persistTwinCaptureReviewForCheckout(args: {
 
   sessionStorage.setItem(META_KEY, JSON.stringify(payload));
 }
+
+/** @deprecated Use persistTwinCaptureReviewState — kept for checkout call sites. */
+export const persistTwinCaptureReviewForCheckout = persistTwinCaptureReviewState;
 
 export async function restoreTwinCaptureReviewState(): Promise<RestoredTwinCaptureReviewState | null> {
   if (typeof window === "undefined") return null;

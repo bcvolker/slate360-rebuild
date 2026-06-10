@@ -11,6 +11,7 @@ import { useMultipartTwinUpload } from "@/hooks/useMultipartTwinUpload";
 import type { HubTwin, HubTwinProject } from "@/lib/types/digital-twin-hub";
 import { TwinCapturePicker } from "./TwinCapturePicker";
 import { setTwinCapturePendingSession } from "@/lib/digital-twin/twin-capture-pending-session";
+import { persistTwinCaptureReviewState } from "@/lib/digital-twin/twin-capture-pending-persist";
 import { TwinCaptureScreen, type TwinCaptureFinishResult } from "./TwinCaptureScreen";
 import { TwinCreditGate } from "./TwinCreditGate";
 import { TwinJobStatus } from "./TwinJobStatus";
@@ -77,22 +78,18 @@ export function TwinCaptureFlow({
     let cancelled = false;
 
     async function bootQuickScan() {
-      const project = projects[0];
-      if (!project) {
-        if (!cancelled) {
-          setQuickBootError("Create an active project before starting a quick scan.");
-          setQuickBoot("error");
-        }
-        return;
-      }
-
       const title = formatQuickScanSpaceTitle();
+      const project = projects[0];
 
       try {
         const res = await fetch("/api/digital-twin/spaces", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ title, project_id: project.id }),
+          body: JSON.stringify(
+            project
+              ? { title, project_id: project.id }
+              : { title, quick_scan: true },
+          ),
         });
         const data = (await res.json().catch(() => ({}))) as {
           space?: HubTwin;
@@ -108,7 +105,7 @@ export function TwinCaptureFlow({
         setLocalSpaces((prev) => [data.space!, ...prev.filter((row) => row.id !== data.space!.id)]);
         setSelection({
           spaceId: data.space.id,
-          projectId: project.id,
+          projectId: data.space.projectId ?? project?.id ?? "",
           spaceTitle: title,
         });
         setQuickBoot("done");
@@ -142,7 +139,7 @@ export function TwinCaptureFlow({
   }, []);
 
   const handleCaptureFinish = useCallback(
-    (result: TwinCaptureFinishResult) => {
+    async (result: TwinCaptureFinishResult) => {
       if (!selection || !result.files.length) {
         setStatusMessage("No capture files — take at least one photo or video.");
         setStep("capture");
@@ -150,7 +147,7 @@ export function TwinCaptureFlow({
       }
 
       const projectName = projects.find((row) => row.id === selection.projectId)?.name ?? null;
-      setTwinCapturePendingSession({
+      const pendingSession = {
         selection: {
           spaceId: selection.spaceId,
           projectId: selection.projectId,
@@ -167,6 +164,13 @@ export function TwinCaptureFlow({
           files: clip.files,
           thumbnailUrl: clip.thumbnailUrl,
         })),
+      };
+      setTwinCapturePendingSession(pendingSession);
+      await persistTwinCaptureReviewState({
+        session: pendingSession,
+        scanName: selection.spaceTitle,
+        quality: "standard",
+        addedSources: [],
       });
       router.push("/digital-twin/capture/review");
     },

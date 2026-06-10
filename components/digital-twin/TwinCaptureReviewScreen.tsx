@@ -66,6 +66,7 @@ export function TwinCaptureReviewScreen({ canUseHighQuality, devPreview }: Props
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [jobQueued, setJobQueued] = useState(false);
   const [checkoutNotice, setCheckoutNotice] = useState<string | null>(null);
+  const [restoredNotice, setRestoredNotice] = useState<string | null>(null);
 
   useEffect(() => {
     if (devPreview?.session) return;
@@ -79,6 +80,7 @@ export function TwinCaptureReviewScreen({ canUseHighQuality, devPreview }: Props
         setScanName(restored.scanName);
         setQuality(restored.quality);
         setAddedSources(restored.addedSources);
+        setRestoredNotice("Restored your scan");
       }
       setSessionReady(true);
     });
@@ -293,6 +295,15 @@ export function TwinCaptureReviewScreen({ canUseHighQuality, devPreview }: Props
         {checkoutNotice ? (
           <div className="rounded-xl border border-[var(--accent-border-blue)] bg-[color-mix(in_srgb,var(--twin360-blue)_10%,transparent)] px-3 py-2 text-xs text-[var(--graphite-text-body)]">
             {checkoutNotice}
+          </div>
+        ) : null}
+
+        {restoredNotice ? (
+          <div
+            className="rounded-xl border border-[var(--accent-border-blue)] bg-[color-mix(in_srgb,var(--twin360-blue)_10%,transparent)] px-3 py-2 text-xs text-[var(--graphite-text-body)]"
+            data-twin-review="restored-notice"
+          >
+            {restoredNotice}
           </div>
         ) : null}
 

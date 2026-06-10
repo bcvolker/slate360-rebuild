@@ -7,7 +7,7 @@ import { TwinCaptureClipGhost } from "./TwinCaptureClipGhost";
 import { TwinCaptureCoveragePill } from "./TwinCaptureCoveragePill";
 import { TwinCaptureDebugOverlay } from "./TwinCaptureDebugOverlay";
 import { TwinCaptureHudToast } from "./TwinCaptureHudToast";
-import { TwinCaptureLidarChip } from "./TwinCaptureLidarChip";
+import { TwinCaptureFrameCapChip } from "./TwinCaptureFrameCapChip";
 import { TwinCaptureLevelLine } from "./TwinCaptureLevelLine";
 import { TwinCaptureLiveCamera } from "./TwinCaptureLiveCamera";
 import { TwinCaptureModeSelector } from "./TwinCaptureModeSelector";
@@ -23,11 +23,11 @@ import { useTwinCaptureClipGhost } from "./useTwinCaptureClipGhost";
 import { useTwinCaptureDeviceSensors } from "./useTwinCaptureDeviceSensors";
 import {
   useTwinCaptureSession,
+  TWIN_PHOTO_FRAME_CAP,
   type TwinCaptureClipReviewPayload,
   type TwinCaptureMode,
 } from "./useTwinCaptureSession";
 import { useTwinCaptureVideoRecorder } from "./useTwinCaptureVideoRecorder";
-import { isTwinDepthSupported } from "@/lib/digital-twin/twin-capture-device";
 
 export type TwinCaptureFinishResult = {
   files: File[];
@@ -53,7 +53,7 @@ type Props = {
   debug?: boolean;
 };
 
-const PHOTO_EST_BYTES = 2_400_000;
+const PHOTO_EST_BYTES = 380_000;
 const VIDEO_EST_BYTES_PER_SEC = 1_850_000;
 
 function formatRecTimer(seconds: number): string {
@@ -102,7 +102,6 @@ export function TwinCaptureScreen({
   const facingMode = "environment";
   const [torchOn, setTorchOn] = useState(false);
   const [torchSupported, setTorchSupported] = useState(false);
-  const [depthSupported, setDepthSupported] = useState(false);
 
   const scopeLabel = projectName?.trim() ? projectName.trim().toUpperCase() : "QUICK SCAN";
   const recording = devForceRecording || session.isRecording;
@@ -110,7 +109,7 @@ export function TwinCaptureScreen({
     ? `${scopeLabel} · REC ${formatRecTimer(session.recSeconds)}`
     : `${scopeLabel} · READY`;
 
-  const photoCount = session.clips.reduce((sum, clip) => sum + clip.frameCount, 0);
+  const photoCount = session.totalPhotoFrames;
   const videoSeconds = session.clips
     .filter((clip) => clip.mode === "video")
     .reduce((sum, clip) => sum + clip.durationSeconds, 0);
@@ -145,7 +144,6 @@ export function TwinCaptureScreen({
   const estimatedBytes = photoCount * PHOTO_EST_BYTES + videoSeconds * VIDEO_EST_BYTES_PER_SEC;
   const streamReady = camera.isStreaming && !camera.needsResume;
 
-  useEffect(() => setDepthSupported(isTwinDepthSupported()), []);
   useEffect(() => {
     if (!streamReady) {
       setTorchSupported(false);
@@ -298,7 +296,12 @@ export function TwinCaptureScreen({
           }}
         />
 
-        <TwinCaptureLidarChip hidden={!chromeVisible} visible={depthSupported} />
+        <TwinCaptureFrameCapChip
+          hidden={!chromeVisible || session.mode !== "photos"}
+          frameCount={session.totalPhotoFrames}
+          frameCap={TWIN_PHOTO_FRAME_CAP}
+          atCap={session.atPhotoFrameCap || session.photoFrameCapHit}
+        />
         <TwinCaptureCoveragePill
           hidden={!chromeVisible}
           coveragePct={coveragePct}

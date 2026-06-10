@@ -9,6 +9,29 @@ type CaptureResult = {
   height: number;
 };
 
+const PHOTO_MAX_EDGE_PX = 1920;
+const PHOTO_JPEG_QUALITY = 0.8;
+
+function computeDownscaledSize(
+  width: number,
+  height: number,
+  maxEdge: number,
+): { width: number; height: number } {
+  const longest = Math.max(width, height);
+  if (longest <= maxEdge) return { width, height };
+  const scale = maxEdge / longest;
+  return {
+    width: Math.round(width * scale),
+    height: Math.round(height * scale),
+  };
+}
+
+function canvasToJpegBlob(canvas: HTMLCanvasElement, quality: number): Promise<Blob | null> {
+  return new Promise((resolve) => {
+    canvas.toBlob((blob) => resolve(blob), "image/jpeg", quality);
+  });
+}
+
 function mapCameraError(err: unknown): string {
   if (err instanceof DOMException) {
     if (err.name === "NotAllowedError") {
@@ -157,24 +180,27 @@ export function useTwinCaptureCamera() {
     const ready = await waitForVideoFrame(video);
     if (!ready || !video.videoWidth || !video.videoHeight) return null;
 
+    const { width, height } = computeDownscaledSize(
+      video.videoWidth,
+      video.videoHeight,
+      PHOTO_MAX_EDGE_PX,
+    );
+
     const canvas = document.createElement("canvas");
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
+    canvas.width = width;
+    canvas.height = height;
     const ctx = canvas.getContext("2d");
     if (!ctx) return null;
 
-    ctx.drawImage(video, 0, 0);
+    ctx.drawImage(video, 0, 0, width, height);
     try {
-      const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
-      const binary = atob(dataUrl.split(",")[1] ?? "");
-      const bytes = new Uint8Array(binary.length);
-      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-      const blob = new Blob([bytes], { type: "image/jpeg" });
+      const blob = await canvasToJpegBlob(canvas, PHOTO_JPEG_QUALITY);
+      if (!blob) return null;
       return {
         blob,
         url: URL.createObjectURL(blob),
-        width: canvas.width,
-        height: canvas.height,
+        width,
+        height,
       };
     } catch {
       return null;

@@ -8,6 +8,7 @@ export type TwinCaptureMode = "video" | "photos";
 export type PhotoIntervalSec = 0.5 | 1 | 2;
 
 export const TWIN_PHOTO_INTERVALS: PhotoIntervalSec[] = [0.5, 1, 2];
+export const TWIN_PHOTO_FRAME_CAP = 200;
 
 export type TwinCaptureClip = {
   id: string;
@@ -74,9 +75,18 @@ export function useTwinCaptureSession({
   const [activeClipId, setActiveClipId] = useState<string | null>(null);
   const [photoInterval, setPhotoInterval] = useState<PhotoIntervalSec>(1);
   const [photoAutoActive, setPhotoAutoActive] = useState(false);
+  const [photoFrameCapHit, setPhotoFrameCapHit] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const photoIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const photoCapturingRef = useRef(false);
+
+  const countCapturedPhotoFrames = useCallback(() => {
+    let count = 0;
+    clipFilesRef.current.forEach((files) => {
+      count += files.length;
+    });
+    return count;
+  }, []);
 
   const reportError = useCallback(
     (message: string) => {
@@ -90,6 +100,8 @@ export function useTwinCaptureSession({
   const activeClip = clips.find((clip) => clip.id === activeClipId) ?? null;
   const recSeconds = activeClip?.durationSeconds ?? 0;
   const hasContent = clips.some((clip) => clip.frameCount > 0);
+  const totalPhotoFrames = clips.reduce((sum, clip) => sum + clip.frameCount, 0);
+  const atPhotoFrameCap = totalPhotoFrames >= TWIN_PHOTO_FRAME_CAP;
 
   const stopDurationTimer = useCallback(() => {
     if (timerRef.current) {
@@ -136,6 +148,11 @@ export function useTwinCaptureSession({
         reportError("Camera is not ready. Tap to resume camera.");
         return false;
       }
+      if (countCapturedPhotoFrames() >= TWIN_PHOTO_FRAME_CAP) {
+        setPhotoFrameCapHit(true);
+        reportError(`Frame cap reached (${TWIN_PHOTO_FRAME_CAP}). End this clip to continue.`);
+        return false;
+      }
       if (photoCapturingRef.current) return false;
       photoCapturingRef.current = true;
       try {
@@ -158,7 +175,7 @@ export function useTwinCaptureSession({
         photoCapturingRef.current = false;
       }
     },
-    [camera, reportError],
+    [camera, countCapturedPhotoFrames, reportError],
   );
 
   const finalizeClip = useCallback((clipId: string) => {
@@ -191,9 +208,23 @@ export function useTwinCaptureSession({
       return;
     }
     photoIntervalRef.current = setInterval(() => {
+      if (countCapturedPhotoFrames() >= TWIN_PHOTO_FRAME_CAP) {
+        stopPhotoInterval();
+        setPhotoFrameCapHit(true);
+        reportError(`Frame cap reached (${TWIN_PHOTO_FRAME_CAP}). End this clip to continue.`);
+        return;
+      }
       void captureFrame(id);
     }, photoInterval * 1000);
-  }, [camera, captureFrame, clips.length, photoInterval, reportError, stopPhotoInterval]);
+  }, [
+    camera,
+    captureFrame,
+    clips.length,
+    countCapturedPhotoFrames,
+    photoInterval,
+    reportError,
+    stopPhotoInterval,
+  ]);
 
   const stopPhotoClip = useCallback(() => {
     stopPhotoInterval();
@@ -339,6 +370,9 @@ export function useTwinCaptureSession({
     activeClip,
     photoInterval,
     photoAutoActive,
+    photoFrameCapHit,
+    totalPhotoFrames,
+    atPhotoFrameCap,
     isRecording,
     recSeconds,
     hasContent,
