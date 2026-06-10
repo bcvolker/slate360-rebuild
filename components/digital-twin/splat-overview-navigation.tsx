@@ -7,7 +7,11 @@ import * as THREE from "three";
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import type { SplatMesh } from "@sparkjsdev/spark";
 import { exteriorOrbitDistanceLimits } from "@/lib/digital-twin/exterior-camera-frame";
-import { frameSplatMeshExterior, getSplatSceneBounds } from "@/lib/digital-twin/splat-camera-frame";
+import {
+  frameSplatMeshExterior,
+  getSplatSceneBounds,
+  logSplatFramingBounds,
+} from "@/lib/digital-twin/splat-camera-frame";
 import { raycastSplatMesh } from "@/lib/digital-twin/splat-raycast";
 import {
   DOUBLE_TAP_MS,
@@ -32,34 +36,37 @@ export function SplatOverviewNavigation({
   onPick?: (point: { x: number; y: number; z: number }) => void;
   onEnterInterior: (point: THREE.Vector3) => void;
 }) {
-  const { camera, gl, controls } = useThree();
-  const orbit = controls as OrbitControlsImpl | null;
-  const framedRef = useRef(false);
+  const { camera, gl } = useThree();
+  const controlsRef = useRef<OrbitControlsImpl>(null);
+  const loggedBoundsRef = useRef(false);
   const lastTapRef = useRef({ time: 0, x: 0, y: 0 });
 
   const applyExteriorFrame = useCallback(() => {
     if (!mesh?.isInitialized || !(camera instanceof THREE.PerspectiveCamera)) return;
-    frameSplatMeshExterior(mesh, camera, orbit);
-    if (orbit) {
-      const limits = exteriorOrbitDistanceLimits(getSplatSceneBounds(mesh));
-      orbit.minDistance = limits.minDistance;
-      orbit.maxDistance = limits.maxDistance;
-      orbit.update();
+    const controls = controlsRef.current;
+    if (!controls) return;
+
+    if (!loggedBoundsRef.current) {
+      loggedBoundsRef.current = true;
+      logSplatFramingBounds(mesh);
     }
-  }, [camera, mesh, orbit]);
+
+    frameSplatMeshExterior(mesh, camera, controls);
+    const limits = exteriorOrbitDistanceLimits(getSplatSceneBounds(mesh));
+    controls.minDistance = limits.minDistance;
+    controls.maxDistance = limits.maxDistance;
+    controls.update();
+  }, [camera, mesh]);
 
   useEffect(() => {
-    framedRef.current = false;
+    loggedBoundsRef.current = false;
   }, [mesh]);
 
   useEffect(() => {
-    if (!active || !mesh?.isInitialized || framedRef.current) return;
-    const id = window.requestAnimationFrame(() => {
-      framedRef.current = true;
-      applyExteriorFrame();
-    });
+    if (!active || !mesh?.isInitialized) return;
+    const id = window.requestAnimationFrame(() => applyExteriorFrame());
     return () => window.cancelAnimationFrame(id);
-  }, [active, mesh, applyExteriorFrame]);
+  }, [active, mesh, mesh?.isInitialized, applyExteriorFrame]);
 
   useEffect(() => {
     if (!active || resetToken <= 0) return;
@@ -108,7 +115,9 @@ export function SplatOverviewNavigation({
 
   return (
     <OrbitControls
+      ref={controlsRef}
       makeDefault
+      domElement={gl.domElement}
       enableDamping
       dampingFactor={ORBIT_DAMPING}
       rotateSpeed={ORBIT_ROTATE_SPEED}
