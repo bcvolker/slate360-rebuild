@@ -126,6 +126,7 @@ export function CaptureStopFilmstrip({
     <>
       <section
         id="capture-canvas-stop-tracker"
+        data-capture-chrome="filmstrip"
         className={
           overlay
             ? `${CAPTURE_V2_LAYERS.filmstrip} pointer-events-auto flex w-full items-center gap-2 pl-3`

@@ -106,12 +106,14 @@ export function CaptureCanvasBottomRail({
           paddingLeft: CAPTURE_CANVAS_CHROME.railSideInsetPx,
           paddingRight: CAPTURE_CANVAS_CHROME.railSideInsetPx,
         }}
+        data-capture-chrome="bottom-rail"
       >
         <div className="grid grid-cols-[1fr_auto_1fr] items-end">
           <button
             type="button"
             disabled={busy}
             onClick={() => onGhostTap?.()}
+            data-capture-chrome="ghost-button"
             className={`inline-flex items-center justify-center justify-self-start rounded-xl transition active:scale-[0.98] disabled:opacity-50 ${glassSquareClass(false)}`}
             style={{
               width: CAPTURE_CANVAS_CHROME.ghostButtonSizePx,
@@ -131,6 +133,7 @@ export function CaptureCanvasBottomRail({
             onPointerUp={handleShutterPointerEnd}
             onPointerCancel={handleShutterPointerEnd}
             onPointerLeave={handleShutterPointerEnd}
+            data-capture-chrome="shutter"
             className={`inline-flex items-center justify-center justify-self-center rounded-full transition active:scale-95 disabled:opacity-50 ${
               captured ? capturedShutterClass : liveShutterClass
             }`}
@@ -156,6 +159,7 @@ export function CaptureCanvasBottomRail({
               type="button"
               disabled={busy}
               onClick={() => onDetailsTap?.()}
+              data-capture-chrome="end-button"
               className="inline-flex items-center justify-center justify-self-end rounded-full bg-[var(--graphite-primary)] text-[var(--graphite-canvas)] shadow-none transition active:scale-[0.98] disabled:opacity-50"
               style={{
                 width: CAPTURE_CANVAS_CHROME.detailsButtonPx,
@@ -169,6 +173,7 @@ export function CaptureCanvasBottomRail({
             <button
               type="button"
               disabled={busy}
+              data-capture-chrome="end-button"
               className={`inline-flex items-center justify-center justify-self-end rounded-xl transition active:scale-[0.98] disabled:opacity-50 ${glassSquareClass(true)}`}
               style={{
                 width: CAPTURE_CANVAS_CHROME.endButtonSizePx,

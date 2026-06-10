@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useMemo } from "react";
 import { useSearchParams } from "next/navigation";
-import { DevCaptureCanvasSandbox } from "./DevCaptureCanvasSandbox";
+import { DevCaptureCanvasSandbox, DEV_CAPTURE_THUMB_COUNTS } from "./DevCaptureCanvasSandbox";
 import { DevNoteReviewSandbox } from "./DevNoteReviewSandbox";
 import { DevTwinCaptureSandbox } from "./DevTwinCaptureSandbox";
 import { DevTwinUploadSandbox } from "./DevTwinUploadSandbox";
@@ -71,6 +71,28 @@ export function DevScreensClient() {
             </Link>
           );
         })}
+
+        {screen === "capture" ? (
+          <>
+            <span className="mx-1 h-5 w-px bg-[var(--mobile-app-card-border)]" aria-hidden />
+            {DEV_CAPTURE_THUMB_COUNTS.map((count) => {
+              const active = Number.parseInt(searchParams?.get("thumbs") ?? "0", 10) === count;
+              return (
+                <Link
+                  key={count}
+                  href={`/dev/screens?screen=capture&device=${device}&thumbs=${count}`}
+                  className={`rounded-lg border px-2.5 py-1.5 text-[11px] font-bold tabular-nums ${
+                    active
+                      ? "border-[var(--accent-border-green)] text-[var(--graphite-text-header)]"
+                      : "border-[var(--mobile-app-card-border)] text-[var(--graphite-muted)]"
+                  }`}
+                >
+                  {count} thumbs
+                </Link>
+              );
+            })}
+          </>
+        ) : null}
 
         <span className="mx-1 h-5 w-px bg-[var(--mobile-app-card-border)]" aria-hidden />
 
