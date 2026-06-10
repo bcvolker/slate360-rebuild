@@ -29,6 +29,8 @@ export const SITE_WALK_ITEM_TYPES = [
   "text_note",
   "voice_note",
   "annotation",
+  "photo_360",
+  "file_attachment",
 ] as const;
 
 export const SITE_WALK_CAPTURE_MODES = [

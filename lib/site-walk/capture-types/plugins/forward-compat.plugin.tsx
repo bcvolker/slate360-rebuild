@@ -1,6 +1,6 @@
 "use client";
 
-import { FileUp, Orbit, Video } from "lucide-react";
+import { Video } from "lucide-react";
 import { registerCaptureType } from "../registry";
 import type { CaptureThumbnailProps, CaptureTypePlugin } from "../types";
 
@@ -46,24 +46,4 @@ export const videoCapturePlugin = registerCaptureType({
   sourcePicker: { group: "media", order: 4 },
   hydrateMeta: () => ({ kind: "video" as const }),
   persist: notImplemented("Video"),
-});
-
-export const photo360CapturePlugin = registerCaptureType({
-  id: "photo_360",
-  label: "360 Photo",
-  icon: Orbit,
-  Thumbnail: stubThumbnail("360 Photo", Orbit),
-  sourcePicker: { group: "media", order: 5 },
-  hydrateMeta: () => ({ kind: "photo_360" as const }),
-  persist: notImplemented("360 photo"),
-});
-
-export const fileAttachmentCapturePlugin = registerCaptureType({
-  id: "file_attachment",
-  label: "File",
-  icon: FileUp,
-  Thumbnail: stubThumbnail("File", FileUp),
-  sourcePicker: { group: "file", order: 6 },
-  hydrateMeta: () => ({ kind: "file_attachment" as const }),
-  persist: notImplemented("File attachment"),
 });

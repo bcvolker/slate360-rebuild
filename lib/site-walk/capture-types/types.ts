@@ -2,10 +2,7 @@ import type { ComponentType } from "react";
 import type { SiteWalkItemType } from "@/lib/types/site-walk";
 import type { CaptureItemRecord } from "@/lib/types/site-walk-capture";
 
-/** DB item types plus forward-compatible extensions not yet in SITE_WALK_ITEM_TYPES. */
-export type CaptureTypeExtension = "photo_360" | "file_attachment";
-
-export type CaptureTypeId = SiteWalkItemType | CaptureTypeExtension;
+export type CaptureTypeId = SiteWalkItemType;
 
 export type CapturePersistContext = {
   sessionId: string;

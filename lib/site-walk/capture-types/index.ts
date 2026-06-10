@@ -1,6 +1,8 @@
 import "./plugins/photo.plugin";
 import "./plugins/text-note.plugin";
 import "./plugins/voice-note.plugin";
+import "./plugins/photo-360.plugin";
+import "./plugins/file-attachment.plugin";
 import "./plugins/forward-compat.plugin";
 import { hasCaptureType } from "./registry";
 
