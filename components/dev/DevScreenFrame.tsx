@@ -20,8 +20,8 @@ export function DevScreenFrame({ mode, title, children }: Props) {
       </p>
       <div className={`flex min-h-0 flex-1 justify-center overflow-hidden p-3 ${isMobile ? "" : ""}`}>
         <div
-          className={`flex min-h-0 flex-col overflow-hidden border border-[var(--surface-zinc-border)] bg-[var(--graphite-canvas)] ${
-            isMobile ? "h-[min(844px,calc(100dvh-8rem))] w-[390px] max-w-full rounded-[1.75rem] shadow-[var(--mobile-app-card-shadow)]" : "h-full w-full max-w-6xl rounded-2xl"
+          className={`flex h-[844px] max-h-[844px] min-h-0 flex-col overflow-hidden border border-[var(--surface-zinc-border)] bg-[var(--graphite-canvas)] ${
+            isMobile ? "w-[390px] max-w-full rounded-[1.75rem]" : "h-full w-full max-w-6xl rounded-2xl"
           }`}
           data-dev-device={mode}
         >

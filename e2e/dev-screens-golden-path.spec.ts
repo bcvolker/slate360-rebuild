@@ -13,8 +13,8 @@ test.describe("dev screens golden path", () => {
 
   test("note review keeps note field and save visible on desktop", async ({ page }) => {
     await page.goto("/dev/screens?screen=note-review&device=desktop");
-    await expect(page.getByTestId("dev-note-field")).toBeVisible();
-    await expect(page.getByTestId("dev-save-button")).toBeVisible();
+    await expect(page.getByTestId("note-review-field")).toBeVisible();
+    await expect(page.getByTestId("note-review-save-next")).toBeVisible();
   });
 
   test("note review keeps note field and save visible with keyboard", async ({ page }, testInfo) => {
@@ -24,22 +24,27 @@ test.describe("dev screens golden path", () => {
     );
 
     await page.goto("/dev/screens?screen=note-review&device=mobile&keyboard=280");
-    const noteField = page.getByTestId("dev-note-field");
-    const saveButton = page.getByTestId("dev-save-button");
+    const noteField = page.getByTestId("note-review-field");
+    const saveButton = page.getByTestId("note-review-save-next");
+    const accessory = page.locator('[data-note-review="note-accessory"]');
 
     await noteField.click();
     await expect(noteField).toBeVisible();
     await expect(saveButton).toBeVisible();
+    await expect(accessory).toBeVisible();
 
     const viewport = page.viewportSize();
     const noteBox = await noteField.boundingBox();
     const saveBox = await saveButton.boundingBox();
+    const accessoryBox = await accessory.boundingBox();
     expect(viewport).not.toBeNull();
     expect(noteBox).not.toBeNull();
     expect(saveBox).not.toBeNull();
-    if (!viewport || !noteBox || !saveBox) return;
+    expect(accessoryBox).not.toBeNull();
+    if (!viewport || !noteBox || !saveBox || !accessoryBox) return;
 
-    expect(saveBox.y).toBeGreaterThan(noteBox.y);
+    expect(accessoryBox.y).toBeGreaterThan(noteBox.y);
+    expect(saveBox.y).toBeGreaterThan(accessoryBox.y);
     expect(saveBox.y + saveBox.height).toBeLessThanOrEqual(viewport.height + 2);
   });
 });

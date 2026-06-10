@@ -9,7 +9,8 @@ import { CaptureCanvasMarkupToolbar } from "./CaptureCanvasMarkupToolbar";
 import { CaptureCanvasRightToolRail } from "./CaptureCanvasRightToolRail";
 import { CaptureCanvasTopBar } from "./CaptureCanvasTopBar";
 import { CaptureStopFilmstrip } from "./CaptureStopFilmstrip";
-import { CaptureV2DetailDrawer } from "./CaptureV2DetailDrawer";
+import { CaptureV2NoteReviewContainer } from "./note-review/CaptureV2NoteReviewContainer";
+import { CAPTURE_V2_LAYERS } from "./layers";
 import { CaptureV2LiveCamera, CaptureV2LiveCameraBusyOverlay } from "./CaptureV2LiveCamera";
 import type { CaptureV2Session } from "./session-types";
 import type { CaptureV2Loop } from "./useCaptureV2Loop";
@@ -152,13 +153,22 @@ export function NoPlansCaptureCanvas({ session, loop, contextLabel }: Props) {
       />
 
       {canvas.detailsOpen && canvas.activeItem ? (
-        <CaptureV2DetailDrawer
-          loop={loop}
-          projectId={session.project_id}
-          mode="mobile-overlay"
-          onClose={() => canvas.setDetailsOpen(false)}
-          onAddAnotherAngle={() => loop.addAnotherAngle()}
-        />
+        <div className={`${CAPTURE_V2_LAYERS.drawer} absolute inset-0 z-50`}>
+          <CaptureV2NoteReviewContainer
+            loop={loop}
+            sessionId={session.id}
+            stopNumber={canvas.stopNumber}
+            activeAngleId={canvas.activeAngleId}
+            onSelectMain={canvas.handleSelectMain}
+            onSelectAngle={canvas.handleSelectAngle}
+            onPromoteAngle={canvas.handlePromoteAngle}
+            onAddAngle={() => {
+              canvas.setDetailsOpen(false);
+              loop.addAnotherAngle();
+            }}
+            onBack={() => canvas.setDetailsOpen(false)}
+          />
+        </div>
       ) : null}
 
       <CaptureV2HiddenFileInputs loop={loop} />

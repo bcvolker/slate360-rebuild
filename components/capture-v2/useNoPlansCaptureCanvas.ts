@@ -220,6 +220,7 @@ export function useNoPlansCaptureCanvas({ session, loop, contextLabel }: Args) {
     activeItem,
     itemId,
     displayUrl,
+    stopNumber,
     liveHeaderLabel,
     capturedHeaderLabel,
     handleCanvasTap,
