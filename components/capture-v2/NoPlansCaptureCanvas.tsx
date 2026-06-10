@@ -12,6 +12,7 @@ import { CaptureStopFilmstrip } from "./CaptureStopFilmstrip";
 import { CaptureV2NoteReviewContainer } from "./note-review/CaptureV2NoteReviewContainer";
 import { CAPTURE_V2_LAYERS } from "./layers";
 import { CaptureV2LiveCamera, CaptureV2LiveCameraBusyOverlay } from "./CaptureV2LiveCamera";
+import { CaptureV2CameraDebugOverlay } from "./CaptureV2CameraDebugOverlay";
 import type { CaptureV2Session } from "./session-types";
 import type { CaptureV2Loop } from "./useCaptureV2Loop";
 import { CaptureV2SourcePickerSheet } from "./CaptureV2SourcePickerSheet";
@@ -100,7 +101,6 @@ export function NoPlansCaptureCanvas({
         <CaptureV2LiveCamera
           camera={canvas.camera}
           facingMode={canvas.facingMode}
-          autoStart
           fullBleed
           hidden={canvas.cameraPaused}
           captureBlocked={canvas.captureBlocked}
@@ -126,6 +126,11 @@ export function NoPlansCaptureCanvas({
           />
         ) : null}
         <CaptureV2LiveCameraBusyOverlay busy={loop.busy} />
+        <CaptureV2CameraDebugOverlay
+          camera={canvas.camera}
+          captureBlocked={canvas.captureBlocked}
+          lifecycleRunCount={canvas.lifecycleRunCount}
+        />
       </div>
 
       <CaptureCanvasTopBar

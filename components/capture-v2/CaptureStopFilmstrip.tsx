@@ -72,7 +72,9 @@ export function CaptureStopFilmstrip({
   const trackerBody = !collapsed && (
     <div
       id="capture-canvas-stop-tracker-scroll"
-      className={`flex min-h-0 gap-2 overflow-x-auto no-scrollbar ${overlay ? "min-w-0 flex-1" : "min-h-[4.75rem] px-3 pb-1.5 pt-1"}`}
+      className={`flex min-h-0 gap-2 overflow-x-auto no-scrollbar ${
+        overlay ? "w-full min-h-[2.75rem]" : "min-h-[4.75rem] px-3 pb-1.5 pt-1"
+      }`}
       role="listbox"
       aria-label="Stop thumbnails"
     >
@@ -130,25 +132,27 @@ export function CaptureStopFilmstrip({
         data-capture-chrome="filmstrip"
         className={
           overlay
-            ? `${CAPTURE_V2_LAYERS.filmstrip} pointer-events-auto flex w-full items-center gap-2 px-3`
+            ? `${CAPTURE_V2_LAYERS.filmstrip} pointer-events-auto flex w-full flex-col gap-2 px-3`
             : `${CAPTURE_V2_LAYERS.filmstrip} shrink-0 border-t border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_92%,transparent)] backdrop-blur-xl`
         }
         aria-label="Walk stop tracker"
       >
         {overlay ? (
-          <div className={`${captureCanvasGlass.filmstripTrack} flex min-w-0 flex-1 items-center gap-2`}>
+          <>
             {trackerBody}
-            <button
-              type="button"
-              onClick={() => setCollapsed((value) => !value)}
-              className="inline-flex h-9 w-8 shrink-0 items-center justify-center rounded-lg border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_70%,transparent)] text-[var(--graphite-muted)] backdrop-blur-md transition hover:text-[var(--graphite-text-body)]"
-              aria-expanded={!collapsed}
-              aria-controls="capture-canvas-stop-tracker-scroll"
-              aria-label={collapsed ? "Show stop tracker" : "Hide stop tracker"}
-            >
-              {collapsed ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-            </button>
-          </div>
+            <div className={`${captureCanvasGlass.filmstripTrack} flex w-full items-center justify-end`}>
+              <button
+                type="button"
+                onClick={() => setCollapsed((value) => !value)}
+                className="inline-flex h-9 w-8 shrink-0 items-center justify-center rounded-lg border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_70%,transparent)] text-[var(--graphite-muted)] backdrop-blur-md transition hover:text-[var(--graphite-text-body)]"
+                aria-expanded={!collapsed}
+                aria-controls="capture-canvas-stop-tracker-scroll"
+                aria-label={collapsed ? "Show stop tracker" : "Hide stop tracker"}
+              >
+                {collapsed ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+              </button>
+            </div>
+          </>
         ) : (
           <>
             <div className="flex items-center justify-between gap-2 px-3 pb-1 pt-2">

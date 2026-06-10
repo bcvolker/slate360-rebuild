@@ -99,6 +99,7 @@ export function SiteWalkHomeClient({
 }: Props) {
   const router = useRouter();
   const [targetSheetOpen, setTargetSheetOpen] = useState(false);
+  const [quickCaptureError, setQuickCaptureError] = useState<string | null>(null);
 
   const walkTargets = useMemo(
     () => filterHubProjectsForWalkStart(projects, walkStartTier),
@@ -138,19 +139,39 @@ export function SiteWalkHomeClient({
   );
 
   const handleQuickCapture = useCallback(async () => {
+    setQuickCaptureError(null);
     const dateLabel = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" });
-    const res = await fetch("/api/site-walk/sessions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        title: `Quick Walk — ${dateLabel}`,
-        session_type: "general",
-        metadata: { started_at: new Date().toISOString(), started_from: "hub_quick" },
-      }),
-    });
-    if (!res.ok) return;
+    let res: Response;
+    try {
+      res = await fetch("/api/site-walk/sessions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: `Quick Walk — ${dateLabel}`,
+          session_type: "general",
+          metadata: { started_at: new Date().toISOString(), started_from: "hub_quick" },
+        }),
+      });
+    } catch {
+      setQuickCaptureError("Could not reach the server. Check your connection and try again.");
+      return;
+    }
+    if (!res.ok) {
+      let message = "Could not start a walk session. Try again.";
+      try {
+        const body = (await res.json()) as { error?: string; message?: string };
+        message = body.error ?? body.message ?? message;
+      } catch {
+        // keep default message
+      }
+      setQuickCaptureError(message);
+      return;
+    }
     const body = (await res.json()) as { session?: { id?: string } };
-    if (!body.session?.id) return;
+    if (!body.session?.id) {
+      setQuickCaptureError("Walk session was created but could not be opened. Try again.");
+      return;
+    }
     router.push(buildCaptureLaunchUrl({ session: body.session.id, quick: "camera" }));
   }, [router]);
 
@@ -274,6 +295,14 @@ export function SiteWalkHomeClient({
             aria-label={scopedCopy.ariaLabel}
           />
         </div>
+        {quickCaptureError ? (
+          <p
+            role="alert"
+            className="mt-3 rounded-xl border border-red-500/30 bg-red-950/40 px-3 py-2 text-sm font-medium text-red-200"
+          >
+            {quickCaptureError}
+          </p>
+        ) : null}
       </section>
 
       <MobileQuickActionsSection

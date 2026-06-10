@@ -26,6 +26,13 @@ export default async function CaptureV2Page({ searchParams }: Props) {
   const context = await resolveServerOrgContext();
 
   if (!context.user || !context.orgId || !sessionId) {
+    if (!context.user) {
+      console.warn("[CaptureV2] NoActiveSession: no authenticated user");
+    } else if (!context.orgId) {
+      console.warn("[CaptureV2] NoActiveSession: no org context");
+    } else {
+      console.warn("[CaptureV2] NoActiveSession: missing session query param");
+    }
     return <NoActiveSession />;
   }
 
@@ -45,7 +52,13 @@ export default async function CaptureV2Page({ searchParams }: Props) {
     console.error("Capture V2 session load failed", error);
   }
 
-  if (!data) return <NoActiveSession />;
+  if (!data) {
+    console.warn("[CaptureV2] NoActiveSession: session row not found", {
+      sessionId,
+      orgId: context.orgId,
+    });
+    return <NoActiveSession />;
+  }
 
   const project = Array.isArray(data.projects) ? data.projects[0] : data.projects;
   const session: CaptureV2Session = { ...data, project_name: project?.name ?? null };

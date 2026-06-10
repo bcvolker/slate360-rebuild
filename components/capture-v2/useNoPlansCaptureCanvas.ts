@@ -70,7 +70,7 @@ export function useNoPlansCaptureCanvas({
   const activeItem = loop.activeItem;
   const itemId = loop.activePreview?.itemId ?? activeItem?.id ?? "";
 
-  useCaptureCanvasStreamLifecycle({ camera, facingMode, cameraPaused });
+  const streamLifecycle = useCaptureCanvasStreamLifecycle({ camera, facingMode, cameraPaused });
 
   const orderedItems = useMemo(
     () => [...loop.items].sort((a, b) => Date.parse(a.created_at) - Date.parse(b.created_at)),
@@ -286,5 +286,6 @@ export function useNoPlansCaptureCanvas({
     torch,
     loop,
     session,
+    lifecycleRunCount: streamLifecycle.lifecycleRunCount,
   };
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { useCamera } from "@/lib/hooks/useCamera";
 
 type CameraApi = ReturnType<typeof useCamera>;
@@ -13,20 +13,46 @@ type Args = {
 
 /** Keep getUserMedia alive during capture walk; detach video while preview/details are shown. */
 export function useCaptureCanvasStreamLifecycle({ camera, facingMode, cameraPaused }: Args) {
-  useEffect(() => {
-    if (cameraPaused) {
-      camera.detachVideo();
-      return;
-    }
-    if (camera.needsUserResume) return;
-    if (camera.streamAlive) {
-      void camera.reattachVideo();
-      return;
-    }
-    if (!camera.isStreaming) {
-      void camera.startCamera(facingMode);
-    }
-  }, [camera, cameraPaused, facingMode]);
+  const [lifecycleRunCount, setLifecycleRunCount] = useState(0);
+  const lifecycleRunRef = useRef(0);
 
-  useEffect(() => () => camera.stopCamera(), [camera]);
+  const stopCameraRef = useRef(camera.stopCamera);
+  stopCameraRef.current = camera.stopCamera;
+
+  const detachVideoRef = useRef(camera.detachVideo);
+  detachVideoRef.current = camera.detachVideo;
+
+  const reattachVideoRef = useRef(camera.reattachVideo);
+  reattachVideoRef.current = camera.reattachVideo;
+
+  const startCameraRef = useRef(camera.startCamera);
+  startCameraRef.current = camera.startCamera;
+
+  const { isStreaming, streamAlive, needsUserResume } = camera;
+
+  useEffect(() => {
+    lifecycleRunRef.current += 1;
+    setLifecycleRunCount(lifecycleRunRef.current);
+
+    if (cameraPaused) {
+      detachVideoRef.current();
+      return;
+    }
+    if (needsUserResume) return;
+    if (streamAlive) {
+      void reattachVideoRef.current();
+      return;
+    }
+    if (!isStreaming) {
+      void startCameraRef.current(facingMode);
+    }
+  }, [cameraPaused, facingMode, isStreaming, streamAlive, needsUserResume]);
+
+  useEffect(() => {
+    return () => {
+      stopCameraRef.current();
+    };
+  }, []);
+
+  return { lifecycleRunCount };
 }

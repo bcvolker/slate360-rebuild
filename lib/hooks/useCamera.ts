@@ -61,6 +61,7 @@ export function useCamera(): UseCameraReturn {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const trackEndedHandlerRef = useRef<(() => void) | null>(null);
+  const pendingAttachRef = useRef(false);
   const [isStreaming, setIsStreaming] = useState(false);
   const [streamAlive, setStreamAlive] = useState(false);
   const [videoAttached, setVideoAttached] = useState(false);
@@ -122,11 +123,16 @@ export function useCamera(): UseCameraReturn {
   const reattachVideo = useCallback(async (): Promise<boolean> => {
     const video = videoRef.current;
     const stream = streamRef.current;
-    if (!video || !stream || !streamTracksLive(stream)) {
+    if (!stream || !streamTracksLive(stream)) {
       markStreamDead();
       return false;
     }
+    if (!video) {
+      pendingAttachRef.current = true;
+      return false;
+    }
 
+    pendingAttachRef.current = false;
     video.srcObject = stream;
     setVideoAttached(true);
     setIsStreaming(true);
@@ -186,6 +192,8 @@ export function useCamera(): UseCameraReturn {
         setNeedsUserResume(false);
         if (videoRef.current) {
           await reattachVideo();
+        } else {
+          pendingAttachRef.current = true;
         }
       } catch (err) {
         setError(mapCameraError(err));
@@ -196,6 +204,37 @@ export function useCamera(): UseCameraReturn {
     },
     [bindStreamListeners, reattachVideo],
   );
+
+  useEffect(() => {
+    if (!streamAlive || !streamRef.current || !streamTracksLive(streamRef.current)) return;
+    const video = videoRef.current;
+    if (video?.srcObject) return;
+
+    let cancelled = false;
+    let attempts = 0;
+    const maxAttempts = 60;
+
+    const tryAttach = () => {
+      if (cancelled) return;
+      const node = videoRef.current;
+      const stream = streamRef.current;
+      if (node && stream && streamTracksLive(stream) && !node.srcObject) {
+        pendingAttachRef.current = false;
+        void reattachVideo();
+        return;
+      }
+      attempts += 1;
+      if (attempts < maxAttempts && stream && streamTracksLive(stream)) {
+        window.setTimeout(tryAttach, 50);
+      }
+    };
+
+    tryAttach();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [streamAlive, reattachVideo]);
 
   useEffect(() => {
     const video = videoRef.current;

@@ -49,7 +49,6 @@ export function CaptureV2LiveCamera({
     reattachVideo,
   } = camera;
   const [scale, setScale] = useState(1);
-  const autoStartAttemptedRef = useRef(false);
   const pinchRef = useRef<{ distance: number; scale: number } | null>(null);
 
   const handleStart = useCallback(async () => {
@@ -61,13 +60,6 @@ export function CaptureV2LiveCamera({
     }
     await startCamera(facingMode);
   }, [clearError, facingMode, needsUserResume, onStartCamera, reattachVideo, startCamera, streamAlive]);
-
-  useEffect(() => {
-    if (!autoStart || hidden || autoStartAttemptedRef.current) return;
-    if (isStreaming && videoAttached) return;
-    autoStartAttemptedRef.current = true;
-    void handleStart();
-  }, [autoStart, handleStart, hidden, isStreaming, videoAttached]);
 
   useEffect(() => {
     if (!autoStart || hidden || isStreaming || !error || !isPermissionDeniedError(error)) return;
