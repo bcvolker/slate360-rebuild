@@ -308,7 +308,6 @@ export function useCaptureV2Loop({ sessionId, projectId, initialItemId, launchId
       revokePreviewBlob();
       fileHandler.setActivePreview(null);
       captureItems.deselectItem();
-      openPickerDirect(isDesktop ? "upload" : "camera", "next_item");
     } catch (error) {
       console.error("[capture-v2] Save & Next failed", error);
     } finally {
@@ -328,7 +327,6 @@ export function useCaptureV2Loop({ sessionId, projectId, initialItemId, launchId
       revokePreviewBlob();
       fileHandler.setActivePreview(null);
       captureItems.deselectItem();
-      openPickerDirect(isDesktop ? "upload" : "camera", "next_item");
     } catch (error) {
       console.error("[capture-v2] Create follow-up failed", error);
     } finally {
