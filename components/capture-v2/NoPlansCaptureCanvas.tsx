@@ -129,11 +129,7 @@ export function NoPlansCaptureCanvas({ session, loop, contextLabel }: Props) {
       ) : (
         <div
           className="pointer-events-none absolute inset-x-0 z-20"
-          style={{
-            bottom: `calc(${CAPTURE_CANVAS_CHROME.filmstripBottomPx}px + ${safeBottom})`,
-            paddingLeft: CAPTURE_CANVAS_CHROME.sideInsetPx,
-            paddingRight: CAPTURE_CANVAS_CHROME.sideInsetPx,
-          }}
+          style={{ bottom: `calc(${CAPTURE_CANVAS_CHROME.filmstripBottomPx}px + ${safeBottom})` }}
         >
           <CaptureStopFilmstrip
             variant="overlay"

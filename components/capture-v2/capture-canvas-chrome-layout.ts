@@ -7,11 +7,10 @@ export const CAPTURE_CANVAS_CHROME = {
   filmstripThumbPx: 44,
   filmstripThumbRadiusPx: 10,
   railLabelBottomPx: 44,
-  ghostButtonBottomPx: 55,
+  railLabelRowPx: 15,
   ghostButtonSizePx: 50,
-  endButtonBottomPx: 55,
   endButtonSizePx: 44,
-  shutterBottomPx: 116,
+  shutterBottomPx: 75,
   shutterSizePx: 72,
   shutterInnerPx: 58,
   shutterRaisePx: 16,
@@ -28,10 +27,13 @@ export const CAPTURE_CANVAS_CHROME = {
 } as const;
 
 export function measureCaptureCanvasClearance(viewportHeightPx: number) {
-  const shutterTopFromBottom =
-    CAPTURE_CANVAS_CHROME.shutterBottomPx + CAPTURE_CANVAS_CHROME.shutterSizePx;
+  const shutterBottomFromBottom =
+    CAPTURE_CANVAS_CHROME.railLabelBottomPx +
+    CAPTURE_CANVAS_CHROME.railLabelRowPx +
+    CAPTURE_CANVAS_CHROME.shutterRaisePx;
+  const shutterTopFromBottom = shutterBottomFromBottom + CAPTURE_CANVAS_CHROME.shutterSizePx;
   const filmstripBottomFromBottom = CAPTURE_CANVAS_CHROME.filmstripBottomPx;
-  const filmstripGapPx = shutterTopFromBottom - filmstripBottomFromBottom;
+  const filmstripGapPx = filmstripBottomFromBottom - shutterTopFromBottom;
   const angleThumbTopFromBottom =
     filmstripBottomFromBottom + CAPTURE_CANVAS_CHROME.angleThumbPx;
   const hintTopFromBottom = CAPTURE_CANVAS_CHROME.hintBottomPx + 14;
@@ -43,7 +45,7 @@ export function measureCaptureCanvasClearance(viewportHeightPx: number) {
     angleThumbTopFromBottomPx: angleThumbTopFromBottom,
     shutterTopFromBottomPx: shutterTopFromBottom,
     filmstripToShutterGapPx: filmstripGapPx,
-    shutterBottomFromBottomPx: CAPTURE_CANVAS_CHROME.shutterBottomPx,
+    shutterBottomFromBottomPx: shutterBottomFromBottom,
     hintTopFromBottomPx: hintTopFromBottom,
     shutterToHintGapPx: shutterHintGapPx,
   };

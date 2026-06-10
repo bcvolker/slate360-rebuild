@@ -98,103 +98,94 @@ export function CaptureCanvasBottomRail({
       </p>
 
       <div
-        className="pointer-events-auto absolute flex flex-col items-center gap-1"
+        className="pointer-events-auto absolute inset-x-0"
         style={{
-          left: CAPTURE_CANVAS_CHROME.railSideInsetPx,
           bottom: `calc(${CAPTURE_CANVAS_CHROME.railLabelBottomPx}px + ${safeBottom})`,
+          paddingLeft: CAPTURE_CANVAS_CHROME.railSideInsetPx,
+          paddingRight: CAPTURE_CANVAS_CHROME.railSideInsetPx,
         }}
       >
-        <button
-          type="button"
-          disabled={busy}
-          onClick={() => onGhostTap?.()}
-          className={`inline-flex items-center justify-center rounded-xl transition active:scale-[0.98] disabled:opacity-50 ${glassSquareClass(false)}`}
-          style={{
-            width: CAPTURE_CANVAS_CHROME.ghostButtonSizePx,
-            height: CAPTURE_CANVAS_CHROME.ghostButtonSizePx,
-          }}
-          aria-label="Ghost"
-        >
-          <Ghost className="h-5 w-5" />
-        </button>
-        <span className="text-[11px] font-medium leading-none">Ghost</span>
+        <div className="grid grid-cols-[1fr_auto_1fr] items-end">
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => onGhostTap?.()}
+            className={`inline-flex items-center justify-center justify-self-start rounded-xl transition active:scale-[0.98] disabled:opacity-50 ${glassSquareClass(false)}`}
+            style={{
+              width: CAPTURE_CANVAS_CHROME.ghostButtonSizePx,
+              height: CAPTURE_CANVAS_CHROME.ghostButtonSizePx,
+            }}
+            aria-label="Ghost"
+          >
+            <Ghost className="h-5 w-5" />
+          </button>
+
+          <button
+            type="button"
+            disabled={busy}
+            onClick={handleShutterClick}
+            onPointerDown={handleShutterPointerDown}
+            onPointerMove={handleShutterPointerMove}
+            onPointerUp={handleShutterPointerEnd}
+            onPointerCancel={handleShutterPointerEnd}
+            onPointerLeave={handleShutterPointerEnd}
+            className={`inline-flex items-center justify-center justify-self-center rounded-full transition active:scale-95 disabled:opacity-50 ${shutterClass}`}
+            style={{
+              width: CAPTURE_CANVAS_CHROME.shutterSizePx,
+              height: CAPTURE_CANVAS_CHROME.shutterSizePx,
+              marginBottom: CAPTURE_CANVAS_CHROME.shutterRaisePx,
+            }}
+            aria-label={captured ? "Capture next stop" : "Capture photo"}
+          >
+            <span
+              className="rounded-full border-2 border-[var(--graphite-canvas)] bg-[color-mix(in_srgb,var(--graphite-canvas)_88%,transparent)]"
+              style={{
+                width: CAPTURE_CANVAS_CHROME.shutterInnerPx,
+                height: CAPTURE_CANVAS_CHROME.shutterInnerPx,
+              }}
+            />
+          </button>
+
+          {captured ? (
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => onDetailsTap?.()}
+              className="inline-flex items-center justify-center justify-self-end rounded-full bg-[var(--graphite-primary)] text-[var(--graphite-canvas)] shadow-[var(--mobile-app-card-glow-primary)] transition active:scale-[0.98] disabled:opacity-50"
+              style={{
+                width: CAPTURE_CANVAS_CHROME.detailsButtonPx,
+                height: CAPTURE_CANVAS_CHROME.detailsButtonPx,
+              }}
+              aria-label="Stop details"
+            >
+              <ArrowRight className="h-6 w-6" strokeWidth={2.5} />
+            </button>
+          ) : (
+            <button
+              type="button"
+              disabled={busy}
+              className={`inline-flex items-center justify-center justify-self-end rounded-xl transition active:scale-[0.98] disabled:opacity-50 ${glassSquareClass(true)}`}
+              style={{
+                width: CAPTURE_CANVAS_CHROME.endButtonSizePx,
+                height: CAPTURE_CANVAS_CHROME.endButtonSizePx,
+              }}
+              aria-label="End walk"
+            >
+              <span className="h-3.5 w-3.5 rounded-sm border border-[var(--graphite-muted)]" />
+            </button>
+          )}
+        </div>
+
+        <div className="mt-1 grid grid-cols-[1fr_auto_1fr] text-[11px] leading-none">
+          <span className="justify-self-start font-medium text-[var(--graphite-text-body)]">Ghost</span>
+          <span aria-hidden />
+          {captured ? (
+            <span className="justify-self-end font-semibold text-[var(--graphite-primary)]">Details</span>
+          ) : (
+            <span className="justify-self-end font-medium text-[var(--graphite-muted)]">End</span>
+          )}
+        </div>
       </div>
-
-      {captured ? (
-        <div
-          className="pointer-events-auto absolute flex flex-col items-center gap-1"
-          style={{
-            right: CAPTURE_CANVAS_CHROME.railSideInsetPx,
-            bottom: `calc(${CAPTURE_CANVAS_CHROME.railLabelBottomPx}px + ${safeBottom})`,
-          }}
-        >
-          <button
-            type="button"
-            disabled={busy}
-            onClick={() => onDetailsTap?.()}
-            className="inline-flex items-center justify-center rounded-full bg-[var(--graphite-primary)] text-[var(--graphite-canvas)] shadow-[var(--mobile-app-card-glow-primary)] transition active:scale-[0.98] disabled:opacity-50"
-            style={{
-              width: CAPTURE_CANVAS_CHROME.detailsButtonPx,
-              height: CAPTURE_CANVAS_CHROME.detailsButtonPx,
-            }}
-            aria-label="Stop details"
-          >
-            <ArrowRight className="h-6 w-6" strokeWidth={2.5} />
-          </button>
-          <span className="text-[11px] font-semibold leading-none text-[var(--graphite-primary)]">
-            Details
-          </span>
-        </div>
-      ) : (
-        <div
-          className="pointer-events-auto absolute flex flex-col items-center gap-1"
-          style={{
-            right: CAPTURE_CANVAS_CHROME.railSideInsetPx,
-            bottom: `calc(${CAPTURE_CANVAS_CHROME.railLabelBottomPx}px + ${safeBottom})`,
-          }}
-        >
-          <button
-            type="button"
-            disabled={busy}
-            className={`inline-flex items-center justify-center rounded-xl transition active:scale-[0.98] disabled:opacity-50 ${glassSquareClass(true)}`}
-            style={{
-              width: CAPTURE_CANVAS_CHROME.endButtonSizePx,
-              height: CAPTURE_CANVAS_CHROME.endButtonSizePx,
-            }}
-            aria-label="End walk"
-          >
-            <span className="h-3.5 w-3.5 rounded-sm border border-[var(--graphite-muted)]" />
-          </button>
-          <span className="text-[11px] font-medium leading-none text-[var(--graphite-muted)]">End</span>
-        </div>
-      )}
-
-      <button
-        type="button"
-        disabled={busy}
-        onClick={handleShutterClick}
-        onPointerDown={handleShutterPointerDown}
-        onPointerMove={handleShutterPointerMove}
-        onPointerUp={handleShutterPointerEnd}
-        onPointerCancel={handleShutterPointerEnd}
-        onPointerLeave={handleShutterPointerEnd}
-        className={`pointer-events-auto absolute left-1/2 flex -translate-x-1/2 items-center justify-center rounded-full transition active:scale-95 disabled:opacity-50 ${shutterClass}`}
-        style={{
-          bottom: `calc(${CAPTURE_CANVAS_CHROME.shutterBottomPx}px + ${safeBottom})`,
-          width: CAPTURE_CANVAS_CHROME.shutterSizePx,
-          height: CAPTURE_CANVAS_CHROME.shutterSizePx,
-          transform: `translateX(-50%) translateY(-${CAPTURE_CANVAS_CHROME.shutterRaisePx}px)`,
-        }}
-        aria-label={captured ? "Capture next stop" : "Capture photo"}
-      >
-        <span
-          className="rounded-full border-2 border-[var(--graphite-canvas)] bg-[color-mix(in_srgb,var(--graphite-canvas)_88%,transparent)]"
-          style={{
-            width: CAPTURE_CANVAS_CHROME.shutterInnerPx,
-            height: CAPTURE_CANVAS_CHROME.shutterInnerPx,
-          }}
-        />
-      </button>
     </div>
   );
 }

@@ -128,7 +128,7 @@ export function CaptureStopFilmstrip({
         id="capture-canvas-stop-tracker"
         className={
           overlay
-            ? `${CAPTURE_V2_LAYERS.filmstrip} pointer-events-auto flex items-center gap-2`
+            ? `${CAPTURE_V2_LAYERS.filmstrip} pointer-events-auto flex w-full items-center gap-2 pl-3`
             : `${CAPTURE_V2_LAYERS.filmstrip} shrink-0 border-t border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_92%,transparent)] backdrop-blur-xl`
         }
         aria-label="Walk stop tracker"
@@ -139,7 +139,7 @@ export function CaptureStopFilmstrip({
             <button
               type="button"
               onClick={() => setCollapsed((value) => !value)}
-              className="inline-flex h-11 w-8 shrink-0 items-center justify-center rounded-lg text-[var(--graphite-muted)] transition hover:text-[var(--graphite-text-body)]"
+              className="mr-3 inline-flex h-11 w-8 shrink-0 items-center justify-center rounded-lg text-[var(--graphite-muted)] transition hover:text-[var(--graphite-text-body)]"
               aria-expanded={!collapsed}
               aria-controls="capture-canvas-stop-tracker-scroll"
               aria-label={collapsed ? "Show stop tracker" : "Hide stop tracker"}
