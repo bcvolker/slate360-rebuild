@@ -16,7 +16,7 @@ const FAKE_MEDIA_ARGS = [
   "--use-fake-ui-for-media-stream",
 ];
 
-/** @typedef {{ label: string; clips: number; mode: "video" | "photos"; recording?: boolean }} Scenario */
+/** @typedef {{ label: string; clips: number; mode: "video" | "photos"; recording?: boolean; coverage?: number; roll?: number; ghost?: boolean }} Scenario */
 
 /** @type {Scenario[]} */
 const SCENARIOS = [
@@ -25,6 +25,25 @@ const SCENARIOS = [
     { label: "recording-video", clips, mode: "video", recording: true },
     { label: "photos-idle", clips, mode: "photos" },
   ]),
+  ...[0, 50, 100].map((coverage) => ({
+    label: `coverage-${coverage}`,
+    clips: 0,
+    mode: "video",
+    coverage,
+  })),
+  ...[0, 5, 12].map((roll) => ({
+    label: `roll-${roll}`,
+    clips: 0,
+    mode: "video",
+    roll,
+  })),
+  {
+    label: "ghost-clip2-recording",
+    clips: 1,
+    mode: "video",
+    recording: true,
+    ghost: true,
+  },
 ];
 
 function centerX(rect) {
@@ -48,7 +67,10 @@ async function waitForStreaming(page) {
 
 async function measureScenario(page, scenario) {
   const stateQuery = scenario.recording ? "&state=recording" : "";
-  const url = `${baseUrl}/dev/screens?screen=twin-capture&device=mobile&clips=${scenario.clips}&mode=${scenario.mode}${stateQuery}`;
+  const coverageQuery = scenario.coverage !== undefined ? `&coverage=${scenario.coverage}` : "";
+  const rollQuery = scenario.roll !== undefined ? `&roll=${scenario.roll}` : "";
+  const ghostQuery = scenario.ghost ? "&ghost=1" : "";
+  const url = `${baseUrl}/dev/screens?screen=twin-capture&device=mobile&clips=${scenario.clips}&mode=${scenario.mode}${stateQuery}${coverageQuery}${rollQuery}${ghostQuery}`;
   await page.goto(url, { waitUntil: "domcontentloaded", timeout: 120_000 });
   await page.waitForSelector('[data-dev-device="mobile"]', { timeout: 90_000 });
   await page.locator('[data-dev-device="mobile"]').scrollIntoViewIfNeeded();
@@ -56,13 +78,17 @@ async function measureScenario(page, scenario) {
   await waitForStreaming(page);
   await page.waitForTimeout(400);
 
-  const sample = await page.evaluate(({ label, clips, mode, recording }) => {
+  const sample = await page.evaluate(({ label, clips, mode, recording, coverage, roll, ghost }) => {
     const frame = document.querySelector('[data-dev-device="mobile"]');
     const shutter = document.querySelector('[data-twin-chrome="shutter"]');
     const modeSelector = document.querySelector('[data-twin-chrome="mode-selector"]');
     const clipChips = document.querySelector('[data-twin-chrome="clip-chips"]');
     const light = document.querySelector('[data-twin-chrome="light-button"]');
     const done = document.querySelector('[data-twin-chrome="done-button"]');
+    const coveragePill = document.querySelector('[data-twin-chrome="coverage-pill"]');
+    const levelLine = document.querySelector('[data-twin-chrome="level-line"]');
+    const coverageRing = document.querySelector('[data-twin-chrome="coverage-ring"]');
+    const clipGhost = document.querySelector('[data-twin-chrome="clip-ghost-caption"]');
     if (!frame || !shutter || !modeSelector) return null;
 
     const frameRect = frame.getBoundingClientRect();
@@ -77,6 +103,9 @@ async function measureScenario(page, scenario) {
     const gap = (above, below) => Math.round(below.top - above.bottom);
 
     const nodes = [
+      coveragePill && { id: "coverage-pill", rect: coveragePill.getBoundingClientRect() },
+      levelLine && { id: "level-line", rect: levelLine.getBoundingClientRect() },
+      clipGhost && { id: "clip-ghost", rect: clipGhost.getBoundingClientRect() },
       clipRect && { id: "clip-chips", rect: clipRect },
       { id: "mode-selector", rect: modeRect },
       { id: "shutter", rect: shutterRect },
@@ -103,6 +132,13 @@ async function measureScenario(page, scenario) {
       clips,
       mode,
       recording: Boolean(recording),
+      coverage: coverage ?? null,
+      roll: roll ?? null,
+      ghost: Boolean(ghost),
+      coverageRingVisible: Boolean(coverageRing),
+      levelLineVisible: Boolean(levelLine),
+      ghostVisible: Boolean(document.querySelector('[data-twin-chrome="clip-ghost"]')),
+      coveragePillVisible: Boolean(coveragePill),
       viewportWidth: Math.round(frameRect.width),
       viewportHeight: Math.round(frameRect.height),
       viewportCenterX: Math.round(viewportCenterX),
@@ -141,6 +177,16 @@ async function main() {
     const results = [];
     for (const scenario of SCENARIOS) {
       results.push(await measureScenario(page, scenario));
+    }
+
+    const overlapFailures = results.filter((sample) => sample.overlapPairs.length > 0);
+    if (overlapFailures.length > 0) {
+      console.error(
+        `[measure-twin-chrome] overlap failures: ${overlapFailures
+          .map((sample) => `${sample.label} (${sample.overlapPairs.join(", ")})`)
+          .join("; ")}`,
+      );
+      process.exit(1);
     }
 
     console.log(
