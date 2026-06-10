@@ -2,16 +2,18 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Camera } from "lucide-react";
-import type { useCamera } from "@/lib/hooks/useCamera";
 import { twinAccent } from "@/lib/digital-twin/twin-accent";
+import { TWIN_CAPTURE_GLASS_SQUARE } from "./twin-capture-glass";
+import type { useTwinCaptureCamera } from "./useTwinCaptureCamera";
 
-type CameraApi = ReturnType<typeof useCamera>;
+type CameraApi = ReturnType<typeof useTwinCaptureCamera>;
 
 type Props = {
   camera: CameraApi;
   facingMode?: "user" | "environment";
   autoStart?: boolean;
   fullBleed?: boolean;
+  onResume?: () => void;
 };
 
 function isPermissionDeniedError(message: string | null) {
@@ -25,8 +27,9 @@ export function TwinCaptureLiveCamera({
   facingMode = "environment",
   autoStart = true,
   fullBleed = false,
+  onResume,
 }: Props) {
-  const { videoRef, isStreaming, error, startCamera, clearError } = camera;
+  const { videoRef, isStreaming, needsResume, error, startCamera, clearError } = camera;
   const [scale, setScale] = useState(1);
   const autoStartAttemptedRef = useRef(false);
   const pinchRef = useRef<{ distance: number; scale: number } | null>(null);
@@ -69,6 +72,8 @@ export function TwinCaptureLiveCamera({
     ? "absolute inset-0 overflow-hidden bg-[var(--graphite-canvas)] touch-manipulation select-none [-webkit-touch-callout:none] [-webkit-user-select:none]"
     : "relative flex min-h-0 flex-1 flex-col overflow-hidden bg-[var(--graphite-canvas)] touch-manipulation select-none [-webkit-touch-callout:none] [-webkit-user-select:none]";
 
+  const showLive = isStreaming && !error && !needsResume;
+
   return (
     <div
       className={rootClass}
@@ -84,7 +89,7 @@ export function TwinCaptureLiveCamera({
         muted
         autoPlay
         className={`absolute inset-0 z-[1] h-full w-full object-cover transition-transform duration-75 ${
-          isStreaming && !error ? "opacity-100" : "pointer-events-none opacity-0"
+          showLive ? "opacity-100" : "pointer-events-none opacity-0"
         }`}
         style={{ transform: `scale(${scale})` }}
       />
@@ -95,6 +100,13 @@ export function TwinCaptureLiveCamera({
           detail={error}
           actionLabel="Retry camera"
           onAction={() => void handleStart()}
+        />
+      ) : needsResume ? (
+        <CameraFallback
+          title="Camera paused"
+          detail="Tap to resume camera before recording."
+          actionLabel="Tap to resume camera"
+          onAction={() => onResume?.()}
         />
       ) : !isStreaming ? (
         <CameraFallback
@@ -122,11 +134,11 @@ function CameraFallback({
   return (
     <div className="relative z-[2] flex min-h-0 flex-1 flex-col items-center justify-center gap-4 px-6 text-center">
       <span
-        className={`flex h-14 w-14 items-center justify-center rounded-xl border ${twinAccent.iconChip}`}
+        className={`flex h-14 w-14 items-center justify-center ${TWIN_CAPTURE_GLASS_SQUARE} ${twinAccent.iconChip}`}
       >
         <Camera className="h-7 w-7" strokeWidth={1.75} />
       </span>
-      <div className="space-y-1">
+      <div className={`space-y-1 px-4 py-3 ${TWIN_CAPTURE_GLASS_SQUARE}`}>
         <p className="text-sm font-bold text-[var(--graphite-text-header)]">{title}</p>
         <p className="text-xs font-medium leading-snug text-[var(--graphite-muted)]">{detail}</p>
       </div>

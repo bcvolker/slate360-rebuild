@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { resolveTwinPaceState, type TwinCapturePaceState } from "./twin-capture-polish-tokens";
+
+export type TwinSensorPermission = "unknown" | "granted" | "denied" | "unavailable";
 
 type Args = {
   enabled?: boolean;
@@ -9,12 +11,30 @@ type Args = {
   devMotionSpeedOverride?: number | null;
 };
 
+type OrientationCtor = typeof DeviceOrientationEvent & {
+  requestPermission?: () => Promise<"granted" | "denied">;
+};
+
+async function requestIosSensorPermission(): Promise<TwinSensorPermission> {
+  const ctor = DeviceOrientationEvent as OrientationCtor;
+  if (typeof ctor.requestPermission !== "function") return "granted";
+  try {
+    const result = await ctor.requestPermission();
+    return result === "granted" ? "granted" : "denied";
+  } catch {
+    return "denied";
+  }
+}
+
 export function useTwinCaptureDeviceSensors({
   enabled = true,
   devRollOverride = null,
   devMotionSpeedOverride = null,
 }: Args = {}) {
   const [rollDeg, setRollDeg] = useState<number | null>(devRollOverride);
+  const [permission, setPermission] = useState<TwinSensorPermission>(
+    devRollOverride !== null && devRollOverride !== undefined ? "granted" : "unknown",
+  );
   const [orientationSupported, setOrientationSupported] = useState(
     devRollOverride !== null && devRollOverride !== undefined,
   );
@@ -24,10 +44,28 @@ export function useTwinCaptureDeviceSensors({
       : null,
   );
 
+  const sensorsActive = enabled && permission === "granted";
+
+  const requestPermission = useCallback(async (): Promise<TwinSensorPermission> => {
+    if (devRollOverride !== null) return "granted";
+    if (typeof window === "undefined") return "unavailable";
+    if (permission === "granted" || permission === "denied") return permission;
+
+    const next = await requestIosSensorPermission();
+    setPermission(next);
+    if (next !== "granted") {
+      setOrientationSupported(false);
+      setRollDeg(null);
+      setPaceState(null);
+    }
+    return next;
+  }, [devRollOverride, permission]);
+
   useEffect(() => {
     if (devRollOverride !== null && devRollOverride !== undefined) {
       setRollDeg(devRollOverride);
       setOrientationSupported(true);
+      setPermission("granted");
     }
   }, [devRollOverride]);
 
@@ -38,7 +76,7 @@ export function useTwinCaptureDeviceSensors({
   }, [devMotionSpeedOverride]);
 
   useEffect(() => {
-    if (!enabled || devRollOverride !== null) return;
+    if (!sensorsActive || devRollOverride !== null) return;
     if (typeof window === "undefined") return;
 
     let active = true;
@@ -53,10 +91,10 @@ export function useTwinCaptureDeviceSensors({
       active = false;
       window.removeEventListener("deviceorientation", onOrientation);
     };
-  }, [devRollOverride, enabled]);
+  }, [devRollOverride, sensorsActive]);
 
   useEffect(() => {
-    if (!enabled || devMotionSpeedOverride !== null) return;
+    if (!sensorsActive || devMotionSpeedOverride !== null) return;
     if (typeof window === "undefined") return;
 
     let active = true;
@@ -76,7 +114,13 @@ export function useTwinCaptureDeviceSensors({
       active = false;
       window.removeEventListener("devicemotion", onMotion);
     };
-  }, [devMotionSpeedOverride, enabled]);
+  }, [devMotionSpeedOverride, sensorsActive]);
 
-  return { rollDeg, orientationSupported, paceState };
+  return {
+    rollDeg,
+    orientationSupported,
+    paceState,
+    permission,
+    requestPermission,
+  };
 }
