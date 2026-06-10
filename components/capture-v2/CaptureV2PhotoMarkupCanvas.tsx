@@ -11,7 +11,6 @@ import { useCaptureV2PhotoCanvasState } from "./useCaptureV2PhotoCanvasState";
 
 type Props = {
   imageUrl: string;
-  title: string;
   markupEnabled: boolean;
   pinMode?: boolean;
   initialMarkup?: MarkupData | null;
@@ -25,7 +24,6 @@ type Props = {
 
 export function CaptureV2PhotoMarkupCanvas({
   imageUrl,
-  title,
   markupEnabled,
   pinMode = false,
   initialMarkup,
@@ -61,7 +59,7 @@ export function CaptureV2PhotoMarkupCanvas({
       >
         <img
           src={imageUrl}
-          alt={title}
+          alt=""
           onLoad={(event) => canvas.setPortrait(event.currentTarget.naturalHeight > event.currentTarget.naturalWidth)}
           className="h-full max-h-[60vh] w-full max-w-full select-none object-contain"
           style={{ transform: `translate(${canvas.transform.x}px, ${canvas.transform.y}px) scale(${canvas.transform.scale})`, transformOrigin: "center" }}

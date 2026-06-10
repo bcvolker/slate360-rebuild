@@ -198,7 +198,7 @@ export function useCaptureV2SourcePicker({
       const row = rows.find((entry) => entry.id === rowId);
       if (row?.locked) return;
 
-      if (rowId === "take_photo" && ctx.mode === "new_stop" && camera.isStreaming) {
+      if (rowId === "take_photo" && ctx.mode === "new_stop" && camera.hasLiveFrames) {
         const result = camera.capturePhoto();
         close();
         if (!result) return;

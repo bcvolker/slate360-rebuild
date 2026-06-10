@@ -2,6 +2,7 @@
 
 import { MapPin, Pencil, Plus } from "lucide-react";
 import { CAPTURE_CANVAS_CHROME } from "./capture-canvas-chrome-layout";
+import { captureCanvasGlass } from "./capture-canvas-glass-tokens";
 import { CAPTURE_V2_LAYERS } from "./layers";
 
 type Tool = "markup" | "pin" | "angle";
@@ -14,8 +15,8 @@ type Props = {
 
 function glassButtonClass(active: boolean) {
   return active
-    ? "border-[var(--accent-border-green)] bg-[color-mix(in_srgb,var(--graphite-primary)_14%,transparent)] text-[var(--graphite-primary)]"
-    : "border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_72%,transparent)] text-[var(--graphite-text-header)]";
+    ? "border-[var(--accent-border-green)] bg-[color-mix(in_srgb,var(--graphite-primary)_14%,transparent)] text-[var(--graphite-primary)] ring-2 ring-[var(--accent-border-green)]"
+    : "border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_70%,transparent)] text-[var(--graphite-text-header)]";
 }
 
 export function CaptureCanvasRightToolRail({ hidden, activeTool, onSelectTool }: Props) {
@@ -29,6 +30,7 @@ export function CaptureCanvasRightToolRail({ hidden, activeTool, onSelectTool }:
       style={{
         right: CAPTURE_CANVAS_CHROME.toolRailRightPx,
         top,
+        maxWidth: CAPTURE_CANVAS_CHROME.toolRailButtonPx,
       }}
       role="toolbar"
       aria-label="Capture tools"
@@ -37,10 +39,10 @@ export function CaptureCanvasRightToolRail({ hidden, activeTool, onSelectTool }:
         [
           { id: "markup" as const, label: "Markup", icon: Pencil },
           { id: "pin" as const, label: "Pin", icon: MapPin },
-          { id: "angle" as const, label: "+ Angle", icon: Plus },
+          { id: "angle" as const, label: "+Angle", icon: Plus },
         ] as const
       ).map((entry) => (
-        <div key={entry.id} className="flex flex-col items-center gap-1">
+        <div key={entry.id} className="flex w-full flex-col items-center gap-1">
           <button
             type="button"
             onClick={() => onSelectTool(entry.id)}
@@ -50,10 +52,13 @@ export function CaptureCanvasRightToolRail({ hidden, activeTool, onSelectTool }:
               height: CAPTURE_CANVAS_CHROME.toolRailButtonPx,
             }}
             aria-pressed={activeTool === entry.id}
+            aria-label={entry.label}
           >
             <entry.icon className="h-5 w-5" />
           </button>
-          <span className="text-[11px] font-medium leading-none text-[var(--graphite-muted)]">
+          <span
+            className={`${captureCanvasGlass.labelChip} w-full max-w-[52px] truncate text-[10px] font-medium leading-none text-[var(--graphite-muted)]`}
+          >
             {entry.label}
           </span>
         </div>

@@ -8,7 +8,6 @@ import { CaptureV2PhotoMarkupCanvas } from "./CaptureV2PhotoMarkupCanvas";
 type Props = {
   sessionId: string;
   imageUrl: string;
-  title: string;
   markupEnabled: boolean;
   pinMode: boolean;
   initialPins: PhotoAttachmentPin[];
@@ -22,7 +21,6 @@ type Props = {
 
 export function CaptureCanvasCapturedPhoto({
   imageUrl,
-  title,
   markupEnabled,
   pinMode,
   initialPins,
@@ -41,7 +39,6 @@ export function CaptureCanvasCapturedPhoto({
     >
       <CaptureV2PhotoMarkupCanvas
         imageUrl={imageUrl}
-        title={title}
         markupEnabled={markupEnabled}
         pinMode={pinMode}
         initialMarkup={markup}

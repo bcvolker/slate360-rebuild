@@ -1,8 +1,9 @@
 "use client";
 
 import { useRef, type PointerEvent } from "react";
-import { ArrowRight, Ghost } from "lucide-react";
+import { ArrowRight, Flashlight, Ghost } from "lucide-react";
 import { CAPTURE_CANVAS_CHROME } from "./capture-canvas-chrome-layout";
+import { captureCanvasGlass } from "./capture-canvas-glass-tokens";
 import { CAPTURE_V2_LAYERS } from "./layers";
 
 const HOLD_MS = 550;
@@ -13,25 +14,38 @@ type Props = {
   busy: boolean;
   hidden?: boolean;
   variant?: "live" | "captured";
+  captureBlocked?: boolean;
+  torchSupported?: boolean;
+  torchOn?: boolean;
+  onTorchToggle?: () => void;
   onShutterTap: () => void;
   onShutterHold?: () => void;
   onGhostTap?: () => void;
+  onEndTap?: () => void;
   onDetailsTap?: () => void;
 };
 
-function glassSquareClass(lowEmphasis: boolean) {
+function glassSquareClass(lowEmphasis: boolean, active = false) {
+  if (active) {
+    return "border-[var(--accent-border-green)] bg-[color-mix(in_srgb,var(--graphite-primary)_14%,transparent)] text-[var(--graphite-primary)] ring-2 ring-[var(--accent-border-green)] backdrop-blur-md";
+  }
   return lowEmphasis
-    ? "border border-[color-mix(in_srgb,var(--mobile-app-card-border)_55%,transparent)] bg-[color-mix(in_srgb,var(--graphite-canvas)_48%,transparent)] text-[var(--graphite-muted)] backdrop-blur-md"
-    : "border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_72%,transparent)] text-[var(--graphite-text-header)] backdrop-blur-md";
+    ? `border border-[color-mix(in_srgb,var(--mobile-app-card-border)_55%,transparent)] bg-[color-mix(in_srgb,var(--graphite-canvas)_70%,transparent)] text-[var(--graphite-muted)] backdrop-blur-md`
+    : `border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_70%,transparent)] text-[var(--graphite-text-header)] backdrop-blur-md`;
 }
 
 export function CaptureCanvasBottomRail({
   busy,
   hidden = false,
   variant = "live",
+  captureBlocked = false,
+  torchSupported = false,
+  torchOn = false,
+  onTorchToggle,
   onShutterTap,
   onShutterHold,
   onGhostTap,
+  onEndTap,
   onDetailsTap,
 }: Props) {
   const holdTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -83,21 +97,26 @@ export function CaptureCanvasBottomRail({
   const safeBottom = "env(safe-area-inset-bottom)";
   const hintText = captured
     ? "long-press = attach here · shutter = next stop"
-    : "tap = capture · hold = sources";
+    : captureBlocked
+      ? "camera not ready — wait or tap resume"
+      : "tap = capture · hold = sources";
 
-  const liveShutterClass =
-    "bg-[var(--graphite-primary)] shadow-none border-0";
+  const liveShutterClass = captureBlocked
+    ? "border-2 border-[var(--graphite-muted)] bg-[color-mix(in_srgb,var(--graphite-canvas)_55%,transparent)] opacity-60"
+    : "bg-[var(--graphite-primary)] shadow-none border-0";
   const capturedShutterClass =
     "border-[3px] border-[var(--graphite-primary)] bg-[color-mix(in_srgb,var(--graphite-primary)_25%,transparent)] shadow-none";
 
   return (
     <div className={`${CAPTURE_V2_LAYERS.fastTrack} pointer-events-none absolute inset-x-0 bottom-0 z-30`}>
-      <p
-        className="pointer-events-none absolute inset-x-0 text-center text-[11px] font-medium text-[var(--graphite-muted)]"
+      <div
+        className="pointer-events-none absolute inset-x-0 flex justify-center"
         style={{ bottom: `calc(${CAPTURE_CANVAS_CHROME.hintBottomPx}px + ${safeBottom})` }}
       >
-        {hintText}
-      </p>
+        <p className={`${captureCanvasGlass.hintChip} text-[11px] font-medium text-[var(--graphite-muted)]`}>
+          {hintText}
+        </p>
+      </div>
 
       <div
         className="pointer-events-auto absolute inset-x-0"
@@ -109,24 +128,46 @@ export function CaptureCanvasBottomRail({
         data-capture-chrome="bottom-rail"
       >
         <div className="grid grid-cols-[1fr_auto_1fr] items-end">
-          <button
-            type="button"
-            disabled={busy}
-            onClick={() => onGhostTap?.()}
-            data-capture-chrome="ghost-button"
-            className={`inline-flex items-center justify-center justify-self-start rounded-xl transition active:scale-[0.98] disabled:opacity-50 ${glassSquareClass(false)}`}
-            style={{
-              width: CAPTURE_CANVAS_CHROME.ghostButtonSizePx,
-              height: CAPTURE_CANVAS_CHROME.ghostButtonSizePx,
-            }}
-            aria-label="Ghost"
-          >
-            <Ghost className="h-5 w-5" />
-          </button>
+          <div className="flex flex-col items-start gap-2 justify-self-start">
+            {!captured && torchSupported ? (
+              <button
+                type="button"
+                onClick={() => onTorchToggle?.()}
+                data-capture-chrome="light-button"
+                className={`inline-flex items-center justify-center rounded-xl transition active:scale-[0.98] ${glassSquareClass(false, torchOn)}`}
+                style={{
+                  width: CAPTURE_CANVAS_CHROME.lightButtonSizePx,
+                  height: CAPTURE_CANVAS_CHROME.lightButtonSizePx,
+                }}
+                aria-pressed={torchOn}
+                aria-label={torchOn ? "Turn light off" : "Turn light on"}
+              >
+                <Flashlight className="h-5 w-5" />
+              </button>
+            ) : null}
+            {!captured ? (
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => onGhostTap?.()}
+                data-capture-chrome="ghost-button"
+                className={`inline-flex items-center justify-center rounded-xl transition active:scale-[0.98] disabled:opacity-50 ${glassSquareClass(false)}`}
+                style={{
+                  width: CAPTURE_CANVAS_CHROME.ghostButtonSizePx,
+                  height: CAPTURE_CANVAS_CHROME.ghostButtonSizePx,
+                }}
+                aria-label="Hide controls"
+              >
+                <Ghost className="h-5 w-5" />
+              </button>
+            ) : (
+              <span aria-hidden />
+            )}
+          </div>
 
           <button
             type="button"
-            disabled={busy}
+            disabled={busy || (!captured && captureBlocked)}
             onClick={handleShutterClick}
             onPointerDown={handleShutterPointerDown}
             onPointerMove={handleShutterPointerMove}
@@ -173,6 +214,7 @@ export function CaptureCanvasBottomRail({
             <button
               type="button"
               disabled={busy}
+              onClick={() => onEndTap?.()}
               data-capture-chrome="end-button"
               className={`inline-flex items-center justify-center justify-self-end rounded-xl transition active:scale-[0.98] disabled:opacity-50 ${glassSquareClass(true)}`}
               style={{
@@ -186,13 +228,28 @@ export function CaptureCanvasBottomRail({
           )}
         </div>
 
-        <div className="mt-1 grid grid-cols-[1fr_auto_1fr] text-[11px] leading-none">
-          <span className="justify-self-start font-medium text-[var(--graphite-text-body)]">Ghost</span>
+        <div className="mt-1 grid grid-cols-[1fr_auto_1fr] gap-1 text-[10px] leading-none">
+          <div className="flex max-w-full flex-col items-start gap-1 justify-self-start">
+            {!captured && torchSupported ? (
+              <span className={`${captureCanvasGlass.labelChip} w-full max-w-[52px] font-medium text-[var(--graphite-text-body)]`}>
+                Light
+              </span>
+            ) : null}
+            {!captured ? (
+              <span className={`${captureCanvasGlass.labelChip} w-full max-w-[52px] font-medium text-[var(--graphite-text-body)]`}>
+                Ghost
+              </span>
+            ) : null}
+          </div>
           <span aria-hidden />
           {captured ? (
-            <span className="justify-self-end font-semibold text-[var(--graphite-primary)]">Details</span>
+            <span className={`${captureCanvasGlass.labelChip} justify-self-end font-semibold text-[var(--graphite-primary)]`}>
+              Details
+            </span>
           ) : (
-            <span className="justify-self-end font-medium text-[var(--graphite-muted)]">End</span>
+            <span className={`${captureCanvasGlass.labelChip} justify-self-end font-medium text-[var(--graphite-muted)]`}>
+              End
+            </span>
           )}
         </div>
       </div>

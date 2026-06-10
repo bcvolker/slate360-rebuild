@@ -9,6 +9,7 @@ export const CAPTURE_CANVAS_CHROME = {
   railLabelBottomPx: 44,
   railLabelRowPx: 15,
   ghostButtonSizePx: 50,
+  lightButtonSizePx: 50,
   endButtonSizePx: 44,
   shutterBottomPx: 75,
   shutterSizePx: 72,

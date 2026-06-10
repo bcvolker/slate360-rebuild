@@ -277,10 +277,14 @@ export function useCaptureV2Loop({ sessionId, projectId, initialItemId, launchId
 
   function revokePreviewBlob() {
     const blobUrl = previewBlobRef.current ?? fileHandler.activePreview?.url;
-    if (blobUrl?.startsWith("blob:")) {
-      URL.revokeObjectURL(blobUrl);
+    if (!blobUrl?.startsWith("blob:")) return;
+    const stillUsed = visibleItems.some((item) => item.local_preview_url === blobUrl);
+    if (stillUsed) {
       previewBlobRef.current = null;
+      return;
     }
+    URL.revokeObjectURL(blobUrl);
+    previewBlobRef.current = null;
   }
 
   async function startVoiceNoteOnly() {

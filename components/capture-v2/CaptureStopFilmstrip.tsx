@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { CAPTURE_CANVAS_CHROME } from "./capture-canvas-chrome-layout";
+import { captureCanvasGlass } from "./capture-canvas-glass-tokens";
 import { CaptureStopFilmstripThumb } from "./CaptureStopFilmstripThumb";
 import { ensureCaptureTypesInstalled } from "@/lib/site-walk/capture-types";
 import type { CaptureItemRecord } from "@/lib/types/site-walk-capture";
@@ -129,25 +130,25 @@ export function CaptureStopFilmstrip({
         data-capture-chrome="filmstrip"
         className={
           overlay
-            ? `${CAPTURE_V2_LAYERS.filmstrip} pointer-events-auto flex w-full items-center gap-2 pl-3`
+            ? `${CAPTURE_V2_LAYERS.filmstrip} pointer-events-auto flex w-full items-center gap-2 px-3`
             : `${CAPTURE_V2_LAYERS.filmstrip} shrink-0 border-t border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_92%,transparent)] backdrop-blur-xl`
         }
         aria-label="Walk stop tracker"
       >
         {overlay ? (
-          <>
+          <div className={`${captureCanvasGlass.filmstripTrack} flex min-w-0 flex-1 items-center gap-2`}>
             {trackerBody}
             <button
               type="button"
               onClick={() => setCollapsed((value) => !value)}
-              className="mr-3 inline-flex h-11 w-8 shrink-0 items-center justify-center rounded-lg text-[var(--graphite-muted)] transition hover:text-[var(--graphite-text-body)]"
+              className="inline-flex h-9 w-8 shrink-0 items-center justify-center rounded-lg border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_70%,transparent)] text-[var(--graphite-muted)] backdrop-blur-md transition hover:text-[var(--graphite-text-body)]"
               aria-expanded={!collapsed}
               aria-controls="capture-canvas-stop-tracker-scroll"
               aria-label={collapsed ? "Show stop tracker" : "Hide stop tracker"}
             >
               {collapsed ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
             </button>
-          </>
+          </div>
         ) : (
           <>
             <div className="flex items-center justify-between gap-2 px-3 pb-1 pt-2">

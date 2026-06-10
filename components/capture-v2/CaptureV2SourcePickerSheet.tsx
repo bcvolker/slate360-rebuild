@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef, type PointerEvent } from "react";
 import { Camera, FileUp, Images, Lock, Orbit } from "lucide-react";
 import type { AppIcon } from "@/lib/types/app-icon";
 import type { CaptureV2SourcePickerRow, CaptureV2SourcePickerRowId } from "@/lib/capture-v2/source-picker-types";
@@ -11,6 +12,8 @@ const ROW_ICONS: Record<CaptureV2SourcePickerRowId, AppIcon> = {
   upload_file: FileUp,
   photo_360: Orbit,
 };
+
+const SWIPE_CLOSE_PX = 48;
 
 type Props = {
   open: boolean;
@@ -29,7 +32,20 @@ export function CaptureV2SourcePickerSheet({
   onClose,
   onSelect,
 }: Props) {
+  const dragRef = useRef<{ startY: number } | null>(null);
+
   if (!open) return null;
+
+  function handlePointerDown(event: PointerEvent<HTMLElement>) {
+    dragRef.current = { startY: event.clientY };
+  }
+
+  function handlePointerUp(event: PointerEvent<HTMLElement>) {
+    const origin = dragRef.current;
+    dragRef.current = null;
+    if (!origin) return;
+    if (event.clientY - origin.startY > SWIPE_CLOSE_PX) onClose();
+  }
 
   return (
     <div
@@ -50,7 +66,15 @@ export function CaptureV2SourcePickerSheet({
         aria-label="Capture sources"
         className={captureV2SourcePickerTokens.frame}
         data-capture-chrome="source-picker-sheet"
-        style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
+        style={{
+          paddingBottom: "max(12px, env(safe-area-inset-bottom, 0px))",
+          maxHeight: "calc(45dvh + env(safe-area-inset-bottom, 0px))",
+        }}
+        onPointerDown={handlePointerDown}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={() => {
+          dragRef.current = null;
+        }}
       >
         <span className={captureV2SourcePickerTokens.handle} aria-hidden />
         <header className={captureV2SourcePickerTokens.header}>
@@ -62,7 +86,7 @@ export function CaptureV2SourcePickerSheet({
             const Icon = ROW_ICONS[row.id];
             const locked = Boolean(row.locked);
             return (
-              <li key={row.id} className="pb-2">
+              <li key={row.id} className="pb-1.5">
                 <button
                   type="button"
                   disabled={locked}
@@ -80,9 +104,14 @@ export function CaptureV2SourcePickerSheet({
                   >
                     <Icon className="size-5" strokeWidth={1.75} />
                   </span>
-                  <span className="min-w-0 flex-1">
-                    <span className={captureV2SourcePickerTokens.rowLabel}>{row.label}</span>
-                    <p className={captureV2SourcePickerTokens.rowDescription}>{row.description}</p>
+                  <span className={captureV2SourcePickerTokens.rowInline}>
+                    <span className={captureV2SourcePickerTokens.rowText}>{row.label}</span>
+                    <span className={captureV2SourcePickerTokens.rowMeta} aria-hidden>
+                      ·
+                    </span>
+                    <span className={`${captureV2SourcePickerTokens.rowMeta} truncate`}>
+                      {row.description}
+                    </span>
                   </span>
                   {locked ? (
                     <span className={captureV2SourcePickerTokens.lockBadge}>

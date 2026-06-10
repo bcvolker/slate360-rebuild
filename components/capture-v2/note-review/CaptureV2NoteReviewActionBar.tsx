@@ -25,7 +25,7 @@ export function CaptureV2NoteReviewActionBar({
       }}
       data-note-review="action-bar"
     >
-      <div className="mx-auto flex max-w-[390px] gap-2">
+      <div className="flex w-full min-w-0 gap-2">
         <button
           type="button"
           data-testid="note-review-save"

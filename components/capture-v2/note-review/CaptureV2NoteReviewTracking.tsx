@@ -26,10 +26,10 @@ export function CaptureV2NoteReviewTracking({ draft, assignees, onPatch }: Props
       : noteReviewTokens.selectField;
 
   return (
-    <section className={`${noteReviewTokens.margin} space-y-2 pb-3`} data-note-review="tracking">
+    <section className={`${noteReviewTokens.margin} min-w-0 space-y-2 pb-3`} data-note-review="tracking">
       <span className={noteReviewTokens.sectionLabel}>Tracking</span>
-      <div className="grid grid-cols-2 gap-2">
-        <label className="block text-left">
+      <div className="grid min-w-0 grid-cols-2 gap-2">
+        <label className="block min-w-0 text-left">
           <span className="sr-only">Status</span>
           <select
             value={draft.status}
@@ -46,7 +46,7 @@ export function CaptureV2NoteReviewTracking({ draft, assignees, onPatch }: Props
             ))}
           </select>
         </label>
-        <label className="block text-left">
+        <label className="block min-w-0 text-left">
           <span className="sr-only">Priority</span>
           <select
             value={draft.priority}
@@ -63,9 +63,7 @@ export function CaptureV2NoteReviewTracking({ draft, assignees, onPatch }: Props
             ))}
           </select>
         </label>
-      </div>
-      <div className="grid grid-cols-2 gap-2">
-        <label className="block text-left">
+        <label className="block min-w-0 text-left">
           <span className="sr-only">Assignee</span>
           <select
             value={draft.assignedTo}
@@ -83,8 +81,16 @@ export function CaptureV2NoteReviewTracking({ draft, assignees, onPatch }: Props
               ))}
           </select>
         </label>
-        <label className="block text-left">
+        <label className="relative block min-w-0 text-left">
           <span className="sr-only">Due date</span>
+          {!draft.dueDate ? (
+            <span
+              className="pointer-events-none absolute left-3 top-1/2 z-[1] -translate-y-1/2 text-sm font-medium text-[var(--graphite-muted)]"
+              aria-hidden
+            >
+              Due date
+            </span>
+          ) : null}
           <input
             type="date"
             value={draft.dueDate ? draft.dueDate.slice(0, 10) : ""}
@@ -96,7 +102,7 @@ export function CaptureV2NoteReviewTracking({ draft, assignees, onPatch }: Props
           />
         </label>
       </div>
-      <label className="block text-left">
+      <label className="block min-w-0 text-left">
         <span className={noteReviewTokens.sectionLabel}>Classification</span>
         <select
           value={draft.classification}

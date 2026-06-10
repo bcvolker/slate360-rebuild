@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Camera } from "lucide-react";
 import { CAPTURE_CANVAS_CHROME } from "./capture-canvas-chrome-layout";
 import { resolveCaptureV2ThumbUrl } from "./capture-v2-preview-url";
 import type { CaptureItemRecord } from "@/lib/types/site-walk-capture";
@@ -27,7 +26,7 @@ export function CaptureStopFilmstripThumb({
   onSelect,
   onRequestDelete,
 }: Props) {
-  const [failed, setFailed] = useState(false);
+  const [loaded, setLoaded] = useState(false);
   const longPressRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const resolvedUrl = resolveCaptureV2ThumbUrl(item, previewOverride);
 
@@ -39,7 +38,7 @@ export function CaptureStopFilmstripThumb({
     : "border-[var(--surface-zinc-border)]";
 
   useEffect(() => {
-    setFailed(false);
+    setLoaded(false);
   }, [resolvedUrl]);
 
   function clearLongPress() {
@@ -48,6 +47,32 @@ export function CaptureStopFilmstripThumb({
       longPressRef.current = null;
     }
   }
+
+  const showImage = Boolean(resolvedUrl && loaded);
+
+  const thumbVisual = (
+    <>
+      {resolvedUrl ? (
+        <img
+          src={resolvedUrl}
+          alt=""
+          className={`h-full w-full object-cover ${showImage ? "opacity-100" : "opacity-0"}`}
+          draggable={false}
+          onLoad={() => setLoaded(true)}
+          onError={() => setLoaded(false)}
+        />
+      ) : null}
+      {!showImage ? (
+        <span className="flex h-full w-full items-center justify-center font-mono text-sm font-semibold tabular-nums text-[var(--graphite-primary)]">
+          {stopNumber}
+        </span>
+      ) : (
+        <span className="absolute inset-0 flex items-center justify-center bg-[color-mix(in_srgb,var(--graphite-canvas)_45%,transparent)] font-mono text-[11px] font-semibold tabular-nums text-[var(--graphite-text-header)]">
+          {stopNumber}
+        </span>
+      )}
+    </>
+  );
 
   if (overlay) {
     return (
@@ -68,31 +93,10 @@ export function CaptureStopFilmstripThumb({
         aria-current={selected ? "true" : undefined}
         aria-label={`Stop ${stopNumber}${onRequestDelete ? ". Hold to delete" : ""}`}
         disabled={deleting}
-        className={`relative shrink-0 overflow-hidden border bg-[color-mix(in_srgb,var(--graphite-canvas)_55%,transparent)] p-0 disabled:opacity-50 ${borderClass}`}
+        className={`relative shrink-0 overflow-hidden border bg-[color-mix(in_srgb,var(--graphite-canvas)_70%,transparent)] p-0 disabled:opacity-50 ${borderClass}`}
         style={{ width: sizePx, height: sizePx, borderRadius: radiusPx }}
       >
-        {resolvedUrl && !failed ? (
-          <img
-            src={resolvedUrl}
-            alt=""
-            className="h-full w-full object-cover"
-            draggable={false}
-            onError={() => setFailed(true)}
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center text-[var(--graphite-muted)]">
-            <Camera className="h-4 w-4" />
-          </div>
-        )}
-        <span
-          className={`absolute inset-0 flex items-center justify-center font-mono text-[11px] font-semibold tabular-nums ${
-            resolvedUrl && !failed
-              ? "bg-[color-mix(in_srgb,var(--graphite-canvas)_45%,transparent)] text-[var(--graphite-text-header)]"
-              : "text-[var(--graphite-primary)]"
-          }`}
-        >
-          {stopNumber}
-        </span>
+        {thumbVisual}
       </button>
     );
   }
@@ -125,22 +129,10 @@ export function CaptureStopFilmstripThumb({
         {stopNumber}
       </span>
       <div
-        className={`overflow-hidden border ${borderClass}`}
+        className={`relative overflow-hidden border ${borderClass}`}
         style={{ width: sizePx, height: sizePx, borderRadius: radiusPx }}
       >
-        {resolvedUrl && !failed ? (
-          <img
-            src={resolvedUrl}
-            alt=""
-            className="h-full w-full object-cover"
-            draggable={false}
-            onError={() => setFailed(true)}
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center text-[var(--graphite-muted)]">
-            <Camera className="h-4 w-4" />
-          </div>
-        )}
+        {thumbVisual}
       </div>
     </button>
   );

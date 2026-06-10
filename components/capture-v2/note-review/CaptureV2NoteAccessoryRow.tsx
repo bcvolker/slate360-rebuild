@@ -32,7 +32,7 @@ export function CaptureV2NoteAccessoryRow({
       style={{ bottom: keyboardOffset + actionBarHeightPx }}
       data-note-review="note-accessory"
     >
-      <div className="mx-auto flex max-w-[390px] items-center gap-2">
+      <div className="flex w-full min-w-0 items-center gap-2">
         <button
           type="button"
           onMouseDown={(event) => event.preventDefault()}
@@ -59,6 +59,7 @@ export function CaptureV2NoteAccessoryRow({
           )}
           Boost with AI
         </button>
+        <span className="min-w-0 flex-1" aria-hidden />
       </div>
     </div>
   );
