@@ -10,6 +10,8 @@ export type CaptureV2SummarySession = {
   isAdHoc: boolean;
   lastSyncedAt: string | null;
   completedAt: string | null;
+  startedAt: string | null;
+  worksiteLabel: string | null;
 };
 
 export type CaptureV2SummaryItem = {
@@ -25,6 +27,9 @@ export type CaptureV2SummaryItem = {
   uploadState: SiteWalkUploadState;
   createdAt: string;
   updatedAt: string;
+  locationLabel: string | null;
+  beforeItemId: string | null;
+  metadata: Record<string, unknown> | null;
 };
 
 export type CaptureV2SummaryStats = {

@@ -18,6 +18,7 @@ export type CaptureLaunchQuery = {
   plan?: string;
   item?: string;
   launch?: string;
+  from?: "summary";
 };
 
 /** Direct V2 summary URL — for V2-only surfaces while the launch flag stays off. */
@@ -33,7 +34,18 @@ export function buildCaptureV2LaunchUrl(query: CaptureLaunchQuery & { plan?: str
   if (query.plan) params.set("plan", query.plan);
   if (query.item) params.set("item", query.item);
   if (query.launch) params.set("launch", query.launch);
+  if (query.from) params.set("from", query.from);
   return `${SITE_WALK_CAPTURE_V2_ROUTES.capture}?${params.toString()}`;
+}
+
+/** Open a stop in Note/Review from Walk Review — back returns to summary. */
+export function buildCaptureV2ReviewItemUrl(sessionId: string, itemId: string): string {
+  return buildCaptureV2LaunchUrl({
+    session: sessionId,
+    item: itemId,
+    plan: "skip",
+    from: "summary",
+  });
 }
 
 /** Build capture task URL respecting the V2 feature flag. */
