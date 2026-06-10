@@ -8,10 +8,10 @@ import { formatQuickScanSpaceTitle } from "@/lib/digital-twin/quick-scan-title";
 import { twinAccent } from "@/lib/digital-twin/twin-accent";
 import { cn } from "@/lib/utils";
 import { useMultipartTwinUpload } from "@/hooks/useMultipartTwinUpload";
-import { useTwinGpsFix } from "@/hooks/useTwinGpsFix";
 import type { HubTwin, HubTwinProject } from "@/lib/types/digital-twin-hub";
 import { TwinCapturePicker } from "./TwinCapturePicker";
-import { TwinCaptureScreen } from "./TwinCaptureScreen";
+import { setTwinCapturePendingSession } from "@/lib/digital-twin/twin-capture-pending-session";
+import { TwinCaptureScreen, type TwinCaptureFinishResult } from "./TwinCaptureScreen";
 import { TwinCreditGate } from "./TwinCreditGate";
 import { TwinJobStatus } from "./TwinJobStatus";
 import { useTwinCreditEstimate } from "@/hooks/useTwinCreditEstimate";
@@ -60,7 +60,6 @@ export function TwinCaptureFlow({
     enqueueJob,
   } = useMultipartTwinUpload();
 
-  const resolveGpsFix = useTwinGpsFix();
 
   useEffect(() => {
     setLocalSpaces(spaces);
@@ -137,33 +136,35 @@ export function TwinCaptureFlow({
   }, []);
 
   const handleCaptureFinish = useCallback(
-    async (capturedFiles: File[]) => {
-      if (!selection || !capturedFiles.length) {
+    (result: TwinCaptureFinishResult) => {
+      if (!selection || !result.files.length) {
         setStatusMessage("No capture files — take at least one photo or video.");
         setStep("capture");
         return;
       }
 
-      setStep("upload");
-      setStatusMessage(null);
-
-      try {
-        const gps = await resolveGpsFix();
-        await startUpload(
-          {
-            spaceId: selection.spaceId,
-            projectId: selection.projectId,
-            title: selection.spaceTitle,
-            gps,
-          },
-          capturedFiles,
-        );
-        setStatusMessage("Upload complete. Queue processing when ready.");
-      } catch (err) {
-        setStatusMessage(err instanceof Error ? err.message : "Upload failed");
-      }
+      const projectName = projects.find((row) => row.id === selection.projectId)?.name ?? null;
+      setTwinCapturePendingSession({
+        selection: {
+          spaceId: selection.spaceId,
+          projectId: selection.projectId,
+          spaceTitle: selection.spaceTitle,
+        },
+        projectName,
+        quickMode: skipPicker,
+        clips: result.clips.map((clip) => ({
+          id: clip.id,
+          index: clip.index,
+          mode: clip.mode,
+          durationSeconds: clip.durationSeconds,
+          frameCount: clip.frameCount,
+          files: clip.files,
+          thumbnailUrl: clip.thumbnailUrl,
+        })),
+      });
+      router.push("/digital-twin/capture/review");
     },
-    [resolveGpsFix, selection, startUpload],
+    [projects, router, selection, skipPicker],
   );
 
   const handleEnqueue = useCallback(async () => {
@@ -223,7 +224,7 @@ export function TwinCaptureFlow({
         projectName={projectName}
         spaceName={selection.spaceTitle}
         onCancel={skipPicker ? handleExitQuickFlow : () => setStep("picker")}
-        onFinish={(result) => void handleCaptureFinish(result.files)}
+        onFinish={handleCaptureFinish}
       />
     );
   }
