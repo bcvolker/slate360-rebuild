@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Camera, ChevronDown, ChevronUp } from "lucide-react";
-import { resolveCaptureV2ThumbUrl } from "./capture-v2-preview-url";
+import { ChevronDown, ChevronUp } from "lucide-react";
+import { CAPTURE_CANVAS_CHROME } from "./capture-canvas-chrome-layout";
+import { CaptureStopFilmstripThumb } from "./CaptureStopFilmstripThumb";
 import { ensureCaptureTypesInstalled } from "@/lib/site-walk/capture-types";
 import type { CaptureItemRecord } from "@/lib/types/site-walk-capture";
 import { CAPTURE_V2_LAYERS } from "./layers";
@@ -10,7 +11,9 @@ import type { CaptureV2Loop } from "./useCaptureV2Loop";
 
 export type CaptureStopFilmstripProps = {
   loop: CaptureV2Loop;
+  variant?: "stacked" | "overlay";
   defaultCollapsed?: boolean;
+  hidden?: boolean;
   onSelectItem: (item: CaptureItemRecord) => void;
   onDeleteItem?: (item: CaptureItemRecord) => Promise<void>;
   deletingItemId?: string | null;
@@ -18,7 +21,9 @@ export type CaptureStopFilmstripProps = {
 
 export function CaptureStopFilmstrip({
   loop,
+  variant = "stacked",
   defaultCollapsed = false,
+  hidden = false,
   onSelectItem,
   onDeleteItem,
   deletingItemId = null,
@@ -46,6 +51,7 @@ export function CaptureStopFilmstrip({
   }, [orderedItems]);
 
   const activeKey = loop.activeItem?.id ?? loop.activeItem?.client_item_id ?? null;
+  const nextStopNumber = orderedItems.length + 1;
 
   useEffect(() => {
     if (collapsed || orderedItems.length === 0) return;
@@ -58,83 +64,123 @@ export function CaptureStopFilmstrip({
     setConfirmDeleteItem(null);
   }
 
+  if (hidden) return null;
+
+  const overlay = variant === "overlay";
+
+  const trackerBody = !collapsed && (
+    <div
+      id="capture-canvas-stop-tracker-scroll"
+      className={`flex min-h-0 gap-2 overflow-x-auto no-scrollbar ${overlay ? "min-w-0 flex-1" : "min-h-[4.75rem] px-3 pb-1.5 pt-1"}`}
+      role="listbox"
+      aria-label="Stop thumbnails"
+    >
+      {orderedItems.map((item) => {
+        const isActive =
+          !!loop.activeItem &&
+          (loop.activeItem.id === item.id ||
+            (!!loop.activeItem.client_item_id &&
+              loop.activeItem.client_item_id === item.client_item_id));
+        const stopNumber =
+          stopNumbers.get(item.id) ?? stopNumbers.get(item.client_item_id ?? "") ?? 0;
+        const previewOverride = isActive && loop.activePreview?.url ? loop.activePreview.url : null;
+
+        return (
+          <div
+            key={item.client_item_id ?? item.id}
+            ref={isActive ? activeRef : undefined}
+            role="option"
+            aria-selected={isActive}
+            className="shrink-0"
+          >
+            <CaptureStopFilmstripThumb
+              item={item}
+              stopNumber={stopNumber}
+              selected={isActive}
+              previewOverride={previewOverride}
+              deleting={deletingItemId === item.id}
+              overlay={overlay}
+              onSelect={() => onSelectItem(item)}
+              onRequestDelete={onDeleteItem ? () => setConfirmDeleteItem(item) : undefined}
+            />
+          </div>
+        );
+      })}
+      {overlay ? (
+        <div
+          className="flex shrink-0 items-center justify-center border border-dashed border-[var(--accent-border-green)] bg-[color-mix(in_srgb,var(--graphite-canvas)_55%,transparent)] font-mono text-[11px] font-semibold tabular-nums text-[var(--graphite-primary)]"
+          style={{
+            width: CAPTURE_CANVAS_CHROME.filmstripThumbPx,
+            height: CAPTURE_CANVAS_CHROME.filmstripThumbPx,
+            borderRadius: CAPTURE_CANVAS_CHROME.filmstripThumbRadiusPx,
+          }}
+          aria-hidden
+        >
+          {nextStopNumber}
+        </div>
+      ) : null}
+    </div>
+  );
+
   return (
     <>
       <section
         id="capture-canvas-stop-tracker"
-        className={`${CAPTURE_V2_LAYERS.filmstrip} shrink-0 border-t border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_92%,transparent)] backdrop-blur-xl`}
+        className={
+          overlay
+            ? `${CAPTURE_V2_LAYERS.filmstrip} pointer-events-auto flex items-center gap-2`
+            : `${CAPTURE_V2_LAYERS.filmstrip} shrink-0 border-t border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_92%,transparent)] backdrop-blur-xl`
+        }
         aria-label="Walk stop tracker"
       >
-        <div className="flex items-center justify-between gap-2 px-3 pb-1 pt-2">
-          <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[var(--graphite-muted)]">
-            Stops · {orderedItems.length}
-          </p>
-          <button
-            type="button"
-            onClick={() => setCollapsed((value) => !value)}
-            className="inline-flex items-center gap-1 rounded-lg border border-[var(--mobile-app-card-border)] px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-[var(--graphite-muted)] transition hover:border-[color-mix(in_srgb,var(--graphite-primary)_25%,transparent)] hover:text-[var(--graphite-text-body)]"
-            aria-expanded={!collapsed}
-            aria-controls="capture-canvas-stop-tracker-scroll"
-          >
-            {collapsed ? (
-              <>
-                Show <ChevronUp className="h-3.5 w-3.5" />
-              </>
-            ) : (
-              <>
-                Hide <ChevronDown className="h-3.5 w-3.5" />
-              </>
-            )}
-          </button>
-        </div>
-
-        {!collapsed && (
-          <div
-            id="capture-canvas-stop-tracker-scroll"
-            className="flex min-h-[4.75rem] gap-2.5 overflow-x-auto px-3 pb-1.5 pt-1 no-scrollbar"
-            role="listbox"
-            aria-label="Stop thumbnails"
-          >
-            {orderedItems.length === 0 ? (
+        {overlay ? (
+          <>
+            {trackerBody}
+            <button
+              type="button"
+              onClick={() => setCollapsed((value) => !value)}
+              className="inline-flex h-11 w-8 shrink-0 items-center justify-center rounded-lg text-[var(--graphite-muted)] transition hover:text-[var(--graphite-text-body)]"
+              aria-expanded={!collapsed}
+              aria-controls="capture-canvas-stop-tracker-scroll"
+              aria-label={collapsed ? "Show stop tracker" : "Hide stop tracker"}
+            >
+              {collapsed ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </button>
+          </>
+        ) : (
+          <>
+            <div className="flex items-center justify-between gap-2 px-3 pb-1 pt-2">
+              <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[var(--graphite-muted)]">
+                Stops · {orderedItems.length}
+              </p>
+              <button
+                type="button"
+                onClick={() => setCollapsed((value) => !value)}
+                className="inline-flex items-center gap-1 rounded-lg border border-[var(--mobile-app-card-border)] px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-[var(--graphite-muted)] transition hover:border-[color-mix(in_srgb,var(--graphite-primary)_25%,transparent)] hover:text-[var(--graphite-text-body)]"
+                aria-expanded={!collapsed}
+                aria-controls="capture-canvas-stop-tracker-scroll"
+              >
+                {collapsed ? (
+                  <>
+                    Show <ChevronUp className="h-3.5 w-3.5" />
+                  </>
+                ) : (
+                  <>
+                    Hide <ChevronDown className="h-3.5 w-3.5" />
+                  </>
+                )}
+              </button>
+            </div>
+            {!collapsed && orderedItems.length === 0 ? (
               <div className="flex min-h-[4.75rem] min-w-full items-center justify-center rounded-2xl border border-dashed border-[var(--accent-border-green)] bg-[color-mix(in_srgb,var(--surface-zinc)_55%,var(--graphite-canvas))] px-4 py-3 text-center">
                 <p className="text-xs font-medium leading-snug text-[var(--graphite-muted)]">
                   Saved stops appear here as numbered thumbnails.
                 </p>
               </div>
             ) : (
-              orderedItems.map((item) => {
-                const isActive =
-                  !!loop.activeItem &&
-                  (loop.activeItem.id === item.id ||
-                    (!!loop.activeItem.client_item_id &&
-                      loop.activeItem.client_item_id === item.client_item_id));
-                const stopNumber =
-                  stopNumbers.get(item.id) ?? stopNumbers.get(item.client_item_id ?? "") ?? 0;
-                const previewOverride =
-                  isActive && loop.activePreview?.url ? loop.activePreview.url : null;
-
-                return (
-                  <div
-                    key={item.client_item_id ?? item.id}
-                    ref={isActive ? activeRef : undefined}
-                    role="option"
-                    aria-selected={isActive}
-                    className="shrink-0"
-                  >
-                    <StopFilmstripThumb
-                      item={item}
-                      stopNumber={stopNumber}
-                      selected={isActive}
-                      previewOverride={previewOverride}
-                      deleting={deletingItemId === item.id}
-                      onSelect={() => onSelectItem(item)}
-                      onRequestDelete={onDeleteItem ? () => setConfirmDeleteItem(item) : undefined}
-                    />
-                  </div>
-                );
-              })
+              trackerBody
             )}
-          </div>
+          </>
         )}
       </section>
 
@@ -146,10 +192,7 @@ export function CaptureStopFilmstrip({
             aria-labelledby="capture-delete-stop-title"
             className="w-full max-w-sm rounded-2xl border border-[var(--mobile-app-card-border)] bg-[var(--surface-zinc)] p-4 shadow-[var(--mobile-app-card-shadow)]"
           >
-            <p
-              id="capture-delete-stop-title"
-              className="text-sm font-bold text-[var(--graphite-text-header)]"
-            >
+            <p id="capture-delete-stop-title" className="text-sm font-bold text-[var(--graphite-text-header)]">
               Delete this stop?
             </p>
             <p className="mt-1 text-xs leading-snug text-[var(--graphite-muted)]">
@@ -176,90 +219,5 @@ export function CaptureStopFilmstrip({
         </div>
       ) : null}
     </>
-  );
-}
-
-type ThumbProps = {
-  item: CaptureItemRecord;
-  stopNumber: number;
-  selected: boolean;
-  previewOverride: string | null;
-  deleting: boolean;
-  onSelect: () => void;
-  onRequestDelete?: () => void;
-};
-
-function StopFilmstripThumb({
-  item,
-  stopNumber,
-  selected,
-  previewOverride,
-  deleting,
-  onSelect,
-  onRequestDelete,
-}: ThumbProps) {
-  const [failed, setFailed] = useState(false);
-  const longPressRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const resolvedUrl = resolveCaptureV2ThumbUrl(item, previewOverride);
-  const borderClass = selected
-    ? "border-[var(--accent-border-green)] ring-2 ring-[var(--accent-border-green)] ring-offset-1 ring-offset-[color-mix(in_srgb,var(--graphite-canvas)_92%,transparent)]"
-    : "border-[var(--surface-zinc-border)]";
-
-  useEffect(() => {
-    setFailed(false);
-  }, [resolvedUrl]);
-
-  function clearLongPress() {
-    if (longPressRef.current) {
-      clearTimeout(longPressRef.current);
-      longPressRef.current = null;
-    }
-  }
-
-  return (
-    <button
-      type="button"
-      onClick={onSelect}
-      onPointerDown={() => {
-        if (!onRequestDelete) return;
-        clearLongPress();
-        longPressRef.current = setTimeout(() => {
-          onRequestDelete();
-          longPressRef.current = null;
-        }, 550);
-      }}
-      onPointerUp={clearLongPress}
-      onPointerCancel={clearLongPress}
-      onPointerLeave={clearLongPress}
-      aria-current={selected ? "true" : undefined}
-      aria-label={`Stop ${stopNumber}${onRequestDelete ? ". Hold to delete" : ""}`}
-      disabled={deleting}
-      className="flex shrink-0 flex-col items-center gap-1.5 bg-transparent p-0 disabled:opacity-50"
-    >
-      <span
-        className={`text-[10px] font-bold tabular-nums ${
-          selected ? "text-[var(--graphite-primary)]" : "text-[var(--graphite-muted)]"
-        }`}
-      >
-        {stopNumber}
-      </span>
-      <div
-        className={`h-[3.75rem] w-[3.75rem] overflow-hidden rounded-lg border ${borderClass}`}
-      >
-        {resolvedUrl && !failed ? (
-          <img
-            src={resolvedUrl}
-            alt=""
-            className="h-full w-full object-cover"
-            draggable={false}
-            onError={() => setFailed(true)}
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center text-[var(--graphite-muted)]">
-            <Camera className="h-4 w-4" />
-          </div>
-        )}
-      </div>
-    </button>
   );
 }
