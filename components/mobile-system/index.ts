@@ -14,7 +14,7 @@ export {
   MOBILE_PANEL_COLLAPSED_BODY_PX,
   MOBILE_PANEL_COLLAPSED_FRAME_PX,
 } from "./mobileTokens";
-export { MobileShellBrand } from "./MobileShellBrand";
+export { MobileShellBrand, MobileShellModuleBrand } from "./MobileShellBrand";
 export { MobileShellBackToApp } from "./MobileShellBackToApp";
 export { MobileShellBrandMark } from "./MobileShellBrandMark";
 
@@ -41,6 +41,7 @@ export {
   isMainMobileTabRoute,
   resolveMainMobileTabKey,
   resolveMainMobileHeaderMeta,
+  resolveModuleHomeBrand,
   resolveMobileRoute,
 } from "./mainMobileTabs";
 export type {
@@ -48,6 +49,7 @@ export type {
   MainMobileTabKey,
   MainMobileHeaderMeta,
   MobileShellRoute,
+  ModuleHomeBrand,
 } from "./mainMobileTabs";
 
 export {

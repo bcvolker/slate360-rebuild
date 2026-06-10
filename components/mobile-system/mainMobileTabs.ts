@@ -1,5 +1,5 @@
 import type { AppIcon } from "@/lib/types/app-icon";
-import { Cloud, FolderOpen, Home, MessageSquare, User } from "lucide-react";
+import { AppWindow, Camera, Cloud, FolderOpen, Home, MessageSquare, User } from "lucide-react";
 
 export type MainMobileTabKey =
   | "home"
@@ -16,15 +16,15 @@ export type MainMobileTab<Key extends string = string> = {
   onSelect?: () => void;
 };
 
-/** Unified platform bottom nav — Home | Projects | SlateDrop | Coordination | Account */
+/** Unified platform bottom nav — Home · Projects · SlateDrop · Activity · Account */
 export const mainMobileTabs: MainMobileTab<MainMobileTabKey>[] = [
   { key: "home", label: "Home", href: "/app", icon: Home },
   { key: "projects", label: "Projects", href: "/projects", icon: FolderOpen },
   { key: "slatedrop", label: "SlateDrop", href: "/slatedrop", icon: Cloud },
   {
     key: "coordination",
-    label: "Coordination",
-    href: "/coordination",
+    label: "Activity",
+    href: "/coordination/inbox",
     icon: MessageSquare,
   },
   { key: "account", label: "Account", href: "/more/account", icon: User },
@@ -43,6 +43,21 @@ export const MAIN_MOBILE_TAB_ROUTE_PREFIXES = [
   "/settings",
   "/my-account",
 ] as const;
+
+export type ModuleHomeBrand = {
+  name: string;
+  icon: AppIcon;
+  accent: "primary" | "info";
+};
+
+const MODULE_HOME_BRANDS: Record<string, ModuleHomeBrand> = {
+  "/site-walk": { name: "Site Walk", icon: Camera, accent: "primary" },
+  "/digital-twin": { name: "Twin 360", icon: AppWindow, accent: "info" },
+};
+
+export function resolveModuleHomeBrand(pathname: string): ModuleHomeBrand | null {
+  return MODULE_HOME_BRANDS[pathname] ?? null;
+}
 
 export function isMainMobileTabRoute(pathname: string): boolean {
   return MAIN_MOBILE_TAB_ROUTE_PREFIXES.some(
@@ -69,13 +84,12 @@ export function resolveMainMobileTabKey(pathname: string): MainMobileTabKey {
 export type MainMobileHeaderMeta = {
   title?: string;
   subtitle?: string;
-  showBackToApp?: boolean;
+  moduleHomeBrand?: ModuleHomeBrand | null;
 };
 
 export function resolveMainMobileHeaderMeta(pathname: string): MainMobileHeaderMeta {
-  if (pathname === "/site-walk" || pathname === "/digital-twin") {
-    return { showBackToApp: true };
-  }
+  const moduleHomeBrand = resolveModuleHomeBrand(pathname);
+  if (moduleHomeBrand) return { moduleHomeBrand };
   return {};
 }
 

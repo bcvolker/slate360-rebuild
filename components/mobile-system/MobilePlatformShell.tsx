@@ -56,10 +56,9 @@ export function MobilePlatformShellFrame({
         mobileRoute={mobileRoute}
         header={
           <MobilePlatformHeader
-            showBackToApp={headerMeta.showBackToApp}
+            moduleHomeBrand={headerMeta.moduleHomeBrand}
             title={headerMeta.title}
             subtitle={headerMeta.subtitle}
-            inviteShareData={inviteShareData}
           />
         }
         bottomNav={<MobilePlatformBottomNav />}

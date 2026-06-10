@@ -1,33 +1,29 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, ChevronLeft } from "lucide-react";
-import { Slate360Logo } from "@/components/studio-ui/LogoProvider";
+import { ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MobileHeaderActions } from "./MobileHeaderActions";
-import { MobileShellBrand } from "./MobileShellBrand";
+import { MobileShellBrand, MobileShellModuleBrand } from "./MobileShellBrand";
+import type { ModuleHomeBrand } from "./mainMobileTabs";
 import { mobileTokens } from "./mobileTokens";
-import type { InviteShareData } from "@/lib/types/invite";
 
 type MobilePlatformHeaderProps = {
-  /** Show back chevron before brand — links to /app (module home surfaces). */
-  showBackToApp?: boolean;
   /** Sub-route back target (e.g. /site-walk). Replaces brand cluster when set. */
   backHref?: string;
   backLabel?: string;
   title?: string;
   subtitle?: string;
-  inviteShareData?: InviteShareData;
+  moduleHomeBrand?: ModuleHomeBrand | null;
   className?: string;
 };
 
 export function MobilePlatformHeader({
-  showBackToApp = false,
   backHref,
   backLabel = "Home",
   title,
   subtitle,
-  inviteShareData,
+  moduleHomeBrand,
   className,
 }: MobilePlatformHeaderProps) {
   const hasTitle = Boolean(title || subtitle);
@@ -35,6 +31,7 @@ export function MobilePlatformHeader({
   return (
     <header
       className={cn(mobileTokens.mobileHeaderBar, className)}
+      data-mobile-shell-chrome="header"
       style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}
     >
       <div className="flex min-w-0 flex-1 items-center gap-2">
@@ -46,19 +43,8 @@ export function MobilePlatformHeader({
             <ArrowLeft className="size-3.5" aria-hidden />
             {backLabel}
           </Link>
-        ) : showBackToApp ? (
-          <Link
-            href="/app"
-            className={cn(mobileTokens.mobileHeaderBrandLink, "gap-1.5 pr-1")}
-            aria-label="Back to Slate360 home"
-          >
-            <ChevronLeft
-              className={mobileTokens.mobileHeaderBackChevron}
-              strokeWidth={2}
-              aria-hidden
-            />
-            <Slate360Logo variant="dark" size="header" />
-          </Link>
+        ) : moduleHomeBrand ? (
+          <MobileShellModuleBrand {...moduleHomeBrand} />
         ) : (
           <MobileShellBrand href="/app" />
         )}
@@ -71,7 +57,7 @@ export function MobilePlatformHeader({
         ) : null}
       </div>
 
-      <MobileHeaderActions inviteShareData={inviteShareData} />
+      <MobileHeaderActions />
     </header>
   );
 }
