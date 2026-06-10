@@ -58,6 +58,9 @@ gpu_image = (
         "xvfb",
         "libxcb1",
         "libxkbcommon0",
+        "mesa-vulkan-drivers",
+        "libvulkan1",
+        "vulkan-tools",
     )
     .run_commands(
         "curl -fsSL https://deb.nodesource.com/setup_20.x | bash -",
@@ -104,8 +107,12 @@ def output_storage_key(org_id: str, space_id: str, job_id: str) -> str:
 
 def splat_transform_clean_export(ply_path: Path, spz_path: Path) -> None:
     """Conservative post-export cleanup: low opacity, spiky scales, floaters."""
+    runtime_dir = ply_path.parent / "xdg-runtime"
+    runtime_dir.mkdir(parents=True, exist_ok=True)
     run_cmd(
         [
+            "xvfb-run",
+            "-a",
             "npx",
             "-y",
             "@playcanvas/splat-transform",
@@ -124,7 +131,11 @@ def splat_transform_clean_export(ply_path: Path, spz_path: Path) -> None:
             str(spz_path),
             "--spz-version",
             "3",
-        ]
+        ],
+        env={
+            "XDG_RUNTIME_DIR": str(runtime_dir),
+            "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/lavapipe_icd.json",
+        },
     )
 
 
