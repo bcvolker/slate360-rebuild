@@ -1,31 +1,32 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { useCamera } from "@/lib/hooks/useCamera";
-import { useTwinVideoRecorder } from "@/hooks/useTwinVideoRecorder";
-import {
-  useTwinCaptureSession,
-  type TwinCaptureClipReviewPayload,
-  type TwinCaptureMode,
-} from "@/hooks/useTwinCaptureSession";
-import {
-  getTwinVideoTrack,
-  isTwinDepthSupported,
-  isTwinTorchSupported,
-  setTwinTorch,
-} from "@/lib/digital-twin/twin-capture-device";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { TwinCaptureBottomRail } from "./TwinCaptureBottomRail";
 import { TwinCaptureClipChips } from "./TwinCaptureClipChips";
 import { TwinCaptureClipGhost } from "./TwinCaptureClipGhost";
 import { TwinCaptureCoveragePill } from "./TwinCaptureCoveragePill";
+import { TwinCaptureHudToast } from "./TwinCaptureHudToast";
 import { TwinCaptureLidarChip } from "./TwinCaptureLidarChip";
 import { TwinCaptureLevelLine } from "./TwinCaptureLevelLine";
 import { TwinCaptureLiveCamera } from "./TwinCaptureLiveCamera";
 import { TwinCaptureModeSelector } from "./TwinCaptureModeSelector";
 import { TwinCaptureTopBar } from "./TwinCaptureTopBar";
 import { computeTwinCoverageProgress } from "./twin-capture-polish-tokens";
+import {
+  getTwinVideoTrack,
+  isTwinTorchSupported,
+  toggleTwinCaptureTorch,
+} from "./twin-capture-torch";
+import { useTwinCaptureCamera } from "./useTwinCaptureCamera";
 import { useTwinCaptureClipGhost } from "./useTwinCaptureClipGhost";
 import { useTwinCaptureDeviceSensors } from "./useTwinCaptureDeviceSensors";
+import {
+  useTwinCaptureSession,
+  type TwinCaptureClipReviewPayload,
+  type TwinCaptureMode,
+} from "./useTwinCaptureSession";
+import { useTwinCaptureVideoRecorder } from "./useTwinCaptureVideoRecorder";
+import { isTwinDepthSupported } from "@/lib/digital-twin/twin-capture-device";
 
 export type TwinCaptureFinishResult = {
   files: File[];
@@ -73,23 +74,33 @@ export function TwinCaptureScreen({
   devForceGhost = false,
   devGhostFrameUrl = null,
 }: Props) {
-  const camera = useCamera();
-  const videoRecorder = useTwinVideoRecorder();
+  const camera = useTwinCaptureCamera();
+  const videoRecorder = useTwinCaptureVideoRecorder();
+  const [toast, setToast] = useState<string | null>(null);
+  const [finishError, setFinishError] = useState<string | null>(null);
+  const [finishing, setFinishing] = useState(false);
+  const sensorsRequestedRef = useRef(false);
+
+  const showToast = useCallback((message: string) => {
+    setToast(message);
+    window.setTimeout(() => setToast((current) => (current === message ? null : current)), 5000);
+  }, []);
+
   const session = useTwinCaptureSession({
     camera,
     videoRecorder,
+    onError: showToast,
     devSeedClipCount,
     devInitialMode,
   });
+
   const [chromeVisible, setChromeVisible] = useState(true);
   const facingMode = "environment";
   const [torchOn, setTorchOn] = useState(false);
   const [torchSupported, setTorchSupported] = useState(false);
   const [depthSupported, setDepthSupported] = useState(false);
 
-  const scopeLabel = projectName?.trim()
-    ? projectName.trim().toUpperCase()
-    : "QUICK SCAN";
+  const scopeLabel = projectName?.trim() ? projectName.trim().toUpperCase() : "QUICK SCAN";
   const recording = devForceRecording || session.isRecording;
   const headerLabel = recording
     ? `${scopeLabel} · REC ${formatRecTimer(session.recSeconds)}`
@@ -126,56 +137,94 @@ export function TwinCaptureScreen({
     devGhostFrameUrl,
     devForceGhost,
   });
+
   const estimatedBytes = photoCount * PHOTO_EST_BYTES + videoSeconds * VIDEO_EST_BYTES_PER_SEC;
+  const streamReady = camera.isStreaming && !camera.needsResume;
 
+  useEffect(() => setDepthSupported(isTwinDepthSupported()), []);
   useEffect(() => {
-    setDepthSupported(isTwinDepthSupported());
-  }, []);
-
-  useEffect(() => {
-    if (!camera.isStreaming) {
+    if (!streamReady) {
       setTorchSupported(false);
       return;
     }
     const stream = camera.videoRef.current?.srcObject;
     const track = getTwinVideoTrack(stream instanceof MediaStream ? stream : null);
     setTorchSupported(isTwinTorchSupported(track));
-  }, [camera.isStreaming, camera.videoRef]);
+  }, [camera.isStreaming, camera.needsResume, camera.videoRef, streamReady]);
+
+  useEffect(() => {
+    if (!streamReady && torchOn) setTorchOn(false);
+  }, [streamReady, torchOn]);
+
+  useEffect(() => {
+    if (videoRecorder.error) showToast(videoRecorder.error);
+  }, [showToast, videoRecorder.error]);
 
   const handleTorchToggle = useCallback(async () => {
     const stream = camera.videoRef.current?.srcObject;
-    const track = getTwinVideoTrack(stream instanceof MediaStream ? stream : null);
-    if (!track) return;
+    if (!(stream instanceof MediaStream)) return;
     const next = !torchOn;
     try {
-      await setTwinTorch(track, next);
-      setTorchOn(next);
+      const ok = await toggleTwinCaptureTorch(stream, next);
+      if (ok) setTorchOn(next);
+      else showToast("Torch is not available on this device.");
     } catch {
-      setTorchOn(false);
+      showToast(next ? "Could not turn torch on." : "Could not turn torch off.");
     }
-  }, [camera.videoRef, torchOn]);
+  }, [camera.videoRef, showToast, torchOn]);
 
   const handleCancel = useCallback(() => {
+    if (session.isRecording) {
+      showToast("End the current clip before leaving.");
+      return;
+    }
     camera.stopCamera();
     onCancel?.();
-  }, [camera, onCancel]);
+  }, [camera, onCancel, session.isRecording, showToast]);
 
   const handleFinish = useCallback(async () => {
-    const review = await session.collectForReview();
-    camera.stopCamera();
-    onFinish?.({
-      files: review.allFiles,
-      clips: review.clips,
-      photoCount,
-      videoSeconds,
-      estimatedBytes,
-    });
-  }, [camera, estimatedBytes, onFinish, photoCount, session, videoSeconds]);
+    if (finishing || !session.hasContent) return;
+    setFinishing(true);
+    setFinishError(null);
+    try {
+      const review = await session.collectForReview();
+      camera.stopCamera();
+      onFinish?.({
+        files: review.allFiles,
+        clips: review.clips,
+        photoCount,
+        videoSeconds,
+        estimatedBytes,
+      });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Could not prepare review";
+      setFinishError(message);
+      showToast(message);
+    } finally {
+      setFinishing(false);
+    }
+  }, [camera, estimatedBytes, finishing, onFinish, photoCount, session, showToast, videoSeconds]);
+
+  const handleShutterTap = useCallback(() => {
+    if (!sensorsRequestedRef.current) {
+      sensorsRequestedRef.current = true;
+      void sensors.requestPermission();
+    }
+    if (camera.needsResume) {
+      void camera.resumeCamera(facingMode);
+      return;
+    }
+    ghost.handleShutterTap();
+  }, [camera, facingMode, ghost, sensors]);
 
   const handleCanvasTap = useCallback(() => {
     if (recording) return;
+    if (camera.needsResume) {
+      void camera.resumeCamera(facingMode);
+      return;
+    }
     setChromeVisible((value) => !value);
-  }, [recording]);
+  }, [camera, facingMode, recording]);
 
   return (
     <div
@@ -199,7 +248,13 @@ export function TwinCaptureScreen({
         }
         aria-label={recording ? undefined : "Toggle capture controls"}
       >
-        <TwinCaptureLiveCamera camera={camera} facingMode={facingMode} autoStart fullBleed />
+        <TwinCaptureLiveCamera
+          camera={camera}
+          facingMode={facingMode}
+          autoStart
+          fullBleed
+          onResume={() => void camera.resumeCamera(facingMode)}
+        />
 
         <TwinCaptureLevelLine rollDeg={sensors.rollDeg} supported={sensors.orientationSupported} />
         <TwinCaptureClipGhost
@@ -215,20 +270,25 @@ export function TwinCaptureScreen({
           onToggleChrome={() => setChromeVisible((value) => !value)}
         />
 
-        <TwinCaptureLidarChip hidden={!chromeVisible} visible={depthSupported} />
+        <TwinCaptureHudToast
+          message={toast ?? finishError}
+          onDismiss={() => {
+            setToast(null);
+            setFinishError(null);
+          }}
+        />
 
+        <TwinCaptureLidarChip hidden={!chromeVisible} visible={depthSupported} />
         <TwinCaptureCoveragePill
           hidden={!chromeVisible}
           coveragePct={coveragePct}
           paceState={sensors.paceState}
         />
-
         <TwinCaptureClipChips
           hidden={!chromeVisible}
           clips={session.clips}
           activeClipId={session.activeClipId}
         />
-
         <TwinCaptureModeSelector
           hidden={!chromeVisible}
           mode={session.mode}
@@ -237,22 +297,22 @@ export function TwinCaptureScreen({
           onModeChange={session.handleModeChange}
           onCycleInterval={session.cyclePhotoInterval}
         />
-
         <TwinCaptureBottomRail
           hidden={!chromeVisible}
           mode={session.mode}
           isRecording={recording}
-          isStreaming={camera.isStreaming}
+          isStreaming={streamReady}
+          needsResume={camera.needsResume}
           torchSupported={torchSupported}
           torchOn={torchOn}
           hasContent={session.hasContent}
+          finishing={finishing}
           coverageProgress={coverageProgress}
           onTorchToggle={() => void handleTorchToggle()}
-          onShutterTap={ghost.handleShutterTap}
+          onShutterTap={handleShutterTap}
           onDone={() => void handleFinish()}
         />
       </div>
-
     </div>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { TwinCaptureClip } from "@/hooks/useTwinCaptureSession";
+import type { TwinCaptureClip } from "./useTwinCaptureSession";
 import { TWIN_CAPTURE_POLISH } from "./twin-capture-polish-tokens";
 import { grabTwinCaptureVideoFrame } from "./twin-capture-frame-grab";
 
