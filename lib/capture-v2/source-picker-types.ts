@@ -6,6 +6,7 @@ export type CaptureV2SourcePickerContext = {
   mode: CaptureV2SourcePickerMode;
   source: CameraRequestSource;
   attachPoint?: { xPct: number; yPct: number };
+  existingPinId?: string;
 };
 
 export type CaptureV2SourcePickerRowId =

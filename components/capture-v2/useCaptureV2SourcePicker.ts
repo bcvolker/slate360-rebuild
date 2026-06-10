@@ -11,8 +11,11 @@ import type {
   CaptureV2SourcePickerContext,
   CaptureV2SourcePickerRowId,
 } from "@/lib/capture-v2/source-picker-types";
-import type { PhotoAttachmentPin } from "@/lib/site-walk/photo-attachments";
-import { getItemPhotoAttachmentPins } from "@/lib/site-walk/photo-attachments";
+import {
+  getItemPhotoAttachmentPins,
+  PHOTO_ATTACHMENT_MAX_FILES,
+  type PhotoAttachmentPin,
+} from "@/lib/site-walk/photo-attachments";
 import { uploadPhotoAttachmentFile } from "@/lib/site-walk/upload-photo-attachment-file";
 import { triggerHapticSuccess } from "@/lib/utils/trigger-haptic";
 import type { CaptureItemRecord } from "@/lib/types/site-walk-capture";
@@ -111,11 +114,21 @@ export function useCaptureV2SourcePicker({
   );
 
   const attachFileToPhoto = useCallback(
-    async (file: File, attachPoint: { xPct: number; yPct: number }) => {
+    async (file: File, attachPoint: { xPct: number; yPct: number }, existingPinId?: string) => {
       const item = loop.activeItem;
       if (!item) return;
       const uploaded = await uploadPhotoAttachmentFile(sessionId, file);
       const pins = getItemPhotoAttachmentPins(item);
+      if (existingPinId) {
+        const nextPins = pins.map((pin) =>
+          pin.id === existingPinId
+            ? { ...pin, files: [...pin.files, uploaded].slice(0, PHOTO_ATTACHMENT_MAX_FILES), label: pin.label || uploaded.name }
+            : pin,
+        );
+        await loop.savePhotoAttachmentPins(item.id, nextPins);
+        triggerHapticSuccess();
+        return;
+      }
       const nextPin: PhotoAttachmentPin = {
         id: `photo-pin-${Date.now()}`,
         xPct: attachPoint.xPct,
@@ -155,12 +168,8 @@ export function useCaptureV2SourcePicker({
       close();
       if (ctx.mode === "attach" && ctx.attachPoint) {
         try {
-          if (rowId === "take_photo") {
-            applyIntent("camera");
-            await attachFileToPhoto(file, ctx.attachPoint);
-            return;
-          }
-          await attachFileToPhoto(file, ctx.attachPoint);
+          if (rowId === "take_photo") applyIntent("camera");
+          await attachFileToPhoto(file, ctx.attachPoint, ctx.existingPinId);
         } catch (error) {
           loop.setExternalError(
             error instanceof Error ? error.message : "Attachment upload failed.",

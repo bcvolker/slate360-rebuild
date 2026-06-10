@@ -9,7 +9,7 @@ import { getPhotoAngleImageUrl } from "@/lib/site-walk/photo-angles";
 import { getItemPhotoAttachmentPins, type PhotoAttachmentPin } from "@/lib/site-walk/photo-attachments";
 import { triggerHapticSuccess } from "@/lib/utils/trigger-haptic";
 import { VECTOR_TOOL_EVENT } from "@/components/site-walk/capture/UnifiedVectorToolbar";
-import { CAPTURE_CANVAS_MARKUP_COLOR } from "./capture-canvas-markup-color";
+import { readCaptureMarkupColor } from "./capture-canvas-markup-colors";
 import { resolveCaptureV2PreviewUrl } from "./capture-v2-preview-url";
 import type { CaptureV2Session } from "./session-types";
 import type { CaptureItemRecord } from "@/lib/types/site-walk-capture";
@@ -105,7 +105,7 @@ export function useNoPlansCaptureCanvas({
     if (!markupEnabled) return;
     window.dispatchEvent(
       new CustomEvent(VECTOR_TOOL_EVENT, {
-        detail: { tool: "draw", color: CAPTURE_CANVAS_MARKUP_COLOR, strokeWidth: 5 },
+        detail: { tool: "draw", color: readCaptureMarkupColor(), strokeWidth: 5 },
       }),
     );
   }, [markupEnabled]);
@@ -245,7 +245,7 @@ export function useNoPlansCaptureCanvas({
     [activeItem, loop],
   );
 
-  const handlePinTap = useCallback(
+  const handlePlacePin = useCallback(
     (xPct: number, yPct: number) => {
       if (!itemId || !activeItem) return;
       const pins = getItemPhotoAttachmentPins(activeItem);
@@ -263,6 +263,24 @@ export function useNoPlansCaptureCanvas({
     },
     [activeItem, itemId, loop],
   );
+
+  const handleAttachToPin = useCallback(
+    (pin: PhotoAttachmentPin) => {
+      if (!activeItem) return;
+      sourcePicker.open({
+        mode: "attach",
+        source: "quick_capture",
+        attachPoint: { xPct: pin.xPct, yPct: pin.yPct },
+        existingPinId: pin.id,
+      });
+    },
+    [activeItem, sourcePicker],
+  );
+
+  useEffect(() => {
+    if (showPreview) return;
+    if (!camera.isStreaming) void camera.startCamera(facingMode);
+  }, [camera, facingMode, showPreview]);
 
   useEffect(() => {
     if (!returnFromSummary || !loop.activeItem || openedReviewRef.current) return;
@@ -314,7 +332,8 @@ export function useNoPlansCaptureCanvas({
     handleSelectMain,
     handleSelectAngle,
     handlePromoteAngle,
-    handlePinTap,
+    handlePlacePin,
+    handleAttachToPin,
     handleAttachHere,
     handleReviewBack,
     planPinFlow,

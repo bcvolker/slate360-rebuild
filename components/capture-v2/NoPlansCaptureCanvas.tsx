@@ -115,8 +115,9 @@ export function NoPlansCaptureCanvas({
             onPinsChange={(pins) => {
               if (canvas.itemId) void loop.savePhotoAttachmentPins(canvas.itemId, pins);
             }}
-            onPinTap={canvas.handlePinTap}
+            onPlacePin={canvas.handlePlacePin}
             onAttachHere={canvas.handleAttachHere}
+            onAttachToPin={canvas.handleAttachToPin}
           />
         ) : (
           <CaptureV2LiveCamera camera={canvas.camera} facingMode={canvas.facingMode} autoStart fullBleed />
