@@ -1,7 +1,8 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronLeft, Maximize2 } from "lucide-react";
+import { ChevronDown, ChevronLeft, ChevronUp, Maximize2 } from "lucide-react";
 import { CAPTURE_CANVAS_CHROME } from "./capture-canvas-chrome-layout";
 import { CAPTURE_V2_LAYERS } from "./layers";
 
@@ -10,15 +11,29 @@ type Props = {
   hidden?: boolean;
   onToggleChrome: () => void;
   onBack?: () => void;
+  showFilmstripToggle?: boolean;
+  filmstripExpanded?: boolean;
+  onFilmstripToggle?: () => void;
+  filmstripPanel?: ReactNode;
 };
 
-export function CaptureCanvasTopBar({ headerLabel, hidden = false, onToggleChrome, onBack }: Props) {
+export function CaptureCanvasTopBar({
+  headerLabel,
+  hidden = false,
+  onToggleChrome,
+  onBack,
+  showFilmstripToggle = false,
+  filmstripExpanded = false,
+  onFilmstripToggle,
+  filmstripPanel,
+}: Props) {
   const router = useRouter();
 
   if (hidden) return null;
 
   return (
     <header
+      data-capture-chrome="top-bar"
       className={`${CAPTURE_V2_LAYERS.taskHeader} pointer-events-auto absolute inset-x-0 top-0 z-30`}
       style={{
         paddingTop: `max(env(safe-area-inset-top), ${CAPTURE_CANVAS_CHROME.topInsetPx}px)`,
@@ -46,6 +61,20 @@ export function CaptureCanvasTopBar({ headerLabel, hidden = false, onToggleChrom
           {headerLabel}
         </p>
 
+        {showFilmstripToggle ? (
+          <button
+            type="button"
+            onClick={onFilmstripToggle}
+            data-capture-chrome="filmstrip-toggle"
+            className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[var(--graphite-text-header)] transition active:scale-[0.98]"
+            aria-expanded={filmstripExpanded}
+            aria-controls="capture-canvas-stop-tracker-scroll"
+            aria-label={filmstripExpanded ? "Hide stop tracker" : "Show stop tracker"}
+          >
+            {filmstripExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          </button>
+        ) : null}
+
         <button
           type="button"
           onClick={onToggleChrome}
@@ -55,6 +84,15 @@ export function CaptureCanvasTopBar({ headerLabel, hidden = false, onToggleChrom
           <Maximize2 className="h-4 w-4" />
         </button>
       </div>
+
+      {filmstripPanel ? (
+        <div
+          className={`w-full ${filmstripExpanded ? "mt-2" : "sr-only"}`}
+          aria-hidden={!filmstripExpanded}
+        >
+          {filmstripPanel}
+        </div>
+      ) : null}
     </header>
   );
 }

@@ -1,11 +1,11 @@
 "use client";
 
-import { MapPin, Pencil, Plus } from "lucide-react";
+import { Pencil, Plus } from "lucide-react";
 import { CAPTURE_CANVAS_CHROME } from "./capture-canvas-chrome-layout";
 import { captureCanvasGlass } from "./capture-canvas-glass-tokens";
 import { CAPTURE_V2_LAYERS } from "./layers";
 
-type Tool = "markup" | "pin" | "angle";
+type Tool = "markup" | "angle";
 
 type Props = {
   hidden?: boolean;
@@ -34,11 +34,11 @@ export function CaptureCanvasRightToolRail({ hidden, activeTool, onSelectTool }:
       }}
       role="toolbar"
       aria-label="Capture tools"
+      data-capture-chrome="right-tool-rail"
     >
       {(
         [
           { id: "markup" as const, label: "Markup", icon: Pencil },
-          { id: "pin" as const, label: "Pin", icon: MapPin },
           { id: "angle" as const, label: "+Angle", icon: Plus },
         ] as const
       ).map((entry) => (

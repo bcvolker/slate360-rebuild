@@ -19,7 +19,7 @@ import { useCaptureCanvasTorch } from "./useCaptureCanvasTorch";
 import { useCaptureV2SourcePicker } from "./useCaptureV2SourcePicker";
 import { usePlanPinCaptureActions } from "./usePlanPinCaptureActions";
 
-export type CaptureCanvasTool = "markup" | "pin" | "angle";
+export type CaptureCanvasTool = "markup" | "angle";
 
 type Args = {
   session: CaptureV2Session;
@@ -49,6 +49,8 @@ export function useNoPlansCaptureCanvas({
   const router = useRouter();
   const camera = useCamera();
   const [chromeVisible, setChromeVisible] = useState(true);
+  const [filmstripExpanded, setFilmstripExpanded] = useState(false);
+  const [ghostOn, setGhostOn] = useState(false);
   const [facingMode] = useState<"user" | "environment">("environment");
   const [activeTool, setActiveTool] = useState<CaptureCanvasTool | null>(null);
   const [activeAngleId, setActiveAngleId] = useState<string | null>(null);
@@ -63,7 +65,6 @@ export function useNoPlansCaptureCanvas({
   const torch = useCaptureCanvasTorch(camera);
 
   const markupEnabled = activeTool === "markup";
-  const pinMode = activeTool === "pin";
   const showPreview = Boolean(loop.activePreview?.url);
   const cameraPaused = showPreview || detailsOpen;
   const previewUrl = resolveCaptureV2PreviewUrl(loop.activeItem, loop.activePreview?.url);
@@ -105,10 +106,28 @@ export function useNoPlansCaptureCanvas({
     return previewUrl;
   }, [activeAngleId, activeItem, loop.activePreview, previewUrl, showPreview]);
 
+  const ghostImageUrl = useMemo(() => {
+    if (orderedItems.length === 0) return null;
+    const previous = orderedItems[orderedItems.length - 1];
+    return resolveCaptureV2PreviewUrl(previous, null);
+  }, [orderedItems]);
+
+  const ghostAvailable = Boolean(ghostImageUrl);
+
+  const handleGhostTap = useCallback(() => {
+    if (!ghostAvailable) return;
+    setGhostOn((value) => !value);
+  }, [ghostAvailable]);
+
+  useEffect(() => {
+    if (!ghostAvailable) setGhostOn(false);
+  }, [ghostAvailable]);
+
   useEffect(() => {
     if (!showPreview) {
       setActiveTool(null);
       setActiveAngleId(null);
+      setFilmstripExpanded(false);
     }
   }, [showPreview]);
 
@@ -262,8 +281,13 @@ export function useNoPlansCaptureCanvas({
     setDetailsOpen,
     captureBlocked,
     markupEnabled,
-    pinMode,
     showPreview,
+    filmstripExpanded,
+    setFilmstripExpanded,
+    ghostOn,
+    ghostAvailable,
+    ghostImageUrl,
+    handleGhostTap,
     cameraPaused,
     activeItem,
     itemId,

@@ -47,7 +47,7 @@ export function DevCaptureCanvasSandbox() {
   }, [measureKey, thumbCount]);
 
   return (
-    <div className="h-full min-h-0">
+    <div className="flex h-full min-h-0 flex-col">
       <NoPlansCaptureCanvas
         session={DEV_MOCK_SESSION}
         loop={loop}

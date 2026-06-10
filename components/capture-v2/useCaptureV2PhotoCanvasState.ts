@@ -113,13 +113,13 @@ export function useCaptureV2PhotoCanvasState({
   }
 
   function scheduleLongPress(clientX: number, clientY: number) {
-    const canPlacePin = pinMode && onPlacePin;
-    const canAttach = !markupEnabled && !pinMode && onAttachHere;
+    const canPlacePin = !markupEnabled && Boolean(onPlacePin);
+    const canAttach = !markupEnabled && !canPlacePin && Boolean(onAttachHere);
     if (!canPlacePin && !canAttach) return;
     longPressRef.current = window.setTimeout(() => {
       const point = imagePctFromClient(clientX, clientY);
       if (!point) return;
-      if (canPlacePin) onPlacePin(point.xPct, point.yPct);
+      if (canPlacePin) onPlacePin?.(point.xPct, point.yPct);
       else onAttachHere?.(point.xPct, point.yPct);
       if (typeof navigator !== "undefined" && typeof navigator.vibrate === "function") navigator.vibrate(12);
     }, 550);

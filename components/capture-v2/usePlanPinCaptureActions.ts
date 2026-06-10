@@ -14,7 +14,7 @@ export function usePlanPinCaptureActions(
   planPinFlow: PlanPinFlow | null,
   setDetailsOpen: (open: boolean) => void,
   setActiveAngleId: (id: string | null) => void,
-  setActiveTool: (tool: "markup" | "pin" | "angle" | null) => void,
+  setActiveTool: (tool: "markup" | "angle" | null) => void,
   detailsOpen: boolean,
 ) {
   const handleShutterTapCaptured = useCallback(async () => {

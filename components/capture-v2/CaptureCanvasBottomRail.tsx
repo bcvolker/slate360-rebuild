@@ -9,6 +9,7 @@ import { CAPTURE_V2_LAYERS } from "./layers";
 const HOLD_MS = 550;
 const MOVE_CANCEL_PX = 8;
 const SHUTTER_RING_PX = (CAPTURE_CANVAS_CHROME.shutterSizePx - CAPTURE_CANVAS_CHROME.shutterInnerPx) / 2;
+const BTN = CAPTURE_CANVAS_CHROME.railButtonSizePx;
 
 type Props = {
   busy: boolean;
@@ -17,6 +18,8 @@ type Props = {
   captureBlocked?: boolean;
   torchSupported?: boolean;
   torchOn?: boolean;
+  ghostOn?: boolean;
+  ghostAvailable?: boolean;
   onTorchToggle?: () => void;
   onShutterTap: () => void;
   onShutterHold?: () => void;
@@ -34,6 +37,23 @@ function glassSquareClass(lowEmphasis: boolean, active = false) {
     : `border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_70%,transparent)] text-[var(--graphite-text-header)] backdrop-blur-md`;
 }
 
+function RailToolStack({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-col items-center" style={{ gap: CAPTURE_CANVAS_CHROME.labelGapPx }}>
+      {children}
+      <span className={`${captureCanvasGlass.labelChip} text-[11px] font-medium text-[var(--graphite-text-body)]`}>
+        {label}
+      </span>
+    </div>
+  );
+}
+
 export function CaptureCanvasBottomRail({
   busy,
   hidden = false,
@@ -41,6 +61,8 @@ export function CaptureCanvasBottomRail({
   captureBlocked = false,
   torchSupported = false,
   torchOn = false,
+  ghostOn = false,
+  ghostAvailable = false,
   onTorchToggle,
   onShutterTap,
   onShutterHold,
@@ -96,10 +118,13 @@ export function CaptureCanvasBottomRail({
 
   const safeBottom = "env(safe-area-inset-bottom)";
   const hintText = captured
-    ? "long-press = attach here · shutter = next stop"
+    ? "long-press = drop pin · arrow = details"
     : captureBlocked
       ? "camera not ready — wait or tap resume"
       : "tap = capture · hold = sources";
+
+  const shutterRowBottom = `calc(${CAPTURE_CANVAS_CHROME.hintSafeAreaPx}px + ${CAPTURE_CANVAS_CHROME.hintChipHeightPx}px + ${CAPTURE_CANVAS_CHROME.shutterHintGapPx}px + ${safeBottom})`;
+  const hintBottom = `calc(${CAPTURE_CANVAS_CHROME.hintSafeAreaPx}px + ${safeBottom})`;
 
   const liveShutterClass = captureBlocked
     ? "border-2 border-[var(--graphite-muted)] bg-[color-mix(in_srgb,var(--graphite-canvas)_55%,transparent)] opacity-60"
@@ -111,7 +136,8 @@ export function CaptureCanvasBottomRail({
     <div className={`${CAPTURE_V2_LAYERS.fastTrack} pointer-events-none absolute inset-x-0 bottom-0 z-30`}>
       <div
         className="pointer-events-none absolute inset-x-0 flex justify-center"
-        style={{ bottom: `calc(${CAPTURE_CANVAS_CHROME.hintBottomPx}px + ${safeBottom})` }}
+        style={{ bottom: hintBottom }}
+        data-capture-chrome="hint"
       >
         <p className={`${captureCanvasGlass.hintChip} text-[11px] font-medium text-[var(--graphite-muted)]`}>
           {hintText}
@@ -121,45 +147,44 @@ export function CaptureCanvasBottomRail({
       <div
         className="pointer-events-auto absolute inset-x-0"
         style={{
-          bottom: `calc(${CAPTURE_CANVAS_CHROME.railLabelBottomPx}px + ${safeBottom})`,
+          bottom: shutterRowBottom,
           paddingLeft: CAPTURE_CANVAS_CHROME.railSideInsetPx,
           paddingRight: CAPTURE_CANVAS_CHROME.railSideInsetPx,
         }}
         data-capture-chrome="bottom-rail"
       >
         <div className="grid grid-cols-[1fr_auto_1fr] items-end">
-          <div className="flex flex-col items-start gap-2 justify-self-start">
+          <div className="flex flex-col items-start gap-3 justify-self-start">
             {!captured && torchSupported ? (
-              <button
-                type="button"
-                onClick={() => onTorchToggle?.()}
-                data-capture-chrome="light-button"
-                className={`inline-flex items-center justify-center rounded-xl transition active:scale-[0.98] ${glassSquareClass(false, torchOn)}`}
-                style={{
-                  width: CAPTURE_CANVAS_CHROME.lightButtonSizePx,
-                  height: CAPTURE_CANVAS_CHROME.lightButtonSizePx,
-                }}
-                aria-pressed={torchOn}
-                aria-label={torchOn ? "Turn light off" : "Turn light on"}
-              >
-                <Flashlight className="h-5 w-5" />
-              </button>
+              <RailToolStack label="Light">
+                <button
+                  type="button"
+                  onClick={() => onTorchToggle?.()}
+                  data-capture-chrome="light-button"
+                  className={`inline-flex items-center justify-center rounded-xl transition active:scale-[0.98] ${glassSquareClass(false, torchOn)}`}
+                  style={{ width: BTN, height: BTN }}
+                  aria-pressed={torchOn}
+                  aria-label={torchOn ? "Turn light off" : "Turn light on"}
+                >
+                  <Flashlight className="h-5 w-5" />
+                </button>
+              </RailToolStack>
             ) : null}
             {!captured ? (
-              <button
-                type="button"
-                disabled={busy}
-                onClick={() => onGhostTap?.()}
-                data-capture-chrome="ghost-button"
-                className={`inline-flex items-center justify-center rounded-xl transition active:scale-[0.98] disabled:opacity-50 ${glassSquareClass(false)}`}
-                style={{
-                  width: CAPTURE_CANVAS_CHROME.ghostButtonSizePx,
-                  height: CAPTURE_CANVAS_CHROME.ghostButtonSizePx,
-                }}
-                aria-label="Hide controls"
-              >
-                <Ghost className="h-5 w-5" />
-              </button>
+              <RailToolStack label="Ghost">
+                <button
+                  type="button"
+                  disabled={busy || !ghostAvailable}
+                  onClick={() => onGhostTap?.()}
+                  data-capture-chrome="ghost-button"
+                  className={`inline-flex items-center justify-center rounded-xl transition active:scale-[0.98] disabled:opacity-50 ${glassSquareClass(false, ghostOn)}`}
+                  style={{ width: BTN, height: BTN }}
+                  aria-pressed={ghostOn}
+                  aria-label={ghostOn ? "Hide ghost overlay" : "Show ghost overlay"}
+                >
+                  <Ghost className="h-5 w-5" />
+                </button>
+              </RailToolStack>
             ) : (
               <span aria-hidden />
             )}
@@ -181,7 +206,6 @@ export function CaptureCanvasBottomRail({
             style={{
               width: CAPTURE_CANVAS_CHROME.shutterSizePx,
               height: CAPTURE_CANVAS_CHROME.shutterSizePx,
-              marginBottom: CAPTURE_CANVAS_CHROME.shutterRaisePx,
             }}
             aria-label={captured ? "Capture next stop" : "Capture photo"}
           >
@@ -196,60 +220,33 @@ export function CaptureCanvasBottomRail({
           </button>
 
           {captured ? (
-            <button
-              type="button"
-              disabled={busy}
-              onClick={() => onDetailsTap?.()}
-              data-capture-chrome="end-button"
-              className="inline-flex items-center justify-center justify-self-end rounded-full bg-[var(--graphite-primary)] text-[var(--graphite-canvas)] shadow-none transition active:scale-[0.98] disabled:opacity-50"
-              style={{
-                width: CAPTURE_CANVAS_CHROME.detailsButtonPx,
-                height: CAPTURE_CANVAS_CHROME.detailsButtonPx,
-              }}
-              aria-label="Stop details"
-            >
-              <ArrowRight className="h-6 w-6" strokeWidth={2.5} />
-            </button>
+            <RailToolStack label="Details">
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => onDetailsTap?.()}
+                data-capture-chrome="details-button"
+                className={`inline-flex items-center justify-center rounded-xl transition active:scale-[0.98] disabled:opacity-50 ${glassSquareClass(false)}`}
+                style={{ width: BTN, height: BTN }}
+                aria-label="Stop details"
+              >
+                <ArrowRight className="h-5 w-5" strokeWidth={2.5} />
+              </button>
+            </RailToolStack>
           ) : (
-            <button
-              type="button"
-              disabled={busy}
-              onClick={() => onEndTap?.()}
-              data-capture-chrome="end-button"
-              className={`inline-flex items-center justify-center justify-self-end rounded-xl transition active:scale-[0.98] disabled:opacity-50 ${glassSquareClass(true)}`}
-              style={{
-                width: CAPTURE_CANVAS_CHROME.endButtonSizePx,
-                height: CAPTURE_CANVAS_CHROME.endButtonSizePx,
-              }}
-              aria-label="End walk"
-            >
-              <span className="h-3.5 w-3.5 rounded-sm border border-[var(--graphite-muted)]" />
-            </button>
-          )}
-        </div>
-
-        <div className="mt-1 grid grid-cols-[1fr_auto_1fr] gap-1 text-[10px] leading-none">
-          <div className="flex max-w-full flex-col items-start gap-1 justify-self-start">
-            {!captured && torchSupported ? (
-              <span className={`${captureCanvasGlass.labelChip} w-full max-w-[52px] font-medium text-[var(--graphite-text-body)]`}>
-                Light
-              </span>
-            ) : null}
-            {!captured ? (
-              <span className={`${captureCanvasGlass.labelChip} w-full max-w-[52px] font-medium text-[var(--graphite-text-body)]`}>
-                Ghost
-              </span>
-            ) : null}
-          </div>
-          <span aria-hidden />
-          {captured ? (
-            <span className={`${captureCanvasGlass.labelChip} justify-self-end font-semibold text-[var(--graphite-primary)]`}>
-              Details
-            </span>
-          ) : (
-            <span className={`${captureCanvasGlass.labelChip} justify-self-end font-medium text-[var(--graphite-muted)]`}>
-              End
-            </span>
+            <RailToolStack label="End walk">
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => onEndTap?.()}
+                data-capture-chrome="end-button"
+                className={`inline-flex items-center justify-center justify-self-end rounded-xl transition active:scale-[0.98] disabled:opacity-50 ${glassSquareClass(true)}`}
+                style={{ width: BTN, height: BTN }}
+                aria-label="End walk"
+              >
+                <span className="h-3.5 w-3.5 rounded-sm border border-[var(--graphite-muted)]" />
+              </button>
+            </RailToolStack>
           )}
         </div>
       </div>

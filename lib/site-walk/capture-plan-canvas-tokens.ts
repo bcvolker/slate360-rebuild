@@ -4,8 +4,8 @@ import { CAPTURE_CANVAS_CHROME } from "@/components/capture-v2/capture-canvas-ch
 export const CAPTURE_PLAN_CANVAS_CHROME = {
   ...CAPTURE_CANVAS_CHROME,
   planTopBarHeightPx: CAPTURE_CANVAS_CHROME.topBarHeightPx,
-  planFilmstripBottomPx: CAPTURE_CANVAS_CHROME.filmstripBottomPx,
-  planRailSideButtonPx: CAPTURE_CANVAS_CHROME.endButtonSizePx,
+  planFilmstripBottomPx: CAPTURE_CANVAS_CHROME.bottomChromeClearancePx,
+  planRailSideButtonPx: CAPTURE_CANVAS_CHROME.railButtonSizePx,
   planSheetPickerThumbPx: 56,
   planSheetPickerThumbRadiusPx: 10,
 } as const;

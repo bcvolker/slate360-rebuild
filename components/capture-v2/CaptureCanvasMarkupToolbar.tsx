@@ -45,7 +45,8 @@ export function CaptureCanvasMarkupToolbar({ hidden }: { hidden?: boolean }) {
 
   return (
     <div
-      className="pointer-events-auto flex max-w-full items-center gap-1 overflow-x-auto rounded-xl border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_78%,transparent)] p-1 backdrop-blur-md no-scrollbar"
+      data-capture-chrome="markup-toolbar"
+      className="pointer-events-auto flex w-full max-w-full items-center gap-1 overflow-x-auto rounded-xl border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_78%,transparent)] p-1 backdrop-blur-md no-scrollbar"
       role="toolbar"
       aria-label="Markup tools"
     >

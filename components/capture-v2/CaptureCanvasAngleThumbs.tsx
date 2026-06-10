@@ -46,7 +46,7 @@ export function CaptureCanvasAngleThumbs({
     <div
       className={`${CAPTURE_V2_LAYERS.filmstrip} pointer-events-auto absolute left-0 z-20 flex gap-2 overflow-x-auto no-scrollbar px-3`}
       style={{
-        bottom: `calc(${CAPTURE_CANVAS_CHROME.filmstripBottomPx}px + ${safeBottom})`,
+        bottom: `calc(${CAPTURE_CANVAS_CHROME.angleThumbBottomPx}px + ${safeBottom})`,
         maxWidth: "72%",
       }}
       aria-label="Photo angles"

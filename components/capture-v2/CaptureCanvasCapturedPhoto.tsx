@@ -9,7 +9,6 @@ type Props = {
   sessionId: string;
   imageUrl: string;
   markupEnabled: boolean;
-  pinMode: boolean;
   initialPins: PhotoAttachmentPin[];
   initialMarkup?: unknown;
   onMarkupChange: (markup: MarkupData) => void;
@@ -22,7 +21,6 @@ type Props = {
 export function CaptureCanvasCapturedPhoto({
   imageUrl,
   markupEnabled,
-  pinMode,
   initialPins,
   initialMarkup,
   onMarkupChange,
@@ -40,7 +38,6 @@ export function CaptureCanvasCapturedPhoto({
       <CaptureV2PhotoMarkupCanvas
         imageUrl={imageUrl}
         markupEnabled={markupEnabled}
-        pinMode={pinMode}
         initialMarkup={markup}
         attachmentPins={initialPins}
         onAttachmentPinsChange={onPinsChange}

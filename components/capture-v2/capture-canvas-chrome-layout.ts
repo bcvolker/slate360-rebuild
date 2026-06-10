@@ -3,51 +3,44 @@ export const CAPTURE_CANVAS_CHROME = {
   topInsetPx: 12,
   topBarHeightPx: 44,
   topBarRadiusPx: 12,
-  filmstripBottomPx: 168,
-  filmstripThumbPx: 44,
+  filmstripThumbPx: 56,
   filmstripThumbRadiusPx: 10,
-  railLabelBottomPx: 44,
-  railLabelRowPx: 15,
-  ghostButtonSizePx: 50,
-  lightButtonSizePx: 50,
-  endButtonSizePx: 44,
-  shutterBottomPx: 75,
+  filmstripDropPadPx: 8,
+  railButtonSizePx: 48,
   shutterSizePx: 72,
   shutterInnerPx: 58,
-  shutterRaisePx: 16,
-  hintBottomPx: 12,
+  hintSafeAreaPx: 16,
+  shutterHintGapPx: 12,
+  hintChipHeightPx: 28,
+  labelGapPx: 4,
+  labelRowPx: 18,
   sideInsetPx: 12,
   railSideInsetPx: 16,
-  shutterFilmstripClearancePx: 20,
   toolRailRightPx: 12,
   toolRailTopPx: 90,
   toolRailButtonPx: 52,
   angleThumbPx: 48,
   angleThumbRadiusPx: 10,
-  detailsButtonPx: 64,
+  detailsButtonPx: 48,
+  markupToolbarGapPx: 8,
+  railLabelBottomPx: 16 + 28 + 12,
+  bottomChromeClearancePx: 16 + 28 + 12 + 72,
+  angleThumbBottomPx: 16 + 28 + 12 + 72,
 } as const;
 
 export function measureCaptureCanvasClearance(viewportHeightPx: number) {
+  const hintTopFromBottom =
+    CAPTURE_CANVAS_CHROME.hintSafeAreaPx + CAPTURE_CANVAS_CHROME.hintChipHeightPx;
   const shutterBottomFromBottom =
-    CAPTURE_CANVAS_CHROME.railLabelBottomPx +
-    CAPTURE_CANVAS_CHROME.railLabelRowPx +
-    CAPTURE_CANVAS_CHROME.shutterRaisePx;
+    hintTopFromBottom + CAPTURE_CANVAS_CHROME.shutterHintGapPx;
   const shutterTopFromBottom = shutterBottomFromBottom + CAPTURE_CANVAS_CHROME.shutterSizePx;
-  const filmstripBottomFromBottom = CAPTURE_CANVAS_CHROME.filmstripBottomPx;
-  const filmstripGapPx = filmstripBottomFromBottom - shutterTopFromBottom;
-  const angleThumbTopFromBottom =
-    filmstripBottomFromBottom + CAPTURE_CANVAS_CHROME.angleThumbPx;
-  const hintTopFromBottom = CAPTURE_CANVAS_CHROME.hintBottomPx + 14;
-  const shutterHintGapPx = CAPTURE_CANVAS_CHROME.shutterBottomPx - hintTopFromBottom;
+  const shutterToHintGapPx = shutterBottomFromBottom - hintTopFromBottom;
 
   return {
     viewportHeightPx,
-    filmstripBottomFromBottomPx: filmstripBottomFromBottom,
-    angleThumbTopFromBottomPx: angleThumbTopFromBottom,
     shutterTopFromBottomPx: shutterTopFromBottom,
-    filmstripToShutterGapPx: filmstripGapPx,
     shutterBottomFromBottomPx: shutterBottomFromBottom,
     hintTopFromBottomPx: hintTopFromBottom,
-    shutterToHintGapPx: shutterHintGapPx,
+    shutterToHintGapPx,
   };
 }

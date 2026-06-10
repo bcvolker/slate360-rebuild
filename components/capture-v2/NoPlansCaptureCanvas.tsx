@@ -81,7 +81,18 @@ export function NoPlansCaptureCanvas({
     planPinFlow,
     initialDetailsOpen,
   });
-  const safeBottom = "env(safe-area-inset-bottom)";
+
+  const topBarFilmstrip = !canvas.showPreview ? (
+    <CaptureStopFilmstrip
+      variant="topBar"
+      loop={loop}
+      collapsed={!canvas.filmstripExpanded}
+      hidden={!canvas.chromeVisible}
+      onSelectItem={canvas.handleSelectStop}
+      onDeleteItem={canvas.handleDeleteStop}
+      deletingItemId={loop.deletingStopId}
+    />
+  ) : null;
 
   return (
     <div className={CANVAS_ROOT_CLASS} data-capture-canvas="no-plans">
@@ -106,12 +117,21 @@ export function NoPlansCaptureCanvas({
           captureBlocked={canvas.captureBlocked}
         />
 
+        {canvas.ghostOn && canvas.ghostImageUrl && !canvas.showPreview ? (
+          <img
+            src={canvas.ghostImageUrl}
+            alt=""
+            data-capture-chrome="ghost-overlay"
+            className="pointer-events-none absolute inset-0 z-[2] h-full w-full object-cover opacity-25 mix-blend-screen"
+            draggable={false}
+          />
+        ) : null}
+
         {canvas.showPreview && canvas.displayUrl ? (
           <CaptureCanvasCapturedPhoto
             sessionId={session.id}
             imageUrl={canvas.displayUrl}
             markupEnabled={canvas.markupEnabled}
-            pinMode={canvas.pinMode}
             initialPins={getItemPhotoAttachmentPins(canvas.activeItem)}
             initialMarkup={canvas.activeItem?.markup_data}
             onMarkupChange={(markup) => {
@@ -138,21 +158,26 @@ export function NoPlansCaptureCanvas({
         hidden={!canvas.chromeVisible}
         onToggleChrome={() => canvas.setChromeVisible((value) => !value)}
         onBack={planPinFlow ? planPinFlow.onReturnToPlan : undefined}
+        showFilmstripToggle={!canvas.showPreview}
+        filmstripExpanded={canvas.filmstripExpanded}
+        onFilmstripToggle={() => canvas.setFilmstripExpanded((value) => !value)}
+        filmstripPanel={topBarFilmstrip}
       />
 
       {canvas.showPreview && canvas.markupEnabled ? (
         <div
-          className="pointer-events-auto absolute left-3 right-3 z-30 flex justify-center"
+          className="pointer-events-auto absolute inset-x-0 z-30 px-3"
           style={{
-            top: `calc(max(env(safe-area-inset-top), ${CAPTURE_CANVAS_CHROME.topInsetPx}px) + ${CAPTURE_CANVAS_CHROME.topBarHeightPx}px + 8px)`,
+            top: `calc(max(env(safe-area-inset-top), ${CAPTURE_CANVAS_CHROME.topInsetPx}px) + ${CAPTURE_CANVAS_CHROME.topBarHeightPx}px + ${CAPTURE_CANVAS_CHROME.markupToolbarGapPx}px)`,
           }}
+          data-capture-chrome="markup-toolbar-host"
         >
           <CaptureCanvasMarkupToolbar />
         </div>
       ) : null}
 
       <CaptureCanvasRightToolRail
-        hidden={!canvas.chromeVisible || !canvas.showPreview}
+        hidden={!canvas.chromeVisible || !canvas.showPreview || canvas.markupEnabled}
         activeTool={canvas.activeTool}
         onSelectTool={canvas.handleSelectTool}
       />
@@ -166,21 +191,7 @@ export function NoPlansCaptureCanvas({
           onSelectAngle={canvas.handleSelectAngle}
           onPromoteAngle={canvas.handlePromoteAngle}
         />
-      ) : (
-        <div
-          className="pointer-events-none absolute inset-x-0 z-20"
-          style={{ bottom: `calc(${CAPTURE_CANVAS_CHROME.filmstripBottomPx}px + ${safeBottom})` }}
-        >
-          <CaptureStopFilmstrip
-            variant="overlay"
-            loop={loop}
-            hidden={!canvas.chromeVisible}
-            onSelectItem={canvas.handleSelectStop}
-            onDeleteItem={canvas.handleDeleteStop}
-            deletingItemId={loop.deletingStopId}
-          />
-        </div>
-      )}
+      ) : null}
 
       <CaptureCanvasBottomRail
         busy={loop.busy}
@@ -189,10 +200,12 @@ export function NoPlansCaptureCanvas({
         captureBlocked={canvas.captureBlocked}
         torchSupported={canvas.torch.torchSupported}
         torchOn={canvas.torch.torchOn}
+        ghostOn={canvas.ghostOn}
+        ghostAvailable={canvas.ghostAvailable}
         onTorchToggle={() => void canvas.torch.handleTorchToggle()}
         onShutterTap={canvas.showPreview ? canvas.handleShutterTapCaptured : canvas.handleShutterTapLive}
         onShutterHold={canvas.showPreview ? undefined : canvas.handleShutterHold}
-        onGhostTap={() => canvas.setChromeVisible(false)}
+        onGhostTap={canvas.handleGhostTap}
         onEndTap={canvas.sessionExit.openExitModal}
         onDetailsTap={() => canvas.setDetailsOpen(true)}
       />
