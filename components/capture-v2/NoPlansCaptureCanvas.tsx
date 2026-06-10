@@ -26,6 +26,7 @@ type Props = {
   contextLabel: string;
   photo360Entitled?: boolean;
   devOpenSourcePicker?: boolean;
+  returnFromSummary?: boolean;
 };
 
 function CaptureV2HiddenFileInputs({ loop }: { loop: CaptureV2Loop }) {
@@ -58,6 +59,7 @@ export function NoPlansCaptureCanvas({
   contextLabel,
   photo360Entitled = false,
   devOpenSourcePicker = false,
+  returnFromSummary = false,
 }: Props) {
   const canvas = useNoPlansCaptureCanvas({
     session,
@@ -65,6 +67,7 @@ export function NoPlansCaptureCanvas({
     contextLabel,
     photo360Entitled,
     devOpenSourcePicker,
+    returnFromSummary,
   });
   const safeBottom = "env(safe-area-inset-bottom)";
 
@@ -182,7 +185,7 @@ export function NoPlansCaptureCanvas({
               canvas.setDetailsOpen(false);
               loop.addAnotherAngle();
             }}
-            onBack={() => canvas.setDetailsOpen(false)}
+            onBack={() => canvas.handleReviewBack()}
           />
         </div>
       ) : null}

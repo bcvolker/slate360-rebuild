@@ -13,6 +13,7 @@ type Props = {
     quick?: string;
     launch?: string;
     item?: string;
+    from?: string;
   }>;
 };
 
@@ -21,7 +22,7 @@ type SessionRow = CaptureV2Session & {
 };
 
 export default async function CaptureV2Page({ searchParams }: Props) {
-  const { session: sessionId, plan, quick, launch, item } = await searchParams;
+  const { session: sessionId, plan, quick, launch, item, from } = await searchParams;
   const context = await resolveServerOrgContext();
 
   if (!context.user || !context.orgId || !sessionId) {
@@ -65,6 +66,7 @@ export default async function CaptureV2Page({ searchParams }: Props) {
       autoOpenCamera={quick === "camera"}
       launchId={launch ?? null}
       initialItemId={item ?? null}
+      returnFromSummary={from === "summary"}
       planSets={planRoom.planSets}
       planSheets={planRoom.sheets}
       photo360Entitled={photo360Entitled}

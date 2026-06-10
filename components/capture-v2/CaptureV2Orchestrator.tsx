@@ -21,6 +21,7 @@ type Props = {
   planSheets: SiteWalkPlanSheet[];
   isDesktop: boolean;
   photo360Entitled?: boolean;
+  returnFromSummary?: boolean;
 };
 
 function resolveInitialPhase(props: Props): CaptureV2UiPhase {
@@ -40,6 +41,7 @@ export function CaptureV2Orchestrator(props: Props) {
     isDesktop,
     autoOpenCamera,
     photo360Entitled = false,
+    returnFromSummary = false,
   } = props;
 
   const loop = useCaptureV2Loop({
@@ -104,6 +106,7 @@ export function CaptureV2Orchestrator(props: Props) {
         loop={loop}
         contextLabel={contextLabel}
         photo360Entitled={photo360Entitled}
+        returnFromSummary={returnFromSummary}
       />
     );
   }

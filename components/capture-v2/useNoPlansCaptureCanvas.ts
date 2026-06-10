@@ -1,7 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useCamera } from "@/lib/hooks/useCamera";
+import { buildCaptureV2SummaryUrl } from "@/lib/site-walk/capture-v2-config";
 import { getCaptureImageUrl } from "@/lib/site-walk/capture-image-url";
 import { getPhotoAngleImageUrl } from "@/lib/site-walk/photo-angles";
 import { getItemPhotoAttachmentPins, type PhotoAttachmentPin } from "@/lib/site-walk/photo-attachments";
@@ -22,6 +24,7 @@ type Args = {
   contextLabel: string;
   photo360Entitled: boolean;
   devOpenSourcePicker?: boolean;
+  returnFromSummary?: boolean;
 };
 
 export function useNoPlansCaptureCanvas({
@@ -30,13 +33,16 @@ export function useNoPlansCaptureCanvas({
   contextLabel,
   photo360Entitled,
   devOpenSourcePicker = false,
+  returnFromSummary = false,
 }: Args) {
+  const router = useRouter();
   const camera = useCamera();
   const [chromeVisible, setChromeVisible] = useState(true);
   const [facingMode, setFacingMode] = useState<"user" | "environment">("environment");
   const [activeTool, setActiveTool] = useState<CaptureCanvasTool | null>(null);
   const [activeAngleId, setActiveAngleId] = useState<string | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const openedReviewRef = useRef(false);
 
   const markupEnabled = activeTool === "markup";
   const pinMode = activeTool === "pin";
@@ -240,6 +246,21 @@ export function useNoPlansCaptureCanvas({
     [activeItem, itemId, loop],
   );
 
+  useEffect(() => {
+    if (!returnFromSummary || !loop.activeItem || openedReviewRef.current) return;
+    openedReviewRef.current = true;
+    loop.focusFilmstripItem(loop.activeItem);
+    setDetailsOpen(true);
+  }, [loop.activeItem, loop.focusFilmstripItem, returnFromSummary, loop]);
+
+  const handleReviewBack = useCallback(() => {
+    if (returnFromSummary) {
+      router.push(buildCaptureV2SummaryUrl(session.id));
+      return;
+    }
+    setDetailsOpen(false);
+  }, [returnFromSummary, router, session.id]);
+
   return {
     camera,
     facingMode,
@@ -271,6 +292,7 @@ export function useNoPlansCaptureCanvas({
     handlePromoteAngle,
     handlePinTap,
     handleAttachHere,
+    handleReviewBack,
     sourcePicker,
     loop,
     session,

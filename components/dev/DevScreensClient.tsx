@@ -5,6 +5,8 @@ import { useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import { DevCaptureCanvasSandbox, DEV_CAPTURE_THUMB_COUNTS } from "./DevCaptureCanvasSandbox";
 import { DevNoteReviewSandbox } from "./DevNoteReviewSandbox";
+import { DevWalkReviewSandbox } from "./DevWalkReviewSandbox";
+import { DEV_WALK_REVIEW_STOP_COUNTS } from "@/lib/dev/mock-walk-review";
 import { DevTwinCaptureSandbox, DEV_TWIN_CLIP_COUNTS } from "./DevTwinCaptureSandbox";
 import { DevTwinReviewSandbox } from "./DevTwinReviewSandbox";
 import { DevTwinUploadSandbox } from "./DevTwinUploadSandbox";
@@ -14,6 +16,7 @@ import { DevScreenFrame, type DevDeviceMode } from "./DevScreenFrame";
 
 const SCREENS = [
   { id: "capture", label: "Capture canvas", description: "No-plans camera canvas with mock stops." },
+  { id: "walk-review", label: "Walk review", description: "End-of-walk stop grid with pinned actions." },
   { id: "note-review", label: "Note / review", description: "Field notes + primary save affordance." },
   { id: "twin-capture", label: "Twin capture", description: "Full-bleed camera, burst + video walk controls." },
   { id: "twin-review", label: "Twin review", description: "Post-capture review, estimate, and create twin." },
@@ -68,6 +71,8 @@ export function DevScreensClient() {
     switch (screen) {
       case "capture":
         return <DevCaptureCanvasSandbox />;
+      case "walk-review":
+        return <DevWalkReviewSandbox />;
       case "note-review":
         return <DevNoteReviewSandbox keyboardSim={Number.isFinite(keyboardSim) ? keyboardSim : undefined} />;
       case "twin-capture":
@@ -114,6 +119,46 @@ export function DevScreensClient() {
             </Link>
           );
         })}
+
+        {screen === "walk-review" ? (
+          <>
+            <span className="mx-1 h-5 w-px bg-[var(--mobile-app-card-border)]" aria-hidden />
+            {DEV_WALK_REVIEW_STOP_COUNTS.map((count) => {
+              const active = Number.parseInt(searchParams?.get("stops") ?? "8", 10) === count;
+              const variant = searchParams?.get("variant") ?? "quick";
+              return (
+                <Link
+                  key={count}
+                  href={`/dev/screens?screen=walk-review&device=${device}&frameW=390&frameH=844&stops=${count}&variant=${variant}`}
+                  className={`rounded-lg border px-2.5 py-1.5 text-[11px] font-bold tabular-nums ${
+                    active
+                      ? "border-[var(--accent-border-green)] text-[var(--graphite-text-header)]"
+                      : "border-[var(--mobile-app-card-border)] text-[var(--graphite-muted)]"
+                  }`}
+                >
+                  {count} stops
+                </Link>
+              );
+            })}
+            {(["quick", "project"] as const).map((variant) => {
+              const active = (searchParams?.get("variant") ?? "quick") === variant;
+              const stops = searchParams?.get("stops") ?? "8";
+              return (
+                <Link
+                  key={variant}
+                  href={`/dev/screens?screen=walk-review&device=${device}&frameW=390&frameH=844&stops=${stops}&variant=${variant}`}
+                  className={`rounded-lg border px-2.5 py-1.5 text-[11px] font-bold uppercase ${
+                    active
+                      ? "border-[var(--accent-border-green)] text-[var(--graphite-text-header)]"
+                      : "border-[var(--mobile-app-card-border)] text-[var(--graphite-muted)]"
+                  }`}
+                >
+                  {variant}
+                </Link>
+              );
+            })}
+          </>
+        ) : null}
 
         {screen === "capture" ? (
           <>

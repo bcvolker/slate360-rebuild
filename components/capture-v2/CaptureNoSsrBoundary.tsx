@@ -13,6 +13,7 @@ type Props = {
   autoOpenCamera: boolean;
   launchId: string | null;
   initialItemId: string | null;
+  returnFromSummary?: boolean;
   planSets: SiteWalkPlanSet[];
   planSheets: SiteWalkPlanSheet[];
   photo360Entitled?: boolean;
