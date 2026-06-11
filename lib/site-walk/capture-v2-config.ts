@@ -6,9 +6,9 @@ import { SITE_WALK_CAPTURE_V2_ROUTES } from "@/lib/site-walk/capture-v2-routes";
  */
 export const CAPTURE_V2_ENABLED = process.env.NEXT_PUBLIC_CAPTURE_V2 !== "false";
 
-/** Reimagined unified canvas shell — off until explicitly enabled for Grok review. */
+/** Reimagined unified canvas shell on mobile — disabled only when explicitly set to false. */
 export const CAPTURE_CANVAS_SHELL_ENABLED =
-  process.env.NEXT_PUBLIC_CAPTURE_CANVAS_SHELL === "true";
+  process.env.NEXT_PUBLIC_CAPTURE_CANVAS_SHELL !== "false";
 
 const V1_CAPTURE_BASE = "/site-walk/capture" as const;
 

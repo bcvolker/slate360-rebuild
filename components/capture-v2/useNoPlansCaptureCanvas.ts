@@ -130,9 +130,12 @@ export function useNoPlansCaptureCanvas({
     if (!showPreview && activeTool !== "angle") {
       setActiveTool(null);
       setActiveAngleId(null);
-      setFilmstripExpanded(false);
     }
   }, [activeTool, showPreview]);
+
+  useEffect(() => {
+    if (showPreview) setFilmstripExpanded(false);
+  }, [showPreview]);
 
   useEffect(() => {
     if (!markupEnabled) return;

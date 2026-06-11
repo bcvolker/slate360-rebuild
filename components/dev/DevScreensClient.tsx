@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import { DevCaptureCanvasSandbox, DEV_CAPTURE_THUMB_COUNTS } from "./DevCaptureCanvasSandbox";
+import { DevCaptureStartChoiceSandbox } from "./DevCaptureStartChoiceSandbox";
 import { DevWithPlansCaptureSandbox } from "./DevWithPlansCaptureSandbox";
 import { DevNoteReviewSandbox } from "./DevNoteReviewSandbox";
 import { DevWalkReviewSandbox } from "./DevWalkReviewSandbox";
@@ -21,6 +22,7 @@ import { DevScreenFrame, type DevDeviceMode } from "./DevScreenFrame";
 
 const SCREENS = [
   { id: "capture", label: "Capture canvas", description: "No-plans camera canvas with mock stops." },
+  { id: "capture-start-choice", label: "Capture start choice", description: "Plan-walk fork sheet before capture." },
   { id: "capture-plans", label: "Capture plan canvas", description: "With-plans mobile canvas, 12-sheet mock set." },
   { id: "walk-review", label: "Walk review", description: "End-of-walk stop grid with pinned actions." },
   { id: "note-review", label: "Note / review", description: "Field notes + primary save affordance." },
@@ -77,6 +79,8 @@ export function DevScreensClient() {
     switch (screen) {
       case "capture":
         return <DevCaptureCanvasSandbox />;
+      case "capture-start-choice":
+        return <DevCaptureStartChoiceSandbox />;
       case "capture-plans":
         return <DevWithPlansCaptureSandbox />;
       case "walk-review":

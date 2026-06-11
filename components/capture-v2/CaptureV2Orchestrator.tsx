@@ -1,13 +1,16 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useSiteWalkSession } from "@/components/site-walk/SiteWalkSessionProvider";
 import { CAPTURE_CANVAS_SHELL_ENABLED } from "@/lib/site-walk/capture-v2-config";
 import { usePlanSheetsRealtime } from "@/lib/hooks/usePlanSheetsRealtime";
 import { CaptureV2DesktopStudio } from "./CaptureV2DesktopStudio";
 import { CaptureV2MobileField } from "./CaptureV2MobileField";
+import { CaptureV2StartChoiceSheet } from "./CaptureV2StartChoiceSheet";
 import { NoPlansCaptureCanvas } from "./NoPlansCaptureCanvas";
 import { WithPlansCaptureCanvas } from "./plan-canvas/WithPlansCaptureCanvas";
 import { useCaptureV2Loop } from "./useCaptureV2Loop";
+import { useCaptureV2MobileFork } from "./useCaptureV2MobileFork";
 import type { CaptureV2UiPhase } from "./types";
 import type { CaptureV2Session } from "./session-types";
 import type { SiteWalkPlanSet, SiteWalkPlanSheet } from "@/lib/types/site-walk";
@@ -36,6 +39,7 @@ export function CaptureV2Orchestrator(props: Props) {
   const {
     session,
     showPlanCanvas,
+    showStartChoice,
     planSets,
     planSheets,
     launchId,
@@ -46,11 +50,22 @@ export function CaptureV2Orchestrator(props: Props) {
     returnFromSummary = false,
   } = props;
 
+  const { capturedItems } = useSiteWalkSession();
   const loop = useCaptureV2Loop({
     sessionId: session.id,
     projectId: session.project_id,
     initialItemId,
     launchId,
+  });
+
+  const { fork, choosePlan, chooseCamera } = useCaptureV2MobileFork({
+    sessionId: session.id,
+    showPlanCanvas,
+    showStartChoice,
+    planSets,
+    shellEnabled: CAPTURE_CANVAS_SHELL_ENABLED,
+    isDesktop,
+    existingStopCount: capturedItems.length,
   });
 
   const openedCameraRef = useRef(false);
@@ -59,8 +74,10 @@ export function CaptureV2Orchestrator(props: Props) {
   const [savingNext, setSavingNext] = useState(false);
   const [notesFocused, setNotesFocused] = useState(false);
 
-  const useNoPlansCanvas = CAPTURE_CANVAS_SHELL_ENABLED && !showPlanCanvas && !isDesktop;
-  const useWithPlansCanvas = CAPTURE_CANVAS_SHELL_ENABLED && showPlanCanvas && !isDesktop;
+  const useNoPlansCanvas =
+    CAPTURE_CANVAS_SHELL_ENABLED && !isDesktop && (!showPlanCanvas || fork === "camera");
+  const useWithPlansCanvas =
+    CAPTURE_CANVAS_SHELL_ENABLED && showPlanCanvas && !isDesktop && fork === "plan";
   const livePlanSheets = usePlanSheetsRealtime(planSheets, session.project_id);
 
   useEffect(() => {
@@ -100,6 +117,18 @@ export function CaptureV2Orchestrator(props: Props) {
     );
   }
 
+  if (fork === "choice") {
+    const walkLabel =
+      session.project_name?.trim() || session.title?.trim() || "Plan walk";
+    return (
+      <CaptureV2StartChoiceSheet
+        walkLabel={walkLabel}
+        onWalkOnPlans={choosePlan}
+        onCameraOnly={chooseCamera}
+      />
+    );
+  }
+
   if (useNoPlansCanvas) {
     const contextLabel = session.is_ad_hoc
       ? "Quick Walk"
@@ -122,6 +151,7 @@ export function CaptureV2Orchestrator(props: Props) {
         loop={loop}
         planSets={planSets}
         planSheets={livePlanSheets}
+        photo360Entitled={photo360Entitled}
       />
     );
   }
