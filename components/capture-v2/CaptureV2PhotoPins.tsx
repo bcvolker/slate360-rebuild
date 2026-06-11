@@ -102,15 +102,18 @@ export function CaptureV2PhotoPins({
       const centerX = rect.left + rect.width / 2;
       const belowTop = rect.bottom + CARD_GAP_PX;
       const aboveTop = rect.top - CARD_GAP_PX;
-      const estimatedHeight = 290;
+      const estimatedHeight = 230;
       const preferBelow = belowTop + estimatedHeight < window.innerHeight - 16;
       const clampedLeft = Math.round(
         Math.min(Math.max(centerX, CARD_WIDTH_PX / 2 + 8), window.innerWidth - CARD_WIDTH_PX / 2 - 8),
       );
-      setCardPosition({
-        left: clampedLeft,
-        top: preferBelow ? belowTop : Math.max(16, aboveTop - estimatedHeight),
-      });
+      const rawTop = preferBelow ? belowTop : aboveTop - estimatedHeight;
+      // Hard viewport clamp — the card must never spill past the bottom edge.
+      const clampedTop = Math.max(
+        16,
+        Math.min(rawTop, window.innerHeight - estimatedHeight - 16),
+      );
+      setCardPosition({ left: clampedLeft, top: clampedTop });
     }
     updateCardPosition();
     window.addEventListener("resize", updateCardPosition);

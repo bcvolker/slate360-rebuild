@@ -16,15 +16,48 @@ type Props = {
   coverageProgress: number;
   guideState: TwinCaptureGuideState;
   sensorsGranted: boolean;
+  rollDeg?: number | null;
 };
+
+const TILT_SHOW_DEG = 6;
+const TILT_HIDE_DEG = 3;
+const TILT_SHOW_DELAY_MS = 800;
+const TILT_HIDE_DELAY_MS = 500;
+
+/** Discrete tilt hint — appears only after sustained tilt, no continuous motion. */
+function useTiltHint(rollDeg: number | null | undefined): "left" | "right" | null {
+  const [hint, setHint] = useState<"left" | "right" | null>(null);
+
+  useEffect(() => {
+    const roll = rollDeg ?? 0;
+    const tilted = Math.abs(roll) > TILT_SHOW_DEG;
+    const settled = Math.abs(roll) < TILT_HIDE_DEG;
+    if (hint === null && tilted) {
+      const timer = window.setTimeout(
+        () => setHint(roll > 0 ? "left" : "right"),
+        TILT_SHOW_DELAY_MS,
+      );
+      return () => window.clearTimeout(timer);
+    }
+    if (hint !== null && settled) {
+      const timer = window.setTimeout(() => setHint(null), TILT_HIDE_DELAY_MS);
+      return () => window.clearTimeout(timer);
+    }
+    return undefined;
+  }, [hint, rollDeg]);
+
+  return hint;
+}
 
 export function TwinCaptureGuide({
   hidden,
   coverageProgress,
   guideState,
   sensorsGranted,
+  rollDeg = null,
 }: Props) {
   const [dimmed, setDimmed] = useState(false);
+  const tiltHint = useTiltHint(rollDeg);
 
   useEffect(() => {
     if (guideState !== "good") {
@@ -96,6 +129,15 @@ export function TwinCaptureGuide({
           data-twin-guide-label
         >
           {label}
+        </span>
+      ) : null}
+      {tiltHint ? (
+        <span
+          className={`px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wide ${TWIN_CAPTURE_GLASS}`}
+          style={{ color: "#EAB308", opacity: 0.85 }}
+          data-twin-chrome="tilt-hint"
+        >
+          {tiltHint === "left" ? "⟲ LEVEL PHONE" : "⟳ LEVEL PHONE"}
         </span>
       ) : null}
     </div>

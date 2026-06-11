@@ -8,7 +8,6 @@ import { TwinCaptureGuide } from "./TwinCaptureGuide";
 import { TwinCaptureDebugOverlay } from "./TwinCaptureDebugOverlay";
 import { TwinCaptureHudToast } from "./TwinCaptureHudToast";
 import { TwinCaptureFrameCapChip } from "./TwinCaptureFrameCapChip";
-import { TwinCaptureLevelLine } from "./TwinCaptureLevelLine";
 import { TwinCaptureLiveCamera } from "./TwinCaptureLiveCamera";
 import { TwinCaptureModeSelector } from "./TwinCaptureModeSelector";
 import { TwinCaptureTopBar } from "./TwinCaptureTopBar";
@@ -289,10 +288,6 @@ export function TwinCaptureScreen({
           onResume={() => void camera.resumeCamera(facingMode)}
         />
 
-        <TwinCaptureLevelLine
-          rollDeg={sensors.rollDeg}
-          supported={sensors.levelLineActive}
-        />
         <TwinCaptureClipGhost
           imageUrl={ghost.ghostUrl}
           opacity={ghost.ghostOpacity}
@@ -329,6 +324,7 @@ export function TwinCaptureScreen({
           coverageProgress={coverageProgress}
           guideState={sensors.guideState}
           sensorsGranted={sensors.permission === "granted"}
+          rollDeg={sensors.levelLineActive ? sensors.rollDeg : null}
         />
         <TwinCaptureModeSelector
           hidden={!chromeVisible}

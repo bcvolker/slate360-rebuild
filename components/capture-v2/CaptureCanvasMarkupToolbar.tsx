@@ -59,10 +59,11 @@ export function CaptureCanvasMarkupToolbar({
   return (
     <div
       data-capture-chrome="markup-toolbar"
-      className="pointer-events-auto flex w-full max-w-full items-center gap-1 overflow-x-auto rounded-xl border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_78%,transparent)] p-1 backdrop-blur-md no-scrollbar"
+      className="pointer-events-auto flex w-full max-w-full flex-col gap-1 rounded-xl border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_78%,transparent)] p-1.5 backdrop-blur-md"
       role="toolbar"
       aria-label="Markup tools"
     >
+      <div className="flex w-full items-center gap-1 overflow-x-auto no-scrollbar">
       {onClose ? (
         <>
           <button
@@ -127,7 +128,9 @@ export function CaptureCanvasMarkupToolbar({
       >
         <Trash2 className="h-4 w-4" />
       </button>
-      <div className="mx-0.5 h-7 w-px shrink-0 bg-[var(--mobile-app-card-border)]" />
+      </div>
+
+      <div className="flex w-full items-center gap-1.5 border-t border-[var(--mobile-app-card-border)] pt-1.5">
       {CAPTURE_CANVAS_MARKUP_COLORS.map((entry) => {
         const selected = activeColor === entry.value;
         return (
@@ -167,6 +170,7 @@ export function CaptureCanvasMarkupToolbar({
             {width}
           </button>
         ))}
+      </div>
       </div>
     </div>
   );

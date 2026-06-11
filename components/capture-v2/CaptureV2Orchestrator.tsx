@@ -81,6 +81,10 @@ export function CaptureV2Orchestrator(props: Props) {
   const livePlanSheets = usePlanSheetsRealtime(planSheets, session.project_id);
 
   useEffect(() => {
+    // Native auto-open is a legacy-mobile-field fallback only. With the canvas
+    // shell enabled on mobile, the live canvas owns the camera — firing here
+    // races the async fork resolution and pops the iOS native camera on launch.
+    if (CAPTURE_CANVAS_SHELL_ENABLED && !isDesktop) return;
     if (!autoOpenCamera || isDesktop || openedCameraRef.current || useNoPlansCanvas) return;
     openedCameraRef.current = true;
     loop.openPickerDirect("camera", "quick_capture");

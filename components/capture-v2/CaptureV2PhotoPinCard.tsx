@@ -1,6 +1,6 @@
 "use client";
 
-import { Paperclip, Trash2, X } from "lucide-react";
+import { Camera, Paperclip, Trash2, X } from "lucide-react";
 import type { PhotoAttachmentFile, PhotoAttachmentPin } from "@/lib/site-walk/photo-attachments";
 import { captureCanvasGlass } from "./capture-canvas-glass-tokens";
 import { CaptureV2PinAttachmentThumb } from "./CaptureV2PinAttachmentThumb";
@@ -120,49 +120,48 @@ export function CaptureV2PhotoPinCard({
             </div>
           </div>
         ) : (
-          <div className="flex flex-col">
-            <button
-              type="button"
-              onClick={onAttachFile}
-              className="flex min-h-11 items-center gap-2 px-4 text-left text-sm font-medium text-[var(--graphite-text-header)] transition hover:bg-[color-mix(in_srgb,var(--graphite-primary)_8%,transparent)]"
-              data-capture-chrome="pin-action-row"
-            >
-              <Paperclip className="h-4 w-4 text-[var(--graphite-primary)]" />
-              Attach file
-            </button>
-            <button
-              type="button"
-              onClick={onAttachPhoto}
-              className="flex min-h-11 items-center gap-2 px-4 text-left text-sm font-medium text-[var(--graphite-text-header)] transition hover:bg-[color-mix(in_srgb,var(--graphite-primary)_8%,transparent)]"
-              data-capture-chrome="pin-action-row"
-            >
-              <Paperclip className="h-4 w-4 text-[var(--graphite-primary)]" />
-              Attach photo
-            </button>
+          <div className="flex items-center gap-2 px-3 py-2">
+            <div className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto no-scrollbar">
+              {pin.files.map((file) => (
+                <CaptureV2PinAttachmentThumb
+                  key={file.id}
+                  file={file}
+                  showSuccess={recentlyAttachedFileId === file.id}
+                  onOpen={onOpenAttachment}
+                />
+              ))}
+              <button
+                type="button"
+                onClick={onAttachPhoto}
+                className="inline-flex h-11 w-11 shrink-0 flex-col items-center justify-center rounded-lg border border-dashed border-[var(--mobile-app-card-border)] text-[var(--graphite-primary)] transition active:scale-[0.98]"
+                aria-label="Attach photo"
+                data-capture-chrome="pin-action-row"
+              >
+                <Camera className="h-4 w-4" />
+                <span className="text-[8px] font-semibold text-[var(--graphite-muted)]">Photo</span>
+              </button>
+              <button
+                type="button"
+                onClick={onAttachFile}
+                className="inline-flex h-11 w-11 shrink-0 flex-col items-center justify-center rounded-lg border border-dashed border-[var(--mobile-app-card-border)] text-[var(--graphite-primary)] transition active:scale-[0.98]"
+                aria-label="Attach file"
+                data-capture-chrome="pin-action-row"
+              >
+                <Paperclip className="h-4 w-4" />
+                <span className="text-[8px] font-semibold text-[var(--graphite-muted)]">File</span>
+              </button>
+            </div>
             <button
               type="button"
               onClick={onDeleteRequest}
-              className="flex min-h-11 items-center gap-2 px-4 text-left text-sm font-medium text-[var(--destructive)] transition hover:bg-[color-mix(in_srgb,var(--destructive)_10%,transparent)]"
+              className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-[var(--destructive)] transition active:scale-[0.98]"
+              aria-label="Delete pin"
               data-capture-chrome="pin-action-row"
             >
               <Trash2 className="h-4 w-4" />
-              Delete
             </button>
           </div>
         )}
-
-        {pin.files.length > 0 ? (
-          <div className="flex flex-wrap gap-2 border-t border-[var(--mobile-app-card-border)] px-3 py-3">
-            {pin.files.map((file) => (
-              <CaptureV2PinAttachmentThumb
-                key={file.id}
-                file={file}
-                showSuccess={recentlyAttachedFileId === file.id}
-                onOpen={onOpenAttachment}
-              />
-            ))}
-          </div>
-        ) : null}
       </div>
     </div>
   );
