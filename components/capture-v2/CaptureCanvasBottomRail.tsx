@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, type PointerEvent } from "react";
-import { ArrowRight, Flashlight, Ghost } from "lucide-react";
+import { ArrowRight, Check, Flashlight } from "lucide-react";
 import { CAPTURE_CANVAS_CHROME } from "./capture-canvas-chrome-layout";
 import { captureCanvasGlass } from "./capture-canvas-glass-tokens";
 import { CAPTURE_V2_LAYERS } from "./layers";
@@ -18,12 +18,10 @@ type Props = {
   captureBlocked?: boolean;
   torchSupported?: boolean;
   torchOn?: boolean;
-  ghostOn?: boolean;
-  ghostAvailable?: boolean;
+  endProminent?: boolean;
   onTorchToggle?: () => void;
   onShutterTap: () => void;
   onShutterHold?: () => void;
-  onGhostTap?: () => void;
   onEndTap?: () => void;
   onDetailsTap?: () => void;
 };
@@ -61,12 +59,10 @@ export function CaptureCanvasBottomRail({
   captureBlocked = false,
   torchSupported = false,
   torchOn = false,
-  ghostOn = false,
-  ghostAvailable = false,
+  endProminent = false,
   onTorchToggle,
   onShutterTap,
   onShutterHold,
-  onGhostTap,
   onEndTap,
   onDetailsTap,
 }: Props) {
@@ -154,7 +150,7 @@ export function CaptureCanvasBottomRail({
         data-capture-chrome="bottom-rail"
       >
         <div className="grid grid-cols-[1fr_auto_1fr] items-end">
-          <div className="flex flex-col items-start gap-3 justify-self-start">
+          <div className="justify-self-start">
             {!captured && torchSupported ? (
               <RailToolStack label="Light">
                 <button
@@ -170,24 +166,6 @@ export function CaptureCanvasBottomRail({
                 </button>
               </RailToolStack>
             ) : null}
-            {!captured ? (
-              <RailToolStack label="Ghost">
-                <button
-                  type="button"
-                  disabled={busy || !ghostAvailable}
-                  onClick={() => onGhostTap?.()}
-                  data-capture-chrome="ghost-button"
-                  className={`inline-flex items-center justify-center rounded-xl transition active:scale-[0.98] disabled:opacity-50 ${glassSquareClass(false, ghostOn)}`}
-                  style={{ width: BTN, height: BTN }}
-                  aria-pressed={ghostOn}
-                  aria-label={ghostOn ? "Hide ghost overlay" : "Show ghost overlay"}
-                >
-                  <Ghost className="h-5 w-5" />
-                </button>
-              </RailToolStack>
-            ) : (
-              <span aria-hidden />
-            )}
           </div>
 
           <button
@@ -219,35 +197,43 @@ export function CaptureCanvasBottomRail({
             />
           </button>
 
-          {captured ? (
-            <RailToolStack label="Details">
-              <button
-                type="button"
-                disabled={busy}
-                onClick={() => onDetailsTap?.()}
-                data-capture-chrome="details-button"
-                className={`inline-flex items-center justify-center rounded-xl transition active:scale-[0.98] disabled:opacity-50 ${glassSquareClass(false)}`}
-                style={{ width: BTN, height: BTN }}
-                aria-label="Stop details"
-              >
-                <ArrowRight className="h-5 w-5" strokeWidth={2.5} />
-              </button>
-            </RailToolStack>
-          ) : (
-            <RailToolStack label="End walk">
-              <button
-                type="button"
-                disabled={busy}
-                onClick={() => onEndTap?.()}
-                data-capture-chrome="end-button"
-                className={`inline-flex items-center justify-center justify-self-end rounded-xl transition active:scale-[0.98] disabled:opacity-50 ${glassSquareClass(true)}`}
-                style={{ width: BTN, height: BTN }}
-                aria-label="End walk"
-              >
-                <span className="h-3.5 w-3.5 rounded-sm border border-[var(--graphite-muted)]" />
-              </button>
-            </RailToolStack>
-          )}
+          <div className="justify-self-end">
+            {captured ? (
+              <RailToolStack label="Details">
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => onDetailsTap?.()}
+                  data-capture-chrome="details-button"
+                  className={`inline-flex items-center justify-center rounded-xl transition active:scale-[0.98] disabled:opacity-50 ${glassSquareClass(false)}`}
+                  style={{ width: BTN, height: BTN }}
+                  aria-label="Stop details"
+                >
+                  <ArrowRight className="h-5 w-5" strokeWidth={2.5} />
+                </button>
+              </RailToolStack>
+            ) : (
+              <RailToolStack label="End walk">
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => onEndTap?.()}
+                  data-capture-chrome="end-button"
+                  data-capture-chrome-prominent={endProminent ? "true" : "false"}
+                  className={`inline-flex items-center justify-center rounded-full bg-[var(--graphite-primary)] text-[var(--graphite-canvas)] transition active:scale-[0.98] disabled:pointer-events-none ${
+                    endProminent ? "" : "opacity-35"
+                  }`}
+                  style={{
+                    width: CAPTURE_CANVAS_CHROME.endButtonSizePx,
+                    height: CAPTURE_CANVAS_CHROME.endButtonSizePx,
+                  }}
+                  aria-label="End walk"
+                >
+                  <Check className="h-6 w-6" strokeWidth={2.5} />
+                </button>
+              </RailToolStack>
+            )}
+          </div>
         </div>
       </div>
     </div>

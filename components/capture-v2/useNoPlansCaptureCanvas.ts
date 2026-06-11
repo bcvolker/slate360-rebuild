@@ -344,6 +344,7 @@ export function useNoPlansCaptureCanvas({
     ghostAvailable,
     ghostImageUrl,
     handleGhostTap,
+    hasStops: orderedItems.length > 0,
     cameraPaused,
     activeItem,
     itemId,

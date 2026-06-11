@@ -41,12 +41,12 @@ async function measureThumbCount(page, thumbCount) {
       document.querySelector('[data-dev-device="mobile"]') ??
       document.querySelector('[data-capture-canvas="no-plans"]');
     const shutter = document.querySelector('[data-capture-chrome="shutter"]');
-    const ghost = document.querySelector('[data-capture-chrome="ghost-button"]');
+    const ghost = document.querySelector('[data-capture-chrome="ghost-stack"]');
     const end = document.querySelector('[data-capture-chrome="end-button"]');
     const filmstrip = document.querySelector('[data-capture-chrome="filmstrip"]');
     const topBar = document.querySelector('[data-capture-chrome="top-bar"]');
     const hint = document.querySelector('[data-capture-chrome="hint"]');
-    if (!frame || !shutter || !ghost || !end || !filmstrip || !topBar || !hint) return null;
+    if (!frame || !shutter || !end || !filmstrip || !topBar || !hint) return null;
 
     const frameRect = frame.getBoundingClientRect();
     const rel = (rect) => ({
@@ -57,18 +57,22 @@ async function measureThumbCount(page, thumbCount) {
     });
     const viewportCenterX = frameRect.width / 2;
     const shutterRel = rel(shutter.getBoundingClientRect());
-    const ghostRel = rel(ghost.getBoundingClientRect());
+    const ghostRel = ghost ? rel(ghost.getBoundingClientRect()) : null;
     const endRel = rel(end.getBoundingClientRect());
     const filmstripRect = rel(filmstrip.getBoundingClientRect());
     const topBarRect = rel(topBar.getBoundingClientRect());
     const hintRect = rel(hint.getBoundingClientRect());
     const light = document.querySelector('[data-capture-chrome="light-button"]');
+    const filmstripExpanded =
+      document
+        .querySelector('[data-capture-chrome="filmstrip-toggle"]')
+        ?.getAttribute("aria-expanded") === "true";
     const centerX = (rect) => rect.left + (rect.right - rect.left) / 2;
     const centerY = (rect) => rect.top + (rect.bottom - rect.top) / 2;
 
     const nodes = [
       { id: "shutter", rect: shutterRel },
-      { id: "ghost", rect: ghostRel },
+      ghostRel && { id: "ghost", rect: ghostRel },
       { id: "end", rect: endRel },
       { id: "hint", rect: hintRect },
       light && { id: "light", rect: rel(light.getBoundingClientRect()) },
@@ -111,11 +115,16 @@ async function measureThumbCount(page, thumbCount) {
       hintTopY: hintRect.top,
       filmstripUnderTopBar: filmstripRect.top >= topBarRect.top - 1 && filmstripRect.top < frameRect.height * 0.35,
       shutterToHintGapPx: Math.round(hintRect.top - shutterRel.bottom),
-      ghostCenterY: centerY(ghostRel),
       endCenterY: centerY(endRel),
       shutterCenterY: centerY(shutterRel),
-      ghostToShutterCenterDeltaY: centerY(ghostRel) - centerY(shutterRel),
       endToShutterCenterDeltaY: centerY(endRel) - centerY(shutterRel),
+      endWidthPx: Math.round(endRel.right - endRel.left),
+      endHeightPx: Math.round(endRel.bottom - endRel.top),
+      filmstripExpanded,
+      ghostPresent: Boolean(ghostRel),
+      ghostTopY: ghostRel ? ghostRel.top : null,
+      ghostBelowTopBarPx: ghostRel ? Math.round(ghostRel.top - topBarRect.bottom) : null,
+      ghostRightInsetPx: ghostRel ? Math.round(frameRect.width - ghostRel.right) : null,
       overlapPairs,
       lightButtonPresent: Boolean(light),
       sourcePickerOpen: Boolean(sheet),
@@ -145,6 +154,22 @@ function assertSample(sample) {
   }
   if (sample.overlapPairs.length > 0) {
     failures.push(`thumbs=${sample.thumbCount} overlaps: ${sample.overlapPairs.join(", ")}`);
+  }
+  if (Math.abs(sample.endWidthPx - 56) > 1 || Math.abs(sample.endHeightPx - 56) > 1) {
+    failures.push(
+      `thumbs=${sample.thumbCount} end button ${sample.endWidthPx}×${sample.endHeightPx}px expected 56×56`,
+    );
+  }
+  if (sample.filmstripExpanded) {
+    if (sample.ghostPresent) {
+      failures.push(`thumbs=${sample.thumbCount} ghost button should hide while filmstrip expanded`);
+    }
+  } else {
+    if (!sample.ghostPresent) {
+      failures.push(`thumbs=${sample.thumbCount} ghost button missing in collapsed state`);
+    } else if (sample.ghostBelowTopBarPx < 0) {
+      failures.push(`thumbs=${sample.thumbCount} ghost button overlaps top bar`);
+    }
   }
   return failures;
 }

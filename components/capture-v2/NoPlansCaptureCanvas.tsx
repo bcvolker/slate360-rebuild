@@ -5,6 +5,7 @@ import { CAPTURE_CANVAS_CHROME } from "./capture-canvas-chrome-layout";
 import { CaptureCanvasAngleThumbs } from "./CaptureCanvasAngleThumbs";
 import { CaptureCanvasBottomRail } from "./CaptureCanvasBottomRail";
 import { CaptureCanvasCapturedPhoto } from "./CaptureCanvasCapturedPhoto";
+import { CaptureCanvasGhostButton } from "./CaptureCanvasGhostButton";
 import { CaptureCanvasMarkupToolbar } from "./CaptureCanvasMarkupToolbar";
 import { CaptureCanvasRightToolRail } from "./CaptureCanvasRightToolRail";
 import { CaptureCanvasTopBar } from "./CaptureCanvasTopBar";
@@ -192,6 +193,14 @@ export function NoPlansCaptureCanvas({
         onSelectTool={canvas.handleSelectTool}
       />
 
+      <CaptureCanvasGhostButton
+        hidden={!canvas.chromeVisible || canvas.showPreview || canvas.filmstripExpanded}
+        busy={loop.busy}
+        ghostOn={canvas.ghostOn}
+        ghostAvailable={canvas.ghostAvailable}
+        onGhostTap={canvas.handleGhostTap}
+      />
+
       {canvas.showPreview && canvas.activeItem ? (
         <CaptureCanvasAngleThumbs
           hidden={!canvas.chromeVisible}
@@ -210,8 +219,7 @@ export function NoPlansCaptureCanvas({
         captureBlocked={canvas.captureBlocked}
         torchSupported={canvas.torch.torchSupported}
         torchOn={canvas.torch.torchOn}
-        ghostOn={canvas.ghostOn}
-        ghostAvailable={canvas.ghostAvailable}
+        endProminent={canvas.hasStops}
         onTorchToggle={() => void canvas.torch.handleTorchToggle()}
         onShutterTap={
           canvas.angleCaptureMode
@@ -221,7 +229,6 @@ export function NoPlansCaptureCanvas({
               : canvas.handleShutterTapLive
         }
         onShutterHold={canvas.showPreview && !canvas.angleCaptureMode ? undefined : canvas.handleShutterHold}
-        onGhostTap={canvas.handleGhostTap}
         onEndTap={canvas.sessionExit.openExitModal}
         onDetailsTap={() => canvas.setDetailsOpen(true)}
       />

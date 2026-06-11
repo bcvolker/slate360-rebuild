@@ -100,6 +100,8 @@ export function TwinCaptureScreen({
   });
 
   const [chromeVisible, setChromeVisible] = useState(true);
+  const [clipsExpanded, setClipsExpanded] = useState(false);
+  const prevClipCountRef = useRef(0);
   const [lastShutterTapAt, setLastShutterTapAt] = useState<number | null>(null);
   const facingMode = "environment";
   const [torchOn, setTorchOn] = useState(false);
@@ -234,6 +236,20 @@ export function TwinCaptureScreen({
     ghost.handleShutterTap();
   }, [camera, facingMode, ghost, sensors]);
 
+  useEffect(() => {
+    // Recording needs a clean canvas (and the Capture Guide occupies the
+    // panel's slot); the panel re-opens when a clip lands so users see it saved.
+    if (recording) {
+      setClipsExpanded(false);
+      return;
+    }
+    const completed = session.clips.filter((clip) => !clip.recording).length;
+    if (completed > prevClipCountRef.current) {
+      setClipsExpanded(true);
+    }
+    prevClipCountRef.current = completed;
+  }, [recording, session.clips]);
+
   const handleCanvasTap = useCallback(() => {
     if (recording) return;
     if (camera.needsResume) {
@@ -288,6 +304,10 @@ export function TwinCaptureScreen({
           hidden={!chromeVisible}
           onBack={handleCancel}
           onToggleChrome={() => setChromeVisibleSafe((value) => !value)}
+          clipCount={session.clips.length}
+          clipsExpanded={clipsExpanded}
+          onClipsToggle={() => setClipsExpanded((value) => !value)}
+          clipsPanel={<TwinCaptureClipChips clips={session.clips} />}
         />
 
         <TwinCaptureHudToast
@@ -309,11 +329,6 @@ export function TwinCaptureScreen({
           coverageProgress={coverageProgress}
           guideState={sensors.guideState}
           sensorsGranted={sensors.permission === "granted"}
-        />
-        <TwinCaptureClipChips
-          hidden={!chromeVisible}
-          clips={session.clips}
-          activeClipId={session.activeClipId}
         />
         <TwinCaptureModeSelector
           hidden={!chromeVisible}

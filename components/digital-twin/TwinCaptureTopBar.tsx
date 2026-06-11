@@ -1,6 +1,7 @@
 "use client";
 
-import { ChevronLeft, Maximize2 } from "lucide-react";
+import type { ReactNode } from "react";
+import { ChevronDown, ChevronLeft, ChevronUp, Maximize2 } from "lucide-react";
 import { TWIN_CAPTURE_CHROME } from "@/lib/digital-twin/twin-capture-chrome-layout";
 
 type Props = {
@@ -8,10 +9,25 @@ type Props = {
   hidden?: boolean;
   onBack: () => void;
   onToggleChrome: () => void;
+  clipCount?: number;
+  clipsExpanded?: boolean;
+  onClipsToggle?: () => void;
+  clipsPanel?: ReactNode;
 };
 
-export function TwinCaptureTopBar({ headerLabel, hidden, onBack, onToggleChrome }: Props) {
+export function TwinCaptureTopBar({
+  headerLabel,
+  hidden,
+  onBack,
+  onToggleChrome,
+  clipCount = 0,
+  clipsExpanded = false,
+  onClipsToggle,
+  clipsPanel,
+}: Props) {
   if (hidden) return null;
+
+  const showClipsToggle = clipCount > 0 && Boolean(onClipsToggle);
 
   return (
     <header
@@ -31,7 +47,10 @@ export function TwinCaptureTopBar({ headerLabel, hidden, onBack, onToggleChrome 
       >
         <button
           type="button"
-          onClick={onBack}
+          onClick={(event) => {
+            event.stopPropagation();
+            onBack();
+          }}
           className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[var(--graphite-text-header)] transition active:scale-[0.98]"
           aria-label="Back"
         >
@@ -45,15 +64,46 @@ export function TwinCaptureTopBar({ headerLabel, hidden, onBack, onToggleChrome 
           {headerLabel}
         </p>
 
+        {showClipsToggle ? (
+          <button
+            type="button"
+            onClick={(event) => {
+              event.stopPropagation();
+              onClipsToggle?.();
+            }}
+            data-twin-chrome="clips-toggle"
+            className="inline-flex h-8 shrink-0 items-center justify-center gap-1 rounded-lg px-1.5 text-[var(--graphite-text-header)] transition active:scale-[0.98]"
+            aria-expanded={clipsExpanded}
+            aria-label={clipsExpanded ? "Hide clips" : "Show clips"}
+          >
+            <span className="font-mono text-[11px] font-semibold text-[var(--twin360-blue)]">
+              {clipCount}
+            </span>
+            {clipsExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          </button>
+        ) : null}
+
         <button
           type="button"
-          onClick={onToggleChrome}
+          onClick={(event) => {
+            event.stopPropagation();
+            onToggleChrome();
+          }}
           className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[var(--graphite-text-header)] transition active:scale-[0.98]"
           aria-label="Toggle capture controls"
         >
           <Maximize2 className="h-4 w-4" />
         </button>
       </div>
+
+      {clipsPanel ? (
+        <div
+          className={`w-full ${clipsExpanded ? "mt-2" : "sr-only"}`}
+          aria-hidden={!clipsExpanded}
+        >
+          {clipsPanel}
+        </div>
+      ) : null}
     </header>
   );
 }

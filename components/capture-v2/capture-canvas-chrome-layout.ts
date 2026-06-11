@@ -22,6 +22,8 @@ export const CAPTURE_CANVAS_CHROME = {
   angleThumbPx: 48,
   angleThumbRadiusPx: 10,
   detailsButtonPx: 48,
+  endButtonSizePx: 56,
+  ghostButtonTopGapPx: 8,
   markupToolbarGapPx: 8,
   railLabelBottomPx: 16 + 28 + 12,
   bottomChromeClearancePx: 16 + 28 + 12 + 72,

@@ -64,7 +64,10 @@ export function TwinCaptureModeSelector({
                   role="tab"
                   aria-selected={active}
                   disabled={modeLocked && !active}
-                  onClick={() => onModeChange(entry)}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    onModeChange(entry);
+                  }}
                   className={`rounded-full px-3 py-1 font-mono text-[10px] font-semibold uppercase tracking-wide transition disabled:opacity-40 ${
                     active
                       ? "bg-[color-mix(in_srgb,var(--twin360-blue)_18%,transparent)] text-[var(--twin360-blue)]"
@@ -81,7 +84,10 @@ export function TwinCaptureModeSelector({
             <button
               type="button"
               disabled={modeLocked}
-              onClick={onCycleInterval}
+              onClick={(event) => {
+                event.stopPropagation();
+                onCycleInterval();
+              }}
               className={`ml-2 px-2 py-1 font-mono text-[10px] font-semibold tabular-nums text-[var(--twin360-blue)] disabled:opacity-40 ${TWIN_CAPTURE_GLASS}`}
               aria-label={`Photo interval ${photoInterval} seconds`}
             >
