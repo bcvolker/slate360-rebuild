@@ -6,6 +6,7 @@ import {
 } from "@/components/studio-ui/MobileAppHomeSlateDropFolderGrid";
 import { mobileTokens } from "@/components/mobile-system";
 import type { HubTwin, HubTwinProject } from "@/lib/types/digital-twin-hub";
+import { twinHubStatusMetaTone } from "@/lib/digital-twin/twin-hub-status";
 
 type DigitalTwinHomeFillProps = {
   twins: HubTwin[];
@@ -82,8 +83,8 @@ export function buildDigitalTwinDockRows(twins: HubTwin[], projects: HubTwinProj
     twins: twins.slice(0, 8).map((twin) => ({
       key: twin.id,
       title: twin.title,
-      meta: twin.status.replace(/_/g, " "),
-      metaTone: "info" as const,
+      meta: twin.statusChip,
+      metaTone: twinHubStatusMetaTone(twin.statusChip),
       href: `/digital-twin/twins/${twin.id}`,
     })),
     projects: projects.slice(0, 8).map((project) => ({

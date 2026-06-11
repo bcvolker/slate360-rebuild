@@ -43,6 +43,8 @@ type Props = {
     estimate: TwinJobCreditEstimate;
     openCreditsSheet?: boolean;
     session?: TwinCapturePendingSession;
+    jobQueued?: boolean;
+    mockCaptureId?: string;
   };
 };
 
@@ -64,7 +66,7 @@ export function TwinCaptureReviewScreen({ canUseHighQuality, devPreview }: Props
   const [creditsSheetOpen, setCreditsSheetOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [jobQueued, setJobQueued] = useState(false);
+  const [jobQueued, setJobQueued] = useState(() => Boolean(devPreview?.jobQueued));
   const [checkoutNotice, setCheckoutNotice] = useState<string | null>(null);
   const [restoredNotice, setRestoredNotice] = useState<string | null>(null);
 
@@ -174,6 +176,10 @@ export function TwinCaptureReviewScreen({ canUseHighQuality, devPreview }: Props
       })),
     ]);
   }, []);
+
+  const handleGoToTwins = useCallback(() => {
+    router.push("/digital-twin/twins");
+  }, [router]);
 
   const handleCreateTwin = useCallback(async () => {
     if (!session || submitting) return;
@@ -329,8 +335,11 @@ export function TwinCaptureReviewScreen({ canUseHighQuality, devPreview }: Props
           </p>
         ) : null}
 
-        {jobQueued && upload.captureId ? (
-          <TwinJobStatus captureId={upload.captureId} spaceId={session.selection.spaceId} />
+        {jobQueued && (upload.captureId || devPreview?.mockCaptureId) ? (
+          <TwinJobStatus
+            captureId={upload.captureId ?? devPreview?.mockCaptureId ?? null}
+            spaceId={session.selection.spaceId}
+          />
         ) : null}
 
         {submitError ? <p className="text-xs text-red-300">{submitError}</p> : null}
@@ -341,21 +350,38 @@ export function TwinCaptureReviewScreen({ canUseHighQuality, devPreview }: Props
         style={{ paddingBottom: `max(12px, env(safe-area-inset-bottom))` }}
         data-twin-review="action-bar"
       >
-        <button
-          type="button"
-          disabled={
-            submitting || upload.isRunning || jobQueued || !estimate || Boolean(lowCredits)
-          }
-          onClick={() => void handleCreateTwin()}
-          className="flex min-h-12 w-full items-center justify-center rounded-xl bg-[var(--twin360-blue)] text-sm font-bold text-[var(--graphite-canvas)] disabled:opacity-50"
-        >
-          {submitting || upload.isRunning
-            ? "Creating twin…"
-            : `Create twin · ~${estimate?.creditsRequired ?? "—"} credits`}
-        </button>
-        <p className="mt-2 text-center text-[11px] text-[var(--graphite-muted)]">
-          we&apos;ll notify you when it&apos;s ready — find it in My Twins
-        </p>
+        {jobQueued ? (
+          <div className="space-y-3" data-twin-review="post-submit">
+            <p className="text-center text-sm font-semibold text-[var(--graphite-text-header)]">
+              Processing started
+            </p>
+            <button
+              type="button"
+              onClick={handleGoToTwins}
+              className="flex min-h-12 w-full items-center justify-center rounded-xl bg-[var(--twin360-blue)] text-sm font-bold text-[var(--graphite-canvas)]"
+            >
+              Go to My Twins
+            </button>
+          </div>
+        ) : (
+          <>
+            <button
+              type="button"
+              disabled={
+                submitting || upload.isRunning || !estimate || Boolean(lowCredits)
+              }
+              onClick={() => void handleCreateTwin()}
+              className="flex min-h-12 w-full items-center justify-center rounded-xl bg-[var(--twin360-blue)] text-sm font-bold text-[var(--graphite-canvas)] disabled:opacity-50"
+            >
+              {submitting || upload.isRunning
+                ? "Creating twin…"
+                : `Create twin · ~${estimate?.creditsRequired ?? "—"} credits`}
+            </button>
+            <p className="mt-2 text-center text-[11px] text-[var(--graphite-muted)]">
+              we&apos;ll notify you when it&apos;s ready — find it in My Twins
+            </p>
+          </>
+        )}
       </div>
 
       <SlateDropFilePickerModal

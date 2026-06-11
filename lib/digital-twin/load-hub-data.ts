@@ -2,6 +2,7 @@ import "server-only";
 
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { HubTwin, HubTwinProject } from "@/lib/types/digital-twin-hub";
+import { resolveTwinHubStatusChip } from "@/lib/digital-twin/twin-hub-status";
 
 type SpaceRow = {
   id: string;
@@ -34,7 +35,7 @@ export async function loadDigitalTwinHubData(
 
   const admin = createAdminClient();
 
-  const [spacesResult, projectsResult] = await Promise.all([
+  const [spacesResult, projectsResult, jobsResult] = await Promise.all([
     admin
       .from("digital_twin_spaces")
       .select("id, title, status, project_id, updated_at, projects(name)")
@@ -50,6 +51,12 @@ export async function loadDigitalTwinHubData(
       .eq("status", "active")
       .order("created_at", { ascending: false })
       .limit(50),
+    admin
+      .from("digital_twin_processing_jobs")
+      .select("space_id, status, created_at")
+      .eq("org_id", orgId)
+      .order("created_at", { ascending: false })
+      .limit(200),
   ]);
 
   if (spacesResult.error) {
@@ -59,12 +66,21 @@ export async function loadDigitalTwinHubData(
     };
   }
 
+  const latestJobBySpace = new Map<string, string>();
+  for (const job of jobsResult.data ?? []) {
+    if (!latestJobBySpace.has(job.space_id)) {
+      latestJobBySpace.set(job.space_id, job.status);
+    }
+  }
+
   const twins: HubTwin[] = ((spacesResult.data ?? []) as SpaceRow[]).map((space) => {
     const project = resolveProject(space.projects);
+    const latestJobStatus = latestJobBySpace.get(space.id) ?? null;
     return {
       id: space.id,
       title: space.title,
       status: space.status,
+      statusChip: resolveTwinHubStatusChip(space.status, latestJobStatus),
       projectId: space.project_id,
       projectName: project?.name ?? null,
       updatedAt: space.updated_at,

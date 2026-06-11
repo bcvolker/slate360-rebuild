@@ -85,15 +85,10 @@ const APP_DEFINITIONS: AppDefinition[] = [
     isEntitled: ({ twin }) => twin.allowed,
     isPurchasable: () => true,
     statusSubline: (home) => {
-      const processing = home.processingQueue.filter((item) =>
-        /processing|queued|pending/i.test(item.status),
-      ).length;
+      const processing = home.twinProcessingCount;
       if (processing > 0) {
         const etaMinutes = Math.max(12, processing * 12);
         return `${processing} twin processing · ~${etaMinutes} min left`;
-      }
-      if (home.recentSlateDrop.length > 0) {
-        return `${home.recentSlateDrop.length} recent upload${home.recentSlateDrop.length === 1 ? "" : "s"}`;
       }
       return "Ready to capture";
     },

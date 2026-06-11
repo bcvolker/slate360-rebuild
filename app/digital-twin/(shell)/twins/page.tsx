@@ -2,54 +2,69 @@ import Link from "next/link";
 import { resolveServerOrgContext } from "@/lib/server/org-context";
 import { loadDigitalTwinHubData } from "@/lib/digital-twin/load-hub-data";
 import { twinAccent } from "@/lib/digital-twin/twin-accent";
-import { MobileEmptyState } from "@/components/mobile-system";
-import { Boxes, ChevronRight } from "lucide-react";
+import { matchesTwinStatusFilter, twinHubStatusMetaTone } from "@/lib/digital-twin/twin-hub-status";
+import { MobileEmptyState, MobileHomeListRow, mobileTokens } from "@/components/mobile-system";
+import { Boxes } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const DOCK_EMPTY_ACTION = cn("text-[12px]", twinAccent.link);
 
-function formatTwinStatus(status: string) {
-  return status.replace(/_/g, " ");
-}
+type PageProps = {
+  searchParams?: Promise<{ status?: string }>;
+};
 
-export default async function DigitalTwinTwinsPage() {
+export default async function DigitalTwinTwinsPage({ searchParams }: PageProps) {
+  const params = searchParams ? await searchParams : {};
+  const statusFilter = params.status?.toLowerCase();
+
   const context = await resolveServerOrgContext();
   const { twins } = await loadDigitalTwinHubData(context.orgId);
+  const filteredTwins = twins.filter((twin) =>
+    matchesTwinStatusFilter(twin.statusChip, statusFilter),
+  );
+
+  const filterLabel =
+    statusFilter === "processing"
+      ? "Processing"
+      : statusFilter === "ready"
+        ? "Ready"
+        : statusFilter === "failed"
+          ? "Failed"
+          : null;
 
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain px-4 py-4">
-      {twins.length > 0 ? (
-        <ul className="space-y-2">
-          {twins.map((twin) => (
+      {filterLabel ? (
+        <p className="mb-3 text-xs font-medium text-zinc-400">
+          Showing {filterLabel.toLowerCase()} twins
+          {" · "}
+          <Link href="/digital-twin/twins" className={twinAccent.link}>
+            Clear filter
+          </Link>
+        </p>
+      ) : null}
+
+      {filteredTwins.length > 0 ? (
+        <ul className={mobileTokens.mobileHomeContainedListInner}>
+          {filteredTwins.map((twin) => (
             <li key={twin.id}>
-              <Link
+              <MobileHomeListRow
+                title={twin.title}
+                meta={twin.statusChip}
+                metaTone={twinHubStatusMetaTone(twin.statusChip)}
                 href={`/digital-twin/twins/${twin.id}`}
-                className={cn(
-                  "flex items-center justify-between gap-3 rounded-xl border border-white/[0.06] bg-white/[0.04] px-3 py-3 transition-colors",
-                  twinAccent.cardHover,
-                )}
-              >
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold text-zinc-100">{twin.title}</p>
-                  <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-zinc-400">
-                    <span className="capitalize">{formatTwinStatus(twin.status)}</span>
-                    {twin.projectName ? (
-                      <>
-                        <span aria-hidden>·</span>
-                        <span>{twin.projectName}</span>
-                      </>
-                    ) : null}
-                  </div>
-                </div>
-                <ChevronRight className={cn("size-4 shrink-0", twinAccent.textMuted)} aria-hidden />
-              </Link>
+              />
             </li>
           ))}
         </ul>
       ) : (
         <MobileEmptyState
           icon={Boxes}
-          title="No twins in this workspace yet"
+          title={
+            statusFilter
+              ? `No ${filterLabel?.toLowerCase() ?? "matching"} twins`
+              : "No twins in this workspace yet"
+          }
           actionLabel="Start quick capture"
           actionClassName={DOCK_EMPTY_ACTION}
           actionHref="/digital-twin/capture"

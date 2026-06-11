@@ -7,7 +7,6 @@ import {
   Boxes,
   MapPin,
   Scan,
-  Share2,
   Upload,
 } from "lucide-react";
 import {
@@ -110,16 +109,10 @@ export function DigitalTwinHomeClient({ twins, projects }: Props) {
         href: buildTwinUploadLaunchUrl({ mode: "quick" }),
       },
       {
-        label: "Shared",
-        icon: Share2,
-        accent: "info",
-        href: "/digital-twin/twins",
-      },
-      {
         label: "Processing",
         icon: Activity,
         accent: "info",
-        href: "/digital-twin/twins",
+        href: "/digital-twin/twins?status=processing",
       },
     ],
     [],
@@ -154,24 +147,14 @@ export function DigitalTwinHomeClient({ twins, projects }: Props) {
             <MobileEmptyState compact icon={MapPin} title="No workspaces linked yet" />
           ),
       },
-      {
-        value: "shared",
-        label: "Shared with Me",
-        content: (
-          <MobileEmptyState
-            compact
-            icon={Share2}
-            title="Nothing shared with you yet"
-            description="Twins shared by teammates will appear here."
-          />
-        ),
-      },
     ],
     [dockRows, handleQuickScan],
   );
 
   const dockContent = useMemo(
-    () => <MobileExpandableTabbedPanel tabs={dockTabs} defaultTab="recent" />,
+    () => (
+      <MobileExpandableTabbedPanel tabs={dockTabs} defaultTab="recent" collapsedHeightPx={40} />
+    ),
     [dockTabs],
   );
 

@@ -13,6 +13,7 @@ export function DevTwinReviewSandbox() {
   const searchParams = useSearchParams();
   const lowCredits = searchParams?.get("credits") === "low";
   const openSheet = searchParams?.get("sheet") === "open";
+  const jobQueued = searchParams?.get("submitted") === "1";
   const session = useMemo(() => createDevTwinReviewSession(), []);
 
   return (
@@ -22,6 +23,8 @@ export function DevTwinReviewSandbox() {
         session,
         estimate: lowCredits ? DEV_TWIN_REVIEW_ESTIMATE_LOW : DEV_TWIN_REVIEW_ESTIMATE_SUFFICIENT,
         openCreditsSheet: openSheet || lowCredits,
+        jobQueued,
+        mockCaptureId: jobQueued ? "dev-capture-mock" : undefined,
       }}
     />
   );

@@ -52,6 +52,18 @@ const ROUTE_SPECS = [
     entryNote: "StudioAppShell fullBleed → DigitalTwinShell chrome → twins page",
   },
   {
+    label: "twins-list-processing",
+    path: "/digital-twin/twins?status=processing",
+    waitSelector: "main, [data-mobile-shell-version]",
+    entryNote: "My Twins filtered by ?status=processing",
+  },
+  {
+    label: "review-post-submit",
+    path: "/dev/screens?screen=twin-review&device=mobile&submitted=1",
+    waitSelector: '[data-twin-review="post-submit"]',
+    entryNote: "DevTwinReviewSandbox → TwinCaptureReviewScreen post-submit CTA",
+  },
+  {
     label: "capture-dev-sandbox",
     path: "/dev/screens?screen=twin-capture&device=mobile&clips=0&mode=video",
     waitSelector: '[data-twin-chrome="shutter"]',
@@ -96,6 +108,24 @@ async function measureRoute(page, spec) {
       quickBoot: Boolean(document.querySelector('[data-twin-capture-boot="loading"]')),
       devShutter: Boolean(document.querySelector('[data-twin-chrome="shutter"]')),
       quickScanCard: Boolean(document.querySelector('[aria-label="Start a quick scan"]')),
+      postSubmitCta: Boolean(document.querySelector('[data-twin-review="post-submit"]')),
+    };
+
+    const box = (el) => {
+      if (!el) return null;
+      const r = el.getBoundingClientRect();
+      return { width: Math.round(r.width), height: Math.round(r.height) };
+    };
+
+    const startScanCard = document.querySelector('[aria-label="Start a quick scan"]');
+    const quickActionCard = document.querySelector('[data-testid="mobile-quick-action-grid"] button, [data-testid="mobile-quick-action-grid"] a');
+    const dockFrame = document.querySelector('[data-testid="mobile-expandable-panel-frame"]');
+
+    const hubDimensions = {
+      startScanCardPx: box(startScanCard),
+      quickActionCardPx: box(quickActionCard),
+      dockCollapsedPx: dockFrame?.getAttribute("data-collapsed-height") ?? null,
+      dockFrameHeightPx: box(dockFrame)?.height ?? null,
     };
 
     return {
@@ -104,11 +134,13 @@ async function measureRoute(page, spec) {
       entryNote,
       loginRedirect,
       pathname: window.location.pathname,
+      search: window.location.search,
       shellRouteAttr: shell?.getAttribute("data-mobile-route") ?? null,
       accentOnShell: readAccent(shell),
       accentOnNav: readAccent(nav),
       accentOnDocument: readAccent(document.documentElement),
       visibleMarkers,
+      hubDimensions,
       bodySnippet: document.body.innerText.slice(0, 240).replace(/\s+/g, " ").trim(),
     };
   }, spec);
@@ -166,6 +198,11 @@ async function main() {
       baseUrl,
       viewport: VIEWPORT,
       expectedAccent: "var(--twin360-blue) or rgb(61, 142, 255)",
+      expectedHubDimensions: {
+        startScanCardHeightPx: 96,
+        quickActionCardHeightPx: 52,
+        dockCollapsedHeightPx: 40,
+      },
       routeResults,
       quickScanEntryPath: entryPath,
       generatedAt: new Date().toISOString(),

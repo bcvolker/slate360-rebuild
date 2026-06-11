@@ -3,6 +3,7 @@ import { withAuth } from "@/lib/server/api-auth";
 import { ok, badRequest, forbidden, notFound, serverError } from "@/lib/server/api-response";
 import { resolveDigitalTwinEntitlement } from "@/lib/twin/processing-entitlement";
 import { resolveOrCreateQuickScanProject } from "@/lib/digital-twin/resolve-quick-scan-project";
+import { resolveTwinHubStatusChip } from "@/lib/digital-twin/twin-hub-status";
 
 export const runtime = "nodejs";
 
@@ -68,6 +69,7 @@ export const POST = (req: NextRequest) =>
         id: space.id,
         title: space.title,
         status: space.status,
+        statusChip: resolveTwinHubStatusChip(space.status),
         projectId: space.project_id,
         projectName: project.name,
         updatedAt: space.updated_at,
