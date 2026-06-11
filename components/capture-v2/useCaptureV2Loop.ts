@@ -303,7 +303,7 @@ export function useCaptureV2Loop({ sessionId, projectId, initialItemId, launchId
     }
   }
 
-  async function saveAndNextStop() {
+  async function saveAndNextStop(): Promise<boolean> {
     setAdvancingStop(true);
     try {
       await flushDetailsRef.current();
@@ -312,8 +312,11 @@ export function useCaptureV2Loop({ sessionId, projectId, initialItemId, launchId
       revokePreviewBlob();
       fileHandler.setActivePreview(null);
       captureItems.deselectItem();
+      return true;
     } catch (error) {
       console.error("[capture-v2] Save & Next failed", error);
+      setExternalError("Could not save this stop — check your connection and try again.");
+      return false;
     } finally {
       setAdvancingStop(false);
     }

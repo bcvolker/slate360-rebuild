@@ -56,8 +56,8 @@ export function CaptureV2NoteReviewContainer({
   }, [flushCurrentDraft, flushDetails]);
 
   const handleSaveAndNext = useCallback(async () => {
-    await saveAndNextStop();
-    onBack();
+    const saved = await saveAndNextStop();
+    if (saved) onBack();
   }, [onBack, saveAndNextStop]);
 
   if (!activeItem || !draft) return null;

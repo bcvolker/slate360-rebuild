@@ -210,6 +210,23 @@ export function NoPlansCaptureCanvas({
         onGhostTap={canvas.handleGhostTap}
       />
 
+      {loop.externalError || loop.detailSaveError ? (
+        <div
+          className="pointer-events-auto absolute inset-x-3 z-40"
+          style={{ top: "calc(max(env(safe-area-inset-top), 12px) + 56px)" }}
+          data-capture-chrome="error-banner"
+        >
+          <button
+            type="button"
+            onClick={() => loop.setExternalError(null)}
+            className="w-full rounded-xl border border-red-500/40 bg-red-950/80 px-3 py-2 text-left text-sm font-semibold text-red-200 backdrop-blur-md"
+            role="alert"
+          >
+            {loop.externalError ?? loop.detailSaveError} — tap to dismiss
+          </button>
+        </div>
+      ) : null}
+
       <CaptureCanvasBottomRail
         busy={loop.busy}
         hidden={!canvas.chromeVisible || (canvas.showPreview && canvas.markupEnabled)}

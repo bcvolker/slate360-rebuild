@@ -139,7 +139,8 @@ export function useCaptureV2VoiceMemos({
       blobUrlsRef.current.set(memoId, blobUrl);
 
       const fd = new FormData();
-      fd.append("audio", blob, `voice-${Date.now()}.webm`);
+      const ext = blob.type.includes("mp4") ? "mp4" : "webm";
+      fd.append("audio", blob, `voice-${Date.now()}.${ext}`);
       const upRes = await fetch(`/api/site-walk/items/${encodeURIComponent(memoId)}/voice`, {
         method: "POST",
         body: fd,

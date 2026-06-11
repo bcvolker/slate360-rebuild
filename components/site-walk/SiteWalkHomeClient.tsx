@@ -117,22 +117,35 @@ export function SiteWalkHomeClient({
   const startScopedSession = useCallback(
     async (project: HubProject) => {
       const dateLabel = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" });
-      const res = await fetch("/api/site-walk/sessions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: `${project.name} — ${dateLabel}`,
-          session_type: "general",
-          project_id: project.id,
-          metadata: {
-            started_at: new Date().toISOString(),
-            started_from: scopedCopy.startedFrom,
-          },
-        }),
-      });
-      if (!res.ok) return;
+      setQuickCaptureError(null);
+      let res: Response;
+      try {
+        res = await fetch("/api/site-walk/sessions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title: `${project.name} — ${dateLabel}`,
+            session_type: "general",
+            project_id: project.id,
+            metadata: {
+              started_at: new Date().toISOString(),
+              started_from: scopedCopy.startedFrom,
+            },
+          }),
+        });
+      } catch {
+        setQuickCaptureError("Could not reach the server. Check your connection and try again.");
+        return;
+      }
+      if (!res.ok) {
+        setQuickCaptureError("Could not start the walk session. Try again.");
+        return;
+      }
       const body = (await res.json()) as { session?: { id?: string } };
-      if (!body.session?.id) return;
+      if (!body.session?.id) {
+        setQuickCaptureError("Walk session was created but could not be opened. Try again.");
+        return;
+      }
       router.push(buildCaptureLaunchUrl({ session: body.session.id, quick: "camera" }));
     },
     [router, scopedCopy.startedFrom],
