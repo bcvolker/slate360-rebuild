@@ -122,7 +122,9 @@ export function useCaptureV2VoiceMemos({
           item_type: "voice_note",
           title: `Voice memo — ${new Date().toLocaleTimeString()}`,
           before_item_id: parentItemId,
-          item_relationship: "attachment",
+          // DB check constraint only allows standalone/resolution/rework/before/
+          // after/progress; the parent link lives in before_item_id.
+          item_relationship: "standalone",
           metadata: { duration_ms: audio.durationMs, parent_stop_id: parentItemId },
         }),
       });

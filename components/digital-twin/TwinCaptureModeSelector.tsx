@@ -50,6 +50,7 @@ export function TwinCaptureModeSelector({
           aria-live="polite"
         >
           <span className="text-[var(--destructive)]">●</span> REC {formatRecTimer(recSeconds)}
+          <span className="text-[var(--graphite-muted)]"> / 1:30</span>
         </span>
       ) : (
         <div className="pointer-events-auto inline-flex items-center gap-1">

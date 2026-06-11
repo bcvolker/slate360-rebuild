@@ -1,13 +1,9 @@
 "use client";
 
-import { Loader2, Mic, MicOff, Sparkles } from "lucide-react";
+import { Loader2, Sparkles } from "lucide-react";
 import { noteReviewTokens } from "./capture-v2-note-review-tokens";
 
 type Props = {
-  recording: boolean;
-  transcribing: boolean;
-  dictationDisabled: boolean;
-  onToggleDictation: () => void;
   aiState: "idle" | "formatting" | "blocked" | "error";
   notesEmpty: boolean;
   onBoostWithAi: () => void;
@@ -16,10 +12,6 @@ type Props = {
 };
 
 export function CaptureV2NoteAccessoryRow({
-  recording,
-  transcribing,
-  dictationDisabled,
-  onToggleDictation,
   aiState,
   notesEmpty,
   onBoostWithAi,
@@ -33,22 +25,6 @@ export function CaptureV2NoteAccessoryRow({
       data-note-review="note-accessory"
     >
       <div className="flex w-full min-w-0 items-center gap-2">
-        <button
-          type="button"
-          onMouseDown={(event) => event.preventDefault()}
-          onTouchStart={(event) => event.preventDefault()}
-          onClick={onToggleDictation}
-          disabled={dictationDisabled || transcribing}
-          className={`inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl border px-3 text-sm font-semibold transition active:scale-[0.99] disabled:opacity-50 ${
-            recording
-              ? "border-red-500/40 bg-red-500/10 text-red-300"
-              : "border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--surface-zinc)_90%,transparent)] text-[var(--graphite-text-header)]"
-          }`}
-          data-note-review="dictate-button"
-        >
-          {recording ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
-          {transcribing ? "Transcribing…" : recording ? "Stop — add to note" : "Voice-to-text"}
-        </button>
         <button
           type="button"
           onMouseDown={(event) => event.preventDefault()}

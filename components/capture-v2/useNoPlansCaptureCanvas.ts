@@ -328,6 +328,7 @@ export function useNoPlansCaptureCanvas({
     }
     if (planActions.handleReviewBackForPlan()) return;
     setDetailsOpen(false);
+    setChromeVisible(true);
   }, [planActions, returnFromSummary, router, session.id]);
 
   return {

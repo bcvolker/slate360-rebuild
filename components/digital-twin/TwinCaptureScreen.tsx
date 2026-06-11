@@ -298,7 +298,7 @@ export function TwinCaptureScreen({
           opacity={ghost.ghostOpacity}
           visible={ghost.ghostVisible}
           level={ghostLevel}
-          onCycleLevel={() => setGhostLevel((value) => ((value + 1) % 3) as TwinGhostLevel)}
+          onSetLevel={setGhostLevel}
         />
 
         <TwinCaptureTopBar

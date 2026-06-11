@@ -10,21 +10,15 @@ export const TWIN_GHOST_LEVEL_OPACITY: Record<TwinGhostLevel, number> = {
   2: 0.72,
 };
 
-const LEVEL_LABEL: Record<TwinGhostLevel, string> = {
-  0: "Ghost: off",
-  1: "Ghost: low",
-  2: "Ghost: high",
-};
-
 type Props = {
   imageUrl: string | null;
   opacity: number;
   visible: boolean;
   level: TwinGhostLevel;
-  onCycleLevel: () => void;
+  onSetLevel: (level: TwinGhostLevel) => void;
 };
 
-export function TwinCaptureClipGhost({ imageUrl, opacity, visible, level, onCycleLevel }: Props) {
+export function TwinCaptureClipGhost({ imageUrl, opacity, visible, level, onSetLevel }: Props) {
   if (!visible || !imageUrl) return null;
 
   const effectiveOpacity = opacity > 0 ? TWIN_GHOST_LEVEL_OPACITY[level] : 0;
@@ -52,19 +46,36 @@ export function TwinCaptureClipGhost({ imageUrl, opacity, visible, level, onCycl
           Align with your last clip, then record
         </p>
       ) : null}
-      <button
-        type="button"
-        onClick={(event) => {
-          event.stopPropagation();
-          onCycleLevel();
-        }}
-        data-twin-chrome="clip-ghost-level"
-        className={`pointer-events-auto relative px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-wide ${TWIN_CAPTURE_HUD_TEXT} ${TWIN_CAPTURE_GLASS_SQUARE} transition active:scale-[0.98]`}
+      <div
+        className={`pointer-events-auto relative flex items-center gap-1 p-1 ${TWIN_CAPTURE_GLASS_SQUARE}`}
         style={{ opacity: opacity > 0 ? 1 : 0, transition: "opacity 320ms ease-out" }}
-        aria-label="Adjust ghost overlay"
+        data-twin-chrome="clip-ghost-level"
+        role="radiogroup"
+        aria-label="Overlay strength"
       >
-        {LEVEL_LABEL[level]}
-      </button>
+        <span className={`px-1.5 font-mono text-[9px] font-semibold uppercase tracking-wide ${TWIN_CAPTURE_HUD_TEXT}`}>
+          Overlay
+        </span>
+        {([0, 1, 2] as const).map((value) => (
+          <button
+            key={value}
+            type="button"
+            role="radio"
+            aria-checked={level === value}
+            onClick={(event) => {
+              event.stopPropagation();
+              onSetLevel(value);
+            }}
+            className={`rounded-lg px-2 py-1 font-mono text-[10px] font-semibold uppercase tracking-wide transition ${
+              level === value
+                ? "bg-[color-mix(in_srgb,var(--twin360-blue)_22%,transparent)] text-[var(--twin360-blue)]"
+                : TWIN_CAPTURE_HUD_TEXT
+            }`}
+          >
+            {value === 0 ? "Off" : value === 1 ? "Low" : "High"}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }

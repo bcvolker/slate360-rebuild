@@ -205,11 +205,14 @@ export function CaptureCanvasBottomRail({
                   disabled={busy}
                   onClick={() => onDetailsTap?.()}
                   data-capture-chrome="details-button"
-                  className={`inline-flex items-center justify-center rounded-xl transition active:scale-[0.98] disabled:opacity-50 ${glassSquareClass(false)}`}
-                  style={{ width: BTN, height: BTN }}
+                  className="inline-flex items-center justify-center rounded-full bg-[var(--graphite-primary)] text-[var(--graphite-canvas)] transition active:scale-[0.98] disabled:opacity-50"
+                  style={{
+                    width: CAPTURE_CANVAS_CHROME.endButtonSizePx,
+                    height: CAPTURE_CANVAS_CHROME.endButtonSizePx,
+                  }}
                   aria-label="Stop details"
                 >
-                  <ArrowRight className="h-5 w-5" strokeWidth={2.5} />
+                  <ArrowRight className="h-6 w-6" strokeWidth={2.5} />
                 </button>
               </RailToolStack>
             ) : (

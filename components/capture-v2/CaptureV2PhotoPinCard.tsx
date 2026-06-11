@@ -1,6 +1,6 @@
 "use client";
 
-import { Camera, Paperclip, Trash2, X } from "lucide-react";
+import { Camera, Check, Paperclip, Trash2, X } from "lucide-react";
 import type { PhotoAttachmentFile, PhotoAttachmentPin } from "@/lib/site-walk/photo-attachments";
 import { captureCanvasGlass } from "./capture-canvas-glass-tokens";
 import { CaptureV2PinAttachmentThumb } from "./CaptureV2PinAttachmentThumb";
@@ -48,7 +48,7 @@ export function CaptureV2PhotoPinCard({
 }: Props) {
   return (
     <div
-      className="pointer-events-auto fixed z-[4000] w-[280px]"
+      className="pointer-events-auto fixed z-40 w-[280px]"
       style={{ left: style.left, top: style.top, transform: "translateX(-50%)" }}
       data-capture-chrome="pin-popover"
       onPointerDown={(event) => event.stopPropagation()}
@@ -72,6 +72,16 @@ export function CaptureV2PhotoPinCard({
             aria-label="Pin label"
             data-capture-chrome="pin-label-input"
           />
+          <button
+            type="button"
+            onClick={onClose}
+            className="inline-flex shrink-0 items-center justify-center rounded-lg bg-[var(--graphite-primary)] text-[var(--graphite-canvas)] transition active:scale-[0.98]"
+            style={{ width: MIN_TAP_PX, height: MIN_TAP_PX }}
+            aria-label="Save pin"
+            data-capture-chrome="pin-popover-accept"
+          >
+            <Check className="h-5 w-5" strokeWidth={2.5} />
+          </button>
           <button
             type="button"
             onClick={onClose}

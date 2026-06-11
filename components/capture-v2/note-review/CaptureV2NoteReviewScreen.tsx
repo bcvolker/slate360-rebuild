@@ -128,6 +128,10 @@ export function CaptureV2NoteReviewScreen({
           notesRef={notesRef}
           dictationError={dictation.error}
           aiMessage={aiMessage}
+          dictationRecording={dictation.recording}
+          dictationTranscribing={dictation.transcribing}
+          dictationDisabled={dictation.disabled}
+          onToggleDictation={dictation.toggleDictation}
         />
         <CaptureV2VoiceMemosSection
           rows={voiceMemos.rows}
@@ -148,10 +152,6 @@ export function CaptureV2NoteReviewScreen({
       </div>
 
       <CaptureV2NoteAccessoryRow
-        recording={dictation.recording}
-        transcribing={dictation.transcribing}
-        dictationDisabled={dictation.disabled}
-        onToggleDictation={dictation.toggleDictation}
         aiState={aiState}
         notesEmpty={!draft.notes.trim()}
         onBoostWithAi={onFormatNotesWithAi}
