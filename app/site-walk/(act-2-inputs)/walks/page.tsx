@@ -118,7 +118,7 @@ function WalkCard({ walk }: { walk: LiveWalkSummary }) {
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
               <p className="truncate text-[10px] font-black uppercase tracking-[0.16em] text-amber-400">{walk.projectName ?? "No worksite"}</p>
-              <Link href={`/site-walk/walks/${walk.id}`} className="mt-0.5 block truncate text-base font-black text-slate-50 transition-colors hover:text-amber-200">
+              <Link href={buildWalkResumeUrl(walk.id, walk.status)} className="mt-0.5 block truncate text-base font-black text-slate-50 transition-colors hover:text-amber-200">
                 {walk.title}
               </Link>
               {isComplete && (

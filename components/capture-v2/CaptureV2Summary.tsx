@@ -11,6 +11,7 @@ import type { HubProject } from "@/lib/types/site-walk";
 import { CaptureV2WalkReviewActions } from "./CaptureV2WalkReviewActions";
 import { CaptureV2WalkReviewGrid } from "./CaptureV2WalkReviewGrid";
 import { CaptureV2WalkReviewTopBar } from "./CaptureV2WalkReviewTopBar";
+import { CaptureV2SummarySavedBanner } from "./CaptureV2SummarySavedBanner";
 import { walkReviewTokens } from "./capture-v2-walk-review-tokens";
 import type {
   CaptureV2SummaryItem,
@@ -47,6 +48,7 @@ export function CaptureV2Summary({ session, items, projects, backHref = "/site-w
       data-walk-review="screen"
     >
       <CaptureV2WalkReviewTopBar stopCount={cards.length} backHref={backHref} />
+      <CaptureV2SummarySavedBanner sessionId={session.id} />
       <p className={`${walkReviewTokens.margin} shrink-0 pb-3 ${walkReviewTokens.contextLine}`} data-walk-review="context">
         {contextLine}
       </p>
@@ -59,6 +61,7 @@ export function CaptureV2Summary({ session, items, projects, backHref = "/site-w
 
       <CaptureV2WalkReviewActions
         sessionId={session.id}
+        projectId={session.projectId}
         showAttachToProject={showAttachToProject}
         projects={projects}
         deliverableHref={deliverableHref}

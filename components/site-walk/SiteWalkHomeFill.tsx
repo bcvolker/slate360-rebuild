@@ -6,6 +6,7 @@ import {
   type HomeSlateDropFolder,
 } from "@/components/studio-ui/MobileAppHomeSlateDropFolderGrid";
 import { mobileTokens } from "@/components/mobile-system";
+import { buildWalkResumeUrl } from "@/lib/site-walk/capture-v2-config";
 import type { HubDeliverableRow } from "@/lib/types/site-walk-hub";
 import type { HubProject, HubSummary, HubWalk } from "@/lib/types/site-walk";
 
@@ -50,7 +51,7 @@ export function buildSiteWalkSlateDropFolders(
     pushFolder({
       id: `walk-${walk.id}`,
       label: walk.title,
-      href: `/site-walk/walks/${walk.id}`,
+      href: buildWalkResumeUrl(walk.id, walk.status),
       tone: "project",
     });
   }
@@ -136,7 +137,7 @@ function buildAttentionRows(
       title: assignment.title,
       meta: assignment.status.replace(/_/g, " "),
       metaTone: "primary",
-      href: `/site-walk/walks/${assignment.sessionId}`,
+      href: buildWalkResumeUrl(assignment.sessionId, "in_progress"),
     });
   }
 
@@ -166,7 +167,7 @@ export function buildSiteWalkDockRows(
       key: walk.id,
       title: walk.title,
       meta: `${walk.itemCount} items`,
-      href: `/site-walk/walks/${walk.id}`,
+      href: buildWalkResumeUrl(walk.id, walk.status),
     })),
     projects: projects.slice(0, 8).map((project) => ({
       key: project.id,

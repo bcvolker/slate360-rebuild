@@ -254,7 +254,9 @@ export function SiteWalkHomeClient({
   );
 
   const dockContent = useMemo(
-    () => <MobileExpandableTabbedPanel tabs={dockTabs} defaultTab="recent" />,
+    () => (
+      <MobileExpandableTabbedPanel tabs={dockTabs} defaultTab="recent" collapsedHeightPx={40} />
+    ),
     [dockTabs],
   );
 

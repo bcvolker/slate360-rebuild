@@ -13,8 +13,8 @@ import type { MobileLauncherAppView } from "@/lib/mobile/mobile-launcher-app-typ
 
 const MOCK_HOME_DATA: MobileAppHomeData = {
   recentWalks: [
-    { id: "w1", title: "Level 2 walkthrough", createdAt: new Date().toISOString() },
-    { id: "w2", title: "Roof inspection", createdAt: new Date(Date.now() - 86400000).toISOString() },
+    { id: "w1", title: "Level 2 walkthrough", status: "completed", createdAt: new Date().toISOString() },
+    { id: "w2", title: "Roof inspection", status: "in_progress", createdAt: new Date(Date.now() - 86400000).toISOString() },
   ],
   recentDeliverables: [],
   recentSlateDrop: [
@@ -26,6 +26,7 @@ const MOCK_HOME_DATA: MobileAppHomeData = {
     },
   ],
   processingQueue: [],
+  twinProcessingCount: 0,
   alerts: [],
   assignments: [],
   hubSummary: {

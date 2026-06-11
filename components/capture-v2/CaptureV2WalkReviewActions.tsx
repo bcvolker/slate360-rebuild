@@ -8,6 +8,7 @@ import { walkReviewTokens } from "./capture-v2-walk-review-tokens";
 
 type Props = {
   sessionId: string;
+  projectId: string | null;
   showAttachToProject: boolean;
   projects: HubProject[];
   deliverableHref: string;
@@ -15,11 +16,13 @@ type Props = {
 
 export function CaptureV2WalkReviewActions({
   sessionId,
+  projectId,
   showAttachToProject,
   projects,
   deliverableHref,
 }: Props) {
   const [attachOpen, setAttachOpen] = useState(false);
+  const projectHref = projectId ? `/project-hub/${encodeURIComponent(projectId)}` : null;
 
   return (
     <>
@@ -27,17 +30,26 @@ export function CaptureV2WalkReviewActions({
         className={`${walkReviewTokens.pinnedActions} ${walkReviewTokens.margin} space-y-2 py-3 pb-[max(env(safe-area-inset-bottom),12px)]`}
         data-walk-review="actions"
       >
-        {showAttachToProject ? (
+        <Link href={deliverableHref} className={`${walkReviewTokens.primaryButton} w-full`}>
+          Create deliverable
+        </Link>
+
+        {projectHref ? (
+          <Link href={projectHref} className={`${walkReviewTokens.ghostButton} w-full`}>
+            Open project
+          </Link>
+        ) : showAttachToProject ? (
           <button
             type="button"
             onClick={() => setAttachOpen(true)}
             className={`${walkReviewTokens.ghostButton} w-full`}
           >
-            Attach to project
+            Open project
           </button>
         ) : null}
-        <Link href={deliverableHref} className={`${walkReviewTokens.primaryButton} w-full`}>
-          Create deliverable
+
+        <Link href="/site-walk" className={`${walkReviewTokens.ghostButton} w-full`}>
+          Back to Site Walk
         </Link>
       </footer>
 

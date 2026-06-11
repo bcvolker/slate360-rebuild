@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import type { MobileAppHomeData } from "@/lib/mobile/load-app-home-data";
+import { buildWalkResumeUrl } from "@/lib/site-walk/capture-v2-config";
 import { appHomeTokens } from "@/components/studio-ui/app-home-tokens";
 import { MobileAppSectionLabel } from "@/components/studio-ui/MobileAppSectionLabel";
 import type { HomeSlateDropFolder } from "@/components/studio-ui/MobileAppHomeSlateDropFolderGrid";
@@ -217,7 +218,7 @@ function buildRecentRailItems(data: MobileAppHomeData): RecentRailItem[] {
       key: `walk-${walk.id}`,
       title: walk.title,
       meta: "Walk",
-      href: `/site-walk/walks/${walk.id}`,
+      href: buildWalkResumeUrl(walk.id, walk.status),
       tone: "primary",
     });
   }
@@ -318,7 +319,7 @@ export function buildAppHomeDockContent(data: MobileAppHomeData) {
       key: item.id,
       title: item.title,
       meta: item.status.replace(/_/g, " "),
-      href: `/site-walk/walks/${item.sessionId}`,
+      href: buildWalkResumeUrl(item.sessionId, "in_progress"),
     })),
     recent: recentItems.map((item) => ({
       key: item.key,

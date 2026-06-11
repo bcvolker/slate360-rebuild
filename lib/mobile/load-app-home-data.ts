@@ -17,6 +17,7 @@ export type MobileAppHomeAlert = {
 export type MobileAppHomeRecentWalk = {
   id: string;
   title: string;
+  status: string;
   createdAt: string;
 };
 
@@ -38,6 +39,8 @@ export type MobileAppHomeData = {
   recentDeliverables: MobileAppHomeRecentDeliverable[];
   recentSlateDrop: MobileAppHomeSlateDropItem[];
   processingQueue: MobileAppHomeSlateDropItem[];
+  /** Active digital_twin_processing_jobs (queued + processing) for launcher subline. */
+  twinProcessingCount: number;
   alerts: MobileAppHomeAlert[];
   assignments: MobileHomeAssignment[];
   hubSummary: HubSummary;
@@ -60,6 +63,7 @@ export async function loadMobileAppHomeData(
       recentDeliverables: [],
       recentSlateDrop: [],
       processingQueue: [],
+      twinProcessingCount: 0,
       alerts: [],
       assignments: [],
       hubSummary: EMPTY_SUMMARY,
@@ -79,13 +83,14 @@ export async function loadMobileAppHomeData(
     deliverablesRes,
     recentDropRes,
     processingRes,
+    twinJobsRes,
     alertsRes,
   ] = await Promise.all([
     hubPromise,
     assignmentsPromise,
     admin
       .from("site_walk_sessions")
-      .select("id, title, created_at")
+      .select("id, title, status, created_at")
       .eq("org_id", orgId)
       .neq("status", "archived")
       .order("updated_at", { ascending: false })
@@ -109,6 +114,11 @@ export async function loadMobileAppHomeData(
       .neq("status", "completed")
       .order("created_at", { ascending: false })
       .limit(5),
+    admin
+      .from("digital_twin_processing_jobs")
+      .select("id", { count: "exact", head: true })
+      .eq("org_id", orgId)
+      .in("status", ["queued", "processing"]),
     userId
       ? supabase
           .from("project_notifications")
@@ -124,6 +134,7 @@ export async function loadMobileAppHomeData(
     recentWalks: (walksRes.data ?? []).map((row) => ({
       id: row.id,
       title: row.title,
+      status: row.status,
       createdAt: row.created_at,
     })),
     recentDeliverables: (deliverablesRes.data ?? []).map((row) => ({
@@ -143,6 +154,7 @@ export async function loadMobileAppHomeData(
       status: row.status,
       createdAt: row.created_at,
     })),
+    twinProcessingCount: twinJobsRes.count ?? 0,
     alerts: userId
       ? (alertsRes.data ?? []).map((row) => ({
           id: row.id,
