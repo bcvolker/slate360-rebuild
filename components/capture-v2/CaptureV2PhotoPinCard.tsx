@@ -1,6 +1,6 @@
 "use client";
 
-import { MoreHorizontal, Paperclip, Trash2, X } from "lucide-react";
+import { Paperclip, Trash2, X } from "lucide-react";
 import type { PhotoAttachmentFile, PhotoAttachmentPin } from "@/lib/site-walk/photo-attachments";
 import { captureCanvasGlass } from "./capture-canvas-glass-tokens";
 import { CaptureV2PinAttachmentThumb } from "./CaptureV2PinAttachmentThumb";
@@ -8,20 +8,20 @@ import { CaptureV2PinAttachmentThumb } from "./CaptureV2PinAttachmentThumb";
 type Props = {
   pin: PhotoAttachmentPin;
   labelDraft: string;
+  noteDraft: string;
   confirmDelete: boolean;
-  overflowOpen: boolean;
   recentlyAttachedFileId: string | null;
   style: { left: number; top: number };
   onLabelChange: (value: string) => void;
   onLabelCommit: () => void;
+  onNoteChange: (value: string) => void;
+  onNoteCommit: () => void;
   onClose: () => void;
   onAttachFile: () => void;
   onAttachPhoto: () => void;
   onDeleteRequest: () => void;
   onDeleteConfirm: () => void;
   onDeleteCancel: () => void;
-  onOverflowToggle: () => void;
-  onFocusLabel: () => void;
   onOpenAttachment: (file: PhotoAttachmentFile) => void;
 };
 
@@ -30,20 +30,20 @@ const MIN_TAP_PX = 44;
 export function CaptureV2PhotoPinCard({
   pin,
   labelDraft,
+  noteDraft,
   confirmDelete,
-  overflowOpen,
   recentlyAttachedFileId,
   style,
   onLabelChange,
   onLabelCommit,
+  onNoteChange,
+  onNoteCommit,
   onClose,
   onAttachFile,
   onAttachPhoto,
   onDeleteRequest,
   onDeleteConfirm,
   onDeleteCancel,
-  onOverflowToggle,
-  onFocusLabel,
   onOpenAttachment,
 }: Props) {
   return (
@@ -74,16 +74,6 @@ export function CaptureV2PhotoPinCard({
           />
           <button
             type="button"
-            onClick={onOverflowToggle}
-            className="inline-flex shrink-0 items-center justify-center rounded-lg text-[var(--graphite-muted)] transition active:scale-[0.98]"
-            style={{ width: MIN_TAP_PX, height: MIN_TAP_PX }}
-            aria-label="More options"
-            aria-expanded={overflowOpen}
-          >
-            <MoreHorizontal className="h-5 w-5" />
-          </button>
-          <button
-            type="button"
             onClick={onClose}
             className="inline-flex shrink-0 items-center justify-center rounded-lg text-[var(--graphite-text-header)] transition active:scale-[0.98]"
             style={{ width: MIN_TAP_PX, height: MIN_TAP_PX }}
@@ -94,16 +84,18 @@ export function CaptureV2PhotoPinCard({
           </button>
         </div>
 
-        {overflowOpen ? (
-          <button
-            type="button"
-            onClick={onFocusLabel}
-            className="flex min-h-11 w-full items-center px-4 text-left text-sm font-medium text-[var(--graphite-text-body)] transition hover:bg-[color-mix(in_srgb,var(--graphite-primary)_8%,transparent)]"
-            data-capture-chrome="pin-action-row"
-          >
-            Edit label
-          </button>
-        ) : null}
+        <div className="border-b border-[var(--mobile-app-card-border)] px-3 py-2">
+          <textarea
+            value={noteDraft}
+            onChange={(event) => onNoteChange(event.target.value)}
+            onBlur={onNoteCommit}
+            placeholder="Add a note…"
+            rows={2}
+            className="w-full resize-none rounded-lg border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_65%,transparent)] px-3 py-2 text-sm text-[var(--graphite-text-body)] outline-none placeholder:text-[var(--graphite-muted)] focus:border-[var(--graphite-primary)]"
+            aria-label="Pin note"
+            data-capture-chrome="pin-note-input"
+          />
+        </div>
 
         {confirmDelete ? (
           <div className="space-y-2 px-3 py-3">

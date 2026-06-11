@@ -2,7 +2,6 @@
 
 import dynamic from "next/dynamic";
 import { useCallback, useState } from "react";
-import { CAPTURE_PLAN_CANVAS_CHROME } from "@/lib/site-walk/capture-plan-canvas-tokens";
 import type { SiteWalkPlanSet, SiteWalkPlanSheet } from "@/lib/types/site-walk";
 import { CaptureStopFilmstrip } from "../CaptureStopFilmstrip";
 import { CaptureV2SourcePickerSheet } from "../CaptureV2SourcePickerSheet";
@@ -48,6 +47,7 @@ export function WithPlansCaptureCanvas({
   onPlanCaptureSaved,
   devExposeMap = false,
 }: Props) {
+  const [filmstripExpanded, setFilmstripExpanded] = useState(false);
   const [pinRefreshKey, setPinRefreshKey] = useState(0);
   const refreshPins = useCallback(() => {
     setPinRefreshKey((value) => value + 1);
@@ -66,7 +66,6 @@ export function WithPlansCaptureCanvas({
     photo360Entitled,
     onPinsRefresh: refreshPins,
   });
-  const safeBottom = "env(safe-area-inset-bottom)";
 
   if (pinCapture.captureActive) {
     return (
@@ -119,22 +118,21 @@ export function WithPlansCaptureCanvas({
         sheetPosition={canvas.sheetPosition}
         hidden={!canvas.chromeVisible}
         onOpenSheetPicker={canvas.openSheetPicker}
+        showFilmstripToggle
+        filmstripExpanded={filmstripExpanded}
+        onFilmstripToggle={() => setFilmstripExpanded((value) => !value)}
+        filmstripPanel={
+          <CaptureStopFilmstrip
+            variant="topBar"
+            loop={loop}
+            collapsed={!filmstripExpanded}
+            hidden={!canvas.chromeVisible}
+            onSelectItem={canvas.handleSelectStop}
+            onDeleteItem={canvas.handleDeleteStop}
+            deletingItemId={loop.deletingStopId}
+          />
+        }
       />
-
-      <div
-        className="pointer-events-none absolute inset-x-0 z-20"
-        style={{ bottom: `calc(${CAPTURE_PLAN_CANVAS_CHROME.planFilmstripBottomPx}px + ${safeBottom})` }}
-      >
-        <CaptureStopFilmstrip
-          variant="overlay"
-          loop={loop}
-          defaultCollapsed
-          hidden={!canvas.chromeVisible}
-          onSelectItem={canvas.handleSelectStop}
-          onDeleteItem={canvas.handleDeleteStop}
-          deletingItemId={loop.deletingStopId}
-        />
-      </div>
 
       <CapturePlanBottomRail
         hidden={!canvas.chromeVisible}

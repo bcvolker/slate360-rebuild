@@ -32,12 +32,28 @@ function pushSample(buffer: number[], value: number, max: number) {
   if (buffer.length > max) buffer.shift();
 }
 
+type MotionCtor = typeof DeviceMotionEvent & {
+  requestPermission?: () => Promise<"granted" | "denied">;
+};
+
 async function requestIosSensorPermission(): Promise<TwinSensorPermission> {
-  const ctor = DeviceOrientationEvent as OrientationCtor;
-  if (typeof ctor.requestPermission !== "function") return "granted";
+  // iOS gates DeviceOrientationEvent and DeviceMotionEvent behind SEPARATE
+  // permission prompts; both must be requested from the same user gesture or
+  // the guide gets a level line but never any pace/steadiness data.
+  const orientationCtor = DeviceOrientationEvent as OrientationCtor;
+  const motionCtor = DeviceMotionEvent as MotionCtor;
+  const needsOrientation = typeof orientationCtor.requestPermission === "function";
+  const needsMotion = typeof motionCtor.requestPermission === "function";
+  if (!needsOrientation && !needsMotion) return "granted";
   try {
-    const result = await ctor.requestPermission();
-    return result === "granted" ? "granted" : "denied";
+    let granted = true;
+    if (needsOrientation) {
+      granted = (await orientationCtor.requestPermission!()) === "granted" && granted;
+    }
+    if (needsMotion) {
+      granted = (await motionCtor.requestPermission!()) === "granted" && granted;
+    }
+    return granted ? "granted" : "denied";
   } catch {
     return "denied";
   }
@@ -219,12 +235,23 @@ export function useTwinCaptureDeviceSensors({
     if (typeof window === "undefined") return;
 
     let active = true;
+    let rollEma: number | null = null;
+    let lastRollUpdate = 0;
     const onOrientation = (event: DeviceOrientationEvent) => {
       if (!active) return;
       setLastOrientationEventAt(Date.now());
       if (event.gamma === null) return;
       setOrientationSupported(true);
-      setRollDeg(event.gamma);
+      // Exponential moving average + ~30Hz cap: raw 60Hz gamma straight into a
+      // rotation transform reads as a frantic wobble on real devices.
+      rollEma =
+        rollEma === null
+          ? event.gamma
+          : rollEma + TWIN_CAPTURE_GUIDE.rollSmoothingAlpha * (event.gamma - rollEma);
+      const now = Date.now();
+      if (now - lastRollUpdate < TWIN_CAPTURE_GUIDE.rollUpdateIntervalMs) return;
+      lastRollUpdate = now;
+      setRollDeg(rollEma);
     };
 
     window.addEventListener("deviceorientation", onOrientation);

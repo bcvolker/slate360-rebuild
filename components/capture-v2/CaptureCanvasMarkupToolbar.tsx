@@ -3,14 +3,21 @@
 import { useEffect, useState } from "react";
 import {
   ArrowUpRight,
+  Check,
   Circle,
   MousePointer2,
   Pencil,
+  Redo2,
   Square,
   Trash2,
   Type,
+  Undo2,
 } from "lucide-react";
 import { VECTOR_TOOL_EVENT, type VectorTool } from "@/components/site-walk/capture/UnifiedVectorToolbar";
+import {
+  PHOTO_MARKUP_REDO_EVENT,
+  PHOTO_MARKUP_UNDO_EVENT,
+} from "@/components/site-walk/capture/useMarkupCanvasState";
 import {
   CAPTURE_CANVAS_MARKUP_COLORS,
   readCaptureMarkupColor,
@@ -32,7 +39,13 @@ function publish(tool: VectorTool, color: string, strokeWidth: number, deleteSel
   );
 }
 
-export function CaptureCanvasMarkupToolbar({ hidden }: { hidden?: boolean }) {
+export function CaptureCanvasMarkupToolbar({
+  hidden,
+  onClose,
+}: {
+  hidden?: boolean;
+  onClose?: () => void;
+}) {
   const [activeTool, setActiveTool] = useState<VectorTool>("draw");
   const [strokeWidth, setStrokeWidth] = useState(5);
   const [activeColor, setActiveColor] = useState(readCaptureMarkupColor);
@@ -50,6 +63,40 @@ export function CaptureCanvasMarkupToolbar({ hidden }: { hidden?: boolean }) {
       role="toolbar"
       aria-label="Markup tools"
     >
+      {onClose ? (
+        <>
+          <button
+            type="button"
+            onClick={onClose}
+            data-capture-chrome="markup-done"
+            className="inline-flex h-9 shrink-0 items-center justify-center gap-1 rounded-lg bg-[var(--graphite-primary)] px-2.5 text-[11px] font-semibold text-[var(--graphite-canvas)] transition active:scale-[0.98]"
+            aria-label="Done with markup"
+          >
+            <Check className="h-4 w-4" strokeWidth={2.5} />
+            Done
+          </button>
+          <div className="mx-0.5 h-7 w-px shrink-0 bg-[var(--mobile-app-card-border)]" />
+        </>
+      ) : null}
+      <button
+        type="button"
+        onClick={() => window.dispatchEvent(new Event(PHOTO_MARKUP_UNDO_EVENT))}
+        data-capture-chrome="markup-undo"
+        className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]"
+        aria-label="Undo"
+      >
+        <Undo2 className="h-4 w-4" />
+      </button>
+      <button
+        type="button"
+        onClick={() => window.dispatchEvent(new Event(PHOTO_MARKUP_REDO_EVENT))}
+        data-capture-chrome="markup-redo"
+        className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]"
+        aria-label="Redo"
+      >
+        <Redo2 className="h-4 w-4" />
+      </button>
+      <div className="mx-0.5 h-7 w-px shrink-0 bg-[var(--mobile-app-card-border)]" />
       {TOOLS.map((tool) => {
         const Icon = tool.icon;
         const active = activeTool === tool.value;

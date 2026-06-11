@@ -43,8 +43,8 @@ export function CaptureV2PhotoPins({
   const [localPins, setLocalPins] = useState(pins);
   const [activePinId, setActivePinId] = useState<string | null>(null);
   const [labelDraft, setLabelDraft] = useState("Untitled");
+  const [noteDraft, setNoteDraft] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(false);
-  const [overflowOpen, setOverflowOpen] = useState(false);
   const [draggingPinId, setDraggingPinId] = useState<string | null>(null);
   const [cardPosition, setCardPosition] = useState({ left: 0, top: 0 });
   const [recentlyAttachedFileId, setRecentlyAttachedFileId] = useState<string | null>(null);
@@ -60,8 +60,8 @@ export function CaptureV2PhotoPins({
     if (!pin) return;
     setActivePinId(openPinId);
     setLabelDraft(pin.label?.trim() || "Untitled");
+    setNoteDraft(pin.note ?? "");
     setConfirmDelete(false);
-    setOverflowOpen(false);
   }, [openPinId, pins]);
 
   useEffect(() => {
@@ -72,8 +72,8 @@ export function CaptureV2PhotoPins({
     if (added) {
       setActivePinId(added.id);
       setLabelDraft(added.label?.trim() || "Untitled");
+      setNoteDraft(added.note ?? "");
       setConfirmDelete(false);
-      setOverflowOpen(false);
     }
     prevPinIdsRef.current = nextIds;
   }, [pins]);
@@ -102,7 +102,7 @@ export function CaptureV2PhotoPins({
       const centerX = rect.left + rect.width / 2;
       const belowTop = rect.bottom + CARD_GAP_PX;
       const aboveTop = rect.top - CARD_GAP_PX;
-      const estimatedHeight = 220;
+      const estimatedHeight = 290;
       const preferBelow = belowTop + estimatedHeight < window.innerHeight - 16;
       const clampedLeft = Math.round(
         Math.min(Math.max(centerX, CARD_WIDTH_PX / 2 + 8), window.innerWidth - CARD_WIDTH_PX / 2 - 8),
@@ -147,7 +147,6 @@ export function CaptureV2PhotoPins({
     onPinsChange(nextPins);
     setActivePinId(null);
     setConfirmDelete(false);
-    setOverflowOpen(false);
   }
 
   function commitLabel() {
@@ -175,11 +174,34 @@ export function CaptureV2PhotoPins({
     }, 350);
   }
 
+  function commitNote() {
+    if (!activePinId) return;
+    const trimmed = noteDraft.trim();
+    const nextPins = localPins.map((pin) => (pin.id === activePinId ? { ...pin, note: trimmed } : pin));
+    localPinsRef.current = nextPins;
+    setLocalPins(nextPins);
+    onPinsChange(nextPins);
+  }
+
+  function handleNoteChange(value: string) {
+    setNoteDraft(value);
+    if (labelSaveTimerRef.current) window.clearTimeout(labelSaveTimerRef.current);
+    labelSaveTimerRef.current = window.setTimeout(() => {
+      if (!activePinId) return;
+      const nextPins = localPinsRef.current.map((pin) =>
+        pin.id === activePinId ? { ...pin, note: value.trim() } : pin,
+      );
+      localPinsRef.current = nextPins;
+      setLocalPins(nextPins);
+      onPinsChange(nextPins);
+    }, 350);
+  }
+
   function closeCard() {
     commitLabel();
+    commitNote();
     setActivePinId(null);
     setConfirmDelete(false);
-    setOverflowOpen(false);
   }
 
   function beginPinPress(event: ReactPointerEvent<HTMLButtonElement>, pin: PhotoAttachmentPin) {
@@ -205,7 +227,6 @@ export function CaptureV2PhotoPins({
       setDraggingPinId(drag.pinId);
       setActivePinId(null);
       setConfirmDelete(false);
-      setOverflowOpen(false);
     }
     if (!drag.dragging) return;
     updatePinPosition(drag.pinId, event.clientX, event.clientY);
@@ -224,8 +245,8 @@ export function CaptureV2PhotoPins({
       return;
     }
     setConfirmDelete(false);
-    setOverflowOpen(false);
     setLabelDraft(pin.label?.trim() || "Untitled");
+    setNoteDraft(pin.note ?? "");
     setActivePinId((current) => (current === pin.id ? null : pin.id));
   }
 
@@ -273,23 +294,20 @@ export function CaptureV2PhotoPins({
             <CaptureV2PhotoPinCard
               pin={activePin}
               labelDraft={labelDraft}
+              noteDraft={noteDraft}
               confirmDelete={confirmDelete}
-              overflowOpen={overflowOpen}
               recentlyAttachedFileId={recentlyAttachedFileId}
               style={cardPosition}
               onLabelChange={handleLabelChange}
               onLabelCommit={commitLabel}
+              onNoteChange={handleNoteChange}
+              onNoteCommit={commitNote}
               onClose={closeCard}
               onAttachFile={() => onAttachFile(activePin)}
               onAttachPhoto={() => onAttachPhoto(activePin)}
               onDeleteRequest={() => setConfirmDelete(true)}
               onDeleteConfirm={() => removePin(activePin.id)}
               onDeleteCancel={() => setConfirmDelete(false)}
-              onOverflowToggle={() => setOverflowOpen((value) => !value)}
-              onFocusLabel={() => {
-                setOverflowOpen(false);
-                document.querySelector<HTMLInputElement>('[data-capture-chrome="pin-label-input"]')?.focus();
-              }}
               onOpenAttachment={setPreviewFile}
             />,
             document.body,

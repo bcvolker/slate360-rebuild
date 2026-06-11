@@ -35,6 +35,7 @@ export function CaptureV2VoiceMemosSection({
 }: Props) {
   return (
     <section className={`${noteReviewTokens.margin} pb-3`} data-note-review="voice-memos">
+      <div className={noteReviewTokens.sectionCard}>
       <div className="flex items-center justify-between gap-2">
         <span className={noteReviewTokens.sectionLabel}>Voice memos</span>
         <span className="text-[10px] text-[var(--graphite-muted)]">transcribed automatically</span>
@@ -74,6 +75,7 @@ export function CaptureV2VoiceMemosSection({
             Stop &amp; save
           </button>
         )}
+      </div>
       </div>
     </section>
   );

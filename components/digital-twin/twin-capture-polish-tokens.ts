@@ -27,6 +27,15 @@ export const TWIN_CAPTURE_GUIDE = {
   /** (deg/s)² variance — hand shake raises gyro rotation-rate spread */
   stabilityVarianceWarn: 90,
   stabilityVarianceSevere: 320,
+  /** Level bubble damping — EMA factor + display throttle keep it calm */
+  rollSmoothingAlpha: 0.12,
+  rollUpdateIntervalMs: 33,
+  rollDeadbandDeg: 1.25,
+  rollMaxDeg: 15,
+  bubbleTrackWidthPx: 150,
+  bubbleTrackHeightPx: 26,
+  bubbleSizePx: 14,
+  bubblePxPerDeg: 4.2,
 } as const;
 
 export type TwinCaptureGuideState =

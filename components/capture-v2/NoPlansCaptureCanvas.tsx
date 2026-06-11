@@ -166,7 +166,7 @@ export function NoPlansCaptureCanvas({
               ? canvas.capturedHeaderLabel
               : canvas.liveHeaderLabel
         }
-        hidden={!canvas.chromeVisible}
+        hidden={!canvas.chromeVisible || (canvas.showPreview && canvas.markupEnabled)}
         onToggleChrome={() => canvas.setChromeVisible((value) => !value)}
         onBack={planPinFlow ? planPinFlow.onReturnToPlan : undefined}
         showFilmstripToggle={!canvas.showPreview}
@@ -179,11 +179,11 @@ export function NoPlansCaptureCanvas({
         <div
           className="pointer-events-auto absolute inset-x-0 z-30 px-3"
           style={{
-            top: `calc(max(env(safe-area-inset-top), ${CAPTURE_CANVAS_CHROME.topInsetPx}px) + ${CAPTURE_CANVAS_CHROME.topBarHeightPx}px + ${CAPTURE_CANVAS_CHROME.markupToolbarGapPx}px)`,
+            top: `max(env(safe-area-inset-top), ${CAPTURE_CANVAS_CHROME.topInsetPx}px)`,
           }}
           data-capture-chrome="markup-toolbar-host"
         >
-          <CaptureCanvasMarkupToolbar />
+          <CaptureCanvasMarkupToolbar onClose={() => canvas.handleSelectTool("markup")} />
         </div>
       ) : null}
 
@@ -203,7 +203,7 @@ export function NoPlansCaptureCanvas({
 
       {canvas.showPreview && canvas.activeItem ? (
         <CaptureCanvasAngleThumbs
-          hidden={!canvas.chromeVisible}
+          hidden={!canvas.chromeVisible || canvas.markupEnabled}
           item={canvas.activeItem}
           activeAngleId={canvas.activeAngleId}
           onSelectMain={canvas.handleSelectMain}
@@ -214,7 +214,7 @@ export function NoPlansCaptureCanvas({
 
       <CaptureCanvasBottomRail
         busy={loop.busy}
-        hidden={!canvas.chromeVisible}
+        hidden={!canvas.chromeVisible || (canvas.showPreview && canvas.markupEnabled)}
         variant={canvas.showPreview && !canvas.angleCaptureMode ? "captured" : "live"}
         captureBlocked={canvas.captureBlocked}
         torchSupported={canvas.torch.torchSupported}

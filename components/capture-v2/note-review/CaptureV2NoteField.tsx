@@ -22,9 +22,10 @@ export function CaptureV2NoteField({
   aiMessage,
 }: Props) {
   return (
-    <section className={`${noteReviewTokens.margin} pb-2`} data-note-review="note-card">
-      <span className={noteReviewTokens.sectionLabel}>Field note</span>
-      <textarea
+    <section className={`${noteReviewTokens.margin} pb-2 pt-2`} data-note-review="note-card">
+      <div className={noteReviewTokens.sectionCard}>
+        <span className={noteReviewTokens.sectionLabel}>Field note</span>
+        <textarea
         ref={notesRef}
         name="field-notes"
         data-testid="note-review-field"
@@ -37,9 +38,10 @@ export function CaptureV2NoteField({
         className={`mt-2 ${noteReviewTokens.fieldInput} min-h-[120px]`}
         style={{ WebkitUserSelect: "text", userSelect: "text" }}
       />
-      {(dictationError || aiMessage) && (
-        <p className="mt-1.5 text-xs text-[var(--graphite-muted)]">{dictationError ?? aiMessage}</p>
-      )}
+        {(dictationError || aiMessage) && (
+          <p className="mt-1.5 text-xs text-[var(--graphite-muted)]">{dictationError ?? aiMessage}</p>
+        )}
+      </div>
     </section>
   );
 }

@@ -12,6 +12,10 @@ export const noteReviewTokens = {
     "truncate font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--graphite-primary)]",
   sectionLabel:
     "text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--graphite-muted)]",
+  sectionCard:
+    "rounded-xl border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--surface-zinc)_55%,transparent)] p-3",
+  fieldLabel:
+    "mb-1 block text-[10px] font-semibold uppercase tracking-[0.1em] text-[var(--graphite-muted)]",
   cardSurface:
     "rounded-xl border border-[var(--mobile-app-card-border)] bg-[var(--surface-zinc)]",
   fieldInput:

@@ -39,10 +39,15 @@ export function CaptureV2NoteAccessoryRow({
           onTouchStart={(event) => event.preventDefault()}
           onClick={onToggleDictation}
           disabled={dictationDisabled || transcribing}
-          aria-label={recording ? "Stop dictation" : "Start dictation"}
-          className={`${noteReviewTokens.micButton} ${recording ? "border-red-500/40 text-red-300" : ""}`}
+          className={`inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl border px-3 text-sm font-semibold transition active:scale-[0.99] disabled:opacity-50 ${
+            recording
+              ? "border-red-500/40 bg-red-500/10 text-red-300"
+              : "border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--surface-zinc)_90%,transparent)] text-[var(--graphite-text-header)]"
+          }`}
+          data-note-review="dictate-button"
         >
           {recording ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+          {transcribing ? "Transcribing…" : recording ? "Stop dictation" : "Dictate note"}
         </button>
         <button
           type="button"
@@ -50,16 +55,16 @@ export function CaptureV2NoteAccessoryRow({
           onTouchStart={(event) => event.preventDefault()}
           onClick={onBoostWithAi}
           disabled={aiState === "formatting" || notesEmpty}
-          className={noteReviewTokens.aiBoostChip}
+          className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl border border-[var(--accent-border-blue)] bg-[color-mix(in_srgb,var(--twin360-blue)_12%,var(--surface-zinc))] px-3 text-sm font-semibold text-[color-mix(in_srgb,var(--twin360-blue)_88%,white)] transition active:scale-[0.99] disabled:opacity-50"
+          data-note-review="ai-boost-button"
         >
           {aiState === "formatting" ? (
-            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
-            <Sparkles className="h-3.5 w-3.5" />
+            <Sparkles className="h-4 w-4" />
           )}
-          Boost with AI
+          {aiState === "formatting" ? "Boosting…" : "Boost with AI"}
         </button>
-        <span className="min-w-0 flex-1" aria-hidden />
       </div>
     </div>
   );

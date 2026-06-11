@@ -38,6 +38,7 @@ export function CaptureV2NoteReviewTags({ tags, previousTags = [], onChange }: P
 
   return (
     <section className={`${noteReviewTokens.margin} pb-3`} data-note-review="tags">
+      <div className={noteReviewTokens.sectionCard}>
       <span className={noteReviewTokens.sectionLabel}>Tags</span>
       <div className="mt-2 flex flex-wrap gap-2">
         {tags.map((tag) => (
@@ -93,6 +94,7 @@ export function CaptureV2NoteReviewTags({ tags, previousTags = [], onChange }: P
             + tag
           </button>
         )}
+      </div>
       </div>
     </section>
   );

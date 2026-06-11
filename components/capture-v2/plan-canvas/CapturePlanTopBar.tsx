@@ -1,7 +1,8 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronDown, ChevronLeft, Layers3 } from "lucide-react";
+import { ChevronDown, ChevronLeft, ChevronUp, Layers3 } from "lucide-react";
 import { CAPTURE_PLAN_CANVAS_CHROME } from "@/lib/site-walk/capture-plan-canvas-tokens";
 import { CAPTURE_V2_LAYERS } from "../layers";
 
@@ -10,6 +11,10 @@ type Props = {
   sheetPosition: string;
   hidden?: boolean;
   onOpenSheetPicker: () => void;
+  showFilmstripToggle?: boolean;
+  filmstripExpanded?: boolean;
+  onFilmstripToggle?: () => void;
+  filmstripPanel?: ReactNode;
 };
 
 export function CapturePlanTopBar({
@@ -17,6 +22,10 @@ export function CapturePlanTopBar({
   sheetPosition,
   hidden = false,
   onOpenSheetPicker,
+  showFilmstripToggle = false,
+  filmstripExpanded = false,
+  onFilmstripToggle,
+  filmstripPanel,
 }: Props) {
   const router = useRouter();
   if (hidden) return null;
@@ -60,6 +69,19 @@ export function CapturePlanTopBar({
           <ChevronDown className="h-4 w-4 shrink-0 text-[var(--graphite-muted)]" />
         </button>
 
+        {showFilmstripToggle ? (
+          <button
+            type="button"
+            onClick={onFilmstripToggle}
+            data-capture-chrome="plan-filmstrip-toggle"
+            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[var(--graphite-text-header)] transition active:scale-[0.98]"
+            aria-expanded={filmstripExpanded}
+            aria-label={filmstripExpanded ? "Hide stop tracker" : "Show stop tracker"}
+          >
+            {filmstripExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          </button>
+        ) : null}
+
         <button
           type="button"
           disabled
@@ -70,6 +92,15 @@ export function CapturePlanTopBar({
           <Layers3 className="h-4 w-4" />
         </button>
       </div>
+
+      {filmstripPanel ? (
+        <div
+          className={`w-full ${filmstripExpanded ? "mt-2" : "sr-only"}`}
+          aria-hidden={!filmstripExpanded}
+        >
+          {filmstripPanel}
+        </div>
+      ) : null}
     </header>
   );
 }
