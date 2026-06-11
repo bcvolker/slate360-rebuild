@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { TwinCaptureBottomRail } from "./TwinCaptureBottomRail";
 import { TwinCaptureClipChips } from "./TwinCaptureClipChips";
-import { TwinCaptureClipGhost } from "./TwinCaptureClipGhost";
+import { TwinCaptureClipGhost, type TwinGhostLevel } from "./TwinCaptureClipGhost";
 import { TwinCaptureGuide } from "./TwinCaptureGuide";
 import { TwinCaptureDebugOverlay } from "./TwinCaptureDebugOverlay";
 import { TwinCaptureHudToast } from "./TwinCaptureHudToast";
@@ -100,6 +100,7 @@ export function TwinCaptureScreen({
 
   const [chromeVisible, setChromeVisible] = useState(true);
   const [clipsExpanded, setClipsExpanded] = useState(false);
+  const [ghostLevel, setGhostLevel] = useState<TwinGhostLevel>(1);
   const prevClipCountRef = useRef(0);
   const [lastShutterTapAt, setLastShutterTapAt] = useState<number | null>(null);
   const facingMode = "environment";
@@ -296,6 +297,8 @@ export function TwinCaptureScreen({
           imageUrl={ghost.ghostUrl}
           opacity={ghost.ghostOpacity}
           visible={ghost.ghostVisible}
+          level={ghostLevel}
+          onCycleLevel={() => setGhostLevel((value) => ((value + 1) % 3) as TwinGhostLevel)}
         />
 
         <TwinCaptureTopBar

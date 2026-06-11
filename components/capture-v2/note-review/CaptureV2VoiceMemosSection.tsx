@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Loader2, Mic, Pause, Pencil, Play, Square, Trash2 } from "lucide-react";
+import { Loader2, Mic, Pause, Pencil, Play, Trash2 } from "lucide-react";
 import type { VoiceMemoRow } from "./useCaptureV2VoiceMemos";
 import { noteReviewTokens } from "./capture-v2-note-review-tokens";
 
@@ -33,12 +33,23 @@ export function CaptureV2VoiceMemosSection({
   onSaveTranscript,
   onDeleteMemo,
 }: Props) {
+  const [elapsedMs, setElapsedMs] = useState(0);
+
+  useEffect(() => {
+    if (!recording) {
+      setElapsedMs(0);
+      return;
+    }
+    const startedAt = Date.now();
+    const timer = window.setInterval(() => setElapsedMs(Date.now() - startedAt), 500);
+    return () => window.clearInterval(timer);
+  }, [recording]);
   return (
     <section className={`${noteReviewTokens.margin} pb-3`} data-note-review="voice-memos">
       <div className={noteReviewTokens.sectionCard}>
       <div className="flex items-center justify-between gap-2">
         <span className={noteReviewTokens.sectionLabel}>Voice memos</span>
-        <span className="text-[10px] text-[var(--graphite-muted)]">transcribed automatically</span>
+        <span className="text-[10px] text-[var(--graphite-muted)]">saved as audio + transcript</span>
       </div>
 
       <div className="mt-2 space-y-2">
@@ -52,7 +63,11 @@ export function CaptureV2VoiceMemosSection({
         ))}
       </div>
 
-      {error && <p className="mt-2 text-xs text-red-400">{error}</p>}
+      {error && (
+        <p className="mt-2 rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm font-semibold text-red-300">
+          {error}
+        </p>
+      )}
 
       <div className="mt-2">
         {!recording ? (
@@ -71,8 +86,8 @@ export function CaptureV2VoiceMemosSection({
             onClick={onStopRecord}
             className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-red-500/40 bg-red-500/10 px-4 text-sm font-semibold text-red-300"
           >
-            <Square className="h-4 w-4" />
-            Stop &amp; save
+            <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-red-400" aria-hidden />
+            Recording {formatDuration(elapsedMs)} — tap to stop &amp; save
           </button>
         )}
       </div>

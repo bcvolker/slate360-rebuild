@@ -12,6 +12,7 @@ const HOLD_MS = 550;
 
 type Props = {
   hidden?: boolean;
+  variant?: "overlay" | "panel";
   item: CaptureItemRecord;
   activeAngleId: string | null;
   onSelectMain: () => void;
@@ -21,6 +22,7 @@ type Props = {
 
 export function CaptureCanvasAngleThumbs({
   hidden,
+  variant = "overlay",
   item,
   activeAngleId,
   onSelectMain,
@@ -38,6 +40,42 @@ export function CaptureCanvasAngleThumbs({
       clearTimeout(holdRef.current);
       holdRef.current = null;
     }
+  }
+
+  if (variant === "panel") {
+    return (
+      <div
+        className="pointer-events-auto flex w-full gap-2 overflow-x-auto no-scrollbar rounded-xl border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_85%,transparent)] px-3 py-2 backdrop-blur-md"
+        aria-label="Photo angles"
+        data-capture-chrome="angle-thumbs-panel"
+      >
+        <Thumb
+          label="Main"
+          imageUrl={mainUrl}
+          active={!activeAngleId}
+          onClick={onSelectMain}
+          onHoldStart={() => {}}
+          onHoldEnd={clearHold}
+        />
+        {angles.map((angle) => (
+          <Thumb
+            key={angle.id}
+            label={angle.label}
+            imageUrl={getPhotoAngleImageUrl(item, angle.id)}
+            active={activeAngleId === angle.id}
+            onClick={() => onSelectAngle(angle.id)}
+            onHoldStart={() => {
+              clearHold();
+              holdRef.current = setTimeout(() => {
+                onPromoteAngle(angle.id);
+                holdRef.current = null;
+              }, HOLD_MS);
+            }}
+            onHoldEnd={clearHold}
+          />
+        ))}
+      </div>
+    );
   }
 
   return (

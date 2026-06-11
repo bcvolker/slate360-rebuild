@@ -86,6 +86,35 @@ export function useCaptureV2PhotoCanvasState({
   useEffect(() => {
     if (markupEnabled) setTool("draw");
   }, [markupEnabled]);
+
+  // The toolbar's undo/redo buttons dispatch the shared markup history events;
+  // only the legacy V1 canvas listened for them. Wire them here too.
+  useEffect(() => {
+    function undo() {
+      const previous = undoRef.current.pop();
+      if (!previous) return;
+      redoRef.current = [shapesRef.current, ...redoRef.current.slice(0, 14)];
+      shapesRef.current = previous;
+      setShapes(previous);
+      setSelectedId(null);
+      emitMarkup(previous);
+    }
+    function redo() {
+      const next = redoRef.current.shift();
+      if (!next) return;
+      undoRef.current = [...undoRef.current.slice(-14), shapesRef.current];
+      shapesRef.current = next;
+      setShapes(next);
+      setSelectedId(null);
+      emitMarkup(next);
+    }
+    window.addEventListener("site-walk-photo-markup-undo", undo);
+    window.addEventListener("site-walk-photo-markup-redo", redo);
+    return () => {
+      window.removeEventListener("site-walk-photo-markup-undo", undo);
+      window.removeEventListener("site-walk-photo-markup-redo", redo);
+    };
+  }, [emitMarkup]);
   useEffect(() => {
     const nextShapes = initialMarkup?.shapes ?? [];
     shapesRef.current = nextShapes;

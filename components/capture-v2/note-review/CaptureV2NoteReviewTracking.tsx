@@ -90,7 +90,8 @@ export function CaptureV2NoteReviewTracking({ draft, assignees, onPatch }: Props
             onChange={(event) =>
               onPatch({ dueDate: event.target.value ? event.target.value : "" })
             }
-            className={noteReviewTokens.selectField}
+            className={`${noteReviewTokens.selectField} appearance-none [&::-webkit-date-and-time-value]:text-left`}
+            style={{ maxWidth: "100%", overflow: "hidden" }}
             aria-label="Due date"
           />
         </label>

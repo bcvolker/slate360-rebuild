@@ -47,7 +47,7 @@ export function CaptureV2NoteAccessoryRow({
           data-note-review="dictate-button"
         >
           {recording ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
-          {transcribing ? "Transcribing…" : recording ? "Stop dictation" : "Dictate note"}
+          {transcribing ? "Transcribing…" : recording ? "Stop — add to note" : "Voice-to-text"}
         </button>
         <button
           type="button"

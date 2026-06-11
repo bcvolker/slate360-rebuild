@@ -95,6 +95,15 @@ export function NoPlansCaptureCanvas({
       onDeleteItem={canvas.handleDeleteStop}
       deletingItemId={loop.deletingStopId}
     />
+  ) : canvas.activeItem ? (
+    <CaptureCanvasAngleThumbs
+      variant="panel"
+      item={canvas.activeItem}
+      activeAngleId={canvas.activeAngleId}
+      onSelectMain={canvas.handleSelectMain}
+      onSelectAngle={canvas.handleSelectAngle}
+      onPromoteAngle={canvas.handlePromoteAngle}
+    />
   ) : null;
 
   return (
@@ -169,7 +178,7 @@ export function NoPlansCaptureCanvas({
         hidden={!canvas.chromeVisible || (canvas.showPreview && canvas.markupEnabled)}
         onToggleChrome={() => canvas.setChromeVisible((value) => !value)}
         onBack={planPinFlow ? planPinFlow.onReturnToPlan : undefined}
-        showFilmstripToggle={!canvas.showPreview}
+        showFilmstripToggle
         filmstripExpanded={canvas.filmstripExpanded}
         onFilmstripToggle={() => canvas.setFilmstripExpanded((value) => !value)}
         filmstripPanel={topBarFilmstrip}
@@ -200,17 +209,6 @@ export function NoPlansCaptureCanvas({
         ghostAvailable={canvas.ghostAvailable}
         onGhostTap={canvas.handleGhostTap}
       />
-
-      {canvas.showPreview && canvas.activeItem ? (
-        <CaptureCanvasAngleThumbs
-          hidden={!canvas.chromeVisible || canvas.markupEnabled}
-          item={canvas.activeItem}
-          activeAngleId={canvas.activeAngleId}
-          onSelectMain={canvas.handleSelectMain}
-          onSelectAngle={canvas.handleSelectAngle}
-          onPromoteAngle={canvas.handlePromoteAngle}
-        />
-      ) : null}
 
       <CaptureCanvasBottomRail
         busy={loop.busy}

@@ -171,8 +171,11 @@ export function useNoPlansCaptureCanvas({
   );
 
   const handleCanvasTap = useCallback(() => {
+    // Drawing/pin gestures bubble click events; toggling chrome during markup
+    // strands the user on a bare photo when they close the toolbar.
+    if (markupEnabled) return;
     setChromeVisible((value) => !value);
-  }, []);
+  }, [markupEnabled]);
 
   const handleShutterTapLive = useCallback(() => {
     if (!camera.streamAlive || camera.needsUserResume || !camera.hasLiveFrames) {
@@ -264,6 +267,7 @@ export function useNoPlansCaptureCanvas({
         return;
       }
       setActiveTool((current) => (current === tool ? null : tool));
+      setChromeVisible(true);
     },
     [enterAngleCaptureMode],
   );

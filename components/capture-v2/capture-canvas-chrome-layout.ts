@@ -17,7 +17,7 @@ export const CAPTURE_CANVAS_CHROME = {
   sideInsetPx: 12,
   railSideInsetPx: 16,
   toolRailRightPx: 12,
-  toolRailTopPx: 90,
+  toolRailTopPx: 150,
   toolRailButtonPx: 52,
   angleThumbPx: 48,
   angleThumbRadiusPx: 10,
