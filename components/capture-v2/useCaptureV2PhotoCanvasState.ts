@@ -79,6 +79,13 @@ export function useCaptureV2PhotoCanvasState({
   }, [applyToolDetail]);
 
   useEffect(() => { selectedIdRef.current = selectedId; }, [selectedId]);
+
+  // The toolbar publishes its initial "draw" VECTOR_TOOL_EVENT on mount, which
+  // can fire before this hook's listener attaches — leaving the tool stuck on
+  // "select" so drags pan the photo instead of drawing. Sync directly.
+  useEffect(() => {
+    if (markupEnabled) setTool("draw");
+  }, [markupEnabled]);
   useEffect(() => {
     const nextShapes = initialMarkup?.shapes ?? [];
     shapesRef.current = nextShapes;
@@ -187,9 +194,15 @@ export function useCaptureV2PhotoCanvasState({
     return transformRef.current.scale > 1.01 || !markupEnabled;
   }
 
+  function clampTransform(next: Transform): Transform {
+    const scale = Math.min(4, Math.max(1, next.scale));
+    if (scale <= 1.001) return { x: 0, y: 0, scale: 1 };
+    return { ...next, scale };
+  }
+
   function processPointerMove(move: PendingMove) {
     if (pointersRef.current.size === 2 && pinchRef.current) {
-      updateTransform(computePinchTransform(pointersRef.current, pinchRef.current));
+      updateTransform(clampTransform(computePinchTransform(pointersRef.current, pinchRef.current)));
       return;
     }
     if (canPanGesture() && panRef.current) {
@@ -225,7 +238,13 @@ export function useCaptureV2PhotoCanvasState({
     if (rect && wasSinglePointer && isDoubleTap(doubleTapRef.current, event.clientX, event.clientY)) {
       updateTransform(applyDoubleTapZoom(transformRef.current, event.clientX, event.clientY, rect));
     }
-    if (pointersRef.current.size < 2) pinchRef.current = null;
+    if (pointersRef.current.size < 2) {
+      pinchRef.current = null;
+      // Easy escape hatch: ending a pinch near 1× snaps cleanly back to fit.
+      if (transformRef.current.scale < 1.12 && transformRef.current.scale !== 1) {
+        updateTransform({ x: 0, y: 0, scale: 1 });
+      }
+    }
     panRef.current = reanchorPan(pointersRef.current, transformRef.current);
     if (dragState) { setDragState(null); emitMarkup(); return; }
     const finalDraftStart = draftStartRef.current;

@@ -119,7 +119,7 @@ export const mobileHomeTokens = {
   appHomeQuickActionsSectionAccent:
     "mb-1 block h-0.5 w-6 rounded-full bg-[color-mix(in_srgb,var(--graphite-primary)_25%,transparent)]",
   appHomeQuickActionGrid: "grid shrink-0 grid-cols-2 gap-2 auto-rows-fr",
-  appHomeQuickActionCard: `flex min-h-[52px] flex-col items-start justify-center gap-0.5 px-2.5 py-2 text-left ${mobileAppHomeQuickActionCardSurface}`,
+  appHomeQuickActionCard: `flex min-h-[64px] flex-col items-start justify-center gap-0.5 px-2.5 py-2 text-left ${mobileAppHomeQuickActionCardSurface}`,
   appHomeQuickActionIconWrapper:
     "mb-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[var(--mobile-quick-action-icon-border)] bg-[var(--mobile-quick-action-icon-bg)]",
   appHomeQuickActionIcon: "h-5 w-5 shrink-0 text-[var(--mobile-quick-action-fg)]",
@@ -163,13 +163,13 @@ export const mobileHomeTokens = {
     "relative flex w-full shrink-0 flex-col overflow-hidden rounded-xl border border-[var(--surface-zinc-border)] bg-[var(--surface-zinc)]",
   appHomeSlateDropBody:
     "overflow-x-auto overflow-y-hidden overscroll-x-contain px-2 py-1 [-webkit-overflow-scrolling:touch]",
-  appHomeSlateDropRow: "flex h-14 flex-nowrap items-stretch gap-2",
+  appHomeSlateDropRow: "flex h-16 flex-nowrap items-stretch gap-2",
   appHomeSlateDropScrollFade:
     "pointer-events-none absolute inset-y-2 right-0 z-[1] w-10 rounded-r-xl bg-gradient-to-l from-[var(--surface-zinc)] via-[color-mix(in_srgb,var(--surface-zinc)_55%,transparent)] to-transparent",
   appHomeSlateDropCard:
-    "flex h-14 min-w-[var(--mobile-slatedrop-card-min-width)] shrink-0 flex-row items-center gap-2.5 rounded-lg border px-3 transition-all active:scale-[0.98]",
+    "flex h-16 min-w-[var(--mobile-slatedrop-card-min-width)] shrink-0 flex-row items-center gap-2.5 rounded-lg border px-3 transition-all active:scale-[0.98]",
   appHomeSlateDropTile:
-    "flex h-14 min-w-[var(--mobile-slatedrop-card-min-width)] shrink-0 flex-row items-center gap-2.5 rounded-lg border px-3 transition-all active:scale-[0.98]",
+    "flex h-16 min-w-[var(--mobile-slatedrop-card-min-width)] shrink-0 flex-row items-center gap-2.5 rounded-lg border px-3 transition-all active:scale-[0.98]",
   appHomeSlateDropTileSurface:
     "border-[var(--surface-zinc-border)] bg-[var(--surface-zinc)] hover:border-[color-mix(in_srgb,var(--surface-zinc-border)_70%,white)] hover:bg-[color-mix(in_srgb,var(--surface-zinc)_92%,white)]",
   appHomeSlateDropTileProject:
@@ -229,7 +229,7 @@ export const mobileHomeTokens = {
     "flex h-[50px] max-h-[50px] flex-col items-center justify-center gap-0.5 rounded-xl border border-white/10 bg-white/[0.05] px-1 py-1.5 text-zinc-200 transition-colors hover:border-white/15 hover:bg-white/[0.08] hover:text-white active:bg-white/[0.11]",
   appButtonBase:
     "flex flex-col items-center justify-center gap-1 rounded-xl border border-white/10 bg-white/[0.05] px-2 py-2 text-center transition-all hover:border-white/15 hover:bg-white/[0.08] active:bg-white/[0.11] active:ring-2 active:ring-white/15",
-  mobileAppLauncherTileHeight: "h-[110px] min-h-0 max-h-[116px]",
+  mobileAppLauncherTileHeight: "h-[128px] min-h-0 max-h-[136px]",
   appButtonIconWrapper:
     "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/[0.05]",
   appButtonIconClass: "h-5 w-5 text-zinc-200",

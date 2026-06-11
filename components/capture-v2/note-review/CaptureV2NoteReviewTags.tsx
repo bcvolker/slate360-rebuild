@@ -77,7 +77,7 @@ export function CaptureV2NoteReviewTags({ tags, previousTags = [], onChange }: P
                     key={tag}
                     type="button"
                     onClick={() => addTag(tag)}
-                    className="rounded-md border border-[var(--mobile-app-card-border)] px-2 py-0.5 text-[11px] text-[var(--graphite-muted)]"
+                    className="max-w-[9rem] truncate rounded-md border border-[var(--mobile-app-card-border)] px-2 py-0.5 text-[11px] text-[var(--graphite-muted)]"
                   >
                     {tag}
                   </button>

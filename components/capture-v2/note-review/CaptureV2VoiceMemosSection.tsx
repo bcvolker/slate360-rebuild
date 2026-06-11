@@ -189,7 +189,7 @@ function VoiceMemoRowView({
           className={`mt-2 ${noteReviewTokens.fieldInput} text-sm`}
         />
       ) : row.transcript ? (
-        <p className="mt-2 text-sm leading-snug text-[var(--graphite-text-body)]">{row.transcript}</p>
+        <p className="mt-2 break-words text-sm leading-snug text-[var(--graphite-text-body)]">{row.transcript}</p>
       ) : null}
 
       {confirmDelete && (

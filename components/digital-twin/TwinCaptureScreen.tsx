@@ -237,7 +237,8 @@ export function TwinCaptureScreen({
 
   useEffect(() => {
     // Recording needs a clean canvas (and the Capture Guide occupies the
-    // panel's slot); the panel re-opens when a clip lands so users see it saved.
+    // panel's slot); the panel peeks open when a clip lands so users see it
+    // saved, then tucks away so clips never accumulate on screen.
     if (recording) {
       setClipsExpanded(false);
       return;
@@ -245,6 +246,9 @@ export function TwinCaptureScreen({
     const completed = session.clips.filter((clip) => !clip.recording).length;
     if (completed > prevClipCountRef.current) {
       setClipsExpanded(true);
+      const timer = window.setTimeout(() => setClipsExpanded(false), 2600);
+      prevClipCountRef.current = completed;
+      return () => window.clearTimeout(timer);
     }
     prevClipCountRef.current = completed;
   }, [recording, session.clips]);

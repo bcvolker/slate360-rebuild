@@ -84,7 +84,7 @@ export function resolveTwinGuideState(
 
 export function twinGuideStateLabel(state: TwinCaptureGuideState): string | null {
   if (!state) return null;
-  if (state === "good") return "GOOD";
+  if (state === "good") return "SMOOTH · KEEP GOING";
   if (state.startsWith("slow_down")) return "SLOW DOWN";
   return "HOLD STEADY";
 }

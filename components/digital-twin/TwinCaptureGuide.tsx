@@ -95,6 +95,13 @@ export function TwinCaptureGuide({
       data-twin-chrome="capture-guide"
       data-twin-guide-state={guideState ?? "none"}
     >
+      <span
+        className={`px-1.5 py-0.5 font-mono text-[8px] font-semibold uppercase tracking-[0.14em] ${TWIN_CAPTURE_GLASS} ${TWIN_CAPTURE_HUD_TEXT}`}
+        style={{ opacity: 0.7 }}
+        aria-hidden
+      >
+        Capture guide
+      </span>
       <div
         className={`inline-flex items-center justify-center ${TWIN_CAPTURE_GLASS}`}
         style={{ width: size, height: size, opacity: 0.85 }}

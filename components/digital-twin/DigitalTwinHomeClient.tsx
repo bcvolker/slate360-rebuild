@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import {
   Activity,
   Boxes,
+  FolderOpen,
   MapPin,
   Scan,
   Upload,
@@ -114,6 +115,7 @@ export function DigitalTwinHomeClient({ twins, projects }: Props) {
         accent: "info",
         href: "/digital-twin/twins?status=processing",
       },
+      { label: "Projects", icon: FolderOpen, accent: "info", href: "/projects" },
     ],
     [],
   );

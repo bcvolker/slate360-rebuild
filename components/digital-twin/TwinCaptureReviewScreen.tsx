@@ -166,6 +166,15 @@ export function TwinCaptureReviewScreen({ canUseHighQuality, devPreview }: Props
     router.push("/digital-twin/capture");
   }, [router]);
 
+  const handleRemoveClip = useCallback((clipId: string) => {
+    setSession((prev) => {
+      if (!prev) return prev;
+      const next = { ...prev, clips: prev.clips.filter((clip) => clip.id !== clipId) };
+      setTwinCapturePendingSession(next);
+      return next;
+    });
+  }, []);
+
   const handleAddFiles = useCallback((files: File[], origin: "camera_roll" | "files") => {
     setAddedSources((prev) => [
       ...prev,
@@ -278,6 +287,7 @@ export function TwinCaptureReviewScreen({ canUseHighQuality, devPreview }: Props
           clips={session.clips}
           totalDurationSeconds={totalDurationSeconds}
           frameCount={frameCount}
+          onRemoveClip={handleRemoveClip}
         />
 
         <TwinCaptureReviewSources

@@ -33,8 +33,6 @@ export function CaptureCanvasAngleThumbs({
 
   if (hidden || item.item_type !== "photo") return null;
 
-  const safeBottom = "env(safe-area-inset-bottom)";
-
   function clearHold() {
     if (holdRef.current) {
       clearTimeout(holdRef.current);
@@ -46,7 +44,7 @@ export function CaptureCanvasAngleThumbs({
     <div
       className={`${CAPTURE_V2_LAYERS.filmstrip} pointer-events-auto absolute left-0 z-20 flex gap-2 overflow-x-auto no-scrollbar px-3`}
       style={{
-        bottom: `calc(${CAPTURE_CANVAS_CHROME.angleThumbBottomPx}px + ${safeBottom})`,
+        top: `calc(max(env(safe-area-inset-top), ${CAPTURE_CANVAS_CHROME.topInsetPx}px) + ${CAPTURE_CANVAS_CHROME.topBarHeightPx}px + 8px)`,
         maxWidth: "72%",
       }}
       aria-label="Photo angles"

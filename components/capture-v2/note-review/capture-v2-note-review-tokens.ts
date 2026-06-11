@@ -11,9 +11,9 @@ export const noteReviewTokens = {
   monoGreenLabel:
     "truncate font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--graphite-primary)]",
   sectionLabel:
-    "text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--graphite-muted)]",
+    "text-[10px] font-semibold uppercase tracking-[0.14em] text-[color-mix(in_srgb,var(--graphite-primary)_70%,var(--graphite-muted))]",
   sectionCard:
-    "rounded-xl border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--surface-zinc)_55%,transparent)] p-3",
+    "rounded-xl border border-[var(--mobile-app-card-border)] border-l-2 border-l-[color-mix(in_srgb,var(--graphite-primary)_45%,transparent)] bg-[color-mix(in_srgb,white_4%,var(--surface-zinc))] p-3",
   fieldLabel:
     "mb-1 block text-[10px] font-semibold uppercase tracking-[0.1em] text-[var(--graphite-muted)]",
   cardSurface:
@@ -21,7 +21,7 @@ export const noteReviewTokens = {
   fieldInput:
     "w-full resize-none rounded-xl border border-[var(--mobile-app-card-border)] bg-[var(--surface-zinc)] px-3 py-3 text-base leading-6 text-[var(--graphite-text-body)] outline-none placeholder:text-[var(--graphite-muted)] focus:border-[var(--accent-border-green)]",
   selectField:
-    "h-10 w-full rounded-xl border border-[var(--mobile-app-card-border)] bg-[var(--surface-zinc)] px-3 text-sm font-medium text-[var(--graphite-text-body)] outline-none focus:border-[var(--accent-border-green)] disabled:opacity-50",
+    "h-10 w-full min-w-0 max-w-full truncate rounded-xl border border-[var(--mobile-app-card-border)] bg-[var(--surface-zinc)] px-3 text-sm font-medium text-[var(--graphite-text-body)] outline-none focus:border-[var(--accent-border-green)] disabled:opacity-50",
   ghostButton:
     "inline-flex min-h-11 flex-1 items-center justify-center rounded-xl border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--surface-zinc)_80%,transparent)] px-4 text-sm font-semibold text-[var(--graphite-text-body)] transition active:scale-[0.99] disabled:opacity-50",
   primaryButton:

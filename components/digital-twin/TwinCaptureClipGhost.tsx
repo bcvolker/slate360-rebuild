@@ -13,7 +13,7 @@ export function TwinCaptureClipGhost({ imageUrl, opacity, visible }: Props) {
 
   return (
     <div
-      className="pointer-events-none absolute inset-0 z-[3] flex flex-col items-center justify-end pb-[28%]"
+      className="pointer-events-none absolute inset-0 z-[3] flex flex-col items-center justify-start pt-[184px]"
       data-twin-chrome="clip-ghost"
       style={{ opacity, transition: "opacity 320ms ease-out" }}
     >
