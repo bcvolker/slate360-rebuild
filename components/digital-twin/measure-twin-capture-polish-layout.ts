@@ -2,9 +2,9 @@ export type TwinCapturePolishMeasure = {
   coverageRingVisible: boolean;
   levelLineVisible: boolean;
   ghostVisible: boolean;
-  coveragePillVisible: boolean;
+  captureGuideVisible: boolean;
   overlapPairs: string[];
-  shutterToCoveragePillGapPx: number | null;
+  shutterToCaptureGuideGapPx: number | null;
   ghostToShutterOverlap: boolean;
 };
 
@@ -17,7 +17,7 @@ export function measureTwinCapturePolishLayout(): TwinCapturePolishMeasure | nul
     document.querySelector<HTMLElement>('[data-dev-device="mobile"]') ??
     document.querySelector<HTMLElement>('[data-twin-capture-screen]');
   const shutter = document.querySelector<HTMLElement>('[data-twin-chrome="shutter"]');
-  const coveragePill = document.querySelector<HTMLElement>('[data-twin-chrome="coverage-pill"]');
+  const captureGuide = document.querySelector<HTMLElement>('[data-twin-chrome="capture-guide"]');
   const levelLine = document.querySelector<HTMLElement>('[data-twin-chrome="level-line"]');
   const ghost = document.querySelector<HTMLElement>('[data-twin-chrome="clip-ghost-caption"]');
   const ghostOverlay = document.querySelector<HTMLElement>('[data-twin-chrome="clip-ghost"]');
@@ -28,13 +28,13 @@ export function measureTwinCapturePolishLayout(): TwinCapturePolishMeasure | nul
   if (!frame || !shutter) return null;
 
   const shutterRect = shutter.getBoundingClientRect();
-  const pillRect = coveragePill?.getBoundingClientRect() ?? null;
+  const guideRect = captureGuide?.getBoundingClientRect() ?? null;
   const ghostRect = ghost?.getBoundingClientRect() ?? null;
   const modeRect = modeSelector?.getBoundingClientRect() ?? null;
   const clipRect = clipChips?.getBoundingClientRect() ?? null;
 
   const nodes = [
-    pillRect && { id: "coverage-pill", rect: pillRect },
+    guideRect && { id: "capture-guide", rect: guideRect },
     levelLine && { id: "level-line", rect: levelLine.getBoundingClientRect() },
     ghostRect && { id: "clip-ghost", rect: ghostRect },
     clipRect && { id: "clip-chips", rect: clipRect },
@@ -55,11 +55,9 @@ export function measureTwinCapturePolishLayout(): TwinCapturePolishMeasure | nul
     coverageRingVisible: Boolean(coverageRing),
     levelLineVisible: Boolean(levelLine),
     ghostVisible: Boolean(ghostOverlay),
-    coveragePillVisible: Boolean(coveragePill),
+    captureGuideVisible: Boolean(captureGuide),
     overlapPairs,
-    shutterToCoveragePillGapPx: pillRect
-      ? Math.round(pillRect.top - shutterRect.bottom)
-      : null,
+    shutterToCaptureGuideGapPx: guideRect ? Math.round(guideRect.top - shutterRect.bottom) : null,
     ghostToShutterOverlap: ghostRect ? overlaps(ghostRect, shutterRect) : false,
   };
 }

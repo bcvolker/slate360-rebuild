@@ -1,5 +1,7 @@
 /** Dev-only fixtures for twin capture polish harness. */
 
+import { TWIN_CAPTURE_GUIDE } from "./twin-capture-polish-tokens";
+
 export const DEV_TWIN_GHOST_FRAME_URL = `data:image/svg+xml,${encodeURIComponent(
   `<svg xmlns="http://www.w3.org/2000/svg" width="480" height="640" viewBox="0 0 480 640"><rect width="480" height="640" fill="#1e293b"/><line x1="0" y1="320" x2="480" y2="300" stroke="#38bdf8" stroke-width="2" opacity="0.5"/><text x="50%" y="50%" text-anchor="middle" fill="#94a3b8" font-family="system-ui" font-size="20">Last clip frame</text></svg>`,
 )}`;
@@ -22,8 +24,24 @@ export function parseDevRollPreset(value: string | null): number | null {
     : null;
 }
 
+export function parseDevGuideVariancePreset(value: string | null): {
+  pace: number | null;
+  stability: number | null;
+} {
+  if (value === "slow") {
+    return { pace: TWIN_CAPTURE_GUIDE.paceVarianceSevere, stability: 4 };
+  }
+  if (value === "shake") {
+    return { pace: 0.08, stability: TWIN_CAPTURE_GUIDE.stabilityVarianceSevere };
+  }
+  if (value === "good") {
+    return { pace: 0.08, stability: 8 };
+  }
+  return { pace: null, stability: null };
+}
+
+/** @deprecated Use parseDevGuideVariancePreset */
 export function parseDevMotionPreset(value: string | null): number | null {
-  if (value === "slow") return 72;
-  if (value === "good") return 12;
-  return null;
+  const preset = parseDevGuideVariancePreset(value);
+  return preset.pace;
 }

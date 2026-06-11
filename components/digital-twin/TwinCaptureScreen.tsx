@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { TwinCaptureBottomRail } from "./TwinCaptureBottomRail";
 import { TwinCaptureClipChips } from "./TwinCaptureClipChips";
 import { TwinCaptureClipGhost } from "./TwinCaptureClipGhost";
-import { TwinCaptureCoveragePill } from "./TwinCaptureCoveragePill";
+import { TwinCaptureGuide } from "./TwinCaptureGuide";
 import { TwinCaptureDebugOverlay } from "./TwinCaptureDebugOverlay";
 import { TwinCaptureHudToast } from "./TwinCaptureHudToast";
 import { TwinCaptureFrameCapChip } from "./TwinCaptureFrameCapChip";
@@ -47,7 +47,8 @@ type Props = {
   devForceRecording?: boolean;
   devCoverageOverride?: number | null;
   devRollOverride?: number | null;
-  devMotionOverride?: number | null;
+  devPaceVarianceOverride?: number | null;
+  devStabilityVarianceOverride?: number | null;
   devForceGhost?: boolean;
   devGhostFrameUrl?: string | null;
   debug?: boolean;
@@ -72,7 +73,8 @@ export function TwinCaptureScreen({
   devForceRecording,
   devCoverageOverride = null,
   devRollOverride = null,
-  devMotionOverride = null,
+  devPaceVarianceOverride = null,
+  devStabilityVarianceOverride = null,
   devForceGhost = false,
   devGhostFrameUrl = null,
   debug = false,
@@ -125,11 +127,11 @@ export function TwinCaptureScreen({
       totalVideoSeconds: videoSeconds,
       totalPhotoFrames: photoCount,
     });
-  const coveragePct = Math.round(coverageProgress * 100);
-
   const sensors = useTwinCaptureDeviceSensors({
     devRollOverride,
-    devMotionSpeedOverride: devMotionOverride,
+    devPaceVarianceOverride,
+    devStabilityVarianceOverride,
+    guideActive: recording,
   });
 
   const ghost = useTwinCaptureClipGhost({
@@ -302,10 +304,11 @@ export function TwinCaptureScreen({
           frameCap={TWIN_PHOTO_FRAME_CAP}
           atCap={session.atPhotoFrameCap || session.photoFrameCapHit}
         />
-        <TwinCaptureCoveragePill
-          hidden={!chromeVisible}
-          coveragePct={coveragePct}
-          paceState={sensors.paceState}
+        <TwinCaptureGuide
+          hidden={!chromeVisible || !recording}
+          coverageProgress={coverageProgress}
+          guideState={sensors.guideState}
+          sensorsGranted={sensors.permission === "granted"}
         />
         <TwinCaptureClipChips
           hidden={!chromeVisible}
@@ -358,6 +361,9 @@ export function TwinCaptureScreen({
           sensorPermission={sensors.permission}
           levelLineActive={sensors.levelLineActive}
           lastOrientationEventAt={sensors.lastOrientationEventAt}
+          guideState={sensors.guideState}
+          paceVariance={sensors.paceVariance}
+          stabilityVariance={sensors.stabilityVariance}
           ghostFrameCaptured={ghost.ghostDebug.ghostFrameCaptured}
           ghostFrameByteSize={ghost.ghostDebug.ghostFrameByteSize}
           ghostMounted={ghost.ghostDebug.ghostMounted}

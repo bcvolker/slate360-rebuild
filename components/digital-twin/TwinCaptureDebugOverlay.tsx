@@ -14,6 +14,9 @@ type Props = {
   sensorPermission: string;
   levelLineActive: boolean;
   lastOrientationEventAt: number | null;
+  guideState: string | null;
+  paceVariance: number;
+  stabilityVariance: number;
   ghostFrameCaptured: boolean;
   ghostFrameByteSize: number;
   ghostMounted: boolean;
@@ -47,6 +50,9 @@ export function TwinCaptureDebugOverlay({
   sensorPermission,
   levelLineActive,
   lastOrientationEventAt,
+  guideState,
+  paceVariance,
+  stabilityVariance,
   ghostFrameCaptured,
   ghostFrameByteSize,
   ghostMounted,
@@ -67,6 +73,9 @@ export function TwinCaptureDebugOverlay({
     ["sensor.permission", sensorPermission],
     ["levelLine", sensorLevelLineNote(sensorPermission, levelLineActive)],
     ["lastOrientationEvent", fmtTs(lastOrientationEventAt)],
+    ["guide.state", guideState ?? "—"],
+    ["guide.paceVariance", paceVariance.toFixed(3)],
+    ["guide.stabilityVariance", stabilityVariance.toFixed(1)],
     ["ghostFrameCaptured", String(ghostFrameCaptured)],
     ["ghostFrameByteSize", String(ghostFrameByteSize)],
     ["ghostMounted", String(ghostMounted)],

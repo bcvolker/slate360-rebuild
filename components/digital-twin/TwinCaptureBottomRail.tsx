@@ -55,9 +55,11 @@ export function TwinCaptureBottomRail({
   const prominentDone = hasContent && !isRecording && !finishing;
   const hintText = needsResume
     ? "tap to resume camera"
-    : clipCount >= 1 && !isRecording
-      ? "tap blue to add another clip · Done when finished"
-      : "tap blue to start · red to stop · check = review";
+    : isRecording && clipCount === 1
+      ? "keep the guide green for a sharp twin"
+      : clipCount >= 1 && !isRecording
+        ? "tap blue to add another clip · Done when finished"
+        : "tap blue to start · red to stop · check = review";
 
   return (
     <div className="pointer-events-none absolute inset-x-0 bottom-0 z-30">

@@ -7,7 +7,7 @@ import { measureTwinCapturePolishLayout } from "@/components/digital-twin/measur
 import {
   DEV_TWIN_GHOST_FRAME_URL,
   parseDevCoveragePreset,
-  parseDevMotionPreset,
+  parseDevGuideVariancePreset,
   parseDevRollPreset,
 } from "@/components/digital-twin/twin-capture-polish-dev";
 import type { TwinCaptureMode } from "@/hooks/useTwinCaptureSession";
@@ -33,13 +33,23 @@ export function DevTwinCaptureSandbox() {
   const forceRecording = searchParams?.get("state") === "recording";
   const coverageOverride = parseDevCoveragePreset(searchParams?.get("coverage") ?? null);
   const rollOverride = parseDevRollPreset(searchParams?.get("roll") ?? null);
-  const motionOverride = parseDevMotionPreset(searchParams?.get("motion") ?? null);
+  const guideVariance = parseDevGuideVariancePreset(searchParams?.get("motion") ?? null);
+  const debug = searchParams?.get("debug") === "1";
   const forceGhost = searchParams?.get("ghost") === "1";
 
   const measureKey = useMemo(
     () =>
-      `${clipCount}:${initialMode}:${forceRecording}:${coverageOverride}:${rollOverride}:${motionOverride}:${forceGhost}`,
-    [clipCount, coverageOverride, forceGhost, forceRecording, initialMode, motionOverride, rollOverride],
+      `${clipCount}:${initialMode}:${forceRecording}:${coverageOverride}:${rollOverride}:${guideVariance.pace}:${guideVariance.stability}:${forceGhost}`,
+    [
+      clipCount,
+      coverageOverride,
+      forceGhost,
+      forceRecording,
+      guideVariance.pace,
+      guideVariance.stability,
+      initialMode,
+      rollOverride,
+    ],
   );
 
   useEffect(() => {
@@ -70,9 +80,11 @@ export function DevTwinCaptureSandbox() {
         devForceRecording={forceRecording}
         devCoverageOverride={coverageOverride}
         devRollOverride={rollOverride}
-        devMotionOverride={motionOverride}
+        devPaceVarianceOverride={guideVariance.pace}
+        devStabilityVarianceOverride={guideVariance.stability}
         devForceGhost={forceGhost}
         devGhostFrameUrl={forceGhost ? DEV_TWIN_GHOST_FRAME_URL : null}
+        debug={debug}
         onCancel={() => {
           /* sandbox — no navigation */
         }}
