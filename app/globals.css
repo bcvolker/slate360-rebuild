@@ -201,8 +201,8 @@
   --mobile-header-icon-bg: color-mix(in srgb, white 5%, var(--surface-zinc));
   --mobile-header-icon-border: var(--surface-zinc-border);
   --mobile-slatedrop-card-min-width: calc((100vw - 3rem) / 3.5);
-  --mobile-expandable-panel-bg: var(--surface-zinc);
-  --mobile-expandable-panel-border: var(--surface-zinc-border);
+  --mobile-expandable-panel-bg: color-mix(in srgb, white 6%, var(--surface-zinc));
+  --mobile-expandable-panel-border: color-mix(in srgb, white 20%, transparent);
   --mobile-folder-icon-fg: var(--twin360-blue);
   --mobile-folder-icon-fg-green: var(--graphite-primary);
 
@@ -227,12 +227,12 @@
   --mobile-quick-action-bg: var(--surface-zinc);
   --mobile-quick-action-border: var(--surface-zinc-border);
   --mobile-quick-action-fg: var(--graphite-primary);
-  --mobile-quick-action-title-fg: color-mix(in srgb, var(--graphite-primary) 92%, white);
-  --mobile-quick-action-subtitle-fg: color-mix(in srgb, var(--graphite-primary) 62%, var(--graphite-muted));
+  --mobile-quick-action-title-fg: #F4F6F8;
+  --mobile-quick-action-subtitle-fg: var(--graphite-muted);
   --mobile-quick-action-icon-bg: color-mix(in srgb, var(--graphite-primary) 8%, var(--surface-zinc));
   --mobile-quick-action-icon-border: var(--accent-border-green);
   --mobile-quick-action-fg-info: var(--twin360-blue);
-  --mobile-quick-action-title-fg-info: color-mix(in srgb, var(--twin360-blue) 92%, white);
+  --mobile-quick-action-title-fg-info: #F4F6F8;
   --mobile-quick-action-icon-bg-info: color-mix(in srgb, var(--twin360-blue) 8%, var(--surface-zinc));
   --mobile-quick-action-icon-border-info: var(--accent-border-blue);
   --mobile-quick-action-shadow: 0 2px 10px color-mix(in srgb, black 28%, transparent);
@@ -701,8 +701,8 @@
   --mobile-field-primary-bg: var(--twin360-blue);
   --mobile-field-primary-fg: var(--graphite-canvas);
   --mobile-quick-action-fg: var(--twin360-blue);
-  --mobile-quick-action-title-fg: color-mix(in srgb, var(--twin360-blue) 92%, white);
-  --mobile-quick-action-subtitle-fg: color-mix(in srgb, var(--twin360-blue) 62%, var(--graphite-muted));
+  --mobile-quick-action-title-fg: #F4F6F8;
+  --mobile-quick-action-subtitle-fg: var(--graphite-muted);
   --mobile-quick-action-icon-bg: color-mix(in srgb, var(--twin360-blue) 8%, var(--surface-zinc));
   --mobile-quick-action-icon-border: var(--accent-border-blue);
 }

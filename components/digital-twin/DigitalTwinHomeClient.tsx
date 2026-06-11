@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import {
   Activity,
   Boxes,
+  ChevronRight,
   FolderOpen,
   MapPin,
   Scan,
@@ -13,7 +14,6 @@ import {
 import {
   MobileEmptyState,
   MobileExpandableTabbedPanel,
-  MobileHomeActionCard,
   MobileHomeListRow,
   MobileQuickActionsSection,
   MobileQuickActionStrip,
@@ -169,33 +169,39 @@ export function DigitalTwinHomeClient({ twins, projects }: Props) {
           <span className={mobileTokens.twin360HomeSectionLabelAccent} aria-hidden />
           <p className={mobileTokens.appHomeSectionLabel}>Start Scan</p>
         </div>
-        <div className={mobileTokens.twin360StartScanGrid}>
-          <MobileHomeActionCard
-            title="Quick Scan"
-            subtext="Walk a space and capture now"
-            icon={Scan}
+        <div className={mobileTokens.hubStartStack}>
+          <button
+            type="button"
             onClick={handleQuickScan}
-            accent="info"
-            className={mobileTokens.twin360StartScanCard}
-            iconWrapperClassName={mobileTokens.twin360StartScanIconWrapper}
-            iconClassName={mobileTokens.twin360StartScanIcon}
-            titleClassName={mobileTokens.twin360StartScanTitle}
-            subtextClassName={mobileTokens.twin360StartScanSubtext}
+            className={mobileTokens.hubStartHeroCard}
             aria-label="Start a quick scan"
-          />
-          <MobileHomeActionCard
-            title="Scan from Project"
-            subtext={scanFromProjectSubtext}
-            icon={MapPin}
+          >
+            <span className={mobileTokens.hubStartHeroIconBlue} aria-hidden>
+              <Scan className="h-6 w-6" strokeWidth={1.75} />
+            </span>
+            <span className={mobileTokens.hubStartTextBlock}>
+              <span className={mobileTokens.hubStartHeroTitle}>Quick Scan</span>
+              <span className={`block ${mobileTokens.hubStartSubtext}`}>
+                Walk a space and capture now
+              </span>
+            </span>
+            <ChevronRight className={mobileTokens.hubStartChevron} aria-hidden />
+          </button>
+          <button
+            type="button"
             onClick={handleScanFromProject}
-            accent="info"
-            className={mobileTokens.twin360StartScanCard}
-            iconWrapperClassName={mobileTokens.twin360StartScanIconWrapper}
-            iconClassName={mobileTokens.twin360StartScanIcon}
-            titleClassName={mobileTokens.twin360StartScanTitle}
-            subtextClassName={mobileTokens.twin360StartScanSubtext}
+            className={mobileTokens.hubStartSecondaryCard}
             aria-label="Scan from a project"
-          />
+          >
+            <span className={mobileTokens.hubStartSecondaryIconBlue} aria-hidden>
+              <MapPin className="h-5 w-5" strokeWidth={1.75} />
+            </span>
+            <span className={mobileTokens.hubStartTextBlock}>
+              <span className={mobileTokens.hubStartSecondaryTitle}>Scan from Project</span>
+              <span className={`block ${mobileTokens.hubStartSubtext}`}>{scanFromProjectSubtext}</span>
+            </span>
+            <ChevronRight className={mobileTokens.hubStartChevron} aria-hidden />
+          </button>
         </div>
       </section>
 

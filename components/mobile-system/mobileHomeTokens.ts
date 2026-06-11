@@ -192,6 +192,25 @@ export const mobileHomeTokens = {
   appHomeSlateDropTileIconNewGreen:
     "h-6 w-6 shrink-0 text-[color-mix(in_srgb,var(--mobile-folder-icon-fg-green)_72%,var(--mobile-bottom-nav-fg-inactive))]",
   siteWalkStartWalkGrid: "grid w-full shrink-0 grid-cols-2 gap-3 auto-rows-fr",
+  /** Hub start section — /app-style hero + secondary stack */
+  hubStartStack: "flex w-full shrink-0 flex-col gap-2.5",
+  hubStartHeroCard:
+    "flex min-h-[104px] w-full flex-row items-center gap-3.5 rounded-2xl border border-[color-mix(in_srgb,white_20%,transparent)] bg-[color-mix(in_srgb,white_7%,var(--surface-zinc))] px-4 py-3.5 text-left backdrop-blur-md transition-all hover:border-[color-mix(in_srgb,white_30%,transparent)] hover:bg-[color-mix(in_srgb,white_10%,var(--surface-zinc))] active:scale-[0.99]",
+  hubStartSecondaryCard:
+    "flex min-h-[64px] w-full flex-row items-center gap-3 rounded-xl border border-[color-mix(in_srgb,white_16%,transparent)] bg-[color-mix(in_srgb,white_4%,var(--surface-zinc))] px-4 py-2.5 text-left transition-all hover:border-[color-mix(in_srgb,white_26%,transparent)] active:scale-[0.99]",
+  hubStartHeroIconGreen:
+    "flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[var(--graphite-primary)] text-[var(--graphite-canvas)]",
+  hubStartHeroIconBlue:
+    "flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[var(--twin360-blue)] text-[var(--graphite-canvas)]",
+  hubStartSecondaryIconGreen:
+    "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[var(--accent-border-green)] bg-[color-mix(in_srgb,var(--graphite-primary)_12%,transparent)] text-[var(--graphite-primary)]",
+  hubStartSecondaryIconBlue:
+    "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[var(--accent-border-blue)] bg-[color-mix(in_srgb,var(--twin360-blue)_12%,transparent)] text-[var(--twin360-blue)]",
+  hubStartTextBlock: "min-w-0 flex-1",
+  hubStartHeroTitle: "text-lg font-bold leading-tight text-white",
+  hubStartSecondaryTitle: "text-base font-semibold leading-tight text-white",
+  hubStartSubtext: "mt-0.5 text-xs font-medium leading-snug text-zinc-400",
+  hubStartChevron: "h-5 w-5 shrink-0 text-zinc-500",
   siteWalkStartWalkCard:
     "flex min-h-[128px] flex-col items-start justify-center gap-1.5 rounded-2xl border border-[color-mix(in_srgb,white_20%,transparent)] bg-[color-mix(in_srgb,white_7%,var(--surface-zinc))] px-3.5 py-3.5 text-left backdrop-blur-md transition-all hover:border-[color-mix(in_srgb,white_30%,transparent)] hover:bg-[color-mix(in_srgb,white_10%,var(--surface-zinc))] active:ring-2 active:ring-[color-mix(in_srgb,var(--graphite-primary)_28%,transparent)] active:scale-[0.99]",
   siteWalkStartWalkIconWrapper:

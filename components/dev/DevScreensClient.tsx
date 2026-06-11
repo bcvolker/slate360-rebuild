@@ -18,6 +18,7 @@ import { DevTwinReviewSandbox } from "./DevTwinReviewSandbox";
 import { DevTwinUploadSandbox } from "./DevTwinUploadSandbox";
 import { DevTwinViewerSandbox } from "./DevTwinViewerSandbox";
 import { DevTwinWizardSandbox } from "./DevTwinWizardSandbox";
+import { DevHubSandbox } from "./DevHubSandbox";
 import { DevScreenFrame, type DevDeviceMode } from "./DevScreenFrame";
 
 const SCREENS = [
@@ -31,6 +32,9 @@ const SCREENS = [
   { id: "twin-wizard", label: "Twin wizard", description: "Space picker, output options, live cost calculator." },
   { id: "twin-upload", label: "Twin upload", description: "Mock review & upload progress state." },
   { id: "twin-viewer", label: "Twin viewer", description: "Splat viewer + mock queue/share state." },
+  { id: "hub-app", label: "Hub: /app home", description: "Launcher grid, quick actions, activity dock." },
+  { id: "hub-site-walk", label: "Hub: Site Walk", description: "Site Walk home shell with mock walks." },
+  { id: "hub-twin", label: "Hub: Twin 360", description: "Twin home shell with mock twins." },
 ] as const;
 
 type ScreenId = (typeof SCREENS)[number]["id"];
@@ -97,6 +101,12 @@ export function DevScreensClient() {
         return <DevTwinUploadSandbox />;
       case "twin-viewer":
         return <DevTwinViewerSandbox />;
+      case "hub-app":
+        return <DevHubSandbox variant="app" />;
+      case "hub-site-walk":
+        return <DevHubSandbox variant="site-walk" />;
+      case "hub-twin":
+        return <DevHubSandbox variant="twin" />;
       default:
         return null;
     }

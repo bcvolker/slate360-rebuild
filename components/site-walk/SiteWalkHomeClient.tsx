@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import {
   Building2,
   Camera,
+  ChevronRight,
   ClipboardList,
   FileText,
   FolderOpen,
@@ -13,7 +14,6 @@ import {
 import {
   MobileEmptyState,
   MobileExpandableTabbedPanel,
-  MobileHomeActionCard,
   MobileHomeListRow,
   MobileQuickActionsSection,
   MobileQuickActionStrip,
@@ -298,31 +298,41 @@ export function SiteWalkHomeClient({
           <span className={mobileTokens.siteWalkHomeSectionLabelAccent} aria-hidden />
           <p className={mobileTokens.appHomeSectionLabel}>Start Walk</p>
         </div>
-        <div className={mobileTokens.siteWalkStartWalkGrid}>
-          <MobileHomeActionCard
-            title="Quick Walk"
-            subtext="Start capturing now"
-            icon={Camera}
+        <div className={mobileTokens.hubStartStack}>
+          <button
+            type="button"
             onClick={() => void handleQuickCapture()}
-            className={mobileTokens.siteWalkStartWalkCard}
-            iconWrapperClassName={mobileTokens.siteWalkStartWalkIconWrapper}
-            iconClassName={mobileTokens.siteWalkStartWalkIcon}
-            titleClassName={mobileTokens.siteWalkStartWalkTitle}
-            subtextClassName={mobileTokens.siteWalkStartWalkSubtext}
+            disabled={startingWalk}
+            className={`${mobileTokens.hubStartHeroCard} disabled:opacity-60`}
             aria-label="Start a quick walk"
-          />
-          <MobileHomeActionCard
-            title={scopedCopy.title}
-            subtext={scopedWalkSubtext}
-            icon={ScopedIcon}
+          >
+            <span className={mobileTokens.hubStartHeroIconGreen} aria-hidden>
+              <Camera className="h-6 w-6" strokeWidth={1.75} />
+            </span>
+            <span className={mobileTokens.hubStartTextBlock}>
+              <span className={mobileTokens.hubStartHeroTitle}>Quick Walk</span>
+              <span className={`block ${mobileTokens.hubStartSubtext}`}>
+                {startingWalk ? "Starting…" : "Start capturing now"}
+              </span>
+            </span>
+            <ChevronRight className={mobileTokens.hubStartChevron} aria-hidden />
+          </button>
+          <button
+            type="button"
             onClick={handleScopedWalk}
-            className={mobileTokens.siteWalkStartWalkCard}
-            iconWrapperClassName={mobileTokens.siteWalkStartWalkIconWrapper}
-            iconClassName={mobileTokens.siteWalkStartWalkIcon}
-            titleClassName={mobileTokens.siteWalkStartWalkTitle}
-            subtextClassName={mobileTokens.siteWalkStartWalkSubtext}
+            disabled={startingWalk}
+            className={`${mobileTokens.hubStartSecondaryCard} disabled:opacity-60`}
             aria-label={scopedCopy.ariaLabel}
-          />
+          >
+            <span className={mobileTokens.hubStartSecondaryIconGreen} aria-hidden>
+              <ScopedIcon className="h-5 w-5" strokeWidth={1.75} />
+            </span>
+            <span className={mobileTokens.hubStartTextBlock}>
+              <span className={mobileTokens.hubStartSecondaryTitle}>{scopedCopy.title}</span>
+              <span className={`block ${mobileTokens.hubStartSubtext}`}>{scopedWalkSubtext}</span>
+            </span>
+            <ChevronRight className={mobileTokens.hubStartChevron} aria-hidden />
+          </button>
         </div>
         {quickCaptureError ? (
           <p
