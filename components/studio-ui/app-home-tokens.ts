@@ -5,7 +5,7 @@
 
 export const appHomeTokens = {
   scrollInner:
-    "mx-auto flex min-h-full w-full max-w-2xl flex-1 flex-col gap-3 px-3 pt-3 pb-3",
+    "mx-auto flex min-h-full w-full max-w-2xl flex-1 flex-col justify-evenly gap-3 px-3 pt-3 pb-3",
   section: "shrink-0",
   sectionHeader: "mb-2 px-0.5",
   sectionLabel:

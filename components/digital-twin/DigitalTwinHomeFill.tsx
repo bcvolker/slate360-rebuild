@@ -1,9 +1,7 @@
 "use client";
 
-import {
-  MobileHomeSlateDropFolderGrid,
-  type HomeSlateDropFolder,
-} from "@/components/studio-ui/MobileAppHomeSlateDropFolderGrid";
+import { type HomeSlateDropFolder } from "@/components/studio-ui/MobileAppHomeSlateDropFolderGrid";
+import { SlateDropPortalCard } from "@/components/studio-ui/SlateDropPortalCard";
 import { mobileTokens } from "@/components/mobile-system";
 import type { HubTwin, HubTwinProject } from "@/lib/types/digital-twin-hub";
 import { twinHubStatusMetaTone } from "@/lib/digital-twin/twin-hub-status";
@@ -66,12 +64,9 @@ export function DigitalTwinHomeFill({ twins, projects }: DigitalTwinHomeFillProp
   const folders = buildDigitalTwinSlateDropFolders(twins, projects);
 
   return (
-    <MobileHomeSlateDropFolderGrid
+    <SlateDropPortalCard
       folders={folders}
       openHref="/slatedrop"
-      newFolderHref="/slatedrop/new-folder"
-      folderIconClassName={mobileTokens.appHomeSlateDropTileIconBlue}
-      newFolderIconClassName={mobileTokens.appHomeSlateDropTileIconNewBlue}
       labelAccentClassName={mobileTokens.twin360HomeSectionLabelAccent}
     />
   );

@@ -321,14 +321,14 @@ export function SiteWalkHomeClient({
             type="button"
             onClick={handleScopedWalk}
             disabled={startingWalk}
-            className={`${mobileTokens.hubStartSecondaryCard} disabled:opacity-60`}
+            className={`${mobileTokens.hubStartHeroCard} disabled:opacity-60`}
             aria-label={scopedCopy.ariaLabel}
           >
-            <span className={mobileTokens.hubStartSecondaryIconGreen} aria-hidden>
-              <ScopedIcon className="h-5 w-5" strokeWidth={1.75} />
+            <span className={mobileTokens.hubStartHeroIconGreen} aria-hidden>
+              <ScopedIcon className="h-6 w-6" strokeWidth={1.75} />
             </span>
             <span className={mobileTokens.hubStartTextBlock}>
-              <span className={mobileTokens.hubStartSecondaryTitle}>{scopedCopy.title}</span>
+              <span className={mobileTokens.hubStartHeroTitle}>{scopedCopy.title}</span>
               <span className={`block ${mobileTokens.hubStartSubtext}`}>{scopedWalkSubtext}</span>
             </span>
             <ChevronRight className={mobileTokens.hubStartChevron} aria-hidden />

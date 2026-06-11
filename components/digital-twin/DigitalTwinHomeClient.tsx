@@ -190,14 +190,14 @@ export function DigitalTwinHomeClient({ twins, projects }: Props) {
           <button
             type="button"
             onClick={handleScanFromProject}
-            className={mobileTokens.hubStartSecondaryCard}
+            className={mobileTokens.hubStartHeroCard}
             aria-label="Scan from a project"
           >
-            <span className={mobileTokens.hubStartSecondaryIconBlue} aria-hidden>
-              <MapPin className="h-5 w-5" strokeWidth={1.75} />
+            <span className={mobileTokens.hubStartHeroIconBlue} aria-hidden>
+              <MapPin className="h-6 w-6" strokeWidth={1.75} />
             </span>
             <span className={mobileTokens.hubStartTextBlock}>
-              <span className={mobileTokens.hubStartSecondaryTitle}>Scan from Project</span>
+              <span className={mobileTokens.hubStartHeroTitle}>Scan from Project</span>
               <span className={`block ${mobileTokens.hubStartSubtext}`}>{scanFromProjectSubtext}</span>
             </span>
             <ChevronRight className={mobileTokens.hubStartChevron} aria-hidden />

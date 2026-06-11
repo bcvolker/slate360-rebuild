@@ -1,10 +1,8 @@
 "use client";
 
 import type { MobileHomeAssignment } from "@/lib/mobile/load-mobile-assignments";
-import {
-  MobileHomeSlateDropFolderGrid,
-  type HomeSlateDropFolder,
-} from "@/components/studio-ui/MobileAppHomeSlateDropFolderGrid";
+import { type HomeSlateDropFolder } from "@/components/studio-ui/MobileAppHomeSlateDropFolderGrid";
+import { SlateDropPortalCard } from "@/components/studio-ui/SlateDropPortalCard";
 import { mobileTokens } from "@/components/mobile-system";
 import { buildWalkResumeUrl } from "@/lib/site-walk/capture-v2-config";
 import type { HubDeliverableRow } from "@/lib/types/site-walk-hub";
@@ -85,12 +83,9 @@ export function SiteWalkHomeFill({
   const folders = buildSiteWalkSlateDropFolders(walks, projects, deliverables);
 
   return (
-    <MobileHomeSlateDropFolderGrid
+    <SlateDropPortalCard
       folders={folders}
       openHref="/site-walk/slatedrop"
-      newFolderHref="/slatedrop/new-folder"
-      folderIconClassName={mobileTokens.appHomeSlateDropTileIconGreen}
-      newFolderIconClassName={mobileTokens.appHomeSlateDropTileIconNewGreen}
       labelAccentClassName={mobileTokens.siteWalkHomeSectionLabelAccent}
     />
   );
