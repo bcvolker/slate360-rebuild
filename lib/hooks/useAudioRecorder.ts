@@ -82,7 +82,14 @@ export function useAudioRecorder(): UseAudioRecorderResult {
         if (resolver) resolver(blob);
       };
 
-      recorder.start(1000);
+      // iOS Safari (audio/mp4) breaks with timesliced recording — fragmented
+      // chunks concatenate into a silent, unplayable blob. Only timeslice on
+      // webm-capable browsers; Safari delivers one chunk on stop.
+      if (mime.startsWith("audio/webm")) {
+        recorder.start(1000);
+      } else {
+        recorder.start();
+      }
       recorderRef.current = recorder;
       startedAtRef.current = Date.now();
       tickerRef.current = setInterval(() => {

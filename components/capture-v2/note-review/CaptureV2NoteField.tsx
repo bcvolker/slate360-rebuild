@@ -77,9 +77,13 @@ export function CaptureV2NoteField({
         className={`mt-2 ${noteReviewTokens.fieldInput} min-h-[120px]`}
         style={{ WebkitUserSelect: "text", userSelect: "text" }}
       />
-        {(dictationError || aiMessage) && (
-          <p className="mt-1.5 text-xs text-[var(--graphite-muted)]">{dictationError ?? aiMessage}</p>
-        )}
+        {dictationError ? (
+          <p className="mt-1.5 rounded-lg border border-red-500/40 bg-red-500/10 px-2.5 py-1.5 text-sm font-semibold text-red-300">
+            {dictationError}
+          </p>
+        ) : aiMessage ? (
+          <p className="mt-1.5 text-xs text-[var(--graphite-muted)]">{aiMessage}</p>
+        ) : null}
       </div>
     </section>
   );

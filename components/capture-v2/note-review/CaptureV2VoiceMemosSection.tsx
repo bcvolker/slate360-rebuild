@@ -118,8 +118,13 @@ function VoiceMemoRowView({
     const audio = audioRef.current;
     if (!audio) return;
     const onTime = () => {
-      if (!audio.duration) return;
-      setProgress(audio.currentTime / audio.duration);
+      // iOS reports Infinity for MediaRecorder blobs — fall back to the
+      // duration we measured while recording.
+      const duration = Number.isFinite(audio.duration) && audio.duration > 0
+        ? audio.duration
+        : row.durationMs / 1000;
+      if (!duration) return;
+      setProgress(Math.min(1, audio.currentTime / duration));
     };
     const onEnded = () => {
       setPlaying(false);
@@ -131,7 +136,7 @@ function VoiceMemoRowView({
       audio.removeEventListener("timeupdate", onTime);
       audio.removeEventListener("ended", onEnded);
     };
-  }, [row.audioUrl]);
+  }, [row.audioUrl, row.durationMs]);
 
   const [playError, setPlayError] = useState<string | null>(null);
 
@@ -152,8 +157,12 @@ function VoiceMemoRowView({
 
   function handleScrub(value: number) {
     const audio = audioRef.current;
-    if (!audio || !Number.isFinite(audio.duration) || audio.duration === 0) return;
-    audio.currentTime = (value / 100) * audio.duration;
+    if (!audio) return;
+    const duration = Number.isFinite(audio.duration) && audio.duration > 0
+      ? audio.duration
+      : row.durationMs / 1000;
+    if (!duration) return;
+    audio.currentTime = (value / 100) * duration;
     setProgress(value / 100);
   }
 
