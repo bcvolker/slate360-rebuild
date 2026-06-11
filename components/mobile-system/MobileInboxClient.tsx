@@ -104,7 +104,7 @@ export function MobileInboxClient() {
                 unreadNotifications.map((notification) => {
                   const href =
                     notification.link_path?.replace(/^\/project-hub(?=\/|$)/, "/projects") ??
-                    `/projects/${notification.project_id}`;
+                    (notification.project_id ? `/projects/${notification.project_id}` : "/coordination/inbox");
                   return (
                     <Link
                       key={notification.id}

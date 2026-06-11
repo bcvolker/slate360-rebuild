@@ -163,12 +163,18 @@ export function TwinCaptureFlow({
         })),
       };
       setTwinCapturePendingSession(pendingSession);
-      await persistTwinCaptureReviewState({
-        session: pendingSession,
-        scanName: selection.spaceTitle,
-        quality: "standard",
-        addedSources: [],
-      });
+      try {
+        await persistTwinCaptureReviewState({
+          session: pendingSession,
+          scanName: selection.spaceTitle,
+          quality: "standard",
+          addedSources: [],
+        });
+      } catch (err) {
+        // Persist is a resilience layer; the in-memory session still carries
+        // the clips, so continue to review rather than stranding the user.
+        console.error("[twin-capture] review persist failed", err);
+      }
       router.push("/digital-twin/capture/review");
     },
     [projects, router, selection, skipPicker],

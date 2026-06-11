@@ -19,7 +19,10 @@ export function TwinCaptureHudToast({ message, onDismiss }: Props) {
     >
       <button
         type="button"
-        onClick={onDismiss}
+        onClick={(event) => {
+          event.stopPropagation();
+          onDismiss?.();
+        }}
         className={`max-w-sm px-3 py-2 text-center text-xs font-medium leading-snug text-[var(--graphite-text-header)] ${TWIN_CAPTURE_GLASS_SQUARE}`}
       >
         {message}

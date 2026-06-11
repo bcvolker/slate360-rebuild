@@ -20,9 +20,15 @@ export function CapturePlanPinDetailSheet({ open, pin, item, onClose, onOpenDeta
   const noteSnippet = item?.description?.trim() || item?.title?.trim() || "No note yet";
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-[2000] flex justify-center px-3 pb-[max(env(safe-area-inset-bottom),0.75rem)]">
+    <div className="pointer-events-none fixed inset-0 z-[2000] flex items-end justify-center px-3 pb-[max(env(safe-area-inset-bottom),0.75rem)]">
+      <button
+        type="button"
+        aria-label="Close pin details"
+        onClick={onClose}
+        className="pointer-events-auto absolute inset-0 cursor-default bg-transparent"
+      />
       <div
-        className="pointer-events-auto w-full max-w-sm rounded-[1.25rem] border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_92%,transparent)] p-4 text-left shadow-2xl backdrop-blur-xl"
+        className="pointer-events-auto relative w-full max-w-sm rounded-[1.25rem] border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_92%,transparent)] p-4 text-left shadow-2xl backdrop-blur-xl"
         data-capture-chrome="plan-pin-detail-sheet"
       >
         <div className="flex items-start justify-between gap-3">

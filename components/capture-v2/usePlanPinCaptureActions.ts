@@ -19,14 +19,16 @@ export function usePlanPinCaptureActions(
 ) {
   const handleShutterTapCaptured = useCallback(async () => {
     if (planPinFlow) {
-      await loop.flushDetails();
+      const flushed = await loop.flushDetails();
+      if (!flushed) return; // error surfaced via banner; stay put
       planPinFlow.onReturnToPlan();
       setActiveAngleId(null);
       setActiveTool(null);
       setDetailsOpen(false);
       return;
     }
-    void loop.saveAndNextStop();
+    const saved = await loop.saveAndNextStop();
+    if (!saved) return;
     setActiveAngleId(null);
     setActiveTool(null);
   }, [loop, planPinFlow, setActiveAngleId, setActiveTool, setDetailsOpen]);

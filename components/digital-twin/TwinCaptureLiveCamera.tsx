@@ -16,12 +16,6 @@ type Props = {
   onResume?: () => void;
 };
 
-function isPermissionDeniedError(message: string | null) {
-  if (!message) return false;
-  const normalized = message.toLowerCase();
-  return normalized.includes("permission denied") || normalized.includes("notallowederror");
-}
-
 export function TwinCaptureLiveCamera({
   camera,
   facingMode = "environment",
@@ -45,10 +39,8 @@ export function TwinCaptureLiveCamera({
     void startCamera(facingMode);
   }, [autoStart, facingMode, isStreaming, startCamera]);
 
-  useEffect(() => {
-    if (!autoStart || isStreaming || !error || !isPermissionDeniedError(error)) return;
-    clearError();
-  }, [autoStart, clearError, error, isStreaming]);
+  // Permission-denied must stay visible with guidance — auto-clearing it
+  // looped users on a generic "Enable camera" with no explanation.
 
   function onTouchStart(event: React.TouchEvent) {
     if (event.touches.length === 2) {

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import dynamic from "next/dynamic";
 import { useCallback, useState } from "react";
@@ -162,6 +162,7 @@ export function WithPlansCaptureCanvas({
       <input
         ref={pinCapture.sourcePicker.cameraInputRef}
         type="file"
+        onClick={(event) => { (event.target as HTMLInputElement).value = ""; }}
         accept="image/*"
         capture="environment"
         className="hidden"
@@ -170,6 +171,7 @@ export function WithPlansCaptureCanvas({
       <input
         ref={pinCapture.sourcePicker.rollInputRef}
         type="file"
+        onClick={(event) => { (event.target as HTMLInputElement).value = ""; }}
         accept="image/*"
         className="hidden"
         onChange={pinCapture.sourcePicker.onInputChange("camera_roll")}
@@ -177,6 +179,7 @@ export function WithPlansCaptureCanvas({
       <input
         ref={pinCapture.sourcePicker.fileInputRef}
         type="file"
+        onClick={(event) => { (event.target as HTMLInputElement).value = ""; }}
         accept="*/*"
         className="hidden"
         onChange={pinCapture.sourcePicker.onInputChange("upload_file")}
@@ -184,6 +187,7 @@ export function WithPlansCaptureCanvas({
       <input
         ref={pinCapture.sourcePicker.photo360InputRef}
         type="file"
+        onClick={(event) => { (event.target as HTMLInputElement).value = ""; }}
         accept="image/*"
         className="hidden"
         onChange={pinCapture.sourcePicker.onInputChange("photo_360")}

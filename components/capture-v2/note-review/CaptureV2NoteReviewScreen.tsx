@@ -30,6 +30,7 @@ export type CaptureV2NoteReviewScreenProps = {
   aiState: "idle" | "formatting" | "blocked" | "error";
   aiMessage: string | null;
   saving: boolean;
+  saveError?: string | null;
   keyboardSimOverride?: number;
   previousTags?: string[];
   onPatchDraft: (patch: Partial<CaptureItemDraft>) => void;
@@ -54,6 +55,7 @@ export function CaptureV2NoteReviewScreen({
   aiState,
   aiMessage,
   saving,
+  saveError = null,
   keyboardSimOverride,
   previousTags,
   onPatchDraft,
@@ -150,6 +152,16 @@ export function CaptureV2NoteReviewScreen({
           onChange={(tags) => onPatchDraft({ tags })}
         />
       </div>
+
+      {saveError ? (
+        <p
+          role="alert"
+          className="absolute inset-x-3 z-20 rounded-xl border border-red-500/40 bg-red-950/85 px-3 py-2 text-sm font-semibold text-red-200 backdrop-blur-md"
+          style={{ bottom: keyboardOffset + PINNED_FOOTER_PX + 8 }}
+        >
+          {saveError}
+        </p>
+      ) : null}
 
       <CaptureV2NoteAccessoryRow
         aiState={aiState}

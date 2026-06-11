@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronDown, ChevronLeft, ChevronUp, Layers3 } from "lucide-react";
+import { ChevronDown, ChevronLeft, ChevronUp } from "lucide-react";
 import { CAPTURE_PLAN_CANVAS_CHROME } from "@/lib/site-walk/capture-plan-canvas-tokens";
 import { CAPTURE_V2_LAYERS } from "../layers";
 
@@ -82,15 +82,6 @@ export function CapturePlanTopBar({
           </button>
         ) : null}
 
-        <button
-          type="button"
-          disabled
-          aria-label="Plan layers"
-          className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[var(--graphite-muted)] opacity-70"
-          data-capture-chrome="plan-layers"
-        >
-          <Layers3 className="h-4 w-4" />
-        </button>
       </div>
 
       {filmstripPanel ? (

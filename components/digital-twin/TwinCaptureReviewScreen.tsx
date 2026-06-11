@@ -163,8 +163,14 @@ export function TwinCaptureReviewScreen({ canUseHighQuality, devPreview }: Props
   }, [devPreview?.openCreditsSheet]);
 
   const handleBack = useCallback(() => {
+    // Leaving mid-upload/submit would orphan the in-flight job.
+    if (submitting || upload.isRunning) return;
+    if (jobQueued) {
+      router.push("/digital-twin/twins");
+      return;
+    }
     router.push("/digital-twin/capture");
-  }, [router]);
+  }, [jobQueued, router, submitting, upload.isRunning]);
 
   const handleRemoveClip = useCallback((clipId: string) => {
     setSession((prev) => {
@@ -378,15 +384,27 @@ export function TwinCaptureReviewScreen({ canUseHighQuality, devPreview }: Props
             <button
               type="button"
               disabled={
-                submitting || upload.isRunning || !estimate || Boolean(lowCredits)
+                submitting ||
+                upload.isRunning ||
+                Boolean(lowCredits) ||
+                // Estimate still loading blocks; a FAILED estimate must not
+                // dead-end the button when real clips exist.
+                (!estimate && (estimateLoadingState || !estimateError))
               }
               onClick={() => void handleCreateTwin()}
               className="flex min-h-12 w-full items-center justify-center rounded-xl bg-[var(--twin360-blue)] text-sm font-bold text-[var(--graphite-canvas)] disabled:opacity-50"
             >
               {submitting || upload.isRunning
                 ? "Creating twin…"
-                : `Create twin · ~${estimate?.creditsRequired ?? "—"} credits`}
+                : estimate
+                  ? `Create twin · ~${estimate.creditsRequired} credits`
+                  : "Create twin"}
             </button>
+            {estimateError && !estimate ? (
+              <p className="mt-2 text-center text-[11px] font-semibold text-red-300">
+                Credit estimate unavailable — you can still create the twin.
+              </p>
+            ) : null}
             <p className="mt-2 text-center text-[11px] text-[var(--graphite-muted)]">
               we&apos;ll notify you when it&apos;s ready — find it in My Twins
             </p>

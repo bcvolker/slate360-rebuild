@@ -40,7 +40,7 @@ type Props = {
   projectName?: string | null;
   spaceName?: string;
   onCancel?: () => void;
-  onFinish?: (result: TwinCaptureFinishResult) => void;
+  onFinish?: (result: TwinCaptureFinishResult) => void | Promise<void>;
   devSeedClipCount?: number;
   devInitialMode?: TwinCaptureMode;
   devForceRecording?: boolean;
@@ -206,14 +206,16 @@ export function TwinCaptureScreen({
     setFinishError(null);
     try {
       const review = await session.collectForReview();
-      camera.stopCamera();
-      onFinish?.({
+      // Await the parent handoff (persist + navigation) and only stop the
+      // camera once it succeeded — a failed persist must keep the user here.
+      await onFinish?.({
         files: review.allFiles,
         clips: review.clips,
         photoCount,
         videoSeconds,
         estimatedBytes,
       });
+      camera.stopCamera();
     } catch (err) {
       const message = err instanceof Error ? err.message : "Could not prepare review";
       setFinishError(message);

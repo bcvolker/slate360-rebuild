@@ -100,6 +100,7 @@ export function SiteWalkHomeClient({
   const router = useRouter();
   const [targetSheetOpen, setTargetSheetOpen] = useState(false);
   const [quickCaptureError, setQuickCaptureError] = useState<string | null>(null);
+  const [startingWalk, setStartingWalk] = useState(false);
 
   const walkTargets = useMemo(
     () => filterHubProjectsForWalkStart(projects, walkStartTier),
@@ -117,6 +118,8 @@ export function SiteWalkHomeClient({
   const startScopedSession = useCallback(
     async (project: HubProject) => {
       const dateLabel = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" });
+      if (startingWalk) return;
+      setStartingWalk(true);
       setQuickCaptureError(null);
       let res: Response;
       try {
@@ -135,23 +138,30 @@ export function SiteWalkHomeClient({
         });
       } catch {
         setQuickCaptureError("Could not reach the server. Check your connection and try again.");
+        setStartingWalk(false);
         return;
       }
       if (!res.ok) {
         setQuickCaptureError("Could not start the walk session. Try again.");
+        setStartingWalk(false);
         return;
       }
       const body = (await res.json()) as { session?: { id?: string } };
       if (!body.session?.id) {
         setQuickCaptureError("Walk session was created but could not be opened. Try again.");
+        setStartingWalk(false);
         return;
       }
+      setTargetSheetOpen(false);
       router.push(buildCaptureLaunchUrl({ session: body.session.id, quick: "camera" }));
+      setStartingWalk(false);
     },
-    [router, scopedCopy.startedFrom],
+    [router, scopedCopy.startedFrom, startingWalk],
   );
 
   const handleQuickCapture = useCallback(async () => {
+    if (startingWalk) return;
+    setStartingWalk(true);
     setQuickCaptureError(null);
     const dateLabel = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" });
     let res: Response;
@@ -167,6 +177,7 @@ export function SiteWalkHomeClient({
       });
     } catch {
       setQuickCaptureError("Could not reach the server. Check your connection and try again.");
+      setStartingWalk(false);
       return;
     }
     if (!res.ok) {
@@ -178,15 +189,18 @@ export function SiteWalkHomeClient({
         // keep default message
       }
       setQuickCaptureError(message);
+      setStartingWalk(false);
       return;
     }
     const body = (await res.json()) as { session?: { id?: string } };
     if (!body.session?.id) {
       setQuickCaptureError("Walk session was created but could not be opened. Try again.");
+      setStartingWalk(false);
       return;
     }
     router.push(buildCaptureLaunchUrl({ session: body.session.id, quick: "camera" }));
-  }, [router]);
+    setStartingWalk(false);
+  }, [router, startingWalk]);
 
   const handleScopedWalk = useCallback(() => {
     if (walkTargets.length === 0) {

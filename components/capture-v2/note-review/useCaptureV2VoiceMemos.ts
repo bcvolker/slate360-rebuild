@@ -93,6 +93,10 @@ export function useCaptureV2VoiceMemos({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ description: transcript }),
       });
+      if (!response.ok) {
+        setError("Could not save the transcript edit — try again.");
+        return;
+      }
       const data = (await response.json().catch(() => null)) as {
         item?: CaptureItemRecord;
       } | null;
@@ -147,7 +151,10 @@ export function useCaptureV2VoiceMemos({
       });
       if (!upRes.ok) {
         const j = (await upRes.json().catch(() => ({}))) as { error?: string };
-        setError(j.error ?? "Audio upload failed");
+        setError(j.error ?? "Audio upload failed — memo not saved, try again.");
+        // Roll back the just-created item so a failed upload leaves no orphan
+        // DB row that the UI never shows.
+        void fetch(`/api/site-walk/items/${encodeURIComponent(memoId)}`, { method: "DELETE" });
         return;
       }
 

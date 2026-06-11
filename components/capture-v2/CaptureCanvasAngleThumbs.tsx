@@ -54,7 +54,7 @@ export function CaptureCanvasAngleThumbs({
           imageUrl={mainUrl}
           active={!activeAngleId}
           onClick={onSelectMain}
-          onHoldStart={() => {}}
+          onHoldStart={clearHold}
           onHoldEnd={clearHold}
         />
         {angles.map((angle) => (

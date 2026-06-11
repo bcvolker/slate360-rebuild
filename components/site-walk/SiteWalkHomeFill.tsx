@@ -173,7 +173,7 @@ export function buildSiteWalkDockRows(
       key: project.id,
       title: project.name,
       meta: project.status,
-      href: "/projects",
+      href: `/project-hub/${project.id}`,
     })),
     deliverables: deliverables.slice(0, 8).map((item) => ({
       key: item.id,

@@ -93,7 +93,8 @@ export function CaptureV2Orchestrator(props: Props) {
   async function handleSaveAndNext() {
     setSavingNext(true);
     try {
-      await loop.saveAndNextStop();
+      const saved = await loop.saveAndNextStop();
+      if (!saved) return; // error stays visible; do not advance phase
       setActiveAngleId(null);
       setPhase(isDesktop ? "hub" : "viewfinder");
     } finally {

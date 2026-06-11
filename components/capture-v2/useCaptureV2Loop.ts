@@ -252,9 +252,9 @@ export function useCaptureV2Loop({ sessionId, projectId, initialItemId, launchId
     fileHandler.handleFile(file, confirmBeforeAttach);
   }
 
-  const flushDetails = useCallback(async () => {
+  const flushDetails = useCallback(async (): Promise<boolean> => {
     const { activeItem, draft } = captureItems;
-    if (!activeItem || !draft) return;
+    if (!activeItem || !draft) return true;
     setDetailsSaving(true);
     setDetailSaveError(null);
     const result = await flushCaptureV2Details({
@@ -267,9 +267,10 @@ export function useCaptureV2Loop({ sessionId, projectId, initialItemId, launchId
     if (!result.ok) {
       setDetailSaveError(result.error);
       setExternalError(result.error);
-      return;
+      return false;
     }
     if (result.item) captureItems.selectItem(result.item);
+    return true;
   }, [captureItems, locationLabel, sessionId]);
 
   const flushDetailsRef = useRef(flushDetails);
@@ -306,7 +307,8 @@ export function useCaptureV2Loop({ sessionId, projectId, initialItemId, launchId
   async function saveAndNextStop(): Promise<boolean> {
     setAdvancingStop(true);
     try {
-      await flushDetailsRef.current();
+      const flushed = await flushDetailsRef.current();
+      if (!flushed) return false;
       await captureItems.flushCurrentDraft();
       triggerHapticSuccess();
       revokePreviewBlob();
@@ -457,6 +459,7 @@ export function useCaptureV2Loop({ sessionId, projectId, initialItemId, launchId
     setLocationLabel,
     detailsSaving,
     detailSaveError,
+    clearDetailSaveError: () => setDetailSaveError(null),
     flushDetails,
     focusFilmstripItem,
     deleteStop,

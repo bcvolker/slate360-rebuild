@@ -218,7 +218,10 @@ export function NoPlansCaptureCanvas({
         >
           <button
             type="button"
-            onClick={() => loop.setExternalError(null)}
+            onClick={() => {
+              loop.setExternalError(null);
+              loop.clearDetailSaveError();
+            }}
             className="w-full rounded-xl border border-red-500/40 bg-red-950/80 px-3 py-2 text-left text-sm font-semibold text-red-200 backdrop-blur-md"
             role="alert"
           >

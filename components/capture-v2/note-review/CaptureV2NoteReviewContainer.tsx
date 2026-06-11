@@ -74,6 +74,7 @@ export function CaptureV2NoteReviewContainer({
       aiState={aiState}
       aiMessage={aiMessage}
       saving={detailsSaving || busy}
+      saveError={loop.detailSaveError}
       keyboardSimOverride={keyboardSimOverride}
       previousTags={previousTags}
       onPatchDraft={patchDraft}
