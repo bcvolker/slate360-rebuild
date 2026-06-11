@@ -193,10 +193,10 @@ export const mobileHomeTokens = {
     "h-6 w-6 shrink-0 text-[color-mix(in_srgb,var(--mobile-folder-icon-fg-green)_72%,var(--mobile-bottom-nav-fg-inactive))]",
   siteWalkStartWalkGrid: "grid w-full shrink-0 grid-cols-2 gap-3 auto-rows-fr",
   siteWalkStartWalkCard:
-    "flex min-h-[96px] flex-col items-start justify-center gap-1.5 rounded-2xl border border-[color-mix(in_srgb,white_20%,transparent)] bg-[color-mix(in_srgb,white_7%,var(--surface-zinc))] px-3 py-3 text-left backdrop-blur-md transition-all hover:border-[color-mix(in_srgb,white_30%,transparent)] hover:bg-[color-mix(in_srgb,white_10%,var(--surface-zinc))] active:ring-2 active:ring-[color-mix(in_srgb,var(--graphite-primary)_28%,transparent)] active:scale-[0.99]",
+    "flex min-h-[128px] flex-col items-start justify-center gap-1.5 rounded-2xl border border-[color-mix(in_srgb,white_20%,transparent)] bg-[color-mix(in_srgb,white_7%,var(--surface-zinc))] px-3.5 py-3.5 text-left backdrop-blur-md transition-all hover:border-[color-mix(in_srgb,white_30%,transparent)] hover:bg-[color-mix(in_srgb,white_10%,var(--surface-zinc))] active:ring-2 active:ring-[color-mix(in_srgb,var(--graphite-primary)_28%,transparent)] active:scale-[0.99]",
   siteWalkStartWalkIconWrapper:
-    "mb-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[var(--graphite-primary)]",
-  siteWalkStartWalkIcon: "h-5 w-5 shrink-0 text-[var(--graphite-canvas)]",
+    "mb-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[var(--graphite-primary)]",
+  siteWalkStartWalkIcon: "h-6 w-6 shrink-0 text-[var(--graphite-canvas)]",
   siteWalkStartWalkTitle: "text-base font-bold leading-tight text-white",
   siteWalkStartWalkSubtext: "text-xs font-medium leading-snug text-zinc-300",
   siteWalkHomeSectionLabelAccent:
@@ -204,7 +204,7 @@ export const mobileHomeTokens = {
 
   twin360StartScanGrid: "grid w-full shrink-0 grid-cols-2 gap-3 auto-rows-fr",
   twin360StartScanCard:
-    "flex min-h-[96px] flex-col items-start justify-center gap-1.5 rounded-2xl border border-[color-mix(in_srgb,white_20%,transparent)] bg-[color-mix(in_srgb,white_7%,var(--surface-zinc))] px-3 py-3 text-left backdrop-blur-md transition-all hover:border-[color-mix(in_srgb,white_30%,transparent)] hover:bg-[color-mix(in_srgb,white_10%,var(--surface-zinc))] active:ring-2 active:ring-[color-mix(in_srgb,var(--twin360-blue)_28%,transparent)] active:scale-[0.99]",
+    "flex min-h-[128px] flex-col items-start justify-center gap-1.5 rounded-2xl border border-[color-mix(in_srgb,white_20%,transparent)] bg-[color-mix(in_srgb,white_7%,var(--surface-zinc))] px-3.5 py-3.5 text-left backdrop-blur-md transition-all hover:border-[color-mix(in_srgb,white_30%,transparent)] hover:bg-[color-mix(in_srgb,white_10%,var(--surface-zinc))] active:ring-2 active:ring-[color-mix(in_srgb,var(--twin360-blue)_28%,transparent)] active:scale-[0.99]",
   twin360StartScanIconWrapper:
     "mb-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[var(--twin360-blue)]",
   twin360StartScanIcon: "h-7 w-7 shrink-0 text-[var(--graphite-canvas)]",
