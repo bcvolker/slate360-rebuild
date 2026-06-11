@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronDown, ChevronLeft, ChevronUp, Maximize2 } from "lucide-react";
+import { ChevronDown, ChevronLeft, ChevronUp, Home, Maximize2 } from "lucide-react";
 import { CAPTURE_CANVAS_CHROME } from "./capture-canvas-chrome-layout";
 import { CAPTURE_V2_LAYERS } from "./layers";
 
@@ -82,6 +82,20 @@ export function CaptureCanvasTopBar({
           aria-label="Toggle capture controls"
         >
           <Maximize2 className="h-4 w-4" />
+        </button>
+
+        <button
+          type="button"
+          onClick={(event) => {
+            event.stopPropagation();
+            // Work auto-saves as stops are captured; this is the fast escape.
+            router.push("/app");
+          }}
+          data-capture-chrome="quick-exit"
+          className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[var(--graphite-text-header)] transition active:scale-[0.98]"
+          aria-label="Back to Slate360 home"
+        >
+          <Home className="h-4 w-4" />
         </button>
       </div>
 

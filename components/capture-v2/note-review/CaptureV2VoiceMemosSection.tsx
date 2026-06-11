@@ -133,6 +133,8 @@ function VoiceMemoRowView({
     };
   }, [row.audioUrl]);
 
+  const [playError, setPlayError] = useState<string | null>(null);
+
   function togglePlay() {
     const audio = audioRef.current;
     if (!audio || !row.audioUrl) return;
@@ -141,8 +143,18 @@ function VoiceMemoRowView({
       setPlaying(false);
       return;
     }
-    void audio.play();
-    setPlaying(true);
+    setPlayError(null);
+    audio
+      .play()
+      .then(() => setPlaying(true))
+      .catch(() => setPlayError("Could not play this memo on this device."));
+  }
+
+  function handleScrub(value: number) {
+    const audio = audioRef.current;
+    if (!audio || !Number.isFinite(audio.duration) || audio.duration === 0) return;
+    audio.currentTime = (value / 100) * audio.duration;
+    setProgress(value / 100);
   }
 
   return (
@@ -158,15 +170,21 @@ function VoiceMemoRowView({
           {playing ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
         </button>
         <div className="min-w-0 flex-1">
-          <div className="h-1.5 overflow-hidden rounded-full bg-[color-mix(in_srgb,var(--surface-zinc)_60%,black)]">
-            <div
-              className="h-full bg-[var(--graphite-primary)] transition-[width]"
-              style={{ width: `${Math.round(progress * 100)}%` }}
-            />
-          </div>
+          <input
+            type="range"
+            min={0}
+            max={100}
+            value={Math.round(progress * 100)}
+            onChange={(event) => handleScrub(Number(event.target.value))}
+            className="h-1.5 w-full cursor-pointer accent-[var(--graphite-primary)]"
+            aria-label="Scrub memo"
+          />
           <p className="mt-1 text-[10px] tabular-nums text-[var(--graphite-muted)]">
             {formatDuration(row.durationMs)}
           </p>
+          {playError ? (
+            <p className="mt-1 text-[11px] font-semibold text-red-300">{playError}</p>
+          ) : null}
         </div>
         <button
           type="button"

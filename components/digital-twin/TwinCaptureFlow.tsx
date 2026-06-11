@@ -79,17 +79,14 @@ export function TwinCaptureFlow({
 
     async function bootQuickScan() {
       const title = formatQuickScanSpaceTitle();
-      const project = projects[0];
 
       try {
+        // Quick scans are intentionally unattached — the user can link the
+        // twin to a project later from review / My Twins.
         const res = await fetch("/api/digital-twin/spaces", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(
-            project
-              ? { title, project_id: project.id }
-              : { title, quick_scan: true },
-          ),
+          body: JSON.stringify({ title, quick_scan: true }),
         });
         const data = (await res.json().catch(() => ({}))) as {
           space?: HubTwin;
@@ -105,7 +102,7 @@ export function TwinCaptureFlow({
         setLocalSpaces((prev) => [data.space!, ...prev.filter((row) => row.id !== data.space!.id)]);
         setSelection({
           spaceId: data.space.id,
-          projectId: data.space.projectId ?? project?.id ?? "",
+          projectId: data.space.projectId ?? "",
           spaceTitle: title,
         });
         setQuickBoot("done");

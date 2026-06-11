@@ -1,7 +1,8 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { ChevronDown, ChevronLeft, ChevronUp, Maximize2 } from "lucide-react";
+import { ChevronDown, ChevronLeft, ChevronUp, Home, Maximize2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { TWIN_CAPTURE_CHROME } from "@/lib/digital-twin/twin-capture-chrome-layout";
 
 type Props = {
@@ -25,6 +26,7 @@ export function TwinCaptureTopBar({
   onClipsToggle,
   clipsPanel,
 }: Props) {
+  const router = useRouter();
   if (hidden) return null;
 
   const showClipsToggle = clipCount > 0 && Boolean(onClipsToggle);
@@ -93,6 +95,19 @@ export function TwinCaptureTopBar({
           aria-label="Toggle capture controls"
         >
           <Maximize2 className="h-4 w-4" />
+        </button>
+
+        <button
+          type="button"
+          onClick={(event) => {
+            event.stopPropagation();
+            router.push("/app");
+          }}
+          data-twin-chrome="quick-exit"
+          className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[var(--graphite-text-header)] transition active:scale-[0.98]"
+          aria-label="Back to Slate360 home"
+        >
+          <Home className="h-4 w-4" />
         </button>
       </div>
 

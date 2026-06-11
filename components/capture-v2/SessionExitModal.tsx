@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle } from "lucide-react";
+import { Flag } from "lucide-react";
 
 type Props = {
   open: boolean;
@@ -16,26 +16,30 @@ export function SessionExitModal({ open, ending, error = null, onClose, onExit, 
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 px-4 pb-[max(env(safe-area-inset-bottom),1rem)] pt-[max(env(safe-area-inset-top),1rem)] backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 px-4 pb-[max(env(safe-area-inset-bottom),1rem)] pt-[max(env(safe-area-inset-top),1rem)] backdrop-blur-sm"
       role="dialog"
       aria-modal="true"
+      onClick={ending ? undefined : onClose}
     >
-      <div className="w-full max-w-md rounded-3xl border border-white/10 bg-slate-900 p-5 text-slate-50 shadow-2xl shadow-black/50">
+      <div
+        className="w-full max-w-md rounded-xl border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_94%,white)] p-5 text-[var(--graphite-text-header)]"
+        onClick={(event) => event.stopPropagation()}
+      >
         <div className="flex items-start gap-3">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-300 ring-1 ring-amber-500/20">
-            <AlertTriangle className="h-5 w-5" />
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[var(--graphite-primary)] text-[var(--graphite-canvas)]">
+            <Flag className="h-5 w-5" />
           </div>
           <div>
-            <h2 className="text-xl font-black">Leave this walk?</h2>
-            <p className="mt-1 text-sm leading-6 text-slate-400">
-              Exit keeps the walk in progress. End walk marks the session complete and opens walk
-              summary.
+            <h2 className="text-lg font-bold">Leave this walk?</h2>
+            <p className="mt-1 text-sm leading-6 text-[var(--graphite-muted)]">
+              Exit keeps the walk in progress so you can resume later. End walk completes the
+              session and opens the walk review.
             </p>
           </div>
         </div>
 
         {error ? (
-          <p className="mt-4 rounded-xl border border-red-400/30 bg-red-500/10 px-3 py-2 text-xs font-semibold text-red-200">
+          <p className="mt-4 rounded-xl border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm font-semibold text-red-300">
             {error}
           </p>
         ) : null}
@@ -45,7 +49,7 @@ export function SessionExitModal({ open, ending, error = null, onClose, onExit, 
             type="button"
             onClick={onClose}
             disabled={ending}
-            className="rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-sm font-black text-slate-200 hover:border-amber-400/50 disabled:opacity-60"
+            className="min-h-11 rounded-xl border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,white_5%,transparent)] px-3 py-2 text-sm font-semibold text-[var(--graphite-text-body)] disabled:opacity-60"
           >
             Cancel
           </button>
@@ -53,7 +57,7 @@ export function SessionExitModal({ open, ending, error = null, onClose, onExit, 
             type="button"
             onClick={onExit}
             disabled={ending}
-            className="rounded-xl border border-white/10 bg-white/[0.06] px-3 py-2 text-sm font-black text-slate-200 hover:border-amber-400/50 disabled:opacity-60"
+            className="min-h-11 rounded-xl border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,white_8%,transparent)] px-3 py-2 text-sm font-semibold text-[var(--graphite-text-header)] disabled:opacity-60"
           >
             Exit
           </button>
@@ -61,7 +65,7 @@ export function SessionExitModal({ open, ending, error = null, onClose, onExit, 
             type="button"
             onClick={onEnd}
             disabled={ending}
-            className="rounded-xl bg-amber-500 px-3 py-2 text-sm font-black text-slate-950 hover:bg-amber-400 disabled:opacity-60"
+            className="min-h-11 rounded-xl bg-[var(--graphite-primary)] px-3 py-2 text-sm font-bold text-[var(--graphite-canvas)] disabled:opacity-60"
           >
             {ending ? "Ending…" : "End Walk"}
           </button>

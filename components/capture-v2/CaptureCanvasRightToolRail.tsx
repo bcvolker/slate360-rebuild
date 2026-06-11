@@ -15,8 +15,8 @@ type Props = {
 
 function glassButtonClass(active: boolean) {
   return active
-    ? "border-[var(--accent-border-green)] bg-[color-mix(in_srgb,var(--graphite-primary)_14%,transparent)] text-[var(--graphite-primary)] ring-2 ring-[var(--accent-border-green)]"
-    : "border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_70%,transparent)] text-[var(--graphite-text-header)]";
+    ? "border-[var(--accent-border-green)] bg-[var(--graphite-primary)] text-[var(--graphite-canvas)] ring-2 ring-[var(--accent-border-green)]"
+    : "border-[var(--accent-border-green)] bg-[color-mix(in_srgb,var(--graphite-primary)_12%,var(--graphite-canvas))] text-[var(--graphite-primary)]";
 }
 
 export function CaptureCanvasRightToolRail({ hidden, activeTool, onSelectTool }: Props) {
