@@ -66,8 +66,14 @@ export function CaptureStopFilmstrip({
 
   async function handleConfirmDelete() {
     if (!confirmDeleteItem || !onDeleteItem) return;
-    await onDeleteItem(confirmDeleteItem);
-    setConfirmDeleteItem(null);
+    try {
+      await onDeleteItem(confirmDeleteItem);
+    } catch (error) {
+      console.error("[capture-v2] delete stop failed", error);
+    } finally {
+      // Never trap the user in the confirm dialog, even on failure.
+      setConfirmDeleteItem(null);
+    }
   }
 
   if (hidden) return null;

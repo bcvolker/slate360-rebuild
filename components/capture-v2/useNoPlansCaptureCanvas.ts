@@ -171,11 +171,12 @@ export function useNoPlansCaptureCanvas({
   );
 
   const handleCanvasTap = useCallback(() => {
-    // Drawing/pin gestures bubble click events; toggling chrome during markup
-    // strands the user on a bare photo when they close the toolbar.
-    if (markupEnabled) return;
+    // Markup/pin gestures on the captured photo bubble click events to this
+    // handler (Grok audit finding) — chrome toggling is a live-framing
+    // affordance only; in the captured state chrome stays visible.
+    if (markupEnabled || showPreview) return;
     setChromeVisible((value) => !value);
-  }, [markupEnabled]);
+  }, [markupEnabled, showPreview]);
 
   const handleShutterTapLive = useCallback(() => {
     if (!camera.streamAlive || camera.needsUserResume || !camera.hasLiveFrames) {
