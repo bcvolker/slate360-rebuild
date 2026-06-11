@@ -60,3 +60,10 @@ public/sw.js.map
 
 # Brand audit screenshots (generated)
 /.brand-audit/
+
+# Local measurement/debug artifacts
+/tmp-*
+/tmp-*.json
+/tmp-*.png
+/.vercel-inspect.json
+__pycache__/

@@ -142,6 +142,7 @@ async function main() {
   const modelPrefix = process.argv[2] ?? "e6e638a0";
   const token = await resolveShareToken(modelPrefix);
   const shareUrl = `${baseUrl}/share/twin/${token}`;
+  console.log(`[measure-twin-share-framing] shareUrl=${shareUrl}`);
 
   const headless = process.env.HEADED !== "1";
   const browser = await chromium.launch({

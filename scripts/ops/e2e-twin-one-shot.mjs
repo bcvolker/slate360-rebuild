@@ -12,8 +12,11 @@ import { createClient } from "@supabase/supabase-js";
 
 const PHOTO_DIR = path.resolve("public/uploads/chat docs");
 const PHOTO_NAMES = ["IMG_9386.PNG", "IMG_9387.PNG", "IMG_9388.PNG", "IMG_9389.PNG", "IMG_9390.PNG", "IMG_9391.PNG"];
+const VIDEO_FILE = process.env.E2E_TWIN_VIDEO?.trim() ?? "";
+const CEO_EMAIL = process.env.E2E_TWIN_CEO_EMAIL?.trim() || process.env.CEO_EMAIL?.trim() || "slate360ceo@gmail.com";
+const KEEP_DATA = process.env.E2E_TWIN_KEEP === "1";
 const POLL_MS = 30_000;
-const MAX_WAIT_MS = 75 * 60_000;
+const MAX_WAIT_MS = VIDEO_FILE ? 3 * 60 * 60_000 : 75 * 60_000;
 
 function loadDotEnvFile(filePath) {
   if (!fs.existsSync(filePath)) return;
@@ -63,7 +66,7 @@ async function main() {
   const baseUrl = getEnv("NEXT_PUBLIC_BASE_URL") || "https://www.slate360.ai";
 
   const stages = {
-    photosUploaded: "pending",
+    sourceUploaded: "pending",
     jobQueued: "pending",
     triggerFired: "pending",
     modalDispatched: "pending",
@@ -91,21 +94,45 @@ async function main() {
     credentials: { accessKeyId, secretAccessKey },
   });
 
-  const prefix = `__e2e_twin_${Date.now()}__`;
+  const prefix = VIDEO_FILE ? `Brian walkthrough ${new Date().toISOString().slice(0, 10)}` : `__e2e_twin_${Date.now()}__`;
   const cleanup = [];
   let jobId = null;
+  let captureId = null;
+  let orgId = null;
   let spaceId = null;
   let modelId = null;
   let shareToken = null;
 
   try {
-    const { data: org } = await admin.from("organizations").select("id").limit(1).single();
-    const { data: member } = await admin
+    const { data: profile, error: profileError } = await admin
+      .from("profiles")
+      .select("id, email")
+      .ilike("email", CEO_EMAIL)
+      .maybeSingle();
+    if (profileError || !profile?.id) {
+      throw new Error(`CEO profile not found for ${CEO_EMAIL}: ${profileError?.message ?? "missing"}`);
+    }
+
+    const { data: member, error: memberError } = await admin
       .from("organization_members")
-      .select("user_id")
-      .eq("org_id", org.id)
+      .select("org_id, user_id")
+      .eq("user_id", profile.id)
       .limit(1)
+      .maybeSingle();
+    if (memberError || !member?.org_id) {
+      throw new Error(`No org membership for ${CEO_EMAIL}: ${memberError?.message ?? "missing"}`);
+    }
+
+    const { data: org, error: orgError } = await admin
+      .from("organizations")
+      .select("id, name")
+      .eq("id", member.org_id)
       .single();
+    if (orgError || !org?.id) {
+      throw new Error(orgError?.message ?? "Organization not found");
+    }
+    orgId = org.id;
+    console.log(`[e2e-twin] org=${org.id} (${org.name ?? "unnamed"}) user=${profile.id} (${profile.email})`);
 
     const { data: project } = await admin
       .from("projects")
@@ -120,13 +147,13 @@ async function main() {
         org_id: org.id,
         project_id: project.id,
         created_by: member.user_id,
-        title: `${prefix} Quick Scan`,
+        title: VIDEO_FILE ? `${prefix}` : `${prefix} Quick Scan`,
         status: "draft",
       })
       .select("id")
       .single();
     spaceId = space.id;
-    cleanup.push(() => admin.from("digital_twin_spaces").delete().eq("id", space.id));
+    if (!KEEP_DATA) cleanup.push(() => admin.from("digital_twin_spaces").delete().eq("id", space.id));
 
     const { data: capture } = await admin
       .from("digital_twin_captures")
@@ -140,33 +167,38 @@ async function main() {
       })
       .select("id")
       .single();
+    captureId = capture.id;
 
     const assetIds = [];
     let uploaded = 0;
 
-    for (const name of PHOTO_NAMES) {
-      const filePath = path.join(PHOTO_DIR, name);
-      if (!fs.existsSync(filePath)) continue;
-      const body = fs.readFileSync(filePath);
-      const storageKey = buildTwinKey(org.id, space.id, capture.id, name);
+    if (VIDEO_FILE) {
+      const videoPath = path.resolve(VIDEO_FILE);
+      if (!fs.existsSync(videoPath)) {
+        throw new Error(`E2E_TWIN_VIDEO not found: ${videoPath}`);
+      }
+      const body = fs.readFileSync(videoPath);
+      const filename = path.basename(videoPath);
+      const storageKey = buildTwinKey(org.id, space.id, capture.id, filename);
+      const contentType = filename.toLowerCase().endsWith(".mov") ? "video/quicktime" : "video/mp4";
+      console.log(`[e2e-twin] uploading video ${filename} (${body.length} bytes) → ${storageKey}`);
       await s3.send(
         new PutObjectCommand({
           Bucket: bucket,
           Key: storageKey,
           Body: body,
-          ContentType: "image/png",
+          ContentType: contentType,
         }),
       );
-
       const { data: asset } = await admin
         .from("digital_twin_capture_assets")
         .insert({
           org_id: org.id,
           space_id: space.id,
           capture_id: capture.id,
-          asset_kind: "photo",
+          asset_kind: "video",
           upload_tier: "standard",
-          content_type: "image/png",
+          content_type: contentType,
           file_size_bytes: body.length,
           storage_key: storageKey,
           status: "ready",
@@ -174,10 +206,48 @@ async function main() {
         .select("id, storage_key")
         .single();
       assetIds.push(asset.id);
-      uploaded += 1;
+      uploaded = 1;
+      stages.sourceUploaded = `pass (1 video, ${body.length} bytes, key=${storageKey})`;
+    } else {
+      for (const name of PHOTO_NAMES) {
+        const filePath = path.join(PHOTO_DIR, name);
+        if (!fs.existsSync(filePath)) continue;
+        const body = fs.readFileSync(filePath);
+        const storageKey = buildTwinKey(org.id, space.id, capture.id, name);
+        await s3.send(
+          new PutObjectCommand({
+            Bucket: bucket,
+            Key: storageKey,
+            Body: body,
+            ContentType: "image/png",
+          }),
+        );
+
+        const { data: asset } = await admin
+          .from("digital_twin_capture_assets")
+          .insert({
+            org_id: org.id,
+            space_id: space.id,
+            capture_id: capture.id,
+            asset_kind: "photo",
+            upload_tier: "standard",
+            content_type: "image/png",
+            file_size_bytes: body.length,
+            storage_key: storageKey,
+            status: "ready",
+          })
+          .select("id, storage_key")
+          .single();
+        assetIds.push(asset.id);
+        uploaded += 1;
+      }
+      stages.sourceUploaded = uploaded >= 4 ? `pass (${uploaded} photos)` : `fail (${uploaded} photos)`;
     }
 
-    stages.photosUploaded = uploaded >= 4 ? `pass (${uploaded} photos)` : `fail (${uploaded} photos)`;
+    if (uploaded < 1) {
+      stages.sourceUploaded = "fail (no assets uploaded)";
+      throw new Error(stages.sourceUploaded);
+    }
 
     await admin
       .from("digital_twin_captures")
@@ -261,6 +331,9 @@ async function main() {
         stages.modalDispatched = row.worker_run_id
           ? `partial (modal ran, failed: ${row.error_text ?? "unknown"})`
           : stages.modalDispatched;
+        if (String(row.error_text ?? "").includes("max_num_elems > 0")) {
+          console.error("[e2e-twin] COLMAP max_num_elems abort detected — stopping poll.");
+        }
         break;
       }
     }
@@ -293,6 +366,18 @@ async function main() {
     console.log("\n[e2e-twin] Stage report:");
     for (const [key, value] of Object.entries(stages)) {
       console.log(`  ${key}: ${value}`);
+    }
+    console.log("\n[e2e-twin] IDs:");
+    console.log(`  org_id:     ${orgId ?? "—"}`);
+    console.log(`  space_id:   ${spaceId ?? "—"}`);
+    console.log(`  capture_id: ${captureId ?? "—"}`);
+    console.log(`  job_id:     ${jobId ?? "—"}`);
+    console.log(`  model_id:   ${modelId ?? "—"}`);
+    if (spaceId) {
+      console.log(`  viewer:     ${baseUrl}/digital-twin/twins/${spaceId}`);
+    }
+    if (shareToken) {
+      console.log(`  share:      ${baseUrl}/share/twin/${shareToken}`);
     }
 
     const failed = Object.values(stages).some((v) => String(v).startsWith("fail") || String(v).startsWith("timeout"));

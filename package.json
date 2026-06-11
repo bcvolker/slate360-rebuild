@@ -57,7 +57,7 @@
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.97.0",
     "@tabler/icons-react": "^3.44.0",
-    "@trigger.dev/sdk": "^4.4.5",
+    "@trigger.dev/sdk": "4.4.6",
     "@types/three": "^0.184.1",
     "@types/uuid": "^10.0.0",
     "@upstash/ratelimit": "^2.0.8",
@@ -127,5 +127,8 @@
     "*.css": [
       "node -e \"const s=require('fs').readFileSync(process.argv[1],'utf8');const opens=(s.match(/\\{/g)||[]).length;const closes=(s.match(/\\}/g)||[]).length;if(opens!==closes){process.stderr.write('CSS brace mismatch: '+opens+' opens, '+closes+' closes\\n');process.exit(1);}console.log('CSS braces OK');\""
     ]
+  },
+  "optionalDependencies": {
+    "@napi-rs/canvas-win32-x64-msvc": "^1.0.0"
   }
 }
