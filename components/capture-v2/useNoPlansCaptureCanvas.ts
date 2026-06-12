@@ -94,11 +94,10 @@ export function useNoPlansCaptureCanvas({
     return orderedItems.length + 1;
   }, [activeItem, orderedItems, planPinFlow]);
 
+  // Header stays short — "STOP n" must never truncate (walk context is implicit).
   const liveHeaderLabel = planPinFlow
     ? `${planPinFlow.projectLabel.toUpperCase()} · STOP ${stopNumber}`
-    : session.is_ad_hoc
-      ? `QUICK WALK · STOP ${stopNumber}`
-      : `${contextLabel.toUpperCase()} · STOP ${stopNumber}`;
+    : `STOP ${stopNumber}`;
   const capturedHeaderLabel = `STOP ${stopNumber} · SAVED ✓`;
   const angleHeaderLabel = `STOP ${stopNumber} · ANGLE`;
 
