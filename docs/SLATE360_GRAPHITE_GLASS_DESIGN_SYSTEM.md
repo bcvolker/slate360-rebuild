@@ -1,13 +1,18 @@
 # Slate360 Graphite Glass Design System
 
+> **⚠️ PARTIALLY SUPERSEDED (June 2026): `docs/design/GRAPHITE_GLASS.md` is the canonical
+> design doc and wins wherever the two disagree. Most importantly: amber is BANNED as an
+> accent — accents are `--graphite-primary` (#00E699) and `--twin360-blue` (#3D8EFF) via
+> `[data-mobile-route]` CSS vars, and `npm run guard:design` enforces this. The layout
+> geometry rules (§11–12) below remain valid.**
+
 **Core Principle:**
 Desktop dashboard and mobile app shells are distinct experiences but must share the same visual language.
 
 ## 1. Color Rules
 - Use graphite / charcoal / near-black as the foundation.
 - Avoid generic navy blue.
-- Avoid brown-looking cards or large amber fills.
-- Use amber/copper only as an accent.
+- Avoid brown-looking cards. Amber/copper/orange accents are banned (see canonical doc).
 - Use white/slate text with sufficient contrast.
 - Use subtle white/10 borders.
 
@@ -17,21 +22,21 @@ Desktop dashboard and mobile app shells are distinct experiences but must share 
 - **Panel Background**: \`white/4\` or \`white/5\` on top of base.
 - **Card Background**: \`white/[0.04]\`.
 - **Border**: \`white/10\`.
-- **Primary Accent**: Amber/Copper (e.g. \`amber-500\`).
-- **Active State**: \`amber-500/10\` with `text-amber-500`.
-- **Muted Text**: \`zinc-500\` or \`slate-400\`.
-- **Status Colors**: Standard destructive (\`red-400\`), success (\`emerald-400\`), warning (\`amber-400\`).
+- **Primary Accent**: `var(--mobile-shell-accent)` — `--graphite-primary` #00E699 (Site Walk, `/app`) or `--twin360-blue` #3D8EFF (Twin), scoped via `[data-mobile-route]`.
+- **Active State**: accent at ~10% mix with `text-[var(--mobile-shell-accent)]`.
+- **Muted Text**: \`zinc-500\` or \`slate-400\` (mobile shells: `var(--graphite-muted)`).
+- **Status Colors**: Standard destructive (\`red-400\`), success (\`emerald-400\`); warnings use muted graphite chips, not amber.
 
 ## 3. Component Rules
 - **Headers**: Compact, glass, subtle bottom border.
 - **Bottom Navs**: Rounded top corners, float above safe area, text sizes at 10px-11px.
 - **Contained Scrolling Panels**: Strict flex layouts to avoid scroll bleed. Soft rounded corners.
-- **Tab Strips**: Simple bordered active state with amber.
+- **Tab Strips**: Simple bordered active state in the route accent color.
 - **Quick Action Cards**: Minimal glass cards with centered icon/text.
 - **App Cards**: Consistent branding.
 - **Deliverable Rows**: Standard list item row with clear actions.
 - **Forms & Sheets**: Use standard primitives (GlassCard, Sheet).
-- **Empty States**: Centered muted icon, muted text, small amber CTA.
+- **Empty States**: Centered muted icon, muted text, small accent-colored CTA.
 - **CTAs**: Accent color only.
 - **Status Chips**: Standard small rounded badges.
 - **Hover/Focus**: Mild background color shift (\`hover:bg-white/[0.08]\`).
@@ -59,8 +64,8 @@ Desktop dashboard and mobile app shells are distinct experiences but must share 
 - Track B must not modify Dashboard V3, \`/app\` shell, or Site Walk UI without Track A coordination.
 
 ## 8. Auth/Marketing/Email Rules
-- Login/signup/account creation should use the same logo, dark graphite base, amber CTA, and clean glass panels.
-- Confirmation emails should be simpler but use Slate360 logo, graphite header/footer, amber CTA, and neutral body.
+- Login/signup/account creation should use the same logo, dark graphite base, neutral graphite + gradient-logo CTA treatment, and clean glass panels.
+- Confirmation emails should be simpler but use Slate360 logo, graphite header/footer, accent CTA (no amber), and neutral body.
 
 ## 9. v0/Copilot Usage Rules
 - v0 can be used for visual prototypes.
@@ -112,7 +117,7 @@ The following shared primitives live in `components/mobile-system/`. **Both `/ap
 | `MobileShellBrandMark` | `MobileShellBrandMark.tsx` | Mixed `SlateIcon` vs `SlateLogo` in mobile headers |
 
 ### Mobile brand mark (mandatory)
-- Platform `/app` shell and module app shells (Site Walk V1, future apps) must use **`MobileShellBrandMark`** (`SlateIcon` S-mark, `h-9 w-9`, amber glow).
+- Platform `/app` shell and module app shells (Site Walk V1, future apps) must use **`MobileShellBrandMark`** (`SlateIcon` S-mark, `h-9 w-9`).
 - Do **not** use the horizontal `SlateLogo` wordmark in mobile top bars — desktop sidebars and marketing may still use `SlateLogo`.
 - Module title/subtitle (e.g. "Site Walk" / "Field Capture") belong in `MobileTopBar` title slots, not as a substitute logo.
 
@@ -128,7 +133,7 @@ The following shared primitives live in `components/mobile-system/`. **Both `/ap
 - Empty panel height: `h-[clamp(180px,26dvh,240px)]`
 - Module list panel cap: `h-full max-h-[min(40dvh,380px)]`
 - Tabbed panel body: `min-h-0 flex-1 overflow-y-auto px-3 pt-2 pb-6`
-- Active tab: `border-b-2 border-amber-500 text-white`
+- Active tab: `border-b-2 border-[var(--mobile-shell-accent)] text-white`
 - Empty state padding: `py-8`
 
 ### Migration Status

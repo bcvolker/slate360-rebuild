@@ -15,7 +15,7 @@ Slate360 is not a demo app. It is a production SaaS product being prepared for i
 - No fake metrics.
 - No dead buttons.
 - No mock data in production UI.
-- Use the Dark Glass & Amber design system.
+- Use the Graphite Glass design system (`docs/design/GRAPHITE_GLASS.md` is canonical). Amber accents are banned in authenticated surfaces — `npm run guard:design` enforces this.
 - Use canonical app shell components for authenticated surfaces.
 - Do not mix UI redesigns with backend or persistence fixes.
 
@@ -29,7 +29,7 @@ Read `SLATE360_LIVE_MAIN_WORKFLOW.md` before every session.
 
 - Default branch: **`main`** unless the user explicitly requests a feature branch.
 - Do **not** use Vercel preview links unless explicitly asked.
-- Small, reversible commits; validate before every push (`typecheck`, `build`, `guard:architecture`).
+- Small, reversible commits; validate before every push (`typecheck`, `build`, `guard:architecture`, `guard:design`).
 - After push: confirm production via `/api/deploy-info` and provide cache-busted URLs.
 - Restore point: branch `backup/pre-live-main-workflow` / tag `pre-live-main-workflow`.
 

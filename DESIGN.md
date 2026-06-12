@@ -1,14 +1,19 @@
-# Slate360 Design System
+# Slate360 Design System (SUPERSEDED)
 
-Last Updated: 2026-04-28
+Last Updated: 2026-06-12
+
+> **⚠️ THIS DOCUMENT IS SUPERSEDED. Read `docs/design/GRAPHITE_GLASS.md` instead.**
+> Amber is **banned** as a shell color — it is the marker of legacy placeholder UI and
+> fails `npm run guard:design`. Per-app accents are `--graphite-primary` (#00E699,
+> Site Walk / platform) and `--twin360-blue` (#3D8EFF, Digital Twin), scoped via
+> `[data-mobile-route]` CSS vars. The CSS-variable reference below is kept only as
+> historical context for legacy code still being migrated or deleted.
 
 ## Aesthetic Direction: Dark Glass
 
 We use a **Dark Glass** aesthetic. This uses deep Zinc/Charcoal surfaces with glassmorphic effects (semi-transparent backgrounds, backdrop blur, subtle borders).
 
-**Primary accent for the app shell is amber-gold** (`bg-amber-500 text-slate-950` / hover `bg-amber-400`). Cobalt (`#3B82F6`) remains valid for data-viz, links, focus rings, and market/analytics modules. Shell CTAs, FABs, icon badges, and quick-action hover states must use amber.
-
-Yellow, gold, and orange were legacy accents in earlier builds. Amber is now explicitly the canonical primary for interactive shell surfaces.
+Cobalt (`#3B82F6`) remains valid for data-viz, links, and focus rings. Amber, yellow, gold, and orange are legacy accents and must not be used in new work.
 
 ## CSS Custom Properties (globals.css)
 

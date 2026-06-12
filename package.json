@@ -14,6 +14,7 @@
     "typecheck:changed": "node scripts/ops/typecheck-scoped.mjs",
     "guard:file-size-regression": "node scripts/ops/check-file-size-regression.mjs",
     "guard:architecture": "node scripts/ops/check-architecture-guardrails.mjs",
+    "guard:design": "node scripts/ops/check-design-guardrails.mjs",
     "guard:build-stability": "node scripts/ops/check-build-stability.mjs",
     "guard:clob-contract": "node scripts/ops/check-clob-contract.mjs",
     "diag:market-runtime": "node scripts/ops/check-market-runtime.mjs",
