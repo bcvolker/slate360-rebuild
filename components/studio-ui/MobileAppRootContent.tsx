@@ -166,7 +166,8 @@ export function MobileAppRootContent({ homeData, launcherApps }: MobileAppRootCo
         <MobileAppLauncherGrid apps={launcherApps} />
       </section>
 
-      <section className={appHomeTokens.section}>
+      {/* mt-auto sinks quick actions + SlateDrop portal to sit just above the dock */}
+      <section className={`${appHomeTokens.section} mt-auto`}>
         <div className={appHomeTokens.sectionHeader}>
           <MobileAppSectionLabel>Quick Actions</MobileAppSectionLabel>
         </div>

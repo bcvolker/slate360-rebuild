@@ -19,7 +19,7 @@ export const appHomeTokens = {
   launcherRailTile: "min-w-[calc(100%-2rem)] max-w-[280px] shrink-0",
 
   launcherTileBase:
-    "flex h-[96px] w-full min-w-0 items-center gap-3 rounded-[13px] border px-3.5 text-left transition-colors active:scale-[0.99]",
+    "flex h-[116px] w-full min-w-0 items-center gap-3 rounded-[13px] border px-3.5 text-left transition-colors active:scale-[0.99]",
   launcherTilePrimary:
     "border-[#1E4A3A] bg-[#11161E] hover:border-[color-mix(in_srgb,#00E699_35%,#1E4A3A)] hover:bg-[color-mix(in_srgb,#00E699_4%,#11161E)]",
   launcherTileInfo:
@@ -50,7 +50,7 @@ export const appHomeTokens = {
   quickActionLabel: "text-xs font-medium leading-tight text-[#F8FAFC]",
 
   slateDropCard:
-    "flex w-full shrink-0 flex-col gap-3 rounded-[13px] border border-[#2A3340] bg-[#11161E] p-3",
+    "flex w-full shrink-0 flex-col gap-3 rounded-[13px] border border-[color-mix(in_srgb,white_22%,transparent)] bg-[color-mix(in_srgb,white_4%,#11161E)] p-3",
   slateDropRow: "flex items-center gap-3",
   slateDropRingWrap: "relative flex h-12 w-12 shrink-0 items-center justify-center",
   slateDropStats: "min-w-0 flex-1",
