@@ -20,6 +20,8 @@ type Args = {
   pinMode?: boolean;
   onPlacePin?: (xPct: number, yPct: number) => void;
   onAttachHere?: (xPct: number, yPct: number) => void;
+  /** Persistent text input — focused synchronously inside the tap gesture so iOS opens the keyboard. */
+  textInputRef?: React.RefObject<HTMLInputElement | null>;
 };
 
 export function useCaptureV2PhotoCanvasState({
@@ -30,6 +32,7 @@ export function useCaptureV2PhotoCanvasState({
   pinMode = false,
   onPlacePin,
   onAttachHere,
+  textInputRef,
 }: Args) {
   const stageRef = useRef<HTMLDivElement>(null);
   const longPressRef = useRef<number | null>(null);
@@ -164,7 +167,11 @@ export function useCaptureV2PhotoCanvasState({
   function handlePointerDown(event: PointerEvent<HTMLDivElement>) {
     pendingMoveRef.current = null;
     clearLongPress();
-    event.currentTarget.setPointerCapture(event.pointerId);
+    try {
+      event.currentTarget.setPointerCapture(event.pointerId);
+    } catch {
+      // Pointer already released (fast tap) — gesture handling continues without capture.
+    }
     pointersRef.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
     if (pointersRef.current.size === 2) {
       pinchRef.current = beginPinch(pointersRef.current, transformRef.current.scale, transformRef.current);
@@ -177,7 +184,10 @@ export function useCaptureV2PhotoCanvasState({
     if (tool === "select") {
       const hit = findShapeAtPoint(shapesRef.current, point);
       if (!hit) { setSelectedId(null); return; }
-      if (hit.kind === "text" && selectedId === hit.id) setEditingTextId(hit.id);
+      if (hit.kind === "text" && selectedId === hit.id) {
+        setEditingTextId(hit.id);
+        textInputRef?.current?.focus({ preventScroll: true });
+      }
       setSelectedId(hit.id);
       remember();
       setDragState({ id: hit.id, start: point, shape: hit, mode: "move" });
@@ -192,6 +202,8 @@ export function useCaptureV2PhotoCanvasState({
       setEditingTextId(textShape.id);
       setTool("select");
       clearLongPress();
+      // Focus inside this gesture or iOS never opens the keyboard.
+      textInputRef?.current?.focus({ preventScroll: true });
       return;
     }
     draftStartRef.current = point;
@@ -320,12 +332,25 @@ export function useCaptureV2PhotoCanvasState({
     setDragState({ id: shape.id, handle, mode: "resize" });
   }
 
+  function finishTextEditing() {
+    const editingId = shapesRef.current.find(
+      (shape) => shape.kind === "text" && shape.id === editingTextId,
+    );
+    if (editingId && editingId.kind === "text" && !editingId.text.trim()) {
+      // Abandoned empty text would linger invisibly — remove it.
+      applyShapes((current) => current.filter((shape) => shape.id !== editingId.id));
+      setSelectedId(null);
+    }
+    setEditingTextId(null);
+  }
+
   return {
     stageRef,
     shapes,
     selectedId,
     editingTextId,
     setEditingTextId,
+    finishTextEditing,
     draftStart,
     draftPoints,
     portrait,

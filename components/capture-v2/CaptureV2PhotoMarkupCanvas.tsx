@@ -5,8 +5,9 @@ import type { MarkupData, MarkupShape } from "@/lib/site-walk/markup-types";
 import type { PhotoAttachmentPin } from "@/lib/site-walk/photo-attachments";
 import { buildShape, getShapeBounds, MARKUP_HEIGHT, MARKUP_WIDTH } from "@/components/site-walk/capture/markupCanvasGeometry";
 import type { ResizeHandle } from "@/components/site-walk/capture/markupShapeEdits";
-import { TextEditor } from "@/components/site-walk/capture/PhotoMarkupControls";
+import { useRef } from "react";
 import { CaptureV2PhotoPins } from "./CaptureV2PhotoPins";
+import { CaptureV2TextEditor } from "./CaptureV2TextEditor";
 import { useCaptureV2PhotoCanvasState } from "./useCaptureV2PhotoCanvasState";
 
 type Props = {
@@ -40,6 +41,7 @@ export function CaptureV2PhotoMarkupCanvas({
   openPinId,
   pinsSuspended,
 }: Props) {
+  const textInputRef = useRef<HTMLInputElement | null>(null);
   const canvas = useCaptureV2PhotoCanvasState({
     imageUrl,
     markupEnabled,
@@ -48,6 +50,7 @@ export function CaptureV2PhotoMarkupCanvas({
     pinMode,
     onPlacePin,
     onAttachHere,
+    textInputRef,
   });
 
   return (
@@ -91,13 +94,14 @@ export function CaptureV2PhotoMarkupCanvas({
           openPinId={openPinId}
           suspended={pinsSuspended}
         />
-        {canvas.editingTextId ? (
-          <TextEditor
-            shape={canvas.shapes.find((shape) => shape.id === canvas.editingTextId)}
-            onChange={(value) => canvas.updateText(canvas.editingTextId!, value)}
-            onDone={() => canvas.setEditingTextId(null)}
-          />
-        ) : null}
+        <CaptureV2TextEditor
+          shape={canvas.shapes.find((shape) => shape.id === canvas.editingTextId)}
+          inputRef={textInputRef}
+          onChange={(value) => {
+            if (canvas.editingTextId) canvas.updateText(canvas.editingTextId, value);
+          }}
+          onDone={canvas.finishTextEditing}
+        />
       </div>
     </div>
   );
