@@ -206,6 +206,7 @@ export function DigitalTwinHomeClient({ twins, projects }: Props) {
       </section>
 
       <MobileQuickActionsSection
+        className="mt-auto"
         labelClassName={mobileTokens.appHomeSectionLabel}
         accentClassName={mobileTokens.twin360HomeSectionLabelAccent}
       >

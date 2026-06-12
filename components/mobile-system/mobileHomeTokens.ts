@@ -112,7 +112,7 @@ export const mobileHomeTokens = {
   appHomeSectionLabelTextLink:
     "text-xs font-semibold text-zinc-200 transition-colors hover:text-white",
   appHomeScrollInner:
-    "mx-auto flex min-h-full w-full max-w-2xl flex-1 flex-col justify-evenly gap-3 px-4 pt-3 pb-3",
+    "mx-auto flex min-h-full w-full max-w-2xl flex-1 flex-col gap-4 px-3 pt-3 pb-3",
   appHomeDockStack: "flex w-full shrink-0 flex-col gap-2.5",
   appHomeQuickActionsSectionLabel:
     "text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-300",

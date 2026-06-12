@@ -345,6 +345,7 @@ export function SiteWalkHomeClient({
       </section>
 
       <MobileQuickActionsSection
+        className="mt-auto"
         labelClassName={mobileTokens.appHomeSectionLabel}
         accentClassName={mobileTokens.siteWalkHomeSectionLabelAccent}
       >
