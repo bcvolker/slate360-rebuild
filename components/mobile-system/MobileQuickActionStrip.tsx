@@ -14,7 +14,7 @@ export type MobileQuickActionItem = {
   href?: string;
   onClick?: () => void;
   disabled?: boolean;
-  /** @deprecated Accent styling unified — all shells use appHomeTokens quick-action chips */
+  /** @deprecated Per-item accent — route-scoped CSS vars drive chip color on each shell */
   accent?: MobileQuickActionAccent;
   "aria-label"?: string;
 };

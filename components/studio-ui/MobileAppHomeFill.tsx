@@ -59,7 +59,7 @@ function StorageRing({ usedGb, limitGb }: { usedGb: number; limitGb: number }) {
       width="48"
       height="48"
       viewBox="0 0 48 48"
-      className="shrink-0"
+      className="shrink-0 text-[var(--mobile-shell-accent)]"
       aria-hidden
     >
       <circle cx="24" cy="24" r={radius} fill="none" stroke="#2A3340" strokeWidth="3" />
@@ -68,7 +68,7 @@ function StorageRing({ usedGb, limitGb }: { usedGb: number; limitGb: number }) {
         cy="24"
         r={radius}
         fill="none"
-        stroke="#3D8EFF"
+        stroke="currentColor"
         strokeWidth="3"
         strokeLinecap="round"
         strokeDasharray={circumference}

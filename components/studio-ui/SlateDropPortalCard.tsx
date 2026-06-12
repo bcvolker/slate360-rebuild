@@ -14,8 +14,6 @@ export type SlateDropPortalFolder = {
 type Props = {
   folders: SlateDropPortalFolder[];
   openHref?: string;
-  /** Optional accent class for the section label dash (module accent). */
-  labelAccentClassName?: string;
   filesAddedToday?: number;
 };
 
@@ -40,7 +38,7 @@ function StorageRing({ usedGb, limitGb }: { usedGb: number; limitGb: number }) {
         cy="24"
         r={radius}
         fill="none"
-        stroke="#3D8EFF"
+        stroke="currentColor"
         strokeWidth="3"
         strokeLinecap="round"
         strokeDasharray={circumference}
@@ -55,7 +53,6 @@ function StorageRing({ usedGb, limitGb }: { usedGb: number; limitGb: number }) {
 export function SlateDropPortalCard({
   folders,
   openHref = "/slatedrop",
-  labelAccentClassName,
   filesAddedToday = 0,
 }: Props) {
   const [storageUsedGb, setStorageUsedGb] = useState(0);
@@ -85,7 +82,6 @@ export function SlateDropPortalCard({
   return (
     <section className={appHomeTokens.section} aria-label="SlateDrop portal">
       <div className={appHomeTokens.sectionHeader}>
-        {labelAccentClassName ? <span className={labelAccentClassName} aria-hidden /> : null}
         <MobileAppSectionLabel>SlateDrop Portal</MobileAppSectionLabel>
       </div>
       <div className={appHomeTokens.slateDropCard} data-testid="slatedrop-portal-card">
