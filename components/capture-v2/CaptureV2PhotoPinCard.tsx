@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Camera, Check, Paperclip, Trash2, X } from "lucide-react";
 import type { PhotoAttachmentFile, PhotoAttachmentPin } from "@/lib/site-walk/photo-attachments";
 import { captureCanvasGlass } from "./capture-canvas-glass-tokens";
@@ -11,12 +12,12 @@ type Props = {
   noteDraft: string;
   confirmDelete: boolean;
   recentlyAttachedFileId: string | null;
-  style: { left: number; top: number };
   onLabelChange: (value: string) => void;
   onLabelCommit: () => void;
   onNoteChange: (value: string) => void;
   onNoteCommit: () => void;
-  onClose: () => void;
+  onConfirm: () => void;
+  onCancel: () => void;
   onAttachFile: () => void;
   onAttachPhoto: () => void;
   onDeleteRequest: () => void;
@@ -27,18 +28,37 @@ type Props = {
 
 const MIN_TAP_PX = 44;
 
+/** Keyboard inset via visualViewport so the centered modal is never covered on iOS. */
+function useKeyboardInset() {
+  const [inset, setInset] = useState(0);
+  useEffect(() => {
+    const viewport = window.visualViewport;
+    if (!viewport) return;
+    const update = () =>
+      setInset(Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop));
+    update();
+    viewport.addEventListener("resize", update);
+    viewport.addEventListener("scroll", update);
+    return () => {
+      viewport.removeEventListener("resize", update);
+      viewport.removeEventListener("scroll", update);
+    };
+  }, []);
+  return inset;
+}
+
 export function CaptureV2PhotoPinCard({
   pin,
   labelDraft,
   noteDraft,
   confirmDelete,
   recentlyAttachedFileId,
-  style,
   onLabelChange,
   onLabelCommit,
   onNoteChange,
   onNoteCommit,
-  onClose,
+  onConfirm,
+  onCancel,
   onAttachFile,
   onAttachPhoto,
   onDeleteRequest,
@@ -46,15 +66,21 @@ export function CaptureV2PhotoPinCard({
   onDeleteCancel,
   onOpenAttachment,
 }: Props) {
+  const keyboardInset = useKeyboardInset();
+
   return (
     <div
-      className="pointer-events-auto fixed z-40 w-[280px]"
-      style={{ left: style.left, top: style.top, transform: "translateX(-50%)" }}
+      className="pointer-events-auto fixed inset-0 z-40 flex items-center justify-center bg-black/45 px-4"
+      style={{ paddingBottom: keyboardInset }}
       data-capture-chrome="pin-popover"
       onPointerDown={(event) => event.stopPropagation()}
+      // Closes only via the ✓ / X buttons — backdrop taps are intentionally inert.
+      role="dialog"
+      aria-modal="true"
+      aria-label={`Pin details for ${pin.label || "untitled pin"}`}
     >
       <div
-        className={`${captureCanvasGlass.surface} ${captureCanvasGlass.radiusLg} overflow-hidden shadow-2xl`}
+        className={`${captureCanvasGlass.surface} ${captureCanvasGlass.radiusLg} w-[300px] max-w-full overflow-hidden shadow-2xl`}
       >
         <div className="flex items-start gap-2 border-b border-[var(--mobile-app-card-border)] px-3 py-2">
           <input
@@ -74,20 +100,20 @@ export function CaptureV2PhotoPinCard({
           />
           <button
             type="button"
-            onClick={onClose}
+            onClick={onConfirm}
             className="inline-flex shrink-0 items-center justify-center rounded-lg bg-[var(--graphite-primary)] text-[var(--graphite-canvas)] transition active:scale-[0.98]"
             style={{ width: MIN_TAP_PX, height: MIN_TAP_PX }}
-            aria-label="Save pin"
+            aria-label="Save pin details"
             data-capture-chrome="pin-popover-accept"
           >
             <Check className="h-5 w-5" strokeWidth={2.5} />
           </button>
           <button
             type="button"
-            onClick={onClose}
+            onClick={onCancel}
             className="inline-flex shrink-0 items-center justify-center rounded-lg text-[var(--graphite-text-header)] transition active:scale-[0.98]"
             style={{ width: MIN_TAP_PX, height: MIN_TAP_PX }}
-            aria-label="Close pin card"
+            aria-label="Cancel pin edits"
             data-capture-chrome="pin-popover-close"
           >
             <X className="h-5 w-5" />

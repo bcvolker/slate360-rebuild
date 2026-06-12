@@ -159,6 +159,7 @@ export function NoPlansCaptureCanvas({
             onAttachFileToPin={canvas.handleAttachFileToPin}
             onAttachPhotoToPin={canvas.handleAttachPhotoToPin}
             openPinId={devOpenPinPopover ? "dev-measure-pin" : null}
+            pinsSuspended={canvas.detailsOpen}
           />
         ) : null}
         <CaptureV2LiveCameraBusyOverlay busy={loop.busy} />

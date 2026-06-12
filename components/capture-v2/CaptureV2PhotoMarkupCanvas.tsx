@@ -22,6 +22,7 @@ type Props = {
   onAttachFileToPin?: (pin: PhotoAttachmentPin) => void;
   onAttachPhotoToPin?: (pin: PhotoAttachmentPin) => void;
   openPinId?: string | null;
+  pinsSuspended?: boolean;
 };
 
 export function CaptureV2PhotoMarkupCanvas({
@@ -37,6 +38,7 @@ export function CaptureV2PhotoMarkupCanvas({
   onAttachFileToPin,
   onAttachPhotoToPin,
   openPinId,
+  pinsSuspended,
 }: Props) {
   const canvas = useCaptureV2PhotoCanvasState({
     imageUrl,
@@ -87,6 +89,7 @@ export function CaptureV2PhotoMarkupCanvas({
           onAttachFile={(pin) => onAttachFileToPin?.(pin)}
           onAttachPhoto={(pin) => onAttachPhotoToPin?.(pin)}
           openPinId={openPinId}
+          suspended={pinsSuspended}
         />
         {canvas.editingTextId ? (
           <TextEditor

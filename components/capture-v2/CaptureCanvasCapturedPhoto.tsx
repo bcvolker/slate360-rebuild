@@ -18,6 +18,7 @@ type Props = {
   onAttachFileToPin?: (pin: PhotoAttachmentPin) => void;
   onAttachPhotoToPin?: (pin: PhotoAttachmentPin) => void;
   openPinId?: string | null;
+  pinsSuspended?: boolean;
 };
 
 export function CaptureCanvasCapturedPhoto({
@@ -32,6 +33,7 @@ export function CaptureCanvasCapturedPhoto({
   onAttachFileToPin,
   onAttachPhotoToPin,
   openPinId,
+  pinsSuspended,
 }: Props) {
   const markup = isMarkupData(initialMarkup) ? initialMarkup : undefined;
 
@@ -51,6 +53,7 @@ export function CaptureCanvasCapturedPhoto({
         onAttachFileToPin={onAttachFileToPin}
         onAttachPhotoToPin={onAttachPhotoToPin}
         openPinId={openPinId}
+        pinsSuspended={pinsSuspended}
       />
     </div>
   );
