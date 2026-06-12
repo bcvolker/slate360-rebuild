@@ -114,19 +114,22 @@ export const mobileTokens = {
     "flex h-11 shrink-0 items-center justify-between border-b border-[#2A3340] bg-[#11161E] px-3",
   mobileHeaderBrandLink:
     "flex min-w-0 shrink-0 items-center gap-2 rounded-[11px] transition-colors hover:bg-white/[0.04] active:bg-white/[0.07]",
+  mobileHeaderBrandDivider: "h-6 w-px shrink-0 bg-[#2A3340]",
+  mobileHeaderPlatformMarkLink:
+    "flex min-h-9 min-w-9 shrink-0 items-center justify-center rounded-[11px] p-1 -ml-1 transition-colors hover:bg-white/[0.04] active:bg-white/[0.07]",
   mobileHeaderBackChevron: "size-5 shrink-0 text-[#C9D3DF]",
   mobileHeaderIconButton:
     "flex size-9 shrink-0 items-center justify-center rounded-[11px] border border-[#2A3340] bg-[#11161E] text-[#C9D3DF] transition-colors hover:bg-white/[0.06] active:bg-white/[0.09]",
   mobileHeaderIconSize: "h-[18px] w-[18px]",
   mobileHeaderActionsRow: "ml-auto flex shrink-0 items-center gap-1.5",
-  mobileModuleHomeBrandLink:
-    "flex min-w-0 shrink-0 items-center gap-2 rounded-[11px] pr-1 transition-colors hover:bg-white/[0.04] active:bg-white/[0.07]",
+  mobileModuleHomeBrandCluster:
+    "flex min-w-0 shrink-0 items-center gap-2",
   mobileModuleHomeIconChipPrimary:
-    "flex size-7 shrink-0 items-center justify-center rounded-[11px] border border-[var(--mobile-app-card-icon-border-primary)] bg-[var(--mobile-app-card-icon-bg-primary)] text-[var(--mobile-app-card-icon-fg-primary)]",
+    "flex size-8 shrink-0 items-center justify-center rounded-[11px] border border-[var(--mobile-app-card-icon-border-primary)] bg-[var(--mobile-app-card-icon-bg-primary)] text-[var(--mobile-app-card-icon-fg-primary)]",
   mobileModuleHomeIconChipInfo:
-    "flex size-7 shrink-0 items-center justify-center rounded-[11px] border border-[var(--mobile-app-card-icon-border-info)] bg-[var(--mobile-app-card-icon-bg-info)] text-[var(--mobile-app-card-icon-fg-info)]",
-  mobileModuleHomeIconChipIcon: "size-4",
-  mobileModuleHomeName: "truncate text-[15px] font-semibold leading-none text-white",
+    "flex size-8 shrink-0 items-center justify-center rounded-[11px] border border-[var(--mobile-app-card-icon-border-info)] bg-[var(--mobile-app-card-icon-bg-info)] text-[var(--mobile-app-card-icon-fg-info)]",
+  mobileModuleHomeIconChipIcon: "size-[18px]",
+  mobileModuleHomeName: "truncate text-base font-semibold leading-none text-white",
   mobileHeaderPopover:
     "absolute right-0 top-[calc(100%+8px)] z-50 w-[min(280px,calc(100vw-2rem))] rounded-xl border border-[#2A3340] bg-[#11161E]/95 p-4 backdrop-blur-md",
   mobileHeaderPopoverLabel:

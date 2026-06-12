@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronLeft } from "lucide-react";
 import { Slate360Logo } from "@/components/studio-ui/LogoProvider";
 import { SlateIcon } from "@/components/shared/SlateIcon";
 import { cn } from "@/lib/utils";
@@ -48,7 +47,7 @@ export function MobileShellBrand({
 
 type MobileShellModuleBrandProps = ModuleHomeBrand;
 
-/** Module home header brand — back chevron, 28px accent icon chip, app name. */
+/** Module home header brand — Slate360 platform mark + divider + accent chip + module name. */
 export function MobileShellModuleBrand({ name, icon: Icon, accent }: MobileShellModuleBrandProps) {
   const chipClass =
     accent === "info"
@@ -56,20 +55,19 @@ export function MobileShellModuleBrand({ name, icon: Icon, accent }: MobileShell
       : mobileTokens.mobileModuleHomeIconChipPrimary;
 
   return (
-    <Link
-      href="/app"
-      className={mobileTokens.mobileModuleHomeBrandLink}
-      aria-label="Back to Slate360 home"
-    >
-      <ChevronLeft
-        className={mobileTokens.mobileHeaderBackChevron}
-        strokeWidth={2}
-        aria-hidden
-      />
+    <div className={mobileTokens.mobileModuleHomeBrandCluster}>
+      <Link
+        href="/app"
+        className={mobileTokens.mobileHeaderPlatformMarkLink}
+        aria-label="Slate360 home"
+      >
+        <SlateIcon className="h-8 w-8 shrink-0" aria-hidden />
+      </Link>
+      <span className={mobileTokens.mobileHeaderBrandDivider} aria-hidden />
       <span className={chipClass} aria-hidden>
         <Icon className={mobileTokens.mobileModuleHomeIconChipIcon} strokeWidth={2} />
       </span>
       <span className={mobileTokens.mobileModuleHomeName}>{name}</span>
-    </Link>
+    </div>
   );
 }

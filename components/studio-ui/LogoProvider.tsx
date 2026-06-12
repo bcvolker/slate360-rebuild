@@ -8,9 +8,9 @@ const LOGO_SIZES = {
     wordmarkLight: "font-sans font-bold tracking-[0.14em] text-2xl select-none ml-4",
   },
   header: {
-    symbol: "h-7 w-auto block shrink-0",
-    wordmarkDark: "font-sans font-bold tracking-[0.14em] text-base select-none ml-2.5",
-    wordmarkLight: "font-sans font-bold tracking-[0.14em] text-base select-none ml-2.5",
+    symbol: "h-8 w-auto block shrink-0",
+    wordmarkDark: "font-sans font-bold tracking-[0.14em] text-lg select-none ml-2.5",
+    wordmarkLight: "font-sans font-bold tracking-[0.14em] text-lg select-none ml-2.5",
   },
 } as const;
 
