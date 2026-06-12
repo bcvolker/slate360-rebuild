@@ -5,7 +5,7 @@
 
 export const appHomeTokens = {
   scrollInner:
-    "mx-auto flex min-h-full w-full max-w-2xl flex-1 flex-col justify-evenly gap-3 px-3 pt-3 pb-3",
+    "mx-auto flex min-h-full w-full max-w-2xl flex-1 flex-col gap-4 px-3 pt-3 pb-3",
   section: "shrink-0",
   sectionHeader: "mb-2 px-0.5",
   sectionLabel:
@@ -19,7 +19,7 @@ export const appHomeTokens = {
   launcherRailTile: "min-w-[calc(100%-2rem)] max-w-[280px] shrink-0",
 
   launcherTileBase:
-    "flex h-[74px] w-full min-w-0 items-center gap-3 rounded-[13px] border px-3 text-left transition-colors active:scale-[0.99]",
+    "flex h-[96px] w-full min-w-0 items-center gap-3 rounded-[13px] border px-3.5 text-left transition-colors active:scale-[0.99]",
   launcherTilePrimary:
     "border-[#1E4A3A] bg-[#11161E] hover:border-[color-mix(in_srgb,#00E699_35%,#1E4A3A)] hover:bg-[color-mix(in_srgb,#00E699_4%,#11161E)]",
   launcherTileInfo:

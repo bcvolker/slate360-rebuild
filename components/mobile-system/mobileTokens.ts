@@ -59,8 +59,8 @@ export const mobileTokens = {
   mobileShellContentTopGap: "pt-3",
   mobileShellContentPaddingX: "px-4",
   mobileShellContentStackGap: "gap-3",
-  /** MobileShell — gap between scroll content and dock (6px top + bottom) */
-  collapsedDockGap: "pt-1.5 pb-1.5",
+  /** MobileShell — gap between scroll content and dock (12px above, 6px below) */
+  collapsedDockGap: "pt-3 pb-1.5",
   /** Stack quick actions + activity panel inside the dock slot */
   mobileShellDockStack: "flex w-full shrink-0 flex-col gap-3",
   /** MobileShell dock slot — sizes to content, no fixed frame height */
