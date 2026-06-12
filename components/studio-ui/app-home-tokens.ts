@@ -1,6 +1,7 @@
 /**
- * Scoped design tokens for /app home content (S2 shell slice).
+ * Canonical geometry source for all mobile app home shells.
  * Neutral section chrome + app-accent launcher tiles — no glow.
+ * Import appHomeTokens for scroll layout, section spacing, and quick-action sizing.
  */
 
 export const appHomeTokens = {

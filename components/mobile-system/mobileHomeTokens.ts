@@ -65,6 +65,7 @@ export const mobileHomeTokens = {
   mobileHomeContentStack: "flex min-h-0 flex-1 flex-col gap-2",
   mobileHomePrimaryActionsRegion: "flex min-h-0 flex-1 flex-col",
   mobileHomeSection: "shrink-0",
+  /** @deprecated Use appHomeTokens.sectionHeader from @/components/studio-ui/app-home-tokens for home geometry. */
   mobileHomeSectionHeader: "mb-1.5",
   mobileHomeAppPrimaryActionsRegion: "flex min-h-0 flex-1 flex-col",
   mobileHomeAppUpperRegion:
@@ -111,6 +112,7 @@ export const mobileHomeTokens = {
     "inline-flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,white_9%,transparent)] text-zinc-200 transition-colors hover:border-[color-mix(in_srgb,white_16%,transparent)] hover:bg-[color-mix(in_srgb,white_12%,transparent)] active:scale-[0.98]",
   appHomeSectionLabelTextLink:
     "text-xs font-semibold text-zinc-200 transition-colors hover:text-white",
+  /** @deprecated Use appHomeTokens.scrollInner from @/components/studio-ui/app-home-tokens. */
   appHomeScrollInner:
     "mx-auto flex min-h-full w-full max-w-2xl flex-1 flex-col gap-4 px-3 pt-3 pb-3",
   appHomeDockStack: "flex w-full shrink-0 flex-col gap-2.5",
@@ -119,6 +121,7 @@ export const mobileHomeTokens = {
   appHomeQuickActionsSectionAccent:
     "mb-1 block h-0.5 w-6 rounded-full bg-[color-mix(in_srgb,var(--graphite-primary)_25%,transparent)]",
   appHomeQuickActionGrid: "grid shrink-0 grid-cols-2 gap-2 auto-rows-fr",
+  /** @deprecated Use appHomeTokens.quickActionCard from @/components/studio-ui/app-home-tokens. */
   appHomeQuickActionCard: `flex min-h-[64px] flex-col items-start justify-center gap-0.5 px-2.5 py-2 text-left ${mobileAppHomeQuickActionCardSurface}`,
   appHomeQuickActionIconWrapper:
     "mb-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[var(--mobile-quick-action-icon-border)] bg-[var(--mobile-quick-action-icon-bg)]",
@@ -233,6 +236,7 @@ export const mobileHomeTokens = {
     "mb-1.5 block h-0.5 w-8 rounded-full bg-[color-mix(in_srgb,var(--twin360-blue)_35%,transparent)]",
   twin360QuickActionCardSurface:
     "rounded-xl border border-[color-mix(in_srgb,white_18%,transparent)] bg-[color-mix(in_srgb,white_5%,var(--surface-zinc))] transition-all hover:border-[color-mix(in_srgb,white_28%,transparent)] hover:bg-[color-mix(in_srgb,white_8%,var(--surface-zinc))] active:scale-[0.99]",
+  /** @deprecated Use appHomeTokens.quickActionCard from @/components/studio-ui/app-home-tokens. */
   twin360QuickActionCard:
     "flex min-h-[52px] flex-col items-start justify-center gap-0.5 px-2.5 py-2 text-left rounded-xl border border-[color-mix(in_srgb,white_18%,transparent)] bg-[color-mix(in_srgb,white_5%,var(--surface-zinc))] transition-all hover:border-[color-mix(in_srgb,white_28%,transparent)] hover:bg-[color-mix(in_srgb,white_8%,var(--surface-zinc))] active:scale-[0.99]",
   appHomeSlateDropTileIconBlue: "h-6 w-6 shrink-0 text-[var(--mobile-folder-icon-fg)]",

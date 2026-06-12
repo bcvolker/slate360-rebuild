@@ -21,6 +21,7 @@ import {
   useMobileShellDock,
 } from "@/components/mobile-system";
 import type { MobilePanelTab, MobileQuickActionItem } from "@/components/mobile-system";
+import { appHomeTokens } from "@/components/studio-ui/app-home-tokens";
 import {
   buildDigitalTwinDockRows,
   DigitalTwinHomeFill,
@@ -163,9 +164,9 @@ export function DigitalTwinHomeClient({ twins, projects }: Props) {
   useMobileShellDock(dockContent);
 
   return (
-    <div className={mobileTokens.appHomeScrollInner}>
-      <section className={mobileTokens.mobileHomeSection}>
-        <div className={mobileTokens.mobileHomeSectionHeader}>
+    <div className={appHomeTokens.scrollInner}>
+      <section className={appHomeTokens.section}>
+        <div className={appHomeTokens.sectionHeader}>
           <span className={mobileTokens.twin360HomeSectionLabelAccent} aria-hidden />
           <p className={mobileTokens.appHomeSectionLabel}>Start Scan</p>
         </div>
@@ -212,8 +213,8 @@ export function DigitalTwinHomeClient({ twins, projects }: Props) {
       >
         <MobileQuickActionStrip
           actions={quickActions}
-          className={mobileTokens.appHomeQuickActionGrid}
-          cardClassName={mobileTokens.twin360QuickActionCard}
+          className={appHomeTokens.quickActionGrid}
+          cardClassName={appHomeTokens.quickActionCard}
         />
       </MobileQuickActionsSection>
 

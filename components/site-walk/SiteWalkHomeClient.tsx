@@ -21,6 +21,7 @@ import {
   useMobileShellDock,
 } from "@/components/mobile-system";
 import type { MobilePanelTab, MobileQuickActionItem } from "@/components/mobile-system";
+import { appHomeTokens } from "@/components/studio-ui/app-home-tokens";
 import type { MobileHomeAssignment } from "@/lib/mobile/load-mobile-assignments";
 import { buildCaptureLaunchUrl } from "@/lib/site-walk/capture-v2-config";
 import {
@@ -292,9 +293,9 @@ export function SiteWalkHomeClient({
   const ScopedIcon = scopedCopy.icon;
 
   return (
-    <div data-mobile-route="site-walk" className={mobileTokens.appHomeScrollInner}>
-      <section className={mobileTokens.mobileHomeSection}>
-        <div className={mobileTokens.mobileHomeSectionHeader}>
+    <div data-mobile-route="site-walk" className={appHomeTokens.scrollInner}>
+      <section className={appHomeTokens.section}>
+        <div className={appHomeTokens.sectionHeader}>
           <span className={mobileTokens.siteWalkHomeSectionLabelAccent} aria-hidden />
           <p className={mobileTokens.appHomeSectionLabel}>Start Walk</p>
         </div>
@@ -351,8 +352,8 @@ export function SiteWalkHomeClient({
       >
         <MobileQuickActionStrip
           actions={quickActions}
-          className={mobileTokens.appHomeQuickActionGrid}
-          cardClassName={mobileTokens.appHomeQuickActionCard}
+          className={appHomeTokens.quickActionGrid}
+          cardClassName={appHomeTokens.quickActionCard}
         />
       </MobileQuickActionsSection>
 

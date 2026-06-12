@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { appHomeTokens } from "@/components/studio-ui/app-home-tokens";
 import { mobileTokens } from "./mobileTokens";
 
 type MobileQuickActionsSectionProps = {
@@ -19,8 +20,8 @@ export function MobileQuickActionsSection({
   accentClassName,
 }: MobileQuickActionsSectionProps) {
   return (
-    <section className={cn(mobileTokens.mobileHomeSection, className)}>
-      <div className={mobileTokens.mobileHomeSectionHeader}>
+    <section className={cn(appHomeTokens.section, className)}>
+      <div className={appHomeTokens.sectionHeader}>
         <span
           className={cn(mobileTokens.appHomeSectionLabelAccent, accentClassName)}
           aria-hidden
