@@ -1,7 +1,8 @@
 "use client";
 
+import { appHomeTokens } from "@/components/studio-ui/app-home-tokens";
 import type { AppIcon } from "@/lib/types/app-icon";
-import { mobileTokens, type MobileQuickActionAccent } from "./mobileTokens";
+import type { MobileQuickActionAccent } from "./mobileTokens";
 import {
   MobileHomeActionCard,
   MobileHomeActionGrid,
@@ -13,7 +14,7 @@ export type MobileQuickActionItem = {
   href?: string;
   onClick?: () => void;
   disabled?: boolean;
-  /** @deprecated Accent is unified — all shells use mobileHomeActionCard tokens */
+  /** @deprecated Accent styling unified — all shells use appHomeTokens quick-action chips */
   accent?: MobileQuickActionAccent;
   "aria-label"?: string;
 };
@@ -27,20 +28,20 @@ type MobileQuickActionStripProps = {
   titleClassName?: string;
 };
 
-/** Shared 2×2 quick action grid — same cards as module homes and launcher tiles. */
+/** Shared 2×2 quick action grid — matches /app home card anatomy on every shell. */
 export function MobileQuickActionStrip({
   actions,
-  className,
-  cardClassName,
-  iconWrapperClassName,
-  iconClassName,
-  titleClassName,
+  className = appHomeTokens.quickActionGrid,
+  cardClassName = appHomeTokens.quickActionCard,
+  iconWrapperClassName = appHomeTokens.quickActionIconWrapper,
+  iconClassName = appHomeTokens.quickActionIcon,
+  titleClassName = appHomeTokens.quickActionLabel,
 }: MobileQuickActionStripProps) {
   return (
     <MobileHomeActionGrid
       className={className}
       aria-label="Quick actions"
-      data-testid="mobile-quick-action-grid"
+      data-testid="mobile-quick-action-strip"
     >
       {actions.map((action) => (
         <MobileHomeActionCard
@@ -50,7 +51,6 @@ export function MobileQuickActionStrip({
           href={action.href}
           onClick={action.onClick}
           disabled={action.disabled}
-          accent={action.accent === "info" ? "info" : "primary"}
           aria-label={action["aria-label"]}
           className={cardClassName}
           iconWrapperClassName={iconWrapperClassName}

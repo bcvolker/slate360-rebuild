@@ -3,7 +3,6 @@
 import type { MobileHomeAssignment } from "@/lib/mobile/load-mobile-assignments";
 import { type HomeSlateDropFolder } from "@/components/studio-ui/MobileAppHomeSlateDropFolderGrid";
 import { SlateDropPortalCard } from "@/components/studio-ui/SlateDropPortalCard";
-import { mobileTokens } from "@/components/mobile-system";
 import { buildWalkResumeUrl } from "@/lib/site-walk/capture-v2-config";
 import type { HubDeliverableRow } from "@/lib/types/site-walk-hub";
 import type { HubProject, HubSummary, HubWalk } from "@/lib/types/site-walk";
@@ -83,11 +82,7 @@ export function SiteWalkHomeFill({
   const folders = buildSiteWalkSlateDropFolders(walks, projects, deliverables);
 
   return (
-    <SlateDropPortalCard
-      folders={folders}
-      openHref="/site-walk/slatedrop"
-      labelAccentClassName={mobileTokens.siteWalkHomeSectionLabelAccent}
-    />
+    <SlateDropPortalCard folders={folders} openHref="/site-walk/slatedrop" />
   );
 }
 

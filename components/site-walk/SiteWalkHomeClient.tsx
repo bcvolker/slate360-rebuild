@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import {
   Building2,
   Camera,
-  ChevronRight,
   ClipboardList,
   FileText,
   FolderOpen,
@@ -15,13 +14,17 @@ import {
   MobileEmptyState,
   MobileExpandableTabbedPanel,
   MobileHomeListRow,
-  MobileQuickActionsSection,
-  MobileQuickActionStrip,
   mobileTokens,
   useMobileShellDock,
 } from "@/components/mobile-system";
 import type { MobilePanelTab, MobileQuickActionItem } from "@/components/mobile-system";
 import { appHomeTokens } from "@/components/studio-ui/app-home-tokens";
+import { MobileAppHomeQuickActions } from "@/components/studio-ui/MobileAppHomeQuickActions";
+import {
+  MobileAppHubHeroCard,
+  MobileAppHubHeroStack,
+} from "@/components/studio-ui/MobileAppHubHeroCard";
+import { MobileAppSectionLabel } from "@/components/studio-ui/MobileAppSectionLabel";
 import type { MobileHomeAssignment } from "@/lib/mobile/load-mobile-assignments";
 import { buildCaptureLaunchUrl } from "@/lib/site-walk/capture-v2-config";
 import {
@@ -296,45 +299,28 @@ export function SiteWalkHomeClient({
     <div data-mobile-route="site-walk" className={appHomeTokens.scrollInner}>
       <section className={appHomeTokens.section}>
         <div className={appHomeTokens.sectionHeader}>
-          <span className={mobileTokens.siteWalkHomeSectionLabelAccent} aria-hidden />
-          <p className={mobileTokens.appHomeSectionLabel}>Start Walk</p>
+          <MobileAppSectionLabel>Start Walk</MobileAppSectionLabel>
         </div>
-        <div className={mobileTokens.hubStartStack}>
-          <button
-            type="button"
+        <MobileAppHubHeroStack>
+          <MobileAppHubHeroCard
+            title="Quick Walk"
+            subtext={startingWalk ? "Starting…" : "Start capturing now"}
+            icon={Camera}
             onClick={() => void handleQuickCapture()}
             disabled={startingWalk}
-            className={`${mobileTokens.hubStartHeroCard} disabled:opacity-60`}
+            accent="primary"
             aria-label="Start a quick walk"
-          >
-            <span className={mobileTokens.hubStartHeroIconGreen} aria-hidden>
-              <Camera className="h-6 w-6" strokeWidth={1.75} />
-            </span>
-            <span className={mobileTokens.hubStartTextBlock}>
-              <span className={mobileTokens.hubStartHeroTitle}>Quick Walk</span>
-              <span className={`block ${mobileTokens.hubStartSubtext}`}>
-                {startingWalk ? "Starting…" : "Start capturing now"}
-              </span>
-            </span>
-            <ChevronRight className={mobileTokens.hubStartChevron} aria-hidden />
-          </button>
-          <button
-            type="button"
+          />
+          <MobileAppHubHeroCard
+            title={scopedCopy.title}
+            subtext={scopedWalkSubtext}
+            icon={ScopedIcon}
             onClick={handleScopedWalk}
             disabled={startingWalk}
-            className={`${mobileTokens.hubStartHeroCard} disabled:opacity-60`}
+            accent="primary"
             aria-label={scopedCopy.ariaLabel}
-          >
-            <span className={mobileTokens.hubStartHeroIconGreen} aria-hidden>
-              <ScopedIcon className="h-6 w-6" strokeWidth={1.75} />
-            </span>
-            <span className={mobileTokens.hubStartTextBlock}>
-              <span className={mobileTokens.hubStartHeroTitle}>{scopedCopy.title}</span>
-              <span className={`block ${mobileTokens.hubStartSubtext}`}>{scopedWalkSubtext}</span>
-            </span>
-            <ChevronRight className={mobileTokens.hubStartChevron} aria-hidden />
-          </button>
-        </div>
+          />
+        </MobileAppHubHeroStack>
         {quickCaptureError ? (
           <p
             role="alert"
@@ -345,17 +331,7 @@ export function SiteWalkHomeClient({
         ) : null}
       </section>
 
-      <MobileQuickActionsSection
-        className="mt-auto"
-        labelClassName={mobileTokens.appHomeSectionLabel}
-        accentClassName={mobileTokens.siteWalkHomeSectionLabelAccent}
-      >
-        <MobileQuickActionStrip
-          actions={quickActions}
-          className={appHomeTokens.quickActionGrid}
-          cardClassName={appHomeTokens.quickActionCard}
-        />
-      </MobileQuickActionsSection>
+      <MobileAppHomeQuickActions className="mt-auto" actions={quickActions} />
 
       <SiteWalkHomeFill
         projects={projects}

@@ -2,7 +2,6 @@
 
 import { type HomeSlateDropFolder } from "@/components/studio-ui/MobileAppHomeSlateDropFolderGrid";
 import { SlateDropPortalCard } from "@/components/studio-ui/SlateDropPortalCard";
-import { mobileTokens } from "@/components/mobile-system";
 import type { HubTwin, HubTwinProject } from "@/lib/types/digital-twin-hub";
 import { twinHubStatusMetaTone } from "@/lib/digital-twin/twin-hub-status";
 
@@ -63,13 +62,7 @@ export function buildDigitalTwinSlateDropFolders(
 export function DigitalTwinHomeFill({ twins, projects }: DigitalTwinHomeFillProps) {
   const folders = buildDigitalTwinSlateDropFolders(twins, projects);
 
-  return (
-    <SlateDropPortalCard
-      folders={folders}
-      openHref="/slatedrop"
-      labelAccentClassName={mobileTokens.twin360HomeSectionLabelAccent}
-    />
-  );
+  return <SlateDropPortalCard folders={folders} openHref="/slatedrop" />;
 }
 
 /** Rows for expandable dock tabs on Twin 360 home. */

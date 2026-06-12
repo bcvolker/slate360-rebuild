@@ -1,32 +1,21 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { cn } from "@/lib/utils";
 import { appHomeTokens } from "@/components/studio-ui/app-home-tokens";
-import { mobileTokens } from "./mobileTokens";
+import { MobileAppSectionLabel } from "@/components/studio-ui/MobileAppSectionLabel";
+import { cn } from "@/lib/utils";
 
 type MobileQuickActionsSectionProps = {
   children: ReactNode;
   className?: string;
-  labelClassName?: string;
-  accentClassName?: string;
 };
 
-/** Shared "Quick Actions" section header + grid slot — lives in MobileShell dock on all home shells. */
-export function MobileQuickActionsSection({
-  children,
-  className,
-  labelClassName,
-  accentClassName,
-}: MobileQuickActionsSectionProps) {
+/** Shared Quick Actions section — same label spacing as /app on all home shells. */
+export function MobileQuickActionsSection({ children, className }: MobileQuickActionsSectionProps) {
   return (
     <section className={cn(appHomeTokens.section, className)}>
       <div className={appHomeTokens.sectionHeader}>
-        <span
-          className={cn(mobileTokens.appHomeSectionLabelAccent, accentClassName)}
-          aria-hidden
-        />
-        <p className={cn(mobileTokens.appHomeSectionLabel, labelClassName)}>Quick Actions</p>
+        <MobileAppSectionLabel>Quick Actions</MobileAppSectionLabel>
       </div>
       {children}
     </section>

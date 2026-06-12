@@ -23,8 +23,10 @@ import type { MobileAppHomeData } from "@/lib/mobile/load-app-home-data";
 import type { MobileLauncherAppView } from "@/lib/mobile/mobile-launcher-app-types";
 import { appHomeTokens } from "@/components/studio-ui/app-home-tokens";
 import { buildAppHomeDockContent, MobileAppHomeFill } from "@/components/studio-ui/MobileAppHomeFill";
+import { MobileAppHomeQuickActions } from "@/components/studio-ui/MobileAppHomeQuickActions";
 import { MobileAppLauncherGrid } from "@/components/studio-ui/MobileAppLauncherGrid";
 import { MobileAppSectionLabel } from "@/components/studio-ui/MobileAppSectionLabel";
+import type { MobileQuickActionItem } from "@/components/mobile-system";
 
 type MobileAppRootContentProps = {
   homeData: MobileAppHomeData;
@@ -158,6 +160,16 @@ export function MobileAppRootContent({ homeData, launcherApps }: MobileAppRootCo
 
   useMobileShellDock(dockContent);
 
+  const quickActions: MobileQuickActionItem[] = useMemo(
+    () => [
+      { label: "Invite & share", icon: QrCode, onClick: () => setInviteOpen(true) },
+      { label: "New project", icon: FolderPlus, href: "/projects" },
+      { label: "SlateDrop", icon: Cloud, href: "/slatedrop" },
+      { label: "Search", icon: Search, onClick: handleSearch },
+    ],
+    [handleSearch, setInviteOpen],
+  );
+
   return (
     <div data-mobile-route="app" className={appHomeTokens.scrollInner}>
       <section className={appHomeTokens.section}>
@@ -167,42 +179,7 @@ export function MobileAppRootContent({ homeData, launcherApps }: MobileAppRootCo
         <MobileAppLauncherGrid apps={launcherApps} />
       </section>
 
-      {/* mt-auto sinks quick actions + SlateDrop portal to sit just above the dock */}
-      <section className={`${appHomeTokens.section} mt-auto`}>
-        <div className={appHomeTokens.sectionHeader}>
-          <MobileAppSectionLabel>Quick Actions</MobileAppSectionLabel>
-        </div>
-        <div className={appHomeTokens.quickActionGrid} data-testid="mobile-quick-action-strip">
-          <button
-            type="button"
-            className={appHomeTokens.quickActionCard}
-            onClick={() => setInviteOpen(true)}
-          >
-            <span className={appHomeTokens.quickActionIconWrapper} aria-hidden>
-              <QrCode className={appHomeTokens.quickActionIcon} strokeWidth={1.75} />
-            </span>
-            <span className={appHomeTokens.quickActionLabel}>Invite &amp; share</span>
-          </button>
-          <a href="/projects" className={appHomeTokens.quickActionCard}>
-            <span className={appHomeTokens.quickActionIconWrapper} aria-hidden>
-              <FolderPlus className={appHomeTokens.quickActionIcon} strokeWidth={1.75} />
-            </span>
-            <span className={appHomeTokens.quickActionLabel}>New project</span>
-          </a>
-          <a href="/slatedrop" className={appHomeTokens.quickActionCard}>
-            <span className={appHomeTokens.quickActionIconWrapper} aria-hidden>
-              <Cloud className={appHomeTokens.quickActionIcon} strokeWidth={1.75} />
-            </span>
-            <span className={appHomeTokens.quickActionLabel}>SlateDrop</span>
-          </a>
-          <button type="button" className={appHomeTokens.quickActionCard} onClick={handleSearch}>
-            <span className={appHomeTokens.quickActionIconWrapper} aria-hidden>
-              <Search className={appHomeTokens.quickActionIcon} strokeWidth={1.75} />
-            </span>
-            <span className={appHomeTokens.quickActionLabel}>Search</span>
-          </button>
-        </div>
-      </section>
+      <MobileAppHomeQuickActions className="mt-auto" actions={quickActions} />
 
       <MobileAppHomeFill data={homeData} />
     </div>

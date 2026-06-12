@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import {
   Activity,
   Boxes,
-  ChevronRight,
   FolderOpen,
   MapPin,
   Scan,
@@ -15,13 +14,17 @@ import {
   MobileEmptyState,
   MobileExpandableTabbedPanel,
   MobileHomeListRow,
-  MobileQuickActionsSection,
-  MobileQuickActionStrip,
   mobileTokens,
   useMobileShellDock,
 } from "@/components/mobile-system";
 import type { MobilePanelTab, MobileQuickActionItem } from "@/components/mobile-system";
 import { appHomeTokens } from "@/components/studio-ui/app-home-tokens";
+import { MobileAppHomeQuickActions } from "@/components/studio-ui/MobileAppHomeQuickActions";
+import {
+  MobileAppHubHeroCard,
+  MobileAppHubHeroStack,
+} from "@/components/studio-ui/MobileAppHubHeroCard";
+import { MobileAppSectionLabel } from "@/components/studio-ui/MobileAppSectionLabel";
 import {
   buildDigitalTwinDockRows,
   DigitalTwinHomeFill,
@@ -167,56 +170,29 @@ export function DigitalTwinHomeClient({ twins, projects }: Props) {
     <div className={appHomeTokens.scrollInner}>
       <section className={appHomeTokens.section}>
         <div className={appHomeTokens.sectionHeader}>
-          <span className={mobileTokens.twin360HomeSectionLabelAccent} aria-hidden />
-          <p className={mobileTokens.appHomeSectionLabel}>Start Scan</p>
+          <MobileAppSectionLabel>Start Scan</MobileAppSectionLabel>
         </div>
-        <div className={mobileTokens.hubStartStack}>
-          <button
-            type="button"
+        <MobileAppHubHeroStack>
+          <MobileAppHubHeroCard
+            title="Quick Scan"
+            subtext="Walk a space and capture now"
+            icon={Scan}
             onClick={handleQuickScan}
-            className={mobileTokens.hubStartHeroCard}
+            accent="info"
             aria-label="Start a quick scan"
-          >
-            <span className={mobileTokens.hubStartHeroIconBlue} aria-hidden>
-              <Scan className="h-6 w-6" strokeWidth={1.75} />
-            </span>
-            <span className={mobileTokens.hubStartTextBlock}>
-              <span className={mobileTokens.hubStartHeroTitle}>Quick Scan</span>
-              <span className={`block ${mobileTokens.hubStartSubtext}`}>
-                Walk a space and capture now
-              </span>
-            </span>
-            <ChevronRight className={mobileTokens.hubStartChevron} aria-hidden />
-          </button>
-          <button
-            type="button"
+          />
+          <MobileAppHubHeroCard
+            title="Scan from Project"
+            subtext={scanFromProjectSubtext}
+            icon={MapPin}
             onClick={handleScanFromProject}
-            className={mobileTokens.hubStartHeroCard}
+            accent="info"
             aria-label="Scan from a project"
-          >
-            <span className={mobileTokens.hubStartHeroIconBlue} aria-hidden>
-              <MapPin className="h-6 w-6" strokeWidth={1.75} />
-            </span>
-            <span className={mobileTokens.hubStartTextBlock}>
-              <span className={mobileTokens.hubStartHeroTitle}>Scan from Project</span>
-              <span className={`block ${mobileTokens.hubStartSubtext}`}>{scanFromProjectSubtext}</span>
-            </span>
-            <ChevronRight className={mobileTokens.hubStartChevron} aria-hidden />
-          </button>
-        </div>
+          />
+        </MobileAppHubHeroStack>
       </section>
 
-      <MobileQuickActionsSection
-        className="mt-auto"
-        labelClassName={mobileTokens.appHomeSectionLabel}
-        accentClassName={mobileTokens.twin360HomeSectionLabelAccent}
-      >
-        <MobileQuickActionStrip
-          actions={quickActions}
-          className={appHomeTokens.quickActionGrid}
-          cardClassName={appHomeTokens.quickActionCard}
-        />
-      </MobileQuickActionsSection>
+      <MobileAppHomeQuickActions className="mt-auto" actions={quickActions} />
 
       <DigitalTwinHomeFill twins={twins} projects={projects} />
 
