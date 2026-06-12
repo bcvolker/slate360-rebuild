@@ -96,66 +96,30 @@ function LauncherLayout({
     );
   }
 
-  if (count === 3) {
-    return (
-      <div className={appHomeTokens.launcherStack} data-testid="launcher-layout-3">
-        <LauncherTile app={apps[0]!} onUpsell={onUpsell} />
-        <div className={appHomeTokens.launcherPairRow}>
-          {apps.slice(1).map((app) => (
-            <LauncherTile key={app.id} app={app} compact onUpsell={onUpsell} />
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  if (count === 4) {
-    return (
-      <div className={appHomeTokens.launcherQuadGrid} data-testid="launcher-layout-4">
-        {apps.map((app) => (
-          <LauncherTile key={app.id} app={app} compact onUpsell={onUpsell} />
-        ))}
-      </div>
-    );
-  }
-
-  const head = apps.slice(0, 4);
-  const tail = apps.slice(4);
-
+  // One repeatable template: every app is a full-width hero row, so new apps
+  // slot in without layout changes (matches the hub start-card anatomy).
   return (
-    <div className={appHomeTokens.launcherStack} data-testid="launcher-layout-5plus">
-      <div className={appHomeTokens.launcherQuadGrid}>
-        {head.map((app) => (
-          <LauncherTile key={app.id} app={app} compact onUpsell={onUpsell} />
-        ))}
-      </div>
-      <div className={appHomeTokens.launcherRail}>
-        {tail.map((app) => (
-          <div key={app.id} className={appHomeTokens.launcherRailTile}>
-            <LauncherTile app={app} onUpsell={onUpsell} />
-          </div>
-        ))}
-      </div>
+    <div className={appHomeTokens.launcherStack} data-testid={`launcher-layout-${count}`}>
+      {apps.map((app) => (
+        <LauncherTile key={app.id} app={app} onUpsell={onUpsell} />
+      ))}
     </div>
   );
 }
 
 function LauncherTile({
   app,
-  compact = false,
   onUpsell,
 }: {
   app: MobileLauncherAppView;
-  compact?: boolean;
   onUpsell: (app: MobileLauncherAppView) => void;
 }) {
   const Icon = LAUNCHER_ICONS[app.id] ?? AppWindow;
   const styles = ACCENT_STYLES[app.accent];
   const locked = app.access === "upsell";
-  const status =
-    locked
-      ? "Add to workspace to launch"
-      : app.statusSubline ?? (compact ? "Open" : "Ready when you are");
+  const status = locked
+    ? "Add to workspace to launch"
+    : app.statusSubline ?? "Ready when you are";
 
   const className = cn(
     appHomeTokens.launcherTileBase,

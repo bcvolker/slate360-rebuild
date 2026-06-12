@@ -5,6 +5,7 @@ import {
   Bell,
   ClipboardList,
   Clock,
+  Cloud,
   FolderPlus,
   QrCode,
   Search,
@@ -177,15 +178,27 @@ export function MobileAppRootContent({ homeData, launcherApps }: MobileAppRootCo
             className={appHomeTokens.quickActionCard}
             onClick={() => setInviteOpen(true)}
           >
-            <QrCode className={appHomeTokens.quickActionIcon} strokeWidth={1.75} aria-hidden />
+            <span className={appHomeTokens.quickActionIconWrapper} aria-hidden>
+              <QrCode className={appHomeTokens.quickActionIcon} strokeWidth={1.75} />
+            </span>
             <span className={appHomeTokens.quickActionLabel}>Invite &amp; share</span>
           </button>
           <a href="/projects" className={appHomeTokens.quickActionCard}>
-            <FolderPlus className={appHomeTokens.quickActionIcon} strokeWidth={1.75} aria-hidden />
+            <span className={appHomeTokens.quickActionIconWrapper} aria-hidden>
+              <FolderPlus className={appHomeTokens.quickActionIcon} strokeWidth={1.75} />
+            </span>
             <span className={appHomeTokens.quickActionLabel}>New project</span>
           </a>
+          <a href="/slatedrop" className={appHomeTokens.quickActionCard}>
+            <span className={appHomeTokens.quickActionIconWrapper} aria-hidden>
+              <Cloud className={appHomeTokens.quickActionIcon} strokeWidth={1.75} />
+            </span>
+            <span className={appHomeTokens.quickActionLabel}>SlateDrop</span>
+          </a>
           <button type="button" className={appHomeTokens.quickActionCard} onClick={handleSearch}>
-            <Search className={appHomeTokens.quickActionIcon} strokeWidth={1.75} aria-hidden />
+            <span className={appHomeTokens.quickActionIconWrapper} aria-hidden>
+              <Search className={appHomeTokens.quickActionIcon} strokeWidth={1.75} />
+            </span>
             <span className={appHomeTokens.quickActionLabel}>Search</span>
           </button>
         </div>
