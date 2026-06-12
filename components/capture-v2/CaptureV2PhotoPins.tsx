@@ -222,7 +222,11 @@ export function CaptureV2PhotoPins({
   function beginPinPress(event: ReactPointerEvent<HTMLButtonElement>, pin: PhotoAttachmentPin) {
     event.stopPropagation();
     event.preventDefault();
-    event.currentTarget.setPointerCapture(event.pointerId);
+    try {
+      event.currentTarget.setPointerCapture(event.pointerId);
+    } catch {
+      // Pointer already released (fast tap) — drag tracking still works without capture.
+    }
     dragRef.current = {
       pinId: pin.id,
       pointerId: event.pointerId,
