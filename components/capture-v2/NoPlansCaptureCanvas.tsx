@@ -6,6 +6,7 @@ import { CaptureCanvasAngleThumbs } from "./CaptureCanvasAngleThumbs";
 import { CaptureCanvasBottomRail } from "./CaptureCanvasBottomRail";
 import { CaptureCanvasCapturedPhoto } from "./CaptureCanvasCapturedPhoto";
 import { CaptureCanvasGhostButton } from "./CaptureCanvasGhostButton";
+import { CaptureCanvasGhostPanel } from "./CaptureCanvasGhostPanel";
 import { CaptureCanvasMarkupToolbar } from "./CaptureCanvasMarkupToolbar";
 import { CaptureCanvasRightToolRail } from "./CaptureCanvasRightToolRail";
 import { CaptureCanvasTopBar } from "./CaptureCanvasTopBar";
@@ -134,7 +135,8 @@ export function NoPlansCaptureCanvas({
             src={canvas.ghostImageUrl}
             alt=""
             data-capture-chrome="ghost-overlay"
-            className="pointer-events-none absolute inset-0 z-[2] h-full w-full object-cover opacity-25 mix-blend-screen"
+            className="pointer-events-none absolute inset-0 z-[2] h-full w-full object-cover mix-blend-screen"
+            style={{ opacity: canvas.ghostOpacity }}
             draggable={false}
           />
         ) : null}
@@ -208,6 +210,17 @@ export function NoPlansCaptureCanvas({
         ghostOn={canvas.ghostOn}
         ghostAvailable={canvas.ghostAvailable}
         onGhostTap={canvas.handleGhostTap}
+      />
+
+      <CaptureCanvasGhostPanel
+        hidden={
+          !canvas.ghostOn || !canvas.chromeVisible || canvas.showPreview || canvas.filmstripExpanded
+        }
+        ghostOpacity={canvas.ghostOpacity}
+        onGhostOpacityChange={canvas.setGhostOpacity}
+        candidates={canvas.ghostCandidates}
+        selectedId={canvas.ghostSourceId}
+        onSelectCandidate={canvas.setGhostSourceId}
       />
 
       {loop.externalError || loop.detailSaveError ? (
