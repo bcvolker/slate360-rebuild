@@ -218,9 +218,6 @@ export function NoPlansCaptureCanvas({
         }
         ghostOpacity={canvas.ghostOpacity}
         onGhostOpacityChange={canvas.setGhostOpacity}
-        candidates={canvas.ghostCandidates}
-        selectedId={canvas.ghostSourceId}
-        onSelectCandidate={canvas.setGhostSourceId}
       />
 
       {loop.externalError || loop.detailSaveError ? (

@@ -53,7 +53,6 @@ export function useNoPlansCaptureCanvas({
   const [filmstripExpanded, setFilmstripExpanded] = useState(false);
   const [ghostOn, setGhostOn] = useState(false);
   const [ghostOpacity, setGhostOpacity] = useState(0.25);
-  const [ghostSourceId, setGhostSourceId] = useState<string | null>(null);
   const [facingMode] = useState<"user" | "environment">("environment");
   const [activeTool, setActiveTool] = useState<CaptureCanvasTool | null>(null);
   const [activeAngleId, setActiveAngleId] = useState<string | null>(null);
@@ -111,22 +110,13 @@ export function useNoPlansCaptureCanvas({
     return previewUrl;
   }, [activeAngleId, activeItem, loop.activePreview, previewUrl, showPreview]);
 
-  const ghostCandidates = useMemo(() => {
-    const candidates: { id: string; url: string; stopNumber: number }[] = [];
-    orderedItems.forEach((item, index) => {
-      const url = resolveCaptureV2PreviewUrl(item, null);
-      if (url) candidates.push({ id: item.id, url, stopNumber: index + 1 });
-    });
-    return candidates.slice(-8).reverse();
-  }, [orderedItems]);
-
+  // Session ghost = previous shot only. Progression ghost (project-scoped,
+  // pin-anchored picker) ships with walks-with-plans — see ghost-mode spec.
   const ghostImageUrl = useMemo(() => {
-    if (ghostCandidates.length === 0) return null;
-    const selected = ghostSourceId
-      ? ghostCandidates.find((candidate) => candidate.id === ghostSourceId)
-      : null;
-    return (selected ?? ghostCandidates[0]).url;
-  }, [ghostCandidates, ghostSourceId]);
+    if (orderedItems.length === 0) return null;
+    const previous = orderedItems[orderedItems.length - 1];
+    return resolveCaptureV2PreviewUrl(previous, null);
+  }, [orderedItems]);
 
   const ghostAvailable = Boolean(ghostImageUrl);
 
@@ -138,12 +128,6 @@ export function useNoPlansCaptureCanvas({
   useEffect(() => {
     if (!ghostAvailable) setGhostOn(false);
   }, [ghostAvailable]);
-
-  useEffect(() => {
-    if (ghostSourceId && !ghostCandidates.some((candidate) => candidate.id === ghostSourceId)) {
-      setGhostSourceId(null);
-    }
-  }, [ghostCandidates, ghostSourceId]);
 
   useEffect(() => {
     if (!showPreview && activeTool !== "angle") {
@@ -370,9 +354,6 @@ export function useNoPlansCaptureCanvas({
     ghostImageUrl,
     ghostOpacity,
     setGhostOpacity,
-    ghostCandidates,
-    ghostSourceId,
-    setGhostSourceId,
     handleGhostTap,
     hasStops: orderedItems.length > 0,
     cameraPaused,
