@@ -308,6 +308,7 @@ export function TwinCaptureScreen({
           hidden={!chromeVisible}
           onBack={handleCancel}
           onToggleChrome={() => setChromeVisibleSafe((value) => !value)}
+          onDoneTap={session.hasContent && !recording && !finishing ? () => void handleFinish() : undefined}
           clipCount={session.clips.length}
           clipsExpanded={clipsExpanded}
           onClipsToggle={() => setClipsExpanded((value) => !value)}
