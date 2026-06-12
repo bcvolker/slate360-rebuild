@@ -180,6 +180,7 @@ export function NoPlansCaptureCanvas({
         hidden={!canvas.chromeVisible || (canvas.showPreview && canvas.markupEnabled)}
         onToggleChrome={() => canvas.setChromeVisible((value) => !value)}
         onBack={planPinFlow ? planPinFlow.onReturnToPlan : undefined}
+        onEndTap={canvas.sessionExit.openExitModal}
         showFilmstripToggle
         filmstripExpanded={canvas.filmstripExpanded}
         onFilmstripToggle={() => canvas.setFilmstripExpanded((value) => !value)}

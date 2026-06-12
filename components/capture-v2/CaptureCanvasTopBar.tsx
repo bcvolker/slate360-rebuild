@@ -11,6 +11,7 @@ type Props = {
   hidden?: boolean;
   onToggleChrome: () => void;
   onBack?: () => void;
+  onEndTap?: () => void;
   showFilmstripToggle?: boolean;
   filmstripExpanded?: boolean;
   onFilmstripToggle?: () => void;
@@ -22,6 +23,7 @@ export function CaptureCanvasTopBar({
   hidden = false,
   onToggleChrome,
   onBack,
+  onEndTap,
   showFilmstripToggle = false,
   filmstripExpanded = false,
   onFilmstripToggle,
@@ -83,6 +85,21 @@ export function CaptureCanvasTopBar({
         >
           <Maximize2 className="h-4 w-4" />
         </button>
+
+        {onEndTap ? (
+          <button
+            type="button"
+            onClick={(event) => {
+              event.stopPropagation();
+              onEndTap();
+            }}
+            data-capture-chrome="top-bar-end"
+            className="inline-flex h-8 shrink-0 items-center justify-center rounded-lg border border-[var(--accent-border-green)] bg-[color-mix(in_srgb,var(--graphite-primary)_14%,transparent)] px-2.5 text-[11px] font-bold uppercase tracking-wider text-[var(--graphite-primary)] transition active:scale-[0.98]"
+            aria-label="End walk"
+          >
+            End
+          </button>
+        ) : null}
 
         <button
           type="button"
