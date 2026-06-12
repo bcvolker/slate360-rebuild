@@ -4,8 +4,11 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import type { CaptureAssignee, CaptureItemDraft, CaptureItemRecord } from "@/lib/types/site-walk-capture";
 import { CaptureV2NoteAccessoryRow } from "./CaptureV2NoteAccessoryRow";
 import { CaptureV2NoteField } from "./CaptureV2NoteField";
+import { getCaptureImageUrl } from "@/lib/site-walk/capture-image-url";
+import { getItemPhotoAngles, getPhotoAngleImageUrl } from "@/lib/site-walk/photo-angles";
 import { CaptureV2NoteReviewActionBar } from "./CaptureV2NoteReviewActionBar";
 import { CaptureV2NoteReviewAngleStrip } from "./CaptureV2NoteReviewAngleStrip";
+import { CaptureV2NoteReviewPhotoViewer } from "./CaptureV2NoteReviewPhotoViewer";
 import { CaptureV2NoteReviewTags } from "./CaptureV2NoteReviewTags";
 import { CaptureV2NoteReviewTopBar } from "./CaptureV2NoteReviewTopBar";
 import { CaptureV2NoteReviewTracking } from "./CaptureV2NoteReviewTracking";
@@ -70,6 +73,18 @@ export function CaptureV2NoteReviewScreen({
 }: CaptureV2NoteReviewScreenProps) {
   const notesRef = useRef<HTMLTextAreaElement>(null);
   const { keyboardOffset } = useCaptureV2NoteReviewViewport({ keyboardSimOverride });
+  const [photoViewerOpen, setPhotoViewerOpen] = useState(false);
+
+  const viewerImage = useMemo(() => {
+    if (activeAngleId) {
+      const angle = getItemPhotoAngles(activeItem).find((entry) => entry.id === activeAngleId);
+      return {
+        url: getPhotoAngleImageUrl(activeItem, activeAngleId),
+        label: angle?.label ?? "Angle",
+      };
+    }
+    return { url: getCaptureImageUrl(activeItem), label: null };
+  }, [activeAngleId, activeItem]);
 
   const dictation = useCaptureV2NoteDictation({
     notes: draft.notes,
@@ -110,8 +125,14 @@ export function CaptureV2NoteReviewScreen({
         <CaptureV2NoteReviewAngleStrip
           item={activeItem}
           activeAngleId={activeAngleId}
-          onSelectMain={onSelectMain}
-          onSelectAngle={onSelectAngle}
+          onSelectMain={() => {
+            onSelectMain();
+            setPhotoViewerOpen(true);
+          }}
+          onSelectAngle={(angleId) => {
+            onSelectAngle(angleId);
+            setPhotoViewerOpen(true);
+          }}
           onPromoteAngle={onPromoteAngle}
           onAddAngle={onAddAngle}
         />
@@ -162,6 +183,14 @@ export function CaptureV2NoteReviewScreen({
           {saveError}
         </p>
       ) : null}
+
+      <CaptureV2NoteReviewPhotoViewer
+        open={photoViewerOpen && activeItem.item_type === "photo"}
+        imageUrl={viewerImage.url}
+        stopNumber={stopNumber}
+        angleLabel={viewerImage.label}
+        onClose={() => setPhotoViewerOpen(false)}
+      />
 
       <CaptureV2NoteAccessoryRow
         aiState={aiState}
