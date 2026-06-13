@@ -21,9 +21,11 @@ const SHOTS = [
   { name: "site-walk-2-pin", url: "/dev/screens?screen=capture&device=mobile&mode=captured&popover=open&thumbs=2" },
   { name: "site-walk-3-details", url: "/dev/screens?screen=note-review&device=mobile" },
   { name: "site-walk-4-review", url: "/dev/screens?screen=walk-review&device=mobile" },
-  { name: "twin-1-record", url: "/dev/screens?screen=twin-capture&device=mobile&state=recording&motion=good&clips=1&coverage=0.4" },
-  { name: "twin-2-ghost", url: "/dev/screens?screen=twin-capture&device=mobile&state=recording&clips=2&ghost=1" },
-  { name: "twin-3-review", url: "/dev/screens?screen=twin-review&device=mobile" },
+  // Twin capture recording needs a live camera headless can't reliably supply
+  // (renders blank), and the upload/viewer sandboxes carry dev "mock" labels —
+  // so the demo uses the two screens that render clean, deterministic UI.
+  { name: "twin-1-record", url: "/dev/screens?screen=twin-review&device=mobile" },
+  { name: "twin-2-ghost", url: "/dev/screens?screen=twin-wizard&device=mobile" },
 ];
 
 async function main() {
