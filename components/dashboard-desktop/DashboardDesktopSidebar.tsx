@@ -10,9 +10,15 @@ import {
 } from "./dashboard-nav-config";
 import { dashboardDesktopTokens as t } from "./dashboard-tokens";
 
-export function DashboardDesktopSidebar({ showOpsConsole = false }: { showOpsConsole?: boolean }) {
+export function DashboardDesktopSidebar({
+  showOpsConsole = false,
+  isCeo = false,
+}: {
+  showOpsConsole?: boolean;
+  isCeo?: boolean;
+}) {
   const pathname = usePathname() ?? "";
-  const nav = resolveDashboardNav(showOpsConsole);
+  const nav = resolveDashboardNav(showOpsConsole, isCeo);
 
   return (
     <aside className={t.sidebar} aria-label="Main navigation">

@@ -45,6 +45,7 @@ export default async function DashboardRouteLayout({ children }: DashboardRouteL
       workspaceName={orgName ?? "Slate360"}
       inviteShareData={inviteShareData}
       showOpsConsole={Boolean(canAccessOperationsConsole)}
+      isCeo={Boolean(isSlateCeo)}
     >
       {children}
     </DashboardDesktopShell>

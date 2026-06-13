@@ -23,6 +23,8 @@ export type DashboardNavItem = {
   appStoreHidden?: boolean;
   /** Only shown to Slate360 staff/CEO with Operations Console access. */
   staffOnly?: boolean;
+  /** Only shown to the Slate360 CEO. */
+  ceoOnly?: boolean;
 };
 
 const DASHBOARD_DESKTOP_NAV_ALL: DashboardNavItem[] = [
@@ -62,7 +64,7 @@ const DASHBOARD_DESKTOP_NAV_ALL: DashboardNavItem[] = [
     href: "/operations-console/thermal",
     icon: Thermometer,
     matchPrefixes: ["/operations-console/thermal"],
-    staffOnly: true,
+    ceoOnly: true,
   },
   {
     label: "Operations Console",
@@ -93,9 +95,10 @@ const DASHBOARD_DESKTOP_NAV_ALL: DashboardNavItem[] = [
 
 /** Resolve the visible nav for the current viewer. App-Store mode hides in-progress
  * modules; Operations Console is staff-only. */
-export function resolveDashboardNav(showOpsConsole: boolean): DashboardNavItem[] {
+export function resolveDashboardNav(showOpsConsole: boolean, isCeo = false): DashboardNavItem[] {
   return DASHBOARD_DESKTOP_NAV_ALL.filter((item) => {
     if (APP_STORE_MODE && item.appStoreHidden) return false;
+    if (item.ceoOnly && !isCeo) return false;
     if (item.staffOnly && !showOpsConsole) return false;
     return true;
   });
