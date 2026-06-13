@@ -132,13 +132,13 @@ export const ENTERPRISE_PRICING: MarketingPricingTier = {
 
 export const DATA_PROCESSING_POINTS = [
   "Generous monthly processing credits included",
-  "Transparent credit top-ups",
+  "Extra credits anytime, at cost — no markup on processing",
   "Storage add-ons",
   "Enterprise pooled credits & storage",
 ] as const;
 
 export const CREDIT_EQUIVALENCE_NOTE =
-  "1 standard 3D reconstruction ≈ 100 credits." as const;
+  "An average 3D reconstruction ≈ 100 credits — actual cost scales with how much data you bring." as const;
 
 export function formatPrice(amount: number): string {
   return `$${amount.toLocaleString("en-US")}`;

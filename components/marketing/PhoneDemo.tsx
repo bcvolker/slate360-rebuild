@@ -61,9 +61,6 @@ export function PhoneDemo({ steps, accentVar, label }: Props) {
         className="relative w-full overflow-hidden rounded-[2.2rem] border-[6px] border-[#1A222C] bg-black"
         style={{ aspectRatio: "390 / 844", boxShadow: `0 0 0 1px color-mix(in srgb, ${accent} 30%, transparent)` }}
       >
-        {/* Notch */}
-        <div className="absolute left-1/2 top-1.5 z-20 h-5 w-24 -translate-x-1/2 rounded-full bg-[#1A222C]" aria-hidden />
-
         {steps.map((s, i) => (
           <Image
             key={s.image}

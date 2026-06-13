@@ -113,14 +113,19 @@ export const MARKETING_APPS: MarketingAppContent[] = [
           "Works with any modern phone — and automatically uses your device's LiDAR sensor when available (iPhone Pro models) for even sharper, true-to-scale results.",
       },
       {
-        title: "Explore from any browser",
+        title: "Share an interactive link",
         description:
-          "Your twin opens with a click — orbit it, walk through it, inspect it. No app, no download, no login for viewers.",
+          "Send clients and stakeholders a link they open in any browser — they orbit, walk through, and inspect the space themselves. No app, no download, no login.",
       },
       {
-        title: "Send a link, not an attachment",
+        title: "Add the surrounding context",
         description:
-          "Clients and stakeholders walk the space themselves, from anywhere. It's a deliverable they'll remember.",
+          "Drop your twin into its real-world surroundings so it reads in context — useful for exterior, site, and inspection work.",
+      },
+      {
+        title: "More than a model — a studio of deliverables",
+        description:
+          "The Twin 360 Studio on the dashboard turns a capture into 2D plans, animated fly-throughs, progression-analysis models, and more — with new deliverable types on the way.",
       },
     ],
     demoLabel: "Watch a scan",
@@ -173,7 +178,7 @@ export const MARKETING_FAQ = [
   },
   {
     q: "What's a credit?",
-    a: "Credits are how Twin 360 processing is measured. Creating one standard twin uses about 100 credits, and every Twin 360 plan includes a monthly allowance. If a big month runs you out, top-up packs start at $19.",
+    a: "Credits are how Twin 360 processing is measured. An average twin uses about 100 credits — smaller spaces use fewer and larger or higher-detail captures use more, depending on how much data you bring. Every Twin 360 plan includes a monthly allowance, and you can buy extra credits anytime at cost: Slate360 doesn't mark up processing or profit from credit purchases.",
   },
   {
     q: "Do my clients need an account to view what I send?",

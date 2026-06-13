@@ -151,7 +151,9 @@ function CreditsEstimator() {
     <div className={cn(MKT_GLASS_CARD, "mx-auto w-full max-w-2xl")}>
       <p className="text-sm font-bold text-[var(--graphite-text-header)]">How far do credits go?</p>
       <p className="mt-1 text-sm text-[var(--graphite-muted)]">
-        Creating one standard twin uses about 100 credits. Slide to your typical month:
+        An average twin uses about 100 credits — smaller spaces use fewer, larger or
+        higher-detail captures use more. It depends on how much data you bring. Slide to
+        your typical month:
       </p>
       <div className="mt-5 flex items-center gap-4">
         <input
@@ -182,7 +184,8 @@ function CreditsEstimator() {
         </p>
       </div>
       <p className="mt-3 text-xs text-[var(--graphite-muted)]">
-        Big month? Top-up packs start at $19 — credits never interrupt a job.
+        Need more in a busy month? Buy extra credits anytime — at cost. Slate360 doesn&apos;t
+        mark up processing or profit from credit purchases; you only cover what the work costs.
       </p>
     </div>
   );
