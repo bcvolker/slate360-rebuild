@@ -51,7 +51,7 @@ export function DashboardHomeContent({
   ].filter((app): app is AppTile => app !== null);
 
   return (
-    <div className="mx-auto w-full max-w-6xl space-y-8">
+    <div className="mx-auto flex h-full w-full max-w-6xl flex-col gap-4">
       <header>
         <h1 className={t.pageTitle}>Dashboard</h1>
         <p className={t.pageSubtitle}>{workspaceName} — workspace overview from live data.</p>
@@ -59,32 +59,31 @@ export function DashboardHomeContent({
 
       <section aria-label="Apps">
         <h2 className={t.sectionLabel}>Apps</h2>
-        <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-2 grid grid-cols-2 gap-2.5 lg:grid-cols-4">
           {apps.map((app) => (
             <AppTileCard key={app.href} {...app} />
           ))}
         </div>
       </section>
 
-      <ProjectsRail
-        items={recentProjects}
-        total={counts.projects}
-      />
+      <div className="grid min-h-0 flex-1 gap-4 lg:grid-cols-2">
+        <ProjectsRail items={recentProjects} total={counts.projects} />
 
-      <RecentSection
-        title={`Recent Site Walks${counts.siteWalks ? ` · ${counts.siteWalks}` : ""}`}
-        viewAllHref="/site-walks"
-        emptyTitle="No site walks yet"
-        emptyDescription="Start a walk from Site Walk on mobile, or open the walks list when sessions exist."
-        emptyActionLabel="Browse walks"
-        emptyActionHref="/site-walks"
-        items={recentWalks.map((walk) => ({
-          key: walk.id,
-          href: `/site-walk/walks/${walk.id}`,
-          primary: walk.title,
-          secondary: `${walk.status} · ${formatDate(walk.updatedAt)}`,
-        }))}
-      />
+        <RecentSection
+          title={`Recent Site Walks${counts.siteWalks ? ` · ${counts.siteWalks}` : ""}`}
+          viewAllHref="/site-walks"
+          emptyTitle="No site walks yet"
+          emptyDescription="Start a walk from Site Walk on mobile, or open the walks list when sessions exist."
+          emptyActionLabel="Browse walks"
+          emptyActionHref="/site-walks"
+          items={recentWalks.slice(0, 5).map((walk) => ({
+            key: walk.id,
+            href: `/site-walk/walks/${walk.id}`,
+            primary: walk.title,
+            secondary: `${walk.status} · ${formatDate(walk.updatedAt)}`,
+          }))}
+        />
+      </div>
 
       {showTwins ? (
         <RecentSection
@@ -94,7 +93,7 @@ export function DashboardHomeContent({
           emptyDescription="Capture and process a twin from the Digital Twin app when your workspace has twin access."
           emptyActionLabel="Browse twins"
           emptyActionHref="/digital-twins"
-          items={recentTwins.map((twin) => ({
+          items={recentTwins.slice(0, 3).map((twin) => ({
             key: twin.id,
             href: `/digital-twin/twins/${twin.id}`,
             primary: twin.title,
