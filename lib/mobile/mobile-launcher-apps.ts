@@ -105,7 +105,7 @@ const APP_DEFINITIONS: AppDefinition[] = [
       "Embed tours in Site Walk deliverables.",
       "Export branded tour packages for clients.",
     ],
-    inScope: () => !APP_STORE_MODE,
+    inScope: () => false, // Hidden from launcher — not a shipping app (Site Walk + Twin 360 only)
     isEntitled: ({ entitlements }) => entitlements.canAccessStandaloneTourBuilder,
     isPurchasable: () => true,
     statusSubline: () => null,
@@ -122,7 +122,7 @@ const APP_DEFINITIONS: AppDefinition[] = [
       "Attach review models to field workflows.",
       "Export coordinated design deliverables.",
     ],
-    inScope: () => !APP_STORE_MODE,
+    inScope: () => false, // Hidden from launcher — not a shipping app (Site Walk + Twin 360 only)
     isEntitled: ({ entitlements }) => entitlements.canAccessStandaloneDesignStudio,
     isPurchasable: () => true,
     statusSubline: () => null,
@@ -139,7 +139,7 @@ const APP_DEFINITIONS: AppDefinition[] = [
       "Produce branded exports for stakeholders.",
       "Feed polished assets into Site Walk reports.",
     ],
-    inScope: () => !APP_STORE_MODE,
+    inScope: () => false, // Hidden from launcher — not a shipping app (Site Walk + Twin 360 only)
     isEntitled: ({ entitlements }) => entitlements.canAccessStandaloneContentStudio,
     isPurchasable: () => true,
     statusSubline: () => null,
@@ -156,7 +156,7 @@ const APP_DEFINITIONS: AppDefinition[] = [
       "Share folders with collaborators and clients.",
       "Track storage usage across active projects.",
     ],
-    inScope: () => !APP_STORE_MODE,
+    inScope: () => false, // Hidden from launcher — not a shipping app (Site Walk + Twin 360 only)
     isEntitled: ({ entitlements }) => entitlements.canAccessHub,
     isPurchasable: () => true,
     statusSubline: (home) => {
