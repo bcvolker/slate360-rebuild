@@ -15,6 +15,14 @@ export default async function ThermalSessionsPage() {
 
   return (
     <div className="space-y-4">
+      <div className="flex items-center justify-between gap-3">
+        <Link href="/operations-console/thermal/upload" className={t.secondaryButton}>
+          Upload captures
+        </Link>
+        <Link href="/operations-console/thermal/report-templates" className={t.secondaryButton}>
+          Report templates
+        </Link>
+      </div>
       {sessions.length ? (
         <div className="space-y-3">
           {sessions.map((session) => (
