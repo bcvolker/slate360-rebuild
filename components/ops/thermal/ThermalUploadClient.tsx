@@ -19,6 +19,7 @@ export function ThermalUploadClient() {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [queue, setQueue] = useState<QueueItem[]>([]);
   const [busy, setBusy] = useState(false);
+  const [dragActive, setDragActive] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const readyCount = useMemo(() => queue.filter((q) => q.status === "done").length, [queue]);
@@ -152,13 +153,23 @@ export function ThermalUploadClient() {
         </label>
       </div>
 
-      <label className={t.dropzone}>
+      <label
+        className={`${t.dropzone} ${dragActive ? "border-[var(--graphite-primary)] bg-[color-mix(in_srgb,var(--graphite-primary)_10%,transparent)]" : ""}`}
+        onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
+        onDragEnter={(e) => { e.preventDefault(); setDragActive(true); }}
+        onDragLeave={(e) => { e.preventDefault(); setDragActive(false); }}
+        onDrop={(e) => {
+          e.preventDefault();
+          setDragActive(false);
+          if (e.dataTransfer.files?.length) addFiles(e.dataTransfer.files);
+        }}
+      >
         <UploadCloud className="mb-3 h-8 w-8 text-[var(--graphite-primary)]" />
         <span className="text-sm font-semibold text-[var(--graphite-text-header)]">
-          Drop R-JPEG files here
+          Drag &amp; drop thermal files here, or click to browse
         </span>
         <span className="mt-1 text-xs text-[var(--graphite-muted)]">
-          Autel 640T, DJI Mavic 3T, FLIR R-JPEG
+          HIKMICRO Pocket2 · Autel 640T · DJI Mavic 3T · FLIR R-JPEG
         </span>
         <input
           type="file"

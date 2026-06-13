@@ -6,6 +6,7 @@ import {
   FolderOpen,
   LayoutDashboard,
   MapPin,
+  Thermometer,
   UserCircle,
   Users,
   Wrench,
@@ -55,6 +56,13 @@ const DASHBOARD_DESKTOP_NAV_ALL: DashboardNavItem[] = [
     href: "/slatedrop",
     icon: Cloud,
     matchPrefixes: ["/slatedrop"],
+  },
+  {
+    label: "Thermal Studio",
+    href: "/operations-console/thermal",
+    icon: Thermometer,
+    matchPrefixes: ["/operations-console/thermal"],
+    staffOnly: true,
   },
   {
     label: "Operations Console",
