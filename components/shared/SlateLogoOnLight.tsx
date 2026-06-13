@@ -31,7 +31,7 @@ export function SlateLogoOnLight({ size = "md", className, ...svgProps }: SlateL
       viewBox="0 0 1031.31 142.6"
       role="img"
       aria-label="Slate360"
-      className={cn("text-[var(--color-cobalt)]", className ?? SIZE_MAP[size])}
+      className={cn("text-[var(--color-cobalt)]", SIZE_MAP[size], className)}
       {...svgProps}
     >
       {/* transparent bounding rect */}
