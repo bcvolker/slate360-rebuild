@@ -9,6 +9,7 @@ import { getItemPhotoAngles, getPhotoAngleImageUrl } from "@/lib/site-walk/photo
 import { CaptureV2NoteReviewActionBar } from "./CaptureV2NoteReviewActionBar";
 import { CaptureV2NoteReviewAngleStrip } from "./CaptureV2NoteReviewAngleStrip";
 import { CaptureV2NoteReviewPhotoViewer } from "./CaptureV2NoteReviewPhotoViewer";
+import { CaptureV2NoteReviewStopStrip } from "./CaptureV2NoteReviewStopStrip";
 import { CaptureV2NoteReviewTags } from "./CaptureV2NoteReviewTags";
 import { CaptureV2NoteReviewTopBar } from "./CaptureV2NoteReviewTopBar";
 import { CaptureV2NoteReviewTracking } from "./CaptureV2NoteReviewTracking";
@@ -45,6 +46,7 @@ export type CaptureV2NoteReviewScreenProps = {
   onBack: () => void;
   onSave: () => void;
   onSaveAndNext: () => void;
+  onSelectStop?: (item: CaptureItemRecord) => void;
 };
 
 export function CaptureV2NoteReviewScreen({
@@ -70,10 +72,12 @@ export function CaptureV2NoteReviewScreen({
   onBack,
   onSave,
   onSaveAndNext,
+  onSelectStop,
 }: CaptureV2NoteReviewScreenProps) {
   const notesRef = useRef<HTMLTextAreaElement>(null);
   const { keyboardOffset } = useCaptureV2NoteReviewViewport({ keyboardSimOverride });
   const [photoViewerOpen, setPhotoViewerOpen] = useState(false);
+  const [stripOpen, setStripOpen] = useState(false);
 
   const viewerImage = useMemo(() => {
     if (activeAngleId) {
@@ -119,7 +123,26 @@ export function CaptureV2NoteReviewScreen({
       data-note-review="screen"
       data-keyboard-offset={keyboardOffset}
     >
-      <CaptureV2NoteReviewTopBar stopNumber={stopNumber} onBack={onBack} />
+      <CaptureV2NoteReviewTopBar
+        stopNumber={stopNumber}
+        onBack={onBack}
+        stripOpen={stripOpen}
+        onToggleStrip={
+          onSelectStop && sessionItems.length > 1 ? () => setStripOpen((v) => !v) : undefined
+        }
+      />
+
+      {onSelectStop ? (
+        <CaptureV2NoteReviewStopStrip
+          open={stripOpen && sessionItems.length > 1}
+          items={sessionItems}
+          activeItemId={activeItem.id}
+          onSelectStop={(item) => {
+            setStripOpen(false);
+            if (item.id !== activeItem.id) onSelectStop(item);
+          }}
+        />
+      ) : null}
 
       {activeItem.item_type === "photo" ? (
         <CaptureV2NoteReviewAngleStrip

@@ -3,6 +3,7 @@
 import { useCallback, useMemo } from "react";
 import { CaptureV2NoteReviewScreen } from "./CaptureV2NoteReviewScreen";
 import type { CaptureV2Loop } from "../useCaptureV2Loop";
+import type { CaptureItemRecord } from "@/lib/types/site-walk-capture";
 
 type Props = {
   loop: CaptureV2Loop;
@@ -42,6 +43,7 @@ export function CaptureV2NoteReviewContainer({
     flushDetails,
     flushCurrentDraft,
     saveAndNextStop,
+    focusFilmstripItem,
     items,
   } = loop;
 
@@ -59,6 +61,15 @@ export function CaptureV2NoteReviewContainer({
     const saved = await saveAndNextStop();
     if (saved) onBack();
   }, [onBack, saveAndNextStop]);
+
+  const handleSelectStop = useCallback(
+    async (item: CaptureItemRecord) => {
+      // Persist the current stop's draft before switching so nothing is lost.
+      await flushCurrentDraft();
+      focusFilmstripItem(item);
+    },
+    [flushCurrentDraft, focusFilmstripItem],
+  );
 
   if (!activeItem || !draft) return null;
 
@@ -86,6 +97,7 @@ export function CaptureV2NoteReviewContainer({
       onBack={onBack}
       onSave={() => void handleSave()}
       onSaveAndNext={() => void handleSaveAndNext()}
+      onSelectStop={(item) => void handleSelectStop(item)}
     />
   );
 }

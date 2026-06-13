@@ -10,9 +10,11 @@ type Props = {
 };
 
 export function DevNoteReviewSandbox({ keyboardSim }: Props) {
-  const activeItem = DEV_MOCK_CAPTURE_ITEMS[0]!;
-  const [draft, setDraft] = useState(() => captureItemToDraft(activeItem));
   const [sessionItems] = useState(DEV_MOCK_CAPTURE_ITEMS);
+  const [activeId, setActiveId] = useState(DEV_MOCK_CAPTURE_ITEMS[0]!.id);
+  const activeItem = sessionItems.find((item) => item.id === activeId) ?? sessionItems[0]!;
+  const activeIndex = sessionItems.findIndex((item) => item.id === activeItem.id);
+  const [draft, setDraft] = useState(() => captureItemToDraft(activeItem));
   const [activeAngleId, setActiveAngleId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -23,7 +25,7 @@ export function DevNoteReviewSandbox({ keyboardSim }: Props) {
 
   return (
     <CaptureV2NoteReviewScreen
-      stopNumber={1}
+      stopNumber={activeIndex + 1}
       activeItem={activeItem}
       sessionId={DEV_MOCK_SESSION.id}
       sessionItems={sessionItems}
@@ -47,6 +49,11 @@ export function DevNoteReviewSandbox({ keyboardSim }: Props) {
         window.setTimeout(() => setSaving(false), 400);
       }}
       onSaveAndNext={() => {}}
+      onSelectStop={(item) => {
+        setActiveId(item.id);
+        setDraft(captureItemToDraft(item));
+        setActiveAngleId(null);
+      }}
     />
   );
 }
