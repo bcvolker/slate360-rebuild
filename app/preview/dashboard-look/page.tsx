@@ -33,12 +33,7 @@ export default function DashboardLookPreview() {
       <div className={t.main}>
         <DashboardDesktopTopBar userName="Brian Volker" />
         <main className={t.content}>
-          <DashboardHomeContent
-            workspaceName="Slate360 Workspace"
-            counts={COUNTS}
-            recentProjects={PROJECTS}
-            recentWalks={WALKS}
-          />
+          <DashboardHomeContent counts={COUNTS} recentProjects={PROJECTS} recentWalks={WALKS} />
         </main>
       </div>
     </div>

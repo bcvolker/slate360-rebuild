@@ -8,14 +8,13 @@ export const metadata = {
 };
 
 export default async function DashboardHomePage() {
-  const { user, orgId, orgName } = await resolveServerOrgContext();
+  const { user, orgId } = await resolveServerOrgContext();
   if (!user) redirect("/login?redirectTo=/dashboard");
 
   const data = await loadDashboardHomeData(orgId);
 
   return (
     <DashboardHomeContent
-      workspaceName={orgName ?? "Workspace"}
       counts={data.counts}
       recentProjects={data.recentProjects}
       recentWalks={data.recentWalks}
