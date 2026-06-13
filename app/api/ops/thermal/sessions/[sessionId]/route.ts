@@ -13,6 +13,7 @@ type PatchBody = {
   description?: string;
   branding_config?: Partial<ThermalBrandingConfig>;
   project_id?: string | null;
+  metadata?: Record<string, unknown>;
 };
 
 export const GET = (req: NextRequest, ctx: RouteContext) =>
@@ -35,7 +36,7 @@ export const PATCH = (req: NextRequest, ctx: RouteContext) =>
 
     const { data: existing, error: loadError } = await admin
       .from("thermal_analysis_sessions")
-      .select("id, branding_config")
+      .select("id, branding_config, metadata")
       .eq("id", sessionId)
       .is("deleted_at", null)
       .maybeSingle();
@@ -51,6 +52,12 @@ export const PATCH = (req: NextRequest, ctx: RouteContext) =>
       patch.branding_config = {
         ...(existing.branding_config as Record<string, unknown>),
         ...body.branding_config,
+      };
+    }
+    if (body.metadata) {
+      patch.metadata = {
+        ...(existing.metadata as Record<string, unknown>),
+        ...body.metadata,
       };
     }
 

@@ -1,40 +1,72 @@
-import Link from "next/link";
+"use client";
+
+import { useState } from "react";
 import { thermalOpsTokens as t } from "@/components/ops/thermal/thermal-ops-tokens";
 
 type Props = {
+  sessionId: string;
   linkedSpaceId: string | null;
-  projectId: string | null;
 };
 
-export function ThermalTwinLayerPanel({ linkedSpaceId, projectId }: Props) {
+export function ThermalTwinLayerPanel({ sessionId, linkedSpaceId: initialLinkedSpaceId }: Props) {
+  const [linkedSpaceId, setLinkedSpaceId] = useState(initialLinkedSpaceId ?? "");
+  const [busy, setBusy] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  async function saveLink(event: React.FormEvent) {
+    event.preventDefault();
+    setBusy(true);
+    setNotice(null);
+    setError(null);
+    try {
+      const res = await fetch(`/api/ops/thermal/sessions/${sessionId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          metadata: { linked_space_id: linkedSpaceId.trim() || null },
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error ?? "Failed to save twin link");
+      setNotice(linkedSpaceId.trim() ? "Twin space linked." : "Twin link cleared.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Save failed");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <div className={t.card}>
       <p className={t.eyebrow}>Digital Twin layer</p>
-      {linkedSpaceId ? (
-        <>
-          <p className="mt-2 text-sm text-[var(--graphite-text-body)]">
-            This session is linked to twin space{" "}
-            <span className="font-mono text-xs text-[var(--graphite-primary)]">{linkedSpaceId}</span>.
-          </p>
-          <p className="mt-2 text-xs text-[var(--graphite-muted)]">
-            Thermal overlay toggle will appear in Desktop Twin 360 Studio once Slice 3 alignment is deployed.
-          </p>
-          {projectId ? (
-            <Link
-              href={`/digital-twin/twins/${linkedSpaceId}`}
-              className="mt-3 inline-flex text-sm text-[var(--graphite-primary)] hover:underline"
-            >
-              Open linked twin →
-            </Link>
-          ) : null}
-        </>
-      ) : (
-        <p className="mt-2 text-sm text-[var(--graphite-muted)]">
-          No linked twin space yet. Set{" "}
-          <span className="font-mono text-xs">metadata.linked_space_id</span> on the session to enable the thermal
-          layer stub. Full COLMAP + LiDAR alignment is a follow-up slice.
-        </p>
-      )}
+      <p className="mt-2 text-xs text-[var(--graphite-muted)]">
+        Link a twin space ID for share-layer awareness. Full COLMAP + LiDAR alignment (Slice 3) is a follow-up.
+      </p>
+      <form onSubmit={saveLink} className="mt-3 flex flex-wrap items-end gap-3">
+        <label className="min-w-[240px] flex-1 text-xs text-[var(--graphite-muted)]">
+          Linked twin space ID
+          <input
+            value={linkedSpaceId}
+            onChange={(event) => setLinkedSpaceId(event.target.value)}
+            className="mt-1 block w-full rounded-xl border border-[var(--mobile-app-card-border)] bg-[#111827] px-3 py-2 text-sm text-white"
+            placeholder="digital_twin_space uuid"
+          />
+        </label>
+        <button type="submit" className={t.secondaryButton} disabled={busy}>
+          {busy ? "Saving…" : "Save link"}
+        </button>
+      </form>
+      {linkedSpaceId.trim() ? (
+        <a
+          href={`/digital-twin/twins/${linkedSpaceId.trim()}`}
+          className="mt-3 inline-flex text-sm text-[var(--graphite-primary)] hover:underline"
+        >
+          Open linked twin →
+        </a>
+      ) : null}
+      {notice ? <p className="mt-2 text-xs text-[var(--graphite-muted)]">{notice}</p> : null}
+      {error ? <p className="mt-2 text-xs text-[#fca5a5]">{error}</p> : null}
     </div>
   );
 }
