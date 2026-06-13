@@ -104,6 +104,7 @@ def process_thermal_job(payload: dict[str, Any]) -> None:
     job_type = str(payload.get("jobType") or "extract")
     captures = payload.get("captures") or []
     session_meta = payload.get("sessionMeta") or {"name": "Thermal Session"}
+    analysis_params = session_meta.get("analysis_params") if isinstance(session_meta, dict) else None
 
     if not captures:
         post_callback({"jobId": job_id, "status": "failed", "errorLog": "No captures provided"})
@@ -165,7 +166,7 @@ def process_thermal_job(payload: dict[str, Any]) -> None:
             total = len(captures)
             for index, capture in enumerate(captures, start=1):
                 analyze_results.append(
-                    process_capture_analyze(s3, bucket, org_id, session_id, capture, work_dir)
+                    process_capture_analyze(s3, bucket, org_id, session_id, capture, work_dir, analysis_params)
                 )
                 post_callback(
                     {

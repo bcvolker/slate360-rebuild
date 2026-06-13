@@ -22,16 +22,44 @@ def _bbox_from_mask(mask: np.ndarray) -> dict[str, int] | None:
     return {"x": x0, "y": y0, "w": int(x1 - x0 + 1), "h": int(y1 - y0 + 1)}
 
 
-def _severity(delta: float) -> str:
-    if delta >= 12:
+DEFAULT_PARAMS: dict[str, Any] = {
+    "hot_delta_c": 5.0,
+    "cold_delta_c": 4.0,
+    "min_area_px": 24,
+    "severity_action_c": 12.0,
+    "severity_watch_c": 7.0,
+    "detect_hot": True,
+    "detect_cold": True,
+    "detect_streaks": True,
+}
+
+
+def _merge_params(params: dict[str, Any] | None) -> dict[str, Any]:
+    merged = dict(DEFAULT_PARAMS)
+    if params:
+        for key in DEFAULT_PARAMS:
+            if params.get(key) is not None:
+                merged[key] = params[key]
+    return merged
+
+
+def _severity(delta: float, action_c: float = 12.0, watch_c: float = 7.0) -> str:
+    if delta >= action_c:
         return "action"
-    if delta >= 7:
+    if delta >= watch_c:
         return "watch"
     return "info"
 
 
-def detect_hot_spots(temp: np.ndarray, reference: float) -> list[dict[str, Any]]:
-    threshold = reference + 5.0
+def detect_hot_spots(
+    temp: np.ndarray,
+    reference: float,
+    hot_delta_c: float = 5.0,
+    min_area_px: int = 24,
+    action_c: float = 12.0,
+    watch_c: float = 7.0,
+) -> list[dict[str, Any]]:
+    threshold = reference + hot_delta_c
     mask = (temp >= threshold).astype(np.uint8)
     if mask.sum() == 0:
         return []
@@ -40,7 +68,7 @@ def detect_hot_spots(temp: np.ndarray, reference: float) -> list[dict[str, Any]]
     anomalies: list[dict[str, Any]] = []
     for label in range(1, num_labels):
         area = int(stats[label, cv2.CC_STAT_AREA])
-        if area < 24:
+        if area < min_area_px:
             continue
         component = labels == label
         peak = float(temp[component].max())
@@ -52,7 +80,7 @@ def detect_hot_spots(temp: np.ndarray, reference: float) -> list[dict[str, Any]]
             {
                 "id": str(uuid.uuid4()),
                 "type": "hot_spot",
-                "severity": _severity(delta),
+                "severity": _severity(delta, action_c, watch_c),
                 "confidence": min(0.95, 0.55 + delta / 30.0),
                 "temp_c": round(peak, 2),
                 "delta_c": round(delta, 2),
@@ -64,10 +92,17 @@ def detect_hot_spots(temp: np.ndarray, reference: float) -> list[dict[str, Any]]
     return anomalies
 
 
-def detect_cold_bridges(temp: np.ndarray, reference: float) -> list[dict[str, Any]]:
+def detect_cold_bridges(
+    temp: np.ndarray,
+    reference: float,
+    cold_delta_c: float = 4.0,
+    min_area_px: int = 40,
+    action_c: float = 12.0,
+    watch_c: float = 7.0,
+) -> list[dict[str, Any]]:
     local = cv2.GaussianBlur(temp.astype(np.float32), (0, 0), sigmaX=7, sigmaY=7)
     delta = local - reference
-    mask = (delta <= -4.0).astype(np.uint8)
+    mask = (delta <= -cold_delta_c).astype(np.uint8)
     if mask.sum() == 0:
         return []
 
@@ -75,7 +110,7 @@ def detect_cold_bridges(temp: np.ndarray, reference: float) -> list[dict[str, An
     anomalies: list[dict[str, Any]] = []
     for label in range(1, num_labels):
         area = int(stats[label, cv2.CC_STAT_AREA])
-        if area < 40:
+        if area < min_area_px:
             continue
         component = labels == label
         trough = float(temp[component].min())
@@ -87,7 +122,7 @@ def detect_cold_bridges(temp: np.ndarray, reference: float) -> list[dict[str, An
             {
                 "id": str(uuid.uuid4()),
                 "type": "cold_bridge",
-                "severity": _severity(delta_c),
+                "severity": _severity(delta_c, action_c, watch_c),
                 "confidence": min(0.9, 0.5 + delta_c / 25.0),
                 "temp_c": round(trough, 2),
                 "delta_c": round(delta_c, 2),
@@ -131,12 +166,26 @@ def detect_linear_streaks(temp: np.ndarray, reference: float) -> list[dict[str, 
     return anomalies
 
 
-def analyze_temperature_array(temp: np.ndarray) -> list[dict[str, Any]]:
+def analyze_temperature_array(
+    temp: np.ndarray, params: dict[str, Any] | None = None
+) -> list[dict[str, Any]]:
+    p = _merge_params(params)
     reference = _reference_temp(temp)
+    action_c = float(p["severity_action_c"])
+    watch_c = float(p["severity_watch_c"])
+    min_area = int(p["min_area_px"])
+
     anomalies: list[dict[str, Any]] = []
-    anomalies.extend(detect_hot_spots(temp, reference))
-    anomalies.extend(detect_cold_bridges(temp, reference))
-    anomalies.extend(detect_linear_streaks(temp, reference))
+    if p["detect_hot"]:
+        anomalies.extend(
+            detect_hot_spots(temp, reference, float(p["hot_delta_c"]), min_area, action_c, watch_c)
+        )
+    if p["detect_cold"]:
+        anomalies.extend(
+            detect_cold_bridges(temp, reference, float(p["cold_delta_c"]), max(min_area, 40), action_c, watch_c)
+        )
+    if p["detect_streaks"]:
+        anomalies.extend(detect_linear_streaks(temp, reference))
     anomalies.sort(key=lambda row: row.get("delta_c") or 0, reverse=True)
     return anomalies[:25]
 

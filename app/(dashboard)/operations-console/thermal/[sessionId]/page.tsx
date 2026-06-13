@@ -4,6 +4,7 @@ import { loadThermalSessionDetail } from "@/lib/thermal/load-session-data";
 import { ThermalSessionGallery } from "@/components/ops/thermal/ThermalSessionGallery";
 import { ThermalBrandingPanel } from "@/components/ops/thermal/ThermalBrandingPanel";
 import { ThermalSessionActions } from "@/components/ops/thermal/ThermalSessionActions";
+import { ThermalTuningPanel } from "@/components/ops/thermal/ThermalTuningPanel";
 import { ThermalTwinLayerPanel } from "@/components/ops/thermal/ThermalTwinLayerPanel";
 import { ThermalSessionSummaryBar } from "@/components/ops/thermal/ThermalSessionSummaryBar";
 import type { ThermalBrandingConfig } from "@/lib/thermal/types";
@@ -43,6 +44,10 @@ export default async function ThermalSessionDetailPage({ params }: PageProps) {
         />
         <ThermalSessionActions sessionId={detail.session.id} captureCount={detail.captures.length} />
       </div>
+      <ThermalTuningPanel
+        sessionId={detail.session.id}
+        initialParams={(metadata.analysis_params as unknown) ?? undefined}
+      />
       <ThermalTwinLayerPanel sessionId={detail.session.id} linkedSpaceId={linkedSpaceId} />
     </div>
   );

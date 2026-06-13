@@ -179,6 +179,10 @@ async function runThermalProcessJob(jobId: string) {
       summary: session.summary_metrics ?? {},
       linked_space_id:
         typeof sessionMetadata.linked_space_id === "string" ? sessionMetadata.linked_space_id : null,
+      analysis_params:
+        sessionMetadata.analysis_params && typeof sessionMetadata.analysis_params === "object"
+          ? sessionMetadata.analysis_params
+          : null,
     },
     captures: readyCaptures.map((row) => ({
       captureId: row.id,

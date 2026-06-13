@@ -90,6 +90,7 @@ def process_capture_analyze(
     session_id: str,
     capture: dict[str, Any],
     work_dir: Path,
+    analysis_params: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     capture_id = str(capture["captureId"])
     npz_key = str(capture.get("npzDataPath") or "")
@@ -100,7 +101,7 @@ def process_capture_analyze(
     download_object(s3, bucket, npz_key, str(local_npz))
     data = np.load(local_npz)
     temp = data["temperatures"]
-    anomalies = analyze_temperature_array(temp)
+    anomalies = analyze_temperature_array(temp, analysis_params)
     material_segments = segment_materials_sam_stub(temp)
 
     return {
