@@ -141,38 +141,59 @@ function TierCard({
   );
 }
 
-function AppPricingBlock({
-  appName,
-  accentVar,
-  tiers,
-  cadence,
-}: {
-  appName: string;
-  accentVar: "--graphite-primary" | "--twin360-blue";
-  tiers: MarketingPricingTier[];
-  cadence: BillingCadence;
-}) {
+function CreditsEstimator() {
+  const [twins, setTwins] = useState(5);
+  const credits = twins * 100;
+  const recommendation =
+    credits <= 500 ? "Twin 360 Essential covers this" : credits <= 2000 ? "Twin 360 Professional covers this" : "Professional + a top-up pack, or talk to us";
+
   return (
-    <div className="space-y-5">
-      <div>
-        <p className={MKT_LABEL} style={{ color: `var(${accentVar})` }}>
-          {appName}
+    <div className={cn(MKT_GLASS_CARD, "mx-auto w-full max-w-2xl")}>
+      <p className="text-sm font-bold text-[var(--graphite-text-header)]">How far do credits go?</p>
+      <p className="mt-1 text-sm text-[var(--graphite-muted)]">
+        Creating one standard twin uses about 100 credits. Slide to your typical month:
+      </p>
+      <div className="mt-5 flex items-center gap-4">
+        <input
+          type="range"
+          min={1}
+          max={25}
+          value={twins}
+          onChange={(event) => setTwins(Number(event.target.value))}
+          className="h-1.5 flex-1 cursor-pointer accent-[var(--twin360-blue)]"
+          aria-label="Twins per month"
+        />
+        <span className="w-24 shrink-0 text-right text-sm font-semibold tabular-nums text-[var(--graphite-text-header)]">
+          {twins} {twins === 1 ? "twin" : "twins"}/mo
+        </span>
+      </div>
+      <div className="mt-4 flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-center">
+        <p className="text-sm text-[var(--graphite-muted)]">
+          ≈ <span className="font-semibold text-[var(--graphite-text-header)]">{credits.toLocaleString()} credits</span>
         </p>
-        <h3 className="mt-1 text-xl font-bold text-[var(--graphite-text-header)]">Choose your tier</h3>
+        <p
+          className="rounded-full px-3 py-1 text-xs font-semibold"
+          style={{
+            backgroundColor: "color-mix(in srgb, var(--twin360-blue) 14%, transparent)",
+            color: "var(--twin360-blue)",
+          }}
+        >
+          {recommendation}
+        </p>
       </div>
-      <div className="grid gap-4 sm:grid-cols-2 lg:gap-6">
-        {tiers.map((tier) => (
-          <TierCard key={tier.id} tier={tier} cadence={cadence} accentVar={accentVar} />
-        ))}
-      </div>
+      <p className="mt-3 text-xs text-[var(--graphite-muted)]">
+        Big month? Top-up packs start at $19 — credits never interrupt a job.
+      </p>
     </div>
   );
 }
 
 export function MarketingPricing() {
   const [cadence, setCadence] = useState<BillingCadence>("annual");
-  const siteWalkApp = SLATE360_APPS.find((a) => a.id === "site-walk")!;
-  const twinApp = SLATE360_APPS.find((a) => a.id === "twin-360")!;
+  const [activeAppId, setActiveAppId] = useState<"site-walk" | "twin-360">("site-walk");
+  const activeApp = SLATE360_APPS.find((a) => a.id === activeAppId)!;
+  const activeTiers = activeAppId === "site-walk" ? SITE_WALK_PRICING : TWIN_360_PRICING;
+  const bundleCadencePrice = priceForCadence(BUNDLE_PRICING, cadence);
 
   return (
     <section id="pricing" className={cn(MKT_SECTION, "border-t border-white/[0.06] bg-white/[0.015]")}>
@@ -185,46 +206,102 @@ export function MarketingPricing() {
           className="mx-auto max-w-3xl text-center"
         >
           <p className={MKT_LABEL}>Plans & pricing</p>
-          <h2 className={cn(MKT_SECTION_TITLE, "mt-3")}>Subscribe per app or bundle both</h2>
+          <h2 className={cn(MKT_SECTION_TITLE, "mt-3")}>Each app has its own plans</h2>
           <p className={MKT_SUBHEAD}>
-            Every paid tier includes a 14-day free trial. Annual billing saves {ANNUAL_SAVINGS_PERCENT}% versus
-            month-to-month.
+            Subscribe to the app you need — or both, and the Bundle saves you money. Every paid
+            tier starts with a 14-day free trial. Annual billing saves {ANNUAL_SAVINGS_PERCENT}%.
           </p>
         </motion.div>
 
-        <div className="mt-8 flex flex-col items-center gap-3">
-          <CadenceToggle cadence={cadence} onChange={setCadence} accentVar="--graphite-primary" />
+        {/* App switcher + cadence */}
+        <div className="mt-8 flex flex-col items-center gap-4">
+          <div className={MKT_TOGGLE_GROUP} role="tablist" aria-label="Choose an app">
+            {SLATE360_APPS.map((app) => {
+              const active = app.id === activeAppId;
+              return (
+                <button
+                  key={app.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={active}
+                  onClick={() => setActiveAppId(app.id as "site-walk" | "twin-360")}
+                  className={cn(
+                    "rounded-lg border px-5 py-2.5 text-sm font-semibold transition-colors",
+                    !active && MKT_TOGGLE_IDLE,
+                  )}
+                  style={
+                    active
+                      ? {
+                          borderColor: `color-mix(in srgb, var(${app.accentVar}) 35%, transparent)`,
+                          backgroundColor: `color-mix(in srgb, var(${app.accentVar}) 12%, transparent)`,
+                          color: `var(${app.accentVar})`,
+                        }
+                      : undefined
+                  }
+                >
+                  {app.name}
+                </button>
+              );
+            })}
+          </div>
+          <CadenceToggle cadence={cadence} onChange={setCadence} accentVar={activeApp.accentVar} />
         </div>
 
-        <div className="mt-12 flex flex-col gap-12 lg:gap-14">
-          <AppPricingBlock
-            appName={siteWalkApp.name}
-            accentVar={siteWalkApp.accentVar}
-            tiers={SITE_WALK_PRICING}
-            cadence={cadence}
-          />
-          <AppPricingBlock
-            appName={twinApp.name}
-            accentVar={twinApp.accentVar}
-            tiers={TWIN_360_PRICING}
-            cadence={cadence}
-          />
+        {/* Active app tiers */}
+        <div className="mx-auto mt-10 grid max-w-3xl gap-4 sm:grid-cols-2 lg:gap-6">
+          {activeTiers.map((tier, index) => (
+            <TierCard
+              key={tier.id}
+              tier={tier}
+              cadence={cadence}
+              accentVar={activeApp.accentVar}
+              highlighted={index === 1}
+            />
+          ))}
+        </div>
 
-          <div>
-            <p className={MKT_LABEL}>Bundle</p>
-            <h3 className="mt-1 text-xl font-bold text-[var(--graphite-text-header)]">Both apps, one subscription</h3>
-            <div className="mt-5 grid gap-4 lg:max-w-xl">
-              <TierCard tier={BUNDLE_PRICING} cadence={cadence} accentVar="--graphite-primary" highlighted />
-            </div>
+        {/* Bundle band */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-60px" }}
+          transition={{ duration: 0.5 }}
+          className="mx-auto mt-8 flex max-w-3xl flex-col items-start gap-4 rounded-2xl border p-5 sm:flex-row sm:items-center sm:justify-between"
+          style={{
+            borderColor: "color-mix(in srgb, var(--graphite-primary) 30%, transparent)",
+            background:
+              "linear-gradient(90deg, color-mix(in srgb, var(--graphite-primary) 8%, transparent), color-mix(in srgb, var(--twin360-blue) 8%, transparent))",
+          }}
+        >
+          <div className="min-w-0">
+            <p className="text-sm font-bold text-[var(--graphite-text-header)]">
+              Run both apps? The Bundle is the best value.
+            </p>
+            <p className="mt-0.5 text-sm text-[var(--graphite-muted)]">
+              Site Walk Pro + Twin 360 Professional, one subscription
+              {bundleCadencePrice ? ` — ${bundleCadencePrice.primary}` : ""}.
+            </p>
           </div>
+          <Link
+            href={BUNDLE_PRICING.ctaHref}
+            className="shrink-0 rounded-xl bg-gradient-to-r from-[var(--graphite-primary)] to-[var(--twin360-blue)] px-5 py-3 text-sm font-bold text-[var(--graphite-canvas)] transition-all hover:brightness-110 active:scale-[0.99]"
+          >
+            {BUNDLE_PRICING.cta}
+          </Link>
+        </motion.div>
 
-          <div>
-            <p className={MKT_LABEL}>Volume</p>
-            <h3 className="mt-1 text-xl font-bold text-[var(--graphite-text-header)]">Enterprise</h3>
-            <div className="mt-5 grid gap-4 lg:max-w-xl">
-              <TierCard tier={ENTERPRISE_PRICING} cadence={cadence} accentVar="--twin360-blue" />
-            </div>
-          </div>
+        {/* Enterprise row */}
+        <p className="mx-auto mt-5 max-w-3xl text-center text-sm text-[var(--graphite-muted)]">
+          Teams of 25+?{" "}
+          <Link href={ENTERPRISE_PRICING.ctaHref} className="font-semibold text-[var(--graphite-text-header)] underline-offset-4 hover:underline">
+            Talk to us about Enterprise
+          </Link>{" "}
+          — custom seats, pooled credits, your logo on everything clients see.
+        </p>
+
+        {/* Credits estimator */}
+        <div className="mt-12">
+          <CreditsEstimator />
         </div>
       </div>
     </section>

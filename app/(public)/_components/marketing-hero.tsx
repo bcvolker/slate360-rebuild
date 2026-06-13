@@ -2,9 +2,9 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { motion, useScroll, useTransform } from "framer-motion";
-import { useRef } from "react";
-import { SLATE360_APPS } from "@/lib/apps-config";
+import { motion } from "framer-motion";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { MARKETING_HERO } from "@/lib/marketing/homepage-content";
 import {
   MKT_BTN_GHOST,
   MKT_BTN_PRIMARY,
@@ -15,38 +15,101 @@ import {
 } from "@/app/(public)/_components/marketing-styles";
 import { cn } from "@/lib/utils";
 
-const APP_NAMES = SLATE360_APPS.map((a) => a.name).join(" and ");
+/**
+ * Reality → Twin scene. mode="line" renders the jobsite as quiet line work;
+ * mode="points" renders the same geometry as a glowing capture point cloud.
+ * Placeholder art until cleared real twins replace it — same mask mechanic.
+ */
+function SiteScene({ mode }: { mode: "line" | "points" }) {
+  const isPoints = mode === "points";
+  const stroke = isPoints ? "url(#mkt-twin-gradient)" : "color-mix(in srgb, white 16%, transparent)";
+  const strokeWidth = isPoints ? 2.2 : 1.4;
+  const dash = isPoints ? "0.5 7" : undefined;
 
-export function MarketingHero() {
-  const ref = useRef<HTMLElement>(null);
-  const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
-  const glowY = useTransform(scrollYProgress, [0, 1], ["0%", "30%"]);
-  const contentY = useTransform(scrollYProgress, [0, 1], [0, 80]);
+  // Simple skyline: warehouse, mid-rise, tower crane, low building.
+  const paths = [
+    "M20 300 L20 200 L150 200 L150 300", // warehouse
+    "M40 200 L85 165 L130 200", // warehouse roof
+    "M180 300 L180 120 L290 120 L290 300", // mid-rise
+    "M200 145 H270 M200 175 H270 M200 205 H270 M200 235 H270 M200 265 H270", // floors
+    "M340 300 L340 90 L350 90 L350 300", // crane mast
+    "M345 90 L480 110 M345 90 L300 120", // crane jib + counter
+    "M440 116 L440 170", // crane cable
+    "M520 300 L520 210 L660 210 L660 300", // low building
+    "M520 240 H660 M520 270 H660", // low floors
+    "M0 300 H700", // ground
+  ];
 
   return (
-    <section ref={ref} className={cn(MKT_SECTION, "overflow-hidden pt-28 lg:pt-36")}>
-      <motion.div
-        style={{ y: glowY }}
-        aria-hidden
-        className="pointer-events-none absolute left-1/2 top-1/3 h-[min(800px,90vw)] w-[min(800px,90vw)] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-40"
-      >
-        <div
-          className="h-full w-full rounded-full blur-[120px]"
-          style={{
-            background:
-              "radial-gradient(circle, color-mix(in srgb, var(--graphite-primary) 18%, transparent) 0%, color-mix(in srgb, var(--twin360-blue) 14%, transparent) 55%, transparent 75%)",
-          }}
+    <svg
+      viewBox="0 0 700 320"
+      className="h-full w-full"
+      preserveAspectRatio="xMidYMax meet"
+      aria-hidden
+    >
+      <defs>
+        <linearGradient id="mkt-twin-gradient" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stopColor="var(--graphite-primary)" />
+          <stop offset="100%" stopColor="var(--twin360-blue)" />
+        </linearGradient>
+      </defs>
+      {paths.map((d) => (
+        <path
+          key={d}
+          d={d}
+          fill="none"
+          stroke={stroke}
+          strokeWidth={strokeWidth}
+          strokeLinecap="round"
+          strokeDasharray={dash}
         />
-      </motion.div>
+      ))}
+      {isPoints
+        ? [
+            [60, 230], [110, 250], [230, 160], [255, 250], [345, 130], [430, 150],
+            [560, 230], [620, 260], [90, 280], [200, 285], [470, 280], [600, 285],
+          ].map(([x, y]) => (
+            <circle key={`${x}-${y}`} cx={x} cy={y} r={2.4} fill="url(#mkt-twin-gradient)" opacity={0.9} />
+          ))
+        : null}
+    </svg>
+  );
+}
 
-      <motion.div style={{ y: contentY }} className={cn(MKT_CONTAINER, "relative z-10 text-center")}>
+function useSpotlight() {
+  const ref = useRef<HTMLDivElement>(null);
+  const [active, setActive] = useState(false);
+  const [reduced, setReduced] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setReduced(mq.matches);
+  }, []);
+
+  const onMove = useCallback((clientX: number, clientY: number) => {
+    const el = ref.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    el.style.setProperty("--mkt-x", `${((clientX - rect.left) / rect.width) * 100}%`);
+    el.style.setProperty("--mkt-y", `${((clientY - rect.top) / rect.height) * 100}%`);
+  }, []);
+
+  return { ref, active, setActive, reduced, onMove };
+}
+
+export function MarketingHero() {
+  const spot = useSpotlight();
+
+  return (
+    <section className={cn(MKT_SECTION, "overflow-hidden pt-28 lg:pt-36")}>
+      <div className={cn(MKT_CONTAINER, "relative z-10 text-center")}>
         <motion.p
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
           className="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--graphite-muted)]"
         >
-          Slate360 Platform
+          {MARKETING_HERO.eyebrow}
         </motion.p>
 
         <motion.h1
@@ -55,9 +118,11 @@ export function MarketingHero() {
           transition={{ duration: 0.55, delay: 0.08 }}
           className={cn(MKT_HEADING, "mt-4")}
         >
-          One platform.
+          {MARKETING_HERO.titleLine1}
           <br />
-          Two powerful apps.
+          <span className="bg-gradient-to-r from-[var(--graphite-primary)] to-[var(--twin360-blue)] bg-clip-text text-transparent">
+            {MARKETING_HERO.titleLine2}
+          </span>
         </motion.h1>
 
         <motion.p
@@ -66,8 +131,7 @@ export function MarketingHero() {
           transition={{ duration: 0.55, delay: 0.16 }}
           className={cn(MKT_SUBHEAD, "mx-auto max-w-3xl")}
         >
-          {APP_NAMES} share projects, permissions, and deliverables — field documentation and spatial
-          reality capture in one Graphite Glass workspace.
+          {MARKETING_HERO.subhead}
         </motion.p>
 
         <motion.div
@@ -77,27 +141,83 @@ export function MarketingHero() {
           className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row sm:flex-wrap"
         >
           <Link
-            href="/signup"
+            href={MARKETING_HERO.primaryCta.href}
             className={cn(
               MKT_BTN_PRIMARY,
               "w-full sm:w-auto",
               "bg-[var(--graphite-primary)] text-[var(--graphite-canvas)] hover:brightness-110",
             )}
           >
-            Start free trial
+            {MARKETING_HERO.primaryCta.label}
           </Link>
-          <Link href="#pricing" className={cn(MKT_BTN_GHOST, "w-full sm:w-auto")}>
-            See pricing
+          <Link href={MARKETING_HERO.secondaryCta.href} className={cn(MKT_BTN_GHOST, "w-full sm:w-auto")}>
+            {MARKETING_HERO.secondaryCta.label}
           </Link>
-          <Link href="/contact" className={cn(MKT_BTN_GHOST, "w-full sm:w-auto")}>
-            Book a demo
-          </Link>
+        </motion.div>
+
+        {/* Reality → Twin spotlight reveal */}
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.34 }}
+          className="relative mx-auto mt-14 max-w-4xl"
+        >
+          <div
+            ref={spot.ref}
+            className="relative h-[240px] w-full overflow-hidden rounded-2xl border border-white/10 bg-[color-mix(in_srgb,white_3%,var(--graphite-canvas))] sm:h-[320px]"
+            style={{ ["--mkt-x" as string]: "50%", ["--mkt-y" as string]: "55%" }}
+            onPointerMove={(e) => {
+              spot.setActive(true);
+              spot.onMove(e.clientX, e.clientY);
+            }}
+            onPointerLeave={() => spot.setActive(false)}
+            onTouchMove={(e) => {
+              const t = e.touches[0];
+              if (t) {
+                spot.setActive(true);
+                spot.onMove(t.clientX, t.clientY);
+              }
+            }}
+            aria-label="Move across the scene to reveal the digital twin"
+            role="img"
+          >
+            {/* Base: reality as line work */}
+            <div className="absolute inset-0 p-6 sm:p-8">
+              <SiteScene mode="line" />
+            </div>
+
+            {/* Reveal: the twin point cloud through the spotlight */}
+            <div
+              className={cn(
+                "absolute inset-0 p-6 sm:p-8",
+                !spot.active && !spot.reduced && "mkt-hero-sweep",
+              )}
+              style={
+                spot.reduced
+                  ? { opacity: 0.85 }
+                  : {
+                      WebkitMaskImage:
+                        "radial-gradient(circle 200px at var(--mkt-x) var(--mkt-y), black 0% 55%, transparent 78%)",
+                      maskImage:
+                        "radial-gradient(circle 200px at var(--mkt-x) var(--mkt-y), black 0% 55%, transparent 78%)",
+                    }
+              }
+            >
+              <SiteScene mode="points" />
+            </div>
+
+            <p className="pointer-events-none absolute bottom-3 left-1/2 w-max -translate-x-1/2 rounded-full border border-white/10 bg-[color-mix(in_srgb,var(--graphite-canvas)_80%,transparent)] px-3 py-1 text-[11px] font-medium text-[var(--graphite-muted)] backdrop-blur-md">
+            {typeof window !== "undefined" && "ontouchstart" in window
+                ? "Drag to reveal the twin"
+                : "Move your cursor to reveal the twin"}
+            </p>
+          </div>
         </motion.div>
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.55, delay: 0.32 }}
+          transition={{ duration: 0.55, delay: 0.44 }}
           className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center"
         >
           <a href="/install" aria-label="Download on the App Store">
@@ -107,21 +227,7 @@ export function MarketingHero() {
             <Image src="/uploads/google-play-badge.svg" alt="Get it on Google Play" width={155} height={46} className="h-10 w-auto" />
           </a>
         </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          className="mx-auto mt-12 max-w-xl rounded-2xl border border-dashed border-white/10 bg-white/[0.02] px-6 py-5"
-        >
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--graphite-muted)]">
-            Social proof
-          </p>
-          <p className="mt-2 text-sm text-[var(--graphite-muted)]">
-            Customer logos and testimonials will appear here.
-          </p>
-        </motion.div>
-      </motion.div>
+      </div>
     </section>
   );
 }

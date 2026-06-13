@@ -1,17 +1,18 @@
 "use client";
 
-import { MarketingDataProcessing } from "@/app/(public)/_components/marketing-data-processing";
+import { MarketingApps } from "@/app/(public)/_components/marketing-apps";
+import { MarketingFaq } from "@/app/(public)/_components/marketing-faq";
 import { MarketingFooter } from "@/app/(public)/_components/marketing-footer";
 import { MarketingHero } from "@/app/(public)/_components/marketing-hero";
-import { MarketingHowItWorks } from "@/app/(public)/_components/marketing-how-it-works";
 import { MarketingNav } from "@/app/(public)/_components/marketing-nav";
 import { MarketingPricing } from "@/app/(public)/_components/marketing-pricing";
-import { MarketingSalesTiles } from "@/app/(public)/_components/marketing-sales-tiles";
-import { MarketingShowcase } from "@/app/(public)/_components/marketing-showcase";
 import { MKT_PAGE } from "@/app/(public)/_components/marketing-styles";
 
 /**
- * Canonical Slate360 marketing homepage — Graphite Glass, data-driven via lib/apps-config.ts.
+ * Canonical Slate360 marketing homepage — Graphite Glass.
+ * Section order: hero (reality→twin reveal) → app panels with live phone
+ * demos → interactive-deliverable strip → compact pricing → FAQ + CTA.
+ * Adding a future app = one entry in lib/marketing/homepage-content.ts.
  */
 export function MarketingPage() {
   return (
@@ -19,11 +20,9 @@ export function MarketingPage() {
       <MarketingNav />
       <main>
         <MarketingHero />
-        <MarketingShowcase />
-        <MarketingSalesTiles />
+        <MarketingApps />
         <MarketingPricing />
-        <MarketingDataProcessing />
-        <MarketingHowItWorks />
+        <MarketingFaq />
       </main>
       <MarketingFooter />
     </div>

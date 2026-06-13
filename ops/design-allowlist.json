@@ -190,9 +190,6 @@
     "components/widgets/WidgetBodies.tsx",
     "components/widgets/WidgetCard.tsx",
     "components/widgets/WidgetCustomizeDrawer.tsx",
-    "lib/dev/mock-plan-sheets.ts",
-    "lib/email-assignments.ts",
-    "lib/email-collaborators.ts",
-    "lib/email-theme.ts"
+    "lib/dev/mock-plan-sheets.ts"
   ]
 }
