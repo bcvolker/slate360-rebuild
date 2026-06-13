@@ -1,0 +1,16 @@
+{
+  "id": "flir-rjpeg",
+  "label": "FLIR R-JPEG",
+  "exif_fingerprints": { "make_contains": ["FLIR"] },
+  "xmp_markers": [],
+  "radiometric_parser_id": "flir_planck",
+  "default_emissivity": 0.95,
+  "default_width": 640,
+  "default_height": 480,
+  "extraction_tags": ["RawThermalImage", "ThermalImage", "ThermalData"],
+  "recommended_capture_settings": {
+    "altitude_m": 30,
+    "overlap_pct": 75,
+    "emissivity_hint": "Match roof membrane material"
+  }
+}

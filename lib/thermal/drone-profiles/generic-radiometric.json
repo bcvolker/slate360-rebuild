@@ -1,0 +1,14 @@
+{
+  "id": "generic-radiometric",
+  "label": "Generic radiometric JPEG",
+  "exif_fingerprints": {},
+  "radiometric_parser_id": "generic_relative",
+  "default_emissivity": 0.95,
+  "default_width": 640,
+  "default_height": 512,
+  "extraction_tags": ["RawThermalImage", "ThermalImage", "ThermalData", "EmbeddedImage"],
+  "recommended_capture_settings": {
+    "altitude_m": 30,
+    "overlap_pct": 70
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "id": "dji-mavic-3t",
+  "label": "DJI Mavic 3T",
+  "exif_fingerprints": { "make_contains": ["DJI"], "model_contains": ["M3T", "Mavic 3T"] },
+  "xmp_markers": ["drone-dji:ThermalImage"],
+  "radiometric_parser_id": "dji_linear",
+  "default_emissivity": 0.95,
+  "default_width": 640,
+  "default_height": 512,
+  "linear_scale": 0.1,
+  "linear_offset_k": 273.15,
+  "extraction_tags": ["ThermalData", "ThermalImage", "EmbeddedImage"],
+  "thermal_rgb_extrinsic": { "baseline_mm": 22, "note": "Thermal sensor offset from RGB optical center" },
+  "recommended_capture_settings": {
+    "altitude_m": 40,
+    "overlap_pct": 80,
+    "gain_mode": "high"
+  }
+}

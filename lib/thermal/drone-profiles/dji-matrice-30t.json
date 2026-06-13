@@ -1,0 +1,17 @@
+{
+  "id": "dji-matrice-30t",
+  "label": "DJI Matrice 30T",
+  "exif_fingerprints": { "make_contains": ["DJI"], "model_contains": ["M30T", "Matrice 30T"] },
+  "xmp_markers": ["drone-dji:ThermalImage"],
+  "radiometric_parser_id": "dji_linear",
+  "default_emissivity": 0.95,
+  "default_width": 640,
+  "default_height": 512,
+  "linear_scale": 0.1,
+  "linear_offset_k": 273.15,
+  "extraction_tags": ["ThermalData", "ThermalImage", "EmbeddedImage"],
+  "recommended_capture_settings": {
+    "altitude_m": 50,
+    "overlap_pct": 80
+  }
+}

@@ -14,6 +14,9 @@ const triggerEnvNames = [
   "R2_ACCESS_KEY_ID",
   "R2_SECRET_ACCESS_KEY",
   "MODAL_TWIN_ENDPOINT",
+  "MODAL_THERMAL_ENDPOINT",
+  "GPU_WORKER_SECRET_KEY",
+  "SITE_URL",
 ];
 
 export default defineConfig({

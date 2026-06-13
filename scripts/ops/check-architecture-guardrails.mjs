@@ -50,10 +50,12 @@ function hasAuthPattern(source) {
     source.includes("withMarketAuth(") ||
     source.includes("withProjectAuth(") ||
     source.includes("withAppAuth(") ||
+    source.includes("withThermalOpsAuth(") ||
     source.includes("auth.getUser(") ||
     source.includes("resolveServerOrgContext(") ||
     source.includes("getAuthenticatedOrgContext(") ||
-    source.includes("hasValidSecret(")
+    source.includes("hasValidSecret(") ||
+    source.includes("verifyWorkerSignature(")
   );
 }
 
