@@ -26,6 +26,9 @@ export async function GET(req: NextRequest, { params }: Params) {
   if (!gate.ok) {
     return NextResponse.json({ error: gate.reason }, { status: 403 });
   }
+  if (gate.role !== "download") {
+    return NextResponse.json({ error: "Export not permitted for this link" }, { status: 403 });
+  }
   if (!(await isUnlocked(token, gate.requiresPassword))) {
     return NextResponse.json({ error: "Password required" }, { status: 401 });
   }
@@ -49,6 +52,7 @@ export async function GET(req: NextRequest, { params }: Params) {
     id: capture.id,
     filename: capture.filename,
     anomalies: capture.anomalies,
+    gpsPosition: capture.gpsPosition ?? {},
   }));
 
   if (format === "csv") {

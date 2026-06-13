@@ -1,5 +1,11 @@
 # Slate360 Thermal Analysis Modal Worker
 
+## Storage (Cloudflare R2)
+
+All thermal assets (raw R-JPEG uploads, NPZ radiometric arrays, false-color previews, PDF/HTML reports) live in **Cloudflare R2** via the shared S3-compatible API (`lib/s3.ts` on Vercel, `r2_utils.py` in this worker). R2 is preferred over AWS S3 because **egress to clients and Modal is free**, which matters for large radiometric batches and share PDF downloads.
+
+Required env (Vercel + Modal secret + Trigger): `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET` (e.g. `slate360-storage`), `R2_ENDPOINT` or `CLOUDFLARE_ACCOUNT_ID`, `R2_REGION=auto`.
+
 Deploy from this directory:
 
 ```bash

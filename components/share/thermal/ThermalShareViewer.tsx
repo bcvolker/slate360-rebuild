@@ -48,6 +48,7 @@ export function ThermalShareViewer({ data, token, tokenState, embed = false }: P
   const branding = data.branding;
   const summary = data.summaryMetrics;
   const canDownload = data.role === "download" && token;
+  const canExport = canDownload;
   const canAnnotate = (data.role === "annotate" || data.role === "download") && token;
 
   async function markAnomaly(captureId: string, anomalyId: string, mark: "confirmed" | "false_positive") {
@@ -99,21 +100,27 @@ export function ThermalShareViewer({ data, token, tokenState, embed = false }: P
                 Download PDF report
               </a>
             ) : null}
-            {token ? (
-              <a
-                href={`/api/share/thermal/${token}/export?format=csv`}
-                className="inline-flex rounded-full border border-[var(--mobile-app-card-border)] px-4 py-2 text-sm font-semibold text-[var(--graphite-text-body)]"
-              >
-                Export anomalies (CSV)
-              </a>
-            ) : null}
-            {token ? (
-              <a
-                href={`/api/share/thermal/${token}/export?format=json`}
-                className="inline-flex rounded-full border border-[var(--mobile-app-card-border)] px-4 py-2 text-sm font-semibold text-[var(--graphite-text-body)]"
-              >
-                Export (JSON)
-              </a>
+            {canExport ? (
+              <>
+                <a
+                  href={`/api/share/thermal/${token}/export?format=csv`}
+                  className="inline-flex rounded-full border border-[var(--mobile-app-card-border)] px-4 py-2 text-sm font-semibold text-[var(--graphite-text-body)]"
+                >
+                  Export anomalies (CSV)
+                </a>
+                <a
+                  href={`/api/share/thermal/${token}/export?format=json`}
+                  className="inline-flex rounded-full border border-[var(--mobile-app-card-border)] px-4 py-2 text-sm font-semibold text-[var(--graphite-text-body)]"
+                >
+                  Export (JSON)
+                </a>
+                <a
+                  href={`/api/share/thermal/${token}/export?format=geojson`}
+                  className="inline-flex rounded-full border border-[var(--mobile-app-card-border)] px-4 py-2 text-sm font-semibold text-[var(--graphite-text-body)]"
+                >
+                  Export (GeoJSON)
+                </a>
+              </>
             ) : null}
           </div>
           {data.linkedSpaceId ? (
@@ -188,12 +195,11 @@ export function ThermalShareViewer({ data, token, tokenState, embed = false }: P
                     </ul>
                   ) : null}
 
-                  {/* Twin layer stub for when linked to Digital Twin */}
-                  {data.linkedSpaceId && (
+                  {data.linkedSpaceId ? (
                     <p className="mt-2 text-[10px] text-[var(--graphite-muted)]">
-                      Thermal layer toggle available in the linked Twin 360 viewer (ops-only for now).
+                      Linked to Digital Twin space {data.linkedSpaceId.slice(0, 8)}… — open Twin 360 for spatial context.
                     </p>
-                  )}
+                  ) : null}
                 </div>
               </article>
             );

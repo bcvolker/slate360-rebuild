@@ -5,6 +5,7 @@ import { ThermalSessionGallery } from "@/components/ops/thermal/ThermalSessionGa
 import { ThermalBrandingPanel } from "@/components/ops/thermal/ThermalBrandingPanel";
 import { ThermalSessionActions } from "@/components/ops/thermal/ThermalSessionActions";
 import { ThermalTwinLayerPanel } from "@/components/ops/thermal/ThermalTwinLayerPanel";
+import { ThermalSessionSummaryBar } from "@/components/ops/thermal/ThermalSessionSummaryBar";
 import type { ThermalBrandingConfig } from "@/lib/thermal/types";
 
 type PageProps = { params: Promise<{ sessionId: string }> };
@@ -20,12 +21,14 @@ export default async function ThermalSessionDetailPage({ params }: PageProps) {
 
   const metadata = (detail.session.metadata as Record<string, unknown>) ?? {};
   const linkedSpaceId = readLinkedSpaceId(metadata);
+  const summary = (detail.session.summary_metrics as Record<string, unknown>) ?? {};
 
   return (
     <div className="space-y-4">
       <Link href="/operations-console/thermal" className="text-sm text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]">
         ← All sessions
       </Link>
+      <ThermalSessionSummaryBar summary={summary} />
       <ThermalSessionGallery
         sessionId={detail.session.id}
         sessionName={detail.session.name}
@@ -38,9 +41,9 @@ export default async function ThermalSessionDetailPage({ params }: PageProps) {
           sessionId={detail.session.id}
           initial={detail.session.branding_config as ThermalBrandingConfig}
         />
-        <ThermalSessionActions sessionId={detail.session.id} />
+        <ThermalSessionActions sessionId={detail.session.id} captureCount={detail.captures.length} />
       </div>
-      <ThermalTwinLayerPanel linkedSpaceId={linkedSpaceId} projectId={detail.session.project_id} />
+      <ThermalTwinLayerPanel sessionId={detail.session.id} linkedSpaceId={linkedSpaceId} />
     </div>
   );
 }

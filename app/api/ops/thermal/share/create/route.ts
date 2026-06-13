@@ -21,7 +21,7 @@ export const POST = (req: NextRequest) =>
 
     const { data: session, error: sessionError } = await admin
       .from("thermal_analysis_sessions")
-      .select("id, org_id, name, branding_config")
+      .select("id, org_id, name, branding_config, metadata")
       .eq("id", body.session_id)
       .is("deleted_at", null)
       .maybeSingle();
@@ -34,6 +34,12 @@ export const POST = (req: NextRequest) =>
     const role = body.role ?? "view";
     const password = body.password?.trim();
     const passwordHash = password ? hashSharePassword(password) : null;
+
+    const sessionMeta = (session.metadata as Record<string, unknown>) ?? {};
+    const layerConfig = {
+      linked_space_id:
+        typeof sessionMeta.linked_space_id === "string" ? sessionMeta.linked_space_id : null,
+    };
 
     const { data: shareRow, error: insertError } = await admin
       .from("thermal_analysis_share_tokens")
@@ -48,6 +54,7 @@ export const POST = (req: NextRequest) =>
         max_views: body.max_views ?? null,
         is_revoked: false,
         password_hash: passwordHash,
+        layer_config: layerConfig,
         branding_snapshot: session.branding_config ?? {},
       })
       .select("token, role, expires_at, max_views")

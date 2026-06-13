@@ -15,5 +15,6 @@ export type ThermalShareViewerData = {
     previewUrl: string | null;
     qualityMetrics: Record<string, unknown>;
     anomalies: unknown[];
+    gpsPosition?: Record<string, unknown>;
   }>;
 };

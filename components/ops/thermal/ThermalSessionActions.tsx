@@ -1,15 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { estimateThermalJobCredits } from "@/lib/thermal/cost-estimate";
 import { thermalOpsTokens as t } from "@/components/ops/thermal/thermal-ops-tokens";
 
 type Props = {
   sessionId: string;
+  captureCount: number;
 };
 
 type ShareRole = "view" | "annotate" | "download";
+type JobType = "extract" | "analyze" | "report" | "full_pipeline";
 
-async function startJob(sessionId: string, jobType: "extract" | "analyze" | "report" | "full_pipeline") {
+async function startJob(sessionId: string, jobType: JobType) {
   const res = await fetch("/api/ops/thermal/jobs", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -19,13 +22,19 @@ async function startJob(sessionId: string, jobType: "extract" | "analyze" | "rep
   if (!res.ok) throw new Error(json.error ?? `Failed to start ${jobType} job`);
 }
 
-export function ThermalSessionActions({ sessionId }: Props) {
+export function ThermalSessionActions({ sessionId, captureCount }: Props) {
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [sharePassword, setSharePassword] = useState("");
   const [shareRole, setShareRole] = useState<ShareRole>("view");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [pendingJob, setPendingJob] = useState<JobType>("full_pipeline");
+
+  const costEstimate = useMemo(
+    () => estimateThermalJobCredits(captureCount, pendingJob),
+    [captureCount, pendingJob],
+  );
 
   async function createShareLink() {
     setBusy(true);
@@ -52,13 +61,14 @@ export function ThermalSessionActions({ sessionId }: Props) {
     }
   }
 
-  async function runJob(jobType: "extract" | "analyze" | "report" | "full_pipeline", label: string) {
+  async function runJob(jobType: JobType, label: string) {
     setBusy(true);
     setError(null);
     setNotice(null);
+    const jobEstimate = estimateThermalJobCredits(captureCount, jobType);
     try {
       await startJob(sessionId, jobType);
-      setNotice(`${label} started — progress updates below.`);
+      setNotice(`${label} started — progress updates below. ${jobEstimate.note}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Job failed");
     } finally {
@@ -69,17 +79,50 @@ export function ThermalSessionActions({ sessionId }: Props) {
   return (
     <div className={t.card}>
       <p className={t.eyebrow}>Processing</p>
+      <p className="mt-2 text-xs text-[var(--graphite-muted)]">{costEstimate.note}</p>
       <div className="mt-3 flex flex-wrap gap-3">
-        <button type="button" className={t.secondaryButton} disabled={busy} onClick={() => runJob("extract", "Extraction")}>
+        <button
+          type="button"
+          className={t.secondaryButton}
+          disabled={busy}
+          onClick={() => {
+            setPendingJob("extract");
+            runJob("extract", "Extraction");
+          }}
+        >
           Re-run extraction
         </button>
-        <button type="button" className={t.secondaryButton} disabled={busy} onClick={() => runJob("analyze", "Analysis")}>
+        <button
+          type="button"
+          className={t.secondaryButton}
+          disabled={busy}
+          onClick={() => {
+            setPendingJob("analyze");
+            runJob("analyze", "Analysis");
+          }}
+        >
           Run anomaly analysis
         </button>
-        <button type="button" className={t.secondaryButton} disabled={busy} onClick={() => runJob("report", "PDF report")}>
+        <button
+          type="button"
+          className={t.secondaryButton}
+          disabled={busy}
+          onClick={() => {
+            setPendingJob("report");
+            runJob("report", "PDF report");
+          }}
+        >
           Generate PDF report
         </button>
-        <button type="button" className={t.primaryButton} disabled={busy} onClick={() => runJob("full_pipeline", "Full pipeline")}>
+        <button
+          type="button"
+          className={t.primaryButton}
+          disabled={busy}
+          onClick={() => {
+            setPendingJob("full_pipeline");
+            runJob("full_pipeline", "Full pipeline");
+          }}
+        >
           Run full pipeline
         </button>
       </div>

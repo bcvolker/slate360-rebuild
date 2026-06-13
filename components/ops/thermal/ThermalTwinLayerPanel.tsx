@@ -41,7 +41,7 @@ export function ThermalTwinLayerPanel({ sessionId, linkedSpaceId: initialLinkedS
     <div className={t.card}>
       <p className={t.eyebrow}>Digital Twin layer</p>
       <p className="mt-2 text-xs text-[var(--graphite-muted)]">
-        Link a twin space ID for share-layer awareness. Full COLMAP + LiDAR alignment (Slice 3) is a follow-up.
+        Link a Digital Twin space so share links include layer context and a direct path into Twin 360.
       </p>
       <form onSubmit={saveLink} className="mt-3 flex flex-wrap items-end gap-3">
         <label className="min-w-[240px] flex-1 text-xs text-[var(--graphite-muted)]">

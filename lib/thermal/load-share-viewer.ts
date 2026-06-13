@@ -30,7 +30,7 @@ export async function loadThermalShareViewerData(
 
   const { data: captures } = await admin
     .from("thermal_captures")
-    .select("id, filename, preview_path, storage_path, quality_metrics, anomalies")
+    .select("id, filename, preview_path, storage_path, quality_metrics, anomalies, gps_position")
     .eq("session_id", sessionId)
     .is("deleted_at", null)
     .order("created_at", { ascending: true });
@@ -47,6 +47,7 @@ export async function loadThermalShareViewerData(
       previewUrl: await signKey(capture.preview_path ?? capture.storage_path),
       qualityMetrics: (capture.quality_metrics as Record<string, unknown>) ?? {},
       anomalies: (capture.anomalies as unknown[]) ?? [],
+      gpsPosition: (capture.gps_position as Record<string, unknown>) ?? {},
     })),
   );
 

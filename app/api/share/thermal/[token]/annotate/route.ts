@@ -43,12 +43,26 @@ export async function POST(req: NextRequest, { params }: Params) {
   const { createAdminClient } = await import("@/lib/supabase/admin");
   const supabase = createAdminClient();
 
-  // Fetch current anomalies
+  const { data: tokenRow } = await supabase
+    .from("thermal_analysis_share_tokens")
+    .select("session_id")
+    .eq("token", token)
+    .maybeSingle();
+
+  if (!tokenRow?.session_id) {
+    return NextResponse.json({ error: "Share unavailable" }, { status: 404 });
+  }
+
   const { data: cap } = await supabase
     .from("thermal_captures")
-    .select("anomalies")
+    .select("id, session_id, anomalies")
     .eq("id", body.captureId)
-    .single();
+    .eq("session_id", tokenRow.session_id)
+    .maybeSingle();
+
+  if (!cap) {
+    return NextResponse.json({ error: "Capture not found" }, { status: 404 });
+  }
 
   const currentAnomalies = (cap?.anomalies as Array<Record<string, unknown>>) || [];
   const updated = currentAnomalies.map((a) =>
