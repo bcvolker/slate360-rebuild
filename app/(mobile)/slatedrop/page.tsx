@@ -1,12 +1,11 @@
 import { redirect } from "next/navigation";
-import {
-  MobileSlateDropClient,
-  SLATEDROP_FOLDER_ICONS,
-} from "@/components/mobile-system/MobileSlateDropClient";
+import { Box, Brush } from "lucide-react";
+import { SlateDropBrowserShell } from "@/components/slatedrop/SlateDropBrowserShell";
+import { SLATEDROP_FOLDER_ICONS } from "@/components/mobile-system/MobileSlateDropClient";
+import type { SlateDropBrowseFolder } from "@/components/slatedrop/slatedrop-browser-types";
+import { shouldHideInAppStoreMode } from "@/lib/app-store-mode";
 import { resolveServerOrgContext } from "@/lib/server/org-context";
 import { resolveOrgEntitlements } from "@/lib/server/org-feature-flags";
-import { shouldHideInAppStoreMode } from "@/lib/app-store-mode";
-import { Box, Brush } from "lucide-react";
 
 export const metadata = { title: "SlateDrop — Slate360" };
 
@@ -48,27 +47,26 @@ export default async function SlateDropPage() {
   ];
 
   const visibleAppFolders = appFolders.filter((folder) => !shouldHideInAppStoreMode(!folder.active));
-  const browseRows = [
+  const browseFolders: SlateDropBrowseFolder[] = [
     {
+      id: "general-files",
+      name: "General Files",
       href: "/slatedrop/general-files",
-      label: "General Files",
       meta: "Uploads, received, shared, archive",
       icon: SLATEDROP_FOLDER_ICONS.folder,
     },
     ...visibleAppFolders
       .filter((folder) => folder.active)
       .map((folder) => ({
+        id: folder.slug,
+        name: folder.label,
         href: `/slatedrop/${folder.slug}`,
-        label: folder.label,
         meta: folder.folders.slice(0, 3).join(" · "),
         icon: folder.icon,
       })),
   ];
 
   return (
-    <MobileSlateDropClient
-      browseRows={browseRows}
-      storageLabel={`${entitlements.maxStorageGB}GB`}
-    />
+    <SlateDropBrowserShell folders={browseFolders} maxStorageGB={entitlements.maxStorageGB} />
   );
 }
