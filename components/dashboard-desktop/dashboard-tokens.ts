@@ -9,6 +9,9 @@ export const dashboardDesktopTokens = {
   canvas: "bg-[var(--graphite-canvas)] text-[var(--graphite-text-body)]",
   sidebar:
     "flex h-[100dvh] w-52 shrink-0 flex-col border-r border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_92%,transparent)]",
+  /** Sidebar geometry without a fixed width (width applied by the caller for collapse). */
+  sidebarBase:
+    "flex h-[100dvh] shrink-0 flex-col border-r border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_92%,transparent)] transition-[width] duration-200",
   sidebarNavLabel:
     "mb-1 px-2 font-mono text-[9px] font-semibold uppercase tracking-[0.18em] text-[var(--graphite-muted)]",
   navLink:

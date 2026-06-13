@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { DashboardDesktopSidebar } from "@/components/dashboard-desktop/DashboardDesktopSidebar";
 import { DashboardDesktopTopBar } from "@/components/dashboard-desktop/DashboardDesktopTopBar";
 import { DashboardHomeContent } from "@/components/dashboard-desktop/DashboardHomeContent";
@@ -20,19 +21,23 @@ const WALKS = Array.from({ length: 4 }, (_, i) => ({
 }));
 
 export default function DashboardLookPreview() {
+  const [collapsed, setCollapsed] = useState(false);
   return (
     <div className={`flex h-[100dvh] ${t.canvas}`}>
-      <DashboardDesktopSidebar showOpsConsole isCeo />
+      <DashboardDesktopSidebar
+        showOpsConsole
+        isCeo
+        collapsed={collapsed}
+        onToggleCollapse={() => setCollapsed((c) => !c)}
+      />
       <div className={t.main}>
-        <DashboardDesktopTopBar workspaceName="Slate360 Workspace" userName="Brian Volker" />
+        <DashboardDesktopTopBar userName="Brian Volker" />
         <main className={t.content}>
           <DashboardHomeContent
             workspaceName="Slate360 Workspace"
             counts={COUNTS}
             recentProjects={PROJECTS}
             recentWalks={WALKS}
-            recentTwins={[]}
-            showOpsConsole
           />
         </main>
       </div>

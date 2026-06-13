@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { InviteShareProvider, useInviteShare } from "@/components/shared/InviteShareProvider";
 import type { InviteShareData } from "@/lib/types/invite";
 import { DashboardDesktopSidebar } from "./DashboardDesktopSidebar";
@@ -22,14 +22,36 @@ type DashboardDesktopShellProps = {
   children: ReactNode;
 };
 
-function ShellInner({ userName, workspaceName, inviteShareData, showOpsConsole, isCeo, children }: DashboardDesktopShellProps) {
+function ShellInner({ userName, inviteShareData, showOpsConsole, isCeo, children }: DashboardDesktopShellProps) {
   const { open: inviteOpen, setOpen: setInviteOpen } = useInviteShare();
+  const [collapsed, setCollapsed] = useState(false);
+
+  useEffect(() => {
+    setCollapsed(localStorage.getItem("s360.sidebarCollapsed") === "1");
+  }, []);
+
+  const toggleCollapse = () => {
+    setCollapsed((c) => {
+      const next = !c;
+      try {
+        localStorage.setItem("s360.sidebarCollapsed", next ? "1" : "0");
+      } catch {
+        /* ignore */
+      }
+      return next;
+    });
+  };
 
   return (
     <div className={`flex min-h-[100dvh] ${t.canvas}`}>
-      <DashboardDesktopSidebar showOpsConsole={showOpsConsole} isCeo={isCeo} />
+      <DashboardDesktopSidebar
+        showOpsConsole={showOpsConsole}
+        isCeo={isCeo}
+        collapsed={collapsed}
+        onToggleCollapse={toggleCollapse}
+      />
       <div className={t.main}>
-        <DashboardDesktopTopBar workspaceName={workspaceName} userName={userName} />
+        <DashboardDesktopTopBar userName={userName} />
         <main className={t.content}>{children}</main>
       </div>
       {inviteOpen ? (

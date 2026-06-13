@@ -1,14 +1,12 @@
 import Link from "next/link";
-import { ArrowRight, Box, Cloud, MapPin, Wrench, type LucideIcon } from "lucide-react";
-import { APP_STORE_MODE } from "@/lib/app-store-mode";
-import { appHomeTokens as ah } from "@/components/studio-ui/app-home-tokens";
+import { ArrowRight, Camera } from "lucide-react";
 import type {
   DashboardHomeCounts,
   DashboardRecentProject,
-  DashboardRecentTwin,
   DashboardRecentWalk,
 } from "@/lib/dashboard/load-dashboard-home-data";
 import { DashboardEmptyState } from "./DashboardEmptyState";
+import { DashboardProjectsRail } from "./DashboardProjectsRail";
 import { dashboardDesktopTokens as t } from "./dashboard-tokens";
 
 type DashboardHomeContentProps = {
@@ -16,16 +14,10 @@ type DashboardHomeContentProps = {
   counts: DashboardHomeCounts;
   recentProjects: DashboardRecentProject[];
   recentWalks: DashboardRecentWalk[];
-  recentTwins: DashboardRecentTwin[];
-  showOpsConsole: boolean;
 };
 
 function formatDate(value: string): string {
-  return new Date(value).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
+  return new Date(value).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
 export function DashboardHomeContent({
@@ -33,196 +25,77 @@ export function DashboardHomeContent({
   counts,
   recentProjects,
   recentWalks,
-  recentTwins,
-  showOpsConsole,
 }: DashboardHomeContentProps) {
-  // Twin 360 is revealed when reviewer/App-Store mode is off (lib/app-store-mode.ts).
-  const showTwins = !APP_STORE_MODE;
-
-  const apps: AppTile[] = [
-    { label: "Site Walk", href: "/site-walk", icon: MapPin, description: "Capture photos and pin to plans.", accent: "primary" },
-    showTwins
-      ? { label: "Twin 360 Studio", href: "/digital-twin", icon: Box, description: "Build interactive 3D reality twins.", accent: "info" }
-      : null,
-    { label: "SlateDrop", href: "/slatedrop", icon: Cloud, description: "Plans, photos, and shared field files.", accent: "primary" },
-    showOpsConsole
-      ? { label: "Operations Console", href: "/operations-console", icon: Wrench, description: "Internal staff tools and analysis.", accent: "info" }
-      : null,
-  ].filter((app): app is AppTile => app !== null);
-
   return (
-    <div className="mx-auto flex h-full w-full max-w-6xl flex-col gap-4">
-      <header>
-        <h1 className={t.pageTitle}>Dashboard</h1>
-        <p className={t.pageSubtitle}>{workspaceName} — workspace overview from live data.</p>
-      </header>
-
-      <section aria-label="Apps">
-        <h2 className={t.sectionLabel}>Apps</h2>
-        <div className="mt-2 grid grid-cols-2 gap-2.5 lg:grid-cols-4">
-          {apps.map((app) => (
-            <AppTileCard key={app.href} {...app} />
-          ))}
+    <div className="mx-auto flex h-full w-full max-w-6xl flex-col gap-3">
+      {/* Hero */}
+      <section
+        className="relative shrink-0 overflow-hidden rounded-2xl border border-[var(--mobile-app-card-border)] px-6 py-5 shadow-[var(--mobile-app-card-shadow)]"
+        style={{
+          background:
+            "radial-gradient(120% 140% at 0% 0%, color-mix(in_srgb,var(--graphite-primary) 22%, var(--graphite-canvas)) 0%, var(--graphite-canvas) 55%)",
+        }}
+      >
+        <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--graphite-primary)]">
+          {workspaceName}
+        </p>
+        <h2 className="mt-1 max-w-xl text-2xl font-extrabold tracking-tight text-[var(--graphite-text-header)] sm:text-3xl">
+          Capture the site. Keep the twin.
+        </h2>
+        <p className="mt-2 max-w-lg text-sm text-[var(--graphite-muted)]">
+          {counts.projects} project{counts.projects === 1 ? "" : "s"} · {counts.siteWalks} site walk
+          {counts.siteWalks === 1 ? "" : "s"} · {counts.digitalTwins} twin{counts.digitalTwins === 1 ? "" : "s"}
+        </p>
+        <div className="mt-4 flex flex-wrap gap-2">
+          <Link
+            href="/site-walk"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-[var(--graphite-primary)] px-4 py-2 text-sm font-semibold text-[var(--graphite-canvas)] transition-transform active:scale-[0.99]"
+          >
+            <Camera className="h-4 w-4" /> Start a Site Walk
+          </Link>
+          <Link
+            href="/projects"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-[var(--mobile-app-card-border)] px-4 py-2 text-sm font-semibold text-[var(--graphite-text-body)] transition-colors hover:border-[color-mix(in_srgb,var(--graphite-primary)_42%,transparent)]"
+          >
+            Manage projects <ArrowRight className="h-4 w-4" />
+          </Link>
         </div>
       </section>
 
-      <div className="grid min-h-0 flex-1 gap-4 lg:grid-cols-2">
-        <ProjectsRail items={recentProjects} total={counts.projects} />
+      {/* Projects scroller (open / rename / delete) */}
+      <DashboardProjectsRail projects={recentProjects} total={counts.projects} />
 
-        <RecentSection
-          title={`Recent Site Walks${counts.siteWalks ? ` · ${counts.siteWalks}` : ""}`}
-          viewAllHref="/site-walks"
-          emptyTitle="No site walks yet"
-          emptyDescription="Start a walk from Site Walk on mobile, or open the walks list when sessions exist."
-          emptyActionLabel="Browse walks"
-          emptyActionHref="/site-walks"
-          items={recentWalks.slice(0, 5).map((walk) => ({
-            key: walk.id,
-            href: `/site-walk/walks/${walk.id}`,
-            primary: walk.title,
-            secondary: `${walk.status} · ${formatDate(walk.updatedAt)}`,
-          }))}
-        />
-      </div>
-
-      {showTwins ? (
-        <RecentSection
-          title={`Recent Digital Twins${counts.digitalTwins ? ` · ${counts.digitalTwins}` : ""}`}
-          viewAllHref="/digital-twins"
-          emptyTitle="No digital twins yet"
-          emptyDescription="Capture and process a twin from the Digital Twin app when your workspace has twin access."
-          emptyActionLabel="Browse twins"
-          emptyActionHref="/digital-twins"
-          items={recentTwins.slice(0, 3).map((twin) => ({
-            key: twin.id,
-            href: `/digital-twin/twins/${twin.id}`,
-            primary: twin.title,
-            secondary: `${twin.status} · ${formatDate(twin.updatedAt)}`,
-          }))}
-        />
-      ) : null}
-    </div>
-  );
-}
-
-type AppTile = { label: string; href: string; icon: LucideIcon; description: string; accent: "primary" | "info" };
-
-function AppTileCard({ label, href, icon: Icon, description, accent }: AppTile) {
-  const isInfo = accent === "info";
-  return (
-    <Link
-      href={href}
-      className={`${ah.launcherTileBase} ${isInfo ? ah.launcherTileInfo : ah.launcherTilePrimary}`}
-    >
-      <span className={isInfo ? ah.launcherIconChipInfo : ah.launcherIconChipPrimary}>
-        <Icon className={isInfo ? ah.launcherIconInfo : ah.launcherIconPrimary} strokeWidth={1.75} />
-      </span>
-      <div className="min-w-0 flex-1">
-        <p className={ah.launcherTitle}>{label}</p>
-        <p className={isInfo ? ah.launcherStatusInfo : ah.launcherStatusPrimary}>{description}</p>
-      </div>
-      <ArrowRight className={isInfo ? ah.launcherChevronInfo : ah.launcherChevronPrimary} />
-    </Link>
-  );
-}
-
-function ProjectsRail({ items, total }: { items: DashboardRecentProject[]; total: number }) {
-  return (
-    <section>
-      <div className="mb-3 flex items-center justify-between gap-3">
-        <h2 className={t.sectionLabel}>Projects{total ? ` · ${total}` : ""}</h2>
-        <Link
-          href="/projects"
-          className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--graphite-primary)] hover:underline"
-        >
-          View all <ArrowRight className="h-3.5 w-3.5" />
-        </Link>
-      </div>
-
-      {items.length === 0 ? (
-        <DashboardEmptyState
-          title="No projects yet"
-          description="Create a project to organize walks, files, and field activity."
-          actionLabel="View projects"
-          actionHref="/projects"
-        />
-      ) : (
-        <div className="-mx-1 flex snap-x gap-3 overflow-x-auto px-1 pb-2">
-          {items.map((project) => (
-            <Link
-              key={project.id}
-              href={`/projects/${project.id}`}
-              className={`${t.cardInteractive} w-64 shrink-0 snap-start p-4`}
-            >
-              <p className="truncate text-sm font-semibold text-[var(--graphite-text-header)]">
-                {project.name}
-              </p>
-              <p className="mt-1 truncate text-xs text-[var(--graphite-muted)]">
-                {project.status} · {formatDate(project.createdAt)}
-              </p>
-            </Link>
-          ))}
+      {/* Compact recent activity */}
+      <section className="min-h-0 flex-1">
+        <div className="mb-2 flex items-center justify-between gap-3">
+          <h2 className={t.sectionLabel}>Recent Site Walks{counts.siteWalks ? ` · ${counts.siteWalks}` : ""}</h2>
+          <Link href="/site-walks" className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--graphite-primary)] hover:underline">
+            View all <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
         </div>
-      )}
-    </section>
-  );
-}
-
-type RecentItem = { key: string; href: string; primary: string; secondary: string };
-
-function RecentSection({
-  title,
-  viewAllHref,
-  emptyTitle,
-  emptyDescription,
-  emptyActionLabel,
-  emptyActionHref,
-  items,
-}: {
-  title: string;
-  viewAllHref: string;
-  emptyTitle: string;
-  emptyDescription: string;
-  emptyActionLabel: string;
-  emptyActionHref: string;
-  items: RecentItem[];
-}) {
-  return (
-    <section>
-      <div className="mb-3 flex items-center justify-between gap-3">
-        <h2 className={t.sectionLabel}>{title}</h2>
-        <Link
-          href={viewAllHref}
-          className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--graphite-primary)] hover:underline"
-        >
-          View all <ArrowRight className="h-3.5 w-3.5" />
-        </Link>
-      </div>
-
-      {items.length === 0 ? (
-        <DashboardEmptyState
-          title={emptyTitle}
-          description={emptyDescription}
-          actionLabel={emptyActionLabel}
-          actionHref={emptyActionHref}
-        />
-      ) : (
-        <ul className="space-y-2">
-          {items.map((item) => (
-            <li key={item.key}>
-              <Link href={item.href} className={t.listRow}>
-                <span className="min-w-0">
-                  <span className="block truncate text-sm font-semibold text-[var(--graphite-text-header)]">
-                    {item.primary}
+        {recentWalks.length === 0 ? (
+          <DashboardEmptyState
+            title="No site walks yet"
+            description="Start a walk from Site Walk on mobile, or open the walks list when sessions exist."
+            actionLabel="Browse walks"
+            actionHref="/site-walks"
+          />
+        ) : (
+          <ul className="space-y-2">
+            {recentWalks.slice(0, 4).map((walk) => (
+              <li key={walk.id}>
+                <Link href={`/site-walk/walks/${walk.id}`} className={t.listRow}>
+                  <span className="min-w-0">
+                    <span className="block truncate text-sm font-semibold text-[var(--graphite-text-header)]">{walk.title}</span>
+                    <span className="block truncate text-xs text-[var(--graphite-muted)]">{walk.status} · {formatDate(walk.updatedAt)}</span>
                   </span>
-                  <span className="block truncate text-xs text-[var(--graphite-muted)]">{item.secondary}</span>
-                </span>
-                <ArrowRight className="h-4 w-4 shrink-0 text-[var(--graphite-muted)]" />
-              </Link>
-            </li>
-          ))}
-        </ul>
-      )}
-    </section>
+                  <ArrowRight className="h-4 w-4 shrink-0 text-[var(--graphite-muted)]" />
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+    </div>
   );
 }
