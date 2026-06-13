@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getScopedProjectForUser } from "@/lib/projects/access";
+import { provisionProjectFolders } from "@/lib/slatedrop/provisioning";
+
+type FolderRow = { id: string; name: string; folder_path: string | null; project_id: string };
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -46,8 +50,31 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ folders: [] });
   }
 
+  let rows = (data ?? []) as FolderRow[];
+
+  // Lazy provision fallback: projects created before the folder taxonomy (or
+  // where provisioning failed) have no folders, leaving nowhere to upload.
+  // Provision on first view so every project always has its numbered subfolders.
+  if (rows.length === 0) {
+    const { project } = await getScopedProjectForUser(user.id, projectId, "id, name").catch(
+      () => ({ project: null as { name?: string } | null }),
+    );
+    if (project) {
+      try {
+        await provisionProjectFolders(projectId, project.name ?? "Project", orgId, user.id);
+        const reread = await query;
+        rows = (reread.data ?? []) as FolderRow[];
+      } catch (provisionError) {
+        console.error(
+          "[slatedrop/project-folders] lazy provision failed",
+          provisionError instanceof Error ? provisionError.message : provisionError,
+        );
+      }
+    }
+  }
+
   return NextResponse.json({
-    folders: (data ?? []).map((folder) => ({
+    folders: rows.map((folder) => ({
       id: folder.id,
       name: folder.name,
       path: folder.folder_path ?? folder.name,
