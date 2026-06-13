@@ -22,6 +22,7 @@ import autel from "@/lib/thermal/drone-profiles/autel-evo-ii-dual-640t.json";
 import djiM3t from "@/lib/thermal/drone-profiles/dji-mavic-3t.json";
 import djiM30t from "@/lib/thermal/drone-profiles/dji-matrice-30t.json";
 import flir from "@/lib/thermal/drone-profiles/flir-rjpeg.json";
+import hikmicroPocket2 from "@/lib/thermal/drone-profiles/hikmicro-pocket2.json";
 import generic from "@/lib/thermal/drone-profiles/generic-radiometric.json";
 
 export const DRONE_PROFILES: readonly DroneProfile[] = [
@@ -29,6 +30,7 @@ export const DRONE_PROFILES: readonly DroneProfile[] = [
   djiM3t as DroneProfile,
   djiM30t as DroneProfile,
   flir as DroneProfile,
+  hikmicroPocket2 as DroneProfile,
   generic as DroneProfile,
 ];
 

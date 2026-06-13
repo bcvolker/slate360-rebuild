@@ -67,3 +67,6 @@ public/sw.js.map
 /tmp-*.png
 /.vercel-inspect.json
 __pycache__/
+
+# Local thermal camera sample files (private inspection data)
+thermal-samples/

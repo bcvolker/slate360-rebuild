@@ -1,10 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import type { ThermalCapture, ThermalProcessingJob } from "@/lib/thermal/types";
 import { formatQualityScore, scoreToBadgeTone, summarizeQualityFlags } from "@/lib/thermal/quality-scoring";
 import { ThermalJobStatusBar } from "@/components/ops/thermal/ThermalJobStatusBar";
+import { ThermalProbeViewer, type ThermalProbeGrid } from "@/components/ops/thermal/ThermalProbeViewer";
 import { useThermalJobRealtime } from "@/hooks/useThermalJobRealtime";
 import { thermalOpsTokens as t } from "@/components/ops/thermal/thermal-ops-tokens";
 
@@ -122,21 +123,11 @@ export function ThermalSessionGallery({
         <div className={t.card}>
           {selected ? (
             <>
-              <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-[#111827]">
-                {selected.previewUrl ? (
-                  <Image
-                    src={selected.previewUrl}
-                    alt={selected.filename ?? "Selected capture"}
-                    fill
-                    className="object-contain"
-                    unoptimized
-                  />
-                ) : (
-                  <div className="flex h-full items-center justify-center text-sm text-[var(--graphite-muted)]">
-                    Preview will appear after extraction completes.
-                  </div>
-                )}
-              </div>
+              <CaptureProbe
+                captureId={selected.id}
+                filename={selected.filename ?? "Capture"}
+                previewUrl={selected.previewUrl}
+              />
               <div className="mt-4 grid gap-2 text-sm text-[var(--graphite-text-body)]">
                 <p>Quality: {formatQualityScore(selected.quality_metrics)}</p>
                 <p>
@@ -178,6 +169,66 @@ export function ThermalSessionGallery({
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+/**
+ * Renders the interactive per-pixel probe when a temperature grid is available
+ * (e.g. HIKMICRO radiometric files), otherwise falls back to the static preview.
+ */
+function CaptureProbe({
+  captureId,
+  filename,
+  previewUrl,
+}: {
+  captureId: string;
+  filename: string;
+  previewUrl: string | null;
+}) {
+  const [grid, setGrid] = useState<ThermalProbeGrid | null>(null);
+  const [state, setState] = useState<"idle" | "loading" | "unavailable">("loading");
+
+  useEffect(() => {
+    let cancelled = false;
+    setGrid(null);
+    setState("loading");
+    fetch(`/api/ops/thermal/captures/${captureId}/grid`)
+      .then(async (res) => {
+        if (!res.ok) throw new Error(String(res.status));
+        const json = await res.json();
+        const data = (json.data ?? json) as ThermalProbeGrid;
+        if (!cancelled) {
+          setGrid(data);
+          setState("idle");
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setState("unavailable");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [captureId]);
+
+  if (grid) {
+    return <ThermalProbeViewer grid={grid} title={filename} />;
+  }
+
+  return (
+    <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-[#111827]">
+      {previewUrl ? (
+        <Image src={previewUrl} alt={filename} fill className="object-contain" unoptimized />
+      ) : (
+        <div className="flex h-full items-center justify-center text-sm text-[var(--graphite-muted)]">
+          Preview will appear after extraction completes.
+        </div>
+      )}
+      {state === "loading" ? (
+        <div className="absolute bottom-2 left-2 rounded bg-black/70 px-2 py-0.5 text-[10px] text-white">
+          Checking for per-pixel data…
+        </div>
+      ) : null}
     </div>
   );
 }

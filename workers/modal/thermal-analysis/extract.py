@@ -162,7 +162,64 @@ def convert_raw_to_celsius(
     return raw.astype(np.float32), False, "generic_relative"
 
 
+def extract_hikmicro_matrix(filepath: Path) -> tuple[np.ndarray | None, dict[str, Any]]:
+    """Decode HIKMICRO radiometric files (Pocket2 / HM-TP42 family).
+
+    These cameras append a custom thermal block after the JPEG EOI marker, starting
+    with the ASCII magic "HDRI": a width*height uint16 grid plus a parameter footer
+    holding emissivity and the frame's min/max display temperatures. Raw values map
+    linearly to those extremes (validated against real Pocket2 samples within ~0.4 C).
+    The camera display unit defaults to Fahrenheit; pass-through handled here.
+    """
+    data = filepath.read_bytes()
+    eoi = data.rfind(b"\xff\xd9")
+    if eoi < 0 or data[eoi + 2 : eoi + 6] != b"HDRI":
+        return None, {"is_radiometric": False, "error": "No HIKMICRO HDRI block"}
+
+    tail = data[eoi + 2 :]
+    width = int.from_bytes(tail[0x0C:0x10], "little")
+    height = int.from_bytes(tail[0x10:0x14], "little")
+    data_size = int.from_bytes(tail[0x14:0x18], "little")
+    pixel_off = 0x2C
+    count = width * height
+    if width <= 0 or height <= 0 or pixel_off + count * 2 > len(tail):
+        return None, {"is_radiometric": False, "error": f"Bad HIKMICRO dims {width}x{height}"}
+
+    foot = pixel_off + data_size
+
+    def f32(off: int) -> float:
+        return float(np.frombuffer(tail[off : off + 4], dtype="<f4")[0]) if off + 4 <= len(tail) else 0.0
+
+    f_to_c = lambda f: (f - 32.0) * 5.0 / 9.0  # noqa: E731
+    emissivity = f32(foot + 0xA0) or 0.95
+    disp_max = f_to_c(f32(foot + 0xF8))
+    disp_min = f_to_c(f32(foot + 0xFC))
+
+    raw = np.frombuffer(tail[pixel_off : pixel_off + count * 2], dtype="<u2").astype(np.float32)
+    raw_min = float(raw.min())
+    raw_max = float(raw.max())
+    raw_span = (raw_max - raw_min) or 1.0
+    temp_c = (disp_min + (raw - raw_min) / raw_span * (disp_max - disp_min)).reshape((height, width))
+
+    return temp_c.astype(np.float32), {
+        "parser_id": "hikmicro_hdri",
+        "sensor_make": "HIKMICRO",
+        "sensor_model": "Pocket2 (HM-TP42)",
+        "emissivity_used": round(emissivity, 3),
+        "absolute_celsius": True,
+        "is_radiometric": True,
+        "width": width,
+        "height": height,
+    }
+
+
 def extract_raw_matrix(filepath: Path, meta: dict[str, Any]) -> tuple[np.ndarray | None, dict[str, Any]]:
+    # HIKMICRO handheld cameras embed their thermal grid after the JPEG (not in EXIF),
+    # so detect and decode them before the exiftool-based drone path.
+    hik_temp, hik_meta = extract_hikmicro_matrix(filepath)
+    if hik_temp is not None:
+        return hik_temp, hik_meta
+
     profile, make, model = detect_sensor(meta)
     tags = pick_extraction_tags(profile)
 

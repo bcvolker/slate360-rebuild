@@ -1,0 +1,17 @@
+{
+  "id": "hikmicro-pocket2",
+  "label": "HIKMICRO Pocket2 (handheld)",
+  "exif_fingerprints": {
+    "make_contains": ["HIKMICRO"],
+    "model_contains": ["HM-TP42", "POCKET2"]
+  },
+  "xmp_markers": ["HDRI", "RADIOMETRICIMAGE"],
+  "radiometric_parser_id": "hikmicro_hdri",
+  "default_emissivity": 0.95,
+  "default_width": 256,
+  "default_height": 192,
+  "extraction_tags": [],
+  "recommended_capture_settings": {
+    "note": "Shoot in radiometric mode; transfer the original .jpeg unedited (USB) to preserve the embedded temperature grid."
+  }
+}
