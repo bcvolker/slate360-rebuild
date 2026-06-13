@@ -3,6 +3,7 @@
  * Email helpers for Site Walk assignment notifications.
  */
 import { sendEmail, brandedHtml, ctaButton } from "@/lib/email";
+import { EMAIL_COLORS as C } from "@/lib/email-theme";
 
 export type AssignmentEmailKind = "task" | "item";
 
@@ -49,21 +50,21 @@ export async function sendAssignmentNotificationEmail(
   }
 
   const body = `
-    <h2 style="margin:0 0 8px;color:#F59E0B;font-size:22px;font-weight:800;">
+    <h2 style="margin:0 0 8px;color:${C.primary};font-size:22px;font-weight:800;">
       ${safe(args.assignerName)} assigned you a ${kindLabel}
     </h2>
-    <p style="margin:0 0 6px;color:#111827;font-size:16px;font-weight:600;">${safe(args.title)}</p>
-    ${meta.length > 0 ? `<p style="margin:0 0 18px;color:#6b7280;font-size:13px;line-height:1.7;">${meta.join(" &middot; ")}</p>` : ""}
-    <p style="margin:0 0 18px;color:#6b7280;font-size:15px;line-height:1.7;">
+    <p style="margin:0 0 6px;color:${C.textPrimary};font-size:16px;font-weight:600;">${safe(args.title)}</p>
+    ${meta.length > 0 ? `<p style="margin:0 0 18px;color:${C.textMuted};font-size:13px;line-height:1.7;">${meta.join(" &middot; ")}</p>` : ""}
+    <p style="margin:0 0 18px;color:${C.textMuted};font-size:15px;line-height:1.7;">
       Hi ${safe(greetingName)}, you have a new Site Walk ${kindLabel} waiting for you in Slate360.
     </p>
     ${
       args.message
-        ? `<div style="margin:0 0 20px;padding:14px;background:#fef3c7;border-left:4px solid #F59E0B;border-radius:4px;color:#92400e;font-size:14px;font-style:italic;">"${safe(args.message)}"</div>`
+        ? `<div style="margin:0 0 20px;padding:14px;background:${C.quoteBg};border-left:4px solid ${C.quoteBorder};border-radius:4px;color:${C.quoteText};font-size:14px;font-style:italic;">"${safe(args.message)}"</div>`
         : ""
     }
     ${ctaButton("Open in Slate360", args.link)}
-    <p style="margin:18px 0 0;font-size:12px;color:#9ca3af;">
+    <p style="margin:18px 0 0;font-size:12px;color:${C.textFaint};">
       You're receiving this because someone in your organization assigned you to this ${kindLabel}.
     </p>`;
 

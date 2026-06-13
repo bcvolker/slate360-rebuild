@@ -78,7 +78,7 @@ export function brandedHtml(title: string, body: string): string {
           <!-- Footer -->
           <tr>
             <td style="padding:24px 40px;border-top:1px solid ${C.footerBorder};background:${C.footerBand};">
-              <p style="margin:0;font-size:11px;color:${C.textFaint};line-height:1.6;">
+              <p style="margin:0;font-size:11px;color:${C.footerText};line-height:1.6;">
                 You're receiving this email because you have an account on
                 <a href="${APP_URL}" style="color:${C.primary};text-decoration:none;">Slate360</a>.
                 &copy; ${new Date().getFullYear()} Slate360. All rights reserved.
@@ -98,7 +98,7 @@ export function ctaButton(label: string, href: string) {
   return `<table cellpadding="0" cellspacing="0" style="margin:28px 0 8px;">
     <tr>
       <td style="background:${C.primary};border-radius:10px;">
-        <a href="${href}" style="display:inline-block;padding:14px 32px;color:${C.textOnDark};font-size:14px;font-weight:700;text-decoration:none;letter-spacing:0.1px;">${label}</a>
+        <a href="${href}" style="display:inline-block;padding:14px 32px;color:${C.textOnPrimary};font-size:14px;font-weight:700;text-decoration:none;letter-spacing:0.1px;">${label}</a>
       </td>
     </tr>
   </table>`;
