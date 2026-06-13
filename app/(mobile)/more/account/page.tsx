@@ -12,7 +12,7 @@ import { mobileTokens } from "@/components/mobile-system";
 import { cn } from "@/lib/utils";
 import { getEntitlements } from "@/lib/entitlements";
 import { resolveServerOrgContext } from "@/lib/server/org-context";
-import { AccountDeletionPanel } from "@/app/(dashboard)/more/_components/AccountDeletionPanel";
+import { AccountDeletionPanel } from "@/components/account/AccountDeletionPanel";
 
 export const metadata = { title: "Account — Slate360" };
 
