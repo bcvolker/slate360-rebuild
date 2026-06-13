@@ -17,7 +17,7 @@ const FAKE_MEDIA_ARGS = [
 ];
 
 const SHOTS = [
-  { name: "site-walk-1-capture", url: "/dev/screens?screen=capture&device=mobile&thumbs=2" },
+  { name: "site-walk-1-capture", url: "/dev/screens?screen=capture&device=mobile&mode=captured&thumbs=2" },
   { name: "site-walk-2-pin", url: "/dev/screens?screen=capture&device=mobile&mode=captured&popover=open&thumbs=2" },
   { name: "site-walk-3-details", url: "/dev/screens?screen=note-review&device=mobile" },
   { name: "site-walk-4-review", url: "/dev/screens?screen=walk-review&device=mobile" },

@@ -999,8 +999,10 @@
   0%, 100% { --mkt-x: 28%; }
   50% { --mkt-x: 72%; }
 }
-@property --mkt-x { syntax: '<percentage>'; inherits: false; initial-value: 50%; }
-@property --mkt-y { syntax: '<percentage>'; inherits: false; initial-value: 55%; }
+/* inherits:true so pointer/touch updates set on the hero container reach the
+   masked child layer — otherwise the reveal stays frozen at the initial value. */
+@property --mkt-x { syntax: '<percentage>'; inherits: true; initial-value: 50%; }
+@property --mkt-y { syntax: '<percentage>'; inherits: true; initial-value: 55%; }
 @media (prefers-reduced-motion: reduce) {
   .mkt-hero-sweep { animation: none; }
 }

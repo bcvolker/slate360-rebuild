@@ -186,20 +186,23 @@ export function MarketingHero() {
               <SiteScene mode="line" />
             </div>
 
-            {/* Reveal: the twin point cloud through the spotlight */}
+            {/* Reveal: the twin point cloud through the spotlight. The tinted
+                backdrop makes the revealed circle read clearly against the
+                line-work base. */}
             <div
               className={cn(
                 "absolute inset-0 p-6 sm:p-8",
+                "bg-[radial-gradient(circle_at_var(--mkt-x)_var(--mkt-y),color-mix(in_srgb,var(--twin360-blue)_22%,var(--graphite-canvas))_0%,transparent_60%)]",
                 !spot.active && !spot.reduced && "mkt-hero-sweep",
               )}
               style={
                 spot.reduced
-                  ? { opacity: 0.85 }
+                  ? { opacity: 0.9 }
                   : {
                       WebkitMaskImage:
-                        "radial-gradient(circle 200px at var(--mkt-x) var(--mkt-y), black 0% 55%, transparent 78%)",
+                        "radial-gradient(circle 200px at var(--mkt-x) var(--mkt-y), black 0% 58%, transparent 80%)",
                       maskImage:
-                        "radial-gradient(circle 200px at var(--mkt-x) var(--mkt-y), black 0% 55%, transparent 78%)",
+                        "radial-gradient(circle 200px at var(--mkt-x) var(--mkt-y), black 0% 58%, transparent 80%)",
                     }
               }
             >
@@ -207,9 +210,7 @@ export function MarketingHero() {
             </div>
 
             <p className="pointer-events-none absolute bottom-3 left-1/2 w-max -translate-x-1/2 rounded-full border border-white/10 bg-[color-mix(in_srgb,var(--graphite-canvas)_80%,transparent)] px-3 py-1 text-[11px] font-medium text-[var(--graphite-muted)] backdrop-blur-md">
-            {typeof window !== "undefined" && "ontouchstart" in window
-                ? "Drag to reveal the twin"
-                : "Move your cursor to reveal the twin"}
+              Move or drag across the scene to reveal the twin
             </p>
           </div>
         </motion.div>
