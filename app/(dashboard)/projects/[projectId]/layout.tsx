@@ -1,99 +1,64 @@
-import DashboardHeader from "@/components/shared/DashboardHeader";
-import { resolveServerOrgContext } from "@/lib/server/org-context";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getScopedProjectForUser } from "@/lib/projects/access";
-import { readProjectViewMode } from "@/lib/server/project-view";
-import { ProjectViewSelector } from "@/components/projects/ProjectViewSelector";
+import { resolveServerOrgContext } from "@/lib/server/org-context";
 
-const TABS = [
-	{ label: "Overview", href: "" },
-	{ label: "SlateDrop", href: "slatedrop" },
-	{ label: "Photos", href: "photos" },
-	{ label: "Punch List", href: "punch-list" },
-	{ label: "People", href: "people" },
-] as const;
+const OVERVIEW_TAB = { label: "Overview", href: "" } as const;
 
 export default async function ProjectDetailLayout({
-	children,
-	params,
+  children,
+  params,
 }: {
-	children: React.ReactNode;
-	params: Promise<{ projectId: string }>;
+  children: React.ReactNode;
+  params: Promise<{ projectId: string }>;
 }) {
-	const { projectId } = await params;
-	const { user, tier, isSlateCeo, canAccessOperationsConsole, isViewer, isAdmin } = await resolveServerOrgContext();
+  const { projectId } = await params;
+  const { user } = await resolveServerOrgContext();
 
-	if (!user) {
-		redirect(`/login?redirectTo=${encodeURIComponent(`/projects/${projectId}`)}`);
-	}
+  if (!user) {
+    redirect(`/login?redirectTo=${encodeURIComponent(`/projects/${projectId}`)}`);
+  }
 
-	const { project: scopedProject } = await getScopedProjectForUser(user.id, projectId, "id, name, status");
-	const project = scopedProject as { id: string; name: string; status: string } | null;
+  const { project: scopedProject } = await getScopedProjectForUser(user.id, projectId, "id, name, status");
+  const project = scopedProject as { id: string; name: string; status: string } | null;
 
-	if (!project) {
-		notFound();
-	}
+  if (!project) {
+    notFound();
+  }
 
-	const viewMode = await readProjectViewMode();
-	const allowedModes: Array<"my" | "owner" | "leadership"> = isViewer
-		? ["leadership"]
-		: isAdmin
-			? ["my", "owner", "leadership"]
-			: ["my", "owner"];
+  return (
+    <div className="mx-auto w-full max-w-6xl space-y-6">
+      <header className="space-y-4 border-b border-[var(--mobile-app-card-border)] pb-5">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--graphite-muted)]">
+              Project
+            </p>
+            <h1 className="mt-1 text-2xl font-bold tracking-tight text-[var(--graphite-text-header)]">
+              {project.name}
+            </h1>
+          </div>
+          <span className="inline-flex rounded-lg border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_82%,transparent)] px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[var(--graphite-text-body)]">
+            {project.status}
+          </span>
+        </div>
 
-	return (
-		<div className="min-h-screen bg-background overflow-x-hidden">
-			<DashboardHeader
-				user={{
-					name: user.user_metadata?.full_name ?? user.email?.split("@")[0] ?? "User",
-					email: user.email ?? "",
-					avatar: user.user_metadata?.avatar_url ?? undefined,
-				}}
-				tier={tier}
-				isCeo={isSlateCeo}
-				internalAccess={{ operationsConsole: canAccessOperationsConsole }}
-				showBackLink
-			/>
-			<div className="sticky top-0 z-30 border-b border-zinc-800 bg-background/95 backdrop-blur-md">
-				<div className="mx-auto w-full max-w-7xl px-4 sm:px-6 py-3 sm:py-4 md:px-10">
-					<div className="flex items-center justify-between gap-4">
-						<div>
-							<p className="text-xs font-semibold uppercase tracking-wide text-zinc-400">Project Details</p>
-							<h1 className="text-xl font-black text-foreground md:text-2xl">{project.name}</h1>
-						</div>
-						<div className="flex items-center gap-3">
-							<ProjectViewSelector
-								initial={allowedModes.includes(viewMode) ? viewMode : allowedModes[0]}
-								allowed={allowedModes}
-							/>
-							<span className="inline-flex rounded-full border border-zinc-700 bg-card px-3 py-1 text-xs font-semibold uppercase tracking-wide text-zinc-300">
-								{project.status}
-							</span>
-						</div>
-					</div>
+        <nav aria-label="Project sections">
+          <ul className="flex items-center gap-2">
+            <li>
+              <Link
+                href={`/projects/${projectId}`}
+                className="inline-flex rounded-lg border border-[color-mix(in_srgb,var(--graphite-primary)_32%,transparent)] bg-[color-mix(in_srgb,var(--graphite-primary)_12%,transparent)] px-3 py-1.5 text-sm font-semibold text-[var(--graphite-text-header)]"
+                aria-current="page"
+              >
+                {OVERVIEW_TAB.label}
+              </Link>
+            </li>
+          </ul>
+        </nav>
+      </header>
 
-					<nav className="mt-4 overflow-x-auto pb-1 -mx-1">
-						<ul className="flex min-w-max items-center gap-1 sm:gap-2 px-1">
-							{TABS.map((tab) => {
-								const href = tab.href ? `/projects/${projectId}/${tab.href}` : `/projects/${projectId}`;
-								return (
-									<li key={tab.label}>
-										<Link
-											href={href}
-											className="inline-flex rounded-full border border-zinc-800 bg-card px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold text-zinc-300 transition-all hover:border-[#3B82F6]/30 hover:bg-[#3B82F6]/10 hover:text-[#3B82F6] hover:shadow-sm hover:-translate-y-px whitespace-nowrap"
-										>
-											{tab.label}
-										</Link>
-									</li>
-								);
-							})}
-						</ul>
-					</nav>
-				</div>
-			</div>
-
-			<main className="mx-auto w-full max-w-7xl px-4 sm:px-6 py-6 md:px-10 md:py-8">{children}</main>
-		</div>
-	);
+      <div>{children}</div>
+    </div>
+  );
 }

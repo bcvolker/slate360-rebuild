@@ -114,9 +114,15 @@ export async function middleware(request: NextRequest) {
   const { device } = userAgent(request);
   const isMobile = device.type === 'mobile' || device.type === 'tablet' || device.type === 'wearable';
   
-  if (pathname === "/dashboard") {
+  if (pathname === "/dashboard" && isMobile) {
     const url = request.nextUrl.clone();
     url.pathname = "/app";
+    return NextResponse.redirect(url);
+  }
+
+  if (pathname === "/app" && !isMobile) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/dashboard";
     return NextResponse.redirect(url);
   }
 
@@ -135,6 +141,8 @@ export async function middleware(request: NextRequest) {
   // Protect authenticated routes — redirect to login if not authenticated
   const isBetaProtectedRoute =
     pathname.startsWith("/dashboard") ||
+    pathname.startsWith("/site-walks") ||
+    pathname.startsWith("/digital-twins") ||
     pathname.startsWith("/app") ||
     pathname.startsWith("/projects") ||
     pathname.startsWith("/slatedrop") ||

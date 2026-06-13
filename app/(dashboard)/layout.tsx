@@ -4,9 +4,11 @@ import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import BuildRuntimeBadge from "@/components/shared/BuildRuntimeBadge";
 import OverflowProbe from "@/components/shared/OverflowProbe";
+import { DashboardDesktopShell } from "@/components/dashboard-desktop/DashboardDesktopShell";
 import { resolveServerOrgContext } from "@/lib/server/org-context";
 import { StudioAppShell } from "@/components/studio-ui/StudioAppShell";
 import { buildInviteShareData } from "@/lib/server/invite-share-data";
+import { isMobileServerLayout } from "@/lib/server/device-layout";
 import { isBetaMode } from "@/lib/beta-mode";
 
 type DashboardRouteLayoutProps = {
@@ -14,6 +16,7 @@ type DashboardRouteLayoutProps = {
 };
 
 export default async function DashboardRouteLayout({ children }: DashboardRouteLayoutProps) {
+  const isMobile = await isMobileServerLayout();
   const ctx = await resolveServerOrgContext();
   const { user, isBetaApproved, orgId, orgName, isSlateCeo, isSlateStaff } = ctx;
   if (!user) redirect("/login");
@@ -28,16 +31,28 @@ export default async function DashboardRouteLayout({ children }: DashboardRouteL
   const isBetaEligible = isBetaMode() || isBetaApproved || isSlateCeo || isSlateStaff;
   void isBetaEligible;
 
+  const chrome = isMobile ? (
+    <StudioAppShell
+      userName={userName}
+      workspaceName={orgName ?? "Slate360"}
+      inviteShareData={inviteShareData}
+    >
+      {children}
+    </StudioAppShell>
+  ) : (
+    <DashboardDesktopShell
+      userName={userName}
+      workspaceName={orgName ?? "Slate360"}
+      inviteShareData={inviteShareData}
+    >
+      {children}
+    </DashboardDesktopShell>
+  );
+
   return (
     <NuqsAdapter>
       <TooltipProvider>
-        <StudioAppShell
-          userName={userName}
-          workspaceName={orgName ?? "Slate360"}
-          inviteShareData={inviteShareData}
-        >
-          {children}
-        </StudioAppShell>
+        {chrome}
         <Suspense fallback={null}>
           <BuildRuntimeBadge />
         </Suspense>
