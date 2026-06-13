@@ -53,6 +53,10 @@ cpu_image = (
         "reportlab==4.2.5",
         "requests==2.32.3",
     )
+    # Modern Modal does not auto-mount the entrypoint's directory, so the worker's
+    # sibling modules must be added explicitly or `from pipeline import ...` fails
+    # at container startup (ModuleNotFoundError -> crash loop).
+    .add_local_python_source("pipeline", "extract", "analyze", "report", "r2_utils")
 )
 
 
