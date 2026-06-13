@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, Box, Cloud, MapPin, Wrench, type LucideIcon } from "lucide-react";
 import { APP_STORE_MODE } from "@/lib/app-store-mode";
+import { appHomeTokens as ah } from "@/components/studio-ui/app-home-tokens";
 import type {
   DashboardHomeCounts,
   DashboardRecentProject,
@@ -39,13 +40,13 @@ export function DashboardHomeContent({
   const showTwins = !APP_STORE_MODE;
 
   const apps: AppTile[] = [
-    { label: "Site Walk", href: "/site-walk", icon: MapPin, description: "Capture photos and pin to plans." },
+    { label: "Site Walk", href: "/site-walk", icon: MapPin, description: "Capture photos and pin to plans.", accent: "primary" },
     showTwins
-      ? { label: "Twin 360 Studio", href: "/digital-twin", icon: Box, description: "Build interactive 3D reality twins." }
+      ? { label: "Twin 360 Studio", href: "/digital-twin", icon: Box, description: "Build interactive 3D reality twins.", accent: "info" }
       : null,
-    { label: "SlateDrop", href: "/slatedrop", icon: Cloud, description: "Plans, photos, and shared field files." },
+    { label: "SlateDrop", href: "/slatedrop", icon: Cloud, description: "Plans, photos, and shared field files.", accent: "primary" },
     showOpsConsole
-      ? { label: "Operations Console", href: "/operations-console", icon: Wrench, description: "Internal staff tools and analysis." }
+      ? { label: "Operations Console", href: "/operations-console", icon: Wrench, description: "Internal staff tools and analysis.", accent: "info" }
       : null,
   ].filter((app): app is AppTile => app !== null);
 
@@ -105,19 +106,23 @@ export function DashboardHomeContent({
   );
 }
 
-type AppTile = { label: string; href: string; icon: LucideIcon; description: string };
+type AppTile = { label: string; href: string; icon: LucideIcon; description: string; accent: "primary" | "info" };
 
-function AppTileCard({ label, href, icon: Icon, description }: AppTile) {
+function AppTileCard({ label, href, icon: Icon, description, accent }: AppTile) {
+  const isInfo = accent === "info";
   return (
     <Link
       href={href}
-      className={`block ${t.card} p-4 transition-colors hover:border-[color-mix(in_srgb,var(--graphite-primary)_28%,transparent)]`}
+      className={`${ah.launcherTileBase} ${isInfo ? ah.launcherTileInfo : ah.launcherTilePrimary}`}
     >
-      <span className={t.navIcon}>
-        <Icon className="h-5 w-5" strokeWidth={1.75} />
+      <span className={isInfo ? ah.launcherIconChipInfo : ah.launcherIconChipPrimary}>
+        <Icon className={isInfo ? ah.launcherIconInfo : ah.launcherIconPrimary} strokeWidth={1.75} />
       </span>
-      <p className="mt-3 text-sm font-semibold text-[var(--graphite-text-header)]">{label}</p>
-      <p className="mt-1 text-xs text-[var(--graphite-muted)]">{description}</p>
+      <div className="min-w-0 flex-1">
+        <p className={ah.launcherTitle}>{label}</p>
+        <p className={isInfo ? ah.launcherStatusInfo : ah.launcherStatusPrimary}>{description}</p>
+      </div>
+      <ArrowRight className={isInfo ? ah.launcherChevronInfo : ah.launcherChevronPrimary} />
     </Link>
   );
 }
