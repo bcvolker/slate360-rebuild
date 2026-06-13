@@ -6,6 +6,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { s3, BUCKET } from "@/lib/s3";
 import type { ThermalBrandingConfig } from "@/lib/thermal/types";
 import type { ThermalShareViewerData } from "@/lib/thermal/share-viewer-types";
+import { filterCapturesByLayerConfig } from "@/lib/thermal/layer-config";
 
 async function signKey(key: string | null): Promise<string | null> {
   if (!key) return null;
@@ -41,7 +42,7 @@ export async function loadThermalShareViewerData(
   };
 
   const enriched = await Promise.all(
-    (captures ?? []).map(async (capture) => ({
+    filterCapturesByLayerConfig(captures ?? [], layerConfig).map(async (capture) => ({
       id: capture.id,
       filename: capture.filename,
       previewUrl: await signKey(capture.preview_path ?? capture.storage_path),

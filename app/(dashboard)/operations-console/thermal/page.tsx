@@ -2,8 +2,16 @@ import Link from "next/link";
 import { loadThermalSessionList } from "@/lib/thermal/load-session-data";
 import { thermalOpsTokens as t } from "@/components/ops/thermal/thermal-ops-tokens";
 
+function actionAnomalyCount(summary: Record<string, unknown> | null | undefined): number {
+  return Number(summary?.critical_anomalies ?? 0);
+}
+
 export default async function ThermalSessionsPage() {
   const sessions = await loadThermalSessionList(null);
+  const reviewQueue = sessions.filter((session) => {
+    const summary = (session.summary_metrics as Record<string, unknown> | undefined) ?? {};
+    return actionAnomalyCount(summary) > 0;
+  });
 
   return (
     <div className="space-y-4">
@@ -37,6 +45,35 @@ export default async function ThermalSessionsPage() {
           </Link>
         </div>
       )}
+
+      {reviewQueue.length ? (
+        <div className={t.card}>
+          <p className={t.eyebrow}>Review queue</p>
+          <p className="mt-2 text-sm text-[var(--graphite-muted)]">
+            Sessions with action-severity anomalies from the latest pipeline run.
+          </p>
+          <ul className="mt-3 space-y-2 text-sm">
+            {reviewQueue.map((session) => {
+              const summary = (session.summary_metrics as Record<string, unknown> | undefined) ?? {};
+              return (
+                <li key={session.id}>
+                  <Link
+                    href={`/operations-console/thermal/${session.id}`}
+                    className="text-[var(--graphite-primary)] hover:underline"
+                  >
+                    {session.name}
+                  </Link>
+                  <span className="text-[var(--graphite-muted)]">
+                    {" "}
+                    · {actionAnomalyCount(summary)} action anomal
+                    {actionAnomalyCount(summary) === 1 ? "y" : "ies"}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      ) : null}
     </div>
   );
 }

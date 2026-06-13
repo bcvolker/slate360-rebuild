@@ -3,6 +3,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type {
   ThermalWorkerAnalyzeResult,
+  ThermalWorkerAlignResult,
   ThermalWorkerCallbackPayload,
   ThermalWorkerCaptureResult,
   ThermalWorkerReportOutput,
@@ -57,6 +58,30 @@ async function applyAnalyzeResults(admin: AdminClient, results: ThermalWorkerAna
     await admin
       .from("thermal_captures")
       .update({ anomalies: result.anomalies ?? [] })
+      .eq("id", result.captureId);
+  }
+}
+
+async function applyAlignResults(admin: AdminClient, results: ThermalWorkerAlignResult[]) {
+  for (const result of results) {
+    const { data: existing } = await admin
+      .from("thermal_captures")
+      .select("telemetry")
+      .eq("id", result.captureId)
+      .maybeSingle();
+
+    const prior = (existing?.telemetry as Record<string, unknown>) ?? {};
+    await admin
+      .from("thermal_captures")
+      .update({
+        telemetry: {
+          ...prior,
+          alignment: {
+            manifest: result.alignManifest,
+            quality: result.qualityMetrics?.alignment_quality ?? "approximate",
+          },
+        },
+      })
       .eq("id", result.captureId);
   }
 }
@@ -204,6 +229,10 @@ export async function handleThermalJobCallback(
   if (analyzeResults.length) {
     await applyAnalyzeResults(admin, analyzeResults);
   }
+  const alignResults = body.alignResults ?? [];
+  if (alignResults.length) {
+    await applyAlignResults(admin, alignResults);
+  }
   if (reportOutput?.pdfKey) {
     await insertReportRow(admin, job, reportOutput);
   }
@@ -214,6 +243,12 @@ export async function handleThermalJobCallback(
       captureId: r.captureId,
       npz: r.npzDataPath,
       preview: r.previewPath,
+    }));
+  }
+  if (alignResults.length) {
+    outputStorageKeys.align = alignResults.map((r) => ({
+      captureId: r.captureId,
+      manifest: r.alignManifest,
     }));
   }
   if (reportOutput) {
@@ -243,6 +278,11 @@ export async function handleThermalJobCallback(
       body.qualityMetrics,
     );
   } else if (reportOutput) {
+    await admin
+      .from("thermal_analysis_sessions")
+      .update({ status: "complete" })
+      .eq("id", job.session_id);
+  } else if (alignResults.length) {
     await admin
       .from("thermal_analysis_sessions")
       .update({ status: "complete" })

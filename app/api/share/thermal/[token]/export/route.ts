@@ -8,6 +8,7 @@ import {
   buildAnomalyGeoJson,
   buildAnomalyJson,
 } from "@/lib/thermal/build-anomaly-export";
+import { filterCapturesByLayerConfig } from "@/lib/thermal/layer-config";
 
 type Params = { params: Promise<{ token: string }> };
 
@@ -48,12 +49,23 @@ export async function GET(req: NextRequest, { params }: Params) {
   }
 
   const format = (req.nextUrl.searchParams.get("format") || "json").toLowerCase();
-  const exportCaptures = data.captures.map((capture) => ({
-    id: capture.id,
-    filename: capture.filename,
-    anomalies: capture.anomalies,
-    gpsPosition: capture.gpsPosition ?? {},
-  }));
+  const layerConfig = (claimed.layer_config as Record<string, unknown>) ?? {};
+  const exportCaptures = filterCapturesByLayerConfig(
+    data.captures.map((capture) => ({
+      id: capture.id,
+      filename: capture.filename,
+      anomalies: capture.anomalies,
+      gpsPosition: capture.gpsPosition ?? {},
+    })),
+    layerConfig,
+  );
+
+  if (format === "geotiff") {
+    return NextResponse.json(
+      { error: "GeoTIFF ortho export requires radiometric raster assembly — use CSV, JSON, or GeoJSON for anomaly deliverables." },
+      { status: 501 },
+    );
+  }
 
   if (format === "csv") {
     const csv = buildAnomalyCsv(exportCaptures);

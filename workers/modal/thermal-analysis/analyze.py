@@ -139,3 +139,17 @@ def analyze_temperature_array(temp: np.ndarray) -> list[dict[str, Any]]:
     anomalies.extend(detect_linear_streaks(temp, reference))
     anomalies.sort(key=lambda row: row.get("delta_c") or 0, reverse=True)
     return anomalies[:25]
+
+
+def segment_materials_sam_stub(temp: np.ndarray, rgb_preview: bytes | None = None) -> dict[str, Any]:
+    """SAM/MobileSAM material segmentation hook for per-region emissivity (Slice 4 advanced).
+    In the full implementation this runs MobileSAM on co-registered RGB/thermal to segment
+    roof materials, then applies material-specific emissivity from presets for corrected temp.
+    Until that GPU step is enabled it returns no regions (status="pending") so that no
+    fabricated material data is ever persisted to a session.
+    """
+    return {
+        "status": "pending",
+        "regions": [],
+        "note": "Material segmentation runs on the GPU advanced job (Slice 4); no regions in CPU pipeline.",
+    }

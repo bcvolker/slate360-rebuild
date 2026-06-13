@@ -56,6 +56,11 @@ export function ThermalSessionGallery({
   );
 
   const selectedAnomalies = (selected?.anomalies as AnomalyRow[] | undefined) ?? [];
+  const alignment = (
+    (selected?.telemetry as Record<string, unknown> | undefined)?.alignment as
+      | { quality?: string }
+      | undefined
+  );
 
   return (
     <div className="space-y-6">
@@ -145,6 +150,9 @@ export function ThermalSessionGallery({
                   {selected.quality_metrics?.is_radiometric ? "Yes" : "No / pending"}
                   {selected.quality_metrics?.absolute_celsius === false ? " (relative scale)" : ""}
                 </p>
+                {alignment?.quality ? (
+                  <p>Twin alignment: {alignment.quality}</p>
+                ) : null}
                 {summarizeQualityFlags(selected.quality_metrics).map((flag) => (
                   <p key={flag} className="text-[var(--graphite-muted)]">
                     » {flag}

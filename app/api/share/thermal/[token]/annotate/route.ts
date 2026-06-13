@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { claimThermalShareView, resolveThermalShareToken } from "@/lib/thermal/share-token";
 import { shareUnlockCookieName, verifyShareUnlockProof } from "@/lib/thermal/share-password";
 import { getThermalSharePasswordHash } from "@/lib/thermal/share-token";
+import { captureAllowedByLayerConfig } from "@/lib/thermal/layer-config";
 import { cookies } from "next/headers";
 
 type Params = { params: Promise<{ token: string }> };
@@ -38,14 +39,13 @@ export async function POST(req: NextRequest, { params }: Params) {
     return NextResponse.json({ error: "captureId, anomalyId and mark required" }, { status: 400 });
   }
 
-  // Persist annotation by updating the anomalies jsonb on the capture (simple for ops demo).
-  // In production this could go to a separate thermal_analysis_feedback table with moderation.
+  // Persist reviewer marks on the capture anomalies jsonb (visible in ops session gallery).
   const { createAdminClient } = await import("@/lib/supabase/admin");
   const supabase = createAdminClient();
 
   const { data: tokenRow } = await supabase
     .from("thermal_analysis_share_tokens")
-    .select("session_id")
+    .select("session_id, layer_config")
     .eq("token", token)
     .maybeSingle();
 
@@ -64,6 +64,11 @@ export async function POST(req: NextRequest, { params }: Params) {
     return NextResponse.json({ error: "Capture not found" }, { status: 404 });
   }
 
+  const layerConfig = (tokenRow.layer_config as Record<string, unknown>) ?? {};
+  if (!captureAllowedByLayerConfig(body.captureId, layerConfig)) {
+    return NextResponse.json({ error: "Capture not included in this share link" }, { status: 403 });
+  }
+
   const currentAnomalies = (cap?.anomalies as Array<Record<string, unknown>>) || [];
   const updated = currentAnomalies.map((a) =>
     String(a.id ?? "") === body.anomalyId
@@ -73,5 +78,5 @@ export async function POST(req: NextRequest, { params }: Params) {
 
   await supabase.from("thermal_captures").update({ anomalies: updated }).eq("id", body.captureId);
 
-  return NextResponse.json({ ok: true, message: "Annotation recorded (ops moderation pending)." });
+  return NextResponse.json({ ok: true, message: "Annotation recorded." });
 }

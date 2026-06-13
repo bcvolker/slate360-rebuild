@@ -46,9 +46,12 @@ async function markJobFailed(
 
 function captureSelectForJobType(jobType: ThermalJobType): string {
   if (jobType === "analyze" || jobType === "report") {
-    return "id, storage_path, filename, npz_data_path, preview_path, anomalies";
+    return "id, storage_path, filename, npz_data_path, preview_path, anomalies, gps_position";
   }
-  return "id, storage_path, filename, npz_data_path, preview_path";
+  if (jobType === "align") {
+    return "id, storage_path, filename, npz_data_path, preview_path, gps_position";
+  }
+  return "id, storage_path, filename, npz_data_path, preview_path, gps_position";
 }
 
 function filterReadyCaptures(
@@ -57,6 +60,9 @@ function filterReadyCaptures(
 ): Array<Record<string, unknown>> {
   if (jobType === "analyze") {
     return rows.filter((row) => row.npz_data_path);
+  }
+  if (jobType === "align") {
+    return rows.filter((row) => row.storage_path);
   }
   if (jobType === "report") {
     return rows.filter((row) => row.preview_path || row.npz_data_path);
@@ -122,7 +128,7 @@ async function runThermalProcessJob(jobId: string) {
 
   const { data: session, error: sessionError } = await supabase
     .from("thermal_analysis_sessions")
-    .select("name, branding_config, summary_metrics")
+    .select("name, branding_config, summary_metrics, metadata")
     .eq("id", job.session_id)
     .maybeSingle();
 
@@ -160,6 +166,8 @@ async function runThermalProcessJob(jobId: string) {
     })
     .eq("id", jobId);
 
+  const sessionMetadata = (session.metadata as Record<string, unknown> | null) ?? {};
+
   const dispatchPayload = {
     jobId: job.id,
     sessionId: job.session_id,
@@ -169,6 +177,8 @@ async function runThermalProcessJob(jobId: string) {
       name: session.name,
       branding: session.branding_config ?? {},
       summary: session.summary_metrics ?? {},
+      linked_space_id:
+        typeof sessionMetadata.linked_space_id === "string" ? sessionMetadata.linked_space_id : null,
     },
     captures: readyCaptures.map((row) => ({
       captureId: row.id,
@@ -177,6 +187,7 @@ async function runThermalProcessJob(jobId: string) {
       npzDataPath: row.npz_data_path,
       previewPath: row.preview_path,
       anomalies: row.anomalies,
+      gps: (row.gps_position as Record<string, unknown> | undefined) ?? {},
     })),
   };
 

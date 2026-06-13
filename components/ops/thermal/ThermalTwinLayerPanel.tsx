@@ -65,6 +65,36 @@ export function ThermalTwinLayerPanel({ sessionId, linkedSpaceId: initialLinkedS
           Open linked twin →
         </a>
       ) : null}
+      {linkedSpaceId.trim() ? (
+        <button
+          type="button"
+          className={t.secondaryButton}
+          disabled={busy}
+          onClick={async () => {
+            setBusy(true);
+            setNotice(null);
+            setError(null);
+            try {
+              const res = await fetch("/api/ops/thermal/jobs", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ session_id: sessionId, job_type: "align" }),
+              });
+              if (!res.ok) {
+                const json = await res.json().catch(() => ({}));
+                throw new Error(json.error ?? "Failed to start align");
+              }
+              setNotice("Twin alignment job started. Watch progress in the gallery.");
+            } catch (e) {
+              setError(e instanceof Error ? e.message : "Align start failed.");
+            } finally {
+              setBusy(false);
+            }
+          }}
+        >
+          Run twin alignment
+        </button>
+      ) : null}
       {notice ? <p className="mt-2 text-xs text-[var(--graphite-muted)]">{notice}</p> : null}
       {error ? <p className="mt-2 text-xs text-[#fca5a5]">{error}</p> : null}
     </div>

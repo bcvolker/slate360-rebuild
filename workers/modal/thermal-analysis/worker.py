@@ -3,7 +3,7 @@ Slate360 Thermal Analysis — Modal CPU worker.
 
 HTTP contract (POST /process):
   Request JSON: jobId, sessionId, orgId, jobType, captures[], sessionMeta?
-  jobType: extract | analyze | report | full_pipeline
+  jobType: extract | align | analyze | report | full_pipeline
 """
 
 from __future__ import annotations
@@ -23,6 +23,7 @@ from fastapi.responses import JSONResponse
 from pipeline import (
     build_report_bundle,
     process_capture_analyze,
+    process_capture_align,
     process_capture_extract,
 )
 
@@ -195,6 +196,42 @@ def process_thermal_job(payload: dict[str, Any]) -> None:
                 report_captures.append({**capture, "anomalies": (match or {}).get("anomalies") or []})
             captures = report_captures
 
+        align_results: list[dict[str, Any]] = []
+        if job_type in ("align", "full_pipeline"):
+            post_callback({"jobId": job_id, "status": "progress", "progressPct": 70, "stage": "align"})
+            total = len(captures)
+            linked = session_meta.get("linked_space_id")
+            for index, capture in enumerate(captures, start=1):
+                align_results.append(
+                    process_capture_align(s3, bucket, org_id, session_id, capture, work_dir, linked)
+                )
+                post_callback(
+                    {
+                        "jobId": job_id,
+                        "status": "progress",
+                        "progressPct": 70 + int(15 * index / max(total, 1)),
+                        "stage": f"align_{index}_of_{total}",
+                    }
+                )
+            if job_type == "align":
+                post_callback(
+                    {
+                        "jobId": job_id,
+                        "status": "completed",
+                        "progressPct": 100,
+                        "stage": "complete",
+                        "alignResults": align_results,
+                    }
+                )
+                return
+
+            # for full_pipeline, attach to captures for report
+            for capture in captures:
+                match = next((r for r in align_results if r["captureId"] == capture["captureId"]), None)
+                if match:
+                    capture["alignManifest"] = match.get("alignManifest")
+                    capture["alignmentQuality"] = (match.get("qualityMetrics") or {}).get("alignment_quality")
+
         if job_type in ("report", "full_pipeline"):
             post_callback({"jobId": job_id, "status": "progress", "progressPct": 85, "stage": "report"})
             report_output = build_report_bundle(
@@ -214,6 +251,7 @@ def process_thermal_job(payload: dict[str, Any]) -> None:
             if job_type == "full_pipeline":
                 completed_payload["captureResults"] = extract_results
                 completed_payload["analyzeResults"] = analyze_results
+                completed_payload["alignResults"] = align_results
             post_callback(completed_payload)
             return
 

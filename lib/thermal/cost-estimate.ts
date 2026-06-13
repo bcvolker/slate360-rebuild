@@ -1,5 +1,6 @@
 export type ThermalJobTypeEstimate =
   | "extract"
+  | "align"
   | "analyze"
   | "report"
   | "full_pipeline";
@@ -12,6 +13,7 @@ export function estimateThermalJobCredits(
   const count = Math.max(captureCount, 1);
   const perCapture: Record<ThermalJobTypeEstimate, number> = {
     extract: 0.35,
+    align: 0.08,
     analyze: 0.12,
     report: 0.18,
     full_pipeline: 0.75,

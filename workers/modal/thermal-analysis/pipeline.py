@@ -9,7 +9,7 @@ from typing import Any
 
 import numpy as np
 
-from analyze import analyze_temperature_array
+from analyze import analyze_temperature_array, segment_materials_sam_stub
 from extract import (
     build_quality_metrics,
     extract_raw_matrix,
@@ -101,6 +101,7 @@ def process_capture_analyze(
     data = np.load(local_npz)
     temp = data["temperatures"]
     anomalies = analyze_temperature_array(temp)
+    material_segments = segment_materials_sam_stub(temp)
 
     return {
         "captureId": capture_id,
@@ -108,6 +109,7 @@ def process_capture_analyze(
         "qualityMetrics": {
             "anomaly_count": len(anomalies),
             "action_count": sum(1 for a in anomalies if a.get("severity") == "action"),
+            "material_segments": material_segments,
         },
     }
 
@@ -155,4 +157,39 @@ def build_report_bundle(
         "pdfKey": pdf_key,
         "htmlKey": html_key,
         "templateId": "executive_one_pager",
+    }
+
+
+def process_capture_align(
+    s3,
+    bucket: str,
+    org_id: str,
+    session_id: str,
+    capture: dict[str, Any],
+    work_dir: Path,
+    linked_space_id: str | None = None,
+) -> dict[str, Any]:
+    """Basic align stub for thermal to twin.
+    Uses GPS if available for approximate; full COLMAP + LiDAR is advanced Slice 3.
+    Creates a simple manifest for overlay toggle.
+    """
+    capture_id = str(capture["captureId"])
+    gps = capture.get("gps") or capture.get("gps_position") or capture.get("gpsPosition") or {}
+    manifest = {
+        "captureId": capture_id,
+        "method": "gps_approximate" if gps else "none",
+        "quality": "approximate" if gps else "none",
+        "linked_space_id": linked_space_id,
+        "note": "Stub alignment. Full COLMAP pose + LiDAR prior alignment (Slice 3) will produce per-pixel thermal overlay on the Gaussian splat.",
+        "gps": gps,
+    }
+    align_key = f"orgs/{org_id}/thermal/{session_id}/aligned/{capture_id}/manifest.json"
+    local_manifest = work_dir / f"{capture_id}_align.json"
+    local_manifest.write_text(json.dumps(manifest, indent=2))
+    upload_file(s3, bucket, str(local_manifest), align_key, "application/json")
+
+    return {
+        "captureId": capture_id,
+        "alignManifest": align_key,
+        "qualityMetrics": {"alignment_quality": manifest["quality"]},
     }

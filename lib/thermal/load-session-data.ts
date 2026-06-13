@@ -70,7 +70,7 @@ export async function loadThermalSessionList(orgId: string | null) {
   const admin = createAdminClient();
   let query = admin
     .from("thermal_analysis_sessions")
-    .select("id, name, status, metadata, created_at, updated_at")
+    .select("id, name, status, metadata, summary_metrics, created_at, updated_at")
     .is("deleted_at", null)
     .order("created_at", { ascending: false })
     .limit(50);

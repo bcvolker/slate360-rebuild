@@ -120,6 +120,13 @@ export type ThermalWorkerAnalyzeResult = {
   error?: string;
 };
 
+export type ThermalWorkerAlignResult = {
+  captureId: string;
+  alignManifest?: string;
+  qualityMetrics?: { alignment_quality?: string };
+  error?: string;
+};
+
 export type ThermalWorkerReportOutput = {
   title: string;
   pdfKey: string;
@@ -134,6 +141,7 @@ export type ThermalWorkerCallbackPayload = {
   stage?: string;
   captureResults?: ThermalWorkerCaptureResult[];
   analyzeResults?: ThermalWorkerAnalyzeResult[];
+  alignResults?: ThermalWorkerAlignResult[];
   reportOutput?: ThermalWorkerReportOutput;
   qualityMetrics?: Record<string, unknown>;
   errorLog?: string;
