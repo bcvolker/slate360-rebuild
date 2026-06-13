@@ -63,8 +63,6 @@
     "app/site-walk/(act-2-inputs)/walks/page.tsx",
     "app/site-walk/(act-3-outputs)/deliverables/page.tsx",
     "app/site-walk/(act-3-outputs)/reports/page.tsx",
-    "app/site-walk/capture-v2/page.tsx",
-    "app/site-walk/capture-v2/summary/loading.tsx",
     "app/site-walk/items/[id]/compare/page.tsx",
     "app/site-walk/slatedrop/page.tsx",
     "app/slatedrop/[...section]/page.tsx",

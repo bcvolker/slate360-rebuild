@@ -32,8 +32,11 @@ export function SessionExitModal({ open, ending, error = null, onClose, onExit, 
           <div>
             <h2 className="text-lg font-bold">Leave this walk?</h2>
             <p className="mt-1 text-sm leading-6 text-[var(--graphite-muted)]">
-              Exit keeps the walk in progress so you can resume later. End walk completes the
-              session and opens the walk review.
+              Everything you&apos;ve captured is already saved.{" "}
+              <span className="font-semibold text-[var(--graphite-text-body)]">End Walk</span>{" "}
+              completes the walk and opens the review.{" "}
+              <span className="font-semibold text-[var(--graphite-text-body)]">Exit</span> keeps
+              it in progress so you can resume later.
             </p>
           </div>
         </div>

@@ -119,14 +119,14 @@ function NoActiveSession() {
     <main className="relative flex h-full min-h-0 w-full flex-grow flex-col overflow-hidden bg-[#0B0F15] pb-safe text-slate-50">
       <div className="flex min-h-0 flex-1 items-center justify-center px-4 pt-[max(env(safe-area-inset-top),1rem)]">
         <div className="w-full max-w-md rounded-3xl border border-white/10 bg-slate-900/60 p-6 text-center shadow-lg shadow-black/40 backdrop-blur-md">
-          <p className="text-xs font-black uppercase tracking-[0.2em] text-amber-400">Capture</p>
+          <p className="text-xs font-black uppercase tracking-[0.2em] text-[var(--graphite-primary)]">Capture</p>
           <h1 className="mt-2 text-2xl font-black text-white">Start a walk first</h1>
           <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-slate-400">
             Capture V2 requires an active database session.
           </p>
           <Link
             href="/site-walk"
-            className="mt-5 inline-flex rounded-xl bg-amber-500 px-4 py-2 text-sm font-black text-slate-950 hover:bg-amber-400"
+            className="mt-5 inline-flex rounded-xl bg-[var(--graphite-primary)] px-4 py-2 text-sm font-black text-[var(--graphite-canvas)] hover:opacity-90"
           >
             Back to Site Walk
           </Link>
