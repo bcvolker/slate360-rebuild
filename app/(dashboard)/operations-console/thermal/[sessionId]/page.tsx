@@ -1,12 +1,8 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { loadThermalSessionDetail } from "@/lib/thermal/load-session-data";
-import { ThermalSessionGallery } from "@/components/ops/thermal/ThermalSessionGallery";
-import { ThermalBrandingPanel } from "@/components/ops/thermal/ThermalBrandingPanel";
-import { ThermalSessionActions } from "@/components/ops/thermal/ThermalSessionActions";
-import { ThermalTuningPanel } from "@/components/ops/thermal/ThermalTuningPanel";
-import { ThermalTwinLayerPanel } from "@/components/ops/thermal/ThermalTwinLayerPanel";
-import { ThermalSessionSummaryBar } from "@/components/ops/thermal/ThermalSessionSummaryBar";
+import { ThermalStudioShell } from "@/components/ops/thermal/ThermalStudioShell";
+import type { StudioCapture } from "@/components/ops/thermal/ThermalStudioWorkView";
 import type { ThermalBrandingConfig } from "@/lib/thermal/types";
 
 type PageProps = { params: Promise<{ sessionId: string }> };
@@ -22,33 +18,32 @@ export default async function ThermalSessionDetailPage({ params }: PageProps) {
 
   const metadata = (detail.session.metadata as Record<string, unknown>) ?? {};
   const linkedSpaceId = readLinkedSpaceId(metadata);
-  const summary = (detail.session.summary_metrics as Record<string, unknown>) ?? {};
+
+  const captures: StudioCapture[] = detail.captures.map((c) => ({
+    id: c.id,
+    filename: c.filename ?? "Capture",
+    previewUrl: c.previewUrl,
+    qualityMetrics: (c.quality_metrics as Record<string, unknown> | null) ?? null,
+    metadata: (c.telemetry as Record<string, unknown> | null) ?? null,
+  }));
 
   return (
-    <div className="space-y-4">
+    <div className="flex h-full min-h-0 flex-col gap-3">
       <Link href="/operations-console/thermal" className="text-sm text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]">
         ← All sessions
       </Link>
-      <ThermalSessionSummaryBar summary={summary} />
-      <ThermalSessionGallery
-        sessionId={detail.session.id}
-        sessionName={detail.session.name}
-        sessionStatus={detail.session.status}
-        captures={detail.captures}
-        initialJob={detail.latestJob}
-      />
-      <div className="grid gap-4 lg:grid-cols-2">
-        <ThermalBrandingPanel
+      <h1 className="text-lg font-bold text-[var(--graphite-text-header)]">{detail.session.name}</h1>
+      <div className="min-h-0 flex-1">
+        <ThermalStudioShell
           sessionId={detail.session.id}
-          initial={detail.session.branding_config as ThermalBrandingConfig}
+          sessionName={detail.session.name}
+          captures={captures}
+          initialJob={detail.latestJob}
+          brandingConfig={detail.session.branding_config as ThermalBrandingConfig}
+          initialParams={(metadata.analysis_params as unknown) ?? undefined}
+          linkedSpaceId={linkedSpaceId}
         />
-        <ThermalSessionActions sessionId={detail.session.id} captureCount={detail.captures.length} />
       </div>
-      <ThermalTuningPanel
-        sessionId={detail.session.id}
-        initialParams={(metadata.analysis_params as unknown) ?? undefined}
-      />
-      <ThermalTwinLayerPanel sessionId={detail.session.id} linkedSpaceId={linkedSpaceId} />
     </div>
   );
 }

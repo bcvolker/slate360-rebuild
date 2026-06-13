@@ -142,6 +142,8 @@ export function ThermalStudioWorkView({ captures, loadGrid = defaultLoadGrid }: 
         {selected ? (
           <div>
             <MetaRow label="File" value={selected.filename} />
+            <MetaRow label="Camera" value={String(q.sensor_make ?? "—")} />
+            <MetaRow label="Sensor" value={String(q.sensor_model ?? q.parser_id ?? "—")} />
             <MetaRow label="Max temp" value={num(grid?.maxC ?? q.max_temp_c, "°C")} />
             <MetaRow label="Min temp" value={num(grid?.minC ?? q.min_temp_c, "°C")} />
             <MetaRow label="Avg temp" value={num(q.avg_temp_c, "°C")} />
