@@ -3,9 +3,6 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { ChevronRight, FolderKanban, Loader2, MapPin, Plus, Search } from "lucide-react";
-import CreateProjectWizard, {
-  type CreateProjectPayload,
-} from "@/components/projects/CreateProjectWizard";
 import { MobileEmptyState } from "./MobileEmptyState";
 import { mobileTokens } from "./mobileTokens";
 import { cn } from "@/lib/utils";
@@ -16,8 +13,6 @@ export function MobileProjectsClient() {
   const [projects, setProjects] = useState<ProjectListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [wizardOpen, setWizardOpen] = useState(false);
-  const [creating, setCreating] = useState(false);
 
   const loadProjects = useCallback(async () => {
     try {
@@ -32,21 +27,6 @@ export function MobileProjectsClient() {
   useEffect(() => {
     void loadProjects();
   }, [loadProjects]);
-
-  async function handleCreate(payload: CreateProjectPayload) {
-    setCreating(true);
-    try {
-      await fetch("/api/projects/create", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      setWizardOpen(false);
-      await loadProjects();
-    } finally {
-      setCreating(false);
-    }
-  }
 
   const filtered = projects.filter((project) => {
     const query = search.trim().toLowerCase();
@@ -96,7 +76,7 @@ export function MobileProjectsClient() {
             title="No projects yet"
             description="Create a project to organize walks, files, and deliverables."
             actionLabel="Create project"
-            onAction={() => setWizardOpen(true)}
+            actionHref="/projects/new"
           />
         ) : (
           filtered.map((project) => {
@@ -129,9 +109,8 @@ export function MobileProjectsClient() {
         )}
       </section>
 
-      <button
-        type="button"
-        onClick={() => setWizardOpen(true)}
+      <Link
+        href="/projects/new"
         className={cn(
           mobileTokens.mobilePrimaryButton,
           "fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom))] right-4 z-30 inline-flex h-14 w-14 items-center justify-center rounded-full",
@@ -139,15 +118,7 @@ export function MobileProjectsClient() {
         aria-label="Create project"
       >
         <Plus className="h-6 w-6" />
-      </button>
-
-      <CreateProjectWizard
-        open={wizardOpen}
-        creating={creating}
-        error={null}
-        onClose={() => setWizardOpen(false)}
-        onSubmit={handleCreate}
-      />
+      </Link>
     </div>
   );
 }
