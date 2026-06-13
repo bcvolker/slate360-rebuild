@@ -4,7 +4,16 @@ import { useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { ArrowRight, Loader2, CheckCircle2 } from "lucide-react";
-import { SlateLogo } from "@/components/shared/SlateLogo";
+import { SlateIcon } from "@/components/shared/SlateIcon";
+import {
+  AUTH_BODY,
+  AUTH_HEADING,
+  AUTH_ICON_SUCCESS,
+  AUTH_LINK,
+  AUTH_MUTED,
+  AUTH_SUBMIT,
+  AUTH_TOPBAR_LINK,
+} from "@/components/auth/auth-styles";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -35,33 +44,38 @@ export default function ForgotPasswordPage() {
   return (
     <div className="auth-page">
       <div className="auth-topbar">
-        <Link href="/">
-          <SlateLogo />
+        <Link href="/" aria-label="Slate360 home">
+          <SlateIcon className="h-9 w-9" />
         </Link>
-        <Link href="/login" className="text-sm text-slate-300 hover:text-white">
-          Back to <span className="font-semibold text-primary">Sign in</span>
+        <Link href="/login" className={AUTH_TOPBAR_LINK}>
+          Back to <span className="font-semibold auth-link">Sign in</span>
         </Link>
       </div>
 
-      <div className="flex-1 flex items-center justify-center px-4 py-12">
+      <div className="flex flex-1 items-center justify-center px-4 py-12">
         <div className="auth-card">
           {done ? (
             <div className="text-center">
-              <CheckCircle2 size={48} className="mx-auto mb-4 text-primary" />
-              <h2 className="text-2xl font-black mb-2 text-slate-900">Check your email</h2>
-              <p className="text-slate-600 mb-6">
-                We sent a password reset link to <strong className="text-slate-900">{email}</strong>. Click the link to set a new password.
+              <CheckCircle2 size={48} className={`mx-auto mb-4 ${AUTH_ICON_SUCCESS}`} />
+              <h2 className={`mb-2 ${AUTH_HEADING}`}>Check your email</h2>
+              <p className={`mb-6 ${AUTH_BODY}`}>
+                We sent a password reset link to{" "}
+                <strong className="text-[var(--graphite-text-header)]">{email}</strong>. Click the
+                link to set a new password.
               </p>
-              <p className="text-xs text-slate-600">
+              <p className={AUTH_MUTED}>
                 Didn&apos;t get it? Check your spam folder, or{" "}
-                <button onClick={() => setDone(false)} className="text-primary underline">try again</button>.
+                <button type="button" onClick={() => setDone(false)} className={`underline ${AUTH_LINK}`}>
+                  try again
+                </button>
+                .
               </p>
             </div>
           ) : (
             <>
               <div className="mb-8">
-                <h1 className="text-2xl font-black mb-1 text-slate-900">Reset your password</h1>
-                <p className="text-sm text-slate-600">Enter your email and we&apos;ll send you a reset link.</p>
+                <h1 className={`mb-1 ${AUTH_HEADING}`}>Reset your password</h1>
+                <p className={AUTH_BODY}>Enter your email and we&apos;ll send you a reset link.</p>
               </div>
 
               {error && <div className="auth-error">{error}</div>}
@@ -70,24 +84,31 @@ export default function ForgotPasswordPage() {
                 <div>
                   <label className="auth-label">Email address</label>
                   <input
-                    type="email" required value={email}
+                    type="email"
+                    required
+                    value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="you@yourcompany.com"
                     className="auth-input"
                   />
                 </div>
 
-                <button
-                  type="submit" disabled={loading}
-                  className="auth-btn-primary disabled:cursor-not-allowed"
-                >
-                  {loading ? <Loader2 size={16} className="animate-spin" /> : <>Send reset link <ArrowRight size={15} /></>}
+                <button type="submit" disabled={loading} className={`${AUTH_SUBMIT} disabled:cursor-not-allowed`}>
+                  {loading ? (
+                    <Loader2 size={16} className="animate-spin" />
+                  ) : (
+                    <>
+                      Send reset link <ArrowRight size={15} />
+                    </>
+                  )}
                 </button>
               </form>
 
-              <p className="text-xs text-center text-slate-600 mt-6">
+              <p className={`mt-6 text-center ${AUTH_MUTED}`}>
                 Remember your password?{" "}
-                <Link href="/login" className="text-primary underline">Sign in</Link>
+                <Link href="/login" className={`underline ${AUTH_LINK}`}>
+                  Sign in
+                </Link>
               </p>
             </>
           )}

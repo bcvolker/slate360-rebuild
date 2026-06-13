@@ -7,10 +7,15 @@ import { createClient } from "@/lib/supabase/client";
 import { Eye, EyeOff, ArrowRight, Loader2 } from "lucide-react";
 import { AuthGlassShell } from "@/components/auth/AuthGlassShell";
 import {
+  AUTH_BODY,
+  AUTH_DIVIDER,
+  AUTH_DIVIDER_TEXT,
   AUTH_ERROR,
+  AUTH_HEADING,
   AUTH_INPUT,
   AUTH_LABEL,
   AUTH_LINK,
+  AUTH_MUTED,
   AUTH_OAUTH,
   AUTH_SUBMIT,
 } from "@/components/auth/auth-styles";
@@ -76,8 +81,8 @@ function LoginForm() {
       }
     >
       <div className="mb-8 text-center">
-        <h1 className="mb-1 text-2xl font-bold text-[#FFFFFF]">Welcome back</h1>
-        <p className="text-sm text-[#F8FAFC]">Sign in to your Slate360 account</p>
+        <h1 className={`mb-1 ${AUTH_HEADING}`}>Welcome back</h1>
+        <p className={AUTH_BODY}>Sign in to your Slate360 account</p>
       </div>
 
       <div className="mb-6 space-y-3">
@@ -119,12 +124,12 @@ function LoginForm() {
         </button>
       </div>
 
-      <div className="relative mb-6">
+      <div className={AUTH_DIVIDER}>
         <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-white/[0.07]" />
+          <div className="auth-divider-line" />
         </div>
         <div className="relative flex justify-center">
-          <span className="bg-[#0B0F15]/80 px-3 text-xs text-[#A3AED0]">or sign in with email</span>
+          <span className={AUTH_DIVIDER_TEXT}>or sign in with email</span>
         </div>
       </div>
 
@@ -162,7 +167,7 @@ function LoginForm() {
             <button
               type="button"
               onClick={() => setShowPass((v) => !v)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-[#A3AED0] hover:text-[#FFFFFF]"
+              className="absolute right-3 top-1/2 -translate-y-1/2 auth-muted hover:text-[var(--graphite-text-header)]"
               aria-label={showPass ? "Hide password" : "Show password"}
             >
               {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -179,7 +184,7 @@ function LoginForm() {
         </button>
       </form>
 
-      <p className="mt-6 text-center text-xs text-[#A3AED0]">
+      <p className={`mt-6 text-center ${AUTH_MUTED}`}>
         No account?{" "}
         <Link href="/signup" className={AUTH_LINK}>
           Create an account

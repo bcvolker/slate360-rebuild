@@ -9,10 +9,15 @@ import SignupConfirmation from "@/components/auth/SignupConfirmation";
 import { SignupDemographics } from "@/components/auth/SignupDemographics";
 import { AuthGlassShell } from "@/components/auth/AuthGlassShell";
 import {
+  AUTH_BODY,
+  AUTH_DIVIDER,
+  AUTH_DIVIDER_TEXT,
   AUTH_ERROR,
+  AUTH_HEADING,
   AUTH_INPUT,
   AUTH_LABEL,
   AUTH_LINK,
+  AUTH_MUTED,
   AUTH_OAUTH,
   AUTH_SUBMIT,
 } from "@/components/auth/auth-styles";
@@ -165,14 +170,14 @@ export default function SignupPage() {
       }
     >
       <div className="mb-8">
-        <h1 className="mb-1 text-2xl font-bold text-[#FFFFFF]">Request Foundational Release access</h1>
-        <p className="text-sm text-[#F8FAFC]">
+        <h1 className={`mb-1 ${AUTH_HEADING}`}>Request Foundational Release access</h1>
+        <p className={AUTH_BODY}>
           Create your account. After email confirmation, the Slate360 team reviews each request before workspace access is granted.
         </p>
         {selectedPlan && (
-          <p className="mt-2 text-xs text-[#A3AED0]">
+          <p className={`mt-2 ${AUTH_MUTED}`}>
             Interest noted:{" "}
-            <span className="font-semibold capitalize text-[#FFFFFF]">{selectedPlan}</span> · {selectedBilling}
+            <span className="font-semibold capitalize text-[var(--graphite-text-header)]">{selectedPlan}</span> · {selectedBilling}
           </p>
         )}
       </div>
@@ -194,12 +199,12 @@ export default function SignupPage() {
             </button>
           </div>
 
-      <div className="relative mb-6">
+      <div className={AUTH_DIVIDER}>
         <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-white/[0.07]" />
+          <div className="auth-divider-line" />
         </div>
         <div className="relative flex justify-center">
-          <span className="bg-[#0B0F15]/80 px-3 text-xs text-[#A3AED0]">or sign up with email</span>
+          <span className={AUTH_DIVIDER_TEXT}>or sign up with email</span>
         </div>
       </div>
 
@@ -222,7 +227,7 @@ export default function SignupPage() {
             <input type={showPass ? "text" : "password"} required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="At least 8 characters"
               minLength={8}
               className={`${AUTH_INPUT} pr-11`} />
-            <button type="button" onClick={() => setShowPass(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#A3AED0] hover:text-[#FFFFFF]">
+            <button type="button" onClick={() => setShowPass(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 auth-muted hover:text-[var(--graphite-text-header)]">
               {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
           </div>
@@ -242,8 +247,8 @@ export default function SignupPage() {
             <div className="space-y-2.5 pt-1">
               <label className="flex items-start gap-3 cursor-pointer">
                 <input type="checkbox" required checked={agreeTerms} onChange={(e) => setAgreeTerms(e.target.checked)}
-                  className="mt-0.5 h-4 w-4 rounded border-white/20 accent-[#00E699] cursor-pointer" />
-                <span className="text-xs text-[#A3AED0] leading-relaxed">
+                  className="mt-0.5 h-4 w-4 rounded border-white/20 accent-[var(--graphite-primary)] cursor-pointer" />
+                <span className={`${AUTH_MUTED} leading-relaxed`}>
                   I agree to the{" "}
                   <Link href="/terms" target="_blank" rel="noopener noreferrer" className={`underline ${AUTH_LINK}`}>Terms of Service</Link>{" "}
                   <span className="text-red-400 font-bold">*</span>
@@ -251,8 +256,8 @@ export default function SignupPage() {
               </label>
               <label className="flex items-start gap-3 cursor-pointer">
                 <input type="checkbox" required checked={agreePrivacy} onChange={(e) => setAgreePrivacy(e.target.checked)}
-                  className="mt-0.5 h-4 w-4 rounded border-white/20 accent-[#00E699] cursor-pointer" />
-                <span className="text-xs text-[#A3AED0] leading-relaxed">
+                  className="mt-0.5 h-4 w-4 rounded border-white/20 accent-[var(--graphite-primary)] cursor-pointer" />
+                <span className={`${AUTH_MUTED} leading-relaxed`}>
                   I agree to the{" "}
                   <Link href="/privacy" target="_blank" rel="noopener noreferrer" className={`underline ${AUTH_LINK}`}>Privacy Policy</Link>{" "}
                   and consent to receiving product updates{" "}

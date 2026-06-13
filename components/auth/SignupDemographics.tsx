@@ -29,10 +29,10 @@ export function SignupDemographics({
   referredByLocked,
 }: SignupDemographicsProps) {
   return (
-    <details className="group rounded-xl border border-input bg-card/40 px-4 py-3">
-      <summary className="flex items-center justify-between cursor-pointer text-xs font-semibold text-slate-500 hover:text-slate-900">
-        <span>Tell us about your work <span className="text-slate-500 font-normal">(optional)</span></span>
-        <span className="text-slate-500 group-open:rotate-180 transition-transform">▾</span>
+    <details className="group rounded-xl border border-[color-mix(in_srgb,white_10%,transparent)] bg-[color-mix(in_srgb,var(--graphite-canvas)_40%,transparent)] px-4 py-3">
+      <summary className="flex cursor-pointer items-center justify-between text-xs font-semibold auth-muted hover:text-[var(--graphite-text-header)]">
+        <span>Tell us about your work <span className="font-normal">(optional)</span></span>
+        <span className="auth-muted transition-transform group-open:rotate-180">▾</span>
       </summary>
       <div className="mt-4 space-y-3">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -79,7 +79,9 @@ export function SignupDemographics({
           <input type="text" value={referralSource} onChange={(e) => setReferralSource(e.target.value)} placeholder="Search, colleague, conference…" className="auth-input" />
         </div>
         <div>
-          <label className="auth-label">What will you use Slate360 for? <span className="text-slate-500 font-normal">(optional)</span></label>
+          <label className="auth-label">
+            What will you use Slate360 for? <span className="font-normal">(optional)</span>
+          </label>
           <textarea value={orgRequest} onChange={(e) => setOrgRequest(e.target.value)} placeholder="E.g. capital project documentation for a university campus" rows={3} className="auth-input resize-none" />
         </div>
         <div>
@@ -97,7 +99,7 @@ export function SignupDemographics({
             readOnly={referredByLocked}
             className={`auth-input uppercase ${referredByLocked ? "opacity-70 cursor-not-allowed" : ""}`}
           />
-          <p className="text-[11px] text-slate-600 mt-1">
+          <p className="auth-muted mt-1 text-[11px]">
             Both you and your referrer earn rewards once your subscription clears.
           </p>
         </div>

@@ -5,7 +5,15 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { ArrowRight, Loader2, CheckCircle2, Eye, EyeOff } from "lucide-react";
-import { SlateLogo } from "@/components/shared/SlateLogo";
+import { SlateIcon } from "@/components/shared/SlateIcon";
+import {
+  AUTH_BODY,
+  AUTH_HEADING,
+  AUTH_ICON_SUCCESS,
+  AUTH_MUTED,
+  AUTH_SUBMIT,
+  AUTH_TOPBAR_LINK,
+} from "@/components/auth/auth-styles";
 
 export default function ResetPasswordPage() {
   const [password, setPassword] = useState("");
@@ -50,44 +58,30 @@ export default function ResetPasswordPage() {
   return (
     <div className="auth-page">
       <div className="auth-topbar">
-        <Link href="/">
-          <SlateLogo />
+        <Link href="/" aria-label="Slate360 home">
+          <SlateIcon className="h-9 w-9" />
         </Link>
-        <Link
-          href="/login"
-          className="text-sm text-slate-300 hover:text-white"
-        >
-          Back to <span className="font-semibold text-primary">Sign in</span>
+        <Link href="/login" className={AUTH_TOPBAR_LINK}>
+          Back to <span className="font-semibold auth-link">Sign in</span>
         </Link>
       </div>
 
-      <div className="flex-1 flex items-center justify-center px-4 py-12">
+      <div className="flex flex-1 items-center justify-center px-4 py-12">
         <div className="auth-card">
           {done ? (
             <div className="text-center">
-              <CheckCircle2 size={48} className="mx-auto mb-4 text-primary" />
-              <h2 className="text-2xl font-black mb-2 text-slate-900">
-                Password updated
-              </h2>
-              <p className="text-slate-600 mb-6">
-                Your password has been reset successfully.
-              </p>
-              <button
-                onClick={() => router.push("/login")}
-                className="auth-btn-primary"
-              >
+              <CheckCircle2 size={48} className={`mx-auto mb-4 ${AUTH_ICON_SUCCESS}`} />
+              <h2 className={`mb-2 ${AUTH_HEADING}`}>Password updated</h2>
+              <p className={`mb-6 ${AUTH_BODY}`}>Your password has been reset successfully.</p>
+              <button type="button" onClick={() => router.push("/login")} className={AUTH_SUBMIT}>
                 Sign in <ArrowRight size={15} />
               </button>
             </div>
           ) : (
             <>
               <div className="mb-8">
-                <h1 className="text-2xl font-black mb-1 text-slate-900">
-                  Set a new password
-                </h1>
-                <p className="text-sm text-slate-600">
-                  Enter your new password below.
-                </p>
+                <h1 className={`mb-1 ${AUTH_HEADING}`}>Set a new password</h1>
+                <p className={AUTH_BODY}>Enter your new password below.</p>
               </div>
 
               {error && <div className="auth-error">{error}</div>}
@@ -107,7 +101,7 @@ export default function ResetPasswordPage() {
                     <button
                       type="button"
                       onClick={() => setShow(!show)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-900"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 auth-muted hover:text-[var(--graphite-text-header)]"
                       aria-label={show ? "Hide password" : "Show password"}
                     >
                       {show ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -130,7 +124,7 @@ export default function ResetPasswordPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="auth-btn-primary disabled:cursor-not-allowed"
+                  className={`${AUTH_SUBMIT} disabled:cursor-not-allowed`}
                 >
                   {loading ? (
                     <Loader2 size={16} className="animate-spin" />

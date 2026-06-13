@@ -10,7 +10,7 @@ import { Clock, Building2, ArrowLeft, Mail } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { isOwnerEmail } from "@/lib/server/beta-access";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { SlateLogo } from "@/components/shared/SlateLogo";
+import { SlateIcon } from "@/components/shared/SlateIcon";
 import BetaPendingRecheck from "@/components/shared/BetaPendingRecheck";
 
 export const metadata = {
@@ -52,44 +52,44 @@ export default async function PendingVerificationPage() {
   return (
     <div className="auth-page">
       <div className="auth-topbar">
-        <Link href="/">
-          <SlateLogo />
+        <Link href="/" aria-label="Slate360 home">
+          <SlateIcon className="h-9 w-9" />
         </Link>
-        <Link href="/auth/logout" className="text-sm text-slate-300 hover:text-white">
+        <Link href="/auth/logout" className="auth-topbar-link">
           Sign out
         </Link>
       </div>
 
       <div className="flex flex-1 items-center justify-center px-4 py-12">
-        <div className="auth-card w-full max-w-md space-y-6 text-center">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-amber-400/10 ring-1 ring-amber-400/20">
-            <Clock className="h-8 w-8 text-amber-300" />
+        <div className="auth-card space-y-6 text-center">
+          <div className="auth-icon-ring">
+            <Clock className="h-8 w-8 text-[var(--graphite-primary)]" />
           </div>
 
           <div className="space-y-2">
-            <h1 className="text-2xl font-black text-slate-900">Access review in progress</h1>
-            <p className="text-sm leading-relaxed text-slate-600">
+            <h1 className="auth-heading">Access review in progress</h1>
+            <p className="auth-subheading leading-relaxed">
               Your account is verified. The Slate360 team reviews each Foundational Release request
               before workspace access is granted.
             </p>
           </div>
 
           {userEmail && (
-            <div className="flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-600">
-              <Mail className="h-4 w-4 shrink-0 text-slate-500" />
+            <div className="auth-status-chip">
+              <Mail className="h-4 w-4 shrink-0 text-[var(--graphite-muted)]" />
               <span className="truncate">{userEmail}</span>
             </div>
           )}
 
           {orgRequest && (
-            <div className="flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-600">
-              <Building2 className="h-4 w-4 shrink-0 text-slate-500" />
+            <div className="auth-status-chip">
+              <Building2 className="h-4 w-4 shrink-0 text-[var(--graphite-muted)]" />
               <span>{orgRequest}</span>
             </div>
           )}
 
-          <div className="rounded-xl border border-white/10 bg-white/5 p-4 text-left text-sm text-slate-600">
-            <p className="mb-2 font-semibold text-slate-900">What happens next</p>
+          <div className="auth-info-panel">
+            <p className="mb-2 font-semibold text-[var(--graphite-text-header)]">What happens next</p>
             <ul className="list-inside list-disc space-y-1.5">
               <li>Your request is in the review queue</li>
               <li>You will receive email when access is approved</li>
@@ -101,7 +101,7 @@ export default async function PendingVerificationPage() {
 
           <Link
             href="/"
-            className="inline-flex items-center gap-2 text-sm text-slate-600 transition-colors hover:text-primary"
+            className="inline-flex items-center gap-2 text-sm auth-muted transition-colors hover:text-[var(--graphite-primary)]"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to home

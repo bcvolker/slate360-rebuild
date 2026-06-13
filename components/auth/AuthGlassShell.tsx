@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Slate360Logo } from "@/components/studio-ui/LogoProvider";
+import { SlateIcon } from "@/components/shared/SlateIcon";
 
 type AuthGlassShellProps = {
   children: React.ReactNode;
@@ -8,16 +8,18 @@ type AuthGlassShellProps = {
 
 export function AuthGlassShell({ children, footer }: AuthGlassShellProps) {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-[#0B0F15] px-4">
-      <div className="w-full max-w-md rounded-xl border border-white/[0.05] bg-slate-900/40 p-8 shadow-2xl backdrop-blur-2xl">
-        <div className="mb-8 flex justify-center">
-          <Link href="/" aria-label="Slate360 home">
-            <Slate360Logo variant="dark" />
-          </Link>
+    <div className="auth-page">
+      <div className="flex flex-1 items-center justify-center px-4 py-12">
+        <div className="auth-card">
+          <div className="mb-8 flex justify-center">
+            <Link href="/" aria-label="Slate360 home">
+              <SlateIcon className="h-12 w-12" />
+            </Link>
+          </div>
+          {children}
         </div>
-        {children}
       </div>
-      {footer ? <div className="mt-6 text-center text-sm text-[#A3AED0]">{footer}</div> : null}
+      {footer ? <div className="auth-footer pb-8">{footer}</div> : null}
     </div>
   );
 }
