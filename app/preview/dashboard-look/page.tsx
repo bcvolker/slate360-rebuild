@@ -12,9 +12,10 @@ const PROJECTS = Array.from({ length: 6 }, (_, i) => ({
   name: `Oak Ridge Roof Inspection ${i + 1}`,
   status: "active",
   createdAt: new Date(Date.now() - 86400000 * (i + 2)).toISOString(),
+  imageUrl: i % 2 === 0 ? `https://picsum.photos/seed/p${i}/400/300` : null,
 }));
 const TWINS = [
-  { id: "tw1", title: "Warehouse Bay 3 — Twin", status: "complete", updatedAt: new Date().toISOString() },
+  { id: "tw1", title: "Warehouse Bay 3 — Twin", status: "complete", updatedAt: new Date().toISOString(), imageUrl: "https://picsum.photos/seed/twin/800/400" },
 ];
 const WALKS = Array.from({ length: 4 }, (_, i) => ({
   id: String(i),

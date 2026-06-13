@@ -21,7 +21,7 @@ type DashboardHomeContentProps = {
 };
 
 type Tab = "overview" | "activity";
-type Featured = { kind: "project" | "twin"; name: string; status: string; date: string; href: string };
+type Featured = { kind: "project" | "twin"; name: string; status: string; date: string; href: string; imageUrl?: string | null };
 
 function formatDate(value: string): string {
   return new Date(value).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
@@ -35,9 +35,9 @@ export function DashboardHomeContent({ counts, recentProjects, recentWalks, rece
   const twinIsNewer =
     latestTwin && (!latestProject || new Date(latestTwin.updatedAt) > new Date(latestProject.createdAt));
   const featured: Featured | null = twinIsNewer
-    ? { kind: "twin", name: latestTwin!.title, status: latestTwin!.status, date: latestTwin!.updatedAt, href: `/digital-twin/twins/${latestTwin!.id}` }
+    ? { kind: "twin", name: latestTwin!.title, status: latestTwin!.status, date: latestTwin!.updatedAt, href: `/digital-twin/twins/${latestTwin!.id}`, imageUrl: latestTwin!.imageUrl }
     : latestProject
-      ? { kind: "project", name: latestProject.name, status: latestProject.status, date: latestProject.createdAt, href: `/projects/${latestProject.id}` }
+      ? { kind: "project", name: latestProject.name, status: latestProject.status, date: latestProject.createdAt, href: `/projects/${latestProject.id}`, imageUrl: latestProject.imageUrl }
       : null;
   // Keep the featured project out of the rail to avoid redundancy.
   const railProjects = featured?.kind === "project" ? recentProjects.slice(1) : recentProjects;
@@ -71,30 +71,34 @@ export function DashboardHomeContent({ counts, recentProjects, recentWalks, rece
           {featured ? (
             <Link
               href={featured.href}
-              className={`${t.cardInteractive} group grid shrink-0 grid-cols-[200px_minmax(0,1fr)] gap-4 overflow-hidden p-0`}
+              className="group relative h-44 shrink-0 overflow-hidden rounded-2xl border border-[var(--mobile-app-card-border)] shadow-[var(--mobile-app-card-shadow)] transition-all hover:border-[color-mix(in_srgb,var(--graphite-primary)_42%,transparent)]"
             >
-              <div
-                className="flex items-center justify-center"
-                style={{
-                  background:
-                    "radial-gradient(120% 120% at 30% 20%, color-mix(in_srgb,var(--graphite-primary) 30%, var(--graphite-canvas)) 0%, var(--graphite-canvas) 70%)",
-                }}
-              >
-                {featured.kind === "twin" ? (
-                  <Box className="h-12 w-12 text-[color-mix(in_srgb,var(--graphite-primary)_70%,transparent)]" strokeWidth={1.25} />
-                ) : (
-                  <FolderOpen className="h-12 w-12 text-[color-mix(in_srgb,var(--graphite-primary)_70%,transparent)]" strokeWidth={1.25} />
-                )}
-              </div>
-              <div className="min-w-0 py-5 pr-5">
-                <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--graphite-primary)]">
+              {featured.imageUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={featured.imageUrl} alt={featured.name} className="absolute inset-0 h-full w-full object-cover" />
+              ) : (
+                <div
+                  className="absolute inset-0 flex items-center justify-center"
+                  style={{
+                    background:
+                      "radial-gradient(120% 120% at 25% 15%, color-mix(in_srgb,var(--graphite-primary) 30%, var(--graphite-canvas)) 0%, var(--graphite-canvas) 70%)",
+                  }}
+                >
+                  {featured.kind === "twin" ? (
+                    <Box className="h-16 w-16 text-[color-mix(in_srgb,var(--graphite-primary)_55%,transparent)]" strokeWidth={1} />
+                  ) : (
+                    <FolderOpen className="h-16 w-16 text-[color-mix(in_srgb,var(--graphite-primary)_55%,transparent)]" strokeWidth={1} />
+                  )}
+                </div>
+              )}
+              <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
+              <div className="absolute inset-y-0 left-0 flex max-w-lg flex-col justify-end p-5">
+                <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-[color-mix(in_srgb,var(--graphite-primary)_85%,white)]">
                   {featured.kind === "twin" ? "Continue — Digital Twin" : "Continue where you left off"}
                 </p>
-                <p className="mt-1 truncate text-xl font-bold text-[var(--graphite-text-header)]">{featured.name}</p>
-                <p className="mt-1 text-sm text-[var(--graphite-muted)]">
-                  {featured.status} · {formatDate(featured.date)}
-                </p>
-                <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--graphite-primary)]">
+                <p className="mt-1 truncate text-2xl font-extrabold text-white">{featured.name}</p>
+                <p className="mt-1 text-sm text-white/70">{featured.status} · {formatDate(featured.date)}</p>
+                <span className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-white">
                   {featured.kind === "twin" ? "Open twin" : "Open project"}{" "}
                   <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
                 </span>

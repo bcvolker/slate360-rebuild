@@ -13,6 +13,8 @@ export type DashboardRecentProject = {
   name: string;
   status: string;
   createdAt: string;
+  /** Optional preview image (site-walk photo or twin) for image-backed cards. */
+  imageUrl?: string | null;
 };
 
 export type DashboardRecentWalk = {
@@ -27,6 +29,7 @@ export type DashboardRecentTwin = {
   title: string;
   status: string;
   updatedAt: string;
+  imageUrl?: string | null;
 };
 
 export type DashboardHomeData = {
