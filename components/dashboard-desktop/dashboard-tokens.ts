@@ -1,7 +1,9 @@
 /** Graphite Glass tokens for desktop dashboard shell — CSS vars only. */
 
+// Match the app-home shells: glass surface + real depth (shadow) so cards read as
+// professional panels, not flat AI-generated boxes.
 const glassSurface =
-  "border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_76%,transparent)] backdrop-blur-md";
+  "border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_76%,transparent)] backdrop-blur-md shadow-[var(--mobile-app-card-shadow)]";
 
 export const dashboardDesktopTokens = {
   canvas: "bg-[var(--graphite-canvas)] text-[var(--graphite-text-body)]",
@@ -25,10 +27,12 @@ export const dashboardDesktopTokens = {
   sectionLabel:
     "font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--graphite-muted)]",
   card: `rounded-2xl ${glassSurface}`,
+  /** Clickable card variant — adds the app-home hover lift/glow. */
+  cardInteractive: `rounded-2xl ${glassSurface} transition-all hover:border-[color-mix(in_srgb,var(--graphite-primary)_42%,transparent)] hover:[box-shadow:var(--mobile-app-card-glow-primary)]`,
   statCard: `rounded-xl px-4 py-3 ${glassSurface}`,
   statValue: "text-2xl font-bold tabular-nums text-[var(--graphite-text-header)]",
   statLabel: "mt-0.5 text-xs font-medium text-[var(--graphite-muted)]",
   listRow:
-    "flex items-center justify-between gap-3 rounded-xl border border-[var(--mobile-app-card-border)] px-4 py-3 transition-colors hover:border-[color-mix(in_srgb,var(--graphite-primary)_28%,transparent)] hover:bg-[color-mix(in_srgb,var(--graphite-primary)_6%,transparent)]",
+    "flex items-center justify-between gap-3 rounded-xl border border-[var(--mobile-app-card-border)] px-4 py-3 shadow-[var(--mobile-app-card-shadow)] transition-all hover:border-[color-mix(in_srgb,var(--graphite-primary)_42%,transparent)] hover:[box-shadow:var(--mobile-app-card-glow-primary)]",
   emptyState: `rounded-2xl px-6 py-10 text-center ${glassSurface}`,
 } as const;

@@ -153,7 +153,7 @@ function ProjectsRail({ items, total }: { items: DashboardRecentProject[]; total
             <Link
               key={project.id}
               href={`/projects/${project.id}`}
-              className={`${t.card} w-64 shrink-0 snap-start p-4 transition-colors hover:border-[color-mix(in_srgb,var(--graphite-primary)_28%,transparent)]`}
+              className={`${t.cardInteractive} w-64 shrink-0 snap-start p-4`}
             >
               <p className="truncate text-sm font-semibold text-[var(--graphite-text-header)]">
                 {project.name}

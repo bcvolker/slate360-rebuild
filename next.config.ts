@@ -32,6 +32,9 @@ const nextConfig: NextConfig = {
   experimental: {
     // Limits the number of workers to reduce memory consumption
     memoryBasedWorkersCount: true,
+    // Tree-shake large icon/animation barrels so only used exports ship in the
+    // shared bundle that loads on every route (field-PWA first-load speed).
+    optimizePackageImports: ["lucide-react", "@tabler/icons-react", "framer-motion"],
   },
   images: {
     dangerouslyAllowSVG: true,
