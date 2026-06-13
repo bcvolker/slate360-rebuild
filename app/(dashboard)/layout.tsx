@@ -18,7 +18,7 @@ type DashboardRouteLayoutProps = {
 export default async function DashboardRouteLayout({ children }: DashboardRouteLayoutProps) {
   const isMobile = await isMobileServerLayout();
   const ctx = await resolveServerOrgContext();
-  const { user, isBetaApproved, orgId, orgName, isSlateCeo, isSlateStaff } = ctx;
+  const { user, isBetaApproved, orgId, orgName, isSlateCeo, isSlateStaff, canAccessOperationsConsole } = ctx;
   if (!user) redirect("/login");
   if (!isBetaApproved) redirect("/beta-pending");
 
@@ -44,6 +44,7 @@ export default async function DashboardRouteLayout({ children }: DashboardRouteL
       userName={userName}
       workspaceName={orgName ?? "Slate360"}
       inviteShareData={inviteShareData}
+      showOpsConsole={Boolean(canAccessOperationsConsole)}
     >
       {children}
     </DashboardDesktopShell>

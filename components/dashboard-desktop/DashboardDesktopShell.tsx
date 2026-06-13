@@ -17,15 +17,16 @@ type DashboardDesktopShellProps = {
   userName: string;
   workspaceName: string;
   inviteShareData: InviteShareData;
+  showOpsConsole?: boolean;
   children: ReactNode;
 };
 
-function ShellInner({ userName, workspaceName, inviteShareData, children }: DashboardDesktopShellProps) {
+function ShellInner({ userName, workspaceName, inviteShareData, showOpsConsole, children }: DashboardDesktopShellProps) {
   const { open: inviteOpen, setOpen: setInviteOpen } = useInviteShare();
 
   return (
     <div className={`flex min-h-[100dvh] ${t.canvas}`}>
-      <DashboardDesktopSidebar />
+      <DashboardDesktopSidebar showOpsConsole={showOpsConsole} />
       <div className={t.main}>
         <DashboardDesktopTopBar workspaceName={workspaceName} userName={userName} />
         <main className={t.content}>{children}</main>

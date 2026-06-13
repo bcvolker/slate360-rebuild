@@ -5,13 +5,14 @@ import { usePathname } from "next/navigation";
 import { SlateLogo } from "@/components/shared/SlateLogo";
 import { cn } from "@/lib/utils";
 import {
-  DASHBOARD_DESKTOP_NAV,
+  resolveDashboardNav,
   resolveDashboardNavActive,
 } from "./dashboard-nav-config";
 import { dashboardDesktopTokens as t } from "./dashboard-tokens";
 
-export function DashboardDesktopSidebar() {
+export function DashboardDesktopSidebar({ showOpsConsole = false }: { showOpsConsole?: boolean }) {
   const pathname = usePathname() ?? "";
+  const nav = resolveDashboardNav(showOpsConsole);
 
   return (
     <aside className={t.sidebar} aria-label="Main navigation">
@@ -23,7 +24,7 @@ export function DashboardDesktopSidebar() {
 
       <nav className="flex flex-1 flex-col gap-1 overflow-y-auto px-3 py-4" aria-label="Workspace">
         <p className={t.sidebarNavLabel}>Workspace</p>
-        {DASHBOARD_DESKTOP_NAV.map((item) => {
+        {nav.map((item) => {
           const isActive = resolveDashboardNavActive(pathname, item);
           const Icon = item.icon;
 

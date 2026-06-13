@@ -6,7 +6,9 @@ import {
   FolderOpen,
   LayoutDashboard,
   MapPin,
+  UserCircle,
   Users,
+  Wrench,
 } from "lucide-react";
 
 import { APP_STORE_MODE } from "@/lib/app-store-mode";
@@ -18,6 +20,8 @@ export type DashboardNavItem = {
   matchPrefixes: string[];
   /** Hidden from authenticated nav during the Site-Walk-only release (AGENTS.md). */
   appStoreHidden?: boolean;
+  /** Only shown to Slate360 staff/CEO with Operations Console access. */
+  staffOnly?: boolean;
 };
 
 const DASHBOARD_DESKTOP_NAV_ALL: DashboardNavItem[] = [
@@ -53,6 +57,13 @@ const DASHBOARD_DESKTOP_NAV_ALL: DashboardNavItem[] = [
     matchPrefixes: ["/slatedrop"],
   },
   {
+    label: "Operations Console",
+    href: "/operations-console",
+    icon: Wrench,
+    matchPrefixes: ["/operations-console"],
+    staffOnly: true,
+  },
+  {
     label: "Team",
     href: "/more/organization",
     icon: Users,
@@ -64,13 +75,26 @@ const DASHBOARD_DESKTOP_NAV_ALL: DashboardNavItem[] = [
     icon: CreditCard,
     matchPrefixes: ["/more/billing"],
   },
+  {
+    label: "My Account",
+    href: "/my-account",
+    icon: UserCircle,
+    matchPrefixes: ["/my-account"],
+  },
 ];
 
-/** Site Walk is the only fully visible app for the first release (AGENTS.md);
- * Twin and other modules stay hidden in authenticated nav under app-store mode. */
-export const DASHBOARD_DESKTOP_NAV: DashboardNavItem[] = DASHBOARD_DESKTOP_NAV_ALL.filter(
-  (item) => !(APP_STORE_MODE && item.appStoreHidden),
-);
+/** Resolve the visible nav for the current viewer. App-Store mode hides in-progress
+ * modules; Operations Console is staff-only. */
+export function resolveDashboardNav(showOpsConsole: boolean): DashboardNavItem[] {
+  return DASHBOARD_DESKTOP_NAV_ALL.filter((item) => {
+    if (APP_STORE_MODE && item.appStoreHidden) return false;
+    if (item.staffOnly && !showOpsConsole) return false;
+    return true;
+  });
+}
+
+/** Default nav (no staff items) for contexts without viewer access info. */
+export const DASHBOARD_DESKTOP_NAV: DashboardNavItem[] = resolveDashboardNav(false);
 
 export function resolveDashboardNavActive(pathname: string, item: DashboardNavItem): boolean {
   if (item.href === "/dashboard") {

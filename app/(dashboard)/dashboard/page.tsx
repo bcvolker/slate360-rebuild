@@ -8,7 +8,7 @@ export const metadata = {
 };
 
 export default async function DashboardHomePage() {
-  const { user, orgId, orgName } = await resolveServerOrgContext();
+  const { user, orgId, orgName, canAccessOperationsConsole } = await resolveServerOrgContext();
   if (!user) redirect("/login?redirectTo=/dashboard");
 
   const data = await loadDashboardHomeData(orgId);
@@ -20,6 +20,7 @@ export default async function DashboardHomePage() {
       recentProjects={data.recentProjects}
       recentWalks={data.recentWalks}
       recentTwins={data.recentTwins}
+      showOpsConsole={Boolean(canAccessOperationsConsole)}
     />
   );
 }

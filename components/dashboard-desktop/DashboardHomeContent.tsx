@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Box, Cloud, MapPin, Wrench, type LucideIcon } from "lucide-react";
 import { APP_STORE_MODE } from "@/lib/app-store-mode";
 import type {
   DashboardHomeCounts,
@@ -16,6 +16,7 @@ type DashboardHomeContentProps = {
   recentProjects: DashboardRecentProject[];
   recentWalks: DashboardRecentWalk[];
   recentTwins: DashboardRecentTwin[];
+  showOpsConsole: boolean;
 };
 
 function formatDate(value: string): string {
@@ -32,10 +33,22 @@ export function DashboardHomeContent({
   recentProjects,
   recentWalks,
   recentTwins,
+  showOpsConsole,
 }: DashboardHomeContentProps) {
-  // Site Walk is the only visible app for the first release (AGENTS.md) — keep
-  // Twin counts/sections out of the dashboard until the module is released.
+  // Twin 360 is revealed when reviewer/App-Store mode is off (lib/app-store-mode.ts).
   const showTwins = !APP_STORE_MODE;
+
+  const apps: AppTile[] = [
+    { label: "Site Walk", href: "/site-walk", icon: MapPin, description: "Capture photos and pin to plans." },
+    showTwins
+      ? { label: "Twin 360 Studio", href: "/digital-twin", icon: Box, description: "Build interactive 3D reality twins." }
+      : null,
+    { label: "SlateDrop", href: "/slatedrop", icon: Cloud, description: "Plans, photos, and shared field files." },
+    showOpsConsole
+      ? { label: "Operations Console", href: "/operations-console", icon: Wrench, description: "Internal staff tools and analysis." }
+      : null,
+  ].filter((app): app is AppTile => app !== null);
+
   return (
     <div className="mx-auto w-full max-w-6xl space-y-8">
       <header>
@@ -43,33 +56,22 @@ export function DashboardHomeContent({
         <p className={t.pageSubtitle}>{workspaceName} — workspace overview from live data.</p>
       </header>
 
-      <section aria-label="Workspace counts">
-        <div className={`grid gap-3 ${showTwins ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>
-          <StatCard label="Projects" value={counts.projects} href="/projects" />
-          <StatCard label="Site Walks" value={counts.siteWalks} href="/site-walks" />
-          {showTwins ? (
-            <StatCard label="Digital Twins" value={counts.digitalTwins} href="/digital-twins" />
-          ) : null}
+      <section aria-label="Apps">
+        <h2 className={t.sectionLabel}>Apps</h2>
+        <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {apps.map((app) => (
+            <AppTileCard key={app.href} {...app} />
+          ))}
         </div>
       </section>
 
-      <RecentSection
-        title="Recent Projects"
-        viewAllHref="/projects"
-        emptyTitle="No projects yet"
-        emptyDescription="Create a project to organize walks, files, and field activity."
-        emptyActionLabel="View projects"
-        emptyActionHref="/projects"
-        items={recentProjects.map((project) => ({
-          key: project.id,
-          href: `/projects/${project.id}`,
-          primary: project.name,
-          secondary: `${project.status} · ${formatDate(project.createdAt)}`,
-        }))}
+      <ProjectsRail
+        items={recentProjects}
+        total={counts.projects}
       />
 
       <RecentSection
-        title="Recent Site Walks"
+        title={`Recent Site Walks${counts.siteWalks ? ` · ${counts.siteWalks}` : ""}`}
         viewAllHref="/site-walks"
         emptyTitle="No site walks yet"
         emptyDescription="Start a walk from Site Walk on mobile, or open the walks list when sessions exist."
@@ -85,7 +87,7 @@ export function DashboardHomeContent({
 
       {showTwins ? (
         <RecentSection
-          title="Recent Digital Twins"
+          title={`Recent Digital Twins${counts.digitalTwins ? ` · ${counts.digitalTwins}` : ""}`}
           viewAllHref="/digital-twins"
           emptyTitle="No digital twins yet"
           emptyDescription="Capture and process a twin from the Digital Twin app when your workspace has twin access."
@@ -103,12 +105,62 @@ export function DashboardHomeContent({
   );
 }
 
-function StatCard({ label, value, href }: { label: string; value: number; href: string }) {
+type AppTile = { label: string; href: string; icon: LucideIcon; description: string };
+
+function AppTileCard({ label, href, icon: Icon, description }: AppTile) {
   return (
-    <Link href={href} className={`block ${t.statCard} transition-colors hover:border-[color-mix(in_srgb,var(--graphite-primary)_28%,transparent)]`}>
-      <p className={t.statValue}>{value.toLocaleString()}</p>
-      <p className={t.statLabel}>{label}</p>
+    <Link
+      href={href}
+      className={`block ${t.card} p-4 transition-colors hover:border-[color-mix(in_srgb,var(--graphite-primary)_28%,transparent)]`}
+    >
+      <span className={t.navIcon}>
+        <Icon className="h-5 w-5" strokeWidth={1.75} />
+      </span>
+      <p className="mt-3 text-sm font-semibold text-[var(--graphite-text-header)]">{label}</p>
+      <p className="mt-1 text-xs text-[var(--graphite-muted)]">{description}</p>
     </Link>
+  );
+}
+
+function ProjectsRail({ items, total }: { items: DashboardRecentProject[]; total: number }) {
+  return (
+    <section>
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <h2 className={t.sectionLabel}>Projects{total ? ` · ${total}` : ""}</h2>
+        <Link
+          href="/projects"
+          className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--graphite-primary)] hover:underline"
+        >
+          View all <ArrowRight className="h-3.5 w-3.5" />
+        </Link>
+      </div>
+
+      {items.length === 0 ? (
+        <DashboardEmptyState
+          title="No projects yet"
+          description="Create a project to organize walks, files, and field activity."
+          actionLabel="View projects"
+          actionHref="/projects"
+        />
+      ) : (
+        <div className="-mx-1 flex snap-x gap-3 overflow-x-auto px-1 pb-2">
+          {items.map((project) => (
+            <Link
+              key={project.id}
+              href={`/projects/${project.id}`}
+              className={`${t.card} w-64 shrink-0 snap-start p-4 transition-colors hover:border-[color-mix(in_srgb,var(--graphite-primary)_28%,transparent)]`}
+            >
+              <p className="truncate text-sm font-semibold text-[var(--graphite-text-header)]">
+                {project.name}
+              </p>
+              <p className="mt-1 truncate text-xs text-[var(--graphite-muted)]">
+                {project.status} · {formatDate(project.createdAt)}
+              </p>
+            </Link>
+          ))}
+        </div>
+      )}
+    </section>
   );
 }
 
