@@ -8,8 +8,10 @@ export const MKT_SECTION =
 
 export const MKT_CONTAINER = "mx-auto w-full max-w-[1400px]";
 
+// Matches the app-home shells: graphite glass + real depth (shadow) instead of a
+// flat translucent-white box, so marketing cards read as professional panels.
 export const MKT_GLASS_CARD =
-  "rounded-2xl border border-white/[0.08] bg-white/[0.04] p-6 backdrop-blur-sm lg:p-8";
+  "rounded-2xl border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_76%,transparent)] p-6 shadow-[var(--mobile-app-card-shadow)] backdrop-blur-md lg:p-8";
 
 export const MKT_LABEL =
   "text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--graphite-muted)]";
