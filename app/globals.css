@@ -105,6 +105,8 @@
   --graphite-text-header: #FFFFFF;
   --graphite-text-body: #F8FAFC;
   --graphite-muted: #A3AED0;
+  --graphite-primary-hover: #00CC88;
+  --graphite-canvas-deep: #111827;
   /* Mobile shell field-primary CTAs — overridden per data-mobile-route on MobileShell */
   --mobile-field-primary-bg: var(--graphite-primary);
   --mobile-field-primary-fg: var(--graphite-canvas);
@@ -722,18 +724,18 @@
 
 /* ─────────────────────────────────────────────────────────────────
    Auth Page Shared Styles
-   Single source of truth for login, signup, forgot-password, and
-   confirmation pages. Light premium surface to match the marketing
-   homepage. The dark top bar (auth-topbar) is kept isolated dark so
-   the SlateLogo + nav remains consistent across the app shell.
+   Single source of truth for login, signup, forgot-password, reset,
+   verify confirmation, and pending-verification pages. Neutral
+   Graphite Glass canvas; topbar stays dark-isolated for header chrome.
    ───────────────────────────────────────────────────────────────── */
 @utility auth-page {
-  @apply min-h-screen flex flex-col text-[#F8FAFC];
+  @apply min-h-screen flex flex-col;
+  color: var(--graphite-text-body);
   background-color: var(--graphite-canvas);
   background-image:
-    radial-gradient(ellipse at top, rgba(0, 230, 153, 0.12), transparent 36%),
-    radial-gradient(ellipse at bottom right, rgba(0, 204, 136, 0.06), transparent 50%),
-    linear-gradient(180deg, var(--graphite-canvas) 0%, #111827 100%);
+    radial-gradient(ellipse at top, color-mix(in srgb, var(--graphite-primary) 12%, transparent), transparent 36%),
+    radial-gradient(ellipse at bottom right, color-mix(in srgb, var(--graphite-primary-hover) 6%, transparent), transparent 50%),
+    linear-gradient(180deg, var(--graphite-canvas) 0%, var(--graphite-canvas-deep) 100%);
   background-attachment: fixed;
   color-scheme: dark;
 }
@@ -752,23 +754,71 @@
 }
 
 @utility auth-card {
-  @apply w-full max-w-md rounded-xl border border-white/[0.05] bg-slate-900/40 p-8 text-[#F8FAFC] backdrop-blur-2xl shadow-2xl;
+  @apply w-full max-w-md rounded-xl border p-8 backdrop-blur-md shadow-2xl;
+  border-color: color-mix(in srgb, white 5%, transparent);
+  background: color-mix(in srgb, var(--graphite-canvas) 76%, transparent);
+  color: var(--graphite-text-body);
 }
 
-.auth-card .text-slate-900 { color: var(--graphite-text-body); }
+.auth-card .text-slate-900 { color: var(--graphite-text-header); }
 .auth-card .text-slate-700,
 .auth-card .text-slate-600,
 .auth-card .text-slate-500 { color: var(--graphite-muted); }
 .auth-card .text-primary,
 .auth-card .text-cobalt { color: var(--graphite-primary); }
 
-@utility auth-input {
-  @apply w-full h-11 rounded-xl border px-3.5 text-sm text-white font-normal placeholder:text-slate-500 transition-all focus:outline-none focus:ring-1;
-  border-color: rgba(255, 255, 255, 0.07);
-  background: rgba(15, 23, 42, 0.60);
-  --tw-ring-color: rgba(0, 230, 153, 0.60);
+@utility auth-heading {
+  @apply text-2xl font-bold;
+  color: var(--graphite-text-header);
 }
-.auth-input:focus { border-color: rgba(0, 230, 153, 0.60); }
+
+@utility auth-subheading {
+  @apply text-sm;
+  color: var(--graphite-text-body);
+}
+
+@utility auth-muted {
+  color: var(--graphite-muted);
+}
+
+@utility auth-footer {
+  @apply text-center text-sm;
+  color: var(--graphite-muted);
+}
+
+@utility auth-icon-success {
+  color: var(--graphite-primary);
+}
+
+@utility auth-icon-ring {
+  @apply mx-auto flex h-16 w-16 items-center justify-center rounded-full ring-1;
+  background: color-mix(in srgb, var(--graphite-primary) 10%, transparent);
+  --tw-ring-color: color-mix(in srgb, var(--graphite-primary) 20%, transparent);
+}
+
+@utility auth-status-chip {
+  @apply flex items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm;
+  border-color: color-mix(in srgb, white 10%, transparent);
+  background: color-mix(in srgb, var(--graphite-canvas) 92%, transparent);
+  color: var(--graphite-muted);
+}
+
+@utility auth-info-panel {
+  @apply rounded-xl border p-4 text-left text-sm;
+  border-color: color-mix(in srgb, white 10%, transparent);
+  background: color-mix(in srgb, var(--graphite-canvas) 92%, transparent);
+  color: var(--graphite-muted);
+}
+
+@utility auth-input {
+  @apply w-full h-11 rounded-xl border px-3.5 text-sm font-normal transition-all focus:outline-none focus:ring-1;
+  color: var(--graphite-text-header);
+  border-color: color-mix(in srgb, white 7%, transparent);
+  background: color-mix(in srgb, var(--graphite-canvas) 60%, #0f172a);
+  --tw-ring-color: color-mix(in srgb, var(--graphite-primary) 60%, transparent);
+}
+.auth-input::placeholder { color: var(--graphite-muted); }
+.auth-input:focus { border-color: color-mix(in srgb, var(--graphite-primary) 60%, transparent); }
 
 @utility auth-label {
   @apply mb-1.5 block text-[0.7rem] font-semibold uppercase tracking-[0.14em];
@@ -777,22 +827,33 @@
 
 @utility auth-btn-primary {
   @apply w-full flex items-center justify-center gap-2 h-11 rounded-xl font-semibold text-sm tracking-tight transition-all disabled:opacity-50;
-  color: #0B0F15;
-  background-color: #00E699;
-  box-shadow: 0 8px 20px -4px rgba(0, 230, 153, 0.25);
+  color: var(--graphite-canvas);
+  background-color: var(--graphite-primary);
+  box-shadow: 0 8px 20px -4px color-mix(in srgb, var(--graphite-primary) 25%, transparent);
 }
-.auth-btn-primary:hover { background-color: #00CC88; }
+.auth-btn-primary:hover { background-color: var(--graphite-primary-hover); }
 .auth-btn-primary:active { transform: scale(0.985); }
+
+@utility auth-btn-secondary {
+  @apply inline-flex w-full items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-semibold transition-colors disabled:opacity-50;
+  border-color: color-mix(in srgb, white 15%, transparent);
+  background: color-mix(in srgb, var(--graphite-canvas) 92%, transparent);
+  color: var(--graphite-text-body);
+}
+.auth-btn-secondary:hover {
+  border-color: color-mix(in srgb, var(--graphite-primary) 40%, transparent);
+  color: var(--graphite-text-header);
+}
 
 @utility auth-btn-oauth {
   @apply w-full flex items-center justify-center gap-3 h-11 rounded-xl border px-4 text-sm font-medium transition-colors disabled:opacity-50;
-  border-color: rgba(255, 255, 255, 0.07);
-  background: rgba(15, 23, 42, 0.60);
+  border-color: color-mix(in srgb, white 7%, transparent);
+  background: color-mix(in srgb, var(--graphite-canvas) 60%, #0f172a);
   color: var(--graphite-text-body);
 }
 .auth-btn-oauth:hover {
-  background: rgba(15, 23, 42, 0.80);
-  border-color: rgba(0, 230, 153, 0.40);
+  background: color-mix(in srgb, var(--graphite-canvas) 80%, #0f172a);
+  border-color: color-mix(in srgb, var(--graphite-primary) 40%, transparent);
   color: var(--graphite-text-header);
 }
 
@@ -800,16 +861,26 @@
   color: var(--graphite-primary);
   transition: color 0.15s ease;
 }
-.auth-link:hover { color: #00CC88; }
+.auth-link:hover { color: var(--graphite-primary-hover); }
+
+@utility auth-topbar-link {
+  @apply text-sm transition-colors;
+  color: color-mix(in srgb, var(--graphite-muted) 85%, transparent);
+}
+.auth-topbar-link:hover { color: var(--graphite-text-header); }
+
+@utility auth-divider {
+  @apply relative mb-6;
+}
 
 @utility auth-divider-line {
   @apply w-full border-t;
-  border-color: rgba(255, 255, 255, 0.10);
+  border-color: color-mix(in srgb, white 7%, transparent);
 }
 
 @utility auth-divider-text {
-  @apply px-3 text-xs text-slate-400;
-  background: rgba(11, 15, 21, 0.92);
+  @apply px-3 text-xs auth-muted;
+  background: color-mix(in srgb, var(--graphite-canvas) 92%, transparent);
 }
 
 @utility auth-error {
@@ -907,4 +978,29 @@
 .custom-scrollbar::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.1);
   border-radius: 2px;
+}
+
+/* ── Marketing homepage keyframes ── */
+@keyframes mkt-tap {
+  0% { transform: translate(-50%, -50%) scale(0.55); opacity: 0.95; }
+  70% { transform: translate(-50%, -50%) scale(1.25); opacity: 0.25; }
+  100% { transform: translate(-50%, -50%) scale(1.4); opacity: 0; }
+}
+@keyframes mkt-sweep {
+  0%, 100% { --mkt-spot-x: 30%; }
+  50% { --mkt-spot-x: 70%; }
+}
+.mkt-hero-sweep {
+  -webkit-mask-image: radial-gradient(circle 200px at var(--mkt-x) var(--mkt-y), black 0% 55%, transparent 78%);
+  mask-image: radial-gradient(circle 200px at var(--mkt-x) var(--mkt-y), black 0% 55%, transparent 78%);
+  animation: mkt-sweep-x 7s ease-in-out infinite;
+}
+@keyframes mkt-sweep-x {
+  0%, 100% { --mkt-x: 28%; }
+  50% { --mkt-x: 72%; }
+}
+@property --mkt-x { syntax: '<percentage>'; inherits: false; initial-value: 50%; }
+@property --mkt-y { syntax: '<percentage>'; inherits: false; initial-value: 55%; }
+@media (prefers-reduced-motion: reduce) {
+  .mkt-hero-sweep { animation: none; }
 }
