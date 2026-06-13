@@ -5,6 +5,7 @@ import { s3, BUCKET } from "@/lib/s3";
 import { withAppAuth } from "@/lib/server/api-auth";
 import { ok, badRequest, serverError } from "@/lib/server/api-response";
 import { buildCanonicalS3Key, resolveNamespace } from "@/lib/slatedrop/storage";
+import { buildCanonicalAssetFilename, extensionFromMime } from "@/lib/slatedrop/canonical-filename";
 import { checkStorageLimit, meteringBlockedResponse } from "@/lib/site-walk/metering";
 import { ensureSiteWalkProjectFolder } from "@/lib/site-walk/slatedrop-folders";
 
@@ -64,9 +65,15 @@ export const POST = (req: NextRequest) =>
     const blocked = meteringBlockedResponse(storageCheck);
     if (blocked) return blocked;
 
-    const ext = filename.split(".").pop()?.toLowerCase() ?? "jpg";
+    const ext = extensionFromMime(contentType, filename.split(".").pop()?.toLowerCase() ?? "jpg");
     const namespace = resolveNamespace(orgId, user.id);
     let folderId: string | null = null;
+    const reserveId = crypto.randomUUID();
+    const canonicalFilename = buildCanonicalAssetFilename({
+      type: "Photo",
+      id: reserveId,
+      ext,
+    });
 
     if (session.project_id) {
       try {
@@ -88,8 +95,8 @@ export const POST = (req: NextRequest) =>
     }
 
     const key = folderId
-      ? buildCanonicalS3Key(namespace, folderId, filename)
-      : `orgs/${namespace}/site-walk-files/ad-hoc/${session.id}/photos/${Date.now()}_${filename.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
+      ? buildCanonicalS3Key(namespace, folderId, canonicalFilename)
+      : `orgs/${namespace}/site-walk-files/ad-hoc/${session.id}/photos/${canonicalFilename}`;
 
     try {
       const command = new PutObjectCommand({
@@ -104,7 +111,8 @@ export const POST = (req: NextRequest) =>
       const { data: fileRecord, error: reserveError } = await admin
         .from("slatedrop_uploads")
         .insert({
-          file_name: filename,
+          id: reserveId,
+          file_name: canonicalFilename,
           file_size: requestedBytes,
           file_type: ext,
           s3_key: key,

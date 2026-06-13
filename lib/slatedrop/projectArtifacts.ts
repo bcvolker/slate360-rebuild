@@ -1,7 +1,11 @@
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { BUCKET, s3 } from "@/lib/s3";
+import { buildCanonicalAssetFilename } from "@/lib/slatedrop/canonical-filename";
+import { resolveProjectFolderIdByName } from "@/lib/slatedrop/folder-resolver";
 import { buildCanonicalS3Key, resolveNamespace } from "@/lib/slatedrop/storage";
 import { createAdminClient } from "@/lib/supabase/admin";
+
+export { resolveProjectFolderIdByName } from "@/lib/slatedrop/folder-resolver";
 
 export type ProjectArtifactKind =
   | "RFI"
@@ -28,44 +32,6 @@ const ARTIFACT_FOLDER_MAP: Record<ProjectArtifactKind, string> = {
 
 export function resolveArtifactFolder(kind: ProjectArtifactKind): string {
   return ARTIFACT_FOLDER_MAP[kind];
-}
-
-export async function resolveProjectFolderIdByName(projectId: string, folderName: string, orgId: string | null, userId: string) {
-  const admin = createAdminClient();
-
-  let byProjectQuery = admin
-    .from("project_folders")
-    .select("id")
-    .eq("project_id", projectId)
-    .eq("name", folderName)
-    .limit(1);
-
-  byProjectQuery = orgId ? byProjectQuery.eq("org_id", orgId) : byProjectQuery.eq("created_by", userId);
-
-  const { data: projectScopedData, error: projectScopedError } = await byProjectQuery.maybeSingle();
-  if (projectScopedError) {
-    throw new Error(projectScopedError.message);
-  }
-
-  if (projectScopedData?.id) {
-    return projectScopedData.id;
-  }
-
-  let legacyQuery = admin
-    .from("project_folders")
-    .select("id")
-    .eq("parent_id", projectId)
-    .eq("name", folderName)
-    .limit(1);
-
-  legacyQuery = orgId ? legacyQuery.eq("org_id", orgId) : legacyQuery.eq("created_by", userId);
-
-  const { data: legacyData, error: legacyError } = await legacyQuery.maybeSingle();
-  if (legacyError) {
-    throw new Error(legacyError.message);
-  }
-
-  return legacyData?.id ?? null;
 }
 
 type UploadableArtifactFile = {
@@ -100,7 +66,13 @@ export async function saveProjectArtifact(
   }
 
   const namespace = resolveNamespace(orgId, user.id);
-  const s3Key = buildCanonicalS3Key(namespace, folderId, file.name);
+  const artifactId = crypto.randomUUID();
+  const canonicalName = buildCanonicalAssetFilename({
+    type: "Document",
+    id: artifactId,
+    ext: extFromFilename(file.name),
+  });
+  const s3Key = buildCanonicalS3Key(namespace, folderId, canonicalName);
 
   const body = Buffer.from(await file.arrayBuffer());
 
@@ -116,7 +88,7 @@ export async function saveProjectArtifact(
   const { data, error } = await admin
     .from("slatedrop_uploads")
     .insert({
-      file_name: file.name,
+      file_name: canonicalName,
       file_size: file.size ?? body.byteLength,
       file_type: extFromFilename(file.name),
       s3_key: s3Key,

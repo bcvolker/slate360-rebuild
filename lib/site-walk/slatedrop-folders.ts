@@ -1,20 +1,20 @@
 import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
-
-type ProjectFolder = {
-  id: string;
-  name: string;
-  folder_path: string | null;
-  parent_id: string | null;
-};
+import {
+  resolveProjectFolderPath,
+  resolveSiteWalkCaptureFolder,
+} from "@/lib/slatedrop/folder-resolver";
+import type { SiteWalkCaptureFolder } from "@/lib/slatedrop/folder-taxonomy";
+import { generateProjectFolderTree } from "@/lib/slatedrop/folder-generator";
 
 type EnsureSiteWalkFolderParams = {
   admin: SupabaseClient;
   projectId: string;
   orgId: string;
   userId: string;
-  childName: "Photos" | "Notes" | "Data" | "Plans" | "Deliverables";
+  childName: SiteWalkCaptureFolder;
+  projectName?: string;
 };
 
 export async function ensureSiteWalkProjectFolder({
@@ -23,75 +23,38 @@ export async function ensureSiteWalkProjectFolder({
   orgId,
   userId,
   childName,
+  projectName,
 }: EnsureSiteWalkFolderParams): Promise<string | null> {
-  const parent = await ensureFolder({
-    admin,
+  const ctx = { admin, projectId, orgId, userId };
+
+  let folderId = await resolveSiteWalkCaptureFolder(ctx, childName);
+  if (folderId) return folderId;
+
+  await generateProjectFolderTree(
     projectId,
+    projectName ?? "Project",
     orgId,
     userId,
-    name: "Site Walk Files",
-    parentId: null,
-    folderPath: `Projects/${projectId}/Site Walk Files`,
-    folderType: "site_walk_files",
-  });
-  if (!parent) return null;
-
-  const child = await ensureFolder({
     admin,
-    projectId,
-    orgId,
-    userId,
-    name: childName,
-    parentId: parent.id,
-    folderPath: `${parent.folder_path ?? `Projects/${projectId}/Site Walk Files`}/${childName}`,
-    folderType: `site_walk_${childName.toLowerCase().replace(/\s+/g, "_")}`,
-  });
+  );
 
-  return child?.id ?? null;
+  folderId = await resolveSiteWalkCaptureFolder(ctx, childName);
+  return folderId;
 }
 
-async function ensureFolder(params: {
-  admin: SupabaseClient;
-  projectId: string;
-  orgId: string;
-  userId: string;
-  name: string;
-  parentId: string | null;
-  folderPath: string;
-  folderType: string;
-}): Promise<ProjectFolder | null> {
-  const { data: existing, error: lookupError } = await params.admin
-    .from("project_folders")
-    .select("id, name, folder_path, parent_id")
-    .eq("project_id", params.projectId)
-    .eq("org_id", params.orgId)
-    .eq("name", params.name)
-    .eq("parent_id", params.parentId)
-    .maybeSingle<ProjectFolder>();
+export async function resolveTwinProjectFolder(
+  admin: SupabaseClient,
+  projectId: string,
+  orgId: string,
+  userId: string,
+  pathSegments: readonly string[],
+  projectName?: string,
+): Promise<string | null> {
+  const ctx = { admin, projectId, orgId, userId };
 
-  if (lookupError) throw lookupError;
-  if (existing) return existing;
+  let folderId = await resolveProjectFolderPath(ctx, pathSegments);
+  if (folderId) return folderId;
 
-  const { data: created, error: createError } = await params.admin
-    .from("project_folders")
-    .insert({
-      project_id: params.projectId,
-      parent_id: params.parentId,
-      name: params.name,
-      folder_path: params.folderPath,
-      is_system: true,
-      folder_type: params.folderType,
-      scope: "project",
-      is_public: false,
-      allow_upload: true,
-      allow_download: true,
-      org_id: params.orgId,
-      created_by: params.userId,
-      metadata: { app: "site_walk" },
-    })
-    .select("id, name, folder_path, parent_id")
-    .single<ProjectFolder>();
-
-  if (createError) throw createError;
-  return created ?? null;
+  await generateProjectFolderTree(projectId, projectName ?? "Project", orgId, userId, admin);
+  return resolveProjectFolderPath(ctx, pathSegments);
 }

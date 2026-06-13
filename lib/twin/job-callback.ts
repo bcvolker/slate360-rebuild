@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { deductCredits } from "@/lib/credits/idempotency";
 import { notifyTwinJobOutcome } from "@/lib/twin/notify-twin-job-complete";
 import { computeTwinProcessingCredits } from "@/lib/twin/processing-credits";
+import { bridgeTwinModelToSlateDrop } from "@/lib/twin/slatedrop-bridge";
 
 type AdminClient = SupabaseClient;
 
@@ -176,6 +177,18 @@ export async function handleTwinJobCallback(
 
   if (modelError || !model?.id) {
     return { ok: false, status: 500, error: modelError?.message ?? "Failed to create model" };
+  }
+
+  if (space?.project_id && job.created_by) {
+    await bridgeTwinModelToSlateDrop(admin, {
+      modelId: model.id,
+      storageKey: body.outputKey,
+      modelFormat,
+      fileSize: fileSizeBytes,
+      projectId: space.project_id,
+      orgId: job.org_id,
+      userId: job.created_by,
+    });
   }
 
   const completedAt = new Date().toISOString();

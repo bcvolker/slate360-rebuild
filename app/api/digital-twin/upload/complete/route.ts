@@ -4,6 +4,7 @@ import { withAuth } from "@/lib/server/api-auth";
 import { ok, badRequest, notFound, serverError } from "@/lib/server/api-response";
 import { s3, BUCKET } from "@/lib/s3";
 import { markUnifiedFileReady } from "@/lib/twin/unified-files-bridge";
+import { bridgeTwinAssetToSlateDrop } from "@/lib/twin/slatedrop-bridge";
 import { markCaptureUploadedIfReady } from "@/lib/twin/upload-helpers";
 
 export const runtime = "nodejs";
@@ -25,7 +26,7 @@ function normalizeEtag(etag: string): string {
 }
 
 export const POST = (req: NextRequest) =>
-  withAuth(req, async ({ admin, orgId }) => {
+  withAuth(req, async ({ user, admin, orgId }) => {
     if (!orgId) return badRequest("Organization context required");
 
     const body = (await req.json().catch(() => null)) as CompleteBody | null;
@@ -86,7 +87,7 @@ export const POST = (req: NextRequest) =>
 
       const { data: asset, error: assetError } = await admin
         .from("digital_twin_capture_assets")
-        .select("id, capture_id, file_size_bytes, unified_file_id")
+        .select("id, capture_id, file_size_bytes, unified_file_id, asset_kind, content_type")
         .eq("id", session.asset_id)
         .eq("org_id", orgId)
         .single();
@@ -131,6 +132,28 @@ export const POST = (req: NextRequest) =>
       }
 
       await markCaptureUploadedIfReady(admin, asset.capture_id, orgId);
+
+      const { data: capture } = await admin
+        .from("digital_twin_captures")
+        .select("project_id, created_by")
+        .eq("id", asset.capture_id)
+        .eq("org_id", orgId)
+        .maybeSingle();
+
+      if (capture?.project_id) {
+        const fileName = body.key.split("/").pop() ?? "asset.bin";
+        await bridgeTwinAssetToSlateDrop(admin, {
+          assetId: asset.id,
+          storageKey: body.key,
+          fileName,
+          contentType: asset.content_type,
+          fileSize: asset.file_size_bytes,
+          assetKind: asset.asset_kind,
+          projectId: capture.project_id,
+          orgId,
+          userId: capture.created_by ?? user.id,
+        });
+      }
 
       return ok({
         assetId: asset.id,

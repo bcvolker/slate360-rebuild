@@ -10,6 +10,7 @@ import {
   createUnifiedFileForTwinAsset,
   markUnifiedFileReady,
 } from "@/lib/twin/unified-files-bridge";
+import { bridgeTwinAssetToSlateDrop } from "@/lib/twin/slatedrop-bridge";
 import {
   buildTwinStorageKey,
   inferTwinAssetKind,
@@ -149,7 +150,7 @@ export const POST = (req: NextRequest) =>
 
         const { data: asset, error: assetError } = await admin
           .from("digital_twin_capture_assets")
-          .select("id, capture_id, storage_key, file_size_bytes, unified_file_id, status")
+          .select("id, capture_id, storage_key, file_size_bytes, unified_file_id, status, asset_kind, content_type")
           .eq("id", body.assetId)
           .eq("org_id", orgId)
           .maybeSingle();
@@ -183,6 +184,28 @@ export const POST = (req: NextRequest) =>
         }
 
         await markCaptureUploadedIfReady(admin, asset.capture_id, orgId);
+
+        const { data: capture } = await admin
+          .from("digital_twin_captures")
+          .select("project_id, created_by")
+          .eq("id", asset.capture_id)
+          .eq("org_id", orgId)
+          .maybeSingle();
+
+        if (capture?.project_id) {
+          const fileName = body.key.split("/").pop() ?? "asset.bin";
+          await bridgeTwinAssetToSlateDrop(admin, {
+            assetId: asset.id,
+            storageKey: body.key,
+            fileName,
+            contentType: asset.content_type,
+            fileSize: body.sizeBytes,
+            assetKind: asset.asset_kind,
+            projectId: capture.project_id,
+            orgId,
+            userId: user.id,
+          });
+        }
 
         return ok({
           assetId: asset.id,

@@ -4,36 +4,49 @@
  * Upload the raw audio blob for a voice_note item. Saves the blob to S3 and
  * stores the key on `site_walk_items.audio_s3_key`. Used by the offline-first
  * voice capture flow when MediaRecorder produced a Blob.
- *
- * Body: multipart/form-data with `audio` (Blob, ≤25 MB).
- * Response: { audio_s3_key }
- *
- * NOTE: this is separate from /api/site-walk/notes/transcribe, which calls
- * Groq Whisper. This route just stores the binary so the audio is replayable
- * and archivable — transcription happens via the other route.
  */
 import { NextRequest } from "next/server";
+import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { withAppAuth } from "@/lib/server/api-auth";
 import { ok, badRequest, notFound, serverError } from "@/lib/server/api-response";
-import { uploadBuffer } from "@/lib/s3-utils";
+import { s3, BUCKET } from "@/lib/s3";
+import { buildCanonicalAssetFilename, extensionFromMime } from "@/lib/slatedrop/canonical-filename";
+import { buildCanonicalS3Key, resolveNamespace } from "@/lib/slatedrop/storage";
 import type { IdRouteContext } from "@/lib/types/api";
 import { excludeDeletedSiteWalkItems } from "@/lib/site-walk/item-filters";
+import { ensureSiteWalkProjectFolder } from "@/lib/site-walk/slatedrop-folders";
+import { bridgeVoiceMemoToSlateDrop } from "@/lib/site-walk/slatedrop-bridge";
 
 const MAX_BYTES = 25 * 1024 * 1024;
 const ALLOWED = new Set(["audio/webm", "audio/ogg", "audio/mp4", "audio/mpeg", "audio/wav"]);
 
 export const POST = (req: NextRequest, ctx: IdRouteContext) =>
-  withAppAuth("punchwalk", req, async ({ admin, orgId }) => {
+  withAppAuth("punchwalk", req, async ({ admin, orgId, user }) => {
     if (!orgId) return badRequest("Organization required");
     const { id } = await ctx.params;
 
-    let itemQuery = admin.from("site_walk_items").select("id, item_type").eq("id", id).eq("org_id", orgId);
+    let itemQuery = admin
+      .from("site_walk_items")
+      .select("id, item_type, session_id, project_id")
+      .eq("id", id)
+      .eq("org_id", orgId);
     itemQuery = excludeDeletedSiteWalkItems(itemQuery);
 
     const { data: item, error: itemErr } = await itemQuery.maybeSingle();
 
     if (itemErr) return serverError(itemErr.message);
     if (!item) return notFound("Item not found");
+
+    let projectId = item.project_id as string | null;
+    if (!projectId && item.session_id) {
+      const { data: session } = await admin
+        .from("site_walk_sessions")
+        .select("project_id")
+        .eq("id", item.session_id)
+        .eq("org_id", orgId)
+        .maybeSingle();
+      projectId = session?.project_id ?? null;
+    }
 
     let form: FormData;
     try {
@@ -48,25 +61,52 @@ export const POST = (req: NextRequest, ctx: IdRouteContext) =>
     if (audio.size > MAX_BYTES) {
       return badRequest(`audio must be ≤ ${Math.round(MAX_BYTES / 1024 / 1024)}MB`);
     }
-    // Loose check — browsers report mime inconsistently, so accept any audio/*
-    // OR explicit allowed list match.
+
     const mime = audio.type || "audio/webm";
     if (!mime.startsWith("audio/") && !ALLOWED.has(mime)) {
       return badRequest(`unsupported audio type: ${mime}`);
     }
 
-    const ext =
-      mime.includes("webm") ? "webm" :
-      mime.includes("mp4")  ? "m4a"  :
-      mime.includes("ogg")  ? "ogg"  :
-      mime.includes("wav")  ? "wav"  :
-      mime.includes("mpeg") ? "mp3"  : "webm";
+    const ext = extensionFromMime(mime, "webm");
+    const canonicalFilename = buildCanonicalAssetFilename({
+      type: "VoiceMemo",
+      id: id,
+      ext,
+    });
 
-    const s3Key = `site-walk/audio/${orgId}/${id}-${Date.now()}.${ext}`;
+    let s3Key: string;
+    if (projectId) {
+      try {
+        const folderId = await ensureSiteWalkProjectFolder({
+          admin,
+          projectId,
+          orgId,
+          userId: user.id,
+          childName: "Voice_Memos",
+        });
+        if (folderId) {
+          const namespace = resolveNamespace(orgId, user.id);
+          s3Key = buildCanonicalS3Key(namespace, folderId, canonicalFilename);
+        } else {
+          s3Key = `site-walk/audio/${orgId}/${canonicalFilename}`;
+        }
+      } catch {
+        s3Key = `site-walk/audio/${orgId}/${canonicalFilename}`;
+      }
+    } else {
+      s3Key = `site-walk/audio/${orgId}/${canonicalFilename}`;
+    }
 
     try {
       const buffer = Buffer.from(await audio.arrayBuffer());
-      await uploadBuffer(s3Key, buffer, mime);
+      await s3.send(
+        new PutObjectCommand({
+          Bucket: BUCKET,
+          Key: s3Key,
+          Body: buffer,
+          ContentType: mime,
+        }),
+      );
 
       const { error: updateErr } = await admin
         .from("site_walk_items")
@@ -76,8 +116,19 @@ export const POST = (req: NextRequest, ctx: IdRouteContext) =>
 
       if (updateErr) return serverError(updateErr.message);
 
-      // TODO PR #28b: bridge audio into SlateDrop (project Photos folder
-      // currently doesn't host audio; needs an Audio folder convention first).
+      if (projectId) {
+        await bridgeVoiceMemoToSlateDrop(admin, {
+          itemId: id,
+          s3Key,
+          fileName: canonicalFilename,
+          fileType: ext,
+          fileSize: audio.size,
+          projectId,
+          orgId,
+          userId: user.id,
+        });
+      }
+
       return ok({ audio_s3_key: s3Key });
     } catch (err) {
       console.error("[voice-upload]", err);
