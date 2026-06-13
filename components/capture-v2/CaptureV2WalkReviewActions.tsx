@@ -22,7 +22,7 @@ export function CaptureV2WalkReviewActions({
   deliverableHref,
 }: Props) {
   const [attachOpen, setAttachOpen] = useState(false);
-  const projectHref = projectId ? `/project-hub/${encodeURIComponent(projectId)}` : null;
+  const projectHref = projectId ? `/projects/${encodeURIComponent(projectId)}` : null;
 
   return (
     <>

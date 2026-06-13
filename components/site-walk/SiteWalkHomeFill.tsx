@@ -57,7 +57,7 @@ export function buildSiteWalkSlateDropFolders(
     pushFolder({
       id: `project-${project.id}`,
       label: project.name,
-      href: `/project-hub/${project.id}`,
+      href: `/projects/${project.id}`,
       tone: "workspace",
     });
   }
@@ -163,7 +163,7 @@ export function buildSiteWalkDockRows(
       key: project.id,
       title: project.name,
       meta: project.status,
-      href: `/project-hub/${project.id}`,
+      href: `/projects/${project.id}`,
     })),
     deliverables: deliverables.slice(0, 8).map((item) => ({
       key: item.id,

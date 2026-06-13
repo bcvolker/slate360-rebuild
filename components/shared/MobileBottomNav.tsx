@@ -27,7 +27,7 @@ interface NavItem {
 
 const PLATFORM_NAV: NavItem[] = [
   { label: "Home", href: "/dashboard", icon: Home, matchPrefixes: ["/dashboard"] },
-  { label: "Projects", href: "/projects", icon: FolderOpen, matchPrefixes: ["/projects", "/project-hub"] },
+  { label: "Projects", href: "/projects", icon: FolderOpen, matchPrefixes: ["/projects"] },
   { label: "SlateDrop", href: "/slatedrop", icon: Cloud, matchPrefixes: ["/slatedrop"] },
   { label: "Coordination", href: "/coordination/inbox", icon: MessageSquare, matchPrefixes: ["/coordination"] },
   { label: "Account", href: "/more", icon: User, matchPrefixes: ["/more", "/my-account", "/settings", "/apps", "/operations-console"] },

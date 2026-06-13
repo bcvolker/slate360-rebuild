@@ -146,7 +146,6 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith("/app") ||
     pathname.startsWith("/projects") ||
     pathname.startsWith("/slatedrop") ||
-    pathname.startsWith("/project-hub") ||
     pathname.startsWith("/site-walk") ||
     pathname.startsWith("/digital-twin") ||
     pathname.startsWith("/my-account") ||
@@ -211,38 +210,12 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // ── Phase 1: Block hidden project sub-routes ──────────────────────
-  // Tabs were trimmed but page files still compile. Block direct URL
-  // access so beta users cannot manually navigate to placeholder pages.
-  const PHASE_1_HIDDEN_PROJECT_SEGMENTS = [
-    "budget",
-    "schedule",
-    "daily-logs",
-    "observations",
-    "drawings",
-    "rfis",
-    "submittals",
-    "management",
-  ];
-  const projectSubMatch = pathname.match(/^\/project-hub\/[^/]+\/([^/]+)/);
-  if (
-    user &&
-    projectSubMatch &&
-    PHASE_1_HIDDEN_PROJECT_SEGMENTS.includes(projectSubMatch[1])
-  ) {
-    const projectId = pathname.split("/")[2];
-    const url = request.nextUrl.clone();
-    url.pathname = `/project-hub/${projectId}`;
-    return NextResponse.redirect(url);
-  }
-
   // Walled Garden Enforcer: Standalone-only users cannot access main platform
   if (
     user &&
     isStandaloneOnly &&
     (pathname.startsWith("/dashboard") ||
-     pathname.startsWith("/slatedrop") ||
-     pathname.startsWith("/project-hub"))
+     pathname.startsWith("/slatedrop"))
   ) {
     const url = request.nextUrl.clone();
     url.pathname = "/app";

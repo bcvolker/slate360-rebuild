@@ -29,7 +29,7 @@ const NAV: Row[] = [
   { label: "Site Walk — Walks",       href: "/site-walk/walks",        expect: "Project picker (NOT 'join an organization')" },
   { label: "Site Walk — Deliverables",href: "/site-walk/deliverables", expect: "Deliverables list or empty state" },
   { label: "SlateDrop",               href: "/slatedrop",              expect: "File browser, root folder visible" },
-  { label: "Project Hub",             href: "/project-hub",            expect: "Projects list" },
+  { label: "Projects",                href: "/projects",               expect: "Projects list" },
   { label: "Tours",                   href: "/tours",                  expect: "Tours list" },
   { label: "Content Studio",          href: "/content-studio",         expect: "Editor or empty state" },
   { label: "Design Studio",           href: "/design-studio",          expect: "Studio canvas" },

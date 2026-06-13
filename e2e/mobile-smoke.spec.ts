@@ -16,10 +16,10 @@ test.describe("mobile smoke", () => {
     expect(response.headers()["location"]).toContain("/login?redirectTo=%2Fdashboard");
   });
 
-  test("project hub redirects to login with redirectTo", async ({ request }) => {
-    const response = await request.get("/project-hub", { maxRedirects: 0 });
+  test("projects redirects to login with redirectTo", async ({ request }) => {
+    const response = await request.get("/projects", { maxRedirects: 0 });
     expect(response.status()).toBe(307);
-    expect(response.headers()["location"]).toContain("/login?redirectTo=%2Fproject-hub");
+    expect(response.headers()["location"]).toContain("/login?redirectTo=%2Fprojects");
   });
 
   test("design studio feature route serves expected content", async ({ request }) => {

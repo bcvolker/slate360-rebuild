@@ -51,7 +51,7 @@ export function buildDigitalTwinSlateDropFolders(
     pushFolder({
       id: `project-${project.id}`,
       label: project.name,
-      href: `/project-hub/${project.id}`,
+      href: `/projects/${project.id}`,
       tone: "workspace",
     });
   }
@@ -80,7 +80,7 @@ export function buildDigitalTwinDockRows(twins: HubTwin[], projects: HubTwinProj
       title: project.name,
       meta: project.status,
       metaTone: "neutral" as const,
-      href: `/project-hub/${project.id}`,
+      href: `/projects/${project.id}`,
     })),
   };
 }

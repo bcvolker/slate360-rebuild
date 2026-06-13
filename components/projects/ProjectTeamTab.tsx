@@ -14,7 +14,7 @@ type ProjectTeamTabProps = {
   data: ProjectTeamTabData;
   canManage: boolean;
   canInviteCollaborators: boolean;
-  basePath?: "/projects" | "/project-hub";
+  basePath?: "/projects";
 };
 
 export function ProjectTeamTab({

@@ -36,7 +36,6 @@ export const MAIN_MOBILE_TAB_ROUTE_PREFIXES = [
   "/site-walk",
   "/digital-twin",
   "/projects",
-  "/project-hub",
   "/slatedrop",
   "/coordination",
   "/more",
@@ -66,7 +65,7 @@ export function isMainMobileTabRoute(pathname: string): boolean {
 }
 
 export function resolveMainMobileTabKey(pathname: string): MainMobileTabKey {
-  if (pathname.startsWith("/projects") || pathname.startsWith("/project-hub")) {
+  if (pathname.startsWith("/projects")) {
     return "projects";
   }
   if (pathname.startsWith("/slatedrop")) return "slatedrop";

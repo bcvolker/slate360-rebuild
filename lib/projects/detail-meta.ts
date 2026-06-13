@@ -16,7 +16,7 @@ export type ProjectDetailMeta = {
 
 export async function loadProjectDetailMeta(
   projectId: string,
-  basePath: "/projects" | "/project-hub",
+  basePath: "/projects",
 ): Promise<ProjectDetailMeta> {
   const { user } = await resolveServerOrgContext();
 

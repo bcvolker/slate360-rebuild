@@ -186,9 +186,7 @@ export async function POST(req: NextRequest) {
     project_id: project.id,
     title: `${typedLink.target_type} response received`,
     message: `External stakeholder submitted a ${decisionLabel} response for ${typedLink.target_type}.`,
-    link_path: typedLink.target_type === "RFI"
-      ? `/project-hub/${project.id}/rfis`
-      : `/project-hub/${project.id}/submittals`,
+    link_path: `/projects/${project.id}`,
     is_read: false,
   });
 
