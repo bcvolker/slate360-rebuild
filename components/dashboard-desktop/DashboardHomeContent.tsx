@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowRight, FolderOpen, MapPin } from "lucide-react";
+import { ArrowRight, Box, FolderOpen, MapPin } from "lucide-react";
 import type {
   DashboardHomeCounts,
   DashboardRecentProject,
+  DashboardRecentTwin,
   DashboardRecentWalk,
 } from "@/lib/dashboard/load-dashboard-home-data";
 import { DashboardEmptyState } from "./DashboardEmptyState";
@@ -16,18 +17,30 @@ type DashboardHomeContentProps = {
   counts: DashboardHomeCounts;
   recentProjects: DashboardRecentProject[];
   recentWalks: DashboardRecentWalk[];
+  recentTwins: DashboardRecentTwin[];
 };
 
 type Tab = "overview" | "activity";
+type Featured = { kind: "project" | "twin"; name: string; status: string; date: string; href: string };
 
 function formatDate(value: string): string {
   return new Date(value).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
-export function DashboardHomeContent({ counts, recentProjects, recentWalks }: DashboardHomeContentProps) {
+export function DashboardHomeContent({ counts, recentProjects, recentWalks, recentTwins }: DashboardHomeContentProps) {
   const [tab, setTab] = useState<Tab>("overview");
-  const featured = recentProjects[0] ?? null;
-  const railProjects = recentProjects.slice(featured ? 1 : 0);
+
+  const latestProject = recentProjects[0] ?? null;
+  const latestTwin = recentTwins[0] ?? null;
+  const twinIsNewer =
+    latestTwin && (!latestProject || new Date(latestTwin.updatedAt) > new Date(latestProject.createdAt));
+  const featured: Featured | null = twinIsNewer
+    ? { kind: "twin", name: latestTwin!.title, status: latestTwin!.status, date: latestTwin!.updatedAt, href: `/digital-twin/twins/${latestTwin!.id}` }
+    : latestProject
+      ? { kind: "project", name: latestProject.name, status: latestProject.status, date: latestProject.createdAt, href: `/projects/${latestProject.id}` }
+      : null;
+  // Keep the featured project out of the rail to avoid redundancy.
+  const railProjects = featured?.kind === "project" ? recentProjects.slice(1) : recentProjects;
 
   return (
     <div className="mx-auto flex h-full w-full max-w-6xl flex-col gap-3">
@@ -57,7 +70,7 @@ export function DashboardHomeContent({ counts, recentProjects, recentWalks }: Da
           {/* Featured: most recent project (continue where you left off) */}
           {featured ? (
             <Link
-              href={`/projects/${featured.id}`}
+              href={featured.href}
               className={`${t.cardInteractive} group grid shrink-0 grid-cols-[200px_minmax(0,1fr)] gap-4 overflow-hidden p-0`}
             >
               <div
@@ -67,18 +80,23 @@ export function DashboardHomeContent({ counts, recentProjects, recentWalks }: Da
                     "radial-gradient(120% 120% at 30% 20%, color-mix(in_srgb,var(--graphite-primary) 30%, var(--graphite-canvas)) 0%, var(--graphite-canvas) 70%)",
                 }}
               >
-                <FolderOpen className="h-12 w-12 text-[color-mix(in_srgb,var(--graphite-primary)_70%,transparent)]" strokeWidth={1.25} />
+                {featured.kind === "twin" ? (
+                  <Box className="h-12 w-12 text-[color-mix(in_srgb,var(--graphite-primary)_70%,transparent)]" strokeWidth={1.25} />
+                ) : (
+                  <FolderOpen className="h-12 w-12 text-[color-mix(in_srgb,var(--graphite-primary)_70%,transparent)]" strokeWidth={1.25} />
+                )}
               </div>
               <div className="min-w-0 py-5 pr-5">
                 <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--graphite-primary)]">
-                  Continue where you left off
+                  {featured.kind === "twin" ? "Continue — Digital Twin" : "Continue where you left off"}
                 </p>
                 <p className="mt-1 truncate text-xl font-bold text-[var(--graphite-text-header)]">{featured.name}</p>
                 <p className="mt-1 text-sm text-[var(--graphite-muted)]">
-                  {featured.status} · {formatDate(featured.createdAt)}
+                  {featured.status} · {formatDate(featured.date)}
                 </p>
                 <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--graphite-primary)]">
-                  Open project <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                  {featured.kind === "twin" ? "Open twin" : "Open project"}{" "}
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
                 </span>
               </div>
             </Link>

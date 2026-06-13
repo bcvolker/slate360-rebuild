@@ -18,6 +18,7 @@ export default async function DashboardHomePage() {
       counts={data.counts}
       recentProjects={data.recentProjects}
       recentWalks={data.recentWalks}
+      recentTwins={data.recentTwins}
     />
   );
 }

@@ -11,8 +11,11 @@ const PROJECTS = Array.from({ length: 6 }, (_, i) => ({
   id: String(i),
   name: `Oak Ridge Roof Inspection ${i + 1}`,
   status: "active",
-  createdAt: new Date().toISOString(),
+  createdAt: new Date(Date.now() - 86400000 * (i + 2)).toISOString(),
 }));
+const TWINS = [
+  { id: "tw1", title: "Warehouse Bay 3 — Twin", status: "complete", updatedAt: new Date().toISOString() },
+];
 const WALKS = Array.from({ length: 4 }, (_, i) => ({
   id: String(i),
   title: `Walk ${i + 1}`,
@@ -33,7 +36,7 @@ export default function DashboardLookPreview() {
       <div className={t.main}>
         <DashboardDesktopTopBar userName="Brian Volker" />
         <main className={t.content}>
-          <DashboardHomeContent counts={COUNTS} recentProjects={PROJECTS} recentWalks={WALKS} />
+          <DashboardHomeContent counts={COUNTS} recentProjects={PROJECTS} recentWalks={WALKS} recentTwins={TWINS} />
         </main>
       </div>
     </div>
