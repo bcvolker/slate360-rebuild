@@ -70,6 +70,45 @@ export const POST = (req: NextRequest) =>
       return badRequest(`pin_status must be one of: ${SITE_WALK_PIN_STATUSES.join(", ")}`);
     }
 
+    // client_pin_id is the authoritative join key, minted at the long-press drop
+    // (see docs/design/PLAN_PIN_ID_LIFECYCLE.md). When present, the POST is
+    // IDEMPOTENT: a re-sent offline drop with the same client_pin_id updates the
+    // existing pin instead of creating a duplicate (the round-one bug).
+    const clientPinId = body.client_pin_id ?? null;
+
+    async function findExisting() {
+      if (!clientPinId) return null;
+      const { data } = await admin
+        .from("site_walk_pins")
+        .select("*")
+        .eq("org_id", orgId)
+        .eq("created_by", user.id)
+        .eq("client_pin_id", clientPinId)
+        .maybeSingle();
+      return data ?? null;
+    }
+
+    const existing = await findExisting();
+    if (existing) {
+      const { data: updated, error: updErr } = await admin
+        .from("site_walk_pins")
+        .update({
+          x_pct: body.x_pct,
+          y_pct: body.y_pct,
+          item_id: body.item_id ?? existing.item_id,
+          pin_number: body.pin_number ?? existing.pin_number,
+          pin_color: body.pin_color ?? existing.pin_color,
+          pin_status: body.pin_status ?? existing.pin_status,
+          label: body.label ?? existing.label,
+          markup_data: body.markup_data ?? existing.markup_data,
+        })
+        .eq("id", existing.id)
+        .select()
+        .single();
+      if (updErr) return serverError(updErr.message);
+      return ok({ pin: updated }, 200);
+    }
+
     const { data, error } = await admin
       .from("site_walk_pins")
       .insert({
@@ -83,7 +122,7 @@ export const POST = (req: NextRequest) =>
         y_pct: body.y_pct,
         pin_number: body.pin_number ?? null,
         pin_color: body.pin_color ?? "blue",
-        client_pin_id: body.client_pin_id ?? null,
+        client_pin_id: clientPinId,
         pin_status: body.pin_status ?? (body.item_id ? "active" : "draft"),
         label: body.label ?? null,
         created_by: user.id,
@@ -93,7 +132,13 @@ export const POST = (req: NextRequest) =>
       .single();
 
     if (error) {
-      if (error.code === "23505") return badRequest("Item already pinned to this plan");
+      // Race: a concurrent re-send won the client_pin_id unique index. Return the
+      // winner so the caller still gets its pin (idempotent), not a hard error.
+      if (error.code === "23505") {
+        const winner = await findExisting();
+        if (winner) return ok({ pin: winner }, 200);
+        return badRequest("Item already pinned to this plan");
+      }
       return serverError(error.message);
     }
     return ok({ pin: data }, 201);
