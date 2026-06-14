@@ -11,27 +11,33 @@ export default async function CollaboratorHomePage() {
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <header>
-        <h1 className="text-2xl font-semibold text-foreground">Projects shared with you</h1>
-        <p className="text-sm text-muted-foreground">
+        <h1 className="text-2xl font-semibold text-[var(--graphite-text-header)]">
+          Projects shared with you
+        </h1>
+        <p className="text-sm text-[var(--graphite-muted)]">
           You'll see every project where the owner has invited you as a collaborator.
         </p>
       </header>
 
       {projects.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
+        <div className="rounded-2xl border border-dashed border-[var(--mobile-app-card-border)] p-8 text-center text-sm text-[var(--graphite-muted)]">
           You don't have any active project invites yet. Ask your project owner to resend the invite.
         </div>
       ) : (
-        <ul className="divide-y divide-border rounded-lg border border-border bg-card">
+        <ul className="divide-y divide-[var(--mobile-app-card-border)] overflow-hidden rounded-2xl border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_76%,transparent)] backdrop-blur-md">
           {projects.map((p) => (
-            <li key={p.project_id} className="flex items-center justify-between p-4">
-              <div>
-                <div className="font-medium text-foreground">{p.name ?? "Untitled project"}</div>
-                <div className="text-xs text-muted-foreground">Project ID: {p.project_id}</div>
+            <li key={p.project_id} className="flex items-center justify-between gap-3 p-4">
+              <div className="min-w-0">
+                <div className="truncate font-medium text-[var(--graphite-text-header)]">
+                  {p.name ?? "Untitled project"}
+                </div>
+                <div className="truncate text-xs text-[var(--graphite-muted)]">
+                  Project ID: {p.project_id}
+                </div>
               </div>
               <Link
                 href={`/projects/${p.project_id}`}
-                className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+                className="inline-flex min-h-10 shrink-0 items-center rounded-xl bg-[var(--graphite-primary)] px-3.5 text-sm font-semibold text-[var(--graphite-canvas)] transition-opacity hover:opacity-90"
               >
                 Open
               </Link>

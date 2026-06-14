@@ -104,7 +104,6 @@
     "components/shared/paged-workspace/PagedWorkspaceDots.tsx",
     "components/shared/paged-workspace/PagedWorkspaceRail.tsx",
     "components/site-walk-v2/CaptureFlowClient.tsx",
-    "components/site-walk/AssignmentPanel.tsx",
     "components/site-walk/BlockRenderer.tsx",
     "components/site-walk/CommentThread.tsx",
     "components/site-walk/DeliverableViewer.tsx",

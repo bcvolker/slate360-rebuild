@@ -21,17 +21,17 @@ import {
 import type { SiteWalkAssignment, AssignmentStatus } from "@/lib/types/site-walk";
 
 const STATUS_CONFIG: Record<AssignmentStatus, { label: string; icon: React.ReactNode; color: string }> = {
-  pending: { label: "Pending", icon: <Clock className="h-3 w-3" />, color: "text-muted-foreground" },
-  acknowledged: { label: "Acknowledged", icon: <CheckCircle className="h-3 w-3" />, color: "text-blue-500" },
-  in_progress: { label: "In Progress", icon: <Loader2 className="h-3 w-3" />, color: "text-amber-500" },
-  done: { label: "Done", icon: <CheckCircle className="h-3 w-3" />, color: "text-green-500" },
+  pending: { label: "Pending", icon: <Clock className="h-3 w-3" />, color: "text-[var(--graphite-muted)]" },
+  acknowledged: { label: "Acknowledged", icon: <CheckCircle className="h-3 w-3" />, color: "text-[var(--graphite-primary)]" },
+  in_progress: { label: "In Progress", icon: <Loader2 className="h-3 w-3" />, color: "text-[var(--graphite-text-header)]" },
+  done: { label: "Done", icon: <CheckCircle className="h-3 w-3" />, color: "text-[var(--graphite-primary)]" },
   rejected: { label: "Rejected", icon: <AlertTriangle className="h-3 w-3" />, color: "text-red-500" },
 };
 
 const PRIORITY_COLORS: Record<string, string> = {
-  low: "bg-slate-100 text-slate-700",
-  medium: "bg-amber-100 text-amber-700",
-  high: "bg-amber-100 text-amber-700",
+  low: "bg-[color-mix(in_srgb,var(--graphite-muted)_12%,transparent)] text-[var(--graphite-muted)]",
+  medium: "bg-[color-mix(in_srgb,var(--graphite-primary)_12%,transparent)] text-[var(--graphite-primary)]",
+  high: "bg-[color-mix(in_srgb,var(--graphite-primary)_18%,transparent)] text-[var(--graphite-primary)]",
   critical: "bg-red-100 text-red-700",
 };
 
