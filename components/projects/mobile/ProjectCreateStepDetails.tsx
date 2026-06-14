@@ -23,10 +23,8 @@ const boxedInput =
 export function ProjectCreateStepDetails({ form, onChange, onContinue }: Props) {
   return (
     <div className="mx-auto max-w-2xl space-y-4">
-      {/* WHAT */}
       <div>
-        <div className={projectCreateTokens.sectionLabel}>What</div>
-        <ProjectCreateGlassCard className="mt-2 space-y-3">
+        <ProjectCreateGlassCard className="space-y-3">
           <input
             className={`${projectCreateTokens.fieldInput} ${projectCreateTokens.fieldTitle}`}
             placeholder="Project name"
@@ -59,10 +57,8 @@ export function ProjectCreateStepDetails({ form, onChange, onContinue }: Props) 
         </ProjectCreateGlassCard>
       </div>
 
-      {/* WHO + WHERE */}
       <div>
-        <div className={projectCreateTokens.sectionLabel}>Who &amp; where</div>
-        <ProjectCreateGlassCard className="mt-2 space-y-3">
+        <ProjectCreateGlassCard className="space-y-3">
           <div>
             <label className={fieldLabel}>Client / owner</label>
             <input
@@ -87,10 +83,8 @@ export function ProjectCreateStepDetails({ form, onChange, onContinue }: Props) 
         </ProjectCreateGlassCard>
       </div>
 
-      {/* WHEN + detail */}
       <div>
-        <div className={projectCreateTokens.sectionLabel}>When</div>
-        <ProjectCreateGlassCard className="mt-2 grid grid-cols-2 gap-3">
+        <ProjectCreateGlassCard className="grid grid-cols-2 gap-3">
           <div>
             <label className={fieldLabel}>Start date</label>
             <input

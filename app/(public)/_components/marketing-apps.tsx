@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { IconCheck } from "@tabler/icons-react";
-import { PhoneDemo } from "@/components/marketing/PhoneDemo";
+import { PhoneCaptureMock } from "@/components/marketing/PhoneCaptureMock";
 import {
   MARKETING_APPS,
   MARKETING_DELIVERABLE_STRIP,
@@ -97,7 +97,12 @@ export function MarketingApps() {
                 </div>
 
                 <div className={cn("min-w-0", reversed && "lg:order-1")}>
-                  <PhoneDemo steps={app.demoSteps} accentVar={app.accentVar} label={app.demoLabel} />
+                  <PhoneCaptureMock
+                    image={app.id === "twin-360" ? "/mock/twin.jpg" : "/mock/sitewalk.jpg"}
+                    variant={app.id === "twin-360" ? "twin" : "sitewalk"}
+                    accentVar={app.accentVar}
+                    label={app.demoLabel}
+                  />
                 </div>
               </motion.article>
             );
