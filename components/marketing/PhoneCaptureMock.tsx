@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { ChevronLeft, Layers, MapPin, Video, Zap } from "lucide-react";
+import { ChevronLeft, Ghost, RotateCcw, Trash2 } from "lucide-react";
 
 type Props = {
   image: string;
@@ -12,8 +12,9 @@ type Props = {
 
 /**
  * Marketing mock phone: a real construction-site photo full-bleed inside the
- * device frame, with the app's capture UI overlaid — so it reads like what a
- * user actually sees walking a site. No notch (clean mock frame).
+ * device frame, with an accurate recreation of the Slate360 capture UI overlaid
+ * (matches the live app: top mode pills + Ghost, bottom shutter + side controls
+ * + hint line; Twin adds a VIDEO/PHOTOS toggle). No notch.
  */
 export function PhoneCaptureMock({ image, variant, accentVar, label }: Props) {
   const accent = `var(${accentVar})`;
@@ -25,73 +26,73 @@ export function PhoneCaptureMock({ image, variant, accentVar, label }: Props) {
         className="relative w-full overflow-hidden rounded-[2.2rem] border-[6px] border-[#1A222C] bg-black"
         style={{ aspectRatio: "390 / 844", boxShadow: `0 0 0 1px color-mix(in srgb, ${accent} 30%, transparent)` }}
       >
-        {/* Full-bleed camera view */}
         <Image src={image} alt={label} fill sizes="300px" className="object-cover" priority />
 
-        {/* Top chrome */}
-        <div className="absolute inset-x-0 top-0 z-10 flex items-center justify-between bg-gradient-to-b from-black/55 to-transparent px-3 pb-6 pt-3">
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-black/40 text-white/90 backdrop-blur-sm">
+        {/* Top bar */}
+        <div className="absolute inset-x-0 top-0 z-10 flex items-center gap-1.5 bg-gradient-to-b from-black/55 to-transparent px-2.5 pb-7 pt-2.5">
+          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-black/45 text-white/90 backdrop-blur-sm">
             <ChevronLeft className="h-4 w-4" />
           </span>
+          <div className="flex min-w-0 flex-1 items-center gap-1.5">
+            {isTwin ? (
+              <span className="truncate rounded-md bg-black/50 px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-white backdrop-blur-sm">
+                Quick Scans · Ready
+              </span>
+            ) : (
+              <>
+                <span className="rounded-md bg-black/50 px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-white backdrop-blur-sm">
+                  Stop 1
+                </span>
+                <span
+                  className="rounded-md px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-white"
+                  style={{ backgroundColor: "rgba(220,38,38,0.85)" }}
+                >
+                  End
+                </span>
+              </>
+            )}
+          </div>
           <span
-            className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white backdrop-blur-sm"
-            style={{ backgroundColor: `color-mix(in srgb, ${accent} 30%, rgba(0,0,0,0.45))` }}
+            className="flex shrink-0 items-center gap-1 rounded-full border border-white/25 bg-black/40 px-2 py-1 text-[9px] font-semibold text-white/90 backdrop-blur-sm"
           >
-            {isTwin ? <Video className="h-3 w-3" /> : <MapPin className="h-3 w-3" />}
-            {isTwin ? "Capturing clip" : "Site Walk"}
-          </span>
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-black/40 text-white/90 backdrop-blur-sm">
-            <Zap className="h-4 w-4" />
+            <Ghost className="h-3 w-3" /> Ghost
           </span>
         </div>
 
-        {/* Center framing guide */}
-        {isTwin ? (
-          <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
-            <div className="rounded-2xl border-2 border-white/30 px-10 py-16" />
-            <span
-              className="absolute left-1/2 top-3 -translate-x-1/2 rounded-full px-2 py-0.5 text-[10px] font-bold text-white"
-              style={{ backgroundColor: "rgba(220,38,38,0.85)" }}
-            >
-              ● REC 0:08
-            </span>
-            <span className="absolute bottom-28 rounded-full bg-black/45 px-2.5 py-1 text-[10px] font-medium text-white/85 backdrop-blur-sm">
-              Move slowly to capture the space
-            </span>
-          </div>
-        ) : (
-          <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
-            {/* focus reticle */}
-            <div className="relative h-20 w-20">
-              <span className="absolute left-0 top-0 h-4 w-4 border-l-2 border-t-2" style={{ borderColor: accent }} />
-              <span className="absolute right-0 top-0 h-4 w-4 border-r-2 border-t-2" style={{ borderColor: accent }} />
-              <span className="absolute bottom-0 left-0 h-4 w-4 border-b-2 border-l-2" style={{ borderColor: accent }} />
-              <span className="absolute bottom-0 right-0 h-4 w-4 border-b-2 border-r-2" style={{ borderColor: accent }} />
-            </div>
-            <span className="absolute bottom-28 rounded-full bg-black/45 px-2.5 py-1 text-[10px] font-medium text-white/85 backdrop-blur-sm">
-              Tap to drop a pin on the plan
-            </span>
-          </div>
-        )}
-
         {/* Bottom controls */}
-        <div className="absolute inset-x-0 bottom-0 z-10 flex items-center justify-between bg-gradient-to-t from-black/65 to-transparent px-5 pb-5 pt-10">
-          <span className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-lg border border-white/40 bg-white/10 text-white/80">
-            <Layers className="h-4 w-4" />
-          </span>
-          {/* Shutter / record */}
-          <span className="flex h-16 w-16 items-center justify-center rounded-full border-4 border-white/90">
-            <span
-              className={isTwin ? "h-6 w-6 rounded-md" : "h-12 w-12 rounded-full"}
-              style={{ backgroundColor: isTwin ? "#DC2626" : "white" }}
-            />
-          </span>
-          <span
-            className="flex h-10 w-10 items-center justify-center rounded-full text-[10px] font-bold text-[var(--graphite-canvas)]"
-            style={{ backgroundColor: accent }}
-          >
-            {isTwin ? "3D" : "+"}
-          </span>
+        <div className="absolute inset-x-0 bottom-0 z-10 flex flex-col items-center gap-2 bg-gradient-to-t from-black/70 via-black/30 to-transparent px-4 pb-4 pt-10">
+          {isTwin ? (
+            <div className="inline-flex overflow-hidden rounded-full border border-white/25 bg-black/40 text-[10px] font-bold uppercase tracking-wider backdrop-blur-sm">
+              <span className="px-3 py-1 text-white/60">Video</span>
+              <span className="px-3 py-1 text-[var(--graphite-canvas)]" style={{ backgroundColor: accent }}>Photos</span>
+            </div>
+          ) : null}
+
+          <p className="text-[10px] font-medium text-white/80">
+            {isTwin ? "Tap blue to start · red to stop · check + review" : "Tap to capture · hold for sources"}
+          </p>
+
+          <div className="flex w-full items-center justify-between">
+            <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/30 bg-black/35 text-white/85">
+              {isTwin ? <RotateCcw className="h-4 w-4" /> : <Trash2 className="h-4 w-4" />}
+            </span>
+
+            {/* Shutter */}
+            <span className="flex h-14 w-14 items-center justify-center rounded-full border-4 border-white/90">
+              <span className="h-10 w-10 rounded-full" style={{ backgroundColor: accent }} />
+            </span>
+
+            {!isTwin ? (
+              <span
+                className="rounded-full px-3 py-2 text-[10px] font-bold text-[var(--graphite-canvas)]"
+                style={{ backgroundColor: accent }}
+              >
+                End walk
+              </span>
+            ) : (
+              <span className="h-9 w-9" aria-hidden />
+            )}
+          </div>
         </div>
       </div>
 
