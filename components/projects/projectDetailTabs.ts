@@ -4,7 +4,7 @@
 
 export type ProjectDetailVariant = "worksite" | "project";
 
-export type ProjectDetailTabId = "overview" | "walks" | "twins" | "files" | "team";
+export type ProjectDetailTabId = "overview" | "walks" | "twins" | "issues" | "files" | "team";
 
 export type ProjectDetailTabDef = {
   id: ProjectDetailTabId;
@@ -15,8 +15,9 @@ export type ProjectDetailTabDef = {
 
 export const PROJECT_DETAIL_TABS: readonly ProjectDetailTabDef[] = [
   { id: "overview", label: "Overview", segment: "" },
-  { id: "walks", label: "Walks", segment: "walks" },
+  { id: "walks", label: "Site Walks", segment: "walks" },
   { id: "twins", label: "Twins", segment: "twins" },
+  { id: "issues", label: "Issues", segment: "punch-list" },
   { id: "files", label: "Files", segment: "slatedrop" },
   { id: "team", label: "Team", segment: "team" },
 ] as const;
@@ -29,7 +30,6 @@ export function resolveProjectDetailVariant(
 
 const LEGACY_SEGMENT_TAB: Record<string, ProjectDetailTabId> = {
   photos: "files",
-  "punch-list": "walks",
   people: "team",
   field: "walks",
   plans: "files",
