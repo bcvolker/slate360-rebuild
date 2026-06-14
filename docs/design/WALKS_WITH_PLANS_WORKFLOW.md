@@ -111,15 +111,62 @@ The whole field experience is effectively a single screen with two overlays.
 
 ---
 
-## E. What I'd build, in order (each verified before the next)
-1. **Walk start sheet** (new, Graphite-Glass) — list project plan sets + Clean/annotated +
-   inline "Add a plan". Replaces `WalkStartChoice`. Wire "Start walk" on the project page.
-2. **S1 plan selection** — feed it real plan sets (no stubs); open onto the sheet.
-3. **S2 auto-crop** — sheet opens centered on the drawing, legend/title-block excluded.
-4. **S3 capture reuse** — long-press → the *shipped* V2 capture + quick-data sheet.
-5. **S4–S6 viewer polish** — fit-to-width, bounded pan, sheet picker, pin move/edit.
+## D2. Refinements folded in from the Grok review (June 14 2026)
+Grok endorsed the architecture (~85% there) and added five hardening items that
+close real "stuck in the field" gaps. All adopted:
 
-Steps 1–3 get you a usable end-to-end walk you can device-test. 4–6 are polish.
+1. **Stop filmstrip** — a thin, persistent row of numbered stops along the bottom of
+   the plan sheet. Tap one to re-center the plan on that pin and open its data; you can
+   review/jump between any stops **without leaving the plan or losing work**. (Was missing
+   — fixes "navigation between stops is implied but not first-class.")
+2. **Live edit / move / delete on the active plan** — pulled FORWARD from S6 polish into
+   the core. Tap a pin → edit data, retake photo, **drag to move**, delete (with undo
+   toast). "Nothing stuck" must be true during the walk, not only in review.
+3. **Pause / resume without ending the walk** — a persistent "Back to Site Walk" that
+   **auto-saves the full session** (pins, partial data, drafts) so you can duck into the
+   shell/project and resume from the project's Walks tab with zero loss.
+4. **Live auto-save on every transition** — drop, capture, data, any back/forward writes
+   to the session draft immediately. No navigation can lose data.
+5. **Every button has loading / disabled / error states** — "Start walk" with no plans
+   gracefully surfaces "Add a plan" as the primary action; upload/rasterize show explicit
+   progress + retry on failure; no dead buttons, no dead progress moments.
+
+**Where it lives (Site Walk fit):** the Plans surface and the walk run entirely inside the
+unified mobile shell (`MobileAppShell` + `MobileBottomNav` + `MobileSection`). End-walk
+deliverables **reuse existing Site Walk report/share/export patterns** — no new sharing
+system. **Thermal Studio stays owner-only/web-only** — never referenced in any Site Walk,
+mobile-shell, capture, or project-tab surface (re-confirmed: grep-clean in
+`components/mobile-system/**` and `app/(mobile)/**`).
+
+**One conflict with Grok, resolved in Brian's favor:** Grok wanted to *minimize/skip* the
+quick-data screen for photo-only speed. Brian's locked rule is the opposite — the data
+screen **always appears** (consistency with camera-only walks) but is **never required**.
+Resolution: keep it always-shown, but a **single swipe-down = Done** makes it a one-gesture
+pass-through. Satisfies Grok's "don't make it a blocker" within Brian's "always advance."
+
+## E. What I'd build, in order (each verified before the next)
+0. **S0 (already done)** — pin authoritative-ID lifecycle (S0-B shipped; on-device proof
+   test pending Brian). Gates everything below.
+1. **Light "Plans" surface in the project-detail tabs** (reuse `ProjectDetailShell` + tokens,
+   like the existing Files/Team tabs — NOT a parallel UI): read-only plan-set list (thumbnail
+   · name · sheet count · status), first-class **Start walk** + **Duplicate as clean master**
+   + inline **Add a plan (PDF)**. All buttons stateful (loading/disabled/error).
+2. **Walk start sheet** (the one new screen, Graphite-Glass) — replaces amber `WalkStartChoice`.
+   Wire BOTH equal doors: project "Start walk" + Site Walk shell "Walk from project" (shell
+   surfaces recent projects first). Plan-set list + Clean/annotated; if none → "Add a plan"
+   is the primary action.
+3. **Plan sheet + capture reuse** — long-press = drop pin + open the *shipped* V2 capture in
+   one motion; auto-cropped sheet (S2). Photo-only valid.
+4. **Quick-data + mid-walk control** (the "nothing stuck" slice): always-shown/never-required
+   data sheet (swipe-down = Done); **stop filmstrip**; **live edit/move/delete** on the plan
+   (undo toast); **pause/resume to shell** with full auto-save; off-plan camera stop.
+5. **End-walk + deliverables** — reuse existing Site Walk report/share/export; one tap from
+   the plan. Off-plan stops included.
+6. **Viewer polish** — fit-to-width, bounded inertial pan, sheet picker + metadata search,
+   review shows mini-plan thumbnail with the pin highlighted.
+
+Steps 1–4 get you a usable, "nothing stuck" end-to-end walk to device-test. 5–6 close + polish.
+Each slice device-tested + harness-asserted before the next; never batch the viewer slices.
 
 ## F. Resolved (see "Locked decisions" above)
 1. Entry — **both** project page and Site Walk shell "Walk from project", equally prominent.
