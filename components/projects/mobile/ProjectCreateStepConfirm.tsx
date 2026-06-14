@@ -20,19 +20,19 @@ export function ProjectCreateStepConfirm({ form, isSubmitting, onSubmit }: Props
       <div className={projectCreateTokens.sectionLabel}>Confirm & preview</div>
 
       <ProjectCreateGlassCard>
-        <div className="mb-2 font-semibold text-[var(--graphite-text-header)]">{form.name}</div>
-        {form.address ? (
-          <div className="mb-4 text-sm text-[var(--graphite-muted)]">{form.address}</div>
+        <div className="font-semibold text-[var(--graphite-text-header)]">{form.name}</div>
+        {form.projectType ? (
+          <div className="mt-0.5 text-xs font-medium text-[var(--graphite-primary)]">{form.projectType}</div>
         ) : null}
-        {form.description ? (
-          <p className="mb-4 text-sm text-[var(--graphite-text-body)]">{form.description}</p>
-        ) : null}
-
-        {form.invites.length > 0 ? (
-          <div className="mb-4">
-            <div className={`mb-2 ${projectCreateTokens.sectionLabel}`}>Invites</div>
-            <p className="text-sm text-[var(--graphite-muted)]">{form.invites.join(", ")}</p>
-          </div>
+        <dl className="mt-3 mb-4 space-y-1.5 text-sm">
+          {form.client ? <SummaryRow label="Client" value={form.client} /> : null}
+          {form.address ? <SummaryRow label="Site" value={form.address} /> : null}
+          {form.startDate ? <SummaryRow label="Start" value={form.startDate} /> : null}
+          {form.targetDate ? <SummaryRow label="Target" value={form.targetDate} /> : null}
+          {form.squareFootage ? <SummaryRow label="Size" value={`${form.squareFootage} sq ft`} /> : null}
+        </dl>
+        {form.scope ? (
+          <p className="mb-4 text-sm text-[var(--graphite-text-body)]">{form.scope}</p>
         ) : null}
 
         <div className={`mb-2 ${projectCreateTokens.sectionLabel}`}>Folders that will be created</div>
@@ -57,6 +57,15 @@ export function ProjectCreateStepConfirm({ form, isSubmitting, onSubmit }: Props
       >
         {isSubmitting ? "Creating project…" : "Create project"}
       </button>
+    </div>
+  );
+}
+
+function SummaryRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex justify-between gap-3">
+      <dt className="text-[var(--graphite-muted)]">{label}</dt>
+      <dd className="text-right text-[var(--graphite-text-body)]">{value}</dd>
     </div>
   );
 }

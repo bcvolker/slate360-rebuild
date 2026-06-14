@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ProjectCreateStepConfirm } from "./ProjectCreateStepConfirm";
 import { ProjectCreateStepDetails } from "./ProjectCreateStepDetails";
-import { ProjectCreateStepInvites } from "./ProjectCreateStepInvites";
 import { ProjectCreateSuccess } from "./ProjectCreateSuccess";
 import { ProjectCreateWizardHeader } from "./ProjectCreateWizardHeader";
 import { projectCreateTokens } from "./project-create-tokens";
@@ -14,17 +13,8 @@ export function MobileProjectCreateWizard() {
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [showSuccess, setShowSuccess] = useState(false);
-  const {
-    form,
-    updateForm,
-    addInvite,
-    removeInvite,
-    createProject,
-    isSubmitting,
-    error,
-    inviteWarnings,
-    createdProjectId,
-  } = useMobileProjectCreate();
+  const { form, updateForm, createProject, isSubmitting, error, createdProjectId } =
+    useMobileProjectCreate();
 
   const handleBack = () => {
     if (showSuccess) {
@@ -40,21 +30,15 @@ export function MobileProjectCreateWizard() {
 
   const handleComplete = async () => {
     const projectId = await createProject();
-    if (projectId) {
-      setShowSuccess(true);
-    }
+    if (projectId) setShowSuccess(true);
   };
 
   if (showSuccess && createdProjectId) {
     return (
       <div className={projectCreateTokens.page}>
-        <ProjectCreateWizardHeader step={3} onBack={handleBack} />
+        <ProjectCreateWizardHeader step={2} onBack={handleBack} />
         <div className={projectCreateTokens.scrollBody}>
-          <ProjectCreateSuccess
-            projectId={createdProjectId}
-            projectName={form.name}
-            inviteWarnings={inviteWarnings}
-          />
+          <ProjectCreateSuccess projectId={createdProjectId} projectName={form.name} inviteWarnings={[]} />
         </div>
       </div>
     );
@@ -68,23 +52,10 @@ export function MobileProjectCreateWizard() {
         {error ? <div className={`mb-4 ${projectCreateTokens.errorBanner}`}>{error}</div> : null}
 
         {step === 1 ? (
-          <ProjectCreateStepDetails
-            form={form}
-            onChange={updateForm}
-            onContinue={() => setStep(2)}
-          />
+          <ProjectCreateStepDetails form={form} onChange={updateForm} onContinue={() => setStep(2)} />
         ) : null}
 
         {step === 2 ? (
-          <ProjectCreateStepInvites
-            form={form}
-            onAddInvite={addInvite}
-            onRemoveInvite={removeInvite}
-            onContinue={() => setStep(3)}
-          />
-        ) : null}
-
-        {step === 3 ? (
           <ProjectCreateStepConfirm
             form={form}
             isSubmitting={isSubmitting}
