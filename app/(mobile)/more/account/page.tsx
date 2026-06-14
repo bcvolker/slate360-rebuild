@@ -12,7 +12,6 @@ import { mobileTokens } from "@/components/mobile-system";
 import { cn } from "@/lib/utils";
 import { getEntitlements } from "@/lib/entitlements";
 import { resolveServerOrgContext } from "@/lib/server/org-context";
-import { AccountDeletionPanel } from "@/components/account/AccountDeletionPanel";
 
 export const metadata = { title: "Account — Slate360" };
 
@@ -75,7 +74,7 @@ export default async function MoreAccountPage() {
         <p className={cn("mt-4", mobileTokens.mobileEyebrowLabel)}>Profile &amp; security</p>
         <h1 className={cn("mt-2", mobileTokens.moduleTitle)}>Account</h1>
         <p className={mobileTokens.moduleSubtitle}>
-          Manage profile, security, legal links, and account deletion.
+          Manage your profile, security, and legal information.
         </p>
         <div className="mt-4 grid gap-2 sm:grid-cols-2">
           <MetricTile label="Email" value={email} />
@@ -104,8 +103,6 @@ export default async function MoreAccountPage() {
           );
         })}
       </section>
-
-      <AccountDeletionPanel />
     </div>
   );
 }

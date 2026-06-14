@@ -23,7 +23,7 @@ const boxedInput =
 
 export function ProjectCreateStepDetails({ form, onChange, onContinue }: Props) {
   return (
-    <div className="mx-auto max-w-2xl space-y-4">
+    <div className="mx-auto max-w-2xl space-y-4 lg:max-w-3xl">
       <div>
         <ProjectCreateGlassCard className="space-y-3">
           <input
@@ -71,7 +71,7 @@ export function ProjectCreateStepDetails({ form, onChange, onContinue }: Props) 
           </div>
           <div>
             <label className={fieldLabel}>Project location</label>
-            <div className="h-72 overflow-hidden rounded-xl border border-[var(--mobile-app-card-border)] lg:h-80">
+            <div className="h-72 overflow-hidden rounded-xl border border-[var(--mobile-app-card-border)] lg:h-[26rem]">
               <ProjectLocationPicker
                 value={{ address: form.address, lat: form.lat, lng: form.lng, boundary: form.boundary }}
                 onChange={(v) => {
