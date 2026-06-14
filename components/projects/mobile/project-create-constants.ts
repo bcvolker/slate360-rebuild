@@ -24,6 +24,8 @@ export const PROJECT_TYPE_OPTIONS = [
   "Other",
 ] as const;
 
+export type ProjectLatLng = { lat: number; lng: number };
+
 export type ProjectCreateFormState = {
   /** What */
   name: string;
@@ -31,8 +33,11 @@ export type ProjectCreateFormState = {
   scope: string;
   /** Who */
   client: string;
-  /** Where */
+  /** Where (address + geocoded pin for walk/twin context + map cover) */
   address: string;
+  lat: number | null;
+  lng: number | null;
+  boundary: ProjectLatLng[];
   /** When */
   startDate: string;
   targetDate: string;
@@ -46,6 +51,9 @@ export const emptyProjectCreateForm = (): ProjectCreateFormState => ({
   scope: "",
   client: "",
   address: "",
+  lat: null,
+  lng: null,
+  boundary: [],
   startDate: "",
   targetDate: "",
   squareFootage: "",

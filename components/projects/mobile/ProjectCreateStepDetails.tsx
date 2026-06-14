@@ -1,5 +1,6 @@
 "use client";
 
+import WizardLocationPicker from "@/components/projects/WizardLocationPicker";
 import {
   PROJECT_TYPE_OPTIONS,
   type ProjectCreateFormState,
@@ -69,15 +70,22 @@ export function ProjectCreateStepDetails({ form, onChange, onContinue }: Props) 
             />
           </div>
           <div>
-            <label className={fieldLabel}>Site address</label>
-            <input
-              className={boxedInput}
-              placeholder="Street, city, state"
-              value={form.address}
-              onChange={(event) => onChange("address", event.target.value)}
-            />
+            <label className={fieldLabel}>Project location</label>
+            <div className="h-72 overflow-hidden rounded-xl border border-[var(--mobile-app-card-border)] lg:h-80">
+              <WizardLocationPicker
+                value={{ address: form.address, lat: form.lat, lng: form.lng, boundary: form.boundary }}
+                onChange={(v) => {
+                  onChange("address", v.address);
+                  onChange("lat", v.lat);
+                  onChange("lng", v.lng);
+                  onChange("boundary", v.boundary);
+                }}
+              />
+            </div>
             <p className="mt-1 text-[11px] text-[var(--graphite-muted)]">
-              Map-pick &amp; address autofill coming next — this seeds the project location.
+              {form.address
+                ? form.address
+                : "Type an address to pick from results, or drop a pin on the map. This seeds walk & twin geolocation."}
             </p>
           </div>
         </ProjectCreateGlassCard>

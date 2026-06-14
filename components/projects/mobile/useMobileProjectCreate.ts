@@ -44,9 +44,9 @@ export function useMobileProjectCreate() {
             square_footage: form.squareFootage.trim() || null,
             location: {
               address: form.address.trim(),
-              lat: null,
-              lng: null,
-              boundary: [],
+              lat: form.lat,
+              lng: form.lng,
+              boundary: form.boundary,
             },
           },
         }),
