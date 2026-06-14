@@ -1,6 +1,6 @@
 "use client";
 
-import WizardLocationPicker from "@/components/projects/WizardLocationPicker";
+import ProjectLocationPicker from "./ProjectLocationPicker";
 import {
   PROJECT_TYPE_OPTIONS,
   type ProjectCreateFormState,
@@ -72,7 +72,7 @@ export function ProjectCreateStepDetails({ form, onChange, onContinue }: Props) 
           <div>
             <label className={fieldLabel}>Project location</label>
             <div className="h-72 overflow-hidden rounded-xl border border-[var(--mobile-app-card-border)] lg:h-80">
-              <WizardLocationPicker
+              <ProjectLocationPicker
                 value={{ address: form.address, lat: form.lat, lng: form.lng, boundary: form.boundary }}
                 onChange={(v) => {
                   onChange("address", v.address);
