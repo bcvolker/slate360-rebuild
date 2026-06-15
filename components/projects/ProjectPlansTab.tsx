@@ -12,6 +12,7 @@ import {
   PlanUploadError,
   type PlanUploadProgress,
 } from "@/lib/site-walk/plan-upload";
+import { startProjectWalk, StartWalkError } from "@/lib/site-walk/start-walk";
 import type { ProjectPlansTabData, PlansTabPlanSet } from "@/lib/projects/plans-tab-data";
 
 type ProjectPlansTabProps = {
@@ -31,7 +32,22 @@ export function ProjectPlansTab({ data, canManage }: ProjectPlansTabProps) {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const [progress, setProgress] = useState<PlanUploadProgress | null>(null);
+  const [startingWalk, setStartingWalk] = useState(false);
+  const [startError, setStartError] = useState<string | null>(null);
   const busy = progress !== null && progress.stage !== "complete" && progress.stage !== "error";
+
+  async function handleStartWalk() {
+    if (startingWalk) return;
+    setStartingWalk(true);
+    setStartError(null);
+    try {
+      const url = await startProjectWalk(data.projectId, data.projectName, "project_plans_tab");
+      router.push(url);
+    } catch (error) {
+      setStartError(error instanceof StartWalkError ? error.message : "Could not start the walk. Try again.");
+      setStartingWalk(false);
+    }
+  }
 
   async function handleFiles(files: FileList | null) {
     const file = files?.[0];
@@ -113,6 +129,16 @@ export function ProjectPlansTab({ data, canManage }: ProjectPlansTabProps) {
             <span>{progress.message}</span>
           </div>
         ) : null}
+
+        {startError ? (
+          <div
+            role="alert"
+            className="mt-3 flex items-center gap-2 rounded-xl bg-red-500/10 px-3 py-2 text-sm text-red-300 ring-1 ring-inset ring-red-500/25"
+          >
+            <AlertTriangle className="h-4 w-4" aria-hidden />
+            <span>{startError}</span>
+          </div>
+        ) : null}
       </section>
 
       {hasPlans ? (
@@ -137,17 +163,21 @@ export function ProjectPlansTab({ data, canManage }: ProjectPlansTabProps) {
               </div>
               <button
                 type="button"
-                onClick={() => startWalk(router, data.projectId, set.id)}
-                disabled={set.status !== "ready"}
+                onClick={() => void handleStartWalk()}
+                disabled={set.status !== "ready" || startingWalk}
                 title={set.status === "ready" ? "Walk this plan" : "Available once conversion finishes"}
                 className={cn(
                   t.secondaryButton,
                   "shrink-0",
-                  set.status !== "ready" && "cursor-not-allowed opacity-50",
+                  (set.status !== "ready" || startingWalk) && "cursor-not-allowed opacity-50",
                 )}
               >
-                <Footprints className="mr-1.5 h-4 w-4" aria-hidden />
-                Start walk
+                {startingWalk ? (
+                  <Loader2 className="mr-1.5 h-4 w-4 animate-spin" aria-hidden />
+                ) : (
+                  <Footprints className="mr-1.5 h-4 w-4" aria-hidden />
+                )}
+                {startingWalk ? "Starting…" : "Start walk"}
               </button>
             </li>
           ))}
@@ -176,13 +206,3 @@ function StatusPill({ status }: { status: PlansTabPlanSet["status"] }) {
   );
 }
 
-/** Start-walk entry. Slice 2 replaces this with the plan-aware walk-start sheet;
- *  today it routes into the Site Walk app carrying the project + plan context. */
-function startWalk(
-  router: ReturnType<typeof useRouter>,
-  projectId: string,
-  planSetId: string,
-) {
-  const params = new URLSearchParams({ projectId, planSetId });
-  router.push(`/site-walk?${params.toString()}`);
-}

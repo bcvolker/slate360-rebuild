@@ -34,6 +34,7 @@ import {
 } from "@/lib/site-walk/resolve-walk-start-tier";
 import { buildSiteWalkDockRows, SiteWalkHomeFill } from "@/components/site-walk/SiteWalkHomeFill";
 import { SiteWalkWalkTargetSheet } from "@/components/site-walk/SiteWalkWalkTargetSheet";
+import { SiteWalkQuickCreateProjectSheet } from "@/components/site-walk/SiteWalkQuickCreateProjectSheet";
 import type { HubProject, HubSummary, HubWalk } from "@/lib/types/site-walk";
 import type { HubDeliverableRow } from "@/lib/types/site-walk-hub";
 
@@ -103,6 +104,7 @@ export function SiteWalkHomeClient({
 }: Props) {
   const router = useRouter();
   const [targetSheetOpen, setTargetSheetOpen] = useState(false);
+  const [quickCreateOpen, setQuickCreateOpen] = useState(false);
   const [quickCaptureError, setQuickCaptureError] = useState<string | null>(null);
   const [startingWalk, setStartingWalk] = useState(false);
 
@@ -208,7 +210,13 @@ export function SiteWalkHomeClient({
 
   const handleScopedWalk = useCallback(() => {
     if (walkTargets.length === 0) {
-      router.push(walkStartCreateRoute(walkStartTier));
+      // No project yet — offer a name-only quick-create that starts the walk
+      // immediately (rest of the details filled in later in the project section).
+      if (walkStartTier === "project") {
+        setQuickCreateOpen(true);
+      } else {
+        router.push(walkStartCreateRoute(walkStartTier));
+      }
       return;
     }
     setTargetSheetOpen(true);
@@ -348,6 +356,8 @@ export function SiteWalkHomeClient({
         targets={walkTargets}
         onSelect={(project) => void startScopedSession(project)}
       />
+
+      <SiteWalkQuickCreateProjectSheet open={quickCreateOpen} onOpenChange={setQuickCreateOpen} />
     </div>
   );
 }
