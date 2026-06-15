@@ -6,7 +6,7 @@ import { CAPTURE_CANVAS_SHELL_ENABLED } from "@/lib/site-walk/capture-v2-config"
 import { usePlanSheetsRealtime } from "@/lib/hooks/usePlanSheetsRealtime";
 import { CaptureV2DesktopStudio } from "./CaptureV2DesktopStudio";
 import { CaptureV2MobileField } from "./CaptureV2MobileField";
-import { CaptureV2StartChoiceSheet } from "./CaptureV2StartChoiceSheet";
+import { WalkStartSheet } from "./WalkStartSheet";
 import { NoPlansCaptureCanvas } from "./NoPlansCaptureCanvas";
 import { WithPlansCaptureCanvas } from "./plan-canvas/WithPlansCaptureCanvas";
 import { useCaptureV2Loop } from "./useCaptureV2Loop";
@@ -125,9 +125,11 @@ export function CaptureV2Orchestrator(props: Props) {
   if (fork === "choice") {
     const walkLabel =
       session.project_name?.trim() || session.title?.trim() || "Plan walk";
+    const readyPlanCount = planSets.filter((set) => set.processing_status === "ready").length;
     return (
-      <CaptureV2StartChoiceSheet
+      <WalkStartSheet
         walkLabel={walkLabel}
+        readyPlanCount={readyPlanCount}
         onWalkOnPlans={choosePlan}
         onCameraOnly={chooseCamera}
       />

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { CaptureV2StartChoiceSheet } from "@/components/capture-v2/CaptureV2StartChoiceSheet";
+import { WalkStartSheet } from "@/components/capture-v2/WalkStartSheet";
 
 export function DevCaptureStartChoiceSandbox() {
   const [mode, setMode] = useState<"sheet" | "plan" | "camera">("sheet");
@@ -15,8 +15,9 @@ export function DevCaptureStartChoiceSandbox() {
   }
 
   return (
-    <CaptureV2StartChoiceSheet
+    <WalkStartSheet
       walkLabel="Riverside Tower — Level 3"
+      readyPlanCount={2}
       onWalkOnPlans={() => setMode("plan")}
       onCameraOnly={() => setMode("camera")}
     />
