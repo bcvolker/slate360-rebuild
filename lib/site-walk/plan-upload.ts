@@ -7,10 +7,7 @@
  * the legacy amber UI. UI is the caller's concern; this is logic only.
  */
 
-import { pdfjs } from "react-pdf";
 import type { SiteWalkPlanSet, SiteWalkPlanSheet } from "@/lib/types/site-walk";
-
-pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.js";
 
 export type PlanUploadStage =
   | "reading"
@@ -199,6 +196,10 @@ function normalizePlanPayload(raw: unknown, incompleteMessage: string): PlanUplo
 }
 
 async function readPdfPageCount(file: File): Promise<number> {
+  // Lazy-load react-pdf so importing this module never runs pdfjs' side effects
+  // at bundle/SSR time (which throws "Object.defineProperty called on non-object").
+  const { pdfjs } = await import("react-pdf");
+  pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.js";
   const data = new Uint8Array(await file.arrayBuffer());
   const pdf = await pdfjs.getDocument({ data }).promise;
   const pageCount = Math.max(1, Math.min(250, Math.floor(pdf.numPages || 1)));
