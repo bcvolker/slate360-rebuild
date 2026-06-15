@@ -55,7 +55,7 @@ export interface ModularEntitlements {
 const APP_TIER_LIMITS: Record<AppId, Record<Exclude<AppTier, "none">, Omit<AppLimits, "active" | "tier">>> = {
   site_walk: {
     basic: { storageGB: 5, creditsPerMonth: 200, seats: 1, monthlyPrice: 79 },
-    pro:   { storageGB: 25, creditsPerMonth: 750, seats: 1, monthlyPrice: 129 },
+    pro:   { storageGB: 25, creditsPerMonth: 750, seats: 1, monthlyPrice: 149 },
   },
   tours: {
     basic: { storageGB: 3, creditsPerMonth: 100, seats: 1, monthlyPrice: 49 },
@@ -74,8 +74,8 @@ const APP_TIER_LIMITS: Record<AppId, Record<Exclude<AppTier, "none">, Omit<AppLi
     pro:   { storageGB: 25, creditsPerMonth: 500, seats: 1, monthlyPrice: 99 },
   },
   digital_twin: {
-    basic: { storageGB: 5, creditsPerMonth: 100, seats: 1, monthlyPrice: 49 },
-    pro:   { storageGB: 25, creditsPerMonth: 400, seats: 1, monthlyPrice: 99 },
+    basic: { storageGB: 25, creditsPerMonth: 500, seats: 1, monthlyPrice: 99 },
+    pro:   { storageGB: 125, creditsPerMonth: 2000, seats: 1, monthlyPrice: 249 },
   },
 };
 
@@ -99,24 +99,26 @@ export const BUNDLE_DEFINITIONS: Record<BundleId, {
   savings: string;
 }> = {
   field_pro: {
-    label: "Field Pro Bundle",
-    description: "Site Walk Pro + 360 Tours Pro — field documentation powerhouse",
-    apps: { site_walk: "pro", tours: "pro" },
-    storageGB: 30,
-    creditsPerMonth: 1000,
+    label: "Site Walk + Twin 360 Bundle",
+    description: "Site Walk Pro + Twin 360 Professional — both apps, one subscription",
+    apps: { site_walk: "pro", digital_twin: "pro" },
+    storageGB: 150,
+    creditsPerMonth: 2750,
     seats: 1,
-    monthlyPrice: 149,
-    savings: "TBD",
+    monthlyPrice: 349,
+    savings: "Save vs. subscribing to both apps separately",
   },
+  // NOTE: `all_access` is retained only to satisfy the BundleId union. In the
+  // two-app model the single sellable bundle is `field_pro` (Site Walk + Twin 360).
   all_access: {
-    label: "All Access Bundle",
-    description: "Every current app at Pro tier — full platform access",
-    apps: { site_walk: "pro", tours: "pro", design_studio: "pro", content_studio: "pro" },
-    storageGB: 75,
-    creditsPerMonth: 2500,
+    label: "Site Walk + Twin 360 Bundle",
+    description: "Site Walk Pro + Twin 360 Professional — both apps, one subscription",
+    apps: { site_walk: "pro", digital_twin: "pro" },
+    storageGB: 150,
+    creditsPerMonth: 2750,
     seats: 1,
-    monthlyPrice: 249,
-    savings: "TBD",
+    monthlyPrice: 349,
+    savings: "Save vs. subscribing to both apps separately",
   },
 };
 
