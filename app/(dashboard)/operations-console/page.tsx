@@ -24,19 +24,6 @@ export default async function OperationsConsolePage() {
 
       <div className="grid gap-4 md:grid-cols-2">
         <Link
-          href="/operations-console/thermal"
-          className={`${t.card} transition-colors hover:border-[color-mix(in_srgb,var(--graphite-primary)_28%,transparent)]`}
-        >
-          <p className={t.eyebrow}>Analysis</p>
-          <h2 className="mt-2 text-lg font-semibold text-[var(--graphite-text-header)]">
-            Thermal Analysis
-          </h2>
-          <p className="mt-2 text-sm text-[var(--graphite-muted)]">
-            Upload drone radiometric captures, run extraction jobs, and review QC results.
-          </p>
-        </Link>
-
-        <Link
           href="/operations-console/feedback"
           className={`${t.card} transition-colors hover:border-[color-mix(in_srgb,var(--graphite-primary)_28%,transparent)]`}
         >

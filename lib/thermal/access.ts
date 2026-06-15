@@ -16,9 +16,10 @@ export type ThermalOpsContext = {
 };
 
 export async function assertThermalOpsAccess(user: User): Promise<boolean> {
+  // Thermal Studio is a CEO-only app (not the Operations Console / not staff).
   const ctx = await resolveServerOrgContext();
   if (ctx.user?.id !== user.id) return false;
-  return ctx.canAccessOperationsConsole;
+  return ctx.isSlateCeo;
 }
 
 export async function withThermalOpsAuth(

@@ -61,9 +61,9 @@ const DASHBOARD_DESKTOP_NAV_ALL: DashboardNavItem[] = [
   },
   {
     label: "Thermal Studio",
-    href: "/operations-console/thermal",
+    href: "/thermal-studio",
     icon: Thermometer,
-    matchPrefixes: ["/operations-console/thermal"],
+    matchPrefixes: ["/thermal-studio"],
     ceoOnly: true,
   },
   {
