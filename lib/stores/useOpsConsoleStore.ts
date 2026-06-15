@@ -53,6 +53,8 @@ interface OpsConsoleState {
   grantStaff: (input: { email: string; displayName?: string; accessScope?: string[] }) => Promise<boolean>;
   revokeStaff: (staffId: string) => Promise<boolean>;
   refreshStaff: () => Promise<void>;
+  updateFeedbackStatus: (feedbackId: string, status: string) => Promise<boolean>;
+  approveUser: (userId: string, approved: boolean) => Promise<boolean>;
 }
 
 export const useOpsConsoleStore = create<OpsConsoleState>()(
@@ -214,6 +216,54 @@ export const useOpsConsoleStore = create<OpsConsoleState>()(
           revokedAt: s.revoked_at ?? null,
         }));
         set({ staff });
+      },
+
+      updateFeedbackStatus: async (feedbackId, status) => {
+        try {
+          set({ busy: true, error: null });
+          const res = await fetch(`/api/ops/feedback/${feedbackId}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ status }),
+          });
+          const json = (await res.json().catch(() => ({}))) as { error?: string };
+          if (!res.ok) throw new Error(json.error ?? "Failed to update feedback");
+          set((state) => ({
+            feedback: state.feedback.map((f) => (f.id === feedbackId ? { ...f, status } : f)),
+          }));
+          return true;
+        } catch (err) {
+          set({ error: err instanceof Error ? err.message : "Failed to update feedback" });
+          return false;
+        } finally {
+          set({ busy: false });
+        }
+      },
+
+      approveUser: async (userId, approved) => {
+        try {
+          set({ busy: true, error: null });
+          const res = await fetch("/api/admin/beta", {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ userId, approved }),
+          });
+          const json = (await res.json().catch(() => ({}))) as { error?: string };
+          if (!res.ok) throw new Error(json.error ?? "Failed to update access");
+          // Either decision clears the user from the pending-approval queue.
+          set((state) => ({
+            pendingUsers: state.pendingUsers.filter((u) => u.id !== userId),
+            counts: state.counts
+              ? { ...state.counts, pendingAccess: Math.max(0, state.counts.pendingAccess - 1) }
+              : state.counts,
+          }));
+          return true;
+        } catch (err) {
+          set({ error: err instanceof Error ? err.message : "Failed to update access" });
+          return false;
+        } finally {
+          set({ busy: false });
+        }
       },
     }),
     {
