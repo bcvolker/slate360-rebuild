@@ -84,6 +84,14 @@ export interface OpsActionItem {
   severity: "info" | "warning" | "critical";
 }
 
+export interface ContentAsset {
+  id: string;
+  placement: string;
+  label: string | null;
+  url: string;
+  updatedAt: string;
+}
+
 /** Live revenue snapshot computed from Stripe subscriptions. */
 export interface RevenueSnapshot {
   /** false when Stripe isn't configured (no secret key) — UI shows a setup note. */

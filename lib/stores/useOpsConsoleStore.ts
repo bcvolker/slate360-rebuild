@@ -14,6 +14,7 @@ import type {
   OpsSubscriber,
   OpsConsoleTab,
   RevenueSnapshot,
+  ContentAsset,
 } from "@/lib/ops-console/types";
 
 interface OpsConsoleState {
@@ -31,6 +32,8 @@ interface OpsConsoleState {
   subscribersLoaded: boolean;
   revenue: RevenueSnapshot | null;
   revenueLoaded: boolean;
+  contentAssets: ContentAsset[];
+  contentLoaded: boolean;
 
   // ui (persisted)
   activeTab: OpsConsoleTab;
@@ -54,6 +57,9 @@ interface OpsConsoleState {
   // async (real endpoints only)
   fetchSubscribers: () => Promise<void>;
   fetchRevenue: () => Promise<void>;
+  fetchContent: () => Promise<void>;
+  addContent: (input: { placement: string; url: string; label?: string }) => Promise<boolean>;
+  removeContent: (assetId: string) => Promise<boolean>;
   grantStaff: (input: { email: string; displayName?: string; accessScope?: string[] }) => Promise<boolean>;
   revokeStaff: (staffId: string) => Promise<boolean>;
   refreshStaff: () => Promise<void>;
@@ -75,6 +81,8 @@ export const useOpsConsoleStore = create<OpsConsoleState>()(
       subscribersLoaded: false,
       revenue: null,
       revenueLoaded: false,
+      contentAssets: [],
+      contentLoaded: false,
       activeTab: "overview",
       cashOnHand: 25000,
       simFactor: 1.0,
@@ -177,6 +185,56 @@ export const useOpsConsoleStore = create<OpsConsoleState>()(
           // Resolve the loading state either way so the UI shows live data or the
           // not-configured note instead of spinning forever.
           set({ revenueLoaded: true });
+        }
+      },
+
+      fetchContent: async () => {
+        if (get().contentLoaded || !get().isCeo) return;
+        try {
+          const res = await fetch("/api/ceo/content");
+          if (!res.ok) throw new Error("Failed to load content assets");
+          const json = (await res.json()) as { assets?: ContentAsset[] };
+          set({ contentAssets: json.assets ?? [] });
+        } catch (err) {
+          set({ error: err instanceof Error ? err.message : "Failed to load content assets" });
+        } finally {
+          set({ contentLoaded: true });
+        }
+      },
+
+      addContent: async ({ placement, url, label }) => {
+        try {
+          set({ busy: true, error: null });
+          const res = await fetch("/api/ceo/content", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ placement, url, label }),
+          });
+          const json = (await res.json().catch(() => ({}))) as { asset?: ContentAsset; error?: string };
+          if (!res.ok || !json.asset) throw new Error(json.error ?? "Failed to add asset");
+          set((state) => ({ contentAssets: [json.asset as ContentAsset, ...state.contentAssets] }));
+          return true;
+        } catch (err) {
+          set({ error: err instanceof Error ? err.message : "Failed to add asset" });
+          return false;
+        } finally {
+          set({ busy: false });
+        }
+      },
+
+      removeContent: async (assetId) => {
+        try {
+          set({ busy: true, error: null });
+          const res = await fetch(`/api/ceo/content/${assetId}`, { method: "DELETE" });
+          const json = (await res.json().catch(() => ({}))) as { error?: string };
+          if (!res.ok) throw new Error(json.error ?? "Failed to remove asset");
+          set((state) => ({ contentAssets: state.contentAssets.filter((a) => a.id !== assetId) }));
+          return true;
+        } catch (err) {
+          set({ error: err instanceof Error ? err.message : "Failed to remove asset" });
+          return false;
+        } finally {
+          set({ busy: false });
         }
       },
 
