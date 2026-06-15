@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useOpsConsoleStore } from "@/lib/stores/useOpsConsoleStore";
 import { opsConsoleTokens as t } from "@/components/ops/console/ops-console-tokens";
 
@@ -13,14 +14,20 @@ function Stat({ label, value }: { label: string; value: string | number }) {
 }
 
 export function OverviewTab() {
-  const { overview, counts, getActionItems } = useOpsConsoleStore();
+  const { overview, counts, revenue, fetchRevenue, getActionItems } = useOpsConsoleStore();
   const actions = getActionItems();
+
+  useEffect(() => {
+    void fetchRevenue();
+  }, [fetchRevenue]);
+
+  const mrr = revenue?.configured ? `$${revenue.mrr.toLocaleString()}` : "—";
 
   return (
     <div className="space-y-5">
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <Stat label="MRR (live)" value={mrr} />
         <Stat label="Organizations" value={overview?.totalOrgs ?? "—"} />
-        <Stat label="Users" value={overview?.totalUsers ?? "—"} />
         <Stat label="Pending approvals" value={counts?.pendingAccess ?? 0} />
         <Stat label="Open feedback" value={counts?.openFeedback ?? 0} />
       </div>

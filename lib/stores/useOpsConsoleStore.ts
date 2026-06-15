@@ -13,6 +13,7 @@ import type {
   OpsStaffGrant,
   OpsSubscriber,
   OpsConsoleTab,
+  RevenueSnapshot,
 } from "@/lib/ops-console/types";
 
 interface OpsConsoleState {
@@ -28,6 +29,8 @@ interface OpsConsoleState {
   // lazily fetched (CEO only)
   subscribers: OpsSubscriber[];
   subscribersLoaded: boolean;
+  revenue: RevenueSnapshot | null;
+  revenueLoaded: boolean;
 
   // ui (persisted)
   activeTab: OpsConsoleTab;
@@ -50,6 +53,7 @@ interface OpsConsoleState {
 
   // async (real endpoints only)
   fetchSubscribers: () => Promise<void>;
+  fetchRevenue: () => Promise<void>;
   grantStaff: (input: { email: string; displayName?: string; accessScope?: string[] }) => Promise<boolean>;
   revokeStaff: (staffId: string) => Promise<boolean>;
   refreshStaff: () => Promise<void>;
@@ -69,6 +73,8 @@ export const useOpsConsoleStore = create<OpsConsoleState>()(
       health: null,
       subscribers: [],
       subscribersLoaded: false,
+      revenue: null,
+      revenueLoaded: false,
       activeTab: "overview",
       cashOnHand: 25000,
       simFactor: 1.0,
@@ -155,6 +161,22 @@ export const useOpsConsoleStore = create<OpsConsoleState>()(
           set({ error: err instanceof Error ? err.message : "Failed to load subscribers" });
         } finally {
           set({ busy: false });
+        }
+      },
+
+      fetchRevenue: async () => {
+        if (get().revenueLoaded || !get().isCeo) return;
+        try {
+          const res = await fetch("/api/ceo/revenue");
+          if (!res.ok) throw new Error("Failed to load revenue");
+          const json = (await res.json()) as { revenue?: RevenueSnapshot };
+          set({ revenue: json.revenue ?? null });
+        } catch (err) {
+          set({ error: err instanceof Error ? err.message : "Failed to load revenue" });
+        } finally {
+          // Resolve the loading state either way so the UI shows live data or the
+          // not-configured note instead of spinning forever.
+          set({ revenueLoaded: true });
         }
       },
 

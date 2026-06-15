@@ -83,3 +83,16 @@ export interface OpsActionItem {
   label: string;
   severity: "info" | "warning" | "critical";
 }
+
+/** Live revenue snapshot computed from Stripe subscriptions. */
+export interface RevenueSnapshot {
+  /** false when Stripe isn't configured (no secret key) — UI shows a setup note. */
+  configured: boolean;
+  /** Monthly recurring revenue in whole dollars (active subs, annual normalized /12). */
+  mrr: number;
+  /** Annual run-rate (mrr * 12) in whole dollars. */
+  arr: number;
+  activeSubscribers: number;
+  trialingSubscribers: number;
+  currency: string;
+}
