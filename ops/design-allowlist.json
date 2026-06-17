@@ -98,7 +98,6 @@
     "components/shared/MobileTopBar.tsx",
     "components/shared/OfflineBanner.tsx",
     "components/shared/QuickNav.tsx",
-    "components/shared/SlateLogo.tsx",
     "components/shared/SlateLogoOnLight.tsx",
     "components/shared/paged-workspace/PagedWorkspaceDots.tsx",
     "components/shared/paged-workspace/PagedWorkspaceRail.tsx",
