@@ -36,16 +36,16 @@ export default function ProjectFileExplorer({
   return (
     <div className="grid min-h-[65vh] grid-cols-1 gap-4 lg:grid-cols-[280px_1fr]">
       <aside className="rounded-2xl border border-white/10 bg-[#151A23] p-4 shadow-sm">
-        <h2 className="text-sm font-black text-slate-100">Project Folders</h2>
-        <p className="mt-1 text-xs text-slate-400">Scoped to this project only</p>
+        <h2 className="text-sm font-black text-[var(--graphite-text-body)]">Project Folders</h2>
+        <p className="mt-1 text-xs text-[var(--graphite-muted)]">Scoped to this project only</p>
 
         <div className="mt-4 space-y-2">
           {foldersLoading ? (
-            <div className="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-3 text-sm text-slate-400">
+            <div className="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-3 text-sm text-[var(--graphite-muted)]">
               <Loader2 size={14} className="mr-2 inline animate-spin" /> Loading folders…
             </div>
           ) : folders.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-white/10 px-3 py-3 text-sm text-slate-400">
+            <div className="rounded-xl border border-dashed border-white/10 px-3 py-3 text-sm text-[var(--graphite-muted)]">
               No project folders found.
             </div>
           ) : (
@@ -57,8 +57,8 @@ export default function ProjectFileExplorer({
                   onClick={() => setActiveFolderId(folder.id)}
                   className={`flex w-full items-center gap-2 rounded-xl border px-3 py-2 text-left text-sm transition ${
                     active
-                      ? "border-amber-500/40 bg-amber-500/10 text-amber-500"
-                      : "border-white/10 bg-[#151A23] text-slate-200 hover:bg-white/[0.03]"
+                      ? "border-[color-mix(in_srgb,var(--graphite-primary)_40%,transparent)] bg-[color-mix(in_srgb,var(--graphite-primary)_10%,transparent)] text-[var(--graphite-primary)]"
+                      : "border-white/10 bg-[#151A23] text-[var(--graphite-text-body)] hover:bg-white/[0.03]"
                   }`}
                 >
                   <Folder size={14} />
@@ -73,14 +73,14 @@ export default function ProjectFileExplorer({
       <section className="rounded-2xl border border-white/10 bg-[#151A23] p-4 shadow-sm">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h2 className="text-sm font-black text-slate-100">{activeFolder?.name ?? "Files"}</h2>
-            <p className="mt-1 text-xs text-slate-400">{activeFolder?.path ?? "Select a folder to view files"}</p>
+            <h2 className="text-sm font-black text-[var(--graphite-text-body)]">{activeFolder?.name ?? "Files"}</h2>
+            <p className="mt-1 text-xs text-[var(--graphite-muted)]">{activeFolder?.path ?? "Select a folder to view files"}</p>
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={handleExportCloseout}
               disabled={isExportingCloseout}
-              className="flex items-center gap-2 rounded-lg border border-white/10 bg-[#151A23] px-3 py-1.5 text-xs font-semibold text-slate-200 transition hover:bg-white/[0.03] disabled:opacity-50"
+              className="flex items-center gap-2 rounded-lg border border-white/10 bg-[#151A23] px-3 py-1.5 text-xs font-semibold text-[var(--graphite-text-body)] transition hover:bg-white/[0.03] disabled:opacity-50"
             >
               {isExportingCloseout ? <Loader2 size={14} className="animate-spin" /> : <FileText size={14} />}
               Export Closeout
@@ -90,7 +90,7 @@ export default function ProjectFileExplorer({
               <button
                 onClick={handleGenerateLink}
                 disabled={isGeneratingLink}
-                className="flex items-center gap-2 rounded-lg bg-amber-500 px-3 py-1.5 text-xs font-semibold text-foreground transition hover:bg-amber-600 disabled:opacity-50"
+                className="flex items-center gap-2 rounded-lg bg-[var(--graphite-primary)] px-3 py-1.5 text-xs font-semibold text-foreground transition hover:opacity-90 disabled:opacity-50"
               >
                 {isGeneratingLink ? <Loader2 size={14} className="animate-spin" /> : <LinkIcon size={14} />}
                 Request Link
@@ -154,21 +154,21 @@ export default function ProjectFileExplorer({
 
         <div className="mt-4 space-y-2">
           {filesLoading ? (
-            <div className="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-3 text-sm text-slate-400">
+            <div className="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-3 text-sm text-[var(--graphite-muted)]">
               <Loader2 size={14} className="mr-2 inline animate-spin" /> Loading files…
             </div>
           ) : files.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-white/10 px-3 py-8 text-center text-sm text-slate-400">
+            <div className="rounded-xl border border-dashed border-white/10 px-3 py-8 text-center text-sm text-[var(--graphite-muted)]">
               No files in this folder yet.
             </div>
           ) : (
             files.map((file) => (
               <article key={file.id} className="flex items-center justify-between rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2">
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold text-slate-100">{file.name}</p>
-                  <p className="text-[11px] uppercase tracking-wide text-slate-400">{file.type || "file"}</p>
+                  <p className="truncate text-sm font-semibold text-[var(--graphite-text-body)]">{file.name}</p>
+                  <p className="text-[11px] uppercase tracking-wide text-[var(--graphite-muted)]">{file.type || "file"}</p>
                 </div>
-                <FileText size={14} className="shrink-0 text-slate-500" />
+                <FileText size={14} className="shrink-0 text-[var(--graphite-muted)]" />
               </article>
             ))
           )}

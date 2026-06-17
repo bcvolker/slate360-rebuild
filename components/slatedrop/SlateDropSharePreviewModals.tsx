@@ -68,10 +68,10 @@ export default function SlateDropSharePreviewModals({
           <div className="w-full max-w-md bg-[#151A23] rounded-2xl shadow-2xl overflow-hidden border border-white/10">
             <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
               <div>
-                <h3 className="text-base font-bold text-slate-100">Secure Send</h3>
-                <p className="text-xs text-slate-500 mt-0.5">Share &quot;{shareModal.file_name}&quot;</p>
+                <h3 className="text-base font-bold text-[var(--graphite-text-body)]">Secure Send</h3>
+                <p className="text-xs text-[var(--graphite-muted)] mt-0.5">Share &quot;{shareModal.file_name}&quot;</p>
               </div>
-              <button onClick={closeShareModal} className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:bg-white/[0.06]">
+              <button onClick={closeShareModal} className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--graphite-muted)] hover:bg-white/[0.06]">
                 <X size={16} />
               </button>
             </div>
@@ -79,13 +79,13 @@ export default function SlateDropSharePreviewModals({
               {shareSent ? (
                 <div className="text-center py-6">
                   <CheckCircle2 size={36} className="mx-auto mb-3 text-emerald-500" />
-                  <p className="text-sm font-semibold text-slate-100 mb-1">Link sent!</p>
-                  <p className="text-xs text-slate-500">A secure share link was sent to {shareEmail}</p>
+                  <p className="text-sm font-semibold text-[var(--graphite-text-body)] mb-1">Link sent!</p>
+                  <p className="text-xs text-[var(--graphite-muted)]">A secure share link was sent to {shareEmail}</p>
                 </div>
               ) : (
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Recipient email</label>
+                    <label className="block text-[10px] font-semibold text-[var(--graphite-muted)] uppercase tracking-wider mb-1.5">Recipient email</label>
                     <ContactPicker
                       inline
                       value={shareEmail}
@@ -95,7 +95,7 @@ export default function SlateDropSharePreviewModals({
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Permission</label>
+                    <label className="block text-[10px] font-semibold text-[var(--graphite-muted)] uppercase tracking-wider mb-1.5">Permission</label>
                     <div className="flex gap-2">
                       {(["view", "edit"] as const).map((permission) => (
                         <button
@@ -103,8 +103,8 @@ export default function SlateDropSharePreviewModals({
                           onClick={() => setSharePerm(permission)}
                           className={`flex-1 text-xs font-semibold py-2.5 rounded-lg border transition-all capitalize ${
                             sharePerm === permission
-                              ? "border-amber-500 bg-amber-500/5 text-amber-500"
-                              : "border-white/10 text-slate-400 hover:bg-white/[0.03]"
+                              ? "border-[var(--graphite-primary)] bg-[color-mix(in_srgb,var(--graphite-primary)_5%,transparent)] text-[var(--graphite-primary)]"
+                              : "border-white/10 text-[var(--graphite-muted)] hover:bg-white/[0.03]"
                           }`}
                         >
                           {permission === "view" ? "View only" : "Can upload"}
@@ -113,11 +113,11 @@ export default function SlateDropSharePreviewModals({
                     </div>
                   </div>
                   <div>
-                    <label className="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Link expires</label>
+                    <label className="block text-[10px] font-semibold text-[var(--graphite-muted)] uppercase tracking-wider mb-1.5">Link expires</label>
                     <select
                       value={shareExpiry}
                       onChange={(event) => setShareExpiry(event.target.value)}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-white/10 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all bg-[#151A23]"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-white/10 text-sm focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--graphite-primary)_20%,transparent)] focus:border-[var(--graphite-primary)] transition-all bg-[#151A23]"
                     >
                       <option value="1">1 day</option>
                       <option value="7">7 days</option>
@@ -129,7 +129,7 @@ export default function SlateDropSharePreviewModals({
                     onClick={onSendSecureLink}
                     disabled={!shareEmail.trim()}
                     className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold text-foreground transition-all hover:opacity-90 disabled:opacity-50"
-                    style={{ backgroundColor: "#F59E0B" }}
+                    style={{ backgroundColor: "var(--graphite-primary)" }}
                   >
                     <Send size={14} /> Send secure link
                   </button>
@@ -151,26 +151,26 @@ export default function SlateDropSharePreviewModals({
                   return <Icon size={18} style={{ color }} />;
                 })()}
                 <div className="min-w-0">
-                  <p className="text-sm font-bold text-slate-100 truncate">{previewFile.file_name}</p>
-                  <p className="text-[10px] text-slate-500">{formatBytes(previewFile.size)} · {formatDate(previewFile.modified)}</p>
+                  <p className="text-sm font-bold text-[var(--graphite-text-body)] truncate">{previewFile.file_name}</p>
+                  <p className="text-[10px] text-[var(--graphite-muted)]">{formatBytes(previewFile.size)} · {formatDate(previewFile.modified)}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => onDownloadPreviewFile(previewFile.id, previewFile.file_name)}
-                  className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:bg-white/[0.06]"
+                  className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--graphite-muted)] hover:bg-white/[0.06]"
                 >
                   <Download size={15} />
                 </button>
                 <button
                   onClick={() => onOpenShareFromPreview(previewFile)}
-                  className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:bg-white/[0.06]"
+                  className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--graphite-muted)] hover:bg-white/[0.06]"
                 >
                   <Share2 size={15} />
                 </button>
                 <button
                   onClick={() => setPreviewFile(null)}
-                  className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:bg-white/[0.06]"
+                  className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--graphite-muted)] hover:bg-white/[0.06]"
                 >
                   <X size={16} />
                 </button>
@@ -179,13 +179,13 @@ export default function SlateDropSharePreviewModals({
             <div className="flex items-center justify-center bg-white/[0.03] min-h-[300px] p-8">
               {previewLoading ? (
                 <div className="text-center">
-                  <Loader2 size={32} className="mx-auto mb-3 animate-spin text-amber-500" />
-                  <p className="text-sm text-slate-400 font-medium">Loading preview…</p>
+                  <Loader2 size={32} className="mx-auto mb-3 animate-spin text-[var(--graphite-primary)]" />
+                  <p className="text-sm text-[var(--graphite-muted)] font-medium">Loading preview…</p>
                 </div>
               ) : previewError ? (
                 <div className="text-center">
-                  <p className="text-sm text-slate-400 font-medium">Preview not available</p>
-                  <p className="text-xs text-slate-500 mt-1">{previewError}</p>
+                  <p className="text-sm text-[var(--graphite-muted)] font-medium">Preview not available</p>
+                  <p className="text-xs text-[var(--graphite-muted)] mt-1">{previewError}</p>
                 </div>
               ) : previewUrl ? (
                 (() => {
@@ -235,8 +235,8 @@ export default function SlateDropSharePreviewModals({
                     return (
                       <>
                         <Icon size={56} style={{ color }} className="mx-auto mb-4 opacity-50" />
-                        <p className="text-sm text-slate-400 font-medium">Preview not available</p>
-                        <p className="text-xs text-slate-500 mt-1">Download the file to view it locally</p>
+                        <p className="text-sm text-[var(--graphite-muted)] font-medium">Preview not available</p>
+                        <p className="text-xs text-[var(--graphite-muted)] mt-1">Download the file to view it locally</p>
                       </>
                     );
                   })()}

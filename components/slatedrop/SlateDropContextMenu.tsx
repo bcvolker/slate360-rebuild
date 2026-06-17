@@ -188,8 +188,8 @@ function CtxItem({
         danger
           ? "text-red-500 hover:bg-red-500/10"
           : accent
-          ? "text-amber-500 hover:bg-amber-500/5 font-semibold"
-          : "text-slate-300 hover:bg-white/[0.03]"
+          ? "text-[var(--graphite-primary)] hover:bg-[color-mix(in_srgb,var(--graphite-primary)_5%,transparent)] font-semibold"
+          : "text-[var(--graphite-text-body)] hover:bg-white/[0.03]"
       }`}
     >
       <Icon size={13} />
