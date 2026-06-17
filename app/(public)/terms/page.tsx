@@ -76,7 +76,7 @@ const SECTIONS = [
 
 export default function TermsPage() {
   return (
-    <div className="dark min-h-screen bg-[#0B0F15] text-slate-200">
+    <div className="dark min-h-screen bg-[var(--graphite-canvas)] text-[var(--graphite-text-body)]">
       <header className="border-b border-white/10 px-6 py-4">
         <Link href="/">
           <SlateLogo />
@@ -85,35 +85,35 @@ export default function TermsPage() {
 
       <main className="mx-auto max-w-3xl px-4 py-12">
         <div className="mb-10 text-center">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-500/10 ring-1 ring-amber-500/20">
-            <Scale className="h-7 w-7 text-amber-400" />
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[color-mix(in_srgb,var(--graphite-primary)_10%,transparent)] ring-1 ring-[color-mix(in_srgb,var(--graphite-primary)_20%,transparent)]">
+            <Scale className="h-7 w-7 text-[var(--graphite-primary)]" />
           </div>
-          <h1 className="text-3xl font-black text-white sm:text-4xl">Terms of Service</h1>
-          <p className="mt-3 text-sm text-amber-200/90">Effective Date: January 1, 2025 · Last Updated: May 2026</p>
-          <p className="mt-4 rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-sm text-slate-300">
+          <h1 className="text-3xl font-black text-[var(--graphite-text-header)] sm:text-4xl">Terms of Service</h1>
+          <p className="mt-3 text-sm text-[var(--graphite-muted)]">Effective Date: January 1, 2025 · Last Updated: May 2026</p>
+          <p className="mt-4 rounded-xl border border-[color-mix(in_srgb,var(--graphite-primary)_20%,transparent)] bg-[color-mix(in_srgb,var(--graphite-primary)_5%,transparent)] px-4 py-3 text-sm text-[var(--graphite-text-body)]">
             Foundational Release: self-serve billing may not be available until enabled for your account.
           </p>
         </div>
 
-        <div className="divide-y divide-white/10 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md">
+        <div className="divide-y divide-white/10 rounded-2xl border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_76%,transparent)] backdrop-blur-md">
           {SECTIONS.map((s) => (
             <div key={s.heading} className="px-6 py-6 sm:px-8">
-              <h2 className="mb-2 text-sm font-black text-white">{s.heading}</h2>
-              <p className="text-sm leading-relaxed text-slate-400">{s.body}</p>
+              <h2 className="mb-2 text-sm font-black text-[var(--graphite-text-header)]">{s.heading}</h2>
+              <p className="text-sm leading-relaxed text-[var(--graphite-muted)]">{s.body}</p>
             </div>
           ))}
         </div>
 
         <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
-          <Link href="/privacy" className="text-sm font-semibold text-amber-300 hover:text-amber-200">
+          <Link href="/privacy" className="text-sm font-semibold text-[var(--graphite-primary)] hover:text-[var(--graphite-text-header)]">
             Privacy Policy
           </Link>
-          <span className="text-slate-600">·</span>
-          <Link href="/signup" className="text-sm font-semibold text-amber-300 hover:text-amber-200">
+          <span className="text-[var(--graphite-muted)]">·</span>
+          <Link href="/signup" className="text-sm font-semibold text-[var(--graphite-primary)] hover:text-[var(--graphite-text-header)]">
             Request access
           </Link>
-          <span className="text-slate-600">·</span>
-          <Link href="/" className="text-sm font-semibold text-slate-400 hover:text-slate-200">
+          <span className="text-[var(--graphite-muted)]">·</span>
+          <Link href="/" className="text-sm font-semibold text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]">
             Back to home
           </Link>
         </div>
