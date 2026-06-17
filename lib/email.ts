@@ -50,7 +50,13 @@ export async function sendEmail({
 
 /* ── Branded HTML wrapper ── */
 export function brandedHtml(title: string, body: string): string {
-  const logoUrl = "https://www.slate360.ai/uploads/slate360-logo-reversed-v2.svg";
+  // Canonical brand lockup, inlined for email-client reliability (gradient text
+  // fails in Outlook, so the "360" uses solid teal). Icon = same mark as the app.
+  const iconUrl = "https://www.slate360.ai/slate360-icon-color.png";
+  const logoLockup = `<table cellpadding="0" cellspacing="0" role="presentation"><tr>
+                <td style="vertical-align:middle;"><img src="${iconUrl}" alt="Slate360" width="28" height="28" style="display:block;border:0;" /></td>
+                <td style="vertical-align:middle;padding-left:10px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:20px;font-weight:700;letter-spacing:1.5px;"><span style="color:#ffffff;">SLATE</span><span style="color:#00E699;">360</span></td>
+              </tr></table>`;
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -66,7 +72,7 @@ export function brandedHtml(title: string, body: string): string {
           <!-- Header -->
           <tr>
             <td style="background:${C.headerBand};padding:24px 40px;">
-              <img src="${logoUrl}" alt="Slate360" width="180" height="auto" style="display:block;max-width:180px;height:auto;" />
+              ${logoLockup}
             </td>
           </tr>
           <!-- Body -->
