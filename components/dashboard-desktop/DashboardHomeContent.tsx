@@ -43,7 +43,7 @@ export function DashboardHomeContent({ counts, recentProjects, recentWalks, rece
   const railProjects = featured?.kind === "project" ? recentProjects.slice(1) : recentProjects;
 
   return (
-    <div className="mx-auto flex h-full w-full max-w-6xl flex-col gap-3">
+    <div className="mx-auto flex w-full max-w-6xl flex-col gap-3 pb-2">
       {/* Dashboard tabs */}
       <nav className="flex shrink-0 items-center gap-1" aria-label="Dashboard pages">
         {([
@@ -66,7 +66,7 @@ export function DashboardHomeContent({ counts, recentProjects, recentWalks, rece
       </nav>
 
       {tab === "overview" ? (
-        <div className="flex min-h-0 flex-1 flex-col gap-3">
+        <div className="flex flex-col gap-3">
           {/* Featured: most recent project (continue where you left off) */}
           {featured ? (
             <Link
@@ -117,7 +117,7 @@ export function DashboardHomeContent({ counts, recentProjects, recentWalks, rece
           <DashboardProjectsRail projects={railProjects} total={counts.projects} />
         </div>
       ) : (
-        <div className="flex min-h-0 flex-1 flex-col">
+        <div className="flex flex-col">
           <div className="mb-2 flex items-center justify-between gap-3">
             <h2 className={t.sectionLabel}>Recent Site Walks{counts.siteWalks ? ` · ${counts.siteWalks}` : ""}</h2>
             <Link href="/site-walks" className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--graphite-primary)] hover:underline">
