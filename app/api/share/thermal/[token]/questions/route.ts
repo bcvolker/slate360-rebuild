@@ -93,7 +93,7 @@ async function notifyOwner(
 ): Promise<void> {
   if (!session) return;
   const sessionName = session.name ?? "Thermal inspection";
-  const link = `/operations-console/thermal/${session.id}`;
+  const link = `/thermal-studio/${session.id}`;
 
   // In-app bell — only possible when the session is linked to a project.
   if (session.project_id && session.created_by) {

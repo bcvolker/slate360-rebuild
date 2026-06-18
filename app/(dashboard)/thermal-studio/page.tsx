@@ -16,10 +16,10 @@ export default async function ThermalSessionsPage() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3">
-        <Link href="/operations-console/thermal/upload" className={t.secondaryButton}>
+        <Link href="/thermal-studio/upload" className={t.secondaryButton}>
           Upload captures
         </Link>
-        <Link href="/operations-console/thermal/report-templates" className={t.secondaryButton}>
+        <Link href="/thermal-studio/report-templates" className={t.secondaryButton}>
           Report templates
         </Link>
       </div>
@@ -28,7 +28,7 @@ export default async function ThermalSessionsPage() {
           {sessions.map((session) => (
             <Link
               key={session.id}
-              href={`/operations-console/thermal/${session.id}`}
+              href={`/thermal-studio/${session.id}`}
               className={`block ${t.card} transition-colors hover:border-[color-mix(in_srgb,var(--graphite-primary)_28%,transparent)]`}
             >
               <div className="flex items-center justify-between gap-3">
@@ -48,7 +48,7 @@ export default async function ThermalSessionsPage() {
           <p className="text-sm text-[var(--graphite-muted)]">
             No thermal sessions yet. Upload drone radiometric files to begin.
           </p>
-          <Link href="/operations-console/thermal/upload" className={`${t.primaryButton} mt-4 inline-flex`}>
+          <Link href="/thermal-studio/upload" className={`${t.primaryButton} mt-4 inline-flex`}>
             Start first session
           </Link>
         </div>
@@ -66,7 +66,7 @@ export default async function ThermalSessionsPage() {
               return (
                 <li key={session.id}>
                   <Link
-                    href={`/operations-console/thermal/${session.id}`}
+                    href={`/thermal-studio/${session.id}`}
                     className="text-[var(--graphite-primary)] hover:underline"
                   >
                     {session.name}

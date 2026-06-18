@@ -9,7 +9,7 @@ export default function ThermalReportTemplatesPage() {
   return (
     <div className="space-y-4">
       <Link
-        href="/operations-console/thermal"
+        href="/thermal-studio"
         className="text-sm text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]"
       >
         ← All sessions

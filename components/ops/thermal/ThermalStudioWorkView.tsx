@@ -22,6 +22,9 @@ type Props = {
   captures: StudioCapture[];
   /** Standards from the active report template — drives finding descriptions. */
   standards?: string[];
+  /** Controlled selection (shared across studio stages). Falls back to internal. */
+  selectedId?: string;
+  onSelect?: (id: string) => void;
   /** Loads the per-pixel grid for a capture. Defaults to the ops grid API. */
   loadGrid?: (captureId: string) => Promise<ThermalProbeGrid | null>;
   /** Persist user spots for a capture. Defaults to the ops capture PATCH API. */
@@ -72,11 +75,18 @@ function num(v: unknown, suffix = ""): string {
 export function ThermalStudioWorkView({
   captures,
   standards,
+  selectedId: controlledId,
+  onSelect,
   loadGrid = defaultLoadGrid,
   saveSpots = defaultSaveSpots,
   saveTuning = defaultSaveTuning,
 }: Props) {
-  const [selectedId, setSelectedId] = useState<string | null>(captures[0]?.id ?? null);
+  const [internalId, setInternalId] = useState<string | null>(captures[0]?.id ?? null);
+  const selectedId = controlledId ?? internalId;
+  const selectCapture = useCallback(
+    (id: string) => (onSelect ? onSelect(id) : setInternalId(id)),
+    [onSelect],
+  );
   const [grid, setGrid] = useState<ThermalProbeGrid | null>(null);
   const [gridState, setGridState] = useState<"loading" | "ready" | "none">("loading");
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -204,7 +214,7 @@ export function ThermalStudioWorkView({
               <button
                 key={c.id}
                 type="button"
-                onClick={() => setSelectedId(c.id)}
+                onClick={() => selectCapture(c.id)}
                 className={`relative h-20 w-28 shrink-0 snap-start overflow-hidden rounded-lg border bg-[#111827] ${
                   selected?.id === c.id
                     ? "border-[color-mix(in_srgb,var(--graphite-primary)_50%,transparent)]"

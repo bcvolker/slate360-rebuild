@@ -19,11 +19,15 @@ const SUBTABS: { id: SubTab; label: string }[] = [
 export function ThermalAnalyzeTune({
   sessionId,
   captures,
+  activeCaptureId,
+  onActiveChange,
   standards,
   initialParams,
 }: {
   sessionId: string;
   captures: StudioCapture[];
+  activeCaptureId?: string | null;
+  onActiveChange?: (id: string) => void;
   standards?: string[];
   initialParams?: unknown;
 }) {
@@ -54,7 +58,12 @@ export function ThermalAnalyzeTune({
       <div className="min-h-0 flex-1">
         {tab === "tune" ? (
           captures.length ? (
-            <ThermalStudioWorkView captures={captures} standards={standards} />
+            <ThermalStudioWorkView
+              captures={captures}
+              standards={standards}
+              selectedId={activeCaptureId ?? undefined}
+              onSelect={onActiveChange}
+            />
           ) : (
             <div className="flex h-full items-center justify-center rounded-2xl border border-[var(--mobile-app-card-border)] text-sm text-[var(--graphite-muted)]">
               No captures yet — upload or import from SlateDrop to start tuning.

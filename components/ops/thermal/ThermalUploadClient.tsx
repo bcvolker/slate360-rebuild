@@ -131,7 +131,7 @@ export function ThermalUploadClient() {
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error ?? "Failed to start analysis");
-      router.push(`/operations-console/thermal/${sid}`);
+      router.push(`/thermal-studio/${sid}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to start analysis");
     } finally {
@@ -209,7 +209,7 @@ export function ThermalUploadClient() {
           Start analysis
         </button>
         {sessionId ? (
-          <Link href={`/operations-console/thermal/${sessionId}`} className={t.secondaryButton}>
+          <Link href={`/thermal-studio/${sessionId}`} className={t.secondaryButton}>
             Open session
           </Link>
         ) : null}

@@ -14,9 +14,11 @@ import type { StudioCapture } from "@/components/ops/thermal/ThermalStudioWorkVi
 export function ThermalLibrary({
   sessionId,
   captures,
+  onOpenCapture,
 }: {
   sessionId: string;
   captures: StudioCapture[];
+  onOpenCapture?: (id: string) => void;
 }) {
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
@@ -52,8 +54,22 @@ export function ThermalLibrary({
 
   return (
     <div className="grid h-full min-h-0 gap-3 lg:grid-cols-[minmax(0,1fr)_320px]">
-      <div className="min-h-0 rounded-2xl border border-[var(--mobile-app-card-border)] p-3">
-        <ThermalImageGrid items={items} selected={selected} onToggle={toggle} onToggleAll={toggleAll} />
+      <div className="flex min-h-0 flex-col rounded-2xl border border-[var(--mobile-app-card-border)] p-3">
+        {onOpenCapture ? (
+          <p className="shrink-0 pb-2 text-[11px] text-[var(--graphite-muted)]">
+            Click an image to open it in <span className="font-semibold text-[var(--graphite-text-body)]">Analyze &amp; Tune</span> ·
+            use the ✓ corner to select images for batch processing.
+          </p>
+        ) : null}
+        <div className="min-h-0 flex-1">
+          <ThermalImageGrid
+            items={items}
+            selected={selected}
+            onToggle={toggle}
+            onToggleAll={toggleAll}
+            onOpen={onOpenCapture}
+          />
+        </div>
       </div>
       <div className="min-h-0 space-y-3 overflow-y-auto">
         <ThermalProcessPanel sessionId={sessionId} allIds={allIds} selectedIds={selectedIds} />

@@ -47,8 +47,15 @@ export function ThermalStudioShell({
   initialProjectId,
 }: Props) {
   const [stage, setStage] = useState<Stage>("captures");
+  const [activeCaptureId, setActiveCaptureId] = useState<string | null>(captures[0]?.id ?? null);
   const { job, connected } = useThermalJobRealtime(sessionId);
   const activeJob = job ?? initialJob;
+
+  // One workflow: opening an image in the Library jumps to the Analyze workbench.
+  function openInWorkbench(id: string) {
+    setActiveCaptureId(id);
+    setStage("analyze");
+  }
 
   return (
     <div className="flex h-full min-h-0 flex-col gap-3">
@@ -85,12 +92,16 @@ export function ThermalStudioShell({
 
       {/* Active stage — chrome never scrolls; each stage manages its own space. */}
       <div className="min-h-0 flex-1 overflow-hidden">
-        {stage === "captures" ? <ThermalLibrary sessionId={sessionId} captures={captures} /> : null}
+        {stage === "captures" ? (
+          <ThermalLibrary sessionId={sessionId} captures={captures} onOpenCapture={openInWorkbench} />
+        ) : null}
 
         {stage === "analyze" ? (
           <ThermalAnalyzeTune
             sessionId={sessionId}
             captures={captures}
+            activeCaptureId={activeCaptureId}
+            onActiveChange={setActiveCaptureId}
             standards={standards}
             initialParams={initialParams}
           />

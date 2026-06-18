@@ -17,12 +17,15 @@ export function ThermalImageGrid({
   selected,
   onToggle,
   onToggleAll,
+  onOpen,
   emptyText = "No images.",
 }: {
   items: GridItem[];
   selected: Set<string>;
   onToggle: (id: string) => void;
   onToggleAll: () => void;
+  /** When set, clicking the card opens it (e.g. in the workbench); the checkbox selects. */
+  onOpen?: (id: string) => void;
   emptyText?: string;
 }) {
   const allSelected = items.length > 0 && selected.size === items.length;
@@ -58,13 +61,13 @@ export function ThermalImageGrid({
                 <li key={it.id}>
                   <button
                     type="button"
-                    onClick={() => onToggle(it.id)}
+                    onClick={() => (onOpen ? onOpen(it.id) : onToggle(it.id))}
                     className={`group relative block aspect-[4/3] w-full overflow-hidden rounded-lg border bg-[#111827] transition-colors ${
                       isSel
                         ? "border-[var(--graphite-primary)] ring-2 ring-[color-mix(in_srgb,var(--graphite-primary)_45%,transparent)]"
                         : "border-[var(--mobile-app-card-border)] hover:border-[color-mix(in_srgb,var(--graphite-primary)_40%,transparent)]"
                     }`}
-                    title={it.name}
+                    title={onOpen ? `Open ${it.name}` : it.name}
                   >
                     {it.previewUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
@@ -75,10 +78,13 @@ export function ThermalImageGrid({
                       </span>
                     )}
                     <span
+                      role="checkbox"
+                      aria-checked={isSel}
+                      onClick={(e) => { e.stopPropagation(); onToggle(it.id); }}
                       className={`absolute left-1 top-1 flex h-4 w-4 items-center justify-center rounded border text-[10px] font-bold ${
                         isSel
                           ? "border-[var(--graphite-primary)] bg-[var(--graphite-primary)] text-black"
-                          : "border-white/60 bg-black/40 text-transparent"
+                          : "border-white/60 bg-black/40 text-transparent hover:text-white/70"
                       }`}
                     >
                       ✓

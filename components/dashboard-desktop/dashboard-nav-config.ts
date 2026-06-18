@@ -21,9 +21,6 @@ export type DashboardNavItem = {
   matchPrefixes: string[];
   /** Hidden from authenticated nav during the Site-Walk-only release (AGENTS.md). */
   appStoreHidden?: boolean;
-  /** Paths that should NOT activate this item even if a matchPrefix matches
-   * (e.g. a more specific sibling owns them). */
-  excludePrefixes?: string[];
   /** Only shown to Slate360 staff/CEO with Operations Console access. */
   staffOnly?: boolean;
   /** Only shown to the Slate360 CEO. */
@@ -64,9 +61,9 @@ const DASHBOARD_DESKTOP_NAV_ALL: DashboardNavItem[] = [
   },
   {
     label: "Thermal Studio",
-    href: "/operations-console/thermal",
+    href: "/thermal-studio",
     icon: Thermometer,
-    matchPrefixes: ["/operations-console/thermal"],
+    matchPrefixes: ["/thermal-studio"],
     ceoOnly: true,
   },
   {
@@ -74,7 +71,6 @@ const DASHBOARD_DESKTOP_NAV_ALL: DashboardNavItem[] = [
     href: "/operations-console",
     icon: Wrench,
     matchPrefixes: ["/operations-console"],
-    excludePrefixes: ["/operations-console/thermal"],
     staffOnly: true,
   },
   {
@@ -114,9 +110,6 @@ export const DASHBOARD_DESKTOP_NAV: DashboardNavItem[] = resolveDashboardNav(fal
 export function resolveDashboardNavActive(pathname: string, item: DashboardNavItem): boolean {
   if (item.href === "/dashboard") {
     return pathname === "/dashboard";
-  }
-  if (item.excludePrefixes?.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`))) {
-    return false;
   }
   return item.matchPrefixes.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
 }

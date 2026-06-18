@@ -22,10 +22,10 @@ export default async function ThermalOpsLayout({ children }: { children: React.R
           <p className={t.subtitle}>Private radiometric inspection workspace</p>
         </div>
         <nav className="flex flex-wrap gap-2">
-          <Link href="/operations-console/thermal" className={t.secondaryButton}>
+          <Link href="/thermal-studio" className={t.secondaryButton}>
             Sessions
           </Link>
-          <Link href="/operations-console/thermal/upload" className={t.primaryButton}>
+          <Link href="/thermal-studio/upload" className={t.primaryButton}>
             New upload
           </Link>
         </nav>

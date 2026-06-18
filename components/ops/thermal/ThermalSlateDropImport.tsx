@@ -84,7 +84,7 @@ export function ThermalSlateDropImport() {
         body: JSON.stringify({ session_id: sessionId, job_type: "extract" }),
       }).catch(() => {});
 
-      router.push(`/operations-console/thermal/${sessionId}`);
+      router.push(`/thermal-studio/${sessionId}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Import failed");
       setBusy(false);
