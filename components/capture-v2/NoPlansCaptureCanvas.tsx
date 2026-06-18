@@ -86,6 +86,9 @@ export function NoPlansCaptureCanvas({
     initialDetailsOpen,
   });
 
+  // Stop filmstrip only. Per-photo angles now live in a dedicated always-visible
+  // band for captured photos (see persistent host below). This removes the need
+  // for the user to expand the filmstrip just to see or add angles.
   const topBarFilmstrip = !canvas.showPreview ? (
     <CaptureStopFilmstrip
       variant="topBar"
@@ -95,15 +98,6 @@ export function NoPlansCaptureCanvas({
       onSelectItem={canvas.handleSelectStop}
       onDeleteItem={canvas.handleDeleteStop}
       deletingItemId={loop.deletingStopId}
-    />
-  ) : canvas.activeItem ? (
-    <CaptureCanvasAngleThumbs
-      variant="panel"
-      item={canvas.activeItem}
-      activeAngleId={canvas.activeAngleId}
-      onSelectMain={canvas.handleSelectMain}
-      onSelectAngle={canvas.handleSelectAngle}
-      onPromoteAngle={canvas.handlePromoteAngle}
     />
   ) : null;
 
@@ -122,6 +116,20 @@ export function NoPlansCaptureCanvas({
         }}
         aria-label="Toggle capture controls"
       >
+        {/* Dimmed reference photo shown only while in angle capture mode.
+            It is the exact photo the user was on when they tapped "Add Angle".
+            This provides visual continuity so the screen does not appear to jump
+            from a still capture to a blank live viewfinder. The live video (once
+            it has frames) naturally sits on top. */}
+        {canvas.angleCaptureMode && canvas.angleContextUrl ? (
+          <img
+            src={canvas.angleContextUrl}
+            alt=""
+            className="pointer-events-none absolute inset-0 z-[0] h-full w-full object-cover opacity-25"
+            draggable={false}
+          />
+        ) : null}
+
         <CaptureV2LiveCamera
           camera={canvas.camera}
           facingMode={canvas.facingMode}
@@ -180,13 +188,37 @@ export function NoPlansCaptureCanvas({
         }
         hidden={!canvas.chromeVisible || (canvas.showPreview && canvas.markupEnabled)}
         onToggleChrome={() => canvas.setChromeVisible((value) => !value)}
-        onBack={planPinFlow ? planPinFlow.onReturnToPlan : undefined}
+        onBack={canvas.handleTopBarBack ?? (planPinFlow ? planPinFlow.onReturnToPlan : undefined)}
         onEndTap={canvas.sessionExit.openExitModal}
         showFilmstripToggle
         filmstripExpanded={canvas.filmstripExpanded}
         onFilmstripToggle={() => canvas.setFilmstripExpanded((value) => !value)}
         filmstripPanel={topBarFilmstrip}
       />
+
+      {/* Persistent angle strip for captured photos. Always visible (no expand toggle
+          required) so that after "Add Angle" the user immediately sees the new thumb
+          and can switch between main / angles without extra taps. Positioned directly
+          under the top bar chrome; overlays the top of the photo/live (standard for
+          filmstrip UX). */}
+      {canvas.showPreview && canvas.activeItem?.item_type === "photo" ? (
+        <div
+          className="pointer-events-auto absolute left-0 right-0 z-30 px-3"
+          style={{
+            top: `calc( max(env(safe-area-inset-top), ${CAPTURE_CANVAS_CHROME.topInsetPx}px) + ${CAPTURE_CANVAS_CHROME.topBarHeightPx}px + 4px )`,
+          }}
+          data-capture-chrome="angle-strip-persistent"
+        >
+          <CaptureCanvasAngleThumbs
+            variant="panel"
+            item={canvas.activeItem}
+            activeAngleId={canvas.activeAngleId}
+            onSelectMain={canvas.handleSelectMain}
+            onSelectAngle={canvas.handleSelectAngle}
+            onPromoteAngle={canvas.handlePromoteAngle}
+          />
+        </div>
+      ) : null}
 
       {canvas.showPreview && canvas.markupEnabled ? (
         <div

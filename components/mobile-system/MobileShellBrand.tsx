@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Slate360Logo } from "@/components/studio-ui/LogoProvider";
-import { SlateIcon } from "@/components/shared/SlateIcon";
+import { SlateLogo } from "@/components/shared/SlateLogo";
 import { cn } from "@/lib/utils";
 import type { ModuleHomeBrand } from "./mainMobileTabs";
 import { mobileTokens } from "./mobileTokens";
@@ -31,16 +30,7 @@ export function MobileShellBrand({
       className={cn(mobileTokens.mobileHeaderBrandLink, className)}
       aria-label="Slate360 home"
     >
-      {iconOnly ? (
-        <SlateIcon className={cn("h-9 w-9 shrink-0", iconClassName)} />
-      ) : (
-        <Slate360Logo
-          variant="dark"
-          size="header"
-          showWordmark
-          className={iconClassName}
-        />
-      )}
+      <SlateLogo size="sm" className={cn("shrink-0", iconClassName)} />
     </Link>
   );
 }
@@ -61,7 +51,7 @@ export function MobileShellModuleBrand({ name, icon: Icon, accent }: MobileShell
         className={mobileTokens.mobileHeaderPlatformMarkLink}
         aria-label="Slate360 home"
       >
-        <SlateIcon className="h-8 w-8 shrink-0" aria-hidden />
+        <SlateLogo size="sm" className="shrink-0" aria-hidden />
       </Link>
       <span className={mobileTokens.mobileHeaderBrandDivider} aria-hidden />
       <span className={chipClass} aria-hidden>

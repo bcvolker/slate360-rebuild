@@ -1,6 +1,7 @@
 import { task } from "@trigger.dev/sdk/v3";
 import { createClient } from "@supabase/supabase-js";
 import type { ThermalJobType } from "@/lib/thermal/types";
+import { resolveReportTemplate } from "@/lib/thermal/resolve-report-template";
 
 const getSupabase = () => {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
@@ -46,7 +47,7 @@ async function markJobFailed(
 
 function captureSelectForJobType(jobType: ThermalJobType): string {
   if (jobType === "analyze" || jobType === "report") {
-    return "id, storage_path, filename, npz_data_path, preview_path, anomalies, gps_position";
+    return "id, storage_path, filename, npz_data_path, preview_path, anomalies, gps_position, quality_metrics, metadata";
   }
   if (jobType === "align") {
     return "id, storage_path, filename, npz_data_path, preview_path, gps_position";
@@ -168,6 +169,19 @@ async function runThermalProcessJob(jobId: string) {
 
   const sessionMetadata = (session.metadata as Record<string, unknown> | null) ?? {};
 
+  // Resolve the selected report template (and operator signature) for report jobs.
+  const needsTemplate = jobType === "report" || jobType === "full_pipeline";
+  const reportTemplate = needsTemplate
+    ? await resolveReportTemplate(
+        supabase,
+        typeof sessionMetadata.report_template_id === "string"
+          ? sessionMetadata.report_template_id
+          : null,
+      )
+    : null;
+  const reportSignature =
+    typeof sessionMetadata.report_signature === "string" ? sessionMetadata.report_signature : null;
+
   const dispatchPayload = {
     jobId: job.id,
     sessionId: job.session_id,
@@ -183,6 +197,8 @@ async function runThermalProcessJob(jobId: string) {
         sessionMetadata.analysis_params && typeof sessionMetadata.analysis_params === "object"
           ? sessionMetadata.analysis_params
           : null,
+      report_template: reportTemplate,
+      report_signature: reportSignature,
     },
     captures: readyCaptures.map((row) => ({
       captureId: row.id,
@@ -192,6 +208,8 @@ async function runThermalProcessJob(jobId: string) {
       previewPath: row.preview_path,
       anomalies: row.anomalies,
       gps: (row.gps_position as Record<string, unknown> | undefined) ?? {},
+      qualityMetrics: (row.quality_metrics as Record<string, unknown> | undefined) ?? {},
+      metadata: (row.metadata as Record<string, unknown> | undefined) ?? {},
     })),
   };
 

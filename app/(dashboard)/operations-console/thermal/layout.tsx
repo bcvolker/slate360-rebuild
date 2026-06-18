@@ -8,9 +8,10 @@ export const metadata = {
 };
 
 export default async function ThermalOpsLayout({ children }: { children: React.ReactNode }) {
-  const { user, canAccessOperationsConsole } = await resolveServerOrgContext();
+  // Thermal Studio is CEO-only — staff with Operations Console access must NOT reach it.
+  const { user, isSlateCeo } = await resolveServerOrgContext();
   if (!user) redirect("/login");
-  if (!canAccessOperationsConsole) notFound();
+  if (!isSlateCeo) notFound();
 
   return (
     <div className={t.page} data-mobile-route="platform">

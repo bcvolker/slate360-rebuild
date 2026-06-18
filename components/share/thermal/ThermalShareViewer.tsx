@@ -1,16 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import type { ThermalShareViewerData } from "@/lib/thermal/share-viewer-types";
-
-type AnomalyRow = {
-  id?: string;
-  type?: string;
-  severity?: string;
-  delta_c?: number;
-  bbox?: any;
-};
+import { ThermalShareSlide } from "@/components/share/thermal/ThermalShareSlide";
+import { ThermalShareQA } from "@/components/share/thermal/ThermalShareQA";
 
 type Props = {
   data: ThermalShareViewerData | null;
@@ -19,15 +12,8 @@ type Props = {
   embed?: boolean;
 };
 
-function anomalyLabel(row: AnomalyRow): string {
-  const type = row.type?.replace(/_/g, " ") ?? "finding";
-  const delta = row.delta_c != null ? ` · ΔT ${Number(row.delta_c).toFixed(1)}°C` : "";
-  return `${type}${delta} · ${row.severity ?? "info"}`;
-}
-
 export function ThermalShareViewer({ data, token, tokenState, embed = false }: Props) {
-  const [annotateBusy, setAnnotateBusy] = useState<string | null>(null);
-  const [annotateNote, setAnnotateNote] = useState<string | null>(null);
+  const [index, setIndex] = useState(0);
 
   if (tokenState) {
     return (
@@ -36,7 +22,6 @@ export function ThermalShareViewer({ data, token, tokenState, embed = false }: P
       </main>
     );
   }
-
   if (!data) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-[var(--graphite-canvas)] px-6">
@@ -48,165 +33,93 @@ export function ThermalShareViewer({ data, token, tokenState, embed = false }: P
   const branding = data.branding;
   const summary = data.summaryMetrics;
   const canDownload = data.role === "download" && token;
-  const canExport = canDownload;
-  const canAnnotate = (data.role === "annotate" || data.role === "download") && token;
-
-  async function markAnomaly(captureId: string, anomalyId: string, mark: "confirmed" | "false_positive") {
-    if (!token) return;
-    setAnnotateBusy(`${captureId}:${anomalyId}`);
-    setAnnotateNote(null);
-    try {
-      const res = await fetch(`/api/share/thermal/${token}/annotate`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ captureId, anomalyId, mark }),
-      });
-      if (res.ok) {
-        setAnnotateNote("Annotation recorded. Ops will review.");
-      } else {
-        setAnnotateNote("Could not record annotation.");
-      }
-    } catch {
-      setAnnotateNote("Network error while annotating.");
-    } finally {
-      setAnnotateBusy(null);
-    }
-  }
+  const captures = data.captures;
+  const current = captures[Math.min(index, captures.length - 1)];
+  const flagged = (c: (typeof captures)[number]) => (c.anomalies as unknown[] | null)?.length ?? 0;
 
   return (
-    <main
-      className={`bg-[var(--graphite-canvas)] text-[var(--graphite-text-body)] ${embed ? "p-4" : "min-h-screen px-4 py-8"}`}
-    >
+    <main className={`bg-[var(--graphite-canvas)] text-[var(--graphite-text-body)] ${embed ? "p-4" : "min-h-screen px-4 py-8"}`}>
       <div className="mx-auto max-w-5xl">
-        <header className="mb-6 border-b border-[var(--mobile-app-card-border)] pb-4">
+        <header className="mb-5 border-b border-[var(--mobile-app-card-border)] pb-4">
           <p className="text-xs uppercase tracking-[0.12em] text-[var(--graphite-muted)]">
             {branding.company_name || "Thermal inspection report"}
           </p>
           <h1 className="mt-2 text-2xl font-bold text-[var(--graphite-text-header)]">{data.sessionName}</h1>
           {branding.show_metrics !== false ? (
             <div className="mt-3 flex flex-wrap gap-4 text-sm text-[var(--graphite-muted)]">
-              <span>Captures: {String(summary.total_captures ?? data.captures.length)}</span>
-              <span>Radiometric: {String(summary.radiometric_captures ?? "—")}</span>
+              <span>Captures: {String(summary.total_captures ?? captures.length)}</span>
               <span>Max temp: {summary.max_detected_temp_c != null ? `${summary.max_detected_temp_c}°C` : "—"}</span>
               <span>Action items: {String(summary.critical_anomalies ?? 0)}</span>
             </div>
           ) : null}
-          <div className="mt-4 flex flex-wrap gap-3">
-            {canDownload ? (
-              <a
-                href={`/api/share/thermal/${token}/report`}
-                className="inline-flex rounded-full bg-[var(--graphite-primary)] px-4 py-2 text-sm font-semibold text-[#0B0F15]"
-              >
-                Download PDF report
+          {canDownload ? (
+            <div className="mt-4 flex flex-wrap gap-2">
+              <a href={`/api/share/thermal/${token}/report`} className="rounded-full bg-[var(--graphite-primary)] px-4 py-2 text-sm font-semibold text-[#0B0F15]">
+                Download PDF
               </a>
-            ) : null}
-            {canExport ? (
-              <>
-                <a
-                  href={`/api/share/thermal/${token}/export?format=csv`}
-                  className="inline-flex rounded-full border border-[var(--mobile-app-card-border)] px-4 py-2 text-sm font-semibold text-[var(--graphite-text-body)]"
-                >
-                  Export anomalies (CSV)
-                </a>
-                <a
-                  href={`/api/share/thermal/${token}/export?format=json`}
-                  className="inline-flex rounded-full border border-[var(--mobile-app-card-border)] px-4 py-2 text-sm font-semibold text-[var(--graphite-text-body)]"
-                >
-                  Export (JSON)
-                </a>
-                <a
-                  href={`/api/share/thermal/${token}/export?format=geojson`}
-                  className="inline-flex rounded-full border border-[var(--mobile-app-card-border)] px-4 py-2 text-sm font-semibold text-[var(--graphite-text-body)]"
-                >
-                  Export (GeoJSON)
-                </a>
-              </>
-            ) : null}
-          </div>
-          {data.linkedSpaceId ? (
-            <p className="mt-3 text-xs text-[var(--graphite-muted)]">
-              Thermal layer available in the linked Digital Twin viewer (toggle in Desktop Twin 360 Studio).
-            </p>
+              <a href={`/api/share/thermal/${token}/export?format=csv`} className="rounded-full border border-[var(--mobile-app-card-border)] px-4 py-2 text-sm font-semibold">
+                Export CSV
+              </a>
+            </div>
           ) : null}
         </header>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {data.captures.map((capture) => {
-            const anomalies = (capture.anomalies as AnomalyRow[]) ?? [];
-            return (
-              <article
-                key={capture.id}
-                className="overflow-hidden rounded-2xl border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_76%,transparent)]"
+        {captures.length === 0 ? (
+          <p className="text-sm text-[var(--graphite-muted)]">No images in this inspection yet.</p>
+        ) : (
+          <>
+            <div className="mb-3 flex items-center justify-between">
+              <button
+                type="button"
+                onClick={() => setIndex((i) => Math.max(0, i - 1))}
+                disabled={index === 0}
+                className="rounded-lg border border-[var(--mobile-app-card-border)] px-3 py-1.5 text-sm disabled:opacity-40"
               >
-                <div className="relative aspect-[4/3] bg-[#111827]">
-                  {capture.previewUrl ? (
-                    <Image
-                      src={capture.previewUrl}
-                      alt={capture.filename ?? "Thermal"}
-                      fill
-                      className="object-cover"
-                      unoptimized
-                    />
-                  ) : (
-                    <div className="flex h-full items-center justify-center text-xs text-[var(--graphite-muted)]">
-                      Preview unavailable
-                    </div>
-                  )}
-                </div>
-                <div className="p-3 text-sm">
-                  <p className="truncate font-medium text-[var(--graphite-text-header)]">
-                    {capture.filename ?? "Capture"}
-                  </p>
-                  <p className="mt-1 text-xs text-[var(--graphite-muted)]">
-                    {capture.qualityMetrics?.min_temp_c != null
-                      ? `${Number(capture.qualityMetrics.min_temp_c).toFixed(1)}°C – ${Number(capture.qualityMetrics.max_temp_c).toFixed(1)}°C`
-                      : "Temperature pending"}
-                  </p>
-                  {anomalies.length ? (
-                    <ul className="mt-2 space-y-1 text-xs text-[var(--graphite-muted)]">
-                      {anomalies.slice(0, 5).map((row, index) => {
-                        const aid = row.id || `${capture.id}-${index}`;
-                        const busy = annotateBusy === `${capture.id}:${aid}`;
-                        return (
-                          <li key={aid} className="flex items-start gap-2">
-                            <span className="text-[var(--graphite-primary)]">»</span>
-                            <span>{anomalyLabel(row)}</span>
-                            {canAnnotate ? (
-                              <span className="ml-auto flex gap-1 text-[10px]">
-                                <button
-                                  className="rounded border border-[var(--graphite-primary)] px-1 text-[var(--graphite-primary)] disabled:opacity-50"
-                                  disabled={!!busy}
-                                  onClick={() => markAnomaly(capture.id, aid, "confirmed")}
-                                >
-                                  ✓
-                                </button>
-                                <button
-                                  className="rounded border px-1 text-[var(--graphite-muted)] disabled:opacity-50"
-                                  disabled={!!busy}
-                                  onClick={() => markAnomaly(capture.id, aid, "false_positive")}
-                                >
-                                  ✕
-                                </button>
-                              </span>
-                            ) : null}
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  ) : null}
+                ← Prev
+              </button>
+              <p className="text-xs text-[var(--graphite-muted)]">
+                Image {Math.min(index + 1, captures.length)} of {captures.length}
+              </p>
+              <button
+                type="button"
+                onClick={() => setIndex((i) => Math.min(captures.length - 1, i + 1))}
+                disabled={index >= captures.length - 1}
+                className="rounded-lg border border-[var(--mobile-app-card-border)] px-3 py-1.5 text-sm disabled:opacity-40"
+              >
+                Next →
+              </button>
+            </div>
 
-                  {data.linkedSpaceId ? (
-                    <p className="mt-2 text-[10px] text-[var(--graphite-muted)]">
-                      Linked to Digital Twin space {data.linkedSpaceId.slice(0, 8)}… — open Twin 360 for spatial context.
-                    </p>
-                  ) : null}
-                </div>
-              </article>
-            );
-          })}
-        </div>
+            {current ? <ThermalShareSlide capture={current} /> : null}
 
-        {annotateNote ? <p className="mt-4 text-xs text-[var(--graphite-muted)]">{annotateNote}</p> : null}
+            {/* Thumbnail strip — click to jump */}
+            <div className="mt-3 flex gap-2 overflow-x-auto rounded-xl border border-[var(--mobile-app-card-border)] p-2">
+              {captures.map((c, i) => (
+                <button
+                  key={c.id}
+                  type="button"
+                  onClick={() => setIndex(i)}
+                  className={`relative h-14 w-20 shrink-0 overflow-hidden rounded-md border bg-[#111827] ${
+                    i === index ? "border-[var(--graphite-primary)]" : "border-[var(--mobile-app-card-border)]"
+                  }`}
+                  title={c.filename ?? "Capture"}
+                >
+                  {c.previewUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={c.previewUrl} alt={c.filename ?? ""} className="h-full w-full object-cover" />
+                  ) : null}
+                  {flagged(c) ? (
+                    <span className="absolute right-0.5 top-0.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-[#fb923c] px-1 text-[8px] font-bold text-black">
+                      {flagged(c)}
+                    </span>
+                  ) : null}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+
+        {token ? <ThermalShareQA token={token} /> : null}
 
         {branding.custom_footer ? (
           <footer className="mt-8 text-xs text-[var(--graphite-muted)]">{branding.custom_footer}</footer>

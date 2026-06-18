@@ -8,6 +8,7 @@ import type {
   ThermalWorkerCaptureResult,
   ThermalWorkerReportOutput,
 } from "@/lib/thermal/types";
+import { bridgeThermalReportDeliverables } from "@/lib/thermal/slatedrop-bridge";
 
 type AdminClient = SupabaseClient;
 
@@ -102,6 +103,9 @@ async function insertReportRow(
     generated_at: new Date().toISOString(),
     config: { job_id: job.id },
   });
+
+  // Index finished deliverables into SlateDrop when the session is linked to a project.
+  await bridgeThermalReportDeliverables(admin, job, report);
 }
 
 async function refreshSessionSummary(

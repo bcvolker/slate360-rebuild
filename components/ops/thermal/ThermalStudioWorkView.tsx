@@ -1,7 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { ThermalProbeViewer, type ThermalProbeGrid } from "@/components/ops/thermal/ThermalProbeViewer";
+import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  ThermalProbeViewer,
+  type ThermalProbeGrid,
+  type ProbeSpot,
+  type ProbeTuning,
+} from "@/components/ops/thermal/ThermalProbeViewer";
+import type { ThermalAnomaly } from "@/lib/thermal/anomaly-describe";
 
 export type StudioCapture = {
   id: string;
@@ -9,13 +15,36 @@ export type StudioCapture = {
   previewUrl?: string | null;
   qualityMetrics?: Record<string, unknown> | null;
   metadata?: Record<string, unknown> | null;
+  anomalies?: unknown[] | null;
 };
 
 type Props = {
   captures: StudioCapture[];
+  /** Standards from the active report template — drives finding descriptions. */
+  standards?: string[];
   /** Loads the per-pixel grid for a capture. Defaults to the ops grid API. */
   loadGrid?: (captureId: string) => Promise<ThermalProbeGrid | null>;
+  /** Persist user spots for a capture. Defaults to the ops capture PATCH API. */
+  saveSpots?: (captureId: string, spots: ProbeSpot[]) => void;
+  /** Persist per-image tuning. Defaults to the ops capture PATCH API. */
+  saveTuning?: (captureId: string, tuning: ProbeTuning) => void;
 };
+
+function defaultSaveSpots(captureId: string, spots: ProbeSpot[]): void {
+  fetch(`/api/ops/thermal/captures/${captureId}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ spots }),
+  }).catch(() => {});
+}
+
+function defaultSaveTuning(captureId: string, tuning: ProbeTuning): void {
+  fetch(`/api/ops/thermal/captures/${captureId}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ tuning }),
+  }).catch(() => {});
+}
 
 function defaultLoadGrid(captureId: string): Promise<ThermalProbeGrid | null> {
   return fetch(`/api/ops/thermal/captures/${captureId}/grid`)
@@ -40,12 +69,49 @@ function num(v: unknown, suffix = ""): string {
   return typeof v === "number" && Number.isFinite(v) ? `${v.toFixed(1)}${suffix}` : "—";
 }
 
-export function ThermalStudioWorkView({ captures, loadGrid = defaultLoadGrid }: Props) {
+export function ThermalStudioWorkView({
+  captures,
+  standards,
+  loadGrid = defaultLoadGrid,
+  saveSpots = defaultSaveSpots,
+  saveTuning = defaultSaveTuning,
+}: Props) {
   const [selectedId, setSelectedId] = useState<string | null>(captures[0]?.id ?? null);
   const [grid, setGrid] = useState<ThermalProbeGrid | null>(null);
   const [gridState, setGridState] = useState<"loading" | "ready" | "none">("loading");
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const tuningTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [flaggedOnly, setFlaggedOnly] = useState(false);
+
+  const flaggedCount = captures.filter((c) => (c.anomalies?.length ?? 0) > 0).length;
+  const visibleCaptures = flaggedOnly
+    ? captures.filter((c) => (c.anomalies?.length ?? 0) > 0)
+    : captures;
 
   const selected = captures.find((c) => c.id === selectedId) ?? captures[0] ?? null;
+
+  const selectedMeta = (selected?.metadata ?? {}) as Record<string, unknown>;
+  const anomalies = (selected?.anomalies ?? []) as ThermalAnomaly[];
+  const initialSpots = (selectedMeta.spots ?? []) as ProbeSpot[];
+  const initialTuning = (selectedMeta.tuning ?? null) as ProbeTuning | null;
+
+  const onSpotsChange = useCallback(
+    (spots: ProbeSpot[]) => {
+      if (!selected) return;
+      if (saveTimer.current) clearTimeout(saveTimer.current);
+      saveTimer.current = setTimeout(() => saveSpots(selected.id, spots), 600);
+    },
+    [selected, saveSpots],
+  );
+
+  const onTuningChange = useCallback(
+    (tuning: ProbeTuning) => {
+      if (!selected) return;
+      if (tuningTimer.current) clearTimeout(tuningTimer.current);
+      tuningTimer.current = setTimeout(() => saveTuning(selected.id, tuning), 600);
+    },
+    [selected, saveTuning],
+  );
 
   const load = useCallback(
     (id: string) => {
@@ -68,69 +134,100 @@ export function ThermalStudioWorkView({ captures, loadGrid = defaultLoadGrid }: 
   const gps = (meta.gps ?? meta.gps_position ?? {}) as Record<string, unknown>;
 
   return (
-    <div className="grid h-full min-h-0 grid-cols-1 gap-4 lg:grid-cols-[220px_minmax(0,1fr)_260px]">
-      {/* Left: file management */}
-      <aside className="min-h-0 overflow-y-auto rounded-2xl border border-[var(--mobile-app-card-border)] p-2">
-        <p className="px-2 py-1 font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--graphite-muted)]">
-          Captures ({captures.length})
-        </p>
-        <ul className="space-y-1">
-          {captures.map((c) => (
-            <li key={c.id}>
-              <button
-                type="button"
-                onClick={() => setSelectedId(c.id)}
-                className={`w-full truncate rounded-lg px-2 py-1.5 text-left text-xs transition-colors ${
-                  selected?.id === c.id
-                    ? "bg-[color-mix(in_srgb,var(--graphite-primary)_14%,transparent)] text-[var(--graphite-text-header)]"
-                    : "text-[var(--graphite-muted)] hover:bg-[color-mix(in_srgb,var(--graphite-primary)_6%,transparent)]"
-                }`}
-              >
-                {c.filename}
-              </button>
-            </li>
-          ))}
-        </ul>
-      </aside>
-
-      {/* Center: viewer + filmstrip */}
+    <div className="grid h-full min-h-0 grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_260px]">
+      {/* Main: large viewer + filmstrip */}
       <section className="flex min-h-0 min-w-0 flex-col gap-3">
         <div className="min-h-0 flex-1 rounded-2xl border border-[var(--mobile-app-card-border)] p-3">
           {gridState === "ready" && grid ? (
-            <ThermalProbeViewer grid={grid} title={selected?.filename} />
-          ) : (
+            <ThermalProbeViewer
+              grid={grid}
+              title={selected?.filename}
+              anomalies={anomalies}
+              standards={standards}
+              initialSpots={initialSpots}
+              onSpotsChange={onSpotsChange}
+              initialTuning={initialTuning}
+              onTuningChange={onTuningChange}
+            />
+          ) : gridState === "loading" ? (
             <div className="flex h-full min-h-[260px] items-center justify-center text-sm text-[var(--graphite-muted)]">
-              {gridState === "loading"
-                ? "Loading temperature data…"
-                : "No per-pixel grid for this capture (run extraction, or use a radiometric file)."}
+              Loading temperature data…
+            </div>
+          ) : (
+            <div className="flex h-full min-h-[260px] flex-col items-center justify-center gap-3 p-4 text-center">
+              {selected?.previewUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={selected.previewUrl}
+                  alt={selected.filename}
+                  className="max-h-[55%] rounded-lg border border-[var(--mobile-app-card-border)] object-contain"
+                />
+              ) : null}
+              <div className="max-w-md">
+                <p className="text-sm font-semibold text-[var(--graphite-text-header)]">
+                  Per-pixel probing &amp; tuning not available yet
+                </p>
+                <p className="mt-1 text-xs text-[var(--graphite-muted)]">
+                  Emissivity, spots, and temperature readouts unlock once this capture has been decoded.
+                  Run <strong>Process images</strong> from the <strong>Library</strong> tab, then return here.
+                </p>
+              </div>
             </div>
           )}
         </div>
 
+        {/* Filmstrip header: navigation + flagged filter */}
+        <div className="flex shrink-0 items-center justify-between">
+          <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--graphite-muted)]">
+            {visibleCaptures.length} image{visibleCaptures.length === 1 ? "" : "s"}
+          </p>
+          <button
+            type="button"
+            onClick={() => setFlaggedOnly((v) => !v)}
+            disabled={flaggedCount === 0}
+            className={`rounded border px-1.5 py-0.5 text-[10px] font-semibold transition-colors disabled:opacity-40 ${
+              flaggedOnly
+                ? "border-[#fb923c]/50 bg-[#fb923c]/15 text-[#fdba74]"
+                : "border-[var(--mobile-app-card-border)] text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]"
+            }`}
+            title="Show only captures with detected anomalies"
+          >
+            Flagged ({flaggedCount})
+          </button>
+        </div>
+
         {/* Horizontal filmstrip */}
         <div className="flex shrink-0 snap-x gap-2 overflow-x-auto rounded-2xl border border-[var(--mobile-app-card-border)] p-2">
-          {captures.map((c) => (
-            <button
-              key={c.id}
-              type="button"
-              onClick={() => setSelectedId(c.id)}
-              className={`relative h-16 w-20 shrink-0 snap-start overflow-hidden rounded-lg border bg-[#111827] ${
-                selected?.id === c.id
-                  ? "border-[color-mix(in_srgb,var(--graphite-primary)_50%,transparent)]"
-                  : "border-[var(--mobile-app-card-border)]"
-              }`}
-              title={c.filename}
-            >
-              {c.previewUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={c.previewUrl} alt={c.filename} className="h-full w-full object-cover" />
-              ) : (
-                <span className="flex h-full items-center justify-center px-1 text-center text-[8px] text-[var(--graphite-muted)]">
-                  {c.filename}
-                </span>
-              )}
-            </button>
-          ))}
+          {visibleCaptures.map((c) => {
+            const anomalyCount = c.anomalies?.length ?? 0;
+            return (
+              <button
+                key={c.id}
+                type="button"
+                onClick={() => setSelectedId(c.id)}
+                className={`relative h-20 w-28 shrink-0 snap-start overflow-hidden rounded-lg border bg-[#111827] ${
+                  selected?.id === c.id
+                    ? "border-[color-mix(in_srgb,var(--graphite-primary)_50%,transparent)]"
+                    : "border-[var(--mobile-app-card-border)]"
+                }`}
+                title={c.filename}
+              >
+                {c.previewUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={c.previewUrl} alt={c.filename} className="h-full w-full object-cover" />
+                ) : (
+                  <span className="flex h-full items-center justify-center px-1 text-center text-[8px] text-[var(--graphite-muted)]">
+                    {c.filename}
+                  </span>
+                )}
+                {anomalyCount > 0 ? (
+                  <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#fb923c] px-1 text-[9px] font-bold text-black">
+                    {anomalyCount}
+                  </span>
+                ) : null}
+              </button>
+            );
+          })}
         </div>
       </section>
 

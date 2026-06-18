@@ -3,17 +3,17 @@
 import { useState } from "react";
 import { useThermalJobRealtime } from "@/hooks/useThermalJobRealtime";
 import { ThermalJobStatusBar } from "@/components/ops/thermal/ThermalJobStatusBar";
-import { ThermalStudioWorkView, type StudioCapture } from "@/components/ops/thermal/ThermalStudioWorkView";
-import { ThermalSessionActions } from "@/components/ops/thermal/ThermalSessionActions";
-import { ThermalTuningPanel } from "@/components/ops/thermal/ThermalTuningPanel";
-import { ThermalBrandingPanel } from "@/components/ops/thermal/ThermalBrandingPanel";
+import { type StudioCapture } from "@/components/ops/thermal/ThermalStudioWorkView";
+import { ThermalLibrary } from "@/components/ops/thermal/ThermalLibrary";
+import { ThermalAnalyzeTune } from "@/components/ops/thermal/ThermalAnalyzeTune";
+import { ThermalDeliverables } from "@/components/ops/thermal/ThermalDeliverables";
 import { ThermalTwinLayerPanel } from "@/components/ops/thermal/ThermalTwinLayerPanel";
 import type { ThermalBrandingConfig, ThermalProcessingJob } from "@/lib/thermal/types";
 
 type Stage = "captures" | "analyze" | "deliverables" | "twin";
 
 const STAGES: { id: Stage; label: string; step: number }[] = [
-  { id: "captures", label: "Captures", step: 1 },
+  { id: "captures", label: "Library", step: 1 },
   { id: "analyze", label: "Analyze & Tune", step: 2 },
   { id: "deliverables", label: "Deliverables", step: 3 },
   { id: "twin", label: "Twin", step: 4 },
@@ -27,16 +27,24 @@ type Props = {
   brandingConfig: ThermalBrandingConfig;
   initialParams?: unknown;
   linkedSpaceId: string | null;
+  /** Standards from the resolved report template — drives finding descriptions. */
+  standards?: string[];
+  initialTemplateId?: string | null;
+  initialSignature?: string | null;
+  initialProjectId?: string | null;
 };
 
 export function ThermalStudioShell({
   sessionId,
-  sessionName,
   captures,
   initialJob,
   brandingConfig,
   initialParams,
   linkedSpaceId,
+  standards,
+  initialTemplateId,
+  initialSignature,
+  initialProjectId,
 }: Props) {
   const [stage, setStage] = useState<Stage>("captures");
   const { job, connected } = useThermalJobRealtime(sessionId);
@@ -75,36 +83,27 @@ export function ThermalStudioShell({
       {/* Persistent processing status so it's always clear whether a job is running */}
       {activeJob ? <ThermalJobStatusBar job={activeJob} connected={connected} /> : null}
 
-      {/* Active stage */}
-      <div className="min-h-0 flex-1 overflow-y-auto">
-        {stage === "captures" ? (
-          captures.length ? (
-            <ThermalStudioWorkView captures={captures} />
-          ) : (
-            <div className="rounded-2xl border border-[var(--mobile-app-card-border)] p-8 text-center text-sm text-[var(--graphite-muted)]">
-              No captures yet. Upload thermal files to begin.
-            </div>
-          )
-        ) : null}
+      {/* Active stage — chrome never scrolls; each stage manages its own space. */}
+      <div className="min-h-0 flex-1 overflow-hidden">
+        {stage === "captures" ? <ThermalLibrary sessionId={sessionId} captures={captures} /> : null}
 
         {stage === "analyze" ? (
-          <div className="space-y-4">
-            <ThermalSessionActions sessionId={sessionId} captureCount={captures.length} />
-            <ThermalTuningPanel sessionId={sessionId} initialParams={initialParams} />
-          </div>
+          <ThermalAnalyzeTune
+            sessionId={sessionId}
+            captures={captures}
+            standards={standards}
+            initialParams={initialParams}
+          />
         ) : null}
 
         {stage === "deliverables" ? (
-          <div className="grid gap-4 lg:grid-cols-2">
-            <ThermalBrandingPanel sessionId={sessionId} initial={brandingConfig} />
-            <div className="rounded-2xl border border-[var(--mobile-app-card-border)] p-4 text-sm text-[var(--graphite-muted)]">
-              <p className="font-semibold text-[var(--graphite-text-header)]">{sessionName}</p>
-              <p className="mt-1">
-                Generate the PDF report, share link, and exports from the Analyze stage actions. Manage report
-                templates from the Thermal Studio menu.
-              </p>
-            </div>
-          </div>
+          <ThermalDeliverables
+            sessionId={sessionId}
+            brandingConfig={brandingConfig}
+            initialTemplateId={initialTemplateId}
+            initialSignature={initialSignature}
+            initialProjectId={initialProjectId}
+          />
         ) : null}
 
         {stage === "twin" ? (

@@ -139,6 +139,9 @@ def build_report_bundle(
                 "filename": capture.get("filename"),
                 "anomalies": capture.get("anomalies") or [],
                 "preview_b64": preview_b64,
+                "qualityMetrics": capture.get("qualityMetrics") or {},
+                "gps": capture.get("gps") or {},
+                "metadata": capture.get("metadata") or {},
             }
         )
 
@@ -152,12 +155,13 @@ def build_report_bundle(
     upload_file(s3, bucket, str(local_pdf), pdf_key, "application/pdf")
     upload_file(s3, bucket, str(local_html), html_key, "text/html; charset=utf-8")
 
-    title = f"{session_meta.get('name') or 'Thermal Inspection'} — Executive Summary"
+    template = session_meta.get("report_template") or {}
+    template_name = template.get("name") or "Executive Summary"
     return {
-        "title": title,
+        "title": f"{session_meta.get('name') or 'Thermal Inspection'} — {template_name}",
         "pdfKey": pdf_key,
         "htmlKey": html_key,
-        "templateId": "executive_one_pager",
+        "templateId": template.get("id") or "executive_one_pager",
     }
 
 
