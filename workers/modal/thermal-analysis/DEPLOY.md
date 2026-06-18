@@ -23,9 +23,15 @@ modal deploy worker.py
 | `jobType` | Behavior |
 |-----------|----------|
 | `extract` | ExifTool + radiometric NPZ + false-color preview |
-| `analyze` | Hot spots, cold bridges, linear streaks on NPZ arrays |
+| `extract_analyze` | extract → analyze, **no report** (honest "decode + find" path) |
+| `analyze` | Hot spots, cold bridges, linear streaks on already-extracted NPZ arrays |
+| `align` | GPS-approximate twin-alignment manifest (COLMAP/LiDAR pending) |
 | `report` | ReportLab PDF + self-contained HTML to R2 |
-| `full_pipeline` | extract → analyze → report in one run |
+| `full_pipeline` | extract → analyze → align → report in one run |
+
+> Deploy (UTF-8 env, Windows): `PYTHONIOENCODING=utf-8 python -m modal deploy worker.py`.
+> Modal creds persist at `~/.modal.toml` (profile `bcvolker`); if the CLI is missing run
+> `python -m pip install modal` — no re-login needed. See repo-root `CLAUDE.md`.
 
 ## Modal secret: `slate360-thermal-worker`
 
