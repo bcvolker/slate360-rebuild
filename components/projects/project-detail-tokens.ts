@@ -2,9 +2,9 @@ const glassSurface =
   "border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_76%,transparent)] backdrop-blur-md";
 
 export const projectDetailTokens = {
-  page: "mx-auto w-full max-w-6xl",
+  page: "mx-auto flex h-full min-h-0 w-full max-w-6xl flex-col",
   header:
-    "sticky top-0 z-20 -mx-4 border-b border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_94%,transparent)] px-4 py-3 backdrop-blur-md lg:-mx-0 lg:px-0",
+    "shrink-0 z-20 -mx-4 border-b border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_94%,transparent)] px-4 py-3 backdrop-blur-md lg:-mx-0 lg:px-0",
   backLink:
     "inline-flex min-h-10 items-center gap-1.5 text-xs font-semibold text-[var(--graphite-muted)] transition-colors hover:text-[var(--graphite-text-header)]",
   projectTitle: "truncate text-xl font-bold text-[var(--graphite-text-header)] lg:text-2xl",
@@ -23,7 +23,7 @@ export const projectDetailTokens = {
     "inline-flex min-h-10 shrink-0 items-center rounded-xl px-4 text-sm font-semibold text-[var(--graphite-muted)] transition-colors hover:bg-[color-mix(in_srgb,var(--graphite-primary)_8%,transparent)] hover:text-[var(--graphite-text-header)]",
   tabLinkActive:
     "bg-[color-mix(in_srgb,var(--graphite-primary)_12%,transparent)] text-[var(--graphite-text-header)] ring-1 ring-inset ring-[color-mix(in_srgb,var(--graphite-primary)_24%,transparent)]",
-  content: "py-5 lg:py-6",
+  content: "min-h-0 flex-1 overflow-y-auto py-5 lg:py-6",
   sectionCard: `rounded-2xl p-5 ${glassSurface}`,
   eyebrow:
     "font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--graphite-muted)]",
