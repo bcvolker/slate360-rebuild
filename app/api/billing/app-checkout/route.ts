@@ -1,18 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { findOrCreateStripeCustomer, getAuthenticatedOrgContext } from "@/lib/billing-server";
-import { 
-  getModularPlanFromPriceId, 
-  getBundleFromPriceId, 
+import {
   getModularPriceId,
+  getBundlePriceId,
+  resolvePlanKey,
   BUNDLE_PLANS,
   STORAGE_ADDON_PLANS,
   CREDIT_ADDON_PACKS,
-  isStandaloneAppId, 
-  getAppPriceId, 
-  type AppBillingCycle, 
-  type StandaloneAppId 
+  isStandaloneAppId,
+  getAppPriceId,
+  type AppBillingCycle,
+  type StandaloneAppId
 } from "@/lib/billing-apps";
+
+/** New paid subscriptions start with a 14-day free trial (homepage promise). */
+const TRIAL_PERIOD_DAYS = 14;
 import type { AppId, AppTier } from "@/lib/entitlements-modular";
 import { getRequestOrigin, getStripeClient } from "@/lib/stripe";
 import { loadOrgFeatureFlags } from "@/lib/server/org-feature-flags";
@@ -45,10 +48,14 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json().catch(() => ({}));
     
-    // Support either legacy appId OR modular planKey
+    // Support either legacy appId OR modular planKey / homepage slug
     const appId = typeof body.appId === "string" ? body.appId : null;
-    const planKey = typeof body.planKey === "string" ? body.planKey : null;
-    const cycle: AppBillingCycle = "monthly"; // only monthly for now
+    const rawPlan =
+      typeof body.planKey === "string" ? body.planKey :
+      typeof body.plan === "string" ? body.plan : null;
+    const planKey = rawPlan ? resolvePlanKey(rawPlan) : null;
+    const cycle: AppBillingCycle =
+      body.cycle === "annual" || body.billing === "annual" ? "annual" : "monthly";
 
     let priceId: string | null = null;
     let kind: string = "standalone_app";
@@ -60,10 +67,10 @@ export async function POST(req: NextRequest) {
       if (planKey.startsWith("bundle_")) {
         const bundleId = planKey.replace("bundle_", "");
         const bundle = BUNDLE_PLANS[bundleId as keyof typeof BUNDLE_PLANS];
-        if (!bundle || !bundle.priceId) {
-           return NextResponse.json({ error: `Invalid bundle or missing Stripe price ID for ${bundleId}` }, { status: 400 });
+        priceId = getBundlePriceId(bundleId as keyof typeof BUNDLE_PLANS, cycle);
+        if (!bundle || !priceId) {
+           return NextResponse.json({ error: `Invalid bundle or missing Stripe price ID for ${bundleId} (${cycle})` }, { status: 400 });
         }
-        priceId = bundle.priceId;
         kind = "modular_bundle";
         metadata_app_id = bundleId;
       } 
@@ -96,10 +103,10 @@ export async function POST(req: NextRequest) {
         }
         const parsedAppId = match[1] as AppId;
         const tier = match[2] as Exclude<AppTier, "none">;
-        priceId = getModularPriceId(parsedAppId, tier);
-        
+        priceId = getModularPriceId(parsedAppId, tier, cycle);
+
         if (!priceId) {
-          return NextResponse.json({ error: `Missing Stripe price for ${planKey}` }, { status: 400 });
+          return NextResponse.json({ error: `Missing Stripe price for ${planKey} (${cycle})` }, { status: 400 });
         }
         kind = "modular_app";
         metadata_app_id = parsedAppId;
@@ -160,10 +167,12 @@ export async function POST(req: NextRequest) {
       line_items: [{ price: priceId!, quantity: 1 }],
       allow_promotion_codes: true,
       success_url: `${origin}${getAppSuccessPath(metadata_app_id)}`,
-      cancel_url: `${origin}/plans`,
+      cancel_url: `${origin}/#pricing`,
       metadata: sharedMetadata,
       client_reference_id: orgContext.user.id,
-      ...(isOneTime ? {} : { subscription_data: { metadata: sharedMetadata } }),
+      ...(isOneTime
+        ? {}
+        : { subscription_data: { metadata: sharedMetadata, trial_period_days: TRIAL_PERIOD_DAYS } }),
     };
 
     const session = await stripe.checkout.sessions.create(sessionParams);

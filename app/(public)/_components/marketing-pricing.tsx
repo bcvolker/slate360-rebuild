@@ -127,7 +127,7 @@ function TierCard({
       </ul>
 
       <Link
-        href={tier.ctaHref}
+        href={`${tier.ctaHref}&billing=${cadence}`}
         className="mt-6 inline-flex w-full items-center justify-center rounded-xl border py-3.5 text-sm font-semibold transition-all active:scale-[0.99] lg:mt-8"
         style={{
           borderColor: `color-mix(in srgb, var(${accentVar}) 35%, transparent)`,
@@ -286,7 +286,7 @@ export function MarketingPricing() {
             </p>
           </div>
           <Link
-            href={BUNDLE_PRICING.ctaHref}
+            href={`${BUNDLE_PRICING.ctaHref}&billing=${cadence}`}
             className="shrink-0 rounded-xl bg-gradient-to-r from-[var(--graphite-primary)] to-[var(--twin360-blue)] px-5 py-3 text-sm font-bold text-[var(--graphite-canvas)] transition-all hover:brightness-110 active:scale-[0.99]"
           >
             {BUNDLE_PRICING.cta}

@@ -10,7 +10,25 @@ import type { AppId, AppTier, BundleId, StorageAddonId } from "@/lib/entitlement
 
 export type StandaloneAppId = "tour_builder" | "punchwalk" | "design_studio" | "content_studio" | "digital_twin";
 
-export type AppBillingCycle = "monthly"; // annual can be added later
+export type AppBillingCycle = "monthly" | "annual";
+
+/**
+ * Homepage CTA slug → internal modular planKey.
+ * Homepage (lib/marketing/pricing-config.ts) links to /signup?plan=<slug>,
+ * which forwards to /plans?plan=<slug>. Checkout speaks planKeys, so map here.
+ */
+export const PLAN_SLUG_TO_KEY: Record<string, string> = {
+  "site-walk-basic": "site_walk_basic",
+  "site-walk-pro": "site_walk_pro",
+  "twin-360-essential": "digital_twin_basic",
+  "twin-360-professional": "digital_twin_pro",
+  "bundle": "bundle_field_pro",
+};
+
+/** Resolve a homepage slug (or a raw planKey) to a checkout planKey. */
+export function resolvePlanKey(slugOrKey: string): string {
+  return PLAN_SLUG_TO_KEY[slugOrKey] ?? slugOrKey;
+}
 
 type StandaloneAppPlan = {
   appId: StandaloneAppId;
@@ -104,16 +122,19 @@ interface ModularStripePlan {
   label: string;
   monthlyPriceUsd: number;
   priceId: string | undefined;
+  annualPriceId?: string | undefined;
 }
 
 export const MODULAR_APP_PLANS: Record<ModularPlanKey, ModularStripePlan> = {
   site_walk_basic: {
     appId: "site_walk", tier: "basic", label: "Site Walk Basic", monthlyPriceUsd: 79,
     priceId: process.env.STRIPE_PRICE_SITEWALK_BASIC,
+    annualPriceId: process.env.STRIPE_PRICE_SITEWALK_BASIC_ANNUAL,
   },
   site_walk_pro: {
-    appId: "site_walk", tier: "pro", label: "Site Walk Pro", monthlyPriceUsd: 129,
+    appId: "site_walk", tier: "pro", label: "Site Walk Pro", monthlyPriceUsd: 149,
     priceId: process.env.STRIPE_PRICE_SITEWALK_PRO,
+    annualPriceId: process.env.STRIPE_PRICE_SITEWALK_PRO_ANNUAL,
   },
   tours_basic: {
     appId: "tours", tier: "basic", label: "360 Tours Basic", monthlyPriceUsd: 49,
@@ -148,12 +169,14 @@ export const MODULAR_APP_PLANS: Record<ModularPlanKey, ModularStripePlan> = {
     priceId: process.env.STRIPE_PRICE_CONTENTSTUDIO_PRO,
   },
   digital_twin_basic: {
-    appId: "digital_twin", tier: "basic", label: "Digital Twin Basic", monthlyPriceUsd: 49,
+    appId: "digital_twin", tier: "basic", label: "Twin 360 Essential", monthlyPriceUsd: 99,
     priceId: process.env.STRIPE_PRICE_DIGITALTWIN_BASIC,
+    annualPriceId: process.env.STRIPE_PRICE_DIGITALTWIN_BASIC_ANNUAL,
   },
   digital_twin_pro: {
-    appId: "digital_twin", tier: "pro", label: "Digital Twin Pro", monthlyPriceUsd: 99,
+    appId: "digital_twin", tier: "pro", label: "Twin 360 Professional", monthlyPriceUsd: 249,
     priceId: process.env.STRIPE_PRICE_DIGITALTWIN_PRO,
+    annualPriceId: process.env.STRIPE_PRICE_DIGITALTWIN_PRO_ANNUAL,
   },
 };
 
@@ -162,16 +185,20 @@ interface BundleStripePlan {
   label: string;
   monthlyPriceUsd: number;
   priceId: string | undefined;
+  annualPriceId?: string | undefined;
 }
 
 export const BUNDLE_PLANS: Record<BundleId, BundleStripePlan> = {
   field_pro: {
-    bundleId: "field_pro", label: "Field Pro Bundle", monthlyPriceUsd: 149,
+    bundleId: "field_pro", label: "Site Walk + Twin 360 Bundle", monthlyPriceUsd: 349,
     priceId: process.env.STRIPE_PRICE_BUNDLE_FIELD_PRO,
+    annualPriceId: process.env.STRIPE_PRICE_BUNDLE_FIELD_PRO_ANNUAL,
   },
+  // Retained only for the BundleId union; same sellable bundle as field_pro.
   all_access: {
-    bundleId: "all_access", label: "All Access Bundle", monthlyPriceUsd: 249,
+    bundleId: "all_access", label: "Site Walk + Twin 360 Bundle", monthlyPriceUsd: 349,
     priceId: process.env.STRIPE_PRICE_BUNDLE_ALL_ACCESS,
+    annualPriceId: process.env.STRIPE_PRICE_BUNDLE_ALL_ACCESS_ANNUAL,
   },
 };
 
@@ -202,10 +229,23 @@ export const CREDIT_ADDON_PACKS = [
 
 export type CreditAddonId = (typeof CREDIT_ADDON_PACKS)[number]["id"];
 
-/** Look up a modular plan Stripe price ID by app + tier. */
-export function getModularPriceId(appId: AppId, tier: Exclude<AppTier, "none">): string | null {
+/** Look up a modular plan Stripe price ID by app + tier + billing cycle. */
+export function getModularPriceId(
+  appId: AppId,
+  tier: Exclude<AppTier, "none">,
+  cycle: AppBillingCycle = "monthly",
+): string | null {
   const key = `${appId}_${tier}` as ModularPlanKey;
-  return MODULAR_APP_PLANS[key]?.priceId ?? null;
+  const plan = MODULAR_APP_PLANS[key];
+  if (!plan) return null;
+  return (cycle === "annual" ? plan.annualPriceId : plan.priceId) ?? null;
+}
+
+/** Look up a bundle Stripe price ID by bundle + billing cycle. */
+export function getBundlePriceId(bundleId: BundleId, cycle: AppBillingCycle = "monthly"): string | null {
+  const plan = BUNDLE_PLANS[bundleId];
+  if (!plan) return null;
+  return (cycle === "annual" ? plan.annualPriceId : plan.priceId) ?? null;
 }
 
 /** Reverse-lookup: given a Stripe priceId, find which app + tier it belongs to. */
