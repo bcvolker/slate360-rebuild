@@ -9,6 +9,7 @@ const triggerRequestOptions = { clientConfig: { previewBranch: "" } };
 
 const ALLOWED_JOB_TYPES: ThermalJobType[] = [
   "extract",
+  "extract_analyze",
   "align",
   "analyze",
   "report",

@@ -36,7 +36,7 @@ export function recomputeTemp(t0C: number, e0: number, e1: number, treflC: numbe
 }
 
 export type TunedGrid = {
-  temps: number[] | Float64Array;
+  temps: number[] | Float32Array | Float64Array;
   minC: number;
   maxC: number;
 };
@@ -46,7 +46,7 @@ export type TunedGrid = {
  * original arrays unchanged when the new emissivity matches the original (no-op).
  */
 export function tuneTemps(
-  temps: number[] | Float64Array,
+  temps: number[] | Float32Array | Float64Array,
   baseMinC: number,
   baseMaxC: number,
   e0: number,

@@ -4,7 +4,7 @@ import { resolveServerOrgContext } from "@/lib/server/org-context";
 import { thermalOpsTokens as t } from "@/components/ops/thermal/thermal-ops-tokens";
 
 export const metadata = {
-  title: "Thermal Analysis — Operations Console",
+  title: "Thermal Studio",
 };
 
 export default async function ThermalOpsLayout({ children }: { children: React.ReactNode }) {
@@ -17,8 +17,7 @@ export default async function ThermalOpsLayout({ children }: { children: React.R
     <div className={t.page} data-mobile-route="platform">
       <header className={t.header}>
         <div>
-          <p className={t.eyebrow}>Operations Console</p>
-          <h1 className={t.title}>Thermal Analysis</h1>
+          <h1 className={t.title}>Thermal Studio</h1>
           <p className={t.subtitle}>Private radiometric inspection workspace</p>
         </div>
         <nav className="flex flex-wrap gap-2">

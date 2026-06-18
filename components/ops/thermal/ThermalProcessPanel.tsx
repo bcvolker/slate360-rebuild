@@ -40,10 +40,10 @@ export function ThermalProcessPanel({
     if (v) { setFind(true); setDecode(true); }
   }
 
-  let jobType: "extract" | "analyze" | "report" | "full_pipeline" = "full_pipeline";
-  let extraNote = "";
+  let jobType: "extract" | "extract_analyze" | "analyze" | "report" | "full_pipeline" =
+    "full_pipeline";
   if (decode && find && report) jobType = "full_pipeline";
-  else if (decode && find && !report) { jobType = "full_pipeline"; extraNote = " (a report is produced as part of a full scan)"; }
+  else if (decode && find && !report) jobType = "extract_analyze";
   else if (find && !decode) jobType = "analyze";
   else if (report && !find) jobType = "report";
   else if (decode && !find) jobType = "extract";
@@ -51,7 +51,7 @@ export function ThermalProcessPanel({
   const steps = [
     decode ? "decode temperatures" : null,
     find ? "find thermal problems" : null,
-    report || jobType === "full_pipeline" ? "build a report" : null,
+    report ? "build a report" : null,
   ].filter(Boolean);
   const summary = `This will ${steps.join(", ")} for ${targetIds.length} image${targetIds.length === 1 ? "" : "s"}.`;
 
@@ -107,7 +107,7 @@ export function ThermalProcessPanel({
         {opt(report, setReportSafe, "Build report", "Produce a PDF from the findings.")}
       </div>
 
-      <p className="mt-3 text-xs text-[var(--graphite-text-body)]">{summary}{extraNote}</p>
+      <p className="mt-3 text-xs text-[var(--graphite-text-body)]">{summary}</p>
       <p className="text-[11px] text-[var(--graphite-muted)]">Runs in the cloud (usually under a couple of minutes); progress shows in the status bar above.</p>
 
       <div className="mt-3 flex items-center gap-3">

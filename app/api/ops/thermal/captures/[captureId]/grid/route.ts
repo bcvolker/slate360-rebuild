@@ -1,4 +1,4 @@
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
 import { withThermalOpsAuth } from "@/lib/thermal/access";
 import { ok, badRequest, notFound, serverError } from "@/lib/server/api-response";
@@ -80,12 +80,12 @@ export const GET = (req: NextRequest, { params }: Params) =>
     }
 
     if (!isHikmicroRadiometric(bytes)) {
-      return new Response(
-        JSON.stringify({
+      return NextResponse.json(
+        {
           error:
             "Per-pixel grid not available yet — run extract to generate the radiometric grid for this capture format.",
-        }),
-        { status: 415, headers: { "Content-Type": "application/json" } },
+        },
+        { status: 415 },
       );
     }
 

@@ -14,6 +14,7 @@ export type ThermalJobStatus =
 
 export type ThermalJobType =
   | "extract"
+  | "extract_analyze"
   | "align"
   | "analyze"
   | "stitch"
@@ -77,6 +78,8 @@ export type ThermalCapture = {
   quality_metrics: ThermalQualityMetrics;
   anomalies: unknown[];
   telemetry: Record<string, unknown>;
+  /** Per-capture studio state: spots, tuning, findings, in_report, report_order, visual_pair_id, alignment. */
+  metadata: Record<string, unknown> | null;
   deleted_at: string | null;
   created_at: string;
   updated_at: string;

@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useThermalJobRealtime } from "@/hooks/useThermalJobRealtime";
 import { ThermalJobStatusBar } from "@/components/ops/thermal/ThermalJobStatusBar";
+import { ThermalSessionSummaryBar } from "@/components/ops/thermal/ThermalSessionSummaryBar";
 import { type StudioCapture } from "@/components/ops/thermal/ThermalStudioWorkView";
 import { ThermalLibrary } from "@/components/ops/thermal/ThermalLibrary";
 import { ThermalAnalyzeTune } from "@/components/ops/thermal/ThermalAnalyzeTune";
@@ -32,6 +34,8 @@ type Props = {
   initialTemplateId?: string | null;
   initialSignature?: string | null;
   initialProjectId?: string | null;
+  /** Server-computed session summary (captures / anomalies / max temp). */
+  summaryMetrics?: Record<string, unknown> | null;
 };
 
 export function ThermalStudioShell({
@@ -45,11 +49,34 @@ export function ThermalStudioShell({
   initialTemplateId,
   initialSignature,
   initialProjectId,
+  summaryMetrics,
 }: Props) {
+  const router = useRouter();
   const [stage, setStage] = useState<Stage>("captures");
   const [activeCaptureId, setActiveCaptureId] = useState<string | null>(captures[0]?.id ?? null);
   const { job, connected } = useThermalJobRealtime(sessionId);
   const activeJob = job ?? initialJob;
+
+  // The session page loads captures once, server-side. When a cloud job finishes,
+  // re-run the server component so freshly-decoded captures / anomalies appear —
+  // without this the Library/Inspect tabs stay empty and processing "feels broken".
+  const lastRefreshedJob = useRef<string | null>(null);
+  useEffect(() => {
+    if (!job) return;
+    if (job.status !== "completed" && job.status !== "failed") return;
+    const key = `${job.id}:${job.status}`;
+    if (lastRefreshedJob.current === key) return;
+    lastRefreshedJob.current = key;
+    router.refresh();
+  }, [job, router]);
+
+  const summary = useMemo(
+    () => ({
+      ...(summaryMetrics ?? {}),
+      total_captures: captures.length,
+    }),
+    [summaryMetrics, captures.length],
+  );
 
   // One workflow: opening an image in the Library jumps to the Analyze workbench.
   function openInWorkbench(id: string) {
@@ -59,6 +86,9 @@ export function ThermalStudioShell({
 
   return (
     <div className="flex h-full min-h-0 flex-col gap-3">
+      {/* Persistent session summary — always visible across stages. */}
+      <ThermalSessionSummaryBar summary={summary} />
+
       {/* Stepper nav */}
       <nav className="flex flex-wrap items-center gap-1.5" aria-label="Studio stages">
         {STAGES.map((s) => {

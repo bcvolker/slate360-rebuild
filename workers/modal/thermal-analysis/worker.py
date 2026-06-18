@@ -3,7 +3,8 @@ Slate360 Thermal Analysis — Modal CPU worker.
 
 HTTP contract (POST /process):
   Request JSON: jobId, sessionId, orgId, jobType, captures[], sessionMeta?
-  jobType: extract | align | analyze | report | full_pipeline
+  jobType: extract | extract_analyze | align | analyze | report | full_pipeline
+    extract_analyze = decode + find problems, no report (honest "decode + find" path)
 """
 
 from __future__ import annotations
@@ -123,7 +124,7 @@ def process_thermal_job(payload: dict[str, Any]) -> None:
         extract_results: list[dict[str, Any]] = []
         analyze_results: list[dict[str, Any]] = []
 
-        if job_type in ("extract", "full_pipeline"):
+        if job_type in ("extract", "extract_analyze", "full_pipeline"):
             post_callback({"jobId": job_id, "status": "progress", "progressPct": 10, "stage": "extract"})
             total = len(captures)
             for index, capture in enumerate(captures, start=1):
@@ -165,7 +166,7 @@ def process_thermal_job(payload: dict[str, Any]) -> None:
             ]
             captures = analyze_captures
 
-        if job_type in ("analyze", "full_pipeline"):
+        if job_type in ("analyze", "extract_analyze", "full_pipeline"):
             post_callback({"jobId": job_id, "status": "progress", "progressPct": 50, "stage": "analyze"})
             total = len(captures)
             for index, capture in enumerate(captures, start=1):
@@ -180,19 +181,22 @@ def process_thermal_job(payload: dict[str, Any]) -> None:
                         "stage": f"analyze_{index}_of_{total}",
                     }
                 )
-            if job_type == "analyze":
-                post_callback(
-                    {
-                        "jobId": job_id,
-                        "status": "completed",
-                        "progressPct": 100,
-                        "stage": "complete",
-                        "analyzeResults": analyze_results,
-                        "qualityMetrics": {
-                            "critical_anomalies": _count_action_anomalies(analyze_results),
-                        },
-                    }
-                )
+            if job_type in ("analyze", "extract_analyze"):
+                completed_payload: dict[str, Any] = {
+                    "jobId": job_id,
+                    "status": "completed",
+                    "progressPct": 100,
+                    "stage": "complete",
+                    "analyzeResults": analyze_results,
+                    "qualityMetrics": {
+                        "critical_anomalies": _count_action_anomalies(analyze_results),
+                    },
+                }
+                # extract_analyze also produced NPZ/previews — surface them so the
+                # UI can render the freshly-decoded captures (decode + find, no report).
+                if job_type == "extract_analyze":
+                    completed_payload["captureResults"] = extract_results
+                post_callback(completed_payload)
                 return
 
             report_captures = []

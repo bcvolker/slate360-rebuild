@@ -55,6 +55,7 @@ export default async function ThermalSessionDetailPage({ params }: PageProps) {
           initialTemplateId={templateId}
           initialSignature={signature}
           initialProjectId={(detail.session.project_id as string | null) ?? null}
+          summaryMetrics={(detail.session.summary_metrics as Record<string, unknown> | null) ?? null}
         />
       </div>
     </div>

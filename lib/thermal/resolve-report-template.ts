@@ -6,6 +6,7 @@
  * from the selected template (or the operator's saved one).
  */
 
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { SEED_REPORT_TEMPLATES, type ThermalReportTemplate } from "@/lib/thermal/report-templates";
 
 export type ResolvedReportTemplate = {
@@ -43,22 +44,15 @@ function seedById(id: string | null | undefined): ThermalReportTemplate | undefi
   return SEED_REPORT_TEMPLATES.find((t) => t.id === id);
 }
 
-/** Minimal Supabase-like client surface the resolver needs (works for app + trigger). */
-type QueryClient = {
-  from: (table: string) => {
-    select: (cols: string) => {
-      eq: (col: string, val: string) => {
-        maybeSingle: () => Promise<{ data: { config: unknown } | null }>;
-      };
-    };
-  };
-};
-
 /**
  * @param templateId  session.metadata.report_template_id (seed id or org template uuid)
+ *
+ * `client` is typed as the real SupabaseClient (not a hand-rolled structural type)
+ * — the structural surface forced TS into excessively-deep type instantiation and
+ * crashed tsc (exit 134 OOM) when this resolver was checked against the SDK.
  */
 export async function resolveReportTemplate(
-  client: QueryClient,
+  client: SupabaseClient,
   templateId: string | null | undefined,
 ): Promise<ResolvedReportTemplate> {
   const seed = seedById(templateId);
@@ -74,7 +68,7 @@ export async function resolveReportTemplate(
         .maybeSingle();
       const config = data?.config as Partial<ThermalReportTemplate> | undefined;
       if (config && typeof config === "object") {
-        return toResolved({ id: templateId, ...(config as ThermalReportTemplate) });
+        return toResolved({ ...(config as ThermalReportTemplate), id: templateId });
       }
     } catch {
       // fall through to default
