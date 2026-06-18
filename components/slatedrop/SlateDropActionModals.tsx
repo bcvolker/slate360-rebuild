@@ -60,10 +60,10 @@ export default function SlateDropActionModals({
         <ModalBackdrop onClose={() => setNewFolderModal(null)}>
           <div className="w-full max-w-sm bg-[#151A23] rounded-2xl shadow-2xl overflow-hidden border border-white/10">
             <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
-              <h3 className="text-base font-bold text-slate-100">New Folder</h3>
+              <h3 className="text-base font-bold text-[var(--graphite-text-body)]">New Folder</h3>
               <button
                 onClick={() => setNewFolderModal(null)}
-                className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:bg-white/[0.06]"
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--graphite-muted)] hover:bg-white/[0.06]"
               >
                 <X size={16} />
               </button>
@@ -74,13 +74,13 @@ export default function SlateDropActionModals({
                 value={newFolderModal.name}
                 onChange={(event) => setNewFolderModal((prev) => (prev ? { ...prev, name: event.target.value } : prev))}
                 placeholder="Folder name"
-                className="w-full px-3.5 py-2.5 rounded-xl border border-white/10 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all mb-4"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-white/10 text-sm focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--graphite-primary)_20%,transparent)] focus:border-[var(--graphite-primary)] transition-all mb-4"
                 autoFocus
               />
               <div className="flex gap-2">
                 <button
                   onClick={() => setNewFolderModal(null)}
-                  className="flex-1 py-2.5 rounded-xl border border-white/10 text-sm font-semibold text-slate-300 hover:bg-white/[0.03] transition-colors"
+                  className="flex-1 py-2.5 rounded-xl border border-white/10 text-sm font-semibold text-[var(--graphite-text-body)] hover:bg-white/[0.03] transition-colors"
                 >
                   Cancel
                 </button>
@@ -93,7 +93,7 @@ export default function SlateDropActionModals({
                   }}
                   disabled={!newFolderModal.name.trim()}
                   className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-foreground transition-all hover:opacity-90 disabled:opacity-50"
-                  style={{ backgroundColor: "#F59E0B" }}
+                  style={{ backgroundColor: "var(--graphite-primary)" }}
                 >
                   Create
                 </button>
@@ -107,8 +107,8 @@ export default function SlateDropActionModals({
         <ModalBackdrop onClose={() => setRenameModal(null)}>
           <div className="w-full max-w-sm bg-[#151A23] rounded-2xl shadow-2xl overflow-hidden border border-white/10">
             <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
-              <h3 className="text-base font-bold text-slate-100">Rename {renameModal.type}</h3>
-              <button onClick={() => setRenameModal(null)} className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:bg-white/[0.06]">
+              <h3 className="text-base font-bold text-[var(--graphite-text-body)]">Rename {renameModal.type}</h3>
+              <button onClick={() => setRenameModal(null)} className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--graphite-muted)] hover:bg-white/[0.06]">
                 <X size={16} />
               </button>
             </div>
@@ -117,13 +117,13 @@ export default function SlateDropActionModals({
                 type="text"
                 value={renameValue}
                 onChange={(event) => setRenameValue(event.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-white/10 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all mb-4"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-white/10 text-sm focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--graphite-primary)_20%,transparent)] focus:border-[var(--graphite-primary)] transition-all mb-4"
                 autoFocus
               />
               <div className="flex gap-2">
                 <button
                   onClick={() => setRenameModal(null)}
-                  className="flex-1 py-2.5 rounded-xl border border-white/10 text-sm font-semibold text-slate-300 hover:bg-white/[0.03] transition-colors"
+                  className="flex-1 py-2.5 rounded-xl border border-white/10 text-sm font-semibold text-[var(--graphite-text-body)] hover:bg-white/[0.03] transition-colors"
                 >
                   Cancel
                 </button>
@@ -133,7 +133,7 @@ export default function SlateDropActionModals({
                     await onRename(renameModal, renameValue.trim());
                   }}
                   className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-foreground transition-all hover:opacity-90"
-                  style={{ backgroundColor: "#F59E0B" }}
+                  style={{ backgroundColor: "var(--graphite-primary)" }}
                 >
                   Rename
                 </button>
@@ -150,14 +150,14 @@ export default function SlateDropActionModals({
               <div className="w-14 h-14 rounded-2xl bg-red-500/10 flex items-center justify-center mx-auto mb-4">
                 <Trash2 size={24} className="text-red-500" />
               </div>
-              <h3 className="text-base font-bold text-slate-100 mb-2">Delete {deleteConfirm.type}?</h3>
-              <p className="text-xs text-slate-500 mb-6">
+              <h3 className="text-base font-bold text-[var(--graphite-text-body)] mb-2">Delete {deleteConfirm.type}?</h3>
+              <p className="text-xs text-[var(--graphite-muted)] mb-6">
                 &quot;{deleteConfirm.name}&quot; will be permanently deleted. This action cannot be undone.
               </p>
 
               {deleteConfirm.type === "project" && (
                 <div className="text-left mb-6">
-                  <label className="block text-xs font-semibold text-slate-200 mb-1.5">
+                  <label className="block text-xs font-semibold text-[var(--graphite-text-body)] mb-1.5">
                     Type <span className="font-black text-red-400">{deleteConfirm.name}</span> to confirm
                   </label>
                   <input
@@ -165,7 +165,7 @@ export default function SlateDropActionModals({
                     value={deleteProjectConfirmName}
                     onChange={(event) => setDeleteProjectConfirmName(event.target.value)}
                     placeholder="Enter project name..."
-                    className="w-full rounded-xl border border-white/10 px-3.5 py-2.5 text-sm text-slate-100 placeholder-gray-400 focus:border-red-400 focus:ring-2 focus:ring-red-100 outline-none transition-all"
+                    className="w-full rounded-xl border border-white/10 px-3.5 py-2.5 text-sm text-[var(--graphite-text-body)] placeholder-gray-400 focus:border-red-400 focus:ring-2 focus:ring-red-100 outline-none transition-all"
                     autoFocus
                   />
                 </div>
@@ -174,7 +174,7 @@ export default function SlateDropActionModals({
               <div className="flex gap-2">
                 <button
                   onClick={() => setDeleteConfirm(null)}
-                  className="flex-1 py-2.5 rounded-xl border border-white/10 text-sm font-semibold text-slate-300 hover:bg-white/[0.03] transition-colors"
+                  className="flex-1 py-2.5 rounded-xl border border-white/10 text-sm font-semibold text-[var(--graphite-text-body)] hover:bg-white/[0.03] transition-colors"
                 >
                   Cancel
                 </button>
@@ -202,10 +202,10 @@ export default function SlateDropActionModals({
           <div className="w-full max-w-md bg-[#151A23] rounded-2xl shadow-2xl overflow-hidden border border-white/10">
             <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
               <div>
-                <h3 className="text-base font-bold text-slate-100">Move File</h3>
-                <p className="text-xs text-slate-400 mt-0.5">Select destination for &quot;{moveModal.name}&quot;</p>
+                <h3 className="text-base font-bold text-[var(--graphite-text-body)]">Move File</h3>
+                <p className="text-xs text-[var(--graphite-muted)] mt-0.5">Select destination for &quot;{moveModal.name}&quot;</p>
               </div>
-              <button onClick={() => setMoveModal(null)} className="text-slate-500 hover:text-slate-300 transition-colors">
+              <button onClick={() => setMoveModal(null)} className="text-[var(--graphite-muted)] hover:text-[var(--graphite-text-body)] transition-colors">
                 <X size={20} />
               </button>
             </div>
@@ -226,10 +226,10 @@ export default function SlateDropActionModals({
                       key={folder.id}
                       onClick={() => setMoveTargetFolder(folder.id)}
                       className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-left transition-colors ${
-                        moveTargetFolder === folder.id ? "bg-amber-500/10 text-amber-500 font-medium" : "hover:bg-white/[0.03] text-slate-200"
+                        moveTargetFolder === folder.id ? "bg-[color-mix(in_srgb,var(--graphite-primary)_10%,transparent)] text-[var(--graphite-primary)] font-medium" : "hover:bg-white/[0.03] text-[var(--graphite-text-body)]"
                       }`}
                     >
-                      <Folder size={16} className={moveTargetFolder === folder.id ? "text-amber-500" : "text-slate-500"} />
+                      <Folder size={16} className={moveTargetFolder === folder.id ? "text-[var(--graphite-primary)]" : "text-[var(--graphite-muted)]"} />
                       {folder.name}
                     </button>
                   ));
@@ -238,7 +238,7 @@ export default function SlateDropActionModals({
               <div className="flex gap-3">
                 <button
                   onClick={() => setMoveModal(null)}
-                  className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-slate-200 bg-white/[0.06] hover:bg-white/[0.08] transition-colors"
+                  className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-[var(--graphite-text-body)] bg-white/[0.06] hover:bg-white/[0.08] transition-colors"
                 >
                   Cancel
                 </button>
@@ -252,7 +252,7 @@ export default function SlateDropActionModals({
                   }}
                   disabled={!moveTargetFolder || moveTargetFolder === activeFolderId}
                   className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-foreground transition-all hover:opacity-90 disabled:opacity-50"
-                  style={{ backgroundColor: "#F59E0B" }}
+                  style={{ backgroundColor: "var(--graphite-primary)" }}
                 >
                   Move Here
                 </button>

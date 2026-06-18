@@ -12,6 +12,7 @@ import {
   PlanUploadError,
   type PlanUploadProgress,
 } from "@/lib/site-walk/plan-upload";
+import { buildCaptureLaunchUrl } from "@/lib/site-walk/capture-v2-config";
 import type { ProjectPlansTabData, PlansTabPlanSet } from "@/lib/projects/plans-tab-data";
 
 type ProjectPlansTabProps = {
@@ -31,7 +32,35 @@ export function ProjectPlansTab({ data, canManage }: ProjectPlansTabProps) {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const [progress, setProgress] = useState<PlanUploadProgress | null>(null);
+  const [startingId, setStartingId] = useState<string | null>(null);
+  const [startError, setStartError] = useState<string | null>(null);
   const busy = progress !== null && progress.stage !== "complete" && progress.stage !== "error";
+
+  /**
+   * Start a plan walk: create (or resume) a session for this project, then
+   * deep-link into the capture-v2 canvas carrying the plan set. Fixes the old
+   * dead route (/site-walk?projectId&planSetId, which the home page ignored).
+   */
+  async function handleStartWalk(planSetId: string) {
+    setStartError(null);
+    setStartingId(planSetId);
+    try {
+      const res = await fetch("/api/site-walk/sessions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ project_id: data.projectId }),
+      });
+      const json = (await res.json().catch(() => ({}))) as { session?: { id?: string }; error?: string };
+      const sessionId = json.session?.id;
+      if (!res.ok || !sessionId) {
+        throw new Error(json.error ?? "Couldn't start the walk. Please try again.");
+      }
+      router.push(buildCaptureLaunchUrl({ session: sessionId, plan: planSetId }));
+    } catch (error) {
+      setStartError(error instanceof Error ? error.message : "Couldn't start the walk.");
+      setStartingId(null);
+    }
+  }
 
   async function handleFiles(files: FileList | null) {
     const file = files?.[0];
@@ -115,6 +144,16 @@ export function ProjectPlansTab({ data, canManage }: ProjectPlansTabProps) {
         ) : null}
       </section>
 
+      {startError ? (
+        <div
+          role="alert"
+          className="flex items-center gap-2 rounded-xl bg-red-500/10 px-3 py-2 text-sm text-red-300 ring-1 ring-inset ring-red-500/25"
+        >
+          <AlertTriangle className="h-4 w-4" aria-hidden />
+          <span>{startError}</span>
+        </div>
+      ) : null}
+
       {hasPlans ? (
         <ul className="space-y-3">
           {data.planSets.map((set) => (
@@ -137,17 +176,21 @@ export function ProjectPlansTab({ data, canManage }: ProjectPlansTabProps) {
               </div>
               <button
                 type="button"
-                onClick={() => startWalk(router, data.projectId, set.id)}
-                disabled={set.status !== "ready"}
+                onClick={() => void handleStartWalk(set.id)}
+                disabled={set.status !== "ready" || startingId !== null}
                 title={set.status === "ready" ? "Walk this plan" : "Available once conversion finishes"}
                 className={cn(
                   t.secondaryButton,
                   "shrink-0",
-                  set.status !== "ready" && "cursor-not-allowed opacity-50",
+                  (set.status !== "ready" || startingId !== null) && "cursor-not-allowed opacity-50",
                 )}
               >
-                <Footprints className="mr-1.5 h-4 w-4" aria-hidden />
-                Start walk
+                {startingId === set.id ? (
+                  <Loader2 className="mr-1.5 h-4 w-4 animate-spin" aria-hidden />
+                ) : (
+                  <Footprints className="mr-1.5 h-4 w-4" aria-hidden />
+                )}
+                {startingId === set.id ? "Starting…" : "Start walk"}
               </button>
             </li>
           ))}
@@ -174,15 +217,4 @@ function StatusPill({ status }: { status: PlansTabPlanSet["status"] }) {
       {STATUS_LABEL[status]}
     </span>
   );
-}
-
-/** Start-walk entry. Slice 2 replaces this with the plan-aware walk-start sheet;
- *  today it routes into the Site Walk app carrying the project + plan context. */
-function startWalk(
-  router: ReturnType<typeof useRouter>,
-  projectId: string,
-  planSetId: string,
-) {
-  const params = new URLSearchParams({ projectId, planSetId });
-  router.push(`/site-walk?${params.toString()}`);
 }
