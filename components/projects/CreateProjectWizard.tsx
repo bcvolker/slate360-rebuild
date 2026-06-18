@@ -1,8 +1,9 @@
 "use client";
 
 import { FormEvent, useEffect, useRef, useState } from "react";
-import { ChevronLeft, ChevronRight, Loader2, MapPin, X, CheckCircle2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Loader2, MapPin, X, CheckCircle2, Folder } from "lucide-react";
 import WizardLocationPicker, { type LocationPickerValue } from "./WizardLocationPicker";
+import { PROJECT_CREATE_FOLDER_PREVIEW } from "./mobile/project-create-constants";
 
 const PROJECT_TYPES = [
   { value: "ground-up", label: "Ground-Up Construction" },
@@ -23,8 +24,8 @@ const CONTRACT_TYPES = [
   { value: "time-materials", label: "Time & Materials" },
 ];
 
-const STEP_LABELS = ["Basics", "Classification", "Location", "Review"];
-const TOTAL_STEPS = 4;
+const STEP_LABELS = ["Basics", "Location", "Review"];
+const TOTAL_STEPS = 3;
 
 export type CreateProjectPayload = {
   name: string;
@@ -135,32 +136,30 @@ export default function CreateProjectWizard({
               <div>
                 <label className={label}>Project Name <span className="text-red-500">*</span></label>
                 <input value={name} onChange={(e) => setName(e.target.value)} required placeholder="e.g. Maple Heights Residence" className={field} autoFocus />
+                <p className="mt-1.5 text-xs text-[var(--graphite-muted)]">That&apos;s the only required field — everything else is optional.</p>
               </div>
               <div>
                 <label className={label}>Description</label>
-                <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Optional scope summary" rows={4} className={`${field} resize-none`} />
+                <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Optional scope summary" rows={3} className={`${field} resize-none`} />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className={label}>Project Type <span className="font-normal text-[var(--graphite-muted)]">(optional)</span></label>
+                  <select value={projectType} onChange={(e) => setProjectType(e.target.value)} className={field}>
+                    {PROJECT_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className={label}>Contract Type <span className="font-normal text-[var(--graphite-muted)]">(optional)</span></label>
+                  <select value={contractType} onChange={(e) => setContractType(e.target.value)} className={field}>
+                    {CONTRACT_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+                  </select>
+                </div>
               </div>
             </div>
           )}
 
           {step === 2 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className={label}>Project Type</label>
-                <select value={projectType} onChange={(e) => setProjectType(e.target.value)} className={field}>
-                  {PROJECT_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className={label}>Contract Type</label>
-                <select value={contractType} onChange={(e) => setContractType(e.target.value)} className={field}>
-                  {CONTRACT_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
-                </select>
-              </div>
-            </div>
-          )}
-
-          {step === 3 && (
             <div className="space-y-3">
               <div className="h-[360px] w-full overflow-hidden rounded-xl border border-white/10 bg-white/5">
                 <WizardLocationPicker value={location} onChange={setLocation} />
@@ -179,22 +178,40 @@ export default function CreateProjectWizard({
             </div>
           )}
 
-          {step === 4 && (
+          {step === 3 && (
             <div className="space-y-3">
-              <p className="text-sm text-[var(--graphite-muted)] mb-2">Review your project details before creating.</p>
-              {[
-                { label: "Project Name", value: name },
-                { label: "Description", value: description || "—" },
-                { label: "Project Type", value: PROJECT_TYPES.find(t => t.value === projectType)?.label ?? projectType },
-                { label: "Contract Type", value: CONTRACT_TYPES.find(t => t.value === contractType)?.label ?? contractType },
-                { label: "Location", value: location.address || (location.lat !== null && location.lng !== null ? `${location.lat.toFixed(5)}, ${location.lng.toFixed(5)}` : "Not set") },
-                { label: "Boundary", value: location.boundary.length > 0 ? `${location.boundary.length} point polygon` : "Not drawn" },
-              ].map(({ label: l, value }) => (
-                <div key={l} className="rounded-xl border border-white/10 bg-white/5 px-4 py-3">
-                  <p className="text-[10px] font-semibold text-[var(--graphite-muted)] uppercase tracking-wider mb-0.5">{l}</p>
-                  <p className="text-sm font-semibold text-white">{value}</p>
+              <p className="text-sm text-[var(--graphite-muted)] mb-2">Review your project before creating.</p>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {[
+                  { label: "Project Name", value: name },
+                  { label: "Description", value: description || "—" },
+                  { label: "Project Type", value: PROJECT_TYPES.find(t => t.value === projectType)?.label ?? projectType },
+                  { label: "Contract Type", value: CONTRACT_TYPES.find(t => t.value === contractType)?.label ?? contractType },
+                  { label: "Location", value: location.address || (location.lat !== null && location.lng !== null ? `${location.lat.toFixed(5)}, ${location.lng.toFixed(5)}` : "Not set") },
+                  { label: "Boundary", value: location.boundary.length > 0 ? `${location.boundary.length} point polygon` : "Not drawn" },
+                ].map(({ label: l, value }) => (
+                  <div key={l} className="rounded-xl border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_60%,transparent)] px-4 py-3">
+                    <p className="text-[10px] font-semibold text-[var(--graphite-muted)] uppercase tracking-wider mb-0.5">{l}</p>
+                    <p className="truncate text-sm font-semibold text-[var(--graphite-text-header)]">{value}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* SlateDrop structure auto-created on submit */}
+              <div className="rounded-xl border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_60%,transparent)] px-4 py-3">
+                <p className="text-[10px] font-semibold text-[var(--graphite-muted)] uppercase tracking-wider mb-2">Folders created in SlateDrop</p>
+                <div className="grid grid-cols-1 gap-1 sm:grid-cols-2">
+                  {PROJECT_CREATE_FOLDER_PREVIEW.map((folder) => (
+                    <div key={folder.id} className="flex items-center gap-2 text-sm text-[var(--graphite-muted)]">
+                      <Folder className="h-4 w-4 shrink-0 text-[var(--graphite-primary)]" aria-hidden />
+                      {folder.label}
+                    </div>
+                  ))}
                 </div>
-              ))}
+                <p className="mt-2 text-xs text-[var(--graphite-muted)]">
+                  Photos, plans, deliverables, and uploads file here automatically — open them anytime from SlateDrop.
+                </p>
+              </div>
             </div>
           )}
         </form>
