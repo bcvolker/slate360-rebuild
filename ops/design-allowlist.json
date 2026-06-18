@@ -67,7 +67,6 @@
     "components/external-portal/TokenStatePage.tsx",
     "components/install/InstallClient.tsx",
     "components/projects/ChangeHistory.tsx",
-    "components/projects/CreateProjectWizard.tsx",
     "components/projects/ProjectsAllProjectsTab.tsx",
     "components/projects/ProjectsPortfolioOverview.tsx",
     "components/shared/BackButton.tsx",

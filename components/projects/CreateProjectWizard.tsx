@@ -95,32 +95,32 @@ export default function CreateProjectWizard({
     });
   };
 
-  const field = "w-full rounded-xl border border-white/15 bg-white/10 px-4 py-3 text-sm font-semibold text-white placeholder:text-slate-500 focus:border-amber-400 focus:ring-2 focus:ring-amber-500/20 focus:outline-none transition-all";
-  const label = "mb-1.5 block text-xs font-bold text-slate-300";
+  const field = "w-full rounded-xl border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_60%,transparent)] px-4 py-3 text-sm font-semibold text-[var(--graphite-text-header)] placeholder:text-[var(--graphite-muted)] focus:border-[color-mix(in_srgb,var(--graphite-primary)_40%,transparent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--graphite-primary)_20%,transparent)] focus:outline-none transition-all";
+  const label = "mb-1.5 block text-xs font-bold text-[var(--graphite-muted)]";
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 pb-[calc(7rem+env(safe-area-inset-bottom))] sm:pb-4">
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
-      <div onClick={(e) => e.stopPropagation()} className="relative flex max-h-[82dvh] w-full max-w-3xl flex-col overflow-hidden rounded-[1.5rem] border border-white/10 bg-[#0B0F15] text-white shadow-2xl sm:max-h-[90vh]">
+      <div onClick={(e) => e.stopPropagation()} className="relative flex max-h-[82dvh] w-full max-w-3xl flex-col overflow-hidden rounded-[1.5rem] border border-white/10 bg-[var(--graphite-canvas)] text-white shadow-2xl sm:max-h-[90vh]">
 
         {/* Header */}
         <div className="flex items-center justify-between border-b border-white/10 bg-white/5 px-5 py-4">
           <div>
             <h3 className="text-lg font-black text-white">Create Project</h3>
-            <p className="text-xs text-zinc-400 mt-0.5">Step {step} of {TOTAL_STEPS} — {STEP_LABELS[step - 1]}</p>
+            <p className="text-xs text-[var(--graphite-muted)] mt-0.5">Step {step} of {TOTAL_STEPS} — {STEP_LABELS[step - 1]}</p>
           </div>
-          <button type="button" onClick={onClose} className="w-8 h-8 rounded-lg flex items-center justify-center text-zinc-400 hover:bg-white/10 hover:text-white transition-colors"><X size={18} /></button>
+          <button type="button" onClick={onClose} className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--graphite-muted)] hover:bg-white/10 hover:text-white transition-colors"><X size={18} /></button>
         </div>
 
         {/* Progress bar */}
         <div className="h-1 bg-white/[0.04]">
-          <div className="h-full bg-[#3B82F6] transition-all duration-300" style={{ width: `${(step / TOTAL_STEPS) * 100}%` }} />
+          <div className="h-full bg-[var(--graphite-primary)] transition-all duration-300" style={{ width: `${(step / TOTAL_STEPS) * 100}%` }} />
         </div>
 
         {/* Step pills */}
         <div className="flex border-b border-white/10 bg-white/5">
           {STEP_LABELS.map((lbl, i) => (
-            <div key={lbl} className={`flex-1 py-2 text-center text-[10px] font-bold transition-colors ${i + 1 === step ? "text-[#3B82F6]" : i + 1 < step ? "text-emerald-400" : "text-zinc-500"}`}>
+            <div key={lbl} className={`flex-1 py-2 text-center text-[10px] font-bold transition-colors ${i + 1 === step ? "text-[var(--graphite-primary)]" : i + 1 < step ? "text-emerald-400" : "text-[var(--graphite-muted)]"}`}>
               {i + 1 < step && <CheckCircle2 size={10} className="inline mr-0.5 mb-0.5" />}{lbl}
             </div>
           ))}
@@ -166,11 +166,11 @@ export default function CreateProjectWizard({
                 <WizardLocationPicker value={location} onChange={setLocation} />
               </div>
               {location.address && (
-                <p className="text-[11px] text-zinc-400 flex items-center gap-1.5">
-                  <MapPin size={11} className="text-[#3B82F6] shrink-0" />
+                <p className="text-[11px] text-[var(--graphite-muted)] flex items-center gap-1.5">
+                  <MapPin size={11} className="text-[var(--graphite-primary)] shrink-0" />
                   {location.address}
                   {location.lat !== null && location.lng !== null && (
-                    <span className="text-zinc-500">
+                    <span className="text-[var(--graphite-muted)]">
                       ({location.lat.toFixed(5)}, {location.lng.toFixed(5)})
                     </span>
                   )}
@@ -181,7 +181,7 @@ export default function CreateProjectWizard({
 
           {step === 4 && (
             <div className="space-y-3">
-              <p className="text-sm text-zinc-400 mb-2">Review your project details before creating.</p>
+              <p className="text-sm text-[var(--graphite-muted)] mb-2">Review your project details before creating.</p>
               {[
                 { label: "Project Name", value: name },
                 { label: "Description", value: description || "—" },
@@ -191,7 +191,7 @@ export default function CreateProjectWizard({
                 { label: "Boundary", value: location.boundary.length > 0 ? `${location.boundary.length} point polygon` : "Not drawn" },
               ].map(({ label: l, value }) => (
                 <div key={l} className="rounded-xl border border-white/10 bg-white/5 px-4 py-3">
-                  <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider mb-0.5">{l}</p>
+                  <p className="text-[10px] font-semibold text-[var(--graphite-muted)] uppercase tracking-wider mb-0.5">{l}</p>
                   <p className="text-sm font-semibold text-white">{value}</p>
                 </div>
               ))}
@@ -202,20 +202,20 @@ export default function CreateProjectWizard({
         {/* Footer */}
         <div className="border-t border-white/10 bg-white/5 px-5 py-4 flex items-center justify-between">
           {step > 1 ? (
-            <button type="button" onClick={() => setStep((s) => s - 1)} className="inline-flex items-center gap-1.5 rounded-xl border border-white/15 bg-white/5 px-4 py-2.5 text-sm font-semibold text-zinc-300 hover:bg-white/10 transition-all">
+            <button type="button" onClick={() => setStep((s) => s - 1)} className="inline-flex items-center gap-1.5 rounded-xl border border-white/15 bg-white/5 px-4 py-2.5 text-sm font-semibold text-[var(--graphite-text-body)] hover:bg-white/10 transition-all">
               <ChevronLeft size={14} /> Back
             </button>
           ) : (
-            <button type="button" onClick={onClose} className="inline-flex items-center gap-1.5 rounded-xl border border-white/15 bg-white/5 px-4 py-2.5 text-sm font-semibold text-zinc-300 hover:bg-white/10 transition-all">
+            <button type="button" onClick={onClose} className="inline-flex items-center gap-1.5 rounded-xl border border-white/15 bg-white/5 px-4 py-2.5 text-sm font-semibold text-[var(--graphite-text-body)] hover:bg-white/10 transition-all">
               Cancel
             </button>
           )}
           {step < TOTAL_STEPS ? (
-            <button type="button" onClick={() => setStep((s) => s + 1)} disabled={!canAdvance} className="inline-flex items-center gap-1.5 rounded-xl bg-[#3B82F6] px-6 py-2.5 text-sm font-bold text-white hover:bg-[#1D4ED8] disabled:opacity-50 transition-all">
+            <button type="button" onClick={() => setStep((s) => s + 1)} disabled={!canAdvance} className="inline-flex items-center gap-1.5 rounded-xl bg-[var(--graphite-primary)] px-6 py-2.5 text-sm font-bold text-white hover:opacity-90 disabled:opacity-50 transition-all">
               Next <ChevronRight size={14} />
             </button>
           ) : (
-            <button type="submit" form="create-project-form" disabled={creating || !name.trim()} className="inline-flex items-center gap-2 rounded-xl bg-[#3B82F6] px-6 py-2.5 text-sm font-bold text-white hover:bg-[#1D4ED8] disabled:opacity-50 transition-all">
+            <button type="submit" form="create-project-form" disabled={creating || !name.trim()} className="inline-flex items-center gap-2 rounded-xl bg-[var(--graphite-primary)] px-6 py-2.5 text-sm font-bold text-white hover:opacity-90 disabled:opacity-50 transition-all">
               {creating && <Loader2 size={14} className="animate-spin" />}
               {creating ? "Provisioning…" : "Create Project"}
             </button>
