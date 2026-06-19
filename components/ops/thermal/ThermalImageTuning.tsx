@@ -1,6 +1,7 @@
 "use client";
 
 import { fmtTemp, type Unit } from "@/lib/thermal/probe-palettes";
+import { EMISSIVITY_MATERIALS } from "@/lib/thermal/emissivity-materials";
 
 /**
  * Per-image radiometric tuning — emissivity, reflected (apparent) temperature, and
@@ -107,6 +108,20 @@ export function ThermalImageTuning({
           className="mt-1 w-full accent-[var(--graphite-primary)]"
         />
       </label>
+
+      <select
+        aria-label="Emissivity from material"
+        value=""
+        onChange={(e) => { if (e.target.value) onEmissivity(Number(e.target.value)); }}
+        className="mt-1 block w-full rounded-lg border border-[var(--mobile-app-card-border)] bg-[#111827] px-2 py-1 text-xs text-[var(--graphite-text-body)]"
+      >
+        <option value="">Set from material…</option>
+        {EMISSIVITY_MATERIALS.map((m) => (
+          <option key={m.material} value={m.emissivity}>
+            {m.material} ({m.emissivity.toFixed(2)})
+          </option>
+        ))}
+      </select>
 
       <label className="mt-2 block text-xs text-[var(--graphite-muted)]">
         Reflected temp (°C)
