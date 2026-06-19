@@ -24,17 +24,19 @@ export const GET = (req: NextRequest) =>
 
     const { data: folders, error: folderError } = await admin
       .from("project_folders")
-      .select("id")
+      .select("id, name")
       .eq("project_id", projectId)
       .eq("org_id", orgId);
     if (folderError) return serverError(folderError.message);
 
-    const folderIds = (folders ?? []).map((f) => f.id);
-    if (!folderIds.length) return ok({ files: [] });
+    const folderRows = folders ?? [];
+    const folderIds = folderRows.map((f) => f.id);
+    const folderName = new Map(folderRows.map((f) => [f.id as string, (f.name as string) ?? "Folder"]));
+    if (!folderIds.length) return ok({ files: [], folders: [] });
 
     const { data: files, error } = await admin
       .from("slatedrop_uploads")
-      .select("id, file_name, file_size, file_type, s3_key")
+      .select("id, file_name, file_size, file_type, s3_key, folder_id")
       .eq("org_id", orgId)
       .eq("status", "active")
       .in("folder_id", folderIds)
@@ -47,9 +49,17 @@ export const GET = (req: NextRequest) =>
     const withPreviews = await Promise.all(
       rows.map(async (f, i) => ({
         ...f,
-        previewUrl: i < 200 && f.s3_key ? await signKey(f.s3_key as string) : null,
+        folder_name: folderName.get(f.folder_id as string) ?? "Folder",
+        previewUrl: i < 300 && f.s3_key ? await signKey(f.s3_key as string) : null,
       })),
     );
 
-    return ok({ files: withPreviews });
+    // Only return folders that actually contain images, with counts.
+    const counts = new Map<string, number>();
+    for (const f of rows) counts.set(f.folder_id as string, (counts.get(f.folder_id as string) ?? 0) + 1);
+    const foldersOut = folderRows
+      .filter((f) => counts.has(f.id as string))
+      .map((f) => ({ id: f.id as string, name: (f.name as string) ?? "Folder", count: counts.get(f.id as string) ?? 0 }));
+
+    return ok({ files: withPreviews, folders: foldersOut });
   });

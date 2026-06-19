@@ -6,6 +6,7 @@ import { ThermalImageGrid, type GridItem } from "@/components/ops/thermal/Therma
 import { ThermalProcessPanel } from "@/components/ops/thermal/ThermalProcessPanel";
 import { ThermalBatchTunePanel } from "@/components/ops/thermal/ThermalBatchTunePanel";
 import { ThermalInspectionProfiles } from "@/components/ops/thermal/ThermalInspectionProfiles";
+import { ThermalSlateDropPicker } from "@/components/ops/thermal/ThermalSlateDropPicker";
 import type { StudioCapture } from "@/components/ops/thermal/ThermalStudioWorkView";
 import { cameraOf, isHighDelta } from "@/lib/thermal/curation-client";
 
@@ -34,6 +35,7 @@ export function ThermalLibrary({
   const router = useRouter();
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [filter, setFilter] = useState<Filter>("all");
+  const [showPicker, setShowPicker] = useState(false);
   const [pairing, setPairing] = useState(false);
   const [pairNote, setPairNote] = useState<string | null>(null);
   const inReport = useMemo(() => new Set(reportOrder), [reportOrder]);
@@ -104,8 +106,16 @@ export function ThermalLibrary({
 
   if (!captures.length) {
     return (
-      <div className="flex h-full items-center justify-center rounded-2xl border border-[var(--mobile-app-card-border)] text-sm text-[var(--graphite-muted)]">
-        No captures yet — upload or import from SlateDrop to begin.
+      <div className="flex h-full flex-col items-center justify-center gap-3 rounded-2xl border border-[var(--mobile-app-card-border)] text-sm text-[var(--graphite-muted)]">
+        <p>No captures yet — upload, or import images you already filed in SlateDrop.</p>
+        <button
+          type="button"
+          onClick={() => setShowPicker(true)}
+          className="rounded-lg bg-[var(--graphite-primary)] px-4 py-2 text-sm font-semibold text-[var(--graphite-canvas)]"
+        >
+          Import from SlateDrop folders
+        </button>
+        {showPicker ? <ThermalSlateDropPicker sessionId={sessionId} onClose={() => setShowPicker(false)} /> : null}
       </div>
     );
   }
@@ -138,6 +148,13 @@ export function ThermalLibrary({
           {chip("in_report", "In report", inReport.size)}
           {chip("high_delta", "High ΔT", captures.filter((c) => isHighDelta(c)).length)}
           {cameras.length > 1 ? cameras.map((cam) => chip(cam, cam)) : null}
+          <button
+            type="button"
+            onClick={() => setShowPicker(true)}
+            className="ml-auto rounded-full border border-[var(--mobile-app-card-border)] px-2.5 py-1 text-[11px] font-semibold text-[var(--graphite-text-body)] hover:text-[var(--graphite-text-header)]"
+          >
+            + Import from SlateDrop
+          </button>
         </div>
         {onOpenCapture ? (
           <p className="shrink-0 pb-2 text-[11px] text-[var(--graphite-muted)]">
@@ -194,6 +211,7 @@ export function ThermalLibrary({
         <ThermalInspectionProfiles sessionId={sessionId} targetIds={targetIds} />
         <ThermalBatchTunePanel captureIds={targetIds} />
       </div>
+      {showPicker ? <ThermalSlateDropPicker sessionId={sessionId} onClose={() => setShowPicker(false)} /> : null}
     </div>
   );
 }
