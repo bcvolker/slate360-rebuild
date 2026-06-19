@@ -30,14 +30,14 @@ export default function SlateDropTopBar({
           <Link href="/dashboard" className="flex items-center gap-2 shrink-0">
             <SlateLogoOnLight className="h-6 w-auto" />
           </Link>
-          <div className="hidden sm:flex items-center text-xs text-zinc-500">
+          <div className="hidden sm:flex items-center text-xs text-[var(--graphite-muted)]">
             <ChevronRight size={12} />
-            <span className="ml-1 font-semibold text-zinc-300">SlateDrop</span>
+            <span className="ml-1 font-semibold text-[var(--graphite-text-body)]">SlateDrop</span>
           </div>
 
           <button
             onClick={onToggleMobileSidebar}
-            className="md:hidden w-10 h-10 rounded-lg flex items-center justify-center text-zinc-400 hover:bg-white/[0.04]"
+            className="md:hidden w-10 h-10 rounded-lg flex items-center justify-center text-[var(--graphite-muted)] hover:bg-white/[0.04]"
           >
             <FolderOpen size={18} />
           </button>
@@ -46,12 +46,12 @@ export default function SlateDropTopBar({
         <div className="flex items-center gap-2">
           <Link
             href="/dashboard"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-zinc-400 hover:bg-white/[0.04] transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-[var(--graphite-muted)] hover:bg-white/[0.04] transition-colors"
           >
             <Home size={13} /> <span className="hidden sm:inline">Command Center</span>
           </Link>
 
-          <button className="relative w-8 h-8 rounded-lg flex items-center justify-center text-zinc-400 hover:bg-white/[0.04]">
+          <button className="relative w-8 h-8 rounded-lg flex items-center justify-center text-[var(--graphite-muted)] hover:bg-white/[0.04]">
             <Bell size={16} />
           </button>
 
@@ -68,8 +68,8 @@ export default function SlateDropTopBar({
                 <div className="fixed inset-0 z-40" onClick={onCloseUserMenu} />
                 <div className="absolute right-0 top-10 w-52 bg-app-card rounded-xl border border-app shadow-xl z-50 overflow-hidden">
                   <div className="px-4 py-3 border-b border-app">
-                    <p className="text-sm font-semibold text-zinc-100">{user.name}</p>
-                    <p className="text-xs text-zinc-500 truncate">{user.email}</p>
+                    <p className="text-sm font-semibold text-[var(--graphite-text-body)]">{user.name}</p>
+                    <p className="text-xs text-[var(--graphite-muted)] truncate">{user.email}</p>
                   </div>
                   <button
                     onClick={onSignOut}

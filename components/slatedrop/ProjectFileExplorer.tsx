@@ -35,7 +35,7 @@ export default function ProjectFileExplorer({
 
   return (
     <div className="grid min-h-[65vh] grid-cols-1 gap-4 lg:grid-cols-[280px_1fr]">
-      <aside className="rounded-2xl border border-white/10 bg-[#151A23] p-4 shadow-sm">
+      <aside className="rounded-2xl border border-white/10 bg-[color-mix(in_srgb,var(--graphite-canvas)_60%,transparent)] p-4 shadow-sm">
         <h2 className="text-sm font-black text-[var(--graphite-text-body)]">Project Folders</h2>
         <p className="mt-1 text-xs text-[var(--graphite-muted)]">Scoped to this project only</p>
 
@@ -58,7 +58,7 @@ export default function ProjectFileExplorer({
                   className={`flex w-full items-center gap-2 rounded-xl border px-3 py-2 text-left text-sm transition ${
                     active
                       ? "border-[color-mix(in_srgb,var(--graphite-primary)_40%,transparent)] bg-[color-mix(in_srgb,var(--graphite-primary)_10%,transparent)] text-[var(--graphite-primary)]"
-                      : "border-white/10 bg-[#151A23] text-[var(--graphite-text-body)] hover:bg-white/[0.03]"
+                      : "border-white/10 bg-[color-mix(in_srgb,var(--graphite-canvas)_60%,transparent)] text-[var(--graphite-text-body)] hover:bg-white/[0.03]"
                   }`}
                 >
                   <Folder size={14} />
@@ -70,7 +70,7 @@ export default function ProjectFileExplorer({
         </div>
       </aside>
 
-      <section className="rounded-2xl border border-white/10 bg-[#151A23] p-4 shadow-sm">
+      <section className="rounded-2xl border border-white/10 bg-[color-mix(in_srgb,var(--graphite-canvas)_60%,transparent)] p-4 shadow-sm">
         <div className="flex items-start justify-between gap-3">
           <div>
             <h2 className="text-sm font-black text-[var(--graphite-text-body)]">{activeFolder?.name ?? "Files"}</h2>
@@ -80,7 +80,7 @@ export default function ProjectFileExplorer({
             <button
               onClick={handleExportCloseout}
               disabled={isExportingCloseout}
-              className="flex items-center gap-2 rounded-lg border border-white/10 bg-[#151A23] px-3 py-1.5 text-xs font-semibold text-[var(--graphite-text-body)] transition hover:bg-white/[0.03] disabled:opacity-50"
+              className="flex items-center gap-2 rounded-lg border border-white/10 bg-[color-mix(in_srgb,var(--graphite-canvas)_60%,transparent)] px-3 py-1.5 text-xs font-semibold text-[var(--graphite-text-body)] transition hover:bg-white/[0.03] disabled:opacity-50"
             >
               {isExportingCloseout ? <Loader2 size={14} className="animate-spin" /> : <FileText size={14} />}
               Export Closeout
@@ -107,7 +107,7 @@ export default function ProjectFileExplorer({
             </div>
             <button
               onClick={handleCopy}
-              className="ml-3 flex shrink-0 items-center gap-1 rounded-md bg-[#151A23] px-2 py-1 text-xs font-medium text-emerald-300 shadow-sm ring-1 ring-inset ring-green-200 hover:bg-emerald-500/10"
+              className="ml-3 flex shrink-0 items-center gap-1 rounded-md bg-[color-mix(in_srgb,var(--graphite-canvas)_60%,transparent)] px-2 py-1 text-xs font-medium text-emerald-300 shadow-sm ring-1 ring-inset ring-green-200 hover:bg-emerald-500/10"
             >
               {copied ? <Check size={12} /> : <LinkIcon size={12} />}
               {copied ? "Copied!" : "Copy"}
@@ -124,21 +124,21 @@ export default function ProjectFileExplorer({
                 href={latestReport.url ?? "#"}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-1 rounded-md bg-[#151A23] px-2.5 py-1.5 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200"
+                className="inline-flex items-center gap-1 rounded-md bg-[color-mix(in_srgb,var(--graphite-canvas)_60%,transparent)] px-2.5 py-1.5 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200"
               >
                 <ArrowUpRight size={12} /> View
               </a>
               <a
                 href={latestReport.url ?? "#"}
                 download={latestReport.name}
-                className="inline-flex items-center gap-1 rounded-md bg-[#151A23] px-2.5 py-1.5 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200"
+                className="inline-flex items-center gap-1 rounded-md bg-[color-mix(in_srgb,var(--graphite-canvas)_60%,transparent)] px-2.5 py-1.5 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200"
               >
                 <Download size={12} /> Download
               </a>
               <button
                 onClick={handleCopyReportLink}
                 disabled={!latestReport.url}
-                className="inline-flex items-center gap-1 rounded-md bg-[#151A23] px-2.5 py-1.5 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200 disabled:opacity-60"
+                className="inline-flex items-center gap-1 rounded-md bg-[color-mix(in_srgb,var(--graphite-canvas)_60%,transparent)] px-2.5 py-1.5 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200 disabled:opacity-60"
               >
                 {reportCopied ? <Check size={12} /> : <LinkIcon size={12} />}
                 {reportCopied ? "Copied" : "Copy Link"}

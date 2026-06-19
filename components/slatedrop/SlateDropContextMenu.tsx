@@ -79,7 +79,7 @@ export default function SlateDropContextMenu({
 
   return (
     <div
-      className="fixed z-[100] w-52 bg-[#151A23] rounded-xl border border-white/10 shadow-2xl overflow-hidden py-1"
+      className="fixed z-[100] w-52 bg-[color-mix(in_srgb,var(--graphite-canvas)_60%,transparent)] rounded-xl border border-white/10 shadow-2xl overflow-hidden py-1"
       style={{ top: contextMenu.y, left: contextMenu.x }}
       onClick={(e) => e.stopPropagation()}
     >

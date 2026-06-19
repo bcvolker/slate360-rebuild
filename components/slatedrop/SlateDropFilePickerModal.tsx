@@ -73,7 +73,7 @@ export function SlateDropFilePickerModal({
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className="flex max-h-[88dvh] w-full max-w-lg flex-col overflow-hidden rounded-t-[1.5rem] border border-white/15 bg-zinc-950/96 shadow-2xl backdrop-blur-xl sm:rounded-[1.5rem]"
+        className="flex max-h-[88dvh] w-full max-w-lg flex-col overflow-hidden rounded-t-[1.5rem] border border-white/15 bg-[color-mix(in_srgb,var(--graphite-canvas)_96%,transparent)] shadow-2xl backdrop-blur-xl sm:rounded-[1.5rem]"
       >
         <header className="flex shrink-0 items-start justify-between gap-3 border-b border-white/10 px-4 py-3">
           <div>

@@ -178,12 +178,12 @@ export default function SlateDropClient({ user, tier, initialProjectId, projectN
         <div className="flex-1 flex items-center justify-center p-6">
           <div className="max-w-md rounded-2xl border border-app bg-app-card p-6 text-center space-y-3">
             <h2 className="text-lg font-bold text-foreground">Open files from a project</h2>
-            <p className="text-sm text-zinc-400">
+            <p className="text-sm text-[var(--graphite-muted)]">
               Phase 1 SlateDrop is project-scoped. Open a project first to browse and manage files.
             </p>
             <a
               href="/projects"
-              className="inline-flex items-center justify-center rounded-xl bg-[#3B82F6] px-4 py-2 text-sm font-semibold text-zinc-950 hover:bg-[#3B82F6]/85 transition-colors"
+              className="inline-flex items-center justify-center rounded-xl bg-[var(--graphite-primary)] px-4 py-2 text-sm font-semibold text-[var(--graphite-canvas)] hover:opacity-90 transition-colors"
             >
               Open Projects
             </a>

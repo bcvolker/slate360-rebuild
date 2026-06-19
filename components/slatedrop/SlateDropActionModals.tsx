@@ -58,7 +58,7 @@ export default function SlateDropActionModals({
     <>
       {newFolderModal && (
         <ModalBackdrop onClose={() => setNewFolderModal(null)}>
-          <div className="w-full max-w-sm bg-[#151A23] rounded-2xl shadow-2xl overflow-hidden border border-white/10">
+          <div className="w-full max-w-sm bg-[color-mix(in_srgb,var(--graphite-canvas)_60%,transparent)] rounded-2xl shadow-2xl overflow-hidden border border-white/10">
             <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
               <h3 className="text-base font-bold text-[var(--graphite-text-body)]">New Folder</h3>
               <button
@@ -105,7 +105,7 @@ export default function SlateDropActionModals({
 
       {renameModal && (
         <ModalBackdrop onClose={() => setRenameModal(null)}>
-          <div className="w-full max-w-sm bg-[#151A23] rounded-2xl shadow-2xl overflow-hidden border border-white/10">
+          <div className="w-full max-w-sm bg-[color-mix(in_srgb,var(--graphite-canvas)_60%,transparent)] rounded-2xl shadow-2xl overflow-hidden border border-white/10">
             <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
               <h3 className="text-base font-bold text-[var(--graphite-text-body)]">Rename {renameModal.type}</h3>
               <button onClick={() => setRenameModal(null)} className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--graphite-muted)] hover:bg-white/[0.06]">
@@ -145,7 +145,7 @@ export default function SlateDropActionModals({
 
       {deleteConfirm && (
         <ModalBackdrop onClose={() => setDeleteConfirm(null)}>
-          <div className="w-full max-w-sm bg-[#151A23] rounded-2xl shadow-2xl overflow-hidden border border-white/10">
+          <div className="w-full max-w-sm bg-[color-mix(in_srgb,var(--graphite-canvas)_60%,transparent)] rounded-2xl shadow-2xl overflow-hidden border border-white/10">
             <div className="p-6 text-center">
               <div className="w-14 h-14 rounded-2xl bg-red-500/10 flex items-center justify-center mx-auto mb-4">
                 <Trash2 size={24} className="text-red-500" />
@@ -199,7 +199,7 @@ export default function SlateDropActionModals({
 
       {moveModal && (
         <ModalBackdrop onClose={() => setMoveModal(null)}>
-          <div className="w-full max-w-md bg-[#151A23] rounded-2xl shadow-2xl overflow-hidden border border-white/10">
+          <div className="w-full max-w-md bg-[color-mix(in_srgb,var(--graphite-canvas)_60%,transparent)] rounded-2xl shadow-2xl overflow-hidden border border-white/10">
             <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
               <div>
                 <h3 className="text-base font-bold text-[var(--graphite-text-body)]">Move File</h3>

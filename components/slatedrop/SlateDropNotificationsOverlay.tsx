@@ -25,7 +25,7 @@ export default function SlateDropNotificationsOverlay({
       {Object.entries(uploadProgress).length > 0 && (
         <div className="fixed bottom-16 right-6 z-[200] space-y-2">
           {Object.entries(uploadProgress).map(([key, pct]) => (
-            <div key={key} className="bg-[#151A23] rounded-xl border border-white/10 shadow-xl p-3 w-64">
+            <div key={key} className="bg-[color-mix(in_srgb,var(--graphite-canvas)_60%,transparent)] rounded-xl border border-white/10 shadow-xl p-3 w-64">
               <div className="flex items-center gap-2 mb-2">
                 <Loader2 size={13} className="animate-spin text-[var(--graphite-primary)]" />
                 <span className="text-xs text-[var(--graphite-text-body)] truncate">{key.split("-").slice(0, -1).join("-")}</span>

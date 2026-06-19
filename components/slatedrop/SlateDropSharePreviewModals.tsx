@@ -65,7 +65,7 @@ export default function SlateDropSharePreviewModals({
     <>
       {shareModal && (
         <ModalBackdrop onClose={closeShareModal}>
-          <div className="w-full max-w-md bg-[#151A23] rounded-2xl shadow-2xl overflow-hidden border border-white/10">
+          <div className="w-full max-w-md bg-[color-mix(in_srgb,var(--graphite-canvas)_60%,transparent)] rounded-2xl shadow-2xl overflow-hidden border border-white/10">
             <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
               <div>
                 <h3 className="text-base font-bold text-[var(--graphite-text-body)]">Secure Send</h3>
@@ -117,7 +117,7 @@ export default function SlateDropSharePreviewModals({
                     <select
                       value={shareExpiry}
                       onChange={(event) => setShareExpiry(event.target.value)}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-white/10 text-sm focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--graphite-primary)_20%,transparent)] focus:border-[var(--graphite-primary)] transition-all bg-[#151A23]"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-white/10 text-sm focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--graphite-primary)_20%,transparent)] focus:border-[var(--graphite-primary)] transition-all bg-[color-mix(in_srgb,var(--graphite-canvas)_60%,transparent)]"
                     >
                       <option value="1">1 day</option>
                       <option value="7">7 days</option>
@@ -142,7 +142,7 @@ export default function SlateDropSharePreviewModals({
 
       {previewFile && (
         <ModalBackdrop onClose={() => setPreviewFile(null)}>
-          <div className="w-full max-w-2xl bg-[#151A23] rounded-2xl shadow-2xl overflow-hidden border border-white/10">
+          <div className="w-full max-w-2xl bg-[color-mix(in_srgb,var(--graphite-canvas)_60%,transparent)] rounded-2xl shadow-2xl overflow-hidden border border-white/10">
             <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
               <div className="flex items-center gap-3 min-w-0">
                 {(() => {
@@ -213,7 +213,7 @@ export default function SlateDropSharePreviewModals({
 
                   if (["mp3", "wav", "m4a", "ogg"].includes(fileType)) {
                     return (
-                      <div className="w-full rounded-lg border border-white/10 bg-[#151A23] p-6">
+                      <div className="w-full rounded-lg border border-white/10 bg-[color-mix(in_srgb,var(--graphite-canvas)_60%,transparent)] p-6">
                         <audio src={previewUrl} controls className="w-full" />
                       </div>
                     );
@@ -223,7 +223,7 @@ export default function SlateDropSharePreviewModals({
                     <iframe
                       src={previewUrl}
                       title={previewFile.file_name}
-                      className="w-full h-[460px] rounded-lg border border-white/10 bg-[#151A23]"
+                      className="w-full h-[460px] rounded-lg border border-white/10 bg-[color-mix(in_srgb,var(--graphite-canvas)_60%,transparent)]"
                     />
                   );
                 })()
