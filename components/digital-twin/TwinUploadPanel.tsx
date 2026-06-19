@@ -189,10 +189,12 @@ export function TwinUploadPanel({
               )}
             >
               Choose files
+              {/* Accept any file kind — drone, 360, LiDAR/point-cloud, mesh, GPS,
+                  hi-res stills. Classification happens after upload, so users can
+                  drop everything from one place rather than per-format pickers. */}
               <input
                 type="file"
                 multiple
-                accept="video/*,image/*,.ply,.las,.laz,.e57,.pcd,.xyz,.pts,.obj,.glb,.gltf,.fbx,.stl,.kml,.gpx,.geojson"
                 className="sr-only"
                 disabled={isRunning}
                 onChange={(event) => onFileChange(event.target.files)}

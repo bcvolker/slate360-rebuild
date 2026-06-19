@@ -39,6 +39,7 @@ export const PROJECT_FOLDER_TAXONOMY = [
     folderType: "digital_twin",
     children: [
       { name: "Clips", folderType: "twin_clips" },
+      { name: "LiDAR", folderType: "twin_lidar" },
       { name: "Models", folderType: "twin_models" },
       { name: "Source_Assets", folderType: "twin_source_assets" },
       { name: "Deliverables", folderType: "twin_deliverables" },
@@ -80,7 +81,7 @@ export type SiteWalkCaptureFolder =
   | "Data";
 
 /** Twin asset → taxonomy subfolder under 03_Digital_Twin. */
-export type TwinAssetFolder = "Clips" | "Models" | "Source_Assets" | "Deliverables";
+export type TwinAssetFolder = "Clips" | "LiDAR" | "Models" | "Source_Assets" | "Deliverables";
 
 export const SITE_WALK_ROOT = "02_Site_Walk" as const;
 export const TWIN_ROOT = "03_Digital_Twin" as const;
@@ -137,5 +138,14 @@ export function inferTwinAssetFolder(assetKind: string, fileName: string): TwinA
 
   if (kind === "video" || ext === "mp4" || ext === "mov" || ext === "webm") return "Clips";
   if (ext === "spz" || kind.includes("model") || kind.includes("splat")) return "Models";
+  // LiDAR / depth / point-cloud / mesh scans get their own section.
+  if (
+    kind.includes("lidar") ||
+    kind.includes("ply") ||
+    kind.includes("mesh") ||
+    ["ply", "las", "laz", "e57", "pcd", "xyz", "pts", "obj", "glb", "gltf", "fbx", "stl"].includes(ext)
+  ) {
+    return "LiDAR";
+  }
   return "Source_Assets";
 }

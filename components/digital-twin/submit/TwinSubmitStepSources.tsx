@@ -29,7 +29,7 @@ function is360PhotoCategory(category: TwinMediaCategory): boolean {
 }
 
 function isDroneCategory(category: TwinMediaCategory): boolean {
-  return category === "phone_video" || category === "360_video";
+  return category === "drone_video" || category === "drone_photo";
 }
 
 export function TwinSubmitStepSources({
