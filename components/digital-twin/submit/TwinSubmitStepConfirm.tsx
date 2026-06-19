@@ -18,6 +18,8 @@ type Props = {
   totalDurationSeconds: number;
   submitting: boolean;
   uploadProgress: number | null;
+  baseCredits: number;
+  addedCredits: number;
   retainRaw: boolean;
   onRetainRawChange: (value: boolean) => void;
   onScanNameChange: (value: string) => void;
@@ -40,6 +42,8 @@ export function TwinSubmitStepConfirm({
   totalDurationSeconds,
   submitting,
   uploadProgress,
+  baseCredits,
+  addedCredits,
   retainRaw,
   onRetainRawChange,
   onScanNameChange,
@@ -93,6 +97,25 @@ export function TwinSubmitStepConfirm({
           I confirm this job will consume {credits || "the estimated"} credits from my balance.
         </span>
       </label>
+
+      <TwinSubmitGlassCard title="Token estimate">
+        <SummaryRow label="Base capture" value={`${baseCredits} credits`} />
+        <SummaryRow
+          label="Added sources"
+          value={addedCredits > 0 ? `+${addedCredits} credits` : "—"}
+        />
+        <div className="my-2 h-px bg-[var(--mobile-app-card-border)]" />
+        <SummaryRow
+          label="Total to submit"
+          value={estimate ? `${estimate.creditsRequired} credits` : "Calculating…"}
+        />
+        {addedCredits > 0 ? (
+          <p className="mt-2 text-[11px] leading-snug text-[var(--graphite-muted)]">
+            Your added sources increase the cost by {addedCredits} credits and may lengthen processing time —
+            but generally produce a richer, more accurate model.
+          </p>
+        ) : null}
+      </TwinSubmitGlassCard>
 
       <TwinSubmitGlassCard title="Raw source files">
         <p className="mb-3 text-[11px] leading-snug text-[var(--graphite-muted)]">

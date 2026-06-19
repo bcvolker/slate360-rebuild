@@ -19,6 +19,7 @@ type Props = {
   addedSources: TwinReviewAddedSource[];
   captureCategories: TwinMediaCategory[];
   assetCount: number;
+  addedCredits: number;
   onAddFiles: (files: File[], origin: "camera_roll" | "files") => void;
   onRemoveSource: (id: string) => void;
   onOpenSlateDrop: () => void;
@@ -36,6 +37,7 @@ export function TwinSubmitStepSources({
   addedSources,
   captureCategories,
   assetCount,
+  addedCredits,
   onAddFiles,
   onRemoveSource,
   onOpenSlateDrop,
@@ -65,9 +67,16 @@ export function TwinSubmitStepSources({
 
   return (
     <div className="space-y-4" data-twin-submit="step-sources">
-      <p className={twinSubmitTokens.bodyText}>
-        {assetCount} asset{assetCount === 1 ? "" : "s"} added to this scan
-      </p>
+      <div className="flex items-center justify-between gap-2">
+        <p className={twinSubmitTokens.bodyText}>
+          {assetCount} asset{assetCount === 1 ? "" : "s"} added to this scan
+        </p>
+        {addedCredits > 0 ? (
+          <span className="shrink-0 rounded-lg border border-[var(--accent-border-blue)] bg-[color-mix(in_srgb,var(--twin360-blue)_10%,transparent)] px-2 py-1 text-[11px] font-semibold text-[var(--twin360-blue)]">
+            +{addedCredits} credits
+          </span>
+        ) : null}
+      </div>
 
       <TwinSubmitGlassCard title="360 Photos">
         <div className="grid grid-cols-2 gap-2">

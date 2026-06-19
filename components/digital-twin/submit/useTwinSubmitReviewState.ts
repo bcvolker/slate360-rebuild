@@ -24,7 +24,7 @@ import {
   twinMediaToAssetKind,
 } from "@/lib/digital-twin/twin-review-media";
 import type { TwinJobCreditEstimate, TwinProcessingQuality } from "@/lib/twin/processing-estimate-types";
-import type { TwinCreditAsset } from "@/lib/twin/processing-credits";
+import { computeTwinProcessingCredits, type TwinCreditAsset } from "@/lib/twin/processing-credits";
 import type { TwinSubmitStepId } from "./twin-submit-tokens";
 
 type DevPreview = {
@@ -156,6 +156,17 @@ export function useTwinSubmitReviewState(devPreview?: DevPreview) {
       })),
     [estimateFiles],
   );
+
+  // Token-delta calculator: marginal credit cost of the supporting sources the
+  // user has added on top of the base capture clips. Computed client-side with
+  // the same pure formula the server uses, so it updates instantly as they add.
+  const clipCreditSources = useMemo<TwinCreditAsset[]>(
+    () => clipFiles.map((file) => ({ asset_kind: twinMediaToAssetKind(file), file_size_bytes: file.size })),
+    [clipFiles],
+  );
+  const baseCredits = useMemo(() => computeTwinProcessingCredits(clipCreditSources), [clipCreditSources]);
+  const fullCredits = useMemo(() => computeTwinProcessingCredits(creditSources), [creditSources]);
+  const addedCredits = Math.max(0, fullCredits - baseCredits);
 
   const frameCount = useMemo(() => countTwinEstimateFrames(estimateFiles), [estimateFiles]);
   const totalDurationSeconds = useMemo(
@@ -371,6 +382,8 @@ export function useTwinSubmitReviewState(devPreview?: DevPreview) {
     captureCategories,
     totalDurationSeconds,
     assetCount,
+    baseCredits,
+    addedCredits,
     estimate,
     estimateLoadingState,
     estimateError,

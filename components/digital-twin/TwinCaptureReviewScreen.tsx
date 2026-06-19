@@ -86,6 +86,7 @@ export function TwinCaptureReviewScreen({ canUseHighQuality, devPreview }: Props
             addedSources={state.addedSources}
             captureCategories={state.captureCategories}
             assetCount={state.assetCount}
+            addedCredits={state.addedCredits}
             onAddFiles={state.handleAddFiles}
             onRemoveSource={(id) =>
               state.setAddedSources((prev) => prev.filter((row) => row.id !== id))
@@ -116,6 +117,8 @@ export function TwinCaptureReviewScreen({ canUseHighQuality, devPreview }: Props
             totalDurationSeconds={state.totalDurationSeconds}
             submitting={state.submitting}
             uploadProgress={state.upload.isRunning ? state.upload.overallProgress : null}
+            baseCredits={state.baseCredits}
+            addedCredits={state.addedCredits}
             retainRaw={state.retainRaw}
             onRetainRawChange={state.setRetainRaw}
             onScanNameChange={state.setScanName}
