@@ -1,34 +1,36 @@
 "use client";
 
 import { useState } from "react";
-import { ThermalReportPanel } from "@/components/ops/thermal/ThermalReportPanel";
 import { ThermalSharePanel } from "@/components/ops/thermal/ThermalSharePanel";
 import { ThermalBrandingPanel } from "@/components/ops/thermal/ThermalBrandingPanel";
+import { ThermalTwinLayerPanel } from "@/components/ops/thermal/ThermalTwinLayerPanel";
 import type { ThermalBrandingConfig } from "@/lib/thermal/types";
 
-type SubTab = "report" | "share" | "branding";
+type SubTab = "share" | "branding" | "twin";
 
 const SUBTABS: { id: SubTab; label: string }[] = [
-  { id: "report", label: "Report" },
   { id: "share", label: "Share & export" },
   { id: "branding", label: "Branding" },
+  { id: "twin", label: "Twin overlay" },
 ];
 
-/** Deliverables workbench — no-scroll sub-tabs for report, sharing, and branding. */
+/**
+ * Deliver workbench — no-scroll sub-tabs for sharing/export, branding, and the
+ * twin overlay (demoted from a primary tab). Report generation lives in the
+ * Report Builder tab.
+ */
 export function ThermalDeliverables({
   sessionId,
   brandingConfig,
-  initialTemplateId,
-  initialSignature,
   initialProjectId,
+  linkedSpaceId,
 }: {
   sessionId: string;
   brandingConfig: ThermalBrandingConfig;
-  initialTemplateId?: string | null;
-  initialSignature?: string | null;
   initialProjectId?: string | null;
+  linkedSpaceId?: string | null;
 }) {
-  const [tab, setTab] = useState<SubTab>("report");
+  const [tab, setTab] = useState<SubTab>("share");
 
   return (
     <div className="flex h-full min-h-0 flex-col gap-3">
@@ -54,18 +56,14 @@ export function ThermalDeliverables({
 
       <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
         <div className="m-auto w-full max-w-5xl">
-          {tab === "report" ? (
-            <ThermalReportPanel
-              sessionId={sessionId}
-              initialTemplateId={initialTemplateId}
-              initialSignature={initialSignature}
-            />
-          ) : null}
           {tab === "share" ? (
             <ThermalSharePanel sessionId={sessionId} initialProjectId={initialProjectId} />
           ) : null}
           {tab === "branding" ? (
             <ThermalBrandingPanel sessionId={sessionId} initial={brandingConfig} />
+          ) : null}
+          {tab === "twin" ? (
+            <ThermalTwinLayerPanel sessionId={sessionId} linkedSpaceId={linkedSpaceId ?? null} />
           ) : null}
         </div>
       </div>

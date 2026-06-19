@@ -25,6 +25,13 @@ export default async function ThermalSessionDetailPage({ params }: PageProps) {
     typeof metadata.report_template_id === "string" ? metadata.report_template_id : null;
   const signature =
     typeof metadata.report_signature === "string" ? metadata.report_signature : null;
+  const reportSet = Array.isArray(metadata.report_set)
+    ? (metadata.report_set as unknown[]).filter((v): v is string => typeof v === "string")
+    : null;
+  const conditions =
+    metadata.conditions && typeof metadata.conditions === "object"
+      ? (metadata.conditions as Record<string, unknown>)
+      : null;
   const resolvedTemplate = await resolveReportTemplate(createAdminClient(), templateId);
 
   const captures: StudioCapture[] = detail.captures.map((c) => ({
@@ -56,6 +63,8 @@ export default async function ThermalSessionDetailPage({ params }: PageProps) {
           initialSignature={signature}
           initialProjectId={(detail.session.project_id as string | null) ?? null}
           summaryMetrics={(detail.session.summary_metrics as Record<string, unknown> | null) ?? null}
+          reportSet={reportSet}
+          conditions={conditions}
         />
       </div>
     </div>

@@ -5,6 +5,8 @@ export type GridItem = {
   name: string;
   previewUrl?: string | null;
   flaggedCount?: number;
+  /** ★ included in the report set. */
+  inReport?: boolean;
 };
 
 /**
@@ -18,6 +20,7 @@ export function ThermalImageGrid({
   onToggle,
   onToggleAll,
   onOpen,
+  onToggleInReport,
   emptyText = "No images.",
 }: {
   items: GridItem[];
@@ -26,6 +29,8 @@ export function ThermalImageGrid({
   onToggleAll: () => void;
   /** When set, clicking the card opens it (e.g. in the workbench); the checkbox selects. */
   onOpen?: (id: string) => void;
+  /** When set, renders a ★ corner that toggles the capture's include-in-report state. */
+  onToggleInReport?: (id: string) => void;
   emptyText?: string;
 }) {
   const allSelected = items.length > 0 && selected.size === items.length;
@@ -92,6 +97,21 @@ export function ThermalImageGrid({
                     {it.flaggedCount ? (
                       <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#fb923c] px-1 text-[9px] font-bold text-black">
                         {it.flaggedCount}
+                      </span>
+                    ) : null}
+                    {onToggleInReport ? (
+                      <span
+                        role="checkbox"
+                        aria-checked={Boolean(it.inReport)}
+                        title={it.inReport ? "In report — click to remove" : "Add to report"}
+                        onClick={(e) => { e.stopPropagation(); onToggleInReport(it.id); }}
+                        className={`absolute bottom-4 right-1 flex h-5 w-5 items-center justify-center rounded-full border text-[11px] font-bold leading-none ${
+                          it.inReport
+                            ? "border-[var(--graphite-primary)] bg-[var(--graphite-primary)] text-black"
+                            : "border-white/60 bg-black/45 text-white/70 hover:text-white"
+                        }`}
+                      >
+                        ★
                       </span>
                     ) : null}
                     <span className="absolute inset-x-0 bottom-0 truncate bg-black/55 px-1 py-0.5 text-[9px] text-white">

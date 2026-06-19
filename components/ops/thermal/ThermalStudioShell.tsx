@@ -8,17 +8,22 @@ import { ThermalSessionSummaryBar } from "@/components/ops/thermal/ThermalSessio
 import { type StudioCapture } from "@/components/ops/thermal/ThermalStudioWorkView";
 import { ThermalLibrary } from "@/components/ops/thermal/ThermalLibrary";
 import { ThermalAnalyzeTune } from "@/components/ops/thermal/ThermalAnalyzeTune";
+import { ThermalReportBuilder } from "@/components/ops/thermal/ThermalReportBuilder";
 import { ThermalDeliverables } from "@/components/ops/thermal/ThermalDeliverables";
-import { ThermalTwinLayerPanel } from "@/components/ops/thermal/ThermalTwinLayerPanel";
+import {
+  seedReportOrder,
+  persistCaptureInReport,
+  persistReportSet,
+} from "@/lib/thermal/curation-client";
 import type { ThermalBrandingConfig, ThermalProcessingJob } from "@/lib/thermal/types";
 
-type Stage = "captures" | "analyze" | "deliverables" | "twin";
+type Stage = "library" | "inspect" | "report" | "deliver";
 
 const STAGES: { id: Stage; label: string; step: number }[] = [
-  { id: "captures", label: "Library", step: 1 },
-  { id: "analyze", label: "Analyze & Tune", step: 2 },
-  { id: "deliverables", label: "Deliverables", step: 3 },
-  { id: "twin", label: "Twin", step: 4 },
+  { id: "library", label: "Library", step: 1 },
+  { id: "inspect", label: "Inspect", step: 2 },
+  { id: "report", label: "Report Builder", step: 3 },
+  { id: "deliver", label: "Deliver", step: 4 },
 ];
 
 type Props = {
@@ -36,6 +41,10 @@ type Props = {
   initialProjectId?: string | null;
   /** Server-computed session summary (captures / anomalies / max temp). */
   summaryMetrics?: Record<string, unknown> | null;
+  /** Ordered report set (capture ids) from session metadata. */
+  reportSet?: string[] | null;
+  /** Site conditions from session metadata. */
+  conditions?: Record<string, unknown> | null;
 };
 
 export function ThermalStudioShell({
@@ -50,9 +59,11 @@ export function ThermalStudioShell({
   initialSignature,
   initialProjectId,
   summaryMetrics,
+  reportSet,
+  conditions,
 }: Props) {
   const router = useRouter();
-  const [stage, setStage] = useState<Stage>("captures");
+  const [stage, setStage] = useState<Stage>("library");
   const [activeCaptureId, setActiveCaptureId] = useState<string | null>(captures[0]?.id ?? null);
   const { job, connected } = useThermalJobRealtime(sessionId);
   const activeJob = job ?? initialJob;
@@ -78,10 +89,45 @@ export function ThermalStudioShell({
     [summaryMetrics, captures.length],
   );
 
-  // One workflow: opening an image in the Library jumps to the Analyze workbench.
+  // Shared report-set order so Library curation and Report Builder stay in sync
+  // within a session (server is the source of truth on next load).
+  const [reportOrder, setReportOrder] = useState<string[]>(() =>
+    seedReportOrder(captures, reportSet),
+  );
+  function commitOrder(next: string[]) {
+    setReportOrder(next);
+    void persistReportSet(sessionId, next);
+  }
+  function toggleInReport(id: string) {
+    const has = reportOrder.includes(id);
+    const next = has ? reportOrder.filter((x) => x !== id) : [...reportOrder, id];
+    void persistCaptureInReport(id, !has, has ? 0 : next.length - 1);
+    commitOrder(next);
+  }
+  function addToReport(ids: string[]) {
+    const toAdd = ids.filter((id) => !reportOrder.includes(id));
+    if (!toAdd.length) return;
+    const next = [...reportOrder, ...toAdd];
+    toAdd.forEach((id, i) => void persistCaptureInReport(id, true, reportOrder.length + i));
+    commitOrder(next);
+  }
+  function reorderReport(idx: number, dir: -1 | 1) {
+    const j = idx + dir;
+    if (j < 0 || j >= reportOrder.length) return;
+    const next = [...reportOrder];
+    [next[idx], next[j]] = [next[j], next[idx]];
+    next.forEach((id, i) => void persistCaptureInReport(id, true, i));
+    commitOrder(next);
+  }
+  function removeFromReport(id: string) {
+    void persistCaptureInReport(id, false, 0);
+    commitOrder(reportOrder.filter((x) => x !== id));
+  }
+
+  // One workflow: opening an image in the Library jumps to the Inspect workbench.
   function openInWorkbench(id: string) {
     setActiveCaptureId(id);
-    setStage("analyze");
+    setStage("inspect");
   }
 
   return (
@@ -122,11 +168,18 @@ export function ThermalStudioShell({
 
       {/* Active stage — chrome never scrolls; each stage manages its own space. */}
       <div className="min-h-0 flex-1 overflow-hidden">
-        {stage === "captures" ? (
-          <ThermalLibrary sessionId={sessionId} captures={captures} onOpenCapture={openInWorkbench} />
+        {stage === "library" ? (
+          <ThermalLibrary
+            sessionId={sessionId}
+            captures={captures}
+            onOpenCapture={openInWorkbench}
+            reportOrder={reportOrder}
+            onToggleInReport={toggleInReport}
+            onAddToReport={addToReport}
+          />
         ) : null}
 
-        {stage === "analyze" ? (
+        {stage === "inspect" ? (
           <ThermalAnalyzeTune
             sessionId={sessionId}
             captures={captures}
@@ -137,18 +190,26 @@ export function ThermalStudioShell({
           />
         ) : null}
 
-        {stage === "deliverables" ? (
-          <ThermalDeliverables
+        {stage === "report" ? (
+          <ThermalReportBuilder
             sessionId={sessionId}
-            brandingConfig={brandingConfig}
+            captures={captures}
+            reportOrder={reportOrder}
+            onReorder={reorderReport}
+            onRemove={removeFromReport}
             initialTemplateId={initialTemplateId}
             initialSignature={initialSignature}
-            initialProjectId={initialProjectId}
+            initialConditions={conditions}
           />
         ) : null}
 
-        {stage === "twin" ? (
-          <ThermalTwinLayerPanel sessionId={sessionId} linkedSpaceId={linkedSpaceId} />
+        {stage === "deliver" ? (
+          <ThermalDeliverables
+            sessionId={sessionId}
+            brandingConfig={brandingConfig}
+            initialProjectId={initialProjectId}
+            linkedSpaceId={linkedSpaceId}
+          />
         ) : null}
       </div>
     </div>

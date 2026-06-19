@@ -8,24 +8,52 @@ type Params = { params: Promise<{ captureId: string }> };
 
 type SpotPayload = { id: string; x: number; y: number; imported?: boolean };
 type TuningPayload = { emissivity?: number; reflected_c?: number };
+type AlignmentPayload = {
+  twin_id?: string | null;
+  scene_id?: string | null;
+  transform?: unknown;
+};
+type CapturePatchBody = {
+  spots?: SpotPayload[];
+  tuning?: TuningPayload;
+  findings?: string;
+  in_report?: boolean;
+  report_order?: number;
+  visual_pair_id?: string | null;
+  /** Twin-overlay alignment hook (schema only for now — see roadmap). */
+  alignment?: AlignmentPayload | null;
+};
+
+const CURATION_KEYS = [
+  "findings",
+  "in_report",
+  "report_order",
+  "visual_pair_id",
+  "alignment",
+] as const;
 
 /**
  * Persists per-image edits onto a capture's metadata:
  *  - `metadata.spots`  user-authored probe spots (imported=true for baked markers)
  *  - `metadata.tuning` emissivity / reflected-temp tuning
+ *  - `metadata.findings` operator findings narrative
+ *  - `metadata.in_report` / `report_order` curation (include + order in report set)
+ *  - `metadata.visual_pair_id` linked visual photo
+ *  - `metadata.alignment` twin-overlay transform (schema hook)
  */
 export const PATCH = (req: NextRequest, { params }: Params) =>
   withThermalOpsAuth(req, async ({ admin, orgId }) => {
     const { captureId } = await params;
     if (!captureId) return badRequest("captureId is required");
 
-    let body: { spots?: SpotPayload[]; tuning?: TuningPayload };
+    let body: CapturePatchBody;
     try {
       body = await req.json();
     } catch {
       return badRequest("Invalid JSON body");
     }
-    if (body.spots === undefined && body.tuning === undefined) {
+    const hasCuration = CURATION_KEYS.some((k) => body[k] !== undefined);
+    if (body.spots === undefined && body.tuning === undefined && !hasCuration) {
       return badRequest("Nothing to update");
     }
 
@@ -56,6 +84,30 @@ export const PATCH = (req: NextRequest, { params }: Params) =>
         emissivity: Number.isFinite(emissivity) ? emissivity : 0.95,
         reflected_c: Number.isFinite(reflected) ? reflected : 20,
       };
+    }
+
+    if (typeof body.findings === "string") {
+      metadata.findings = body.findings.slice(0, 5000);
+    }
+    if (typeof body.in_report === "boolean") {
+      metadata.in_report = body.in_report;
+    }
+    if (Number.isFinite(body.report_order)) {
+      metadata.report_order = Number(body.report_order);
+    }
+    if (body.visual_pair_id !== undefined) {
+      metadata.visual_pair_id =
+        typeof body.visual_pair_id === "string" ? body.visual_pair_id : null;
+    }
+    if (body.alignment !== undefined) {
+      metadata.alignment =
+        body.alignment && typeof body.alignment === "object"
+          ? {
+              twin_id: body.alignment.twin_id ?? null,
+              scene_id: body.alignment.scene_id ?? null,
+              transform: body.alignment.transform ?? null,
+            }
+          : null;
     }
 
     const { error: updateError } = await admin
