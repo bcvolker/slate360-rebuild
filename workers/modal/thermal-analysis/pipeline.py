@@ -3,11 +3,57 @@
 from __future__ import annotations
 
 import json
+import re
 import tempfile
+import urllib.parse
+import urllib.request
 from pathlib import Path
 from typing import Any
 
 import numpy as np
+
+
+def _fetch_weather_str(lat: Any, lon: Any, captured_at: Any) -> str | None:
+    """Historical weather at the capture's location + time via Open-Meteo (no API
+    key). Returns a short human string for the report, or None on any failure."""
+    try:
+        if lat is None or lon is None or not captured_at:
+            return None
+        # EXIF datetime: "YYYY:MM:DD HH:MM:SS" → date + hour.
+        m = re.match(r"(\d{4})[:-](\d{2})[:-](\d{2})[ T](\d{2})", str(captured_at))
+        if not m:
+            return None
+        date = f"{m.group(1)}-{m.group(2)}-{m.group(3)}"
+        hour = int(m.group(4))
+        params = urllib.parse.urlencode({
+            "latitude": float(lat),
+            "longitude": float(lon),
+            "start_date": date,
+            "end_date": date,
+            "hourly": "temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code",
+            "temperature_unit": "fahrenheit",
+            "wind_speed_unit": "mph",
+        })
+        url = f"https://archive-api.open-meteo.com/v1/archive?{params}"
+        with urllib.request.urlopen(url, timeout=12) as resp:  # noqa: S310
+            data = json.loads(resp.read())
+        hourly = data.get("hourly") or {}
+        temps = hourly.get("temperature_2m") or []
+        if hour >= len(temps):
+            return None
+        t = temps[hour]
+        rh = (hourly.get("relative_humidity_2m") or [None] * (hour + 1))[hour]
+        wind = (hourly.get("wind_speed_10m") or [None] * (hour + 1))[hour]
+        parts = []
+        if t is not None:
+            parts.append(f"{round(t)}°F")
+        if rh is not None:
+            parts.append(f"{round(rh)}% RH")
+        if wind is not None:
+            parts.append(f"wind {round(wind)} mph")
+        return ", ".join(parts) or None
+    except Exception:
+        return None
 
 from analyze import analyze_temperature_array, segment_materials_sam_stub
 from extract import (
@@ -189,17 +235,23 @@ def build_report_bundle(
             download_object(s3, bucket, str(preview_path), str(local_preview))
             preview_b64 = encode_preview_file(local_preview)
         spots_measured, deltas_measured = _measure_spots(s3, bucket, capture, work_dir)
+        gps = capture.get("gps") or {}
+        q = capture.get("qualityMetrics") or {}
+        weather_str = _fetch_weather_str(
+            gps.get("lat"), gps.get("lon", gps.get("lng")), q.get("captured_at")
+        )
         report_captures.append(
             {
                 "captureId": capture.get("captureId"),
                 "filename": capture.get("filename"),
                 "anomalies": capture.get("anomalies") or [],
                 "preview_b64": preview_b64,
-                "qualityMetrics": capture.get("qualityMetrics") or {},
-                "gps": capture.get("gps") or {},
+                "qualityMetrics": q,
+                "gps": gps,
                 "metadata": capture.get("metadata") or {},
                 "spots_measured": spots_measured,
                 "deltas_measured": deltas_measured,
+                "weather_str": weather_str,
             }
         )
 

@@ -343,6 +343,24 @@ def _per_image_flowables(
         sidebar.append(Paragraph("CONDITIONS", _SIDEBAR_LABEL))
         sidebar.append(_kv_table(conditions))
 
+    # Capture info — formatted timestamp + geolocation (clean report rows, not a
+    # photo stamp). Weather is added by the caller into session_meta when available.
+    cap_rows: list[tuple[str, str]] = []
+    captured_at = q.get("captured_at")
+    if captured_at:
+        cap_rows.append(("Captured", str(captured_at)))
+    gps = capture.get("gps") or {}
+    lat, lon = gps.get("lat"), gps.get("lon", gps.get("lng"))
+    if lat is not None and lon is not None:
+        cap_rows.append(("Location", f"{float(lat):.5f}, {float(lon):.5f}"))
+    weather = capture.get("weather_str")
+    if isinstance(weather, str) and weather:
+        cap_rows.append(("Weather", weather))
+    if cap_rows:
+        sidebar.append(Spacer(1, 6))
+        sidebar.append(Paragraph("CAPTURE", _SIDEBAR_LABEL))
+        sidebar.append(_kv_table(cap_rows))
+
     sidebar.append(Spacer(1, 6))
     sidebar.append(Paragraph("FINDINGS", _SIDEBAR_LABEL))
     findings_text = meta.get("findings")
@@ -365,11 +383,13 @@ def _per_image_flowables(
         image_col.append(_image_flowable(paired.get("preview_b64"), image_w))
         image_col.append(Paragraph(f"Visual · {_safe(paired.get('filename') or '')}", _CAPTION))
     if share_url:
-        d = _qr_drawing(share_url)
+        cid = capture.get("captureId")
+        deep_url = f"{share_url}{'&' if '?' in share_url else '?'}c={cid}" if cid else share_url
+        d = _qr_drawing(deep_url)
         if d is not None:
             image_col.append(Spacer(1, 4))
             image_col.append(d)
-            image_col.append(Paragraph("Scan to explore interactively", _CAPTION))
+            image_col.append(Paragraph("Scan to open this image interactively", _CAPTION))
 
     layout = Table([[sidebar, image_col]], colWidths=[2.15 * inch, max(3.4 * inch, image_w + 0.2 * inch)])
     layout.setStyle(TableStyle([("VALIGN", (0, 0), (-1, -1), "TOP"), ("LEFTPADDING", (0, 0), (0, 0), 0)]))

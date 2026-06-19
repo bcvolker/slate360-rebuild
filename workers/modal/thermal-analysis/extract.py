@@ -309,6 +309,20 @@ def build_quality_metrics(
     blur = laplacian_blur_score(temp_array)
     saturation = saturation_fraction(temp_array)
     gps_present = any(k in meta for k in ("GPSLatitude", "Composite:GpsLatitude", "GPSPosition"))
+    captured_at = next(
+        (
+            str(meta[k])
+            for k in (
+                "EXIF:DateTimeOriginal",
+                "DateTimeOriginal",
+                "Composite:SubSecDateTimeOriginal",
+                "EXIF:CreateDate",
+                "XMP:DateTimeOriginal",
+            )
+            if meta.get(k)
+        ),
+        None,
+    )
 
     score = 1.0
     if blur < 50:
@@ -334,6 +348,7 @@ def build_quality_metrics(
         "sensor_model": extract_meta.get("sensor_model"),
         "parser_id": extract_meta.get("parser_id"),
         "absolute_celsius": extract_meta.get("absolute_celsius", False),
+        "captured_at": captured_at,
     }
 
 

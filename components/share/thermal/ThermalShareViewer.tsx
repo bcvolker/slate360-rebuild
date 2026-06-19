@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { ThermalShareViewerData } from "@/lib/thermal/share-viewer-types";
 import { ThermalShareSlide } from "@/components/share/thermal/ThermalShareSlide";
 import { ThermalShareQA } from "@/components/share/thermal/ThermalShareQA";
@@ -14,6 +14,15 @@ type Props = {
 
 export function ThermalShareViewer({ data, token, tokenState, embed = false }: Props) {
   const [index, setIndex] = useState(0);
+
+  // Deep-link: ?c=<captureId> (from a report QR) opens that image directly.
+  useEffect(() => {
+    if (!data?.captures?.length || typeof window === "undefined") return;
+    const cid = new URLSearchParams(window.location.search).get("c");
+    if (!cid) return;
+    const i = data.captures.findIndex((c) => c.id === cid);
+    if (i >= 0) setIndex(i);
+  }, [data]);
 
   if (tokenState) {
     return (
