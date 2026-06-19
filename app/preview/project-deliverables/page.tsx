@@ -5,9 +5,9 @@ import type { ProjectDeliverablesTabData } from "@/lib/projects/load-project-del
 const MOCK: ProjectDeliverablesTabData = {
   projectId: "demo",
   deliverables: [
-    { id: "d1", title: "Roof Inspection Report — Oct", deliverableType: "report", outputMode: "hosted", status: "shared", shareToken: "abc123abc123abc123", createdAt: new Date().toISOString() },
-    { id: "d2", title: "Client Walkthrough Slideshow", deliverableType: "presentation", outputMode: "presentation", status: "published", shareToken: "def456def456def456", createdAt: new Date().toISOString() },
-    { id: "d3", title: "Punch List Summary", deliverableType: "report", outputMode: "hosted", status: "draft", shareToken: null, createdAt: new Date().toISOString() },
+    { id: "d1", title: "Roof Inspection Report — Oct", deliverableType: "report", outputMode: "hosted", status: "shared", shareToken: "abc123abc123abc123", createdAt: new Date().toISOString(), unansweredCount: 2 },
+    { id: "d2", title: "Client Walkthrough Slideshow", deliverableType: "presentation", outputMode: "presentation", status: "published", shareToken: "def456def456def456", createdAt: new Date().toISOString(), unansweredCount: 0 },
+    { id: "d3", title: "Punch List Summary", deliverableType: "report", outputMode: "hosted", status: "draft", shareToken: null, createdAt: new Date().toISOString(), unansweredCount: 0 },
   ],
 };
 

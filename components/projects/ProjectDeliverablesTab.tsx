@@ -30,6 +30,7 @@ function statusBadge(status: string): string {
 
 export function ProjectDeliverablesTab({ data, canManage }: { data: ProjectDeliverablesTabData; canManage: boolean }) {
   const hasItems = data.deliverables.length > 0;
+  const totalUnanswered = data.deliverables.reduce((sum, d) => sum + d.unansweredCount, 0);
 
   return (
     <div className="space-y-6">
@@ -42,6 +43,12 @@ export function ProjectDeliverablesTab({ data, canManage }: { data: ProjectDeliv
               Build a deliverable from a walk, then send it as a link over email or text — a PDF, a click-through
               slideshow, or an interactive viewer where clients can ask questions back.
             </p>
+            {totalUnanswered > 0 ? (
+              <p className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-[color-mix(in_srgb,var(--graphite-primary)_12%,transparent)] px-2.5 py-1 text-xs font-medium text-[var(--graphite-primary)]">
+                <MessageSquare className="h-3.5 w-3.5" aria-hidden />
+                {totalUnanswered} question{totalUnanswered === 1 ? "" : "s"} waiting for a reply
+              </p>
+            ) : null}
           </div>
           {canManage ? (
             <Link href="/site-walk/deliverables/new" className={t.primaryButton}>
@@ -79,6 +86,7 @@ function DeliverableCard({ d }: { d: ProjectDeliverableRow }) {
   const [busy, setBusy] = useState(false);
   const [feedback, setFeedback] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
   const [qnaOpen, setQnaOpen] = useState(false);
+  const hasUnanswered = d.unansweredCount > 0;
 
   const mode = modeMeta(d.outputMode, d.deliverableType);
   const ModeIcon = mode.icon;
@@ -173,8 +181,21 @@ function DeliverableCard({ d }: { d: ProjectDeliverableRow }) {
             <button type="button" onClick={() => { setSendOpen((v) => !v); setFeedback(null); }} className={cn(t.secondaryButton, "!min-h-9 !px-3 text-xs")}>
               <Send className="mr-1.5 h-3.5 w-3.5" aria-hidden /> Send
             </button>
-            <button type="button" onClick={() => setQnaOpen((v) => !v)} className={cn(t.secondaryButton, "!min-h-9 !px-3 text-xs")}>
+            <button
+              type="button"
+              onClick={() => setQnaOpen((v) => !v)}
+              className={cn(
+                t.secondaryButton,
+                "!min-h-9 !px-3 text-xs",
+                hasUnanswered && "!border-[color-mix(in_srgb,var(--graphite-primary)_45%,transparent)] !text-[var(--graphite-primary)]",
+              )}
+            >
               <MessageSquare className="mr-1.5 h-3.5 w-3.5" aria-hidden /> Q&amp;A
+              {hasUnanswered ? (
+                <span className="ml-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-md bg-[var(--graphite-primary)] px-1 text-[10px] font-bold leading-none text-[var(--graphite-canvas)]">
+                  {d.unansweredCount}
+                </span>
+              ) : null}
             </button>
           </>
         ) : (

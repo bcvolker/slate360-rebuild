@@ -12,6 +12,7 @@ export type ProjectDeliverableRow = {
   status: string;
   shareToken: string | null;
   createdAt: string;
+  unansweredCount: number;
 };
 
 export type ProjectDeliverablesTabData = {
@@ -45,7 +46,25 @@ export async function loadProjectDeliverablesTabData(projectId: string): Promise
     .eq("project_id", projectId)
     .order("created_at", { ascending: false });
 
-  const deliverables: ProjectDeliverableRow[] = ((data as Row[] | null) ?? []).map((r) => ({
+  const rows = (data as Row[] | null) ?? [];
+
+  // Tally unanswered viewer questions (is_owner_reply=false, status='new') per
+  // deliverable so the tab can badge ones that need a reply.
+  const unanswered = new Map<string, number>();
+  const ids = rows.map((r) => r.id);
+  if (ids.length > 0) {
+    const { data: questions } = await admin
+      .from("site_walk_deliverable_questions")
+      .select("deliverable_id")
+      .in("deliverable_id", ids)
+      .eq("is_owner_reply", false)
+      .eq("status", "new");
+    for (const q of (questions as { deliverable_id: string }[] | null) ?? []) {
+      unanswered.set(q.deliverable_id, (unanswered.get(q.deliverable_id) ?? 0) + 1);
+    }
+  }
+
+  const deliverables: ProjectDeliverableRow[] = rows.map((r) => ({
     id: r.id,
     title: r.title ?? "Untitled deliverable",
     deliverableType: r.deliverable_type ?? "report",
@@ -53,6 +72,7 @@ export async function loadProjectDeliverablesTabData(projectId: string): Promise
     status: r.status ?? "draft",
     shareToken: r.share_revoked ? null : r.share_token,
     createdAt: r.created_at,
+    unansweredCount: unanswered.get(r.id) ?? 0,
   }));
 
   return { projectId, deliverables };
