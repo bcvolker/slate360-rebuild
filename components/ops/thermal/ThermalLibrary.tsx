@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { ThermalImageGrid, type GridItem } from "@/components/ops/thermal/ThermalImageGrid";
 import { ThermalProcessPanel } from "@/components/ops/thermal/ThermalProcessPanel";
 import { ThermalBatchTunePanel } from "@/components/ops/thermal/ThermalBatchTunePanel";
+import { ThermalInspectionProfiles } from "@/components/ops/thermal/ThermalInspectionProfiles";
 import type { StudioCapture } from "@/components/ops/thermal/ThermalStudioWorkView";
 import { cameraOf, isHighDelta } from "@/lib/thermal/curation-client";
 
@@ -187,6 +188,7 @@ export function ThermalLibrary({
           </div>
         </div>
         <ThermalProcessPanel sessionId={sessionId} allIds={allIds} selectedIds={selectedIds} />
+        <ThermalInspectionProfiles sessionId={sessionId} targetIds={targetIds} />
         <ThermalBatchTunePanel captureIds={targetIds} />
       </div>
     </div>

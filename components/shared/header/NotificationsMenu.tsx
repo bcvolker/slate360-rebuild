@@ -10,12 +10,24 @@ import { Bell, Loader2 } from "lucide-react";
 
 export type HeaderNotification = {
   id: string;
-  project_id: string;
+  project_id: string | null;
   title: string;
   message: string;
   link_path?: string | null;
   created_at: string;
 };
+
+/**
+ * Resolve a safe destination for a notification row. Prefer an explicit
+ * link_path (migrating the legacy /project-hub prefix), then the project root,
+ * and finally the inbox — never /projects/null or /projects/undefined.
+ */
+function resolveNotificationHref(n: HeaderNotification): string {
+  const fromLink = n.link_path?.replace(/^\/project-hub(?=\/|$)/, "/projects");
+  if (fromLink) return fromLink;
+  if (n.project_id) return `/projects/${n.project_id}`;
+  return "/coordination/inbox";
+}
 
 interface NotificationsMenuProps {
   open: boolean;
@@ -72,10 +84,7 @@ export default function NotificationsMenu({
                 <div className="px-4 py-6 text-sm text-zinc-500">No unread alerts.</div>
               ) : (
                 notifications.map((n) => {
-                  const href = (n.link_path ?? `/projects/${n.project_id}`).replace(
-                    /^\/project-hub(?=\/|$)/,
-                    "/projects",
-                  );
+                  const href = resolveNotificationHref(n);
                   return (
                     <Link
                       key={n.id}

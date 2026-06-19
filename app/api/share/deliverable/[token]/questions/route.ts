@@ -47,6 +47,7 @@ async function notifyOwner(
         project_id: del.project_id,
         title: `New question on “${title}”`,
         message: `${author}: ${text.slice(0, 140)}`,
+        link_path: `/projects/${del.project_id}/deliverables`,
       })
       .then(() => undefined, () => undefined);
   }
