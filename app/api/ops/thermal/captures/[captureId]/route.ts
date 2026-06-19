@@ -7,7 +7,13 @@ export const runtime = "nodejs";
 type Params = { params: Promise<{ captureId: string }> };
 
 type SpotPayload = { id: string; x: number; y: number; imported?: boolean };
-type TuningPayload = { emissivity?: number; reflected_c?: number };
+type TuningPayload = {
+  emissivity?: number;
+  reflected_c?: number;
+  distance_m?: number;
+  humidity_pct?: number;
+  atmospheric_c?: number;
+};
 type AlignmentPayload = {
   twin_id?: string | null;
   scene_id?: string | null;
@@ -80,10 +86,16 @@ export const PATCH = (req: NextRequest, { params }: Params) =>
     if (body.tuning && typeof body.tuning === "object") {
       const emissivity = Number(body.tuning.emissivity);
       const reflected = Number(body.tuning.reflected_c);
-      metadata.tuning = {
+      const tuning: Record<string, number> = {
         emissivity: Number.isFinite(emissivity) ? emissivity : 0.95,
         reflected_c: Number.isFinite(reflected) ? reflected : 20,
       };
+      // Optional environment params — persisted only when provided & finite.
+      for (const key of ["distance_m", "humidity_pct", "atmospheric_c"] as const) {
+        const v = Number(body.tuning[key]);
+        if (Number.isFinite(v)) tuning[key] = v;
+      }
+      metadata.tuning = tuning;
     }
 
     if (typeof body.findings === "string") {

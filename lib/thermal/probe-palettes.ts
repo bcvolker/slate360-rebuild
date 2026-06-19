@@ -63,10 +63,14 @@ export function newSpotId(): string {
   return `s${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
+/** Temperature band to spotlight (isotherm). Pixels outside render grayscale. */
+export type Isotherm = { lo: number; hi: number };
+
 /**
  * Paint a temperature grid onto a canvas context using a palette and an explicit
  * display range [lo, hi] (the "level/span" — temps outside the range clamp to the
- * palette ends). Returns nothing; mutates the context's image data.
+ * palette ends). When `isotherm` is given, only temps inside [iso.lo, iso.hi] are
+ * painted in palette color; the rest render as dimmed grayscale so the band pops.
  */
 export function renderHeatmap(
   ctx: CanvasRenderingContext2D,
@@ -76,16 +80,48 @@ export function renderHeatmap(
   palette: string,
   lo: number,
   hi: number,
+  isotherm?: Isotherm | null,
 ): void {
   const img = ctx.createImageData(width, height);
   const span = hi - lo || 1;
   for (let i = 0; i < temps.length; i++) {
-    const [r, g, b] = samplePalette(palette, (temps[i] - lo) / span);
+    const t = temps[i];
+    const norm = (t - lo) / span;
     const o = i * 4;
-    img.data[o] = r;
-    img.data[o + 1] = g;
-    img.data[o + 2] = b;
+    if (isotherm && (t < isotherm.lo || t > isotherm.hi)) {
+      // Dimmed grayscale for out-of-band pixels.
+      const g = Math.round(Math.max(0, Math.min(1, norm)) * 150);
+      img.data[o] = g;
+      img.data[o + 1] = g;
+      img.data[o + 2] = g;
+    } else {
+      const [r, g, b] = samplePalette(palette, norm);
+      img.data[o] = r;
+      img.data[o + 1] = g;
+      img.data[o + 2] = b;
+    }
     img.data[o + 3] = 255;
   }
   ctx.putImageData(img, 0, 0);
+}
+
+/**
+ * Bins temperatures across [lo, hi] into `bins` buckets — for the span histogram.
+ * Out-of-range values clamp into the end buckets.
+ */
+export function computeHistogram(
+  temps: number[] | Float32Array | Float64Array,
+  lo: number,
+  hi: number,
+  bins = 40,
+): number[] {
+  const out = new Array(bins).fill(0);
+  const span = hi - lo || 1;
+  for (let i = 0; i < temps.length; i++) {
+    let b = Math.floor(((temps[i] - lo) / span) * bins);
+    if (b < 0) b = 0;
+    else if (b >= bins) b = bins - 1;
+    out[b] += 1;
+  }
+  return out;
 }

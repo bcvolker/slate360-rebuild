@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   renderHeatmap,
+  computeHistogram,
   fmtTemp,
   newSpotId,
   type MarkerShape,
@@ -28,7 +29,13 @@ export type ThermalProbeGrid = {
 };
 
 export type ProbeSpot = { id: string; x: number; y: number; imported?: boolean };
-export type ProbeTuning = { emissivity: number; reflected_c: number };
+export type ProbeTuning = {
+  emissivity: number;
+  reflected_c: number;
+  distance_m?: number;
+  humidity_pct?: number;
+  atmospheric_c?: number;
+};
 
 type Props = {
   grid: ThermalProbeGrid;
@@ -61,11 +68,24 @@ export function ThermalProbeViewer({
 
   const [emissivity, setEmissivity] = useState(initialTuning?.emissivity ?? baseEmissivity);
   const [reflectedC, setReflectedC] = useState(initialTuning?.reflected_c ?? 20);
+  const [distanceM, setDistanceM] = useState<number | undefined>(initialTuning?.distance_m);
+  const [humidityPct, setHumidityPct] = useState<number | undefined>(initialTuning?.humidity_pct);
+  const [atmosphericC, setAtmosphericC] = useState<number | undefined>(initialTuning?.atmospheric_c);
 
   useEffect(() => {
     setEmissivity(initialTuning?.emissivity ?? baseEmissivity);
     setReflectedC(initialTuning?.reflected_c ?? 20);
-  }, [initialTuning?.emissivity, initialTuning?.reflected_c, baseEmissivity]);
+    setDistanceM(initialTuning?.distance_m);
+    setHumidityPct(initialTuning?.humidity_pct);
+    setAtmosphericC(initialTuning?.atmospheric_c);
+  }, [
+    initialTuning?.emissivity,
+    initialTuning?.reflected_c,
+    initialTuning?.distance_m,
+    initialTuning?.humidity_pct,
+    initialTuning?.atmospheric_c,
+    baseEmissivity,
+  ]);
 
   // Live gray-body recompute when emissivity / reflected temp change.
   const tuned = useMemo(
@@ -80,9 +100,33 @@ export function ThermalProbeViewer({
     (e1: number, refl: number) => {
       setEmissivity(e1);
       setReflectedC(refl);
-      onTuningChange?.({ emissivity: e1, reflected_c: refl });
+      onTuningChange?.({
+        emissivity: e1,
+        reflected_c: refl,
+        distance_m: distanceM,
+        humidity_pct: humidityPct,
+        atmospheric_c: atmosphericC,
+      });
     },
-    [onTuningChange],
+    [onTuningChange, distanceM, humidityPct, atmosphericC],
+  );
+
+  // Display-only environment params (don't affect the gray-body preview, but are
+  // captured for the report). Persisted alongside emissivity/reflected.
+  const applyParam = useCallback(
+    (patch: Partial<Pick<ProbeTuning, "distance_m" | "humidity_pct" | "atmospheric_c">>) => {
+      const next = {
+        distance_m: distanceM,
+        humidity_pct: humidityPct,
+        atmospheric_c: atmosphericC,
+        ...patch,
+      };
+      setDistanceM(next.distance_m);
+      setHumidityPct(next.humidity_pct);
+      setAtmosphericC(next.atmospheric_c);
+      onTuningChange?.({ emissivity, reflected_c: reflectedC, ...next });
+    },
+    [onTuningChange, emissivity, reflectedC, distanceM, humidityPct, atmosphericC],
   );
 
   const [unit, setUnit] = useState<Unit>("F");
@@ -98,14 +142,30 @@ export function ThermalProbeViewer({
   const [selectedAnomalyId, setSelectedAnomalyId] = useState<string | null>(null);
   const [displayMin, setDisplayMin] = useState<number | null>(null);
   const [displayMax, setDisplayMax] = useState<number | null>(null);
+  const [isoOn, setIsoOn] = useState(false);
+  const [isoLo, setIsoLo] = useState<number | null>(null);
+  const [isoHi, setIsoHi] = useState<number | null>(null);
   const draggingRef = useRef<string | null>(null);
 
   useEffect(() => setSpots(initialSpots ?? []), [initialSpots]);
-  // Reset the manual display range (span/level) when the capture changes.
-  useEffect(() => { setDisplayMin(null); setDisplayMax(null); }, [grid.temps]);
+  // Reset manual display range + isotherm when the capture changes.
+  useEffect(() => {
+    setDisplayMin(null);
+    setDisplayMax(null);
+    setIsoOn(false);
+    setIsoLo(null);
+    setIsoHi(null);
+  }, [grid.temps]);
 
   const loDisp = displayMin ?? minC;
   const hiDisp = displayMax ?? maxC;
+  // Default isotherm band = upper third of the display range (typical "hot" focus).
+  const isoLoVal = isoLo ?? loDisp + (hiDisp - loDisp) * 0.66;
+  const isoHiVal = isoHi ?? hiDisp;
+  const histogram = useMemo(
+    () => computeHistogram(temps, loDisp, hiDisp, 40),
+    [temps, loDisp, hiDisp],
+  );
 
   // Persist spots after committed changes (add/delete/drag-end/clear), not hover.
   const commit = useCallback(
@@ -145,8 +205,17 @@ export function ThermalProbeViewer({
     canvas.height = height;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-    renderHeatmap(ctx, temps, width, height, palette, loDisp, hiDisp);
-  }, [temps, width, height, loDisp, hiDisp, palette]);
+    renderHeatmap(
+      ctx,
+      temps,
+      width,
+      height,
+      palette,
+      loDisp,
+      hiDisp,
+      isoOn ? { lo: isoLoVal, hi: isoHiVal } : null,
+    );
+  }, [temps, width, height, loDisp, hiDisp, palette, isoOn, isoLoVal, isoHiVal]);
 
   const toImageCoords = useCallback(
     (clientX: number, clientY: number) => {
@@ -284,6 +353,19 @@ export function ThermalProbeViewer({
             onRangeMin={setDisplayMin}
             onRangeMax={setDisplayMax}
             onRangeAuto={() => { setDisplayMin(null); setDisplayMax(null); }}
+            histogram={histogram}
+            distanceM={distanceM}
+            humidityPct={humidityPct}
+            atmosphericC={atmosphericC}
+            onDistanceM={(v) => applyParam({ distance_m: v })}
+            onHumidityPct={(v) => applyParam({ humidity_pct: v })}
+            onAtmosphericC={(v) => applyParam({ atmospheric_c: v })}
+            isoOn={isoOn}
+            isoLo={isoLoVal}
+            isoHi={isoHiVal}
+            onIsoToggle={() => setIsoOn((v) => !v)}
+            onIsoLo={setIsoLo}
+            onIsoHi={setIsoHi}
           />
           <ThermalFindingsPanel
             anomalies={anomalies}
