@@ -118,8 +118,16 @@ export function ThermalStudioWorkView({
 
   const selectedMeta = (selected?.metadata ?? {}) as Record<string, unknown>;
   const anomalies = (selected?.anomalies ?? []) as ThermalAnomaly[];
-  const initialSpots = (selectedMeta.spots ?? []) as ProbeSpot[];
-  const initialTuning = (selectedMeta.tuning ?? null) as ProbeTuning | null;
+  // Memoize per-capture so unrelated re-renders (e.g. async grid load) don't hand
+  // the viewer a fresh array identity and wipe the spots the user just placed.
+  const initialSpots = useMemo(
+    () => (selectedMeta.spots ?? []) as ProbeSpot[],
+    [selected?.id], // eslint-disable-line react-hooks/exhaustive-deps
+  );
+  const initialTuning = useMemo(
+    () => (selectedMeta.tuning ?? null) as ProbeTuning | null,
+    [selected?.id], // eslint-disable-line react-hooks/exhaustive-deps
+  );
 
   const onSpotsChange = useCallback(
     (spots: ProbeSpot[]) => {

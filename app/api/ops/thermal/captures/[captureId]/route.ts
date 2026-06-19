@@ -6,7 +6,16 @@ export const runtime = "nodejs";
 
 type Params = { params: Promise<{ captureId: string }> };
 
-type SpotPayload = { id: string; x: number; y: number; imported?: boolean };
+type SpotPayload = {
+  id: string;
+  x: number;
+  y: number;
+  imported?: boolean;
+  kind?: "point" | "area";
+  target?: "crosshair" | "crosshair-circle";
+  w?: number;
+  h?: number;
+};
 type TuningPayload = {
   emissivity?: number;
   reflected_c?: number;
@@ -80,7 +89,23 @@ export const PATCH = (req: NextRequest, { params }: Params) =>
     if (Array.isArray(body.spots)) {
       metadata.spots = body.spots
         .filter((s) => s && typeof s.id === "string" && Number.isFinite(s.x) && Number.isFinite(s.y))
-        .map((s) => ({ id: s.id, x: s.x, y: s.y, imported: Boolean(s.imported) }));
+        .map((s) => {
+          const base: Record<string, unknown> = {
+            id: s.id,
+            x: s.x,
+            y: s.y,
+            imported: Boolean(s.imported),
+          };
+          if (s.kind === "area") {
+            base.kind = "area";
+            if (Number.isFinite(s.w)) base.w = Number(s.w);
+            if (Number.isFinite(s.h)) base.h = Number(s.h);
+          } else if (s.target === "crosshair-circle" || s.target === "crosshair") {
+            base.kind = "point";
+            base.target = s.target;
+          }
+          return base;
+        });
     }
 
     if (body.tuning && typeof body.tuning === "object") {

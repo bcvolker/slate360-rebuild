@@ -9,7 +9,8 @@ import {
   type MarkerShape,
   type Unit,
 } from "@/lib/thermal/probe-palettes";
-import { SpotMarker, ExtremeMarker } from "@/components/ops/thermal/ThermalProbeMarkers";
+import { SpotTarget, ExtremeMarker } from "@/components/ops/thermal/ThermalProbeMarkers";
+import { spotStats } from "@/lib/thermal/spot-stats";
 import { ThermalProbeToolbar } from "@/components/ops/thermal/ThermalProbeToolbar";
 import { ThermalAnomalyOverlay } from "@/components/ops/thermal/ThermalAnomalyOverlay";
 import { ThermalFindingsPanel } from "@/components/ops/thermal/ThermalFindingsPanel";
@@ -28,7 +29,20 @@ export type ThermalProbeGrid = {
   emissivity?: number;
 };
 
-export type ProbeSpot = { id: string; x: number; y: number; imported?: boolean };
+/** A measurement target: a point (crosshair) or an averaging area (box). */
+export type SpotKind = "point" | "area";
+export type SpotTargetShape = "crosshair" | "crosshair-circle";
+export type ProbeSpot = {
+  id: string;
+  x: number;
+  y: number;
+  imported?: boolean;
+  kind?: SpotKind; // default "point"
+  target?: SpotTargetShape; // point look — default "crosshair"
+  /** Area box size in grid pixels (when kind === "area"). */
+  w?: number;
+  h?: number;
+};
 export type ProbeTuning = {
   emissivity: number;
   reflected_c: number;
@@ -131,7 +145,8 @@ export function ThermalProbeViewer({
 
   const [unit, setUnit] = useState<Unit>("F");
   const [palette, setPalette] = useState<string>("Inferno");
-  const [shape, setShape] = useState<MarkerShape>("circle");
+  // What the next click places: precise crosshair, ringed crosshair, or an area box.
+  const [tool, setTool] = useState<"crosshair" | "crosshair-circle" | "area">("crosshair");
   const [showLabels, setShowLabels] = useState(true);
   const [showMin, setShowMin] = useState(true);
   const [showMax, setShowMax] = useState(true);
@@ -146,6 +161,11 @@ export function ThermalProbeViewer({
   const [isoLo, setIsoLo] = useState<number | null>(null);
   const [isoHi, setIsoHi] = useState<number | null>(null);
   const draggingRef = useRef<string | null>(null);
+  const resizingRef = useRef<string | null>(null);
+  const dragSnapshot = useRef<ProbeSpot[] | null>(null);
+  // Undo/redo history of the spot set (the main editable in this view).
+  const [past, setPast] = useState<ProbeSpot[][]>([]);
+  const [future, setFuture] = useState<ProbeSpot[][]>([]);
 
   useEffect(() => setSpots(initialSpots ?? []), [initialSpots]);
   // Reset manual display range + isotherm when the capture changes.
@@ -155,6 +175,8 @@ export function ThermalProbeViewer({
     setIsoOn(false);
     setIsoLo(null);
     setIsoHi(null);
+    setPast([]);
+    setFuture([]);
   }, [grid.temps]);
 
   const loDisp = displayMin ?? minC;
@@ -168,13 +190,55 @@ export function ThermalProbeViewer({
   );
 
   // Persist spots after committed changes (add/delete/drag-end/clear), not hover.
+  // Each commit records history so edits can be undone/redone.
   const commit = useCallback(
     (next: ProbeSpot[]) => {
+      setPast((p) => [...p, spots]);
+      setFuture([]);
       setSpots(next);
       onSpotsChange?.(next);
     },
-    [onSpotsChange],
+    [onSpotsChange, spots],
   );
+
+  const undo = useCallback(() => {
+    setPast((p) => {
+      if (!p.length) return p;
+      const prev = p[p.length - 1];
+      setFuture((f) => [spots, ...f]);
+      setSpots(prev);
+      onSpotsChange?.(prev);
+      return p.slice(0, -1);
+    });
+  }, [spots, onSpotsChange]);
+
+  const redo = useCallback(() => {
+    setFuture((f) => {
+      if (!f.length) return f;
+      const nextState = f[0];
+      setPast((p) => [...p, spots]);
+      setSpots(nextState);
+      onSpotsChange?.(nextState);
+      return f.slice(1);
+    });
+  }, [spots, onSpotsChange]);
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      const tag = (e.target as HTMLElement | null)?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA") return;
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") {
+        e.preventDefault();
+        if (e.shiftKey) redo();
+        else undo();
+      } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "y") {
+        e.preventDefault();
+        redo();
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [undo, redo]);
 
   const tempAt = useCallback(
     (x: number, y: number): number => {
@@ -235,10 +299,46 @@ export function ThermalProbeViewer({
       const p = toImageCoords(e.clientX, e.clientY);
       setHover(p);
       const id = draggingRef.current;
-      if (id) setSpots((prev) => prev.map((s) => (s.id === id ? { ...s, x: p.x, y: p.y } : s)));
+      if (id) {
+        setSpots((prev) => prev.map((s) => (s.id === id ? { ...s, x: p.x, y: p.y } : s)));
+        return;
+      }
+      const rid = resizingRef.current;
+      if (rid) {
+        setSpots((prev) =>
+          prev.map((s) =>
+            s.id === rid
+              ? { ...s, w: Math.max(4, Math.abs(p.x - s.x) * 2), h: Math.max(4, Math.abs(p.y - s.y) * 2) }
+              : s,
+          ),
+        );
+      }
     },
     [toImageCoords],
   );
+
+  // End a move/resize gesture: record the pre-gesture state in history once.
+  const endGesture = useCallback(() => {
+    if ((draggingRef.current || resizingRef.current) && dragSnapshot.current) {
+      const snapshot = dragSnapshot.current;
+      setPast((p) => [...p, snapshot]);
+      setFuture([]);
+      onSpotsChange?.(spots);
+    }
+    draggingRef.current = null;
+    resizingRef.current = null;
+    dragSnapshot.current = null;
+  }, [spots, onSpotsChange]);
+
+  function placeSpot(p: { x: number; y: number }) {
+    const id = newSpotId();
+    const base: ProbeSpot =
+      tool === "area"
+        ? { id, x: p.x, y: p.y, kind: "area", w: Math.max(12, width * 0.18), h: Math.max(12, height * 0.18) }
+        : { id, x: p.x, y: p.y, kind: "point", target: tool === "crosshair-circle" ? "crosshair-circle" : "crosshair" };
+    commit([...spots, base]);
+    if (!refId) setRefId(id);
+  }
 
   const pct = (v: number, total: number) => `${(v / total) * 100}%`;
   const importedCount = spots.filter((s) => s.imported).length;
@@ -249,8 +349,12 @@ export function ThermalProbeViewer({
         title={title}
         palette={palette}
         setPalette={setPalette}
-        shape={shape}
-        setShape={setShape}
+        tool={tool}
+        setTool={setTool}
+        onUndo={undo}
+        onRedo={redo}
+        canUndo={past.length > 0}
+        canRedo={future.length > 0}
         unit={unit}
         setUnit={setUnit}
         showLabels={showLabels}
@@ -273,14 +377,9 @@ export function ThermalProbeViewer({
           ref={wrapRef}
           className="relative aspect-[4/3] w-full cursor-crosshair touch-none overflow-hidden rounded-xl border border-[var(--mobile-app-card-border)] bg-black"
           onPointerMove={onPointerMove}
-          onPointerLeave={() => { setHover(null); draggingRef.current = null; }}
-          onPointerUp={() => { if (draggingRef.current) { draggingRef.current = null; onSpotsChange?.(spots); } }}
-          onPointerDown={(e) => {
-            const p = toImageCoords(e.clientX, e.clientY);
-            const id = newSpotId();
-            commit([...spots, { id, x: p.x, y: p.y }]);
-            if (!refId) setRefId(id);
-          }}
+          onPointerLeave={() => { setHover(null); endGesture(); }}
+          onPointerUp={endGesture}
+          onPointerDown={(e) => placeSpot(toImageCoords(e.clientX, e.clientY))}
         >
           <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" />
 
@@ -295,11 +394,11 @@ export function ThermalProbeViewer({
           ) : null}
 
           {showMax ? (
-            <ExtremeMarker shape={shape} tone="hot" label={showLabels ? `MAX ${fmtTemp(extremes.hot.c, unit)}` : "MAX"}
+            <ExtremeMarker shape="crosshair" tone="hot" label={showLabels ? `MAX ${fmtTemp(extremes.hot.c, unit)}` : "MAX"}
               x={pct(extremes.hot.x, width)} y={pct(extremes.hot.y, height)} />
           ) : null}
           {showMin ? (
-            <ExtremeMarker shape={shape} tone="cold" label={showLabels ? `MIN ${fmtTemp(extremes.cold.c, unit)}` : "MIN"}
+            <ExtremeMarker shape="crosshair" tone="cold" label={showLabels ? `MIN ${fmtTemp(extremes.cold.c, unit)}` : "MIN"}
               x={pct(extremes.cold.x, width)} y={pct(extremes.cold.y, height)} />
           ) : null}
 
@@ -312,28 +411,61 @@ export function ThermalProbeViewer({
             </div>
           ) : null}
 
-          {spots.map((s, idx) => (
-            <button
-              key={s.id}
-              type="button"
-              className="absolute z-20 -translate-x-1/2 -translate-y-1/2"
-              style={{ left: pct(s.x, width), top: pct(s.y, height) }}
-              onPointerDown={(e) => { e.stopPropagation(); draggingRef.current = s.id; }}
-              onDoubleClick={(e) => {
-                e.stopPropagation();
-                commit(spots.filter((p) => p.id !== s.id));
-                if (refId === s.id) setRefId(null);
-              }}
-              aria-label={`Spot ${idx + 1}`}
-            >
-              <SpotMarker shape={shape} index={idx + 1} active={s.id === refId} />
-              {showLabels ? (
-                <span className="absolute left-1/2 top-4 -translate-x-1/2 whitespace-nowrap rounded bg-black/80 px-1 py-0.5 text-[10px] font-semibold text-white">
-                  {fmtTemp(tempAt(s.x, s.y), unit)}
-                </span>
-              ) : null}
-            </button>
-          ))}
+          {spots.map((s, idx) => {
+            const stats = spotStats(s, temps, width, height);
+            const startDrag = (e: React.PointerEvent) => {
+              e.stopPropagation();
+              dragSnapshot.current = spots;
+              draggingRef.current = s.id;
+            };
+            const remove = (e: React.MouseEvent) => {
+              e.stopPropagation();
+              commit(spots.filter((p) => p.id !== s.id));
+              if (refId === s.id) setRefId(null);
+            };
+            const label = showLabels ? (
+              <span className="absolute left-1/2 top-4 -translate-x-1/2 whitespace-nowrap rounded bg-black/80 px-1 py-0.5 text-[10px] font-semibold text-white">
+                {s.kind === "area" ? "avg " : ""}{fmtTemp(stats.value, unit)}
+              </span>
+            ) : null;
+
+            if (s.kind === "area") {
+              return (
+                <div
+                  key={s.id}
+                  className="absolute z-20 -translate-x-1/2 -translate-y-1/2"
+                  style={{ left: pct(s.x, width), top: pct(s.y, height), width: pct(s.w ?? 20, width), height: pct(s.h ?? 20, height) }}
+                  onPointerDown={startDrag}
+                  onDoubleClick={remove}
+                  aria-label={`Area ${idx + 1}`}
+                >
+                  <div className={`h-full w-full border-2 ${s.id === refId ? "border-white" : "border-white/80"} bg-white/5 shadow-[0_0_1px_rgba(0,0,0,0.9)]`} />
+                  <span className="absolute -left-1.5 -top-1.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-[var(--graphite-primary)] text-[8px] font-bold text-white">{idx + 1}</span>
+                  {/* resize handle (bottom-right) */}
+                  <span
+                    className="absolute -bottom-1 -right-1 h-3 w-3 cursor-nwse-resize rounded-sm border border-white bg-[var(--graphite-primary)]"
+                    onPointerDown={(e) => { e.stopPropagation(); dragSnapshot.current = spots; resizingRef.current = s.id; }}
+                  />
+                  {label}
+                </div>
+              );
+            }
+
+            return (
+              <button
+                key={s.id}
+                type="button"
+                className="absolute z-20 -translate-x-1/2 -translate-y-1/2"
+                style={{ left: pct(s.x, width), top: pct(s.y, height) }}
+                onPointerDown={startDrag}
+                onDoubleClick={remove}
+                aria-label={`Spot ${idx + 1}`}
+              >
+                <SpotTarget ringed={s.target === "crosshair-circle"} index={idx + 1} active={s.id === refId} />
+                {label}
+              </button>
+            );
+          })}
         </div>
 
         <div className="space-y-3 text-sm">
@@ -374,7 +506,13 @@ export function ThermalProbeViewer({
             selectedId={selectedAnomalyId}
             onSelect={setSelectedAnomalyId}
           />
-          <ThermalSpotsPanel spots={spots} refId={refId} setRefId={setRefId} unit={unit} tempAt={tempAt} />
+          <ThermalSpotsPanel
+            spots={spots}
+            refId={refId}
+            setRefId={setRefId}
+            unit={unit}
+            valueOf={(s) => spotStats(s, temps, width, height).value}
+          />
         </div>
       </div>
     </div>

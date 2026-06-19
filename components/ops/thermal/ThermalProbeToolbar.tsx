@@ -1,15 +1,21 @@
 "use client";
 
-import { PALETTE_NAMES, type MarkerShape, type Unit } from "@/lib/thermal/probe-palettes";
+import { PALETTE_NAMES, type Unit } from "@/lib/thermal/probe-palettes";
 import { Toggle } from "@/components/ops/thermal/ThermalProbeMarkers";
 
-/** Top toolbar for the probe: palette, marker shape, unit, layer toggles, spot clears. */
+export type ProbeTool = "crosshair" | "crosshair-circle" | "area";
+
+/** Top toolbar for the probe: palette, target tool, undo/redo, unit, layers, clears. */
 export function ThermalProbeToolbar({
   title,
   palette,
   setPalette,
-  shape,
-  setShape,
+  tool,
+  setTool,
+  onUndo,
+  onRedo,
+  canUndo,
+  canRedo,
   unit,
   setUnit,
   showLabels,
@@ -29,8 +35,12 @@ export function ThermalProbeToolbar({
   title?: string;
   palette: string;
   setPalette: (v: string) => void;
-  shape: MarkerShape;
-  setShape: (v: MarkerShape) => void;
+  tool: ProbeTool;
+  setTool: (v: ProbeTool) => void;
+  onUndo: () => void;
+  onRedo: () => void;
+  canUndo: boolean;
+  canRedo: boolean;
   unit: Unit;
   setUnit: (fn: (u: Unit) => Unit) => void;
   showLabels: boolean;
@@ -59,11 +69,13 @@ export function ThermalProbeToolbar({
         <select value={palette} onChange={(e) => setPalette(e.target.value)} className={selectCls} aria-label="Color palette">
           {PALETTE_NAMES.map((p) => <option key={p} value={p}>{p}</option>)}
         </select>
-        <select value={shape} onChange={(e) => setShape(e.target.value as MarkerShape)} className={selectCls} aria-label="Marker shape">
-          <option value="circle">Circle target</option>
-          <option value="crosshair">Crosshair</option>
-          <option value="box">Box</option>
+        <select value={tool} onChange={(e) => setTool(e.target.value as ProbeTool)} className={selectCls} aria-label="Target tool">
+          <option value="crosshair">＋ Crosshair</option>
+          <option value="crosshair-circle">⌖ Crosshair + ring</option>
+          <option value="area">▢ Area (avg)</option>
         </select>
+        <button type="button" onClick={onUndo} disabled={!canUndo} className={`${clearBtn} disabled:opacity-40`} title="Undo (Ctrl+Z)">↶</button>
+        <button type="button" onClick={onRedo} disabled={!canRedo} className={`${clearBtn} disabled:opacity-40`} title="Redo (Ctrl+Shift+Z)">↷</button>
         <Toggle on={unit === "F"} onClick={() => setUnit((u) => (u === "F" ? "C" : "F"))}>°{unit}</Toggle>
         <Toggle on={showLabels} onClick={() => setShowLabels((v) => !v)}>Labels</Toggle>
         <Toggle on={showMax} onClick={() => setShowMax((v) => !v)}>Max</Toggle>

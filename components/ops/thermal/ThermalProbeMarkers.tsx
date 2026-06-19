@@ -58,6 +58,41 @@ export function SpotMarker({
   );
 }
 
+/**
+ * Precise point target — a thin crosshair (FLIR-style) with a centre gap, optionally
+ * ringed. Replaces the old large round button so placement reads as exact.
+ */
+export function SpotTarget({
+  ringed,
+  index,
+  active,
+}: {
+  ringed: boolean;
+  index: number;
+  active: boolean;
+}) {
+  const line = "absolute bg-white shadow-[0_0_1px_rgba(0,0,0,0.9)]";
+  return (
+    <span className="relative flex h-6 w-6 items-center justify-center">
+      {/* crosshair arms with a centre gap for precision */}
+      <span className={`${line} left-1/2 top-0 h-2 w-px -translate-x-1/2`} />
+      <span className={`${line} left-1/2 bottom-0 h-2 w-px -translate-x-1/2`} />
+      <span className={`${line} top-1/2 left-0 h-px w-2 -translate-y-1/2`} />
+      <span className={`${line} top-1/2 right-0 h-px w-2 -translate-y-1/2`} />
+      {ringed ? (
+        <span className="absolute h-4 w-4 rounded-full border border-white/90 shadow-[0_0_1px_rgba(0,0,0,0.9)]" />
+      ) : null}
+      <span
+        className={`absolute -right-3 -top-3 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-[var(--graphite-primary)] text-[8px] font-bold text-white ${
+          active ? "ring-2 ring-white" : ""
+        }`}
+      >
+        {index}
+      </span>
+    </span>
+  );
+}
+
 export function ExtremeMarker({
   shape,
   x,

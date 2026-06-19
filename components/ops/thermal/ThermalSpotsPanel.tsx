@@ -9,16 +9,17 @@ export function ThermalSpotsPanel({
   refId,
   setRefId,
   unit,
-  tempAt,
+  valueOf,
 }: {
   spots: ProbeSpot[];
   refId: string | null;
   setRefId: (id: string) => void;
   unit: Unit;
-  tempAt: (x: number, y: number) => number;
+  /** Headline temperature for a target: point sample or area average. */
+  valueOf: (spot: ProbeSpot) => number;
 }) {
   const refSpot = spots.find((s) => s.id === refId) ?? spots[0] ?? null;
-  const spotTemps = spots.map((s) => tempAt(s.x, s.y));
+  const spotTemps = spots.map((s) => valueOf(s));
   const spread = spotTemps.length >= 2 ? Math.max(...spotTemps) - Math.min(...spotTemps) : 0;
   const average = spotTemps.length ? spotTemps.reduce((a, b) => a + b, 0) / spotTemps.length : 0;
 
@@ -29,20 +30,22 @@ export function ThermalSpotsPanel({
       </p>
       {spots.length === 0 ? (
         <p className="mt-1 text-xs text-[var(--graphite-muted)]">
-          Click the image to add a spot. Drag to move, double-click to remove.
-          Click a spot number to set the Δ reference.
+          Pick a target tool above, then click the image to place it. Drag to move,
+          double-click to remove (including baked-in spots), drag an area's corner to
+          resize. Click a number to set the Δ reference.
         </p>
       ) : (
         <ul className="mt-2 space-y-1">
           {spots.map((s, idx) => {
-            const tC = tempAt(s.x, s.y);
-            const dC = refSpot ? tC - tempAt(refSpot.x, refSpot.y) : 0;
+            const tC = valueOf(s);
+            const dC = refSpot ? tC - valueOf(refSpot) : 0;
             return (
               <li key={s.id} className="flex items-center justify-between gap-2 text-[var(--graphite-text-body)]">
                 <button type="button" onClick={() => setRefId(s.id)} className="flex items-center gap-1.5" title="Set as Δ reference">
                   <span className={`flex h-4 w-4 items-center justify-center rounded-full text-[8px] font-bold text-white bg-[var(--graphite-primary)] ${s.id === refId ? "ring-2 ring-white" : ""}`}>
                     {idx + 1}
                   </span>
+                  {s.kind === "area" ? <span className="text-[9px] uppercase text-[var(--graphite-muted)]">area</span> : null}
                   {s.imported ? <span className="text-[9px] uppercase text-[var(--graphite-muted)]">baked</span> : null}
                 </button>
                 <span className="ml-auto font-semibold tabular-nums">{fmtTemp(tC, unit)}</span>
