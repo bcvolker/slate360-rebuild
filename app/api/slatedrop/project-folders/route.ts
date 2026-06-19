@@ -61,7 +61,8 @@ export async function GET(req: NextRequest) {
     );
     if (project) {
       try {
-        await provisionProjectFolders(projectId, project.name ?? "Project", orgId, user.id);
+        const projectName = (project as { name?: string }).name ?? "Project";
+        await provisionProjectFolders(projectId, projectName, orgId, user.id);
         const reread = await query;
         rows = (reread.data ?? []) as FolderRow[];
       } catch (provisionError) {

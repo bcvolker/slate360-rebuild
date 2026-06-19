@@ -24,8 +24,8 @@ export const POST = (req: NextRequest) =>
       query = query.eq("id", body.id);
     }
 
-    const { error, count } = await query.select("id", { count: "exact" });
+    const { data, error } = await query.select("id");
     if (error) return serverError(error.message);
 
-    return ok({ updated: count ?? 0 });
+    return ok({ updated: data?.length ?? 0 });
   });
