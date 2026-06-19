@@ -31,6 +31,8 @@ from reportlab.platypus import (
     TableStyle,
 )
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+from reportlab.graphics.barcode import qr
+from reportlab.graphics.shapes import Drawing
 
 
 def _safe(text: Any) -> str:
@@ -112,7 +114,14 @@ def _section_on(sections: dict[str, Any], key: str) -> bool:
 
 
 def _fetch_logo_b64(url: Any) -> str | None:
-    if not url or not isinstance(url, str) or not url.startswith(("http://", "https://")):
+    """Operator logo as base64 — supports a data: URI (uploaded logo stored inline)
+    or an http(s) URL (hosted logo)."""
+    if not url or not isinstance(url, str):
+        return None
+    if url.startswith("data:"):
+        # data:image/png;base64,XXXX
+        return url.split(",", 1)[1] if "," in url else None
+    if not url.startswith(("http://", "https://")):
         return None
     try:
         with urllib.request.urlopen(url, timeout=10) as resp:  # noqa: S310
@@ -247,6 +256,53 @@ def _image_flowable(preview_b64: Any, width: float) -> Any:
         return Paragraph("[image error]", _CAPTION)
 
 
+def _qr_drawing(url: str, size: float = 0.7 * inch) -> Any:
+    """A small QR code linking to the interactive share viewer (scan to explore)."""
+    try:
+        code = qr.QrCodeWidget(url)
+        b = code.getBounds()
+        bw, bh = b[2] - b[0], b[3] - b[1]
+        d = Drawing(size, size, transform=[size / bw, 0, 0, size / bh, 0, 0])
+        d.add(code)
+        return d
+    except Exception:
+        return None
+
+
+def _logo_flowable(b64: Any, max_w: float = 1.7 * inch) -> Any:
+    if not b64:
+        return None
+    try:
+        return RlImage(BytesIO(base64.b64decode(b64)), width=max_w, height=max_w * 0.5, kind="proportional")
+    except Exception:
+        return None
+
+
+def _compact_card(
+    capture: dict[str, Any], session_meta: dict[str, Any], standards: list[str], unit: str, styles: Any
+) -> Any:
+    """A dense card (thumbnail + key readings + first finding) for the compact grid —
+    fits ~4 per page so a large survey isn't one-image-per-page with blank space."""
+    q = capture.get("qualityMetrics") or {}
+    reads: list[str] = []
+    for sp in capture.get("spots_measured") or []:
+        reads.append(f"{sp.get('label')} {_fmt_temp(sp.get('temp_c'), unit)}")
+    if q.get("max_temp_c") is not None:
+        reads.append(f"Max {_fmt_temp(q['max_temp_c'], unit)}")
+    if q.get("avg_temp_c") is not None:
+        reads.append(f"Avg {_fmt_temp(q['avg_temp_c'], unit)}")
+    anoms = capture.get("anomalies") or []
+    finding = describe_anomaly(anoms[0], standards, unit) if anoms else (capture.get("metadata") or {}).get("findings") or ""
+    inner = [
+        _image_flowable(capture.get("preview_b64"), 2.6 * inch),
+        Paragraph(_safe(capture.get("filename") or ""), _CAPTION),
+        Paragraph(" · ".join(reads) or "—", _SIDEBAR_TEXT),
+    ]
+    if finding:
+        inner.append(Paragraph(_safe(finding)[:240], _SIDEBAR_TEXT))
+    return inner
+
+
 def _per_image_flowables(
     capture: dict[str, Any],
     by_id: dict[str, dict[str, Any]],
@@ -254,6 +310,8 @@ def _per_image_flowables(
     standards: list[str],
     unit: str,
     styles: Any,
+    image_w: float = 3.2 * inch,
+    share_url: str | None = None,
 ) -> list[Any]:
     """A FLIR-style per-image detail page: sidebar (measurements / parameters /
     conditions / findings) beside the thermal image stacked over its visual pair."""
@@ -298,16 +356,22 @@ def _per_image_flowables(
     # --- Image column (thermal over paired visual) ---
     cam = q.get("sensor_make") or ""
     sensor = q.get("sensor_model") or q.get("parser_id") or ""
-    image_col: list[Any] = [_image_flowable(capture.get("preview_b64"), 3.2 * inch)]
+    image_col: list[Any] = [_image_flowable(capture.get("preview_b64"), image_w)]
     image_col.append(Paragraph(f"{_safe(capture.get('filename') or '')} · {_safe(cam)} {_safe(sensor)}", _CAPTION))
     pair_id = meta.get("visual_pair_id")
     paired = by_id.get(pair_id) if isinstance(pair_id, str) else None
     if paired and paired.get("preview_b64"):
         image_col.append(Spacer(1, 6))
-        image_col.append(_image_flowable(paired.get("preview_b64"), 3.2 * inch))
+        image_col.append(_image_flowable(paired.get("preview_b64"), image_w))
         image_col.append(Paragraph(f"Visual · {_safe(paired.get('filename') or '')}", _CAPTION))
+    if share_url:
+        d = _qr_drawing(share_url)
+        if d is not None:
+            image_col.append(Spacer(1, 4))
+            image_col.append(d)
+            image_col.append(Paragraph("Scan to explore interactively", _CAPTION))
 
-    layout = Table([[sidebar, image_col]], colWidths=[2.15 * inch, 3.4 * inch])
+    layout = Table([[sidebar, image_col]], colWidths=[2.15 * inch, max(3.4 * inch, image_w + 0.2 * inch)])
     layout.setStyle(TableStyle([("VALIGN", (0, 0), (-1, -1), "TOP"), ("LEFTPADDING", (0, 0), (0, 0), 0)]))
 
     title = Paragraph(f"<b>{_safe(capture.get('filename') or 'Capture')}</b>", styles["Heading4"])
@@ -427,8 +491,14 @@ def build_pdf_report(session_meta: dict[str, Any], captures: list[dict[str, Any]
     doc = SimpleDocTemplate(str(output_path), pagesize=letter, title=str(session_meta.get("name") or "Thermal Report"))
     story: list[Any] = []
 
-    # Cover
+    # Cover — operator's own uploaded logo (never a third-party logo) when enabled.
     company = branding.get("company_name") or "Thermal Inspection Report"
+    if template.get("show_logo", True):
+        logo_b64 = _fetch_logo_b64(branding.get("logo_url"))
+        logo = _logo_flowable(logo_b64) if logo_b64 else None
+        if logo is not None:
+            story.append(logo)
+            story.append(Spacer(1, 0.12 * inch))
     story.append(Paragraph(f"<b>{_safe(company)}</b>", styles["Title"]))
     story.append(Paragraph(_safe(session_meta.get("name") or "Thermal Inspection"), styles["Heading2"]))
     story.append(
@@ -466,18 +536,45 @@ def build_pdf_report(session_meta: dict[str, Any], captures: list[dict[str, Any]
             story.append(Paragraph(f"<i>Standards: {_safe(', '.join(standards))}</i>", styles["Normal"]))
         story.append(Spacer(1, 0.2 * inch))
 
-    # Findings — one FLIR-style per-image detail page per curated capture.
+    # Findings — layout-aware: detail (1/page), two_up (2/page), or compact grid.
     if _section_on(sections, "findings"):
         unit = _report_unit(session_meta)
+        report_layout = template.get("layout") or "detail"
         ordered = _order_report_captures(captures, session_meta)
         by_id = {c.get("captureId"): c for c in captures if c.get("captureId")}
+        share_url = session_meta.get("share_url") if isinstance(session_meta.get("share_url"), str) else None
         story.append(PageBreak())
         story.append(Paragraph("<b>Findings</b>", styles["Heading3"]))
         story.append(Spacer(1, 0.1 * inch))
-        for idx, capture in enumerate(ordered):
-            if idx > 0:
-                story.append(PageBreak())
-            story.extend(_per_image_flowables(capture, by_id, session_meta, standards, unit, styles))
+
+        if report_layout == "compact":
+            cards = [_compact_card(c, session_meta, standards, unit, styles) for c in ordered]
+            rows = [cards[i : i + 2] for i in range(0, len(cards), 2)]
+            if rows and len(rows[-1]) == 1:
+                rows[-1].append([])  # pad last row to 2 cells
+            grid = Table(rows, colWidths=[3.6 * inch, 3.6 * inch])
+            grid.setStyle(TableStyle([
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ("LEFTPADDING", (0, 0), (-1, -1), 4),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 4),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 12),
+            ]))
+            story.append(grid)
+        elif report_layout == "two_up":
+            for idx, capture in enumerate(ordered):
+                if idx > 0 and idx % 2 == 0:
+                    story.append(PageBreak())
+                story.extend(
+                    _per_image_flowables(capture, by_id, session_meta, standards, unit, styles, image_w=2.4 * inch, share_url=share_url)
+                )
+                story.append(Spacer(1, 0.2 * inch))
+        else:  # detail
+            for idx, capture in enumerate(ordered):
+                if idx > 0:
+                    story.append(PageBreak())
+                story.extend(
+                    _per_image_flowables(capture, by_id, session_meta, standards, unit, styles, image_w=3.2 * inch, share_url=share_url)
+                )
 
     # Severity scale
     if _section_on(sections, "severity_table") and template.get("severity_levels"):

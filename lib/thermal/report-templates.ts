@@ -9,6 +9,14 @@
 
 export type ReportSeverityLevel = { label: string; definition: string };
 
+/**
+ * Page layout for the findings section:
+ *  - detail:  one image per page with the full FLIR-style sidebar (most detail)
+ *  - two_up:  two images per page, condensed data (less blank space)
+ *  - compact: dense grid, ~4 images per page with key readings (max coverage)
+ */
+export type ReportLayout = "detail" | "two_up" | "compact";
+
 export type ReportSectionKey =
   | "cover"
   | "executive_summary"
@@ -33,9 +41,11 @@ export type ThermalReportTemplate = {
   methodology_text: string;
   disclaimer_text: string;
   severity_levels: ReportSeverityLevel[];
-  /** Branding: Slate360 logo on by default; thermographer credentials. */
+  /** Branding: operator's uploaded logo on by default; thermographer credentials. */
   show_logo: boolean;
   show_credentials: boolean;
+  /** Findings page layout — defaults to "detail" (1 image/page). */
+  layout?: ReportLayout;
   /** Read-only seed templates cannot be deleted (but can be cloned). */
   is_seed?: boolean;
 };

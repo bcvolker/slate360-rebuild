@@ -182,6 +182,21 @@ async function runThermalProcessJob(jobId: string) {
   const reportSignature =
     typeof sessionMetadata.report_signature === "string" ? sessionMetadata.report_signature : null;
 
+  // Resolve an active share link so the report can embed a QR to the interactive viewer.
+  let shareUrl: string | null = null;
+  if (needsTemplate) {
+    const { data: tok } = await supabase
+      .from("thermal_analysis_share_tokens")
+      .select("token")
+      .eq("session_id", job.session_id)
+      .eq("is_revoked", false)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const base = (process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL || "").replace(/\/$/, "");
+    if (tok?.token && base) shareUrl = `${base}/share/thermal/${tok.token}`;
+  }
+
   const dispatchPayload = {
     jobId: job.id,
     sessionId: job.session_id,
@@ -207,6 +222,7 @@ async function runThermalProcessJob(jobId: string) {
       report_set: Array.isArray(sessionMetadata.report_set)
         ? (sessionMetadata.report_set as unknown[]).filter((v) => typeof v === "string")
         : null,
+      share_url: shareUrl,
     },
     captures: readyCaptures.map((row) => ({
       captureId: row.id,

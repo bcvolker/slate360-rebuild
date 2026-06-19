@@ -20,6 +20,7 @@ export type ResolvedReportTemplate = {
   severity_levels: { label: string; definition: string }[];
   show_logo: boolean;
   show_credentials: boolean;
+  layout: string;
 };
 
 const DEFAULT_TEMPLATE_ID = "seed-general";
@@ -36,6 +37,7 @@ function toResolved(t: ThermalReportTemplate): ResolvedReportTemplate {
     severity_levels: t.severity_levels ?? [],
     show_logo: t.show_logo ?? true,
     show_credentials: t.show_credentials ?? false,
+    layout: t.layout ?? "detail",
   };
 }
 

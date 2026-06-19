@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   SEED_REPORT_TEMPLATES,
   emptyTemplate,
+  type ReportLayout,
   type ReportSectionKey,
   type ThermalReportTemplate,
 } from "@/lib/thermal/report-templates";
@@ -194,6 +195,19 @@ export function ThermalReportTemplateManager() {
       </div>
 
       <label className="mt-4 block text-xs text-[var(--graphite-muted)]">
+        Page layout
+        <select
+          value={draft.layout ?? "detail"}
+          onChange={(e) => update("layout", e.target.value as ReportLayout)}
+          className="mt-1 block w-full rounded-xl border border-[var(--mobile-app-card-border)] bg-[#111827] px-3 py-2 text-sm text-white"
+        >
+          <option value="detail">Detailed — one image per page (most detail)</option>
+          <option value="two_up">Two-up — two images per page</option>
+          <option value="compact">Compact — grid, ~4 images per page</option>
+        </select>
+      </label>
+
+      <label className="mt-3 block text-xs text-[var(--graphite-muted)]">
         Standards (comma-separated)
         <input
           value={draft.standards.join(", ")}
@@ -223,9 +237,9 @@ export function ThermalReportTemplateManager() {
       </label>
 
       <div className="mt-3 flex flex-wrap gap-2 text-xs">
-        <ToggleChip on={draft.show_logo} onClick={() => update("show_logo", !draft.show_logo)}>Slate360 logo</ToggleChip>
+        <ToggleChip on={draft.show_logo} onClick={() => update("show_logo", !draft.show_logo)}>Logo on cover</ToggleChip>
         <ToggleChip on={draft.show_credentials} onClick={() => update("show_credentials", !draft.show_credentials)}>
-          Level III credentials
+          Credentials block
         </ToggleChip>
       </div>
 
