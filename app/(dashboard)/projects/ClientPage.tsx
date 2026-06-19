@@ -20,6 +20,7 @@ export default function ProjectsClientPage() {
   const [search, setSearch] = useState("");
   const [wizardOpen, setWizardOpen] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
   const [deleteConfirmName, setDeleteConfirmName] = useState("");
   const [deleteLoading, setDeleteLoading] = useState(false);
@@ -81,14 +82,23 @@ export default function ProjectsClientPage() {
 
   const handleCreate = async (payload: CreateProjectPayload) => {
     setCreating(true);
+    setCreateError(null);
     try {
-      await fetch("/api/projects/create", {
+      const res = await fetch("/api/projects/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
+      if (!res.ok) {
+        const data = (await res.json().catch(() => ({}))) as { error?: string };
+        // Keep the wizard open with the user's input intact so they can retry.
+        setCreateError(data.error || "Couldn't create the project. Please try again.");
+        return;
+      }
       setWizardOpen(false);
       await loadProjects();
+    } catch {
+      setCreateError("Network error. Please check your connection and try again.");
     } finally {
       setCreating(false);
     }
@@ -116,7 +126,7 @@ export default function ProjectsClientPage() {
             </div>
           </div>
           <button
-            onClick={() => setWizardOpen(true)}
+            onClick={() => { setCreateError(null); setWizardOpen(true); }}
             className="hidden min-h-11 items-center justify-center gap-2 rounded-2xl bg-amber-500 px-4 text-sm font-black text-slate-950 shadow-amber-glow transition hover:bg-amber-400 sm:inline-flex"
           >
             <Plus className="h-4 w-4" /> New Work
@@ -146,7 +156,7 @@ export default function ProjectsClientPage() {
 
       <button
         type="button"
-        onClick={() => setWizardOpen(true)}
+        onClick={() => { setCreateError(null); setWizardOpen(true); }}
         className="fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom))] right-4 z-30 inline-flex h-14 w-14 items-center justify-center rounded-full bg-amber-500 text-slate-950 shadow-amber-glow transition hover:bg-amber-400 sm:hidden"
         aria-label="Create project or site visit"
       >
@@ -156,8 +166,11 @@ export default function ProjectsClientPage() {
       <CreateProjectWizard
         open={wizardOpen}
         creating={creating}
-        error={null}
-        onClose={() => setWizardOpen(false)}
+        error={createError}
+        onClose={() => {
+          setWizardOpen(false);
+          setCreateError(null);
+        }}
         onSubmit={handleCreate}
       />
 
