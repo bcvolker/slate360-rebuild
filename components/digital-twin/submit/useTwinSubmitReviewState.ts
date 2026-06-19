@@ -35,6 +35,24 @@ type DevPreview = {
   mockCaptureId?: string;
 };
 
+/**
+ * Record the raw-source retention choice for a capture (best-effort). keep=false
+ * is applied by the job callback once the model is built (or immediately if it
+ * already exists), so it never starves an in-flight reconstruction.
+ */
+async function persistRawRetention(captureId: string | null, keep: boolean): Promise<void> {
+  if (!captureId) return;
+  try {
+    await fetch(`/api/digital-twin/captures/${captureId}/raw-retention`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ keep }),
+    });
+  } catch {
+    /* best-effort */
+  }
+}
+
 export function useTwinSubmitReviewState(devPreview?: DevPreview) {
   const router = useRouter();
   const resolveGpsFix = useTwinGpsFix();
@@ -58,6 +76,8 @@ export function useTwinSubmitReviewState(devPreview?: DevPreview) {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [jobQueued, setJobQueued] = useState(() => Boolean(devPreview?.jobQueued));
   const [savedForLater, setSavedForLater] = useState(false);
+  // Raw-source retention choice (true = keep in project for reuse).
+  const [retainRaw, setRetainRaw] = useState(true);
   const [checkoutNotice, setCheckoutNotice] = useState<string | null>(null);
   const [restoredNotice, setRestoredNotice] = useState<string | null>(null);
 
@@ -224,7 +244,7 @@ export function useTwinSubmitReviewState(devPreview?: DevPreview) {
 
       const gps = await resolveGpsFix();
       const title = scanName.trim() || session.selection.spaceTitle;
-      await upload.startUpload(
+      const capId = await upload.startUpload(
         {
           spaceId: session.selection.spaceId,
           projectId: session.selection.projectId,
@@ -234,6 +254,7 @@ export function useTwinSubmitReviewState(devPreview?: DevPreview) {
         allFiles,
       );
       await upload.enqueueJob("spz", quality);
+      await persistRawRetention(capId, retainRaw);
       setJobQueued(true);
       setStep("status");
       clearTwinCapturePendingSession();
@@ -249,6 +270,7 @@ export function useTwinSubmitReviewState(devPreview?: DevPreview) {
     localAddedFiles,
     quality,
     resolveGpsFix,
+    retainRaw,
     scanName,
     session,
     submitting,
@@ -277,7 +299,7 @@ export function useTwinSubmitReviewState(devPreview?: DevPreview) {
 
       const gps = await resolveGpsFix();
       const title = scanName.trim() || session.selection.spaceTitle;
-      await upload.startUpload(
+      const capId = await upload.startUpload(
         {
           spaceId: session.selection.spaceId,
           projectId: session.selection.projectId,
@@ -286,6 +308,7 @@ export function useTwinSubmitReviewState(devPreview?: DevPreview) {
         },
         allFiles,
       );
+      await persistRawRetention(capId, retainRaw);
       setSavedForLater(true);
       setStep("status");
       clearTwinCapturePendingSession();
@@ -300,6 +323,7 @@ export function useTwinSubmitReviewState(devPreview?: DevPreview) {
     clipFiles,
     localAddedFiles,
     resolveGpsFix,
+    retainRaw,
     scanName,
     session,
     submitting,
@@ -340,6 +364,8 @@ export function useTwinSubmitReviewState(devPreview?: DevPreview) {
     submitError,
     jobQueued,
     savedForLater,
+    retainRaw,
+    setRetainRaw,
     checkoutNotice,
     restoredNotice,
     captureCategories,

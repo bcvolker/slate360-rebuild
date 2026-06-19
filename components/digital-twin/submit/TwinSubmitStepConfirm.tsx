@@ -5,6 +5,7 @@ import type { TwinJobCreditEstimate, TwinProcessingQuality } from "@/lib/twin/pr
 import { formatTwinReviewDuration, formatTwinReviewMinutes } from "@/lib/digital-twin/twin-review-format";
 import type { TwinCaptureClipReview, TwinReviewAddedSource } from "@/lib/digital-twin/twin-capture-pending-session";
 import { classifyTwinMedia, isTwinScanCategory } from "@/lib/digital-twin/twin-review-media";
+import { cn } from "@/lib/utils";
 import { TwinSubmitGlassCard } from "./TwinSubmitGlassCard";
 import { twinSubmitTokens } from "./twin-submit-tokens";
 
@@ -17,6 +18,8 @@ type Props = {
   totalDurationSeconds: number;
   submitting: boolean;
   uploadProgress: number | null;
+  retainRaw: boolean;
+  onRetainRawChange: (value: boolean) => void;
   onScanNameChange: (value: string) => void;
   onSubmit: () => void;
   onSaveForLater: () => void;
@@ -37,6 +40,8 @@ export function TwinSubmitStepConfirm({
   totalDurationSeconds,
   submitting,
   uploadProgress,
+  retainRaw,
+  onRetainRawChange,
   onScanNameChange,
   onSubmit,
   onSaveForLater,
@@ -89,6 +94,27 @@ export function TwinSubmitStepConfirm({
         </span>
       </label>
 
+      <TwinSubmitGlassCard title="Raw source files">
+        <p className="mb-3 text-[11px] leading-snug text-[var(--graphite-muted)]">
+          Your raw clips, photos{scanCount > 0 ? ", and scans" : ""} can stay in this project&apos;s SlateDrop so
+          you can reuse them for another model later — or be removed after processing to save storage.
+        </p>
+        <div className="space-y-2">
+          <RetainOption
+            selected={retainRaw}
+            onSelect={() => onRetainRawChange(true)}
+            title="Keep raw files in this project"
+            body="Stored in SlateDrop. Reuse them later without re-uploading."
+          />
+          <RetainOption
+            selected={!retainRaw}
+            onSelect={() => onRetainRawChange(false)}
+            title="Don't keep — free up storage"
+            body="Raw files are removed once the model is built. You keep the finished twin."
+          />
+        </div>
+      </TwinSubmitGlassCard>
+
       {uploadProgress !== null ? (
         <p className="text-xs text-[var(--graphite-muted)]">Uploading… {uploadProgress}%</p>
       ) : null}
@@ -115,6 +141,44 @@ export function TwinSubmitStepConfirm({
         or more scans from your desktop, then submit when everything&apos;s in.
       </p>
     </div>
+  );
+}
+
+function RetainOption({
+  selected,
+  onSelect,
+  title,
+  body,
+}: {
+  selected: boolean;
+  onSelect: () => void;
+  title: string;
+  body: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      className={cn(
+        "flex w-full items-start gap-2.5 rounded-xl border px-3 py-2.5 text-left transition-colors",
+        selected
+          ? "border-[var(--accent-border-blue)] bg-[color-mix(in_srgb,var(--twin360-blue)_10%,transparent)]"
+          : "border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_55%,transparent)]",
+      )}
+    >
+      <span
+        className={cn(
+          "mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-md border",
+          selected ? "border-[var(--twin360-blue)]" : "border-[var(--graphite-muted)]",
+        )}
+      >
+        {selected ? <span className="h-2 w-2 rounded-sm bg-[var(--twin360-blue)]" /> : null}
+      </span>
+      <span className="min-w-0">
+        <span className="block text-xs font-semibold text-[var(--graphite-text-header)]">{title}</span>
+        <span className="mt-0.5 block text-[11px] leading-snug text-[var(--graphite-muted)]">{body}</span>
+      </span>
+    </button>
   );
 }
 

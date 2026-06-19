@@ -3,6 +3,7 @@ import { deductCredits } from "@/lib/credits/idempotency";
 import { notifyTwinJobOutcome } from "@/lib/twin/notify-twin-job-complete";
 import { computeTwinProcessingCredits } from "@/lib/twin/processing-credits";
 import { bridgeTwinModelToSlateDrop } from "@/lib/twin/slatedrop-bridge";
+import { softDeleteTwinCaptureAsset } from "@/lib/twin/soft-delete";
 
 type AdminClient = SupabaseClient;
 
@@ -212,6 +213,33 @@ export async function handleTwinJobCallback(
       .update({ capture_status: "ready" })
       .eq("id", job.capture_id)
       .eq("org_id", job.org_id);
+
+    // Honor the user's raw-retention choice. If they opted not to keep the raw
+    // source files, discard them now that the model exists (the model lives in a
+    // separate table and is untouched). Default is to keep.
+    const { data: capture } = await admin
+      .from("digital_twin_captures")
+      .select("capture_metadata")
+      .eq("id", job.capture_id)
+      .eq("org_id", job.org_id)
+      .maybeSingle();
+    const retainRaw = (capture?.capture_metadata as { retain_raw?: boolean } | null)?.retain_raw;
+    if (retainRaw === false && job.created_by) {
+      const { data: rawAssets } = await admin
+        .from("digital_twin_capture_assets")
+        .select("id")
+        .eq("capture_id", job.capture_id)
+        .eq("org_id", job.org_id)
+        .is("deleted_at", null)
+        .neq("status", "archived");
+      for (const asset of rawAssets ?? []) {
+        await softDeleteTwinCaptureAsset(admin, {
+          assetId: asset.id as string,
+          orgId: job.org_id,
+          deletedBy: job.created_by,
+        });
+      }
+    }
   }
 
   if (isPrimary) {

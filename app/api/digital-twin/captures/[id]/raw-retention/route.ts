@@ -14,7 +14,7 @@
  */
 import { NextRequest } from "next/server";
 import { withAppAuth } from "@/lib/server/api-auth";
-import { ok, badRequest, notFound, conflict, serverError } from "@/lib/server/api-response";
+import { ok, badRequest, notFound, serverError } from "@/lib/server/api-response";
 import type { IdRouteContext } from "@/lib/types/api";
 import { softDeleteTwinCaptureAsset } from "@/lib/twin/soft-delete";
 
@@ -50,7 +50,9 @@ export const POST = (req: NextRequest, ctx: IdRouteContext) =>
 
     if (body.keep) return ok({ kept: true });
 
-    // Discard path — only safe once the model has been built.
+    // Discard path. Safe only once the model exists — if processing hasn't
+    // finished yet, the choice is recorded above and the job callback discards
+    // the raw inputs on completion (so it's never starved mid-reconstruction).
     const { data: completedJob } = await admin
       .from("digital_twin_processing_jobs")
       .select("id")
@@ -60,7 +62,7 @@ export const POST = (req: NextRequest, ctx: IdRouteContext) =>
       .limit(1)
       .maybeSingle();
     if (!completedJob) {
-      return conflict("Raw files can be removed only after the twin has finished processing.");
+      return ok({ kept: false, deferred: true });
     }
 
     const { data: assets, error } = await admin

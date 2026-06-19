@@ -116,6 +116,8 @@ export function TwinCaptureReviewScreen({ canUseHighQuality, devPreview }: Props
             totalDurationSeconds={state.totalDurationSeconds}
             submitting={state.submitting}
             uploadProgress={state.upload.isRunning ? state.upload.overallProgress : null}
+            retainRaw={state.retainRaw}
+            onRetainRawChange={state.setRetainRaw}
             onScanNameChange={state.setScanName}
             onSubmit={() => void state.handleCreateTwin()}
             onSaveForLater={() => void state.handleSaveForLater()}
