@@ -4,10 +4,16 @@ import { NAV_LINK } from "@/components/marketing-launchpad/marketing-styles";
 
 type ProductPageShellProps = {
   title: string;
+  /** Optional short tagline under the title. */
+  subtitle?: string;
+  /** Full-width hero region (interactive demo, video, twin) rendered above the body. */
+  hero?: React.ReactNode;
+  /** Use a wider column for media-rich pages. */
+  wide?: boolean;
   children: React.ReactNode;
 };
 
-export function ProductPageShell({ title, children }: ProductPageShellProps) {
+export function ProductPageShell({ title, subtitle, hero, wide, children }: ProductPageShellProps) {
   return (
     <div className="min-h-screen bg-[#0B0F15]">
       <header className="flex h-20 items-center justify-between border-b border-white/[0.05] bg-[#0B0F15]/80 px-6 backdrop-blur-xl lg:px-12">
@@ -26,9 +32,11 @@ export function ProductPageShell({ title, children }: ProductPageShellProps) {
           </Link>
         </nav>
       </header>
-      <main className="mx-auto max-w-4xl px-6 py-16 lg:px-12">
+      <main className={`mx-auto px-6 py-16 lg:px-12 ${wide ? "max-w-6xl" : "max-w-4xl"}`}>
         <p className="text-sm font-semibold uppercase tracking-[0.14em] text-[#00E699]">Slate360 Product</p>
         <h1 className="mt-3 text-4xl font-bold tracking-tight text-[#FFFFFF]">{title}</h1>
+        {subtitle ? <p className="mt-4 max-w-2xl text-lg leading-relaxed text-[#A3AED0]">{subtitle}</p> : null}
+        {hero ? <div className="mt-10">{hero}</div> : null}
         <div className="mt-10 space-y-8">{children}</div>
         <div className="mt-12 flex flex-wrap gap-4">
           <Link
