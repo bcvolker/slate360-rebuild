@@ -1,8 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { projectDetailTokens as t } from "@/components/projects/project-detail-tokens";
+import { cn } from "@/lib/utils";
 
 type Channel = "email" | "sms" | "both" | "link";
+
+const fieldClass =
+  "mt-1 w-full rounded-lg border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_60%,transparent)] px-3 py-2 text-sm text-[var(--graphite-text-header)] outline-none placeholder:text-[var(--graphite-muted)] focus:border-[color-mix(in_srgb,var(--graphite-primary)_40%,transparent)]";
+const labelClass = "block text-xs font-medium text-[var(--graphite-text-body)]";
 
 type Props = {
   projectId: string;
@@ -92,7 +98,7 @@ export function CollaboratorInviteModal({
         type="button"
         onClick={() => setOpen(true)}
         disabled={disabled}
-        className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+        className={cn(t.primaryButton, "!min-h-9 !px-3 text-sm disabled:cursor-not-allowed disabled:opacity-50")}
       >
         {triggerLabel}
       </button>
@@ -100,53 +106,45 @@ export function CollaboratorInviteModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="w-full max-w-md rounded-lg bg-card p-6 shadow-xl">
-        <h2 className="mb-1 text-lg font-semibold text-foreground">Invite a collaborator</h2>
-        <p className="mb-4 text-xs text-muted-foreground">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+      <div className={cn(t.sectionCard, "w-full max-w-md shadow-xl")}>
+        <h2 className="mb-1 text-lg font-semibold text-[var(--graphite-text-header)]">Invite a collaborator</h2>
+        <p className="mb-4 text-xs text-[var(--graphite-muted)]">
           They'll receive a single-use link that expires in 14 days. No subscription required.
         </p>
 
         {notice ? (
           <div className="space-y-3">
-            <p className="text-sm text-foreground">{notice}</p>
+            <p className="text-sm text-[var(--graphite-text-body)]">{notice}</p>
             <div className="flex justify-end">
-              <button
-                type="button"
-                onClick={close}
-                className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-              >
+              <button type="button" onClick={close} className={cn(t.primaryButton, "!min-h-9 !px-3 text-sm")}>
                 Done
               </button>
             </div>
           </div>
         ) : shareUrl ? (
           <div className="space-y-3">
-            <p className="text-sm text-foreground">Share this link with your collaborator:</p>
+            <p className="text-sm text-[var(--graphite-text-body)]">Share this link with your collaborator:</p>
             <input
               readOnly
               value={shareUrl}
-              className="w-full rounded border border-border bg-muted px-2 py-1 text-xs"
+              className={cn(fieldClass, "mt-0 text-xs")}
               onFocus={(e) => e.target.select()}
             />
             <div className="flex justify-end">
-              <button
-                type="button"
-                onClick={close}
-                className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-              >
+              <button type="button" onClick={close} className={cn(t.primaryButton, "!min-h-9 !px-3 text-sm")}>
                 Done
               </button>
             </div>
           </div>
         ) : (
           <div className="space-y-3">
-            <label className="block text-xs font-medium text-foreground">
+            <label className={labelClass}>
               Channel
               <select
                 value={channel}
                 onChange={(e) => setChannel(e.target.value as Channel)}
-                className="mt-1 w-full rounded border border-border bg-background px-2 py-1.5 text-sm"
+                className={fieldClass}
               >
                 <option value="email">Email</option>
                 <option value="sms">SMS</option>
@@ -156,56 +154,52 @@ export function CollaboratorInviteModal({
             </label>
 
             {(channel === "email" || channel === "both") && (
-              <label className="block text-xs font-medium text-foreground">
+              <label className={labelClass}>
                 Email
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="contractor@example.com"
-                  className="mt-1 w-full rounded border border-border bg-background px-2 py-1.5 text-sm"
+                  className={fieldClass}
                 />
               </label>
             )}
 
             {(channel === "sms" || channel === "both") && (
-              <label className="block text-xs font-medium text-foreground">
+              <label className={labelClass}>
                 Phone (E.164, e.g. +13105551234)
                 <input
                   type="tel"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="+13105551234"
-                  className="mt-1 w-full rounded border border-border bg-background px-2 py-1.5 text-sm"
+                  className={fieldClass}
                 />
               </label>
             )}
 
-            <label className="block text-xs font-medium text-foreground">
+            <label className={labelClass}>
               Personal message (optional)
               <textarea
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 rows={2}
-                className="mt-1 w-full rounded border border-border bg-background px-2 py-1.5 text-sm"
+                className={fieldClass}
               />
             </label>
 
-            {error ? <p className="text-xs text-destructive">{error}</p> : null}
+            {error ? <p className="text-xs text-red-300">{error}</p> : null}
 
             <div className="flex justify-end gap-2 pt-2">
-              <button
-                type="button"
-                onClick={close}
-                className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-muted"
-              >
+              <button type="button" onClick={close} className={cn(t.secondaryButton, "!min-h-9 !px-3 text-sm")}>
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={submit}
                 disabled={busy}
-                className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
+                className={cn(t.primaryButton, "!min-h-9 !px-3 text-sm disabled:opacity-60")}
               >
                 {busy ? "Sending…" : "Send invite"}
               </button>
