@@ -1,11 +1,13 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import type { EditorBlock } from "@/lib/types/blocks";
 import { cn } from "@/lib/utils";
-import { AlertTriangle, CheckCircle2, Info } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Info, Play } from "lucide-react";
 import { ExternalPortalShell } from "./ExternalPortalShell";
 import { PortalGlassCard } from "./PortalGlassCard";
 import { TokenStatePage } from "./TokenStatePage";
+import { DeliverableSlideshow } from "./DeliverableSlideshow";
 
 export function SharedDeliverableDocument({
   title,
@@ -20,6 +22,12 @@ export function SharedDeliverableDocument({
   orgName: string;
   sharedAt: string | null;
 }) {
+  const [slideshowOpen, setSlideshowOpen] = useState(false);
+  const slideable = useMemo(
+    () => content.some((b) => b.type === "image" || b.type === "heading" || b.type === "text"),
+    [content],
+  );
+
   const sharedLabel =
     sharedAt &&
     new Date(sharedAt).toLocaleDateString("en-US", {
@@ -54,10 +62,23 @@ export function SharedDeliverableDocument({
       orgName={orgName}
     >
       <main className="mx-auto w-full max-w-3xl flex-1 space-y-4 px-4 py-8 sm:px-6">
+        {slideable ? (
+          <button
+            type="button"
+            onClick={() => setSlideshowOpen(true)}
+            className="inline-flex items-center gap-2 rounded-xl bg-[var(--graphite-primary)] px-4 py-2.5 text-sm font-semibold text-[var(--graphite-canvas)] transition-opacity hover:opacity-90"
+          >
+            <Play className="h-4 w-4" aria-hidden /> Play slideshow
+          </button>
+        ) : null}
         {content.map((block) => (
           <ViewBlock key={block.id} block={block} />
         ))}
       </main>
+
+      {slideshowOpen ? (
+        <DeliverableSlideshow title={title} blocks={content} onClose={() => setSlideshowOpen(false)} />
+      ) : null}
     </ExternalPortalShell>
   );
 }
@@ -69,7 +90,7 @@ function ViewBlock({ block }: { block: EditorBlock }) {
         <PortalGlassCard className="!p-4">
           <div
             className={cn(
-              "font-bold text-white",
+              "font-bold text-[var(--graphite-text-header)]",
               block.level === 1 && "text-2xl",
               block.level === 2 && "text-xl",
               block.level === 3 && "text-lg",
@@ -81,7 +102,7 @@ function ViewBlock({ block }: { block: EditorBlock }) {
       );
     case "text":
       return (
-        <p className="whitespace-pre-wrap px-1 text-sm leading-relaxed text-slate-300">
+        <p className="whitespace-pre-wrap px-1 text-sm leading-relaxed text-[var(--graphite-text-body)]">
           {block.content}
         </p>
       );
@@ -97,11 +118,11 @@ function ViewBlock({ block }: { block: EditorBlock }) {
             />
           ) : (
             <div className="flex aspect-video items-center justify-center bg-white/[0.04]">
-              <span className="text-xs text-slate-500">Image unavailable</span>
+              <span className="text-xs text-[var(--graphite-muted)]">Image unavailable</span>
             </div>
           )}
           {block.caption ? (
-            <figcaption className="px-3 pb-3 text-center text-xs text-slate-500">
+            <figcaption className="px-3 pb-3 text-center text-xs text-[var(--graphite-muted)]">
               {block.caption}
             </figcaption>
           ) : null}
@@ -122,8 +143,8 @@ function CalloutView({
   block: Extract<EditorBlock, { type: "callout" }>;
 }) {
   const styles = {
-    info: "border-amber-500/30 bg-amber-500/10 text-amber-100",
-    warning: "border-amber-500/40 bg-amber-500/15 text-amber-100",
+    info: "border-[color-mix(in_srgb,var(--graphite-primary)_30%,transparent)] bg-[color-mix(in_srgb,var(--graphite-primary)_10%,transparent)] text-[var(--graphite-text-body)]",
+    warning: "border-[color-mix(in_srgb,var(--graphite-muted)_40%,transparent)] bg-[color-mix(in_srgb,var(--graphite-muted)_12%,transparent)] text-[var(--graphite-text-body)]",
     success: "border-emerald-500/30 bg-emerald-500/10 text-emerald-100",
   };
 

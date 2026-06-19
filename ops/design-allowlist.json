@@ -63,7 +63,6 @@
     "components/external-portal/PortalCta.tsx",
     "components/external-portal/PortalFooter.tsx",
     "components/external-portal/PublicItemStage.tsx",
-    "components/external-portal/SharedDeliverableDocument.tsx",
     "components/external-portal/TokenStatePage.tsx",
     "components/install/InstallClient.tsx",
     "components/projects/ChangeHistory.tsx",
