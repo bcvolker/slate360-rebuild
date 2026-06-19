@@ -2,6 +2,7 @@ import { ProductPageShell } from "@/components/marketing-launchpad/ProductPageSh
 import { ProductMediaFrame } from "@/components/marketing-launchpad/ProductMediaFrame";
 import { ProductFeatureRow } from "@/components/marketing-launchpad/ProductFeatureRow";
 import { PhoneDemo } from "@/components/marketing/PhoneDemo";
+import { DemoTwinViewer } from "@/components/marketing-launchpad/DemoTwinViewer";
 import { MARKETING_APPS } from "@/lib/marketing/homepage-content";
 
 export const metadata = {
@@ -15,8 +16,9 @@ const twin = MARKETING_APPS.find((a) => a.id === "twin-360")!;
 export default function DigitalTwinProductPage() {
   const hero = (
     <div className="grid items-center gap-8 lg:grid-cols-[1.25fr_0.75fr]">
-      {/* Drop a live twin share URL into embedSrc to make this hero fully explorable. */}
-      <ProductMediaFrame label="Explore a live 3D twin" placeholderKind="twin" aspect="16 / 10" />
+      {/* Hero video slot — drop a twin tour clip via videoSrc. The live, explorable
+          sample twin lives in the "Step inside" section below. */}
+      <ProductMediaFrame label="Digital Twin tour" placeholderKind="video" aspect="16 / 10" />
       <PhoneDemo steps={twin.demoSteps} accentVar={twin.accentVar} label="Interactive Digital Twin demo" />
     </div>
   );
@@ -31,8 +33,12 @@ export default function DigitalTwinProductPage() {
       <ProductFeatureRow
         eyebrow="Explore"
         title="Step inside from any browser"
-        lead="Stakeholders orbit, pan, and walk through a life-like 3D model with a mouse or touchscreen — no app to install, no plugin. Share a link and they're inside."
-        media={<ProductMediaFrame label="Interactive 3D twin viewer" placeholderKind="twin" aspect="16 / 10" />}
+        lead="Stakeholders orbit, pan, and walk through a life-like 3D model with a mouse or touchscreen — no app to install, no plugin. Share a link and they're inside. Try the sample below — drag to look around."
+        media={
+          <ProductMediaFrame label="Interactive 3D twin viewer" aspect="16 / 10" flush>
+            <DemoTwinViewer />
+          </ProductMediaFrame>
+        }
         points={[
           { label: "Orbit & walk modes", body: "Inspect the whole structure from outside, then drop in and move through it room by room." },
           { label: "Measure on the model", body: "Calculate real dimensions directly on the virtual canvas — distances, heights, openings." },

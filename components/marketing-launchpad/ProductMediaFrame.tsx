@@ -21,6 +21,8 @@ type ProductMediaFrameProps = {
   children?: ReactNode;
   /** Hint for the placeholder icon/copy when no media is wired yet. */
   placeholderKind?: MediaKind;
+  /** Render children flush to the frame edges (no padding/centering) — for canvases/embeds. */
+  flush?: boolean;
   className?: string;
 };
 
@@ -48,6 +50,7 @@ export function ProductMediaFrame({
   imageAlt,
   children,
   placeholderKind = "interactive",
+  flush,
   className,
 }: ProductMediaFrameProps) {
   const frame =
@@ -55,7 +58,11 @@ export function ProductMediaFrame({
 
   let content: ReactNode;
   if (children) {
-    content = <div className="absolute inset-0 flex items-center justify-center p-4">{children}</div>;
+    content = flush ? (
+      <div className="absolute inset-0">{children}</div>
+    ) : (
+      <div className="absolute inset-0 flex items-center justify-center p-4">{children}</div>
+    );
   } else if (embedSrc) {
     content = (
       <iframe
