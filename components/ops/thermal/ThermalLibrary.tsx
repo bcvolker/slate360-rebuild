@@ -168,9 +168,12 @@ export function ThermalLibrary({
             type="button"
             onClick={() => onAddToReport(selectedIds)}
             disabled={!selectedIds.length}
+            title={selectedIds.length ? "" : "Select images (✓ corner) first"}
             className="mt-2 rounded-lg border border-[var(--mobile-app-card-border)] px-2.5 py-1 text-xs font-semibold text-[var(--graphite-text-body)] hover:text-[var(--graphite-text-header)] disabled:opacity-40"
           >
-            Add {selectedIds.length || ""} selected to report
+            {selectedIds.length
+              ? `Add ${selectedIds.length} selected to report`
+              : "Add selected to report"}
           </button>
           <div className="mt-3 border-t border-[var(--mobile-app-card-border)] pt-2">
             <p className="text-[11px] text-[var(--graphite-muted)]">

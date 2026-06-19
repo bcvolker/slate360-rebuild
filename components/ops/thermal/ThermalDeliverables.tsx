@@ -54,8 +54,8 @@ export function ThermalDeliverables({
         })}
       </nav>
 
-      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
-        <div className="m-auto w-full max-w-5xl">
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        <div className="mx-auto w-full max-w-5xl">
           {tab === "share" ? (
             <ThermalSharePanel sessionId={sessionId} initialProjectId={initialProjectId} />
           ) : null}

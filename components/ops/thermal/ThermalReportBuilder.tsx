@@ -63,11 +63,12 @@ export function ThermalReportBuilder({
     "mt-1 block w-full rounded-xl border border-[var(--mobile-app-card-border)] bg-[#111827] px-3 py-2 text-sm text-white";
 
   return (
-    <div className="flex h-full min-h-0 flex-col gap-3 overflow-y-auto">
-      <div className="grid items-start gap-3 lg:grid-cols-[minmax(0,1fr)_300px]">
+    <div className="grid h-full min-h-0 gap-3 lg:grid-cols-2">
+      {/* Left column: report set (scrolls) + conditions */}
+      <div className="flex min-h-0 flex-col gap-3">
         {/* Ordered report set */}
-        <div className="rounded-2xl border border-[var(--mobile-app-card-border)] p-3">
-          <p className="text-xs font-semibold text-[var(--graphite-text-header)]">
+        <div className="flex min-h-0 flex-1 flex-col rounded-2xl border border-[var(--mobile-app-card-border)] p-3">
+          <p className="shrink-0 text-xs font-semibold text-[var(--graphite-text-header)]">
             Report set · {order.length} image{order.length === 1 ? "" : "s"}
           </p>
           {order.length === 0 ? (
@@ -75,7 +76,7 @@ export function ThermalReportBuilder({
               No images yet — mark images with ★ in the Library to add them here.
             </p>
           ) : (
-            <ul className="mt-2 space-y-1.5">
+            <ul className="mt-2 min-h-0 flex-1 space-y-1.5 overflow-y-auto pr-1">
               {order.map((id, idx) => {
                 const c = byId.get(id);
                 if (!c) return null;
@@ -103,7 +104,7 @@ export function ThermalReportBuilder({
         </div>
 
         {/* Conditions */}
-        <div className="rounded-2xl border border-[var(--mobile-app-card-border)] p-3">
+        <div className="shrink-0 rounded-2xl border border-[var(--mobile-app-card-border)] p-3">
           <p className="text-xs font-semibold text-[var(--graphite-text-header)]">Site conditions</p>
           <label className="mt-2 block text-[11px] text-[var(--graphite-muted)]">Ambient (°C)
             <input type="number" value={conditions.ambient_c ?? ""} onChange={(e) => setCond({ ambient_c: e.target.value })} className={numInput} />
@@ -127,12 +128,14 @@ export function ThermalReportBuilder({
         </div>
       </div>
 
-      {/* Template + signature + generate (reused) */}
-      <ThermalReportPanel
-        sessionId={sessionId}
-        initialTemplateId={initialTemplateId}
-        initialSignature={initialSignature}
-      />
+      {/* Right column: template gallery + signature + generate + history (scrolls) */}
+      <div className="min-h-0 overflow-y-auto">
+        <ThermalReportPanel
+          sessionId={sessionId}
+          initialTemplateId={initialTemplateId}
+          initialSignature={initialSignature}
+        />
+      </div>
     </div>
   );
 }

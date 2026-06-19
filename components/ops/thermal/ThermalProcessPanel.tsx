@@ -91,7 +91,7 @@ export function ThermalProcessPanel({
       <p className={t.eyebrow}>Process images</p>
 
       <div className="mt-2 inline-flex rounded-lg border border-[var(--mobile-app-card-border)] p-0.5 text-xs">
-        <button type="button" disabled={!selectedIds.length} onClick={() => setScope("selected")}
+        <button type="button" disabled={!selectedIds.length} title={selectedIds.length ? "" : "Select images in the Library first"} onClick={() => setScope("selected")}
           className={`rounded px-2 py-1 font-semibold disabled:opacity-40 ${scope === "selected" ? "bg-[color-mix(in_srgb,var(--graphite-primary)_18%,transparent)] text-[var(--graphite-text-header)]" : "text-[var(--graphite-muted)]"}`}>
           Selected ({selectedIds.length})
         </button>
