@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { TwinJobCreditEstimate, TwinProcessingQuality } from "@/lib/twin/processing-estimate-types";
 import { formatTwinReviewDuration, formatTwinReviewMinutes } from "@/lib/digital-twin/twin-review-format";
 import type { TwinCaptureClipReview, TwinReviewAddedSource } from "@/lib/digital-twin/twin-capture-pending-session";
+import { classifyTwinMedia, isTwinScanCategory } from "@/lib/digital-twin/twin-review-media";
 import { TwinSubmitGlassCard } from "./TwinSubmitGlassCard";
 import { twinSubmitTokens } from "./twin-submit-tokens";
 
@@ -18,7 +19,14 @@ type Props = {
   uploadProgress: number | null;
   onScanNameChange: (value: string) => void;
   onSubmit: () => void;
+  onSaveForLater: () => void;
 };
+
+function sourceFile(source: TwinReviewAddedSource): File {
+  return source.origin === "slatedrop"
+    ? new File([], source.pickerFile.name, { type: source.pickerFile.type || "application/octet-stream" })
+    : source.file;
+}
 
 export function TwinSubmitStepConfirm({
   scanName,
@@ -31,10 +39,12 @@ export function TwinSubmitStepConfirm({
   uploadProgress,
   onScanNameChange,
   onSubmit,
+  onSaveForLater,
 }: Props) {
   const [confirmed, setConfirmed] = useState(false);
   const credits = estimate?.creditsRequired ?? 0;
   const canSubmit = confirmed && !submitting && Boolean(estimate);
+  const scanCount = addedSources.filter((s) => isTwinScanCategory(classifyTwinMedia(sourceFile(s)))).length;
 
   return (
     <div className="space-y-4" data-twin-submit="step-confirm">
@@ -51,6 +61,9 @@ export function TwinSubmitStepConfirm({
 
         <SummaryRow label="Primary clips" value={`${clips.length}`} />
         <SummaryRow label="Supporting assets" value={`${addedSources.length}`} />
+        {scanCount > 0 ? (
+          <SummaryRow label="LiDAR / 3D scans" value={`${scanCount}`} />
+        ) : null}
         <SummaryRow label="Capture duration" value={formatTwinReviewDuration(totalDurationSeconds)} />
         <SummaryRow label="Quality" value={quality === "high" ? "High" : "Standard"} />
         <div className="my-2 h-px bg-[var(--mobile-app-card-border)]" />
@@ -88,6 +101,19 @@ export function TwinSubmitStepConfirm({
       >
         {submitting ? "Submitting…" : "Submit for Processing"}
       </button>
+
+      <button
+        type="button"
+        disabled={submitting}
+        onClick={onSaveForLater}
+        className={twinSubmitTokens.secondaryCta}
+      >
+        Save &amp; finish later
+      </button>
+      <p className="text-center text-[11px] leading-snug text-[var(--graphite-muted)]">
+        Saving keeps your clips, photos{scanCount > 0 ? ", and LiDAR" : ""} in this project. Add 360, drone, GPS,
+        or more scans from your desktop, then submit when everything&apos;s in.
+      </p>
     </div>
   );
 }

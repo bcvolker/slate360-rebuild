@@ -57,6 +57,7 @@ export function useTwinSubmitReviewState(devPreview?: DevPreview) {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [jobQueued, setJobQueued] = useState(() => Boolean(devPreview?.jobQueued));
+  const [savedForLater, setSavedForLater] = useState(false);
   const [checkoutNotice, setCheckoutNotice] = useState<string | null>(null);
   const [restoredNotice, setRestoredNotice] = useState<string | null>(null);
 
@@ -254,6 +255,57 @@ export function useTwinSubmitReviewState(devPreview?: DevPreview) {
     upload,
   ]);
 
+  /**
+   * Save the scan without submitting it for processing. Uploads every source
+   * (so it persists as a draft capture and bridges into the project's SlateDrop
+   * twin folders), but does NOT enqueue a processing job — so the user can add
+   * more sources later from the desktop and submit when ready.
+   */
+  const handleSaveForLater = useCallback(async () => {
+    if (!session || submitting) return;
+    setSubmitting(true);
+    setSubmitError(null);
+
+    try {
+      const slatedropFiles = await Promise.all(
+        addedSources
+          .filter((row) => row.origin === "slatedrop")
+          .map((row) => fetchSlateDropFileAsBlob(row.pickerFile)),
+      );
+      const allFiles = [...clipFiles, ...localAddedFiles, ...slatedropFiles];
+      if (!allFiles.length) throw new Error("Add at least one source");
+
+      const gps = await resolveGpsFix();
+      const title = scanName.trim() || session.selection.spaceTitle;
+      await upload.startUpload(
+        {
+          spaceId: session.selection.spaceId,
+          projectId: session.selection.projectId,
+          title,
+          gps,
+        },
+        allFiles,
+      );
+      setSavedForLater(true);
+      setStep("status");
+      clearTwinCapturePendingSession();
+      clearTwinCaptureReviewPersistedState();
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : "Could not save your scan");
+    } finally {
+      setSubmitting(false);
+    }
+  }, [
+    addedSources,
+    clipFiles,
+    localAddedFiles,
+    resolveGpsFix,
+    scanName,
+    session,
+    submitting,
+    upload,
+  ]);
+
   const goNext = useCallback(() => {
     const order: TwinSubmitStepId[] = ["clips", "sources", "quality", "confirm", "status"];
     const index = order.indexOf(step);
@@ -287,6 +339,7 @@ export function useTwinSubmitReviewState(devPreview?: DevPreview) {
     submitting,
     submitError,
     jobQueued,
+    savedForLater,
     checkoutNotice,
     restoredNotice,
     captureCategories,
@@ -303,6 +356,7 @@ export function useTwinSubmitReviewState(devPreview?: DevPreview) {
     handleAddFiles,
     handleGoToTwins,
     handleCreateTwin,
+    handleSaveForLater,
     goNext,
     canAdvance,
   };

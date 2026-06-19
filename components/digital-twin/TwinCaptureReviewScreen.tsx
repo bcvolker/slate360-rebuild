@@ -118,6 +118,7 @@ export function TwinCaptureReviewScreen({ canUseHighQuality, devPreview }: Props
             uploadProgress={state.upload.isRunning ? state.upload.overallProgress : null}
             onScanNameChange={state.setScanName}
             onSubmit={() => void state.handleCreateTwin()}
+            onSaveForLater={() => void state.handleSaveForLater()}
           />
         ) : null}
 
@@ -125,6 +126,7 @@ export function TwinCaptureReviewScreen({ canUseHighQuality, devPreview }: Props
           <TwinSubmitStepStatus
             captureId={captureId}
             spaceId={state.session.selection.spaceId}
+            savedForLater={state.savedForLater}
             onGoToTwins={state.handleGoToTwins}
           />
         ) : null}

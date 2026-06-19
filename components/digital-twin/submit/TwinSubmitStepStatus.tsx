@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { IconAlertTriangle, IconLoader2 } from "@tabler/icons-react";
+import { IconAlertTriangle, IconCircleCheck, IconLoader2 } from "@tabler/icons-react";
 import { twinAccent } from "@/lib/digital-twin/twin-accent";
 import { cn } from "@/lib/utils";
 import { useTwinJobRealtime } from "@/hooks/useTwinJobRealtime";
@@ -12,6 +12,7 @@ import { twinSubmitTokens } from "./twin-submit-tokens";
 type Props = {
   captureId: string | null;
   spaceId: string;
+  savedForLater?: boolean;
   onGoToTwins: () => void;
 };
 
@@ -24,9 +25,33 @@ function statusDisplay(status: string | undefined, progress: number): string {
   return status.replace(/_/g, " ");
 }
 
-export function TwinSubmitStepStatus({ captureId, spaceId, onGoToTwins }: Props) {
+export function TwinSubmitStepStatus({ captureId, spaceId, savedForLater, onGoToTwins }: Props) {
   const router = useRouter();
-  const { job, connected } = useTwinJobRealtime(captureId);
+  const { job, connected } = useTwinJobRealtime(savedForLater ? null : captureId);
+
+  if (savedForLater) {
+    return (
+      <div className="space-y-4" data-twin-submit="step-status-saved">
+        <TwinSubmitGlassCard>
+          <div className="flex flex-col items-center gap-4 py-2 text-center">
+            <IconCircleCheck className={cn("h-12 w-12", twinAccent.text)} stroke={1.75} />
+            <div>
+              <p className={twinSubmitTokens.headerText}>Saved to your project</p>
+              <p className="mt-1.5 text-xs leading-relaxed text-[var(--graphite-muted)]">
+                Your clips, photos, and any LiDAR are safe in this project&apos;s SlateDrop. Open it on your
+                desktop to drag in 360, drone, GPS, or more scans — then submit when everything&apos;s in.
+                Nothing is processed (and no credits are used) until you submit.
+              </p>
+            </div>
+          </div>
+        </TwinSubmitGlassCard>
+
+        <button type="button" onClick={onGoToTwins} className={twinSubmitTokens.primaryCta}>
+          Go to My Twins
+        </button>
+      </div>
+    );
+  }
 
   const progress = typeof job?.progress_pct === "number" ? job.progress_pct : 0;
   const isActive = job?.status === "queued" || job?.status === "processing";
