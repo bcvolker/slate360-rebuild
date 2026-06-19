@@ -85,7 +85,7 @@ export function ProjectTeamTab({
           actionHref={canInviteCollaborators ? `${basePath}/${data.projectId}/people` : "/more/billing"}
         />
       ) : (
-        <>
+        <div className="grid gap-6 lg:grid-cols-2">
           <PeopleSection
             title="Project members"
             subtitle="Your subscribing teammates."
@@ -119,7 +119,7 @@ export function ProjectTeamTab({
             emptyLabel="No outside collaborators yet."
             refreshKey={refreshKey}
           />
-        </>
+        </div>
       )}
 
       <div className="flex justify-end">
