@@ -10,6 +10,7 @@ import {
   sendDeliverableAsPdfEmail,
   type InlineImageItem,
 } from "@/lib/email-site-walk";
+import { sendSms, isValidPhone } from "@/lib/sms";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://slate360.ai";
 
@@ -27,15 +28,16 @@ export const POST = (req: NextRequest) =>
     if (!orgId) return badRequest("Organization required");
 
     const body = await req.json();
-    const { deliverable_id, recipient_email, message, mode } = body as {
+    const { deliverable_id, recipient_email, recipient_phone, message, mode } = body as {
       deliverable_id?: string;
       recipient_email?: string;
+      recipient_phone?: string;
       message?: string;
       mode?: SendMode;
     };
 
-    if (!deliverable_id || !recipient_email) {
-      return badRequest("deliverable_id and recipient_email are required");
+    if (!deliverable_id || (!recipient_email && !recipient_phone)) {
+      return badRequest("deliverable_id and a recipient email or phone are required");
     }
     const sendMode: SendMode =
       mode === "inline_images" || mode === "pdf_attachment" ? mode : "link";
@@ -64,7 +66,9 @@ export const POST = (req: NextRequest) =>
     const shareUrl = `${APP_URL}/view/${del.share_token}`;
     const deliverableTitle = del.title ?? "Deliverable";
 
+    const channels: string[] = [];
     try {
+      if (recipient_email) {
       if (sendMode === "pdf_attachment") {
         const viewerData = await loadDeliverableByToken(del.share_token);
         if (!viewerData) return serverError("Failed to load deliverable rendering data");
@@ -120,11 +124,25 @@ export const POST = (req: NextRequest) =>
           message: message ?? undefined,
         });
       }
+        channels.push("email");
+      }
 
-      return ok({ sent: true, mode: sendMode });
+      if (recipient_phone && isValidPhone(recipient_phone)) {
+        await sendSms({
+          to: recipient_phone,
+          body: `${senderName} shared "${deliverableTitle}" with you via Slate360: ${shareUrl}`,
+        });
+        channels.push("sms");
+      }
+
+      if (channels.length === 0) {
+        return badRequest("Provide a valid email address or phone number.");
+      }
+
+      return ok({ sent: true, mode: sendMode, channels });
     } catch (err) {
       console.error("[deliverable-send]", err);
-      return serverError("Failed to send email");
+      return serverError("Failed to send deliverable");
     }
   });
 
