@@ -3,9 +3,18 @@
 import { useEffect, useState } from "react";
 import { thermalOpsTokens as t } from "@/components/ops/thermal/thermal-ops-tokens";
 import { ThermalReportHistory } from "@/components/ops/thermal/ThermalReportHistory";
+import { ThermalTemplateGallery, type GalleryTemplate } from "@/components/ops/thermal/ThermalTemplateGallery";
 import { SEED_REPORT_TEMPLATES } from "@/lib/thermal/report-templates";
 
-type TemplateOption = { id: string; name: string };
+type TemplateOption = GalleryTemplate;
+
+const SEED_OPTIONS: TemplateOption[] = SEED_REPORT_TEMPLATES.map((s) => ({
+  id: s.id,
+  name: s.name,
+  discipline: s.discipline,
+  standards: s.standards,
+  sections: s.sections,
+}));
 
 /** Report sub-tab: pick a template, add a signature, generate, and re-download. */
 export function ThermalReportPanel({
@@ -21,9 +30,7 @@ export function ThermalReportPanel({
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [reportRefresh, setReportRefresh] = useState(0);
-  const [templates, setTemplates] = useState<TemplateOption[]>(
-    SEED_REPORT_TEMPLATES.map((s) => ({ id: s.id, name: s.name })),
-  );
+  const [templates, setTemplates] = useState<TemplateOption[]>(SEED_OPTIONS);
   const [templateId, setTemplateId] = useState(initialTemplateId ?? "seed-general");
   const [signature, setSignature] = useState(initialSignature ?? "");
 
@@ -31,9 +38,24 @@ export function ThermalReportPanel({
     fetch("/api/ops/thermal/report-templates")
       .then(async (res) => (res.ok ? await res.json() : null))
       .then((json) => {
-        const org = (json?.data?.templates ?? json?.templates ?? []) as TemplateOption[];
+        const org = (json?.data?.templates ?? json?.templates ?? []) as Array<
+          Record<string, unknown>
+        >;
         if (org.length) {
-          setTemplates([...SEED_REPORT_TEMPLATES.map((s) => ({ id: s.id, name: s.name })), ...org]);
+          const mapped: TemplateOption[] = org.map((o) => {
+            const cfg = (o.config ?? o) as Record<string, unknown>;
+            return {
+              id: String(o.id),
+              name: String(o.name ?? cfg.name ?? "Custom template"),
+              discipline: typeof cfg.discipline === "string" ? cfg.discipline : undefined,
+              standards: Array.isArray(cfg.standards) ? (cfg.standards as string[]) : undefined,
+              sections:
+                cfg.sections && typeof cfg.sections === "object"
+                  ? (cfg.sections as Record<string, boolean>)
+                  : undefined,
+            };
+          });
+          setTemplates([...SEED_OPTIONS, ...mapped]);
         }
       })
       .catch(() => {});
@@ -75,16 +97,16 @@ export function ThermalReportPanel({
         <p className="mt-2 text-xs text-[var(--graphite-muted)]">
           The template controls sections, standards, methodology, and severity scale.
         </p>
-        <label className="mt-3 block text-xs text-[var(--graphite-muted)]">
-          Template
-          <select
-            value={templateId}
-            onChange={(e) => { setTemplateId(e.target.value); persistMeta({ report_template_id: e.target.value }); }}
-            className="mt-1 block w-full rounded-xl border border-[var(--mobile-app-card-border)] bg-[#111827] px-3 py-2 text-sm text-white"
-          >
-            {templates.map((tpl) => <option key={tpl.id} value={tpl.id}>{tpl.name}</option>)}
-          </select>
-        </label>
+        <div className="mt-3">
+          <p className="text-xs text-[var(--graphite-muted)]">Template</p>
+          <div className="mt-1">
+            <ThermalTemplateGallery
+              templates={templates}
+              selectedId={templateId}
+              onSelect={(id) => { setTemplateId(id); persistMeta({ report_template_id: id }); }}
+            />
+          </div>
+        </div>
         <label className="mt-2 block text-xs text-[var(--graphite-muted)]">
           Signature / credentials (optional)
           <textarea
