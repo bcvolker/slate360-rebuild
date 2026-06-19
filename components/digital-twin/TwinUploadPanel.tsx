@@ -192,7 +192,7 @@ export function TwinUploadPanel({
               <input
                 type="file"
                 multiple
-                accept="video/*,image/*,.ply,.kml,.gpx,.geojson"
+                accept="video/*,image/*,.ply,.las,.laz,.e57,.pcd,.xyz,.pts,.obj,.glb,.gltf,.fbx,.stl,.kml,.gpx,.geojson"
                 className="sr-only"
                 disabled={isRunning}
                 onChange={(event) => onFileChange(event.target.files)}

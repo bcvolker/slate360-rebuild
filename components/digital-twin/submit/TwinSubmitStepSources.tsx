@@ -1,13 +1,17 @@
 "use client";
 
 import { useRef } from "react";
-import { FolderOpen, Images, MapPin, Plane, X } from "lucide-react";
+import { Boxes, FolderOpen, Images, MapPin, Plane, X } from "lucide-react";
 import type { TwinReviewAddedSource } from "@/lib/digital-twin/twin-capture-pending-session";
 import {
   classifyTwinMedia,
   hasMixedTwinMediaCategories,
+  isTwinScanCategory,
   type TwinMediaCategory,
 } from "@/lib/digital-twin/twin-review-media";
+
+/** Point-cloud / LiDAR / mesh / geospatial formats accepted from desktop. */
+const SCAN_ACCEPT = ".ply,.las,.laz,.e57,.pcd,.xyz,.pts,.obj,.glb,.gltf,.fbx,.stl,.kml,.gpx,.geojson";
 import { TwinSubmitGlassCard } from "./TwinSubmitGlassCard";
 import { twinSubmitTokens } from "./twin-submit-tokens";
 
@@ -39,6 +43,7 @@ export function TwinSubmitStepSources({
   const rollRef = useRef<HTMLInputElement>(null);
   const filesRef = useRef<HTMLInputElement>(null);
   const droneRef = useRef<HTMLInputElement>(null);
+  const scanRef = useRef<HTMLInputElement>(null);
 
   const addedCategories = addedSources.map((source) =>
     source.origin === "slatedrop"
@@ -52,7 +57,10 @@ export function TwinSubmitStepSources({
 
   const showMixWarning = hasMixedTwinMediaCategories([...captureCategories, ...addedCategories]);
 
-  const sources360 = addedSources.filter((_, index) => is360PhotoCategory(addedCategories[index]));
+  const sourcesScan = addedSources.filter((_, index) => isTwinScanCategory(addedCategories[index]));
+  const sources360 = addedSources.filter(
+    (_, index) => is360PhotoCategory(addedCategories[index]) && !isTwinScanCategory(addedCategories[index]),
+  );
   const sourcesDrone = addedSources.filter((_, index) => isDroneCategory(addedCategories[index]));
 
   return (
@@ -75,6 +83,18 @@ export function TwinSubmitStepSources({
           <SourceButton label="Browse files" icon={FolderOpen} onClick={() => filesRef.current?.click()} />
         </div>
         <SourceList sources={sourcesDrone} onRemove={onRemoveSource} />
+      </TwinSubmitGlassCard>
+
+      <TwinSubmitGlassCard title="3D scans & models">
+        <p className="mb-2 text-[11px] leading-snug text-[var(--graphite-muted)]">
+          Add LiDAR / point clouds (.ply, .las, .e57), meshes (.obj, .glb), or GPS tracks (.kml, .gpx) for a
+          richer, more accurate model.
+        </p>
+        <div className="grid grid-cols-2 gap-2">
+          <SourceButton label="Add scans" icon={Boxes} onClick={() => scanRef.current?.click()} />
+          <SourceButton label="Add from SlateDrop" icon={FolderOpen} onClick={onOpenSlateDrop} />
+        </div>
+        <SourceList sources={sourcesScan} onRemove={onRemoveSource} />
       </TwinSubmitGlassCard>
 
       <TwinSubmitGlassCard title="Surrounding context">
@@ -125,7 +145,19 @@ export function TwinSubmitStepSources({
       <input
         ref={filesRef}
         type="file"
-        accept="image/*,video/*"
+        accept={`image/*,video/*,${SCAN_ACCEPT}`}
+        multiple
+        className="hidden"
+        onChange={(event) => {
+          const list = event.target.files ? Array.from(event.target.files) : [];
+          if (list.length) onAddFiles(list, "files");
+          event.target.value = "";
+        }}
+      />
+      <input
+        ref={scanRef}
+        type="file"
+        accept={SCAN_ACCEPT}
         multiple
         className="hidden"
         onChange={(event) => {

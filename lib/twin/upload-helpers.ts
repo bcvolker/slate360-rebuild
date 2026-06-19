@@ -42,7 +42,10 @@ export function inferTwinAssetKind(
   const ext = filename.split(".").pop()?.toLowerCase() ?? "";
 
   if (mime.startsWith("video/")) return "video";
-  if (mime.includes("ply") || ext === "ply") return "ply_lidar";
+  if (mime.includes("ply") || ["ply", "las", "laz", "e57", "pcd", "xyz", "pts"].includes(ext)) {
+    return "ply_lidar";
+  }
+  if (["obj", "glb", "gltf", "fbx", "stl"].includes(ext)) return "lidar_mesh";
   if (mime.includes("kml") || ext === "kml") return "geospatial_kml";
   if (mime.includes("gpx") || ext === "gpx") return "geospatial_gpx";
   if (mime.includes("geojson") || ext === "geojson") return "geospatial_geojson";
