@@ -18,6 +18,8 @@ type Props = {
   spaces: HubTwin[];
   projects: HubTwinProject[];
   initialProjectId?: string | null;
+  /** When set, uploads append to this existing (saved-for-later) capture. */
+  initialCaptureId?: string | null;
   lockProject?: boolean;
 };
 
@@ -31,6 +33,7 @@ export function TwinUploadPanel({
   spaces,
   projects,
   initialProjectId,
+  initialCaptureId,
   lockProject = false,
 }: Props) {
   const scopedSpaces = useMemo(() => {
@@ -107,6 +110,7 @@ export function TwinUploadPanel({
         {
           spaceId,
           projectId,
+          captureId: captureId ?? initialCaptureId ?? undefined,
           title: selectedSpace?.title ?? "Phone upload",
           gps,
         },
@@ -116,7 +120,7 @@ export function TwinUploadPanel({
     } catch (err) {
       setStatusMessage(err instanceof Error ? err.message : "Upload failed");
     }
-  }, [projectId, resolveGpsFix, selectedFiles, selectedSpace?.title, spaceId, startUpload]);
+  }, [captureId, initialCaptureId, projectId, resolveGpsFix, selectedFiles, selectedSpace?.title, spaceId, startUpload]);
 
   const handleEnqueue = useCallback(async () => {
     try {
