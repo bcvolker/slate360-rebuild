@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { withThermalOpsAuth } from "@/lib/thermal/access";
 import { ok, badRequest, notFound, serverError } from "@/lib/server/api-response";
+import { applyVisualPairs } from "@/lib/thermal/pair-visual-apply";
 
 export const runtime = "nodejs";
 
@@ -77,5 +78,17 @@ export const POST = (req: NextRequest, { params }: Params) =>
       .update({ status: "uploading" })
       .eq("id", sessionId);
 
-    return ok({ imported: inserted?.length ?? 0, captureIds: (inserted ?? []).map((r) => r.id) });
+    // Auto-pair thermal ↔ visual by filename across the session (best-effort).
+    let paired = 0;
+    try {
+      paired = await applyVisualPairs(admin, sessionId, orgId);
+    } catch {
+      // non-fatal — pairing can be re-run from the Library
+    }
+
+    return ok({
+      imported: inserted?.length ?? 0,
+      captureIds: (inserted ?? []).map((r) => r.id),
+      paired,
+    });
   });

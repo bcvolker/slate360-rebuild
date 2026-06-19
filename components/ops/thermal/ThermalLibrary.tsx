@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { ThermalImageGrid, type GridItem } from "@/components/ops/thermal/ThermalImageGrid";
 import { ThermalProcessPanel } from "@/components/ops/thermal/ThermalProcessPanel";
 import { ThermalBatchTunePanel } from "@/components/ops/thermal/ThermalBatchTunePanel";
@@ -29,9 +30,37 @@ export function ThermalLibrary({
   onToggleInReport: (id: string) => void;
   onAddToReport: (ids: string[]) => void;
 }) {
+  const router = useRouter();
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [filter, setFilter] = useState<Filter>("all");
+  const [pairing, setPairing] = useState(false);
+  const [pairNote, setPairNote] = useState<string | null>(null);
   const inReport = useMemo(() => new Set(reportOrder), [reportOrder]);
+
+  const pairedCount = useMemo(
+    () =>
+      captures.filter(
+        (c) => (c.metadata as Record<string, unknown> | null)?.visual_pair_id,
+      ).length,
+    [captures],
+  );
+
+  async function autoPair() {
+    setPairing(true);
+    setPairNote(null);
+    try {
+      const res = await fetch(`/api/ops/thermal/sessions/${sessionId}/pair-visual`, { method: "POST" });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error ?? "Pairing failed");
+      const linked = json.data?.linked ?? json.linked ?? 0;
+      setPairNote(`${linked} image${linked === 1 ? "" : "s"} paired.`);
+      router.refresh();
+    } catch (err) {
+      setPairNote(err instanceof Error ? err.message : "Pairing failed");
+    } finally {
+      setPairing(false);
+    }
+  }
 
   const cameras = useMemo(() => {
     const set = new Set<string>();
@@ -142,6 +171,20 @@ export function ThermalLibrary({
           >
             Add {selectedIds.length || ""} selected to report
           </button>
+          <div className="mt-3 border-t border-[var(--mobile-app-card-border)] pt-2">
+            <p className="text-[11px] text-[var(--graphite-muted)]">
+              {pairedCount} thermal/visual pair{pairedCount === 1 ? "" : "s"} linked.
+            </p>
+            <button
+              type="button"
+              onClick={autoPair}
+              disabled={pairing}
+              className="mt-1 rounded-lg border border-[var(--mobile-app-card-border)] px-2.5 py-1 text-xs font-semibold text-[var(--graphite-text-body)] hover:text-[var(--graphite-text-header)] disabled:opacity-40"
+            >
+              {pairing ? "Pairing…" : "Auto-pair thermal + visual"}
+            </button>
+            {pairNote ? <span className="ml-2 text-[11px] text-[var(--graphite-muted)]">{pairNote}</span> : null}
+          </div>
         </div>
         <ThermalProcessPanel sessionId={sessionId} allIds={allIds} selectedIds={selectedIds} />
         <ThermalBatchTunePanel captureIds={targetIds} />
