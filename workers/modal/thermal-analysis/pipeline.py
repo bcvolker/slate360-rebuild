@@ -136,6 +136,7 @@ def build_report_bundle(
             preview_b64 = encode_preview_file(local_preview)
         report_captures.append(
             {
+                "captureId": capture.get("captureId"),
                 "filename": capture.get("filename"),
                 "anomalies": capture.get("anomalies") or [],
                 "preview_b64": preview_b64,

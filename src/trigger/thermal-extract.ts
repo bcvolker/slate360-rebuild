@@ -199,6 +199,14 @@ async function runThermalProcessJob(jobId: string) {
           : null,
       report_template: reportTemplate,
       report_signature: reportSignature,
+      // Curation + site conditions drive the per-image report layout.
+      conditions:
+        sessionMetadata.conditions && typeof sessionMetadata.conditions === "object"
+          ? sessionMetadata.conditions
+          : null,
+      report_set: Array.isArray(sessionMetadata.report_set)
+        ? (sessionMetadata.report_set as unknown[]).filter((v) => typeof v === "string")
+        : null,
     },
     captures: readyCaptures.map((row) => ({
       captureId: row.id,

@@ -21,8 +21,16 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.units import inch
 from reportlab.platypus import Image as RlImage
-from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
-from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.platypus import (
+    KeepTogether,
+    PageBreak,
+    Paragraph,
+    SimpleDocTemplate,
+    Spacer,
+    Table,
+    TableStyle,
+)
+from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 
 
 def _safe(text: Any) -> str:
@@ -141,6 +149,163 @@ def _capture_data_rows(capture: dict[str, Any]) -> list[tuple[str, str]]:
         add("GPS", f"{lat}, {lon}")
     add("Radiometric", "Yes" if q.get("is_radiometric") else None)
     return rows
+
+
+def _report_unit(session_meta: dict[str, Any]) -> str:
+    branding = session_meta.get("branding") or {}
+    unit = branding.get("temp_unit")
+    return unit if unit in ("C", "F") else "F"
+
+
+def _order_report_captures(
+    captures: list[dict[str, Any]], session_meta: dict[str, Any]
+) -> list[dict[str, Any]]:
+    """Curated subset/order from session.metadata.report_set; fall back to all."""
+    report_set = session_meta.get("report_set") or []
+    if report_set:
+        by_id = {c.get("captureId"): c for c in captures if c.get("captureId")}
+        ordered = [by_id[cid] for cid in report_set if cid in by_id]
+        if ordered:
+            return ordered
+    return captures
+
+
+def _param_rows(capture: dict[str, Any], unit: str) -> list[tuple[str, str]]:
+    meta = capture.get("metadata") or {}
+    tuning = meta.get("tuning") or {}
+    q = capture.get("qualityMetrics") or {}
+    rows: list[tuple[str, str]] = []
+    emis = tuning.get("emissivity", q.get("emissivity_used"))
+    if emis is not None:
+        rows.append(("Emissivity", f"{emis}"))
+    if tuning.get("reflected_c") is not None:
+        rows.append(("Reflected", _fmt_temp(tuning["reflected_c"], unit)))
+    if tuning.get("distance_m") is not None:
+        rows.append(("Distance", f"{tuning['distance_m']} m"))
+    if tuning.get("humidity_pct") is not None:
+        rows.append(("Humidity", f"{tuning['humidity_pct']}%"))
+    if tuning.get("atmospheric_c") is not None:
+        rows.append(("Atmospheric", _fmt_temp(tuning["atmospheric_c"], unit)))
+    return rows
+
+
+def _condition_rows(session_meta: dict[str, Any], unit: str) -> list[tuple[str, str]]:
+    cond = session_meta.get("conditions") or {}
+    rows: list[tuple[str, str]] = []
+    if cond.get("ambient_c") is not None:
+        rows.append(("Ambient", _fmt_temp(cond["ambient_c"], unit)))
+    if cond.get("wind_mph") is not None:
+        rows.append(("Wind", f"{cond['wind_mph']} mph"))
+    if cond.get("focal_mm") is not None:
+        rows.append(("Focal length", f"{cond['focal_mm']} mm"))
+    return rows
+
+
+def _measurement_table_rows(capture: dict[str, Any], unit: str) -> list[list[str]]:
+    q = capture.get("qualityMetrics") or {}
+    rows: list[list[str]] = [["Measurement", "Value"]]
+    if q.get("max_temp_c") is not None:
+        rows.append(["Max", _fmt_temp(q["max_temp_c"], unit)])
+    if q.get("min_temp_c") is not None:
+        rows.append(["Min", _fmt_temp(q["min_temp_c"], unit)])
+    if q.get("avg_temp_c") is not None:
+        rows.append(["Average", _fmt_temp(q["avg_temp_c"], unit)])
+    for i, a in enumerate(capture.get("anomalies") or [], start=1):
+        rows.append([f"A{i} peak", _fmt_temp(a.get("temp_c"), unit)])
+        rows.append([f"A{i} ΔT", _fmt_delta(a.get("delta_c"), unit)])
+    return rows
+
+
+_SIDEBAR_LABEL = ParagraphStyle("SidebarLabel", fontName="Helvetica-Bold", fontSize=8, spaceAfter=2)
+_SIDEBAR_TEXT = ParagraphStyle("SidebarText", fontName="Helvetica", fontSize=7.5, leading=10)
+_CAPTION = ParagraphStyle("Caption", fontName="Helvetica-Oblique", fontSize=6.5, textColor=colors.HexColor("#555555"))
+
+
+def _kv_table(rows: list[tuple[str, str]]) -> Table:
+    t = Table([[Paragraph(k, _SIDEBAR_TEXT), Paragraph(v, _SIDEBAR_TEXT)] for k, v in rows], colWidths=[0.95 * inch, 1.05 * inch])
+    t.setStyle(TableStyle([
+        ("FONTSIZE", (0, 0), (-1, -1), 7.5),
+        ("TOPPADDING", (0, 0), (-1, -1), 1),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 1),
+        ("LINEBELOW", (0, 0), (-1, -2), 0.2, colors.HexColor("#e2e2e2")),
+    ]))
+    return t
+
+
+def _image_flowable(preview_b64: Any, width: float) -> Any:
+    if not preview_b64:
+        return Paragraph("[no image]", _CAPTION)
+    try:
+        return RlImage(BytesIO(base64.b64decode(preview_b64)), width=width, height=width * 0.75)
+    except Exception:
+        return Paragraph("[image error]", _CAPTION)
+
+
+def _per_image_flowables(
+    capture: dict[str, Any],
+    by_id: dict[str, dict[str, Any]],
+    session_meta: dict[str, Any],
+    standards: list[str],
+    unit: str,
+    styles: Any,
+) -> list[Any]:
+    """A FLIR-style per-image detail page: sidebar (measurements / parameters /
+    conditions / findings) beside the thermal image stacked over its visual pair."""
+    meta = capture.get("metadata") or {}
+    q = capture.get("qualityMetrics") or {}
+
+    # --- Sidebar ---
+    sidebar: list[Any] = [Paragraph("MEASUREMENTS", _SIDEBAR_LABEL)]
+    mt = Table(_measurement_table_rows(capture, unit), colWidths=[1.0 * inch, 1.0 * inch])
+    mt.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#f0f0f0")),
+        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+        ("FONTSIZE", (0, 0), (-1, -1), 7),
+        ("GRID", (0, 0), (-1, -1), 0.25, colors.HexColor("#cccccc")),
+        ("TOPPADDING", (0, 0), (-1, -1), 2),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 2),
+    ]))
+    sidebar.append(mt)
+
+    params = _param_rows(capture, unit)
+    if params:
+        sidebar.append(Spacer(1, 6))
+        sidebar.append(Paragraph("PARAMETERS", _SIDEBAR_LABEL))
+        sidebar.append(_kv_table(params))
+
+    conditions = _condition_rows(session_meta, unit)
+    if conditions:
+        sidebar.append(Spacer(1, 6))
+        sidebar.append(Paragraph("CONDITIONS", _SIDEBAR_LABEL))
+        sidebar.append(_kv_table(conditions))
+
+    sidebar.append(Spacer(1, 6))
+    sidebar.append(Paragraph("FINDINGS", _SIDEBAR_LABEL))
+    findings_text = meta.get("findings")
+    if findings_text:
+        sidebar.append(Paragraph(_safe(findings_text), _SIDEBAR_TEXT))
+    for a in capture.get("anomalies") or []:
+        sidebar.append(Paragraph(f"• {_safe(describe_anomaly(a, standards, unit))}", _SIDEBAR_TEXT))
+    if not findings_text and not (capture.get("anomalies")):
+        sidebar.append(Paragraph("No findings recorded.", _SIDEBAR_TEXT))
+
+    # --- Image column (thermal over paired visual) ---
+    cam = q.get("sensor_make") or ""
+    sensor = q.get("sensor_model") or q.get("parser_id") or ""
+    image_col: list[Any] = [_image_flowable(capture.get("preview_b64"), 3.2 * inch)]
+    image_col.append(Paragraph(f"{_safe(capture.get('filename') or '')} · {_safe(cam)} {_safe(sensor)}", _CAPTION))
+    pair_id = meta.get("visual_pair_id")
+    paired = by_id.get(pair_id) if isinstance(pair_id, str) else None
+    if paired and paired.get("preview_b64"):
+        image_col.append(Spacer(1, 6))
+        image_col.append(_image_flowable(paired.get("preview_b64"), 3.2 * inch))
+        image_col.append(Paragraph(f"Visual · {_safe(paired.get('filename') or '')}", _CAPTION))
+
+    layout = Table([[sidebar, image_col]], colWidths=[2.15 * inch, 3.4 * inch])
+    layout.setStyle(TableStyle([("VALIGN", (0, 0), (-1, -1), "TOP"), ("LEFTPADDING", (0, 0), (0, 0), 0)]))
+
+    title = Paragraph(f"<b>{_safe(capture.get('filename') or 'Capture')}</b>", styles["Heading4"])
+    return [KeepTogether([title, Spacer(1, 4), layout])]
 
 
 def build_html_report(session_meta: dict[str, Any], captures: list[dict[str, Any]]) -> str:
@@ -295,22 +460,18 @@ def build_pdf_report(session_meta: dict[str, Any], captures: list[dict[str, Any]
             story.append(Paragraph(f"<i>Standards: {_safe(', '.join(standards))}</i>", styles["Normal"]))
         story.append(Spacer(1, 0.2 * inch))
 
-    # Findings with described anomalies
+    # Findings — one FLIR-style per-image detail page per curated capture.
     if _section_on(sections, "findings"):
+        unit = _report_unit(session_meta)
+        ordered = _order_report_captures(captures, session_meta)
+        by_id = {c.get("captureId"): c for c in captures if c.get("captureId")}
+        story.append(PageBreak())
         story.append(Paragraph("<b>Findings</b>", styles["Heading3"]))
-        for capture in captures[:6]:
-            story.append(Paragraph(f"<b>{_safe(capture.get('filename') or 'Capture')}</b>", styles["Heading4"]))
-            preview_b64 = capture.get("preview_b64")
-            if preview_b64:
-                img_bytes = base64.b64decode(preview_b64)
-                story.append(RlImage(BytesIO(img_bytes), width=4.5 * inch, height=3.2 * inch))
-            anomalies = capture.get("anomalies") or []
-            if anomalies:
-                for anomaly in anomalies[:5]:
-                    story.append(Paragraph(f"• {_safe(describe_anomaly(anomaly, standards))}", styles["Normal"]))
-            else:
-                story.append(Paragraph("• No anomalies flagged.", styles["Normal"]))
-            story.append(Spacer(1, 0.15 * inch))
+        story.append(Spacer(1, 0.1 * inch))
+        for idx, capture in enumerate(ordered):
+            if idx > 0:
+                story.append(PageBreak())
+            story.extend(_per_image_flowables(capture, by_id, session_meta, standards, unit, styles))
 
     # Severity scale
     if _section_on(sections, "severity_table") and template.get("severity_levels"):
