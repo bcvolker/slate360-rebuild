@@ -34,6 +34,24 @@ export function MobileInboxClient() {
     void loadUnreadNotifications();
   }, [loadUnreadNotifications]);
 
+  // Fire-and-forget when a row is opened so it stops showing as unread.
+  const markRead = (id: string) => {
+    void fetch("/api/notifications/read", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    });
+  };
+
+  const markAllRead = async () => {
+    await fetch("/api/notifications/read", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ all: true }),
+    });
+    await loadUnreadNotifications();
+  };
+
   return (
     <div className={mobileTokens.mobilePageScrollInner}>
       <section className={cn(mobileTokens.panelBase, "p-5")}>
@@ -101,7 +119,17 @@ export function MobileInboxClient() {
               {notificationsLoading ? (
                 <p className="text-sm text-zinc-400">Loading notifications…</p>
               ) : unreadNotifications.length > 0 ? (
-                unreadNotifications.map((notification) => {
+                <>
+                  <div className="flex justify-end">
+                    <button
+                      type="button"
+                      onClick={markAllRead}
+                      className="text-xs font-semibold text-[var(--graphite-primary)] hover:opacity-80"
+                    >
+                      Mark all read
+                    </button>
+                  </div>
+                  {unreadNotifications.map((notification) => {
                   const href =
                     notification.link_path?.replace(/^\/project-hub(?=\/|$)/, "/projects") ??
                     (notification.project_id ? `/projects/${notification.project_id}` : "/coordination/inbox");
@@ -109,6 +137,7 @@ export function MobileInboxClient() {
                     <Link
                       key={notification.id}
                       href={href}
+                      onClick={() => markRead(notification.id)}
                       className={cn(
                         mobileTokens.mobileGlassCardSurface,
                         "block px-4 py-4 transition-colors hover:bg-white/[0.03]",
@@ -123,7 +152,8 @@ export function MobileInboxClient() {
                       </p>
                     </Link>
                   );
-                })
+                })}
+                </>
               ) : (
                 <>
                   <div className="rounded-xl border border-white/10 bg-white/[0.05] p-4">
