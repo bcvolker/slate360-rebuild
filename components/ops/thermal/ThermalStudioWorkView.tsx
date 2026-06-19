@@ -106,6 +106,8 @@ export function ThermalStudioWorkView({
   const [flaggedOnly, setFlaggedOnly] = useState(false);
   const [compareVisual, setCompareVisual] = useState(false);
   const [findingsText, setFindingsText] = useState("");
+  const [drafting, setDrafting] = useState(false);
+  const [draftNote, setDraftNote] = useState<string | null>(null);
 
   const flaggedCount = captures.filter((c) => (c.anomalies?.length ?? 0) > 0).length;
   const visibleCaptures = flaggedOnly
@@ -151,6 +153,33 @@ export function ThermalStudioWorkView({
     },
     [selected, saveFindings],
   );
+
+  const anomalyCountSel = (selected?.anomalies?.length ?? 0);
+  async function draftFindings() {
+    if (!selected) return;
+    setDrafting(true);
+    setDraftNote(null);
+    try {
+      const res = await fetch(`/api/ops/thermal/captures/${selected.id}/draft-findings`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ standards: standards ?? [] }),
+      });
+      const json = await res.json();
+      const draft = (json.data?.draft ?? json.draft ?? "").trim();
+      if (!res.ok) throw new Error(json.error ?? "Draft failed");
+      if (draft) {
+        onFindingsChange(draft);
+        setDraftNote("AI draft inserted — review and edit before issuing.");
+      } else {
+        setDraftNote(json.data?.note ?? json.note ?? "No draft produced.");
+      }
+    } catch (err) {
+      setDraftNote(err instanceof Error ? err.message : "Draft failed");
+    } finally {
+      setDrafting(false);
+    }
+  }
 
   // Paired visual photo (from S2 auto-pairing) for the comparison toggle.
   const pairedVisual = useMemo(() => {
@@ -361,9 +390,20 @@ export function ThermalStudioWorkView({
 
         {selected ? (
           <div className="border-t border-[var(--mobile-app-card-border)] pt-3">
-            <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--graphite-muted)]">
-              Findings
-            </p>
+            <div className="flex items-center justify-between">
+              <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--graphite-muted)]">
+                Findings
+              </p>
+              <button
+                type="button"
+                onClick={draftFindings}
+                disabled={drafting || anomalyCountSel === 0}
+                title={anomalyCountSel === 0 ? "No detected anomalies to draft from" : "Draft findings from detected anomalies (AI)"}
+                className="rounded border border-[var(--mobile-app-card-border)] px-1.5 py-0.5 text-[10px] font-semibold text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)] disabled:opacity-40"
+              >
+                {drafting ? "Drafting…" : "Draft (AI)"}
+              </button>
+            </div>
             <textarea
               value={findingsText}
               onChange={(e) => onFindingsChange(e.target.value)}
@@ -372,7 +412,7 @@ export function ThermalStudioWorkView({
               className="mt-2 block w-full rounded-xl border border-[var(--mobile-app-card-border)] bg-[#111827] px-3 py-2 text-xs text-white"
             />
             <p className="mt-1 text-[10px] text-[var(--graphite-muted)]">
-              Saved per image · included in the report.
+              {draftNote ?? "Saved per image · included in the report."}
             </p>
           </div>
         ) : null}
