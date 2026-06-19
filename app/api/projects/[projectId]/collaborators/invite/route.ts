@@ -66,6 +66,55 @@ export const POST = (
       return serverError(err instanceof Error ? err.message : "Limit check failed");
     }
 
+    const projectName =
+      typeof (project as unknown as { name?: string }).name === "string"
+        ? (project as unknown as { name: string }).name
+        : "your project";
+    const senderName = user.email ?? "A Slate360 teammate";
+
+    // Detect an existing Slate360 subscriber by email → link them straight onto
+    // the project (no signup needed), even across organizations. Access is granted
+    // via project_members (see getScopedProjectForUser). Falls through to the
+    // normal signup-invite flow when the email isn't a known subscriber.
+    if (email) {
+      const { data: existingProfile } = await admin
+        .from("profiles")
+        .select("id")
+        .ilike("email", email)
+        .maybeSingle();
+      if (existingProfile?.id) {
+        const uid = existingProfile.id as string;
+        const { data: existingMember } = await admin
+          .from("project_members")
+          .select("user_id")
+          .eq("project_id", projectId)
+          .eq("user_id", uid)
+          .maybeSingle();
+        if (existingMember) {
+          return ok({ alreadyMember: true, existingSubscriber: true });
+        }
+        const { error: memberErr } = await admin
+          .from("project_members")
+          .insert({ project_id: projectId, user_id: uid, role });
+        if (memberErr) return serverError(memberErr.message);
+
+        const delivery: DeliveryReport = { email: "skipped", sms: "skipped" };
+        try {
+          await sendCollaboratorInviteEmail({
+            to: email,
+            senderName,
+            projectName,
+            inviteUrl: `${APP_URL}/projects/${projectId}`,
+            message,
+          });
+          delivery.email = "sent";
+        } catch {
+          delivery.email = "failed";
+        }
+        return ok({ linkedExisting: true, existingSubscriber: true, delivery });
+      }
+    }
+
     const expiresAt = new Date(Date.now() + TOKEN_TTL_DAYS * 24 * 60 * 60 * 1000).toISOString();
 
     const { data: tokenRow, error: tokenErr } = await admin
@@ -108,12 +157,6 @@ export const POST = (
     if (inviteErr || !inviteRow) {
       return serverError(inviteErr?.message ?? "Failed to record invite");
     }
-
-    const projectName =
-      typeof (project as unknown as { name?: string }).name === "string"
-        ? (project as unknown as { name: string }).name
-        : "your project";
-    const senderName = user.email ?? "A Slate360 teammate";
 
     const delivery: DeliveryReport = { email: "skipped", sms: "skipped" };
 

@@ -25,6 +25,7 @@ export function CollaboratorInviteModal({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [shareUrl, setShareUrl] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
 
   const reset = () => {
     setEmail("");
@@ -32,6 +33,7 @@ export function CollaboratorInviteModal({
     setMessage("");
     setError(null);
     setShareUrl(null);
+    setNotice(null);
     setChannel("email");
   };
 
@@ -58,6 +60,8 @@ export function CollaboratorInviteModal({
       const json = (await res.json().catch(() => ({}))) as {
         inviteUrl?: string;
         error?: string;
+        linkedExisting?: boolean;
+        alreadyMember?: boolean;
       };
 
       if (!res.ok) {
@@ -66,7 +70,11 @@ export function CollaboratorInviteModal({
       }
 
       onInvited?.();
-      if (channel === "link" && json.inviteUrl) {
+      if (json.alreadyMember) {
+        setNotice("That person is already a Slate360 subscriber and is already on this project.");
+      } else if (json.linkedExisting) {
+        setNotice("They're already a Slate360 subscriber — added straight to the project, no signup needed. We emailed them a link to open it.");
+      } else if (channel === "link" && json.inviteUrl) {
         setShareUrl(json.inviteUrl);
       } else {
         close();
@@ -99,7 +107,20 @@ export function CollaboratorInviteModal({
           They'll receive a single-use link that expires in 14 days. No subscription required.
         </p>
 
-        {shareUrl ? (
+        {notice ? (
+          <div className="space-y-3">
+            <p className="text-sm text-foreground">{notice}</p>
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={close}
+                className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        ) : shareUrl ? (
           <div className="space-y-3">
             <p className="text-sm text-foreground">Share this link with your collaborator:</p>
             <input
