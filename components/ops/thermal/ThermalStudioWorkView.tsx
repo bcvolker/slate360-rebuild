@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ThermalProbeViewer,
   type ThermalProbeGrid,
@@ -31,6 +31,8 @@ type Props = {
   saveSpots?: (captureId: string, spots: ProbeSpot[]) => void;
   /** Persist per-image tuning. Defaults to the ops capture PATCH API. */
   saveTuning?: (captureId: string, tuning: ProbeTuning) => void;
+  /** Persist per-image operator findings. Defaults to the ops capture PATCH API. */
+  saveFindings?: (captureId: string, findings: string) => void;
 };
 
 function defaultSaveSpots(captureId: string, spots: ProbeSpot[]): void {
@@ -46,6 +48,14 @@ function defaultSaveTuning(captureId: string, tuning: ProbeTuning): void {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ tuning }),
+  }).catch(() => {});
+}
+
+function defaultSaveFindings(captureId: string, findings: string): void {
+  fetch(`/api/ops/thermal/captures/${captureId}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ findings }),
   }).catch(() => {});
 }
 
@@ -80,6 +90,7 @@ export function ThermalStudioWorkView({
   loadGrid = defaultLoadGrid,
   saveSpots = defaultSaveSpots,
   saveTuning = defaultSaveTuning,
+  saveFindings = defaultSaveFindings,
 }: Props) {
   const [internalId, setInternalId] = useState<string | null>(captures[0]?.id ?? null);
   const selectedId = controlledId ?? internalId;
@@ -91,7 +102,10 @@ export function ThermalStudioWorkView({
   const [gridState, setGridState] = useState<"loading" | "ready" | "none">("loading");
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const tuningTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const findingsTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [flaggedOnly, setFlaggedOnly] = useState(false);
+  const [compareVisual, setCompareVisual] = useState(false);
+  const [findingsText, setFindingsText] = useState("");
 
   const flaggedCount = captures.filter((c) => (c.anomalies?.length ?? 0) > 0).length;
   const visibleCaptures = flaggedOnly
@@ -123,6 +137,28 @@ export function ThermalStudioWorkView({
     [selected, saveTuning],
   );
 
+  // Operator findings narrative — reset when the selected capture changes.
+  useEffect(() => {
+    setFindingsText(typeof selectedMeta.findings === "string" ? selectedMeta.findings : "");
+  }, [selected?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const onFindingsChange = useCallback(
+    (text: string) => {
+      setFindingsText(text);
+      if (!selected) return;
+      if (findingsTimer.current) clearTimeout(findingsTimer.current);
+      findingsTimer.current = setTimeout(() => saveFindings(selected.id, text), 700);
+    },
+    [selected, saveFindings],
+  );
+
+  // Paired visual photo (from S2 auto-pairing) for the comparison toggle.
+  const pairedVisual = useMemo(() => {
+    const pairId = selectedMeta.visual_pair_id;
+    if (typeof pairId !== "string") return null;
+    return captures.find((c) => c.id === pairId) ?? null;
+  }, [captures, selectedMeta.visual_pair_id]);
+
   const load = useCallback(
     (id: string) => {
       setGrid(null);
@@ -139,6 +175,21 @@ export function ThermalStudioWorkView({
     if (selected) load(selected.id);
   }, [selected, load]);
 
+  // Keyboard shortcuts: ←/→ navigate filmstrip, "c" toggles visual compare.
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      const tag = (e.target as HTMLElement | null)?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA") return;
+      const list = visibleCaptures;
+      const idx = list.findIndex((c) => c.id === selected?.id);
+      if (e.key === "ArrowRight" && idx < list.length - 1) { e.preventDefault(); selectCapture(list[idx + 1].id); }
+      else if (e.key === "ArrowLeft" && idx > 0) { e.preventDefault(); selectCapture(list[idx - 1].id); }
+      else if (e.key.toLowerCase() === "c" && pairedVisual) { setCompareVisual((v) => !v); }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [visibleCaptures, selected?.id, selectCapture, pairedVisual]);
+
   const q = (selected?.qualityMetrics ?? {}) as Record<string, unknown>;
   const meta = (selected?.metadata ?? {}) as Record<string, unknown>;
   const gps = (meta.gps ?? meta.gps_position ?? {}) as Record<string, unknown>;
@@ -147,7 +198,12 @@ export function ThermalStudioWorkView({
     <div className="grid h-full min-h-0 grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_260px]">
       {/* Main: large viewer + filmstrip */}
       <section className="flex min-h-0 min-w-0 flex-col gap-3">
-        <div className="min-h-0 flex-1 rounded-2xl border border-[var(--mobile-app-card-border)] p-3">
+        <div
+          className={`grid min-h-0 flex-1 gap-3 ${
+            compareVisual && pairedVisual ? "grid-cols-2" : "grid-cols-1"
+          }`}
+        >
+        <div className="min-h-0 rounded-2xl border border-[var(--mobile-app-card-border)] p-3">
           {gridState === "ready" && grid ? (
             <ThermalProbeViewer
               grid={grid}
@@ -186,11 +242,42 @@ export function ThermalStudioWorkView({
           )}
         </div>
 
+        {compareVisual && pairedVisual ? (
+          <div className="flex min-h-0 flex-col rounded-2xl border border-[var(--mobile-app-card-border)] p-3">
+            <p className="shrink-0 pb-2 font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--graphite-muted)]">
+              Visual · {pairedVisual.filename}
+            </p>
+            <div className="flex min-h-0 flex-1 items-center justify-center overflow-hidden">
+              {pairedVisual.previewUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={pairedVisual.previewUrl} alt={pairedVisual.filename} className="max-h-full max-w-full rounded-lg object-contain" />
+              ) : (
+                <span className="text-xs text-[var(--graphite-muted)]">No preview for the paired visual.</span>
+              )}
+            </div>
+          </div>
+        ) : null}
+        </div>
+
         {/* Filmstrip header: navigation + flagged filter */}
-        <div className="flex shrink-0 items-center justify-between">
+        <div className="flex shrink-0 items-center justify-between gap-2">
           <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--graphite-muted)]">
             {visibleCaptures.length} image{visibleCaptures.length === 1 ? "" : "s"}
           </p>
+          {pairedVisual ? (
+            <button
+              type="button"
+              onClick={() => setCompareVisual((v) => !v)}
+              className={`rounded border px-1.5 py-0.5 text-[10px] font-semibold transition-colors ${
+                compareVisual
+                  ? "border-[color-mix(in_srgb,var(--graphite-primary)_50%,transparent)] bg-[color-mix(in_srgb,var(--graphite-primary)_16%,transparent)] text-[var(--graphite-text-header)]"
+                  : "border-[var(--mobile-app-card-border)] text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]"
+              }`}
+              title="Show the paired visual photo side by side (shortcut: c)"
+            >
+              Compare visual
+            </button>
+          ) : null}
           <button
             type="button"
             onClick={() => setFlaggedOnly((v) => !v)}
@@ -271,6 +358,24 @@ export function ThermalStudioWorkView({
         ) : (
           <p className="text-sm text-[var(--graphite-muted)]">Select a capture.</p>
         )}
+
+        {selected ? (
+          <div className="border-t border-[var(--mobile-app-card-border)] pt-3">
+            <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--graphite-muted)]">
+              Findings
+            </p>
+            <textarea
+              value={findingsText}
+              onChange={(e) => onFindingsChange(e.target.value)}
+              rows={5}
+              placeholder="Operator findings for this image — what the thermal signature indicates, severity, and recommended action."
+              className="mt-2 block w-full rounded-xl border border-[var(--mobile-app-card-border)] bg-[#111827] px-3 py-2 text-xs text-white"
+            />
+            <p className="mt-1 text-[10px] text-[var(--graphite-muted)]">
+              Saved per image · included in the report.
+            </p>
+          </div>
+        ) : null}
       </aside>
     </div>
   );
