@@ -115,6 +115,48 @@ def process_capture_analyze(
     }
 
 
+def _measure_spots(
+    s3, bucket: str, capture: dict[str, Any], work_dir: Path
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    """Sample calibrated NPZ temperatures at the operator's placed spots and derive
+    Δ values vs the first (reference) spot — the FLIR Sp/Dt measurement table."""
+    meta = capture.get("metadata") or {}
+    spots = meta.get("spots") or []
+    npz_key = capture.get("npzDataPath")
+    if not spots or not npz_key:
+        return [], []
+    try:
+        local = work_dir / f"{capture['captureId']}_spots.npz"
+        download_object(s3, bucket, str(npz_key), str(local))
+        temp = np.load(local)["temperatures"]
+        h, w = temp.shape[0], temp.shape[1]
+    except Exception:
+        return [], []
+
+    measured: list[dict[str, Any]] = []
+    for i, s in enumerate(spots, start=1):
+        try:
+            x = int(round(float(s.get("x", 0))))
+            y = int(round(float(s.get("y", 0))))
+        except (TypeError, ValueError):
+            continue
+        x = max(0, min(w - 1, x))
+        y = max(0, min(h - 1, y))
+        measured.append({"label": f"Sp{i}", "temp_c": float(temp[y][x])})
+
+    deltas: list[dict[str, Any]] = []
+    if len(measured) >= 2:
+        ref = measured[0]
+        for m in measured[1:]:
+            deltas.append({
+                "label": f"Dt{len(deltas) + 1}",
+                "a": m["label"],
+                "b": ref["label"],
+                "value_c": m["temp_c"] - ref["temp_c"],
+            })
+    return measured, deltas
+
+
 def build_report_bundle(
     s3,
     bucket: str,
@@ -134,6 +176,7 @@ def build_report_bundle(
             local_preview = work_dir / f"{capture['captureId']}_report.jpg"
             download_object(s3, bucket, str(preview_path), str(local_preview))
             preview_b64 = encode_preview_file(local_preview)
+        spots_measured, deltas_measured = _measure_spots(s3, bucket, capture, work_dir)
         report_captures.append(
             {
                 "captureId": capture.get("captureId"),
@@ -143,6 +186,8 @@ def build_report_bundle(
                 "qualityMetrics": capture.get("qualityMetrics") or {},
                 "gps": capture.get("gps") or {},
                 "metadata": capture.get("metadata") or {},
+                "spots_measured": spots_measured,
+                "deltas_measured": deltas_measured,
             }
         )
 

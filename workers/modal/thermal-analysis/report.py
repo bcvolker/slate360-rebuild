@@ -204,12 +204,18 @@ def _condition_rows(session_meta: dict[str, Any], unit: str) -> list[tuple[str, 
 def _measurement_table_rows(capture: dict[str, Any], unit: str) -> list[list[str]]:
     q = capture.get("qualityMetrics") or {}
     rows: list[list[str]] = [["Measurement", "Value"]]
+    # Operator-placed spots (calibrated NPZ sample) — the FLIR Sp/Dt table.
+    for sp in capture.get("spots_measured") or []:
+        rows.append([str(sp.get("label")), _fmt_temp(sp.get("temp_c"), unit)])
+    for dt in capture.get("deltas_measured") or []:
+        rows.append([f"{dt.get('label')} ({dt.get('a')}−{dt.get('b')})", _fmt_delta(dt.get("value_c"), unit)])
     if q.get("max_temp_c") is not None:
         rows.append(["Max", _fmt_temp(q["max_temp_c"], unit)])
     if q.get("min_temp_c") is not None:
         rows.append(["Min", _fmt_temp(q["min_temp_c"], unit)])
     if q.get("avg_temp_c") is not None:
         rows.append(["Average", _fmt_temp(q["avg_temp_c"], unit)])
+    # Detected anomalies (peak + ΔT vs surroundings) supplement the spot table.
     for i, a in enumerate(capture.get("anomalies") or [], start=1):
         rows.append([f"A{i} peak", _fmt_temp(a.get("temp_c"), unit)])
         rows.append([f"A{i} ΔT", _fmt_delta(a.get("delta_c"), unit)])
