@@ -136,13 +136,25 @@ def _measure_spots(
     measured: list[dict[str, Any]] = []
     for i, s in enumerate(spots, start=1):
         try:
-            x = int(round(float(s.get("x", 0))))
-            y = int(round(float(s.get("y", 0))))
+            cx = float(s.get("x", 0))
+            cy = float(s.get("y", 0))
         except (TypeError, ValueError):
             continue
-        x = max(0, min(w - 1, x))
-        y = max(0, min(h - 1, y))
-        measured.append({"label": f"Sp{i}", "temp_c": float(temp[y][x])})
+        if s.get("kind") == "area" and s.get("w") and s.get("h"):
+            # Area target — average the enclosed box (mirrors lib/thermal/spot-stats).
+            bw = float(s["w"])
+            bh = float(s["h"])
+            x0 = max(0, int(round(cx - bw / 2)))
+            y0 = max(0, int(round(cy - bh / 2)))
+            x1 = min(w - 1, int(round(cx + bw / 2)))
+            y1 = min(h - 1, int(round(cy + bh / 2)))
+            region = temp[y0 : y1 + 1, x0 : x1 + 1]
+            value = float(region.mean()) if region.size else float(temp[int(cy)][int(cx)])
+            measured.append({"label": f"Ar{i}", "temp_c": value})
+        else:
+            x = max(0, min(w - 1, int(round(cx))))
+            y = max(0, min(h - 1, int(round(cy))))
+            measured.append({"label": f"Sp{i}", "temp_c": float(temp[y][x])})
 
     deltas: list[dict[str, Any]] = []
     if len(measured) >= 2:
