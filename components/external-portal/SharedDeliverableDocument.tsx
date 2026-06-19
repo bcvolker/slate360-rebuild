@@ -8,6 +8,7 @@ import { ExternalPortalShell } from "./ExternalPortalShell";
 import { PortalGlassCard } from "./PortalGlassCard";
 import { TokenStatePage } from "./TokenStatePage";
 import { DeliverableSlideshow } from "./DeliverableSlideshow";
+import { DeliverableQnA } from "./DeliverableQnA";
 
 export function SharedDeliverableDocument({
   title,
@@ -15,12 +16,14 @@ export function SharedDeliverableDocument({
   content,
   orgName,
   sharedAt,
+  shareToken,
 }: {
   title: string;
   deliverableType: string;
   content: EditorBlock[];
   orgName: string;
   sharedAt: string | null;
+  shareToken?: string | null;
 }) {
   const [slideshowOpen, setSlideshowOpen] = useState(false);
   const slideable = useMemo(
@@ -74,6 +77,8 @@ export function SharedDeliverableDocument({
         {content.map((block) => (
           <ViewBlock key={block.id} block={block} />
         ))}
+
+        {shareToken ? <DeliverableQnA token={shareToken} orgName={orgName} /> : null}
       </main>
 
       {slideshowOpen ? (

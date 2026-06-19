@@ -65,6 +65,7 @@ export default async function SharedDeliverablePage({ params }: Props) {
       content={del.content ?? []}
       orgName={org?.name ?? ""}
       sharedAt={del.shared_at}
+      shareToken={del.share_token}
     />
   );
 }

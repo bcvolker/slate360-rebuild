@@ -9,6 +9,7 @@ export {
 } from "./PortalCta";
 export { PublicItemStage } from "./PublicItemStage";
 export { SharedDeliverableDocument } from "./SharedDeliverableDocument";
+export { DeliverableQnA } from "./DeliverableQnA";
 export { TokenStatePage } from "./TokenStatePage";
 export { TOKEN_STATE_COPY, type PortalTokenState } from "./token-state";
 export {

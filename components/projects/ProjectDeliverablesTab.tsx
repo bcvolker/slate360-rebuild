@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ExternalLink, FileText, Link2, MessageSquare, Play, Send, Check, Loader2, AlertTriangle } from "lucide-react";
+import { ExternalLink, FileText, Link2, MessageSquare, Play, Send, Check, Loader2, AlertTriangle, CornerDownRight } from "lucide-react";
 import { ProjectDetailEmptyState } from "@/components/projects/ProjectDetailEmptyState";
 import { projectDetailTokens as t } from "@/components/projects/project-detail-tokens";
 import { cn } from "@/lib/utils";
@@ -78,6 +78,7 @@ function DeliverableCard({ d }: { d: ProjectDeliverableRow }) {
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const [feedback, setFeedback] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
+  const [qnaOpen, setQnaOpen] = useState(false);
 
   const mode = modeMeta(d.outputMode, d.deliverableType);
   const ModeIcon = mode.icon;
@@ -172,9 +173,9 @@ function DeliverableCard({ d }: { d: ProjectDeliverableRow }) {
             <button type="button" onClick={() => { setSendOpen((v) => !v); setFeedback(null); }} className={cn(t.secondaryButton, "!min-h-9 !px-3 text-xs")}>
               <Send className="mr-1.5 h-3.5 w-3.5" aria-hidden /> Send
             </button>
-            <span className="inline-flex items-center gap-1 text-[11px] text-[var(--graphite-muted)]">
-              <MessageSquare className="h-3.5 w-3.5" aria-hidden /> Q&amp;A in viewer
-            </span>
+            <button type="button" onClick={() => setQnaOpen((v) => !v)} className={cn(t.secondaryButton, "!min-h-9 !px-3 text-xs")}>
+              <MessageSquare className="mr-1.5 h-3.5 w-3.5" aria-hidden /> Q&amp;A
+            </button>
           </>
         ) : (
           <button type="button" onClick={publishLink} disabled={busy} className={cn(t.secondaryButton, "!min-h-9 !px-3 text-xs")}>
@@ -201,12 +202,134 @@ function DeliverableCard({ d }: { d: ProjectDeliverableRow }) {
         </div>
       ) : null}
 
+      {qnaOpen && shareUrl ? <OwnerQnAPanel deliverableId={d.id} /> : null}
+
       {feedback ? (
         <p className={cn("flex items-center gap-1.5 text-xs", feedback.kind === "ok" ? "text-[var(--graphite-primary)]" : "text-red-300")}>
           {feedback.kind === "ok" ? <Check className="h-3.5 w-3.5" aria-hidden /> : <AlertTriangle className="h-3.5 w-3.5" aria-hidden />}
           {feedback.text}
         </p>
       ) : null}
+    </div>
+  );
+}
+
+type QnAItem = {
+  id: string;
+  parent_id: string | null;
+  author_name: string | null;
+  body: string;
+  is_owner_reply: boolean;
+  status?: string;
+  created_at: string;
+};
+
+function fmtTime(value: string): string {
+  return new Date(value).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+}
+
+/** Owner-side thread: loads viewer questions and lets the owner reply to each. */
+function OwnerQnAPanel({ deliverableId }: { deliverableId: string }) {
+  const [items, setItems] = useState<QnAItem[]>([]);
+  const [loaded, setLoaded] = useState(false);
+  const [replyTo, setReplyTo] = useState<string | null>(null);
+  const [replyText, setReplyText] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/site-walk/deliverables/${deliverableId}/questions`, { cache: "no-store" });
+      const json = (await res.json().catch(() => ({}))) as { questions?: QnAItem[] };
+      if (res.ok) setItems(json.questions ?? []);
+    } catch {
+      /* ignore */
+    } finally {
+      setLoaded(true);
+    }
+  }, [deliverableId]);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  async function sendReply(parentId: string | null) {
+    const body = replyText.trim();
+    if (!body) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/site-walk/deliverables/${deliverableId}/questions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ body, parentId: parentId ?? undefined }),
+      });
+      if (!res.ok) {
+        const j = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(j.error ?? "Couldn't send reply.");
+      }
+      setReplyText("");
+      setReplyTo(null);
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Couldn't send reply.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const input = "min-h-9 w-full rounded-lg border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_60%,transparent)] px-3 py-2 text-xs text-[var(--graphite-text-header)] outline-none placeholder:text-[var(--graphite-muted)] focus:border-[color-mix(in_srgb,var(--graphite-primary)_40%,transparent)]";
+
+  return (
+    <div className="space-y-2 rounded-xl border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_60%,transparent)] p-3">
+      <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-[var(--graphite-muted)]">
+        <MessageSquare className="h-3.5 w-3.5" aria-hidden /> Questions from viewers
+      </p>
+
+      {!loaded ? (
+        <p className="flex items-center gap-1.5 text-xs text-[var(--graphite-muted)]"><Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden /> Loading…</p>
+      ) : items.length === 0 ? (
+        <p className="text-xs text-[var(--graphite-muted)]">No questions yet. When a viewer asks something on the shared link, it shows up here.</p>
+      ) : (
+        <ul className="space-y-2">
+          {items.map((q) => (
+            <li
+              key={q.id}
+              className={cn(
+                "rounded-lg border p-2.5 text-xs",
+                q.is_owner_reply
+                  ? "ml-5 border-[color-mix(in_srgb,var(--graphite-primary)_30%,transparent)] bg-[color-mix(in_srgb,var(--graphite-primary)_8%,transparent)]"
+                  : "border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_45%,transparent)]",
+              )}
+            >
+              <p className="flex items-center justify-between gap-2 text-[10px] font-semibold uppercase tracking-wide text-[var(--graphite-muted)]">
+                <span>{q.is_owner_reply ? "Your reply" : q.author_name || "Viewer"}</span>
+                <span className="font-normal normal-case">{fmtTime(q.created_at)}</span>
+              </p>
+              <p className="mt-1 whitespace-pre-wrap leading-relaxed text-[var(--graphite-text-body)]">{q.body}</p>
+              {!q.is_owner_reply ? (
+                replyTo === q.id ? (
+                  <div className="mt-2 space-y-1.5">
+                    <textarea autoFocus rows={2} placeholder="Write a reply…" value={replyText} onChange={(e) => setReplyText(e.target.value)} className={cn(input, "resize-none")} />
+                    <div className="flex justify-end gap-1.5">
+                      <button type="button" onClick={() => { setReplyTo(null); setReplyText(""); }} className={cn(t.secondaryButton, "!min-h-8 !px-2.5 text-[11px]")}>Cancel</button>
+                      <button type="button" onClick={() => sendReply(q.id)} disabled={busy} className={cn(t.primaryButton, "!min-h-8 !px-3 text-[11px]", busy && "opacity-70")}>
+                        {busy ? <Loader2 className="mr-1 h-3 w-3 animate-spin" aria-hidden /> : <Send className="mr-1 h-3 w-3" aria-hidden />} Reply
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <button type="button" onClick={() => { setReplyTo(q.id); setReplyText(""); setError(null); }} className="mt-1.5 inline-flex items-center gap-1 text-[11px] font-medium text-[var(--graphite-primary)] hover:underline">
+                    <CornerDownRight className="h-3 w-3" aria-hidden /> Reply
+                  </button>
+                )
+              ) : null}
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {error ? <p className="flex items-center gap-1.5 text-xs text-red-300"><AlertTriangle className="h-3.5 w-3.5" aria-hidden /> {error}</p> : null}
     </div>
   );
 }
