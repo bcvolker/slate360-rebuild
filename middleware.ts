@@ -204,7 +204,9 @@ export async function middleware(request: NextRequest) {
     "/analytics",
     "/tour-builder",
   ];
-  if (user && PHASE_1_BLOCKED_PATHS.some((p) => pathname.startsWith(p))) {
+  // Exact path or a true sub-path only — so e.g. the CEO-gated
+  // /content-studio-workspace is NOT caught by the "/content-studio" entry.
+  if (user && PHASE_1_BLOCKED_PATHS.some((p) => pathname === p || pathname.startsWith(p + "/"))) {
     const url = request.nextUrl.clone();
     url.pathname = "/app";
     return NextResponse.redirect(url);
