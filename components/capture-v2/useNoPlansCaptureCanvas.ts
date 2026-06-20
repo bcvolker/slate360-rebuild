@@ -19,6 +19,7 @@ import { useCaptureCanvasStreamLifecycle } from "./useCaptureCanvasStreamLifecyc
 import { useCaptureCanvasTorch } from "./useCaptureCanvasTorch";
 import { useCaptureV2SourcePicker } from "./useCaptureV2SourcePicker";
 import { usePlanPinCaptureActions } from "./usePlanPinCaptureActions";
+import { useGhostProgression } from "./useGhostProgression";
 
 export type CaptureCanvasTool = "markup" | "angle";
 
@@ -114,15 +115,27 @@ export function useNoPlansCaptureCanvas({
     return previewUrl;
   }, [activeAngleId, activeItem, loop.activePreview, previewUrl, showPreview]);
 
-  // Session ghost = previous shot only. Progression ghost (project-scoped,
-  // pin-anchored picker) ships with walks-with-plans — see ghost-mode spec.
-  const ghostImageUrl = useMemo(() => {
+  // Session ghost = the previous shot in this walk.
+  const previousShotUrl = useMemo(() => {
     if (orderedItems.length === 0) return null;
     const previous = orderedItems[orderedItems.length - 1];
     return resolveCaptureV2PreviewUrl(previous, null);
   }, [orderedItems]);
 
-  const ghostAvailable = Boolean(ghostImageUrl);
+  // Progression ghost = prior photos near this spot across every walk in the
+  // project (before/after & progression reports). Loaded once ghost is enabled.
+  const progression = useGhostProgression({
+    enabled: ghostOn,
+    projectId: session.project_id ?? null,
+  });
+
+  // Overlay shows the picked progression photo if one is selected, else the
+  // previous shot from this walk.
+  const ghostImageUrl = progression.selectedUrl ?? previousShotUrl;
+
+  // Available when there's a previous shot, or this is a project walk (so the
+  // picker can surface prior photos to compare against).
+  const ghostAvailable = Boolean(previousShotUrl) || Boolean(session.project_id);
 
   const handleGhostTap = useCallback(() => {
     if (!ghostAvailable) return;
@@ -441,6 +454,15 @@ export function useNoPlansCaptureCanvas({
     ghostOpacity,
     setGhostOpacity,
     handleGhostTap,
+    // Project-scoped progression picker (before/after comparison).
+    ghostIsProjectWalk: Boolean(session.project_id),
+    ghostPhotos: progression.photos,
+    ghostPhotosLoading: progression.loading,
+    ghostPhotosError: progression.error,
+    ghostUsedGps: progression.usedGps,
+    ghostSelectedId: progression.selectedId,
+    onGhostSelectPhoto: progression.selectPhoto,
+    onGhostRefresh: progression.refresh,
     hasStops: orderedItems.length > 0,
     cameraPaused,
     activeItem,

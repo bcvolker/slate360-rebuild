@@ -7,6 +7,7 @@ import { CaptureCanvasBottomRail } from "./CaptureCanvasBottomRail";
 import { CaptureCanvasCapturedPhoto } from "./CaptureCanvasCapturedPhoto";
 import { CaptureCanvasGhostButton } from "./CaptureCanvasGhostButton";
 import { CaptureCanvasGhostPanel } from "./CaptureCanvasGhostPanel";
+import { CaptureCanvasGhostPicker } from "./CaptureCanvasGhostPicker";
 import { CaptureCanvasMarkupToolbar } from "./CaptureCanvasMarkupToolbar";
 import { CaptureCanvasRightToolRail } from "./CaptureCanvasRightToolRail";
 import { CaptureCanvasTopBar } from "./CaptureCanvasTopBar";
@@ -252,6 +253,23 @@ export function NoPlansCaptureCanvas({
         }
         ghostOpacity={canvas.ghostOpacity}
         onGhostOpacityChange={canvas.setGhostOpacity}
+      />
+
+      <CaptureCanvasGhostPicker
+        hidden={
+          !canvas.ghostOn ||
+          !canvas.ghostIsProjectWalk ||
+          !canvas.chromeVisible ||
+          canvas.showPreview ||
+          canvas.filmstripExpanded
+        }
+        photos={canvas.ghostPhotos}
+        loading={canvas.ghostPhotosLoading}
+        error={canvas.ghostPhotosError}
+        usedGps={canvas.ghostUsedGps}
+        selectedId={canvas.ghostSelectedId}
+        onSelect={canvas.onGhostSelectPhoto}
+        onRefresh={canvas.onGhostRefresh}
       />
 
       {loop.externalError || loop.detailSaveError ? (
