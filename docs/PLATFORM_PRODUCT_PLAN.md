@@ -221,13 +221,27 @@ Add a **desktop Enterprise Admin Console** (never on the phone):
 
 ---
 
-## 10. Open strategic decisions (to discuss)
+## 10. Strategic decisions
 
-1. **Entitlements consolidation**: confirm modular (`entitlements-modular.ts`) is the system of
-   record and legacy `entitlements.ts` is deprecated.
-2. **Pricing source of truth**: the modular per-app prices ($79/$149 Site Walk, $99/$249 Twin,
-   $349 bundle) — are these current, or should the pricing page drive new numbers?
-3. **Token = credit rename** in UI only — confirm.
-4. **Trial shape**: token cap + output limits acceptable? Card required to start trial?
-5. **Enterprise pricing**: fully custom/quote-based (sales-assisted) vs published enterprise tier.
-6. **Capture v1 retirement**: OK to plan v2-only once parity is verified?
+### Resolved (CEO, 2026-06)
+1. **Entitlements consolidation** → **Modular is the system of record.**
+   `lib/entitlements-modular.ts` (per-app basic/pro + bundles + Stripe SKUs) is canonical;
+   legacy `lib/entitlements.ts` (trial/standard/business/enterprise) is **deprecated** — migrate
+   callers off it, don't add to it.
+2. **Pricing source of truth** → **New numbers coming.** The repo's current prices ($79/$149
+   Site Walk, $99/$249 Twin, $349 bundle) are placeholders; the pricing/home page and token
+   economics will be driven by NEW numbers the CEO provides (from the monetization research).
+   Build the pricing page **data-driven** so numbers are config, not hardcoded.
+3. **Trial shape** → **Capped + card required.** 14-day trial = small token cap + job
+   size/count limits + watermarked/low-res outputs, **credit card required to start.** Tightest
+   loss protection.
+4. **Token = credit (UI rename only).** Backend stays "credits"; UI shows "tokens" (1:1).
+
+### Still open
+5. **Enterprise pricing**: fully custom/quote-based (sales-assisted) vs a published enterprise
+   tier. (Lean: quote-based, with a "Request a quote" path on the pricing page.)
+6. **Capture v1 retirement**: plan v2-only once parity is verified (no objection raised).
+
+### Build status
+**On hold — planning only.** Next: continue refining specs/docs; do not touch app code until
+the CEO greenlights a build phase.
