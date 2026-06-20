@@ -1,32 +1,34 @@
 "use client";
 
-import { useState } from "react";
-import { FolderOpen, Library, Plus } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { FolderOpen, Library, Loader2, Plus } from "lucide-react";
 
 type BinTab = "project" | "library";
 
+type MediaAsset = {
+  id: string;
+  kind: string;
+  filename: string | null;
+  status: "uploaded" | "processing" | "ready" | "failed";
+  durationSec: number | null;
+  thumbnailUrl: string | null;
+  proxyUrl: string | null;
+};
+
 const LIBRARY_CATEGORIES = [
-  "Transitions",
-  "Music",
-  "Sound FX",
-  "Titles",
-  "Logos / Brand",
-  "Looks",
-  "Presets",
+  "Transitions", "Music", "Sound FX", "Titles", "Logos / Brand", "Looks", "Presets",
 ];
 
-/** Left rail: project media vs the persistent org-level reusable Library. */
+/** Left rail: project media (upload + ingest) vs the org-level reusable Library. */
 export function MediaBinPanel() {
   const [tab, setTab] = useState<BinTab>("project");
-
   return (
     <div className="flex h-full min-h-0 flex-col border-r border-white/10 bg-[#0B0F15]/60">
-      <PanelHeader title="Media" />
+      <div className="px-3 py-2 font-mono text-[11px] uppercase tracking-[0.12em] text-white/40">Media</div>
       <div className="flex items-center gap-1 px-2 pb-2">
         <BinTabButton active={tab === "project"} onClick={() => setTab("project")} label="Project" />
         <BinTabButton active={tab === "library"} onClick={() => setTab("library")} label="Library" />
       </div>
-
       <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-3">
         {tab === "project" ? <ProjectTab /> : <LibraryTab />}
       </div>
@@ -35,19 +37,113 @@ export function MediaBinPanel() {
 }
 
 function ProjectTab() {
+  const [assets, setAssets] = useState<MediaAsset[]>([]);
+  const [busy, setBusy] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const refetch = useCallback(async () => {
+    try {
+      const res = await fetch("/api/content-studio/media");
+      if (!res.ok) return;
+      const json = await res.json();
+      setAssets(json.assets ?? json.data?.assets ?? []);
+    } catch {
+      /* harness / unauth — ignore */
+    }
+  }, []);
+
+  useEffect(() => {
+    refetch();
+  }, [refetch]);
+
+  // Poll while anything is still ingesting.
+  useEffect(() => {
+    if (!assets.some((a) => a.status === "processing")) return;
+    const t = setInterval(refetch, 3000);
+    return () => clearInterval(t);
+  }, [assets, refetch]);
+
+  const uploadOne = useCallback(async (file: File) => {
+    const presign = await fetch("/api/content-studio/media/presign", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ filename: file.name, contentType: file.type || "application/octet-stream" }),
+    });
+    if (!presign.ok) throw new Error("presign failed");
+    const { data } = await presign.json();
+    const { uploadUrl, storageKey } = data ?? {};
+    await fetch(uploadUrl, { method: "PUT", headers: { "Content-Type": file.type || "application/octet-stream" }, body: file });
+    const kind = file.type.startsWith("image/") ? "image" : "video";
+    await fetch("/api/content-studio/media/ingest", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ storageKey, filename: file.name, kind }),
+    });
+  }, []);
+
+  const onFiles = useCallback(async (files: FileList | null) => {
+    if (!files?.length) return;
+    setBusy(true);
+    try {
+      for (const file of Array.from(files)) await uploadOne(file);
+      await refetch();
+    } catch {
+      /* surfaced via asset status */
+    } finally {
+      setBusy(false);
+    }
+  }, [uploadOne, refetch]);
+
   return (
     <div className="space-y-2">
+      <input
+        ref={inputRef}
+        type="file"
+        accept="video/*,image/*"
+        multiple
+        className="hidden"
+        onChange={(e) => onFiles(e.target.files)}
+      />
       <button
         type="button"
-        className="flex w-full items-center justify-center gap-1.5 rounded-md border border-dashed border-white/15 py-2 text-xs text-white/60 hover:bg-white/5"
+        disabled={busy}
+        onClick={() => inputRef.current?.click()}
+        className="flex w-full items-center justify-center gap-1.5 rounded-md border border-dashed border-white/15 py-2 text-xs text-white/60 hover:bg-white/5 disabled:opacity-50"
       >
-        <Plus className="h-3.5 w-3.5" />
-        Import from SlateDrop
+        {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
+        {busy ? "Uploading…" : "Import clips / photos"}
       </button>
-      <EmptyHint
-        icon={<FolderOpen className="h-5 w-5" />}
-        text="No media yet. Import clips, photos, music, or logos to begin."
-      />
+
+      {assets.length === 0 ? (
+        <EmptyHint icon={<FolderOpen className="h-5 w-5" />} text="No media yet. Import clips, photos, music, or logos to begin." />
+      ) : (
+        <div className="grid grid-cols-2 gap-2 pt-1">
+          {assets.map((a) => (
+            <AssetCard key={a.id} asset={a} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function AssetCard({ asset }: { asset: MediaAsset }) {
+  return (
+    <div className="overflow-hidden rounded-md border border-white/10 bg-white/[0.03]">
+      <div className="relative flex aspect-video items-center justify-center bg-black/40">
+        {asset.thumbnailUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={asset.thumbnailUrl} alt={asset.filename ?? "clip"} className="h-full w-full object-cover" />
+        ) : (
+          <span className="text-white/25">
+            {asset.status === "processing" ? <Loader2 className="h-4 w-4 animate-spin" /> : <FolderOpen className="h-4 w-4" />}
+          </span>
+        )}
+        <span className="absolute bottom-1 left-1 rounded-sm bg-black/70 px-1 text-[9px] uppercase tracking-wide text-white/70">
+          {asset.status}
+        </span>
+      </div>
+      <div className="truncate px-1.5 py-1 text-[10px] text-white/55">{asset.filename ?? "clip"}</div>
     </div>
   );
 }
@@ -56,46 +152,22 @@ function LibraryTab() {
   return (
     <div className="space-y-1">
       {LIBRARY_CATEGORIES.map((cat) => (
-        <div
-          key={cat}
-          className="flex items-center justify-between rounded-md border border-white/10 px-2.5 py-2 text-xs text-white/70"
-        >
+        <div key={cat} className="flex items-center justify-between rounded-md border border-white/10 px-2.5 py-2 text-xs text-white/70">
           <span>{cat}</span>
           <span className="text-white/30">0</span>
         </div>
       ))}
-      <EmptyHint
-        icon={<Library className="h-5 w-5" />}
-        text="Saved transitions, music, titles, logos, and Looks reuse across every project."
-      />
+      <EmptyHint icon={<Library className="h-5 w-5" />} text="Saved transitions, music, titles, logos, and Looks reuse across every project." />
     </div>
   );
 }
 
-function PanelHeader({ title }: { title: string }) {
-  return (
-    <div className="px-3 py-2 font-mono text-[11px] uppercase tracking-[0.12em] text-white/40">
-      {title}
-    </div>
-  );
-}
-
-function BinTabButton({
-  active,
-  onClick,
-  label,
-}: {
-  active: boolean;
-  onClick: () => void;
-  label: string;
-}) {
+function BinTabButton({ active, onClick, label }: { active: boolean; onClick: () => void; label: string }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`flex-1 rounded-md px-2 py-1 text-xs font-medium transition-colors ${
-        active ? "bg-[#3D8EFF]/20 text-white" : "text-white/50 hover:bg-white/5"
-      }`}
+      className={`flex-1 rounded-md px-2 py-1 text-xs font-medium transition-colors ${active ? "bg-[#3D8EFF]/20 text-white" : "text-white/50 hover:bg-white/5"}`}
     >
       {label}
     </button>

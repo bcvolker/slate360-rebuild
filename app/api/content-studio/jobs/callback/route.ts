@@ -52,5 +52,28 @@ export async function POST(req: Request) {
   const { error } = await supabase.from("content_render_jobs").update(update).eq("id", jobId);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
+  // Ingest jobs also update the media asset row (proxy/thumbnail/metadata/status).
+  const mediaAssetId = typeof payload.mediaAssetId === "string" ? payload.mediaAssetId : null;
+  if (mediaAssetId) {
+    const assetUpdate: Record<string, unknown> = {};
+    if (status === "completed") {
+      assetUpdate.status = "ready";
+      if (typeof payload.proxyKey === "string") assetUpdate.proxy_key = payload.proxyKey;
+      if (typeof payload.thumbnailKey === "string") assetUpdate.thumbnail_key = payload.thumbnailKey;
+      if (typeof payload.audioProxyKey === "string") assetUpdate.audio_proxy_key = payload.audioProxyKey;
+      if (typeof payload.durationSec === "number") assetUpdate.duration_sec = payload.durationSec;
+      if (typeof payload.width === "number") assetUpdate.width = payload.width;
+      if (typeof payload.height === "number") assetUpdate.height = payload.height;
+      if (typeof payload.fps === "number") assetUpdate.fps = payload.fps;
+      if (typeof payload.hasAudio === "boolean") assetUpdate.has_audio = payload.hasAudio;
+    } else if (status === "failed") {
+      assetUpdate.status = "failed";
+      if (update.error_text) assetUpdate.error_text = update.error_text;
+    }
+    if (Object.keys(assetUpdate).length > 0) {
+      await supabase.from("content_media_assets").update(assetUpdate).eq("id", mediaAssetId);
+    }
+  }
+
   return NextResponse.json({ ok: true });
 }
