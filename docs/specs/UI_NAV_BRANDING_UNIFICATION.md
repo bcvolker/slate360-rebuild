@@ -35,6 +35,59 @@ Desktop mirrors this: left **sidebar = shell identity** (platform + module secti
 `dashboard-nav-config.ts`, CEO-gated items filtered by `resolveDashboardNav`), top **toolbar =
 context**. Same tokens, same components, responsive.
 
+## 2b. Navigation map — every screen knows its way home (fixes the capture-shell pain)
+The current problem: once you go deep into Site Walk or Twin 360, the top of the screen loses the
+app's branding and there's no sensible way back to the module home or the platform home. The fix is
+a **consistent header + back-to-home contract for every depth level**, identical in structure across
+all three shells, only the accent color and labels change.
+
+**Header anatomy (every authed screen):**
+`[ leading ] [ title / breadcrumb ] [ trailing actions ]`
+- **leading** = **Back** (within a module stack) OR the **module brand mark** (on a module home) OR
+  the **app switcher** (on the platform home). Back always goes one level up the stack; the brand
+  mark/title is always tappable to return to that **module's home**.
+- **title/breadcrumb** = current screen, with the module name on module homes.
+- **trailing** = context actions + global chips (sync, **token balance**, profile).
+
+**Depth states (same for Site Walk `#00E699` and Twin 360 `#3D8EFF`):**
+```
+PLATFORM HOME (/app)
+┌───────────────────────────────────────┐
+│ [Slate360 ▾]              [☁][◎][👤]  │  app switcher · sync · tokens · profile
+├───────────────────────────────────────┤  … launcher …
+│ [🏠 Home][📁 Projects][☁ SlateDrop][💬 Activity][👤] │  PLATFORM bottom nav
+└───────────────────────────────────────┘
+
+MODULE HOME (/site-walk, /digital-twin)   ← bottom nav SWAPS, accent strip appears
+┌───────────────────────────────────────┐
+│ [◀ Slate360]  Site Walk        [◎][👤]│  ◀ exits to platform · module brand + accent
+├───────────────────────────────────────┤  … module hub …
+│ ▔▔▔▔▔▔▔▔▔▔ accent strip ▔▔▔▔▔▔▔▔▔▔ │
+│ [Walks][Plans]  ( + Start )  [Reports][More] │  MODULE bottom nav
+└───────────────────────────────────────┘
+
+MODULE SUB-SCREEN (e.g. /site-walk/walks/123)  ← THE screens that are broken today
+┌───────────────────────────────────────┐
+│ [◀ Walks]   Walk · Level 2     [ ⋮ ]  │  Back to module home · title · actions
+├───────────────────────────────────────┤  … data …            (module brand tint retained)
+│ [Walks][Plans]  ( + Start )  [Reports][More] │  module nav PERSISTS (tab = active section)
+└───────────────────────────────────────┘
+
+CAPTURE / IMMERSIVE (camera, 3D viewer)   ← strips both bars
+┌───────────────────────────────────────┐
+│ (glass pill)  [✕ Exit]  [⚡Auto] [⚙]   │  Exit = CONFIRMED if unsaved
+│            [ CAMERA / VIEWER ]         │
+│   [📍Pin]      [⭕ Shutter]    [👻Ghost]│  task overlays only
+└───────────────────────────────────────┘
+```
+**Back-to-home contract:** Back = one level up the in-app stack; tapping the **module brand/title**
+= jump to that module's home; the **app switcher / "◀ Slate360"** = return to platform home; **Exit**
+(capture/immersive) = leave the immersive surface, confirmed when data is at risk. No screen is ever
+a dead end, and every screen shows which app it belongs to (accent + brand) at every depth.
+
+Desktop mirrors this: persistent left sidebar (shell identity) + top toolbar (breadcrumb + Back +
+actions + chips); the breadcrumb is the desktop "way home."
+
 ## 3. Navigation fixes (locked decisions + known bugs)
 1. **Module bottom-nav swap + accent strip** when path is under `/site-walk` or `/digital-twin`.
 2. **Fix the active-tab bug:** today `resolveMainMobileTabKey` returns `"home"` for `/site-walk/*`
