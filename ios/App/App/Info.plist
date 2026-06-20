@@ -47,5 +47,15 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Slate360 uses the camera to capture site photos, video, and 3D scans for your projects.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Slate360 records voice memos and video audio during site walks and captures.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Slate360 tags your captures with their location so photos and scans map to the right place on site.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Slate360 lets you add existing photos and videos to a project from your library.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Slate360 can save exported reports and captures back to your photo library.</string>
 </dict>
 </plist>
