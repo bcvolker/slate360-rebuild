@@ -22,18 +22,16 @@ workflows:
         - ios_signing # CERTIFICATE_PRIVATE_KEY
       vars:
         BUNDLE_ID: "ai.slate360.app"
-        XCODE_WORKSPACE: "ios/App/App.xcworkspace"
+        XCODE_PROJECT: "ios/App/App.xcodeproj"
         XCODE_SCHEME: "App"
       node: 20
       xcode: latest
-      cocoapods: default
     scripts:
       - name: Install JS dependencies
         script: npm ci
       - name: Capacitor sync (iOS)
+        # Capacitor 8 uses Swift Package Manager — no CocoaPods / pod install.
         script: npx cap sync ios
-      - name: Install CocoaPods
-        script: cd ios/App && pod install
       - name: Set up code signing
         script: |
           keychain initialize
@@ -49,7 +47,7 @@ workflows:
       - name: Build .ipa
         script: |
           xcode-project build-ipa \
-            --workspace "$XCODE_WORKSPACE" \
+            --project "$XCODE_PROJECT" \
             --scheme "$XCODE_SCHEME"
     artifacts:
       - build/ios/ipa/*.ipa

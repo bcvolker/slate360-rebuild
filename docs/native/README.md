@@ -37,6 +37,10 @@ npx cap sync
 # 4. Commit the generated ios/ and android/ folders.
 ```
 
+> Capacitor 8 uses **Swift Package Manager** for iOS — there is no `Podfile` or
+> `.xcworkspace`, and CI builds `ios/App/App.xcodeproj` directly (no
+> `pod install`).
+
 `capacitor.config.json` is already in the repo (appId `ai.slate360.app`, name
 `Slate360`, `server.url` → production). For plugin development against a local
 dev server, temporarily set `server.url` to your machine's LAN URL + run
