@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { ThermalStudioWorkView, type StudioCapture } from "@/components/ops/thermal/ThermalStudioWorkView";
 import type { ThermalProbeGrid } from "@/components/ops/thermal/ThermalProbeViewer";
 import { ThermalLibrary } from "@/components/ops/thermal/ThermalLibrary";
+import { ThermalMotionStudio } from "@/components/ops/thermal/ThermalMotionStudio";
 import { ThermalReportBuilder } from "@/components/ops/thermal/ThermalReportBuilder";
 import { ThermalDeliverables } from "@/components/ops/thermal/ThermalDeliverables";
 import {
@@ -19,10 +20,11 @@ const CAPTURES: StudioCapture[] = [
   { id: "c", filename: "HM20000222005231.jpeg", metadata: {}, qualityMetrics: { is_radiometric: true }, anomalies: [{ id: "z" }] },
 ];
 
-type Stage = "library" | "inspect" | "report" | "deliver";
+type Stage = "library" | "inspect" | "motion" | "report" | "deliver";
 const TABS: StudioTab<Stage>[] = [
   { id: "library", label: "Library" },
   { id: "inspect", label: "Inspect" },
+  { id: "motion", label: "Time-lapse / Video" },
   { id: "report", label: "Report Builder" },
   { id: "deliver", label: "Deliver" },
 ];
@@ -79,6 +81,9 @@ export default function PreviewThermalStudio() {
             ) : null}
             {stage === "inspect" ? (
               <ThermalStudioWorkView sessionId="preview" captures={CAPTURES} loadGrid={async () => g} />
+            ) : null}
+            {stage === "motion" ? (
+              <ThermalMotionStudio sessionId="preview" captures={CAPTURES} />
             ) : null}
             {stage === "report" ? (
               <ThermalReportBuilder

@@ -13,6 +13,7 @@ import {
 import { type StudioCapture } from "@/components/ops/thermal/ThermalStudioWorkView";
 import { ThermalLibrary } from "@/components/ops/thermal/ThermalLibrary";
 import { ThermalAnalyzeTune } from "@/components/ops/thermal/ThermalAnalyzeTune";
+import { ThermalMotionStudio } from "@/components/ops/thermal/ThermalMotionStudio";
 import { ThermalReportBuilder } from "@/components/ops/thermal/ThermalReportBuilder";
 import { ThermalDeliverables } from "@/components/ops/thermal/ThermalDeliverables";
 import {
@@ -22,13 +23,14 @@ import {
 } from "@/lib/thermal/curation-client";
 import type { ThermalBrandingConfig, ThermalProcessingJob } from "@/lib/thermal/types";
 
-type Stage = "library" | "inspect" | "report" | "deliver";
+type Stage = "library" | "inspect" | "motion" | "report" | "deliver";
 
 const STAGES: { id: Stage; label: string; step: number }[] = [
   { id: "library", label: "Library", step: 1 },
   { id: "inspect", label: "Inspect", step: 2 },
-  { id: "report", label: "Report Builder", step: 3 },
-  { id: "deliver", label: "Deliver", step: 4 },
+  { id: "motion", label: "Time-lapse / Video", step: 3 },
+  { id: "report", label: "Report Builder", step: 4 },
+  { id: "deliver", label: "Deliver", step: 5 },
 ];
 
 type Props = {
@@ -185,6 +187,10 @@ export function ThermalStudioShell({
           standards={standards}
           initialParams={initialParams}
         />
+      ) : null}
+
+      {stage === "motion" ? (
+        <ThermalMotionStudio sessionId={sessionId} captures={captures} />
       ) : null}
 
       {stage === "report" ? (
