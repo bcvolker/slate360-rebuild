@@ -2,6 +2,9 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { FolderOpen, Library, Loader2, Plus } from "lucide-react";
+import { useEditorStore } from "./editor-store";
+
+const CLIP_DND = "application/x-cs-clip";
 
 type BinTab = "project" | "library";
 
@@ -128,8 +131,25 @@ function ProjectTab() {
 }
 
 function AssetCard({ asset }: { asset: MediaAsset }) {
+  const addClip = useEditorStore((s) => s.addClip);
+  const ready = asset.status === "ready" && !!asset.proxyUrl;
+
+  const payload = () =>
+    JSON.stringify({
+      assetId: asset.id,
+      name: asset.filename ?? "clip",
+      src: asset.proxyUrl,
+      durationSec: asset.durationSec ?? 0,
+    });
+
   return (
-    <div className="overflow-hidden rounded-md border border-white/10 bg-white/[0.03]">
+    <div
+      draggable={ready}
+      onDragStart={(e) => ready && e.dataTransfer.setData(CLIP_DND, payload())}
+      onClick={() => ready && addClip({ assetId: asset.id, name: asset.filename ?? "clip", src: asset.proxyUrl!, durationSec: asset.durationSec ?? 0 })}
+      title={ready ? "Click or drag to add to timeline" : asset.status}
+      className={`overflow-hidden rounded-md border border-white/10 bg-white/[0.03] ${ready ? "cursor-grab active:cursor-grabbing hover:border-[#3D8EFF]/50" : ""}`}
+    >
       <div className="relative flex aspect-video items-center justify-center bg-black/40">
         {asset.thumbnailUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
