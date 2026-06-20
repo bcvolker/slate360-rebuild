@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   renderHeatmap,
   computeHistogram,
+  samplePalette,
   fmtTemp,
   newSpotId,
   type MarkerShape,
@@ -79,6 +80,7 @@ export function ThermalProbeViewer({
   const baseEmissivity = grid.emissivity ?? 0.95;
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
+  const loupeRef = useRef<HTMLCanvasElement>(null);
 
   const [emissivity, setEmissivity] = useState(initialTuning?.emissivity ?? baseEmissivity);
   const [reflectedC, setReflectedC] = useState(initialTuning?.reflected_c ?? 20);
@@ -281,6 +283,38 @@ export function ThermalProbeViewer({
     );
   }, [temps, width, height, loDisp, hiDisp, palette, isoOn, isoLoVal, isoHiVal]);
 
+  // Magnifier loupe: a zoomed window of pixels around the cursor for pixel-precise
+  // probing. Draws an LOUPE_SPAN×LOUPE_SPAN grid scaled up, with a centre cell.
+  const LOUPE_PX = 104;
+  const LOUPE_SPAN = 13;
+  useEffect(() => {
+    const c = loupeRef.current;
+    if (!c || !hover) return;
+    const ctx = c.getContext("2d");
+    if (!ctx) return;
+    const half = Math.floor(LOUPE_SPAN / 2);
+    const cell = LOUPE_PX / LOUPE_SPAN;
+    const cx = Math.round(hover.x);
+    const cy = Math.round(hover.y);
+    const span = hiDisp - loDisp || 1;
+    for (let j = 0; j < LOUPE_SPAN; j++) {
+      for (let i = 0; i < LOUPE_SPAN; i++) {
+        const px = cx - half + i;
+        const py = cy - half + j;
+        if (px >= 0 && px < width && py >= 0 && py < height) {
+          const [r, g, b] = samplePalette(palette, (temps[py * width + px] - loDisp) / span);
+          ctx.fillStyle = `rgb(${r},${g},${b})`;
+        } else {
+          ctx.fillStyle = "#000";
+        }
+        ctx.fillRect(Math.floor(i * cell), Math.floor(j * cell), Math.ceil(cell), Math.ceil(cell));
+      }
+    }
+    ctx.strokeStyle = "rgba(255,255,255,0.95)";
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(half * cell, half * cell, cell, cell);
+  }, [hover, temps, width, height, palette, loDisp, hiDisp]);
+
   const toImageCoords = useCallback(
     (clientX: number, clientY: number) => {
       const el = wrapRef.current;
@@ -408,6 +442,16 @@ export function ThermalProbeViewer({
               style={{ left: pct(hover.x, width), top: pct(hover.y, height) }}
             >
               {fmtTemp(tempAt(hover.x, hover.y), unit)}
+            </div>
+          ) : null}
+
+          {/* Pixel-level magnifier loupe — appears while hovering for precise probing */}
+          {hover ? (
+            <div className="pointer-events-none absolute right-2 top-2 z-30 rounded-lg border border-white/40 bg-black/70 p-1 text-center">
+              <canvas ref={loupeRef} width={LOUPE_PX} height={LOUPE_PX} className="block rounded" style={{ imageRendering: "pixelated" }} />
+              <p className="mt-0.5 text-[9px] font-semibold tabular-nums text-white">
+                {fmtTemp(tempAt(hover.x, hover.y), unit)} · x{Math.round(hover.x)} y{Math.round(hover.y)}
+              </p>
             </div>
           ) : null}
 

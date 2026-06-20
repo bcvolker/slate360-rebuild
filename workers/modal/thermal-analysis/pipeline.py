@@ -13,13 +13,33 @@ from typing import Any
 import numpy as np
 
 
-def _fetch_weather_str(lat: Any, lon: Any, captured_at: Any) -> str | None:
-    """Historical weather at the capture's location + time via Open-Meteo (no API
-    key). Returns a short human string for the report, or None on any failure."""
+# Hourly variables fetched for each capture — kept broad so the stored record
+# supports later thermal modeling (solar loading, cloud cover, soil temp, etc.).
+_WEATHER_VARS = [
+    "temperature_2m",
+    "relative_humidity_2m",
+    "dew_point_2m",
+    "apparent_temperature",
+    "wind_speed_10m",
+    "wind_direction_10m",
+    "cloud_cover",
+    "shortwave_radiation",
+    "direct_radiation",
+    "diffuse_radiation",
+    "soil_temperature_0_to_7cm",
+    "weather_code",
+    "precipitation",
+    "surface_pressure",
+]
+
+
+def _fetch_weather_record(lat: Any, lon: Any, captured_at: Any) -> dict[str, Any] | None:
+    """Full historical weather record at the capture's location + time via Open-Meteo
+    (no API key). Returns a structured dict (stored per capture for later thermal
+    modeling), or None on any failure."""
     try:
         if lat is None or lon is None or not captured_at:
             return None
-        # EXIF datetime: "YYYY:MM:DD HH:MM:SS" → date + hour.
         m = re.match(r"(\d{4})[:-](\d{2})[:-](\d{2})[ T](\d{2})", str(captured_at))
         if not m:
             return None
@@ -30,7 +50,7 @@ def _fetch_weather_str(lat: Any, lon: Any, captured_at: Any) -> str | None:
             "longitude": float(lon),
             "start_date": date,
             "end_date": date,
-            "hourly": "temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code",
+            "hourly": ",".join(_WEATHER_VARS),
             "temperature_unit": "fahrenheit",
             "wind_speed_unit": "mph",
         })
@@ -38,22 +58,47 @@ def _fetch_weather_str(lat: Any, lon: Any, captured_at: Any) -> str | None:
         with urllib.request.urlopen(url, timeout=12) as resp:  # noqa: S310
             data = json.loads(resp.read())
         hourly = data.get("hourly") or {}
-        temps = hourly.get("temperature_2m") or []
-        if hour >= len(temps):
+        times = hourly.get("time") or []
+        if hour >= len(times):
             return None
-        t = temps[hour]
-        rh = (hourly.get("relative_humidity_2m") or [None] * (hour + 1))[hour]
-        wind = (hourly.get("wind_speed_10m") or [None] * (hour + 1))[hour]
-        parts = []
-        if t is not None:
-            parts.append(f"{round(t)}°F")
-        if rh is not None:
-            parts.append(f"{round(rh)}% RH")
-        if wind is not None:
-            parts.append(f"wind {round(wind)} mph")
-        return ", ".join(parts) or None
+        record: dict[str, Any] = {
+            "source": "open-meteo",
+            "units": data.get("hourly_units") or {},
+            "time": times[hour],
+            "latitude": data.get("latitude"),
+            "longitude": data.get("longitude"),
+        }
+        for var in _WEATHER_VARS:
+            series = hourly.get(var)
+            if isinstance(series, list) and hour < len(series):
+                record[var] = series[hour]
+        return record
     except Exception:
         return None
+
+
+def _weather_summary(record: dict[str, Any] | None) -> str | None:
+    """Short human string for the report Capture block, from a stored record."""
+    if not isinstance(record, dict):
+        return None
+    parts: list[str] = []
+    t = record.get("temperature_2m")
+    rh = record.get("relative_humidity_2m")
+    wind = record.get("wind_speed_10m")
+    clouds = record.get("cloud_cover")
+    if t is not None:
+        parts.append(f"{round(t)}°F")
+    if rh is not None:
+        parts.append(f"{round(rh)}% RH")
+    if wind is not None:
+        parts.append(f"wind {round(wind)} mph")
+    if clouds is not None:
+        parts.append(f"{round(clouds)}% cloud")
+    return ", ".join(parts) or None
+
+
+def _fetch_weather_str(lat: Any, lon: Any, captured_at: Any) -> str | None:
+    return _weather_summary(_fetch_weather_record(lat, lon, captured_at))
 
 from analyze import analyze_temperature_array, segment_materials_sam_stub
 from extract import (
@@ -111,6 +156,13 @@ def process_capture_extract(
     local_npz = work_dir / f"{capture_id}.npz"
     local_preview = work_dir / f"{capture_id}.jpg"
     local_quality = work_dir / f"{capture_id}.json"
+
+    # Historical weather at capture location+time — stored per capture for the
+    # report and for future thermal modeling (solar loading, etc.).
+    gps = capture.get("gps") or {}
+    weather = _fetch_weather_record(gps.get("lat"), gps.get("lon", gps.get("lng")), quality.get("captured_at"))
+    if weather:
+        quality["weather"] = weather
 
     np.savez_compressed(local_npz, temperatures=temp_array)
     false_color_preview(temp_array, local_preview)
@@ -237,7 +289,8 @@ def build_report_bundle(
         spots_measured, deltas_measured = _measure_spots(s3, bucket, capture, work_dir)
         gps = capture.get("gps") or {}
         q = capture.get("qualityMetrics") or {}
-        weather_str = _fetch_weather_str(
+        # Prefer the weather record stored at extract time; fetch live as a fallback.
+        weather_str = _weather_summary(q.get("weather")) or _fetch_weather_str(
             gps.get("lat"), gps.get("lon", gps.get("lng")), q.get("captured_at")
         )
         report_captures.append(
