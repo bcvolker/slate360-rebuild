@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import {
   Panel,
   PanelGroup,
@@ -13,6 +13,7 @@ import { PreviewPanel } from "./PreviewPanel";
 import { InspectorPanel } from "./InspectorPanel";
 import { TimelinePanel } from "./TimelinePanel";
 import { useEditorStore } from "./editor-store";
+import { useMediaUpload } from "./use-media-upload";
 
 /**
  * Content Studio workspace shell — Preview is the large focal point; every panel
@@ -28,6 +29,23 @@ export function ContentStudioWorkspace() {
   const showMediaBin = useEditorStore((s) => s.panelVisibility.mediaBin);
   const showInspector = useEditorStore((s) => s.panelVisibility.inspector);
   const togglePanel = useEditorStore((s) => s.togglePanel);
+  const { uploadFiles } = useMediaUpload();
+
+  // Catch OS-file drops ANYWHERE in the editor: prevent the browser from opening
+  // the file, and upload it. (Internal clip drags carry no "Files" — left alone.)
+  useEffect(() => {
+    const hasFiles = (e: DragEvent) => e.dataTransfer?.types?.includes("Files");
+    const onDragOver = (e: DragEvent) => { if (hasFiles(e)) e.preventDefault(); };
+    const onDrop = (e: DragEvent) => {
+      if (e.dataTransfer?.files?.length) { e.preventDefault(); void uploadFiles(e.dataTransfer.files); }
+    };
+    window.addEventListener("dragover", onDragOver);
+    window.addEventListener("drop", onDrop);
+    return () => {
+      window.removeEventListener("dragover", onDragOver);
+      window.removeEventListener("drop", onDrop);
+    };
+  }, [uploadFiles]);
 
   function toggleMedia() {
     const p = mediaRef.current;
