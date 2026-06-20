@@ -240,14 +240,24 @@ export function ThermalProbeViewer({
   }
   function resetZoom() { setZoom(1); setPan({ x: 0, y: 0 }); }
 
-  // Measure the center cell and fit the image (aspect-correct) into it.
+  // Measure the center cell and fit the image (aspect-correct) into it. When the
+  // viewer mounts via a tab switch the cell can report 0 height for a frame or two
+  // (layout not flushed yet); retry on rAF until it has a real size, otherwise the
+  // image collapses to 0×0 and hover/loupe appear "broken".
   useEffect(() => {
     const el = centerRef.current;
     if (!el) return;
+    let raf = 0;
+    let tries = 0;
     const compute = () => {
       const cw = el.clientWidth;
       const ch = el.clientHeight;
-      if (cw <= 0 || ch <= 0) return;
+      if (cw <= 0 || ch <= 0) {
+        // Layout not flushed yet on mount/tab-switch — retry briefly (not forever,
+        // so a genuinely collapsed cell can't spin rAF).
+        if (tries++ < 40) raf = requestAnimationFrame(compute);
+        return;
+      }
       const aspect = width / height;
       const w = cw / ch > aspect ? ch * aspect : cw;
       const h = cw / ch > aspect ? ch : cw / aspect;
@@ -256,7 +266,10 @@ export function ThermalProbeViewer({
     compute();
     const ro = new ResizeObserver(compute);
     ro.observe(el);
-    return () => ro.disconnect();
+    return () => {
+      cancelAnimationFrame(raf);
+      ro.disconnect();
+    };
   }, [width, height, showRightRail]);
 
   const loDisp = displayMin ?? minC;
