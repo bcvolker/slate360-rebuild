@@ -100,6 +100,15 @@ export function DesignStudioWorkspace({ initialSessions }: { initialSessions: De
             className="hidden"
             onChange={(e) => e.target.files?.[0] && loadLocalModel(e.target.files[0])}
           />
+          {localModel && (
+            <button
+              onClick={() => setLocalModel(null)}
+              className="rounded bg-white/10 px-2 py-1 text-[11px] text-slate-300 hover:bg-white/15"
+              title="Clear the loaded model"
+            >
+              Clear
+            </button>
+          )}
         </div>
         <nav className="flex items-center gap-1">
           {TABS.map((tn) => (
@@ -143,6 +152,26 @@ export function DesignStudioWorkspace({ initialSessions }: { initialSessions: De
               </button>
             </div>
             {importOpen && <TwinImportPanel onImported={onImported} onClose={() => setImportOpen(false)} />}
+
+            {/* Persistent local-model drop box */}
+            <div
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => {
+                e.preventDefault();
+                const f = Array.from(e.dataTransfer.files).find((f) => /\.(glb|gltf)$/i.test(f.name));
+                if (f) loadLocalModel(f);
+              }}
+              onClick={() => modelInput.current?.click()}
+              className="flex cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-white/15 px-3 py-5 text-center text-[11px] text-slate-500 transition hover:border-[#3D8EFF]/60 hover:text-slate-300"
+            >
+              <Upload className="size-4" />
+              <span>
+                Drop a <span className="text-slate-300">.glb / .gltf</span>
+                <br />
+                or click to load
+              </span>
+            </div>
+
             {sessions.length === 0 ? (
               <p className="text-xs text-slate-500">No sessions yet. Import a Digital Twin to begin.</p>
             ) : (
