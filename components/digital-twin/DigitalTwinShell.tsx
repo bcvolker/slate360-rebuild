@@ -27,7 +27,7 @@ export function DigitalTwinShell({
     return (
       <div
         data-mobile-route={DIGITAL_TWIN_MOBILE_ROUTE}
-        className="fixed inset-0 z-50 flex h-[100dvh] min-h-0 w-full flex-col overflow-hidden bg-[#0B0F15]"
+        className="fixed inset-0 z-50 flex h-[100dvh] min-h-0 w-full flex-col overflow-hidden bg-[var(--graphite-canvas)]"
       >
         {children}
       </div>

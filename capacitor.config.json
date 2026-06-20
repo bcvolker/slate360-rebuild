@@ -1,0 +1,25 @@
+{
+  "appId": "ai.slate360.app",
+  "appName": "Slate360",
+  "webDir": "public",
+  "backgroundColor": "#0B0F15",
+  "server": {
+    "url": "https://www.slate360.ai",
+    "cleartext": false,
+    "androidScheme": "https"
+  },
+  "ios": {
+    "contentInset": "always",
+    "backgroundColor": "#0B0F15"
+  },
+  "android": {
+    "backgroundColor": "#0B0F15"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "backgroundColor": "#0B0F15",
+      "launchAutoHide": true,
+      "showSpinner": false
+    }
+  }
+}
