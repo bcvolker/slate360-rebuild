@@ -16,6 +16,7 @@ import { ThermalProbeToolbar } from "@/components/ops/thermal/ThermalProbeToolba
 import { ThermalAnomalyOverlay } from "@/components/ops/thermal/ThermalAnomalyOverlay";
 import { ThermalFindingsPanel } from "@/components/ops/thermal/ThermalFindingsPanel";
 import { ThermalSpotsPanel } from "@/components/ops/thermal/ThermalSpotsPanel";
+import { CollapsibleSection } from "@/components/ops/thermal/CollapsibleSection";
 import { ThermalImageTuning } from "@/components/ops/thermal/ThermalImageTuning";
 import { tuneTemps } from "@/lib/thermal/radiometric";
 import type { ThermalAnomaly } from "@/lib/thermal/anomaly-describe";
@@ -178,7 +179,6 @@ export function ThermalProbeViewer({
   // Zoom/pan of the image work area, and collapsible side rails.
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
-  const [showLeftRail, setShowLeftRail] = useState(true);
   const [showRightRail, setShowRightRail] = useState(true);
   const panningRef = useRef<{ x: number; y: number } | null>(null);
   const [spots, setSpots] = useState<ProbeSpot[]>(initialSpots ?? []);
@@ -253,7 +253,7 @@ export function ThermalProbeViewer({
     const ro = new ResizeObserver(compute);
     ro.observe(el);
     return () => ro.disconnect();
-  }, [width, height, showLeftRail, showRightRail]);
+  }, [width, height, showRightRail]);
 
   const loDisp = displayMin ?? minC;
   const hiDisp = displayMax ?? maxC;
@@ -521,8 +521,6 @@ export function ThermalProbeViewer({
         setShowFindings={setShowFindings}
         showLoupe={showLoupe}
         setShowLoupe={setShowLoupe}
-        showLeftRail={showLeftRail}
-        setShowLeftRail={setShowLeftRail}
         showRightRail={showRightRail}
         setShowRightRail={setShowRightRail}
         importedCount={importedCount}
@@ -533,12 +531,9 @@ export function ThermalProbeViewer({
       </div>
 
       {/* Flex body (NOT grid — a grid's implicit row is auto-sized and collapses the
-          viewer to content height). Center is flex-1 min-w-0 and dominates; rails are
-          fixed-width + collapsible. */}
+          viewer to content height). Center is flex-1 min-w-0 and dominates; the right
+          rail holds collapsible sections so everything fits without page scroll. */}
       <div className="flex min-h-0 flex-1 gap-3">
-        {/* Left rail: tuning / palette params / histogram / isotherm (collapsible) */}
-        {showLeftRail ? <div className="w-44 shrink-0 min-h-0 overflow-y-auto pr-1">{toolsRail}</div> : null}
-
         {/* Center: the thermal image as a large, aspect-correct work area (zoom + pan).
             Size is measured (ResizeObserver) so the image always fills the cell. */}
         <div ref={centerRef} className="relative flex min-h-0 min-w-0 flex-1 items-center justify-center overflow-hidden">
@@ -657,24 +652,30 @@ export function ThermalProbeViewer({
         </div>{/* end image wrap */}
         </div>{/* end center */}
 
-        {/* Right rail: cloud anomalies + Sp/Dt measurements + per-image findings (collapsible) */}
+        {/* Right rail: collapsible sections (Tuning / Measurements / Findings / Image
+            data) so everything fits with no page scroll; the rail scrolls internally. */}
         {showRightRail ? (
-        <div className="w-60 shrink-0 min-h-0 space-y-3 overflow-y-auto pr-1 text-sm">
-          <ThermalFindingsPanel
-            anomalies={anomalies}
-            standards={standards}
-            unit={unit}
-            selectedId={selectedAnomalyId}
-            onSelect={setSelectedAnomalyId}
-          />
-          <ThermalSpotsPanel
-            spots={spots}
-            refId={refId}
-            setRefId={setRefId}
-            unit={unit}
-            valueOf={(s) => spotStats(s, temps, width, height).value}
-          />
-          {extraPanels}
+        <div className="w-72 shrink-0 min-h-0 space-y-2 overflow-y-auto pr-1 text-sm">
+          <CollapsibleSection title="Tuning &amp; palette">{toolsRail}</CollapsibleSection>
+          <CollapsibleSection title="Measurements" badge={spots.length}>
+            <ThermalSpotsPanel
+              spots={spots}
+              refId={refId}
+              setRefId={setRefId}
+              unit={unit}
+              valueOf={(s) => spotStats(s, temps, width, height).value}
+            />
+          </CollapsibleSection>
+          <CollapsibleSection title="Findings" badge={anomalies.length}>
+            <ThermalFindingsPanel
+              anomalies={anomalies}
+              standards={standards}
+              unit={unit}
+              selectedId={selectedAnomalyId}
+              onSelect={setSelectedAnomalyId}
+            />
+          </CollapsibleSection>
+          {extraPanels ? <CollapsibleSection title="Image data" defaultOpen={false}>{extraPanels}</CollapsibleSection> : null}
         </div>
         ) : null}
       </div>

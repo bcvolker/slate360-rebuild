@@ -284,9 +284,81 @@ export function ThermalStudioWorkView({
   ) : null;
 
   return (
-    <div className="h-full min-h-0">
-      {/* Single workspace: tools | large image | data, with a filmstrip below */}
-      <section className="flex h-full min-h-0 min-w-0 flex-col gap-3">
+    // Design-Studio-consistent workspace: vertical filmstrip on the LEFT, the image
+    // as the dominant center, collapsible sections on the RIGHT (inside the viewer).
+    <div className="flex h-full min-h-0 gap-3">
+      {/* LEFT: vertical filmstrip */}
+      <aside className="flex w-28 shrink-0 flex-col gap-2">
+        <div className="flex shrink-0 items-center justify-between">
+          <span className="font-mono text-[9px] font-semibold uppercase tracking-[0.14em] text-[var(--graphite-muted)]">
+            {visibleCaptures.length} img
+          </span>
+          <button
+            type="button"
+            onClick={() => setFlaggedOnly((v) => !v)}
+            disabled={flaggedCount === 0}
+            className={`rounded border px-1 py-0.5 text-[9px] font-semibold transition-colors disabled:opacity-40 ${
+              flaggedOnly
+                ? "border-[#fb923c]/50 bg-[#fb923c]/15 text-[#fdba74]"
+                : "border-[var(--mobile-app-card-border)] text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]"
+            }`}
+            title="Show only captures with detected anomalies"
+          >
+            ⚑{flaggedCount}
+          </button>
+        </div>
+        <div className="min-h-0 flex-1 space-y-2 overflow-y-auto rounded-2xl border border-[var(--mobile-app-card-border)] shadow-[var(--mobile-app-card-shadow)] p-2">
+          {visibleCaptures.map((c) => {
+            const anomalyCount = c.anomalies?.length ?? 0;
+            return (
+              <button
+                key={c.id}
+                type="button"
+                onClick={() => selectCapture(c.id)}
+                className={`relative block aspect-[4/3] w-full overflow-hidden rounded-lg border bg-[#111827] ${
+                  selected?.id === c.id
+                    ? "border-[color-mix(in_srgb,var(--graphite-primary)_60%,transparent)] ring-2 ring-[color-mix(in_srgb,var(--graphite-primary)_40%,transparent)]"
+                    : "border-[var(--mobile-app-card-border)]"
+                }`}
+                title={c.filename}
+              >
+                {c.previewUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={c.previewUrl} alt={c.filename} className="h-full w-full object-cover" />
+                ) : (
+                  <span className="flex h-full items-center justify-center px-1 text-center text-[8px] text-[var(--graphite-muted)]">
+                    {c.filename}
+                  </span>
+                )}
+                {anomalyCount > 0 ? (
+                  <span className="absolute right-0.5 top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#fb923c] px-1 text-[9px] font-bold text-black">
+                    {anomalyCount}
+                  </span>
+                ) : null}
+              </button>
+            );
+          })}
+        </div>
+      </aside>
+
+      {/* RIGHT: viewer area (image + collapsible sections) */}
+      <section className="flex min-h-0 min-w-0 flex-1 flex-col gap-2">
+        {pairedVisual ? (
+          <div className="flex shrink-0 justify-end">
+            <button
+              type="button"
+              onClick={() => setCompareVisual((v) => !v)}
+              className={`rounded border px-1.5 py-0.5 text-[10px] font-semibold transition-colors ${
+                compareVisual
+                  ? "border-[color-mix(in_srgb,var(--graphite-primary)_50%,transparent)] bg-[color-mix(in_srgb,var(--graphite-primary)_16%,transparent)] text-[var(--graphite-text-header)]"
+                  : "border-[var(--mobile-app-card-border)] text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]"
+              }`}
+              title="Show the paired visual photo side by side (shortcut: c)"
+            >
+              Compare visual
+            </button>
+          </div>
+        ) : null}
         <div className="flex min-h-0 flex-1 gap-3">
         <div className="flex min-h-0 min-w-0 flex-1 flex-col rounded-2xl border border-[var(--mobile-app-card-border)] shadow-[var(--mobile-app-card-shadow)] p-3">
           {gridState === "ready" && grid ? (
@@ -345,74 +417,6 @@ export function ThermalStudioWorkView({
             </div>
           </div>
         ) : null}
-        </div>
-
-        {/* Filmstrip header: navigation + flagged filter */}
-        <div className="flex shrink-0 items-center justify-between gap-2">
-          <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--graphite-muted)]">
-            {visibleCaptures.length} image{visibleCaptures.length === 1 ? "" : "s"}
-          </p>
-          {pairedVisual ? (
-            <button
-              type="button"
-              onClick={() => setCompareVisual((v) => !v)}
-              className={`rounded border px-1.5 py-0.5 text-[10px] font-semibold transition-colors ${
-                compareVisual
-                  ? "border-[color-mix(in_srgb,var(--graphite-primary)_50%,transparent)] bg-[color-mix(in_srgb,var(--graphite-primary)_16%,transparent)] text-[var(--graphite-text-header)]"
-                  : "border-[var(--mobile-app-card-border)] text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]"
-              }`}
-              title="Show the paired visual photo side by side (shortcut: c)"
-            >
-              Compare visual
-            </button>
-          ) : null}
-          <button
-            type="button"
-            onClick={() => setFlaggedOnly((v) => !v)}
-            disabled={flaggedCount === 0}
-            className={`rounded border px-1.5 py-0.5 text-[10px] font-semibold transition-colors disabled:opacity-40 ${
-              flaggedOnly
-                ? "border-[#fb923c]/50 bg-[#fb923c]/15 text-[#fdba74]"
-                : "border-[var(--mobile-app-card-border)] text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]"
-            }`}
-            title="Show only captures with detected anomalies"
-          >
-            Flagged ({flaggedCount})
-          </button>
-        </div>
-
-        {/* Horizontal filmstrip */}
-        <div className="flex shrink-0 snap-x gap-2 overflow-x-auto rounded-2xl border border-[var(--mobile-app-card-border)] shadow-[var(--mobile-app-card-shadow)] p-2">
-          {visibleCaptures.map((c) => {
-            const anomalyCount = c.anomalies?.length ?? 0;
-            return (
-              <button
-                key={c.id}
-                type="button"
-                onClick={() => selectCapture(c.id)}
-                className={`relative h-24 w-36 shrink-0 snap-start overflow-hidden rounded-lg border bg-[#111827] ${
-                  selected?.id === c.id
-                    ? "border-[color-mix(in_srgb,var(--graphite-primary)_50%,transparent)]"
-                    : "border-[var(--mobile-app-card-border)]"
-                }`}
-                title={c.filename}
-              >
-                {c.previewUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={c.previewUrl} alt={c.filename} className="h-full w-full object-cover" />
-                ) : (
-                  <span className="flex h-full items-center justify-center px-1 text-center text-[8px] text-[var(--graphite-muted)]">
-                    {c.filename}
-                  </span>
-                )}
-                {anomalyCount > 0 ? (
-                  <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#fb923c] px-1 text-[9px] font-bold text-black">
-                    {anomalyCount}
-                  </span>
-                ) : null}
-              </button>
-            );
-          })}
         </div>
       </section>
     </div>
