@@ -100,15 +100,22 @@ export function ContentStudioWorkspace() {
   );
 }
 
-/** Resize handle — thin, turns blue on hover/drag. */
+/**
+ * Resize handle — a grabbable splitter. Wide hit area + resize cursor + a visible
+ * center grip that brightens blue on hover/drag, so it's obvious you can drag it.
+ */
 function Handle({ vertical = false }: { vertical?: boolean }) {
   return (
     <PanelResizeHandle
-      className={
-        vertical
-          ? "w-1 bg-white/5 transition-colors hover:bg-[#3D8EFF]/60 data-[resize-handle-active]:bg-[#3D8EFF]"
-          : "h-1 bg-white/5 transition-colors hover:bg-[#3D8EFF]/60 data-[resize-handle-active]:bg-[#3D8EFF]"
-      }
-    />
+      className={`group relative flex items-center justify-center bg-white/[0.04] transition-colors hover:bg-[#3D8EFF]/15 ${
+        vertical ? "w-1.5 cursor-col-resize" : "h-1.5 cursor-row-resize"
+      }`}
+    >
+      <div
+        className={`rounded-sm bg-white/25 transition-colors group-hover:bg-[#3D8EFF] group-data-[resize-handle-state=drag]:bg-[#3D8EFF] ${
+          vertical ? "h-8 w-[3px]" : "h-[3px] w-8"
+        }`}
+      />
+    </PanelResizeHandle>
   );
 }
