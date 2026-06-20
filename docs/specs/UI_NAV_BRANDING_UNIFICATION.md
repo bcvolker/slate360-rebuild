@@ -79,10 +79,15 @@ list-vs-table, sheet-vs-popover). No app ships a one-off header/nav/card.
 | **Coordination** | Activity tab | inbox/calendar/contacts | unified bell |
 | **Thermal (CEO)** | desktop sidebar only, gated | — | stays silent/CEO-only |
 
-## 6. Rollout priority (from AGENTS.md) vs unified scope
-The system here is defined for **all** apps, but **style rollout order** stays: authenticated mobile
-**Site Walk first → SlateDrop → dashboard/auth/emails/marketing later**. Build the shared kit once;
-apply it Site-Walk-first; other apps adopt as their slices ship.
+## 6. Rollout scope (CEO decision — supersedes the "Site Walk only" rule)
+**CEO decision (2026-06): Site Walk AND Twin 360 both ship visibly in the first release.** This
+**overrides** the "Site Walk is the only visible app for the first store release" rule in
+`AGENTS.md` and `docs/design/GRAPHITE_GLASS.md §4` — **those docs must be updated when we build.**
+- Both apps are first-class in the unified nav/branding from day one (platform nav + module swap for
+  each; `#00E699` Site Walk, `#3D8EFF` Twin).
+- Style/build effort can still **sequence** Site Walk slightly ahead for depth, but Twin is **not**
+  release-gated or hidden — no "coming soon" placeholder.
+- SlateDrop, Reports, Coordination follow; dashboard/auth/emails/marketing are later phases.
 
 ## 7. Enforcement & guardrails
 - `npm run guard:design` (amber/glow/raw-hex), `guard:architecture`, `typecheck:changed`, `build`.
@@ -90,9 +95,8 @@ apply it Site-Walk-first; other apps adopt as their slices ship.
 - "Compose-don't-fork" lint: home surfaces must import the canonical token sheet/components.
 
 ## 8. Open items / reconciliations
-- **Twin 360 visibility vs "Site Walk only at first release":** the monetization decision makes Twin
-  a purchasable, entitlement-gated product with pricing, but the release-scope rule says Site Walk
-  ships first. Reconcile: Site Walk ships first; Twin's nav/surfaces are built but **entitlement-/
-  release-gated** until its launch (no "coming soon" placeholder). **Confirm with CEO.**
+- **Twin 360 visibility — RESOLVED (CEO):** ship Site Walk AND Twin 360 both visibly at first
+  release (see §6). Action item at build time: update `AGENTS.md` + `GRAPHITE_GLASS.md §4` to drop
+  the "Site Walk only" rule.
 - **Orbitron / wordmark usage**: confirm display-font usage scope (wordmark/headers only).
 - Amber→Graphite rebrand exact file list (audit output) before the restyle pass.
