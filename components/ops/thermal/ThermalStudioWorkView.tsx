@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import Link from "next/link";
 import {
   ThermalProbeViewer,
   type ThermalProbeGrid,
@@ -10,6 +9,7 @@ import {
 } from "@/components/ops/thermal/ThermalProbeViewer";
 import { CollapsibleSection } from "@/components/ops/thermal/CollapsibleSection";
 import { ThermalTuningPanel } from "@/components/ops/thermal/ThermalTuningPanel";
+import { ThermalFilesRail } from "@/components/ops/thermal/ThermalFilesRail";
 import { ThermalSlateDropPicker } from "@/components/ops/thermal/ThermalSlateDropPicker";
 import type { ThermalAnomaly } from "@/lib/thermal/anomaly-describe";
 
@@ -323,13 +323,13 @@ export function ThermalStudioWorkView({
               </button>
             </div>
             {sessionId ? (
-              <button type="button" onClick={() => setPickerOpen(true)} className={railBtn}>
-                ＋ From SlateDrop
+              <ThermalFilesRail sessionId={sessionId} />
+            ) : null}
+            {sessionId ? (
+              <button type="button" onClick={() => setPickerOpen(true)} className={`${railBtn} mt-1`}>
+                ⤢ Browse all folders (full screen)
               </button>
             ) : null}
-            <Link href="/thermal-studio/upload" className={railBtn}>
-              ⤓ Upload files
-            </Link>
             {sessionId ? (
               <CollapsibleSection title="Detection settings" defaultOpen={false}>
                 <ThermalTuningPanel sessionId={sessionId} initialParams={initialParams} />
