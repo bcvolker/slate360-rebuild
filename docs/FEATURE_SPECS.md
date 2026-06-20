@@ -199,6 +199,19 @@ between media within one deliverable, and the **control language differs per typ
 
 ---
 
+## 8b. Resolved decisions (CEO, 2026-06)
+
+1. **File manager** → **Keep & polish the custom SlateDrop.** Add: copy, a per-folder/per-person
+   permission-assignment UI, upload notifications, and mobile polish. Do NOT swap in a library.
+2. **Inbox scope** → **Link-reply threads first.** Unify the inbox around notifications +
+   two-way stakeholder Q&A/RFI threads (owner can reply, external party emailed). **Defer**
+   internal user-to-user DMs (no data model yet; not the urgent need).
+3. **Viewers** → **Build one universal multi-media player** (consistent control grammar across
+   twins/360/video/photos/slideshows), and fix twin **centering** as part of that work.
+4. **Build status** → **Planning only.** No app code until a build phase is greenlit.
+
+---
+
 ## 9. Suggested ordering (when un-held)
 
 0. **Quick wins**: create `/app/slatedrop/page.tsx` (unbreak Files); twin **centering fix**;
