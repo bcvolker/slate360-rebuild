@@ -329,6 +329,83 @@ stays deferred pending commercial-license review. Everything else is decided.
 
 ---
 
+## C. Effects / Transitions / Captions / Assets / Controls (LOCKED — cross-AI convergent)
+
+Typed modules frozen in `lib/content-studio/spec-modules.ts` (`SlateTransition`,
+`SlateClipEffect`, `SlateSpeedRamp`, `SlateLogoLayer`, `SlateCaptionTrack`+`Style`,
+`SlateReframe`/aspect presets, `LibraryAsset`). Native-FFmpeg-first, importable-Library
+second, GPU/GLSL/AI later.
+
+**Transitions:** FFmpeg **`xfade`** (built-in, ~50–57 named: fade/dissolve/wipe*/slide*/
+smooth*/cover*/reveal*/circlecrop/radial/pixelize/zoomin/…) v1 + `acrossfade` audio.
+**gl-transitions** (MIT, ~121 GLSL) deferred to a custom EGL FFmpeg Modal image (`cut-fx`
+or `ffmpeg-gl-transition`). UI groups names into Clean/Wipe/Slide/Modern/Reveal.
+
+**Effects (native FFmpeg, each = a LevelDisclosureRow, strength→param):** grain
+(`noise` or overlay plate), `vignette`, glow/bloom (`split→gblur→blend=screen`), halation
+(threshold→blur→tint→screen), chromatic (`rgbashift`), atmosphere (curves lift + haze
+plate), sharpen (`unsharp`/`cas`), denoise (`hqdn3d`/`nlmeans`), color (`eq`/`curves`/
+`lut3d`). Stackable + reorderable (order = filter order). Grain/leak/atmosphere plates
+come from the Library.
+
+**Speed/slow-mo:** `setpts`+`atempo` constant; **segmented `setpts`** for ramps;
+`minterpolate` CPU fallback; **RIFE** (`rife-ncnn-vulkan`, MIT) as a GPU **Enhance job**,
+not on the timeline.
+
+**Titles + captions:** **libass** (ISC) for ALL text (reject `drawtext` as title engine).
+Generate ASS via **pysubs2** (MIT) from brand templates + Whisper. Captions:
+**faster-whisper** (MIT) → editable timed track → burn-in (ASS BorderStyle=3/4 box) +
+sidecar VTT/SRT. **Accessible caption controls**: text color, background color + opacity,
+outline, font/size, position, safe margin (social default = white on 75% black box,
+bottom safe, ≤2 lines).
+
+**Logos:** PNG/SVG overlay; opacity via `colorchannelmixer=aa`; scale/position/fade/
+shadow/blend; opacity keyframes. Default logo bug = Export/Brand Kit; custom animated logo
+= overlay lane.
+
+**Aspect/export presets:** 16:9 master, 9:16 vertical, 1:1 square, 4:5 portrait (+720p
+review). Reframe via existing `viewingRegion` (fill/fit/manual/smart-center) — reuses the
+360 crop math. One timeline → many ratio exports.
+
+**Importable Library assets (import→validate→thumbnail→`content_library_assets`→drag-use):**
+LUTs `.cube` (then `.3dl`), transitions (xfade-name first / `.glsl` later), grain &
+atmosphere & light-leak plates (screen-blend MP4 first / ProRes-alpha MOV), music/SFX
+`.wav`/`.mp3`/`.aac`, fonts `.ttf`/`.otf` (Google Fonts OFL baked), logos PNG/SVG, title
+templates (JSON+ASS), caption-style presets. **Capture license + attribution metadata per
+asset; ship NO bundled third-party media initially** (users import their own). Per-asset
+size caps + format validation on upload.
+
+**Control surface (discoverability — learnable <5 min):**
+- **Clip right-click context menu** (the biggest win — few click targets today): Split ·
+  Speed/ramp · Add transition ▸ · Add effect ▸ · Apply Look ▸ · Detach audio · Replace
+  media · Add title/logo/caption · Save to Library · Delete.
+- **Inspector tabs:** Clip · Color · Effects (stack + reorder) · Titles · Captions · Logo ·
+  Export — all level-disclosure rows.
+- **Transitions** = drag from Library onto a clip boundary (or context menu); a boundary
+  node with a draggable duration handle; Inspector picks type/duration.
+- **Speed ramp** = Constant/Ramp toggle → small curve editor (preset easings, not full
+  bezier v1).
+- **Keyframes** = a diamond toggle on any animatable param (opacity, position, scale, FOV,
+  gain, effect strength) → keyframe lane; linear/smoothstep easing.
+- **Toolbar:** Add Text/Title/Logo/Caption, Snap, **Aspect switcher**, Export.
+- Rule the whole UI follows: *drag from Media Bin, select to inspect, right-click for
+  verbs, toggle→slider for strength, diamond for keyframes.*
+
+**OSS stack (all permissive, server-side):** FFmpeg+libass (LGPL/ISC), pysubs2 (MIT),
+faster-whisper (MIT), rife-ncnn-vulkan (MIT), gl-transitions (MIT, later), scipy/numpy
+(BSD), Noto/Inter (OFL). Avoid: Editly/ffmpeg-concat (Node), Gyroflow/frei0r (GPL — study
+only), browser/Chromium caption renderers, `drawtext` as title engine.
+
+### C.1 New slice — 14B (lands before AI Enhance / 360 / Multicam)
+**Effects + Transitions + Captions + Logos + Export presets** — makes the editor feel real:
+xfade transitions + boundary UI, Inspector effect stack (denoise/sharpen/color/LUT/grain/
+vignette), `.cube` LUT import, logo overlay (opacity/scale/position/fade), accessible
+captions (Whisper→pysubs2→libass, text/bg color+opacity), export presets 16:9/9:16/1:1/4:5
+with reframe + burn-in/sidecar. P1 follow-ons: light-leak/atmosphere plates, saved
+caption/effect presets, speed ramps, PiP. P2: gl-transitions image, RIFE, glow/bloom.
+
+---
+
 ## 10. Status
 All surfaces, UI, and execution guardrails (§B) specced and repo-verified. No major
 research gaps; **one go/no-go gate remains: the 360 flatten spike before Stage 4.** Build

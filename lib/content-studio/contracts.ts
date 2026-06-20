@@ -46,3 +46,27 @@ export type {
 } from "./render-job";
 
 export { canonicalJson, hashEditSpec } from "./spec-hash";
+
+// Feature modules (frozen; graduate into the timeline render path at their slices)
+export {
+  SlateTransitionSchema,
+  SlateClipEffectSchema,
+  SlateSpeedRampSchema,
+  SlateLogoLayerSchema,
+  SlateCaptionStyleSchema,
+  SlateCaptionTrackSchema,
+  SlateAspectPresetSchema,
+  SlateReframeSchema,
+  LibraryAssetSchema,
+} from "./spec-modules";
+export type {
+  SlateTransition,
+  SlateClipEffect,
+  SlateSpeedRamp,
+  SlateLogoLayer,
+  SlateCaptionStyle,
+  SlateCaptionTrack,
+  SlateAspectPreset,
+  SlateReframe,
+  LibraryAsset,
+} from "./spec-modules";
