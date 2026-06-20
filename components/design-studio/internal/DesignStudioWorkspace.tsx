@@ -1,0 +1,206 @@
+"use client";
+
+import { useState, useCallback, useEffect } from "react";
+import { PanelLeft, PanelRight, Plus, Layers, Maximize2 } from "lucide-react";
+import type { DesignSession, DesignVariant } from "@/lib/design-studio/internal-types";
+import { useDesignVariantsRealtime } from "@/hooks/useDesignVariantsRealtime";
+import { TwinImportPanel } from "./TwinImportPanel";
+import { PromptComposer } from "./PromptComposer";
+import { VariantStrip } from "./VariantStrip";
+
+type WorkspaceTab = "explore" | "compare" | "exports";
+
+const TABS: { id: WorkspaceTab; label: string }[] = [
+  { id: "explore", label: "Explore" },
+  { id: "compare", label: "Compare" },
+  { id: "exports", label: "Exports" },
+];
+
+/**
+ * No-scroll Design Studio workspace. The interactive viewer is the dominant
+ * centerpiece (Brian's requirement): both side rails collapse so it can go
+ * near-fullscreen, and the variant strip is a bottom overlay — never a column
+ * that steals viewer space.
+ */
+export function DesignStudioWorkspace({ initialSessions }: { initialSessions: DesignSession[] }) {
+  const [sessions, setSessions] = useState<DesignSession[]>(initialSessions);
+  const [tab, setTab] = useState<WorkspaceTab>("explore");
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(initialSessions[0]?.id ?? null);
+  const [leftOpen, setLeftOpen] = useState(true);
+  const [rightOpen, setRightOpen] = useState(true);
+  const [galleryOpen, setGalleryOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
+  const [activeVariantId, setActiveVariantId] = useState<string | null>(null);
+
+  const activeSession = sessions.find((s) => s.id === activeSessionId) ?? null;
+  const { variants } = useDesignVariantsRealtime(activeSessionId);
+  const activeVariant = variants.find((v) => v.id === activeVariantId) ?? null;
+
+  // Default the active variant to the session's active one (or the latest) as
+  // variants stream in.
+  useEffect(() => {
+    if (activeVariantId && variants.some((v) => v.id === activeVariantId)) return;
+    const preferred = activeSession?.active_variant_id;
+    const next = variants.find((v) => v.id === preferred) ?? variants[variants.length - 1] ?? null;
+    setActiveVariantId(next?.id ?? null);
+  }, [variants, activeSession?.active_variant_id, activeVariantId]);
+
+  const onImported = useCallback((session: DesignSession) => {
+    setSessions((prev) => [session, ...prev]);
+    setActiveSessionId(session.id);
+    setImportOpen(false);
+  }, []);
+
+  return (
+    <div className="flex h-full min-h-0 flex-col overflow-hidden bg-[#0B0F15] text-slate-200">
+      {/* Thin top bar */}
+      <header className="flex h-11 shrink-0 items-center justify-between border-b border-white/10 px-3">
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setLeftOpen((v) => !v)}
+            className="rounded p-1 text-slate-400 hover:bg-white/5 hover:text-slate-200"
+            title={leftOpen ? "Hide sessions" : "Show sessions"}
+          >
+            <PanelLeft className="size-4" />
+          </button>
+          <h1 className="text-sm font-semibold text-white">Design Studio</h1>
+          <span className="max-w-[200px] truncate text-xs text-slate-500">{activeSession?.title ?? "No session"}</span>
+        </div>
+        <nav className="flex items-center gap-1">
+          {TABS.map((tn) => (
+            <button
+              key={tn.id}
+              onClick={() => setTab(tn.id)}
+              className={`rounded-md px-3 py-1 text-xs transition ${
+                tab === tn.id ? "bg-white/10 text-white" : "text-slate-400 hover:text-slate-200"
+              }`}
+            >
+              {tn.label}
+            </button>
+          ))}
+        </nav>
+        <div className="flex items-center gap-2">
+          <span className="text-xs tabular-nums text-slate-500" aria-label="GPU cost meter">
+            $0.00
+          </span>
+          <button
+            onClick={() => setRightOpen((v) => !v)}
+            className="rounded p-1 text-slate-400 hover:bg-white/5 hover:text-slate-200"
+            title={rightOpen ? "Hide prompt" : "Show prompt"}
+          >
+            <PanelRight className="size-4" />
+          </button>
+        </div>
+      </header>
+
+      {/* Body: viewer is flex-1 and dominates; rails collapse to nothing */}
+      <div className="relative flex min-h-0 flex-1 overflow-hidden">
+        {/* Left rail */}
+        {leftOpen && (
+          <aside className="flex w-[260px] shrink-0 flex-col gap-3 overflow-y-auto border-r border-white/10 p-3">
+            <div className="flex items-center justify-between">
+              <SectionLabel>Sessions</SectionLabel>
+              <button
+                onClick={() => setImportOpen((v) => !v)}
+                className="flex items-center gap-1 rounded bg-white/10 px-2 py-1 text-[11px] text-white hover:bg-white/15"
+              >
+                <Plus className="size-3" /> Import twin
+              </button>
+            </div>
+            {importOpen && <TwinImportPanel onImported={onImported} onClose={() => setImportOpen(false)} />}
+            {sessions.length === 0 ? (
+              <p className="text-xs text-slate-500">No sessions yet. Import a Digital Twin to begin.</p>
+            ) : (
+              <ul className="flex flex-col gap-1">
+                {sessions.map((s) => (
+                  <li key={s.id}>
+                    <button
+                      onClick={() => setActiveSessionId(s.id)}
+                      className={`w-full truncate rounded-md px-2 py-1.5 text-left text-xs transition ${
+                        s.id === activeSessionId ? "bg-white/10 text-white" : "text-slate-400 hover:bg-white/5"
+                      }`}
+                    >
+                      {s.title}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </aside>
+        )}
+
+        {/* Center: the hero viewer — fills all remaining space */}
+        <main className="relative min-h-0 min-w-0 flex-1 overflow-hidden bg-black/50">
+          {tab === "explore" && <ViewerStage session={activeSession} activeVariant={activeVariant} />}
+          {tab === "compare" && <Centered label="Compare — select two variants to view side by side." />}
+          {tab === "exports" && <Centered label="Exports — generated files and share links appear here." />}
+
+          {/* Bottom variant strip overlay (toggle) — never steals viewer space */}
+          {tab === "explore" && (
+            <>
+              <button
+                onClick={() => setGalleryOpen((v) => !v)}
+                className="absolute bottom-3 left-3 z-10 flex items-center gap-1 rounded-md bg-black/60 px-2 py-1 text-[11px] text-slate-200 backdrop-blur hover:bg-black/80"
+              >
+                <Layers className="size-3" /> Variants
+              </button>
+              {galleryOpen && (
+                <div className="absolute inset-x-0 bottom-0 z-10 border-t border-white/10 bg-black/70 p-3 backdrop-blur">
+                  <VariantStrip
+                    variants={variants}
+                    activeVariantId={activeVariantId}
+                    onSelect={setActiveVariantId}
+                  />
+                </div>
+              )}
+            </>
+          )}
+        </main>
+
+        {/* Right rail */}
+        {rightOpen && (
+          <aside className="flex w-[300px] shrink-0 flex-col gap-3 overflow-y-auto border-l border-white/10 p-3">
+            <SectionLabel>Prompt</SectionLabel>
+            <PromptComposer
+              sessionId={activeSessionId}
+              parentVariantId={activeVariantId}
+              onSubmitted={(variantId) => {
+                setActiveVariantId(variantId);
+                setGalleryOpen(true);
+              }}
+            />
+          </aside>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return <h2 className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">{children}</h2>;
+}
+
+function ViewerStage({
+  session,
+  activeVariant,
+}: {
+  session: DesignSession | null;
+  activeVariant: DesignVariant | null;
+}) {
+  return (
+    <div className="flex h-full items-center justify-center">
+      <div className="text-center text-sm text-slate-600">
+        <Maximize2 className="mx-auto mb-2 size-6 text-slate-700" />
+        {!session
+          ? "Import a Digital Twin to begin."
+          : activeVariant
+            ? `Viewer mounts here — variant “${activeVariant.label ?? activeVariant.tier}” (${activeVariant.status}).`
+            : "Viewer mounts here (Pixel Streaming / splat / model)."}
+      </div>
+    </div>
+  );
+}
+
+function Centered({ label }: { label: string }) {
+  return <div className="flex h-full items-center justify-center text-sm text-slate-600">{label}</div>;
+}

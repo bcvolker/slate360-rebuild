@@ -9,6 +9,7 @@ import {
   Thermometer,
   UserCircle,
   Users,
+  Wand2,
   Wrench,
 } from "lucide-react";
 
@@ -64,6 +65,13 @@ const DASHBOARD_DESKTOP_NAV_ALL: DashboardNavItem[] = [
     href: "/thermal-studio",
     icon: Thermometer,
     matchPrefixes: ["/thermal-studio"],
+    ceoOnly: true,
+  },
+  {
+    label: "Design Studio",
+    href: "/unreal-studio",
+    icon: Wand2,
+    matchPrefixes: ["/unreal-studio"],
     ceoOnly: true,
   },
   {
