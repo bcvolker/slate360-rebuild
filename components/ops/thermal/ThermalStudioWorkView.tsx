@@ -51,6 +51,14 @@ function defaultSaveTuning(captureId: string, tuning: ProbeTuning): void {
   }).catch(() => {});
 }
 
+function defaultSavePalette(captureId: string, palette: string): void {
+  fetch(`/api/ops/thermal/captures/${captureId}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ palette }),
+  }).catch(() => {});
+}
+
 function defaultSaveFindings(captureId: string, findings: string): void {
   fetch(`/api/ops/thermal/captures/${captureId}`, {
     method: "PATCH",
@@ -251,6 +259,8 @@ export function ThermalStudioWorkView({
               onSpotsChange={onSpotsChange}
               initialTuning={initialTuning}
               onTuningChange={onTuningChange}
+              initialPalette={typeof selectedMeta.palette === "string" ? selectedMeta.palette : null}
+              onPaletteChange={(p) => { if (selected) defaultSavePalette(selected.id, p); }}
             />
           ) : gridState === "loading" ? (
             <div className="flex h-full min-h-[260px] items-center justify-center text-sm text-[var(--graphite-muted)]">

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { thermalOpsTokens as t } from "@/components/ops/thermal/thermal-ops-tokens";
+import { PALETTE_NAMES } from "@/lib/thermal/probe-palettes";
 
 /**
  * Apply one emissivity / reflected-temperature setting to many captures at once,
@@ -10,8 +11,26 @@ import { thermalOpsTokens as t } from "@/components/ops/thermal/thermal-ops-toke
 export function ThermalBatchTunePanel({ captureIds }: { captureIds: string[] }) {
   const [emissivity, setEmissivity] = useState(0.95);
   const [reflected, setReflected] = useState(20);
+  const [palette, setPalette] = useState("Inferno");
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+
+  async function applyPalette() {
+    if (!captureIds.length) return;
+    setBusy(true);
+    setNotice(null);
+    await Promise.all(
+      captureIds.map((id) =>
+        fetch(`/api/ops/thermal/captures/${id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ palette }),
+        }).catch(() => {}),
+      ),
+    );
+    setBusy(false);
+    setNotice(`Applied ${palette} to ${captureIds.length} image${captureIds.length === 1 ? "" : "s"}.`);
+  }
 
   async function apply() {
     if (!captureIds.length) return;
@@ -63,6 +82,27 @@ export function ThermalBatchTunePanel({ captureIds }: { captureIds: string[] }) 
           {busy ? "Applying…" : `Apply to ${captureIds.length}`}
         </button>
         {notice ? <span className="text-xs text-[var(--graphite-muted)]">{notice}</span> : null}
+      </div>
+
+      <div className="mt-3 border-t border-[var(--mobile-app-card-border)] pt-3">
+        <label className="block text-xs text-[var(--graphite-muted)]">
+          Color palette
+          <select
+            value={palette}
+            onChange={(e) => setPalette(e.target.value)}
+            className="mt-1 block w-full rounded-lg border border-[var(--mobile-app-card-border)] bg-[var(--graphite-canvas-deep)] px-2 py-1 text-sm text-[var(--graphite-text-body)] [color-scheme:dark]"
+          >
+            {PALETTE_NAMES.map((p) => <option key={p} value={p}>{p}</option>)}
+          </select>
+        </label>
+        <button
+          type="button"
+          className="mt-2 rounded-lg border border-[var(--mobile-app-card-border)] px-2.5 py-1 text-xs font-semibold text-[var(--graphite-text-body)] hover:text-[var(--graphite-text-header)] disabled:opacity-40"
+          disabled={busy || captureIds.length === 0}
+          onClick={applyPalette}
+        >
+          Apply palette to {captureIds.length}
+        </button>
       </div>
     </div>
   );

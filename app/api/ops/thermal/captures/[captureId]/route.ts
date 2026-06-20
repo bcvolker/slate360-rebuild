@@ -35,6 +35,8 @@ type CapturePatchBody = {
   in_report?: boolean;
   report_order?: number;
   visual_pair_id?: string | null;
+  /** Per-image color palette (display). */
+  palette?: string;
   /** Twin-overlay alignment hook (schema only for now — see roadmap). */
   alignment?: AlignmentPayload | null;
 };
@@ -44,6 +46,7 @@ const CURATION_KEYS = [
   "in_report",
   "report_order",
   "visual_pair_id",
+  "palette",
   "alignment",
 ] as const;
 
@@ -135,6 +138,9 @@ export const PATCH = (req: NextRequest, { params }: Params) =>
     if (body.visual_pair_id !== undefined) {
       metadata.visual_pair_id =
         typeof body.visual_pair_id === "string" ? body.visual_pair_id : null;
+    }
+    if (typeof body.palette === "string") {
+      metadata.palette = body.palette.slice(0, 40);
     }
     if (body.alignment !== undefined) {
       metadata.alignment =

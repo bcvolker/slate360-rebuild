@@ -27,6 +27,8 @@ export function ThermalProbeToolbar({
   hasAnomalies,
   showFindings,
   setShowFindings,
+  showLoupe,
+  setShowLoupe,
   importedCount,
   onClearBaked,
   spotCount,
@@ -52,6 +54,8 @@ export function ThermalProbeToolbar({
   hasAnomalies: boolean;
   showFindings: boolean;
   setShowFindings: (fn: (v: boolean) => boolean) => void;
+  showLoupe: boolean;
+  setShowLoupe: (fn: (v: boolean) => boolean) => void;
   importedCount: number;
   onClearBaked: () => void;
   spotCount: number;
@@ -60,7 +64,7 @@ export function ThermalProbeToolbar({
   const clearBtn =
     "rounded-lg border border-[var(--mobile-app-card-border)] px-2 py-1 text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]";
   const selectCls =
-    "rounded-lg border border-[var(--mobile-app-card-border)] bg-transparent px-2 py-1 text-[var(--graphite-text-body)]";
+    "rounded-lg border border-[var(--mobile-app-card-border)] bg-[var(--graphite-canvas-deep)] px-2 py-1 text-[var(--graphite-text-body)] [color-scheme:dark]";
 
   return (
     <div className="flex flex-wrap items-center justify-between gap-2">
@@ -80,6 +84,7 @@ export function ThermalProbeToolbar({
         <Toggle on={showLabels} onClick={() => setShowLabels((v) => !v)}>Labels</Toggle>
         <Toggle on={showMax} onClick={() => setShowMax((v) => !v)}>Max</Toggle>
         <Toggle on={showMin} onClick={() => setShowMin((v) => !v)}>Min</Toggle>
+        <Toggle on={showLoupe} onClick={() => setShowLoupe((v) => !v)}>Loupe</Toggle>
         {hasAnomalies ? (
           <Toggle on={showFindings} onClick={() => setShowFindings((v) => !v)}>Findings</Toggle>
         ) : null}

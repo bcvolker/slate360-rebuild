@@ -64,6 +64,9 @@ type Props = {
   initialTuning?: ProbeTuning | null;
   /** Persist per-image emissivity / reflected-temp tuning. */
   onTuningChange?: (tuning: ProbeTuning) => void;
+  /** Per-image palette (display) — seed + persist. */
+  initialPalette?: string | null;
+  onPaletteChange?: (palette: string) => void;
 };
 
 export function ThermalProbeViewer({
@@ -75,6 +78,8 @@ export function ThermalProbeViewer({
   onSpotsChange,
   initialTuning,
   onTuningChange,
+  initialPalette,
+  onPaletteChange,
 }: Props) {
   const { width, height } = grid;
   const baseEmissivity = grid.emissivity ?? 0.95;
@@ -146,13 +151,19 @@ export function ThermalProbeViewer({
   );
 
   const [unit, setUnit] = useState<Unit>("F");
-  const [palette, setPalette] = useState<string>("Inferno");
+  const [palette, setPaletteState] = useState<string>(initialPalette || "Inferno");
+  const setPalette = useCallback(
+    (p: string) => { setPaletteState(p); onPaletteChange?.(p); },
+    [onPaletteChange],
+  );
+  useEffect(() => { setPaletteState(initialPalette || "Inferno"); }, [initialPalette]);
   // What the next click places: precise crosshair, ringed crosshair, or an area box.
   const [tool, setTool] = useState<"crosshair" | "crosshair-circle" | "area">("crosshair");
   const [showLabels, setShowLabels] = useState(true);
   const [showMin, setShowMin] = useState(true);
   const [showMax, setShowMax] = useState(true);
   const [showFindings, setShowFindings] = useState(true);
+  const [showLoupe, setShowLoupe] = useState(true);
   const [spots, setSpots] = useState<ProbeSpot[]>(initialSpots ?? []);
   const [refId, setRefId] = useState<string | null>(null);
   const [hover, setHover] = useState<{ x: number; y: number } | null>(null);
@@ -400,6 +411,8 @@ export function ThermalProbeViewer({
         hasAnomalies={anomalies.length > 0}
         showFindings={showFindings}
         setShowFindings={setShowFindings}
+        showLoupe={showLoupe}
+        setShowLoupe={setShowLoupe}
         importedCount={importedCount}
         onClearBaked={() => commit(spots.filter((s) => !s.imported))}
         spotCount={spots.length}
@@ -446,7 +459,7 @@ export function ThermalProbeViewer({
           ) : null}
 
           {/* Pixel-level magnifier loupe — appears while hovering for precise probing */}
-          {hover ? (
+          {hover && showLoupe ? (
             <div className="pointer-events-none absolute right-2 top-2 z-30 rounded-lg border border-white/40 bg-black/70 p-1 text-center">
               <canvas ref={loupeRef} width={LOUPE_PX} height={LOUPE_PX} className="block rounded" style={{ imageRendering: "pixelated" }} />
               <p className="mt-0.5 text-[9px] font-semibold tabular-nums text-white">

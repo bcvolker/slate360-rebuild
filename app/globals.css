@@ -284,6 +284,17 @@
    NOTE: the --header-* tokens are intentionally NOT redefined here —
    they live in :root only, are permanently dark, and stay consistent
    across both light and dark surfaces. */
+/* Native form controls (select dropdown popups, option lists) on the dark dashboard
+   surfaces must render dark — the :root color-scheme is `light`, which made native
+   <select> popups appear white/blank. Platform routes (thermal studio, ops console)
+   set data-mobile-route="platform". */
+[data-mobile-route="platform"] select,
+[data-mobile-route="platform"] option,
+[data-mobile-route="platform"] input[type="number"],
+[data-mobile-route="platform"] input[type="date"] {
+  color-scheme: dark;
+}
+
 .dark {
   color-scheme: dark;
   --background: var(--graphite-canvas);
