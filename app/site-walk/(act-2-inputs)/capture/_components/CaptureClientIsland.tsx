@@ -13,9 +13,9 @@ import { usePlanSheetsRealtime } from "@/lib/hooks/usePlanSheetsRealtime";
 import type { SiteWalkPin, SiteWalkPlanSet, SiteWalkPlanSheet } from "@/lib/types/site-walk";
 import type { CaptureItemDraft } from "@/lib/types/site-walk-capture";
 import type { CaptureSheetTab } from "@/components/site-walk/capture/CaptureDataBottomSheet";
+import { hasReadyPlanSet } from "@/lib/site-walk/capture-v2-fork";
 import { findGhostImageUrl, nextStopLabel, parseRecentLocations } from "./captureSessionHelpers";
 import { SharedCaptureTaskHeader } from "./SharedCaptureTaskHeader";
-import { WalkStartChoice } from "./WalkStartChoice";
 
 type Props = {
   sessionId: string;
@@ -40,12 +40,16 @@ export function CaptureClientIsland(props: Props) {
   );
 }
 
-function CaptureClientIslandInner({ sessionId, projectId, walkName, showPlanCanvas, showStartChoice, autoOpenCamera, launchId, initialItemId, planSets, planSheets }: Props) {
+function CaptureClientIslandInner({ sessionId, projectId, walkName, showPlanCanvas, autoOpenCamera, launchId, initialItemId, planSets, planSheets }: Props) {
   // Subscribe to Realtime so hasRasterized flips immediately when Trigger.dev finishes
   const liveSheets = usePlanSheetsRealtime(planSheets, projectId);
   const captureCtx = useCaptureContext();
-  const { requestCapture } = captureCtx;
-  const [walkMode, setWalkMode] = useState<WalkMode>(() => showStartChoice ? "choice" : showPlanCanvas ? "plan" : "camera");
+  // Auto-select the mode: open the plan canvas when the project has a ready
+  // plan set, otherwise camera. (Replaces the off-brand amber "WalkStartChoice"
+  // fork — see docs/design/WALKS_WITH_PLANS_WORKFLOW.md.)
+  const [walkMode, setWalkMode] = useState<WalkMode>(() =>
+    showPlanCanvas && hasReadyPlanSet(planSets) ? "plan" : "camera",
+  );
   const [currentLocation, setCurrentLocation] = useState("Stop 1");
   const [recentLocations, setRecentLocations] = useState<string[]>([]);
   const [planRefreshKey, setPlanRefreshKey] = useState(0);
@@ -153,12 +157,6 @@ function CaptureClientIslandInner({ sessionId, projectId, walkName, showPlanCanv
     captureNow();
   }
 
-  function openCameraMode(openCamera = false) {
-    setReturnToPlanAfterSave(false);
-    setWalkMode("camera");
-    if (openCamera) requestCapture(primaryCaptureInput, "next_item");
-  }
-
   function handlePlanCaptureRequest(input: "camera" | "upload") {
     // PlanQuickActionMenu has already set the planTarget on the context.
     setReturnToPlanAfterSave(true);
@@ -183,10 +181,6 @@ function CaptureClientIslandInner({ sessionId, projectId, walkName, showPlanCanv
     setReturnToPlanAfterSave(true);
     setPlanRefreshKey((current) => current + 1);
     setActiveSheetTab("details");
-  }
-
-  if (walkMode === "choice") {
-    return <WalkStartChoice walkName={walkName} onPlanMode={() => setWalkMode("plan")} onCameraOnly={() => openCameraMode()} />;
   }
 
   const ghostImageUrl = findGhostImageUrl(items, activeItem?.id ?? null, currentLocation);
