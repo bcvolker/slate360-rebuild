@@ -8,6 +8,7 @@ import {
   Users,
   Settings,
   MessageSquare,
+  MessagesSquare,
   FileText,
   Activity,
   type LucideIcon,
@@ -21,6 +22,7 @@ import { RevenueTab } from "./tabs/RevenueTab";
 import { UsersTab } from "./tabs/UsersTab";
 import { PlansTab } from "./tabs/PlansTab";
 import { FeedbackTab } from "./tabs/FeedbackTab";
+import { CommunicationsTab } from "./tabs/CommunicationsTab";
 import { StaffTab } from "./tabs/StaffTab";
 import { ContentTab } from "./tabs/ContentTab";
 import { HealthTab } from "./tabs/HealthTab";
@@ -33,6 +35,7 @@ const TABS: TabDef[] = [
   { id: "users", label: "Users & Orgs", icon: Users, ceoOnly: true },
   { id: "plans", label: "Plans & Pricing", icon: Settings, ceoOnly: true },
   { id: "feedback", label: "Feedback & Approvals", icon: MessageSquare, ceoOnly: false },
+  { id: "communications", label: "Communications", icon: MessagesSquare, ceoOnly: true },
   { id: "staff", label: "Staff & Access", icon: Shield, ceoOnly: true },
   { id: "content", label: "Content & Marketing", icon: FileText, ceoOnly: true },
   { id: "health", label: "System Health", icon: Activity, ceoOnly: true },
@@ -50,6 +53,8 @@ function TabContent({ tab }: { tab: OpsConsoleTab }) {
       return <PlansTab />;
     case "feedback":
       return <FeedbackTab />;
+    case "communications":
+      return <CommunicationsTab />;
     case "staff":
       return <StaffTab />;
     case "content":

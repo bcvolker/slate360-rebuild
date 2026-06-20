@@ -7,6 +7,7 @@ export type OpsConsoleTab =
   | "users"
   | "plans"
   | "feedback"
+  | "communications"
   | "staff"
   | "content"
   | "health";
