@@ -61,3 +61,34 @@ most: create the missing `/app/slatedrop/page.tsx`; bake splat orientation/bound
 - Final **pricing + token-cost numbers** (or approval to ship with the illustrative config as placeholders).
 - The **launch-monetization decision** (§4).
 - Green light to **start building Phase 0** (or to keep refining any spec first).
+
+## 7. Cleanup backlog (logged — do during the relevant phase, not all now)
+- **Legacy/dead entitlement files:** retire `lib/entitlements.ts` legacy tier model ($149/$499
+  deprecated) and `lib/billing/cost-model.ts` (DONE — deleted, was orphaned). Consolidate to ONE
+  config-driven layer per `STORE_IAP_ENTITLEMENTS.md §5`.
+- **Dead SKU/entitlement plumbing for non-shippable apps:** remove the `tours` / `design_studio` /
+  `content_studio` entries from `entitlements-modular.ts` (APP_TIER_LIMITS), `billing-apps.ts`
+  (MODULAR_APP_PLANS), the `org_app_subscriptions` columns, and `org-feature-flags.ts` widening —
+  careful, types are referenced in several files. Routes already CEO-gated (DONE).
+- **Amber = AI placeholder signal (131 files in the ratchet):** treat amber as a marker that the
+  page/component was an AI-generated placeholder. Default treatment per `GRAPHITE_GLASS.md`:
+  **reachability audit → DELETE or quarantine** non-functional amber surfaces; only **recolor**
+  amber that is on a live, functional, reachable Site Walk/Twin surface. Do not assume amber pages
+  are useful.
+- **Confirmed-dead components:** `components/shared/MobileBottomNav.tsx`, `DashboardV3Shell`,
+  `_dashboard-legacy`, `/site-walk-v1-preview`, `/tours` redirect stub, `unreal-studio` stub
+  (CEO workspace — keep only if still used by CEO).
+- **V1 capture stack** retire after capture-v2 parity (`SiteWalkNav`, `Session*Client`).
+- Stale design allow-list entry: `WalkStartChoice.tsx` (now clean — remove from
+  `ops/design-allowlist.json`).
+
+## 8. Submission sequencing (CEO, current reality)
+- **No Apple Developer license yet → no TestFlight access yet.** Step 1 = obtain Apple Developer
+  Program membership (+ Google Play Console).
+- **Then:** finish + polish **both** Site Walk AND Twin 360 (incl. the Twin viewer centering fix —
+  Twin's `appStoreHidden` flips visible only once that's done).
+- **Submit both apps** for review → **internal testing for a few weeks to ~1 month** (TestFlight /
+  Play internal) to iron everything out.
+- **Then ship both to the App Store + Play, monetized:** entitlements + token ledger + pre-flight +
+  trial caps live; **Stripe LIVE on the business account** (web) + StoreKit/Play via RevenueCat
+  (in-app). Until store acceptance, monetization stays dormant.

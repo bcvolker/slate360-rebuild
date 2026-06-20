@@ -169,7 +169,7 @@ export function WalkBulkManager({ walks }: { walks: BulkWalkRow[] }) {
             <DialogDescription className="text-slate-400">
               These walks and all their captured items will be permanently deleted. This cannot be undone.
               {selectedPlanCount > 0 ? (
-                <span className="mt-2 block font-bold text-amber-300">
+                <span className="mt-2 block font-bold text-[var(--graphite-primary)]">
                   ⚠ {selectedPlanCount} of these belong to a project with an uploaded plan — you may want to keep those for testing.
                 </span>
               ) : null}

@@ -5,7 +5,7 @@ import type { DesignVariant } from "@/lib/design-studio/internal-types";
 
 const STATUS_TINT: Record<string, string> = {
   queued: "text-slate-400",
-  processing: "text-amber-300",
+  processing: "text-[var(--graphite-primary)]",
   ready: "text-emerald-300",
   failed: "text-red-400",
 };
