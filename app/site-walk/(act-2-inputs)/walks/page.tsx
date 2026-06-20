@@ -9,6 +9,7 @@ import { GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { s3, BUCKET } from "@/lib/s3";
 import { DeleteWalkButton } from "@/components/site-walk/walks/DeleteWalkButton";
+import { WalkBulkManager } from "@/components/site-walk/walks/WalkBulkManager";
 import { buildCaptureLaunchUrl, buildWalkResumeUrl } from "@/lib/site-walk/capture-v2-config";
 
 type SessionRow = {
@@ -18,6 +19,7 @@ type SessionRow = {
   started_at: string | null;
   completed_at: string | null;
   created_by: string;
+  project_id: string | null;
   projects?: { name?: string | null } | Array<{ name?: string | null }> | null;
 };
 type ProfileRow = { id: string; email: string | null; full_name: string | null; display_name: string | null };
@@ -52,6 +54,18 @@ export default async function SiteWalksPage() {
             <SummaryBadge label="Reports" value={String(completed.length)} />
             <SummaryBadge label="Items" value={String(itemCount)} />
           </div>
+          {walks.length > 0 && (
+            <div className="mt-3 border-t border-white/10 pt-3">
+              <WalkBulkManager
+                walks={walks.map((w) => ({
+                  id: w.id,
+                  title: w.title,
+                  projectName: w.projectName,
+                  hasPlan: w.hasPlan,
+                }))}
+              />
+            </div>
+          )}
         </section>
 
         <div className="min-h-0 flex-1 overflow-y-auto pb-[max(env(safe-area-inset-bottom),1rem)] no-scrollbar">
@@ -181,7 +195,7 @@ async function loadWalks(orgId: string): Promise<LiveWalkSummary[]> {
 
   const { data: sessions } = await admin
     .from("site_walk_sessions")
-    .select("id, title, status, started_at, completed_at, created_by, projects(name)")
+    .select("id, title, status, started_at, completed_at, created_by, project_id, projects(name)")
     .eq("org_id", orgId)
     .in("status", ["in_progress", "completed"])
     .order("started_at", { ascending: false })
@@ -189,6 +203,17 @@ async function loadWalks(orgId: string): Promise<LiveWalkSummary[]> {
 
   const rows = (sessions ?? []) as SessionRow[];
   if (rows.length === 0) return [];
+
+  // Projects that have an uploaded plan set — their walks are worth keeping.
+  const { data: planSets } = await admin
+    .from("site_walk_plan_sets")
+    .select("project_id, processing_status")
+    .eq("org_id", orgId);
+  const planProjectIds = new Set(
+    (planSets ?? [])
+      .filter((p) => p.processing_status !== "archived" && p.project_id)
+      .map((p) => p.project_id as string),
+  );
 
   const sessionIds = rows.map((r) => r.id);
   const creatorIds = Array.from(new Set(rows.map((r) => r.created_by)));
@@ -242,6 +267,8 @@ async function loadWalks(orgId: string): Promise<LiveWalkSummary[]> {
       id: row.id,
       title: row.title,
       status: row.status as LiveWalkSummary["status"],
+      projectId: row.project_id,
+      hasPlan: row.project_id ? planProjectIds.has(row.project_id) : false,
       projectName: project?.name ?? null,
       walkerName: profile?.full_name ?? profile?.display_name ?? profile?.email ?? "Field user",
       startedAt: row.started_at,

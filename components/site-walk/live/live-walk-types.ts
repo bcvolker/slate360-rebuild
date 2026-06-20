@@ -4,7 +4,10 @@ import type { ItemPriority, ItemStatus, SiteWalkItemType, SiteWalkSyncState, Sit
 export type LiveWalkSummary = {
   id: string;
   title: string;
+  projectId: string | null;
   projectName: string | null;
+  /** True when the walk's project has an uploaded plan set (worth keeping). */
+  hasPlan: boolean;
   walkerName: string;
   startedAt: string | null;
   completedAt: string | null;
