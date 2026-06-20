@@ -4,18 +4,33 @@ Status: **planning / review** (no app code). Critical review of tiers, bundles, 
 and margin, per CEO request. Decision: keep placeholder numbers unless a change is warranted —
 recommendations below.
 
-## 0. ⚠️ Blocking finding: two conflicting price tables
-| App / tier | `entitlements-modular.ts` | `lib/billing/cost-model.ts` |
-|---|---|---|
-| Site Walk basic/std | $79 | $79 |
-| Site Walk pro | **$149** | **$129** |
-| Twin basic / pro | $99 / $249 | (not present) |
-| Tours std / pro | $49 / $99 | **$119 / $199** |
-| Design / Content | $49 / $99 | $119 / $199 |
-| Bundle (SW+Twin) | $349 | (project/studio/total bundles, different) |
-**Action:** during entitlement consolidation, collapse to ONE table = the numbers the **live
-website** shows (CEO to confirm which). Everything below assumes the **modular** table as the
-working baseline (it matches the two-app focus + the system-of-record decision).
+## 0. CANONICAL PRICING (from the live home page — single source of truth)
+CEO confirmed these are the live numbers. **This table is authoritative; all other price tables are
+stale and must be removed/aligned.**
+
+| Product | Tier (display) | Internal key | Monthly | Annual (17% off) | Annual /mo | Credits/mo |
+|---|---|---|---|---|---|---|
+| **Site Walk** | Basic | `site_walk:basic` | **$79** | **$787** | $66 | (capture; light) |
+| **Site Walk** | Pro | `site_walk:pro` | **$149** | **$1,484** | $124 | |
+| **Twin 360** | Essential | `digital_twin:basic` | **$99** | **$986** | $82 | ~500 (~5 twins) |
+| **Twin 360** | Professional | `digital_twin:pro` | **$249** | **$2,480** | $207 | ~2,000 (~20 twins) |
+| **Bundle** | SW Pro + Twin Pro | `field_pro` | **$349** | **$3,476** | — | 2,750 |
+| **Enterprise** | 25+ seats | — | custom | — | — | pooled |
+
+- **Annual saves 17%** across all tiers. **14-day free trial** on every paid tier.
+- **Credits ≈ tokens** (UI uses "credits" on the home page; ~100 credits/avg twin).
+- **Extra credits at cost, no markup** — confirms the at-cost overage model.
+- **Display-name mapping:** Twin "Essential/Professional" = internal `basic/pro`. Keep the friendly
+  names in UI; internal keys stay `basic/pro`.
+- **The `field_pro`/modular table matches this.** `lib/billing/cost-model.ts` is **STALE**
+  (Site Walk pro $129; Tours/Design/Content $119/$199) → remove/align during consolidation.
+
+### Scope (CEO) — shippable apps ONLY
+**Ship only Site Walk + Twin 360.** **Content Studio, Design Studio, Thermal Studio, and 360 Tours
+are NOT part of the submitted apps** (CEO-only / not finished). They must be excluded from all
+app-store-reachable surfaces (nav, launchers, pricing, marketing, sellable catalog) or the stores
+will reject for unfinished/placeholder content. Thermal stays CEO-gated; the rest get hidden/removed
+from shippable surfaces. (See the code-cleanup task.)
 
 ## 1. Competitor landscape (2026)
 | Product | Model | Price | Focus |
