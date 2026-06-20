@@ -118,7 +118,7 @@ export function ThermalShareViewer({ data, token, tokenState, embed = false }: P
                     <img src={c.previewUrl} alt={c.filename ?? ""} className="h-full w-full object-cover" />
                   ) : null}
                   {flagged(c) ? (
-                    <span className="absolute right-0.5 top-0.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-[#fb923c] px-1 text-[8px] font-bold text-black">
+                    <span className="absolute right-0.5 top-0.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-[var(--graphite-primary)] px-1 text-[8px] font-bold text-[var(--graphite-canvas)]">
                       {flagged(c)}
                     </span>
                   ) : null}

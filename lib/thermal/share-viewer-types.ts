@@ -16,5 +16,9 @@ export type ThermalShareViewerData = {
     qualityMetrics: Record<string, unknown>;
     anomalies: unknown[];
     gpsPosition?: Record<string, unknown>;
+    /** Operator's written findings note for this image. */
+    findings?: string | null;
+    /** Per-image tuning (emissivity / reflected / distance / humidity / atmospheric). */
+    tuning?: Record<string, unknown>;
   }>;
 };

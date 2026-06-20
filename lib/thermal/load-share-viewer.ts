@@ -31,7 +31,7 @@ export async function loadThermalShareViewerData(
 
   const { data: captures } = await admin
     .from("thermal_captures")
-    .select("id, filename, preview_path, storage_path, quality_metrics, anomalies, gps_position")
+    .select("id, filename, preview_path, storage_path, quality_metrics, anomalies, gps_position, metadata")
     .eq("session_id", sessionId)
     .is("deleted_at", null)
     .order("created_at", { ascending: true });
@@ -42,17 +42,32 @@ export async function loadThermalShareViewerData(
   };
 
   const enriched = await Promise.all(
-    filterCapturesByLayerConfig(captures ?? [], layerConfig).map(async (capture) => ({
-      id: capture.id,
-      filename: capture.filename,
-      previewUrl: await signKey(capture.preview_path ?? capture.storage_path),
-      qualityMetrics: (capture.quality_metrics as Record<string, unknown>) ?? {},
-      anomalies: (capture.anomalies as unknown[]) ?? [],
-      gpsPosition: (capture.gps_position as Record<string, unknown>) ?? {},
-    })),
+    filterCapturesByLayerConfig(captures ?? [], layerConfig).map(async (capture) => {
+      const meta = (capture.metadata as Record<string, unknown>) ?? {};
+      return {
+        id: capture.id,
+        filename: capture.filename,
+        previewUrl: await signKey(capture.preview_path ?? capture.storage_path),
+        qualityMetrics: (capture.quality_metrics as Record<string, unknown>) ?? {},
+        anomalies: (capture.anomalies as unknown[]) ?? [],
+        gpsPosition: (capture.gps_position as Record<string, unknown>) ?? {},
+        findings: typeof meta.findings === "string" ? meta.findings : null,
+        tuning: (meta.tuning as Record<string, unknown>) ?? {},
+      };
+    }),
   );
 
   const sessionMeta = (session.metadata as Record<string, unknown>) ?? {};
+  // Show the curated report set in its chosen order when present (matches the report).
+  const reportSet = Array.isArray(sessionMeta.report_set)
+    ? (sessionMeta.report_set as unknown[]).filter((v): v is string => typeof v === "string")
+    : [];
+  const orderedCaptures = reportSet.length
+    ? [
+        ...reportSet.map((id) => enriched.find((c) => c.id === id)).filter((c): c is (typeof enriched)[number] => Boolean(c)),
+        ...enriched.filter((c) => !reportSet.includes(c.id)),
+      ]
+    : enriched;
   const linkedSpaceId =
     (typeof layerConfig.linked_space_id === "string" ? layerConfig.linked_space_id : null) ??
     (typeof sessionMeta.linked_space_id === "string" ? sessionMeta.linked_space_id : null);
@@ -64,6 +79,6 @@ export async function loadThermalShareViewerData(
     linkedSpaceId,
     branding,
     summaryMetrics: (session.summary_metrics as Record<string, unknown>) ?? {},
-    captures: enriched,
+    captures: orderedCaptures,
   };
 }

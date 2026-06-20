@@ -14,18 +14,28 @@ type Capture = {
   anomalies?: unknown[] | null;
   qualityMetrics?: Record<string, unknown> | null;
   gpsPosition?: Record<string, unknown> | null;
+  findings?: string | null;
+  tuning?: Record<string, unknown> | null;
 };
 
-function dataRows(q: Record<string, unknown>, gps: Record<string, unknown>): [string, string][] {
+function dataRows(
+  q: Record<string, unknown>,
+  gps: Record<string, unknown>,
+  tuning: Record<string, unknown>,
+): [string, string][] {
   const num = (v: unknown, s = "") =>
     typeof v === "number" && Number.isFinite(v) ? `${v.toFixed(1)}${s}` : null;
+  const emis = tuning.emissivity ?? q.emissivity_used;
   const rows: [string, string | null][] = [
     ["Camera", (q.sensor_make as string) ?? null],
     ["Sensor", (q.sensor_model as string) ?? (q.parser_id as string) ?? null],
     ["Max temp", num(q.max_temp_c, "°C")],
     ["Min temp", num(q.min_temp_c, "°C")],
     ["Avg temp", num(q.avg_temp_c, "°C")],
-    ["Emissivity", num(q.emissivity_used)],
+    ["Emissivity", num(emis)],
+    ["Reflected", num(tuning.reflected_c, "°C")],
+    ["Distance", tuning.distance_m != null ? `${tuning.distance_m} m` : null],
+    ["Humidity", tuning.humidity_pct != null ? `${tuning.humidity_pct}%` : null],
     [
       "GPS",
       gps.lat != null && (gps.lon ?? gps.lng) != null
@@ -51,7 +61,9 @@ export function ThermalShareSlide({ capture }: { capture: Capture }) {
   const anomalies = (capture.anomalies as ThermalAnomaly[]) ?? [];
   const q = (capture.qualityMetrics ?? {}) as Record<string, unknown>;
   const gps = (capture.gpsPosition ?? {}) as Record<string, unknown>;
-  const rows = dataRows(q, gps);
+  const tuning = (capture.tuning ?? {}) as Record<string, unknown>;
+  const rows = dataRows(q, gps, tuning);
+  const note = typeof capture.findings === "string" ? capture.findings.trim() : "";
   const pct = (v: number, total: number) => `${(v / (total || 1)) * 100}%`;
 
   return (
@@ -118,8 +130,13 @@ export function ThermalShareSlide({ capture }: { capture: Capture }) {
           <p className="text-xs font-semibold uppercase tracking-wide text-[var(--graphite-muted)]">
             Findings ({anomalies.length})
           </p>
+          {note ? (
+            <p className="mt-2 whitespace-pre-line border-l-2 border-[color-mix(in_srgb,var(--graphite-primary)_50%,transparent)] pl-2 text-[11px] leading-relaxed text-[var(--graphite-text-body)]">
+              {note}
+            </p>
+          ) : null}
           {anomalies.length === 0 ? (
-            <p className="mt-1 text-xs text-[var(--graphite-muted)]">No anomalies flagged on this image.</p>
+            note ? null : <p className="mt-1 text-xs text-[var(--graphite-muted)]">No anomalies flagged on this image.</p>
           ) : (
             <ul className="mt-2 space-y-2">
               {anomalies.map((a, i) => {
