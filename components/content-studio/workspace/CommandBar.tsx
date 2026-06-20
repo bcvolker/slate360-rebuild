@@ -1,7 +1,8 @@
 "use client";
 
-import { Clapperboard, PanelLeft, PanelRight, RotateCcw, Upload } from "lucide-react";
-import { useEditorStore, type EditorMode } from "./editor-store";
+import { useEffect } from "react";
+import { Clapperboard, PanelLeft, PanelRight, Redo2, RotateCcw, Undo2, Upload } from "lucide-react";
+import { useEditorStore, useUndoRedo, type EditorMode } from "./editor-store";
 
 const MODES: { id: EditorMode; label: string }[] = [
   { id: "video", label: "Regular" },
@@ -26,6 +27,21 @@ export function CommandBar({
   const mode = useEditorStore((s) => s.mode);
   const setMode = useEditorStore((s) => s.setMode);
   const resetLayout = useEditorStore((s) => s.resetLayout);
+  const { undo, redo, canUndo, canRedo } = useUndoRedo();
+
+  // ⌘/Ctrl+Z undo, ⌘/Ctrl+Shift+Z (or Ctrl+Y) redo — skip while typing.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!(e.metaKey || e.ctrlKey)) return;
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA") return;
+      const k = e.key.toLowerCase();
+      if (k === "z") { e.preventDefault(); e.shiftKey ? redo() : undo(); }
+      else if (k === "y") { e.preventDefault(); redo(); }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [undo, redo]);
 
   return (
     <div className="flex h-11 shrink-0 items-center gap-3 border-b border-white/10 bg-[#0B0F15]/80 px-3 backdrop-blur-md">
@@ -70,6 +86,12 @@ export function CommandBar({
         />
       </div>
 
+      {/* Undo / redo */}
+      <div className="ml-2 flex items-center gap-1">
+        <IconAction icon={<Undo2 className="h-3.5 w-3.5" />} title="Undo (Ctrl+Z)" onClick={undo} disabled={!canUndo} />
+        <IconAction icon={<Redo2 className="h-3.5 w-3.5" />} title="Redo (Ctrl+Shift+Z)" onClick={redo} disabled={!canRedo} />
+      </div>
+
       <div className="ml-auto flex items-center gap-2">
         {/* Render status strip (placeholder until the job loop lands in Slice 5) */}
         <span className="flex items-center gap-1.5 rounded-md border border-white/10 px-2 py-1 text-[11px] text-white/55">
@@ -94,6 +116,30 @@ export function CommandBar({
         </button>
       </div>
     </div>
+  );
+}
+
+function IconAction({
+  icon,
+  title,
+  onClick,
+  disabled,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  onClick: () => void;
+  disabled?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      title={title}
+      className="flex h-6 w-6 items-center justify-center rounded-md border border-white/10 text-white/55 transition-colors hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-30"
+    >
+      {icon}
+    </button>
   );
 }
 

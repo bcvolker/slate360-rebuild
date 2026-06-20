@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef } from "react";
-import { Magnet, Trash2, X, ZoomIn, ZoomOut } from "lucide-react";
+import { Magnet, Scissors, Trash2, X, ZoomIn, ZoomOut } from "lucide-react";
 import { useEditorStore, layoutClips } from "./editor-store";
 import { useMediaUpload } from "./use-media-upload";
 
@@ -21,10 +21,15 @@ export function TimelinePanel() {
   const addClip = useEditorStore((s) => s.addClip);
   const setZoom = useEditorStore((s) => s.setZoom);
   const pause = useEditorStore((s) => s.pause);
+  const snap = useEditorStore((s) => s.snap);
+  const toggleSnap = useEditorStore((s) => s.toggleSnap);
+  const splitAtPlayhead = useEditorStore((s) => s.splitAtPlayhead);
+  const setClipTrim = useEditorStore((s) => s.setClipTrim);
 
   const { uploadFiles } = useMediaUpload();
   const scrollRef = useRef<HTMLDivElement>(null);
   const draggingPlayhead = useRef(false);
+  const trimDrag = useRef<null | { id: string; edge: "in" | "out"; startX: number; inSec: number; outSec: number }>(null);
   const { rows, total } = layoutClips(clips);
   const contentWidth = Math.max(600, total * pxPerSec + 240);
 
@@ -40,27 +45,34 @@ export function TimelinePanel() {
     [pause, setPlayhead, pxPerSec],
   );
 
-  // Playhead drag-to-scrub (pointer move tracked on window so it works past edges).
+  // Window-tracked pointer drags: playhead scrub AND clip edge trim (work past edges).
   useEffect(() => {
-    const move = (e: PointerEvent) => { if (draggingPlayhead.current) seekFromClientX(e.clientX); };
-    const up = () => { draggingPlayhead.current = false; };
+    const move = (e: PointerEvent) => {
+      if (draggingPlayhead.current) { seekFromClientX(e.clientX); return; }
+      const t = trimDrag.current;
+      if (t) {
+        const deltaSec = (e.clientX - t.startX) / pxPerSec;
+        if (t.edge === "in") setClipTrim(t.id, { trimInSec: t.inSec + deltaSec });
+        else setClipTrim(t.id, { trimOutSec: t.outSec + deltaSec });
+      }
+    };
+    const up = () => { draggingPlayhead.current = false; trimDrag.current = null; };
     window.addEventListener("pointermove", move);
     window.addEventListener("pointerup", up);
     return () => { window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", up); };
-  }, [seekFromClientX]);
+  }, [seekFromClientX, pxPerSec, setClipTrim]);
 
   // Delete selected clip with keyboard.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if ((e.key === "Delete" || e.key === "Backspace") && selectedClipId) {
-        const tag = (e.target as HTMLElement)?.tagName;
-        if (tag === "INPUT" || tag === "TEXTAREA") return;
-        removeClip(selectedClipId);
-      }
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA") return;
+      if ((e.key === "Delete" || e.key === "Backspace") && selectedClipId) removeClip(selectedClipId);
+      else if (e.key === "b" || e.key === "B") { if (!e.metaKey && !e.ctrlKey) splitAtPlayhead(); }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [selectedClipId, removeClip]);
+  }, [selectedClipId, removeClip, splitAtPlayhead]);
 
   function onWheel(e: React.WheelEvent) {
     // Trackpad pinch (ctrlKey) or Ctrl+wheel → zoom; otherwise native scroll.
@@ -86,7 +98,22 @@ export function TimelinePanel() {
   return (
     <div className="flex h-full min-h-0 flex-col border-t border-white/10 bg-[#0B0F15]/70">
       <div className="flex h-8 shrink-0 items-center gap-2 border-b border-white/10 px-3 text-white/55">
-        <button type="button" className="flex items-center gap-1 rounded-md border border-white/10 px-2 py-0.5 text-[11px] hover:bg-white/5">
+        <button
+          type="button"
+          onClick={splitAtPlayhead}
+          title="Split at playhead (B)"
+          className="flex items-center gap-1 rounded-md border border-white/10 px-2 py-0.5 text-[11px] hover:bg-white/5"
+        >
+          <Scissors className="h-3 w-3" /> Split
+        </button>
+        <button
+          type="button"
+          onClick={toggleSnap}
+          title="Toggle snapping"
+          className={`flex items-center gap-1 rounded-md border px-2 py-0.5 text-[11px] transition-colors ${
+            snap ? "border-[#3D8EFF]/50 bg-[#3D8EFF]/20 text-white" : "border-white/10 hover:bg-white/5"
+          }`}
+        >
           <Magnet className="h-3 w-3" /> Snap
         </button>
         {selectedClipId && (
@@ -128,11 +155,28 @@ export function TimelinePanel() {
                 }`}
               >
                 <span className="block truncate px-1.5 py-1 pr-5 text-[10px] text-white/85">{clip.name}</span>
+                {/* Trim handles — drag clip edges to set in/out */}
+                <div
+                  title="Trim start"
+                  onPointerDown={(e) => {
+                    e.stopPropagation();
+                    trimDrag.current = { id: clip.id, edge: "in", startX: e.clientX, inSec: clip.trimInSec, outSec: clip.trimOutSec };
+                  }}
+                  className="absolute inset-y-0 left-0 w-1.5 cursor-ew-resize bg-[#3D8EFF]/0 hover:bg-[#3D8EFF]/70"
+                />
+                <div
+                  title="Trim end"
+                  onPointerDown={(e) => {
+                    e.stopPropagation();
+                    trimDrag.current = { id: clip.id, edge: "out", startX: e.clientX, inSec: clip.trimInSec, outSec: clip.trimOutSec };
+                  }}
+                  className="absolute inset-y-0 right-0 w-1.5 cursor-ew-resize bg-[#3D8EFF]/0 hover:bg-[#3D8EFF]/70"
+                />
                 <button
                   type="button"
                   title="Remove from timeline"
                   onClick={(e) => { e.stopPropagation(); removeClip(clip.id); }}
-                  className="absolute right-0.5 top-0.5 flex h-4 w-4 items-center justify-center rounded-sm bg-black/50 text-white/70 opacity-0 hover:bg-black/80 hover:text-white group-hover:opacity-100"
+                  className="absolute right-2 top-0.5 flex h-4 w-4 items-center justify-center rounded-sm bg-black/50 text-white/70 opacity-0 hover:bg-black/80 hover:text-white group-hover:opacity-100"
                 >
                   <X className="h-2.5 w-2.5" />
                 </button>

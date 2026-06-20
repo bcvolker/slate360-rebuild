@@ -1,6 +1,8 @@
 "use client";
 
 import { create } from "zustand";
+import { useStore } from "zustand";
+import { temporal } from "zundo";
 
 /**
  * Transient Content Studio editor state (Zustand — panels subscribe to slices,
@@ -36,6 +38,7 @@ type EditorState = {
   playheadSec: number;
   playing: boolean;
   pxPerSec: number;
+  snap: boolean;
 
   setMode: (mode: EditorMode) => void;
   setInspectorTab: (tab: InspectorTab) => void;
@@ -46,6 +49,9 @@ type EditorState = {
   removeClip: (id: string) => void;
   selectClip: (id: string | null) => void;
   patchClipDuration: (id: string, durationSec: number) => void;
+  splitAtPlayhead: () => void;
+  setClipTrim: (id: string, edit: { trimInSec?: number; trimOutSec?: number }) => void;
+  toggleSnap: () => void;
 
   setPlayhead: (sec: number) => void;
   play: () => void;
@@ -87,7 +93,9 @@ export function clipAt(clips: TimelineClip[], playheadSec: number): { row: ClipL
   return null;
 }
 
-export const useEditorStore = create<EditorState>((set) => ({
+export const useEditorStore = create<EditorState>()(
+  temporal(
+    (set) => ({
   mode: "video",
   inspectorTab: "clip",
   panelVisibility: { ...DEFAULT_PANELS },
@@ -97,6 +105,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   playheadSec: 0,
   playing: false,
   pxPerSec: 60,
+  snap: true,
 
   setMode: (mode) => set({ mode }),
   setInspectorTab: (inspectorTab) => set({ inspectorTab }),
@@ -129,13 +138,58 @@ export const useEditorStore = create<EditorState>((set) => ({
         c.id === id ? { ...c, durationSec, trimOutSec: c.trimOutSec > 0 ? c.trimOutSec : durationSec } : c,
       ),
     })),
+  splitAtPlayhead: () =>
+    set((s) => {
+      const hit = clipAt(s.clips, s.playheadSec);
+      if (!hit) return {};
+      const { row, localSec } = hit;
+      const src = row.clip;
+      // Need a real interior cut: not at either edge.
+      if (localSec <= src.trimInSec + 0.04 || localSec >= src.trimOutSec - 0.04) return {};
+      const left: TimelineClip = { ...src, trimOutSec: localSec };
+      const right: TimelineClip = { ...src, id: uid(), trimInSec: localSec };
+      const idx = s.clips.findIndex((c) => c.id === src.id);
+      const next = [...s.clips];
+      next.splice(idx, 1, left, right);
+      return { clips: next, selectedClipId: right.id };
+    }),
+  setClipTrim: (id, edit) =>
+    set((s) => ({
+      clips: s.clips.map((c) => {
+        if (c.id !== id) return c;
+        const dur = c.durationSec || c.trimOutSec || 0;
+        let trimIn = edit.trimInSec ?? c.trimInSec;
+        let trimOut = edit.trimOutSec ?? c.trimOutSec;
+        trimIn = Math.max(0, Math.min(trimIn, trimOut - 0.1));
+        trimOut = Math.min(dur || trimOut, Math.max(trimOut, trimIn + 0.1));
+        return { ...c, trimInSec: trimIn, trimOutSec: trimOut };
+      }),
+    })),
+  toggleSnap: () => set((s) => ({ snap: !s.snap })),
 
   setPlayhead: (playheadSec) => set({ playheadSec: Math.max(0, playheadSec) }),
   play: () => set({ playing: true }),
   pause: () => set({ playing: false }),
   togglePlay: () => set((s) => ({ playing: !s.playing })),
   setZoom: (pxPerSec) => set({ pxPerSec: Math.max(8, Math.min(240, pxPerSec)) }),
-}));
+    }),
+    {
+      // History tracks ONLY the clip array — transport/zoom/panel changes never
+      // pollute undo. Selection rides along so undo restores the active clip.
+      partialize: (s) => ({ clips: s.clips, selectedClipId: s.selectedClipId }),
+      limit: 100,
+      equality: (a, b) => a.clips === b.clips,
+    },
+  ),
+);
+
+/** Reactive undo/redo bindings for the command bar (subscribes to history depth). */
+export function useUndoRedo() {
+  const { undo, redo } = useEditorStore.temporal.getState();
+  const canUndo = useStore(useEditorStore.temporal, (s) => s.pastStates.length > 0);
+  const canRedo = useStore(useEditorStore.temporal, (s) => s.futureStates.length > 0);
+  return { undo: () => undo(), redo: () => redo(), canUndo, canRedo };
+}
 
 // Dev-only handle for harness/manual testing (absent in production builds).
 if (typeof window !== "undefined" && process.env.NODE_ENV !== "production") {
