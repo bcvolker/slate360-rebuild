@@ -1,6 +1,6 @@
 "use client";
 
-import { Clapperboard, RotateCcw, Upload } from "lucide-react";
+import { Clapperboard, PanelLeft, PanelRight, RotateCcw, Upload } from "lucide-react";
 import { useEditorStore, type EditorMode } from "./editor-store";
 
 const MODES: { id: EditorMode; label: string }[] = [
@@ -9,8 +9,20 @@ const MODES: { id: EditorMode; label: string }[] = [
   { id: "photo", label: "Photo" },
 ];
 
-/** Top command bar (44px): brand, project, mode switcher, render status, actions. */
-export function CommandBar({ projectTitle }: { projectTitle: string }) {
+/** Top command bar (44px): brand, project, mode switcher, panel toggles, status, actions. */
+export function CommandBar({
+  projectTitle,
+  mediaOpen,
+  inspectorOpen,
+  onToggleMedia,
+  onToggleInspector,
+}: {
+  projectTitle: string;
+  mediaOpen: boolean;
+  inspectorOpen: boolean;
+  onToggleMedia: () => void;
+  onToggleInspector: () => void;
+}) {
   const mode = useEditorStore((s) => s.mode);
   const setMode = useEditorStore((s) => s.setMode);
   const resetLayout = useEditorStore((s) => s.resetLayout);
@@ -42,6 +54,22 @@ export function CommandBar({ projectTitle }: { projectTitle: string }) {
         ))}
       </div>
 
+      {/* Panel toggles — collapse/show the side rails */}
+      <div className="ml-2 flex items-center gap-1">
+        <PanelToggle
+          active={mediaOpen}
+          onClick={onToggleMedia}
+          title="Toggle Media Bin"
+          icon={<PanelLeft className="h-3.5 w-3.5" />}
+        />
+        <PanelToggle
+          active={inspectorOpen}
+          onClick={onToggleInspector}
+          title="Toggle Inspector"
+          icon={<PanelRight className="h-3.5 w-3.5" />}
+        />
+      </div>
+
       <div className="ml-auto flex items-center gap-2">
         {/* Render status strip (placeholder until the job loop lands in Slice 5) */}
         <span className="flex items-center gap-1.5 rounded-md border border-white/10 px-2 py-1 text-[11px] text-white/55">
@@ -66,5 +94,32 @@ export function CommandBar({ projectTitle }: { projectTitle: string }) {
         </button>
       </div>
     </div>
+  );
+}
+
+function PanelToggle({
+  active,
+  onClick,
+  title,
+  icon,
+}: {
+  active: boolean;
+  onClick: () => void;
+  title: string;
+  icon: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title={title}
+      className={`flex h-6 w-6 items-center justify-center rounded-md border transition-colors ${
+        active
+          ? "border-[#3D8EFF]/50 bg-[#3D8EFF]/20 text-white"
+          : "border-white/10 text-white/45 hover:bg-white/5"
+      }`}
+    >
+      {icon}
+    </button>
   );
 }

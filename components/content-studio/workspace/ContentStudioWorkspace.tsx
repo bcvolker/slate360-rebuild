@@ -1,5 +1,12 @@
 "use client";
 
+import { useRef } from "react";
+import {
+  Panel,
+  PanelGroup,
+  PanelResizeHandle,
+  type ImperativePanelHandle,
+} from "react-resizable-panels";
 import { CommandBar } from "./CommandBar";
 import { MediaBinPanel } from "./MediaBinPanel";
 import { PreviewPanel } from "./PreviewPanel";
@@ -8,36 +15,100 @@ import { TimelinePanel } from "./TimelinePanel";
 import { useEditorStore } from "./editor-store";
 
 /**
- * Content Studio workspace shell. Exact default geometry from the build plan:
- * top bar 44px · center row (Media 260 / Preview flex / Inspector 300) ~72% ·
- * Timeline ~28% (protected). Drag/dock/resize (dockview) lands in a later pass;
- * Preview + Timeline are always present (protected).
+ * Content Studio workspace shell — Preview is the large focal point; every panel
+ * is resizable (drag the handles) and the side rails are collapsible (toggle in
+ * the command bar). Preview + Timeline are PROTECTED: resizable but never closed.
+ * Full drag-to-reposition docking is a later enhancement; this delivers the
+ * adjustable + collapsible workspace.
  */
 export function ContentStudioWorkspace() {
+  const mediaRef = useRef<ImperativePanelHandle>(null);
+  const inspectorRef = useRef<ImperativePanelHandle>(null);
+
   const showMediaBin = useEditorStore((s) => s.panelVisibility.mediaBin);
   const showInspector = useEditorStore((s) => s.panelVisibility.inspector);
+  const togglePanel = useEditorStore((s) => s.togglePanel);
+
+  function toggleMedia() {
+    const p = mediaRef.current;
+    if (!p) return;
+    p.isCollapsed() ? p.expand() : p.collapse();
+  }
+  function toggleInspector() {
+    const p = inspectorRef.current;
+    if (!p) return;
+    p.isCollapsed() ? p.expand() : p.collapse();
+  }
 
   return (
     <div className="flex h-full min-h-0 w-full flex-col bg-[#070A0F] text-white">
-      <CommandBar projectTitle="Untitled edit" />
+      <CommandBar
+        projectTitle="Untitled edit"
+        mediaOpen={showMediaBin}
+        inspectorOpen={showInspector}
+        onToggleMedia={toggleMedia}
+        onToggleInspector={toggleInspector}
+      />
 
-      {/* Center row */}
-      <div className="grid min-h-0 flex-[0_0_72%]" style={{ gridTemplateColumns: gridCols(showMediaBin, showInspector) }}>
-        {showMediaBin && <MediaBinPanel />}
-        <PreviewPanel />
-        {showInspector && <InspectorPanel />}
-      </div>
+      <PanelGroup direction="vertical" className="min-h-0 flex-1">
+        {/* Center row */}
+        <Panel defaultSize={72} minSize={40}>
+          <PanelGroup direction="horizontal" className="h-full">
+            <Panel
+              ref={mediaRef}
+              order={1}
+              defaultSize={18}
+              minSize={12}
+              collapsible
+              collapsedSize={0}
+              onCollapse={() => showMediaBin && togglePanel("mediaBin")}
+              onExpand={() => !showMediaBin && togglePanel("mediaBin")}
+            >
+              <MediaBinPanel />
+            </Panel>
+            <Handle vertical />
 
-      {/* Timeline (protected) */}
-      <div className="min-h-[180px] flex-1">
-        <TimelinePanel />
-      </div>
+            {/* Preview — protected focal point */}
+            <Panel order={2} defaultSize={60} minSize={30}>
+              <PreviewPanel />
+            </Panel>
+
+            <Handle vertical />
+            <Panel
+              ref={inspectorRef}
+              order={3}
+              defaultSize={22}
+              minSize={14}
+              collapsible
+              collapsedSize={0}
+              onCollapse={() => showInspector && togglePanel("inspector")}
+              onExpand={() => !showInspector && togglePanel("inspector")}
+            >
+              <InspectorPanel />
+            </Panel>
+          </PanelGroup>
+        </Panel>
+
+        <Handle />
+
+        {/* Timeline — protected */}
+        <Panel defaultSize={28} minSize={12}>
+          <TimelinePanel />
+        </Panel>
+      </PanelGroup>
     </div>
   );
 }
 
-function gridCols(mediaBin: boolean, inspector: boolean): string {
-  const left = mediaBin ? "minmax(200px, 260px)" : "0px";
-  const right = inspector ? "minmax(260px, 300px)" : "0px";
-  return `${left} minmax(480px, 1fr) ${right}`;
+/** Resize handle — thin, turns blue on hover/drag. */
+function Handle({ vertical = false }: { vertical?: boolean }) {
+  return (
+    <PanelResizeHandle
+      className={
+        vertical
+          ? "w-1 bg-white/5 transition-colors hover:bg-[#3D8EFF]/60 data-[resize-handle-active]:bg-[#3D8EFF]"
+          : "h-1 bg-white/5 transition-colors hover:bg-[#3D8EFF]/60 data-[resize-handle-active]:bg-[#3D8EFF]"
+      }
+    />
+  );
 }

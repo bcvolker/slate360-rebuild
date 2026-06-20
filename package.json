@@ -91,6 +91,7 @@
     "react-grid-layout": "^2.2.2",
     "react-leaflet": "^5.0.0",
     "react-pdf": "^10.4.0",
+    "react-resizable-panels": "^2.1.9",
     "recharts": "^3.7.0",
     "regenerator-runtime": "^0.14.1",
     "resend": "^6.9.2",
