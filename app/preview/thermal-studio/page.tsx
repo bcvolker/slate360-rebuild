@@ -16,9 +16,36 @@ export default function PreviewThermalStudio() {
     fetch("/thermal-fixtures/sample-211.json").then((r) => r.json()).then(setG);
   }, []);
 
+  // Replicate the REAL constrained chain (topbar → scroll content → layout → session
+  // header → shell tabs/summary) around WorkView so the image size is measured under
+  // the same height pressure as production — not at full 100dvh.
   return (
-    <div className="h-[100dvh] p-4">
-      <ThermalStudioWorkView captures={CAPTURES} loadGrid={async () => g} />
+    <div className="flex h-[100dvh] flex-col bg-[var(--graphite-canvas)]">
+      <div className="flex h-12 shrink-0 items-center border-b border-[var(--mobile-app-card-border)] px-5 text-xs text-[var(--graphite-muted)]">top bar</div>
+      <div className="min-h-0 flex-1 overflow-y-auto p-4 lg:p-6">
+        <div className="mx-auto flex h-full min-h-0 w-full max-w-6xl flex-col px-4 py-3">
+          <div className="mb-3 shrink-0">
+            <h1 className="text-2xl font-bold text-[var(--graphite-text-header)]">Thermal Studio</h1>
+            <p className="text-sm text-[var(--graphite-muted)]">Private radiometric inspection workspace</p>
+          </div>
+          <div className="min-h-0 flex-1">
+            <div className="flex h-full min-h-0 flex-col gap-2">
+              <div className="shrink-0 text-base font-bold text-[var(--graphite-text-header)]">Oak Ridge Roof — Preview</div>
+              {/* summary bar + tabs (shell chrome) */}
+              <div className="shrink-0 rounded-2xl border border-[var(--mobile-app-card-border)] p-3 text-xs text-[var(--graphite-muted)]">Summary bar</div>
+              <div className="shrink-0 text-xs text-[var(--graphite-muted)]">Library · Inspect · Report Builder · Deliver</div>
+              <div className="min-h-0 flex-1 overflow-hidden">
+                <div className="flex h-full min-h-0 flex-col gap-3">
+                  <div className="shrink-0 text-xs text-[var(--graphite-muted)]">Tune image · Detection settings</div>
+                  <div className="min-h-0 flex-1">
+                    <ThermalStudioWorkView captures={CAPTURES} loadGrid={async () => g} />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

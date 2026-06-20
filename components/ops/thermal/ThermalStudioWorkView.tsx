@@ -287,12 +287,8 @@ export function ThermalStudioWorkView({
     <div className="h-full min-h-0">
       {/* Single workspace: tools | large image | data, with a filmstrip below */}
       <section className="flex h-full min-h-0 min-w-0 flex-col gap-3">
-        <div
-          className={`grid min-h-0 flex-1 gap-3 ${
-            compareVisual && pairedVisual ? "grid-cols-2" : "grid-cols-1"
-          }`}
-        >
-        <div className="min-h-0 rounded-2xl border border-[var(--mobile-app-card-border)] shadow-[var(--mobile-app-card-shadow)] p-3">
+        <div className="flex min-h-0 flex-1 gap-3">
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col rounded-2xl border border-[var(--mobile-app-card-border)] shadow-[var(--mobile-app-card-shadow)] p-3">
           {gridState === "ready" && grid ? (
             <ThermalProbeViewer
               grid={grid}
@@ -335,7 +331,7 @@ export function ThermalStudioWorkView({
         </div>
 
         {compareVisual && pairedVisual ? (
-          <div className="flex min-h-0 flex-col rounded-2xl border border-[var(--mobile-app-card-border)] shadow-[var(--mobile-app-card-shadow)] p-3">
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col rounded-2xl border border-[var(--mobile-app-card-border)] shadow-[var(--mobile-app-card-shadow)] p-3">
             <p className="shrink-0 pb-2 font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--graphite-muted)]">
               Visual · {pairedVisual.filename}
             </p>

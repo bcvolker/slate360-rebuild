@@ -532,16 +532,16 @@ export function ThermalProbeViewer({
       />
       </div>
 
-      <div
-        className="grid min-h-0 flex-1 gap-3"
-        style={{ gridTemplateColumns: `${showLeftRail ? "176px" : "0px"} minmax(0,1fr) ${showRightRail ? "248px" : "0px"}` }}
-      >
+      {/* Flex body (NOT grid — a grid's implicit row is auto-sized and collapses the
+          viewer to content height). Center is flex-1 min-w-0 and dominates; rails are
+          fixed-width + collapsible. */}
+      <div className="flex min-h-0 flex-1 gap-3">
         {/* Left rail: tuning / palette params / histogram / isotherm (collapsible) */}
-        {showLeftRail ? <div className="min-h-0 overflow-y-auto pr-1">{toolsRail}</div> : <div />}
+        {showLeftRail ? <div className="w-44 shrink-0 min-h-0 overflow-y-auto pr-1">{toolsRail}</div> : null}
 
         {/* Center: the thermal image as a large, aspect-correct work area (zoom + pan).
             Size is measured (ResizeObserver) so the image always fills the cell. */}
-        <div ref={centerRef} className="relative flex min-h-0 items-center justify-center overflow-hidden">
+        <div ref={centerRef} className="relative flex min-h-0 min-w-0 flex-1 items-center justify-center overflow-hidden">
         <div
           ref={wrapRef}
           style={fit ? { width: fit.w, height: fit.h } : { width: 0, height: 0 }}
@@ -659,7 +659,7 @@ export function ThermalProbeViewer({
 
         {/* Right rail: cloud anomalies + Sp/Dt measurements + per-image findings (collapsible) */}
         {showRightRail ? (
-        <div className="min-h-0 space-y-3 overflow-y-auto pr-1 text-sm">
+        <div className="w-60 shrink-0 min-h-0 space-y-3 overflow-y-auto pr-1 text-sm">
           <ThermalFindingsPanel
             anomalies={anomalies}
             standards={standards}
@@ -676,7 +676,7 @@ export function ThermalProbeViewer({
           />
           {extraPanels}
         </div>
-        ) : <div />}
+        ) : null}
       </div>
     </div>
   );
