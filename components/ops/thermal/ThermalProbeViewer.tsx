@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   renderHeatmap,
   computeHistogram,
@@ -69,6 +69,8 @@ type Props = {
   /** Per-image palette (display) — seed + persist. */
   initialPalette?: string | null;
   onPaletteChange?: (palette: string) => void;
+  /** Extra panels rendered in the right data rail (e.g. photo metadata + findings editor). */
+  extraPanels?: ReactNode;
 };
 
 export function ThermalProbeViewer({
@@ -82,6 +84,7 @@ export function ThermalProbeViewer({
   onTuningChange,
   initialPalette,
   onPaletteChange,
+  extraPanels,
 }: Props) {
   const { width, height } = grid;
   const baseEmissivity = grid.emissivity ?? 0.95;
@@ -396,8 +399,42 @@ export function ThermalProbeViewer({
   const pct = (v: number, total: number) => `${(v / total) * 100}%`;
   const importedCount = spots.filter((s) => s.imported).length;
 
+  const toolsRail = (
+    <ThermalImageTuning
+      emissivity={emissivity}
+      reflectedC={reflectedC}
+      baseEmissivity={baseEmissivity}
+      onEmissivity={(v) => applyTuning(v, reflectedC)}
+      onReflected={(v) => applyTuning(emissivity, v)}
+      onReset={() => applyTuning(baseEmissivity, 20)}
+      unit={unit}
+      dataMin={minC}
+      dataMax={maxC}
+      rangeMin={loDisp}
+      rangeMax={hiDisp}
+      rangeManual={displayMin !== null || displayMax !== null}
+      onRangeMin={setDisplayMin}
+      onRangeMax={setDisplayMax}
+      onRangeAuto={() => { setDisplayMin(null); setDisplayMax(null); }}
+      histogram={histogram}
+      distanceM={distanceM}
+      humidityPct={humidityPct}
+      atmosphericC={atmosphericC}
+      onDistanceM={(v) => applyParam({ distance_m: v })}
+      onHumidityPct={(v) => applyParam({ humidity_pct: v })}
+      onAtmosphericC={(v) => applyParam({ atmospheric_c: v })}
+      isoOn={isoOn}
+      isoLo={isoLoVal}
+      isoHi={isoHiVal}
+      onIsoToggle={() => setIsoOn((v) => !v)}
+      onIsoLo={setIsoLo}
+      onIsoHi={setIsoHi}
+    />
+  );
+
   return (
-    <div className="space-y-3">
+    <div className="flex h-full min-h-0 flex-col gap-2">
+      <div className="shrink-0">
       <ThermalProbeToolbar
         title={title}
         palette={palette}
@@ -426,11 +463,18 @@ export function ThermalProbeViewer({
         spotCount={spots.length}
         onClearSpots={() => { commit([]); setRefId(null); }}
       />
+      </div>
 
-      <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
+      <div className="grid min-h-0 flex-1 gap-3 lg:grid-cols-[176px_minmax(0,1fr)_248px]">
+        {/* Left rail: tuning / palette params / histogram / isotherm */}
+        <div className="min-h-0 overflow-y-auto pr-1">{toolsRail}</div>
+
+        {/* Center: the thermal image as a large, aspect-correct work area */}
+        <div className="flex min-h-0 items-center justify-center overflow-hidden">
         <div
           ref={wrapRef}
-          className="relative aspect-[4/3] w-full cursor-crosshair touch-none overflow-hidden rounded-xl border border-[var(--mobile-app-card-border)] bg-black"
+          style={{ aspectRatio: `${width} / ${height}` }}
+          className="relative h-full max-h-full max-w-full cursor-crosshair touch-none overflow-hidden rounded-xl border border-[var(--mobile-app-card-border)] bg-black"
           onPointerMove={onPointerMove}
           onPointerLeave={() => { setHover(null); endGesture(); }}
           onPointerUp={endGesture}
@@ -533,37 +577,10 @@ export function ThermalProbeViewer({
           })}
         </div>
 
-        <div className="space-y-3 text-sm">
-          <ThermalImageTuning
-            emissivity={emissivity}
-            reflectedC={reflectedC}
-            baseEmissivity={baseEmissivity}
-            onEmissivity={(v) => applyTuning(v, reflectedC)}
-            onReflected={(v) => applyTuning(emissivity, v)}
-            onReset={() => applyTuning(baseEmissivity, 20)}
-            unit={unit}
-            dataMin={minC}
-            dataMax={maxC}
-            rangeMin={loDisp}
-            rangeMax={hiDisp}
-            rangeManual={displayMin !== null || displayMax !== null}
-            onRangeMin={setDisplayMin}
-            onRangeMax={setDisplayMax}
-            onRangeAuto={() => { setDisplayMin(null); setDisplayMax(null); }}
-            histogram={histogram}
-            distanceM={distanceM}
-            humidityPct={humidityPct}
-            atmosphericC={atmosphericC}
-            onDistanceM={(v) => applyParam({ distance_m: v })}
-            onHumidityPct={(v) => applyParam({ humidity_pct: v })}
-            onAtmosphericC={(v) => applyParam({ atmospheric_c: v })}
-            isoOn={isoOn}
-            isoLo={isoLoVal}
-            isoHi={isoHiVal}
-            onIsoToggle={() => setIsoOn((v) => !v)}
-            onIsoLo={setIsoLo}
-            onIsoHi={setIsoHi}
-          />
+        </div>
+
+        {/* Right rail: cloud anomalies + Sp/Dt measurements + per-image findings */}
+        <div className="min-h-0 space-y-3 overflow-y-auto pr-1 text-sm">
           <ThermalFindingsPanel
             anomalies={anomalies}
             standards={standards}
@@ -578,6 +595,7 @@ export function ThermalProbeViewer({
             unit={unit}
             valueOf={(s) => spotStats(s, temps, width, height).value}
           />
+          {extraPanels}
         </div>
       </div>
     </div>

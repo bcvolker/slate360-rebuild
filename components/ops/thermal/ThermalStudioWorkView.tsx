@@ -239,10 +239,54 @@ export function ThermalStudioWorkView({
   const meta = (selected?.metadata ?? {}) as Record<string, unknown>;
   const gps = (meta.gps ?? meta.gps_position ?? {}) as Record<string, unknown>;
 
+  // Photo metadata + per-image findings editor — rendered in the viewer's right rail
+  // so the thermal image itself can be the large center work area.
+  const photoDataPanel = selected ? (
+    <>
+      <div className="rounded-xl border border-[var(--mobile-app-card-border)] p-3">
+        <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--graphite-muted)]">Photo data</p>
+        <div className="mt-1">
+          <MetaRow label="File" value={selected.filename} />
+          <MetaRow label="Camera" value={String(q.sensor_make ?? "—")} />
+          <MetaRow label="Sensor" value={String(q.sensor_model ?? q.parser_id ?? "—")} />
+          <MetaRow label="Avg temp" value={num(q.avg_temp_c, "°C")} />
+          <MetaRow label="Emissivity" value={num(grid?.emissivity ?? q.emissivity_used)} />
+          <MetaRow
+            label="GPS"
+            value={gps.lat != null && gps.lon != null ? `${Number(gps.lat).toFixed(4)}, ${Number(gps.lon).toFixed(4)}` : "—"}
+          />
+          <MetaRow label="Radiometric" value={q.is_radiometric ? "Yes" : "No / pending"} />
+        </div>
+      </div>
+      <div className="rounded-xl border border-[var(--mobile-app-card-border)] p-3">
+        <div className="flex items-center justify-between">
+          <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--graphite-muted)]">Findings</p>
+          <button
+            type="button"
+            onClick={draftFindings}
+            disabled={drafting || anomalyCountSel === 0}
+            title={anomalyCountSel === 0 ? "No detected anomalies to draft from" : "Draft findings from detected anomalies (AI)"}
+            className="rounded border border-[var(--mobile-app-card-border)] px-1.5 py-0.5 text-[10px] font-semibold text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)] disabled:opacity-40"
+          >
+            {drafting ? "Drafting…" : "Draft (AI)"}
+          </button>
+        </div>
+        <textarea
+          value={findingsText}
+          onChange={(e) => onFindingsChange(e.target.value)}
+          rows={4}
+          placeholder="Operator findings for this image — what the thermal signature indicates, severity, and recommended action."
+          className="mt-2 block w-full rounded-xl border border-[var(--mobile-app-card-border)] bg-[#111827] px-3 py-2 text-xs text-white"
+        />
+        <p className="mt-1 text-[10px] text-[var(--graphite-muted)]">{draftNote ?? "Saved per image · included in the report."}</p>
+      </div>
+    </>
+  ) : null;
+
   return (
-    <div className="grid h-full min-h-0 grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_260px]">
-      {/* Main: large viewer + filmstrip */}
-      <section className="flex min-h-0 min-w-0 flex-col gap-3">
+    <div className="h-full min-h-0">
+      {/* Single workspace: tools | large image | data, with a filmstrip below */}
+      <section className="flex h-full min-h-0 min-w-0 flex-col gap-3">
         <div
           className={`grid min-h-0 flex-1 gap-3 ${
             compareVisual && pairedVisual ? "grid-cols-2" : "grid-cols-1"
@@ -261,6 +305,7 @@ export function ThermalStudioWorkView({
               onTuningChange={onTuningChange}
               initialPalette={typeof selectedMeta.palette === "string" ? selectedMeta.palette : null}
               onPaletteChange={(p) => { if (selected) defaultSavePalette(selected.id, p); }}
+              extraPanels={photoDataPanel}
             />
           ) : gridState === "loading" ? (
             <div className="flex h-full min-h-[260px] items-center justify-center text-sm text-[var(--graphite-muted)]">
@@ -374,67 +419,6 @@ export function ThermalStudioWorkView({
           })}
         </div>
       </section>
-
-      {/* Right: per-photo data */}
-      <aside className="min-h-0 space-y-3 overflow-y-auto rounded-2xl border border-[var(--mobile-app-card-border)] shadow-[var(--mobile-app-card-shadow)] p-3">
-        <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--graphite-muted)]">
-          Photo data
-        </p>
-        {selected ? (
-          <div>
-            <MetaRow label="File" value={selected.filename} />
-            <MetaRow label="Camera" value={String(q.sensor_make ?? "—")} />
-            <MetaRow label="Sensor" value={String(q.sensor_model ?? q.parser_id ?? "—")} />
-            <MetaRow label="Max temp" value={num(grid?.maxC ?? q.max_temp_c, "°C")} />
-            <MetaRow label="Min temp" value={num(grid?.minC ?? q.min_temp_c, "°C")} />
-            <MetaRow label="Avg temp" value={num(q.avg_temp_c, "°C")} />
-            <MetaRow label="Emissivity" value={num(grid?.emissivity ?? q.emissivity_used)} />
-            <MetaRow label="Reflected" value={num(meta.reflected_temp_c, "°C")} />
-            <MetaRow label="Humidity" value={num(meta.humidity_pct, "%")} />
-            <MetaRow label="Ambient" value={num(meta.ambient_temp_c, "°C")} />
-            <MetaRow
-              label="GPS"
-              value={
-                gps.lat != null && gps.lon != null
-                  ? `${Number(gps.lat).toFixed(4)}, ${Number(gps.lon).toFixed(4)}`
-                  : "—"
-              }
-            />
-            <MetaRow label="Radiometric" value={q.is_radiometric ? "Yes" : "No / pending"} />
-          </div>
-        ) : (
-          <p className="text-sm text-[var(--graphite-muted)]">Select a capture.</p>
-        )}
-
-        {selected ? (
-          <div className="border-t border-[var(--mobile-app-card-border)] pt-3">
-            <div className="flex items-center justify-between">
-              <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--graphite-muted)]">
-                Findings
-              </p>
-              <button
-                type="button"
-                onClick={draftFindings}
-                disabled={drafting || anomalyCountSel === 0}
-                title={anomalyCountSel === 0 ? "No detected anomalies to draft from" : "Draft findings from detected anomalies (AI)"}
-                className="rounded border border-[var(--mobile-app-card-border)] px-1.5 py-0.5 text-[10px] font-semibold text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)] disabled:opacity-40"
-              >
-                {drafting ? "Drafting…" : "Draft (AI)"}
-              </button>
-            </div>
-            <textarea
-              value={findingsText}
-              onChange={(e) => onFindingsChange(e.target.value)}
-              rows={5}
-              placeholder="Operator findings for this image — what the thermal signature indicates, severity, and recommended action."
-              className="mt-2 block w-full rounded-xl border border-[var(--mobile-app-card-border)] bg-[#111827] px-3 py-2 text-xs text-white"
-            />
-            <p className="mt-1 text-[10px] text-[var(--graphite-muted)]">
-              {draftNote ?? "Saved per image · included in the report."}
-            </p>
-          </div>
-        ) : null}
-      </aside>
     </div>
   );
 }
