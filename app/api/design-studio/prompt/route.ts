@@ -57,6 +57,7 @@ export const POST = (req: NextRequest) =>
         viewerKind: session.source_viewer_kind,
         sessionTitle: session.title,
         parentActions,
+        referenceImageCount: body.referenceImageKeys?.length ?? 0,
       });
     } catch (e) {
       return serverError(e instanceof Error ? e.message : "AI interpretation failed");

@@ -14,6 +14,7 @@ export interface PromptContext {
   viewerKind: string | null; // 'splat' | 'model'
   sessionTitle: string;
   parentActions?: unknown[]; // cumulative actions from the variant being iterated
+  referenceImageCount?: number; // drag-dropped inspiration images attached to this prompt
 }
 
 const SCHEMA_HINT = `Return ONLY a JSON object with this shape:
@@ -50,6 +51,9 @@ function systemPrompt(ctx: PromptContext): string {
     ctx.parentActions && ctx.parentActions.length
       ? `Prior cumulative actions on this variant: ${JSON.stringify(ctx.parentActions).slice(0, 1500)}`
       : "No prior actions; this is the first edit.",
+    ctx.referenceImageCount && ctx.referenceImageCount > 0
+      ? `The user attached ${ctx.referenceImageCount} reference image(s) for style/inspiration. Treat objects the user wants added that match those references as needs_generation entries (kind "image_to_3d") and reference them from import_glb steps.`
+      : "",
     SCHEMA_HINT,
     "Output strictly valid JSON. No commentary outside the JSON object.",
   ].join("\n\n");

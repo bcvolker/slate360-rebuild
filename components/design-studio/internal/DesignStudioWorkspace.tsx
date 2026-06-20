@@ -8,6 +8,7 @@ import { TwinImportPanel } from "./TwinImportPanel";
 import { PromptComposer } from "./PromptComposer";
 import { VariantStrip } from "./VariantStrip";
 import { DesignViewer } from "./DesignViewer";
+import { CompareView } from "./CompareView";
 
 // Temporary test model so the interactive viewer controls can be exercised before
 // real twin/variant previews are wired. Served from /public/uploads (tracked in git).
@@ -137,7 +138,12 @@ export function DesignStudioWorkspace({ initialSessions }: { initialSessions: De
         {/* Center: the hero viewer — fills all remaining space */}
         <main className="relative min-h-0 min-w-0 flex-1 overflow-hidden bg-black/50">
           {tab === "explore" && <ViewerStage session={activeSession} activeVariant={activeVariant} />}
-          {tab === "compare" && <Centered label="Compare — select two variants to view side by side." />}
+          {tab === "compare" &&
+            (activeSessionId ? (
+              <CompareView sessionId={activeSessionId} variants={variants} />
+            ) : (
+              <Centered label="Import a twin and generate variants to compare." />
+            ))}
           {tab === "exports" && <Centered label="Exports — generated files and share links appear here." />}
 
           {/* Bottom variant strip overlay (toggle) — never steals viewer space */}
@@ -244,17 +250,14 @@ function ViewerStage({
     );
   }
 
-  // Gaussian splats need the splat viewer (later slice) — show a clear note.
-  if (kind === "splat") {
-    return (
-      <Centered label="This twin is a Gaussian splat — the splat viewer is wired in a later slice. Import a GLB twin to view it here now." />
-    );
-  }
-
   if (url) {
     return (
       <div className="relative h-full w-full">
-        <DesignViewer src={url} alt={activeVariant?.label ?? session.title} />
+        <DesignViewer
+          src={url}
+          viewerKind={kind === "splat" ? "splat" : "model"}
+          alt={activeVariant?.label ?? session.title}
+        />
         <ViewerHint>{session.title} · drag to orbit · scroll to zoom</ViewerHint>
       </div>
     );

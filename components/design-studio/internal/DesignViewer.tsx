@@ -1,17 +1,25 @@
 "use client";
 
-import dynamic from "next/dynamic";
+import { TwinModelViewer } from "@/components/digital-twin/TwinModelViewer";
+import type { TwinViewerKind } from "@/lib/digital-twin/viewer-format";
 
-// model-viewer must be client-only (custom web component) — gives orbit/zoom/pan
-// controls and handles Draco/meshopt automatically.
-const ModelViewerClient = dynamic(() => import("@/components/ModelViewerClient"), { ssr: false });
-
-/** The interactive 3D viewer for the Design Studio centerpiece. Fills its parent.
- *  `src` is a URL/path to a GLB/GLTF model. */
-export function DesignViewer({ src, alt = "Design model" }: { src: string; alt?: string }) {
+/**
+ * The interactive 3D viewer for the Design Studio centerpiece. Reuses
+ * TwinModelViewer so it handles Gaussian splats (SplatViewer) AND GLB/GLTF
+ * models (model-viewer) with full orbit/zoom/pan controls. Fills its parent.
+ */
+export function DesignViewer({
+  src,
+  viewerKind = "model",
+  alt = "Design model",
+}: {
+  src: string;
+  viewerKind?: TwinViewerKind;
+  alt?: string;
+}) {
   return (
-    <div className="h-full w-full">
-      <ModelViewerClient src={src} alt={alt} interactive scrollInterceptGate={false} />
+    <div className="relative h-full w-full">
+      <TwinModelViewer viewerKind={viewerKind} modelUrl={src} modelTitle={alt} />
     </div>
   );
 }
