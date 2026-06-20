@@ -73,11 +73,16 @@ store_receipts(platform, transaction_id, org_id, payload jsonb, verified_at)
   balance → **reserve hold** → enqueue Modal → on success **capture hold**, on failure **refund**.
 - **Config-driven products:** adding a product = config + plan rows, not new `if` chains.
 
-## 6. Open decision (CEO) — launch monetization
-Existing doctrine = invite-only / no-IAP first release. But the model is "free download + IAP" with
-**expensive GPU jobs**, so launching without token metering/trial caps = **financial exposure**.
-**Recommendation:** ship monetization (entitlements + token ledger + pre-flight + trial caps) **at
-launch** so loss-protection is live from day one. **Confirm.**
+## 6. Launch sequencing (CEO decision — RESOLVED)
+1. **TestFlight / invite-only beta:** monetization **dormant** (no purchases); test capture,
+   offline, reports with seeded orgs.
+2. **On store acceptance → monetized public launch:** entitlements + token ledger + pre-flight +
+   trial caps go live. **Stripe in LIVE mode on the CEO's business account** (not sandbox) for web
+   checkout + at-cost token packs + enterprise invoicing; **StoreKit/Play Billing via RevenueCat**
+   for in-app purchases. Both feed one entitlement layer.
+**Compliance:** web sells via Stripe; **in-app digital goods MUST use IAP** (Apple 3.1.1 — never
+Stripe inside the iOS app, and don't steer iOS users to web checkout from within the app). See
+`PRICING_REVIEW.md §4` for the full split and `§1–3` for the competitive/margin review.
 
 ## 7. Build order
 1. Entitlement consolidation: schema + `resolveEntitlements` + RLS + dispatcher pre-flight/holds.
