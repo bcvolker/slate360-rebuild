@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import { PanelLeft, PanelRight, Plus, Layers } from "lucide-react";
+import { PanelLeft, PanelRight, Plus, Layers, Loader2 } from "lucide-react";
 import type { DesignSession, DesignVariant } from "@/lib/design-studio/internal-types";
 import { useDesignVariantsRealtime } from "@/hooks/useDesignVariantsRealtime";
 import { TwinImportPanel } from "./TwinImportPanel";
@@ -192,15 +192,87 @@ function ViewerStage({
   session: DesignSession | null;
   activeVariant: DesignVariant | null;
 }) {
-  // For now the viewer always renders the interactive test model so the orbit/
-  // zoom/pan controls can be exercised. Real twin/variant previews replace this
-  // once the splat/Pixel-Streaming viewers are wired.
+  const [url, setUrl] = useState<string | null>(null);
+  const [kind, setKind] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!session) {
+      setUrl(null);
+      setKind(null);
+      setError(null);
+      return;
+    }
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+    const q = activeVariant ? `?variantId=${activeVariant.id}` : "";
+    fetch(`/api/design-studio/sessions/${session.id}/asset-url${q}`)
+      .then((r) => r.json())
+      .then((d) => {
+        if (cancelled) return;
+        if (d.url) {
+          setUrl(d.url);
+          setKind(d.viewerKind ?? null);
+        } else {
+          setError(d.error ?? "No model available");
+        }
+      })
+      .catch(() => !cancelled && setError("Failed to load model"))
+      .finally(() => !cancelled && setLoading(false));
+    return () => {
+      cancelled = true;
+    };
+  }, [session, activeVariant]);
+
+  // No session → show the test model so controls are always exercisable.
+  if (!session) {
+    return (
+      <div className="relative h-full w-full">
+        <DesignViewer src={TEST_MODEL_SRC} alt="Test model" />
+        <ViewerHint>Test model · drag to orbit · scroll to zoom</ViewerHint>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="flex h-full items-center justify-center text-sm text-slate-500">
+        <Loader2 className="mr-2 size-4 animate-spin" /> Loading model…
+      </div>
+    );
+  }
+
+  // Gaussian splats need the splat viewer (later slice) — show a clear note.
+  if (kind === "splat") {
+    return (
+      <Centered label="This twin is a Gaussian splat — the splat viewer is wired in a later slice. Import a GLB twin to view it here now." />
+    );
+  }
+
+  if (url) {
+    return (
+      <div className="relative h-full w-full">
+        <DesignViewer src={url} alt={activeVariant?.label ?? session.title} />
+        <ViewerHint>{session.title} · drag to orbit · scroll to zoom</ViewerHint>
+      </div>
+    );
+  }
+
+  // Fallback (e.g. error / no key yet) → test model so the stage is never empty.
   return (
     <div className="relative h-full w-full">
-      <DesignViewer src={TEST_MODEL_SRC} alt={activeVariant?.label ?? session?.title ?? "Design model"} />
-      <div className="pointer-events-none absolute left-3 top-3 rounded bg-black/50 px-2 py-1 text-[10px] text-slate-400 backdrop-blur">
-        Test model · drag to orbit · scroll to zoom
-      </div>
+      <DesignViewer src={TEST_MODEL_SRC} alt="Test model" />
+      <ViewerHint>{error ? `Test model (${error})` : "Test model · drag to orbit · scroll to zoom"}</ViewerHint>
+    </div>
+  );
+}
+
+function ViewerHint({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="pointer-events-none absolute left-3 top-3 rounded bg-black/50 px-2 py-1 text-[10px] text-slate-400 backdrop-blur">
+      {children}
     </div>
   );
 }
