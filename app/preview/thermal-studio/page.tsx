@@ -83,10 +83,13 @@ export default function PreviewThermalStudio() {
             {stage === "report" ? (
               <ThermalReportBuilder
                 sessionId="preview"
+                sessionName="Oak Ridge Roof — Preview"
                 captures={CAPTURES}
                 reportOrder={order}
                 onReorder={reorder}
                 onRemove={(id) => setOrder((o) => o.filter((x) => x !== id))}
+                brandingConfig={{ company_name: "Slate360 Thermography", logo_url: "", primary_color: "", show_metrics: true, custom_footer: "Confidential — for client use only." } as never}
+                summary={{ total_captures: 3, critical_anomalies: 2, max_detected_temp_c: 61 }}
               />
             ) : null}
             {stage === "deliver" ? (

@@ -190,10 +190,13 @@ export function ThermalStudioShell({
       {stage === "report" ? (
         <ThermalReportBuilder
           sessionId={sessionId}
+          sessionName={sessionName}
           captures={captures}
           reportOrder={reportOrder}
           onReorder={reorderReport}
           onRemove={removeFromReport}
+          brandingConfig={brandingConfig}
+          summary={summary}
           initialTemplateId={initialTemplateId}
           initialSignature={initialSignature}
           initialConditions={conditions}

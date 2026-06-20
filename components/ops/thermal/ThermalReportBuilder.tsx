@@ -1,8 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { ThermalReportPanel } from "@/components/ops/thermal/ThermalReportPanel";
+import { useEffect, useMemo, useState } from "react";
+import { ThermalReportPreview } from "@/components/ops/thermal/ThermalReportPreview";
+import { ThermalTemplateGallery, type GalleryTemplate } from "@/components/ops/thermal/ThermalTemplateGallery";
+import { ThermalReportHistory } from "@/components/ops/thermal/ThermalReportHistory";
+import { SEED_REPORT_TEMPLATES, type ThermalReportTemplate } from "@/lib/thermal/report-templates";
 import type { StudioCapture } from "@/components/ops/thermal/ThermalStudioWorkView";
+import type { ThermalBrandingConfig } from "@/lib/thermal/types";
 
 type Conditions = {
   ambient_c?: number | string;
@@ -12,25 +16,31 @@ type Conditions = {
 };
 
 /**
- * Report Builder — order the curated report set, capture site conditions, then
- * pick a template / signature and generate. The visual template gallery + live
- * section preview land in Slice 4; this is the ordered-set + conditions core.
+ * Report Builder — same frame as Inspect: the ordered set LEFT, a live WYSIWYG
+ * report preview CENTER (updates as you change the template, order, conditions,
+ * signature), and the template gallery + conditions + generate RIGHT.
  */
 export function ThermalReportBuilder({
   sessionId,
+  sessionName,
   captures,
   reportOrder,
   onReorder,
   onRemove,
+  brandingConfig,
+  summary,
   initialTemplateId,
   initialSignature,
   initialConditions,
 }: {
   sessionId: string;
+  sessionName?: string;
   captures: StudioCapture[];
   reportOrder: string[];
   onReorder: (idx: number, dir: -1 | 1) => void;
   onRemove: (id: string) => void;
+  brandingConfig?: ThermalBrandingConfig;
+  summary?: Record<string, unknown> | null;
   initialTemplateId?: string | null;
   initialSignature?: string | null;
   initialConditions?: Record<string, unknown> | null;
@@ -39,7 +49,50 @@ export function ThermalReportBuilder({
   const order = reportOrder;
   const [conditions, setConditions] = useState<Conditions>((initialConditions ?? {}) as Conditions);
   const [savedNote, setSavedNote] = useState<string | null>(null);
+  const [templates, setTemplates] = useState<ThermalReportTemplate[]>(SEED_REPORT_TEMPLATES);
+  const [templateId, setTemplateId] = useState(initialTemplateId ?? "seed-general");
+  const [signature, setSignature] = useState(initialSignature ?? "");
+  const [busy, setBusy] = useState(false);
+  const [genNote, setGenNote] = useState<string | null>(null);
+  const [genError, setGenError] = useState<string | null>(null);
+  const [reportRefresh, setReportRefresh] = useState(0);
 
+  // Pull org templates (full config) so the preview can render methodology /
+  // disclaimer / severity / sections, not just the name.
+  useEffect(() => {
+    fetch("/api/ops/thermal/report-templates")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json) => {
+        const org = (json?.data?.templates ?? json?.templates ?? []) as Array<Record<string, unknown>>;
+        if (!org.length) return;
+        const mapped = org.map((o) => {
+          const cfg = (o.config ?? o) as Record<string, unknown>;
+          return { ...(cfg as object), id: String(o.id), name: String(o.name ?? cfg.name ?? "Custom template") } as ThermalReportTemplate;
+        });
+        setTemplates([...SEED_REPORT_TEMPLATES, ...mapped]);
+      })
+      .catch(() => {});
+  }, []);
+
+  const selectedTemplate = useMemo(
+    () => templates.find((t) => t.id === templateId) ?? SEED_REPORT_TEMPLATES.find((t) => t.id === "seed-general")!,
+    [templates, templateId],
+  );
+  const galleryTemplates: GalleryTemplate[] = templates.map((t) => ({
+    id: t.id,
+    name: t.name,
+    discipline: t.discipline,
+    standards: t.standards,
+    sections: t.sections,
+  }));
+
+  function persistMeta(meta: Record<string, unknown>) {
+    fetch(`/api/ops/thermal/sessions/${sessionId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ metadata: meta }),
+    }).catch(() => {});
+  }
   function setCond(patch: Conditions) {
     setConditions((prev) => ({ ...prev, ...patch }));
   }
@@ -58,19 +111,35 @@ export function ThermalReportBuilder({
       .then(() => { setSavedNote("Conditions saved."); setTimeout(() => setSavedNote(null), 2500); })
       .catch(() => setSavedNote("Could not save conditions."));
   }
+  async function generateReport() {
+    setBusy(true);
+    setGenError(null);
+    setGenNote(null);
+    try {
+      const res = await fetch("/api/ops/thermal/jobs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ session_id: sessionId, job_type: "report" }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error ?? "Failed to start report");
+      setGenNote("Report generation started — it will appear in history when ready.");
+      setTimeout(() => setReportRefresh((n) => n + 1), 4000);
+    } catch (err) {
+      setGenError(err instanceof Error ? err.message : "Report failed");
+    } finally {
+      setBusy(false);
+    }
+  }
 
   const numInput =
     "mt-1 block w-full rounded-xl border border-[var(--mobile-app-card-border)] bg-[#111827] px-3 py-2 text-sm text-white";
 
-  const eyebrow =
-    "font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--graphite-muted)]";
-
   return (
-    // Same frame as Inspect: ordered set LEFT, the report preview CENTER, the
-    // template gallery + conditions + generate RIGHT.
+    // Same frame as Inspect: ordered set LEFT, live report preview CENTER, controls RIGHT.
     <div className="flex h-full min-h-0 gap-2 p-2">
       {/* LEFT: ordered report set */}
-      <aside className="flex w-64 shrink-0 flex-col rounded-xl border border-[var(--mobile-app-card-border)] p-2">
+      <aside className="flex w-60 shrink-0 flex-col rounded-xl border border-[var(--mobile-app-card-border)] p-2">
         <p className="shrink-0 pb-1.5 text-xs font-semibold text-[var(--graphite-text-header)]">
           Report set · {order.length} image{order.length === 1 ? "" : "s"}
         </p>
@@ -106,39 +175,53 @@ export function ThermalReportBuilder({
         )}
       </aside>
 
-      {/* CENTER: report preview (the ordered pages, read-only) */}
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-xl border border-[var(--mobile-app-card-border)] bg-[var(--graphite-canvas-deep)] p-2">
-        <p className={`${eyebrow} shrink-0 pb-2`}>Preview</p>
-        {order.length === 0 ? (
-          <div className="flex min-h-0 flex-1 items-center justify-center text-center text-xs text-[var(--graphite-muted)]">
-            Add images to the report set to preview the pages here.
-          </div>
-        ) : (
-          <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-1">
-            {order.map((id, idx) => {
-              const c = byId.get(id);
-              if (!c) return null;
-              return (
-                <div key={id} className="mx-auto w-full max-w-md rounded-lg border border-[var(--mobile-app-card-border)] bg-[var(--graphite-canvas)] p-3 shadow-[var(--mobile-app-card-shadow)]">
-                  <div className="flex items-center justify-between pb-2 text-[10px] text-[var(--graphite-muted)]">
-                    <span>Page {idx + 1}</span>
-                    <span className="truncate pl-2">{c.filename}</span>
-                  </div>
-                  {c.previewUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={c.previewUrl} alt={c.filename} className="mx-auto max-h-64 rounded object-contain" />
-                  ) : (
-                    <div className="flex h-32 items-center justify-center rounded bg-[#111827] text-[11px] text-[var(--graphite-muted)]">No preview</div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
+      {/* CENTER: live WYSIWYG report preview */}
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-xl border border-[var(--mobile-app-card-border)] bg-[var(--graphite-canvas-deep)] py-2">
+        <div className="flex shrink-0 items-center justify-between px-3 pb-2">
+          <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--graphite-muted)]">
+            Preview · {selectedTemplate.name}
+          </span>
+          <span className="text-[10px] text-[var(--graphite-muted)]">What the PDF / share link will look like</span>
+        </div>
+        <ThermalReportPreview
+          sessionName={sessionName ?? "Thermal Inspection"}
+          template={selectedTemplate}
+          branding={brandingConfig ?? ({ company_name: "", logo_url: "", primary_color: "", show_metrics: true, custom_footer: "" } as ThermalBrandingConfig)}
+          conditions={conditions}
+          signature={signature}
+          order={order}
+          byId={byId}
+          summary={summary}
+        />
       </div>
 
-      {/* RIGHT: conditions + template gallery + signature + generate */}
+      {/* RIGHT: template + conditions + generate */}
       <aside className="flex w-80 shrink-0 flex-col gap-2 overflow-y-auto pr-0.5">
+        <div className="rounded-xl border border-[var(--mobile-app-card-border)] p-3">
+          <p className="text-xs font-semibold text-[var(--graphite-text-header)]">Template</p>
+          <p className="mt-1 text-[11px] text-[var(--graphite-muted)]">
+            Controls sections, standards, methodology, and severity scale — preview updates live.
+          </p>
+          <div className="mt-2">
+            <ThermalTemplateGallery
+              templates={galleryTemplates}
+              selectedId={templateId}
+              onSelect={(id) => { setTemplateId(id); persistMeta({ report_template_id: id }); }}
+            />
+          </div>
+          <label className="mt-3 block text-[11px] text-[var(--graphite-muted)]">
+            Signature / credentials
+            <textarea
+              value={signature}
+              onChange={(e) => setSignature(e.target.value)}
+              onBlur={() => persistMeta({ report_signature: signature })}
+              rows={2}
+              placeholder="Inspector name, certification #, date"
+              className={numInput}
+            />
+          </label>
+        </div>
+
         <div className="rounded-xl border border-[var(--mobile-app-card-border)] p-3">
           <p className="text-xs font-semibold text-[var(--graphite-text-header)]">Site conditions</p>
           <label className="mt-2 block text-[11px] text-[var(--graphite-muted)]">Ambient (°C)
@@ -150,9 +233,6 @@ export function ThermalReportBuilder({
           <label className="mt-2 block text-[11px] text-[var(--graphite-muted)]">Focal length (mm)
             <input type="number" value={conditions.focal_mm ?? ""} onChange={(e) => setCond({ focal_mm: e.target.value })} className={numInput} />
           </label>
-          <label className="mt-2 block text-[11px] text-[var(--graphite-muted)]">Operator notes
-            <textarea rows={2} value={conditions.operator_notes ?? ""} onChange={(e) => setCond({ operator_notes: e.target.value })} className={numInput} />
-          </label>
           <div className="mt-2 flex items-center gap-2">
             <button type="button" onClick={saveConditions}
               className="rounded-lg border border-[var(--mobile-app-card-border)] px-2.5 py-1 text-xs font-semibold text-[var(--graphite-text-body)] hover:text-[var(--graphite-text-header)]">
@@ -161,11 +241,21 @@ export function ThermalReportBuilder({
             {savedNote ? <span className="text-[11px] text-[var(--graphite-muted)]">{savedNote}</span> : null}
           </div>
         </div>
-        <ThermalReportPanel
-          sessionId={sessionId}
-          initialTemplateId={initialTemplateId}
-          initialSignature={initialSignature}
-        />
+
+        <div className="rounded-xl border border-[var(--mobile-app-card-border)] p-3">
+          <button
+            type="button"
+            disabled={busy}
+            onClick={generateReport}
+            className="w-full rounded-lg bg-[var(--graphite-primary)] px-3 py-2 text-sm font-semibold text-[var(--graphite-canvas)] disabled:opacity-50"
+          >
+            {busy ? "Starting…" : "Generate PDF report"}
+          </button>
+          {genNote ? <p className="mt-1.5 text-[11px] text-[var(--graphite-muted)]">{genNote}</p> : null}
+          {genError ? <p className="mt-1.5 text-[11px] text-[#fca5a5]">{genError}</p> : null}
+        </div>
+
+        <ThermalReportHistory sessionId={sessionId} refreshKey={reportRefresh} />
       </aside>
     </div>
   );
