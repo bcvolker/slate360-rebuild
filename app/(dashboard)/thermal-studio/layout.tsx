@@ -1,7 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { resolveServerOrgContext } from "@/lib/server/org-context";
-import { thermalOpsTokens as t } from "@/components/ops/thermal/thermal-ops-tokens";
 
 export const metadata = {
   title: "Thermal Studio",
@@ -22,16 +21,15 @@ export default async function ThermalOpsLayout({ children }: { children: React.R
       className="mx-auto flex h-full min-h-0 w-full max-w-6xl flex-col px-4 py-3 lg:px-0"
       data-mobile-route="platform"
     >
-      <header className="mb-3 flex shrink-0 flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className={t.title}>Thermal Studio</h1>
-          <p className={t.subtitle}>Private radiometric inspection workspace</p>
-        </div>
-        <nav className="flex flex-wrap gap-2">
-          <Link href="/thermal-studio" className={t.secondaryButton}>
+      {/* Thin top bar (Design Studio pattern) — keep chrome minimal so the workspace
+          gets maximum height. */}
+      <header className="mb-2 flex shrink-0 items-center justify-between gap-3">
+        <h1 className="text-base font-bold text-[var(--graphite-text-header)]">Thermal Studio</h1>
+        <nav className="flex items-center gap-2 text-xs font-semibold">
+          <Link href="/thermal-studio" className="rounded-lg border border-[var(--mobile-app-card-border)] px-2.5 py-1 text-[var(--graphite-text-body)] hover:text-[var(--graphite-text-header)]">
             Sessions
           </Link>
-          <Link href="/thermal-studio/upload" className={t.primaryButton}>
+          <Link href="/thermal-studio/upload" className="rounded-lg bg-[var(--graphite-primary)] px-2.5 py-1 text-[var(--graphite-canvas)]">
             New upload
           </Link>
         </nav>
