@@ -15,8 +15,9 @@ function fmt(sec: number): string {
 
 /** Center preview viewport (PROTECTED). Plays the composed timeline via proxies. */
 export function PreviewPanel() {
-  const videoRef = useRef<HTMLVideoElement | null>(null);
-  usePlayback(videoRef);
+  const aRef = useRef<HTMLVideoElement | null>(null);
+  const bRef = useRef<HTMLVideoElement | null>(null);
+  const { activeIndex } = usePlayback(aRef, bRef);
 
   const mode = useEditorStore((s) => s.mode);
   const clips = useEditorStore((s) => s.clips);
@@ -33,10 +34,14 @@ export function PreviewPanel() {
       <div className="flex min-h-0 flex-1 items-center justify-center p-4">
         <div className="relative flex aspect-video w-full max-w-3xl items-center justify-center overflow-hidden rounded-lg border border-white/10 bg-black">
           <video
-            ref={videoRef}
-            className={hasClips ? "h-full w-full object-contain" : "hidden"}
+            ref={aRef}
+            className={`absolute inset-0 h-full w-full object-contain ${hasClips && activeIndex === 0 ? "" : "invisible"}`}
             playsInline
-            muted={false}
+          />
+          <video
+            ref={bRef}
+            className={`absolute inset-0 h-full w-full object-contain ${hasClips && activeIndex === 1 ? "" : "invisible"}`}
+            playsInline
           />
           {!hasClips && (
             <div className="text-center text-xs text-white/35">
