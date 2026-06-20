@@ -2,6 +2,17 @@
 
 import type { MarkerShape } from "@/lib/thermal/probe-palettes";
 
+/**
+ * Shared point-index badge — a small rounded square in semi-opaque Slate360 green
+ * with a dark number. Compact (so many can sit on one image) but legible and
+ * professional, replacing the old tiny white-on-green circle.
+ */
+export function spotBadgeClass(active = false): string {
+  return `flex h-[17px] min-w-[17px] items-center justify-center rounded-[4px] border border-black/35 bg-[color-mix(in_srgb,var(--graphite-primary)_88%,transparent)] px-1 text-[10px] font-bold leading-none text-[#0B1014] shadow-[0_1px_2px_rgba(0,0,0,0.45)] ${
+    active ? "ring-2 ring-white" : ""
+  }`;
+}
+
 export function Toggle({
   on,
   onClick,
@@ -73,13 +84,7 @@ export function SpotTarget({
 }) {
   const line = "absolute bg-white shadow-[0_0_1px_rgba(0,0,0,0.9)]";
   const badge = (
-    <span
-      className={`absolute -right-3 -top-3 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-[var(--graphite-primary)] text-[8px] font-bold text-white ${
-        active ? "ring-2 ring-white" : ""
-      }`}
-    >
-      {index}
-    </span>
+    <span className={`absolute -right-2.5 -top-2.5 ${spotBadgeClass(active)}`}>{index}</span>
   );
 
   if (shape === "dot") {

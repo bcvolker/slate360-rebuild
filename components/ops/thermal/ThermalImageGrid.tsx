@@ -95,7 +95,7 @@ export function ThermalImageGrid({
                       ✓
                     </span>
                     {it.flaggedCount ? (
-                      <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#fb923c] px-1 text-[9px] font-bold text-black">
+                      <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--graphite-primary)] px-1 text-[9px] font-bold text-[var(--graphite-canvas)]">
                         {it.flaggedCount}
                       </span>
                     ) : null}

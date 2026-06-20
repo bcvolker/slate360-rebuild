@@ -1,15 +1,17 @@
 "use client";
 
 import { fmtTemp, fmtDelta, type Unit } from "@/lib/thermal/probe-palettes";
+import { spotBadgeClass } from "@/components/ops/thermal/ThermalProbeMarkers";
 import type { ProbeSpot } from "@/components/ops/thermal/ThermalProbeViewer";
 
-/** Right-rail spot list: temps, Δ-vs-reference, spread. */
+/** Spot list: per-point temps, Δ-vs-reference, average, spread — FLIR-style. */
 export function ThermalSpotsPanel({
   spots,
   refId,
   setRefId,
   unit,
   valueOf,
+  onRemove,
 }: {
   spots: ProbeSpot[];
   refId: string | null;
@@ -17,6 +19,8 @@ export function ThermalSpotsPanel({
   unit: Unit;
   /** Headline temperature for a target: point sample or area average. */
   valueOf: (spot: ProbeSpot) => number;
+  /** Remove a spot from the list. */
+  onRemove?: (id: string) => void;
 }) {
   const refSpot = spots.find((s) => s.id === refId) ?? spots[0] ?? null;
   const spotTemps = spots.map((s) => valueOf(s));
@@ -30,30 +34,35 @@ export function ThermalSpotsPanel({
       </p>
       {spots.length === 0 ? (
         <p className="mt-1 text-xs text-[var(--graphite-muted)]">
-          Pick a target tool above, then click the image to place it. Drag to move,
-          double-click to remove (including baked-in spots), drag an area's corner to
-          resize. Click a number to set the Δ reference.
+          Pick a target tool, then click the image to plot a point. Each point lists its
+          temperature and its Δ vs the reference — click a point&apos;s badge to make it the
+          reference. Drag to move, ✕ to remove. Points save with the image automatically.
         </p>
       ) : (
         <ul className="mt-2 space-y-1">
           {spots.map((s, idx) => {
             const tC = valueOf(s);
             const dC = refSpot ? tC - valueOf(refSpot) : 0;
+            const kindLabel = s.kind === "area" ? "area" : s.kind === "line" ? "line" : null;
             return (
-              <li key={s.id} className="flex items-center justify-between gap-2 text-[var(--graphite-text-body)]">
-                <button type="button" onClick={() => setRefId(s.id)} className="flex items-center gap-1.5" title="Set as Δ reference">
-                  <span className={`flex h-4 w-4 items-center justify-center rounded-full text-[8px] font-bold text-white bg-[var(--graphite-primary)] ${s.id === refId ? "ring-2 ring-white" : ""}`}>
-                    {idx + 1}
-                  </span>
-                  {s.kind === "area" ? <span className="text-[9px] uppercase text-[var(--graphite-muted)]">area</span> : null}
+              <li key={s.id} className="flex items-center gap-2 text-[var(--graphite-text-body)]">
+                <button type="button" onClick={() => setRefId(s.id)} className="flex shrink-0 items-center gap-1.5" title="Set as Δ reference">
+                  <span className={spotBadgeClass(s.id === refId)}>{idx + 1}</span>
+                  {kindLabel ? <span className="text-[9px] uppercase text-[var(--graphite-muted)]">{kindLabel}</span> : null}
                   {s.imported ? <span className="text-[9px] uppercase text-[var(--graphite-muted)]">baked</span> : null}
                 </button>
                 <span className="ml-auto font-semibold tabular-nums">{fmtTemp(tC, unit)}</span>
                 {refSpot && s.id !== refSpot.id ? (
-                  <span className="w-16 text-right text-xs tabular-nums text-[var(--graphite-muted)]">Δ {fmtDelta(dC, unit)}</span>
+                  <span className="w-14 text-right text-xs tabular-nums text-[var(--graphite-muted)]">Δ {fmtDelta(dC, unit)}</span>
                 ) : (
-                  <span className="w-16 text-right text-xs text-[var(--graphite-muted)]">ref</span>
+                  <span className="w-14 text-right text-xs text-[var(--graphite-muted)]">ref</span>
                 )}
+                {onRemove ? (
+                  <button type="button" onClick={() => onRemove(s.id)} title="Remove point"
+                    className="shrink-0 rounded border border-[var(--mobile-app-card-border)] px-1 text-[11px] leading-none text-[var(--graphite-muted)] hover:text-[#fca5a5]">
+                    ✕
+                  </button>
+                ) : null}
               </li>
             );
           })}

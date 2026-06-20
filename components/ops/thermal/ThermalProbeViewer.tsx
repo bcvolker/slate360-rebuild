@@ -10,7 +10,7 @@ import {
   type MarkerShape,
   type Unit,
 } from "@/lib/thermal/probe-palettes";
-import { SpotTarget, ExtremeMarker } from "@/components/ops/thermal/ThermalProbeMarkers";
+import { SpotTarget, ExtremeMarker, spotBadgeClass } from "@/components/ops/thermal/ThermalProbeMarkers";
 import { spotStats } from "@/lib/thermal/spot-stats";
 import { ThermalProbeToolbar } from "@/components/ops/thermal/ThermalProbeToolbar";
 import { ThermalAnomalyOverlay } from "@/components/ops/thermal/ThermalAnomalyOverlay";
@@ -648,7 +648,7 @@ export function ThermalProbeViewer({
                     onPointerDown={(e) => { e.stopPropagation(); dragSnapshot.current = spots; lineEndRef.current = { id: s.id, part: "end" }; }} />
                   {/* move handle + label at midpoint */}
                   <button type="button"
-                    className="pointer-events-auto absolute z-20 flex h-4 w-4 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-[var(--graphite-primary)] text-[8px] font-bold text-white"
+                    className={`pointer-events-auto absolute z-20 -translate-x-1/2 -translate-y-1/2 ${spotBadgeClass(s.id === refId)}`}
                     style={{ left: pct(midX, width), top: pct(midY, height) }}
                     onPointerDown={startDrag}
                     onDoubleClick={remove}
@@ -675,7 +675,7 @@ export function ThermalProbeViewer({
                   aria-label={`Area ${idx + 1}`}
                 >
                   <div className={`h-full w-full border-2 ${s.areaShape === "circle" ? "rounded-full" : ""} ${s.id === refId ? "border-white" : "border-white/80"} bg-white/5 shadow-[0_0_1px_rgba(0,0,0,0.9)]`} />
-                  <span className="absolute -left-1.5 -top-1.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-[var(--graphite-primary)] text-[8px] font-bold text-white">{idx + 1}</span>
+                  <span className={`absolute -left-2 -top-2 ${spotBadgeClass(s.id === refId)}`}>{idx + 1}</span>
                   {/* resize handle (bottom-right) */}
                   <span
                     className="absolute -bottom-1 -right-1 h-3 w-3 cursor-nwse-resize rounded-sm border border-white bg-[var(--graphite-primary)]"
@@ -727,7 +727,6 @@ export function ThermalProbeViewer({
             data) so everything fits with no page scroll; the rail scrolls internally. */}
         {showRightRail ? (
         <div className="w-72 shrink-0 min-h-0 space-y-2 overflow-y-auto pr-1 text-sm">
-          <CollapsibleSection title="Tuning &amp; palette">{toolsRail}</CollapsibleSection>
           <CollapsibleSection title="Measurements" badge={spots.length}>
             <ThermalSpotsPanel
               spots={spots}
@@ -735,8 +734,10 @@ export function ThermalProbeViewer({
               setRefId={setRefId}
               unit={unit}
               valueOf={(s) => spotStats(s, temps, width, height).value}
+              onRemove={(id) => { commit(spots.filter((p) => p.id !== id)); if (refId === id) setRefId(null); }}
             />
           </CollapsibleSection>
+          <CollapsibleSection title="Tuning &amp; palette">{toolsRail}</CollapsibleSection>
           <CollapsibleSection title="Findings" badge={anomalies.length}>
             <ThermalFindingsPanel
               anomalies={anomalies}

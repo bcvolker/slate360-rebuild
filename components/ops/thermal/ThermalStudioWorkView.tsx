@@ -331,9 +331,11 @@ export function ThermalStudioWorkView({
               </button>
             ) : null}
             {sessionId ? (
-              <CollapsibleSection title="Detection settings" defaultOpen={false}>
-                <ThermalTuningPanel sessionId={sessionId} initialParams={initialParams} />
-              </CollapsibleSection>
+              <div className="mt-1 border-t border-[var(--mobile-app-card-border)] pt-2">
+                <CollapsibleSection title="Detection settings" defaultOpen={false}>
+                  <ThermalTuningPanel sessionId={sessionId} initialParams={initialParams} />
+                </CollapsibleSection>
+              </div>
             ) : null}
           </aside>
         ) : (
