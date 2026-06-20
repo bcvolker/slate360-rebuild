@@ -9,6 +9,7 @@ import { PromptComposer } from "./PromptComposer";
 import { VariantStrip } from "./VariantStrip";
 import { DesignViewer } from "./DesignViewer";
 import { CompareView } from "./CompareView";
+import { ExportsTab } from "./ExportsTab";
 
 // Temporary test model so the interactive viewer controls can be exercised before
 // real twin/variant previews are wired. Served from /public/uploads (tracked in git).
@@ -144,7 +145,7 @@ export function DesignStudioWorkspace({ initialSessions }: { initialSessions: De
             ) : (
               <Centered label="Import a twin and generate variants to compare." />
             ))}
-          {tab === "exports" && <Centered label="Exports — generated files and share links appear here." />}
+          {tab === "exports" && <ExportsTab sessionId={activeSessionId} activeVariantId={activeVariantId} />}
 
           {/* Bottom variant strip overlay (toggle) — never steals viewer space */}
           {tab === "explore" && (
