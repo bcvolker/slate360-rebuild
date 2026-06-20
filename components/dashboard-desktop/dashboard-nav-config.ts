@@ -1,6 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import {
   Box,
+  Clapperboard,
   Cloud,
   CreditCard,
   FolderOpen,
@@ -72,6 +73,13 @@ const DASHBOARD_DESKTOP_NAV_ALL: DashboardNavItem[] = [
     href: "/unreal-studio",
     icon: Wand2,
     matchPrefixes: ["/unreal-studio"],
+    ceoOnly: true,
+  },
+  {
+    label: "Content Studio",
+    href: "/content-studio-workspace",
+    icon: Clapperboard,
+    matchPrefixes: ["/content-studio-workspace"],
     ceoOnly: true,
   },
   {
