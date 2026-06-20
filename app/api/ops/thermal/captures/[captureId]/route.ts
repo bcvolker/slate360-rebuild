@@ -11,11 +11,13 @@ type SpotPayload = {
   x: number;
   y: number;
   imported?: boolean;
-  kind?: "point" | "area";
+  kind?: "point" | "area" | "line";
   target?: "crosshair" | "crosshair-circle" | "dot" | "square";
   areaShape?: "box" | "circle";
   w?: number;
   h?: number;
+  x2?: number;
+  y2?: number;
 };
 type TuningPayload = {
   emissivity?: number;
@@ -105,6 +107,10 @@ export const PATCH = (req: NextRequest, { params }: Params) =>
             base.areaShape = s.areaShape === "circle" ? "circle" : "box";
             if (Number.isFinite(s.w)) base.w = Number(s.w);
             if (Number.isFinite(s.h)) base.h = Number(s.h);
+          } else if (s.kind === "line") {
+            base.kind = "line";
+            if (Number.isFinite(s.x2)) base.x2 = Number(s.x2);
+            if (Number.isFinite(s.y2)) base.y2 = Number(s.y2);
           } else if (["crosshair", "crosshair-circle", "dot", "square"].includes(s.target ?? "")) {
             base.kind = "point";
             base.target = s.target;

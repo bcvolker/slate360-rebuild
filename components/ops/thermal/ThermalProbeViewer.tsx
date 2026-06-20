@@ -31,8 +31,8 @@ export type ThermalProbeGrid = {
   emissivity?: number;
 };
 
-/** A measurement target: a point marker or an averaging area (box / ellipse). */
-export type SpotKind = "point" | "area";
+/** A measurement target: a point marker, an averaging area (box/ellipse), or a line. */
+export type SpotKind = "point" | "area" | "line";
 export type SpotTargetShape = "crosshair" | "crosshair-circle" | "dot" | "square";
 export type SpotAreaShape = "box" | "circle";
 export type ProbeSpot = {
@@ -46,6 +46,9 @@ export type ProbeSpot = {
   /** Area size in grid pixels (when kind === "area"). */
   w?: number;
   h?: number;
+  /** Line end point in grid pixels (when kind === "line"); start is x,y. */
+  x2?: number;
+  y2?: number;
 };
 export type ProbeTuning = {
   emissivity: number;
@@ -169,7 +172,7 @@ export function ThermalProbeViewer({
   useEffect(() => { setPaletteState(initialPalette || "Inferno"); }, [initialPalette]);
   // What the next click places (point markers or averaging areas).
   const [tool, setTool] = useState<
-    "crosshair" | "crosshair-circle" | "dot" | "square" | "area" | "area-circle"
+    "crosshair" | "crosshair-circle" | "dot" | "square" | "area" | "area-circle" | "line"
   >("crosshair");
   const [showLabels, setShowLabels] = useState(true);
   const [showMin, setShowMin] = useState(true);
@@ -192,6 +195,7 @@ export function ThermalProbeViewer({
   const [isoHi, setIsoHi] = useState<number | null>(null);
   const draggingRef = useRef<string | null>(null);
   const resizingRef = useRef<string | null>(null);
+  const lineEndRef = useRef<{ id: string; part: "start" | "end" } | null>(null);
   const dragSnapshot = useRef<ProbeSpot[] | null>(null);
   // Undo/redo history of the spot set (the main editable in this view).
   const [past, setPast] = useState<ProbeSpot[][]>([]);
@@ -413,9 +417,27 @@ export function ThermalProbeViewer({
       }
       const p = toImageCoords(e.clientX, e.clientY);
       setHover(p);
+      const le = lineEndRef.current;
+      if (le) {
+        setSpots((prev) =>
+          prev.map((s) => (s.id === le.id ? (le.part === "end" ? { ...s, x2: p.x, y2: p.y } : { ...s, x: p.x, y: p.y }) : s)),
+        );
+        return;
+      }
       const id = draggingRef.current;
       if (id) {
-        setSpots((prev) => prev.map((s) => (s.id === id ? { ...s, x: p.x, y: p.y } : s)));
+        // Move whole target (lines move both endpoints by the same delta).
+        setSpots((prev) =>
+          prev.map((s) => {
+            if (s.id !== id) return s;
+            if (s.kind === "line" && s.x2 != null && s.y2 != null) {
+              const ddx = p.x - s.x;
+              const ddy = p.y - s.y;
+              return { ...s, x: p.x, y: p.y, x2: s.x2 + ddx, y2: s.y2 + ddy };
+            }
+            return { ...s, x: p.x, y: p.y };
+          }),
+        );
         return;
       }
       const rid = resizingRef.current;
@@ -434,7 +456,7 @@ export function ThermalProbeViewer({
 
   // End a move/resize gesture: record the pre-gesture state in history once.
   const endGesture = useCallback(() => {
-    if ((draggingRef.current || resizingRef.current) && dragSnapshot.current) {
+    if ((draggingRef.current || resizingRef.current || lineEndRef.current) && dragSnapshot.current) {
       const snapshot = dragSnapshot.current;
       setPast((p) => [...p, snapshot]);
       setFuture([]);
@@ -442,6 +464,7 @@ export function ThermalProbeViewer({
     }
     draggingRef.current = null;
     resizingRef.current = null;
+    lineEndRef.current = null;
     dragSnapshot.current = null;
   }, [spots, onSpotsChange]);
 
@@ -452,6 +475,8 @@ export function ThermalProbeViewer({
     let base: ProbeSpot;
     if (tool === "area" || tool === "area-circle") {
       base = { id, x: p.x, y: p.y, kind: "area", areaShape: tool === "area-circle" ? "circle" : "box", w: aw, h: ah };
+    } else if (tool === "line") {
+      base = { id, x: p.x, y: p.y, kind: "line", x2: Math.min(width - 1, p.x + aw), y2: p.y };
     } else {
       base = { id, x: p.x, y: p.y, kind: "point", target: tool };
     }
@@ -592,6 +617,39 @@ export function ThermalProbeViewer({
                 {s.kind === "area" ? "avg " : ""}{fmtTemp(stats.value, unit)}
               </span>
             ) : null;
+
+            if (s.kind === "line" && s.x2 != null && s.y2 != null) {
+              const midX = (s.x + s.x2) / 2;
+              const midY = (s.y + s.y2) / 2;
+              const handle =
+                "absolute z-20 h-3 w-3 -translate-x-1/2 -translate-y-1/2 cursor-grab rounded-full border border-black/60 bg-white shadow-[0_0_1px_rgba(0,0,0,0.9)]";
+              return (
+                <div key={s.id} className="pointer-events-none absolute inset-0">
+                  <svg className="absolute inset-0 h-full w-full" viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none">
+                    <line x1={s.x} y1={s.y} x2={s.x2} y2={s.y2} stroke="white" strokeWidth={1.5} vectorEffect="non-scaling-stroke" />
+                  </svg>
+                  {/* endpoints */}
+                  <span className={`${handle} pointer-events-auto`} style={{ left: pct(s.x, width), top: pct(s.y, height) }}
+                    onPointerDown={(e) => { e.stopPropagation(); dragSnapshot.current = spots; lineEndRef.current = { id: s.id, part: "start" }; }} />
+                  <span className={`${handle} pointer-events-auto`} style={{ left: pct(s.x2, width), top: pct(s.y2, height) }}
+                    onPointerDown={(e) => { e.stopPropagation(); dragSnapshot.current = spots; lineEndRef.current = { id: s.id, part: "end" }; }} />
+                  {/* move handle + label at midpoint */}
+                  <button type="button"
+                    className="pointer-events-auto absolute z-20 flex h-4 w-4 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-[var(--graphite-primary)] text-[8px] font-bold text-white"
+                    style={{ left: pct(midX, width), top: pct(midY, height) }}
+                    onPointerDown={startDrag}
+                    onDoubleClick={remove}
+                    aria-label={`Line ${idx + 1}`}
+                  >{idx + 1}</button>
+                  {showLabels ? (
+                    <span className="pointer-events-none absolute -translate-x-1/2 -translate-y-[160%] whitespace-nowrap rounded bg-black/80 px-1 py-0.5 text-[10px] font-semibold text-white"
+                      style={{ left: pct(midX, width), top: pct(midY, height) }}>
+                      avg {fmtTemp(stats.value, unit)}{stats.max != null ? ` · max ${fmtTemp(stats.max, unit)}` : ""}
+                    </span>
+                  ) : null}
+                </div>
+              );
+            }
 
             if (s.kind === "area") {
               return (

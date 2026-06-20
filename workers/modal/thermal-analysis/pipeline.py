@@ -238,7 +238,19 @@ def _measure_spots(
             cy = float(s.get("y", 0))
         except (TypeError, ValueError):
             continue
-        if s.get("kind") == "area" and s.get("w") and s.get("h"):
+        if s.get("kind") == "line" and s.get("x2") is not None and s.get("y2") is not None:
+            x1i = max(0, min(w - 1, int(round(cx))))
+            y1i = max(0, min(h - 1, int(round(cy))))
+            x2i = max(0, min(w - 1, int(round(float(s["x2"])))))
+            y2i = max(0, min(h - 1, int(round(float(s["y2"])))))
+            steps = max(2, int(round(((x2i - x1i) ** 2 + (y2i - y1i) ** 2) ** 0.5)))
+            vals = [
+                float(temp[max(0, min(h - 1, int(round(y1i + (y2i - y1i) * t / steps))))]
+                          [max(0, min(w - 1, int(round(x1i + (x2i - x1i) * t / steps))))])
+                for t in range(steps + 1)
+            ]
+            measured.append({"label": f"Ln{i}", "temp_c": sum(vals) / len(vals)})
+        elif s.get("kind") == "area" and s.get("w") and s.get("h"):
             # Area target — average the enclosed box (mirrors lib/thermal/spot-stats).
             bw = float(s["w"])
             bh = float(s["h"])

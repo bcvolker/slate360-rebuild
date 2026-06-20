@@ -24,6 +24,20 @@ export function spotStats(
   width: number,
   height: number,
 ): SpotStats {
+  // Line target: sample along the segment; value = average, plus min/max.
+  if (spot.kind === "line" && spot.x2 != null && spot.y2 != null) {
+    const dx = spot.x2 - spot.x;
+    const dy = spot.y2 - spot.y;
+    const steps = Math.max(2, Math.ceil(Math.hypot(dx, dy)));
+    let sum = 0, min = Infinity, max = -Infinity;
+    for (let i = 0; i <= steps; i++) {
+      const v = sampleAt(temps, width, height, spot.x + (dx * i) / steps, spot.y + (dy * i) / steps);
+      sum += v;
+      if (v < min) min = v;
+      if (v > max) max = v;
+    }
+    return { value: sum / (steps + 1), min, max, pixels: steps + 1 };
+  }
   if (spot.kind !== "area" || !spot.w || !spot.h) {
     return { value: sampleAt(temps, width, height, spot.x, spot.y) };
   }

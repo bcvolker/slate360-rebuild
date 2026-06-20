@@ -9,7 +9,8 @@ export type ProbeTool =
   | "dot"
   | "square"
   | "area"
-  | "area-circle";
+  | "area-circle"
+  | "line";
 
 /** Top toolbar for the probe: palette, target tool, undo/redo, unit, layers, clears. */
 export function ThermalProbeToolbar({
@@ -90,6 +91,7 @@ export function ThermalProbeToolbar({
           <option value="square">▫ Square (point)</option>
           <option value="area">▭ Box area (avg)</option>
           <option value="area-circle">◯ Ellipse area (avg)</option>
+          <option value="line">╱ Line (avg/min/max)</option>
         </select>
         <button type="button" onClick={onUndo} disabled={!canUndo} className={`${clearBtn} disabled:opacity-40`} title="Undo (Ctrl+Z)">↶</button>
         <button type="button" onClick={onRedo} disabled={!canRedo} className={`${clearBtn} disabled:opacity-40`} title="Redo (Ctrl+Shift+Z)">↷</button>
