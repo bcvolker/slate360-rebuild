@@ -91,6 +91,10 @@ export function ThermalProbeViewer({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
   const loupeRef = useRef<HTMLCanvasElement>(null);
+  const centerRef = useRef<HTMLDivElement>(null);
+  // Largest aspect-correct image size that fits the center cell (measured, since
+  // flex + CSS aspect-ratio doesn't size reliably).
+  const [fit, setFit] = useState<{ w: number; h: number } | null>(null);
 
   const [emissivity, setEmissivity] = useState(initialTuning?.emissivity ?? baseEmissivity);
   const [reflectedC, setReflectedC] = useState(initialTuning?.reflected_c ?? 20);
@@ -171,6 +175,12 @@ export function ThermalProbeViewer({
   const [showMax, setShowMax] = useState(true);
   const [showFindings, setShowFindings] = useState(true);
   const [showLoupe, setShowLoupe] = useState(true);
+  // Zoom/pan of the image work area, and collapsible side rails.
+  const [zoom, setZoom] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [showLeftRail, setShowLeftRail] = useState(true);
+  const [showRightRail, setShowRightRail] = useState(true);
+  const panningRef = useRef<{ x: number; y: number } | null>(null);
   const [spots, setSpots] = useState<ProbeSpot[]>(initialSpots ?? []);
   const [refId, setRefId] = useState<string | null>(null);
   const [hover, setHover] = useState<{ x: number; y: number } | null>(null);
@@ -197,7 +207,53 @@ export function ThermalProbeViewer({
     setIsoHi(null);
     setPast([]);
     setFuture([]);
+    setZoom(1);
+    setPan({ x: 0, y: 0 });
   }, [grid.temps]);
+
+  const setZoomAt = useCallback(
+    (nextZoom: number, lx: number, ly: number) => {
+      const nz = Math.max(1, Math.min(8, nextZoom));
+      setPan((p) => (nz === 1 ? { x: 0, y: 0 } : { x: lx - (lx - p.x) * (nz / zoom), y: ly - (ly - p.y) * (nz / zoom) }));
+      setZoom(nz);
+    },
+    [zoom],
+  );
+  const onWheel = useCallback(
+    (e: React.WheelEvent) => {
+      const el = wrapRef.current;
+      if (!el) return;
+      e.preventDefault();
+      const rect = el.getBoundingClientRect();
+      setZoomAt(zoom * (e.deltaY < 0 ? 1.15 : 1 / 1.15), e.clientX - rect.left, e.clientY - rect.top);
+    },
+    [zoom, setZoomAt],
+  );
+  function zoomButton(dir: 1 | -1) {
+    const el = wrapRef.current;
+    const rect = el?.getBoundingClientRect();
+    setZoomAt(zoom * (dir > 0 ? 1.25 : 1 / 1.25), (rect?.width ?? 0) / 2, (rect?.height ?? 0) / 2);
+  }
+  function resetZoom() { setZoom(1); setPan({ x: 0, y: 0 }); }
+
+  // Measure the center cell and fit the image (aspect-correct) into it.
+  useEffect(() => {
+    const el = centerRef.current;
+    if (!el) return;
+    const compute = () => {
+      const cw = el.clientWidth;
+      const ch = el.clientHeight;
+      if (cw <= 0 || ch <= 0) return;
+      const aspect = width / height;
+      const w = cw / ch > aspect ? ch * aspect : cw;
+      const h = cw / ch > aspect ? ch : cw / aspect;
+      setFit({ w: Math.floor(w), h: Math.floor(h) });
+    };
+    compute();
+    const ro = new ResizeObserver(compute);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [width, height, showLeftRail, showRightRail]);
 
   const loDisp = displayMin ?? minC;
   const hiDisp = displayMax ?? maxC;
@@ -338,16 +394,23 @@ export function ThermalProbeViewer({
       const el = wrapRef.current;
       if (!el) return { x: 0, y: 0 };
       const rect = el.getBoundingClientRect();
+      // Undo the zoom/pan transform of the image layer, then map to grid pixels.
+      const layerX = (clientX - rect.left - pan.x) / zoom;
+      const layerY = (clientY - rect.top - pan.y) / zoom;
       return {
-        x: Math.max(0, Math.min(width - 1, ((clientX - rect.left) / rect.width) * width)),
-        y: Math.max(0, Math.min(height - 1, ((clientY - rect.top) / rect.height) * height)),
+        x: Math.max(0, Math.min(width - 1, (layerX / rect.width) * width)),
+        y: Math.max(0, Math.min(height - 1, (layerY / rect.height) * height)),
       };
     },
-    [width, height],
+    [width, height, pan, zoom],
   );
 
   const onPointerMove = useCallback(
     (e: React.PointerEvent) => {
+      if (panningRef.current) {
+        setPan({ x: e.clientX - panningRef.current.x, y: e.clientY - panningRef.current.y });
+        return;
+      }
       const p = toImageCoords(e.clientX, e.clientY);
       setHover(p);
       const id = draggingRef.current;
@@ -458,6 +521,10 @@ export function ThermalProbeViewer({
         setShowFindings={setShowFindings}
         showLoupe={showLoupe}
         setShowLoupe={setShowLoupe}
+        showLeftRail={showLeftRail}
+        setShowLeftRail={setShowLeftRail}
+        showRightRail={showRightRail}
+        setShowRightRail={setShowRightRail}
         importedCount={importedCount}
         onClearBaked={() => commit(spots.filter((s) => !s.imported))}
         spotCount={spots.length}
@@ -465,21 +532,33 @@ export function ThermalProbeViewer({
       />
       </div>
 
-      <div className="grid min-h-0 flex-1 gap-3 lg:grid-cols-[176px_minmax(0,1fr)_248px]">
-        {/* Left rail: tuning / palette params / histogram / isotherm */}
-        <div className="min-h-0 overflow-y-auto pr-1">{toolsRail}</div>
+      <div
+        className="grid min-h-0 flex-1 gap-3"
+        style={{ gridTemplateColumns: `${showLeftRail ? "176px" : "0px"} minmax(0,1fr) ${showRightRail ? "248px" : "0px"}` }}
+      >
+        {/* Left rail: tuning / palette params / histogram / isotherm (collapsible) */}
+        {showLeftRail ? <div className="min-h-0 overflow-y-auto pr-1">{toolsRail}</div> : <div />}
 
-        {/* Center: the thermal image as a large, aspect-correct work area */}
-        <div className="flex min-h-0 items-center justify-center overflow-hidden">
+        {/* Center: the thermal image as a large, aspect-correct work area (zoom + pan).
+            Size is measured (ResizeObserver) so the image always fills the cell. */}
+        <div ref={centerRef} className="relative flex min-h-0 items-center justify-center overflow-hidden">
         <div
           ref={wrapRef}
-          style={{ aspectRatio: `${width} / ${height}` }}
-          className="relative h-full max-h-full max-w-full cursor-crosshair touch-none overflow-hidden rounded-xl border border-[var(--mobile-app-card-border)] bg-black"
+          style={fit ? { width: fit.w, height: fit.h } : { width: 0, height: 0 }}
+          className="relative cursor-crosshair touch-none overflow-hidden rounded-xl border border-[var(--mobile-app-card-border)] bg-black"
+          onWheel={onWheel}
           onPointerMove={onPointerMove}
-          onPointerLeave={() => { setHover(null); endGesture(); }}
-          onPointerUp={endGesture}
-          onPointerDown={(e) => placeSpot(toImageCoords(e.clientX, e.clientY))}
+          onPointerLeave={() => { setHover(null); endGesture(); panningRef.current = null; }}
+          onPointerUp={() => { endGesture(); panningRef.current = null; }}
+          onPointerDown={(e) => {
+            if (e.button === 1) { e.preventDefault(); panningRef.current = { x: e.clientX - pan.x, y: e.clientY - pan.y }; return; }
+            placeSpot(toImageCoords(e.clientX, e.clientY));
+          }}
         >
+          <div
+            className="absolute inset-0"
+            style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`, transformOrigin: "0 0" }}
+          >
           <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" />
 
           {showFindings ? (
@@ -499,25 +578,6 @@ export function ThermalProbeViewer({
           {showMin ? (
             <ExtremeMarker shape="crosshair" tone="cold" label={showLabels ? `MIN ${fmtTemp(extremes.cold.c, unit)}` : "MIN"}
               x={pct(extremes.cold.x, width)} y={pct(extremes.cold.y, height)} />
-          ) : null}
-
-          {hover && showLabels ? (
-            <div
-              className="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-[140%] rounded bg-black/80 px-1.5 py-0.5 text-[10px] font-semibold text-white"
-              style={{ left: pct(hover.x, width), top: pct(hover.y, height) }}
-            >
-              {fmtTemp(tempAt(hover.x, hover.y), unit)}
-            </div>
-          ) : null}
-
-          {/* Pixel-level magnifier loupe — appears while hovering for precise probing */}
-          {hover && showLoupe ? (
-            <div className="pointer-events-none absolute right-2 top-2 z-30 rounded-lg border border-white/40 bg-black/70 p-1 text-center">
-              <canvas ref={loupeRef} width={LOUPE_PX} height={LOUPE_PX} className="block rounded" style={{ imageRendering: "pixelated" }} />
-              <p className="mt-0.5 text-[9px] font-semibold tabular-nums text-white">
-                {fmtTemp(tempAt(hover.x, hover.y), unit)} · x{Math.round(hover.x)} y{Math.round(hover.y)}
-              </p>
-            </div>
           ) : null}
 
           {spots.map((s, idx) => {
@@ -575,11 +635,30 @@ export function ThermalProbeViewer({
               </button>
             );
           })}
-        </div>
+          </div>{/* end transform layer */}
 
-        </div>
+          {/* Magnifier loupe (fixed overlay — not affected by zoom/pan) */}
+          {hover && showLoupe ? (
+            <div className="pointer-events-none absolute right-2 top-2 z-30 rounded-lg border border-white/40 bg-black/70 p-1 text-center">
+              <canvas ref={loupeRef} width={LOUPE_PX} height={LOUPE_PX} className="block rounded" style={{ imageRendering: "pixelated" }} />
+              <p className="mt-0.5 text-[9px] font-semibold tabular-nums text-white">
+                {fmtTemp(tempAt(hover.x, hover.y), unit)} · x{Math.round(hover.x)} y{Math.round(hover.y)}
+              </p>
+            </div>
+          ) : null}
 
-        {/* Right rail: cloud anomalies + Sp/Dt measurements + per-image findings */}
+          {/* Zoom control (scroll wheel zooms toward cursor; middle-drag pans) */}
+          <div className="absolute bottom-2 right-2 z-30 flex items-center gap-1 rounded-lg border border-white/30 bg-black/70 px-1 py-0.5 text-[11px] text-white">
+            <button type="button" onClick={() => zoomButton(-1)} className="px-1.5 font-bold" title="Zoom out">−</button>
+            <span className="w-10 text-center tabular-nums">{Math.round(zoom * 100)}%</span>
+            <button type="button" onClick={() => zoomButton(1)} className="px-1.5 font-bold" title="Zoom in">+</button>
+            <button type="button" onClick={resetZoom} className="px-1.5" title="Reset zoom">⟲</button>
+          </div>
+        </div>{/* end image wrap */}
+        </div>{/* end center */}
+
+        {/* Right rail: cloud anomalies + Sp/Dt measurements + per-image findings (collapsible) */}
+        {showRightRail ? (
         <div className="min-h-0 space-y-3 overflow-y-auto pr-1 text-sm">
           <ThermalFindingsPanel
             anomalies={anomalies}
@@ -597,6 +676,7 @@ export function ThermalProbeViewer({
           />
           {extraPanels}
         </div>
+        ) : <div />}
       </div>
     </div>
   );

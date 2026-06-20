@@ -35,6 +35,10 @@ export function ThermalProbeToolbar({
   setShowFindings,
   showLoupe,
   setShowLoupe,
+  showLeftRail,
+  setShowLeftRail,
+  showRightRail,
+  setShowRightRail,
   importedCount,
   onClearBaked,
   spotCount,
@@ -62,6 +66,10 @@ export function ThermalProbeToolbar({
   setShowFindings: (fn: (v: boolean) => boolean) => void;
   showLoupe: boolean;
   setShowLoupe: (fn: (v: boolean) => boolean) => void;
+  showLeftRail: boolean;
+  setShowLeftRail: (fn: (v: boolean) => boolean) => void;
+  showRightRail: boolean;
+  setShowRightRail: (fn: (v: boolean) => boolean) => void;
   importedCount: number;
   onClearBaked: () => void;
   spotCount: number;
@@ -94,6 +102,8 @@ export function ThermalProbeToolbar({
         <Toggle on={showMax} onClick={() => setShowMax((v) => !v)}>Max</Toggle>
         <Toggle on={showMin} onClick={() => setShowMin((v) => !v)}>Min</Toggle>
         <Toggle on={showLoupe} onClick={() => setShowLoupe((v) => !v)}>Loupe</Toggle>
+        <Toggle on={showLeftRail} onClick={() => setShowLeftRail((v) => !v)}>◧ Tools</Toggle>
+        <Toggle on={showRightRail} onClick={() => setShowRightRail((v) => !v)}>Data ◨</Toggle>
         {hasAnomalies ? (
           <Toggle on={showFindings} onClick={() => setShowFindings((v) => !v)}>Findings</Toggle>
         ) : null}

@@ -394,7 +394,7 @@ export function ThermalStudioWorkView({
                 key={c.id}
                 type="button"
                 onClick={() => selectCapture(c.id)}
-                className={`relative h-20 w-28 shrink-0 snap-start overflow-hidden rounded-lg border bg-[#111827] ${
+                className={`relative h-24 w-36 shrink-0 snap-start overflow-hidden rounded-lg border bg-[#111827] ${
                   selected?.id === c.id
                     ? "border-[color-mix(in_srgb,var(--graphite-primary)_50%,transparent)]"
                     : "border-[var(--mobile-app-card-border)]"
