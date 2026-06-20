@@ -1,12 +1,17 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import { PanelLeft, PanelRight, Plus, Layers, Maximize2 } from "lucide-react";
+import { PanelLeft, PanelRight, Plus, Layers } from "lucide-react";
 import type { DesignSession, DesignVariant } from "@/lib/design-studio/internal-types";
 import { useDesignVariantsRealtime } from "@/hooks/useDesignVariantsRealtime";
 import { TwinImportPanel } from "./TwinImportPanel";
 import { PromptComposer } from "./PromptComposer";
 import { VariantStrip } from "./VariantStrip";
+import { DesignViewer } from "./DesignViewer";
+
+// Temporary test model so the interactive viewer controls can be exercised before
+// real twin/variant previews are wired. Served from /public/uploads (tracked in git).
+const TEST_MODEL_SRC = "/uploads/csb-stadium-nodraco.glb";
 
 type WorkspaceTab = "explore" | "compare" | "exports";
 
@@ -187,15 +192,14 @@ function ViewerStage({
   session: DesignSession | null;
   activeVariant: DesignVariant | null;
 }) {
+  // For now the viewer always renders the interactive test model so the orbit/
+  // zoom/pan controls can be exercised. Real twin/variant previews replace this
+  // once the splat/Pixel-Streaming viewers are wired.
   return (
-    <div className="flex h-full items-center justify-center">
-      <div className="text-center text-sm text-slate-600">
-        <Maximize2 className="mx-auto mb-2 size-6 text-slate-700" />
-        {!session
-          ? "Import a Digital Twin to begin."
-          : activeVariant
-            ? `Viewer mounts here — variant “${activeVariant.label ?? activeVariant.tier}” (${activeVariant.status}).`
-            : "Viewer mounts here (Pixel Streaming / splat / model)."}
+    <div className="relative h-full w-full">
+      <DesignViewer src={TEST_MODEL_SRC} alt={activeVariant?.label ?? session?.title ?? "Design model"} />
+      <div className="pointer-events-none absolute left-3 top-3 rounded bg-black/50 px-2 py-1 text-[10px] text-slate-400 backdrop-blur">
+        Test model · drag to orbit · scroll to zoom
       </div>
     </div>
   );
