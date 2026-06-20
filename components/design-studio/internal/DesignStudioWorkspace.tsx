@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
-import { PanelLeft, PanelRight, Plus, Layers, Loader2 } from "lucide-react";
+import { useState, useCallback, useEffect, useRef } from "react";
+import { PanelLeft, PanelRight, Plus, Layers, Loader2, Upload } from "lucide-react";
 import type { DesignSession, DesignVariant } from "@/lib/design-studio/internal-types";
 import { useDesignVariantsRealtime } from "@/hooks/useDesignVariantsRealtime";
 import { TwinImportPanel } from "./TwinImportPanel";
@@ -38,6 +38,18 @@ export function DesignStudioWorkspace({ initialSessions }: { initialSessions: De
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [activeVariantId, setActiveVariantId] = useState<string | null>(null);
+  const [localModel, setLocalModel] = useState<{ url: string; name: string } | null>(null);
+  const [dragOver, setDragOver] = useState(false);
+  const modelInput = useRef<HTMLInputElement>(null);
+
+  const loadLocalModel = useCallback((file: File) => {
+    if (!/\.(glb|gltf)$/i.test(file.name)) return;
+    setLocalModel((prev) => {
+      if (prev) URL.revokeObjectURL(prev.url);
+      return { url: URL.createObjectURL(file), name: file.name };
+    });
+    setTab("explore");
+  }, []);
 
   const activeSession = sessions.find((s) => s.id === activeSessionId) ?? null;
   const { variants } = useDesignVariantsRealtime(activeSessionId);
@@ -71,7 +83,23 @@ export function DesignStudioWorkspace({ initialSessions }: { initialSessions: De
             <PanelLeft className="size-4" />
           </button>
           <h1 className="text-sm font-semibold text-white">Design Studio</h1>
-          <span className="max-w-[200px] truncate text-xs text-slate-500">{activeSession?.title ?? "No session"}</span>
+          <span className="max-w-[180px] truncate text-xs text-slate-500">
+            {localModel?.name ?? activeSession?.title ?? "No session"}
+          </span>
+          <button
+            onClick={() => modelInput.current?.click()}
+            className="flex items-center gap-1 rounded bg-white/10 px-2 py-1 text-[11px] text-white hover:bg-white/15"
+            title="Load a .glb/.gltf file from your computer"
+          >
+            <Upload className="size-3" /> Load model
+          </button>
+          <input
+            ref={modelInput}
+            type="file"
+            accept=".glb,.gltf,model/gltf-binary"
+            className="hidden"
+            onChange={(e) => e.target.files?.[0] && loadLocalModel(e.target.files[0])}
+          />
         </div>
         <nav className="flex items-center gap-1">
           {TABS.map((tn) => (
@@ -136,9 +164,36 @@ export function DesignStudioWorkspace({ initialSessions }: { initialSessions: De
           </aside>
         )}
 
-        {/* Center: the hero viewer — fills all remaining space */}
-        <main className="relative min-h-0 min-w-0 flex-1 overflow-hidden bg-black/50">
-          {tab === "explore" && <ViewerStage session={activeSession} activeVariant={activeVariant} />}
+        {/* Center: the hero viewer — fills all remaining space. Drop a .glb/.gltf
+            anywhere on it to view a local file instantly. */}
+        <main
+          className="relative min-h-0 min-w-0 flex-1 overflow-hidden bg-black/50"
+          onDragOver={(e) => {
+            e.preventDefault();
+            if (!dragOver) setDragOver(true);
+          }}
+          onDragLeave={() => setDragOver(false)}
+          onDrop={(e) => {
+            e.preventDefault();
+            setDragOver(false);
+            const f = Array.from(e.dataTransfer.files).find((f) => /\.(glb|gltf)$/i.test(f.name));
+            if (f) loadLocalModel(f);
+          }}
+        >
+          {tab === "explore" && (
+            <ViewerStage
+              session={activeSession}
+              activeVariant={activeVariant}
+              localModelSrc={localModel?.url ?? null}
+              localModelName={localModel?.name}
+              onClearLocal={localModel ? () => setLocalModel(null) : undefined}
+            />
+          )}
+          {dragOver && (
+            <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center border-2 border-dashed border-[#3D8EFF] bg-black/60 text-sm font-medium text-white">
+              Drop a .glb / .gltf to view it
+            </div>
+          )}
           {tab === "compare" &&
             (activeSessionId ? (
               <CompareView sessionId={activeSessionId} variants={variants} />
@@ -195,9 +250,15 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 function ViewerStage({
   session,
   activeVariant,
+  localModelSrc,
+  localModelName,
+  onClearLocal,
 }: {
   session: DesignSession | null;
   activeVariant: DesignVariant | null;
+  localModelSrc?: string | null;
+  localModelName?: string;
+  onClearLocal?: () => void;
 }) {
   const [url, setUrl] = useState<string | null>(null);
   const [kind, setKind] = useState<string | null>(null);
@@ -233,12 +294,30 @@ function ViewerStage({
     };
   }, [session, activeVariant]);
 
+  // A locally loaded .glb/.gltf takes priority — instant preview, no upload.
+  if (localModelSrc) {
+    return (
+      <div className="relative h-full w-full">
+        <DesignViewer src={localModelSrc} viewerKind="model" alt={localModelName ?? "Local model"} />
+        <ViewerHint>{localModelName ?? "Local model"} · drag to orbit · scroll to zoom</ViewerHint>
+        {onClearLocal && (
+          <button
+            onClick={onClearLocal}
+            className="absolute right-3 top-3 z-10 rounded bg-black/60 px-2 py-1 text-[10px] text-slate-300 backdrop-blur hover:bg-black/80"
+          >
+            Clear
+          </button>
+        )}
+      </div>
+    );
+  }
+
   // No session → show the test model so controls are always exercisable.
   if (!session) {
     return (
       <div className="relative h-full w-full">
         <DesignViewer src={TEST_MODEL_SRC} alt="Test model" />
-        <ViewerHint>Test model · drag to orbit · scroll to zoom</ViewerHint>
+        <ViewerHint>Test model · drag to orbit · scroll to zoom · or drop a .glb to view your own</ViewerHint>
       </div>
     );
   }
