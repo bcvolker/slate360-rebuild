@@ -67,7 +67,7 @@ export function ThermalReportBuilder({
       {/* Left column: report set (scrolls) + conditions */}
       <div className="flex min-h-0 flex-col gap-3">
         {/* Ordered report set */}
-        <div className="flex min-h-0 flex-1 flex-col rounded-2xl border border-[var(--mobile-app-card-border)] p-3">
+        <div className="flex min-h-0 flex-1 flex-col rounded-2xl border border-[var(--mobile-app-card-border)] shadow-[var(--mobile-app-card-shadow)] p-3">
           <p className="shrink-0 text-xs font-semibold text-[var(--graphite-text-header)]">
             Report set · {order.length} image{order.length === 1 ? "" : "s"}
           </p>
@@ -104,7 +104,7 @@ export function ThermalReportBuilder({
         </div>
 
         {/* Conditions */}
-        <div className="shrink-0 rounded-2xl border border-[var(--mobile-app-card-border)] p-3">
+        <div className="shrink-0 rounded-2xl border border-[var(--mobile-app-card-border)] shadow-[var(--mobile-app-card-shadow)] p-3">
           <p className="text-xs font-semibold text-[var(--graphite-text-header)]">Site conditions</p>
           <label className="mt-2 block text-[11px] text-[var(--graphite-muted)]">Ambient (°C)
             <input type="number" value={conditions.ambient_c ?? ""} onChange={(e) => setCond({ ambient_c: e.target.value })} className={numInput} />

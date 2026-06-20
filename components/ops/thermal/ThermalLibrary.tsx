@@ -106,7 +106,7 @@ export function ThermalLibrary({
 
   if (!captures.length) {
     return (
-      <div className="flex h-full flex-col items-center justify-center gap-3 rounded-2xl border border-[var(--mobile-app-card-border)] text-sm text-[var(--graphite-muted)]">
+      <div className="flex h-full flex-col items-center justify-center gap-3 rounded-2xl border border-[var(--mobile-app-card-border)] shadow-[var(--mobile-app-card-shadow)] text-sm text-[var(--graphite-muted)]">
         <p>No captures yet — upload, or import images you already filed in SlateDrop.</p>
         <button
           type="button"
@@ -140,7 +140,7 @@ export function ThermalLibrary({
 
   return (
     <div className="grid h-full min-h-0 gap-3 lg:grid-cols-[minmax(0,1fr)_320px]">
-      <div className="flex min-h-0 flex-col rounded-2xl border border-[var(--mobile-app-card-border)] p-3">
+      <div className="flex min-h-0 flex-col rounded-2xl border border-[var(--mobile-app-card-border)] shadow-[var(--mobile-app-card-shadow)] p-3">
         {/* Filter bar */}
         <div className="flex shrink-0 flex-wrap items-center gap-1.5 pb-2">
           {chip("all", "All", captures.length)}
@@ -175,7 +175,7 @@ export function ThermalLibrary({
         </div>
       </div>
       <div className="min-h-0 space-y-3 overflow-y-auto">
-        <div className="rounded-2xl border border-[var(--mobile-app-card-border)] p-3">
+        <div className="rounded-2xl border border-[var(--mobile-app-card-border)] shadow-[var(--mobile-app-card-shadow)] p-3">
           <p className="text-xs font-semibold text-[var(--graphite-text-header)]">Report set</p>
           <p className="mt-1 text-[11px] text-[var(--graphite-muted)]">
             {inReport.size} image{inReport.size === 1 ? "" : "s"} marked for the report. Order &amp;

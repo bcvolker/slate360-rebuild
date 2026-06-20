@@ -65,7 +65,7 @@ export function ThermalAnalyzeTune({
               onSelect={onActiveChange}
             />
           ) : (
-            <div className="flex h-full items-center justify-center rounded-2xl border border-[var(--mobile-app-card-border)] text-sm text-[var(--graphite-muted)]">
+            <div className="flex h-full items-center justify-center rounded-2xl border border-[var(--mobile-app-card-border)] shadow-[var(--mobile-app-card-shadow)] text-sm text-[var(--graphite-muted)]">
               No captures yet — upload or import from SlateDrop to start tuning.
             </div>
           )

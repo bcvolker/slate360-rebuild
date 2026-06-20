@@ -131,7 +131,7 @@ export function ThermalSlateDropPicker({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
-      <div className="flex h-[88vh] w-full max-w-6xl flex-col rounded-2xl border border-[var(--mobile-app-card-border)] bg-[var(--graphite-canvas)] p-4">
+      <div className="flex h-[88vh] w-full max-w-6xl flex-col rounded-2xl border border-[var(--mobile-app-card-border)] shadow-[var(--mobile-app-card-shadow)] bg-[var(--graphite-canvas)] p-4">
         {/* Header */}
         <div className="flex shrink-0 items-center justify-between gap-3">
           <div>

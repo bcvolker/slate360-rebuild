@@ -240,7 +240,7 @@ export function ThermalStudioWorkView({
             compareVisual && pairedVisual ? "grid-cols-2" : "grid-cols-1"
           }`}
         >
-        <div className="min-h-0 rounded-2xl border border-[var(--mobile-app-card-border)] p-3">
+        <div className="min-h-0 rounded-2xl border border-[var(--mobile-app-card-border)] shadow-[var(--mobile-app-card-shadow)] p-3">
           {gridState === "ready" && grid ? (
             <ThermalProbeViewer
               grid={grid}
@@ -280,7 +280,7 @@ export function ThermalStudioWorkView({
         </div>
 
         {compareVisual && pairedVisual ? (
-          <div className="flex min-h-0 flex-col rounded-2xl border border-[var(--mobile-app-card-border)] p-3">
+          <div className="flex min-h-0 flex-col rounded-2xl border border-[var(--mobile-app-card-border)] shadow-[var(--mobile-app-card-shadow)] p-3">
             <p className="shrink-0 pb-2 font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--graphite-muted)]">
               Visual · {pairedVisual.filename}
             </p>
@@ -331,7 +331,7 @@ export function ThermalStudioWorkView({
         </div>
 
         {/* Horizontal filmstrip */}
-        <div className="flex shrink-0 snap-x gap-2 overflow-x-auto rounded-2xl border border-[var(--mobile-app-card-border)] p-2">
+        <div className="flex shrink-0 snap-x gap-2 overflow-x-auto rounded-2xl border border-[var(--mobile-app-card-border)] shadow-[var(--mobile-app-card-shadow)] p-2">
           {visibleCaptures.map((c) => {
             const anomalyCount = c.anomalies?.length ?? 0;
             return (
@@ -366,7 +366,7 @@ export function ThermalStudioWorkView({
       </section>
 
       {/* Right: per-photo data */}
-      <aside className="min-h-0 space-y-3 overflow-y-auto rounded-2xl border border-[var(--mobile-app-card-border)] p-3">
+      <aside className="min-h-0 space-y-3 overflow-y-auto rounded-2xl border border-[var(--mobile-app-card-border)] shadow-[var(--mobile-app-card-shadow)] p-3">
         <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--graphite-muted)]">
           Photo data
         </p>

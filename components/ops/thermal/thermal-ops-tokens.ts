@@ -4,7 +4,7 @@ export const thermalOpsTokens = {
   title: "text-2xl font-bold text-[var(--graphite-text-header)]",
   subtitle: "text-sm text-[var(--graphite-muted)]",
   card:
-    "rounded-2xl border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_76%,transparent)] p-5 backdrop-blur-md",
+    "rounded-2xl border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_76%,transparent)] p-5 backdrop-blur-md shadow-[var(--mobile-app-card-shadow)]",
   eyebrow:
     "font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--graphite-muted)]",
   primaryButton:
