@@ -44,11 +44,13 @@ export default async function ThermalSessionDetailPage({ params }: PageProps) {
   }));
 
   return (
-    <div className="flex h-full min-h-0 flex-col gap-3">
-      <Link href="/thermal-studio" className="text-sm text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]">
-        ← All sessions
-      </Link>
-      <h1 className="text-lg font-bold text-[var(--graphite-text-header)]">{detail.session.name}</h1>
+    <div className="flex h-full min-h-0 flex-col gap-2">
+      <div className="flex shrink-0 items-center gap-3">
+        <Link href="/thermal-studio" className="text-sm text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]">
+          ←
+        </Link>
+        <h1 className="truncate text-base font-bold text-[var(--graphite-text-header)]">{detail.session.name}</h1>
+      </div>
       <div className="min-h-0 flex-1">
         <ThermalStudioShell
           sessionId={detail.session.id}

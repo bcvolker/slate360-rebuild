@@ -13,9 +13,16 @@ export default async function ThermalOpsLayout({ children }: { children: React.R
   if (!user) redirect("/login");
   if (!isSlateCeo) notFound();
 
+    // Height-bound the whole chain so the session workspace can fit the screen with
+    // NO page scroll (its internal regions scroll instead). The dashboard content
+    // area is overflow-y-auto, so this wrapper must be h-full + a flex column down
+    // to the children — otherwise the page grows to natural height and scrolls.
   return (
-    <div className={t.page} data-mobile-route="platform">
-      <header className={t.header}>
+    <div
+      className="mx-auto flex h-full min-h-0 w-full max-w-6xl flex-col px-4 py-3 lg:px-0"
+      data-mobile-route="platform"
+    >
+      <header className="mb-3 flex shrink-0 flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className={t.title}>Thermal Studio</h1>
           <p className={t.subtitle}>Private radiometric inspection workspace</p>
@@ -29,7 +36,7 @@ export default async function ThermalOpsLayout({ children }: { children: React.R
           </Link>
         </nav>
       </header>
-      {children}
+      <div className="min-h-0 flex-1">{children}</div>
     </div>
   );
 }
