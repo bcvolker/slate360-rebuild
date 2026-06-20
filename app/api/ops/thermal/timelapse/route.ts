@@ -45,19 +45,60 @@ export const POST = (req: NextRequest) =>
     if (!session) return notFound("Session not found");
 
     const metadata = (session.metadata as Record<string, unknown>) ?? {};
-    const requests = Array.isArray(metadata.motion_requests) ? metadata.motion_requests : [];
+    const requests = Array.isArray(metadata.motion_requests)
+      ? (metadata.motion_requests as Record<string, unknown>[])
+      : [];
+    const requestIndex = requests.length;
     const entry = {
       mode: body.mode,
       frame_ids: body.frameIds,
       settings: body.settings,
       status: "queued",
+      created_at: new Date().toISOString(),
     };
-
     const { error: updErr } = await admin
       .from("thermal_analysis_sessions")
       .update({ metadata: { ...metadata, motion_requests: [...requests, entry] } })
       .eq("id", body.sessionId);
     if (updErr) return serverError(updErr.message);
 
-    return ok({ queued: true, frames: body.frameIds.length });
+    // Resolve each frame's processed preview key (the render encodes from these).
+    const { data: caps } = await admin
+      .from("thermal_captures")
+      .select("id, preview_path, storage_path")
+      .eq("session_id", body.sessionId)
+      .eq("org_id", orgId)
+      .in("id", body.frameIds);
+    const byId = new Map((caps ?? []).map((c) => [c.id, c]));
+    const frames = body.frameIds
+      .map((id) => byId.get(id))
+      .filter((c): c is NonNullable<typeof c> => Boolean(c))
+      .map((c) => ({ captureId: c.id, previewPath: c.preview_path, storagePath: c.storage_path }));
+
+    // Dispatch directly to the Modal "timelapse" endpoint, derived from the existing
+    // thermal endpoint (same app, different label) — no Trigger task, no new env var.
+    const base = process.env.MODAL_THERMAL_ENDPOINT?.trim();
+    const endpoint = base ? base.replace("-process.modal.run", "-timelapse.modal.run") : null;
+    let dispatched = false;
+    if (endpoint && frames.length) {
+      try {
+        const res = await fetch(endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            jobId: `${body.sessionId}-${requestIndex}`,
+            orgId,
+            sessionId: body.sessionId,
+            requestIndex,
+            frames,
+            settings: body.settings,
+          }),
+        });
+        dispatched = res.ok;
+      } catch {
+        dispatched = false;
+      }
+    }
+
+    return ok({ queued: true, dispatched, frames: frames.length, requestIndex });
   });

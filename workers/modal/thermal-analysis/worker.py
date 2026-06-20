@@ -38,7 +38,7 @@ worker_secret = modal.Secret.from_name(SECRET_NAME)
 
 cpu_image = (
     modal.Image.debian_slim(python_version="3.11")
-    .apt_install("libgl1", "libglib2.0-0", "libgomp1")
+    .apt_install("libgl1", "libglib2.0-0", "libgomp1", "ffmpeg")
     .run_commands(
         "apt-get update",
         "apt-get install -y libimage-exiftool-perl",
@@ -57,7 +57,7 @@ cpu_image = (
     # Modern Modal does not auto-mount the entrypoint's directory, so the worker's
     # sibling modules must be added explicitly or `from pipeline import ...` fails
     # at container startup (ModuleNotFoundError -> crash loop).
-    .add_local_python_source("pipeline", "extract", "analyze", "report", "r2_utils")
+    .add_local_python_source("pipeline", "extract", "analyze", "report", "r2_utils", "timelapse")
 )
 
 
@@ -281,4 +281,56 @@ def process_thermal_job(payload: dict[str, Any]) -> None:
 @modal.fastapi_endpoint(method="POST", label=WEB_ENDPOINT_LABEL)
 def process(body: dict):
     fc = process_thermal_job.spawn(body)
+    return JSONResponse({"accepted": True}, headers={"x-modal-run-id": fc.object_id})
+
+
+def post_motion_callback(payload: dict[str, Any]) -> None:
+    site_url = os.environ["SITE_URL"].rstrip("/")
+    secret = os.environ["GPU_WORKER_SECRET_KEY"]
+    url = f"{site_url}/api/ops/thermal/timelapse/callback"
+    raw_body = dumps_json(payload)
+    headers = {
+        "Content-Type": "application/json",
+        "x-worker-signature": sign_callback_body(raw_body, secret),
+    }
+    try:
+        requests.post(url, data=raw_body, headers=headers, timeout=60)
+    except Exception as exc:  # noqa: BLE001 — best-effort; render already uploaded
+        print(f"[motion callback] failed: {exc}")
+
+
+@app.function(image=cpu_image, secrets=[worker_secret], timeout=MAX_DURATION_SECONDS)
+def render_motion_job(payload: dict[str, Any]) -> None:
+    import tempfile
+
+    from r2_utils import s3_client
+    from timelapse import render_motion
+
+    job_id = payload.get("jobId")
+    session_id = payload.get("sessionId")
+    org_id = payload.get("orgId")
+    request_index = payload.get("requestIndex")
+    try:
+        s3 = s3_client()
+        bucket = os.environ["R2_BUCKET"]
+        with tempfile.TemporaryDirectory() as td:
+            result = render_motion(
+                s3, bucket, str(org_id), str(session_id), str(job_id),
+                payload.get("frames") or [], payload.get("settings") or {}, Path(td),
+            )
+        post_motion_callback({
+            "jobId": job_id, "sessionId": session_id, "requestIndex": request_index,
+            "status": "completed", "mp4Key": result["key"], "frames": result["frames"],
+        })
+    except Exception as exc:  # noqa: BLE001
+        post_motion_callback({
+            "jobId": job_id, "sessionId": session_id, "requestIndex": request_index,
+            "status": "failed", "errorLog": str(exc)[:500],
+        })
+
+
+@app.function(image=cpu_image, secrets=[worker_secret])
+@modal.fastapi_endpoint(method="POST", label="timelapse")
+def timelapse(body: dict):
+    fc = render_motion_job.spawn(body)
     return JSONResponse({"accepted": True}, headers={"x-modal-run-id": fc.object_id})

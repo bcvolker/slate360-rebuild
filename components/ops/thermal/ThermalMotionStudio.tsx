@@ -83,7 +83,12 @@ export function ThermalMotionStudio({
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error ?? "Failed to start render");
-      setNote("Queued — rendering in the cloud. It will appear in Deliver when ready.");
+      const dispatched = json.data?.dispatched ?? json.dispatched;
+      setNote(
+        dispatched
+          ? "Rendering in the cloud — the MP4 will appear in Deliver when ready."
+          : "Saved — will render once the cloud worker is enabled for this environment.",
+      );
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Render failed");
     } finally {
