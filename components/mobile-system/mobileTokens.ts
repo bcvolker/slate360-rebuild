@@ -118,6 +118,9 @@ export const mobileTokens = {
   mobileHeaderPlatformMarkLink:
     "flex min-h-9 min-w-9 shrink-0 items-center justify-center rounded-[11px] p-1 -ml-1 transition-colors hover:bg-white/[0.04] active:bg-white/[0.07]",
   mobileHeaderBackChevron: "size-5 shrink-0 text-[#C9D3DF]",
+  /** Icon-only back button — consistent 40px touch target across every shell. */
+  mobileHeaderBackButton:
+    "flex h-10 w-10 shrink-0 items-center justify-center rounded-[11px] border border-[#2A3340] bg-[#11161E] text-[#C9D3DF] transition-colors hover:bg-white/[0.06] active:bg-white/[0.09]",
   mobileHeaderIconButton:
     "flex size-9 shrink-0 items-center justify-center rounded-[11px] border border-[#2A3340] bg-[#11161E] text-[#C9D3DF] transition-colors hover:bg-white/[0.06] active:bg-white/[0.09]",
   mobileHeaderIconSize: "h-[18px] w-[18px]",
