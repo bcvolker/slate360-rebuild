@@ -45,7 +45,7 @@ export function ThermalReportPreview({
   const ordered = order.map((id) => byId.get(id)).filter(Boolean) as StudioCapture[];
   const totalCaptures = summary?.total_captures ?? ordered.length;
   const critical = summary?.critical_anomalies ?? 0;
-  const maxTemp = summary?.max_detected_temp_c;
+  const flagged = ordered.filter((c) => (c.anomalies?.length ?? 0) > 0).length;
 
   return (
     <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-2 py-1">
@@ -67,9 +67,9 @@ export function ThermalReportPreview({
 
         {on("executive_summary") ? (
           <div className="mt-5 grid grid-cols-3 gap-3">
-            <Metric label="Captures" value={String(totalCaptures)} />
+            <Metric label="Images in report" value={String(ordered.length || totalCaptures)} />
+            <Metric label="Flagged images" value={String(flagged)} />
             <Metric label="Action anomalies" value={String(critical)} />
-            <Metric label="Max temp" value={maxTemp != null ? `${maxTemp}°C` : "—"} />
           </div>
         ) : null}
 
@@ -207,29 +207,14 @@ function FindingsPage({
       <h3 className="mb-2 text-sm font-bold text-slate-900">
         {index}. {capture.filename}
       </h3>
-      <div className="flex gap-4">
-        {/* Sidebar */}
-        <div className="w-44 shrink-0 space-y-3 text-[10px] text-slate-700">
-          <KV title="Measurements" rows={measurements} head />
-          {params.length ? <KV title="Parameters" rows={params} /> : null}
-          {condRows.length ? <KV title="Conditions" rows={condRows} /> : null}
-          {capRows.length ? <KV title="Capture" rows={capRows} /> : null}
-          <div>
-            <p className="text-[9px] font-bold uppercase tracking-wide text-slate-500">Findings</p>
-            {findingsText ? <p className="mt-0.5 leading-snug">{findingsText}</p> : null}
-            {anomalies.map((a, i) => (
-              <p key={i} className="mt-0.5 leading-snug">• {describeAnomaly(a, { standards, unit })}</p>
-            ))}
-            {!findingsText && anomalies.length === 0 ? <p className="mt-0.5 text-slate-400">No findings recorded.</p> : null}
-          </div>
-        </div>
-        {/* Image column */}
-        <div className="min-w-0 flex-1 space-y-1">
+      {/* Image is the feature (left), data alongside (right). */}
+      <div className="grid grid-cols-[1.6fr_1fr] gap-4">
+        <div className="min-w-0 space-y-1">
           {capture.previewUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={capture.previewUrl} alt={capture.filename} className="w-full rounded border border-slate-200 object-contain" />
           ) : (
-            <div className="flex h-40 items-center justify-center rounded bg-slate-100 text-[10px] text-slate-400">No image</div>
+            <div className="flex h-48 items-center justify-center rounded bg-slate-100 text-[10px] text-slate-400">No image</div>
           )}
           <p className="text-[9px] italic text-slate-500">
             {capture.filename} · {String(q.sensor_make ?? "")} {String(q.sensor_model ?? q.parser_id ?? "")}
@@ -242,6 +227,21 @@ function FindingsPage({
             </>
           ) : null}
         </div>
+        <div className="min-w-0 space-y-3 text-[10px] text-slate-700">
+          <KV title="Measurements" rows={measurements} head />
+          {params.length ? <KV title="Parameters" rows={params} /> : null}
+          {condRows.length ? <KV title="Conditions" rows={condRows} /> : null}
+          {capRows.length ? <KV title="Capture" rows={capRows} /> : null}
+        </div>
+      </div>
+      {/* Findings span the full width below the image + data. */}
+      <div className="mt-4 border-t border-slate-200 pt-2 text-[11px] text-slate-700">
+        <p className="text-[9px] font-bold uppercase tracking-wide text-slate-500">Findings</p>
+        {findingsText ? <p className="mt-1 leading-relaxed">{findingsText}</p> : null}
+        {anomalies.map((a, i) => (
+          <p key={i} className="mt-1 leading-relaxed">• {describeAnomaly(a, { standards, unit })}</p>
+        ))}
+        {!findingsText && anomalies.length === 0 ? <p className="mt-1 text-slate-400">No findings recorded.</p> : null}
       </div>
     </Sheet>
   );

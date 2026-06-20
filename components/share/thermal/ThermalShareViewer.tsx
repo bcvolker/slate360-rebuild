@@ -56,8 +56,7 @@ export function ThermalShareViewer({ data, token, tokenState, embed = false }: P
           <h1 className="mt-2 text-2xl font-bold text-[var(--graphite-text-header)]">{data.sessionName}</h1>
           {branding.show_metrics !== false ? (
             <div className="mt-3 flex flex-wrap gap-4 text-sm text-[var(--graphite-muted)]">
-              <span>Captures: {String(summary.total_captures ?? captures.length)}</span>
-              <span>Max temp: {summary.max_detected_temp_c != null ? `${summary.max_detected_temp_c}°C` : "—"}</span>
+              <span>Images: {String(summary.total_captures ?? captures.length)}</span>
               <span>Action items: {String(summary.critical_anomalies ?? 0)}</span>
             </div>
           ) : null}

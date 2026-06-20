@@ -140,7 +140,6 @@ export function ThermalStudioShell({
 
   const tabs: StudioTab<Stage>[] = STAGES.map((s) => ({ id: s.id, label: s.label }));
   const crit = Number(summary.critical_anomalies ?? 0);
-  const maxTemp = summary.max_detected_temp_c;
 
   return (
     <StudioWorkspaceShell
@@ -159,8 +158,7 @@ export function ThermalStudioShell({
       rightSlot={
         <>
           <StudioChip label="Images" value={captures.length} />
-          {crit > 0 ? <StudioChip label="⚑" value={crit} /> : null}
-          <StudioChip label="Max" value={maxTemp != null ? `${maxTemp}°C` : "—"} />
+          {crit > 0 ? <StudioChip label="⚑ Action" value={crit} /> : null}
           {activeJob ? <JobChip status={activeJob.status} connected={connected} /> : null}
         </>
       }

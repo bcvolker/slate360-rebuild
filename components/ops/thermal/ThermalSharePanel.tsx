@@ -90,11 +90,23 @@ export function ThermalSharePanel({
       </div>
 
       <div className={t.card}>
-        <p className={t.eyebrow}>Exports & filing</p>
-        <div className="mt-3 flex flex-wrap gap-3">
-          <a href={`/api/ops/thermal/sessions/${sessionId}/export?format=csv`} className={t.secondaryButton}>CSV</a>
-          <a href={`/api/ops/thermal/sessions/${sessionId}/export?format=json`} className={t.secondaryButton}>JSON</a>
-          <a href={`/api/ops/thermal/sessions/${sessionId}/export?format=geojson`} className={t.secondaryButton}>GeoJSON</a>
+        <p className={t.eyebrow}>Export the data</p>
+        <p className="mt-1 text-xs text-[var(--graphite-muted)]">
+          Download the measurements and findings for use in other tools.
+        </p>
+        <div className="mt-3 flex flex-col gap-2">
+          <a href={`/api/ops/thermal/sessions/${sessionId}/export?format=csv`} className={`${t.secondaryButton} justify-between`}>
+            <span>Spreadsheet</span>
+            <span className="text-[10px] uppercase tracking-wide text-[var(--graphite-muted)]">.csv · Excel / Sheets</span>
+          </a>
+          <a href={`/api/ops/thermal/sessions/${sessionId}/export?format=json`} className={`${t.secondaryButton} justify-between`}>
+            <span>Raw data</span>
+            <span className="text-[10px] uppercase tracking-wide text-[var(--graphite-muted)]">.json · for developers</span>
+          </a>
+          <a href={`/api/ops/thermal/sessions/${sessionId}/export?format=geojson`} className={`${t.secondaryButton} justify-between`}>
+            <span>Map data</span>
+            <span className="text-[10px] uppercase tracking-wide text-[var(--graphite-muted)]">.geojson · GIS / mapping</span>
+          </a>
         </div>
         <p className={`${t.eyebrow} mt-5`}>Linked project</p>
         <p className="mt-1 text-xs text-[var(--graphite-muted)]">
