@@ -1,12 +1,16 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import {
   ThermalProbeViewer,
   type ThermalProbeGrid,
   type ProbeSpot,
   type ProbeTuning,
 } from "@/components/ops/thermal/ThermalProbeViewer";
+import { CollapsibleSection } from "@/components/ops/thermal/CollapsibleSection";
+import { ThermalTuningPanel } from "@/components/ops/thermal/ThermalTuningPanel";
+import { ThermalSlateDropPicker } from "@/components/ops/thermal/ThermalSlateDropPicker";
 import type { ThermalAnomaly } from "@/lib/thermal/anomaly-describe";
 
 export type StudioCapture = {
@@ -19,6 +23,10 @@ export type StudioCapture = {
 };
 
 type Props = {
+  /** Session id — for SlateDrop import + detection settings. */
+  sessionId?: string;
+  /** Session-level detection params (anomaly thresholds) for the left rail. */
+  initialParams?: unknown;
   captures: StudioCapture[];
   /** Standards from the active report template — drives finding descriptions. */
   standards?: string[];
@@ -91,6 +99,8 @@ function num(v: unknown, suffix = ""): string {
 }
 
 export function ThermalStudioWorkView({
+  sessionId,
+  initialParams,
   captures,
   standards,
   selectedId: controlledId,
@@ -100,6 +110,10 @@ export function ThermalStudioWorkView({
   saveTuning = defaultSaveTuning,
   saveFindings = defaultSaveFindings,
 }: Props) {
+  // Workspace chrome: left files rail + bottom filmstrip dock (both collapsible).
+  const [leftOpen, setLeftOpen] = useState(true);
+  const [stripOpen, setStripOpen] = useState(true);
+  const [pickerOpen, setPickerOpen] = useState(false);
   const [internalId, setInternalId] = useState<string | null>(captures[0]?.id ?? null);
   const selectedId = controlledId ?? internalId;
   const selectCapture = useCallback(
@@ -283,142 +297,208 @@ export function ThermalStudioWorkView({
     </>
   ) : null;
 
+  const railBtn =
+    "flex w-full items-center gap-2 rounded-lg border border-[var(--mobile-app-card-border)] px-2.5 py-1.5 text-left text-xs font-medium text-[var(--graphite-text-body)] hover:text-[var(--graphite-text-header)]";
+
   return (
-    // Design-Studio-consistent workspace: vertical filmstrip on the LEFT, the image
-    // as the dominant center, collapsible sections on the RIGHT (inside the viewer).
-    <div className="flex h-full min-h-0 gap-3">
-      {/* LEFT: vertical filmstrip */}
-      <aside className="flex w-28 shrink-0 flex-col gap-2">
-        <div className="flex shrink-0 items-center justify-between">
-          <span className="font-mono text-[9px] font-semibold uppercase tracking-[0.14em] text-[var(--graphite-muted)]">
-            {visibleCaptures.length} img
-          </span>
+    // No-scroll workspace: file management on the LEFT, the large thermal image in the
+    // CENTER (with its tools rail, inside the viewer) on a dark stage, and the image
+    // filmstrip docked along the BOTTOM. Mirrors the Design Studio frame.
+    <div className="flex h-full min-h-0 flex-col gap-2">
+      <div className="flex min-h-0 flex-1 gap-2">
+        {/* LEFT: file management (bring in files/folders + detection settings) */}
+        {leftOpen ? (
+          <aside className="flex w-56 shrink-0 flex-col gap-2 overflow-y-auto rounded-xl border border-[var(--mobile-app-card-border)] p-2">
+            <div className="flex items-center justify-between">
+              <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--graphite-muted)]">
+                Files
+              </span>
+              <button
+                type="button"
+                onClick={() => setLeftOpen(false)}
+                title="Hide files"
+                className="rounded px-1 text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]"
+              >
+                ⟨
+              </button>
+            </div>
+            {sessionId ? (
+              <button type="button" onClick={() => setPickerOpen(true)} className={railBtn}>
+                ＋ From SlateDrop
+              </button>
+            ) : null}
+            <Link href="/thermal-studio/upload" className={railBtn}>
+              ⤓ Upload files
+            </Link>
+            {sessionId ? (
+              <CollapsibleSection title="Detection settings" defaultOpen={false}>
+                <ThermalTuningPanel sessionId={sessionId} initialParams={initialParams} />
+              </CollapsibleSection>
+            ) : null}
+          </aside>
+        ) : (
           <button
             type="button"
-            onClick={() => setFlaggedOnly((v) => !v)}
-            disabled={flaggedCount === 0}
-            className={`rounded border px-1 py-0.5 text-[9px] font-semibold transition-colors disabled:opacity-40 ${
-              flaggedOnly
-                ? "border-[#fb923c]/50 bg-[#fb923c]/15 text-[#fdba74]"
-                : "border-[var(--mobile-app-card-border)] text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]"
-            }`}
-            title="Show only captures with detected anomalies"
+            onClick={() => setLeftOpen(true)}
+            title="Show files"
+            className="h-full shrink-0 rounded-xl border border-[var(--mobile-app-card-border)] px-1.5 text-[10px] font-semibold text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)] [writing-mode:vertical-rl]"
           >
-            ⚑{flaggedCount}
+            Files ⟩
           </button>
-        </div>
-        <div className="min-h-0 flex-1 space-y-2 overflow-y-auto rounded-2xl border border-[var(--mobile-app-card-border)] shadow-[var(--mobile-app-card-shadow)] p-2">
-          {visibleCaptures.map((c) => {
-            const anomalyCount = c.anomalies?.length ?? 0;
-            return (
-              <button
-                key={c.id}
-                type="button"
-                onClick={() => selectCapture(c.id)}
-                className={`relative block aspect-[4/3] w-full overflow-hidden rounded-lg border bg-[#111827] ${
-                  selected?.id === c.id
-                    ? "border-[color-mix(in_srgb,var(--graphite-primary)_60%,transparent)] ring-2 ring-[color-mix(in_srgb,var(--graphite-primary)_40%,transparent)]"
-                    : "border-[var(--mobile-app-card-border)]"
-                }`}
-                title={c.filename}
-              >
-                {c.previewUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={c.previewUrl} alt={c.filename} className="h-full w-full object-cover" />
-                ) : (
-                  <span className="flex h-full items-center justify-center px-1 text-center text-[8px] text-[var(--graphite-muted)]">
-                    {c.filename}
-                  </span>
-                )}
-                {anomalyCount > 0 ? (
-                  <span className="absolute right-0.5 top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#fb923c] px-1 text-[9px] font-bold text-black">
-                    {anomalyCount}
-                  </span>
-                ) : null}
-              </button>
-            );
-          })}
-        </div>
-      </aside>
+        )}
 
-      {/* RIGHT: viewer area (image + collapsible sections) */}
-      <section className="flex min-h-0 min-w-0 flex-1 flex-col gap-2">
-        {pairedVisual ? (
-          <div className="flex shrink-0 justify-end">
-            <button
-              type="button"
-              onClick={() => setCompareVisual((v) => !v)}
-              className={`rounded border px-1.5 py-0.5 text-[10px] font-semibold transition-colors ${
-                compareVisual
-                  ? "border-[color-mix(in_srgb,var(--graphite-primary)_50%,transparent)] bg-[color-mix(in_srgb,var(--graphite-primary)_16%,transparent)] text-[var(--graphite-text-header)]"
-                  : "border-[var(--mobile-app-card-border)] text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]"
-              }`}
-              title="Show the paired visual photo side by side (shortcut: c)"
-            >
-              Compare visual
-            </button>
+        {/* CENTER: the thermal image on a dark stage (+ optional visual compare) */}
+        <section className="flex min-h-0 min-w-0 flex-1 gap-2">
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-xl border border-[var(--mobile-app-card-border)] bg-[var(--graphite-canvas-deep)] p-2">
+            {gridState === "ready" && grid ? (
+              <ThermalProbeViewer
+                grid={grid}
+                title={selected?.filename}
+                anomalies={anomalies}
+                standards={standards}
+                initialSpots={initialSpots}
+                onSpotsChange={onSpotsChange}
+                initialTuning={initialTuning}
+                onTuningChange={onTuningChange}
+                initialPalette={typeof selectedMeta.palette === "string" ? selectedMeta.palette : null}
+                onPaletteChange={(p) => { if (selected) defaultSavePalette(selected.id, p); }}
+                extraPanels={photoDataPanel}
+              />
+            ) : gridState === "loading" ? (
+              <div className="flex h-full min-h-[260px] items-center justify-center text-sm text-[var(--graphite-muted)]">
+                Loading temperature data…
+              </div>
+            ) : (
+              <div className="flex h-full min-h-[260px] flex-col items-center justify-center gap-3 p-4 text-center">
+                {selected?.previewUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={selected.previewUrl}
+                    alt={selected.filename}
+                    className="max-h-[55%] rounded-lg border border-[var(--mobile-app-card-border)] object-contain"
+                  />
+                ) : null}
+                <div className="max-w-md">
+                  <p className="text-sm font-semibold text-[var(--graphite-text-header)]">
+                    Per-pixel probing &amp; tuning not available yet
+                  </p>
+                  <p className="mt-1 text-xs text-[var(--graphite-muted)]">
+                    Emissivity, spots, and temperature readouts unlock once this capture has been decoded.
+                    Run <strong>Process images</strong> from the <strong>Library</strong> tab, then return here.
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
-        ) : null}
-        <div className="flex min-h-0 flex-1 gap-3">
-        <div className="flex min-h-0 min-w-0 flex-1 flex-col rounded-2xl border border-[var(--mobile-app-card-border)] shadow-[var(--mobile-app-card-shadow)] p-3">
-          {gridState === "ready" && grid ? (
-            <ThermalProbeViewer
-              grid={grid}
-              title={selected?.filename}
-              anomalies={anomalies}
-              standards={standards}
-              initialSpots={initialSpots}
-              onSpotsChange={onSpotsChange}
-              initialTuning={initialTuning}
-              onTuningChange={onTuningChange}
-              initialPalette={typeof selectedMeta.palette === "string" ? selectedMeta.palette : null}
-              onPaletteChange={(p) => { if (selected) defaultSavePalette(selected.id, p); }}
-              extraPanels={photoDataPanel}
-            />
-          ) : gridState === "loading" ? (
-            <div className="flex h-full min-h-[260px] items-center justify-center text-sm text-[var(--graphite-muted)]">
-              Loading temperature data…
-            </div>
-          ) : (
-            <div className="flex h-full min-h-[260px] flex-col items-center justify-center gap-3 p-4 text-center">
-              {selected?.previewUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={selected.previewUrl}
-                  alt={selected.filename}
-                  className="max-h-[55%] rounded-lg border border-[var(--mobile-app-card-border)] object-contain"
-                />
-              ) : null}
-              <div className="max-w-md">
-                <p className="text-sm font-semibold text-[var(--graphite-text-header)]">
-                  Per-pixel probing &amp; tuning not available yet
-                </p>
-                <p className="mt-1 text-xs text-[var(--graphite-muted)]">
-                  Emissivity, spots, and temperature readouts unlock once this capture has been decoded.
-                  Run <strong>Process images</strong> from the <strong>Library</strong> tab, then return here.
-                </p>
+
+          {compareVisual && pairedVisual ? (
+            <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-xl border border-[var(--mobile-app-card-border)] bg-[var(--graphite-canvas-deep)] p-2">
+              <p className="shrink-0 pb-2 font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--graphite-muted)]">
+                Visual · {pairedVisual.filename}
+              </p>
+              <div className="flex min-h-0 flex-1 items-center justify-center overflow-hidden">
+                {pairedVisual.previewUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={pairedVisual.previewUrl} alt={pairedVisual.filename} className="max-h-full max-w-full rounded-lg object-contain" />
+                ) : (
+                  <span className="text-xs text-[var(--graphite-muted)]">No preview for the paired visual.</span>
+                )}
               </div>
             </div>
-          )}
-        </div>
+          ) : null}
+        </section>
+      </div>
 
-        {compareVisual && pairedVisual ? (
-          <div className="flex min-h-0 min-w-0 flex-1 flex-col rounded-2xl border border-[var(--mobile-app-card-border)] shadow-[var(--mobile-app-card-shadow)] p-3">
-            <p className="shrink-0 pb-2 font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--graphite-muted)]">
-              Visual · {pairedVisual.filename}
-            </p>
-            <div className="flex min-h-0 flex-1 items-center justify-center overflow-hidden">
-              {pairedVisual.previewUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={pairedVisual.previewUrl} alt={pairedVisual.filename} className="max-h-full max-w-full rounded-lg object-contain" />
-              ) : (
-                <span className="text-xs text-[var(--graphite-muted)]">No preview for the paired visual.</span>
-              )}
+      {/* BOTTOM: docked horizontal filmstrip (collapsible) */}
+      {stripOpen ? (
+        <div className="shrink-0 rounded-xl border border-[var(--mobile-app-card-border)] p-2">
+          <div className="mb-1.5 flex items-center justify-between">
+            <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--graphite-muted)]">
+              {visibleCaptures.length} image{visibleCaptures.length === 1 ? "" : "s"}
+            </span>
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => setFlaggedOnly((v) => !v)}
+                disabled={flaggedCount === 0}
+                className={`rounded border px-1.5 py-0.5 text-[10px] font-semibold transition-colors disabled:opacity-40 ${
+                  flaggedOnly
+                    ? "border-[color-mix(in_srgb,var(--graphite-primary)_50%,transparent)] bg-[color-mix(in_srgb,var(--graphite-primary)_16%,transparent)] text-[var(--graphite-text-header)]"
+                    : "border-[var(--mobile-app-card-border)] text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]"
+                }`}
+                title="Show only captures with detected anomalies"
+              >
+                ⚑ Flagged {flaggedCount}
+              </button>
+              {pairedVisual ? (
+                <button
+                  type="button"
+                  onClick={() => setCompareVisual((v) => !v)}
+                  className={`rounded border px-1.5 py-0.5 text-[10px] font-semibold transition-colors ${
+                    compareVisual
+                      ? "border-[color-mix(in_srgb,var(--graphite-primary)_50%,transparent)] bg-[color-mix(in_srgb,var(--graphite-primary)_16%,transparent)] text-[var(--graphite-text-header)]"
+                      : "border-[var(--mobile-app-card-border)] text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]"
+                  }`}
+                  title="Show the paired visual photo side by side (shortcut: c)"
+                >
+                  Compare visual
+                </button>
+              ) : null}
+              <button
+                type="button"
+                onClick={() => setStripOpen(false)}
+                className="rounded border border-[var(--mobile-app-card-border)] px-1.5 py-0.5 text-[10px] font-semibold text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]"
+              >
+                Hide ▾
+              </button>
             </div>
           </div>
-        ) : null}
+          <div className="flex gap-2 overflow-x-auto pb-0.5">
+            {visibleCaptures.map((c) => {
+              const anomalyCount = c.anomalies?.length ?? 0;
+              return (
+                <button
+                  key={c.id}
+                  type="button"
+                  onClick={() => selectCapture(c.id)}
+                  className={`relative block aspect-[4/3] h-20 shrink-0 overflow-hidden rounded-lg border bg-[#111827] ${
+                    selected?.id === c.id
+                      ? "border-[color-mix(in_srgb,var(--graphite-primary)_60%,transparent)] ring-2 ring-[color-mix(in_srgb,var(--graphite-primary)_40%,transparent)]"
+                      : "border-[var(--mobile-app-card-border)]"
+                  }`}
+                  title={c.filename}
+                >
+                  {c.previewUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={c.previewUrl} alt={c.filename} className="h-full w-full object-cover" />
+                  ) : (
+                    <span className="flex h-full items-center justify-center px-1 text-center text-[8px] text-[var(--graphite-muted)]">
+                      {c.filename}
+                    </span>
+                  )}
+                  {anomalyCount > 0 ? (
+                    <span className="absolute right-0.5 top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--graphite-primary)] px-1 text-[9px] font-bold text-[var(--graphite-canvas)]">
+                      {anomalyCount}
+                    </span>
+                  ) : null}
+                </button>
+              );
+            })}
+          </div>
         </div>
-      </section>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setStripOpen(true)}
+          className="shrink-0 rounded-xl border border-[var(--mobile-app-card-border)] px-3 py-1.5 text-left text-[11px] font-semibold text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]"
+        >
+          ▴ Show filmstrip ({visibleCaptures.length})
+        </button>
+      )}
+
+      {pickerOpen && sessionId ? (
+        <ThermalSlateDropPicker sessionId={sessionId} onClose={() => setPickerOpen(false)} />
+      ) : null}
     </div>
   );
 }

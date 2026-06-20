@@ -1,5 +1,4 @@
 import { notFound } from "next/navigation";
-import Link from "next/link";
 import { loadThermalSessionDetail } from "@/lib/thermal/load-session-data";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { resolveReportTemplate } from "@/lib/thermal/resolve-report-template";
@@ -44,15 +43,8 @@ export default async function ThermalSessionDetailPage({ params }: PageProps) {
   }));
 
   return (
-    <div className="flex h-full min-h-0 flex-col gap-2">
-      <div className="flex shrink-0 items-center gap-3">
-        <Link href="/thermal-studio" className="text-sm text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]">
-          ←
-        </Link>
-        <h1 className="truncate text-base font-bold text-[var(--graphite-text-header)]">{detail.session.name}</h1>
-      </div>
-      <div className="min-h-0 flex-1">
-        <ThermalStudioShell
+    <div className="h-full min-h-0">
+      <ThermalStudioShell
           sessionId={detail.session.id}
           sessionName={detail.session.name}
           captures={captures}
@@ -67,8 +59,7 @@ export default async function ThermalSessionDetailPage({ params }: PageProps) {
           summaryMetrics={(detail.session.summary_metrics as Record<string, unknown> | null) ?? null}
           reportSet={reportSet}
           conditions={conditions}
-        />
-      </div>
+      />
     </div>
   );
 }

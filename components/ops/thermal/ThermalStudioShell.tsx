@@ -1,10 +1,15 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useThermalJobRealtime } from "@/hooks/useThermalJobRealtime";
-import { ThermalJobStatusBar } from "@/components/ops/thermal/ThermalJobStatusBar";
-import { ThermalSessionSummaryBar } from "@/components/ops/thermal/ThermalSessionSummaryBar";
+import {
+  StudioWorkspaceShell,
+  StudioTabs,
+  StudioChip,
+  type StudioTab,
+} from "@/components/studio/StudioWorkspaceShell";
 import { type StudioCapture } from "@/components/ops/thermal/ThermalStudioWorkView";
 import { ThermalLibrary } from "@/components/ops/thermal/ThermalLibrary";
 import { ThermalAnalyzeTune } from "@/components/ops/thermal/ThermalAnalyzeTune";
@@ -49,6 +54,7 @@ type Props = {
 
 export function ThermalStudioShell({
   sessionId,
+  sessionName,
   captures,
   initialJob,
   brandingConfig,
@@ -81,7 +87,7 @@ export function ThermalStudioShell({
     router.refresh();
   }, [job, router]);
 
-  const summary = useMemo(
+  const summary = useMemo<Record<string, unknown>>(
     () => ({
       ...(summaryMetrics ?? {}),
       total_captures: captures.length,
@@ -130,88 +136,102 @@ export function ThermalStudioShell({
     setStage("inspect");
   }
 
+  const tabs: StudioTab<Stage>[] = STAGES.map((s) => ({ id: s.id, label: s.label }));
+  const crit = Number(summary.critical_anomalies ?? 0);
+  const maxTemp = summary.max_detected_temp_c;
+
   return (
-    <div className="flex h-full min-h-0 flex-col gap-3">
-      {/* Persistent session summary — always visible across stages. */}
-      <ThermalSessionSummaryBar summary={summary} />
+    <StudioWorkspaceShell
+      title="Thermal Studio"
+      subtitle={sessionName}
+      leftSlot={
+        <Link
+          href="/thermal-studio"
+          title="All sessions"
+          className="rounded p-1 text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]"
+        >
+          ←
+        </Link>
+      }
+      tabsSlot={<StudioTabs tabs={tabs} active={stage} onChange={setStage} />}
+      rightSlot={
+        <>
+          <StudioChip label="Images" value={captures.length} />
+          {crit > 0 ? <StudioChip label="⚑" value={crit} /> : null}
+          <StudioChip label="Max" value={maxTemp != null ? `${maxTemp}°C` : "—"} />
+          {activeJob ? <JobChip status={activeJob.status} connected={connected} /> : null}
+        </>
+      }
+    >
+      {/* Active stage — chrome never scrolls; each stage manages its own space.
+          Inspect runs full-bleed; the form/list stages keep contained scroll. */}
+      {stage === "inspect" ? (
+        <ThermalAnalyzeTune
+          sessionId={sessionId}
+          captures={captures}
+          activeCaptureId={activeCaptureId}
+          onActiveChange={setActiveCaptureId}
+          standards={standards}
+          initialParams={initialParams}
+        />
+      ) : (
+        <div className="h-full min-h-0 overflow-y-auto p-3">
+          {stage === "library" ? (
+            <ThermalLibrary
+              sessionId={sessionId}
+              captures={captures}
+              onOpenCapture={openInWorkbench}
+              reportOrder={reportOrder}
+              onToggleInReport={toggleInReport}
+              onAddToReport={addToReport}
+            />
+          ) : null}
 
-      {/* Stepper nav */}
-      <nav className="flex flex-wrap items-center gap-1.5" aria-label="Studio stages">
-        {STAGES.map((s) => {
-          const active = stage === s.id;
-          return (
-            <button
-              key={s.id}
-              type="button"
-              onClick={() => setStage(s.id)}
-              className={`flex items-center gap-2 rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${
-                active
-                  ? "border-[color-mix(in_srgb,var(--graphite-primary)_42%,transparent)] bg-[color-mix(in_srgb,var(--graphite-primary)_14%,transparent)] text-[var(--graphite-text-header)]"
-                  : "border-[var(--mobile-app-card-border)] text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]"
-              }`}
-            >
-              <span
-                className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold ${
-                  active ? "bg-[var(--graphite-primary)] text-[var(--graphite-canvas)]" : "bg-[color-mix(in_srgb,var(--graphite-muted)_24%,transparent)] text-[var(--graphite-text-body)]"
-                }`}
-              >
-                {s.step}
-              </span>
-              {s.label}
-            </button>
-          );
-        })}
-      </nav>
+          {stage === "report" ? (
+            <ThermalReportBuilder
+              sessionId={sessionId}
+              captures={captures}
+              reportOrder={reportOrder}
+              onReorder={reorderReport}
+              onRemove={removeFromReport}
+              initialTemplateId={initialTemplateId}
+              initialSignature={initialSignature}
+              initialConditions={conditions}
+            />
+          ) : null}
 
-      {/* Persistent processing status so it's always clear whether a job is running */}
-      {activeJob ? <ThermalJobStatusBar job={activeJob} connected={connected} /> : null}
+          {stage === "deliver" ? (
+            <ThermalDeliverables
+              sessionId={sessionId}
+              brandingConfig={brandingConfig}
+              initialProjectId={initialProjectId}
+              linkedSpaceId={linkedSpaceId}
+            />
+          ) : null}
+        </div>
+      )}
+    </StudioWorkspaceShell>
+  );
+}
 
-      {/* Active stage — chrome never scrolls; each stage manages its own space. */}
-      <div className="min-h-0 flex-1 overflow-hidden">
-        {stage === "library" ? (
-          <ThermalLibrary
-            sessionId={sessionId}
-            captures={captures}
-            onOpenCapture={openInWorkbench}
-            reportOrder={reportOrder}
-            onToggleInReport={toggleInReport}
-            onAddToReport={addToReport}
-          />
-        ) : null}
-
-        {stage === "inspect" ? (
-          <ThermalAnalyzeTune
-            sessionId={sessionId}
-            captures={captures}
-            activeCaptureId={activeCaptureId}
-            onActiveChange={setActiveCaptureId}
-            standards={standards}
-            initialParams={initialParams}
-          />
-        ) : null}
-
-        {stage === "report" ? (
-          <ThermalReportBuilder
-            sessionId={sessionId}
-            captures={captures}
-            reportOrder={reportOrder}
-            onReorder={reorderReport}
-            onRemove={removeFromReport}
-            initialTemplateId={initialTemplateId}
-            initialSignature={initialSignature}
-            initialConditions={conditions}
-          />
-        ) : null}
-
-        {stage === "deliver" ? (
-          <ThermalDeliverables
-            sessionId={sessionId}
-            brandingConfig={brandingConfig}
-            initialProjectId={initialProjectId}
-            linkedSpaceId={linkedSpaceId}
-          />
-        ) : null}
-      </div>
-    </div>
+/** Compact processing-status chip for the top bar (replaces the full job bar row). */
+function JobChip({ status, connected }: { status: string; connected: boolean }) {
+  const running = status === "queued" || status === "processing" || status === "running";
+  const failed = status === "failed";
+  const tone = failed
+    ? "border-[color-mix(in_srgb,#ef4444_45%,transparent)] text-[#fca5a5]"
+    : running
+      ? "border-[color-mix(in_srgb,var(--graphite-primary)_45%,transparent)] text-[var(--graphite-text-header)]"
+      : "border-[var(--mobile-app-card-border)] text-[var(--graphite-muted)]";
+  return (
+    <span className={`flex items-center gap-1.5 rounded-md border px-2 py-0.5 text-[11px] font-medium ${tone}`}>
+      <span
+        className={`h-1.5 w-1.5 rounded-full ${
+          failed ? "bg-[#ef4444]" : running ? "animate-pulse bg-[var(--graphite-primary)]" : "bg-[var(--graphite-muted)]"
+        }`}
+      />
+      {running ? "Processing…" : failed ? "Job failed" : "Idle"}
+      {!connected && running ? <span className="opacity-60">·offline</span> : null}
+    </span>
   );
 }

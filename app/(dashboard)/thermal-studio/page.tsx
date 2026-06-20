@@ -14,14 +14,17 @@ export default async function ThermalSessionsPage() {
   });
 
   return (
-    <div className="space-y-4">
+    <div className="mx-auto max-w-5xl space-y-4">
       <div className="flex items-center justify-between gap-3">
-        <Link href="/thermal-studio/upload" className={t.secondaryButton}>
-          Upload captures
-        </Link>
-        <Link href="/thermal-studio/report-templates" className={t.secondaryButton}>
-          Report templates
-        </Link>
+        <h1 className="text-base font-bold text-[var(--graphite-text-header)]">Thermal Studio</h1>
+        <div className="flex items-center gap-2">
+          <Link href="/thermal-studio/report-templates" className={t.secondaryButton}>
+            Report templates
+          </Link>
+          <Link href="/thermal-studio/upload" className={t.primaryButton}>
+            New upload
+          </Link>
+        </div>
       </div>
       {sessions.length ? (
         <div className="space-y-3">
