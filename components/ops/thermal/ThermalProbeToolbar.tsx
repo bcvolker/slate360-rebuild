@@ -3,7 +3,13 @@
 import { PALETTE_NAMES, type Unit } from "@/lib/thermal/probe-palettes";
 import { Toggle } from "@/components/ops/thermal/ThermalProbeMarkers";
 
-export type ProbeTool = "crosshair" | "crosshair-circle" | "area";
+export type ProbeTool =
+  | "crosshair"
+  | "crosshair-circle"
+  | "dot"
+  | "square"
+  | "area"
+  | "area-circle";
 
 /** Top toolbar for the probe: palette, target tool, undo/redo, unit, layers, clears. */
 export function ThermalProbeToolbar({
@@ -74,9 +80,12 @@ export function ThermalProbeToolbar({
           {PALETTE_NAMES.map((p) => <option key={p} value={p}>{p}</option>)}
         </select>
         <select value={tool} onChange={(e) => setTool(e.target.value as ProbeTool)} className={selectCls} aria-label="Target tool">
-          <option value="crosshair">＋ Crosshair</option>
+          <option value="crosshair">＋ Crosshair (point)</option>
           <option value="crosshair-circle">⌖ Crosshair + ring</option>
-          <option value="area">▢ Area (avg)</option>
+          <option value="dot">• Dot (point)</option>
+          <option value="square">▫ Square (point)</option>
+          <option value="area">▭ Box area (avg)</option>
+          <option value="area-circle">◯ Ellipse area (avg)</option>
         </select>
         <button type="button" onClick={onUndo} disabled={!canUndo} className={`${clearBtn} disabled:opacity-40`} title="Undo (Ctrl+Z)">↶</button>
         <button type="button" onClick={onRedo} disabled={!canRedo} className={`${clearBtn} disabled:opacity-40`} title="Redo (Ctrl+Shift+Z)">↷</button>

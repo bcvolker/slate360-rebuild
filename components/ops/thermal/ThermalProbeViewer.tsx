@@ -30,9 +30,10 @@ export type ThermalProbeGrid = {
   emissivity?: number;
 };
 
-/** A measurement target: a point (crosshair) or an averaging area (box). */
+/** A measurement target: a point marker or an averaging area (box / ellipse). */
 export type SpotKind = "point" | "area";
-export type SpotTargetShape = "crosshair" | "crosshair-circle";
+export type SpotTargetShape = "crosshair" | "crosshair-circle" | "dot" | "square";
+export type SpotAreaShape = "box" | "circle";
 export type ProbeSpot = {
   id: string;
   x: number;
@@ -40,7 +41,8 @@ export type ProbeSpot = {
   imported?: boolean;
   kind?: SpotKind; // default "point"
   target?: SpotTargetShape; // point look — default "crosshair"
-  /** Area box size in grid pixels (when kind === "area"). */
+  areaShape?: SpotAreaShape; // area look — default "box"
+  /** Area size in grid pixels (when kind === "area"). */
   w?: number;
   h?: number;
 };
@@ -157,8 +159,10 @@ export function ThermalProbeViewer({
     [onPaletteChange],
   );
   useEffect(() => { setPaletteState(initialPalette || "Inferno"); }, [initialPalette]);
-  // What the next click places: precise crosshair, ringed crosshair, or an area box.
-  const [tool, setTool] = useState<"crosshair" | "crosshair-circle" | "area">("crosshair");
+  // What the next click places (point markers or averaging areas).
+  const [tool, setTool] = useState<
+    "crosshair" | "crosshair-circle" | "dot" | "square" | "area" | "area-circle"
+  >("crosshair");
   const [showLabels, setShowLabels] = useState(true);
   const [showMin, setShowMin] = useState(true);
   const [showMax, setShowMax] = useState(true);
@@ -377,10 +381,14 @@ export function ThermalProbeViewer({
 
   function placeSpot(p: { x: number; y: number }) {
     const id = newSpotId();
-    const base: ProbeSpot =
-      tool === "area"
-        ? { id, x: p.x, y: p.y, kind: "area", w: Math.max(12, width * 0.18), h: Math.max(12, height * 0.18) }
-        : { id, x: p.x, y: p.y, kind: "point", target: tool === "crosshair-circle" ? "crosshair-circle" : "crosshair" };
+    const aw = Math.max(12, width * 0.18);
+    const ah = Math.max(12, height * 0.18);
+    let base: ProbeSpot;
+    if (tool === "area" || tool === "area-circle") {
+      base = { id, x: p.x, y: p.y, kind: "area", areaShape: tool === "area-circle" ? "circle" : "box", w: aw, h: ah };
+    } else {
+      base = { id, x: p.x, y: p.y, kind: "point", target: tool };
+    }
     commit([...spots, base]);
     if (!refId) setRefId(id);
   }
@@ -496,7 +504,7 @@ export function ThermalProbeViewer({
                   onDoubleClick={remove}
                   aria-label={`Area ${idx + 1}`}
                 >
-                  <div className={`h-full w-full border-2 ${s.id === refId ? "border-white" : "border-white/80"} bg-white/5 shadow-[0_0_1px_rgba(0,0,0,0.9)]`} />
+                  <div className={`h-full w-full border-2 ${s.areaShape === "circle" ? "rounded-full" : ""} ${s.id === refId ? "border-white" : "border-white/80"} bg-white/5 shadow-[0_0_1px_rgba(0,0,0,0.9)]`} />
                   <span className="absolute -left-1.5 -top-1.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-[var(--graphite-primary)] text-[8px] font-bold text-white">{idx + 1}</span>
                   {/* resize handle (bottom-right) */}
                   <span
@@ -518,7 +526,7 @@ export function ThermalProbeViewer({
                 onDoubleClick={remove}
                 aria-label={`Spot ${idx + 1}`}
               >
-                <SpotTarget ringed={s.target === "crosshair-circle"} index={idx + 1} active={s.id === refId} />
+                <SpotTarget shape={s.target ?? "crosshair"} index={idx + 1} active={s.id === refId} />
                 {label}
               </button>
             );

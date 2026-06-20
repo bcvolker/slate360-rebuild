@@ -12,7 +12,8 @@ type SpotPayload = {
   y: number;
   imported?: boolean;
   kind?: "point" | "area";
-  target?: "crosshair" | "crosshair-circle";
+  target?: "crosshair" | "crosshair-circle" | "dot" | "square";
+  areaShape?: "box" | "circle";
   w?: number;
   h?: number;
 };
@@ -101,9 +102,10 @@ export const PATCH = (req: NextRequest, { params }: Params) =>
           };
           if (s.kind === "area") {
             base.kind = "area";
+            base.areaShape = s.areaShape === "circle" ? "circle" : "box";
             if (Number.isFinite(s.w)) base.w = Number(s.w);
             if (Number.isFinite(s.h)) base.h = Number(s.h);
-          } else if (s.target === "crosshair-circle" || s.target === "crosshair") {
+          } else if (["crosshair", "crosshair-circle", "dot", "square"].includes(s.target ?? "")) {
             base.kind = "point";
             base.target = s.target;
           }

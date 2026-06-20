@@ -31,12 +31,21 @@ export function spotStats(
   const y0 = Math.max(0, Math.round(spot.y - spot.h / 2));
   const x1 = Math.min(width - 1, Math.round(spot.x + spot.w / 2));
   const y1 = Math.min(height - 1, Math.round(spot.y + spot.h / 2));
+  const circle = spot.areaShape === "circle";
+  const rx = spot.w / 2 || 1;
+  const ry = spot.h / 2 || 1;
   let sum = 0;
   let min = Infinity;
   let max = -Infinity;
   let n = 0;
   for (let y = y0; y <= y1; y++) {
     for (let x = x0; x <= x1; x++) {
+      // For an ellipse target, only count pixels inside the ellipse.
+      if (circle) {
+        const nx = (x - spot.x) / rx;
+        const ny = (y - spot.y) / ry;
+        if (nx * nx + ny * ny > 1) continue;
+      }
       const v = temps[y * width + x];
       sum += v;
       if (v < min) min = v;
