@@ -1,8 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { FolderOpen, Library, Loader2, Plus } from "lucide-react";
+import { FolderOpen, Library, Loader2, Plus, UploadCloud } from "lucide-react";
 import { useEditorStore } from "./editor-store";
+import { useMediaUpload, MEDIA_CHANGED_EVENT } from "./use-media-upload";
 
 const CLIP_DND = "application/x-cs-clip";
 
@@ -42,7 +43,9 @@ export function MediaBinPanel() {
 function ProjectTab() {
   const [assets, setAssets] = useState<MediaAsset[]>([]);
   const [busy, setBusy] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const { uploadFiles } = useMediaUpload();
 
   const refetch = useCallback(async () => {
     try {
@@ -57,6 +60,9 @@ function ProjectTab() {
 
   useEffect(() => {
     refetch();
+    const onChanged = () => refetch();
+    window.addEventListener(MEDIA_CHANGED_EVENT, onChanged);
+    return () => window.removeEventListener(MEDIA_CHANGED_EVENT, onChanged);
   }, [refetch]);
 
   // Poll while anything is still ingesting.
@@ -66,46 +72,44 @@ function ProjectTab() {
     return () => clearInterval(t);
   }, [assets, refetch]);
 
-  const uploadOne = useCallback(async (file: File) => {
-    const presign = await fetch("/api/content-studio/media/presign", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ filename: file.name, contentType: file.type || "application/octet-stream" }),
-    });
-    if (!presign.ok) throw new Error("presign failed");
-    const { data } = await presign.json();
-    const { uploadUrl, storageKey } = data ?? {};
-    await fetch(uploadUrl, { method: "PUT", headers: { "Content-Type": file.type || "application/octet-stream" }, body: file });
-    const kind = file.type.startsWith("image/") ? "image" : "video";
-    await fetch("/api/content-studio/media/ingest", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ storageKey, filename: file.name, kind }),
-    });
-  }, []);
-
-  const onFiles = useCallback(async (files: FileList | null) => {
-    if (!files?.length) return;
-    setBusy(true);
-    try {
-      for (const file of Array.from(files)) await uploadOne(file);
-      await refetch();
-    } catch {
-      /* surfaced via asset status */
-    } finally {
-      setBusy(false);
-    }
-  }, [uploadOne, refetch]);
+  const handleFiles = useCallback(
+    async (files: FileList | File[] | null) => {
+      if (!files || (files as FileList).length === 0) return;
+      setBusy(true);
+      try {
+        await uploadFiles(files);
+        await refetch();
+      } finally {
+        setBusy(false);
+      }
+    },
+    [uploadFiles, refetch],
+  );
 
   return (
-    <div className="space-y-2">
+    <div
+      onDragOver={(e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "copy";
+        if (!dragOver) setDragOver(true);
+      }}
+      onDragLeave={(e) => {
+        if (e.currentTarget === e.target) setDragOver(false);
+      }}
+      onDrop={(e) => {
+        e.preventDefault();
+        setDragOver(false);
+        if (e.dataTransfer.files?.length) handleFiles(e.dataTransfer.files);
+      }}
+      className={`space-y-2 rounded-md ${dragOver ? "outline-dashed outline-2 outline-[#3D8EFF] bg-[#3D8EFF]/10" : ""}`}
+    >
       <input
         ref={inputRef}
         type="file"
         accept="video/*,image/*"
         multiple
         className="hidden"
-        onChange={(e) => onFiles(e.target.files)}
+        onChange={(e) => handleFiles(e.target.files)}
       />
       <button
         type="button"
@@ -118,7 +122,10 @@ function ProjectTab() {
       </button>
 
       {assets.length === 0 ? (
-        <EmptyHint icon={<FolderOpen className="h-5 w-5" />} text="No media yet. Import clips, photos, music, or logos to begin." />
+        <EmptyHint
+          icon={<UploadCloud className="h-5 w-5" />}
+          text="Drag clips/photos here from your computer, or use Import above."
+        />
       ) : (
         <div className="grid grid-cols-2 gap-2 pt-1">
           {assets.map((a) => (

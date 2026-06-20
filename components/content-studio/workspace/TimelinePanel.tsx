@@ -3,6 +3,7 @@
 import { useRef } from "react";
 import { Magnet, Trash2, ZoomIn, ZoomOut } from "lucide-react";
 import { useEditorStore, layoutClips } from "./editor-store";
+import { useMediaUpload } from "./use-media-upload";
 
 const CLIP_DND = "application/x-cs-clip";
 
@@ -20,6 +21,7 @@ export function TimelinePanel() {
   const setZoom = useEditorStore((s) => s.setZoom);
   const pause = useEditorStore((s) => s.pause);
 
+  const { uploadFiles } = useMediaUpload();
   const scrollRef = useRef<HTMLDivElement>(null);
   const { rows, total } = layoutClips(clips);
   const contentWidth = Math.max(600, total * pxPerSec + 200);
@@ -38,6 +40,12 @@ export function TimelinePanel() {
 
   function onDrop(e: React.DragEvent) {
     e.preventDefault();
+    // OS files dropped from the computer → upload + ingest (appear in Media Bin when ready).
+    if (e.dataTransfer.files?.length) {
+      void uploadFiles(e.dataTransfer.files);
+      return;
+    }
+    // Internal drag of a ready clip from the Media Bin → place on the timeline.
     const raw = e.dataTransfer.getData(CLIP_DND);
     if (!raw) return;
     try {
