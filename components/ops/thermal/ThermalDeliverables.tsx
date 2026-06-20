@@ -33,8 +33,13 @@ export function ThermalDeliverables({
   const [tab, setTab] = useState<SubTab>("share");
 
   return (
-    <div className="flex h-full min-h-0 flex-col gap-3">
-      <nav className="flex flex-wrap items-center gap-1.5" aria-label="Deliverables sub-stages">
+    // Same frame as Inspect: section nav LEFT, the active panel CENTER.
+    <div className="flex h-full min-h-0 gap-2 p-2">
+      {/* LEFT: section nav */}
+      <aside className="flex w-52 shrink-0 flex-col gap-1 rounded-xl border border-[var(--mobile-app-card-border)] p-2">
+        <span className="px-1 pb-1 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--graphite-muted)]">
+          Deliver
+        </span>
         {SUBTABS.map((s) => {
           const active = tab === s.id;
           return (
@@ -42,20 +47,21 @@ export function ThermalDeliverables({
               key={s.id}
               type="button"
               onClick={() => setTab(s.id)}
-              className={`rounded-lg border px-3 py-1 text-xs font-semibold transition-colors ${
+              className={`w-full rounded-lg px-2.5 py-1.5 text-left text-xs font-medium transition-colors ${
                 active
-                  ? "border-[color-mix(in_srgb,var(--graphite-primary)_42%,transparent)] bg-[color-mix(in_srgb,var(--graphite-primary)_14%,transparent)] text-[var(--graphite-text-header)]"
-                  : "border-[var(--mobile-app-card-border)] text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]"
+                  ? "bg-[color-mix(in_srgb,var(--graphite-primary)_16%,transparent)] text-[var(--graphite-text-header)]"
+                  : "text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]"
               }`}
             >
               {s.label}
             </button>
           );
         })}
-      </nav>
+      </aside>
 
-      <div className="min-h-0 flex-1 overflow-y-auto">
-        <div className="mx-auto w-full max-w-5xl">
+      {/* CENTER: the active panel */}
+      <div className="min-h-0 flex-1 overflow-y-auto rounded-xl border border-[var(--mobile-app-card-border)] p-3">
+        <div className="mx-auto w-full max-w-3xl">
           {tab === "share" ? (
             <ThermalSharePanel sessionId={sessionId} initialProjectId={initialProjectId} />
           ) : null}

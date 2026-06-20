@@ -138,24 +138,36 @@ export function ThermalLibrary({
     );
   };
 
+  const eyebrow =
+    "font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--graphite-muted)]";
+
   return (
-    <div className="grid h-full min-h-0 gap-3 lg:grid-cols-[minmax(0,1fr)_320px]">
-      <div className="flex min-h-0 flex-col rounded-2xl border border-[var(--mobile-app-card-border)] shadow-[var(--mobile-app-card-shadow)] p-3">
-        {/* Filter bar */}
-        <div className="flex shrink-0 flex-wrap items-center gap-1.5 pb-2">
+    // Same frame as Inspect: file management LEFT, the grid CENTER, tools RIGHT.
+    <div className="flex h-full min-h-0 gap-2 p-2">
+      {/* LEFT: filters + import */}
+      <aside className="flex w-52 shrink-0 flex-col gap-2 overflow-y-auto rounded-xl border border-[var(--mobile-app-card-border)] p-2">
+        <span className={eyebrow}>Filter</span>
+        <div className="flex flex-wrap gap-1.5">
           {chip("all", "All", captures.length)}
           {chip("flagged", "Flagged", captures.filter((c) => (c.anomalies?.length ?? 0) > 0).length)}
           {chip("in_report", "In report", inReport.size)}
           {chip("high_delta", "High ΔT", captures.filter((c) => isHighDelta(c)).length)}
           {cameras.length > 1 ? cameras.map((cam) => chip(cam, cam)) : null}
+        </div>
+        <div className="mt-1 border-t border-[var(--mobile-app-card-border)] pt-2">
+          <span className={eyebrow}>Bring in files</span>
           <button
             type="button"
             onClick={() => setShowPicker(true)}
-            className="ml-auto rounded-full border border-[var(--mobile-app-card-border)] px-2.5 py-1 text-[11px] font-semibold text-[var(--graphite-text-body)] hover:text-[var(--graphite-text-header)]"
+            className="mt-1.5 block w-full rounded-lg border border-[var(--mobile-app-card-border)] px-2.5 py-1.5 text-left text-xs font-medium text-[var(--graphite-text-body)] hover:text-[var(--graphite-text-header)]"
           >
-            + Import from SlateDrop
+            ＋ From SlateDrop
           </button>
         </div>
+      </aside>
+
+      {/* CENTER: the thumbnail grid */}
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col rounded-xl border border-[var(--mobile-app-card-border)] p-2">
         {onOpenCapture ? (
           <p className="shrink-0 pb-2 text-[11px] text-[var(--graphite-muted)]">
             Click an image to open it in <span className="font-semibold text-[var(--graphite-text-body)]">Inspect</span> ·
@@ -174,8 +186,10 @@ export function ThermalLibrary({
           />
         </div>
       </div>
-      <div className="min-h-0 space-y-3 overflow-y-auto">
-        <div className="rounded-2xl border border-[var(--mobile-app-card-border)] shadow-[var(--mobile-app-card-shadow)] p-3">
+
+      {/* RIGHT: curation + processing tools */}
+      <aside className="flex w-72 shrink-0 flex-col gap-2 overflow-y-auto pr-0.5">
+        <div className="rounded-xl border border-[var(--mobile-app-card-border)] p-3">
           <p className="text-xs font-semibold text-[var(--graphite-text-header)]">Report set</p>
           <p className="mt-1 text-[11px] text-[var(--graphite-muted)]">
             {inReport.size} image{inReport.size === 1 ? "" : "s"} marked for the report. Order &amp;
@@ -210,7 +224,7 @@ export function ThermalLibrary({
         <ThermalProcessPanel sessionId={sessionId} allIds={allIds} selectedIds={selectedIds} />
         <ThermalInspectionProfiles sessionId={sessionId} targetIds={targetIds} />
         <ThermalBatchTunePanel captureIds={targetIds} />
-      </div>
+      </aside>
       {showPicker ? <ThermalSlateDropPicker sessionId={sessionId} onClose={() => setShowPicker(false)} /> : null}
     </div>
   );

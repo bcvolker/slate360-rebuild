@@ -62,49 +62,84 @@ export function ThermalReportBuilder({
   const numInput =
     "mt-1 block w-full rounded-xl border border-[var(--mobile-app-card-border)] bg-[#111827] px-3 py-2 text-sm text-white";
 
-  return (
-    <div className="grid h-full min-h-0 gap-3 lg:grid-cols-2">
-      {/* Left column: report set (scrolls) + conditions */}
-      <div className="flex min-h-0 flex-col gap-3">
-        {/* Ordered report set */}
-        <div className="flex min-h-0 flex-1 flex-col rounded-2xl border border-[var(--mobile-app-card-border)] shadow-[var(--mobile-app-card-shadow)] p-3">
-          <p className="shrink-0 text-xs font-semibold text-[var(--graphite-text-header)]">
-            Report set · {order.length} image{order.length === 1 ? "" : "s"}
-          </p>
-          {order.length === 0 ? (
-            <p className="mt-2 text-[11px] text-[var(--graphite-muted)]">
-              No images yet — mark images with ★ in the Library to add them here.
-            </p>
-          ) : (
-            <ul className="mt-2 min-h-0 flex-1 space-y-1.5 overflow-y-auto pr-1">
-              {order.map((id, idx) => {
-                const c = byId.get(id);
-                if (!c) return null;
-                return (
-                  <li key={id} className="flex items-center gap-2 rounded-lg border border-[var(--mobile-app-card-border)] p-1.5">
-                    <span className="w-5 shrink-0 text-center text-[11px] font-bold text-[var(--graphite-muted)]">{idx + 1}</span>
-                    {c.previewUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={c.previewUrl} alt={c.filename} className="h-9 w-12 shrink-0 rounded object-cover" />
-                    ) : (
-                      <span className="h-9 w-12 shrink-0 rounded bg-[#111827]" />
-                    )}
-                    <span className="min-w-0 flex-1 truncate text-xs text-[var(--graphite-text-body)]">{c.filename}</span>
-                    <button type="button" onClick={() => onReorder(idx, -1)} disabled={idx === 0}
-                      className="rounded border border-[var(--mobile-app-card-border)] px-1.5 text-xs text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)] disabled:opacity-30" title="Move up">↑</button>
-                    <button type="button" onClick={() => onReorder(idx, 1)} disabled={idx === order.length - 1}
-                      className="rounded border border-[var(--mobile-app-card-border)] px-1.5 text-xs text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)] disabled:opacity-30" title="Move down">↓</button>
-                    <button type="button" onClick={() => onRemove(id)}
-                      className="rounded border border-[var(--mobile-app-card-border)] px-1.5 text-xs text-[var(--graphite-muted)] hover:text-[#fca5a5]" title="Remove">✕</button>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </div>
+  const eyebrow =
+    "font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--graphite-muted)]";
 
-        {/* Conditions */}
-        <div className="shrink-0 rounded-2xl border border-[var(--mobile-app-card-border)] shadow-[var(--mobile-app-card-shadow)] p-3">
+  return (
+    // Same frame as Inspect: ordered set LEFT, the report preview CENTER, the
+    // template gallery + conditions + generate RIGHT.
+    <div className="flex h-full min-h-0 gap-2 p-2">
+      {/* LEFT: ordered report set */}
+      <aside className="flex w-64 shrink-0 flex-col rounded-xl border border-[var(--mobile-app-card-border)] p-2">
+        <p className="shrink-0 pb-1.5 text-xs font-semibold text-[var(--graphite-text-header)]">
+          Report set · {order.length} image{order.length === 1 ? "" : "s"}
+        </p>
+        {order.length === 0 ? (
+          <p className="text-[11px] text-[var(--graphite-muted)]">
+            No images yet — mark images with ★ in the Library to add them here.
+          </p>
+        ) : (
+          <ul className="min-h-0 flex-1 space-y-1.5 overflow-y-auto pr-1">
+            {order.map((id, idx) => {
+              const c = byId.get(id);
+              if (!c) return null;
+              return (
+                <li key={id} className="flex items-center gap-2 rounded-lg border border-[var(--mobile-app-card-border)] p-1.5">
+                  <span className="w-5 shrink-0 text-center text-[11px] font-bold text-[var(--graphite-muted)]">{idx + 1}</span>
+                  {c.previewUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={c.previewUrl} alt={c.filename} className="h-9 w-12 shrink-0 rounded object-cover" />
+                  ) : (
+                    <span className="h-9 w-12 shrink-0 rounded bg-[#111827]" />
+                  )}
+                  <span className="min-w-0 flex-1 truncate text-xs text-[var(--graphite-text-body)]">{c.filename}</span>
+                  <button type="button" onClick={() => onReorder(idx, -1)} disabled={idx === 0}
+                    className="rounded border border-[var(--mobile-app-card-border)] px-1.5 text-xs text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)] disabled:opacity-30" title="Move up">↑</button>
+                  <button type="button" onClick={() => onReorder(idx, 1)} disabled={idx === order.length - 1}
+                    className="rounded border border-[var(--mobile-app-card-border)] px-1.5 text-xs text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)] disabled:opacity-30" title="Move down">↓</button>
+                  <button type="button" onClick={() => onRemove(id)}
+                    className="rounded border border-[var(--mobile-app-card-border)] px-1.5 text-xs text-[var(--graphite-muted)] hover:text-[#fca5a5]" title="Remove">✕</button>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </aside>
+
+      {/* CENTER: report preview (the ordered pages, read-only) */}
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-xl border border-[var(--mobile-app-card-border)] bg-[var(--graphite-canvas-deep)] p-2">
+        <p className={`${eyebrow} shrink-0 pb-2`}>Preview</p>
+        {order.length === 0 ? (
+          <div className="flex min-h-0 flex-1 items-center justify-center text-center text-xs text-[var(--graphite-muted)]">
+            Add images to the report set to preview the pages here.
+          </div>
+        ) : (
+          <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-1">
+            {order.map((id, idx) => {
+              const c = byId.get(id);
+              if (!c) return null;
+              return (
+                <div key={id} className="mx-auto w-full max-w-md rounded-lg border border-[var(--mobile-app-card-border)] bg-[var(--graphite-canvas)] p-3 shadow-[var(--mobile-app-card-shadow)]">
+                  <div className="flex items-center justify-between pb-2 text-[10px] text-[var(--graphite-muted)]">
+                    <span>Page {idx + 1}</span>
+                    <span className="truncate pl-2">{c.filename}</span>
+                  </div>
+                  {c.previewUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={c.previewUrl} alt={c.filename} className="mx-auto max-h-64 rounded object-contain" />
+                  ) : (
+                    <div className="flex h-32 items-center justify-center rounded bg-[#111827] text-[11px] text-[var(--graphite-muted)]">No preview</div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* RIGHT: conditions + template gallery + signature + generate */}
+      <aside className="flex w-80 shrink-0 flex-col gap-2 overflow-y-auto pr-0.5">
+        <div className="rounded-xl border border-[var(--mobile-app-card-border)] p-3">
           <p className="text-xs font-semibold text-[var(--graphite-text-header)]">Site conditions</p>
           <label className="mt-2 block text-[11px] text-[var(--graphite-muted)]">Ambient (°C)
             <input type="number" value={conditions.ambient_c ?? ""} onChange={(e) => setCond({ ambient_c: e.target.value })} className={numInput} />
@@ -126,16 +161,12 @@ export function ThermalReportBuilder({
             {savedNote ? <span className="text-[11px] text-[var(--graphite-muted)]">{savedNote}</span> : null}
           </div>
         </div>
-      </div>
-
-      {/* Right column: template gallery + signature + generate + history (scrolls) */}
-      <div className="min-h-0 overflow-y-auto">
         <ThermalReportPanel
           sessionId={sessionId}
           initialTemplateId={initialTemplateId}
           initialSignature={initialSignature}
         />
-      </div>
+      </aside>
     </div>
   );
 }

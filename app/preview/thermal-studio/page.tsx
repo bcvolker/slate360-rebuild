@@ -3,6 +3,9 @@
 import { useEffect, useState } from "react";
 import { ThermalStudioWorkView, type StudioCapture } from "@/components/ops/thermal/ThermalStudioWorkView";
 import type { ThermalProbeGrid } from "@/components/ops/thermal/ThermalProbeViewer";
+import { ThermalLibrary } from "@/components/ops/thermal/ThermalLibrary";
+import { ThermalReportBuilder } from "@/components/ops/thermal/ThermalReportBuilder";
+import { ThermalDeliverables } from "@/components/ops/thermal/ThermalDeliverables";
 import {
   StudioWorkspaceShell,
   StudioTabs,
@@ -27,9 +30,20 @@ const TABS: StudioTab<Stage>[] = [
 export default function PreviewThermalStudio() {
   const [g, setG] = useState<ThermalProbeGrid | null>(null);
   const [stage, setStage] = useState<Stage>("inspect");
+  const [order, setOrder] = useState<string[]>(["a", "c"]);
   useEffect(() => {
     fetch("/thermal-fixtures/sample-211.json").then((r) => r.json()).then(setG);
   }, []);
+  const toggleInReport = (id: string) =>
+    setOrder((o) => (o.includes(id) ? o.filter((x) => x !== id) : [...o, id]));
+  const reorder = (idx: number, dir: -1 | 1) =>
+    setOrder((o) => {
+      const j = idx + dir;
+      if (j < 0 || j >= o.length) return o;
+      const n = [...o];
+      [n[idx], n[j]] = [n[j], n[idx]];
+      return n;
+    });
 
   // Faithfully replicate the REAL chain: dashboard top bar → thermal layout (full-bleed
   // p-4 scroll wrapper) → session page (h-full) → StudioWorkspaceShell → Inspect.
@@ -53,13 +67,31 @@ export default function PreviewThermalStudio() {
               </>
             }
           >
+            {stage === "library" ? (
+              <ThermalLibrary
+                sessionId="preview"
+                captures={CAPTURES}
+                onOpenCapture={() => setStage("inspect")}
+                reportOrder={order}
+                onToggleInReport={toggleInReport}
+                onAddToReport={(ids) => setOrder((o) => [...new Set([...o, ...ids])])}
+              />
+            ) : null}
             {stage === "inspect" ? (
               <ThermalStudioWorkView sessionId="preview" captures={CAPTURES} loadGrid={async () => g} />
-            ) : (
-              <div className="h-full min-h-0 overflow-y-auto p-3 text-sm text-[var(--graphite-muted)]">
-                {stage} stage (Phase 1 keeps current internals)
-              </div>
-            )}
+            ) : null}
+            {stage === "report" ? (
+              <ThermalReportBuilder
+                sessionId="preview"
+                captures={CAPTURES}
+                reportOrder={order}
+                onReorder={reorder}
+                onRemove={(id) => setOrder((o) => o.filter((x) => x !== id))}
+              />
+            ) : null}
+            {stage === "deliver" ? (
+              <ThermalDeliverables sessionId="preview" brandingConfig={{} as never} />
+            ) : null}
           </StudioWorkspaceShell>
         </div>
       </div>

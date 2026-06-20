@@ -163,8 +163,19 @@ export function ThermalStudioShell({
         </>
       }
     >
-      {/* Active stage — chrome never scrolls; each stage manages its own space.
-          Inspect runs full-bleed; the form/list stages keep contained scroll. */}
+      {/* Active stage — chrome never scrolls; every stage owns the same
+          left/center/right frame and manages its own contained scroll. */}
+      {stage === "library" ? (
+        <ThermalLibrary
+          sessionId={sessionId}
+          captures={captures}
+          onOpenCapture={openInWorkbench}
+          reportOrder={reportOrder}
+          onToggleInReport={toggleInReport}
+          onAddToReport={addToReport}
+        />
+      ) : null}
+
       {stage === "inspect" ? (
         <ThermalAnalyzeTune
           sessionId={sessionId}
@@ -174,42 +185,29 @@ export function ThermalStudioShell({
           standards={standards}
           initialParams={initialParams}
         />
-      ) : (
-        <div className="h-full min-h-0 overflow-y-auto p-3">
-          {stage === "library" ? (
-            <ThermalLibrary
-              sessionId={sessionId}
-              captures={captures}
-              onOpenCapture={openInWorkbench}
-              reportOrder={reportOrder}
-              onToggleInReport={toggleInReport}
-              onAddToReport={addToReport}
-            />
-          ) : null}
+      ) : null}
 
-          {stage === "report" ? (
-            <ThermalReportBuilder
-              sessionId={sessionId}
-              captures={captures}
-              reportOrder={reportOrder}
-              onReorder={reorderReport}
-              onRemove={removeFromReport}
-              initialTemplateId={initialTemplateId}
-              initialSignature={initialSignature}
-              initialConditions={conditions}
-            />
-          ) : null}
+      {stage === "report" ? (
+        <ThermalReportBuilder
+          sessionId={sessionId}
+          captures={captures}
+          reportOrder={reportOrder}
+          onReorder={reorderReport}
+          onRemove={removeFromReport}
+          initialTemplateId={initialTemplateId}
+          initialSignature={initialSignature}
+          initialConditions={conditions}
+        />
+      ) : null}
 
-          {stage === "deliver" ? (
-            <ThermalDeliverables
-              sessionId={sessionId}
-              brandingConfig={brandingConfig}
-              initialProjectId={initialProjectId}
-              linkedSpaceId={linkedSpaceId}
-            />
-          ) : null}
-        </div>
-      )}
+      {stage === "deliver" ? (
+        <ThermalDeliverables
+          sessionId={sessionId}
+          brandingConfig={brandingConfig}
+          initialProjectId={initialProjectId}
+          linkedSpaceId={linkedSpaceId}
+        />
+      ) : null}
     </StudioWorkspaceShell>
   );
 }
