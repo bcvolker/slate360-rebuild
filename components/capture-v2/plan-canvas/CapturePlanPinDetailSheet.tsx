@@ -1,9 +1,17 @@
 "use client";
 
-import { X } from "lucide-react";
+import dynamic from "next/dynamic";
+import { Camera, Orbit, Paperclip, X } from "lucide-react";
 import { getCaptureImageUrl } from "@/lib/site-walk/capture-image-url";
 import type { CaptureItemRecord } from "@/lib/types/site-walk-capture";
 import type { PlanViewerPin } from "@/components/site-walk/capture/PlanPin";
+
+// 360 viewer touches window on import — load client-only, same pattern as the
+// site-walk item viewer.
+const TourPanoViewer = dynamic(
+  () => import("@/components/tours/TourPanoViewer").then((m) => m.TourPanoViewer),
+  { ssr: false },
+);
 
 type Props = {
   open: boolean;
@@ -13,11 +21,26 @@ type Props = {
   onOpenDetails: () => void;
 };
 
+function typeBadge(itemType: CaptureItemRecord["item_type"] | undefined) {
+  switch (itemType) {
+    case "photo_360":
+      return { label: "360° Photo", Icon: Orbit, className: "text-[var(--twin360-blue)]" };
+    case "file_attachment":
+      return { label: "File", Icon: Paperclip, className: "text-[var(--graphite-muted)]" };
+    default:
+      return { label: "Photo", Icon: Camera, className: "text-[var(--graphite-primary)]" };
+  }
+}
+
 export function CapturePlanPinDetailSheet({ open, pin, item, onClose, onOpenDetails }: Props) {
   if (!open || !pin) return null;
 
-  const thumbUrl = item ? getCaptureImageUrl(item) : null;
+  const itemType = item?.item_type;
+  const mediaUrl = item ? getCaptureImageUrl(item) : null;
   const noteSnippet = item?.description?.trim() || item?.title?.trim() || "No note yet";
+  const badge = typeBadge(itemType);
+  const is360 = itemType === "photo_360";
+  const isFile = itemType === "file_attachment";
 
   return (
     <div className="pointer-events-none fixed inset-0 z-[2000] flex items-end justify-center px-3 pb-[max(env(safe-area-inset-bottom),0.75rem)]">
@@ -30,11 +53,13 @@ export function CapturePlanPinDetailSheet({ open, pin, item, onClose, onOpenDeta
       <div
         className="pointer-events-auto relative w-full max-w-sm rounded-[1.25rem] border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_92%,transparent)] p-4 text-left shadow-2xl backdrop-blur-xl"
         data-capture-chrome="plan-pin-detail-sheet"
+        data-pin-item-type={itemType ?? "empty"}
       >
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
-            <p className="font-mono text-[10px] font-semibold uppercase tracking-wide text-[var(--twin360-blue)]">
-              Stop {pin.label}
+            <p className={`flex items-center gap-1 font-mono text-[10px] font-semibold uppercase tracking-wide ${badge.className}`}>
+              <badge.Icon className="h-3 w-3" strokeWidth={2.5} />
+              Stop {pin.label} · {badge.label}
             </p>
             <p className="mt-1 line-clamp-2 text-sm text-[var(--graphite-text-body)]">{noteSnippet}</p>
           </div>
@@ -47,9 +72,22 @@ export function CapturePlanPinDetailSheet({ open, pin, item, onClose, onOpenDeta
             <X className="h-4 w-4" />
           </button>
         </div>
-        {thumbUrl ? (
+
+        {is360 && mediaUrl ? (
+          <div className="relative mt-3 aspect-[4/3] w-full overflow-hidden rounded-lg border border-[var(--accent-border-blue)]">
+            <TourPanoViewer src={mediaUrl} />
+            <span className="pointer-events-none absolute bottom-1.5 left-1/2 -translate-x-1/2 rounded-full bg-black/55 px-2 py-0.5 text-[10px] font-medium text-white backdrop-blur-sm">
+              Drag to look around
+            </span>
+          </div>
+        ) : isFile ? (
+          <div className="mt-3 flex aspect-[4/3] w-full flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-[var(--mobile-app-card-border)] text-[var(--graphite-muted)]">
+            <Paperclip className="h-7 w-7" strokeWidth={1.75} />
+            <span className="text-xs font-medium">File attached — open details to view</span>
+          </div>
+        ) : mediaUrl ? (
           <img
-            src={thumbUrl}
+            src={mediaUrl}
             alt=""
             className="mt-3 aspect-[4/3] w-full rounded-lg border border-[var(--mobile-app-card-border)] object-cover"
           />
@@ -58,6 +96,7 @@ export function CapturePlanPinDetailSheet({ open, pin, item, onClose, onOpenDeta
             No capture yet
           </div>
         )}
+
         <button
           type="button"
           onClick={onOpenDetails}

@@ -70,7 +70,10 @@ function roleRank(role?: string | null): number {
 function resolveInternalAccess(isSlateCeo: boolean, isSlateStaff: boolean) {
   const hasInternalAccess = isSlateCeo || isSlateStaff;
   return {
-    canAccessOperationsConsole: hasInternalAccess,
+    // Operations Console is CEO-only (like Thermal/Content/Design studios and the
+    // 360 Tour Builder) — never reachable by customers or app-store reviewers, and
+    // not by staff-table grants either. Tighten/loosen here if staff need it back.
+    canAccessOperationsConsole: isSlateCeo,
     hasInternalAccess,
   };
 }
