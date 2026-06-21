@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { Copy, RotateCw, Scissors, Trash2 } from "lucide-react";
+import { AudioLines, Copy, RotateCw, Scissors, Trash2 } from "lucide-react";
 import { useEditorStore } from "./editor-store";
 
 /**
@@ -24,6 +24,7 @@ export function ClipContextMenu({
   const splitAtPlayhead = useEditorStore((s) => s.splitAtPlayhead);
   const duplicateClip = useEditorStore((s) => s.duplicateClip);
   const toggleReverse = useEditorStore((s) => s.toggleReverse);
+  const detachAudio = useEditorStore((s) => s.detachAudio);
   const removeClip = useEditorStore((s) => s.removeClip);
 
   useEffect(() => {
@@ -54,6 +55,12 @@ export function ClipContextMenu({
           label={clip.reversed ? "Reverse · on" : "Reverse"}
           active={clip.reversed}
           onClick={run(() => toggleReverse(clip.id))}
+        />
+        <Item
+          icon={<AudioLines className="h-3.5 w-3.5" />}
+          label={clip.muted ? "Audio detached" : "Detach audio"}
+          active={clip.muted}
+          onClick={run(() => detachAudio(clip.id))}
         />
         <div className="my-1 border-t border-white/10" />
         <Item icon={<Trash2 className="h-3.5 w-3.5" />} label="Delete" danger onClick={run(() => removeClip(clip.id))} />

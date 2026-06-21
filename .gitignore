@@ -70,3 +70,11 @@ __pycache__/
 
 # Local thermal camera sample files (private inspection data)
 thermal-samples/
+
+# Local intake drop zone — private analysis files (programs, installers, samples)
+/local-intake/*
+!/local-intake/README.md
+!/local-intake/**/.gitkeep
+
+# FLIR reference installers are local-only (too large for git)
+/reference/flir-drive-import/installers/

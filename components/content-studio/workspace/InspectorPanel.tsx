@@ -41,7 +41,7 @@ export function InspectorPanel() {
       </div>
 
       <div className="min-h-0 flex-1 space-y-2 overflow-y-auto px-3 pb-4">
-        {!selectedId && tab !== "export" && tab !== "color" && tab !== "titles" ? (
+        {!selectedId && tab !== "export" && tab !== "color" && tab !== "titles" && tab !== "audio" ? (
           <EmptyState />
         ) : tab === "clip" && clip ? (
           <ClipTab clip={clip} />
@@ -56,7 +56,7 @@ export function InspectorPanel() {
             <NoteRow text="Enhance runs as a cloud GPU job (slice 16) — produces a new derivative clip." />
           </>
         ) : tab === "audio" ? (
-          <NoteRow text="Volume, fades, detach audio, and voiceover land in slices 11–12 (audio lanes + waveforms)." />
+          <AudioTab />
         ) : tab === "titles" ? (
           <TitlesTab />
         ) : tab === "export" ? (
@@ -228,6 +228,61 @@ function ColorTab() {
         Reset {scope === "clip" ? "this clip" : "all"}
       </button>
       <NoteRow text="Changes preview live on the player and render on export. 'All clips' is your adjustment layer — apply a Library Look to set it for the whole edit." />
+    </div>
+  );
+}
+
+function AudioTab() {
+  const overlayItems = useEditorStore((s) => s.overlayItems);
+  const selectedOverlayId = useEditorStore((s) => s.selectedOverlayId);
+  const update = useEditorStore((s) => s.updateOverlayItem);
+  const removeOverlayItem = useEditorStore((s) => s.removeOverlayItem);
+  const selectOverlay = useEditorStore((s) => s.selectOverlay);
+
+  const audios = overlayItems.filter((o) => o.lane === "audio");
+  const sel = audios.find((o) => o.id === selectedOverlayId) ?? null;
+
+  if (!sel) {
+    return (
+      <div className="space-y-3">
+        {audios.length > 0 ? (
+          <div className="space-y-1">
+            <div className="font-mono text-[10px] uppercase tracking-wider text-white/40">Audio clips</div>
+            {audios.map((a) => (
+              <button key={a.id} type="button" onClick={() => selectOverlay(a.id)} className="flex w-full items-center justify-between rounded-md border border-white/10 px-2.5 py-1.5 text-left text-xs text-white/75 hover:bg-white/5">
+                <span className="truncate">{a.name}</span>
+                <span className="font-mono text-[10px] text-white/35">{a.startSec.toFixed(1)}s</span>
+              </button>
+            ))}
+          </div>
+        ) : null}
+        <NoteRow text="Right-click a video clip → Detach audio to put its sound on the Audio lane (it keeps playing while the video is muted). Importing music + render mix come next." />
+      </div>
+    );
+  }
+
+  const gain = sel.audioGain ?? 1;
+  return (
+    <div className="space-y-3">
+      <div className="rounded-md border border-white/10 bg-white/[0.03] p-3 text-sm text-white/90">{sel.name}</div>
+      <Section title="Volume">
+        <SliderRow label="Gain" value={Math.round(gain * 100)} min={0} max={100} suffix="%" onChange={(v) => update(sel.id, { audioGain: v / 100 })} />
+      </Section>
+      <Section title="Fades (seconds)">
+        <div className="grid grid-cols-2 gap-2">
+          <NumField label="In" value={sel.fadeInSec ?? 0} onChange={(v) => update(sel.id, { fadeInSec: Math.max(0, v) })} />
+          <NumField label="Out" value={sel.fadeOutSec ?? 0} onChange={(v) => update(sel.id, { fadeOutSec: Math.max(0, v) })} />
+        </div>
+      </Section>
+      <Section title="Timing (seconds)">
+        <div className="grid grid-cols-2 gap-2">
+          <NumField label="Start" value={sel.startSec} onChange={(v) => update(sel.id, { startSec: Math.max(0, v) })} />
+          <NumField label="Length" value={sel.durationSec} onChange={(v) => update(sel.id, { durationSec: Math.max(0.2, v) })} />
+        </div>
+      </Section>
+      <button type="button" onClick={() => removeOverlayItem(sel.id)} className="flex w-full items-center justify-center gap-1.5 rounded-md border border-red-400/30 py-1.5 text-xs text-red-300/80 hover:bg-red-500/10">
+        Remove audio
+      </button>
     </div>
   );
 }

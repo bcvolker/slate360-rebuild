@@ -87,7 +87,7 @@ export const FEATURES: Feature[] = [
 
   // ── Audio ──
   { key: "audio.catalog", label: "Music + SFX catalog (24)", category: "audio", status: "live", note: "starter-library/audio.ts." },
-  { key: "audio.lanes", label: "Audio lanes (volume/fade/detach)", category: "audio", status: "partial", note: "Audio lane + drag-to-place/move music/SFX items exists; volume/fades/detach + render mix = Cat4." },
+  { key: "audio.lanes", label: "Audio lanes (volume/fade/detach)", category: "audio", status: "live", note: "Detach audio (clip→audio lane, video muted); preview playback engine slaved to clock; volume + linear fade in/out in Audio inspector. Render mix into export = next. Imported-music source still needs ingest." },
   { key: "audio.voiceover", label: "Voiceover record-against-timeline", category: "audio", status: "missing", note: "Not built." },
   { key: "audio.duck", label: "Sidechain ducking", category: "audio", status: "missing", note: "Not built." },
 

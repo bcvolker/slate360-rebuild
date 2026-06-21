@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useEditorStore, type TimelineClip } from "./editor-store";
+import { useEditorStore, type TimelineClip, type OverlayItem } from "./editor-store";
 
 export type SaveStatus = "loading" | "saving" | "saved" | "idle";
 
@@ -48,7 +48,11 @@ export function useProjectPersistence() {
           const rehydrated = saved
             .map((c) => ({ ...c, src: srcOf.get(c.assetId) ?? c.src }))
             .filter((c) => !!c.src);
-          const overlays = Array.isArray(p.timelineJson?.overlayItems) ? p.timelineJson.overlayItems : [];
+          const savedOverlays: OverlayItem[] = Array.isArray(p.timelineJson?.overlayItems) ? p.timelineJson.overlayItems : [];
+          // Re-resolve audio overlay URLs (signed src expires); keep titles as-is.
+          const overlays = savedOverlays.map((o) =>
+            o.lane === "audio" && o.assetId && srcOf.get(o.assetId) ? { ...o, src: srcOf.get(o.assetId) ?? o.src } : o,
+          );
           if (rehydrated.length || overlays.length) {
             if (rehydrated.length) useEditorStore.getState().loadClips(rehydrated);
             if (overlays.length) useEditorStore.getState().setOverlayItems(overlays);

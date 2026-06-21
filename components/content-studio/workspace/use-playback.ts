@@ -45,6 +45,7 @@ export function usePlayback(aRef: RefObject<HTMLVideoElement | null>, bRef: RefO
     const v = video(i);
     if (!v || !clip) return;
     try { v.playbackRate = Math.max(0.25, Math.min(4, clip.speedFactor || 1)); } catch { /* ignore */ }
+    v.muted = !!clip.muted; // embedded audio detached → play it from the audio lane instead
     if (slotClip.current[i] !== clip.id) {
       slotClip.current[i] = clip.id;
       v.preload = "auto";

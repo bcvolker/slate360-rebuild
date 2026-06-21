@@ -33,6 +33,7 @@ export type TimelineClip = {
   trimOutSec: number; // exclusive; source span = trimOut - trimIn
   speedFactor: number; // 0.25–4×; timeline length = source span / speedFactor
   reversed: boolean;
+  muted?: boolean; // embedded audio muted (e.g. after detach)
 };
 
 export type ClipLayout = { clip: TimelineClip; startSec: number; lengthSec: number };
@@ -67,8 +68,13 @@ export type OverlayItem = {
   startSec: number;
   durationSec: number;
   libraryId?: string;
+  assetId?: string; // source media asset (for re-resolving src after reload)
   text?: string;
   storageKey?: string;
+  src?: string; // signed proxy URL for audio playback
+  audioGain?: number; // 0–1 (preview volume); default 1
+  fadeInSec?: number;
+  fadeOutSec?: number;
   titleStyle?: TitleStyle;
 };
 
@@ -128,6 +134,7 @@ type EditorState = {
   patchClipDuration: (id: string, durationSec: number) => void;
   splitAtPlayhead: () => void;
   duplicateClip: (id: string) => void;
+  detachAudio: (clipId: string) => void;
   setClipTrim: (id: string, edit: { trimInSec?: number; trimOutSec?: number }) => void;
   setClipSpeed: (id: string, speedFactor: number) => void;
   toggleReverse: (id: string) => void;
@@ -346,6 +353,33 @@ export const useEditorStore = create<EditorState>()(
       const next = [...s.clips];
       next.splice(i + 1, 0, copy);
       return { clips: next, selectedClipId: copy.id };
+    }),
+  detachAudio: (clipId) =>
+    set((s) => {
+      const { rows } = layoutClips(s.clips);
+      const row = rows.find((r) => r.clip.id === clipId);
+      if (!row || row.clip.muted) return {};
+      const c = row.clip;
+      const it: OverlayItem = {
+        id: `ov_${Math.random().toString(36).slice(2, 10)}`,
+        lane: "audio",
+        kind: "source",
+        name: `${c.name} audio`,
+        assetId: c.assetId,
+        src: c.src,
+        startSec: row.startSec,
+        durationSec: row.lengthSec,
+        audioGain: 1,
+        fadeInSec: 0,
+        fadeOutSec: 0,
+      };
+      return {
+        overlayItems: [...s.overlayItems, it],
+        clips: s.clips.map((x) => (x.id === clipId ? { ...x, muted: true } : x)),
+        selectedOverlayId: it.id,
+        selectedClipId: null,
+        inspectorTab: "audio",
+      };
     }),
   setClipTrim: (id, edit) =>
     set((s) => ({

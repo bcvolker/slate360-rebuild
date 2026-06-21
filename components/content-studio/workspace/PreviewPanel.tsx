@@ -4,6 +4,7 @@ import { useRef } from "react";
 import { Pause, Play, Scissors, Type } from "lucide-react";
 import { useEditorStore, layoutClips, clipAt, DEFAULT_TITLE_STYLE } from "./editor-store";
 import { usePlayback } from "./use-playback";
+import { useAudioPlayback } from "./use-audio-playback";
 import { toCssFilter, tempOverlay } from "@/lib/content-studio/color";
 
 function fmt(sec: number): string {
@@ -19,6 +20,8 @@ export function PreviewPanel() {
   const aRef = useRef<HTMLVideoElement | null>(null);
   const bRef = useRef<HTMLVideoElement | null>(null);
   const { activeIndex } = usePlayback(aRef, bRef);
+  const audioRefs = useRef<Map<string, HTMLAudioElement>>(new Map());
+  useAudioPlayback(audioRefs);
 
   const mode = useEditorStore((s) => s.mode);
   const clips = useEditorStore((s) => s.clips);
@@ -45,6 +48,7 @@ export function PreviewPanel() {
   const activeTitles = overlayItems.filter(
     (o) => o.lane === "title" && playheadSec >= o.startSec && playheadSec < o.startSec + o.durationSec,
   );
+  const audioItems = overlayItems.filter((o) => o.lane === "audio" && o.src);
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-[#070A0F]">
@@ -113,6 +117,20 @@ export function PreviewPanel() {
         <HudButton icon={<Scissors className="h-3.5 w-3.5" />} title="Split at playhead" onClick={splitAtPlayhead} disabled={!hasClips} />
         <HudButton icon={<Type className="h-3.5 w-3.5" />} title="Add title at playhead" onClick={addTitle} />
       </div>
+
+      {/* Audio-lane elements (hidden) — slaved to the timeline by useAudioPlayback */}
+      {audioItems.map((it) => (
+        <audio
+          key={it.id}
+          src={it.src}
+          preload="auto"
+          ref={(el) => {
+            const m = audioRefs.current;
+            if (el) m.set(it.id, el);
+            else m.delete(it.id);
+          }}
+        />
+      ))}
     </div>
   );
 }
