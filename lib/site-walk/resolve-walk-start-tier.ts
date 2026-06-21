@@ -1,12 +1,14 @@
-import {
-  getEntitlements,
-  resolveModularEntitlements,
-  type OrgAppSubscriptions,
-} from "@/lib/entitlements";
+import type { OrgAppSubscriptions } from "@/lib/entitlements";
 import type { HubProject } from "@/lib/types/site-walk";
 
-/** Site Walk home walk-start tier: workspace (basic) vs project (pro / legacy business+). */
-export type SiteWalkWalkStartTier = "workspace" | "project";
+/**
+ * Simplified model: there is no "Workspace" tier anymore. Every Site Walk tier
+ * does **Project Walks** — both Standard and Pro can create projects, add plans
+ * and files, and walk them. The Pro-only differences (walk-with-plans,
+ * collaborators, 360-on-plans, more storage/credits) are feature gates, not a
+ * different walk type. `project_type` (field/full) no longer gates anything.
+ */
+export type SiteWalkWalkStartTier = "project";
 
 type SubscriptionRow = {
   site_walk?: OrgAppSubscriptions["site_walk"] | null;
@@ -20,43 +22,21 @@ type SubscriptionRow = {
 };
 
 export function resolveSiteWalkWalkStartTier(
-  rawOrgTier: string | null | undefined,
-  isSlateCeo: boolean,
-  row: SubscriptionRow | null,
+  _rawOrgTier?: string | null,
+  _isSlateCeo?: boolean,
+  _row?: SubscriptionRow | null,
 ): SiteWalkWalkStartTier {
-  const entitlements = getEntitlements(rawOrgTier ?? null, { isSlateCeo });
-  if (entitlements.tier === "business" || entitlements.tier === "enterprise") {
-    return "project";
-  }
-
-  const modular = resolveModularEntitlements(
-    row
-      ? {
-          site_walk: row.site_walk ?? "none",
-          tours: row.tours ?? "none",
-          slatedrop: row.slatedrop ?? "none",
-          design_studio: row.design_studio ?? "none",
-          content_studio: row.content_studio ?? "none",
-          bundle: row.bundle ?? null,
-          storageAddonGB: row.storage_addon_gb ?? 0,
-          creditAddonBalance: row.credit_addon_balance ?? 0,
-        }
-      : null,
-  );
-
-  return modular.apps.site_walk.tier === "pro" ? "project" : "workspace";
+  return "project";
 }
 
 export function filterHubProjectsForWalkStart(
   projects: HubProject[],
-  tier: SiteWalkWalkStartTier,
+  _tier?: SiteWalkWalkStartTier,
 ): HubProject[] {
-  if (tier === "project") {
-    return projects.filter((p) => p.projectType === "full");
-  }
-  return projects.filter((p) => p.projectType !== "full");
+  // Both tiers see all their projects — no project_type filtering.
+  return projects;
 }
 
-export function walkStartCreateRoute(tier: SiteWalkWalkStartTier): string {
-  return tier === "project" ? "/projects" : "/site-walk/setup";
+export function walkStartCreateRoute(_tier?: SiteWalkWalkStartTier): string {
+  return "/projects";
 }

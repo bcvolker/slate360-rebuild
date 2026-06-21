@@ -43,6 +43,21 @@ export interface ModularEntitlements {
     /** Has Site Walk + Content Studio → polished media in SW deliverables */
     contentInSiteWalk: boolean;
   };
+  /** Site Walk feature gates (simplified Standard/Pro model). */
+  siteWalk: {
+    /** Both tiers can create projects, add plans/files, do walks. */
+    canCreateProjects: boolean;
+    /** Pro only: walk with plans (pin observations on the drawing). */
+    canWalkWithPlans: boolean;
+    /** Pro only: assign collaborators to projects. */
+    canAssignCollaborators: boolean;
+    /** Pro base 3 (+ purchased 5-packs added downstream); else 0. */
+    maxCollaborators: number;
+    /** Pro only: attach/pin 360 photos on plans. */
+    can360OnPlans: boolean;
+    /** Twins inside projects — only when the org also has Twin 360 (bundle/twin). */
+    canPutTwinsInProjects: boolean;
+  };
   /** SlateDrop access: all paid users get SlateDrop; trial gets limited */
   slateDropAccess: "full" | "limited" | "none";
   /** Can manage team seats (pro tiers or bundles) */
@@ -259,6 +274,14 @@ export function resolveModularEntitlements(
       tours360InSiteWalk: hasSiteWalk && hasTours && !isTrial,
       designInSiteWalk: hasSiteWalk && hasDesign,
       contentInSiteWalk: hasSiteWalk && hasContent,
+    },
+    siteWalk: {
+      canCreateProjects: hasSiteWalk,
+      canWalkWithPlans: effectiveTiers.site_walk === "pro",
+      canAssignCollaborators: effectiveTiers.site_walk === "pro",
+      maxCollaborators: effectiveTiers.site_walk === "pro" ? 3 : 0,
+      can360OnPlans: effectiveTiers.site_walk === "pro",
+      canPutTwinsInProjects: effectiveTiers.digital_twin !== "none",
     },
     slateDropAccess: anyPaid ? "full" : isTrial ? "limited" : "none",
     canManageSeats: totalSeats >= 3,

@@ -4,7 +4,7 @@
 
 export type ProjectDetailVariant = "worksite" | "project";
 
-export type ProjectDetailTabId = "overview" | "walks" | "plans" | "twins" | "issues" | "files" | "deliverables" | "team";
+export type ProjectDetailTabId = "overview" | "walks" | "plans" | "twins" | "files" | "deliverables" | "team";
 
 export type ProjectDetailTabDef = {
   id: ProjectDetailTabId;
@@ -18,16 +18,16 @@ export const PROJECT_DETAIL_TABS: readonly ProjectDetailTabDef[] = [
   { id: "walks", label: "Site Walks", segment: "walks" },
   { id: "plans", label: "Plans", segment: "plans" },
   { id: "twins", label: "Twins", segment: "twins" },
-  { id: "issues", label: "Issues", segment: "punch-list" },
   { id: "files", label: "Files", segment: "slatedrop" },
   { id: "deliverables", label: "Deliverables", segment: "deliverables" },
   { id: "team", label: "Team", segment: "team" },
 ] as const;
 
 export function resolveProjectDetailVariant(
-  projectType: string | null | undefined,
+  _projectType?: string | null,
 ): ProjectDetailVariant {
-  return projectType === "full" ? "project" : "worksite";
+  // Simplified model: every project is a full project (no worksite variant).
+  return "project";
 }
 
 const LEGACY_SEGMENT_TAB: Record<string, ProjectDetailTabId> = {
