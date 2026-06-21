@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Panel, PanelGroup, type ImperativePanelHandle } from "react-resizable-panels";
+import { StudioHandle } from "@/components/studio/StudioPanels";
 import {
   ThermalProbeViewer,
   type ThermalProbeGrid,
@@ -110,10 +112,19 @@ export function ThermalStudioWorkView({
   saveTuning = defaultSaveTuning,
   saveFindings = defaultSaveFindings,
 }: Props) {
-  // Workspace chrome: left files rail + bottom filmstrip dock (both collapsible).
-  const [leftOpen, setLeftOpen] = useState(true);
-  const [stripOpen, setStripOpen] = useState(true);
+  // Resizable workspace (Content Studio pattern): drag the splitters; the files rail
+  // and filmstrip are collapsible. Filmstrip replaces a magnetic timeline.
+  const filesPanelRef = useRef<ImperativePanelHandle>(null);
+  const stripPanelRef = useRef<ImperativePanelHandle>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const toggleFiles = () => {
+    const p = filesPanelRef.current;
+    if (p) p.isCollapsed() ? p.expand() : p.collapse();
+  };
+  const toggleStrip = () => {
+    const p = stripPanelRef.current;
+    if (p) p.isCollapsed() ? p.expand() : p.collapse();
+  };
   const [internalId, setInternalId] = useState<string | null>(captures[0]?.id ?? null);
   const selectedId = controlledId ?? internalId;
   const selectCapture = useCallback(
@@ -301,22 +312,23 @@ export function ThermalStudioWorkView({
     "flex w-full items-center gap-2 rounded-lg border border-[var(--mobile-app-card-border)] px-2.5 py-1.5 text-left text-xs font-medium text-[var(--graphite-text-body)] hover:text-[var(--graphite-text-header)]";
 
   return (
-    // No-scroll workspace: file management on the LEFT, the large thermal image in the
-    // CENTER (with its tools rail, inside the viewer) on a dark stage, and the image
-    // filmstrip docked along the BOTTOM. Mirrors the Design Studio frame.
-    <div className="flex h-full min-h-0 flex-col gap-2">
-      <div className="flex min-h-0 flex-1 gap-2">
-        {/* LEFT: file management (bring in files/folders + detection settings) */}
-        {leftOpen ? (
-          <aside className="flex w-56 shrink-0 flex-col gap-2 overflow-y-auto rounded-xl border border-[var(--mobile-app-card-border)] p-2">
+    // Resizable workspace (Content Studio pattern): drag the splitters; the files rail
+    // and the bottom filmstrip collapse. Center image is the protected focal point.
+    <>
+    <PanelGroup direction="vertical" className="h-full min-h-0">
+      <Panel defaultSize={76} minSize={45}>
+        <PanelGroup direction="horizontal" className="h-full">
+          {/* LEFT: file management (resizable + collapsible) */}
+          <Panel ref={filesPanelRef} order={1} defaultSize={22} minSize={14} collapsible collapsedSize={0} className="min-w-0">
+          <aside className="flex h-full min-h-0 flex-col gap-2 overflow-y-auto rounded-xl border border-[var(--mobile-app-card-border)] p-2">
             <div className="flex items-center justify-between">
               <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--graphite-muted)]">
                 Files
               </span>
               <button
                 type="button"
-                onClick={() => setLeftOpen(false)}
-                title="Hide files"
+                onClick={toggleFiles}
+                title="Collapse files"
                 className="rounded px-1 text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]"
               >
                 ⟨
@@ -338,19 +350,12 @@ export function ThermalStudioWorkView({
               </div>
             ) : null}
           </aside>
-        ) : (
-          <button
-            type="button"
-            onClick={() => setLeftOpen(true)}
-            title="Show files"
-            className="h-full shrink-0 rounded-xl border border-[var(--mobile-app-card-border)] px-1.5 text-[10px] font-semibold text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)] [writing-mode:vertical-rl]"
-          >
-            Files ⟩
-          </button>
-        )}
+          </Panel>
+          <StudioHandle vertical />
 
-        {/* CENTER: the thermal image on a dark stage (+ optional visual compare) */}
-        <section className="flex min-h-0 min-w-0 flex-1 gap-2">
+          {/* CENTER: the thermal image on a dark stage (+ optional visual compare) */}
+          <Panel order={2} defaultSize={78} minSize={40} className="min-w-0">
+        <section className="flex h-full min-h-0 gap-2">
           <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-xl border border-[var(--mobile-app-card-border)] bg-[var(--graphite-canvas-deep)] p-2">
             {gridState === "ready" && grid ? (
               <ThermalProbeViewer
@@ -409,12 +414,15 @@ export function ThermalStudioWorkView({
             </div>
           ) : null}
         </section>
-      </div>
+          </Panel>
+        </PanelGroup>
+      </Panel>
+      <StudioHandle />
 
-      {/* BOTTOM: docked horizontal filmstrip (collapsible) */}
-      {stripOpen ? (
-        <div className="shrink-0 rounded-xl border border-[var(--mobile-app-card-border)] p-2">
-          <div className="mb-1.5 flex items-center justify-between">
+      {/* BOTTOM: resizable filmstrip — scrolling selectable images (not a timeline) */}
+      <Panel ref={stripPanelRef} defaultSize={24} minSize={10} collapsible collapsedSize={0}>
+        <div className="flex h-full min-h-0 flex-col rounded-xl border border-[var(--mobile-app-card-border)] p-2">
+          <div className="mb-1.5 flex shrink-0 items-center justify-between">
             <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--graphite-muted)]">
               {visibleCaptures.length} image{visibleCaptures.length === 1 ? "" : "s"}
             </span>
@@ -448,14 +456,15 @@ export function ThermalStudioWorkView({
               ) : null}
               <button
                 type="button"
-                onClick={() => setStripOpen(false)}
+                onClick={toggleStrip}
+                title="Collapse filmstrip"
                 className="rounded border border-[var(--mobile-app-card-border)] px-1.5 py-0.5 text-[10px] font-semibold text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]"
               >
-                Hide ▾
+                Collapse ▾
               </button>
             </div>
           </div>
-          <div className="flex gap-2 overflow-x-auto pb-0.5">
+          <div className="flex min-h-0 flex-1 items-center gap-2 overflow-x-auto pb-0.5">
             {visibleCaptures.map((c) => {
               const anomalyCount = c.anomalies?.length ?? 0;
               return (
@@ -463,7 +472,7 @@ export function ThermalStudioWorkView({
                   key={c.id}
                   type="button"
                   onClick={() => selectCapture(c.id)}
-                  className={`relative block aspect-[4/3] h-20 shrink-0 overflow-hidden rounded-lg border bg-[#111827] ${
+                  className={`relative block aspect-[4/3] h-full max-h-40 min-h-16 shrink-0 overflow-hidden rounded-lg border bg-[#111827] ${
                     selected?.id === c.id
                       ? "border-[color-mix(in_srgb,var(--graphite-primary)_60%,transparent)] ring-2 ring-[color-mix(in_srgb,var(--graphite-primary)_40%,transparent)]"
                       : "border-[var(--mobile-app-card-border)]"
@@ -488,19 +497,11 @@ export function ThermalStudioWorkView({
             })}
           </div>
         </div>
-      ) : (
-        <button
-          type="button"
-          onClick={() => setStripOpen(true)}
-          className="shrink-0 rounded-xl border border-[var(--mobile-app-card-border)] px-3 py-1.5 text-left text-[11px] font-semibold text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]"
-        >
-          ▴ Show filmstrip ({visibleCaptures.length})
-        </button>
-      )}
-
-      {pickerOpen && sessionId ? (
-        <ThermalSlateDropPicker sessionId={sessionId} onClose={() => setPickerOpen(false)} />
-      ) : null}
-    </div>
+      </Panel>
+    </PanelGroup>
+    {pickerOpen && sessionId ? (
+      <ThermalSlateDropPicker sessionId={sessionId} onClose={() => setPickerOpen(false)} />
+    ) : null}
+    </>
   );
 }

@@ -1,6 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
+import { Panel, PanelGroup, type ImperativePanelHandle } from "react-resizable-panels";
+import { StudioHandle } from "@/components/studio/StudioPanels";
 import type { StudioCapture } from "@/components/ops/thermal/ThermalStudioWorkView";
 
 type Mode = "timelapse" | "video";
@@ -29,6 +31,8 @@ export function ThermalMotionStudio({
   const [sourceSel, setSourceSel] = useState<Set<string>>(new Set());
   const [tlSel, setTlSel] = useState<Set<string>>(new Set());
   const byId = useMemo(() => new Map(captures.map((c) => [c.id, c])), [captures]);
+  const srcRef = useRef<ImperativePanelHandle>(null);
+  const expRef = useRef<ImperativePanelHandle>(null);
 
   // Export settings
   const [aspect, setAspect] = useState<Aspect>("16:9");
@@ -104,155 +108,172 @@ export function ThermalMotionStudio({
   const preview = timeline.length ? byId.get(timeline[0]) : captures[0];
 
   return (
-    <div className="flex h-full min-h-0 gap-2 p-2">
-      {/* LEFT: source */}
-      <aside className="flex w-56 shrink-0 flex-col gap-2 overflow-hidden rounded-xl border border-[var(--mobile-app-card-border)] p-2">
-        <div className="flex items-center gap-1">
-          <button type="button" onClick={() => setMode("timelapse")} className={seg(mode === "timelapse")}>Time-lapse</button>
-          <button type="button" onClick={() => setMode("video")} className={seg(mode === "video")}>Video</button>
-        </div>
-        <div className="flex items-center justify-between">
-          <span className={eyebrow}>Source ({captures.length})</span>
-          <div className="flex gap-1">
-            <button type="button" onClick={() => setSourceSel(new Set(captures.map((c) => c.id)))} className="text-[10px] text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]">All</button>
-            <button type="button" onClick={() => addToTimeline(captures.map((c) => c.id))} className="text-[10px] font-semibold text-[var(--graphite-primary)]">+ Add all</button>
-          </div>
-        </div>
-        <div className="min-h-0 flex-1 overflow-y-auto">
-          <div className="grid grid-cols-2 gap-1">
-            {captures.map((c) => {
-              const on = sourceSel.has(c.id);
-              return (
-                <button key={c.id} type="button" onClick={() => toggleSource(c.id)} title={c.filename}
-                  className={`relative aspect-[4/3] overflow-hidden rounded border bg-[#111827] ${on ? "border-[var(--graphite-primary)] ring-1 ring-[var(--graphite-primary)]" : "border-[var(--mobile-app-card-border)]"}`}>
-                  {c.previewUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={c.previewUrl} alt={c.filename} className="h-full w-full object-cover" />
-                  ) : <span className="flex h-full items-center justify-center px-0.5 text-center text-[7px] text-[var(--graphite-muted)]">{c.filename}</span>}
-                  {on ? <span className="absolute right-0.5 top-0.5 flex h-3 w-3 items-center justify-center rounded-full bg-[var(--graphite-primary)] text-[8px] font-bold text-[var(--graphite-canvas)]">✓</span> : null}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-        {sourceSel.size ? (
-          <button type="button" onClick={() => addToTimeline([...sourceSel])} className="rounded-lg bg-[var(--graphite-primary)] px-2 py-1.5 text-[11px] font-semibold text-[var(--graphite-canvas)]">
-            Add {sourceSel.size} to timeline
-          </button>
-        ) : null}
-      </aside>
-
-      {/* CENTER: preview + timeline */}
-      <section className="flex min-h-0 min-w-0 flex-1 flex-col gap-2">
-        <div className="flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-xl border border-[var(--mobile-app-card-border)] bg-[var(--graphite-canvas-deep)] p-2">
-          {preview?.previewUrl ? (
-            <div className="relative flex h-full w-full items-center justify-center">
-              {/* aspect-ratio framing guide */}
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={preview.previewUrl} alt="preview" className="max-h-full max-w-full rounded object-contain" />
-              <span className="absolute left-2 top-2 rounded bg-black/60 px-1.5 py-0.5 text-[10px] text-white">
-                {mode === "timelapse" ? "Time-lapse" : "Video"} · {aspect} · {durationSec ? `${durationSec.toFixed(1)}s @ ${fps}fps` : "add frames"}
-              </span>
-            </div>
-          ) : (
-            <p className="text-xs text-[var(--graphite-muted)]">Add frames from the source to preview.</p>
-          )}
-        </div>
-        {/* Timeline dock */}
-        <div className="shrink-0 rounded-xl border border-[var(--mobile-app-card-border)] p-2">
-          <div className="mb-1.5 flex items-center justify-between">
-            <span className={eyebrow}>Timeline · {timeline.length} frame{timeline.length === 1 ? "" : "s"}</span>
-            <div className="flex items-center gap-1.5">
-              {tlSel.size ? (
-                <button type="button" onClick={removeSelectedFromTimeline} className="rounded border border-[var(--mobile-app-card-border)] px-1.5 py-0.5 text-[10px] font-semibold text-[var(--graphite-muted)] hover:text-[#fca5a5]">Remove {tlSel.size}</button>
-              ) : null}
-              {timeline.length ? (
-                <button type="button" onClick={() => { setTimeline([]); setTlSel(new Set()); }} className="rounded border border-[var(--mobile-app-card-border)] px-1.5 py-0.5 text-[10px] font-semibold text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]">Clear</button>
-              ) : null}
-            </div>
-          </div>
-          <div className="flex gap-1.5 overflow-x-auto pb-0.5">
-            {timeline.length === 0 ? (
-              <p className="py-3 text-[11px] text-[var(--graphite-muted)]">Add frames from the left, then set length & export options on the right.</p>
-            ) : timeline.map((id, idx) => {
-              const c = byId.get(id); if (!c) return null;
-              const on = tlSel.has(id);
-              return (
-                <div key={id} className="group relative shrink-0">
-                  <button type="button" onClick={() => toggleTl(id)} title={c.filename}
-                    className={`relative block aspect-[4/3] h-16 overflow-hidden rounded border bg-[#111827] ${on ? "border-[var(--graphite-primary)] ring-1 ring-[var(--graphite-primary)]" : "border-[var(--mobile-app-card-border)]"}`}>
-                    {c.previewUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={c.previewUrl} alt={c.filename} className="h-full w-full object-cover" />
-                    ) : null}
-                    <span className="absolute left-0.5 top-0.5 rounded bg-black/60 px-1 text-[8px] font-bold text-white">{idx + 1}</span>
-                  </button>
-                  <div className="mt-0.5 flex justify-center gap-0.5">
-                    <button type="button" onClick={() => move(idx, -1)} disabled={idx === 0} className="text-[10px] text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)] disabled:opacity-30">↑</button>
-                    <button type="button" onClick={() => move(idx, 1)} disabled={idx === timeline.length - 1} className="text-[10px] text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)] disabled:opacity-30">↓</button>
+    // Resizable workspace (Content Studio pattern): source / preview / export are
+    // drag-resizable columns; the filmstrip is a resizable bottom panel.
+    <div className="h-full min-h-0 p-2">
+      <PanelGroup direction="vertical" className="h-full min-h-0">
+        <Panel defaultSize={72} minSize={45}>
+          <PanelGroup direction="horizontal" className="h-full">
+            {/* LEFT: source */}
+            <Panel ref={srcRef} order={1} collapsible collapsedSize={0} defaultSize={20} minSize={12} className="min-w-0">
+              <aside className="flex h-full min-h-0 flex-col gap-2 overflow-hidden rounded-xl border border-[var(--mobile-app-card-border)] p-2">
+                <div className="flex items-center gap-1">
+                  <button type="button" onClick={() => setMode("timelapse")} className={seg(mode === "timelapse")}>Time-lapse</button>
+                  <button type="button" onClick={() => setMode("video")} className={seg(mode === "video")}>Video</button>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className={eyebrow}>Source ({captures.length})</span>
+                  <div className="flex gap-1">
+                    <button type="button" onClick={() => setSourceSel(new Set(captures.map((c) => c.id)))} className="text-[10px] text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]">All</button>
+                    <button type="button" onClick={() => addToTimeline(captures.map((c) => c.id))} className="text-[10px] font-semibold text-[var(--graphite-primary)]">+ Add all</button>
                   </div>
                 </div>
-              );
-            })}
+                <div className="min-h-0 flex-1 overflow-y-auto">
+                  <div className="grid grid-cols-2 gap-1">
+                    {captures.map((c) => {
+                      const on = sourceSel.has(c.id);
+                      return (
+                        <button key={c.id} type="button" onClick={() => toggleSource(c.id)} title={c.filename}
+                          className={`relative aspect-[4/3] overflow-hidden rounded border bg-[#111827] ${on ? "border-[var(--graphite-primary)] ring-1 ring-[var(--graphite-primary)]" : "border-[var(--mobile-app-card-border)]"}`}>
+                          {c.previewUrl ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={c.previewUrl} alt={c.filename} className="h-full w-full object-cover" />
+                          ) : <span className="flex h-full items-center justify-center px-0.5 text-center text-[7px] text-[var(--graphite-muted)]">{c.filename}</span>}
+                          {on ? <span className="absolute right-0.5 top-0.5 flex h-3 w-3 items-center justify-center rounded-full bg-[var(--graphite-primary)] text-[8px] font-bold text-[var(--graphite-canvas)]">✓</span> : null}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+                {sourceSel.size ? (
+                  <button type="button" onClick={() => addToTimeline([...sourceSel])} className="rounded-lg bg-[var(--graphite-primary)] px-2 py-1.5 text-[11px] font-semibold text-[var(--graphite-canvas)]">
+                    Add {sourceSel.size} to timeline
+                  </button>
+                ) : null}
+              </aside>
+            </Panel>
+            <StudioHandle vertical />
+
+            {/* CENTER: preview */}
+            <Panel order={2} defaultSize={56} minSize={30} className="min-w-0">
+              <div className="flex h-full min-h-0 items-center justify-center overflow-hidden rounded-xl border border-[var(--mobile-app-card-border)] bg-[var(--graphite-canvas-deep)] p-2">
+                {preview?.previewUrl ? (
+                  <div className="relative flex h-full w-full items-center justify-center">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={preview.previewUrl} alt="preview" className="max-h-full max-w-full rounded object-contain" />
+                    <span className="absolute left-2 top-2 rounded bg-black/60 px-1.5 py-0.5 text-[10px] text-white">
+                      {mode === "timelapse" ? "Time-lapse" : "Video"} · {aspect} · {durationSec ? `${durationSec.toFixed(1)}s @ ${fps}fps` : "add frames"}
+                    </span>
+                  </div>
+                ) : (
+                  <p className="text-xs text-[var(--graphite-muted)]">Add frames from the source to preview.</p>
+                )}
+              </div>
+            </Panel>
+            <StudioHandle vertical />
+
+            {/* RIGHT: export settings */}
+            <Panel ref={expRef} order={3} collapsible collapsedSize={0} defaultSize={24} minSize={16} className="min-w-0">
+              <aside className="flex h-full min-h-0 flex-col gap-2 overflow-y-auto pr-0.5">
+                <div className="rounded-xl border border-[var(--mobile-app-card-border)] p-3 space-y-2.5">
+                  <p className="text-xs font-semibold text-[var(--graphite-text-header)]">Export</p>
+                  <label className="block text-[11px] text-[var(--graphite-muted)]">Aspect ratio
+                    <select value={aspect} onChange={(e) => setAspect(e.target.value as Aspect)} className={field}>
+                      {ASPECTS.map((a) => <option key={a} value={a}>{a === "original" ? "Original" : a}</option>)}
+                    </select>
+                  </label>
+                  {mode === "timelapse" ? (
+                    <label className="block text-[11px] text-[var(--graphite-muted)]">
+                      Speed · {fps} fps {durationSec ? `→ ${durationSec.toFixed(1)}s` : ""}
+                      <input type="range" min={1} max={30} value={fps} onChange={(e) => setFps(Number(e.target.value))} className="mt-1 w-full accent-[var(--graphite-primary)]" />
+                      <span className="text-[10px]">Lower = longer/slower · higher = shorter/faster</span>
+                    </label>
+                  ) : null}
+                  <label className="block text-[11px] text-[var(--graphite-muted)]">Smoothing
+                    <select value={smoothing} onChange={(e) => setSmoothing(e.target.value as Smoothing)} className={field}>
+                      <option value="none">None</option>
+                      <option value="interpolate">Motion interpolation (ffmpeg minterpolate)</option>
+                      <option value="rife">High quality (RIFE)</option>
+                    </select>
+                  </label>
+                  <label className="flex items-center gap-2 text-[11px] text-[var(--graphite-text-body)]">
+                    <input type="checkbox" checked={deflicker} onChange={(e) => setDeflicker(e.target.checked)} className="accent-[var(--graphite-primary)]" />
+                    Deflicker (reduce thermal frame flicker)
+                  </label>
+                </div>
+
+                <div className="rounded-xl border border-[var(--mobile-app-card-border)] p-3 space-y-2">
+                  <p className="text-xs font-semibold text-[var(--graphite-text-header)]">Measurements overlay</p>
+                  <div className="flex flex-col gap-1">
+                    {([["clean", "Clean — no marks (raw thermal)"], ["keep", "Keep marks static"], ["animate", "Animate temperatures changing"]] as [Overlay, string][]).map(([v, label]) => (
+                      <label key={v} className="flex items-center gap-2 text-[11px] text-[var(--graphite-text-body)]">
+                        <input type="radio" name="overlay" checked={overlay === v} onChange={() => setOverlay(v)} className="accent-[var(--graphite-primary)]" />
+                        {label}
+                      </label>
+                    ))}
+                  </div>
+                  <p className="text-[10px] text-[var(--graphite-muted)]">Applies to all frames; per-image marks are kept on the source either way.</p>
+                </div>
+
+                <div className="rounded-xl border border-[var(--mobile-app-card-border)] p-3 space-y-2">
+                  <label className="flex items-center gap-2 text-[11px] text-[var(--graphite-text-body)]">
+                    <input type="checkbox" checked={retainRadiometric} onChange={(e) => setRetainRadiometric(e.target.checked)} className="accent-[var(--graphite-primary)]" />
+                    Also retain radiometric stack (scrub/probe later)
+                  </label>
+                  <button type="button" disabled={busy || !timeline.length} onClick={generate}
+                    className="w-full rounded-lg bg-[var(--graphite-primary)] px-3 py-2 text-sm font-semibold text-[var(--graphite-canvas)] disabled:opacity-50">
+                    {busy ? "Queuing…" : `Render ${mode === "timelapse" ? "time-lapse" : "video"} → MP4`}
+                  </button>
+                  {note ? <p className="text-[11px] text-[var(--graphite-muted)]">{note}</p> : null}
+                  {err ? <p className="text-[11px] text-[#fca5a5]">{err}</p> : null}
+                </div>
+              </aside>
+            </Panel>
+          </PanelGroup>
+        </Panel>
+        <StudioHandle />
+
+        {/* BOTTOM: filmstrip / timeline (resizable) */}
+        <Panel defaultSize={28} minSize={10}>
+          <div className="flex h-full min-h-0 flex-col rounded-xl border border-[var(--mobile-app-card-border)] p-2">
+            <div className="mb-1.5 flex shrink-0 items-center justify-between">
+              <span className={eyebrow}>Timeline · {timeline.length} frame{timeline.length === 1 ? "" : "s"}</span>
+              <div className="flex items-center gap-1.5">
+                {tlSel.size ? (
+                  <button type="button" onClick={removeSelectedFromTimeline} className="rounded border border-[var(--mobile-app-card-border)] px-1.5 py-0.5 text-[10px] font-semibold text-[var(--graphite-muted)] hover:text-[#fca5a5]">Remove {tlSel.size}</button>
+                ) : null}
+                {timeline.length ? (
+                  <button type="button" onClick={() => { setTimeline([]); setTlSel(new Set()); }} className="rounded border border-[var(--mobile-app-card-border)] px-1.5 py-0.5 text-[10px] font-semibold text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]">Clear</button>
+                ) : null}
+              </div>
+            </div>
+            <div className="flex min-h-0 flex-1 items-center gap-1.5 overflow-x-auto pb-0.5">
+              {timeline.length === 0 ? (
+                <p className="py-3 text-[11px] text-[var(--graphite-muted)]">Add frames from the left, then set length & export options on the right.</p>
+              ) : timeline.map((id, idx) => {
+                const c = byId.get(id); if (!c) return null;
+                const on = tlSel.has(id);
+                return (
+                  <div key={id} className="group relative flex h-full shrink-0 flex-col">
+                    <button type="button" onClick={() => toggleTl(id)} title={c.filename}
+                      className={`relative block aspect-[4/3] h-full max-h-32 min-h-14 flex-1 overflow-hidden rounded border bg-[#111827] ${on ? "border-[var(--graphite-primary)] ring-1 ring-[var(--graphite-primary)]" : "border-[var(--mobile-app-card-border)]"}`}>
+                      {c.previewUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={c.previewUrl} alt={c.filename} className="h-full w-full object-cover" />
+                      ) : null}
+                      <span className="absolute left-0.5 top-0.5 rounded bg-black/60 px-1 text-[8px] font-bold text-white">{idx + 1}</span>
+                    </button>
+                    <div className="mt-0.5 flex shrink-0 justify-center gap-0.5">
+                      <button type="button" onClick={() => move(idx, -1)} disabled={idx === 0} className="text-[10px] text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)] disabled:opacity-30">↑</button>
+                      <button type="button" onClick={() => move(idx, 1)} disabled={idx === timeline.length - 1} className="text-[10px] text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)] disabled:opacity-30">↓</button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
-        </div>
-      </section>
-
-      {/* RIGHT: export settings */}
-      <aside className="flex w-72 shrink-0 flex-col gap-2 overflow-y-auto pr-0.5">
-        <div className="rounded-xl border border-[var(--mobile-app-card-border)] p-3 space-y-2.5">
-          <p className="text-xs font-semibold text-[var(--graphite-text-header)]">Export</p>
-          <label className="block text-[11px] text-[var(--graphite-muted)]">Aspect ratio
-            <select value={aspect} onChange={(e) => setAspect(e.target.value as Aspect)} className={field}>
-              {ASPECTS.map((a) => <option key={a} value={a}>{a === "original" ? "Original" : a}</option>)}
-            </select>
-          </label>
-          {mode === "timelapse" ? (
-            <label className="block text-[11px] text-[var(--graphite-muted)]">
-              Speed · {fps} fps {durationSec ? `→ ${durationSec.toFixed(1)}s` : ""}
-              <input type="range" min={1} max={30} value={fps} onChange={(e) => setFps(Number(e.target.value))} className="mt-1 w-full accent-[var(--graphite-primary)]" />
-              <span className="text-[10px]">Lower = longer/slower · higher = shorter/faster</span>
-            </label>
-          ) : null}
-          <label className="block text-[11px] text-[var(--graphite-muted)]">Smoothing
-            <select value={smoothing} onChange={(e) => setSmoothing(e.target.value as Smoothing)} className={field}>
-              <option value="none">None</option>
-              <option value="interpolate">Motion interpolation (ffmpeg minterpolate)</option>
-              <option value="rife">High quality (RIFE)</option>
-            </select>
-          </label>
-          <label className="flex items-center gap-2 text-[11px] text-[var(--graphite-text-body)]">
-            <input type="checkbox" checked={deflicker} onChange={(e) => setDeflicker(e.target.checked)} className="accent-[var(--graphite-primary)]" />
-            Deflicker (reduce thermal frame flicker)
-          </label>
-        </div>
-
-        <div className="rounded-xl border border-[var(--mobile-app-card-border)] p-3 space-y-2">
-          <p className="text-xs font-semibold text-[var(--graphite-text-header)]">Measurements overlay</p>
-          <div className="flex flex-col gap-1">
-            {([["clean", "Clean — no marks (raw thermal)"], ["keep", "Keep marks static"], ["animate", "Animate temperatures changing"]] as [Overlay, string][]).map(([v, label]) => (
-              <label key={v} className="flex items-center gap-2 text-[11px] text-[var(--graphite-text-body)]">
-                <input type="radio" name="overlay" checked={overlay === v} onChange={() => setOverlay(v)} className="accent-[var(--graphite-primary)]" />
-                {label}
-              </label>
-            ))}
-          </div>
-          <p className="text-[10px] text-[var(--graphite-muted)]">Applies to all frames; per-image marks are kept on the source either way.</p>
-        </div>
-
-        <div className="rounded-xl border border-[var(--mobile-app-card-border)] p-3 space-y-2">
-          <label className="flex items-center gap-2 text-[11px] text-[var(--graphite-text-body)]">
-            <input type="checkbox" checked={retainRadiometric} onChange={(e) => setRetainRadiometric(e.target.checked)} className="accent-[var(--graphite-primary)]" />
-            Also retain radiometric stack (scrub/probe later)
-          </label>
-          <button type="button" disabled={busy || !timeline.length} onClick={generate}
-            className="w-full rounded-lg bg-[var(--graphite-primary)] px-3 py-2 text-sm font-semibold text-[var(--graphite-canvas)] disabled:opacity-50">
-            {busy ? "Queuing…" : `Render ${mode === "timelapse" ? "time-lapse" : "video"} → MP4`}
-          </button>
-          {note ? <p className="text-[11px] text-[var(--graphite-muted)]">{note}</p> : null}
-          {err ? <p className="text-[11px] text-[#fca5a5]">{err}</p> : null}
-        </div>
-      </aside>
+        </Panel>
+      </PanelGroup>
     </div>
   );
 }

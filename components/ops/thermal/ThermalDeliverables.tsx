@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { Panel, PanelGroup } from "react-resizable-panels";
+import { StudioHandle } from "@/components/studio/StudioPanels";
 import { ThermalSharePanel } from "@/components/ops/thermal/ThermalSharePanel";
 import { ThermalBrandingPanel } from "@/components/ops/thermal/ThermalBrandingPanel";
 import { ThermalTwinLayerPanel } from "@/components/ops/thermal/ThermalTwinLayerPanel";
@@ -33,10 +35,12 @@ export function ThermalDeliverables({
   const [tab, setTab] = useState<SubTab>("share");
 
   return (
-    // Same frame as Inspect: section nav LEFT, the active panel CENTER.
-    <div className="flex h-full min-h-0 gap-2 p-2">
+    // Resizable frame: section nav LEFT, the active panel CENTER.
+    <div className="h-full min-h-0 p-2">
+      <PanelGroup direction="horizontal" className="h-full min-h-0">
       {/* LEFT: section nav */}
-      <aside className="flex w-52 shrink-0 flex-col gap-1 rounded-xl border border-[var(--mobile-app-card-border)] p-2">
+      <Panel order={1} collapsible collapsedSize={0} defaultSize={20} minSize={12} className="min-w-0">
+      <aside className="flex h-full min-h-0 flex-col gap-1 rounded-xl border border-[var(--mobile-app-card-border)] p-2">
         <span className="px-1 pb-1 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--graphite-muted)]">
           Deliver
         </span>
@@ -58,9 +62,12 @@ export function ThermalDeliverables({
           );
         })}
       </aside>
+      </Panel>
+      <StudioHandle vertical />
 
       {/* CENTER: the active panel */}
-      <div className="min-h-0 flex-1 overflow-y-auto rounded-xl border border-[var(--mobile-app-card-border)] p-3">
+      <Panel order={2} defaultSize={80} minSize={40} className="min-w-0">
+      <div className="h-full min-h-0 overflow-y-auto rounded-xl border border-[var(--mobile-app-card-border)] p-3">
         <div className="mx-auto w-full max-w-3xl">
           {tab === "share" ? (
             <ThermalSharePanel sessionId={sessionId} initialProjectId={initialProjectId} />
@@ -73,6 +80,8 @@ export function ThermalDeliverables({
           ) : null}
         </div>
       </div>
+      </Panel>
+      </PanelGroup>
     </div>
   );
 }

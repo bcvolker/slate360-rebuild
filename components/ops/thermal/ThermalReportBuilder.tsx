@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { Panel, PanelGroup } from "react-resizable-panels";
+import { StudioHandle } from "@/components/studio/StudioPanels";
 import { ThermalReportPreview } from "@/components/ops/thermal/ThermalReportPreview";
 import { ThermalTemplateGallery, type GalleryTemplate } from "@/components/ops/thermal/ThermalTemplateGallery";
 import { ThermalReportHistory } from "@/components/ops/thermal/ThermalReportHistory";
@@ -136,10 +138,12 @@ export function ThermalReportBuilder({
     "mt-1 block w-full rounded-xl border border-[var(--mobile-app-card-border)] bg-[#111827] px-3 py-2 text-sm text-white";
 
   return (
-    // Same frame as Inspect: ordered set LEFT, live report preview CENTER, controls RIGHT.
-    <div className="flex h-full min-h-0 gap-2 p-2">
+    // Resizable frame: ordered set LEFT, live report preview CENTER, controls RIGHT.
+    <div className="h-full min-h-0 p-2">
+      <PanelGroup direction="horizontal" className="h-full min-h-0">
       {/* LEFT: ordered report set */}
-      <aside className="flex w-60 shrink-0 flex-col rounded-xl border border-[var(--mobile-app-card-border)] p-2">
+      <Panel order={1} collapsible collapsedSize={0} defaultSize={20} minSize={12} className="min-w-0">
+      <aside className="flex h-full min-h-0 flex-col rounded-xl border border-[var(--mobile-app-card-border)] p-2">
         <p className="shrink-0 pb-1.5 text-xs font-semibold text-[var(--graphite-text-header)]">
           Report set · {order.length} image{order.length === 1 ? "" : "s"}
         </p>
@@ -174,9 +178,12 @@ export function ThermalReportBuilder({
           </ul>
         )}
       </aside>
+      </Panel>
+      <StudioHandle vertical />
 
       {/* CENTER: live WYSIWYG report preview */}
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-xl border border-[var(--mobile-app-card-border)] bg-[var(--graphite-canvas-deep)] py-2">
+      <Panel order={2} defaultSize={56} minSize={35} className="min-w-0">
+      <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-xl border border-[var(--mobile-app-card-border)] bg-[var(--graphite-canvas-deep)] py-2">
         <div className="flex shrink-0 items-center justify-between px-3 pb-2">
           <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--graphite-muted)]">
             Preview · {selectedTemplate.name}
@@ -194,9 +201,12 @@ export function ThermalReportBuilder({
           summary={summary}
         />
       </div>
+      </Panel>
+      <StudioHandle vertical />
 
       {/* RIGHT: template + conditions + generate */}
-      <aside className="flex w-80 shrink-0 flex-col gap-2 overflow-y-auto pr-0.5">
+      <Panel order={3} collapsible collapsedSize={0} defaultSize={24} minSize={18} className="min-w-0">
+      <aside className="flex h-full min-h-0 flex-col gap-2 overflow-y-auto pr-0.5">
         <div className="rounded-xl border border-[var(--mobile-app-card-border)] p-3">
           <p className="text-xs font-semibold text-[var(--graphite-text-header)]">Template</p>
           <p className="mt-1 text-[11px] text-[var(--graphite-muted)]">
@@ -257,6 +267,8 @@ export function ThermalReportBuilder({
 
         <ThermalReportHistory sessionId={sessionId} refreshKey={reportRefresh} />
       </aside>
+      </Panel>
+      </PanelGroup>
     </div>
   );
 }
