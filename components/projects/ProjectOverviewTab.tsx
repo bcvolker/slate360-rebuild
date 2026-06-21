@@ -57,8 +57,8 @@ export function ProjectOverviewTab({ data }: ProjectOverviewTabProps) {
           <section aria-label="Quick actions">
             <p className={`${t.eyebrow} mb-3`}>Quick actions</p>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-              <ActionTile label="Start a walk" hint="Walk a plan" href={`${base}/plans`} icon={Footprints} />
-              <ActionTile label="Upload files" hint="Plans & docs" href={`${base}/slatedrop`} icon={Upload} />
+              <ActionTile label="Upload a drawing" hint="PDF plan set" href={`${base}/plans`} icon={Upload} />
+              <ActionTile label="Start walk with drawings" hint="Pin photos to the plan" href={`${base}/plans`} icon={Footprints} />
               <ActionTile label="Invite team" hint="Add collaborators" href={`${base}/team`} icon={UserPlus} />
             </div>
           </section>

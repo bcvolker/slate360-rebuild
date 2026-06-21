@@ -30,11 +30,11 @@ branches:
 | 1 | Landscape shows amber "Drop photos here" | `detectDeviceKind()` required width ≤767px for "mobile"; landscape phone is wider ⇒ flips to DESKTOP studio | FIXED — touch signal OR narrow ⇒ mobile |
 | 2 | Top-left "+/-" unbranded, "1990s" | Leaflet native `zoomControl` was never disabled | FIXED — `zoomControl={false}` (pinch still zooms) |
 | 4 | Long-press "Upload from" sheet cut off | source picker capped at 45dvh; landscape clips rows | FIXED — cap raised to `min(80dvh,24rem)`, list scrolls |
-| 3 | Sheet-search panel is useful but hidden | `CapturePlanTopBar` chevron is the only entry; not obvious | TODO — make discoverable + branded |
+| 3 | Sheet-search panel is useful but hidden | `CapturePlanTopBar` chevron is the only entry; not obvious | FIXED — top-bar sheet control is now a branded green chip w/ Layers glyph; picker has a search-icon field |
 | 5 | 360 sources wrong (Photo library breaks 360; phone isn't a 360 cam) | source picker rows were device-only; no project-folder source | FIXED — "Add 360 from project folder" (SlateDrop) is PRIMARY; device file secondary |
 | 6 | No way to delete pins (new or old) | no delete affordance wired; `DELETE /api/site-walk/pins/[id]` exists | FIXED — "Remove pin" in the pin sheet |
 | 7 | Tapping a placed (empty) pin does nothing | `onSessionPinTap` only fired when `pin.item_id` set; empty long-press pins have none | FIXED — empty pin tap → "Add capture" (camera/upload/360) + remove |
-| 8 | Top banner unbranded black/white | `PlanToolbar`/topbar styling is legacy slate/amber | TODO — Graphite Glass + brand green pass |
+| 8 | Top banner unbranded black/white | `PlanToolbar`/topbar styling is legacy slate/amber | FIXED — Graphite Glass + brand-green (#00E699) accents on the sheet chip, back/filmstrip buttons |
 | 9 | Plans don't sit perfectly on screen | leaflet fit padding / bounds | TODO — tune `fitPlanLeafletMap` / `capturePlanFitPadding` |
 | 10 | Stop-to-stop nav missing in drawings walk | bottom rail only pages sheets | TODO — add stop stepper (reuse filmstrip ordering) |
 | 11 | Project list origin unclear; scroll unclear | walks/projects list provenance + container | TODO — clarify source + ensure scroll container |
@@ -55,9 +55,9 @@ Remove/avoid: "Photo library" and "Take Photo" for 360 (they break/aren't 360-ca
 3. ✅ Quick fixes: landscape desktop-leak (#1), Leaflet zoom control (#2), source picker height (#4)
 4. ✅ Empty-pin tap → capture menu + delete (#6, #7) — shipped
 5. ✅ 360 source = project SlateDrop folder picker (#5) — shipped
-6. Branding pass on topbar + sheet picker, make sheet search discoverable (#2/#3/#8)
+6. ✅ Branding pass on topbar + sheet picker, make sheet search discoverable (#2/#3/#8) — shipped
 7. Stop-to-stop stepper (#10) + plan fit tuning (#9)
-8. Mobile project screen w/ obvious "Upload drawing" + "Start walk with drawings" (entry point)
+8. ◐ Project entry point — overview now leads with "Upload a drawing" + "Start walk with drawings" tiles (ProjectOverviewTab); deeper mobile project screen still TODO
 9. Deliverable/recipient-side interactive pins
 
 ## Testing notes
