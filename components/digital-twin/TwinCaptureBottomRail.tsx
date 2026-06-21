@@ -217,7 +217,7 @@ export function TwinCaptureBottomRail({
               prominentDone ? "text-[var(--twin360-blue)]" : TWIN_CAPTURE_HUD_TEXT
             } ${prominentDone ? "" : "opacity-50"}`}
           >
-            {finishing ? "Preparing…" : "Done"}
+            {finishing ? "Preparing…" : hasContent ? `Review (${clipCount})` : "Review"}
           </span>
         </div>
       </div>

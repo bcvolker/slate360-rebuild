@@ -49,8 +49,21 @@ export function TwinCaptureModeSelector({
           data-twin-chrome="rec-timer-chip"
           aria-live="polite"
         >
-          <span className="text-[var(--destructive)]">●</span> REC {formatRecTimer(recSeconds)}
-          <span className="text-[var(--graphite-muted)]"> · target 1:30</span>
+          {/* Mode badge stays visible during recording — never replaced (the #2 audited bug). */}
+          <span className="text-[var(--twin360-blue)]">{mode === "video" ? "VIDEO" : "PHOTOS"}</span>
+          <span className="text-[var(--graphite-muted)]"> · </span>
+          {mode === "video" ? (
+            <>
+              <span className="text-[var(--destructive)]">●</span> REC {formatRecTimer(recSeconds)}
+              <span className="text-[var(--graphite-muted)]"> · target 1:30</span>
+            </>
+          ) : (
+            <>
+              {/* Photo mode never says "REC" — it's a timed burst. */}
+              <span className="text-[var(--twin360-blue)]">●</span> CAPTURING
+              <span className="text-[var(--graphite-muted)]"> · every {photoInterval}s</span>
+            </>
+          )}
         </span>
       ) : (
         <div className="pointer-events-auto inline-flex items-center gap-1">
