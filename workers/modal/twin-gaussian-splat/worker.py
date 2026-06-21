@@ -338,7 +338,23 @@ def _ply_vertex_count(ply_path: Path) -> int:
     raise RuntimeError(f"Could not parse vertex count from {ply_path}")
 
 
-def compute_ply_bounds(ply_path: Path) -> dict[str, dict[str, float]]:
+# PLY scalar property type → numpy type code.
+_PLY_NP_TYPE = {
+    "float": "f4", "float32": "f4", "double": "f8", "float64": "f8",
+    "uchar": "u1", "uint8": "u1", "char": "i1", "int8": "i1",
+    "ushort": "u2", "uint16": "u2", "short": "i2", "int16": "i2",
+    "uint": "u4", "uint32": "u4", "int": "i4", "int32": "i4",
+}
+
+
+def _read_ply_xyz(ply_path: Path, max_points: int = 400_000):
+    """Read (N,3) float64 xyz from a PLY, parsing the FULL per-vertex stride.
+
+    3DGS PLY vertices carry ~50+ properties (xyz, normals, SH coeffs, opacity,
+    scales, rotation) so the per-vertex stride is ~200+ bytes. Reading only a
+    12-byte (x,y,z) dtype mis-strides and yields garbage after vertex 0 — this
+    parses every property so xyz is extracted at the correct offset.
+    """
     import numpy as np
 
     with ply_path.open("rb") as fh:
@@ -349,40 +365,141 @@ def compute_ply_bounds(ply_path: Path) -> dict[str, dict[str, float]]:
             if line == "end_header":
                 break
         header = "\n".join(header_lines)
+
         vertex_count = 0
+        props: list[tuple[str, str]] = []  # (name, type)
+        in_vertex = False
         for line in header_lines:
             if line.startswith("element vertex"):
                 vertex_count = int(line.split()[-1])
-                break
+                in_vertex = True
+                continue
+            if line.startswith("element"):
+                in_vertex = False
+                continue
+            if in_vertex and line.startswith("property"):
+                parts = line.split()
+                if parts[1] == "list":
+                    continue  # 3DGS PLYs are scalar-only; skip list props defensively
+                props.append((parts[2], parts[1]))
         if vertex_count <= 0:
             raise RuntimeError(f"Could not parse vertex count from {ply_path}")
 
-        is_binary = "format binary_little_endian" in header
-        coords: list[tuple[float, float, float]] = []
-
-        if is_binary:
-            dtype: list[tuple[str, str]] = []
-            for line in header_lines:
-                if line.startswith("property float x"):
-                    dtype = [("x", "f4"), ("y", "f4"), ("z", "f4")]
-                    break
-            if not dtype:
-                raise RuntimeError(f"Unsupported binary PLY layout: {ply_path}")
-            arr = np.fromfile(fh, dtype=dtype, count=vertex_count)
-            xs, ys, zs = arr["x"], arr["y"], arr["z"]
+        if "format binary_little_endian" in header:
+            dt = np.dtype([(nm, "<" + _PLY_NP_TYPE.get(tp, "f4")) for nm, tp in props])
+            arr = np.fromfile(fh, dtype=dt, count=vertex_count)
+            xyz = np.stack(
+                [arr["x"].astype(np.float64), arr["y"].astype(np.float64), arr["z"].astype(np.float64)],
+                axis=1,
+            )
+        elif "format ascii" in header:
+            data = np.loadtxt(fh, max_rows=vertex_count)
+            xyz = np.asarray(data[:, :3], dtype=np.float64)
         else:
-            for _ in range(vertex_count):
-                parts = fh.readline().decode("utf-8", errors="ignore").split()
-                if len(parts) < 3:
-                    continue
-                coords.append((float(parts[0]), float(parts[1]), float(parts[2])))
-            xs = np.array([c[0] for c in coords], dtype=np.float64)
-            ys = np.array([c[1] for c in coords], dtype=np.float64)
-            zs = np.array([c[2] for c in coords], dtype=np.float64)
+            raise RuntimeError(f"Unsupported PLY format: {ply_path}")
+
+    if xyz.shape[0] > max_points:
+        idx = np.random.default_rng(0).choice(xyz.shape[0], max_points, replace=False)
+        xyz = xyz[idx]
+    return xyz
+
+
+def compute_ply_bounds(ply_path: Path) -> dict[str, dict[str, float]]:
+    import numpy as np
+
+    xyz = _read_ply_xyz(ply_path)
+    mn = xyz.min(axis=0)
+    mx = xyz.max(axis=0)
+    return {
+        "min": {"x": float(mn[0]), "y": float(mn[1]), "z": float(mn[2])},
+        "max": {"x": float(mx[0]), "y": float(mx[1]), "z": float(mx[2])},
+    }
+
+
+def _quat_from_to(a, b):
+    """Quaternion [x,y,z,w] rotating unit vector a → unit vector b (Three.js order)."""
+    import numpy as np
+
+    a = a / (np.linalg.norm(a) or 1.0)
+    b = b / (np.linalg.norm(b) or 1.0)
+    d = float(np.clip(np.dot(a, b), -1.0, 1.0))
+    if d > 0.999999:
+        return np.array([0.0, 0.0, 0.0, 1.0])
+    if d < -0.999999:
+        axis = np.cross(a, np.array([1.0, 0.0, 0.0]))
+        if np.linalg.norm(axis) < 1e-6:
+            axis = np.cross(a, np.array([0.0, 0.0, 1.0]))
+        axis = axis / np.linalg.norm(axis)
+        return np.array([axis[0], axis[1], axis[2], 0.0])
+    axis = np.cross(a, b)
+    s = np.sqrt((1.0 + d) * 2.0)
+    inv = 1.0 / s
+    return np.array([axis[0] * inv, axis[1] * inv, axis[2] * inv, s * 0.5])
+
+
+def compute_splat_manifest(ply_path: Path, fov_deg: float = 55.0) -> dict[str, Any]:
+    """Bake orientation + framing the web viewer can apply deterministically.
+
+    Works in the viewer's POST-flip space (the viewer renders splatMesh with
+    rotation=[PI,0,0], i.e. raw*(1,-1,-1)); the correction_quaternion is applied
+    to the PARENT group on top of that flip.
+    """
+    import numpy as np
+
+    raw = _read_ply_xyz(ply_path)
+    pts = raw * np.array([1.0, -1.0, -1.0])  # match viewer rotation=[Math.PI,0,0]
+
+    lo = np.percentile(pts, 1, axis=0)
+    hi = np.percentile(pts, 99, axis=0)
+    mask = np.all((pts >= lo) & (pts <= hi), axis=1)
+    core = pts[mask] if int(mask.sum()) >= 100 else pts
+
+    cmin = core.min(axis=0)
+    cmax = core.max(axis=0)
+    center = (cmin + cmax) / 2.0
+    radius = float(np.linalg.norm(cmax - cmin) / 2.0) or 1.0
+
+    # Floor cluster = bottom 25% by Y; PCA smallest-variance axis ≈ floor normal.
+    ycut = np.percentile(core[:, 1], 25)
+    floor = core[core[:, 1] <= ycut]
+    if floor.shape[0] < 50:
+        floor = core
+    cen = floor - floor.mean(axis=0)
+    cov = (cen.T @ cen) / max(len(floor) - 1, 1)
+    _evals, evecs = np.linalg.eigh(cov)  # ascending
+    normal = evecs[:, 0]
+    if normal[1] < 0:
+        normal = -normal
+    tilt_deg = float(np.degrees(np.arccos(float(np.clip(normal[1], -1.0, 1.0)))))
+    q = _quat_from_to(normal, np.array([0.0, 1.0, 0.0]))
+
+    vfov = np.deg2rad(fov_deg)
+    dist = radius / np.sin(vfov / 2.0) * 1.2
+    az, el = 0.55, 0.38
+    dirv = np.array([np.sin(az) * np.cos(el), np.sin(el), np.cos(az) * np.cos(el)])
+    pos = center + dirv * dist
+    floor_y = float(cmin[1])
 
     return {
-        "min": {"x": float(xs.min()), "y": float(ys.min()), "z": float(zs.min())},
-        "max": {"x": float(xs.max()), "y": float(ys.max()), "z": float(zs.max())},
+        "version": 1,
+        "coordinate_system": "three_y_up_post_pi_flip",
+        "bounds": {
+            "min": cmin.tolist(),
+            "max": cmax.tolist(),
+            "center": center.tolist(),
+            "radius": radius,
+        },
+        "up_axis": "Y_UP" if tilt_deg < 8.0 else "TILTED",
+        "tilt_deg": tilt_deg,
+        "correction_quaternion": [float(q[0]), float(q[1]), float(q[2]), float(q[3])],
+        "recommended_orbit_camera": {
+            "position": pos.tolist(),
+            "target": center.tolist(),
+            "fov": fov_deg,
+            "near": max(radius / 500.0, 0.01),
+            "far": float(dist + radius * 8.0),
+        },
+        "interior_entry_point": [float(center[0]), floor_y + 1.6, float(center[2])],
     }
 
 
@@ -544,8 +661,31 @@ def run_pipeline(job: JobInput, work_root: Path) -> dict[str, Any]:
     )
     file_size = spz_path.stat().st_size
 
+    # Bake an orientation/framing manifest the web viewer applies deterministically.
+    # Non-fatal: a failure here must never fail the job. Uploaded to the sibling
+    # "<job>.manifest.json" key; the app derives its URL from the model storage key.
+    manifest_key: str | None = None
+    try:
+        manifest = compute_splat_manifest(ply_path)
+        manifest_path = export_dir / "manifest.json"
+        manifest_path.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
+        manifest_key = out_key[: -len(".spz")] + ".manifest.json"
+        s3.upload_file(
+            str(manifest_path),
+            bucket,
+            manifest_key,
+            ExtraArgs={
+                "ContentType": "application/json",
+                "CacheControl": "public, max-age=31536000, immutable",
+            },
+        )
+    except Exception as manifest_exc:  # noqa: BLE001
+        manifest_key = None
+        print(f"Splat manifest computation/upload failed (non-fatal): {manifest_exc}")
+
     return {
         "outputKey": out_key,
+        "manifestKey": manifest_key,
         "fileSizeBytes": file_size,
         "bounds": bounds,
         "qualityMetrics": {
