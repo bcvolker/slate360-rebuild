@@ -8,7 +8,7 @@ import { Loader2 } from "lucide-react";
 import { createPlanPinMarkerIcon } from "@/components/capture-v2/plan-canvas/plan-pin-marker-icon";
 import { capturePlanFitPadding } from "@/lib/site-walk/capture-plan-canvas-tokens";
 import { fitPlanLeafletMap } from "@/lib/site-walk/plan-leaflet-fit";
-import type { SiteWalkPlanSet, SiteWalkPlanSheet } from "@/lib/types/site-walk";
+import type { SiteWalkItemType, SiteWalkPlanSet, SiteWalkPlanSheet } from "@/lib/types/site-walk";
 import type { LayerFilter } from "./plan-layer-types";
 import type { PlanViewerPin } from "./PlanPin";
 import { PlanQuickActionMenu } from "./PlanQuickActionMenu";
@@ -22,7 +22,7 @@ type Props = {
   sessionId?: string;
   planSets?: SiteWalkPlanSet[];
   sheets?: SiteWalkPlanSheet[];
-  items?: { id: string; title?: string; description?: string | null; thumbnail_url?: string | null }[];
+  items?: { id: string; title?: string; description?: string | null; thumbnail_url?: string | null; item_type?: SiteWalkItemType | null }[];
   onCaptureRequest?: (input: "camera" | "upload") => void;
   onSelectItem?: (itemId: string) => void;
   onPinDropped?: (payload: PlanPinDropPayload) => void;
@@ -111,6 +111,16 @@ export function PlanViewerLeaflet({
       : activeSheet?.rasterized_key
         ? `/api/site-walk/plan-sheets/${activeSheet.id}/image`
         : null;
+  // item_id → item_type, so a captured pin can be colored/badged by what it holds
+  // (photo / 360 / file). Pins with no matching item fall back to the photo look.
+  const itemTypeById = useMemo(() => {
+    const map = new Map<string, SiteWalkItemType>();
+    for (const item of items) {
+      if (item.id && item.item_type) map.set(item.id, item.item_type);
+    }
+    return map;
+  }, [items]);
+
   const bounds = useMemo<L.LatLngBoundsExpression>(
     () => [[0, 0], [imageHeight, imageWidth]],
     [imageHeight, imageWidth],
@@ -230,6 +240,7 @@ export function PlanViewerLeaflet({
                   captured,
                   xPct: pin.x_pct,
                   yPct: pin.y_pct,
+                  itemType: pin.item_id ? itemTypeById.get(pin.item_id) ?? null : null,
                 })}
                 eventHandlers={
                   currentSession
