@@ -318,7 +318,9 @@ export function NoPlansCaptureCanvas({
               ? canvas.handleShutterTapCaptured
               : canvas.handleShutterTapLive
         }
-        onShutterHold={canvas.showPreview && !canvas.angleCaptureMode ? undefined : canvas.handleShutterHold}
+        // Long-press → source picker removed: no pin target, conflicted with the
+        // long-press-to-pin gesture, and confused users. Shutter is tap-only now.
+        onShutterHold={undefined}
         onEndTap={canvas.sessionExit.openExitModal}
         onDetailsTap={() => canvas.setDetailsOpen(true)}
       />

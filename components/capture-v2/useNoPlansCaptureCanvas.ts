@@ -427,12 +427,32 @@ export function useNoPlansCaptureCanvas({
       exitAngleCaptureMode();
       return;
     }
+    // Back from a captured preview returns to the live viewfinder (the photo is
+    // already saved as a stop) — this is what users expect, not a dead button.
+    if (showPreview) {
+      void returnToLiveCamera();
+      return;
+    }
     if (planPinFlow?.onReturnToPlan) {
       planPinFlow.onReturnToPlan();
-    } else if (returnFromSummary) {
-      router.push(buildCaptureV2SummaryUrl(session.id));
+      return;
     }
-  }, [angleCaptureMode, exitAngleCaptureMode, planPinFlow, returnFromSummary, router, session.id]);
+    if (returnFromSummary) {
+      router.push(buildCaptureV2SummaryUrl(session.id));
+      return;
+    }
+    // Default: one level up to the Site Walk home. Work auto-saves.
+    router.push("/site-walk");
+  }, [
+    angleCaptureMode,
+    exitAngleCaptureMode,
+    showPreview,
+    returnToLiveCamera,
+    planPinFlow,
+    returnFromSummary,
+    router,
+    session.id,
+  ]);
 
   return {
     camera,

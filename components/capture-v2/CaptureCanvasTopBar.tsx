@@ -50,10 +50,11 @@ export function CaptureCanvasTopBar({
         <button
           type="button"
           onClick={onBack ?? (() => router.push("/site-walk"))}
-          className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[var(--graphite-text-header)] transition active:scale-[0.98]"
+          className="inline-flex h-9 shrink-0 items-center gap-0.5 rounded-lg pl-1 pr-2 text-[var(--graphite-primary)] transition active:scale-[0.98]"
           aria-label="Back"
         >
-          <ChevronLeft className="h-5 w-5" />
+          <ChevronLeft className="h-5 w-5" strokeWidth={2.5} />
+          <span className="text-[12px] font-semibold">Back</span>
         </button>
 
         <p

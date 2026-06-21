@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, type PointerEvent } from "react";
-import { ArrowRight, Check, Flashlight } from "lucide-react";
+import { ArrowRight, Camera, Check, Flashlight } from "lucide-react";
 import { CAPTURE_CANVAS_CHROME } from "./capture-canvas-chrome-layout";
 import { captureCanvasGlass } from "./capture-canvas-glass-tokens";
 import { CAPTURE_V2_LAYERS } from "./layers";
@@ -113,11 +113,9 @@ export function CaptureCanvasBottomRail({
   if (hidden) return null;
 
   const safeBottom = "env(safe-area-inset-bottom)";
-  const hintText = captured
-    ? "long-press = drop pin · arrow = details"
-    : captureBlocked
-      ? "camera not ready — wait or tap resume"
-      : "tap = capture · hold = sources";
+  const hintText = captureBlocked
+    ? "Camera not ready — wait or tap to resume"
+    : "Tap to capture";
 
   const shutterRowBottom = `calc(${CAPTURE_CANVAS_CHROME.hintSafeAreaPx}px + ${CAPTURE_CANVAS_CHROME.hintChipHeightPx}px + ${CAPTURE_CANVAS_CHROME.shutterHintGapPx}px + ${safeBottom})`;
   const hintBottom = `calc(${CAPTURE_CANVAS_CHROME.hintSafeAreaPx}px + ${safeBottom})`;
@@ -140,16 +138,14 @@ export function CaptureCanvasBottomRail({
           }}
           data-capture-chrome="bottom-rail"
         >
-          {/* Step strip — makes the Capture → Add info → Done sequence unmistakable */}
-          <div className="mb-3 flex items-center justify-center gap-2 text-[10px] font-medium uppercase tracking-[0.08em]">
-            <span className="text-[var(--graphite-primary)]">✓ Capture</span>
-            <span className="h-px w-5 bg-[var(--mobile-app-card-border)]" />
-            <span className="text-[var(--graphite-text-header)]">Add info</span>
-            <span className="h-px w-5 bg-[var(--mobile-app-card-border)]" />
-            <span className="text-[var(--graphite-muted)]">Done</span>
-          </div>
+          {/* Legible hint (replaces the tiny, unreadable step strip). Tells the
+              user the optional pin gesture exists without competing with the
+              primary action. */}
+          <p className="mb-2.5 text-center text-[12px] font-medium text-[var(--graphite-text-body)]">
+            Long-press the photo to pin a detail
+          </p>
 
-          {/* Primary: full-width, verb-first — the #1 discoverability fix (was a tiny "Details" arrow). */}
+          {/* Primary: full-width, verb-first — the #1 discoverability fix. */}
           <button
             type="button"
             disabled={busy}
@@ -163,18 +159,19 @@ export function CaptureCanvasBottomRail({
             <ArrowRight className="h-5 w-5" strokeWidth={2.5} />
           </button>
 
-          {/* Secondary: take another photo for this stop (demoted from the prominent shutter). */}
-          <div className="mt-2 flex items-center justify-center">
+          {/* Secondary: skip info and shoot the next stop. Legible labelled
+              button (was a faint "Add another photo" that read as same-stop). */}
+          <div className="mt-2.5 flex items-center justify-center">
             <button
               type="button"
               disabled={busy}
               onClick={handleShutterClick}
               data-capture-chrome="shutter"
-              className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[12px] font-medium text-[var(--graphite-muted)] transition active:scale-[0.98] disabled:opacity-50"
-              aria-label="Add another photo to this stop"
+              className="inline-flex items-center gap-2 rounded-full border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_70%,transparent)] px-4 py-2 text-[13px] font-semibold text-[var(--graphite-text-body)] backdrop-blur-md transition active:scale-[0.98] disabled:opacity-50"
+              aria-label="Skip info and capture the next photo"
             >
-              <span className="inline-block h-4 w-4 rounded-full border-2 border-[var(--graphite-muted)]" />
-              Add another photo
+              <Camera className="h-4 w-4" strokeWidth={2} />
+              Skip · next photo
             </button>
           </div>
         </div>

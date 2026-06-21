@@ -2,7 +2,6 @@
 
 import { useCallback, useMemo, useRef, useState } from "react";
 import type { CaptureAssignee, CaptureItemDraft, CaptureItemRecord } from "@/lib/types/site-walk-capture";
-import { CaptureV2NoteAccessoryRow } from "./CaptureV2NoteAccessoryRow";
 import { CaptureV2NoteField } from "./CaptureV2NoteField";
 import { getCaptureImageUrl } from "@/lib/site-walk/capture-image-url";
 import { getItemPhotoAngles, getPhotoAngleImageUrl } from "@/lib/site-walk/photo-angles";
@@ -215,13 +214,10 @@ export function CaptureV2NoteReviewScreen({
         onClose={() => setPhotoViewerOpen(false)}
       />
 
-      <CaptureV2NoteAccessoryRow
-        aiState={aiState}
-        notesEmpty={!draft.notes.trim()}
-        onBoostWithAi={onFormatNotesWithAi}
-        keyboardOffset={keyboardOffset}
-        actionBarHeightPx={ACTION_BAR_HEIGHT_PX}
-      />
+      {/* "Boost with AI" floating row removed — it was orphaned from the note
+          field's voice-to-text and the rewrite backend isn't wired yet, so it
+          read as a dead control. When ready it belongs inside CaptureV2NoteField
+          beside the dictation button, not as a separate pinned row. */}
 
       <CaptureV2NoteReviewActionBar
         saving={saving}

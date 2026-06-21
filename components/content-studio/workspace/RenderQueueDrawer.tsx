@@ -54,7 +54,7 @@ function JobRow({ job }: { job: RenderJob }) {
       {job.status === "completed" && (
         <div className="mt-2">
           {job.stage === "preview-passthrough" && (
-            <p className="mb-1 text-[10px] text-amber-200/70">Preview passthrough — full multi-clip render lands with the FFmpeg worker.</p>
+            <p className="mb-1 text-[10px] text-[var(--graphite-muted)]">Preview passthrough — full multi-clip render lands with the FFmpeg worker.</p>
           )}
           {job.downloadUrl ? (
             <a
