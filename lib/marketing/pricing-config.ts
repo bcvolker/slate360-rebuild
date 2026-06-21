@@ -52,8 +52,8 @@ export const SITE_WALK_PRICING: MarketingPricingTier[] = [
     annualEffectiveMonthly: effectiveMonthly(annualFromMonthly(149)),
     features: [
       "Everything in Standard",
-      "Walk with your drawings — pin observations right on the plan",
-      "Pin 360° photos on plans — tap to explore them in an interactive viewer",
+      "Walks with drawings — pin photos, files & observations right on the drawing",
+      "Pin 360° photos on drawings — tap to explore them in an interactive viewer",
       "Invite collaborators to your projects (3 included; add more anytime)",
       "More storage and processing credits",
     ],

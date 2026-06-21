@@ -76,7 +76,7 @@ export const SLATE360_APPS: Slate360App[] = [
     icon: IconBuilding,
     salesTiles: [
       {
-        title: "Capture with plans / field docs",
+        title: "Capture with drawings / field docs",
         description:
           "Pin observations to blueprint overlays, capture photos with timestamps, and build a geolocated record as you walk the site.",
       },

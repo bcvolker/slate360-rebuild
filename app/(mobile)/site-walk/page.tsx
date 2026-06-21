@@ -9,7 +9,7 @@ import type { HubDeliverableRow } from "@/lib/types/site-walk-hub";
 
 export const metadata = {
   title: "Site Walk — Slate360",
-  description: "Field capture, plan walks, and deliverables for construction teams.",
+  description: "Field capture, walks with drawings, and deliverables for construction teams.",
 };
 
 export default async function SiteWalkHomePage() {

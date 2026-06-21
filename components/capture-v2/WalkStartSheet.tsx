@@ -49,9 +49,9 @@ export function WalkStartSheet({ walkLabel, readyPlanCount, onWalkOnPlans, onCam
             >
               <Map className="h-5 w-5 shrink-0" aria-hidden />
               <span className="min-w-0">
-                <span className="block text-sm font-bold">Walk on plans</span>
+                <span className="block text-sm font-bold">Walk with drawings</span>
                 <span className="block text-xs font-medium opacity-80">
-                  {readyPlanCount} plan set{readyPlanCount === 1 ? "" : "s"} ready · pins photos to location
+                  {readyPlanCount} drawing{readyPlanCount === 1 ? "" : "s"} ready · pin photos, files & 360s on the drawing
                 </span>
               </span>
             </button>

@@ -124,7 +124,7 @@ export function CaptureV2Orchestrator(props: Props) {
 
   if (fork === "choice") {
     const walkLabel =
-      session.project_name?.trim() || session.title?.trim() || "Plan walk";
+      session.project_name?.trim() || session.title?.trim() || "Walk with drawings";
     const readyPlanCount = planSets.filter((set) => set.processing_status === "ready").length;
     return (
       <WalkStartSheet

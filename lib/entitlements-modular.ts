@@ -47,7 +47,7 @@ export interface ModularEntitlements {
   siteWalk: {
     /** Both tiers can create projects, add plans/files, do walks. */
     canCreateProjects: boolean;
-    /** Pro only: walk with plans (pin observations on the drawing). */
+    /** Pro only: walk with drawings (pin photos, files & 360s on the drawing). */
     canWalkWithPlans: boolean;
     /** Pro only: assign collaborators to projects. */
     canAssignCollaborators: boolean;

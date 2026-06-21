@@ -89,7 +89,7 @@ function EmptyWalkReview({ sessionId }: { sessionId: string }) {
 }
 
 function buildWalkReviewContextLine(session: CaptureV2SummarySession, items: CaptureV2SummaryItem[]) {
-  const projectLabel = session.isAdHoc ? "Quick walk" : session.projectName ?? "Plan walk";
+  const projectLabel = session.isAdHoc ? "Quick walk" : session.projectName ?? "Walk with drawings";
   const worksite =
     items.find((item) => item.locationLabel?.trim())?.locationLabel?.trim() ??
     session.worksiteLabel?.trim() ??

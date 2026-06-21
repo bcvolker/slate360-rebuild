@@ -142,7 +142,7 @@ export function CaptureCanvasBottomRail({
               user the optional pin gesture exists without competing with the
               primary action. */}
           <p className="mb-2.5 text-center text-[12px] font-medium text-[var(--graphite-text-body)]">
-            Long-press the photo to pin a detail
+            Long-press the photo to pin a file
           </p>
 
           {/* Primary: full-width, verb-first — the #1 discoverability fix. */}
@@ -168,10 +168,11 @@ export function CaptureCanvasBottomRail({
               onClick={handleShutterClick}
               data-capture-chrome="shutter"
               className="inline-flex items-center gap-2 rounded-full border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_70%,transparent)] px-4 py-2 text-[13px] font-semibold text-[var(--graphite-text-body)] backdrop-blur-md transition active:scale-[0.98] disabled:opacity-50"
-              aria-label="Skip info and capture the next photo"
+              aria-label="Save this photo and capture the next one"
             >
               <Camera className="h-4 w-4" strokeWidth={2} />
-              Skip · next photo
+              Next photo
+              <ArrowRight className="h-4 w-4" strokeWidth={2.5} />
             </button>
           </div>
         </div>
