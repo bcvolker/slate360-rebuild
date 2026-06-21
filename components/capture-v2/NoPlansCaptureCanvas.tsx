@@ -117,6 +117,16 @@ export function NoPlansCaptureCanvas({
         }}
         aria-label="Toggle capture controls"
       >
+        {/* Persistent 4px green accent bar at the very top edge — ambient app
+            identity (Site Walk) that survives chrome auto-hide and is glanceable
+            in direct sunlight. App identity = color + name + icon, never color
+            alone, so the header still carries the labelled badge. */}
+        <div
+          className="pointer-events-none absolute inset-x-0 top-0 z-40 h-1 bg-[var(--graphite-primary)]"
+          data-capture-chrome="accent-bar"
+          aria-hidden
+        />
+
         {/* Dimmed reference photo shown only while in angle capture mode.
             It is the exact photo the user was on when they tapped "Add Angle".
             This provides visual continuity so the screen does not appear to jump

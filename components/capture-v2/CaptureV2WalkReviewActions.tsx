@@ -31,7 +31,7 @@ export function CaptureV2WalkReviewActions({
         data-walk-review="actions"
       >
         <Link href={deliverableHref} className={`${walkReviewTokens.primaryButton} w-full`}>
-          Create deliverable
+          Generate report
         </Link>
 
         {projectHref ? (

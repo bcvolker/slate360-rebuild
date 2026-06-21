@@ -64,8 +64,8 @@ export function WalkStartSheet({ walkLabel, readyPlanCount, onWalkOnPlans, onCam
             >
               <Camera className="h-5 w-5 shrink-0" aria-hidden />
               <span className="min-w-0">
-                <span className="block text-sm font-bold">Camera only</span>
-                <span className="block text-xs font-medium text-white/55">Photos without a plan</span>
+                <span className="block text-sm font-bold">Walk without plan</span>
+                <span className="block text-xs font-medium text-white/55">Just photos — no plan needed</span>
               </span>
             </button>
           </div>

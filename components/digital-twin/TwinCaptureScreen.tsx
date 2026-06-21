@@ -287,9 +287,10 @@ export function TwinCaptureScreen({
         }
         aria-label={recording ? undefined : "Toggle capture controls"}
       >
-        {/* Red 8px recording bar across the very top edge (GoPro pattern, P0).
-            Video only — photo mode is a timed burst, never "recording". Stays
-            visible regardless of chrome auto-hide: it's operational status. */}
+        {/* Top-edge identity / status bar. While video-recording it becomes a
+            pulsing red 8px bar (GoPro pattern, P0) — operational status that
+            ignores chrome auto-hide. Otherwise it's a persistent 4px blue accent
+            bar = ambient Twin 360 identity, glanceable in direct sunlight. */}
         {recording && session.mode === "video" ? (
           <div
             className="pointer-events-none absolute inset-x-0 top-0 z-40 h-2 animate-pulse bg-[var(--destructive)]"
@@ -297,7 +298,13 @@ export function TwinCaptureScreen({
             data-twin-chrome="recording-bar"
             aria-hidden
           />
-        ) : null}
+        ) : (
+          <div
+            className="pointer-events-none absolute inset-x-0 top-0 z-40 h-1 bg-[var(--twin360-blue)]"
+            data-twin-chrome="accent-bar"
+            aria-hidden
+          />
+        )}
 
         <TwinCaptureLiveCamera
           camera={camera}
