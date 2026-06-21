@@ -197,8 +197,15 @@ export function WithPlansCaptureCanvas({
         open={Boolean(pinCapture.pinDetailPin)}
         pin={pinCapture.pinDetailPin}
         item={pinCapture.pinDetailItem}
+        deleting={Boolean(pinCapture.pinDetailPin && pinCapture.deletingPinId === pinCapture.pinDetailPin.id)}
         onClose={() => pinCapture.setPinDetailPin(null)}
         onOpenDetails={pinCapture.openPinDetails}
+        onCaptureInto={() => {
+          if (pinCapture.pinDetailPin) pinCapture.captureIntoPin(pinCapture.pinDetailPin, canvas.activeSheet?.id ?? "");
+        }}
+        onDelete={() => {
+          if (pinCapture.pinDetailPin) void pinCapture.deletePin(pinCapture.pinDetailPin);
+        }}
       />
     </div>
   );

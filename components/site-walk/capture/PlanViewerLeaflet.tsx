@@ -177,7 +177,10 @@ export function PlanViewerLeaflet({
   const handleMarkerTap = useCallback(
     (pin: PlanViewerPin) => {
       if (pin.session_id !== sessionId) return;
-      if (pin.item_id && onSessionPinTap) {
+      // Source-picker flow (walks with drawings) routes ALL taps — captured pins
+      // open their detail sheet, empty pins open the capture/delete sheet. Legacy
+      // flow keeps the quick-action menu for empty pins.
+      if (onSessionPinTap && (pin.item_id || useSourcePickerFlow)) {
         onSessionPinTap(pin);
         return;
       }

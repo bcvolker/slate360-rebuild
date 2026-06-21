@@ -106,6 +106,46 @@ export function useWithPlansPinCapture({
     setPinDetailPin(pin);
   }, []);
 
+  // Capture into an EXISTING (usually empty) pin: point the source picker at this
+  // pin instead of dropping a new one, so camera/upload/360 attach here.
+  const captureIntoPin = useCallback(
+    (pin: PlanViewerPin, planSheetId: string) => {
+      const target: PlanCaptureTarget = {
+        planSheetId,
+        xPct: pin.x_pct,
+        yPct: pin.y_pct,
+        clientPinId: pin.client_pin_id ?? pin.id,
+        pinId: isUuid(pin.id) ? pin.id : null,
+      };
+      captureCtx.setPlanTarget(target);
+      setPlanTargetRef(target);
+      setPendingStopNumber(Number.parseInt(pin.label, 10) || 1);
+      setPinDetailPin(null);
+      sourcePicker.open({ mode: "new_stop", source: "plan_pin" });
+    },
+    [captureCtx, sourcePicker],
+  );
+
+  // Remove a pin from the drawing. Only saved (UUID) pins hit the API; either way
+  // we re-fetch so the marker disappears. Attached photos stay in the walk.
+  const [deletingPinId, setDeletingPinId] = useState<string | null>(null);
+  const deletePin = useCallback(
+    async (pin: PlanViewerPin) => {
+      setPinDetailPin(null);
+      if (isUuid(pin.id)) {
+        setDeletingPinId(pin.id);
+        try {
+          await fetch(`/api/site-walk/pins/${encodeURIComponent(pin.id)}`, { method: "DELETE" });
+        } catch {
+          // best-effort; refresh below reflects server truth
+        }
+        setDeletingPinId(null);
+      }
+      onPinsRefresh();
+    },
+    [onPinsRefresh],
+  );
+
   const pinDetailItem = useMemo(() => {
     if (!pinDetailPin?.item_id) return null;
     return loop.items.find((item) => item.id === pinDetailPin.item_id) ?? null;
@@ -139,6 +179,9 @@ export function useWithPlansPinCapture({
     handleSourcePickerRow,
     handlePinDropped,
     handleSessionPinTap,
+    captureIntoPin,
+    deletePin,
+    deletingPinId,
     handleCaptureSaved,
     returnToPlan,
     pinDetailPin,

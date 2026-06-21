@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { Camera, Orbit, Paperclip, X } from "lucide-react";
+import { Camera, MapPin, Orbit, Paperclip, Plus, Trash2, X } from "lucide-react";
 import { getCaptureImageUrl } from "@/lib/site-walk/capture-image-url";
 import type { CaptureItemRecord } from "@/lib/types/site-walk-capture";
 import type { PlanViewerPin } from "@/components/site-walk/capture/PlanPin";
@@ -19,6 +19,11 @@ type Props = {
   item: CaptureItemRecord | null;
   onClose: () => void;
   onOpenDetails: () => void;
+  /** Empty pin: open the capture source picker (camera / upload / 360) for this pin. */
+  onCaptureInto: () => void;
+  /** Remove this pin from the drawing. */
+  onDelete: () => void;
+  deleting?: boolean;
 };
 
 function typeBadge(itemType: CaptureItemRecord["item_type"] | undefined) {
@@ -32,13 +37,14 @@ function typeBadge(itemType: CaptureItemRecord["item_type"] | undefined) {
   }
 }
 
-export function CapturePlanPinDetailSheet({ open, pin, item, onClose, onOpenDetails }: Props) {
+export function CapturePlanPinDetailSheet({ open, pin, item, onClose, onOpenDetails, onCaptureInto, onDelete, deleting = false }: Props) {
   if (!open || !pin) return null;
 
   const itemType = item?.item_type;
   const mediaUrl = item ? getCaptureImageUrl(item) : null;
-  const noteSnippet = item?.description?.trim() || item?.title?.trim() || "No note yet";
-  const badge = typeBadge(itemType);
+  const isEmpty = !item;
+  const noteSnippet = isEmpty ? "No capture yet — add a photo, file, or 360." : item?.description?.trim() || item?.title?.trim() || "No note yet";
+  const badge = isEmpty ? { label: "Empty pin", Icon: MapPin, className: "text-[var(--graphite-muted)]" } : typeBadge(itemType);
   const is360 = itemType === "photo_360";
   const isFile = itemType === "file_attachment";
 
@@ -92,18 +98,41 @@ export function CapturePlanPinDetailSheet({ open, pin, item, onClose, onOpenDeta
             className="mt-3 aspect-[4/3] w-full rounded-lg border border-[var(--mobile-app-card-border)] object-cover"
           />
         ) : (
-          <div className="mt-3 flex aspect-[4/3] w-full items-center justify-center rounded-lg border border-dashed border-[var(--mobile-app-card-border)] text-xs text-[var(--graphite-muted)]">
-            No capture yet
-          </div>
+          <button
+            type="button"
+            onClick={onCaptureInto}
+            className="mt-3 flex aspect-[4/3] w-full flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-[var(--accent-border-green)] text-[var(--graphite-primary)] transition active:scale-[0.99]"
+          >
+            <Plus className="h-7 w-7" strokeWidth={2} />
+            <span className="text-xs font-semibold">Tap to capture here</span>
+          </button>
+        )}
+
+        {isEmpty ? (
+          <button
+            type="button"
+            onClick={onCaptureInto}
+            className="mt-3 flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-[var(--graphite-primary)] text-sm font-semibold text-[var(--graphite-canvas)]"
+          >
+            <Camera className="h-4 w-4" strokeWidth={2.25} /> Add capture
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={onOpenDetails}
+            className="mt-3 flex min-h-11 w-full items-center justify-center rounded-xl bg-[var(--twin360-blue)] text-sm font-semibold text-[var(--graphite-canvas)]"
+          >
+            Open details
+          </button>
         )}
 
         <button
           type="button"
-          onClick={onOpenDetails}
-          disabled={!item}
-          className="mt-3 flex min-h-11 w-full items-center justify-center rounded-xl bg-[var(--twin360-blue)] text-sm font-semibold text-[var(--graphite-canvas)] disabled:opacity-40"
+          onClick={onDelete}
+          disabled={deleting}
+          className="mt-2 flex min-h-10 w-full items-center justify-center gap-2 rounded-xl border border-[color-mix(in_srgb,var(--destructive)_45%,transparent)] text-sm font-semibold text-[var(--destructive)] disabled:opacity-50"
         >
-          Open details
+          <Trash2 className="h-4 w-4" strokeWidth={2} /> {deleting ? "Removing…" : "Remove pin"}
         </button>
       </div>
     </div>
