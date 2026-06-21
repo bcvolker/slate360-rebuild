@@ -101,3 +101,48 @@ annotations referencing the 360 file. Minimal new tech.
 4. **Collaborators** base-3 + 5-packs (+ Stripe).
 5. **Twins-in-projects** gated to bundle.
 6. **360-on-plans** feature (the one real new build).
+
+## 7. Upgrade dynamics — Standard → Pro (retroactive, instant)
+**Entitlements are resolved dynamically per-org at runtime** (`resolveOrgEntitlements(orgId)` reads
+the current subscription each request) — they are NOT baked into projects. So the moment Stripe
+flips `org_app_subscriptions.site_walk` to `pro`:
+- **All projects — old and new — instantly gain Pro capabilities**: walk-with-plans, assign
+  collaborators, 360-on-plans, higher storage cap. No per-project migration for *access*.
+- **Storage cap / token allowance** change immediately (tier limits read at runtime; Stripe handles
+  proration / next-cycle allowance).
+- **Collaborators**: can now assign up to 3 (and buy 5-packs).
+
+**The only creation-time artifact is the folder structure.** A project created while Standard won't
+have a "360 Photos" folder. Fix: **idempotent provisioning** — `ensureProjectFolders(projectId)`
+that creates-if-missing. Trigger it (a) **lazily** the first time a Pro user opens the 360 feature on
+an older project (simplest), and/or (b) **on the upgrade webhook**, back-filling the 360 folder for
+all the org's existing projects. Idempotent = safe to run repeatedly.
+**Net:** upgrading is instant and fully retroactive; nothing is locked to pre-upgrade projects.
+(Downgrade Pro→Standard: features gate off at runtime; existing 360 pins/folders are preserved but
+read-only — no data loss.)
+
+## 8. Desktop UI / workflow (parallel to the app, desktop-optimized)
+Same model, but desktop is the **management + authoring + 360-on-plans powerhouse**; mobile stays
+**capture + light review + quick deliverables**.
+
+Desktop shell = left sidebar (Projects · Files · Activity · Account [· Admin for enterprise]) + top
+breadcrumb/context. Project detail tabs (desktop): **Overview · Walks · Plans · Files · 360 (Pro) ·
+Twins (Bundle) · Deliverables · Team**. (PM tabs removed.)
+
+Desktop process:
+1. **Create project** — full wizard: name, client, branding (logo/accent), location (map pin),
+   **upload plans**, **invite collaborators** (Pro). Auto-provisions the SlateDrop subfolder tree
+   (incl. **360 Photos** for Pro).
+2. **Drag 360s** from the 360 camera into the project's *360 Photos* folder (SlateDrop file manager
+   — desktop drag-drop preserves equirectangular).
+3. **Plans (desktop power surface)** — open a plan in a large viewer; **click a spot → pick a 360**
+   from the project's 360 folder (browse as thumbnails / mini-tour) → place a 360 pin. Mouse
+   precision; collapsible side panel listing pins/360s. This is where 360-on-plans lives.
+4. **Field crew captures walks on mobile** → syncs to the project.
+5. **Desktop authoring** — review walks, **build deliverables/reports** (full builder: branding,
+   before/after, embedded 360s/twins), send token-gated share links.
+6. **Manage** — collaborators (assign 3, buy 5-packs), storage/token wallet, upgrade plan; enterprise
+   admins manage seats + permissions (desktop-only console).
+
+Capture stays mobile-only (camera); desktop is review/organize/author. Both consume the same
+entitlements + project spine, so behavior is identical — only the layout/interaction differ.
