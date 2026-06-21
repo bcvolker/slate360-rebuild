@@ -47,7 +47,7 @@ export async function enqueueRender(output: RenderOutput): Promise<{ ok: boolean
   const clips = useEditorStore.getState().clips;
   if (clips.length === 0) return { ok: false, error: "Add at least one clip to the timeline." };
   const body = {
-    clips: clips.map((c) => ({ assetId: c.assetId, trimInSec: c.trimInSec, trimOutSec: c.trimOutSec, speedFactor: c.speedFactor })),
+    clips: clips.map((c) => ({ assetId: c.assetId, trimInSec: c.trimInSec, trimOutSec: c.trimOutSec, speedFactor: c.speedFactor, reversed: c.reversed })),
     output,
   };
   try {

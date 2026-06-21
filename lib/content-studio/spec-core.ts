@@ -80,6 +80,7 @@ export const SlateClipSchema = z.object({
   cutInSec: Sec.default(0),
   cutOutSec: Sec, // exclusive; must be > cutInSec (validated below)
   speed: z.number().finite().min(0.25).max(4).default(1),
+  reverse: z.boolean().default(false),
   layer: z.number().int().min(0).default(0), // z-order among clips
   /** Embedded audio policy; full detached-audio domain arrives in the audio slice. */
   embeddedAudio: z.enum(["keep", "mute"]).default("keep"),

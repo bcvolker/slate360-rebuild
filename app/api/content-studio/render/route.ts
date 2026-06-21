@@ -1,15 +1,16 @@
 import { NextRequest } from "next/server";
 import { createHash } from "crypto";
-import { GetObjectCommand } from "@aws-sdk/client-s3";
+import { GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { withAuth } from "@/lib/server/api-auth";
 import { resolveServerOrgContext } from "@/lib/server/org-context";
 import { ok, badRequest, forbidden, serverError } from "@/lib/server/api-response";
 import { s3, BUCKET } from "@/lib/s3";
+import { buildEditSpec } from "@/lib/content-studio/build-spec";
 
 export const dynamic = "force-dynamic";
 
-type ClipInput = { assetId: string; trimInSec?: number; trimOutSec?: number; speedFactor?: number };
+type ClipInput = { assetId: string; trimInSec?: number; trimOutSec?: number; speedFactor?: number; reversed?: boolean };
 type OutputInput = { aspect?: string; width?: number; height?: number; quality?: string; fps?: number };
 
 async function signedGet(key: string | null): Promise<string | null> {
@@ -54,7 +55,7 @@ export const POST = (req: NextRequest) =>
       const trimIn = Math.max(0, c.trimInSec ?? 0);
       const trimOut = Math.max(trimIn, c.trimOutSec ?? trimIn);
       const speed = Math.max(0.25, Math.min(4, c.speedFactor ?? 1));
-      return { assetId: c.assetId, storageKey: keyOf.get(c.assetId) ?? null, trimInSec: trimIn, trimOutSec: trimOut, speedFactor: speed };
+      return { assetId: c.assetId, storageKey: keyOf.get(c.assetId) ?? null, trimInSec: trimIn, trimOutSec: trimOut, speedFactor: speed, reversed: !!c.reversed };
     });
     const timelineSec = manifest.reduce((t, m) => t + Math.max(0, m.trimOutSec - m.trimInSec) / m.speedFactor, 0);
     const estimatedCredits = Math.max(1, Math.ceil(timelineSec / 60));
@@ -62,27 +63,50 @@ export const POST = (req: NextRequest) =>
     // concat worker is offline (mock mode), so there's a downloadable artifact.
     const passthroughKey = manifest.find((m) => m.storageKey)?.storageKey ?? null;
 
-    const contentHash = createHash("sha256")
-      .update(JSON.stringify({ manifest, width, height, quality: out.quality ?? "standard", fps: out.fps ?? 30 }))
-      .digest("hex")
-      .slice(0, 32);
+    // Assemble + validate the canonical spec (the worker's authoritative input).
+    const editProjectId = body.editProjectId ?? null;
+    let spec;
+    try {
+      spec = buildEditSpec({
+        editProjectId: editProjectId ?? "scratch",
+        orgId,
+        clips: manifest,
+        output: { width, height, fps: out.fps ?? 30, quality: out.quality ?? "standard" },
+      });
+    } catch (e) {
+      return badRequest(`Invalid edit spec: ${e instanceof Error ? e.message : "validation failed"}`);
+    }
+    if (spec.timeline.clips.length === 0) return badRequest("No renderable clips (missing source media).");
+
+    const specJson = JSON.stringify(spec);
+    const contentHash = createHash("sha256").update(specJson).digest("hex").slice(0, 32);
     const idempotencyKey = createHash("sha256").update(`${orgId}:${contentHash}:render`).digest("hex").slice(0, 40);
+
+    // Freeze the spec snapshot to R2 — the job carries only the key + hash.
+    const specSnapshotKey = `orgs/${orgId}/Content Studio/Projects/${editProjectId ?? "scratch"}/spec-${contentHash}.json`;
+    try {
+      await s3.send(new PutObjectCommand({ Bucket: BUCKET, Key: specSnapshotKey, Body: specJson, ContentType: "application/json" }));
+    } catch (e) {
+      return serverError(`Failed to freeze spec snapshot: ${e instanceof Error ? e.message : "R2 error"}`);
+    }
 
     const { data: job, error: jobErr } = await admin
       .from("content_render_jobs")
       .insert({
         org_id: orgId,
-        edit_project_id: body.editProjectId ?? null,
+        edit_project_id: editProjectId,
         created_by: user.id,
         job_type: "render",
         status: "queued",
         content_hash: contentHash,
         idempotency_key: idempotencyKey,
+        spec_snapshot_key: specSnapshotKey,
         estimated_credits: estimatedCredits,
         input_payload: {
           manifest,
           output: { width, height, aspect: out.aspect ?? "16:9", quality: out.quality ?? "standard", fps: out.fps ?? 30 },
           passthroughKey,
+          specSnapshotKey,
           timelineSec,
         },
       })
