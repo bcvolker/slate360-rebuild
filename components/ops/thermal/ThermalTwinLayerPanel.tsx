@@ -2,10 +2,13 @@
 
 import { useState } from "react";
 import { thermalOpsTokens as t } from "@/components/ops/thermal/thermal-ops-tokens";
+import { ThermalTwinOverlayMap } from "@/components/ops/thermal/ThermalTwinOverlayMap";
+import type { StudioCapture } from "@/components/ops/thermal/ThermalStudioWorkView";
 
 type Props = {
   sessionId: string;
   linkedSpaceId: string | null;
+  captures?: StudioCapture[];
 };
 
 /**
@@ -13,7 +16,7 @@ type Props = {
  * pixel-onto-splat overlay is a separate engineering track; this surface does the
  * real linking + alignment and is honest about what ships today.
  */
-export function ThermalTwinLayerPanel({ sessionId, linkedSpaceId: initialLinkedSpaceId }: Props) {
+export function ThermalTwinLayerPanel({ sessionId, linkedSpaceId: initialLinkedSpaceId, captures = [] }: Props) {
   const [linkedSpaceId, setLinkedSpaceId] = useState(initialLinkedSpaceId ?? "");
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
@@ -61,7 +64,12 @@ export function ThermalTwinLayerPanel({ sessionId, linkedSpaceId: initialLinkedS
   }
 
   return (
-    <div className="mx-auto grid h-full max-w-5xl content-center items-start gap-4 overflow-y-auto lg:grid-cols-2">
+    <div className="mx-auto flex h-full max-w-5xl flex-col gap-4 overflow-y-auto">
+      {/* 2D spatial overlay — captures pinned to the site by GPS. */}
+      <div className="h-80 shrink-0">
+        <ThermalTwinOverlayMap captures={captures} />
+      </div>
+      <div className="grid gap-4 lg:grid-cols-2">
       <div className={t.card}>
         <p className={t.eyebrow}>Link a Digital Twin</p>
         <p className="mt-2 text-xs text-[var(--graphite-muted)]">
@@ -112,6 +120,7 @@ export function ThermalTwinLayerPanel({ sessionId, linkedSpaceId: initialLinkedS
             The interactive splat overlay renders in the Digital Twin viewer — not here — once that track ships.
           </li>
         </ul>
+      </div>
       </div>
     </div>
   );

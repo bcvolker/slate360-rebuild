@@ -6,6 +6,7 @@ import { StudioHandle } from "@/components/studio/StudioPanels";
 import { ThermalSharePanel } from "@/components/ops/thermal/ThermalSharePanel";
 import { ThermalBrandingPanel } from "@/components/ops/thermal/ThermalBrandingPanel";
 import { ThermalTwinLayerPanel } from "@/components/ops/thermal/ThermalTwinLayerPanel";
+import type { StudioCapture } from "@/components/ops/thermal/ThermalStudioWorkView";
 import type { ThermalBrandingConfig } from "@/lib/thermal/types";
 
 type SubTab = "share" | "branding" | "twin";
@@ -26,11 +27,13 @@ export function ThermalDeliverables({
   brandingConfig,
   initialProjectId,
   linkedSpaceId,
+  captures = [],
 }: {
   sessionId: string;
   brandingConfig: ThermalBrandingConfig;
   initialProjectId?: string | null;
   linkedSpaceId?: string | null;
+  captures?: StudioCapture[];
 }) {
   const [tab, setTab] = useState<SubTab>("share");
 
@@ -76,7 +79,7 @@ export function ThermalDeliverables({
             <ThermalBrandingPanel sessionId={sessionId} initial={brandingConfig} />
           ) : null}
           {tab === "twin" ? (
-            <ThermalTwinLayerPanel sessionId={sessionId} linkedSpaceId={linkedSpaceId ?? null} />
+            <ThermalTwinLayerPanel sessionId={sessionId} linkedSpaceId={linkedSpaceId ?? null} captures={captures} />
           ) : null}
         </div>
       </div>

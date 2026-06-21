@@ -98,7 +98,7 @@ export default function PreviewThermalStudio() {
               />
             ) : null}
             {stage === "deliver" ? (
-              <ThermalDeliverables sessionId="preview" brandingConfig={{} as never} />
+              <ThermalDeliverables sessionId="preview" brandingConfig={{} as never} captures={CAPTURES} />
             ) : null}
           </StudioWorkspaceShell>
         </div>

@@ -213,6 +213,7 @@ export function ThermalStudioShell({
           brandingConfig={brandingConfig}
           initialProjectId={initialProjectId}
           linkedSpaceId={linkedSpaceId}
+          captures={captures}
         />
       ) : null}
     </StudioWorkspaceShell>
