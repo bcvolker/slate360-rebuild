@@ -266,8 +266,29 @@ export function ThermalStudioWorkView({
 
   // Photo metadata + per-image findings editor — rendered in the viewer's right rail
   // so the thermal image itself can be the large center work area.
+  const gpsLat = gps.lat != null ? Number(gps.lat) : null;
+  const gpsLon = (gps.lon ?? gps.lng) != null ? Number(gps.lon ?? gps.lng) : null;
   const photoDataPanel = selected ? (
     <>
+      {gpsLat != null && gpsLon != null && Number.isFinite(gpsLat) && Number.isFinite(gpsLon) ? (
+        <div className="rounded-xl border border-[var(--mobile-app-card-border)] p-3">
+          <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--graphite-muted)]">Location</p>
+          <iframe
+            title="Capture location"
+            className="mt-2 h-32 w-full rounded-lg border border-[var(--mobile-app-card-border)]"
+            loading="lazy"
+            src={`https://www.openstreetmap.org/export/embed.html?bbox=${gpsLon - 0.008}%2C${gpsLat - 0.008}%2C${gpsLon + 0.008}%2C${gpsLat + 0.008}&layer=mapnik&marker=${gpsLat}%2C${gpsLon}`}
+          />
+          <a
+            href={`https://www.openstreetmap.org/?mlat=${gpsLat}&mlon=${gpsLon}#map=18/${gpsLat}/${gpsLon}`}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-1 block text-[11px] text-[var(--graphite-primary)] hover:underline"
+          >
+            {gpsLat.toFixed(5)}, {gpsLon.toFixed(5)} · Open in maps
+          </a>
+        </div>
+      ) : null}
       <div className="rounded-xl border border-[var(--mobile-app-card-border)] p-3">
         <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--graphite-muted)]">Photo data</p>
         <div className="mt-1">

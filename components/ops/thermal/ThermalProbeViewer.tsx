@@ -282,6 +282,18 @@ export function ThermalProbeViewer({
     [temps, loDisp, hiDisp],
   );
 
+  // Vertical color-scale legend gradient (FLIR-style): palette from min (bottom) to
+  // max (top), built from the active palette so it always matches the image.
+  const legendGradient = useMemo(() => {
+    const stops: string[] = [];
+    for (let i = 0; i <= 12; i++) {
+      const [r, g, b] = samplePalette(palette, i / 12);
+      stops.push(`rgb(${r},${g},${b}) ${(i / 12) * 100}%`);
+    }
+    return `linear-gradient(to top, ${stops.join(",")})`;
+  }, [palette]);
+  const legendMid = (loDisp + hiDisp) / 2;
+
   // Persist spots after committed changes (add/delete/drag-end/clear), not hover.
   // Each commit records history so edits can be undone/redone.
   const commit = useCallback(
@@ -571,7 +583,16 @@ export function ThermalProbeViewer({
       {/* Flex body (NOT grid — a grid's implicit row is auto-sized and collapses the
           viewer to content height). Center is flex-1 min-w-0 and dominates; the right
           rail holds collapsible sections so everything fits without page scroll. */}
-      <div className="flex min-h-0 flex-1 gap-3">
+      <div className="flex min-h-0 flex-1 gap-2">
+        {/* Color-scale legend (palette min→max) beside the image, FLIR-style. */}
+        <div className="flex w-14 shrink-0 flex-col items-stretch py-1 text-[9px] tabular-nums text-[var(--graphite-muted)]">
+          <span className="text-center text-[var(--graphite-text-body)]">{fmtTemp(hiDisp, unit)}</span>
+          <div className="relative my-1 flex-1">
+            <div className="mx-auto h-full w-3.5 rounded border border-[var(--mobile-app-card-border)]" style={{ background: legendGradient }} />
+            <span className="absolute left-0 right-0 top-1/2 -translate-y-1/2 text-center">{fmtTemp(legendMid, unit)}</span>
+          </div>
+          <span className="text-center text-[var(--graphite-text-body)]">{fmtTemp(loDisp, unit)}</span>
+        </div>
         {/* Center: the thermal image as a large, aspect-correct work area (zoom + pan).
             Size is measured (ResizeObserver) so the image always fills the cell. */}
         <div ref={centerRef} className="relative flex min-h-0 min-w-0 flex-1 items-center justify-center overflow-hidden">
