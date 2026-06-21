@@ -127,7 +127,7 @@ interface ModularStripePlan {
 
 export const MODULAR_APP_PLANS: Record<ModularPlanKey, ModularStripePlan> = {
   site_walk_basic: {
-    appId: "site_walk", tier: "basic", label: "Site Walk Basic", monthlyPriceUsd: 79,
+    appId: "site_walk", tier: "basic", label: "Site Walk Standard", monthlyPriceUsd: 79,
     priceId: process.env.STRIPE_PRICE_SITEWALK_BASIC,
     annualPriceId: process.env.STRIPE_PRICE_SITEWALK_BASIC_ANNUAL,
   },
