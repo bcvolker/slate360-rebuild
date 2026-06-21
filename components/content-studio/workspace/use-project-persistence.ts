@@ -18,6 +18,7 @@ type ProjectInfo = { id: string; title: string };
  */
 export function useProjectPersistence() {
   const clips = useEditorStore((s) => s.clips);
+  const overlayItems = useEditorStore((s) => s.overlayItems);
   const mode = useEditorStore((s) => s.mode);
   const [project, setProject] = useState<ProjectInfo | null>(null);
   const [status, setStatus] = useState<SaveStatus>("loading");
@@ -47,8 +48,10 @@ export function useProjectPersistence() {
           const rehydrated = saved
             .map((c) => ({ ...c, src: srcOf.get(c.assetId) ?? c.src }))
             .filter((c) => !!c.src);
-          if (rehydrated.length) {
-            useEditorStore.getState().loadClips(rehydrated);
+          const overlays = Array.isArray(p.timelineJson?.overlayItems) ? p.timelineJson.overlayItems : [];
+          if (rehydrated.length || overlays.length) {
+            if (rehydrated.length) useEditorStore.getState().loadClips(rehydrated);
+            if (overlays.length) useEditorStore.getState().setOverlayItems(overlays);
             useEditorStore.temporal.getState().clear(); // loaded state is the baseline, not "undoable to empty"
           }
           if (p.timelineJson?.mode) useEditorStore.getState().setMode(p.timelineJson.mode);
@@ -77,7 +80,7 @@ export function useProjectPersistence() {
           body: JSON.stringify({
             id: project.id,
             mode: s.mode,
-            timelineJson: { editorVersion: 1, mode: s.mode, clips: s.clips },
+            timelineJson: { editorVersion: 1, mode: s.mode, clips: s.clips, overlayItems: s.overlayItems },
           }),
         });
         setStatus(res.ok ? "saved" : "idle");
@@ -86,7 +89,7 @@ export function useProjectPersistence() {
       }
     }, 1200);
     return () => clearTimeout(t);
-  }, [clips, mode, project]);
+  }, [clips, overlayItems, mode, project]);
 
   return { project, status };
 }

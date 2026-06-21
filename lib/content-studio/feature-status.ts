@@ -60,7 +60,7 @@ export const FEATURES: Feature[] = [
   { key: "clip.contextMenu", label: "Clip right-click context menu", category: "timeline", status: "live", note: "Cat1: ClipContextMenu (split/duplicate/reverse/delete); detach/transitions/look join as those land." },
   { key: "clip.duplicate", label: "Duplicate clip", category: "timeline", status: "live", note: "Cat1: duplicateClip inserts a copy after the source." },
   { key: "clip.replace", label: "Replace media", category: "timeline", status: "missing", note: "Pending. (Ripple delete = plain delete in the sequential model — no gap concept yet.)" },
-  { key: "timeline.multilane", label: "Real multi-track lanes", category: "timeline", status: "partial", note: "Lane labels render (Audio/Titles/Camera Path) but hold nothing." },
+  { key: "timeline.multilane", label: "Real multi-track lanes", category: "timeline", status: "live", note: "Audio + Titles overlay lanes hold free-positioned items (drag-to-place from Library, drag-to-move, select, delete); vertical scroll container. Render of overlays = Cat4/Cat5." },
 
   // ── Preview / playback ──
   { key: "preview.playback", label: "Double-buffered playback + scrub", category: "preview", status: "live", note: "use-playback seamless boundaries, timeupdate-driven." },
@@ -87,19 +87,19 @@ export const FEATURES: Feature[] = [
 
   // ── Audio ──
   { key: "audio.catalog", label: "Music + SFX catalog (24)", category: "audio", status: "live", note: "starter-library/audio.ts." },
-  { key: "audio.lanes", label: "Audio lanes (volume/fade/detach)", category: "audio", status: "missing", note: "No lane UI; drag music/SFX = toast only." },
+  { key: "audio.lanes", label: "Audio lanes (volume/fade/detach)", category: "audio", status: "partial", note: "Audio lane + drag-to-place/move music/SFX items exists; volume/fades/detach + render mix = Cat4." },
   { key: "audio.voiceover", label: "Voiceover record-against-timeline", category: "audio", status: "missing", note: "Not built." },
   { key: "audio.duck", label: "Sidechain ducking", category: "audio", status: "missing", note: "Not built." },
 
   // ── Titles / captions / logo ──
   { key: "titles.catalog", label: "Title + caption-style catalog", category: "titles", status: "live", note: "starter-library title-templates + caption-styles." },
-  { key: "titles.lane", label: "Title/caption lane + overlay", category: "titles", status: "stub", note: "Click = toast; no lane, no overlay, no libass worker." },
+  { key: "titles.lane", label: "Title/caption lane + overlay", category: "titles", status: "partial", note: "Titles lane + drag-to-place/move title items exists; text editing + preview overlay + libass render = Cat5." },
   { key: "titles.captions", label: "Auto captions (Whisper)", category: "titles", status: "missing", note: "Not built." },
   { key: "titles.logo", label: "Logo / watermark overlay", category: "titles", status: "missing", note: "Schema only." },
 
   // ── Library ──
   { key: "library.catalog", label: "Library tab (8 categories, ~96 items)", category: "library", status: "live", note: "Catalog API + panel + counts." },
-  { key: "library.drag", label: "Drag library items into the edit", category: "library", status: "partial", note: "Only Look apply works; transitions/audio/titles drags are toast-only." },
+  { key: "library.drag", label: "Drag library items into the edit", category: "library", status: "live", note: "Looks apply to all; music/SFX → Audio lane, titles → Titles lane (placed at drop position). Transitions boundary-attach = Cat3." },
 
   // ── Export / render pipeline ──
   { key: "export.dialog", label: "Export dialog + preflight", category: "export", status: "live", note: "ExportDialog." },

@@ -2,12 +2,18 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Magnet, Scissors, Trash2, X, ZoomIn, ZoomOut } from "lucide-react";
-import { useEditorStore, layoutClips } from "./editor-store";
+import { useEditorStore, layoutClips, type OverlayLane as OvLane } from "./editor-store";
 import { useMediaUpload } from "./use-media-upload";
 import { ClipContextMenu } from "./ClipContextMenu";
+import { LIBRARY_DND, decodeLibraryDrag } from "./library-dnd";
 
 const CLIP_DND = "application/x-cs-clip";
 const LABEL_W = 96; // lane-label gutter width; timeline t=0 starts here
+
+const OVERLAY_LANES: { id: OvLane; label: string }[] = [
+  { id: "audio", label: "Audio" },
+  { id: "title", label: "Titles" },
+];
 
 /** Bottom timeline: clip lane + draggable playhead + pinch/scroll zoom + drop target. */
 export function TimelinePanel() {
@@ -28,13 +34,31 @@ export function TimelinePanel() {
   const setClipTrim = useEditorStore((s) => s.setClipTrim);
   const moveClipTo = useEditorStore((s) => s.moveClipTo);
   const commitClips = useEditorStore((s) => s.commitClips);
+  const overlayItems = useEditorStore((s) => s.overlayItems);
+  const selectedOverlayId = useEditorStore((s) => s.selectedOverlayId);
+  const addOverlayItem = useEditorStore((s) => s.addOverlayItem);
+  const moveOverlayItem = useEditorStore((s) => s.moveOverlayItem);
+  const removeOverlayItem = useEditorStore((s) => s.removeOverlayItem);
+  const selectOverlay = useEditorStore((s) => s.selectOverlay);
 
   const { uploadFiles } = useMediaUpload();
   const scrollRef = useRef<HTMLDivElement>(null);
   const draggingPlayhead = useRef(false);
   const trimDrag = useRef<null | { id: string; edge: "in" | "out"; startX: number; inSec: number; outSec: number }>(null);
   const moveDrag = useRef<null | { id: string; startX: number; moved: boolean }>(null);
+  const overlayDrag = useRef<null | { id: string; startX: number; origStart: number; moved: boolean }>(null);
   const [menu, setMenu] = useState<{ clipId: string; x: number; y: number } | null>(null);
+
+  // Pixel → timeline seconds (no seek), for drops + overlay drags.
+  const timeFromClientX = useCallback(
+    (clientX: number) => {
+      const el = scrollRef.current;
+      if (!el) return 0;
+      const rect = el.getBoundingClientRect();
+      return Math.max(0, (clientX - rect.left + el.scrollLeft - LABEL_W) / pxPerSec);
+    },
+    [pxPerSec],
+  );
 
   // Reorder a dragged clip: place it among the others by pointer position.
   const reorderToPointer = useCallback(
@@ -86,6 +110,15 @@ export function TimelinePanel() {
           useEditorStore.temporal.getState().pause(); // don't snapshot every micro-move
         }
         if (m.moved) reorderToPointer(e.clientX, m.id);
+        return;
+      }
+      const o = overlayDrag.current;
+      if (o) {
+        if (!o.moved && Math.abs(e.clientX - o.startX) > 4) {
+          o.moved = true;
+          useEditorStore.temporal.getState().pause();
+        }
+        if (o.moved) moveOverlayItem(o.id, o.origStart + (e.clientX - o.startX) / pxPerSec);
       }
     };
     const up = () => {
@@ -97,23 +130,31 @@ export function TimelinePanel() {
         commitClips(); // record the whole reorder as ONE undo step
       }
       moveDrag.current = null;
+      const o = overlayDrag.current;
+      if (o?.moved) {
+        useEditorStore.temporal.getState().resume();
+        moveOverlayItem(o.id, useEditorStore.getState().overlayItems.find((x) => x.id === o.id)?.startSec ?? o.origStart);
+      }
+      overlayDrag.current = null;
     };
     window.addEventListener("pointermove", move);
     window.addEventListener("pointerup", up);
     return () => { window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", up); };
-  }, [seekFromClientX, pxPerSec, setClipTrim, reorderToPointer, commitClips]);
+  }, [seekFromClientX, pxPerSec, setClipTrim, reorderToPointer, commitClips, moveOverlayItem]);
 
   // Delete selected clip with keyboard.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const tag = (e.target as HTMLElement)?.tagName;
       if (tag === "INPUT" || tag === "TEXTAREA") return;
-      if ((e.key === "Delete" || e.key === "Backspace") && selectedClipId) removeClip(selectedClipId);
-      else if (e.key === "b" || e.key === "B") { if (!e.metaKey && !e.ctrlKey) splitAtPlayhead(); }
+      if (e.key === "Delete" || e.key === "Backspace") {
+        if (selectedOverlayId) removeOverlayItem(selectedOverlayId);
+        else if (selectedClipId) removeClip(selectedClipId);
+      } else if (e.key === "b" || e.key === "B") { if (!e.metaKey && !e.ctrlKey) splitAtPlayhead(); }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [selectedClipId, removeClip, splitAtPlayhead]);
+  }, [selectedClipId, selectedOverlayId, removeClip, removeOverlayItem, splitAtPlayhead]);
 
   function onWheel(e: React.WheelEvent) {
     // Trackpad pinch (ctrlKey) or Ctrl+wheel → zoom; otherwise native scroll.
@@ -134,7 +175,19 @@ export function TimelinePanel() {
     } catch { /* ignore */ }
   }
 
-  const extraLanes = mode === "360" ? ["Camera Path", "Audio"] : mode === "photo" ? ["Overlays"] : ["Audio", "Titles"];
+  function onLaneDrop(e: React.DragEvent, lane: OvLane) {
+    e.preventDefault();
+    const raw = e.dataTransfer.getData(LIBRARY_DND);
+    if (!raw) return;
+    const p = decodeLibraryDrag(raw);
+    if (!p) return;
+    const startSec = timeFromClientX(e.clientX);
+    const dur = Number((p.metadata?.durationSec as number) ?? 0) || (lane === "title" ? 4 : 5);
+    const kind = lane === "title" ? (p.assetType === "caption_style" ? "caption" : "title") : p.assetType === "sfx" ? "sfx" : "music";
+    addOverlayItem({ lane, kind, name: p.name, startSec, durationSec: dur, libraryId: p.id });
+  }
+
+  const showOverlayLanes = mode !== "photo";
 
   return (
     <div className="flex h-full min-h-0 flex-col border-t border-white/10 bg-[#0B0F15]/70">
@@ -238,11 +291,45 @@ export function TimelinePanel() {
             ))}
           </div>
 
-          {extraLanes.map((lane) => (
-            <div key={lane} className="relative flex h-9 items-center border-b border-white/[0.06]">
-              <LaneLabel>{lane}</LaneLabel>
-            </div>
-          ))}
+          {showOverlayLanes && OVERLAY_LANES.map((lane) => {
+            const items = overlayItems.filter((o) => o.lane === lane.id);
+            return (
+              <div
+                key={lane.id}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={(e) => onLaneDrop(e, lane.id)}
+                onPointerDown={(e) => { if (e.target === e.currentTarget) { draggingPlayhead.current = true; seekFromClientX(e.clientX); } }}
+                className="relative flex h-10 items-center border-b border-white/[0.06]"
+              >
+                <LaneLabel>{lane.label}</LaneLabel>
+                {items.length === 0 && (
+                  <span className="pl-28 text-[11px] text-white/25">Drag {lane.id === "audio" ? "music / SFX" : "titles / captions"} here from the Library</span>
+                )}
+                {items.map((o) => (
+                  <div
+                    key={o.id}
+                    onClick={() => selectOverlay(o.id)}
+                    onPointerDown={(e) => { e.stopPropagation(); selectOverlay(o.id); overlayDrag.current = { id: o.id, startX: e.clientX, origStart: o.startSec, moved: false }; }}
+                    style={{ left: LABEL_W + o.startSec * pxPerSec, width: Math.max(40, o.durationSec * pxPerSec) }}
+                    className={`group absolute top-1.5 bottom-1.5 cursor-grab overflow-hidden rounded-md border active:cursor-grabbing ${
+                      selectedOverlayId === o.id ? "border-[#3D8EFF] bg-[#3D8EFF]/25" : "border-white/15 bg-white/[0.06] hover:border-white/30"
+                    }`}
+                  >
+                    <span className="block truncate px-2 py-1 pr-5 text-[10px] text-white/85">{o.name}</span>
+                    <button
+                      type="button"
+                      title="Remove"
+                      onPointerDown={(e) => e.stopPropagation()}
+                      onClick={(e) => { e.stopPropagation(); removeOverlayItem(o.id); }}
+                      className="absolute right-0.5 top-0.5 z-10 flex h-4 w-4 items-center justify-center rounded-sm bg-black/50 text-white/70 opacity-0 hover:bg-black/80 hover:text-white group-hover:opacity-100"
+                    >
+                      <X className="h-2.5 w-2.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            );
+          })}
 
           <div className="pointer-events-none absolute top-0 bottom-0 z-20 w-px bg-[#3D8EFF]" style={{ left: LABEL_W + playheadSec * pxPerSec }}>
             <div className="absolute -left-1 -top-0 h-2 w-2 rounded-sm bg-[#3D8EFF]" />

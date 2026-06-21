@@ -37,6 +37,22 @@ export type TimelineClip = {
 
 export type ClipLayout = { clip: TimelineClip; startSec: number; lengthSec: number };
 
+export type OverlayLane = "audio" | "title";
+
+/** A free-floating timeline element on an overlay lane (music/SFX/title/caption),
+ *  absolutely positioned (its own startSec) — independent of the video clips. */
+export type OverlayItem = {
+  id: string;
+  lane: OverlayLane;
+  kind: string; // music | sfx | title | caption
+  name: string;
+  startSec: number;
+  durationSec: number;
+  libraryId?: string;
+  text?: string;
+  storageKey?: string;
+};
+
 type EditorState = {
   mode: EditorMode;
   inspectorTab: InspectorTab;
@@ -57,6 +73,8 @@ type EditorState = {
   // project + timeline + transport
   editProjectId: string | null;
   clips: TimelineClip[];
+  overlayItems: OverlayItem[];
+  selectedOverlayId: string | null;
   selectedClipId: string | null;
   playheadSec: number;
   playing: boolean;
@@ -78,6 +96,11 @@ type EditorState = {
 
   setEditProjectId: (id: string | null) => void;
   loadClips: (clips: TimelineClip[]) => void;
+  setOverlayItems: (items: OverlayItem[]) => void;
+  addOverlayItem: (item: Omit<OverlayItem, "id">) => void;
+  moveOverlayItem: (id: string, startSec: number) => void;
+  removeOverlayItem: (id: string) => void;
+  selectOverlay: (id: string | null) => void;
   addClip: (c: { assetId: string; name: string; src: string; durationSec?: number }) => void;
   removeClip: (id: string) => void;
   selectClip: (id: string | null) => void;
@@ -151,6 +174,8 @@ export const useEditorStore = create<EditorState>()(
 
   editProjectId: null,
   clips: [],
+  overlayItems: [],
+  selectedOverlayId: null,
   selectedClipId: null,
   playheadSec: 0,
   playing: false,
@@ -211,6 +236,17 @@ export const useEditorStore = create<EditorState>()(
 
   setEditProjectId: (editProjectId) => set({ editProjectId }),
   loadClips: (clips) => set({ clips, selectedClipId: null, playheadSec: 0, playing: false }),
+  setOverlayItems: (overlayItems) => set({ overlayItems }),
+  addOverlayItem: (item) =>
+    set((s) => {
+      const it: OverlayItem = { ...item, id: `ov_${Math.random().toString(36).slice(2, 10)}`, startSec: Math.max(0, item.startSec) };
+      return { overlayItems: [...s.overlayItems, it], selectedOverlayId: it.id, selectedClipId: null };
+    }),
+  moveOverlayItem: (id, startSec) =>
+    set((s) => ({ overlayItems: s.overlayItems.map((o) => (o.id === id ? { ...o, startSec: Math.max(0, startSec) } : o)) })),
+  removeOverlayItem: (id) =>
+    set((s) => ({ overlayItems: s.overlayItems.filter((o) => o.id !== id), selectedOverlayId: s.selectedOverlayId === id ? null : s.selectedOverlayId })),
+  selectOverlay: (selectedOverlayId) => set({ selectedOverlayId, selectedClipId: null }),
   addClip: (c) =>
     set((s) => {
       const d = c.durationSec && c.durationSec > 0 ? c.durationSec : 0;
@@ -302,11 +338,11 @@ export const useEditorStore = create<EditorState>()(
   setZoom: (pxPerSec) => set({ pxPerSec: Math.max(8, Math.min(240, pxPerSec)) }),
     }),
     {
-      // History tracks ONLY the clip array — transport/zoom/panel changes never
-      // pollute undo. Selection rides along so undo restores the active clip.
-      partialize: (s) => ({ clips: s.clips, selectedClipId: s.selectedClipId }),
+      // History tracks the clips + overlay items — transport/zoom/panel changes
+      // never pollute undo. Selection rides along so undo restores the active clip.
+      partialize: (s) => ({ clips: s.clips, overlayItems: s.overlayItems, selectedClipId: s.selectedClipId }),
       limit: 100,
-      equality: (a, b) => a.clips === b.clips,
+      equality: (a, b) => a.clips === b.clips && a.overlayItems === b.overlayItems,
     },
   ),
 );
