@@ -82,6 +82,7 @@ type EditorState = {
   selectClip: (id: string | null) => void;
   patchClipDuration: (id: string, durationSec: number) => void;
   splitAtPlayhead: () => void;
+  duplicateClip: (id: string) => void;
   setClipTrim: (id: string, edit: { trimInSec?: number; trimOutSec?: number }) => void;
   setClipSpeed: (id: string, speedFactor: number) => void;
   toggleReverse: (id: string) => void;
@@ -225,6 +226,15 @@ export const useEditorStore = create<EditorState>()(
       const next = [...s.clips];
       next.splice(idx, 1, left, right);
       return { clips: next, selectedClipId: right.id };
+    }),
+  duplicateClip: (id) =>
+    set((s) => {
+      const i = s.clips.findIndex((c) => c.id === id);
+      if (i < 0) return {};
+      const copy: TimelineClip = { ...s.clips[i], id: uid() };
+      const next = [...s.clips];
+      next.splice(i + 1, 0, copy);
+      return { clips: next, selectedClipId: copy.id };
     }),
   setClipTrim: (id, edit) =>
     set((s) => ({

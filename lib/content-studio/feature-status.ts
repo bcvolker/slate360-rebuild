@@ -57,8 +57,9 @@ export const FEATURES: Feature[] = [
   { key: "clip.split", label: "Split at playhead (B)", category: "timeline", status: "live", note: "splitAtPlayhead interior cut." },
   { key: "clip.reorder", label: "Drag to move / reorder", category: "timeline", status: "live", note: "moveClipTo via pointer; one undo step." },
   { key: "clip.snap", label: "Snap toggle", category: "timeline", status: "partial", note: "Toggle state exists; magnetic snap not yet applied to drags." },
-  { key: "clip.contextMenu", label: "Clip right-click context menu", category: "timeline", status: "missing", note: "Plan's 'biggest win'; no CM built." },
-  { key: "clip.rippleDelete", label: "Ripple delete / duplicate / replace", category: "timeline", status: "missing", note: "Only plain delete exists." },
+  { key: "clip.contextMenu", label: "Clip right-click context menu", category: "timeline", status: "live", note: "Cat1: ClipContextMenu (split/duplicate/reverse/delete); detach/transitions/look join as those land." },
+  { key: "clip.duplicate", label: "Duplicate clip", category: "timeline", status: "live", note: "Cat1: duplicateClip inserts a copy after the source." },
+  { key: "clip.replace", label: "Replace media", category: "timeline", status: "missing", note: "Pending. (Ripple delete = plain delete in the sequential model — no gap concept yet.)" },
   { key: "timeline.multilane", label: "Real multi-track lanes", category: "timeline", status: "partial", note: "Lane labels render (Audio/Titles/Camera Path) but hold nothing." },
 
   // ── Preview / playback ──

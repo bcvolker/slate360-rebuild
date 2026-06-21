@@ -1,9 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Magnet, Scissors, Trash2, X, ZoomIn, ZoomOut } from "lucide-react";
 import { useEditorStore, layoutClips } from "./editor-store";
 import { useMediaUpload } from "./use-media-upload";
+import { ClipContextMenu } from "./ClipContextMenu";
 
 const CLIP_DND = "application/x-cs-clip";
 const LABEL_W = 96; // lane-label gutter width; timeline t=0 starts here
@@ -33,6 +34,7 @@ export function TimelinePanel() {
   const draggingPlayhead = useRef(false);
   const trimDrag = useRef<null | { id: string; edge: "in" | "out"; startX: number; inSec: number; outSec: number }>(null);
   const moveDrag = useRef<null | { id: string; startX: number; moved: boolean }>(null);
+  const [menu, setMenu] = useState<{ clipId: string; x: number; y: number } | null>(null);
 
   // Reorder a dragged clip: place it among the others by pointer position.
   const reorderToPointer = useCallback(
@@ -188,6 +190,7 @@ export function TimelinePanel() {
               <div
                 key={clip.id}
                 onClick={() => selectClip(clip.id)}
+                onContextMenu={(e) => { e.preventDefault(); selectClip(clip.id); setMenu({ clipId: clip.id, x: e.clientX, y: e.clientY }); }}
                 onPointerDown={(e) => { e.stopPropagation(); selectClip(clip.id); moveDrag.current = { id: clip.id, startX: e.clientX, moved: false }; }}
                 style={{ left: LABEL_W + startSec * pxPerSec, width: Math.max(40, lengthSec * pxPerSec) }}
                 className={`group absolute top-2 bottom-2 cursor-grab overflow-hidden rounded-md border active:cursor-grabbing ${
@@ -240,6 +243,8 @@ export function TimelinePanel() {
           </div>
         </div>
       </div>
+
+      {menu && <ClipContextMenu clipId={menu.clipId} x={menu.x} y={menu.y} onClose={() => setMenu(null)} />}
     </div>
   );
 }
