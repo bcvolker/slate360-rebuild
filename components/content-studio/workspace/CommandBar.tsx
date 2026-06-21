@@ -17,12 +17,20 @@ export function CommandBar({
   inspectorOpen,
   onToggleMedia,
   onToggleInspector,
+  onExport,
+  onOpenQueue,
+  queueLabel,
+  queueActive,
 }: {
   projectTitle: string;
   mediaOpen: boolean;
   inspectorOpen: boolean;
   onToggleMedia: () => void;
   onToggleInspector: () => void;
+  onExport: () => void;
+  onOpenQueue: () => void;
+  queueLabel: string;
+  queueActive: boolean;
 }) {
   const mode = useEditorStore((s) => s.mode);
   const setMode = useEditorStore((s) => s.setMode);
@@ -93,11 +101,16 @@ export function CommandBar({
       </div>
 
       <div className="ml-auto flex items-center gap-2">
-        {/* Render status strip (placeholder until the job loop lands in Slice 5) */}
-        <span className="flex items-center gap-1.5 rounded-md border border-white/10 px-2 py-1 text-[11px] text-white/55">
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400/80" />
-          proxy idle
-        </span>
+        {/* Render queue chip — click to open the drawer */}
+        <button
+          type="button"
+          onClick={onOpenQueue}
+          title="Render queue"
+          className="flex items-center gap-1.5 rounded-md border border-white/10 px-2 py-1 text-[11px] text-white/60 hover:bg-white/5"
+        >
+          <span className={`h-1.5 w-1.5 rounded-full ${queueActive ? "animate-pulse bg-[#3D8EFF]" : "bg-emerald-400/80"}`} />
+          {queueLabel}
+        </button>
         <button
           type="button"
           onClick={resetLayout}
@@ -109,6 +122,7 @@ export function CommandBar({
         </button>
         <button
           type="button"
+          onClick={onExport}
           className="flex items-center gap-1.5 rounded-md bg-[#3D8EFF] px-3 py-1 text-xs font-semibold text-white hover:brightness-110"
         >
           <Upload className="h-3.5 w-3.5" />

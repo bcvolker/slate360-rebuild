@@ -55,12 +55,15 @@ export const contentStudioRenderTask = task({
 
     // ── MOCK mode: complete inline, zero compute ──────────────
     if (!modalEndpoint) {
-      const outputKey = `mock/content-studio/${job.edit_project_id ?? "scratch"}/${jobId}.mp4`;
+      // Passthrough the first assembled clip's proxy (a real R2 object) so the
+      // download works end-to-end until the FFmpeg concat worker is deployed.
+      const payload = (job.input_payload ?? {}) as { passthroughKey?: string | null };
+      const outputKey = payload.passthroughKey || `mock/content-studio/${job.edit_project_id ?? "scratch"}/${jobId}.mp4`;
       await supabase
         .from("content_render_jobs")
         .update({
           status: "completed",
-          stage: "mock-complete",
+          stage: payload.passthroughKey ? "preview-passthrough" : "mock-complete",
           progress_pct: 100,
           output_storage_key: outputKey,
           outputs: [{ kind: "video", storageKey: outputKey }],

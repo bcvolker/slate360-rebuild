@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Panel,
   PanelGroup,
@@ -12,6 +12,9 @@ import { MediaBinPanel } from "./MediaBinPanel";
 import { PreviewPanel } from "./PreviewPanel";
 import { InspectorPanel } from "./InspectorPanel";
 import { TimelinePanel } from "./TimelinePanel";
+import { ExportDialog } from "./ExportDialog";
+import { RenderQueueDrawer } from "./RenderQueueDrawer";
+import { useRenderJobs } from "./render-jobs";
 import { useEditorStore } from "./editor-store";
 import { useMediaUpload } from "./use-media-upload";
 
@@ -30,6 +33,12 @@ export function ContentStudioWorkspace() {
   const showInspector = useEditorStore((s) => s.panelVisibility.inspector);
   const togglePanel = useEditorStore((s) => s.togglePanel);
   const { uploadFiles } = useMediaUpload();
+  const { jobs, refetch } = useRenderJobs();
+  const [exportOpen, setExportOpen] = useState(false);
+  const [queueOpen, setQueueOpen] = useState(false);
+
+  const activeCount = jobs.filter((j) => j.status === "queued" || j.status === "processing").length;
+  const queueLabel = activeCount > 0 ? `${activeCount} rendering` : jobs.some((j) => j.status === "completed") ? "renders" : "idle";
 
   // Catch OS-file drops ANYWHERE in the editor: prevent the browser from opening
   // the file, and upload it. (Internal clip drags carry no "Files" — left alone.)
@@ -66,6 +75,10 @@ export function ContentStudioWorkspace() {
         inspectorOpen={showInspector}
         onToggleMedia={toggleMedia}
         onToggleInspector={toggleInspector}
+        onExport={() => setExportOpen(true)}
+        onOpenQueue={() => setQueueOpen(true)}
+        queueLabel={queueLabel}
+        queueActive={activeCount > 0}
       />
 
       <PanelGroup direction="vertical" className="min-h-0 flex-1">
@@ -114,6 +127,9 @@ export function ContentStudioWorkspace() {
           <TimelinePanel />
         </Panel>
       </PanelGroup>
+
+      {exportOpen && <ExportDialog onClose={() => setExportOpen(false)} onQueued={() => { setQueueOpen(true); refetch(); }} />}
+      {queueOpen && <RenderQueueDrawer jobs={jobs} onClose={() => setQueueOpen(false)} />}
     </div>
   );
 }
