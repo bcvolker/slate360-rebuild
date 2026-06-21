@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { Clapperboard, PanelLeft, PanelRight, Redo2, RotateCcw, Undo2, Upload } from "lucide-react";
+import { Clapperboard, Library, MessageSquare, PanelLeft, PanelRight, Redo2, RotateCcw, Type, Undo2, Upload } from "lucide-react";
 import { useEditorStore, useUndoRedo, type EditorMode } from "./editor-store";
 
 const MODES: { id: EditorMode; label: string }[] = [
@@ -19,6 +19,7 @@ export function CommandBar({
   onToggleInspector,
   onExport,
   onOpenQueue,
+  onOpenLibrary,
   queueLabel,
   queueActive,
 }: {
@@ -29,12 +30,14 @@ export function CommandBar({
   onToggleInspector: () => void;
   onExport: () => void;
   onOpenQueue: () => void;
+  onOpenLibrary: (category?: string) => void;
   queueLabel: string;
   queueActive: boolean;
 }) {
   const mode = useEditorStore((s) => s.mode);
   const setMode = useEditorStore((s) => s.setMode);
   const resetLayout = useEditorStore((s) => s.resetLayout);
+  const setLibraryCategory = useEditorStore((s) => s.setLibraryCategory);
   const { undo, redo, canUndo, canRedo } = useUndoRedo();
 
   // ⌘/Ctrl+Z undo, ⌘/Ctrl+Shift+Z (or Ctrl+Y) redo — skip while typing.
@@ -92,6 +95,13 @@ export function CommandBar({
           title="Toggle Inspector"
           icon={<PanelRight className="h-3.5 w-3.5" />}
         />
+      </div>
+
+      {/* Primary actions — CapCut density: shortcuts into Library + Inspector */}
+      <div className="ml-2 flex items-center gap-1">
+        <TextAction icon={<Library className="h-3.5 w-3.5" />} label="Library" onClick={() => onOpenLibrary()} />
+        <TextAction icon={<Type className="h-3.5 w-3.5" />} label="Titles" onClick={() => { setLibraryCategory("Titles"); onOpenLibrary("Titles"); }} />
+        <TextAction icon={<MessageSquare className="h-3.5 w-3.5" />} label="Captions" onClick={() => { setLibraryCategory("Caption Styles"); onOpenLibrary("Caption Styles"); }} />
       </div>
 
       {/* Undo / redo */}
@@ -153,6 +163,19 @@ function IconAction({
       className="flex h-6 w-6 items-center justify-center rounded-md border border-white/10 text-white/55 transition-colors hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-30"
     >
       {icon}
+    </button>
+  );
+}
+
+function TextAction({ icon, label, onClick }: { icon: React.ReactNode; label: string; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex items-center gap-1 rounded-md border border-white/10 px-2 py-1 text-[11px] text-white/65 hover:bg-white/5"
+    >
+      {icon}
+      {label}
     </button>
   );
 }

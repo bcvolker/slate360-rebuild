@@ -41,17 +41,18 @@ export function InspectorPanel() {
       </div>
 
       <div className="min-h-0 flex-1 space-y-2 overflow-y-auto px-3 pb-4">
-        {!selectedId && tab !== "export" ? (
+        {!selectedId && tab !== "export" && tab !== "color" && tab !== "titles" ? (
           <EmptyState />
         ) : tab === "clip" && clip ? (
           <ClipTab clip={clip} />
         ) : tab === "color" ? (
           <>
+            <ActiveLookBanner />
             <LevelDisclosureRow label="Exposure" defaultStrength={50} />
             <LevelDisclosureRow label="Contrast" defaultStrength={50} />
             <LevelDisclosureRow label="Saturation" defaultStrength={50} />
             <LevelDisclosureRow label="Temperature" defaultStrength={50} />
-            <NoteRow text="Grades are local previews; they persist to the render spec in slice 10 + apply on export." />
+            <NoteRow text="Click a Look in the Library tab to apply. Grades persist to the render spec on export." />
           </>
         ) : tab === "enhance" ? (
           <>
@@ -64,7 +65,7 @@ export function InspectorPanel() {
         ) : tab === "audio" ? (
           <NoteRow text="Volume, fades, detach audio, and voiceover land in slices 11–12 (audio lanes + waveforms)." />
         ) : tab === "titles" ? (
-          <NoteRow text="Titles, captions, and logo overlays land in slice 13." />
+          <NoteRow text="Pick a title or caption style from Library → Titles / Caption Styles. Full timeline lane lands in slice 13." />
         ) : tab === "export" ? (
           <NoteRow text="Aspect presets, quality, and the render queue land in slice 9." />
         ) : (
@@ -186,6 +187,16 @@ function NumField({ label, value, onChange }: { label: string; value: number; on
         className="w-full bg-transparent text-right font-mono text-xs tabular-nums text-white/85 outline-none"
       />
     </label>
+  );
+}
+
+function ActiveLookBanner() {
+  const name = useEditorStore((s) => s.activeLookName);
+  if (!name) return null;
+  return (
+    <div className="rounded-md border border-[#3D8EFF]/30 bg-[#3D8EFF]/10 px-3 py-2 text-xs text-white/80">
+      Active look: <span className="font-medium text-white">{name}</span>
+    </div>
   );
 }
 

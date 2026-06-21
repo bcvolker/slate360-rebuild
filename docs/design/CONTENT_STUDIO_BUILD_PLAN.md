@@ -396,6 +396,19 @@ faster-whisper (MIT), rife-ncnn-vulkan (MIT), gl-transitions (MIT, later), scipy
 (BSD), Noto/Inter (OFL). Avoid: Editly/ffmpeg-concat (Node), Gyroflow/frei0r (GPL — study
 only), browser/Chromium caption renderers, `drawtext` as title engine.
 
+### C.2 Slice 14A — Slate360 Starter Library (NEW)
+**Pre-loaded construction/social asset catalog** — makes the Library tab real before full slice 14:
+- Static catalog in `lib/content-studio/starter-library/` (YAML manifest + typed TS modules)
+- 24 FFmpeg `xfade` transition presets (metadata-only)
+- 16 color Looks (lookJson + optional `.cube` after R2 ingest)
+- 12 SFX + 12 music beds (CC0 metadata; binaries via one-time ingest)
+- 10 title templates + 6 caption styles + 6 export presets + 4 OFL fonts
+- `GET /api/content-studio/library` + `scripts/seed-content-studio-library.ts`
+- Library tab UI with expand/collapse, drag payloads, click-to-apply Looks/transitions
+- Command bar shortcuts: Library · Titles · Captions
+
+P1 follow-on: download Kenney/FreePD binaries to R2, boundary drop for transitions, SFX/music lanes.
+
 ### C.1 New slice — 14B (lands before AI Enhance / 360 / Multicam)
 **Effects + Transitions + Captions + Logos + Export presets** — makes the editor feel real:
 xfade transitions + boundary UI, Inspector effect stack (denoise/sharpen/color/LUT/grain/

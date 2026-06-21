@@ -1,0 +1,57 @@
+# Content Studio — Slate360 Starter Library Manifest
+# Slice 14A — curated CC0/OFL/MIT assets + FFmpeg xfade metadata
+# Ingest: npx tsx scripts/seed-content-studio-library.ts --org-id <uuid>
+
+version: "2026.06.20"
+storage_prefix: "library/starter/"
+
+categories:
+  - id: transitions
+    label: Transitions
+    count: 24
+    license: "LGPL-3.0 (FFmpeg xfade server-side)"
+    drop_target: cut_boundary
+    gaps_closed: ["Add transition at cut", "Cross dissolve", "Wipe / Slide"]
+  - id: music
+    label: Music
+    count: 12
+    license: CC0
+    sources: ["https://freepd.com", "https://kenney.nl"]
+    drop_target: music_lane
+  - id: sfx
+    label: Sound FX
+    count: 12
+    license: CC0
+    source: "https://kenney.nl/assets/impact-sounds"
+    drop_target: sfx_lane
+  - id: titles
+    label: Titles
+    count: 10
+    license: "Slate360 (MIT templates)"
+    drop_target: titles_lane
+  - id: looks
+    label: Looks
+    count: 16
+    license: "MIT / CC0"
+    sources: ["three.js LUT examples", "OpenShot freshluts CC0"]
+    drop_target: color_inspector
+  - id: fonts
+    label: Fonts
+    count: 4
+    license: OFL
+    drop_target: titles_lane
+  - id: caption_styles
+    label: Caption Styles
+    count: 6
+    license: "Slate360 (MIT)"
+    drop_target: titles_lane
+  - id: presets
+    label: Presets
+    count: 6
+    license: "Slate360 (MIT)"
+    drop_target: export_preset
+
+ingest_notes:
+  - Binary audio/LUT files are downloaded separately into R2; catalog ships metadata first.
+  - Every row stores license, sourceUrl, attribution in content_library_assets.metadata.
+  - Static catalog in lib/content-studio/starter-library/ powers the UI offline in preview harness.

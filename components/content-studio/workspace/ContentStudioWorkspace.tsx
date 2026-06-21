@@ -32,6 +32,8 @@ export function ContentStudioWorkspace() {
   const showMediaBin = useEditorStore((s) => s.panelVisibility.mediaBin);
   const showInspector = useEditorStore((s) => s.panelVisibility.inspector);
   const togglePanel = useEditorStore((s) => s.togglePanel);
+  const setMediaBinTab = useEditorStore((s) => s.setMediaBinTab);
+  const setLibraryCategory = useEditorStore((s) => s.setLibraryCategory);
   const { uploadFiles } = useMediaUpload();
   const { jobs, refetch } = useRenderJobs();
   const [exportOpen, setExportOpen] = useState(false);
@@ -67,6 +69,14 @@ export function ContentStudioWorkspace() {
     p.isCollapsed() ? p.expand() : p.collapse();
   }
 
+  function openLibrary(category?: string) {
+    if (category) setLibraryCategory(category);
+    else setMediaBinTab("library");
+    const p = mediaRef.current;
+    if (p?.isCollapsed()) p.expand();
+    togglePanel("mediaBin");
+  }
+
   return (
     <div className="flex h-full min-h-0 w-full flex-col bg-[#070A0F] text-white">
       <CommandBar
@@ -77,6 +87,7 @@ export function ContentStudioWorkspace() {
         onToggleInspector={toggleInspector}
         onExport={() => setExportOpen(true)}
         onOpenQueue={() => setQueueOpen(true)}
+        onOpenLibrary={openLibrary}
         queueLabel={queueLabel}
         queueActive={activeCount > 0}
       />

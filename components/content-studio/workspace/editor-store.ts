@@ -13,6 +13,21 @@ import { temporal } from "zundo";
 export type EditorMode = "video" | "360" | "photo";
 export type InspectorTab = "clip" | "color" | "audio" | "titles" | "enhance" | "export";
 export type PanelId = "mediaBin" | "inspector";
+export type MediaBinTab = "project" | "library";
+
+export type ColorGrade = {
+  exposure: number;
+  contrast: number;
+  saturation: number;
+  temperature: number;
+  tint: number;
+};
+
+export type PendingTransition = {
+  xfade: string;
+  durationSec: number;
+  name: string;
+};
 
 /** A clip instance placed on the timeline (laid out sequentially in V1). */
 export type TimelineClip = {
@@ -33,6 +48,13 @@ type EditorState = {
   mode: EditorMode;
   inspectorTab: InspectorTab;
   panelVisibility: Record<PanelId, boolean>;
+  mediaBinTab: MediaBinTab;
+  libraryCategory: string | null;
+  activeLookId: string | null;
+  activeLookName: string | null;
+  colorGrade: ColorGrade;
+  pendingTransition: PendingTransition | null;
+  libraryToast: string | null;
 
   // timeline + transport
   clips: TimelineClip[];
@@ -44,6 +66,11 @@ type EditorState = {
 
   setMode: (mode: EditorMode) => void;
   setInspectorTab: (tab: InspectorTab) => void;
+  setMediaBinTab: (tab: MediaBinTab) => void;
+  setLibraryCategory: (category: string | null) => void;
+  applyLibraryLook: (look: { id: string; name: string; lookJson?: Record<string, unknown> }) => void;
+  setPendingTransition: (t: PendingTransition | null) => void;
+  setLibraryToast: (msg: string | null) => void;
   togglePanel: (id: PanelId) => void;
   resetLayout: () => void;
 
@@ -107,6 +134,13 @@ export const useEditorStore = create<EditorState>()(
   mode: "video",
   inspectorTab: "clip",
   panelVisibility: { ...DEFAULT_PANELS },
+  mediaBinTab: "project",
+  libraryCategory: null,
+  activeLookId: null,
+  activeLookName: null,
+  colorGrade: { exposure: 0, contrast: 1, saturation: 1, temperature: 0, tint: 0 },
+  pendingTransition: null,
+  libraryToast: null,
 
   clips: [],
   selectedClipId: null,
@@ -117,6 +151,28 @@ export const useEditorStore = create<EditorState>()(
 
   setMode: (mode) => set({ mode }),
   setInspectorTab: (inspectorTab) => set({ inspectorTab }),
+  setMediaBinTab: (mediaBinTab) => set({ mediaBinTab }),
+  setLibraryCategory: (libraryCategory) => set({ libraryCategory, mediaBinTab: "library" }),
+  applyLibraryLook: (look) =>
+    set((s) => {
+      const g = look.lookJson ?? {};
+      return {
+        activeLookId: look.id,
+        activeLookName: look.name,
+        inspectorTab: "color",
+        colorGrade: {
+          exposure: Number(g.exposure ?? 0),
+          contrast: Number(g.contrast ?? 1),
+          saturation: Number(g.saturation ?? 1),
+          temperature: Number(g.temperature ?? 0),
+          tint: Number(g.tint ?? 0),
+        },
+        libraryToast: `Applied look: ${look.name}`,
+      };
+    }),
+  setPendingTransition: (pendingTransition) =>
+    set({ pendingTransition, libraryToast: pendingTransition ? `Default transition: ${pendingTransition.name}` : null }),
+  setLibraryToast: (libraryToast) => set({ libraryToast }),
   togglePanel: (id) => set((s) => ({ panelVisibility: { ...s.panelVisibility, [id]: !s.panelVisibility[id] } })),
   resetLayout: () => set({ panelVisibility: { ...DEFAULT_PANELS }, inspectorTab: "clip" }),
 
