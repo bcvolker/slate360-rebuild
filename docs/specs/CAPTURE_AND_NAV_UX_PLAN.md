@@ -116,3 +116,35 @@ Root cause = hierarchy + wording, not just a label. After every capture:
 Maps to existing components the audits named: `SharedCaptureTaskHeader`/`CaptureCanvasTopBar`,
 `CaptureCanvasBottomRail`, `useCaptureV2DetailDrawer`/note-review, `TwinCaptureModeSelector`,
 `TwinCaptureBottomRail`, `TwinCaptureTopBar`, `MobilePlatformHeader`/bottom-nav, module nav configs.
+
+## 8. Refinements from review (locked into P0/P1)
+- **A. Plan-walk parity (one grammar):** the step strip applies to BOTH Site Walk variants. In a
+  plan walk, primary after capture = "Add info →" then **"Save & return to plan"** (not "Next stop").
+  Otherwise P0 fixes quick-capture but plan testers still drop off.
+- **B. "Skip for now" must have a visible cost (pull into P0):** a **"needs info" dot** on the
+  filmstrip thumb + an **"N stops missing info"** count on the summary/end-walk — even before the
+  full modal polish. Fixes discoverability AND completion quality.
+- **C. Auto-open the info sheet only for the first ~3 captures** per walk (or until "Skip for now"
+  used twice); after that, step strip + primary button only. Veterans hate a sheet every stop.
+- **D. Photo mode NEVER says "REC":** use **"CAPTURING · N frames."** Copy audit removes any REC
+  string from photo code paths (`TwinCaptureModeSelector`, header).
+- **E. Block silent exit NARROWLY:** only when a photo exists AND the **one required field**
+  (location/area) is empty — never on optional notes alone (electricians will rage-quit). Procore:
+  one required field, rest optional.
+- **F. App badge + accent on task-adjacent routes too:** `/site-walk/capture*`, review, summary;
+  `/digital-twin/capture*`, review, job status — not just module homes (those sub-routes were the
+  original bug).
+- **G. Touch targets / sunlight:** primary buttons ≥48px; **mode toggle ≥44px** (today ~10px text —
+  must grow, not just relabel); recording **red bar 8px** (more visible in direct sun).
+- **H. Sync/offline in the header right slot (P0):** icon + pending count. Trust pattern (CompanyCam).
+- **Small:** Twin PHOTOS idle shutter = **circle + interval tick ring** (simpler than stacked-burst,
+  still distinct from video); keep a **"Saving…" disabled state** on Next (don't drop the save
+  affordance); rename Twin "Done ✓" → **"Review (N) →"** in P0; module bottom-nav stays P1, but the
+  **app badge + accent top bar ship in P0** so identity isn't blocked on a nav refactor.
+
+### P0 (locked, gates App Store review)
+1. **Site Walk Capture → Add info**: step strip + full-width "Add info →" + auto-open (first 3) +
+   rename + "needs info" dot/count + narrow exit guard. (Applies to quick AND plan walks.)
+2. **Twin**: persistent mode badge + 8px red recording bar + square-stop + "Review (N) →".
+3. **App badge + accent** (header + capture top bar) on ALL module + task routes + **sync chip**.
+4. **De-jargon copy pass** (no "REC" in photo paths; "Walk without plan"; "Generate report").

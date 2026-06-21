@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Slate360 — Screen Preview (UX plan)</title>
+<style>
+  :root{
+    --canvas:#0B0F15; --surface:rgba(255,255,255,.05); --border:rgba(255,255,255,.10);
+    --hair:rgba(255,255,255,.08); --txt:#F8FAFC; --muted:#A3AED0; --white:#fff;
+    --sw:#00E699; --twin:#3D8EFF; --rec:#FF4D4D; --radius:6px;
+    --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:#06080c;color:var(--txt);font-family:var(--font);padding:28px}
+  h1{font-size:20px;letter-spacing:.04em;margin:0 0 4px}
+  .sub{color:var(--muted);font-size:13px;margin:0 0 24px;max-width:760px;line-height:1.5}
+  .grid{display:flex;flex-wrap:wrap;gap:26px}
+  .phone{width:268px;background:var(--canvas);border:1px solid var(--border);border-radius:22px;
+    overflow:hidden;display:flex;flex-direction:column;height:560px;position:relative;
+    box-shadow:0 10px 40px rgba(0,0,0,.5)}
+  .cap{font-size:12px;color:var(--muted);margin:10px 2px 0;text-align:center;letter-spacing:.02em}
+  /* top accent bar */
+  .accent{height:4px;width:100%}
+  .accent.sw{background:var(--sw)} .accent.twin{background:var(--twin)} .accent.neutral{background:transparent}
+  .accent.rec{height:8px;background:var(--rec);animation:pulse 1.1s infinite}
+  @keyframes pulse{50%{opacity:.45}}
+  /* header */
+  .hdr{display:flex;align-items:center;gap:8px;padding:12px 12px 10px;border-bottom:1px solid var(--hair);font-size:13px}
+  .hdr .back{color:var(--muted)}
+  .badge{display:inline-flex;align-items:center;gap:6px;font-weight:600;letter-spacing:.03em;font-size:12px}
+  .dot{width:9px;height:9px;border-radius:50%}
+  .dot.sw{background:var(--sw)} .dot.twin{background:var(--twin)} .dot.neutral{background:var(--muted)}
+  .hdr .right{margin-left:auto;display:flex;gap:8px;align-items:center;color:var(--muted);font-size:11px}
+  .chip{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:3px 8px;font-size:11px;color:var(--muted)}
+  .chip .g{color:var(--sw)} .chip .b{color:var(--twin)}
+  /* body */
+  .body{flex:1;padding:14px;overflow:hidden;display:flex;flex-direction:column;gap:10px}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px}
+  .card .t{font-size:13px;font-weight:600} .card .d{font-size:11px;color:var(--muted);margin-top:3px}
+  .label{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+  .tile{flex:1;border-radius:var(--radius);display:flex;flex-direction:column;justify-content:flex-end;padding:12px;border:1px solid var(--border)}
+  .tile.sw{background:linear-gradient(160deg,rgba(0,230,153,.16),rgba(0,230,153,.03))}
+  .tile.twin{background:linear-gradient(160deg,rgba(61,142,255,.16),rgba(61,142,255,.03))}
+  .tile .n{font-weight:700;font-size:15px} .tile .s{font-size:11px;color:var(--muted);margin-top:2px}
+  .primary{background:var(--sw);color:#06231a;font-weight:700;text-align:center;border-radius:var(--radius);padding:13px;font-size:14px}
+  .primary.twin{background:var(--twin);color:#04152e}
+  .ghost{color:var(--muted);text-align:center;font-size:12px;margin-top:8px}
+  /* bottom nav */
+  .nav{display:flex;border-top:1px solid var(--hair);position:relative}
+  .nav.sw{box-shadow:inset 0 3px 0 var(--sw)} .nav.twin{box-shadow:inset 0 3px 0 var(--twin)}
+  .nav .tab{flex:1;text-align:center;padding:9px 0 12px;font-size:10px;color:var(--muted)}
+  .nav .tab.on.sw{color:var(--sw)} .nav .tab.on.twin{color:var(--twin)} .nav .tab.on.neutral{color:var(--txt)}
+  /* camera */
+  .cam{flex:1;background:repeating-linear-gradient(135deg,#0e141c,#0e141c 12px,#10171f 12px,#10171f 24px);
+    border-radius:var(--radius);position:relative;display:flex;flex-direction:column;justify-content:space-between;padding:10px}
+  .stepstrip{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--muted);justify-content:center}
+  .sdot{width:8px;height:8px;border-radius:50%;background:var(--border)}
+  .sdot.on.sw{background:var(--sw)} .sdot.on.twin{background:var(--twin)}
+  .sline{flex:0 0 26px;height:1px;background:var(--border)}
+  .rail{display:flex;align-items:center;justify-content:space-between;padding:8px 4px 2px}
+  .icoL,.icoR{font-size:11px;color:var(--muted);width:54px}
+  .icoR{text-align:right}
+  .shutter{width:58px;height:58px;border-radius:50%;border:4px solid var(--sw);display:flex;align-items:center;justify-content:center}
+  .shutter.twin{border-color:var(--twin)}
+  .shutter .inner{width:42px;height:42px;border-radius:50%;background:var(--sw)}
+  .shutter.twin .inner{background:var(--twin)}
+  .shutter.rec{border-color:var(--rec)}
+  .shutter.rec .inner{border-radius:6px;background:var(--rec);width:26px;height:26px}
+  .shutter.ticks{position:relative;border-style:dashed;border-color:var(--twin)}
+  .modeseg{display:flex;gap:6px;justify-content:center;margin-bottom:6px}
+  .seg{padding:8px 14px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid var(--border);color:var(--muted)}
+  .seg.on.twin{background:var(--twin);color:#04152e;border-color:var(--twin)}
+  .statpill{align-self:center;background:rgba(0,0,0,.5);border:1px solid var(--border);border-radius:20px;padding:5px 12px;font-size:11px}
+  .statpill .r{color:var(--rec);font-weight:700}
+  .statpill .b{color:var(--twin);font-weight:700}
+  .hint{text-align:center;font-size:10px;color:var(--muted)}
+  /* settings sheet */
+  .sheet{margin-top:auto;background:#0e141c;border:1px solid var(--border);border-radius:12px 12px 0 0;padding:14px}
+  .row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--hair);font-size:12px}
+  .row:last-child{border-bottom:0}
+  .lock{color:var(--twin);font-size:11px}
+  .pillrow{display:flex;gap:6px;margin:8px 0 4px}
+  .ratepill{flex:1;text-align:center;padding:8px 0;border-radius:var(--radius);border:1px solid var(--border);font-size:12px;color:var(--muted)}
+  .ratepill.on{background:var(--twin);color:#04152e;border-color:var(--twin);font-weight:700}
+  .filmstrip{display:flex;gap:5px}
+  .frame{width:34px;height:26px;border-radius:3px;background:#1a2330;border:1px solid var(--border);position:relative}
+  .needs{position:absolute;top:-3px;right:-3px;width:9px;height:9px;border-radius:50%;background:#FF8A3D;border:1px solid #06080c}
+</style>
+</head>
+<body>
+  <h1>SLATE360 · SCREEN PREVIEW</h1>
+  <p class="sub">Proposed UI from the synthesized UX plan. Graphite Glass theme · Site Walk green <b style="color:#00E699">#00E699</b> · Twin 360 blue <b style="color:#3D8EFF">#3D8EFF</b> · platform neutral. Shows the three chrome depths, the persistent app identity, the unmistakable Twin mode/recording state, and the Capture → Add info step fix.</p>
+
+  <div class="grid">
+
+    <!-- 1 Platform Home -->
+    <div>
+      <div class="phone">
+        <div class="accent neutral"></div>
+        <div class="hdr"><span class="badge"><span class="dot neutral"></span>Slate360</span>
+          <span class="right"><span class="chip">☁ Synced</span><span class="chip">⚡142</span>◷</span></div>
+        <div class="body">
+          <div class="label">Continue</div>
+          <div class="card"><div class="t">Resume Site Walk #12 · Level 2</div><div class="d">3 stops · last sync 2m ago</div></div>
+          <div class="label">Your apps</div>
+          <div style="display:flex;gap:10px;flex:1">
+            <div class="tile sw"><div class="n">Site Walk</div><div class="s">Document with photos & pins</div></div>
+            <div class="tile twin"><div class="n">Twin 360</div><div class="s">3D walkthrough capture</div></div>
+          </div>
+        </div>
+        <div class="nav neutral">
+          <div class="tab on neutral">⌂<br>Home</div><div class="tab">📁<br>Projects</div>
+          <div class="tab">☁<br>SlateDrop</div><div class="tab">💬<br>Activity</div><div class="tab">○<br>Account</div>
+        </div>
+      </div>
+      <div class="cap">1 · Platform home — neutral chrome, two app tiles</div>
+    </div>
+
+    <!-- 2 Site Walk Home -->
+    <div>
+      <div class="phone">
+        <div class="accent sw"></div>
+        <div class="hdr"><span class="back">‹</span><span class="badge"><span class="dot sw"></span>Site Walk</span>
+          <span class="right"><span class="chip"><span class="g">☁</span></span><span class="chip">⚡142</span>○</span></div>
+        <div class="body">
+          <div class="primary">▶ Start walk</div>
+          <div class="label">Recent</div>
+          <div class="card"><div class="t">Riverside · Level 2</div><div class="d">12 photos · 4 stops · synced</div></div>
+          <div class="card"><div class="t">Riverside · Roof</div><div class="d">8 photos · 2 stops · synced</div></div>
+        </div>
+        <div class="nav sw">
+          <div class="tab on sw">⌂<br>Home</div><div class="tab">▶<br>Walks</div>
+          <div class="tab">📄<br>Plans</div><div class="tab">📁<br>Files</div><div class="tab">○<br>More</div>
+        </div>
+      </div>
+      <div class="cap">2 · Site Walk home — green badge + green nav (accent = identity)</div>
+    </div>
+
+    <!-- 3 Site Walk capture live -->
+    <div>
+      <div class="phone">
+        <div class="accent sw"></div>
+        <div class="hdr"><span class="back">‹</span><span class="badge"><span class="dot sw"></span>Site Walk</span>
+          <span style="margin-left:6px;color:var(--muted);font-size:11px">Stop 3 · Kitchen</span>
+          <span class="right" style="color:var(--rec)">Exit</span></div>
+        <div class="body" style="padding:10px">
+          <div class="cam">
+            <div class="hint">tap = photo · hold = import</div>
+            <div class="rail">
+              <div class="icoL">💡 Light</div>
+              <div class="shutter"><div class="inner"></div></div>
+              <div class="icoR">End walk</div>
+            </div>
+          </div>
+        </div>
+        <!-- no bottom nav in capture -->
+      </div>
+      <div class="cap">3 · Site Walk capture (live) — full-bleed, green shutter, no nav</div>
+    </div>
+
+    <!-- 4 Site Walk after photo (THE fix) -->
+    <div>
+      <div class="phone">
+        <div class="accent sw"></div>
+        <div class="hdr"><span class="back">‹</span><span class="badge"><span class="dot sw"></span>Site Walk</span>
+          <span style="margin-left:6px;color:var(--muted);font-size:11px">Stop 3 · Add info</span>
+          <span class="right" style="color:var(--rec)">Exit</span></div>
+        <div class="body" style="padding:12px;gap:8px">
+          <div class="cam" style="flex:0 0 150px;justify-content:center;align-items:center;color:var(--muted);font-size:11px">photo preview</div>
+          <div class="filmstrip">
+            <div class="frame"></div><div class="frame"></div>
+            <div class="frame"><div class="needs"></div></div>
+          </div>
+          <div class="stepstrip"><span class="sdot on sw"></span><span class="sline"></span><span class="sdot"></span><span class="sline"></span><span class="sdot"></span></div>
+          <div class="stepstrip" style="gap:34px;font-size:9px"><span style="color:var(--sw)">✓ Capture</span><span>Add info</span><span>Done</span></div>
+          <div class="primary" style="margin-top:auto">Add info →</div>
+          <div class="ghost">Skip for now</div>
+        </div>
+      </div>
+      <div class="cap">4 · After photo — <b>step strip + full-width “Add info →”</b> (the #1 fix). Orange dot = “needs info”.</div>
+    </div>
+
+    <!-- 5 Twin recording -->
+    <div>
+      <div class="phone">
+        <div class="accent rec"></div>
+        <div class="hdr"><span class="back">‹</span>
+          <span class="seg on twin" style="padding:5px 10px;font-size:11px">▶ VIDEO</span>
+          <span class="right"><span class="statpill"><span class="r">● REC</span> 0:42 / 1:30</span></span></div>
+        <div class="body" style="padding:10px">
+          <div class="cam">
+            <div style="text-align:center;color:var(--muted);font-size:10px">coverage ◎ 62% · keep going</div>
+            <div class="statpill" style="align-self:center"><span class="r">● REC</span>&nbsp; VIDEO &nbsp; 0:42</div>
+            <div class="rail">
+              <div class="icoL">💡</div>
+              <div class="shutter twin rec"><div class="inner"></div></div>
+              <div class="icoR">recording…</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="cap">5 · Twin 360 recording — <b>mode badge stays</b>, 8px red bar, <b>square</b> stop</div>
+    </div>
+
+    <!-- 6 Twin photos + settings -->
+    <div>
+      <div class="phone">
+        <div class="accent twin"></div>
+        <div class="hdr"><span class="back">‹</span><span class="badge"><span class="dot twin"></span>Twin 360</span>
+          <span class="right"><span class="chip">📷 2s ▾</span> ⚙</span></div>
+        <div class="body" style="padding:10px">
+          <div class="cam" style="flex:0 0 120px">
+            <div class="hint">walk slowly — phone snaps automatically</div>
+            <div class="statpill" style="align-self:center"><span class="b">CAPTURING</span> · 24 frames · 2s</div>
+            <div class="rail">
+              <div class="icoL">💡</div>
+              <div class="shutter twin ticks"><div class="inner" style="border-radius:50%"></div></div>
+              <div class="icoR">Review (1)→</div>
+            </div>
+          </div>
+          <div class="sheet">
+            <div class="label">Capture rate</div>
+            <div class="pillrow"><span class="ratepill">1s</span><span class="ratepill on">2s</span><span class="ratepill">5s</span><span class="ratepill">Manual</span></div>
+            <div class="label" style="margin-top:6px">Camera · High quality</div>
+            <div class="row"><span>Shutter 1/500</span><span class="lock">🔒 locked</span></div>
+            <div class="row"><span>ISO 400 · WB 5500K · Focus</span><span class="lock">🔒 locked</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="cap">6 · Twin photos + settings sheet — “CAPTURING” (never REC), rate presets, HQ locks</div>
+    </div>
+
+  </div>
+</body>
+</html>
