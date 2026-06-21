@@ -84,14 +84,26 @@ chrome differs (a `mode` prop):
   - Export measurements/pins. Layers toggle (pins/measurements on/off).
 Collapsible panels keep the model unobstructed; on mobile they become bottom sheets.
 
-## 6. Build order (safe)
-1. **Worker manifest** (T2) — additive sidecar; redeploy Modal worker; fix PLY stride.
-2. **Viewer manifest read** (T1 §3.1–3.3) — orientation group (identity default) + manifest camera;
-   **zero regression** for legacy twins.
-3. **Recenter** snapshot hardening + **sphere fit** + **1–99 percentile**.
-4. **PCA fallback** for legacy (manifest-absent) models.
-5. **Controls** polish (orbit/walk + on-screen cluster + gesture unification).
-6. **Two viewer modes** chrome: `showcase` vs `field` (measurements + pins + collapsible sidebar).
+## 6. Build order (safe) — STATUS
+1. ✅ **Worker manifest** (T2) — DONE in code (`worker.py`: PLY-stride fix + `compute_splat_manifest`
+   + sibling `.manifest.json` upload). ⚠ **NOT DEPLOYED** — this sandbox has no Modal creds; run
+   `cd workers/modal/twin-gaussian-splat && PYTHONIOENCODING=utf-8 python -m modal deploy worker.py`
+   from a machine with the token. Manifests attach to **newly-processed** twins only.
+2. ✅ **Viewer manifest read** — DONE (`splat-viewer-scene.tsx` parent group applies
+   `correction_quaternion`, identity default; `/api/digital-twin/splat-manifest` delivery route;
+   `lib/digital-twin/twin-manifest.ts`). Zero regression for legacy twins.
+3. ✅ **PCA fallback** — DONE (`lib/digital-twin/splat-pca-orientation.ts`), wired with precedence
+   manifest > PCA > identity. Strictly gated (tilt > 8° + planar floor); fixes legacy twins
+   in-browser without reprocessing.
+4. ⏳ **Recenter** snapshot hardening + **bounding-sphere fit** + **1–99 percentile** in the viewer
+   framing (`exterior-camera-frame.ts` / `splat-overview-navigation.tsx`). Pending — changes framing
+   for all models, so do it against a deploy-verified twin.
+5. ⏳ **Controls** polish (orbit/walk + on-screen cluster + gesture unification).
+6. ⏳ **Two viewer modes** chrome: `showcase` vs `field` (measurements + pins + collapsible sidebar).
+
+**Recommended gate before steps 4–6:** deploy the worker → reprocess one twin → confirm it loads
+centered + upright (manifest path) and that a legacy twin is corrected (PCA path). Build the larger
+controls/measurement/pin UI against that verified base rather than blind (viewer is un-testable here).
 
 ## 7. Open / to verify when implementing
 - Spark API for iterating splat centers (`forEachSplat` vs geometry attribute) — confirm in repo.
