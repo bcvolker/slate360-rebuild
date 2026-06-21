@@ -53,7 +53,7 @@ export const FEATURES: Feature[] = [
   { key: "clip.add", label: "Add / remove clips", category: "timeline", status: "live", note: "editor-store addClip/removeClip + drag-from-bin." },
   { key: "clip.trim", label: "Trim in/out (edge drag + numeric)", category: "timeline", status: "live", note: "setClipTrim, clamped to source." },
   { key: "clip.speed", label: "Speed / retime 0.25–4×", category: "timeline", status: "live", note: "setClipSpeed; layout + playbackRate honor it." },
-  { key: "clip.reverse", label: "Reverse clip", category: "timeline", status: "partial", note: "Flag + toggle UI; render worker honors it (9B). Preview playback still doesn't reverse." },
+  { key: "clip.reverse", label: "Reverse clip", category: "timeline", status: "live", note: "Toggle + REV badge on clip; render worker reverses (9B). Preview playback itself still plays forward." },
   { key: "clip.split", label: "Split at playhead (B)", category: "timeline", status: "live", note: "splitAtPlayhead interior cut." },
   { key: "clip.reorder", label: "Drag to move / reorder", category: "timeline", status: "live", note: "moveClipTo via pointer; one undo step." },
   { key: "clip.snap", label: "Snap toggle", category: "timeline", status: "partial", note: "Toggle state exists; magnetic snap not yet applied to drags." },
@@ -68,7 +68,7 @@ export const FEATURES: Feature[] = [
 
   // ── Inspector ──
   { key: "ins.clip", label: "Clip tab (speed/trim/reverse/split)", category: "inspector", status: "live", note: "Bound to selected clip." },
-  { key: "ins.color", label: "Color tab grade sliders", category: "inspector", status: "stub", note: "LevelDisclosureRow has no onChange; colorGrade not per-clip, not serialized." },
+  { key: "ins.color", label: "Color tab grade sliders", category: "inspector", status: "live", note: "Cat2: bound sliders, all/clip scope, live CSS preview + temp overlay, serialized → worker eq/colorbalance." },
   { key: "ins.export", label: "Export tab / dialog", category: "inspector", status: "live", note: "Aspect/res/quality/preflight → enqueue." },
   { key: "ins.audio", label: "Audio tab", category: "inspector", status: "stub", note: "Note only." },
   { key: "ins.titles", label: "Titles tab", category: "inspector", status: "stub", note: "Note only." },
@@ -82,7 +82,7 @@ export const FEATURES: Feature[] = [
   { key: "effects.stack", label: "Per-clip effect stack", category: "effects", status: "missing", note: "SlateClipEffect schema exists; no catalog, no UI." },
 
   // ── Color ──
-  { key: "color.look.apply", label: "Apply Look from Library", category: "color", status: "partial", note: "applyLibraryLook sets local colorGrade; not per-clip, not serialized, lost on reload." },
+  { key: "color.look.apply", label: "Apply Look from Library", category: "color", status: "live", note: "Cat2: applyLibraryLook maps look→master grade for ALL clips, previews live + serializes." },
   { key: "color.look.save", label: "Save as Look", category: "color", status: "missing", note: "Not built." },
 
   // ── Audio ──

@@ -73,6 +73,27 @@ def _has_audio(path: str) -> bool:
         return False
 
 
+def _color_filter(color: dict[str, Any] | None) -> str:
+    """0-centered [-100,100] grade → FFmpeg eq (+ colorbalance for temperature). '' when neutral."""
+    if not color:
+        return ""
+    e = float(color.get("exposure", 0) or 0)
+    c = float(color.get("contrast", 0) or 0)
+    s = float(color.get("saturation", 0) or 0)
+    t = float(color.get("temperature", 0) or 0)
+    if e == 0 and c == 0 and s == 0 and t == 0:
+        return ""
+    clamp = lambda v, lo, hi: max(lo, min(hi, v))
+    parts = [
+        f"eq=brightness={clamp((e/100)*0.4,-1,1):.4f}:"
+        f"contrast={clamp(1+c/100,0,2):.4f}:saturation={clamp(1+s/100,0,3):.4f}"
+    ]
+    if t != 0:
+        tb = (t / 100) * 0.3
+        parts.append(f"colorbalance=rm={tb:.4f}:bm={-tb:.4f}")
+    return "," + ",".join(parts)
+
+
 def _atempo_chain(speed: float) -> str:
     """atempo accepts 0.5–2.0 only; chain factors to hit any speed (= the video speed)."""
     parts: list[str] = []
@@ -104,6 +125,7 @@ def _build_filtergraph(clips: list[dict[str, Any]], has_audio: list[bool],
             v += f",setpts=PTS/{speed:.6f}"
         if reverse:
             v += ",reverse"
+        v += _color_filter(c.get("color"))
         v += (f",scale={w}:{h}:force_original_aspect_ratio=decrease,"
               f"pad={w}:{h}:(ow-iw)/2:(oh-ih)/2:color=black,setsar=1,fps={fps},format=yuv420p[v{i}]")
         chains.append(v)

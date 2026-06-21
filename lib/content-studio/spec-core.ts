@@ -81,6 +81,15 @@ export const SlateClipSchema = z.object({
   cutOutSec: Sec, // exclusive; must be > cutInSec (validated below)
   speed: z.number().finite().min(0.25).max(4).default(1),
   reverse: z.boolean().default(false),
+  /** 0-centered color grade [-100,100]; omitted when neutral. */
+  color: z
+    .object({
+      exposure: z.number().default(0),
+      contrast: z.number().default(0),
+      saturation: z.number().default(0),
+      temperature: z.number().default(0),
+    })
+    .optional(),
   layer: z.number().int().min(0).default(0), // z-order among clips
   /** Embedded audio policy; full detached-audio domain arrives in the audio slice. */
   embeddedAudio: z.enum(["keep", "mute"]).default("keep"),

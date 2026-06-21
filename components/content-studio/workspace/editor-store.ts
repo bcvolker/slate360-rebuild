@@ -3,6 +3,7 @@
 import { create } from "zustand";
 import { useStore } from "zustand";
 import { temporal } from "zundo";
+import { NEUTRAL_COLOR, type ColorAdjust } from "@/lib/content-studio/color";
 
 /**
  * Transient Content Studio editor state (Zustand — panels subscribe to slices,
@@ -14,14 +15,6 @@ export type EditorMode = "video" | "360" | "photo";
 export type InspectorTab = "clip" | "color" | "audio" | "titles" | "enhance" | "export";
 export type PanelId = "mediaBin" | "inspector";
 export type MediaBinTab = "project" | "library";
-
-export type ColorGrade = {
-  exposure: number;
-  contrast: number;
-  saturation: number;
-  temperature: number;
-  tint: number;
-};
 
 export type PendingTransition = {
   xfade: string;
@@ -52,7 +45,12 @@ type EditorState = {
   libraryCategory: string | null;
   activeLookId: string | null;
   activeLookName: string | null;
-  colorGrade: ColorGrade;
+  /** Master grade — applies to EVERY clip (the adjustment-layer / apply-to-all). */
+  masterColor: ColorAdjust;
+  /** Per-clip overrides — when present, replace master for that clip. */
+  clipColor: Record<string, ColorAdjust>;
+  /** Whether the Color tab edits all clips (master) or just the selected clip. */
+  colorScope: "all" | "clip";
   pendingTransition: PendingTransition | null;
   libraryToast: string | null;
 
@@ -70,6 +68,9 @@ type EditorState = {
   setMediaBinTab: (tab: MediaBinTab) => void;
   setLibraryCategory: (category: string | null) => void;
   applyLibraryLook: (look: { id: string; name: string; lookJson?: Record<string, unknown> }) => void;
+  setColorScope: (scope: "all" | "clip") => void;
+  setColor: (patch: Partial<ColorAdjust>) => void;
+  resetColor: () => void;
   setPendingTransition: (t: PendingTransition | null) => void;
   setLibraryToast: (msg: string | null) => void;
   togglePanel: (id: PanelId) => void;
@@ -142,7 +143,9 @@ export const useEditorStore = create<EditorState>()(
   libraryCategory: null,
   activeLookId: null,
   activeLookName: null,
-  colorGrade: { exposure: 0, contrast: 1, saturation: 1, temperature: 0, tint: 0 },
+  masterColor: { ...NEUTRAL_COLOR },
+  clipColor: {},
+  colorScope: "all",
   pendingTransition: null,
   libraryToast: null,
 
@@ -159,21 +162,46 @@ export const useEditorStore = create<EditorState>()(
   setMediaBinTab: (mediaBinTab) => set({ mediaBinTab }),
   setLibraryCategory: (libraryCategory) => set({ libraryCategory, mediaBinTab: "library" }),
   applyLibraryLook: (look) =>
-    set((s) => {
+    set(() => {
       const g = look.lookJson ?? {};
+      const cl = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
+      // lookJson is 1-centered multipliers (contrast/saturation) + small exposure +
+      // ~Kelvin temperature; map into the 0-centered [-100,100] adjustment model.
+      const master: ColorAdjust = {
+        exposure: cl(Number(g.exposure ?? 0) * 200, -100, 100),
+        contrast: cl((Number(g.contrast ?? 1) - 1) * 100, -100, 100),
+        saturation: cl((Number(g.saturation ?? 1) - 1) * 100, -100, 100),
+        temperature: cl(Number(g.temperature ?? 0) / 6, -100, 100),
+      };
+      // Apply the look to ALL clips: set master, clear per-clip overrides.
       return {
         activeLookId: look.id,
         activeLookName: look.name,
         inspectorTab: "color",
-        colorGrade: {
-          exposure: Number(g.exposure ?? 0),
-          contrast: Number(g.contrast ?? 1),
-          saturation: Number(g.saturation ?? 1),
-          temperature: Number(g.temperature ?? 0),
-          tint: Number(g.tint ?? 0),
-        },
-        libraryToast: `Applied look: ${look.name}`,
+        colorScope: "all",
+        masterColor: master,
+        clipColor: {},
+        libraryToast: `Applied look "${look.name}" to all clips`,
       };
+    }),
+  setColorScope: (colorScope) => set({ colorScope }),
+  setColor: (patch) =>
+    set((s) => {
+      if (s.colorScope === "clip" && s.selectedClipId) {
+        const base = s.clipColor[s.selectedClipId] ?? s.masterColor;
+        return { clipColor: { ...s.clipColor, [s.selectedClipId]: { ...base, ...patch } }, activeLookId: null, activeLookName: null };
+      }
+      // "all" scope: edit the master grade; clear per-clip overrides so it truly applies to all.
+      return { masterColor: { ...s.masterColor, ...patch }, clipColor: {}, activeLookId: null, activeLookName: null };
+    }),
+  resetColor: () =>
+    set((s) => {
+      if (s.colorScope === "clip" && s.selectedClipId) {
+        const next = { ...s.clipColor };
+        delete next[s.selectedClipId];
+        return { clipColor: next };
+      }
+      return { masterColor: { ...NEUTRAL_COLOR }, clipColor: {}, activeLookId: null, activeLookName: null };
     }),
   setPendingTransition: (pendingTransition) =>
     set({ pendingTransition, libraryToast: pendingTransition ? `Default transition: ${pendingTransition.name}` : null }),

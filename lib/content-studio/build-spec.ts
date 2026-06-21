@@ -21,6 +21,7 @@ export type RenderClipInput = {
   trimOutSec: number;
   speedFactor: number;
   reversed?: boolean;
+  color?: { exposure: number; contrast: number; saturation: number; temperature: number };
   mediaKind?: "video" | "image" | "equirect_video";
 };
 
@@ -64,6 +65,10 @@ export function buildEditSpec(args: {
         cutOutSec,
         speed,
         reverse: !!c.reversed,
+        ...(c.color &&
+        (c.color.exposure || c.color.contrast || c.color.saturation || c.color.temperature)
+          ? { color: c.color }
+          : {}),
         embeddedAudio: "keep" as const,
         layers: [],
       };

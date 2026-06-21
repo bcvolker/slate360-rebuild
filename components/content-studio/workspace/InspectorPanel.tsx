@@ -46,14 +46,7 @@ export function InspectorPanel() {
         ) : tab === "clip" && clip ? (
           <ClipTab clip={clip} />
         ) : tab === "color" ? (
-          <>
-            <ActiveLookBanner />
-            <LevelDisclosureRow label="Exposure" defaultStrength={50} />
-            <LevelDisclosureRow label="Contrast" defaultStrength={50} />
-            <LevelDisclosureRow label="Saturation" defaultStrength={50} />
-            <LevelDisclosureRow label="Temperature" defaultStrength={50} />
-            <NoteRow text="Click a Look in the Library tab to apply. Grades persist to the render spec on export." />
-          </>
+          <ColorTab />
         ) : tab === "enhance" ? (
           <>
             <LevelDisclosureRow label="Denoise" defaultOn defaultStrength={60} />
@@ -165,6 +158,80 @@ function ClipTab({ clip }: { clip: TimelineClip }) {
   );
 }
 
+const COLOR_FIELDS: { key: "exposure" | "contrast" | "saturation" | "temperature"; label: string }[] = [
+  { key: "exposure", label: "Exposure" },
+  { key: "contrast", label: "Contrast" },
+  { key: "saturation", label: "Saturation" },
+  { key: "temperature", label: "Temperature" },
+];
+
+function ColorTab() {
+  const scope = useEditorStore((s) => s.colorScope);
+  const setScope = useEditorStore((s) => s.setColorScope);
+  const setColor = useEditorStore((s) => s.setColor);
+  const resetColor = useEditorStore((s) => s.resetColor);
+  const selectedId = useEditorStore((s) => s.selectedClipId);
+  const master = useEditorStore((s) => s.masterColor);
+  const clipColor = useEditorStore((s) => s.clipColor);
+  const lookName = useEditorStore((s) => s.activeLookName);
+
+  const value = scope === "clip" && selectedId ? clipColor[selectedId] ?? master : master;
+
+  return (
+    <div className="space-y-3">
+      {/* Scope: all clips (adjustment layer) vs the selected clip */}
+      <div className="flex overflow-hidden rounded-md border border-white/10">
+        <button
+          type="button"
+          onClick={() => setScope("all")}
+          className={`flex-1 px-2 py-1.5 text-xs transition-colors ${scope === "all" ? "bg-[#3D8EFF]/20 text-white" : "text-white/55 hover:bg-white/5"}`}
+        >
+          All clips
+        </button>
+        <button
+          type="button"
+          onClick={() => selectedId && setScope("clip")}
+          disabled={!selectedId}
+          className={`flex-1 px-2 py-1.5 text-xs transition-colors disabled:opacity-30 ${scope === "clip" ? "bg-[#3D8EFF]/20 text-white" : "text-white/55 hover:bg-white/5"}`}
+        >
+          This clip
+        </button>
+      </div>
+
+      {lookName && scope === "all" && (
+        <div className="rounded-md border border-white/10 bg-white/[0.03] px-3 py-1.5 text-[11px] text-white/55">Look: {lookName}</div>
+      )}
+
+      {COLOR_FIELDS.map((f) => (
+        <div key={f.key} className="rounded-md border border-white/10 bg-white/[0.03] p-3">
+          <div className="mb-1 flex items-center justify-between">
+            <span className="text-sm text-white/85">{f.label}</span>
+            <span className="font-mono text-xs tabular-nums text-white/60">{value[f.key] > 0 ? "+" : ""}{Math.round(value[f.key])}</span>
+          </div>
+          <input
+            type="range"
+            min={-100}
+            max={100}
+            step={1}
+            value={value[f.key]}
+            onChange={(e) => setColor({ [f.key]: Number(e.target.value) })}
+            className="h-1 w-full accent-[#3D8EFF]"
+          />
+        </div>
+      ))}
+
+      <button
+        type="button"
+        onClick={resetColor}
+        className="w-full rounded-md border border-white/10 py-1.5 text-xs text-white/65 hover:bg-white/5"
+      >
+        Reset {scope === "clip" ? "this clip" : "all"}
+      </button>
+      <NoteRow text="Changes preview live on the player and render on export. 'All clips' is your adjustment layer — apply a Library Look to set it for the whole edit." />
+    </div>
+  );
+}
+
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="rounded-md border border-white/10 bg-white/[0.03] p-3">
@@ -187,16 +254,6 @@ function NumField({ label, value, onChange }: { label: string; value: number; on
         className="w-full bg-transparent text-right font-mono text-xs tabular-nums text-white/85 outline-none"
       />
     </label>
-  );
-}
-
-function ActiveLookBanner() {
-  const name = useEditorStore((s) => s.activeLookName);
-  if (!name) return null;
-  return (
-    <div className="rounded-md border border-[#3D8EFF]/30 bg-[#3D8EFF]/10 px-3 py-2 text-xs text-white/80">
-      Active look: <span className="font-medium text-white">{name}</span>
-    </div>
   );
 }
 

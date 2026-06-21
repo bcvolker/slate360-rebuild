@@ -198,6 +198,12 @@ export function TimelinePanel() {
                 }`}
               >
                 <span className="block truncate px-3 py-1 pr-5 text-[10px] text-white/85">{clip.name}</span>
+                {(clip.reversed || (clip.speedFactor && clip.speedFactor !== 1)) && (
+                  <span className="absolute bottom-0.5 left-1 flex gap-1">
+                    {clip.reversed && <span className="rounded-sm bg-black/55 px-1 text-[8px] font-medium text-[#3D8EFF]">↺ REV</span>}
+                    {clip.speedFactor !== 1 && <span className="rounded-sm bg-black/55 px-1 text-[8px] font-medium text-white/75">{clip.speedFactor}×</span>}
+                  </span>
+                )}
                 {/* Trim handles — wide grab zone + always-faint grip bar that brightens on hover */}
                 <div
                   title="Trim start"

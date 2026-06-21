@@ -10,7 +10,14 @@ import { buildEditSpec } from "@/lib/content-studio/build-spec";
 
 export const dynamic = "force-dynamic";
 
-type ClipInput = { assetId: string; trimInSec?: number; trimOutSec?: number; speedFactor?: number; reversed?: boolean };
+type ClipInput = {
+  assetId: string;
+  trimInSec?: number;
+  trimOutSec?: number;
+  speedFactor?: number;
+  reversed?: boolean;
+  color?: { exposure: number; contrast: number; saturation: number; temperature: number };
+};
 type OutputInput = { aspect?: string; width?: number; height?: number; quality?: string; fps?: number };
 
 async function signedGet(key: string | null): Promise<string | null> {
@@ -55,7 +62,7 @@ export const POST = (req: NextRequest) =>
       const trimIn = Math.max(0, c.trimInSec ?? 0);
       const trimOut = Math.max(trimIn, c.trimOutSec ?? trimIn);
       const speed = Math.max(0.25, Math.min(4, c.speedFactor ?? 1));
-      return { assetId: c.assetId, storageKey: keyOf.get(c.assetId) ?? null, trimInSec: trimIn, trimOutSec: trimOut, speedFactor: speed, reversed: !!c.reversed };
+      return { assetId: c.assetId, storageKey: keyOf.get(c.assetId) ?? null, trimInSec: trimIn, trimOutSec: trimOut, speedFactor: speed, reversed: !!c.reversed, color: c.color };
     });
     const timelineSec = manifest.reduce((t, m) => t + Math.max(0, m.trimOutSec - m.trimInSec) / m.speedFactor, 0);
     const estimatedCredits = Math.max(1, Math.ceil(timelineSec / 60));

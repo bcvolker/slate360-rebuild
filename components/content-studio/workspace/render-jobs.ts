@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useEditorStore } from "./editor-store";
+import { isNeutral } from "@/lib/content-studio/color";
 
 export type RenderJob = {
   id: string;
@@ -44,11 +45,21 @@ export function useRenderJobs() {
 
 /** Enqueue a render of the current timeline. Returns { ok, error }. */
 export async function enqueueRender(output: RenderOutput): Promise<{ ok: boolean; error?: string }> {
-  const { clips, editProjectId } = useEditorStore.getState();
+  const { clips, editProjectId, masterColor, clipColor } = useEditorStore.getState();
   if (clips.length === 0) return { ok: false, error: "Add at least one clip to the timeline." };
   const body = {
     editProjectId,
-    clips: clips.map((c) => ({ assetId: c.assetId, trimInSec: c.trimInSec, trimOutSec: c.trimOutSec, speedFactor: c.speedFactor, reversed: c.reversed })),
+    clips: clips.map((c) => {
+      const eff = clipColor[c.id] ?? masterColor;
+      return {
+        assetId: c.assetId,
+        trimInSec: c.trimInSec,
+        trimOutSec: c.trimOutSec,
+        speedFactor: c.speedFactor,
+        reversed: c.reversed,
+        color: isNeutral(eff) ? undefined : eff,
+      };
+    }),
     output,
   };
   try {
