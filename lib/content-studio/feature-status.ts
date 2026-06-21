@@ -11,7 +11,8 @@
  *   stub    — visible element that only toasts / notes / placeholder
  *   missing — not present
  *
- * Audited 2026-06-21 against commit 22d0eba9 (slices 6–9 + 14A merged).
+ * Audited 2026-06-21 against commit 22d0eba9 (slices 6–9 + 14A merged);
+ * updated post-9B (spec bridge + real render worker live).
  */
 
 export type FeatureState = "live" | "partial" | "stub" | "missing";
@@ -44,15 +45,15 @@ export type Feature = {
 export const FEATURES: Feature[] = [
   // ── Foundation (load-bearing — blocks every downstream feature) ──
   { key: "project.persistence", label: "Project autosave + reload", category: "foundation", status: "missing", note: "Clips live only in Zustand; reload wipes the timeline. No timeline_json write/hydrate." },
-  { key: "spec.bridge", label: "Build SlateContentEditSpec from editor", category: "foundation", status: "missing", note: "Render API gets a thin {assetId,trim,speed} manifest; spec is never assembled, so color/transitions/audio can't reach the worker." },
-  { key: "spec.freeze", label: "Freeze spec snapshot to R2 at enqueue", category: "foundation", status: "missing", note: "render-job contract expects specRef+hash; job row's spec_snapshot_key never written." },
-  { key: "render.worker", label: "Real Modal FFmpeg render worker", category: "foundation", status: "missing", note: "No workers/modal/content-studio/render.py; MODAL_CONTENT_ENDPOINT unset → mock/passthrough only." },
+  { key: "spec.bridge", label: "Build SlateContentEditSpec from editor", category: "foundation", status: "live", note: "9B: buildEditSpec() assembles + validates the spec in the render API." },
+  { key: "spec.freeze", label: "Freeze spec snapshot to R2 at enqueue", category: "foundation", status: "live", note: "9B: render API writes Projects/{id}/spec-{hash}.json + sets spec_snapshot_key." },
+  { key: "render.worker", label: "Real Modal FFmpeg render worker", category: "foundation", status: "live", note: "9B: render.py deployed (slate360-content-render); trim+speed+reverse→concat→R2. MODAL_CONTENT_ENDPOINT on. Prod e2e (authed) pending Brian's confirm." },
 
   // ── Timeline & clip editing ──
   { key: "clip.add", label: "Add / remove clips", category: "timeline", status: "live", note: "editor-store addClip/removeClip + drag-from-bin." },
   { key: "clip.trim", label: "Trim in/out (edge drag + numeric)", category: "timeline", status: "live", note: "setClipTrim, clamped to source." },
   { key: "clip.speed", label: "Speed / retime 0.25–4×", category: "timeline", status: "live", note: "setClipSpeed; layout + playbackRate honor it." },
-  { key: "clip.reverse", label: "Reverse clip", category: "timeline", status: "partial", note: "Flag stored + toggle UI; playback & (absent) worker do not reverse yet." },
+  { key: "clip.reverse", label: "Reverse clip", category: "timeline", status: "partial", note: "Flag + toggle UI; render worker honors it (9B). Preview playback still doesn't reverse." },
   { key: "clip.split", label: "Split at playhead (B)", category: "timeline", status: "live", note: "splitAtPlayhead interior cut." },
   { key: "clip.reorder", label: "Drag to move / reorder", category: "timeline", status: "live", note: "moveClipTo via pointer; one undo step." },
   { key: "clip.snap", label: "Snap toggle", category: "timeline", status: "partial", note: "Toggle state exists; magnetic snap not yet applied to drags." },
@@ -102,7 +103,7 @@ export const FEATURES: Feature[] = [
   // ── Export / render pipeline ──
   { key: "export.dialog", label: "Export dialog + preflight", category: "export", status: "live", note: "ExportDialog." },
   { key: "export.enqueue", label: "Enqueue + status + queue drawer", category: "export", status: "live", note: "render API + useRenderJobs + RenderQueueDrawer." },
-  { key: "export.download", label: "Download finished render", category: "export", status: "partial", note: "Works for mock passthrough (first clip proxy); not the assembled edit until render.py lands." },
+  { key: "export.download", label: "Download finished render", category: "export", status: "live", note: "9B: real assembled multi-clip MP4 from render.py (was mock passthrough)." },
 
   // ── Ingest ──
   { key: "ingest.pipeline", label: "Upload → proxy → thumbnail → asset", category: "ingest", status: "live", note: "presign + Modal ingest.py + HMAC callback, end-to-end." },
