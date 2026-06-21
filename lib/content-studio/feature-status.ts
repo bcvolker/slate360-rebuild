@@ -44,7 +44,7 @@ export type Feature = {
 
 export const FEATURES: Feature[] = [
   // ── Foundation (load-bearing — blocks every downstream feature) ──
-  { key: "project.persistence", label: "Project autosave + reload", category: "foundation", status: "missing", note: "Clips live only in Zustand; reload wipes the timeline. No timeline_json write/hydrate." },
+  { key: "project.persistence", label: "Project autosave + reload", category: "foundation", status: "live", note: "Cat0d: /api/content-studio/projects (ensure-default GET + autosave PATCH) + useProjectPersistence (debounced save, hydrate with fresh proxy URLs)." },
   { key: "spec.bridge", label: "Build SlateContentEditSpec from editor", category: "foundation", status: "live", note: "9B: buildEditSpec() assembles + validates the spec in the render API." },
   { key: "spec.freeze", label: "Freeze spec snapshot to R2 at enqueue", category: "foundation", status: "live", note: "9B: render API writes Projects/{id}/spec-{hash}.json + sets spec_snapshot_key." },
   { key: "render.worker", label: "Real Modal FFmpeg render worker", category: "foundation", status: "live", note: "9B: render.py deployed (slate360-content-render); trim+speed+reverse→concat→R2. MODAL_CONTENT_ENDPOINT on. Prod e2e (authed) pending Brian's confirm." },

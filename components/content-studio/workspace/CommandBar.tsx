@@ -13,6 +13,7 @@ const MODES: { id: EditorMode; label: string }[] = [
 /** Top command bar (44px): brand, project, mode switcher, panel toggles, status, actions. */
 export function CommandBar({
   projectTitle,
+  saveStatus,
   mediaOpen,
   inspectorOpen,
   onToggleMedia,
@@ -24,6 +25,7 @@ export function CommandBar({
   queueActive,
 }: {
   projectTitle: string;
+  saveStatus?: "loading" | "saving" | "saved" | "idle";
   mediaOpen: boolean;
   inspectorOpen: boolean;
   onToggleMedia: () => void;
@@ -61,6 +63,11 @@ export function CommandBar({
         <span className="font-[var(--font-orbitron,inherit)] tracking-wide">Content Studio</span>
         <span className="text-white/30">·</span>
         <span className="max-w-[220px] truncate text-white/70">{projectTitle}</span>
+        {saveStatus && saveStatus !== "idle" && (
+          <span className="ml-1 text-[10px] font-normal text-white/35">
+            {saveStatus === "saving" ? "saving…" : saveStatus === "loading" ? "loading…" : "saved"}
+          </span>
+        )}
       </div>
 
       {/* Mode switcher — rectangular segmented tabs (no pills) */}

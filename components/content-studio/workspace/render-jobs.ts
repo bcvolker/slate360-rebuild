@@ -44,9 +44,10 @@ export function useRenderJobs() {
 
 /** Enqueue a render of the current timeline. Returns { ok, error }. */
 export async function enqueueRender(output: RenderOutput): Promise<{ ok: boolean; error?: string }> {
-  const clips = useEditorStore.getState().clips;
+  const { clips, editProjectId } = useEditorStore.getState();
   if (clips.length === 0) return { ok: false, error: "Add at least one clip to the timeline." };
   const body = {
+    editProjectId,
     clips: clips.map((c) => ({ assetId: c.assetId, trimInSec: c.trimInSec, trimOutSec: c.trimOutSec, speedFactor: c.speedFactor, reversed: c.reversed })),
     output,
   };

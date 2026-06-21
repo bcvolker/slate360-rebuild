@@ -56,7 +56,8 @@ type EditorState = {
   pendingTransition: PendingTransition | null;
   libraryToast: string | null;
 
-  // timeline + transport
+  // project + timeline + transport
+  editProjectId: string | null;
   clips: TimelineClip[];
   selectedClipId: string | null;
   playheadSec: number;
@@ -74,6 +75,8 @@ type EditorState = {
   togglePanel: (id: PanelId) => void;
   resetLayout: () => void;
 
+  setEditProjectId: (id: string | null) => void;
+  loadClips: (clips: TimelineClip[]) => void;
   addClip: (c: { assetId: string; name: string; src: string; durationSec?: number }) => void;
   removeClip: (id: string) => void;
   selectClip: (id: string | null) => void;
@@ -142,6 +145,7 @@ export const useEditorStore = create<EditorState>()(
   pendingTransition: null,
   libraryToast: null,
 
+  editProjectId: null,
   clips: [],
   selectedClipId: null,
   playheadSec: 0,
@@ -176,6 +180,8 @@ export const useEditorStore = create<EditorState>()(
   togglePanel: (id) => set((s) => ({ panelVisibility: { ...s.panelVisibility, [id]: !s.panelVisibility[id] } })),
   resetLayout: () => set({ panelVisibility: { ...DEFAULT_PANELS }, inspectorTab: "clip" }),
 
+  setEditProjectId: (editProjectId) => set({ editProjectId }),
+  loadClips: (clips) => set({ clips, selectedClipId: null, playheadSec: 0, playing: false }),
   addClip: (c) =>
     set((s) => {
       const d = c.durationSec && c.durationSec > 0 ? c.durationSec : 0;

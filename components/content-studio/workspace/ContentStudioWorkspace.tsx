@@ -15,6 +15,7 @@ import { TimelinePanel } from "./TimelinePanel";
 import { ExportDialog } from "./ExportDialog";
 import { RenderQueueDrawer } from "./RenderQueueDrawer";
 import { useRenderJobs } from "./render-jobs";
+import { useProjectPersistence } from "./use-project-persistence";
 import { useEditorStore } from "./editor-store";
 import { useMediaUpload } from "./use-media-upload";
 
@@ -36,6 +37,7 @@ export function ContentStudioWorkspace() {
   const setLibraryCategory = useEditorStore((s) => s.setLibraryCategory);
   const { uploadFiles } = useMediaUpload();
   const { jobs, refetch } = useRenderJobs();
+  const { project, status: saveStatus } = useProjectPersistence();
   const [exportOpen, setExportOpen] = useState(false);
   const [queueOpen, setQueueOpen] = useState(false);
 
@@ -80,7 +82,8 @@ export function ContentStudioWorkspace() {
   return (
     <div className="flex h-full min-h-0 w-full flex-col bg-[#070A0F] text-white">
       <CommandBar
-        projectTitle="Untitled edit"
+        projectTitle={project?.title ?? "Untitled edit"}
+        saveStatus={saveStatus}
         mediaOpen={showMediaBin}
         inspectorOpen={showInspector}
         onToggleMedia={toggleMedia}
