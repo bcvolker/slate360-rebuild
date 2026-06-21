@@ -187,6 +187,8 @@ export function ThermalProbeViewer({
   const [spots, setSpots] = useState<ProbeSpot[]>(initialSpots ?? []);
   const [refId, setRefId] = useState<string | null>(null);
   const [hover, setHover] = useState<{ x: number; y: number } | null>(null);
+  // Cursor position within the image wrap (screen px) for the at-pointer temperature tag.
+  const [hoverLocal, setHoverLocal] = useState<{ x: number; y: number } | null>(null);
   const [selectedAnomalyId, setSelectedAnomalyId] = useState<string | null>(null);
   const [displayMin, setDisplayMin] = useState<number | null>(null);
   const [displayMax, setDisplayMax] = useState<number | null>(null);
@@ -442,6 +444,11 @@ export function ThermalProbeViewer({
       }
       const p = toImageCoords(e.clientX, e.clientY);
       setHover(p);
+      const el = wrapRef.current;
+      if (el) {
+        const r = el.getBoundingClientRect();
+        setHoverLocal({ x: e.clientX - r.left, y: e.clientY - r.top });
+      }
       const le = lineEndRef.current;
       if (le) {
         setSpots((prev) =>
@@ -602,7 +609,7 @@ export function ThermalProbeViewer({
           className="relative cursor-crosshair touch-none overflow-hidden rounded-xl border border-[var(--mobile-app-card-border)] bg-black"
           onWheel={onWheel}
           onPointerMove={onPointerMove}
-          onPointerLeave={() => { setHover(null); endGesture(); panningRef.current = null; }}
+          onPointerLeave={() => { setHover(null); setHoverLocal(null); endGesture(); panningRef.current = null; }}
           onPointerUp={() => { endGesture(); panningRef.current = null; }}
           onPointerDown={(e) => {
             if (e.button === 1) { e.preventDefault(); panningRef.current = { x: e.clientX - pan.x, y: e.clientY - pan.y }; return; }
@@ -731,6 +738,16 @@ export function ThermalProbeViewer({
               <p className="mt-0.5 text-[9px] font-semibold tabular-nums text-white">
                 {fmtTemp(tempAt(hover.x, hover.y), unit)} · x{Math.round(hover.x)} y{Math.round(hover.y)}
               </p>
+            </div>
+          ) : null}
+
+          {/* Temperature readout that follows the pointer (in addition to the loupe). */}
+          {hover && hoverLocal ? (
+            <div
+              className="pointer-events-none absolute z-30 -translate-y-full rounded bg-black/80 px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-white shadow-[0_1px_2px_rgba(0,0,0,0.6)]"
+              style={{ left: hoverLocal.x + 10, top: hoverLocal.y - 2 }}
+            >
+              {fmtTemp(tempAt(hover.x, hover.y), unit)}
             </div>
           ) : null}
 

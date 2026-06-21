@@ -86,6 +86,7 @@ export const SEED_REPORT_TEMPLATES: ThermalReportTemplate[] = [
     severity_levels: DEFAULT_SEVERITY_LEVELS,
     show_logo: true,
     show_credentials: true,
+    layout: "two_up",
     is_seed: true,
   },
   {
@@ -101,6 +102,7 @@ export const SEED_REPORT_TEMPLATES: ThermalReportTemplate[] = [
     severity_levels: DEFAULT_SEVERITY_LEVELS,
     show_logo: true,
     show_credentials: true,
+    layout: "two_up",
     is_seed: true,
   },
   {
@@ -115,6 +117,7 @@ export const SEED_REPORT_TEMPLATES: ThermalReportTemplate[] = [
     severity_levels: DEFAULT_SEVERITY_LEVELS,
     show_logo: true,
     show_credentials: true,
+    layout: "two_up",
     is_seed: true,
   },
   {
@@ -129,6 +132,7 @@ export const SEED_REPORT_TEMPLATES: ThermalReportTemplate[] = [
     severity_levels: DEFAULT_SEVERITY_LEVELS,
     show_logo: true,
     show_credentials: true,
+    layout: "two_up",
     is_seed: true,
   },
   {
@@ -144,6 +148,7 @@ export const SEED_REPORT_TEMPLATES: ThermalReportTemplate[] = [
     severity_levels: DEFAULT_SEVERITY_LEVELS,
     show_logo: true,
     show_credentials: true,
+    layout: "two_up",
     is_seed: true,
   },
 ];

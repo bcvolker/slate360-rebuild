@@ -43,13 +43,19 @@ export function ThermalReportPreview({
   const today = useMemo(() => new Date().toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" }), []);
 
   const ordered = order.map((id) => byId.get(id)).filter(Boolean) as StudioCapture[];
-  const totalCaptures = summary?.total_captures ?? ordered.length;
+  // If nothing is curated yet, preview ALL images so the format is always visible.
+  const frames = ordered.length ? ordered : ([...byId.values()] as StudioCapture[]);
+  const usingAll = ordered.length === 0 && frames.length > 0;
+  const totalCaptures = summary?.total_captures ?? frames.length;
   const critical = summary?.critical_anomalies ?? 0;
-  const flagged = ordered.filter((c) => (c.anomalies?.length ?? 0) > 0).length;
+  const flagged = frames.filter((c) => (c.anomalies?.length ?? 0) > 0).length;
+  // Two images per page (matches the 2-up PDF layout).
+  const pages: StudioCapture[][] = [];
+  for (let i = 0; i < frames.length; i += 2) pages.push(frames.slice(i, i + 2));
 
   return (
     <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-2 py-1">
-      {/* COVER + executive summary + methodology */}
+      {/* COVER — clean: logo, title, key counts (methodology moves to the back). */}
       <Sheet>
         {template.show_logo !== false ? (
           branding?.logo_url ? (
@@ -64,54 +70,62 @@ export function ThermalReportPreview({
         <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">{company}</p>
         <h1 className="mt-1 text-2xl font-bold text-slate-900">{sessionName || "Thermal Inspection"}</h1>
         <p className="mt-1 text-xs text-slate-500">Generated {today}</p>
-
         {on("executive_summary") ? (
           <div className="mt-5 grid grid-cols-3 gap-3">
-            <Metric label="Images in report" value={String(ordered.length || totalCaptures)} />
+            <Metric label="Images" value={String(totalCaptures)} />
             <Metric label="Flagged images" value={String(flagged)} />
             <Metric label="Action anomalies" value={String(critical)} />
           </div>
         ) : null}
-
-        {on("methodology") && template.methodology_text ? (
-          <section className="mt-5">
-            <h2 className="text-sm font-bold text-slate-900">Methodology</h2>
-            <p className="mt-1 text-[12px] leading-relaxed text-slate-700">{template.methodology_text}</p>
-            {standards.length ? (
-              <p className="mt-1 text-[11px] italic text-slate-500">Standards: {standards.join(", ")}</p>
-            ) : null}
-          </section>
+        {usingAll ? (
+          <p className="mt-4 rounded bg-slate-100 px-3 py-2 text-[11px] text-slate-500">
+            Previewing all {frames.length} images. Mark images with ★ in the Library to choose
+            which ones — and in what order — appear in the report.
+          </p>
         ) : null}
       </Sheet>
 
-      {/* FINDINGS — one page per image */}
+      {/* FINDINGS — two images per page (the 2-up PDF layout) */}
       {on("findings") ? (
-        ordered.length === 0 ? (
+        frames.length === 0 ? (
           <Sheet>
-            <p className="text-center text-xs text-slate-400">
-              No images in the report set yet — mark images with ★ in the Library.
-            </p>
+            <p className="text-center text-xs text-slate-400">No images yet — upload or import captures to build the report.</p>
           </Sheet>
         ) : (
-          ordered.map((c, idx) => (
-            <FindingsPage
-              key={c.id}
-              capture={c}
-              paired={pairOf(c, byId)}
-              index={idx + 1}
-              conditions={conditions}
-              standards={standards}
-              unit={unit}
-            />
+          pages.map((pg, pi) => (
+            <Sheet key={pi}>
+              <p className="mb-3 text-[9px] font-semibold uppercase tracking-wide text-slate-400">Page {pi + 1}</p>
+              <div className="space-y-5">
+                {pg.map((c, j) => (
+                  <ImageBlock
+                    key={c.id}
+                    capture={c}
+                    paired={pairOf(c, byId)}
+                    index={pi * 2 + j + 1}
+                    conditions={conditions}
+                    standards={standards}
+                    unit={unit}
+                  />
+                ))}
+              </div>
+            </Sheet>
           ))
         )
       ) : null}
 
-      {/* SEVERITY + DISCLAIMER + SIGNATURE */}
-      {(on("severity_table") && template.severity_levels?.length) ||
+      {/* BACK MATTER — methodology + severity + disclaimer + signature */}
+      {(on("methodology") && template.methodology_text) ||
+      (on("severity_table") && template.severity_levels?.length) ||
       (on("disclaimer") && template.disclaimer_text) ||
       (on("signature") && signature) ? (
         <Sheet>
+          {on("methodology") && template.methodology_text ? (
+            <section className="mb-5">
+              <h2 className="text-sm font-bold text-slate-900">Methodology</h2>
+              <p className="mt-1 text-[11px] leading-relaxed text-slate-600">{template.methodology_text}</p>
+              {standards.length ? <p className="mt-1 text-[11px] italic text-slate-500">Standards: {standards.join(", ")}</p> : null}
+            </section>
+          ) : null}
           {on("severity_table") && template.severity_levels?.length ? (
             <section>
               <h2 className="text-sm font-bold text-slate-900">Severity scale</h2>
@@ -152,7 +166,7 @@ function pairOf(c: StudioCapture, byId: Map<string, StudioCapture>): StudioCaptu
   return typeof pid === "string" ? byId.get(pid) ?? null : null;
 }
 
-function FindingsPage({
+function ImageBlock({
   capture,
   paired,
   index,
@@ -183,6 +197,13 @@ function FindingsPage({
     measurements.push([`A${i + 1} ΔT`, fmtDelta(a.delta_c, unit)]);
   });
 
+  // Camera / sensor / resolution (pixels).
+  const w = q.width ?? q.image_width, h = q.height ?? q.image_height;
+  const imageRows: [string, string][] = [];
+  if (q.sensor_make) imageRows.push(["Camera", String(q.sensor_make)]);
+  if (q.sensor_model || q.parser_id) imageRows.push(["Sensor", String(q.sensor_model ?? q.parser_id)]);
+  if (w != null && h != null) imageRows.push(["Resolution", `${w} × ${h} px`]);
+
   const params: [string, string][] = [];
   const emis = tuning.emissivity ?? q.emissivity_used;
   if (emis != null) params.push(["Emissivity", String(emis)]);
@@ -203,47 +224,45 @@ function FindingsPage({
   if (typeof (capture as { weather_str?: string }).weather_str === "string") capRows.push(["Weather", (capture as { weather_str?: string }).weather_str!]);
 
   return (
-    <Sheet>
-      <h3 className="mb-2 text-sm font-bold text-slate-900">
+    <div className="border-b border-slate-200 pb-4 last:border-b-0 last:pb-0">
+      <h3 className="mb-1.5 text-xs font-bold text-slate-900">
         {index}. {capture.filename}
       </h3>
-      {/* Image is the feature (left), data alongside (right). */}
-      <div className="grid grid-cols-[1.6fr_1fr] gap-4">
+      {/* Image featured (left), all metadata alongside (right). */}
+      <div className="grid grid-cols-[1.5fr_1fr] gap-3">
         <div className="min-w-0 space-y-1">
           {capture.previewUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={capture.previewUrl} alt={capture.filename} className="w-full rounded border border-slate-200 object-contain" />
+            <img src={capture.previewUrl} alt={capture.filename} className="max-h-44 w-full rounded border border-slate-200 object-contain" />
           ) : (
-            <div className="flex h-48 items-center justify-center rounded bg-slate-100 text-[10px] text-slate-400">No image</div>
+            <div className="flex h-36 items-center justify-center rounded bg-slate-100 text-[10px] text-slate-400">No image</div>
           )}
-          <p className="text-[9px] italic text-slate-500">
-            {capture.filename} · {String(q.sensor_make ?? "")} {String(q.sensor_model ?? q.parser_id ?? "")}
-          </p>
           {paired?.previewUrl ? (
             <>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={paired.previewUrl} alt={paired.filename} className="mt-2 w-full rounded border border-slate-200 object-contain" />
+              <img src={paired.previewUrl} alt={paired.filename} className="max-h-28 w-full rounded border border-slate-200 object-contain" />
               <p className="text-[9px] italic text-slate-500">Visual · {paired.filename}</p>
             </>
           ) : null}
         </div>
-        <div className="min-w-0 space-y-3 text-[10px] text-slate-700">
+        <div className="min-w-0 space-y-2 text-[10px] text-slate-700">
           <KV title="Measurements" rows={measurements} head />
+          {imageRows.length ? <KV title="Image" rows={imageRows} /> : null}
           {params.length ? <KV title="Parameters" rows={params} /> : null}
           {condRows.length ? <KV title="Conditions" rows={condRows} /> : null}
           {capRows.length ? <KV title="Capture" rows={capRows} /> : null}
         </div>
       </div>
-      {/* Findings span the full width below the image + data. */}
-      <div className="mt-4 border-t border-slate-200 pt-2 text-[11px] text-slate-700">
-        <p className="text-[9px] font-bold uppercase tracking-wide text-slate-500">Findings</p>
+      {/* Findings below the image + data. */}
+      <div className="mt-2 text-[11px] text-slate-700">
+        <p className="text-[9px] font-bold uppercase tracking-wide text-slate-500">Findings &amp; notes</p>
         {findingsText ? <p className="mt-1 leading-relaxed">{findingsText}</p> : null}
         {anomalies.map((a, i) => (
           <p key={i} className="mt-1 leading-relaxed">• {describeAnomaly(a, { standards, unit })}</p>
         ))}
         {!findingsText && anomalies.length === 0 ? <p className="mt-1 text-slate-400">No findings recorded.</p> : null}
       </div>
-    </Sheet>
+    </div>
   );
 }
 
