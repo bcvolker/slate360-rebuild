@@ -30,6 +30,10 @@ type Args = {
   camera: CameraApi;
   photo360Entitled: boolean;
   ingestLivePhoto: (file: File) => void;
+  /** Show the "Add 360 from project folder" source (walks with drawings on a real project). */
+  hasProjectFolder?: boolean;
+  /** Open the SlateDrop 360 picker; the picked file is fed back via ingest360File. */
+  onRequestProject360?: () => void;
 };
 
 function commitPersistedStop(
@@ -80,6 +84,8 @@ export function useCaptureV2SourcePicker({
   camera,
   photo360Entitled,
   ingestLivePhoto,
+  hasProjectFolder = false,
+  onRequestProject360,
 }: Args) {
   const [context, setContext] = useState<CaptureV2SourcePickerContext | null>(null);
   const contextRef = useRef<CaptureV2SourcePickerContext | null>(null);
@@ -89,8 +95,8 @@ export function useCaptureV2SourcePicker({
   const photo360InputRef = useRef<HTMLInputElement>(null);
 
   const rows = useMemo(
-    () => buildCaptureV2SourcePickerRows(photo360Entitled),
-    [photo360Entitled],
+    () => buildCaptureV2SourcePickerRows(photo360Entitled, hasProjectFolder),
+    [photo360Entitled, hasProjectFolder],
   );
 
   const open = useCallback((next: CaptureV2SourcePickerContext) => {
@@ -198,6 +204,14 @@ export function useCaptureV2SourcePicker({
       const row = rows.find((entry) => entry.id === rowId);
       if (row?.locked) return;
 
+      // Project 360 folder: hand off to the SlateDrop picker. Keep the picker
+      // context open so the file it returns (via ingest360File) persists into the
+      // same pin/stop as a 360 — identical to the device-file path.
+      if (rowId === "photo_360_project") {
+        onRequestProject360?.();
+        return;
+      }
+
       if (rowId === "take_photo" && ctx.mode === "new_stop" && camera.hasLiveFrames) {
         const result = camera.capturePhoto();
         close();
@@ -220,7 +234,14 @@ export function useCaptureV2SourcePicker({
               : photo360InputRef;
       ref.current?.click();
     },
-    [applyIntent, camera, close, ingestLivePhoto, rows],
+    [applyIntent, camera, close, ingestLivePhoto, onRequestProject360, rows],
+  );
+
+  // Persist a 360 file obtained outside the device inputs (e.g. from the project's
+  // SlateDrop folder) through the exact same path as the device 360 source.
+  const ingest360File = useCallback(
+    (file: File) => handleSelectedFile(file, "photo_360"),
+    [handleSelectedFile],
   );
 
   const attachToPin = useCallback(
@@ -254,6 +275,7 @@ export function useCaptureV2SourcePicker({
     sheetTitle,
     sheetSubtitle,
     selectRow,
+    ingest360File,
     cameraInputRef,
     rollInputRef,
     fileInputRef,

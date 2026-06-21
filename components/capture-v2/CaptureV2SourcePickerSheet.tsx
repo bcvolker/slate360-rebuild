@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, type PointerEvent } from "react";
-import { Camera, FileUp, Images, Lock, Orbit } from "lucide-react";
+import { Camera, FileUp, FolderOpen, Images, Lock, Orbit } from "lucide-react";
 import type { AppIcon } from "@/lib/types/app-icon";
 import type { CaptureV2SourcePickerRow, CaptureV2SourcePickerRowId } from "@/lib/capture-v2/source-picker-types";
 import { captureV2SourcePickerTokens } from "./capture-v2-source-picker-tokens";
@@ -10,6 +10,7 @@ const ROW_ICONS: Record<CaptureV2SourcePickerRowId, AppIcon> = {
   take_photo: Camera,
   camera_roll: Images,
   upload_file: FileUp,
+  photo_360_project: FolderOpen,
   photo_360: Orbit,
 };
 

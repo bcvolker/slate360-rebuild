@@ -1,7 +1,10 @@
 import type { CaptureV2SourcePickerRow } from "./source-picker-types";
 
-export function buildCaptureV2SourcePickerRows(photo360Entitled: boolean): CaptureV2SourcePickerRow[] {
-  return [
+export function buildCaptureV2SourcePickerRows(
+  photo360Entitled: boolean,
+  hasProjectFolder = false,
+): CaptureV2SourcePickerRow[] {
+  const rows: CaptureV2SourcePickerRow[] = [
     {
       id: "take_photo",
       label: "Take photo",
@@ -17,14 +20,31 @@ export function buildCaptureV2SourcePickerRows(photo360Entitled: boolean): Captu
       label: "Upload a file",
       description: "PDF, document, or any supported file",
     },
-    {
-      id: "photo_360",
-      label: "Add 360 photo",
+  ];
+
+  // 360 sources. Primary = browse the project's SlateDrop 360 folder (the easy
+  // field workflow: dump 360s from a camera/drone into the project, then pin them).
+  // Secondary = a 360 file already on this device.
+  if (hasProjectFolder) {
+    rows.push({
+      id: "photo_360_project",
+      label: "Add 360 from project folder",
       description: photo360Entitled
-        ? "Ingest a panoramic 360° photo"
+        ? "Pick a 360 already uploaded to this project's SlateDrop"
         : "Add 360 Tours to attach panoramic photos",
       locked: !photo360Entitled,
       lockReason: "Upgrade",
-    },
-  ];
+    });
+  }
+  rows.push({
+    id: "photo_360",
+    label: hasProjectFolder ? "Add 360 from a file" : "Add 360 photo",
+    description: photo360Entitled
+      ? "Choose a 360° photo file on this device"
+      : "Add 360 Tours to attach panoramic photos",
+    locked: !photo360Entitled,
+    lockReason: "Upgrade",
+  });
+
+  return rows;
 }

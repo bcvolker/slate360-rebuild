@@ -13,6 +13,7 @@ export type CaptureV2SourcePickerRowId =
   | "take_photo"
   | "camera_roll"
   | "upload_file"
+  | "photo_360_project"
   | "photo_360";
 
 export type CaptureV2SourcePickerRow = {

@@ -8,6 +8,8 @@ import type { PlanCaptureTarget } from "@/lib/hooks/useCaptureUpload";
 import { useCamera } from "@/lib/hooks/useCamera";
 import type { CaptureV2SourcePickerRowId } from "@/lib/capture-v2/source-picker-types";
 import type { CaptureItemRecord } from "@/lib/types/site-walk-capture";
+import type { SlateDropPickerFile } from "@/lib/slatedrop/file-picker-types";
+import { fetchSlateDropFileAsBlob } from "@/lib/digital-twin/twin-review-fetch";
 import { triggerHapticSuccess } from "@/lib/utils/trigger-haptic";
 import type { CaptureV2Session } from "../session-types";
 import type { CaptureV2Loop } from "../useCaptureV2Loop";
@@ -49,13 +51,36 @@ export function useWithPlansPinCapture({
     [loop],
   );
 
+  const [project360PickerOpen, setProject360PickerOpen] = useState(false);
+
   const sourcePicker = useCaptureV2SourcePicker({
     sessionId: session.id,
     loop,
     camera,
     photo360Entitled,
     ingestLivePhoto: ingestFile,
+    hasProjectFolder: Boolean(session.project_id),
+    onRequestProject360: () => setProject360PickerOpen(true),
   });
+
+  // SlateDrop 360 → fetch the picked file as a blob and run it through the same
+  // 360 persist path (attaches to the pending pin/stop like a device 360).
+  const handleProject360Picked = useCallback(
+    async (files: SlateDropPickerFile[]) => {
+      const picked = files[0];
+      setProject360PickerOpen(false);
+      if (!picked) return;
+      try {
+        const file = await fetchSlateDropFileAsBlob(picked);
+        await sourcePicker.ingest360File(file);
+      } catch (error) {
+        loop.setExternalError(
+          error instanceof Error ? error.message : "Could not load that 360 from the project folder.",
+        );
+      }
+    },
+    [loop, sourcePicker],
+  );
 
   const returnToPlan = useCallback(() => {
     setCaptureActive(false);
@@ -182,6 +207,9 @@ export function useWithPlansPinCapture({
     captureIntoPin,
     deletePin,
     deletingPinId,
+    project360PickerOpen,
+    setProject360PickerOpen,
+    handleProject360Picked,
     handleCaptureSaved,
     returnToPlan,
     pinDetailPin,

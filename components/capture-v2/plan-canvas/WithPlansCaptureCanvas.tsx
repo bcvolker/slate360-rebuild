@@ -5,6 +5,7 @@ import { useCallback, useState } from "react";
 import type { SiteWalkPlanSet, SiteWalkPlanSheet } from "@/lib/types/site-walk";
 import { CaptureStopFilmstrip } from "../CaptureStopFilmstrip";
 import { CaptureV2SourcePickerSheet } from "../CaptureV2SourcePickerSheet";
+import { SlateDropFilePickerModal } from "@/components/slatedrop/SlateDropFilePickerModal";
 import { NoPlansCaptureCanvas } from "../NoPlansCaptureCanvas";
 import type { CaptureV2Session } from "../session-types";
 import type { CaptureV2Loop } from "../useCaptureV2Loop";
@@ -206,6 +207,15 @@ export function WithPlansCaptureCanvas({
         onDelete={() => {
           if (pinCapture.pinDetailPin) void pinCapture.deletePin(pinCapture.pinDetailPin);
         }}
+      />
+
+      <SlateDropFilePickerModal
+        open={pinCapture.project360PickerOpen}
+        projectId={session.project_id}
+        maxFiles={1}
+        title="Pick a 360 photo"
+        onClose={() => pinCapture.setProject360PickerOpen(false)}
+        onConfirm={pinCapture.handleProject360Picked}
       />
     </div>
   );
