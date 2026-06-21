@@ -35,5 +35,9 @@ function detectDeviceKind(): DeviceKind {
   const coarsePointer = window.matchMedia("(pointer: coarse)").matches;
   const noHover = window.matchMedia("(hover: none)").matches;
   const narrowViewport = window.matchMedia("(max-width: 767px)").matches;
-  return coarsePointer && noHover && narrowViewport ? "mobile" : "desktop";
+  // A touchscreen phone/tablet is "mobile" even in landscape (where width can
+  // exceed 767px). Requiring narrowViewport too used to flip landscape phones to
+  // the DESKTOP studio — which is why the desktop "Drop photos here" dropzone
+  // appeared on a rotated phone. Touch signal OR narrow window ⇒ mobile.
+  return (coarsePointer && noHover) || narrowViewport ? "mobile" : "desktop";
 }

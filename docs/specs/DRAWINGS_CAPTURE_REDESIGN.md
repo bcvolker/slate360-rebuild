@@ -1,0 +1,68 @@
+# Walks with Drawings — Capture Redesign Spec
+
+Status: in progress. Brian's field review (2026-06-21) found the capture-on-drawings
+surface broken/unbranded and "needs to be completely rethought." This file is the
+source of truth for that rework so it survives across sessions.
+
+## Live component map (verified, not assumed)
+
+The capture flow page renders `CaptureFlowClient` → `CaptureV2Orchestrator`, which
+branches:
+- `isDesktop` → `CaptureV2DesktopStudio` (desktop only; has the "Drop photos here" dropzone)
+- no plans → `NoPlansCaptureCanvas`
+- **plans + `useWithPlansCanvas` → `WithPlansCaptureCanvas`  ← the walks-with-drawings screen**
+
+`WithPlansCaptureCanvas` composes:
+- `PlanViewerLeaflet` (the map; `hideToolbar`, `allowPinPlacement`, `useSourcePickerFlow`)
+  - pins drawn by `createPlanPinMarkerIcon` (shared, type-aware as of P1)
+  - tap captured pin → `onSessionPinTap` → `CapturePlanPinDetailSheet` (type-aware as of P2)
+- `CapturePlanTopBar` → opens `CapturePlanSheetPickerSheet` (bottom sheet to pick/search sheets)
+- `CapturePlanBottomRail` (prev/next **sheet**, NOT stop-to-stop)
+- `CaptureV2SourcePickerSheet` (long-press → choose camera / upload / 360)
+- `CaptureV2Orchestrator` also owns the camera viewfinder + note flow (reused from quick walks)
+
+`CaptureCanvasShell` is DEAD CODE (nothing renders it) — ignore it.
+
+## Field review issues (Brian, 2026-06-21)
+
+| # | Issue | Root cause (confirmed) | Status |
+|---|-------|------------------------|--------|
+| 1 | Landscape shows amber "Drop photos here" | `detectDeviceKind()` required width ≤767px for "mobile"; landscape phone is wider ⇒ flips to DESKTOP studio | FIXED — touch signal OR narrow ⇒ mobile |
+| 2 | Top-left "+/-" unbranded, "1990s" | Leaflet native `zoomControl` was never disabled | FIXED — `zoomControl={false}` (pinch still zooms) |
+| 4 | Long-press "Upload from" sheet cut off | source picker capped at 45dvh; landscape clips rows | FIXED — cap raised to `min(80dvh,24rem)`, list scrolls |
+| 3 | Sheet-search panel is useful but hidden | `CapturePlanTopBar` chevron is the only entry; not obvious | TODO — make discoverable + branded |
+| 5 | 360 sources wrong (Photo library breaks 360; phone isn't a 360 cam) | source picker rows are device-only; no project-folder source | TODO — add "This project's 360 folder" (SlateDrop) as PRIMARY; device transfer secondary |
+| 6 | No way to delete pins (new or old) | no delete affordance wired; `DELETE /api/site-walk/pins/[id]` exists | TODO — wire delete into pin tap |
+| 7 | Tapping a placed (empty) pin does nothing | `onSessionPinTap` only fires when `pin.item_id` set; empty long-press pins have none | TODO — empty pin tap → capture menu (camera/upload/360) + delete, reusing existing capture screen |
+| 8 | Top banner unbranded black/white | `PlanToolbar`/topbar styling is legacy slate/amber | TODO — Graphite Glass + brand green pass |
+| 9 | Plans don't sit perfectly on screen | leaflet fit padding / bounds | TODO — tune `fitPlanLeafletMap` / `capturePlanFitPadding` |
+| 10 | Stop-to-stop nav missing in drawings walk | bottom rail only pages sheets | TODO — add stop stepper (reuse filmstrip ordering) |
+| 11 | Project list origin unclear; scroll unclear | walks/projects list provenance + container | TODO — clarify source + ensure scroll container |
+
+## 360-from-project-folder (the important new requirement)
+
+Easiest field workflow: a user dumps all 360 photos from their 360 camera/drone into
+**SlateDrop → <project> → 360 photos folder**, then pins them on the drawing. So the
+"Add 360 photo" source picker must offer:
+1. **PRIMARY: This project's 360 folder** (SlateDrop) — browse + pick an already-uploaded 360.
+2. SECONDARY: device file (`Choose file`) — for 360s transferred onto the phone.
+Remove/avoid: "Photo library" and "Take Photo" for 360 (they break/aren't 360-capable).
+
+## Rebuild sequence (proposed)
+
+1. ✅ P1 type-aware pins (color + glyph) — shipped
+2. ✅ P2 capture-side type-aware pin tap (360 → interactive panorama) — shipped
+3. ✅ Quick fixes: landscape desktop-leak (#1), Leaflet zoom control (#2), source picker height (#4)
+4. Empty-pin tap → capture menu + delete (#6, #7) — reuse existing capture screen
+5. 360 source = project SlateDrop folder picker (#5)
+6. Branding pass on topbar + sheet picker, make sheet search discoverable (#2/#3/#8)
+7. Stop-to-stop stepper (#10) + plan fit tuning (#9)
+8. Mobile project screen w/ obvious "Upload drawing" + "Start walk with drawings" (entry point)
+9. Deliverable/recipient-side interactive pins
+
+## Testing notes
+
+- Sandbox can't run the live capture (needs signed-in user + device camera). Verify by
+  code-read + esbuild parse + `npm run guard:design`; Brian reviews on phone per deploy.
+- Clear old test walks: `node scripts/ops/cleanup-test-walks.mjs` (dry-run) then `--execute`.
+  Keeps walks whose project has a plan set; deletes the rest.

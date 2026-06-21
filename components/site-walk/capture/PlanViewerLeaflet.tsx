@@ -207,6 +207,7 @@ export function PlanViewerLeaflet({
           minZoom={-2}
           maxZoom={4}
           attributionControl={false}
+          zoomControl={false}
           className="h-full w-full"
           style={{ background: "#000" }}
           ref={handleMapCreated}

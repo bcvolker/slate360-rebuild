@@ -1,11 +1,12 @@
-/** Source picker sheet — max 45dvh incl. safe-area, compact rows, 30% photo scrim. */
-export const CAPTURE_V2_SOURCE_PICKER_SNAP = "45dvh";
+/** Source picker sheet — caps at content height (~24rem) but no taller than 80dvh
+ * so every source row stays visible, including landscape where 45dvh clipped them. */
+export const CAPTURE_V2_SOURCE_PICKER_SNAP = "min(80dvh, 24rem)";
 
 export const captureV2SourcePickerTokens = {
   scrim:
     "pointer-events-auto absolute inset-0 bg-[color-mix(in_srgb,var(--graphite-canvas)_30%,transparent)]",
   frame:
-    "pointer-events-auto absolute inset-x-0 bottom-0 flex max-h-[45dvh] flex-col rounded-t-2xl border-t border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_70%,transparent)] backdrop-blur-xl",
+    "pointer-events-auto absolute inset-x-0 bottom-0 flex max-h-[min(80dvh,24rem)] flex-col rounded-t-2xl border-t border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_70%,transparent)] backdrop-blur-xl",
   handle: "mx-auto mt-2 block h-1 w-10 shrink-0 rounded-full bg-[var(--graphite-muted)]",
   header: "shrink-0 px-3 pb-1 pt-1",
   title: "text-sm font-semibold text-[var(--graphite-text-header)]",

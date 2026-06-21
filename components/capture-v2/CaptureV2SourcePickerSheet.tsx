@@ -68,7 +68,7 @@ export function CaptureV2SourcePickerSheet({
         data-capture-chrome="source-picker-sheet"
         style={{
           paddingBottom: "max(12px, env(safe-area-inset-bottom, 0px))",
-          maxHeight: "calc(45dvh + env(safe-area-inset-bottom, 0px))",
+          maxHeight: "calc(min(80dvh, 24rem) + env(safe-area-inset-bottom, 0px))",
         }}
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerUp}
