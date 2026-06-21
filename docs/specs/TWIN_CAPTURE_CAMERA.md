@@ -70,6 +70,33 @@ Quality Lock ●     [Exposure 🔒] [White balance 🔒] [Focus 🔒] [ISO 🔒
   ISO, focusDistance) into the capture record → the worker/QA knows the capture was consistent and
   can flag walks where locks were off.
 
+## 5a. Shutter speed (native build) — the motion-blur lever
+Faster shutter = less motion blur (frozen frame), but less light → the camera must raise **ISO**
+(more noise) or the photo gets dark. So shutter is a **balance**, not "always max." For a handheld
+*walking* capture, motion blur is the #1 quality killer, so we bias fast — bounded by a noise cap.
+
+**Capability range (native, iOS AVFoundation / Android Camera2):** roughly **1/8000s (fastest)**
+down to ~1s, read per-device from `activeFormat.min/maxExposureDuration`. The *useful* range for
+capture is ~**1/60s – 1/1000s** (1/8000 needs very bright light + high ISO, useless indoors).
+
+**High-quality default = "shutter-priority lock":** at walk start, lock exposure to:
+- **Target shutter 1/500s** (freezes normal walking motion), with a **floor of 1/250s** (never
+  slower in HQ mode), and an **ISO ceiling ~1600** to cap noise.
+- If the light can't reach 1/250s at the ISO ceiling → show a **"More light needed / move slower"**
+  warning rather than silently producing blurry/dark frames.
+- Once locked, all values are fixed for the walk (consistency for reconstruction).
+Rule of thumb behind it: handheld while moving, you want **≥1/250s** to keep blur under ~1–2 px;
+**1/500s** is the safe default; outdoors/bright you can push **1/1000s** for extra crispness.
+
+**Tap-to-adjust:** HQ mode controls shutter automatically, but tapping the shutter pill opens a
+picker — **Auto (HQ) · 1/120 · 1/250 · 1/500 · 1/1000 · Custom slider** (full device range). Default
+stays Auto-HQ (locked, fast); advanced users can override (e.g., faster for fast movement, slower in
+dark if they pause per shot).
+
+**Note:** shutter speed (per-photo exposure / blur) is **separate** from the **capture rate**
+(how often a photo is taken). Both stay as controls. Best practice surfaced to users: pause briefly
+per shot and move slowly — combined with a fast shutter, that yields the sharpest twins.
+
 ## 6. Build notes / sequence
 1. **Mode toggle + status + shutter states** (pure UI, works everywhere) — biggest immediate clarity win.
 2. **Quality Lock UI** (pills + toggles + settings sheet) — UI + state; wire to a `CameraController`
