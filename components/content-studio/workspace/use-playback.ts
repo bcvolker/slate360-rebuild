@@ -44,6 +44,7 @@ export function usePlayback(aRef: RefObject<HTMLVideoElement | null>, bRef: RefO
   function load(i: number, clip: ClipLayout["clip"], seekTo: number, play: boolean) {
     const v = video(i);
     if (!v || !clip) return;
+    try { v.playbackRate = Math.max(0.25, Math.min(4, clip.speedFactor || 1)); } catch { /* ignore */ }
     if (slotClip.current[i] !== clip.id) {
       slotClip.current[i] = clip.id;
       v.preload = "auto";
@@ -118,7 +119,7 @@ export function usePlayback(aRef: RefObject<HTMLVideoElement | null>, bRef: RefO
           s.pause();
         }
       } else {
-        s.setPlayhead(row.startSec + (v.currentTime - row.clip.trimInSec));
+        s.setPlayhead(row.startSec + (v.currentTime - row.clip.trimInSec) / (row.clip.speedFactor || 1));
       }
     };
 

@@ -25,11 +25,32 @@ export function TimelinePanel() {
   const toggleSnap = useEditorStore((s) => s.toggleSnap);
   const splitAtPlayhead = useEditorStore((s) => s.splitAtPlayhead);
   const setClipTrim = useEditorStore((s) => s.setClipTrim);
+  const moveClipTo = useEditorStore((s) => s.moveClipTo);
+  const commitClips = useEditorStore((s) => s.commitClips);
 
   const { uploadFiles } = useMediaUpload();
   const scrollRef = useRef<HTMLDivElement>(null);
   const draggingPlayhead = useRef(false);
   const trimDrag = useRef<null | { id: string; edge: "in" | "out"; startX: number; inSec: number; outSec: number }>(null);
+  const moveDrag = useRef<null | { id: string; startX: number; moved: boolean }>(null);
+
+  // Reorder a dragged clip: place it among the others by pointer position.
+  const reorderToPointer = useCallback(
+    (clientX: number, id: string) => {
+      const el = scrollRef.current;
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      const t = (clientX - rect.left + el.scrollLeft - LABEL_W) / pxPerSec;
+      const { rows } = layoutClips(useEditorStore.getState().clips);
+      let idx = 0;
+      for (const r of rows) {
+        if (r.clip.id === id) continue;
+        if (t > r.startSec + r.lengthSec / 2) idx += 1;
+      }
+      moveClipTo(id, idx);
+    },
+    [pxPerSec, moveClipTo],
+  );
   const { rows, total } = layoutClips(clips);
   const contentWidth = Math.max(600, total * pxPerSec + 240);
 
@@ -54,13 +75,31 @@ export function TimelinePanel() {
         const deltaSec = (e.clientX - t.startX) / pxPerSec;
         if (t.edge === "in") setClipTrim(t.id, { trimInSec: t.inSec + deltaSec });
         else setClipTrim(t.id, { trimOutSec: t.outSec + deltaSec });
+        return;
+      }
+      const m = moveDrag.current;
+      if (m) {
+        if (!m.moved && Math.abs(e.clientX - m.startX) > 4) {
+          m.moved = true;
+          useEditorStore.temporal.getState().pause(); // don't snapshot every micro-move
+        }
+        if (m.moved) reorderToPointer(e.clientX, m.id);
       }
     };
-    const up = () => { draggingPlayhead.current = false; trimDrag.current = null; };
+    const up = () => {
+      draggingPlayhead.current = false;
+      trimDrag.current = null;
+      const m = moveDrag.current;
+      if (m?.moved) {
+        useEditorStore.temporal.getState().resume();
+        commitClips(); // record the whole reorder as ONE undo step
+      }
+      moveDrag.current = null;
+    };
     window.addEventListener("pointermove", move);
     window.addEventListener("pointerup", up);
     return () => { window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", up); };
-  }, [seekFromClientX, pxPerSec, setClipTrim]);
+  }, [seekFromClientX, pxPerSec, setClipTrim, reorderToPointer, commitClips]);
 
   // Delete selected clip with keyboard.
   useEffect(() => {
@@ -149,34 +188,40 @@ export function TimelinePanel() {
               <div
                 key={clip.id}
                 onClick={() => selectClip(clip.id)}
+                onPointerDown={(e) => { e.stopPropagation(); selectClip(clip.id); moveDrag.current = { id: clip.id, startX: e.clientX, moved: false }; }}
                 style={{ left: LABEL_W + startSec * pxPerSec, width: Math.max(40, lengthSec * pxPerSec) }}
-                className={`group absolute top-2 bottom-2 cursor-pointer overflow-hidden rounded-md border ${
+                className={`group absolute top-2 bottom-2 cursor-grab overflow-hidden rounded-md border active:cursor-grabbing ${
                   selectedClipId === clip.id ? "border-[#3D8EFF] bg-[#3D8EFF]/25" : "border-white/15 bg-white/[0.07] hover:border-white/30"
                 }`}
               >
-                <span className="block truncate px-1.5 py-1 pr-5 text-[10px] text-white/85">{clip.name}</span>
-                {/* Trim handles — drag clip edges to set in/out */}
+                <span className="block truncate px-3 py-1 pr-5 text-[10px] text-white/85">{clip.name}</span>
+                {/* Trim handles — wide grab zone + always-faint grip bar that brightens on hover */}
                 <div
                   title="Trim start"
                   onPointerDown={(e) => {
                     e.stopPropagation();
                     trimDrag.current = { id: clip.id, edge: "in", startX: e.clientX, inSec: clip.trimInSec, outSec: clip.trimOutSec };
                   }}
-                  className="absolute inset-y-0 left-0 w-1.5 cursor-ew-resize bg-[#3D8EFF]/0 hover:bg-[#3D8EFF]/70"
-                />
+                  className="absolute inset-y-0 left-0 flex w-3 cursor-ew-resize items-center justify-center bg-black/25 hover:bg-[#3D8EFF]/60"
+                >
+                  <span className="h-4 w-0.5 rounded bg-white/50" />
+                </div>
                 <div
                   title="Trim end"
                   onPointerDown={(e) => {
                     e.stopPropagation();
                     trimDrag.current = { id: clip.id, edge: "out", startX: e.clientX, inSec: clip.trimInSec, outSec: clip.trimOutSec };
                   }}
-                  className="absolute inset-y-0 right-0 w-1.5 cursor-ew-resize bg-[#3D8EFF]/0 hover:bg-[#3D8EFF]/70"
-                />
+                  className="absolute inset-y-0 right-0 flex w-3 cursor-ew-resize items-center justify-center bg-black/25 hover:bg-[#3D8EFF]/60"
+                >
+                  <span className="h-4 w-0.5 rounded bg-white/50" />
+                </div>
                 <button
                   type="button"
                   title="Remove from timeline"
+                  onPointerDown={(e) => e.stopPropagation()}
                   onClick={(e) => { e.stopPropagation(); removeClip(clip.id); }}
-                  className="absolute right-2 top-0.5 flex h-4 w-4 items-center justify-center rounded-sm bg-black/50 text-white/70 opacity-0 hover:bg-black/80 hover:text-white group-hover:opacity-100"
+                  className="absolute right-3.5 top-0.5 z-10 flex h-4 w-4 items-center justify-center rounded-sm bg-black/50 text-white/70 opacity-0 hover:bg-black/80 hover:text-white group-hover:opacity-100"
                 >
                   <X className="h-2.5 w-2.5" />
                 </button>

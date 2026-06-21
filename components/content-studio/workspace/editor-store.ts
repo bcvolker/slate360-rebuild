@@ -22,7 +22,9 @@ export type TimelineClip = {
   src: string; // signed proxy (or original) URL for preview
   durationSec: number; // source duration; 0 until <video> metadata loads
   trimInSec: number;
-  trimOutSec: number; // exclusive; clip length = trimOut - trimIn
+  trimOutSec: number; // exclusive; source span = trimOut - trimIn
+  speedFactor: number; // 0.25–4×; timeline length = source span / speedFactor
+  reversed: boolean;
 };
 
 export type ClipLayout = { clip: TimelineClip; startSec: number; lengthSec: number };
@@ -51,6 +53,10 @@ type EditorState = {
   patchClipDuration: (id: string, durationSec: number) => void;
   splitAtPlayhead: () => void;
   setClipTrim: (id: string, edit: { trimInSec?: number; trimOutSec?: number }) => void;
+  setClipSpeed: (id: string, speedFactor: number) => void;
+  toggleReverse: (id: string) => void;
+  moveClipTo: (id: string, index: number) => void;
+  commitClips: () => void;
   toggleSnap: () => void;
 
   setPlayhead: (sec: number) => void;
@@ -66,11 +72,12 @@ function uid(): string {
   return `clip_${Math.random().toString(36).slice(2, 10)}`;
 }
 
-/** Sequential layout: each clip starts where the previous ended. */
+/** Sequential layout: each clip starts where the previous ended (speed-aware). */
 export function layoutClips(clips: TimelineClip[]): { rows: ClipLayout[]; total: number } {
   let cursor = 0;
   const rows = clips.map((clip) => {
-    const lengthSec = Math.max(0, (clip.trimOutSec || clip.durationSec) - clip.trimInSec) || clip.durationSec || 0;
+    const srcSpan = Math.max(0, (clip.trimOutSec || clip.durationSec) - clip.trimInSec) || clip.durationSec || 0;
+    const lengthSec = srcSpan / (clip.speedFactor || 1);
     const row = { clip, startSec: cursor, lengthSec };
     cursor += lengthSec;
     return row;
@@ -83,12 +90,13 @@ export function clipAt(clips: TimelineClip[], playheadSec: number): { row: ClipL
   const { rows } = layoutClips(clips);
   for (const row of rows) {
     if (playheadSec >= row.startSec && playheadSec < row.startSec + row.lengthSec) {
-      return { row, localSec: row.clip.trimInSec + (playheadSec - row.startSec) };
+      const sp = row.clip.speedFactor || 1;
+      return { row, localSec: row.clip.trimInSec + (playheadSec - row.startSec) * sp };
     }
   }
   const last = rows[rows.length - 1];
   if (last && playheadSec >= last.startSec + last.lengthSec && last.lengthSec > 0) {
-    return { row: last, localSec: last.clip.trimInSec + last.lengthSec };
+    return { row: last, localSec: last.clip.trimInSec + last.lengthSec * (last.clip.speedFactor || 1) };
   }
   return null;
 }
@@ -123,15 +131,18 @@ export const useEditorStore = create<EditorState>()(
         durationSec: d,
         trimInSec: 0,
         trimOutSec: d,
+        speedFactor: 1,
+        reversed: false,
       };
-      return { clips: [...s.clips, clip], selectedClipId: clip.id };
+      return { clips: [...s.clips, clip], selectedClipId: clip.id, inspectorTab: "clip" };
     }),
   removeClip: (id) =>
     set((s) => ({
       clips: s.clips.filter((c) => c.id !== id),
       selectedClipId: s.selectedClipId === id ? null : s.selectedClipId,
     })),
-  selectClip: (selectedClipId) => set({ selectedClipId }),
+  selectClip: (selectedClipId) =>
+    set((s) => (selectedClipId ? { selectedClipId, inspectorTab: "clip" } : { selectedClipId, inspectorTab: s.inspectorTab })),
   patchClipDuration: (id, durationSec) =>
     set((s) => ({
       clips: s.clips.map((c) =>
@@ -165,6 +176,23 @@ export const useEditorStore = create<EditorState>()(
         return { ...c, trimInSec: trimIn, trimOutSec: trimOut };
       }),
     })),
+  setClipSpeed: (id, speedFactor) =>
+    set((s) => ({
+      clips: s.clips.map((c) => (c.id === id ? { ...c, speedFactor: Math.max(0.25, Math.min(4, speedFactor)) } : c)),
+    })),
+  toggleReverse: (id) =>
+    set((s) => ({ clips: s.clips.map((c) => (c.id === id ? { ...c, reversed: !c.reversed } : c)) })),
+  moveClipTo: (id, index) =>
+    set((s) => {
+      const from = s.clips.findIndex((c) => c.id === id);
+      if (from < 0) return {};
+      const arr = [...s.clips];
+      const [it] = arr.splice(from, 1);
+      arr.splice(Math.max(0, Math.min(index, arr.length)), 0, it);
+      return { clips: arr };
+    }),
+  // Force a single history snapshot (used to commit a drag-reorder as one undo step).
+  commitClips: () => set((s) => ({ clips: [...s.clips] })),
   toggleSnap: () => set((s) => ({ snap: !s.snap })),
 
   setPlayhead: (playheadSec) => set({ playheadSec: Math.max(0, playheadSec) }),
