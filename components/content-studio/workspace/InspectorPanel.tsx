@@ -1,7 +1,7 @@
 "use client";
 
 import { RotateCw, Scissors, Trash2 } from "lucide-react";
-import { useEditorStore, layoutClips, type InspectorTab, type TimelineClip } from "./editor-store";
+import { useEditorStore, layoutClips, DEFAULT_TITLE_STYLE, type InspectorTab, type TimelineClip } from "./editor-store";
 import { LevelDisclosureRow } from "./LevelDisclosureRow";
 
 const TABS: { id: InspectorTab; label: string }[] = [
@@ -58,7 +58,7 @@ export function InspectorPanel() {
         ) : tab === "audio" ? (
           <NoteRow text="Volume, fades, detach audio, and voiceover land in slices 11–12 (audio lanes + waveforms)." />
         ) : tab === "titles" ? (
-          <NoteRow text="Pick a title or caption style from Library → Titles / Caption Styles. Full timeline lane lands in slice 13." />
+          <TitlesTab />
         ) : tab === "export" ? (
           <NoteRow text="Aspect presets, quality, and the render queue land in slice 9." />
         ) : (
@@ -228,6 +228,135 @@ function ColorTab() {
         Reset {scope === "clip" ? "this clip" : "all"}
       </button>
       <NoteRow text="Changes preview live on the player and render on export. 'All clips' is your adjustment layer — apply a Library Look to set it for the whole edit." />
+    </div>
+  );
+}
+
+function TitlesTab() {
+  const overlayItems = useEditorStore((s) => s.overlayItems);
+  const selectedOverlayId = useEditorStore((s) => s.selectedOverlayId);
+  const addTitle = useEditorStore((s) => s.addTitle);
+  const update = useEditorStore((s) => s.updateOverlayItem);
+  const removeOverlayItem = useEditorStore((s) => s.removeOverlayItem);
+  const selectOverlay = useEditorStore((s) => s.selectOverlay);
+
+  const titles = overlayItems.filter((o) => o.lane === "title");
+  const sel = titles.find((o) => o.id === selectedOverlayId) ?? null;
+
+  const AddBtn = (
+    <button
+      type="button"
+      onClick={addTitle}
+      className="flex w-full items-center justify-center gap-1.5 rounded-md bg-[#3D8EFF] py-1.5 text-xs font-semibold text-white hover:brightness-110"
+    >
+      + Add title
+    </button>
+  );
+
+  if (!sel) {
+    return (
+      <div className="space-y-3">
+        {AddBtn}
+        {titles.length > 0 && (
+          <div className="space-y-1">
+            <div className="font-mono text-[10px] uppercase tracking-wider text-white/40">Titles</div>
+            {titles.map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => selectOverlay(t.id)}
+                className="flex w-full items-center justify-between rounded-md border border-white/10 px-2.5 py-1.5 text-left text-xs text-white/75 hover:bg-white/5"
+              >
+                <span className="truncate">{t.text || "Title"}</span>
+                <span className="font-mono text-[10px] text-white/35">{t.startSec.toFixed(1)}s</span>
+              </button>
+            ))}
+          </div>
+        )}
+        <NoteRow text="Add a title, then type and style it — it shows live on the preview. Burn-in on export lands next." />
+      </div>
+    );
+  }
+
+  const st = sel.titleStyle ?? DEFAULT_TITLE_STYLE;
+  return (
+    <div className="space-y-3">
+      {AddBtn}
+      <Section title="Text">
+        <textarea
+          value={sel.text ?? ""}
+          onChange={(e) => update(sel.id, { text: e.target.value, name: e.target.value.slice(0, 24) || "Title" })}
+          rows={2}
+          className="w-full resize-none rounded-md border border-white/10 bg-black/30 px-2 py-1.5 text-xs text-white/90 outline-none focus:border-[#3D8EFF]/50"
+          placeholder="Type your title…"
+        />
+      </Section>
+
+      <Section title="Style">
+        <SliderRow label="Size" value={st.fontSize} min={12} max={96} suffix="px" onChange={(v) => update(sel.id, { titleStyle: { fontSize: v } })} />
+        <div className="mt-2 flex items-center gap-3">
+          <label className="flex items-center gap-1.5 text-[11px] text-white/65">
+            <span>Text</span>
+            <input type="color" value={st.color} onChange={(e) => update(sel.id, { titleStyle: { color: e.target.value } })} className="h-5 w-7 cursor-pointer rounded border border-white/10 bg-transparent" />
+          </label>
+          <button
+            type="button"
+            onClick={() => update(sel.id, { titleStyle: { background: !st.background } })}
+            className={`rounded-md border px-2 py-1 text-[11px] ${st.background ? "border-[#3D8EFF]/50 bg-[#3D8EFF]/20 text-white" : "border-white/10 text-white/55 hover:bg-white/5"}`}
+          >
+            Background
+          </button>
+        </div>
+      </Section>
+
+      <Section title="Position">
+        <Seg options={[["top", "Top"], ["center", "Middle"], ["bottom", "Bottom"]]} value={st.position} onChange={(v) => update(sel.id, { titleStyle: { position: v as "top" | "center" | "bottom" } })} />
+        <div className="mt-2">
+          <Seg options={[["left", "Left"], ["center", "Center"], ["right", "Right"]]} value={st.align} onChange={(v) => update(sel.id, { titleStyle: { align: v as "left" | "center" | "right" } })} />
+        </div>
+      </Section>
+
+      <Section title="Timing (seconds)">
+        <div className="grid grid-cols-2 gap-2">
+          <NumField label="Start" value={sel.startSec} onChange={(v) => update(sel.id, { startSec: Math.max(0, v) })} />
+          <NumField label="Length" value={sel.durationSec} onChange={(v) => update(sel.id, { durationSec: Math.max(0.2, v) })} />
+        </div>
+      </Section>
+
+      <button
+        type="button"
+        onClick={() => removeOverlayItem(sel.id)}
+        className="flex w-full items-center justify-center gap-1.5 rounded-md border border-red-400/30 py-1.5 text-xs text-red-300/80 hover:bg-red-500/10"
+      >
+        Remove title
+      </button>
+    </div>
+  );
+}
+
+function SliderRow({ label, value, min, max, suffix, onChange }: { label: string; value: number; min: number; max: number; suffix?: string; onChange: (v: number) => void }) {
+  return (
+    <div className="flex items-center gap-2">
+      <span className="w-10 text-[11px] text-white/65">{label}</span>
+      <input type="range" min={min} max={max} value={value} onChange={(e) => onChange(Number(e.target.value))} className="h-1 flex-1 accent-[#3D8EFF]" />
+      <span className="w-12 text-right font-mono text-xs tabular-nums text-white/80">{Math.round(value)}{suffix}</span>
+    </div>
+  );
+}
+
+function Seg({ options, value, onChange }: { options: [string, string][]; value: string; onChange: (v: string) => void }) {
+  return (
+    <div className="flex overflow-hidden rounded-md border border-white/10">
+      {options.map(([id, label]) => (
+        <button
+          key={id}
+          type="button"
+          onClick={() => onChange(id)}
+          className={`flex-1 px-2 py-1.5 text-[11px] transition-colors ${value === id ? "bg-[#3D8EFF]/20 text-white" : "text-white/55 hover:bg-white/5"}`}
+        >
+          {label}
+        </button>
+      ))}
     </div>
   );
 }

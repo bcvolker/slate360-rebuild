@@ -181,10 +181,15 @@ export function TimelinePanel() {
     if (!raw) return;
     const p = decodeLibraryDrag(raw);
     if (!p) return;
+    // Only accept items meant for this lane — a transition or look dropped here is ignored.
+    const okAudio = lane === "audio" && (p.dropTarget === "music_lane" || p.dropTarget === "sfx_lane");
+    const okTitle = lane === "title" && (p.dropTarget === "titles_lane" || p.assetType === "title_template" || p.assetType === "caption_style");
+    if (!okAudio && !okTitle) return;
     const startSec = timeFromClientX(e.clientX);
     const dur = Number((p.metadata?.durationSec as number) ?? 0) || (lane === "title" ? 4 : 5);
-    const kind = lane === "title" ? (p.assetType === "caption_style" ? "caption" : "title") : p.assetType === "sfx" ? "sfx" : "music";
-    addOverlayItem({ lane, kind, name: p.name, startSec, durationSec: dur, libraryId: p.id });
+    const kind = lane === "title" ? (p.assetType === "caption_style" ? "caption" : "title") : p.dropTarget === "sfx_lane" ? "sfx" : "music";
+    const text = lane === "title" ? p.name : undefined;
+    addOverlayItem({ lane, kind, name: p.name, startSec, durationSec: dur, libraryId: p.id, text });
   }
 
   const showOverlayLanes = mode !== "photo";

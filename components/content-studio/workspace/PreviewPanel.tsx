@@ -2,7 +2,7 @@
 
 import { useRef } from "react";
 import { Pause, Play, Scissors, Type } from "lucide-react";
-import { useEditorStore, layoutClips, clipAt } from "./editor-store";
+import { useEditorStore, layoutClips, clipAt, DEFAULT_TITLE_STYLE } from "./editor-store";
 import { usePlayback } from "./use-playback";
 import { toCssFilter, tempOverlay } from "@/lib/content-studio/color";
 
@@ -26,8 +26,10 @@ export function PreviewPanel() {
   const playheadSec = useEditorStore((s) => s.playheadSec);
   const togglePlay = useEditorStore((s) => s.togglePlay);
   const splitAtPlayhead = useEditorStore((s) => s.splitAtPlayhead);
+  const addTitle = useEditorStore((s) => s.addTitle);
   const masterColor = useEditorStore((s) => s.masterColor);
   const clipColor = useEditorStore((s) => s.clipColor);
+  const overlayItems = useEditorStore((s) => s.overlayItems);
 
   const total = layoutClips(clips).total;
   const hasClips = clips.length > 0;
@@ -38,6 +40,11 @@ export function PreviewPanel() {
   const effColor = activeClip ? clipColor[activeClip.id] ?? masterColor : masterColor;
   const cssFilter = hasClips ? toCssFilter(effColor) : undefined;
   const overlay = hasClips ? tempOverlay(effColor) : null;
+
+  // Titles active at the current playhead — rendered live over the video.
+  const activeTitles = overlayItems.filter(
+    (o) => o.lane === "title" && playheadSec >= o.startSec && playheadSec < o.startSec + o.durationSec,
+  );
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-[#070A0F]">
@@ -58,6 +65,29 @@ export function PreviewPanel() {
           {overlay && (
             <div className="pointer-events-none absolute inset-0" style={{ backgroundColor: overlay.color, mixBlendMode: "soft-light" }} />
           )}
+          {activeTitles.map((t) => {
+            const st = t.titleStyle ?? DEFAULT_TITLE_STYLE;
+            const vAlign = st.position === "top" ? "items-start pt-[6%]" : st.position === "center" ? "items-center" : "items-end pb-[8%]";
+            const hAlign = st.align === "left" ? "justify-start text-left" : st.align === "right" ? "justify-end text-right" : "justify-center text-center";
+            return (
+              <div key={t.id} className={`pointer-events-none absolute inset-0 flex px-[6%] ${vAlign} ${hAlign}`}>
+                <span
+                  className="font-semibold leading-tight"
+                  style={{
+                    fontSize: st.fontSize,
+                    color: st.color,
+                    background: st.background ? st.bgColor : "transparent",
+                    padding: st.background ? "0.12em 0.4em" : 0,
+                    borderRadius: 4,
+                    maxWidth: "92%",
+                    whiteSpace: "pre-wrap",
+                  }}
+                >
+                  {t.text}
+                </span>
+              </div>
+            );
+          })}
           {!hasClips && (
             <div className="text-center text-xs text-white/35">
               <div className="font-mono uppercase tracking-[0.16em] text-white/40">{label}</div>
@@ -81,7 +111,7 @@ export function PreviewPanel() {
           {fmt(playheadSec)} / {fmt(total)}
         </span>
         <HudButton icon={<Scissors className="h-3.5 w-3.5" />} title="Split at playhead" onClick={splitAtPlayhead} disabled={!hasClips} />
-        <HudButton icon={<Type className="h-3.5 w-3.5" />} title="Add title (slice 13)" disabled />
+        <HudButton icon={<Type className="h-3.5 w-3.5" />} title="Add title at playhead" onClick={addTitle} />
       </div>
     </div>
   );

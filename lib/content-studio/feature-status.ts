@@ -64,14 +64,14 @@ export const FEATURES: Feature[] = [
 
   // ── Preview / playback ──
   { key: "preview.playback", label: "Double-buffered playback + scrub", category: "preview", status: "live", note: "use-playback seamless boundaries, timeupdate-driven." },
-  { key: "preview.overlays", label: "Canvas overlays (titles/logo/crop)", category: "preview", status: "missing", note: "No compositor overlay layer yet." },
+  { key: "preview.overlays", label: "Canvas overlays (titles/logo/crop)", category: "preview", status: "partial", note: "Title text overlays render live on the preview; logo + crop handles still missing." },
 
   // ── Inspector ──
   { key: "ins.clip", label: "Clip tab (speed/trim/reverse/split)", category: "inspector", status: "live", note: "Bound to selected clip." },
   { key: "ins.color", label: "Color tab grade sliders", category: "inspector", status: "live", note: "Cat2: bound sliders, all/clip scope, live CSS preview + temp overlay, serialized → worker eq/colorbalance." },
   { key: "ins.export", label: "Export tab / dialog", category: "inspector", status: "live", note: "Aspect/res/quality/preflight → enqueue." },
   { key: "ins.audio", label: "Audio tab", category: "inspector", status: "stub", note: "Note only." },
-  { key: "ins.titles", label: "Titles tab", category: "inspector", status: "stub", note: "Note only." },
+  { key: "ins.titles", label: "Titles tab", category: "inspector", status: "live", note: "Add title + edit text/size/color/background/position/align/timing; previews live. Burn-in on export = Cat5." },
   { key: "ins.enhance", label: "Enhance tab", category: "inspector", status: "stub", note: "Sliders disconnected, no job wiring." },
 
   // ── Transitions ──
@@ -93,7 +93,7 @@ export const FEATURES: Feature[] = [
 
   // ── Titles / captions / logo ──
   { key: "titles.catalog", label: "Title + caption-style catalog", category: "titles", status: "live", note: "starter-library title-templates + caption-styles." },
-  { key: "titles.lane", label: "Title/caption lane + overlay", category: "titles", status: "partial", note: "Titles lane + drag-to-place/move title items exists; text editing + preview overlay + libass render = Cat5." },
+  { key: "titles.lane", label: "Title/caption lane + overlay", category: "titles", status: "live", note: "Titles lane + place/move; full text+style authoring; renders LIVE on the preview at its time range. libass burn-in on export = Cat5." },
   { key: "titles.captions", label: "Auto captions (Whisper)", category: "titles", status: "missing", note: "Not built." },
   { key: "titles.logo", label: "Logo / watermark overlay", category: "titles", status: "missing", note: "Schema only." },
 

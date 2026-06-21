@@ -39,6 +39,24 @@ export type ClipLayout = { clip: TimelineClip; startSec: number; lengthSec: numb
 
 export type OverlayLane = "audio" | "title";
 
+export type TitleStyle = {
+  fontSize: number; // px on the preview canvas
+  color: string;
+  background: boolean;
+  bgColor: string;
+  position: "top" | "center" | "bottom";
+  align: "left" | "center" | "right";
+};
+
+export const DEFAULT_TITLE_STYLE: TitleStyle = {
+  fontSize: 36,
+  color: "#ffffff",
+  background: true,
+  bgColor: "rgba(0,0,0,0.55)",
+  position: "bottom",
+  align: "center",
+};
+
 /** A free-floating timeline element on an overlay lane (music/SFX/title/caption),
  *  absolutely positioned (its own startSec) — independent of the video clips. */
 export type OverlayItem = {
@@ -51,6 +69,7 @@ export type OverlayItem = {
   libraryId?: string;
   text?: string;
   storageKey?: string;
+  titleStyle?: TitleStyle;
 };
 
 type EditorState = {
@@ -98,6 +117,8 @@ type EditorState = {
   loadClips: (clips: TimelineClip[]) => void;
   setOverlayItems: (items: OverlayItem[]) => void;
   addOverlayItem: (item: Omit<OverlayItem, "id">) => void;
+  addTitle: () => void;
+  updateOverlayItem: (id: string, patch: Partial<Omit<OverlayItem, "id" | "titleStyle">> & { titleStyle?: Partial<TitleStyle> }) => void;
   moveOverlayItem: (id: string, startSec: number) => void;
   removeOverlayItem: (id: string) => void;
   selectOverlay: (id: string | null) => void;
@@ -240,13 +261,39 @@ export const useEditorStore = create<EditorState>()(
   addOverlayItem: (item) =>
     set((s) => {
       const it: OverlayItem = { ...item, id: `ov_${Math.random().toString(36).slice(2, 10)}`, startSec: Math.max(0, item.startSec) };
-      return { overlayItems: [...s.overlayItems, it], selectedOverlayId: it.id, selectedClipId: null };
+      return { overlayItems: [...s.overlayItems, it], selectedOverlayId: it.id, selectedClipId: null, inspectorTab: it.lane === "title" ? "titles" : "audio" };
     }),
+  addTitle: () =>
+    set((s) => {
+      const it: OverlayItem = {
+        id: `ov_${Math.random().toString(36).slice(2, 10)}`,
+        lane: "title",
+        kind: "title",
+        name: "Title",
+        text: "New title",
+        startSec: Math.max(0, s.playheadSec),
+        durationSec: 4,
+        titleStyle: { ...DEFAULT_TITLE_STYLE },
+      };
+      return { overlayItems: [...s.overlayItems, it], selectedOverlayId: it.id, selectedClipId: null, inspectorTab: "titles" };
+    }),
+  updateOverlayItem: (id, patch) =>
+    set((s) => ({
+      overlayItems: s.overlayItems.map((o) =>
+        o.id === id
+          ? { ...o, ...patch, titleStyle: patch.titleStyle ? { ...(o.titleStyle ?? DEFAULT_TITLE_STYLE), ...patch.titleStyle } : o.titleStyle }
+          : o,
+      ),
+    })),
   moveOverlayItem: (id, startSec) =>
     set((s) => ({ overlayItems: s.overlayItems.map((o) => (o.id === id ? { ...o, startSec: Math.max(0, startSec) } : o)) })),
   removeOverlayItem: (id) =>
     set((s) => ({ overlayItems: s.overlayItems.filter((o) => o.id !== id), selectedOverlayId: s.selectedOverlayId === id ? null : s.selectedOverlayId })),
-  selectOverlay: (selectedOverlayId) => set({ selectedOverlayId, selectedClipId: null }),
+  selectOverlay: (selectedOverlayId) =>
+    set((s) => {
+      const it = s.overlayItems.find((o) => o.id === selectedOverlayId);
+      return { selectedOverlayId, selectedClipId: null, inspectorTab: it ? (it.lane === "title" ? "titles" : "audio") : s.inspectorTab };
+    }),
   addClip: (c) =>
     set((s) => {
       const d = c.durationSec && c.durationSec > 0 ? c.durationSec : 0;
