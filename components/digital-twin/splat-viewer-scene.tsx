@@ -19,6 +19,7 @@ import {
   ZOOM_WHEEL_FACTOR,
 } from "@/components/digital-twin/splat-viewer-constants";
 import { fetchSplatManifest, type SplatManifest } from "@/lib/digital-twin/twin-manifest";
+import { estimateOrientationFromMesh } from "@/lib/digital-twin/splat-pca-orientation";
 
 extend({ SparkRenderer: SparkRendererImpl, SplatMesh: SplatMeshImpl });
 
@@ -135,13 +136,24 @@ export function SplatViewerScene({
       lod: true,
       maxSplats,
       onLoad: (mesh: SplatMesh) => {
-        // Apply the baked correction quaternion BEFORE framing runs. No manifest
-        // (legacy models) → identity → identical to prior behavior (zero regression).
-        const q = manifestRef.current?.correction_quaternion;
+        // Orient the model BEFORE framing runs. Precedence:
+        //   1. worker-baked manifest quaternion (authoritative)
+        //   2. client PCA fallback — only on clearly-misoriented, confidently-planar models
+        //   3. nothing → identity → identical to prior behavior (zero regression)
         const group = modelGroupRef.current;
-        if (q && group) {
-          group.quaternion.set(q[0], q[1], q[2], q[3]);
-          group.updateMatrixWorld(true);
+        if (group) {
+          const baked = manifestRef.current?.correction_quaternion;
+          if (baked) {
+            group.quaternion.set(baked[0], baked[1], baked[2], baked[3]);
+            group.updateMatrixWorld(true);
+          } else {
+            const est = estimateOrientationFromMesh(mesh);
+            if (est?.apply) {
+              const [x, y, z, w] = est.quaternion;
+              group.quaternion.set(x, y, z, w);
+              group.updateMatrixWorld(true);
+            }
+          }
         }
         setLoadedMesh(mesh);
         onReady();
