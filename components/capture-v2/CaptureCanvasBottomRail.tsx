@@ -128,6 +128,60 @@ export function CaptureCanvasBottomRail({
   const capturedShutterClass =
     "border-[3px] border-[var(--graphite-primary)] bg-[color-mix(in_srgb,var(--graphite-primary)_25%,transparent)] shadow-none";
 
+  if (captured) {
+    return (
+      <div className={`${CAPTURE_V2_LAYERS.fastTrack} pointer-events-none absolute inset-x-0 bottom-0 z-30`}>
+        <div
+          className="pointer-events-auto absolute inset-x-0"
+          style={{
+            bottom: hintBottom,
+            paddingLeft: CAPTURE_CANVAS_CHROME.railSideInsetPx,
+            paddingRight: CAPTURE_CANVAS_CHROME.railSideInsetPx,
+          }}
+          data-capture-chrome="bottom-rail"
+        >
+          {/* Step strip — makes the Capture → Add info → Done sequence unmistakable */}
+          <div className="mb-3 flex items-center justify-center gap-2 text-[10px] font-medium uppercase tracking-[0.08em]">
+            <span className="text-[var(--graphite-primary)]">✓ Capture</span>
+            <span className="h-px w-5 bg-[var(--mobile-app-card-border)]" />
+            <span className="text-[var(--graphite-text-header)]">Add info</span>
+            <span className="h-px w-5 bg-[var(--mobile-app-card-border)]" />
+            <span className="text-[var(--graphite-muted)]">Done</span>
+          </div>
+
+          {/* Primary: full-width, verb-first — the #1 discoverability fix (was a tiny "Details" arrow). */}
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => onDetailsTap?.()}
+            data-capture-chrome="details-button"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--graphite-primary)] px-4 text-[15px] font-bold text-[var(--graphite-canvas)] transition active:scale-[0.99] disabled:opacity-50"
+            style={{ minHeight: 48 }}
+            aria-label="Add information for this stop"
+          >
+            Add info
+            <ArrowRight className="h-5 w-5" strokeWidth={2.5} />
+          </button>
+
+          {/* Secondary: take another photo for this stop (demoted from the prominent shutter). */}
+          <div className="mt-2 flex items-center justify-center">
+            <button
+              type="button"
+              disabled={busy}
+              onClick={handleShutterClick}
+              data-capture-chrome="shutter"
+              className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[12px] font-medium text-[var(--graphite-muted)] transition active:scale-[0.98] disabled:opacity-50"
+              aria-label="Add another photo to this stop"
+            >
+              <span className="inline-block h-4 w-4 rounded-full border-2 border-[var(--graphite-muted)]" />
+              Add another photo
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={`${CAPTURE_V2_LAYERS.fastTrack} pointer-events-none absolute inset-x-0 bottom-0 z-30`}>
       <div
