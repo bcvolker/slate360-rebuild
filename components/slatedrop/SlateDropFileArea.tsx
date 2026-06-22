@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import GlassCard from "@/components/shared/GlassCard";
 import {
@@ -114,6 +114,50 @@ export default function SlateDropFileArea({
   const [dragOverFolderId, setDragOverFolderId] = useState<string | null>(null);
   const [anchorIndex, setAnchorIndex] = useState<number | null>(null);
 
+  // Long-press → open the context menu on touch devices (no right-click on
+  // mobile). Synthesizes the minimal mouse-event shape handleContextMenu reads.
+  const longPressTimer = useRef<number | null>(null);
+  const longPressOrigin = useRef<{ x: number; y: number } | null>(null);
+  const longPressFired = useRef(false);
+  const clearLongPress = () => {
+    if (longPressTimer.current !== null) {
+      window.clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+  };
+  const longPressProps = (fire: (event: React.MouseEvent) => void) => ({
+    onTouchStart: (event: React.TouchEvent) => {
+      const touch = event.touches[0];
+      if (!touch) return;
+      longPressOrigin.current = { x: touch.clientX, y: touch.clientY };
+      longPressFired.current = false;
+      clearLongPress();
+      longPressTimer.current = window.setTimeout(() => {
+        longPressFired.current = true;
+        const { x, y } = longPressOrigin.current ?? { x: touch.clientX, y: touch.clientY };
+        fire({ clientX: x, clientY: y, preventDefault() {}, stopPropagation() {} } as unknown as React.MouseEvent);
+      }, 450);
+    },
+    onTouchMove: (event: React.TouchEvent) => {
+      const touch = event.touches[0];
+      if (!touch || !longPressOrigin.current) return;
+      if (Math.hypot(touch.clientX - longPressOrigin.current.x, touch.clientY - longPressOrigin.current.y) > 12) {
+        clearLongPress();
+      }
+    },
+    onTouchEnd: clearLongPress,
+    onTouchCancel: clearLongPress,
+  });
+  // Swallow the click that fires right after a long-press so it doesn't also
+  // toggle selection / open the folder.
+  const consumeLongPressClick = () => {
+    if (longPressFired.current) {
+      longPressFired.current = false;
+      return true;
+    }
+    return false;
+  };
+
   // Click = toggle one (and set the range anchor). Shift+click = select the
   // contiguous range from the anchor to here (Explorer/Finder behavior).
   const handleFileClick = (event: React.MouseEvent, index: number, fileId: string) => {
@@ -200,8 +244,9 @@ export default function SlateDropFileArea({
             {subFolders.map((folder) => (
               <button
                 key={folder.id}
-                onClick={() => onOpenSubFolder(folder.id)}
+                onClick={() => { if (consumeLongPressClick()) return; onOpenSubFolder(folder.id); }}
                 onContextMenu={(event) => onSubFolderContextMenu(event, folder)}
+                {...longPressProps((event) => onSubFolderContextMenu(event, folder))}
                 onDragOver={(event) => {
                   if (!isInternalDrag(event)) return;
                   event.preventDefault();
@@ -292,9 +337,10 @@ export default function SlateDropFileArea({
                 key={file.id}
                 draggable
                 onDragStart={(event) => startFileDrag(event, file.id)}
-                onClick={(event) => handleFileClick(event, index, file.id)}
+                onClick={(event) => { if (consumeLongPressClick()) return; handleFileClick(event, index, file.id); }}
                 onDoubleClick={() => onPreviewFile(file)}
                 onContextMenu={(event) => onFileContextMenu(event, file)}
+                {...longPressProps((event) => onFileContextMenu(event, file))}
                 className={`group relative rounded-xl border overflow-hidden cursor-pointer transition-all hover:shadow-md hover:-translate-y-0.5 ${
                   isSelected ? "border-[var(--graphite-primary)] ring-2 ring-[color-mix(in_srgb,var(--graphite-primary)_20%,transparent)] bg-[color-mix(in_srgb,var(--graphite-primary)_5%,transparent)]" : "border-white/10  hover:border-white/10"
                 }`}
@@ -384,9 +430,10 @@ export default function SlateDropFileArea({
                 key={file.id}
                 draggable
                 onDragStart={(event) => startFileDrag(event, file.id)}
-                onClick={(event) => handleFileClick(event, index, file.id)}
+                onClick={(event) => { if (consumeLongPressClick()) return; handleFileClick(event, index, file.id); }}
                 onDoubleClick={() => onPreviewFile(file)}
                 onContextMenu={(event) => onFileContextMenu(event, file)}
+                {...longPressProps((event) => onFileContextMenu(event, file))}
                 className={`grid grid-cols-[1fr_100px_120px_80px] gap-4 px-4 py-3 border-b border-white/10 cursor-pointer transition-colors group ${
                   isSelected ? "bg-[color-mix(in_srgb,var(--graphite-primary)_5%,transparent)]" : "hover:bg-[color-mix(in_srgb,var(--graphite-primary)_5%,transparent)] hover:bg-[color-mix(in_srgb,var(--graphite-primary)_10%,transparent)]"
                 }`}
