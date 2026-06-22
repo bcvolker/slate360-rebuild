@@ -113,6 +113,9 @@ export function SplatViewerScene({
   // Worker-baked orientation correction (applied to the parent group, not the splat).
   const modelGroupRef = useRef<THREE.Group>(null);
   const manifestRef = useRef<SplatManifest | null>(null);
+  // In-flight manifest fetch — onLoad awaits this so the baked orientation is
+  // never skipped when the splat wins the race against the manifest request.
+  const manifestPromiseRef = useRef<Promise<SplatManifest | null> | null>(null);
 
   useEffect(() => {
     setLoadedMesh(null);
@@ -121,7 +124,9 @@ export function SplatViewerScene({
     modelGroupRef.current?.quaternion.identity();
     modelGroupRef.current?.updateMatrixWorld(true);
     let cancelled = false;
-    void fetchSplatManifest(url).then((m) => {
+    const promise = fetchSplatManifest(url);
+    manifestPromiseRef.current = promise;
+    void promise.then((m) => {
       if (!cancelled) manifestRef.current = m;
     });
     return () => {
@@ -135,14 +140,20 @@ export function SplatViewerScene({
       url,
       lod: true,
       maxSplats,
-      onLoad: (mesh: SplatMesh) => {
+      onLoad: async (mesh: SplatMesh) => {
         // Orient the model BEFORE framing runs. Precedence:
         //   1. worker-baked manifest quaternion (authoritative)
         //   2. client PCA fallback — only on clearly-misoriented, confidently-planar models
         //   3. nothing → identity → identical to prior behavior (zero regression)
+        // The manifest may still be in-flight (small/cached models load fast), so
+        // wait for it here — otherwise the baked orientation is silently skipped.
+        let manifest = manifestRef.current;
+        if (!manifest && manifestPromiseRef.current) {
+          manifest = await manifestPromiseRef.current;
+        }
         const group = modelGroupRef.current;
         if (group) {
-          const baked = manifestRef.current?.correction_quaternion;
+          const baked = manifest?.correction_quaternion;
           if (baked) {
             group.quaternion.set(baked[0], baked[1], baked[2], baked[3]);
             group.updateMatrixWorld(true);

@@ -1,8 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import * as THREE from "three";
 import { Canvas, extend, useThree, type ThreeEvent } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
+import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import { IconLoader2 } from "@tabler/icons-react";
 import {
   SparkRenderer as SparkRendererImpl,
@@ -13,6 +15,9 @@ import { cn } from "@/lib/utils";
 import { twinAccent } from "@/lib/digital-twin/twin-accent";
 import { applyEditListToMesh } from "@/lib/digital-twin/splat-edit-runtime";
 import type { TwinEditList } from "@/lib/digital-twin/edit-list-types";
+import { fetchSplatManifest, type SplatManifest } from "@/lib/digital-twin/twin-manifest";
+import { estimateOrientationFromMesh } from "@/lib/digital-twin/splat-pca-orientation";
+import { applyOverviewHomeFrame } from "@/lib/digital-twin/splat-overview-home";
 
 extend({ SparkRenderer: SparkRendererImpl, SplatMesh: SplatMeshImpl });
 
@@ -61,9 +66,49 @@ function EditableSparkScene({
   onMeshReady: (mesh: SplatMesh) => void;
 }) {
   const meshRef = useRef<SplatMesh>(null);
+  // Parent group carries the orientation correction (on top of the splat's
+  // base [Math.PI,0,0] flip) — mirrors the shared viewer's structure.
+  const groupRef = useRef<THREE.Group>(null);
+  const controlsRef = useRef<OrbitControlsImpl>(null);
   const editListRef = useRef(editList);
   editListRef.current = editList;
   const gl = useThree((state) => state.gl);
+  const camera = useThree((state) => state.camera);
+  const manifestRef = useRef<SplatManifest | null>(null);
+  const manifestPromiseRef = useRef<Promise<SplatManifest | null> | null>(null);
+
+  useEffect(() => {
+    manifestRef.current = null;
+    groupRef.current?.quaternion.identity();
+    groupRef.current?.updateMatrixWorld(true);
+    let cancelled = false;
+    const promise = fetchSplatManifest(url);
+    manifestPromiseRef.current = promise;
+    void promise.then((m) => {
+      if (!cancelled) manifestRef.current = m;
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [url]);
+
+  // Center + fit the model on open, then hand zoom freedom back to the editor.
+  const frameToModel = useCallback(
+    (mesh: SplatMesh) => {
+      if (!(camera instanceof THREE.PerspectiveCamera)) return;
+      const controls = controlsRef.current;
+      if (!controls) {
+        window.requestAnimationFrame(() => frameToModel(mesh));
+        return;
+      }
+      applyOverviewHomeFrame(mesh, camera, controls);
+      // Keep the good initial framing but don't constrain editing zoom.
+      controls.minDistance = 0;
+      controls.maxDistance = Infinity;
+      controls.update();
+    },
+    [camera],
+  );
 
   const splatArgs = useMemo(
     () => ({
@@ -71,13 +116,36 @@ function EditableSparkScene({
       lod: true,
       maxSplats: DESKTOP_MAX_SPLATS,
       editable: true,
-      onLoad: (mesh: SplatMesh) => {
+      onLoad: async (mesh: SplatMesh) => {
         applyEditListToMesh(mesh, editListRef.current);
+        // Orient before framing (same precedence as the shared viewer): baked
+        // manifest quaternion → PCA fallback → identity. Wait for the manifest
+        // so a fast splat load can't skip the correction.
+        let manifest = manifestRef.current;
+        if (!manifest && manifestPromiseRef.current) {
+          manifest = await manifestPromiseRef.current;
+        }
+        const group = groupRef.current;
+        if (group) {
+          const baked = manifest?.correction_quaternion;
+          if (baked) {
+            group.quaternion.set(baked[0], baked[1], baked[2], baked[3]);
+            group.updateMatrixWorld(true);
+          } else {
+            const est = estimateOrientationFromMesh(mesh);
+            if (est?.apply) {
+              const [x, y, z, w] = est.quaternion;
+              group.quaternion.set(x, y, z, w);
+              group.updateMatrixWorld(true);
+            }
+          }
+        }
         onMeshReady(mesh);
+        frameToModel(mesh);
         onReady();
       },
     }),
-    [url, onMeshReady, onReady],
+    [url, onMeshReady, onReady, frameToModel],
   );
 
   useEffect(() => {
@@ -88,11 +156,13 @@ function EditableSparkScene({
 
   return (
     <>
-      <sparkRenderer args={[{ renderer: gl, enableLod: true }]}>
-        <splatMesh ref={meshRef} args={[splatArgs]} rotation={[Math.PI, 0, 0]} />
-      </sparkRenderer>
+      <group ref={groupRef}>
+        <sparkRenderer args={[{ renderer: gl, enableLod: true }]}>
+          <splatMesh ref={meshRef} args={[splatArgs]} rotation={[Math.PI, 0, 0]} />
+        </sparkRenderer>
+      </group>
       <PickProxy enabled={pickEnabled} onPick={onPick} />
-      <OrbitControls makeDefault enablePan enableZoom enableRotate />
+      <OrbitControls ref={controlsRef} makeDefault enablePan enableZoom enableRotate />
     </>
   );
 }
