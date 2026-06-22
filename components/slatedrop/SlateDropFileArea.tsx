@@ -50,6 +50,7 @@ type SlateDropFileAreaProps = {
   currentFiles: SlateDropFileItem[];
   selectedFiles: Set<string>;
   onToggleFileSelect: (fileId: string) => void;
+  onSelectRange: (fileIds: string[]) => void;
   onFileContextMenu: (event: React.MouseEvent, file: SlateDropFileItem) => void;
   onPreviewFile: (file: SlateDropFileItem) => void;
   onSelectAll: () => void;
@@ -87,6 +88,7 @@ export default function SlateDropFileArea({
   currentFiles,
   selectedFiles,
   onToggleFileSelect,
+  onSelectRange,
   onFileContextMenu,
   onPreviewFile,
   onSelectAll,
@@ -107,6 +109,19 @@ export default function SlateDropFileArea({
   const selectedCount = selectedFiles.size;
   const allSelected = currentFiles.length > 0 && currentFiles.every((file) => selectedFiles.has(file.id));
   const [dragOverFolderId, setDragOverFolderId] = useState<string | null>(null);
+  const [anchorIndex, setAnchorIndex] = useState<number | null>(null);
+
+  // Click = toggle one (and set the range anchor). Shift+click = select the
+  // contiguous range from the anchor to here (Explorer/Finder behavior).
+  const handleFileClick = (event: React.MouseEvent, index: number, fileId: string) => {
+    if (event.shiftKey && anchorIndex !== null) {
+      const [lo, hi] = anchorIndex <= index ? [anchorIndex, index] : [index, anchorIndex];
+      onSelectRange(currentFiles.slice(lo, hi + 1).map((file) => file.id));
+      return;
+    }
+    onToggleFileSelect(fileId);
+    setAnchorIndex(index);
+  };
 
   // Dragging a file carries either the whole selection (if the dragged file is
   // selected) or just that one file, as a private MIME type so it's distinct
@@ -259,7 +274,7 @@ export default function SlateDropFileArea({
 
       {viewMode === "grid" && currentFiles.length > 0 && (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-          {currentFiles.map((file) => {
+          {currentFiles.map((file, index) => {
             const Icon = getFileIcon(file.type);
             const color = getFileColor(file.type);
             const isSelected = selectedFiles.has(file.id);
@@ -268,7 +283,7 @@ export default function SlateDropFileArea({
                 key={file.id}
                 draggable
                 onDragStart={(event) => startFileDrag(event, file.id)}
-                onClick={() => onToggleFileSelect(file.id)}
+                onClick={(event) => handleFileClick(event, index, file.id)}
                 onDoubleClick={() => onPreviewFile(file)}
                 onContextMenu={(event) => onFileContextMenu(event, file)}
                 className={`group relative rounded-xl border overflow-hidden cursor-pointer transition-all hover:shadow-md hover:-translate-y-0.5 ${
@@ -351,7 +366,7 @@ export default function SlateDropFileArea({
             <span className="text-[10px] font-semibold text-[var(--graphite-muted)] uppercase tracking-wider hidden sm:block">Type</span>
           </div>
 
-          {currentFiles.map((file) => {
+          {currentFiles.map((file, index) => {
             const Icon = getFileIcon(file.type);
             const color = getFileColor(file.type);
             const isSelected = selectedFiles.has(file.id);
@@ -360,7 +375,7 @@ export default function SlateDropFileArea({
                 key={file.id}
                 draggable
                 onDragStart={(event) => startFileDrag(event, file.id)}
-                onClick={() => onToggleFileSelect(file.id)}
+                onClick={(event) => handleFileClick(event, index, file.id)}
                 onDoubleClick={() => onPreviewFile(file)}
                 onContextMenu={(event) => onFileContextMenu(event, file)}
                 className={`grid grid-cols-[1fr_100px_120px_80px] gap-4 px-4 py-3 border-b border-white/10 cursor-pointer transition-colors group ${

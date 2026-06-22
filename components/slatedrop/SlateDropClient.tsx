@@ -149,6 +149,9 @@ export default function SlateDropClient({ user, tier, initialProjectId, projectN
   const selectAllFiles = useCallback(() => {
     setSelectedFiles(new Set(files.currentFiles.map((file) => file.id)));
   }, [files.currentFiles]);
+  const selectRange = useCallback((fileIds: string[]) => {
+    setSelectedFiles((prev) => new Set([...prev, ...fileIds]));
+  }, []);
   const bulkDownload = useCallback(() => {
     files.currentFiles
       .filter((file) => selectedFiles.has(file.id))
@@ -278,6 +281,7 @@ export default function SlateDropClient({ user, tier, initialProjectId, projectN
             onSubFolderContextMenu={handleSubFolderContextMenu}
             currentFiles={files.currentFiles} selectedFiles={selectedFiles}
             onToggleFileSelect={interactions.toggleFileSelect}
+            onSelectRange={selectRange}
             onFileContextMenu={handleFileAreaContextMenu}
             onPreviewFile={handleFileAreaPreview}
             onSelectAll={selectAllFiles}
