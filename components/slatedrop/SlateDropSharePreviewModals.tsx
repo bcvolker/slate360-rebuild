@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import {
   CheckCircle2,
   Download,
@@ -9,6 +12,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import ContactPicker from "@/components/shared/ContactPicker";
+import SlateDropActiveLinks from "./SlateDropActiveLinks";
 import type { DbFile } from "@/lib/slatedrop/helpers";
 
 type ShareModalFile = DbFile | null;
@@ -76,6 +80,16 @@ export default function SlateDropSharePreviewModals({
   formatBytes,
   formatDate,
 }: SlateDropSharePreviewModalsProps) {
+  // Bumped after a link is minted so the "Active links" list re-fetches.
+  const [linksRefresh, setLinksRefresh] = useState(0);
+  const handleSend = async () => {
+    await onSendSecureLink();
+    setLinksRefresh((value) => value + 1);
+  };
+  const handleCopyLink = async () => {
+    await onCopyShareLink();
+    setLinksRefresh((value) => value + 1);
+  };
   return (
     <>
       {shareModal && (
@@ -187,7 +201,7 @@ export default function SlateDropSharePreviewModals({
                     />
                   </div>
                   <button
-                    onClick={onSendSecureLink}
+                    onClick={handleSend}
                     disabled={shareChannel === "sms" ? !sharePhone.trim() : !shareEmail.trim()}
                     className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold text-foreground transition-all hover:opacity-90 disabled:opacity-50"
                     style={{ backgroundColor: "var(--graphite-primary)" }}
@@ -201,11 +215,13 @@ export default function SlateDropSharePreviewModals({
                     <span className="h-px flex-1 bg-white/10" />
                   </div>
                   <button
-                    onClick={onCopyShareLink}
+                    onClick={handleCopyLink}
                     className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-white/10 bg-white/[0.04] text-sm font-semibold text-[var(--graphite-text-body)] transition-all hover:border-[color-mix(in_srgb,var(--graphite-primary)_45%,transparent)]"
                   >
                     <Link2 size={14} /> Copy public link
                   </button>
+
+                  <SlateDropActiveLinks fileId={shareModal.id} refreshKey={linksRefresh} />
                 </div>
               )}
             </div>
