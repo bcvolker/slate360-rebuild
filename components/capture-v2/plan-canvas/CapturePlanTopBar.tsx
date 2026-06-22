@@ -41,7 +41,7 @@ export function CapturePlanTopBar({
       }}
     >
       <div
-        className="flex items-center gap-2 border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_72%,transparent)] px-2 backdrop-blur-md"
+        className="flex items-center gap-2 border border-[var(--accent-border-green)] bg-[color-mix(in_srgb,var(--graphite-canvas)_72%,transparent)] px-2 backdrop-blur-md"
         style={{
           borderRadius: CAPTURE_PLAN_CANVAS_CHROME.topBarRadiusPx,
           height: CAPTURE_PLAN_CANVAS_CHROME.planTopBarHeightPx,
@@ -50,7 +50,7 @@ export function CapturePlanTopBar({
         <button
           type="button"
           onClick={() => router.push("/site-walk")}
-          className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_50%,transparent)] text-[var(--graphite-primary)] transition active:scale-[0.98]"
+          className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[var(--accent-border-green)] bg-[color-mix(in_srgb,var(--graphite-primary)_10%,transparent)] text-[var(--graphite-primary)] transition active:scale-[0.98]"
           aria-label="Back to Site Walk home"
           data-capture-chrome="plan-back"
         >
@@ -81,7 +81,7 @@ export function CapturePlanTopBar({
             className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border transition active:scale-[0.98] ${
               filmstripExpanded
                 ? "border-[color-mix(in_srgb,var(--graphite-primary)_32%,transparent)] bg-[color-mix(in_srgb,var(--graphite-primary)_10%,transparent)] text-[var(--graphite-primary)]"
-                : "border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_50%,transparent)] text-[var(--graphite-primary)]"
+                : "border-[var(--accent-border-green)] bg-[color-mix(in_srgb,var(--graphite-primary)_10%,transparent)] text-[var(--graphite-primary)]"
             }`}
             aria-expanded={filmstripExpanded}
             aria-label={filmstripExpanded ? "Hide stop tracker" : "Show stop tracker"}

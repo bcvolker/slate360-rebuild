@@ -43,7 +43,7 @@ export function TwinCaptureTopBar({
       }}
     >
       <div
-        className="flex items-center gap-2 border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_85%,transparent)] px-3 backdrop-blur-md"
+        className="flex items-center gap-2 border border-[var(--accent-border-blue)] bg-[color-mix(in_srgb,var(--graphite-canvas)_85%,transparent)] px-3 backdrop-blur-md"
         style={{
           borderRadius: TWIN_CAPTURE_CHROME.topBarRadiusPx,
           height: TWIN_CAPTURE_CHROME.topBarHeightPx,
@@ -98,7 +98,7 @@ export function TwinCaptureTopBar({
             event.stopPropagation();
             onToggleChrome();
           }}
-          className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_55%,transparent)] text-[var(--twin360-blue)] transition active:scale-[0.98]"
+          className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[var(--accent-border-blue)] bg-[color-mix(in_srgb,var(--twin360-blue)_10%,transparent)] text-[var(--twin360-blue)] transition active:scale-[0.98]"
           aria-label="Toggle capture controls"
         >
           <Maximize2 className="h-4 w-4" />
@@ -126,7 +126,7 @@ export function TwinCaptureTopBar({
             router.push("/app");
           }}
           data-twin-chrome="quick-exit"
-          className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_55%,transparent)] text-[var(--twin360-blue)] transition active:scale-[0.98]"
+          className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[var(--accent-border-blue)] bg-[color-mix(in_srgb,var(--twin360-blue)_10%,transparent)] text-[var(--twin360-blue)] transition active:scale-[0.98]"
           aria-label="Back to Slate360 home"
         >
           <Home className="h-4 w-4" />
