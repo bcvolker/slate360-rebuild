@@ -10,6 +10,7 @@ type Props = {
   canGoNext: boolean;
   onPrev: () => void;
   onNext: () => void;
+  sheetPosition?: string;
 };
 
 export function CapturePlanBottomRail({
@@ -18,6 +19,7 @@ export function CapturePlanBottomRail({
   canGoNext,
   onPrev,
   onNext,
+  sheetPosition,
 }: Props) {
   if (hidden) return null;
 
@@ -41,21 +43,23 @@ export function CapturePlanBottomRail({
             disabled={!canGoPrev}
             onClick={onPrev}
             data-capture-chrome="plan-prev-sheet"
-            className="inline-flex items-center justify-center justify-self-start rounded-xl border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_72%,transparent)] text-[var(--graphite-text-header)] backdrop-blur-md transition active:scale-[0.98] disabled:opacity-40"
+            className="inline-flex items-center justify-center justify-self-start rounded-xl border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_72%,transparent)] text-[var(--graphite-primary)] backdrop-blur-md transition active:scale-[0.98] disabled:opacity-40"
             style={{ width: buttonSize, height: buttonSize }}
             aria-label="Previous sheet"
           >
             <ChevronLeft className="h-5 w-5" />
           </button>
 
-          <p className="justify-self-center pb-2 text-[11px] font-medium text-[var(--graphite-muted)]">Sheet</p>
+          <p className="justify-self-center pb-2 text-center text-[11px] font-semibold text-[var(--graphite-text-body)]">
+            Sheet{sheetPosition ? <span className="ml-1 text-[var(--graphite-muted)]">{sheetPosition}</span> : null}
+          </p>
 
           <button
             type="button"
             disabled={!canGoNext}
             onClick={onNext}
             data-capture-chrome="plan-next-sheet"
-            className="inline-flex items-center justify-center justify-self-end rounded-xl border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_72%,transparent)] text-[var(--graphite-text-header)] backdrop-blur-md transition active:scale-[0.98] disabled:opacity-40"
+            className="inline-flex items-center justify-center justify-self-end rounded-xl border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_72%,transparent)] text-[var(--graphite-primary)] backdrop-blur-md transition active:scale-[0.98] disabled:opacity-40"
             style={{ width: buttonSize, height: buttonSize }}
             aria-label="Next sheet"
           >

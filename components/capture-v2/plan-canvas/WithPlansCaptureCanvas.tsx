@@ -141,6 +141,7 @@ export function WithPlansCaptureCanvas({
         canGoNext={canvas.canGoNext}
         onPrev={canvas.goPrevSheet}
         onNext={canvas.goNextSheet}
+        sheetPosition={canvas.sheetPosition}
       />
 
       <CapturePlanSheetPickerSheet
