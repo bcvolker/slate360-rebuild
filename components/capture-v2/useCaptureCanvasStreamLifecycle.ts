@@ -11,16 +11,17 @@ type Args = {
   cameraPaused: boolean;
 };
 
-/** Keep getUserMedia alive during capture walk; detach video while preview/details are shown. */
+/** Hold getUserMedia only while actively framing. The camera is released
+ *  (stopped, not just detached) whenever the preview is paused for a captured-
+ *  photo/details sheet, when the app is backgrounded, or on unmount — so iOS's
+ *  camera indicator is dark except in the moments you're lining up a shot. It
+ *  is re-acquired (~1-2s) when you return to the live view. */
 export function useCaptureCanvasStreamLifecycle({ camera, facingMode, cameraPaused }: Args) {
   const [lifecycleRunCount, setLifecycleRunCount] = useState(0);
   const lifecycleRunRef = useRef(0);
 
   const stopCameraRef = useRef(camera.stopCamera);
   stopCameraRef.current = camera.stopCamera;
-
-  const detachVideoRef = useRef(camera.detachVideo);
-  detachVideoRef.current = camera.detachVideo;
 
   const reattachVideoRef = useRef(camera.reattachVideo);
   reattachVideoRef.current = camera.reattachVideo;
@@ -53,12 +54,11 @@ export function useCaptureCanvasStreamLifecycle({ camera, facingMode, cameraPaus
     lifecycleRunRef.current += 1;
     setLifecycleRunCount(lifecycleRunRef.current);
 
-    if (appHidden) {
+    if (appHidden || cameraPaused) {
+      // Fully release the camera (not just detach the <video>) so the iOS
+      // camera indicator clears while reviewing a shot, in a sheet, or in the
+      // background. Re-acquired below once we're framing again.
       stopCameraRef.current();
-      return;
-    }
-    if (cameraPaused) {
-      detachVideoRef.current();
       return;
     }
     if (needsUserResume) return;
