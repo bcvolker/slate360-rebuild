@@ -95,7 +95,7 @@ export default function ViewerClient({ deliverable, token }: Props) {
       <button
         type="button"
         onClick={handleShare}
-        className="rounded-lg p-2 text-slate-300 transition-colors hover:bg-amber-500/15 hover:text-amber-300"
+        className="rounded-lg p-2 text-slate-300 transition-colors hover:bg-[color-mix(in_srgb,var(--graphite-primary)_15%,transparent)] hover:text-[var(--graphite-primary)]"
         aria-label="Share"
       >
         <Share2 size={16} />
@@ -103,7 +103,7 @@ export default function ViewerClient({ deliverable, token }: Props) {
       <button
         type="button"
         onClick={() => window.print()}
-        className="hidden rounded-lg p-2 text-slate-300 transition-colors hover:bg-amber-500/15 hover:text-amber-300 sm:block"
+        className="hidden rounded-lg p-2 text-slate-300 transition-colors hover:bg-[color-mix(in_srgb,var(--graphite-primary)_15%,transparent)] hover:text-[var(--graphite-primary)] sm:block"
         aria-label="Print"
       >
         <Printer size={16} />
@@ -114,8 +114,8 @@ export default function ViewerClient({ deliverable, token }: Props) {
         className={cn(
           "rounded-lg p-2 transition-colors",
           panelOpen
-            ? "bg-amber-500/15 text-amber-300"
-            : "text-slate-300 hover:bg-amber-500/15 hover:text-amber-300",
+            ? "bg-[color-mix(in_srgb,var(--graphite-primary)_15%,transparent)] text-[var(--graphite-primary)]"
+            : "text-slate-300 hover:bg-[color-mix(in_srgb,var(--graphite-primary)_15%,transparent)] hover:text-[var(--graphite-primary)]",
         )}
         aria-label="Toggle details"
       >
@@ -145,7 +145,7 @@ export default function ViewerClient({ deliverable, token }: Props) {
             <button
               type="button"
               onClick={() => navigate(-1)}
-              className="absolute left-3 z-20 rounded-full bg-[#151A23]/80 p-3 text-[#0C0A09] backdrop-blur transition-colors hover:bg-amber-400"
+              className="absolute left-3 z-20 rounded-full bg-[#151A23]/80 p-3 text-[#0C0A09] backdrop-blur transition-colors hover:bg-[var(--graphite-primary)]"
               aria-label="Previous"
             >
               <ChevronLeft size={20} />
@@ -155,7 +155,7 @@ export default function ViewerClient({ deliverable, token }: Props) {
             <button
               type="button"
               onClick={() => navigate(1)}
-              className="absolute right-3 z-20 rounded-full bg-[#151A23]/80 p-3 text-[#0C0A09] backdrop-blur transition-colors hover:bg-amber-400"
+              className="absolute right-3 z-20 rounded-full bg-[#151A23]/80 p-3 text-[#0C0A09] backdrop-blur transition-colors hover:bg-[var(--graphite-primary)]"
               aria-label="Next"
             >
               <ChevronRight size={20} />
@@ -228,7 +228,7 @@ export default function ViewerClient({ deliverable, token }: Props) {
             className={cn(
               "h-14 min-w-[88px] bg-black border-2 rounded overflow-hidden relative transition-all",
               activeIndex === idx
-                ? "border-amber-400 shadow-[0_0_16px_-2px_rgba(245,158,11,0.55)]"
+                ? "border-[var(--graphite-primary)] shadow-[0_0_16px_-2px_color-mix(in_srgb,var(--graphite-primary)_55%,transparent)]"
                 : "border-transparent opacity-60 hover:opacity-100"
             )}
             aria-label={`Go to item ${idx + 1}`}

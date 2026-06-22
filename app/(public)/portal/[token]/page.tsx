@@ -89,13 +89,13 @@ export default async function DeliverableSharePage({ params }: PageProps) {
           orgLogoUrl={branding.logo_url}
         >
           {isDowngraded ? (
-            <div className="border-b border-amber-500/25 bg-amber-500/10 px-4 py-3 text-center text-sm text-amber-100 sm:px-6">
+            <div className="border-b border-white/10 bg-white/[0.05] px-4 py-3 text-center text-sm text-[var(--graphite-muted)] sm:px-6">
               <span>
                 This content was created with a plan that is no longer active on this account.
               </span>
               <a
                 href="https://www.slate360.ai/pricing"
-                className="ml-2 font-semibold text-amber-300 underline underline-offset-4"
+                className="ml-2 font-semibold text-[var(--graphite-primary)] underline underline-offset-4"
               >
                 View plans
               </a>

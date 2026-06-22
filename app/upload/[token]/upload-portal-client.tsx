@@ -146,8 +146,8 @@ export default function UploadPortalClient({
     >
       <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-4 py-8 sm:px-6">
         {partialSuccess ? (
-          <div className="mb-4 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
-            <span className="font-semibold text-amber-200">
+          <div className="mb-4 rounded-xl border border-white/15 bg-white/[0.05] px-4 py-3 text-sm text-[var(--graphite-text-body)]">
+            <span className="font-semibold text-white">
               {successCount} of {results.length} files uploaded.
             </span>{" "}
             Review failed items below, then add any remaining files.
@@ -168,15 +168,15 @@ export default function UploadPortalClient({
             }}
             className={`rounded-2xl border-2 border-dashed p-8 text-center transition ${
               dragOver
-                ? "border-amber-400/60 bg-amber-500/5"
+                ? "border-[color-mix(in_srgb,var(--graphite-primary)_60%,transparent)] bg-[color-mix(in_srgb,var(--graphite-primary)_6%,transparent)]"
                 : "border-white/15 bg-white/[0.02]"
             }`}
           >
             <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/5">
               {uploading ? (
-                <Loader2 size={24} className="animate-spin text-amber-400" />
+                <Loader2 size={24} className="animate-spin text-[var(--graphite-primary)]" />
               ) : (
-                <UploadCloud size={24} className="text-amber-400" />
+                <UploadCloud size={24} className="text-[var(--graphite-primary)]" />
               )}
             </div>
 

@@ -129,7 +129,7 @@ export default function ExternalRespondPage() {
   }
 
   const fieldClass =
-    "w-full rounded-xl border border-white/15 bg-white/[0.04] px-3 py-2.5 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-amber-400/60 focus:ring-2 focus:ring-amber-400/20";
+    "w-full rounded-xl border border-white/15 bg-white/[0.04] px-3 py-2.5 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-[color-mix(in_srgb,var(--graphite-primary)_60%,transparent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--graphite-primary)_20%,transparent)]";
 
   return (
     <ExternalPortalShell
@@ -207,8 +207,8 @@ export default function ExternalRespondPage() {
               <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-slate-400">
                 Attach file (optional)
               </label>
-              <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-white/20 bg-white/[0.02] px-4 py-3.5 text-sm text-slate-400 transition hover:border-amber-400/40 hover:bg-white/[0.04]">
-                <UploadCloud size={16} className={file ? "text-amber-400" : ""} />
+              <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-white/20 bg-white/[0.02] px-4 py-3.5 text-sm text-slate-400 transition hover:border-[color-mix(in_srgb,var(--graphite-primary)_40%,transparent)] hover:bg-white/[0.04]">
+                <UploadCloud size={16} className={file ? "text-[var(--graphite-primary)]" : ""} />
                 <span className={file ? "font-medium text-slate-200" : ""}>
                   {file ? file.name : "Choose a file to attach"}
                 </span>

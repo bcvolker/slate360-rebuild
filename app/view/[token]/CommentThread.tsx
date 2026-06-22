@@ -22,13 +22,13 @@ const INTENT_META: Record<Intent, { label: string; icon: typeof ThumbsUp; tone: 
   needs_change: {
     label: "Needs change",
     icon: AlertTriangle,
-    tone: "bg-amber-500/15 text-amber-300 border-amber-500/40 hover:bg-amber-500/25",
+    tone: "bg-[color-mix(in_srgb,var(--graphite-primary)_15%,transparent)] text-[var(--graphite-primary)] border-[color-mix(in_srgb,var(--graphite-primary)_40%,transparent)] hover:bg-[color-mix(in_srgb,var(--graphite-primary)_25%,transparent)]",
     defaultBody: "Needs change: ",
   },
   question: {
     label: "Question",
     icon: HelpCircle,
-    tone: "bg-amber-500/15 text-amber-300 border-amber-500/40 hover:bg-amber-500/25",
+    tone: "bg-[color-mix(in_srgb,var(--graphite-primary)_15%,transparent)] text-[var(--graphite-primary)] border-[color-mix(in_srgb,var(--graphite-primary)_40%,transparent)] hover:bg-[color-mix(in_srgb,var(--graphite-primary)_25%,transparent)]",
     defaultBody: "Question: ",
   },
   comment: {
@@ -141,7 +141,7 @@ export default function CommentThread({ deliverableId, itemId, token }: Props) {
 
   if (linkClosed) {
     return (
-      <div className="mt-6 rounded-lg border border-amber-500/25 bg-amber-500/10 px-3 py-3 text-xs text-amber-100">
+      <div className="mt-6 rounded-lg border border-white/10 bg-white/[0.05] px-3 py-3 text-xs text-[var(--graphite-muted)]">
         Feedback is closed because this review link has expired or been revoked.
       </div>
     );
@@ -165,7 +165,7 @@ export default function CommentThread({ deliverableId, itemId, token }: Props) {
             placeholder="Your name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="border-b border-white/10 bg-transparent pb-1.5 text-sm text-foreground outline-none transition-colors placeholder:text-slate-500 focus:border-amber-400"
+            className="border-b border-white/10 bg-transparent pb-1.5 text-sm text-foreground outline-none transition-colors placeholder:text-slate-500 focus:border-[var(--graphite-primary)]"
             required
             maxLength={120}
           />
@@ -174,7 +174,7 @@ export default function CommentThread({ deliverableId, itemId, token }: Props) {
             placeholder="Email (optional)"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="border-b border-white/10 bg-transparent pb-1.5 text-sm text-foreground outline-none transition-colors placeholder:text-slate-500 focus:border-amber-400"
+            className="border-b border-white/10 bg-transparent pb-1.5 text-sm text-foreground outline-none transition-colors placeholder:text-slate-500 focus:border-[var(--graphite-primary)]"
           />
         </div>
 
@@ -218,7 +218,7 @@ export default function CommentThread({ deliverableId, itemId, token }: Props) {
           <button
             type="submit"
             disabled={submitting || !body.trim() || !name.trim()}
-            className="rounded-lg p-2 text-amber-400 transition-colors hover:bg-amber-500/15 hover:text-amber-200 disabled:opacity-40"
+            className="rounded-lg p-2 text-[var(--graphite-primary)] transition-colors hover:bg-[color-mix(in_srgb,var(--graphite-primary)_15%,transparent)] hover:text-[var(--graphite-primary)] disabled:opacity-40"
             aria-label="Send comment"
           >
             {submitting ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
@@ -239,7 +239,7 @@ export default function CommentThread({ deliverableId, itemId, token }: Props) {
             <div key={c.id} className="text-sm">
               <div className="flex justify-between items-baseline mb-1 gap-2">
                 <div className="flex items-center gap-2 min-w-0">
-                  <span className="truncate font-medium text-amber-300">{c.author_name}</span>
+                  <span className="truncate font-medium text-[var(--graphite-primary)]">{c.author_name}</span>
                   {intentBadge(c.comment_intent)}
                 </div>
                 <span className="text-[10px] text-slate-500 whitespace-nowrap">

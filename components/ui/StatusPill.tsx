@@ -5,7 +5,7 @@
  *
  * Color contract (from design tokens):
  *   open      → blue
- *   in-review → amber/yellow
+ *   in-review → blue
  *   approved  → green
  *   closed    → green
  *   overdue   → red
@@ -20,10 +20,10 @@ interface StatusPillProps {
 }
 
 const STATUS_STYLES: Record<string, string> = {
-  open:        "bg-amber-50 text-amber-700 border-amber-100",
-  "in-review": "bg-amber-50 text-amber-700 border-amber-100",
-  "in_review": "bg-amber-50 text-amber-700 border-amber-100",
-  pending:     "bg-amber-50 text-amber-700 border-amber-100",
+  open:        "bg-sky-50 text-sky-700 border-sky-100",
+  "in-review": "bg-sky-50 text-sky-700 border-sky-100",
+  "in_review": "bg-sky-50 text-sky-700 border-sky-100",
+  pending:     "bg-sky-50 text-sky-700 border-sky-100",
   approved:    "bg-emerald-50 text-emerald-700 border-emerald-100",
   closed:      "bg-emerald-50 text-emerald-700 border-emerald-100",
   completed:   "bg-emerald-50 text-emerald-700 border-emerald-100",
@@ -31,10 +31,10 @@ const STATUS_STYLES: Record<string, string> = {
   rejected:    "bg-red-50 text-red-700 border-red-100",
   draft:       "bg-gray-100 text-gray-600 border-gray-200",
   active:      "bg-emerald-50 text-emerald-700 border-emerald-100",
-  "on-hold":   "bg-amber-50 text-amber-700 border-amber-100",
-  "on_hold":   "bg-amber-50 text-amber-700 border-amber-100",
+  "on-hold":   "bg-sky-50 text-sky-700 border-sky-100",
+  "on_hold":   "bg-sky-50 text-sky-700 border-sky-100",
   queued:      "bg-gray-100 text-gray-600 border-gray-200",
-  processing:  "bg-amber-50 text-amber-700 border-amber-100",
+  processing:  "bg-sky-50 text-sky-700 border-sky-100",
   failed:      "bg-red-50 text-red-700 border-red-100",
 };
 

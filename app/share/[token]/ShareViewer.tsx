@@ -73,8 +73,8 @@ export default function ShareViewer({
     >
       <main className="flex flex-1 flex-col overflow-auto p-4 sm:p-6">
         {!canDownload ? (
-          <div className="mb-4 flex items-center gap-2 rounded-xl border border-amber-500/25 bg-amber-500/10 px-3 py-2 text-xs text-amber-100">
-            <Lock size={14} className="shrink-0 text-amber-300" aria-hidden />
+          <div className="mb-4 flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.05] px-3 py-2 text-xs text-[var(--graphite-muted)]">
+            <Lock size={14} className="shrink-0 text-[var(--graphite-muted)]" aria-hidden />
             <span>Download is not permitted for this link. You can view or open the file only.</span>
           </div>
         ) : null}
