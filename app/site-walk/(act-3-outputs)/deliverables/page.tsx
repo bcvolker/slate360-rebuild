@@ -17,10 +17,10 @@ export default async function SiteWalkDeliverablesPage() {
       <div className="mx-auto flex min-h-0 w-full max-w-5xl flex-1 flex-col gap-4 overflow-y-auto px-4 py-4 pb-[max(env(safe-area-inset-bottom),1rem)] no-scrollbar sm:px-6 lg:px-8">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-amber-400">Site Walk</p>
+            <p className="text-xs font-black uppercase tracking-[0.2em] text-[var(--graphite-primary)]">Site Walk</p>
             <h1 className="mt-1 text-2xl font-black">Deliverables</h1>
           </div>
-          <Link href="/site-walk" className="inline-flex items-center gap-2 rounded-2xl bg-amber-500 px-4 py-2 text-sm font-black text-slate-950 hover:bg-amber-400">
+          <Link href="/site-walk" className="inline-flex items-center gap-2 rounded-2xl bg-[var(--graphite-primary)] px-4 py-2 text-sm font-black text-[var(--graphite-canvas)] hover:bg-[color-mix(in_srgb,var(--graphite-primary)_85%,white)]">
             <Plus className="h-4 w-4" /> New Walk
           </Link>
         </div>
@@ -31,7 +31,7 @@ export default async function SiteWalkDeliverablesPage() {
               <FileText className="mx-auto h-8 w-8 text-slate-500" />
               <p className="mt-3 font-black text-slate-300">No deliverables yet</p>
               <p className="mt-1 text-sm text-slate-500">Complete a walk and generate a report — it will appear here.</p>
-              <Link href="/site-walk" className="mt-5 inline-flex items-center gap-2 rounded-2xl bg-amber-500 px-4 py-2 text-sm font-black text-slate-950 hover:bg-amber-400">
+              <Link href="/site-walk" className="mt-5 inline-flex items-center gap-2 rounded-2xl bg-[var(--graphite-primary)] px-4 py-2 text-sm font-black text-[var(--graphite-canvas)] hover:bg-[color-mix(in_srgb,var(--graphite-primary)_85%,white)]">
                 Start a Walk
               </Link>
             </div>
@@ -62,7 +62,7 @@ function DeliverableCard({ deliverable }: { deliverable: DeliverableRow }) {
   return (
     <article className="flex items-center justify-between gap-4 rounded-3xl border border-white/10 bg-white/5 p-5 backdrop-blur-sm">
       <div className="min-w-0 flex-1">
-        <p className="text-xs font-black uppercase tracking-[0.14em] text-amber-400">{label}</p>
+        <p className="text-xs font-black uppercase tracking-[0.14em] text-[var(--graphite-primary)]">{label}</p>
         <h2 className="mt-1 truncate font-black text-slate-50">{deliverable.title || "Untitled deliverable"}</h2>
         {project?.name && <p className="mt-0.5 text-xs text-slate-400">{project.name}</p>}
         <p className="mt-1 flex items-center gap-1 text-xs text-slate-500"><Clock className="h-3 w-3" /> {created}</p>

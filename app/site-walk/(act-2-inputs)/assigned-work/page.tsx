@@ -14,7 +14,7 @@ export default async function SiteWalkAssignedWorkPage() {
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden text-slate-50">
       <div className="mx-auto flex min-h-0 w-full max-w-5xl flex-1 flex-col gap-4 overflow-y-auto px-4 py-4 pb-[max(env(safe-area-inset-bottom),1rem)] no-scrollbar sm:px-6 lg:px-8">
         <div>
-          <p className="text-xs font-black uppercase tracking-[0.2em] text-amber-400">Site Walk</p>
+          <p className="text-xs font-black uppercase tracking-[0.2em] text-[var(--graphite-primary)]">Site Walk</p>
           <h1 className="mt-1 text-2xl font-black">Assigned Work</h1>
         </div>
 
@@ -28,7 +28,7 @@ export default async function SiteWalkAssignedWorkPage() {
                 <Link href="/projects" className="inline-flex items-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-4 py-2 text-sm font-black text-slate-200 hover:bg-white/20">
                   <FolderOpen className="h-4 w-4" /> Projects
                 </Link>
-                <Link href="/site-walk" className="inline-flex items-center gap-2 rounded-2xl bg-amber-500 px-4 py-2 text-sm font-black text-slate-950 hover:bg-amber-400">
+                <Link href="/site-walk" className="inline-flex items-center gap-2 rounded-2xl bg-[var(--graphite-primary)] px-4 py-2 text-sm font-black text-[var(--graphite-canvas)] hover:bg-[color-mix(in_srgb,var(--graphite-primary)_85%,white)]">
                   Site Walk Home
                 </Link>
               </div>
@@ -64,7 +64,7 @@ function AssignmentCard({ assignment }: { assignment: AssignmentRow }) {
   const statusStyle = STATUS_STYLE[assignment.status] ?? "bg-slate-700 text-slate-300";
 
   return (
-    <Link href={`/site-walk/walks/${assignment.session_id}`} className="flex items-center justify-between gap-4 rounded-3xl border border-white/10 bg-white/5 p-5 backdrop-blur-sm transition hover:border-amber-400/40 hover:bg-white/10">
+    <Link href={`/site-walk/walks/${assignment.session_id}`} className="flex items-center justify-between gap-4 rounded-3xl border border-white/10 bg-white/5 p-5 backdrop-blur-sm transition hover:border-[color-mix(in_srgb,var(--graphite-primary)_40%,transparent)] hover:bg-white/10">
       <div className="min-w-0 flex-1">
         <h2 className="truncate font-black text-slate-50">{assignment.title}</h2>
         <div className="mt-1 flex items-center gap-3 text-xs">

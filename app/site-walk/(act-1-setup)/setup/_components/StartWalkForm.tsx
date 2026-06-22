@@ -89,14 +89,14 @@ export function StartWalkForm({ projects }: Props) {
   if (projects.length === 0) {
     return (
       <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-md">
-        <p className="text-xs font-black uppercase tracking-[0.2em] text-amber-400">Start a Walk</p>
+        <p className="text-xs font-black uppercase tracking-[0.2em] text-[var(--graphite-primary)]">Start a Walk</p>
         <h2 className="mt-2 text-xl font-black text-white">No site visits yet</h2>
         <p className="mt-2 text-sm text-slate-300">
           Create a site visit first, then return here to launch a walk.
         </p>
         <a
           href="/dashboard?tab=projects&create=field"
-          className="mt-4 inline-flex items-center gap-2 rounded-xl bg-amber-500 px-4 py-2.5 text-sm font-black text-slate-950 hover:bg-amber-400"
+          className="mt-4 inline-flex items-center gap-2 rounded-xl bg-[var(--graphite-primary)] px-4 py-2.5 text-sm font-black text-[var(--graphite-canvas)] hover:bg-[color-mix(in_srgb,var(--graphite-primary)_85%,white)]"
         >
           <Plus className="h-4 w-4" /> New Site Visit
         </a>
@@ -108,7 +108,7 @@ export function StartWalkForm({ projects }: Props) {
 
   return (
     <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-md">
-      <p className="text-xs font-black uppercase tracking-[0.2em] text-amber-400">Start a Walk</p>
+      <p className="text-xs font-black uppercase tracking-[0.2em] text-[var(--graphite-primary)]">Start a Walk</p>
       <h2 className="mt-2 text-xl font-black text-white">Configure and launch field capture</h2>
 
       <div className="mt-5 grid gap-4 sm:grid-cols-2">
@@ -119,7 +119,7 @@ export function StartWalkForm({ projects }: Props) {
             <select
               value={projectId}
               onChange={(e) => handleProjectChange(e.target.value)}
-              className="w-full appearance-none rounded-xl border border-white/10 bg-white/5 py-2.5 pl-3 pr-8 text-sm text-white backdrop-blur-md focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+              className="w-full appearance-none rounded-xl border border-white/10 bg-white/5 py-2.5 pl-3 pr-8 text-sm text-white backdrop-blur-md focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--graphite-primary)_50%,transparent)]"
             >
               {projects.map((p) => (
                 <option key={p.id} value={p.id} className="bg-slate-900">
@@ -138,7 +138,7 @@ export function StartWalkForm({ projects }: Props) {
             <select
               value={walkType}
               onChange={(e) => handleWalkTypeChange(e.target.value as SiteWalkSessionType)}
-              className="w-full appearance-none rounded-xl border border-white/10 bg-white/5 py-2.5 pl-3 pr-8 text-sm text-white backdrop-blur-md focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+              className="w-full appearance-none rounded-xl border border-white/10 bg-white/5 py-2.5 pl-3 pr-8 text-sm text-white backdrop-blur-md focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--graphite-primary)_50%,transparent)]"
             >
               {WALK_TYPE_OPTIONS.map((o) => (
                 <option key={o.value} value={o.value} className="bg-slate-900">
@@ -163,14 +163,14 @@ export function StartWalkForm({ projects }: Props) {
           onChange={(e) => setTitle(e.target.value)}
           maxLength={120}
           placeholder="Auto-generated from project and walk type"
-          className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white placeholder:text-slate-600 backdrop-blur-md focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+          className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white placeholder:text-slate-600 backdrop-blur-md focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--graphite-primary)_50%,transparent)]"
         />
       </div>
 
       {/* Plan upload is intentionally always visible — no hidden optional toggle. */}
-      <div className="mt-5 rounded-3xl border border-amber-500/25 bg-amber-500/[0.06] p-3">
+      <div className="mt-5 rounded-3xl border border-[color-mix(in_srgb,var(--graphite-primary)_25%,transparent)] bg-[color-mix(in_srgb,var(--graphite-primary)_6%,transparent)] p-3">
         <div className="mb-3 flex items-center gap-2">
-          <FileUp className="h-5 w-5 text-amber-400" />
+          <FileUp className="h-5 w-5 text-[var(--graphite-primary)]" />
           <div>
             <p className="text-sm font-black text-white">Step 2 — Upload plans for this walk</p>
             <p className="text-xs font-semibold text-slate-400">Drop a PDF set now, or start the walk and upload from the Plan Room later.</p>
@@ -185,7 +185,7 @@ export function StartWalkForm({ projects }: Props) {
         <button
           onClick={handleStartWalk}
           disabled={submitting || !projectId}
-          className="inline-flex items-center gap-2 rounded-xl bg-amber-500 px-5 py-2.5 text-sm font-black text-slate-950 hover:bg-amber-400 disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex items-center gap-2 rounded-xl bg-[var(--graphite-primary)] px-5 py-2.5 text-sm font-black text-[var(--graphite-canvas)] hover:bg-[color-mix(in_srgb,var(--graphite-primary)_85%,white)] disabled:cursor-not-allowed disabled:opacity-50"
         >
           <Play className="h-4 w-4" />
           {submitting ? "Starting…" : "Start Walk"}

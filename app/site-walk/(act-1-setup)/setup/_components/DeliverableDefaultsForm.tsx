@@ -11,7 +11,7 @@ type Props = {
   initialDefaults: ReportDefaults;
 };
 
-const inputClass = "w-full rounded-xl border border-slate-700/60 bg-slate-800/60 px-3 py-2 text-sm text-slate-50 placeholder:text-slate-500 outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20";
+const inputClass = "w-full rounded-xl border border-slate-700/60 bg-slate-800/60 px-3 py-2 text-sm text-slate-50 placeholder:text-slate-500 outline-none transition focus:border-[var(--graphite-primary)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--graphite-primary)_20%,transparent)]";
 
 export function DeliverableDefaultsForm({ project, tier, initialDefaults }: Props) {
   const [defaults, setDefaults] = useState(initialDefaults);
@@ -56,8 +56,8 @@ export function DeliverableDefaultsForm({ project, tier, initialDefaults }: Prop
   return (
     <form onSubmit={handleSubmit} className="rounded-3xl border border-slate-700/60 bg-slate-900/60 backdrop-blur-md p-5">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-        <div><p className="text-xs font-black uppercase tracking-[0.18em] text-amber-400">Deliverable defaults</p><h2 className="mt-1 text-xl font-black text-slate-50">Report auto-fill fields</h2><p className="mt-1 text-sm leading-6 text-slate-400">Store once per project so every deliverable starts branded and complete.</p></div>
-        <button type="submit" disabled={!project || status.kind === "loading"} className="rounded-xl bg-amber-500 px-4 py-2 text-sm font-black text-slate-950 shadow-sm transition hover:bg-amber-400 disabled:opacity-60">{status.kind === "loading" ? "Saving…" : "Save defaults"}</button>
+        <div><p className="text-xs font-black uppercase tracking-[0.18em] text-[var(--graphite-primary)]">Deliverable defaults</p><h2 className="mt-1 text-xl font-black text-slate-50">Report auto-fill fields</h2><p className="mt-1 text-sm leading-6 text-slate-400">Store once per project so every deliverable starts branded and complete.</p></div>
+        <button type="submit" disabled={!project || status.kind === "loading"} className="rounded-xl bg-[var(--graphite-primary)] px-4 py-2 text-sm font-black text-[var(--graphite-canvas)] shadow-sm transition hover:bg-[color-mix(in_srgb,var(--graphite-primary)_85%,white)] disabled:opacity-60">{status.kind === "loading" ? "Saving…" : "Save defaults"}</button>
       </div>
 
       <div className="mt-5 grid gap-4 md:grid-cols-2">
@@ -70,7 +70,7 @@ export function DeliverableDefaultsForm({ project, tier, initialDefaults }: Prop
         <div className="md:col-span-2"><Field label="Scope of work"><textarea className={`${inputClass} min-h-20`} value={defaults.scope_of_work ?? ""} onChange={(e) => update("scope_of_work", e.target.value)} /></Field></div>
       </div>
 
-      {expanded ? <p className="mt-4 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs font-semibold text-amber-300">Pro/Business setup keeps CM hooks ready for budgets, schedules, RFIs, and submittals in later prompts.</p> : <p className="mt-4 rounded-xl border border-slate-700/60 bg-slate-800/60 px-3 py-2 text-xs font-semibold text-slate-400">Basic setup keeps defaults lean: client, address, scope, and deliverable type.</p>}
+      {expanded ? <p className="mt-4 rounded-xl border border-white/10 bg-white/[0.05] px-3 py-2 text-xs font-semibold text-[var(--graphite-muted)]">Pro/Business setup keeps CM hooks ready for budgets, schedules, RFIs, and submittals in later prompts.</p> : <p className="mt-4 rounded-xl border border-slate-700/60 bg-slate-800/60 px-3 py-2 text-xs font-semibold text-slate-400">Basic setup keeps defaults lean: client, address, scope, and deliverable type.</p>}
       <StatusMessage status={status} />
     </form>
   );

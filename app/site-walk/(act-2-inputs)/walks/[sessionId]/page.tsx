@@ -34,7 +34,7 @@ export default async function WalkReviewPage({ params }: Props) {
   const items = (itemRows ?? []) as ItemRow[];
 
   return (
-    <main className="flex h-full min-h-0 flex-col overflow-hidden bg-[radial-gradient(circle_at_top,rgba(245,158,11,0.07),transparent_34%),#0B0F15] text-white">
+    <main className="flex h-full min-h-0 flex-col overflow-hidden bg-[radial-gradient(circle_at_top,color-mix(in_srgb,var(--graphite-primary)_7%,transparent),transparent_34%),#0B0F15] text-white">
       <header className="shrink-0 border-b border-white/10 bg-[#0B0F15]/92 px-4 py-3 shadow-[0_18px_60px_rgba(0,0,0,0.35)] backdrop-blur-xl">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-3">
           <Link href="/site-walk/walks" className="inline-flex h-10 items-center gap-2 rounded-2xl border border-white/15 bg-white/5 px-3 text-sm font-black text-slate-100"><ArrowLeft className="h-4 w-4" /> Walks</Link>
@@ -46,7 +46,7 @@ export default async function WalkReviewPage({ params }: Props) {
           </div>
         </div>
         <div className="mx-auto mt-4 max-w-5xl">
-          <p className="text-[11px] font-black uppercase tracking-[0.22em] text-amber-300/80">Walk Summary</p>
+          <p className="text-[11px] font-black uppercase tracking-[0.22em] text-[color-mix(in_srgb,var(--graphite-primary)_80%,transparent)]">Walk Summary</p>
           <h1 className="mt-1 truncate text-2xl font-black tracking-tight sm:text-3xl">{sessionRow.title}</h1>
           <p className="mt-1 text-sm font-bold text-slate-400">{project?.name ?? "Ad-hoc walk"} · {items.length} capture{items.length === 1 ? "" : "s"}</p>
         </div>
@@ -64,11 +64,11 @@ export default async function WalkReviewPage({ params }: Props) {
 
 function EmptyReview({ sessionId }: { sessionId: string }) {
   return (
-    <div className="rounded-[2rem] border border-dashed border-amber-400/20 bg-white/[0.04] p-6 text-center">
-      <Camera className="mx-auto h-8 w-8 text-amber-300" />
+    <div className="rounded-[2rem] border border-dashed border-[color-mix(in_srgb,var(--graphite-primary)_20%,transparent)] bg-white/[0.04] p-6 text-center">
+      <Camera className="mx-auto h-8 w-8 text-[var(--graphite-primary)]" />
       <h2 className="mt-3 text-xl font-black">No captures yet</h2>
       <p className="mx-auto mt-2 max-w-sm text-sm font-bold text-slate-400">Start with one photo, markup, or note before creating deliverables.</p>
-      <Link href={buildCaptureLaunchUrl({ session: sessionId, quick: "camera" })} className="mt-5 inline-flex rounded-2xl bg-amber-500 px-5 py-3 text-sm font-black text-slate-950">Capture first photo</Link>
+      <Link href={buildCaptureLaunchUrl({ session: sessionId, quick: "camera" })} className="mt-5 inline-flex rounded-2xl bg-[var(--graphite-primary)] px-5 py-3 text-sm font-black text-[var(--graphite-canvas)]">Capture first photo</Link>
     </div>
   );
 }
@@ -79,15 +79,15 @@ function CaptureReviewCard({ item, index, sessionId }: { item: ItemRow; index: n
   const location = getLocationLabel(item);
   const notes = item.description?.trim() || "No note added yet.";
   return (
-    <Link href={buildCaptureLaunchUrl({ session: sessionId, item: item.id })} className="grid grid-cols-[96px_minmax(0,1fr)] gap-3 rounded-[1.6rem] border border-white/10 bg-white/[0.05] p-2 shadow-[0_18px_50px_rgba(0,0,0,0.22)] backdrop-blur-md transition hover:border-amber-400/35 hover:bg-white/[0.08]">
-        <div className="relative h-28 overflow-hidden rounded-2xl border border-amber-400/20 bg-slate-900">
+    <Link href={buildCaptureLaunchUrl({ session: sessionId, item: item.id })} className="grid grid-cols-[96px_minmax(0,1fr)] gap-3 rounded-[1.6rem] border border-white/10 bg-white/[0.05] p-2 shadow-[0_18px_50px_rgba(0,0,0,0.22)] backdrop-blur-md transition hover:border-[color-mix(in_srgb,var(--graphite-primary)_35%,transparent)] hover:bg-white/[0.08]">
+        <div className="relative h-28 overflow-hidden rounded-2xl border border-[color-mix(in_srgb,var(--graphite-primary)_20%,transparent)] bg-slate-900">
         {thumbUrl ? <img src={thumbUrl} alt="" className="h-full w-full object-cover" /> : <div className="flex h-full items-center justify-center"><FileText className="h-6 w-6 text-slate-500" /></div>}
-        <span className="absolute left-2 top-2 rounded-full bg-slate-950/80 px-2 py-0.5 text-[10px] font-black text-amber-200">#{index}</span>
+        <span className="absolute left-2 top-2 rounded-full bg-slate-950/80 px-2 py-0.5 text-[10px] font-black text-[var(--graphite-primary)]">#{index}</span>
       </div>
       <div className="min-w-0 py-1">
-        <div className="flex flex-wrap items-center gap-2 text-[10px] font-black uppercase tracking-[0.12em] text-amber-300/80"><PenLine className="h-3.5 w-3.5" /> {item.priority} priority <StatusPill value={item.item_status} /></div>
+        <div className="flex flex-wrap items-center gap-2 text-[10px] font-black uppercase tracking-[0.12em] text-[color-mix(in_srgb,var(--graphite-primary)_80%,transparent)]"><PenLine className="h-3.5 w-3.5" /> {item.priority} priority <StatusPill value={item.item_status} /></div>
         <h2 className="mt-1 truncate text-base font-black text-white">{getItemDetail(item)}</h2>
-        <p className="mt-1 flex min-w-0 items-center gap-1 truncate text-xs font-bold text-white/55"><MapPin className="h-3.5 w-3.5 shrink-0 text-amber-400" /> {location}</p>
+        <p className="mt-1 flex min-w-0 items-center gap-1 truncate text-xs font-bold text-white/55"><MapPin className="h-3.5 w-3.5 shrink-0 text-[var(--graphite-primary)]" /> {location}</p>
         <TagList tags={item.tags ?? []} />
         <p className="mt-1 line-clamp-2 text-sm font-semibold leading-5 text-slate-400">{notes}</p>
         <p className="mt-2 text-[11px] font-bold text-slate-500">{new Date(item.created_at).toLocaleString([], { dateStyle: "medium", timeStyle: "short" })} · Tap to edit</p>
@@ -97,16 +97,16 @@ function CaptureReviewCard({ item, index, sessionId }: { item: ItemRow; index: n
 }
 
 function CreateDeliverableLink({ sessionId, compact = false }: { sessionId: string; compact?: boolean }) {
-  return <Link href={`/site-walk/deliverables/new?session=${encodeURIComponent(sessionId)}`} className={`inline-flex items-center justify-center gap-2 rounded-2xl bg-amber-500 font-black text-slate-950 shadow-[0_0_22px_rgba(245,158,11,0.30)] hover:bg-amber-400 ${compact ? "h-10 px-4 text-sm" : "min-h-14 w-full px-5 text-base"}`}><PackageCheck className="h-4 w-4" /> Create Deliverable</Link>;
+  return <Link href={`/site-walk/deliverables/new?session=${encodeURIComponent(sessionId)}`} className={`inline-flex items-center justify-center gap-2 rounded-2xl bg-[var(--graphite-primary)] font-black text-[var(--graphite-canvas)] hover:bg-[color-mix(in_srgb,var(--graphite-primary)_85%,white)] ${compact ? "h-10 px-4 text-sm" : "min-h-14 w-full px-5 text-base"}`}><PackageCheck className="h-4 w-4" /> Create Deliverable</Link>;
 }
 
 function StatusPill({ value }: { value: string }) {
-  return <span className="rounded-full border border-amber-400/25 bg-amber-500/15 px-2 py-0.5 text-[9px] text-amber-200">{value.replaceAll("_", " ")}</span>;
+  return <span className="rounded-full border border-[color-mix(in_srgb,var(--graphite-primary)_25%,transparent)] bg-[color-mix(in_srgb,var(--graphite-primary)_15%,transparent)] px-2 py-0.5 text-[9px] text-[var(--graphite-primary)]">{value.replaceAll("_", " ")}</span>;
 }
 
 function TagList({ tags }: { tags: string[] }) {
   if (tags.length === 0) return <p className="mt-1 text-[11px] font-bold text-white/35">No custom tags</p>;
-  return <div className="mt-2 flex flex-wrap gap-1">{tags.slice(0, 4).map((tag) => <span key={tag} className="rounded-full border border-amber-400/20 bg-amber-500/10 px-2 py-0.5 text-[10px] font-black text-amber-200">{tag}</span>)}</div>;
+  return <div className="mt-2 flex flex-wrap gap-1">{tags.slice(0, 4).map((tag) => <span key={tag} className="rounded-full border border-[color-mix(in_srgb,var(--graphite-primary)_20%,transparent)] bg-[color-mix(in_srgb,var(--graphite-primary)_10%,transparent)] px-2 py-0.5 text-[10px] font-black text-[var(--graphite-primary)]">{tag}</span>)}</div>;
 }
 
 function getLocationLabel(item: ItemRow) {

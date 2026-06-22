@@ -14,7 +14,7 @@ type Props = {
 
 export function SharedCaptureTaskHeader({ walkName, stopLabel, contextLabel, backLabel, onBack }: Props) {
   const [exitConfirm, setExitConfirm] = useState(false);
-  const backClass = "inline-flex h-10 shrink-0 items-center gap-1.5 rounded-2xl bg-amber-500 px-3 text-[11px] font-black uppercase tracking-[0.08em] text-slate-950 shadow-lg shadow-amber-500/20";
+  const backClass = "inline-flex h-10 shrink-0 items-center gap-1.5 rounded-2xl bg-[var(--graphite-primary)] px-3 text-[11px] font-black uppercase tracking-[0.08em] text-[var(--graphite-canvas)] shadow-lg shadow-[color-mix(in_srgb,var(--graphite-primary)_20%,transparent)]";
 
   return (
     <Fragment>
@@ -30,7 +30,7 @@ export function SharedCaptureTaskHeader({ walkName, stopLabel, contextLabel, bac
         )}
         <div className="min-w-0 flex-1 text-center">
           <p className="truncate text-sm font-black text-white">{stopLabel} · {contextLabel}</p>
-          <p className="truncate text-[9px] font-black uppercase tracking-[0.16em] text-amber-200/75">{walkName}</p>
+          <p className="truncate text-[9px] font-black uppercase tracking-[0.16em] text-[color-mix(in_srgb,var(--graphite-primary)_75%,transparent)]">{walkName}</p>
         </div>
         <button type="button" onClick={() => setExitConfirm(true)} className="inline-flex h-9 shrink-0 items-center gap-1 rounded-xl border border-red-500/25 bg-black/25 px-2.5 text-[10px] font-black text-red-200/85 hover:bg-red-500/15" aria-label="Exit walk">
           <LogOut className="h-3.5 w-3.5" /> Exit

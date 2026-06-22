@@ -61,14 +61,14 @@ async function loadProjectPlanRoom(projectId: string, orgId: string) {
 
 function NoActiveSession() {
   return (
-    <main className="min-h-[calc(100vh-160px)] bg-[radial-gradient(circle_at_top,rgba(245,158,11,0.07),transparent_34%),#0B0F15] px-4 py-6 text-slate-50 sm:px-6 lg:px-8">
+    <main className="min-h-[calc(100vh-160px)] bg-[radial-gradient(circle_at_top,color-mix(in_srgb,var(--graphite-primary)_7%,transparent),transparent_34%),#0B0F15] px-4 py-6 text-slate-50 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-3xl rounded-3xl border border-white/10 bg-slate-900/60 p-6 text-center shadow-lg shadow-black/40 backdrop-blur-md">
-        <p className="text-xs font-black uppercase tracking-[0.2em] text-amber-400">Capture</p>
+        <p className="text-xs font-black uppercase tracking-[0.2em] text-[var(--graphite-primary)]">Capture</p>
         <h1 className="mt-2 text-2xl font-black text-white">Start a walk first</h1>
         <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-slate-400">
           The capture shell now requires an active database session so offline tracking and safe exit controls stay consistent.
         </p>
-        <Link href="/site-walk" className="mt-5 inline-flex rounded-xl bg-amber-500 px-4 py-2 text-sm font-black text-slate-950 hover:bg-amber-400">
+        <Link href="/site-walk" className="mt-5 inline-flex rounded-xl bg-[var(--graphite-primary)] px-4 py-2 text-sm font-black text-[var(--graphite-canvas)] hover:bg-[color-mix(in_srgb,var(--graphite-primary)_85%,white)]">
           Back to Site Walk
         </Link>
       </div>

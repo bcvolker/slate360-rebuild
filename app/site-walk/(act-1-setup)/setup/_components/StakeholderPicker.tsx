@@ -14,7 +14,7 @@ type Props = {
 
 type Draft = { contactId: string; role: string; name: string; email: string; company: string; phone: string };
 
-const inputClass = "w-full rounded-xl border border-slate-700/60 bg-slate-800/60 px-3 py-2 text-sm text-slate-50 placeholder:text-slate-500 outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20";
+const inputClass = "w-full rounded-xl border border-slate-700/60 bg-slate-800/60 px-3 py-2 text-sm text-slate-50 placeholder:text-slate-500 outline-none transition focus:border-[var(--graphite-primary)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--graphite-primary)_20%,transparent)]";
 
 export function StakeholderPicker({ project, initialContacts }: Props) {
   const [contacts, setContacts] = useState(initialContacts);
@@ -83,7 +83,7 @@ export function StakeholderPicker({ project, initialContacts }: Props) {
   return (
     <section className="rounded-3xl border border-slate-700/60 bg-slate-900/60 backdrop-blur-md p-5">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-        <div><p className="text-xs font-black uppercase tracking-[0.18em] text-amber-400">Stakeholders</p><h2 className="mt-1 text-xl font-black text-slate-50">Contacts to project team</h2><p className="mt-1 text-sm leading-6 text-slate-400">Search Coordination contacts, then write selected people into the project roster.</p></div>
+        <div><p className="text-xs font-black uppercase tracking-[0.18em] text-[var(--graphite-primary)]">Stakeholders</p><h2 className="mt-1 text-xl font-black text-slate-50">Contacts to project team</h2><p className="mt-1 text-sm leading-6 text-slate-400">Search Coordination contacts, then write selected people into the project roster.</p></div>
         <span className="rounded-full border border-slate-700/60 bg-slate-800/60 px-3 py-1 text-xs font-bold text-slate-300">{project ? project.name : "No project selected"}</span>
       </div>
 
@@ -92,7 +92,7 @@ export function StakeholderPicker({ project, initialContacts }: Props) {
           <label className="block text-sm font-bold text-slate-200"><span className="mb-1 block">Search contacts</span><div className="relative"><Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" /><input className={`${inputClass} pl-9`} value={query} onChange={(e) => void searchContacts(e.target.value)} placeholder="Owner, architect, inspector…" /></div></label>
           <select value={draft.contactId} onChange={(e) => selectContact(e.target.value)} className={inputClass}><option value="">Use manual entry or pick a contact</option>{filtered.map((contact) => <option key={contact.id} value={contact.id}>{contact.name}{contact.company ? ` · ${contact.company}` : ""}</option>)}</select>
           <div className="grid gap-3 sm:grid-cols-2"><input className={inputClass} value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} placeholder="Name" /><input className={inputClass} value={draft.role} onChange={(e) => setDraft({ ...draft, role: e.target.value })} placeholder="Role" /><input className={inputClass} value={draft.email} onChange={(e) => setDraft({ ...draft, email: e.target.value })} placeholder="Email" /><input className={inputClass} value={draft.company} onChange={(e) => setDraft({ ...draft, company: e.target.value })} placeholder="Company" /></div>
-          <button type="submit" disabled={!project || status.kind === "loading"} className="inline-flex items-center gap-2 rounded-xl bg-amber-500 px-4 py-2 text-sm font-black text-slate-950 shadow-sm transition hover:bg-amber-400 disabled:opacity-60"><UserPlus className="h-4 w-4" /> Add stakeholder</button>
+          <button type="submit" disabled={!project || status.kind === "loading"} className="inline-flex items-center gap-2 rounded-xl bg-[var(--graphite-primary)] px-4 py-2 text-sm font-black text-[var(--graphite-canvas)] shadow-sm transition hover:bg-[color-mix(in_srgb,var(--graphite-primary)_85%,white)] disabled:opacity-60"><UserPlus className="h-4 w-4" /> Add stakeholder</button>
           <StatusMessage status={status} />
         </form>
 

@@ -76,7 +76,7 @@ function ProgressionPageInner() {
       <div className="mx-auto grid max-w-6xl gap-4 pb-6">
         {groups.map((group) => (
           <GlassCard key={group.location} className="p-4">
-            <h2 className="mb-3 text-sm font-black uppercase tracking-[0.18em] text-amber-300">{group.location}</h2>
+            <h2 className="mb-3 text-sm font-black uppercase tracking-[0.18em] text-[var(--graphite-primary)]">{group.location}</h2>
             <ol className="flex flex-wrap gap-3">
               {group.items.map((item, index) => (
                 <li key={item.id} className="flex w-44 shrink-0 flex-col gap-2">
@@ -85,7 +85,7 @@ function ProgressionPageInner() {
                   </Link>
                   <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Step {index + 1} · {new Date(item.created_at).toLocaleDateString()}</div>
                   <div className="line-clamp-2 text-xs font-black text-white">{item.title || "Untitled"}</div>
-                  <div className="text-[10px] font-bold uppercase tracking-wider text-amber-300/80">{item.item_relationship}</div>
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-[color-mix(in_srgb,var(--graphite-primary)_80%,transparent)]">{item.item_relationship}</div>
                 </li>
               ))}
             </ol>

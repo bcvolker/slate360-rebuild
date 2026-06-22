@@ -28,7 +28,7 @@ export function WalkHeader() {
     <>
       <section className="flex flex-col gap-3 rounded-3xl border border-white/10 bg-slate-900/70 p-4 text-slate-50 shadow-lg shadow-black/30 backdrop-blur-md lg:flex-row lg:items-center lg:justify-between">
         <div className="min-w-0">
-          <p className="text-xs font-black uppercase tracking-[0.2em] text-amber-400">Capture</p>
+          <p className="text-xs font-black uppercase tracking-[0.2em] text-[var(--graphite-primary)]">Capture</p>
           <h1 className="mt-1 truncate text-2xl font-black tracking-tight text-white">{session.title}</h1>
           <p className="mt-1 text-sm text-slate-400">
             {session.is_ad_hoc ? "Ad-hoc walk" : session.project_name ?? "Project-bound walk"} · elapsed {elapsed}
@@ -36,7 +36,7 @@ export function WalkHeader() {
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <SyncStatusBadge isOnline={isOnline} syncState={syncState} />
-          <button type="button" onClick={() => setModalOpen(true)} className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-black text-slate-200 hover:border-amber-400/50 hover:text-amber-200">
+          <button type="button" onClick={() => setModalOpen(true)} className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-black text-slate-200 hover:border-[color-mix(in_srgb,var(--graphite-primary)_50%,transparent)] hover:text-[var(--graphite-primary)]">
             <LogOut className="h-4 w-4" /> End / Exit
           </button>
         </div>

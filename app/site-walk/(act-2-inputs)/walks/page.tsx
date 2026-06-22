@@ -41,10 +41,10 @@ export default async function SiteWalksPage() {
         <section className="shrink-0 rounded-3xl border border-white/10 bg-white/[0.045] p-3 backdrop-blur-xl">
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-400">Site Walk</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--graphite-primary)]">Site Walk</p>
               <h1 className="truncate text-xl font-black text-white">Worksites</h1>
             </div>
-            <Link href="/site-walk/setup" className="inline-flex min-h-10 shrink-0 items-center gap-2 rounded-2xl bg-amber-500 px-3 text-xs font-black text-slate-950 hover:bg-amber-400">
+            <Link href="/site-walk/setup" className="inline-flex min-h-10 shrink-0 items-center gap-2 rounded-2xl bg-[var(--graphite-primary)] px-3 text-xs font-black text-[var(--graphite-canvas)] hover:bg-[color-mix(in_srgb,var(--graphite-primary)_85%,white)]">
               <Plus className="h-4 w-4" /> New Worksite
             </Link>
           </div>
@@ -72,7 +72,7 @@ export default async function SiteWalksPage() {
           <div className="space-y-4">
             {inProgress.length > 0 && (
               <section className="space-y-2">
-                <h2 className="text-[11px] font-black uppercase tracking-[0.16em] text-amber-400">Active Walks</h2>
+                <h2 className="text-[11px] font-black uppercase tracking-[0.16em] text-[var(--graphite-primary)]">Active Walks</h2>
                 <div className="grid gap-2">
                   {inProgress.map((walk) => <WalkCard key={walk.id} walk={walk} />)}
                 </div>
@@ -103,7 +103,7 @@ export default async function SiteWalksPage() {
 function WalkCard({ walk }: { walk: LiveWalkSummary }) {
   const isComplete = walk.status === "completed";
   return (
-    <div className="relative group overflow-hidden rounded-3xl border border-white/10 bg-white/5 p-3 backdrop-blur-sm transition hover:border-amber-400/40 hover:bg-white/10">
+    <div className="relative group overflow-hidden rounded-3xl border border-white/10 bg-white/5 p-3 backdrop-blur-sm transition hover:border-[color-mix(in_srgb,var(--graphite-primary)_40%,transparent)] hover:bg-white/10">
       {/* Thumbnail */}
       {walk.thumbnailUrl && (
         <div className="absolute inset-0 opacity-10 group-hover:opacity-15 transition-opacity">
@@ -131,8 +131,8 @@ function WalkCard({ walk }: { walk: LiveWalkSummary }) {
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
-              <p className="truncate text-[10px] font-black uppercase tracking-[0.16em] text-amber-400">{walk.projectName ?? "No worksite"}</p>
-              <Link href={buildWalkResumeUrl(walk.id, walk.status)} className="mt-0.5 block truncate text-base font-black text-slate-50 transition-colors hover:text-amber-200">
+              <p className="truncate text-[10px] font-black uppercase tracking-[0.16em] text-[var(--graphite-primary)]">{walk.projectName ?? "No worksite"}</p>
+              <Link href={buildWalkResumeUrl(walk.id, walk.status)} className="mt-0.5 block truncate text-base font-black text-slate-50 transition-colors hover:text-[var(--graphite-primary)]">
                 {walk.title}
               </Link>
               {isComplete && (
@@ -153,14 +153,14 @@ function WalkCard({ walk }: { walk: LiveWalkSummary }) {
             {isComplete ? (
               <Link
                 href={buildWalkResumeUrl(walk.id, walk.status)}
-                className="inline-flex min-h-10 items-center rounded-2xl border border-white/15 bg-white/5 px-3 text-xs font-black text-white hover:border-amber-400/40"
+                className="inline-flex min-h-10 items-center rounded-2xl border border-white/15 bg-white/5 px-3 text-xs font-black text-white hover:border-[color-mix(in_srgb,var(--graphite-primary)_40%,transparent)]"
               >
                 View report
               </Link>
             ) : (
               <Link
                 href={buildCaptureLaunchUrl({ session: walk.id })}
-                className="inline-flex min-h-10 items-center rounded-2xl bg-amber-500 px-3 text-xs font-black text-slate-950 hover:bg-amber-400"
+                className="inline-flex min-h-10 items-center rounded-2xl bg-[var(--graphite-primary)] px-3 text-xs font-black text-[var(--graphite-canvas)] hover:bg-[color-mix(in_srgb,var(--graphite-primary)_85%,white)]"
               >
                 Resume walk
               </Link>
@@ -175,7 +175,7 @@ function WalkCard({ walk }: { walk: LiveWalkSummary }) {
 function SummaryBadge({ label, value }: { label: string; value: string }) {
   return (
     <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.05] px-3 py-1 text-[11px] font-black text-slate-300">
-      <BriefcaseBusiness className="h-3.5 w-3.5 text-slate-500" /> {label} <span className="text-amber-200">{value}</span>
+      <BriefcaseBusiness className="h-3.5 w-3.5 text-slate-500" /> {label} <span className="text-[var(--graphite-primary)]">{value}</span>
     </span>
   );
 }

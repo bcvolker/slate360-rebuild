@@ -25,7 +25,7 @@ type Props = {
   onProjectSaved: (event: ProjectSavedEvent) => void;
 };
 
-const inputClass = "w-full rounded-xl border border-slate-700/60 bg-slate-800/60 px-3 py-2 text-sm text-slate-50 placeholder:text-slate-500 outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20";
+const inputClass = "w-full rounded-xl border border-slate-700/60 bg-slate-800/60 px-3 py-2 text-sm text-slate-50 placeholder:text-slate-500 outline-none transition focus:border-[var(--graphite-primary)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--graphite-primary)_20%,transparent)]";
 
 export function ProjectSetupForm({ initialProjects, tier, onProjectSaved }: Props) {
   const [projects, setProjects] = useState(initialProjects);
@@ -103,9 +103,9 @@ export function ProjectSetupForm({ initialProjects, tier, onProjectSaved }: Prop
         <div className="md:col-span-2"><Field label="Description"><textarea className={`${inputClass} min-h-20`} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Notes for the field team" /></Field></div>
       </div>
       <StatusMessage status={status} />
-      <div className="mt-5 rounded-3xl border border-amber-500/25 bg-amber-500/[0.06] p-3">
+      <div className="mt-5 rounded-3xl border border-[color-mix(in_srgb,var(--graphite-primary)_25%,transparent)] bg-[color-mix(in_srgb,var(--graphite-primary)_6%,transparent)] p-3">
         <div className="mb-3 flex items-center gap-2">
-          <FileUp className="h-5 w-5 text-amber-400" />
+          <FileUp className="h-5 w-5 text-[var(--graphite-primary)]" />
           <div>
             <p className="text-sm font-black text-white">Next step — upload plans</p>
             <p className="text-xs font-semibold text-slate-400">After the project is saved, add PDF plan sets here so every walk can open them.</p>
@@ -124,7 +124,7 @@ export function ProjectSetupForm({ initialProjects, tier, onProjectSaved }: Prop
 }
 
 function Header({ expanded, loading }: { expanded: boolean; loading: boolean }) {
-  return <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between"><div><p className="text-xs font-black uppercase tracking-[0.18em] text-amber-400">Project setup</p><h2 className="mt-1 text-xl font-black text-slate-50">{expanded ? "CM-ready project context" : "Fast site visit"}</h2><p className="mt-1 text-sm leading-6 text-slate-400">{expanded ? "Capture schedule-aware context and project hooks for Pro/Business workflows." : "Basic users get a lightweight setup that gets crews into capture fast."}</p></div><button type="submit" disabled={loading} className="rounded-xl bg-amber-500 px-4 py-2 text-sm font-black text-slate-950 shadow-sm transition hover:bg-amber-400 disabled:opacity-60">{loading ? "Saving…" : "Save project"}</button></div>;
+  return <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between"><div><p className="text-xs font-black uppercase tracking-[0.18em] text-[var(--graphite-primary)]">Project setup</p><h2 className="mt-1 text-xl font-black text-slate-50">{expanded ? "CM-ready project context" : "Fast site visit"}</h2><p className="mt-1 text-sm leading-6 text-slate-400">{expanded ? "Capture schedule-aware context and project hooks for Pro/Business workflows." : "Basic users get a lightweight setup that gets crews into capture fast."}</p></div><button type="submit" disabled={loading} className="rounded-xl bg-[var(--graphite-primary)] px-4 py-2 text-sm font-black text-[var(--graphite-canvas)] shadow-sm transition hover:bg-[color-mix(in_srgb,var(--graphite-primary)_85%,white)] disabled:opacity-60">{loading ? "Saving…" : "Save project"}</button></div>;
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) { return <label className="block text-sm font-bold text-slate-200"><span className="mb-1 block">{label}</span>{children}</label>; }

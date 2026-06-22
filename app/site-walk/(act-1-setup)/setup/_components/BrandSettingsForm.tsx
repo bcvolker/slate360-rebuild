@@ -9,7 +9,7 @@ type Props = {
   initialSettings: BrandSettings;
 };
 
-const inputClass = "w-full rounded-xl border border-slate-700/60 bg-slate-800/60 px-3 py-2 text-sm text-slate-50 placeholder:text-slate-500 outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20";
+const inputClass = "w-full rounded-xl border border-slate-700/60 bg-slate-800/60 px-3 py-2 text-sm text-slate-50 placeholder:text-slate-500 outline-none transition focus:border-[var(--graphite-primary)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--graphite-primary)_20%,transparent)]";
 
 export function BrandSettingsForm({ initialSettings }: Props) {
   const [settings, setSettings] = useState<BrandSettings>(initialSettings);
@@ -61,11 +61,11 @@ export function BrandSettingsForm({ initialSettings }: Props) {
     <form onSubmit={handleSubmit} className="rounded-3xl border border-slate-700/60 bg-slate-900/60 backdrop-blur-md p-5">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <p className="text-xs font-black uppercase tracking-[0.18em] text-amber-400">Company identity</p>
+          <p className="text-xs font-black uppercase tracking-[0.18em] text-[var(--graphite-primary)]">Company identity</p>
           <h2 className="mt-1 text-xl font-black text-slate-50">Brand defaults</h2>
           <p className="mt-1 text-sm leading-6 text-slate-400">Shared org branding flows into reports, proposals, and punch lists.</p>
         </div>
-        <button type="submit" disabled={status.kind === "loading"} className="rounded-xl bg-amber-500 px-4 py-2 text-sm font-black text-slate-950 shadow-sm transition hover:bg-amber-400 disabled:opacity-60">
+        <button type="submit" disabled={status.kind === "loading"} className="rounded-xl bg-[var(--graphite-primary)] px-4 py-2 text-sm font-black text-[var(--graphite-canvas)] shadow-sm transition hover:bg-[color-mix(in_srgb,var(--graphite-primary)_85%,white)] disabled:opacity-60">
           {status.kind === "loading" ? "Saving…" : "Save identity"}
         </button>
       </div>
