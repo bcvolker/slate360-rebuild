@@ -8,6 +8,7 @@ import {
   Scissors,
   Send,
   Trash2,
+  Upload,
   type LucideIcon,
 } from "lucide-react";
 
@@ -54,6 +55,7 @@ type SlateDropContextMenuProps = {
   onCopyFolderName: (folderName: string) => void;
   onRenameFolder: (target: ContextMenuFolderTarget) => void;
   onDeleteFolderOrProject: (target: ContextMenuFolderTarget, isProjectNode: boolean) => void;
+  onRequestUploadLink: (target: ContextMenuFolderTarget) => void;
   onPreviewFile: (target: ContextMenuFileTarget) => void;
 };
 
@@ -73,6 +75,7 @@ export default function SlateDropContextMenu({
   onCopyFolderName,
   onRenameFolder,
   onDeleteFolderOrProject,
+  onRequestUploadLink,
   onPreviewFile,
 }: SlateDropContextMenuProps) {
   if (!contextMenu) return null;
@@ -142,6 +145,10 @@ export default function SlateDropContextMenu({
               onDownloadFolderZip(target.id, target.name);
             }} />
             <CtxDivider />
+            <CtxItem icon={Upload} label="Get upload link" accent onClick={() => {
+              onRequestUploadLink(target);
+              onClose();
+            }} />
             <CtxItem icon={Copy} label="Copy" onClick={() => {
               onCopyFolderName(target.name);
               onClose();

@@ -181,6 +181,35 @@ export default function SlateDropClient({ user, tier, initialProjectId, projectN
     showToast(`${ok} of ${selected.length} file${plural} deleted`, ok === selected.length);
   }, [files, selectedFiles, activeFolderId, showToast]);
 
+  // "Get upload link": mint a folder upload link (project_external_links) so a
+  // client can upload INTO this folder via /upload/<token>, and copy it.
+  const handleRequestUploadLink = useCallback(
+    async (folderId: string) => {
+      const projectId = getProjectIdForFolder(folderId);
+      if (!projectId) {
+        showToast("Open a project folder first.", false);
+        return;
+      }
+      try {
+        const res = await fetch("/api/slatedrop/request-link", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ projectId, folderId }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (res.ok && data.url) {
+          const absolute = `${window.location.origin}${data.url}`;
+          await transfers.copyToClipboard(absolute, "Upload link");
+        } else {
+          showToast(data.error ?? "Could not create upload link", false);
+        }
+      } catch {
+        showToast("Could not create upload link", false);
+      }
+    },
+    [getProjectIdForFolder, transfers, showToast],
+  );
+
   // Drag files (one or the whole selection) into a folder to move them.
   const handleMoveFilesToFolder = useCallback(
     async (fileIds: string[], targetFolderId: string) => {
@@ -337,6 +366,7 @@ export default function SlateDropClient({ user, tier, initialProjectId, projectN
         onCopyFolderName={(n) => transfers.copyToClipboard(n, "Folder name")}
         onRenameFolder={(t) => { ui.setRenameModal({ id: t.id, name: t.name, type: "folder" }); ui.setRenameValue(t.name); }}
         onDeleteFolderOrProject={(t, isProject) => { ui.setDeleteConfirm({ id: t.id, name: t.name, type: isProject ? "project" : "folder" }); }}
+        onRequestUploadLink={(t) => { void handleRequestUploadLink(t.id); }}
         onPreviewFile={(t) => ui.setPreviewFile(t)}
       />
 
