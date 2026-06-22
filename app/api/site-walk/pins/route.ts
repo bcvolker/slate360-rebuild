@@ -21,7 +21,11 @@ export const GET = (req: NextRequest) =>
     const planId = req.nextUrl.searchParams.get("plan_id");
     const planSheetId = req.nextUrl.searchParams.get("plan_sheet_id");
     const sessionId = req.nextUrl.searchParams.get("session_id");
-    if (!planId && !planSheetId) return badRequest("plan_id or plan_sheet_id is required");
+    // session_id alone is allowed: the drawings walk needs every pin across all
+    // sheets of a session to build the item→sheet index for cross-sheet stop nav.
+    if (!planId && !planSheetId && !sessionId) {
+      return badRequest("plan_id, plan_sheet_id, or session_id is required");
+    }
 
     let query = admin
       .from("site_walk_pins")

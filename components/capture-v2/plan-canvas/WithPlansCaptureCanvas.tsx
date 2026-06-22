@@ -60,6 +60,8 @@ export function WithPlansCaptureCanvas({
     planSets,
     planSheets,
     sheetImageUrls,
+    sessionId: session.id,
+    pinRefreshKey,
   });
   const pinCapture = useWithPlansPinCapture({
     session,

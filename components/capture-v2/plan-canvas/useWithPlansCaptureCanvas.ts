@@ -5,6 +5,7 @@ import { capturePlanFitPadding } from "@/lib/site-walk/capture-plan-canvas-token
 import type { SiteWalkPlanSet, SiteWalkPlanSheet } from "@/lib/types/site-walk";
 import type { CaptureItemRecord } from "@/lib/types/site-walk-capture";
 import type { CaptureV2Loop } from "../useCaptureV2Loop";
+import { useSessionPinSheetIndex } from "./useSessionPinSheetIndex";
 
 type PlanPage = {
   key: string;
@@ -18,6 +19,8 @@ type Args = {
   planSets: SiteWalkPlanSet[];
   planSheets: SiteWalkPlanSheet[];
   sheetImageUrls?: Record<string, string>;
+  sessionId?: string | null;
+  pinRefreshKey?: number;
 };
 
 function buildSortedPlanPages(planSet: SiteWalkPlanSet | null, sheets: SiteWalkPlanSheet[]): PlanPage[] {
@@ -33,7 +36,14 @@ function buildSortedPlanPages(planSet: SiteWalkPlanSet | null, sheets: SiteWalkP
     }));
 }
 
-export function useWithPlansCaptureCanvas({ loop, planSets, planSheets, sheetImageUrls }: Args) {
+export function useWithPlansCaptureCanvas({
+  loop,
+  planSets,
+  planSheets,
+  sheetImageUrls,
+  sessionId,
+  pinRefreshKey = 0,
+}: Args) {
   const [pageIndex, setPageIndex] = useState(0);
   const [sheetPickerOpen, setSheetPickerOpen] = useState(false);
   const [chromeVisible, setChromeVisible] = useState(true);
@@ -43,6 +53,10 @@ export function useWithPlansCaptureCanvas({ loop, planSets, planSheets, sheetIma
   // forces a re-pan even when the same stop is re-selected.
   const [focusItemId, setFocusItemId] = useState<string | null>(null);
   const [focusTick, setFocusTick] = useState(0);
+
+  // item_id → plan_sheet_id across the whole session, so selecting a stop on
+  // another sheet switches sheets before the focus pan fires.
+  const pinSheetIndex = useSessionPinSheetIndex({ sessionId, pinRefreshKey });
 
   const activePlanSet = useMemo(
     () => planSets.find((set) => set.processing_status === "ready") ?? planSets[0] ?? null,
@@ -87,10 +101,16 @@ export function useWithPlansCaptureCanvas({ loop, planSets, planSheets, sheetIma
   const handleSelectStop = useCallback(
     (item: CaptureItemRecord) => {
       loop.focusFilmstripItem(item);
+      // If this stop's pin lives on another sheet, switch first; the focus pan
+      // in PlanViewerLeaflet re-fires once that sheet's pins load.
+      const targetSheetId = pinSheetIndex.get(item.id);
+      if (targetSheetId && targetSheetId !== activePage?.sheetId) {
+        selectSheetById(targetSheetId);
+      }
       setFocusItemId(item.id);
       setFocusTick((tick) => tick + 1);
     },
-    [loop],
+    [loop, pinSheetIndex, activePage?.sheetId, selectSheetById],
   );
 
   const handleDeleteStop = useCallback(
