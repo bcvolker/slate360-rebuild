@@ -1,6 +1,7 @@
 import {
   CheckCircle2,
   Download,
+  Link2,
   Loader2,
   Send,
   Share2,
@@ -28,6 +29,7 @@ type SlateDropSharePreviewModalsProps = {
   setShareExpiry: React.Dispatch<React.SetStateAction<string>>;
   closeShareModal: () => void;
   onSendSecureLink: () => Promise<void>;
+  onCopyShareLink: () => Promise<void>;
 
   previewFile: PreviewFile;
   previewUrl: string | null;
@@ -57,6 +59,7 @@ export default function SlateDropSharePreviewModals({
   setShareExpiry,
   closeShareModal,
   onSendSecureLink,
+  onCopyShareLink,
   previewFile,
   previewUrl,
   previewLoading,
@@ -175,6 +178,18 @@ export default function SlateDropSharePreviewModals({
                     style={{ backgroundColor: "var(--graphite-primary)" }}
                   >
                     <Send size={14} /> {shareChannel === "sms" ? "Text secure link" : "Email secure link"}
+                  </button>
+
+                  <div className="flex items-center gap-2 pt-1">
+                    <span className="h-px flex-1 bg-white/10" />
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--graphite-muted)]">or</span>
+                    <span className="h-px flex-1 bg-white/10" />
+                  </div>
+                  <button
+                    onClick={onCopyShareLink}
+                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-white/10 bg-white/[0.04] text-sm font-semibold text-[var(--graphite-text-body)] transition-all hover:border-[color-mix(in_srgb,var(--graphite-primary)_45%,transparent)]"
+                  >
+                    <Link2 size={14} /> Copy public link
                   </button>
                 </div>
               )}

@@ -32,9 +32,11 @@ export async function POST(req: NextRequest) {
     expiryDays?: number;
   };
 
-  if (!fileId || (!email && !phone)) {
-    return NextResponse.json({ error: "fileId and either email or phone are required" }, { status: 400 });
+  if (!fileId) {
+    return NextResponse.json({ error: "fileId is required" }, { status: 400 });
   }
+  // email/phone are optional: with neither, this just mints a public share link
+  // (the token IS the access) and returns the URL for the caller to copy.
   if (phone && !isValidPhone(phone)) {
     return NextResponse.json(
       { error: "Enter the phone number in international format, e.g. +13105551234." },

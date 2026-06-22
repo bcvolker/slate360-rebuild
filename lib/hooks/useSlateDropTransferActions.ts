@@ -118,10 +118,35 @@ export function useSlateDropTransferActions({
     }
   }, [closeShareModal, setShareSent, shareChannel, shareEmail, sharePhone, shareExpiry, shareModal, sharePerm, showToast]);
 
+  // Public link: mint a share token with no recipient and copy the URL.
+  const handleCopyShareLink = useCallback(async () => {
+    if (!shareModal) return;
+    try {
+      const response = await fetch("/api/slatedrop/secure-send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fileId: shareModal.id,
+          permission: sharePerm === "edit" ? "download" : "view",
+          expiryDays: shareExpiry === "never" ? 365 : parseInt(shareExpiry),
+        }),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (response.ok && payload.shareUrl) {
+        await copyToClipboard(payload.shareUrl, "Share link");
+      } else {
+        showToast(payload.error ?? "Could not create link", false);
+      }
+    } catch {
+      showToast("Could not create link", false);
+    }
+  }, [copyToClipboard, shareExpiry, shareModal, sharePerm, showToast]);
+
   return {
     handleDownloadFile,
     handleDownloadFolderZip,
     copyToClipboard,
     handleSendSecureLink,
+    handleCopyShareLink,
   };
 }

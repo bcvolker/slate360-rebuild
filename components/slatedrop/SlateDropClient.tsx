@@ -353,6 +353,7 @@ export default function SlateDropClient({ user, tier, initialProjectId, projectN
         setShareChannel={ui.setShareChannel} setShareEmail={ui.setShareEmail} setSharePhone={ui.setSharePhone}
         setSharePerm={ui.setSharePerm} setShareExpiry={ui.setShareExpiry}
         closeShareModal={ui.closeShareModal} onSendSecureLink={transfers.handleSendSecureLink}
+        onCopyShareLink={transfers.handleCopyShareLink}
         previewFile={ui.previewFile} previewUrl={ui.previewUrl} previewLoading={ui.previewLoading} previewError={ui.previewError}
         setPreviewFile={ui.setPreviewFile} onDownloadPreviewFile={transfers.handleDownloadFile}
         onOpenShareFromPreview={(f) => { ui.openShareModal(f); ui.setPreviewFile(null); }}
