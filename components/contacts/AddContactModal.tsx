@@ -1,9 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { X, Loader2, ChevronDown } from "lucide-react";
+import { X, Loader2 } from "lucide-react";
+import {
+  darkButtonClass,
+  darkFieldClass,
+  darkModalOverlayClass,
+  darkModalPanelClass,
+} from "@/components/ui/dark-surface-styles";
 
+// Avatar swatch palette (data — user picks a contact color).
 const COLORS = ["#3B82F6","#2563EB","#059669","#7C3AED","#2563EB","#DB2777","#0891B2","#65A30D"];
+
+const labelClass = "mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-[var(--graphite-muted)]";
 
 interface Project { id: string; name: string }
 
@@ -57,30 +66,29 @@ export default function AddContactModal({ projects = [], onClose, onCreated }: P
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm" onClick={onClose}>
-      <div
-        className="w-full max-w-md bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden"
-        onClick={(e) => e.stopPropagation()}
-      >
+    <div className={darkModalOverlayClass} onClick={onClose}>
+      <div className={darkModalPanelClass("max-w-md")} onClick={(e) => e.stopPropagation()}>
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+        <div className="flex shrink-0 items-center justify-between border-b border-white/10 px-6 py-4">
           <div>
-            <h3 className="text-base font-bold text-gray-900">Add Contact</h3>
-            <p className="text-xs text-gray-400 mt-0.5">Store a person in your org&apos;s contacts</p>
+            <h3 className="text-base font-bold text-[var(--graphite-text-header)]">Add Contact</h3>
+            <p className="mt-0.5 text-xs text-[var(--graphite-muted)]">Store a person in your org&apos;s contacts</p>
           </div>
-          <button onClick={onClose} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100">
+          <button onClick={onClose} className="flex h-8 w-8 items-center justify-center rounded-lg text-[var(--graphite-muted)] hover:bg-white/10 hover:text-[var(--graphite-text-header)]">
             <X size={16} />
           </button>
         </div>
 
         {/* Mode toggle */}
-        <div className="flex gap-0 px-6 pt-4">
+        <div className="flex shrink-0 gap-0 px-6 pt-4">
           {(["quick", "detailed"] as const).map((m) => (
             <button
               key={m}
               onClick={() => setMode(m)}
-              className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all capitalize ${
-                mode === m ? "bg-[var(--primary)] text-foreground" : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+              className={`flex-1 rounded-lg py-2 text-xs font-semibold capitalize transition-all ${
+                mode === m
+                  ? "bg-[var(--graphite-primary)] text-[var(--graphite-canvas)]"
+                  : "bg-white/5 text-[var(--graphite-muted)] hover:bg-white/10"
               } ${m === "quick" ? "rounded-r-none" : "rounded-l-none"}`}
             >
               {m === "quick" ? "Quick add" : "Full profile"}
@@ -88,29 +96,29 @@ export default function AddContactModal({ projects = [], onClose, onCreated }: P
           ))}
         </div>
 
-        <div className="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
+        <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-6">
           {/* Name (always shown) */}
           <div>
-            <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Name *</label>
+            <label className={labelClass}>Name *</label>
             <input
               type="text"
               placeholder="Full name"
               value={form.name}
               onChange={set("name")}
               autoFocus
-              className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--primary)_20%,transparent)] focus:border-[var(--primary)] transition-all"
+              className={darkFieldClass()}
             />
           </div>
 
           {/* Email (always shown) */}
           <div>
-            <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Email</label>
+            <label className={labelClass}>Email</label>
             <input
               type="email"
               placeholder="name@company.com"
               value={form.email}
               onChange={set("email")}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--primary)_20%,transparent)] focus:border-[var(--primary)] transition-all"
+              className={darkFieldClass()}
             />
           </div>
 
@@ -118,51 +126,51 @@ export default function AddContactModal({ projects = [], onClose, onCreated }: P
             <>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Phone</label>
+                  <label className={labelClass}>Phone</label>
                   <input
                     type="tel"
                     placeholder="+1 (555) 000-0000"
                     value={form.phone}
                     onChange={set("phone")}
-                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--primary)_20%,transparent)] focus:border-[var(--primary)] transition-all"
+                    className={darkFieldClass()}
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Title / Role</label>
+                  <label className={labelClass}>Title / Role</label>
                   <input
                     type="text"
                     placeholder="Project Manager"
                     value={form.title}
                     onChange={set("title")}
-                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--primary)_20%,transparent)] focus:border-[var(--primary)] transition-all"
+                    className={darkFieldClass()}
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Company</label>
+                <label className={labelClass}>Company</label>
                 <input
                   type="text"
                   placeholder="Company name"
                   value={form.company}
                   onChange={set("company")}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--primary)_20%,transparent)] focus:border-[var(--primary)] transition-all"
+                  className={darkFieldClass()}
                 />
               </div>
 
               {projects.length > 0 && (
                 <div>
-                  <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Link to Projects</label>
+                  <label className={labelClass}>Link to Projects</label>
                   <div className="flex flex-wrap gap-1.5">
                     {projects.map((p) => (
                       <button
                         key={p.id}
                         type="button"
                         onClick={() => toggleProject(p.id)}
-                        className={`px-2.5 py-1 rounded-full text-[11px] font-semibold border transition-all ${
+                        className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold transition-all ${
                           selectedProjects.includes(p.id)
-                            ? "border-[var(--primary)] bg-[color-mix(in_srgb,var(--primary)_8%,transparent)] text-[var(--primary)]"
-                            : "border-gray-200 text-gray-500 hover:border-gray-300"
+                            ? "border-[color-mix(in_srgb,var(--graphite-primary)_60%,transparent)] bg-[color-mix(in_srgb,var(--graphite-primary)_14%,transparent)] text-[var(--graphite-primary)]"
+                            : "border-white/15 text-[var(--graphite-muted)] hover:border-white/30"
                         }`}
                       >
                         {p.name}
@@ -173,13 +181,13 @@ export default function AddContactModal({ projects = [], onClose, onCreated }: P
               )}
 
               <div>
-                <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Notes</label>
+                <label className={labelClass}>Notes</label>
                 <textarea
                   rows={3}
                   placeholder="Any relevant notes…"
                   value={form.notes}
                   onChange={set("notes")}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--primary)_20%,transparent)] focus:border-[var(--primary)] resize-none transition-all"
+                  className={darkFieldClass("resize-none")}
                 />
               </div>
             </>
@@ -187,37 +195,33 @@ export default function AddContactModal({ projects = [], onClose, onCreated }: P
 
           {/* Color picker */}
           <div>
-            <label className="block text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Color</label>
-            <div className="flex gap-2 flex-wrap">
+            <label className={labelClass}>Color</label>
+            <div className="flex flex-wrap gap-2">
               {COLORS.map((c) => (
                 <button
                   key={c}
                   type="button"
                   onClick={() => setColor(c)}
-                  className={`w-7 h-7 rounded-full border-2 transition-all ${color === c ? "border-gray-900 scale-110" : "border-transparent"}`}
+                  className={`h-7 w-7 rounded-full border-2 transition-all ${color === c ? "scale-110 border-white" : "border-transparent"}`}
                   style={{ backgroundColor: c }}
                 />
               ))}
             </div>
           </div>
 
-          {error && <p className="text-xs text-red-500 font-medium">{error}</p>}
+          {error && <p className="text-xs font-medium text-red-400">{error}</p>}
         </div>
 
         {/* Footer */}
-        <div className="px-6 pb-5 flex gap-3">
+        <div className="flex shrink-0 gap-3 border-t border-white/10 px-6 py-4">
           <button
             onClick={handleSubmit}
             disabled={saving || !form.name.trim()}
-            className="flex-1 py-3 rounded-xl text-sm font-semibold text-foreground transition-all hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2"
-            style={{ backgroundColor: "var(--primary)" }}
+            className={darkButtonClass("primary", "flex-1")}
           >
             {saving ? <Loader2 size={14} className="animate-spin" /> : "Add Contact"}
           </button>
-          <button
-            onClick={onClose}
-            className="px-5 py-3 rounded-xl text-sm font-semibold border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
-          >
+          <button onClick={onClose} className={darkButtonClass("ghost", "px-5")}>
             Cancel
           </button>
         </div>

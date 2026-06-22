@@ -8,6 +8,14 @@
 import { useState } from "react";
 import { Building2, Phone, Mail, Hash, User, MapPin, X, Save, CheckCircle2 } from "lucide-react";
 import type { CompanyProfile } from "@/lib/hooks/useProjectProfile";
+import {
+  darkButtonClass,
+  darkFieldClass,
+  darkFieldLabelClass,
+  darkModalOverlayClass,
+  darkModalPanelClass,
+  darkSectionLabelClass,
+} from "@/components/ui/dark-surface-styles";
 
 interface Props {
   open: boolean;
@@ -32,62 +40,59 @@ export default function CompanyProfileModal({ open, onClose, initial, onSave }: 
     setForm((prev) => ({ ...prev, [key]: e.target.value }));
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
-      onClick={onClose}
-    >
+    <div className={darkModalOverlayClass} onClick={onClose}>
       <div
-        className="w-full max-w-lg rounded-2xl bg-white shadow-2xl overflow-hidden"
+        className={darkModalPanelClass("max-w-lg")}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
+        <div className="flex shrink-0 items-center justify-between border-b border-white/10 px-6 py-4">
           <div>
-            <h2 className="text-base font-black text-gray-900">Company & Contact Profile</h2>
-            <p className="text-xs text-gray-400 mt-0.5">Saved locally — auto-fills all project forms</p>
+            <h2 className="text-base font-black text-[var(--graphite-text-header)]">Company &amp; Contact Profile</h2>
+            <p className="mt-0.5 text-xs text-[var(--graphite-muted)]">Saved locally — auto-fills all project forms</p>
           </div>
-          <button onClick={onClose} className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100">
+          <button onClick={onClose} className="rounded-lg p-1.5 text-[var(--graphite-muted)] hover:bg-white/10 hover:text-[var(--graphite-text-header)]">
             <X size={16} />
           </button>
         </div>
 
-        <div className="overflow-y-auto max-h-[70vh] p-6 space-y-5">
+        <div className="min-h-0 flex-1 space-y-5 overflow-y-auto p-6">
           {/* Company info */}
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-3 flex items-center gap-1.5">
+            <p className={darkSectionLabelClass}>
               <Building2 size={12} /> Company Information
             </p>
             <div className="space-y-3">
               <div>
-                <label className="mb-1 block text-xs font-semibold text-gray-700">Company Name</label>
+                <label className={darkFieldLabelClass}>Company Name</label>
                 <input
                   value={form.companyName}
                   onChange={f("companyName")}
                   placeholder="Acme Construction LLC"
-                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[var(--primary)] focus:ring-1 focus:ring-[color-mix(in_srgb,var(--primary)_20%,transparent)]"
+                  className={darkFieldClass()}
                 />
               </div>
               <div>
-                <label className="mb-1 block text-xs font-semibold text-gray-700">Street Address</label>
+                <label className={darkFieldLabelClass}>Street Address</label>
                 <input
                   value={form.companyAddress}
                   onChange={f("companyAddress")}
                   placeholder="123 Main St"
-                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[var(--primary)] focus:ring-1 focus:ring-[color-mix(in_srgb,var(--primary)_20%,transparent)]"
+                  className={darkFieldClass()}
                 />
               </div>
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="mb-1 block text-xs font-semibold text-gray-700">City</label>
-                  <input value={form.companyCity} onChange={f("companyCity")} placeholder="Denver" className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[var(--primary)]" />
+                  <label className={darkFieldLabelClass}>City</label>
+                  <input value={form.companyCity} onChange={f("companyCity")} placeholder="Denver" className={darkFieldClass()} />
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-semibold text-gray-700">State</label>
-                  <input value={form.companyState} onChange={f("companyState")} placeholder="CO" maxLength={2} className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[var(--primary)]" />
+                  <label className={darkFieldLabelClass}>State</label>
+                  <input value={form.companyState} onChange={f("companyState")} placeholder="CO" maxLength={2} className={darkFieldClass()} />
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-semibold text-gray-700">ZIP</label>
-                  <input value={form.companyZip} onChange={f("companyZip")} placeholder="80202" className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[var(--primary)]" />
+                  <label className={darkFieldLabelClass}>ZIP</label>
+                  <input value={form.companyZip} onChange={f("companyZip")} placeholder="80202" className={darkFieldClass()} />
                 </div>
               </div>
             </div>
@@ -95,57 +100,54 @@ export default function CompanyProfileModal({ open, onClose, initial, onSave }: 
 
           {/* Contact info */}
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-3 flex items-center gap-1.5">
+            <p className={darkSectionLabelClass}>
               <User size={12} /> Primary Contact
             </p>
             <div className="space-y-3">
               <div>
-                <label className="mb-1 block text-xs font-semibold text-gray-700">Contact Name</label>
+                <label className={darkFieldLabelClass}>Contact Name</label>
                 <input
                   value={form.contactName}
                   onChange={f("contactName")}
                   placeholder="John Smith"
-                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[var(--primary)] focus:ring-1 focus:ring-[color-mix(in_srgb,var(--primary)_20%,transparent)]"
+                  className={darkFieldClass()}
                 />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="mb-1 block text-xs font-semibold text-gray-700">
+                  <label className={darkFieldLabelClass}>
                     <Phone size={10} className="mr-1 inline" />Phone
                   </label>
-                  <input value={form.companyPhone} onChange={f("companyPhone")} placeholder="(303) 555-0100" type="tel" className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[var(--primary)]" />
+                  <input value={form.companyPhone} onChange={f("companyPhone")} placeholder="(303) 555-0100" type="tel" className={darkFieldClass()} />
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-semibold text-gray-700">
+                  <label className={darkFieldLabelClass}>
                     <Mail size={10} className="mr-1 inline" />Email
                   </label>
-                  <input value={form.companyEmail} onChange={f("companyEmail")} placeholder="info@acme.com" type="email" className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[var(--primary)]" />
+                  <input value={form.companyEmail} onChange={f("companyEmail")} placeholder="info@acme.com" type="email" className={darkFieldClass()} />
                 </div>
               </div>
               <div>
-                <label className="mb-1 block text-xs font-semibold text-gray-700">
+                <label className={darkFieldLabelClass}>
                   <Hash size={10} className="mr-1 inline" />Contractor License #
                 </label>
-                <input value={form.licenseNumber} onChange={f("licenseNumber")} placeholder="GC-12345" className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[var(--primary)]" />
+                <input value={form.licenseNumber} onChange={f("licenseNumber")} placeholder="GC-12345" className={darkFieldClass()} />
               </div>
             </div>
           </div>
 
           {/* Info note */}
-          <div className="rounded-xl bg-sky-50 border border-sky-100 p-3 flex items-start gap-2.5">
-            <MapPin size={13} className="text-sky-700 mt-0.5 shrink-0" />
-            <p className="text-[11px] text-sky-700">
+          <div className="flex items-start gap-2.5 rounded-xl border border-[color-mix(in_srgb,var(--graphite-primary)_22%,transparent)] bg-[color-mix(in_srgb,var(--graphite-primary)_8%,transparent)] p-3">
+            <MapPin size={13} className="mt-0.5 shrink-0 text-[var(--graphite-primary)]" />
+            <p className="text-[11px] text-[var(--graphite-text-body)]">
               This profile is saved in your browser only. It auto-fills document forms, AIA contracts,
               daily logs, and other project templates so you don't have to type it every time.
             </p>
           </div>
         </div>
 
-        <div className="border-t border-gray-100 px-6 py-4">
-          <button
-            onClick={handleSave}
-            className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-[var(--primary)] px-4 py-2.5 text-sm font-semibold text-foreground hover:bg-[color-mix(in_srgb,var(--primary)_78%,black)] transition"
-          >
+        <div className="shrink-0 border-t border-white/10 px-6 py-4">
+          <button onClick={handleSave} className={darkButtonClass("primary", "w-full")}>
             {saved ? <><CheckCircle2 size={15} /> Saved!</> : <><Save size={15} /> Save Profile</>}
           </button>
         </div>
