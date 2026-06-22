@@ -1,21 +1,37 @@
 /**
- * POST /api/site-walk/sessions/[id]/status-report
+ * POST /api/site-walk/sessions/[id]/quick-deliverable
  *
- * One-click: scans every item in the session and creates a draft
- * `status_report` deliverable. Idempotent? No — a fresh draft is created on
- * each call so the user can iterate.
+ * One-tap, light-lift deliverable generation for the mobile app + desktop.
+ * Body: { type: "punchlist" | "photo_log" | "field_report" }
+ *
+ * Scans the session's items and creates a draft deliverable whose `content` is
+ * a templated `ViewerItem[]` block array (the hosted token viewer renders real
+ * photos). No image bytes are fetched/embedded in-request — this stays
+ * lightweight, mirroring the `status-report` endpoint.
  */
 import { NextRequest } from "next/server";
 import { withAppAuth } from "@/lib/server/api-auth";
 import { ok, badRequest, notFound, serverError } from "@/lib/server/api-response";
 import type { IdRouteContext } from "@/lib/types/api";
 import { excludeDeletedSiteWalkItems } from "@/lib/site-walk/item-filters";
-import { buildStatusReportContent, type StatusReportSourceItem } from "@/lib/site-walk/status-report";
+import type { StatusReportSourceItem } from "@/lib/site-walk/status-report";
+import {
+  buildQuickDeliverableContent,
+  isQuickDeliverableType,
+  QUICK_DELIVERABLE_LABELS,
+  QUICK_DELIVERABLE_TYPES,
+} from "@/lib/site-walk/quick-deliverables";
 
 export const POST = (req: NextRequest, ctx: IdRouteContext) =>
   withAppAuth("punchwalk", req, async ({ admin, user, orgId }) => {
     if (!orgId) return badRequest("Organization context required");
     const { id: sessionId } = await ctx.params;
+
+    const body = (await req.json().catch(() => ({}))) as { type?: string };
+    if (!isQuickDeliverableType(body.type)) {
+      return badRequest(`type must be one of: ${QUICK_DELIVERABLE_TYPES.join(", ")}`);
+    }
+    const type = body.type;
 
     const { data: session } = await admin
       .from("site_walk_sessions")
@@ -34,7 +50,6 @@ export const POST = (req: NextRequest, ctx: IdRouteContext) =>
     itemsQuery = excludeDeletedSiteWalkItems(itemsQuery);
 
     const { data: rows, error } = await itemsQuery.order("sort_order", { ascending: true });
-
     if (error) return serverError(error.message);
 
     const items: StatusReportSourceItem[] = (rows ?? []).map((r) => ({
@@ -48,8 +63,8 @@ export const POST = (req: NextRequest, ctx: IdRouteContext) =>
       created_at: r.created_at as string,
     }));
 
-    const content = buildStatusReportContent(session.title ?? "", items);
-    const title = `Status report — ${session.title || "Untitled walk"} — ${new Date().toLocaleDateString()}`;
+    const content = buildQuickDeliverableContent(type, session.title ?? "", items);
+    const title = `${QUICK_DELIVERABLE_LABELS[type]} — ${session.title || "Untitled walk"} — ${new Date().toLocaleDateString()}`;
 
     const { data: deliverable, error: insertErr } = await admin
       .from("site_walk_deliverables")
@@ -59,14 +74,16 @@ export const POST = (req: NextRequest, ctx: IdRouteContext) =>
         project_id: session.project_id ?? null,
         created_by: user.id,
         title,
-        deliverable_type: "status_report",
+        deliverable_type: type,
         status: "draft",
         content,
       })
       .select("id")
       .single();
 
-    if (insertErr || !deliverable) return serverError(insertErr?.message ?? "Failed to create deliverable");
+    if (insertErr || !deliverable) {
+      return serverError(insertErr?.message ?? "Failed to create deliverable");
+    }
 
     return ok({ deliverable_id: deliverable.id, item_count: items.length });
   });
