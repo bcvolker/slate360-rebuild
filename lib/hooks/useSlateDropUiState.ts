@@ -18,6 +18,7 @@ export function useSlateDropUiState() {
   const [sharePhone, setSharePhone] = useState("");
   const [sharePerm, setSharePerm] = useState<"view" | "edit">("view");
   const [shareExpiry, setShareExpiry] = useState("7");
+  const [sharePassword, setSharePassword] = useState("");
   const [shareSent, setShareSent] = useState(false);
 
   const [newFolderModal, setNewFolderModal] = useState<{ parentId: string; name: string } | null>(null);
@@ -49,6 +50,7 @@ export function useSlateDropUiState() {
     setShareSent(false);
     setShareEmail("");
     setSharePhone("");
+    setSharePassword("");
     setShareChannel("email");
   }, []);
 
@@ -57,6 +59,7 @@ export function useSlateDropUiState() {
     setShareSent(false);
     setShareEmail("");
     setSharePhone("");
+    setSharePassword("");
     setShareChannel("email");
   }, []);
 
@@ -75,6 +78,8 @@ export function useSlateDropUiState() {
     setSharePerm,
     shareExpiry,
     setShareExpiry,
+    sharePassword,
+    setSharePassword,
     shareSent,
     setShareSent,
     newFolderModal,

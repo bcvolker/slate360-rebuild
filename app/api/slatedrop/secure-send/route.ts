@@ -10,6 +10,7 @@ import crypto from "node:crypto";
 import { sendSecureSendEmail } from "@/lib/email";
 import { sendSms, isValidPhone } from "@/lib/sms";
 import { ensureUnifiedFileForUpload } from "@/lib/slatedrop/unified-files";
+import { hashSharePassword } from "@/lib/slatedrop/share-password";
 
 export async function POST(req: NextRequest) {
   const supabase = await createClient();
@@ -24,13 +25,17 @@ export async function POST(req: NextRequest) {
     phone,
     permission = "view",
     expiryDays = 7,
+    password,
   } = await req.json() as {
     fileId: string;
     email?: string;
     phone?: string;
     permission?: "view" | "download";
     expiryDays?: number;
+    password?: string;
   };
+
+  const trimmedPassword = typeof password === "string" ? password.trim() : "";
 
   if (!fileId) {
     return NextResponse.json({ error: "fileId is required" }, { status: 400 });
@@ -90,6 +95,7 @@ export async function POST(req: NextRequest) {
     role: permission,      // slate_drop_links uses 'role' instead of 'permission'
     expires_at: expiresAt,
     org_id: orgId,
+    ...(trimmedPassword ? { password_hash: hashSharePassword(trimmedPassword) } : {}),
     // shared_with_email is not a column in slate_drop_links — sent via email only
   });
 
@@ -145,5 +151,5 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  return NextResponse.json({ ok: true, shareUrl, token, expiresAt, emailSent, smsSent, smsError });
+  return NextResponse.json({ ok: true, shareUrl, token, expiresAt, emailSent, smsSent, smsError, passwordProtected: Boolean(trimmedPassword) });
 }

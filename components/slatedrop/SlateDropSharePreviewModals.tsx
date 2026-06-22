@@ -22,6 +22,8 @@ type SlateDropSharePreviewModalsProps = {
   sharePhone: string;
   sharePerm: "view" | "edit";
   shareExpiry: string;
+  sharePassword: string;
+  setSharePassword: React.Dispatch<React.SetStateAction<string>>;
   setShareChannel: React.Dispatch<React.SetStateAction<"email" | "sms">>;
   setShareEmail: React.Dispatch<React.SetStateAction<string>>;
   setSharePhone: React.Dispatch<React.SetStateAction<string>>;
@@ -52,6 +54,8 @@ export default function SlateDropSharePreviewModals({
   sharePhone,
   sharePerm,
   shareExpiry,
+  sharePassword,
+  setSharePassword,
   setShareChannel,
   setShareEmail,
   setSharePhone,
@@ -170,6 +174,17 @@ export default function SlateDropSharePreviewModals({
                       <option value="30">30 days</option>
                       <option value="never">Never</option>
                     </select>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-semibold text-[var(--graphite-muted)] uppercase tracking-wider mb-1.5">Password <span className="normal-case font-normal">(optional)</span></label>
+                    <input
+                      type="text"
+                      value={sharePassword}
+                      onChange={(event) => setSharePassword(event.target.value)}
+                      placeholder="Require a password to open"
+                      autoComplete="off"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-white/10 text-sm focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--graphite-primary)_20%,transparent)] focus:border-[var(--graphite-primary)] transition-all bg-[color-mix(in_srgb,var(--graphite-canvas)_60%,transparent)]"
+                    />
                   </div>
                   <button
                     onClick={onSendSecureLink}

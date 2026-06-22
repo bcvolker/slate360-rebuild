@@ -16,6 +16,7 @@ type UseSlateDropTransferActionsParams = {
   sharePhone: string;
   sharePerm: "view" | "edit";
   shareExpiry: string;
+  sharePassword: string;
   closeShareModal: () => void;
   setShareSent: (value: boolean) => void;
 };
@@ -28,6 +29,7 @@ export function useSlateDropTransferActions({
   sharePhone,
   sharePerm,
   shareExpiry,
+  sharePassword,
   closeShareModal,
   setShareSent,
 }: UseSlateDropTransferActionsParams) {
@@ -95,6 +97,7 @@ export function useSlateDropTransferActions({
           ...(shareChannel === "sms" ? { phone: recipient } : { email: recipient }),
           permission: sharePerm === "edit" ? "download" : "view",
           expiryDays: shareExpiry === "never" ? 365 : parseInt(shareExpiry),
+          ...(sharePassword.trim() ? { password: sharePassword.trim() } : {}),
         }),
       });
 
@@ -116,7 +119,7 @@ export function useSlateDropTransferActions({
     } catch {
       showToast("Send failed", false);
     }
-  }, [closeShareModal, setShareSent, shareChannel, shareEmail, sharePhone, shareExpiry, shareModal, sharePerm, showToast]);
+  }, [closeShareModal, setShareSent, shareChannel, shareEmail, sharePhone, shareExpiry, sharePassword, shareModal, sharePerm, showToast]);
 
   // Public link: mint a share token with no recipient and copy the URL.
   const handleCopyShareLink = useCallback(async () => {
@@ -129,18 +132,20 @@ export function useSlateDropTransferActions({
           fileId: shareModal.id,
           permission: sharePerm === "edit" ? "download" : "view",
           expiryDays: shareExpiry === "never" ? 365 : parseInt(shareExpiry),
+          ...(sharePassword.trim() ? { password: sharePassword.trim() } : {}),
         }),
       });
       const payload = await response.json().catch(() => ({}));
       if (response.ok && payload.shareUrl) {
-        await copyToClipboard(payload.shareUrl, "Share link");
+        const note = payload.passwordProtected ? "Password-protected link" : "Share link";
+        await copyToClipboard(payload.shareUrl, note);
       } else {
         showToast(payload.error ?? "Could not create link", false);
       }
     } catch {
       showToast("Could not create link", false);
     }
-  }, [copyToClipboard, shareExpiry, shareModal, sharePerm, showToast]);
+  }, [copyToClipboard, shareExpiry, sharePassword, shareModal, sharePerm, showToast]);
 
   // Right-click "Copy link": mint a public view link for a file directly,
   // without opening the share modal (default view permission, 1-year expiry).

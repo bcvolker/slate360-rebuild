@@ -9,6 +9,7 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { s3, BUCKET } from "@/lib/s3";
 import { TokenStatePage } from "@/components/external-portal";
 import ShareViewer from "./ShareViewer";
+import ShareGate from "./ShareGate";
 
 export const dynamic = "force-dynamic";
 
@@ -40,6 +41,25 @@ export default async function SharePage({ params }: PageProps) {
         description="This share link has expired. Please request a new one from the sender."
       />
     );
+  }
+
+  // Password gate — read defensively so existing links keep working even before
+  // the password_hash column migration is applied.
+  let passwordHash: string | null = null;
+  try {
+    const { data: pwRow } = await admin
+      .from("slate_drop_links")
+      .select("password_hash")
+      .eq("token", token)
+      .maybeSingle();
+    passwordHash = (pwRow as { password_hash?: string | null } | null)?.password_hash ?? null;
+  } catch {
+    passwordHash = null;
+  }
+
+  if (passwordHash) {
+    // Don't presign here — the recipient must unlock first via the unlock route.
+    return <ShareGate token={token} badge="Shared file" />;
   }
 
   const { data: unifiedFile, error: unifiedFileError } = await admin
