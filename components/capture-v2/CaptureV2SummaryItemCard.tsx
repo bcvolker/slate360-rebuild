@@ -34,7 +34,7 @@ export function CaptureV2SummaryItemCard({ sessionId, item, stopNumber, highligh
   return (
     <Link
       href={focusHref}
-      className={`group grid grid-cols-[5.5rem_minmax(0,1fr)_auto] items-center gap-3 rounded-[1.4rem] border p-2 shadow-[0_12px_40px_rgba(0,0,0,0.2)] transition hover:border-amber-400/30 hover:bg-white/[0.07] ${
+      className={`group grid grid-cols-[5.5rem_minmax(0,1fr)_auto] items-center gap-3 rounded-[1.4rem] border p-2 shadow-[0_12px_40px_rgba(0,0,0,0.2)] transition hover:border-[var(--accent-border-green)] hover:bg-white/[0.07] ${
         highlight
           ? "border-emerald-400/35 bg-emerald-500/[0.08] ring-1 ring-emerald-400/20"
           : "border-white/10 bg-white/[0.05]"
@@ -48,7 +48,7 @@ export function CaptureV2SummaryItemCard({ sessionId, item, stopNumber, highligh
             {item.itemType === "text_note" ? <FileText className="h-5 w-5" /> : <Camera className="h-5 w-5" />}
           </div>
         )}
-        <span className="absolute left-1.5 top-1.5 rounded-md bg-slate-950/85 px-1.5 py-0.5 text-[9px] font-black text-amber-200">
+        <span className="absolute left-1.5 top-1.5 rounded-md bg-slate-950/85 px-1.5 py-0.5 text-[9px] font-black text-[var(--graphite-primary)]">
           #{stopNumber}
         </span>
       </div>
@@ -64,7 +64,7 @@ export function CaptureV2SummaryItemCard({ sessionId, item, stopNumber, highligh
           <CaptureV2ItemSyncBadge kind={syncKind} compact />
         </div>
 
-        <h2 className="mt-1.5 truncate text-base font-black text-white group-hover:text-amber-100">
+        <h2 className="mt-1.5 truncate text-base font-black text-white group-hover:text-[var(--graphite-primary)]">
           {item.title?.trim() || `Stop ${stopNumber}`}
         </h2>
 
@@ -86,7 +86,7 @@ export function CaptureV2SummaryItemCard({ sessionId, item, stopNumber, highligh
         )}
       </div>
 
-      <ChevronRight className="mr-1 h-5 w-5 shrink-0 text-slate-600 group-hover:text-amber-300" aria-hidden />
+      <ChevronRight className="mr-1 h-5 w-5 shrink-0 text-slate-600 group-hover:text-[var(--graphite-primary)]" aria-hidden />
     </Link>
   );
 }

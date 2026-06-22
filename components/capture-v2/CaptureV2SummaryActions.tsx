@@ -75,7 +75,7 @@ export function CaptureV2SummaryActions({
       {!isCompleted && (
         <Link
           href={buildCaptureV2LaunchUrl({ session: sessionId, plan: "skip" })}
-          className="flex min-h-12 w-full items-center justify-center rounded-2xl bg-amber-500 px-4 text-sm font-black text-slate-950 shadow-lg shadow-amber-500/20 hover:bg-amber-400"
+          className="flex min-h-12 w-full items-center justify-center rounded-2xl bg-[var(--graphite-primary)] px-4 text-sm font-black text-[var(--graphite-canvas)] shadow-lg shadow-[color-mix(in_srgb,var(--graphite-primary)_25%,transparent)] hover:bg-[color-mix(in_srgb,var(--graphite-primary)_90%,white)]"
         >
           Continue Capture
         </Link>
@@ -105,7 +105,7 @@ export function CaptureV2SummaryActions({
       {projectId ? (
         <Link
           href={`/projects/${encodeURIComponent(projectId)}/field`}
-          className="flex min-h-11 w-full items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] px-4 text-sm font-black text-slate-200 hover:border-amber-400/30"
+          className="flex min-h-11 w-full items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] px-4 text-sm font-black text-slate-200 hover:border-[var(--accent-border-green)]"
         >
           {projectName ? `Project: ${projectName}` : "Project field tab"}
         </Link>
@@ -113,14 +113,14 @@ export function CaptureV2SummaryActions({
 
       <Link
         href="/site-walk"
-        className="flex min-h-11 w-full items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] px-4 text-sm font-black text-slate-200 hover:border-amber-400/30"
+        className="flex min-h-11 w-full items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] px-4 text-sm font-black text-slate-200 hover:border-[var(--accent-border-green)]"
       >
         Site Walk Home
       </Link>
 
       <Link
         href="/site-walk/walks"
-        className="flex min-h-11 w-full items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] px-4 text-sm font-black text-slate-200 hover:border-amber-400/30"
+        className="flex min-h-11 w-full items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] px-4 text-sm font-black text-slate-200 hover:border-[var(--accent-border-green)]"
       >
         Walks List
       </Link>

@@ -24,7 +24,7 @@ export function CaptureV2SummaryStats({ stats, sessionStatus }: Props) {
   return (
     <section className="space-y-3" aria-label="Walk statistics">
       <div>
-        <p className="text-[11px] font-black uppercase tracking-[0.22em] text-amber-300/80">Session</p>
+        <p className="text-[11px] font-black uppercase tracking-[0.22em] text-[color-mix(in_srgb,var(--graphite-primary)_80%,white)]">Session</p>
         <p className="mt-1 text-sm font-bold capitalize text-slate-300">{sessionStatus.replace(/_/g, " ")}</p>
       </div>
 
