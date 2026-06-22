@@ -11,6 +11,8 @@ import CreateProjectWizard, {
 } from "@/components/projects/CreateProjectWizard";
 import ProjectsDeleteModal from "@/components/projects/ProjectsDeleteModal";
 import ProjectsAllProjectsTab from "@/components/projects/ProjectsAllProjectsTab";
+import ProjectsPortfolioOverview from "@/components/projects/ProjectsPortfolioOverview";
+import SubTabs from "@/components/shared/SubTabs";
 import GlassCard from "@/components/shared/GlassCard";
 import type { ProjectListItem } from "@/lib/types/projects";
 
@@ -113,9 +115,9 @@ export default function ProjectsClientPage() {
   });
 
   return (
-    <div className="min-h-full overflow-x-hidden text-slate-50">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-4 py-5 pb-28 sm:px-6 lg:px-8 lg:py-8 lg:pb-8">
-        <div className="flex items-center justify-between gap-3">
+    <div className="flex h-full min-h-0 flex-col overflow-x-hidden text-slate-50">
+      <div className="flex min-h-0 w-full flex-1 flex-col gap-4 px-4 py-5 sm:px-6 lg:px-8">
+        <div className="flex shrink-0 items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-3">
             <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[var(--graphite-primary)] text-slate-950 shadow-lg shadow-[color-mix(in_srgb,var(--graphite-primary)_20%,transparent)]">
               <FolderKanban className="h-5 w-5" />
@@ -133,7 +135,7 @@ export default function ProjectsClientPage() {
           </button>
         </div>
 
-        <GlassCard className="p-3">
+        <GlassCard className="shrink-0 p-3">
           <div className="relative">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
             <input
@@ -145,13 +147,35 @@ export default function ProjectsClientPage() {
           </div>
         </GlassCard>
 
-        <section className="min-h-0">
-          <ProjectsAllProjectsTab
-            loading={loading}
-            projects={filteredProjects}
-            onOpenDeleteProject={openDeleteModal}
+        {/* Sub-tabs: paginate the module instead of one long scrolling page */}
+        <div className="min-h-0 flex-1">
+          <SubTabs
+            items={[
+              {
+                id: "all",
+                label: `All Projects${filteredProjects.length ? ` · ${filteredProjects.length}` : ""}`,
+                content: (
+                  <ProjectsAllProjectsTab
+                    loading={loading}
+                    projects={filteredProjects}
+                    onOpenDeleteProject={openDeleteModal}
+                  />
+                ),
+              },
+              {
+                id: "portfolio",
+                label: "Portfolio",
+                content: (
+                  <ProjectsPortfolioOverview
+                    summary={null}
+                    summaryLoading={false}
+                    fallbackProjectsCount={projects.length}
+                  />
+                ),
+              },
+            ]}
           />
-        </section>
+        </div>
       </div>
 
       <button
