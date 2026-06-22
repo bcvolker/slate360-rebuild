@@ -1,0 +1,30 @@
+{
+  "name": "Slate360",
+  "short_name": "Slate360",
+  "description": "Field-to-office construction documentation",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0B0F15",
+  "theme_color": "#0B0F15",
+  "icons": [
+    {
+      "src": "/uploads/icon-192.png?v=20260612",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/uploads/icon-512.png?v=20260612",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/uploads/icon-512-maskable.png?v=20260612",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

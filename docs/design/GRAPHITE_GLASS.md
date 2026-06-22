@@ -81,3 +81,48 @@ navigation.
 - **Legacy amber zones (deletion-first candidates):** V1 capture stack
   (`app/site-walk/(act-1|act-2|act-3)*`, `components/site-walk/capture/*`),
   `components/dashboard-v2*`, `components/slatedrop/*` UI, old proof/dev pages.
+
+## 6. Token source of truth (consume these — never hardcode)
+
+`app/globals.css` `:root` is the **single authoritative token sheet**. Everything
+else (`lib/design-system/tokens.ts`, the per-surface `*-tokens.ts` files) must
+*reference* these vars, not redefine values.
+
+- **Brand accent (white-label aware):** `var(--primary)` / `var(--ring)` — these
+  fall back through `var(--brand-primary, var(--graphite-primary))`, so an org's
+  brand color overrides them automatically. Use `--primary` for any CTA/active/
+  focus accent that should follow white-label.
+- **Fixed product accents:** `var(--graphite-primary)` (#00E699 field green —
+  Site Walk / platform) and `var(--twin360-blue)` (#3D8EFF — Digital Twin).
+- **Surfaces/text:** `--graphite-canvas`, `--graphite-text-header/-body`,
+  `--graphite-muted`; translucency via `color-mix(in srgb, var(--token) N%, transparent)`.
+- **Geometry:** `--radius` (0.75rem) + computed scale; shadows `--app-shadow-card`
+  / `--app-shadow-elevated`; card shadow `--mobile-app-card-shadow`. Do not invent
+  new radii/shadows in component files.
+- **Never** put a raw color hex, `rgba(...)` brand color, or `amber-*`/`orange-*`
+  Tailwind class in a component. New colors go into `globals.css` first, then get
+  consumed as a var.
+
+## 7. Desktop layout pattern (all dashboard pages)
+
+The chrome (`DashboardDesktopShell` / `StudioAppShell`) already provides a
+fill-height, internally-scrolling content area. Pages must **fill it, not grow it**:
+
+- Use `DashboardTabShell` with **`fill`** (fills content height, full width, no
+  page-level vertical scroll, no side gaps). The legacy non-fill/`min-h-screen`/
+  `max-w-[1440px]` path is deprecated.
+- When a tab has more than fits, paginate with **`components/shared/SubTabs.tsx`**
+  ("tabs within a tab") — never a long vertical scroll.
+- For landing/aggregation surfaces, use **`components/dashboard-desktop/CustomizableWidgetBoard.tsx`**:
+  drag-to-reorder, resize (col span), collapse/expand, persisted per board. Widgets
+  tile a 12-col grid so the board fills width with no gaps.
+
+## 8. Enforcement
+
+`npm run guard:design` (`scripts/ops/check-design-guardrails.mjs`) fails the build
+on new off-system usage, gated by only-shrink ratchets in `ops/design-allowlist.json`:
+`legacyAmberFiles` (amber classes/hex/**rgba**), `legacyBrandHexFiles` (hardcoded
+brand-color hex in components — use `var(--primary)` etc.), `legacyOrangeFiles`.
+A new file matching any pattern fails immediately. After cleaning files, run
+`node scripts/ops/check-design-guardrails.mjs --update` to shrink the lists (they
+may never grow). Run alongside `typecheck:changed`, `build`, `guard:architecture`.
