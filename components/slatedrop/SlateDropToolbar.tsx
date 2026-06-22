@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, FileArchive, FolderOpen, Grid3X3, List, Search, SortAsc, SortDesc, Upload } from "lucide-react";
+import { ChevronLeft, ChevronRight, FileArchive, FolderOpen, Grid3X3, List, Search, SortAsc, SortDesc, Trash2, Upload } from "lucide-react";
 
 type SlateDropToolbarProps = {
   sidebarOpen: boolean;
@@ -14,6 +14,8 @@ type SlateDropToolbarProps = {
   onSetViewMode: (viewMode: "grid" | "list") => void;
   onUploadClick: () => void;
   onDownloadZip: () => void;
+  /** Optional — when provided, shows a "Trash" button opening recently-deleted. */
+  onOpenTrash?: () => void;
 };
 
 export default function SlateDropToolbar({
@@ -30,6 +32,7 @@ export default function SlateDropToolbar({
   onSetViewMode,
   onUploadClick,
   onDownloadZip,
+  onOpenTrash,
 }: SlateDropToolbarProps) {
   return (
     <div className="shrink-0 bg-background border-b border-app px-3 sm:px-4 py-3">
@@ -110,6 +113,16 @@ export default function SlateDropToolbar({
             title="Download project as ZIP"
           >
             <FileArchive size={13} /> ZIP
+          </button>
+        )}
+
+        {onOpenTrash && (
+          <button
+            onClick={onOpenTrash}
+            className="w-9 h-9 rounded-lg border border-app flex items-center justify-center text-[var(--graphite-muted)] hover:bg-white/[0.04] transition-colors shrink-0"
+            title="Recently deleted"
+          >
+            <Trash2 size={14} />
           </button>
         )}
       </div>

@@ -25,6 +25,7 @@ import SlateDropToolbar from "./SlateDropToolbar";
 import SlateDropFileArea from "./SlateDropFileArea";
 import SlateDropContextMenu, { type SlateDropContextMenuState } from "./SlateDropContextMenu";
 import SlateDropActionModals from "./SlateDropActionModals";
+import SlateDropTrashModal from "./SlateDropTrashModal";
 import SlateDropSharePreviewModals from "./SlateDropSharePreviewModals";
 import SlateDropNotificationsOverlay from "./SlateDropNotificationsOverlay";
 
@@ -63,6 +64,7 @@ export default function SlateDropClient({ user, tier, initialProjectId, projectN
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({});
   const [toastMsg, setToastMsg] = useState<{ text: string; ok: boolean } | null>(null);
+  const [trashOpen, setTrashOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const {
     folderTree,
@@ -354,6 +356,7 @@ export default function SlateDropClient({ user, tier, initialProjectId, projectN
             onSearchChange={setSearchQuery} onCycleSort={handleCycleSort}
             onSetViewMode={setViewMode} onUploadClick={handleUploadClick}
             onDownloadZip={handleToolbarZip}
+            onOpenTrash={activeFolderId ? () => setTrashOpen(true) : undefined}
           />
 
           <SlateDropFileArea
@@ -430,6 +433,15 @@ export default function SlateDropClient({ user, tier, initialProjectId, projectN
         onOpenShareFromPreview={(f) => { ui.openShareModal(f); ui.setPreviewFile(null); }}
         getFileIcon={getFileIcon} getFileColor={getFileColor} formatBytes={formatBytes} formatDate={formatDate}
       />
+
+      {trashOpen && (
+        <SlateDropTrashModal
+          folderId={activeFolderId}
+          onClose={() => setTrashOpen(false)}
+          onRestored={() => { void files.refreshFolderFiles(activeFolderId); }}
+          formatBytes={formatBytes}
+        />
+      )}
 
       <input ref={fileInputRef} type="file" multiple className="hidden" onChange={(e) => { if (e.target.files?.length) uploadFiles(e.target.files); e.target.value = ""; }} />
     </div>
