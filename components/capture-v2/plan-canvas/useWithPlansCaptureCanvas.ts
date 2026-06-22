@@ -37,6 +37,12 @@ export function useWithPlansCaptureCanvas({ loop, planSets, planSheets, sheetIma
   const [pageIndex, setPageIndex] = useState(0);
   const [sheetPickerOpen, setSheetPickerOpen] = useState(false);
   const [chromeVisible, setChromeVisible] = useState(true);
+  // Stop the map pans to when a stop is selected (filmstrip/pin) — drives the
+  // additive focus pan in PlanViewerLeaflet. Stop-to-stop nav for the common
+  // (same-sheet) case; cross-sheet switching is a later on-device pass. The tick
+  // forces a re-pan even when the same stop is re-selected.
+  const [focusItemId, setFocusItemId] = useState<string | null>(null);
+  const [focusTick, setFocusTick] = useState(0);
 
   const activePlanSet = useMemo(
     () => planSets.find((set) => set.processing_status === "ready") ?? planSets[0] ?? null,
@@ -81,6 +87,8 @@ export function useWithPlansCaptureCanvas({ loop, planSets, planSheets, sheetIma
   const handleSelectStop = useCallback(
     (item: CaptureItemRecord) => {
       loop.focusFilmstripItem(item);
+      setFocusItemId(item.id);
+      setFocusTick((tick) => tick + 1);
     },
     [loop],
   );
@@ -112,6 +120,8 @@ export function useWithPlansCaptureCanvas({ loop, planSets, planSheets, sheetIma
     canGoNext: safePageIndex < pages.length - 1,
     handleSelectStop,
     handleDeleteStop,
+    focusItemId,
+    focusTick,
     fitPadding: capturePlanFitPadding(),
     sheetImageUrls,
   };

@@ -104,6 +104,8 @@ export function WithPlansCaptureCanvas({
           onPageIndexChange={canvas.setPageIndex}
           sheetImageUrls={sheetImageUrls}
           fitPadding={canvas.fitPadding}
+          focusItemId={canvas.focusItemId}
+          focusTick={canvas.focusTick}
           onPinDropped={pinCapture.handlePinDropped}
           onSessionPinTap={pinCapture.handleSessionPinTap}
           devExposeMap={devExposeMap}

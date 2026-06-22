@@ -36,7 +36,7 @@ branches:
 | 7 | Tapping a placed (empty) pin does nothing | `onSessionPinTap` only fired when `pin.item_id` set; empty long-press pins have none | FIXED — empty pin tap → "Add capture" (camera/upload/360) + remove |
 | 8 | Top banner unbranded black/white | `PlanToolbar`/topbar styling is legacy slate/amber | FIXED — Graphite Glass + brand-green (#00E699) accents on the sheet chip, back/filmstrip buttons |
 | 9 | Plans don't sit perfectly on screen | leaflet fit padding / bounds | REVIEWED — `fitPlanLeafletMap` is correct (asymmetric padding already accounts for top bar + filmstrip). Remaining "doesn't sit perfectly" is subjective polish that needs on-device tuning; not changed blind (must preserve working pan/zoom). |
-| 10 | Stop-to-stop nav missing in drawings walk | bottom rail only pages sheets | PARTIAL — bottom rail branded (green icons) + shows "Sheet N/M". True stop→stop *map* nav needs imperative Leaflet pan-to-pin wiring (no `focusItem` prop on `PlanViewerLeaflet` yet) + reliable item→sheet/pin map; deferred to an on-device pass to avoid regressing pan/zoom. |
+| 10 | Stop-to-stop nav missing in drawings walk | bottom rail only pages sheets | DONE (same-sheet) — selecting a stop (filmstrip/pin) now pans the map to its pin via an additive `focusItemId`/`focusTick` prop on `PlanViewerLeaflet` (`map.panTo` only — fit/zoom untouched). Bottom rail branded + shows "Sheet N/M". Cross-sheet auto-switch (needs a session-wide pin→sheet query) is the remaining on-device follow-up. |
 
 ### Header consistency (field review 2026-06-22, screenshots)
 All three capture headers unified to one branded pattern (each in its app accent —

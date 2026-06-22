@@ -36,6 +36,11 @@ type Props = {
   useSourcePickerFlow?: boolean;
   pinRefreshKey?: number;
   devExposeMap?: boolean;
+  /** Pan the map to this captured item's pin (stop-to-stop nav). Additive — only
+   *  re-centers; never changes zoom or the initial fit. `focusTick` re-triggers
+   *  a pan when the same stop is re-selected. No-op if the pin isn't on this sheet. */
+  focusItemId?: string | null;
+  focusTick?: number;
 };
 
 function pinToLatLng(pin: { x_pct: number; y_pct: number }, width: number, height: number): L.LatLngExpression {
@@ -65,6 +70,8 @@ export function PlanViewerLeaflet({
   useSourcePickerFlow = false,
   pinRefreshKey = 0,
   devExposeMap = false,
+  focusItemId = null,
+  focusTick = 0,
 }: Props) {
   const [internalPageIndex, setInternalPageIndex] = useState(0);
   const [filter, setFilter] = useState<LayerFilter>("all");
@@ -150,6 +157,17 @@ export function PlanViewerLeaflet({
     observer.observe(node);
     return () => observer.disconnect();
   }, [refitMap]);
+
+  // Stop-to-stop: pan (not zoom) to the selected stop's pin when it's on the
+  // current sheet. Purely additive — leaves fit/zoom/placement untouched.
+  useEffect(() => {
+    if (!focusItemId) return;
+    const map = mapRef.current;
+    if (!map) return;
+    const pin = pins.find((entry) => entry.item_id === focusItemId);
+    if (!pin) return;
+    map.panTo(pinToLatLng(pin, imageWidth, imageHeight), { animate: true });
+  }, [focusItemId, focusTick, pins, imageWidth, imageHeight]);
 
   const visiblePins = pins.filter((pin) => {
     if (filter === "none") return false;
