@@ -105,7 +105,7 @@ export default function PunchListPage() {
 	};
 
 	const startEdit = (item: PunchItem) => {
-		setForm({ title: item.title, description: item.description ?? "", status: item.status, priority: item.priority, assignee: item.assignee ?? "", location_area: item.location_area ?? "", trade_category: item.trade_category ?? "", due_date: item.due_date ?? "" });
+		setForm({ title: item.title, description: item.description ?? "", status: item.status, priority: item.priority, assignee: item.assignee ?? "", location_area: item.location_area ?? "", trade_category: item.trade_category ?? "", due_date: item.due_date ?? "", photos: item.photos ?? [] });
 		setEditingId(item.id);
 		setShowCreate(true);
 	};
@@ -220,6 +220,7 @@ export default function PunchListPage() {
 					setForm={setForm}
 					editingId={editingId}
 					saving={saving}
+					projectId={projectId}
 					onSubmit={handleSubmit}
 					onClose={() => { setShowCreate(false); setEditingId(null); }}
 				/>

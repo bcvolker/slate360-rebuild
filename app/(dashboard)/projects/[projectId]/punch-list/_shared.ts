@@ -10,7 +10,7 @@ export type PunchItem = {
 export type PunchFormData = {
   title: string; description: string; status: PunchItem["status"];
   priority: PunchItem["priority"]; assignee: string; location_area: string;
-  trade_category: string; due_date: string;
+  trade_category: string; due_date: string; photos: string[];
 };
 
 export const STATUSES: PunchItem["status"][] = ["Open", "In Progress", "Ready for Review", "Closed"];
@@ -36,5 +36,5 @@ export const PRIORITY_COLORS: Record<string, string> = {
 
 export const EMPTY_FORM: PunchFormData = {
   title: "", description: "", status: "Open", priority: "Medium",
-  assignee: "", location_area: "", trade_category: "", due_date: "",
+  assignee: "", location_area: "", trade_category: "", due_date: "", photos: [],
 };
