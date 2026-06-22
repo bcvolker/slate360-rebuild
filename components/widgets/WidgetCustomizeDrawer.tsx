@@ -149,7 +149,7 @@ export default function WidgetCustomizeDrawer({
                       className={[
                         "w-6 h-6 rounded text-[9px] font-bold flex items-center justify-center transition-colors",
                         pref.size === s
-                          ? "bg-amber-500/10 text-amber-600"
+                          ? "bg-sky-50 text-sky-700"
                           : "text-gray-300 hover:text-gray-500 hover:bg-gray-100",
                       ].join(" ")}
                       title={getWidgetSizeLabel(s)}
@@ -165,7 +165,7 @@ export default function WidgetCustomizeDrawer({
                   title={pref.visible ? "Hide widget" : "Show widget"}
                   className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors ${
                     pref.visible
-                      ? "bg-amber-500/10 text-amber-600"
+                      ? "bg-sky-50 text-sky-700"
                       : "text-gray-300 hover:text-gray-500"
                   }`}
                 >
@@ -179,7 +179,7 @@ export default function WidgetCustomizeDrawer({
         {/* Footer */}
         <div className="px-6 py-4 border-t border-gray-100 space-y-2">
           {dirty && (
-            <p className="text-[10px] text-amber-600 text-center font-medium">
+            <p className="text-[10px] text-sky-700 text-center font-medium">
               You have unsaved changes
             </p>
           )}

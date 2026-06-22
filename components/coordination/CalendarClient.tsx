@@ -17,7 +17,7 @@ export function CalendarClient() {
         <h2 className="text-xl font-black text-slate-100 flex items-center gap-2">
           <CalendarDays className="h-5 w-5 text-slate-400" /> Upcoming Agenda
         </h2>
-        <button className="flex shrink-0 items-center gap-1.5 rounded-2xl bg-amber-500 px-4 py-2 text-sm font-black text-slate-950 hover:bg-amber-400 transition-colors">
+        <button className="flex shrink-0 items-center gap-1.5 rounded-2xl bg-[var(--graphite-primary)] px-4 py-2 text-sm font-black text-slate-950 hover:bg-[color-mix(in_srgb,var(--graphite-primary)_85%,white)] transition-colors">
           <Plus className="h-4 w-4" /> New Event
         </button>
       </div>
@@ -28,13 +28,13 @@ export function CalendarClient() {
             const isWalk = ev.type === "walk";
             return (
               <GlassCard key={ev.id} className="p-4 relative overflow-hidden flex items-start gap-4">
-                <div className={`absolute top-0 bottom-0 left-0 w-1 ${isWalk ? "bg-amber-500" : "bg-slate-500"}`} />
-                <div className={`mt-1 shrink-0 p-2 rounded-xl ${isWalk ? "bg-amber-500/10 text-amber-500 border border-amber-500/20" : "bg-slate-500/10 text-slate-400 border border-slate-500/20"}`}>
+                <div className={`absolute top-0 bottom-0 left-0 w-1 ${isWalk ? "bg-[var(--graphite-primary)]" : "bg-slate-500"}`} />
+                <div className={`mt-1 shrink-0 p-2 rounded-xl ${isWalk ? "bg-[color-mix(in_srgb,var(--graphite-primary)_10%,transparent)] text-[var(--graphite-primary)] border border-[color-mix(in_srgb,var(--graphite-primary)_20%,transparent)]" : "bg-slate-500/10 text-slate-400 border border-slate-500/20"}`}>
                   {isWalk ? <MapPin className="h-5 w-5" /> : <Flag className="h-5 w-5" />}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-4">
-                    <p className={`text-base font-black truncate ${isWalk ? "text-amber-100" : "text-slate-200"}`}>{ev.title}</p>
+                    <p className={`text-base font-black truncate ${isWalk ? "text-[var(--graphite-primary)]" : "text-slate-200"}`}>{ev.title}</p>
                     <span className="text-xs font-bold text-slate-400 shrink-0 bg-slate-900/50 px-2 py-1 rounded-lg border border-slate-800/50">
                       {ev.date}
                     </span>

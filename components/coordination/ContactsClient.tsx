@@ -48,7 +48,7 @@ export function ContactsClient({ contacts }: Props) {
         </span>
         <button
           onClick={() => setAddOpen(true)}
-          className="flex shrink-0 items-center gap-1.5 rounded-2xl bg-amber-500 px-4 py-2 text-sm font-black text-slate-950 hover:bg-amber-400 transition-colors"
+          className="flex shrink-0 items-center gap-1.5 rounded-2xl bg-[var(--graphite-primary)] px-4 py-2 text-sm font-black text-slate-950 hover:bg-[color-mix(in_srgb,var(--graphite-primary)_85%,white)] transition-colors"
         >
           <Plus className="h-4 w-4" /> Add Contact
         </button>

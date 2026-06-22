@@ -92,15 +92,15 @@ export function FinancialWidgetBody({
 
   if (totalBudget === 0) {
     return (
-      <div className={["rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-amber-100", "p-4 flex flex-col justify-center items-center flex-1", expanded ? "min-h-[200px]" : ""].join(" ")}>
-        <BarChart3 size={28} className="text-amber-300 mb-2" />
-        <p className="text-xs text-amber-400 text-center">No budget data available yet</p>
+      <div className={["rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-sky-100", "p-4 flex flex-col justify-center items-center flex-1", expanded ? "min-h-[200px]" : ""].join(" ")}>
+        <BarChart3 size={28} className="text-sky-300 mb-2" />
+        <p className="text-xs text-sky-400 text-center">No budget data available yet</p>
       </div>
     );
   }
 
   return (
-    <div className="rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-amber-100 p-4 flex-1 space-y-3">
+    <div className="rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-sky-100 p-4 flex-1 space-y-3">
       <div className="grid grid-cols-2 gap-2">
         <div className="bg-white/70 rounded-lg p-2">
           <p className="text-[9px] font-bold uppercase tracking-wider text-gray-400">Budget</p>
@@ -117,7 +117,7 @@ export function FinancialWidgetBody({
           <span className="text-[10px] font-bold text-gray-700">{pct}%</span>
         </div>
         <div className="h-2 w-full bg-white/60 rounded-full overflow-hidden">
-          <div className={`h-full rounded-full transition-all ${pct > 90 ? "bg-red-500" : pct > 75 ? "bg-amber-400" : "bg-blue-500"}`} style={{ width: `${pct}%` }} />
+          <div className={`h-full rounded-full transition-all ${pct > 90 ? "bg-red-500" : pct > 75 ? "bg-violet-500" : "bg-blue-500"}`} style={{ width: `${pct}%` }} />
         </div>
       </div>
       <div className="flex items-center justify-between">
@@ -205,7 +205,7 @@ export function ContinueWidgetBody({
     <div className="rounded-xl bg-gray-50 border border-gray-100 p-2 flex-1 space-y-1.5">
       {items.slice(0, 4).map((it, i) => (
         it.href ? (
-          <a key={i} href={it.href} className="flex items-center gap-2 rounded-lg border border-gray-100 bg-white px-3 py-2 hover:border-[#3B82F6]/30 hover:bg-amber-50/30 transition group">
+          <a key={i} href={it.href} className="flex items-center gap-2 rounded-lg border border-gray-100 bg-white px-3 py-2 hover:border-[#3B82F6]/30 hover:bg-sky-50/30 transition group">
             <div className="flex-1 min-w-0">
               <p className="text-xs font-semibold text-gray-800 truncate">{it.title}</p>
               <p className="text-[9px] text-gray-400 truncate">{it.subtitle}</p>
@@ -245,7 +245,7 @@ export function ProjectInfoWidgetBody({
   expanded?: boolean;
 }) {
   const fmtUsd = (v: number) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", notation: "compact", maximumFractionDigits: 1 }).format(v);
-  const statusColor: Record<string, string> = { Active: "text-emerald-600 bg-emerald-50", "On Hold": "text-amber-600 bg-amber-50", Completed: "text-amber-600 bg-amber-50", Planning: "text-purple-600 bg-purple-50" };
+  const statusColor: Record<string, string> = { Active: "text-emerald-600 bg-emerald-50", "On Hold": "text-slate-600 bg-slate-100", Completed: "text-sky-600 bg-sky-50", Planning: "text-purple-600 bg-purple-50" };
 
   return (
     <div className="rounded-xl bg-gradient-to-br from-slate-50 to-blue-50 border border-slate-100 p-4 flex-1 space-y-3">
@@ -290,8 +290,8 @@ export function ProcessingWidgetBody({
 }) {
   const statusColor: Record<string, string> = {
     completed: "text-emerald-600 bg-emerald-50",
-    processing: "text-amber-600 bg-amber-50",
-    queued: "text-amber-600 bg-amber-50",
+    processing: "text-sky-600 bg-sky-50",
+    queued: "text-slate-600 bg-slate-100",
     failed: "text-red-600 bg-red-50",
   };
 
@@ -299,7 +299,7 @@ export function ProcessingWidgetBody({
     return (
       <div className="space-y-3 flex-1">
         <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 border border-gray-100">
-          <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+          <div className="w-8 h-8 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center">
             <Cpu size={14} />
           </div>
           <div className="flex-1 min-w-0">

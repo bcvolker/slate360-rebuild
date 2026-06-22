@@ -134,7 +134,7 @@ export default function CapturePickerProofPage() {
 
   return (
     <div className="min-h-[100dvh] bg-[#0B0F15] p-4 text-white font-sans">
-      <h1 className="text-xl font-bold text-amber-400 mb-1">
+      <h1 className="text-xl font-bold text-[var(--graphite-primary)] mb-1">
         Capture Picker Proof
       </h1>
       <p className="text-xs text-white/50 mb-4">
@@ -236,7 +236,7 @@ export default function CapturePickerProofPage() {
 
       {/* Results log */}
       <div className="mt-4">
-        <h2 className="text-sm font-semibold text-amber-400 mb-2">
+        <h2 className="text-sm font-semibold text-[var(--graphite-primary)] mb-2">
           Results ({results.length})
         </h2>
         {results.length === 0 && (
@@ -263,7 +263,7 @@ export default function CapturePickerProofPage() {
               {r.effectTs && (
                 <div>
                   <span className="text-white/50">Effect delay: </span>
-                  <span className="text-amber-300 font-mono">
+                  <span className="text-[var(--graphite-primary)] font-mono">
                     {r.effectTs - r.tapTs}ms
                   </span>
                 </div>
@@ -296,8 +296,8 @@ export default function CapturePickerProofPage() {
       </div>
 
       {/* Hypothesis */}
-      <div className="mt-6 rounded-lg border border-amber-500/20 bg-amber-900/10 p-3 text-xs text-amber-200/80">
-        <p className="font-bold text-amber-400 mb-1">Expected Result:</p>
+      <div className="mt-6 rounded-lg border border-white/10 bg-white/[0.05] p-3 text-xs text-[var(--graphite-muted)]">
+        <p className="font-bold text-[var(--graphite-muted)] mb-1">Expected Result:</p>
         <p>
           <strong>Button A (green)</strong> should open the native camera or
           gallery picker on all devices including iOS Safari, because .click()

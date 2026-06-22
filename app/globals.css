@@ -482,28 +482,7 @@
   }
 }
 
-/* Legacy alias — prefer btn-teal-solid */
-@utility btn-amber-solid {
-  background-color: #00E699;
-  color: #0B0F15;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  border-radius: 0.75rem;
-  transition: background-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
-  &:hover {
-    background-color: #00CC88;
-    box-shadow: 0 0 14px rgba(0, 230, 153, 0.30);
-  }
-  &:active {
-    transform: scale(0.99);
-  }
-}
-
 @utility shadow-teal-glow {
-  box-shadow: 0 0 20px 0 rgba(0, 230, 153, 0.35), 0 4px 12px 0 rgba(0, 230, 153, 0.20);
-}
-
-@utility shadow-amber-glow {
   box-shadow: 0 0 20px 0 rgba(0, 230, 153, 0.35), 0 4px 12px 0 rgba(0, 230, 153, 0.20);
 }
 
@@ -663,20 +642,6 @@
   transition: all 0.18s ease;
 }
 .btn-teal-soft:hover {
-  background: linear-gradient(180deg, rgba(0, 230, 153, 1), rgba(0, 204, 136, 1));
-  box-shadow: var(--app-glow-teal-strong);
-  transform: translateY(-1px);
-}
-
-@utility btn-amber-soft {
-  background: linear-gradient(180deg, rgba(0, 230, 153, 0.92), rgba(0, 204, 136, 0.92));
-  color: #0B0F15;
-  border: 1px solid rgba(0, 230, 153, 0.45);
-  border-radius: 0.75rem;
-  box-shadow: var(--app-glow-teal);
-  transition: all 0.18s ease;
-}
-.btn-amber-soft:hover {
   background: linear-gradient(180deg, rgba(0, 230, 153, 1), rgba(0, 204, 136, 1));
   box-shadow: var(--app-glow-teal-strong);
   transform: translateY(-1px);

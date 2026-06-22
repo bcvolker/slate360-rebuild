@@ -9,8 +9,8 @@ interface Props {
 }
 
 const TAG_COLORS: Record<string, string> = {
-  Client:        "bg-amber-500/20 text-amber-300 border-amber-500/30",
-  Vendor:        "bg-amber-500/20 text-amber-300 border-amber-500/30",
+  Client:        "bg-sky-500/20 text-sky-300 border-sky-500/30",
+  Vendor:        "bg-cyan-500/20 text-cyan-300 border-cyan-500/30",
   Subcontractor: "bg-purple-500/20 text-purple-300 border-purple-500/30",
   Architect:     "bg-teal-500/20 text-teal-300 border-teal-500/30",
   Team:          "bg-green-500/20 text-green-300 border-green-500/30",
@@ -60,7 +60,7 @@ export function ContactDetail({ contact }: Props) {
       {/* Message CTA */}
       <a
         href={contact.email ? `mailto:${contact.email}` : undefined}
-        className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-amber-500 py-2.5 text-sm font-black text-slate-950 hover:bg-amber-400 transition-colors"
+        className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-[var(--graphite-primary)] py-2.5 text-sm font-black text-slate-950 hover:bg-[color-mix(in_srgb,var(--graphite-primary)_85%,white)] transition-colors"
         aria-disabled={!contact.email}
       >
         <Mail className="h-4 w-4" /> Message

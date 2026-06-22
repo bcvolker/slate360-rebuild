@@ -128,7 +128,7 @@ export default function MarkupCanvas({
     emit([]);
   }
 
-  const colors = useMemo(() => ["#ef4444", "#f59e0b", "#10b981", "#3b82f6", "#ffffff"], []);
+  const colors = useMemo(() => ["#ef4444", "#8b5cf6", "#10b981", "#3b82f6", "#ffffff"], []);
 
   return (
     <div className="space-y-3">

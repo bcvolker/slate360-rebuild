@@ -61,7 +61,7 @@ const APIS: Row[] = [
 function StatusPill({ status }: { status?: Row["status"] }) {
   const map: Record<NonNullable<Row["status"]>, string> = {
     ok:     "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
-    wip:    "bg-amber-500/15  text-amber-400  border-amber-500/30",
+    wip:    "bg-white/[0.05]  text-[var(--graphite-muted)]  border-white/10",
     broken: "bg-red-500/15    text-red-400    border-red-500/30",
   };
   if (!status) return <span className="text-xs text-slate-500">—</span>;

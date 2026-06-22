@@ -21,13 +21,13 @@ function Field({ label, value, onChange, type = "text", required = false }: {
   return (
     <div>
       <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-slate-400">
-        {label}{required && <span className="text-amber-400"> *</span>}
+        {label}{required && <span className="text-[var(--graphite-primary)]"> *</span>}
       </label>
       <input
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-2xl border border-slate-700/60 bg-slate-800 px-3 py-2.5 text-sm text-slate-100 placeholder:text-slate-600 focus:border-amber-400/60 focus:outline-none"
+        className="w-full rounded-2xl border border-slate-700/60 bg-slate-800 px-3 py-2.5 text-sm text-slate-100 placeholder:text-slate-600 focus:border-[color-mix(in_srgb,var(--graphite-primary)_60%,transparent)] focus:outline-none"
       />
     </div>
   );
@@ -114,7 +114,7 @@ export function AddContactModal({ onClose, onSaved }: Props) {
                     onClick={() => toggleTag(tag)}
                     className={`rounded-full border px-3 py-1 text-xs font-semibold transition-colors
                       ${active
-                        ? "border-amber-400/60 bg-amber-500/20 text-amber-300"
+                        ? "border-[color-mix(in_srgb,var(--graphite-primary)_60%,transparent)] bg-[color-mix(in_srgb,var(--graphite-primary)_20%,transparent)] text-[var(--graphite-primary)]"
                         : "border-slate-700/60 bg-slate-800 text-slate-400 hover:border-slate-600 hover:text-slate-300"
                       }`}
                   >
@@ -132,7 +132,7 @@ export function AddContactModal({ onClose, onSaved }: Props) {
               value={form.notes}
               onChange={(e) => set("notes")(e.target.value)}
               rows={3}
-              className="w-full rounded-2xl border border-slate-700/60 bg-slate-800 px-3 py-2.5 text-sm text-slate-100 placeholder:text-slate-600 focus:border-amber-400/60 focus:outline-none resize-none"
+              className="w-full rounded-2xl border border-slate-700/60 bg-slate-800 px-3 py-2.5 text-sm text-slate-100 placeholder:text-slate-600 focus:border-[color-mix(in_srgb,var(--graphite-primary)_60%,transparent)] focus:outline-none resize-none"
             />
           </div>
 
@@ -144,7 +144,7 @@ export function AddContactModal({ onClose, onSaved }: Props) {
               Cancel
             </button>
             <button type="submit" disabled={saving}
-              className="flex-1 rounded-2xl bg-amber-500 py-2.5 text-sm font-black text-slate-950 hover:bg-amber-400 disabled:opacity-60 transition-colors">
+              className="flex-1 rounded-2xl bg-[var(--graphite-primary)] py-2.5 text-sm font-black text-slate-950 hover:bg-[color-mix(in_srgb,var(--graphite-primary)_85%,white)] disabled:opacity-60 transition-colors">
               {saving ? "Saving…" : "Save Contact"}
             </button>
           </div>

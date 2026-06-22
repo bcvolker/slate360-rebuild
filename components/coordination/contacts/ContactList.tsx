@@ -22,7 +22,7 @@ export function ContactList({ contacts, selectedId, query, onQueryChange, onSele
     }
     if (tags.includes("Collaborator")) {
       return (
-        <span className="inline-flex items-center gap-1 rounded bg-amber-500/20 px-1.5 py-0.5 text-[9px] font-bold text-amber-400 border border-amber-500/30">
+        <span className="inline-flex items-center gap-1 rounded bg-[color-mix(in_srgb,var(--graphite-primary)_20%,transparent)] px-1.5 py-0.5 text-[9px] font-bold text-[var(--graphite-primary)] border border-[color-mix(in_srgb,var(--graphite-primary)_30%,transparent)]">
           <Users className="w-2.5 h-2.5" /> Collaborator
         </span>
       );
@@ -44,7 +44,7 @@ export function ContactList({ contacts, selectedId, query, onQueryChange, onSele
           value={query}
           onChange={(e) => onQueryChange(e.target.value)}
           placeholder="Search contacts…"
-          className="w-full rounded-2xl border border-slate-700/60 bg-slate-900/70 py-2.5 pl-9 pr-3 text-sm text-slate-100 placeholder:text-slate-500 focus:border-amber-400/60 focus:outline-none"
+          className="w-full rounded-2xl border border-slate-700/60 bg-slate-900/70 py-2.5 pl-9 pr-3 text-sm text-slate-100 placeholder:text-slate-500 focus:border-[color-mix(in_srgb,var(--graphite-primary)_60%,transparent)] focus:outline-none"
         />
       </div>
 
@@ -61,7 +61,7 @@ export function ContactList({ contacts, selectedId, query, onQueryChange, onSele
               onClick={() => onSelect(c)}
               className={`w-full flex items-center gap-2.5 rounded-2xl border px-3 py-2.5 text-left transition-all duration-150
                 ${isActive
-                  ? "border-amber-400/50 bg-amber-500/10"
+                  ? "border-[color-mix(in_srgb,var(--graphite-primary)_50%,transparent)] bg-[color-mix(in_srgb,var(--graphite-primary)_10%,transparent)]"
                   : "border-transparent hover:border-slate-700/60 hover:bg-slate-800/60"
                 }`}
             >
@@ -73,7 +73,7 @@ export function ContactList({ contacts, selectedId, query, onQueryChange, onSele
               </span>
               <div className="min-w-0">
                 <div className="flex items-center justify-between gap-1">
-                  <p className={`truncate text-sm font-black ${isActive ? "text-amber-100" : "text-slate-100"}`}>
+                  <p className={`truncate text-sm font-black ${isActive ? "text-[var(--graphite-primary)]" : "text-slate-100"}`}>
                     {c.name}
                   </p>
                 </div>

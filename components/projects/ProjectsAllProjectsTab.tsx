@@ -26,7 +26,7 @@ export default function ProjectsAllProjectsTab({ loading, projects, onOpenDelete
   if (projects.length === 0) {
     return (
       <div className="rounded-3xl border border-dashed border-white/15 bg-white/5 p-10 text-center shadow-lg backdrop-blur-md">
-        <FolderKanban className="mx-auto h-8 w-8 text-amber-200" />
+        <FolderKanban className="mx-auto h-8 w-8 text-[var(--graphite-primary)]" />
         <p className="mt-3 text-sm font-black text-white">Create your first project</p>
         <p className="mx-auto mt-1 max-w-sm text-sm leading-6 text-slate-400">Projects organize Site Walks, files, contacts, deliverables, and field activity.</p>
       </div>
@@ -53,7 +53,7 @@ export default function ProjectsAllProjectsTab({ loading, projects, onOpenDelete
         return (
           <div
             key={project.id}
-            className="group relative overflow-hidden rounded-3xl border border-white/10 bg-white/5 shadow-lg backdrop-blur-md transition-all hover:border-amber-400/70 hover:bg-amber-500/10"
+            className="group relative overflow-hidden rounded-3xl border border-white/10 bg-white/5 shadow-lg backdrop-blur-md transition-all hover:border-[color-mix(in_srgb,var(--graphite-primary)_70%,transparent)] hover:bg-[color-mix(in_srgb,var(--graphite-primary)_10%,transparent)]"
           >
             <Link href={`/projects/${project.id}`} className="block">
               <div className="relative h-32 w-full overflow-hidden">
@@ -69,7 +69,7 @@ export default function ProjectsAllProjectsTab({ loading, projects, onOpenDelete
                 <div className="absolute inset-0 p-4 flex flex-col justify-between">
                   <div className="flex items-start justify-between">
                     <span className="inline-flex items-center gap-1 rounded-full bg-slate-950/55 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-200 backdrop-blur-md">
-                      <MapPin className="h-3 w-3 text-amber-200" /> {resolvedLocation.label || "No location"}
+                      <MapPin className="h-3 w-3 text-[var(--graphite-primary)]" /> {resolvedLocation.label || "No location"}
                     </span>
                     <span className="rounded-full bg-white/15 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white backdrop-blur-md">
                       {project.status ?? "active"}
@@ -117,7 +117,7 @@ export default function ProjectsAllProjectsTab({ loading, projects, onOpenDelete
               <p className="line-clamp-2 text-sm leading-6 text-slate-400">{project.description || "No description yet."}</p>
               <div className="mt-4 flex items-center justify-between border-t border-white/10 pt-4 text-xs font-semibold text-slate-500">
                 <span>Created: {new Date(project.created_at).toLocaleDateString()}</span>
-                <span className="inline-flex items-center gap-1 text-amber-200">Open <ChevronRight className="h-3.5 w-3.5" /></span>
+                <span className="inline-flex items-center gap-1 text-[var(--graphite-primary)]">Open <ChevronRight className="h-3.5 w-3.5" /></span>
               </div>
             </Link>
           </div>

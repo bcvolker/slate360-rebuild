@@ -148,8 +148,8 @@ export default function PunchListPage() {
 				{([
 					{ label: "Total", value: stats.total, color: "text-foreground" },
 					{ label: "Open", value: stats.open, color: "text-red-400" },
-					{ label: "In Progress", value: stats.progress, color: "text-amber-400" },
-					{ label: "Review", value: stats.review, color: "text-amber-400" },
+					{ label: "In Progress", value: stats.progress, color: "text-[var(--graphite-primary)]" },
+					{ label: "Review", value: stats.review, color: "text-blue-400" },
 					{ label: "Closed", value: stats.closed, color: "text-emerald-400" },
 				] as const).map((stat) => (
 					<div key={stat.label} className="rounded-xl border border-zinc-800 bg-card p-4 shadow-sm">

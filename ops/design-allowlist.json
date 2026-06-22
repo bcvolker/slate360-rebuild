@@ -1,27 +1,4 @@
 {
   "_comment": "Legacy amber ratchet — see docs/design/GRAPHITE_GLASS.md. This list may only shrink. Regenerate after a kill pass with: node scripts/ops/check-design-guardrails.mjs --update",
-  "legacyAmberFiles": [
-    "app/(dashboard)/my-work/page.tsx",
-    "app/(dashboard)/projects/ClientPage.tsx",
-    "app/(dashboard)/projects/[projectId]/punch-list/PunchListItem.tsx",
-    "app/(dashboard)/projects/[projectId]/punch-list/_shared.ts",
-    "app/(dashboard)/projects/[projectId]/punch-list/page.tsx",
-    "app/deploy-check/maps-diag/page.tsx",
-    "app/dev/capture-picker-proof/page.tsx",
-    "app/dev/health/page.tsx",
-    "app/globals.css",
-    "components/coordination/CalendarClient.tsx",
-    "components/coordination/ContactsClient.tsx",
-    "components/coordination/contacts/AddContactModal.tsx",
-    "components/coordination/contacts/ContactDetail.tsx",
-    "components/coordination/contacts/ContactList.tsx",
-    "components/projects/ChangeHistory.tsx",
-    "components/projects/ProjectsAllProjectsTab.tsx",
-    "components/projects/ProjectsPortfolioOverview.tsx",
-    "components/site-walk/MarkupCanvas.tsx",
-    "components/widgets/WidgetBodies.tsx",
-    "components/widgets/WidgetCard.tsx",
-    "components/widgets/WidgetCustomizeDrawer.tsx",
-    "lib/dev/mock-plan-sheets.ts"
-  ]
+  "legacyAmberFiles": []
 }

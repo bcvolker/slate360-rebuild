@@ -22,7 +22,7 @@ export const TRADES = [
 
 export const STATUS_COLORS: Record<string, string> = {
   Open: "bg-red-500/20 text-red-400 border-red-500/30",
-  "In Progress": "bg-amber-500/20 text-amber-400 border-amber-500/30",
+  "In Progress": "bg-[color-mix(in_srgb,var(--graphite-primary)_20%,transparent)] text-[var(--graphite-primary)] border-[color-mix(in_srgb,var(--graphite-primary)_30%,transparent)]",
   "Ready for Review": "bg-blue-500/20 text-blue-400 border-blue-500/30",
   Closed: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
 };
@@ -30,7 +30,7 @@ export const STATUS_COLORS: Record<string, string> = {
 export const PRIORITY_COLORS: Record<string, string> = {
   Low: "bg-zinc-700 text-zinc-400",
   Medium: "bg-blue-500/20 text-blue-400",
-  High: "bg-amber-500/20 text-orange-400",
+  High: "bg-violet-500/20 text-violet-400",
   Critical: "bg-red-500/20 text-red-400",
 };
 
