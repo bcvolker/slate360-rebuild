@@ -129,7 +129,8 @@ export default function SlateDropClient({ user, tier, initialProjectId, projectN
   });
 
   const transfers = useSlateDropTransferActions({
-    showToast, shareModal: ui.shareModal, shareEmail: ui.shareEmail,
+    showToast, shareModal: ui.shareModal, shareChannel: ui.shareChannel,
+    shareEmail: ui.shareEmail, sharePhone: ui.sharePhone,
     sharePerm: ui.sharePerm, shareExpiry: ui.shareExpiry,
     closeShareModal: ui.closeShareModal, setShareSent: ui.setShareSent,
   });
@@ -347,8 +348,10 @@ export default function SlateDropClient({ user, tier, initialProjectId, projectN
       />
 
       <SlateDropSharePreviewModals
-        shareModal={ui.shareModal} shareSent={ui.shareSent} shareEmail={ui.shareEmail} sharePerm={ui.sharePerm} shareExpiry={ui.shareExpiry}
-        setShareEmail={ui.setShareEmail} setSharePerm={ui.setSharePerm} setShareExpiry={ui.setShareExpiry}
+        shareModal={ui.shareModal} shareSent={ui.shareSent} shareChannel={ui.shareChannel}
+        shareEmail={ui.shareEmail} sharePhone={ui.sharePhone} sharePerm={ui.sharePerm} shareExpiry={ui.shareExpiry}
+        setShareChannel={ui.setShareChannel} setShareEmail={ui.setShareEmail} setSharePhone={ui.setSharePhone}
+        setSharePerm={ui.setSharePerm} setShareExpiry={ui.setShareExpiry}
         closeShareModal={ui.closeShareModal} onSendSecureLink={transfers.handleSendSecureLink}
         previewFile={ui.previewFile} previewUrl={ui.previewUrl} previewLoading={ui.previewLoading} previewError={ui.previewError}
         setPreviewFile={ui.setPreviewFile} onDownloadPreviewFile={transfers.handleDownloadFile}

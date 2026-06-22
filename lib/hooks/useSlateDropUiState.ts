@@ -13,7 +13,9 @@ export function useSlateDropUiState() {
   const [contextMenu, setContextMenu] = useState<SlateDropContextMenu | null>(null);
 
   const [shareModal, setShareModal] = useState<SlateDropDbFile | null>(null);
+  const [shareChannel, setShareChannel] = useState<"email" | "sms">("email");
   const [shareEmail, setShareEmail] = useState("");
+  const [sharePhone, setSharePhone] = useState("");
   const [sharePerm, setSharePerm] = useState<"view" | "edit">("view");
   const [shareExpiry, setShareExpiry] = useState("7");
   const [shareSent, setShareSent] = useState(false);
@@ -39,12 +41,16 @@ export function useSlateDropUiState() {
     setShareModal(null);
     setShareSent(false);
     setShareEmail("");
+    setSharePhone("");
+    setShareChannel("email");
   }, []);
 
   const openShareModal = useCallback((file: SlateDropDbFile) => {
     setShareModal(file);
     setShareSent(false);
     setShareEmail("");
+    setSharePhone("");
+    setShareChannel("email");
   }, []);
 
   return {
@@ -52,8 +58,12 @@ export function useSlateDropUiState() {
     setContextMenu,
     shareModal,
     setShareModal,
+    shareChannel,
+    setShareChannel,
     shareEmail,
     setShareEmail,
+    sharePhone,
+    setSharePhone,
     sharePerm,
     setSharePerm,
     shareExpiry,

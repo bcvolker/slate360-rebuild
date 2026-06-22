@@ -16,10 +16,14 @@ type PreviewFile = DbFile | null;
 type SlateDropSharePreviewModalsProps = {
   shareModal: ShareModalFile;
   shareSent: boolean;
+  shareChannel: "email" | "sms";
   shareEmail: string;
+  sharePhone: string;
   sharePerm: "view" | "edit";
   shareExpiry: string;
+  setShareChannel: React.Dispatch<React.SetStateAction<"email" | "sms">>;
   setShareEmail: React.Dispatch<React.SetStateAction<string>>;
+  setSharePhone: React.Dispatch<React.SetStateAction<string>>;
   setSharePerm: React.Dispatch<React.SetStateAction<"view" | "edit">>;
   setShareExpiry: React.Dispatch<React.SetStateAction<string>>;
   closeShareModal: () => void;
@@ -41,10 +45,14 @@ type SlateDropSharePreviewModalsProps = {
 export default function SlateDropSharePreviewModals({
   shareModal,
   shareSent,
+  shareChannel,
   shareEmail,
+  sharePhone,
   sharePerm,
   shareExpiry,
+  setShareChannel,
   setShareEmail,
+  setSharePhone,
   setSharePerm,
   setShareExpiry,
   closeShareModal,
@@ -80,20 +88,55 @@ export default function SlateDropSharePreviewModals({
                 <div className="text-center py-6">
                   <CheckCircle2 size={36} className="mx-auto mb-3 text-emerald-500" />
                   <p className="text-sm font-semibold text-[var(--graphite-text-body)] mb-1">Link sent!</p>
-                  <p className="text-xs text-[var(--graphite-muted)]">A secure share link was sent to {shareEmail}</p>
+                  <p className="text-xs text-[var(--graphite-muted)]">
+                    A secure share link was sent to {shareChannel === "sms" ? sharePhone : shareEmail}
+                  </p>
                 </div>
               ) : (
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-[10px] font-semibold text-[var(--graphite-muted)] uppercase tracking-wider mb-1.5">Recipient email</label>
-                    <ContactPicker
-                      inline
-                      value={shareEmail}
-                      onChange={(v) => setShareEmail(v)}
-                      onSelect={(c) => setShareEmail(c.email ?? c.name)}
-                      placeholder="Search contacts or type email…"
-                    />
+                    <label className="block text-[10px] font-semibold text-[var(--graphite-muted)] uppercase tracking-wider mb-1.5">Send by</label>
+                    <div className="flex gap-2">
+                      {(["email", "sms"] as const).map((channel) => (
+                        <button
+                          key={channel}
+                          onClick={() => setShareChannel(channel)}
+                          className={`flex-1 text-xs font-semibold py-2 rounded-lg border transition-all ${
+                            shareChannel === channel
+                              ? "border-[var(--graphite-primary)] bg-[color-mix(in_srgb,var(--graphite-primary)_5%,transparent)] text-[var(--graphite-primary)]"
+                              : "border-white/10 text-[var(--graphite-muted)] hover:bg-white/[0.03]"
+                          }`}
+                        >
+                          {channel === "email" ? "Email" : "Text message"}
+                        </button>
+                      ))}
+                    </div>
                   </div>
+                  {shareChannel === "email" ? (
+                    <div>
+                      <label className="block text-[10px] font-semibold text-[var(--graphite-muted)] uppercase tracking-wider mb-1.5">Recipient email</label>
+                      <ContactPicker
+                        inline
+                        value={shareEmail}
+                        onChange={(v) => setShareEmail(v)}
+                        onSelect={(c) => setShareEmail(c.email ?? c.name)}
+                        placeholder="Search contacts or type email…"
+                      />
+                    </div>
+                  ) : (
+                    <div>
+                      <label className="block text-[10px] font-semibold text-[var(--graphite-muted)] uppercase tracking-wider mb-1.5">Recipient phone</label>
+                      <input
+                        type="tel"
+                        inputMode="tel"
+                        value={sharePhone}
+                        onChange={(event) => setSharePhone(event.target.value)}
+                        placeholder="+13105551234"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-white/10 text-sm text-[var(--graphite-text-body)] focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--graphite-primary)_20%,transparent)] focus:border-[var(--graphite-primary)] transition-all bg-[color-mix(in_srgb,var(--graphite-canvas)_60%,transparent)] placeholder:text-[var(--graphite-muted)]"
+                      />
+                      <p className="mt-1 text-[10px] text-[var(--graphite-muted)]">Use international format, e.g. +13105551234.</p>
+                    </div>
+                  )}
                   <div>
                     <label className="block text-[10px] font-semibold text-[var(--graphite-muted)] uppercase tracking-wider mb-1.5">Permission</label>
                     <div className="flex gap-2">
@@ -101,13 +144,13 @@ export default function SlateDropSharePreviewModals({
                         <button
                           key={permission}
                           onClick={() => setSharePerm(permission)}
-                          className={`flex-1 text-xs font-semibold py-2.5 rounded-lg border transition-all capitalize ${
+                          className={`flex-1 text-xs font-semibold py-2.5 rounded-lg border transition-all ${
                             sharePerm === permission
                               ? "border-[var(--graphite-primary)] bg-[color-mix(in_srgb,var(--graphite-primary)_5%,transparent)] text-[var(--graphite-primary)]"
                               : "border-white/10 text-[var(--graphite-muted)] hover:bg-white/[0.03]"
                           }`}
                         >
-                          {permission === "view" ? "View only" : "Can upload"}
+                          {permission === "view" ? "View only" : "View & download"}
                         </button>
                       ))}
                     </div>
@@ -127,11 +170,11 @@ export default function SlateDropSharePreviewModals({
                   </div>
                   <button
                     onClick={onSendSecureLink}
-                    disabled={!shareEmail.trim()}
+                    disabled={shareChannel === "sms" ? !sharePhone.trim() : !shareEmail.trim()}
                     className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold text-foreground transition-all hover:opacity-90 disabled:opacity-50"
                     style={{ backgroundColor: "var(--graphite-primary)" }}
                   >
-                    <Send size={14} /> Send secure link
+                    <Send size={14} /> {shareChannel === "sms" ? "Text secure link" : "Email secure link"}
                   </button>
                 </div>
               )}

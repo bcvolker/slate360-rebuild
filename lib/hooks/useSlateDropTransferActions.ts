@@ -11,7 +11,9 @@ type ShareModalFile = {
 type UseSlateDropTransferActionsParams = {
   showToast: ShowToast;
   shareModal: ShareModalFile | null;
+  shareChannel: "email" | "sms";
   shareEmail: string;
+  sharePhone: string;
   sharePerm: "view" | "edit";
   shareExpiry: string;
   closeShareModal: () => void;
@@ -21,7 +23,9 @@ type UseSlateDropTransferActionsParams = {
 export function useSlateDropTransferActions({
   showToast,
   shareModal,
+  shareChannel,
   shareEmail,
+  sharePhone,
   sharePerm,
   shareExpiry,
   closeShareModal,
@@ -79,32 +83,40 @@ export function useSlateDropTransferActions({
   }, [showToast]);
 
   const handleSendSecureLink = useCallback(async () => {
-    if (!shareEmail.trim() || !shareModal) return;
+    if (!shareModal) return;
+    const recipient = shareChannel === "sms" ? sharePhone.trim() : shareEmail.trim();
+    if (!recipient) return;
     try {
       const response = await fetch("/api/slatedrop/secure-send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           fileId: shareModal.id,
-          email: shareEmail.trim(),
+          ...(shareChannel === "sms" ? { phone: recipient } : { email: recipient }),
           permission: sharePerm === "edit" ? "download" : "view",
           expiryDays: shareExpiry === "never" ? 365 : parseInt(shareExpiry),
         }),
       });
 
+      const payload = await response.json().catch(() => ({}));
       if (response.ok) {
+        // The route reports per-channel outcome; SMS can fail (e.g. Twilio unset)
+        // even when the link is created.
+        if (shareChannel === "sms" && payload.smsSent === false) {
+          showToast(payload.smsError ?? "Could not send the text message.", false);
+          return;
+        }
         setShareSent(true);
         setTimeout(() => {
           closeShareModal();
         }, 2000);
       } else {
-        const payload = await response.json();
         showToast(payload.error ?? "Send failed", false);
       }
     } catch {
       showToast("Send failed", false);
     }
-  }, [closeShareModal, setShareSent, shareEmail, shareExpiry, shareModal, sharePerm, showToast]);
+  }, [closeShareModal, setShareSent, shareChannel, shareEmail, sharePhone, shareExpiry, shareModal, sharePerm, showToast]);
 
   return {
     handleDownloadFile,
