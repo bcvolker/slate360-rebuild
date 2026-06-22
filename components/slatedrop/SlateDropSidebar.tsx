@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { ChevronRight, Folder, FolderOpen, FolderPlus, HardDrive, Lock, MoreHorizontal } from "lucide-react";
 import type { SlateDropFolderNode as FolderNode } from "@/lib/slatedrop/folderTree";
+import { SLATEDROP_DRAG_MIME } from "./SlateDropFileArea";
 
 type SlateDropSidebarProps = {
   embedded: boolean;
@@ -16,6 +18,7 @@ type SlateDropSidebarProps = {
   onSelectFolder: (id: string) => void;
   onToggleFolder: (id: string) => void;
   onFolderMenuClick: (node: FolderNode, event: React.MouseEvent<HTMLButtonElement>) => void;
+  onDropFiles: (fileIds: string[], targetFolderId: string) => void;
 };
 
 export default function SlateDropSidebar({
@@ -33,6 +36,7 @@ export default function SlateDropSidebar({
   onSelectFolder,
   onToggleFolder,
   onFolderMenuClick,
+  onDropFiles,
 }: SlateDropSidebarProps) {
   return (
     <>
@@ -93,6 +97,7 @@ export default function SlateDropSidebar({
                 onSelect={onSelectFolder}
                 onToggle={onToggleFolder}
                 onMenuClick={onFolderMenuClick}
+                onDropFiles={onDropFiles}
               />
             ))}
           </div>
@@ -110,6 +115,7 @@ function FolderTreeItem({
   onSelect,
   onToggle,
   onMenuClick,
+  onDropFiles,
 }: {
   node: FolderNode;
   depth: number;
@@ -118,15 +124,39 @@ function FolderTreeItem({
   onSelect: (id: string) => void;
   onToggle: (id: string) => void;
   onMenuClick: (node: FolderNode, event: React.MouseEvent<HTMLButtonElement>) => void;
+  onDropFiles: (fileIds: string[], targetFolderId: string) => void;
 }) {
   const isExpanded = expandedIds.has(node.id);
   const isActive = activeFolderId === node.id;
   const hasChildren = node.children.length > 0;
   const isProjectNode = node.parentId === "projects";
+  const [dragOver, setDragOver] = useState(false);
 
   return (
     <>
-      <div className="relative group/tree-row">
+      <div
+        className={`relative group/tree-row rounded-lg ${
+          dragOver ? "ring-2 ring-[var(--graphite-primary)] bg-[color-mix(in_srgb,var(--graphite-primary)_10%,transparent)]" : ""
+        }`}
+        onDragOver={(event) => {
+          if (!Array.from(event.dataTransfer.types).includes(SLATEDROP_DRAG_MIME)) return;
+          event.preventDefault();
+          setDragOver(true);
+        }}
+        onDragLeave={() => setDragOver(false)}
+        onDrop={(event) => {
+          setDragOver(false);
+          const raw = event.dataTransfer.getData(SLATEDROP_DRAG_MIME);
+          if (!raw) return;
+          event.preventDefault();
+          try {
+            const ids = JSON.parse(raw) as string[];
+            if (Array.isArray(ids) && ids.length > 0) onDropFiles(ids, node.id);
+          } catch {
+            // malformed payload — ignore
+          }
+        }}
+      >
         <button
           onClick={() => {
             onSelect(node.id);
@@ -196,6 +226,7 @@ function FolderTreeItem({
             onSelect={onSelect}
             onToggle={onToggle}
             onMenuClick={onMenuClick}
+            onDropFiles={onDropFiles}
           />
         ))}
     </>

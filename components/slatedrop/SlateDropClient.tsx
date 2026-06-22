@@ -256,6 +256,7 @@ export default function SlateDropClient({ user, tier, initialProjectId, projectN
           onRequestNewFolder={handleRequestNewFolder}
           onSelectFolder={handleSelectFolder} onToggleFolder={interactions.toggleExpand}
           onFolderMenuClick={handleFolderMenuClick}
+          onDropFiles={handleMoveFilesToFolder}
         />
 
         <div className="flex-1 flex flex-col overflow-hidden">

@@ -71,7 +71,7 @@ type SlateDropFileAreaProps = {
   onUploadClick: () => void;
 };
 
-const SLATEDROP_DRAG_MIME = "application/x-slatedrop-files";
+export const SLATEDROP_DRAG_MIME = "application/x-slatedrop-files";
 
 export default function SlateDropFileArea({
   dragOver,
