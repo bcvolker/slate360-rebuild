@@ -84,7 +84,7 @@ export function CaptureV2MobileDrawer({ loop, drawer, presentation, onClose }: P
 
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-4">
         <div className="shrink-0 pb-2">
-          <p className="text-[11px] font-black uppercase tracking-[0.22em] text-amber-300/80">
+          <p className="text-[11px] font-black uppercase tracking-[0.22em] text-[var(--graphite-primary)]">
             Log Entry
           </p>
           <h2 className="truncate text-base font-black text-white">
@@ -115,14 +115,14 @@ export function CaptureV2MobileDrawer({ loop, drawer, presentation, onClose }: P
               type="button"
               disabled={aiState === "formatting" || !draft.notes.trim()}
               onClick={() => void formatNotesWithAi()}
-              className="mt-3 inline-flex min-h-11 w-full items-center justify-center rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 text-sm font-black text-amber-100 disabled:opacity-60"
+              className="mt-3 inline-flex min-h-11 w-full items-center justify-center rounded-2xl border border-[color-mix(in_srgb,var(--graphite-primary)_30%,transparent)] bg-[color-mix(in_srgb,var(--graphite-primary)_10%,transparent)] px-4 text-sm font-black text-[var(--graphite-primary)] disabled:opacity-60"
             >
               {aiState === "formatting" ? "Formatting…" : "AI Format Note"}
             </button>
           )}
 
           {aiMessage && detent === "expanded" && (
-            <p className="mt-2 rounded-2xl border border-amber-500/20 bg-amber-500/10 px-3 py-2 text-xs font-bold text-amber-100">
+            <p className="mt-2 rounded-2xl border border-white/10 bg-white/[0.05] px-3 py-2 text-xs font-bold text-[var(--graphite-muted)]">
               {aiMessage}
             </p>
           )}

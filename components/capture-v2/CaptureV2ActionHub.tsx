@@ -21,7 +21,7 @@ export function CaptureV2ActionHub({ loop }: Props) {
           type="button"
           onClick={() => openPickerDirect("camera", "quick_capture")}
           disabled={busy}
-          className="flex w-full items-center justify-center gap-2 rounded-xl bg-amber-500 px-4 py-3.5 font-semibold text-black shadow-lg transition-transform active:scale-[0.98] disabled:opacity-60"
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--graphite-primary)] px-4 py-3.5 font-semibold text-[var(--graphite-canvas)] shadow-lg transition-transform active:scale-[0.98] disabled:opacity-60"
         >
           <Camera className="h-5 w-5 shrink-0" aria-hidden />
           Take Photo

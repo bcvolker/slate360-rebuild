@@ -62,7 +62,7 @@ function StorageRing({ usedGb, limitGb }: { usedGb: number; limitGb: number }) {
       className="shrink-0 text-[var(--mobile-shell-accent)]"
       aria-hidden
     >
-      <circle cx="24" cy="24" r={radius} fill="none" stroke="#2A3340" strokeWidth="3" />
+      <circle cx="24" cy="24" r={radius} fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth="3" />
       <circle
         cx="24"
         cy="24"

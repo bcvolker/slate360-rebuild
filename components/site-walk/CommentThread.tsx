@@ -93,12 +93,12 @@ export function CommentThread({ sessionId, itemId, isField, currentUserId }: Pro
         return (
           <Card
             key={c.id}
-            className={`p-3 ${c.is_escalation ? "border-amber-400 bg-amber-50 dark:bg-amber-950/20" : ""} ${!isRead && !isOwn ? "border-l-2 border-l-primary" : ""}`}
+            className={`p-3 ${c.is_escalation ? "border-white/10 bg-white/[0.05]" : ""} ${!isRead && !isOwn ? "border-l-2 border-l-primary" : ""}`}
             onClick={() => !isRead && !isOwn && markRead(c.id)}
           >
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              {c.is_escalation && <AlertTriangle className="h-3 w-3 text-amber-500" />}
-              <span className={c.is_field ? "text-green-600" : "text-amber-600"}>
+              {c.is_escalation && <AlertTriangle className="h-3 w-3 text-[var(--graphite-muted)]" />}
+              <span className={c.is_field ? "text-green-600" : "text-[var(--graphite-muted)]"}>
                 {c.is_field ? "Field" : "Office"}
               </span>
               <span>·</span>
@@ -135,7 +135,7 @@ export function CommentThread({ sessionId, itemId, isField, currentUserId }: Pro
           <Button
             size="sm"
             variant="outline"
-            className="text-amber-600 hover:text-amber-700"
+            className="text-[var(--graphite-muted)] hover:text-[var(--graphite-primary)]"
             onClick={() => handleSend(true)}
             disabled={!body.trim() || sending}
           >

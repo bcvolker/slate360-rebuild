@@ -75,7 +75,7 @@ export default function MobileModuleBar({ tier, isCeo = false, internalAccess }:
             <Link
               key={item.href}
               href={item.href}
-              className="flex flex-col items-center gap-0.5 px-2.5 py-1 rounded-lg text-zinc-400 transition-colors hover:bg-white/[0.04]/50 hover:text-amber-200 shrink-0"
+              className="flex flex-col items-center gap-0.5 px-2.5 py-1 rounded-lg text-zinc-400 transition-colors hover:bg-white/[0.04]/50 hover:text-[var(--graphite-primary)] shrink-0"
             >
               <Icon size={16} />
               <span className="text-[9px] font-medium leading-tight">{item.label}</span>

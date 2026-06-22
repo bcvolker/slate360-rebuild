@@ -12,7 +12,7 @@ export function OfflineBanner() {
     <div className="fixed bottom-4 left-4 z-50 flex items-center gap-3 rounded-lg border border-zinc-200 bg-white px-4 py-2.5 shadow-lg dark:border-app dark:bg-app-card">
       {!isOnline && (
         <>
-          <WifiOff className="size-4 text-amber-500" />
+          <WifiOff className="size-4 text-[var(--graphite-muted)]" />
           <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
             Offline
             {pending > 0 && (
@@ -34,7 +34,7 @@ export function OfflineBanner() {
           {!syncing && (
             <button
               onClick={flush}
-              className="ml-1 text-xs font-medium text-amber-600 hover:underline dark:text-amber-400"
+              className="ml-1 text-xs font-medium text-[var(--graphite-primary)] hover:underline"
             >
               Sync now
             </button>

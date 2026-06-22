@@ -21,7 +21,7 @@ type Props = {
 };
 
 const fieldClass =
-  "mt-1 w-full rounded-2xl border border-white/10 bg-black/35 px-3 py-2.5 text-sm font-semibold text-white outline-none ring-amber-400/40 focus:ring-2";
+  "mt-1 w-full rounded-2xl border border-white/10 bg-black/35 px-3 py-2.5 text-sm font-semibold text-white outline-none ring-[color-mix(in_srgb,var(--graphite-primary)_40%,transparent)] focus:ring-2";
 const labelClass = "text-[10px] font-black uppercase tracking-[0.16em] text-slate-500";
 const selectClass = `${fieldClass} h-10 text-xs font-black`;
 
@@ -82,7 +82,7 @@ export function CaptureV2DetailForm({
             key={chip.label}
             type="button"
             onClick={() => onApplyChip(index)}
-            className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-slate-200 hover:border-amber-400/40 hover:text-amber-100"
+            className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-slate-200 hover:border-[color-mix(in_srgb,var(--graphite-primary)_40%,transparent)] hover:text-[var(--graphite-primary)]"
           >
             {chip.label}
           </button>

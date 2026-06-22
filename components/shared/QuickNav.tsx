@@ -59,7 +59,7 @@ export default function QuickNav({ tier, isCeo = false, internalAccess }: QuickN
     <div className="relative">
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-2 rounded-xl border border-app bg-app-card px-3 py-2 text-xs font-semibold text-zinc-300 transition-all hover:border-amber-500/50 hover:bg-white/[0.04] hover:text-amber-200"
+        className="flex items-center gap-2 rounded-xl border border-app bg-app-card px-3 py-2 text-xs font-semibold text-zinc-300 transition-all hover:border-[color-mix(in_srgb,var(--graphite-primary)_50%,transparent)] hover:bg-white/[0.04] hover:text-[var(--graphite-primary)]"
       >
         <LayoutDashboard size={14} /> Navigate <ChevronDown size={12} />
       </button>
@@ -74,7 +74,7 @@ export default function QuickNav({ tier, isCeo = false, internalAccess }: QuickN
                   key={item.href}
                   href={item.href}
                   onClick={() => setOpen(false)}
-                  className="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-zinc-300 transition-colors hover:bg-white/[0.04] hover:text-amber-200"
+                  className="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-zinc-300 transition-colors hover:bg-white/[0.04] hover:text-[var(--graphite-primary)]"
                 >
                   <Icon size={14} />
                   <span className="flex-1">{item.label}</span>

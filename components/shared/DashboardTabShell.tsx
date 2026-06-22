@@ -15,7 +15,7 @@ export interface DashboardTabShellProps {
   title: string;
   icon?: LucideIcon;
   accent?: string;
-  /** @default "#F59E0B" */
+  /** @default "var(--graphite-primary)" */
   status?: TabStatus;
   isCeo?: boolean;
   internalAccess?: { operationsConsole?: boolean };
@@ -30,7 +30,7 @@ export default function DashboardTabShell({
   tier,
   title,
   icon: Icon,
-  accent = "#F59E0B",
+  accent = "var(--graphite-primary)",
   status = "live",
   isCeo = false,
   internalAccess,
@@ -61,7 +61,7 @@ export default function DashboardTabShell({
           <div className="flex items-center flex-wrap gap-2">
             <h1 className="text-xl font-bold text-foreground sm:text-2xl">{title}</h1>
             {status === "under-development" && (
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-900/30 text-amber-400 border border-amber-700/50">
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-white/[0.05] text-[var(--graphite-muted)] border border-white/10">
                 Under Development
               </span>
             )}

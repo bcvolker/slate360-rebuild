@@ -24,7 +24,7 @@ export function CaptureV2SaveStatus({ saveState, detailSaveError, detailsSaving 
   const tone = detailSaveError || saveState === "error"
     ? "text-red-300"
     : saveState === "dirty"
-      ? "text-amber-200"
+      ? "text-[var(--graphite-muted)]"
       : saveState === "saved"
         ? "text-emerald-300"
         : "text-slate-400";

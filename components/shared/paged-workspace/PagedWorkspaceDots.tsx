@@ -24,7 +24,7 @@ export function PagedWorkspaceDots({ pages, activePageId, onSelect }: Props) {
             onClick={() => onSelect(page.id)}
             className={cn(
               "h-2 rounded-full transition-all",
-              active ? "w-6 bg-amber-600" : "w-2 bg-slate-300 hover:bg-slate-400"
+              active ? "w-6 bg-[var(--graphite-primary)]" : "w-2 bg-slate-300 hover:bg-slate-400"
             )}
             aria-label={`Open ${page.label}`}
             aria-current={active ? "page" : undefined}

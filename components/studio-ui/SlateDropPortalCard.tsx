@@ -32,7 +32,7 @@ function StorageRing({ usedGb, limitGb }: { usedGb: number; limitGb: number }) {
 
   return (
     <svg width="48" height="48" viewBox="0 0 48 48" className="shrink-0" aria-hidden>
-      <circle cx="24" cy="24" r={radius} fill="none" stroke="#2A3340" strokeWidth="3" />
+      <circle cx="24" cy="24" r={radius} fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth="3" />
       <circle
         cx="24"
         cy="24"

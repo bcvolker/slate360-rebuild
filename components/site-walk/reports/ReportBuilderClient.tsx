@@ -74,9 +74,9 @@ export function ReportBuilderClient() {
         </div>
 
         {/* Footer: Sticky Action Bar */}
-        <GlassCard className="absolute bottom-6 left-1/2 -translate-x-1/2 px-4 py-3 flex items-center gap-4 border-amber-500/20 bg-slate-950/90 shadow-xl backdrop-blur-xl">
+        <GlassCard className="absolute bottom-6 left-1/2 -translate-x-1/2 px-4 py-3 flex items-center gap-4 border-[color-mix(in_srgb,var(--graphite-primary)_20%,transparent)] bg-slate-950/90 shadow-xl backdrop-blur-xl">
           <p className="text-xs font-bold text-slate-400">1 Page • 0 Blocks</p>
-          <button className="flex items-center gap-2 rounded-xl bg-amber-500 px-5 py-2.5 text-sm font-black text-slate-950 hover:bg-amber-400 transition-colors shadow-[0_0_15px_rgba(245,158,11,0.2)]">
+          <button className="flex items-center gap-2 rounded-xl bg-[var(--graphite-primary)] px-5 py-2.5 text-sm font-black text-[var(--graphite-canvas)] hover:bg-[color-mix(in_srgb,var(--graphite-primary)_85%,white)] transition-colors shadow-[0_0_15px_color-mix(in_srgb,var(--graphite-primary)_20%,transparent)]">
             <Save className="h-4 w-4" />
             Generate PDF & Save to SlateDrop
           </button>

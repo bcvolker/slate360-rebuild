@@ -489,7 +489,7 @@ function LogEntryFormBody({
           onBlur={onNotesBlur}
           rows={4}
           placeholder="Type what happened, what changed, and who owns the next action…"
-          className="mt-2 min-h-[140px] w-full resize-none rounded-xl border border-white/[0.07] bg-slate-900/40 p-3 text-base leading-6 text-slate-100 outline-none placeholder:text-slate-500 focus:border-amber-500/50"
+          className="mt-2 min-h-[140px] w-full resize-none rounded-xl border border-white/[0.07] bg-slate-900/40 p-3 text-base leading-6 text-slate-100 outline-none placeholder:text-slate-500 focus:border-[color-mix(in_srgb,var(--graphite-primary)_50%,transparent)]"
           style={{ WebkitUserSelect: "text", userSelect: "text" }}
           onPointerDown={(event) => event.stopPropagation()}
         />

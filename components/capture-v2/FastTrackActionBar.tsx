@@ -56,7 +56,7 @@ export function FastTrackActionBar({
         <button
           type="button"
           onClick={onOpenDrawer}
-          className="inline-flex min-h-11 shrink-0 items-center gap-1 rounded-2xl border border-white/10 bg-white/[0.05] px-3 text-[11px] font-black uppercase tracking-[0.08em] text-slate-200 hover:border-amber-400/35"
+          className="inline-flex min-h-11 shrink-0 items-center gap-1 rounded-2xl border border-white/10 bg-white/[0.05] px-3 text-[11px] font-black uppercase tracking-[0.08em] text-slate-200 hover:border-[color-mix(in_srgb,var(--graphite-primary)_35%,transparent)]"
         >
           <ChevronUp className="h-3.5 w-3.5" />
           Add Log Details
@@ -76,7 +76,7 @@ export function FastTrackActionBar({
           type="button"
           onClick={onSaveAndNext}
           disabled={saving || loop.busy}
-          className="min-h-11 shrink-0 rounded-2xl bg-amber-500 px-4 py-2.5 text-sm font-black text-slate-950 shadow-[0_0_24px_rgba(245,158,11,0.45)] hover:bg-amber-400 disabled:opacity-60"
+          className="min-h-11 shrink-0 rounded-2xl bg-[var(--graphite-primary)] px-4 py-2.5 text-sm font-black text-[var(--graphite-canvas)] shadow-[0_0_24px_color-mix(in_srgb,var(--graphite-primary)_45%,transparent)] disabled:opacity-60"
         >
           {saving ? "Saving…" : "Save & Next"}
         </button>

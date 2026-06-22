@@ -24,8 +24,8 @@ export function PagedWorkspaceRail({ pages, activePageId, onSelect }: Props) {
               className={cn(
                 "h-9 rounded-full border px-4 text-sm font-black transition",
                 active
-                  ? "border-amber-600 bg-amber-500 text-white"
-                  : "border-slate-300 bg-white text-slate-700 hover:border-amber-300 hover:text-amber-900"
+                  ? "border-[var(--graphite-primary)] bg-[var(--graphite-primary)] text-white"
+                  : "border-slate-300 bg-white text-slate-700 hover:border-[var(--graphite-primary)] hover:text-[var(--graphite-primary)]"
               )}
               aria-current={active ? "page" : undefined}
             >

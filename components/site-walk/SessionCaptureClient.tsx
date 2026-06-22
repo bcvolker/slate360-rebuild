@@ -81,7 +81,7 @@ export function SessionCaptureClient({
       />
 
       {status === "draft" && (
-        <div className="flex items-center gap-2 border-b bg-amber-50 px-4 py-2 text-xs text-amber-800 dark:bg-amber-950/30 dark:text-amber-200">
+        <div className="flex items-center gap-2 border-b border-white/10 bg-white/[0.05] px-4 py-2 text-xs text-[var(--graphite-muted)]">
           <Play className="h-3 w-3" /> Draft — capture an item to start this session
         </div>
       )}

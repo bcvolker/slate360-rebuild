@@ -132,9 +132,9 @@ export default function CompanyProfileModal({ open, onClose, initial, onSave }: 
           </div>
 
           {/* Info note */}
-          <div className="rounded-xl bg-amber-50 border border-amber-100 p-3 flex items-start gap-2.5">
-            <MapPin size={13} className="text-amber-400 mt-0.5 shrink-0" />
-            <p className="text-[11px] text-amber-600">
+          <div className="rounded-xl bg-sky-50 border border-sky-100 p-3 flex items-start gap-2.5">
+            <MapPin size={13} className="text-sky-700 mt-0.5 shrink-0" />
+            <p className="text-[11px] text-sky-700">
               This profile is saved in your browser only. It auto-fills document forms, AIA contracts,
               daily logs, and other project templates so you don't have to type it every time.
             </p>

@@ -31,8 +31,8 @@ export function CaptureV2SummaryStats({ stats, sessionStatus }: Props) {
       <div className="grid grid-cols-2 gap-2">
         <StatCell label="Total" value={stats.totalItems} />
         <StatCell label="Saved" value={stats.savedItems} tone="text-emerald-300" />
-        <StatCell label="Pending sync" value={stats.pendingItems} tone={stats.pendingItems > 0 ? "text-amber-200" : "text-white"} />
-        <StatCell label="Need details" value={stats.itemsNeedingDetails} tone={stats.itemsNeedingDetails > 0 ? "text-amber-200" : "text-white"} />
+        <StatCell label="Pending sync" value={stats.pendingItems} tone={stats.pendingItems > 0 ? "text-[var(--graphite-muted)]" : "text-white"} />
+        <StatCell label="Need details" value={stats.itemsNeedingDetails} tone={stats.itemsNeedingDetails > 0 ? "text-[var(--graphite-muted)]" : "text-white"} />
         <StatCell label="With media" value={stats.itemsWithMedia} />
       </div>
 

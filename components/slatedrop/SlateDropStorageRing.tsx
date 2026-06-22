@@ -41,7 +41,7 @@ export function SlateDropStorageRing({
         cy={center}
         r={radius}
         fill="none"
-        stroke="#2A3340"
+        stroke="rgba(255,255,255,0.12)"
         strokeWidth="3"
       />
       <circle

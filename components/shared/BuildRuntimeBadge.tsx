@@ -49,7 +49,7 @@ export default function BuildRuntimeBadge() {
   if (!enabled) return null;
 
   return (
-    <div className="fixed bottom-3 right-3 z-[100000] max-w-[92vw] rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-[11px] text-amber-900 shadow-lg">
+    <div className="fixed bottom-3 right-3 z-[100000] max-w-[92vw] rounded-lg border border-sky-100 bg-sky-50 px-3 py-2 text-[11px] text-sky-700 shadow-lg">
       <div className="font-semibold">build diag</div>
       <div>path: {pathname}</div>
       <div>host: {typeof window === "undefined" ? "server" : window.location.host}</div>

@@ -9,7 +9,7 @@ import type { SiteWalkPlan, SiteWalkPin, SiteWalkItem, PinColor } from "@/lib/ty
 const PIN_COLORS: Record<PinColor, string> = {
   blue: "fill-blue-500",
   green: "fill-green-500",
-  amber: "fill-amber-500",
+  amber: "fill-[var(--graphite-primary)]",
   red: "fill-red-500",
   gray: "fill-gray-400",
   purple: "fill-purple-500",
@@ -81,7 +81,7 @@ export function PlanViewer({ plan, items, onPinCreate, onPinDelete, placingItemI
       <div className="flex items-center justify-between border-b px-3 py-2">
         <p className="text-sm font-medium">{plan.title}</p>
         {placingItemId && (
-          <span className="flex items-center gap-1 text-xs text-amber-600">
+          <span className="flex items-center gap-1 text-xs text-[var(--graphite-primary)]">
             <MapPin className="h-3 w-3" /> Click to place pin
           </span>
         )}

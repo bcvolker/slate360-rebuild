@@ -161,7 +161,7 @@ export default function NoteCaptureBar({
   ) : voice.online ? (
     <Wifi className="h-3 w-3 text-emerald-400" />
   ) : (
-    <WifiOff className="h-3 w-3 text-amber-400" />
+    <WifiOff className="h-3 w-3 text-[var(--graphite-muted)]" />
   );
 
   return (
@@ -184,7 +184,7 @@ export default function NoteCaptureBar({
           {statusLine}
         </span>
         {warning && (
-          <span className="inline-flex items-center gap-1 text-amber-400">
+          <span className="inline-flex items-center gap-1 text-[var(--graphite-muted)]">
             <AlertCircle className="h-3 w-3" />
             {warning}
           </span>

@@ -26,7 +26,7 @@ interface Props {
 const PRIORITY_DOT: Record<string, string> = {
   critical: "bg-red-500",
   high: "bg-orange-500",
-  medium: "bg-amber-400",
+  medium: "bg-[var(--graphite-primary)]",
   low: "bg-slate-500",
 };
 

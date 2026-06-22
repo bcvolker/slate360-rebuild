@@ -53,7 +53,7 @@ export function BackButton({ className, alwaysShow = false, href }: BackButtonPr
       aria-label="Go back"
       className={cn(
         "h-9 w-9 flex items-center justify-center rounded-lg",
-        "text-slate-400 hover:text-amber-200 hover:bg-amber-500/10",
+        "text-slate-400 hover:text-[var(--graphite-primary)] hover:bg-[color-mix(in_srgb,var(--graphite-primary)_10%,transparent)]",
         "transition-colors",
         className
       )}

@@ -162,8 +162,8 @@ function CalloutBlockContent({
   onUpdate: (id: string, updates: Partial<EditorBlock>) => void;
 }) {
   const variantStyles = {
-    info: "border-amber-200 bg-amber-50 dark:border-blue-800 dark:bg-blue-950/50",
-    warning: "border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/50",
+    info: "border-white/10 bg-white/[0.05] text-[var(--graphite-muted)] dark:border-blue-800 dark:bg-blue-950/50",
+    warning: "border-white/10 bg-white/[0.05] text-[var(--graphite-muted)]",
     success: "border-emerald-200 bg-emerald-50 dark:border-emerald-800 dark:bg-emerald-950/50",
   };
 

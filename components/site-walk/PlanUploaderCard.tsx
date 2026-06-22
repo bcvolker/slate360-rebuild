@@ -122,7 +122,7 @@ export function PlanUploaderCard({ project, onPlanRoomChange }: Props) {
         role="button"
         tabIndex={0}
         aria-disabled={!canSelectFile}
-        className={`relative cursor-pointer rounded-3xl border border-dashed border-white/15 bg-white/[0.04] p-6 text-center transition focus:outline-none focus:ring-2 focus:ring-amber-500 sm:p-10 ${dragging ? "ring-2 ring-amber-500" : ""} ${canSelectFile ? "" : "opacity-60"}`}
+        className={`relative cursor-pointer rounded-3xl border border-dashed border-white/15 bg-white/[0.04] p-6 text-center transition focus:outline-none focus:ring-2 focus:ring-[var(--graphite-primary)] sm:p-10 ${dragging ? "ring-2 ring-[var(--graphite-primary)]" : ""} ${canSelectFile ? "" : "opacity-60"}`}
       >
         <input
           ref={inputRef}
@@ -131,7 +131,7 @@ export function PlanUploaderCard({ project, onPlanRoomChange }: Props) {
           className="hidden"
           onChange={(event) => event.target.files && void handleFiles(event.target.files)}
         />
-        <FileUp className="mx-auto h-10 w-10 text-amber-400" />
+        <FileUp className="mx-auto h-10 w-10 text-[var(--graphite-primary)]" />
         <p className="mt-3 text-base font-black text-white sm:text-lg">
           {project ? "Tap to choose a PDF or drag it here" : "Pick a project above to upload a plan set"}
         </p>
@@ -240,6 +240,6 @@ async function readError(response: Response) {
 function statusClasses(stage: UploadStage) {
   if (stage === "complete") return "bg-emerald-500/10 text-emerald-300 border border-emerald-500/20";
   if (stage === "error") return "bg-rose-500/10 text-rose-300 border border-rose-500/20";
-  if (stage === "uploading" || stage === "processing") return "bg-amber-500/10 text-amber-200 border border-amber-500/20";
+  if (stage === "uploading" || stage === "processing") return "bg-[color-mix(in_srgb,var(--graphite-primary)_10%,transparent)] text-[var(--graphite-primary)] border border-[color-mix(in_srgb,var(--graphite-primary)_20%,transparent)]";
   return "bg-white/[0.04] text-slate-300 border border-white/10";
 }

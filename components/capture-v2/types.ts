@@ -52,7 +52,7 @@ export type CaptureV2PlanPinCoordinates = {
 /** Status ring colors for filmstrip thumbnails keyed by item_status. */
 export const CAPTURE_V2_STATUS_RING_CLASS: Record<string, string> = {
   open: "ring-red-500",
-  in_progress: "ring-amber-400",
+  in_progress: "ring-[var(--graphite-primary)]",
   resolved: "ring-emerald-500",
   verified: "ring-emerald-400",
   closed: "ring-slate-500",

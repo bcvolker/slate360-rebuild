@@ -105,7 +105,7 @@ export function CaptureV2DesktopStudio({
             onDrop={onDesktopDrop}
             className={`mx-4 mt-4 flex min-h-[140px] shrink-0 flex-col items-center justify-center rounded-3xl border-2 border-dashed px-6 py-8 text-center transition ${
               dragActive
-                ? "border-amber-500 bg-amber-500/10"
+                ? "border-[var(--graphite-primary)] bg-[color-mix(in_srgb,var(--graphite-primary)_10%,transparent)]"
                 : "border-white/[0.12] bg-white/[0.03]"
             }`}
           >
@@ -119,7 +119,7 @@ export function CaptureV2DesktopStudio({
               type="button"
               onClick={() => loop.desktopMultiInputRef.current?.click()}
               disabled={loop.busy}
-              className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-2xl bg-amber-500 px-5 text-sm font-semibold text-slate-950 hover:bg-amber-400 disabled:opacity-60"
+              className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-2xl bg-[var(--graphite-primary)] px-5 text-sm font-semibold text-[var(--graphite-canvas)] disabled:opacity-60"
             >
               <ImagePlus className="h-4 w-4" aria-hidden />
               Select from computer

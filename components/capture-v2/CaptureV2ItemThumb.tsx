@@ -55,7 +55,7 @@ export function CaptureV2ItemThumb({
       aria-label={`${label}, ${syncKind}${unsaved ? ", unsaved changes" : ""}`}
       className={`group relative flex w-[4.75rem] shrink-0 flex-col gap-1 rounded-2xl border p-1 text-left transition ${
         isActive
-          ? "border-amber-400/70 bg-amber-500/15 shadow-lg shadow-amber-500/10"
+          ? "border-[color-mix(in_srgb,var(--graphite-primary)_70%,transparent)] bg-[color-mix(in_srgb,var(--graphite-primary)_15%,transparent)] shadow-lg shadow-[color-mix(in_srgb,var(--graphite-primary)_10%,transparent)]"
           : "border-white/10 bg-white/[0.04] hover:border-white/25 hover:bg-white/[0.06]"
       }`}
     >
@@ -81,7 +81,7 @@ export function CaptureV2ItemThumb({
         <div className="absolute right-1 top-1">
           {syncKind === "offline_queued" ? (
             <span
-              className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-amber-400/50 bg-amber-500/20 text-amber-200 shadow-sm shadow-amber-500/30"
+              className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-white/10 bg-white/[0.05] text-[var(--graphite-muted)] shadow-sm"
               title="Cached locally — not synced yet"
               aria-label="Cached locally — not synced yet"
             >
@@ -94,7 +94,7 @@ export function CaptureV2ItemThumb({
 
         {unsaved && (
           <div
-            className="absolute bottom-1 left-1 inline-flex items-center gap-0.5 rounded-md bg-amber-500/90 px-1 py-0.5 text-[8px] font-black uppercase text-slate-950"
+            className="absolute bottom-1 left-1 inline-flex items-center gap-0.5 rounded-md border border-white/10 bg-white/[0.05] px-1 py-0.5 text-[8px] font-black uppercase text-[var(--graphite-muted)]"
             title="Unsaved changes"
           >
             <AlertTriangle className="h-2.5 w-2.5" />

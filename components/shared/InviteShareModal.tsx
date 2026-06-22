@@ -133,7 +133,7 @@ export function InviteShareModal({
             onClick={() => setTab("app")}
             className={`px-3 pb-3 text-sm font-black transition-colors ${
               tab === "app"
-                ? "border-b-2 border-amber-400 text-amber-100"
+                ? "border-b-2 border-[var(--graphite-primary)] text-[var(--graphite-primary)]"
                 : "text-white/45 hover:text-white/80"
             }`}
           >
@@ -144,7 +144,7 @@ export function InviteShareModal({
             onClick={() => setTab("collaborator")}
             className={`px-3 pb-3 text-sm font-black transition-colors ${
               tab === "collaborator"
-                ? "border-b-2 border-amber-400 text-amber-100"
+                ? "border-b-2 border-[var(--graphite-primary)] text-[var(--graphite-primary)]"
                 : "text-white/45 hover:text-white/80"
             }`}
           >
@@ -157,7 +157,7 @@ export function InviteShareModal({
             <p className="text-sm font-bold leading-6 text-white/70">
               Let a colleague scan this code to request Slate360 Version 1 access.
             </p>
-            <div className="rounded-2xl border border-white/10 bg-white p-3 shadow-lg shadow-amber-500/10">
+            <div className="rounded-2xl border border-white/10 bg-white p-3 shadow-lg shadow-[0_0_18px_color-mix(in_srgb,var(--graphite-primary)_10%,transparent)]">
               <QRCodeSVG value={inviteLink} size={180} level="M" />
             </div>
             <div className="w-full space-y-2">
@@ -170,7 +170,7 @@ export function InviteShareModal({
                 <button
                   type="button"
                   onClick={handleCopy}
-                  className="rounded-xl p-1.5 text-white/60 transition-colors hover:bg-white/10 hover:text-amber-100"
+                  className="rounded-xl p-1.5 text-white/60 transition-colors hover:bg-white/10 hover:text-[var(--graphite-primary)]"
                   aria-label="Copy invite link"
                 >
                   {copied ? <CheckCircle2 className="h-4 w-4 text-emerald-300" /> : <Copy className="h-4 w-4" />}
@@ -179,7 +179,7 @@ export function InviteShareModal({
               <button
                 type="button"
                 onClick={handleNativeShare}
-                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-amber-500 py-3 text-sm font-black text-white shadow-[0_0_18px_rgba(245,158,11,0.34)] transition-colors hover:bg-amber-400"
+                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[var(--graphite-primary)] py-3 text-sm font-black text-white shadow-[0_0_18px_color-mix(in_srgb,var(--graphite-primary)_34%,transparent)] transition-colors hover:bg-[color-mix(in_srgb,var(--graphite-primary)_85%,white)]"
               >
                 <Share2 className="h-4 w-4" /> Share — AirDrop, Contacts, Apps
               </button>
@@ -213,7 +213,7 @@ export function InviteShareModal({
                 required
                 value={form.projectId}
                 onChange={(e) => setForm({ ...form, projectId: e.target.value })}
-                className="w-full rounded-2xl border border-white/15 bg-white/5 px-3 py-2.5 text-sm font-bold text-white outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-500/20"
+                className="w-full rounded-2xl border border-white/15 bg-white/5 px-3 py-2.5 text-sm font-bold text-white outline-none focus:border-[var(--graphite-primary)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--graphite-primary)_20%,transparent)]"
               >
                 <option value="" disabled>Choose a project...</option>
                 {projects.length === 0 && <option value="" disabled>No projects yet — create one first</option>}
@@ -229,7 +229,7 @@ export function InviteShareModal({
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
                 placeholder="subcontractor@example.com"
                 list="invite-contacts-list"
-                className="w-full rounded-2xl border border-white/15 bg-white/5 px-3 py-2.5 text-sm font-bold text-white outline-none placeholder:text-white/35 focus:border-amber-400 focus:ring-2 focus:ring-amber-500/20"
+                className="w-full rounded-2xl border border-white/15 bg-white/5 px-3 py-2.5 text-sm font-bold text-white outline-none placeholder:text-white/35 focus:border-[var(--graphite-primary)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--graphite-primary)_20%,transparent)]"
               />
               <datalist id="invite-contacts-list">
                 {contacts.map((c) => <option key={c.id} value={c.email}>{c.fullName ?? c.email}</option>)}
@@ -240,7 +240,7 @@ export function InviteShareModal({
               <select
                 value={form.role}
                 onChange={(e) => setForm({ ...form, role: e.target.value as "viewer" | "collaborator" })}
-                className="w-full rounded-2xl border border-white/15 bg-white/5 px-3 py-2.5 text-sm font-bold text-white outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-500/20"
+                className="w-full rounded-2xl border border-white/15 bg-white/5 px-3 py-2.5 text-sm font-bold text-white outline-none focus:border-[var(--graphite-primary)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--graphite-primary)_20%,transparent)]"
               >
                 <option value="viewer">Viewer (Read Only)</option>
                 <option value="collaborator">Collaborator</option>
@@ -257,7 +257,7 @@ export function InviteShareModal({
             <button
               type="submit"
               disabled={loading || projects.length === 0}
-              className="mt-1 flex w-full items-center justify-center gap-2 rounded-2xl bg-amber-500 py-3 text-sm font-black text-white transition hover:bg-amber-400 disabled:cursor-not-allowed disabled:opacity-50"
+              className="mt-1 flex w-full items-center justify-center gap-2 rounded-2xl bg-[var(--graphite-primary)] py-3 text-sm font-black text-white transition hover:bg-[color-mix(in_srgb,var(--graphite-primary)_85%,white)] disabled:cursor-not-allowed disabled:opacity-50"
             >
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Send Invite"}
             </button>

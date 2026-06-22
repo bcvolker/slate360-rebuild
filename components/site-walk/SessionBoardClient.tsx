@@ -75,7 +75,7 @@ export function SessionBoardClient() {
                       <Package className="h-3 w-3" /> {s.item_count} items
                     </span>
                     {s.open_assignments > 0 && (
-                      <span className="flex items-center gap-1 text-amber-600">
+                      <span className="flex items-center gap-1 text-[var(--graphite-muted)]">
                         <ClipboardList className="h-3 w-3" /> {s.open_assignments} open
                       </span>
                     )}

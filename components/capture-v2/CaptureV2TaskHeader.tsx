@@ -29,7 +29,7 @@ function CaptureV2SyncPill() {
       type="button"
       onClick={() => void syncOfflineItems()}
       className={`shrink-0 rounded-full px-2.5 py-1 text-[10px] font-black ${
-        queued ? "animate-pulse text-amber-500" : "text-emerald-400"
+        queued ? "animate-pulse text-[var(--graphite-muted)]" : "text-emerald-400"
       }`}
       aria-label={queued ? `Queued ${pendingUploadCount} items — tap to sync` : "Synced"}
     >

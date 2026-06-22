@@ -20,11 +20,11 @@ export default async function SiteWalkSlateDropPage() {
   }
 
   return (
-    <main className="flex h-full min-h-0 flex-col overflow-hidden bg-[radial-gradient(circle_at_top,rgba(245,158,11,0.14),transparent_34%),#0B0F15] text-slate-50">
+    <main className="flex h-full min-h-0 flex-col overflow-hidden bg-[radial-gradient(circle_at_top,color-mix(in_srgb,var(--graphite-primary)_14%,transparent),transparent_34%),#0B0F15] text-slate-50">
       <div className="mx-auto flex min-h-0 w-full max-w-5xl flex-1 flex-col gap-4 overflow-y-auto px-4 py-4 no-scrollbar sm:px-6 lg:px-8">
         <section className="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-lg backdrop-blur-md">
           <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-500 text-white"><FolderOpen className="h-6 w-6" /></div>
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--graphite-primary)] text-white"><FolderOpen className="h-6 w-6" /></div>
             <div>
               <h1 className="text-2xl font-black">Site Walk SlateDrop</h1>
               <p className="text-sm font-bold text-slate-300">Open a Site Visit folder to view photos, notes, data, plans, and deliverables.</p>
@@ -33,8 +33,8 @@ export default async function SiteWalkSlateDropPage() {
         </section>
         <section className="grid gap-3 sm:grid-cols-2">
           {projects.map((project) => (
-            <Link key={project.id} href={`/projects/${project.id}/slatedrop`} className="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-lg backdrop-blur-md transition hover:border-amber-400/70 hover:bg-amber-500/10">
-              <FolderOpen className="h-6 w-6 text-amber-200" />
+            <Link key={project.id} href={`/projects/${project.id}/slatedrop`} className="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-lg backdrop-blur-md transition hover:border-[color-mix(in_srgb,var(--graphite-primary)_70%,transparent)] hover:bg-[color-mix(in_srgb,var(--graphite-primary)_10%,transparent)]">
+              <FolderOpen className="h-6 w-6 text-[var(--graphite-primary)]" />
               <h2 className="mt-3 text-lg font-black">{project.name}</h2>
               <p className="mt-1 text-sm font-bold text-slate-400">Site Walk Files / Photos / Notes / Data / Plans / Deliverables</p>
             </Link>

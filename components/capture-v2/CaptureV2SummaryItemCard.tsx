@@ -79,7 +79,7 @@ export function CaptureV2SummaryItemCard({ sessionId, item, stopNumber, highligh
         )}
 
         {needsDetails && (
-          <p className="mt-2 inline-flex items-center gap-1 rounded-lg bg-amber-500/15 px-2 py-1 text-[10px] font-black uppercase tracking-wide text-amber-200">
+          <p className="mt-2 inline-flex items-center gap-1 rounded-lg border border-white/10 bg-white/[0.05] px-2 py-1 text-[10px] font-black uppercase tracking-wide text-[var(--graphite-muted)]">
             <AlertTriangle className="h-3 w-3" />
             Missing title or notes
           </p>

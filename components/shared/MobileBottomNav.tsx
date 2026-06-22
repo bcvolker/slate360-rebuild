@@ -76,7 +76,7 @@ export function MobileBottomNav() {
               <Link
                 href={item.href}
                 className={cn(
-                  "relative flex flex-col items-center justify-center h-full gap-1 py-2 transition-colors duration-200 rounded-lg mx-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50 focus-visible:ring-offset-1 focus-visible:ring-offset-[#0B0F15]",
+                  "relative flex flex-col items-center justify-center h-full gap-1 py-2 transition-colors duration-200 rounded-lg mx-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--graphite-primary)_50%,transparent)] focus-visible:ring-offset-1 focus-visible:ring-offset-[#0B0F15]",
                   active
                     ? "bg-header-active text-header"
                     : "text-header-muted hover:text-header hover:bg-header-hover"
@@ -86,7 +86,7 @@ export function MobileBottomNav() {
                 {active && (
                   <span
                     aria-hidden
-                    className="absolute top-0 left-1/2 -translate-x-1/2 h-[2px] w-8 rounded-b-full bg-amber-500 shadow-[0_2px_8px_rgba(245,158,11,0.45)]"
+                    className="absolute top-0 left-1/2 -translate-x-1/2 h-[2px] w-8 rounded-b-full bg-[var(--graphite-primary)] shadow-[0_2px_8px_color-mix(in_srgb,var(--graphite-primary)_45%,transparent)]"
                   />
                 )}
                 <Icon

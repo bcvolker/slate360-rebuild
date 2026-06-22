@@ -48,7 +48,7 @@ export function CaptureV2SessionSyncBadge({
 
   const tone =
     !isOnline || pendingUploadCount > 0 || isSyncing
-      ? "border-amber-400/30 bg-amber-500/10 text-amber-200"
+      ? "border-white/10 bg-white/[0.05] text-[var(--graphite-muted)]"
       : "border-emerald-400/25 bg-emerald-500/10 text-emerald-200";
 
   return (
@@ -77,9 +77,9 @@ export function CaptureV2ItemSyncBadge({
     kind === "sync_error"
       ? "border-red-400/35 bg-red-500/15 text-red-200"
       : kind === "offline_queued"
-        ? "border-amber-400/30 bg-amber-500/10 text-amber-200"
+        ? "border-white/10 bg-white/[0.05] text-[var(--graphite-muted)]"
         : kind === "saving"
-          ? "border-amber-400/30 bg-amber-500/10 text-amber-200"
+          ? "border-white/10 bg-white/[0.05] text-[var(--graphite-muted)]"
           : "border-emerald-400/25 bg-emerald-500/10 text-emerald-200";
 
   if (compact) {

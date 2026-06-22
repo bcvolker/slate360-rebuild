@@ -22,7 +22,7 @@ const ICONS: Record<ToastVariant, typeof AlertTriangle> = {
 
 const STYLES: Record<ToastVariant, string> = {
   warning:
-    "border-amber-300 bg-amber-50 text-amber-900 dark:border-amber-700 dark:bg-amber-950/90 dark:text-amber-100",
+    "border-white/10 bg-white/[0.05] text-[var(--graphite-muted)]",
   success:
     "border-green-300 bg-green-50 text-green-900 dark:border-green-700 dark:bg-green-950/90 dark:text-green-100",
   error:

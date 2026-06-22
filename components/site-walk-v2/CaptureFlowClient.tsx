@@ -172,7 +172,7 @@ export function CaptureFlowClient({
   if (!hydrated) {
     return (
       <div className="flex h-full min-h-0 w-full flex-col items-center justify-center gap-3 bg-[#0B0F15] text-slate-50">
-        <Loader2 className="h-8 w-8 animate-spin text-amber-400" strokeWidth={1.75} />
+        <Loader2 className="h-8 w-8 animate-spin text-[var(--graphite-primary)]" strokeWidth={1.75} />
         <p className="text-sm font-medium text-zinc-300">Loading walk…</p>
       </div>
     );
@@ -186,7 +186,7 @@ export function CaptureFlowClient({
           aria-live="polite"
           aria-busy="true"
         >
-          <Loader2 className="h-10 w-10 animate-spin text-amber-400" strokeWidth={1.75} />
+          <Loader2 className="h-10 w-10 animate-spin text-[var(--graphite-primary)]" strokeWidth={1.75} />
           <p className="text-center text-sm font-semibold text-white">Saving captures and finishing walk…</p>
           <p className="text-center text-xs text-zinc-400">This may take a moment on slower connections.</p>
         </div>
@@ -266,7 +266,7 @@ export function CaptureFlowClient({
                     key={file.id}
                     className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-[11px] text-zinc-300"
                   >
-                    <Paperclip className="h-3 w-3 shrink-0 text-amber-400" />
+                    <Paperclip className="h-3 w-3 shrink-0 text-[var(--graphite-primary)]" />
                     <span className="truncate">{file.name}</span>
                   </span>
                 ))}
@@ -337,7 +337,7 @@ export function CaptureFlowClient({
                 className={cn(
                   "flex min-h-[44px] min-w-[44px] items-center justify-center gap-2 rounded-xl border px-3 text-sm transition-colors",
                   markupTool === tool
-                    ? "border-amber-500/40 bg-amber-500/10 text-amber-300"
+                    ? "border-[color-mix(in_srgb,var(--graphite-primary)_40%,transparent)] bg-[color-mix(in_srgb,var(--graphite-primary)_10%,transparent)] text-[var(--graphite-primary)]"
                     : "border-white/[0.08] bg-white/[0.03] text-zinc-400 hover:text-zinc-200",
                 )}
               >
@@ -358,7 +358,7 @@ export function CaptureFlowClient({
                 type="button"
                 onClick={() => setPickerOpen(true)}
                 disabled={attachedFiles.length >= 4}
-                className="flex min-h-[44px] items-center gap-2 rounded-xl border border-amber-500/35 bg-amber-500/10 px-4 text-sm font-medium text-amber-200 disabled:opacity-40"
+                className="flex min-h-[44px] items-center gap-2 rounded-xl border border-[color-mix(in_srgb,var(--graphite-primary)_35%,transparent)] bg-[color-mix(in_srgb,var(--graphite-primary)_10%,transparent)] px-4 text-sm font-medium text-[var(--graphite-primary)] disabled:opacity-40"
               >
                 <FolderOpen className="h-4 w-4" />
                 Attach from project
@@ -390,7 +390,7 @@ export function CaptureFlowClient({
               void handleSaveAndNext();
             }}
             disabled={busy}
-            className="flex min-h-[56px] flex-1 items-center justify-center gap-2 rounded-2xl bg-amber-500 text-base font-semibold text-slate-950 transition-colors hover:bg-amber-400 active:scale-[0.99] disabled:opacity-60"
+            className="flex min-h-[56px] flex-1 items-center justify-center gap-2 rounded-2xl bg-[var(--graphite-primary)] text-base font-semibold text-[var(--graphite-canvas)] transition-colors active:scale-[0.99] disabled:opacity-60"
           >
             {finishing ? "Finishing walk…" : saving ? "Saving…" : stopIndex + 1 >= flow.stops.length ? "Finish walk" : "Save & next"}
             <ChevronRight className="h-5 w-5" strokeWidth={2} />
@@ -445,7 +445,7 @@ export function CaptureFlowClient({
                   void handleSaveAndNext();
                 }}
                 disabled={busy}
-                className="w-full rounded-xl border border-amber-400/30 bg-amber-500/10 px-3 py-2 text-xs font-black text-amber-100 disabled:opacity-60"
+                className="w-full rounded-xl border border-[color-mix(in_srgb,var(--graphite-primary)_30%,transparent)] bg-[color-mix(in_srgb,var(--graphite-primary)_10%,transparent)] px-3 py-2 text-xs font-black text-[var(--graphite-primary)] disabled:opacity-60"
               >
                 Retry finish walk
               </button>

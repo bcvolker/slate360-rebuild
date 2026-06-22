@@ -25,7 +25,7 @@ export function DeliverableViewer({
       <header className="border-b border-zinc-200 bg-white dark:border-app dark:bg-app-card">
         <div className="mx-auto flex max-w-3xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-3">
-            <FileText className="size-5 text-amber-500" />
+            <FileText className="size-5 text-[var(--graphite-primary)]" />
             <div>
               <h1 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
                 {title}
@@ -69,7 +69,7 @@ export function DeliverableViewer({
           href="https://www.slate360.ai"
           target="_blank"
           rel="noopener noreferrer"
-          className="font-medium text-amber-500 hover:underline"
+          className="font-medium text-[var(--graphite-primary)] hover:underline"
         >
           Slate360
         </a>
@@ -136,9 +136,9 @@ function CalloutView({
   block: Extract<EditorBlock, { type: "callout" }>;
 }) {
   const styles = {
-    info: "border-amber-200 bg-amber-50 text-amber-900 dark:border-blue-800 dark:bg-blue-950/50 dark:text-amber-200",
+    info: "border-white/10 bg-white/[0.05] text-[var(--graphite-muted)] dark:border-blue-800 dark:bg-blue-950/50",
     warning:
-      "border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-950/50 dark:text-amber-200",
+      "border-white/10 bg-white/[0.05] text-[var(--graphite-muted)]",
     success:
       "border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-200",
   };

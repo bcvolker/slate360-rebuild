@@ -27,7 +27,7 @@ type Session = {
 
 const STATUS_ICON: Record<string, React.ReactNode> = {
   draft: <ClipboardList className="h-4 w-4 text-muted-foreground" />,
-  in_progress: <Play className="h-4 w-4 text-amber-500" />,
+  in_progress: <Play className="h-4 w-4 text-[var(--graphite-primary)]" />,
   completed: <CheckCircle className="h-4 w-4 text-green-500" />,
 };
 

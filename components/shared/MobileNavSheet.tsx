@@ -68,7 +68,7 @@ export default function MobileNavSheet({
   return (
     <>
       <button
-        className="sm:hidden w-9 h-9 rounded-xl flex items-center justify-center text-white transition-colors hover:bg-white/10 hover:text-amber-200"
+        className="sm:hidden w-9 h-9 rounded-xl flex items-center justify-center text-white transition-colors hover:bg-white/10 hover:text-[var(--graphite-primary)]"
         onClick={() => setOpen(true)}
         aria-label="Open navigation menu"
       >
@@ -89,7 +89,7 @@ export default function MobileNavSheet({
             <Link
               href="/app"
               onClick={() => setOpen(false)}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-foreground hover:text-amber-200 hover:bg-white/[0.04] transition-colors"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-foreground hover:text-[var(--graphite-primary)] hover:bg-white/[0.04] transition-colors"
             >
               <SlateLogoOnLight className="h-4 w-auto flex-shrink-0" />
               Home

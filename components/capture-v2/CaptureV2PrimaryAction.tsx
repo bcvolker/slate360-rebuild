@@ -32,7 +32,7 @@ export function CaptureV2PrimaryAction({ state, isDesktop, onAction, className =
       type="button"
       onClick={onAction}
       disabled={disabled}
-      className={`inline-flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-amber-500 px-5 py-3 text-base font-black text-slate-950 shadow-[0_0_22px_rgba(245,158,11,0.30)] transition hover:bg-amber-400 disabled:cursor-not-allowed disabled:opacity-60 ${className}`}
+      className={`inline-flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-[var(--graphite-primary)] px-5 py-3 text-base font-black text-[var(--graphite-canvas)] shadow-[0_0_22px_color-mix(in_srgb,var(--graphite-primary)_30%,transparent)] transition disabled:cursor-not-allowed disabled:opacity-60 ${className}`}
     >
       {busy && <Loader2 className="h-5 w-5 animate-spin" />}
       {label}

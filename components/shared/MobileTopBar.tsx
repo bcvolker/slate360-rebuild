@@ -62,7 +62,7 @@ export function MobileTopBar({
             className="flex shrink-0 items-center"
             aria-label="Slate360 home"
           >
-            <SlateIcon className="h-9 w-9 rounded-lg drop-shadow-[0_0_10px_rgba(245,158,11,0.35)]" />
+            <SlateIcon className="h-9 w-9 rounded-lg drop-shadow-[0_0_10px_color-mix(in_srgb,var(--graphite-primary)_35%,transparent)]" />
           </Link>
           <button
             type="button"
@@ -83,7 +83,7 @@ export function MobileTopBar({
             onClick={() => openInviteShare(true)}
             aria-label="Invite to Slate360"
             title="Invite to Slate360"
-            className="h-9 w-9 flex items-center justify-center rounded-lg text-header-muted hover:text-amber-200 hover:bg-header-hover transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50 focus-visible:ring-offset-1 focus-visible:ring-offset-header-bg"
+            className="h-9 w-9 flex items-center justify-center rounded-lg text-header-muted hover:text-[var(--graphite-primary)] hover:bg-header-hover transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--graphite-primary)_50%,transparent)] focus-visible:ring-offset-1 focus-visible:ring-offset-header-bg"
           >
             <Share2 className="h-[18px] w-[18px]" />
           </button>
@@ -91,7 +91,7 @@ export function MobileTopBar({
             type="button"
             onClick={onSearchClick}
             aria-label="Search"
-            className="h-9 w-9 flex items-center justify-center rounded-lg text-header-muted hover:text-amber-200 hover:bg-header-hover transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50 focus-visible:ring-offset-1 focus-visible:ring-offset-header-bg"
+            className="h-9 w-9 flex items-center justify-center rounded-lg text-header-muted hover:text-[var(--graphite-primary)] hover:bg-header-hover transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--graphite-primary)_50%,transparent)] focus-visible:ring-offset-1 focus-visible:ring-offset-header-bg"
           >
             <Search className="h-[18px] w-[18px]" />
           </button>
@@ -100,7 +100,7 @@ export function MobileTopBar({
               type="button"
               onClick={() => setFeedbackOpen(true)}
               aria-label="Report a bug or suggest a feature for Version 1"
-              className="h-9 w-9 flex items-center justify-center rounded-lg text-header-muted hover:text-amber-200 hover:bg-header-hover transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50 focus-visible:ring-offset-1 focus-visible:ring-offset-header-bg"
+              className="h-9 w-9 flex items-center justify-center rounded-lg text-header-muted hover:text-[var(--graphite-primary)] hover:bg-header-hover transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--graphite-primary)_50%,transparent)] focus-visible:ring-offset-1 focus-visible:ring-offset-header-bg"
             >
               <Bug className="h-[18px] w-[18px]" />
             </button>
@@ -109,7 +109,7 @@ export function MobileTopBar({
           <Link
             href="/coordination/inbox"
             aria-label="Notifications and communication inbox"
-            className="h-9 w-9 flex items-center justify-center rounded-lg text-header-muted hover:text-amber-200 hover:bg-header-hover transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50 focus-visible:ring-offset-1 focus-visible:ring-offset-header-bg"
+            className="h-9 w-9 flex items-center justify-center rounded-lg text-header-muted hover:text-[var(--graphite-primary)] hover:bg-header-hover transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--graphite-primary)_50%,transparent)] focus-visible:ring-offset-1 focus-visible:ring-offset-header-bg"
           >
             <Bell className="h-[18px] w-[18px]" />
           </Link>
@@ -117,10 +117,10 @@ export function MobileTopBar({
           <DropdownMenu>
             <DropdownMenuTrigger
               aria-label="Account menu"
-              className="h-9 w-9 flex items-center justify-center rounded-full transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50 focus-visible:ring-offset-1 focus-visible:ring-offset-header-bg"
+              className="h-9 w-9 flex items-center justify-center rounded-full transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--graphite-primary)_50%,transparent)] focus-visible:ring-offset-1 focus-visible:ring-offset-header-bg"
             >
-              <Avatar className="h-8 w-8 border border-amber-500/40">
-                <AvatarFallback className="bg-amber-500/15 text-amber-200 text-[12px] font-semibold">
+              <Avatar className="h-8 w-8 border border-[color-mix(in_srgb,var(--graphite-primary)_40%,transparent)]">
+                <AvatarFallback className="bg-[color-mix(in_srgb,var(--graphite-primary)_15%,transparent)] text-[var(--graphite-primary)] text-[12px] font-semibold">
                   {userName ? userName.charAt(0).toUpperCase() : "U"}
                 </AvatarFallback>
               </Avatar>
@@ -130,13 +130,13 @@ export function MobileTopBar({
                 {userName || "My Account"}
               </DropdownMenuLabel>
               <DropdownMenuSeparator className="bg-border/50" />
-              <DropdownMenuItem asChild className="text-xs cursor-pointer hover:bg-amber-500/10 hover:text-amber-200">
+              <DropdownMenuItem asChild className="text-xs cursor-pointer hover:bg-[color-mix(in_srgb,var(--graphite-primary)_10%,transparent)] hover:text-[var(--graphite-primary)]">
                 <Link href="/more/account">Account</Link>
               </DropdownMenuItem>
-              <DropdownMenuItem asChild className="text-xs cursor-pointer hover:bg-amber-500/10 hover:text-amber-200">
+              <DropdownMenuItem asChild className="text-xs cursor-pointer hover:bg-[color-mix(in_srgb,var(--graphite-primary)_10%,transparent)] hover:text-[var(--graphite-primary)]">
                 <Link href="/more/billing">Billing &amp; Apps</Link>
               </DropdownMenuItem>
-              <DropdownMenuItem asChild className="text-xs cursor-pointer hover:bg-amber-500/10 hover:text-amber-200">
+              <DropdownMenuItem asChild className="text-xs cursor-pointer hover:bg-[color-mix(in_srgb,var(--graphite-primary)_10%,transparent)] hover:text-[var(--graphite-primary)]">
                 <Link href="/more">Account Hub</Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator className="bg-border/50" />

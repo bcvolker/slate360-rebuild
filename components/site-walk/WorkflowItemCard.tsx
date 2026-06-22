@@ -26,7 +26,7 @@ import type { SiteWalkItem, ItemStatus, ItemPriority } from "@/lib/types/site-wa
 
 const STATUS_CONFIG: Record<ItemStatus, { label: string; icon: React.ReactNode; color: string }> = {
   open: { label: "Open", icon: <Clock className="h-3 w-3" />, color: "text-blue-500" },
-  in_progress: { label: "In Progress", icon: <Clock className="h-3 w-3 animate-spin" />, color: "text-amber-500" },
+  in_progress: { label: "In Progress", icon: <Clock className="h-3 w-3 animate-spin" />, color: "text-[var(--graphite-primary)]" },
   resolved: { label: "Resolved", icon: <CheckCircle className="h-3 w-3" />, color: "text-green-500" },
   verified: { label: "Verified", icon: <ShieldCheck className="h-3 w-3" />, color: "text-emerald-600" },
   closed: { label: "Closed", icon: <XCircle className="h-3 w-3" />, color: "text-muted-foreground" },
@@ -35,8 +35,8 @@ const STATUS_CONFIG: Record<ItemStatus, { label: string; icon: React.ReactNode; 
 
 const PRIORITY_BADGE: Record<ItemPriority, string> = {
   low: "bg-slate-100 text-slate-700",
-  medium: "bg-amber-100 text-amber-700",
-  high: "bg-amber-100 text-amber-700",
+  medium: "bg-sky-50 text-sky-700 border-sky-100",
+  high: "bg-sky-50 text-sky-700 border-sky-100",
   critical: "bg-red-100 text-red-700",
 };
 
