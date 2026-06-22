@@ -51,7 +51,7 @@ export function CaptureV2Shell(props: Props) {
   const hideLegacyHeader = CAPTURE_CANVAS_SHELL_ENABLED && !isDesktop;
 
   return (
-    <main className="relative flex h-screen min-h-0 w-full flex-col overflow-hidden bg-[var(--graphite-canvas)] text-[var(--graphite-text-header)]">
+    <main className="relative flex h-[100dvh] min-h-0 w-full flex-col overflow-hidden bg-[var(--graphite-canvas)] text-[var(--graphite-text-header)]">
       {!hideLegacyHeader ? (
         <CaptureV2TaskHeader session={session} stopLabel={stopLabel} contextLabel={contextLabel} />
       ) : null}
