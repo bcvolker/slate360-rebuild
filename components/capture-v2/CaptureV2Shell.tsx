@@ -28,7 +28,11 @@ export function CaptureV2Shell(props: Props) {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const media = window.matchMedia("(min-width: 768px)");
+    // Desktop studio only on genuinely large viewports. The min-height guard
+    // keeps a phone in LANDSCAPE (wide but short, ~390-430px tall) in the
+    // branded mobile capture instead of flipping to the desktop studio's
+    // side-panel layout. Tablets/desktop (>=600px tall) still get the studio.
+    const media = window.matchMedia("(min-width: 768px) and (min-height: 600px)");
     const sync = () => setIsDesktop(media.matches);
     sync();
     media.addEventListener("change", sync);

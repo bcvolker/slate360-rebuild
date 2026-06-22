@@ -81,7 +81,9 @@ export function useCaptureV2Loop({ sessionId, projectId, initialItemId, launchId
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const media = window.matchMedia("(min-width: 768px)");
+    // Match CaptureV2Shell: a landscape phone (wide but short) must stay mobile,
+    // not be treated as desktop. Require height too.
+    const media = window.matchMedia("(min-width: 768px) and (min-height: 600px)");
     const sync = () => setIsDesktop(media.matches);
     sync();
     media.addEventListener("change", sync);
