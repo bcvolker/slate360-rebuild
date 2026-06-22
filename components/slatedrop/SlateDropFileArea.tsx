@@ -1,15 +1,19 @@
 import Link from "next/link";
 import GlassCard from "@/components/shared/GlassCard";
 import {
+  CheckSquare,
+  Download,
   Eye,
   Folder,
   FolderOpen,
   Lock,
   MoreHorizontal,
+  Square,
   SortAsc,
   SortDesc,
   Trash2,
   Upload,
+  X,
 } from "lucide-react";
 import type { SlateDropFileItem } from "@/lib/hooks/useSlateDropFiles";
 
@@ -47,6 +51,10 @@ type SlateDropFileAreaProps = {
   onToggleFileSelect: (fileId: string) => void;
   onFileContextMenu: (event: React.MouseEvent, file: SlateDropFileItem) => void;
   onPreviewFile: (file: SlateDropFileItem) => void;
+  onSelectAll: () => void;
+  onClearSelection: () => void;
+  onBulkDownload: () => void;
+  onBulkDelete: () => void;
 
   viewMode: ViewMode;
   sortKey: SortKey;
@@ -77,6 +85,10 @@ export default function SlateDropFileArea({
   onToggleFileSelect,
   onFileContextMenu,
   onPreviewFile,
+  onSelectAll,
+  onClearSelection,
+  onBulkDownload,
+  onBulkDelete,
   viewMode,
   sortKey,
   sortDir,
@@ -87,6 +99,8 @@ export default function SlateDropFileArea({
   formatDate,
   onUploadClick,
 }: SlateDropFileAreaProps) {
+  const selectedCount = selectedFiles.size;
+  const allSelected = currentFiles.length > 0 && currentFiles.every((file) => selectedFiles.has(file.id));
   return (
     <div
       className={`flex-1 overflow-y-auto p-4 transition-colors ${
@@ -150,10 +164,54 @@ export default function SlateDropFileArea({
         </div>
       )}
 
+      {selectedCount > 0 ? (
+        <div className="sticky top-0 z-10 mb-3 flex items-center gap-2 rounded-xl border border-[color-mix(in_srgb,var(--graphite-primary)_28%,transparent)] bg-[color-mix(in_srgb,var(--graphite-primary)_12%,var(--graphite-canvas))] px-3 py-2 backdrop-blur-md">
+          <button
+            onClick={onClearSelection}
+            className="flex h-7 w-7 items-center justify-center rounded-lg text-[var(--graphite-muted)] hover:text-[var(--graphite-text-body)]"
+            aria-label="Clear selection"
+          >
+            <X size={15} />
+          </button>
+          <span className="text-xs font-bold text-[var(--graphite-text-body)]">{selectedCount} selected</span>
+          <div className="ml-auto flex items-center gap-1.5">
+            <button
+              onClick={onSelectAll}
+              className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-[var(--graphite-muted)] hover:text-[var(--graphite-text-body)]"
+            >
+              Select all
+            </button>
+            <button
+              onClick={onBulkDownload}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-semibold text-[var(--graphite-text-body)] hover:border-[color-mix(in_srgb,var(--graphite-primary)_45%,transparent)]"
+            >
+              <Download size={13} /> Download
+            </button>
+            <button
+              onClick={onBulkDelete}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-1.5 text-xs font-semibold text-red-300 hover:bg-red-500/15"
+            >
+              <Trash2 size={13} /> Delete
+            </button>
+          </div>
+        </div>
+      ) : null}
+
       {currentFiles.length > 0 && (
-        <h3 className="text-[10px] font-semibold text-[var(--graphite-muted)] uppercase tracking-wider mb-3">
-          Files · {currentFiles.length}
-        </h3>
+        <div className="mb-3 flex items-center gap-2">
+          <button
+            onClick={allSelected ? onClearSelection : onSelectAll}
+            className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-[var(--graphite-muted)] hover:text-[var(--graphite-text-body)]"
+            aria-label={allSelected ? "Clear selection" : "Select all files"}
+          >
+            {allSelected ? (
+              <CheckSquare size={13} className="text-[var(--graphite-primary)]" />
+            ) : (
+              <Square size={13} />
+            )}
+            Files · {currentFiles.length}
+          </button>
+        </div>
       )}
 
       {viewMode === "grid" && currentFiles.length > 0 && (
@@ -173,6 +231,18 @@ export default function SlateDropFileArea({
                 }`}
               >
                 <div className="aspect-square flex items-center justify-center bg-[color-mix(in_srgb,var(--graphite-primary)_5%,transparent)] hover:bg-[color-mix(in_srgb,var(--graphite-primary)_10%,transparent)] relative overflow-hidden">
+                  <button
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onToggleFileSelect(file.id);
+                    }}
+                    className={`absolute left-2 top-2 z-10 flex h-6 w-6 items-center justify-center rounded-md bg-[var(--graphite-canvas)]/70 backdrop-blur-sm transition-opacity ${
+                      isSelected ? "text-[var(--graphite-primary)] opacity-100" : "text-[var(--graphite-muted)] opacity-0 group-hover:opacity-100"
+                    }`}
+                    aria-label={isSelected ? "Deselect file" : "Select file"}
+                  >
+                    {isSelected ? <CheckSquare size={14} /> : <Square size={14} />}
+                  </button>
                   {file.thumbnail ? (
                     <div
                       className="absolute inset-0 bg-cover bg-center group-hover:scale-105 transition-transform duration-300"
@@ -250,7 +320,17 @@ export default function SlateDropFileArea({
                   isSelected ? "bg-[color-mix(in_srgb,var(--graphite-primary)_5%,transparent)]" : "hover:bg-[color-mix(in_srgb,var(--graphite-primary)_5%,transparent)] hover:bg-[color-mix(in_srgb,var(--graphite-primary)_10%,transparent)]"
                 }`}
               >
-                <div className="flex items-center gap-3 min-w-0">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <button
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onToggleFileSelect(file.id);
+                    }}
+                    className={`shrink-0 ${isSelected ? "text-[var(--graphite-primary)]" : "text-[var(--graphite-muted)] opacity-60 group-hover:opacity-100"}`}
+                    aria-label={isSelected ? "Deselect file" : "Select file"}
+                  >
+                    {isSelected ? <CheckSquare size={15} /> : <Square size={15} />}
+                  </button>
                   <Icon size={16} style={{ color }} className="shrink-0" />
                   <span className="text-xs font-medium text-[var(--graphite-text-body)] truncate group-hover:text-[var(--graphite-primary)] transition-colors">{file.name}</span>
                 </div>

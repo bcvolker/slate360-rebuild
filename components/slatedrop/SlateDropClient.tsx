@@ -144,6 +144,39 @@ export default function SlateDropClient({ user, tier, initialProjectId, projectN
     setMoveModal: ui.setMoveModal,
   });
 
+  /* ── Multi-select bulk operations (Explorer/Finder core) ── */
+  const clearSelection = useCallback(() => setSelectedFiles(new Set()), []);
+  const selectAllFiles = useCallback(() => {
+    setSelectedFiles(new Set(files.currentFiles.map((file) => file.id)));
+  }, [files.currentFiles]);
+  const bulkDownload = useCallback(() => {
+    files.currentFiles
+      .filter((file) => selectedFiles.has(file.id))
+      .forEach((file) => { void transfers.handleDownloadFile(file.id, file.name); });
+  }, [files.currentFiles, selectedFiles, transfers]);
+  const bulkDelete = useCallback(async () => {
+    const selected = files.currentFiles.filter((file) => selectedFiles.has(file.id));
+    if (selected.length === 0) return;
+    const plural = selected.length === 1 ? "" : "s";
+    if (!window.confirm(`Delete ${selected.length} file${plural}? This cannot be undone.`)) return;
+    let ok = 0;
+    for (const file of selected) {
+      try {
+        const res = await fetch("/api/slatedrop/delete", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ fileId: file.id }),
+        });
+        if (res.ok) ok += 1;
+      } catch {
+        // continue; report the total at the end
+      }
+    }
+    await files.refreshFolderFiles(activeFolderId);
+    setSelectedFiles(new Set());
+    showToast(`${ok} of ${selected.length} file${plural} deleted`, ok === selected.length);
+  }, [files, selectedFiles, activeFolderId, showToast]);
+
   /* ── Callback adapters for sub-components ── */
   const handleUploadClick = useCallback(() => fileInputRef.current?.click(), []);
   const handleSelectFolder = useCallback((id: string) => { setActiveFolderId(id); setSelectedFiles(new Set()); setMobileSidebarOpen(false); }, []);
@@ -237,6 +270,10 @@ export default function SlateDropClient({ user, tier, initialProjectId, projectN
             onToggleFileSelect={interactions.toggleFileSelect}
             onFileContextMenu={handleFileAreaContextMenu}
             onPreviewFile={handleFileAreaPreview}
+            onSelectAll={selectAllFiles}
+            onClearSelection={clearSelection}
+            onBulkDownload={bulkDownload}
+            onBulkDelete={bulkDelete}
             viewMode={viewMode} sortKey={sortKey} sortDir={sortDir}
             onToggleSort={interactions.toggleSort}
             getFileIcon={getFileIcon} getFileColor={getFileColor}
