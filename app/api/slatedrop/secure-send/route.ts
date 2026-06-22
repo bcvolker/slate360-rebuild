@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import crypto from "node:crypto";
 import { sendSecureSendEmail } from "@/lib/email";
+import { sendSms, isValidPhone } from "@/lib/sms";
 import { ensureUnifiedFileForUpload } from "@/lib/slatedrop/unified-files";
 
 export async function POST(req: NextRequest) {
@@ -33,6 +34,12 @@ export async function POST(req: NextRequest) {
 
   if (!fileId || (!email && !phone)) {
     return NextResponse.json({ error: "fileId and either email or phone are required" }, { status: 400 });
+  }
+  if (phone && !isValidPhone(phone)) {
+    return NextResponse.json(
+      { error: "Enter the phone number in international format, e.g. +13105551234." },
+      { status: 400 },
+    );
   }
 
   let orgId: string | null = null;
@@ -94,7 +101,8 @@ export async function POST(req: NextRequest) {
   const shareUrl = `${publicBaseUrl}/share/${token}`;
 
   const senderName = user.user_metadata?.full_name ?? user.email?.split("@")[0] ?? "A Slate360 user";
-  
+
+  let emailSent = false;
   if (email) {
     try {
       await sendSecureSendEmail({
@@ -105,6 +113,7 @@ export async function POST(req: NextRequest) {
         permission,
         expiresAt,
       });
+      emailSent = true;
     } catch (err) {
       console.error("[slatedrop/secure-send] Email dispatch failed:", err);
       return NextResponse.json(
@@ -114,9 +123,25 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  const smsUrl = phone
-    ? `sms:${encodeURIComponent(phone)}?body=${encodeURIComponent(`Slate360 project map: ${shareUrl}`)}`
-    : null;
+  // Real SMS dispatch (was previously only an `sms:` URI the client had to open).
+  let smsSent = false;
+  let smsError: string | null = null;
+  if (phone) {
+    const accessVerb = permission === "download" ? "view & download" : "view";
+    const body = `${senderName} shared "${file.file_name}" with you on Slate360 (${accessVerb}). Open: ${shareUrl}`;
+    const result = await sendSms({ to: phone, body });
+    if (result.ok) {
+      smsSent = true;
+    } else {
+      smsError =
+        result.reason === "missing_config"
+          ? "Text messaging isn't configured for this workspace yet."
+          : result.reason === "invalid_number"
+            ? "That phone number couldn't be reached."
+            : "Could not send the text message. Please try again.";
+      console.warn("[slatedrop/secure-send] SMS dispatch failed:", result.reason, result.detail);
+    }
+  }
 
-  return NextResponse.json({ ok: true, shareUrl, token, expiresAt, smsUrl });
+  return NextResponse.json({ ok: true, shareUrl, token, expiresAt, emailSent, smsSent, smsError });
 }
