@@ -10,6 +10,8 @@ import { TwinCaptureHudToast } from "./TwinCaptureHudToast";
 import { TwinCaptureFrameCapChip } from "./TwinCaptureFrameCapChip";
 import { TwinCaptureLiveCamera } from "./TwinCaptureLiveCamera";
 import { TwinCaptureModeSelector } from "./TwinCaptureModeSelector";
+import { TwinQualityLockRow } from "./TwinQualityLockRow";
+import { useTwinQualityLock } from "./useTwinQualityLock";
 import { TwinCaptureTopBar } from "./TwinCaptureTopBar";
 import { computeTwinCoverageProgress } from "./twin-capture-polish-tokens";
 import {
@@ -147,6 +149,12 @@ export function TwinCaptureScreen({
 
   const estimatedBytes = photoCount * PHOTO_EST_BYTES + videoSeconds * VIDEO_EST_BYTES_PER_SEC;
   const streamReady = camera.isStreaming && !camera.needsResume;
+
+  const qualityLock = useTwinQualityLock({
+    getActiveStream: camera.getActiveStream,
+    streamReady,
+    active: session.mode === "photos",
+  });
 
   useEffect(() => {
     if (!streamReady) {
@@ -354,6 +362,12 @@ export function TwinCaptureScreen({
           guideState={sensors.guideState}
           sensorsGranted={sensors.permission === "granted"}
           rollDeg={sensors.levelLineActive ? sensors.rollDeg : null}
+        />
+        <TwinQualityLockRow
+          hidden={!chromeVisible || session.mode !== "photos" || !streamReady}
+          controls={qualityLock.controls}
+          anySupported={qualityLock.anySupported}
+          onToggle={qualityLock.toggle}
         />
         <TwinCaptureModeSelector
           hidden={!chromeVisible}

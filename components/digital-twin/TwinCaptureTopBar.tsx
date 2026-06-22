@@ -55,7 +55,7 @@ export function TwinCaptureTopBar({
             event.stopPropagation();
             onBack();
           }}
-          className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[var(--graphite-text-header)] transition active:scale-[0.98]"
+          className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_55%,transparent)] text-[var(--graphite-text-header)] transition active:scale-[0.98]"
           aria-label="Back"
         >
           <ChevronLeft className="h-5 w-5" />
@@ -76,14 +76,18 @@ export function TwinCaptureTopBar({
               onClipsToggle?.();
             }}
             data-twin-chrome="clips-toggle"
-            className="inline-flex h-8 shrink-0 items-center justify-center gap-1 rounded-lg px-1.5 text-[var(--graphite-text-header)] transition active:scale-[0.98]"
+            className="inline-flex h-8 shrink-0 items-center justify-center gap-1 rounded-lg border border-[var(--accent-border-blue)] bg-[color-mix(in_srgb,var(--twin360-blue)_12%,transparent)] px-2 text-[var(--twin360-blue)] transition active:scale-[0.98]"
             aria-expanded={clipsExpanded}
             aria-label={clipsExpanded ? "Hide clips" : "Show clips"}
           >
             <span className="font-mono text-[11px] font-semibold text-[var(--twin360-blue)]">
               {clipCount}
             </span>
-            {clipsExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            {clipsExpanded ? (
+              <ChevronUp className="h-4 w-4 text-[var(--twin360-blue)]" />
+            ) : (
+              <ChevronDown className="h-4 w-4 text-[var(--twin360-blue)]" />
+            )}
           </button>
         ) : null}
 
@@ -93,7 +97,7 @@ export function TwinCaptureTopBar({
             event.stopPropagation();
             onToggleChrome();
           }}
-          className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[var(--graphite-text-header)] transition active:scale-[0.98]"
+          className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_55%,transparent)] text-[var(--graphite-text-header)] transition active:scale-[0.98]"
           aria-label="Toggle capture controls"
         >
           <Maximize2 className="h-4 w-4" />
@@ -121,7 +125,7 @@ export function TwinCaptureTopBar({
             router.push("/app");
           }}
           data-twin-chrome="quick-exit"
-          className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[var(--graphite-text-header)] transition active:scale-[0.98]"
+          className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_55%,transparent)] text-[var(--graphite-text-header)] transition active:scale-[0.98]"
           aria-label="Back to Slate360 home"
         >
           <Home className="h-4 w-4" />

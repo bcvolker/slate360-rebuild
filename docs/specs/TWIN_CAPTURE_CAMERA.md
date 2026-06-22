@@ -1,6 +1,17 @@
 # Spec: Twin 360 Capture — Mode Clarity + Quality Lock (camera controls)
 
-Status: **planning / spec**. Twin capture screen (`/digital-twin/capture` → `TwinCaptureFlow`).
+Status: **in progress**. Twin capture screen (`/digital-twin/capture` → `TwinCaptureFlow`).
+
+**Shipped (2026-06-22):** Quality Lock pill row — `TwinQualityLockRow` (visible in photo
+mode, locked-by-default, each control tappable to Auto, unsupported greyed, (?) help) wired to
+`useTwinQualityLock` + `lib/digital-twin/twin-capture-quality-lock.ts` (best-effort PWA backend:
+`getCapabilities()` detection + `applyConstraints()` locking exposure / white balance / focus to
+current values, ISO where exposed). Twin capture **top bar** re-branded to match Site Walk:
+bordered glass back / chrome / home buttons + a twin-blue clips chip. Mode toggle + interval
+already existed (`TwinCaptureModeSelector`). **Still TODO:** native Capacitor camera plugin
+(true iOS lock + shutter-priority), settings sheet (⚙) mirror + "Re-lock", lock metadata on
+capture records.
+
 Two asks: (1) make photo-vs-video mode unmistakable; (2) lock camera settings (white balance,
 exposure, ISO, focus) for best 3D-reconstruction quality — automatic by default, visible, each
 toggleable off.

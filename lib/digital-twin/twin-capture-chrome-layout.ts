@@ -16,6 +16,8 @@ export const TWIN_CAPTURE_CHROME = {
   doneButtonSizePx: 56,
   modeSelectorRowPx: 36,
   modeSelectorBottomPx: 167,
+  qualityLockBottomPx: 209,
+  qualityLockRowPx: 32,
   clipChipsBottomPx: 215,
   clipChipsRowPx: 28,
   lidarChipTopGapPx: 8,
