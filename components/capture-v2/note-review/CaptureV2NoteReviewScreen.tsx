@@ -177,6 +177,9 @@ export function CaptureV2NoteReviewScreen({
           dictationTranscribing={dictation.transcribing}
           dictationDisabled={dictation.disabled}
           onToggleDictation={dictation.toggleDictation}
+          aiState={aiState}
+          notesEmpty={!draft.notes.trim()}
+          onBoostWithAi={onFormatNotesWithAi}
         />
         <CaptureV2VoiceMemosSection
           rows={voiceMemos.rows}

@@ -113,14 +113,17 @@ export function useWithPlansPinCapture({
   const handleSourcePickerRow = useCallback(
     (rowId: CaptureV2SourcePickerRowId) => {
       if (rowId === "take_photo") {
+        // The live preview is owned by NoPlansCaptureCanvas (its own camera).
+        // Do NOT start this hook's camera too — that opened a second, never-
+        // rendered getUserMedia stream that kept iOS's camera indicator lit
+        // (and wasn't covered by the canvas background-release lifecycle).
         sourcePicker.close();
         setCaptureActive(true);
-        void camera.startCamera("environment");
         return;
       }
       sourcePicker.selectRow(rowId);
     },
-    [camera, sourcePicker],
+    [sourcePicker],
   );
 
   const handleCaptureSaved = useCallback(() => {
@@ -183,11 +186,6 @@ export function useWithPlansPinCapture({
     setCaptureActive(true);
     setPinDetailPin(null);
   }, [loop, pinDetailItem]);
-
-  useEffect(() => {
-    if (!captureActive || camera.isStreaming) return;
-    void camera.startCamera("environment");
-  }, [camera, captureActive]);
 
   useEffect(() => {
     if (!planTargetRef?.clientPinId) return;
