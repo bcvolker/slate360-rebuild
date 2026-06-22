@@ -25,7 +25,7 @@ export function useSlateDropUiState() {
   const [renameValue, setRenameValue] = useState("");
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string; type: "file" | "folder" | "project" } | null>(null);
   const [deleteProjectConfirmName, setDeleteProjectConfirmName] = useState("");
-  const [moveModal, setMoveModal] = useState<{ id: string; name: string; type: "file" } | null>(null);
+  const [moveModal, setMoveModal] = useState<{ id: string; name: string; type: "file" | "bulk"; ids?: string[] } | null>(null);
   const [moveTargetFolder, setMoveTargetFolder] = useState<string | null>(null);
 
   const [previewFile, setPreviewFile] = useState<SlateDropDbFile | null>(null);

@@ -142,11 +142,32 @@ export function useSlateDropTransferActions({
     }
   }, [copyToClipboard, shareExpiry, shareModal, sharePerm, showToast]);
 
+  // Right-click "Copy link": mint a public view link for a file directly,
+  // without opening the share modal (default view permission, 1-year expiry).
+  const handleQuickCopyLink = useCallback(async (fileId: string) => {
+    try {
+      const response = await fetch("/api/slatedrop/secure-send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fileId, permission: "view", expiryDays: 365 }),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (response.ok && payload.shareUrl) {
+        await copyToClipboard(payload.shareUrl, "Share link");
+      } else {
+        showToast(payload.error ?? "Could not create link", false);
+      }
+    } catch {
+      showToast("Could not create link", false);
+    }
+  }, [copyToClipboard, showToast]);
+
   return {
     handleDownloadFile,
     handleDownloadFolderZip,
     copyToClipboard,
     handleSendSecureLink,
     handleCopyShareLink,
+    handleQuickCopyLink,
   };
 }

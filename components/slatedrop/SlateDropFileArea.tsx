@@ -9,6 +9,7 @@ import {
   FolderOpen,
   Lock,
   MoreHorizontal,
+  Scissors,
   Square,
   SortAsc,
   SortDesc,
@@ -56,6 +57,7 @@ type SlateDropFileAreaProps = {
   onSelectAll: () => void;
   onClearSelection: () => void;
   onBulkDownload: () => void;
+  onBulkMove: () => void;
   onBulkDelete: () => void;
   onMoveFilesToFolder: (fileIds: string[], targetFolderId: string) => void;
 
@@ -94,6 +96,7 @@ export default function SlateDropFileArea({
   onSelectAll,
   onClearSelection,
   onBulkDownload,
+  onBulkMove,
   onBulkDelete,
   onMoveFilesToFolder,
   viewMode,
@@ -244,6 +247,12 @@ export default function SlateDropFileArea({
               className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-semibold text-[var(--graphite-text-body)] hover:border-[color-mix(in_srgb,var(--graphite-primary)_45%,transparent)]"
             >
               <Download size={13} /> Download
+            </button>
+            <button
+              onClick={onBulkMove}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-semibold text-[var(--graphite-text-body)] hover:border-[color-mix(in_srgb,var(--graphite-primary)_45%,transparent)]"
+            >
+              <Scissors size={13} /> Move
             </button>
             <button
               onClick={onBulkDelete}

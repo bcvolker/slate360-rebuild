@@ -4,7 +4,7 @@ import type { SlateDropFolderNode as FolderNode } from "@/lib/slatedrop/folderTr
 type NewFolderModalState = { parentId: string; name: string } | null;
 type RenameModalState = { id: string; name: string; type: "file" | "folder" } | null;
 type DeleteConfirmState = { id: string; name: string; type: "file" | "folder" | "project" } | null;
-type MoveModalState = { id: string; name: string; type: "file" } | null;
+type MoveModalState = { id: string; name: string; type: "file" | "bulk"; ids?: string[] } | null;
 
 type SlateDropActionModalsProps = {
   newFolderModal: NewFolderModalState;
@@ -30,6 +30,7 @@ type SlateDropActionModalsProps = {
   folderTree: FolderNode[];
   activeFolderId: string;
   onMoveFile: (fileId: string, targetFolderId: string) => Promise<void>;
+  onMoveFiles: (fileIds: string[], targetFolderId: string) => Promise<void> | void;
 };
 
 export default function SlateDropActionModals({
@@ -53,6 +54,7 @@ export default function SlateDropActionModals({
   folderTree,
   activeFolderId,
   onMoveFile,
+  onMoveFiles,
 }: SlateDropActionModalsProps) {
   return (
     <>
@@ -202,7 +204,7 @@ export default function SlateDropActionModals({
           <div className="w-full max-w-md bg-[color-mix(in_srgb,var(--graphite-canvas)_60%,transparent)] rounded-2xl shadow-2xl overflow-hidden border border-white/10">
             <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
               <div>
-                <h3 className="text-base font-bold text-[var(--graphite-text-body)]">Move File</h3>
+                <h3 className="text-base font-bold text-[var(--graphite-text-body)]">{moveModal.type === "bulk" ? "Move Files" : "Move File"}</h3>
                 <p className="text-xs text-[var(--graphite-muted)] mt-0.5">Select destination for &quot;{moveModal.name}&quot;</p>
               </div>
               <button onClick={() => setMoveModal(null)} className="text-[var(--graphite-muted)] hover:text-[var(--graphite-text-body)] transition-colors">
@@ -248,7 +250,11 @@ export default function SlateDropActionModals({
                       setMoveModal(null);
                       return;
                     }
-                    await onMoveFile(moveModal.id, moveTargetFolder);
+                    if (moveModal.type === "bulk" && moveModal.ids?.length) {
+                      await onMoveFiles(moveModal.ids, moveTargetFolder);
+                    } else {
+                      await onMoveFile(moveModal.id, moveTargetFolder);
+                    }
                   }}
                   disabled={!moveTargetFolder || moveTargetFolder === activeFolderId}
                   className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-foreground transition-all hover:opacity-90 disabled:opacity-50"

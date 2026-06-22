@@ -180,6 +180,12 @@ export default function SlateDropClient({ user, tier, initialProjectId, projectN
     setSelectedFiles(new Set());
     showToast(`${ok} of ${selected.length} file${plural} deleted`, ok === selected.length);
   }, [files, selectedFiles, activeFolderId, showToast]);
+  const bulkMove = useCallback(() => {
+    const ids = files.currentFiles.filter((file) => selectedFiles.has(file.id)).map((file) => file.id);
+    if (ids.length === 0) return;
+    ui.setMoveModal({ id: ids[0], ids, name: `${ids.length} file${ids.length === 1 ? "" : "s"}`, type: "bulk" });
+    ui.setMoveTargetFolder(activeFolderId);
+  }, [files.currentFiles, selectedFiles, ui, activeFolderId]);
 
   // "Get upload link": mint a folder upload link (project_external_links) so a
   // client can upload INTO this folder via /upload/<token>, and copy it.
@@ -340,6 +346,7 @@ export default function SlateDropClient({ user, tier, initialProjectId, projectN
             onSelectAll={selectAllFiles}
             onClearSelection={clearSelection}
             onBulkDownload={bulkDownload}
+            onBulkMove={bulkMove}
             onBulkDelete={bulkDelete}
             onMoveFilesToFolder={handleMoveFilesToFolder}
             viewMode={viewMode} sortKey={sortKey} sortDir={sortDir}
@@ -362,6 +369,7 @@ export default function SlateDropClient({ user, tier, initialProjectId, projectN
         onCopyFileName={(n) => transfers.copyToClipboard(n, "File name")}
         onMoveFile={(t) => { ui.setMoveModal({ id: t.id, name: t.file_name, type: "file" }); ui.setMoveTargetFolder(activeFolderId); }}
         onOpenShare={ui.openShareModal}
+        onCopyShareLink={(t) => { void transfers.handleQuickCopyLink(t.id); }}
         onDeleteFile={(t) => { ui.setDeleteConfirm({ id: t.id, name: t.file_name, type: "file" }); }}
         onCopyFolderName={(n) => transfers.copyToClipboard(n, "Folder name")}
         onRenameFolder={(t) => { ui.setRenameModal({ id: t.id, name: t.name, type: "folder" }); ui.setRenameValue(t.name); }}
@@ -374,7 +382,7 @@ export default function SlateDropClient({ user, tier, initialProjectId, projectN
         newFolderModal={ui.newFolderModal} setNewFolderModal={ui.setNewFolderModal} onCreateFolder={mutations.handleCreateFolder}
         renameModal={ui.renameModal} setRenameModal={ui.setRenameModal} renameValue={ui.renameValue} setRenameValue={ui.setRenameValue} onRename={mutations.handleRename}
         deleteConfirm={ui.deleteConfirm} setDeleteConfirm={ui.setDeleteConfirm} deleteProjectConfirmName={ui.deleteProjectConfirmName} setDeleteProjectConfirmName={ui.setDeleteProjectConfirmName} onDeleteConfirm={mutations.handleDeleteConfirmAction}
-        moveModal={ui.moveModal} setMoveModal={ui.setMoveModal} moveTargetFolder={ui.moveTargetFolder} setMoveTargetFolder={ui.setMoveTargetFolder} folderTree={folderTree} activeFolderId={activeFolderId} onMoveFile={mutations.handleMoveFile}
+        moveModal={ui.moveModal} setMoveModal={ui.setMoveModal} moveTargetFolder={ui.moveTargetFolder} setMoveTargetFolder={ui.setMoveTargetFolder} folderTree={folderTree} activeFolderId={activeFolderId} onMoveFile={mutations.handleMoveFile} onMoveFiles={handleMoveFilesToFolder}
       />
 
       <SlateDropSharePreviewModals
