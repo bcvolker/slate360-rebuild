@@ -1,6 +1,7 @@
 import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { provisionProjectFolders } from "@/lib/slatedrop/provisioning";
 
 const QUICK_SCAN_POOL_NAME = "Quick Scans";
 const QUICK_SCAN_POOL_META_KEY = "twin_quick_scan_pool";
@@ -68,6 +69,16 @@ export async function resolveOrCreateQuickScanProject(
   if (memberError) {
     await admin.from("projects").delete().eq("id", created.id);
     throw new Error(memberError.message);
+  }
+
+  // Provision the numbered SlateDrop subfolder taxonomy so quick-scan projects
+  // get the same folder structure as projects created via /api/projects/create.
+  // Best-effort: a failure here is backstopped by lazy provisioning on first
+  // SlateDrop view, so it must not block the scan.
+  try {
+    await provisionProjectFolders(created.id, created.name ?? QUICK_SCAN_POOL_NAME, orgId, userId);
+  } catch (provisionError) {
+    console.error("[quick-scan] folder provisioning failed", provisionError);
   }
 
   return { id: created.id, name: created.name ?? QUICK_SCAN_POOL_NAME };
