@@ -22,6 +22,12 @@ export interface DashboardTabShellProps {
   /** Minimum tier required to use this tab. When set, shows UpgradeGate for lower tiers. */
   requiredTier?: Tier;
   showCustomize?: boolean;
+  /**
+   * Fill the chrome's content height instead of growing the page. Use for
+   * board/sub-tab layouts that manage their own internal scroll — eliminates
+   * the page-level vertical scroll and full-width side gaps.
+   */
+  fill?: boolean;
   children?: React.ReactNode;
 }
 
@@ -36,6 +42,7 @@ export default function DashboardTabShell({
   internalAccess,
   requiredTier,
   showCustomize = true,
+  fill = false,
   children,
 }: DashboardTabShellProps) {
   const [customizeOpen, setCustomizeOpen] = useState(false);
@@ -43,13 +50,19 @@ export default function DashboardTabShell({
   const isLocked = !isTrial && requiredTier ? !tierMeetsRequirement(tier, requiredTier) : false;
 
   return (
-    <div className="min-h-screen overflow-x-hidden">
+    <div className={fill ? "flex h-full min-h-0 flex-col overflow-x-hidden" : "overflow-x-hidden"}>
 
       {/* MAIN — chrome is provided by AppShell; we only paint page content */}
-      <main className="max-w-[1440px] mx-auto px-4 sm:px-6 py-6 sm:py-8 overflow-x-hidden space-y-6">
+      <main
+        className={
+          fill
+            ? "mx-auto flex min-h-0 w-full flex-1 flex-col gap-4 overflow-x-hidden px-4 py-5 sm:px-6"
+            : "max-w-[1440px] mx-auto px-4 sm:px-6 py-6 sm:py-8 overflow-x-hidden space-y-6"
+        }
+      >
 
         {/* Page-header row */}
-        <div className="flex items-center gap-4">
+        <div className="flex shrink-0 items-center gap-4">
           {Icon && (
             <div
               className="h-12 w-12 rounded-2xl flex-shrink-0 flex items-center justify-center"
@@ -79,7 +92,7 @@ export default function DashboardTabShell({
         ) : (
           <>
             {tier === "trial" && <TrialBanner feature={title} accent={accent} />}
-            {children}
+            {fill ? <div className="flex min-h-0 flex-1 flex-col">{children}</div> : children}
           </>
         )}
       </main>
