@@ -117,6 +117,24 @@ fill-height, internally-scrolling content area. Pages must **fill it, not grow i
   drag-to-reorder, resize (col span), collapse/expand, persisted per board. Widgets
   tile a 12-col grid so the board fills width with no gaps.
 
+### Tab / nav active-state archetypes (two — pick by surface, don't invent a third)
+
+All active-states are tinted with **`--graphite-primary`** (teal) — never a
+hardcoded hex, never amber/orange. There are exactly two shapes:
+
+1. **Nav-pill** (persistent navigation: left sidebar, project-detail rail) —
+   `bg 12%` + `ring-1 ring-inset 24%`. Tokens live in
+   `components/dashboard-desktop/dashboard-tokens.ts` and
+   `components/projects/project-detail-tokens.ts`.
+2. **Sub-tab** (in-content segmented tabs: `SubTabs`, `DashboardDomainWorkspace`) —
+   `bg 14%`, no ring. **Single source of truth:** `subTabButtonClass(selected)`
+   exported from `components/shared/SubTabs.tsx`. Consume it — do not re-inline the
+   class string (that's how the 12/14 values drift).
+
+The Operations Console (`components/ops/console/ops-console-tokens.ts`) keeps a
+distinct `border-b-2` underline pattern for its dense 9-tab admin bar — a
+deliberate, documented exception, not a target to "unify".
+
 ## 8. Enforcement
 
 `npm run guard:design` (`scripts/ops/check-design-guardrails.mjs`) fails the build

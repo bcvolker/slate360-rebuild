@@ -19,6 +19,20 @@ export type SubTabItem = {
   content: ReactNode;
 };
 
+/**
+ * Canonical sub-tab button styling (the "sub-tab" active archetype: 14% teal
+ * wash, no ring — distinct from the nav-pill archetype which adds a ring).
+ * Single source of truth so any surface with in-content segmented tabs
+ * (SubTabs, DashboardDomainWorkspace, …) stays visually identical and can't drift.
+ */
+export function subTabButtonClass(selected: boolean): string {
+  return `inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+    selected
+      ? "bg-[color-mix(in_srgb,var(--graphite-primary)_14%,transparent)] text-[var(--graphite-text-header)]"
+      : "text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]"
+  }`;
+}
+
 export default function SubTabs({
   items,
   defaultTabId,
@@ -49,11 +63,7 @@ export default function SubTabs({
               aria-selected={selected}
               type="button"
               onClick={() => setActive(item.id)}
-              className={`inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
-                selected
-                  ? "bg-[color-mix(in_srgb,var(--graphite-primary)_14%,transparent)] text-[var(--graphite-text-header)]"
-                  : "text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]"
-              }`}
+              className={subTabButtonClass(selected)}
             >
               {Icon && <Icon className="h-3.5 w-3.5" />}
               {item.label}

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowRight, Plus } from "lucide-react";
 import { DashboardEmptyState } from "./DashboardEmptyState";
 import { dashboardDesktopTokens as t } from "./dashboard-tokens";
+import { subTabButtonClass } from "../shared/SubTabs";
 
 export type WorkspaceItem = {
   id: string;
@@ -105,11 +106,7 @@ export function DashboardDomainWorkspace({
                 key={x.id}
                 type="button"
                 onClick={() => setTab(x.id)}
-                className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
-                  tab === x.id
-                    ? "bg-[color-mix(in_srgb,var(--graphite-primary)_14%,transparent)] text-[var(--graphite-text-header)]"
-                    : "text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]"
-                }`}
+                className={subTabButtonClass(tab === x.id)}
               >
                 {x.label}
               </button>
