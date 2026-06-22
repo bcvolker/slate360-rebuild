@@ -187,6 +187,30 @@ export default function SlateDropClient({ user, tier, initialProjectId, projectN
     ui.setMoveTargetFolder(activeFolderId);
   }, [files.currentFiles, selectedFiles, ui, activeFolderId]);
 
+  // Duplicate a file: server copies the S3 object + inserts a sibling row, then
+  // refresh the folder so the copy appears.
+  const handleDuplicateFile = useCallback(
+    async (fileId: string) => {
+      try {
+        const res = await fetch("/api/slatedrop/duplicate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ fileId }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (res.ok) {
+          await files.refreshFolderFiles(activeFolderId);
+          showToast(data.fileName ? `Duplicated as "${data.fileName}"` : "File duplicated");
+        } else {
+          showToast(data.error ?? "Could not duplicate file", false);
+        }
+      } catch {
+        showToast("Could not duplicate file", false);
+      }
+    },
+    [files, activeFolderId, showToast],
+  );
+
   // "Get upload link": mint a folder upload link (project_external_links) so a
   // client can upload INTO this folder via /upload/<token>, and copy it.
   const handleRequestUploadLink = useCallback(
@@ -368,6 +392,7 @@ export default function SlateDropClient({ user, tier, initialProjectId, projectN
         onRenameFile={(t) => { ui.setRenameModal({ id: t.id, name: t.file_name, type: "file" }); ui.setRenameValue(t.file_name); }}
         onCopyFileName={(n) => transfers.copyToClipboard(n, "File name")}
         onMoveFile={(t) => { ui.setMoveModal({ id: t.id, name: t.file_name, type: "file" }); ui.setMoveTargetFolder(activeFolderId); }}
+        onDuplicateFile={(t) => { void handleDuplicateFile(t.id); }}
         onOpenShare={ui.openShareModal}
         onShowInfo={(t) => ui.setInfoModal({
           name: t.file_name,
