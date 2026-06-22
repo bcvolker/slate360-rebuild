@@ -46,12 +46,12 @@ export default async function SlateDropSectionPage({ params }: { params: Promise
 
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-5 px-4 py-5 pb-28 text-slate-50 sm:px-6 lg:px-8 lg:py-8 lg:pb-8">
-      <Link href="/slatedrop" className="inline-flex min-h-10 w-fit items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] px-3 text-sm font-bold text-slate-200 hover:border-amber-400/60 hover:bg-white/10">
+      <Link href="/slatedrop" className="inline-flex min-h-10 w-fit items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] px-3 text-sm font-bold text-slate-200 hover:border-[color-mix(in_srgb,var(--graphite-primary)_45%,transparent)] hover:bg-white/10">
         <ArrowLeft className="h-4 w-4" /> SlateDrop
       </Link>
 
       <GlassCard className="p-5 sm:p-6">
-        <p className="text-[11px] font-black uppercase tracking-[0.18em] text-amber-400">{parent}</p>
+        <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[var(--graphite-primary)]">{parent}</p>
         <h1 className="mt-2 text-2xl font-black text-white sm:text-3xl">{title}</h1>
         <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">{detail}</p>
       </GlassCard>
@@ -78,7 +78,7 @@ export default async function SlateDropSectionPage({ params }: { params: Promise
       )}
 
       <GlassCard className="border-dashed border-white/15 bg-white/[0.03] p-6 text-center">
-        <Folder className="mx-auto h-8 w-8 text-amber-400" />
+        <Folder className="mx-auto h-8 w-8 text-[var(--graphite-primary)]" />
         <p className="mt-3 text-sm font-bold text-white">No files selected</p>
         <p className="mx-auto mt-1 max-w-lg text-sm leading-6 text-slate-400">
           Open a project folder or upload files to use SlateDrop actions from this workspace.
@@ -90,8 +90,8 @@ export default async function SlateDropSectionPage({ params }: { params: Promise
 
 function ActionState({ title }: { title: string }) {
   return (
-    <GlassCard className="border-amber-400/20 bg-amber-500/10 p-5">
-      <p className="text-[11px] font-black uppercase tracking-[0.18em] text-amber-300">{title}</p>
+    <GlassCard className="border-[color-mix(in_srgb,var(--graphite-primary)_24%,transparent)] bg-[color-mix(in_srgb,var(--graphite-primary)_10%,transparent)] p-5">
+      <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[var(--graphite-primary)]">{title}</p>
       <h2 className="mt-2 text-lg font-black text-white">Select files first</h2>
       <p className="mt-1 text-sm leading-6 text-slate-300">Open a folder with files, then run this action from the file toolbar or context menu.</p>
     </GlassCard>
@@ -100,8 +100,8 @@ function ActionState({ title }: { title: string }) {
 
 function FolderAction({ href, icon: Icon, label }: { href: string; icon: typeof Plus; label: string }) {
   return (
-    <Link href={href} className="flex min-h-20 flex-col items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] px-2 text-xs font-bold text-slate-300 hover:border-amber-400/60 hover:bg-white/10">
-      <Icon className="h-5 w-5 text-amber-400" />
+    <Link href={href} className="flex min-h-20 flex-col items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] px-2 text-xs font-bold text-slate-300 hover:border-[color-mix(in_srgb,var(--graphite-primary)_45%,transparent)] hover:bg-white/10">
+      <Icon className="h-5 w-5 text-[var(--graphite-primary)]" />
       {label}
     </Link>
   );
