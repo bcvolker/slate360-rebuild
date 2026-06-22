@@ -111,8 +111,12 @@ export function TwinCaptureScreen({
 
   const scopeLabel = projectName?.trim() ? projectName.trim().toUpperCase() : "QUICK SCAN";
   const recording = devForceRecording || session.isRecording;
+  // "REC" is for VIDEO only. Photo mode runs a timed burst — it must never say
+  // "REC" (reads as secret video recording); show "CAPTURING" instead.
   const headerLabel = recording
-    ? `${scopeLabel} · REC ${formatRecTimer(session.recSeconds)}`
+    ? session.mode === "video"
+      ? `${scopeLabel} · REC ${formatRecTimer(session.recSeconds)}`
+      : `${scopeLabel} · CAPTURING`
     : `${scopeLabel} · READY`;
 
   const photoCount = session.totalPhotoFrames;
