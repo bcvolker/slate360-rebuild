@@ -67,7 +67,7 @@ export function DashboardHomeContent({ counts, recentProjects, recentWalks, rece
           >
             {featured.imageUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={featured.imageUrl} alt={featured.name} className="absolute inset-0 h-full w-full object-cover" />
+              <img src={featured.imageUrl} alt={featured.name} decoding="async" className="absolute inset-0 h-full w-full object-cover" />
             ) : (
               <div
                 className="absolute inset-0 flex items-center justify-center"

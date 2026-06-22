@@ -71,7 +71,7 @@ export function ProjectDetailShell({
       <div className="relative -mx-4 h-24 shrink-0 overflow-hidden lg:mx-0 lg:rounded-2xl lg:border lg:border-[var(--mobile-app-card-border)]">
         {coverImageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={coverImageUrl} alt={projectName} className="absolute inset-0 h-full w-full object-cover" />
+          <img src={coverImageUrl} alt={projectName} decoding="async" className="absolute inset-0 h-full w-full object-cover" />
         ) : (
           <div
             className="absolute inset-0"

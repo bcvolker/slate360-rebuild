@@ -83,7 +83,7 @@ export function DashboardProjectsRail({ projects, total }: { projects: RailProje
           >
             {p.imageUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={p.imageUrl} alt={p.name} className="absolute inset-0 h-full w-full object-cover" />
+              <img src={p.imageUrl} alt={p.name} loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover" />
             ) : (
               <div
                 className="absolute inset-0"
