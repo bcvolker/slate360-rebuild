@@ -9,12 +9,19 @@
  * or at call sites. See docs/design/GRAPHITE_GLASS.md §7.
  *
  * These produce class strings (not components) so existing raw elements keep their
- * tags and behavior — adopting them is a zero-behavior-change dedup.
+ * tags and behavior — adopting them is a zero-behavior-change dedup. The `extra`
+ * arg is merged with tailwind-merge (via cn), so a surface that wants its own look
+ * (e.g. capture's rounded-2xl / bg-black/40 / font-bold) can override the base
+ * utilities cleanly and stay pixel-identical to its current styling.
  */
+import { cn } from "@/lib/utils";
 
-/** Dark form field — input / textarea / select. Append per-field tweaks via `extra`. */
+/** Dark form field — input / textarea / select. Append/override per-field via `extra`. */
 export function darkFieldClass(extra = ""): string {
-  return `w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-[var(--graphite-text-header)] outline-none transition placeholder:text-[var(--graphite-muted)] focus:border-[var(--graphite-primary)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--graphite-primary)_25%,transparent)] ${extra}`.trim();
+  return cn(
+    "w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-[var(--graphite-text-header)] outline-none transition placeholder:text-[var(--graphite-muted)] focus:border-[var(--graphite-primary)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--graphite-primary)_25%,transparent)]",
+    extra,
+  );
 }
 
 export type DarkButtonVariant = "primary" | "ghost" | "danger";
@@ -28,7 +35,7 @@ export function darkButtonClass(variant: DarkButtonVariant = "primary", extra = 
     ghost: "border border-white/15 bg-white/5 text-[var(--graphite-text-header)] hover:bg-white/10",
     danger: "bg-[#EF4444] text-white hover:opacity-90",
   };
-  return `${base} ${byVariant[variant]} ${extra}`.trim();
+  return cn(base, byVariant[variant], extra);
 }
 
 /** Modal overlay / backdrop. Covers the viewport, centers the panel, dims + blurs behind. */
@@ -37,7 +44,10 @@ export const darkModalOverlayClass =
 
 /** Modal panel container. Pass size (and any layout) via `extra`, e.g. "max-w-lg". */
 export function darkModalPanelClass(extra = "max-w-lg"): string {
-  return `flex max-h-[min(92dvh,640px)] w-full ${extra} flex-col overflow-hidden rounded-2xl border border-white/10 bg-[var(--graphite-canvas)] shadow-2xl`.trim();
+  return cn(
+    "flex max-h-[min(92dvh,640px)] w-full flex-col overflow-hidden rounded-2xl border border-white/10 bg-[var(--graphite-canvas)] shadow-2xl",
+    extra,
+  );
 }
 
 /** Label above a dark form field. */

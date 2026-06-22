@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { MapPin, X } from "lucide-react";
+import { darkButtonClass, darkFieldClass } from "@/components/ui/dark-surface-styles";
 
 type Props = {
   open: boolean;
@@ -46,7 +47,7 @@ export function LocationPickerModal({ open, currentLocation, recentLocations, on
               value={value}
               onChange={(event) => setValue(event.target.value)}
               onKeyDown={(event) => { if (event.key === "Enter") submit(value); }}
-              className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-base font-bold text-white outline-none focus:border-[var(--graphite-primary)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--graphite-primary)_25%,transparent)]"
+              className={darkFieldClass("mt-2 rounded-2xl px-4 py-3 text-base font-bold")}
               placeholder="Stop 2, Lobby, AOB Room 206"
             />
           </label>
@@ -64,8 +65,8 @@ export function LocationPickerModal({ open, currentLocation, recentLocations, on
         </main>
 
         <footer className="grid shrink-0 grid-cols-2 gap-2 border-t border-white/10 p-3">
-          <button type="button" onClick={onClose} className="min-h-12 rounded-2xl border border-white/15 bg-white/5 px-4 text-sm font-black text-slate-100">Cancel</button>
-          <button type="button" onClick={() => submit(value)} className="min-h-12 rounded-2xl bg-[var(--graphite-primary)] px-4 text-sm font-black text-[var(--graphite-canvas)]">Use Stop</button>
+          <button type="button" onClick={onClose} className={darkButtonClass("ghost", "min-h-12 rounded-2xl px-4 font-black")}>Cancel</button>
+          <button type="button" onClick={() => submit(value)} className={darkButtonClass("primary", "min-h-12 rounded-2xl px-4 font-black")}>Use Stop</button>
         </footer>
       </section>
     </div>
