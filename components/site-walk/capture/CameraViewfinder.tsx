@@ -135,9 +135,9 @@ export function CameraViewfinder({ sessionId, autoOpenCamera = false, launchId =
   return (
     <section className={visualOnly ? "relative flex h-full min-h-0 flex-col overflow-hidden bg-zinc-950" : "rounded-3xl border border-white/10 bg-slate-900/70 p-4 text-slate-50 shadow-lg shadow-black/30"}>
       {target && (
-        <div className={visualOnly ? "absolute left-3 right-3 top-3 z-20 flex items-center justify-between gap-2 rounded-2xl border border-amber-500/35 bg-slate-950/85 px-3 py-2 text-xs font-black text-amber-100 shadow-2xl backdrop-blur-xl" : "mb-3 flex flex-col gap-2 rounded-2xl border border-amber-500/35 bg-amber-500/10 px-4 py-3 text-sm font-bold text-amber-100 sm:flex-row sm:items-center sm:justify-between"}>
+        <div className={visualOnly ? "absolute left-3 right-3 top-3 z-20 flex items-center justify-between gap-2 rounded-2xl border border-[color-mix(in_srgb,var(--graphite-primary)_35%,transparent)] bg-slate-950/85 px-3 py-2 text-xs font-black text-[var(--graphite-primary)] shadow-2xl backdrop-blur-xl" : "mb-3 flex flex-col gap-2 rounded-2xl border border-[color-mix(in_srgb,var(--graphite-primary)_35%,transparent)] bg-[color-mix(in_srgb,var(--graphite-primary)_10%,transparent)] px-4 py-3 text-sm font-bold text-[var(--graphite-primary)] sm:flex-row sm:items-center sm:justify-between"}>
           <span>Next capture attaches to the selected plan pin.</span>
-          <button type="button" onClick={clearTarget} className="shrink-0 rounded-xl bg-amber-500 px-3 py-2 text-xs font-black text-zinc-950 hover:bg-amber-400">Clear</button>
+          <button type="button" onClick={clearTarget} className="shrink-0 rounded-xl bg-[var(--graphite-primary)] px-3 py-2 text-xs font-black text-[var(--graphite-canvas)] hover:bg-[color-mix(in_srgb,var(--graphite-primary)_85%,white)]">Clear</button>
         </div>
       )}
 
@@ -148,24 +148,24 @@ export function CameraViewfinder({ sessionId, autoOpenCamera = false, launchId =
               <PhotoMarkupCanvas imageUrl={activePreview.url} title={activePreview.title} sessionId={sessionId} markupEnabled={markupEnabled} initialMarkup={isMarkupData(activeItem?.markup_data) ? activeItem.markup_data : undefined} attachmentPins={getItemPhotoAttachmentPins(activeItem)} onAttachmentPinsChange={(pins) => onAttachmentPinsChange?.(activePreview.itemId, pins)} onMarkupChange={(markup) => onMarkupChange?.(activePreview.itemId, markup)} />
               {visualOnly && <CaptureUploadBadge kind={status.kind} />}
               {!visualOnly && <div className="grid gap-2 sm:grid-cols-2">
-                <button type="button" onClick={() => triggerCapture("camera", "next_item")} disabled={busy || !mounted} className="min-h-12 rounded-2xl bg-amber-500 px-4 py-3 text-base font-black text-slate-950 shadow-sm transition hover:bg-amber-400 disabled:opacity-60"><span className="inline-flex items-center gap-2"><Camera className="h-5 w-5" /> Capture next item</span></button>
-                <button type="button" onClick={() => triggerCapture("upload", "next_item")} disabled={busy || !mounted} className="min-h-12 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-base font-black text-slate-200 transition hover:border-amber-400/50 hover:text-amber-200 disabled:opacity-60"><span className="inline-flex items-center gap-2"><FileImage className="h-5 w-5" /> Upload next image</span></button>
+                <button type="button" onClick={() => triggerCapture("camera", "next_item")} disabled={busy || !mounted} className="min-h-12 rounded-2xl bg-[var(--graphite-primary)] px-4 py-3 text-base font-black text-[var(--graphite-canvas)] shadow-sm transition hover:bg-[color-mix(in_srgb,var(--graphite-primary)_85%,white)] disabled:opacity-60"><span className="inline-flex items-center gap-2"><Camera className="h-5 w-5" /> Capture next item</span></button>
+                <button type="button" onClick={() => triggerCapture("upload", "next_item")} disabled={busy || !mounted} className="min-h-12 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-base font-black text-slate-200 transition hover:border-[color-mix(in_srgb,var(--graphite-primary)_50%,transparent)] hover:text-[var(--graphite-primary)] disabled:opacity-60"><span className="inline-flex items-center gap-2"><FileImage className="h-5 w-5" /> Upload next image</span></button>
               </div>}
             </div>
           ) : (
             <>
-          <Camera className="h-12 w-12 text-amber-400 md:hidden" />
-          <FileImage className="hidden h-12 w-12 text-amber-400 md:block" />
+          <Camera className="h-12 w-12 text-[var(--graphite-primary)] md:hidden" />
+          <FileImage className="hidden h-12 w-12 text-[var(--graphite-primary)] md:block" />
           <h2 className="mt-4 text-2xl font-black text-white">Capture field proof</h2>
           <p className={`mt-2 max-w-lg text-sm leading-6 ${visualOnly ? "px-5 text-slate-300" : "text-slate-400"}`}>One tap opens the camera. The image appears immediately, the drawer opens for notes/classification, and upload/offline sync continues in the background.</p>
           <div className="mt-6 grid w-full max-w-xl gap-3 md:hidden">
-            <button type="button" onClick={() => openCaptureInput({ source: "quick_capture", input: "camera" })} disabled={busy || !mounted} className="min-h-16 rounded-3xl bg-amber-500 px-5 py-4 text-lg font-black text-slate-950 shadow-lg shadow-amber-500/20 transition hover:bg-amber-400 disabled:opacity-60"><span className="inline-flex items-center gap-2"><Camera className="h-5 w-5" /> Take Photo</span></button>
-            <button type="button" onClick={() => openCaptureInput({ source: "quick_capture", input: "upload" })} disabled={busy || !mounted} className="min-h-16 rounded-3xl border border-white/15 bg-white/10 px-5 py-4 text-lg font-black text-white transition hover:border-amber-400 disabled:opacity-60"><span className="inline-flex items-center gap-2"><FileImage className="h-5 w-5" /> Camera Roll</span></button>
+            <button type="button" onClick={() => openCaptureInput({ source: "quick_capture", input: "camera" })} disabled={busy || !mounted} className="min-h-16 rounded-3xl bg-[var(--graphite-primary)] px-5 py-4 text-lg font-black text-[var(--graphite-canvas)] transition hover:bg-[color-mix(in_srgb,var(--graphite-primary)_85%,white)] disabled:opacity-60"><span className="inline-flex items-center gap-2"><Camera className="h-5 w-5" /> Take Photo</span></button>
+            <button type="button" onClick={() => openCaptureInput({ source: "quick_capture", input: "upload" })} disabled={busy || !mounted} className="min-h-16 rounded-3xl border border-white/15 bg-white/10 px-5 py-4 text-lg font-black text-white transition hover:border-[var(--graphite-primary)] disabled:opacity-60"><span className="inline-flex items-center gap-2"><FileImage className="h-5 w-5" /> Camera Roll</span></button>
           </div>
-          <div onDragOver={(event) => { event.preventDefault(); setDragActive(true); }} onDragLeave={() => setDragActive(false)} onDrop={handleDrop} className={`mt-6 hidden w-full max-w-2xl rounded-3xl border-2 border-dashed p-10 transition md:flex md:min-h-64 md:flex-col md:items-center md:justify-center ${dragActive ? "border-amber-500 bg-amber-500/10" : "border-white/15 bg-white/[0.04]"}`}>
+          <div onDragOver={(event) => { event.preventDefault(); setDragActive(true); }} onDragLeave={() => setDragActive(false)} onDrop={handleDrop} className={`mt-6 hidden w-full max-w-2xl rounded-3xl border-2 border-dashed p-10 transition md:flex md:min-h-64 md:flex-col md:items-center md:justify-center ${dragActive ? "border-[var(--graphite-primary)] bg-[color-mix(in_srgb,var(--graphite-primary)_10%,transparent)]" : "border-white/15 bg-white/[0.04]"}`}>
             <p className="text-2xl font-black text-white">Drag &amp; Drop Photos Here</p>
             <p className="mt-2 text-sm leading-6 text-slate-400">Desktop mode is upload-first for job trailer workflows.</p>
-            <button type="button" onClick={() => openCaptureInput({ source: "quick_capture", input: "upload" })} disabled={busy || !mounted} className="mt-6 min-h-12 rounded-2xl bg-amber-500 px-6 py-3 text-sm font-black text-slate-950 transition hover:bg-amber-400 disabled:opacity-60"><span className="inline-flex items-center gap-2"><FileImage className="h-5 w-5" /> Select Photos from Computer</span></button>
+            <button type="button" onClick={() => openCaptureInput({ source: "quick_capture", input: "upload" })} disabled={busy || !mounted} className="mt-6 min-h-12 rounded-2xl bg-[var(--graphite-primary)] px-6 py-3 text-sm font-black text-[var(--graphite-canvas)] transition hover:bg-[color-mix(in_srgb,var(--graphite-primary)_85%,white)] disabled:opacity-60"><span className="inline-flex items-center gap-2"><FileImage className="h-5 w-5" /> Select Photos from Computer</span></button>
           </div>
             </>
           )}

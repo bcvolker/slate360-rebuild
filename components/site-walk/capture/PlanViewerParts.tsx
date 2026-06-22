@@ -14,7 +14,7 @@ export function PinInfoBubble({ pin, item, onSelect }: { pin: PlanViewerPin; ite
         <p className="truncate text-xs font-black text-cyan-100">{item?.title || `Pin ${pin.label}`}</p>
         <p className="mt-1 line-clamp-2 text-[11px] font-bold text-white/65">{item?.description || "Saved item"}</p>
       </div>
-      <button type="button" onClick={onSelect} className="h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-black border border-white/10 hover:ring-2 hover:ring-amber-500">
+      <button type="button" onClick={onSelect} className="h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-black border border-white/10 hover:ring-2 hover:ring-[var(--graphite-primary)]">
         <img src={`/api/site-walk/items/${pin.item_id}/image`} alt="Preview" className="h-full w-full object-cover" onError={(e) => { e.currentTarget.style.display = "none"; }} />
       </button>
     </div>

@@ -55,10 +55,10 @@ export function PlanQuickActionMenu({ pinId, clientPinId, isSavedPin = false, pl
 
   return (
     <div className="pointer-events-none fixed inset-x-0 bottom-0 z-[2000] flex justify-center px-3 pb-[max(env(safe-area-inset-bottom),0.75rem)] sm:inset-0 sm:items-center sm:px-4 sm:pb-0">
-      <div className="pointer-events-auto w-full max-w-sm rounded-[1.75rem] border border-amber-400/25 bg-slate-900/95 p-4 text-left text-slate-50 shadow-2xl shadow-black/70 backdrop-blur-xl">
+      <div className="pointer-events-auto w-full max-w-sm rounded-[1.75rem] border border-[color-mix(in_srgb,var(--graphite-primary)_25%,transparent)] bg-slate-900/95 p-4 text-left text-slate-50 shadow-2xl shadow-black/70 backdrop-blur-xl">
         <div className="flex items-start justify-between gap-2">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.16em] text-amber-400">{isSavedPin ? "Saved Stop" : "Draft pin"}</p>
+            <p className="text-xs font-black uppercase tracking-[0.16em] text-[var(--graphite-primary)]">{isSavedPin ? "Saved Stop" : "Draft pin"}</p>
             <p className="mt-1 text-sm font-bold text-slate-400">{isSavedPin ? "Location locked. Add evidence from this saved location." : "Drag the pin to adjust it, then attach the next capture."}</p>
           </div>
           <button type="button" onClick={onClose} className="rounded-lg p-1 text-slate-500 hover:bg-white/[0.06]" aria-label="Close pin actions">
@@ -67,11 +67,11 @@ export function PlanQuickActionMenu({ pinId, clientPinId, isSavedPin = false, pl
         </div>
         <div className="mt-3 grid gap-2">
           {isSavedPin && <button type="button" disabled className="flex min-h-11 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-sm font-black text-slate-500 opacity-70" title="No linked stop details are available in this walk view."><StickyNote className="h-4 w-4" /> Open details unavailable</button>}
-          {!isDesktop && <button type="button" onClick={() => choose("photo", "camera")} disabled={captureDisabled} className="flex min-h-11 items-center gap-2 rounded-xl bg-amber-500 px-3 py-2 text-sm font-black text-slate-950 hover:bg-amber-400 disabled:opacity-50"><Camera className="h-4 w-4" /> Take photo at this pin</button>}
-          <button type="button" onClick={() => choose("photo", "upload")} disabled={captureDisabled} className="flex min-h-11 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-sm font-black text-slate-200 hover:border-amber-400/50 hover:text-amber-200 disabled:opacity-50">
+          {!isDesktop && <button type="button" onClick={() => choose("photo", "camera")} disabled={captureDisabled} className="flex min-h-11 items-center gap-2 rounded-xl bg-[var(--graphite-primary)] px-3 py-2 text-sm font-black text-[var(--graphite-canvas)] hover:bg-[color-mix(in_srgb,var(--graphite-primary)_85%,white)] disabled:opacity-50"><Camera className="h-4 w-4" /> Take photo at this pin</button>}
+          <button type="button" onClick={() => choose("photo", "upload")} disabled={captureDisabled} className="flex min-h-11 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-sm font-black text-slate-200 hover:border-[color-mix(in_srgb,var(--graphite-primary)_50%,transparent)] hover:text-[var(--graphite-primary)] disabled:opacity-50">
             <Upload className="h-4 w-4" /> Upload existing photo
           </button>
-          {captureDisabledReason && <p className="rounded-xl border border-amber-400/25 bg-amber-500/10 px-3 py-2 text-xs font-bold leading-5 text-amber-100">{captureDisabledReason}</p>}
+          {captureDisabledReason && <p className="rounded-xl border border-white/10 bg-white/[0.05] px-3 py-2 text-xs font-bold leading-5 text-[var(--graphite-muted)]">{captureDisabledReason}</p>}
           <button type="button" disabled className="flex min-h-11 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-sm font-black text-slate-500 opacity-70" title="Add notes after capturing or uploading a photo for this plan stop.">
             <StickyNote className="h-4 w-4" /> Add Note after photo/upload
           </button>

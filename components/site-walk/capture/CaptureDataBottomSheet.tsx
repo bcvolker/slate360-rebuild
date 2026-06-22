@@ -42,7 +42,7 @@ export function CaptureDataBottomSheet({ sessionId, item, items, assignees, draf
   const aiBusy = aiState === "loading" || aiState === "formatting";
   const progressionActive = Boolean(draft?.beforeItemId) || linkProgression;
   const previousItems = items.filter((candidate) => isUuid(candidate.id) && candidate.id !== item?.id && candidate.client_item_id !== item?.client_item_id);
-  const selectClass = "mt-1 h-10 w-full rounded-2xl border border-white/10 bg-black/35 px-3 text-xs font-black text-slate-100 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-500/20 disabled:opacity-50";
+  const selectClass = "mt-1 h-10 w-full rounded-2xl border border-white/10 bg-black/35 px-3 text-xs font-black text-slate-100 outline-none focus:border-[var(--graphite-primary)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--graphite-primary)_20%,transparent)] disabled:opacity-50";
   const saveActionIcon = returnsToPlan ? <Link2 className="h-5 w-5" /> : <SkipForward className="h-5 w-5" />;
   const saveActionLabel = returnsToPlan ? "Save Stop & Return to Plan" : "Save Stop & Continue";
   const tabs: CaptureSheetTab[] = ["details", "attachments", "markup"];
@@ -72,7 +72,7 @@ export function CaptureDataBottomSheet({ sessionId, item, items, assignees, draf
     setTimeout(() => setAdvancing(false), 2000);
   }
 
-  const tabButtons = <div className="grid grid-cols-3 gap-1 rounded-2xl border border-white/10 bg-black/25 p-1">{tabs.map((tab) => <button key={tab} type="button" onClick={() => onActiveTabChange(tab)} className={`h-9 rounded-xl text-[10px] font-black uppercase tracking-[0.12em] ${activeTab === tab ? "bg-amber-500 text-slate-950" : "text-slate-400"}`}>{tab}</button>)}</div>;
+  const tabButtons = <div className="grid grid-cols-3 gap-1 rounded-2xl border border-white/10 bg-black/25 p-1">{tabs.map((tab) => <button key={tab} type="button" onClick={() => onActiveTabChange(tab)} className={`h-9 rounded-xl text-[10px] font-black uppercase tracking-[0.12em] ${activeTab === tab ? "bg-[var(--graphite-primary)] text-[var(--graphite-canvas)]" : "text-slate-400"}`}>{tab}</button>)}</div>;
   const activePanel = activeTab === "details" ? <SheetContents item={item} draft={draft} actionBusy={actionBusy} advancing={advancing} saveActionIcon={saveActionIcon} saveActionLabel={saveActionLabel} primaryCaptureInput={primaryCaptureInput} primaryCaptureLabel={primaryCaptureLabel} onCapture={onCapture} handleSaveNextClick={handleSaveNextClick} handleContentPointerDown={handleContentPointerDown} onDraftChange={onDraftChange} onFormatNotes={onFormatNotes} aiBusy={aiBusy} aiMessage={aiMessage} tradeOptions={tradeOptions} canManageTrades={canManageTrades} onOpenManageTrades={onOpenManageTrades} assignees={assignees} previousItems={previousItems} progressionActive={progressionActive} setLinkProgression={setLinkProgression} selectClass={selectClass} maxHeightClass="" /> : <CaptureSheetUtilityPanel mode={activeTab} hasItem={Boolean(item)} actionBusy={actionBusy} primaryCaptureInput={primaryCaptureInput} primaryCaptureLabel={primaryCaptureLabel} onCapture={onCapture} />;
 
   return (
@@ -84,7 +84,7 @@ export function CaptureDataBottomSheet({ sessionId, item, items, assignees, draf
               <ArrowLeft className="h-4 w-4" /> Photo
             </button>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-[10px] font-black uppercase tracking-[0.14em] text-amber-300/80">{currentLocation}</p>
+              <p className="truncate text-[10px] font-black uppercase tracking-[0.14em] text-[color-mix(in_srgb,var(--graphite-primary)_80%,transparent)]">{currentLocation}</p>
               <h2 className="truncate text-sm font-black text-white">{item?.title || "Ready"}</h2>
             </div>
           </div>
@@ -105,7 +105,7 @@ export function CaptureDataBottomSheet({ sessionId, item, items, assignees, draf
       {/* DESKTOP: full-height right column inside the section flex */}
       <aside className="hidden md:flex flex-col w-96 shrink-0 border-l border-white/10 bg-slate-950/92 backdrop-blur-2xl shadow-[-20px_0_40px_rgba(0,0,0,0.3)] h-full overflow-hidden" aria-label="Capture details (desktop)">
         <div className="px-4 pt-4 pb-3 border-b border-white/5">
-          <p className="truncate text-xs font-black uppercase tracking-[0.16em] text-amber-300/80">{currentLocation}</p>
+          <p className="truncate text-xs font-black uppercase tracking-[0.16em] text-[color-mix(in_srgb,var(--graphite-primary)_80%,transparent)]">{currentLocation}</p>
           <h2 className="truncate text-base font-black text-white">{item?.title || "Ready for next field stop"}</h2>
           <div className="mt-3">{tabButtons}</div>
         </div>
@@ -158,7 +158,7 @@ function SheetContents({
         {/* Capture trigger — shown only when there's no active item */}
         {!item && (
           <div className="rounded-[1.5rem] border border-white/10 bg-slate-950/95 p-2 shadow-xl backdrop-blur-xl">
-            <button type="button" onClick={() => onCapture(primaryCaptureInput)} className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-amber-500 px-5 text-sm font-black text-slate-950 shadow-[0_0_24px_rgba(245,158,11,0.38)] transition hover:bg-amber-400">
+            <button type="button" onClick={() => onCapture(primaryCaptureInput)} className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-[var(--graphite-primary)] px-5 text-sm font-black text-[var(--graphite-canvas)] transition hover:bg-[color-mix(in_srgb,var(--graphite-primary)_85%,white)]">
               {primaryCaptureInput === "camera" ? <Camera className="h-5 w-5" /> : <Upload className="h-5 w-5" />} {primaryCaptureLabel}
             </button>
           </div>
@@ -172,7 +172,7 @@ function SheetContents({
           rows={5}
           disabled={!draft}
           placeholder="Type what happened, what changed, and who owns the next action…"
-          className="mt-2 w-full rounded-3xl border border-white/10 bg-black/35 px-4 py-3 text-base leading-6 text-slate-100 outline-none placeholder:text-slate-600 focus:border-amber-400 focus:ring-2 focus:ring-amber-500/20 disabled:opacity-60"
+          className="mt-2 w-full rounded-3xl border border-white/10 bg-black/35 px-4 py-3 text-base leading-6 text-slate-100 outline-none placeholder:text-slate-600 focus:border-[var(--graphite-primary)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--graphite-primary)_20%,transparent)] disabled:opacity-60"
           style={{ WebkitUserSelect: "text", userSelect: "text" }}
           onPointerDown={(e) => e.stopPropagation()}
         />
@@ -183,7 +183,7 @@ function SheetContents({
           <span className="flex items-center justify-between text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">
             <span>Category <span className="normal-case tracking-normal text-slate-600">(Customizable in Org Settings)</span></span>
             {canManageTrades && onOpenManageTrades && (
-              <button type="button" onClick={onOpenManageTrades} className="inline-flex items-center gap-1 rounded-md px-1 py-0.5 text-[9px] font-black uppercase tracking-wider text-amber-300 hover:text-amber-100" aria-label="Manage project categories"><Settings2 className="h-3 w-3" /> Manage</button>
+              <button type="button" onClick={onOpenManageTrades} className="inline-flex items-center gap-1 rounded-md px-1 py-0.5 text-[9px] font-black uppercase tracking-wider text-[var(--graphite-primary)] hover:text-[color-mix(in_srgb,var(--graphite-primary)_70%,white)]" aria-label="Manage project categories"><Settings2 className="h-3 w-3" /> Manage</button>
             )}
           </span>
           <select value={draft?.trade ?? ""} onChange={(event) => onDraftChange({ trade: event.target.value })} disabled={!draft} className={selectClass}>
@@ -196,7 +196,7 @@ function SheetContents({
       </div>
 
       <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-3">
-        <button type="button" disabled={!draft} onClick={() => { if (progressionActive) { setLinkProgression(false); onDraftChange({ beforeItemId: "", itemRelationship: "standalone" }); } else { setLinkProgression(true); onDraftChange({ itemRelationship: "after" }); } }} className={`inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl px-4 text-sm font-black transition disabled:opacity-50 ${progressionActive ? "bg-amber-500 text-slate-950" : "border border-white/10 bg-black/25 text-slate-200"}`}>
+        <button type="button" disabled={!draft} onClick={() => { if (progressionActive) { setLinkProgression(false); onDraftChange({ beforeItemId: "", itemRelationship: "standalone" }); } else { setLinkProgression(true); onDraftChange({ itemRelationship: "after" }); } }} className={`inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl px-4 text-sm font-black transition disabled:opacity-50 ${progressionActive ? "bg-[var(--graphite-primary)] text-[var(--graphite-canvas)]" : "border border-white/10 bg-black/25 text-slate-200"}`}>
           <Link2 className="h-4 w-4" /> Link to Previous (Progression)
         </button>
         {progressionActive && (
@@ -208,29 +208,29 @@ function SheetContents({
             </select>
             <div className="mt-2 flex gap-2">
               {(["after","progress"] as const).map((role) => (
-                <button key={role} type="button" onClick={() => onDraftChange({ itemRelationship: role })} className={`flex-1 rounded-2xl border px-3 py-2 text-[11px] font-black uppercase tracking-wider transition ${draft?.itemRelationship === role ? "border-amber-400 bg-amber-500/20 text-amber-100" : "border-white/10 bg-black/25 text-slate-300 hover:text-white"}`}>{role === "after" ? "After (paired)" : "Progress step"}</button>
+                <button key={role} type="button" onClick={() => onDraftChange({ itemRelationship: role })} className={`flex-1 rounded-2xl border px-3 py-2 text-[11px] font-black uppercase tracking-wider transition ${draft?.itemRelationship === role ? "border-[var(--graphite-primary)] bg-[color-mix(in_srgb,var(--graphite-primary)_20%,transparent)] text-[var(--graphite-primary)]" : "border-white/10 bg-black/25 text-slate-300 hover:text-white"}`}>{role === "after" ? "After (paired)" : "Progress step"}</button>
               ))}
             </div>
             {draft?.beforeItemId && (
-              <a href={`/site-walk/items/${draft.beforeItemId}/compare`} target="_blank" rel="noopener noreferrer" className="mt-2 inline-block text-[10px] font-black uppercase tracking-[0.16em] text-amber-300 hover:text-amber-100">Open before/after viewer ↗</a>
+              <a href={`/site-walk/items/${draft.beforeItemId}/compare`} target="_blank" rel="noopener noreferrer" className="mt-2 inline-block text-[10px] font-black uppercase tracking-[0.16em] text-[var(--graphite-primary)] hover:text-[color-mix(in_srgb,var(--graphite-primary)_70%,white)]">Open before/after viewer ↗</a>
             )}
           </>
         )}
       </div>
 
       <div className="flex">
-        <button type="button" onClick={onFormatNotes} disabled={!draft || aiBusy} className="inline-flex w-full min-h-12 items-center justify-center gap-2 rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 text-sm font-black text-amber-100 disabled:opacity-60">
+        <button type="button" onClick={onFormatNotes} disabled={!draft || aiBusy} className="inline-flex w-full min-h-12 items-center justify-center gap-2 rounded-2xl border border-[color-mix(in_srgb,var(--graphite-primary)_30%,transparent)] bg-[color-mix(in_srgb,var(--graphite-primary)_10%,transparent)] px-4 text-sm font-black text-[var(--graphite-primary)] disabled:opacity-60">
           {aiBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />} AI Format Note
         </button>
       </div>
 
-        {aiMessage && <p className="rounded-2xl border border-amber-500/20 bg-amber-500/10 px-3 py-2 text-xs font-bold text-amber-100">{aiMessage}</p>}
+        {aiMessage && <p className="rounded-2xl border border-[color-mix(in_srgb,var(--graphite-primary)_20%,transparent)] bg-[color-mix(in_srgb,var(--graphite-primary)_10%,transparent)] px-3 py-2 text-xs font-bold text-[var(--graphite-primary)]">{aiMessage}</p>}
       </div>
 
       {/* ── Footer: Save & Next — always visible, never scrolls off-screen ── */}
       {item && (
         <div className="shrink-0 border-t border-white/10 bg-slate-950/95 px-1 pt-3 pb-[max(env(safe-area-inset-bottom),0.5rem)]">
-          <button type="button" onClick={handleSaveNextClick} disabled={advancing} className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-amber-500 px-4 text-sm font-black text-slate-950 shadow-[0_0_24px_rgba(245,158,11,0.38)] transition hover:bg-amber-400 disabled:opacity-60">
+          <button type="button" onClick={handleSaveNextClick} disabled={advancing} className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-[var(--graphite-primary)] px-4 text-sm font-black text-[var(--graphite-canvas)] transition hover:bg-[color-mix(in_srgb,var(--graphite-primary)_85%,white)] disabled:opacity-60">
             {actionBusy ? <Loader2 className="h-5 w-5 animate-spin" /> : saveActionIcon}
             <span>{saveActionLabel}</span>
           </button>

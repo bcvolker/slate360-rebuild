@@ -121,7 +121,7 @@ export function PlanViewer(props: Props) {
         {showUpload ? (
           <div className="w-full max-w-md">
             <div className="mb-4">
-              <FileUp className="mx-auto h-10 w-10 text-amber-400" />
+              <FileUp className="mx-auto h-10 w-10 text-[var(--graphite-primary)]" />
               <p className="mt-2 text-base font-black text-white">Add plans to this walk</p>
               <p className="mt-1 text-xs font-semibold text-slate-400">Upload a PDF set now, then Site Walk will generate the mobile plan view.</p>
             </div>
@@ -147,8 +147,8 @@ export function PlanViewer(props: Props) {
           </>
         ) : showGenerate ? (
           <>
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-500/10">
-              <AlertTriangle className="h-8 w-8 text-amber-400" />
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.05]">
+              <AlertTriangle className="h-8 w-8 text-[var(--graphite-muted)]" />
             </div>
             <div>
               <p className="text-base font-black text-white">{jobStatus === "stale" ? "Mobile generation is stuck" : "Mobile view not generated yet"}</p>
@@ -161,7 +161,7 @@ export function PlanViewer(props: Props) {
           </>
         ) : (
           <>
-            <Loader2 className="h-10 w-10 animate-spin text-amber-500" />
+            <Loader2 className="h-10 w-10 animate-spin text-[var(--graphite-primary)]" />
             <div>
               <p className="text-base font-black text-white">
                 {activePlanSet ? "Processing plan…" : "No plan set found"}
@@ -178,7 +178,7 @@ export function PlanViewer(props: Props) {
           <button
             onClick={() => void handleRetryRasterization()}
             disabled={retrying}
-            className="rounded-xl bg-amber-500 px-5 py-2.5 text-sm font-black text-slate-950 hover:bg-amber-400 disabled:opacity-50"
+            className="rounded-xl bg-[var(--graphite-primary)] px-5 py-2.5 text-sm font-black text-[var(--graphite-canvas)] hover:bg-[color-mix(in_srgb,var(--graphite-primary)_85%,white)] disabled:opacity-50"
           >
             {retrying ? "Starting…" : showGenerate ? "Generate Mobile View" : "Re-process plan"}
           </button>

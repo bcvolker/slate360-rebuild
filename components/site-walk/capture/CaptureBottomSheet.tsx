@@ -28,14 +28,14 @@ export function CaptureBottomSheet({ sessionId, projectId }: Props) {
   return (
     <section className={`fixed inset-x-0 bottom-0 z-40 max-h-[86dvh] overflow-y-auto rounded-t-[2rem] border border-white/10 bg-slate-900 p-4 pb-[max(env(safe-area-inset-bottom),1rem)] text-slate-50 shadow-2xl transition-transform focus-within:pb-[calc(max(env(safe-area-inset-bottom),1rem)+26dvh)] md:sticky md:top-4 md:max-h-[calc(100dvh-2rem)] md:rounded-3xl md:shadow-black/40 ${open || activeItem ? "translate-y-0" : "translate-y-[calc(100%-5.75rem)] md:translate-y-0"}`}>
       <div className="flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-amber-500/20 bg-amber-500/10 text-amber-300">
+        <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-[color-mix(in_srgb,var(--graphite-primary)_20%,transparent)] bg-[color-mix(in_srgb,var(--graphite-primary)_10%,transparent)] text-[var(--graphite-primary)]">
           <ClipboardList className="h-5 w-5" />
         </div>
         <button type="button" onClick={() => setOpen(true)} className="min-w-0 flex-1 text-left">
           <h2 className="font-black text-white">Capture details</h2>
           <p className="text-xs font-medium text-slate-400">Classification, notes, assignee, and autosave.</p>
         </button>
-        <button type="button" onClick={() => setOpen((current) => !current)} className="rounded-xl border border-white/10 bg-white/[0.04] p-2 text-slate-300 hover:border-amber-400/50 hover:text-amber-200 md:hidden" aria-label={open ? "Collapse capture details" : "Open capture details"}>
+        <button type="button" onClick={() => setOpen((current) => !current)} className="rounded-xl border border-white/10 bg-white/[0.04] p-2 text-slate-300 hover:border-[color-mix(in_srgb,var(--graphite-primary)_50%,transparent)] hover:text-[var(--graphite-primary)] md:hidden" aria-label={open ? "Collapse capture details" : "Open capture details"}>
           <X className={`h-4 w-4 transition ${open ? "rotate-0" : "rotate-45"}`} />
         </button>
       </div>

@@ -21,7 +21,7 @@ export function Tile({
     <button
       onClick={onClick}
       disabled={disabled || loading}
-      className="aspect-square rounded-2xl border border-white/10 bg-white/[0.02] hover:bg-cobalt/[0.06] hover:border-cobalt/30 hover:shadow-[0_0_24px_-4px_rgba(245,158,11,0.45)] transition disabled:opacity-40 disabled:hover:bg-white/[0.02] disabled:hover:border-white/10 disabled:hover:shadow-none flex flex-col items-center justify-center gap-1 text-slate-100"
+      className="aspect-square rounded-2xl border border-white/10 bg-white/[0.02] hover:bg-cobalt/[0.06] hover:border-cobalt/30 hover:shadow-[0_0_24px_-4px_rgba(0,230,153,0.45)] transition disabled:opacity-40 disabled:hover:bg-white/[0.02] disabled:hover:border-white/10 disabled:hover:shadow-none flex flex-col items-center justify-center gap-1 text-slate-100"
     >
       {loading ? <Loader2 className="h-6 w-6 animate-spin text-cobalt" /> : <span className="text-cobalt">{icon}</span>}
       <span className="text-sm font-medium">{label}</span>

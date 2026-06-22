@@ -24,7 +24,7 @@ type Props = {
   onSaveFinishWalk: () => void;
 };
 
-const inputClass = "w-full rounded-2xl border border-white/10 bg-white/5 px-3 py-2.5 text-base font-bold text-slate-50 outline-none backdrop-blur-md focus:border-amber-400 focus:ring-2 focus:ring-amber-500/25";
+const inputClass = "w-full rounded-2xl border border-white/10 bg-white/5 px-3 py-2.5 text-base font-bold text-slate-50 outline-none backdrop-blur-md focus:border-[var(--graphite-primary)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--graphite-primary)_25%,transparent)]";
 
 type SpeechRecognitionResultLike = { readonly length: number; [index: number]: { transcript: string } };
 type SpeechRecognitionEventLike = Event & { results: { readonly length: number; [index: number]: SpeechRecognitionResultLike } };
@@ -84,7 +84,7 @@ export function DataContextView({ item, draft, assignees, saveState, aiState, ai
       <div className="flex h-full flex-col items-center justify-center bg-[#0B0F15] p-6 text-center text-white">
         <h2 className="text-2xl font-black">Capture a photo first</h2>
         <p className="mt-2 max-w-sm text-sm font-bold text-slate-300">Take one photo, then add field notes, status, assignment, and priority details.</p>
-        <button type="button" onClick={onBack} className="mt-5 rounded-2xl bg-amber-500 px-5 py-3 text-sm font-black text-white shadow-[0_0_15px_rgba(245,158,11,0.3)] hover:bg-amber-400">Back to camera</button>
+        <button type="button" onClick={onBack} className="mt-5 rounded-2xl bg-[var(--graphite-primary)] px-5 py-3 text-sm font-black text-[var(--graphite-canvas)] hover:bg-[color-mix(in_srgb,var(--graphite-primary)_85%,white)]">Back to camera</button>
       </div>
     );
   }
@@ -170,7 +170,7 @@ export function DataContextView({ item, draft, assignees, saveState, aiState, ai
             placeholder="Field notes, issue details, owner direction, or inspection observations…"
             className="h-full min-h-0 w-full resize-none bg-transparent pb-14 pr-12 text-base font-medium leading-7 text-slate-50 outline-none placeholder:text-slate-500"
           />
-          <button type="button" onClick={startDictation} className="absolute bottom-3 right-3 inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-500 text-white shadow-[0_0_15px_rgba(245,158,11,0.3)] hover:bg-amber-400" aria-label="Start voice dictation">
+          <button type="button" onClick={startDictation} className="absolute bottom-3 right-3 inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-[var(--graphite-primary)] text-[var(--graphite-canvas)] hover:bg-[color-mix(in_srgb,var(--graphite-primary)_85%,white)]" aria-label="Start voice dictation">
             <Mic className="h-5 w-5" />
           </button>
         </section>
@@ -178,7 +178,7 @@ export function DataContextView({ item, draft, assignees, saveState, aiState, ai
         {(dictationState !== "idle" || aiMessage) && <p className="shrink-0 text-xs font-bold text-slate-300">{dictationState === "listening" ? "Listening…" : dictationState === "unsupported" ? "Dictation unavailable; use the keyboard microphone." : dictationState === "error" ? "Dictation could not start." : aiMessage}</p>}
 
         <footer className="grid shrink-0 grid-cols-1 gap-2 sm:grid-cols-[1fr_auto_auto]">
-          <button type="button" onClick={onSaveNextLocation} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-amber-500 px-3 py-3 text-sm font-black text-white shadow-[0_0_15px_rgba(245,158,11,0.3)] hover:bg-amber-400">Save &amp; Capture Next Stop <ArrowRight className="h-4 w-4" /></button>
+          <button type="button" onClick={onSaveNextLocation} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-[var(--graphite-primary)] px-3 py-3 text-sm font-black text-[var(--graphite-canvas)] hover:bg-[color-mix(in_srgb,var(--graphite-primary)_85%,white)]">Save &amp; Capture Next Stop <ArrowRight className="h-4 w-4" /></button>
           <button type="button" onClick={onAddAngle} className="min-h-12 rounded-2xl border border-white/20 bg-white/5 px-3 py-3 text-sm font-black text-slate-100 hover:bg-white/10">Add Angle</button>
           <button type="button" onClick={onSaveFinishWalk} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-emerald-300/30 bg-emerald-300/10 px-3 py-3 text-sm font-black text-emerald-100"><Flag className="h-4 w-4" /> Save &amp; Finish Walk</button>
         </footer>
@@ -196,11 +196,11 @@ function FieldSelect({ value, values, labelFor, onChange }: { value: string; val
 }
 
 function TagButton({ tag, onClick }: { tag: string; onClick: () => void }) {
-  return <button type="button" onClick={onClick} className="rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-black text-amber-100 hover:bg-white/10">{tag}</button>;
+  return <button type="button" onClick={onClick} className="rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-black text-[var(--graphite-primary)] hover:bg-white/10">{tag}</button>;
 }
 
 function TagChip({ tag, onRemove }: { tag: string; onRemove: () => void }) {
-  return <button type="button" onClick={onRemove} className="rounded-full border border-amber-300/30 bg-amber-500/15 px-3 py-1.5 text-xs font-black text-amber-100" aria-label={`Remove ${tag} tag`}>{tag} ×</button>;
+  return <button type="button" onClick={onRemove} className="rounded-full border border-[color-mix(in_srgb,var(--graphite-primary)_30%,transparent)] bg-[color-mix(in_srgb,var(--graphite-primary)_15%,transparent)] px-3 py-1.5 text-xs font-black text-[var(--graphite-primary)]" aria-label={`Remove ${tag} tag`}>{tag} ×</button>;
 }
 
 function statusLabel(value: string) {

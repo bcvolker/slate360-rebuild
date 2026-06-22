@@ -17,5 +17,5 @@ export function SelectionMenu({ onDelete, onBigger, onSmaller }: SelectionMenuPr
 
 export function TextEditor({ shape, onChange, onDone }: { shape?: MarkupShape; onChange: (value: string) => void; onDone: () => void }) {
   if (!shape || shape.kind !== "text") return null;
-  return <input autoFocus value={shape.text} onChange={(event) => onChange(event.target.value)} onBlur={onDone} onKeyDown={(event) => { if (event.key === "Enter") onDone(); }} className="absolute z-30 min-w-40 rounded-2xl border border-amber-500 bg-black/75 px-3 py-2 text-base font-black text-white outline-none backdrop-blur-xl" style={{ left: `${(shape.x / WIDTH) * 100}%`, top: `${(shape.y / HEIGHT) * 100}%` }} placeholder="Type note" />;
+  return <input autoFocus value={shape.text} onChange={(event) => onChange(event.target.value)} onBlur={onDone} onKeyDown={(event) => { if (event.key === "Enter") onDone(); }} className="absolute z-30 min-w-40 rounded-2xl border border-[var(--graphite-primary)] bg-black/75 px-3 py-2 text-base font-black text-white outline-none backdrop-blur-xl" style={{ left: `${(shape.x / WIDTH) * 100}%`, top: `${(shape.y / HEIGHT) * 100}%` }} placeholder="Type note" />;
 }

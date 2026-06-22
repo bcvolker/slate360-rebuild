@@ -14,7 +14,7 @@ export function DualModeToggle() {
           <div
             key={mode.label}
             className={mode.active
-              ? "rounded-xl border border-amber-400/40 bg-amber-500/10 p-4 text-amber-100"
+              ? "rounded-xl border border-[color-mix(in_srgb,var(--graphite-primary)_40%,transparent)] bg-[color-mix(in_srgb,var(--graphite-primary)_10%,transparent)] p-4 text-[var(--graphite-primary)]"
               : "rounded-xl border border-white/10 bg-white/[0.04] p-4 text-slate-400"}
           >
             <div className="flex items-center gap-3">

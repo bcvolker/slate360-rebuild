@@ -20,8 +20,8 @@ export function SyncQueueIndicator() {
     : failedState
       ? "border-rose-200 bg-rose-50 text-rose-900"
       : syncing
-        ? "border-amber-200 bg-amber-50 text-amber-900"
-        : "border-amber-200 bg-amber-50 text-amber-900";
+        ? "border-sky-200 bg-sky-50 text-sky-700"
+        : "border-emerald-200 bg-emerald-50 text-emerald-700";
 
   return (
     <div className={`flex flex-wrap items-center gap-2 rounded-2xl border px-3 py-2 text-sm font-bold ${classes}`} aria-label="Sync queue status">

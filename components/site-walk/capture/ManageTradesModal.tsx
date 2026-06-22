@@ -75,7 +75,7 @@ export function ManageTradesModal({ projectId, initialTrades, onClose, onSave }:
       <div className="flex max-h-[85dvh] w-full max-w-lg flex-col rounded-3xl border border-white/10 bg-slate-950 text-slate-100 shadow-2xl">
         <header className="flex items-center justify-between gap-3 border-b border-white/10 px-5 py-4">
           <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-amber-300">Project trades</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[var(--graphite-primary)]">Project trades</p>
             <h2 className="mt-1 text-lg font-black text-white">Manage Trade Options</h2>
           </div>
           <button type="button" onClick={onClose} className="rounded-xl p-2 text-slate-400 hover:bg-white/[0.06] hover:text-white" aria-label="Close manage trades">
@@ -87,8 +87,8 @@ export function ManageTradesModal({ projectId, initialTrades, onClose, onSave }:
           <p className="text-xs font-bold leading-5 text-slate-400">These trades will appear in the Site Walk capture form for this project. Reorder, rename by removing and re-adding, or reset to the default Slate360 list.</p>
 
           <form onSubmit={(event) => { event.preventDefault(); addTrade(); }} className="flex items-center gap-2">
-            <input value={draft} onChange={(event) => setDraft(event.target.value)} placeholder="Add a trade (e.g. Glazing)" className="h-11 flex-1 rounded-2xl border border-white/10 bg-black/40 px-3 text-sm font-bold text-white outline-none placeholder:text-slate-500 focus:border-amber-400" maxLength={64} />
-            <button type="submit" disabled={!draft.trim()} className="inline-flex h-11 items-center gap-1.5 rounded-2xl bg-amber-500 px-3 text-xs font-black uppercase tracking-wider text-slate-950 disabled:opacity-50">
+            <input value={draft} onChange={(event) => setDraft(event.target.value)} placeholder="Add a trade (e.g. Glazing)" className="h-11 flex-1 rounded-2xl border border-white/10 bg-black/40 px-3 text-sm font-bold text-white outline-none placeholder:text-slate-500 focus:border-[var(--graphite-primary)]" maxLength={64} />
+            <button type="submit" disabled={!draft.trim()} className="inline-flex h-11 items-center gap-1.5 rounded-2xl bg-[var(--graphite-primary)] px-3 text-xs font-black uppercase tracking-wider text-[var(--graphite-canvas)] disabled:opacity-50">
               <Plus className="h-4 w-4" /> Add
             </button>
           </form>
@@ -99,21 +99,21 @@ export function ManageTradesModal({ projectId, initialTrades, onClose, onSave }:
               <li key={`${trade}-${index}`} className="flex items-center gap-2 px-3 py-2">
                 <span className="w-6 text-[10px] font-black text-slate-500">{String(index + 1).padStart(2, "0")}</span>
                 <span className="flex-1 truncate text-sm font-bold text-white">{trade}</span>
-                <button type="button" onClick={() => moveTrade(index, -1)} disabled={index === 0} className="rounded-lg p-1.5 text-slate-400 hover:bg-white/[0.06] hover:text-amber-100 disabled:opacity-30" aria-label={`Move ${trade} up`}><ArrowUp className="h-4 w-4" /></button>
-                <button type="button" onClick={() => moveTrade(index, 1)} disabled={index === trades.length - 1} className="rounded-lg p-1.5 text-slate-400 hover:bg-white/[0.06] hover:text-amber-100 disabled:opacity-30" aria-label={`Move ${trade} down`}><ArrowDown className="h-4 w-4" /></button>
+                <button type="button" onClick={() => moveTrade(index, -1)} disabled={index === 0} className="rounded-lg p-1.5 text-slate-400 hover:bg-white/[0.06] hover:text-[var(--graphite-primary)] disabled:opacity-30" aria-label={`Move ${trade} up`}><ArrowUp className="h-4 w-4" /></button>
+                <button type="button" onClick={() => moveTrade(index, 1)} disabled={index === trades.length - 1} className="rounded-lg p-1.5 text-slate-400 hover:bg-white/[0.06] hover:text-[var(--graphite-primary)] disabled:opacity-30" aria-label={`Move ${trade} down`}><ArrowDown className="h-4 w-4" /></button>
                 <button type="button" onClick={() => removeTrade(index)} className="rounded-lg p-1.5 text-rose-300 hover:bg-rose-500/10" aria-label={`Remove ${trade}`}><Trash2 className="h-4 w-4" /></button>
               </li>
             ))}
           </ul>
 
-          <button type="button" onClick={resetToDefault} className="text-xs font-black uppercase tracking-wider text-slate-400 underline-offset-4 hover:text-amber-200 hover:underline">Reset to Slate360 default trades</button>
+          <button type="button" onClick={resetToDefault} className="text-xs font-black uppercase tracking-wider text-slate-400 underline-offset-4 hover:text-[var(--graphite-primary)] hover:underline">Reset to Slate360 default trades</button>
 
           {error && <p className="rounded-2xl border border-rose-500/40 bg-rose-500/10 px-3 py-2 text-xs font-bold text-rose-100">{error}</p>}
         </div>
 
         <footer className="flex items-center justify-end gap-2 border-t border-white/10 px-5 py-3">
           <button type="button" onClick={onClose} className="rounded-2xl px-4 py-2 text-xs font-black uppercase tracking-wider text-slate-300 hover:text-white">Cancel</button>
-          <button type="button" onClick={handleSave} disabled={saving || !projectId} className="inline-flex items-center gap-2 rounded-2xl bg-amber-500 px-4 py-2 text-xs font-black uppercase tracking-wider text-slate-950 hover:bg-amber-400 disabled:opacity-60">
+          <button type="button" onClick={handleSave} disabled={saving || !projectId} className="inline-flex items-center gap-2 rounded-2xl bg-[var(--graphite-primary)] px-4 py-2 text-xs font-black uppercase tracking-wider text-[var(--graphite-canvas)] hover:bg-[color-mix(in_srgb,var(--graphite-primary)_85%,white)] disabled:opacity-60">
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Save trades
           </button>
         </footer>

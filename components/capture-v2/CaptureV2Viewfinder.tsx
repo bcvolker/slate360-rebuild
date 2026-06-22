@@ -75,7 +75,7 @@ export function CaptureV2Viewfinder({
       className={`relative ${CAPTURE_V2_LAYERS.canvas} flex min-h-0 flex-1 flex-col overflow-hidden bg-zinc-950`}
     >
       {!displayUrl || !activePreview ? (
-        <div className="min-h-0 flex-1 bg-[radial-gradient(circle_at_50%_120%,rgba(245,158,11,0.08),transparent_55%),#0B0F15]" />
+        <div className="min-h-0 flex-1 bg-[radial-gradient(circle_at_50%_120%,rgba(0,230,153,0.08),transparent_55%),#0B0F15]" />
       ) : (
         <div className="relative min-h-0 flex-1 overflow-hidden pb-24">
           {!notesFocused ? (

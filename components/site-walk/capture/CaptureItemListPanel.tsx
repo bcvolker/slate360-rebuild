@@ -25,8 +25,8 @@ export function CaptureItemListPanel({ items, activeItemId, open, onOpenChange, 
   return (
     <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-3">
       <button type="button" onClick={() => onOpenChange(!open)} className="flex w-full items-center justify-between gap-3 rounded-2xl bg-slate-950/55 px-4 py-3 text-left text-sm font-black text-slate-100 ring-1 ring-white/10">
-        <span className="inline-flex items-center gap-2"><ListFilter className="h-4 w-4 text-amber-300" /> Items in this walk</span>
-        <span className="rounded-full bg-amber-500/10 px-2 py-1 text-xs text-amber-200">{filtered.length}/{items.length}</span>
+        <span className="inline-flex items-center gap-2"><ListFilter className="h-4 w-4 text-[var(--graphite-primary)]" /> Items in this walk</span>
+        <span className="rounded-full bg-[color-mix(in_srgb,var(--graphite-primary)_10%,transparent)] px-2 py-1 text-xs text-[var(--graphite-primary)]">{filtered.length}/{items.length}</span>
       </button>
 
       {open && (
@@ -44,7 +44,7 @@ export function CaptureItemListPanel({ items, activeItemId, open, onOpenChange, 
 
           <div className="max-h-72 space-y-2 overflow-y-auto pr-1">
             {filtered.map((item) => (
-              <button key={item.id} type="button" onClick={() => onSelect(item)} className={`w-full rounded-2xl border p-3 text-left transition ${item.id === activeItemId ? "border-amber-400 bg-amber-500/10" : "border-white/10 bg-slate-950/45 hover:border-amber-400/50"}`}>
+              <button key={item.id} type="button" onClick={() => onSelect(item)} className={`w-full rounded-2xl border p-3 text-left transition ${item.id === activeItemId ? "border-[var(--graphite-primary)] bg-[color-mix(in_srgb,var(--graphite-primary)_10%,transparent)]" : "border-white/10 bg-slate-950/45 hover:border-[color-mix(in_srgb,var(--graphite-primary)_50%,transparent)]"}`}>
                 <div className="flex items-start justify-between gap-3">
                   <p className="line-clamp-2 text-sm font-black text-white">{item.title || "Untitled item"}</p>
                   <span className="shrink-0 rounded-full bg-white/[0.06] px-2 py-1 text-[10px] font-black uppercase text-slate-400">{item.priority}</span>

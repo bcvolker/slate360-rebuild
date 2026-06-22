@@ -37,12 +37,12 @@ function PlanPdfPageComponent({ fileUrl, pageNumber, label, compact = false, max
   return (
     <div className="flex h-full w-full touch-none select-none items-center justify-center overflow-hidden bg-white text-slate-900" style={{ WebkitTouchCallout: "none" }}>
       {error ? (
-        <div className="mx-4 rounded-2xl border border-amber-500/40 bg-amber-500/15 p-4 text-left shadow-lg shadow-amber-950/10">
+        <div className="mx-4 rounded-2xl border border-slate-300 bg-slate-100 p-4 text-left shadow-lg">
           <div className="flex items-start gap-3">
-            <FileWarning className="mt-0.5 h-6 w-6 shrink-0 text-amber-600" />
+            <FileWarning className="mt-0.5 h-6 w-6 shrink-0 text-slate-500" />
             <div>
-              <p className="text-xs font-black uppercase tracking-[0.16em] text-amber-700">PDF render error</p>
-              <p className="mt-2 break-words text-sm font-bold leading-6 text-amber-950">{error}</p>
+              <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-600">PDF render error</p>
+              <p className="mt-2 break-words text-sm font-bold leading-6 text-slate-800">{error}</p>
             </div>
           </div>
         </div>

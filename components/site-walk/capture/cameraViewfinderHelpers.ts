@@ -34,6 +34,6 @@ export function readLastTitle(sessionId: string) {
 export function statusClasses(kind: string) {
   if (kind === "complete") return "bg-emerald-500/10 text-emerald-300 ring-1 ring-emerald-500/20";
   if (kind === "error") return "bg-rose-500/10 text-rose-300 ring-1 ring-rose-500/20";
-  if (kind === "uploading" || kind === "saving") return "bg-amber-500/10 text-amber-200 ring-1 ring-amber-500/20";
+  if (kind === "uploading" || kind === "saving") return "bg-[color-mix(in_srgb,var(--graphite-primary)_10%,transparent)] text-[var(--graphite-primary)] ring-1 ring-[color-mix(in_srgb,var(--graphite-primary)_20%,transparent)]";
   return "bg-zinc-900/80 text-zinc-200 ring-1 ring-white/10";
 }

@@ -19,10 +19,10 @@ export function PlanPin({ pin, active, current, onClick }: { pin: PlanViewerPin;
   return (
     <button type="button" onClick={onClick} className={cn("absolute -translate-x-1/2 -translate-y-full p-2 transition-all duration-300", active ? "z-20 scale-125" : "z-10 hover:scale-110")} style={{ left: `${pin.x_pct}%`, top: `${pin.y_pct}%` }}>
       <span className="relative flex flex-col items-center">
-        <span className={cn("flex h-8 w-8 items-center justify-center rounded-full border-2 shadow-xl shadow-black/50", current ? "border-amber-200 bg-amber-500 text-amber-950" : "border-slate-500 bg-slate-700 text-slate-300", active && current && "ring-4 ring-amber-500/30")}>
+        <span className={cn("flex h-8 w-8 items-center justify-center rounded-full border-2 shadow-xl shadow-black/50", current ? "border-[color-mix(in_srgb,var(--graphite-primary)_60%,white)] bg-[var(--graphite-primary)] text-[var(--graphite-canvas)]" : "border-slate-500 bg-slate-700 text-slate-300", active && current && "ring-4 ring-[color-mix(in_srgb,var(--graphite-primary)_30%,transparent)]")}>
           <span className="text-[11px] font-black">{pin.label}</span>
         </span>
-        <span className={cn("h-3 w-0.5 shadow-lg", current ? "bg-amber-500" : "bg-slate-700")} />
+        <span className={cn("h-3 w-0.5 shadow-lg", current ? "bg-[var(--graphite-primary)]" : "bg-slate-700")} />
       </span>
     </button>
   );

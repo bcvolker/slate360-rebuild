@@ -208,10 +208,10 @@ export function PlanViewerPdf({ projectId, sessionId = "current-session", planSe
 
       {/* Pan / Draw toggle */}
       <div className="absolute left-1/2 top-2 z-50 flex -translate-x-1/2 rounded-2xl border border-white/15 bg-slate-950/85 p-0.5 shadow-2xl backdrop-blur-xl">
-        <button type="button" onClick={() => setToolMode("pan")} className={`inline-flex h-8 items-center gap-1 rounded-xl px-2.5 text-[10px] font-black uppercase tracking-[0.08em] transition ${toolMode === "pan" ? "bg-amber-500 text-slate-950" : "text-white/70"}`}>
+        <button type="button" onClick={() => setToolMode("pan")} className={`inline-flex h-8 items-center gap-1 rounded-xl px-2.5 text-[10px] font-black uppercase tracking-[0.08em] transition ${toolMode === "pan" ? "bg-[var(--graphite-primary)] text-[var(--graphite-canvas)]" : "text-white/70"}`}>
           <Hand className="h-3.5 w-3.5" /> Pan
         </button>
-        <button type="button" onClick={() => setToolMode("draw")} className={`inline-flex h-8 items-center gap-1 rounded-xl px-2.5 text-[10px] font-black uppercase tracking-[0.08em] transition ${toolMode === "draw" ? "bg-amber-500 text-slate-950" : "text-white/70"}`}>
+        <button type="button" onClick={() => setToolMode("draw")} className={`inline-flex h-8 items-center gap-1 rounded-xl px-2.5 text-[10px] font-black uppercase tracking-[0.08em] transition ${toolMode === "draw" ? "bg-[var(--graphite-primary)] text-[var(--graphite-canvas)]" : "text-white/70"}`}>
           <MapPin className="h-3.5 w-3.5" /> Pin
         </button>
       </div>
@@ -245,8 +245,8 @@ export function PlanViewerPdf({ projectId, sessionId = "current-session", planSe
       )}
 
       {hintVisible && (
-        <button type="button" onClick={() => setHintVisible(false)} className="pointer-events-auto absolute bottom-[6.5rem] left-1/2 z-20 -translate-x-1/2 rounded-full border border-white/10 bg-slate-950/80 px-3 py-1.5 shadow-xl backdrop-blur hover:border-amber-300/40" aria-label="Dismiss hint">
-          <span className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-slate-300"><Move className="h-3 w-3 text-amber-500" /> {toolMode === "pan" ? "Pan & zoom. Tap Pin/Draw to place pins." : "Long-press to pin. Tap Pan to navigate."}</span>
+        <button type="button" onClick={() => setHintVisible(false)} className="pointer-events-auto absolute bottom-[6.5rem] left-1/2 z-20 -translate-x-1/2 rounded-full border border-white/10 bg-slate-950/80 px-3 py-1.5 shadow-xl backdrop-blur hover:border-[color-mix(in_srgb,var(--graphite-primary)_40%,transparent)]" aria-label="Dismiss hint">
+          <span className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-slate-300"><Move className="h-3 w-3 text-[var(--graphite-primary)]" /> {toolMode === "pan" ? "Pan & zoom. Tap Pin/Draw to place pins." : "Long-press to pin. Tap Pan to navigate."}</span>
         </button>
       )}
     </div>

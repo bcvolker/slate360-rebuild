@@ -15,7 +15,7 @@ type Props = {
   onFormatNotes: () => void;
 };
 
-const inputClass = "w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-base text-slate-100 outline-none transition placeholder:text-slate-600 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20";
+const inputClass = "w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-base text-slate-100 outline-none transition placeholder:text-slate-600 focus:border-[var(--graphite-primary)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--graphite-primary)_20%,transparent)]";
 const labelClass = "block text-xs font-black uppercase tracking-[0.14em] text-slate-500";
 
 type SpeechRecognitionResultLike = { readonly length: number; [index: number]: { transcript: string } };
@@ -61,7 +61,7 @@ export function CaptureItemForm({ item, draft, assignees, saveState, aiState, ai
     <div className="space-y-4">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-xs font-black uppercase tracking-[0.18em] text-amber-400">Item details</p>
+          <p className="text-xs font-black uppercase tracking-[0.18em] text-[var(--graphite-primary)]">Item details</p>
           <p className="mt-1 text-xs font-bold text-slate-500">{item.item_type.replace("_", " ")} · autosaves after edits</p>
         </div>
         <SaveIndicator state={saveState} />
@@ -100,7 +100,7 @@ export function CaptureItemForm({ item, draft, assignees, saveState, aiState, ai
       <label className="space-y-2">
         <span className="flex items-center justify-between gap-3">
           <span className={labelClass}>Notes / voice dictation</span>
-          <button type="button" onClick={onFormatNotes} disabled={aiState === "formatting" || !draft.notes.trim()} className="inline-flex items-center gap-2 rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-1.5 text-xs font-black text-amber-200 transition hover:bg-amber-500/20 disabled:opacity-50">
+          <button type="button" onClick={onFormatNotes} disabled={aiState === "formatting" || !draft.notes.trim()} className="inline-flex items-center gap-2 rounded-full border border-[color-mix(in_srgb,var(--graphite-primary)_20%,transparent)] bg-[color-mix(in_srgb,var(--graphite-primary)_10%,transparent)] px-3 py-1.5 text-xs font-black text-[var(--graphite-primary)] transition hover:bg-[color-mix(in_srgb,var(--graphite-primary)_20%,transparent)] disabled:opacity-50">
             {aiState === "formatting" ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />} Format with AI
           </button>
         </span>
@@ -113,13 +113,13 @@ export function CaptureItemForm({ item, draft, assignees, saveState, aiState, ai
             placeholder="Tap the mic to dictate, or type field notes. The drawer adds focus padding so the keyboard never covers this text."
             className={`${inputClass} min-h-44 resize-y scroll-mt-28 pr-14 leading-7`}
           />
-          <button type="button" onClick={startDictation} className="absolute right-3 top-3 inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-amber-500 text-slate-950 shadow-sm transition hover:bg-amber-400" aria-label="Start voice dictation">
+          <button type="button" onClick={startDictation} className="absolute right-3 top-3 inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-[var(--graphite-primary)] text-[var(--graphite-canvas)] shadow-sm transition hover:bg-[color-mix(in_srgb,var(--graphite-primary)_85%,white)]" aria-label="Start voice dictation">
             <Mic className="h-5 w-5" />
           </button>
         </div>
       </label>
 
-      {dictationState === "listening" && <p className="text-xs font-black text-amber-300">Listening… speak your note now.</p>}
+      {dictationState === "listening" && <p className="text-xs font-black text-[var(--graphite-primary)]">Listening… speak your note now.</p>}
       {dictationState === "unsupported" && <p className="text-xs font-bold text-slate-400">Voice recognition is not available in this browser. Use the keyboard microphone instead.</p>}
       {dictationState === "error" && <p className="text-xs font-bold text-rose-300">Dictation could not start. Check microphone permission and try again.</p>}
       {aiMessage && <AiMessage state={aiState} message={aiMessage} />}
@@ -139,7 +139,7 @@ function FieldSelect({ label, value, values, onChange }: { label: string; value:
 }
 
 function SaveIndicator({ state }: { state: Props["saveState"] }) {
-  if (state === "saving") return <span className="inline-flex items-center gap-2 rounded-full bg-amber-500/10 px-3 py-1 text-xs font-black text-amber-200"><Loader2 className="h-3.5 w-3.5 animate-spin" /> Saving…</span>;
+  if (state === "saving") return <span className="inline-flex items-center gap-2 rounded-full bg-[color-mix(in_srgb,var(--graphite-primary)_10%,transparent)] px-3 py-1 text-xs font-black text-[var(--graphite-primary)]"><Loader2 className="h-3.5 w-3.5 animate-spin" /> Saving…</span>;
   if (state === "saved") return <span className="rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-black text-emerald-300">Saved</span>;
   if (state === "error") return <span className="rounded-full bg-rose-500/10 px-3 py-1 text-xs font-black text-rose-300">Save failed</span>;
   if (state === "dirty") return <span className="rounded-full bg-white/[0.06] px-3 py-1 text-xs font-black text-slate-300">Unsaved edits</span>;
@@ -148,7 +148,7 @@ function SaveIndicator({ state }: { state: Props["saveState"] }) {
 
 function AiMessage({ state, message }: { state: Props["aiState"]; message: string }) {
   if (state === "blocked") {
-    return <div className="rounded-2xl border border-amber-500/20 bg-amber-500/10 p-4 text-sm font-bold text-amber-200">{message} <a href="/settings/billing" className="underline">Upgrade or top up credits</a>.</div>;
+    return <div className="rounded-2xl border border-white/10 bg-white/[0.05] p-4 text-sm font-bold text-[var(--graphite-muted)]">{message} <a href="/settings/billing" className="underline">Upgrade or top up credits</a>.</div>;
   }
-  return <p className={`text-sm font-bold ${state === "error" ? "text-rose-300" : "text-amber-300"}`}>{message}</p>;
+  return <p className={`text-sm font-bold ${state === "error" ? "text-rose-300" : "text-[var(--graphite-primary)]"}`}>{message}</p>;
 }
