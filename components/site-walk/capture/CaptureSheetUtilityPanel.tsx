@@ -4,6 +4,7 @@ import { Camera, RotateCcw, RotateCw, Upload } from "lucide-react";
 import type { DeviceCaptureInput } from "@/lib/hooks/useDeviceContext";
 import { PHOTO_MARKUP_REDO_EVENT, PHOTO_MARKUP_UNDO_EVENT } from "./PhotoMarkupCanvas";
 import { UnifiedVectorToolbar } from "./UnifiedVectorToolbar";
+import { darkButtonClass } from "@/components/ui/dark-surface-styles";
 
 type Props = {
   mode: "attachments" | "markup";
@@ -18,7 +19,7 @@ export function CaptureSheetUtilityPanel({ mode, hasItem, actionBusy, primaryCap
   if (mode === "attachments") {
     return (
       <div className="space-y-3 rounded-3xl border border-white/10 bg-white/[0.03] p-3">
-        <button type="button" onClick={() => onCapture(primaryCaptureInput)} disabled={actionBusy} className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-[var(--graphite-primary)] px-4 text-sm font-black text-[var(--graphite-canvas)] disabled:opacity-60">
+        <button type="button" onClick={() => onCapture(primaryCaptureInput)} disabled={actionBusy} className={darkButtonClass("primary", "min-h-12 w-full rounded-2xl font-black disabled:opacity-60")}>
           {primaryCaptureInput === "camera" ? <Camera className="h-5 w-5" /> : <Upload className="h-5 w-5" />} {primaryCaptureLabel}
         </button>
         <button type="button" onClick={() => onCapture("upload")} disabled={actionBusy} className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl border border-white/10 bg-black/25 px-4 text-sm font-black text-slate-200 disabled:opacity-60">

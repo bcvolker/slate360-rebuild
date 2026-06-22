@@ -14,6 +14,7 @@ import {
 import ContactPicker from "@/components/shared/ContactPicker";
 import SlateDropActiveLinks from "./SlateDropActiveLinks";
 import type { DbFile } from "@/lib/slatedrop/helpers";
+import { darkFieldClass } from "@/components/ui/dark-surface-styles";
 
 type ShareModalFile = DbFile | null;
 type PreviewFile = DbFile | null;
@@ -153,7 +154,7 @@ export default function SlateDropSharePreviewModals({
                         value={sharePhone}
                         onChange={(event) => setSharePhone(event.target.value)}
                         placeholder="+13105551234"
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-white/10 text-sm text-[var(--graphite-text-body)] focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--graphite-primary)_20%,transparent)] focus:border-[var(--graphite-primary)] transition-all bg-[color-mix(in_srgb,var(--graphite-canvas)_60%,transparent)] placeholder:text-[var(--graphite-muted)]"
+                        className={darkFieldClass("px-3.5 text-[var(--graphite-text-body)] focus:ring-[color-mix(in_srgb,var(--graphite-primary)_20%,transparent)] bg-[color-mix(in_srgb,var(--graphite-canvas)_60%,transparent)]")}
                       />
                       <p className="mt-1 text-[10px] text-[var(--graphite-muted)]">Use international format, e.g. +13105551234.</p>
                     </div>
@@ -181,7 +182,7 @@ export default function SlateDropSharePreviewModals({
                     <select
                       value={shareExpiry}
                       onChange={(event) => setShareExpiry(event.target.value)}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-white/10 text-sm focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--graphite-primary)_20%,transparent)] focus:border-[var(--graphite-primary)] transition-all bg-[color-mix(in_srgb,var(--graphite-canvas)_60%,transparent)]"
+                      className={darkFieldClass("px-3.5 focus:ring-[color-mix(in_srgb,var(--graphite-primary)_20%,transparent)] bg-[color-mix(in_srgb,var(--graphite-canvas)_60%,transparent)]")}
                     >
                       <option value="1">1 day</option>
                       <option value="7">7 days</option>
@@ -197,7 +198,7 @@ export default function SlateDropSharePreviewModals({
                       onChange={(event) => setSharePassword(event.target.value)}
                       placeholder="Require a password to open"
                       autoComplete="off"
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-white/10 text-sm focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--graphite-primary)_20%,transparent)] focus:border-[var(--graphite-primary)] transition-all bg-[color-mix(in_srgb,var(--graphite-canvas)_60%,transparent)]"
+                      className={darkFieldClass("px-3.5 focus:ring-[color-mix(in_srgb,var(--graphite-primary)_20%,transparent)] bg-[color-mix(in_srgb,var(--graphite-canvas)_60%,transparent)]")}
                     />
                   </div>
                   <button

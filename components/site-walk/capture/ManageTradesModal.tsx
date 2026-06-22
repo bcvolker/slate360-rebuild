@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { ArrowDown, ArrowUp, Loader2, Plus, Save, Trash2, X } from "lucide-react";
 import { CAPTURE_TRADES } from "@/lib/types/site-walk-capture";
+import { darkButtonClass, darkFieldClass } from "@/components/ui/dark-surface-styles";
 
 type Props = {
   projectId: string | null;
@@ -87,8 +88,8 @@ export function ManageTradesModal({ projectId, initialTrades, onClose, onSave }:
           <p className="text-xs font-bold leading-5 text-slate-400">These trades will appear in the Site Walk capture form for this project. Reorder, rename by removing and re-adding, or reset to the default Slate360 list.</p>
 
           <form onSubmit={(event) => { event.preventDefault(); addTrade(); }} className="flex items-center gap-2">
-            <input value={draft} onChange={(event) => setDraft(event.target.value)} placeholder="Add a trade (e.g. Glazing)" className="h-11 flex-1 rounded-2xl border border-white/10 bg-black/40 px-3 text-sm font-bold text-white outline-none placeholder:text-slate-500 focus:border-[var(--graphite-primary)]" maxLength={64} />
-            <button type="submit" disabled={!draft.trim()} className="inline-flex h-11 items-center gap-1.5 rounded-2xl bg-[var(--graphite-primary)] px-3 text-xs font-black uppercase tracking-wider text-[var(--graphite-canvas)] disabled:opacity-50">
+            <input value={draft} onChange={(event) => setDraft(event.target.value)} placeholder="Add a trade (e.g. Glazing)" className={darkFieldClass("h-11 flex-1 rounded-2xl bg-black/40 font-bold placeholder:text-slate-500")} maxLength={64} />
+            <button type="submit" disabled={!draft.trim()} className={darkButtonClass("primary", "h-11 gap-1.5 rounded-2xl px-3 text-xs font-black uppercase tracking-wider")}>
               <Plus className="h-4 w-4" /> Add
             </button>
           </form>
@@ -113,7 +114,7 @@ export function ManageTradesModal({ projectId, initialTrades, onClose, onSave }:
 
         <footer className="flex items-center justify-end gap-2 border-t border-white/10 px-5 py-3">
           <button type="button" onClick={onClose} className="rounded-2xl px-4 py-2 text-xs font-black uppercase tracking-wider text-slate-300 hover:text-white">Cancel</button>
-          <button type="button" onClick={handleSave} disabled={saving || !projectId} className="inline-flex items-center gap-2 rounded-2xl bg-[var(--graphite-primary)] px-4 py-2 text-xs font-black uppercase tracking-wider text-[var(--graphite-canvas)] hover:bg-[color-mix(in_srgb,var(--graphite-primary)_85%,white)] disabled:opacity-60">
+          <button type="button" onClick={handleSave} disabled={saving || !projectId} className={darkButtonClass("primary", "rounded-2xl py-2 text-xs font-black uppercase tracking-wider disabled:opacity-60")}>
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Save trades
           </button>
         </footer>

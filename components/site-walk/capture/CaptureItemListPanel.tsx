@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { ListFilter } from "lucide-react";
 import { CAPTURE_CLASSIFICATIONS, CAPTURE_ITEM_STATUSES, type CaptureItemRecord } from "@/lib/types/site-walk-capture";
+import { darkFieldClass } from "@/components/ui/dark-surface-styles";
 
 type Props = {
   items: CaptureItemRecord[];
@@ -32,11 +33,11 @@ export function CaptureItemListPanel({ items, activeItemId, open, onOpenChange, 
       {open && (
         <div className="mt-3 space-y-3">
           <div className="grid gap-2 sm:grid-cols-2">
-            <select value={classification} onChange={(event) => setClassification(event.target.value)} className="rounded-xl border border-white/10 bg-slate-950/70 px-3 py-2 text-sm font-bold text-slate-100">
+            <select value={classification} onChange={(event) => setClassification(event.target.value)} className={darkFieldClass("bg-slate-950/70 py-2 font-bold")}>
               <option value="all">All classifications</option>
               {CAPTURE_CLASSIFICATIONS.map((option) => <option key={option} value={option}>{option}</option>)}
             </select>
-            <select value={status} onChange={(event) => setStatus(event.target.value)} className="rounded-xl border border-white/10 bg-slate-950/70 px-3 py-2 text-sm font-bold text-slate-100">
+            <select value={status} onChange={(event) => setStatus(event.target.value)} className={darkFieldClass("bg-slate-950/70 py-2 font-bold")}>
               <option value="all">All statuses</option>
               {CAPTURE_ITEM_STATUSES.map((option) => <option key={option} value={option}>{option.replace("_", " ")}</option>)}
             </select>

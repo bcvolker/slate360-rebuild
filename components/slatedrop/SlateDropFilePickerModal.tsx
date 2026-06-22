@@ -7,6 +7,7 @@ import { useSlateDropFilePicker } from "@/lib/hooks/useSlateDropFilePicker";
 import { formatBytes, getFileColor, getFileIcon } from "@/lib/slatedrop/helpers";
 import type { SlateDropPickerFile } from "@/lib/slatedrop/file-picker-types";
 import { cn } from "@/lib/utils";
+import { darkButtonClass } from "@/components/ui/dark-surface-styles";
 
 export type SlateDropFilePickerModalProps = {
   open: boolean;
@@ -198,7 +199,7 @@ export function SlateDropFilePickerModal({
             <button
               type="button"
               onClick={onClose}
-              className="min-h-10 rounded-2xl border border-white/15 px-4 text-sm font-semibold text-white/80"
+              className={darkButtonClass("ghost", "min-h-10 rounded-2xl px-4")}
             >
               Cancel
             </button>
@@ -206,7 +207,7 @@ export function SlateDropFilePickerModal({
               type="button"
               onClick={handleConfirm}
               disabled={!canConfirm}
-              className="min-h-10 rounded-2xl bg-[var(--graphite-primary)] px-4 text-sm font-black text-[var(--graphite-canvas)] disabled:opacity-45"
+              className={darkButtonClass("primary", "min-h-10 rounded-2xl px-4 font-black disabled:opacity-45")}
             >
               Attach
             </button>

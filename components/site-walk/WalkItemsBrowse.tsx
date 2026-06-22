@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Camera, FileText, Mic, Pencil, Trash2, Loader2, Search, AlertCircle } from "lucide-react";
+import { darkFieldClass } from "@/components/ui/dark-surface-styles";
 
 export type BrowseItem = {
   id: string;
@@ -86,7 +87,7 @@ export default function WalkItemsBrowse({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search title or notes…"
-            className="w-full pl-9 pr-3 py-2 rounded-lg bg-slate-900 border border-white/10 text-sm"
+            className={darkFieldClass("rounded-lg bg-slate-900 py-2 pl-9 pr-3")}
           />
         </div>
         <div className="flex gap-1.5">
