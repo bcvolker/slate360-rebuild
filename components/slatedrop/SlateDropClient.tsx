@@ -189,6 +189,29 @@ export default function SlateDropClient({ user, tier, initialProjectId, projectN
     [mutations],
   );
 
+  // Keyboard: Cmd/Ctrl+A select all, Delete bulk-delete, Escape clear — ignored
+  // while typing in an input/textarea so search and modals aren't disrupted.
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable)) {
+        return;
+      }
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "a") {
+        if (files.currentFiles.length === 0) return;
+        event.preventDefault();
+        selectAllFiles();
+      } else if (event.key === "Escape" && selectedFiles.size > 0) {
+        clearSelection();
+      } else if ((event.key === "Delete" || event.key === "Backspace") && selectedFiles.size > 0) {
+        event.preventDefault();
+        void bulkDelete();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [files.currentFiles.length, selectedFiles, selectAllFiles, clearSelection, bulkDelete]);
+
   /* ── Callback adapters for sub-components ── */
   const handleUploadClick = useCallback(() => fileInputRef.current?.click(), []);
   const handleSelectFolder = useCallback((id: string) => { setActiveFolderId(id); setSelectedFiles(new Set()); setMobileSidebarOpen(false); }, []);
