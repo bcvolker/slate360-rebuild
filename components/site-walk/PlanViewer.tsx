@@ -9,7 +9,7 @@ import type { SiteWalkPlan, SiteWalkPin, SiteWalkItem, PinColor } from "@/lib/ty
 const PIN_COLORS: Record<PinColor, string> = {
   blue: "fill-blue-500",
   green: "fill-green-500",
-  amber: "fill-[var(--graphite-primary)]",
+  amber: "fill-cyan-500",
   red: "fill-red-500",
   gray: "fill-gray-400",
   purple: "fill-purple-500",
