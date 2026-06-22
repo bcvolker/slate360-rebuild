@@ -30,10 +30,33 @@ export function useCaptureCanvasStreamLifecycle({ camera, facingMode, cameraPaus
 
   const { isStreaming, streamAlive, needsUserResume } = camera;
 
+  // Release the camera while the app is backgrounded so iOS clears its
+  // camera-in-use indicator (a live preview otherwise keeps it lit, which looks
+  // like the app is "always recording"). The stream is re-acquired on return —
+  // only after coming back from background, never during active capture.
+  const [appHidden, setAppHidden] = useState(false);
+
+  useEffect(() => {
+    const sync = () => setAppHidden(document.hidden);
+    sync();
+    document.addEventListener("visibilitychange", sync);
+    window.addEventListener("pagehide", sync);
+    window.addEventListener("pageshow", sync);
+    return () => {
+      document.removeEventListener("visibilitychange", sync);
+      window.removeEventListener("pagehide", sync);
+      window.removeEventListener("pageshow", sync);
+    };
+  }, []);
+
   useEffect(() => {
     lifecycleRunRef.current += 1;
     setLifecycleRunCount(lifecycleRunRef.current);
 
+    if (appHidden) {
+      stopCameraRef.current();
+      return;
+    }
     if (cameraPaused) {
       detachVideoRef.current();
       return;
@@ -46,7 +69,7 @@ export function useCaptureCanvasStreamLifecycle({ camera, facingMode, cameraPaus
     if (!isStreaming) {
       void startCameraRef.current(facingMode);
     }
-  }, [cameraPaused, facingMode, isStreaming, streamAlive, needsUserResume]);
+  }, [appHidden, cameraPaused, facingMode, isStreaming, streamAlive, needsUserResume]);
 
   useEffect(() => {
     return () => {
