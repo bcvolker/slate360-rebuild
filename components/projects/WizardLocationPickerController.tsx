@@ -96,7 +96,7 @@ export default function WizardLocationPickerController({
           <button
             type="button"
             onClick={() => void searchAddress()}
-            className="rounded-lg bg-[#3B82F6] px-2.5 py-1.5 text-white transition-colors hover:bg-[#1D4ED8]"
+            className="rounded-lg bg-[var(--primary)] px-2.5 py-1.5 text-white transition-colors hover:bg-[color-mix(in_srgb,var(--primary)_78%,black)]"
           >
             <Search size={14} />
           </button>

@@ -84,7 +84,7 @@ export function ProjectDetailOverview({
         <section className="rounded-2xl border border-app bg-app-card p-5">
           <div className="flex items-center justify-between gap-3">
             <h2 className="flex items-center gap-2 text-sm font-black text-foreground">
-              <Building2 size={16} className="text-[#3B82F6]" /> Project Info
+              <Building2 size={16} className="text-[var(--primary)]" /> Project Info
             </h2>
             <span className="rounded-full border border-app bg-white/[0.04] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-zinc-300">
               {project.status ?? "Active"}
@@ -107,7 +107,7 @@ export function ProjectDetailOverview({
             <div className="rounded-xl border border-app bg-white/[0.04]/50 p-3">
               <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Location</p>
               <p className="mt-1 flex items-start gap-1.5 text-sm font-semibold text-foreground">
-                <MapPin size={14} className="mt-0.5 shrink-0 text-[#3B82F6]" />
+                <MapPin size={14} className="mt-0.5 shrink-0 text-[var(--primary)]" />
                 <span>{location.label || "Not set"}</span>
               </p>
             </div>
@@ -116,7 +116,7 @@ export function ProjectDetailOverview({
 
         <section className="rounded-2xl border border-app bg-app-card p-5">
           <h2 className="flex items-center gap-2 text-sm font-black text-foreground">
-            <FileText size={16} className="text-[#3B82F6]" /> Project Notes / Status Notes
+            <FileText size={16} className="text-[var(--primary)]" /> Project Notes / Status Notes
           </h2>
 
           <div className="mt-4 grid gap-4 lg:grid-cols-2">
@@ -131,7 +131,7 @@ export function ProjectDetailOverview({
                 <ul className="mt-2 space-y-2 text-sm text-zinc-300">
                   {statusNotes.map((note) => (
                     <li key={note} className="flex gap-2">
-                      <span className="mt-1 h-1.5 w-1.5 rounded-full bg-[#3B82F6]" />
+                      <span className="mt-1 h-1.5 w-1.5 rounded-full bg-[var(--primary)]" />
                       <span>{note}</span>
                     </li>
                   ))}
@@ -148,9 +148,9 @@ export function ProjectDetailOverview({
         <section className="rounded-2xl border border-app bg-app-card p-5">
           <div className="flex items-center justify-between gap-3">
             <h2 className="flex items-center gap-2 text-sm font-black text-foreground">
-              <FolderOpen size={16} className="text-[#3B82F6]" /> SlateDrop Snapshot
+              <FolderOpen size={16} className="text-[var(--primary)]" /> SlateDrop Snapshot
             </h2>
-            <Link href={`/projects/${project.id}/slatedrop`} className="text-xs font-bold text-[#3B82F6] hover:underline">
+            <Link href={`/projects/${project.id}/slatedrop`} className="text-xs font-bold text-[var(--primary)] hover:underline">
               Open SlateDrop →
             </Link>
           </div>
@@ -161,7 +161,7 @@ export function ProjectDetailOverview({
                 <Link
                   key={file.id}
                   href={`/projects/${project.id}/slatedrop`}
-                  className="flex items-center justify-between gap-3 rounded-xl border border-app bg-white/[0.04]/50 px-4 py-3 transition-colors hover:border-[#3B82F6]/30 hover:bg-[#3B82F6]/10"
+                  className="flex items-center justify-between gap-3 rounded-xl border border-app bg-white/[0.04]/50 px-4 py-3 transition-colors hover:border-[color-mix(in_srgb,var(--primary)_30%,transparent)] hover:bg-[color-mix(in_srgb,var(--primary)_10%,transparent)]"
                 >
                   <div className="min-w-0">
                     <p className="truncate text-sm font-semibold text-foreground">{file.file_name}</p>
@@ -183,9 +183,9 @@ export function ProjectDetailOverview({
         <section className="rounded-2xl border border-app bg-app-card p-5">
           <div className="flex items-center justify-between gap-3">
             <h2 className="flex items-center gap-2 text-sm font-black text-foreground">
-              <Camera size={16} className="text-[#3B82F6]" /> Photos Snapshot
+              <Camera size={16} className="text-[var(--primary)]" /> Photos Snapshot
             </h2>
-            <Link href={`/projects/${project.id}/photos`} className="text-xs font-bold text-[#3B82F6] hover:underline">
+            <Link href={`/projects/${project.id}/photos`} className="text-xs font-bold text-[var(--primary)] hover:underline">
               Open Photos →
             </Link>
           </div>
@@ -201,7 +201,7 @@ export function ProjectDetailOverview({
                 <Link
                   key={photo.id}
                   href={`/projects/${project.id}/photos`}
-                  className="rounded-xl border border-app bg-white/[0.04]/50 p-3 transition-colors hover:border-[#3B82F6]/30 hover:bg-[#3B82F6]/10"
+                  className="rounded-xl border border-app bg-white/[0.04]/50 p-3 transition-colors hover:border-[color-mix(in_srgb,var(--primary)_30%,transparent)] hover:bg-[color-mix(in_srgb,var(--primary)_10%,transparent)]"
                 >
                   <p className="truncate text-sm font-semibold text-foreground">{photo.file_name}</p>
                   <p className="mt-1 text-[11px] text-zinc-500">{formatDate(photo.created_at)}</p>
@@ -217,9 +217,9 @@ export function ProjectDetailOverview({
       <section className="rounded-2xl border border-app bg-app-card p-5">
         <div className="flex items-center justify-between gap-3">
           <h2 className="flex items-center gap-2 text-sm font-black text-foreground">
-            <ClipboardList size={16} className="text-[#3B82F6]" /> Punch List Summary
+            <ClipboardList size={16} className="text-[var(--primary)]" /> Punch List Summary
           </h2>
-          <Link href={`/projects/${project.id}/punch-list`} className="text-xs font-bold text-[#3B82F6] hover:underline">
+          <Link href={`/projects/${project.id}/punch-list`} className="text-xs font-bold text-[var(--primary)] hover:underline">
             Open Punch List →
           </Link>
         </div>
@@ -245,7 +245,7 @@ export function ProjectDetailOverview({
               <Link
                 key={item.id}
                 href={`/projects/${project.id}/punch-list`}
-                className="flex items-center justify-between gap-3 rounded-xl border border-app bg-white/[0.04]/50 px-4 py-3 transition-colors hover:border-[#3B82F6]/30 hover:bg-[#3B82F6]/10"
+                className="flex items-center justify-between gap-3 rounded-xl border border-app bg-white/[0.04]/50 px-4 py-3 transition-colors hover:border-[color-mix(in_srgb,var(--primary)_30%,transparent)] hover:bg-[color-mix(in_srgb,var(--primary)_10%,transparent)]"
               >
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold text-foreground">

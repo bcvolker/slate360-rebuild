@@ -124,10 +124,10 @@ export default function ProjectPhotosPage() {
 				<div>
 					<p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Photos</p>
 					<h2 className="text-lg font-black text-foreground">Photo Log</h2>
-					<p className="mt-0.5 inline-block rounded-md bg-[#3B82F6]/10 px-2 py-0.5 text-[10px] font-semibold text-[#3B82F6] ring-1 ring-[#3B82F6]/20">Saved to /Photos/</p>
+					<p className="mt-0.5 inline-block rounded-md bg-[color-mix(in_srgb,var(--primary)_10%,transparent)] px-2 py-0.5 text-[10px] font-semibold text-[var(--primary)] ring-1 ring-[color-mix(in_srgb,var(--primary)_20%,transparent)]">Saved to /Photos/</p>
 				</div>
 				<button onClick={onGenerateReport} disabled={generating}
-					className="inline-flex items-center gap-2 rounded-lg bg-[#3B82F6] px-4 py-2 text-sm font-semibold text-foreground transition hover:bg-[#1D4ED8] disabled:opacity-60">
+					className="inline-flex items-center gap-2 rounded-lg bg-[var(--primary)] px-4 py-2 text-sm font-semibold text-foreground transition hover:bg-[color-mix(in_srgb,var(--primary)_78%,black)] disabled:opacity-60">
 					{generating ? <Loader2 size={14} className="animate-spin" /> : <Camera size={14} />}
 					{generating ? "Generating..." : "Generate Photo Report"}
 				</button>

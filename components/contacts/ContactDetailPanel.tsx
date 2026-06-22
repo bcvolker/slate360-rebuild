@@ -121,7 +121,7 @@ export default function ContactDetailPanel({ contact, onClose, onUpdate, onDelet
           <div className="flex-1 min-w-0">
             {editing ? (
               <input
-                className="w-full text-sm font-bold text-gray-900 border-b border-[#3B82F6] outline-none bg-transparent pb-0.5"
+                className="w-full text-sm font-bold text-gray-900 border-b border-[var(--primary)] outline-none bg-transparent pb-0.5"
                 value={form.name}
                 onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
               />
@@ -142,7 +142,7 @@ export default function ContactDetailPanel({ contact, onClose, onUpdate, onDelet
               key={t}
               onClick={() => setTab(t)}
               className={`flex-1 py-2.5 text-xs font-semibold capitalize transition-colors ${
-                tab === t ? "text-[#3B82F6] border-b-2 border-[#3B82F6]" : "text-gray-400 hover:text-gray-600"
+                tab === t ? "text-[var(--primary)] border-b-2 border-[var(--primary)]" : "text-gray-400 hover:text-gray-600"
               }`}
             >
               {t === "files" ? `Files (${files.length})` : "Info"}
@@ -171,7 +171,7 @@ export default function ContactDetailPanel({ contact, onClose, onUpdate, onDelet
                       type={type}
                       value={form[key]}
                       onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
-                      className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/20 focus:border-[#3B82F6]"
+                      className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--primary)_20%,transparent)] focus:border-[var(--primary)]"
                       placeholder={label}
                     />
                   ) : (
@@ -189,7 +189,7 @@ export default function ContactDetailPanel({ contact, onClose, onUpdate, onDelet
                     rows={4}
                     value={form.notes}
                     onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
-                    className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/20 focus:border-[#3B82F6] resize-none"
+                    className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--primary)_20%,transparent)] focus:border-[var(--primary)] resize-none"
                     placeholder="Notes…"
                   />
                 ) : (
@@ -215,7 +215,7 @@ export default function ContactDetailPanel({ contact, onClose, onUpdate, onDelet
 
           {tab === "files" && (
             <div className="space-y-2">
-              <label className="flex items-center gap-2 w-full py-2.5 px-3 rounded-xl border-2 border-dashed border-gray-200 text-xs text-gray-500 hover:border-[#3B82F6]/40 hover:text-[#3B82F6] cursor-pointer transition-colors">
+              <label className="flex items-center gap-2 w-full py-2.5 px-3 rounded-xl border-2 border-dashed border-gray-200 text-xs text-gray-500 hover:border-[color-mix(in_srgb,var(--primary)_40%,transparent)] hover:text-[var(--primary)] cursor-pointer transition-colors">
                 {uploading ? <Loader2 size={13} className="animate-spin" /> : <Paperclip size={13} />}
                 <span>{uploading ? "Uploading…" : "Attach a file"}</span>
                 <input type="file" className="hidden" onChange={handleFileUpload} disabled={uploading} />
@@ -255,7 +255,7 @@ export default function ContactDetailPanel({ contact, onClose, onUpdate, onDelet
                 onClick={handleSave}
                 disabled={saving || !form.name.trim()}
                 className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-foreground disabled:opacity-50 flex items-center justify-center gap-1.5"
-                style={{ backgroundColor: "#3B82F6" }}
+                style={{ backgroundColor: "var(--primary)" }}
               >
                 {saving ? <Loader2 size={13} className="animate-spin" /> : "Save"}
               </button>

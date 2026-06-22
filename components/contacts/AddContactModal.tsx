@@ -80,7 +80,7 @@ export default function AddContactModal({ projects = [], onClose, onCreated }: P
               key={m}
               onClick={() => setMode(m)}
               className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all capitalize ${
-                mode === m ? "bg-[#3B82F6] text-foreground" : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                mode === m ? "bg-[var(--primary)] text-foreground" : "bg-gray-100 text-gray-500 hover:bg-gray-200"
               } ${m === "quick" ? "rounded-r-none" : "rounded-l-none"}`}
             >
               {m === "quick" ? "Quick add" : "Full profile"}
@@ -98,7 +98,7 @@ export default function AddContactModal({ projects = [], onClose, onCreated }: P
               value={form.name}
               onChange={set("name")}
               autoFocus
-              className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/20 focus:border-[#3B82F6] transition-all"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--primary)_20%,transparent)] focus:border-[var(--primary)] transition-all"
             />
           </div>
 
@@ -110,7 +110,7 @@ export default function AddContactModal({ projects = [], onClose, onCreated }: P
               placeholder="name@company.com"
               value={form.email}
               onChange={set("email")}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/20 focus:border-[#3B82F6] transition-all"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--primary)_20%,transparent)] focus:border-[var(--primary)] transition-all"
             />
           </div>
 
@@ -124,7 +124,7 @@ export default function AddContactModal({ projects = [], onClose, onCreated }: P
                     placeholder="+1 (555) 000-0000"
                     value={form.phone}
                     onChange={set("phone")}
-                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/20 focus:border-[#3B82F6] transition-all"
+                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--primary)_20%,transparent)] focus:border-[var(--primary)] transition-all"
                   />
                 </div>
                 <div>
@@ -134,7 +134,7 @@ export default function AddContactModal({ projects = [], onClose, onCreated }: P
                     placeholder="Project Manager"
                     value={form.title}
                     onChange={set("title")}
-                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/20 focus:border-[#3B82F6] transition-all"
+                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--primary)_20%,transparent)] focus:border-[var(--primary)] transition-all"
                   />
                 </div>
               </div>
@@ -146,7 +146,7 @@ export default function AddContactModal({ projects = [], onClose, onCreated }: P
                   placeholder="Company name"
                   value={form.company}
                   onChange={set("company")}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/20 focus:border-[#3B82F6] transition-all"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--primary)_20%,transparent)] focus:border-[var(--primary)] transition-all"
                 />
               </div>
 
@@ -161,7 +161,7 @@ export default function AddContactModal({ projects = [], onClose, onCreated }: P
                         onClick={() => toggleProject(p.id)}
                         className={`px-2.5 py-1 rounded-full text-[11px] font-semibold border transition-all ${
                           selectedProjects.includes(p.id)
-                            ? "border-[#3B82F6] bg-[#3B82F6]/8 text-[#3B82F6]"
+                            ? "border-[var(--primary)] bg-[color-mix(in_srgb,var(--primary)_8%,transparent)] text-[var(--primary)]"
                             : "border-gray-200 text-gray-500 hover:border-gray-300"
                         }`}
                       >
@@ -179,7 +179,7 @@ export default function AddContactModal({ projects = [], onClose, onCreated }: P
                   placeholder="Any relevant notes…"
                   value={form.notes}
                   onChange={set("notes")}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/20 focus:border-[#3B82F6] resize-none transition-all"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--primary)_20%,transparent)] focus:border-[var(--primary)] resize-none transition-all"
                 />
               </div>
             </>
@@ -210,7 +210,7 @@ export default function AddContactModal({ projects = [], onClose, onCreated }: P
             onClick={handleSubmit}
             disabled={saving || !form.name.trim()}
             className="flex-1 py-3 rounded-xl text-sm font-semibold text-foreground transition-all hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2"
-            style={{ backgroundColor: "#3B82F6" }}
+            style={{ backgroundColor: "var(--primary)" }}
           >
             {saving ? <Loader2 size={14} className="animate-spin" /> : "Add Contact"}
           </button>
