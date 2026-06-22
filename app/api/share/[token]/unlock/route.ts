@@ -11,8 +11,16 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { s3, BUCKET } from "@/lib/s3";
 import { verifySharePassword } from "@/lib/slatedrop/share-password";
+import { createRateLimiter } from "@/lib/server/rate-limit";
+
+// Throttle password attempts to blunt brute-forcing a leaked share token's
+// password (and token enumeration). Per-IP; no-ops gracefully without Upstash.
+const checkRateLimit = createRateLimiter("share:unlock", 10, 60);
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ token: string }> }) {
+  const rateLimited = await checkRateLimit(req);
+  if (rateLimited) return rateLimited;
+
   const { token } = await params;
   if (!token || token.length < 10) {
     return NextResponse.json({ error: "Invalid link" }, { status: 404 });
