@@ -10,7 +10,7 @@ export function PortalPrimaryCta({
     <button
       type="button"
       className={cn(
-        "btn-amber-solid inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold text-[#0C0A09] disabled:opacity-50",
+        "inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--graphite-primary)] px-4 py-2.5 text-sm font-bold text-[var(--graphite-canvas)] disabled:opacity-50",
         className,
       )}
       {...props}
@@ -28,7 +28,7 @@ export function PortalPrimaryLink({
   return (
     <a
       className={cn(
-        "btn-amber-solid inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold text-[#0C0A09]",
+        "inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--graphite-primary)] px-4 py-2.5 text-sm font-bold text-[var(--graphite-canvas)]",
         className,
       )}
       {...props}

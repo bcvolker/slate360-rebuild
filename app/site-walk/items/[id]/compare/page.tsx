@@ -71,7 +71,7 @@ function ComparisonPane({ label, item }: { label: string; item: SiteWalkItem | n
   return (
     <GlassCard className="overflow-hidden p-4">
       <div className="mb-2 flex items-center justify-between">
-        <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.18em] text-amber-200">{label}</span>
+        <span className="rounded-full bg-[color-mix(in_srgb,var(--graphite-primary)_15%,transparent)] px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.18em] text-[var(--graphite-primary)]">{label}</span>
         {item && <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">{new Date(item.created_at).toLocaleString()}</span>}
       </div>
       {!item ? (
@@ -82,7 +82,7 @@ function ComparisonPane({ label, item }: { label: string; item: SiteWalkItem | n
       {item && (
         <div className="mt-3 space-y-1">
           <h2 className="text-sm font-black text-white">{item.title || "Untitled"}</h2>
-          {item.location_label && <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-amber-300">{item.location_label}</p>}
+          {item.location_label && <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--graphite-primary)]">{item.location_label}</p>}
           {item.description && <p className="text-xs leading-5 text-slate-300">{item.description}</p>}
         </div>
       )}

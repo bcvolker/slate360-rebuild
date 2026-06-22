@@ -11,7 +11,7 @@ export default function OfflinePage() {
       </p>
       <button
         onClick={() => window.location.reload()}
-        className="rounded-lg bg-amber-500 px-6 py-2.5 text-sm font-semibold text-foreground transition hover:bg-amber-600"
+        className="rounded-lg bg-[var(--graphite-primary)] px-6 py-2.5 text-sm font-semibold text-[var(--graphite-canvas)] transition hover:bg-[color-mix(in_srgb,var(--graphite-primary)_85%,transparent)]"
       >
         Try again
       </button>

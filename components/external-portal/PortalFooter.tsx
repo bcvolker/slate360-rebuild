@@ -7,7 +7,7 @@ export function PortalFooter({ orgName }: { orgName?: string }) {
           href="https://www.slate360.ai"
           target="_blank"
           rel="noopener noreferrer"
-          className="font-semibold text-amber-400/90 hover:text-amber-300"
+          className="font-semibold text-[color-mix(in_srgb,var(--graphite-primary)_90%,transparent)] hover:text-[var(--graphite-primary)]"
         >
           Slate360
         </a>

@@ -28,9 +28,9 @@ const STATE_ICONS: Record<PortalTokenState, typeof Link2Off> = {
 
 const STATE_TONES: Record<PortalTokenState, string> = {
   invalid: "text-slate-300 bg-white/5 border-white/10",
-  expired: "text-amber-200 bg-amber-500/10 border-amber-500/30",
+  expired: "text-[var(--graphite-muted)] bg-white/[0.05] border-white/10",
   revoked: "text-red-200 bg-red-500/10 border-red-500/30",
-  max_views: "text-amber-200 bg-amber-500/10 border-amber-500/30",
+  max_views: "text-[var(--graphite-muted)] bg-white/[0.05] border-white/10",
   denied: "text-red-200 bg-red-500/10 border-red-500/30",
   unavailable: "text-slate-300 bg-white/5 border-white/10",
   empty: "text-slate-300 bg-white/5 border-white/10",

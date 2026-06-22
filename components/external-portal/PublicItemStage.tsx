@@ -43,7 +43,7 @@ export function PublicItemStage({ item }: { item: ViewerItem }) {
     case "voice":
       return (
         <div className="w-full max-w-xl p-8">
-          <h2 className="mb-4 text-xl font-semibold text-amber-300">{item.title}</h2>
+          <h2 className="mb-4 text-xl font-semibold text-[var(--graphite-primary)]">{item.title}</h2>
           {item.url ? <audio src={item.url} controls className="mb-4 w-full" /> : null}
           {item.transcript ? (
             <p className="rounded-lg bg-black/30 p-4 text-sm leading-relaxed text-slate-300">
@@ -59,7 +59,7 @@ export function PublicItemStage({ item }: { item: ViewerItem }) {
     case "note":
       return (
         <div className="max-w-2xl p-12 text-left">
-          <h2 className="mb-6 text-2xl font-bold text-amber-300">{item.title}</h2>
+          <h2 className="mb-6 text-2xl font-bold text-[var(--graphite-primary)]">{item.title}</h2>
           <p className="whitespace-pre-wrap text-lg leading-relaxed text-slate-200">
             {item.notes || "No note text was included with this item."}
           </p>
@@ -85,7 +85,7 @@ export function PublicItemStage({ item }: { item: ViewerItem }) {
 function MediaUnavailable({ label, compact }: { label: string; compact?: boolean }) {
   return (
     <PortalGlassCard className={compact ? "!p-4 text-center" : "text-center"}>
-      <FileWarning className="mx-auto mb-2 text-amber-400/80" size={compact ? 20 : 28} aria-hidden />
+      <FileWarning className="mx-auto mb-2 text-[var(--graphite-muted)]" size={compact ? 20 : 28} aria-hidden />
       <p className="text-sm font-semibold text-white">{label}</p>
       <p className="mt-1 text-xs text-slate-400">Media is unavailable for this shared link.</p>
     </PortalGlassCard>
@@ -101,7 +101,7 @@ function UnsupportedItem({
 }) {
   return (
     <PortalGlassCard className="max-w-md text-center">
-      <FileWarning className="mx-auto mb-3 text-amber-400" size={32} aria-hidden />
+      <FileWarning className="mx-auto mb-3 text-[var(--graphite-muted)]" size={32} aria-hidden />
       <h3 className="text-lg font-semibold text-white">{title}</h3>
       <p className="mt-2 text-sm leading-relaxed text-slate-400">
         This shared {typeLabel} cannot be opened in the browser viewer. Contact the sender if

@@ -120,12 +120,12 @@ function OpenInRealBrowser({
   onCopy: () => void;
 }) {
   return (
-    <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-6 space-y-4">
+    <div className="rounded-2xl border border-white/10 bg-white/[0.05] p-6 space-y-4">
       <div className="flex items-start gap-3">
-        <AlertTriangle className="h-7 w-7 text-amber-400 flex-shrink-0 mt-0.5" />
+        <AlertTriangle className="h-7 w-7 text-[var(--graphite-muted)] flex-shrink-0 mt-0.5" />
         <div className="space-y-2 flex-1 min-w-0">
-          <h2 className="text-lg font-bold text-amber-200">Open this in {target}</h2>
-          <p className="text-sm text-amber-100/90 leading-relaxed">
+          <h2 className="text-lg font-bold text-[var(--graphite-muted)]">Open this in {target}</h2>
+          <p className="text-sm text-[var(--graphite-muted)] leading-relaxed">
             Apple/Google won&rsquo;t let <strong>{browser}</strong> install apps. Tap the
             button below to copy the Slate360 link, then paste it into <strong>{target}</strong>.
           </p>
@@ -134,7 +134,7 @@ function OpenInRealBrowser({
 
       <button
         onClick={onCopy}
-        className="w-full inline-flex items-center justify-center gap-2 h-14 rounded-xl bg-amber-600 text-primary-foreground text-base font-bold hover:bg-amber-500 transition-colors"
+        className="w-full inline-flex items-center justify-center gap-2 h-14 rounded-xl bg-[var(--graphite-primary)] text-[var(--graphite-canvas)] text-base font-bold hover:bg-[color-mix(in_srgb,var(--graphite-primary)_85%,transparent)] transition-colors"
       >
         {copied ? (
           <>
@@ -147,7 +147,7 @@ function OpenInRealBrowser({
         )}
       </button>
 
-      <p className="text-xs text-amber-100/70 leading-relaxed">
+      <p className="text-xs text-[var(--graphite-muted)] leading-relaxed">
         After you tap Copy: open <strong>{target}</strong> on your phone, tap and hold
         the address bar, paste, then return to this page.
       </p>
@@ -158,7 +158,7 @@ function OpenInRealBrowser({
 function IOSCoachMark() {
   return (
     <div className="space-y-5">
-      <div className="rounded-2xl bg-amber-600/10 border border-amber-500/30 p-5 text-center space-y-2">
+      <div className="rounded-2xl bg-white/[0.05] border border-white/10 p-5 text-center space-y-2">
         <h2 className="text-xl font-bold text-foreground">2 taps to install</h2>
         <p className="text-sm text-muted-foreground">
           Apple requires you to use Safari&rsquo;s Share menu — that&rsquo;s the only way
@@ -169,7 +169,7 @@ function IOSCoachMark() {
       {/* Step 1 — match the actual Apple Share icon */}
       <div className="flex items-center gap-4 rounded-2xl bg-app-card border border-app p-4">
         <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-white shadow-md">
-          <AppleShareIcon className="h-8 w-8 text-amber-400" />
+          <AppleShareIcon className="h-8 w-8 text-[var(--graphite-primary)]" />
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-base font-bold text-foreground leading-tight">
@@ -199,9 +199,9 @@ function IOSCoachMark() {
 
       {/* Bouncing arrow pointing down at the Safari toolbar */}
       <div className="flex flex-col items-center gap-2 pt-2">
-        <p className="text-sm font-semibold text-amber-400">The Share button is down here ↓</p>
+        <p className="text-sm font-semibold text-[var(--graphite-primary)]">The Share button is down here ↓</p>
         <div className="animate-bounce">
-          <ArrowDown className="h-12 w-12 text-amber-400 drop-shadow-[0_0_12px_rgba(245,158,11,0.6)]" strokeWidth={2.5} />
+          <ArrowDown className="h-12 w-12 text-[var(--graphite-primary)]" strokeWidth={2.5} />
         </div>
       </div>
     </div>
@@ -221,13 +221,13 @@ function AndroidOneTap({
 }) {
   return (
     <div className="space-y-5">
-      <div className="rounded-2xl bg-amber-600/10 border border-amber-500/30 p-5 space-y-4">
+      <div className="rounded-2xl bg-white/[0.05] border border-white/10 p-5 space-y-4">
         <h2 className="text-xl font-bold text-foreground text-center">One tap to install</h2>
         {canPrompt ? (
           <button
             onClick={onInstall}
             disabled={installing}
-            className="w-full inline-flex items-center justify-center gap-2 h-16 rounded-xl bg-amber-600 text-primary-foreground text-lg font-bold hover:bg-amber-500 disabled:opacity-50 shadow-lg shadow-amber-500/30"
+            className="w-full inline-flex items-center justify-center gap-2 h-16 rounded-xl bg-[var(--graphite-primary)] text-[var(--graphite-canvas)] text-lg font-bold hover:bg-[color-mix(in_srgb,var(--graphite-primary)_85%,transparent)] disabled:opacity-50"
           >
             <Download className="h-6 w-6" />
             {installing ? "Installing…" : "Install Slate360"}
@@ -241,7 +241,7 @@ function AndroidOneTap({
           </div>
         )}
         {installResult === "dismissed" && (
-          <p className="text-xs text-amber-300 text-center">
+          <p className="text-xs text-[var(--graphite-muted)] text-center">
             You dismissed the prompt. Refresh this page to try again.
           </p>
         )}
@@ -256,7 +256,7 @@ function AndroidOneTap({
 function DesktopInstructions() {
   return (
     <div className="space-y-5">
-      <div className="rounded-2xl bg-amber-600/10 border border-amber-500/30 p-5">
+      <div className="rounded-2xl bg-white/[0.05] border border-white/10 p-5">
         <h2 className="text-xl font-bold text-foreground mb-2">Install on Desktop</h2>
         <p className="text-sm text-muted-foreground">
           In Chrome or Edge, look for the install icon in the address bar (right side of
