@@ -40,7 +40,6 @@ export function CaptureV2Summary({ session, items, projects, backHref = "/site-w
 
   const contextLine = useMemo(() => buildWalkReviewContextLine(session, items), [items, session]);
   const showAttachToProject = session.isAdHoc && !session.projectId;
-  const deliverableHref = `/site-walk/deliverables/new?session=${encodeURIComponent(session.id)}`;
 
   return (
     <main
@@ -64,7 +63,6 @@ export function CaptureV2Summary({ session, items, projects, backHref = "/site-w
         projectId={session.projectId}
         showAttachToProject={showAttachToProject}
         projects={projects}
-        deliverableHref={deliverableHref}
       />
     </main>
   );
