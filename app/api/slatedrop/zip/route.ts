@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
 
   let query = admin
     .from("slatedrop_uploads")
-    .select("id, file_name, s3_key")
+    .select("id, file_name, file_size, s3_key")
     .eq("status", "active")
     .like("s3_key", `${s3Prefix}%`);
 
@@ -56,22 +56,47 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "No files to download" }, { status: 404 });
   }
 
+  // The whole archive is assembled in memory, so guard against requests large
+  // enough to OOM the function; over the limit the client should download files
+  // individually. (A true streaming archive is a follow-up needing runtime
+  // validation.)
+  const MAX_TOTAL_BYTES = 1_500_000_000; // ~1.5 GB
+  const MAX_FILE_COUNT = 1000;
+  const totalBytes = files.reduce((sum, f) => sum + (f.file_size ?? 0), 0);
+  if (files.length > MAX_FILE_COUNT || totalBytes > MAX_TOTAL_BYTES) {
+    return NextResponse.json(
+      { error: "This folder is too large to zip. Download files individually instead." },
+      { status: 413 },
+    );
+  }
+
   const zip = new JSZip();
   const bucket = BUCKET!;
 
+  // Fetch with a bounded number in flight so we don't pull every file into
+  // memory at once (the original Promise.all spiked memory for big folders).
+  const FETCH_CONCURRENCY = 4;
+  let cursor = 0;
+  const fetchOne = async (file: { file_name: string; s3_key: string }) => {
+    try {
+      const cmd = new GetObjectCommand({ Bucket: bucket, Key: file.s3_key });
+      const url = await getSignedUrl(s3, cmd, { expiresIn: 300 });
+      const res = await fetch(url);
+      if (!res.ok) return;
+      const buffer = await res.arrayBuffer();
+      zip.file(file.file_name, buffer);
+    } catch (e) {
+      console.warn(`[zip] skipped ${file.file_name}:`, e);
+    }
+  };
   await Promise.all(
-    files.map(async (file) => {
-      try {
-        const cmd = new GetObjectCommand({ Bucket: bucket, Key: file.s3_key });
-        const url = await getSignedUrl(s3, cmd, { expiresIn: 300 });
-        const res = await fetch(url);
-        if (!res.ok) return;
-        const buffer = await res.arrayBuffer();
-        zip.file(file.file_name, buffer);
-      } catch (e) {
-        console.warn(`[zip] skipped ${file.file_name}:`, e);
+    Array.from({ length: Math.min(FETCH_CONCURRENCY, files.length) }, async () => {
+      while (true) {
+        const i = cursor++;
+        if (i >= files.length) break;
+        await fetchOne(files[i]);
       }
-    })
+    }),
   );
 
   const zipBuffer = await zip.generateAsync({ type: "nodebuffer", compression: "DEFLATE" });
