@@ -28,6 +28,13 @@ export function useSlateDropUiState() {
   const [moveModal, setMoveModal] = useState<{ id: string; name: string; type: "file" | "bulk"; ids?: string[] } | null>(null);
   const [moveTargetFolder, setMoveTargetFolder] = useState<string | null>(null);
 
+  const [infoModal, setInfoModal] = useState<{
+    name: string;
+    typeLabel: string;
+    sizeLabel: string;
+    modifiedLabel: string;
+  } | null>(null);
+
   const [previewFile, setPreviewFile] = useState<SlateDropDbFile | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
@@ -84,6 +91,8 @@ export function useSlateDropUiState() {
     setMoveModal,
     moveTargetFolder,
     setMoveTargetFolder,
+    infoModal,
+    setInfoModal,
     previewFile,
     setPreviewFile,
     previewUrl,

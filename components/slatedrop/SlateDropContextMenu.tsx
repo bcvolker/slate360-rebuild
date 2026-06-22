@@ -5,6 +5,7 @@ import {
   Edit3,
   Eye,
   FolderOpen,
+  Info,
   Link2,
   Scissors,
   Send,
@@ -52,6 +53,7 @@ type SlateDropContextMenuProps = {
   onCopyFileName: (fileName: string) => void;
   onMoveFile: (target: ContextMenuFileTarget, activeFolderId: string) => void;
   onOpenShare: (target: ContextMenuFileTarget) => void;
+  onShowInfo: (target: ContextMenuFileTarget) => void;
   onCopyShareLink: (target: ContextMenuFileTarget) => void;
   onDeleteFile: (target: ContextMenuFileTarget) => void;
   onCopyFolderName: (folderName: string) => void;
@@ -73,6 +75,7 @@ export default function SlateDropContextMenu({
   onCopyFileName,
   onMoveFile,
   onOpenShare,
+  onShowInfo,
   onCopyShareLink,
   onDeleteFile,
   onCopyFolderName,
@@ -95,6 +98,10 @@ export default function SlateDropContextMenu({
           <>
             <CtxItem icon={Eye} label="Preview" onClick={() => {
               onPreviewFile(target);
+              onClose();
+            }} />
+            <CtxItem icon={Info} label="Get Info" onClick={() => {
+              onShowInfo(target);
               onClose();
             }} />
             <CtxItem icon={Download} label="Download" onClick={() => {

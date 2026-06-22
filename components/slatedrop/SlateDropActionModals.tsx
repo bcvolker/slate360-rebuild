@@ -1,10 +1,11 @@
-import { Folder, Trash2, X } from "lucide-react";
+import { Folder, Info, Trash2, X } from "lucide-react";
 import type { SlateDropFolderNode as FolderNode } from "@/lib/slatedrop/folderTree";
 
 type NewFolderModalState = { parentId: string; name: string } | null;
 type RenameModalState = { id: string; name: string; type: "file" | "folder" } | null;
 type DeleteConfirmState = { id: string; name: string; type: "file" | "folder" | "project" } | null;
 type MoveModalState = { id: string; name: string; type: "file" | "bulk"; ids?: string[] } | null;
+type InfoModalState = { name: string; typeLabel: string; sizeLabel: string; modifiedLabel: string } | null;
 
 type SlateDropActionModalsProps = {
   newFolderModal: NewFolderModalState;
@@ -31,6 +32,9 @@ type SlateDropActionModalsProps = {
   activeFolderId: string;
   onMoveFile: (fileId: string, targetFolderId: string) => Promise<void>;
   onMoveFiles: (fileIds: string[], targetFolderId: string) => Promise<void> | void;
+
+  infoModal: InfoModalState;
+  setInfoModal: React.Dispatch<React.SetStateAction<InfoModalState>>;
 };
 
 export default function SlateDropActionModals({
@@ -55,6 +59,8 @@ export default function SlateDropActionModals({
   activeFolderId,
   onMoveFile,
   onMoveFiles,
+  infoModal,
+  setInfoModal,
 }: SlateDropActionModalsProps) {
   return (
     <>
@@ -267,7 +273,40 @@ export default function SlateDropActionModals({
           </div>
         </ModalBackdrop>
       )}
+
+      {infoModal && (
+        <ModalBackdrop onClose={() => setInfoModal(null)}>
+          <div className="w-full max-w-sm bg-[color-mix(in_srgb,var(--graphite-canvas)_60%,transparent)] rounded-2xl shadow-2xl overflow-hidden border border-white/10">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
+              <div className="flex items-center gap-2">
+                <Info size={16} className="text-[var(--graphite-primary)]" />
+                <h3 className="text-base font-bold text-[var(--graphite-text-body)]">Get Info</h3>
+              </div>
+              <button onClick={() => setInfoModal(null)} className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--graphite-muted)] hover:bg-white/[0.06]">
+                <X size={16} />
+              </button>
+            </div>
+            <div className="p-6">
+              <p className="mb-4 break-words text-sm font-semibold text-[var(--graphite-text-body)]">{infoModal.name}</p>
+              <dl className="space-y-2.5 text-xs">
+                <InfoRow label="Type" value={infoModal.typeLabel} />
+                <InfoRow label="Size" value={infoModal.sizeLabel} />
+                <InfoRow label="Modified" value={infoModal.modifiedLabel} />
+              </dl>
+            </div>
+          </div>
+        </ModalBackdrop>
+      )}
     </>
+  );
+}
+
+function InfoRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between gap-4">
+      <dt className="text-[var(--graphite-muted)]">{label}</dt>
+      <dd className="truncate text-right font-medium text-[var(--graphite-text-body)]">{value}</dd>
+    </div>
   );
 }
 

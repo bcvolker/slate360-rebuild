@@ -369,6 +369,12 @@ export default function SlateDropClient({ user, tier, initialProjectId, projectN
         onCopyFileName={(n) => transfers.copyToClipboard(n, "File name")}
         onMoveFile={(t) => { ui.setMoveModal({ id: t.id, name: t.file_name, type: "file" }); ui.setMoveTargetFolder(activeFolderId); }}
         onOpenShare={ui.openShareModal}
+        onShowInfo={(t) => ui.setInfoModal({
+          name: t.file_name,
+          typeLabel: t.file_type ? t.file_type.toUpperCase() : "File",
+          sizeLabel: formatBytes(t.size),
+          modifiedLabel: formatDate(t.modified),
+        })}
         onCopyShareLink={(t) => { void transfers.handleQuickCopyLink(t.id); }}
         onDeleteFile={(t) => { ui.setDeleteConfirm({ id: t.id, name: t.file_name, type: "file" }); }}
         onCopyFolderName={(n) => transfers.copyToClipboard(n, "Folder name")}
@@ -383,6 +389,7 @@ export default function SlateDropClient({ user, tier, initialProjectId, projectN
         renameModal={ui.renameModal} setRenameModal={ui.setRenameModal} renameValue={ui.renameValue} setRenameValue={ui.setRenameValue} onRename={mutations.handleRename}
         deleteConfirm={ui.deleteConfirm} setDeleteConfirm={ui.setDeleteConfirm} deleteProjectConfirmName={ui.deleteProjectConfirmName} setDeleteProjectConfirmName={ui.setDeleteProjectConfirmName} onDeleteConfirm={mutations.handleDeleteConfirmAction}
         moveModal={ui.moveModal} setMoveModal={ui.setMoveModal} moveTargetFolder={ui.moveTargetFolder} setMoveTargetFolder={ui.setMoveTargetFolder} folderTree={folderTree} activeFolderId={activeFolderId} onMoveFile={mutations.handleMoveFile} onMoveFiles={handleMoveFilesToFolder}
+        infoModal={ui.infoModal} setInfoModal={ui.setInfoModal}
       />
 
       <SlateDropSharePreviewModals
