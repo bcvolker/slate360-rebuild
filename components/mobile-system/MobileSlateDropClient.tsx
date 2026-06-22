@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -36,6 +37,14 @@ const SEGMENTS = [
 
 export function MobileSlateDropClient({ browseRows, storageLabel }: MobileSlateDropClientProps) {
   const pathname = usePathname() ?? "/slatedrop";
+  const [query, setQuery] = useState("");
+  const filteredRows = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return browseRows;
+    return browseRows.filter(
+      (row) => row.label.toLowerCase().includes(q) || row.meta.toLowerCase().includes(q),
+    );
+  }, [browseRows, query]);
   return (
     <div className={mobileTokens.mobilePageScrollInner}>
       <section className={cn(mobileTokens.panelBase, "p-5")}>
@@ -76,9 +85,12 @@ export function MobileSlateDropClient({ browseRows, storageLabel }: MobileSlateD
             aria-hidden
           />
           <input
-            readOnly
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
             placeholder="Search files"
-            className="h-11 w-full rounded-xl border border-white/10 bg-[#0B0F15]/60 pl-10 pr-4 text-sm text-white outline-none placeholder:text-zinc-500"
+            inputMode="search"
+            aria-label="Search files"
+            className="h-11 w-full rounded-xl border border-white/10 bg-[#0B0F15]/60 pl-10 pr-4 text-sm text-white outline-none placeholder:text-zinc-500 focus:border-[var(--accent-border-blue)]"
           />
         </div>
       </div>
@@ -108,7 +120,7 @@ export function MobileSlateDropClient({ browseRows, storageLabel }: MobileSlateD
       </nav>
 
       <section className={cn(mobileTokens.panelBase, "overflow-hidden")}>
-        {browseRows.map((row) => {
+        {filteredRows.map((row) => {
           const Icon = row.icon;
           return (
             <Link key={row.href} href={row.href} className={mobileTokens.mobileGlassRowLink}>
@@ -123,6 +135,11 @@ export function MobileSlateDropClient({ browseRows, storageLabel }: MobileSlateD
             </Link>
           );
         })}
+        {filteredRows.length === 0 ? (
+          <div className="px-4 py-8 text-center text-sm font-medium text-zinc-400">
+            No files match “{query.trim()}”.
+          </div>
+        ) : null}
         <div className="border-t border-white/[0.06] px-4 py-3 text-xs font-medium text-zinc-500">
           Storage: {storageLabel}
         </div>
