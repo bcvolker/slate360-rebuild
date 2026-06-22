@@ -69,7 +69,7 @@ export function CaptureCanvasTopBar({
             type="button"
             onClick={onFilmstripToggle}
             data-capture-chrome="filmstrip-toggle"
-            className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[var(--graphite-text-header)] transition active:scale-[0.98]"
+            className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_55%,transparent)] text-[var(--graphite-primary)] transition active:scale-[0.98]"
             aria-expanded={filmstripExpanded}
             aria-controls="capture-canvas-stop-tracker-scroll"
             aria-label={filmstripExpanded ? "Hide stop tracker" : "Show stop tracker"}
@@ -81,7 +81,7 @@ export function CaptureCanvasTopBar({
         <button
           type="button"
           onClick={onToggleChrome}
-          className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[var(--graphite-text-header)] transition active:scale-[0.98]"
+          className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_55%,transparent)] text-[var(--graphite-primary)] transition active:scale-[0.98]"
           aria-label="Toggle capture controls"
         >
           <Maximize2 className="h-4 w-4" />
@@ -110,7 +110,7 @@ export function CaptureCanvasTopBar({
             router.push("/app");
           }}
           data-capture-chrome="quick-exit"
-          className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[var(--graphite-text-header)] transition active:scale-[0.98]"
+          className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_55%,transparent)] text-[var(--graphite-primary)] transition active:scale-[0.98]"
           aria-label="Back to Slate360 home"
         >
           <Home className="h-4 w-4" />
