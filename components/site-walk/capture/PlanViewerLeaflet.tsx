@@ -277,9 +277,9 @@ export function PlanViewerLeaflet({
         </MapContainer>
       ) : (
         <div className="flex h-full w-full flex-col items-center justify-center gap-3 px-6 text-center">
-          <Loader2 className="h-8 w-8 animate-spin text-amber-500" />
-          <p className="text-sm font-black text-white">Loading plan…</p>
-          <p className="text-xs font-semibold text-slate-400">
+          <Loader2 className="h-8 w-8 animate-spin text-[var(--graphite-primary)]" />
+          <p className="text-sm font-black text-[var(--graphite-text-header)]">Loading plan…</p>
+          <p className="text-xs font-semibold text-[var(--graphite-muted)]">
             {!activePlanSet ? "No plan sets found for this project." : "Plan is being processed. The image will appear shortly."}
           </p>
         </div>
