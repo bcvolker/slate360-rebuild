@@ -103,6 +103,22 @@ else (`lib/design-system/tokens.ts`, the per-surface `*-tokens.ts` files) must
   Tailwind class in a component. New colors go into `globals.css` first, then get
   consumed as a var.
 
+### Dark form/button/modal styling — use the canonical helpers
+
+For the dark authenticated UI, do **not** re-inline field/button/modal class
+strings (that's how 250+ near-duplicates accumulated). Consume
+`components/ui/dark-surface-styles.ts`:
+- `darkFieldClass(extra?)` — inputs / selects / textareas.
+- `darkButtonClass("primary" | "ghost" | "danger", extra?)` — action buttons.
+- `darkModalOverlayClass` + `darkModalPanelClass(extra?)` — overlay + panel.
+
+`extra` is merged with `cn`/tailwind-merge, so a surface can override the base
+(e.g. `darkFieldClass("rounded-2xl bg-black/40 font-bold")`) and stay pixel-exact.
+List-row buttons, segmented/tab controls, and bespoke bottom-sheet overlays are
+**not** these archetypes — leave them. The deferred work (tracked, not done):
+migrating the 17 hand-rolled modals onto the Radix `ui/dialog` for focus-trap +
+Escape a11y — needs interaction testing before adoption.
+
 ## 7. Desktop layout pattern (all dashboard pages)
 
 The chrome (`DashboardDesktopShell` / `StudioAppShell`) already provides a
