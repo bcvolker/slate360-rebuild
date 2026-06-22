@@ -23,19 +23,20 @@
 /* ── Brand Identity ─────────────────────────────────────────── */
 
 export const brand = {
-  /** Primary brand accent — cobalt family (legacy key name `gold` retained for compatibility) */
-  gold: "#3B82F6",
-  goldHover: "#2563EB",
-  goldLight: "rgba(59, 130, 246, 0.08)",
-  goldLightDark: "rgba(59, 130, 246, 0.14)",
-  goldRing: "rgba(59, 130, 246, 0.5)",
+  /** Primary brand accent — Krypton Teal (#00E699). Legacy key name `gold` retained
+   * for compatibility; prefer var(--primary) in new code (white-label aware). */
+  gold: "#00E699",
+  goldHover: "#00CC88",
+  goldLight: "rgba(0, 230, 153, 0.08)",
+  goldLightDark: "rgba(0, 230, 153, 0.14)",
+  goldRing: "rgba(0, 230, 153, 0.5)",
   goldGlow:
-    "0 0 20px 0 rgba(59, 130, 246, 0.35), 0 4px 12px 0 rgba(59, 130, 246, 0.20)",
+    "0 0 20px 0 rgba(0, 230, 153, 0.35), 0 4px 12px 0 rgba(0, 230, 153, 0.20)",
 
   /** Primary HSL for CSS custom properties */
-  goldHsl: "217 91% 60%",
-  goldHoverHsl: "221 83% 53%",
-  goldHoverHslDark: "221 83% 53%",
+  goldHsl: "160 100% 45%",
+  goldHoverHsl: "160 100% 40%",
+  goldHoverHslDark: "160 100% 40%",
 
   /** Core dark surface — deep navy family */
   graphite: "#151A23",
@@ -75,11 +76,11 @@ export const appShell = {
   glass: "rgba(11, 15, 21, 0.80)",
   /** Backdrop filter for glass surfaces */
   backdropBlur: "blur(16px)",
-  /** Soft cobalt glow used on logo tile + primary CTA */
-  glowAmber: "0 0 15px rgba(59, 130, 246, 0.18)",
-  /** Stronger cobalt glow used on primary CTA hover */
+  /** Soft teal glow used on logo tile + primary CTA */
+  glowAmber: "0 0 15px rgba(0, 230, 153, 0.18)",
+  /** Stronger teal glow used on primary CTA hover */
   glowAmberStrong:
-    "0 0 20px 0 rgba(59, 130, 246, 0.35), 0 4px 12px 0 rgba(59, 130, 246, 0.20)",
+    "0 0 20px 0 rgba(0, 230, 153, 0.35), 0 4px 12px 0 rgba(0, 230, 153, 0.20)",
   /** Card shadow */
   cardShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.3)",
   /** Elevated / hero card shadow */
