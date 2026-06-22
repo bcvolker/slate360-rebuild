@@ -177,6 +177,15 @@ export default function SlateDropClient({ user, tier, initialProjectId, projectN
     showToast(`${ok} of ${selected.length} file${plural} deleted`, ok === selected.length);
   }, [files, selectedFiles, activeFolderId, showToast]);
 
+  // Drag files (one or the whole selection) into a folder to move them.
+  const handleMoveFilesToFolder = useCallback(
+    async (fileIds: string[], targetFolderId: string) => {
+      const moved = await mutations.moveFilesToFolder(fileIds, targetFolderId);
+      if (moved > 0) setSelectedFiles(new Set());
+    },
+    [mutations],
+  );
+
   /* ── Callback adapters for sub-components ── */
   const handleUploadClick = useCallback(() => fileInputRef.current?.click(), []);
   const handleSelectFolder = useCallback((id: string) => { setActiveFolderId(id); setSelectedFiles(new Set()); setMobileSidebarOpen(false); }, []);
@@ -274,6 +283,7 @@ export default function SlateDropClient({ user, tier, initialProjectId, projectN
             onClearSelection={clearSelection}
             onBulkDownload={bulkDownload}
             onBulkDelete={bulkDelete}
+            onMoveFilesToFolder={handleMoveFilesToFolder}
             viewMode={viewMode} sortKey={sortKey} sortDir={sortDir}
             onToggleSort={interactions.toggleSort}
             getFileIcon={getFileIcon} getFileColor={getFileColor}

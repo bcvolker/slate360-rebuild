@@ -1,3 +1,4 @@
+import { useState } from "react";
 import Link from "next/link";
 import GlassCard from "@/components/shared/GlassCard";
 import {
@@ -55,6 +56,7 @@ type SlateDropFileAreaProps = {
   onClearSelection: () => void;
   onBulkDownload: () => void;
   onBulkDelete: () => void;
+  onMoveFilesToFolder: (fileIds: string[], targetFolderId: string) => void;
 
   viewMode: ViewMode;
   sortKey: SortKey;
@@ -68,6 +70,8 @@ type SlateDropFileAreaProps = {
 
   onUploadClick: () => void;
 };
+
+const SLATEDROP_DRAG_MIME = "application/x-slatedrop-files";
 
 export default function SlateDropFileArea({
   dragOver,
@@ -89,6 +93,7 @@ export default function SlateDropFileArea({
   onClearSelection,
   onBulkDownload,
   onBulkDelete,
+  onMoveFilesToFolder,
   viewMode,
   sortKey,
   sortDir,
@@ -101,6 +106,32 @@ export default function SlateDropFileArea({
 }: SlateDropFileAreaProps) {
   const selectedCount = selectedFiles.size;
   const allSelected = currentFiles.length > 0 && currentFiles.every((file) => selectedFiles.has(file.id));
+  const [dragOverFolderId, setDragOverFolderId] = useState<string | null>(null);
+
+  // Dragging a file carries either the whole selection (if the dragged file is
+  // selected) or just that one file, as a private MIME type so it's distinct
+  // from an OS file-upload drag.
+  const startFileDrag = (event: React.DragEvent, fileId: string) => {
+    const ids = selectedFiles.has(fileId) ? Array.from(selectedFiles) : [fileId];
+    event.dataTransfer.setData(SLATEDROP_DRAG_MIME, JSON.stringify(ids));
+    event.dataTransfer.effectAllowed = "move";
+  };
+  const isInternalDrag = (event: React.DragEvent) =>
+    Array.from(event.dataTransfer.types).includes(SLATEDROP_DRAG_MIME);
+  const handleFolderDrop = (event: React.DragEvent, folderId: string) => {
+    setDragOverFolderId(null);
+    const raw = event.dataTransfer.getData(SLATEDROP_DRAG_MIME);
+    if (!raw) return;
+    event.preventDefault();
+    event.stopPropagation();
+    try {
+      const ids = JSON.parse(raw) as string[];
+      if (Array.isArray(ids) && ids.length > 0) onMoveFilesToFolder(ids, folderId);
+    } catch {
+      // malformed payload — ignore
+    }
+  };
+
   return (
     <div
       className={`flex-1 overflow-y-auto p-4 transition-colors ${
@@ -153,7 +184,19 @@ export default function SlateDropFileArea({
                 key={folder.id}
                 onClick={() => onOpenSubFolder(folder.id)}
                 onContextMenu={(event) => onSubFolderContextMenu(event, folder)}
-                className="flex items-center gap-2.5 p-3 rounded-xl border border-white/10  hover:border-white/10 hover:shadow-sm transition-all text-left group"
+                onDragOver={(event) => {
+                  if (!isInternalDrag(event)) return;
+                  event.preventDefault();
+                  event.stopPropagation();
+                  setDragOverFolderId(folder.id);
+                }}
+                onDragLeave={() => setDragOverFolderId((cur) => (cur === folder.id ? null : cur))}
+                onDrop={(event) => handleFolderDrop(event, folder.id)}
+                className={`flex items-center gap-2.5 p-3 rounded-xl border transition-all text-left group ${
+                  dragOverFolderId === folder.id
+                    ? "border-[var(--graphite-primary)] ring-2 ring-[color-mix(in_srgb,var(--graphite-primary)_25%,transparent)] bg-[color-mix(in_srgb,var(--graphite-primary)_8%,transparent)]"
+                    : "border-white/10 hover:shadow-sm"
+                }`}
               >
                 <Folder size={18} className="text-[var(--graphite-muted)] shrink-0" />
                 <span className="text-xs font-medium text-[var(--graphite-text-body)] truncate group-hover:text-[var(--graphite-primary)] transition-colors">{folder.name}</span>
@@ -223,6 +266,8 @@ export default function SlateDropFileArea({
             return (
               <div
                 key={file.id}
+                draggable
+                onDragStart={(event) => startFileDrag(event, file.id)}
                 onClick={() => onToggleFileSelect(file.id)}
                 onDoubleClick={() => onPreviewFile(file)}
                 onContextMenu={(event) => onFileContextMenu(event, file)}
@@ -313,6 +358,8 @@ export default function SlateDropFileArea({
             return (
               <div
                 key={file.id}
+                draggable
+                onDragStart={(event) => startFileDrag(event, file.id)}
                 onClick={() => onToggleFileSelect(file.id)}
                 onDoubleClick={() => onPreviewFile(file)}
                 onContextMenu={(event) => onFileContextMenu(event, file)}

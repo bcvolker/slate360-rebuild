@@ -270,8 +270,41 @@ export function useSlateDropMutationActions({
     }
   }, [activeFolderId, folderTree, moveModal, setMoveModal, setRealFiles, showToast]);
 
+  // Direct (non-modal) move for drag-into-folder and bulk move. Loops the move
+  // API over the given files into one target folder, then refreshes both folders.
+  const moveFilesToFolder = useCallback(
+    async (fileIds: string[], targetFolderId: string): Promise<number> => {
+      if (fileIds.length === 0 || !targetFolderId) return 0;
+      const fullPath = findFolderIdPath(folderTree, targetFolderId) || targetFolderId;
+      let ok = 0;
+      for (const fileId of fileIds) {
+        try {
+          const response = await fetch("/api/slatedrop/move", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              fileId,
+              newFolderId: targetFolderId,
+              newS3KeyPrefix: `orgs/default/${fullPath}`,
+            }),
+          });
+          if (response.ok) ok += 1;
+        } catch {
+          // continue; report the total at the end
+        }
+      }
+      await refreshFolderFiles(activeFolderId);
+      await refreshFolderFiles(targetFolderId);
+      const plural = ok === 1 ? "" : "s";
+      showToast(ok > 0 ? `Moved ${ok} file${plural}` : "Failed to move files", ok > 0);
+      return ok;
+    },
+    [activeFolderId, folderTree, refreshFolderFiles, showToast],
+  );
+
   return {
     handleCreateFolder,
+    moveFilesToFolder,
     handleRename,
     handleDeleteConfirmAction,
     handleMoveFile,
