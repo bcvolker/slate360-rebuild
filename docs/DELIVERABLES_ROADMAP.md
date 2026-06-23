@@ -81,17 +81,21 @@ What already exists (primitives — confirmed in code):
   review** — currently wired only at capture time (NoteCaptureBar / useCaptureItems),
   i.e. the user already verifies before it's saved.
 
-What needs building (the gap):
-1. An **optional** "include voice memos" choice in the deliverable generate flow, so
-   voice items (audio + transcript) are added to the deliverable content array.
-2. An **AI Boost** action in the deliverable authoring/preview that calls
-   `notes/format`, shows a **before/after diff**, and only writes the cleaned text
-   into the deliverable when the user taps **Approve** (reject keeps the original).
-3. The quick-deliverable builders (status_report, punchlist, photo_log, field_report,
-   slideshow) should be able to carry voice items when the option is on. Note the
-   desktop `components/site-walk/reports/ReportBuilderClient.tsx` is currently a
-   static wireframe (blocks: photos/notes/plan/weather, no state) — the functional
-   authoring build is where the desktop AI Boost + voice block live.
+Status — SHIPPED:
+1. ✅ Optional "Include voice memos" toggle in the mobile generate sheet → voice
+   items (audio + transcript) appended to quick-deliverable content; the view media
+   route now serves voice audio via `audio_s3_key`.
+2. ✅ AI Boost on the desktop project Deliverables tab ("Boost notes"): calls
+   `POST /api/site-walk/deliverables/[id]/boost-notes` which returns a before/after
+   proposal **without saving**; the user reviews each block and taps **Approve &
+   apply** (PATCH content; re-publishes the pinned version if already shared) or
+   **Discard**. Verify-before-it-lands, as required.
+
+Still open:
+- Mobile-side AI Boost review (today the review UI is desktop-only; mobile generates).
+- The desktop `components/site-walk/reports/ReportBuilderClient.tsx` is still a static
+  wireframe (blocks: photos/notes/plan/weather, no state) — full block authoring is a
+  separate later build.
 
 ### P2 — Heavy / desktop-only deliverable types (web, post-launch)
 Kept in the enum; **not** offered on mobile. Surface on desktop/web only, build as

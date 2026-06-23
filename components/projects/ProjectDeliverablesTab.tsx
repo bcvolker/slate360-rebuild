@@ -3,11 +3,13 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ExternalLink, FileText, Link2, MessageSquare, Play, Send, Check, Loader2, AlertTriangle, CornerDownRight } from "lucide-react";
+import { ExternalLink, FileText, Link2, MessageSquare, Play, Send, Check, Loader2, AlertTriangle, CornerDownRight, Sparkles } from "lucide-react";
 import { ProjectDetailEmptyState } from "@/components/projects/ProjectDetailEmptyState";
 import { projectDetailTokens as t } from "@/components/projects/project-detail-tokens";
 import { cn } from "@/lib/utils";
 import type { ProjectDeliverablesTabData, ProjectDeliverableRow } from "@/lib/projects/load-project-deliverables-data";
+
+type BoostProposal = { id: string; title: string; before: string; after: string };
 
 function formatDate(value: string): string {
   return new Date(value).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
@@ -86,6 +88,10 @@ function DeliverableCard({ d }: { d: ProjectDeliverableRow }) {
   const [busy, setBusy] = useState(false);
   const [feedback, setFeedback] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
   const [qnaOpen, setQnaOpen] = useState(false);
+  const [boostOpen, setBoostOpen] = useState(false);
+  const [boostBusy, setBoostBusy] = useState(false);
+  const [boostProposals, setBoostProposals] = useState<BoostProposal[] | null>(null);
+  const [boostContent, setBoostContent] = useState<unknown[] | null>(null);
   const hasUnanswered = d.unansweredCount > 0;
 
   const mode = modeMeta(d.outputMode, d.deliverableType);
@@ -150,6 +156,59 @@ function DeliverableCard({ d }: { d: ProjectDeliverableRow }) {
     }
   }
 
+  // AI Boost: fetch a cleaned-up proposal of the deliverable's notes WITHOUT
+  // saving, so the user can review the before/after and approve before it lands.
+  async function boostNotes() {
+    if (boostOpen) { setBoostOpen(false); return; }
+    setBoostBusy(true);
+    setFeedback(null);
+    try {
+      const res = await fetch(`/api/site-walk/deliverables/${d.id}/boost-notes`, {
+        method: "POST", headers: { "Content-Type": "application/json" }, body: "{}",
+      });
+      const json = (await res.json().catch(() => ({}))) as {
+        proposals?: BoostProposal[]; proposedContent?: unknown[]; error?: string;
+      };
+      if (!res.ok) throw new Error(json.error ?? "Couldn't boost notes.");
+      setBoostProposals(json.proposals ?? []);
+      setBoostContent(json.proposedContent ?? null);
+      setBoostOpen(true);
+    } catch (e) {
+      setFeedback({ kind: "err", text: e instanceof Error ? e.message : "Couldn't boost notes." });
+    } finally {
+      setBoostBusy(false);
+    }
+  }
+
+  async function applyBoost() {
+    if (!boostContent) return;
+    setBoostBusy(true);
+    setFeedback(null);
+    try {
+      const res = await fetch(`/api/site-walk/deliverables/${d.id}`, {
+        method: "PATCH", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: boostContent }),
+      });
+      if (!res.ok) throw new Error("Couldn't apply the boosted notes.");
+      // If already shared, re-publish so the live link shows the approved version.
+      if (shareUrl) {
+        await fetch(`/api/site-walk/deliverables/${d.id}/share`, {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ refresh: true }),
+        });
+      }
+      setBoostOpen(false);
+      setBoostProposals(null);
+      setBoostContent(null);
+      setFeedback({ kind: "ok", text: "Boosted notes applied to the report." });
+      router.refresh();
+    } catch (e) {
+      setFeedback({ kind: "err", text: e instanceof Error ? e.message : "Couldn't apply the boosted notes." });
+    } finally {
+      setBoostBusy(false);
+    }
+  }
+
   const input = "min-h-9 w-full rounded-lg border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_60%,transparent)] px-3 text-xs text-[var(--graphite-text-header)] outline-none placeholder:text-[var(--graphite-muted)] focus:border-[color-mix(in_srgb,var(--graphite-primary)_40%,transparent)]";
 
   return (
@@ -204,7 +263,48 @@ function DeliverableCard({ d }: { d: ProjectDeliverableRow }) {
             Publish link
           </button>
         )}
+        <button
+          type="button"
+          onClick={boostNotes}
+          disabled={boostBusy}
+          className={cn(t.secondaryButton, "!min-h-9 !px-3 text-xs", boostOpen && "!border-[color-mix(in_srgb,var(--graphite-primary)_45%,transparent)] !text-[var(--graphite-primary)]")}
+        >
+          {boostBusy && !boostOpen ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" aria-hidden /> : <Sparkles className="mr-1.5 h-3.5 w-3.5" aria-hidden />}
+          Boost notes
+        </button>
       </div>
+
+      {boostOpen && boostProposals ? (
+        <div className="space-y-2 rounded-xl border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_60%,transparent)] p-3">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-[var(--graphite-muted)]">
+            Review AI-formatted notes — nothing is saved until you approve
+          </p>
+          {boostProposals.length === 0 ? (
+            <p className="text-xs text-[var(--graphite-muted)]">No notes in this report to format.</p>
+          ) : (
+            <div className="max-h-72 space-y-3 overflow-y-auto">
+              {boostProposals.map((p) => (
+                <div key={p.id} className="rounded-lg border border-[var(--mobile-app-card-border)] p-2.5">
+                  {p.title ? <p className="mb-1.5 truncate text-xs font-semibold text-[var(--graphite-text-header)]">{p.title}</p> : null}
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--graphite-muted)]">Before</p>
+                  <p className="mb-2 whitespace-pre-wrap text-xs text-[var(--graphite-muted)]">{p.before}</p>
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--graphite-primary)]">After</p>
+                  <p className="whitespace-pre-wrap text-xs text-[var(--graphite-text-header)]">{p.after}</p>
+                </div>
+              ))}
+            </div>
+          )}
+          <div className="flex justify-end gap-2">
+            <button type="button" onClick={() => { setBoostOpen(false); setBoostProposals(null); setBoostContent(null); }} disabled={boostBusy} className={cn(t.secondaryButton, "!min-h-9 !px-3 text-xs")}>
+              Discard
+            </button>
+            <button type="button" onClick={applyBoost} disabled={boostBusy || boostProposals.length === 0} className={cn(t.primaryButton, "!min-h-9 !px-4 text-xs", boostBusy && "opacity-70")}>
+              {boostBusy ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" aria-hidden /> : <Check className="mr-1.5 h-3.5 w-3.5" aria-hidden />}
+              Approve &amp; apply
+            </button>
+          </div>
+        </div>
+      ) : null}
 
       {sendOpen && shareUrl ? (
         <div className="space-y-2 rounded-xl border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_60%,transparent)] p-3">
