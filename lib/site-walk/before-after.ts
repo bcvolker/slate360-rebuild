@@ -11,6 +11,7 @@
  * the Ghost-mode data immediately shareable.
  */
 import type { ViewerItem } from "@/lib/site-walk/viewer-types";
+import { viewerMediaType } from "@/lib/site-walk/deliverable-media";
 
 export type BeforeAfterItem = {
   id: string;
@@ -29,27 +30,20 @@ export type BeforeAfterPair = {
   relationship: string;
 };
 
-function isPhoto(it: BeforeAfterItem): boolean {
-  return (
-    (it.item_type === "photo" || it.item_type === "video" || it.item_type === "photo_360") &&
-    !!it.s3_key
-  );
-}
-
 function truncate(text: string | null, n = 200): string {
   if (!text) return "";
   return text.length <= n ? text : `${text.slice(0, n - 1).trimEnd()}…`;
 }
 
 function slide(it: BeforeAfterItem, label: string, suffix: string): ViewerItem {
-  const photo = isPhoto(it);
+  const mediaType = viewerMediaType(it.item_type, it.s3_key);
   const dateLabel = it.created_at ? new Date(it.created_at).toLocaleDateString() : "";
   const meta = [it.location_label, dateLabel].filter(Boolean).join(" · ");
   return {
     id: `${it.id}-${suffix}`,
-    type: photo ? "photo" : "note",
+    type: mediaType ?? "note",
     title: `${label} — ${it.title || it.location_label || "Item"}`,
-    mediaItemId: photo ? it.id : undefined,
+    mediaItemId: mediaType ? it.id : undefined,
     notes: [meta, truncate(it.description)].filter(Boolean).join("\n"),
   };
 }

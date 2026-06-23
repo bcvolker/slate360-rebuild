@@ -53,7 +53,9 @@ export const POST = (req: NextRequest, ctx: IdRouteContext) =>
       .eq("org_id", orgId);
     itemsQuery = excludeDeletedSiteWalkItems(itemsQuery);
 
-    const { data: rows, error } = await itemsQuery.order("sort_order", { ascending: true });
+    const { data: rows, error } = await itemsQuery
+      .order("sort_order", { ascending: true, nullsFirst: false })
+      .order("created_at", { ascending: true });
     if (error) return serverError(error.message);
 
     const items: StatusReportSourceItem[] = (rows ?? []).map((r) => {

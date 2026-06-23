@@ -126,16 +126,33 @@ export const POST = (req: NextRequest) =>
         channels.push("email");
       }
 
-      if (recipient_phone && isValidPhone(recipient_phone)) {
-        await sendSms({
-          to: recipient_phone,
-          body: `${senderName} shared "${deliverableTitle}" with you via Slate360: ${shareUrl}`,
-        });
-        channels.push("sms");
+      let smsError: string | null = null;
+      if (recipient_phone) {
+        if (!isValidPhone(recipient_phone)) {
+          smsError = "invalid_number";
+        } else {
+          const smsResult = await sendSms({
+            to: recipient_phone,
+            body: `${senderName} shared "${deliverableTitle}" with you via Slate360: ${shareUrl}`,
+          });
+          if (smsResult.ok) {
+            channels.push("sms");
+          } else {
+            smsError = smsResult.reason;
+            console.error("[deliverable-send] SMS failed", smsResult);
+          }
+        }
       }
 
       if (channels.length === 0) {
-        return badRequest("Provide a valid email address or phone number.");
+        // Nothing went out — surface the real reason (don't report false success).
+        return badRequest(
+          smsError === "invalid_number"
+            ? "That phone number isn't valid. Use international format, e.g. +15551234567."
+            : smsError
+              ? "Text message could not be sent. Check the number or try email."
+              : "Provide a valid email address or phone number.",
+        );
       }
 
       // Record the send for history + the "Delivered" engagement state. Logging
@@ -158,7 +175,12 @@ export const POST = (req: NextRequest) =>
         console.error("[deliverable-send] audit-log", logErr);
       }
 
-      return ok({ sent: true, mode: sendMode, channels });
+      return ok({
+        sent: true,
+        mode: sendMode,
+        channels,
+        ...(smsError ? { sms_warning: "Email sent, but the text message could not be delivered." } : {}),
+      });
     } catch (err) {
       console.error("[deliverable-send]", err);
       return serverError("Failed to send deliverable");

@@ -14,6 +14,7 @@
 
 import type { ViewerItem } from "@/lib/site-walk/viewer-types";
 import type { StatusReportSourceItem } from "@/lib/site-walk/status-report";
+import { viewerMediaType } from "@/lib/site-walk/deliverable-media";
 
 /** Deliverable types the quick-generate endpoint can produce. */
 export const QUICK_DELIVERABLE_TYPES = ["punchlist", "photo_log", "field_report", "slideshow"] as const;
@@ -67,12 +68,12 @@ function isPhoto(it: StatusReportSourceItem): boolean {
 }
 
 function photoOrNote(it: StatusReportSourceItem, titleLine: string): ViewerItem {
-  const photo = isPhoto(it);
+  const mediaType = viewerMediaType(it.item_type, it.s3_key);
   return {
     id: it.id,
-    type: photo ? "photo" : "note",
+    type: mediaType ?? "note",
     title: titleLine,
-    mediaItemId: photo ? it.id : undefined,
+    mediaItemId: mediaType ? it.id : undefined,
     notes: truncate(it.description),
   };
 }
@@ -154,7 +155,7 @@ export function buildPhotoLogContent(
 
   const blocks = photos.map((it, idx) => ({
     id: it.id,
-    type: "photo" as const,
+    type: viewerMediaType(it.item_type, it.s3_key) ?? "photo",
     title: it.title || `Photo ${idx + 1}`,
     mediaItemId: it.id,
     notes: truncate(it.description),
@@ -230,7 +231,7 @@ export function buildSlideshowContent(
 
   const slides = photos.map((it, idx) => ({
     id: it.id,
-    type: "photo" as const,
+    type: viewerMediaType(it.item_type, it.s3_key) ?? "photo",
     title: it.title || `Slide ${idx + 1}`,
     mediaItemId: it.id,
     notes: truncate(it.description),

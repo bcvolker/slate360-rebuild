@@ -90,8 +90,9 @@ export const POST = (req: NextRequest, ctx: IdRouteContext) =>
       metadata: { route: "deliverable_boost_notes", blocks: targets.length, chars: totalChars },
     });
 
-    const proposals: Array<{ id: string; title: string; before: string; after: string }> = [];
+    const proposals: Array<{ id: string; title: string; before: string; after: string; failed?: boolean }> = [];
     const proposedContent: Block[] = content.map((block) => ({ ...block }));
+    let failedCount = 0;
 
     for (const { block, index } of targets) {
       const before = String(block.notes).slice(0, MAX_CHARS_PER_BLOCK);
@@ -101,21 +102,26 @@ export const POST = (req: NextRequest, ctx: IdRouteContext) =>
       ];
 
       let after = before;
+      let failed = false;
       try {
         const out = await chatComplete(cfg, messages, { temperature: 0.2, maxTokens: 500 });
         if (out && out.trim()) after = out.trim();
+        else failed = true;
       } catch (err) {
         console.error("[deliverable-boost-notes]", err);
+        failed = true;
       }
+      if (failed) failedCount += 1;
 
       proposals.push({
         id: typeof block.id === "string" ? block.id : String(index),
         title: typeof block.title === "string" ? block.title : "",
         before,
         after,
+        ...(failed ? { failed: true } : {}),
       });
       proposedContent[index] = { ...proposedContent[index], notes: after };
     }
 
-    return ok({ proposals, proposedContent });
+    return ok({ proposals, proposedContent, failedCount });
   });

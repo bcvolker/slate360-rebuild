@@ -9,7 +9,7 @@ import { projectDetailTokens as t } from "@/components/projects/project-detail-t
 import { cn } from "@/lib/utils";
 import type { ProjectDeliverablesTabData, ProjectDeliverableRow } from "@/lib/projects/load-project-deliverables-data";
 
-type BoostProposal = { id: string; title: string; before: string; after: string };
+type BoostProposal = { id: string; title: string; before: string; after: string; failed?: boolean };
 type ContactOption = { id: string; name: string; email: string | null; phone: string | null; company: string | null };
 type SendRow = {
   id: string;
@@ -158,9 +158,14 @@ function DeliverableCard({ d }: { d: ProjectDeliverableRow }) {
           mode: "link",
         }),
       });
-      const json = (await res.json().catch(() => ({}))) as { channels?: string[]; error?: string };
+      const json = (await res.json().catch(() => ({}))) as { channels?: string[]; error?: string; sms_warning?: string };
       if (!res.ok) throw new Error(json.error ?? "Send failed.");
-      setFeedback({ kind: "ok", text: `Sent via ${(json.channels ?? ["link"]).join(" + ")}.` });
+      const sentVia = `Sent via ${(json.channels ?? ["link"]).join(" + ")}.`;
+      setFeedback(
+        json.sms_warning
+          ? { kind: "err", text: json.sms_warning }
+          : { kind: "ok", text: sentVia },
+      );
       setEmail("");
       setPhone("");
       setMessage("");
@@ -184,12 +189,15 @@ function DeliverableCard({ d }: { d: ProjectDeliverableRow }) {
         method: "POST", headers: { "Content-Type": "application/json" }, body: "{}",
       });
       const json = (await res.json().catch(() => ({}))) as {
-        proposals?: BoostProposal[]; proposedContent?: unknown[]; error?: string;
+        proposals?: BoostProposal[]; proposedContent?: unknown[]; error?: string; failedCount?: number;
       };
       if (!res.ok) throw new Error(json.error ?? "Couldn't boost notes.");
       setBoostProposals(json.proposals ?? []);
       setBoostContent(json.proposedContent ?? null);
       setBoostOpen(true);
+      if (json.failedCount && json.failedCount > 0) {
+        setFeedback({ kind: "err", text: `${json.failedCount} note(s) couldn't be formatted (AI unavailable) — left unchanged.` });
+      }
     } catch (e) {
       setFeedback({ kind: "err", text: e instanceof Error ? e.message : "Couldn't boost notes." });
     } finally {
@@ -209,10 +217,11 @@ function DeliverableCard({ d }: { d: ProjectDeliverableRow }) {
       if (!res.ok) throw new Error("Couldn't apply the boosted notes.");
       // If already shared, re-publish so the live link shows the approved version.
       if (shareUrl) {
-        await fetch(`/api/site-walk/deliverables/${d.id}/share`, {
+        const rp = await fetch(`/api/site-walk/deliverables/${d.id}/share`, {
           method: "POST", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ refresh: true }),
         });
+        if (!rp.ok) throw new Error("Notes saved, but updating the live link failed — re-publish to push them.");
       }
       setBoostOpen(false);
       setBoostProposals(null);
@@ -367,7 +376,7 @@ function DeliverableCard({ d }: { d: ProjectDeliverableRow }) {
                   {p.title ? <p className="mb-1.5 truncate text-xs font-semibold text-[var(--graphite-text-header)]">{p.title}</p> : null}
                   <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--graphite-muted)]">Before</p>
                   <p className="mb-2 whitespace-pre-wrap text-xs text-[var(--graphite-muted)]">{p.before}</p>
-                  <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--graphite-primary)]">After</p>
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--graphite-primary)]">{p.failed ? "After (AI unavailable — unchanged)" : "After"}</p>
                   <p className="whitespace-pre-wrap text-xs text-[var(--graphite-text-header)]">{p.after}</p>
                 </div>
               ))}
