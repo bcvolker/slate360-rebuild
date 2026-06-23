@@ -16,12 +16,30 @@ import type { ViewerItem } from "@/lib/site-walk/viewer-types";
 import type { StatusReportSourceItem } from "@/lib/site-walk/status-report";
 
 /** Deliverable types the quick-generate endpoint can produce. */
-export const QUICK_DELIVERABLE_TYPES = ["punchlist", "photo_log", "field_report"] as const;
+export const QUICK_DELIVERABLE_TYPES = ["punchlist", "photo_log", "field_report", "slideshow"] as const;
 export type QuickDeliverableType = (typeof QUICK_DELIVERABLE_TYPES)[number];
 
 export function isQuickDeliverableType(value: unknown): value is QuickDeliverableType {
   return typeof value === "string" && (QUICK_DELIVERABLE_TYPES as readonly string[]).includes(value);
 }
+
+/**
+ * Maps a quick type to the persisted `deliverable_type` + `output_mode`.
+ *
+ * "slideshow" is a light, client-facing click-through deck: it persists as
+ * `cinematic_presentation` with `output_mode: "presentation"` (the hosted token
+ * viewer already renders items as a full-screen, prev/next slideshow), so it
+ * needs no heavy rendering — distinct from the parked 3D/video presentations.
+ */
+export const QUICK_DELIVERABLE_CONFIG: Record<
+  QuickDeliverableType,
+  { deliverableType: string; outputMode: string }
+> = {
+  punchlist: { deliverableType: "punchlist", outputMode: "hosted" },
+  photo_log: { deliverableType: "photo_log", outputMode: "hosted" },
+  field_report: { deliverableType: "field_report", outputMode: "hosted" },
+  slideshow: { deliverableType: "cinematic_presentation", outputMode: "presentation" },
+};
 
 const PRIORITY_ORDER: Record<string, number> = {
   critical: 0,
@@ -187,6 +205,40 @@ export function buildFieldReportContent(
   return [summary, ...blocks];
 }
 
+/**
+ * Slideshow — a clean, client-facing click-through deck: a cover slide followed
+ * by every captured photo full-bleed (the hosted viewer handles prev/next). Note
+ * the cover is a `note` block; the viewer renders it as the opening slide.
+ */
+export function buildSlideshowContent(
+  sessionTitle: string,
+  items: StatusReportSourceItem[],
+): ViewerItem[] {
+  const photos = items
+    .filter(isPhoto)
+    .sort((a, b) => a.created_at.localeCompare(b.created_at));
+
+  const cover: ViewerItem = {
+    id: "cover",
+    type: "note",
+    title: sessionTitle || "Site Walk",
+    notes: [
+      `${photos.length} photo${photos.length === 1 ? "" : "s"}`,
+      `Generated ${new Date().toLocaleDateString()}`,
+    ].join("\n"),
+  };
+
+  const slides = photos.map((it, idx) => ({
+    id: it.id,
+    type: "photo" as const,
+    title: it.title || `Slide ${idx + 1}`,
+    mediaItemId: it.id,
+    notes: truncate(it.description),
+  }));
+
+  return [cover, ...slides];
+}
+
 /** Dispatch by type. */
 export function buildQuickDeliverableContent(
   type: QuickDeliverableType,
@@ -200,6 +252,8 @@ export function buildQuickDeliverableContent(
       return buildPhotoLogContent(sessionTitle, items);
     case "field_report":
       return buildFieldReportContent(sessionTitle, items);
+    case "slideshow":
+      return buildSlideshowContent(sessionTitle, items);
   }
 }
 
@@ -208,4 +262,5 @@ export const QUICK_DELIVERABLE_LABELS: Record<QuickDeliverableType, string> = {
   punchlist: "Punch list",
   photo_log: "Photo log",
   field_report: "Field report",
+  slideshow: "Slideshow",
 };

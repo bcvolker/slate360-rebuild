@@ -24,12 +24,13 @@ import { MobileHomeListRow, mobileTokens } from "@/components/mobile-system";
  */
 
 type GenerateOption = {
-  key: "status_report" | "punchlist" | "photo_log" | "field_report";
+  key: "status_report" | "punchlist" | "photo_log" | "field_report" | "slideshow";
   title: string;
   meta: string;
 };
 
 const OPTIONS: GenerateOption[] = [
+  { key: "slideshow", title: "Slideshow", meta: "Click-through photo deck to send to clients" },
   { key: "status_report", title: "Status report", meta: "Open vs. resolved summary for leadership" },
   { key: "punchlist", title: "Punch list", meta: "Outstanding items by priority" },
   { key: "photo_log", title: "Photo log", meta: "Every captured photo, in order" },

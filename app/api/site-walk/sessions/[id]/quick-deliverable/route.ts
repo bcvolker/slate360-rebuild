@@ -18,6 +18,7 @@ import type { StatusReportSourceItem } from "@/lib/site-walk/status-report";
 import {
   buildQuickDeliverableContent,
   isQuickDeliverableType,
+  QUICK_DELIVERABLE_CONFIG,
   QUICK_DELIVERABLE_LABELS,
   QUICK_DELIVERABLE_TYPES,
 } from "@/lib/site-walk/quick-deliverables";
@@ -65,6 +66,7 @@ export const POST = (req: NextRequest, ctx: IdRouteContext) =>
 
     const content = buildQuickDeliverableContent(type, session.title ?? "", items);
     const title = `${QUICK_DELIVERABLE_LABELS[type]} — ${session.title || "Untitled walk"} — ${new Date().toLocaleDateString()}`;
+    const config = QUICK_DELIVERABLE_CONFIG[type];
 
     const { data: deliverable, error: insertErr } = await admin
       .from("site_walk_deliverables")
@@ -74,9 +76,10 @@ export const POST = (req: NextRequest, ctx: IdRouteContext) =>
         project_id: session.project_id ?? null,
         created_by: user.id,
         title,
-        deliverable_type: type,
+        deliverable_type: config.deliverableType,
         status: "draft",
         content,
+        output_mode: config.outputMode,
       })
       .select("id")
       .single();
