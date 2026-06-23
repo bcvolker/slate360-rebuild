@@ -132,3 +132,56 @@ From the app/desktop split audit; tracked here so they aren't lost.
 3. **Thermal → project hub linkage** — `project_id` column already exists on
    `thermal_analysis_sessions`; only UI wiring remains. **Web-only / CEO use — not
    app-store-blocking**, so lower priority than Site Walk + Twin 360 store readiness.
+
+## Critical audit findings (6-agent deep review, 2026-06-23)
+
+FIXED already (committed): media-type rendering across generators; SMS silent
+failure; AI Boost silent failure + re-publish error check; quick-deliverable stable
+sort; two dead/stub nav links.
+
+OPEN — needs a runnable session to verify (do NOT blind-edit):
+1. **#1 Ghost → Before/After persistence (capture state machine).** The ghost
+   PICKER (`onGhostSelectPhoto` → `progression.selectPhoto` in
+   `components/capture-v2/useNoPlansCaptureCanvas.ts`) only sets overlay UI state;
+   it never persists `before_item_id` + `item_relationship='after'`. So ghost
+   re-captures aren't linked and Before/After deliverables built from them are
+   empty. (Follow-up stops + the manual link selector DO persist links, so it's not
+   100% dead.) Proposed fix — mirror the follow-up pattern at
+   `useCaptureV2Loop.ts:67-80`: an effect keyed on
+   `[progression.selectedId, loop.activeItem?.id]` that, when a ghost is selected
+   and an active item exists and isn't already linked, calls
+   `loop.patchDraft({ beforeItemId: progression.selectedId, itemRelationship: 'after' })`.
+   Verify `loop` exposes `patchDraft`/`draft` first. MUST be smoke-tested live.
+2. **No desktop "generate deliverable" path.** Generation only exists on mobile
+   (CaptureV2GenerateDeliverableSheet). Desktop "New deliverable" → redirect-only
+   stub. Build a desktop generate page (pick walk + type) reusing the same endpoints.
+
+OPEN — functional/security, verify then fix:
+3. `/view/[token]` never increments `share_view_count` and revoke→re-share resets it
+   to 0; the media route doesn't enforce `share_max_views`. Soft-quota bypass. Also
+   note `/view/[token]` (emails) vs `/share/deliverable/[token]` (hub) are two viewer
+   URLs for the same deliverable — unify.
+4. **Metering fails OPEN** on DB error (`lib/site-walk/metering.ts`) — zero-credit org
+   gets free AI/SMS during a DB blip. PRODUCT DECISION: fail-open (don't block paying
+   users) vs fail-closed (no abuse). Recommend a short cache + alerting over hard fail.
+5. PDF export (`deliverables/[id]/export`) emits `[Image: …]` placeholders, not real
+   photos (jsPDF path). The send route's react-pdf path embeds images — unify on it.
+6. Snapshot: add `UNIQUE(deliverable_id, version_number)` to close the version race;
+   snapshot doesn't store `output_mode`/config (low impact for current viewer).
+
+Twin 360 (other store app) — code is functionally complete; blockers are DEPLOY/CONFIG:
+7. Set processing entitlement for testers (`standalone_digital_twin` flag /
+   `NEXT_PUBLIC_BETA_MODE` / `is_digital_twin_approved`).
+8. Deploy Modal worker + set `MODAL_TWIN_ENDPOINT`; set `GPU_WORKER_SECRET_KEY`
+   (callback route 500s without it → jobs stuck "processing").
+9. Decide `NEXT_PUBLIC_DIGITAL_TWIN_DESKTOP` (editor/cinematic routes 404 otherwise).
+10. Auto-route sub-5MB uploads to the single-part endpoint (multipart rejects them).
+
+Pre-existing type errors (tolerated by `ignoreBuildErrors`, worth cleaning):
+- half-removed `"workspace"` mode (`app/(mobile)/site-walk/page.tsx`,
+  `SiteWalkHomeClient.tsx`, `SiteWalkWalkTargetSheet.tsx`)
+- `digital-twin` splat viewer `sparkRenderer`/`splatMesh` JSX intrinsics undeclared
+- `ItemTimeline.tsx` icon maps missing `photo_360`/`file_attachment`
+- `SlateDropClient.tsx` `"bulk"` move-state type
+- Architecture guardrail FAIL: `app/api/digital-twin/splat-manifest/route.ts` has no
+  auth pattern — confirm intentionally public or add auth/allowlist.
