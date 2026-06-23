@@ -137,7 +137,18 @@ From the app/desktop split audit; tracked here so they aren't lost.
 
 FIXED already (committed): media-type rendering across generators; SMS silent
 failure; AI Boost silent failure + re-publish error check; quick-deliverable stable
-sort; two dead/stub nav links.
+sort; two dead/stub nav links; Ghost->Before/After capture linkage (needs live
+verify); desktop generate-deliverable path; view tracking on /view + media
+max-views gate; before-after skipped-pair reporting; status-report output_mode;
+snapshot version uniqueness + retry; splat-manifest auth guardrail (allowlisted);
+ItemTimeline icon/label coverage.
+
+STILL OPEN (need a runnable session or a decision):
+- Metering fail-open (product decision) · PDF export image embedding (entangled:
+  export uses EditorBlock[] schema + needs token-resolvable image URLs) · brand
+  recolor pass · Before/After slider v2 · mobile-side AI Boost · two viewer URLs
+  (/view vs /share/deliverable) unify · Twin 360 deploy/config checklist · remaining
+  pre-existing type errors ("workspace" mode, SlateDrop "bulk").
 
 OPEN — needs a runnable session to verify (do NOT blind-edit):
 1. **#1 Ghost → Before/After persistence (capture state machine).** The ghost
