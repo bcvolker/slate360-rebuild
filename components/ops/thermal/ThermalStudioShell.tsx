@@ -184,6 +184,7 @@ export function ThermalStudioShell({
           onActiveChange={setActiveCaptureId}
           standards={standards}
           initialParams={initialParams}
+          job={job}
         />
       ) : null}
 

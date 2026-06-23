@@ -13,6 +13,8 @@ import { CollapsibleSection } from "@/components/ops/thermal/CollapsibleSection"
 import { ThermalTuningPanel } from "@/components/ops/thermal/ThermalTuningPanel";
 import { ThermalFilesRail } from "@/components/ops/thermal/ThermalFilesRail";
 import { ThermalSlateDropPicker } from "@/components/ops/thermal/ThermalSlateDropPicker";
+import { ThermalInlineAnalyze } from "@/components/ops/thermal/ThermalInlineAnalyze";
+import type { ThermalJobSnapshot } from "@/hooks/useThermalJobRealtime";
 import type { ThermalAnomaly } from "@/lib/thermal/anomaly-describe";
 
 export type StudioCapture = {
@@ -30,6 +32,8 @@ type Props = {
   /** Session-level detection params (anomaly thresholds) for the left rail. */
   initialParams?: unknown;
   captures: StudioCapture[];
+  /** Latest session job snapshot (realtime) — drives inline-analyze progress. */
+  job?: ThermalJobSnapshot | null;
   /** Standards from the active report template — drives finding descriptions. */
   standards?: string[];
   /** Controlled selection (shared across studio stages). Falls back to internal. */
@@ -104,6 +108,7 @@ export function ThermalStudioWorkView({
   sessionId,
   initialParams,
   captures,
+  job,
   standards,
   selectedId: controlledId,
   onSelect,
@@ -397,24 +402,23 @@ export function ThermalStudioWorkView({
                 Loading temperature data…
               </div>
             ) : (
-              <div className="flex h-full min-h-[260px] flex-col items-center justify-center gap-3 p-4 text-center">
+              <div className="flex h-full min-h-[260px] flex-col items-center justify-center gap-4 p-4 text-center">
                 {selected?.previewUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={selected.previewUrl}
                     alt={selected.filename}
-                    className="max-h-[55%] rounded-lg border border-[var(--mobile-app-card-border)] object-contain"
+                    className="max-h-[45%] rounded-lg border border-[var(--mobile-app-card-border)] object-contain"
                   />
                 ) : null}
-                <div className="max-w-md">
-                  <p className="text-sm font-semibold text-[var(--graphite-text-header)]">
-                    Per-pixel probing &amp; tuning not available yet
-                  </p>
-                  <p className="mt-1 text-xs text-[var(--graphite-muted)]">
-                    Emissivity, spots, and temperature readouts unlock once this capture has been decoded.
-                    Run <strong>Process images</strong> from the <strong>Library</strong> tab, then return here.
-                  </p>
-                </div>
+                {selected ? (
+                  <ThermalInlineAnalyze
+                    sessionId={sessionId ?? ""}
+                    captureId={selected.id}
+                    allIds={captures.map((c) => c.id)}
+                    job={job}
+                  />
+                ) : null}
               </div>
             )}
           </div>

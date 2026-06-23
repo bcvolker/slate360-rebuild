@@ -1,6 +1,7 @@
 "use client";
 
 import { ThermalStudioWorkView, type StudioCapture } from "@/components/ops/thermal/ThermalStudioWorkView";
+import type { ThermalJobSnapshot } from "@/hooks/useThermalJobRealtime";
 
 /**
  * Analyze & Tune workbench — a single no-scroll workspace: file management on the
@@ -15,6 +16,7 @@ export function ThermalAnalyzeTune({
   onActiveChange,
   standards,
   initialParams,
+  job,
 }: {
   sessionId: string;
   captures: StudioCapture[];
@@ -22,6 +24,7 @@ export function ThermalAnalyzeTune({
   onActiveChange?: (id: string) => void;
   standards?: string[];
   initialParams?: unknown;
+  job?: ThermalJobSnapshot | null;
 }) {
   if (!captures.length) {
     return (
@@ -38,6 +41,7 @@ export function ThermalAnalyzeTune({
       selectedId={activeCaptureId ?? undefined}
       onSelect={onActiveChange}
       initialParams={initialParams}
+      job={job}
     />
   );
 }
