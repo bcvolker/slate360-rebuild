@@ -11,6 +11,16 @@ import type { ProjectDeliverablesTabData, ProjectDeliverableRow } from "@/lib/pr
 
 type BoostProposal = { id: string; title: string; before: string; after: string };
 type ContactOption = { id: string; name: string; email: string | null; phone: string | null; company: string | null };
+type SendRow = {
+  id: string;
+  recipient_email: string | null;
+  recipient_phone: string | null;
+  delivery_mode: string;
+  status: string;
+  sent_at: string | null;
+  created_at: string;
+  metadata: { channels?: string[] } | null;
+};
 
 function formatDate(value: string): string {
   return new Date(value).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
@@ -97,6 +107,7 @@ function DeliverableCard({ d }: { d: ProjectDeliverableRow }) {
   const [contacts, setContacts] = useState<ContactOption[] | null>(null);
   const [contactsBusy, setContactsBusy] = useState(false);
   const [contactQuery, setContactQuery] = useState("");
+  const [sends, setSends] = useState<SendRow[] | null>(null);
   const hasUnanswered = d.unansweredCount > 0;
 
   const mode = modeMeta(d.outputMode, d.deliverableType);
@@ -154,6 +165,7 @@ function DeliverableCard({ d }: { d: ProjectDeliverableRow }) {
       setPhone("");
       setMessage("");
       setSendOpen(false);
+      void loadSends();
     } catch (e) {
       setFeedback({ kind: "err", text: e instanceof Error ? e.message : "Send failed." });
     } finally {
@@ -248,6 +260,23 @@ function DeliverableCard({ d }: { d: ProjectDeliverableRow }) {
     setContactQuery("");
   }
 
+  async function loadSends() {
+    try {
+      const res = await fetch(`/api/site-walk/deliverables/${d.id}/sends`, { cache: "no-store" });
+      const json = (await res.json().catch(() => ({}))) as { sends?: SendRow[] };
+      setSends(Array.isArray(json.sends) ? json.sends : []);
+    } catch {
+      setSends([]);
+    }
+  }
+
+  function toggleSend() {
+    const next = !sendOpen;
+    setSendOpen(next);
+    setFeedback(null);
+    if (next) void loadSends();
+  }
+
   const filteredContacts = (contacts ?? []).filter((c) => {
     if (!c.email && !c.phone) return false;
     if (!contactQuery.trim()) return true;
@@ -287,7 +316,7 @@ function DeliverableCard({ d }: { d: ProjectDeliverableRow }) {
               {copied ? <Check className="mr-1.5 h-3.5 w-3.5" aria-hidden /> : <Link2 className="mr-1.5 h-3.5 w-3.5" aria-hidden />}
               {copied ? "Copied" : "Copy link"}
             </button>
-            <button type="button" onClick={() => { setSendOpen((v) => !v); setFeedback(null); }} className={cn(t.secondaryButton, "!min-h-9 !px-3 text-xs")}>
+            <button type="button" onClick={toggleSend} className={cn(t.secondaryButton, "!min-h-9 !px-3 text-xs")}>
               <Send className="mr-1.5 h-3.5 w-3.5" aria-hidden /> Send
             </button>
             <button
@@ -364,6 +393,19 @@ function DeliverableCard({ d }: { d: ProjectDeliverableRow }) {
               <Users className="mr-1.5 h-3.5 w-3.5" aria-hidden /> From contacts
             </button>
           </div>
+          {sends && sends.length > 0 ? (
+            <div className="rounded-lg border border-[var(--mobile-app-card-border)] p-2">
+              <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--graphite-muted)]">Previously sent</p>
+              <div className="max-h-24 space-y-1 overflow-y-auto">
+                {sends.map((s) => (
+                  <div key={s.id} className="flex items-center justify-between gap-2 text-[11px]">
+                    <span className="truncate text-[var(--graphite-text-header)]">{s.recipient_email || s.recipient_phone || "—"}</span>
+                    <span className="shrink-0 text-[var(--graphite-muted)]">{(s.metadata?.channels ?? [s.delivery_mode]).join(" + ")} · {fmtTime(s.sent_at || s.created_at)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
           {contactsOpen ? (
             <div className="space-y-2 rounded-lg border border-[var(--mobile-app-card-border)] p-2">
               <input type="text" placeholder="Search contacts…" value={contactQuery} onChange={(e) => setContactQuery(e.target.value)} className={input} />
