@@ -62,6 +62,7 @@ export const POST = (req: NextRequest, ctx: IdRouteContext) =>
         deliverable_type: "status_report",
         status: "draft",
         content,
+        output_mode: "hosted",
       })
       .select("id")
       .single();

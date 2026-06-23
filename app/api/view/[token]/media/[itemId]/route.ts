@@ -30,7 +30,7 @@ export async function GET(
 
   const { data: del } = await admin
     .from("site_walk_deliverables")
-    .select("id, session_id, content, shared_snapshot_id, share_revoked, share_expires_at")
+    .select("id, session_id, content, shared_snapshot_id, share_revoked, share_expires_at, share_max_views, share_view_count")
     .eq("share_token", token)
     .maybeSingle();
 
@@ -38,6 +38,9 @@ export async function GET(
   if (del.share_revoked) return NextResponse.json({ error: "Revoked" }, { status: 410 });
   if (del.share_expires_at && new Date(del.share_expires_at).getTime() < Date.now()) {
     return NextResponse.json({ error: "Expired" }, { status: 410 });
+  }
+  if (del.share_max_views != null && (del.share_view_count ?? 0) > del.share_max_views) {
+    return NextResponse.json({ error: "View limit reached" }, { status: 410 });
   }
 
   let itemQuery = admin.from("site_walk_items").select("id, s3_key, audio_s3_key, session_id").eq("id", itemId);

@@ -92,9 +92,13 @@ export const POST = (req: NextRequest, ctx: IdRouteContext) =>
     }
 
     const pairs: BeforeAfterPair[] = [];
+    let skipped = 0;
     for (const r of anchors) {
       const before = beforeById.get(r.before_item_id as string);
-      if (!before) continue;
+      if (!before) {
+        skipped += 1;
+        continue;
+      }
       pairs.push({
         before,
         after: toItem(r),
@@ -103,7 +107,7 @@ export const POST = (req: NextRequest, ctx: IdRouteContext) =>
     }
 
     if (pairs.length === 0) {
-      return badRequest("Before/after links were found, but the prior items are no longer available.");
+      return badRequest("Before/after links were found, but the earlier photos have since been deleted.");
     }
 
     const content = buildBeforeAfterContent(session.title ?? "", pairs);
@@ -129,5 +133,5 @@ export const POST = (req: NextRequest, ctx: IdRouteContext) =>
       return serverError(insertErr?.message ?? "Failed to create deliverable");
     }
 
-    return ok({ deliverable_id: deliverable.id, pair_count: pairs.length });
+    return ok({ deliverable_id: deliverable.id, pair_count: pairs.length, skipped_count: skipped });
   });
