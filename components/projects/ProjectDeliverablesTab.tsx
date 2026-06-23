@@ -3,13 +3,14 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ExternalLink, FileText, Link2, MessageSquare, Play, Send, Check, Loader2, AlertTriangle, CornerDownRight, Sparkles } from "lucide-react";
+import { ExternalLink, FileText, Link2, MessageSquare, Play, Send, Check, Loader2, AlertTriangle, CornerDownRight, Sparkles, Users } from "lucide-react";
 import { ProjectDetailEmptyState } from "@/components/projects/ProjectDetailEmptyState";
 import { projectDetailTokens as t } from "@/components/projects/project-detail-tokens";
 import { cn } from "@/lib/utils";
 import type { ProjectDeliverablesTabData, ProjectDeliverableRow } from "@/lib/projects/load-project-deliverables-data";
 
 type BoostProposal = { id: string; title: string; before: string; after: string };
+type ContactOption = { id: string; name: string; email: string | null; phone: string | null; company: string | null };
 
 function formatDate(value: string): string {
   return new Date(value).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
@@ -92,6 +93,10 @@ function DeliverableCard({ d }: { d: ProjectDeliverableRow }) {
   const [boostBusy, setBoostBusy] = useState(false);
   const [boostProposals, setBoostProposals] = useState<BoostProposal[] | null>(null);
   const [boostContent, setBoostContent] = useState<unknown[] | null>(null);
+  const [contactsOpen, setContactsOpen] = useState(false);
+  const [contacts, setContacts] = useState<ContactOption[] | null>(null);
+  const [contactsBusy, setContactsBusy] = useState(false);
+  const [contactQuery, setContactQuery] = useState("");
   const hasUnanswered = d.unansweredCount > 0;
 
   const mode = modeMeta(d.outputMode, d.deliverableType);
@@ -209,6 +214,51 @@ function DeliverableCard({ d }: { d: ProjectDeliverableRow }) {
     }
   }
 
+  // Slate360 contacts picker — fill the recipient email/phone from the org's
+  // saved contacts instead of typing them. Phone-device contacts are a separate
+  // native capability (iOS Safari can't read them), tracked for the app shell.
+  async function toggleContacts() {
+    setContactsOpen((v) => !v);
+    if (contacts || contactsBusy) return;
+    setContactsBusy(true);
+    try {
+      const res = await fetch("/api/contacts", { cache: "no-store" });
+      const json = (await res.json().catch(() => ({}))) as { contacts?: Array<Record<string, unknown>> };
+      const list = Array.isArray(json.contacts) ? json.contacts : [];
+      setContacts(
+        list.map((c) => ({
+          id: String(c.id),
+          name: typeof c.name === "string" ? c.name : "Unnamed",
+          email: typeof c.email === "string" ? c.email : null,
+          phone: typeof c.phone === "string" ? c.phone : null,
+          company: typeof c.company === "string" ? c.company : null,
+        })),
+      );
+    } catch {
+      setContacts([]);
+    } finally {
+      setContactsBusy(false);
+    }
+  }
+
+  function pickContact(c: ContactOption) {
+    if (c.email) setEmail(c.email);
+    if (c.phone) setPhone(c.phone);
+    setContactsOpen(false);
+    setContactQuery("");
+  }
+
+  const filteredContacts = (contacts ?? []).filter((c) => {
+    if (!c.email && !c.phone) return false;
+    if (!contactQuery.trim()) return true;
+    const q = contactQuery.toLowerCase();
+    return (
+      c.name.toLowerCase().includes(q) ||
+      (c.email?.toLowerCase().includes(q) ?? false) ||
+      (c.company?.toLowerCase().includes(q) ?? false)
+    );
+  });
+
   const input = "min-h-9 w-full rounded-lg border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_60%,transparent)] px-3 text-xs text-[var(--graphite-text-header)] outline-none placeholder:text-[var(--graphite-muted)] focus:border-[color-mix(in_srgb,var(--graphite-primary)_40%,transparent)]";
 
   return (
@@ -308,7 +358,31 @@ function DeliverableCard({ d }: { d: ProjectDeliverableRow }) {
 
       {sendOpen && shareUrl ? (
         <div className="space-y-2 rounded-xl border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_60%,transparent)] p-3">
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-[var(--graphite-muted)]">Send by email or text</p>
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-[var(--graphite-muted)]">Send by email or text</p>
+            <button type="button" onClick={toggleContacts} className={cn(t.secondaryButton, "!min-h-8 !px-2.5 text-[11px]", contactsOpen && "!border-[color-mix(in_srgb,var(--graphite-primary)_45%,transparent)] !text-[var(--graphite-primary)]")}>
+              <Users className="mr-1.5 h-3.5 w-3.5" aria-hidden /> From contacts
+            </button>
+          </div>
+          {contactsOpen ? (
+            <div className="space-y-2 rounded-lg border border-[var(--mobile-app-card-border)] p-2">
+              <input type="text" placeholder="Search contacts…" value={contactQuery} onChange={(e) => setContactQuery(e.target.value)} className={input} />
+              {contactsBusy ? (
+                <p className="px-1 py-2 text-xs text-[var(--graphite-muted)]"><Loader2 className="mr-1.5 inline h-3.5 w-3.5 animate-spin" aria-hidden />Loading contacts…</p>
+              ) : filteredContacts.length === 0 ? (
+                <p className="px-1 py-2 text-xs text-[var(--graphite-muted)]">No contacts with an email or phone. Add them in Contacts.</p>
+              ) : (
+                <div className="max-h-44 space-y-1 overflow-y-auto">
+                  {filteredContacts.map((c) => (
+                    <button key={c.id} type="button" onClick={() => pickContact(c)} className="flex w-full flex-col items-start rounded-md px-2 py-1.5 text-left hover:bg-[color-mix(in_srgb,var(--graphite-primary)_10%,transparent)]">
+                      <span className="text-xs font-semibold text-[var(--graphite-text-header)]">{c.name}{c.company ? <span className="font-normal text-[var(--graphite-muted)]"> · {c.company}</span> : null}</span>
+                      <span className="text-[11px] text-[var(--graphite-muted)]">{[c.email, c.phone].filter(Boolean).join(" · ")}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : null}
           <div className="grid gap-2 sm:grid-cols-2">
             <input type="email" inputMode="email" placeholder="recipient@email.com" value={email} onChange={(e) => setEmail(e.target.value)} className={input} />
             <input type="tel" inputMode="tel" placeholder="+1 555 123 4567" value={phone} onChange={(e) => setPhone(e.target.value)} className={input} />

@@ -57,9 +57,10 @@ Generation entry points:
 ### P1 — Contact picker for "Send" (the net-new piece of the slideshow request)
 Goal: when sending a deliverable link, pick recipients from a contact list instead
 of typing email/phone every time.
-- **Slate360 contacts (buildable now, web + app):** recipients sourced from project
-  collaborators / org members (`project_members`, org membership). A picker in the
-  Send panel that fills email/phone from a chosen contact.
+- **Slate360 contacts (SHIPPED, desktop):** the deliverable Send panel has a "From
+  contacts" picker that loads the org's saved contacts (`org_contacts` via
+  `/api/contacts`), searchable, and fills the recipient email/phone on select.
+  (Mobile-side send surface still pending.)
 - **Phone contacts (later / native):** the Web Contacts API (`navigator.contacts`)
   is Chrome-Android only — **iOS Safari does not support it**. On iOS this requires a
   native bridge in the wrapped app, so it belongs in the native-capability phase, not
