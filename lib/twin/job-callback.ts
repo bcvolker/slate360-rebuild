@@ -19,6 +19,7 @@ export type TwinWorkerCallbackPayload = {
   costCredits?: number;
   bounds?: Record<string, unknown>;
   qualityMetrics?: Record<string, unknown>;
+  floorplanKey?: string | null;
 };
 
 export type TwinJobCallbackResult = {
@@ -172,6 +173,7 @@ export async function handleTwinJobCallback(
       quality_metrics: qualityMetrics,
       is_primary: isPrimary,
       status: "ready",
+      floorplan_storage_key: body.floorplanKey ?? null,
     })
     .select("id")
     .single();

@@ -437,6 +437,67 @@ def _quat_from_to(a, b):
     return np.array([axis[0] * inv, axis[1] * inv, axis[2] * inv, s * 0.5])
 
 
+def generate_floor_plan(ply_path: Path, manifest: dict, export_dir: Path) -> "Path | None":
+    """Rasterize a top-down floor-plan PNG from the Gaussian splat point cloud.
+
+    Works in post-flip viewer space (pts = raw * [1, -1, -1]) so the XZ plane
+    matches the viewer's floor orientation.  Non-fatal — returns None on any error.
+    """
+    try:
+        from PIL import Image, ImageDraw, ImageFilter  # noqa: PLC0415
+        import numpy as np  # noqa: PLC0415
+
+        raw = _read_ply_xyz(ply_path)
+        pts = raw * np.array([1.0, -1.0, -1.0])
+
+        # Floor Y-min from manifest bounds (already in viewer space).
+        floor_y = float(manifest["bounds"]["min"][1])
+
+        # Slice at waist height — good for capturing walls without ceiling noise.
+        lo_y = floor_y + 0.3
+        hi_y = floor_y + 1.8
+        mask = (pts[:, 1] >= lo_y) & (pts[:, 1] <= hi_y)
+        slice_pts = pts[mask]
+
+        if slice_pts.shape[0] < 100:
+            # Fall back to full cloud if slice is too sparse.
+            slice_pts = pts
+
+        xz = slice_pts[:, [0, 2]]  # project onto XZ plane (drop Y)
+
+        # Auto-fit to 1024x1024 canvas with a small margin.
+        size = 1024
+        margin = 20
+        usable = size - 2 * margin
+
+        x_min, z_min = xz.min(axis=0)
+        x_max, z_max = xz.max(axis=0)
+        x_range = x_max - x_min or 1.0
+        z_range = z_max - z_min or 1.0
+        scale = usable / max(x_range, z_range)
+
+        # Map to pixel coordinates.
+        px = ((xz[:, 0] - x_min) * scale + margin).astype(int)
+        py = ((xz[:, 1] - z_min) * scale + margin).astype(int)
+        px = px.clip(0, size - 1)
+        py = py.clip(0, size - 1)
+
+        img = Image.new("RGB", (size, size), color="#0B0F15")
+        draw = ImageDraw.Draw(img)
+        for x, y in zip(px.tolist(), py.tolist()):
+            draw.ellipse([x - 1, y - 1, x + 1, y + 1], fill="white")
+
+        img = img.filter(ImageFilter.GaussianBlur(radius=1.5))
+
+        out_path = export_dir / "floorplan.png"
+        img.save(str(out_path), format="PNG")
+        return out_path
+
+    except Exception as fp_err:  # noqa: BLE001
+        print(f"generate_floor_plan failed (non-fatal): {fp_err}")
+        return None
+
+
 def compute_splat_manifest(ply_path: Path, fov_deg: float = 55.0) -> dict[str, Any]:
     """Bake orientation + framing the web viewer can apply deterministically.
 
@@ -665,6 +726,7 @@ def run_pipeline(job: JobInput, work_root: Path) -> dict[str, Any]:
     # Non-fatal: a failure here must never fail the job. Uploaded to the sibling
     # "<job>.manifest.json" key; the app derives its URL from the model storage key.
     manifest_key: str | None = None
+    manifest: dict = {}
     try:
         manifest = compute_splat_manifest(ply_path)
         manifest_path = export_dir / "manifest.json"
@@ -683,9 +745,25 @@ def run_pipeline(job: JobInput, work_root: Path) -> dict[str, Any]:
         manifest_key = None
         print(f"Splat manifest computation/upload failed (non-fatal): {manifest_exc}")
 
+    floorplan_key: str | None = None
+    try:
+        floorplan_path = generate_floor_plan(ply_path, manifest, export_dir)
+        if floorplan_path and floorplan_path.is_file():
+            floorplan_key = out_key[: -len(".spz")] + ".floorplan.png"
+            s3.upload_file(
+                str(floorplan_path),
+                bucket,
+                floorplan_key,
+                ExtraArgs={"ContentType": "image/png", "CacheControl": "public, max-age=31536000, immutable"},
+            )
+    except Exception as fp_exc:  # noqa: BLE001
+        floorplan_key = None
+        print(f"Floor plan generation/upload failed (non-fatal): {fp_exc}")
+
     return {
         "outputKey": out_key,
         "manifestKey": manifest_key,
+        "floorplanKey": floorplan_key,
         "fileSizeBytes": file_size,
         "bounds": bounds,
         "qualityMetrics": {
@@ -733,6 +811,7 @@ def process_job(payload: dict[str, Any]) -> None:
             "newAssetIds": job.new_asset_ids,
             "bounds": result["bounds"],
             "qualityMetrics": result["qualityMetrics"],
+            "floorplanKey": result.get("floorplanKey"),
         }
         post_callback(success_body)
     except Exception as exc:
