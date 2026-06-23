@@ -15,9 +15,17 @@ export type ProjectDeliverableRow = {
   unansweredCount: number;
 };
 
+export type ProjectWalkOption = {
+  id: string;
+  title: string;
+  status: string;
+  createdAt: string;
+};
+
 export type ProjectDeliverablesTabData = {
   projectId: string;
   deliverables: ProjectDeliverableRow[];
+  walks: ProjectWalkOption[];
 };
 
 type Row = {
@@ -33,11 +41,11 @@ type Row = {
 
 export async function loadProjectDeliverablesTabData(projectId: string): Promise<ProjectDeliverablesTabData> {
   const ctx = await resolveServerOrgContext();
-  if (!ctx.user) return { projectId, deliverables: [] };
+  if (!ctx.user) return { projectId, deliverables: [], walks: [] };
 
   // Ensure the caller can see this project (RLS-safe access check).
   const { project } = await getScopedProjectForUser(ctx.user.id, projectId, "id");
-  if (!project) return { projectId, deliverables: [] };
+  if (!project) return { projectId, deliverables: [], walks: [] };
 
   const admin = createAdminClient();
   const { data } = await admin
@@ -75,5 +83,21 @@ export async function loadProjectDeliverablesTabData(projectId: string): Promise
     unansweredCount: unanswered.get(r.id) ?? 0,
   }));
 
-  return { projectId, deliverables };
+  // The project's walks — so desktop users can generate a deliverable from one
+  // here instead of switching to the mobile capture flow.
+  const { data: sessions } = await admin
+    .from("site_walk_sessions")
+    .select("id, title, status, created_at")
+    .eq("project_id", projectId)
+    .order("created_at", { ascending: false })
+    .limit(100);
+
+  const walks: ProjectWalkOption[] = ((sessions as Array<Record<string, unknown>> | null) ?? []).map((s) => ({
+    id: s.id as string,
+    title: (s.title as string | null) ?? "Untitled walk",
+    status: (s.status as string | null) ?? "",
+    createdAt: s.created_at as string,
+  }));
+
+  return { projectId, deliverables, walks };
 }

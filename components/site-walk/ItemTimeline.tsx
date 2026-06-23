@@ -10,6 +10,8 @@ import {
   Trash2,
   MapPin,
   GripVertical,
+  Aperture,
+  Paperclip,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,6 +23,8 @@ const TYPE_ICON: Record<SiteWalkItemType, React.ReactNode> = {
   text_note: <StickyNote className="h-4 w-4" />,
   voice_note: <Mic className="h-4 w-4" />,
   annotation: <Pencil className="h-4 w-4" />,
+  photo_360: <Aperture className="h-4 w-4" />,
+  file_attachment: <Paperclip className="h-4 w-4" />,
 };
 
 const TYPE_LABEL: Record<SiteWalkItemType, string> = {
@@ -29,6 +33,8 @@ const TYPE_LABEL: Record<SiteWalkItemType, string> = {
   text_note: "Note",
   voice_note: "Voice",
   annotation: "Annotation",
+  photo_360: "360 Photo",
+  file_attachment: "File",
 };
 
 type Props = {

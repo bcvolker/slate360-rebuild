@@ -133,6 +133,21 @@ export function useNoPlansCaptureCanvas({
   // previous shot from this walk.
   const ghostImageUrl = progression.selectedUrl ?? previousShotUrl;
 
+  // When a ghost photo is picked from the project-wide progression picker AND a
+  // capture exists for this stop, link the new capture as the "after" of that
+  // prior photo (before_item_id + item_relationship='after'). Without this, Ghost-
+  // mode re-captures are never linked and Before/After deliverables come up empty.
+  // Mirrors the follow-up-stop linkage in useCaptureV2Loop; conservative — it never
+  // overrides an existing link (e.g. a follow-up stop).
+  useEffect(() => {
+    const selectedId = progression.selectedId;
+    const item = loop.activeItem;
+    const draft = loop.draft;
+    if (!selectedId || !item || !draft) return;
+    if (draft.beforeItemId) return; // already linked (this ghost or a follow-up)
+    loop.patchDraft({ beforeItemId: selectedId, itemRelationship: "after" });
+  }, [progression.selectedId, loop.activeItem?.id, loop.draft, loop.patchDraft]);
+
   // Available when there's a previous shot, or this is a project walk (so the
   // picker can surface prior photos to compare against).
   const ghostAvailable = Boolean(previousShotUrl) || Boolean(session.project_id);

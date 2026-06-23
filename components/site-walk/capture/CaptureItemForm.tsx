@@ -148,7 +148,7 @@ function SaveIndicator({ state }: { state: Props["saveState"] }) {
 
 function AiMessage({ state, message }: { state: Props["aiState"]; message: string }) {
   if (state === "blocked") {
-    return <div className="rounded-2xl border border-white/10 bg-white/[0.05] p-4 text-sm font-bold text-[var(--graphite-muted)]">{message} <a href="/settings/billing" className="underline">Upgrade or top up credits</a>.</div>;
+    return <div className="rounded-2xl border border-white/10 bg-white/[0.05] p-4 text-sm font-bold text-[var(--graphite-muted)]">{message} <a href="/settings" className="underline">Upgrade or top up credits</a>.</div>;
   }
   return <p className={`text-sm font-bold ${state === "error" ? "text-rose-300" : "text-[var(--graphite-primary)]"}`}>{message}</p>;
 }

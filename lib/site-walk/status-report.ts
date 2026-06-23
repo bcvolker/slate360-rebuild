@@ -11,6 +11,7 @@
  */
 
 import type { ViewerItem } from "@/lib/site-walk/viewer-types";
+import { viewerMediaType } from "@/lib/site-walk/deliverable-media";
 
 export interface StatusReportSourceItem {
   id: string;
@@ -21,6 +22,9 @@ export interface StatusReportSourceItem {
   item_status: string | null;
   priority: string | null;
   created_at: string;
+  /** Voice-memo fields (optional; only populated when voice is requested). */
+  audio_s3_key?: string | null;
+  transcript?: string | null;
 }
 
 const STATUS_ORDER: Record<string, number> = {
@@ -77,12 +81,12 @@ export function buildStatusReportContent(
     const status = (it.item_status ?? "open").replace("_", " ");
     const priority = it.priority ? ` · priority ${it.priority}` : "";
     const titleLine = `[${status}${priority}] ${it.title || `(untitled ${it.item_type})`}`;
-    const isPhoto = it.item_type === "photo" && !!it.s3_key;
+    const mediaType = viewerMediaType(it.item_type, it.s3_key);
     return {
       id: it.id,
-      type: isPhoto ? "photo" : "note",
+      type: mediaType ?? "note",
       title: titleLine,
-      mediaItemId: isPhoto ? it.id : undefined,
+      mediaItemId: mediaType ? it.id : undefined,
       notes: truncate(it.description),
     };
   });

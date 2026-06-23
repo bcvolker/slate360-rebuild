@@ -56,11 +56,13 @@ export const POST = (req: NextRequest, ctx: IdRouteContext) =>
       .insert({
         session_id: sessionId,
         org_id: orgId,
+        project_id: session.project_id ?? null,
         created_by: user.id,
         title,
         deliverable_type: "status_report",
         status: "draft",
         content,
+        output_mode: "hosted",
       })
       .select("id")
       .single();

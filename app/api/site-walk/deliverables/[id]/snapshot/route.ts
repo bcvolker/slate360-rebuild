@@ -4,7 +4,8 @@
  */
 import { NextRequest } from "next/server";
 import { withAppAuth } from "@/lib/server/api-auth";
-import { ok, badRequest, notFound, serverError } from "@/lib/server/api-response";
+import { ok, badRequest, serverError } from "@/lib/server/api-response";
+import { createDeliverableSnapshot } from "@/lib/site-walk/deliverable-snapshots";
 import type { IdRouteContext } from "@/lib/types/api";
 
 export const POST = (req: NextRequest, ctx: IdRouteContext) =>
@@ -12,31 +13,14 @@ export const POST = (req: NextRequest, ctx: IdRouteContext) =>
     if (!orgId) return badRequest("Organization context required");
     const { id } = await ctx.params;
 
-    const { data: del, error: dErr } = await admin
-      .from("site_walk_deliverables")
-      .select("title, content, status, deliverable_type")
-      .eq("id", id)
-      .eq("org_id", orgId)
-      .single();
+    const snapshot = await createDeliverableSnapshot(admin, {
+      deliverableId: id,
+      orgId,
+      userId: user.id,
+    });
+    if (!snapshot) return serverError("Could not snapshot deliverable");
 
-    if (dErr || !del) return notFound("Deliverable not found");
-
-    const { data, error } = await admin
-      .from("site_walk_deliverable_snapshots")
-      .insert({
-        deliverable_id: id,
-        org_id: orgId,
-        snapshot_title: del.title,
-        snapshot_content: del.content ?? [],
-        snapshot_status: del.status,
-        snapshot_type: del.deliverable_type,
-        created_by: user.id,
-      })
-      .select()
-      .single();
-
-    if (error) return serverError(error.message);
-    return ok({ snapshot: data });
+    return ok({ snapshot });
   });
 
 export const GET = (req: NextRequest, ctx: IdRouteContext) =>
