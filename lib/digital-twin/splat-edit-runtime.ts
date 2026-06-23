@@ -72,3 +72,26 @@ export function applyEditListToMesh(mesh: SplatMesh, ops: TwinEditList) {
     mesh.add(buildEdit(op));
   }
 }
+
+/**
+ * Create a horizontal-plane SplatEdit for the sweep animation.
+ * The caller owns the edit: add it to the mesh, animate .position.y,
+ * then remove it when done.
+ */
+export function createSweepEdit(): SplatEdit {
+  const edit = new SplatEdit({
+    rgbaBlendMode: SplatEditRgbaBlendMode.MULTIPLY,
+    sdfSmooth: 0.05,
+    softEdge: 0.02,
+    invert: false,
+  });
+  const sdf = new SplatEditSdf({
+    type: SplatEditSdfType.PLANE,
+    radius: 0.5,
+    opacity: 0,
+    color: new THREE.Color(1, 1, 1),
+    invert: false,
+  });
+  edit.addSdf(sdf);
+  return edit;
+}

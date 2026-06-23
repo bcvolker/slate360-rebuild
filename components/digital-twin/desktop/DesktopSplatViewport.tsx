@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { Canvas, extend, useThree, type ThreeEvent } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
@@ -172,12 +172,14 @@ export function DesktopSplatViewport({
   editList,
   pickEnabled,
   onPick,
+  meshRef: externalMeshRef,
   className,
 }: {
   src: string;
   editList: TwinEditList;
   pickEnabled: boolean;
   onPick?: (point: PickPoint) => void;
+  meshRef?: React.RefObject<SplatMesh | null>;
   className?: string;
 }) {
   const [loadState, setLoadState] = useState<"loading" | "ready" | "error">("loading");
@@ -185,7 +187,8 @@ export function DesktopSplatViewport({
   const handleReady = useCallback(() => setLoadState("ready"), []);
   const handleMeshReady = useCallback((mesh: SplatMesh) => {
     meshRef.current = mesh;
-  }, []);
+    if (externalMeshRef) externalMeshRef.current = mesh;
+  }, [externalMeshRef]);
 
   useEffect(() => {
     setLoadState("loading");

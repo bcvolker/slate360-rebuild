@@ -1,14 +1,24 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { IconAlertTriangle, IconDeviceFloppy, IconLoader2 } from "@tabler/icons-react";
+import { type SplatMesh } from "@sparkjsdev/spark";
 import { cn } from "@/lib/utils";
 import { twinAccent } from "@/lib/digital-twin/twin-accent";
-import { defaultOpForTool, type TwinEditList } from "@/lib/digital-twin/edit-list-types";
+import { defaultOpForTool, type TwinEditList, type TwinEditTool } from "@/lib/digital-twin/edit-list-types";
+import { createSweepEdit } from "@/lib/digital-twin/splat-edit-runtime";
+import { fetchSplatManifest } from "@/lib/digital-twin/twin-manifest";
 import { DesktopSplatToolRail, type DesktopSplatTool } from "./DesktopSplatToolRail";
 import { DesktopSplatViewport } from "./DesktopSplatViewport";
 import { DesktopSplatLayers } from "./DesktopSplatLayers";
+
+const SWEEP_DURATION_MS = 6000;
+
+/** Sine ease-in-out for a smooth sweep feel. */
+function easeInOutSine(t: number): number {
+  return -(Math.cos(Math.PI * t) - 1) / 2;
+}
 
 type Props = {
   spaceId: string;
@@ -33,18 +43,99 @@ export function DesktopSplatEditor({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const [sweepActive, setSweepActive] = useState(false);
 
-  const pickEnabled = activeTool !== "select";
+  const meshRef = useRef<SplatMesh | null>(null);
+  const rafRef = useRef<number | null>(null);
+
+  const pickEnabled = activeTool !== "select" && activeTool !== "sweep";
 
   const showToast = (msg: string) => {
     setToast(msg);
     window.setTimeout(() => setToast(null), 2200);
   };
 
+  const stopSweep = useCallback(() => {
+    if (rafRef.current !== null) {
+      window.cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+    }
+    setSweepActive(false);
+    setActiveTool("select");
+  }, []);
+
+  const startSweep = useCallback(async () => {
+    const mesh = meshRef.current;
+    if (!mesh) {
+      showToast("Model not loaded yet");
+      setActiveTool("select");
+      return;
+    }
+
+    // Fetch bounds from manifest; fall back to reasonable interior defaults.
+    const manifest = await fetchSplatManifest(modelUrl);
+    const yMin = manifest?.bounds?.min?.[1] ?? -2;
+    const yMax = manifest?.bounds?.max?.[1] ?? 4;
+
+    const sweepEdit = createSweepEdit();
+    sweepEdit.position.y = yMin;
+    mesh.add(sweepEdit);
+    setSweepActive(true);
+
+    const startTime = performance.now();
+
+    const tick = (now: number) => {
+      const elapsed = now - startTime;
+      const rawT = Math.min(elapsed / SWEEP_DURATION_MS, 1);
+      const t = easeInOutSine(rawT);
+      sweepEdit.position.y = yMin + (yMax - yMin) * t;
+
+      if (rawT < 1) {
+        rafRef.current = window.requestAnimationFrame(tick);
+      } else {
+        // Animation complete — clean up and reset.
+        mesh.remove(sweepEdit);
+        rafRef.current = null;
+        setSweepActive(false);
+        setActiveTool("select");
+      }
+    };
+
+    rafRef.current = window.requestAnimationFrame(tick);
+  }, [modelUrl]);
+
+  // When activeTool becomes "sweep", kick off the animation automatically.
+  useEffect(() => {
+    if (activeTool !== "sweep") return;
+    // If a sweep is already running, let it finish; don't double-start.
+    if (sweepActive) return;
+    void startSweep();
+  }, [activeTool, sweepActive, startSweep]);
+
+  // Clean up RAF on unmount.
+  useEffect(() => {
+    return () => {
+      if (rafRef.current !== null) {
+        window.cancelAnimationFrame(rafRef.current);
+      }
+    };
+  }, []);
+
+  const handleToolChange = useCallback(
+    (tool: DesktopSplatTool) => {
+      // If sweep is running and user switches away, stop it.
+      if (sweepActive && tool !== "sweep") {
+        stopSweep();
+      }
+      setActiveTool(tool);
+    },
+    [sweepActive, stopSweep],
+  );
+
   const handlePick = useCallback(
     (point: { x: number; y: number; z: number }) => {
-      if (activeTool === "select") return;
-      const op = defaultOpForTool(activeTool, [point.x, point.y, point.z]);
+      if (activeTool === "select" || activeTool === "sweep") return;
+      const op = defaultOpForTool(activeTool as TwinEditTool, [point.x, point.y, point.z]);
       setEditList((prev) => [...prev, op]);
       setDirty(true);
       showToast(`${op.label} placed`);
@@ -92,6 +183,15 @@ export function DesktopSplatEditor({
           <p className="truncate text-xs text-zinc-500">{modelTitle}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          {sweepActive ? (
+            <button
+              type="button"
+              onClick={stopSweep}
+              className={cn(twinAccent.button, "inline-flex items-center gap-1.5 animate-pulse")}
+            >
+              Stop sweep
+            </button>
+          ) : null}
           <Link href={`/digital-twin/twins/${spaceId}`} className={cn("text-xs", twinAccent.link)}>
             Viewer
           </Link>
@@ -127,7 +227,7 @@ export function DesktopSplatEditor({
       <div className="flex min-h-[min(70vh,720px)] flex-1 gap-3">
         <DesktopSplatToolRail
           activeTool={activeTool}
-          onToolChange={setActiveTool}
+          onToolChange={handleToolChange}
           disabled={saving}
         />
         <div className="flex min-w-0 flex-1 flex-col gap-3">
@@ -136,6 +236,7 @@ export function DesktopSplatEditor({
             editList={editList}
             pickEnabled={pickEnabled}
             onPick={handlePick}
+            meshRef={meshRef}
             className="flex-1"
           />
           <DesktopSplatLayers ops={editList} onToggle={toggleLayer} onRemove={removeLayer} />

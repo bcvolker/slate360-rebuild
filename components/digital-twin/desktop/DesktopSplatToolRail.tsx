@@ -2,6 +2,7 @@
 
 import {
   IconArrowsMove,
+  IconArrowsUpDown,
   IconCrop,
   IconEraser,
   IconLayersSubtract,
@@ -11,7 +12,7 @@ import { cn } from "@/lib/utils";
 import { twinAccent } from "@/lib/digital-twin/twin-accent";
 import type { TwinEditTool } from "@/lib/digital-twin/edit-list-types";
 
-export type DesktopSplatTool = TwinEditTool | "select";
+export type DesktopSplatTool = TwinEditTool | "select" | "sweep";
 
 const TOOLS: { id: DesktopSplatTool; label: string; icon: typeof IconCrop }[] = [
   { id: "select", label: "Navigate", icon: IconPointer },
@@ -19,6 +20,7 @@ const TOOLS: { id: DesktopSplatTool; label: string; icon: typeof IconCrop }[] = 
   { id: "slice", label: "Slice", icon: IconLayersSubtract },
   { id: "erase", label: "Erase", icon: IconEraser },
   { id: "transform", label: "Transform", icon: IconArrowsMove },
+  { id: "sweep", label: "Sweep reveal", icon: IconArrowsUpDown },
 ];
 
 export function DesktopSplatToolRail({
