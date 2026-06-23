@@ -95,7 +95,7 @@ export function StartWalkForm({ projects }: Props) {
           Create a site visit first, then return here to launch a walk.
         </p>
         <a
-          href="/dashboard?tab=projects&create=field"
+          href="/projects"
           className="mt-4 inline-flex items-center gap-2 rounded-xl bg-[var(--graphite-primary)] px-4 py-2.5 text-sm font-black text-[var(--graphite-canvas)] hover:bg-[color-mix(in_srgb,var(--graphite-primary)_85%,white)]"
         >
           <Plus className="h-4 w-4" /> New Site Visit
@@ -191,7 +191,7 @@ export function StartWalkForm({ projects }: Props) {
           {submitting ? "Starting…" : "Start Walk"}
         </button>
         <a
-          href="/dashboard?tab=projects&create=field"
+          href="/projects"
           className="inline-flex items-center gap-1.5 text-sm font-bold text-slate-400 hover:text-slate-200"
         >
           <Plus className="h-4 w-4" /> New Project
