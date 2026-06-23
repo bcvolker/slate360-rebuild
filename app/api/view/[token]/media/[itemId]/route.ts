@@ -40,18 +40,20 @@ export async function GET(
     return NextResponse.json({ error: "Expired" }, { status: 410 });
   }
 
-  let itemQuery = admin.from("site_walk_items").select("id, s3_key, session_id").eq("id", itemId);
+  let itemQuery = admin.from("site_walk_items").select("id, s3_key, audio_s3_key, session_id").eq("id", itemId);
   itemQuery = excludeDeletedSiteWalkItems(itemQuery);
 
   const { data: item } = await itemQuery.maybeSingle();
 
-  if (!item || item.session_id !== del.session_id || !item.s3_key) {
+  // Photos/videos resolve via s3_key; voice memos via audio_s3_key.
+  const mediaKey = (item?.s3_key as string | null) ?? (item?.audio_s3_key as string | null) ?? null;
+  if (!item || item.session_id !== del.session_id || !mediaKey) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
   const url = await getSignedUrl(
     s3,
-    new GetObjectCommand({ Bucket: BUCKET, Key: item.s3_key }),
+    new GetObjectCommand({ Bucket: BUCKET, Key: mediaKey }),
     { expiresIn: 3600 },
   );
 

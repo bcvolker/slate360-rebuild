@@ -239,22 +239,68 @@ export function buildSlideshowContent(
   return [cover, ...slides];
 }
 
-/** Dispatch by type. */
+/** A voice memo is included only if it has playable audio and/or a transcript. */
+function isVoiceMemo(it: StatusReportSourceItem): boolean {
+  return it.item_type === "voice_note" && (!!it.audio_s3_key || !!it.transcript);
+}
+
+/**
+ * Optional "Voice memos" section appended to a deliverable when the subscriber
+ * chooses to attach them. Each memo renders in the hosted viewer as an audio
+ * player (resolved via mediaItemId → /api/view/[token]/media) plus its
+ * transcript. Returns [] when there are no voice memos to include.
+ */
+export function buildVoiceMemoSection(items: StatusReportSourceItem[]): ViewerItem[] {
+  const memos = items
+    .filter(isVoiceMemo)
+    .sort((a, b) => a.created_at.localeCompare(b.created_at));
+  if (memos.length === 0) return [];
+
+  const header: ViewerItem = {
+    id: "voice-memos",
+    type: "note",
+    title: "Voice memos",
+    notes: `${memos.length} voice memo${memos.length === 1 ? "" : "s"} attached`,
+  };
+
+  const blocks = memos.map((it, idx) => ({
+    id: it.id,
+    type: "voice" as const,
+    title: it.title || `Voice memo ${idx + 1}`,
+    // Only point at media when there's audio to play; transcript still shows.
+    mediaItemId: it.audio_s3_key ? it.id : undefined,
+    transcript: it.transcript ?? undefined,
+    notes: truncate(it.description),
+  }));
+
+  return [header, ...blocks];
+}
+
+/** Dispatch by type, optionally appending an attached voice-memo section. */
 export function buildQuickDeliverableContent(
   type: QuickDeliverableType,
   sessionTitle: string,
   items: StatusReportSourceItem[],
+  options?: { includeVoice?: boolean },
 ): ViewerItem[] {
-  switch (type) {
-    case "punchlist":
-      return buildPunchListContent(sessionTitle, items);
-    case "photo_log":
-      return buildPhotoLogContent(sessionTitle, items);
-    case "field_report":
-      return buildFieldReportContent(sessionTitle, items);
-    case "slideshow":
-      return buildSlideshowContent(sessionTitle, items);
+  const base = ((): ViewerItem[] => {
+    switch (type) {
+      case "punchlist":
+        return buildPunchListContent(sessionTitle, items);
+      case "photo_log":
+        return buildPhotoLogContent(sessionTitle, items);
+      case "field_report":
+        return buildFieldReportContent(sessionTitle, items);
+      case "slideshow":
+        return buildSlideshowContent(sessionTitle, items);
+    }
+  })();
+
+  if (options?.includeVoice) {
+    const voice = buildVoiceMemoSection(items);
+    if (voice.length > 0) return [...base, ...voice];
   }
+  return base;
 }
 
 /** Human-facing title prefix per type, used when naming the deliverable row. */

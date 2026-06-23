@@ -28,11 +28,12 @@ export const POST = (req: NextRequest, ctx: IdRouteContext) =>
     if (!orgId) return badRequest("Organization context required");
     const { id: sessionId } = await ctx.params;
 
-    const body = (await req.json().catch(() => ({}))) as { type?: string };
+    const body = (await req.json().catch(() => ({}))) as { type?: string; include_voice?: boolean };
     if (!isQuickDeliverableType(body.type)) {
       return badRequest(`type must be one of: ${QUICK_DELIVERABLE_TYPES.join(", ")}`);
     }
     const type = body.type;
+    const includeVoice = body.include_voice === true;
 
     const { data: session } = await admin
       .from("site_walk_sessions")
@@ -43,9 +44,11 @@ export const POST = (req: NextRequest, ctx: IdRouteContext) =>
 
     if (!session) return notFound("Session not found");
 
+    // audio_s3_key + metadata.transcript are only needed when voice is attached,
+    // but they're cheap to select and keep the mapping uniform.
     let itemsQuery = admin
       .from("site_walk_items")
-      .select("id, item_type, title, description, s3_key, item_status, priority, created_at")
+      .select("id, item_type, title, description, s3_key, audio_s3_key, metadata, item_status, priority, created_at")
       .eq("session_id", sessionId)
       .eq("org_id", orgId);
     itemsQuery = excludeDeletedSiteWalkItems(itemsQuery);
@@ -53,18 +56,24 @@ export const POST = (req: NextRequest, ctx: IdRouteContext) =>
     const { data: rows, error } = await itemsQuery.order("sort_order", { ascending: true });
     if (error) return serverError(error.message);
 
-    const items: StatusReportSourceItem[] = (rows ?? []).map((r) => ({
-      id: r.id as string,
-      item_type: r.item_type as string,
-      title: (r.title as string | null) ?? null,
-      description: (r.description as string | null) ?? null,
-      s3_key: (r.s3_key as string | null) ?? null,
-      item_status: (r.item_status as string | null) ?? null,
-      priority: (r.priority as string | null) ?? null,
-      created_at: r.created_at as string,
-    }));
+    const items: StatusReportSourceItem[] = (rows ?? []).map((r) => {
+      const meta = (r.metadata as Record<string, unknown> | null) ?? null;
+      const transcript = meta && typeof meta.transcript === "string" ? meta.transcript : null;
+      return {
+        id: r.id as string,
+        item_type: r.item_type as string,
+        title: (r.title as string | null) ?? null,
+        description: (r.description as string | null) ?? null,
+        s3_key: (r.s3_key as string | null) ?? null,
+        audio_s3_key: (r.audio_s3_key as string | null) ?? null,
+        transcript,
+        item_status: (r.item_status as string | null) ?? null,
+        priority: (r.priority as string | null) ?? null,
+        created_at: r.created_at as string,
+      };
+    });
 
-    const content = buildQuickDeliverableContent(type, session.title ?? "", items);
+    const content = buildQuickDeliverableContent(type, session.title ?? "", items, { includeVoice });
     const title = `${QUICK_DELIVERABLE_LABELS[type]} — ${session.title || "Untitled walk"} — ${new Date().toLocaleDateString()}`;
     const config = QUICK_DELIVERABLE_CONFIG[type];
 

@@ -53,6 +53,7 @@ export function CaptureV2GenerateDeliverableSheet({
   const router = useRouter();
   const [busyKey, setBusyKey] = useState<GenerateOption["key"] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [includeVoice, setIncludeVoice] = useState(false);
 
   async function generate(option: GenerateOption) {
     setBusyKey(option.key);
@@ -63,7 +64,7 @@ export function CaptureV2GenerateDeliverableSheet({
           ? { url: `/api/site-walk/sessions/${sessionId}/status-report`, body: "{}" }
           : {
               url: `/api/site-walk/sessions/${sessionId}/quick-deliverable`,
-              body: JSON.stringify({ type: option.key }),
+              body: JSON.stringify({ type: option.key, include_voice: includeVoice }),
             };
 
       const response = await fetch(url, {
@@ -107,6 +108,19 @@ export function CaptureV2GenerateDeliverableSheet({
               }}
             />
           ))}
+          <label className="flex items-center justify-between gap-3 rounded-2xl border border-[var(--surface-zinc-border)] bg-[var(--surface-zinc)] px-4 py-3">
+            <span>
+              <span className="block text-sm font-semibold text-slate-100">Include voice memos</span>
+              <span className="block text-xs text-slate-400">Attach recorded voice notes + transcripts</span>
+            </span>
+            <input
+              type="checkbox"
+              checked={includeVoice}
+              onChange={(e) => setIncludeVoice(e.target.checked)}
+              disabled={busyKey !== null}
+              className="h-5 w-5 shrink-0 accent-[var(--graphite-primary)]"
+            />
+          </label>
           {error ? (
             <p className="rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs font-medium text-red-200">
               {error}

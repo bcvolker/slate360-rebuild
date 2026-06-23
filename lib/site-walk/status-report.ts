@@ -21,6 +21,9 @@ export interface StatusReportSourceItem {
   item_status: string | null;
   priority: string | null;
   created_at: string;
+  /** Voice-memo fields (optional; only populated when voice is requested). */
+  audio_s3_key?: string | null;
+  transcript?: string | null;
 }
 
 const STATUS_ORDER: Record<string, number> = {
