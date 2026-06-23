@@ -78,3 +78,4 @@ thermal-samples/
 
 # FLIR reference installers are local-only (too large for git)
 /reference/flir-drive-import/installers/
+.claude/worktrees/
