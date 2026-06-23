@@ -53,6 +53,7 @@ cpu_image = (
         "matplotlib==3.9.2",
         "reportlab==4.2.5",
         "requests==2.32.3",
+        "anthropic>=0.40",
     )
     # Modern Modal does not auto-mount the entrypoint's directory, so the worker's
     # sibling modules must be added explicitly or `from pipeline import ...` fails
@@ -333,4 +334,203 @@ def render_motion_job(payload: dict[str, Any]) -> None:
 @modal.fastapi_endpoint(method="POST", label="timelapse")
 def timelapse(body: dict):
     fc = render_motion_job.spawn(body)
+    return JSONResponse({"accepted": True}, headers={"x-modal-run-id": fc.object_id})
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Scene-aware AI interpretation (opt-in). Looks at the image to understand the
+# SCENE, then writes neutral, observation-first, scene-grounded findings. A code
+# validator vetoes any cause the scene doesn't support (no "electrical" on a door).
+# Numbers are authoritative from the detector; the model never invents temperatures.
+# ──────────────────────────────────────────────────────────────────────────────
+
+# Scene → allowed cause families (the validator's hard filter). Empty = neutral only.
+SCENE_CAUSES: dict[str, list[str]] = {
+    "building_envelope_exterior": ["air_leakage", "insulation_variation", "thermal_bridge", "moisture_pattern", "solar_loading"],
+    "building_envelope_interior": ["air_leakage", "insulation_variation", "thermal_bridge", "moisture_pattern"],
+    "entry_door_or_window": ["air_leakage", "weatherseal", "thermal_bridge", "solar_loading", "moisture_pattern"],
+    "roof": ["moisture_pattern", "insulation_variation", "membrane_variation", "solar_loading"],
+    "electrical_equipment": ["electrical_resistance", "loose_connection", "load_imbalance"],
+    "mechanical_equipment": ["mechanical_friction", "bearing_condition", "airflow"],
+    "pipe_or_plumbing": ["moisture_pattern", "flow_blockage", "insulation_variation"],
+    "unknown": [],
+}
+# Inspection profile → cause families it cares about. Effective set = SCENE ∩ PROFILE
+# (scene wins; profile narrows). "general" imposes no extra restriction.
+PROFILE_CAUSES: dict[str, list[str] | None] = {
+    "general": None,
+    "building": ["air_leakage", "insulation_variation", "thermal_bridge", "moisture_pattern", "solar_loading", "weatherseal", "membrane_variation"],
+    "roof": ["moisture_pattern", "insulation_variation", "membrane_variation", "solar_loading"],
+    "electrical": ["electrical_resistance", "loose_connection", "load_imbalance"],
+    "mechanical": ["mechanical_friction", "bearing_condition", "airflow"],
+    "drone": ["moisture_pattern", "insulation_variation", "membrane_variation", "solar_loading"],
+}
+_INTERPRET_SYSTEM = (
+    "You are assisting a thermographer. You are shown a THERMAL image (false-color: color = temperature, "
+    "NOT real-world material color — never read a red region as a red object or as fire). Identify the SCENE "
+    "from the structure shown. Then, for each anomaly (whose authoritative measured numbers are given as text), "
+    "write a NEUTRAL, observation-first description grounded in a visible element. You may ONLY suggest causes "
+    "from the scene's ALLOWED set; if none fit or you cannot anchor the anomaly to a visible element, leave "
+    "suggested_causes empty. Never state a cause as fact. Never invent temperatures. Output JSON only."
+)
+_VLM_USD_PER_MTOK_IN = 5.0   # claude-opus-4-8 input
+_VLM_USD_PER_MTOK_OUT = 25.0  # claude-opus-4-8 output
+
+
+def _media_type(data: bytes) -> str:
+    return "image/png" if data[:2] == b"\x89P" else "image/jpeg"
+
+
+def _usage_ledger_key(org_id: str) -> str:
+    from datetime import datetime, timezone
+    month = datetime.now(timezone.utc).strftime("%Y-%m")
+    return f"orgs/{org_id}/thermal/ai-usage-{month}.json"
+
+
+def _read_spend(s3, bucket: str, org_id: str) -> float:
+    try:
+        raw = s3.get_object(Bucket=bucket, Key=_usage_ledger_key(org_id))["Body"].read()
+        return float(json.loads(raw).get("cost_usd", 0.0))
+    except Exception:
+        return 0.0
+
+
+def _write_spend(s3, bucket: str, org_id: str, cost_usd: float) -> None:
+    from datetime import datetime, timezone
+    body = json.dumps({"cost_usd": round(cost_usd, 6), "updated_at": datetime.now(timezone.utc).isoformat()}).encode()
+    try:
+        s3.put_object(Bucket=bucket, Key=_usage_ledger_key(org_id), Body=body, ContentType="application/json")
+    except Exception as exc:  # noqa: BLE001 — cap is best-effort; don't crash the job
+        print(f"[interpret] spend ledger write failed: {exc}")
+
+
+def post_interpret_callback(payload: dict[str, Any]) -> None:
+    site_url = os.environ["SITE_URL"].rstrip("/")
+    secret = os.environ["GPU_WORKER_SECRET_KEY"]
+    url = f"{site_url}/api/ops/thermal/interpret/callback"
+    raw_body = dumps_json(payload)
+    headers = {"Content-Type": "application/json", "x-worker-signature": sign_callback_body(raw_body, secret)}
+    resp = requests.post(url, data=raw_body, headers=headers, timeout=60)
+    if resp.status_code >= 400:
+        raise RuntimeError(f"Interpret callback rejected ({resp.status_code}): {resp.text[:1000]}")
+
+
+def _interpret_one(client, model: str, image_bytes: bytes, anomalies: list, allowed: set[str]):
+    """One Anthropic vision call + code validation for a single capture. Returns
+    (scene_dict, total_in_tokens, total_out_tokens)."""
+    facts = "\n".join(
+        f"  anomaly[{i}]: type={a.get('type')} pattern={a.get('pattern')} "
+        f"peak_C={a.get('temp_c')} deltaT_C={a.get('delta_c')} severity={a.get('severity')}"
+        for i, a in enumerate(anomalies)
+    )
+    user = (
+        "Choose scene_class from: " + ", ".join(SCENE_CAUSES.keys()) + "\n\n"
+        f"ANOMALY_FACTS (authoritative; do not restate numbers as causes):\n{facts}\n\n"
+        'Respond JSON only: {"scene_class":"...","scene_confidence":0-1,"visible_elements":["..."],'
+        '"findings":[{"anomaly_index":int,"observation":"neutral, references a visible element",'
+        '"anchored":bool,"suggested_causes":[{"label_id":"from the scene allowed set","confidence":0-1}]}]}'
+    )
+    msg = client.messages.create(
+        model=model, max_tokens=1500, system=_INTERPRET_SYSTEM,
+        messages=[{"role": "user", "content": [
+            {"type": "image", "source": {"type": "base64", "media_type": _media_type(image_bytes),
+                                          "data": __import__("base64").b64encode(image_bytes).decode()}},
+            {"type": "text", "text": user},
+        ]}],
+    )
+    raw = "".join(b.text for b in msg.content if b.type == "text").strip()
+    if raw.startswith("```"):
+        raw = raw.split("```")[1].replace("json", "", 1).strip()
+    in_tok = getattr(msg.usage, "input_tokens", 0) or 0
+    out_tok = getattr(msg.usage, "output_tokens", 0) or 0
+    try:
+        p = json.loads(raw)
+    except Exception:
+        return None, in_tok, out_tok
+    scene = p.get("scene_class", "unknown")
+    eff = set(SCENE_CAUSES.get(scene, []))
+    if allowed:
+        eff &= allowed
+    low_conf = float(p.get("scene_confidence", 0)) < 0.55
+    findings = []
+    for f in p.get("findings", []):
+        kept = [
+            sc.get("label_id") for sc in (f.get("suggested_causes") or [])
+            if (not low_conf) and f.get("anchored")
+            and sc.get("label_id") in eff and float(sc.get("confidence", 0)) >= 0.45
+        ]
+        findings.append({
+            "anomaly_index": f.get("anomaly_index"),
+            "observation": str(f.get("observation") or "")[:600],
+            "suggested_causes": [c for c in kept if c],
+        })
+    return (
+        {"scene_class": scene, "scene_confidence": p.get("scene_confidence"),
+         "visible_elements": (p.get("visible_elements") or [])[:8], "findings": findings},
+        in_tok, out_tok,
+    )
+
+
+@app.function(image=cpu_image, cpu=2, memory=4096, timeout=MAX_DURATION_SECONDS, secrets=[worker_secret])
+def interpret_thermal_job(payload: dict[str, Any]) -> None:
+    import anthropic
+    from r2_utils import s3_client
+
+    session_id = str(payload["sessionId"])
+    org_id = str(payload["orgId"])
+    captures = payload.get("captures") or []
+    profile = str(payload.get("profile") or "general")
+    model = os.environ.get("THERMAL_VLM_MODEL", "claude-opus-4-8")
+    cap_usd = float(os.environ.get("THERMAL_VLM_MONTHLY_USD_CAP", payload.get("monthlyCapUsd") or 25.0))
+
+    bucket = os.environ["R2_BUCKET"]
+    s3 = s3_client()
+    profile_allowed = PROFILE_CAUSES.get(profile)
+    allowed_set = set(profile_allowed) if profile_allowed else set()
+
+    try:
+        spent = _read_spend(s3, bucket, org_id)
+        if spent >= cap_usd:
+            post_interpret_callback({
+                "sessionId": session_id, "status": "capped",
+                "errorLog": f"Monthly AI budget reached (${spent:.2f} of ${cap_usd:.2f}). Raise the cap to continue.",
+            })
+            return
+
+        client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
+        results: list[dict[str, Any]] = []
+        run_cost = 0.0
+        for cap in captures:
+            anoms = cap.get("anomalies") or []
+            preview_path = cap.get("previewPath")
+            if not anoms or not preview_path:
+                continue
+            if spent + run_cost >= cap_usd:
+                break  # stop mid-batch if the cap is hit
+            try:
+                img_bytes = s3.get_object(Bucket=bucket, Key=preview_path)["Body"].read()
+            except Exception as exc:  # noqa: BLE001
+                print(f"[interpret] preview fetch failed {preview_path}: {exc}")
+                continue
+            scene, in_tok, out_tok = _interpret_one(client, model, img_bytes, anoms, allowed_set)
+            run_cost += in_tok * _VLM_USD_PER_MTOK_IN / 1e6 + out_tok * _VLM_USD_PER_MTOK_OUT / 1e6
+            if scene is not None:
+                results.append({"captureId": cap.get("captureId"), **scene})
+
+        _write_spend(s3, bucket, org_id, spent + run_cost)
+        post_interpret_callback({
+            "sessionId": session_id, "status": "completed", "results": results,
+            "usage": {"cost_usd": round(run_cost, 4), "model": model,
+                      "month_to_date_usd": round(spent + run_cost, 4), "cap_usd": cap_usd},
+        })
+    except Exception as exc:  # noqa: BLE001
+        post_interpret_callback({"sessionId": session_id, "status": "failed",
+                                 "errorLog": str(exc)[:800], "trace": traceback.format_exc()[-2000:]})
+        raise
+
+
+@app.function(image=cpu_image, secrets=[worker_secret])
+@modal.fastapi_endpoint(method="POST", label="interpret")
+def interpret(body: dict):
+    fc = interpret_thermal_job.spawn(body)
     return JSONResponse({"accepted": True}, headers={"x-modal-run-id": fc.object_id})

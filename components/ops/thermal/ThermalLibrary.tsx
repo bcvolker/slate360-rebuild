@@ -6,6 +6,7 @@ import { StudioHandle } from "@/components/studio/StudioPanels";
 import { useRouter } from "next/navigation";
 import { ThermalImageGrid, type GridItem } from "@/components/ops/thermal/ThermalImageGrid";
 import { ThermalRunPanel } from "@/components/ops/thermal/ThermalRunPanel";
+import { ThermalAiSceneCheck } from "@/components/ops/thermal/ThermalAiSceneCheck";
 import { ThermalBatchTunePanel } from "@/components/ops/thermal/ThermalBatchTunePanel";
 import { ThermalInspectionProfiles } from "@/components/ops/thermal/ThermalInspectionProfiles";
 import { CollapsibleSection } from "@/components/ops/thermal/CollapsibleSection";
@@ -207,6 +208,20 @@ export function ThermalLibrary({
       <aside className="flex h-full min-h-0 flex-col gap-1.5 overflow-y-auto pr-0.5">
         {/* Automated path — the single Run control, always open at the top. */}
         <ThermalRunPanel sessionId={sessionId} allIds={allIds} selectedIds={selectedIds} />
+
+        {/* Opt-in scene-aware AI pass — neutral, scene-grounded findings (cost-capped). */}
+        <div className="rounded-xl border border-[var(--mobile-app-card-border)] p-3">
+          <p className={eyebrow}>Scene-aware AI (optional)</p>
+          <p className="mb-2 mt-1 text-[11px] text-[var(--graphite-muted)]">
+            Reads the image to understand the scene and writes neutral, scene-appropriate
+            findings. Runs only when you press it; monthly cost-capped.
+          </p>
+          <ThermalAiSceneCheck
+            sessionId={sessionId}
+            captureIds={selectedIds.length ? selectedIds : undefined}
+            label={selectedIds.length ? `AI scene check (${selectedIds.length})` : "AI scene check (all flagged)"}
+          />
+        </div>
 
         {/* Curation + the rest as one accordion column (no competing stacked panels). */}
         <CollapsibleSection title="Report set" badge={inReport.size}>
