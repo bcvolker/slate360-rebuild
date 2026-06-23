@@ -64,6 +64,35 @@ of typing email/phone every time.
 - A **mobile Send surface**: today Send lives in the desktop project Deliverables tab.
   For "send from the user's phone," add a Send action to the mobile deliverable view.
 
+### P1 — Voice memos + AI Boost inside link deliverables (requested)
+Goal: when building a deliverable that has a share link, the subscriber can
+**optionally** attach voice memos, and use an **AI Boost** button to clean field
+notes into report-ready prose — but must **review and approve** the result before
+it is written into the deliverable. Never mandatory; never auto-applied silently.
+
+What already exists (primitives — confirmed in code):
+- The hosted viewer already renders `voice` items with an `<audio controls>` player
+  + transcript (`components/site-walk/viewer/ItemRenderers.tsx`), so voice memos can
+  appear in a shared link today if included in the deliverable content.
+- Voice memos: recorded → S3 → Whisper transcription (`/api/site-walk/transcribe`),
+  transcript stored on the item.
+- AI Boost: `POST /api/site-walk/notes/format` rewrites raw notes into professional
+  bullets + suggested classification/priority and **returns the cleaned text for
+  review** — currently wired only at capture time (NoteCaptureBar / useCaptureItems),
+  i.e. the user already verifies before it's saved.
+
+What needs building (the gap):
+1. An **optional** "include voice memos" choice in the deliverable generate flow, so
+   voice items (audio + transcript) are added to the deliverable content array.
+2. An **AI Boost** action in the deliverable authoring/preview that calls
+   `notes/format`, shows a **before/after diff**, and only writes the cleaned text
+   into the deliverable when the user taps **Approve** (reject keeps the original).
+3. The quick-deliverable builders (status_report, punchlist, photo_log, field_report,
+   slideshow) should be able to carry voice items when the option is on. Note the
+   desktop `components/site-walk/reports/ReportBuilderClient.tsx` is currently a
+   static wireframe (blocks: photos/notes/plan/weather, no state) — the functional
+   authoring build is where the desktop AI Boost + voice block live.
+
 ### P2 — Heavy / desktop-only deliverable types (web, post-launch)
 Kept in the enum; **not** offered on mobile. Surface on desktop/web only, build as
 demand warrants. Where rendering is heavy, offload to Trigger → Modal.

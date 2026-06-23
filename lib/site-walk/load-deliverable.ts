@@ -19,6 +19,12 @@ interface DeliverableRow {
   share_expires_at: string | null;
   share_max_views: number | null;
   share_view_count: number | null;
+  shared_snapshot_id: string | null;
+}
+
+interface SnapshotRow {
+  snapshot_title: string | null;
+  snapshot_content: unknown;
 }
 
 interface CreatorRow {
@@ -76,7 +82,7 @@ export async function loadDeliverableByToken(
   const { data: deliverable, error } = await admin
     .from("site_walk_deliverables")
     .select(
-      "id, title, content, created_by, share_token, share_revoked, share_expires_at, share_max_views, share_view_count"
+      "id, title, content, created_by, share_token, share_revoked, share_expires_at, share_max_views, share_view_count, shared_snapshot_id"
     )
     .eq("share_token", token)
     .maybeSingle<DeliverableRow>();
@@ -129,13 +135,30 @@ export async function loadDeliverableByToken(
     author: true,
   };
 
+  // Pin to the frozen version the link was shared at, when present. Older links
+  // (shared before version pinning) fall back to the deliverable's live content.
+  let resolvedTitle = deliverable.title ?? "Untitled Deliverable";
+  let resolvedContent: unknown = deliverable.content;
+
+  if (deliverable.shared_snapshot_id) {
+    const { data: snapshot } = await admin
+      .from("site_walk_deliverable_snapshots")
+      .select("snapshot_title, snapshot_content")
+      .eq("id", deliverable.shared_snapshot_id)
+      .maybeSingle<SnapshotRow>();
+    if (snapshot) {
+      resolvedTitle = snapshot.snapshot_title ?? resolvedTitle;
+      resolvedContent = snapshot.snapshot_content;
+    }
+  }
+
   return {
     id: deliverable.id,
-    title: deliverable.title ?? "Untitled Deliverable",
+    title: resolvedTitle,
     senderName,
     senderLogo,
     shareToken: deliverable.share_token,
-    items: normaliseItems(deliverable.content, deliverable.share_token),
+    items: normaliseItems(resolvedContent, deliverable.share_token),
     metadataVisibility,
   };
 }
