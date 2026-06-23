@@ -53,5 +53,7 @@
 	<string>Slate360 lets you add existing photos and videos to a project from your library.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>Slate360 can save exported reports and captures back to your photo library.</string>
+	<key>NSMotionUsageDescription</key>
+	<string>Slate360 uses motion sensors to keep your captures stable and level on site.</string>
 </dict>
 </plist>

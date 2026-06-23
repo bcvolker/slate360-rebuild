@@ -139,14 +139,23 @@ export function useNoPlansCaptureCanvas({
   // mode re-captures are never linked and Before/After deliverables come up empty.
   // Mirrors the follow-up-stop linkage in useCaptureV2Loop; conservative — it never
   // overrides an existing link (e.g. a follow-up stop).
+  //
+  // Dependency array uses primitive/stable values only.  loop.draft (object) and
+  // loop.patchDraft (function) must NOT be in the array — both change on every
+  // render, which re-fires the effect on every keystroke and corrupts the capture
+  // state machine.  Use refs for anything needed inside but not as a trigger.
+  const patchDraftRef = useRef(loop.patchDraft);
+  patchDraftRef.current = loop.patchDraft;
+  const draftBeforeItemIdRef = useRef(loop.draft?.beforeItemId);
+  draftBeforeItemIdRef.current = loop.draft?.beforeItemId;
+
   useEffect(() => {
     const selectedId = progression.selectedId;
-    const item = loop.activeItem;
-    const draft = loop.draft;
-    if (!selectedId || !item || !draft) return;
-    if (draft.beforeItemId) return; // already linked (this ghost or a follow-up)
-    loop.patchDraft({ beforeItemId: selectedId, itemRelationship: "after" });
-  }, [progression.selectedId, loop.activeItem?.id, loop.draft, loop.patchDraft]);
+    if (!selectedId || !loop.activeItem) return;
+    if (draftBeforeItemIdRef.current) return; // already linked
+    patchDraftRef.current({ beforeItemId: selectedId, itemRelationship: "after" });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [progression.selectedId, loop.activeItem?.id]);
 
   // Available when there's a previous shot, or this is a project walk (so the
   // picker can surface prior photos to compare against).
