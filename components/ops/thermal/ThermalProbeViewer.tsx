@@ -552,6 +552,40 @@ export function ThermalProbeViewer({
     />
   );
 
+  // Draggable color-scale legend (FLIR-style level/span). Grab the top handle to
+  // pull the max down, the bottom handle to push the min up — narrowing the span
+  // boosts contrast so subtle features appear. Double-click the bar resets to auto.
+  const legendDragRef = useRef<null | "min" | "max">(null);
+  const legendTrackRef = useRef<HTMLDivElement>(null);
+  const legendValueAt = (clientY: number) => {
+    const rect = legendTrackRef.current?.getBoundingClientRect();
+    if (!rect || rect.height === 0) return loDisp;
+    const frac = Math.min(1, Math.max(0, (clientY - rect.top) / rect.height));
+    return maxC - frac * (maxC - minC); // top = max, bottom = min
+  };
+  const onLegendDown = (which: "min" | "max") => (e: React.PointerEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    legendDragRef.current = which;
+    try { (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId); } catch {}
+  };
+  const onLegendMove = (e: React.PointerEvent) => {
+    if (!legendDragRef.current) return;
+    const gap = ((maxC - minC) || 1) * 0.02; // keep min strictly below max
+    const v = legendValueAt(e.clientY);
+    if (legendDragRef.current === "max") setDisplayMax(Math.min(maxC, Math.max(loDisp + gap, v)));
+    else setDisplayMin(Math.max(minC, Math.min(hiDisp - gap, v)));
+  };
+  const onLegendUp = (e: React.PointerEvent) => {
+    legendDragRef.current = null;
+    try { (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId); } catch {}
+  };
+  const legendSpan = (maxC - minC) || 1;
+  const maxHandleTop = `${((maxC - hiDisp) / legendSpan) * 100}%`;
+  const minHandleTop = `${((maxC - loDisp) / legendSpan) * 100}%`;
+  const handleClass =
+    "absolute left-1/2 z-10 h-2.5 w-7 -translate-x-1/2 -translate-y-1/2 cursor-ns-resize touch-none rounded-sm border border-white/80 bg-[var(--graphite-primary)] shadow-[0_1px_3px_rgba(0,0,0,0.5)]";
+
   return (
     <div className="flex h-full min-h-0 flex-col gap-2">
       <div className="shrink-0">
@@ -592,11 +626,41 @@ export function ThermalProbeViewer({
           rail holds collapsible sections so everything fits without page scroll. */}
       <div className="flex min-h-0 flex-1 gap-2">
         {/* Color-scale legend (palette min→max) beside the image, FLIR-style. */}
-        <div className="flex w-14 shrink-0 flex-col items-stretch py-1 text-[9px] tabular-nums text-[var(--graphite-muted)]">
+        <div className="flex w-14 shrink-0 flex-col items-stretch py-1 text-[9px] tabular-nums text-[var(--graphite-muted)]" title="Drag the handles to narrow the temperature span. Double-click to reset to auto.">
           <span className="text-center text-[var(--graphite-text-body)]">{fmtTemp(hiDisp, unit)}</span>
-          <div className="relative my-1 flex-1">
+          <div
+            ref={legendTrackRef}
+            className="relative my-1 flex-1 touch-none"
+            onPointerMove={onLegendMove}
+            onPointerUp={onLegendUp}
+            onDoubleClick={() => { setDisplayMin(null); setDisplayMax(null); }}
+          >
             <div className="mx-auto h-full w-3.5 rounded border border-[var(--mobile-app-card-border)]" style={{ background: legendGradient }} />
-            <span className="absolute left-0 right-0 top-1/2 -translate-y-1/2 text-center">{fmtTemp(legendMid, unit)}</span>
+            <span className="pointer-events-none absolute left-0 right-0 top-1/2 -translate-y-1/2 text-center">{fmtTemp(legendMid, unit)}</span>
+            <div
+              role="slider"
+              aria-label="Maximum display temperature"
+              aria-valuenow={Math.round(hiDisp)}
+              tabIndex={0}
+              title="Drag down to lower the top of the scale"
+              className={handleClass}
+              style={{ top: maxHandleTop }}
+              onPointerDown={onLegendDown("max")}
+              onPointerMove={onLegendMove}
+              onPointerUp={onLegendUp}
+            />
+            <div
+              role="slider"
+              aria-label="Minimum display temperature"
+              aria-valuenow={Math.round(loDisp)}
+              tabIndex={0}
+              title="Drag up to raise the bottom of the scale"
+              className={handleClass}
+              style={{ top: minHandleTop }}
+              onPointerDown={onLegendDown("min")}
+              onPointerMove={onLegendMove}
+              onPointerUp={onLegendUp}
+            />
           </div>
           <span className="text-center text-[var(--graphite-text-body)]">{fmtTemp(loDisp, unit)}</span>
         </div>

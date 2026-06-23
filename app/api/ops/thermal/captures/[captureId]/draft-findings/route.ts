@@ -49,11 +49,12 @@ export const POST = (req: NextRequest, { params }: Params) =>
     const stdLine = standards.length ? `Applicable standards: ${standards.join(", ")}.` : "";
 
     const system =
-      "You are an ITC Level III certified thermographer assisting with an inspection report. " +
-      "Draft concise, professional findings (3–5 sentences). Use conservative, evidence-based " +
-      "language ('consistent with', 'suggests', 'indicates') and do not over-claim root cause. " +
-      "Reference the applicable standards where relevant. State the empirical facts first, then a " +
-      "professional interpretation, then a clear recommended action. Output plain text only — no " +
+      "You are assisting with a thermal inspection report. " +
+      "Draft concise, professional findings (3–5 sentences). Use neutral, observation-first, " +
+      "evidence-based language ('observed', 'measured', 'consistent with', 'may indicate') and " +
+      "do NOT assert a root cause. Reference the applicable standards where relevant. State the " +
+      "empirical facts first, then a careful interpretation clearly framed as a suggestion for " +
+      "the reviewer to confirm, then a recommended verification step. Output plain text only — no " +
       "preamble, headings, or markdown.";
     const user = `Detected anomalies for image "${capture.filename ?? "capture"}":\n${facts}\n${stdLine}`;
 

@@ -88,7 +88,14 @@ function standardsClause(standards?: string[]): string {
 }
 
 /**
- * Build a professional, standards-aware finding sentence for one anomaly.
+ * Build a NEUTRAL, observation-first finding sentence for one anomaly.
+ *
+ * IMPORTANT (locked decision): the description reports what was MEASURED and the
+ * thermal PATTERN only — it never asserts a cause. Cause is the operator's call (or
+ * a scene-aware draft they confirm). This keeps the engine correct for any
+ * inspection type and any user (no trade lock-in, no certification implied) and
+ * keeps reports defensible for insurance/legal use. Phrasing uses "observed" /
+ * "at the time of capture" and avoids "caused by / failure / defect".
  */
 export function describeAnomaly(anomaly: ThermalAnomaly, opts: DescribeOptions = {}): string {
   const unit = opts.unit ?? "F";
@@ -97,33 +104,37 @@ export function describeAnomaly(anomaly: ThermalAnomaly, opts: DescribeOptions =
   const dt = fmtDelta(anomaly.delta_c, unit);
   const sev = (anomaly.severity as ThermalSeverity) ?? "info";
   const pattern = anomaly.pattern;
-  const vs =
+  const vsWarm =
     typeof anomaly.background_c === "number"
-      ? `${dt} above its surroundings (~${fmtTemp(anomaly.background_c, unit)})`
-      : `ΔT ${dt} vs surroundings`;
+      ? `${dt} above adjacent surroundings (~${fmtTemp(anomaly.background_c, unit)})`
+      : `ΔT ${dt} above surroundings`;
   const vsCold =
     typeof anomaly.background_c === "number"
-      ? `${dt} below its surroundings (~${fmtTemp(anomaly.background_c, unit)})`
+      ? `${dt} below adjacent surroundings (~${fmtTemp(anomaly.background_c, unit)})`
       : `ΔT ${dt} below surroundings`;
-  const act = sev === "action" ? " Prioritize on-site investigation." : sev === "watch" ? " Monitor and follow up." : "";
+  // Neutral follow-up scaled by severity — recommends review, never asserts cause.
+  const act =
+    sev === "action"
+      ? " Recommend on-site verification."
+      : sev === "watch"
+        ? " Recommend review and follow-up."
+        : "";
 
   if (anomaly.type === "hot_spot") {
-    if (pattern === "diffuse") {
-      return `Diffuse warm area — peak ${peak}, ${vs}. The soft, spread signature points to air leakage, thermal bridging, or moisture warming rather than a point fault.${act}${std}`;
-    }
-    return `Focal hot spot — peak ${peak}, ${vs}. The sharp, localized signature is consistent with elevated electrical resistance, a loose/overloaded connection, or mechanical friction.${act}${std}`;
+    const shape = pattern === "diffuse" ? "diffuse (soft, spread)" : "focal (sharp, localized)";
+    return `Elevated-temperature area observed — peak ${peak}, ${vsWarm} at the time of capture. Thermal pattern: ${shape} warm region. Confirm the source and context on site.${act}${std}`;
   }
 
   if (anomaly.type === "cold_bridge") {
-    if (pattern === "focal") {
-      return `Localized cool spot — ${vsCold}. Consistent with an insulation gap, a fastener/structural heat sink, or a small breach.${act}${std}`;
-    }
-    return `Diffuse cool region — ${vsCold}. The soft pattern is characteristic of moisture intrusion or saturated insulation; confirm with a moisture meter.${act}${std}`;
+    const shape = pattern === "focal" ? "focal (sharp, localized)" : "diffuse (soft, spread)";
+    return `Reduced-temperature area observed — ${vsCold} at the time of capture. Thermal pattern: ${shape} cool region. Confirm the source and context on site.${act}${std}`;
   }
 
   if (anomaly.type === "linear_streak") {
-    return `Linear thermal trace — the geometry suggests sub-surface piping, embedded wiring, or moisture tracking along a seam or framing member. Verify in the field.${std}`;
+    return `Linear thermal trace observed — an elongated temperature pattern following a line or seam at the time of capture. Confirm the source and context on site.${act}${std}`;
   }
 
-  return `Thermal anomaly — ${vs}, severity ${sev}.${std}`;
+  const polarity =
+    typeof anomaly.delta_c === "number" && anomaly.delta_c < 0 ? vsCold : vsWarm;
+  return `Thermal anomaly observed — ${polarity} at the time of capture. Confirm the source and context on site.${act}${std}`;
 }

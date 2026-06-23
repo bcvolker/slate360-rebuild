@@ -2,9 +2,10 @@
  * Professional thermography report templates.
  *
  * A template controls which sections appear, the standards/methodology/disclaimer
- * wording, and the severity scheme. Seeded defaults below follow Infraspection /
- * ASTM / NFPA practice for a Level III thermographer. Users can clone any seed,
- * edit it, and save their own named templates (stored per-org).
+ * wording, and the severity scheme. Seeded defaults follow common ASTM / NFPA
+ * inspection practice and are GENERIC — they require no certification and imply no
+ * credential. Any user can clone a seed, edit it, and save their own named
+ * templates (stored per-org). Optional author/inspector info is off by default.
  */
 
 export type ReportSeverityLevel = { label: string; definition: string };
@@ -41,8 +42,9 @@ export type ThermalReportTemplate = {
   methodology_text: string;
   disclaimer_text: string;
   severity_levels: ReportSeverityLevel[];
-  /** Branding: operator's uploaded logo on by default; thermographer credentials. */
+  /** Branding: operator's uploaded logo. */
   show_logo: boolean;
+  /** Optional author/inspector info (name/company) — OFF by default, no credential implied. */
   show_credentials: boolean;
   /** Findings page layout — defaults to "detail" (1 image/page). */
   layout?: ReportLayout;
@@ -85,7 +87,7 @@ export const SEED_REPORT_TEMPLATES: ThermalReportTemplate[] = [
       DISCLAIMER_BASE + " Suspected wet insulation should be confirmed with a moisture meter or core sampling.",
     severity_levels: DEFAULT_SEVERITY_LEVELS,
     show_logo: true,
-    show_credentials: true,
+    show_credentials: false,
     layout: "two_up",
     is_seed: true,
   },
@@ -101,7 +103,7 @@ export const SEED_REPORT_TEMPLATES: ThermalReportTemplate[] = [
       DISCLAIMER_BASE + " Electrical findings should be corroborated against load data and verified by a licensed electrician.",
     severity_levels: DEFAULT_SEVERITY_LEVELS,
     show_logo: true,
-    show_credentials: true,
+    show_credentials: false,
     layout: "two_up",
     is_seed: true,
   },
@@ -116,7 +118,7 @@ export const SEED_REPORT_TEMPLATES: ThermalReportTemplate[] = [
     disclaimer_text: DISCLAIMER_BASE,
     severity_levels: DEFAULT_SEVERITY_LEVELS,
     show_logo: true,
-    show_credentials: true,
+    show_credentials: false,
     layout: "two_up",
     is_seed: true,
   },
@@ -131,7 +133,7 @@ export const SEED_REPORT_TEMPLATES: ThermalReportTemplate[] = [
     disclaimer_text: DISCLAIMER_BASE,
     severity_levels: DEFAULT_SEVERITY_LEVELS,
     show_logo: true,
-    show_credentials: true,
+    show_credentials: false,
     layout: "two_up",
     is_seed: true,
   },
@@ -147,7 +149,7 @@ export const SEED_REPORT_TEMPLATES: ThermalReportTemplate[] = [
       DISCLAIMER_BASE + " This forensic report may be used to support further investigation; conclusions are limited to thermal evidence observed.",
     severity_levels: DEFAULT_SEVERITY_LEVELS,
     show_logo: true,
-    show_credentials: true,
+    show_credentials: false,
     layout: "two_up",
     is_seed: true,
   },
@@ -163,6 +165,6 @@ export function emptyTemplate(name: string): Omit<ThermalReportTemplate, "id"> {
     disclaimer_text: DISCLAIMER_BASE,
     severity_levels: DEFAULT_SEVERITY_LEVELS,
     show_logo: true,
-    show_credentials: true,
+    show_credentials: false,
   };
 }

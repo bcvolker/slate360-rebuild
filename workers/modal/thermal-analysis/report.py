@@ -58,8 +58,9 @@ def _standards_clause(standards: list[str]) -> str:
 
 
 def describe_anomaly(a: dict[str, Any], standards: list[str] | None = None, unit: str = "C") -> str:
-    """Mirror of lib/thermal/anomaly-describe.ts — local-contrast + pattern aware,
-    standards-driven, no credentials."""
+    """Mirror of lib/thermal/anomaly-describe.ts — NEUTRAL, observation-first.
+    Reports the measurement and thermal pattern only; never asserts a cause (that is
+    the operator's call). No trade lock-in, no credentials, defensible for any use."""
     standards = standards or []
     std = _standards_clause(standards)
     peak = _fmt_temp(a.get("temp_c"), unit)
@@ -68,39 +69,33 @@ def describe_anomaly(a: dict[str, Any], standards: list[str] | None = None, unit
     typ = a.get("type")
     pattern = a.get("pattern")
     bg = a.get("background_c")
-    bg_str = f" above its surroundings (~{_fmt_temp(bg, unit)})" if isinstance(bg, (int, float)) else " vs surroundings"
-    bg_cold = f" below its surroundings (~{_fmt_temp(bg, unit)})" if isinstance(bg, (int, float)) else " below surroundings"
-    act = " Prioritize on-site investigation." if sev == "action" else (" Monitor and follow up." if sev == "watch" else "")
+    bg_warm = f" above adjacent surroundings (~{_fmt_temp(bg, unit)})" if isinstance(bg, (int, float)) else " above surroundings"
+    bg_cold = f" below adjacent surroundings (~{_fmt_temp(bg, unit)})" if isinstance(bg, (int, float)) else " below surroundings"
+    act = " Recommend on-site verification." if sev == "action" else (" Recommend review and follow-up." if sev == "watch" else "")
 
     if typ == "hot_spot":
-        if pattern == "diffuse":
-            return (
-                f"Diffuse warm area — peak {peak}, {dt}{bg_str}. The soft, spread signature points to "
-                f"air leakage, thermal bridging, or moisture warming rather than a point fault.{act}{std}"
-            )
+        shape = "diffuse (soft, spread)" if pattern == "diffuse" else "focal (sharp, localized)"
         return (
-            f"Focal hot spot — peak {peak}, {dt}{bg_str}. The sharp, localized signature is consistent with "
-            f"elevated electrical resistance, a loose/overloaded connection, or mechanical friction.{act}{std}"
+            f"Elevated-temperature area observed — peak {peak}, {dt}{bg_warm} at the time of capture. "
+            f"Thermal pattern: {shape} warm region. Confirm the source and context on site.{act}{std}"
         )
 
     if typ == "cold_bridge":
-        if pattern == "focal":
-            return (
-                f"Localized cool spot — {dt}{bg_cold}. Consistent with an insulation gap, a fastener/structural "
-                f"heat sink, or a small breach.{act}{std}"
-            )
+        shape = "focal (sharp, localized)" if pattern == "focal" else "diffuse (soft, spread)"
         return (
-            f"Diffuse cool region — {dt}{bg_cold}. The soft pattern is characteristic of moisture intrusion or "
-            f"saturated insulation; confirm with a moisture meter.{act}{std}"
+            f"Reduced-temperature area observed — {dt}{bg_cold} at the time of capture. "
+            f"Thermal pattern: {shape} cool region. Confirm the source and context on site.{act}{std}"
         )
 
     if typ == "linear_streak":
         return (
-            "Linear thermal trace — the geometry suggests sub-surface piping, embedded wiring, or moisture "
-            f"tracking along a seam or framing member. Verify in the field.{std}"
+            "Linear thermal trace observed — an elongated temperature pattern following a line or seam "
+            f"at the time of capture. Confirm the source and context on site.{act}{std}"
         )
 
-    return f"Thermal anomaly — {dt}{bg_str}, severity {sev}.{std}"
+    delta = a.get("delta_c")
+    polarity = bg_cold if isinstance(delta, (int, float)) and delta < 0 else bg_warm
+    return f"Thermal anomaly observed — {dt}{polarity} at the time of capture. Confirm the source and context on site.{act}{std}"
 
 
 def _template(session_meta: dict[str, Any]) -> dict[str, Any]:

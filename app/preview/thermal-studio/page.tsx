@@ -21,17 +21,19 @@ const CAPTURES: StudioCapture[] = [
 ];
 
 type Stage = "library" | "inspect" | "motion" | "report" | "deliver";
+type ReportView = "build" | "deliver";
+// Mirrors ThermalStudioShell: 3 primary tabs; motion via Tools (···); deliver folded into Report.
 const TABS: StudioTab<Stage>[] = [
-  { id: "library", label: "Library" },
+  { id: "library", label: "Images" },
   { id: "inspect", label: "Inspect" },
-  { id: "motion", label: "Time-lapse / Video" },
-  { id: "report", label: "Report Builder" },
-  { id: "deliver", label: "Deliver" },
+  { id: "report", label: "Report" },
 ];
 
 export default function PreviewThermalStudio() {
   const [g, setG] = useState<ThermalProbeGrid | null>(null);
   const [stage, setStage] = useState<Stage>("inspect");
+  const [reportView, setReportView] = useState<ReportView>("build");
+  const [toolsOpen, setToolsOpen] = useState(false);
   const [order, setOrder] = useState<string[]>(["a", "c"]);
   useEffect(() => {
     fetch("/thermal-fixtures/sample-211.json").then((r) => r.json()).then(setG);
@@ -66,6 +68,17 @@ export default function PreviewThermalStudio() {
                 <StudioChip label="Images" value={CAPTURES.length} />
                 <StudioChip label="⚑" value={2} />
                 <StudioChip label="Max" value="61°C" />
+                <div className="relative">
+                  <button type="button" title="Tools" aria-label="Tools" onClick={() => setToolsOpen((v) => !v)} className="rounded px-2 py-1 text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]">⋯</button>
+                  {toolsOpen ? (
+                    <>
+                      <div className="fixed inset-0 z-40" onClick={() => setToolsOpen(false)} />
+                      <div className="absolute right-0 z-50 mt-1 w-56 rounded-lg border border-[var(--mobile-app-card-border)] bg-[var(--graphite-surface,#15171a)] p-1 shadow-[var(--mobile-app-card-shadow)]">
+                        <button type="button" onClick={() => { setStage("motion"); setToolsOpen(false); }} className="block w-full rounded px-3 py-2 text-left text-xs text-[var(--graphite-text-body)] hover:bg-[color-mix(in_srgb,var(--graphite-primary)_12%,transparent)]">Build time-lapse / video…</button>
+                      </div>
+                    </>
+                  ) : null}
+                </div>
               </>
             }
           >
@@ -83,22 +96,38 @@ export default function PreviewThermalStudio() {
               <ThermalStudioWorkView sessionId="preview" captures={CAPTURES} loadGrid={async () => g} />
             ) : null}
             {stage === "motion" ? (
-              <ThermalMotionStudio sessionId="preview" captures={CAPTURES} />
+              <div className="flex h-full min-h-0 flex-col gap-2">
+                <div className="flex shrink-0 items-center gap-2">
+                  <button type="button" onClick={() => setStage("library")} className="rounded-md border border-[var(--mobile-app-card-border)] px-2 py-1 text-xs text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]">← Back to Images</button>
+                  <span className="text-xs font-semibold text-[var(--graphite-text-header)]">Time-lapse / Video</span>
+                </div>
+                <div className="min-h-0 flex-1"><ThermalMotionStudio sessionId="preview" captures={CAPTURES} /></div>
+              </div>
             ) : null}
             {stage === "report" ? (
-              <ThermalReportBuilder
-                sessionId="preview"
-                sessionName="Oak Ridge Roof — Preview"
-                captures={CAPTURES}
-                reportOrder={order}
-                onReorder={reorder}
-                onRemove={(id) => setOrder((o) => o.filter((x) => x !== id))}
-                brandingConfig={{ company_name: "Slate360 Thermography", logo_url: "", primary_color: "", show_metrics: true, custom_footer: "Confidential — for client use only." } as never}
-                summary={{ total_captures: 3, critical_anomalies: 2, max_detected_temp_c: 61 }}
-              />
-            ) : null}
-            {stage === "deliver" ? (
-              <ThermalDeliverables sessionId="preview" brandingConfig={{} as never} captures={CAPTURES} />
+              <div className="flex h-full min-h-0 flex-col gap-2">
+                <div className="inline-flex shrink-0 self-start rounded-lg border border-[var(--mobile-app-card-border)] p-0.5 text-xs">
+                  {(["build", "deliver"] as ReportView[]).map((v) => (
+                    <button key={v} type="button" onClick={() => setReportView(v)} className={`rounded px-3 py-1 font-semibold ${reportView === v ? "bg-[color-mix(in_srgb,var(--graphite-primary)_18%,transparent)] text-[var(--graphite-text-header)]" : "text-[var(--graphite-muted)]"}`}>{v === "build" ? "Build report" : "Deliver & share"}</button>
+                  ))}
+                </div>
+                <div className="min-h-0 flex-1">
+                  {reportView === "build" ? (
+                    <ThermalReportBuilder
+                      sessionId="preview"
+                      sessionName="Oak Ridge Roof — Preview"
+                      captures={CAPTURES}
+                      reportOrder={order}
+                      onReorder={reorder}
+                      onRemove={(id) => setOrder((o) => o.filter((x) => x !== id))}
+                      brandingConfig={{ company_name: "Slate360 Thermography", logo_url: "", primary_color: "", show_metrics: true, custom_footer: "Confidential — for client use only." } as never}
+                      summary={{ total_captures: 3, critical_anomalies: 2, max_detected_temp_c: 61 }}
+                    />
+                  ) : (
+                    <ThermalDeliverables sessionId="preview" brandingConfig={{} as never} captures={CAPTURES} />
+                  )}
+                </div>
+              </div>
             ) : null}
           </StudioWorkspaceShell>
         </div>

@@ -23,14 +23,17 @@ import {
 } from "@/lib/thermal/curation-client";
 import type { ThermalBrandingConfig, ThermalProcessingJob } from "@/lib/thermal/types";
 
+// Internal routing keys. Only library/inspect/report are PRIMARY tabs; "motion"
+// is reached from the Tools (···) menu (kept fully capable, off the core path) and
+// "deliver" is folded into the Report tab via a Build | Deliver toggle.
 type Stage = "library" | "inspect" | "motion" | "report" | "deliver";
+type ReportView = "build" | "deliver";
 
+// Primary tab bar — three tabs (Images → Inspect → Report).
 const STAGES: { id: Stage; label: string; step: number }[] = [
-  { id: "library", label: "Library", step: 1 },
+  { id: "library", label: "Images", step: 1 },
   { id: "inspect", label: "Inspect", step: 2 },
-  { id: "motion", label: "Time-lapse / Video", step: 3 },
-  { id: "report", label: "Report Builder", step: 4 },
-  { id: "deliver", label: "Deliver", step: 5 },
+  { id: "report", label: "Report", step: 3 },
 ];
 
 type Props = {
@@ -72,6 +75,8 @@ export function ThermalStudioShell({
 }: Props) {
   const router = useRouter();
   const [stage, setStage] = useState<Stage>("library");
+  const [reportView, setReportView] = useState<ReportView>("build");
+  const [toolsOpen, setToolsOpen] = useState(false);
   const [activeCaptureId, setActiveCaptureId] = useState<string | null>(captures[0]?.id ?? null);
   const { job, connected } = useThermalJobRealtime(sessionId);
   const activeJob = job ?? initialJob;
@@ -160,6 +165,31 @@ export function ThermalStudioShell({
           <StudioChip label="Images" value={captures.length} />
           {crit > 0 ? <StudioChip label="⚑ Action" value={crit} /> : null}
           {activeJob ? <JobChip status={activeJob.status} connected={connected} /> : null}
+          <div className="relative">
+            <button
+              type="button"
+              title="Tools"
+              aria-label="Tools"
+              onClick={() => setToolsOpen((v) => !v)}
+              className="rounded px-2 py-1 text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]"
+            >
+              ⋯
+            </button>
+            {toolsOpen ? (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setToolsOpen(false)} />
+                <div className="absolute right-0 z-50 mt-1 w-56 rounded-lg border border-[var(--mobile-app-card-border)] bg-[var(--graphite-surface,#15171a)] p-1 shadow-[var(--mobile-app-card-shadow)]">
+                  <button
+                    type="button"
+                    onClick={() => { setStage("motion"); setToolsOpen(false); }}
+                    className="block w-full rounded px-3 py-2 text-left text-xs text-[var(--graphite-text-body)] hover:bg-[color-mix(in_srgb,var(--graphite-primary)_12%,transparent)]"
+                  >
+                    Build time-lapse / video…
+                  </button>
+                </div>
+              </>
+            ) : null}
+          </div>
         </>
       }
     >
@@ -188,33 +218,67 @@ export function ThermalStudioShell({
       ) : null}
 
       {stage === "motion" ? (
-        <ThermalMotionStudio sessionId={sessionId} captures={captures} />
+        <div className="flex h-full min-h-0 flex-col gap-2">
+          <div className="flex shrink-0 items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setStage("library")}
+              className="rounded-md border border-[var(--mobile-app-card-border)] px-2 py-1 text-xs text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]"
+            >
+              ← Back to Images
+            </button>
+            <span className="text-xs font-semibold text-[var(--graphite-text-header)]">Time-lapse / Video</span>
+          </div>
+          <div className="min-h-0 flex-1">
+            <ThermalMotionStudio sessionId={sessionId} captures={captures} />
+          </div>
+        </div>
       ) : null}
 
       {stage === "report" ? (
-        <ThermalReportBuilder
-          sessionId={sessionId}
-          sessionName={sessionName}
-          captures={captures}
-          reportOrder={reportOrder}
-          onReorder={reorderReport}
-          onRemove={removeFromReport}
-          brandingConfig={brandingConfig}
-          summary={summary}
-          initialTemplateId={initialTemplateId}
-          initialSignature={initialSignature}
-          initialConditions={conditions}
-        />
-      ) : null}
-
-      {stage === "deliver" ? (
-        <ThermalDeliverables
-          sessionId={sessionId}
-          brandingConfig={brandingConfig}
-          initialProjectId={initialProjectId}
-          linkedSpaceId={linkedSpaceId}
-          captures={captures}
-        />
+        <div className="flex h-full min-h-0 flex-col gap-2">
+          <div className="inline-flex shrink-0 self-start rounded-lg border border-[var(--mobile-app-card-border)] p-0.5 text-xs">
+            {(["build", "deliver"] as ReportView[]).map((v) => (
+              <button
+                key={v}
+                type="button"
+                onClick={() => setReportView(v)}
+                className={`rounded px-3 py-1 font-semibold ${
+                  reportView === v
+                    ? "bg-[color-mix(in_srgb,var(--graphite-primary)_18%,transparent)] text-[var(--graphite-text-header)]"
+                    : "text-[var(--graphite-muted)]"
+                }`}
+              >
+                {v === "build" ? "Build report" : "Deliver & share"}
+              </button>
+            ))}
+          </div>
+          <div className="min-h-0 flex-1">
+            {reportView === "build" ? (
+              <ThermalReportBuilder
+                sessionId={sessionId}
+                sessionName={sessionName}
+                captures={captures}
+                reportOrder={reportOrder}
+                onReorder={reorderReport}
+                onRemove={removeFromReport}
+                brandingConfig={brandingConfig}
+                summary={summary}
+                initialTemplateId={initialTemplateId}
+                initialSignature={initialSignature}
+                initialConditions={conditions}
+              />
+            ) : (
+              <ThermalDeliverables
+                sessionId={sessionId}
+                brandingConfig={brandingConfig}
+                initialProjectId={initialProjectId}
+                linkedSpaceId={linkedSpaceId}
+                captures={captures}
+              />
+            )}
+          </div>
+        </div>
       ) : null}
     </StudioWorkspaceShell>
   );

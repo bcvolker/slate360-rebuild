@@ -5,9 +5,10 @@ import { Panel, PanelGroup } from "react-resizable-panels";
 import { StudioHandle } from "@/components/studio/StudioPanels";
 import { useRouter } from "next/navigation";
 import { ThermalImageGrid, type GridItem } from "@/components/ops/thermal/ThermalImageGrid";
-import { ThermalProcessPanel } from "@/components/ops/thermal/ThermalProcessPanel";
+import { ThermalRunPanel } from "@/components/ops/thermal/ThermalRunPanel";
 import { ThermalBatchTunePanel } from "@/components/ops/thermal/ThermalBatchTunePanel";
 import { ThermalInspectionProfiles } from "@/components/ops/thermal/ThermalInspectionProfiles";
+import { CollapsibleSection } from "@/components/ops/thermal/CollapsibleSection";
 import { ThermalSlateDropPicker } from "@/components/ops/thermal/ThermalSlateDropPicker";
 import type { StudioCapture } from "@/components/ops/thermal/ThermalStudioWorkView";
 import { cameraOf, isHighDelta } from "@/lib/thermal/curation-client";
@@ -87,6 +88,7 @@ export function ThermalLibrary({
     previewUrl: c.previewUrl,
     flaggedCount: c.anomalies?.length ?? 0,
     inReport: inReport.has(c.id),
+    radiometric: Boolean((c.qualityMetrics as Record<string, unknown> | null)?.is_radiometric),
   }));
   const visibleIds = visible.map((c) => c.id);
   const allIds = captures.map((c) => c.id);
@@ -160,7 +162,9 @@ export function ThermalLibrary({
           {cameras.length > 1 ? cameras.map((cam) => chip(cam, cam)) : null}
         </div>
         <div className="mt-1 border-t border-[var(--mobile-app-card-border)] pt-2">
-          <span className={eyebrow}>Bring in files</span>
+          <span className={eyebrow} title="Always import the ORIGINAL camera files (via Files / SD card / USB), not copies from Photos or AirDrop — those recompress the image and strip the embedded temperature data. The ✓°/⚠ badge on each image shows whether temperature data survived.">
+            Bring in files <span className="cursor-help text-[var(--graphite-primary)]">ⓘ</span>
+          </span>
           <button
             type="button"
             onClick={() => setShowPicker(true)}
@@ -168,6 +172,7 @@ export function ThermalLibrary({
           >
             ＋ From SlateDrop
           </button>
+          <p className="mt-1 text-[10px] text-[var(--graphite-muted)]">Import originals — Photos/AirDrop copies strip temperature data.</p>
         </div>
       </aside>
       </Panel>
@@ -199,42 +204,52 @@ export function ThermalLibrary({
 
       {/* RIGHT: curation + processing tools */}
       <Panel order={3} collapsible collapsedSize={0} defaultSize={24} minSize={16} className="min-w-0">
-      <aside className="flex h-full min-h-0 flex-col gap-2 overflow-y-auto pr-0.5">
-        <div className="rounded-xl border border-[var(--mobile-app-card-border)] p-3">
-          <p className="text-xs font-semibold text-[var(--graphite-text-header)]">Report set</p>
-          <p className="mt-1 text-[11px] text-[var(--graphite-muted)]">
-            {inReport.size} image{inReport.size === 1 ? "" : "s"} marked for the report. Order &amp;
-            generate in <span className="font-semibold text-[var(--graphite-text-body)]">Report Builder</span>.
-          </p>
-          <button
-            type="button"
-            onClick={() => onAddToReport(selectedIds)}
-            disabled={!selectedIds.length}
-            title={selectedIds.length ? "" : "Select images (✓ corner) first"}
-            className="mt-2 rounded-lg border border-[var(--mobile-app-card-border)] px-2.5 py-1 text-xs font-semibold text-[var(--graphite-text-body)] hover:text-[var(--graphite-text-header)] disabled:opacity-40"
-          >
-            {selectedIds.length
-              ? `Add ${selectedIds.length} selected to report`
-              : "Add selected to report"}
-          </button>
-          <div className="mt-3 border-t border-[var(--mobile-app-card-border)] pt-2">
+      <aside className="flex h-full min-h-0 flex-col gap-1.5 overflow-y-auto pr-0.5">
+        {/* Automated path — the single Run control, always open at the top. */}
+        <ThermalRunPanel sessionId={sessionId} allIds={allIds} selectedIds={selectedIds} />
+
+        {/* Curation + the rest as one accordion column (no competing stacked panels). */}
+        <CollapsibleSection title="Report set" badge={inReport.size}>
+          <div className="rounded-xl border border-[var(--mobile-app-card-border)] p-3">
             <p className="text-[11px] text-[var(--graphite-muted)]">
-              {pairedCount} thermal/visual pair{pairedCount === 1 ? "" : "s"} linked.
+              {inReport.size} image{inReport.size === 1 ? "" : "s"} marked for the report. Order &amp;
+              generate in the <span className="font-semibold text-[var(--graphite-text-body)]">Report</span> tab.
             </p>
             <button
               type="button"
-              onClick={autoPair}
-              disabled={pairing}
-              className="mt-1 rounded-lg border border-[var(--mobile-app-card-border)] px-2.5 py-1 text-xs font-semibold text-[var(--graphite-text-body)] hover:text-[var(--graphite-text-header)] disabled:opacity-40"
+              onClick={() => onAddToReport(selectedIds)}
+              disabled={!selectedIds.length}
+              title={selectedIds.length ? "" : "Select images (✓ corner) first"}
+              className="mt-2 rounded-lg border border-[var(--mobile-app-card-border)] px-2.5 py-1 text-xs font-semibold text-[var(--graphite-text-body)] hover:text-[var(--graphite-text-header)] disabled:opacity-40"
             >
-              {pairing ? "Pairing…" : "Auto-pair thermal + visual"}
+              {selectedIds.length ? `Add ${selectedIds.length} selected to report` : "Add selected to report"}
             </button>
-            {pairNote ? <span className="ml-2 text-[11px] text-[var(--graphite-muted)]">{pairNote}</span> : null}
+            <div className="mt-3 border-t border-[var(--mobile-app-card-border)] pt-2">
+              <p className="text-[11px] text-[var(--graphite-muted)]">
+                {pairedCount} thermal/visual pair{pairedCount === 1 ? "" : "s"} linked.
+              </p>
+              <button
+                type="button"
+                onClick={autoPair}
+                disabled={pairing}
+                className="mt-1 rounded-lg border border-[var(--mobile-app-card-border)] px-2.5 py-1 text-xs font-semibold text-[var(--graphite-text-body)] hover:text-[var(--graphite-text-header)] disabled:opacity-40"
+              >
+                {pairing ? "Pairing…" : "Auto-pair thermal + visual"}
+              </button>
+              {pairNote ? <span className="ml-2 text-[11px] text-[var(--graphite-muted)]">{pairNote}</span> : null}
+            </div>
           </div>
-        </div>
-        <ThermalProcessPanel sessionId={sessionId} allIds={allIds} selectedIds={selectedIds} />
-        <ThermalInspectionProfiles sessionId={sessionId} targetIds={targetIds} />
-        <ThermalBatchTunePanel captureIds={targetIds} />
+        </CollapsibleSection>
+
+        {/* Manual batch — apply display tune to the selection/all. */}
+        <CollapsibleSection title="Manual tune (batch)" defaultOpen={false}>
+          <ThermalBatchTunePanel captureIds={targetIds} />
+        </CollapsibleSection>
+
+        {/* Saved presets — secondary. */}
+        <CollapsibleSection title="Saved profiles" defaultOpen={false}>
+          <ThermalInspectionProfiles sessionId={sessionId} targetIds={targetIds} />
+        </CollapsibleSection>
       </aside>
       </Panel>
       </PanelGroup>

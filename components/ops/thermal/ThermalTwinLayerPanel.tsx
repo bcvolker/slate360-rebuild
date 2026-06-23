@@ -1,9 +1,16 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import { thermalOpsTokens as t } from "@/components/ops/thermal/thermal-ops-tokens";
-import { ThermalTwinOverlayMap } from "@/components/ops/thermal/ThermalTwinOverlayMap";
 import type { StudioCapture } from "@/components/ops/thermal/ThermalStudioWorkView";
+
+// Leaflet (react-leaflet) touches `window` at module load, which crashes SSR. Load
+// the map client-side only so the Deliver tab / preview don't 500 on the server.
+const ThermalTwinOverlayMap = dynamic(
+  () => import("@/components/ops/thermal/ThermalTwinOverlayMap").then((m) => m.ThermalTwinOverlayMap),
+  { ssr: false },
+);
 
 type Props = {
   sessionId: string;

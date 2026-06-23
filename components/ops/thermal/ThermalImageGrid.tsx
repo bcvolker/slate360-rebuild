@@ -7,6 +7,8 @@ export type GridItem = {
   flaggedCount?: number;
   /** ★ included in the report set. */
   inReport?: boolean;
+  /** Per-pixel temperature data present (decoded). Drives the radiometric badge. */
+  radiometric?: boolean;
 };
 
 /**
@@ -99,6 +101,20 @@ export function ThermalImageGrid({
                         {it.flaggedCount}
                       </span>
                     ) : null}
+                    {/* Radiometric (temperature-data) badge — ✓ when decoded; warn when
+                        no temperature data yet (run analysis, or re-import the original
+                        if a flattened/Photos copy stripped it). */}
+                    <span
+                      title={
+                        it.radiometric
+                          ? "Radiometric — per-pixel temperature data present"
+                          : "No temperature data yet — run analysis. If this persists, re-import the ORIGINAL file (Photos/AirDrop copies strip thermal data)."
+                      }
+                      className="absolute bottom-4 left-1 flex h-4 items-center justify-center rounded px-1 text-[8px] font-bold leading-none text-black"
+                      style={{ backgroundColor: it.radiometric ? "#34d399" : "#fb923c" }}
+                    >
+                      {it.radiometric ? "✓°" : "⚠"}
+                    </span>
                     {onToggleInReport ? (
                       <span
                         role="checkbox"
