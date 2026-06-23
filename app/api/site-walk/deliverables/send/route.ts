@@ -46,7 +46,7 @@ export const POST = (req: NextRequest) =>
 
     const { data: del, error } = await admin
       .from("site_walk_deliverables")
-      .select("id, title, deliverable_type, content, share_token, status, share_expires_at, org_id")
+      .select("id, title, deliverable_type, content, share_token, status, share_expires_at, org_id, project_id")
       .eq("id", deliverable_id)
       .eq("org_id", orgId)
       .single();
@@ -99,7 +99,6 @@ export const POST = (req: NextRequest) =>
           pdfBuffer,
           filename,
         });
-        // TODO PR #27d.3: audit into site_walk_deliverable_sends with delivery_mode = "pdf_attachment"
       } else if (sendMode === "inline_images") {
         const items: InlineImageItem[] = inlineImageItemsFromContent(del.content, del.share_token, APP_URL);
         if (items.length === 0) {
@@ -137,6 +136,26 @@ export const POST = (req: NextRequest) =>
 
       if (channels.length === 0) {
         return badRequest("Provide a valid email address or phone number.");
+      }
+
+      // Record the send for history + the "Delivered" engagement state. Logging
+      // must never fail a send that already went out.
+      try {
+        await admin.from("site_walk_deliverable_sends").insert({
+          org_id: orgId,
+          project_id: del.project_id ?? null,
+          deliverable_id: del.id,
+          sent_by: user.id,
+          recipient_email: recipient_email?.trim() || null,
+          recipient_phone: recipient_phone?.trim() || null,
+          delivery_mode: sendMode,
+          message: message?.trim() || null,
+          status: "sent",
+          sent_at: new Date().toISOString(),
+          metadata: { channels },
+        });
+      } catch (logErr) {
+        console.error("[deliverable-send] audit-log", logErr);
       }
 
       return ok({ sent: true, mode: sendMode, channels });
