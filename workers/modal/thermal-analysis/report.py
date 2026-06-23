@@ -220,9 +220,13 @@ def _measurement_table_rows(capture: dict[str, Any], unit: str) -> list[list[str
     if q.get("avg_temp_c") is not None:
         rows.append(["Average", _fmt_temp(q["avg_temp_c"], unit)])
     # Detected anomalies (peak + ΔT vs surroundings) supplement the spot table.
+    # Only emit a row when the value exists — linear/diffuse anomalies often have no
+    # single peak, and empty "A4 peak —" placeholder rows look broken in the report.
     for i, a in enumerate(capture.get("anomalies") or [], start=1):
-        rows.append([f"A{i} peak", _fmt_temp(a.get("temp_c"), unit)])
-        rows.append([f"A{i} ΔT", _fmt_delta(a.get("delta_c"), unit)])
+        if a.get("temp_c") is not None:
+            rows.append([f"A{i} peak", _fmt_temp(a.get("temp_c"), unit)])
+        if a.get("delta_c") is not None:
+            rows.append([f"A{i} ΔT", _fmt_delta(a.get("delta_c"), unit)])
     return rows
 
 
@@ -315,16 +319,20 @@ def _per_image_flowables(
 
     # --- Sidebar ---
     sidebar: list[Any] = [Paragraph("MEASUREMENTS", _SIDEBAR_LABEL)]
-    mt = Table(_measurement_table_rows(capture, unit), colWidths=[1.0 * inch, 1.0 * inch])
-    mt.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#f0f0f0")),
-        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-        ("FONTSIZE", (0, 0), (-1, -1), 7),
-        ("GRID", (0, 0), (-1, -1), 0.25, colors.HexColor("#cccccc")),
-        ("TOPPADDING", (0, 0), (-1, -1), 2),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 2),
-    ]))
-    sidebar.append(mt)
+    mrows = _measurement_table_rows(capture, unit)
+    if len(mrows) <= 1:  # header only → no real measurements
+        sidebar.append(Paragraph("No measurements recorded.", _SIDEBAR_TEXT))
+    else:
+        mt = Table(mrows, colWidths=[1.0 * inch, 1.0 * inch])
+        mt.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#f0f0f0")),
+            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+            ("FONTSIZE", (0, 0), (-1, -1), 7),
+            ("GRID", (0, 0), (-1, -1), 0.25, colors.HexColor("#cccccc")),
+            ("TOPPADDING", (0, 0), (-1, -1), 2),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 2),
+        ]))
+        sidebar.append(mt)
 
     params = _param_rows(capture, unit)
     if params:
@@ -370,7 +378,11 @@ def _per_image_flowables(
     cam = q.get("sensor_make") or ""
     sensor = q.get("sensor_model") or q.get("parser_id") or ""
     image_col: list[Any] = [_image_flowable(capture.get("preview_b64"), image_w)]
-    image_col.append(Paragraph(f"{_safe(capture.get('filename') or '')} · {_safe(cam)} {_safe(sensor)}", _CAPTION))
+    cam_bits = " ".join(x for x in [cam, sensor] if x).strip()
+    cap_text = capture.get("filename") or ""
+    if cam_bits:
+        cap_text = f"{cap_text} · {cam_bits}"
+    image_col.append(Paragraph(_safe(cap_text), _CAPTION))
     pair_id = meta.get("visual_pair_id")
     paired = by_id.get(pair_id) if isinstance(pair_id, str) else None
     if paired and paired.get("preview_b64"):
@@ -463,6 +475,7 @@ def build_html_report(session_meta: dict[str, Any], captures: list[dict[str, Any
             f'<p style="white-space:pre-line;">{_safe(signature)}</p></section>'
         )
 
+    _d = _derive_summary(captures, _report_unit(session_meta))
     return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -483,15 +496,42 @@ def build_html_report(session_meta: dict[str, Any], captures: list[dict[str, Any
     <h1 style="margin:8px 0 0;">{_safe(session_meta.get('name') or 'Thermal Inspection')}</h1>
     <p style="color:#94a3b8;">Generated {_safe(datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC'))}</p>
     <div class="metrics">
-      <div class="metric"><div>Captures</div><strong>{_safe(summary.get('total_captures', len(captures)))}</strong></div>
-      <div class="metric"><div>Anomalies</div><strong>{_safe(summary.get('critical_anomalies', 0))}</strong></div>
-      <div class="metric"><div>Max temp</div><strong>{_safe(summary.get('max_detected_temp_c', '—'))}°C</strong></div>
+      <div class="metric"><div>Captures</div><strong>{_safe(_d['captures'])}</strong></div>
+      <div class="metric"><div>Action anomalies</div><strong>{_safe(_d['action'])}</strong></div>
+      <div class="metric"><div>Max temp</div><strong>{_safe(_d['max_temp'])}</strong></div>
     </div>
     {''.join(blocks)}
     <footer style="margin-top:24px;color:#64748b;font-size:12px;">{_safe(footer)}</footer>
   </div>
 </body>
 </html>"""
+
+
+def _derive_summary(captures: list[dict[str, Any]], unit: str) -> dict[str, str]:
+    """Compute cover/exec metrics straight from the captures so the report never shows
+    a stale 'Captures 0 / None' header (the passed-in summary is often empty)."""
+    total = len(captures)
+    action = 0
+    maxt: float | None = None
+    confs: list[float] = []
+    for c in captures:
+        q = c.get("qualityMetrics") or {}
+        mt = q.get("max_temp_c")
+        if isinstance(mt, (int, float)):
+            maxt = mt if maxt is None else max(maxt, mt)
+        cf = q.get("confidence_score", q.get("confidence"))
+        if isinstance(cf, (int, float)):
+            confs.append(cf)
+        for a in c.get("anomalies") or []:
+            if a.get("severity") == "action":
+                action += 1
+    avg = round(sum(confs) / len(confs), 3) if confs else None
+    return {
+        "captures": str(total),
+        "action": str(action),
+        "max_temp": _fmt_temp(maxt, unit) if maxt is not None else "—",
+        "confidence": avg,  # numeric or None; formatted by caller (with session fallback)
+    }
 
 
 def build_pdf_report(session_meta: dict[str, Any], captures: list[dict[str, Any]], output_path: Path) -> None:
@@ -521,13 +561,20 @@ def build_pdf_report(session_meta: dict[str, Any], captures: list[dict[str, Any]
     )
     story.append(Spacer(1, 0.2 * inch))
 
-    # Executive summary metrics
+    # Executive summary metrics — derived from the captures (authoritative), with the
+    # session summary only as a confidence fallback.
     if _section_on(sections, "executive_summary"):
+        _unit = _report_unit(session_meta)
+        d = _derive_summary(captures, _unit)
+        conf = d["confidence"]
+        if conf is None:
+            conf = summary.get("avg_confidence_score")
+        conf_str = (f"{conf * 100:.0f}%" if isinstance(conf, (int, float)) and conf <= 1 else str(conf)) if conf is not None else "—"
         metrics = [
-            ["Captures", str(summary.get("total_captures", len(captures)))],
-            ["Action anomalies", str(summary.get("critical_anomalies", 0))],
-            ["Max detected temp", f"{summary.get('max_detected_temp_c', '—')}°C"],
-            ["Avg confidence", str(summary.get("avg_confidence_score", "—"))],
+            ["Captures", d["captures"]],
+            ["Action anomalies", d["action"]],
+            ["Max detected temp", d["max_temp"]],
+            ["Avg confidence", conf_str],
         ]
         table = Table(metrics, hAlign="LEFT")
         table.setStyle(
