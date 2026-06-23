@@ -24,13 +24,14 @@ import { MobileHomeListRow, mobileTokens } from "@/components/mobile-system";
  */
 
 type GenerateOption = {
-  key: "status_report" | "punchlist" | "photo_log" | "field_report" | "slideshow";
+  key: "status_report" | "punchlist" | "photo_log" | "field_report" | "slideshow" | "before_after";
   title: string;
   meta: string;
 };
 
 const OPTIONS: GenerateOption[] = [
   { key: "slideshow", title: "Slideshow", meta: "Click-through photo deck to send to clients" },
+  { key: "before_after", title: "Before / after", meta: "Ghost-mode comparisons of change over time" },
   { key: "status_report", title: "Status report", meta: "Open vs. resolved summary for leadership" },
   { key: "punchlist", title: "Punch list", meta: "Outstanding items by priority" },
   { key: "photo_log", title: "Photo log", meta: "Every captured photo, in order" },
@@ -62,10 +63,12 @@ export function CaptureV2GenerateDeliverableSheet({
       const { url, body } =
         option.key === "status_report"
           ? { url: `/api/site-walk/sessions/${sessionId}/status-report`, body: "{}" }
-          : {
-              url: `/api/site-walk/sessions/${sessionId}/quick-deliverable`,
-              body: JSON.stringify({ type: option.key, include_voice: includeVoice }),
-            };
+          : option.key === "before_after"
+            ? { url: `/api/site-walk/sessions/${sessionId}/before-after`, body: "{}" }
+            : {
+                url: `/api/site-walk/sessions/${sessionId}/quick-deliverable`,
+                body: JSON.stringify({ type: option.key, include_voice: includeVoice }),
+              };
 
       const response = await fetch(url, {
         method: "POST",

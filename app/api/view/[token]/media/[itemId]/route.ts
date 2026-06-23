@@ -30,7 +30,7 @@ export async function GET(
 
   const { data: del } = await admin
     .from("site_walk_deliverables")
-    .select("id, session_id, share_revoked, share_expires_at")
+    .select("id, session_id, content, shared_snapshot_id, share_revoked, share_expires_at")
     .eq("share_token", token)
     .maybeSingle();
 
@@ -47,7 +47,15 @@ export async function GET(
 
   // Photos/videos resolve via s3_key; voice memos via audio_s3_key.
   const mediaKey = (item?.s3_key as string | null) ?? (item?.audio_s3_key as string | null) ?? null;
-  if (!item || item.session_id !== del.session_id || !mediaKey) {
+  if (!item || !mediaKey) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
+  // Authorize: the item is in this deliverable's walk, OR (for cross-walk
+  // deliverables like Before/After) it's explicitly referenced in the
+  // deliverable's content — the owner-authored block array is the access list.
+  const referenced = await isItemReferenced(admin, del, itemId);
+  if (item.session_id !== del.session_id && !referenced) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
@@ -58,4 +66,29 @@ export async function GET(
   );
 
   return NextResponse.redirect(url, 307);
+}
+
+/** True if `itemId` is referenced as a mediaItemId in the deliverable's served
+ * content (the pinned snapshot when present, else live content). */
+async function isItemReferenced(
+  admin: ReturnType<typeof createAdminClient>,
+  del: { content: unknown; shared_snapshot_id: string | null },
+  itemId: string,
+): Promise<boolean> {
+  let content = del.content;
+  if (del.shared_snapshot_id) {
+    const { data: snap } = await admin
+      .from("site_walk_deliverable_snapshots")
+      .select("snapshot_content")
+      .eq("id", del.shared_snapshot_id)
+      .maybeSingle();
+    if (snap) content = (snap as { snapshot_content: unknown }).snapshot_content;
+  }
+  if (!Array.isArray(content)) return false;
+  return content.some(
+    (block) =>
+      block &&
+      typeof block === "object" &&
+      (block as Record<string, unknown>).mediaItemId === itemId,
+  );
 }

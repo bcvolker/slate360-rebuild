@@ -35,6 +35,9 @@ viewer renders real photos and is itself a click-through slideshow.
 | Photo log | `photo_log` | hosted | Chronological photo gallery. |
 | Field report | `field_report` | hosted | Full chronological record of the walk. |
 | Slideshow | `cinematic_presentation` | presentation | Client-facing click-through photo deck (cover + photos). Reuses the existing viewer. |
+| Before / after | `report` | presentation | v1: pairs Ghost-mode `before_item_id`/`item_relationship` links into a click-through Before → After deck. Cross-walk "before" photos supported (media route authorizes by content reference). Slider / side-by-side compare is a later iteration. |
+
+Generation entry point for Before/After: `POST /api/site-walk/sessions/[id]/before-after`.
 
 Generation entry points:
 - `POST /api/site-walk/sessions/[id]/status-report`
