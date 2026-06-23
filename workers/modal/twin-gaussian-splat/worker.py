@@ -155,6 +155,262 @@ def resolve_matching_method(ingest_stats: dict[str, int]) -> str:
     return "exhaustive"
 
 
+# ── LiDAR COLMAP bypass ──────────────────────────────────────────────────────
+
+def get_video_creation_time(video_path: Path) -> float | None:
+    """Return Unix timestamp of video recording start via ffprobe metadata.
+
+    iPhone MP4 files store a UTC creation_time in the format/stream tags.
+    Returns None if the tag is absent or unparseable.
+    """
+    try:
+        for ffprobe_args in [
+            ["-show_format"],   # format-level tags (most reliable on iPhone MP4)
+            ["-show_streams"],  # stream-level tags (fallback)
+        ]:
+            result = subprocess.run(
+                ["ffprobe", "-v", "quiet", "-print_format", "json"] + ffprobe_args + [str(video_path)],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            data = json.loads(result.stdout or "{}")
+            creation_time: str | None = None
+            # Check format tags
+            creation_time = (data.get("format") or {}).get("tags", {}).get("creation_time")
+            if not creation_time:
+                for stream in data.get("streams", []):
+                    creation_time = (stream.get("tags") or {}).get("creation_time")
+                    if creation_time:
+                        break
+            if creation_time:
+                from datetime import datetime, timezone
+                # ISO 8601: "2024-01-15T14:30:00.000000Z"
+                return datetime.fromisoformat(
+                    creation_time.replace("Z", "+00:00")
+                ).timestamp()
+    except Exception:
+        pass
+    return None
+
+
+def get_video_duration(video_path: Path) -> float | None:
+    """Return video duration in seconds via ffprobe, or None on failure."""
+    try:
+        result = subprocess.run(
+            ["ffprobe", "-v", "quiet", "-print_format", "json", "-show_format", str(video_path)],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        data = json.loads(result.stdout or "{}")
+        raw = (data.get("format") or {}).get("duration")
+        return float(raw) if raw else None
+    except Exception:
+        return None
+
+
+def arkit_to_nerfstudio_c2w(transform_4x4: list) -> list:
+    """Convert ARKit column-major flat c2w to Nerfstudio row-major 4×4 list.
+
+    ARKit: camera +X right, +Y up, +Z backward (looks in −Z).
+    COLMAP/Nerfstudio: camera +X right, +Y down, +Z forward (looks in +Z).
+    The conversion negates Y and Z columns of the c2w matrix.
+    """
+    import numpy as np
+
+    # Swift stores simd_float4x4 as columns; reshape column-major → [row, col].
+    c2w = np.array(transform_4x4, dtype=np.float64).reshape(4, 4, order="F")
+    c2w[:3, 1] *= -1  # flip Y column
+    c2w[:3, 2] *= -1  # flip Z column
+    return c2w.tolist()
+
+
+def _match_and_write_transforms(
+    keyframes: list[dict],
+    extracted_frames: list[Path],
+    video_start_unix: float,
+    bypass_images: Path,
+    processed_dir: Path,
+) -> int:
+    """Match video frames to ARKit keyframes by timestamp and write transforms.json.
+
+    Returns the number of successfully matched frames (0 on total failure).
+    """
+    if not keyframes or not extracted_frames:
+        return 0
+
+    first_kf = keyframes[0]
+    intr = first_kf.get("intrinsics", {})
+    fl_x = float(intr.get("fx", 0))
+    fl_y = float(intr.get("fy", 0))
+    cx = float(intr.get("cx", 0))
+    cy = float(intr.get("cy", 0))
+    if fl_x <= 0 or fl_y <= 0:
+        raise ValueError("Invalid camera intrinsics in poses JSON")
+
+    w = int(first_kf.get("w") or round(cx * 2))
+    h = int(first_kf.get("h") or round(cy * 2))
+
+    frames_data = []
+    skipped = 0
+    for frame_path in extracted_frames:
+        # ffmpeg 1-indexed: frame_0001 → t=0.0s, frame_0002 → t=0.5s
+        frame_idx = int(frame_path.stem.split("_")[-1])
+        video_time = (frame_idx - 1) / 2.0
+        frame_wall_time = video_start_unix + video_time
+
+        nearest_kf = min(keyframes, key=lambda kf: abs(kf["timestamp"] - frame_wall_time))
+        time_delta = abs(nearest_kf["timestamp"] - frame_wall_time)
+
+        if time_delta > 2.0 or "transform_4x4" not in nearest_kf:
+            skipped += 1
+            continue
+
+        c2w = arkit_to_nerfstudio_c2w(nearest_kf["transform_4x4"])
+        dest_name = f"frame_{len(frames_data):04d}.jpg"
+        dest_path = bypass_images / dest_name
+        shutil.copy2(str(frame_path), str(dest_path))
+        frames_data.append({
+            "file_path": f"images/{dest_name}",
+            "transform_matrix": c2w,
+        })
+
+    if skipped > 0:
+        print(f"[lidar-bypass] {skipped}/{len(extracted_frames)} frames skipped (>2 s delta or missing pose)")
+
+    if not frames_data:
+        return 0
+
+    transforms = {
+        "camera_model": "OPENCV",
+        "fl_x": fl_x,
+        "fl_y": fl_y,
+        "cx": cx,
+        "cy": cy,
+        "w": w,
+        "h": h,
+        "k1": 0.0,
+        "k2": 0.0,
+        "p1": 0.0,
+        "p2": 0.0,
+        # ARKit worldAlignment=.gravity means Y is already up — skip reorientation.
+        "orientation_override": "none",
+        "frames": frames_data,
+    }
+
+    transforms_path = processed_dir / "transforms.json"
+    transforms_path.write_text(json.dumps(transforms, indent=2), encoding="utf-8")
+    return len(frames_data)
+
+
+def try_lidar_bypass(
+    s3,
+    bucket: str,
+    lidar_poses_key: str,
+    source_dir: Path,
+    work_root: Path,
+    processed_dir: Path,
+) -> bool:
+    """Attempt to bypass COLMAP using ARKit poses from the LiDAR plugin.
+
+    Downloads poses JSON, extracts frames from the video with the best temporal
+    overlap, matches each frame to the nearest ARKit keyframe by wall-clock time,
+    and writes transforms.json to processed_dir.  Falls back gracefully: returns
+    False if there is insufficient data, wrong timestamps, or any exception.
+    """
+    try:
+        print("[lidar-bypass] attempting COLMAP bypass with ARKit poses")
+
+        # 1. Download and parse poses JSON
+        poses_path = source_dir / "_lidar_poses.json"
+        s3.download_file(bucket, lidar_poses_key, str(poses_path))
+        with poses_path.open(encoding="utf-8") as f:
+            poses_data = json.load(f)
+
+        keyframes: list[dict] = poses_data.get("frames", [])
+        if len(keyframes) < 5:
+            print(f"[lidar-bypass] only {len(keyframes)} keyframes — need ≥5, falling back to COLMAP")
+            return False
+
+        kf_timestamps = [kf["timestamp"] for kf in keyframes if "timestamp" in kf]
+        if not kf_timestamps:
+            print("[lidar-bypass] keyframes missing timestamps, falling back to COLMAP")
+            return False
+
+        kf_start = min(kf_timestamps)
+        kf_end = max(kf_timestamps)
+        session_start: float = poses_data.get("session_start_time") or kf_start
+
+        # 2. Find best video source (highest wall-clock overlap with LiDAR session)
+        video_files = sorted(
+            [p for p in source_dir.iterdir() if p.suffix.lower() in VIDEO_EXTENSIONS],
+            key=lambda p: p.stat().st_size,
+            reverse=True,
+        )
+        if not video_files:
+            print("[lidar-bypass] no video source, falling back to COLMAP")
+            return False
+
+        best_video: Path | None = None
+        best_video_start = session_start
+        best_overlap = -1.0
+
+        for vp in video_files:
+            vt = get_video_creation_time(vp)
+            if vt is not None:
+                dur = get_video_duration(vp) or 300.0
+                v_end = vt + dur
+                overlap = max(0.0, min(kf_end, v_end) - max(kf_start, vt))
+                if overlap > best_overlap:
+                    best_overlap = overlap
+                    best_video = vp
+                    best_video_start = vt
+
+        if best_video is None or best_overlap < 3.0:
+            # creation_time unavailable — assume largest video starts at session_start
+            best_video = video_files[0]
+            best_video_start = session_start
+            print("[lidar-bypass] creation_time unavailable; assuming video starts at session_start")
+
+        # 3. Extract video frames at 2 fps (matching 0.5 s keyframe interval)
+        bypass_frames_dir = work_root / "_bypass_frames"
+        bypass_frames_dir.mkdir(parents=True, exist_ok=True)
+        run_cmd([
+            "ffmpeg", "-y", "-i", str(best_video),
+            "-vf", "fps=2", "-q:v", "2",
+            str(bypass_frames_dir / "frame_%04d.jpg"),
+        ])
+
+        extracted_frames = sorted(bypass_frames_dir.glob("frame_*.jpg"))
+        if len(extracted_frames) < 5:
+            print(f"[lidar-bypass] only {len(extracted_frames)} frames extracted — need ≥5, falling back to COLMAP")
+            return False
+
+        # 4. Build processed_dir with transforms.json and images/
+        processed_dir.mkdir(parents=True, exist_ok=True)
+        bypass_images = processed_dir / "images"
+        bypass_images.mkdir(parents=True, exist_ok=True)
+
+        matched = _match_and_write_transforms(
+            keyframes, extracted_frames, best_video_start,
+            bypass_images, processed_dir,
+        )
+
+        if matched < 5:
+            print(f"[lidar-bypass] only {matched} matched frames — need ≥5, falling back to COLMAP")
+            shutil.rmtree(str(processed_dir), ignore_errors=True)
+            return False
+
+        print(f"[lidar-bypass] success — {matched} frames matched; COLMAP skipped")
+        return True
+
+    except Exception as exc:  # noqa: BLE001
+        print(f"[lidar-bypass] failed (non-fatal): {type(exc).__name__}: {exc}")
+        shutil.rmtree(str(processed_dir), ignore_errors=True)
+        return False
+
+
 def quality_speed_iterations(quality: str, speed: str) -> int:
     base = {"draft": 15_000, "standard": 30_000, "high": 45_000}.get(quality, 30_000)
     if speed == "fast":
@@ -594,6 +850,7 @@ class JobInput:
     speed: str
     model_type: str
     new_asset_ids: list[str]
+    lidar_poses_key: str | None = None
 
     @classmethod
     def from_payload(cls, payload: dict[str, Any]) -> JobInput:
@@ -629,6 +886,7 @@ class JobInput:
             speed=str(payload["speed"]),
             model_type=str(payload["modelType"]),
             new_asset_ids=[str(v) for v in payload["newAssetIds"]],
+            lidar_poses_key=payload.get("lidarPosesKey") or None,
         )
 
 
@@ -646,28 +904,38 @@ def run_pipeline(job: JobInput, work_root: Path) -> dict[str, Any]:
     ingest_stats = materialize_images(
         source_dir, images_dir, job.source_keys, job.is360_flags
     )
-    matching_method = resolve_matching_method(ingest_stats)
 
-    run_cmd(
-        [
-            "xvfb-run",
-            "-a",
-            "-s",
-            "-screen 0 800x600x24",
-            "ns-process-data",
-            "images",
-            "--matching-method",
-            matching_method,
-            "--no-gpu",
-            "--data",
-            str(images_dir),
-            "--output-dir",
-            str(processed_dir),
-            "--num-downscales",
-            "2",
-        ]
-    )
-    apply_orientation_override(processed_dir, "up")
+    lidar_bypass_used = False
+    if job.lidar_poses_key:
+        lidar_bypass_used = try_lidar_bypass(
+            s3, bucket, job.lidar_poses_key,
+            source_dir, work_root, processed_dir,
+        )
+
+    if not lidar_bypass_used:
+        matching_method = resolve_matching_method(ingest_stats)
+        run_cmd(
+            [
+                "xvfb-run",
+                "-a",
+                "-s",
+                "-screen 0 800x600x24",
+                "ns-process-data",
+                "images",
+                "--matching-method",
+                matching_method,
+                "--no-gpu",
+                "--data",
+                str(images_dir),
+                "--output-dir",
+                str(processed_dir),
+                "--num-downscales",
+                "2",
+            ]
+        )
+        apply_orientation_override(processed_dir, "up")
+    else:
+        matching_method = "lidar_bypass"
 
     iterations = quality_speed_iterations(job.quality, job.speed)
     run_cmd(
@@ -775,7 +1043,8 @@ def run_pipeline(job: JobInput, work_root: Path) -> dict[str, Any]:
             "ingest": ingest_stats,
             "configPath": str(config_path),
             "matchingMethod": matching_method,
-            "orientationMethod": "up",
+            "orientationMethod": "none" if lidar_bypass_used else "up",
+            "lidarBypass": lidar_bypass_used,
             "cullAlphaThresh": CULL_ALPHA_THRESH,
             "splatCount": splat_count,
         },

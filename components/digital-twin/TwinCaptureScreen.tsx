@@ -29,6 +29,7 @@ import {
   type TwinCaptureMode,
 } from "./useTwinCaptureSession";
 import { useTwinCaptureVideoRecorder } from "./useTwinCaptureVideoRecorder";
+import { useLiDARCapture } from "@/hooks/useLiDARCapture";
 
 export type TwinCaptureFinishResult = {
   files: File[];
@@ -36,6 +37,7 @@ export type TwinCaptureFinishResult = {
   photoCount: number;
   videoSeconds: number;
   estimatedBytes: number;
+  lidarFiles?: File[];
 };
 
 type Props = {
@@ -82,6 +84,7 @@ export function TwinCaptureScreen({
 }: Props) {
   const camera = useTwinCaptureCamera();
   const videoRecorder = useTwinCaptureVideoRecorder();
+  const lidar = useLiDARCapture();
   const [toast, setToast] = useState<string | null>(null);
   const [finishError, setFinishError] = useState<string | null>(null);
   const [finishing, setFinishing] = useState(false);
@@ -154,6 +157,20 @@ export function TwinCaptureScreen({
   const estimatedBytes = photoCount * PHOTO_EST_BYTES + videoSeconds * VIDEO_EST_BYTES_PER_SEC;
   const streamReady = camera.isStreaming && !camera.needsResume;
 
+  // Start LiDAR capture as soon as the device has a live stream.
+  // Non-fatal: if LiDAR is unavailable (web/sim/non-LiDAR iPhone), isAvailable
+  // stays false and startCapture() is a no-op, so this effect is a silent pass.
+  useEffect(() => {
+    if (streamReady && lidar.isAvailable && !lidar.isActive) {
+      void lidar.startCapture();
+    }
+  }, [streamReady, lidar.isAvailable, lidar.isActive, lidar.startCapture]);
+
+  // Tear down LiDAR when the camera stops (cancel / unmount paths).
+  useEffect(() => {
+    return () => { void lidar.cleanup(); };
+  }, [lidar.cleanup]);
+
   const qualityLock = useTwinQualityLock({
     getActiveStream: camera.getActiveStream,
     streamReady,
@@ -217,7 +234,13 @@ export function TwinCaptureScreen({
     setFinishing(true);
     setFinishError(null);
     try {
-      const review = await session.collectForReview();
+      const [review, lidarCapture] = await Promise.all([
+        session.collectForReview(),
+        lidar.stopCapture(),
+      ]);
+      const lidarFiles: File[] = lidarCapture
+        ? [lidarCapture.plyFile, lidarCapture.posesFile]
+        : [];
       // Await the parent handoff (persist + navigation) and only stop the
       // camera once it succeeded — a failed persist must keep the user here.
       await onFinish?.({
@@ -226,6 +249,7 @@ export function TwinCaptureScreen({
         photoCount,
         videoSeconds,
         estimatedBytes,
+        lidarFiles,
       });
       camera.stopCamera();
     } catch (err) {
@@ -235,7 +259,7 @@ export function TwinCaptureScreen({
     } finally {
       setFinishing(false);
     }
-  }, [camera, estimatedBytes, finishing, onFinish, photoCount, session, showToast, videoSeconds]);
+  }, [camera, estimatedBytes, finishing, lidar, onFinish, photoCount, session, showToast, videoSeconds]);
 
   const handleShutterTap = useCallback(() => {
     setLastShutterTapAt(Date.now());

@@ -137,6 +137,7 @@ export function useTwinSubmitReviewState(devPreview?: DevPreview) {
     () => [
       ...clipFiles,
       ...localAddedFiles,
+      ...(session?.lidarFiles ?? []),
       ...addedSources
         .filter((row) => row.origin === "slatedrop")
         .map((row) =>
@@ -145,7 +146,7 @@ export function useTwinSubmitReviewState(devPreview?: DevPreview) {
           }),
         ),
     ],
-    [addedSources, clipFiles, localAddedFiles],
+    [addedSources, clipFiles, localAddedFiles, session?.lidarFiles],
   );
 
   const creditSources = useMemo<TwinCreditAsset[]>(
@@ -250,7 +251,12 @@ export function useTwinSubmitReviewState(devPreview?: DevPreview) {
           .filter((row) => row.origin === "slatedrop")
           .map((row) => fetchSlateDropFileAsBlob(row.pickerFile)),
       );
-      const allFiles = [...clipFiles, ...localAddedFiles, ...slatedropFiles];
+      const allFiles = [
+        ...clipFiles,
+        ...localAddedFiles,
+        ...(session.lidarFiles ?? []),
+        ...slatedropFiles,
+      ];
       if (!allFiles.length) throw new Error("Add at least one source");
 
       const gps = await resolveGpsFix();
@@ -305,7 +311,12 @@ export function useTwinSubmitReviewState(devPreview?: DevPreview) {
           .filter((row) => row.origin === "slatedrop")
           .map((row) => fetchSlateDropFileAsBlob(row.pickerFile)),
       );
-      const allFiles = [...clipFiles, ...localAddedFiles, ...slatedropFiles];
+      const allFiles = [
+        ...clipFiles,
+        ...localAddedFiles,
+        ...(session.lidarFiles ?? []),
+        ...slatedropFiles,
+      ];
       if (!allFiles.length) throw new Error("Add at least one source");
 
       const gps = await resolveGpsFix();

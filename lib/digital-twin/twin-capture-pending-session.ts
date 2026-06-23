@@ -36,6 +36,9 @@ export type TwinCapturePendingSession = {
   projectName: string | null;
   quickMode: boolean;
   clips: TwinCaptureClipReview[];
+  /** LiDAR files from a simultaneous ARKit capture. Not persisted to IndexedDB —
+   *  survives only in-memory across SPA navigation to the review page. */
+  lidarFiles?: File[];
 };
 
 let pendingSession: TwinCapturePendingSession | null = null;

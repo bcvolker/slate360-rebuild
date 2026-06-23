@@ -61,10 +61,23 @@ export const twinGaussianSplatTask = task({
 
     if (assetsError) throw new Error(assetsError.message);
 
-    const readyAssets = (assets ?? []).filter((row) => row.storage_key);
-    if (!readyAssets.length) {
+    const allReadyAssets = (assets ?? []).filter((row) => row.storage_key);
+    if (!allReadyAssets.length) {
       await markJobFailed(supabase, jobId, "No ready assets with storage keys");
       return { failed: true, reason: "missing_storage_keys" };
+    }
+
+    // Only photo/video kinds go into sourceKeys — PLY and poses assets are not
+    // processable by COLMAP/ffmpeg image pipelines and must be passed separately.
+    const MEDIA_KINDS = new Set([
+      "photo", "video", "panorama_360", "drone_photo", "drone_video",
+    ]);
+    const mediaAssets = allReadyAssets.filter((row) => MEDIA_KINDS.has(row.asset_kind ?? ""));
+    const posesAsset = allReadyAssets.find((row) => row.asset_kind === "lidar_poses");
+
+    if (!mediaAssets.length) {
+      await markJobFailed(supabase, jobId, "No photo or video assets ready for processing");
+      return { failed: true, reason: "no_media_assets" };
     }
 
     await supabase
@@ -81,12 +94,13 @@ export const twinGaussianSplatTask = task({
       orgId: job.org_id,
       spaceId: job.space_id,
       captureId: job.capture_id,
-      sourceKeys: readyAssets.map((row) => row.storage_key as string),
-      is360Flags: readyAssets.map((row) => row.asset_kind === "panorama_360"),
+      sourceKeys: mediaAssets.map((row) => row.storage_key as string),
+      is360Flags: mediaAssets.map((row) => row.asset_kind === "panorama_360"),
       quality,
       speed: "standard",
       modelType: job.job_type ?? "gaussian_splat",
-      newAssetIds: readyAssets.map((row) => row.id),
+      newAssetIds: mediaAssets.map((row) => row.id),
+      lidarPosesKey: posesAsset?.storage_key ?? null,
     };
 
     try {
@@ -115,7 +129,7 @@ export const twinGaussianSplatTask = task({
       }
 
       console.log(`[twin.gaussian_splat] Dispatched job ${jobId} to Modal`);
-      return { dispatched: true, jobId, assetCount: readyAssets.length };
+      return { dispatched: true, jobId, assetCount: mediaAssets.length };
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       await markJobFailed(supabase, jobId, `Modal dispatch error: ${message}`);

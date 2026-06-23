@@ -161,6 +161,7 @@ export function TwinCaptureFlow({
           files: clip.files,
           thumbnailUrl: clip.thumbnailUrl,
         })),
+        lidarFiles: result.lidarFiles?.length ? result.lidarFiles : undefined,
       };
       setTwinCapturePendingSession(pendingSession);
       try {

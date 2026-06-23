@@ -51,6 +51,8 @@ export function inferTwinAssetKind(
   if (mime.includes("geojson") || ext === "geojson") return "geospatial_geojson";
   if (mime.includes("panorama") || ext === "insp") return "panorama_360";
   if (mime.startsWith("image/")) return "photo";
+  // ARKit pose JSON exported by the LiDAR plugin (filename: lidar_poses.json)
+  if (ext === "json" && filename.toLowerCase().includes("poses")) return "lidar_poses";
   return "other";
 }
 

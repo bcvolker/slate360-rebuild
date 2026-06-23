@@ -46,6 +46,8 @@ public class LiDARCapturePlugin: CAPPlugin, ARSessionDelegate, CLLocationManager
     // data races between the ARSession delegate thread and export calls.
     private let dataQueue = DispatchQueue(label: "ai.slate360.lidar.data", qos: .userInitiated)
 
+    private var sessionStartTime: Double = 0
+
     // MARK: - Plugin API
 
     @objc func isAvailable(_ call: CAPPluginCall) {
@@ -62,6 +64,8 @@ public class LiDARCapturePlugin: CAPPlugin, ARSessionDelegate, CLLocationManager
         case "high": confidenceThreshold = .high
         default:     confidenceThreshold = .medium
         }
+
+        sessionStartTime = Date().timeIntervalSince1970
 
         dataQueue.async { [weak self] in
             guard let self = self else { return }
@@ -259,6 +263,7 @@ public class LiDARCapturePlugin: CAPPlugin, ARSessionDelegate, CLLocationManager
         let cols = [transform.columns.0, transform.columns.1, transform.columns.2, transform.columns.3]
         let flat: [Float] = cols.flatMap { [$0.x, $0.y, $0.z, $0.w] }
 
+        let resolution = frame.camera.imageResolution
         var kf: [String: Any] = [
             "timestamp": Date().timeIntervalSince1970,
             "transform_4x4": flat,
@@ -270,6 +275,9 @@ public class LiDARCapturePlugin: CAPPlugin, ARSessionDelegate, CLLocationManager
             ],
             // worldAlignment=.gravity guarantees world Y == up.
             "gravity": [0.0, 1.0, 0.0],
+            // Image dimensions for transforms.json construction in the cloud worker.
+            "w": Int(resolution.width),
+            "h": Int(resolution.height),
         ]
 
         if let loc = currentLocation {
@@ -300,7 +308,11 @@ public class LiDARCapturePlugin: CAPPlugin, ARSessionDelegate, CLLocationManager
     }
 
     private func writePosesJSON(to url: URL) {
-        let payload: [String: Any] = ["version": 1, "frames": keyframes]
+        let payload: [String: Any] = [
+            "version": 2,
+            "session_start_time": sessionStartTime,
+            "frames": keyframes,
+        ]
         if let data = try? JSONSerialization.data(withJSONObject: payload, options: .prettyPrinted) {
             try? data.write(to: url)
         }
