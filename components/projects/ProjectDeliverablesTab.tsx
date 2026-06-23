@@ -7,7 +7,7 @@ import { ExternalLink, FileText, Link2, MessageSquare, Play, Send, Check, Loader
 import { ProjectDetailEmptyState } from "@/components/projects/ProjectDetailEmptyState";
 import { projectDetailTokens as t } from "@/components/projects/project-detail-tokens";
 import { cn } from "@/lib/utils";
-import type { ProjectDeliverablesTabData, ProjectDeliverableRow } from "@/lib/projects/load-project-deliverables-data";
+import type { ProjectDeliverablesTabData, ProjectDeliverableRow, ProjectWalkOption } from "@/lib/projects/load-project-deliverables-data";
 
 type BoostProposal = { id: string; title: string; before: string; after: string; failed?: boolean };
 type ContactOption = { id: string; name: string; email: string | null; phone: string | null; company: string | null };
@@ -44,6 +44,8 @@ function statusBadge(status: string): string {
 export function ProjectDeliverablesTab({ data, canManage }: { data: ProjectDeliverablesTabData; canManage: boolean }) {
   const hasItems = data.deliverables.length > 0;
   const totalUnanswered = data.deliverables.reduce((sum, d) => sum + d.unansweredCount, 0);
+  const [generateOpen, setGenerateOpen] = useState(false);
+  const canGenerate = canManage && data.walks.length > 0;
 
   return (
     <div className="space-y-6">
@@ -64,11 +66,20 @@ export function ProjectDeliverablesTab({ data, canManage }: { data: ProjectDeliv
             ) : null}
           </div>
           {canManage ? (
-            <Link href="/site-walk/deliverables/new" className={t.primaryButton}>
-              <FileText className="mr-2 h-4 w-4" aria-hidden /> New deliverable
-            </Link>
+            canGenerate ? (
+              <button type="button" onClick={() => setGenerateOpen((v) => !v)} className={t.primaryButton}>
+                <FileText className="mr-2 h-4 w-4" aria-hidden /> {generateOpen ? "Close" : "Generate deliverable"}
+              </button>
+            ) : (
+              <Link href={`/projects/${data.projectId}/walks`} className={t.primaryButton}>
+                <FileText className="mr-2 h-4 w-4" aria-hidden /> Start a walk
+              </Link>
+            )
           ) : null}
         </div>
+        {generateOpen && canGenerate ? (
+          <GenerateDeliverableForm projectId={data.projectId} walks={data.walks} onClose={() => setGenerateOpen(false)} />
+        ) : null}
       </section>
 
       {!hasItems ? (
@@ -85,6 +96,93 @@ export function ProjectDeliverablesTab({ data, canManage }: { data: ProjectDeliv
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+const GENERATE_TYPES = [
+  { key: "status_report", label: "Status report" },
+  { key: "punchlist", label: "Punch list" },
+  { key: "photo_log", label: "Photo log" },
+  { key: "field_report", label: "Field report" },
+  { key: "slideshow", label: "Slideshow" },
+  { key: "before_after", label: "Before / after" },
+] as const;
+
+type GenerateType = (typeof GENERATE_TYPES)[number]["key"];
+
+/** Desktop "generate a deliverable from a walk" — same endpoints the mobile
+ * capture sheet uses, so desktop users don't have to switch to their phone. */
+function GenerateDeliverableForm({ projectId, walks, onClose }: { projectId: string; walks: ProjectWalkOption[]; onClose: () => void }) {
+  const router = useRouter();
+  const [walkId, setWalkId] = useState(walks[0]?.id ?? "");
+  const [type, setType] = useState<GenerateType>("status_report");
+  const [includeVoice, setIncludeVoice] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const isQuick = type !== "status_report" && type !== "before_after";
+
+  async function generate() {
+    if (!walkId) { setError("Pick a walk."); return; }
+    setBusy(true);
+    setError(null);
+    try {
+      const { url, body } =
+        type === "status_report"
+          ? { url: `/api/site-walk/sessions/${walkId}/status-report`, body: "{}" }
+          : type === "before_after"
+            ? { url: `/api/site-walk/sessions/${walkId}/before-after`, body: "{}" }
+            : { url: `/api/site-walk/sessions/${walkId}/quick-deliverable`, body: JSON.stringify({ type, include_voice: includeVoice }) };
+      const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body });
+      const json = (await res.json().catch(() => null)) as { error?: string } | null;
+      if (!res.ok) throw new Error(json?.error ?? "Could not generate deliverable.");
+      onClose();
+      router.refresh();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not generate deliverable.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const selectClass = "min-h-9 rounded-lg border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_60%,transparent)] px-3 text-xs text-[var(--graphite-text-header)] outline-none focus:border-[color-mix(in_srgb,var(--graphite-primary)_40%,transparent)]";
+
+  return (
+    <div className="mt-4 space-y-3 rounded-xl border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_60%,transparent)] p-3">
+      <p className="text-[11px] font-semibold uppercase tracking-wide text-[var(--graphite-muted)]">Generate from a walk</p>
+      <div className="grid gap-2 sm:grid-cols-2">
+        <label className="flex flex-col gap-1 text-[11px] font-medium text-[var(--graphite-muted)]">
+          Walk
+          <select className={selectClass} value={walkId} onChange={(e) => setWalkId(e.target.value)}>
+            {walks.map((w) => (
+              <option key={w.id} value={w.id}>{w.title} · {new Date(w.createdAt).toLocaleDateString()}</option>
+            ))}
+          </select>
+        </label>
+        <label className="flex flex-col gap-1 text-[11px] font-medium text-[var(--graphite-muted)]">
+          Type
+          <select className={selectClass} value={type} onChange={(e) => setType(e.target.value as GenerateType)}>
+            {GENERATE_TYPES.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}
+          </select>
+        </label>
+      </div>
+      {isQuick ? (
+        <label className="flex items-center gap-2 text-xs text-[var(--graphite-text-header)]">
+          <input type="checkbox" checked={includeVoice} onChange={(e) => setIncludeVoice(e.target.checked)} className="h-4 w-4 accent-[var(--graphite-primary)]" />
+          Include voice memos
+        </label>
+      ) : null}
+      {type === "before_after" ? (
+        <p className="text-[11px] text-[var(--graphite-muted)]">Before / after uses the Ghost-mode pairs captured in the walk.</p>
+      ) : null}
+      <div className="flex items-center justify-end gap-2">
+        {error ? <p className="mr-auto text-xs text-red-300">{error}</p> : null}
+        <button type="button" onClick={onClose} disabled={busy} className={cn(t.secondaryButton, "!min-h-9 !px-3 text-xs")}>Cancel</button>
+        <button type="button" onClick={generate} disabled={busy} className={cn(t.primaryButton, "!min-h-9 !px-4 text-xs", busy && "opacity-70")}>
+          {busy ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" aria-hidden /> : <FileText className="mr-1.5 h-3.5 w-3.5" aria-hidden />}
+          {busy ? "Generating…" : "Generate"}
+        </button>
+      </div>
     </div>
   );
 }
