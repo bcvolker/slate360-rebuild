@@ -30,6 +30,8 @@ import {
   type TwinCaptureMode,
 } from "./useTwinCaptureSession";
 import { useTwinCaptureVideoRecorder } from "./useTwinCaptureVideoRecorder";
+import { Capacitor } from "@capacitor/core";
+
 import { useLiDARCapture } from "@/hooks/useLiDARCapture";
 import { LiDARCapture } from "@/src/plugins/LiDARCapture";
 
@@ -92,12 +94,19 @@ export function TwinCaptureScreen({
   const [lidarProbe, setLidarProbe] = useState<string | null>(null);
   useEffect(() => {
     let cancelled = false;
+    const plat = `${Capacitor.getPlatform()}/${Capacitor.isNativePlatform() ? "native" : "web"}`;
+    const registry = (window as unknown as { Capacitor?: { Plugins?: Record<string, unknown> } })
+      .Capacitor?.Plugins;
+    const names = registry ? Object.keys(registry) : [];
+    const reg = names.includes("LiDARCapture");
     void LiDARCapture.isAvailable()
       .then((r) => {
-        if (!cancelled) setLidarProbe(`avail=${r.available} native=${r.nativeCapture ?? "—"}`);
+        if (!cancelled)
+          setLidarProbe(`${plat} reg=${reg} avail=${r.available} native=${r.nativeCapture ?? "—"}`);
       })
       .catch((e) => {
-        if (!cancelled) setLidarProbe(`probe error: ${e instanceof Error ? e.message : String(e)}`);
+        if (!cancelled)
+          setLidarProbe(`${plat} reg=${reg} plugins=[${names.join(",")}] err: ${e instanceof Error ? e.message : String(e)}`);
       });
     return () => {
       cancelled = true;
