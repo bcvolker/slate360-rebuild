@@ -447,12 +447,12 @@ def try_lidar_bypass(
         keyframes: list[dict] = poses_data.get("frames", [])
         if len(keyframes) < 5:
             print(f"[lidar-bypass] only {len(keyframes)} keyframes — need ≥5, falling back to COLMAP")
-            return False
+            return False, False
 
         kf_timestamps = [kf["timestamp"] for kf in keyframes if "timestamp" in kf]
         if not kf_timestamps:
             print("[lidar-bypass] keyframes missing timestamps, falling back to COLMAP")
-            return False
+            return False, False
 
         kf_start = min(kf_timestamps)
         kf_end = max(kf_timestamps)
@@ -466,7 +466,7 @@ def try_lidar_bypass(
         )
         if not video_files:
             print("[lidar-bypass] no video source, falling back to COLMAP")
-            return False
+            return False, False
 
         best_video: Path | None = None
         best_video_start = session_start
@@ -501,7 +501,7 @@ def try_lidar_bypass(
         extracted_frames = sorted(bypass_frames_dir.glob("frame_*.jpg"))
         if len(extracted_frames) < 5:
             print(f"[lidar-bypass] only {len(extracted_frames)} frames extracted — need ≥5, falling back to COLMAP")
-            return False
+            return False, False
 
         # 4. Build processed_dir with transforms.json and images/
         processed_dir.mkdir(parents=True, exist_ok=True)
