@@ -57,16 +57,19 @@ workflows:
           xcode-project build-ipa \
             --project "$XCODE_PROJECT" \
             --scheme "$XCODE_SCHEME"
+      - name: Publish to TestFlight
+        # Publish explicitly so --private-key points straight at the decoded .p8
+        # file (the Codemagic `publishing` block passes @env: which doesn't
+        # re-resolve our @file: indirection).
+        script: |
+          app-store-connect publish \
+            --path "build/ios/ipa/App.ipa" \
+            --issuer-id "$APP_STORE_CONNECT_ISSUER_ID" \
+            --key-id "$APP_STORE_CONNECT_KEY_IDENTIFIER" \
+            --private-key @file:/tmp/asc_api_key.p8 \
+            --testflight
     artifacts:
       - build/ios/ipa/*.ipa
-    publishing:
-      app_store_connect:
-        # Auth via the env-var group `app_store_connect` (App Store Connect API key),
-        # not a Codemagic UI integration.
-        api_key: $APP_STORE_CONNECT_PRIVATE_KEY
-        key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
-        issuer_id: $APP_STORE_CONNECT_ISSUER_ID
-        submit_to_testflight: true
 
   android-capacitor:
     name: Slate360 Android (Play Internal)
