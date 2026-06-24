@@ -32,6 +32,12 @@ workflows:
       - name: Capacitor sync (iOS)
         # Capacitor 8 uses Swift Package Manager — no CocoaPods / pod install.
         script: npx cap sync ios
+      - name: Register native LiDAR capture files
+        # Idempotently ensures the LiDAR plugin + native capture VC are in the
+        # Xcode target's Compile Sources and the required frameworks are linked.
+        script: |
+          gem install xcodeproj --no-document
+          ruby scripts/ios/add-lidar-plugin.rb
       - name: Set up code signing
         script: |
           # Decode the single-line base64 ASC API key into a real .p8 file

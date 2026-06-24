@@ -16,7 +16,24 @@ private struct PointData {
 // MARK: - Plugin
 
 @objc(LiDARCapturePlugin)
-public class LiDARCapturePlugin: CAPPlugin, ARSessionDelegate, CLLocationManagerDelegate {
+public class LiDARCapturePlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate, CLLocationManagerDelegate {
+
+    // CAPBridgedPlugin registration — guarantees runtime discovery under SPM (no Obj-C dead-strip).
+    public let identifier = "LiDARCapturePlugin"
+    public let jsName = "LiDARCapture"
+    public let pluginMethods: [CAPPluginMethod] = [
+        CAPPluginMethod(name: "isAvailable", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "presentCapture", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "dismissCapture", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "startSession", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "stopSession", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "exportData", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "cleanup", returnType: CAPPluginReturnPromise),
+    ]
+
+    // Native-led capture (modal AR view controller).
+    private var pendingCaptureCall: CAPPluginCall?
+    private weak var captureVC: TwinARKitCaptureViewController?
 
     // MARK: State
 
@@ -53,7 +70,67 @@ public class LiDARCapturePlugin: CAPPlugin, ARSessionDelegate, CLLocationManager
     @objc func isAvailable(_ call: CAPPluginCall) {
         let supportsDepth = ARWorldTrackingConfiguration.supportsFrameSemantics(.sceneDepth) ||
                             ARWorldTrackingConfiguration.supportsFrameSemantics(.smoothedSceneDepth)
-        call.resolve(["available": ARWorldTrackingConfiguration.isSupported && supportsDepth])
+        // `nativeCapture: true` signals this build has the native-led presentCapture flow,
+        // so the web layer only routes there when the installed app actually supports it.
+        call.resolve([
+            "available": ARWorldTrackingConfiguration.isSupported && supportsDepth,
+            "nativeCapture": true,
+        ])
+    }
+
+    /// Native-led capture: presents a full-screen ARKit capture VC that owns the camera and
+    /// produces video + PLY + poses. Resolves (after dismissal) with the capture manifest.
+    @objc func presentCapture(_ call: CAPPluginCall) {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            guard self.pendingCaptureCall == nil else {
+                call.reject("Capture already active"); return
+            }
+            guard let host = self.bridge?.viewController else {
+                call.reject("No host view controller"); return
+            }
+            let opts = TwinCaptureOptions.from(
+                confidence: call.getString("confidence"),
+                maxDurationSec: call.getDouble("maxDurationSec"),
+                maxPoints: call.getInt("maxPoints")
+            )
+            self.pendingCaptureCall = call
+            let vc = TwinARKitCaptureViewController(options: opts)
+            vc.onProgress = { [weak self] data in self?.notifyListeners("progress", data: data) }
+            vc.onFinish = { [weak self] manifest in
+                guard let self = self else { return }
+                vc.dismiss(animated: true) {
+                    self.captureVC = nil
+                    self.pendingCaptureCall?.resolve(manifest)
+                    self.pendingCaptureCall = nil
+                }
+            }
+            vc.onCancel = { [weak self] in
+                guard let self = self else { return }
+                vc.dismiss(animated: true) {
+                    self.captureVC = nil
+                    self.pendingCaptureCall?.resolve(["cancelled": true])
+                    self.pendingCaptureCall = nil
+                }
+            }
+            vc.onFatalError = { [weak self] message in
+                guard let self = self else { return }
+                vc.dismiss(animated: true) {
+                    self.captureVC = nil
+                    self.pendingCaptureCall?.reject(message)
+                    self.pendingCaptureCall = nil
+                }
+            }
+            self.captureVC = vc
+            host.present(vc, animated: true)
+        }
+    }
+
+    @objc func dismissCapture(_ call: CAPPluginCall) {
+        DispatchQueue.main.async { [weak self] in
+            self?.captureVC?.stopAndCleanup()
+            call.resolve()
+        }
     }
 
     @objc func startSession(_ call: CAPPluginCall) {

@@ -11,7 +11,16 @@ require "xcodeproj"
 
 PROJECT_PATH = "ios/App/App.xcodeproj"
 TARGET_NAME  = "App"
-FILES = %w[LiDARCapturePlugin.swift LiDARCapturePlugin.m].freeze
+FILES = %w[
+  LiDARCapturePlugin.swift
+  LiDARCapturePlugin.m
+  TwinARKitCaptureViewController.swift
+].freeze
+
+# Frameworks the native capture uses. ARKit is always linked below; these are
+# linked explicitly too because Swift implicit autolink can silently fail on
+# some Xcode/Codemagic combinations.
+EXTRA_FRAMEWORKS = %w[AVFoundation.framework CoreLocation.framework SceneKit.framework].freeze
 
 project = Xcodeproj::Project.open(PROJECT_PATH)
 target  = project.targets.find { |t| t.name == TARGET_NAME }
@@ -49,6 +58,16 @@ unless arkit_linked
               project.frameworks_group.new_file("ARKit.framework")
   target.frameworks_build_phase.add_file_reference(arkit_ref)
   puts "  Linked ARKit.framework"
+  changed = true
+end
+
+EXTRA_FRAMEWORKS.each do |fw|
+  linked = target.frameworks_build_phase.files.any? { |bf| bf.file_ref&.path&.end_with?(fw) }
+  next if linked
+  ref = project.frameworks_group.files.find { |f| f.path == fw } ||
+        project.frameworks_group.new_file(fw)
+  target.frameworks_build_phase.add_file_reference(ref)
+  puts "  Linked #{fw}"
   changed = true
 end
 

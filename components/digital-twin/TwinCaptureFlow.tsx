@@ -3,7 +3,10 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { Capacitor } from "@capacitor/core";
 import { IconLoader2 } from "@tabler/icons-react";
+import { isNativeTwinCaptureAvailable } from "@/src/plugins/LiDARCapture";
+import { TwinNativeCaptureLauncher } from "./TwinNativeCaptureLauncher";
 import { formatQuickScanSpaceTitle } from "@/lib/digital-twin/quick-scan-title";
 import { twinAccent } from "@/lib/digital-twin/twin-accent";
 import { cn } from "@/lib/utils";
@@ -52,6 +55,10 @@ export function TwinCaptureFlow({
   const [queueBusy, setQueueBusy] = useState(false);
   const [quickBoot, setQuickBoot] = useState<QuickBootState>(skipPicker ? "loading" : "idle");
   const [quickBootError, setQuickBootError] = useState<string | null>(null);
+  // Native-led LiDAR capture: null = resolving (iOS only), false = use web getUserMedia path.
+  const [nativeLidar, setNativeLidar] = useState<boolean | null>(
+    Capacitor.getPlatform() === "ios" ? null : false,
+  );
 
   const {
     files,
@@ -71,6 +78,18 @@ export function TwinCaptureFlow({
     const params = new URLSearchParams(window.location.search);
     setDebugCapture(params.get("debug") === "1");
   }, []);
+
+  // Resolve LiDAR availability once on iOS. Non-LiDAR iPhones fall back to the web path.
+  useEffect(() => {
+    if (nativeLidar !== null) return;
+    let cancelled = false;
+    void isNativeTwinCaptureAvailable().then((avail) => {
+      if (!cancelled) setNativeLidar(avail);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [nativeLidar]);
 
   useEffect(() => {
     if (!skipPicker || quickBoot !== "loading") return;
@@ -236,11 +255,30 @@ export function TwinCaptureFlow({
 
   if (step === "capture" && selection) {
     const projectName = projects.find((row) => row.id === selection.projectId)?.name ?? null;
+    const handleCaptureCancel = skipPicker ? handleExitQuickFlow : () => setStep("picker");
+
+    // Still resolving LiDAR availability on iOS — avoid flashing the web camera.
+    if (nativeLidar === null) {
+      return (
+        <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 px-4 py-8">
+          <IconLoader2 className={cn("h-8 w-8 animate-spin", twinAccent.spinner)} />
+        </div>
+      );
+    }
+
+    // iOS + LiDAR → native-led ARKit capture (owns the camera, records video + depth + poses).
+    if (nativeLidar) {
+      return (
+        <TwinNativeCaptureLauncher onFinish={handleCaptureFinish} onCancel={handleCaptureCancel} />
+      );
+    }
+
+    // Web / non-LiDAR devices → existing getUserMedia capture.
     return (
       <TwinCaptureScreen
         projectName={projectName}
         spaceName={selection.spaceTitle}
-        onCancel={skipPicker ? handleExitQuickFlow : () => setStep("picker")}
+        onCancel={handleCaptureCancel}
         onFinish={handleCaptureFinish}
         debug={debugCapture}
       />
