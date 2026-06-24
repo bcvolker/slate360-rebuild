@@ -74,6 +74,7 @@ export const twinGaussianSplatTask = task({
     ]);
     const mediaAssets = allReadyAssets.filter((row) => MEDIA_KINDS.has(row.asset_kind ?? ""));
     const posesAsset = allReadyAssets.find((row) => row.asset_kind === "lidar_poses");
+    const plyAsset = allReadyAssets.find((row) => row.asset_kind === "ply_lidar");
 
     if (!mediaAssets.length) {
       await markJobFailed(supabase, jobId, "No photo or video assets ready for processing");
@@ -101,6 +102,7 @@ export const twinGaussianSplatTask = task({
       modelType: job.job_type ?? "gaussian_splat",
       newAssetIds: mediaAssets.map((row) => row.id),
       lidarPosesKey: posesAsset?.storage_key ?? null,
+      lidarPlyKey: plyAsset?.storage_key ?? null,
     };
 
     try {

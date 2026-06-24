@@ -8,6 +8,7 @@ import { TwinCaptureGuide } from "./TwinCaptureGuide";
 import { TwinCaptureDebugOverlay } from "./TwinCaptureDebugOverlay";
 import { TwinCaptureHudToast } from "./TwinCaptureHudToast";
 import { TwinCaptureFrameCapChip } from "./TwinCaptureFrameCapChip";
+import { TwinCaptureLidarChip } from "./TwinCaptureLidarChip";
 import { TwinCaptureLiveCamera } from "./TwinCaptureLiveCamera";
 import { TwinCaptureModeSelector } from "./TwinCaptureModeSelector";
 import { TwinQualityLockRow } from "./TwinQualityLockRow";
@@ -378,6 +379,11 @@ export function TwinCaptureScreen({
           }}
         />
 
+        <TwinCaptureLidarChip
+          hidden={!lidar.isAvailable}
+          visible={lidar.isActive}
+          pointCount={lidar.pointCount}
+        />
         <TwinCaptureFrameCapChip
           hidden={!chromeVisible || session.mode !== "photos"}
           frameCount={session.totalPhotoFrames}
