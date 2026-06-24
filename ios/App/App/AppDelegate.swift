@@ -6,8 +6,15 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
 
+    // Capacitor discovers app-target plugins via the Obj-C runtime. In Release/archive
+    // (TestFlight) builds the Swift plugin class can be dead-stripped when nothing
+    // references it statically, which makes the bridge report "not implemented on iOS".
+    // Holding an explicit reference forces the linker to keep the class registered.
+    private let retainedNativePlugins: [AnyClass] = [LiDARCapturePlugin.self]
+
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
+        _ = retainedNativePlugins
         return true
     }
 
