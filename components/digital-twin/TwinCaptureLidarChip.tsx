@@ -8,6 +8,8 @@ type Props = {
   /** A depth session is running and producing points. */
   active: boolean;
   pointCount?: number;
+  /** Temporary diagnostic line (raw plugin probe result) shown when not active. */
+  note?: string | null;
 };
 
 /**
@@ -19,7 +21,7 @@ type Props = {
  *   available, !active→ amber "DEPTH NOT ACTIVE"    capable device on the wrong (web) path
  *   !available        → zinc  "VIDEO ONLY"          no depth hardware / plugin
  */
-export function TwinCaptureLidarChip({ available, active, pointCount }: Props) {
+export function TwinCaptureLidarChip({ available, active, pointCount, note }: Props) {
   const belowBarPx =
     TWIN_CAPTURE_CHROME.topBarHeightPx + TWIN_CAPTURE_CHROME.lidarChipTopGapPx;
 
@@ -65,6 +67,11 @@ export function TwinCaptureLidarChip({ available, active, pointCount }: Props) {
         <span className={`inline-block h-1.5 w-1.5 rounded-full ${dotClass}`} aria-hidden />
         {label}
       </span>
+      {!active && note ? (
+        <span className="mt-1 block max-w-[64vw] rounded bg-black/55 px-1.5 py-0.5 font-mono text-[9px] leading-tight text-zinc-300">
+          {note}
+        </span>
+      ) : null}
     </div>
   );
 }

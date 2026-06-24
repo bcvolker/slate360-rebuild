@@ -31,6 +31,7 @@ import {
 } from "./useTwinCaptureSession";
 import { useTwinCaptureVideoRecorder } from "./useTwinCaptureVideoRecorder";
 import { useLiDARCapture } from "@/hooks/useLiDARCapture";
+import { LiDARCapture } from "@/src/plugins/LiDARCapture";
 
 export type TwinCaptureFinishResult = {
   files: File[];
@@ -86,6 +87,22 @@ export function TwinCaptureScreen({
   const camera = useTwinCaptureCamera();
   const videoRecorder = useTwinCaptureVideoRecorder();
   const lidar = useLiDARCapture();
+  // Temporary diagnostic: probe the native plugin directly and surface the raw
+  // result/error so we can see WHY depth isn't available on a LiDAR device.
+  const [lidarProbe, setLidarProbe] = useState<string | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    void LiDARCapture.isAvailable()
+      .then((r) => {
+        if (!cancelled) setLidarProbe(`avail=${r.available} native=${r.nativeCapture ?? "—"}`);
+      })
+      .catch((e) => {
+        if (!cancelled) setLidarProbe(`probe error: ${e instanceof Error ? e.message : String(e)}`);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
   const [toast, setToast] = useState<string | null>(null);
   const [finishError, setFinishError] = useState<string | null>(null);
   const [finishing, setFinishing] = useState(false);
@@ -383,6 +400,7 @@ export function TwinCaptureScreen({
           available={lidar.isAvailable}
           active={lidar.isActive}
           pointCount={lidar.pointCount}
+          note={lidarProbe}
         />
         <TwinCaptureFrameCapChip
           hidden={!chromeVisible || session.mode !== "photos"}
