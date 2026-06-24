@@ -56,6 +56,7 @@
 				773451409476BA80F7571714 /* LiDARCapturePlugin.m */,
 			);
 			name = LiDARCapture;
+			path = Plugins/LiDARCapture;
 			sourceTree = "<group>";
 		};
 		3362AB955CD833C1C8DD9869 /* Frameworks */ = {
