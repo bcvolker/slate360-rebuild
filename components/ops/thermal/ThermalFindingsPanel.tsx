@@ -2,6 +2,7 @@
 
 import {
   describeAnomaly,
+  causeLabel,
   severityMeta,
   type DescribeUnit,
   type ThermalAnomaly,
@@ -86,8 +87,23 @@ export function ThermalFindingsPanel({
                     </span>
                   </div>
                   <p className="mt-1.5 text-[11px] leading-relaxed text-[var(--graphite-text-body)]">
-                    {describeAnomaly(a, { standards, unit })}
+                    {a.observation || describeAnomaly(a, { standards, unit })}
                   </p>
+                  {a.suggested_causes && a.suggested_causes.length > 0 ? (
+                    <div className="mt-1.5 flex flex-wrap items-center gap-1">
+                      <span className="text-[9px] font-semibold uppercase text-[var(--graphite-muted)]">May indicate</span>
+                      {a.suggested_causes.map((c) => (
+                        <span key={c} className="rounded border border-[var(--mobile-app-card-border)] px-1.5 py-0.5 text-[9px] text-[var(--graphite-text-body)]">
+                          {causeLabel(c)}
+                        </span>
+                      ))}
+                    </div>
+                  ) : null}
+                  {a.ai_interpreted ? (
+                    <p className="mt-1 text-[9px] italic text-[var(--graphite-muted)]">
+                      AI-assisted scene reading — review before issuing.
+                    </p>
+                  ) : null}
                 </button>
               </li>
             );

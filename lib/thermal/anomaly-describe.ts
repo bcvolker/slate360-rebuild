@@ -30,7 +30,35 @@ export type ThermalAnomaly = {
   bbox?: ThermalBBox;
   area_px?: number;
   rule_id?: string;
+  /** Scene-aware AI: neutral, grounded observation (preferred over the generic text). */
+  observation?: string | null;
+  /** Scene-aware AI: validated cause suggestions (label ids), shown as "May indicate". */
+  suggested_causes?: string[];
+  /** Set when the scene-aware AI pass has interpreted this anomaly. */
+  ai_interpreted?: boolean;
 };
+
+/** Human-readable labels for the validated cause ids (no trade lock-in). */
+const CAUSE_LABELS: Record<string, string> = {
+  air_leakage: "air leakage",
+  weatherseal: "weatherseal / gasket",
+  insulation_variation: "insulation variation",
+  thermal_bridge: "thermal bridging",
+  moisture_pattern: "moisture-like pattern",
+  membrane_variation: "membrane variation",
+  solar_loading: "solar loading",
+  electrical_resistance: "elevated electrical resistance",
+  loose_connection: "loose / overloaded connection",
+  load_imbalance: "load imbalance",
+  mechanical_friction: "mechanical friction",
+  bearing_condition: "bearing condition",
+  airflow: "airflow",
+  flow_blockage: "flow blockage",
+};
+
+export function causeLabel(id: string): string {
+  return CAUSE_LABELS[id] ?? id.replace(/_/g, " ");
+}
 
 export type DescribeUnit = "C" | "F";
 
