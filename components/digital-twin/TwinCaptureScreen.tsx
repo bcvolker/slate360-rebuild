@@ -380,8 +380,8 @@ export function TwinCaptureScreen({
         />
 
         <TwinCaptureLidarChip
-          hidden={!lidar.isAvailable}
-          visible={lidar.isActive}
+          available={lidar.isAvailable}
+          active={lidar.isActive}
           pointCount={lidar.pointCount}
         />
         <TwinCaptureFrameCapChip
