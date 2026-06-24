@@ -31,9 +31,9 @@ type MarketingHeaderProps = {
 
 const HEADER_VARIANT = {
   homepage:
-    "absolute top-0 z-50 h-16 w-full border-none bg-transparent supports-[backdrop-filter]:backdrop-blur-[2px]",
+    "absolute top-0 z-50 w-full pt-[env(safe-area-inset-top,0px)] border-none bg-transparent supports-[backdrop-filter]:backdrop-blur-[2px]",
   default:
-    "sticky top-0 z-50 h-16 w-full border-b border-white/[0.06] bg-[#0B0F15]/90 backdrop-blur-xl",
+    "sticky top-0 z-50 w-full pt-[env(safe-area-inset-top,0px)] border-b border-white/[0.06] bg-[#0B0F15]/90 backdrop-blur-xl",
 } as const;
 
 const MOBILE_MENU_VARIANT = {
@@ -56,7 +56,7 @@ export function MarketingHeader({ variant = "default" }: MarketingHeaderProps) {
 
   return (
     <header className={HEADER_VARIANT[variant]}>
-      <div className="relative mx-auto flex h-full w-full items-center justify-between px-4 md:grid md:grid-cols-[minmax(280px,auto)_1fr_auto] md:items-center md:px-6 lg:px-12">
+      <div className="relative mx-auto flex h-16 w-full items-center justify-between px-4 md:grid md:grid-cols-[minmax(280px,auto)_1fr_auto] md:items-center md:px-6 lg:px-12">
         <Link
           href="/"
           aria-label="Slate360 home"
@@ -113,7 +113,7 @@ export function MarketingHeader({ variant = "default" }: MarketingHeaderProps) {
 
       {mobileOpen ? (
         <div
-          className={`absolute left-0 right-0 top-16 border-b border-white/[0.08] px-6 py-4 backdrop-blur-2xl md:hidden ${MOBILE_MENU_VARIANT[variant]}`}
+          className={`absolute left-0 right-0 top-full border-b border-white/[0.08] px-6 py-4 backdrop-blur-2xl md:hidden ${MOBILE_MENU_VARIANT[variant]}`}
         >
           <div className="space-y-1">
             <p className="px-3 py-2 text-xs font-semibold uppercase tracking-widest text-zinc-400">
