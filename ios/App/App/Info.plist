@@ -45,6 +45,8 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>NSCameraUsageDescription</key>
 	<string>Slate360 uses the camera to capture site photos, video, and 3D scans for your projects.</string>
 	<key>NSMicrophoneUsageDescription</key>
