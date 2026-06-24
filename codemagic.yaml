@@ -24,7 +24,7 @@ workflows:
         BUNDLE_ID: "ai.slate360.app"
         XCODE_PROJECT: "ios/App/App.xcodeproj"
         XCODE_SCHEME: "App"
-      node: 20
+      node: 22
       xcode: latest
     scripts:
       - name: Install JS dependencies
@@ -70,7 +70,7 @@ workflows:
         - android_signing # CM_KEYSTORE, CM_KEYSTORE_PASSWORD, CM_KEY_ALIAS, CM_KEY_PASSWORD
       vars:
         PACKAGE_NAME: "ai.slate360.app"
-      node: 20
+      node: 22
       java: 17
     scripts:
       - name: Install JS dependencies
