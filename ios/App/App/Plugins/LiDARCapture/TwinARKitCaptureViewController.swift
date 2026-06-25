@@ -468,6 +468,10 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
         }
 
         let recordKeyframe = arkitTs - lastKeyframeArkit >= keyframeInterval
+        // lastKeyframeArkit is read AND written only here, on the ARKit delegate thread
+        // (which delivers frames serially) — so it never races depthQueue. Previously it
+        // was written inside the depthQueue block, racing this read.
+        if recordKeyframe { lastKeyframeArkit = arkitTs }
         let keyframeData: [String: Any]? = recordKeyframe
             ? buildKeyframe(arkitTs: arkitTs, transform: transform, intrinsics: intrinsics,
                             resolution: frame.camera.imageResolution)
@@ -484,7 +488,6 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
             }
             if let kf = keyframeData {
                 self.keyframes.append(kf)
-                self.lastKeyframeArkit = arkitTs
             }
             // Publish sizes for the HUD/progress so those off-queue readers never touch the
             // collections directly (the EXC_BAD_ACCESS data race).
@@ -575,15 +578,27 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
         adaptor.append(buffer, withPresentationTime: pts)
     }
 
+    /// Converts ARKit's YCbCr camera buffer into a BGRA buffer the writer accepts.
+    /// Draws into a buffer recycled from the adaptor's `pixelBufferPool` instead of
+    /// allocating a fresh full-res buffer every frame via `CVPixelBufferCreate`. The pool
+    /// reuses a small set of IOSurfaces, which removes the per-frame allocation churn that
+    /// drives memory fragmentation and thermal throttling — the practical limiter on how
+    /// long a capture can run before iOS auto-stops it (.critical thermal). Falls back to a
+    /// one-off allocation only if the pool isn't available yet.
     private func convertToBGRA(_ src: CVPixelBuffer) -> CVPixelBuffer? {
         let ci = CIImage(cvPixelBuffer: src)
-        var out: CVPixelBuffer?
-        let attrs: [String: Any] = [kCVPixelBufferIOSurfacePropertiesKey as String: [:]]
-        CVPixelBufferCreate(nil, CVPixelBufferGetWidth(src), CVPixelBufferGetHeight(src),
-                            kCVPixelFormatType_32BGRA, attrs as CFDictionary, &out)
-        guard let dst = out else { return nil }
-        ciContext.render(ci, to: dst)
-        return dst
+        var dst: CVPixelBuffer?
+        if let pool = pixelAdaptor?.pixelBufferPool {
+            CVPixelBufferPoolCreatePixelBuffer(nil, pool, &dst)
+        }
+        if dst == nil {
+            let attrs: [String: Any] = [kCVPixelBufferIOSurfacePropertiesKey as String: [:]]
+            CVPixelBufferCreate(nil, CVPixelBufferGetWidth(src), CVPixelBufferGetHeight(src),
+                                kCVPixelFormatType_32BGRA, attrs as CFDictionary, &dst)
+        }
+        guard let target = dst else { return nil }
+        ciContext.render(ci, to: target)
+        return target
     }
 
     // MARK: Export helpers (ported)
