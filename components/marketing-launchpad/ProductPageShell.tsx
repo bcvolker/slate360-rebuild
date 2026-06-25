@@ -16,7 +16,13 @@ type ProductPageShellProps = {
 export function ProductPageShell({ title, subtitle, hero, wide, children }: ProductPageShellProps) {
   return (
     <div className="min-h-screen bg-[#0B0F15]">
-      <header className="flex h-20 items-center justify-between border-b border-white/[0.05] bg-[#0B0F15]/80 px-6 backdrop-blur-xl lg:px-12">
+      <header
+        className="flex items-center justify-between border-b border-white/[0.05] bg-[#0B0F15]/80 px-6 backdrop-blur-xl lg:px-12"
+        style={{
+          minHeight: "calc(5rem + env(safe-area-inset-top, 0px))",
+          paddingTop: "env(safe-area-inset-top, 0px)",
+        }}
+      >
         <Link href="/" aria-label="Slate360 home">
           <Slate360Logo variant="dark" />
         </Link>

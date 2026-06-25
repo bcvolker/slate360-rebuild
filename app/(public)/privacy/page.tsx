@@ -61,7 +61,7 @@ const SECTIONS = [
 export default function PrivacyPage() {
   return (
     <div className="dark min-h-screen bg-[var(--graphite-canvas)] text-[var(--graphite-text-body)]">
-      <header className="border-b border-white/10 px-6 py-4">
+      <header className="border-b border-white/10 px-6 pb-4 pt-[max(env(safe-area-inset-top,0px),1rem)]">
         <Link href="/">
           <SlateLogo />
         </Link>

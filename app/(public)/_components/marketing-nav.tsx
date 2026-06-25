@@ -16,8 +16,8 @@ export function MarketingNav() {
   const [open, setOpen] = useState(false);
 
   return (
-    <header className="absolute top-0 z-50 h-16 w-full border-b border-white/[0.06] bg-[var(--graphite-canvas)]/80 backdrop-blur-xl">
-      <div className={cn("mx-auto flex h-full max-w-[1400px] items-center justify-between px-4 sm:px-6 lg:px-10")}>
+    <header className="absolute top-0 z-50 w-full pt-[env(safe-area-inset-top,0px)] border-b border-white/[0.06] bg-[var(--graphite-canvas)]/80 backdrop-blur-xl">
+      <div className={cn("mx-auto flex h-16 max-w-[1400px] items-center justify-between px-4 sm:px-6 lg:px-10")}>
         <Link href="/" aria-label="Slate360 home" className="shrink-0">
           <Slate360Logo variant="dark" size="header" />
         </Link>
