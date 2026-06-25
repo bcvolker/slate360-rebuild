@@ -49,6 +49,13 @@ const InstallBanner = dynamic(
   { ssr: false, loading: () => null }
 );
 
+const NativeChromeInit = dynamic(
+  () => import("@/components/providers/NativeChromeInit").then((m) => ({
+    default: m.NativeChromeInit,
+  })),
+  { ssr: false, loading: () => null }
+);
+
 export function ClientProviders({ children }: { children: ReactNode }) {
   return (
     <>
@@ -57,6 +64,7 @@ export function ClientProviders({ children }: { children: ReactNode }) {
       <SWRegistrar />
       <OfflineBanner />
       <InstallBanner />
+      <NativeChromeInit />
       {children}
     </>
   );
