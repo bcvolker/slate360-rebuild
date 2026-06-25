@@ -50,8 +50,8 @@ final class TwinUploader {
 
     private let apiBase: String
     private let cookieHeader: String
-    private let spaceId: String
-    private let projectId: String
+    private var spaceId: String
+    private var projectId: String
     private let title: String?
     private let session: URLSession
 
@@ -72,6 +72,15 @@ final class TwinUploader {
     /// Uploads every file and returns the resulting capture id. Blocking — call on a
     /// background queue. Throws `UploadError` (or the underlying URL error) on failure.
     func upload(files: [FileEntry]) throws -> String {
+        // Self-heal: if the web layer didn't pass a workspace (e.g. a stale cached web
+        // bundle), create a quick-scan space natively so the capture isn't lost. Mirrors
+        // the web's bootQuickScan call.
+        if spaceId.isEmpty {
+            let (sid, pid) = try createQuickScanSpace(title: title ?? "Quick scan")
+            spaceId = sid
+            projectId = pid
+        }
+
         var captureId: String?
         let multipart = files.filter { fileSize($0.url) >= partSize }
         let singles = files.filter { fileSize($0.url) < partSize }
@@ -85,6 +94,23 @@ final class TwinUploader {
 
         guard let cid = captureId else { throw UploadError.missing("captureId") }
         return cid
+    }
+
+    // MARK: - Workspace fallback
+
+    /// Creates a quick-scan workspace and returns (spaceId, projectId). Used only when the
+    /// web layer supplied no spaceId. POST /api/digital-twin/spaces { title, quick_scan }.
+    private func createQuickScanSpace(title: String) throws -> (String, String) {
+        let res = try postJSON("/api/digital-twin/spaces", [
+            "title": title,
+            "quick_scan": true,
+        ])
+        guard let space = res["space"] as? [String: Any],
+              let sid = space["id"] as? String else {
+            throw UploadError.missing("quick-scan space id")
+        }
+        let pid = (space["projectId"] as? String) ?? ""
+        return (sid, pid)
     }
 
     // MARK: - Multipart

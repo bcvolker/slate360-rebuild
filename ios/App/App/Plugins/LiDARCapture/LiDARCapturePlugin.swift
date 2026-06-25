@@ -1,4 +1,5 @@
 import Foundation
+import UIKit
 import Capacitor
 import ARKit
 import CoreLocation
@@ -169,10 +170,8 @@ public class LiDARCapturePlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate,
             resolveCapture(["cancelled": false, "uploadError": "No capture files were produced."])
             return
         }
-        guard !spaceId.isEmpty else {
-            resolveCapture(["cancelled": false, "uploadError": "Missing capture workspace — cannot upload."])
-            return
-        }
+
+        let pts = (manifest["pointCount"] as? NSNumber)?.intValue ?? 0
 
         // Tell the web layer we've left capture and started uploading (presentCapture is
         // still awaiting; native resolves only once the upload completes).
@@ -181,6 +180,8 @@ public class LiDARCapturePlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate,
         collectCookieHeader { [weak self] cookieHeader in
             guard let self = self else { return }
             self.uploadQueue.async {
+                // Pass spaceId through even if empty — the uploader self-heals by creating a
+                // quick-scan workspace, so a stale web bundle can't strand the capture.
                 let uploader = TwinUploader(
                     apiBase: apiBase,
                     cookieHeader: cookieHeader,
@@ -199,9 +200,15 @@ public class LiDARCapturePlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate,
                     result["videoUri"] = NSNull()
                     result["plyUri"] = NSNull()
                     result["posesUri"] = NSNull()
+                    // WebView-independent outcome: confirm natively, then drive the WebView to
+                    // the server-backed Twins hub (works even if its content process was
+                    // reclaimed during capture and the in-memory web state was lost).
+                    self.presentNativeNotice("Scan uploaded ✓  (\(pts) pts).\nOpening your Twins…")
+                    self.navigateWebView(to: "/digital-twin", apiBase: apiBase)
                     self.resolveCapture(result)
                 } catch {
                     NSLog("[Slate360] Twin native upload failed: \(error.localizedDescription)")
+                    self.presentNativeNotice("Scan captured (\(pts) pts) but upload failed:\n\(error.localizedDescription)")
                     var payload: [String: Any] = [
                         "cancelled": false,
                         "uploadError": error.localizedDescription,
@@ -212,6 +219,28 @@ public class LiDARCapturePlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate,
                     self.resolveCapture(payload)
                 }
             }
+        }
+    }
+
+    /// Shows a native (UIKit) popup that does not depend on the WebView — used to report the
+    /// capture/upload outcome even when the WebView content process has been reclaimed.
+    /// TEMPORARY diagnostic + confirmation; folds into the capture-screen redesign later.
+    private func presentNativeNotice(_ message: String) {
+        DispatchQueue.main.async { [weak self] in
+            guard let presenter = self?.bridge?.viewController else { return }
+            let alert = UIAlertController(title: "Twin capture", message: message, preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            presenter.present(alert, animated: true)
+        }
+    }
+
+    /// Loads a fresh URL into the bridge WebView. Used to land the user on a server-backed
+    /// page after capture so the flow doesn't depend on the pre-capture in-memory web state.
+    private func navigateWebView(to path: String, apiBase: String) {
+        DispatchQueue.main.async { [weak self] in
+            guard let webView = self?.bridge?.webView,
+                  let url = URL(string: apiBase + path) else { return }
+            webView.load(URLRequest(url: url))
         }
     }
 
