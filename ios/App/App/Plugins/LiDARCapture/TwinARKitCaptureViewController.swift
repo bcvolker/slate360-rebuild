@@ -70,6 +70,15 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
     private let voxelSize: Float = 0.02
     private let keyframeInterval: TimeInterval = 0.5
 
+    // Published copies of the collection sizes. These are written ONLY on `depthQueue`
+    // (right after the collections mutate) and read by the HUD/progress on other threads.
+    // Reading `voxelGrid.count` / `keyframes.count` directly from the main thread while
+    // `depthQueue` inserted into them was a data race on a non-thread-safe Swift Dictionary
+    // and crashed with EXC_BAD_ACCESS on the main thread (verified from the device crash
+    // report). Plain word-sized Ints are safe to read cross-thread (no pointer deref).
+    private var pointCount = 0
+    private var keyframeCount = 0
+
     // Video writer
     private var writer: AVAssetWriter?
     private var writerInput: AVAssetWriterInput?
@@ -308,16 +317,25 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
             fail("Not enough free storage to record")
             return
         }
-        isRecording = true
         hasStartedWriter = false
         droppedVideoFrames = 0
         lastVideoPTS = -Double.infinity
         lastKeyframeArkit = 0
-        voxelGrid.removeAll(keepingCapacity: true)
-        keyframes.removeAll(keepingCapacity: true)
+        pointCount = 0
+        keyframeCount = 0
+        // Reset the point cloud ON depthQueue — the only queue allowed to touch these
+        // collections. Enqueued before isRecording flips true, so (FIFO) it runs before
+        // any frame's insert block. Clearing them on the main thread previously raced
+        // the depth writes.
+        depthQueue.async { [weak self] in
+            self?.voxelGrid.removeAll(keepingCapacity: true)
+            self?.keyframes.removeAll(keepingCapacity: true)
+        }
         recordButton.setTitle("■ Stop", for: .normal)
         setState(.recording, message: "Move slowly · capture corners")
         startTimers()
+        // Flip last: no ARFrame is accumulated until the reset above is queued.
+        isRecording = true
     }
 
     private func finishRecording() {
@@ -360,13 +378,13 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
                 "width": self.encWidth,
                 "height": self.encHeight,
             ]
+            // Free the point cloud on THIS queue (the only queue allowed to touch the
+            // collections). The data is already on disk. Doing this on the main thread
+            // previously raced the depth writes — never touch these off depthQueue.
+            self.voxelGrid.removeAll(keepingCapacity: false)
+            self.keyframes.removeAll(keepingCapacity: false)
             DispatchQueue.main.async {
                 self.teardownSessionOnly()
-                // Free the in-memory point cloud + keyframes before the web layer ingests the
-                // files — reduces peak memory so the WKWebView content process isn't jettisoned
-                // during the hand-off (a cause of "Load failed"). The data is already on disk.
-                self.voxelGrid.removeAll(keepingCapacity: false)
-                self.keyframes.removeAll(keepingCapacity: false)
                 self.onFinish?(manifest)
             }
         }
@@ -468,6 +486,10 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
                 self.keyframes.append(kf)
                 self.lastKeyframeArkit = arkitTs
             }
+            // Publish sizes for the HUD/progress so those off-queue readers never touch the
+            // collections directly (the EXC_BAD_ACCESS data race).
+            self.pointCount = self.voxelGrid.count
+            self.keyframeCount = self.keyframes.count
         }
     }
 
@@ -631,7 +653,7 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
             let secs = Int(max(0, self.lastVideoPTS))
             DispatchQueue.main.async {
                 self.timerLabel.text = String(format: "%d:%02d", secs / 60, secs % 60)
-                self.metricsLabel.text = "LIDAR · \(self.formatCount(self.voxelGrid.count)) pts"
+                self.metricsLabel.text = "LIDAR · \(self.formatCount(self.pointCount)) pts"
             }
             // Thermal guard.
             switch ProcessInfo.processInfo.thermalState {
@@ -650,10 +672,12 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
     }
 
     private func emitProgress() {
+        // Reads cached counts (not the collections) — emitProgress is called from timers
+        // and setState on the main/AR threads, never on depthQueue.
         let payload: [String: Any] = [
             "state": stateString,
-            "pointCount": voxelGrid.count,
-            "keyframeCount": keyframes.count,
+            "pointCount": pointCount,
+            "keyframeCount": keyframeCount,
             "durationSec": max(0, lastVideoPTS),
         ]
         onProgress?(payload)
