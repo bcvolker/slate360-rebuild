@@ -111,7 +111,7 @@ export const mobileTokens = {
     "flex size-6 items-center justify-center rounded-full bg-white/[0.08] text-[10px] font-bold text-zinc-200 transition-colors hover:bg-white/[0.12]",
   /** Platform header bar — neutral graphite chrome (44px row, 12px insets) */
   mobileHeaderBar:
-    "flex h-11 shrink-0 items-center justify-between border-b border-[#2A3340] bg-[#11161E] px-3",
+    "flex min-h-[2.75rem] shrink-0 items-center justify-between border-b border-[#2A3340] bg-[#11161E] px-3",
   mobileHeaderBrandLink:
     "flex min-w-0 shrink-0 items-center gap-2 rounded-[11px] transition-colors hover:bg-white/[0.04] active:bg-white/[0.07]",
   mobileHeaderBrandDivider: "h-6 w-px shrink-0 bg-[#2A3340]",

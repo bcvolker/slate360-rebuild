@@ -15,6 +15,7 @@ FILES = %w[
   LiDARCapturePlugin.swift
   LiDARCapturePlugin.m
   TwinARKitCaptureViewController.swift
+  SlateBridgeViewController.swift
 ].freeze
 
 # Frameworks the native capture uses. ARKit is always linked below; these are

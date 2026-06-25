@@ -40,7 +40,7 @@ export function MobilePlatformHeader({
     <header
       className={cn(mobileTokens.mobileHeaderBar, className)}
       data-mobile-shell-chrome="header"
-      style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}
+      style={{ paddingTop: "var(--safe-area-inset-top, env(safe-area-inset-top, 0px))" }}
     >
       <div className="flex min-w-0 flex-1 items-center gap-2">
         {/* Consistent back button on every sub-route. */}

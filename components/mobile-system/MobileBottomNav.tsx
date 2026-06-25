@@ -88,7 +88,7 @@ export function MobileBottomNav<Key extends string = string>({
 
       className={cn(mobileTokens.mobileBottomNavBar, className)}
 
-      style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)", paddingTop: "4px" }}
+      style={{ paddingBottom: "var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px))", paddingTop: "4px" }}
 
     >
 
