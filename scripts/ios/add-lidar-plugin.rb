@@ -8,6 +8,7 @@
 # Requires: gem install xcodeproj
 #
 require "xcodeproj"
+require "json"
 
 PROJECT_PATH = "ios/App/App.xcodeproj"
 TARGET_NAME  = "App"
@@ -77,4 +78,30 @@ if changed
   puts "Saved #{PROJECT_PATH}"
 else
   puts "No changes needed — LiDAR files already registered in #{PROJECT_PATH}"
+end
+
+# Capacitor 8 auto-registers iOS plugins listed in the GENERATED
+# ios/App/App/capacitor.config.json `packageClassList`. `npx cap sync ios` only
+# writes the npm plugins there (StatusBarPlugin, etc.) — it never sees our
+# app-target plugin. Without this entry the bridge never registers LiDARCapture,
+# so no PluginHeader is exported and JS throws "plugin is not implemented on ios".
+# This step (run AFTER cap sync in CI) appends our class so the bridge discovers
+# it at init via NSClassFromString("LiDARCapturePlugin") — same path the official
+# plugins use. The class is @objc(LiDARCapturePlugin) and compiled into the App
+# target above, so the lookup resolves.
+PLUGIN_CLASS = "LiDARCapturePlugin"
+config_path = "ios/App/App/capacitor.config.json"
+if File.exist?(config_path)
+  cfg = JSON.parse(File.read(config_path))
+  list = cfg["packageClassList"]
+  list = cfg["packageClassList"] = [] unless list.is_a?(Array)
+  if list.include?(PLUGIN_CLASS)
+    puts "  packageClassList already includes #{PLUGIN_CLASS}"
+  else
+    list << PLUGIN_CLASS
+    File.write(config_path, "#{JSON.pretty_generate(cfg)}\n")
+    puts "  Added #{PLUGIN_CLASS} to packageClassList in #{config_path}"
+  end
+else
+  puts "  WARNING: #{config_path} not found — run after `npx cap sync ios`"
 end

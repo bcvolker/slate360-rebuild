@@ -95,18 +95,26 @@ export function TwinCaptureScreen({
   useEffect(() => {
     let cancelled = false;
     const plat = `${Capacitor.getPlatform()}/${Capacitor.isNativePlatform() ? "native" : "web"}`;
-    const registry = (window as unknown as { Capacitor?: { Plugins?: Record<string, unknown> } })
-      .Capacitor?.Plugins;
-    const names = registry ? Object.keys(registry) : [];
+    const cap = (
+      window as unknown as {
+        Capacitor?: { Plugins?: Record<string, unknown>; PluginHeaders?: Array<{ name?: string }> };
+      }
+    ).Capacitor;
+    const names = cap?.Plugins ? Object.keys(cap.Plugins) : [];
     const reg = names.includes("LiDARCapture");
+    // hdr is the DEFINITIVE native-registration signal — JS routes a call to native
+    // only when the plugin appears in Capacitor.PluginHeaders.
+    const hdr = Array.isArray(cap?.PluginHeaders)
+      ? cap.PluginHeaders.some((h) => h?.name === "LiDARCapture")
+      : false;
     void LiDARCapture.isAvailable()
       .then((r) => {
         if (!cancelled)
-          setLidarProbe(`${plat} reg=${reg} avail=${r.available} native=${r.nativeCapture ?? "—"}`);
+          setLidarProbe(`${plat} hdr=${hdr} reg=${reg} avail=${r.available} native=${r.nativeCapture ?? "—"}`);
       })
       .catch((e) => {
         if (!cancelled)
-          setLidarProbe(`${plat} reg=${reg} plugins=[${names.join(",")}] err: ${e instanceof Error ? e.message : String(e)}`);
+          setLidarProbe(`${plat} hdr=${hdr} reg=${reg} err: ${e instanceof Error ? e.message : String(e)}`);
       });
     return () => {
       cancelled = true;

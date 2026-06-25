@@ -20,7 +20,12 @@ import WebKit
 class SlateBridgeViewController: CAPBridgeViewController {
 
     override func capacitorDidLoad() {
+        super.capacitorDidLoad()
+        // Primary registration path is the packageClassList entry patched into the
+        // generated capacitor.config.json (scripts/ios/add-lidar-plugin.rb). This
+        // runtime call is belt-and-suspenders for the same goal.
         bridge?.registerPluginInstance(LiDARCapturePlugin())
+        NSLog("[Slate360] LiDARCapture registerPluginInstance called; bridge nil? \(bridge == nil)")
     }
 
     override func viewDidLoad() {
