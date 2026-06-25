@@ -51,6 +51,13 @@ export function TwinNativeCaptureLauncher({ onFinish, onCancel }: Props) {
         }
 
         setPhase("ingesting");
+        // Let the WebView repaint once after the native modal dismisses before the
+        // file ingest + navigation, so the content process is settled (avoids the
+        // post-capture "Load failed" recovery page).
+        await new Promise<void>((resolve) =>
+          requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+        );
+        if (cancelled) return;
 
         const files: File[] = [];
         const lidarFiles: File[] = [];

@@ -103,7 +103,11 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
     init(options: TwinCaptureOptions) {
         self.options = options
         super.init(nibName: nil, bundle: nil)
-        modalPresentationStyle = .fullScreen
+        // .overFullScreen keeps the Capacitor WKWebView in the view hierarchy beneath us.
+        // With .fullScreen iOS treats the web view as off-screen and can suspend/reclaim its
+        // content process during the long ARKit session; on dismiss the remote-URL reload then
+        // surfaces as Capacitor's "Load failed" page. overFullScreen avoids that.
+        modalPresentationStyle = .overFullScreen
         isModalInPresentation = true
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) not used") }
@@ -358,6 +362,11 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
             ]
             DispatchQueue.main.async {
                 self.teardownSessionOnly()
+                // Free the in-memory point cloud + keyframes before the web layer ingests the
+                // files — reduces peak memory so the WKWebView content process isn't jettisoned
+                // during the hand-off (a cause of "Load failed"). The data is already on disk.
+                self.voxelGrid.removeAll(keepingCapacity: false)
+                self.keyframes.removeAll(keepingCapacity: false)
                 self.onFinish?(manifest)
             }
         }
