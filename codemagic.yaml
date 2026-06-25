@@ -28,7 +28,21 @@ workflows:
       xcode: latest
     scripts:
       - name: Install JS dependencies
-        script: npm ci
+        # npm ci can hit transient registry ECONNRESET / network-aborted errors on
+        # CI. Configure fetch retries and wrap the install in a backoff loop so a
+        # flaky network blip retries instead of failing the whole build.
+        script: |
+          npm config set fetch-retries 5
+          npm config set fetch-retry-mintimeout 20000
+          npm config set fetch-retry-maxtimeout 120000
+          npm config set fetch-timeout 600000
+          for attempt in 1 2 3 4 5; do
+            echo "npm ci attempt $attempt of 5"
+            if npm ci; then echo "npm ci succeeded"; break; fi
+            if [ "$attempt" = "5" ]; then echo "npm ci failed after 5 attempts"; exit 1; fi
+            echo "retrying in $((attempt * 15))s..."
+            sleep $((attempt * 15))
+          done
       - name: Capacitor sync (iOS)
         # Capacitor 8 uses Swift Package Manager — no CocoaPods / pod install.
         script: npx cap sync ios
@@ -95,7 +109,21 @@ workflows:
       java: 17
     scripts:
       - name: Install JS dependencies
-        script: npm ci
+        # npm ci can hit transient registry ECONNRESET / network-aborted errors on
+        # CI. Configure fetch retries and wrap the install in a backoff loop so a
+        # flaky network blip retries instead of failing the whole build.
+        script: |
+          npm config set fetch-retries 5
+          npm config set fetch-retry-mintimeout 20000
+          npm config set fetch-retry-maxtimeout 120000
+          npm config set fetch-timeout 600000
+          for attempt in 1 2 3 4 5; do
+            echo "npm ci attempt $attempt of 5"
+            if npm ci; then echo "npm ci succeeded"; break; fi
+            if [ "$attempt" = "5" ]; then echo "npm ci failed after 5 attempts"; exit 1; fi
+            echo "retrying in $((attempt * 15))s..."
+            sleep $((attempt * 15))
+          done
       - name: Capacitor sync (Android)
         script: npx cap sync android
       - name: Set up keystore
