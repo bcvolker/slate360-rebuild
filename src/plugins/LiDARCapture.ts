@@ -20,12 +20,21 @@ export interface LiDARProgressEvent {
   pointCount: number;
 }
 
-/** Manifest returned by the native-led capture (presentCapture). */
+/** Manifest returned by the native-led capture (presentCapture).
+ *  In the native-upload path (V2) the plugin uploads the capture files directly to
+ *  storage and resolves with `captureId` + `uploaded:true` — the `*Uri` fields are
+ *  null because the files never cross into the JS heap (that crossing crashed the
+ *  WKWebView content process → "Load failed"). `uploadError` is set when native
+ *  upload fails so the web layer can show a friendly message instead of throwing. */
 export interface TwinCaptureManifest {
   cancelled: boolean;
+  captureId?: string;
+  uploaded?: boolean;
+  uploadError?: string;
+  errorCode?: string;
   videoUri?: string | null;
-  plyUri?: string;
-  posesUri?: string;
+  plyUri?: string | null;
+  posesUri?: string | null;
   pointCount?: number;
   keyframeCount?: number;
   durationSec?: number;
@@ -38,6 +47,21 @@ export interface TwinCapturePresentOptions {
   confidence?: "low" | "medium" | "high";
   maxDurationSec?: number;
   maxPoints?: number;
+  /** Twin space + project the capture uploads to (required for native upload). */
+  spaceId?: string;
+  projectId?: string;
+  /** Optional capture title. */
+  title?: string;
+  /** Origin the native uploader posts to (defaults to https://www.slate360.ai). Pass
+   *  `window.location.origin` so preview/staging builds hit the same host as the webview. */
+  apiBase?: string;
+}
+
+/** Emitted by the native plugin when it transitions from capture into uploading the
+ *  files, so the web launcher can swap its spinner copy from "capturing" to "uploading"
+ *  while `presentCapture` is still awaiting (native resolves only after upload finishes). */
+export interface LiDARUploadPhaseEvent {
+  phase: "uploading";
 }
 
 export interface LiDARCapturePlugin {
@@ -58,6 +82,10 @@ export interface LiDARCapturePlugin {
   addListener(
     eventName: "progress",
     listenerFunc: (data: LiDARProgressEvent) => void,
+  ): Promise<PluginListenerHandle>;
+  addListener(
+    eventName: "uploadPhase",
+    listenerFunc: (data: LiDARUploadPhaseEvent) => void,
   ): Promise<PluginListenerHandle>;
 }
 

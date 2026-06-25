@@ -1,34 +1,33 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Capacitor } from "@capacitor/core";
+import type { PluginListenerHandle } from "@capacitor/core";
 import { IconLoader2 } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import { twinAccent } from "@/lib/digital-twin/twin-accent";
 import { LiDARCapture, type TwinCaptureManifest } from "@/src/plugins/LiDARCapture";
-import type { TwinCaptureFinishResult } from "./TwinCaptureScreen";
 
 type Props = {
-  onFinish: (result: TwinCaptureFinishResult) => void | Promise<void>;
+  spaceId: string;
+  projectId: string;
+  title?: string;
+  onUploaded: (info: { captureId: string }) => void;
   onCancel: () => void;
 };
 
-/** Reads a native file:// URI into a File object via the Capacitor web-accessible URL.
- *  NOTE (V1): this loads the file into the JS heap. Fine for short test captures; large
- *  MP4s should move to native multipart upload (Week-2 hardening). */
-async function uriToFile(uri: string, name: string, type: string): Promise<File> {
-  const src = Capacitor.convertFileSrc(uri);
-  const blob = await fetch(src).then((r) => r.blob());
-  return new File([blob], name, { type });
-}
-
 /**
  * Native-led Twin capture launcher (iOS LiDAR devices only). Presents the native ARKit
- * capture screen, then converts the returned manifest into the same TwinCaptureFinishResult
- * the web capture path produces — so review/upload/Modal-bypass are unchanged.
+ * capture screen; the native plugin then uploads the capture files directly to storage
+ * and resolves with a `captureId`.
+ *
+ * The capture files (video + PLY + poses) intentionally NEVER cross into the JS heap.
+ * The previous V1 path read them via `fetch(convertFileSrc(uri)).blob()`, which pulled
+ * the whole MP4 into WebView memory on the remote origin and crashed the WebContent
+ * process — surfacing as the post-capture "Load failed" page. Native upload removes the
+ * crossing entirely; here we only ever receive a lightweight `captureId`.
  */
-export function TwinNativeCaptureLauncher({ onFinish, onCancel }: Props) {
-  const [phase, setPhase] = useState<"capturing" | "ingesting" | "error">("capturing");
+export function TwinNativeCaptureLauncher({ spaceId, projectId, title, onUploaded, onCancel }: Props) {
+  const [phase, setPhase] = useState<"capturing" | "uploading" | "error">("capturing");
   const [error, setError] = useState<string | null>(null);
   const launchedRef = useRef(false);
 
@@ -37,11 +36,22 @@ export function TwinNativeCaptureLauncher({ onFinish, onCancel }: Props) {
     launchedRef.current = true;
 
     let cancelled = false;
+    let listener: PluginListenerHandle | undefined;
 
     (async () => {
+      // Flip the spinner copy when native leaves capture and starts uploading
+      // (presentCapture stays pending until the upload finishes).
+      listener = await LiDARCapture.addListener("uploadPhase", () => {
+        if (!cancelled) setPhase("uploading");
+      });
+
       try {
         const manifest: TwinCaptureManifest = await LiDARCapture.presentCapture({
           confidence: "medium",
+          spaceId,
+          projectId,
+          title,
+          apiBase: typeof window !== "undefined" ? window.location.origin : undefined,
         });
         if (cancelled) return;
 
@@ -49,58 +59,18 @@ export function TwinNativeCaptureLauncher({ onFinish, onCancel }: Props) {
           onCancel();
           return;
         }
-
-        setPhase("ingesting");
-        // Let the WebView repaint once after the native modal dismisses before the
-        // file ingest + navigation, so the content process is settled (avoids the
-        // post-capture "Load failed" recovery page).
-        await new Promise<void>((resolve) =>
-          requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
-        );
-        if (cancelled) return;
-
-        const files: File[] = [];
-        const lidarFiles: File[] = [];
-
-        if (manifest.videoUri) {
-          files.push(await uriToFile(manifest.videoUri, "twin_capture.mp4", "video/mp4"));
+        if (manifest.uploadError) {
+          setError(manifest.uploadError);
+          setPhase("error");
+          return;
         }
-        if (manifest.plyUri) {
-          const ply = await uriToFile(manifest.plyUri, "lidar_capture.ply", "application/octet-stream");
-          lidarFiles.push(ply);
+        if (manifest.captureId) {
+          setPhase("uploading");
+          await onUploaded({ captureId: manifest.captureId });
+          return;
         }
-        if (manifest.posesUri) {
-          const poses = await uriToFile(manifest.posesUri, "lidar_poses.json", "application/json");
-          lidarFiles.push(poses);
-        }
-        if (cancelled) return;
-
-        const videoFile = files[0];
-        const durationSeconds = manifest.durationSec ?? 0;
-
-        await onFinish({
-          files: [...files, ...lidarFiles],
-          clips: videoFile
-            ? [
-                {
-                  id:
-                    typeof crypto !== "undefined" && "randomUUID" in crypto
-                      ? crypto.randomUUID()
-                      : `native-${Date.now()}`,
-                  index: 0,
-                  mode: "video",
-                  durationSeconds,
-                  frameCount: manifest.keyframeCount ?? 0,
-                  files: [videoFile],
-                  thumbnailUrl: null,
-                },
-              ]
-            : [],
-          photoCount: 0,
-          videoSeconds: durationSeconds,
-          estimatedBytes: [...files, ...lidarFiles].reduce((sum, f) => sum + f.size, 0),
-          lidarFiles,
-        });
+        setError("Capture finished but produced no upload.");
+        setPhase("error");
       } catch (err) {
         if (cancelled) return;
         setError(err instanceof Error ? err.message : "Native capture failed");
@@ -110,8 +80,9 @@ export function TwinNativeCaptureLauncher({ onFinish, onCancel }: Props) {
 
     return () => {
       cancelled = true;
+      void listener?.remove();
     };
-  }, [onFinish, onCancel]);
+  }, [spaceId, projectId, title, onUploaded, onCancel]);
 
   return (
     <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 px-4 py-8 text-center">
@@ -130,7 +101,7 @@ export function TwinNativeCaptureLauncher({ onFinish, onCancel }: Props) {
         <>
           <IconLoader2 className={cn("h-8 w-8 animate-spin", twinAccent.spinner)} />
           <p className="text-sm font-medium text-zinc-300">
-            {phase === "capturing" ? "Opening LiDAR capture…" : "Saving scan…"}
+            {phase === "capturing" ? "Opening LiDAR capture…" : "Uploading scan…"}
           </p>
         </>
       )}

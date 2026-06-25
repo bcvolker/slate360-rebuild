@@ -51,6 +51,9 @@ export function TwinCaptureFlow({
   const [localSpaces, setLocalSpaces] = useState(spaces);
   const [step, setStep] = useState<Step>(skipPicker ? "capture" : "picker");
   const [selection, setSelection] = useState<Selection | null>(null);
+  // Set when the native iOS path has already uploaded the capture (files never touch the
+  // web layer). The upload-complete view keys off this captureId instead of the web hook.
+  const [nativeCaptureId, setNativeCaptureId] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [queueBusy, setQueueBusy] = useState(false);
   const [quickBoot, setQuickBoot] = useState<QuickBootState>(skipPicker ? "loading" : "idle");
@@ -200,21 +203,33 @@ export function TwinCaptureFlow({
     [projects, router, selection, skipPicker],
   );
 
+  // Native iOS capture uploads inside the plugin and hands back only a captureId.
+  const handleNativeUploaded = useCallback(({ captureId }: { captureId: string }) => {
+    setNativeCaptureId(captureId);
+    setStatusMessage(null);
+    setStep("upload");
+  }, []);
+
+  // The effective capture is whichever path produced it: native upload or web hook.
+  const effectiveCaptureId = nativeCaptureId ?? captureId;
+
   const handleEnqueue = useCallback(async () => {
     setQueueBusy(true);
     setStatusMessage(null);
     try {
-      const result = await enqueueJob("spz");
+      const result = await enqueueJob("spz", "standard", effectiveCaptureId ?? undefined);
       setStatusMessage(`Processing job queued (${result.job.id})`);
     } catch (err) {
       setStatusMessage(err instanceof Error ? err.message : "Failed to queue job");
     } finally {
       setQueueBusy(false);
     }
-  }, [enqueueJob]);
+  }, [enqueueJob, effectiveCaptureId]);
 
-  const allComplete = files.length > 0 && files.every((row) => row.status === "complete");
-  const { estimate: creditEstimate } = useTwinCreditEstimate(captureId, allComplete);
+  // Native uploads are already finished by the time we reach the upload step.
+  const webComplete = files.length > 0 && files.every((row) => row.status === "complete");
+  const allComplete = nativeCaptureId != null || webComplete;
+  const { estimate: creditEstimate } = useTwinCreditEstimate(effectiveCaptureId, allComplete);
   const canQueue = allComplete && (creditEstimate?.sufficient ?? false) && !queueBusy;
 
   if (quickBoot === "loading") {
@@ -266,10 +281,17 @@ export function TwinCaptureFlow({
       );
     }
 
-    // iOS + LiDAR → native-led ARKit capture (owns the camera, records video + depth + poses).
+    // iOS + LiDAR → native-led ARKit capture (owns the camera, records video + depth + poses,
+    // and uploads them directly to storage — files never enter the web layer).
     if (nativeLidar) {
       return (
-        <TwinNativeCaptureLauncher onFinish={handleCaptureFinish} onCancel={handleCaptureCancel} />
+        <TwinNativeCaptureLauncher
+          spaceId={selection.spaceId}
+          projectId={selection.projectId}
+          title={selection.spaceTitle}
+          onUploaded={handleNativeUploaded}
+          onCancel={handleCaptureCancel}
+        />
       );
     }
 
@@ -321,11 +343,11 @@ export function TwinCaptureFlow({
           </p>
         ) : null}
 
-        {allComplete && captureId ? (
-          <TwinCreditGate captureId={captureId} enabled={allComplete} />
+        {allComplete && effectiveCaptureId ? (
+          <TwinCreditGate captureId={effectiveCaptureId} enabled={allComplete} />
         ) : null}
 
-        {allComplete && captureId ? (
+        {allComplete && effectiveCaptureId ? (
           <button
             type="button"
             onClick={() => void handleEnqueue()}
@@ -336,13 +358,13 @@ export function TwinCaptureFlow({
           </button>
         ) : null}
 
-        {captureId && selection ? (
-          <TwinJobStatus captureId={captureId} spaceId={selection.spaceId} />
+        {effectiveCaptureId && selection ? (
+          <TwinJobStatus captureId={effectiveCaptureId} spaceId={selection.spaceId} />
         ) : null}
 
-        {captureId ? (
+        {effectiveCaptureId ? (
           <p className="text-xs text-zinc-500">
-            Capture <span className="font-mono text-zinc-400">{captureId.slice(0, 8)}…</span>
+            Capture <span className="font-mono text-zinc-400">{effectiveCaptureId.slice(0, 8)}…</span>
           </p>
         ) : null}
 

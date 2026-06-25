@@ -16,6 +16,7 @@ FILES = %w[
   LiDARCapturePlugin.swift
   LiDARCapturePlugin.m
   TwinARKitCaptureViewController.swift
+  TwinUploader.swift
   SlateBridgeViewController.swift
 ].freeze
 

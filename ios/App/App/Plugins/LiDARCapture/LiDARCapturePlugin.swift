@@ -35,6 +35,9 @@ public class LiDARCapturePlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate,
     private var pendingCaptureCall: CAPPluginCall?
     private weak var captureVC: TwinARKitCaptureViewController?
 
+    // Serial queue for the native direct-to-storage upload (blocking URLSession calls).
+    private let uploadQueue = DispatchQueue(label: "ai.slate360.twin.upload", qos: .userInitiated)
+
     // MARK: State
 
     private var arSession: ARSession?
@@ -94,6 +97,12 @@ public class LiDARCapturePlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate,
                 maxDurationSec: call.getDouble("maxDurationSec"),
                 maxPoints: call.getInt("maxPoints")
             )
+            // Upload target — the native uploader pushes the capture files straight to
+            // storage so they never cross into the JS heap (the "Load failed" crash).
+            let spaceId = call.getString("spaceId") ?? ""
+            let projectId = call.getString("projectId") ?? ""
+            let apiBase = call.getString("apiBase") ?? "https://www.slate360.ai"
+            let title = call.getString("title")
             self.pendingCaptureCall = call
             let vc = TwinARKitCaptureViewController(options: opts)
             vc.onProgress = { [weak self] data in self?.notifyListeners("progress", data: data) }
@@ -101,8 +110,13 @@ public class LiDARCapturePlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate,
                 guard let self = self else { return }
                 vc.dismiss(animated: true) {
                     self.captureVC = nil
-                    self.pendingCaptureCall?.resolve(manifest)
-                    self.pendingCaptureCall = nil
+                    self.uploadCapture(
+                        manifest: manifest,
+                        spaceId: spaceId,
+                        projectId: projectId,
+                        apiBase: apiBase,
+                        title: title
+                    )
                 }
             }
             vc.onCancel = { [weak self] in
@@ -123,6 +137,107 @@ public class LiDARCapturePlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate,
             }
             self.captureVC = vc
             host.present(vc, animated: true)
+        }
+    }
+
+    // MARK: - Native upload
+
+    /// Reads the capture's temp files into the native uploader (off the main thread) and
+    /// resolves the pending JS call with `{ captureId, uploaded: true }`. On failure it
+    /// resolves with `{ uploadError, errorCode? }` so the web layer renders a friendly
+    /// message instead of throwing. The local file:// URIs are stripped from the manifest —
+    /// the web layer must never fetch them (that is the crash this whole path avoids).
+    private func uploadCapture(
+        manifest: [String: Any],
+        spaceId: String,
+        projectId: String,
+        apiBase: String,
+        title: String?
+    ) {
+        var entries: [TwinUploader.FileEntry] = []
+        if let v = manifest["videoUri"] as? String, let url = URL(string: v) {
+            entries.append(.init(url: url, filename: "twin_capture.mp4", contentType: "video/mp4", assetKind: "video"))
+        }
+        if let p = manifest["plyUri"] as? String, let url = URL(string: p) {
+            entries.append(.init(url: url, filename: "lidar_capture.ply", contentType: "application/octet-stream", assetKind: "ply_lidar"))
+        }
+        if let po = manifest["posesUri"] as? String, let url = URL(string: po) {
+            entries.append(.init(url: url, filename: "lidar_poses.json", contentType: "application/json", assetKind: "lidar_poses"))
+        }
+
+        guard !entries.isEmpty else {
+            resolveCapture(["cancelled": false, "uploadError": "No capture files were produced."])
+            return
+        }
+        guard !spaceId.isEmpty else {
+            resolveCapture(["cancelled": false, "uploadError": "Missing capture workspace — cannot upload."])
+            return
+        }
+
+        // Tell the web layer we've left capture and started uploading (presentCapture is
+        // still awaiting; native resolves only once the upload completes).
+        notifyListeners("uploadPhase", data: ["phase": "uploading"])
+
+        collectCookieHeader { [weak self] cookieHeader in
+            guard let self = self else { return }
+            self.uploadQueue.async {
+                let uploader = TwinUploader(
+                    apiBase: apiBase,
+                    cookieHeader: cookieHeader,
+                    spaceId: spaceId,
+                    projectId: projectId,
+                    title: title
+                )
+                do {
+                    let captureId = try uploader.upload(files: entries)
+                    NSLog("[Slate360] Twin native upload complete; captureId=\(captureId)")
+                    for entry in entries { try? FileManager.default.removeItem(at: entry.url) }
+                    var result = manifest
+                    result["cancelled"] = false
+                    result["captureId"] = captureId
+                    result["uploaded"] = true
+                    result["videoUri"] = NSNull()
+                    result["plyUri"] = NSNull()
+                    result["posesUri"] = NSNull()
+                    self.resolveCapture(result)
+                } catch {
+                    NSLog("[Slate360] Twin native upload failed: \(error.localizedDescription)")
+                    var payload: [String: Any] = [
+                        "cancelled": false,
+                        "uploadError": error.localizedDescription,
+                    ]
+                    if let ue = error as? TwinUploader.UploadError, let code = ue.statusCode {
+                        if code == 402 || code == 403 { payload["errorCode"] = "insufficient" }
+                    }
+                    self.resolveCapture(payload)
+                }
+            }
+        }
+    }
+
+    /// Resolves the pending capture call on the main thread and clears it.
+    private func resolveCapture(_ payload: [String: Any]) {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.pendingCaptureCall?.resolve(payload)
+            self.pendingCaptureCall = nil
+        }
+    }
+
+    /// Collects the WKWebView's cookies for the app origin into a `Cookie:` header string.
+    /// Supabase chunks its auth token across several `sb-…-auth-token[.n]` cookies, so we
+    /// forward every cookie for the slate360.ai domain. Must run on the main thread.
+    private func collectCookieHeader(completion: @escaping (String) -> Void) {
+        DispatchQueue.main.async { [weak self] in
+            guard let webView = self?.bridge?.webView else { completion(""); return }
+            let store = webView.configuration.websiteDataStore.httpCookieStore
+            store.getAllCookies { cookies in
+                let header = cookies
+                    .filter { $0.domain.contains("slate360.ai") }
+                    .map { "\($0.name)=\($0.value)" }
+                    .joined(separator: "; ")
+                completion(header)
+            }
         }
     }
 

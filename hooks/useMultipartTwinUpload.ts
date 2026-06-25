@@ -192,11 +192,15 @@ export function useMultipartTwinUpload() {
     async (
       outputFormat: "spz" | "ply" | "glb" = "spz",
       quality: TwinProcessingQuality = "standard",
+      captureIdOverride?: string,
     ) => {
-      if (!captureId) throw new Error("No capture id — upload assets first");
+      // The native iOS path uploads inside the plugin and owns the captureId, so it
+      // passes it in directly rather than through the web hook's startUpload.
+      const cid = captureIdOverride ?? captureId;
+      if (!cid) throw new Error("No capture id — upload assets first");
       return twinApiPost<{ job: { id: string; status: string; progress_pct: number } }>(
         "/api/digital-twin/jobs",
-        { capture_id: captureId, output_format: outputFormat, quality },
+        { capture_id: cid, output_format: outputFormat, quality },
       );
     },
     [captureId],
