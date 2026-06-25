@@ -7,6 +7,7 @@ import { SlateLogo } from "@/components/shared/SlateLogo";
 import { MobileHeaderActions } from "./MobileHeaderActions";
 import { MobileShellSwitcher } from "./MobileShellSwitcher";
 import type { ModuleHomeBrand } from "./mainMobileTabs";
+import { SAFE_AREA_INSET_TOP } from "@/lib/capacitor/safe-area-inset";
 import { mobileTokens } from "./mobileTokens";
 
 type MobilePlatformHeaderProps = {
@@ -40,7 +41,7 @@ export function MobilePlatformHeader({
     <header
       className={cn(mobileTokens.mobileHeaderBar, className)}
       data-mobile-shell-chrome="header"
-      style={{ paddingTop: "var(--safe-area-inset-top, env(safe-area-inset-top, 0px))" }}
+      style={{ paddingTop: SAFE_AREA_INSET_TOP }}
     >
       <div className="flex min-w-0 flex-1 items-center gap-2">
         {/* Consistent back button on every sub-route. */}

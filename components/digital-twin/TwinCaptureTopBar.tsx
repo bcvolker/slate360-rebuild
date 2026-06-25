@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import { ChevronDown, ChevronLeft, ChevronUp, Home, Maximize2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { safeAreaTopPadding } from "@/lib/capacitor/safe-area-inset";
 import { TWIN_CAPTURE_CHROME } from "@/lib/digital-twin/twin-capture-chrome-layout";
 
 type Props = {
@@ -37,7 +38,7 @@ export function TwinCaptureTopBar({
     <header
       className="pointer-events-auto absolute inset-x-0 top-0 z-30"
       style={{
-        paddingTop: `max(env(safe-area-inset-top), ${TWIN_CAPTURE_CHROME.topInsetPx}px)`,
+        paddingTop: safeAreaTopPadding(TWIN_CAPTURE_CHROME.topInsetPx),
         paddingLeft: TWIN_CAPTURE_CHROME.sideInsetPx,
         paddingRight: TWIN_CAPTURE_CHROME.sideInsetPx,
       }}

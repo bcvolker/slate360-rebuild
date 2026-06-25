@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation";
+import { TourBuilderShell } from "@/components/tours/TourBuilderShell";
 
 export default function ToursPage() {
-  redirect("/dashboard");
+  return <TourBuilderShell />;
 }

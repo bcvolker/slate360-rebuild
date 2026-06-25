@@ -28,6 +28,7 @@ import {
 
 } from "./mainMobileTabs";
 
+import { SAFE_AREA_INSET_BOTTOM } from "@/lib/capacitor/safe-area-inset";
 import { mobileTokens } from "./mobileTokens";
 
 
@@ -88,7 +89,7 @@ export function MobileBottomNav<Key extends string = string>({
 
       className={cn(mobileTokens.mobileBottomNavBar, className)}
 
-      style={{ paddingBottom: "var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px))", paddingTop: "4px" }}
+      style={{ paddingBottom: SAFE_AREA_INSET_BOTTOM, paddingTop: "4px" }}
 
     >
 

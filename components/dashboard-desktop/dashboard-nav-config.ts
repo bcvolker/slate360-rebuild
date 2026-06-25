@@ -7,6 +7,7 @@ import {
   FolderOpen,
   LayoutDashboard,
   MapPin,
+  Orbit,
   Thermometer,
   UserCircle,
   Users,
@@ -66,6 +67,13 @@ const DASHBOARD_DESKTOP_NAV_ALL: DashboardNavItem[] = [
     href: "/thermal-studio",
     icon: Thermometer,
     matchPrefixes: ["/thermal-studio"],
+    ceoOnly: true,
+  },
+  {
+    label: "360° Tours",
+    href: "/tours",
+    icon: Orbit,
+    matchPrefixes: ["/tours"],
     ceoOnly: true,
   },
   {

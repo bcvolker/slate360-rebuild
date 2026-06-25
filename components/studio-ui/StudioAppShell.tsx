@@ -56,7 +56,7 @@ function StudioAppShellInner({ inviteShareData, children }: StudioAppShellProps)
       <>
         <div
           data-mobile-route={routeAccent}
-          className="fixed inset-0 h-[100dvh] w-full overflow-hidden bg-[#0B0F15]"
+          className="fixed inset-0 flex min-h-0 w-full flex-col overflow-hidden bg-[#0B0F15]"
         >
           {children}
         </div>

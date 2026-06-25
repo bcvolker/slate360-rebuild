@@ -59,6 +59,7 @@ const NativeChromeInit = dynamic(
 export function ClientProviders({ children }: { children: ReactNode }) {
   return (
     <>
+      <NativeChromeInit />
       <ThemeApplier />
       <PostHogInit />
       <SWRegistrar />
