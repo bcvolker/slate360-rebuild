@@ -67,6 +67,7 @@ export default async function TwinCaptureSubmitPage({
       spaceId={capture.space_id}
       captureStatus={capture.capture_status ?? "uploaded"}
       title={capture.title ?? "Quick scan"}
+      createdAt={capture.created_at}
       assets={assets}
       canUseHighQuality={canUseHighQuality}
     />
