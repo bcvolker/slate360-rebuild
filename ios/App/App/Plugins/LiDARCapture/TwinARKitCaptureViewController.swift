@@ -175,7 +175,8 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
 
     // MARK: HUD
 
-    private let teal = UIColor(red: 0x00/255, green: 0xE6/255, blue: 0x99/255, alpha: 1)
+    // Twin 360 brand blue (#3D8EFF) — matches --twin360-blue used across the web UI.
+    private let brandBlue = UIColor(red: 0x3D/255, green: 0x8E/255, blue: 0xFF/255, alpha: 1)
 
     private func setupHUD() {
         func glass(_ v: UIView) {
@@ -187,7 +188,7 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
 
         statePill.translatesAutoresizingMaskIntoConstraints = false
         statePill.text = "Checking device…"
-        statePill.textColor = teal
+        statePill.textColor = brandBlue
         statePill.font = .monospacedSystemFont(ofSize: 12, weight: .semibold)
         statePill.textAlignment = .center
         glass(statePill)
@@ -203,7 +204,7 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
 
         metricsLabel.translatesAutoresizingMaskIntoConstraints = false
         metricsLabel.text = "LIDAR · 0 pts"
-        metricsLabel.textColor = teal
+        metricsLabel.textColor = brandBlue
         metricsLabel.font = .monospacedSystemFont(ofSize: 12, weight: .semibold)
         metricsLabel.textAlignment = .center
         glass(metricsLabel)
@@ -227,7 +228,7 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
         recordButton.translatesAutoresizingMaskIntoConstraints = false
         recordButton.setTitle("● REC", for: .normal)
         recordButton.setTitleColor(.white, for: .normal)
-        recordButton.backgroundColor = teal
+        recordButton.backgroundColor = brandBlue
         recordButton.layer.cornerRadius = 14
         recordButton.titleLabel?.font = .systemFont(ofSize: 18, weight: .bold)
         recordButton.setTitleColor(UIColor(red: 0x0B/255, green: 0x0F/255, blue: 0x15/255, alpha: 1), for: .normal)
