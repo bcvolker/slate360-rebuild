@@ -29,6 +29,7 @@ type Props = {
 export function TwinNativeCaptureLauncher({ spaceId, projectId, title, onUploaded, onCancel }: Props) {
   const [phase, setPhase] = useState<"capturing" | "uploading" | "error">("capturing");
   const [uploadLabel, setUploadLabel] = useState<string | null>(null);
+  const [uploadPct, setUploadPct] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const launchedRef = useRef(false);
 
@@ -46,6 +47,7 @@ export function TwinNativeCaptureLauncher({ spaceId, projectId, title, onUploade
         if (cancelled) return;
         setPhase("uploading");
         if (event?.label) setUploadLabel(event.label);
+        if (typeof event?.progress === "number") setUploadPct(event.progress);
       });
 
       try {
@@ -106,7 +108,7 @@ export function TwinNativeCaptureLauncher({ spaceId, projectId, title, onUploade
           <p className="text-sm font-medium text-zinc-300">
             {phase === "capturing"
               ? "Opening LiDAR capture…"
-              : uploadLabel ?? "Uploading scan…"}
+              : `${uploadLabel ?? "Uploading scan…"}${uploadPct != null ? ` ${uploadPct}%` : ""}`}
           </p>
         </>
       )}

@@ -55,6 +55,7 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
     private enum State { case checking, ready, recording, finishing, failed }
     private var state: State = .checking
     private var isRecording = false
+    private var didExport = false   // ensures the save resolves exactly once (finish vs watchdog)
     private var sessionId = UUID().uuidString
 
     // Time base
@@ -327,6 +328,7 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
             return
         }
         hasStartedWriter = false
+        didExport = false
         droppedVideoFrames = 0
         lastVideoPTS = -Double.infinity
         lastKeyframeArkit = 0
@@ -354,21 +356,40 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
         setState(.finishing, message: "Saving scan…")
         recordButton.isEnabled = false
 
+        // Watchdog: a wedged/interrupted AR session can leave AVAssetWriter in a state where
+        // finishWriting's completion never fires — which used to strand capture on "Saving…"
+        // forever (no upload). Force the export after 12 s. exportAndResolve is idempotent.
+        let watchdog = DispatchWorkItem { [weak self] in self?.exportAndResolve() }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 12, execute: watchdog)
+
         videoQueue.async { [weak self] in
             guard let self = self else { return }
             self.writerInput?.markAsFinished()
-            let durationPts = CMTime(seconds: max(0, self.lastVideoPTS), preferredTimescale: 600)
-            self.writer?.endSession(atSourceTime: durationPts)
-            self.writer?.finishWriting {
+            if self.writer?.status == .writing {
+                let durationPts = CMTime(seconds: max(0, self.lastVideoPTS), preferredTimescale: 600)
+                self.writer?.endSession(atSourceTime: durationPts)
+                self.writer?.finishWriting {
+                    watchdog.cancel()
+                    self.exportAndResolve()
+                }
+            } else {
+                // Writer already failed/interrupted — export the LiDAR data we have.
+                watchdog.cancel()
                 self.exportAndResolve()
             }
         }
     }
 
     private func exportAndResolve() {
-        depthQueue.async { [weak self] in
-            guard let self = self else { return }
-            let sid = self.sessionId
+        // Idempotent — finishWriting's completion handler and the watchdog can both call
+        // this. The main-thread gate guarantees the save resolves (and the upload starts)
+        // exactly once, so capture never strands on "Saving…".
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self, !self.didExport else { return }
+            self.didExport = true
+            self.depthQueue.async { [weak self] in
+                guard let self = self else { return }
+                let sid = self.sessionId
             let tmp = URL(fileURLWithPath: NSTemporaryDirectory())
             let plyURL = tmp.appendingPathComponent("\(sid).ply")
             let posesURL = tmp.appendingPathComponent("\(sid)_poses.json")
@@ -395,6 +416,7 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
             DispatchQueue.main.async {
                 self.teardownSessionOnly()
                 self.onFinish?(manifest)
+            }
             }
         }
     }
@@ -650,6 +672,7 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
     private func writePLY(to url: URL) {
         let pts = Array(voxelGrid.values)
         var data = Data()
+        data.reserveCapacity(pts.count * 15 + 256)   // 12 B xyz + 3 B rgb/pt — avoids reallocs
         let header = """
         ply\nformat binary_little_endian 1.0\nelement vertex \(pts.count)\nproperty float x\nproperty float y\nproperty float z\nproperty uchar red\nproperty uchar green\nproperty uchar blue\nend_header\n
         """

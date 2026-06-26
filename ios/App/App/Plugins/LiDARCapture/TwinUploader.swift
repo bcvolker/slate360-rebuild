@@ -60,6 +60,13 @@ final class TwinUploader {
     /// stalled step is visible instead of presenting as a frozen "Uploading scan…".
     var onStep: ((String) -> Void)?
 
+    /// Emits overall upload progress in [0, 1], byte-weighted across all files, so the web
+    /// spinner can show a live percentage instead of an indeterminate "Uploading scan…".
+    var onProgress: ((Double) -> Void)?
+
+    private var uploadedBytes = 0
+    private var totalBytes = 1
+
     init(apiBase: String, cookieHeader: String, spaceId: String, projectId: String, title: String?) {
         // Trim any trailing slash so apiBase + "/api/..." is well-formed.
         self.apiBase = apiBase.hasSuffix("/") ? String(apiBase.dropLast()) : apiBase
@@ -98,6 +105,9 @@ final class TwinUploader {
             spaceId = sid
             projectId = pid
         }
+
+        totalBytes = max(1, files.reduce(0) { $0 + fileSize($1.url) })
+        uploadedBytes = 0
 
         var captureId: String?
         let multipart = files.filter { fileSize($0.url) >= partSize }
@@ -207,6 +217,8 @@ final class TwinUploader {
                 throw lastError ?? UploadError.missing("ETag for part \(partNumber)")
             }
             parts.append(["partNumber": partNumber, "etag": resolvedEtag, "sizeBytes": chunk.count])
+            uploadedBytes += chunk.count
+            onProgress?(Double(uploadedBytes) / Double(totalBytes))
         }
 
         _ = try postJSON("/api/digital-twin/upload/complete", [
@@ -249,6 +261,8 @@ final class TwinUploader {
             catch { lastError = error; Thread.sleep(forTimeInterval: 0.5 * Double(attempt)) }
         }
         guard ok else { throw lastError ?? UploadError.missing("single PUT") }
+        uploadedBytes += data.count
+        onProgress?(Double(uploadedBytes) / Double(totalBytes))
 
         _ = try postJSON("/api/digital-twin/upload/single", [
             "phase": "finalize",

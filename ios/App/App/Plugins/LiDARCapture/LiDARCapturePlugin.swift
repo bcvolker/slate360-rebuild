@@ -194,6 +194,10 @@ public class LiDARCapturePlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate,
                 uploader.onStep = { [weak self] label in
                     self?.notifyListeners("uploadPhase", data: ["phase": "uploading", "label": label])
                 }
+                uploader.onProgress = { [weak self] frac in
+                    let pct = Int((max(0, min(1, frac)) * 100).rounded())
+                    self?.notifyListeners("uploadPhase", data: ["phase": "uploading", "progress": pct])
+                }
                 do {
                     let captureId = try uploader.upload(files: entries)
                     NSLog("[Slate360] Twin native upload complete; captureId=\(captureId)")

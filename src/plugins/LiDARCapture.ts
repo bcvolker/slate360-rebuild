@@ -65,6 +65,8 @@ export interface LiDARUploadPhaseEvent {
   /** Live, human-readable label for the step currently uploading (e.g. "Uploading video…",
    *  "Finishing up…"). Lets the spinner show progress instead of a static, frozen-looking copy. */
   label?: string;
+  /** Overall upload progress 0–100 (byte-weighted across all capture files). */
+  progress?: number;
 }
 
 export interface LiDARCapturePlugin {
