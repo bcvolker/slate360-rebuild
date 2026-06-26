@@ -86,7 +86,7 @@ export function TwinCaptureSubmitScreen({
   }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain px-4 py-5">
+    <div className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain px-4 pb-6 pt-[calc(env(safe-area-inset-top,0px)+1.25rem)]">
       <div className="mx-auto flex w-full max-w-md flex-col gap-4">
         <header className="flex flex-col gap-1">
           <h1 className="text-lg font-semibold text-zinc-100">Scan ready</h1>
