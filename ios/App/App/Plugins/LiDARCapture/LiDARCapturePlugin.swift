@@ -205,11 +205,14 @@ public class LiDARCapturePlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate,
                     result["videoUri"] = NSNull()
                     result["plyUri"] = NSNull()
                     result["posesUri"] = NSNull()
-                    // WebView-independent outcome: confirm natively, then drive the WebView to
-                    // the server-backed Twins hub (works even if its content process was
-                    // reclaimed during capture and the in-memory web state was lost).
-                    self.presentNativeNotice("Scan uploaded ✓  (\(pts) pts).\nOpening your Twins…")
-                    self.navigateWebView(to: "/digital-twin", apiBase: apiBase)
+                    // Drive the WebView to the per-capture submit funnel (loads by captureId,
+                    // so it survives a fresh WebView load with no in-memory web state). This is
+                    // the "scan ready → cost → process → status → view" screen — NOT the generic
+                    // home/upload page that the earlier "/digital-twin" navigation landed on.
+                    self.navigateWebView(
+                        to: "/digital-twin/capture/submit?captureId=\(captureId)",
+                        apiBase: apiBase
+                    )
                     self.resolveCapture(result)
                 } catch {
                     NSLog("[Slate360] Twin native upload failed: \(error.localizedDescription)")
