@@ -9,7 +9,7 @@ import simd
 
 struct TwinCaptureOptions {
     var confidence: ARConfidenceLevel = .medium
-    var maxDurationSec: Double = 480      // 8 min
+    var maxDurationSec: Double = 240      // 4 min field default (web may raise toward an 8 min ceiling)
     var maxPoints: Int = 500_000
 
     static func from(confidence: String?, maxDurationSec: Double?, maxPoints: Int?) -> TwinCaptureOptions {
@@ -97,6 +97,7 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
     // Location (optional GPS on keyframes)
     private var locationManager: CLLocationManager?
     private var currentLocation: CLLocation?
+    private var currentHeading: CLHeading?
 
     // HUD
     private let statePill = UILabel()
@@ -313,9 +314,16 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
 
     private func startRecording() {
         guard state == .ready else { return }
-        // Disk preflight (~500 MB).
-        if let free = freeDiskBytes(), free < 500_000_000 {
-            fail("Not enough free storage to record")
+        // Field preflight: storage headroom (~1.5 GB) + battery.
+        UIDevice.current.isBatteryMonitoringEnabled = true
+        if let free = freeDiskBytes(), free < 1_500_000_000 {
+            fail("Not enough free storage — free up space (about 1.5 GB) and try again")
+            return
+        }
+        let battery = UIDevice.current.batteryLevel
+        let charging = UIDevice.current.batteryState == .charging || UIDevice.current.batteryState == .full
+        if battery >= 0, battery < 0.15, !charging {
+            fail("Battery too low to record — charge above 15% or plug in")
             return
         }
         hasStartedWriter = false
@@ -547,7 +555,7 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
             AVVideoWidthKey: encWidth,
             AVVideoHeightKey: encHeight,
             AVVideoCompressionPropertiesKey: [
-                AVVideoAverageBitRateKey: 12_000_000,
+                AVVideoAverageBitRateKey: 8_000_000,
                 AVVideoMaxKeyFrameIntervalKey: 30,
                 AVVideoProfileLevelKey: AVVideoProfileLevelH264HighAutoLevel,
             ],
@@ -623,7 +631,18 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
             "h": Int(resolution.height),
         ]
         if let loc = currentLocation {
-            kf["gps"] = ["lat": loc.coordinate.latitude, "lon": loc.coordinate.longitude, "alt": loc.altitude]
+            kf["gps"] = [
+                "lat": loc.coordinate.latitude,
+                "lon": loc.coordinate.longitude,
+                "alt": loc.altitude,
+                "hAcc": loc.horizontalAccuracy,
+                "vAcc": loc.verticalAccuracy,
+                "course": loc.course,
+            ]
+        }
+        // Heading + GPS accuracy let the cloud georegister the twin onto 3D map tiles later.
+        if let h = currentHeading {
+            kf["heading"] = ["true": h.trueHeading, "magnetic": h.magneticHeading, "accuracy": h.headingAccuracy]
         }
         return kf
     }
@@ -671,13 +690,31 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
                 self.timerLabel.text = String(format: "%d:%02d", secs / 60, secs % 60)
                 self.metricsLabel.text = "LIDAR · \(self.formatCount(self.pointCount)) pts"
             }
-            // Thermal guard.
-            switch ProcessInfo.processInfo.thermalState {
-            case .serious:
-                DispatchQueue.main.async { self.tipLabel.text = "Device warming — finish soon" }
-            case .critical:
-                DispatchQueue.main.async { self.finishRecording() }
-            default: break
+            // Field safety guard: thermal, battery, and disk. Warn as each approaches its
+            // limit; auto-finish (the scan is saved) at the hard limit so a hot/dying/full
+            // phone never loses the capture.
+            let thermal = ProcessInfo.processInfo.thermalState
+            let battery = UIDevice.current.batteryLevel
+            let charging = UIDevice.current.batteryState == .charging
+                || UIDevice.current.batteryState == .full
+            let lowDisk = (self.freeDiskBytes() ?? .max) < 750_000_000
+            if thermal == .critical || lowDisk || (battery >= 0 && battery < 0.10 && !charging) {
+                DispatchQueue.main.async {
+                    self.tipLabel.text = thermal == .critical
+                        ? "Device too hot — saving scan"
+                        : (lowDisk ? "Storage full — saving scan" : "Battery critically low — saving scan")
+                    self.finishRecording()
+                }
+            } else if thermal == .serious {
+                DispatchQueue.main.async {
+                    self.tipLabel.textColor = UIColor(red: 1, green: 0.8, blue: 0.3, alpha: 1)
+                    self.tipLabel.text = "Device warming — finish this area soon"
+                }
+            } else if battery >= 0 && battery < 0.25 && !charging {
+                DispatchQueue.main.async {
+                    self.tipLabel.textColor = UIColor(red: 1, green: 0.8, blue: 0.3, alpha: 1)
+                    self.tipLabel.text = "Battery low — finish soon"
+                }
             }
         }
     }
@@ -719,8 +756,12 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
         locationManager?.desiredAccuracy = kCLLocationAccuracyBest
         locationManager?.requestWhenInUseAuthorization()
         locationManager?.startUpdatingLocation()
+        if CLLocationManager.headingAvailable() {
+            locationManager?.startUpdatingHeading()
+        }
     }
     func locationManager(_ m: CLLocationManager, didUpdateLocations locs: [CLLocation]) { currentLocation = locs.last }
+    func locationManager(_ m: CLLocationManager, didUpdateHeading newHeading: CLHeading) { currentHeading = newHeading }
     func locationManager(_ m: CLLocationManager, didFailWithError error: Error) {}
 
     // MARK: Teardown
@@ -734,6 +775,7 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
     private func teardownSessionOnly() {
         arSession.pause()
         locationManager?.stopUpdatingLocation()
+        locationManager?.stopUpdatingHeading()
         stopTimers()
     }
 
