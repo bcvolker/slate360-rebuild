@@ -28,6 +28,7 @@ type Props = {
  */
 export function TwinNativeCaptureLauncher({ spaceId, projectId, title, onUploaded, onCancel }: Props) {
   const [phase, setPhase] = useState<"capturing" | "uploading" | "error">("capturing");
+  const [uploadLabel, setUploadLabel] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const launchedRef = useRef(false);
 
@@ -41,8 +42,10 @@ export function TwinNativeCaptureLauncher({ spaceId, projectId, title, onUploade
     (async () => {
       // Flip the spinner copy when native leaves capture and starts uploading
       // (presentCapture stays pending until the upload finishes).
-      listener = await LiDARCapture.addListener("uploadPhase", () => {
-        if (!cancelled) setPhase("uploading");
+      listener = await LiDARCapture.addListener("uploadPhase", (event) => {
+        if (cancelled) return;
+        setPhase("uploading");
+        if (event?.label) setUploadLabel(event.label);
       });
 
       try {
@@ -101,7 +104,9 @@ export function TwinNativeCaptureLauncher({ spaceId, projectId, title, onUploade
         <>
           <IconLoader2 className={cn("h-8 w-8 animate-spin", twinAccent.spinner)} />
           <p className="text-sm font-medium text-zinc-300">
-            {phase === "capturing" ? "Opening LiDAR capture…" : "Uploading scan…"}
+            {phase === "capturing"
+              ? "Opening LiDAR capture…"
+              : uploadLabel ?? "Uploading scan…"}
           </p>
         </>
       )}

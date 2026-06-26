@@ -189,6 +189,11 @@ public class LiDARCapturePlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate,
                     projectId: projectId,
                     title: title
                 )
+                // Forward each upload step to the web so the spinner shows live progress
+                // ("Uploading video…", "Finishing up…") instead of a silent "Uploading scan…".
+                uploader.onStep = { [weak self] label in
+                    self?.notifyListeners("uploadPhase", data: ["phase": "uploading", "label": label])
+                }
                 do {
                     let captureId = try uploader.upload(files: entries)
                     NSLog("[Slate360] Twin native upload complete; captureId=\(captureId)")

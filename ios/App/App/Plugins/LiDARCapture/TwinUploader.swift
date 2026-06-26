@@ -55,6 +55,11 @@ final class TwinUploader {
     private let title: String?
     private let session: URLSession
 
+    /// Emits a short human-readable label for the step currently in flight (e.g.
+    /// "Uploading video…", "Finalizing…"). Drives the live web spinner copy so a slow or
+    /// stalled step is visible instead of presenting as a frozen "Uploading scan…".
+    var onStep: ((String) -> Void)?
+
     init(apiBase: String, cookieHeader: String, spaceId: String, projectId: String, title: String?) {
         // Trim any trailing slash so apiBase + "/api/..." is well-formed.
         self.apiBase = apiBase.hasSuffix("/") ? String(apiBase.dropLast()) : apiBase
@@ -63,10 +68,22 @@ final class TwinUploader {
         self.projectId = projectId
         self.title = title
         let cfg = URLSessionConfiguration.ephemeral
-        cfg.timeoutIntervalForRequest = 120
+        // 60s with-no-data ceiling (down from 120) so a stalled connection surfaces a loud
+        // error in minutes, not the ~6 min a long timeout × retries used to spin silently.
+        cfg.timeoutIntervalForRequest = 60
         cfg.timeoutIntervalForResource = 3600
         cfg.httpShouldSetCookies = false // we attach cookies explicitly
         self.session = URLSession(configuration: cfg)
+    }
+
+    /// Friendly label for a capture file, used in progress updates.
+    private func stepLabel(for entry: FileEntry) -> String {
+        switch entry.assetKind {
+        case "video": return "Uploading video…"
+        case "ply_lidar": return "Uploading LiDAR mesh…"
+        case "lidar_poses": return "Uploading scan data…"
+        default: return "Uploading \(entry.filename)…"
+        }
     }
 
     /// Uploads every file and returns the resulting capture id. Blocking — call on a
@@ -76,6 +93,7 @@ final class TwinUploader {
         // bundle), create a quick-scan space natively so the capture isn't lost. Mirrors
         // the web's bootQuickScan call.
         if spaceId.isEmpty {
+            onStep?("Preparing workspace…")
             let (sid, pid) = try createQuickScanSpace(title: title ?? "Quick scan")
             spaceId = sid
             projectId = pid
@@ -89,9 +107,11 @@ final class TwinUploader {
             captureId = try initAndUploadMultipart(multipart, captureId: captureId)
         }
         for entry in singles {
+            onStep?(stepLabel(for: entry))
             captureId = try uploadSingle(entry, captureId: captureId)
         }
 
+        onStep?("Finishing up…")
         guard let cid = captureId else { throw UploadError.missing("captureId") }
         return cid
     }
@@ -141,6 +161,7 @@ final class TwinUploader {
 
         for (index, entry) in files.enumerated() {
             guard index < uploads.count else { throw UploadError.missing("upload row \(index)") }
+            onStep?(stepLabel(for: entry))
             try uploadMultipartFile(entry, upload: uploads[index])
         }
         return cid

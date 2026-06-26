@@ -62,6 +62,9 @@ export interface TwinCapturePresentOptions {
  *  while `presentCapture` is still awaiting (native resolves only after upload finishes). */
 export interface LiDARUploadPhaseEvent {
   phase: "uploading";
+  /** Live, human-readable label for the step currently uploading (e.g. "Uploading video…",
+   *  "Finishing up…"). Lets the spinner show progress instead of a static, frozen-looking copy. */
+  label?: string;
 }
 
 export interface LiDARCapturePlugin {
