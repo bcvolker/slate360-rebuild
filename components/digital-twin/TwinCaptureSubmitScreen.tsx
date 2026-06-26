@@ -12,11 +12,15 @@ import {
   IconCoins,
   IconClock,
   IconCube,
+  IconCircleCheck,
+  IconAlertTriangle,
+  IconEye,
 } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import { useTwinCreditEstimate } from "@/hooks/useTwinCreditEstimate";
-import { TwinJobStatus } from "./TwinJobStatus";
+import { useTwinJobRealtime } from "@/hooks/useTwinJobRealtime";
 import { TwinCaptureCreditsSheet } from "./TwinCaptureCreditsSheet";
+import { TwinShareActions } from "./TwinShareActions";
 
 export type TwinSubmitAsset = {
   assetKind: string;
@@ -86,9 +90,7 @@ export function TwinCaptureSubmitScreen({
   canUseHighQuality,
 }: Props) {
   const router = useRouter();
-  const [queued, setQueued] = useState(
-    captureStatus !== "uploaded" && captureStatus !== "draft",
-  );
+  const [submitted, setSubmitted] = useState(false);
   const [quality, setQuality] = useState<Quality>("draft");
   const [context, setContext] = useState(0);
   const [assetsOpen, setAssetsOpen] = useState(false);
@@ -96,6 +98,7 @@ export function TwinCaptureSubmitScreen({
   const [error, setError] = useState<string | null>(null);
   const [creditsOpen, setCreditsOpen] = useState(false);
 
+  const { job } = useTwinJobRealtime(captureId);
   const assetsReady = assets.length > 0 && assets.every((a) => a.status === "ready");
   const { estimate } = useTwinCreditEstimate(captureId, assetsReady);
 
@@ -123,7 +126,7 @@ export function TwinCaptureSubmitScreen({
       });
       const data = (await res.json().catch(() => ({}))) as { job?: { id: string }; error?: string };
       if (!res.ok || !data.job?.id) throw new Error(data.error ?? "Could not start processing");
-      setQueued(true);
+      setSubmitted(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not start processing");
     } finally {
@@ -131,20 +134,138 @@ export function TwinCaptureSubmitScreen({
     }
   }
 
-  // ── Processing / complete phase ───────────────────────────────────────────
-  if (queued) {
+  // ── Phase derivation (drives processing / complete / failed views) ─────────
+  const live = job?.status;
+  const phase: "ready" | "processing" | "complete" | "failed" =
+    live === "completed" || captureStatus === "ready" || captureStatus === "processed"
+      ? "complete"
+      : live === "failed"
+        ? "failed"
+        : submitted || live === "processing" || live === "queued" ||
+            captureStatus === "processing" || captureStatus === "queued"
+          ? "processing"
+          : captureStatus === "failed"
+            ? "failed"
+            : "ready";
+
+  const phaseShell =
+    "flex min-h-0 flex-1 flex-col bg-[#0B0F15] px-4 pt-[calc(env(safe-area-inset-top,0px)+2rem)] pb-[calc(env(safe-area-inset-bottom,0px)+1.5rem)]";
+
+  if (phase === "complete") {
     return (
-      <div className="flex min-h-0 flex-1 flex-col bg-[#0B0F15] px-4 pt-[calc(env(safe-area-inset-top,0px)+1.25rem)]">
-        <div className="mx-auto flex w-full max-w-md flex-1 flex-col gap-5">
-          <h1 className="text-lg font-semibold text-white">Building your 3D twin</h1>
-          <p className="text-sm text-zinc-400">{title}</p>
-          <TwinJobStatus captureId={captureId} spaceId={spaceId} />
+      <div className={phaseShell}>
+        <div className="mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center gap-6 text-center">
+          <div
+            className="flex h-16 w-16 items-center justify-center rounded-full"
+            style={{ background: `color-mix(in srgb, ${BLUE} 18%, transparent)` }}
+          >
+            <IconCircleCheck className="h-9 w-9 text-[color:var(--twin360-blue)]" />
+          </div>
+          <div className="flex flex-col gap-1">
+            <h1 className="text-xl font-semibold text-white">Your twin is ready</h1>
+            <p className="text-sm text-zinc-400">{title}</p>
+          </div>
+          <div className="flex w-full flex-col gap-3">
+            <button
+              onClick={() => router.push(`/digital-twin/twins/${spaceId}`)}
+              className="flex h-[52px] w-full items-center justify-center gap-2 rounded-2xl text-[15px] font-bold text-[#0B0F15]"
+              style={{ background: BLUE }}
+            >
+              <IconEye className="h-5 w-5" /> View 3D twin
+            </button>
+            <TwinShareActions spaceId={spaceId} />
+            <button
+              onClick={() => router.push("/digital-twin")}
+              className="text-sm text-zinc-400 hover:text-zinc-200"
+            >
+              Back to My Twins
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (phase === "failed") {
+    return (
+      <div className={phaseShell}>
+        <div className="mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center gap-6 text-center">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-500/15">
+            <IconAlertTriangle className="h-8 w-8 text-red-400" />
+          </div>
+          <div className="flex flex-col gap-1">
+            <h1 className="text-xl font-semibold text-white">Processing didn’t finish</h1>
+            <p className="text-sm text-zinc-400">
+              {job?.error_text ?? "Something went wrong while building your twin."}
+            </p>
+          </div>
+          <div className="flex w-full flex-col gap-3">
+            <button
+              onClick={() => {
+                setSubmitted(true);
+                void handleProcess();
+              }}
+              className="h-[52px] w-full rounded-2xl text-[15px] font-bold text-[#0B0F15]"
+              style={{ background: BLUE }}
+            >
+              Try again
+            </button>
+            <button
+              onClick={() => router.push("/digital-twin")}
+              className="text-sm text-zinc-400 hover:text-zinc-200"
+            >
+              Back to My Twins
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (phase === "processing") {
+    const pct = Math.max(5, job?.progress_pct ?? 5);
+    const STAGES = ["Queued", "Preparing frames", "Aligning LiDAR", "Training model", "Optimizing", "Ready"];
+    const stageIdx = Math.min(STAGES.length - 1, Math.floor((pct / 100) * STAGES.length));
+    return (
+      <div className={phaseShell}>
+        <div className="mx-auto flex w-full max-w-md flex-1 flex-col gap-6">
+          <div className="flex flex-col gap-1">
+            <h1 className="text-lg font-semibold text-white">Building your 3D twin</h1>
+            <p className="text-sm text-zinc-400">{title}</p>
+          </div>
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-zinc-300">{STAGES[stageIdx]}</span>
+              <span className="font-semibold tabular-nums text-[color:var(--twin360-blue)]">{pct}%</span>
+            </div>
+            <div className="h-2 overflow-hidden rounded-full bg-white/[0.06]">
+              <div
+                className="h-full rounded-full transition-[width] duration-500"
+                style={{ width: `${pct}%`, background: BLUE }}
+              />
+            </div>
+          </div>
+          <ul className="flex flex-col gap-2.5">
+            {STAGES.map((s, i) => (
+              <li key={s} className="flex items-center gap-2 text-sm">
+                {i < stageIdx ? (
+                  <IconCheck className="h-4 w-4 text-emerald-400" />
+                ) : i === stageIdx ? (
+                  <IconLoader2 className="h-4 w-4 animate-spin text-[color:var(--twin360-blue)]" />
+                ) : (
+                  <span className="h-4 w-4 rounded-full border border-white/15" />
+                )}
+                <span className={cn(i <= stageIdx ? "text-zinc-200" : "text-zinc-500")}>{s}</span>
+              </li>
+            ))}
+          </ul>
           <p className="text-xs text-zinc-500">
-            You can leave this screen — processing continues in the cloud and we’ll notify you when it’s ready.
+            This usually takes ~15–20 minutes. You can leave — processing continues in the cloud and your
+            twin appears in My Twins when it’s ready.
           </p>
           <button
             onClick={() => router.push("/digital-twin")}
-            className="mt-1 self-start text-sm font-medium text-[color:var(--twin360-blue)]"
+            className="self-start text-sm font-medium text-[color:var(--twin360-blue)]"
           >
             Go to My Twins
           </button>
