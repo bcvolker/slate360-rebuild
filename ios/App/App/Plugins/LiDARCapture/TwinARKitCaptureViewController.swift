@@ -100,7 +100,9 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
     private var currentLocation: CLLocation?
     private var currentHeading: CLHeading?
 
-    // HUD
+    // HUD — Graphite Glass language (matches Site Walk capture chrome, recolored Twin blue).
+    private let topBar = UIVisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterialDark))
+    private let metricsBar = UIVisualEffectView(effect: UIBlurEffect(style: .systemThinMaterialDark))
     private let statePill = UILabel()
     private let metricsLabel = UILabel()
     private let tipLabel = UILabel()
@@ -108,6 +110,11 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
     private let recordButton = UIButton(type: .system)
     private let finishButton = UIButton(type: .system)
     private let cancelButton = UIButton(type: .system)
+    private let torchButton = UIButton(type: .system)
+    private let torchLabel = UILabel()
+    private let finishLabel = UILabel()
+    private var torchOn = false
+    private let muted = UIColor(red: 0xA3/255, green: 0xAE/255, blue: 0xD0/255, alpha: 1)   // --graphite-muted
     private var progressTimer: Timer?
     private var displayTimer: Timer?
 
@@ -172,6 +179,7 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
         }
         config.worldAlignment = .gravity
         arSession.run(config, options: [.resetTracking, .removeExistingAnchors])
+        revealTorchIfAvailable()
         setState(.ready, message: "Ready — tap record")
     }
 
@@ -181,101 +189,193 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
     private let brandBlue = UIColor(red: 0x3D/255, green: 0x8E/255, blue: 0xFF/255, alpha: 1)
 
     private func setupHUD() {
-        func glass(_ v: UIView) {
-            v.backgroundColor = UIColor(red: 0x0B/255, green: 0x0F/255, blue: 0x15/255, alpha: 0.78)
-            v.layer.cornerRadius = 10
-            v.layer.masksToBounds = true
-        }
         let safe = view.safeAreaLayoutGuide
+        let bodyText = UIColor(red: 0xF8/255, green: 0xFA/255, blue: 0xFC/255, alpha: 1)   // --graphite-text-body
+
+        // Graphite Glass square tool button (Site Walk parity).
+        func glassTool(_ b: UIButton, _ symbol: String) {
+            b.translatesAutoresizingMaskIntoConstraints = false
+            b.tintColor = muted
+            b.setImage(UIImage(systemName: symbol), for: .normal)
+            b.backgroundColor = UIColor.white.withAlphaComponent(0.06)
+            b.layer.cornerRadius = 26
+            b.layer.borderWidth = 1
+            b.layer.borderColor = UIColor.white.withAlphaComponent(0.10).cgColor
+        }
+        func caption(_ l: UILabel, _ text: String) {
+            l.translatesAutoresizingMaskIntoConstraints = false
+            l.text = text
+            l.textColor = bodyText
+            l.font = .systemFont(ofSize: 11, weight: .medium)
+            l.textAlignment = .center
+        }
+
+        // ── Top glass bar: ‹ BACK · title · timer ──
+        topBar.translatesAutoresizingMaskIntoConstraints = false
+        topBar.layer.cornerRadius = 14
+        topBar.clipsToBounds = true
+        topBar.layer.borderWidth = 1
+        topBar.layer.borderColor = brandBlue.withAlphaComponent(0.28).cgColor
+        view.addSubview(topBar)
+        let bar = topBar.contentView
+
+        cancelButton.translatesAutoresizingMaskIntoConstraints = false
+        cancelButton.setTitle("‹ BACK", for: .normal)
+        cancelButton.setTitleColor(brandBlue, for: .normal)
+        cancelButton.titleLabel?.font = .systemFont(ofSize: 12, weight: .bold)
+        cancelButton.backgroundColor = brandBlue.withAlphaComponent(0.14)
+        cancelButton.layer.cornerRadius = 8
+        cancelButton.contentEdgeInsets = UIEdgeInsets(top: 0, left: 10, bottom: 0, right: 10)
+        cancelButton.addTarget(self, action: #selector(tapCancel), for: .touchUpInside)
+        bar.addSubview(cancelButton)
 
         statePill.translatesAutoresizingMaskIntoConstraints = false
-        statePill.text = "Checking device…"
+        statePill.text = "TWIN 360 · LIDAR"
         statePill.textColor = brandBlue
-        statePill.font = .monospacedSystemFont(ofSize: 12, weight: .semibold)
+        statePill.font = .monospacedSystemFont(ofSize: 11, weight: .semibold)
         statePill.textAlignment = .center
-        glass(statePill)
-        view.addSubview(statePill)
+        bar.addSubview(statePill)
 
         timerLabel.translatesAutoresizingMaskIntoConstraints = false
         timerLabel.text = "0:00"
         timerLabel.textColor = .white
-        timerLabel.font = .monospacedDigitSystemFont(ofSize: 15, weight: .bold)
-        timerLabel.textAlignment = .center
-        glass(timerLabel)
-        view.addSubview(timerLabel)
+        timerLabel.font = .monospacedDigitSystemFont(ofSize: 14, weight: .bold)
+        timerLabel.textAlignment = .right
+        bar.addSubview(timerLabel)
+
+        // ── Metrics pill ──
+        metricsBar.translatesAutoresizingMaskIntoConstraints = false
+        metricsBar.layer.cornerRadius = 14
+        metricsBar.clipsToBounds = true
+        metricsBar.layer.borderWidth = 1
+        metricsBar.layer.borderColor = brandBlue.withAlphaComponent(0.22).cgColor
+        view.addSubview(metricsBar)
 
         metricsLabel.translatesAutoresizingMaskIntoConstraints = false
         metricsLabel.text = "LIDAR · 0 pts"
         metricsLabel.textColor = brandBlue
         metricsLabel.font = .monospacedSystemFont(ofSize: 12, weight: .semibold)
         metricsLabel.textAlignment = .center
-        glass(metricsLabel)
-        view.addSubview(metricsLabel)
+        metricsBar.contentView.addSubview(metricsLabel)
 
+        // ── Guidance ──
         tipLabel.translatesAutoresizingMaskIntoConstraints = false
         tipLabel.text = "Move slowly · capture corners · keep device steady"
-        tipLabel.textColor = UIColor.white.withAlphaComponent(0.85)
+        tipLabel.textColor = bodyText.withAlphaComponent(0.9)
         tipLabel.font = .systemFont(ofSize: 12, weight: .medium)
         tipLabel.textAlignment = .center
         tipLabel.numberOfLines = 2
         view.addSubview(tipLabel)
 
-        cancelButton.translatesAutoresizingMaskIntoConstraints = false
-        cancelButton.setTitle("Cancel", for: .normal)
-        cancelButton.setTitleColor(.white, for: .normal)
-        cancelButton.titleLabel?.font = .systemFont(ofSize: 15, weight: .semibold)
-        cancelButton.addTarget(self, action: #selector(tapCancel), for: .touchUpInside)
-        view.addSubview(cancelButton)
-
+        // ── Bottom controls: torch · record(shutter) · finish ──
         recordButton.translatesAutoresizingMaskIntoConstraints = false
-        recordButton.setTitle("● REC", for: .normal)
-        recordButton.setTitleColor(.white, for: .normal)
-        recordButton.backgroundColor = brandBlue
-        recordButton.layer.cornerRadius = 14
-        recordButton.titleLabel?.font = .systemFont(ofSize: 18, weight: .bold)
+        recordButton.setTitle("REC", for: .normal)
         recordButton.setTitleColor(UIColor(red: 0x0B/255, green: 0x0F/255, blue: 0x15/255, alpha: 1), for: .normal)
+        recordButton.backgroundColor = brandBlue
+        recordButton.layer.cornerRadius = 36
+        recordButton.layer.borderWidth = 4
+        recordButton.layer.borderColor = UIColor.white.withAlphaComponent(0.85).cgColor
+        recordButton.titleLabel?.font = .systemFont(ofSize: 16, weight: .heavy)
         recordButton.addTarget(self, action: #selector(tapRecord), for: .touchUpInside)
         view.addSubview(recordButton)
 
-        finishButton.translatesAutoresizingMaskIntoConstraints = false
-        finishButton.setTitle("Finish capture", for: .normal)
-        finishButton.setTitleColor(.white, for: .normal)
-        finishButton.titleLabel?.font = .systemFont(ofSize: 15, weight: .semibold)
+        glassTool(torchButton, "flashlight.off.fill")
+        torchButton.isHidden = true
+        torchButton.addTarget(self, action: #selector(tapTorch), for: .touchUpInside)
+        view.addSubview(torchButton)
+        caption(torchLabel, "Torch"); torchLabel.isHidden = true; view.addSubview(torchLabel)
+
+        glassTool(finishButton, "checkmark")
+        finishButton.tintColor = brandBlue
         finishButton.isHidden = true
         finishButton.addTarget(self, action: #selector(tapFinish), for: .touchUpInside)
         view.addSubview(finishButton)
+        caption(finishLabel, "Finish"); finishLabel.isHidden = true; view.addSubview(finishLabel)
 
         NSLayoutConstraint.activate([
-            cancelButton.leadingAnchor.constraint(equalTo: safe.leadingAnchor, constant: 16),
-            cancelButton.topAnchor.constraint(equalTo: safe.topAnchor, constant: 10),
+            topBar.leadingAnchor.constraint(equalTo: safe.leadingAnchor, constant: 16),
+            topBar.trailingAnchor.constraint(equalTo: safe.trailingAnchor, constant: -16),
+            topBar.topAnchor.constraint(equalTo: safe.topAnchor, constant: 8),
+            topBar.heightAnchor.constraint(equalToConstant: 44),
 
-            statePill.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            statePill.topAnchor.constraint(equalTo: safe.topAnchor, constant: 8),
-            statePill.heightAnchor.constraint(equalToConstant: 26),
-            statePill.widthAnchor.constraint(greaterThanOrEqualToConstant: 130),
+            cancelButton.leadingAnchor.constraint(equalTo: bar.leadingAnchor, constant: 8),
+            cancelButton.centerYAnchor.constraint(equalTo: bar.centerYAnchor),
+            cancelButton.heightAnchor.constraint(equalToConstant: 30),
 
-            timerLabel.trailingAnchor.constraint(equalTo: safe.trailingAnchor, constant: -16),
-            timerLabel.topAnchor.constraint(equalTo: safe.topAnchor, constant: 8),
-            timerLabel.heightAnchor.constraint(equalToConstant: 26),
-            timerLabel.widthAnchor.constraint(equalToConstant: 64),
+            statePill.centerXAnchor.constraint(equalTo: bar.centerXAnchor),
+            statePill.centerYAnchor.constraint(equalTo: bar.centerYAnchor),
 
-            metricsLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            metricsLabel.topAnchor.constraint(equalTo: statePill.bottomAnchor, constant: 10),
-            metricsLabel.heightAnchor.constraint(equalToConstant: 24),
-            metricsLabel.widthAnchor.constraint(greaterThanOrEqualToConstant: 130),
+            timerLabel.trailingAnchor.constraint(equalTo: bar.trailingAnchor, constant: -12),
+            timerLabel.centerYAnchor.constraint(equalTo: bar.centerYAnchor),
+
+            metricsBar.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            metricsBar.topAnchor.constraint(equalTo: topBar.bottomAnchor, constant: 10),
+            metricsBar.heightAnchor.constraint(equalToConstant: 28),
+
+            metricsLabel.leadingAnchor.constraint(equalTo: metricsBar.contentView.leadingAnchor, constant: 14),
+            metricsLabel.trailingAnchor.constraint(equalTo: metricsBar.contentView.trailingAnchor, constant: -14),
+            metricsLabel.centerYAnchor.constraint(equalTo: metricsBar.contentView.centerYAnchor),
 
             tipLabel.leadingAnchor.constraint(equalTo: safe.leadingAnchor, constant: 24),
             tipLabel.trailingAnchor.constraint(equalTo: safe.trailingAnchor, constant: -24),
-            tipLabel.bottomAnchor.constraint(equalTo: recordButton.topAnchor, constant: -16),
+            tipLabel.bottomAnchor.constraint(equalTo: recordButton.topAnchor, constant: -18),
 
             recordButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            recordButton.bottomAnchor.constraint(equalTo: safe.bottomAnchor, constant: -20),
-            recordButton.widthAnchor.constraint(equalToConstant: 180),
-            recordButton.heightAnchor.constraint(equalToConstant: 56),
+            recordButton.bottomAnchor.constraint(equalTo: safe.bottomAnchor, constant: -36),
+            recordButton.widthAnchor.constraint(equalToConstant: 72),
+            recordButton.heightAnchor.constraint(equalToConstant: 72),
 
-            finishButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            finishButton.bottomAnchor.constraint(equalTo: recordButton.topAnchor, constant: -10),
+            torchButton.trailingAnchor.constraint(equalTo: recordButton.leadingAnchor, constant: -44),
+            torchButton.centerYAnchor.constraint(equalTo: recordButton.centerYAnchor),
+            torchButton.widthAnchor.constraint(equalToConstant: 52),
+            torchButton.heightAnchor.constraint(equalToConstant: 52),
+            torchLabel.centerXAnchor.constraint(equalTo: torchButton.centerXAnchor),
+            torchLabel.topAnchor.constraint(equalTo: torchButton.bottomAnchor, constant: 6),
+
+            finishButton.leadingAnchor.constraint(equalTo: recordButton.trailingAnchor, constant: 44),
+            finishButton.centerYAnchor.constraint(equalTo: recordButton.centerYAnchor),
+            finishButton.widthAnchor.constraint(equalToConstant: 52),
+            finishButton.heightAnchor.constraint(equalToConstant: 52),
+            finishLabel.centerXAnchor.constraint(equalTo: finishButton.centerXAnchor),
+            finishLabel.topAnchor.constraint(equalTo: finishButton.bottomAnchor, constant: 6),
         ])
+    }
+
+    // MARK: Torch
+
+    private func torchDevice() -> AVCaptureDevice? {
+        let d = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back)
+        return (d?.hasTorch == true) ? d : nil
+    }
+
+    private func revealTorchIfAvailable() {
+        let available = torchDevice() != nil
+        DispatchQueue.main.async {
+            self.torchButton.isHidden = !available
+            self.torchLabel.isHidden = !available
+        }
+    }
+
+    @objc private func tapTorch() {
+        guard let device = torchDevice() else { return }
+        torchOn.toggle()
+        do {
+            try device.lockForConfiguration()
+            device.torchMode = torchOn ? .on : .off
+            device.unlockForConfiguration()
+        } catch { torchOn.toggle(); return }
+        torchButton.setImage(UIImage(systemName: torchOn ? "flashlight.on.fill" : "flashlight.off.fill"), for: .normal)
+        torchButton.tintColor = torchOn ? brandBlue : muted
+        torchButton.backgroundColor = torchOn ? brandBlue.withAlphaComponent(0.18) : UIColor.white.withAlphaComponent(0.06)
+        torchButton.layer.borderColor = (torchOn ? brandBlue.withAlphaComponent(0.55) : UIColor.white.withAlphaComponent(0.10)).cgColor
+    }
+
+    private func turnTorchOff() {
+        guard torchOn, let device = torchDevice() else { return }
+        torchOn = false
+        try? device.lockForConfiguration()
+        device.torchMode = .off
+        device.unlockForConfiguration()
     }
 
     private func setState(_ s: State, message: String?) {
@@ -289,7 +389,9 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
             case .failed: self.statePill.text = "Failed"
             }
             if let m = message { self.tipLabel.text = m }
-            self.finishButton.isHidden = !(s == .recording)
+            let recording = (s == .recording)
+            self.finishButton.isHidden = !recording
+            self.finishLabel.isHidden = !recording
         }
         emitProgress()
     }
@@ -342,7 +444,7 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
             self?.voxelGrid.removeAll(keepingCapacity: true)
             self?.keyframes.removeAll(keepingCapacity: true)
         }
-        recordButton.setTitle("■ Stop", for: .normal)
+        recordButton.setTitle("STOP", for: .normal)
         setState(.recording, message: "Move slowly · capture corners")
         startTimers()
         // Flip last: no ARFrame is accumulated until the reset above is queued.
@@ -796,6 +898,7 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
     }
 
     private func teardownSessionOnly() {
+        turnTorchOff()
         arSession.pause()
         locationManager?.stopUpdatingLocation()
         locationManager?.stopUpdatingHeading()
