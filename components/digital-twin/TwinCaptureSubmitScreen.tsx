@@ -149,7 +149,7 @@ export function TwinCaptureSubmitScreen({
             : "ready";
 
   const phaseShell =
-    "flex min-h-0 flex-1 flex-col bg-[#0B0F15] px-4 pt-[calc(env(safe-area-inset-top,0px)+2rem)] pb-[calc(env(safe-area-inset-bottom,0px)+1.5rem)]";
+    "flex min-h-0 flex-1 flex-col bg-[var(--graphite-canvas)] px-4 pt-[calc(env(safe-area-inset-top,0px)+2rem)] pb-[calc(env(safe-area-inset-bottom,0px)+1.5rem)]";
 
   if (phase === "complete") {
     return (
@@ -163,7 +163,7 @@ export function TwinCaptureSubmitScreen({
           </div>
           <div className="flex flex-col gap-1">
             <h1 className="text-xl font-semibold text-white">Your twin is ready</h1>
-            <p className="text-sm text-zinc-400">{title}</p>
+            <p className="text-sm text-[var(--graphite-muted)]">{title}</p>
           </div>
           <div className="flex w-full flex-col gap-3">
             <button
@@ -176,7 +176,7 @@ export function TwinCaptureSubmitScreen({
             <TwinShareActions spaceId={spaceId} />
             <button
               onClick={() => router.push("/digital-twin")}
-              className="text-sm text-zinc-400 hover:text-zinc-200"
+              className="text-sm text-[var(--graphite-muted)] hover:text-[var(--graphite-text-body)]"
             >
               Back to My Twins
             </button>
@@ -195,7 +195,7 @@ export function TwinCaptureSubmitScreen({
           </div>
           <div className="flex flex-col gap-1">
             <h1 className="text-xl font-semibold text-white">Processing didn’t finish</h1>
-            <p className="text-sm text-zinc-400">
+            <p className="text-sm text-[var(--graphite-muted)]">
               {job?.error_text ?? "Something went wrong while building your twin."}
             </p>
           </div>
@@ -212,7 +212,7 @@ export function TwinCaptureSubmitScreen({
             </button>
             <button
               onClick={() => router.push("/digital-twin")}
-              className="text-sm text-zinc-400 hover:text-zinc-200"
+              className="text-sm text-[var(--graphite-muted)] hover:text-[var(--graphite-text-body)]"
             >
               Back to My Twins
             </button>
@@ -231,11 +231,11 @@ export function TwinCaptureSubmitScreen({
         <div className="mx-auto flex w-full max-w-md flex-1 flex-col gap-6">
           <div className="flex flex-col gap-1">
             <h1 className="text-lg font-semibold text-white">Building your 3D twin</h1>
-            <p className="text-sm text-zinc-400">{title}</p>
+            <p className="text-sm text-[var(--graphite-muted)]">{title}</p>
           </div>
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between text-sm">
-              <span className="text-zinc-300">{STAGES[stageIdx]}</span>
+              <span className="text-[var(--graphite-text-body)]">{STAGES[stageIdx]}</span>
               <span className="font-semibold tabular-nums text-[color:var(--twin360-blue)]">{pct}%</span>
             </div>
             <div className="h-2 overflow-hidden rounded-full bg-white/[0.06]">
@@ -255,11 +255,11 @@ export function TwinCaptureSubmitScreen({
                 ) : (
                   <span className="h-4 w-4 rounded-full border border-white/15" />
                 )}
-                <span className={cn(i <= stageIdx ? "text-zinc-200" : "text-zinc-500")}>{s}</span>
+                <span className={cn(i <= stageIdx ? "text-[var(--graphite-text-body)]" : "text-[var(--graphite-muted)]")}>{s}</span>
               </li>
             ))}
           </ul>
-          <p className="text-xs text-zinc-500">
+          <p className="text-xs text-[var(--graphite-muted)]">
             This usually takes ~15–20 minutes. You can leave — processing continues in the cloud and your
             twin appears in My Twins when it’s ready.
           </p>
@@ -276,16 +276,16 @@ export function TwinCaptureSubmitScreen({
 
   // ── Ready phase ───────────────────────────────────────────────────────────
   return (
-    <div className="relative flex min-h-0 flex-1 flex-col bg-[#0B0F15]">
+    <div className="relative flex min-h-0 flex-1 flex-col bg-[var(--graphite-canvas)]">
       {/* scroll area (padded to clear the sticky dock) */}
       <div className="flex-1 overflow-y-auto overscroll-contain pb-[calc(env(safe-area-inset-bottom,0px)+150px)] pt-[calc(env(safe-area-inset-top,0px)+0.5rem)]">
         <div className="mx-auto w-full max-w-md px-4">
           {/* top bar */}
           <div className="flex h-11 items-center justify-between">
-            <button onClick={() => router.push("/digital-twin")} className="flex items-center gap-1 text-zinc-400">
+            <button onClick={() => router.push("/digital-twin")} className="flex items-center gap-1 text-[var(--graphite-muted)]">
               <IconChevronLeft className="h-5 w-5" />
             </button>
-            <span className="text-xs font-medium uppercase tracking-wide text-zinc-500">Scan ready</span>
+            <span className="text-xs font-medium uppercase tracking-wide text-[var(--graphite-muted)]">Scan ready</span>
             <span className="w-5" />
           </div>
 
@@ -299,7 +299,7 @@ export function TwinCaptureSubmitScreen({
             </div>
             <div className="flex min-w-0 flex-1 flex-col justify-center gap-1">
               <h1 className="truncate text-xl font-semibold text-white">{title}</h1>
-              <p className="text-[13px] text-zinc-400">
+              <p className="text-[13px] text-[var(--graphite-muted)]">
                 {[formatDate(createdAt), `${assets.length} asset${assets.length === 1 ? "" : "s"}`, formatBytes(totalBytes)]
                   .filter(Boolean)
                   .join(" · ")}
@@ -309,7 +309,7 @@ export function TwinCaptureSubmitScreen({
                   <IconCheck className="h-3.5 w-3.5" /> Uploaded
                 </span>
               ) : (
-                <span className="inline-flex w-fit items-center gap-1 text-xs text-zinc-400">
+                <span className="inline-flex w-fit items-center gap-1 text-xs text-[var(--graphite-muted)]">
                   <IconLoader2 className="h-3.5 w-3.5 animate-spin" /> Finishing upload…
                 </span>
               )}
@@ -328,14 +328,14 @@ export function TwinCaptureSubmitScreen({
                 className="flex min-h-[84px] flex-col items-start justify-center gap-1 rounded-2xl border border-white/[0.07] bg-white/[0.04] px-4 text-left transition-colors active:bg-white/[0.07]"
               >
                 <a.icon className="h-5 w-5 text-[color:var(--twin360-blue)]" />
-                <span className="text-sm font-semibold text-zinc-100">{a.label}</span>
-                <span className="text-[11px] text-zinc-500">{a.sub}</span>
+                <span className="text-sm font-semibold text-[var(--graphite-text-header)]">{a.label}</span>
+                <span className="text-[11px] text-[var(--graphite-muted)]">{a.sub}</span>
               </button>
             ))}
           </div>
 
           {/* QUALITY */}
-          <p className="mt-6 mb-2 text-[11px] font-semibold uppercase tracking-wide text-zinc-500">Quality</p>
+          <p className="mt-6 mb-2 text-[11px] font-semibold uppercase tracking-wide text-[var(--graphite-muted)]">Quality</p>
           <div className="grid grid-cols-3 gap-2">
             {QUALITY_TIERS.map((t) => {
               const locked = t.gated && !canUseHighQuality;
@@ -353,9 +353,9 @@ export function TwinCaptureSubmitScreen({
                     locked && "opacity-40",
                   )}
                 >
-                  <span className={cn("text-sm font-semibold", active ? "text-white" : "text-zinc-300")}>{t.label}</span>
-                  <span className="text-[11px] text-zinc-400">{t.time}</span>
-                  <span className="text-[10px] text-zinc-500">{locked ? "Pro" : t.sub}</span>
+                  <span className={cn("text-sm font-semibold", active ? "text-white" : "text-[var(--graphite-text-body)]")}>{t.label}</span>
+                  <span className="text-[11px] text-[var(--graphite-muted)]">{t.time}</span>
+                  <span className="text-[10px] text-[var(--graphite-muted)]">{locked ? "Pro" : t.sub}</span>
                 </button>
               );
             })}
@@ -367,13 +367,13 @@ export function TwinCaptureSubmitScreen({
               <span className="flex items-center gap-1.5 text-2xl font-bold tabular-nums text-[color:var(--twin360-blue)]">
                 <IconCoins className="h-5 w-5" /> {assetsReady ? credits : "—"}
               </span>
-              <span className="text-[11px] text-zinc-500">credits to process</span>
+              <span className="text-[11px] text-[var(--graphite-muted)]">credits to process</span>
             </div>
             <div className="flex flex-col items-end">
               <span className="flex items-center gap-1.5 text-2xl font-bold text-white">
-                <IconClock className="h-5 w-5 text-zinc-400" /> {eta.replace("~", "")}
+                <IconClock className="h-5 w-5 text-[var(--graphite-muted)]" /> {eta.replace("~", "")}
               </span>
-              <span className="text-[11px] text-zinc-500">estimated time</span>
+              <span className="text-[11px] text-[var(--graphite-muted)]">estimated time</span>
             </div>
           </div>
 
@@ -382,10 +382,10 @@ export function TwinCaptureSubmitScreen({
             onClick={() => setAssetsOpen((v) => !v)}
             className="mt-4 flex w-full items-center justify-between py-2 text-left"
           >
-            <span className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">
+            <span className="text-[11px] font-semibold uppercase tracking-wide text-[var(--graphite-muted)]">
               Captured assets · {assets.length}
             </span>
-            <span className="flex items-center gap-2 text-xs text-zinc-400">
+            <span className="flex items-center gap-2 text-xs text-[var(--graphite-muted)]">
               {formatBytes(totalBytes)}
               <IconChevronDown className={cn("h-4 w-4 transition-transform", assetsOpen && "rotate-180")} />
             </span>
@@ -394,15 +394,15 @@ export function TwinCaptureSubmitScreen({
             <ul className="flex flex-col">
               {assets.map((a, i) => (
                 <li key={i} className="flex items-center justify-between border-t border-white/[0.05] py-2.5 text-sm">
-                  <span className="flex items-center gap-2 text-zinc-300">
+                  <span className="flex items-center gap-2 text-[var(--graphite-text-body)]">
                     {a.status === "ready" ? (
                       <IconCheck className="h-4 w-4 text-emerald-400" />
                     ) : (
-                      <IconLoader2 className="h-4 w-4 animate-spin text-zinc-500" />
+                      <IconLoader2 className="h-4 w-4 animate-spin text-[var(--graphite-muted)]" />
                     )}
                     {ASSET_LABELS[a.assetKind] ?? a.assetKind}
                   </span>
-                  <span className="tabular-nums text-zinc-500">{formatBytes(a.fileSizeBytes)}</span>
+                  <span className="tabular-nums text-[var(--graphite-muted)]">{formatBytes(a.fileSizeBytes)}</span>
                 </li>
               ))}
             </ul>
@@ -411,8 +411,8 @@ export function TwinCaptureSubmitScreen({
           {/* SURROUNDING CONTEXT (preview — wiring to 3D-tiles provider is a follow-up) */}
           <div className="mt-5">
             <div className="mb-2 flex items-center gap-2">
-              <span className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">Surrounding context</span>
-              <span className="rounded-full bg-white/[0.06] px-1.5 py-0.5 text-[9px] font-semibold uppercase text-zinc-400">Soon</span>
+              <span className="text-[11px] font-semibold uppercase tracking-wide text-[var(--graphite-muted)]">Surrounding context</span>
+              <span className="rounded-full bg-white/[0.06] px-1.5 py-0.5 text-[9px] font-semibold uppercase text-[var(--graphite-muted)]">Soon</span>
             </div>
             <div className="grid grid-cols-4 gap-2">
               {CONTEXT_OPTIONS.map((c, i) => (
@@ -424,7 +424,7 @@ export function TwinCaptureSubmitScreen({
                     "rounded-xl border px-1 py-2 text-[12px] font-medium transition-colors",
                     context === i
                       ? "border-[color:var(--twin360-blue)] bg-[color-mix(in_srgb,var(--twin360-blue)_16%,transparent)] text-white"
-                      : "border-white/[0.07] bg-white/[0.03] text-zinc-400",
+                      : "border-white/[0.07] bg-white/[0.03] text-[var(--graphite-muted)]",
                     i !== 0 && "opacity-40",
                   )}
                 >
@@ -432,7 +432,7 @@ export function TwinCaptureSubmitScreen({
                 </button>
               ))}
             </div>
-            <p className="mt-1.5 text-[11px] text-zinc-500">
+            <p className="mt-1.5 text-[11px] text-[var(--graphite-muted)]">
               Add photorealistic 3D map tiles around your scan (uses the scan’s GPS).
             </p>
           </div>
@@ -440,13 +440,13 @@ export function TwinCaptureSubmitScreen({
       </div>
 
       {/* STICKY CHECKOUT DOCK */}
-      <div className="absolute inset-x-0 bottom-0 border-t border-white/[0.08] bg-[#0B0F15]/90 px-4 pb-[calc(env(safe-area-inset-bottom,0px)+0.75rem)] pt-3 backdrop-blur-xl">
+      <div className="absolute inset-x-0 bottom-0 border-t border-white/[0.08] bg-[var(--graphite-canvas)]/90 px-4 pb-[calc(env(safe-area-inset-bottom,0px)+0.75rem)] pt-3 backdrop-blur-xl">
         <div className="mx-auto w-full max-w-md">
           <div className="mb-2 flex items-center justify-between text-xs">
-            <span className={cn("font-semibold tabular-nums", sufficient ? "text-zinc-300" : "text-red-400")}>
+            <span className={cn("font-semibold tabular-nums", sufficient ? "text-[var(--graphite-text-body)]" : "text-red-400")}>
               {balance} credits available
             </span>
-            <span className="text-zinc-400">Total · {assetsReady ? credits : "—"} credits · {eta}</span>
+            <span className="text-[var(--graphite-muted)]">Total · {assetsReady ? credits : "—"} credits · {eta}</span>
           </div>
           <button
             onClick={() => void handleProcess()}
