@@ -2,12 +2,12 @@
 
 import { useState } from "react";
 import {
-  IconChevronLeft,
-  IconFlashlight,
-  IconFlashlightOff,
-  IconAlertTriangle,
-  IconLoader2,
-} from "@tabler/icons-react";
+  ChevronLeft as IconChevronLeft,
+  Flashlight as IconFlashlight,
+  FlashlightOff as IconFlashlightOff,
+  AlertTriangle as IconAlertTriangle,
+  Loader2 as IconLoader2,
+} from "lucide-react";
 
 /**
  * Browser preview of the proposed native Twin 360 capture HUD (Graphite Glass, blue).
