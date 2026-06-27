@@ -4,6 +4,11 @@ Authoritative state for a new chat to continue. Slate360 = app-centric product
 (Site Walk + Twin 360) with a web portal. Live on `main`; CEO Brian is a non-coder
 (Claude commits/pushes). Read the `~/.claude/.../memory/MEMORY.md` index too.
 
+> **Active workstream (2026-06-27): Twin 360 + Site Walk capture-screen rebuild.**
+> Source of truth = `docs/CAPTURE_SCREENS_REBUILD_STATUS.md` (what's done/in-progress/outstanding,
+> full feature inventory, cross-AI consensus, the Vercel deploy blocker, and a paste-in handoff
+> prompt for a new chat). Read it before touching capture.
+
 ## Working agreement / gotchas (read first)
 - **Commit + push to `main`** after each verified slice (lint-staged + guard:design run on commit). End commit messages with `Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>`.
 - **Design system:** Graphite Glass, tokens-only, **amber banned** (`guard:design` ratchet; currently 159 allowlisted files, 0 stale). Neutral graphite chrome + per-app accents: Site Walk/platform `--graphite-primary` (teal/green), Twin `--twin360-blue`.

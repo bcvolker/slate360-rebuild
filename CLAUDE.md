@@ -2,6 +2,10 @@
 
 Read this first. It captures cross-session facts that are easy to lose between chats.
 
+> **Active workstream: capture-screen rebuild (Twin 360 + Site Walk).** Status & handoff:
+> `docs/CAPTURE_SCREENS_REBUILD_STATUS.md`. Pipeline works end-to-end (model `281b1ebb`);
+> we're unifying both capture screens. Open blocker: Vercel production deploy is stuck.
+
 ## Heavy-processing infrastructure — YOU HAVE ACCESS (Modal + Trigger.dev)
 
 Slate360 offloads all heavy compute to the cloud. **Every chat has access to deploy
