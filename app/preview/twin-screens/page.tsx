@@ -275,10 +275,23 @@ export default function TwinScreensPreview() {
   const states: HudState[] = ["ready", "recording", "warning", "saving"];
 
   return (
-    <div className="min-h-screen w-full bg-black px-4 py-8">
+    <div
+      className="min-h-screen w-full bg-black px-4 py-8"
+      style={{
+        // Self-contained tokens so the bare /preview route never depends on global CSS.
+        "--graphite-canvas": "#0B0F15",
+        "--twin360-blue": "#3D8EFF",
+        "--graphite-primary": "#00E699",
+        "--graphite-muted": "#A3AED0",
+        "--graphite-text-body": "#F8FAFC",
+      } as React.CSSProperties}
+    >
       <div className="mx-auto max-w-6xl">
-        <h1 className="text-center text-lg font-semibold text-white">Twin 360 capture · Site Walk capture · Twin post-capture</h1>
-        <p className="mt-1 text-center text-[13px] text-white/45">Same Graphite Glass system — Twin = blue, Site Walk = green (reference, not redesigned).</p>
+        <h1 className="text-center text-lg font-semibold text-white">
+          Twin 360 capture · Site Walk capture · Twin post-capture
+          <span className="text-[color:var(--twin360-blue)]"> · v3</span>
+        </h1>
+        <p className="mt-1 text-center text-[13px] text-white/45">Same Graphite Glass system — Twin = blue, Site Walk = green (reference, not redesigned). Three phones below.</p>
 
         <div className="mt-4 flex flex-wrap items-center justify-center gap-1 text-[11px]">
           <span className="mr-1 font-mono uppercase tracking-wider text-white/35">capture state</span>
