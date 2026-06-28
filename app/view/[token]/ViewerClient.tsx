@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, X, Info, Share2, Printer } from "lucide-react";
 import type { ViewerDeliverable } from "@/lib/site-walk/viewer-types";
 import { ExternalPortalShell, PublicItemStage } from "@/components/external-portal";
@@ -47,6 +47,23 @@ export default function ViewerClient({ deliverable, token }: Props) {
     },
     [items.length, token]
   );
+
+  // Preload adjacent media so crossfades land on a decoded image, not a flash.
+  useEffect(() => {
+    for (const d of [1, -1]) {
+      const it = items[activeIndex + d];
+      if (it?.url && (it.type === "photo" || it.type === "photo_360")) {
+        const img = new window.Image();
+        img.src = it.url;
+      }
+    }
+  }, [activeIndex, items]);
+
+  // Keep the active thumbnail centered in the timeline.
+  const activeThumbRef = useRef<HTMLButtonElement | null>(null);
+  useEffect(() => {
+    activeThumbRef.current?.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" });
+  }, [activeIndex]);
 
   // Interactive items (360 pan/zoom) consume arrow keys themselves; don't let
   // the deck steal them to flip slides while a recipient is exploring.
@@ -144,10 +161,16 @@ export default function ViewerClient({ deliverable, token }: Props) {
       className="h-screen"
     >
       <div className="relative flex h-full min-h-0 w-full flex-1 flex-col">
-      {/* Stage + side panel */}
+      {/* Info rail (LEFT on desktop) + media stage */}
       <div className="relative flex min-h-0 flex-1 overflow-hidden">
-        <div className="flex-1 relative flex items-center justify-center bg-black">
-          <PublicItemStage item={activeItem} />
+        <div className="flex-1 relative flex items-center justify-center overflow-hidden bg-black sm:order-2">
+          {/* Keyed wrapper → gentle fade-in on each slide change (crossfade feel) */}
+          <div
+            key={activeItem.id}
+            className="absolute inset-0 flex items-center justify-center animate-in fade-in-0 duration-300 ease-out motion-reduce:animate-none motion-reduce:duration-0"
+          >
+            <PublicItemStage item={activeItem} />
+          </div>
 
           {activeIndex > 0 && (
             <button
@@ -176,7 +199,7 @@ export default function ViewerClient({ deliverable, token }: Props) {
         </div>
 
         {panelOpen && (
-          <aside className="w-full sm:w-96 absolute sm:relative inset-x-0 bottom-0 sm:inset-auto bg-[#151A23] border-l border-white/10 flex flex-col shrink-0 max-h-[60vh] sm:max-h-none">
+          <aside className="w-full sm:w-96 absolute sm:relative inset-x-0 bottom-0 sm:inset-auto sm:order-1 bg-[#151A23] border-white/10 sm:border-r flex flex-col shrink-0 max-h-[60vh] sm:max-h-none">
             <div className="p-4 border-b border-white/10 flex justify-between items-center">
               <h2 className="font-semibold text-sm text-foreground truncate">
                 {activeItem.title || "Item details"}
@@ -232,6 +255,7 @@ export default function ViewerClient({ deliverable, token }: Props) {
           <button
             key={it.id}
             type="button"
+            ref={activeIndex === idx ? activeThumbRef : undefined}
             onClick={() => setActiveIndex(idx)}
             className={cn(
               "h-14 min-w-[88px] bg-black border-2 rounded overflow-hidden relative transition-all",
