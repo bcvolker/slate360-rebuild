@@ -70,6 +70,8 @@ export function DeliverableEditorClient({ projectId, deliverableId }: Props) {
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const [source, setSource] = useState<Row[]>([]);
   const [sourceLoading, setSourceLoading] = useState(true);
+  const [filter, setFilter] = useState<"all" | "photo" | "photo_360" | "voice" | "note">("all");
+  const [query, setQuery] = useState("");
   const loadedRef = useRef(false);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -186,6 +188,18 @@ export function DeliverableEditorClient({ projectId, deliverableId }: Props) {
 
   const presentIds = new Set(rows.map((r) => r.id));
   const candidates = source.filter((s) => !presentIds.has(s.id));
+  const q = query.trim().toLowerCase();
+  const filteredCandidates = candidates.filter(
+    (c) => (filter === "all" || c.type === filter) && (!q || (c.title ?? "").toLowerCase().includes(q)),
+  );
+
+  const FILTERS: { key: typeof filter; label: string }[] = [
+    { key: "all", label: "All" },
+    { key: "photo", label: "Photos" },
+    { key: "photo_360", label: "360" },
+    { key: "voice", label: "Voice" },
+    { key: "note", label: "Notes" },
+  ];
 
   return (
     <div className="flex h-screen flex-col bg-background">
@@ -232,40 +246,72 @@ export function DeliverableEditorClient({ projectId, deliverableId }: Props) {
               </div>
 
               {/* Source library: pull the walk's stops into the deliverable */}
-              <div className="min-h-0 flex-1">
+              <div className="flex min-h-0 flex-1 flex-col">
                 <div className="mb-2 flex items-center justify-between">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">From this walk</p>
-                  {candidates.length > 0 && (
-                    <button type="button" onClick={() => addAll(candidates)} className="text-[11px] font-semibold text-[var(--graphite-primary)] hover:underline">
-                      Add all {candidates.length}
+                  {filteredCandidates.length > 0 && (
+                    <button type="button" onClick={() => addAll(filteredCandidates)} className="text-[11px] font-semibold text-[var(--graphite-primary)] hover:underline">
+                      Add all {filteredCandidates.length}
                     </button>
                   )}
                 </div>
-                {sourceLoading ? (
-                  <p className="flex items-center gap-1.5 text-xs text-muted-foreground"><Loader2 className="size-3 animate-spin" /> Loading stops…</p>
-                ) : source.length === 0 ? (
-                  <p className="text-xs text-muted-foreground">No source walk linked, or it has no captured stops.</p>
-                ) : candidates.length === 0 ? (
-                  <p className="text-xs text-muted-foreground">All {source.length} stops are already in this deliverable.</p>
-                ) : (
-                  <div className="space-y-1.5">
-                    {candidates.map((c) => {
-                      const m = metaFor(c.type);
-                      return (
+
+                {source.length > 0 && (
+                  <>
+                    <div className="mb-2 flex flex-wrap gap-1">
+                      {FILTERS.map((f) => (
                         <button
-                          key={c.id}
+                          key={f.key}
                           type="button"
-                          onClick={() => addItem(c)}
-                          className="flex w-full items-center gap-2 rounded-lg border border-border p-2 text-left hover:border-[color-mix(in_srgb,var(--graphite-primary)_40%,transparent)] hover:bg-muted/40"
+                          onClick={() => setFilter(f.key)}
+                          className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                            filter === f.key
+                              ? "bg-[color-mix(in_srgb,var(--graphite-primary)_18%,transparent)] text-[var(--graphite-primary)]"
+                              : "text-muted-foreground hover:bg-muted"
+                          }`}
                         >
-                          <m.Icon className="size-4 shrink-0 text-muted-foreground" />
-                          <span className="min-w-0 flex-1 truncate text-xs text-foreground">{c.title}</span>
-                          <Plus className="size-3.5 shrink-0 text-muted-foreground" />
+                          {f.label}
                         </button>
-                      );
-                    })}
-                  </div>
+                      ))}
+                    </div>
+                    <Input
+                      value={query}
+                      onChange={(e) => setQuery(e.target.value)}
+                      placeholder="Search stops…"
+                      className="mb-2 h-8 text-xs"
+                    />
+                  </>
                 )}
+
+                <div className="min-h-0 flex-1 overflow-y-auto">
+                  {sourceLoading ? (
+                    <p className="flex items-center gap-1.5 text-xs text-muted-foreground"><Loader2 className="size-3 animate-spin" /> Loading stops…</p>
+                  ) : source.length === 0 ? (
+                    <p className="text-xs text-muted-foreground">No source walk linked, or it has no captured stops.</p>
+                  ) : filteredCandidates.length === 0 ? (
+                    <p className="text-xs text-muted-foreground">
+                      {candidates.length === 0 ? `All ${source.length} stops are already in this deliverable.` : "No stops match this filter."}
+                    </p>
+                  ) : (
+                    <div className="space-y-1.5">
+                      {filteredCandidates.map((c) => {
+                        const m = metaFor(c.type);
+                        return (
+                          <button
+                            key={c.id}
+                            type="button"
+                            onClick={() => addItem(c)}
+                            className="flex w-full items-center gap-2 rounded-lg border border-border p-2 text-left hover:border-[color-mix(in_srgb,var(--graphite-primary)_40%,transparent)] hover:bg-muted/40"
+                          >
+                            <m.Icon className="size-4 shrink-0 text-muted-foreground" />
+                            <span className="min-w-0 flex-1 truncate text-xs text-foreground">{c.title}</span>
+                            <Plus className="size-3.5 shrink-0 text-muted-foreground" />
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
               </div>
 
               <p className="text-[11px] text-muted-foreground">{rows.length} item{rows.length === 1 ? "" : "s"} in deliverable</p>
@@ -336,6 +382,15 @@ export function DeliverableEditorClient({ projectId, deliverableId }: Props) {
                               rows={isText ? 3 : 2}
                               className="w-full resize-none rounded-md bg-transparent text-sm leading-relaxed text-muted-foreground outline-none placeholder:text-muted-foreground/50 focus:text-foreground"
                             />
+                            {row.metadata ? (
+                              <p className="font-mono text-[10px] text-muted-foreground/80">
+                                {[
+                                  row.metadata.timestamp ? new Date(row.metadata.timestamp).toLocaleString() : null,
+                                  row.metadata.author,
+                                  row.metadata.gps ? `${row.metadata.gps.lat.toFixed(5)}, ${row.metadata.gps.lng.toFixed(5)}` : null,
+                                ].filter(Boolean).join("  ·  ")}
+                              </p>
+                            ) : null}
                           </div>
                         </div>
                       </div>
