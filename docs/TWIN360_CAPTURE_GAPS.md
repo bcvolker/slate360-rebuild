@@ -64,7 +64,7 @@ photos w/ distance+date+author via `/api/site-walk/nearby`), Fade/opacity slider
 | SW-001b | **Ghost = project-only** (no quick/ad-hoc walks) so the pool spans every walk in the project. | P1 | **DONE** (Jun 27) — `ghostAvailable = Boolean(session.project_id)` (removed single-shot fallback). RPC `get_nearby_photos` already pools project-wide across sessions. |
 | SW-002 | **Before/after compare viewer** (slider + side-by-side) — schema + auto-linking exist; viewer UI does not. Harness mock: ProgressionScreen. | P1 | Design done; build pending |
 | SW-003 | **Progression timeline UI** (same spot over weeks/months/years, grouped by date) + auto-set `item_relationship='progress'` on repeat captures. APIs `/items/timeline` + `/projects/[id]/progressions` exist (group by location, not date); UI + date-grouping + auto-set pending. | P1 | Design done; build pending |
-| SW-004 | Surface orientation in the ghost picker as an **angle-match hint** (rotate N° / level) using `metadata.orientation` vs the reference's. | P2 | Harness mocked; live wiring pending |
+| SW-004 | Surface orientation in the ghost picker as an **angle-match hint** (rotate N° / level) using `metadata.orientation` vs the reference's. | P2 | **DONE** — `GhostPhoto.heading` from `metadata.orientation.compass_heading` (nearby returns full row, no API change); `CaptureCanvasGhostPicker` polls live compass and shows "Rotate N° left/right to match" → "Aligned — shoot now" (≤8°). Confirm/Clear footer shipped (commit 6e6400a1). |
 | SW-005 | Optional: EXIF / focal length / FOV capture. | P3 | Not started |
 
 ## Walks-with-plans — verified + gaps (Jun 27)

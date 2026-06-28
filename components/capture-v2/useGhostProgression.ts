@@ -19,6 +19,8 @@ export type GhostPhoto = {
   capturedAt: string | null;
   authorName: string | null;
   distanceMeters: number | null;
+  /** SW-004: compass heading (deg) the prior photo was shot at, if captured. */
+  heading: number | null;
 };
 
 type NearbyItem = Record<string, unknown> & { id: string };
@@ -38,6 +40,17 @@ function toNumber(value: unknown): number | null {
 }
 function toStr(value: unknown): string | null {
   return typeof value === "string" && value ? value : null;
+}
+/** SW-004: pull the stored compass heading out of an item's capture metadata. */
+function extractHeading(it: NearbyItem): number | null {
+  const md = it.metadata;
+  if (md && typeof md === "object") {
+    const ori = (md as Record<string, unknown>).orientation;
+    if (ori && typeof ori === "object") {
+      return toNumber((ori as Record<string, unknown>).compass_heading);
+    }
+  }
+  return null;
 }
 
 function getPosition(): Promise<GeolocationPosition | null> {
@@ -111,6 +124,7 @@ export function useGhostProgression({
           capturedAt: toStr(it.captured_at) ?? toStr(it.created_at),
           authorName: toStr(it.author_name),
           distanceMeters: toNumber(it.distance_meters) ?? toNumber(it.distance),
+          heading: extractHeading(it),
         }));
 
       setPhotos(mapped);

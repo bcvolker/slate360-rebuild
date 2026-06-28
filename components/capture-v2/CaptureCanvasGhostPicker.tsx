@@ -1,8 +1,31 @@
 "use client";
 
-import { Check, Images, Loader2, MapPin, RefreshCw } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Check, Compass, Images, Loader2, MapPin, RefreshCw } from "lucide-react";
+import { getDeviceOrientationSnapshot } from "@/lib/site-walk/device-orientation";
 import { captureCanvasGlass } from "./capture-canvas-glass-tokens";
 import type { GhostPhoto } from "./useGhostProgression";
+
+/** SW-004: latest live compass heading (deg), polled while a ghost is selected. */
+function useLiveHeading(active: boolean): number | null {
+  const [heading, setHeading] = useState<number | null>(null);
+  useEffect(() => {
+    if (!active) {
+      setHeading(null);
+      return;
+    }
+    const tick = () => setHeading(getDeviceOrientationSnapshot()?.compass_heading ?? null);
+    tick();
+    const id = setInterval(tick, 300);
+    return () => clearInterval(id);
+  }, [active]);
+  return heading;
+}
+
+/** Signed shortest angle from current → target heading, in [-180, 180]. */
+function headingDelta(target: number, current: number): number {
+  return ((target - current + 540) % 360) - 180;
+}
 
 type Props = {
   hidden?: boolean;
@@ -45,6 +68,14 @@ export function CaptureCanvasGhostPicker({
   onSelect,
   onRefresh,
 }: Props) {
+  const selectedPhoto = photos.find((p) => p.id === selectedId) ?? null;
+  const hasHeading = selectedPhoto?.heading != null;
+  const liveHeading = useLiveHeading(Boolean(selectedId) && hasHeading);
+  const angle =
+    selectedPhoto?.heading != null && liveHeading != null
+      ? headingDelta(selectedPhoto.heading, liveHeading)
+      : null;
+
   if (hidden) return null;
 
   return (
@@ -136,9 +167,19 @@ export function CaptureCanvasGhostPicker({
           field user exactly what to do next, and give a one-tap way to clear it. */}
       {selectedId ? (
         <div className="flex items-center justify-between gap-2 rounded-lg border border-[var(--accent-border-green)] bg-[color-mix(in_srgb,var(--graphite-primary)_12%,transparent)] px-2.5 py-1.5">
-          <span className="flex items-center gap-1.5 text-[11px] font-semibold text-[var(--graphite-primary)]">
-            <Check className="h-3.5 w-3.5" /> Overlay on — line up this framing, then shoot
-          </span>
+          {angle != null && Math.abs(angle) > 8 ? (
+            <span className="flex items-center gap-1.5 text-[11px] font-semibold text-[var(--graphite-text-header)]">
+              <Compass className="h-3.5 w-3.5" /> Rotate {Math.round(Math.abs(angle))}° {angle > 0 ? "right" : "left"} to match
+            </span>
+          ) : angle != null ? (
+            <span className="flex items-center gap-1.5 text-[11px] font-semibold text-[var(--graphite-primary)]">
+              <Check className="h-3.5 w-3.5" /> Aligned — shoot now
+            </span>
+          ) : (
+            <span className="flex items-center gap-1.5 text-[11px] font-semibold text-[var(--graphite-primary)]">
+              <Check className="h-3.5 w-3.5" /> Overlay on — line up this framing, then shoot
+            </span>
+          )}
           <button
             type="button"
             onClick={(e) => {
