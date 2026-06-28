@@ -2,11 +2,25 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Check, ChevronDown, ChevronUp, Eye, Loader2, Save, Trash2 } from "lucide-react";
-import type { EditorBlock, BlockType } from "@/lib/types/blocks";
-import { createBlock } from "@/lib/types/blocks";
-import { BlockToolbar } from "../BlockToolbar";
-import { BlockRenderer } from "../BlockRenderer";
+import {
+  ArrowLeft,
+  Box,
+  Check,
+  ChevronDown,
+  ChevronUp,
+  Eye,
+  FileText,
+  Film,
+  Globe,
+  Image as ImageIcon,
+  Loader2,
+  Mic,
+  Plus,
+  Save,
+  Trash2,
+  Type as TypeIcon,
+} from "lucide-react";
+import type { ViewerItem, ViewerItemType } from "@/lib/site-walk/viewer-types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -17,24 +31,46 @@ interface Props {
 
 type SaveState = "idle" | "saving" | "saved" | "error";
 
+/** Editor rows are the deliverable's ViewerItem content; tolerate legacy narrative
+ * blocks ({type:"heading"|"text", content}) by falling back to their `content`. */
+type Row = ViewerItem & { content?: string; level?: number };
+
+const TYPE_META: Record<string, { label: string; Icon: typeof ImageIcon }> = {
+  photo: { label: "Photo", Icon: ImageIcon },
+  photo_360: { label: "360°", Icon: Globe },
+  tour_360: { label: "360° tour", Icon: Globe },
+  video: { label: "Video", Icon: Film },
+  time_lapse: { label: "Time-lapse", Icon: Film },
+  voice: { label: "Voice", Icon: Mic },
+  note: { label: "Note", Icon: FileText },
+  model_3d: { label: "3D model", Icon: Box },
+  thermal: { label: "Thermal", Icon: Box },
+  heading: { label: "Heading", Icon: TypeIcon },
+  text: { label: "Text", Icon: TypeIcon },
+};
+
+function metaFor(type: string) {
+  return TYPE_META[type] ?? { label: type, Icon: FileText };
+}
+
 /**
- * Desktop deliverable/report editor (REPORT-001 phase 1).
+ * Desktop deliverable/report editor (REPORT-001 phase 2A).
  *
- * Lives under Projects → Deliverables → edit. Wires real block CRUD + reorder on
- * the shared EditorBlock model and persists via PATCH /api/site-walk/deliverables/[id]
- * — the same `content` array the /view/[token] share viewer and PDF export consume.
+ * Curates the deliverable's real ViewerItem[] content — the same array the
+ * /view/[token] share viewer renders. The PM can reorder, caption, remove stops,
+ * and add narrative sections; persisted via PATCH /api/site-walk/deliverables/[id].
  * Desktop-optimized two-pane layout (palette rail + wide document), not an app mirror.
+ * (Phase 2B: source-library insertion of walk items + templates + auto-assemble.)
  */
 export function DeliverableEditorClient({ projectId, deliverableId }: Props) {
   const [title, setTitle] = useState("");
-  const [blocks, setBlocks] = useState<EditorBlock[]>([]);
+  const [rows, setRows] = useState<Row[]>([]);
   const [preview, setPreview] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const loadedRef = useRef(false);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Load the deliverable once.
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -44,8 +80,8 @@ export function DeliverableEditorClient({ projectId, deliverableId }: Props) {
         const body = (await res.json()) as { deliverable?: { title?: string; content?: unknown[] } };
         if (cancelled) return;
         setTitle(body.deliverable?.title ?? "");
-        const content = Array.isArray(body.deliverable?.content) ? (body.deliverable!.content as EditorBlock[]) : [];
-        setBlocks(content);
+        const content = Array.isArray(body.deliverable?.content) ? (body.deliverable!.content as Row[]) : [];
+        setRows(content);
       } catch {
         if (!cancelled) setSaveState("error");
       } finally {
@@ -61,13 +97,13 @@ export function DeliverableEditorClient({ projectId, deliverableId }: Props) {
   }, [deliverableId]);
 
   const persist = useCallback(
-    async (nextTitle: string, nextBlocks: EditorBlock[]) => {
+    async (nextTitle: string, nextRows: Row[]) => {
       setSaveState("saving");
       try {
         const res = await fetch(`/api/site-walk/deliverables/${deliverableId}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ title: nextTitle.trim() || "Untitled deliverable", content: nextBlocks }),
+          body: JSON.stringify({ title: nextTitle.trim() || "Untitled deliverable", content: nextRows }),
         });
         if (!res.ok) throw new Error("save failed");
         setSaveState("saved");
@@ -78,31 +114,26 @@ export function DeliverableEditorClient({ projectId, deliverableId }: Props) {
     [deliverableId],
   );
 
-  // Debounced autosave after the first load.
   useEffect(() => {
     if (!loadedRef.current) return;
     if (saveTimer.current) clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(() => void persist(title, blocks), 1200);
+    saveTimer.current = setTimeout(() => void persist(title, rows), 1200);
     return () => {
       if (saveTimer.current) clearTimeout(saveTimer.current);
     };
-  }, [title, blocks, persist]);
+  }, [title, rows, persist]);
 
-  const addBlock = useCallback((type: BlockType) => {
-    setBlocks((prev) => [...prev, createBlock(type)]);
+  const updateRow = useCallback((id: string, updates: Partial<Row>) => {
+    setRows((prev) => prev.map((r) => (r.id === id ? { ...r, ...updates } : r)));
   }, []);
 
-  const updateBlock = useCallback((id: string, updates: Partial<EditorBlock>) => {
-    setBlocks((prev) => prev.map((b) => (b.id === id ? ({ ...b, ...updates } as EditorBlock) : b)));
+  const removeRow = useCallback((id: string) => {
+    setRows((prev) => prev.filter((r) => r.id !== id));
   }, []);
 
-  const deleteBlock = useCallback((id: string) => {
-    setBlocks((prev) => prev.filter((b) => b.id !== id));
-  }, []);
-
-  const moveBlock = useCallback((id: string, dir: -1 | 1) => {
-    setBlocks((prev) => {
-      const idx = prev.findIndex((b) => b.id === id);
+  const moveRow = useCallback((id: string, dir: -1 | 1) => {
+    setRows((prev) => {
+      const idx = prev.findIndex((r) => r.id === id);
       const next = idx + dir;
       if (idx < 0 || next < 0 || next >= prev.length) return prev;
       const copy = [...prev];
@@ -111,9 +142,15 @@ export function DeliverableEditorClient({ projectId, deliverableId }: Props) {
     });
   }, []);
 
+  const addSection = useCallback(() => {
+    setRows((prev) => [
+      ...prev,
+      { id: crypto.randomUUID(), type: "note" as ViewerItemType, title: "Section", notes: "" },
+    ]);
+  }, []);
+
   return (
     <div className="flex h-screen flex-col bg-background">
-      {/* Top bar */}
       <header className="flex shrink-0 items-center justify-between border-b border-border bg-background/95 px-5 py-3 backdrop-blur">
         <div className="flex items-center gap-3">
           <Link href={`/projects/${projectId}/deliverables`}>
@@ -133,10 +170,9 @@ export function DeliverableEditorClient({ projectId, deliverableId }: Props) {
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={() => setPreview((p) => !p)}>
-            <Eye className="size-4" />
-            {preview ? "Edit" : "Preview"}
+            <Eye className="size-4" /> {preview ? "Edit" : "Preview"}
           </Button>
-          <Button size="sm" onClick={() => void persist(title, blocks)} disabled={saveState === "saving"}>
+          <Button size="sm" onClick={() => void persist(title, rows)} disabled={saveState === "saving"}>
             <Save className="size-4" /> Save
           </Button>
         </div>
@@ -148,24 +184,24 @@ export function DeliverableEditorClient({ projectId, deliverableId }: Props) {
         </div>
       ) : (
         <div className="flex flex-1 overflow-hidden">
-          {/* Left rail: block palette (desktop-optimized — fills the width, no dead column) */}
           {!preview && (
             <aside className="hidden w-72 shrink-0 flex-col gap-4 overflow-y-auto border-r border-border p-4 lg:flex">
               <div>
-                <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
-                  Add a block
-                </p>
-                <BlockToolbar onAddBlock={addBlock} />
+                <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">Insert</p>
+                <Button variant="outline" size="sm" className="w-full justify-start" onClick={addSection}>
+                  <Plus className="size-4" /> Section / note
+                </Button>
               </div>
               <p className="text-xs leading-relaxed text-muted-foreground">
-                Blocks save to this deliverable&apos;s shared content — the same data the web share
-                link and PDF export render. Drag-reorder, templates, and source-library insertion
-                are coming in the next phase; use the ↑ ↓ controls to reorder for now.
+                This edits the deliverable&apos;s shared content — the same items your web share link
+                renders. Reorder with ↑ ↓, edit captions inline, remove what the client shouldn&apos;t
+                see. Pulling more walk stops from a source library, templates, and auto-assemble are
+                next.
               </p>
+              <p className="text-[11px] text-muted-foreground">{rows.length} item{rows.length === 1 ? "" : "s"}</p>
             </aside>
           )}
 
-          {/* Document canvas: wide, centered, no big side gaps */}
           <main className="flex-1 overflow-y-auto px-6 py-8">
             <div className="mx-auto max-w-4xl">
               <Input
@@ -176,54 +212,65 @@ export function DeliverableEditorClient({ projectId, deliverableId }: Props) {
                 readOnly={preview}
               />
 
-              {blocks.length === 0 ? (
+              {rows.length === 0 ? (
                 <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border py-20 text-center">
-                  <p className="text-sm text-muted-foreground">No blocks yet. Add one to get started.</p>
+                  <p className="text-sm text-muted-foreground">No items yet.</p>
                   {!preview && (
-                    <div className="mt-4">
-                      <BlockToolbar onAddBlock={addBlock} />
-                    </div>
+                    <Button variant="outline" size="sm" className="mt-4" onClick={addSection}>
+                      <Plus className="size-4" /> Add a section
+                    </Button>
                   )}
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {blocks.map((block, i) => (
-                    <div key={block.id} className="group relative flex items-start gap-2">
-                      {!preview && (
-                        <div className="flex flex-col gap-0.5 pt-1 opacity-0 transition-opacity group-hover:opacity-100">
-                          <button
-                            type="button"
-                            aria-label="Move up"
-                            disabled={i === 0}
-                            onClick={() => moveBlock(block.id, -1)}
-                            className="grid size-6 place-items-center rounded text-muted-foreground hover:bg-muted disabled:opacity-30"
-                          >
-                            <ChevronUp className="size-4" />
-                          </button>
-                          <button
-                            type="button"
-                            aria-label="Move down"
-                            disabled={i === blocks.length - 1}
-                            onClick={() => moveBlock(block.id, 1)}
-                            className="grid size-6 place-items-center rounded text-muted-foreground hover:bg-muted disabled:opacity-30"
-                          >
-                            <ChevronDown className="size-4" />
-                          </button>
-                          <button
-                            type="button"
-                            aria-label="Delete block"
-                            onClick={() => deleteBlock(block.id)}
-                            className="grid size-6 place-items-center rounded text-muted-foreground hover:bg-red-500/10 hover:text-red-400"
-                          >
-                            <Trash2 className="size-4" />
-                          </button>
+                  {rows.map((row, i) => {
+                    const m = metaFor(row.type);
+                    const rowType = row.type as string;
+                    const isText = rowType === "note" || rowType === "heading" || rowType === "text";
+                    const titleVal = row.title ?? row.content ?? "";
+                    const bodyVal = row.notes ?? (isText ? row.content ?? "" : "");
+                    const thumb = row.url && (row.type === "photo" || row.type === "photo_360") ? row.url : null;
+                    return (
+                      <div key={row.id} className="group relative flex items-start gap-2">
+                        {!preview && (
+                          <div className="flex flex-col gap-0.5 pt-1 opacity-0 transition-opacity group-hover:opacity-100">
+                            <button type="button" aria-label="Move up" disabled={i === 0} onClick={() => moveRow(row.id, -1)} className="grid size-6 place-items-center rounded text-muted-foreground hover:bg-muted disabled:opacity-30"><ChevronUp className="size-4" /></button>
+                            <button type="button" aria-label="Move down" disabled={i === rows.length - 1} onClick={() => moveRow(row.id, 1)} className="grid size-6 place-items-center rounded text-muted-foreground hover:bg-muted disabled:opacity-30"><ChevronDown className="size-4" /></button>
+                            <button type="button" aria-label="Remove" onClick={() => removeRow(row.id)} className="grid size-6 place-items-center rounded text-muted-foreground hover:bg-red-500/10 hover:text-red-400"><Trash2 className="size-4" /></button>
+                          </div>
+                        )}
+                        <div className="flex min-w-0 flex-1 gap-3 rounded-xl border border-border p-3">
+                          {/* media thumb or type icon */}
+                          <div className="grid size-16 shrink-0 place-items-center overflow-hidden rounded-lg bg-muted text-muted-foreground">
+                            {thumb ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img src={thumb} alt="" className="size-full object-cover" />
+                            ) : (
+                              <m.Icon className="size-6" />
+                            )}
+                          </div>
+                          <div className="min-w-0 flex-1 space-y-1.5">
+                            <span className="inline-block rounded bg-muted px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{m.label}</span>
+                            <Input
+                              value={titleVal}
+                              onChange={(e) => updateRow(row.id, { title: e.target.value })}
+                              readOnly={preview}
+                              placeholder={isText ? "Section heading…" : "Caption / title…"}
+                              className="h-8 border-none bg-transparent p-0 text-sm font-semibold shadow-none focus-visible:ring-0"
+                            />
+                            <textarea
+                              value={bodyVal}
+                              onChange={(e) => updateRow(row.id, { notes: e.target.value })}
+                              readOnly={preview}
+                              placeholder={isText ? "Write this section…" : "Notes (optional)…"}
+                              rows={isText ? 3 : 2}
+                              className="w-full resize-none rounded-md bg-transparent text-sm leading-relaxed text-muted-foreground outline-none placeholder:text-muted-foreground/50 focus:text-foreground"
+                            />
+                          </div>
                         </div>
-                      )}
-                      <div className="min-w-0 flex-1">
-                        <BlockRenderer block={block} onUpdate={updateBlock} onDelete={deleteBlock} />
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
