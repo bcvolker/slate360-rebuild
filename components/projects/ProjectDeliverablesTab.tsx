@@ -101,6 +101,7 @@ export function ProjectDeliverablesTab({ data, canManage }: { data: ProjectDeliv
 }
 
 const GENERATE_TYPES = [
+  { key: "report", label: "Blank report — build it yourself" },
   { key: "status_report", label: "Status report" },
   { key: "punchlist", label: "Punch list" },
   { key: "photo_log", label: "Photo log" },
@@ -120,13 +121,26 @@ function GenerateDeliverableForm({ projectId, walks, onClose }: { projectId: str
   const [includeVoice, setIncludeVoice] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const isQuick = type !== "status_report" && type !== "before_after";
+  const isQuick = type !== "status_report" && type !== "before_after" && type !== "report";
 
   async function generate() {
     if (!walkId) { setError("Pick a walk."); return; }
     setBusy(true);
     setError(null);
     try {
+      // "Blank report" creates an empty report deliverable and opens the desktop
+      // editor, where the source library lets the PM assemble the walk's stops.
+      if (type === "report") {
+        const res = await fetch("/api/site-walk/deliverables", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ session_id: walkId, deliverable_type: "report", content: [], output_mode: "hosted", title: "Untitled Report" }),
+        });
+        const json = (await res.json().catch(() => null)) as { deliverable?: { id?: string }; error?: string } | null;
+        if (!res.ok || !json?.deliverable?.id) throw new Error(json?.error ?? "Could not create report.");
+        router.push(`/projects/${projectId}/deliverables/${json.deliverable.id}/edit`);
+        return;
+      }
       const { url, body } =
         type === "status_report"
           ? { url: `/api/site-walk/sessions/${walkId}/status-report`, body: "{}" }
