@@ -131,6 +131,26 @@ export function CaptureCanvasGhostPicker({
           })}
         </ul>
       )}
+
+      {/* Confirm affordance: once a photo is picked, the overlay is live — tell the
+          field user exactly what to do next, and give a one-tap way to clear it. */}
+      {selectedId ? (
+        <div className="flex items-center justify-between gap-2 rounded-lg border border-[var(--accent-border-green)] bg-[color-mix(in_srgb,var(--graphite-primary)_12%,transparent)] px-2.5 py-1.5">
+          <span className="flex items-center gap-1.5 text-[11px] font-semibold text-[var(--graphite-primary)]">
+            <Check className="h-3.5 w-3.5" /> Overlay on — line up this framing, then shoot
+          </span>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onSelect(null);
+            }}
+            className="shrink-0 rounded-md px-2 py-0.5 text-[11px] font-semibold text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]"
+          >
+            Clear
+          </button>
+        </div>
+      ) : null}
     </div>
   );
 }
