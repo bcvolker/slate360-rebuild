@@ -68,6 +68,8 @@ export function DeliverableEditorClient({ projectId, deliverableId }: Props) {
   const [preview, setPreview] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saveState, setSaveState] = useState<SaveState>("idle");
+  const [source, setSource] = useState<Row[]>([]);
+  const [sourceLoading, setSourceLoading] = useState(true);
   const loadedRef = useRef(false);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -89,6 +91,25 @@ export function DeliverableEditorClient({ projectId, deliverableId }: Props) {
           setLoading(false);
           loadedRef.current = true;
         }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [deliverableId]);
+
+  // Source library: the walk's stops, to pull into the deliverable.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`/api/site-walk/deliverables/${deliverableId}/source-items`, { cache: "no-store" });
+        const body = (await res.json().catch(() => ({}))) as { items?: Row[] };
+        if (!cancelled) setSource(Array.isArray(body.items) ? body.items : []);
+      } catch {
+        if (!cancelled) setSource([]);
+      } finally {
+        if (!cancelled) setSourceLoading(false);
       }
     })();
     return () => {
@@ -149,6 +170,23 @@ export function DeliverableEditorClient({ projectId, deliverableId }: Props) {
     ]);
   }, []);
 
+  const addItem = useCallback((item: Row) => {
+    setRows((prev) => (prev.some((r) => r.id === item.id) ? prev : [...prev, item]));
+  }, []);
+
+  const addAll = useCallback(
+    (candidates: Row[]) => {
+      setRows((prev) => {
+        const present = new Set(prev.map((r) => r.id));
+        return [...prev, ...candidates.filter((c) => !present.has(c.id))];
+      });
+    },
+    [],
+  );
+
+  const presentIds = new Set(rows.map((r) => r.id));
+  const candidates = source.filter((s) => !presentIds.has(s.id));
+
   return (
     <div className="flex h-screen flex-col bg-background">
       <header className="flex shrink-0 items-center justify-between border-b border-border bg-background/95 px-5 py-3 backdrop-blur">
@@ -192,13 +230,45 @@ export function DeliverableEditorClient({ projectId, deliverableId }: Props) {
                   <Plus className="size-4" /> Section / note
                 </Button>
               </div>
-              <p className="text-xs leading-relaxed text-muted-foreground">
-                This edits the deliverable&apos;s shared content — the same items your web share link
-                renders. Reorder with ↑ ↓, edit captions inline, remove what the client shouldn&apos;t
-                see. Pulling more walk stops from a source library, templates, and auto-assemble are
-                next.
-              </p>
-              <p className="text-[11px] text-muted-foreground">{rows.length} item{rows.length === 1 ? "" : "s"}</p>
+
+              {/* Source library: pull the walk's stops into the deliverable */}
+              <div className="min-h-0 flex-1">
+                <div className="mb-2 flex items-center justify-between">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">From this walk</p>
+                  {candidates.length > 0 && (
+                    <button type="button" onClick={() => addAll(candidates)} className="text-[11px] font-semibold text-[var(--graphite-primary)] hover:underline">
+                      Add all {candidates.length}
+                    </button>
+                  )}
+                </div>
+                {sourceLoading ? (
+                  <p className="flex items-center gap-1.5 text-xs text-muted-foreground"><Loader2 className="size-3 animate-spin" /> Loading stops…</p>
+                ) : source.length === 0 ? (
+                  <p className="text-xs text-muted-foreground">No source walk linked, or it has no captured stops.</p>
+                ) : candidates.length === 0 ? (
+                  <p className="text-xs text-muted-foreground">All {source.length} stops are already in this deliverable.</p>
+                ) : (
+                  <div className="space-y-1.5">
+                    {candidates.map((c) => {
+                      const m = metaFor(c.type);
+                      return (
+                        <button
+                          key={c.id}
+                          type="button"
+                          onClick={() => addItem(c)}
+                          className="flex w-full items-center gap-2 rounded-lg border border-border p-2 text-left hover:border-[color-mix(in_srgb,var(--graphite-primary)_40%,transparent)] hover:bg-muted/40"
+                        >
+                          <m.Icon className="size-4 shrink-0 text-muted-foreground" />
+                          <span className="min-w-0 flex-1 truncate text-xs text-foreground">{c.title}</span>
+                          <Plus className="size-3.5 shrink-0 text-muted-foreground" />
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              <p className="text-[11px] text-muted-foreground">{rows.length} item{rows.length === 1 ? "" : "s"} in deliverable</p>
             </aside>
           )}
 

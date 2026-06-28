@@ -135,7 +135,7 @@ Grounded code audit (separates DOCUMENTED specs from IMPLEMENTED code):
 
 | ID | Task | Priority | Status |
 |----|------|----------|--------|
-| REPORT-001 | **Desktop report editor** — Projects→Deliverables→Edit. **Phase 1 DONE** (route + block scaffold + PATCH save + Edit entry point). **Phase 2A DONE** (curates the real `ViewerItem[]` content: reorder/caption/remove + add section, autosave). **Phase 2B pending:** source-library insertion of walk stops, 4 templates, auto-assemble-from-walk, drag-reorder. | P0 (desktop) | Phase 2A shipped |
+| REPORT-001 | **Desktop report editor** — Projects→Deliverables→Edit. **Phase 1 DONE** (route + PATCH save + Edit entry point). **Phase 2A DONE** (curates real `ViewerItem[]`: reorder/caption/remove + add section, autosave). **Phase 2B DONE** (source library `GET .../[id]/source-items` + Add / **Add-all** auto-assemble of walk stops). **Pending:** 4 templates, true drag-reorder, before/after & 360 source filters. | P0 (desktop) | Phase 2B shipped |
 | REPORT-002 | PDF real image embedding (presigned blob) + **visible metadata burn-in** (timestamp/GPS/author) for evidentiary exports. | P1 | PARTIAL |
 | WORKFLOW-001 | Offline **multipart resumable upload** orchestrator (TUS or S3 multipart) + **conflict-surface UI**. | P1 | PARTIAL |
 | SW-011 | **SHA-256 content hash at ingest** (`content_hash` on items) + extend audit log to field mutations (evidentiary). | P1 | MISSING |
