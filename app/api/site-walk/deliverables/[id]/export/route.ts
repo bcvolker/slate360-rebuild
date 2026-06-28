@@ -8,9 +8,28 @@ import { NextRequest } from "next/server";
 import { withAppAuth } from "@/lib/server/api-auth";
 import { ok, badRequest, notFound, serverError } from "@/lib/server/api-response";
 import type { IdRouteContext } from "@/lib/types/api";
-import type { EditorBlock } from "@/lib/types/blocks";
 import { uploadBuffer } from "@/lib/s3-utils";
+import { GetObjectCommand } from "@aws-sdk/client-s3";
+import { s3, BUCKET } from "@/lib/s3";
 import { bridgePdfToSlateDrop } from "@/lib/site-walk/slatedrop-bridge";
+
+/**
+ * Loose union of what a deliverable's content array can hold — narrative
+ * EditorBlocks (heading/text/callout/divider/image) AND the real ViewerItem
+ * content (photo/photo_360/video/voice/note) the share viewer renders.
+ */
+type ExportItem = {
+  type: string;
+  content?: string;
+  level?: 1 | 2 | 3;
+  variant?: "info" | "warning" | "success";
+  alt?: string;
+  caption?: string;
+  title?: string;
+  notes?: string;
+  mediaItemId?: string;
+  transcript?: string;
+};
 
 export const POST = (req: NextRequest, ctx: IdRouteContext) =>
   withAppAuth("punchwalk", req, async ({ admin, user, orgId }) => {
@@ -36,7 +55,7 @@ export const POST = (req: NextRequest, ctx: IdRouteContext) =>
     try {
       const { jsPDF } = await import("jspdf");
       const doc = new jsPDF({ unit: "pt", format: "letter" });
-      const blocks = (del.content ?? []) as EditorBlock[];
+      const blocks = (del.content ?? []) as ExportItem[];
       const pageWidth = doc.internal.pageSize.getWidth();
       const margin = 50;
       const usable = pageWidth - margin * 2;
@@ -55,57 +74,129 @@ export const POST = (req: NextRequest, ctx: IdRouteContext) =>
       doc.text(del.title || "Untitled Report", margin, y);
       y += 30;
 
-      // Render blocks
-      for (const block of blocks) {
-        if (y > doc.internal.pageSize.getHeight() - margin) {
-          doc.addPage();
-          y = margin;
+      // Resolve source items for real-image embedding + metadata burn-in.
+      const mediaIds = Array.from(
+        new Set(blocks.map((b) => b.mediaItemId).filter((v): v is string => typeof v === "string")),
+      );
+      const itemMap = new Map<string, { s3_key: string | null; lat: number | null; lng: number | null; capturedAt: string | null }>();
+      if (mediaIds.length > 0) {
+        const { data: itemRows } = await admin
+          .from("site_walk_items")
+          .select("id, s3_key, latitude, longitude, created_at")
+          .in("id", mediaIds)
+          .eq("org_id", orgId);
+        for (const r of itemRows ?? []) {
+          itemMap.set(r.id as string, {
+            s3_key: (r.s3_key as string | null) ?? null,
+            lat: (r.latitude as number | null) ?? null,
+            lng: (r.longitude as number | null) ?? null,
+            capturedAt: (r.created_at as string | null) ?? null,
+          });
         }
+      }
 
-        switch (block.type) {
-          case "heading": {
-            const sizes = { 1: 18, 2: 15, 3: 13 } as const;
-            doc.setFontSize(sizes[block.level]);
-            doc.setTextColor(0);
-            y += 10;
-            const lines = doc.splitTextToSize(block.content, usable);
-            doc.text(lines, margin, y);
-            y += lines.length * (sizes[block.level] + 4) + 6;
-            break;
+      async function imageDataUrl(key: string): Promise<string | null> {
+        try {
+          const obj = await s3.send(new GetObjectCommand({ Bucket: BUCKET, Key: key }));
+          const body = obj.Body as { transformToByteArray: () => Promise<Uint8Array> } | undefined;
+          if (!body) return null;
+          const bytes = await body.transformToByteArray();
+          return `data:image/jpeg;base64,${Buffer.from(bytes).toString("base64")}`;
+        } catch {
+          return null;
+        }
+      }
+
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const ensure = (need: number) => {
+        if (y + need > pageHeight - margin) { doc.addPage(); y = margin; }
+      };
+
+      // Render content — handles narrative blocks AND real ViewerItem media.
+      for (const block of blocks) {
+        ensure(20);
+        const type = block.type;
+
+        if (type === "heading") {
+          const level = (block.level ?? 2) as 1 | 2 | 3;
+          const sizes = { 1: 18, 2: 15, 3: 13 } as const;
+          doc.setFontSize(sizes[level]); doc.setTextColor(0); y += 10;
+          const lines = doc.splitTextToSize(block.content ?? "", usable);
+          doc.text(lines, margin, y); y += lines.length * (sizes[level] + 4) + 6;
+        } else if (type === "text") {
+          doc.setFontSize(11); doc.setTextColor(40);
+          const lines = doc.splitTextToSize(block.content ?? "", usable);
+          doc.text(lines, margin, y); y += lines.length * 15 + 8;
+        } else if (type === "callout") {
+          doc.setFontSize(10);
+          const bgColors = { info: [235, 245, 255], warning: [255, 251, 235], success: [236, 253, 245] } as const;
+          const bg = bgColors[(block.variant ?? "info") as keyof typeof bgColors] ?? bgColors.info;
+          const lines = doc.splitTextToSize(block.content ?? "", usable - 20);
+          const boxH = lines.length * 14 + 16;
+          ensure(boxH);
+          doc.setFillColor(bg[0], bg[1], bg[2]);
+          doc.roundedRect(margin, y, usable, boxH, 4, 4, "F");
+          doc.setTextColor(40); doc.text(lines, margin + 10, y + 14); y += boxH + 10;
+        } else if (type === "divider") {
+          doc.setDrawColor(200); doc.line(margin, y + 5, pageWidth - margin, y + 5); y += 15;
+        } else if (type === "note") {
+          if (block.title) {
+            doc.setFontSize(13); doc.setTextColor(0); y += 8;
+            const tl = doc.splitTextToSize(block.title, usable);
+            doc.text(tl, margin, y); y += tl.length * 17 + 4;
           }
-          case "text": {
-            doc.setFontSize(11);
-            doc.setTextColor(40);
-            const lines = doc.splitTextToSize(block.content, usable);
-            doc.text(lines, margin, y);
-            y += lines.length * 15 + 8;
-            break;
+          if (block.notes) {
+            doc.setFontSize(11); doc.setTextColor(40);
+            const nl = doc.splitTextToSize(block.notes, usable);
+            doc.text(nl, margin, y); y += nl.length * 15 + 8;
           }
-          case "callout": {
-            doc.setFontSize(10);
-            const bgColors = { info: [235, 245, 255], warning: [255, 251, 235], success: [236, 253, 245] } as const;
-            const bg = bgColors[block.variant] ?? bgColors.info;
-            const lines = doc.splitTextToSize(block.content, usable - 20);
-            const boxH = lines.length * 14 + 16;
-            doc.setFillColor(bg[0], bg[1], bg[2]);
-            doc.roundedRect(margin, y, usable, boxH, 4, 4, "F");
-            doc.setTextColor(40);
-            doc.text(lines, margin + 10, y + 14);
-            y += boxH + 10;
-            break;
+        } else if (type === "photo" || type === "photo_360" || type === "video") {
+          const meta = block.mediaItemId ? itemMap.get(block.mediaItemId) : undefined;
+          const dataUrl = meta?.s3_key ? await imageDataUrl(meta.s3_key) : null;
+          if (dataUrl) {
+            try {
+              const props = doc.getImageProperties(dataUrl);
+              const dispW = Math.min(usable, 380);
+              const dispH = props.height && props.width ? dispW * (props.height / props.width) : dispW * 0.66;
+              ensure(dispH);
+              doc.addImage(dataUrl, "JPEG", margin, y, dispW, dispH);
+              y += dispH + 4;
+            } catch {
+              doc.setFontSize(9); doc.setTextColor(120); doc.text(`[${type}]`, margin, y + 10); y += 16;
+            }
+          } else {
+            doc.setFontSize(9); doc.setTextColor(120);
+            doc.text(`[${type} — open the shared link to view]`, margin, y + 10); y += 16;
           }
-          case "divider":
-            doc.setDrawColor(200);
-            doc.line(margin, y + 5, pageWidth - margin, y + 5);
-            y += 15;
-            break;
-          case "image":
-            // Image reference (actual image embedding requires fetch + base64)
-            doc.setFontSize(9);
-            doc.setTextColor(100);
-            doc.text(`[Image: ${block.alt || block.caption || "photo"}]`, margin, y + 10);
-            y += 20;
-            break;
+          if (block.title) {
+            doc.setFontSize(10); doc.setTextColor(20);
+            const cl = doc.splitTextToSize(block.title, usable);
+            doc.text(cl, margin, y + 10); y += cl.length * 13 + 4;
+          }
+          const stamp = [
+            meta?.capturedAt ? new Date(meta.capturedAt).toLocaleString() : null,
+            meta?.lat != null && meta?.lng != null ? `${meta.lat.toFixed(5)}, ${meta.lng.toFixed(5)}` : null,
+          ].filter(Boolean).join("   ·   ");
+          if (stamp) { doc.setFontSize(8); doc.setTextColor(130); doc.text(stamp, margin, y + 8); y += 14; }
+          if (block.notes) {
+            doc.setFontSize(10); doc.setTextColor(60);
+            const nl = doc.splitTextToSize(block.notes, usable);
+            doc.text(nl, margin, y + 4); y += nl.length * 13 + 6;
+          }
+          y += 6;
+        } else if (type === "voice") {
+          if (block.title) { doc.setFontSize(11); doc.setTextColor(0); doc.text(block.title, margin, y + 10); y += 16; }
+          const vt = block.transcript ?? block.notes;
+          if (vt) {
+            doc.setFontSize(10); doc.setTextColor(60);
+            const nl = doc.splitTextToSize(vt, usable);
+            doc.text(nl, margin, y); y += nl.length * 13 + 4;
+          }
+          doc.setFontSize(8); doc.setTextColor(130);
+          doc.text("Voice memo — audio available in the shared link", margin, y + 6); y += 14;
+        } else if (type === "image") {
+          doc.setFontSize(9); doc.setTextColor(100);
+          doc.text(`[Image: ${block.alt || block.caption || "photo"}]`, margin, y + 10); y += 20;
         }
       }
 

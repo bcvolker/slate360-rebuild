@@ -136,7 +136,7 @@ Grounded code audit (separates DOCUMENTED specs from IMPLEMENTED code):
 | ID | Task | Priority | Status |
 |----|------|----------|--------|
 | REPORT-001 | **Desktop report editor** — Projects→Deliverables→Edit. **Phase 1 DONE** (route + PATCH save + Edit entry point). **Phase 2A DONE** (curates real `ViewerItem[]`: reorder/caption/remove + add section, autosave). **Phase 2B DONE** (source library `GET .../[id]/source-items` + Add / **Add-all** auto-assemble of walk stops). **Pending:** 4 templates, true drag-reorder, before/after & 360 source filters. | P0 (desktop) | Phase 2B shipped |
-| REPORT-002 | PDF real image embedding (presigned blob) + **visible metadata burn-in** (timestamp/GPS/author) for evidentiary exports. | P1 | PARTIAL |
+| REPORT-002 | PDF export now **embeds real images** (S3 fetch → base64 → `addImage`, aspect-correct, page-break aware) + **timestamp/GPS burn-in** + renders `note`/`voice`/photo content (was: rendered nothing for real `ViewerItem[]` deliverables). **DONE.** Author-name burn-in (needs user join) pending. | P1 | DONE (author name pending) |
 | WORKFLOW-001 | Offline **multipart resumable upload** orchestrator (TUS or S3 multipart) + **conflict-surface UI**. | P1 | PARTIAL |
 | SW-011 | **SHA-256 content hash at ingest** (`content_hash` on items) + extend audit log to field mutations (evidentiary). | P1 | MISSING |
 | SW-014 | **Raw-note vs AI-formatted dual storage** (`note_raw`/`note_formatted`) + AI disclosure label. | P1 | MISSING |
