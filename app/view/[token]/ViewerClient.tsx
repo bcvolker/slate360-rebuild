@@ -48,15 +48,23 @@ export default function ViewerClient({ deliverable, token }: Props) {
     [items.length, token]
   );
 
+  // Interactive items (360 pan/zoom) consume arrow keys themselves; don't let
+  // the deck steal them to flip slides while a recipient is exploring.
+  const activeIsInteractive = activeItem?.type === "photo_360";
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setPanelOpen(false);
+        return;
+      }
+      if (activeIsInteractive) return;
       if (e.key === "ArrowRight") navigate(1);
       else if (e.key === "ArrowLeft") navigate(-1);
-      else if (e.key === "Escape") setPanelOpen(false);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [navigate]);
+  }, [navigate, activeIsInteractive]);
 
   const handleShare = async () => {
     const url = typeof window !== "undefined" ? window.location.href : "";

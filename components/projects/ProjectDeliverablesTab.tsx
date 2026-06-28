@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ExternalLink, FileText, Link2, MessageSquare, Play, Send, Check, Loader2, AlertTriangle, CornerDownRight, Sparkles, Users } from "lucide-react";
+import { ExternalLink, FileText, Link2, MessageSquare, Play, Send, Check, Loader2, AlertTriangle, CornerDownRight, Sparkles, Users, Pencil } from "lucide-react";
 import { ProjectDetailEmptyState } from "@/components/projects/ProjectDetailEmptyState";
 import { projectDetailTokens as t } from "@/components/projects/project-detail-tokens";
 import { cn } from "@/lib/utils";
@@ -92,7 +92,7 @@ export function ProjectDeliverablesTab({ data, canManage }: { data: ProjectDeliv
       ) : (
         <div className="grid gap-3 lg:grid-cols-2">
           {data.deliverables.map((d) => (
-            <DeliverableCard key={d.id} d={d} />
+            <DeliverableCard key={d.id} d={d} projectId={data.projectId} />
           ))}
         </div>
       )}
@@ -187,7 +187,7 @@ function GenerateDeliverableForm({ projectId, walks, onClose }: { projectId: str
   );
 }
 
-function DeliverableCard({ d }: { d: ProjectDeliverableRow }) {
+function DeliverableCard({ d, projectId }: { d: ProjectDeliverableRow; projectId: string }) {
   const router = useRouter();
   const [copied, setCopied] = useState(false);
   const [sendOpen, setSendOpen] = useState(false);
@@ -414,6 +414,9 @@ function DeliverableCard({ d }: { d: ProjectDeliverableRow }) {
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
+        <Link href={`/projects/${projectId}/deliverables/${d.id}/edit`} className={cn(t.secondaryButton, "!min-h-9 !px-3 text-xs")}>
+          <Pencil className="mr-1.5 h-3.5 w-3.5" aria-hidden /> Edit
+        </Link>
         {shareUrl ? (
           <>
             <Link href={shareUrl} target="_blank" rel="noopener noreferrer" className={cn(t.secondaryButton, "!min-h-9 !px-3 text-xs")}>

@@ -1,7 +1,10 @@
 /**
- * Capture metadata helper — collects timestamp, GPS, and weather for a Site Walk item.
- * Runs entirely in the browser. Falls back gracefully when permissions are denied.
+ * Capture metadata helper — collects timestamp, GPS, device orientation, and weather
+ * for a Site Walk item. Runs entirely in the browser. Falls back gracefully when
+ * permissions are denied.
  */
+
+import { getDeviceOrientationSnapshot, type DeviceOrientationSnapshot } from "./device-orientation";
 
 export interface CaptureWeather {
   temperature_f?: number;
@@ -27,6 +30,8 @@ export interface CaptureMetadata {
     altitude_m: number | null;
     heading_deg: number | null;
   };
+  /** Phone tilt + true compass heading at capture — powers ghost-mode angle alignment. */
+  orientation?: DeviceOrientationSnapshot;
   weather?: CaptureWeather;
 }
 
@@ -135,6 +140,8 @@ export async function captureMetadata(): Promise<CaptureMetadata> {
     },
   };
   if (gps) meta.gps = gps;
+  const orientation = getDeviceOrientationSnapshot();
+  if (orientation) meta.orientation = orientation;
   if (weather) meta.weather = weather;
   return meta;
 }

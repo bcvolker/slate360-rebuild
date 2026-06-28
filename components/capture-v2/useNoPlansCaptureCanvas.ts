@@ -5,6 +5,10 @@ import { useRouter } from "next/navigation";
 import { useCamera } from "@/lib/hooks/useCamera";
 import { buildCaptureV2SummaryUrl } from "@/lib/site-walk/capture-v2-config";
 import { compressCaptureFile } from "@/lib/site-walk/image-compression";
+import {
+  ensureDeviceOrientationPermission,
+  startDeviceOrientationTracking,
+} from "@/lib/site-walk/device-orientation";
 import { getItemPhotoAngles, getPhotoAngleImageUrl } from "@/lib/site-walk/photo-angles";
 import { triggerHapticSuccess } from "@/lib/utils/trigger-haptic";
 import { VECTOR_TOOL_EVENT } from "@/components/site-walk/capture/UnifiedVectorToolbar";
@@ -157,12 +161,22 @@ export function useNoPlansCaptureCanvas({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [progression.selectedId, loop.activeItem?.id]);
 
-  // Available when there's a previous shot, or this is a project walk (so the
-  // picker can surface prior photos to compare against).
-  const ghostAvailable = Boolean(previousShotUrl) || Boolean(session.project_id);
+  // Start orientation tracking once the canvas mounts (Android works immediately;
+  // iOS needs the gesture-time permission below before it yields data).
+  useEffect(() => {
+    startDeviceOrientationTracking();
+  }, []);
+
+  // Ghost mode is PROJECT-ONLY: the pool of prior photos to compare against lives
+  // across every walk in the project, so quick/ad-hoc walks (no project_id) can't
+  // offer ghost. Gate strictly on project_id — no single-shot fallback.
+  const ghostAvailable = Boolean(session.project_id);
 
   const handleGhostTap = useCallback(() => {
     if (!ghostAvailable) return;
+    // Request orientation permission from this user gesture so follow-up shots
+    // record tilt/heading for precise angle alignment (best-effort, never blocks).
+    void ensureDeviceOrientationPermission();
     setGhostOn((value) => !value);
   }, [ghostAvailable]);
 

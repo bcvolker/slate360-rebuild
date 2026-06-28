@@ -1,8 +1,16 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import type { ViewerItem } from "@/lib/site-walk/viewer-types";
 import { FileWarning } from "lucide-react";
 import { PortalGlassCard } from "./PortalGlassCard";
+
+// Photo Sphere Viewer pulls in three.js; load it only when a 360 is opened and
+// never on the server (it touches `window`).
+const TourPanoViewer = dynamic(
+  () => import("@/components/tours/TourPanoViewer").then((m) => m.TourPanoViewer),
+  { ssr: false },
+);
 
 /**
  * External deliverable item renderer for /view/[token].
@@ -67,6 +75,14 @@ export function PublicItemStage({ item }: { item: ViewerItem }) {
       );
 
     case "photo_360":
+      return item.url ? (
+        <div className="relative h-full w-full min-h-[400px]">
+          <TourPanoViewer src={item.url} />
+        </div>
+      ) : (
+        <MediaUnavailable label={item.title || "360 Photo"} />
+      );
+
     case "tour_360":
     case "model_3d":
     case "thermal":

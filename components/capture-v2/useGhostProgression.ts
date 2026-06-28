@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 /**
  * Project-scoped progression ghost.
@@ -23,7 +23,15 @@ export type GhostPhoto = {
 
 type NearbyItem = Record<string, unknown> & { id: string };
 
-const RADIUS_METERS = 75;
+const FEET_PER_METER = 3.28084;
+/** Smallest, most precise default — the user can widen. */
+const DEFAULT_RADIUS_FT = 5;
+/** GPS can't discriminate below its own error; widen the query to ~2.5× accuracy. */
+const ACCURACY_WIDEN_FACTOR = 2.5;
+/** Never query a silly-large area even on a terrible fix. */
+const MAX_RADIUS_METERS = 120;
+/** Below this the GPS radius is meaningless; keep a sane floor. */
+const MIN_RADIUS_METERS = 1.5;
 
 function toNumber(value: unknown): number | null {
   return typeof value === "number" && Number.isFinite(value) ? value : null;
@@ -46,16 +54,22 @@ function getPosition(): Promise<GeolocationPosition | null> {
 export function useGhostProgression({
   enabled,
   projectId,
+  radiusFt = DEFAULT_RADIUS_FT,
 }: {
   enabled: boolean;
   projectId: string | null;
+  /** User-selected vicinity in feet (default 5ft, the most precise). */
+  radiusFt?: number;
 }) {
   const [photos, setPhotos] = useState<GhostPhoto[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [usedGps, setUsedGps] = useState(false);
-  const loadedRef = useRef(false);
+  /** True when GPS accuracy forced the query wider than the user asked for. */
+  const [weakGps, setWeakGps] = useState(false);
+  /** The radius actually queried, in feet (so the UI can say "showing nearby within N ft"). */
+  const [effectiveRadiusFt, setEffectiveRadiusFt] = useState(radiusFt);
 
   const load = useCallback(async () => {
     if (!projectId) return;
@@ -64,10 +78,24 @@ export function useGhostProgression({
     try {
       const pos = await getPosition();
       const params = new URLSearchParams({ project_id: projectId, include_authors: "true" });
+      const requestedM = Math.max(MIN_RADIUS_METERS, radiusFt / FEET_PER_METER);
       if (pos) {
+        // GPS can't resolve below its own error radius — widen the query to at least
+        // ~2.5× the reported accuracy so we don't silently miss true matches sitting
+        // just outside the noise. Surface that we widened so the UI can be honest.
+        const accuracyM = Number.isFinite(pos.coords.accuracy) ? pos.coords.accuracy : 0;
+        const effectiveM = Math.min(
+          MAX_RADIUS_METERS,
+          Math.max(requestedM, accuracyM * ACCURACY_WIDEN_FACTOR),
+        );
         params.set("lat", String(pos.coords.latitude));
         params.set("lng", String(pos.coords.longitude));
-        params.set("radius", String(RADIUS_METERS));
+        params.set("radius", String(effectiveM));
+        setWeakGps(effectiveM > requestedM * 1.5);
+        setEffectiveRadiusFt(Math.round(effectiveM * FEET_PER_METER));
+      } else {
+        setWeakGps(false);
+        setEffectiveRadiusFt(radiusFt);
       }
       setUsedGps(Boolean(pos));
 
@@ -92,21 +120,19 @@ export function useGhostProgression({
     } finally {
       setLoading(false);
     }
-  }, [projectId]);
+  }, [projectId, radiusFt]);
 
-  // Load once when ghost mode is first enabled for a project walk.
+  // Reload when ghost is enabled, or when the user changes the vicinity radius.
   useEffect(() => {
-    if (!enabled || !projectId || loadedRef.current) return;
-    loadedRef.current = true;
+    if (!enabled || !projectId) return;
     void load();
-  }, [enabled, projectId, load]);
+  }, [enabled, projectId, radiusFt, load]);
 
   const selectPhoto = useCallback((id: string | null) => {
     setSelectedId((current) => (current === id ? null : id));
   }, []);
 
   const refresh = useCallback(() => {
-    loadedRef.current = true;
     void load();
   }, [load]);
 
@@ -121,6 +147,10 @@ export function useGhostProgression({
     selectPhoto,
     refresh,
     usedGps,
+    /** GPS accuracy forced the query wider than the user's selected vicinity. */
+    weakGps,
+    /** Radius actually queried (feet) — show "nearby within N ft" when widened. */
+    effectiveRadiusFt,
     /** True when there are prior photos in this project to compare against. */
     hasProgression: photos.length > 0,
   };
