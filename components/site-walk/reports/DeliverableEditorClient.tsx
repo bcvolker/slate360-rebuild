@@ -72,8 +72,11 @@ export function DeliverableEditorClient({ projectId, deliverableId }: Props) {
   const [sourceLoading, setSourceLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | "photo" | "photo_360" | "voice" | "note">("all");
   const [query, setQuery] = useState("");
+  // Capture metadata (date/GPS) on the PDF is OFF by default — opt-in only.
+  const [showMeta, setShowMeta] = useState(false);
   const loadedRef = useRef(false);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const exportConfigRef = useRef<Record<string, unknown>>({});
 
   useEffect(() => {
     let cancelled = false;
@@ -81,11 +84,15 @@ export function DeliverableEditorClient({ projectId, deliverableId }: Props) {
       try {
         const res = await fetch(`/api/site-walk/deliverables/${deliverableId}`, { cache: "no-store" });
         if (!res.ok) throw new Error("Failed to load deliverable");
-        const body = (await res.json()) as { deliverable?: { title?: string; content?: unknown[] } };
+        const body = (await res.json()) as {
+          deliverable?: { title?: string; content?: unknown[]; export_config?: Record<string, unknown> | null };
+        };
         if (cancelled) return;
         setTitle(body.deliverable?.title ?? "");
         const content = Array.isArray(body.deliverable?.content) ? (body.deliverable!.content as Row[]) : [];
         setRows(content);
+        exportConfigRef.current = body.deliverable?.export_config ?? {};
+        setShowMeta(Boolean(exportConfigRef.current.show_metadata));
       } catch {
         if (!cancelled) setSaveState("error");
       } finally {
@@ -120,13 +127,17 @@ export function DeliverableEditorClient({ projectId, deliverableId }: Props) {
   }, [deliverableId]);
 
   const persist = useCallback(
-    async (nextTitle: string, nextRows: Row[]) => {
+    async (nextTitle: string, nextRows: Row[], nextShowMeta: boolean) => {
       setSaveState("saving");
       try {
         const res = await fetch(`/api/site-walk/deliverables/${deliverableId}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ title: nextTitle.trim() || "Untitled deliverable", content: nextRows }),
+          body: JSON.stringify({
+            title: nextTitle.trim() || "Untitled deliverable",
+            content: nextRows,
+            export_config: { ...exportConfigRef.current, show_metadata: nextShowMeta },
+          }),
         });
         if (!res.ok) throw new Error("save failed");
         setSaveState("saved");
@@ -140,11 +151,11 @@ export function DeliverableEditorClient({ projectId, deliverableId }: Props) {
   useEffect(() => {
     if (!loadedRef.current) return;
     if (saveTimer.current) clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(() => void persist(title, rows), 1200);
+    saveTimer.current = setTimeout(() => void persist(title, rows, showMeta), 1200);
     return () => {
       if (saveTimer.current) clearTimeout(saveTimer.current);
     };
-  }, [title, rows, persist]);
+  }, [title, rows, showMeta, persist]);
 
   const updateRow = useCallback((id: string, updates: Partial<Row>) => {
     setRows((prev) => prev.map((r) => (r.id === id ? { ...r, ...updates } : r)));
@@ -221,10 +232,17 @@ export function DeliverableEditorClient({ projectId, deliverableId }: Props) {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <label
+            className="flex cursor-pointer items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-[11px] font-medium text-muted-foreground"
+            title="Burn capture date & GPS onto the exported PDF. Off by default — most reports should not show it."
+          >
+            <input type="checkbox" checked={showMeta} onChange={(e) => setShowMeta(e.target.checked)} className="size-3.5 accent-[var(--graphite-primary)]" />
+            Date / GPS on PDF
+          </label>
           <Button variant="outline" size="sm" onClick={() => setPreview((p) => !p)}>
             <Eye className="size-4" /> {preview ? "Edit" : "Preview"}
           </Button>
-          <Button size="sm" onClick={() => void persist(title, rows)} disabled={saveState === "saving"}>
+          <Button size="sm" onClick={() => void persist(title, rows, showMeta)} disabled={saveState === "saving"}>
             <Save className="size-4" /> Save
           </Button>
         </div>

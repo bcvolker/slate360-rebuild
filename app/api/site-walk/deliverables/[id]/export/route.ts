@@ -39,7 +39,7 @@ export const POST = (req: NextRequest, ctx: IdRouteContext) =>
     // Fetch deliverable + session project_id
     const { data: del, error } = await admin
       .from("site_walk_deliverables")
-      .select("id, title, deliverable_type, content, org_id, session_id")
+      .select("id, title, deliverable_type, content, org_id, session_id, export_config")
       .eq("id", id)
       .eq("org_id", orgId)
       .single();
@@ -61,18 +61,45 @@ export const POST = (req: NextRequest, ctx: IdRouteContext) =>
       const usable = pageWidth - margin * 2;
       let y = margin;
 
-      // Header: org name + date
+      // Capture metadata (date/GPS) is OPTIONAL on the PDF — OFF unless the user
+      // opted in (export_config.show_metadata). Many reports must NOT show it.
+      const showMeta = Boolean((del.export_config as { show_metadata?: boolean } | null)?.show_metadata);
+
+      async function imageDataUrl(key: string): Promise<string | null> {
+        try {
+          const obj = await s3.send(new GetObjectCommand({ Bucket: BUCKET, Key: key }));
+          const body = obj.Body as { transformToByteArray: () => Promise<Uint8Array> } | undefined;
+          if (!body) return null;
+          const bytes = await body.transformToByteArray();
+          return `data:image/*;base64,${Buffer.from(bytes).toString("base64")}`;
+        } catch {
+          return null;
+        }
+      }
+
+      // Header: org branding logo (from the org's Slate360 profile) + name + date.
+      if (org?.deliverable_logo_s3_key) {
+        const logoUrl = await imageDataUrl(org.deliverable_logo_s3_key);
+        if (logoUrl) {
+          try {
+            const lp = doc.getImageProperties(logoUrl);
+            const lw = 100;
+            const lh = lp.width && lp.height ? lw * (lp.height / lp.width) : 28;
+            doc.addImage(logoUrl, lp.fileType || "PNG", margin, y, lw, Math.min(lh, 40));
+          } catch { /* logo optional */ }
+        }
+      }
       doc.setFontSize(10);
       doc.setTextColor(120);
-      doc.text(org?.name ?? "", margin, y);
-      doc.text(new Date().toLocaleDateString(), pageWidth - margin, y, { align: "right" });
-      y += 30;
+      doc.text(org?.name ?? "", pageWidth - margin, y + 10, { align: "right" });
+      doc.text(new Date().toLocaleDateString(), pageWidth - margin, y + 24, { align: "right" });
+      y += 56;
 
       // Title
       doc.setFontSize(22);
       doc.setTextColor(0);
       doc.text(del.title || "Untitled Report", margin, y);
-      y += 30;
+      y += 28;
 
       // Resolve source items for real-image embedding + metadata burn-in.
       const mediaIds = Array.from(
@@ -92,18 +119,6 @@ export const POST = (req: NextRequest, ctx: IdRouteContext) =>
             lng: (r.longitude as number | null) ?? null,
             capturedAt: (r.created_at as string | null) ?? null,
           });
-        }
-      }
-
-      async function imageDataUrl(key: string): Promise<string | null> {
-        try {
-          const obj = await s3.send(new GetObjectCommand({ Bucket: BUCKET, Key: key }));
-          const body = obj.Body as { transformToByteArray: () => Promise<Uint8Array> } | undefined;
-          if (!body) return null;
-          const bytes = await body.transformToByteArray();
-          return `data:image/jpeg;base64,${Buffer.from(bytes).toString("base64")}`;
-        } catch {
-          return null;
         }
       }
 
@@ -153,37 +168,61 @@ export const POST = (req: NextRequest, ctx: IdRouteContext) =>
         } else if (type === "photo" || type === "photo_360" || type === "video") {
           const meta = block.mediaItemId ? itemMap.get(block.mediaItemId) : undefined;
           const dataUrl = meta?.s3_key ? await imageDataUrl(meta.s3_key) : null;
+
+          // Side-by-side: image on the LEFT, all notes/info on the RIGHT, so 2-3
+          // stops fit per page. Capture metadata only when the user opted in.
+          const colW = (usable - 20) / 2;
+          const textX = margin + colW + 20;
+          const textW = usable - colW - 20;
+
+          let imgW = colW;
+          let imgH = colW * 0.7;
+          let fmt = "JPEG";
           if (dataUrl) {
             try {
               const props = doc.getImageProperties(dataUrl);
-              const dispW = Math.min(usable, 380);
-              const dispH = props.height && props.width ? dispW * (props.height / props.width) : dispW * 0.66;
-              ensure(dispH);
-              doc.addImage(dataUrl, "JPEG", margin, y, dispW, dispH);
-              y += dispH + 4;
-            } catch {
-              doc.setFontSize(9); doc.setTextColor(120); doc.text(`[${type}]`, margin, y + 10); y += 16;
+              fmt = props.fileType || "JPEG";
+              if (props.width && props.height) {
+                imgH = colW * (props.height / props.width);
+                const maxH = 200;
+                if (imgH > maxH) { imgH = maxH; imgW = maxH * (props.width / props.height); }
+              }
+            } catch { /* placeholder below */ }
+          }
+
+          const titleLines = block.title ? doc.splitTextToSize(block.title, textW) : [];
+          const noteLines = block.notes ? doc.splitTextToSize(block.notes, textW) : [];
+          const stamp = showMeta
+            ? [
+                meta?.capturedAt ? new Date(meta.capturedAt).toLocaleString() : null,
+                meta?.lat != null && meta?.lng != null ? `${meta.lat.toFixed(5)}, ${meta.lng.toFixed(5)}` : null,
+              ].filter(Boolean).join("   ·   ")
+            : "";
+          const textH = titleLines.length * 15 + (stamp ? 16 : 0) + noteLines.length * 13 + 8;
+
+          const rowH = Math.max(imgH, textH);
+          ensure(rowH + 14);
+          const rowTop = y;
+
+          if (dataUrl) {
+            try { doc.addImage(dataUrl, fmt, margin, rowTop, imgW, imgH); }
+            catch {
+              doc.setDrawColor(210); doc.roundedRect(margin, rowTop, colW, 120, 4, 4, "S");
+              doc.setFontSize(9); doc.setTextColor(150); doc.text(`[${type}]`, margin + 8, rowTop + 20);
             }
           } else {
-            doc.setFontSize(9); doc.setTextColor(120);
-            doc.text(`[${type} — open the shared link to view]`, margin, y + 10); y += 16;
+            doc.setDrawColor(210); doc.roundedRect(margin, rowTop, colW, 120, 4, 4, "S");
+            doc.setFontSize(9); doc.setTextColor(150);
+            doc.text(`${type} — open the shared link`, margin + 8, rowTop + 20);
           }
-          if (block.title) {
-            doc.setFontSize(10); doc.setTextColor(20);
-            const cl = doc.splitTextToSize(block.title, usable);
-            doc.text(cl, margin, y + 10); y += cl.length * 13 + 4;
-          }
-          const stamp = [
-            meta?.capturedAt ? new Date(meta.capturedAt).toLocaleString() : null,
-            meta?.lat != null && meta?.lng != null ? `${meta.lat.toFixed(5)}, ${meta.lng.toFixed(5)}` : null,
-          ].filter(Boolean).join("   ·   ");
-          if (stamp) { doc.setFontSize(8); doc.setTextColor(130); doc.text(stamp, margin, y + 8); y += 14; }
-          if (block.notes) {
-            doc.setFontSize(10); doc.setTextColor(60);
-            const nl = doc.splitTextToSize(block.notes, usable);
-            doc.text(nl, margin, y + 4); y += nl.length * 13 + 6;
-          }
-          y += 6;
+
+          let ty = rowTop + 4;
+          if (titleLines.length) { doc.setFontSize(11); doc.setTextColor(0); doc.text(titleLines, textX, ty + 8); ty += titleLines.length * 15 + 4; }
+          if (stamp) { doc.setFontSize(8); doc.setTextColor(130); doc.text(stamp, textX, ty + 6); ty += 16; }
+          if (noteLines.length) { doc.setFontSize(10); doc.setTextColor(60); doc.text(noteLines, textX, ty + 6); ty += noteLines.length * 13 + 4; }
+
+          y = rowTop + rowH + 14;
+          doc.setDrawColor(235); doc.line(margin, y - 7, pageWidth - margin, y - 7);
         } else if (type === "voice") {
           if (block.title) { doc.setFontSize(11); doc.setTextColor(0); doc.text(block.title, margin, y + 10); y += 16; }
           const vt = block.transcript ?? block.notes;
