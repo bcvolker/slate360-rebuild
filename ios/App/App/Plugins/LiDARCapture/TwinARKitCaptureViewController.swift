@@ -559,10 +559,18 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
         guard let depthMap = depthAnchor?.depthMap, let confMap = depthAnchor?.confidenceMap else { return }
         let transform = frame.camera.transform
         let intrinsics = frame.camera.intrinsics
-        let fx = intrinsics[0][0], fy = intrinsics[1][1]
-        let cx = intrinsics[2][0], cy = intrinsics[2][1]
         let width = CVPixelBufferGetWidth(depthMap)
         let height = CVPixelBufferGetHeight(depthMap)
+        // ARKit intrinsics are expressed in the full RGB image resolution
+        // (frame.camera.imageResolution, ~1920x1440). The LiDAR depthMap is only
+        // ~256x192, so the intrinsics MUST be scaled to the depth resolution before
+        // unprojecting — otherwise cx/cy (~960/720) dwarf the 256x192 pixel coords
+        // and the whole point cloud is skewed. (Flagged by multi-AI review.)
+        let imageRes = frame.camera.imageResolution
+        let sx = Float(width) / Float(imageRes.width)
+        let sy = Float(height) / Float(imageRes.height)
+        let fx = intrinsics[0][0] * sx, fy = intrinsics[1][1] * sy
+        let cx = intrinsics[2][0] * sx, cy = intrinsics[2][1] * sy
 
         CVPixelBufferLockBaseAddress(depthMap, .readOnly)
         CVPixelBufferLockBaseAddress(confMap, .readOnly)
