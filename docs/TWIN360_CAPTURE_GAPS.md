@@ -79,7 +79,7 @@ viewer** (Photo Sphere Viewer); **Pro-tier gating** (`canWalkWithPlans`, `can360
 
 | ID | Task | Priority | Status |
 |----|------|----------|--------|
-| SW-006 | Ghost **user-selectable vicinity** (Pin / 5 / 15 / 30 ft, default 5 ft) + **accuracy-aware widening** + "GPS weak" honesty. | P1 | **Core DONE** — `useGhostProgression` defaults 5 ft, widens query to ~2.5× `accuracy_m` (capped 120 m), exposes `weakGps` + `effectiveRadiusFt`; reloads on radius change. **Pending:** radius-pills + weak-GPS banner in `CaptureCanvasGhostPanel`. |
+| SW-006 | Ghost **user-selectable vicinity** (Pin / 5 / 15 / 30 ft, default 5 ft) + **accuracy-aware widening** + "GPS weak" honesty. | P1 | **Core DONE** — `useGhostProgression` defaults 5 ft, widens query to ~2.5× `accuracy_m` (capped 120 m), exposes `weakGps` + `effectiveRadiusFt`; reloads on radius change. **DONE** — radius pills (5/15/30 ft) + weak-GPS banner threaded into `CaptureCanvasGhostPanel` via `useNoPlansCaptureCanvas` (commit 4cc3846b). |
 | SW-007 | **Stakeholder 360-on-plan viewer** — share viewer where stakeholders click pins across plan pages → 360 opens. Inline pro-user viewer exists; the public/share plan-pin-tap flow is MISSING. | P1 | Harness mocked; build pending |
 | SW-008 | Always-visible **horizontal page strip** + **expandable stops/pins timeline** during a plan walk (sheet picker modal exists; the persistent strip/timeline do not). | P2 | Harness mocked; build pending |
 | SW-009 | **Plan keyword search** beyond sheet name/number (item/RTU/OCR). Sheet-name search exists; content search MISSING. | P2 | Harness mocked; build pending |
