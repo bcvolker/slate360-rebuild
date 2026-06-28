@@ -263,6 +263,10 @@ export function NoPlansCaptureCanvas({
         }
         ghostOpacity={canvas.ghostOpacity}
         onGhostOpacityChange={canvas.setGhostOpacity}
+        radiusFt={canvas.ghostRadiusFt}
+        onRadiusFtChange={canvas.ghostIsProjectWalk ? canvas.setGhostRadiusFt : undefined}
+        weakGps={canvas.ghostWeakGps}
+        effectiveRadiusFt={canvas.ghostEffectiveRadiusFt}
       />
 
       <CaptureCanvasGhostPicker

@@ -58,6 +58,8 @@ export function useNoPlansCaptureCanvas({
   const [filmstripExpanded, setFilmstripExpanded] = useState(false);
   const [ghostOn, setGhostOn] = useState(false);
   const [ghostOpacity, setGhostOpacity] = useState(0.25);
+  // SW-006: user-selectable ghost vicinity (default 5ft = smallest/most precise).
+  const [ghostRadiusFt, setGhostRadiusFt] = useState(5);
   const [facingMode] = useState<"user" | "environment">("environment");
   const [activeTool, setActiveTool] = useState<CaptureCanvasTool | null>(null);
   const [activeAngleId, setActiveAngleId] = useState<string | null>(null);
@@ -131,6 +133,7 @@ export function useNoPlansCaptureCanvas({
   const progression = useGhostProgression({
     enabled: ghostOn,
     projectId: session.project_id ?? null,
+    radiusFt: ghostRadiusFt,
   });
 
   // Overlay shows the picked progression photo if one is selected, else the
@@ -512,6 +515,11 @@ export function useNoPlansCaptureCanvas({
     ghostOpacity,
     setGhostOpacity,
     handleGhostTap,
+    // SW-006 vicinity controls
+    ghostRadiusFt,
+    setGhostRadiusFt,
+    ghostWeakGps: progression.weakGps,
+    ghostEffectiveRadiusFt: progression.effectiveRadiusFt,
     // Project-scoped progression picker (before/after comparison).
     ghostIsProjectWalk: Boolean(session.project_id),
     ghostPhotos: progression.photos,
