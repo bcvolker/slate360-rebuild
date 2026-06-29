@@ -23,9 +23,8 @@ export function isDeliverableSentinel(s3Key: string | null | undefined): boolean
 
 /**
  * The in-app href a deliverable sentinel should open, or null if not a sentinel.
- * Twin → the in-app twin viewer (exists + works). Site Walk → the deliverables list
- * (interim: an owner-scoped `/site-walk/deliverables/[id]` viewer is a follow-up — the
- * public viewer is token-gated, so an unshared deliverable has no owner-by-id route yet).
+ * Twin → the in-app twin viewer; Site Walk → the authenticated owner preview
+ * (`/site-walk/deliverables/[id]`), which works for drafts/unshared deliverables.
  */
 export function resolveDeliverableSentinelHref(s3Key: string | null | undefined): string | null {
   if (!s3Key) return null;
@@ -35,9 +34,7 @@ export function resolveDeliverableSentinelHref(s3Key: string | null | undefined)
   }
   if (s3Key.startsWith(DELIVERABLE_LINK_PREFIX)) {
     const id = s3Key.slice(DELIVERABLE_LINK_PREFIX.length).trim();
-    // Interim target until the owner-by-id viewer route exists; the list lets the
-    // owner open/share the specific deliverable.
-    return id ? `/site-walk/deliverables?open=${encodeURIComponent(id)}` : "/site-walk/deliverables";
+    return id ? `/site-walk/deliverables/${encodeURIComponent(id)}` : null;
   }
   return null;
 }

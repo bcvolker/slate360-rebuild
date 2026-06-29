@@ -9,7 +9,9 @@ import CommentThread from "./CommentThread";
 
 interface Props {
   deliverable: ViewerDeliverable;
-  token: string;
+  /** Share token when viewed via a public link; omitted for the authenticated
+   * owner preview (`/site-walk/deliverables/[id]`), which has no token. */
+  token?: string;
 }
 
 export default function ViewerClient({ deliverable, token }: Props) {
@@ -18,11 +20,13 @@ export default function ViewerClient({ deliverable, token }: Props) {
 
   const items = deliverable.items;
   const activeItem = items[activeIndex];
+  // Resume key falls back to the deliverable id for the token-less owner preview.
+  const storageKey = `slate360_view_${token ?? deliverable.id}`;
 
-  // Restore last-viewed index per token
+  // Restore last-viewed index per viewer
   useEffect(() => {
     try {
-      const saved = window.localStorage.getItem(`slate360_view_${token}`);
+      const saved = window.localStorage.getItem(storageKey);
       if (!saved) return;
       const idx = parseInt(saved, 10);
       if (!Number.isNaN(idx) && idx >= 0 && idx < items.length) {
@@ -31,21 +35,21 @@ export default function ViewerClient({ deliverable, token }: Props) {
     } catch {
       /* ignore */
     }
-  }, [token, items.length]);
+  }, [storageKey, items.length]);
 
   const navigate = useCallback(
     (dir: 1 | -1) => {
       setActiveIndex((prev) => {
         const next = Math.max(0, Math.min(items.length - 1, prev + dir));
         try {
-          window.localStorage.setItem(`slate360_view_${token}`, String(next));
+          window.localStorage.setItem(storageKey, String(next));
         } catch {
           /* ignore */
         }
         return next;
       });
     },
-    [items.length, token]
+    [items.length, storageKey]
   );
 
   // Preload adjacent media so crossfades land on a decoded image, not a flash.
@@ -259,11 +263,13 @@ export default function ViewerClient({ deliverable, token }: Props) {
                 )}
               </div>
 
-              <CommentThread
-                deliverableId={deliverable.id}
-                itemId={activeItem.id}
-                token={token}
-              />
+              {token && (
+                <CommentThread
+                  deliverableId={deliverable.id}
+                  itemId={activeItem.id}
+                  token={token}
+                />
+              )}
             </div>
           </aside>
         )}
