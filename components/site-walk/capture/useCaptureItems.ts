@@ -21,6 +21,13 @@ type FormatResponse = {
   suggestedPriority?: string;
   error?: string;
   metering?: { currentUsage: number; limit: number; tier: string };
+  provenance?: {
+    model?: string;
+    provider?: string;
+    formatted_at?: string;
+    source_chars?: number;
+    policy?: string;
+  };
 };
 type SaveState = "idle" | "dirty" | "saving" | "saved" | "error";
 
@@ -162,6 +169,8 @@ export function useCaptureItems({ sessionId, projectId }: HookArgs) {
 
   async function formatNotesWithAi() {
     if (!activeItem || !draft?.notes.trim()) return;
+    // SW-014: preserve the verbatim raw note before AI rewrites it (evidentiary).
+    const rawNote = draft.notes;
     setAiState("formatting");
     setAiMessage(null);
     const response = await fetch("/api/site-walk/notes/format", {
@@ -189,8 +198,42 @@ export function useCaptureItems({ sessionId, projectId }: HookArgs) {
       priority: normalizePriority(data?.suggestedPriority),
       ...(suggestedClassification ? { classification: suggestedClassification } : {}),
     });
+    // SW-014: keep the verbatim raw note + AI provenance on the item metadata so
+    // the evidentiary record always retains the original field text (never AI-only).
+    await persistRawNoteProvenance(activeItem, rawNote, data?.provenance);
     setAiState("idle");
     setAiMessage("AI cleaned the notes and suggested tags. Autosave will run next.");
+  }
+
+  async function persistRawNoteProvenance(
+    item: CaptureItemRecord,
+    rawNote: string,
+    provenance: FormatResponse["provenance"],
+  ) {
+    const metadata = {
+      ...(item.metadata ?? {}),
+      note_raw: rawNote,
+      ai_formatted: true,
+      ai_provenance: provenance ?? { provider: "unknown", policy: "format_only_no_new_facts" },
+    };
+    const payload: UpdateItemPayload = { metadata, sync_state: "synced" };
+    setItems((current) =>
+      upsertItem(current, { ...item, metadata, sync_state: "pending" as const, updated_at: new Date().toISOString() }),
+    );
+    try {
+      if (isOffline() || item.id.startsWith("item-")) {
+        await queueOfflineItemPatch(sessionId, item, payload);
+        return;
+      }
+      const response = await fetch(`/api/site-walk/items/${encodeURIComponent(item.id)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!response.ok) throw new Error("note provenance save failed");
+    } catch {
+      await queueOfflineItemPatch(sessionId, item, payload);
+    }
   }
 
   async function saveMarkupData(itemId: string, markup: MarkupData) {

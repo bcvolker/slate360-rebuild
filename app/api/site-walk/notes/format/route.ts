@@ -90,7 +90,17 @@ export const POST = (req: NextRequest) =>
       console.info(
         `[notes-format] org=${orgId} user=${user.id} provider=${cfg.provider} chars=${rawText.length}`,
       );
-      return ok({ ...parsed, formattedText: parsed.cleanedNotes, provider: cfg.provider });
+      // Provenance for SW-014 dual storage: the client persists the RAW note
+      // verbatim alongside this formatted version + provenance, so the
+      // evidentiary record always retains the original field text.
+      const provenance = {
+        model: cfg.chatModel,
+        provider: cfg.provider,
+        formatted_at: new Date().toISOString(),
+        source_chars: rawText.length,
+        policy: "format_only_no_new_facts" as const,
+      };
+      return ok({ ...parsed, formattedText: parsed.cleanedNotes, provider: cfg.provider, provenance });
     } catch (err) {
       console.error("[notes-format]", err);
       return serverError("Failed to format notes");
