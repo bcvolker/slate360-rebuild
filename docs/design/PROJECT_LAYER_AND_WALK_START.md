@@ -1,5 +1,16 @@
 # Project Layer + Walk-Start + 360-on-Plan — design & rebuild plan (Jun 28 2026)
 
+> **STATUS UPDATE (Jun 29 2026) — much of the "REBUILD" below is already done.** A 2-agent scan
+> (code-map + user-journey trace) found the create wizard (`CreateProjectWizard.tsx`), mobile wizard,
+> `/projects` list, and the `[projectId]` detail shell + tabs (Overview/Walks/Plans/Twins/Files/
+> Deliverables/Team) **already exist and are token-clean** — the "slop" labels are stale. The real
+> remaining work is narrower (tier surfacing, contacts desktop hub, calendar, guided upload, 360-on-
+> plan share). **Done Jun 29 (b95dc4b8):** closed the journey dead-ends — Twin-from-project now threads
+> `projectId` (was dropping context), Overview has a one-click "Start a Site Walk" tile, create
+> redirects into the new project home, and two design-token fixes. Treat the table's "REBUILD" as
+> "POLISH/EXTEND," not greenfield.
+
+
 ## The core finding (audit)
 **The backend/data is far stronger than the UI.** Sound tables + APIs already exist for
 projects, files (SlateDrop), contacts, sessions, plans, and tier-gating. The **UI surfaces
