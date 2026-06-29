@@ -60,6 +60,17 @@ export async function createCaptureItem(params: CreateCaptureItemParams): Promis
   });
   const data = (await response.json().catch(() => null)) as ItemResponse | null;
   if (!response.ok || !data?.item) throw new Error(data?.error ?? "Could not save item");
+
+  // Evidentiary: for file-backed items saved server-side, kick off the server hash
+  // re-verify (best-effort, non-blocking — the server endpoint runs to completion;
+  // offline/temporary "item-" ids are skipped and verified later when synced).
+  const newId = data.item.id;
+  if (params.file && newId && !String(newId).startsWith("item-")) {
+    void fetch(`/api/site-walk/items/${encodeURIComponent(newId)}/verify-hash`, {
+      method: "POST",
+    }).catch(() => undefined);
+  }
+
   return data.item;
 }
 
