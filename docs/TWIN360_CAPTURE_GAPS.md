@@ -141,7 +141,7 @@ Grounded code audit (separates DOCUMENTED specs from IMPLEMENTED code):
 | REPORT-005 | **Notify owner on per-item comments** — `viewer_comments` submit has no `notifyOwner()`; only whole-deliverable Q&A notifies. Brian wants a notification on ANY question/response. | P1 | MISSING (whole-deliverable Q&A notify EXISTS) |
 | REPORT-002 | PDF export now **embeds real images** (S3 fetch → base64 → `addImage`, aspect-correct, page-break aware) + **timestamp/GPS burn-in** + renders `note`/`voice`/photo content (was: rendered nothing for real `ViewerItem[]` deliverables). **DONE.** Author-name burn-in (needs user join) pending. | P1 | DONE (author name pending) |
 | WORKFLOW-001 | Offline **multipart resumable upload** orchestrator (TUS or S3 multipart) + **conflict-surface UI**. | P1 | PARTIAL |
-| SW-011 | **SHA-256 content hash at ingest** (`content_hash` on items) + extend audit log to field mutations (evidentiary). | P1 | MISSING |
+| SW-011 | **SHA-256 content hash** (evidentiary). **Capture-time hash DONE** — `lib/site-walk/content-hash.ts` `sha256Hex()` binds `content_sha256` into item metadata in `createCaptureItem` (FRE 902(14) foundation). **TODO:** server re-hash on upload-complete → `hash_verified`; append-only hash-chained `evidence_events` log. Plan: docs/design/OFFLINE_SYNC_EVIDENTIARY_ARCHITECTURE.md. | P1 | Capture hash shipped |
 | SW-014 | **Raw-note vs AI-formatted dual storage** (`note_raw`/`note_formatted`) + AI disclosure label. | P1 | MISSING |
 | CONFLICT-001 | Move shared pin/stop edits to **append-only events** (or field-level merge + If-Match), replacing whole-record LWW. | P2 | LWW today |
 | DEL-004 | Word/DOCX export from the block model. | P3 | MISSING |

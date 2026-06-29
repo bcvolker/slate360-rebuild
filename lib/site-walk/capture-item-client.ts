@@ -1,4 +1,5 @@
 import { captureMetadata, type CaptureMetadata } from "@/lib/site-walk/metadata";
+import { sha256Hex } from "@/lib/site-walk/content-hash";
 import type { SiteWalkCaptureMode, SiteWalkItemType } from "@/lib/types/site-walk";
 import type { CaptureItemRecord } from "@/lib/types/site-walk-capture";
 
@@ -38,8 +39,20 @@ export async function presignCaptureUpload(sessionId: string, file: File): Promi
   return { uploadUrl: upload.uploadUrl, s3Key: upload.s3Key, fileId: upload.fileId };
 }
 
+/** Bind the capture-time SHA-256 into the metadata before save (evidentiary
+ * foundation). Non-fatal: a hashing failure must never block capture. */
+async function withContentHash(params: CreateCaptureItemParams): Promise<CreateCaptureItemParams> {
+  const md = params.metadata as Record<string, unknown>;
+  if (!params.file || md.content_sha256) return params;
+  try {
+    return { ...params, metadata: { ...params.metadata, content_sha256: await sha256Hex(params.file) } };
+  } catch {
+    return params;
+  }
+}
+
 export async function createCaptureItem(params: CreateCaptureItemParams): Promise<CaptureItemRecord> {
-  const body = buildCreateCaptureItemBody(params);
+  const body = buildCreateCaptureItemBody(await withContentHash(params));
   const response = await fetch("/api/site-walk/items", {
     method: "POST",
     headers: { "Content-Type": "application/json" },

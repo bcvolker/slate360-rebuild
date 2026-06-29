@@ -33,6 +33,9 @@ export interface CaptureMetadata {
   /** Phone tilt + true compass heading at capture — powers ghost-mode angle alignment. */
   orientation?: DeviceOrientationSnapshot;
   weather?: CaptureWeather;
+  /** SHA-256 of the captured bytes, computed on-device before upload (evidentiary
+   * integrity — server re-verifies to prove the file is unchanged since capture). */
+  content_sha256?: string;
 }
 
 /**
