@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { recordEvidenceEvent } from "@/lib/site-walk/evidence-events";
 
 /**
  * Record a deliverable view (by share token): log it to
@@ -15,7 +16,7 @@ export async function recordDeliverableView(
 ): Promise<void> {
   const { data: del } = await admin
     .from("site_walk_deliverables")
-    .select("id, share_view_count")
+    .select("id, share_view_count, org_id, project_id")
     .eq("share_token", token)
     .maybeSingle();
   if (!del) return;
@@ -30,4 +31,19 @@ export async function recordDeliverableView(
     .from("site_walk_deliverables")
     .update({ share_view_count: ((del.share_view_count as number | null) ?? 0) + 1 })
     .eq("id", del.id as string);
+
+  // Chain-of-custody: record that the deliverable was viewed by a recipient
+  // (no authenticated actor; the token is the access control). Best-effort.
+  const orgId = del.org_id as string | null;
+  if (orgId) {
+    await recordEvidenceEvent({
+      admin,
+      orgId,
+      projectId: (del.project_id as string | null) ?? null,
+      entityType: "site_walk_deliverable",
+      entityId: del.id as string,
+      eventType: "deliverable_viewed",
+      metadata: { viewer_ua: ua.slice(0, 120) },
+    });
+  }
 }

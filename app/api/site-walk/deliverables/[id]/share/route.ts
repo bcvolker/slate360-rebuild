@@ -12,6 +12,7 @@ import { NextRequest } from "next/server";
 import { withAppAuth } from "@/lib/server/api-auth";
 import { ok, badRequest, notFound, serverError } from "@/lib/server/api-response";
 import { createDeliverableSnapshot } from "@/lib/site-walk/deliverable-snapshots";
+import { recordEvidenceEvent } from "@/lib/site-walk/evidence-events";
 import type { IdRouteContext } from "@/lib/types/api";
 
 type SharePayload = {
@@ -31,7 +32,7 @@ export const POST = (req: NextRequest, ctx: IdRouteContext) =>
     // Fetch current deliverable
     const { data: existing, error: fetchErr } = await admin
       .from("site_walk_deliverables")
-      .select("id, share_token, status, share_revoked")
+      .select("id, share_token, status, share_revoked, project_id")
       .eq("id", id)
       .eq("org_id", orgId)
       .single();
@@ -83,5 +84,18 @@ export const POST = (req: NextRequest, ctx: IdRouteContext) =>
 
     if (error) return serverError(error.message);
     if (!data) return notFound("Deliverable not found");
+
+    // Chain-of-custody: record that the deliverable was shared (best-effort, non-fatal).
+    await recordEvidenceEvent({
+      admin,
+      orgId,
+      projectId: (existing.project_id as string | null) ?? null,
+      entityType: "site_walk_deliverable",
+      entityId: id,
+      eventType: "deliverable_shared",
+      actorUserId: user.id,
+      metadata: { version: snapshot.version_number, expires_at: body.expires_at ?? null },
+    });
+
     return ok({ share_token: data.share_token, version: snapshot.version_number });
   });
