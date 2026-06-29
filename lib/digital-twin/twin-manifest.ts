@@ -31,7 +31,15 @@ export type SplatManifest = {
  */
 export async function fetchSplatManifest(modelUrl: string): Promise<SplatManifest | null> {
   try {
-    const res = await fetch(`/api/digital-twin/splat-manifest?u=${encodeURIComponent(modelUrl)}`);
+    // Share links stream the model via `/api/share/twin/<token>/splat`, whose path
+    // has no `.spz` suffix — so the generic `?u=` manifest route can't derive the
+    // sibling key and 404s (leaving the model uncorrected/upside-down on the branded
+    // link). Route those URLs to the token-scoped share manifest endpoint instead.
+    const shareMatch = modelUrl.match(/\/api\/share\/twin\/([^/?]+)\/splat(?:$|\?)/);
+    const endpoint = shareMatch
+      ? `/api/share/twin/${shareMatch[1]}/manifest`
+      : `/api/digital-twin/splat-manifest?u=${encodeURIComponent(modelUrl)}`;
+    const res = await fetch(endpoint);
     if (!res.ok) return null;
     const data = (await res.json()) as SplatManifest | null;
     return data && typeof data === "object" ? data : null;
