@@ -153,9 +153,15 @@ function StartWalkTile({ projectId, projectName }: { projectId: string; projectN
         <span className="block truncate text-sm font-semibold text-[var(--graphite-text-header)]">
           {starting ? "Starting…" : "Start a Site Walk"}
         </span>
-        <span className="block truncate text-xs text-[var(--graphite-muted)]">
-          {error ?? "Capture photos & notes now"}
-        </span>
+        {error ? (
+          <span role="alert" className="block text-xs text-[var(--graphite-text-header)]">
+            {error}
+          </span>
+        ) : (
+          <span className="block truncate text-xs text-[var(--graphite-muted)]">
+            Capture photos & notes now
+          </span>
+        )}
       </span>
     </button>
   );
