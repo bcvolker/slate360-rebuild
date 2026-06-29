@@ -44,3 +44,28 @@ does not edit them.** Ranked by impact.
 
 Verdict: **RISKS FOUND.** Structural gating exists (login + entitlement enforced), but storage gates
 on the largest payloads (Twin) and the credit-charge path have real revenue leaks to close.
+
+## Resolution (Jun 28 — after code inspection)
+Inspecting the code changed several conclusions. **The app is in deliberate pre-launch BETA**
+(`BETA_MODE = NEXT_PUBLIC_BETA_MODE !== "false"`, "Subscribing opens at launch") — monetization is
+intentionally disabled, so some "leaks" are by-design until launch.
+
+- **#1 Twin storage gate — ALREADY HANDLED (false positive).** `app/api/digital-twin/upload/single`
+  calls `assertStorageQuota` (`lib/twin/storage-quota.ts`) at presign, which reads the real
+  `get_storage_used` RPC + entitlement limit and throws over quota. No change needed.
+- **#4 fake 2 MB estimate — FIXED.** `lib/server/quota-check.ts` `checkStorageQuota()` was DEAD
+  (zero callers) and used a fabricated estimate — removed it so it can't be wired back.
+- **#3 metering fails open — FIXED (beta-aware).** `lib/site-walk/metering.ts` `failGate()` now fails
+  OPEN during beta (no charging — don't block beta users on a transient DB error) and CLOSED once
+  live (`isBetaMode()` gate), so errors can't leak paid usage post-launch.
+- **#5 beta-mode grants pro — INTENTIONAL.** This is the pre-launch posture; the "fix" is the
+  launch-time flip `NEXT_PUBLIC_BETA_MODE=false`. Not a code bug.
+- **#2 credit estimate ≠ charge / no enqueue hold — LAUNCH-HARDENING TASK (deferred).** Real for
+  post-launch, but credits aren't charged in beta, and reworking the charge/hold path is the
+  highest-risk money change — do it as a deliberate, tested change with Brian before launch (reserve
+  at job-create, refund on failure, same asset set for estimate and charge).
+- **#6 delete decrement race — LAUNCH-HARDENING TASK (deferred, low frequency).** Make the
+  `recoverOrgStorage` conditional on the soft-delete UPDATE actually transitioning `active→deleted`.
+
+**Launch billing checklist (before `NEXT_PUBLIC_BETA_MODE=false`):** do #2 (credit hold) and #6
+(race-safe decrement), and re-confirm Stripe `subscription.deleted` carries `kind` for modular subs.

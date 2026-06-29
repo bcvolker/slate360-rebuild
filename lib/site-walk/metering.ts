@@ -6,6 +6,7 @@ import {
   resolveModularEntitlements,
   type OrgAppSubscriptions,
 } from "@/lib/entitlements";
+import { isBetaMode } from "@/lib/beta-mode";
 
 const BYTES_PER_GB = 1024 * 1024 * 1024;
 const BASIC_STORAGE_BYTES = 5 * BYTES_PER_GB;
@@ -142,13 +143,21 @@ async function readMonthlyUsage(
   }, 0);
 }
 
-function failOpen(
+// Billing audit #3: on a metering query error, fail OPEN during pre-launch beta
+// (monetization is disabled — never block a beta user on a transient DB blip), but fail
+// CLOSED once live so a transient/forced error can't leak unmetered paid usage.
+function failGate(
   error: unknown,
   limit: number,
   unit: SiteWalkMeteringUnit,
 ): SiteWalkMeteringResult {
-  console.error("[site-walk-metering] fail-open after metering error", error);
-  return { allowed: true, currentUsage: 0, limit, tier: "basic", unit, meteringFailed: true };
+  const open = isBetaMode();
+  console.error(`[site-walk-metering] fail-${open ? "open" : "closed"} after metering error`, error);
+  if (open) {
+    return { allowed: true, currentUsage: 0, limit, tier: "basic", unit, meteringFailed: true };
+  }
+  const reason: SiteWalkMeteringReason = unit === "credits" ? "credits_empty" : "storage_full";
+  return { allowed: false, reason, currentUsage: 0, limit, tier: "basic", unit };
 }
 
 export async function checkStorageLimit(
@@ -169,7 +178,7 @@ export async function checkStorageLimit(
     }
     return { allowed: true, currentUsage, limit, tier, unit: "bytes" };
   } catch (error) {
-    return failOpen(error, BASIC_STORAGE_BYTES, "bytes");
+    return failGate(error, BASIC_STORAGE_BYTES, "bytes");
   }
 }
 
@@ -188,7 +197,7 @@ export async function checkAICreditLimit(
     }
     return { allowed: true, currentUsage, limit, tier, unit: "credits" };
   } catch (error) {
-    return failOpen(error, BASIC_AI_CREDITS, "credits");
+    return failGate(error, BASIC_AI_CREDITS, "credits");
   }
 }
 

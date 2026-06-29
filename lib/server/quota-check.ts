@@ -44,43 +44,8 @@ export async function checkSessionQuota(
   return { allowed: true, currentUsage: current };
 }
 
-/** Check if the org has storage remaining for an upload */
-export async function checkStorageQuota(
-  admin: SupabaseClient,
-  orgId: string,
-  fileSizeBytes: number,
-): Promise<QuotaResult> {
-  const [subsResult, usageResult] = await Promise.all([
-    admin
-      .from("org_app_subscriptions")
-      .select("site_walk")
-      .eq("org_id", orgId)
-      .single(),
-    admin
-      .from("site_walk_items")
-      .select("metadata")
-      .eq("org_id", orgId)
-      .not("s3_key", "is", null),
-  ]);
-
-  const subs = (subsResult.data ?? {}) as Partial<OrgAppSubscriptions>;
-  const ent = resolveModularEntitlements(subs);
-  const maxStorageGB = ent.apps.site_walk.storageGB ?? Infinity;
-  const maxBytes = maxStorageGB * 1024 * 1024 * 1024;
-
-  // Rough estimate: count items with photos, assume avg 2MB each
-  // In production, track actual byte usage in a storage_used column
-  const photoCount = usageResult.data?.length ?? 0;
-  const estimatedUsed = photoCount * 2 * 1024 * 1024;
-
-  if (estimatedUsed + fileSizeBytes > maxBytes) {
-    return {
-      allowed: false,
-      reason: `Storage limit reached (${(estimatedUsed / 1024 / 1024 / 1024).toFixed(1)}GB / ${maxStorageGB}GB)`,
-      currentUsage: estimatedUsed,
-      limit: maxBytes,
-    };
-  }
-
-  return { allowed: true, currentUsage: estimatedUsed, limit: maxBytes };
-}
+// NOTE: the former checkStorageQuota() used a fabricated 2 MB-per-photo estimate and
+// had zero callers — removed (billing audit #4). Authoritative storage gating uses the
+// real org_storage_used_bytes counter: lib/twin/storage-quota.ts (assertStorageQuota,
+// reads the get_storage_used RPC), lib/site-walk/metering.ts (checkStorageLimit), and the
+// inline gate in app/api/slatedrop/upload-url/route.ts.
