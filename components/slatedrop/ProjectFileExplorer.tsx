@@ -33,6 +33,26 @@ export default function ProjectFileExplorer({
     handleExportCloseout,
   } = useProjectFileExplorer(projectId, rootFolderId);
 
+  // Deliverable LINK rows open their in-app viewer; real files resolve a signed
+  // download URL (the download route returns { openHref } for any sentinel too).
+  const handleOpenFile = async (file: { id: string; openHref?: string }) => {
+    if (file.openHref) {
+      window.location.assign(file.openHref);
+      return;
+    }
+    try {
+      const res = await fetch(`/api/slatedrop/download?fileId=${encodeURIComponent(file.id)}`);
+      const data = await res.json().catch(() => ({}));
+      if (data.openHref) {
+        window.location.assign(data.openHref);
+        return;
+      }
+      if (data.url) window.open(data.url, "_blank", "noopener,noreferrer");
+    } catch {
+      /* ignore */
+    }
+  };
+
   return (
     <div className="grid min-h-[65vh] grid-cols-1 gap-4 lg:grid-cols-[280px_1fr]">
       <aside className="rounded-2xl border border-white/10 bg-[color-mix(in_srgb,var(--graphite-canvas)_60%,transparent)] p-4 shadow-sm">
@@ -163,13 +183,22 @@ export default function ProjectFileExplorer({
             </div>
           ) : (
             files.map((file) => (
-              <article key={file.id} className="flex items-center justify-between rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2">
+              <button
+                key={file.id}
+                type="button"
+                onClick={() => handleOpenFile(file)}
+                className="flex w-full items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-left transition hover:border-[color-mix(in_srgb,var(--graphite-primary)_40%,transparent)]"
+              >
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold text-[var(--graphite-text-body)]">{file.name}</p>
                   <p className="text-[11px] uppercase tracking-wide text-[var(--graphite-muted)]">{file.type || "file"}</p>
                 </div>
-                <FileText size={14} className="shrink-0 text-[var(--graphite-muted)]" />
-              </article>
+                {file.openHref ? (
+                  <ArrowUpRight size={14} className="shrink-0 text-[var(--graphite-primary)]" />
+                ) : (
+                  <Download size={14} className="shrink-0 text-[var(--graphite-muted)]" />
+                )}
+              </button>
             ))
           )}
         </div>

@@ -37,36 +37,51 @@ export async function GET(req: NextRequest) {
   const namespace = resolveNamespace(orgId, user.id);
   const s3Prefix = `orgs/${namespace}/${folderId}/`;
 
-  let query = admin
+  const cols = "id, file_name, file_size, file_type, s3_key, uploaded_by, created_at";
+
+  // Regular files live under the folder's s3_key prefix...
+  let fileQuery = admin
     .from("slatedrop_uploads")
-    .select("id, file_name, file_size, file_type, s3_key, uploaded_by, created_at")
+    .select(cols)
     .eq("status", "active")
-    .like("s3_key", `${s3Prefix}%`)
-    .order("file_name", { ascending: true });
+    .like("s3_key", `${s3Prefix}%`);
+  fileQuery = orgId ? fileQuery.eq("org_id", orgId) : fileQuery.eq("uploaded_by", user.id);
 
-  if (orgId) {
-    query = query.eq("org_id", orgId);
-  } else {
-    query = query.eq("uploaded_by", user.id);
-  }
+  // ...but deliverable LINK rows have a sentinel s3_key (deliverable:// / twin-deliverable://)
+  // with no folder prefix — they're located by folder_id instead, so they were invisible here.
+  let linkQuery = admin
+    .from("slatedrop_uploads")
+    .select(cols)
+    .eq("status", "active")
+    .eq("folder_id", folderId)
+    .in("file_type", ["deliverable", "twin_deliverable"]);
+  linkQuery = orgId ? linkQuery.eq("org_id", orgId) : linkQuery.eq("uploaded_by", user.id);
 
-  const { data: files, error } = await query;
+  const [fileRes, linkRes] = await Promise.all([fileQuery, linkQuery]);
 
-  if (error) {
-    console.error("[slatedrop/files] Error:", error.message);
-    // Table error — return empty gracefully
+  if (fileRes.error) {
+    console.error("[slatedrop/files] Error:", fileRes.error.message);
     return NextResponse.json({ files: [] });
   }
 
+  // Merge + de-dupe by id (a row can't be both, but guard anyway), then sort by name.
+  const byId = new Map<string, Record<string, unknown>>();
+  for (const f of [...(fileRes.data ?? []), ...(linkRes.data ?? [])]) {
+    byId.set(f.id as string, f as Record<string, unknown>);
+  }
+  const merged = Array.from(byId.values()).sort((a, b) =>
+    String(a.file_name).localeCompare(String(b.file_name)),
+  );
+
   return NextResponse.json({
-    files: (files ?? []).map((f) => ({
+    files: merged.map((f) => ({
       id: f.id,
       name: f.file_name,
       size: f.file_size,
-      type: f.file_type ?? "",
+      type: (f.file_type as string) ?? "",
       folderId,
       s3Key: f.s3_key,
-      modified: (f.created_at ?? new Date().toISOString()).slice(0, 10),
+      modified: ((f.created_at as string) ?? new Date().toISOString()).slice(0, 10),
     })),
   });
 }

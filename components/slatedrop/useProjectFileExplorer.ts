@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { resolveDeliverableSentinelHref } from "@/lib/slatedrop/deliverable-sentinel";
 
 type FolderRow = {
   id: string;
@@ -14,6 +15,9 @@ type FileRow = {
   size: number;
   type: string;
   modified: string;
+  s3Key?: string;
+  /** In-app viewer href when this row is a deliverable LINK sentinel; else undefined. */
+  openHref?: string;
 };
 
 type LatestReport = {
@@ -85,7 +89,13 @@ export function useProjectFileExplorer(projectId: string, rootFolderId: string) 
         });
         const payload = await response.json().catch(() => ({}));
         if (cancelled) return;
-        setFiles(Array.isArray(payload?.files) ? payload.files : []);
+        const rows = Array.isArray(payload?.files) ? payload.files : [];
+        setFiles(
+          rows.map((f: FileRow & { s3Key?: string }) => ({
+            ...f,
+            openHref: resolveDeliverableSentinelHref(f.s3Key) ?? undefined,
+          })),
+        );
       } finally {
         if (!cancelled) setFilesLoading(false);
       }
