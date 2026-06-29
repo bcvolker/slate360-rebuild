@@ -9,6 +9,7 @@ import { bridgePhotoToSlateDrop } from "@/lib/site-walk/slatedrop-bridge";
 import { recordSiteWalkUsage } from "@/lib/site-walk/metering";
 import { trackStorageUsed } from "@/lib/slatedrop/track-storage";
 import { excludeDeletedSiteWalkItems } from "@/lib/site-walk/item-filters";
+import { recordEvidenceEvent } from "@/lib/site-walk/evidence-events";
 import { SITE_WALK_ITEM_TYPES, type CreateItemPayload } from "@/lib/types/site-walk";
 
 export const GET = (req: NextRequest) =>
@@ -209,6 +210,23 @@ export const POST = (req: NextRequest) =>
         console.error("[site-walk-items] bridge error:", err);
         warnings.push("SlateDrop bridge failed — photo saved but not linked to project files.");
       }
+    }
+
+    // Chain-of-custody: log the capture event with the on-device content hash
+    // (best-effort, non-fatal; no-ops until evidence_events is migrated).
+    if (data) {
+      await recordEvidenceEvent({
+        admin,
+        orgId,
+        projectId: session.project_id ?? null,
+        entityType: "site_walk_item",
+        entityId: data.id as string,
+        eventType: "captured",
+        actorUserId: user.id,
+        actorDeviceId: (body.device_id as string | null) ?? null,
+        contentSha256: typeof metadata.content_sha256 === "string" ? metadata.content_sha256 : null,
+        metadata: { item_type: body.item_type, client_item_id: body.client_item_id ?? null },
+      });
     }
 
     return ok({ item: data, ...(warnings.length > 0 ? { warnings } : {}) });
