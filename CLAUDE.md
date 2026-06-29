@@ -140,9 +140,39 @@ WORKFLOW-/CONFLICT- IDs + status). Locked designs in `docs/design/`:
 `LIDAR_NATIVE_CAPTURE_BUILD_PLAN.md`, `SLATE360_DELIVERABLES_AND_PLATFORM.md`. Cross-session
 state also lives in Claude's memory files (`MEMORY.md` index) — check both.
 
+## Gates — run before every push
+
+npm scripts that exist: `build`, `typecheck`, `guard:architecture`, `guard:file-size-regression`,
+`guard:design`. Before pushing a slice, it should pass:
+1. **typecheck** — but bare `npm run typecheck` (`tsc --noEmit`) **OOM-crashes (exit 134)**, so
+   typecheck the touched subsystem with a scoped temp `tsconfig` (see the tsc note above), not the
+   global script.
+2. **build** — `node scripts/ops/next-production-build.mjs` (slow; run for non-trivial slices).
+3. **guard:architecture** — forbidden import-direction + API auth-pattern violations.
+4. **guard:file-size-regression** — a *baseline* guard (`ops/file-size-baseline.json`, 300-line
+   threshold): new files must be <300 lines and baselined files must not grow. Existing oversized
+   files are grandfathered. Fix by extracting code, or update the baseline only when growth is approved.
+5. **guard:design** — bans hardcoded brand-color hex / amber; use `var(--graphite-primary)` /
+   `var(--twin360-blue)` / `var(--primary)` so white-label + theming apply.
+
+Final acceptance is **on-device on a real iPhone** (Brian, manual). Nothing is "done" until
+iPhone-verified.
+
+## Hard guardrails — never violate
+
+- **Never `git add .`** — stage explicit file paths only.
+- **Never hardcode hex** — tokens only (enforced by `guard:design`).
+- **Forbidden edit zones** (READ for audit, never edit): entitlements, billing, Stripe,
+  middleware, and **existing** database migrations. (Preparing a NEW *additive* migration for Brian
+  to apply via the Supabase Management API is the established flow — that's not editing an existing one.)
+- Treat `components/site-walk/capture/**` (the V1 capture flow) and `components/capture-v2/**`
+  (V2 canvas) as distinct — don't cross-wire them (the "capture V1/V2 reuse hazard"). Both are
+  live and editable; there is no blanket freeze, but check `guard:architecture` after touching either.
+
 ## Workflow note
 
 Designs are typically validated by a multi-AI panel (Brian relays prompts → other platforms →
 back), then locked into a `docs/design/*` doc + a memory file before building. Build in verifiable,
-pushable slices; typecheck each via a scoped `tsconfig`. Treat existing project-selection / legacy
-PM UI as slop to rebuild on the sound backend — the **data/APIs are strong, the screens are weak**.
+pushable slices; typecheck each via a scoped `tsconfig`; push after each so Brian gets a live deploy.
+Treat existing project-selection / legacy PM UI as slop to rebuild on the sound backend — the
+**data/APIs are strong, the screens are weak**. Full repo handoff: `docs/SESSION_HANDOFF.md`.
