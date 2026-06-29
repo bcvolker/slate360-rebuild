@@ -37,6 +37,12 @@ export function useSlateDropTransferActions({
     try {
       const response = await fetch(`/api/slatedrop/download?fileId=${encodeURIComponent(fileId)}`);
       const data = await response.json();
+      // Deliverable LINK rows aren't downloadable files — open their viewer instead
+      // (otherwise the missing `url` reads as a false "Download failed").
+      if (response.ok && typeof data.openHref === "string" && data.openHref) {
+        window.location.assign(data.openHref);
+        return;
+      }
       if (!response.ok || !data.url) {
         showToast(data.error ?? `Download failed for ${fileName}`, false);
         return;
