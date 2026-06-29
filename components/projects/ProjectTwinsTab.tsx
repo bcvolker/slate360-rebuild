@@ -14,7 +14,11 @@ function formatDate(value: string): string {
   });
 }
 
-export function ProjectTwinsTab({ data }: { data: ProjectTwinsTabData }) {
+export function ProjectTwinsTab({ data, projectId }: { data: ProjectTwinsTabData; projectId: string }) {
+  // Thread the project context into Twin capture so a twin started from inside a
+  // project stays bound to it (the capture page consumes ?projectId=&mode=project).
+  const captureHref = `/digital-twin/capture?projectId=${encodeURIComponent(projectId)}&mode=project`;
+
   if (!data.moduleVisible) {
     return (
       <ProjectDetailEmptyState
@@ -39,7 +43,7 @@ export function ProjectTwinsTab({ data }: { data: ProjectTwinsTabData }) {
                 : "No digital twins linked to this project yet."}
             </p>
           </div>
-          <Link href="/digital-twin/capture" className={t.primaryButton}>
+          <Link href={captureHref} className={t.primaryButton}>
             Create from capture
           </Link>
         </div>
@@ -50,7 +54,7 @@ export function ProjectTwinsTab({ data }: { data: ProjectTwinsTabData }) {
           title="No twins yet"
           description="Capture footage and submit a twin job to create a digital twin for this project."
           actionLabel="Open Twin capture"
-          actionHref="/digital-twin/capture"
+          actionHref={captureHref}
         />
       ) : (
         <div className="grid gap-3 sm:grid-cols-2">

@@ -8,5 +8,5 @@ export default async function ProjectTwinsPage({
 }) {
   const { projectId } = await params;
   const data = await loadProjectTwinsTabData(projectId);
-  return <ProjectTwinsTab data={data} />;
+  return <ProjectTwinsTab data={data} projectId={projectId} />;
 }

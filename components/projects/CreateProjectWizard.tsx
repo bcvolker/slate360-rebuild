@@ -121,7 +121,7 @@ export default function CreateProjectWizard({
         {/* Step pills */}
         <div className="flex border-b border-white/10 bg-white/5">
           {STEP_LABELS.map((lbl, i) => (
-            <div key={lbl} className={`flex-1 py-2 text-center text-[10px] font-bold transition-colors ${i + 1 === step ? "text-[var(--graphite-primary)]" : i + 1 < step ? "text-emerald-400" : "text-[var(--graphite-muted)]"}`}>
+            <div key={lbl} className={`flex-1 py-2 text-center text-[10px] font-bold transition-colors ${i + 1 === step ? "text-[var(--graphite-primary)]" : i + 1 < step ? "text-[var(--graphite-text-header)]" : "text-[var(--graphite-muted)]"}`}>
               {i + 1 < step && <CheckCircle2 size={10} className="inline mr-0.5 mb-0.5" />}{lbl}
             </div>
           ))}

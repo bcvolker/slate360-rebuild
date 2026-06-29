@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import {
   FolderKanban,
   Plus,
@@ -17,6 +18,7 @@ import GlassCard from "@/components/shared/GlassCard";
 import type { ProjectListItem } from "@/lib/types/projects";
 
 export default function ProjectsClientPage() {
+  const router = useRouter();
   const [projects, setProjects] = useState<ProjectListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -91,14 +93,20 @@ export default function ProjectsClientPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
+      const data = (await res.json().catch(() => ({}))) as { error?: string; project?: { id?: string } };
       if (!res.ok) {
-        const data = (await res.json().catch(() => ({}))) as { error?: string };
         // Keep the wizard open with the user's input intact so they can retry.
         setCreateError(data.error || "Couldn't create the project. Please try again.");
         return;
       }
       setWizardOpen(false);
-      await loadProjects();
+      // Complete the loop: drop the user into the new project's home, not back on
+      // the list. Fall back to a refetch if the id didn't come back.
+      if (data.project?.id) {
+        router.push(`/projects/${data.project.id}`);
+      } else {
+        await loadProjects();
+      }
     } catch {
       setCreateError("Network error. Please check your connection and try again.");
     } finally {
@@ -181,7 +189,7 @@ export default function ProjectsClientPage() {
       <button
         type="button"
         onClick={() => { setCreateError(null); setWizardOpen(true); }}
-        className="fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom))] right-4 z-30 inline-flex h-14 w-14 items-center justify-center rounded-full bg-[var(--graphite-primary)] text-slate-950 transition hover:bg-[color-mix(in_srgb,var(--graphite-primary)_85%,white)] sm:hidden"
+        className="fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom))] right-4 z-30 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--graphite-primary)] text-slate-950 transition hover:bg-[color-mix(in_srgb,var(--graphite-primary)_85%,white)] sm:hidden"
         aria-label="Create project or site visit"
       >
         <Plus className="h-6 w-6" />

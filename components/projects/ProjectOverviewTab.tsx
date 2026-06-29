@@ -1,9 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Box, FolderOpen, Footprints, MapPin, Upload, UserPlus, Users, type LucideIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { ArrowRight, Box, FolderOpen, Footprints, Loader2, MapPin, Upload, UserPlus, Users, type LucideIcon } from "lucide-react";
 import { ProjectDetailEmptyState } from "@/components/projects/ProjectDetailEmptyState";
 import { projectDetailTokens as t } from "@/components/projects/project-detail-tokens";
+import { startProjectWalk, StartWalkError } from "@/lib/site-walk/start-walk";
 import type { ProjectOverviewData } from "@/lib/projects/load-project-overview-data";
 
 function formatDate(value: string | null): string {
@@ -56,9 +59,10 @@ export function ProjectOverviewTab({ data }: ProjectOverviewTabProps) {
         <div className="space-y-5 lg:col-span-2">
           <section aria-label="Quick actions">
             <p className={`${t.eyebrow} mb-3`}>Quick actions</p>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <StartWalkTile projectId={data.projectId} projectName={data.name} />
+              <ActionTile label="Walk with drawings" hint="Pin photos to the plan" href={`${base}/plans`} icon={Footprints} />
               <ActionTile label="Upload a drawing" hint="PDF plan set" href={`${base}/plans`} icon={Upload} />
-              <ActionTile label="Start walk with drawings" hint="Pin photos to the plan" href={`${base}/plans`} icon={Footprints} />
               <ActionTile label="Invite team" hint="Add collaborators" href={`${base}/team`} icon={UserPlus} />
             </div>
           </section>
@@ -108,6 +112,52 @@ export function ProjectOverviewTab({ data }: ProjectOverviewTabProps) {
         </section>
       </div>
     </div>
+  );
+}
+
+/** One-click no-plan walk start from the project home (the design's "big Start Walk"). */
+function StartWalkTile({ projectId, projectName }: { projectId: string; projectName: string }) {
+  const router = useRouter();
+  const [starting, setStarting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleStart = async () => {
+    if (starting) return;
+    setStarting(true);
+    setError(null);
+    try {
+      const url = await startProjectWalk(projectId, projectName, "project_overview");
+      router.push(url);
+    } catch (e) {
+      setError(e instanceof StartWalkError ? e.message : "Could not start the walk. Try again.");
+      setStarting(false);
+    }
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={handleStart}
+      disabled={starting}
+      aria-busy={starting}
+      className={`${t.sectionCard} flex items-center gap-3 !p-4 text-left transition-colors hover:border-[color-mix(in_srgb,var(--graphite-primary)_40%,transparent)] disabled:opacity-70`}
+    >
+      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[color-mix(in_srgb,var(--graphite-primary)_14%,transparent)] text-[var(--graphite-primary)]">
+        {starting ? (
+          <Loader2 className="h-5 w-5 animate-spin" strokeWidth={1.75} aria-hidden />
+        ) : (
+          <MapPin className="h-5 w-5" strokeWidth={1.75} aria-hidden />
+        )}
+      </span>
+      <span className="min-w-0">
+        <span className="block truncate text-sm font-semibold text-[var(--graphite-text-header)]">
+          {starting ? "Starting…" : "Start a Site Walk"}
+        </span>
+        <span className="block truncate text-xs text-[var(--graphite-muted)]">
+          {error ?? "Capture photos & notes now"}
+        </span>
+      </span>
+    </button>
   );
 }
 
