@@ -84,7 +84,8 @@ export async function buildEvidenceExport(
         const ab = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer;
         const exportHash = await sha256Hex(ab);
         const ext = key.split(".").pop()?.toLowerCase() ?? "bin";
-        const mediaPath = `media/${safeName(it.title || it.id)}-${it.id.slice(0, 8)}.${ext}`;
+        // Full UUID (not a prefix) guarantees a unique, collision-free archive path.
+        const mediaPath = `media/${safeName(it.title || it.id)}-${it.id}.${ext}`;
         zip.file(mediaPath, bytes);
         fetched[it.id] = { exportHash, mediaPath, bytes: bytes.byteLength };
       } catch (e) {
@@ -105,6 +106,7 @@ export async function buildEvidenceExport(
       .select(
         "id, org_id, project_id, entity_type, entity_id, event_type, actor_user_id, actor_device_id, content_sha256, prev_hash, event_hash, metadata, created_at",
       )
+      .eq("org_id", orgId)
       .eq("entity_type", "site_walk_item")
       .eq("entity_id", it.id)
       .order("id", { ascending: true });
