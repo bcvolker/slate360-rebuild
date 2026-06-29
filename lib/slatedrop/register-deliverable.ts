@@ -1,7 +1,7 @@
 import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { resolveSiteWalkCaptureFolder } from "@/lib/slatedrop/folder-resolver";
+import { ensureSiteWalkProjectFolder } from "@/lib/site-walk/slatedrop-folders";
 
 type Opts = {
   admin: SupabaseClient;
@@ -12,14 +12,20 @@ type Opts = {
   title: string;
 };
 
+/** Sentinel s3_key prefix that marks a SlateDrop row as a deliverable LINK
+ * (an interactive deliverable, not a downloadable file). The SlateDrop UI should
+ * open `/site-walk/deliverables/<id>` instead of attempting an S3 download. */
+export const DELIVERABLE_LINK_PREFIX = "deliverable://";
+
 /**
  * Registers a Site Walk deliverable into its project's SlateDrop `Deliverables`
- * folder so the user can navigate to it (open the interactive link, hand a file
- * to a client, etc.) from SlateDrop — not just from the walk it came from.
+ * folder so the user can navigate to the interactive deliverable straight from
+ * SlateDrop (the exported PDF file is bridged separately by bridgePdfToSlateDrop).
  *
- * Idempotent (keyed by the synthetic `deliverable://<id>` storage key) and
- * NON-FATAL: a SlateDrop registration failure must never break deliverable
- * creation. Project-less walks have no SlateDrop folder and are skipped.
+ * Inserts into `slatedrop_uploads` — the table the SlateDrop browser actually
+ * lists — with file_type "deliverable" and a sentinel s3_key. Idempotent
+ * (keyed by the sentinel s3_key) and NON-FATAL: a registration failure must
+ * never break deliverable creation. Project-less walks are skipped.
  */
 export async function registerDeliverableInSlateDrop({
   admin,
@@ -29,52 +35,43 @@ export async function registerDeliverableInSlateDrop({
   deliverableId,
   title,
 }: Opts): Promise<void> {
-  if (!projectId) return;
+  if (!projectId || !orgId) return;
   try {
-    const folderId = await resolveSiteWalkCaptureFolder(
-      { admin, projectId, orgId, userId },
-      "Deliverables",
-    );
+    const folderId = await ensureSiteWalkProjectFolder({
+      admin,
+      projectId,
+      orgId,
+      userId,
+      childName: "Deliverables",
+    });
     if (!folderId) return;
 
-    const storageKey = `deliverable://${deliverableId}`;
-    const name = title?.trim() || "Untitled Report";
-    const metadata = {
-      deliverableId,
-      kind: "site_walk_deliverable",
-      // Where the SlateDrop UI should deep-link when this item is opened.
-      openPath: `/site-walk/deliverables/${deliverableId}`,
-    };
+    const s3Key = `${DELIVERABLE_LINK_PREFIX}${deliverableId}`;
+    const name = `${(title?.trim() || "Untitled Report")} (interactive link)`;
 
     const { data: existing } = await admin
-      .from("unified_files")
+      .from("slatedrop_uploads")
       .select("id")
-      .eq("storage_key", storageKey)
+      .eq("s3_key", s3Key)
       .maybeSingle<{ id: string }>();
 
     if (existing) {
       await admin
-        .from("unified_files")
-        .update({ name, status: "ready", folder_id: folderId, metadata })
+        .from("slatedrop_uploads")
+        .update({ file_name: name, folder_id: folderId, status: "active" })
         .eq("id", existing.id);
       return;
     }
 
-    await admin.from("unified_files").insert({
-      project_id: projectId,
-      org_id: orgId,
-      name,
-      original_name: name,
-      type: "deliverable",
-      mime_type: null,
-      size_bytes: 0,
-      storage_key: storageKey,
-      source: "deliverable",
-      folder_id: folderId,
-      status: "ready",
-      uploaded_by: userId,
-      metadata,
+    await admin.from("slatedrop_uploads").insert({
+      file_name: name,
+      file_size: 0,
       file_type: "deliverable",
+      s3_key: s3Key,
+      folder_id: folderId,
+      org_id: orgId,
+      uploaded_by: userId,
+      status: "active",
     });
   } catch {
     // Non-fatal — deliverable creation must succeed regardless.
