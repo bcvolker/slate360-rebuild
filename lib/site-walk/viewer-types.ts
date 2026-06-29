@@ -20,6 +20,8 @@ export interface ViewerMetadata {
   weather?: string;
   device?: string;
   author?: string;
+  /** SW-014: this stop's note was AI-formatted (the verbatim original is preserved). */
+  ai_formatted?: boolean;
 }
 
 export interface ViewerItem {

@@ -31,7 +31,7 @@ export const GET = (req: NextRequest, ctx: IdRouteContext) =>
 
     let q = admin
       .from("site_walk_items")
-      .select("id, item_type, title, description, s3_key, created_at")
+      .select("id, item_type, title, description, s3_key, created_at, metadata")
       .eq("session_id", del.session_id)
       .eq("org_id", orgId);
     q = excludeDeletedSiteWalkItems(q);
@@ -43,12 +43,16 @@ export const GET = (req: NextRequest, ctx: IdRouteContext) =>
 
     const items: ViewerItem[] = (rows ?? []).map((r) => {
       const mediaType = viewerMediaType(r.item_type as string, r.s3_key as string | null);
+      const meta = (r.metadata ?? {}) as Record<string, unknown>;
+      const aiFormatted = meta.ai_formatted === true;
       return {
         id: r.id as string,
         type: mediaType ?? "note",
         title: (r.title as string | null) || `(untitled ${r.item_type as string})`,
         mediaItemId: mediaType ? (r.id as string) : undefined,
         notes: (r.description as string | null) ?? undefined,
+        // SW-014: surface AI-format provenance so the deliverable can disclose it.
+        ...(aiFormatted ? { metadata: { ai_formatted: true } } : {}),
       };
     });
 
