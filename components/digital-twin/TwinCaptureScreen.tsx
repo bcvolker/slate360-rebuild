@@ -89,10 +89,12 @@ export function TwinCaptureScreen({
   const camera = useTwinCaptureCamera();
   const videoRecorder = useTwinCaptureVideoRecorder();
   const lidar = useLiDARCapture();
-  // Temporary diagnostic: probe the native plugin directly and surface the raw
-  // result/error so we can see WHY depth isn't available on a LiDAR device.
+  // Diagnostic: probe the native plugin directly and surface the raw result/error so
+  // we can see WHY depth isn't available on a LiDAR device. Debug-only — never shown
+  // to end users (the raw probe string is dev instrumentation, not capture chrome).
   const [lidarProbe, setLidarProbe] = useState<string | null>(null);
   useEffect(() => {
+    if (!debug) return;
     let cancelled = false;
     const plat = `${Capacitor.getPlatform()}/${Capacitor.isNativePlatform() ? "native" : "web"}`;
     const cap = (
@@ -119,7 +121,7 @@ export function TwinCaptureScreen({
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [debug]);
   const [toast, setToast] = useState<string | null>(null);
   const [finishError, setFinishError] = useState<string | null>(null);
   const [finishing, setFinishing] = useState(false);
@@ -417,7 +419,7 @@ export function TwinCaptureScreen({
           available={lidar.isAvailable}
           active={lidar.isActive}
           pointCount={lidar.pointCount}
-          note={lidarProbe}
+          note={debug ? lidarProbe : null}
         />
         <TwinCaptureFrameCapChip
           hidden={!chromeVisible || session.mode !== "photos"}
