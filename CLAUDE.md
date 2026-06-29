@@ -80,3 +80,69 @@ misleading. To typecheck a subsystem without tripping the global OOM, write a te
 `include`s only the relevant globs, then `npx tsc -p` it (completes in ~1–2 min). The
 thermal subsystem (`lib/thermal`, `components/ops/thermal`, thermal routes/pages,
 `src/trigger/thermal-extract.ts`, `hooks/useThermalJobRealtime.ts`) is tsc-clean.
+
+## What Slate360 is (product map)
+
+A construction field-documentation platform. Two capture apps sit inside one Slate360
+shell and share infrastructure (projects, SlateDrop files, contacts, calendar, deliverables):
+- **Site Walk** (accent green `--graphite-primary` `#00E699`) — photo / 360 / voice / notes
+  walks; web/React in Capacitor. Capture code: `components/capture-v2/**`.
+- **Twin 360** (accent blue `--twin360-blue` `#3D8EFF`) — multi-clip ARKit + LiDAR capture →
+  cloud Gaussian-splat reconstruction. Native Swift lives in
+  `ios/App/App/Plugins/LiDARCapture/**` (single-clip today; multi-clip planned).
+- **SlateDrop** — Dropbox/Finder-class file system. Per-project auto-provisioned folders
+  (Photos/Plans/Deliverables/Intake/Submissions) via `lib/slatedrop/**`; the browser lists
+  the **`slatedrop_uploads`** table (NOT `unified_files`, which is a downstream bridge).
+- **Deliverables** — PDF + interactive share viewer (`app/view/[token]/**`) + desktop editor.
+
+**Form-factor rule:** phone = capture (focused, one-decision screens); desktop (login) =
+**upload + author**, NOT capture (you don't shoot with a laptop — you upload from files).
+
+## Design system — Graphite Glass (tokens only)
+
+Canvas `#0B0F15`; glass panels `bg-white/[0.04]` + backdrop-blur + hairline `border-white/10`;
+12px radius; IBM Plex Mono uppercase labels. **One accent per surface, used ONLY on interactive
+states** (active/focus/CTA) — never as fills. Bans: amber, glow, `rounded-full`, hardcoded hex
+(use CSS vars), and "a scrolling list as a tab/nav". Field targets 48–72px. Tokens in
+`app/globals.css`. The `/preview/*` harnesses are the approved visual bar — build live to match them.
+
+## Tiers
+
+Both apps have lower/upper tiers. **Pro = 360 photos + walks-with-plans** (Site Walk) and
+reconstruction (Twin). Entitlements live in `lib/entitlements.ts` + `org_app_subscriptions`
+(`resolveModularEntitlements`). Gate **server-side** at the action AND surface in UI as
+**visible-but-locked** with a contextual upgrade affordance — never silently hide a Pro feature.
+
+## Conventions
+
+- **Git / deploys:** work on `main`; push triggers Vercel deploy of the Next.js app. Commit with
+  explicit paths; `git pull --rebase origin main` before push. End commit messages with the
+  `Co-Authored-By: Claude Opus 4.8` trailer. **Push after each verified phase** so Brian gets a
+  live deploy. Native iOS (`ios/**`) changes need a **TestFlight** rebuild (Codemagic); web changes
+  ride the app bundle on the next TestFlight build. Brian is a non-coder CEO; Claude commits/pushes.
+- **DB:** additive migrations only (no schema breakage); apply via the Supabase **Management API**
+  (Brian applies; Claude prepares the SQL). Idempotency via `client_item_id` / `client_mutation_id`.
+- **Persistence rule:** work + deliverables created in Site Walk / Twin 360 must save into their
+  SlateDrop folders so users can re-open/continue and navigate to outputs. Deliverable→Deliverables-
+  folder wiring exists for Site Walk (`lib/slatedrop/register-deliverable.ts`,
+  `lib/site-walk/slatedrop-bridge.ts`).
+- **Offline + evidentiary:** capture-time SHA-256 (`lib/site-walk/content-hash.ts` →
+  `CaptureMetadata.content_sha256`); AI notes keep the verbatim raw note + provenance
+  (`note_raw`/`ai_provenance`) — never AI-only. Full plan:
+  `docs/design/OFFLINE_SYNC_EVIDENTIARY_ARCHITECTURE.md`.
+
+## Where the plans live (read before building a subsystem)
+
+`docs/TWIN360_CAPTURE_GAPS.md` is the authoritative task ledger (SW-/TWIN-/DEL-/REPORT-/
+WORKFLOW-/CONFLICT- IDs + status). Locked designs in `docs/design/`:
+`PROJECT_LAYER_AND_WALK_START.md`, `SLATEDROP_AND_DESKTOP_SHELL.md`,
+`CINEMATIC_DELIVERABLE_VIEWER.md`, `OFFLINE_SYNC_EVIDENTIARY_ARCHITECTURE.md`,
+`LIDAR_NATIVE_CAPTURE_BUILD_PLAN.md`, `SLATE360_DELIVERABLES_AND_PLATFORM.md`. Cross-session
+state also lives in Claude's memory files (`MEMORY.md` index) — check both.
+
+## Workflow note
+
+Designs are typically validated by a multi-AI panel (Brian relays prompts → other platforms →
+back), then locked into a `docs/design/*` doc + a memory file before building. Build in verifiable,
+pushable slices; typecheck each via a scoped `tsconfig`. Treat existing project-selection / legacy
+PM UI as slop to rebuild on the sound backend — the **data/APIs are strong, the screens are weak**.
