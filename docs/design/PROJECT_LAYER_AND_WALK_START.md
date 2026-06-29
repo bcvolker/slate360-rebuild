@@ -70,6 +70,38 @@ right rail and feed reminders. Add ICS export first (cheap, universal), Google s
 7. **Calendar**: schema clarity + desktop view + project milestones + ICS.
 8. **Tier surfacing**: badge + gate messaging + upsell.
 
+## Clarifications (multi-AI panel + Brian, round 2)
+- **Desktop entry model:** after login, the user clicks **Site Walk** or **Twin 360** and works
+  in that respective tab/workspace. The project layer (projects, contacts, calendar, SlateDrop)
+  is shared Slate360 infrastructure that BOTH Site Walk and Twin 360 consume.
+- **Desktop walk ≠ capture:** you don't capture with a computer. On desktop a "walk" is assembled
+  by **uploading photos/files from the computer**; phones/tablets do the actual capture. Desktop =
+  upload + organize + author deliverables; mobile = capture.
+- **Dual tiers for BOTH apps:** Site Walk has lower/upper tiers (upper = 360 + walks-with-plans);
+  Twin 360 also has lower/upper tiers. Gate visibly, never hidden (TierGateCard + contextual upgrade).
+- **App-shell ecosystem parity:** Slate360 shell contains Site Walk (green `--graphite-primary`) and
+  Twin 360 (blue `--twin360-blue`) shells. They must feel like ONE premium ecosystem (same Graphite
+  Glass grammar; only the accent differs). Both shells currently look rough/unpolished and are slated
+  for a redo to match the rest.
+- **SlateDrop is first-class (don't forget it):** a Dropbox/Finder/Explorer-class file system —
+  store files, **automatic routing/saving** (intent → folder), and **secure-link permissions**
+  (grant view / download / upload to others). UI is **desktop-optimized** (explorer: folders left,
+  grid center, preview right) AND **app-optimized**, with full functionality on both and a mental
+  model familiar to Explorer/Finder users. Every app/feature should take advantage of SlateDrop.
+- **Design bar:** match the praised `/preview/*` harness quality. Build previews first for the
+  project-layer surfaces, get approval, then wire to the sound backend.
+
+## Consensus design (8 AI passes, reconciled — all agreed)
+Desktop = **rail + center + context** 3-pane + **⌘K** command palette (Linear/Notion grammar).
+Phone = **one-decision-per-screen** focused stack, 56–72px targets, capture FAB. **Intent-first
+upload** (never expose the folder tree). Contacts = global hub + project stakeholders, **preset
+permissions** (matrix is desktop-only; phone shows read-only access + comms). **Clean vs Additive**
+plan choice with **prior pins as a dimmed read-only underlay** (never editable). **ICS export
+first**, Google two-way later. **Tier = visible-but-locked**, upgrade at moment of intent (name the
+exact feature). Build order universally recommended: **shell + project home FIRST** (everything
+mounts in it), then start-walk/plan-picker, intent upload, stakeholders, tier surfaces, 360-on-plan
+share, calendar/ICS, create-wizard, contacts hub.
+
 See [[slate360-project-layer-rebuild-plan]], [[slate360-projects-redesign]],
 [[slate360-project-coordination-design]], [[slate360-business-model-projects]],
 [[slate360-walks-with-plans-plan]], [[slate360-legacy-projecthub]], docs/TWIN360_CAPTURE_GAPS.md.
