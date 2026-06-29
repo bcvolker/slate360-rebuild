@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { resolveSiteWalkShareToken } from "@/components/external-portal/resolve-site-walk-share-token";
+import { notifyDeliverableOwner } from "@/lib/site-walk/notify-deliverable-owner";
 
 type Params = { params: Promise<{ token: string }> };
 
@@ -31,52 +32,6 @@ async function deliverableForToken(admin: ReturnType<typeof createAdminClient>, 
  * (when the deliverable is linked to a project) plus an email to the owner.
  * Mirrors the thermal share Q&A notify flow.
  */
-async function notifyOwner(
-  admin: ReturnType<typeof createAdminClient>,
-  del: DeliverableOwner,
-  text: string,
-  author: string,
-): Promise<void> {
-  const title = del.title ?? "your deliverable";
-
-  if (del.project_id && del.created_by) {
-    await admin
-      .from("project_notifications")
-      .insert({
-        user_id: del.created_by,
-        project_id: del.project_id,
-        title: `New question on “${title}”`,
-        message: `${author}: ${text.slice(0, 140)}`,
-        link_path: `/projects/${del.project_id}/deliverables`,
-      })
-      .then(() => undefined, () => undefined);
-  }
-
-  if (!del.created_by) return;
-  const { data: owner } = await admin
-    .from("profiles")
-    .select("email")
-    .eq("id", del.created_by)
-    .maybeSingle();
-  const ownerEmail = (owner as { email?: string | null } | null)?.email;
-  if (!ownerEmail) return;
-
-  try {
-    const { sendEmail } = await import("@/lib/email");
-    const link = del.project_id ? `/projects/${del.project_id}/deliverables` : "";
-    const siteUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
-    await sendEmail({
-      to: ownerEmail,
-      subject: `New question on “${title}”`,
-      html: `<p><strong>${author}</strong> asked a question on <strong>${title.replace(/</g, "&lt;")}</strong>:</p>
-             <blockquote>${text.replace(/</g, "&lt;")}</blockquote>
-             ${link ? `<p>Reply from your project: <a href="${siteUrl}${link}">${link}</a></p>` : ""}`,
-    });
-  } catch {
-    /* best-effort */
-  }
-}
-
 export async function GET(_req: NextRequest, { params }: Params) {
   const { token } = await params;
   const gate = await resolveSiteWalkShareToken(token);
@@ -131,7 +86,7 @@ export async function POST(req: NextRequest, { params }: Params) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  await notifyOwner(admin, del, text, body?.authorName?.trim() || "A viewer");
+  await notifyDeliverableOwner(admin, del, text, body?.authorName?.trim() || "A viewer", "question");
 
   return NextResponse.json({ ok: true, question: inserted });
 }

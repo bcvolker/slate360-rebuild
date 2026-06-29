@@ -9,6 +9,7 @@ import type { NextRequest } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { ok, badRequest, notFound, serverError } from "@/lib/server/api-response";
 import { createRateLimiter } from "@/lib/server/rate-limit";
+import { notifyDeliverableOwner, type DeliverableOwner } from "@/lib/site-walk/notify-deliverable-owner";
 
 const checkRate = createRateLimiter("viewer:comment", 20, 60);
 
@@ -108,5 +109,17 @@ export async function POST(req: NextRequest, ctx: Params) {
     .single();
 
   if (error) return serverError(error.message);
+
+  // REPORT-005: notify the owner of a per-item comment/question (only whole-
+  // deliverable Q&A notified before). Best-effort; never blocks the submit.
+  const { data: del } = await admin
+    .from("site_walk_deliverables")
+    .select("title, project_id, created_by")
+    .eq("id", deliverableId)
+    .maybeSingle();
+  if (del) {
+    await notifyDeliverableOwner(admin, del as DeliverableOwner, body, name, intent === "question" ? "question" : "comment");
+  }
+
   return ok({ comment: data });
 }
