@@ -121,6 +121,7 @@ export const POST = (req: NextRequest) =>
         location_label: body.location_label ?? null,
         weather: body.weather ?? null,
         metadata,
+        capture_sha256: typeof metadata.content_sha256 === "string" ? metadata.content_sha256 : null,
         sort_order: nextOrder,
         before_item_id: body.before_item_id ?? null,
         item_relationship: body.item_relationship ?? "standalone",

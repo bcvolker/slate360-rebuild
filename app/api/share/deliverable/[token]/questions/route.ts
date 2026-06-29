@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { resolveSiteWalkShareToken } from "@/components/external-portal/resolve-site-walk-share-token";
 import { notifyDeliverableOwner } from "@/lib/site-walk/notify-deliverable-owner";
+import { createRateLimiter } from "@/lib/server/rate-limit";
+
+const checkRate = createRateLimiter("viewer:question", 20, 60);
 
 type Params = { params: Promise<{ token: string }> };
 
@@ -51,6 +54,9 @@ export async function GET(_req: NextRequest, { params }: Params) {
 }
 
 export async function POST(req: NextRequest, { params }: Params) {
+  const blocked = await checkRate(req);
+  if (blocked) return blocked;
+
   const { token } = await params;
   const gate = await resolveSiteWalkShareToken(token);
   if (!gate.ok) return NextResponse.json({ error: gate.reason }, { status: 403 });

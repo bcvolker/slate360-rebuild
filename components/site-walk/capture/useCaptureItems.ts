@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { loadOfflineItemsForSession, queueOfflineItemPatch } from "@/lib/site-walk/offline-capture";
+import { patchItemOrQueue, isOffline, normalizePriority, mergeTags } from "./patch-item-or-queue";
 import type { MarkupData } from "@/lib/site-walk/markup-types";
 import type { PhotoAngleCaptureMode, PhotoAngleRecord } from "@/lib/site-walk/photo-angles";
 import { withPhotoAttachmentPins, type PhotoAttachmentPin } from "@/lib/site-walk/photo-attachments";
@@ -220,20 +221,7 @@ export function useCaptureItems({ sessionId, projectId }: HookArgs) {
     setItems((current) =>
       upsertItem(current, { ...item, metadata, sync_state: "pending" as const, updated_at: new Date().toISOString() }),
     );
-    try {
-      if (isOffline() || item.id.startsWith("item-")) {
-        await queueOfflineItemPatch(sessionId, item, payload);
-        return;
-      }
-      const response = await fetch(`/api/site-walk/items/${encodeURIComponent(item.id)}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      if (!response.ok) throw new Error("note provenance save failed");
-    } catch {
-      await queueOfflineItemPatch(sessionId, item, payload);
-    }
+    await patchItemOrQueue(sessionId, item, payload);
   }
 
   async function saveMarkupData(itemId: string, markup: MarkupData) {
@@ -242,20 +230,7 @@ export function useCaptureItems({ sessionId, projectId }: HookArgs) {
     const revision = Date.now();
     const payload: UpdateItemPayload = { markup_data: markup, markup_revision: revision, sync_state: "synced" };
     setItems((current) => upsertItem(current, { ...item, markup_data: markup, sync_state: "pending", updated_at: new Date().toISOString() }));
-    try {
-      if (isOffline() || item.id.startsWith("item-")) {
-        await queueOfflineItemPatch(sessionId, item, payload);
-        return;
-      }
-      const response = await fetch(`/api/site-walk/items/${encodeURIComponent(item.id)}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      if (!response.ok) throw new Error("Markup save failed");
-    } catch {
-      await queueOfflineItemPatch(sessionId, item, payload);
-    }
+    await patchItemOrQueue(sessionId, item, payload);
   }
 
   async function savePhotoAttachmentPins(itemId: string, pins: PhotoAttachmentPin[]) {
@@ -265,20 +240,7 @@ export function useCaptureItems({ sessionId, projectId }: HookArgs) {
     const payload: UpdateItemPayload = { metadata, sync_state: "synced" };
     const local = { ...item, metadata, photo_attachment_pins: pins, sync_state: "pending" as const, updated_at: new Date().toISOString() };
     setItems((current) => upsertItem(current, local));
-    try {
-      if (isOffline() || item.id.startsWith("item-")) {
-        await queueOfflineItemPatch(sessionId, item, payload);
-        return;
-      }
-      const response = await fetch(`/api/site-walk/items/${encodeURIComponent(item.id)}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      if (!response.ok) throw new Error("Attachment pin save failed");
-    } catch {
-      await queueOfflineItemPatch(sessionId, item, payload);
-    }
+    await patchItemOrQueue(sessionId, item, payload);
   }
 
   async function savePhotoAngle(itemId: string, file: File, previewUrl: string, captureMode: PhotoAngleCaptureMode): Promise<PhotoAngleRecord | null> {
@@ -310,23 +272,8 @@ export function useCaptureItems({ sessionId, projectId }: HookArgs) {
   };
 }
 
-function normalizePriority(value: string | undefined): CaptureItemDraft["priority"] {
-  const normalized = value?.toLowerCase();
-  if (normalized === "low" || normalized === "medium" || normalized === "high" || normalized === "critical") return normalized;
-  return "medium";
-}
-
-function mergeTags(current: string[], suggested: string | undefined) {
-  const next = suggested?.trim();
-  return next ? Array.from(new Set([...current, next])) : current;
-}
-
 function mergeItems(current: CaptureItemRecord[], incoming: CaptureItemRecord[]) {
   return incoming.reduce((items, item) => upsertItem(items, item), current);
-}
-
-function isOffline() {
-  return typeof navigator !== "undefined" && !navigator.onLine;
 }
 
 function findItemByStableId(items: CaptureItemRecord[], itemId: string | null) {
