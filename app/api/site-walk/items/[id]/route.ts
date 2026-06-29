@@ -68,6 +68,25 @@ export const PATCH = (req: NextRequest, ctx: IdRouteContext) =>
     if (body.trade !== undefined) updates.trade = body.trade;
     if (body.category !== undefined) updates.category = body.category;
 
+    // Offline conflict handling (HLC): if the client supplies a hybrid logical clock,
+    // stamp it and flag a conflict when the incoming write is NOT strictly newer than
+    // the stored one (a concurrent edit by another device). Last-write-wins still
+    // applies; conflict_flag surfaces it for review. (Client HLC generation lands later.)
+    const raw = body as unknown as Record<string, unknown>;
+    const incomingHlc = typeof raw.hlc === "string" ? raw.hlc : null;
+    if (incomingHlc) {
+      const { data: current } = await admin
+        .from("site_walk_items")
+        .select("hlc")
+        .eq("id", id)
+        .eq("org_id", orgId)
+        .maybeSingle();
+      const storedHlc = (current?.hlc as string | null) ?? null;
+      updates.hlc = incomingHlc;
+      if (typeof raw.author_node_id === "string") updates.author_node_id = raw.author_node_id;
+      updates.conflict_flag = storedHlc !== null && incomingHlc <= storedHlc;
+    }
+
     if (Object.keys(updates).length === 0) {
       return badRequest("No valid fields to update");
     }
