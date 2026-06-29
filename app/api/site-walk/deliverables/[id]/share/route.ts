@@ -13,6 +13,7 @@ import { withAppAuth } from "@/lib/server/api-auth";
 import { ok, badRequest, notFound, serverError } from "@/lib/server/api-response";
 import { createDeliverableSnapshot } from "@/lib/site-walk/deliverable-snapshots";
 import { recordEvidenceEvent } from "@/lib/site-walk/evidence-events";
+import { recordInclusionEvents } from "@/lib/site-walk/record-inclusion-events";
 import type { IdRouteContext } from "@/lib/types/api";
 
 type SharePayload = {
@@ -32,7 +33,7 @@ export const POST = (req: NextRequest, ctx: IdRouteContext) =>
     // Fetch current deliverable
     const { data: existing, error: fetchErr } = await admin
       .from("site_walk_deliverables")
-      .select("id, share_token, status, share_revoked, project_id")
+      .select("id, share_token, status, share_revoked, project_id, content")
       .eq("id", id)
       .eq("org_id", orgId)
       .single();
@@ -60,6 +61,17 @@ export const POST = (req: NextRequest, ctx: IdRouteContext) =>
         .eq("id", id)
         .eq("org_id", orgId);
       if (repinErr) return serverError(repinErr.message);
+
+      // Chain-of-custody: attest any newly-included items in this re-published version.
+      await recordInclusionEvents(admin, {
+        deliverableId: id,
+        orgId,
+        projectId: (existing.project_id as string | null) ?? null,
+        actorUserId: user.id,
+        content: existing.content,
+        version: snapshot.version_number,
+      });
+
       return ok({ share_token: existing.share_token, version: snapshot.version_number });
     }
 
@@ -95,6 +107,16 @@ export const POST = (req: NextRequest, ctx: IdRouteContext) =>
       eventType: "deliverable_shared",
       actorUserId: user.id,
       metadata: { version: snapshot.version_number, expires_at: body.expires_at ?? null },
+    });
+
+    // Chain-of-custody: attest each captured item included in this delivered report.
+    await recordInclusionEvents(admin, {
+      deliverableId: id,
+      orgId,
+      projectId: (existing.project_id as string | null) ?? null,
+      actorUserId: user.id,
+      content: existing.content,
+      version: snapshot.version_number,
     });
 
     return ok({ share_token: data.share_token, version: snapshot.version_number });
