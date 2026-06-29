@@ -11,6 +11,7 @@ import {
   type CreateDeliverablePayload,
 } from "@/lib/types/site-walk";
 import { registerDeliverableInSlateDrop } from "@/lib/slatedrop/register-deliverable";
+import { recordEvidenceEvent } from "@/lib/site-walk/evidence-events";
 
 export const GET = (req: NextRequest) =>
   withAppAuth("punchwalk", req, async ({ admin, orgId }) => {
@@ -86,6 +87,18 @@ export const POST = (req: NextRequest) =>
       userId: user.id,
       deliverableId: data.id as string,
       title: data.title as string,
+    });
+
+    // Chain-of-custody milestone (best-effort, non-fatal).
+    await recordEvidenceEvent({
+      admin,
+      orgId,
+      projectId: session.project_id ?? null,
+      entityType: "site_walk_deliverable",
+      entityId: data.id as string,
+      eventType: "deliverable_created",
+      actorUserId: user.id,
+      metadata: { title: data.title, deliverable_type: data.deliverable_type },
     });
 
     return ok({ deliverable: data });
