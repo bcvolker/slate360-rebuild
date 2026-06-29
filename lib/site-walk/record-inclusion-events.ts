@@ -2,7 +2,7 @@ import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { recordEvidenceEvent } from "./evidence-events";
-import type { ViewerItem } from "./viewer-types";
+import { extractIncludedItemIds } from "./included-items";
 
 type RealItem = {
   id: string;
@@ -37,22 +37,7 @@ export async function recordInclusionEvents(
   },
 ): Promise<void> {
   try {
-    const blocks: ViewerItem[] = Array.isArray(params.content)
-      ? (params.content as ViewerItem[])
-      : [];
-
-    // Each content block references a site_walk_item via mediaItemId (media) or id.
-    const candidateIds = Array.from(
-      new Set(
-        blocks
-          .map((b) => {
-            if (b && typeof b.mediaItemId === "string" && b.mediaItemId) return b.mediaItemId;
-            if (b && typeof b.id === "string" && b.id) return b.id;
-            return null;
-          })
-          .filter((v): v is string => typeof v === "string" && v.length > 0),
-      ),
-    );
+    const candidateIds = extractIncludedItemIds(params.content);
     if (candidateIds.length === 0) return;
 
     // Keep only IDs that are real items in this org; fetch each capture hash.
