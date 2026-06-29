@@ -3,6 +3,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { resolveTwinProjectFolder } from "@/lib/site-walk/slatedrop-folders";
 import { twinAssetFolderPath } from "@/lib/slatedrop/folder-taxonomy";
+import { TWIN_DELIVERABLE_LINK_PREFIX } from "@/lib/slatedrop/deliverable-sentinel";
 
 type Opts = {
   admin: SupabaseClient;
@@ -14,11 +15,7 @@ type Opts = {
   title: string;
 };
 
-/** Sentinel s3_key prefix marking a SlateDrop row as a Twin 360 deliverable LINK
- * (the finished twin, openable in the viewer — not a downloadable file). A future
- * SlateDrop click-handler should route `twin-deliverable://<spaceId>` to
- * `/digital-twin/twins/<spaceId>` (the in-app analog of the Site Walk deliverable). */
-export const TWIN_DELIVERABLE_LINK_PREFIX = "twin-deliverable://";
+export { TWIN_DELIVERABLE_LINK_PREFIX };
 
 /**
  * Registers a finished Twin 360 reconstruction into its project's SlateDrop

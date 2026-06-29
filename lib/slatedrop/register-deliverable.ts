@@ -2,6 +2,7 @@ import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { ensureSiteWalkProjectFolder } from "@/lib/site-walk/slatedrop-folders";
+import { DELIVERABLE_LINK_PREFIX } from "@/lib/slatedrop/deliverable-sentinel";
 
 type Opts = {
   admin: SupabaseClient;
@@ -12,10 +13,7 @@ type Opts = {
   title: string;
 };
 
-/** Sentinel s3_key prefix that marks a SlateDrop row as a deliverable LINK
- * (an interactive deliverable, not a downloadable file). The SlateDrop UI should
- * open `/site-walk/deliverables/<id>` instead of attempting an S3 download. */
-export const DELIVERABLE_LINK_PREFIX = "deliverable://";
+export { DELIVERABLE_LINK_PREFIX };
 
 /**
  * Registers a Site Walk deliverable into its project's SlateDrop `Deliverables`

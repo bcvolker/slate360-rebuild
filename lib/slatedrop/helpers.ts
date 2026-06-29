@@ -4,6 +4,7 @@ import {
   FileVideo,
   FileArchive,
   File,
+  ExternalLink,
   type LucideIcon,
 } from "lucide-react";
 import type { SlateDropFolderNode as FolderNode } from "@/lib/slatedrop/folderTree";
@@ -23,6 +24,7 @@ export function formatDate(dateStr: string): string {
 
 export function getFileIcon(type: string): LucideIcon {
   switch (type) {
+    case "deliverable": case "twin_deliverable": return ExternalLink;
     case "pdf": case "doc": case "docx": case "txt": return FileText;
     case "jpg": case "jpeg": case "png": case "gif": case "tif": case "psd": return FileImage;
     case "mp4": case "mov": case "avi": return FileVideo;
@@ -33,6 +35,8 @@ export function getFileIcon(type: string): LucideIcon {
 
 export function getFileColor(type: string): string {
   switch (type) {
+    case "deliverable": return "var(--graphite-primary)";
+    case "twin_deliverable": return "var(--twin360-blue)";
     case "pdf": return "#EF4444";
     case "jpg": case "jpeg": case "png": case "gif": case "tif": case "psd": return "#8B5CF6";
     case "glb": case "obj": case "stl": case "dwg": case "fbx": return "#3B82F6";

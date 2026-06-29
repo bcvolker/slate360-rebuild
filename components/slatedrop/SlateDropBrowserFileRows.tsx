@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getFileColor, getFileIcon } from "@/lib/slatedrop/helpers";
 import type { SlateDropBrowserFile } from "./slatedrop-browser-types";
 import { slatedropBrowserTokens as t } from "./slatedrop-browser-tokens";
@@ -10,8 +11,8 @@ export function SlateDropBrowserFileRow({ file }: SlateDropBrowserFileRowProps) 
   const Icon = getFileIcon(file.type);
   const iconColor = getFileColor(file.type);
 
-  return (
-    <div className={t.fileRow}>
+  const inner = (
+    <>
       <span className={t.fileIconWell} style={{ color: iconColor }}>
         <Icon className="h-4 w-4" strokeWidth={1.75} aria-hidden />
       </span>
@@ -23,8 +24,21 @@ export function SlateDropBrowserFileRow({ file }: SlateDropBrowserFileRowProps) 
           {file.date} · {file.size}
         </span>
       </span>
-    </div>
+    </>
   );
+
+  // Deliverable LINK rows open their in-app viewer; other files stay non-interactive
+  // here (the recent-files list is a glance surface — full file actions live in the
+  // project explorer).
+  if (file.openHref) {
+    return (
+      <Link href={file.openHref} className={t.fileRow}>
+        {inner}
+      </Link>
+    );
+  }
+
+  return <div className={t.fileRow}>{inner}</div>;
 }
 
 export function SlateDropBrowserFileTableRow({ file }: SlateDropBrowserFileRowProps) {

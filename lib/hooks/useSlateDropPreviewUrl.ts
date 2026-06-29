@@ -35,6 +35,15 @@ export function useSlateDropPreviewUrl({
       try {
         const response = await fetch(`/api/slatedrop/download?fileId=${encodeURIComponent(previewFile.id)}&mode=preview`);
         const data = await response.json().catch(() => ({}));
+        // Deliverable LINK rows resolve to an in-app viewer, not an S3 preview URL —
+        // navigate to the viewer instead of trying to render a (nonexistent) file.
+        if (response.ok && typeof data.openHref === "string" && data.openHref) {
+          if (!cancelled) {
+            setPreviewLoading(false);
+            window.location.assign(data.openHref);
+          }
+          return;
+        }
         if (!response.ok || !data.url) {
           throw new Error(data.error ?? "Preview unavailable");
         }

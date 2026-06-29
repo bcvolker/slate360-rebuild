@@ -16,6 +16,8 @@ export type SlateDropBrowserFile = {
   date: string;
   size: string;
   sizeBytes: number;
+  /** In-app viewer href when this row is a deliverable LINK sentinel; else undefined. */
+  openHref?: string;
 };
 
 export type SlateDropBrowserShellProps = {

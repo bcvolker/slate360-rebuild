@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { formatBytes } from "@/lib/slatedrop/helpers";
+import { resolveDeliverableSentinelHref } from "@/lib/slatedrop/deliverable-sentinel";
 import type { SlateDropBrowseFolder, SlateDropBrowserFile } from "./slatedrop-browser-types";
 
 function formatShortDate(iso: string): string {
@@ -17,6 +18,7 @@ type DashboardSummaryPayload = {
     file_size: number;
     file_type: string | null;
     created_at: string;
+    s3_key?: string | null;
   }>;
   storageUsedGb?: number;
 };
@@ -52,6 +54,7 @@ export function useSlateDropBrowserData({ folders, maxStorageGB }: UseSlateDropB
             date: formatShortDate(row.created_at),
             size: formatBytes(Number(row.file_size ?? 0)),
             sizeBytes: Number(row.file_size ?? 0),
+            openHref: resolveDeliverableSentinelHref(row.s3_key) ?? undefined,
           })),
         );
       } finally {

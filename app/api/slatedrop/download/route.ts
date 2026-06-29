@@ -8,6 +8,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { s3, BUCKET } from "@/lib/s3";
+import { isDeliverableSentinel, resolveDeliverableSentinelHref } from "@/lib/slatedrop/deliverable-sentinel";
 
 export async function GET(req: NextRequest) {
   const supabase = await createClient();
@@ -42,6 +43,12 @@ export async function GET(req: NextRequest) {
 
   if (error || !file) {
     return NextResponse.json({ error: "File not found" }, { status: 404 });
+  }
+
+  // Deliverable LINK rows aren't S3 objects — never presign their sentinel key
+  // (that produced a NoSuchKey / blank-iframe). Tell the client where to open it.
+  if (isDeliverableSentinel(file.s3_key)) {
+    return NextResponse.json({ openHref: resolveDeliverableSentinelHref(file.s3_key) });
   }
 
   const mode = req.nextUrl.searchParams.get("mode"); // "preview" → inline, default → attachment
