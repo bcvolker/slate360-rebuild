@@ -10,6 +10,7 @@ import {
   inferTwinAssetFolder,
   twinAssetFolderPath,
 } from "@/lib/slatedrop/folder-taxonomy";
+import { registerTwinDeliverableInSlateDrop } from "@/lib/twin/register-twin-deliverable";
 import { trackStorageUsed } from "@/lib/slatedrop/track-storage";
 import { resolveTwinProjectFolder } from "@/lib/site-walk/slatedrop-folders";
 
@@ -126,4 +127,27 @@ export async function bridgeTwinModelToSlateDrop(
     orgId: params.orgId,
     userId: params.userId,
   });
+}
+
+/**
+ * Both SlateDrop side-effects of a completed twin job, in one call: bridge the raw
+ * model file into `03_Digital_Twin/Models`, and (for the primary model only) register
+ * the presentable twin as a deliverable link in `03_Digital_Twin/Deliverables`. Both
+ * are non-fatal. Keeps the completion seam (`job-callback`) flat.
+ */
+export async function bridgeTwinCompletionToSlateDrop(
+  admin: SupabaseClient,
+  params: BridgeTwinModelParams & { spaceId: string; title: string; isPrimary: boolean },
+): Promise<void> {
+  await bridgeTwinModelToSlateDrop(admin, params);
+  if (params.isPrimary) {
+    await registerTwinDeliverableInSlateDrop({
+      admin,
+      projectId: params.projectId,
+      orgId: params.orgId,
+      userId: params.userId,
+      spaceId: params.spaceId,
+      title: params.title,
+    });
+  }
 }

@@ -2,7 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { deductCredits } from "@/lib/credits/idempotency";
 import { notifyTwinJobOutcome } from "@/lib/twin/notify-twin-job-complete";
 import { computeTwinProcessingCredits } from "@/lib/twin/processing-credits";
-import { bridgeTwinModelToSlateDrop } from "@/lib/twin/slatedrop-bridge";
+import { bridgeTwinCompletionToSlateDrop } from "@/lib/twin/slatedrop-bridge";
 import { softDeleteTwinCaptureAsset } from "@/lib/twin/soft-delete";
 
 type AdminClient = SupabaseClient;
@@ -183,7 +183,9 @@ export async function handleTwinJobCallback(
   }
 
   if (space?.project_id && job.created_by) {
-    await bridgeTwinModelToSlateDrop(admin, {
+    // Bridge the raw model into Models AND register the presentable twin as a
+    // deliverable link in Deliverables (primary model only). Both non-fatal.
+    await bridgeTwinCompletionToSlateDrop(admin, {
       modelId: model.id,
       storageKey: body.outputKey,
       modelFormat,
@@ -191,6 +193,9 @@ export async function handleTwinJobCallback(
       projectId: space.project_id,
       orgId: job.org_id,
       userId: job.created_by,
+      spaceId: job.space_id,
+      title: space.title ?? "Untitled Twin",
+      isPrimary,
     });
   }
 
