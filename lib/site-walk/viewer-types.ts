@@ -22,6 +22,8 @@ export interface ViewerMetadata {
   author?: string;
   /** SW-014: this stop's note was AI-formatted (the verbatim original is preserved). */
   ai_formatted?: boolean;
+  /** SW-014: the verbatim original field note, shown under a "view original" disclosure. */
+  note_raw?: string;
 }
 
 export interface ViewerItem {

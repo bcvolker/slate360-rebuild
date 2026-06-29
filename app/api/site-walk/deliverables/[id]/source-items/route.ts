@@ -45,14 +45,16 @@ export const GET = (req: NextRequest, ctx: IdRouteContext) =>
       const mediaType = viewerMediaType(r.item_type as string, r.s3_key as string | null);
       const meta = (r.metadata ?? {}) as Record<string, unknown>;
       const aiFormatted = meta.ai_formatted === true;
+      const noteRaw = typeof meta.note_raw === "string" ? meta.note_raw : undefined;
       return {
         id: r.id as string,
         type: mediaType ?? "note",
         title: (r.title as string | null) || `(untitled ${r.item_type as string})`,
         mediaItemId: mediaType ? (r.id as string) : undefined,
         notes: (r.description as string | null) ?? undefined,
-        // SW-014: surface AI-format provenance so the deliverable can disclose it.
-        ...(aiFormatted ? { metadata: { ai_formatted: true } } : {}),
+        // SW-014: surface AI-format provenance + the verbatim original so the
+        // deliverable can disclose it and offer "view original".
+        ...(aiFormatted ? { metadata: { ai_formatted: true, ...(noteRaw ? { note_raw: noteRaw } : {}) } } : {}),
       };
     });
 

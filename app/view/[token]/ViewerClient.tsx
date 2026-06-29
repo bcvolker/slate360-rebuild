@@ -221,12 +221,23 @@ export default function ViewerClient({ deliverable, token }: Props) {
               )}
 
               {activeItem.metadata?.ai_formatted && (
-                <p
-                  className="mb-4 inline-flex items-center gap-1.5 rounded-md border border-white/10 bg-white/[0.04] px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-slate-400"
-                  title="This note was AI-formatted for clarity from the inspector's original field text, which is preserved on the record."
-                >
-                  ✦ AI-formatted · original preserved
-                </p>
+                activeItem.metadata?.note_raw ? (
+                  <details className="mb-4 rounded-md border border-white/10 bg-white/[0.04]">
+                    <summary className="cursor-pointer list-none px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-slate-400 select-none">
+                      ✦ AI-formatted · view original
+                    </summary>
+                    <p className="border-t border-white/10 px-3 py-2 text-xs leading-relaxed whitespace-pre-wrap text-slate-400">
+                      {activeItem.metadata.note_raw}
+                    </p>
+                  </details>
+                ) : (
+                  <p
+                    className="mb-4 inline-flex items-center gap-1.5 rounded-md border border-white/10 bg-white/[0.04] px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-slate-400"
+                    title="This note was AI-formatted for clarity from the inspector's original field text, which is preserved on the record."
+                  >
+                    ✦ AI-formatted · original preserved
+                  </p>
+                )
               )}
 
               <div className="space-y-1.5 mb-6 text-xs text-slate-300 bg-black/30 p-3 rounded">
