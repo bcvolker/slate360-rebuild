@@ -10,6 +10,7 @@ import {
   SITE_WALK_OUTPUT_MODES,
   type CreateDeliverablePayload,
 } from "@/lib/types/site-walk";
+import { registerDeliverableInSlateDrop } from "@/lib/slatedrop/register-deliverable";
 
 export const GET = (req: NextRequest) =>
   withAppAuth("punchwalk", req, async ({ admin, orgId }) => {
@@ -75,5 +76,17 @@ export const POST = (req: NextRequest) =>
       .single();
 
     if (error) return serverError(error.message);
+
+    // Save the deliverable into the project's SlateDrop Deliverables folder so it's
+    // navigable there (open interactive link, hand file to client). Non-fatal.
+    await registerDeliverableInSlateDrop({
+      admin,
+      projectId: session.project_id ?? null,
+      orgId,
+      userId: user.id,
+      deliverableId: data.id as string,
+      title: data.title as string,
+    });
+
     return ok({ deliverable: data });
   });
