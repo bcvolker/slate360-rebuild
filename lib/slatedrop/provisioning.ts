@@ -10,11 +10,19 @@ export async function provisionProjectFolders(
   projectName: string,
   orgId: string | null,
   userId: string,
+  enabledApps?: ReadonlySet<string>,
 ) {
   const admin = createAdminClient();
 
   try {
-    const folders = await generateProjectFolderTree(projectId, projectName, orgId, userId, admin);
+    const folders = await generateProjectFolderTree(
+      projectId,
+      projectName,
+      orgId,
+      userId,
+      admin,
+      enabledApps,
+    );
     return folders.map((row) => ({ id: row.id, name: row.name }));
   } catch (error) {
     console.error("[provisioning] folder tree failed:", error);

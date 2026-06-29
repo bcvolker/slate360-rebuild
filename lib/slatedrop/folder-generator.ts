@@ -81,13 +81,11 @@ async function provisionNodeTree(
   parentId: string | null,
   parentPath: string,
   sortOrder: number,
+  app: string | undefined,
 ): Promise<FolderRow[]> {
-  const app =
-    node.name === "02_Site_Walk"
-      ? "site_walk"
-      : node.name === "03_Digital_Twin"
-        ? "digital_twin"
-        : undefined;
+  // Roots carry the app tag; children inherit it so every folder in an app branch
+  // is identifiable (needed for backfill / app-scoped tooling).
+  const nodeApp = node.app ?? app;
 
   const created = await ensureTaxonomyFolder({
     ...params,
@@ -95,7 +93,7 @@ async function provisionNodeTree(
     parentId,
     parentPath,
     sortOrder,
-    app,
+    app: nodeApp,
   });
 
   const rows: FolderRow[] = [created];
@@ -109,6 +107,7 @@ async function provisionNodeTree(
         created.id,
         created.folder_path ?? `${parentPath}/${node.name}`,
         sortOrder + index + 1,
+        nodeApp,
       ).then((childRows) => {
         rows.push(...childRows);
       }),
@@ -121,6 +120,12 @@ async function provisionNodeTree(
 /**
  * Creates the numbered folder tree (01_Project_Info … 05_Team_Shared) for a project.
  * Idempotent — skips folders that already exist.
+ *
+ * `enabledApps` makes provisioning subscription-aware: shared roots (no `app` tag)
+ * always provision; an app-tagged root (Site Walk, Twin 360, …) is provisioned only
+ * when its app is in the set. Omitting `enabledApps` provisions everything (the
+ * original behavior — used by on-demand resolvers where the app is already in use).
+ * Re-running later with a wider set backfills the newly-enabled branches (idempotent).
  */
 export async function generateProjectFolderTree(
   projectId: string,
@@ -128,14 +133,20 @@ export async function generateProjectFolderTree(
   orgId: string | null,
   userId: string,
   admin: AdminClient,
+  enabledApps?: ReadonlySet<string>,
 ): Promise<FolderRow[]> {
   const basePath = `Projects/${projectId}`;
   const params: ProvisionParams = { admin, projectId, projectName, orgId, userId };
 
   const results = await Promise.all(
-    PROJECT_FOLDER_TAXONOMY.map((root, index) =>
-      provisionNodeTree(params, root, null, basePath, (index + 1) * 100),
-    ),
+    PROJECT_FOLDER_TAXONOMY.map((rootNode, index) => {
+      const root = rootNode as TaxonomyFolderNode;
+      // Skip app branches the org isn't subscribed to (shared roots have no app).
+      if (root.app && enabledApps && !enabledApps.has(root.app)) {
+        return Promise.resolve([] as FolderRow[]);
+      }
+      return provisionNodeTree(params, root, null, basePath, (index + 1) * 100, root.app);
+    }),
   );
 
   return results.flat();

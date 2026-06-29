@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { provisionProjectFolders } from "@/lib/slatedrop/provisioning";
+import { resolveEntitledAppsForProvisioning } from "@/lib/slatedrop/entitled-apps";
 import { logProjectActivity } from "@/lib/projects/activity-log";
 import { canCreateFullProject } from "@/lib/project-access";
 import { isOwnerEmail } from "@/lib/server/beta-access";
@@ -99,7 +100,11 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    await provisionProjectFolders(createdProject.id, createdProject.name, orgId, user.id);
+    // Subscription-aware provisioning: shared roots always; per-app branches
+    // (Site Walk, Twin 360, …) only for apps this org is entitled to (beta + CEO
+    // get all). Adding an app later backfills via /api/slatedrop/backfill-app-folders.
+    const enabledApps = await resolveEntitledAppsForProvisioning(admin, orgId, { isSlateCeo });
+    await provisionProjectFolders(createdProject.id, createdProject.name, orgId, user.id, enabledApps);
   } catch (provisionError) {
     await admin.from("project_members").delete().eq("project_id", createdProject.id).eq("user_id", user.id);
     await rollbackProject(createdProject.id);

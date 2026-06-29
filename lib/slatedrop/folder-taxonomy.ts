@@ -7,6 +7,13 @@
 export type TaxonomyFolderNode = {
   name: string;
   folderType: string;
+  /**
+   * The app this branch belongs to (matches the modular `AppId` keys, e.g.
+   * "site_walk" / "digital_twin"). Only present on app-owned roots; shared roots
+   * (Project_Info / PM_Documents / Team_Shared) omit it and always provision.
+   * Provisioning skips an app branch the org isn't subscribed to.
+   */
+  app?: string;
   children?: readonly TaxonomyFolderNode[];
 };
 
@@ -25,6 +32,7 @@ export const PROJECT_FOLDER_TAXONOMY = [
   {
     name: "02_Site_Walk",
     folderType: "site_walk",
+    app: "site_walk",
     children: [
       { name: "Photos", folderType: "site_walk_photos" },
       { name: "Notes", folderType: "site_walk_notes" },
@@ -37,6 +45,7 @@ export const PROJECT_FOLDER_TAXONOMY = [
   {
     name: "03_Digital_Twin",
     folderType: "digital_twin",
+    app: "digital_twin",
     children: [
       { name: "Clips", folderType: "twin_clips" },
       { name: "LiDAR", folderType: "twin_lidar" },
