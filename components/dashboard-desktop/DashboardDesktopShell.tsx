@@ -8,12 +8,15 @@ import { InviteShareProvider, useInviteShare } from "@/components/shared/InviteS
 import type { InviteShareData } from "@/lib/types/invite";
 import { DashboardDesktopSidebar } from "./DashboardDesktopSidebar";
 import { DashboardDesktopTopBar } from "./DashboardDesktopTopBar";
+import { resolveDashboardNav } from "./dashboard-nav-config";
 import { dashboardDesktopTokens as t } from "./dashboard-tokens";
 
 const InviteShareModal = dynamic(
   () => import("@/components/shared/InviteShareModal").then((mod) => mod.InviteShareModal),
   { ssr: false },
 );
+
+const CommandPalette = dynamic(() => import("@/components/shared/CommandPalette"), { ssr: false });
 
 type DashboardDesktopShellProps = {
   userName: string;
@@ -31,7 +34,13 @@ function ShellInner({ userName, inviteShareData, showOpsConsole, isCeo, children
   // usePathname is populated during the client shell's SSR render, so this is correct on first
   // paint — no accent flash. Pixel-identical on green routes (--app-accent defaults to green).
   const shellApp = resolveShellApp(pathname);
+  // Single gating source: Twin switcher visibility falls out of resolveDashboardNav
+  // (APP_STORE_MODE + CEO/staff) — no separate flag.
+  const twinVisible = resolveDashboardNav(Boolean(showOpsConsole), Boolean(isCeo)).some(
+    (item) => item.href === "/digital-twins",
+  );
   const [collapsed, setCollapsed] = useState(false);
+  const [commandOpen, setCommandOpen] = useState(false);
 
   useEffect(() => {
     setCollapsed(localStorage.getItem("s360.sidebarCollapsed") === "1");
@@ -58,9 +67,19 @@ function ShellInner({ userName, inviteShareData, showOpsConsole, isCeo, children
         onToggleCollapse={toggleCollapse}
       />
       <div className={t.main}>
-        <DashboardDesktopTopBar userName={userName} />
+        <DashboardDesktopTopBar
+          userName={userName}
+          shellApp={shellApp}
+          twinVisible={twinVisible}
+          onOpenCommand={() => setCommandOpen(true)}
+        />
         <main className={t.content}>{children}</main>
       </div>
+      <CommandPalette
+        open={commandOpen}
+        onOpenChange={setCommandOpen}
+        hasOperationsConsoleAccess={Boolean(showOpsConsole)}
+      />
       {inviteOpen ? (
         <InviteShareModal open={inviteOpen} onOpenChange={setInviteOpen} {...inviteShareData} />
       ) : null}
