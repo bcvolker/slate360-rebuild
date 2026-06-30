@@ -55,8 +55,10 @@ final class TwinCaptureHudHost {
         view.isUserInteractionEnabled = true
         // UIHostingController defaults to an opaque background — must stay clear so AR
         // frames show through non-control regions.
-        if #available(iOS 16.4, *) {
-            hostingController.safeAreaRegions = []
-        }
+        //
+        // NOTE: we intentionally do NOT set `safeAreaRegions = []`. Zeroing safe areas hid
+        // the Dynamic Island / notch from the SwiftUI HUD, so the top bar rendered under the
+        // Island. Letting safe areas propagate lets the chrome inset below it (the camera and
+        // accent strips stay full-bleed via per-view .ignoresSafeArea() in TwinCaptureHudView).
     }
 }

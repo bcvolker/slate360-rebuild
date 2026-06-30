@@ -42,12 +42,14 @@ struct TwinCaptureHudView: View {
                     .frame(height: 8)
                     .frame(maxHeight: .infinity, alignment: .top)
                     .allowsHitTesting(false)
+                    .ignoresSafeArea() // accent strip stays at the physical top edge
             } else {
                 Rectangle()
                     .fill(TwinHudColor.twinBlue)
                     .frame(height: 4)
                     .frame(maxHeight: .infinity, alignment: .top)
                     .allowsHitTesting(false)
+                    .ignoresSafeArea() // accent strip stays at the physical top edge
             }
 
             if model.chromeVisible {
@@ -67,7 +69,9 @@ struct TwinCaptureHudView: View {
                 TwinHudChromeRestoreButton(model: model)
             }
         }
-        .ignoresSafeArea()
+        // Chrome (top bar, chips, rail) now RESPECTS safe area → clears the Dynamic Island /
+        // notch. Camera shows through (ARSCNView behind); accent strips opt back to full-bleed
+        // via their own .ignoresSafeArea() above. Host no longer zeros safeAreaRegions.
         .background(Color.clear)
     }
 }
