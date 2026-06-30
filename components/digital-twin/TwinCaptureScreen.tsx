@@ -420,6 +420,7 @@ export function TwinCaptureScreen({
           active={lidar.isActive}
           pointCount={lidar.pointCount}
           note={debug ? lidarProbe : null}
+          debug={debug}
         />
         <TwinCaptureFrameCapChip
           hidden={!chromeVisible || session.mode !== "photos"}
