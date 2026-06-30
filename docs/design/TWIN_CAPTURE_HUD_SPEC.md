@@ -25,7 +25,11 @@ in code: [`lib/digital-twin/twin-capture-hud-contract.ts`](../../lib/digital-twi
   toggle · **Maximize (chrome hide)** · Done · **Home**. *(Native is missing Maximize + Home today.)*
 - **Top accent bar**: 4px `--twin360-blue` persistent identity; becomes an 8px pulsing
   `--destructive` bar while video-recording (GoPro pattern).
-- **Mode selector** (`modeSelectorBottomPx 167`, row 36): segmented **Photos / Video** + interval.
+- **Mode selector** (`modeSelectorBottomPx 167`, row 36): segmented **Photos / Video** + a
+  Photos-mode interval control (`photoInterval`, cycled by `onCycleInterval`). **FORWARD-LOOKING on
+  the ARKit path:** the native engine is **video-only today** (no Photos capture from `ARFrame` yet),
+  so the native HUD should render Photos **disabled** until the engine supports it — do NOT wire a dead
+  toggle. The React/getUserMedia path supports both modes now.
 - **Quality-lock / exposure row** (`qualityLockBottomPx 209`, row 32): exposure / color / focus pills.
   **Disabled "Auto (LiDAR)" on the ARKit path** (`capability.exposureLock=false`).
 - **Bottom rail**: 3-slot — **labeled torch "Light"** (left, `lightButtonSizePx 48`), ring **shutter**
