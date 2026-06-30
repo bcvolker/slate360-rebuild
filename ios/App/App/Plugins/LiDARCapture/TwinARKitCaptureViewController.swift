@@ -283,7 +283,7 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
         torchButton.isHidden = true
         torchButton.addTarget(self, action: #selector(tapTorch), for: .touchUpInside)
         view.addSubview(torchButton)
-        caption(torchLabel, "Torch"); torchLabel.isHidden = true; view.addSubview(torchLabel)
+        caption(torchLabel, "Light"); torchLabel.isHidden = true; view.addSubview(torchLabel)
 
         glassTool(finishButton, "checkmark")
         finishButton.tintColor = brandBlue
