@@ -49,21 +49,27 @@ hard-forks to a *worse, separate* UI for LiDAR devices. Detection (`isNativeTwin
 should be ONE design; LiDAR pts / tracking chips render only when present (the React screen already
 degrades gracefully — `TwinCaptureLidarChip available={...}`).
 
-## Architecture decision (P0 — needs multi-AI validation before building Swift)
-1. **Bring the native Swift HUD to parity** — edit `TwinARKitCaptureViewController.swift` setupHUD/
-   constraints to add the labeled torch rail, mode toggle, exposure pills, Maximize+Home, tracking
-   chip. Smaller blast radius; keeps native ARKit performance; but HUD stays forked (must keep Swift +
-   React in sync forever) and is hand-coded UIKit.
-2. **Transparent WebView HUD over the ARKit camera layer** — render the existing React
-   `TwinCaptureScreen` chrome over the native ARKit render layer, so Twin has ONE HUD across LiDAR /
-   non-LiDAR / Android and the fork dies permanently. Larger native-bridge work; needs the ARKit view
-   to expose its camera/controls to JS events.
+## Architecture decision — RESOLVED (multi-AI panel, Jun 29)
+**DECISION: Option 1 (native SwiftUI HUD parity) NOW, driven by a SHARED SPEC; NOT Option 2.**
+Strong panel consensus (6+ independent analyses):
+- **Option 2 (transparent WKWebView over ARKit) — REJECTED for production.** Feasible in a demo, but
+  adds a second GPU compositor + JS bridge on the hottest path (ARSession + Metal + AVAssetWriter +
+  LiDAR): thermal cliff (~+0.5–1 W shortens the .serious window to ~2.5–4 min), shutter bridge
+  latency, touch-routing fragility, WebContent OOM ("Load failed") risk, and weak precedent (every
+  shipping ARKit capture app — Scaniverse/Polycam/RealityScan — uses native UI; Cordova/Capacitor
+  AR-overlay plugins are all abandoned).
+- **Option 1 — native SwiftUI HUD parity from a SHARED SPEC** (not shared rendering). Keeps the
+  capture pipeline 100% native; the HUD becomes two renderers of one contract. Spec now in code:
+  `lib/digital-twin/twin-capture-hud-contract.ts` + `docs/design/TWIN_CAPTURE_HUD_SPEC.md`.
+- **Option 3 — embedded native AR preview view in the Capacitor layout + ONE React HUD on top** (NOT
+  a transparent overlay; an embedded native view sibling). The true "kill the fork" end-state; bigger
+  refactor; revisit after parity ships.
 
-**Recommendation (pending panel):** lean toward **option 2 (unified WebView HUD)** because it
-satisfies the locked "same UX everywhere" intent and ends the three-way fork — but validate feasibility
-(ARKit-under-WebView compositing, control latency) with the multi-AI panel first. If option 2 proves
-infeasible/slow, fall back to option 1 (native parity) and keep the React + Swift HUDs in lockstep via
-a shared spec.
+**Panel corrections baked into the spec:** (1) exposure lock via `lockForConfiguration` on ARKit can
+break VIO tracking → render the pill **disabled "Auto (LiDAR)"** (`capability.exposureLock=false`);
+torch works natively. (2) Use **SwiftUI** (declarative, mirrors React, `.ultraThinMaterial` glass,
+Xcode Previews) not hand-coded UIKit. (3) Make the React HUD conform to the same contract for
+compile-time parity. (4) Visual-regression snapshot gate.
 
 ## Done this loop (safe, web-only)
 - Gated the leftover LiDAR debug probe (raw `hdr=…/avail=…` strings) behind the `debug` flag in
