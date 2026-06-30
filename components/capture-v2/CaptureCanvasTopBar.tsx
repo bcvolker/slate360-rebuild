@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { ChevronDown, ChevronLeft, ChevronUp, Home, Maximize2 } from "lucide-react";
 import { CAPTURE_CANVAS_CHROME } from "./capture-canvas-chrome-layout";
 import { CAPTURE_V2_LAYERS } from "./layers";
+import { safeAreaTopPadding } from "@/lib/capacitor/safe-area-inset";
 
 type Props = {
   headerLabel: string;
@@ -38,7 +39,10 @@ export function CaptureCanvasTopBar({
       data-capture-chrome="top-bar"
       className={`${CAPTURE_V2_LAYERS.taskHeader} pointer-events-auto absolute inset-x-0 top-0 z-30`}
       style={{
-        paddingTop: `max(env(safe-area-inset-top), ${CAPTURE_CANVAS_CHROME.topInsetPx}px)`,
+        // Use the native-injected --safe-area-inset-top (the bridge sets it reliably on
+        // Dynamic Island devices) with env() fallback — raw env() can resolve to 0 in the
+        // capture WebView layer, dropping controls under the Island. Matches the rest of the app.
+        paddingTop: safeAreaTopPadding(CAPTURE_CANVAS_CHROME.topInsetPx),
         paddingLeft: CAPTURE_CANVAS_CHROME.sideInsetPx,
         paddingRight: CAPTURE_CANVAS_CHROME.sideInsetPx,
       }}
