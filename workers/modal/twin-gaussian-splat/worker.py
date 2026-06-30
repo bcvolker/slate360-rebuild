@@ -907,15 +907,20 @@ def compute_splat_manifest(ply_path: Path, fov_deg: float = 55.0) -> dict[str, A
     raw = _read_ply_xyz(ply_path)
     pts = raw * np.array([1.0, -1.0, -1.0])  # match viewer rotation=[Math.PI,0,0]
 
-    lo = np.percentile(pts, 1, axis=0)
-    hi = np.percentile(pts, 99, axis=0)
+    # Tighter percentile clip (5-95) drops the outer floater shell that skewed centering;
+    # the raw 1-99 box let floaters pull the box center off and inflate the radius (model
+    # opened off-center + too far). center = MEDIAN (robust), radius from a tight spread.
+    lo = np.percentile(pts, 5, axis=0)
+    hi = np.percentile(pts, 95, axis=0)
     mask = np.all((pts >= lo) & (pts <= hi), axis=1)
     core = pts[mask] if int(mask.sum()) >= 100 else pts
 
     cmin = core.min(axis=0)
     cmax = core.max(axis=0)
-    center = (cmin + cmax) / 2.0
-    radius = float(np.linalg.norm(cmax - cmin) / 2.0) or 1.0
+    center = np.median(core, axis=0)
+    p_lo = np.percentile(core, 3, axis=0)
+    p_hi = np.percentile(core, 97, axis=0)
+    radius = float(np.linalg.norm(p_hi - p_lo) / 2.0) or 1.0
 
     # Floor cluster = bottom 25% by Y; PCA smallest-variance axis ≈ floor normal.
     ycut = np.percentile(core[:, 1], 25)
@@ -924,12 +929,25 @@ def compute_splat_manifest(ply_path: Path, fov_deg: float = 55.0) -> dict[str, A
         floor = core
     cen = floor - floor.mean(axis=0)
     cov = (cen.T @ cen) / max(len(floor) - 1, 1)
-    _evals, evecs = np.linalg.eigh(cov)  # ascending
+    evals, evecs = np.linalg.eigh(cov)  # ascending
     normal = evecs[:, 0]
     if normal[1] < 0:
         normal = -normal
     tilt_deg = float(np.degrees(np.arccos(float(np.clip(normal[1], -1.0, 1.0)))))
-    q = _quat_from_to(normal, np.array([0.0, 1.0, 0.0]))
+    # Plane CONFIDENCE: a real floor is flat → smallest eigenvalue << next. A car interior /
+    # featureless blob has comparable eigenvalues → the "floor normal" is noise, and the
+    # normal[1]<0 sign rule then flips the whole model 180° (the upside-down bug). Only apply
+    # the correction when the plane is genuinely flat AND not wildly tilted; otherwise trust
+    # the capture orientation (identity) rather than a confident wrong flip.
+    ev = np.sort(evals)
+    planarity = float(1.0 - ev[0] / (ev[1] + 1e-9))
+    if planarity >= 0.6 and tilt_deg < 45.0:
+        q = _quat_from_to(normal, np.array([0.0, 1.0, 0.0]))
+        manifest_up_axis = "Y_UP" if tilt_deg < 8.0 else "TILTED"
+    else:
+        q = np.array([0.0, 0.0, 0.0, 1.0])  # identity — no confident flip without a clear floor
+        tilt_deg = 0.0
+        manifest_up_axis = "UNKNOWN"
 
     vfov = np.deg2rad(fov_deg)
     dist = radius / np.sin(vfov / 2.0) * 1.2
@@ -947,7 +965,7 @@ def compute_splat_manifest(ply_path: Path, fov_deg: float = 55.0) -> dict[str, A
             "center": center.tolist(),
             "radius": radius,
         },
-        "up_axis": "Y_UP" if tilt_deg < 8.0 else "TILTED",
+        "up_axis": manifest_up_axis,
         "tilt_deg": tilt_deg,
         "correction_quaternion": [float(q[0]), float(q[1]), float(q[2]), float(q[3])],
         "recommended_orbit_camera": {
