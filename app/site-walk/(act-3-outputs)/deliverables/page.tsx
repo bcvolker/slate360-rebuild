@@ -44,13 +44,14 @@ export default async function SiteWalkDeliverablesPage() {
   );
 }
 
+// Token-based status styles (no hardcoded amber/green — Graphite Glass).
 const STATUS_STYLE: Record<string, string> = {
-  draft: "bg-slate-700 text-slate-300",
-  in_review: "bg-yellow-700/60 text-yellow-200",
-  approved: "bg-green-700/60 text-green-200",
-  shared: "bg-slate-600/60 text-slate-200",
-  published: "bg-slate-600/60 text-slate-200",
-  archived: "bg-slate-800 text-slate-500",
+  draft: "bg-white/10 text-slate-300",
+  in_review: "bg-white/10 text-[var(--graphite-primary)]",
+  approved: "bg-[color-mix(in_srgb,var(--graphite-primary)_20%,transparent)] text-[var(--graphite-primary)]",
+  shared: "bg-[color-mix(in_srgb,var(--graphite-primary)_16%,transparent)] text-[var(--graphite-primary)]",
+  published: "bg-[color-mix(in_srgb,var(--graphite-primary)_16%,transparent)] text-[var(--graphite-primary)]",
+  archived: "bg-white/5 text-slate-500",
 };
 
 function DeliverableCard({ deliverable }: { deliverable: DeliverableRow }) {
@@ -60,17 +61,19 @@ function DeliverableCard({ deliverable }: { deliverable: DeliverableRow }) {
   const statusStyle = STATUS_STYLE[deliverable.status] ?? STATUS_STYLE.draft;
 
   return (
-    <article className="flex items-center justify-between gap-4 rounded-3xl border border-white/10 bg-white/5 p-5 backdrop-blur-sm">
-      <div className="min-w-0 flex-1">
+    <article className="flex items-center justify-between gap-4 rounded-3xl border border-white/10 bg-white/5 p-5 backdrop-blur-sm transition-colors hover:border-[color-mix(in_srgb,var(--graphite-primary)_40%,transparent)]">
+      {/* Whole card opens the owner viewer — works for drafts/unshared (no share token needed). */}
+      <Link href={`/site-walk/deliverables/${deliverable.id}`} className="min-w-0 flex-1">
         <p className="text-xs font-black uppercase tracking-[0.14em] text-[var(--graphite-primary)]">{label}</p>
         <h2 className="mt-1 truncate font-black text-slate-50">{deliverable.title || "Untitled deliverable"}</h2>
         {project?.name && <p className="mt-0.5 text-xs text-slate-400">{project.name}</p>}
         <p className="mt-1 flex items-center gap-1 text-xs text-slate-500"><Clock className="h-3 w-3" /> {created}</p>
-      </div>
+      </Link>
       <div className="flex shrink-0 items-center gap-2">
         <span className={`rounded-full px-2 py-0.5 text-xs font-black uppercase tracking-wider ${statusStyle}`}>{deliverable.status.replace(/_/g, " ")}</span>
+        {/* External share link is a SECONDARY action, only when published/shared. */}
         {deliverable.share_token && (
-          <Link href={`/share/deliverable/${deliverable.share_token}`} className="flex h-9 w-9 items-center justify-center rounded-2xl bg-white/10 text-slate-300 hover:bg-white/20 hover:text-white" title="View deliverable">
+          <Link href={`/share/deliverable/${deliverable.share_token}`} className="flex h-9 w-9 items-center justify-center rounded-2xl bg-white/10 text-slate-300 hover:bg-white/20 hover:text-white" title="Open public share link">
             <ExternalLink className="h-4 w-4" />
           </Link>
         )}

@@ -61,6 +61,14 @@ export function ProjectOverviewTab({ data }: ProjectOverviewTabProps) {
             <p className={`${t.eyebrow} mb-3`}>Quick actions</p>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <StartWalkTile projectId={data.projectId} projectName={data.name} />
+              {data.showTwins ? (
+                <ActionTile
+                  label="Start a Twin"
+                  hint="3D scan this space"
+                  href={`/digital-twin/capture?projectId=${encodeURIComponent(data.projectId)}&mode=project`}
+                  icon={Box}
+                />
+              ) : null}
               <ActionTile label="Walk with drawings" hint="Pin photos to the plan" href={`${base}/plans`} icon={Footprints} />
               <ActionTile label="Upload a drawing" hint="PDF plan set" href={`${base}/plans`} icon={Upload} />
               <ActionTile label="Invite team" hint="Add collaborators" href={`${base}/team`} icon={UserPlus} />
