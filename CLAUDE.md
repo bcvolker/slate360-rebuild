@@ -2,6 +2,30 @@
 
 Read this first. It captures cross-session facts that are easy to lose between chats.
 
+## Full backend access — YOU HAVE IT (verified 2026-06-30, runs on Brian's machine)
+
+This session runs on Brian's Windows machine at `C:\s360`, where every backend CLI is already
+authenticated. **A fresh chat that thinks it "can't reach the backend" is WRONG** — test, don't assume.
+Verified working (do NOT echo secret values into chat):
+- **Vercel** — `npx vercel whoami` → `slate360ceo-8370`. Read/edit prod env + deploy.
+  - List/inspect env: `npx vercel env ls production`; pull to verify a value: `npx vercel env pull <file> --environment=production` then grep.
+  - Set a var (the reliable non-interactive form — stdin pipes add an EMPTY value, don't use them):
+    `npx vercel env add NAME production --value="..." --no-sensitive --yes`.
+  - **Sensitive vars can't be un-toggled** — to fix/replace, `npx vercel env rm NAME production -y` then re-add with `--no-sensitive`.
+  - Latest prod deploy + commit: `curl -s https://www.slate360.ai/api/deploy-info`.
+- **Supabase** (prod, linked: `slate360-prod` / ref `hadnfcenpcfaeclczsmm`) — run SQL directly:
+  `SUPABASE_TELEMETRY_DISABLED=1 npx supabase db query --linked -f path/to.sql`. Migrations are additive-only.
+- **Modal** — `python -m modal profile current` → `bcvolker`. Deploy workers per the section below.
+- **Trigger.dev** — `PYTHONIOENCODING=utf-8 npx trigger.dev@latest deploy` (project `proj_ydquoejbfqidzbjioyno`).
+  `trigger.config.ts` uses `syncEnvVars(pickTriggerEnv)` → **Trigger task env (e.g. `MODAL_TWIN_ENDPOINT`,
+  read in `src/trigger/*`) is synced from `.env.local` AT DEPLOY TIME** — so after changing a Modal endpoint,
+  REDEPLOY Trigger, not just Vercel (the twin task reads the value on Trigger's infra, not Vercel's).
+- **Storage** — Cloudflare R2 `slate360-storage`; diagnostics `npm run diag:storage-runtime`. DB deletes do
+  NOT remove blobs (orphan cleanup is separate).
+
+Use Bash/PowerShell tools to run these. Brian authorizes operating the backend as part of the work.
+Full service map + secret locations: `_archived_context/slate360-context/BACKEND.md`. See [[slate360-backend-access]].
+
 ## Heavy-processing infrastructure — YOU HAVE ACCESS (Modal + Trigger.dev)
 
 Slate360 offloads all heavy compute to the cloud. **Every chat has access to deploy
