@@ -14,8 +14,11 @@
  * HUD is the later "kill the fork" end-state (Option 3).
  */
 
-export type TwinCaptureMode = "photos" | "video";
+/** App DEFAULTS to "video" (useTwinCaptureSession). Strings are exact; order is cosmetic. */
+export type TwinCaptureMode = "video" | "photos";
 export type TwinTorchState = "off" | "on";
+/** Photos-mode burst interval (seconds between auto-frames), cycled by the interval button. */
+export type TwinPhotoInterval = 0.5 | 1 | 2;
 export type TwinTrackingState = "initializing" | "normal" | "limited" | "relocalizing" | "unavailable";
 export type TwinThermalState = "nominal" | "fair" | "serious" | "critical";
 
@@ -47,32 +50,45 @@ export type TwinHudCapability = {
 /** Everything the HUD renders. The capture engine owns this; the HUD is presentational. */
 export type TwinHudState = {
   mode: TwinCaptureMode;
+  /** Photos-mode auto-burst interval; the interval button cycles it. */
+  photoInterval: TwinPhotoInterval;
   torch: TwinTorchState;
   recording: boolean;
   /** Elapsed recording time (video) or capture burst (photos), ms. */
   elapsedMs: number;
-  /** Remaining time before the soft clip cap auto-rolls, or null when no cap is active. */
-  remainingClipMs: number | null;
-  tracking: TwinTrackingState;
-  thermal: TwinThermalState;
-  /** 0-based index of the current clip/segment within the twin. */
+  /** Live camera ready + not needing a resume tap — the shutter is gated on this. */
+  streamReady: boolean;
+  /** Camera suspended (iOS Safari backgrounding) → shutter shows a resume affordance. */
+  needsResume: boolean;
+  tracking: TwinTrackingState; // native-only source (ARCamera.trackingState); React passes "normal"
+  thermal: TwinThermalState; // native-only source (ProcessInfo.thermalState); React passes "nominal"
+  /** 1-based index of the current clip within the twin (clips[].index is 1-based). */
   segmentIndex: number;
+  /** Total clips captured so far (drives the clip-chips toggle). */
+  clipCount: number;
+  /** Whether the clip-chips panel is peeked open. */
+  clipsExpanded: boolean;
   /** Captured photo frames so far (photos mode). */
   photoFrameCount: number;
   /** LiDAR points accumulated (0 / omitted on RGB-only devices). */
   lidarPointCount: number;
   /** AE locked right now (only meaningful when capability.exposureLock). */
   exposureLocked: boolean;
-  /** Uploads still pending (review chrome). */
-  pendingSegments: number;
   /** Coverage progress 0..1 for the guide ring. */
   coverageProgress: number;
+  /** FORWARD-LOOKING (not wired yet): ms left before a soft clip cap auto-rolls; null = no cap.
+   *  Today video shows a static target label + photos use a frame cap, not a time cap. */
+  remainingClipMs?: number | null;
+  /** FORWARD-LOOKING (not wired yet): uploads pending (uploads happen post-handoff in review). */
+  pendingSegments?: number;
   capability: TwinHudCapability;
 };
 
 /** Commands the HUD emits. The engine (React hook or Swift VC) implements them. */
 export type TwinHudActions = {
   onModeChange: (mode: TwinCaptureMode) => void;
+  /** Cycle the photos-mode burst interval (0.5 → 1 → 2 → …). */
+  onCycleInterval: () => void;
   onTorchToggle: (next: TwinTorchState) => void;
   /** Photos: capture a frame. Video: start/stop is onStartClip/onEndClip. */
   onShutter: () => void;
@@ -80,6 +96,8 @@ export type TwinHudActions = {
   onEndClip: () => void;
   /** No-op when capability.exposureLock is false (pill renders disabled). */
   onExposureLockToggle: () => void;
+  /** Toggle the clip-chips panel. */
+  onClipsToggle: () => void;
   onBack: () => void;
   onToggleChrome: () => void;
   onDone: () => void;

@@ -29,8 +29,9 @@ in code: [`lib/digital-twin/twin-capture-hud-contract.ts`](../../lib/digital-twi
 - **Quality-lock / exposure row** (`qualityLockBottomPx 209`, row 32): exposure / color / focus pills.
   **Disabled "Auto (LiDAR)" on the ARKit path** (`capability.exposureLock=false`).
 - **Bottom rail**: 3-slot — **labeled torch "Light"** (left, `lightButtonSizePx 48`), ring **shutter**
-  (`shutterSizePx 72`, center), **Done** (`doneButtonSizePx 56`, right). *(Native torch floats
-  mid-bottom today — move into this labeled left slot.)*
+  (`shutterSizePx 72`, center), **Done** (`doneButtonSizePx 56`, right). *(Native already has torch in a
+  left-of-shutter slot but labels it **"Torch"** and renders it as a 52px circle — rename to "Light"
+  and align to the 48px rail-slot grammar.)* The shutter is **gated on `streamReady && !needsResume`.*
 - **LiDAR chip** (additive, `lidarChipTopGapPx 8`): "LiDAR · N pts" + tracking pill — shown only when
   `capability.lidarChip` (depth present). Hidden on RGB-only.
 - **Ghost overlay**: prior clip's last sharp keyframe @ ~45% opacity. **Coverage guide**: ring +
