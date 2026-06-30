@@ -1,7 +1,9 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { usePathname } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
+import { resolveShellApp } from "@/lib/shell/resolve-shell-app";
 import { InviteShareProvider, useInviteShare } from "@/components/shared/InviteShareProvider";
 import type { InviteShareData } from "@/lib/types/invite";
 import { DashboardDesktopSidebar } from "./DashboardDesktopSidebar";
@@ -24,6 +26,11 @@ type DashboardDesktopShellProps = {
 
 function ShellInner({ userName, inviteShareData, showOpsConsole, isCeo, children }: DashboardDesktopShellProps) {
   const { open: inviteOpen, setOpen: setInviteOpen } = useInviteShare();
+  const pathname = usePathname() ?? "";
+  // Unified-shell accent: data-app flips --app-accent (green platform/Site Walk → blue Twin).
+  // usePathname is populated during the client shell's SSR render, so this is correct on first
+  // paint — no accent flash. Pixel-identical on green routes (--app-accent defaults to green).
+  const shellApp = resolveShellApp(pathname);
   const [collapsed, setCollapsed] = useState(false);
 
   useEffect(() => {
@@ -43,7 +50,7 @@ function ShellInner({ userName, inviteShareData, showOpsConsole, isCeo, children
   };
 
   return (
-    <div className={`flex min-h-[100dvh] ${t.canvas}`}>
+    <div data-app={shellApp} className={`flex min-h-[100dvh] ${t.canvas}`}>
       <DashboardDesktopSidebar
         showOpsConsole={showOpsConsole}
         isCeo={isCeo}

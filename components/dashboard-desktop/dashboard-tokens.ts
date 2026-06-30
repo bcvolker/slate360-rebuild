@@ -14,13 +14,15 @@ export const dashboardDesktopTokens = {
     "flex h-[100dvh] shrink-0 flex-col border-r border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_92%,transparent)] transition-[width] duration-200",
   sidebarNavLabel:
     "mb-1 px-2 font-mono text-[9px] font-semibold uppercase tracking-[0.18em] text-[var(--graphite-muted)]",
+  // Nav chrome interactive states key off --app-accent (unified shell): pixel-identical on
+  // green/dashboard routes (--app-accent defaults to --graphite-primary), blue on Twin routes.
   navLink:
-    "group flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-[13px] font-medium transition-colors text-[var(--graphite-muted)] hover:bg-[color-mix(in_srgb,var(--graphite-primary)_8%,transparent)] hover:text-[var(--graphite-text-header)]",
+    "group flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-[13px] font-medium transition-colors text-[var(--graphite-muted)] hover:bg-[color-mix(in_srgb,var(--app-accent)_8%,transparent)] hover:text-[var(--graphite-text-header)]",
   navLinkActive:
-    "bg-[color-mix(in_srgb,var(--graphite-primary)_12%,transparent)] text-[var(--graphite-text-header)] ring-1 ring-inset ring-[color-mix(in_srgb,var(--graphite-primary)_24%,transparent)]",
+    "bg-[color-mix(in_srgb,var(--app-accent)_12%,transparent)] text-[var(--graphite-text-header)] ring-1 ring-inset ring-[color-mix(in_srgb,var(--app-accent)_24%,transparent)]",
   navIcon:
-    "flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-[var(--graphite-muted)] transition-colors group-hover:text-[var(--graphite-primary)]",
-  navIconActive: "bg-[color-mix(in_srgb,var(--graphite-primary)_16%,transparent)] text-[var(--graphite-primary)]",
+    "flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-[var(--graphite-muted)] transition-colors group-hover:text-[var(--app-accent)]",
+  navIconActive: "bg-[color-mix(in_srgb,var(--app-accent)_16%,transparent)] text-[var(--app-accent)]",
   main: "flex h-[100dvh] min-h-0 min-w-0 flex-1 flex-col",
   topBar:
     "flex h-12 shrink-0 items-center justify-between border-b border-[var(--mobile-app-card-border)] px-5",
