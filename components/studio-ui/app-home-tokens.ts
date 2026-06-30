@@ -10,8 +10,10 @@ const glassSurfaceHover =
   "hover:bg-[color-mix(in_srgb,var(--graphite-canvas)_70%,transparent)]";
 
 export const appHomeTokens = {
-  scrollInner:
-    "mx-auto flex min-h-full w-full max-w-2xl flex-1 flex-col gap-4 px-3 pt-3 pb-3",
+  // No min-h-full/flex-1: every section is shrink-0, so forcing the column to viewport height
+  // pooled leftover space into a bottom void (the "massive gap"). Content-sized + px-4 to match
+  // the dock/header (was px-3 → 4px misalignment). See docs/CAPTURE_AND_SHELL_BLOCKERS_LOG.md.
+  scrollInner: "mx-auto flex w-full max-w-2xl flex-col gap-3 px-4 pt-3 pb-3",
   section: "shrink-0",
   sectionHeader: "mb-2 px-0.5",
   sectionLabel:

@@ -179,7 +179,7 @@ export function MobileAppRootContent({ homeData, launcherApps }: MobileAppRootCo
         <MobileAppLauncherGrid apps={launcherApps} />
       </section>
 
-      <MobileAppHomeQuickActions className="mt-auto" actions={quickActions} />
+      <MobileAppHomeQuickActions actions={quickActions} />
 
       <MobileAppHomeFill data={homeData} />
     </div>

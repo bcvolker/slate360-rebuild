@@ -24,7 +24,7 @@ import {
   MobileAppHubHeroCard,
   MobileAppHubHeroStack,
 } from "@/components/studio-ui/MobileAppHubHeroCard";
-import { MobileAppSectionLabel } from "@/components/studio-ui/MobileAppSectionLabel";
+import { MobileAppBrandBand } from "@/components/studio-ui/MobileAppBrandBand";
 import type { MobileHomeAssignment } from "@/lib/mobile/load-mobile-assignments";
 import { buildCaptureLaunchUrl } from "@/lib/site-walk/capture-v2-config";
 import {
@@ -305,10 +305,8 @@ export function SiteWalkHomeClient({
 
   return (
     <div data-mobile-route="site-walk" className={appHomeTokens.scrollInner}>
+      <MobileAppBrandBand name="Site Walk" icon={Camera} accent="primary" />
       <section className={appHomeTokens.section}>
-        <div className={appHomeTokens.sectionHeader}>
-          <MobileAppSectionLabel>Start Walk</MobileAppSectionLabel>
-        </div>
         <MobileAppHubHeroStack>
           <MobileAppHubHeroCard
             title="Quick Walk"

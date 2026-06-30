@@ -26,16 +26,9 @@ export function MobilePlatformHeader({
   backLabel = "Back",
   title,
   subtitle,
-  moduleHomeBrand,
   className,
 }: MobilePlatformHeaderProps) {
   const hasTitle = Boolean(title || subtitle);
-
-  const chipClass =
-    moduleHomeBrand?.accent === "info"
-      ? mobileTokens.mobileModuleHomeIconChipInfo
-      : mobileTokens.mobileModuleHomeIconChipPrimary;
-  const ModuleIcon = moduleHomeBrand?.icon;
 
   return (
     <header
@@ -64,16 +57,9 @@ export function MobilePlatformHeader({
           <SlateLogo size="sm" className="shrink-0" aria-hidden />
         </Link>
 
-        {/* Module chip (Site Walk / Twin 360) when inside a module. */}
-        {moduleHomeBrand && ModuleIcon ? (
-          <>
-            <span className={mobileTokens.mobileHeaderBrandDivider} aria-hidden />
-            <span className={chipClass} aria-hidden>
-              <ModuleIcon className={mobileTokens.mobileModuleHomeIconChipIcon} strokeWidth={2} />
-            </span>
-            <span className={mobileTokens.mobileModuleHomeName}>{moduleHomeBrand.name}</span>
-          </>
-        ) : null}
+        {/* App name moved OUT of the header into MobileAppBrandBand (below the header) so each
+            sub-app gets real branding — see docs/CAPTURE_AND_SHELL_BLOCKERS_LOG.md (Blocker 3).
+            Header stays logo + switcher + account. */}
 
         {hasTitle ? (
           <div className="min-w-0 flex-1">
