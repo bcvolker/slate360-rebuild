@@ -102,6 +102,10 @@
   --graphite-canvas: #0B0F15;
   --graphite-primary: #00E699;
   --twin360-blue: #3D8EFF;
+  /* Unified-shell accent: the ONE interactive accent a surface uses. Default = platform/
+     Site Walk green; flipped to blue inside Twin 360 via [data-app="twin360"] (see EOF).
+     Shell components reference var(--app-accent) for interactive states ONLY (never fills). */
+  --app-accent: var(--graphite-primary);
   --graphite-text-header: #FFFFFF;
   --graphite-text-body: #F8FAFC;
   --graphite-muted: #A3AED0;
@@ -982,3 +986,12 @@
 @media (prefers-reduced-motion: reduce) {
   .mkt-hero-sweep { animation: none; }
 }
+
+/* ── Unified shell: accent-only differentiation ──────────────────────────────
+   One Graphite-Glass shell; only --app-accent changes per surface. Set data-app on
+   the shell root (UnifiedAppShell). Accent is for interactive states ONLY — active
+   nav, focus rings, primary-button border/text, progress, selected chips — never fills.
+   See docs/design/SLATE360_UNIFIED_SHELL.md. */
+[data-app="site-walk"] { --app-accent: var(--graphite-primary); }
+[data-app="twin360"]   { --app-accent: var(--twin360-blue); }
+[data-app="dashboard"] { --app-accent: var(--graphite-primary); }
