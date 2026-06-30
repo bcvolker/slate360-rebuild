@@ -21,7 +21,7 @@ export const shellTokens = {
   // App-name branding: strong mono wordmark + a thin accent tick (hierarchy, not clutter).
   brandWordmark:
     "font-mono text-[13px] font-bold uppercase tracking-[0.16em] text-[var(--graphite-text-header)]",
-  brandTick: "h-3.5 w-[3px] rounded-full bg-[var(--app-accent)]",
+  brandTick: "h-3.5 w-[3px] rounded-[2px] bg-[var(--app-accent)]",
   topBarSpacer: "flex-1 min-w-0",
 
   // ── Left rail: 220px, shared nav + app section ──
