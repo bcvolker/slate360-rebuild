@@ -15,11 +15,18 @@ private struct TwinGlassPanel: ViewModifier {
 
     func body(content: Content) -> some View {
         content
-            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+            // Solid dark scrim (Graphite canvas @ 85%) instead of .ultraThinMaterial, which washed
+            // out to near-white over a bright camera feed and made every chip/label invisible. A
+            // near-opaque pill + shadow reads over ANY scene; stroke raised for a defined edge.
+            .background(
+                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                    .fill(TwinHudColor.canvas.opacity(0.85))
+            )
             .overlay(
                 RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                    .stroke(TwinHudColor.twinBlue.opacity(0.28), lineWidth: 1)
+                    .stroke(TwinHudColor.twinBlue.opacity(0.55), lineWidth: 1)
             )
+            .shadow(color: .black.opacity(0.45), radius: 8, y: 2)
     }
 }
 
