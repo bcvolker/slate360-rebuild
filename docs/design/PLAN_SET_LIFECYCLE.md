@@ -1,0 +1,93 @@
+# Plan-Set Lifecycle — Master / Working Layers / Revisions (DESIGN, 2026-06-30)
+
+Designs how plan sets, pins, walks, and revisions relate so users get maximum flexibility:
+a pristine master, accumulating annotated sets, clean walk sets, and drawing revisions — all
+clearly identified at walk-start. Grounded in the EXISTING schema (`site_walk_plan_sets`,
+`site_walk_plan_sheets`, `site_walk_session_plan_sheets`, `site_walk_pins`). Additive migration only.
+
+## The mental model: a Master is never pinned; pins live in Layers
+
+Three roles, one source of truth:
+
+1. **Master Plan Set (the "key")** — every plan upload creates a master. It is the pristine drawing
+   and is **never pinned on directly**. It's the reference of record. (`kind = 'master'`.)
+2. **Working Set (a Layer)** — a lightweight annotation layer *over a master's sheets* (it does NOT
+   re-render or duplicate files — it references the master's sheets). This is where pins + captures
+   + walks accumulate. (`kind = 'working'`, `master_plan_set_id → the master`.) Two flavors:
+   - **Cumulative layer** — the project's living annotated set; pins build up across many walks.
+   - **Clean walk layer** — a fresh isolated layer created for one walk; starts with zero pins.
+3. **Revision** — a new drawing upload that supersedes a prior master (`revision_number`,
+   `supersedes_plan_set_id`, `is_current_revision`). Old revisions are retained (history/as-built).
+   Pins stay bound to the revision they were placed on (a Rev-A pin doesn't silently jump to Rev B);
+   the UI flags "Rev B available" so a new walk can start on the current revision.
+
+Why "master is never pinned": it keeps a guaranteed-clean reference for re-issuing clean sets,
+comparing revisions, and exporting an unannotated drawing — exactly Brian's "saved as the key."
+
+## Walk-start selection (the picker) — what the user chooses
+
+Two quick decisions, every option clearly labeled:
+
+**Step 1 — Which drawings?** Pick the master set + revision. Labeled:
+`"A-100 Floor Plans · Rev B (current) · 12 sheets"`. If a newer revision exists, the older ones
+show `"Rev A (superseded)"`.
+
+**Step 2 — Which layer?**
+- **Fresh walk (clean plans)** → creates a new Clean working layer; no prior pins shown. For a clean
+  re-walk / punch list on untouched drawings.
+- **Continue "[Cumulative]" (8 pins · last walked Jun 28)** → opens the project's living layer; prior
+  pins shown and added to. For ongoing documentation that builds over time.
+- **Continue a specific prior working set** (optional advanced) → pick any named working layer.
+
+Each option shows: title · revision · **pin count** · last-walked date · who. That's the
+"identification when starting a new walk" requirement.
+
+## Data model (additive migration — prepared for Brian to apply)
+
+- **`site_walk_plan_sets`** add: `kind text default 'master' check (kind in ('master','working'))`,
+  `master_plan_set_id uuid references site_walk_plan_sets(id)` (null for masters; set for working),
+  `revision_number int default 1`, `revision_label text` (e.g. "Rev B"),
+  `supersedes_plan_set_id uuid references site_walk_plan_sets(id)`,
+  `is_current_revision boolean default true`, `layer_kind text` (working only:
+  'cumulative' | 'clean'). Backfill existing rows → `kind='master'`.
+- **`site_walk_pins`** add: `plan_set_id uuid references site_walk_plan_sets(id)` — the WORKING set
+  (layer) the pin belongs to. Keep `session_id` (which walk created it) + `plan_sheet_id` (geometry).
+  Accumulation = pins WHERE `plan_set_id = <working layer>` across sessions. A clean walk gets a new
+  working layer → sees none. A cumulative walk reuses the project's cumulative layer → sees all.
+- **`site_walk_sessions`** add: `plan_set_id uuid` (the working layer this walk wrote to) +
+  `plan_mode text check (plan_mode in ('clean','cumulative','none'))`.
+- Working layers reference the master's `site_walk_plan_sheets` directly (pin `plan_sheet_id` points
+  at the master's sheet rows) — **no sheet/file duplication**; a layer is just a pin namespace + metadata.
+
+## Revisions — how a new drawing upload is handled
+1. Upload into the same project → new master with `revision_number = max+1`, `supersedes_plan_set_id`
+   = prior current master, prior master `is_current_revision=false`.
+2. Existing working layers keep pointing at the revision they were built on (their pins are valid for
+   that geometry). 
+3. Walk-start defaults to the current revision; offers "carry pins forward?" later (a future
+   sheet-matching feature — out of scope for v1; v1 just keeps layers on their own revision).
+
+## Tier gating (Pro)
+Walks-with-plans + 360-on-plans = Site Walk **Pro** (`resolveModularEntitlements`). Gate server-side at
+walk-start; in the picker, plan options are **visible-but-locked** with an upgrade affordance (never
+hidden). A Pro user drops a 360 onto an **existing pin** (continue a working layer) or a **new pin**
+(fresh layer) — both already supported by the long-press → source-picker → capture flow.
+
+## Build slices (after this design is locked)
+1. **Additive migration** (above) — Brian applies via Supabase Management API.
+2. **Master-on-upload**: `createPlanSet` (`lib/site-walk/plan-upload.ts`) stamps `kind='master'`,
+   revision fields. Re-upload into a project → revision chain.
+3. **Wire `PlanPickerSheet`** (built, stranded in `/preview/walk-start`) into `CaptureV2Orchestrator`:
+   Step-1 master/revision list + Step-2 Fresh vs Continue, creating/selecting the working layer and
+   passing `planSetId` + `plan_mode` into `useWithPlansCaptureCanvas` (replacing its hard-default).
+4. **Pin accumulation read**: cumulative walk loads pins by working-layer; clean walk loads none.
+5. **Pin drag** (independent of the above — ship first): make session markers `draggable`, persist
+   `dragend` → `x_pct/y_pct` (DB already allows UPDATE per `20260423`).
+
+## Open decisions for Brian / panel
+- **D1 — One cumulative layer per project, or per master set?** Recommend **per master set** (each
+  drawing package has its own living annotated layer; cleaner when multiple packages exist).
+- **D2 — Can a clean walk be "promoted" to cumulative** (merge its pins into the living layer) after
+  the walk? Recommend **yes, optional** at walk-end ("save these pins to the project set?").
+- **D3 — Revisions carry pins forward?** Recommend **v1: no** (pins stay on their revision); add
+  sheet-matching migration later. Keeps v1 shippable.
