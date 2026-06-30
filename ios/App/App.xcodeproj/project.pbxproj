@@ -17,7 +17,17 @@
 		504EC3121FED79650016851F /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 504EC3101FED79650016851F /* LaunchScreen.storyboard */; };
 		50B271D11FEDC1A000F3C39B /* public in Resources */ = {isa = PBXBuildFile; fileRef = 50B271D01FEDC1A000F3C39B /* public */; };
 		5C14F3C8EF0E02E70BF0E5D0 /* LiDARCapturePlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6F0A0270E0CA3ADDE3FBBD3 /* LiDARCapturePlugin.swift */; };
+		C1B2C3D40000000000000001 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D1B2C3D40000000000000001 /* AVFoundation.framework */; };
+		C1B2C3D40000000000000002 /* CoreLocation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D1B2C3D40000000000000002 /* CoreLocation.framework */; };
+		C1B2C3D40000000000000003 /* SceneKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D1B2C3D40000000000000003 /* SceneKit.framework */; };
 		DB8778C101F57351660D94F8 /* LiDARCapturePlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 773451409476BA80F7571714 /* LiDARCapturePlugin.m */; };
+		1A2B3C4D5E6F708192A3B4C6 /* TwinARKitCaptureViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A2B3C4D5E6F708192A3B4C5 /* TwinARKitCaptureViewController.swift */; };
+		2B3C4D5E6F708192A3B4C5D7 /* TwinCaptureHudView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B3C4D5E6F708192A3B4C5D6 /* TwinCaptureHudView.swift */; };
+		3C4D5E6F708192A3B4C5D6E7 /* TwinCaptureHudHost.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C4D5E6F708192A3B4C5D6E8 /* TwinCaptureHudHost.swift */; };
+		4D5E6F708192A3B4C5D6E7F8 /* TwinHudStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D5E6F708192A3B4C5D6E7F9 /* TwinHudStateModel.swift */; };
+		5E6F708192A3B4C5D6E7F8091 /* TwinCaptureChromeMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E6F708192A3B4C5D6E7F8092 /* TwinCaptureChromeMetrics.swift */; };
+		6F708192A3B4C5D6E7F8091A2 /* TwinUploader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F708192A3B4C5D6E7F8091A3 /* TwinUploader.swift */; };
+		708192A3B4C5D6E7F8091A2B3 /* SlateBridgeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 708192A3B4C5D6E7F8091A2B4 /* SlateBridgeViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -32,8 +42,18 @@
 		50B271D01FEDC1A000F3C39B /* public */ = {isa = PBXFileReference; lastKnownFileType = folder; path = public; sourceTree = "<group>"; };
 		773451409476BA80F7571714 /* LiDARCapturePlugin.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = LiDARCapturePlugin.m; sourceTree = "<group>"; };
 		7FA8CFA22CDA318F51624925 /* ARKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = ARKit.framework; sourceTree = "<group>"; };
+		D1B2C3D40000000000000001 /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
+		D1B2C3D40000000000000002 /* CoreLocation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreLocation.framework; path = System/Library/Frameworks/CoreLocation.framework; sourceTree = SDKROOT; };
+		D1B2C3D40000000000000003 /* SceneKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SceneKit.framework; path = System/Library/Frameworks/SceneKit.framework; sourceTree = SDKROOT; };
 		958DCC722DB07C7200EA8C5F /* debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = debug.xcconfig; path = ../debug.xcconfig; sourceTree = SOURCE_ROOT; };
 		F6F0A0270E0CA3ADDE3FBBD3 /* LiDARCapturePlugin.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LiDARCapturePlugin.swift; sourceTree = "<group>"; };
+		1A2B3C4D5E6F708192A3B4C5 /* TwinARKitCaptureViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TwinARKitCaptureViewController.swift; sourceTree = "<group>"; };
+		2B3C4D5E6F708192A3B4C5D6 /* TwinCaptureHudView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TwinCaptureHudView.swift; sourceTree = "<group>"; };
+		3C4D5E6F708192A3B4C5D6E8 /* TwinCaptureHudHost.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TwinCaptureHudHost.swift; sourceTree = "<group>"; };
+		4D5E6F708192A3B4C5D6E7F9 /* TwinHudStateModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TwinHudStateModel.swift; sourceTree = "<group>"; };
+		5E6F708192A3B4C5D6E7F8092 /* TwinCaptureChromeMetrics.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TwinCaptureChromeMetrics.swift; sourceTree = "<group>"; };
+		6F708192A3B4C5D6E7F8091A3 /* TwinUploader.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TwinUploader.swift; sourceTree = "<group>"; };
+		708192A3B4C5D6E7F8091A2B4 /* SlateBridgeViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SlateBridgeViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -43,6 +63,9 @@
 			files = (
 				4D22ABE92AF431CB00220026 /* CapApp-SPM in Frameworks */,
 				1341ABA569939EBBD70E9AAC /* ARKit.framework in Frameworks */,
+				C1B2C3D40000000000000001 /* AVFoundation.framework in Frameworks */,
+				C1B2C3D40000000000000002 /* CoreLocation.framework in Frameworks */,
+				C1B2C3D40000000000000003 /* SceneKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -52,8 +75,15 @@
 		30AD6559BE1B7A0E11C9D12E /* LiDARCapture */ = {
 			isa = PBXGroup;
 			children = (
+				708192A3B4C5D6E7F8091A2B4 /* SlateBridgeViewController.swift */,
 				F6F0A0270E0CA3ADDE3FBBD3 /* LiDARCapturePlugin.swift */,
 				773451409476BA80F7571714 /* LiDARCapturePlugin.m */,
+				1A2B3C4D5E6F708192A3B4C5 /* TwinARKitCaptureViewController.swift */,
+				2B3C4D5E6F708192A3B4C5D6 /* TwinCaptureHudView.swift */,
+				3C4D5E6F708192A3B4C5D6E8 /* TwinCaptureHudHost.swift */,
+				4D5E6F708192A3B4C5D6E7F9 /* TwinHudStateModel.swift */,
+				5E6F708192A3B4C5D6E7F8092 /* TwinCaptureChromeMetrics.swift */,
+				6F708192A3B4C5D6E7F8091A3 /* TwinUploader.swift */,
 			);
 			name = LiDARCapture;
 			path = Plugins/LiDARCapture;
@@ -63,6 +93,9 @@
 			isa = PBXGroup;
 			children = (
 				7FA8CFA22CDA318F51624925 /* ARKit.framework */,
+				D1B2C3D40000000000000001 /* AVFoundation.framework */,
+				D1B2C3D40000000000000002 /* CoreLocation.framework */,
+				D1B2C3D40000000000000003 /* SceneKit.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -191,8 +224,15 @@
 			buildActionMask = 2147483647;
 			files = (
 				504EC3081FED79650016851F /* AppDelegate.swift in Sources */,
+				708192A3B4C5D6E7F8091A2B3 /* SlateBridgeViewController.swift in Sources */,
 				5C14F3C8EF0E02E70BF0E5D0 /* LiDARCapturePlugin.swift in Sources */,
 				DB8778C101F57351660D94F8 /* LiDARCapturePlugin.m in Sources */,
+				1A2B3C4D5E6F708192A3B4C6 /* TwinARKitCaptureViewController.swift in Sources */,
+				2B3C4D5E6F708192A3B4C5D7 /* TwinCaptureHudView.swift in Sources */,
+				3C4D5E6F708192A3B4C5D6E7 /* TwinCaptureHudHost.swift in Sources */,
+				4D5E6F708192A3B4C5D6E7F8 /* TwinHudStateModel.swift in Sources */,
+				5E6F708192A3B4C5D6E7F8091 /* TwinCaptureChromeMetrics.swift in Sources */,
+				6F708192A3B4C5D6E7F8091A2 /* TwinUploader.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

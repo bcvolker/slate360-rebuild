@@ -1,4 +1,5 @@
 import UIKit
+import SwiftUI
 import ARKit
 import SceneKit
 import AVFoundation
@@ -100,21 +101,15 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
     private var currentLocation: CLLocation?
     private var currentHeading: CLHeading?
 
-    // HUD — Graphite Glass language (matches Site Walk capture chrome, recolored Twin blue).
-    private let topBar = UIVisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterialDark))
-    private let metricsBar = UIVisualEffectView(effect: UIBlurEffect(style: .systemThinMaterialDark))
-    private let statePill = UILabel()
-    private let metricsLabel = UILabel()
-    private let tipLabel = UILabel()
-    private let timerLabel = UILabel()
-    private let recordButton = UIButton(type: .system)
-    private let finishButton = UIButton(type: .system)
-    private let cancelButton = UIButton(type: .system)
-    private let torchButton = UIButton(type: .system)
-    private let torchLabel = UILabel()
-    private let finishLabel = UILabel()
+    // SwiftUI HUD overlay (sibling above ARSCNView).
+    private let hudHost = TwinCaptureHudHost()
     private var torchOn = false
-    private let muted = UIColor(red: 0xA3/255, green: 0xAE/255, blue: 0xD0/255, alpha: 1)   // --graphite-muted
+    private var trackingQuality: TwinTrackingQuality = .unavailable
+    private var tipWarning = false
+    private var tipText = "Move slowly · capture corners · keep device steady"
+    private var depthSemanticsActive = false
+    private var sessionNeedsResume = false
+    private var completedClipCount = 0
     private var progressTimer: Timer?
     private var displayTimer: Timer?
 
@@ -145,6 +140,11 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
         startSessionIfPermitted()
     }
 
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        hudHost.detach()
+    }
+
     override var prefersStatusBarHidden: Bool { true }
     override var supportedInterfaceOrientations: UIInterfaceOrientationMask { .portrait }
 
@@ -153,6 +153,8 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
         sceneView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         sceneView.session = arSession
         sceneView.automaticallyUpdatesLighting = true
+        // SwiftUI HUD owns all touch; the ARSCNView is display-only for capture.
+        sceneView.isUserInteractionEnabled = false
         view.addSubview(sceneView)
         arSession.delegate = self
     }
@@ -178,167 +180,101 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
             fail("LiDAR depth not supported on this device"); return
         }
         config.worldAlignment = .gravity
+        depthSemanticsActive = true
         arSession.run(config, options: [.resetTracking, .removeExistingAnchors])
+        sessionNeedsResume = false
         revealTorchIfAvailable()
         setState(.ready, message: "Ready — tap record")
     }
 
-    // MARK: HUD
-
-    // Twin 360 brand blue (#3D8EFF) — matches --twin360-blue used across the web UI.
-    private let brandBlue = UIColor(red: 0x3D/255, green: 0x8E/255, blue: 0xFF/255, alpha: 1)
+    // MARK: HUD (SwiftUI overlay — does not touch ARSCNView / writer path)
 
     private func setupHUD() {
-        let safe = view.safeAreaLayoutGuide
-        let bodyText = UIColor(red: 0xF8/255, green: 0xFA/255, blue: 0xFC/255, alpha: 1)   // --graphite-text-body
+        wireHudActions()
+        hudHost.install(in: view, parent: self)
+        pushHudState(force: true)
+    }
 
-        // Graphite Glass square tool button (Site Walk parity).
-        func glassTool(_ b: UIButton, _ symbol: String) {
-            b.translatesAutoresizingMaskIntoConstraints = false
-            b.tintColor = muted
-            b.setImage(UIImage(systemName: symbol), for: .normal)
-            b.backgroundColor = UIColor.white.withAlphaComponent(0.06)
-            b.layer.cornerRadius = 26
-            b.layer.borderWidth = 1
-            b.layer.borderColor = UIColor.white.withAlphaComponent(0.10).cgColor
+    private func wireHudActions() {
+        let model = hudHost.state
+        model.actions.onBack = { [weak self] in self?.tapCancel() }
+        model.actions.onHome = { [weak self] in self?.tapCancel() }
+        model.actions.onToggleChrome = { [weak self] in
+            Task { @MainActor in self?.hudHost.state.toggleChrome() }
         }
-        func caption(_ l: UILabel, _ text: String) {
-            l.translatesAutoresizingMaskIntoConstraints = false
-            l.text = text
-            l.textColor = bodyText
-            l.font = .systemFont(ofSize: 11, weight: .medium)
-            l.textAlignment = .center
+        model.actions.onClipsToggle = { [weak self] in
+            Task { @MainActor in self?.hudHost.state.toggleClipsExpanded() }
         }
+        model.actions.onShutter = { [weak self] in self?.tapRecord() }
+        model.actions.onTorchToggle = { [weak self] in self?.tapTorch() }
+        model.actions.onDone = { [weak self] in self?.tapFinish() }
+    }
 
-        // ── Top glass bar: ‹ BACK · title · timer ──
-        topBar.translatesAutoresizingMaskIntoConstraints = false
-        topBar.layer.cornerRadius = 14
-        topBar.clipsToBounds = true
-        topBar.layer.borderWidth = 1
-        topBar.layer.borderColor = brandBlue.withAlphaComponent(0.28).cgColor
-        view.addSubview(topBar)
-        let bar = topBar.contentView
+    /// Coalesced HUD refresh (5 Hz max) — always marshals to the main actor for SwiftUI.
+    private func pushHudState(force: Bool = false) {
+        let phase = hudPhase
+        let elapsedMs = Int(max(0, lastVideoPTS) * 1000)
+        let coverage = options.maxDurationSec > 0
+            ? min(1, max(0, lastVideoPTS / options.maxDurationSec))
+            : 0
+        let clips = hudClipCount
+        let hasContent = pointCount > 0 || lastVideoPTS >= 1.0
+        let finishing = (state == .finishing)
+        let capability = TwinHudCapability(
+            torchSupported: torchDevice() != nil,
+            depthPresent: depthSemanticsActive,
+            streamReady: state == .ready || state == .recording,
+            needsResume: sessionNeedsResume,
+            photosModeEnabled: false,
+            // ARKit owns camera exposure under ARWorldTrackingConfiguration.
+            // Keep this disabled; do not attempt lockForConfiguration exposure control.
+            exposureLockEnabled: false
+        )
+        let header: String = {
+            switch phase {
+            case .checking: return "Checking device…"
+            case .ready: return "TWIN 360 · LIDAR"
+            case .recording: return "● Recording"
+            case .finishing: return "Saving…"
+            case .failed: return "Failed"
+            }
+        }()
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.hudHost.state.headerLabel = header
+            self.hudHost.state.applySnapshot(
+                phase: phase,
+                isRecording: self.isRecording,
+                elapsedMs: elapsedMs,
+                torchOn: self.torchOn,
+                tracking: self.trackingQuality,
+                thermal: TwinThermalLevel.from(ProcessInfo.processInfo.thermalState),
+                lidarPointCount: self.pointCount,
+                keyframeCount: self.keyframeCount,
+                coverageProgress: coverage,
+                clipCount: clips,
+                hasContent: hasContent,
+                finishing: finishing,
+                capability: capability,
+                tipText: self.tipText,
+                tipWarning: self.tipWarning,
+                force: force
+            )
+        }
+    }
 
-        cancelButton.translatesAutoresizingMaskIntoConstraints = false
-        cancelButton.setTitle("‹ BACK", for: .normal)
-        cancelButton.setTitleColor(brandBlue, for: .normal)
-        cancelButton.titleLabel?.font = .systemFont(ofSize: 12, weight: .bold)
-        cancelButton.backgroundColor = brandBlue.withAlphaComponent(0.14)
-        cancelButton.layer.cornerRadius = 8
-        cancelButton.contentEdgeInsets = UIEdgeInsets(top: 0, left: 10, bottom: 0, right: 10)
-        cancelButton.addTarget(self, action: #selector(tapCancel), for: .touchUpInside)
-        bar.addSubview(cancelButton)
+    private var hudPhase: TwinCapturePhase {
+        switch state {
+        case .checking: return .checking
+        case .ready: return .ready
+        case .recording: return .recording
+        case .finishing: return .finishing
+        case .failed: return .failed
+        }
+    }
 
-        statePill.translatesAutoresizingMaskIntoConstraints = false
-        statePill.text = "TWIN 360 · LIDAR"
-        statePill.textColor = brandBlue
-        statePill.font = .monospacedSystemFont(ofSize: 11, weight: .semibold)
-        statePill.textAlignment = .center
-        bar.addSubview(statePill)
-
-        timerLabel.translatesAutoresizingMaskIntoConstraints = false
-        timerLabel.text = "0:00"
-        timerLabel.textColor = .white
-        timerLabel.font = .monospacedDigitSystemFont(ofSize: 14, weight: .bold)
-        timerLabel.textAlignment = .right
-        bar.addSubview(timerLabel)
-
-        // ── Metrics pill ──
-        metricsBar.translatesAutoresizingMaskIntoConstraints = false
-        metricsBar.layer.cornerRadius = 14
-        metricsBar.clipsToBounds = true
-        metricsBar.layer.borderWidth = 1
-        metricsBar.layer.borderColor = brandBlue.withAlphaComponent(0.22).cgColor
-        view.addSubview(metricsBar)
-
-        metricsLabel.translatesAutoresizingMaskIntoConstraints = false
-        metricsLabel.text = "LIDAR · 0 pts"
-        metricsLabel.textColor = brandBlue
-        metricsLabel.font = .monospacedSystemFont(ofSize: 12, weight: .semibold)
-        metricsLabel.textAlignment = .center
-        metricsBar.contentView.addSubview(metricsLabel)
-
-        // ── Guidance ──
-        tipLabel.translatesAutoresizingMaskIntoConstraints = false
-        tipLabel.text = "Move slowly · capture corners · keep device steady"
-        tipLabel.textColor = bodyText.withAlphaComponent(0.9)
-        tipLabel.font = .systemFont(ofSize: 12, weight: .medium)
-        tipLabel.textAlignment = .center
-        tipLabel.numberOfLines = 2
-        view.addSubview(tipLabel)
-
-        // ── Bottom controls: torch · record(shutter) · finish ──
-        recordButton.translatesAutoresizingMaskIntoConstraints = false
-        recordButton.setTitle("REC", for: .normal)
-        recordButton.setTitleColor(UIColor(red: 0x0B/255, green: 0x0F/255, blue: 0x15/255, alpha: 1), for: .normal)
-        recordButton.backgroundColor = brandBlue
-        recordButton.layer.cornerRadius = 36
-        recordButton.layer.borderWidth = 4
-        recordButton.layer.borderColor = UIColor.white.withAlphaComponent(0.85).cgColor
-        recordButton.titleLabel?.font = .systemFont(ofSize: 16, weight: .heavy)
-        recordButton.addTarget(self, action: #selector(tapRecord), for: .touchUpInside)
-        view.addSubview(recordButton)
-
-        glassTool(torchButton, "flashlight.off.fill")
-        torchButton.isHidden = true
-        torchButton.addTarget(self, action: #selector(tapTorch), for: .touchUpInside)
-        view.addSubview(torchButton)
-        caption(torchLabel, "Light"); torchLabel.isHidden = true; view.addSubview(torchLabel)
-
-        glassTool(finishButton, "checkmark")
-        finishButton.tintColor = brandBlue
-        finishButton.isHidden = true
-        finishButton.addTarget(self, action: #selector(tapFinish), for: .touchUpInside)
-        view.addSubview(finishButton)
-        caption(finishLabel, "Finish"); finishLabel.isHidden = true; view.addSubview(finishLabel)
-
-        NSLayoutConstraint.activate([
-            topBar.leadingAnchor.constraint(equalTo: safe.leadingAnchor, constant: 16),
-            topBar.trailingAnchor.constraint(equalTo: safe.trailingAnchor, constant: -16),
-            topBar.topAnchor.constraint(equalTo: safe.topAnchor, constant: 8),
-            topBar.heightAnchor.constraint(equalToConstant: 44),
-
-            cancelButton.leadingAnchor.constraint(equalTo: bar.leadingAnchor, constant: 8),
-            cancelButton.centerYAnchor.constraint(equalTo: bar.centerYAnchor),
-            cancelButton.heightAnchor.constraint(equalToConstant: 30),
-
-            statePill.centerXAnchor.constraint(equalTo: bar.centerXAnchor),
-            statePill.centerYAnchor.constraint(equalTo: bar.centerYAnchor),
-
-            timerLabel.trailingAnchor.constraint(equalTo: bar.trailingAnchor, constant: -12),
-            timerLabel.centerYAnchor.constraint(equalTo: bar.centerYAnchor),
-
-            metricsBar.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            metricsBar.topAnchor.constraint(equalTo: topBar.bottomAnchor, constant: 10),
-            metricsBar.heightAnchor.constraint(equalToConstant: 28),
-
-            metricsLabel.leadingAnchor.constraint(equalTo: metricsBar.contentView.leadingAnchor, constant: 14),
-            metricsLabel.trailingAnchor.constraint(equalTo: metricsBar.contentView.trailingAnchor, constant: -14),
-            metricsLabel.centerYAnchor.constraint(equalTo: metricsBar.contentView.centerYAnchor),
-
-            tipLabel.leadingAnchor.constraint(equalTo: safe.leadingAnchor, constant: 24),
-            tipLabel.trailingAnchor.constraint(equalTo: safe.trailingAnchor, constant: -24),
-            tipLabel.bottomAnchor.constraint(equalTo: recordButton.topAnchor, constant: -18),
-
-            recordButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            recordButton.bottomAnchor.constraint(equalTo: safe.bottomAnchor, constant: -36),
-            recordButton.widthAnchor.constraint(equalToConstant: 72),
-            recordButton.heightAnchor.constraint(equalToConstant: 72),
-
-            torchButton.trailingAnchor.constraint(equalTo: recordButton.leadingAnchor, constant: -44),
-            torchButton.centerYAnchor.constraint(equalTo: recordButton.centerYAnchor),
-            torchButton.widthAnchor.constraint(equalToConstant: 52),
-            torchButton.heightAnchor.constraint(equalToConstant: 52),
-            torchLabel.centerXAnchor.constraint(equalTo: torchButton.centerXAnchor),
-            torchLabel.topAnchor.constraint(equalTo: torchButton.bottomAnchor, constant: 6),
-
-            finishButton.leadingAnchor.constraint(equalTo: recordButton.trailingAnchor, constant: 44),
-            finishButton.centerYAnchor.constraint(equalTo: recordButton.centerYAnchor),
-            finishButton.widthAnchor.constraint(equalToConstant: 52),
-            finishButton.heightAnchor.constraint(equalToConstant: 52),
-            finishLabel.centerXAnchor.constraint(equalTo: finishButton.centerXAnchor),
-            finishLabel.topAnchor.constraint(equalTo: finishButton.bottomAnchor, constant: 6),
-        ])
+    private var hudClipCount: Int {
+        completedClipCount + (isRecording ? 1 : 0)
     }
 
     // MARK: Torch
@@ -349,11 +285,7 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
     }
 
     private func revealTorchIfAvailable() {
-        let available = torchDevice() != nil
-        DispatchQueue.main.async {
-            self.torchButton.isHidden = !available
-            self.torchLabel.isHidden = !available
-        }
+        pushHudState(force: true)
     }
 
     @objc private func tapTorch() {
@@ -363,11 +295,11 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
             try device.lockForConfiguration()
             device.torchMode = torchOn ? .on : .off
             device.unlockForConfiguration()
-        } catch { torchOn.toggle(); return }
-        torchButton.setImage(UIImage(systemName: torchOn ? "flashlight.on.fill" : "flashlight.off.fill"), for: .normal)
-        torchButton.tintColor = torchOn ? brandBlue : muted
-        torchButton.backgroundColor = torchOn ? brandBlue.withAlphaComponent(0.18) : UIColor.white.withAlphaComponent(0.06)
-        torchButton.layer.borderColor = (torchOn ? brandBlue.withAlphaComponent(0.55) : UIColor.white.withAlphaComponent(0.10)).cgColor
+        } catch {
+            torchOn.toggle()
+            return
+        }
+        pushHudState(force: true)
     }
 
     private func turnTorchOff() {
@@ -376,23 +308,14 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
         try? device.lockForConfiguration()
         device.torchMode = .off
         device.unlockForConfiguration()
+        pushHudState(force: true)
     }
 
     private func setState(_ s: State, message: String?) {
         state = s
-        DispatchQueue.main.async {
-            switch s {
-            case .checking: self.statePill.text = "Checking device…"
-            case .ready: self.statePill.text = "Ready"
-            case .recording: self.statePill.text = "● Recording"
-            case .finishing: self.statePill.text = "Saving…"
-            case .failed: self.statePill.text = "Failed"
-            }
-            if let m = message { self.tipLabel.text = m }
-            let recording = (s == .recording)
-            self.finishButton.isHidden = !recording
-            self.finishLabel.isHidden = !recording
-        }
+        if let m = message { tipText = m }
+        if s != .recording && s != .finishing { tipWarning = false }
+        pushHudState(force: true)
         emitProgress()
     }
 
@@ -434,6 +357,8 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
         droppedVideoFrames = 0
         lastVideoPTS = -Double.infinity
         lastKeyframeArkit = 0
+        sessionNeedsResume = false
+        tipWarning = false
         pointCount = 0
         keyframeCount = 0
         // Reset the point cloud ON depthQueue — the only queue allowed to touch these
@@ -444,19 +369,21 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
             self?.voxelGrid.removeAll(keepingCapacity: true)
             self?.keyframes.removeAll(keepingCapacity: true)
         }
-        recordButton.setTitle("STOP", for: .normal)
         setState(.recording, message: "Move slowly · capture corners")
         startTimers()
         // Flip last: no ARFrame is accumulated until the reset above is queued.
         isRecording = true
+        pushHudState(force: true)
     }
 
     private func finishRecording() {
         guard isRecording else { return }
+        if lastVideoPTS > 0 {
+            completedClipCount += 1
+        }
         isRecording = false
         stopTimers()
         setState(.finishing, message: "Saving scan…")
-        recordButton.isEnabled = false
 
         // Watchdog: a wedged/interrupted AR session can leave AVAssetWriter in a state where
         // finishWriting's completion never fires — which used to strand capture on "Saving…"
@@ -635,6 +562,8 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
             self.pointCount = self.voxelGrid.count
             self.keyframeCount = self.keyframes.count
         }
+        // Per-frame drive; TwinHudStateModel coalesces to avoid main-thread jank.
+        pushHudState()
     }
 
     func session(_ session: ARSession, didFailWithError error: Error) {
@@ -642,20 +571,27 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
     }
 
     func sessionWasInterrupted(_ session: ARSession) {
+        sessionNeedsResume = true
         if isRecording { DispatchQueue.main.async { [weak self] in self?.finishRecording() } }
         setState(state, message: "Capture interrupted — saving")
     }
 
+    func sessionInterruptionEnded(_ session: ARSession) {
+        sessionNeedsResume = false
+        pushHudState(force: true)
+    }
+
     func session(_ session: ARSession, cameraDidChangeTrackingState camera: ARCamera) {
-        let msg: String
-        switch camera.trackingState {
-        case .normal: msg = "Tracking good"
-        case .limited: msg = "Move slowly · point at textured surfaces"
-        case .notAvailable: msg = "Acquiring tracking…"
+        trackingQuality = TwinTrackingQuality.from(camera.trackingState)
+        if camera.trackingState == .normal { sessionNeedsResume = false }
+        if isRecording {
+            switch camera.trackingState {
+            case .normal: tipText = "Tracking good"; tipWarning = false
+            case .limited: tipText = "Move slowly · point at textured surfaces"; tipWarning = true
+            case .notAvailable: tipText = "Acquiring tracking…"; tipWarning = true
+            }
         }
-        DispatchQueue.main.async { [weak self] in
-            if self?.isRecording == true { self?.tipLabel.text = msg }
-        }
+        pushHudState()
     }
 
     // MARK: Writer
@@ -816,39 +752,33 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
 
     private func startTimers() {
         progressTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in self?.emitProgress() }
+        // 4 Hz HUD refresh — never push from session(_:didUpdate:) (ARKit hot path).
         displayTimer = Timer.scheduledTimer(withTimeInterval: 0.25, repeats: true) { [weak self] _ in
             guard let self = self, self.isRecording else { return }
-            let secs = Int(max(0, self.lastVideoPTS))
-            DispatchQueue.main.async {
-                self.timerLabel.text = String(format: "%d:%02d", secs / 60, secs % 60)
-                self.metricsLabel.text = "LIDAR · \(self.formatCount(self.pointCount)) pts"
-            }
-            // Field safety guard: thermal, battery, and disk. Warn as each approaches its
-            // limit; auto-finish (the scan is saved) at the hard limit so a hot/dying/full
-            // phone never loses the capture.
-            let thermal = ProcessInfo.processInfo.thermalState
-            let battery = UIDevice.current.batteryLevel
-            let charging = UIDevice.current.batteryState == .charging
-                || UIDevice.current.batteryState == .full
-            let lowDisk = (self.freeDiskBytes() ?? .max) < 750_000_000
-            if thermal == .critical || lowDisk || (battery >= 0 && battery < 0.10 && !charging) {
-                DispatchQueue.main.async {
-                    self.tipLabel.text = thermal == .critical
-                        ? "Device too hot — saving scan"
-                        : (lowDisk ? "Storage full — saving scan" : "Battery critically low — saving scan")
-                    self.finishRecording()
-                }
-            } else if thermal == .serious {
-                DispatchQueue.main.async {
-                    self.tipLabel.textColor = UIColor(red: 1, green: 0.8, blue: 0.3, alpha: 1)
-                    self.tipLabel.text = "Device warming — finish this area soon"
-                }
-            } else if battery >= 0 && battery < 0.25 && !charging {
-                DispatchQueue.main.async {
-                    self.tipLabel.textColor = UIColor(red: 1, green: 0.8, blue: 0.3, alpha: 1)
-                    self.tipLabel.text = "Battery low — finish soon"
-                }
-            }
+            self.evaluateCaptureGuardrails()
+            self.pushHudState()
+        }
+    }
+
+    private func evaluateCaptureGuardrails() {
+        let thermal = ProcessInfo.processInfo.thermalState
+        let battery = UIDevice.current.batteryLevel
+        let charging = UIDevice.current.batteryState == .charging
+            || UIDevice.current.batteryState == .full
+        let lowDisk = (freeDiskBytes() ?? .max) < 750_000_000
+
+        if thermal == .critical || lowDisk || (battery >= 0 && battery < 0.10 && !charging) {
+            tipWarning = true
+            tipText = thermal == .critical
+                ? "Device too hot — saving scan"
+                : (lowDisk ? "Storage full — saving scan" : "Battery critically low — saving scan")
+            finishRecording()
+        } else if thermal == .serious {
+            tipWarning = true
+            tipText = "Device warming — finish this area soon"
+        } else if battery >= 0 && battery < 0.25 && !charging {
+            tipWarning = true
+            tipText = "Battery low — finish soon"
         }
     }
 
@@ -878,8 +808,6 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
         case .failed: return "failed"
         }
     }
-
-    private func formatCount(_ n: Int) -> String { n >= 1000 ? "\(n / 1000)K" : "\(n)" }
 
     // MARK: Location
 

@@ -18,6 +18,10 @@ FILES = %w[
   TwinARKitCaptureViewController.swift
   TwinUploader.swift
   SlateBridgeViewController.swift
+  TwinCaptureHudHost.swift
+  TwinCaptureHudView.swift
+  TwinHudStateModel.swift
+  TwinCaptureChromeMetrics.swift
 ].freeze
 
 # Frameworks the native capture uses. ARKit is always linked below; these are
