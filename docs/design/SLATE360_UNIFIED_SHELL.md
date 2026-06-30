@@ -81,11 +81,21 @@ with `--graphite-primary → --app-accent` in the active classes; primary button
 `bg-[var(--app-accent)] text-[var(--graphite-canvas)]` (dark text, no glow, no pill).
 
 ## Build order (each step independently shippable)
-1. ✅ **Phase 1 (this commit):** `--app-accent` var + `data-app` blocks + `action-labels.ts` + this doc.
-2. `UnifiedAppShell` + `AppSwitcher` + `ShellNavRail` (collapse the two shells; re-tokenize v3; guard:design-clean) — **on a feature branch** (auth-adjacent routing).
-3. Wire `CommandPalette` to the shell + replace banned CTAs repo-wide with `SHELL_ACTION`.
-4. Collapse SlateDrop to ONE chrome (embed the browser in the center workspace; preview = context pane).
-5. Site Walk / Twin desktop upload surfaces in the center; mobile hubs aligned to the spine.
+1. ✅ **Phase 1:** `--app-accent` var + `data-app` blocks + `action-labels.ts` + this doc.
+2. ✅ **Phase 2:** `shell-tokens.ts` + `AppSwitcher` + `/preview/unified-shell` (design target).
+3. **Phase 3 — refactor `DashboardDesktopShell` IN PLACE** (panel consensus: Option A, NOT a mount
+   swap — the mount `app/(dashboard)/layout.tsx` owns auth/beta-gate/mobile-fork/InviteShareProvider).
+   - ✅ **3a (shipped 55df385d):** pure `resolveShellApp(pathname)` + `data-app` on the shell root +
+     nav-chrome tokens `--graphite-primary → --app-accent` (no-op on green, Twin routes go blue).
+   - **3b:** rebuild `DashboardDesktopTopBar` (brand wordmark + tick · `AppSwitcher` · ⌘K · account);
+     derive `twinVisible` from `resolveDashboardNav` (single gate — drop AppSwitcher's hardcoded fork).
+   - **3c:** collapsing `ShellContextPane` (default collapsed → center reclaims; per-surface opt-in).
+   - **3d:** SlateDrop into the `(dashboard)` group (one chrome) — kill the `app/slatedrop` `StudioAuthedShell` 3rd chrome.
+4. Wire `CommandPalette` to the shell + replace banned CTAs repo-wide with `SHELL_ACTION`.
+5. **dashboard-v3 decision (BLOCKER for cleanup):** ⚠️ v3 is NOT dead — `app/(dashboard-v3)/layout.tsx`
+   mounts it and `.cursorrules:25` names `/app` (DashboardV3Shell) as the canonical post-login cockpit.
+   Resolve `/app` routing (fold v3 content into `/dashboard` or keep `/app` as the cockpit) BEFORE deleting v3.
+6. Site Walk / Twin desktop upload surfaces in the center; mobile hubs aligned to the spine.
 
 ## Guardrails
 Canvas `var(--graphite-canvas)` only · glass `bg-white/[0.04] backdrop-blur-md border-white/10 rounded-xl`
