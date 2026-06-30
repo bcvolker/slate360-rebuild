@@ -78,5 +78,43 @@ export function usePlanViewerLeafletPins({
     [planSheetId, projectId, sessionId],
   );
 
-  return { pins, setPins, persistPin };
+  // Reposition a pin (drag) — optimistic local move + persist to the existing PATCH route.
+  // Only saved pins (UUID id) hit the server; unsaved (client-id) pins move locally and keep
+  // their new coords when they persist on creation.
+  const movePin = useCallback(
+    async (pinId: string, xPct: number, yPct: number) => {
+      const clamp = (v: number) => Math.min(100, Math.max(0, v));
+      const x = clamp(xPct);
+      const y = clamp(yPct);
+      let previous: { x: number; y: number } | null = null;
+      setPins((current) =>
+        current.map((p) => {
+          if (p.id !== pinId) return p;
+          previous = { x: p.x_pct, y: p.y_pct };
+          return { ...p, x_pct: x, y_pct: y };
+        }),
+      );
+      if (!UUID_RE.test(pinId)) return; // unsaved pin — local only
+      try {
+        const res = await fetch(`/api/site-walk/pins/${pinId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ x_pct: x, y_pct: y }),
+        });
+        if (!res.ok) throw new Error(`move failed: ${res.status}`);
+      } catch {
+        // revert on failure so the marker doesn't lie about its saved position
+        if (previous) {
+          setPins((current) =>
+            current.map((p) => (p.id === pinId ? { ...p, x_pct: previous!.x, y_pct: previous!.y } : p)),
+          );
+        }
+      }
+    },
+    [],
+  );
+
+  return { pins, setPins, persistPin, movePin };
 }
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;

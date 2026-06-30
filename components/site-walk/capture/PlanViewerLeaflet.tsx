@@ -133,7 +133,7 @@ export function PlanViewerLeaflet({
     [imageHeight, imageWidth],
   );
 
-  const { pins, setPins, persistPin } = usePlanViewerLeafletPins({
+  const { pins, setPins, persistPin, movePin } = usePlanViewerLeafletPins({
     planSheetId: activePage?.sheetId,
     sessionId,
     projectId,
@@ -264,10 +264,18 @@ export function PlanViewerLeaflet({
                   yPct: pin.y_pct,
                   itemType: pin.item_id ? itemTypeById.get(pin.item_id) ?? null : null,
                 })}
+                draggable={currentSession}
                 eventHandlers={
                   currentSession
                     ? {
                         click: () => handleMarkerTap(pin),
+                        dragend: (event) => {
+                          // Leaflet marker drag → convert new latlng back to plan %.
+                          const ll = event.target.getLatLng();
+                          const yPct = (ll.lat / imageHeight) * 100;
+                          const xPct = (ll.lng / imageWidth) * 100;
+                          void movePin(pin.id, xPct, yPct);
+                        },
                       }
                     : undefined
                 }

@@ -84,10 +84,29 @@ hidden). A Pro user drops a 360 onto an **existing pin** (continue a working lay
 5. **Pin drag** (independent of the above — ship first): make session markers `draggable`, persist
    `dragend` → `x_pct/y_pct` (DB already allows UPDATE per `20260423`).
 
-## Open decisions for Brian / panel
-- **D1 — One cumulative layer per project, or per master set?** Recommend **per master set** (each
-  drawing package has its own living annotated layer; cleaner when multiple packages exist).
-- **D2 — Can a clean walk be "promoted" to cumulative** (merge its pins into the living layer) after
-  the walk? Recommend **yes, optional** at walk-end ("save these pins to the project set?").
-- **D3 — Revisions carry pins forward?** Recommend **v1: no** (pins stay on their revision); add
-  sheet-matching migration later. Keeps v1 shippable.
+## REFINEMENT (Brian, 2026-06-30) — CLEAN BY DEFAULT, history hidden, opt-in to view
+Critical correction to the model above: **do NOT accumulate pins visibly by default.** Mini-walks over
+a long period on the same plans would pile up into an unreadable, unusable mess. So:
+- **Every walk is CLEAN by default** — the plan shows ONLY the current walk's pins. (Pins stay
+  session-scoped, exactly as the schema already is — no `plan_set_id`-on-pins accumulation needed for v1.)
+- **History is preserved but HIDDEN** — every walk's pins (and, later, the walk PATH taken) are saved
+  in the background, never shown unless asked for.
+- **Opt-in overlay toggle** — the user can turn ON "Show previous activity" to see prior walks' pins
+  (and walk paths) as a **dimmed, read-only underlay** for context. Off by default.
+- **Accumulation is a deliberate choice, never automatic** — a user who wants a living annotated set
+  explicitly chooses "add to / continue" that set; otherwise each walk is its own clean record.
+
+**Impact on the data model:** v1 needs LESS than first drafted. Keep pins session-scoped. The
+"previous activity" overlay is a READ-ONLY QUERY ("all pins on this master's sheets across prior
+sessions") rendered dimmed — not a stored cumulative layer. The master/revision fields on
+`site_walk_plan_sets` (`kind`, `revision_number`, `supersedes_plan_set_id`, `is_current_revision`)
+still apply. Defer any cumulative-layer table until a user actually needs persistent shared annotation.
+
+**Walk paths (future):** "paths taken during walks" = record a breadcrumb (pin-drop order + optional
+movement) per session, replayable as a dimmed polyline under the same toggle. Net-new capture; v1 logs
+nothing, just leaves room for it.
+
+## Resolved decisions
+- **D1 (cumulative scope):** N/A for v1 — no default cumulative layer; clean-per-walk + opt-in history view.
+- **D2 (promote clean→cumulative):** deferred — accumulation is opt-in only, revisit when a living-set need appears.
+- **D3 (revisions carry pins forward):** v1 = no (pins stay on their revision).
