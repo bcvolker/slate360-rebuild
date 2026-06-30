@@ -36,6 +36,7 @@ export function TwinUploadPanel({
   initialCaptureId,
   lockProject = false,
 }: Props) {
+  const [dragActive, setDragActive] = useState(false);
   const scopedSpaces = useMemo(() => {
     if (!lockProject || !initialProjectId) return spaces;
     return spaces.filter((space) => space.projectId === initialProjectId);
@@ -184,26 +185,59 @@ export function TwinUploadPanel({
               Files over {formatBytes(singleMaxBytes)} use resumable multipart upload to R2.
             </p>
 
-            <label
+            {/* Drag-and-drop zone — drop a whole photogrammetry photo set straight in,
+                or click to pick. Any file kind accepted; classification happens after
+                upload, so users drop everything from one place. */}
+            <div
+              onDragOver={(event) => {
+                if (isRunning) return;
+                event.preventDefault();
+                setDragActive(true);
+              }}
+              onDragLeave={(event) => {
+                event.preventDefault();
+                setDragActive(false);
+              }}
+              onDrop={(event) => {
+                event.preventDefault();
+                setDragActive(false);
+                if (isRunning) return;
+                if (event.dataTransfer.files?.length) onFileChange(event.dataTransfer.files);
+              }}
               className={cn(
-                "inline-flex min-h-[44px] cursor-pointer items-center justify-center rounded-xl px-4 text-sm font-semibold",
-                mobileTokens.mobilePrimaryButton,
-                mobileTokens.focusRing,
+                "flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed px-4 py-6 text-center transition-colors",
+                dragActive
+                  ? "border-[var(--twin360-blue)] bg-[color-mix(in_srgb,var(--twin360-blue)_8%,transparent)]"
+                  : "border-white/15 bg-white/[0.02]",
                 isRunning && "pointer-events-none opacity-60",
               )}
             >
-              Choose files
-              {/* Accept any file kind — drone, 360, LiDAR/point-cloud, mesh, GPS,
-                  hi-res stills. Classification happens after upload, so users can
-                  drop everything from one place rather than per-format pickers. */}
-              <input
-                type="file"
-                multiple
-                className="sr-only"
-                disabled={isRunning}
-                onChange={(event) => onFileChange(event.target.files)}
-              />
-            </label>
+              <Upload className="h-5 w-5 text-zinc-400" strokeWidth={1.75} />
+              <p className="text-sm text-zinc-300">
+                Drag photos here, or{" "}
+                <span className={cn("font-semibold underline-offset-2 hover:underline", twinAccent.text)}>
+                  browse
+                </span>
+              </p>
+              <p className="text-xs text-zinc-500">Hundreds of stills OK · drone, 360, LiDAR, mesh too</p>
+              <label
+                className={cn(
+                  "mt-1 inline-flex min-h-[44px] cursor-pointer items-center justify-center rounded-xl px-4 text-sm font-semibold",
+                  mobileTokens.mobilePrimaryButton,
+                  mobileTokens.focusRing,
+                  isRunning && "pointer-events-none opacity-60",
+                )}
+              >
+                Choose files
+                <input
+                  type="file"
+                  multiple
+                  className="sr-only"
+                  disabled={isRunning}
+                  onChange={(event) => onFileChange(event.target.files)}
+                />
+              </label>
+            </div>
 
             {selectedFiles.length > 0 ? (
               <ul className="space-y-1 text-xs text-zinc-400">

@@ -35,7 +35,12 @@ export default function DashboardLookPreview() {
         onToggleCollapse={() => setCollapsed((c) => !c)}
       />
       <div className={t.main}>
-        <DashboardDesktopTopBar userName="Brian Volker" />
+        <DashboardDesktopTopBar
+          userName="Brian Volker"
+          shellApp="dashboard"
+          twinVisible
+          onOpenCommand={() => {}}
+        />
         <main className={t.content}>
           <DashboardHomeContent counts={COUNTS} recentProjects={PROJECTS} recentWalks={WALKS} recentTwins={TWINS} />
         </main>
