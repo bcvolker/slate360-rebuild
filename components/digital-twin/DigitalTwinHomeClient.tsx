@@ -192,7 +192,7 @@ export function DigitalTwinHomeClient({ twins, projects }: Props) {
         </MobileAppHubHeroStack>
       </section>
 
-      <MobileAppHomeQuickActions className="mt-auto" actions={quickActions} />
+      <MobileAppHomeQuickActions actions={quickActions} />
 
       <DigitalTwinHomeFill twins={twins} projects={projects} />
 

@@ -109,20 +109,21 @@ export const mobileTokens = {
     "rounded-lg bg-[var(--mobile-field-primary-bg)] font-semibold text-[var(--mobile-field-primary-fg)] hover:brightness-[0.97] active:brightness-[0.92]",
   mobileAvatarRing:
     "flex size-6 items-center justify-center rounded-full bg-white/[0.08] text-[10px] font-bold text-zinc-200 transition-colors hover:bg-white/[0.12]",
-  /** Platform header bar — neutral graphite chrome (44px row, 12px insets) */
+  /** Platform header bar — neutral graphite chrome (52px row gives breathing room +
+   *  fits 44px touch targets; de-crowds the Site Walk / Twin 360 home header) */
   mobileHeaderBar:
-    "flex min-h-[2.75rem] shrink-0 items-center justify-between border-b border-[#2A3340] bg-[#11161E] px-3",
+    "flex min-h-[3.25rem] shrink-0 items-center justify-between border-b border-[#2A3340] bg-[#11161E] px-3",
   mobileHeaderBrandLink:
     "flex min-w-0 shrink-0 items-center gap-2 rounded-[11px] transition-colors hover:bg-white/[0.04] active:bg-white/[0.07]",
   mobileHeaderBrandDivider: "h-6 w-px shrink-0 bg-[#2A3340]",
   mobileHeaderPlatformMarkLink:
     "flex min-h-9 min-w-9 shrink-0 items-center justify-center rounded-[11px] p-1 -ml-1 transition-colors hover:bg-white/[0.04] active:bg-white/[0.07]",
   mobileHeaderBackChevron: "size-5 shrink-0 text-[#C9D3DF]",
-  /** Icon-only back button — consistent 40px touch target across every shell. */
+  /** Icon-only back button — 44px touch target (field-accessibility floor) across every shell. */
   mobileHeaderBackButton:
-    "flex h-10 w-10 shrink-0 items-center justify-center rounded-[11px] border border-[#2A3340] bg-[#11161E] text-[#C9D3DF] transition-colors hover:bg-white/[0.06] active:bg-white/[0.09]",
+    "flex h-11 w-11 shrink-0 items-center justify-center rounded-[11px] border border-[#2A3340] bg-[#11161E] text-[#C9D3DF] transition-colors hover:bg-white/[0.06] active:bg-white/[0.09]",
   mobileHeaderIconButton:
-    "flex size-9 shrink-0 items-center justify-center rounded-[11px] border border-[#2A3340] bg-[#11161E] text-[#C9D3DF] transition-colors hover:bg-white/[0.06] active:bg-white/[0.09]",
+    "flex size-11 shrink-0 items-center justify-center rounded-[11px] border border-[#2A3340] bg-[#11161E] text-[#C9D3DF] transition-colors hover:bg-white/[0.06] active:bg-white/[0.09]",
   mobileHeaderIconSize: "h-[18px] w-[18px]",
   mobileHeaderActionsRow: "ml-auto flex shrink-0 items-center gap-1.5",
   mobileModuleHomeBrandCluster:
@@ -132,7 +133,10 @@ export const mobileTokens = {
   mobileModuleHomeIconChipInfo:
     "flex size-8 shrink-0 items-center justify-center rounded-[11px] border border-[var(--mobile-app-card-icon-border-info)] bg-[var(--mobile-app-card-icon-bg-info)] text-[var(--mobile-app-card-icon-fg-info)]",
   mobileModuleHomeIconChipIcon: "size-[18px]",
-  mobileModuleHomeName: "truncate text-base font-semibold leading-none text-white",
+  // App-name branding: IBM Plex Mono uppercase wordmark (design-system brand treatment) so the
+  // app name reads as a brand, not a plain label, and Site Walk / Twin 360 are distinct at a glance.
+  mobileModuleHomeName:
+    "truncate font-mono text-[13px] font-bold uppercase tracking-[0.14em] leading-none text-white",
   mobileHeaderPopover:
     "absolute right-0 top-[calc(100%+8px)] z-50 w-[min(280px,calc(100vw-2rem))] rounded-xl border border-[#2A3340] bg-[#11161E]/95 p-4 backdrop-blur-md",
   mobileHeaderPopoverLabel:

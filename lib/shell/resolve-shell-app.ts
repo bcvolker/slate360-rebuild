@@ -9,10 +9,13 @@ import type { ShellApp } from "@/components/shell/shell-tokens";
  * See docs/design/SLATE360_UNIFIED_SHELL.md.
  */
 export function resolveShellApp(pathname: string): ShellApp {
-  if (pathname.startsWith("/digital-twins") || pathname.startsWith("/digital-twin/")) {
+  // Exact-or-boundary match so sibling-prefix routes (e.g. a future /site-walks-archive) don't
+  // silently inherit the wrong accent — startsWith("/site-walks") alone would match it.
+  const inApp = (base: string) => pathname === base || pathname.startsWith(`${base}/`);
+  if (inApp("/digital-twins") || pathname.startsWith("/digital-twin/")) {
     return "twin360";
   }
-  if (pathname.startsWith("/site-walks") || pathname.startsWith("/site-walk/")) {
+  if (inApp("/site-walks") || pathname.startsWith("/site-walk/")) {
     return "site-walk";
   }
   // Project sub-routes scoped to an app inherit that app's accent.

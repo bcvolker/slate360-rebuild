@@ -339,7 +339,7 @@ export function SiteWalkHomeClient({
         ) : null}
       </section>
 
-      <MobileAppHomeQuickActions className="mt-auto" actions={quickActions} />
+      <MobileAppHomeQuickActions actions={quickActions} />
 
       <SiteWalkHomeFill
         projects={projects}
