@@ -48,7 +48,7 @@ export function InboxTabs({ children }: { children?: React.ReactNode }) {
               className={cn(
                 "flex-1 border-b-2 py-2 text-center text-[13px] font-medium transition-colors",
                 isActive
-                  ? "border-[#6EA7A0] text-zinc-100"
+                  ? "border-[var(--graphite-primary)] text-zinc-100"
                   : "border-transparent text-zinc-500 hover:text-zinc-300",
               )}
             >
@@ -63,9 +63,9 @@ export function InboxTabs({ children }: { children?: React.ReactNode }) {
         {active === "notifications" && (
           <>
             {/* The Collaborator Onboarding Message */}
-            <div className="rounded-xl border border-[#6EA7A0]/25 bg-[#6EA7A0]/10 p-4">
+            <div className="rounded-xl border border-[color-mix(in_srgb,var(--graphite-primary)_25%,transparent)] bg-[color-mix(in_srgb,var(--graphite-primary)_10%,transparent)] p-4">
               <div className="flex items-start gap-3">
-                <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-[#6EA7A0]" strokeWidth={1.75} />
+                <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-[var(--graphite-primary)]" strokeWidth={1.75} />
                 <p className="text-sm font-medium leading-relaxed text-zinc-200">
                   Welcome! To access walks assigned to you, click the Organization Dropdown next to the Slate360 logo in the top header and select your assigned project.
                 </p>

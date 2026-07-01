@@ -86,8 +86,7 @@ export default function ProjectsPortfolioOverview({
       value: summary?.work.openRfis ?? 0,
       label: "Open RFIs",
       detail: [
-        "Aggregated open RFIs across all projects",
-        "Phase 1 portfolio snapshot only",
+        "Aggregated open RFIs across all projects",
       ],
     },
     {
@@ -100,8 +99,7 @@ export default function ProjectsPortfolioOverview({
       value: summary?.work.pendingSubmittals ?? 0,
       label: "Pending Submittals",
       detail: [
-        "Pending/submitted submittals across projects",
-        "Phase 1 portfolio snapshot only",
+        "Pending/submitted submittals across projects",
       ],
     },
     {
@@ -120,8 +118,7 @@ export default function ProjectsPortfolioOverview({
       label: "Portfolio Budget",
       detail: [
         `Total spent: ${new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", notation: "compact", maximumFractionDigits: 1 }).format(summary?.budget.totalSpent ?? 0)}`,
-        `Change orders: ${summary?.budget.totalChangeOrders ?? 0}`,
-        "Phase 1 portfolio snapshot only",
+        `Change orders: ${summary?.budget.totalChangeOrders ?? 0}`,
       ],
     },
     {

@@ -58,8 +58,6 @@ const QUALITY_TIERS: { id: Quality; label: string; time: string; sub: string; ga
   { id: "high", label: "High", time: "~25 min", sub: "Maximum detail", gated: true },
 ];
 
-const CONTEXT_OPTIONS = ["None", "½ block", "1 block", "2 blocks"];
-
 function formatBytes(bytes: number): string {
   if (!bytes) return "—";
   if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
@@ -92,7 +90,6 @@ export function TwinCaptureSubmitScreen({
   const router = useRouter();
   const [submitted, setSubmitted] = useState(false);
   const [quality, setQuality] = useState<Quality>("draft");
-  const [context, setContext] = useState(0);
   const [assetsOpen, setAssetsOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -168,7 +165,7 @@ export function TwinCaptureSubmitScreen({
           <div className="flex w-full flex-col gap-3">
             <button
               onClick={() => router.push(`/digital-twin/twins/${spaceId}`)}
-              className="flex h-[52px] w-full items-center justify-center gap-2 rounded-2xl text-[15px] font-bold text-[#0B0F15]"
+              className="flex h-[52px] w-full items-center justify-center gap-2 rounded-2xl text-[15px] font-bold text-[var(--graphite-canvas)]"
               style={{ background: BLUE }}
             >
               <IconEye className="h-5 w-5" /> View 3D twin
@@ -205,7 +202,7 @@ export function TwinCaptureSubmitScreen({
                 setSubmitted(true);
                 void handleProcess();
               }}
-              className="h-[52px] w-full rounded-2xl text-[15px] font-bold text-[#0B0F15]"
+              className="h-[52px] w-full rounded-2xl text-[15px] font-bold text-[var(--graphite-canvas)]"
               style={{ background: BLUE }}
             >
               Try again
@@ -293,7 +290,7 @@ export function TwinCaptureSubmitScreen({
           <div className="mt-1 flex gap-3">
             <div
               className="flex h-[88px] w-[120px] shrink-0 items-center justify-center rounded-2xl"
-              style={{ background: `linear-gradient(135deg, color-mix(in srgb, ${BLUE} 22%, #0B0F15), #11161E)` }}
+              style={{ background: `linear-gradient(135deg, color-mix(in srgb, ${BLUE} 22%, var(--graphite-canvas)), var(--shell-chrome-surface))` }}
             >
               <IconCube className="h-8 w-8 text-[color:var(--twin360-blue)]" />
             </div>
@@ -407,35 +404,6 @@ export function TwinCaptureSubmitScreen({
               ))}
             </ul>
           ) : null}
-
-          {/* SURROUNDING CONTEXT (preview — wiring to 3D-tiles provider is a follow-up) */}
-          <div className="mt-5">
-            <div className="mb-2 flex items-center gap-2">
-              <span className="text-[11px] font-semibold uppercase tracking-wide text-[var(--graphite-muted)]">Surrounding context</span>
-              <span className="rounded-full bg-white/[0.06] px-1.5 py-0.5 text-[9px] font-semibold uppercase text-[var(--graphite-muted)]">Soon</span>
-            </div>
-            <div className="grid grid-cols-4 gap-2">
-              {CONTEXT_OPTIONS.map((c, i) => (
-                <button
-                  key={c}
-                  disabled={i !== 0}
-                  onClick={() => setContext(i)}
-                  className={cn(
-                    "rounded-xl border px-1 py-2 text-[12px] font-medium transition-colors",
-                    context === i
-                      ? "border-[color:var(--twin360-blue)] bg-[color-mix(in_srgb,var(--twin360-blue)_16%,transparent)] text-white"
-                      : "border-white/[0.07] bg-white/[0.03] text-[var(--graphite-muted)]",
-                    i !== 0 && "opacity-40",
-                  )}
-                >
-                  {c}
-                </button>
-              ))}
-            </div>
-            <p className="mt-1.5 text-[11px] text-[var(--graphite-muted)]">
-              Add photorealistic 3D map tiles around your scan (uses the scan’s GPS).
-            </p>
-          </div>
         </div>
       </div>
 
@@ -451,7 +419,7 @@ export function TwinCaptureSubmitScreen({
           <button
             onClick={() => void handleProcess()}
             disabled={!assetsReady || busy}
-            className="flex h-[52px] w-full items-center justify-center rounded-2xl text-[15px] font-bold text-[#0B0F15] transition-opacity disabled:opacity-50"
+            className="flex h-[52px] w-full items-center justify-center rounded-2xl text-[15px] font-bold text-[var(--graphite-canvas)] transition-opacity disabled:opacity-50"
             style={{ background: BLUE }}
           >
             {!assetsReady
