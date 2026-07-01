@@ -56,7 +56,7 @@ export function ReportBuilderClient() {
                 </div>
               </div>
               <div className="text-right">
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest text-[#D4AF37]">REPORT</p>
+                <p className="text-xs font-bold uppercase tracking-widest text-[var(--graphite-primary)]">REPORT</p>
                 <p className="text-sm font-black text-slate-700 mt-0.5">YYYY-MM-DD</p>
               </div>
             </div>
