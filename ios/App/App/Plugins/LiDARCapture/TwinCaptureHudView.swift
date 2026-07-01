@@ -60,16 +60,23 @@ struct TwinCaptureHudView: View {
             }
 
             if model.chromeVisible {
+                // Site Walk grammar: TOP CLUSTER (hugs top) · empty CENTER (camera shows through) ·
+                // BOTTOM DOCK (hugs bottom). The ONE Spacer is the only flexible element — nothing
+                // renders between it and the dock, so the quality pill / mode selector / hint can no
+                // longer float mid-screen. The dock no longer uses maxHeight:.infinity (that competed
+                // with the Spacer and parked the mid views at the vertical centre).
                 VStack(spacing: 0) {
+                    // TOP CLUSTER — top bar + optional clip chips + slim LiDAR/tracking status row
                     TwinHudTopBar(model: model)
                     if model.clipsExpanded, model.clipCount > 0 {
                         TwinHudClipChips(model: model)
                     }
                     TwinHudChipRow(model: model)
+
+                    // CENTER — intentionally empty; ARSCNView shows through
                     Spacer(minLength: 0)
-                    TwinHudQualityPill()
-                    TwinHudModeSelector(model: model)
-                    TwinHudHint(model: model)
+
+                    // BOTTOM DOCK — one cohesive glass rail (hint + torch/record/done)
                     TwinHudBottomRail(model: model)
                 }
             } else {
@@ -262,98 +269,12 @@ private struct TwinHudChipRow: View {
     }
 }
 
-// MARK: - Exposure pill (disabled under ARKit)
+// NOTE: TwinHudQualityPill, TwinHudModeSelector, and TwinHudHint were removed — they floated
+// mid-screen over the camera. "Auto (LiDAR)" exposure state now lives in the top chip row; the
+// VIDEO/PHOTOS selector is dropped (video-only product); the hint + recording readout are folded
+// into the bottom dock's hint line (TwinHudBottomRail.hintText).
 
-private struct TwinHudQualityPill: View {
-    var body: some View {
-        HStack(spacing: 6) {
-            Image(systemName: "lock.fill")
-                .font(.system(size: 10, weight: .semibold))
-            Text("Auto (LiDAR)")
-                .font(.system(size: 11, weight: .semibold))
-        }
-        .foregroundStyle(TwinHudColor.muted)
-        .padding(.horizontal, 12)
-        .frame(height: TwinCaptureChrome.qualityLockRow)
-        .twinGlass(cornerRadius: 16)
-        .opacity(0.72)
-        // Sits in the bottom stack (above the rail) — no maxHeight:.infinity float that
-        // parked it mid-screen over the camera.
-        .padding(.bottom, 8)
-        .allowsHitTesting(false)
-        .accessibilityLabel("Exposure controlled by ARKit")
-    }
-}
-
-// MARK: - Mode selector (video only; photos disabled)
-
-private struct TwinHudModeSelector: View {
-    @ObservedObject var model: TwinHudStateModel
-
-    var body: some View {
-        Group {
-            if model.isRecording {
-                HStack(spacing: 4) {
-                    Text("VIDEO")
-                        .foregroundStyle(TwinHudColor.twinBlue)
-                    Text("·")
-                        .foregroundStyle(TwinHudColor.muted)
-                    Text("● REC \(TwinHudStateModel.formatTimer(ms: model.elapsedMs))")
-                        .foregroundStyle(.white)
-                    Text("· target 1:30")
-                        .foregroundStyle(TwinHudColor.muted)
-                }
-                .font(.system(size: 13, weight: .semibold, design: .monospaced))
-                .padding(.horizontal, 10)
-                .padding(.vertical, 6)
-                .twinGlass(cornerRadius: 10)
-            } else {
-                HStack(spacing: 4) {
-                    modeTab("VIDEO", active: true, enabled: true)
-                    modeTab("PHOTOS", active: false, enabled: false)
-                }
-                .padding(4)
-                .twinGlass(cornerRadius: 10)
-            }
-        }
-        .padding(.bottom, 8)  // natural bottom-stack position (no mid-screen float)
-    }
-
-    @ViewBuilder
-    private func modeTab(_ label: String, active: Bool, enabled: Bool) -> some View {
-        Text(label)
-            .font(.system(size: 11, weight: .bold, design: .monospaced))
-            .foregroundStyle(active ? TwinHudColor.canvas : TwinHudColor.muted.opacity(enabled ? 1 : 0.45))
-            .padding(.horizontal, 12)
-            .padding(.vertical, 6)
-            .background(
-                active ? TwinHudColor.twinBlue : Color.clear,
-                in: RoundedRectangle(cornerRadius: 8)
-            )
-            .opacity(enabled ? 1 : 0.45)
-    }
-}
-
-// MARK: - Hint
-
-private struct TwinHudHint: View {
-    @ObservedObject var model: TwinHudStateModel
-
-    var body: some View {
-        Text(model.tipText)
-            .font(.system(size: 11, weight: .medium))
-            .foregroundStyle(model.tipWarning ? Color.orange : TwinHudColor.body)
-            .multilineTextAlignment(.center)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 6)
-            .twinGlass(cornerRadius: 10)
-            .padding(.horizontal, 24)
-            .padding(.bottom, 8)  // natural bottom-stack position (no mid-screen float)
-            .allowsHitTesting(false)
-    }
-}
-
-// MARK: - Bottom rail
+// MARK: - Bottom dock (hint + torch/record/done in one cohesive glass rail)
 
 private struct TwinHudBottomRail: View {
     @ObservedObject var model: TwinHudStateModel
@@ -366,8 +287,17 @@ private struct TwinHudBottomRail: View {
     }
 
     var body: some View {
-        VStack(spacing: 6) {
-            HStack(alignment: .bottom) {
+        VStack(spacing: 10) {
+            // Readiness / recording hint — INSIDE the dock, never floating over the camera.
+            Text(hintText)
+                .font(.system(size: 11, weight: .semibold, design: .monospaced))
+                .foregroundStyle(model.tipWarning ? Color.orange : TwinHudColor.body)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+                .frame(maxWidth: .infinity)
+                .allowsHitTesting(false)
+
+            HStack(alignment: .center) {
                 torchControl
                     .frame(maxWidth: .infinity, alignment: .leading)
 
@@ -379,8 +309,20 @@ private struct TwinHudBottomRail: View {
             }
             .padding(.horizontal, TwinCaptureChrome.railSideInset)
         }
-        .padding(.bottom, TwinCaptureChrome.railLabelBottom)
-        .frame(maxHeight: .infinity, alignment: .bottom)
+        .padding(.top, 12)
+        .padding(.bottom, 14)
+        // ONE cohesive glass dock (solid scrim) — no maxHeight:.infinity float. The single Spacer in
+        // the root VStack pins this to the bottom safe-area edge; the dock hugs its content height.
+        .twinGlass(cornerRadius: 16)
+        .padding(.horizontal, TwinCaptureChrome.sideInset)
+        .padding(.bottom, 10)
+    }
+
+    private var hintText: String {
+        if model.isRecording {
+            return "● REC \(TwinHudStateModel.formatTimer(ms: model.elapsedMs)) · VIDEO · target 1:30"
+        }
+        return model.tipText.isEmpty ? "Ready · tap record" : model.tipText
     }
 
     @ViewBuilder
@@ -415,6 +357,12 @@ private struct TwinHudBottomRail: View {
     private var shutterControl: some View {
         Button(action: model.actions.onShutter) {
             ZStack {
+                // Solid dark backing disc → the shutter stays legible where it pokes above the dock
+                // over any camera scene (bright wall / dark room).
+                Circle()
+                    .fill(TwinHudColor.canvas.opacity(0.6))
+                    .frame(width: TwinCaptureChrome.shutterSize + 18, height: TwinCaptureChrome.shutterSize + 18)
+
                 Circle()
                     .stroke(
                         AngularGradient(
