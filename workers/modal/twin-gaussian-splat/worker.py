@@ -997,6 +997,31 @@ def post_callback(payload: dict[str, Any]) -> None:
         )
 
 
+# Coarse pipeline stages the submit-status UI renders as a checklist. Kept in sync
+# with the API route's VALID_STAGES and the UI's stage order.
+#   upload → align → train → optimize → export → (completion callback = 100)
+def post_progress(job_id: str, stage: str, progress_pct: int) -> None:
+    """Best-effort progress heartbeat. Never fails the job — the frozen-5% bug was
+    caused precisely by there being no progress signal, so a flaky heartbeat must
+    degrade to the UI's time-based fallback rather than raise."""
+    import requests
+
+    try:
+        site_url = os.environ["SITE_URL"].rstrip("/")
+        secret = os.environ["GPU_WORKER_SECRET_KEY"]
+        url = f"{site_url}/api/twin/jobs/{job_id}/progress"
+        raw_body = dumps_json({"stage": stage, "progress_pct": progress_pct})
+        headers = {
+            "Content-Type": "application/json",
+            "x-worker-signature": sign_callback_body(raw_body, secret),
+        }
+        resp = requests.post(url, data=raw_body, headers=headers, timeout=15)
+        if resp.status_code >= 400:
+            print(f"[progress] {stage} rejected ({resp.status_code}): {resp.text[:500]}")
+    except Exception as exc:  # noqa: BLE001
+        print(f"[progress] {stage} heartbeat failed (non-fatal): {type(exc).__name__}: {exc}")
+
+
 @dataclass
 class JobInput:
     job_id: str
@@ -1061,11 +1086,13 @@ def run_pipeline(job: JobInput, work_root: Path) -> dict[str, Any]:
     train_dir = work_root / "train"
     export_dir = work_root / "export"
 
+    post_progress(job.job_id, "upload", 10)
     download_sources(s3, bucket, job.source_keys, source_dir)
     ingest_stats = materialize_images(
         source_dir, images_dir, job.source_keys, job.is360_flags
     )
 
+    post_progress(job.job_id, "align", 25)
     lidar_bypass_used = False
     lidar_ply_init = False
     if job.lidar_poses_key:
@@ -1105,6 +1132,7 @@ def run_pipeline(job: JobInput, work_root: Path) -> dict[str, Any]:
         # init, reducing the iterations needed for equivalent quality by ~30%.
         iterations = max(10_000, int(iterations * 0.70))
         print(f"[lidar-bypass] PLY init active — reduced iterations to {iterations}")
+    post_progress(job.job_id, "train", 45)
     run_cmd(
         [
             "ns-train",
@@ -1127,6 +1155,7 @@ def run_pipeline(job: JobInput, work_root: Path) -> dict[str, Any]:
         env={"CUDA_VISIBLE_DEVICES": "0"},
     )
 
+    post_progress(job.job_id, "optimize", 85)
     config_path = find_latest_file(train_dir, "**/config.yml")
     run_cmd(
         [
@@ -1146,6 +1175,7 @@ def run_pipeline(job: JobInput, work_root: Path) -> dict[str, Any]:
     if not spz_path.is_file():
         raise RuntimeError("SPZ export did not produce model.spz")
 
+    post_progress(job.job_id, "export", 95)
     bounds = compute_ply_bounds(ply_path)
     splat_count = _ply_vertex_count(ply_path)
     out_key = output_storage_key(job.org_id, job.space_id, job.job_id)

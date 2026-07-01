@@ -8,6 +8,8 @@ export type TwinJobSnapshot = {
   id: string;
   status: string;
   progress_pct: number;
+  stage: string | null;
+  started_at: string | null;
   output_format: string | null;
   job_type: string | null;
   error_text: string | null;
@@ -46,7 +48,7 @@ export function useTwinJobRealtime(captureId: string | null) {
 
     void supabase
       .from("digital_twin_processing_jobs")
-      .select("id, status, progress_pct, output_format, job_type, error_text")
+      .select("id, status, progress_pct, stage, started_at, output_format, job_type, error_text")
       .eq("capture_id", captureId)
       .is("deleted_at", null)
       .order("created_at", { ascending: false })
