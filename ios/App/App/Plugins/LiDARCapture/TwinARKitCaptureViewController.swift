@@ -644,14 +644,17 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
         dateItem.value = ISO8601DateFormatter().string(from: Date(timeIntervalSince1970: sessionStartUnix)) as NSString
         w.metadata = [dateItem]
 
+        // HEVC (H.265) at ~5.5 Mbps ≈ H.264 @ 8 Mbps quality for ~half the bytes — the single
+        // biggest upload-payload win (a 2-min clip's video drops ~120MB → ~65MB). Every
+        // LiDAR-capable device (iPhone 12 Pro+/iPad Pro) hardware-encodes HEVC, and the Modal
+        // worker extracts frames via ffmpeg, which decodes HEVC natively — no pipeline change.
         let settings: [String: Any] = [
-            AVVideoCodecKey: AVVideoCodecType.h264,
+            AVVideoCodecKey: AVVideoCodecType.hevc,
             AVVideoWidthKey: encWidth,
             AVVideoHeightKey: encHeight,
             AVVideoCompressionPropertiesKey: [
-                AVVideoAverageBitRateKey: 8_000_000,
+                AVVideoAverageBitRateKey: 5_500_000,
                 AVVideoMaxKeyFrameIntervalKey: 30,
-                AVVideoProfileLevelKey: AVVideoProfileLevelH264HighAutoLevel,
             ],
         ]
         let input = AVAssetWriterInput(mediaType: .video, outputSettings: settings)

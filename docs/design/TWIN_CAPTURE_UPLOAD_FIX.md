@@ -38,6 +38,33 @@ The uploader is fundamentally not built for this:
 5. **In-memory** — `uploadTask(from: Data)` + `Data(contentsOf:.mappedIfSafe)` — memory pressure on
    large captures (also blocks background upload, which requires `uploadTask(with:fromFile:)`).
 
+## LOCKED consensus (~10 AI platforms, 2026-07-01)
+Near-unanimous, code-grounded agreement. **The server-side resumable infrastructure ALREADY
+EXISTS** (`digital_twin_multipart_uploads` + `digital_twin_multipart_parts` tables + sign-part/
+complete/abort routes; the web `useMultipartTwinUpload` uses it). The native `TwinUploader` just
+doesn't — so this is *making the iOS client use what's there* + background session + HEVC, NOT
+building from scratch.
+- **Transport: Background URLSession + existing R2/S3 multipart. NOT tus.io** (needs a tus server/
+  proxy in front of R2 — extra hop, and TUSKit's own docs discourage chunking under background).
+  **NOT Apple WWDC23 resumable** (needs a server speaking the IETF draft R2 doesn't implement).
+  9/10 platforms agree.
+- **Upload from FILE** (`uploadTask(with:fromFile:)`), never in-memory `Data` — mandatory for
+  background continuation + fixes memory crashes. Slice each part to a temp file on disk.
+- **Persist part ETags** (SQLite/manifest) → on relaunch, resume ONLY missing parts. Never
+  discard completed parts on failure; retry per-part with backoff, not whole-file restart.
+- **Parallel parts** (3–4 concurrent) + **bigger parts** (16–25 MiB, not 8) + drop the 60s
+  request timeout (set `timeoutIntervalForResource` to hours).
+- **HEVC video — SHIPPED this turn** (AVAssetWriter → `AVVideoCodecType.hevc` @ 5.5 Mbps; worker
+  ffmpeg decodes HEVC natively). ~120MB → ~65MB. Ranked #1 (hours, ★★★★★) by nearly every platform.
+- **gzip PLY + poses** (5–20×, lossless, trivial worker gunzip). **Draco deferred** (lossy + needs
+  worker decode dep; not worth it at this scale).
+- **Don't adopt tus/capture apps wholesale** — build the client uploader; optionally adopt the
+  **polyform manifest format** (nerfstudio-toolchain interop). NeRFCapture/Record3D = references only.
+
+**Ranked build order:** HEVC (done) → background URLSession + file-based parts → persist ETags/
+resume missing only → parallel parts + 16MiB → gzip PLY/poses → (optional) batch sign-parts +
+register-part/status server endpoints for cross-device recovery.
+
 ## Fix plan (ranked — "think outside the box" per CEO)
 1. **Resumable multipart + parallel parts** (no server change; biggest reliability+speed; moderate
    native work). Persist `{partNumber, etag}` to disk keyed by `s3UploadId`; on relaunch upload only
@@ -66,6 +93,27 @@ needs a server speaking the draft).
   our `lidar_poses.json` — pairs with the worker gravity/COLMAP work).
 - **Google Draco** (google.github.io/draco) — point-cloud compression.
 - **Nerfstudio custom-data docs** — canonical formats these apps upload into.
+
+## Multi-clip registration — LOCKED consensus (~10 platforms)
+1. **Keep ONE ARSession alive across clips** = the single biggest lever. If the session isn't torn
+   down between clips, all clips share one world origin → registration is FREE (concatenate poses +
+   clouds). Coach the user to stay in the capture screen between clips. **Do this first.**
+2. **Separate sessions → Open3D multiway ICP + pose-graph, seeded by ARKit poses + the gravity
+   quaternion we already compute** (gravity locks pitch+roll → ICP only solves yaw+translation →
+   fast + robust). NOT global COLMAP as default (slow, fails on textureless drywall/corridors).
+3. **ARKit ARWorldMap relocalization** at capture (save clip 1's map, `initialWorldMap` for clips
+   2–5) → best-case zero-compute native alignment.
+4. **COLMAP/GLOMAP only as fallback** when ICP confidence is low (symmetric hallways, <15% overlap).
+5. **Overlap coaching at capture**: bounding-box/voxel overlap % + ghost of prior clip; require
+   ≥30% overlap, warn <15% (reuse the HUD status-row + bottom-rail caption — no floating UI).
+6. **Feed the merged .ply as splat init** (`--ply` / `lidarPlyKey` = merged cloud) → kills the
+   "cloud of floaters" artifact. Free quality win.
+7. New Modal stage `register_clips()` **between upload and splatfacto**; processing screen gains an
+   "Aligning clips" stage (fits the existing staged checklist — honest progress).
+OSS: **Open3D** (`registration_icp` point-to-plane + `global_optimization` pose graph) = the
+workhorse; TEASER++ = outlier-heavy fallback; Kabsch/SVD = manual 3-point alignment safety net;
+GLOMAP/COLMAP = last-resort BA. No turnkey OSS solves iPhone multi-clip end-to-end — compose
+ARWorldMap (capture) + Open3D multiway (server).
 
 ## Multi-clip LiDAR overlap (CEO question: how do multiple clips' LiDAR overlap + become useful)
 Today each clip = its own PLY + poses. To fuse multiple clips into one twin: register each clip's
