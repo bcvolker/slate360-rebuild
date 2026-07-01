@@ -280,8 +280,35 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
     // MARK: Torch
 
     private func torchDevice() -> AVCaptureDevice? {
+        // Prefer the device ARKit is actually driving so we lock the AR camera, not a different
+        // AVCaptureDevice. Falls back to the back wide camera on older iOS.
+        if let d = ARWorldTrackingConfiguration.configurableCaptureDeviceForPrimaryCamera,
+           d.hasTorch {
+            return d
+        }
         let d = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back)
         return (d?.hasTorch == true) ? d : nil
+    }
+
+    /// Idempotent torch re-assert. ARKit periodically resets torchMode to .off (frame-config
+    /// changes, interruptions, sceneDepth adjustments under ARWorldTrackingConfiguration), so the
+    /// desired state must be RE-ASSERTED — a one-shot toggle silently reverts (the "flashlight
+    /// stopped working" bug). Only touches the device when torchMode has drifted → ~free per-frame.
+    private func reapplyTorchIfNeeded() {
+        guard let device = torchDevice() else { return }
+        let target: AVCaptureDevice.TorchMode = torchOn ? .on : .off
+        guard device.torchMode != target else { return }
+        do {
+            try device.lockForConfiguration()
+            if torchOn, device.isTorchModeSupported(.on) {
+                try device.setTorchModeOn(level: 1.0)
+            } else {
+                device.torchMode = .off
+            }
+            device.unlockForConfiguration()
+        } catch {
+            // ARKit holds the lock this frame — the per-frame re-assert retries next frame.
+        }
     }
 
     private func revealTorchIfAvailable() {
@@ -289,16 +316,8 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
     }
 
     @objc private func tapTorch() {
-        guard let device = torchDevice() else { return }
         torchOn.toggle()
-        do {
-            try device.lockForConfiguration()
-            device.torchMode = torchOn ? .on : .off
-            device.unlockForConfiguration()
-        } catch {
-            torchOn.toggle()
-            return
-        }
+        reapplyTorchIfNeeded()  // re-assert now; the per-frame re-assert keeps it on if ARKit resets it
         pushHudState(force: true)
     }
 
@@ -456,6 +475,7 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
     private var encHeight = 0
 
     func session(_ session: ARSession, didUpdate frame: ARFrame) {
+        reapplyTorchIfNeeded()  // ARKit resets the torch — re-assert desired state every frame
         guard isRecording else { return }
 
         let arkitTs = frame.timestamp
@@ -578,6 +598,7 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
 
     func sessionInterruptionEnded(_ session: ARSession) {
         sessionNeedsResume = false
+        reapplyTorchIfNeeded()  // ARKit resets torch across interruptions — restore desired state
         pushHudState(force: true)
     }
 

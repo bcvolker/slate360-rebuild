@@ -277,9 +277,9 @@ private struct TwinHudQualityPill: View {
         .frame(height: TwinCaptureChrome.qualityLockRow)
         .twinGlass(cornerRadius: 16)
         .opacity(0.72)
-        .padding(.horizontal, TwinCaptureChrome.railSideInset)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
-        .padding(.bottom, TwinCaptureChrome.qualityLockBottom - TwinCaptureChrome.railLabelBottom - TwinCaptureChrome.shutterSize - 24)
+        // Sits in the bottom stack (above the rail) — no maxHeight:.infinity float that
+        // parked it mid-screen over the camera.
+        .padding(.bottom, 8)
         .allowsHitTesting(false)
         .accessibilityLabel("Exposure controlled by ARKit")
     }
@@ -316,8 +316,7 @@ private struct TwinHudModeSelector: View {
                 .twinGlass(cornerRadius: 10)
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
-        .padding(.bottom, TwinCaptureChrome.modeSelectorBottom - TwinCaptureChrome.railLabelBottom - TwinCaptureChrome.shutterSize - 8)
+        .padding(.bottom, 8)  // natural bottom-stack position (no mid-screen float)
     }
 
     @ViewBuilder
@@ -349,8 +348,7 @@ private struct TwinHudHint: View {
             .padding(.vertical, 6)
             .twinGlass(cornerRadius: 10)
             .padding(.horizontal, 24)
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
-            .padding(.bottom, TwinCaptureChrome.hintBottom + TwinCaptureChrome.railLabelBottom + TwinCaptureChrome.shutterSize + 28)
+            .padding(.bottom, 8)  // natural bottom-stack position (no mid-screen float)
             .allowsHitTesting(false)
     }
 }
