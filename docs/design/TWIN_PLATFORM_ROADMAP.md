@@ -70,10 +70,23 @@ Already deployed: robust median centering + confidence-gated orientation (worker
 - **Object delete + annotations**: box-select delete (have it); annotations as an additive edit-list op
   (3D-anchored pins) — matches the immutable-.spz principle.
 
-### PHASE 4 — packaged deliverable (web)
-One branded interactive link with tabs — 3D twin · 2D plan + measurements · PDFs/other deliverables —
-saved to SlateDrop Deliverables, re-openable/editable, token-gated for stakeholders. Extends the existing
-share viewer + register-deliverable wiring.
+### PHASE 4 — packaged deliverable (web) — CONFIRMED FEASIBLE
+One branded interactive link with TABS — 3D twin · 2D plan + measurements · walks-with-plans (360s
+embedded on the plan) · PDFs/other deliverables — saved to SlateDrop Deliverables, re-openable/editable,
+token-gated for stakeholders. **Architecture:** a "deliverable BUNDLE" = one share token referencing N
+child artifacts (twin model, plan_geometry, walk deliverable, PDFs); the share viewer becomes a tabbed
+container that renders each artifact type. All on EXISTING infra — the share viewer, deliverables tables,
+and register-deliverable wiring already exist; this adds a bundle table + a tab shell. Tier-gated (Twin
+Pro). The measurements tab runs on the twin itself (3D area/wall tools + the 2D plan).
+
+### Partial-capture 2D plan (answered)
+If most interior + all exterior are captured but some rooms weren't walked, the generated 2D plan shows:
+captured rooms SOLID + dimensioned (RoomPlan), the exterior footprint SOLID (point cloud), and unwalked
+interior as HATCHED "Not captured — no measurement" gaps (never fabricated). Coverage % shown. **Editing
+the 2D plan (move walls, add doors) stays IN Slate360** — it's vector geometry, so a lightweight 2D plan
+editor (Konva/SVG) handles move-wall / add-door / add-opening WITHOUT Design Studio. Design Studio /
+Unreal is only for 3D/rendered remodeling, not 2D plan edits. Edited walls are tagged `source:"user"` +
+`confidence:"edited"` so they're distinct from measured geometry.
 
 ## Capture SOP (field)
 Prefer extracting the sharpest ARKit video frames (Laplacian-variance pick) over a separate photo burst
