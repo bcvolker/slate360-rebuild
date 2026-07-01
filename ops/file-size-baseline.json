@@ -45,7 +45,7 @@
     "components/ui/sidebar.tsx": 726,
     "lib/hooks/useMarketDirectBuyState.ts": 304,
     "lib/market/scheduler-run-user.ts": 309,
-    "components/site-walk/SiteWalkHomeClient.tsx": 361,
+    "components/site-walk/SiteWalkHomeClient.tsx": 365,
     "lib/design-system/tokens.ts": 308,
     "lib/supabase/database.types.ts": 15078,
     "components/digital-twin/TwinCaptureWizard.tsx": 338,

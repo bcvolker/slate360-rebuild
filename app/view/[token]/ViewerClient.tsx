@@ -124,7 +124,7 @@ export default function ViewerClient({ deliverable, token, backHref }: Props) {
       {backHref ? (
         <a
           href={backHref}
-          className="mr-1 inline-flex min-h-[40px] items-center gap-1 rounded-lg border border-white/10 px-2.5 text-sm font-medium text-slate-200 transition-colors hover:bg-[color-mix(in_srgb,var(--graphite-primary)_15%,transparent)] hover:text-[var(--graphite-primary)]"
+          className="mr-1 inline-flex min-h-[48px] items-center gap-1 rounded-lg border border-white/10 px-2.5 text-sm font-medium text-slate-200 transition-colors hover:bg-[color-mix(in_srgb,var(--graphite-primary)_15%,transparent)] hover:text-[var(--graphite-primary)]"
           aria-label="Back to deliverables"
         >
           <ChevronLeft size={16} />
