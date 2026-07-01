@@ -57,8 +57,13 @@ export async function loadTwinSpaceViewerData(
   const { data: model, error: modelError } = await modelQuery.maybeSingle();
   if (modelError || !model?.storage_key) return null;
 
-  const modelUrl = await resolveDigitalTwinModelUrl(model.storage_key);
   const viewerKind = resolveTwinViewerKind(model.model_format, model.storage_key);
+  // Splats stream through a same-origin proxy (no cross-origin R2 CORS → no synchronous throw in
+  // the Spark loader that was blocking every twin from opening). Other kinds keep the presigned URL.
+  const modelUrl =
+    viewerKind === "splat"
+      ? `/api/digital-twin/models/${model.id}/splat`
+      : await resolveDigitalTwinModelUrl(model.storage_key);
 
   const { data: latestCapture } = await admin
     .from("digital_twin_captures")
