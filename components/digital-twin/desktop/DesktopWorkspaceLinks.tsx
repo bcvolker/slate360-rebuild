@@ -1,20 +1,20 @@
 "use client";
 
 import Link from "next/link";
-import { IconEdit, IconMap, IconMovie, IconTimeline } from "@tabler/icons-react";
+import { IconEdit, IconMovie, IconTimeline } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
-import { twinAccent } from "@/lib/digital-twin/twin-accent";
 import { isDigitalTwinDesktopEnabled } from "@/lib/digital-twin/desktop-feature";
 
 export function DesktopWorkspaceLinks({ spaceId }: { spaceId: string }) {
   if (!isDigitalTwinDesktopEnabled()) return null;
 
   const base = `/digital-twin/twins/${spaceId}`;
+  // NOTE: "Floor plan" (/floor-plan) intentionally omitted — that route doesn't exist yet (it ships
+  // with the RoomPlan 2D-plan feature, docs/design/ROOMPLAN_TWIN_LOCKED.md). It was a dead 404 link.
   const links = [
     { href: `${base}/editor`, label: "Splat editor", icon: IconEdit },
     { href: `${base}/cinematic`, label: "Cinematic path", icon: IconMovie },
     { href: `${base}/progression`, label: "Progression", icon: IconTimeline },
-    { href: `${base}/floor-plan`, label: "Floor plan", icon: IconMap },
   ];
 
   return (
