@@ -22,6 +22,8 @@ type Props = {
   showDisclaimer?: boolean;
   cameraMode?: TwinViewerCameraMode;
   onToggleCameraMode?: () => void;
+  repositionMode?: boolean;
+  onToggleReposition?: () => void;
 };
 
 const MOBILE_CONTROLS_OFFSET_PX = 12;
@@ -38,6 +40,8 @@ export function TwinViewerCanvasShell({
   showDisclaimer = true,
   cameraMode = "orbit",
   onToggleCameraMode,
+  repositionMode = false,
+  onToggleReposition,
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -83,6 +87,8 @@ export function TwinViewerCanvasShell({
             onRecenter={() => viewerRef.current?.recenter()}
             onToggleCameraMode={() => onToggleCameraMode?.()}
             onToggleFullscreen={() => void toggleFullscreen()}
+            repositionMode={repositionMode}
+            onToggleReposition={onToggleReposition}
           />
         </div>
 

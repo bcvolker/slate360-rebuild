@@ -52,6 +52,7 @@ export function TwinAuthenticatedViewer({
 }: Props) {
   const viewerRef = useRef<SplatViewerHandle | null>(null);
   const [cameraMode, setCameraMode] = useState<TwinViewerCameraMode>("orbit");
+  const [repositionMode, setRepositionMode] = useState(false);
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [measureActive, setMeasureActive] = useState(false);
   const [measureA, setMeasureA] = useState<TwinPickPoint | null>(null);
@@ -180,8 +181,13 @@ export function TwinAuthenticatedViewer({
           setCameraMode("orbit");
           return;
         }
+        setRepositionMode(false);
         setCameraMode("interior");
       }}
+      repositionMode={repositionMode}
+      onToggleReposition={
+        cameraMode === "orbit" ? () => setRepositionMode((on) => !on) : undefined
+      }
     >
       {splatReady ? (
         <TwinShareSplatViewer
@@ -193,6 +199,7 @@ export function TwinAuthenticatedViewer({
           overlay={sceneOverlay}
           cameraMode={cameraMode}
           onCameraModeChange={setCameraMode}
+          repositionMode={repositionMode}
         />
       ) : (
         <div className="absolute inset-0">

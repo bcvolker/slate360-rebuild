@@ -94,6 +94,17 @@ Prefer extracting the sharpest ARKit video frames (Laplacian-variance pick) over
 lock AE/AWB, all lights on, LiDAR always on (poses per-frame; depth can be 1 Hz for seeding). 360 for
 coverage. RoomPlan pass per room, pause 3–5 s at doorways.
 
+## Viewer: drag-to-reposition the model (SHIPPED 2026-06-30 — app + share link)
+Splats sometimes reconstruct off-centre / too high and the worker auto-centering can't always fix it. Added a
+**"Move" toggle** to the viewer controls overlay (`TwinViewerControlsOverlay`): when active, single-finger /
+left-drag **pans the model in screen space** (`screenSpacePanning` + `touches.ONE=PAN` / `mouseButtons.LEFT=PAN`
+in `SplatOverviewNavigation`), so the user drags the model wherever they want, then toggles off to orbit/zoom.
+Threaded `repositionMode` through `TwinAuthenticatedViewer → TwinViewerCanvasShell/TwinShareSplatViewer →
+SplatViewerCore → SplatViewerScene → SplatOverviewNavigation`. Covers the **authenticated app viewer + the
+interactive share link** (both use `SplatViewerCore`). **FOLLOW-UP:** wire the same toggle into the **desktop**
+viewport (`components/digital-twin/desktop/DesktopSplatViewport.tsx` — separate OrbitControls) so desktop users
+can reposition too. Also still open: the native capture HUD match (see `TWIN_CAPTURE_HUD_MATCH_PROMPT.md`).
+
 ## Legacy-UI redesign (separate track — inventory in progress)
 Brian flagged major screens as legacy/unpolished ("lists of twins in weird containers," mostly-empty
 pages). An inventory agent is ranking the worst offenders (twins list, twin detail, dashboard, projects,

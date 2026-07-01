@@ -90,6 +90,7 @@ export function SplatViewerScene({
   interiorEntryHit,
   onInteriorEntryConsumed,
   onEnterInterior,
+  repositionMode = false,
 }: {
   url: string;
   maxSplats: number;
@@ -107,6 +108,7 @@ export function SplatViewerScene({
   interiorEntryHit: THREE.Vector3 | null;
   onInteriorEntryConsumed: () => void;
   onEnterInterior: (point: THREE.Vector3) => void;
+  repositionMode?: boolean;
 }) {
   const gl = useThree((state) => state.gl);
   const [loadedMesh, setLoadedMesh] = useState<SplatMesh | null>(null);
@@ -200,6 +202,7 @@ export function SplatViewerScene({
               pickEnabled={pickEnabled}
               onPick={onPick}
               onEnterInterior={handleOverviewEnter}
+              repositionMode={repositionMode}
             />
           ) : (
             <SplatInteriorNavigation

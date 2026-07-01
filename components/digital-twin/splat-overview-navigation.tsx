@@ -39,6 +39,7 @@ export function SplatOverviewNavigation({
   pickEnabled,
   onPick,
   onEnterInterior,
+  repositionMode = false,
 }: {
   mesh: SplatMesh;
   active: boolean;
@@ -46,6 +47,12 @@ export function SplatOverviewNavigation({
   pickEnabled: boolean;
   onPick?: (point: { x: number; y: number; z: number }) => void;
   onEnterInterior: (point: THREE.Vector3) => void;
+  /**
+   * When true, a single-finger / left-drag PANS the model in screen space so the user can
+   * drag it wherever they want (fix for splats that reconstruct off-centre or too high).
+   * When false (default), single-finger / left-drag orbits as usual.
+   */
+  repositionMode?: boolean;
 }) {
   const { camera, gl, size } = useThree();
   const controlsRef = useRef<OrbitControlsImpl>(null);
@@ -229,14 +236,14 @@ export function SplatOverviewNavigation({
       enablePan
       enableZoom
       enableRotate
-      screenSpacePanning={false}
+      screenSpacePanning={repositionMode}
       mouseButtons={{
-        LEFT: THREE.MOUSE.ROTATE,
+        LEFT: repositionMode ? THREE.MOUSE.PAN : THREE.MOUSE.ROTATE,
         MIDDLE: THREE.MOUSE.DOLLY,
-        RIGHT: THREE.MOUSE.PAN,
+        RIGHT: repositionMode ? THREE.MOUSE.ROTATE : THREE.MOUSE.PAN,
       }}
       touches={{
-        ONE: THREE.TOUCH.ROTATE,
+        ONE: repositionMode ? THREE.TOUCH.PAN : THREE.TOUCH.ROTATE,
         TWO: THREE.TOUCH.DOLLY_PAN,
       }}
     />

@@ -54,6 +54,7 @@ export const SplatViewerCore = forwardRef<
     modelVisible?: boolean;
     overlay?: ReactNode;
     onCameraModeChange?: (mode: CameraMode) => void;
+    repositionMode?: boolean;
   }
 >(function SplatViewerCore(
   {
@@ -65,6 +66,7 @@ export const SplatViewerCore = forwardRef<
     modelVisible = true,
     overlay,
     onCameraModeChange,
+    repositionMode = false,
   },
   ref,
 ) {
@@ -164,6 +166,7 @@ export const SplatViewerCore = forwardRef<
           cameraMode={cameraMode}
           modelVisible={modelVisible}
           overlay={overlay}
+          repositionMode={repositionMode}
           resetToken={resetToken}
           controlsApiRef={controlsApiRef}
           onRecenter={handleRecenter}

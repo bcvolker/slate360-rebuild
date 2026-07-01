@@ -1,6 +1,6 @@
 "use client";
 
-import { Footprints, Home, Map, Maximize2, Minimize2 } from "lucide-react";
+import { Footprints, Home, Map, Maximize2, Minimize2, Move } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export type TwinViewerCameraMode = "interior" | "orbit";
@@ -11,6 +11,8 @@ type Props = {
   onRecenter: () => void;
   onToggleCameraMode: () => void;
   onToggleFullscreen: () => void;
+  repositionMode?: boolean;
+  onToggleReposition?: () => void;
   className?: string;
 };
 
@@ -26,6 +28,8 @@ export function TwinViewerControlsOverlay({
   onRecenter,
   onToggleCameraMode,
   onToggleFullscreen,
+  repositionMode = false,
+  onToggleReposition,
   className,
 }: Props) {
   const inWalkMode = cameraMode === "interior";
@@ -46,6 +50,22 @@ export function TwinViewerControlsOverlay({
       >
         <Home className="size-4" aria-hidden />
       </button>
+      {onToggleReposition ? (
+        <button
+          type="button"
+          onClick={onToggleReposition}
+          className={cn(
+            btnClass,
+            repositionMode &&
+              "bg-[color-mix(in_srgb,var(--twin360-blue)_28%,transparent)] text-white hover:bg-[color-mix(in_srgb,var(--twin360-blue)_36%,transparent)]",
+          )}
+          aria-label={repositionMode ? "Done moving — back to orbit" : "Move — drag the model to reposition it"}
+          aria-pressed={repositionMode}
+          title={repositionMode ? "Moving — drag to reposition" : "Move / reposition"}
+        >
+          <Move className="size-4" aria-hidden />
+        </button>
+      ) : null}
       <button
         type="button"
         onClick={onToggleCameraMode}
