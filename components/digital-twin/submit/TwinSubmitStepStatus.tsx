@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { IconAlertTriangle, IconCircleCheck, IconCube } from "@tabler/icons-react";
 import { twinAccent } from "@/lib/digital-twin/twin-accent";
@@ -75,11 +74,21 @@ export function TwinSubmitStepStatus({ captureId, spaceId, savedForLater, onGoTo
           onClick={() => router.push(`/digital-twin/twins/${spaceId}`)}
           className={twinSubmitTokens.primaryCta}
         >
-          View in Twin 360 Studio
+          View twin
+        </button>
+        <button
+          type="button"
+          onClick={() => router.push(`/digital-twin/twins/${spaceId}/editor`)}
+          className={twinSubmitTokens.secondaryCta}
+        >
+          Edit &amp; clean
         </button>
         <button type="button" onClick={onGoToTwins} className={twinSubmitTokens.secondaryCta}>
           Go to My Twins
         </button>
+        <p className="text-center text-[11px] leading-relaxed text-[var(--graphite-muted)]">
+          Open the twin to add branding and send a secure link to your client.
+        </p>
       </div>
     );
   }
@@ -124,15 +133,7 @@ export function TwinSubmitStepStatus({ captureId, spaceId, savedForLater, onGoTo
         </div>
       </TwinSubmitGlassCard>
 
-      <Link
-        href={`/digital-twin/twins/${spaceId}`}
-        aria-disabled
-        onClick={(event) => event.preventDefault()}
-        className={cn(twinSubmitTokens.primaryCta, "pointer-events-none opacity-40")}
-      >
-        View in Twin 360 Studio
-      </Link>
-      <button type="button" onClick={onGoToTwins} className={twinSubmitTokens.secondaryCta}>
+      <button type="button" onClick={onGoToTwins} className={twinSubmitTokens.primaryCta}>
         Go to My Twins
       </button>
     </div>
