@@ -4,6 +4,7 @@
   "legacyBrandHexFiles": [
     "app/(public)/product/digital-twin/page.tsx",
     "app/(public)/product/site-walk/page.tsx",
+    "app/api/calendar/route.ts",
     "app/api/contacts/route.ts",
     "app/api/dashboard/widgets/route.ts",
     "app/site-walk/(act-1-setup)/setup/_components/BrandSettingsForm.tsx",

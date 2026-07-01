@@ -10,6 +10,7 @@ import { withAppAuth } from "@/lib/server/api-auth";
 import { ok, badRequest, notFound, serverError } from "@/lib/server/api-response";
 import type { IdRouteContext } from "@/lib/types/api";
 import { excludeDeletedSiteWalkItems } from "@/lib/site-walk/item-filters";
+import { registerDeliverableInSlateDrop } from "@/lib/slatedrop/register-deliverable";
 import { buildStatusReportContent, type StatusReportSourceItem } from "@/lib/site-walk/status-report";
 
 export const POST = (req: NextRequest, ctx: IdRouteContext) =>
@@ -68,6 +69,16 @@ export const POST = (req: NextRequest, ctx: IdRouteContext) =>
       .single();
 
     if (insertErr || !deliverable) return serverError(insertErr?.message ?? "Failed to create deliverable");
+
+    // Persistence rule: save into the project's SlateDrop Deliverables folder. Non-fatal.
+    await registerDeliverableInSlateDrop({
+      admin,
+      projectId: session.project_id ?? null,
+      orgId,
+      userId: user.id,
+      deliverableId: deliverable.id as string,
+      title,
+    });
 
     return ok({ deliverable_id: deliverable.id, item_count: items.length });
   });
