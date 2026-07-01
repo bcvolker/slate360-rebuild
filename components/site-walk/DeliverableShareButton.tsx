@@ -20,10 +20,12 @@ export function DeliverableShareButton({
   const [token, setToken] = useState<string | null>(initialToken);
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [failed, setFailed] = useState(false);
 
   const shareLink = useCallback(async () => {
     if (busy) return;
     setBusy(true);
+    setFailed(false);
     try {
       let t = token;
       if (!t) {
@@ -47,7 +49,9 @@ export function DeliverableShareButton({
         window.setTimeout(() => setCopied(false), 2000);
       }
     } catch {
-      // Non-fatal — leave the button usable for a retry.
+      // Surface a brief failure so the user knows to retry (not a silent no-op).
+      setFailed(true);
+      window.setTimeout(() => setFailed(false), 3000);
     } finally {
       setBusy(false);
     }
@@ -68,7 +72,7 @@ export function DeliverableShareButton({
       ) : (
         <Share2 className="h-4 w-4" aria-hidden />
       )}
-      {copied ? "Copied" : token ? "Share" : "Publish"}
+      {failed ? "Retry" : copied ? "Copied" : token ? "Share" : "Publish"}
     </button>
   );
 }

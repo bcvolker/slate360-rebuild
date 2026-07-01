@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ChevronLeft, ChevronRight, X, Info, Share2, Printer } from "lucide-react";
+import { ChevronLeft, ChevronRight, X, Info, Share2, Printer, Pencil, Check } from "lucide-react";
 import type { ViewerDeliverable } from "@/lib/site-walk/viewer-types";
 import { ExternalPortalShell, PublicItemStage } from "@/components/external-portal";
 import { cn } from "@/lib/utils";
@@ -15,11 +15,41 @@ interface Props {
   /** When set (authenticated owner preview), render an in-app back control so the
    * owner isn't trapped in the immersive viewer with only browser-back. */
   backHref?: string;
+  /** When true (owner preview), the header title is editable — so the walk/project name
+   * isn't forced onto stakeholders. Edit BEFORE publishing/sharing so it's captured. */
+  editableTitle?: boolean;
 }
 
-export default function ViewerClient({ deliverable, token, backHref }: Props) {
+export default function ViewerClient({ deliverable, token, backHref, editableTitle }: Props) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [panelOpen, setPanelOpen] = useState(true);
+  const [title, setTitle] = useState(deliverable.title);
+  const [editingTitle, setEditingTitle] = useState(false);
+  const [titleDraft, setTitleDraft] = useState(deliverable.title);
+  const [savingTitle, setSavingTitle] = useState(false);
+
+  const saveTitle = useCallback(async () => {
+    const next = titleDraft.trim();
+    if (!next || next === title) {
+      setEditingTitle(false);
+      return;
+    }
+    setSavingTitle(true);
+    try {
+      const res = await fetch(`/api/site-walk/deliverables/${deliverable.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: next }),
+      });
+      if (!res.ok) throw new Error("save failed");
+      setTitle(next);
+      setEditingTitle(false);
+    } catch {
+      /* leave editor open for retry */
+    } finally {
+      setSavingTitle(false);
+    }
+  }, [titleDraft, title, deliverable.id]);
 
   const items = deliverable.items;
   const activeItem = items[activeIndex];
@@ -131,6 +161,20 @@ export default function ViewerClient({ deliverable, token, backHref }: Props) {
           <span className="hidden sm:inline">Back</span>
         </a>
       ) : null}
+      {editableTitle ? (
+        <button
+          type="button"
+          onClick={() => {
+            setTitleDraft(title);
+            setEditingTitle(true);
+          }}
+          className="rounded-lg p-2 text-slate-300 transition-colors hover:bg-[color-mix(in_srgb,var(--graphite-primary)_15%,transparent)] hover:text-[var(--graphite-primary)]"
+          aria-label="Edit the title shown to recipients"
+          title="Edit title"
+        >
+          <Pencil size={16} />
+        </button>
+      ) : null}
       <span className="mr-1 hidden text-xs text-slate-400 sm:inline">
         {activeIndex + 1} / {items.length}
       </span>
@@ -171,13 +215,45 @@ export default function ViewerClient({ deliverable, token, backHref }: Props) {
       variant="immersive"
       showFooter={false}
       portalLabel="Deliverable review"
-      title={deliverable.title}
+      title={title}
       subtitle={`Shared by ${deliverable.senderName}`}
       orgLogoUrl={deliverable.senderLogo}
       headerActions={headerActions}
       className="h-screen"
     >
       <div className="relative flex h-full min-h-0 w-full flex-1 flex-col">
+      {/* Inline title editor (owner only) — change the text stakeholders see before sharing. */}
+      {editableTitle && editingTitle ? (
+        <div className="flex items-center gap-2 border-b border-white/10 bg-[var(--graphite-canvas)]/95 px-4 py-2 backdrop-blur-sm">
+          <input
+            autoFocus
+            value={titleDraft}
+            onChange={(e) => setTitleDraft(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") void saveTitle();
+              if (e.key === "Escape") setEditingTitle(false);
+            }}
+            maxLength={140}
+            placeholder="Title shown to recipients"
+            className="min-h-[44px] flex-1 rounded-lg border border-white/15 bg-white/5 px-3 text-sm text-white outline-none focus:border-[var(--graphite-primary)]"
+          />
+          <button
+            type="button"
+            onClick={() => void saveTitle()}
+            disabled={savingTitle}
+            className="inline-flex min-h-[44px] items-center gap-1 rounded-lg bg-[var(--graphite-primary)] px-3 text-sm font-black text-[var(--graphite-canvas)] disabled:opacity-60"
+          >
+            <Check size={16} /> Save
+          </button>
+          <button
+            type="button"
+            onClick={() => setEditingTitle(false)}
+            className="inline-flex min-h-[44px] items-center rounded-lg border border-white/15 px-3 text-sm text-slate-300"
+          >
+            Cancel
+          </button>
+        </div>
+      ) : null}
       {/* Info rail (LEFT on desktop) + media stage */}
       <div className="relative flex min-h-0 flex-1 overflow-hidden">
         <div className="flex-1 relative flex items-center justify-center overflow-hidden bg-black sm:order-2">

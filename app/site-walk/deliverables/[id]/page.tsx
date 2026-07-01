@@ -31,5 +31,5 @@ export default async function OwnerDeliverablePage({ params }: Props) {
 
   // Owner arrived from the deliverables list — give them an in-app back control so the
   // immersive viewer isn't a dead-end (browser-back only).
-  return <ViewerClient deliverable={deliverable} backHref="/site-walk/deliverables" />;
+  return <ViewerClient deliverable={deliverable} backHref="/site-walk/deliverables" editableTitle />;
 }
