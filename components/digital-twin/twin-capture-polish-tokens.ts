@@ -90,9 +90,10 @@ export function twinGuideStateLabel(state: TwinCaptureGuideState): string | null
 }
 
 export function twinGuideStateColor(state: TwinCaptureGuideState): string {
-  if (!state || state === "good") return "#22C55E";
+  // Tokens only — no hardcoded hex, and NO amber (design-system ban). Caution = muted-graphite.
+  if (!state || state === "good") return "var(--graphite-primary)";
   if (state.endsWith("_severe")) return "var(--destructive)";
-  return "#EAB308";
+  return "var(--muted-foreground)";
 }
 
 export function isTwinLevelWithinTolerance(rollDeg: number | null): boolean {

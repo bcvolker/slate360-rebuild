@@ -27,6 +27,7 @@ export default function ViewerClient({ deliverable, token, backHref, editableTit
   const [editingTitle, setEditingTitle] = useState(false);
   const [titleDraft, setTitleDraft] = useState(deliverable.title);
   const [savingTitle, setSavingTitle] = useState(false);
+  const [titleSaveFailed, setTitleSaveFailed] = useState(false);
 
   const saveTitle = useCallback(async () => {
     const next = titleDraft.trim();
@@ -43,9 +44,10 @@ export default function ViewerClient({ deliverable, token, backHref, editableTit
       });
       if (!res.ok) throw new Error("save failed");
       setTitle(next);
+      setTitleSaveFailed(false);
       setEditingTitle(false);
     } catch {
-      /* leave editor open for retry */
+      setTitleSaveFailed(true); // leave editor open + surface the failure for a retry
     } finally {
       setSavingTitle(false);
     }
@@ -235,8 +237,12 @@ export default function ViewerClient({ deliverable, token, backHref, editableTit
             }}
             maxLength={140}
             placeholder="Title shown to recipients"
+            aria-label="Deliverable title"
             className="min-h-[44px] flex-1 rounded-lg border border-white/15 bg-white/5 px-3 text-sm text-white outline-none focus:border-[var(--graphite-primary)]"
           />
+          {titleSaveFailed ? (
+            <span className="text-xs font-medium text-[var(--destructive)]">Couldn&apos;t save — retry</span>
+          ) : null}
           <button
             type="button"
             onClick={() => void saveTitle()}

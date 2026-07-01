@@ -141,7 +141,7 @@ export function TwinCaptureGuide({
       {tiltHint ? (
         <span
           className={`px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wide ${TWIN_CAPTURE_GLASS}`}
-          style={{ color: "#EAB308", opacity: 0.85 }}
+          style={{ color: "var(--muted-foreground)", opacity: 0.85 }}
           data-twin-chrome="tilt-hint"
         >
           {tiltHint === "left" ? "⟲ LEVEL PHONE" : "⟳ LEVEL PHONE"}

@@ -8,7 +8,8 @@ import { Share2, Check, Loader2 } from "lucide-react";
  * phone-only user could generate a deliverable but had no way to mint a public link and send it
  * (publish/send previously lived only in the desktop project tab). Mints (or reuses) a public
  * share token via POST /api/site-walk/deliverables/[id]/share, then opens the native share sheet
- * with the PUBLIC /share/deliverable/[token] URL (falls back to clipboard copy).
+ * with the PUBLIC interactive /view/[token] URL (falls back to clipboard copy). /view/[token] is the
+ * commentable viewer (clients can leave questions/approvals) — /share/deliverable/[token] is read-only.
  */
 export function DeliverableShareButton({
   deliverableId,
@@ -40,7 +41,7 @@ export function DeliverableShareButton({
         t = data.share_token;
         setToken(t);
       }
-      const url = `${window.location.origin}/share/deliverable/${t}`;
+      const url = `${window.location.origin}/view/${t}`;
       if (navigator.share) {
         await navigator.share({ title: "Slate360 deliverable", url });
       } else {
