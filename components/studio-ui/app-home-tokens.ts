@@ -31,10 +31,12 @@ export const appHomeTokens = {
   launcherTileInfo: `border-[var(--mobile-app-card-border-info)] ${glassSurfaceHover} hover:border-[color-mix(in_srgb,var(--twin360-blue)_42%,transparent)] hover:[box-shadow:var(--mobile-app-card-glow-info)]`,
   launcherTileLocked: "opacity-55 saturate-[0.42]",
 
+  // Tinted-glass chips (NOT solid accent fills — accent belongs on interactive/tint, never a fill).
+  // Subtle accent wash + accent border + accent-colored icon reads premium; the solid fill read cheap.
   launcherIconChipPrimary:
-    "flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[var(--graphite-primary)] text-[var(--graphite-canvas)]",
+    "flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-[color-mix(in_srgb,var(--graphite-primary)_28%,transparent)] bg-[color-mix(in_srgb,var(--graphite-primary)_12%,transparent)] text-[var(--graphite-primary)]",
   launcherIconChipInfo:
-    "flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[var(--twin360-blue)] text-[var(--graphite-canvas)]",
+    "flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-[color-mix(in_srgb,var(--twin360-blue)_28%,transparent)] bg-[color-mix(in_srgb,var(--twin360-blue)_12%,transparent)] text-[var(--twin360-blue)]",
   launcherIconPrimary: "h-6 w-6 shrink-0",
   launcherIconInfo: "h-6 w-6 shrink-0",
 

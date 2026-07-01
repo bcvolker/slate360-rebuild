@@ -32,12 +32,13 @@ export const dashboardDesktopTokens = {
   sectionLabel:
     "font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--graphite-muted)]",
   card: `rounded-2xl ${glassSurface}`,
-  /** Clickable card variant — adds the app-home hover lift/glow. */
-  cardInteractive: `rounded-2xl ${glassSurface} transition-all hover:border-[color-mix(in_srgb,var(--graphite-primary)_42%,transparent)] hover:[box-shadow:var(--mobile-app-card-glow-primary)]`,
+  /** Clickable card — hover uses the ACTIVE surface accent (not hardcoded green) + subtle tint,
+   *  no glow (glow is banned by the design system). */
+  cardInteractive: `rounded-2xl ${glassSurface} transition-colors hover:border-[color-mix(in_srgb,var(--app-accent)_42%,transparent)] hover:bg-[color-mix(in_srgb,var(--app-accent)_6%,transparent)]`,
   statCard: `rounded-xl px-4 py-3 ${glassSurface}`,
   statValue: "text-2xl font-bold tabular-nums text-[var(--graphite-text-header)]",
   statLabel: "mt-0.5 text-xs font-medium text-[var(--graphite-muted)]",
   listRow:
-    "flex items-center justify-between gap-3 rounded-xl border border-[var(--mobile-app-card-border)] px-4 py-3 shadow-[var(--mobile-app-card-shadow)] transition-all hover:border-[color-mix(in_srgb,var(--graphite-primary)_42%,transparent)] hover:[box-shadow:var(--mobile-app-card-glow-primary)]",
+    "flex items-center justify-between gap-3 rounded-xl border border-[var(--mobile-app-card-border)] px-4 py-3 shadow-[var(--mobile-app-card-shadow)] transition-colors hover:border-[color-mix(in_srgb,var(--app-accent)_42%,transparent)] hover:bg-[color-mix(in_srgb,var(--app-accent)_6%,transparent)]",
   emptyState: `rounded-2xl px-6 py-10 text-center ${glassSurface}`,
 } as const;
