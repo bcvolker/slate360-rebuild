@@ -30,6 +30,7 @@ export type ProjectOverviewData = {
     walks: number;
     twins: number;
     files: number;
+    deliverables: number;
     teamMembers: number;
   };
   lastFileUploadAt: string | null;
@@ -105,6 +106,7 @@ export async function loadProjectOverviewData(projectId: string): Promise<Projec
   const [
     walkCountRes,
     twinCountRes,
+    deliverableCountRes,
     foldersRes,
     recentWalksRes,
     recentTwinsRes,
@@ -123,6 +125,10 @@ export async function loadProjectOverviewData(projectId: string): Promise<Projec
           .is("deleted_at", null)
           .neq("status", "archived")
       : Promise.resolve({ count: 0, data: null, error: null }),
+    admin
+      .from("site_walk_deliverables")
+      .select("id", { count: "exact", head: true })
+      .eq("project_id", projectId),
     admin.from("project_folders").select("id").eq("project_id", projectId),
     admin
       .from("site_walk_sessions")
@@ -227,6 +233,7 @@ export async function loadProjectOverviewData(projectId: string): Promise<Projec
       walks: walkCountRes.count ?? 0,
       twins: twinCountRes.count ?? 0,
       files: filesCount,
+      deliverables: deliverableCountRes.count ?? 0,
       teamMembers,
     },
     lastFileUploadAt,

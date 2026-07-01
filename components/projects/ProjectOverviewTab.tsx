@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { ArrowRight, Box, FolderOpen, Footprints, Loader2, MapPin, Upload, UserPlus, Users, type LucideIcon } from "lucide-react";
+import { ArrowRight, Box, FileCheck, FolderOpen, Footprints, Loader2, MapPin, Upload, UserPlus, Users, type LucideIcon } from "lucide-react";
 import { ProjectDetailEmptyState } from "@/components/projects/ProjectDetailEmptyState";
 import { projectDetailTokens as t } from "@/components/projects/project-detail-tokens";
 import { startProjectWalk, StartWalkError } from "@/lib/site-walk/start-walk";
@@ -82,6 +82,7 @@ export function ProjectOverviewTab({ data }: ProjectOverviewTabProps) {
               {data.showTwins ? (
                 <StatCard label="Digital Twins" value={data.counts.twins} href={`${base}/twins`} icon={Box} />
               ) : null}
+              <StatCard label="Deliverables" value={data.counts.deliverables} href={`${base}/deliverables`} icon={FileCheck} />
               <StatCard label="Files" value={data.counts.files} meta={lastUploadLabel} href={`${base}/slatedrop`} icon={FolderOpen} />
               <StatCard label="Team" value={data.counts.teamMembers} href={`${base}/team`} icon={Users} />
             </div>
