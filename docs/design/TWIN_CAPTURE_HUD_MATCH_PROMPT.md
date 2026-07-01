@@ -1,5 +1,15 @@
 # Twin 360 capture HUD → match Site Walk capture layout (panel prompt, 2026-06-30)
 
+## STATUS: IMPLEMENTED (commit e8a20b22) — awaiting Codemagic TestFlight verification
+The 10+ AI panel returned a unanimous fix (root cause: `TwinHudBottomRail` `.frame(maxHeight:.infinity,
+alignment:.bottom)` competed with the lone `Spacer`, parking the quality pill / mode selector / hint
+mid-screen). Implemented in `TwinCaptureHudView.swift`: strict TOP CLUSTER → single Spacer (empty centre) →
+BOTTOM DOCK; deleted the 3 floating views; hint + REC readout folded into the dock; dock is one cohesive glass
+panel; shutter got a solid backing disc. **Swift can't be compiled in the build env — verify via a Codemagic
+TestFlight build.** If it needs tuning, the tunables are shutter `.offset(y:)`, dock `.padding(.bottom,)`, and
+the glass corner radius (currently 16 — drop to 12 if the reviewer wants strict 8–12px).
+
+
 **Why this doc:** After several sessions, only the top header of the Twin capture screen was made to match Site
 Walk. Root cause finally pinned down: **Twin 360 capture is a native SwiftUI HUD**
 (`ios/App/App/Plugins/LiDARCapture/TwinCaptureHudView.swift`) rendered over an ARKit `ARSCNView`, while **Site
