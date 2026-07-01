@@ -67,6 +67,36 @@ Desktop `.dark` fix · Edit/Clean CTA on viewer · one glass-card archetype · o
 toolbar · kill amber + add danger token · sectioned non-scrolling sidebar · unified recent-item component · submit-flow
 clarity (live credit/time deltas + "coming soon" on inactive) · logo overlay + white-label branding.
 
+## THREE APP SHELLS — top 10 fixes to look high-end (shell UI audit, 2026-06-30)
+The shells' bones are sound (real tokens, `--app-accent` plumbing, genuine glass) but read "AI-vibe-coded" due to:
+(a) solid accent FILLS on chip icons, (b) the accent system wired but barely visible (bottom nav + most chrome are
+monochrome gray), (c) two-of-everything (2 headers, 2 switchers, 2 nav-active styles, multiple app icons),
+(d) residual hardcoded hex + one double-spaced file + `rounded-full`. Ranked:
+1. **Kill accent-as-fill on all launcher/hero icon chips** — `app-home-tokens.ts:34-37` (`launcherIconChip*`) use
+   solid `--graphite-primary`/`--twin360-blue` fills → convert to tinted glass (`_12%` bg / `_22%` border / accent
+   icon), copying the already-correct `mobileModuleHomeIconChipPrimary`. **Biggest single "premium" lift.**
+2. **Mobile bottom-nav accent indicator** — `MobileBottomNav.tsx:114` active = white text only (invisible); add an
+   `--app-accent` top-hairline/dot on the active item.
+3. **Accent-follows-route on desktop cards** — `dashboard-tokens.ts:34-41` + `DashboardHomeContent.tsx:31,33`,
+   `DashboardEmptyState.tsx:33` hardcode green `--graphite-primary` → swap to `--app-accent` (Twin routes glow green
+   today).
+4. **Purge hardcoded color from chrome** — `MobileShellSwitcher.tsx:21` (`text-emerald-300`/`sky-300`),
+   `mobileTokens.ts:115-127` + `app-home-tokens.ts:48-72` (`#11161E`/`#2A3340`/`#0B0F15`) → CSS vars; also un-breaks white-label.
+5. **Unify to ONE header + ONE switcher across shells** — `MobileTopBar` (h-14,#0B0F15) vs `MobilePlatformHeader`
+   (52px,#11161E); dropdown mobile switcher vs segmented desktop `AppSwitcher`. Consolidate.
+6. **One icon per app everywhere** — Twin uses `Scan`/`AppWindow`/`Box`/`Orbit` across surfaces; pick one glyph per app.
+7. **Group the desktop sidebar into labeled sections** — `DashboardDesktopSidebar.tsx:51` flat 13-item list; use the
+   existing-but-unused `sidebarNavLabel` ("Workspace/Studios/Account") + dividers.
+8. **Reformat `MobileBottomNav.tsx` (double-spaced), normalize radii to 12px (kill `app-home-tokens.ts:68`
+   `rounded-full`), stroke-width 1.75 across chrome.**
+9. **Upgrade empty states (bordered glass panel + outline button, not underlined text-link) + add loading skeletons**
+   (`MobileEmptyState.tsx`, `DashboardEmptyState.tsx`, `DigitalTwinHomeClient`).
+10. **Accent hierarchy on mobile homes** (Twin home = wall of blue; de-emphasize secondary quick-actions to neutral
+    glass, reserve accent for the primary CTA) + **persistent app identity in the header** (brand band scrolls away).
+Also: doubled branding in desktop top-bar+sidebar; `DashboardDesktopTopBar` cramped at 48px (→56px); fake org
+taglines ("Reality capture workspace" `DigitalTwinShell.tsx:49`, "Field workspace" `SiteWalkShell.tsx:43`) — show
+real org or omit; Twin home has NO error handling on quick-scan (Site Walk does). **Fixes 1–4 are mostly token-level.**
+
 ## How to execute
 These need **preview-verified** implementation (auth-gated app — the sandbox can't log in; verify via `/preview/*`
 harnesses + DOM measurement). Sequence: (a) desktop `.dark` + glass-card token unification (biggest visual lift),
