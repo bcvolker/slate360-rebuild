@@ -1,5 +1,5 @@
 import { resolveServerOrgContext } from "@/lib/server/org-context";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import ClientPage from "./ClientPage";
 
 export const metadata = {
@@ -10,6 +10,10 @@ export default async function IntegrationsHubServerPage() {
   const { user, tier, isSlateCeo, canAccessOperationsConsole } = await resolveServerOrgContext();
 
   if (!user) redirect("/login");
+  // Not built yet + not linked from any nav. Keep the "In Development" stub out of the
+  // app-review surface (App Store auto-rejects coming-soon/in-development UI) by gating
+  // it to the CEO until it's a real feature.
+  if (!isSlateCeo) notFound();
 
   return (
     <ClientPage
