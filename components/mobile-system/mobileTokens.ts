@@ -152,9 +152,11 @@ export const mobileTokens = {
     "truncate text-[16px] font-semibold leading-tight tracking-tight text-white",
   mobileHeaderSubtitle:
     "truncate text-[11px] font-bold uppercase leading-tight tracking-[0.1em] text-zinc-300 mt-0.5",
-  mobileBottomNavItemActive: "font-semibold text-white",
+  // Active = the route's accent (green Site Walk / blue Twin), making the accent system finally
+  // visible on mobile (was plain white). Icon inherits via currentColor.
+  mobileBottomNavItemActive: "font-semibold text-[var(--mobile-bottom-nav-fg-active)]",
   mobileBottomNavItemIdle:
-    "text-[#6B7889] hover:bg-white/[0.04] hover:text-[#8A96A8]",
+    "text-[var(--shell-chrome-nav-idle,#6B7889)] hover:bg-white/[0.04] hover:text-[#8A96A8]",
   mobileBottomNavLabel: "truncate text-[11px] font-medium leading-none",
   mobileBottomNavBar:
     "relative z-20 shrink-0 border-t border-[#2A3340] bg-[#11161E]",

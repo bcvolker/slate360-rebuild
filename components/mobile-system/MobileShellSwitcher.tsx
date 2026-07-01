@@ -18,8 +18,8 @@ type ShellEntry = {
 
 const SHELLS: ShellEntry[] = [
   { route: "app", name: "Slate360", href: "/app", icon: SquareStack, accent: "text-white" },
-  { route: "site-walk", name: "Site Walk", href: "/site-walk", icon: Camera, accent: "text-emerald-300" },
-  { route: "digital-twin", name: "Twin 360", href: "/digital-twin", icon: AppWindow, accent: "text-sky-300" },
+  { route: "site-walk", name: "Site Walk", href: "/site-walk", icon: Camera, accent: "text-[var(--graphite-primary)]" },
+  { route: "digital-twin", name: "Twin 360", href: "/digital-twin", icon: AppWindow, accent: "text-[var(--twin360-blue)]" },
 ];
 
 /**
@@ -72,7 +72,7 @@ export function MobileShellSwitcher() {
                     >
                       <Icon className={cn("size-5 shrink-0", shell.accent)} strokeWidth={2} />
                       <span className="flex-1">{shell.name}</span>
-                      {active ? <Check className="size-4 shrink-0 text-emerald-400" /> : null}
+                      {active ? <Check className={cn("size-4 shrink-0", shell.accent)} /> : null}
                     </Link>
                   </li>
                 );

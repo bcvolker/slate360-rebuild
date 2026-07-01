@@ -106,6 +106,12 @@
      Site Walk green; flipped to blue inside Twin 360 via [data-app="twin360"] (see EOF).
      Shell components reference var(--app-accent) for interactive states ONLY (never fills). */
   --app-accent: var(--graphite-primary);
+  /* Unified shell chrome surfaces — ONE source (retires scattered #0B0F15/#11161E/#2A3340/#6B7889
+     literals in mobileTokens as they migrate to these vars). Same resolved values → no visual change. */
+  --shell-chrome-canvas: #0B0F15;
+  --shell-chrome-surface: #11161E;
+  --shell-chrome-hairline: #2A3340;
+  --shell-chrome-nav-idle: #6B7889;
   --graphite-text-header: #FFFFFF;
   --graphite-text-body: #F8FAFC;
   --graphite-muted: #A3AED0;

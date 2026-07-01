@@ -111,6 +111,13 @@ export function MobileBottomNav<Key extends string = string>({
 
             <>
 
+              {active ? (
+                <span
+                  aria-hidden
+                  className="pointer-events-none absolute inset-x-4 top-0 h-0.5 rounded-sm bg-[var(--mobile-shell-accent)]"
+                />
+              ) : null}
+
               <Icon size={18} strokeWidth={active ? 2.5 : 2} />
 
               <span className={mobileTokens.mobileBottomNavLabel}>{label}</span>
