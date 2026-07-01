@@ -3,13 +3,62 @@ import { resolveServerOrgContext } from "@/lib/server/org-context";
 import { loadDigitalTwinHubData } from "@/lib/digital-twin/load-hub-data";
 import { loadUnsubmittedTwinCaptures } from "@/lib/digital-twin/load-unsubmitted-captures";
 import { twinAccent } from "@/lib/digital-twin/twin-accent";
-import { matchesTwinStatusFilter, twinHubStatusMetaTone } from "@/lib/digital-twin/twin-hub-status";
-import { MobileEmptyState, MobileHomeListRow, mobileTokens } from "@/components/mobile-system";
+import { matchesTwinStatusFilter } from "@/lib/digital-twin/twin-hub-status";
+import { MobileEmptyState } from "@/components/mobile-system";
 import { UnsubmittedCaptureRow } from "@/components/digital-twin/UnsubmittedCaptureRow";
-import { Boxes } from "lucide-react";
+import type { HubTwin } from "@/lib/types/digital-twin-hub";
+import { Boxes, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const DOCK_EMPTY_ACTION = cn("text-[12px]", twinAccent.link);
+
+function relativeDate(iso: string): string {
+  const then = new Date(iso).getTime();
+  if (Number.isNaN(then)) return "";
+  const days = Math.floor((Date.now() - then) / 86_400_000);
+  if (days <= 0) return "Today";
+  if (days === 1) return "Yesterday";
+  if (days < 30) return `${days}d ago`;
+  if (days < 365) return `${Math.floor(days / 30)}mo ago`;
+  return `${Math.floor(days / 365)}y ago`;
+}
+
+function TwinCard({ twin }: { twin: HubTwin }) {
+  const chip = twin.statusChip.toLowerCase();
+  const isReady = chip === "ready";
+  const isFailed = chip === "failed";
+  // One accent (twin blue) on interactive/status state; failed reads neutral + red text.
+  const chipClass = isFailed
+    ? "border-white/10 bg-white/[0.04] text-[var(--destructive)]"
+    : isReady
+      ? "border-[color-mix(in_srgb,var(--twin360-blue)_45%,transparent)] bg-[color-mix(in_srgb,var(--twin360-blue)_14%,transparent)] text-[var(--twin360-blue)]"
+      : "border-[color-mix(in_srgb,var(--twin360-blue)_28%,transparent)] bg-[color-mix(in_srgb,var(--twin360-blue)_8%,transparent)] text-[var(--twin360-blue)]";
+  return (
+    <Link
+      href={`/digital-twin/twins/${twin.id}`}
+      className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-3 backdrop-blur-md transition-colors hover:border-[color-mix(in_srgb,var(--twin360-blue)_40%,transparent)]"
+    >
+      <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border border-[color-mix(in_srgb,var(--twin360-blue)_28%,transparent)] bg-[color-mix(in_srgb,var(--twin360-blue)_12%,transparent)] text-[var(--twin360-blue)]">
+        <Boxes className="h-5 w-5" strokeWidth={1.75} />
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-semibold text-white">{twin.title}</p>
+        <p className="mt-0.5 truncate text-xs text-zinc-400">
+          {twin.projectName ?? "No project"} · {relativeDate(twin.updatedAt)}
+        </p>
+      </div>
+      <span
+        className={cn(
+          "shrink-0 rounded-md border px-2 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-wide",
+          chipClass,
+        )}
+      >
+        {twin.statusChip}
+      </span>
+      <ChevronRight className="h-4 w-4 shrink-0 text-zinc-500" />
+    </Link>
+  );
+}
 
 type PageProps = {
   searchParams?: Promise<{ status?: string }>;
@@ -71,15 +120,10 @@ export default async function DigitalTwinTwinsPage({ searchParams }: PageProps) 
       ) : null}
 
       {filteredTwins.length > 0 ? (
-        <ul className={mobileTokens.mobileHomeContainedListInner}>
+        <ul className="space-y-2">
           {filteredTwins.map((twin) => (
             <li key={twin.id}>
-              <MobileHomeListRow
-                title={twin.title}
-                meta={twin.statusChip}
-                metaTone={twinHubStatusMetaTone(twin.statusChip)}
-                href={`/digital-twin/twins/${twin.id}`}
-              />
+              <TwinCard twin={twin} />
             </li>
           ))}
         </ul>
