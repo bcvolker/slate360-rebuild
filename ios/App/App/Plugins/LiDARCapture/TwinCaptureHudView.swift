@@ -398,25 +398,32 @@ private struct TwinHudBottomRail: View {
 
     @ViewBuilder
     private var doneControl: some View {
+        // `prominent` = there's a captured clip to finish → solid blue fill, dark check.
+        // Otherwise the button stays FULLY VISIBLE (white check on a defined blue-tinted
+        // pill) instead of the old blue-on-blue @ 0.45 opacity, which vanished on the dark
+        // dock. It only becomes tappable once there is content or a recording to stop, but
+        // it must always be legible so the user knows where "Done" lives.
         let prominent = model.hasContent && !model.isRecording && !model.finishing
+        let enabled = prominent || model.isRecording
         VStack(spacing: 6) {
             Button(action: model.actions.onDone) {
                 Image(systemName: "checkmark")
                     .font(.system(size: 22, weight: .bold))
-                    .foregroundStyle(prominent ? TwinHudColor.canvas : TwinHudColor.twinBlue)
+                    .foregroundStyle(prominent ? TwinHudColor.canvas : TwinHudColor.body)
                     .frame(width: TwinCaptureChrome.doneButtonSize, height: TwinCaptureChrome.doneButtonSize)
                     .background(
-                        prominent ? TwinHudColor.twinBlue : TwinHudColor.twinBlue.opacity(0.12),
+                        prominent ? TwinHudColor.twinBlue : TwinHudColor.twinBlue.opacity(0.22),
                         in: RoundedRectangle(cornerRadius: 14)
                     )
                     .overlay(
                         RoundedRectangle(cornerRadius: 14)
-                            .stroke(TwinHudColor.twinBlue.opacity(prominent ? 0.9 : 0.35), lineWidth: 1)
+                            .stroke(TwinHudColor.twinBlue.opacity(prominent ? 0.9 : 0.6), lineWidth: 1.5)
                     )
             }
             .buttonStyle(.plain)
-            .disabled(!prominent && !model.isRecording)
-            .opacity((prominent || model.isRecording) ? 1 : 0.45)
+            .disabled(!enabled)
+            // Legible even when disabled — dim only slightly (0.85), never the old 0.45.
+            .opacity(enabled ? 1 : 0.85)
             Text("Done")
                 .font(.system(size: 11, weight: .medium))
                 .foregroundStyle(TwinHudColor.body)
