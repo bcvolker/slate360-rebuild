@@ -67,7 +67,7 @@ export function ContactList({ contacts, selectedId, query, onQueryChange, onSele
             >
               <span
                 className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl text-xs font-black text-white"
-                style={{ backgroundColor: c.color ?? "#D4AF37" }}
+                style={{ backgroundColor: c.color ?? "var(--graphite-primary)" }}
               >
                 {c.initials ?? c.name.slice(0, 2).toUpperCase()}
               </span>
