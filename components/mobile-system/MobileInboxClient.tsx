@@ -2,20 +2,11 @@
 
 import Link from "next/link";
 import { useEffect } from "react";
-import { usePathname, useSearchParams } from "next/navigation";
-import { CalendarDays, Inbox, MessageSquare, Users2 } from "lucide-react";
+import { CalendarDays, Inbox, Users2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useNotificationsState } from "@/lib/hooks/useNotificationsState";
 import { cn } from "@/lib/utils";
 import { mobileTokens } from "./mobileTokens";
-
-const INBOX_TABS = [
-  { key: "notifications", label: "Notifications" },
-  { key: "messages", label: "Messages" },
-  { key: "milestones", label: "Upcoming" },
-] as const;
-
-type InboxTabKey = (typeof INBOX_TABS)[number]["key"];
 
 const COORDINATION_LINKS = [
   { label: "Contacts", href: "/coordination/contacts", icon: Users2 },
@@ -23,9 +14,6 @@ const COORDINATION_LINKS = [
 ] as const;
 
 export function MobileInboxClient() {
-  const pathname = usePathname() ?? "/coordination/inbox";
-  const searchParams = useSearchParams();
-  const active = (searchParams?.get("tab") ?? "notifications") as InboxTabKey;
   const supabase = createClient();
   const { unreadNotifications, notificationsLoading, loadUnreadNotifications } =
     useNotificationsState(supabase);
@@ -62,7 +50,7 @@ export function MobileInboxClient() {
         <p className={cn("mt-4", mobileTokens.mobileEyebrowLabel)}>Coordination</p>
         <h1 className={cn("mt-1", mobileTokens.moduleTitle)}>Inbox</h1>
         <p className={mobileTokens.moduleSubtitle}>
-          Messages, notifications, and team coordination in one place.
+          Comments, uploads, and job updates that need your attention.
         </p>
       </section>
 
@@ -81,139 +69,70 @@ export function MobileInboxClient() {
         ))}
       </nav>
 
-      <section className={cn(mobileTokens.panelBase, "overflow-hidden")}>
-        <div className={mobileTokens.panelTabStripWrapper} role="tablist" aria-label="Inbox filter">
-          <div className="flex">
-            {INBOX_TABS.map((tab) => {
-              const isActive = active === tab.key;
-              const params = new URLSearchParams(searchParams?.toString() ?? "");
-              if (tab.key === "notifications") {
-                params.delete("tab");
-              } else {
-                params.set("tab", tab.key);
-              }
-              const query = params.toString();
-              const href = query ? `${pathname}?${query}` : pathname;
-              return (
-                <Link
-                  key={tab.key}
-                  href={href}
-                  role="tab"
-                  aria-selected={isActive}
-                  className={cn(
-                    mobileTokens.panelTabTrigger,
-                    "flex-1 text-center",
-                    isActive && "border-white text-white",
-                  )}
+      <section className={cn(mobileTokens.panelBase, "p-4")}>
+        <div className="space-y-3">
+          {notificationsLoading ? (
+            <p className="text-sm text-zinc-400">Loading notifications…</p>
+          ) : unreadNotifications.length > 0 ? (
+            <>
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={markAllRead}
+                  className="text-xs font-semibold text-[var(--graphite-primary)] hover:opacity-80"
                 >
-                  {tab.label}
-                </Link>
-              );
-            })}
-          </div>
-        </div>
-
-        <div className={mobileTokens.panelContent}>
-          {active === "notifications" && (
-            <div className="space-y-3">
-              {notificationsLoading ? (
-                <p className="text-sm text-zinc-400">Loading notifications…</p>
-              ) : unreadNotifications.length > 0 ? (
-                <>
-                  <div className="flex justify-end">
-                    <button
-                      type="button"
-                      onClick={markAllRead}
-                      className="text-xs font-semibold text-[var(--graphite-primary)] hover:opacity-80"
-                    >
-                      Mark all read
-                    </button>
-                  </div>
-                  {unreadNotifications.map((notification) => {
-                  const href =
-                    notification.link_path?.replace(/^\/project-hub(?=\/|$)/, "/projects") ??
-                    (notification.project_id ? `/projects/${notification.project_id}` : "/coordination/inbox");
-                  return (
-                    <Link
-                      key={notification.id}
-                      href={href}
-                      onClick={() => markRead(notification.id)}
-                      className={cn(
-                        mobileTokens.mobileGlassCardSurface,
-                        "block px-4 py-4 transition-colors hover:bg-white/[0.03]",
-                      )}
-                    >
-                      <p className="text-sm font-semibold text-zinc-100">{notification.title}</p>
-                      <p className="mt-1 text-xs leading-relaxed text-zinc-400">
-                        {notification.message}
-                      </p>
-                      <p className="mt-2 text-[11px] text-zinc-500">
-                        {new Date(notification.created_at).toLocaleString()}
-                      </p>
-                    </Link>
-                  );
-                })}
-                </>
-              ) : (
-                <>
-                  <div className="rounded-xl border border-white/10 bg-white/[0.05] p-4">
-                    <p className="text-sm font-medium leading-relaxed text-zinc-200">
-                      Welcome. Assigned walks and project notifications appear here when your team
-                      shares work with you.
+                  Mark all read
+                </button>
+              </div>
+              {unreadNotifications.map((notification) => {
+                const href =
+                  notification.link_path?.replace(/^\/project-hub(?=\/|$)/, "/projects") ??
+                  (notification.project_id
+                    ? `/projects/${notification.project_id}`
+                    : "/coordination/inbox");
+                return (
+                  <Link
+                    key={notification.id}
+                    href={href}
+                    onClick={() => markRead(notification.id)}
+                    className={cn(
+                      mobileTokens.mobileGlassCardSurface,
+                      "block px-4 py-4 transition-colors hover:bg-white/[0.03]",
+                    )}
+                  >
+                    <p className="text-sm font-semibold text-zinc-100">{notification.title}</p>
+                    <p className="mt-1 text-xs leading-relaxed text-zinc-400">
+                      {notification.message}
                     </p>
-                  </div>
-                  <EmptyInboxRow
-                    icon={Inbox}
-                    title="No notifications"
-                    detail="You are caught up for now."
-                  />
-                </>
-              )}
+                    <p className="mt-2 text-[11px] text-zinc-500">
+                      {new Date(notification.created_at).toLocaleString()}
+                    </p>
+                  </Link>
+                );
+              })}
+            </>
+          ) : (
+            <div className="flex flex-col items-center gap-3 px-6 py-10 text-center">
+              <span className={cn(mobileTokens.mobileIconWell, "h-12 w-12")} aria-hidden>
+                <Inbox className="h-6 w-6" strokeWidth={1.5} />
+              </span>
+              <div className="space-y-1">
+                <p className="text-sm font-semibold text-zinc-100">You&rsquo;re all caught up</p>
+                <p className="max-w-xs text-xs leading-relaxed text-zinc-400">
+                  Client comments, uploads, and job updates appear here when your team shares work
+                  with you.
+                </p>
+              </div>
+              <Link
+                href="/coordination/calendar"
+                className="text-xs font-semibold text-[var(--graphite-primary)] hover:opacity-80"
+              >
+                Open calendar
+              </Link>
             </div>
-          )}
-
-          {active === "messages" && (
-            <EmptyInboxRow
-              icon={MessageSquare}
-              title="No direct messages"
-              detail="Team messages will appear here."
-            />
-          )}
-
-          {active === "milestones" && (
-            <EmptyInboxRow
-              icon={CalendarDays}
-              title="No upcoming milestones"
-              detail="Schedule items from your projects will show here."
-            />
           )}
         </div>
       </section>
-    </div>
-  );
-}
-
-function EmptyInboxRow({
-  icon: Icon,
-  title,
-  detail,
-}: {
-  icon: typeof Inbox;
-  title: string;
-  detail: string;
-}) {
-  return (
-    <div
-      className={cn(
-        mobileTokens.mobileGlassCardSurface,
-        "flex items-center gap-3 border-dashed px-4 py-4 opacity-80",
-      )}
-    >
-      <Icon className="h-5 w-5 shrink-0 text-zinc-300" strokeWidth={1.75} />
-      <div>
-        <p className="text-sm font-semibold text-zinc-200">{title}</p>
-        <p className="text-xs text-zinc-400">{detail}</p>
-      </div>
     </div>
   );
 }
