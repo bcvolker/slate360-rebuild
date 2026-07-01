@@ -1,8 +1,10 @@
 "use client";
 
-import { CalendarDays } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { CalendarDays, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { CalendarEvent } from "@/lib/site-walk/load-calendar-data";
+import { CalendarEventSheet } from "@/components/coordination/CalendarEventSheet";
 import { MobileEmptyState } from "./MobileEmptyState";
 import { mobileTokens } from "./mobileTokens";
 
@@ -21,11 +23,46 @@ function groupLabel(due: Date, today: Date): string {
   return due.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
 }
 
+type ApiCalendarEvent = {
+  id: string;
+  title: string;
+  date: string;
+  all_day?: boolean;
+  location?: string | null;
+  projects?: { id: string; name: string } | null;
+};
+
 export function MobileCalendarClient({ events = [] }: { events?: CalendarEvent[] }) {
+  const [created, setCreated] = useState<CalendarEvent[]>([]);
+  const [sheetOpen, setSheetOpen] = useState(false);
+
+  const loadEvents = useCallback(async () => {
+    try {
+      const res = await fetch("/api/calendar", { cache: "no-store" });
+      if (!res.ok) return;
+      const data = (await res.json().catch(() => ({}))) as { events?: ApiCalendarEvent[] };
+      const mapped: CalendarEvent[] = (data.events ?? []).map((e) => ({
+        id: e.id,
+        title: e.title,
+        dueDate: e.date,
+        projectName: e.projects?.name ?? null,
+        status: null,
+      }));
+      setCreated(mapped);
+    } catch {
+      /* non-fatal — the passed schedule events still render */
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadEvents();
+  }, [loadEvents]);
+
+  const all = [...events, ...created];
   const today = new Date();
   const groups: { label: string; overdue: boolean; items: CalendarEvent[] }[] = [];
   const indexByLabel = new Map<string, number>();
-  for (const event of events) {
+  for (const event of all) {
     const due = new Date(event.dueDate);
     if (Number.isNaN(due.getTime())) continue;
     const label = groupLabel(due, today);
@@ -47,6 +84,13 @@ export function MobileCalendarClient({ events = [] }: { events?: CalendarEvent[]
         <p className={mobileTokens.moduleSubtitle}>
           Walks, milestones, and scheduled field work across your projects.
         </p>
+        <button
+          type="button"
+          onClick={() => setSheetOpen(true)}
+          className="mt-4 flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-[color-mix(in_srgb,var(--app-accent)_45%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_14%,transparent)] text-sm font-semibold text-[var(--app-accent)] transition-colors hover:bg-[color-mix(in_srgb,var(--app-accent)_22%,transparent)]"
+        >
+          <Plus className="h-4 w-4" strokeWidth={2} /> New event
+        </button>
       </section>
 
       {groups.length === 0 ? (
@@ -54,7 +98,7 @@ export function MobileCalendarClient({ events = [] }: { events?: CalendarEvent[]
           <MobileEmptyState
             icon={CalendarDays}
             title="No upcoming events"
-            description="Scheduled walks and project milestones will appear here."
+            description="Schedule a walk, inspection, or milestone — tap New event to add one."
           />
         </section>
       ) : (
@@ -63,8 +107,8 @@ export function MobileCalendarClient({ events = [] }: { events?: CalendarEvent[]
             <div className="flex items-center justify-between px-4 pb-1 pt-3">
               <h2
                 className={cn(
-                  "text-[11px] font-black uppercase tracking-[0.16em]",
-                  group.overdue ? "text-red-300" : "text-[var(--twin360-blue)]",
+                  "font-mono text-[11px] font-semibold uppercase tracking-[0.16em]",
+                  group.overdue ? "text-[var(--destructive)]" : "text-[var(--app-accent)]",
                 )}
               >
                 {group.label}
@@ -90,7 +134,7 @@ export function MobileCalendarClient({ events = [] }: { events?: CalendarEvent[]
                   </p>
                 </div>
                 {event.status ? (
-                  <span className="shrink-0 rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 text-[9px] font-black uppercase tracking-wide text-zinc-300">
+                  <span className="shrink-0 rounded-md border border-white/10 bg-white/[0.04] px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-zinc-300">
                     {event.status.replace(/_/g, " ")}
                   </span>
                 ) : null}
@@ -99,6 +143,12 @@ export function MobileCalendarClient({ events = [] }: { events?: CalendarEvent[]
           </section>
         ))
       )}
+
+      <CalendarEventSheet
+        open={sheetOpen}
+        onClose={() => setSheetOpen(false)}
+        onCreated={loadEvents}
+      />
     </div>
   );
 }
