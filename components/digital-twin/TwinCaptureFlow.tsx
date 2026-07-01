@@ -373,8 +373,9 @@ export function TwinCaptureFlow({
         <button
           type="button"
           onClick={skipPicker ? handleExitQuickFlow : () => setStep("picker")}
-          className="text-center text-xs text-zinc-400 hover:text-zinc-200"
+          className="inline-flex min-h-[48px] items-center justify-center gap-1.5 rounded-xl border border-[var(--twin360-blue)]/40 bg-[var(--twin360-blue)]/10 px-4 text-sm font-semibold text-[var(--twin360-blue)] transition-colors hover:bg-[var(--twin360-blue)]/20"
         >
+          <span aria-hidden className="text-base leading-none">‹</span>
           {skipPicker ? "Back to Digital Twin" : "Back to workspace picker"}
         </button>
       </div>
