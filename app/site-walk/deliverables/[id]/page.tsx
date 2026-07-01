@@ -29,5 +29,7 @@ export default async function OwnerDeliverablePage({ params }: Props) {
   const deliverable = await loadDeliverableById(id, orgId);
   if (!deliverable || deliverable.items.length === 0) notFound();
 
-  return <ViewerClient deliverable={deliverable} />;
+  // Owner arrived from the deliverables list — give them an in-app back control so the
+  // immersive viewer isn't a dead-end (browser-back only).
+  return <ViewerClient deliverable={deliverable} backHref="/site-walk/deliverables" />;
 }

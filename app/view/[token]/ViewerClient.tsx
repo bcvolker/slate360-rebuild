@@ -12,9 +12,12 @@ interface Props {
   /** Share token when viewed via a public link; omitted for the authenticated
    * owner preview (`/site-walk/deliverables/[id]`), which has no token. */
   token?: string;
+  /** When set (authenticated owner preview), render an in-app back control so the
+   * owner isn't trapped in the immersive viewer with only browser-back. */
+  backHref?: string;
 }
 
-export default function ViewerClient({ deliverable, token }: Props) {
+export default function ViewerClient({ deliverable, token, backHref }: Props) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [panelOpen, setPanelOpen] = useState(true);
 
@@ -118,6 +121,16 @@ export default function ViewerClient({ deliverable, token }: Props) {
 
   const headerActions = (
     <>
+      {backHref ? (
+        <a
+          href={backHref}
+          className="mr-1 inline-flex min-h-[40px] items-center gap-1 rounded-lg border border-white/10 px-2.5 text-sm font-medium text-slate-200 transition-colors hover:bg-[color-mix(in_srgb,var(--graphite-primary)_15%,transparent)] hover:text-[var(--graphite-primary)]"
+          aria-label="Back to deliverables"
+        >
+          <ChevronLeft size={16} />
+          <span className="hidden sm:inline">Back</span>
+        </a>
+      ) : null}
       <span className="mr-1 hidden text-xs text-slate-400 sm:inline">
         {activeIndex + 1} / {items.length}
       </span>
