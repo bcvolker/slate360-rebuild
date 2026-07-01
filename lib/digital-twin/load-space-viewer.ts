@@ -22,6 +22,67 @@ function parseCaptureGps(metadata: unknown): TwinGpsMetadata | null {
   };
 }
 
+export type TwinSpaceStatus = {
+  exists: boolean;
+  title: string | null;
+  /** Latest processing job for this space, if any. */
+  jobStatus: "queued" | "processing" | "completed" | "failed" | null;
+  jobStage: string | null;
+  captureId: string | null;
+  errorText: string | null;
+};
+
+/**
+ * Lightweight probe used when the full viewer data is null — distinguishes a space
+ * that EXISTS but has no ready model yet (still processing / failed) from a space
+ * that is genuinely missing. Without this, tapping a processing twin falsely reads
+ * "Twin not found."
+ */
+export async function loadTwinSpaceStatus(
+  spaceId: string,
+  orgId: string | null,
+): Promise<TwinSpaceStatus> {
+  const empty: TwinSpaceStatus = {
+    exists: false,
+    title: null,
+    jobStatus: null,
+    jobStage: null,
+    captureId: null,
+    errorText: null,
+  };
+  if (!orgId) return empty;
+
+  const admin = createAdminClient();
+  const { data: space } = await admin
+    .from("digital_twin_spaces")
+    .select("id, title")
+    .eq("id", spaceId)
+    .eq("org_id", orgId)
+    .is("deleted_at", null)
+    .maybeSingle();
+
+  if (!space) return empty;
+
+  const { data: job } = await admin
+    .from("digital_twin_processing_jobs")
+    .select("status, stage, capture_id, error_text")
+    .eq("space_id", spaceId)
+    .eq("org_id", orgId)
+    .is("deleted_at", null)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  return {
+    exists: true,
+    title: space.title ?? null,
+    jobStatus: (job?.status as TwinSpaceStatus["jobStatus"]) ?? null,
+    jobStage: job?.stage ?? null,
+    captureId: job?.capture_id ?? null,
+    errorText: job?.error_text ?? null,
+  };
+}
+
 export async function loadTwinSpaceViewerData(
   spaceId: string,
   orgId: string | null,
