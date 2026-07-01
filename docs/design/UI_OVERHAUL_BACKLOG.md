@@ -97,6 +97,33 @@ Also: doubled branding in desktop top-bar+sidebar; `DashboardDesktopTopBar` cram
 taglines ("Reality capture workspace" `DigitalTwinShell.tsx:49`, "Field workspace" `SiteWalkShell.tsx:43`) — show
 real org or omit; Twin home has NO error handling on quick-scan (Site Walk does). **Fixes 1–4 are mostly token-level.**
 
+## FEATURE SCREENS — top 12 fixes + slop list (feature-screen audit, 2026-06-30)
+Reassuring: the amber-slop heuristic found **no slop among amber files** (surviving amber = semantic status on
+real screens). But the feature-screen audit found **3 genuine slop screens** (mock data / fake KPIs) + broad
+polish debt. Top 12 ranked:
+1. **Kill ONE of the two twin submit flows** — `TwinCaptureSubmitScreen` (checkout) vs `TwinCaptureReviewScreen`
+   (stepper) both mount; different layouts/copy/quality models. Keep the stepper, delete/redirect the other.
+   Biggest single consistency win.
+2. **SLOP — Projects Portfolio fake KPIs** — `ProjectsPortfolioOverview.tsx:79-161` fake RFI/Submittal/Budget/
+   Completed/On-Hold cards ("Phase 1 snapshot only", no data path) — the CEO's flagged legacy-PM slop. DELETE the
+   5 mock cards; keep only real Active/Total, or build real workflows. Also multi-hue orange/purple/indigo palette.
+3. **SLOP — Coordination Calendar mock EVENTS** — `CalendarClient.tsx:6-11` hardcoded fake events (orphan
+   component; real route uses MobileCalendarClient). Wire to real data or delete the orphan.
+4. **SLOP — InboxTabs empty stub tabs** — `InboxTabs.tsx:75-96` Milestones/DMs are `border-dashed` stubs; wire or hide.
+5. **SlateDrop emerald cards** — `ProjectFileExplorer.tsx:123-168` bright green-50/emerald fills — loudest off-brand
+   block; recolor to graphite glass.
+6. **External-portal hex purge (client-facing!)** — `ExternalPortalShell.tsx:48`, `PortalGlassCard.tsx:19`,
+   `ViewerClient.tsx:278-374` hardcoded `#151A23`/`#0F172A`/`#0C0A09` → color-mix tokens. The one surface that must be flawless.
+7. **`PortalCta` broken class** — `PortalCta.tsx:50,68` references undefined `btn-teal-outline` → likely renders unstyled.
+8. **Global `font-black` → `font-bold` sweep** (Summary stats, Projects, Coordination, Calendar, portal titles) — de-cheapens type instantly.
+9. **Global `rounded-full` → `rounded-lg/md`** on badges/dots (SlateDrop, Projects, Coordination, DeliverableSlideshow) — kills the bubbly AI look.
+10. **Twin `clipBadgeLabel` bug — FIXED** (commit e41a9d88; drone/regular clips no longer "360 Photo").
+11. **SlateDrop touch targets** — `SlateDropTopBar.tsx:54-61` + `Sidebar.tsx:210` 20-32px controls → ≥44px; reveal the `opacity-0` hidden menu button.
+12. **Standardize the status pill** across project tabs via existing `resolveStatusPillClass`.
+Cross-cutting: hardcoded hex/rgba + `text-slate-*` + `font-black` + `rounded-full` recur everywhere and
+guard:design DOESN'T catch rgba/slate/font-black/rounded-full → **extend the guard** (also in UNIFIED_SHELL doc).
+CEO ruling needed on whether filled primary CTAs are the sanctioned exception (recommend yes).
+
 ## How to execute
 These need **preview-verified** implementation (auth-gated app — the sandbox can't log in; verify via `/preview/*`
 harnesses + DOM measurement). Sequence: (a) desktop `.dark` + glass-card token unification (biggest visual lift),
