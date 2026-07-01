@@ -281,10 +281,13 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
 
     private func torchDevice() -> AVCaptureDevice? {
         // Prefer the device ARKit is actually driving so we lock the AR camera, not a different
-        // AVCaptureDevice. Falls back to the back wide camera on older iOS.
-        if let d = ARWorldTrackingConfiguration.configurableCaptureDeviceForPrimaryCamera,
-           d.hasTorch {
-            return d
+        // AVCaptureDevice. `configurableCaptureDeviceForPrimaryCamera` is iOS 16+, so guard it and
+        // fall back to the back wide camera on iOS 15.
+        if #available(iOS 16.0, *) {
+            if let d = ARWorldTrackingConfiguration.configurableCaptureDeviceForPrimaryCamera,
+               d.hasTorch {
+                return d
+            }
         }
         let d = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back)
         return (d?.hasTorch == true) ? d : nil
@@ -604,7 +607,9 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
 
     func session(_ session: ARSession, cameraDidChangeTrackingState camera: ARCamera) {
         trackingQuality = TwinTrackingQuality.from(camera.trackingState)
-        if camera.trackingState == .normal { sessionNeedsResume = false }
+        // `==` on ARCamera.TrackingState needs iOS 16 Equatable (hard error in Swift 6). Pattern
+        // match instead — works on all deployment targets.
+        if case .normal = camera.trackingState { sessionNeedsResume = false }
         if isRecording {
             switch camera.trackingState {
             case .normal: tipText = "Tracking good"; tipWarning = false
