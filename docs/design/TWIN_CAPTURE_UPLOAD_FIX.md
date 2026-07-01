@@ -82,8 +82,12 @@ The full consensus uploader is implemented:
     retry w/ re-sign + backoff ×5; singles path unchanged for <8 MiB files).
   - `LiDARCapturePlugin.load()` → `resumePendingUploads()` finishes interrupted uploads at
     every launch; `AppDelegate` implements `handleEventsForBackgroundURLSession`.
-- Still TODO from the ranked list: gzip PLY/poses (+ worker gunzip → Modal redeploy), overlap
-  coaching, multi-clip registration stage.
+- **gzip PLY/poses — SHIPPED same day**: native `TwinGzip` (gzip container around Apple raw
+  DEFLATE + own CRC32) compresses `lidar_capture.ply.gz` / `lidar_poses.json.gz` (raw-file
+  fallback on error); worker `maybe_gunzip()` detects by magic bytes (legacy raw uploads still
+  work). Modal worker REDEPLOYED 2026-07-01.
+- Still TODO from the ranked list: overlap coaching, ONE-ARSession multi-clip, `register_clips()`
+  Modal stage, "Aligning clips" processing stage.
 
 ## Fix plan (ranked — "think outside the box" per CEO)
 1. **Resumable multipart + parallel parts** (no server change; biggest reliability+speed; moderate

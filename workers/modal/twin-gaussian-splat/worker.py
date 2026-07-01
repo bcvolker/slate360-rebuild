@@ -12,6 +12,7 @@ HTTP contract (POST /reconstruct):
 from __future__ import annotations
 
 import glob
+import gzip
 import hashlib
 import hmac
 import json
@@ -413,6 +414,27 @@ def _transform_and_write_lidar_ply(src_path: Path, dest_path: Path) -> int:
         return 0
 
 
+def maybe_gunzip(path: Path) -> None:
+    """Transparently decompress a gzip-compressed download in place.
+
+    The native uploader gzips the LiDAR PLY + poses JSON before upload (5-20x
+    smaller on cellular). Detection is by magic bytes, not filename, so both
+    compressed (.ply.gz) and legacy uncompressed uploads work unchanged.
+    """
+    try:
+        with path.open("rb") as fh:
+            magic = fh.read(2)
+        if magic != b"\x1f\x8b":
+            return
+        tmp = path.with_suffix(path.suffix + ".gunzipped")
+        with gzip.open(path, "rb") as src, tmp.open("wb") as dst:
+            shutil.copyfileobj(src, dst)
+        tmp.replace(path)
+        print(f"[gunzip] decompressed {path.name}")
+    except Exception as exc:  # noqa: BLE001
+        print(f"[gunzip] failed for {path.name} (continuing with raw file): {exc}")
+
+
 def try_lidar_bypass(
     s3,
     bucket: str,
@@ -441,6 +463,7 @@ def try_lidar_bypass(
         # 1. Download and parse poses JSON
         poses_path = source_dir / "_lidar_poses.json"
         s3.download_file(bucket, lidar_poses_key, str(poses_path))
+        maybe_gunzip(poses_path)
         with poses_path.open(encoding="utf-8") as f:
             poses_data = json.load(f)
 
@@ -529,6 +552,7 @@ def try_lidar_bypass(
             raw_ply = source_dir / "_lidar_raw.ply"
             try:
                 s3.download_file(bucket, lidar_ply_key, str(raw_ply))
+                maybe_gunzip(raw_ply)
                 init_ply = processed_dir / "lidar_init.ply"
                 point_count = _transform_and_write_lidar_ply(raw_ply, init_ply)
                 if point_count >= 100:

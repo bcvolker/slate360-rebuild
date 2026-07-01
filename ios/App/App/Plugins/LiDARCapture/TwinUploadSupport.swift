@@ -95,6 +95,39 @@ final class TwinUploadStore {
     }
 }
 
+/// Gzip compression for the LiDAR PLY + poses JSON before upload (5-20x smaller,
+/// lossless — locked consensus; the Modal worker gunzips by magic bytes). Apple's
+/// Compression framework emits raw DEFLATE for `.zlib`, so we wrap it in the gzip
+/// container (10-byte header + CRC32 + size trailer) ourselves — no extra deps.
+enum TwinGzip {
+    /// Compresses `source` into a `.gz` file at `dest`. Throws on failure — callers
+    /// fall back to uploading the raw file.
+    static func gzipFile(at source: URL, to dest: URL) throws {
+        let raw = try Data(contentsOf: source)
+        let deflated = try (raw as NSData).compressed(using: .zlib) as Data
+        // Header: magic, CM=deflate, no flags, mtime 0, XFL 0, OS 3 (Unix).
+        var out = Data([0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03])
+        out.append(deflated)
+        var crc = crc32(raw).littleEndian
+        var size = UInt32(truncatingIfNeeded: raw.count).littleEndian
+        withUnsafeBytes(of: &crc) { out.append(contentsOf: $0) }
+        withUnsafeBytes(of: &size) { out.append(contentsOf: $0) }
+        try out.write(to: dest, options: .atomic)
+    }
+
+    private static let table: [UInt32] = (0..<256).map { i -> UInt32 in
+        var c = UInt32(i)
+        for _ in 0..<8 { c = (c & 1) != 0 ? 0xEDB8_8320 ^ (c >> 1) : c >> 1 }
+        return c
+    }
+
+    private static func crc32(_ data: Data) -> UInt32 {
+        var c: UInt32 = ~0
+        for byte in data { c = table[Int((c ^ UInt32(byte)) & 0xFF)] ^ (c >> 8) }
+        return ~c
+    }
+}
+
 /// Small blocking HTTP helpers shared by the uploader facade and the background engine.
 /// API calls (init/sign/complete) are small + quick, so they use a plain ephemeral
 /// session — only the large part PUTs ride the background session.

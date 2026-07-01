@@ -168,11 +168,17 @@ public class LiDARCapturePlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate,
         if let v = manifest["videoUri"] as? String, let url = URL(string: v) {
             entries.append(.init(url: url, filename: "twin_capture.mp4", contentType: "video/mp4", assetKind: "video"))
         }
+        // PLY + poses gzip before upload (5-20x smaller; worker gunzips by magic
+        // bytes). On any compression failure fall back to the raw file.
         if let p = manifest["plyUri"] as? String, let url = URL(string: p) {
-            entries.append(.init(url: url, filename: "lidar_capture.ply", contentType: "application/octet-stream", assetKind: "ply_lidar"))
+            entries.append(gzippedEntry(
+                url: url, filename: "lidar_capture.ply",
+                rawContentType: "application/octet-stream", assetKind: "ply_lidar"))
         }
         if let po = manifest["posesUri"] as? String, let url = URL(string: po) {
-            entries.append(.init(url: url, filename: "lidar_poses.json", contentType: "application/json", assetKind: "lidar_poses"))
+            entries.append(gzippedEntry(
+                url: url, filename: "lidar_poses.json",
+                rawContentType: "application/json", assetKind: "lidar_poses"))
         }
 
         guard !entries.isEmpty else {
@@ -240,6 +246,26 @@ public class LiDARCapturePlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate,
                     self.resolveCapture(payload)
                 }
             }
+        }
+    }
+
+    /// Gzips a capture file for upload, returning the compressed entry (and deleting the
+    /// raw original); falls back to the uncompressed file if compression fails.
+    private func gzippedEntry(
+        url: URL,
+        filename: String,
+        rawContentType: String,
+        assetKind: String
+    ) -> TwinUploader.FileEntry {
+        let gzUrl = url.appendingPathExtension("gz")
+        do {
+            try TwinGzip.gzipFile(at: url, to: gzUrl)
+            try? FileManager.default.removeItem(at: url)
+            return .init(url: gzUrl, filename: filename + ".gz",
+                         contentType: "application/gzip", assetKind: assetKind)
+        } catch {
+            NSLog("[Slate360] gzip failed for \(filename) — uploading raw: \(error.localizedDescription)")
+            return .init(url: url, filename: filename, contentType: rawContentType, assetKind: assetKind)
         }
     }
 
