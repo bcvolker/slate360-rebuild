@@ -43,7 +43,10 @@ export function buildWalkReviewStopCards(
       id: item.id,
       stopNumber: index + 1,
       thumbUrl:
-        item.item_type === "photo"
+        // Both photo and photo_360 have a durable server image (s3-backed). Route them to the
+        // server endpoint so the thumbnail survives review remounts (the local blob: URL gets
+        // revoked, which was breaking 360 thumbnails on revisit).
+        item.item_type === "photo" || item.item_type === "photo_360"
           ? `/api/site-walk/items/${encodeURIComponent(item.id)}/image`
           : item.local_preview_url ?? null,
       noteSnippet: item.description?.trim() || item.title?.trim() || "No notes added yet.",

@@ -159,7 +159,11 @@ export function SiteWalkHomeClient({
         return;
       }
       setTargetSheetOpen(false);
-      router.push(buildCaptureLaunchUrl({ session: body.session.id, quick: "camera" }));
+      // Project walks must show the walk-mode chooser (camera vs walk-with-drawings) so a project
+      // that HAS plans can start a walk-with-plans. Passing quick:"camera" here forced camera-only
+      // and made the with-plans path unreachable from the mobile home. Omit it (mirrors
+      // startProjectWalk in lib/site-walk/start-walk.ts).
+      router.push(buildCaptureLaunchUrl({ session: body.session.id }));
       setStartingWalk(false);
     },
     [router, scopedCopy.startedFrom, startingWalk],
