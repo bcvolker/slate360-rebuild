@@ -20,7 +20,8 @@ function fmt(value: string): string {
   return new Date(value).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
-const VISIBLE_CAP = 6;
+// Show a full grid (was 6 — truncated the library into a tiny box; Brian's "mostly empty" complaint).
+const VISIBLE_CAP = 18;
 
 /**
  * Single-screen domain workspace for a dashboard section (Site Walks, Twins…).
@@ -62,7 +63,7 @@ export function DashboardDomainWorkspace({
   const moreCount = current.list.length - shown.length;
 
   return (
-    <div className="mx-auto flex h-full w-full max-w-5xl flex-col gap-4">
+    <div className="flex h-full w-full flex-col gap-4">
       <header className="flex items-center justify-between gap-3">
         <div>
           <h1 className={t.pageTitle}>{title}</h1>
@@ -119,7 +120,7 @@ export function DashboardDomainWorkspace({
             </div>
           ) : (
             <>
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {shown.map((i) => (
                   <Link key={i.id} href={i.href} className={`${t.cardInteractive} flex flex-col gap-1 p-4`}>
                     <span className="truncate text-sm font-semibold text-[var(--graphite-text-header)]">{i.title}</span>
