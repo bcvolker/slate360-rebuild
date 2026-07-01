@@ -54,6 +54,7 @@ export function TwinShareAnnotateShell({
   const viewerRef = useRef<SplatViewerHandle | null>(null);
   const [tool, setTool] = useState<TwinShareTool>("view");
   const [cameraMode, setCameraMode] = useState<TwinShareCameraMode>("orbit");
+  const [repositionMode, setRepositionMode] = useState(false);
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [authorName, setAuthorName] = useState("");
   const [commentBody, setCommentBody] = useState("");
@@ -294,8 +295,13 @@ export function TwinShareAnnotateShell({
           setCameraMode("orbit");
           return;
         }
+        setRepositionMode(false);
         setCameraMode("interior");
       }}
+      repositionMode={repositionMode}
+      onToggleReposition={
+        cameraMode === "orbit" ? () => setRepositionMode((on) => !on) : undefined
+      }
     >
       {splatReady ? (
         <TwinShareSplatViewer
@@ -305,6 +311,7 @@ export function TwinShareAnnotateShell({
           onPick={(pt) => void handlePick(pt)}
           cameraMode={cameraMode}
           onCameraModeChange={setCameraMode}
+          repositionMode={repositionMode}
         />
       ) : (
         <div className="absolute inset-0">
