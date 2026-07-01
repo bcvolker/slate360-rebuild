@@ -3,6 +3,7 @@ import { Clock, ExternalLink, FileText, Plus } from "lucide-react";
 import { resolveServerOrgContext } from "@/lib/server/org-context";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { SiteWalkDeliverable } from "@/lib/types/site-walk";
+import { DeliverableShareButton } from "@/components/site-walk/DeliverableShareButton";
 
 type DeliverableRow = Pick<SiteWalkDeliverable, "id" | "title" | "deliverable_type" | "status" | "share_token" | "created_at"> & {
   projects?: { name?: string | null } | Array<{ name?: string | null }> | null;
@@ -71,9 +72,11 @@ function DeliverableCard({ deliverable }: { deliverable: DeliverableRow }) {
       </Link>
       <div className="flex shrink-0 items-center gap-2">
         <span className={`rounded-full px-2 py-0.5 text-xs font-black uppercase tracking-wider ${statusStyle}`}>{deliverable.status.replace(/_/g, " ")}</span>
-        {/* External share link is a SECONDARY action, only when published/shared. */}
+        {/* Publish & share a PUBLIC link (mints a token on first use) — the mobile send path. */}
+        <DeliverableShareButton deliverableId={deliverable.id} initialToken={deliverable.share_token ?? null} />
+        {/* Open the existing public link once one exists. */}
         {deliverable.share_token && (
-          <Link href={`/share/deliverable/${deliverable.share_token}`} className="flex h-9 w-9 items-center justify-center rounded-2xl bg-white/10 text-slate-300 hover:bg-white/20 hover:text-white" title="Open public share link">
+          <Link href={`/share/deliverable/${deliverable.share_token}`} className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10 text-slate-300 hover:bg-white/20 hover:text-white" title="Open public share link">
             <ExternalLink className="h-4 w-4" />
           </Link>
         )}
