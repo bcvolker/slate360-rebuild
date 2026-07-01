@@ -97,7 +97,19 @@ Promote the 160px featured tile (`DashboardHomeContent.tsx:62-92`) to a full-ble
 H1 title, meta, "Open project" CTA → `/projects/{projectId}` (the ProjectOverviewTab, which already
 exists and is solid). Rank deliverable-first, scoped to most-recently-active project.
 
-## Twin processing "5%" (separate slice, chip task_b8503c26)
-Root cause: `src/trigger/twin-gaussian-splat.ts` writes progress_pct:5 once; Modal never posts back.
-Add `POST /api/twin/jobs/[id]/progress` + Modal stage callbacks; rebuild `TwinSubmitStepStatus` as a
-staged checklist (upload→align→train→mesh→export) + elapsed + ETA + "close, we'll notify you."
+## Twin processing "5%" — DONE + LIVE (commit d1edb682, worker redeployed 2026-07-01)
+Full pipeline shipped: migration `20260630120000` (stage col), HMAC `POST /api/twin/jobs/[id]/progress`,
+worker `post_progress()` at upload(10)/align(25)/train(45)/optimize(85)/export(95), `TwinProcessingChecklist`
+(staged list + elapsed + ETA + time-based fallback) + safe-to-leave card. This turn added the completion
+reward hub (View / Edit & clean → /twins/[id]/editor + branding/send note) and removed the confusing
+disabled opacity-40 button. **Modal twin worker was last deployed 2026-06-08 (pre-post_progress) — redeployed
+2026-07-01 so stage callbacks are now live.** Backend audit (2026-07-01) confirms pipelines 1-3
+(reconstruction / deliverable / model-retrieval) all WORKING, gravity path intact, no broken links.
+
+## 3D-tiles surrounding context — GREENFIELD (not built; docs only)
+Backend audit: zero code — no tile renderer, no Cesium/Google dep, no GPS/geo columns on captures/spaces,
+worker centers splat on median point (no global anchor). To blend a twin into surrounding 3D context needs:
+(1) capture-side GPS lat/lng/alt/heading + geo columns, (2) an ECEF/ENU solve to anchor the locally-centered
+splat globally, (3) a tiles renderer (`3d-tiles-renderer` OSS or CesiumJS) + Google Photorealistic 3D Tiles
+key in `splat-viewer-scene.tsx`, (4) a registration transform seating the splat on the tileset. Needs a
+Google-Tiles-vs-OSS decision + build plan (panel prompt pending).
