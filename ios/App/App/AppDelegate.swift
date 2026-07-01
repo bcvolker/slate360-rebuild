@@ -40,6 +40,19 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
     }
 
+    func application(
+        _ application: UIApplication,
+        handleEventsForBackgroundURLSession identifier: String,
+        completionHandler: @escaping () -> Void
+    ) {
+        // iOS relaunched (or woke) the app because background twin-upload transfers
+        // finished. Recreate the session so queued delegate events (part completions)
+        // can land; the engine calls the handler from urlSessionDidFinishEvents.
+        guard identifier == TwinUploadSession.identifier else { completionHandler(); return }
+        TwinUploadSession.shared.backgroundCompletionHandler = completionHandler
+        TwinUploadSession.shared.activate()
+    }
+
     func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
         // Called when the app was launched with a url. Feel free to add additional processing here,
         // but if you want the App API to support tracking app url opens, make sure to keep this call

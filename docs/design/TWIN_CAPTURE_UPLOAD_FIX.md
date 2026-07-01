@@ -65,6 +65,26 @@ building from scratch.
 resume missing only → parallel parts + 16MiB → gzip PLY/poses → (optional) batch sign-parts +
 register-part/status server endpoints for cross-device recovery.
 
+### SHIPPED 2026-07-01 — resumable background uploader (needs fresh Codemagic build)
+The full consensus uploader is implemented:
+- **Server (live on next Vercel deploy):** `POST /api/digital-twin/upload/sign-parts` (batch
+  pre-sign, **6h expiry** so URLs outlive background schedules); `upload/init` accepts
+  `partSizeBytes` (clamped 8–64 MiB; native asks for **16 MiB**, web unchanged at 8).
+- **Native (rides next TestFlight build):**
+  - `TwinUploadSession.swift` — singleton **background URLSession** engine
+    (`ai.slate360.twin.upload.bg`, `isDiscretionary=false`, `sessionSendsLaunchEvents=true`,
+    4 parallel connections, 300s/24h timeouts). Parts are sliced to disk files and sent via
+    `uploadTask(with:fromFile:)` — screen-lock/backgrounding no longer kills uploads.
+  - `TwinUploadSupport.swift` — on-disk manifest (`Application Support/TwinUploads/<uploadId>/`)
+    persisting `{partNumber → ETag}` after every part; relaunch resumes ONLY missing parts.
+    Engine POSTs `upload/complete` itself (works from a background wake too).
+  - `TwinUploader.swift` — rewritten as the per-capture orchestrator (16 MiB parts, per-part
+    retry w/ re-sign + backoff ×5; singles path unchanged for <8 MiB files).
+  - `LiDARCapturePlugin.load()` → `resumePendingUploads()` finishes interrupted uploads at
+    every launch; `AppDelegate` implements `handleEventsForBackgroundURLSession`.
+- Still TODO from the ranked list: gzip PLY/poses (+ worker gunzip → Modal redeploy), overlap
+  coaching, multi-clip registration stage.
+
 ## Fix plan (ranked — "think outside the box" per CEO)
 1. **Resumable multipart + parallel parts** (no server change; biggest reliability+speed; moderate
    native work). Persist `{partNumber, etag}` to disk keyed by `s3UploadId`; on relaunch upload only

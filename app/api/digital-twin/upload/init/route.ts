@@ -25,10 +25,21 @@ type InitBody = {
   title?: string;
   gps?: TwinGpsFix;
   files: TwinFileDescriptor[];
+  /** Optional larger part size (bytes). The native uploader asks for 16 MiB parts —
+   *  fewer round trips + better cellular throughput. Clamped to [8, 64] MiB; the web
+   *  uploader omits it and keeps the 8 MiB default. */
+  partSizeBytes?: number;
 };
 
-function computePartCount(sizeBytes: number): number {
-  return Math.max(1, Math.ceil(sizeBytes / TWIN_MULTIPART_PART_BYTES));
+const MAX_PART_BYTES = 64 * 1024 * 1024;
+
+function resolvePartSize(requested?: number): number {
+  if (!requested || !Number.isFinite(requested)) return TWIN_MULTIPART_PART_BYTES;
+  return Math.min(MAX_PART_BYTES, Math.max(TWIN_MULTIPART_PART_BYTES, Math.floor(requested)));
+}
+
+function computePartCount(sizeBytes: number, partBytes: number): number {
+  return Math.max(1, Math.ceil(sizeBytes / partBytes));
 }
 
 export const POST = (req: NextRequest) =>
@@ -79,12 +90,13 @@ export const POST = (req: NextRequest) =>
         .eq("org_id", orgId);
 
       const uploads = [];
+      const partBytes = resolvePartSize(body.partSizeBytes);
 
       for (let index = 0; index < body.files.length; index++) {
         const file = body.files[index];
         const storageKey = buildTwinStorageKey(orgId, body.space_id, capture.id, file.filename);
         const assetKind = inferTwinAssetKind(file.contentType, file.filename, file.assetKind);
-        const totalParts = computePartCount(file.sizeBytes);
+        const totalParts = computePartCount(file.sizeBytes, partBytes);
 
         const { data: asset, error: assetError } = await admin
           .from("digital_twin_capture_assets")
@@ -140,7 +152,7 @@ export const POST = (req: NextRequest) =>
             s3_upload_id: created.UploadId,
             content_type: file.contentType,
             total_parts: totalParts,
-            part_size_bytes: TWIN_MULTIPART_PART_BYTES,
+            part_size_bytes: partBytes,
             status: "initiated",
             expires_at: expiresAt,
           })
@@ -156,7 +168,7 @@ export const POST = (req: NextRequest) =>
           uploadId: multipart.id,
           s3UploadId: created.UploadId,
           key: storageKey,
-          partSizeBytes: TWIN_MULTIPART_PART_BYTES,
+          partSizeBytes: partBytes,
           totalParts,
         });
       }

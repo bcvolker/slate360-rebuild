@@ -69,6 +69,15 @@ public class LiDARCapturePlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate,
 
     private var sessionStartTime: Double = 0
 
+    // MARK: - Lifecycle
+
+    /// Runs once per launch when Capacitor instantiates the plugin: finishes any
+    /// capture uploads that were interrupted by a kill/crash/relaunch (the background
+    /// engine persists per-part progress, so only the missing parts re-upload).
+    public override func load() {
+        TwinUploadSession.shared.resumePendingUploads()
+    }
+
     // MARK: - Plugin API
 
     @objc func isAvailable(_ call: CAPPluginCall) {

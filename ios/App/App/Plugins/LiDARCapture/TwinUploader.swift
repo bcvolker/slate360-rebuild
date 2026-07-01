@@ -4,18 +4,17 @@ import Foundation
 ///
 /// Mirrors the web multipart pipeline (`hooks/twin-upload-runners.ts`) but runs
 /// entirely in native code so large capture files NEVER pass through the WKWebView
-/// JS heap. Pulling a multi-hundred-MB MP4 into a JS `Blob`
-/// (`fetch(convertFileSrc(uri)).blob()`) on the remote-origin webview destabilised the
-/// WebContent process; Capacitor recovered by reloading, which surfaced as the
-/// post-capture "Load failed" page. Uploading from native sidesteps that entirely —
-/// the web layer only ever receives a `captureId`.
+/// JS heap (pulling a multi-hundred-MB MP4 into a JS `Blob` destabilised the
+/// WebContent process — the post-capture "Load failed" crash).
 ///
-/// API contract (all POSTs carry the WKWebView Supabase auth cookies as a `Cookie`
-/// header; PUTs go straight to the presigned storage URL with no extra headers):
-///   - files >= 8 MiB  → POST /upload/init → per-part POST /upload/sign-part →
-///                       PUT presigned → POST /upload/complete
-///   - files <  8 MiB  → POST /upload/single {presign} → PUT presigned →
-///                       POST /upload/single {finalize}
+/// Rebuilt 2026-07-01 per the locked upload consensus (TWIN_CAPTURE_UPLOAD_FIX.md):
+/// large files ride a **background URLSession** (`TwinUploadSession`) as file-based
+/// parallel part PUTs with on-disk resume state, so screen-lock/backgrounding no
+/// longer kills the upload and a relaunch resumes only the missing parts. This class
+/// stays the per-capture orchestrator and keeps the old blocking contract:
+///   - files >= 8 MiB  → POST /upload/init (16 MiB parts) → batch sign-parts →
+///                       background PUTs → POST /upload/complete (engine-driven)
+///   - files <  8 MiB  → POST /upload/single {presign} → PUT → {finalize} (inline)
 /// A single `captureId` threads through every call so all assets attach to one capture.
 final class TwinUploader {
 
@@ -45,27 +44,30 @@ final class TwinUploader {
         }
     }
 
-    // 8 MiB — must equal TWIN_MULTIPART_PART_BYTES / TWIN_SINGLE_UPLOAD_MAX_BYTES on the server.
-    private let partSize = 8 * 1024 * 1024
+    // Multipart threshold — must equal TWIN_MULTIPART_PART_BYTES / TWIN_SINGLE_UPLOAD_MAX_BYTES
+    // on the server (files below this go through /upload/single).
+    private let multipartThreshold = 8 * 1024 * 1024
+    // Requested part size — bigger parts (16 MiB, consensus range 16-25) mean fewer
+    // round trips and better cellular throughput. The server clamps and its response
+    // (`partSizeBytes`) is authoritative.
+    private let requestedPartBytes = 16 * 1024 * 1024
 
     private let apiBase: String
     private let cookieHeader: String
     private var spaceId: String
     private var projectId: String
     private let title: String?
-    private let session: URLSession
 
     /// Emits a short human-readable label for the step currently in flight (e.g.
-    /// "Uploading video…", "Finalizing…"). Drives the live web spinner copy so a slow or
-    /// stalled step is visible instead of presenting as a frozen "Uploading scan…".
+    /// "Uploading video…", "Finishing up…"). Drives the live web spinner copy.
     var onStep: ((String) -> Void)?
 
-    /// Emits overall upload progress in [0, 1], byte-weighted across all files, so the web
-    /// spinner can show a live percentage instead of an indeterminate "Uploading scan…".
+    /// Emits overall upload progress in [0, 1], byte-weighted across all files.
     var onProgress: ((Double) -> Void)?
 
-    private var uploadedBytes = 0
-    private var totalBytes = 1
+    private var uploadedBytes: Int64 = 0
+    private var totalBytes: Int64 = 1
+    private let progressLock = NSLock()
 
     init(apiBase: String, cookieHeader: String, spaceId: String, projectId: String, title: String?) {
         // Trim any trailing slash so apiBase + "/api/..." is well-formed.
@@ -74,13 +76,6 @@ final class TwinUploader {
         self.spaceId = spaceId
         self.projectId = projectId
         self.title = title
-        let cfg = URLSessionConfiguration.ephemeral
-        // 60s with-no-data ceiling (down from 120) so a stalled connection surfaces a loud
-        // error in minutes, not the ~6 min a long timeout × retries used to spin silently.
-        cfg.timeoutIntervalForRequest = 60
-        cfg.timeoutIntervalForResource = 3600
-        cfg.httpShouldSetCookies = false // we attach cookies explicitly
-        self.session = URLSession(configuration: cfg)
     }
 
     /// Friendly label for a capture file, used in progress updates.
@@ -95,10 +90,11 @@ final class TwinUploader {
 
     /// Uploads every file and returns the resulting capture id. Blocking — call on a
     /// background queue. Throws `UploadError` (or the underlying URL error) on failure.
+    /// The heavy transfers run on the background session, so the app being locked or
+    /// suspended mid-upload pauses this thread but no longer kills the upload.
     func upload(files: [FileEntry]) throws -> String {
         // Self-heal: if the web layer didn't pass a workspace (e.g. a stale cached web
-        // bundle), create a quick-scan space natively so the capture isn't lost. Mirrors
-        // the web's bootQuickScan call.
+        // bundle), create a quick-scan space natively so the capture isn't lost.
         if spaceId.isEmpty {
             onStep?("Preparing workspace…")
             let (sid, pid) = try createQuickScanSpace(title: title ?? "Quick scan")
@@ -106,12 +102,12 @@ final class TwinUploader {
             projectId = pid
         }
 
-        totalBytes = max(1, files.reduce(0) { $0 + fileSize($1.url) })
+        totalBytes = max(1, files.reduce(Int64(0)) { $0 + Int64(fileSize($1.url)) })
         uploadedBytes = 0
 
         var captureId: String?
-        let multipart = files.filter { fileSize($0.url) >= partSize }
-        let singles = files.filter { fileSize($0.url) < partSize }
+        let multipart = files.filter { fileSize($0.url) >= multipartThreshold }
+        let singles = files.filter { fileSize($0.url) < multipartThreshold }
 
         if !multipart.isEmpty {
             captureId = try initAndUploadMultipart(multipart, captureId: captureId)
@@ -143,7 +139,7 @@ final class TwinUploader {
         return (sid, pid)
     }
 
-    // MARK: - Multipart
+    // MARK: - Multipart (background engine)
 
     private func initAndUploadMultipart(_ files: [FileEntry], captureId: String?) throws -> String {
         let fileSpecs: [[String: Any]] = files.map { entry in
@@ -159,6 +155,7 @@ final class TwinUploader {
             "space_id": spaceId,
             "project_id": projectId,
             "files": fileSpecs,
+            "partSizeBytes": requestedPartBytes,
         ]
         if let cid = captureId { body["capture_id"] = cid }
         if let t = title { body["title"] = t }
@@ -169,66 +166,66 @@ final class TwinUploader {
             throw UploadError.missing("init response fields")
         }
 
+        // Hand every file to the background engine, then block until all complete.
+        // The engine persists per-part progress, retries with re-sign, and POSTs
+        // /upload/complete itself (so it also finishes after a background relaunch).
+        let group = DispatchGroup()
+        let errorLock = NSLock()
+        var uploadErrors: [Error] = []
+
         for (index, entry) in files.enumerated() {
             guard index < uploads.count else { throw UploadError.missing("upload row \(index)") }
+            let upload = uploads[index]
+            guard let uploadId = upload["uploadId"] as? String,
+                  let key = upload["key"] as? String,
+                  let totalParts = (upload["totalParts"] as? NSNumber)?.intValue else {
+                throw UploadError.missing("multipart upload row")
+            }
+            let partBytes = (upload["partSizeBytes"] as? NSNumber)?.intValue ?? requestedPartBytes
+
+            let manifest = TwinUploadManifest(
+                uploadId: uploadId,
+                key: key,
+                captureId: cid,
+                apiBase: apiBase,
+                filePath: entry.url.path,
+                filename: entry.filename,
+                contentType: entry.contentType,
+                totalParts: totalParts,
+                partSizeBytes: partBytes,
+                fileSizeBytes: fileSize(entry.url),
+                etags: [:]
+            )
+
             onStep?(stepLabel(for: entry))
-            try uploadMultipartFile(entry, upload: uploads[index])
+            group.enter()
+            TwinUploadSession.shared.start(
+                manifest: manifest,
+                cookieHeader: cookieHeader,
+                onBytes: { [weak self] delta in self?.addProgress(delta) },
+                onDone: { error in
+                    if let error = error {
+                        errorLock.lock(); uploadErrors.append(error); errorLock.unlock()
+                    }
+                    group.leave()
+                }
+            )
         }
+
+        group.wait()
+        if let first = uploadErrors.first { throw first }
         return cid
     }
 
-    private func uploadMultipartFile(_ entry: FileEntry, upload: [String: Any]) throws {
-        guard let uploadId = upload["uploadId"] as? String,
-              let key = upload["key"] as? String,
-              let totalParts = (upload["totalParts"] as? NSNumber)?.intValue else {
-            throw UploadError.missing("multipart upload row")
-        }
-        let partBytes = (upload["partSizeBytes"] as? NSNumber)?.intValue ?? partSize
-
-        let handle = try FileHandle(forReadingFrom: entry.url)
-        defer { try? handle.close() }
-
-        var parts: [[String: Any]] = []
-        for partNumber in 1...max(1, totalParts) {
-            try handle.seek(toOffset: UInt64((partNumber - 1) * partBytes))
-            let chunk = handle.readData(ofLength: partBytes)
-
-            // Re-sign per attempt (presigned part URLs expire in 15 min) — mirrors web.
-            var etag: String?
-            var lastError: Error?
-            for attempt in 1...3 {
-                do {
-                    let sign = try postJSON("/api/digital-twin/upload/sign-part", [
-                        "uploadId": uploadId,
-                        "key": key,
-                        "partNumber": partNumber,
-                    ])
-                    guard let signed = sign["signedUrl"] as? String, let url = URL(string: signed) else {
-                        throw UploadError.missing("signedUrl")
-                    }
-                    etag = try putData(url, chunk, contentType: entry.contentType)
-                    break
-                } catch {
-                    lastError = error
-                    Thread.sleep(forTimeInterval: 0.5 * Double(attempt))
-                }
-            }
-            guard let resolvedEtag = etag else {
-                throw lastError ?? UploadError.missing("ETag for part \(partNumber)")
-            }
-            parts.append(["partNumber": partNumber, "etag": resolvedEtag, "sizeBytes": chunk.count])
-            uploadedBytes += chunk.count
-            onProgress?(Double(uploadedBytes) / Double(totalBytes))
-        }
-
-        _ = try postJSON("/api/digital-twin/upload/complete", [
-            "uploadId": uploadId,
-            "key": key,
-            "parts": parts,
-        ])
+    private func addProgress(_ delta: Int64) {
+        progressLock.lock()
+        uploadedBytes += delta
+        let frac = min(1.0, Double(uploadedBytes) / Double(totalBytes))
+        progressLock.unlock()
+        onProgress?(frac)
     }
 
-    // MARK: - Single
+    // MARK: - Single (small files, inline)
 
     private func uploadSingle(_ entry: FileEntry, captureId: String?) throws -> String {
         let size = fileSize(entry.url)
@@ -257,12 +254,11 @@ final class TwinUploader {
         var lastError: Error?
         var ok = false
         for attempt in 1...3 {
-            do { _ = try putData(url, data, contentType: entry.contentType); ok = true; break }
+            do { _ = try TwinUploadHTTP.putData(url, data, contentType: entry.contentType); ok = true; break }
             catch { lastError = error; Thread.sleep(forTimeInterval: 0.5 * Double(attempt)) }
         }
         guard ok else { throw lastError ?? UploadError.missing("single PUT") }
-        uploadedBytes += data.count
-        onProgress?(Double(uploadedBytes) / Double(totalBytes))
+        addProgress(Int64(data.count))
 
         _ = try postJSON("/api/digital-twin/upload/single", [
             "phase": "finalize",
@@ -273,62 +269,10 @@ final class TwinUploader {
         return cid
     }
 
-    // MARK: - HTTP helpers
+    // MARK: - Helpers
 
     private func postJSON(_ path: String, _ body: [String: Any]) throws -> [String: Any] {
-        guard let url = URL(string: apiBase + path) else { throw UploadError.missing("URL for \(path)") }
-        var req = URLRequest(url: url)
-        req.httpMethod = "POST"
-        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        req.setValue("application/json", forHTTPHeaderField: "Accept")
-        if !cookieHeader.isEmpty { req.setValue(cookieHeader, forHTTPHeaderField: "Cookie") }
-        req.httpBody = try JSONSerialization.data(withJSONObject: body, options: [])
-
-        let (data, response) = try syncRequest(req, uploadBody: nil)
-        guard let http = response as? HTTPURLResponse else { throw UploadError.missing("HTTP response") }
-        let json = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any] ?? [:]
-        guard (200..<300).contains(http.statusCode) else {
-            let msg = (json["error"] as? String) ?? (String(data: data, encoding: .utf8) ?? "")
-            throw UploadError.http(http.statusCode, msg)
-        }
-        return json
-    }
-
-    @discardableResult
-    private func putData(_ url: URL, _ data: Data, contentType: String) throws -> String {
-        var req = URLRequest(url: url)
-        req.httpMethod = "PUT"
-        req.setValue(contentType, forHTTPHeaderField: "Content-Type")
-        let (_, response) = try syncRequest(req, uploadBody: data)
-        guard let http = response as? HTTPURLResponse else { throw UploadError.missing("PUT response") }
-        guard (200..<300).contains(http.statusCode) else {
-            throw UploadError.http(http.statusCode, "storage PUT")
-        }
-        let etag = http.value(forHTTPHeaderField: "Etag") ?? http.value(forHTTPHeaderField: "ETag") ?? ""
-        guard !etag.isEmpty else { throw UploadError.missing("ETag header") }
-        return etag
-    }
-
-    /// Runs a URLSession task synchronously on the calling (background) queue. `uploadBody`
-    /// non-nil ⇒ uploadTask (streams from memory); nil ⇒ dataTask.
-    private func syncRequest(_ req: URLRequest, uploadBody: Data?) throws -> (Data, URLResponse) {
-        var outData: Data?
-        var outResponse: URLResponse?
-        var outError: Error?
-        let semaphore = DispatchSemaphore(value: 0)
-
-        let completion: (Data?, URLResponse?, Error?) -> Void = { data, response, error in
-            outData = data; outResponse = response; outError = error; semaphore.signal()
-        }
-        let task: URLSessionTask = uploadBody != nil
-            ? session.uploadTask(with: req, from: uploadBody!, completionHandler: completion)
-            : session.dataTask(with: req, completionHandler: completion)
-        task.resume()
-        semaphore.wait()
-
-        if let error = outError { throw error }
-        guard let response = outResponse else { throw UploadError.missing("response") }
-        return (outData ?? Data(), response)
+        try TwinUploadHTTP.postJSON(apiBase: apiBase, path: path, cookieHeader: cookieHeader, body: body)
     }
 
     private func fileSize(_ url: URL) -> Int {
