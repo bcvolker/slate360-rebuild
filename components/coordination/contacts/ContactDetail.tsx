@@ -46,7 +46,7 @@ export function ContactDetail({ contact }: Props) {
       <div className="flex items-start gap-4">
         <span
           className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-lg font-black text-white"
-          style={{ backgroundColor: contact.color ?? "#D4AF37" }}
+          style={{ backgroundColor: contact.color ?? "var(--graphite-primary)" }}
         >
           {contact.initials ?? contact.name.slice(0, 2).toUpperCase()}
         </span>
