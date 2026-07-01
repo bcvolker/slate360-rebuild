@@ -1,255 +1,131 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import {
-  FolderKanban,
-  ClipboardList,
-  CheckCircle2,
-  AlertTriangle,
-  DollarSign,
-  BarChart3,
-  FileText,
-  ChevronDown,
-  ArrowUpRight,
-} from "lucide-react";
-import type { ProjectsSummary } from "@/lib/types/projects";
+import Link from "next/link";
+import { FolderKanban, CircleDot, CheckCircle2, PauseCircle, ChevronRight } from "lucide-react";
+import type { ProjectListItem } from "@/lib/types/projects";
 
 type Props = {
-  summary: ProjectsSummary | null;
-  summaryLoading: boolean;
-  fallbackProjectsCount: number;
+  projects: ProjectListItem[];
+  loading?: boolean;
 };
 
-type SnapshotCard = {
-  id: string;
-  icon: typeof FolderKanban;
-  borderColor: string;
-  bgColor: string;
-  labelColor: string;
-  valueColor: string;
-  value: string | number;
-  label: string;
-  detail: string[];
-  /** Direct route for a Phase 1-safe destination */
-  href?: string;
-  /** If set, navigates to the first matching project's tool tab */
-  toolPath?: string;
+type StatusKey = "active" | "completed" | "on-hold";
+
+function normalizeStatus(raw: string | null | undefined): StatusKey {
+  const s = String(raw ?? "").toLowerCase();
+  if (s === "completed") return "completed";
+  if (s === "on-hold" || s === "on_hold") return "on-hold";
+  return "active";
+}
+
+const STATUS_META: Record<StatusKey, { label: string; icon: typeof CircleDot }> = {
+  active: { label: "Active", icon: CircleDot },
+  completed: { label: "Completed", icon: CheckCircle2 },
+  "on-hold": { label: "On hold", icon: PauseCircle },
 };
 
-export default function ProjectsPortfolioOverview({
-  summary,
-  summaryLoading,
-  fallbackProjectsCount,
-}: Props) {
-  const router = useRouter();
-  const [expandedCard, setExpandedCard] = useState<string | null>(null);
+function relativeDate(iso: string): string {
+  const then = new Date(iso).getTime();
+  if (Number.isNaN(then)) return "";
+  const days = Math.floor((Date.now() - then) / 86_400_000);
+  if (days <= 0) return "Today";
+  if (days === 1) return "Yesterday";
+  if (days < 30) return `${days}d ago`;
+  if (days < 365) return `${Math.floor(days / 30)}mo ago`;
+  return `${Math.floor(days / 365)}y ago`;
+}
 
-  const firstProjectId = summary?.recentProjects?.[0]?.id;
+const panel = "rounded-xl border border-white/10 bg-white/[0.04] backdrop-blur-md";
+const eyebrow =
+  "font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--graphite-muted)]";
 
-  const getCardHref = (card: SnapshotCard) => {
-    if (card.href) return card.href;
-    if (!card.toolPath || !firstProjectId) return null;
-    return `/projects/${firstProjectId}/${card.toolPath}`;
-  };
+export default function ProjectsPortfolioOverview({ projects, loading }: Props) {
+  const counts = projects.reduce(
+    (acc, p) => {
+      acc[normalizeStatus(p.status)] += 1;
+      return acc;
+    },
+    { active: 0, completed: 0, "on-hold": 0 } as Record<StatusKey, number>,
+  );
 
-  const navigateToCard = (card: SnapshotCard) => {
-    const href = getCardHref(card);
-    if (!href) return;
-    router.push(href);
-  };
+  const recent = [...projects]
+    .sort((a, b) => b.created_at.localeCompare(a.created_at))
+    .slice(0, 12);
 
-  const cards: SnapshotCard[] = [
-    {
-      id: "active",
-      icon: FolderKanban,
-      borderColor: "border-[color-mix(in_srgb,var(--graphite-primary)_30%,transparent)]",
-      bgColor: "bg-[color-mix(in_srgb,var(--graphite-primary)_12%,transparent)]",
-      labelColor: "text-[var(--graphite-primary)]",
-      valueColor: "text-[var(--graphite-primary)]",
-      value: summary?.totals.activeProjects ?? 0,
-      label: "Active Projects",
-      detail: summary?.recentProjects?.length
-        ? summary.recentProjects
-            .filter((p) => p.status === "active")
-            .slice(0, 5)
-            .map((p) => p.name)
-        : ["No active projects"],
-    },
-    {
-      id: "rfis",
-      icon: ClipboardList,
-      borderColor: "border-orange-900/50",
-      bgColor: "bg-orange-950/40",
-      labelColor: "text-orange-400",
-      valueColor: "text-orange-300",
-      value: summary?.work.openRfis ?? 0,
-      label: "Open RFIs",
-      detail: [
-        "Aggregated open RFIs across all projects",
-      ],
-    },
-    {
-      id: "submittals",
-      icon: CheckCircle2,
-      borderColor: "border-purple-900/50",
-      bgColor: "bg-purple-950/40",
-      labelColor: "text-purple-400",
-      valueColor: "text-purple-300",
-      value: summary?.work.pendingSubmittals ?? 0,
-      label: "Pending Submittals",
-      detail: [
-        "Pending/submitted submittals across projects",
-      ],
-    },
-    {
-      id: "budget",
-      icon: DollarSign,
-      borderColor: "border-emerald-900/50",
-      bgColor: "bg-emerald-950/40",
-      labelColor: "text-emerald-400",
-      valueColor: "text-emerald-300",
-      value: new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: "USD",
-        notation: "compact",
-        maximumFractionDigits: 1,
-      }).format(summary?.budget.totalBudget ?? 0),
-      label: "Portfolio Budget",
-      detail: [
-        `Total spent: ${new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", notation: "compact", maximumFractionDigits: 1 }).format(summary?.budget.totalSpent ?? 0)}`,
-        `Change orders: ${summary?.budget.totalChangeOrders ?? 0}`,
-      ],
-    },
-    {
-      id: "completed",
-      icon: BarChart3,
-      borderColor: "border-teal-900/50",
-      bgColor: "bg-teal-950/40",
-      labelColor: "text-teal-400",
-      valueColor: "text-teal-300",
-      value: summary?.totals.completedProjects ?? 0,
-      label: "Completed",
-      detail: summary?.recentProjects?.length
-        ? summary.recentProjects
-            .filter((p) => p.status === "completed")
-            .slice(0, 5)
-            .map((p) => p.name)
-        : ["No completed projects yet"],
-    },
-    {
-      id: "onhold",
-      icon: AlertTriangle,
-      borderColor: "border-red-900/50",
-      bgColor: "bg-red-950/40",
-      labelColor: "text-red-400",
-      valueColor: "text-red-300",
-      value: summary?.totals.onHoldProjects ?? 0,
-      label: "On Hold",
-      detail: [
-        "Projects currently marked on-hold",
-        "Re-activate from project settings when ready",
-      ],
-    },
-    {
-      id: "documents",
-      icon: FileText,
-      borderColor: "border-indigo-900/50",
-      bgColor: "bg-indigo-950/40",
-      labelColor: "text-indigo-400",
-      valueColor: "text-indigo-300",
-      value: summary?.totals.projects ?? fallbackProjectsCount,
-      label: "Total Projects",
-      href: "/projects",
-      detail: summary?.recentProjects?.length
-        ? summary.recentProjects.slice(0, 5).map((p) => `${p.name} (${p.status})`)
-        : ["No projects yet — open the Projects workspace to get started"],
-    },
-  ];
+  const locationOf = (p: ProjectListItem) =>
+    p.location || [p.city, p.state].filter(Boolean).join(", ") || p.region || "Location not set";
 
   return (
-    <div className="space-y-3">
-      {/* Portfolio Snapshot header */}
-      <div className="rounded-2xl border border-app bg-app-card px-4 py-4 sm:px-5 sm:py-5">
-        <div className="flex items-center justify-between gap-3 flex-wrap">
-          <div>
-            <p className="text-[11px] uppercase tracking-wider font-bold text-zinc-500">
-              Portfolio Snapshot
-            </p>
-            <h2 className="text-base sm:text-lg font-black text-foreground">
-              Organization-level project health
-            </h2>
-          </div>
-          <span className="text-[11px] font-semibold text-zinc-400">
-            {summaryLoading
-              ? "Loading summary..."
-              : `${summary?.totals.projects ?? fallbackProjectsCount} projects tracked`}
-          </span>
-        </div>
-
-        {/* Interactive metric cards */}
-        <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3">
-          {cards.map((card) => {
-            const isOpen = expandedCard === card.id;
-            const cardHref = getCardHref(card);
-            const hasLink = !!cardHref;
-            const Icon = card.icon;
-
+    <div className="flex h-full min-h-0 flex-col gap-4 overflow-y-auto pb-4">
+      {/* Status rollup — real counts, no vanity KPIs */}
+      <section aria-label="Portfolio status">
+        <p className={`${eyebrow} mb-2`}>Portfolio</p>
+        <div className="grid grid-cols-3 gap-2">
+          {(Object.keys(STATUS_META) as StatusKey[]).map((key) => {
+            const Icon = STATUS_META[key].icon;
             return (
-              <div key={card.id} className="relative">
-                <button
-                  onClick={() => setExpandedCard(isOpen ? null : card.id)}
-                  className={`w-full rounded-xl border ${card.borderColor} ${card.bgColor} p-3 text-left transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 group ${
-                    isOpen ? "ring-2 ring-zinc-600 shadow-md" : ""
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <Icon size={13} className={card.labelColor} />
-                    <ChevronDown
-                      size={10}
-                      className={`${card.labelColor} opacity-0 group-hover:opacity-100 transition-all ${
-                        isOpen ? "rotate-180 opacity-100" : ""
-                      }`}
-                    />
-                  </div>
-                  <p className={`text-[10px] uppercase tracking-wider font-bold ${card.labelColor} mt-1.5`}>
-                    {card.label}
-                  </p>
-                  <p className={`text-lg sm:text-xl font-black ${card.valueColor} mt-0.5`}>
-                    {card.value}
-                  </p>
-                </button>
-
-                {/* Expanded detail dropdown */}
-                {isOpen && (
-                  <div className="absolute left-0 right-0 top-full mt-1 z-10 bg-white/[0.04] rounded-xl border border-app shadow-lg p-3 space-y-1.5 animate-in slide-in-from-top-1">
-                    {card.detail.map((entry, idx) => (
-                      <p
-                        key={`${card.id}-${idx}`}
-                        className="text-xs text-zinc-300 flex items-start gap-2"
-                      >
-                        <span className="mt-1 w-1.5 h-1.5 rounded-full bg-zinc-600 shrink-0" />
-                        {entry}
-                      </p>
-                    ))}
-                    {hasLink && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigateToCard(card);
-                        }}
-                        className="mt-2 flex w-full items-center justify-center gap-1 rounded-lg bg-zinc-700 border border-zinc-600 px-3 py-1.5 text-xs font-semibold text-zinc-200 hover:bg-zinc-600 transition-colors"
-                      >
-                        View Details <ArrowUpRight size={10} />
-                      </button>
-                    )}
-                  </div>
-                )}
+              <div key={key} className={`${panel} flex items-center gap-3 px-3 py-3`}>
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[color-mix(in_srgb,var(--app-accent)_28%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_12%,transparent)] text-[var(--app-accent)]">
+                  <Icon className="h-4 w-4" strokeWidth={1.75} />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-lg font-semibold leading-none text-white">{counts[key]}</p>
+                  <p className={`${eyebrow} mt-1`}>{STATUS_META[key].label}</p>
+                </div>
               </div>
             );
           })}
         </div>
-      </div>
+      </section>
+
+      {/* Recent projects — every row clicks into the workspace */}
+      <section aria-label="Recent projects" className="min-h-0 flex-1">
+        <p className={`${eyebrow} mb-2`}>Recent projects</p>
+        {loading ? (
+          <div className="space-y-2">
+            {[0, 1, 2].map((i) => (
+              <div key={i} className={`${panel} h-16 animate-pulse`} />
+            ))}
+          </div>
+        ) : recent.length === 0 ? (
+          <div className={`${panel} flex flex-col items-center gap-3 px-6 py-12 text-center`}>
+            <span className="flex h-12 w-12 items-center justify-center rounded-xl border border-[color-mix(in_srgb,var(--app-accent)_28%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_12%,transparent)] text-[var(--app-accent)]">
+              <FolderKanban className="h-6 w-6" strokeWidth={1.5} />
+            </span>
+            <div className="space-y-1">
+              <p className="text-sm font-semibold text-white">No projects yet</p>
+              <p className="max-w-xs text-xs leading-relaxed text-[var(--graphite-muted)]">
+                Create a project to start capturing walks, twins, and deliverables.
+              </p>
+            </div>
+          </div>
+        ) : (
+          <ul className="space-y-2">
+            {recent.map((p) => {
+              const status = normalizeStatus(p.status);
+              return (
+                <li key={p.id}>
+                  <Link
+                    href={`/projects/${p.id}`}
+                    className={`${panel} flex items-center gap-3 px-4 py-3 transition-colors hover:border-[color-mix(in_srgb,var(--app-accent)_40%,transparent)]`}
+                  >
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/[0.05] text-[var(--graphite-muted)]">
+                      <FolderKanban className="h-4 w-4" strokeWidth={1.75} />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-semibold text-white">{p.name}</p>
+                      <p className="truncate text-xs text-[var(--graphite-muted)]">
+                        {STATUS_META[status].label} · {locationOf(p)} · {relativeDate(p.created_at)}
+                      </p>
+                    </div>
+                    <ChevronRight className="h-4 w-4 shrink-0 text-[var(--graphite-muted)]" />
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </section>
     </div>
   );
 }

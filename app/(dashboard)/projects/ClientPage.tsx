@@ -174,11 +174,7 @@ export default function ProjectsClientPage() {
                 id: "portfolio",
                 label: "Portfolio",
                 content: (
-                  <ProjectsPortfolioOverview
-                    summary={null}
-                    summaryLoading={false}
-                    fallbackProjectsCount={projects.length}
-                  />
+                  <ProjectsPortfolioOverview projects={filteredProjects} loading={loading} />
                 ),
               },
             ]}
