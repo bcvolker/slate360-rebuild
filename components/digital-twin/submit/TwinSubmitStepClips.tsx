@@ -18,9 +18,11 @@ type Props = {
 
 function clipBadgeLabel(clip: TwinCaptureClipReview): string {
   const category = clip.files[0] ? classifyTwinMedia(clip.files[0]) : null;
-  if (category === "360_photo" || category === "360_video") return "360 Photo";
+  // Truthful labels — the old fallthrough labeled EVERY non-360 clip "360 Photo" (incl. drone video).
+  if (category === "360_photo") return "360° Photo";
+  if (category === "360_video") return "360° Video";
   if (clip.mode === "video") return "Drone";
-  return "360 Photo";
+  return "Clip";
 }
 
 export function TwinSubmitStepClips({
