@@ -15,18 +15,24 @@ private struct TwinGlassPanel: ViewModifier {
 
     func body(content: Content) -> some View {
         content
-            // Solid dark scrim (Graphite canvas @ 85%) instead of .ultraThinMaterial, which washed
-            // out to near-white over a bright camera feed and made every chip/label invisible. A
-            // near-opaque pill + shadow reads over ANY scene; stroke raised for a defined edge.
+            // Graphite Glass: dark scrim at 0.62 (not the old 0.85 "black pill") over a
+            // material blur, with a NEUTRAL white hairline — matching Site Walk's panel
+            // grammar. Accent is reserved for interactive states, never panel chrome.
+            // (.ultraThinMaterial alone washed out over bright camera feeds; the scrim
+            // layer keeps labels legible over any scene.)
             .background(
-                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                    .fill(TwinHudColor.canvas.opacity(0.85))
+                ZStack {
+                    RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                        .fill(.ultraThinMaterial)
+                    RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                        .fill(TwinHudColor.canvas.opacity(0.62))
+                }
             )
             .overlay(
                 RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                    .stroke(TwinHudColor.twinBlue.opacity(0.55), lineWidth: 1)
+                    .stroke(Color.white.opacity(0.12), lineWidth: 1)
             )
-            .shadow(color: .black.opacity(0.45), radius: 8, y: 2)
+            .shadow(color: .black.opacity(0.35), radius: 8, y: 2)
     }
 }
 
@@ -115,7 +121,7 @@ private struct TwinHudTopBar: View {
 
                 Text(model.headerLabel)
                     .font(.system(size: 11, weight: .semibold, design: .monospaced))
-                    .foregroundStyle(TwinHudColor.twinBlue)
+                    .foregroundStyle(TwinHudColor.body)
                     .lineLimit(1)
                     .frame(maxWidth: .infinity)
 
@@ -251,14 +257,14 @@ private struct TwinHudChipRow: View {
                             .fill(TwinHudColor.twinBlue)
                             .frame(width: 6, height: 6)
                     }
-                    .foregroundStyle(TwinHudColor.twinBlue)
+                    .foregroundStyle(TwinHudColor.body)
 
                     Text("·")
                         .foregroundStyle(TwinHudColor.muted)
 
                     Text("Tracking \(model.tracking.label)")
                         .font(.system(size: 12, weight: .semibold, design: .monospaced))
-                        .foregroundStyle(model.tracking == .good ? TwinHudColor.twinBlue : Color.orange)
+                        .foregroundStyle(model.tracking == .good ? TwinHudColor.body : Color.orange)
                 }
                 .padding(.horizontal, 14)
                 .frame(height: 28)
@@ -287,7 +293,7 @@ private struct TwinHudBottomRail: View {
     }
 
     var body: some View {
-        VStack(spacing: 10) {
+        VStack(spacing: 12) {
             // Readiness / recording hint — INSIDE the dock, never floating over the camera.
             Text(hintText)
                 .font(.system(size: 11, weight: .semibold, design: .monospaced))
@@ -296,6 +302,10 @@ private struct TwinHudBottomRail: View {
                 .minimumScaleFactor(0.8)
                 .frame(maxWidth: .infinity)
                 .allowsHitTesting(false)
+
+            // VIDEO | PHOTOS mode selector — Site Walk grammar (mono uppercase segments,
+            // accent only on the active segment). Locked while recording.
+            modeSelector
 
             HStack(alignment: .center) {
                 torchControl
@@ -320,9 +330,45 @@ private struct TwinHudBottomRail: View {
 
     private var hintText: String {
         if model.isRecording {
-            return "● REC \(TwinHudStateModel.formatTimer(ms: model.elapsedMs)) · VIDEO · target 1:30"
+            return "● REC \(TwinHudStateModel.formatTimer(ms: model.elapsedMs)) · CLIP \(max(1, model.clipCount))"
+        }
+        if model.captureMode == .photos {
+            return model.photoCount > 0
+                ? "PHOTOS · \(model.photoCount) captured · tap for more"
+                : (model.tipText.isEmpty ? "Photos — tap the shutter" : model.tipText)
         }
         return model.tipText.isEmpty ? "Ready · tap record" : model.tipText
+    }
+
+    @ViewBuilder
+    private var modeSelector: some View {
+        if model.capability.photosModeEnabled {
+            HStack(spacing: 4) {
+                modeSegment("VIDEO", mode: .video)
+                modeSegment("PHOTOS", mode: .photos)
+            }
+            .padding(3)
+            .background(Color.white.opacity(0.06), in: RoundedRectangle(cornerRadius: 10))
+            .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.white.opacity(0.10), lineWidth: 1))
+            .opacity(model.isRecording ? 0.4 : 1)
+            .disabled(model.isRecording)
+        }
+    }
+
+    private func modeSegment(_ label: String, mode: TwinCaptureMode) -> some View {
+        let active = model.captureMode == mode
+        return Button(action: { model.actions.onModeChange(mode) }) {
+            Text(label)
+                .font(.system(size: 10, weight: .bold, design: .monospaced))
+                .foregroundStyle(active ? TwinHudColor.canvas : TwinHudColor.body)
+                .padding(.horizontal, 16)
+                .frame(height: 26)
+                .background(
+                    active ? TwinHudColor.twinBlue : Color.clear,
+                    in: RoundedRectangle(cornerRadius: 8)
+                )
+        }
+        .buttonStyle(.plain)
     }
 
     @ViewBuilder
@@ -355,14 +401,9 @@ private struct TwinHudBottomRail: View {
 
     @ViewBuilder
     private var shutterControl: some View {
+        let photosMode = model.captureMode == .photos
         Button(action: model.actions.onShutter) {
             ZStack {
-                // Solid dark backing disc → the shutter stays legible where it pokes above the dock
-                // over any camera scene (bright wall / dark room).
-                Circle()
-                    .fill(TwinHudColor.canvas.opacity(0.6))
-                    .frame(width: TwinCaptureChrome.shutterSize + 18, height: TwinCaptureChrome.shutterSize + 18)
-
                 Circle()
                     .stroke(
                         AngularGradient(
@@ -376,7 +417,11 @@ private struct TwinHudBottomRail: View {
                     .rotationEffect(.degrees(model.coverageProgress * 360))
 
                 Circle()
-                    .fill(model.isRecording ? TwinHudColor.destructive : TwinHudColor.twinBlue)
+                    .fill(
+                        model.isRecording
+                            ? TwinHudColor.destructive
+                            : (photosMode ? Color.white : TwinHudColor.twinBlue)
+                    )
                     .frame(width: TwinCaptureChrome.shutterInner, height: TwinCaptureChrome.shutterInner)
                     .overlay(
                         Circle().stroke(Color.white.opacity(0.85), lineWidth: model.isRecording ? 0 : 3)
@@ -392,8 +437,11 @@ private struct TwinHudBottomRail: View {
         .buttonStyle(.plain)
         .disabled(!shutterEnabled)
         .opacity(shutterEnabled ? 1 : 0.45)
-        .accessibilityLabel(model.isRecording ? "Stop clip" : "Start clip")
-        .offset(y: -TwinCaptureChrome.shutterRaise)
+        .accessibilityLabel(
+            photosMode ? "Take photo" : (model.isRecording ? "Stop clip" : "Start clip")
+        )
+        // No offset — the shutter sits inline in the dock row (the old -16pt raise made it
+        // overlap the hint text above; the "backing disc" black pill is gone with it).
     }
 
     @ViewBuilder

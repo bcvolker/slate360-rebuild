@@ -72,6 +72,15 @@ workflows:
           LATEST=$(app-store-connect get-latest-testflight-build-number "$APP_STORE_APP_ID" || echo 0)
           cd ios/App
           agvtool new-version -all $(($LATEST + 1))
+      - name: Stamp git commit into Info.plist
+        # The capture HUD shows "b<build>·<sha>" so a stale TestFlight install is
+        # identifiable in seconds (the recurring "fixes didn't take effect" trap).
+        script: |
+          SHA=$(echo "$CM_COMMIT" | cut -c1-7)
+          PLIST=ios/App/App/Info.plist
+          /usr/libexec/PlistBuddy -c "Add :SlateBuildCommit string $SHA" "$PLIST" \
+            || /usr/libexec/PlistBuddy -c "Set :SlateBuildCommit $SHA" "$PLIST"
+          echo "Stamped SlateBuildCommit=$SHA"
       - name: Build .ipa
         script: |
           xcode-project build-ipa \

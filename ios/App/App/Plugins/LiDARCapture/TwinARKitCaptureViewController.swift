@@ -133,6 +133,21 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
     // read by the guardrail timer (word-sized Bool — safe cross-thread read).
     private var lowOverlapDetected = false
 
+    // PHOTOS mode: shutter snaps full-res stills from the SAME ARSession (no writer).
+    // Stills upload as photo assets → photogrammetry inputs alongside/instead of video.
+    private var captureMode: TwinCaptureMode = .video
+    private var photoURLs: [(url: URL, filename: String)] = []   // main-thread-only
+    private var photoShotCount = 0                                // word-sized for HUD reads
+
+    /// Git commit + build number stamped by Codemagic into Info.plist — shown in the HUD
+    /// header so a stale TestFlight install is identifiable in two seconds (the recurring
+    /// "why didn't my fixes take effect" trap).
+    private let buildStamp: String = {
+        let commit = (Bundle.main.object(forInfoDictionaryKey: "SlateBuildCommit") as? String) ?? "dev"
+        let build = (Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String) ?? "?"
+        return "b\(build)·\(commit)"
+    }()
+
     init(options: TwinCaptureOptions) {
         self.options = options
         super.init(nibName: nil, bundle: nil)
@@ -228,6 +243,14 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
         model.actions.onShutter = { [weak self] in self?.tapRecord() }
         model.actions.onTorchToggle = { [weak self] in self?.tapTorch() }
         model.actions.onDone = { [weak self] in self?.tapFinish() }
+        model.actions.onModeChange = { [weak self] mode in
+            guard let self = self, !self.isRecording else { return }
+            self.captureMode = mode
+            self.tipText = mode == .photos
+                ? "Photos — tap the shutter · overlap each shot"
+                : "Ready · tap record"
+            self.pushHudState(force: true)
+        }
     }
 
     /// Coalesced HUD refresh (5 Hz max) — always marshals to the main actor for SwiftUI.
@@ -238,14 +261,14 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
             ? min(1, max(0, lastVideoPTS / options.maxDurationSec))
             : 0
         let clips = hudClipCount
-        let hasContent = pointCount > 0 || lastVideoPTS >= 1.0
+        let hasContent = pointCount > 0 || lastVideoPTS >= 1.0 || photoShotCount > 0
         let finishing = (state == .finishing)
         let capability = TwinHudCapability(
             torchSupported: torchDevice() != nil,
             depthPresent: depthSemanticsActive,
             streamReady: state == .ready || state == .recording,
             needsResume: sessionNeedsResume,
-            photosModeEnabled: false,
+            photosModeEnabled: true,
             // ARKit owns camera exposure under ARWorldTrackingConfiguration.
             // Keep this disabled; do not attempt lockForConfiguration exposure control.
             exposureLockEnabled: false
@@ -253,7 +276,7 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
         let header: String = {
             switch phase {
             case .checking: return "Checking device…"
-            case .ready: return "TWIN 360 · LIDAR"
+            case .ready: return "TWIN 360 · \(buildStamp)"
             case .recording: return "● Recording"
             case .finishing: return "Saving…"
             case .failed: return "Failed"
@@ -273,6 +296,8 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
                 keyframeCount: self.keyframeCount,
                 coverageProgress: coverage,
                 clipCount: clips,
+                captureMode: self.captureMode,
+                photoCount: self.photoShotCount,
                 hasContent: hasContent,
                 finishing: finishing,
                 capability: capability,
@@ -364,9 +389,41 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
     // MARK: Buttons
 
     @objc private func tapRecord() {
-        // Shutter = start / end a CLIP. The ARSession keeps running between clips so
-        // the next clip shares the same world origin. Done exports everything.
-        if isRecording { endClip(andExport: false) } else { startRecording() }
+        // PHOTOS mode: shutter snaps a still. VIDEO mode: shutter = start/end a CLIP —
+        // the ARSession keeps running between clips so the next clip shares the same
+        // world origin. Done exports everything.
+        if captureMode == .photos, !isRecording {
+            capturePhoto()
+        } else if isRecording {
+            endClip(andExport: false)
+        } else {
+            startRecording()
+        }
+    }
+
+    /// Snaps a full-res still from the live ARSession frame (JPEG on videoQueue — the
+    /// CI render must not block the main thread).
+    private func capturePhoto() {
+        guard state == .ready, let frame = arSession.currentFrame else { return }
+        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+        let index = photoURLs.count + 1
+        let url = URL(fileURLWithPath: NSTemporaryDirectory())
+            .appendingPathComponent("\(sessionId)_photo\(index).jpg")
+        let ci = CIImage(cvPixelBuffer: frame.capturedImage)
+        videoQueue.async { [weak self] in
+            guard let self = self else { return }
+            guard let data = self.ciContext.jpegRepresentation(
+                of: ci,
+                colorSpace: CGColorSpaceCreateDeviceRGB()
+            ) else { return }
+            try? data.write(to: url)
+            DispatchQueue.main.async {
+                self.photoURLs.append((url, "twin_photo_\(index).jpg"))
+                self.photoShotCount = self.photoURLs.count
+                self.tipText = "PHOTOS · \(self.photoShotCount) captured"
+                self.pushHudState(force: true)
+            }
+        }
     }
 
     @objc private func tapCancel() {
@@ -378,7 +435,7 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
     @objc private func tapFinish() {
         if isRecording {
             endClip(andExport: true)
-        } else if !clipVideos.isEmpty || pointCount > 0 {
+        } else if !clipVideos.isEmpty || !photoURLs.isEmpty || pointCount > 0 {
             exportAndResolve()
         }
     }
@@ -517,8 +574,9 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
             // otherwise the shutter stays live, startRecording resets didExport, and a
             // second Done could double-export. No-op when already .finishing.
             self.setState(.finishing, message: "Saving scan…")
-            // Snapshot on main — clipVideos is main-thread-owned.
+            // Snapshot on main — clipVideos/photoURLs are main-thread-owned.
             let clips = self.clipVideos
+            let photos = self.photoURLs
             self.depthQueue.async { [weak self] in
                 guard let self = self else { return }
                 let sid = self.sessionId
@@ -533,6 +591,10 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
                 "cancelled": false,
                 // One video per clip; all clips share the session's world origin.
                 "videoUris": clips.map { [
+                    "uri": $0.url.absoluteString,
+                    "filename": $0.filename,
+                ] },
+                "photoUris": photos.map { [
                     "uri": $0.url.absoluteString,
                     "filename": $0.filename,
                 ] },
@@ -711,6 +773,14 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
     func sessionInterruptionEnded(_ session: ARSession) {
         sessionNeedsResume = false
         reapplyTorchIfNeeded()  // ARKit resets torch across interruptions — restore desired state
+        // Clear any stale interruption message so the user isn't stuck staring at
+        // "Capture interrupted" on a perfectly healthy, resumed session.
+        if !isRecording, state == .ready {
+            tipText = completedClipCount > 0
+                ? "Clip \(completedClipCount) saved — record the next area or tap Done"
+                : "Ready · tap record"
+            tipWarning = false
+        }
         pushHudState(force: true)
     }
 
@@ -1023,6 +1093,8 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
         if let v = videoURL { try? FileManager.default.removeItem(at: v) }
         for clip in clipVideos { try? FileManager.default.removeItem(at: clip.url) }
         clipVideos.removeAll()
+        for photo in photoURLs { try? FileManager.default.removeItem(at: photo.url) }
+        photoURLs.removeAll()
     }
 
     private func fail(_ message: String) {

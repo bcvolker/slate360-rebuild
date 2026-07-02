@@ -17,6 +17,8 @@ FILES = %w[
   LiDARCapturePlugin.m
   TwinARKitCaptureViewController.swift
   TwinUploader.swift
+  TwinUploadSupport.swift
+  TwinUploadSession.swift
   SlateBridgeViewController.swift
   TwinCaptureHudHost.swift
   TwinCaptureHudView.swift

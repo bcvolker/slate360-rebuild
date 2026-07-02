@@ -85,9 +85,13 @@ public class LiDARCapturePlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate,
                             ARWorldTrackingConfiguration.supportsFrameSemantics(.smoothedSceneDepth)
         // `nativeCapture: true` signals this build has the native-led presentCapture flow,
         // so the web layer only routes there when the installed app actually supports it.
+        // buildCommit/buildNumber let the web layer log EXACTLY which native build is
+        // installed (the recurring "stale TestFlight build" trap).
         call.resolve([
             "available": ARWorldTrackingConfiguration.isSupported && supportsDepth,
             "nativeCapture": true,
+            "buildCommit": (Bundle.main.object(forInfoDictionaryKey: "SlateBuildCommit") as? String) ?? "dev",
+            "buildNumber": (Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String) ?? "?",
         ])
     }
 
@@ -175,10 +179,18 @@ public class LiDARCapturePlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate,
         } else if let v = manifest["videoUri"] as? String, let url = URL(string: v) {
             videoFiles.append((url, "twin_capture.mp4"))
         }
+        var photoFiles: [(url: URL, filename: String)] = []
+        if let arr = manifest["photoUris"] as? [[String: Any]] {
+            for item in arr {
+                if let u = item["uri"] as? String, let url = URL(string: u) {
+                    photoFiles.append((url, (item["filename"] as? String) ?? "twin_photo.jpg"))
+                }
+            }
+        }
         let plyUrl = (manifest["plyUri"] as? String).flatMap(URL.init(string:))
         let posesUrl = (manifest["posesUri"] as? String).flatMap(URL.init(string:))
 
-        guard !videoFiles.isEmpty || plyUrl != nil || posesUrl != nil else {
+        guard !videoFiles.isEmpty || !photoFiles.isEmpty || plyUrl != nil || posesUrl != nil else {
             resolveCapture(["cancelled": false, "uploadError": "No capture files were produced."])
             return
         }
@@ -197,6 +209,9 @@ public class LiDARCapturePlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate,
                 var entries: [TwinUploader.FileEntry] = []
                 for video in videoFiles {
                     entries.append(.init(url: video.url, filename: video.filename, contentType: "video/mp4", assetKind: "video"))
+                }
+                for photo in photoFiles {
+                    entries.append(.init(url: photo.url, filename: photo.filename, contentType: "image/jpeg", assetKind: "photo"))
                 }
                 if let url = plyUrl {
                     entries.append(self.gzippedEntry(
@@ -236,6 +251,7 @@ public class LiDARCapturePlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate,
                     result["uploaded"] = true
                     result["videoUri"] = NSNull()
                     result["videoUris"] = NSNull()
+                    result["photoUris"] = NSNull()
                     result["plyUri"] = NSNull()
                     result["posesUri"] = NSNull()
                     // Drive the WebView to the per-capture submit funnel (loads by captureId,

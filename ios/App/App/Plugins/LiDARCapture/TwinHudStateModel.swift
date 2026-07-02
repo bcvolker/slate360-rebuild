@@ -35,6 +35,11 @@ enum TwinTrackingQuality: String, Equatable {
     }
 }
 
+enum TwinCaptureMode: String, Equatable {
+    case video
+    case photos
+}
+
 enum TwinThermalLevel: String, Equatable {
     case nominal
     case fair
@@ -71,6 +76,7 @@ struct TwinHudActions {
     var onTorchToggle: () -> Void = {}
     var onDone: () -> Void = {}
     var onClipsToggle: () -> Void = {}
+    var onModeChange: (TwinCaptureMode) -> Void = { _ in }
 }
 
 // MARK: - Observable state (main-actor only)
@@ -93,6 +99,8 @@ final class TwinHudStateModel: ObservableObject {
     @Published var coverageProgress: Double = 0 // 0…1
 
     @Published var clipCount: Int = 0
+    @Published var captureMode: TwinCaptureMode = .video
+    @Published var photoCount: Int = 0
     @Published var clipsExpanded: Bool = false
     @Published var chromeVisible: Bool = true
     @Published var finishing: Bool = false
@@ -117,6 +125,8 @@ final class TwinHudStateModel: ObservableObject {
         keyframeCount: Int,
         coverageProgress: Double,
         clipCount: Int,
+        captureMode: TwinCaptureMode,
+        photoCount: Int,
         hasContent: Bool,
         finishing: Bool,
         capability: TwinHudCapability,
@@ -138,6 +148,8 @@ final class TwinHudStateModel: ObservableObject {
         self.keyframeCount = keyframeCount
         self.coverageProgress = min(1, max(0, coverageProgress))
         self.clipCount = clipCount
+        self.captureMode = captureMode
+        self.photoCount = photoCount
         self.hasContent = hasContent
         self.finishing = finishing
         self.capability = capability
