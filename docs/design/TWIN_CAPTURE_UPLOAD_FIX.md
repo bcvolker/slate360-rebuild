@@ -86,8 +86,18 @@ The full consensus uploader is implemented:
   DEFLATE + own CRC32) compresses `lidar_capture.ply.gz` / `lidar_poses.json.gz` (raw-file
   fallback on error); worker `maybe_gunzip()` detects by magic bytes (legacy raw uploads still
   work). Modal worker REDEPLOYED 2026-07-01.
-- Still TODO from the ranked list: overlap coaching, ONE-ARSession multi-clip, `register_clips()`
-  Modal stage, "Aligning clips" processing stage.
+- **Multi-clip ONE-ARSession — SHIPPED 2026-07-02** (commit 5c6cf286, needs TestFlight build):
+  shutter = start/end CLIP (session never pauses between clips → shared world origin →
+  registration-FREE concatenation); Done = export all. Per-clip HEVC video
+  (`twin_capture_clipN.mp4`) + per-clip duration cap; merged PLY; poses **v4** with `clips[]`
+  ({index, video, start_time, duration}) + per-keyframe `clip_index`. Overlap coaching =
+  duplicate-voxel ratio in first 6 s of clips 2+ (<15% → HUD warning). Interruptions save the
+  clip and STAY in capture. Worker (REDEPLOYED): bypass extracts + time-matches frames from
+  EVERY video via clips[].start_time (creation_time fallback; legacy single-clip unchanged;
+  drone videos harmless via the 2 s matcher filter).
+- Still TODO: `register_clips()` Modal stage (Open3D multiway ICP) — only needed for
+  SEPARATE-session captures (out of V1 scope now that one session spans clips); "Aligning
+  clips" progress stage rides with it. ARWorldMap save/relocalize = future hardening.
 
 ## Fix plan (ranked — "think outside the box" per CEO)
 1. **Resumable multipart + parallel parts** (no server change; biggest reliability+speed; moderate
