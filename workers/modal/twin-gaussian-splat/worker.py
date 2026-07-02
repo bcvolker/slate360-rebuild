@@ -107,29 +107,50 @@ def output_storage_key(org_id: str, space_id: str, job_id: str) -> str:
     return f"orgs/{org_id}/digital-twin/{space_id}/models/{job_id}.spz"
 
 
+# Pinned so the tool can't change under us; escalating opacity floors shrink huge/noisy
+# models until the .spz WASM writer fits in memory. Floaters are low-opacity, so higher
+# floors ALSO denoise and keep the interactive-link file small.
+SPLAT_TRANSFORM_PKG = "@playcanvas/splat-transform@2.7.1"
+SPLAT_OPACITY_TIERS = [0.05, 0.15, 0.30, 0.50, 0.70]
+SPLAT_SCALE_CAP = 0.3  # drop big blurry floater gaussians (was 0.5)
+
+
 def splat_transform_clean_export(ply_path: Path, spz_path: Path) -> None:
-    """Conservative CPU-only post-export cleanup: low opacity and spiky scales."""
-    run_cmd(
-        [
-            "npx",
-            "-y",
-            "@playcanvas/splat-transform",
-            "-w",
-            str(ply_path),
-            "--filter-nan",
-            "--filter-value",
-            "opacity,gte,0.05",
-            "--filter-value",
-            "scale_0,lte,0.5",
-            "--filter-value",
-            "scale_1,lte,0.5",
-            "--filter-value",
-            "scale_2,lte,0.5",
-            str(spz_path),
-            "--spz-version",
-            "3",
-        ]
-    )
+    """CPU-only post-export cleanup + .spz convert with escalating opacity filtering.
+
+    A large/noisy scene (e.g. a sunlit reflective subject) trains into millions of
+    gaussians; the WASM .spz writer then OOMs ("Aborted()") writing a ~1GB file. Each
+    tier raises the opacity floor, removing more low-opacity floaters, until the write
+    succeeds — which also cleans noise and keeps the shared model small. Raises only if
+    even the most aggressive tier fails.
+    """
+    last_err: Exception | None = None
+    for op in SPLAT_OPACITY_TIERS:
+        try:
+            if spz_path.exists():
+                spz_path.unlink()
+            run_cmd(
+                [
+                    "npx", "-y", SPLAT_TRANSFORM_PKG,
+                    "-w", str(ply_path),
+                    "--filter-nan",
+                    "--filter-value", f"opacity,gte,{op}",
+                    "--filter-value", f"scale_0,lte,{SPLAT_SCALE_CAP}",
+                    "--filter-value", f"scale_1,lte,{SPLAT_SCALE_CAP}",
+                    "--filter-value", f"scale_2,lte,{SPLAT_SCALE_CAP}",
+                    str(spz_path),
+                    "--spz-version", "3",
+                ]
+            )
+            if spz_path.is_file() and spz_path.stat().st_size > 0:
+                mb = spz_path.stat().st_size / (1024 * 1024)
+                print(f"[export] spz written at opacity>={op}: {mb:.1f} MB")
+                return
+            last_err = RuntimeError("splat-transform produced no output")
+        except Exception as exc:  # noqa: BLE001
+            last_err = exc
+            print(f"[export] splat-transform failed at opacity>={op} — escalating: {type(exc).__name__}")
+    raise RuntimeError(f"SPZ export failed after all opacity tiers: {last_err}")
 
 
 # splatfacto default; explicit conservative cull (cleaner than splatfacto-big's 0.005).
@@ -1198,6 +1219,11 @@ def run_pipeline(job: JobInput, work_root: Path) -> dict[str, Any]:
             "True",
             "--pipeline.model.cull-alpha-thresh",
             str(CULL_ALPHA_THRESH),
+            # Stop densifying at ~57% of iterations so the model doesn't explode into
+            # millions of gaussians (the 4M/1GB case) — fewer, cleaner splats + far lower
+            # export/stream size, then refinement-only for the remainder.
+            "--pipeline.model.stop-split-at",
+            str(max(6_000, int(iterations * 0.57))),
         ],
         env={"CUDA_VISIBLE_DEVICES": "0"},
     )
