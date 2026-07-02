@@ -35,7 +35,7 @@ export async function loadDigitalTwinHubData(
 
   const admin = createAdminClient();
 
-  const [spacesResult, projectsResult, jobsResult] = await Promise.all([
+  const [spacesResult, projectsResult, jobsResult, capturesResult] = await Promise.all([
     admin
       .from("digital_twin_spaces")
       .select("id, title, status, project_id, updated_at, projects(name)")
@@ -43,7 +43,7 @@ export async function loadDigitalTwinHubData(
       .is("deleted_at", null)
       .neq("status", "archived")
       .order("updated_at", { ascending: false })
-      .limit(24),
+      .limit(48),
     admin
       .from("projects")
       .select("id, name, status, created_at")
@@ -57,6 +57,11 @@ export async function loadDigitalTwinHubData(
       .eq("org_id", orgId)
       .order("created_at", { ascending: false })
       .limit(200),
+    admin
+      .from("digital_twin_captures")
+      .select("space_id")
+      .eq("org_id", orgId)
+      .limit(500),
   ]);
 
   if (spacesResult.error) {
@@ -73,19 +78,36 @@ export async function loadDigitalTwinHubData(
     }
   }
 
-  const twins: HubTwin[] = ((spacesResult.data ?? []) as SpaceRow[]).map((space) => {
-    const project = resolveProject(space.projects);
-    const latestJobStatus = latestJobBySpace.get(space.id) ?? null;
-    return {
-      id: space.id,
-      title: space.title,
-      status: space.status,
-      statusChip: resolveTwinHubStatusChip(space.status, latestJobStatus),
-      projectId: space.project_id,
-      projectName: project?.name ?? null,
-      updatedAt: space.updated_at,
-    };
-  });
+  // Spaces that actually hold a capture. Empty "draft" quick-scan shells (created when a
+  // capture flow is opened but abandoned) have no capture and no job — they must NOT show
+  // as scans, and definitely not as "PROCESSING". Filter them out of My Twins entirely.
+  const spacesWithCapture = new Set<string>();
+  for (const row of capturesResult.data ?? []) {
+    if (row.space_id) spacesWithCapture.add(row.space_id as string);
+  }
+
+  const twins: HubTwin[] = ((spacesResult.data ?? []) as SpaceRow[])
+    .filter((space) => {
+      // Keep a space if it has a real capture, has a processing job, or has advanced
+      // past draft (ready/processing/failed). Drop bare draft shells with nothing in them.
+      if (spacesWithCapture.has(space.id)) return true;
+      if (latestJobBySpace.has(space.id)) return true;
+      return space.status !== "draft" && space.status !== "capturing";
+    })
+    .slice(0, 24)
+    .map((space) => {
+      const project = resolveProject(space.projects);
+      const latestJobStatus = latestJobBySpace.get(space.id) ?? null;
+      return {
+        id: space.id,
+        title: space.title,
+        status: space.status,
+        statusChip: resolveTwinHubStatusChip(space.status, latestJobStatus),
+        projectId: space.project_id,
+        projectName: project?.name ?? null,
+        updatedAt: space.updated_at,
+      };
+    });
 
   return {
     twins,
