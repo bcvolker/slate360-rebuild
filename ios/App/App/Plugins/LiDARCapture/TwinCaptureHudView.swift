@@ -341,7 +341,8 @@ private struct TwinHudBottomRail: View {
         }
         if model.captureMode == .photos {
             if model.photoAutoActive {
-                return "AUTO \(Int(model.photoIntervalSec))S · \(model.photoCount) captured · tap to stop"
+                let cadence = model.photoIntervalSec < 1 ? "½S" : "\(Int(model.photoIntervalSec))S"
+                return "AUTO \(cadence) · \(model.photoCount) captured · tap to stop"
             }
             return model.photoCount > 0
                 ? "PHOTOS · \(model.photoCount) captured · tap for more"
@@ -382,11 +383,14 @@ private struct TwinHudBottomRail: View {
     }
 
     private var intervalSelector: some View {
+        // CEO spec: 0.5/1/2/3 s then manual — 1 s is the DEFAULT (crews walk and
+        // shoot; "manual" as default confused users into single-shot mode).
         HStack(spacing: 4) {
-            intervalSegment("MANUAL", value: 0)
+            intervalSegment("½S", value: 0.5)
             intervalSegment("1S", value: 1)
             intervalSegment("2S", value: 2)
             intervalSegment("3S", value: 3)
+            intervalSegment("MANUAL", value: 0)
         }
         .padding(3)
         .background(Color.white.opacity(0.06), in: RoundedRectangle(cornerRadius: 10))

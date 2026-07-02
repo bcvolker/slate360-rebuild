@@ -127,7 +127,6 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
     private var clipStartArkit: TimeInterval = 0
     private var clipStartUnix: Double = 0
     private var hasSessionStart = false
-    private var clipClosed = false      // idempotence for finishWriting-vs-watchdog per clip
     // Overlap coaching: on clips 2+, the fraction of freshly scanned voxels that already
     // exist in the grid IS the overlap with prior coverage. Written on depthQueue,
     // read by the guardrail timer (word-sized Bool — safe cross-thread read).
@@ -138,9 +137,18 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
     private var captureMode: TwinCaptureMode = .video
     private var photoURLs: [(url: URL, filename: String)] = []   // main-thread-only
     private var photoShotCount = 0                                // word-sized for HUD reads
-    private var photoIntervalSec: Double = 0                      // 0 = manual shutter
+    // Default 1 s auto-capture — construction users walk and shoot; manual is the
+    // power-user exception, never the default (CEO spec: 0.5/1/2/3/manual, default 1).
+    private var photoIntervalSec: Double = 1
     private var photoAutoActive = false
     private var photoTimer: Timer?
+
+    // Clips finalize in the BACKGROUND: ending a clip returns the shutter instantly
+    // (crews capture back-to-back; blocking on AVAssetWriter.finishWriting was the
+    // "can't start a new scan" dead time). Done waits for pending closes, then exports.
+    private var clipSequence = 0          // monotonically numbers clip files
+    private var pendingClipCloses = 0     // main-thread-only
+    private var exportWaiting = false     // Done pressed while clips still closing
 
     /// Git commit + build number stamped by Codemagic into Info.plist — shown in the HUD
     /// header so a stale TestFlight install is identifiable in two seconds (the recurring
@@ -500,7 +508,6 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
         }
         hasStartedWriter = false
         didExport = false
-        clipClosed = false
         lowOverlapDetected = false
         droppedVideoFrames = 0
         lastVideoPTS = -Double.infinity
@@ -530,9 +537,11 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
         pushHudState(force: true)
     }
 
-    /// Ends the current clip. `andExport: false` closes the video and returns to ready —
-    /// the ARSession keeps running so the next clip shares this clip's world frame.
-    /// `andExport: true` (Done) closes the clip and then exports the whole capture.
+    /// Ends the current clip WITHOUT blocking the screen: the writer finalizes on
+    /// videoQueue in the background while the shutter is immediately live again
+    /// (crews capture areas back-to-back — save time must never gate the next clip).
+    /// `andExport: true` (Done) locks the HUD and exports once every pending clip
+    /// close has landed.
     private func endClip(andExport: Bool) {
         guard isRecording else {
             if andExport { exportAndResolve() }
@@ -540,67 +549,78 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
         }
         isRecording = false
         stopTimers()
-        let clipDuration = max(0, lastVideoPTS)
-        setState(.finishing, message: andExport ? "Saving scan…" : "Saving clip…")
 
-        // Watchdog: a wedged/interrupted AR session can leave AVAssetWriter in a state where
-        // finishWriting's completion never fires — which used to strand capture on "Saving…"
-        // forever (no upload). Force completion after 12 s. clipWriterDone is idempotent.
-        let watchdog = DispatchWorkItem { [weak self] in
-            self?.clipWriterDone(duration: clipDuration, andExport: andExport)
+        // Detach the writer into locals — the NEXT clip gets fresh instances, so a
+        // slow or stale finalize can never touch the active clip's writer.
+        let w = writer
+        let wi = writerInput
+        let clipURL = videoURL
+        let duration = max(0, lastVideoPTS)
+        let startUnix = clipStartUnix
+        let seq = clipSequence
+        writer = nil
+        writerInput = nil
+        pixelAdaptor = nil
+        videoURL = nil
+        hasStartedWriter = false
+        pendingClipCloses += 1
+
+        if andExport {
+            exportWaiting = true
+            setState(.finishing, message: "Saving scan…")
+        } else {
+            setState(.ready, message: "Clip saving — record the next area or tap Done")
         }
+
+        var closed = false // main-thread-only; makes watchdog vs completion idempotent
+        let finalize: () -> Void = { [weak self] in
+            DispatchQueue.main.async {
+                guard let self = self, !closed else { return }
+                closed = true
+                if duration > 0, let url = clipURL {
+                    self.clipVideos.append(ClipRecord(
+                        url: url,
+                        filename: "twin_capture_clip\(seq).mp4",
+                        startUnix: startUnix,
+                        duration: duration
+                    ))
+                    self.completedClipCount = self.clipVideos.count
+                    if self.state == .ready, !self.isRecording {
+                        self.tipText = "Clip \(self.completedClipCount) saved — record the next area or tap Done"
+                        self.tipWarning = false
+                    }
+                } else if let url = clipURL {
+                    // Zero-length clip (no frames landed) — drop the empty file.
+                    try? FileManager.default.removeItem(at: url)
+                    if self.state == .ready, !self.isRecording {
+                        self.tipText = "Clip too short — tap record and try again"
+                    }
+                }
+                self.pendingClipCloses = max(0, self.pendingClipCloses - 1)
+                if self.pendingClipCloses == 0, self.exportWaiting {
+                    self.exportWaiting = false
+                    self.exportAndResolve()
+                }
+                self.pushHudState(force: true)
+            }
+        }
+
+        // Watchdog: a wedged writer must never strand the capture — force-finalize
+        // after 12 s (idempotent via `closed`).
+        let watchdog = DispatchWorkItem { finalize() }
         DispatchQueue.main.asyncAfter(deadline: .now() + 12, execute: watchdog)
 
-        videoQueue.async { [weak self] in
-            guard let self = self else { return }
-            self.writerInput?.markAsFinished()
-            if self.writer?.status == .writing {
-                let durationPts = CMTime(seconds: clipDuration, preferredTimescale: 600)
-                self.writer?.endSession(atSourceTime: durationPts)
-                self.writer?.finishWriting {
+        videoQueue.async {
+            wi?.markAsFinished()
+            if w?.status == .writing {
+                w?.endSession(atSourceTime: CMTime(seconds: duration, preferredTimescale: 600))
+                w?.finishWriting {
                     watchdog.cancel()
-                    self.clipWriterDone(duration: clipDuration, andExport: andExport)
+                    finalize()
                 }
             } else {
-                // Writer already failed/interrupted — keep the LiDAR data we have.
                 watchdog.cancel()
-                self.clipWriterDone(duration: clipDuration, andExport: andExport)
-            }
-        }
-    }
-
-    /// Records the finished clip and either returns to ready (next clip) or exports.
-    /// Idempotent per clip — finishWriting's completion and the watchdog can both land.
-    private func clipWriterDone(duration: Double, andExport: Bool) {
-        DispatchQueue.main.async { [weak self] in
-            // !isRecording: a stale finishWriting completion that lost the race to the
-            // 12 s watchdog can land AFTER the user started the next clip (clipClosed
-            // was reset) — it must not append a bogus clip record or nil the ACTIVE
-            // clip's writer. Legitimate calls always arrive with isRecording == false.
-            guard let self = self, !self.clipClosed, !self.isRecording, self.state != .failed else { return }
-            self.clipClosed = true
-            if duration > 0, let url = self.videoURL {
-                self.clipVideos.append(ClipRecord(
-                    url: url,
-                    filename: "twin_capture_clip\(self.clipVideos.count + 1).mp4",
-                    startUnix: self.clipStartUnix,
-                    duration: duration
-                ))
-            } else if let url = self.videoURL {
-                // Zero-length clip (no frames landed) — drop the empty file.
-                try? FileManager.default.removeItem(at: url)
-            }
-            self.completedClipCount = self.clipVideos.count
-            self.writer = nil
-            self.writerInput = nil
-            self.pixelAdaptor = nil
-            self.videoURL = nil
-            if andExport {
-                self.exportAndResolve()
-            } else if duration > 0 {
-                self.setState(.ready, message: "Clip \(self.completedClipCount) saved — record the next area or tap Done")
-            } else {
-                self.setState(.ready, message: "Clip too short — tap record and try again")
+                finalize()
             }
         }
     }
@@ -611,6 +631,13 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
         // exactly once, so capture never strands on "Saving…".
         DispatchQueue.main.async { [weak self] in
             guard let self = self, !self.didExport, self.state != .failed else { return }
+            // A clip is still finalizing in the background — export fires from its
+            // completion (exportWaiting) so the manifest never misses the last clip.
+            if self.pendingClipCloses > 0 {
+                self.exportWaiting = true
+                self.setState(.finishing, message: "Saving scan…")
+                return
+            }
             self.didExport = true
             // Entering export from .ready (Done between clips) must lock the HUD —
             // otherwise the shutter stays live, startRecording resets didExport, and a
@@ -857,9 +884,12 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
         encWidth = Int(res.width)
         encHeight = Int(res.height)
 
+        // Sequence counter (not clipVideos.count) — the previous clip may still be
+        // finalizing in the background when this one starts.
+        clipSequence += 1
         let sid = sessionId
         let url = URL(fileURLWithPath: NSTemporaryDirectory())
-            .appendingPathComponent("\(sid)_clip\(clipVideos.count + 1).mp4")
+            .appendingPathComponent("\(sid)_clip\(clipSequence).mp4")
         try? FileManager.default.removeItem(at: url)
         videoURL = url
 

@@ -26,7 +26,7 @@ export const appHomeTokens = {
     "flex gap-2 overflow-x-auto overscroll-x-contain pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
   launcherRailTile: "min-w-[calc(100%-2rem)] max-w-[280px] shrink-0",
 
-  launcherTileBase: `flex min-h-[104px] w-full min-w-0 flex-row items-center gap-3.5 rounded-2xl border px-4 py-3.5 text-left shadow-[var(--mobile-app-card-shadow)] transition-all active:scale-[0.99] ${glassSurface}`,
+  launcherTileBase: `flex min-h-[124px] w-full min-w-0 flex-row items-center gap-3.5 rounded-2xl border px-4 py-3.5 text-left shadow-[var(--mobile-app-card-shadow)] transition-all active:scale-[0.99] ${glassSurface}`,
   launcherTilePrimary: `border-[var(--mobile-app-card-border-primary)] ${glassSurfaceHover} hover:border-[color-mix(in_srgb,var(--graphite-primary)_42%,transparent)] hover:[box-shadow:var(--mobile-app-card-glow-primary)]`,
   launcherTileInfo: `border-[var(--mobile-app-card-border-info)] ${glassSurfaceHover} hover:border-[color-mix(in_srgb,var(--twin360-blue)_42%,transparent)] hover:[box-shadow:var(--mobile-app-card-glow-info)]`,
   launcherTileLocked: "opacity-55 saturate-[0.42]",
@@ -34,13 +34,13 @@ export const appHomeTokens = {
   // Tinted-glass chips (NOT solid accent fills — accent belongs on interactive/tint, never a fill).
   // Subtle accent wash + accent border + accent-colored icon reads premium; the solid fill read cheap.
   launcherIconChipPrimary:
-    "flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-[color-mix(in_srgb,var(--graphite-primary)_28%,transparent)] bg-[color-mix(in_srgb,var(--graphite-primary)_12%,transparent)] text-[var(--graphite-primary)]",
+    "flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-[color-mix(in_srgb,var(--graphite-primary)_28%,transparent)] bg-[color-mix(in_srgb,var(--graphite-primary)_12%,transparent)] text-[var(--graphite-primary)]",
   launcherIconChipInfo:
-    "flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-[color-mix(in_srgb,var(--twin360-blue)_28%,transparent)] bg-[color-mix(in_srgb,var(--twin360-blue)_12%,transparent)] text-[var(--twin360-blue)]",
+    "flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-[color-mix(in_srgb,var(--twin360-blue)_28%,transparent)] bg-[color-mix(in_srgb,var(--twin360-blue)_12%,transparent)] text-[var(--twin360-blue)]",
   launcherIconPrimary: "h-6 w-6 shrink-0",
   launcherIconInfo: "h-6 w-6 shrink-0",
 
-  launcherTitle: "truncate text-lg font-bold leading-tight text-[var(--graphite-text-header)]",
+  launcherTitle: "truncate text-xl font-bold leading-tight text-[var(--graphite-text-header)]",
   launcherStatusPrimary:
     "truncate text-xs font-medium leading-snug text-[var(--graphite-muted)]",
   launcherStatusInfo:
@@ -50,20 +50,20 @@ export const appHomeTokens = {
   launcherLockBadge:
     "pointer-events-none absolute right-2.5 top-2.5 flex h-7 w-7 items-center justify-center rounded-lg border border-[#2A3340] bg-[color-mix(in_srgb,var(--graphite-canvas)_88%,transparent)] text-[var(--graphite-muted)]",
 
-  quickActionGrid: "grid shrink-0 grid-cols-4 gap-1.5",
-  quickActionCard: "flex min-h-[64px] flex-col items-center justify-center gap-1.5 rounded-xl border border-transparent px-1 py-2 text-center transition-all active:scale-[0.97] hover:border-[var(--mobile-shell-accent-border)] hover:bg-white/[0.04]",
+  quickActionGrid: "grid shrink-0 grid-cols-2 gap-2",
+  quickActionCard: "flex min-h-[76px] flex-row items-center justify-start gap-3 rounded-xl border border-white/[0.06] bg-white/[0.03] px-4 py-3 text-left transition-all active:scale-[0.98] hover:border-[var(--mobile-shell-accent-border)] hover:bg-white/[0.05]",
   quickActionIconWrapper: "flex shrink-0 items-center justify-center",
-  quickActionIcon: "h-6 w-6 shrink-0 text-[var(--mobile-quick-action-fg)]",
+  quickActionIcon: "h-7 w-7 shrink-0 text-[var(--mobile-quick-action-fg)]",
   quickActionLabel:
-    "text-[11px] font-semibold leading-tight text-[var(--mobile-quick-action-title-fg)]",
+    "text-[15px] font-bold leading-tight text-[var(--mobile-quick-action-title-fg)]",
 
-  slateDropCard: `flex w-full shrink-0 flex-col gap-3 rounded-[13px] border-2 border-[var(--mobile-expandable-panel-border)] p-3 shadow-[var(--mobile-app-card-shadow)] ${glassSurface}`,
+  slateDropCard: `flex w-full shrink-0 flex-col gap-3.5 rounded-[13px] border-2 border-[var(--mobile-expandable-panel-border)] p-4 shadow-[var(--mobile-app-card-shadow)] ${glassSurface}`,
   slateDropRow: "flex items-center gap-3",
   slateDropRingWrap:
-    "relative flex h-12 w-12 shrink-0 items-center justify-center text-[var(--mobile-shell-accent)]",
+    "relative flex h-14 w-14 shrink-0 items-center justify-center text-[var(--mobile-shell-accent)]",
   slateDropStats: "min-w-0 flex-1",
   slateDropUsage:
-    "text-sm font-semibold leading-tight text-[var(--graphite-text-header)]",
+    "text-base font-semibold leading-tight text-[var(--graphite-text-header)]",
   slateDropMeta:
     "mt-0.5 text-xs font-normal leading-snug text-[var(--graphite-muted)]",
   slateDropOpenPill:

@@ -102,7 +102,7 @@ final class TwinHudStateModel: ObservableObject {
     @Published var clipCount: Int = 0
     @Published var captureMode: TwinCaptureMode = .video
     @Published var photoCount: Int = 0
-    @Published var photoIntervalSec: Double = 0   // 0 = manual shutter
+    @Published var photoIntervalSec: Double = 1   // 0 = manual shutter; default 1 s auto
     @Published var photoAutoActive: Bool = false
     @Published var clipsExpanded: Bool = false
     @Published var chromeVisible: Bool = true
