@@ -1,4 +1,5 @@
 import Foundation
+import UIKit
 
 /// Singleton engine that owns the **background URLSession** carrying Twin part PUTs.
 ///
@@ -49,8 +50,11 @@ final class TwinUploadSession: NSObject, URLSessionDataDelegate {
     }()
 
     /// Forces session creation — used by the AppDelegate background-relaunch path so
-    /// queued delegate events have a session to deliver into.
-    func activate() { _ = session }
+    /// queued delegate events have a session to deliver into. Queue-confined: `lazy var`
+    /// init is not atomic, and a cold background relaunch runs this (main thread) at the
+    /// same time as resumePendingUploads (engine queue); two racing initializers would
+    /// create two background sessions with the same identifier (undefined behavior).
+    func activate() { queue.async { _ = self.session } }
 
     // MARK: - Public API
 
@@ -189,8 +193,20 @@ final class TwinUploadSession: NSObject, URLSessionDataDelegate {
     // MARK: - Completion + retry
 
     private func completeOnServer(_ manifest: TwinUploadManifest) {
+        // Keep the process alive through the cookie fetch + complete POST: on a
+        // background relaunch iOS suspends us right after backgroundCompletionHandler
+        // fires, which would otherwise kill this POST (it rides the ephemeral session,
+        // not the background one) and strand the capture in "uploading" until the
+        // next manual app open.
+        var bgTask: UIBackgroundTaskIdentifier = .invalid
+        bgTask = UIApplication.shared.beginBackgroundTask(withName: "twin-upload-complete") {
+            if bgTask != .invalid { UIApplication.shared.endBackgroundTask(bgTask); bgTask = .invalid }
+        }
         withCookie(manifest.uploadId) { header in
             self.queue.async {
+                defer {
+                    if bgTask != .invalid { UIApplication.shared.endBackgroundTask(bgTask); bgTask = .invalid }
+                }
                 let parts: [[String: Any]] = (1...manifest.totalParts).compactMap { n in
                     guard let etag = manifest.etags[n] else { return nil }
                     return ["partNumber": n, "etag": etag, "sizeBytes": manifest.sizeOfPart(n)]
@@ -205,6 +221,10 @@ final class TwinUploadSession: NSObject, URLSessionDataDelegate {
                             body: ["uploadId": manifest.uploadId, "key": manifest.key, "parts": parts]
                         )
                         TwinUploadStore.shared.remove(manifest.uploadId)
+                        // The plugin only deletes source files on the foreground path;
+                        // resume/background completions must clean up here or a
+                        // multi-hundred-MB capture lingers in tmp.
+                        try? FileManager.default.removeItem(atPath: manifest.filePath)
                         NSLog("[Slate360] Twin multipart complete: \(manifest.filename)")
                         self.finish(manifest.uploadId, error: nil)
                         return
