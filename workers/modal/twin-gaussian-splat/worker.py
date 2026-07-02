@@ -20,6 +20,8 @@ import os
 import re
 import shutil
 import subprocess
+import threading
+import time
 import traceback
 from dataclasses import dataclass
 from pathlib import Path
@@ -628,26 +630,74 @@ def quality_speed_iterations(quality: str, speed: str) -> int:
     return base
 
 
-def run_cmd(cmd: list[str], *, cwd: Path | None = None, env: dict[str, str] | None = None) -> None:
+def run_cmd(
+    cmd: list[str],
+    *,
+    cwd: Path | None = None,
+    env: dict[str, str] | None = None,
+    timeout: int | None = None,
+) -> None:
     merged_env = os.environ.copy()
     # COLMAP (via nerfstudio) needs a headless Qt platform on Modal GPU containers.
     merged_env["QT_QPA_PLATFORM"] = "offscreen"
     if env:
         merged_env.update(env)
-    proc = subprocess.run(
-        cmd,
-        cwd=str(cwd) if cwd else None,
-        env=merged_env,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        text=True,
-        check=False,
-    )
+    try:
+        proc = subprocess.run(
+            cmd,
+            cwd=str(cwd) if cwd else None,
+            env=merged_env,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            check=False,
+            timeout=timeout,
+        )
+    except subprocess.TimeoutExpired:
+        # A hung stage must fail VISIBLY (→ failure callback → job marked failed) rather
+        # than sit until Modal's hard container timeout kills us with no callback.
+        raise RuntimeError(f"Command timed out after {timeout}s: {' '.join(cmd[:3])}…")
     if proc.returncode != 0:
         tail = (proc.stdout or "")[-8000:]
         raise RuntimeError(
             f"Command failed ({proc.returncode}): {' '.join(cmd)}\n{tail}"
         )
+
+
+def run_with_heartbeat(
+    cmd: list[str],
+    *,
+    job_id: str,
+    stage: str,
+    start_pct: int,
+    end_pct: int,
+    expected_sec: float,
+    timeout: int | None = None,
+    env: dict[str, str] | None = None,
+) -> None:
+    """Run a long, self-silent subprocess (splat training) while a background thread
+    nudges progress start_pct → end_pct-1 every 20 s, so the UI shows real movement
+    instead of sitting frozen at one number. Capped just below end_pct until the real
+    stage-completion post fires."""
+    stop = threading.Event()
+
+    def beat() -> None:
+        t0 = time.monotonic()
+        while not stop.wait(20):
+            frac = min(1.0, (time.monotonic() - t0) / max(1.0, expected_sec))
+            pct = int(start_pct + (end_pct - 1 - start_pct) * frac)
+            try:
+                post_progress(job_id, stage, min(end_pct - 1, max(start_pct, pct)))
+            except Exception:  # noqa: BLE001
+                pass
+
+    th = threading.Thread(target=beat, daemon=True)
+    th.start()
+    try:
+        run_cmd(cmd, env=env, timeout=timeout)
+    finally:
+        stop.set()
+        th.join(timeout=3)
 
 
 def s3_client():
@@ -1201,7 +1251,10 @@ def run_pipeline(job: JobInput, work_root: Path) -> dict[str, Any]:
         iterations = max(10_000, int(iterations * 0.70))
         print(f"[lidar-bypass] PLY init active — reduced iterations to {iterations}")
     post_progress(job.job_id, "train", 45)
-    run_cmd(
+    # Training is self-silent for many minutes; heartbeat 45→84 so the UI shows movement,
+    # and hard-timeout at 40 min so a hung train fails visibly instead of hanging until
+    # Modal's container kill (which posts no callback).
+    run_with_heartbeat(
         [
             "ns-train",
             "splatfacto",
@@ -1225,6 +1278,12 @@ def run_pipeline(job: JobInput, work_root: Path) -> dict[str, Any]:
             "--pipeline.model.stop-split-at",
             str(max(6_000, int(iterations * 0.57))),
         ],
+        job_id=job.job_id,
+        stage="train",
+        start_pct=45,
+        end_pct=85,
+        expected_sec=900,
+        timeout=2400,
         env={"CUDA_VISIBLE_DEVICES": "0"},
     )
 
