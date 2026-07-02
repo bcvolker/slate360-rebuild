@@ -229,16 +229,17 @@ def arkit_to_nerfstudio_c2w(transform_4x4: list) -> list:
 
 def _match_and_write_transforms(
     keyframes: list[dict],
-    extracted_frames: list[Path],
-    video_start_unix: float,
+    extracted: list[tuple[Path, float]],
     bypass_images: Path,
     processed_dir: Path,
 ) -> int:
     """Match video frames to ARKit keyframes by timestamp and write transforms.json.
 
-    Returns the number of successfully matched frames (0 on total failure).
+    `extracted` pairs each frame with its absolute wall-clock time — computed per
+    source video, so multi-clip captures (one video per clip, shared world frame)
+    match correctly. Returns the number of matched frames (0 on total failure).
     """
-    if not keyframes or not extracted_frames:
+    if not keyframes or not extracted:
         return 0
 
     first_kf = keyframes[0]
@@ -255,12 +256,7 @@ def _match_and_write_transforms(
 
     frames_data = []
     skipped = 0
-    for frame_path in extracted_frames:
-        # ffmpeg 1-indexed: frame_0001 → t=0.0s, frame_0002 → t=0.5s
-        frame_idx = int(frame_path.stem.split("_")[-1])
-        video_time = (frame_idx - 1) / 2.0
-        frame_wall_time = video_start_unix + video_time
-
+    for frame_path, frame_wall_time in extracted:
         nearest_kf = min(keyframes, key=lambda kf: abs(kf["timestamp"] - frame_wall_time))
         time_delta = abs(nearest_kf["timestamp"] - frame_wall_time)
 
@@ -278,7 +274,7 @@ def _match_and_write_transforms(
         })
 
     if skipped > 0:
-        print(f"[lidar-bypass] {skipped}/{len(extracted_frames)} frames skipped (>2 s delta or missing pose)")
+        print(f"[lidar-bypass] {skipped}/{len(extracted)} frames skipped (>2 s delta or missing pose)")
 
     if not frames_data:
         return 0
@@ -481,7 +477,12 @@ def try_lidar_bypass(
         kf_end = max(kf_timestamps)
         session_start: float = poses_data.get("session_start_time") or kf_start
 
-        # 2. Find best video source (highest wall-clock overlap with LiDAR session)
+        # 2. Extract + time-stamp frames from EVERY capture video. Multi-clip captures
+        #    upload one video per clip, all sharing the ARSession world frame; each
+        #    clip's exact wall-clock start comes from poses_data["clips"] (written at
+        #    capture), with ffprobe creation_time as fallback. Unrelated videos (e.g.
+        #    drone footage) are harmless — their frames land >2 s from any keyframe
+        #    and the matcher drops them.
         video_files = sorted(
             [p for p in source_dir.iterdir() if p.suffix.lower() in VIDEO_EXTENSIONS],
             key=lambda p: p.stat().st_size,
@@ -491,39 +492,43 @@ def try_lidar_bypass(
             print("[lidar-bypass] no video source, falling back to COLMAP")
             return False, False
 
-        best_video: Path | None = None
-        best_video_start = session_start
-        best_overlap = -1.0
+        clips_meta: dict[str, dict] = {}
+        for clip in poses_data.get("clips") or []:
+            if isinstance(clip, dict) and clip.get("video"):
+                clips_meta[str(clip["video"])] = clip
 
-        for vp in video_files:
-            vt = get_video_creation_time(vp)
-            if vt is not None:
-                dur = get_video_duration(vp) or 300.0
-                v_end = vt + dur
-                overlap = max(0.0, min(kf_end, v_end) - max(kf_start, vt))
-                if overlap > best_overlap:
-                    best_overlap = overlap
-                    best_video = vp
-                    best_video_start = vt
-
-        if best_video is None or best_overlap < 3.0:
-            # creation_time unavailable — assume largest video starts at session_start
-            best_video = video_files[0]
-            best_video_start = session_start
-            print("[lidar-bypass] creation_time unavailable; assuming video starts at session_start")
-
-        # 3. Extract video frames at 2 fps (matching 0.5 s keyframe interval)
         bypass_frames_dir = work_root / "_bypass_frames"
         bypass_frames_dir.mkdir(parents=True, exist_ok=True)
-        run_cmd([
-            "ffmpeg", "-y", "-i", str(best_video),
-            "-vf", "fps=2", "-q:v", "2",
-            str(bypass_frames_dir / "frame_%04d.jpg"),
-        ])
+        extracted: list[tuple[Path, float]] = []  # (frame_path, wall_clock_time)
 
-        extracted_frames = sorted(bypass_frames_dir.glob("frame_*.jpg"))
-        if len(extracted_frames) < 5:
-            print(f"[lidar-bypass] only {len(extracted_frames)} frames extracted — need ≥5, falling back to COLMAP")
+        for vi, vp in enumerate(video_files):
+            meta = clips_meta.get(vp.name)
+            if meta and isinstance(meta.get("start_time"), (int, float)):
+                v_start: float | None = float(meta["start_time"])
+            else:
+                v_start = get_video_creation_time(vp)
+            if v_start is None:
+                if vi == 0:
+                    # Largest video with no start info — legacy single-clip fallback.
+                    v_start = session_start
+                    print(f"[lidar-bypass] {vp.name}: no start time; assuming session_start")
+                else:
+                    print(f"[lidar-bypass] {vp.name}: no start time; skipped")
+                    continue
+            vdir = bypass_frames_dir / f"v{vi}"
+            vdir.mkdir(parents=True, exist_ok=True)
+            # 2 fps matches the 0.5 s keyframe interval.
+            run_cmd([
+                "ffmpeg", "-y", "-i", str(vp),
+                "-vf", "fps=2", "-q:v", "2",
+                str(vdir / "frame_%04d.jpg"),
+            ])
+            for fp in sorted(vdir.glob("frame_*.jpg")):
+                fidx = int(fp.stem.split("_")[-1])  # ffmpeg 1-indexed
+                extracted.append((fp, v_start + (fidx - 1) / 2.0))
+
+        if len(extracted) < 5:
+            print(f"[lidar-bypass] only {len(extracted)} frames extracted — need ≥5, falling back to COLMAP")
             return False, False
 
         # 4. Build processed_dir with transforms.json and images/
@@ -532,8 +537,7 @@ def try_lidar_bypass(
         bypass_images.mkdir(parents=True, exist_ok=True)
 
         matched = _match_and_write_transforms(
-            keyframes, extracted_frames, best_video_start,
-            bypass_images, processed_dir,
+            keyframes, extracted, bypass_images, processed_dir,
         )
 
         if matched < 5:

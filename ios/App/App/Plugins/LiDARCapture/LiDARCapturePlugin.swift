@@ -164,11 +164,21 @@ public class LiDARCapturePlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate,
         apiBase: String,
         title: String?
     ) {
-        let videoUrl = (manifest["videoUri"] as? String).flatMap(URL.init(string:))
+        // One video per clip (multi-clip capture); legacy single "videoUri" still accepted.
+        var videoFiles: [(url: URL, filename: String)] = []
+        if let arr = manifest["videoUris"] as? [[String: Any]] {
+            for item in arr {
+                if let u = item["uri"] as? String, let url = URL(string: u) {
+                    videoFiles.append((url, (item["filename"] as? String) ?? "twin_capture.mp4"))
+                }
+            }
+        } else if let v = manifest["videoUri"] as? String, let url = URL(string: v) {
+            videoFiles.append((url, "twin_capture.mp4"))
+        }
         let plyUrl = (manifest["plyUri"] as? String).flatMap(URL.init(string:))
         let posesUrl = (manifest["posesUri"] as? String).flatMap(URL.init(string:))
 
-        guard videoUrl != nil || plyUrl != nil || posesUrl != nil else {
+        guard !videoFiles.isEmpty || plyUrl != nil || posesUrl != nil else {
             resolveCapture(["cancelled": false, "uploadError": "No capture files were produced."])
             return
         }
@@ -185,8 +195,8 @@ public class LiDARCapturePlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate,
                 // Build entries here — gzip of the PLY/poses is CPU work that must not
                 // run on the main thread (uploadCapture is called mid-dismissal).
                 var entries: [TwinUploader.FileEntry] = []
-                if let url = videoUrl {
-                    entries.append(.init(url: url, filename: "twin_capture.mp4", contentType: "video/mp4", assetKind: "video"))
+                for video in videoFiles {
+                    entries.append(.init(url: video.url, filename: video.filename, contentType: "video/mp4", assetKind: "video"))
                 }
                 if let url = plyUrl {
                     entries.append(self.gzippedEntry(
@@ -225,6 +235,7 @@ public class LiDARCapturePlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate,
                     result["captureId"] = captureId
                     result["uploaded"] = true
                     result["videoUri"] = NSNull()
+                    result["videoUris"] = NSNull()
                     result["plyUri"] = NSNull()
                     result["posesUri"] = NSNull()
                     // Drive the WebView to the per-capture submit funnel (loads by captureId,

@@ -113,6 +113,26 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
     private var progressTimer: Timer?
     private var displayTimer: Timer?
 
+    // Multi-clip: ONE ARSession stays alive across clips, so every clip shares the same
+    // world origin — the point cloud and poses concatenate with NO registration step
+    // (the locked consensus's single biggest lever). Each clip gets its own video file
+    // + wall-clock start so the worker can time-match frames per clip.
+    private struct ClipRecord {
+        let url: URL
+        let filename: String
+        let startUnix: Double
+        let duration: Double
+    }
+    private var clipVideos: [ClipRecord] = []
+    private var clipStartArkit: TimeInterval = 0
+    private var clipStartUnix: Double = 0
+    private var hasSessionStart = false
+    private var clipClosed = false      // idempotence for finishWriting-vs-watchdog per clip
+    // Overlap coaching: on clips 2+, the fraction of freshly scanned voxels that already
+    // exist in the grid IS the overlap with prior coverage. Written on depthQueue,
+    // read by the guardrail timer (word-sized Bool — safe cross-thread read).
+    private var lowOverlapDetected = false
+
     init(options: TwinCaptureOptions) {
         self.options = options
         super.init(nibName: nil, bundle: nil)
@@ -344,7 +364,9 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
     // MARK: Buttons
 
     @objc private func tapRecord() {
-        if isRecording { tapFinish() } else { startRecording() }
+        // Shutter = start / end a CLIP. The ARSession keeps running between clips so
+        // the next clip shares the same world origin. Done exports everything.
+        if isRecording { endClip(andExport: false) } else { startRecording() }
     }
 
     @objc private func tapCancel() {
@@ -354,8 +376,11 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
     }
 
     @objc private func tapFinish() {
-        guard isRecording else { return }
-        finishRecording()
+        if isRecording {
+            endClip(andExport: true)
+        } else if !clipVideos.isEmpty || pointCount > 0 {
+            exportAndResolve()
+        }
     }
 
     // MARK: Recording control
@@ -376,57 +401,101 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
         }
         hasStartedWriter = false
         didExport = false
+        clipClosed = false
+        lowOverlapDetected = false
         droppedVideoFrames = 0
         lastVideoPTS = -Double.infinity
         lastKeyframeArkit = 0
         sessionNeedsResume = false
         tipWarning = false
-        pointCount = 0
-        keyframeCount = 0
-        // Reset the point cloud ON depthQueue — the only queue allowed to touch these
-        // collections. Enqueued before isRecording flips true, so (FIFO) it runs before
-        // any frame's insert block. Clearing them on the main thread previously raced
-        // the depth writes.
-        depthQueue.async { [weak self] in
-            self?.voxelGrid.removeAll(keepingCapacity: true)
-            self?.keyframes.removeAll(keepingCapacity: true)
+        if clipVideos.isEmpty {
+            pointCount = 0
+            keyframeCount = 0
+            // Reset the point cloud ON depthQueue — the only queue allowed to touch these
+            // collections. Enqueued before isRecording flips true, so (FIFO) it runs before
+            // any frame's insert block. Clearing them on the main thread previously raced
+            // the depth writes.
+            depthQueue.async { [weak self] in
+                self?.voxelGrid.removeAll(keepingCapacity: true)
+                self?.keyframes.removeAll(keepingCapacity: true)
+            }
         }
-        setState(.recording, message: "Move slowly · capture corners")
+        // Clips 2+ KEEP the accumulated cloud/poses — same ARSession, same world origin.
+        let msg = clipVideos.isEmpty
+            ? "Move slowly · capture corners"
+            : "Overlap the last area first, then move on"
+        setState(.recording, message: msg)
         startTimers()
         // Flip last: no ARFrame is accumulated until the reset above is queued.
         isRecording = true
         pushHudState(force: true)
     }
 
-    private func finishRecording() {
-        guard isRecording else { return }
-        if lastVideoPTS > 0 {
-            completedClipCount += 1
+    /// Ends the current clip. `andExport: false` closes the video and returns to ready —
+    /// the ARSession keeps running so the next clip shares this clip's world frame.
+    /// `andExport: true` (Done) closes the clip and then exports the whole capture.
+    private func endClip(andExport: Bool) {
+        guard isRecording else {
+            if andExport { exportAndResolve() }
+            return
         }
         isRecording = false
         stopTimers()
-        setState(.finishing, message: "Saving scan…")
+        let clipDuration = max(0, lastVideoPTS)
+        setState(.finishing, message: andExport ? "Saving scan…" : "Saving clip…")
 
         // Watchdog: a wedged/interrupted AR session can leave AVAssetWriter in a state where
         // finishWriting's completion never fires — which used to strand capture on "Saving…"
-        // forever (no upload). Force the export after 12 s. exportAndResolve is idempotent.
-        let watchdog = DispatchWorkItem { [weak self] in self?.exportAndResolve() }
+        // forever (no upload). Force completion after 12 s. clipWriterDone is idempotent.
+        let watchdog = DispatchWorkItem { [weak self] in
+            self?.clipWriterDone(duration: clipDuration, andExport: andExport)
+        }
         DispatchQueue.main.asyncAfter(deadline: .now() + 12, execute: watchdog)
 
         videoQueue.async { [weak self] in
             guard let self = self else { return }
             self.writerInput?.markAsFinished()
             if self.writer?.status == .writing {
-                let durationPts = CMTime(seconds: max(0, self.lastVideoPTS), preferredTimescale: 600)
+                let durationPts = CMTime(seconds: clipDuration, preferredTimescale: 600)
                 self.writer?.endSession(atSourceTime: durationPts)
                 self.writer?.finishWriting {
                     watchdog.cancel()
-                    self.exportAndResolve()
+                    self.clipWriterDone(duration: clipDuration, andExport: andExport)
                 }
             } else {
-                // Writer already failed/interrupted — export the LiDAR data we have.
+                // Writer already failed/interrupted — keep the LiDAR data we have.
                 watchdog.cancel()
+                self.clipWriterDone(duration: clipDuration, andExport: andExport)
+            }
+        }
+    }
+
+    /// Records the finished clip and either returns to ready (next clip) or exports.
+    /// Idempotent per clip — finishWriting's completion and the watchdog can both land.
+    private func clipWriterDone(duration: Double, andExport: Bool) {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self, !self.clipClosed else { return }
+            self.clipClosed = true
+            if duration > 0, let url = self.videoURL {
+                self.clipVideos.append(ClipRecord(
+                    url: url,
+                    filename: "twin_capture_clip\(self.clipVideos.count + 1).mp4",
+                    startUnix: self.clipStartUnix,
+                    duration: duration
+                ))
+            } else if let url = self.videoURL {
+                // Zero-length clip (no frames landed) — drop the empty file.
+                try? FileManager.default.removeItem(at: url)
+            }
+            self.completedClipCount = self.clipVideos.count
+            self.writer = nil
+            self.writerInput = nil
+            self.pixelAdaptor = nil
+            self.videoURL = nil
+            if andExport {
                 self.exportAndResolve()
+            } else {
+                self.setState(.ready, message: "Clip \(self.completedClipCount) saved — record the next area or tap Done")
             }
         }
     }
@@ -438,6 +507,8 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
         DispatchQueue.main.async { [weak self] in
             guard let self = self, !self.didExport else { return }
             self.didExport = true
+            // Snapshot on main — clipVideos is main-thread-owned.
+            let clips = self.clipVideos
             self.depthQueue.async { [weak self] in
                 guard let self = self else { return }
                 let sid = self.sessionId
@@ -445,16 +516,22 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
             let plyURL = tmp.appendingPathComponent("\(sid).ply")
             let posesURL = tmp.appendingPathComponent("\(sid)_poses.json")
             self.writePLY(to: plyURL)
-            self.writePosesJSON(to: posesURL)
+            self.writePosesJSON(to: posesURL, clips: clips)
 
+            let totalDuration = clips.reduce(0.0) { $0 + $1.duration }
             let manifest: [String: Any] = [
                 "cancelled": false,
-                "videoUri": self.videoURL?.absoluteString ?? NSNull(),
+                // One video per clip; all clips share the session's world origin.
+                "videoUris": clips.map { [
+                    "uri": $0.url.absoluteString,
+                    "filename": $0.filename,
+                ] },
                 "plyUri": plyURL.absoluteString,
                 "posesUri": posesURL.absoluteString,
                 "pointCount": self.voxelGrid.count,
                 "keyframeCount": self.keyframes.count,
-                "durationSec": max(0, self.lastVideoPTS),
+                "clipCount": clips.count,
+                "durationSec": totalDuration,
                 "sessionStartUnix": self.sessionStartUnix,
                 "width": self.encWidth,
                 "height": self.encHeight,
@@ -485,11 +562,12 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
         if !hasStartedWriter {
             beginWriter(with: frame)
         }
-        let rel = arkitTs - sessionStartArkit
+        // Per-CLIP timeline: video PTS and the duration cap restart with each clip.
+        let rel = arkitTs - clipStartArkit
 
-        // Enforce max duration.
+        // Enforce max duration per clip — close the clip, stay in capture for the next one.
         if rel >= options.maxDurationSec {
-            DispatchQueue.main.async { [weak self] in self?.finishRecording() }
+            DispatchQueue.main.async { [weak self] in self?.endClip(andExport: false) }
             return
         }
 
@@ -568,10 +646,25 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
                             resolution: frame.camera.imageResolution)
             : nil
 
+        // completedClipCount is a word-sized Int maintained on main (like pointCount) —
+        // safe to read here; clipVideos itself is main-thread-only.
+        let clipIndex = completedClipCount
+        let clipRel = rel
         depthQueue.async { [weak self] in
             guard let self = self else { return }
+            var inserted = 0
             for (key, data) in newVoxels where self.voxelGrid[key] == nil {
                 self.voxelGrid[key] = data
+                inserted += 1
+            }
+            // Overlap coaching (clips 2+, first 6 s): the share of scanned voxels that
+            // already exist in the grid IS the overlap with previous clips. Below ~15%
+            // the new clip risks poor alignment context in the reconstruction.
+            if clipIndex > 0, clipRel < 6.0, newVoxels.count > 50 {
+                let dupRatio = Double(newVoxels.count - inserted) / Double(newVoxels.count)
+                self.lowOverlapDetected = dupRatio < 0.15
+            } else {
+                self.lowOverlapDetected = false
             }
             if self.voxelGrid.count > self.options.maxPoints {
                 let excess = self.voxelGrid.count - self.options.maxPoints
@@ -595,8 +688,10 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
 
     func sessionWasInterrupted(_ session: ARSession) {
         sessionNeedsResume = true
-        if isRecording { DispatchQueue.main.async { [weak self] in self?.finishRecording() } }
-        setState(state, message: "Capture interrupted — saving")
+        // Close the in-flight clip but STAY in capture — when the interruption ends
+        // ARKit relocalizes into the same world map and the next clip stays aligned.
+        if isRecording { DispatchQueue.main.async { [weak self] in self?.endClip(andExport: false) } }
+        setState(state, message: "Capture interrupted — clip saved")
     }
 
     func sessionInterruptionEnded(_ session: ARSession) {
@@ -623,25 +718,34 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
     // MARK: Writer
 
     private func beginWriter(with frame: ARFrame) {
-        sessionStartArkit = frame.timestamp
-        sessionStartUnix = Date().timeIntervalSince1970
+        // Session time base is set ONCE (first clip); each clip gets its own start on
+        // the shared timeline so pose timestamps stay global while video PTS restarts.
+        if !hasSessionStart {
+            sessionStartArkit = frame.timestamp
+            sessionStartUnix = Date().timeIntervalSince1970
+            hasSessionStart = true
+        }
+        clipStartArkit = frame.timestamp
+        clipStartUnix = sessionStartUnix + (clipStartArkit - sessionStartArkit)
         let res = frame.camera.imageResolution
         encWidth = Int(res.width)
         encHeight = Int(res.height)
 
         let sid = sessionId
-        let url = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("\(sid).mp4")
+        let url = URL(fileURLWithPath: NSTemporaryDirectory())
+            .appendingPathComponent("\(sid)_clip\(clipVideos.count + 1).mp4")
         try? FileManager.default.removeItem(at: url)
         videoURL = url
 
         guard let w = try? AVAssetWriter(outputURL: url, fileType: .mp4) else {
             fail("Could not create video writer"); return
         }
-        // Explicit creation_time so the Modal worker's ffprobe path resolves video_start_unix.
+        // Explicit per-CLIP creation_time so the Modal worker's ffprobe fallback resolves
+        // this clip's start (the poses JSON "clips" array is the primary source).
         let dateItem = AVMutableMetadataItem()
         dateItem.keySpace = .common
         dateItem.key = AVMetadataKey.commonKeyCreationDate as NSString
-        dateItem.value = ISO8601DateFormatter().string(from: Date(timeIntervalSince1970: sessionStartUnix)) as NSString
+        dateItem.value = ISO8601DateFormatter().string(from: Date(timeIntervalSince1970: clipStartUnix)) as NSString
         w.metadata = [dateItem]
 
         // HEVC (H.265) at ~5.5 Mbps ≈ H.264 @ 8 Mbps quality for ~half the bytes — the single
@@ -726,6 +830,8 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
             "gravity": [0.0, 1.0, 0.0],
             "w": Int(resolution.width),
             "h": Int(resolution.height),
+            // 1-based clip this keyframe was recorded during (0-based count + 1).
+            "clip_index": completedClipCount + 1,
         ]
         if let loc = currentLocation {
             kf["gps"] = [
@@ -765,11 +871,21 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
         try? data.write(to: url)
     }
 
-    private func writePosesJSON(to url: URL) {
+    private func writePosesJSON(to url: URL, clips: [ClipRecord]) {
         let payload: [String: Any] = [
-            "version": 3,
+            "version": 4,
             "session_start_time": sessionStartUnix,
             "session_start_ar_timestamp": 0.0,
+            // Per-clip video mapping: exact wall-clock start for each clip's video so
+            // the worker time-matches frames per clip (ffprobe creation_time = fallback).
+            "clips": clips.enumerated().map { index, clip in
+                [
+                    "index": index + 1,
+                    "video": clip.filename,
+                    "start_time": clip.startUnix,
+                    "duration": clip.duration,
+                ] as [String: Any]
+            },
             "frames": keyframes,
         ]
         if let data = try? JSONSerialization.data(withJSONObject: payload, options: .prettyPrinted) {
@@ -801,10 +917,13 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
             tipText = thermal == .critical
                 ? "Device too hot — saving scan"
                 : (lowDisk ? "Storage full — saving scan" : "Battery critically low — saving scan")
-            finishRecording()
+            endClip(andExport: true)
         } else if thermal == .serious {
             tipWarning = true
             tipText = "Device warming — finish this area soon"
+        } else if lowOverlapDetected {
+            tipWarning = true
+            tipText = "Low overlap — re-scan part of the previous area first"
         } else if battery >= 0 && battery < 0.25 && !charging {
             tipWarning = true
             tipText = "Battery low — finish soon"
@@ -879,6 +998,8 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
 
     private func cleanupTempFiles() {
         if let v = videoURL { try? FileManager.default.removeItem(at: v) }
+        for clip in clipVideos { try? FileManager.default.removeItem(at: clip.url) }
+        clipVideos.removeAll()
     }
 
     private func fail(_ message: String) {
