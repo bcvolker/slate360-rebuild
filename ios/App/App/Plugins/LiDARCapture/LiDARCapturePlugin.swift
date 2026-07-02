@@ -164,24 +164,11 @@ public class LiDARCapturePlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate,
         apiBase: String,
         title: String?
     ) {
-        var entries: [TwinUploader.FileEntry] = []
-        if let v = manifest["videoUri"] as? String, let url = URL(string: v) {
-            entries.append(.init(url: url, filename: "twin_capture.mp4", contentType: "video/mp4", assetKind: "video"))
-        }
-        // PLY + poses gzip before upload (5-20x smaller; worker gunzips by magic
-        // bytes). On any compression failure fall back to the raw file.
-        if let p = manifest["plyUri"] as? String, let url = URL(string: p) {
-            entries.append(gzippedEntry(
-                url: url, filename: "lidar_capture.ply",
-                rawContentType: "application/octet-stream", assetKind: "ply_lidar"))
-        }
-        if let po = manifest["posesUri"] as? String, let url = URL(string: po) {
-            entries.append(gzippedEntry(
-                url: url, filename: "lidar_poses.json",
-                rawContentType: "application/json", assetKind: "lidar_poses"))
-        }
+        let videoUrl = (manifest["videoUri"] as? String).flatMap(URL.init(string:))
+        let plyUrl = (manifest["plyUri"] as? String).flatMap(URL.init(string:))
+        let posesUrl = (manifest["posesUri"] as? String).flatMap(URL.init(string:))
 
-        guard !entries.isEmpty else {
+        guard videoUrl != nil || plyUrl != nil || posesUrl != nil else {
             resolveCapture(["cancelled": false, "uploadError": "No capture files were produced."])
             return
         }
@@ -195,6 +182,22 @@ public class LiDARCapturePlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate,
         collectCookieHeader { [weak self] cookieHeader in
             guard let self = self else { return }
             self.uploadQueue.async {
+                // Build entries here — gzip of the PLY/poses is CPU work that must not
+                // run on the main thread (uploadCapture is called mid-dismissal).
+                var entries: [TwinUploader.FileEntry] = []
+                if let url = videoUrl {
+                    entries.append(.init(url: url, filename: "twin_capture.mp4", contentType: "video/mp4", assetKind: "video"))
+                }
+                if let url = plyUrl {
+                    entries.append(self.gzippedEntry(
+                        url: url, filename: "lidar_capture.ply",
+                        rawContentType: "application/octet-stream", assetKind: "ply_lidar"))
+                }
+                if let url = posesUrl {
+                    entries.append(self.gzippedEntry(
+                        url: url, filename: "lidar_poses.json",
+                        rawContentType: "application/json", assetKind: "lidar_poses"))
+                }
                 // Pass spaceId through even if empty — the uploader self-heals by creating a
                 // quick-scan workspace, so a stale web bundle can't strand the capture.
                 let uploader = TwinUploader(

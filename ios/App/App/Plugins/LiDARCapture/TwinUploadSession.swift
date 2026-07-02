@@ -55,11 +55,13 @@ final class TwinUploadSession: NSObject, URLSessionDataDelegate {
     // MARK: - Public API
 
     /// Starts (or resumes) one file's multipart upload. Callbacks fire on the engine queue.
+    /// `excludingParts` skips parts that already have a live background task (resume path).
     func start(
         manifest: TwinUploadManifest,
         cookieHeader: String,
         onBytes: ((Int64) -> Void)?,
-        onDone: ((Error?) -> Void)?
+        onDone: ((Error?) -> Void)?,
+        excludingParts: Set<Int> = []
     ) {
         queue.async {
             guard !self.activeUploads.contains(manifest.uploadId) else { return }
@@ -72,8 +74,10 @@ final class TwinUploadSession: NSObject, URLSessionDataDelegate {
                 self.completeOnServer(manifest)
                 return
             }
+            let toUpload = manifest.missingParts.filter { !excludingParts.contains($0) }
+            guard !toUpload.isEmpty else { return } // in-flight tasks will finish the file
             do {
-                let signed = try self.signParts(manifest, partNumbers: manifest.missingParts, cookieHeader: cookieHeader)
+                let signed = try self.signParts(manifest, partNumbers: toUpload, cookieHeader: cookieHeader)
                 try self.enqueue(manifest, signed: signed)
             } catch {
                 self.finish(manifest.uploadId, error: error)
@@ -83,23 +87,34 @@ final class TwinUploadSession: NSObject, URLSessionDataDelegate {
 
     /// Finishes any uploads interrupted by a crash/kill/relaunch: re-signs the missing
     /// parts and enqueues them; sessions whose parts all landed just re-POST complete.
+    /// Parts whose background task survived the relaunch (iOS persists background-session
+    /// tasks) are NOT re-enqueued — the live task's delegate events complete them.
     /// Called from the plugin's `load()` on every app launch. No-op when signed out.
     func resumePendingUploads() {
         queue.async {
             let manifests = TwinUploadStore.shared.loadAll()
             guard !manifests.isEmpty else { return }
-            TwinUploadHTTP.fetchCookieHeader { header in
-                guard !header.isEmpty else { return } // not signed in yet — keep for later
-                self.queue.async {
-                    for manifest in manifests where !self.activeUploads.contains(manifest.uploadId) {
-                        // Source file gone and parts still missing → unrecoverable; drop it.
-                        if !manifest.isFullyUploaded,
-                           !FileManager.default.fileExists(atPath: manifest.filePath) {
-                            TwinUploadStore.shared.remove(manifest.uploadId)
-                            continue
+            self.session.getAllTasks { tasks in
+                let inFlight = Set(tasks
+                    .filter { $0.state == .running || $0.state == .suspended }
+                    .compactMap { $0.taskDescription })
+                TwinUploadHTTP.fetchCookieHeader { header in
+                    guard !header.isEmpty else { return } // not signed in yet — keep for later
+                    self.queue.async {
+                        for manifest in manifests where !self.activeUploads.contains(manifest.uploadId) {
+                            // Source file gone and parts still missing → unrecoverable; drop it.
+                            if !manifest.isFullyUploaded,
+                               !FileManager.default.fileExists(atPath: manifest.filePath) {
+                                TwinUploadStore.shared.remove(manifest.uploadId)
+                                continue
+                            }
+                            let live = Set(manifest.missingParts.filter {
+                                inFlight.contains("\(manifest.uploadId)|\($0)")
+                            })
+                            NSLog("[Slate360] Resuming twin upload \(manifest.uploadId) (\(manifest.missingParts.count)/\(manifest.totalParts) parts left, \(live.count) already in flight)")
+                            self.start(manifest: manifest, cookieHeader: header,
+                                       onBytes: nil, onDone: nil, excludingParts: live)
                         }
-                        NSLog("[Slate360] Resuming twin upload \(manifest.uploadId) (\(manifest.missingParts.count)/\(manifest.totalParts) parts left)")
-                        self.start(manifest: manifest, cookieHeader: header, onBytes: nil, onDone: nil)
                     }
                 }
             }
