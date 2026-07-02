@@ -94,6 +94,16 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
     private var lastEnqueuedPTS: CMTime = .invalid
     private var appendedFrameCount: Int = 0
 
+    // Depth-insert backlog bound: every frame enqueues a voxel-insert block on depthQueue.
+    // If inserts can't keep up with frame delivery the queue grows UNBOUNDED, and at Done
+    // the export (also on depthQueue) waits behind the entire backlog — the multi-minute
+    // "Saving…" freeze. Cap in-flight blocks; drop voxel work when behind (keyframes still
+    // record on the ARKit thread). Incremented on the ARKit delegate thread, decremented on
+    // depthQueue → guarded by a lock.
+    private let depthBacklogLock = NSLock()
+    private var depthBacklog = 0
+    private let maxDepthBacklog = 8
+
     // Conversion (reused, Metal-backed)
     private lazy var ciContext = CIContext(options: [.useSoftwareRenderer: false])
 
@@ -655,6 +665,15 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
         }
     }
 
+    /// Updates the "Saving…" HUD line with the current stage so the user can see the save
+    /// is alive and progressing (not frozen). Only meaningful while finishing.
+    private func setSaveStage(_ text: String) {
+        guard state == .finishing else { return }
+        tipText = text
+        tipWarning = false
+        pushHudState(force: true)
+    }
+
     private func exportAndResolve() {
         // Idempotent — finishWriting's completion handler and the watchdog can both call
         // this. The main-thread gate guarantees the save resolves (and the upload starts)
@@ -673,6 +692,17 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
             // otherwise the shutter stays live, startRecording resets didExport, and a
             // second Done could double-export. No-op when already .finishing.
             self.setState(.finishing, message: "Saving scan…")
+            NSLog("[TwinCap] export START pts=\(self.pointCount) kf=\(self.keyframeCount)")
+            // Export watchdog: if writing the point cloud + poses hasn't handed off to
+            // onFinish within 45 s, surface a visible failure instead of an infinite
+            // "Saving…" freeze. Runs on main (main is free during the depthQueue write).
+            var handedOff = false
+            let exportWatchdog = DispatchWorkItem { [weak self] in
+                guard let self = self, !handedOff else { return }
+                NSLog("[TwinCap] export WATCHDOG fired — save exceeded 45s")
+                self.fail("Saving took too long and was stopped. Your video clips are safe — please try the scan again.")
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 45, execute: exportWatchdog)
             // Snapshot on main — clipVideos/photoURLs are main-thread-owned.
             let clips = self.clipVideos
             let photos = self.photoURLs
@@ -682,8 +712,14 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
             let tmp = URL(fileURLWithPath: NSTemporaryDirectory())
             let plyURL = tmp.appendingPathComponent("\(sid).ply")
             let posesURL = tmp.appendingPathComponent("\(sid)_poses.json")
+            let ptCount = self.voxelGrid.count
+            DispatchQueue.main.async { self.setSaveStage("Writing point cloud (\(ptCount) pts)…") }
+            NSLog("[TwinCap] writePLY START (\(ptCount) pts)")
             self.writePLY(to: plyURL)
+            NSLog("[TwinCap] writePLY DONE")
+            DispatchQueue.main.async { self.setSaveStage("Writing scan data…") }
             self.writePosesJSON(to: posesURL, clips: clips)
+            NSLog("[TwinCap] writePoses DONE")
 
             let totalDuration = clips.reduce(0.0) { $0 + $1.duration }
             let manifest: [String: Any] = [
@@ -713,6 +749,10 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
             self.voxelGrid.removeAll(keepingCapacity: false)
             self.keyframes.removeAll(keepingCapacity: false)
             DispatchQueue.main.async {
+                handedOff = true
+                exportWatchdog.cancel()
+                NSLog("[TwinCap] export handoff -> onFinish (upload begins)")
+                self.setSaveStage("Uploading scan…")
                 self.teardownSessionOnly()
                 self.onFinish?(manifest)
             }
@@ -821,8 +861,31 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
         // safe to read here; clipVideos itself is main-thread-only.
         let clipIndex = completedClipCount
         let clipRel = rel
+
+        // Backpressure: if depthQueue is falling behind, drop this frame's voxel insert so
+        // the backlog can't grow into a multi-minute drain at Done. Keyframes are cheap and
+        // still recorded below regardless.
+        depthBacklogLock.lock()
+        let behind = depthBacklog >= maxDepthBacklog
+        if !behind { depthBacklog += 1 }
+        depthBacklogLock.unlock()
+
+        if behind {
+            // Still record the keyframe (poses matter more than a few dropped voxels).
+            if let kf = keyframeData {
+                depthQueue.async { [weak self] in self?.keyframes.append(kf) }
+            }
+            pushHudState()
+            return
+        }
+
         depthQueue.async { [weak self] in
-            guard let self = self else { return }
+            guard let self = self else {
+                return
+            }
+            defer {
+                self.depthBacklogLock.lock(); self.depthBacklog -= 1; self.depthBacklogLock.unlock()
+            }
             var inserted = 0
             for (key, data) in newVoxels where self.voxelGrid[key] == nil {
                 self.voxelGrid[key] = data

@@ -24,15 +24,18 @@ private struct TwinGlassPanel: ViewModifier {
                 ZStack {
                     RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
                         .fill(.ultraThinMaterial)
+                    // Light graphite tint (0.40, not 0.62) so the panel reads as glass, not
+                    // a heavy dark pill. Legibility is carried by per-label text shadows +
+                    // the hairline, so the fill can stay light even over a bright wall.
                     RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                        .fill(TwinHudColor.canvas.opacity(0.62))
+                        .fill(TwinHudColor.canvas.opacity(0.40))
                 }
             )
             .overlay(
                 RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                    .stroke(Color.white.opacity(0.12), lineWidth: 1)
+                    .stroke(Color.white.opacity(0.14), lineWidth: 0.75)
             )
-            .shadow(color: .black.opacity(0.35), radius: 8, y: 2)
+            .shadow(color: .black.opacity(0.25), radius: 7, y: 2)
     }
 }
 
