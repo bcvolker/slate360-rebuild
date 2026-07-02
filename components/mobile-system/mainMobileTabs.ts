@@ -64,7 +64,7 @@ export function isMainMobileTabRoute(pathname: string): boolean {
   );
 }
 
-export function resolveMainMobileTabKey(pathname: string): MainMobileTabKey {
+export function resolveMainMobileTabKey(pathname: string): MainMobileTabKey | null {
   if (pathname.startsWith("/projects")) {
     return "projects";
   }
@@ -77,7 +77,11 @@ export function resolveMainMobileTabKey(pathname: string): MainMobileTabKey {
   ) {
     return "account";
   }
-  return "home";
+  // Home is ONLY /app. Inside Site Walk / Twin 360 no tab is active — lighting
+  // "Home" up in the app's accent while you're in an app claimed you were
+  // somewhere you weren't (the bottom-nav inconsistency).
+  if (pathname === "/app" || pathname.startsWith("/app/")) return "home";
+  return null;
 }
 
 export type MainMobileHeaderMeta = {

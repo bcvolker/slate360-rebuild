@@ -24,18 +24,43 @@ export function CreateTwinSpaceForm({
   const [projectId, setProjectId] = useState(
     lockedProjectId ?? projects[0]?.id ?? "",
   );
+  // Zero-projects path: create the project inline instead of stranding the user
+  // with "create a project first" and no way to do it (the capture-flow dead-end).
+  const needsProject = !lockedProjectId && projects.length === 0;
+  const [projectName, setProjectName] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleCreate = useCallback(async () => {
     const trimmed = title.trim();
-    const effectiveProjectId = lockedProjectId ?? projectId;
-    if (!trimmed || !effectiveProjectId) return;
+    if (!trimmed) return;
 
     setBusy(true);
     setError(null);
 
     try {
+      let effectiveProjectId = lockedProjectId ?? projectId;
+
+      if (needsProject) {
+        const projectTrimmed = projectName.trim();
+        if (!projectTrimmed) throw new Error("Project name is required");
+        const projRes = await fetch("/api/projects/create", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: projectTrimmed }),
+        });
+        const projData = (await projRes.json().catch(() => ({}))) as {
+          project?: { id?: string };
+          error?: string;
+        };
+        if (!projRes.ok || !projData.project?.id) {
+          throw new Error(projData.error ?? "Could not create project");
+        }
+        effectiveProjectId = projData.project.id;
+      }
+
+      if (!effectiveProjectId) return;
+
       const res = await fetch("/api/digital-twin/spaces", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -57,15 +82,7 @@ export function CreateTwinSpaceForm({
     } finally {
       setBusy(false);
     }
-  }, [lockedProjectId, onCreated, projectId, title]);
-
-  if (!projects.length) {
-    return (
-      <p className={cn("text-xs text-zinc-400", className)}>
-        Create an active project first, then add a twin workspace here.
-      </p>
-    );
-  }
+  }, [lockedProjectId, needsProject, onCreated, projectId, projectName, title]);
 
   return (
     <div
@@ -74,9 +91,22 @@ export function CreateTwinSpaceForm({
         className,
       )}
     >
-      <p className="mb-2 text-xs font-semibold text-zinc-300">Create twin workspace</p>
+      <p className="mb-2 text-xs font-semibold text-zinc-300">
+        {needsProject ? "Create project & twin workspace" : "Create twin workspace"}
+      </p>
 
-      {lockedProjectId ? (
+      {needsProject ? (
+        <label className="mb-2 flex flex-col gap-1 text-xs text-zinc-400">
+          Project name
+          <input
+            value={projectName}
+            onChange={(e) => setProjectName(e.target.value)}
+            placeholder="e.g. 123 Main St"
+            className="min-h-[44px] rounded-xl border border-white/10 bg-white/[0.04] px-3 text-sm text-zinc-100 placeholder:text-zinc-500"
+            disabled={busy}
+          />
+        </label>
+      ) : lockedProjectId ? (
         <p className="mb-2 text-xs text-zinc-400">
           Project:{" "}
           <span className="font-semibold text-zinc-200">
@@ -115,7 +145,11 @@ export function CreateTwinSpaceForm({
       <button
         type="button"
         onClick={() => void handleCreate()}
-        disabled={busy || !title.trim() || !(lockedProjectId ?? projectId)}
+        disabled={
+          busy
+            || !title.trim()
+            || (needsProject ? !projectName.trim() : !(lockedProjectId ?? projectId))
+        }
         className={cn(twinAccent.button, "inline-flex w-full min-h-[44px] items-center justify-center gap-2")}
       >
         {busy ? (
@@ -123,7 +157,7 @@ export function CreateTwinSpaceForm({
         ) : (
           <IconPlus className="h-4 w-4" stroke={1.75} />
         )}
-        {busy ? "Creating…" : "Create workspace"}
+        {busy ? "Creating…" : needsProject ? "Create project & workspace" : "Create workspace"}
       </button>
 
       {error ? <p className="mt-2 text-xs text-red-300">{error}</p> : null}

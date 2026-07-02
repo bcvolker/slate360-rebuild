@@ -24,7 +24,6 @@ import {
   MobileAppHubHeroCard,
   MobileAppHubHeroStack,
 } from "@/components/studio-ui/MobileAppHubHeroCard";
-import { MobileAppBrandBand } from "@/components/studio-ui/MobileAppBrandBand";
 import {
   buildDigitalTwinDockRows,
   DigitalTwinHomeFill,
@@ -168,7 +167,6 @@ export function DigitalTwinHomeClient({ twins, projects }: Props) {
 
   return (
     <div className={appHomeTokens.scrollInner}>
-      <MobileAppBrandBand name="Twin 360" icon={Scan} accent="info" />
       <section className={appHomeTokens.section}>
         <MobileAppHubHeroStack>
           <MobileAppHubHeroCard

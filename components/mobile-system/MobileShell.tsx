@@ -68,7 +68,7 @@ export function MobileShell({
         data-mobile-shell-version="unified-v2"
         data-mobile-route={mobileRoute}
         className={cn(
-          "dark flex h-[100dvh] w-full max-w-full flex-col overflow-hidden bg-[#0B0F15] text-slate-50",
+          "dark flex h-[100dvh] w-full max-w-full flex-col overflow-hidden bg-[var(--graphite-canvas)] text-slate-50",
           className,
         )}
       >

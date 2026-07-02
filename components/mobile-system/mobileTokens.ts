@@ -165,7 +165,7 @@ export const mobileTokens = {
   mobileModalPanel:
     "relative w-full max-w-sm rounded-xl border border-[#2A3340] bg-[#11161E]/95 p-4 backdrop-blur-xl",
   mobilePageScrollInner:
-    "mx-auto flex w-full max-w-2xl flex-col gap-3 px-4 pt-3 pb-28",
+    "mx-auto flex w-full max-w-2xl flex-col gap-3 px-4 pt-3 pb-3",
   mobileGlassRowLink:
     "flex min-h-14 items-center gap-3 border-b border-white/[0.06] px-4 transition-colors last:border-b-0 hover:bg-white/[0.04]",
   mobileIconWell:

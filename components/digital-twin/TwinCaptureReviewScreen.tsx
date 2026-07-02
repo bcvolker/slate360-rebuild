@@ -67,7 +67,7 @@ export function TwinCaptureReviewScreen({ canUseHighQuality, devPreview }: Props
       <TwinSubmitStepperHeader step={state.step} onBack={state.handleBack} />
 
       <div
-        className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 pb-28 pt-3"
+        className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 pb-4 pt-3"
         data-twin-submit="scroll"
       >
         {state.step === "clips" ? (

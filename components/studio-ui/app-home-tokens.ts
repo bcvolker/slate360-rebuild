@@ -50,13 +50,12 @@ export const appHomeTokens = {
   launcherLockBadge:
     "pointer-events-none absolute right-2.5 top-2.5 flex h-7 w-7 items-center justify-center rounded-lg border border-[#2A3340] bg-[color-mix(in_srgb,var(--graphite-canvas)_88%,transparent)] text-[var(--graphite-muted)]",
 
-  quickActionGrid: "grid shrink-0 grid-cols-2 gap-2 auto-rows-fr",
-  quickActionCard: `flex min-h-[64px] flex-col items-start justify-center gap-0.5 rounded-xl border border-[var(--mobile-quick-action-border)] px-2.5 py-2 text-left shadow-[var(--mobile-quick-action-shadow)] transition-all active:scale-[0.99] ${glassSurface} ${glassSurfaceHover} hover:border-[var(--mobile-shell-accent-border)]`,
-  quickActionIconWrapper:
-    "mb-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[var(--mobile-quick-action-icon-border)] bg-[var(--mobile-quick-action-icon-bg)]",
-  quickActionIcon: "h-5 w-5 shrink-0 text-[var(--mobile-quick-action-fg)]",
+  quickActionGrid: "grid shrink-0 grid-cols-4 gap-1.5",
+  quickActionCard: "flex min-h-[64px] flex-col items-center justify-center gap-1.5 rounded-xl border border-transparent px-1 py-2 text-center transition-all active:scale-[0.97] hover:border-[var(--mobile-shell-accent-border)] hover:bg-white/[0.04]",
+  quickActionIconWrapper: "flex shrink-0 items-center justify-center",
+  quickActionIcon: "h-6 w-6 shrink-0 text-[var(--mobile-quick-action-fg)]",
   quickActionLabel:
-    "text-sm font-bold leading-tight text-[var(--mobile-quick-action-title-fg)]",
+    "text-[11px] font-semibold leading-tight text-[var(--mobile-quick-action-title-fg)]",
 
   slateDropCard: `flex w-full shrink-0 flex-col gap-3 rounded-[13px] border-2 border-[var(--mobile-expandable-panel-border)] p-3 shadow-[var(--mobile-app-card-shadow)] ${glassSurface}`,
   slateDropRow: "flex items-center gap-3",

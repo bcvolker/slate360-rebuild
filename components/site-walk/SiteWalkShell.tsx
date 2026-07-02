@@ -25,7 +25,7 @@ export function SiteWalkShell({
 
   if (isSiteWalkPassthroughShellPath(pathname)) {
     return (
-      <div className="flex h-full min-h-0 w-full flex-col overflow-hidden bg-[#0B0F15]">
+      <div className="flex h-full min-h-0 w-full flex-col overflow-hidden bg-[var(--graphite-canvas)]">
         {children}
       </div>
     );

@@ -57,7 +57,7 @@ type MobileBottomNavProps<Key extends string = string> = {
 
   items: MobileBottomNavItem<Key>[];
 
-  activeKey: Key;
+  activeKey: Key | null;
 
   ariaLabel?: string;
 
