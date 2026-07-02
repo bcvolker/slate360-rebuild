@@ -644,7 +644,13 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
                 w?.endSession(atSourceTime: self.lastEnqueuedPTS)
             }
             w?.finishWriting {
-                if !finalized { finalized = true; watchdog.cancel(); finalize() }
+                // finishWriting's completion runs on an arbitrary AVFoundation queue —
+                // hop back to videoQueue so `finalized`/watchdog.cancel serialize with the
+                // watchdog. This guarantees the watchdog's cancelWriting() can never
+                // overlap a finishWriting that actually completed (Apple: mutually exclusive).
+                self.videoQueue.async {
+                    if !finalized { finalized = true; watchdog.cancel(); finalize() }
+                }
             }
         }
     }
@@ -960,8 +966,15 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
         writerInput = input
         pixelAdaptor = adaptor
         hasStartedWriter = true
-        lastEnqueuedPTS = .invalid
-        appendedFrameCount = 0
+        // Reset the append counters ON videoQueue (the only queue that touches them):
+        // beginWriter runs on the MAIN thread (ARSessionDelegate default queue), while
+        // appendVideo/endClip touch these on videoQueue. Enqueued here (from the same
+        // didUpdate that later dispatches the first appendVideo), FIFO guarantees this
+        // reset lands before any frame is counted.
+        videoQueue.async { [weak self] in
+            self?.lastEnqueuedPTS = .invalid
+            self?.appendedFrameCount = 0
+        }
     }
 
     private func appendVideo(_ buffer: CVPixelBuffer, pts: CMTime) {
