@@ -34,6 +34,11 @@ public class LiDARCapturePlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate,
 
     // Native-led capture (modal AR view controller).
     private var pendingCaptureCall: CAPPluginCall?
+    // Auth cookies captured at presentCapture (webview alive) and reused for the upload.
+    // If iOS reclaims the WebView content process during the long AR session,
+    // getAllCookies afterward can hang forever — which silently killed the upload
+    // ("stuck at Saving…, zero server contact"). Upfront capture removes that dependency.
+    private var storedCookieHeader: String = ""
     private weak var captureVC: TwinARKitCaptureViewController?
 
     // Serial queue for the native direct-to-storage upload (blocking URLSession calls).
@@ -118,6 +123,11 @@ public class LiDARCapturePlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate,
             let apiBase = call.getString("apiBase") ?? "https://www.slate360.ai"
             let title = call.getString("title")
             self.pendingCaptureCall = call
+            // Snapshot auth cookies NOW, while the webview is guaranteed alive — the
+            // upload after capture must not depend on a possibly-reclaimed web process.
+            self.collectCookieHeader { [weak self] header in
+                if !header.isEmpty { self?.storedCookieHeader = header }
+            }
             let vc = TwinARKitCaptureViewController(options: opts)
             vc.onProgress = { [weak self] data in self?.notifyListeners("progress", data: data) }
             vc.onFinish = { [weak self] manifest in
@@ -265,7 +275,11 @@ public class LiDARCapturePlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate,
                     self.resolveCapture(result)
                 } catch {
                     NSLog("[Slate360] Twin native upload failed: \(error.localizedDescription)")
-                    self.presentNativeNotice("Scan captured (\(pts) pts) but upload failed:\n\(error.localizedDescription)")
+                    self.presentNativeNotice("Scan captured (\(pts) pts) but upload failed:\n\(error.localizedDescription)\n\nYour scan is saved — reopen Twin 360 to retry.")
+                    // Never strand the user on a dead capture screen: land them on My Twins
+                    // so there is always a path forward (the resumable uploader retries the
+                    // large files in the background regardless).
+                    self.navigateWebView(to: "/digital-twin/twins", apiBase: apiBase)
                     var payload: [String: Any] = [
                         "cancelled": false,
                         "uploadError": error.localizedDescription,
@@ -303,12 +317,27 @@ public class LiDARCapturePlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate,
     /// capture/upload outcome even when the WebView content process has been reclaimed.
     /// TEMPORARY diagnostic + confirmation; folds into the capture-screen redesign later.
     private func presentNativeNotice(_ message: String) {
-        DispatchQueue.main.async { [weak self] in
-            guard let presenter = self?.bridge?.viewController else { return }
+        DispatchQueue.main.async {
+            // Present from the key window's TOP-MOST VC, not the bridge VC — if the web
+            // content process was reclaimed the bridge VC's view may be gone, but the
+            // native alert must still reach the user (consensus: never rely on the webview
+            // to show a failure).
+            guard let presenter = Self.topMostViewController() else { return }
             let alert = UIAlertController(title: "Twin capture", message: message, preferredStyle: .alert)
             alert.addAction(UIAlertAction(title: "OK", style: .default))
             presenter.present(alert, animated: true)
         }
+    }
+
+    private static func topMostViewController() -> UIViewController? {
+        let root = UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .flatMap { $0.windows }
+            .first(where: { $0.isKeyWindow })?
+            .rootViewController
+        var top = root
+        while let presented = top?.presentedViewController { top = presented }
+        return top
     }
 
     /// Loads a fresh URL into the bridge WebView. Used to land the user on a server-backed
@@ -334,15 +363,27 @@ public class LiDARCapturePlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate,
     /// Supabase chunks its auth token across several `sb-…-auth-token[.n]` cookies, so we
     /// forward every cookie for the slate360.ai domain. Must run on the main thread.
     private func collectCookieHeader(completion: @escaping (String) -> Void) {
+        // getAllCookies can hang indefinitely if the WebView content process was
+        // reclaimed during the AR session. Race it against a 3s fallback so the caller
+        // (the upload) can NEVER be stranded — it proceeds with the upfront-stored
+        // cookies instead. `once` guards against double-completion.
+        var settled = false
+        let lock = NSLock()
+        let finish: (String) -> Void = { [weak self] header in
+            lock.lock(); let first = !settled; settled = true; lock.unlock()
+            guard first else { return }
+            completion(header.isEmpty ? (self?.storedCookieHeader ?? "") : header)
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3) { finish("") }
         DispatchQueue.main.async { [weak self] in
-            guard let webView = self?.bridge?.webView else { completion(""); return }
+            guard let webView = self?.bridge?.webView else { finish(""); return }
             let store = webView.configuration.websiteDataStore.httpCookieStore
             store.getAllCookies { cookies in
                 let header = cookies
                     .filter { $0.domain.contains("slate360.ai") }
                     .map { "\($0.name)=\($0.value)" }
                     .joined(separator: "; ")
-                completion(header)
+                finish(header)
             }
         }
     }

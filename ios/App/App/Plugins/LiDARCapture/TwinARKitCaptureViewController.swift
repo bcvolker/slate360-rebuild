@@ -88,6 +88,11 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
     private var videoURL: URL?
     private var droppedVideoFrames: Int = 0
     private var lastVideoPTS: Double = -Double.infinity
+    // videoQueue-confined: PTS + count of frames ACTUALLY appended (not the main-thread
+    // wall-clock snapshot). endClip reads these on videoQueue to end the session at the
+    // real last sample and to detect a zero-frame clip.
+    private var lastEnqueuedPTS: CMTime = .invalid
+    private var appendedFrameCount: Int = 0
 
     // Conversion (reused, Metal-backed)
     private lazy var ciContext = CIContext(options: [.useSoftwareRenderer: false])
@@ -577,7 +582,12 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
             DispatchQueue.main.async {
                 guard let self = self, !closed else { return }
                 closed = true
-                if duration > 0, let url = clipURL {
+                // A clip counts only if the file exists with real bytes — a cancelled/
+                // wedged writer (zero frames, watchdog) leaves no valid video to upload.
+                let fileBytes = clipURL.flatMap {
+                    (try? FileManager.default.attributesOfItem(atPath: $0.path)[.size] as? Int) ?? nil
+                } ?? 0
+                if duration > 0, fileBytes > 1024, let url = clipURL {
                     self.clipVideos.append(ClipRecord(
                         url: url,
                         filename: "twin_capture_clip\(seq).mp4",
@@ -590,7 +600,7 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
                         self.tipWarning = false
                     }
                 } else if let url = clipURL {
-                    // Zero-length clip (no frames landed) — drop the empty file.
+                    // Zero-length / cancelled clip — drop the empty file.
                     try? FileManager.default.removeItem(at: url)
                     if self.state == .ready, !self.isRecording {
                         self.tipText = "Clip too short — tap record and try again"
@@ -605,22 +615,36 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
             }
         }
 
-        // Watchdog: a wedged writer must never strand the capture — force-finalize
-        // after 12 s (idempotent via `closed`).
-        let watchdog = DispatchWorkItem { finalize() }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 12, execute: watchdog)
+        // Watchdog runs on videoQueue, NOT main: a backgrounded/locked app freezes the
+        // main run loop, so a main-queue asyncAfter never fires — which is exactly when a
+        // long save is most likely to wedge. On timeout, cancelWriting() unblocks a stuck
+        // finishWriting, then finalize proceeds. (~10-platform consensus.)
+        var finalized = false // videoQueue-confined guard against watchdog/completion double-fire
+        let watchdog = DispatchWorkItem {
+            if !finalized {
+                finalized = true
+                if !(w?.status == .completed || w?.status == .failed) { w?.cancelWriting() }
+                finalize()
+            }
+        }
+        videoQueue.asyncAfter(deadline: .now() + 12, execute: watchdog)
 
         videoQueue.async {
             wi?.markAsFinished()
-            if w?.status == .writing {
-                w?.endSession(atSourceTime: CMTime(seconds: duration, preferredTimescale: 600))
-                w?.finishWriting {
-                    watchdog.cancel()
-                    finalize()
-                }
-            } else {
-                watchdog.cancel()
-                finalize()
+            // Do NOT call endSession(atSourceTime:) with a wall-clock time — a PTS ahead of
+            // the last APPENDED sample makes finishWriting hang forever (the "stuck at
+            // Saving…" bug). Let the writer end at its last real sample; only end explicitly
+            // at the true last-enqueued PTS. A clip with zero appended frames is cancelled,
+            // not finished (finishWriting on an empty session can hang).
+            guard w?.status == .writing, self.appendedFrameCount > 0 else {
+                if !finalized { finalized = true; watchdog.cancel(); w?.cancelWriting(); finalize() }
+                return
+            }
+            if self.lastEnqueuedPTS.isValid {
+                w?.endSession(atSourceTime: self.lastEnqueuedPTS)
+            }
+            w?.finishWriting {
+                if !finalized { finalized = true; watchdog.cancel(); finalize() }
             }
         }
     }
@@ -936,12 +960,19 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
         writerInput = input
         pixelAdaptor = adaptor
         hasStartedWriter = true
+        lastEnqueuedPTS = .invalid
+        appendedFrameCount = 0
     }
 
     private func appendVideo(_ buffer: CVPixelBuffer, pts: CMTime) {
         guard let input = writerInput, let adaptor = pixelAdaptor else { return }
         guard input.isReadyForMoreMediaData else { droppedVideoFrames += 1; return }
-        adaptor.append(buffer, withPresentationTime: pts)
+        if adaptor.append(buffer, withPresentationTime: pts) {
+            // Queue-confined: the PTS of the LAST sample actually written. endSession must
+            // never precede this or finishWriting hangs (the ~10-platform root cause).
+            lastEnqueuedPTS = pts
+            appendedFrameCount += 1
+        }
     }
 
     /// Converts ARKit's YCbCr camera buffer into a BGRA buffer the writer accepts.
