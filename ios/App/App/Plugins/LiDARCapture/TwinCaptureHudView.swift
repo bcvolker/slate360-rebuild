@@ -109,12 +109,12 @@ private struct TwinHudTopBar: View {
                         Image(systemName: "chevron.left")
                         Text("Back")
                     }
-                    .font(.system(size: 11, weight: .bold))
+                    .font(.system(size: 12, weight: .bold))
                     .foregroundStyle(TwinHudColor.twinBlue)
                     .padding(.horizontal, 10)
                     .frame(height: 32)
-                    .background(TwinHudColor.twinBlue.opacity(0.14), in: RoundedRectangle(cornerRadius: 8))
-                    .overlay(RoundedRectangle(cornerRadius: 8).stroke(TwinHudColor.twinBlue.opacity(0.35), lineWidth: 1))
+                    .background(TwinHudColor.twinBlue.opacity(0.22), in: RoundedRectangle(cornerRadius: 8))
+                    .overlay(RoundedRectangle(cornerRadius: 8).stroke(TwinHudColor.twinBlue.opacity(0.6), lineWidth: 1))
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Back")
@@ -135,8 +135,8 @@ private struct TwinHudTopBar: View {
                         }
                         .foregroundStyle(TwinHudColor.twinBlue)
                         .frame(width: 44, height: 32)
-                        .background(TwinHudColor.twinBlue.opacity(0.12), in: RoundedRectangle(cornerRadius: 8))
-                        .overlay(RoundedRectangle(cornerRadius: 8).stroke(TwinHudColor.twinBlue.opacity(0.3), lineWidth: 1))
+                        .background(TwinHudColor.twinBlue.opacity(0.20), in: RoundedRectangle(cornerRadius: 8))
+                        .overlay(RoundedRectangle(cornerRadius: 8).stroke(TwinHudColor.twinBlue.opacity(0.55), lineWidth: 1))
                     }
                     .buttonStyle(.plain)
                 }
@@ -296,8 +296,8 @@ private struct TwinHudBottomRail: View {
         VStack(spacing: 12) {
             // Readiness / recording hint — INSIDE the dock, never floating over the camera.
             Text(hintText)
-                .font(.system(size: 11, weight: .semibold, design: .monospaced))
-                .foregroundStyle(model.tipWarning ? Color.orange : TwinHudColor.body)
+                .font(.system(size: 12, weight: .semibold, design: .monospaced))
+                .foregroundStyle(model.tipWarning ? Color.orange : .white)
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
                 .frame(maxWidth: .infinity)
@@ -306,6 +306,13 @@ private struct TwinHudBottomRail: View {
             // VIDEO | PHOTOS mode selector — Site Walk grammar (mono uppercase segments,
             // accent only on the active segment). Locked while recording.
             modeSelector
+
+            // Photo cadence (photos mode only): manual shutter or auto-capture every
+            // 1/2/3 s. Exposure is ARKit-managed (locking it breaks tracking) — cadence
+            // + torch are the controls the hardware allows.
+            if model.captureMode == .photos, !model.isRecording {
+                intervalSelector
+            }
 
             HStack(alignment: .center) {
                 torchControl
@@ -333,6 +340,9 @@ private struct TwinHudBottomRail: View {
             return "● REC \(TwinHudStateModel.formatTimer(ms: model.elapsedMs)) · CLIP \(max(1, model.clipCount))"
         }
         if model.captureMode == .photos {
+            if model.photoAutoActive {
+                return "AUTO \(Int(model.photoIntervalSec))S · \(model.photoCount) captured · tap to stop"
+            }
             return model.photoCount > 0
                 ? "PHOTOS · \(model.photoCount) captured · tap for more"
                 : (model.tipText.isEmpty ? "Photos — tap the shutter" : model.tipText)
@@ -359,9 +369,37 @@ private struct TwinHudBottomRail: View {
         let active = model.captureMode == mode
         return Button(action: { model.actions.onModeChange(mode) }) {
             Text(label)
-                .font(.system(size: 10, weight: .bold, design: .monospaced))
-                .foregroundStyle(active ? TwinHudColor.canvas : TwinHudColor.body)
+                .font(.system(size: 11, weight: .bold, design: .monospaced))
+                .foregroundStyle(active ? TwinHudColor.canvas : .white)
                 .padding(.horizontal, 16)
+                .frame(height: 28)
+                .background(
+                    active ? TwinHudColor.twinBlue : Color.clear,
+                    in: RoundedRectangle(cornerRadius: 8)
+                )
+        }
+        .buttonStyle(.plain)
+    }
+
+    private var intervalSelector: some View {
+        HStack(spacing: 4) {
+            intervalSegment("MANUAL", value: 0)
+            intervalSegment("1S", value: 1)
+            intervalSegment("2S", value: 2)
+            intervalSegment("3S", value: 3)
+        }
+        .padding(3)
+        .background(Color.white.opacity(0.06), in: RoundedRectangle(cornerRadius: 10))
+        .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.white.opacity(0.10), lineWidth: 1))
+    }
+
+    private func intervalSegment(_ label: String, value: Double) -> some View {
+        let active = model.photoIntervalSec == value
+        return Button(action: { model.actions.onPhotoIntervalChange(value) }) {
+            Text(label)
+                .font(.system(size: 11, weight: .bold, design: .monospaced))
+                .foregroundStyle(active ? TwinHudColor.canvas : .white)
+                .padding(.horizontal, 12)
                 .frame(height: 26)
                 .background(
                     active ? TwinHudColor.twinBlue : Color.clear,
@@ -391,8 +429,8 @@ private struct TwinHudBottomRail: View {
                 }
                 .buttonStyle(.plain)
                 Text("Light")
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(TwinHudColor.body)
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(.white)
             }
         } else {
             Color.clear.frame(width: TwinCaptureChrome.lightButtonSize, height: TwinCaptureChrome.lightButtonSize + 20)
@@ -418,16 +456,16 @@ private struct TwinHudBottomRail: View {
 
                 Circle()
                     .fill(
-                        model.isRecording
+                        (model.isRecording || model.photoAutoActive)
                             ? TwinHudColor.destructive
                             : (photosMode ? Color.white : TwinHudColor.twinBlue)
                     )
                     .frame(width: TwinCaptureChrome.shutterInner, height: TwinCaptureChrome.shutterInner)
                     .overlay(
-                        Circle().stroke(Color.white.opacity(0.85), lineWidth: model.isRecording ? 0 : 3)
+                        Circle().stroke(Color.white.opacity(0.85), lineWidth: (model.isRecording || model.photoAutoActive) ? 0 : 3)
                     )
 
-                if model.isRecording {
+                if model.isRecording || model.photoAutoActive {
                     RoundedRectangle(cornerRadius: 4)
                         .fill(Color.white)
                         .frame(width: 22, height: 22)
@@ -473,8 +511,8 @@ private struct TwinHudBottomRail: View {
             // Legible even when disabled — dim only slightly (0.85), never the old 0.45.
             .opacity(enabled ? 1 : 0.85)
             Text("Done")
-                .font(.system(size: 11, weight: .medium))
-                .foregroundStyle(TwinHudColor.body)
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(.white)
         }
     }
 }

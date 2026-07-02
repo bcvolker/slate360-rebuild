@@ -138,6 +138,9 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
     private var captureMode: TwinCaptureMode = .video
     private var photoURLs: [(url: URL, filename: String)] = []   // main-thread-only
     private var photoShotCount = 0                                // word-sized for HUD reads
+    private var photoIntervalSec: Double = 0                      // 0 = manual shutter
+    private var photoAutoActive = false
+    private var photoTimer: Timer?
 
     /// Git commit + build number stamped by Codemagic into Info.plist — shown in the HUD
     /// header so a stale TestFlight install is identifiable in two seconds (the recurring
@@ -245,10 +248,21 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
         model.actions.onDone = { [weak self] in self?.tapFinish() }
         model.actions.onModeChange = { [weak self] mode in
             guard let self = self, !self.isRecording else { return }
+            self.stopPhotoAuto()
             self.captureMode = mode
             self.tipText = mode == .photos
                 ? "Photos — tap the shutter · overlap each shot"
                 : "Ready · tap record"
+            self.pushHudState(force: true)
+        }
+        model.actions.onPhotoIntervalChange = { [weak self] interval in
+            guard let self = self else { return }
+            self.photoIntervalSec = interval
+            if self.photoAutoActive {
+                // Restart the cadence at the new interval (or stop if set to manual).
+                self.stopPhotoAuto()
+                if interval > 0 { self.startPhotoAuto() }
+            }
             self.pushHudState(force: true)
         }
     }
@@ -298,6 +312,8 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
                 clipCount: clips,
                 captureMode: self.captureMode,
                 photoCount: self.photoShotCount,
+                photoIntervalSec: self.photoIntervalSec,
+                photoAutoActive: self.photoAutoActive,
                 hasContent: hasContent,
                 finishing: finishing,
                 capability: capability,
@@ -393,12 +409,37 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
         // the ARSession keeps running between clips so the next clip shares the same
         // world origin. Done exports everything.
         if captureMode == .photos, !isRecording {
-            capturePhoto()
+            if photoAutoActive {
+                stopPhotoAuto()
+                pushHudState(force: true)
+            } else if photoIntervalSec > 0 {
+                startPhotoAuto()
+            } else {
+                capturePhoto()
+            }
         } else if isRecording {
             endClip(andExport: false)
         } else {
             startRecording()
         }
+    }
+
+    /// Auto-capture: shutter starts/stops a cadence that snaps a still every
+    /// `photoIntervalSec` seconds — walk the space, photos take themselves.
+    private func startPhotoAuto() {
+        guard state == .ready, photoIntervalSec > 0 else { return }
+        photoAutoActive = true
+        capturePhoto()
+        photoTimer = Timer.scheduledTimer(withTimeInterval: photoIntervalSec, repeats: true) { [weak self] _ in
+            self?.capturePhoto()
+        }
+        pushHudState(force: true)
+    }
+
+    private func stopPhotoAuto() {
+        photoTimer?.invalidate()
+        photoTimer = nil
+        photoAutoActive = false
     }
 
     /// Snaps a full-res still from the live ARSession frame (JPEG on videoQueue — the
@@ -433,6 +474,7 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
     }
 
     @objc private func tapFinish() {
+        stopPhotoAuto()
         if isRecording {
             endClip(andExport: true)
         } else if !clipVideos.isEmpty || !photoURLs.isEmpty || pointCount > 0 {
@@ -1066,6 +1108,7 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
     }
 
     private func teardownSessionOnly() {
+        stopPhotoAuto()
         turnTorchOff()
         arSession.pause()
         locationManager?.stopUpdatingLocation()

@@ -77,6 +77,7 @@ struct TwinHudActions {
     var onDone: () -> Void = {}
     var onClipsToggle: () -> Void = {}
     var onModeChange: (TwinCaptureMode) -> Void = { _ in }
+    var onPhotoIntervalChange: (Double) -> Void = { _ in }
 }
 
 // MARK: - Observable state (main-actor only)
@@ -101,6 +102,8 @@ final class TwinHudStateModel: ObservableObject {
     @Published var clipCount: Int = 0
     @Published var captureMode: TwinCaptureMode = .video
     @Published var photoCount: Int = 0
+    @Published var photoIntervalSec: Double = 0   // 0 = manual shutter
+    @Published var photoAutoActive: Bool = false
     @Published var clipsExpanded: Bool = false
     @Published var chromeVisible: Bool = true
     @Published var finishing: Bool = false
@@ -127,6 +130,8 @@ final class TwinHudStateModel: ObservableObject {
         clipCount: Int,
         captureMode: TwinCaptureMode,
         photoCount: Int,
+        photoIntervalSec: Double,
+        photoAutoActive: Bool,
         hasContent: Bool,
         finishing: Bool,
         capability: TwinHudCapability,
@@ -150,6 +155,8 @@ final class TwinHudStateModel: ObservableObject {
         self.clipCount = clipCount
         self.captureMode = captureMode
         self.photoCount = photoCount
+        self.photoIntervalSec = photoIntervalSec
+        self.photoAutoActive = photoAutoActive
         self.hasContent = hasContent
         self.finishing = finishing
         self.capability = capability
