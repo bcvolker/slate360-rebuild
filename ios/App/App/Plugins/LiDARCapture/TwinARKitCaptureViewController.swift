@@ -474,7 +474,11 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
     /// Idempotent per clip — finishWriting's completion and the watchdog can both land.
     private func clipWriterDone(duration: Double, andExport: Bool) {
         DispatchQueue.main.async { [weak self] in
-            guard let self = self, !self.clipClosed else { return }
+            // !isRecording: a stale finishWriting completion that lost the race to the
+            // 12 s watchdog can land AFTER the user started the next clip (clipClosed
+            // was reset) — it must not append a bogus clip record or nil the ACTIVE
+            // clip's writer. Legitimate calls always arrive with isRecording == false.
+            guard let self = self, !self.clipClosed, !self.isRecording, self.state != .failed else { return }
             self.clipClosed = true
             if duration > 0, let url = self.videoURL {
                 self.clipVideos.append(ClipRecord(
@@ -494,8 +498,10 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
             self.videoURL = nil
             if andExport {
                 self.exportAndResolve()
-            } else {
+            } else if duration > 0 {
                 self.setState(.ready, message: "Clip \(self.completedClipCount) saved — record the next area or tap Done")
+            } else {
+                self.setState(.ready, message: "Clip too short — tap record and try again")
             }
         }
     }
@@ -505,8 +511,12 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
         // this. The main-thread gate guarantees the save resolves (and the upload starts)
         // exactly once, so capture never strands on "Saving…".
         DispatchQueue.main.async { [weak self] in
-            guard let self = self, !self.didExport else { return }
+            guard let self = self, !self.didExport, self.state != .failed else { return }
             self.didExport = true
+            // Entering export from .ready (Done between clips) must lock the HUD —
+            // otherwise the shutter stays live, startRecording resets didExport, and a
+            // second Done could double-export. No-op when already .finishing.
+            self.setState(.finishing, message: "Saving scan…")
             // Snapshot on main — clipVideos is main-thread-owned.
             let clips = self.clipVideos
             self.depthQueue.async { [weak self] in
@@ -690,8 +700,12 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
         sessionNeedsResume = true
         // Close the in-flight clip but STAY in capture — when the interruption ends
         // ARKit relocalizes into the same world map and the next clip stays aligned.
-        if isRecording { DispatchQueue.main.async { [weak self] in self?.endClip(andExport: false) } }
-        setState(state, message: "Capture interrupted — clip saved")
+        if isRecording {
+            DispatchQueue.main.async { [weak self] in self?.endClip(andExport: false) }
+            setState(state, message: "Capture interrupted — clip saved")
+        } else {
+            pushHudState(force: true)
+        }
     }
 
     func sessionInterruptionEnded(_ session: ARSession) {
@@ -992,8 +1006,17 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
     private func teardown() {
         isRecording = false
         teardownSessionOnly()
-        writerInput?.markAsFinished()
-        writer?.cancelWriting()
+        // Writer ops must run on videoQueue — cancelWriting on main can race a
+        // finishWriting in flight on videoQueue (Apple documents them as exclusive).
+        let w = writer
+        let wi = writerInput
+        writer = nil
+        writerInput = nil
+        pixelAdaptor = nil
+        videoQueue.async {
+            wi?.markAsFinished()
+            w?.cancelWriting()
+        }
     }
 
     private func cleanupTempFiles() {

@@ -439,6 +439,7 @@ def try_lidar_bypass(
     source_dir: Path,
     work_root: Path,
     processed_dir: Path,
+    source_keys: list[str] | None = None,
 ) -> tuple[bool, bool]:
     """Attempt to bypass COLMAP using ARKit poses from the LiDAR plugin.
 
@@ -497,23 +498,40 @@ def try_lidar_bypass(
             if isinstance(clip, dict) and clip.get("video"):
                 clips_meta[str(clip["video"])] = clip
 
+        # download_sources renames videos to source_NNNN.<ext>, and R2 key basenames
+        # carry a Date.now() prefix (buildS3Key) — so map each local name back to the
+        # ORIGINAL upload filename to look up poses clips[] metadata. Without this the
+        # clips lookup never matches and the creation_time fallback can attach wrong
+        # poses (AVAssetWriter's mvhd time is the clip END, inside the next clip's
+        # keyframe window on back-to-back clips).
+        orig_names: dict[str, str] = {}
+        for i, k in enumerate(source_keys or []):
+            suffix = Path(k).suffix.lower() or ".bin"
+            orig_names[f"source_{i:04d}{suffix}"] = re.sub(r"^\d+_", "", Path(k).name)
+
         bypass_frames_dir = work_root / "_bypass_frames"
         bypass_frames_dir.mkdir(parents=True, exist_ok=True)
         extracted: list[tuple[Path, float]] = []  # (frame_path, wall_clock_time)
 
         for vi, vp in enumerate(video_files):
-            meta = clips_meta.get(vp.name)
+            orig = orig_names.get(vp.name, vp.name)
+            meta = clips_meta.get(orig)
+            if clips_meta and meta is None:
+                # Capture declared its clip videos — anything else (e.g. a drone video
+                # shot at the same time) must NOT be pose-matched against phone poses.
+                print(f"[lidar-bypass] {orig}: not a capture clip; skipped")
+                continue
             if meta and isinstance(meta.get("start_time"), (int, float)):
                 v_start: float | None = float(meta["start_time"])
             else:
                 v_start = get_video_creation_time(vp)
             if v_start is None:
-                if vi == 0:
+                if vi == 0 and not clips_meta:
                     # Largest video with no start info — legacy single-clip fallback.
                     v_start = session_start
-                    print(f"[lidar-bypass] {vp.name}: no start time; assuming session_start")
+                    print(f"[lidar-bypass] {orig}: no start time; assuming session_start")
                 else:
-                    print(f"[lidar-bypass] {vp.name}: no start time; skipped")
+                    print(f"[lidar-bypass] {orig}: no start time; skipped")
                     continue
             vdir = bypass_frames_dir / f"v{vi}"
             vdir.mkdir(parents=True, exist_ok=True)
@@ -1127,6 +1145,7 @@ def run_pipeline(job: JobInput, work_root: Path) -> dict[str, Any]:
         lidar_bypass_used, lidar_ply_init = try_lidar_bypass(
             s3, bucket, job.lidar_poses_key, job.lidar_ply_key,
             source_dir, work_root, processed_dir,
+            source_keys=job.source_keys,
         )
 
     if not lidar_bypass_used:
