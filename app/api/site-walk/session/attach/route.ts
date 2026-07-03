@@ -1,9 +1,10 @@
 import { NextRequest } from "next/server";
 import { withAuth, type AuthedContext } from "@/lib/server/api-auth";
 import { ok, badRequest, serverError } from "@/lib/server/api-response";
+import { getScopedProjectForUser } from "@/lib/projects/access";
 
 export const PATCH = async (req: NextRequest) =>
-  withAuth(req, async ({ admin, orgId }: AuthedContext) => {
+  withAuth(req, async ({ admin, user, orgId }: AuthedContext) => {
     try {
       const body = await req.json();
       const { session_id, project_id, session_name } = body;
@@ -16,6 +17,9 @@ export const PATCH = async (req: NextRequest) =>
       if (!orgId) {
         return badRequest("Missing context organization.");
       }
+
+      const { project } = await getScopedProjectForUser(user.id, project_id, "id");
+      if (!project) return badRequest("Project not found or access denied");
 
       const updates: any = {
         project_id,
