@@ -69,8 +69,10 @@ export interface ModularEntitlements {
 /** Per-app tier definitions: [basic, pro] limits. Trial is separate. */
 const APP_TIER_LIMITS: Record<AppId, Record<Exclude<AppTier, "none">, Omit<AppLimits, "active" | "tier">>> = {
   site_walk: {
-    basic: { storageGB: 5, creditsPerMonth: 200, seats: 1, monthlyPrice: 79 },
-    pro:   { storageGB: 25, creditsPerMonth: 750, seats: 1, monthlyPrice: 149 },
+    // Canonical value — must match lib/site-walk/metering.ts (enforced there). Single-source refactor tracked for Phase 3.
+    basic: { storageGB: 5, creditsPerMonth: 300, seats: 1, monthlyPrice: 79 },
+    // Canonical value — must match lib/site-walk/metering.ts (enforced there). Single-source refactor tracked for Phase 3.
+    pro:   { storageGB: 25, creditsPerMonth: 1000, seats: 1, monthlyPrice: 149 },
   },
   tours: {
     basic: { storageGB: 3, creditsPerMonth: 100, seats: 1, monthlyPrice: 49 },
