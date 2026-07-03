@@ -1294,6 +1294,594 @@ export type Database = {
           },
         ]
       }
+      content_edit_projects: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          last_render_job_id: string | null
+          last_rendered_at: string | null
+          mode: string
+          org_id: string
+          project_id: string | null
+          spec_version: number
+          status: string
+          timeline_json: Json
+          title: string
+          ui_state_json: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          last_render_job_id?: string | null
+          last_rendered_at?: string | null
+          mode?: string
+          org_id: string
+          project_id?: string | null
+          spec_version?: number
+          status?: string
+          timeline_json?: Json
+          title?: string
+          ui_state_json?: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          last_render_job_id?: string | null
+          last_rendered_at?: string | null
+          mode?: string
+          org_id?: string
+          project_id?: string | null
+          spec_version?: number
+          status?: string
+          timeline_json?: Json
+          title?: string
+          ui_state_json?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_edit_projects_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "org_usage_summary"
+            referencedColumns: ["org_id"]
+          },
+          {
+            foreignKeyName: "content_edit_projects_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "content_edit_projects_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      content_enhancement_jobs: {
+        Row: {
+          actual_credits: number
+          completed_at: string | null
+          content_hash: string | null
+          created_at: string
+          created_by: string | null
+          edit_project_id: string | null
+          enhance_spec_json: Json
+          error_text: string | null
+          estimated_credits: number
+          id: string
+          org_id: string
+          output_storage_key: string | null
+          progress_pct: number
+          source_asset_id: string | null
+          stage: string | null
+          started_at: string | null
+          status: string
+          updated_at: string
+          worker_run_id: string | null
+        }
+        Insert: {
+          actual_credits?: number
+          completed_at?: string | null
+          content_hash?: string | null
+          created_at?: string
+          created_by?: string | null
+          edit_project_id?: string | null
+          enhance_spec_json?: Json
+          error_text?: string | null
+          estimated_credits?: number
+          id?: string
+          org_id: string
+          output_storage_key?: string | null
+          progress_pct?: number
+          source_asset_id?: string | null
+          stage?: string | null
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+          worker_run_id?: string | null
+        }
+        Update: {
+          actual_credits?: number
+          completed_at?: string | null
+          content_hash?: string | null
+          created_at?: string
+          created_by?: string | null
+          edit_project_id?: string | null
+          enhance_spec_json?: Json
+          error_text?: string | null
+          estimated_credits?: number
+          id?: string
+          org_id?: string
+          output_storage_key?: string | null
+          progress_pct?: number
+          source_asset_id?: string | null
+          stage?: string | null
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+          worker_run_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_enhancement_jobs_edit_project_id_fkey"
+            columns: ["edit_project_id"]
+            isOneToOne: false
+            referencedRelation: "content_edit_projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "content_enhancement_jobs_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "org_usage_summary"
+            referencedColumns: ["org_id"]
+          },
+          {
+            foreignKeyName: "content_enhancement_jobs_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      content_library_assets: {
+        Row: {
+          asset_type: string
+          created_at: string
+          created_by: string | null
+          id: string
+          look_json: Json | null
+          metadata: Json
+          name: string
+          org_id: string
+          storage_key: string | null
+          thumbnail_key: string | null
+          updated_at: string
+        }
+        Insert: {
+          asset_type: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          look_json?: Json | null
+          metadata?: Json
+          name: string
+          org_id: string
+          storage_key?: string | null
+          thumbnail_key?: string | null
+          updated_at?: string
+        }
+        Update: {
+          asset_type?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          look_json?: Json | null
+          metadata?: Json
+          name?: string
+          org_id?: string
+          storage_key?: string | null
+          thumbnail_key?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_library_assets_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "org_usage_summary"
+            referencedColumns: ["org_id"]
+          },
+          {
+            foreignKeyName: "content_library_assets_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      content_media_assets: {
+        Row: {
+          audio_proxy_key: string | null
+          created_at: string
+          created_by: string | null
+          duration_sec: number | null
+          edit_project_id: string | null
+          error_text: string | null
+          fps: number | null
+          has_audio: boolean | null
+          height: number | null
+          id: string
+          ingest_job_id: string | null
+          kind: string
+          org_id: string
+          original_filename: string | null
+          proxy_key: string | null
+          status: string
+          storage_key: string
+          thumbnail_key: string | null
+          updated_at: string
+          width: number | null
+        }
+        Insert: {
+          audio_proxy_key?: string | null
+          created_at?: string
+          created_by?: string | null
+          duration_sec?: number | null
+          edit_project_id?: string | null
+          error_text?: string | null
+          fps?: number | null
+          has_audio?: boolean | null
+          height?: number | null
+          id?: string
+          ingest_job_id?: string | null
+          kind?: string
+          org_id: string
+          original_filename?: string | null
+          proxy_key?: string | null
+          status?: string
+          storage_key: string
+          thumbnail_key?: string | null
+          updated_at?: string
+          width?: number | null
+        }
+        Update: {
+          audio_proxy_key?: string | null
+          created_at?: string
+          created_by?: string | null
+          duration_sec?: number | null
+          edit_project_id?: string | null
+          error_text?: string | null
+          fps?: number | null
+          has_audio?: boolean | null
+          height?: number | null
+          id?: string
+          ingest_job_id?: string | null
+          kind?: string
+          org_id?: string
+          original_filename?: string | null
+          proxy_key?: string | null
+          status?: string
+          storage_key?: string
+          thumbnail_key?: string | null
+          updated_at?: string
+          width?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_media_assets_edit_project_id_fkey"
+            columns: ["edit_project_id"]
+            isOneToOne: false
+            referencedRelation: "content_edit_projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "content_media_assets_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "org_usage_summary"
+            referencedColumns: ["org_id"]
+          },
+          {
+            foreignKeyName: "content_media_assets_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      content_render_jobs: {
+        Row: {
+          actual_credits: number
+          completed_at: string | null
+          content_hash: string | null
+          created_at: string
+          created_by: string | null
+          edit_project_id: string | null
+          error_text: string | null
+          estimated_credits: number
+          id: string
+          idempotency_key: string | null
+          input_payload: Json
+          job_type: string
+          org_id: string
+          output_storage_key: string | null
+          outputs: Json | null
+          progress_pct: number
+          spec_snapshot_key: string | null
+          stage: string | null
+          started_at: string | null
+          status: string
+          updated_at: string
+          worker_run_id: string | null
+        }
+        Insert: {
+          actual_credits?: number
+          completed_at?: string | null
+          content_hash?: string | null
+          created_at?: string
+          created_by?: string | null
+          edit_project_id?: string | null
+          error_text?: string | null
+          estimated_credits?: number
+          id?: string
+          idempotency_key?: string | null
+          input_payload?: Json
+          job_type?: string
+          org_id: string
+          output_storage_key?: string | null
+          outputs?: Json | null
+          progress_pct?: number
+          spec_snapshot_key?: string | null
+          stage?: string | null
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+          worker_run_id?: string | null
+        }
+        Update: {
+          actual_credits?: number
+          completed_at?: string | null
+          content_hash?: string | null
+          created_at?: string
+          created_by?: string | null
+          edit_project_id?: string | null
+          error_text?: string | null
+          estimated_credits?: number
+          id?: string
+          idempotency_key?: string | null
+          input_payload?: Json
+          job_type?: string
+          org_id?: string
+          output_storage_key?: string | null
+          outputs?: Json | null
+          progress_pct?: number
+          spec_snapshot_key?: string | null
+          stage?: string | null
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+          worker_run_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_render_jobs_edit_project_id_fkey"
+            columns: ["edit_project_id"]
+            isOneToOne: false
+            referencedRelation: "content_edit_projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "content_render_jobs_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "org_usage_summary"
+            referencedColumns: ["org_id"]
+          },
+          {
+            foreignKeyName: "content_render_jobs_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coordination_events: {
+        Row: {
+          actor_contact_id: string | null
+          actor_label: string | null
+          actor_type: string
+          actor_user_id: string | null
+          attempts: number
+          category: string
+          created_at: string
+          event_type: string
+          id: string
+          idempotency_key: string
+          last_error: string | null
+          org_id: string
+          payload: Json
+          processed_at: string | null
+          project_id: string | null
+          subject_id: string | null
+          subject_type: string
+          thread_key: string
+        }
+        Insert: {
+          actor_contact_id?: string | null
+          actor_label?: string | null
+          actor_type?: string
+          actor_user_id?: string | null
+          attempts?: number
+          category: string
+          created_at?: string
+          event_type: string
+          id?: string
+          idempotency_key: string
+          last_error?: string | null
+          org_id: string
+          payload?: Json
+          processed_at?: string | null
+          project_id?: string | null
+          subject_id?: string | null
+          subject_type: string
+          thread_key: string
+        }
+        Update: {
+          actor_contact_id?: string | null
+          actor_label?: string | null
+          actor_type?: string
+          actor_user_id?: string | null
+          attempts?: number
+          category?: string
+          created_at?: string
+          event_type?: string
+          id?: string
+          idempotency_key?: string
+          last_error?: string | null
+          org_id?: string
+          payload?: Json
+          processed_at?: string | null
+          project_id?: string | null
+          subject_id?: string | null
+          subject_type?: string
+          thread_key?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coordination_events_actor_contact_id_fkey"
+            columns: ["actor_contact_id"]
+            isOneToOne: false
+            referencedRelation: "org_contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coordination_events_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "org_usage_summary"
+            referencedColumns: ["org_id"]
+          },
+          {
+            foreignKeyName: "coordination_events_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coordination_events_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coordination_notifications: {
+        Row: {
+          action_url: string | null
+          archived_at: string | null
+          body: string | null
+          category: string
+          created_at: string
+          event_id: string
+          id: string
+          org_id: string
+          priority: string
+          project_id: string | null
+          read_at: string | null
+          snoozed_until: string | null
+          thread_id: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          action_url?: string | null
+          archived_at?: string | null
+          body?: string | null
+          category: string
+          created_at?: string
+          event_id: string
+          id?: string
+          org_id: string
+          priority?: string
+          project_id?: string | null
+          read_at?: string | null
+          snoozed_until?: string | null
+          thread_id?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          action_url?: string | null
+          archived_at?: string | null
+          body?: string | null
+          category?: string
+          created_at?: string
+          event_id?: string
+          id?: string
+          org_id?: string
+          priority?: string
+          project_id?: string | null
+          read_at?: string | null
+          snoozed_until?: string | null
+          thread_id?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coordination_notifications_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "coordination_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coordination_notifications_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "org_usage_summary"
+            referencedColumns: ["org_id"]
+          },
+          {
+            foreignKeyName: "coordination_notifications_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coordination_notifications_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coordination_notifications_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "notification_threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       credit_balance: {
         Row: {
           balance_credits: number
@@ -2107,6 +2695,85 @@ export type Database = {
           },
         ]
       }
+      deliverable_branding: {
+        Row: {
+          accent_color: string | null
+          contact_block: Json | null
+          created_at: string
+          deliverable_id: string
+          deliverable_type: string
+          footer_text: string | null
+          header_subtitle: string | null
+          header_title: string | null
+          hide_slate360_mark: boolean
+          id: string
+          logo_overlay: Json | null
+          org_id: string
+          project_id: string | null
+          updated_at: string
+          updated_by: string | null
+          use_org_branding: boolean
+        }
+        Insert: {
+          accent_color?: string | null
+          contact_block?: Json | null
+          created_at?: string
+          deliverable_id: string
+          deliverable_type: string
+          footer_text?: string | null
+          header_subtitle?: string | null
+          header_title?: string | null
+          hide_slate360_mark?: boolean
+          id?: string
+          logo_overlay?: Json | null
+          org_id: string
+          project_id?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          use_org_branding?: boolean
+        }
+        Update: {
+          accent_color?: string | null
+          contact_block?: Json | null
+          created_at?: string
+          deliverable_id?: string
+          deliverable_type?: string
+          footer_text?: string | null
+          header_subtitle?: string | null
+          header_title?: string | null
+          hide_slate360_mark?: boolean
+          id?: string
+          logo_overlay?: Json | null
+          org_id?: string
+          project_id?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          use_org_branding?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deliverable_branding_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "org_usage_summary"
+            referencedColumns: ["org_id"]
+          },
+          {
+            foreignKeyName: "deliverable_branding_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deliverable_branding_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       deliverable_cleanup_queue: {
         Row: {
           app_id: string | null
@@ -2151,6 +2818,503 @@ export type Database = {
             columns: ["org_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      design_exports: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          file_size_bytes: number
+          format: string
+          id: string
+          org_id: string
+          session_id: string
+          share_token: string | null
+          status: string
+          storage_key: string | null
+          variant_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          file_size_bytes?: number
+          format: string
+          id?: string
+          org_id: string
+          session_id: string
+          share_token?: string | null
+          status?: string
+          storage_key?: string | null
+          variant_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          file_size_bytes?: number
+          format?: string
+          id?: string
+          org_id?: string
+          session_id?: string
+          share_token?: string | null
+          status?: string
+          storage_key?: string | null
+          variant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "design_exports_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "org_usage_summary"
+            referencedColumns: ["org_id"]
+          },
+          {
+            foreignKeyName: "design_exports_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "design_exports_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "design_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "design_exports_variant_id_fkey"
+            columns: ["variant_id"]
+            isOneToOne: false
+            referencedRelation: "design_variants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      design_generation_jobs: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          error_text: string | null
+          id: string
+          input_payload: Json
+          job_type: string
+          org_id: string
+          output_storage_key: string | null
+          progress_pct: number
+          prompt_id: string | null
+          quality_metrics: Json | null
+          session_id: string
+          stage: string | null
+          started_at: string | null
+          status: string
+          updated_at: string
+          variant_id: string
+          worker_run_id: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          error_text?: string | null
+          id?: string
+          input_payload?: Json
+          job_type?: string
+          org_id: string
+          output_storage_key?: string | null
+          progress_pct?: number
+          prompt_id?: string | null
+          quality_metrics?: Json | null
+          session_id: string
+          stage?: string | null
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+          variant_id: string
+          worker_run_id?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          error_text?: string | null
+          id?: string
+          input_payload?: Json
+          job_type?: string
+          org_id?: string
+          output_storage_key?: string | null
+          progress_pct?: number
+          prompt_id?: string | null
+          quality_metrics?: Json | null
+          session_id?: string
+          stage?: string | null
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+          variant_id?: string
+          worker_run_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "design_generation_jobs_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "org_usage_summary"
+            referencedColumns: ["org_id"]
+          },
+          {
+            foreignKeyName: "design_generation_jobs_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "design_generation_jobs_prompt_id_fkey"
+            columns: ["prompt_id"]
+            isOneToOne: false
+            referencedRelation: "design_prompts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "design_generation_jobs_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "design_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "design_generation_jobs_variant_id_fkey"
+            columns: ["variant_id"]
+            isOneToOne: false
+            referencedRelation: "design_variants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      design_prompts: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          model_name: string | null
+          model_provider: string | null
+          org_id: string
+          parent_variant_id: string | null
+          prompt_text: string
+          reference_image_keys: string[]
+          session_id: string
+          structured_actions: Json
+          validation_errors: Json | null
+          variant_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          model_name?: string | null
+          model_provider?: string | null
+          org_id: string
+          parent_variant_id?: string | null
+          prompt_text: string
+          reference_image_keys?: string[]
+          session_id: string
+          structured_actions?: Json
+          validation_errors?: Json | null
+          variant_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          model_name?: string | null
+          model_provider?: string | null
+          org_id?: string
+          parent_variant_id?: string | null
+          prompt_text?: string
+          reference_image_keys?: string[]
+          session_id?: string
+          structured_actions?: Json
+          validation_errors?: Json | null
+          variant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "design_prompts_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "org_usage_summary"
+            referencedColumns: ["org_id"]
+          },
+          {
+            foreignKeyName: "design_prompts_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "design_prompts_parent_variant_id_fkey"
+            columns: ["parent_variant_id"]
+            isOneToOne: false
+            referencedRelation: "design_variants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "design_prompts_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "design_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "design_prompts_variant_id_fkey"
+            columns: ["variant_id"]
+            isOneToOne: false
+            referencedRelation: "design_variants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      design_scene_snapshots: {
+        Row: {
+          command_list: Json
+          created_at: string
+          created_by: string | null
+          id: string
+          label: string | null
+          org_id: string
+          scene_state: Json
+          session_id: string
+          variant_id: string | null
+        }
+        Insert: {
+          command_list?: Json
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          label?: string | null
+          org_id: string
+          scene_state?: Json
+          session_id: string
+          variant_id?: string | null
+        }
+        Update: {
+          command_list?: Json
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          label?: string | null
+          org_id?: string
+          scene_state?: Json
+          session_id?: string
+          variant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "design_scene_snapshots_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "org_usage_summary"
+            referencedColumns: ["org_id"]
+          },
+          {
+            foreignKeyName: "design_scene_snapshots_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "design_scene_snapshots_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "design_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "design_scene_snapshots_variant_id_fkey"
+            columns: ["variant_id"]
+            isOneToOne: false
+            referencedRelation: "design_variants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      design_sessions: {
+        Row: {
+          active_variant_id: string | null
+          created_at: string
+          created_by: string
+          id: string
+          org_id: string
+          project_id: string | null
+          settings: Json
+          source_format: string | null
+          source_storage_key: string | null
+          source_twin_model_id: string | null
+          source_viewer_kind: string | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          active_variant_id?: string | null
+          created_at?: string
+          created_by: string
+          id?: string
+          org_id: string
+          project_id?: string | null
+          settings?: Json
+          source_format?: string | null
+          source_storage_key?: string | null
+          source_twin_model_id?: string | null
+          source_viewer_kind?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Update: {
+          active_variant_id?: string | null
+          created_at?: string
+          created_by?: string
+          id?: string
+          org_id?: string
+          project_id?: string | null
+          settings?: Json
+          source_format?: string | null
+          source_storage_key?: string | null
+          source_twin_model_id?: string | null
+          source_viewer_kind?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "design_sessions_active_variant_fk"
+            columns: ["active_variant_id"]
+            isOneToOne: false
+            referencedRelation: "design_variants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "design_sessions_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "org_usage_summary"
+            referencedColumns: ["org_id"]
+          },
+          {
+            foreignKeyName: "design_sessions_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "design_sessions_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "design_sessions_source_twin_model_id_fkey"
+            columns: ["source_twin_model_id"]
+            isOneToOne: false
+            referencedRelation: "digital_twin_models"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      design_stream_sessions: {
+        Row: {
+          budget_cap_usd: number | null
+          cost_usd: number
+          created_at: string
+          created_by: string | null
+          ended_at: string | null
+          error_text: string | null
+          id: string
+          instance_type: string | null
+          last_active_at: string | null
+          org_id: string
+          provider: string
+          rate_usd_per_hour: number
+          session_id: string | null
+          signaling_url: string | null
+          started_at: string | null
+          status: string
+          stream_url: string | null
+          worker_run_id: string | null
+        }
+        Insert: {
+          budget_cap_usd?: number | null
+          cost_usd?: number
+          created_at?: string
+          created_by?: string | null
+          ended_at?: string | null
+          error_text?: string | null
+          id?: string
+          instance_type?: string | null
+          last_active_at?: string | null
+          org_id: string
+          provider?: string
+          rate_usd_per_hour?: number
+          session_id?: string | null
+          signaling_url?: string | null
+          started_at?: string | null
+          status?: string
+          stream_url?: string | null
+          worker_run_id?: string | null
+        }
+        Update: {
+          budget_cap_usd?: number | null
+          cost_usd?: number
+          created_at?: string
+          created_by?: string | null
+          ended_at?: string | null
+          error_text?: string | null
+          id?: string
+          instance_type?: string | null
+          last_active_at?: string | null
+          org_id?: string
+          provider?: string
+          rate_usd_per_hour?: number
+          session_id?: string | null
+          signaling_url?: string | null
+          started_at?: string | null
+          status?: string
+          stream_url?: string | null
+          worker_run_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "design_stream_sessions_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "org_usage_summary"
+            referencedColumns: ["org_id"]
+          },
+          {
+            foreignKeyName: "design_stream_sessions_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "design_stream_sessions_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "design_sessions"
             referencedColumns: ["id"]
           },
         ]
@@ -2488,6 +3652,108 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      design_variants: {
+        Row: {
+          command_list: Json
+          created_at: string
+          error_text: string | null
+          final_storage_key: string | null
+          id: string
+          label: string | null
+          model_format: string | null
+          org_id: string
+          params: Json
+          parent_variant_id: string | null
+          preview_storage_key: string | null
+          prompt_id: string | null
+          session_id: string
+          sort_order: number
+          status: string
+          structured_actions: Json
+          thumbnail_storage_key: string | null
+          tier: string
+          updated_at: string
+        }
+        Insert: {
+          command_list?: Json
+          created_at?: string
+          error_text?: string | null
+          final_storage_key?: string | null
+          id?: string
+          label?: string | null
+          model_format?: string | null
+          org_id: string
+          params?: Json
+          parent_variant_id?: string | null
+          preview_storage_key?: string | null
+          prompt_id?: string | null
+          session_id: string
+          sort_order?: number
+          status?: string
+          structured_actions?: Json
+          thumbnail_storage_key?: string | null
+          tier?: string
+          updated_at?: string
+        }
+        Update: {
+          command_list?: Json
+          created_at?: string
+          error_text?: string | null
+          final_storage_key?: string | null
+          id?: string
+          label?: string | null
+          model_format?: string | null
+          org_id?: string
+          params?: Json
+          parent_variant_id?: string | null
+          preview_storage_key?: string | null
+          prompt_id?: string | null
+          session_id?: string
+          sort_order?: number
+          status?: string
+          structured_actions?: Json
+          thumbnail_storage_key?: string | null
+          tier?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "design_variants_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "org_usage_summary"
+            referencedColumns: ["org_id"]
+          },
+          {
+            foreignKeyName: "design_variants_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "design_variants_parent_variant_id_fkey"
+            columns: ["parent_variant_id"]
+            isOneToOne: false
+            referencedRelation: "design_variants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "design_variants_prompt_fk"
+            columns: ["prompt_id"]
+            isOneToOne: false
+            referencedRelation: "design_prompts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "design_variants_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "design_sessions"
             referencedColumns: ["id"]
           },
         ]
@@ -3033,6 +4299,7 @@ export type Database = {
           deleted_by: string | null
           edit_list: Json
           file_size_bytes: number
+          floorplan_storage_key: string | null
           georef: Json
           id: string
           is_primary: boolean
@@ -3057,6 +4324,7 @@ export type Database = {
           deleted_by?: string | null
           edit_list?: Json
           file_size_bytes?: number
+          floorplan_storage_key?: string | null
           georef?: Json
           id?: string
           is_primary?: boolean
@@ -3081,6 +4349,7 @@ export type Database = {
           deleted_by?: string | null
           edit_list?: Json
           file_size_bytes?: number
+          floorplan_storage_key?: string | null
           georef?: Json
           id?: string
           is_primary?: boolean
@@ -3442,6 +4711,7 @@ export type Database = {
           priority: number
           progress_pct: number
           space_id: string
+          stage: string | null
           started_at: string | null
           status: string
           updated_at: string
@@ -3470,6 +4740,7 @@ export type Database = {
           priority?: number
           progress_pct?: number
           space_id: string
+          stage?: string | null
           started_at?: string | null
           status?: string
           updated_at?: string
@@ -3498,6 +4769,7 @@ export type Database = {
           priority?: number
           progress_pct?: number
           space_id?: string
+          stage?: string | null
           started_at?: string | null
           status?: string
           updated_at?: string
@@ -4619,6 +5891,81 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      entity_tombstones: {
+        Row: {
+          deleted_at: string
+          deleted_at_hlc: string | null
+          deleted_by_user_id: string | null
+          entity_id: string
+          entity_type: string
+          org_id: string | null
+        }
+        Insert: {
+          deleted_at?: string
+          deleted_at_hlc?: string | null
+          deleted_by_user_id?: string | null
+          entity_id: string
+          entity_type: string
+          org_id?: string | null
+        }
+        Update: {
+          deleted_at?: string
+          deleted_at_hlc?: string | null
+          deleted_by_user_id?: string | null
+          entity_id?: string
+          entity_type?: string
+          org_id?: string | null
+        }
+        Relationships: []
+      }
+      evidence_events: {
+        Row: {
+          actor_device_id: string | null
+          actor_user_id: string | null
+          content_sha256: string | null
+          created_at: string
+          entity_id: string
+          entity_type: string
+          event_hash: string
+          event_type: string
+          id: number
+          metadata: Json
+          org_id: string
+          prev_hash: string | null
+          project_id: string | null
+        }
+        Insert: {
+          actor_device_id?: string | null
+          actor_user_id?: string | null
+          content_sha256?: string | null
+          created_at?: string
+          entity_id: string
+          entity_type: string
+          event_hash: string
+          event_type: string
+          id?: number
+          metadata?: Json
+          org_id: string
+          prev_hash?: string | null
+          project_id?: string | null
+        }
+        Update: {
+          actor_device_id?: string | null
+          actor_user_id?: string | null
+          content_sha256?: string | null
+          created_at?: string
+          entity_id?: string
+          entity_type?: string
+          event_hash?: string
+          event_type?: string
+          id?: number
+          metadata?: Json
+          org_id?: string
+          prev_hash?: string | null
+          project_id?: string | null
+        }
+        Relationships: []
       }
       expenses: {
         Row: {
@@ -5753,6 +7100,36 @@ export type Database = {
           },
         ]
       }
+      marketing_content_assets: {
+        Row: {
+          created_at: string
+          id: string
+          label: string | null
+          placement: string
+          updated_at: string
+          updated_by: string | null
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          label?: string | null
+          placement: string
+          updated_at?: string
+          updated_by?: string | null
+          url: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          label?: string | null
+          placement?: string
+          updated_at?: string
+          updated_by?: string | null
+          url?: string
+        }
+        Relationships: []
+      }
       media_assets: {
         Row: {
           collection_id: string | null
@@ -6163,6 +7540,169 @@ export type Database = {
           },
         ]
       }
+      notification_deliveries: {
+        Row: {
+          attempts: number
+          channel: string
+          cost_micros: number
+          created_at: string
+          id: string
+          last_error: string | null
+          notification_id: string
+          org_id: string
+          provider: string | null
+          provider_message_id: string | null
+          scheduled_for: string | null
+          sent_at: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          attempts?: number
+          channel: string
+          cost_micros?: number
+          created_at?: string
+          id?: string
+          last_error?: string | null
+          notification_id: string
+          org_id: string
+          provider?: string | null
+          provider_message_id?: string | null
+          scheduled_for?: string | null
+          sent_at?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          attempts?: number
+          channel?: string
+          cost_micros?: number
+          created_at?: string
+          id?: string
+          last_error?: string | null
+          notification_id?: string
+          org_id?: string
+          provider?: string | null
+          provider_message_id?: string | null
+          scheduled_for?: string | null
+          sent_at?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_deliveries_notification_id_fkey"
+            columns: ["notification_id"]
+            isOneToOne: false
+            referencedRelation: "coordination_notifications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_deliveries_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "org_usage_summary"
+            referencedColumns: ["org_id"]
+          },
+          {
+            foreignKeyName: "notification_deliveries_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notification_preferences: {
+        Row: {
+          cadence: string
+          category: string
+          email: boolean
+          in_app: boolean
+          org_id: string
+          push: boolean
+          sms: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cadence?: string
+          category: string
+          email?: boolean
+          in_app?: boolean
+          org_id: string
+          push?: boolean
+          sms?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cadence?: string
+          category?: string
+          email?: boolean
+          in_app?: boolean
+          org_id?: string
+          push?: boolean
+          sms?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_preferences_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "org_usage_summary"
+            referencedColumns: ["org_id"]
+          },
+          {
+            foreignKeyName: "notification_preferences_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notification_settings: {
+        Row: {
+          digest_hour_local: number | null
+          email_enabled: boolean
+          push_enabled: boolean
+          quiet_hours_end: string | null
+          quiet_hours_start: string | null
+          sms_enabled: boolean
+          sms_opted_in_at: string | null
+          timezone: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          digest_hour_local?: number | null
+          email_enabled?: boolean
+          push_enabled?: boolean
+          quiet_hours_end?: string | null
+          quiet_hours_start?: string | null
+          sms_enabled?: boolean
+          sms_opted_in_at?: string | null
+          timezone?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          digest_hour_local?: number | null
+          email_enabled?: boolean
+          push_enabled?: boolean
+          quiet_hours_end?: string | null
+          quiet_hours_start?: string | null
+          sms_enabled?: boolean
+          sms_opted_in_at?: string | null
+          timezone?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       notification_templates: {
         Row: {
           body_template: string | null
@@ -6198,6 +7738,80 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      notification_threads: {
+        Row: {
+          archived_at: string | null
+          category: string
+          created_at: string
+          id: string
+          last_event_at: string
+          last_event_id: string | null
+          org_id: string
+          project_id: string | null
+          subject_id: string | null
+          subject_type: string
+          thread_key: string
+          title: string
+        }
+        Insert: {
+          archived_at?: string | null
+          category: string
+          created_at?: string
+          id?: string
+          last_event_at?: string
+          last_event_id?: string | null
+          org_id: string
+          project_id?: string | null
+          subject_id?: string | null
+          subject_type: string
+          thread_key: string
+          title: string
+        }
+        Update: {
+          archived_at?: string | null
+          category?: string
+          created_at?: string
+          id?: string
+          last_event_at?: string
+          last_event_id?: string | null
+          org_id?: string
+          project_id?: string | null
+          subject_id?: string | null
+          subject_type?: string
+          thread_key?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_threads_last_event_id_fkey"
+            columns: ["last_event_id"]
+            isOneToOne: false
+            referencedRelation: "coordination_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_threads_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "org_usage_summary"
+            referencedColumns: ["org_id"]
+          },
+          {
+            foreignKeyName: "notification_threads_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_threads_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       observations: {
         Row: {
@@ -9630,6 +11244,60 @@ export type Database = {
           },
         ]
       }
+      push_device_tokens: {
+        Row: {
+          created_at: string
+          device_label: string | null
+          enabled: boolean
+          id: string
+          last_seen_at: string
+          org_id: string | null
+          platform: string
+          provider: string
+          token: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          device_label?: string | null
+          enabled?: boolean
+          id?: string
+          last_seen_at?: string
+          org_id?: string | null
+          platform: string
+          provider?: string
+          token: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          device_label?: string | null
+          enabled?: boolean
+          id?: string
+          last_seen_at?: string
+          org_id?: string | null
+          platform?: string
+          provider?: string
+          token?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "push_device_tokens_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "org_usage_summary"
+            referencedColumns: ["org_id"]
+          },
+          {
+            foreignKeyName: "push_device_tokens_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       query_performance_logs: {
         Row: {
           created_at: string | null
@@ -10951,6 +12619,74 @@ export type Database = {
           },
         ]
       }
+      site_walk_deliverable_questions: {
+        Row: {
+          author_email: string | null
+          author_name: string | null
+          body: string
+          created_at: string
+          deliverable_id: string
+          id: string
+          is_owner_reply: boolean
+          org_id: string | null
+          parent_id: string | null
+          status: string
+        }
+        Insert: {
+          author_email?: string | null
+          author_name?: string | null
+          body: string
+          created_at?: string
+          deliverable_id: string
+          id?: string
+          is_owner_reply?: boolean
+          org_id?: string | null
+          parent_id?: string | null
+          status?: string
+        }
+        Update: {
+          author_email?: string | null
+          author_name?: string | null
+          body?: string
+          created_at?: string
+          deliverable_id?: string
+          id?: string
+          is_owner_reply?: boolean
+          org_id?: string | null
+          parent_id?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "site_walk_deliverable_questions_deliverable_id_fkey"
+            columns: ["deliverable_id"]
+            isOneToOne: false
+            referencedRelation: "site_walk_deliverables"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "site_walk_deliverable_questions_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "org_usage_summary"
+            referencedColumns: ["org_id"]
+          },
+          {
+            foreignKeyName: "site_walk_deliverable_questions_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "site_walk_deliverable_questions_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "site_walk_deliverable_questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       site_walk_deliverable_responses: {
         Row: {
           author_email: string | null
@@ -11613,12 +13349,16 @@ export type Database = {
         Row: {
           assigned_to: string | null
           audio_s3_key: string | null
+          author_node_id: string | null
           before_item_id: string | null
+          capture_device_id: string | null
           capture_mode: string
+          capture_sha256: string | null
           captured_at: string
           category: string | null
           client_item_id: string | null
           client_mutation_id: string | null
+          conflict_flag: boolean
           cost_estimate: number | null
           created_at: string
           created_by: string
@@ -11627,6 +13367,8 @@ export type Database = {
           device_id: string | null
           due_date: string | null
           file_id: string | null
+          hash_verified_at: string | null
+          hlc: string | null
           id: string
           item_relationship: string
           item_status: string
@@ -11648,6 +13390,7 @@ export type Database = {
           resolved_by: string | null
           retry_count: number
           s3_key: string | null
+          server_sha256: string | null
           session_id: string
           sort_order: number
           sync_state: string
@@ -11666,12 +13409,16 @@ export type Database = {
         Insert: {
           assigned_to?: string | null
           audio_s3_key?: string | null
+          author_node_id?: string | null
           before_item_id?: string | null
+          capture_device_id?: string | null
           capture_mode?: string
+          capture_sha256?: string | null
           captured_at?: string
           category?: string | null
           client_item_id?: string | null
           client_mutation_id?: string | null
+          conflict_flag?: boolean
           cost_estimate?: number | null
           created_at?: string
           created_by: string
@@ -11680,6 +13427,8 @@ export type Database = {
           device_id?: string | null
           due_date?: string | null
           file_id?: string | null
+          hash_verified_at?: string | null
+          hlc?: string | null
           id?: string
           item_relationship?: string
           item_status?: string
@@ -11701,6 +13450,7 @@ export type Database = {
           resolved_by?: string | null
           retry_count?: number
           s3_key?: string | null
+          server_sha256?: string | null
           session_id: string
           sort_order?: number
           sync_state?: string
@@ -11719,12 +13469,16 @@ export type Database = {
         Update: {
           assigned_to?: string | null
           audio_s3_key?: string | null
+          author_node_id?: string | null
           before_item_id?: string | null
+          capture_device_id?: string | null
           capture_mode?: string
+          capture_sha256?: string | null
           captured_at?: string
           category?: string | null
           client_item_id?: string | null
           client_mutation_id?: string | null
+          conflict_flag?: boolean
           cost_estimate?: number | null
           created_at?: string
           created_by?: string
@@ -11733,6 +13487,8 @@ export type Database = {
           device_id?: string | null
           due_date?: string | null
           file_id?: string | null
+          hash_verified_at?: string | null
+          hlc?: string | null
           id?: string
           item_relationship?: string
           item_status?: string
@@ -11754,6 +13510,7 @@ export type Database = {
           resolved_by?: string | null
           retry_count?: number
           s3_key?: string | null
+          server_sha256?: string | null
           session_id?: string
           sort_order?: number
           sync_state?: string
@@ -12013,6 +13770,9 @@ export type Database = {
           description: string | null
           file_size: number
           id: string
+          is_current_revision: boolean
+          kind: string
+          master_plan_set_id: string | null
           metadata: Json
           mime_type: string | null
           org_id: string
@@ -12021,9 +13781,12 @@ export type Database = {
           processing_error: string | null
           processing_status: string
           project_id: string
+          revision_label: string | null
+          revision_number: number
           source_file_id: string | null
           source_s3_key: string | null
           source_unified_file_id: string | null
+          supersedes_plan_set_id: string | null
           title: string
           updated_at: string
           uploaded_by: string | null
@@ -12033,6 +13796,9 @@ export type Database = {
           description?: string | null
           file_size?: number
           id?: string
+          is_current_revision?: boolean
+          kind?: string
+          master_plan_set_id?: string | null
           metadata?: Json
           mime_type?: string | null
           org_id: string
@@ -12041,9 +13807,12 @@ export type Database = {
           processing_error?: string | null
           processing_status?: string
           project_id: string
+          revision_label?: string | null
+          revision_number?: number
           source_file_id?: string | null
           source_s3_key?: string | null
           source_unified_file_id?: string | null
+          supersedes_plan_set_id?: string | null
           title: string
           updated_at?: string
           uploaded_by?: string | null
@@ -12053,6 +13822,9 @@ export type Database = {
           description?: string | null
           file_size?: number
           id?: string
+          is_current_revision?: boolean
+          kind?: string
+          master_plan_set_id?: string | null
           metadata?: Json
           mime_type?: string | null
           org_id?: string
@@ -12061,14 +13833,24 @@ export type Database = {
           processing_error?: string | null
           processing_status?: string
           project_id?: string
+          revision_label?: string | null
+          revision_number?: number
           source_file_id?: string | null
           source_s3_key?: string | null
           source_unified_file_id?: string | null
+          supersedes_plan_set_id?: string | null
           title?: string
           updated_at?: string
           uploaded_by?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "site_walk_plan_sets_master_plan_set_id_fkey"
+            columns: ["master_plan_set_id"]
+            isOneToOne: false
+            referencedRelation: "site_walk_plan_sets"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "site_walk_plan_sets_org_id_fkey"
             columns: ["org_id"]
@@ -12102,6 +13884,13 @@ export type Database = {
             columns: ["source_unified_file_id"]
             isOneToOne: false
             referencedRelation: "unified_files"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "site_walk_plan_sets_supersedes_plan_set_id_fkey"
+            columns: ["supersedes_plan_set_id"]
+            isOneToOne: false
+            referencedRelation: "site_walk_plan_sets"
             referencedColumns: ["id"]
           },
         ]
@@ -13592,6 +15381,500 @@ export type Database = {
           },
         ]
       }
+      thermal_analysis_reports: {
+        Row: {
+          config: Json
+          created_at: string
+          created_by: string | null
+          generated_at: string | null
+          html_storage_key: string | null
+          id: string
+          org_id: string | null
+          session_id: string
+          storage_key: string | null
+          template_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          config?: Json
+          created_at?: string
+          created_by?: string | null
+          generated_at?: string | null
+          html_storage_key?: string | null
+          id?: string
+          org_id?: string | null
+          session_id: string
+          storage_key?: string | null
+          template_id?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          config?: Json
+          created_at?: string
+          created_by?: string | null
+          generated_at?: string | null
+          html_storage_key?: string | null
+          id?: string
+          org_id?: string | null
+          session_id?: string
+          storage_key?: string | null
+          template_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "thermal_analysis_reports_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "org_usage_summary"
+            referencedColumns: ["org_id"]
+          },
+          {
+            foreignKeyName: "thermal_analysis_reports_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "thermal_analysis_reports_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "thermal_analysis_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      thermal_analysis_sessions: {
+        Row: {
+          branding_config: Json
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          description: string | null
+          id: string
+          metadata: Json
+          name: string
+          org_id: string | null
+          project_id: string | null
+          status: string
+          summary_metrics: Json
+          telemetry: Json
+          updated_at: string
+        }
+        Insert: {
+          branding_config?: Json
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          id?: string
+          metadata?: Json
+          name: string
+          org_id?: string | null
+          project_id?: string | null
+          status?: string
+          summary_metrics?: Json
+          telemetry?: Json
+          updated_at?: string
+        }
+        Update: {
+          branding_config?: Json
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          id?: string
+          metadata?: Json
+          name?: string
+          org_id?: string | null
+          project_id?: string | null
+          status?: string
+          summary_metrics?: Json
+          telemetry?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "thermal_analysis_sessions_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "org_usage_summary"
+            referencedColumns: ["org_id"]
+          },
+          {
+            foreignKeyName: "thermal_analysis_sessions_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "thermal_analysis_sessions_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      thermal_analysis_share_questions: {
+        Row: {
+          author_email: string | null
+          author_name: string | null
+          body: string
+          capture_id: string | null
+          created_at: string
+          id: string
+          is_owner_reply: boolean
+          org_id: string | null
+          parent_id: string | null
+          session_id: string
+          share_token_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          author_email?: string | null
+          author_name?: string | null
+          body: string
+          capture_id?: string | null
+          created_at?: string
+          id?: string
+          is_owner_reply?: boolean
+          org_id?: string | null
+          parent_id?: string | null
+          session_id: string
+          share_token_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          author_email?: string | null
+          author_name?: string | null
+          body?: string
+          capture_id?: string | null
+          created_at?: string
+          id?: string
+          is_owner_reply?: boolean
+          org_id?: string | null
+          parent_id?: string | null
+          session_id?: string
+          share_token_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "thermal_analysis_share_questions_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "thermal_analysis_share_questions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "thermal_analysis_share_questions_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "thermal_analysis_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "thermal_analysis_share_questions_share_token_id_fkey"
+            columns: ["share_token_id"]
+            isOneToOne: false
+            referencedRelation: "thermal_analysis_share_tokens"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      thermal_analysis_share_tokens: {
+        Row: {
+          branding_snapshot: Json
+          created_at: string
+          created_by: string | null
+          expires_at: string | null
+          id: string
+          is_revoked: boolean
+          label: string | null
+          last_viewed_at: string | null
+          layer_config: Json
+          max_views: number | null
+          org_id: string | null
+          password_hash: string | null
+          role: string
+          session_id: string
+          token: string
+          updated_at: string
+          view_count: number
+        }
+        Insert: {
+          branding_snapshot?: Json
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          is_revoked?: boolean
+          label?: string | null
+          last_viewed_at?: string | null
+          layer_config?: Json
+          max_views?: number | null
+          org_id?: string | null
+          password_hash?: string | null
+          role?: string
+          session_id: string
+          token: string
+          updated_at?: string
+          view_count?: number
+        }
+        Update: {
+          branding_snapshot?: Json
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          is_revoked?: boolean
+          label?: string | null
+          last_viewed_at?: string | null
+          layer_config?: Json
+          max_views?: number | null
+          org_id?: string | null
+          password_hash?: string | null
+          role?: string
+          session_id?: string
+          token?: string
+          updated_at?: string
+          view_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "thermal_analysis_share_tokens_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "org_usage_summary"
+            referencedColumns: ["org_id"]
+          },
+          {
+            foreignKeyName: "thermal_analysis_share_tokens_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "thermal_analysis_share_tokens_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "thermal_analysis_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      thermal_analysis_share_views: {
+        Row: {
+          id: string
+          share_token_id: string
+          viewed_at: string
+          viewer_ip: string | null
+          viewer_ua: string | null
+        }
+        Insert: {
+          id?: string
+          share_token_id: string
+          viewed_at?: string
+          viewer_ip?: string | null
+          viewer_ua?: string | null
+        }
+        Update: {
+          id?: string
+          share_token_id?: string
+          viewed_at?: string
+          viewer_ip?: string | null
+          viewer_ua?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "thermal_analysis_share_views_share_token_id_fkey"
+            columns: ["share_token_id"]
+            isOneToOne: false
+            referencedRelation: "thermal_analysis_share_tokens"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      thermal_captures: {
+        Row: {
+          anomalies: Json
+          content_type: string | null
+          created_at: string
+          deleted_at: string | null
+          file_size_bytes: number
+          filename: string | null
+          gps_position: Json
+          id: string
+          npz_data_path: string | null
+          org_id: string | null
+          preview_path: string | null
+          quality_metrics: Json
+          sensor_profile: Json
+          session_id: string
+          storage_path: string
+          telemetry: Json
+          updated_at: string
+        }
+        Insert: {
+          anomalies?: Json
+          content_type?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          file_size_bytes?: number
+          filename?: string | null
+          gps_position?: Json
+          id?: string
+          npz_data_path?: string | null
+          org_id?: string | null
+          preview_path?: string | null
+          quality_metrics?: Json
+          sensor_profile?: Json
+          session_id: string
+          storage_path: string
+          telemetry?: Json
+          updated_at?: string
+        }
+        Update: {
+          anomalies?: Json
+          content_type?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          file_size_bytes?: number
+          filename?: string | null
+          gps_position?: Json
+          id?: string
+          npz_data_path?: string | null
+          org_id?: string | null
+          preview_path?: string | null
+          quality_metrics?: Json
+          sensor_profile?: Json
+          session_id?: string
+          storage_path?: string
+          telemetry?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "thermal_captures_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "org_usage_summary"
+            referencedColumns: ["org_id"]
+          },
+          {
+            foreignKeyName: "thermal_captures_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "thermal_captures_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "thermal_analysis_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      thermal_processing_jobs: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          error_log: string | null
+          id: string
+          input_capture_ids: string[]
+          job_type: string
+          org_id: string | null
+          output_storage_keys: Json
+          progress_pct: number
+          quality_metrics: Json
+          session_id: string
+          stage: string | null
+          started_at: string | null
+          status: string
+          telemetry: Json
+          updated_at: string
+          worker_id: string | null
+          worker_run_id: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          error_log?: string | null
+          id?: string
+          input_capture_ids?: string[]
+          job_type?: string
+          org_id?: string | null
+          output_storage_keys?: Json
+          progress_pct?: number
+          quality_metrics?: Json
+          session_id: string
+          stage?: string | null
+          started_at?: string | null
+          status?: string
+          telemetry?: Json
+          updated_at?: string
+          worker_id?: string | null
+          worker_run_id?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          error_log?: string | null
+          id?: string
+          input_capture_ids?: string[]
+          job_type?: string
+          org_id?: string | null
+          output_storage_keys?: Json
+          progress_pct?: number
+          quality_metrics?: Json
+          session_id?: string
+          stage?: string | null
+          started_at?: string | null
+          status?: string
+          telemetry?: Json
+          updated_at?: string
+          worker_id?: string | null
+          worker_run_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "thermal_processing_jobs_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "org_usage_summary"
+            referencedColumns: ["org_id"]
+          },
+          {
+            foreignKeyName: "thermal_processing_jobs_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "thermal_processing_jobs_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "thermal_analysis_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tier_limits: {
         Row: {
           annual_price_cents: number | null
@@ -13696,45 +15979,227 @@ export type Database = {
           },
         ]
       }
-      tour_scenes: {
+      tour_processing_jobs: {
         Row: {
           created_at: string
-          file_size_bytes: number
+          error_log: string | null
           id: string
+          job_type: string
+          metadata: Json
+          org_id: string
+          progress_pct: number
+          retryable: boolean
+          scene_id: string | null
+          source_s3_key: string | null
+          stage: string | null
+          status: string
+          tour_id: string
+          updated_at: string
+          worker_run_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          error_log?: string | null
+          id?: string
+          job_type?: string
+          metadata?: Json
+          org_id: string
+          progress_pct?: number
+          retryable?: boolean
+          scene_id?: string | null
+          source_s3_key?: string | null
+          stage?: string | null
+          status?: string
+          tour_id: string
+          updated_at?: string
+          worker_run_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          error_log?: string | null
+          id?: string
+          job_type?: string
+          metadata?: Json
+          org_id?: string
+          progress_pct?: number
+          retryable?: boolean
+          scene_id?: string | null
+          source_s3_key?: string | null
+          stage?: string | null
+          status?: string
+          tour_id?: string
+          updated_at?: string
+          worker_run_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tour_processing_jobs_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "org_usage_summary"
+            referencedColumns: ["org_id"]
+          },
+          {
+            foreignKeyName: "tour_processing_jobs_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tour_processing_jobs_scene_id_fkey"
+            columns: ["scene_id"]
+            isOneToOne: false
+            referencedRelation: "tour_scenes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tour_processing_jobs_tour_id_fkey"
+            columns: ["tour_id"]
+            isOneToOne: false
+            referencedRelation: "project_tours"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tour_scene_derivatives: {
+        Row: {
+          brand_id: string | null
+          created_at: string
+          derivative_type: string
+          format: string | null
+          height: number | null
+          id: string
+          profile_json: Json
+          scene_id: string
+          storage_key: string
+          tiles_manifest_key: string | null
+          tour_id: string
+          width: number | null
+        }
+        Insert: {
+          brand_id?: string | null
+          created_at?: string
+          derivative_type: string
+          format?: string | null
+          height?: number | null
+          id?: string
+          profile_json?: Json
+          scene_id: string
+          storage_key: string
+          tiles_manifest_key?: string | null
+          tour_id: string
+          width?: number | null
+        }
+        Update: {
+          brand_id?: string | null
+          created_at?: string
+          derivative_type?: string
+          format?: string | null
+          height?: number | null
+          id?: string
+          profile_json?: Json
+          scene_id?: string
+          storage_key?: string
+          tiles_manifest_key?: string | null
+          tour_id?: string
+          width?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tour_scene_derivatives_scene_id_fkey"
+            columns: ["scene_id"]
+            isOneToOne: false
+            referencedRelation: "tour_scenes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tour_scene_derivatives_tour_id_fkey"
+            columns: ["tour_id"]
+            isOneToOne: false
+            referencedRelation: "project_tours"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tour_scenes: {
+        Row: {
+          altitude_ft: number | null
+          autorotate: boolean
+          created_at: string
+          default_zoom: number | null
+          file_size_bytes: number
+          geo_lat: number | null
+          geo_lng: number | null
+          id: string
+          initial_fov: number | null
           initial_pitch: number | null
           initial_yaw: number | null
+          max_fov: number | null
+          min_fov: number | null
+          multires_manifest_path: string | null
           panorama_path: string
+          processing_error: string | null
+          scene_kind: string
           sort_order: number
+          status: string
           thumbnail_path: string | null
           title: string
           tour_id: string
           updated_at: string
+          view_limits: Json | null
         }
         Insert: {
+          altitude_ft?: number | null
+          autorotate?: boolean
           created_at?: string
+          default_zoom?: number | null
           file_size_bytes?: number
+          geo_lat?: number | null
+          geo_lng?: number | null
           id?: string
+          initial_fov?: number | null
           initial_pitch?: number | null
           initial_yaw?: number | null
+          max_fov?: number | null
+          min_fov?: number | null
+          multires_manifest_path?: string | null
           panorama_path: string
+          processing_error?: string | null
+          scene_kind?: string
           sort_order?: number
+          status?: string
           thumbnail_path?: string | null
           title: string
           tour_id: string
           updated_at?: string
+          view_limits?: Json | null
         }
         Update: {
+          altitude_ft?: number | null
+          autorotate?: boolean
           created_at?: string
+          default_zoom?: number | null
           file_size_bytes?: number
+          geo_lat?: number | null
+          geo_lng?: number | null
           id?: string
+          initial_fov?: number | null
           initial_pitch?: number | null
           initial_yaw?: number | null
+          max_fov?: number | null
+          min_fov?: number | null
+          multires_manifest_path?: string | null
           panorama_path?: string
+          processing_error?: string | null
+          scene_kind?: string
           sort_order?: number
+          status?: string
           thumbnail_path?: string | null
           title?: string
           tour_id?: string
           updated_at?: string
+          view_limits?: Json | null
         }
         Relationships: [
           {
@@ -14585,6 +17050,7 @@ export type Database = {
           priority: number
           progress_pct: number
           space_id: string
+          stage: string | null
           started_at: string | null
           status: string
           updated_at: string
@@ -14624,6 +17090,17 @@ export type Database = {
           isOneToOne: false
           isSetofReturn: true
         }
+      }
+      claim_thermal_share_view: {
+        Args: { p_token: string; p_viewer_ip?: string; p_viewer_ua?: string }
+        Returns: {
+          branding_snapshot: Json
+          layer_config: Json
+          org_id: string
+          role: string
+          session_id: string
+          share_token_id: string
+        }[]
       }
       consume_credits: {
         Args: {
@@ -14681,12 +17158,16 @@ export type Database = {
         Returns: {
           assigned_to: string | null
           audio_s3_key: string | null
+          author_node_id: string | null
           before_item_id: string | null
+          capture_device_id: string | null
           capture_mode: string
+          capture_sha256: string | null
           captured_at: string
           category: string | null
           client_item_id: string | null
           client_mutation_id: string | null
+          conflict_flag: boolean
           cost_estimate: number | null
           created_at: string
           created_by: string
@@ -14695,6 +17176,8 @@ export type Database = {
           device_id: string | null
           due_date: string | null
           file_id: string | null
+          hash_verified_at: string | null
+          hlc: string | null
           id: string
           item_relationship: string
           item_status: string
@@ -14716,6 +17199,7 @@ export type Database = {
           resolved_by: string | null
           retry_count: number
           s3_key: string | null
+          server_sha256: string | null
           session_id: string
           sort_order: number
           sync_state: string
@@ -14874,6 +17358,7 @@ export type Database = {
         Args: { p_project_id: string; p_user_id?: string }
         Returns: boolean
       }
+      user_can_access_thermal_ops: { Args: never; Returns: boolean }
       user_can_manage_org_or_project: {
         Args: { p_org_id: string; p_project_id: string; p_user_id?: string }
         Returns: boolean
