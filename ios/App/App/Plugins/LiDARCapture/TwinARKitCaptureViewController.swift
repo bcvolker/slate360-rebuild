@@ -832,8 +832,12 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
                 guard conf >= minConf else { continue }
                 let depth = depthBuf[idx]
                 guard depth > 0.1, depth < 8.0 else { continue }
+                // Unproject to camera space in ARKit's own convention (X right, Y up,
+                // Z backward) so this is consistent with `transform` below, which is
+                // ARKit's Y-up camera-to-world matrix. Row increases downward in image
+                // space, so ARKit-Y is the negated image-Y term.
                 let xc = (Float(col) - cx) * depth / fx
-                let yc = (Float(row) - cy) * depth / fy
+                let yc = (cy - Float(row)) * depth / fy
                 let zc = -depth
                 let world = transform * SIMD4<Float>(xc, yc, zc, 1.0)
                 let pos = SIMD3<Float>(world.x, world.y, world.z)

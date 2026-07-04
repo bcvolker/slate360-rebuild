@@ -550,9 +550,12 @@ public class LiDARCapturePlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate,
                 let depth = depthBuf[idx]
                 guard depth > 0.1, depth < 8.0 else { continue }
 
-                // Unproject to camera space (ARKit: camera looks in -Z direction).
+                // Unproject to camera space in ARKit's own convention (X right, Y up,
+                // Z backward — camera looks in -Z) so this is consistent with `transform`
+                // below, which is ARKit's Y-up camera-to-world matrix. Row increases
+                // downward in image space, so ARKit-Y is the negated image-Y term.
                 let xc = (Float(col) - cx) * depth / fx
-                let yc = (Float(row) - cy) * depth / fy
+                let yc = (cy - Float(row)) * depth / fy
                 let zc = -depth
 
                 // Transform to world space.

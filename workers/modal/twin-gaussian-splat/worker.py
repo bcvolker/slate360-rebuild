@@ -3,7 +3,13 @@ Slate360 Digital Twin — Modal GPU worker for Gaussian-splat photogrammetry.
 
 HTTP contract (POST /reconstruct):
   Request JSON: jobId, orgId, spaceId, captureId, sourceKeys[], is360Flags[],
-                quality, speed, modelType, newAssetIds[]
+                quality, speed, modelType, newAssetIds[],
+                lidarPosesKey?, lidarPlyKey?,
+                forceColmap? (bool, default false — skip the ARKit pose bypass and
+                  run standard COLMAP even when lidarPosesKey/lidarPlyKey exist),
+                matchToleranceSec? (float, default DEFAULT_MATCH_TOLERANCE_SEC —
+                  ARKit-pose/frame timestamp match tolerance override, e.g. pass
+                  LEGACY_MATCH_TOLERANCE_SEC for an A/B comparison)
   Response: HTTP 200 immediately, header x-modal-run-id: <spawn id>
   Processing runs asynchronously on GPU; completion/failure POSTs a signed callback
   to ${SITE_URL}/api/digital-twin/jobs/callback.
@@ -40,6 +46,15 @@ MAX_DURATION_SECONDS = 3600
 
 VIDEO_EXTENSIONS = {".mp4", ".mov", ".m4v", ".webm", ".mkv", ".avi"}
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".tif", ".tiff", ".heic", ".heif"}
+
+# ── LiDAR pose/frame-timestamp match tolerance ──────────────────────────────
+# Tightened from the original ±2s (loose enough to match a frame to a pose from
+# a different point in the walk) to ±250ms, close to the 0.5s keyframe interval.
+# The legacy value stays reachable via the matchToleranceSec job option so an
+# operator can A/B the tightened default against the original behavior.
+DEFAULT_MATCH_TOLERANCE_SEC = 0.25
+LEGACY_MATCH_TOLERANCE_SEC = 2.0
+MIN_LIDAR_BYPASS_FRAMES = 5
 
 app = modal.App(APP_NAME)
 
@@ -250,20 +265,30 @@ def arkit_to_nerfstudio_c2w(transform_4x4: list) -> list:
     return c2w.tolist()
 
 
+class LidarMatchToleranceError(RuntimeError):
+    """Raised when ARKit poses + video are both present with enough keyframes and
+    extracted frames, but too few frames land within the configured match tolerance.
+    Signals a timestamp-misalignment problem rather than missing/insufficient data —
+    distinct from the graceful COLMAP-fallback paths earlier in try_lidar_bypass."""
+
+
 def _match_and_write_transforms(
     keyframes: list[dict],
     extracted: list[tuple[Path, float]],
     bypass_images: Path,
     processed_dir: Path,
-) -> int:
+    match_tolerance_sec: float,
+) -> tuple[int, int, list[float]]:
     """Match video frames to ARKit keyframes by timestamp and write transforms.json.
 
     `extracted` pairs each frame with its absolute wall-clock time — computed per
     source video, so multi-clip captures (one video per clip, shared world frame)
-    match correctly. Returns the number of matched frames (0 on total failure).
+    match correctly. Records a delta (seconds) for EVERY extracted frame against its
+    nearest keyframe, regardless of whether it passes tolerance, so callers can log
+    the full match-delta distribution. Returns (matched_count, skipped_count, deltas).
     """
     if not keyframes or not extracted:
-        return 0
+        return 0, len(extracted), []
 
     first_kf = keyframes[0]
     intr = first_kf.get("intrinsics", {})
@@ -279,11 +304,13 @@ def _match_and_write_transforms(
 
     frames_data = []
     skipped = 0
+    deltas: list[float] = []
     for frame_path, frame_wall_time in extracted:
         nearest_kf = min(keyframes, key=lambda kf: abs(kf["timestamp"] - frame_wall_time))
         time_delta = abs(nearest_kf["timestamp"] - frame_wall_time)
+        deltas.append(time_delta)
 
-        if time_delta > 2.0 or "transform_4x4" not in nearest_kf:
+        if time_delta > match_tolerance_sec or "transform_4x4" not in nearest_kf:
             skipped += 1
             continue
 
@@ -297,10 +324,13 @@ def _match_and_write_transforms(
         })
 
     if skipped > 0:
-        print(f"[lidar-bypass] {skipped}/{len(extracted)} frames skipped (>2 s delta or missing pose)")
+        print(
+            f"[lidar-bypass] {skipped}/{len(extracted)} frames skipped "
+            f"(>±{match_tolerance_sec * 1000:.0f}ms delta or missing pose)"
+        )
 
     if not frames_data:
-        return 0
+        return 0, skipped, deltas
 
     transforms = {
         "camera_model": "OPENCV",
@@ -321,14 +351,23 @@ def _match_and_write_transforms(
 
     transforms_path = processed_dir / "transforms.json"
     transforms_path.write_text(json.dumps(transforms, indent=2), encoding="utf-8")
-    return len(frames_data)
+    return len(frames_data), skipped, deltas
 
 
 def _transform_and_write_lidar_ply(src_path: Path, dest_path: Path) -> int:
-    """Read ARKit LiDAR PLY, apply Nerfstudio axis convention, write to dest_path.
+    """Read ARKit LiDAR PLY (world-space points), re-encode to dest_path.
 
-    ARKit world: +Y up, +Z backward.  Nerfstudio: +Y down, +Z forward.
-    Equivalent point transform: negate Y and Z (same flip applied to c2w columns).
+    NOT the same conversion as arkit_to_nerfstudio_c2w: that flip only swaps
+    which local camera axis is "up"/"forward" (it negates columns of the
+    camera's own rotation basis) — it never touches translation or the world
+    frame. These LiDAR points are already recorded in that same, untouched
+    ARKit world frame, so they must be written through unchanged; negating
+    world Y/Z here would mirror the seed geometry into a frame the
+    (correctly unmoved) camera positions no longer agree with, which is a
+    world-space vs. camera-local-space convention bug, not a missing
+    conversion. (Confirmed via the bypass-vs-COLMAP A/B on the Jul 2
+    capture — COLMAP, which ignores this PLY, was coherent; the bypass path
+    that fed it in was garbage with a 4M-splat densification explosion.)
 
     Writes binary-little-endian PLY with x y z red green blue vertex layout
     (the minimum Nerfstudio's splatfacto dataparser requires for ply_file_path).
@@ -392,9 +431,8 @@ def _transform_and_write_lidar_ply(src_path: Path, dest_path: Path) -> int:
             else:
                 return 0
 
-        # Apply Nerfstudio world-axis convention: negate Y and Z.
-        xyz[:, 1] *= -1
-        xyz[:, 2] *= -1
+        # No axis flip: these points are already in the same ARKit world frame
+        # the (translation-preserving) camera poses reference. See docstring.
 
         # Write binary-little-endian PLY (Nerfstudio NerfstudioDataParser reads this
         # via the "ply_file_path" key in transforms.json as initial Gaussian seeds).
@@ -463,7 +501,8 @@ def try_lidar_bypass(
     work_root: Path,
     processed_dir: Path,
     source_keys: list[str] | None = None,
-) -> tuple[bool, bool]:
+    match_tolerance_sec: float = DEFAULT_MATCH_TOLERANCE_SEC,
+) -> tuple[bool, bool, dict[str, Any]]:
     """Attempt to bypass COLMAP using ARKit poses from the LiDAR plugin.
 
     Downloads poses JSON, extracts frames from the video with the best temporal
@@ -474,9 +513,23 @@ def try_lidar_bypass(
     it to Nerfstudio world-space, and seeds splatfacto via ply_file_path —
     the biggest single quality improvement available for LiDAR captures.
 
-    Returns (bypass_used, ply_init_used).  Falls back gracefully: returns
-    (False, False) if there is insufficient data, wrong timestamps, or any exception.
+    Returns (bypass_used, ply_init_used, stats). Falls back gracefully — returns
+    (False, False, stats) — if there is insufficient keyframe/frame DATA (too few
+    keyframes, no timestamps, no video, too few extracted frames) or any unexpected
+    exception. Raises LidarMatchToleranceError instead of falling back when data is
+    present but too few frames land within match_tolerance_sec — that failure mode
+    is a timestamp-misalignment signal, not a data-absence one, and should surface
+    rather than be silently masked by a COLMAP fallback.
     """
+    stats: dict[str, Any] = {
+        "matchToleranceSec": match_tolerance_sec,
+        "keyframeCount": 0,
+        "extractedCount": 0,
+        "matchedCount": 0,
+        "skippedCount": 0,
+        "matchDeltaMeanMs": None,
+        "matchDeltaMaxMs": None,
+    }
     try:
         print("[lidar-bypass] attempting COLMAP bypass with ARKit poses")
 
@@ -488,14 +541,15 @@ def try_lidar_bypass(
             poses_data = json.load(f)
 
         keyframes: list[dict] = poses_data.get("frames", [])
-        if len(keyframes) < 5:
-            print(f"[lidar-bypass] only {len(keyframes)} keyframes — need ≥5, falling back to COLMAP")
-            return False, False
+        stats["keyframeCount"] = len(keyframes)
+        if len(keyframes) < MIN_LIDAR_BYPASS_FRAMES:
+            print(f"[lidar-bypass] only {len(keyframes)} keyframes — need ≥{MIN_LIDAR_BYPASS_FRAMES}, falling back to COLMAP")
+            return False, False, stats
 
         kf_timestamps = [kf["timestamp"] for kf in keyframes if "timestamp" in kf]
         if not kf_timestamps:
             print("[lidar-bypass] keyframes missing timestamps, falling back to COLMAP")
-            return False, False
+            return False, False, stats
 
         kf_start = min(kf_timestamps)
         kf_end = max(kf_timestamps)
@@ -505,8 +559,8 @@ def try_lidar_bypass(
         #    upload one video per clip, all sharing the ARSession world frame; each
         #    clip's exact wall-clock start comes from poses_data["clips"] (written at
         #    capture), with ffprobe creation_time as fallback. Unrelated videos (e.g.
-        #    drone footage) are harmless — their frames land >2 s from any keyframe
-        #    and the matcher drops them.
+        #    drone footage) are harmless — their frames land beyond match_tolerance_sec
+        #    from any keyframe and the matcher drops them.
         video_files = sorted(
             [p for p in source_dir.iterdir() if p.suffix.lower() in VIDEO_EXTENSIONS],
             key=lambda p: p.stat().st_size,
@@ -514,7 +568,7 @@ def try_lidar_bypass(
         )
         if not video_files:
             print("[lidar-bypass] no video source, falling back to COLMAP")
-            return False, False
+            return False, False, stats
 
         clips_meta: dict[str, dict] = {}
         for clip in poses_data.get("clips") or []:
@@ -568,28 +622,43 @@ def try_lidar_bypass(
                 fidx = int(fp.stem.split("_")[-1])  # ffmpeg 1-indexed
                 extracted.append((fp, v_start + (fidx - 1) / 2.0))
 
-        if len(extracted) < 5:
-            print(f"[lidar-bypass] only {len(extracted)} frames extracted — need ≥5, falling back to COLMAP")
-            return False, False
+        stats["extractedCount"] = len(extracted)
+        if len(extracted) < MIN_LIDAR_BYPASS_FRAMES:
+            print(f"[lidar-bypass] only {len(extracted)} frames extracted — need ≥{MIN_LIDAR_BYPASS_FRAMES}, falling back to COLMAP")
+            return False, False, stats
 
         # 4. Build processed_dir with transforms.json and images/
         processed_dir.mkdir(parents=True, exist_ok=True)
         bypass_images = processed_dir / "images"
         bypass_images.mkdir(parents=True, exist_ok=True)
 
-        matched = _match_and_write_transforms(
-            keyframes, extracted, bypass_images, processed_dir,
+        matched, skipped, deltas = _match_and_write_transforms(
+            keyframes, extracted, bypass_images, processed_dir, match_tolerance_sec,
         )
+        stats["matchedCount"] = matched
+        stats["skippedCount"] = skipped
+        if deltas:
+            stats["matchDeltaMeanMs"] = sum(deltas) / len(deltas) * 1000
+            stats["matchDeltaMaxMs"] = max(deltas) * 1000
 
-        if matched < 5:
-            print(f"[lidar-bypass] only {matched} matched frames — need ≥5, falling back to COLMAP")
+        if matched < MIN_LIDAR_BYPASS_FRAMES:
             shutil.rmtree(str(processed_dir), ignore_errors=True)
-            return False, False
+            mean_ms = stats["matchDeltaMeanMs"]
+            max_ms = stats["matchDeltaMaxMs"]
+            raise LidarMatchToleranceError(
+                f"LiDAR bypass matching failed: {matched}/{len(extracted)} extracted frames "
+                f"matched within ±{match_tolerance_sec * 1000:.0f}ms of a keyframe "
+                f"(need ≥{MIN_LIDAR_BYPASS_FRAMES}). Delta stats across {len(keyframes)} "
+                f"keyframes — mean {mean_ms:.0f}ms, max {max_ms:.0f}ms. This indicates ARKit "
+                f"pose timestamps and video frame timestamps are misaligned beyond the "
+                f"configured tolerance, not that pose/frame data is missing."
+            )
 
         print(f"[lidar-bypass] success — {matched} frames matched; COLMAP skipped")
 
         # 5. Optionally seed splatfacto with the LiDAR point cloud.
-        #    Transforms points to Nerfstudio world-space (negate Y + Z, same as c2w).
+        #    Points are re-encoded as-is (see _transform_and_write_lidar_ply) — no
+        #    axis flip, since they're already in the same world frame as the poses.
         #    Adds "ply_file_path" to transforms.json so the NerfstudioDataParser
         #    provides real geometry to splatfacto instead of random initialization.
         ply_init_used = False
@@ -613,12 +682,14 @@ def try_lidar_bypass(
             except Exception as ply_exc:  # noqa: BLE001
                 print(f"[lidar-bypass] PLY seed failed (non-fatal): {type(ply_exc).__name__}: {ply_exc}")
 
-        return True, ply_init_used
+        return True, ply_init_used, stats
 
+    except LidarMatchToleranceError:
+        raise
     except Exception as exc:  # noqa: BLE001
         print(f"[lidar-bypass] failed (non-fatal): {type(exc).__name__}: {exc}")
         shutil.rmtree(str(processed_dir), ignore_errors=True)
-        return False, False
+        return False, False, stats
 
 
 def quality_speed_iterations(quality: str, speed: str) -> int:
@@ -839,6 +910,22 @@ def find_latest_file(root: Path, pattern: str) -> Path:
     if not matches:
         raise RuntimeError(f"No files matching {pattern} under {root}")
     return max(matches, key=lambda p: p.stat().st_mtime)
+
+
+def count_registered_images(processed_dir: Path) -> int | None:
+    """Count images ns-process-data (COLMAP) actually registered a camera pose for.
+
+    ns-process-data's transforms.json only contains frames it successfully solved,
+    so len(frames) is the standard "registered" count vs the input image total.
+    """
+    transforms_path = processed_dir / "transforms.json"
+    if not transforms_path.is_file():
+        return None
+    try:
+        data = json.loads(transforms_path.read_text(encoding="utf-8"))
+        return len(data.get("frames", []))
+    except Exception:  # noqa: BLE001
+        return None
 
 
 def _ply_vertex_count(ply_path: Path) -> int:
@@ -1153,6 +1240,8 @@ class JobInput:
     new_asset_ids: list[str]
     lidar_poses_key: str | None = None
     lidar_ply_key: str | None = None
+    force_colmap: bool = False
+    match_tolerance_sec: float | None = None
 
     @classmethod
     def from_payload(cls, payload: dict[str, Any]) -> JobInput:
@@ -1177,6 +1266,7 @@ class JobInput:
             raise ValueError("is360Flags must be a list")
         if len(payload["is360Flags"]) != len(payload["sourceKeys"]):
             raise ValueError("is360Flags length must match sourceKeys length")
+        raw_tolerance = payload.get("matchToleranceSec")
         return cls(
             job_id=str(payload["jobId"]),
             org_id=str(payload["orgId"]),
@@ -1190,6 +1280,8 @@ class JobInput:
             new_asset_ids=[str(v) for v in payload["newAssetIds"]],
             lidar_poses_key=payload.get("lidarPosesKey") or None,
             lidar_ply_key=payload.get("lidarPlyKey") or None,
+            force_colmap=bool(payload.get("forceColmap", False)),
+            match_tolerance_sec=float(raw_tolerance) if raw_tolerance is not None else None,
         )
 
 
@@ -1209,16 +1301,26 @@ def run_pipeline(job: JobInput, work_root: Path) -> dict[str, Any]:
         source_dir, images_dir, job.source_keys, job.is360_flags
     )
 
+    match_tolerance = (
+        job.match_tolerance_sec if job.match_tolerance_sec is not None else DEFAULT_MATCH_TOLERANCE_SEC
+    )
+
     post_progress(job.job_id, "align", 25)
     lidar_bypass_used = False
     lidar_ply_init = False
-    if job.lidar_poses_key:
-        lidar_bypass_used, lidar_ply_init = try_lidar_bypass(
+    bypass_stats: dict[str, Any] = {}
+    if job.lidar_poses_key and job.force_colmap:
+        print("[force-colmap] lidarPosesKey present but force_colmap=true — skipping ARKit bypass")
+    elif job.lidar_poses_key:
+        lidar_bypass_used, lidar_ply_init, bypass_stats = try_lidar_bypass(
             s3, bucket, job.lidar_poses_key, job.lidar_ply_key,
             source_dir, work_root, processed_dir,
             source_keys=job.source_keys,
+            match_tolerance_sec=match_tolerance,
         )
 
+    colmap_images_total: int | None = None
+    colmap_images_registered: int | None = None
     if not lidar_bypass_used:
         matching_method = resolve_matching_method(ingest_stats)
         run_cmd(
@@ -1241,6 +1343,11 @@ def run_pipeline(job: JobInput, work_root: Path) -> dict[str, Any]:
             ]
         )
         apply_orientation_override(processed_dir, "up")
+        colmap_images_total = len([
+            p for p in images_dir.iterdir()
+            if p.is_file() and p.suffix.lower() in {".jpg", ".jpeg", ".png", ".webp"}
+        ])
+        colmap_images_registered = count_registered_images(processed_dir)
     else:
         matching_method = "lidar_bypass"
 
@@ -1289,6 +1396,25 @@ def run_pipeline(job: JobInput, work_root: Path) -> dict[str, Any]:
 
     post_progress(job.job_id, "optimize", 85)
     config_path = find_latest_file(train_dir, "**/config.yml")
+
+    # Best-effort final eval PSNR for quality_metrics — never fails the job.
+    train_psnr: float | None = None
+    try:
+        eval_json_path = work_root / "eval_metrics.json"
+        run_cmd(
+            [
+                "ns-eval",
+                "--load-config", str(config_path),
+                "--output-path", str(eval_json_path),
+            ],
+            timeout=600,
+        )
+        if eval_json_path.is_file():
+            eval_data = json.loads(eval_json_path.read_text(encoding="utf-8"))
+            train_psnr = (eval_data.get("results") or {}).get("psnr")
+    except Exception as eval_exc:  # noqa: BLE001
+        print(f"[metrics] ns-eval failed (non-fatal): {type(eval_exc).__name__}: {eval_exc}")
+
     run_cmd(
         [
             "ns-export",
@@ -1377,6 +1503,17 @@ def run_pipeline(job: JobInput, work_root: Path) -> dict[str, Any]:
             "lidarPlyInit": lidar_ply_init,
             "cullAlphaThresh": CULL_ALPHA_THRESH,
             "splatCount": splat_count,
+            # Diagnostic instrumentation (see scripts/ops/diagnose-twin-poses.mjs).
+            "alignmentPath": "arkit_bypass" if lidar_bypass_used else "colmap",
+            "forceColmap": job.force_colmap,
+            "matchToleranceSec": match_tolerance,
+            "framesExtracted": bypass_stats.get("extractedCount"),
+            "framesMatched": bypass_stats.get("matchedCount"),
+            "matchDeltaMeanMs": bypass_stats.get("matchDeltaMeanMs"),
+            "matchDeltaMaxMs": bypass_stats.get("matchDeltaMaxMs"),
+            "colmapImagesTotal": colmap_images_total,
+            "colmapImagesRegistered": colmap_images_registered,
+            "trainPsnr": train_psnr,
         },
     }
 
