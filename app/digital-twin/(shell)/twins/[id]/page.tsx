@@ -5,6 +5,7 @@ import { TwinViewerWorkspace } from "@/components/digital-twin/TwinViewerWorkspa
 import { TwinGpsDisplay } from "@/components/digital-twin/TwinGpsDisplay";
 import { DesktopWorkspaceLinks } from "@/components/digital-twin/desktop/DesktopWorkspaceLinks";
 import { TwinShareActions } from "@/components/digital-twin/TwinShareActions";
+import { TwinVersionsPanel } from "@/components/digital-twin/TwinVersionsPanel";
 import { TwinViewerDisclaimer } from "@/components/digital-twin/TwinViewerDisclaimer";
 import { MobileEmptyState } from "@/components/mobile-system";
 import { Boxes, Loader2, AlertTriangle } from "lucide-react";
@@ -101,6 +102,7 @@ export default async function DigitalTwinViewerPage({ params }: Props) {
 
       <div className="shrink-0 space-y-3 overflow-y-auto px-4 pb-4">
         <TwinShareActions spaceId={viewer.spaceId} />
+        <TwinVersionsPanel spaceId={viewer.spaceId} />
         <TwinViewerDisclaimer />
       </div>
     </div>
