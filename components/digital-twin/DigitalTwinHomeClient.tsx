@@ -1,34 +1,13 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-  Activity,
-  Boxes,
-  FolderOpen,
-  MapPin,
-  Scan,
-  Upload,
-} from "lucide-react";
-import {
-  MobileEmptyState,
-  MobileExpandableTabbedPanel,
-  MobileHomeListRow,
-  mobileTokens,
-  useMobileShellDock,
-} from "@/components/mobile-system";
-import type { MobilePanelTab, MobileQuickActionItem } from "@/components/mobile-system";
+import { Scan, Plus } from "lucide-react";
+import { useMobileShellDock } from "@/components/mobile-system";
 import { appHomeTokens } from "@/components/studio-ui/app-home-tokens";
-import { MobileAppHomeQuickActions } from "@/components/studio-ui/MobileAppHomeQuickActions";
-import {
-  MobileAppHubHeroCard,
-  MobileAppHubHeroStack,
-} from "@/components/studio-ui/MobileAppHubHeroCard";
-import {
-  buildDigitalTwinDockRows,
-  DigitalTwinHomeFill,
-} from "@/components/digital-twin/DigitalTwinHomeFill";
 import { DigitalTwinProjectTargetSheet } from "@/components/digital-twin/DigitalTwinProjectTargetSheet";
+import { TwinHomeCaptureSheet } from "@/components/digital-twin/home/TwinHomeCaptureSheet";
+import { TwinHomeFeed } from "@/components/digital-twin/home/TwinHomeFeed";
 import {
   buildTwinCaptureLaunchUrl,
   buildTwinUploadLaunchUrl,
@@ -41,160 +20,95 @@ type Props = {
   projects: HubTwinProject[];
 };
 
-function DockRowList({
-  rows,
-}: {
-  rows: {
-    key: string;
-    title: string;
-    meta?: string;
-    href?: string;
-    metaTone?: "neutral" | "primary" | "info";
-  }[];
-}) {
-  return (
-    <div className="space-y-2">
-      {rows.map((row) => (
-        <MobileHomeListRow
-          key={row.key}
-          title={row.title}
-          meta={row.meta}
-          metaTone={row.metaTone}
-          href={row.href}
-        />
-      ))}
-    </div>
-  );
-}
-
+/**
+ * Slice 2 — the Twin 360 mobile home, rebuilt from the ground up.
+ *
+ * Old home (deleted): two competing hero cards + a 2×2 quick-action grid
+ * (My Twins / Upload / Processing / Projects — all redundant with the feed or
+ * the bottom nav) + a dock of recent-twin/project tabs. That grid was the
+ * "valueless" part; Processing duplicated a filter, Projects duplicated the
+ * bottom-nav tab.
+ *
+ * New home: ONE prominent, persistent "New Scan" control over the live twins
+ * feed. Capture is one tap (with the quick / into-a-project / upload branch in a
+ * sheet); the feed is the body, each twin showing an honest live status chip.
+ * Nothing that worked is lost — capture, upload, project-scoped capture, and the
+ * twins list all route through here.
+ */
 export function DigitalTwinHomeClient({ twins, projects }: Props) {
   const router = useRouter();
-  const [targetSheetOpen, setTargetSheetOpen] = useState(false);
+  const [captureSheetOpen, setCaptureSheetOpen] = useState(false);
+  const [projectSheetOpen, setProjectSheetOpen] = useState(false);
 
-  const scanFromProjectSubtext = useMemo(() => {
-    if (projects.length === 1) return `Capture for ${projects[0]!.name}`;
-    if (projects.length > 1) return `Choose from ${projects.length} projects`;
-    return "Create a project to scan with full context";
-  }, [projects]);
+  // The feed is the home body — no bottom dock.
+  useMobileShellDock(null);
+
+  const openCapture = useCallback(() => setCaptureSheetOpen(true), []);
 
   const handleQuickScan = useCallback(() => {
     router.push(buildTwinCaptureLaunchUrl({ mode: "quick" }));
   }, [router]);
 
-  const handleScanFromProject = useCallback(() => {
+  const handleScanIntoProject = useCallback(() => {
+    // Cross-app continuity: a project-scoped scan lands in the project's
+    // SlateDrop folders alongside its plans, files, and walks. No projects yet
+    // → send them to create one first.
     if (projects.length === 0) {
       router.push("/projects");
       return;
     }
-    setTargetSheetOpen(true);
+    setProjectSheetOpen(true);
   }, [projects.length, router]);
+
+  const handleUpload = useCallback(() => {
+    router.push(buildTwinUploadLaunchUrl({ mode: "quick" }));
+  }, [router]);
 
   const handleProjectSelected = useCallback(
     (project: HubTwinProject) => {
-      router.push(
-        buildTwinCaptureLaunchUrl({ projectId: project.id, mode: "project" }),
-      );
+      router.push(buildTwinCaptureLaunchUrl({ projectId: project.id, mode: "project" }));
     },
     [router],
   );
 
-  const dockRows = useMemo(
-    () => buildDigitalTwinDockRows(twins, projects),
-    [projects, twins],
-  );
-
-  const quickActions: MobileQuickActionItem[] = useMemo(
-    () => [
-      { label: "My Twins", icon: Boxes, accent: "info", href: "/digital-twin/twins" },
-      {
-        label: "Upload Assets",
-        icon: Upload,
-        accent: "info",
-        href: buildTwinUploadLaunchUrl({ mode: "quick" }),
-      },
-      {
-        label: "Processing",
-        icon: Activity,
-        accent: "info",
-        href: "/digital-twin/twins?status=processing",
-      },
-      { label: "Projects", icon: FolderOpen, accent: "info", href: "/projects" },
-    ],
-    [],
-  );
-
-  const dockTabs: MobilePanelTab[] = useMemo(
-    () => [
-      {
-        value: "recent",
-        label: "Recent Twins",
-        content:
-          dockRows.twins.length > 0 ? (
-            <DockRowList rows={dockRows.twins} />
-          ) : (
-            <MobileEmptyState
-              compact
-              icon={Boxes}
-              title="No twins yet"
-              actionLabel="Start quick scan"
-              actionClassName={mobileTokens.mobileDockEmptyAction}
-              onAction={handleQuickScan}
-            />
-          ),
-      },
-      {
-        value: "projects",
-        label: "Workspaces",
-        content:
-          dockRows.projects.length > 0 ? (
-            <DockRowList rows={dockRows.projects} />
-          ) : (
-            <MobileEmptyState compact icon={MapPin} title="No workspaces linked yet" />
-          ),
-      },
-    ],
-    [dockRows, handleQuickScan],
-  );
-
-  const dockContent = useMemo(
-    () => (
-      <MobileExpandableTabbedPanel tabs={dockTabs} defaultTab="recent" collapsedHeightPx={40} />
-    ),
-    [dockTabs],
-  );
-
-  useMobileShellDock(dockContent);
-
   return (
     <div className={appHomeTokens.scrollInner}>
-      <section className={appHomeTokens.section}>
-        <MobileAppHubHeroStack>
-          <MobileAppHubHeroCard
-            title="Quick Scan"
-            subtext="Walk a space and capture now"
-            icon={Scan}
-            onClick={handleQuickScan}
-            accent="info"
-            aria-label="Start a quick scan"
-          />
-          <MobileAppHubHeroCard
-            title="Scan from Project"
-            subtext={scanFromProjectSubtext}
-            icon={MapPin}
-            onClick={handleScanFromProject}
-            accent="info"
-            aria-label="Scan from a project"
-          />
-        </MobileAppHubHeroStack>
-      </section>
+      {/* Sticky, prominent primary action — always one tap from capture. */}
+      <button
+        type="button"
+        onClick={openCapture}
+        aria-label="Start a new scan"
+        data-twin-home="new-scan"
+        className="sticky top-0 z-10 flex w-full items-center gap-3.5 rounded-2xl border border-[var(--accent-border-blue)] bg-[color-mix(in_srgb,var(--twin360-blue)_12%,var(--graphite-canvas))] p-4 backdrop-blur-md transition active:scale-[0.99]"
+      >
+        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-[var(--accent-border-blue)] bg-[color-mix(in_srgb,var(--twin360-blue)_16%,transparent)] text-[var(--twin360-blue)]">
+          <Scan className="h-6 w-6" strokeWidth={1.75} aria-hidden />
+        </span>
+        <span className="min-w-0 flex-1 text-left">
+          <span className="block text-base font-bold text-zinc-100">New Scan</span>
+          <span className="mt-0.5 block text-xs text-[var(--graphite-muted)]">
+            Turn a space into an interactive 3D twin
+          </span>
+        </span>
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--twin360-blue)] text-[var(--graphite-canvas)]">
+          <Plus className="h-5 w-5" strokeWidth={2.25} aria-hidden />
+        </span>
+      </button>
 
-      <MobileAppHomeQuickActions actions={quickActions} />
+      <TwinHomeFeed twins={twins} onStartScan={openCapture} />
 
-      <DigitalTwinHomeFill twins={twins} projects={projects} />
+      <TwinHomeCaptureSheet
+        open={captureSheetOpen}
+        onOpenChange={setCaptureSheetOpen}
+        onQuickScan={handleQuickScan}
+        onScanIntoProject={handleScanIntoProject}
+        onUpload={handleUpload}
+        projectCount={projects.length}
+      />
 
       <DigitalTwinProjectTargetSheet
-        open={targetSheetOpen}
-        onOpenChange={setTargetSheetOpen}
+        open={projectSheetOpen}
+        onOpenChange={setProjectSheetOpen}
         projects={projects}
         onSelect={handleProjectSelected}
       />
