@@ -16,7 +16,7 @@ export const metadata = {
 
 export default async function MobileAppRootPage() {
   const isMobile = await isMobileServerLayout();
-  const { user, orgId } = await resolveServerOrgContext();
+  const { user, orgId, isSlateCeo } = await resolveServerOrgContext();
 
   if (!user) {
     redirect("/login");
@@ -43,7 +43,7 @@ export default async function MobileAppRootPage() {
     userEmail: user.email,
     orgId: activeOrgId,
   });
-  const launcherApps = buildMobileLauncherApps(entitlements, twinEntitlement, homeData);
+  const launcherApps = buildMobileLauncherApps(entitlements, twinEntitlement, homeData, Boolean(isSlateCeo));
 
   return (
     <Suspense fallback={null}>

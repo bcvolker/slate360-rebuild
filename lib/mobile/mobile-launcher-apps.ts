@@ -12,6 +12,7 @@ type LauncherContext = {
   entitlements: Entitlements;
   twin: DigitalTwinEntitlement;
   homeData: MobileAppHomeData;
+  isCeo: boolean;
 };
 
 type AppDefinition = {
@@ -97,7 +98,7 @@ const APP_DEFINITIONS: AppDefinition[] = [
     id: "360-tours",
     title: "360 Tours",
     subtext: "Immersive tours and hotspot publishing.",
-    href: "/tour-builder",
+    href: "/app/tours",
     accent: "info",
     entitlementKey: "canAccessStandaloneTourBuilder",
     upsellBullets: [
@@ -105,7 +106,10 @@ const APP_DEFINITIONS: AppDefinition[] = [
       "Embed tours in Site Walk deliverables.",
       "Export branded tour packages for clients.",
     ],
-    inScope: () => false, // Hidden from launcher — not a shipping app (Site Walk + Twin 360 only)
+    // CEO-only, matching the desktop ceoOnly nav gate (Thermal Studio pattern) — not a
+    // shipping app yet (Site Walk + Twin 360 only), but Brian can see/test it himself.
+    // Non-CEO stays hidden here AND app/(mobile)/app/tours/layout.tsx notFound()s server-side.
+    inScope: ({ isCeo }) => isCeo,
     isEntitled: ({ entitlements }) => entitlements.canAccessStandaloneTourBuilder,
     isPurchasable: () => true,
     statusSubline: () => null,
@@ -173,8 +177,9 @@ export function buildMobileLauncherApps(
   entitlements: Entitlements,
   twin: DigitalTwinEntitlement,
   homeData: MobileAppHomeData,
+  isCeo = false,
 ): MobileLauncherAppView[] {
-  const ctx: LauncherContext = { entitlements, twin, homeData };
+  const ctx: LauncherContext = { entitlements, twin, homeData, isCeo };
   const views: MobileLauncherAppView[] = [];
 
   for (const app of APP_DEFINITIONS) {
