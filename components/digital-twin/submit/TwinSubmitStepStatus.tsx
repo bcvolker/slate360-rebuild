@@ -1,7 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { IconAlertTriangle, IconCircleCheck, IconCube } from "@tabler/icons-react";
+import { IconAlertTriangle, IconCircleCheck, IconCube, IconLoader2 } from "@tabler/icons-react";
 import { twinAccent } from "@/lib/digital-twin/twin-accent";
 import { cn } from "@/lib/utils";
 import { useTwinJobRealtime } from "@/hooks/useTwinJobRealtime";
@@ -19,6 +20,31 @@ type Props = {
 export function TwinSubmitStepStatus({ captureId, spaceId, savedForLater, onGoToTwins }: Props) {
   const router = useRouter();
   const { job } = useTwinJobRealtime(savedForLater ? null : captureId);
+  const [retrying, setRetrying] = useState(false);
+  const [retrySubmitted, setRetrySubmitted] = useState(false);
+  const [retryError, setRetryError] = useState<string | null>(null);
+
+  async function handleRetry() {
+    if (!captureId) return;
+    setRetrying(true);
+    setRetryError(null);
+    try {
+      const res = await fetch(`/api/digital-twin/captures/${captureId}/reprocess`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ quality: "standard" }),
+      });
+      const data = (await res.json().catch(() => ({}))) as { error?: string };
+      if (!res.ok) throw new Error(data.error ?? "Could not restart reconstruction");
+      // Optimistically show the processing view; the realtime hook picks up the
+      // new job and drives it from here.
+      setRetrySubmitted(true);
+    } catch (err) {
+      setRetryError(err instanceof Error ? err.message : "Could not restart reconstruction");
+    } finally {
+      setRetrying(false);
+    }
+  }
 
   if (savedForLater) {
     return (
@@ -45,7 +71,9 @@ export function TwinSubmitStepStatus({ captureId, spaceId, savedForLater, onGoTo
   }
 
   const isComplete = job?.status === "completed";
-  const isFailed = job?.status === "failed";
+  // A just-submitted retry optimistically shows processing until the realtime
+  // hook reports the new queued/processing job.
+  const isFailed = job?.status === "failed" && !retrySubmitted;
 
   if (isComplete) {
     return (
@@ -61,9 +89,10 @@ export function TwinSubmitStepStatus({ captureId, spaceId, savedForLater, onGoTo
               <IconCube className={cn("h-10 w-10", twinAccent.text)} stroke={1.5} />
             </div>
             <div>
-              <p className={twinSubmitTokens.headerText}>Your twin is ready</p>
+              <p className={twinSubmitTokens.headerText}>Your twin is ready to review</p>
               <p className="mt-1 text-xs text-[var(--graphite-muted)]">
-                Open it to explore, measure, and share.
+                Take a look before you share. If it needs work, you can reprocess it or pick a
+                different version — your link only changes when you publish one.
               </p>
             </div>
           </div>
@@ -74,7 +103,7 @@ export function TwinSubmitStepStatus({ captureId, spaceId, savedForLater, onGoTo
           onClick={() => router.push(`/digital-twin/twins/${spaceId}`)}
           className={twinSubmitTokens.primaryCta}
         >
-          View twin
+          Review twin
         </button>
         <button
           type="button"
@@ -87,7 +116,7 @@ export function TwinSubmitStepStatus({ captureId, spaceId, savedForLater, onGoTo
           Go to My Twins
         </button>
         <p className="text-center text-[11px] leading-relaxed text-[var(--graphite-muted)]">
-          Open the twin to add branding and send a secure link to your client.
+          Reviewing opens the twin where you can measure, add branding, and send a secure link.
         </p>
       </div>
     );
@@ -100,16 +129,27 @@ export function TwinSubmitStepStatus({ captureId, spaceId, savedForLater, onGoTo
           <div className="flex flex-col items-center gap-3 py-2 text-center">
             <IconAlertTriangle className="h-10 w-10 text-red-300" stroke={1.75} />
             <p className={twinSubmitTokens.headerText}>Reconstruction couldn&apos;t finish</p>
+            <p className="text-xs leading-relaxed text-[var(--graphite-muted)]">
+              Your capture files are safe. You can run it again — this uses the same sources and
+              doesn&apos;t re-upload anything.
+            </p>
             {job?.error_text ? (
-              <p className="text-xs leading-relaxed text-red-200">{job.error_text}</p>
-            ) : (
-              <p className="text-xs text-[var(--graphite-muted)]">
-                Your capture is safe. Open review to try again.
-              </p>
-            )}
+              <p className="text-[11px] leading-relaxed text-red-200/80">{job.error_text}</p>
+            ) : null}
+            {retryError ? <p className="text-[11px] text-red-300">{retryError}</p> : null}
           </div>
         </TwinSubmitGlassCard>
-        <button type="button" onClick={onGoToTwins} className={twinSubmitTokens.primaryCta}>
+
+        <button
+          type="button"
+          onClick={() => void handleRetry()}
+          disabled={retrying || !captureId}
+          className={cn(twinSubmitTokens.primaryCta, "flex items-center justify-center gap-2")}
+        >
+          {retrying ? <IconLoader2 className="h-4 w-4 animate-spin" /> : null}
+          Try again
+        </button>
+        <button type="button" onClick={onGoToTwins} className={twinSubmitTokens.secondaryCta}>
           Go to My Twins
         </button>
       </div>
