@@ -4,7 +4,7 @@ import { loadDigitalTwinHubData } from "@/lib/digital-twin/load-hub-data";
 import { DigitalTwinHomeClient } from "@/components/digital-twin/DigitalTwinHomeClient";
 
 export const metadata = {
-  title: "Digital Twin — Slate360",
+  title: "Twin 360 — Slate360",
   description: "Capture, upload, and manage interactive 3D digital twins from the field.",
 };
 

@@ -4,7 +4,6 @@ import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Scan, Plus } from "lucide-react";
 import { useMobileShellDock } from "@/components/mobile-system";
-import { appHomeTokens } from "@/components/studio-ui/app-home-tokens";
 import { DigitalTwinProjectTargetSheet } from "@/components/digital-twin/DigitalTwinProjectTargetSheet";
 import { TwinHomeCaptureSheet } from "@/components/digital-twin/home/TwinHomeCaptureSheet";
 import { TwinHomeFeed } from "@/components/digital-twin/home/TwinHomeFeed";
@@ -72,26 +71,29 @@ export function DigitalTwinHomeClient({ twins, projects }: Props) {
   );
 
   return (
-    <div className={appHomeTokens.scrollInner}>
-      {/* Sticky, prominent primary action — always one tap from capture. */}
+    // Full-height column: the New Scan control is the fixed top, the feed fills
+    // the rest and scrolls internally — no page-length blank void, no list
+    // running off the screen.
+    <div className="mx-auto flex h-full min-h-0 w-full max-w-2xl flex-col gap-3 px-4 pt-3 pb-3">
+      {/* Prominent primary action — the app's whole reason to exist. */}
       <button
         type="button"
         onClick={openCapture}
         aria-label="Start a new scan"
         data-twin-home="new-scan"
-        className="sticky top-0 z-10 flex w-full items-center gap-3.5 rounded-2xl border border-[var(--accent-border-blue)] bg-[color-mix(in_srgb,var(--twin360-blue)_12%,var(--graphite-canvas))] p-4 backdrop-blur-md transition active:scale-[0.99]"
+        className="flex w-full shrink-0 items-center gap-4 rounded-2xl border border-[var(--accent-border-blue)] bg-[color-mix(in_srgb,var(--twin360-blue)_12%,var(--graphite-canvas))] p-5 transition active:scale-[0.99]"
       >
-        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-[var(--accent-border-blue)] bg-[color-mix(in_srgb,var(--twin360-blue)_16%,transparent)] text-[var(--twin360-blue)]">
-          <Scan className="h-6 w-6" strokeWidth={1.75} aria-hidden />
+        <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border border-[var(--accent-border-blue)] bg-[color-mix(in_srgb,var(--twin360-blue)_16%,transparent)] text-[var(--twin360-blue)]">
+          <Scan className="h-8 w-8" strokeWidth={1.75} aria-hidden />
         </span>
         <span className="min-w-0 flex-1 text-left">
-          <span className="block text-base font-bold text-zinc-100">New Scan</span>
-          <span className="mt-0.5 block text-xs text-[var(--graphite-muted)]">
+          <span className="block text-lg font-bold text-zinc-100">New Scan</span>
+          <span className="mt-0.5 block text-sm text-[var(--graphite-muted)]">
             Turn a space into an interactive 3D twin
           </span>
         </span>
-        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--twin360-blue)] text-[var(--graphite-canvas)]">
-          <Plus className="h-5 w-5" strokeWidth={2.25} aria-hidden />
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--twin360-blue)] text-[var(--graphite-canvas)]">
+          <Plus className="h-6 w-6" strokeWidth={2.25} aria-hidden />
         </span>
       </button>
 

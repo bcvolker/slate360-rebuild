@@ -87,21 +87,34 @@ export function TwinHomeFeed({
   onStartScan: () => void;
 }) {
   return (
-    <section className="flex flex-col gap-2">
-      <p className={mobileTokens.appHomeSectionLabel}>Your twins</p>
+    <section className="flex min-h-0 flex-1 flex-col gap-2">
+      <div className="flex shrink-0 items-baseline justify-between">
+        <p className={mobileTokens.appHomeSectionLabel}>Your twins</p>
+        {twins.length > 0 ? (
+          <span className="font-mono text-[10px] uppercase tracking-wide text-[var(--graphite-muted)]">
+            {twins.length}
+          </span>
+        ) : null}
+      </div>
       {twins.length === 0 ? (
-        <MobileEmptyState
-          icon={Boxes}
-          title="No twins yet"
-          description="Scan a space to turn it into an interactive 3D twin you can share from a link."
-          actionLabel="Start your first scan"
-          onAction={onStartScan}
-        />
+        <div className="flex flex-1 items-center justify-center">
+          <MobileEmptyState
+            icon={Boxes}
+            title="No twins yet"
+            description="Scan a space to turn it into an interactive 3D twin you can share from a link."
+            actionLabel="Start your first scan"
+            onAction={onStartScan}
+          />
+        </div>
       ) : (
-        <div className="flex flex-col gap-2">
-          {twins.map((twin) => (
-            <TwinFeedRow key={twin.id} twin={twin} />
-          ))}
+        // Contained scroll: the list stays inside its own area and scrolls
+        // internally instead of running off the page as it grows.
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+          <div className="flex flex-col gap-2 pb-2">
+            {twins.map((twin) => (
+              <TwinFeedRow key={twin.id} twin={twin} />
+            ))}
+          </div>
         </div>
       )}
     </section>
