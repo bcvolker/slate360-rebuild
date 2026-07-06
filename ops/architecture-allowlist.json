@@ -15,6 +15,7 @@
     "app/api/projects/view-mode/route.ts",
     "app/api/contact/route.ts",
     "app/api/digital-twin/jobs/callback/route.ts",
-    "app/api/digital-twin/splat-manifest/route.ts"
+    "app/api/digital-twin/splat-manifest/route.ts",
+    "app/api/tours/public/**/route.ts"
   ]
 }

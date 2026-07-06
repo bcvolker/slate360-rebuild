@@ -1,39 +1,42 @@
 "use client";
 
-import { useState } from "react";
-import { ChevronLeft, ChevronRight, Maximize2 } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { TourPanoViewer } from "./TourPanoViewer";
-
-interface Scene {
-  id: string;
-  title: string;
-  panorama_path: string;
-  thumbnail_path: string | null;
-  initial_yaw: number | null;
-  initial_pitch: number | null;
-  sort_order: number;
-}
-
-interface Tour {
-  id: string;
-  title: string;
-  description: string | null;
-  viewer_slug: string | null;
-  logo_asset_path: string | null;
-  logo_width_percent: number | null;
-  logo_opacity: number | null;
-  logo_position: string | null;
-}
+import { PublicTourPanoViewer } from "./PublicTourPanoViewer";
+import type { PublicTourSummary, SceneRuntime } from "@/lib/types/tours";
 
 interface PublicTourViewerProps {
-  tour: Tour;
-  scenes: Scene[];
+  slug: string;
+  summary: PublicTourSummary;
 }
 
-export function PublicTourViewer({ tour, scenes }: PublicTourViewerProps) {
+export function PublicTourViewer({ slug, summary }: PublicTourViewerProps) {
   const [currentIdx, setCurrentIdx] = useState(0);
-  const scene = scenes[currentIdx];
+  const [sceneRuntime, setSceneRuntime] = useState<SceneRuntime | null>(null);
+  const [loading, setLoading] = useState(true);
+  const scene = summary.scenes[currentIdx];
+
+  const loadScene = useCallback(
+    async (sceneId: string) => {
+      setLoading(true);
+      setSceneRuntime(null);
+      try {
+        const res = await fetch(`/api/tours/public/${slug}/scenes/${sceneId}`);
+        if (res.ok) {
+          const json = await res.json();
+          setSceneRuntime((json?.data ?? json) as SceneRuntime);
+        }
+      } finally {
+        setLoading(false);
+      }
+    },
+    [slug],
+  );
+
+  useEffect(() => {
+    if (scene) void loadScene(scene.id);
+  }, [scene, loadScene]);
 
   if (!scene) {
     return (
@@ -44,50 +47,47 @@ export function PublicTourViewer({ tour, scenes }: PublicTourViewerProps) {
   }
 
   const hasPrev = currentIdx > 0;
-  const hasNext = currentIdx < scenes.length - 1;
+  const hasNext = currentIdx < summary.scenes.length - 1;
 
   return (
     <div className="relative h-screen w-full bg-black">
-      {/* Panorama viewer */}
-      <TourPanoViewer
-        src={scene.panorama_path}
-        initialYaw={scene.initial_yaw ?? 0}
-        initialPitch={scene.initial_pitch ?? 0}
-      />
+      {sceneRuntime ? (
+        <PublicTourPanoViewer scene={sceneRuntime} />
+      ) : (
+        <div className="flex h-full items-center justify-center text-foreground/60">
+          {loading ? "Loading…" : "Unable to load this scene."}
+        </div>
+      )}
 
-      {/* Tour title overlay */}
       <div className="pointer-events-none absolute left-4 top-4 z-10">
-        <h1 className="text-lg font-bold text-foreground drop-shadow-lg">{tour.title}</h1>
-        {scenes.length > 1 && (
+        <h1 className="text-lg font-bold text-foreground drop-shadow-lg">{summary.title}</h1>
+        {summary.scenes.length > 1 && (
           <p className="text-sm text-foreground/70 drop-shadow">
-            {scene.title} — {currentIdx + 1} / {scenes.length}
+            {scene.title} — {currentIdx + 1} / {summary.scenes.length}
           </p>
         )}
       </div>
 
-      {/* Navigation controls */}
-      {scenes.length > 1 && (
+      {summary.scenes.length > 1 && (
         <div className="absolute bottom-6 left-1/2 z-10 flex -translate-x-1/2 items-center gap-3">
           <Button
             variant="secondary"
             size="icon"
-            className="rounded-full bg-black/50 text-foreground hover:bg-black/70"
+            className="bg-black/50 text-foreground hover:bg-black/70"
             disabled={!hasPrev}
             onClick={() => setCurrentIdx((i) => i - 1)}
           >
             <ChevronLeft className="size-5" />
           </Button>
 
-          {/* Scene dots */}
           <div className="flex gap-1.5">
-            {scenes.map((s, idx) => (
+            {summary.scenes.map((s, idx) => (
               <button
                 key={s.id}
                 onClick={() => setCurrentIdx(idx)}
-                className={`size-2.5 rounded-full transition ${
-                  idx === currentIdx
-                    ? "bg-white"
-                    : "bg-white/40 hover:bg-white/60"
+                aria-label={`Go to scene ${idx + 1}: ${s.title}`}
+                className={`size-2.5 rounded-sm transition ${
+                  idx === currentIdx ? "bg-white" : "bg-white/40 hover:bg-white/60"
                 }`}
               />
             ))}
@@ -96,7 +96,7 @@ export function PublicTourViewer({ tour, scenes }: PublicTourViewerProps) {
           <Button
             variant="secondary"
             size="icon"
-            className="rounded-full bg-black/50 text-foreground hover:bg-black/70"
+            className="bg-black/50 text-foreground hover:bg-black/70"
             disabled={!hasNext}
             onClick={() => setCurrentIdx((i) => i + 1)}
           >
@@ -105,37 +105,33 @@ export function PublicTourViewer({ tour, scenes }: PublicTourViewerProps) {
         </div>
       )}
 
-      {/* Branding logo */}
-      {tour.logo_asset_path && (
+      {summary.branding.logoUrl && (
         <div
           className="absolute z-10"
           style={{
-            ...(tour.logo_position === "top-right"
+            ...(summary.branding.logoPosition === "top-right"
               ? { top: 16, right: 16 }
-              : tour.logo_position === "bottom-left"
+              : summary.branding.logoPosition === "bottom-left"
                 ? { bottom: 16, left: 16 }
-                : tour.logo_position === "bottom-right"
+                : summary.branding.logoPosition === "bottom-right"
                   ? { bottom: 16, right: 16 }
                   : { top: 16, left: 16 }),
           }}
         >
           <img
-            src={tour.logo_asset_path}
+            src={summary.branding.logoUrl}
             alt="Tour branding"
             className="pointer-events-none"
             style={{
-              width: `${tour.logo_width_percent ?? 15}%`,
-              opacity: tour.logo_opacity ?? 0.8,
+              width: `${summary.branding.logoWidthPercent ?? 15}%`,
+              opacity: summary.branding.logoOpacity ?? 0.8,
               maxWidth: 200,
             }}
           />
         </div>
       )}
 
-      {/* Powered by */}
-      <div className="absolute bottom-2 right-4 z-10 text-[10px] text-foreground/30">
-        Powered by Slate360
-      </div>
+      <div className="absolute bottom-2 right-4 z-10 text-[10px] text-foreground/30">Powered by Slate360</div>
     </div>
   );
 }

@@ -74,6 +74,22 @@ export async function updateTour(
   delete safeUpdates.orgId;
   delete safeUpdates.createdAt;
 
+  // Mint a non-enumerable public slug the first time a tour is published —
+  // without this, the "publish" toggle produced a dead public link (the
+  // column was never populated anywhere). Never overwrite an existing slug
+  // so previously-shared links keep working across unpublish/republish.
+  if (safeUpdates.status === "published") {
+    const { data: current } = await supabase
+      .from("project_tours")
+      .select("viewer_slug")
+      .eq("id", tourId)
+      .eq("org_id", orgId)
+      .maybeSingle();
+    if (!current?.viewer_slug) {
+      safeUpdates.viewer_slug = crypto.randomUUID().replace(/-/g, "");
+    }
+  }
+
   const { data, error } = await supabase
     .from("project_tours")
     .update(safeUpdates)
