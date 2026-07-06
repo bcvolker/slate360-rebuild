@@ -57,7 +57,10 @@ export function DashboardDomainWorkspace({
     { id: "all", label: `All · ${items.length}`, list: items },
   ] as const;
 
-  const [tab, setTab] = useState<(typeof TABS)[number]["id"]>("active");
+  // Default to whichever tab actually has content — never land on an "Active" tab
+  // that renders "Nothing in this view" while items exist under Completed/All (e.g.
+  // an org where every twin has already reached "ready").
+  const [tab, setTab] = useState<(typeof TABS)[number]["id"]>(active.length > 0 ? "active" : "all");
   const current = TABS.find((x) => x.id === tab) ?? TABS[0];
   const shown = current.list.slice(0, VISIBLE_CAP);
   const moreCount = current.list.length - shown.length;

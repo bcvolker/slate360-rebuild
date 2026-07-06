@@ -10,8 +10,9 @@ import {
   type TwinMediaCategory,
 } from "@/lib/digital-twin/twin-review-media";
 
-/** Point-cloud / LiDAR / mesh / geospatial formats accepted from desktop. */
-const SCAN_ACCEPT = ".ply,.las,.laz,.e57,.pcd,.xyz,.pts,.obj,.glb,.gltf,.fbx,.stl,.kml,.gpx,.geojson";
+/** C4: only .ply is actually consumed by reconstruction — see isUnusableTwinSourceFile
+ * for the full list of accepted-by-the-OS-picker-but-rejected-on-add formats. */
+const SCAN_ACCEPT = ".ply";
 import { TwinSubmitGlassCard } from "./TwinSubmitGlassCard";
 import { twinSubmitTokens } from "./twin-submit-tokens";
 
@@ -96,8 +97,7 @@ export function TwinSubmitStepSources({
 
       <TwinSubmitGlassCard title="3D scans & models">
         <p className="mb-2 text-[11px] leading-snug text-[var(--graphite-muted)]">
-          Add LiDAR / point clouds (.ply, .las, .e57), meshes (.obj, .glb), or GPS tracks (.kml, .gpx) for a
-          richer, more accurate model.
+          Add a LiDAR point cloud (.ply) for a richer, more accurate model.
         </p>
         <div className="grid grid-cols-2 gap-2">
           <SourceButton label="Add scans" icon={Boxes} onClick={() => scanRef.current?.click()} />

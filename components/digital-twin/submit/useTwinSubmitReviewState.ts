@@ -21,6 +21,7 @@ import { fetchSlateDropFileAsBlob } from "@/lib/digital-twin/twin-review-fetch";
 import {
   classifyTwinMedia,
   countTwinEstimateFrames,
+  isUnusableTwinSourceFile,
   twinMediaToAssetKind,
 } from "@/lib/digital-twin/twin-review-media";
 import type { TwinJobCreditEstimate, TwinProcessingQuality } from "@/lib/twin/processing-estimate-types";
@@ -80,6 +81,7 @@ export function useTwinSubmitReviewState(devPreview?: DevPreview) {
   const [retainRaw, setRetainRaw] = useState(true);
   const [checkoutNotice, setCheckoutNotice] = useState<string | null>(null);
   const [restoredNotice, setRestoredNotice] = useState<string | null>(null);
+  const [unusableFileNotice, setUnusableFileNotice] = useState<string | null>(null);
 
   useEffect(() => {
     if (devPreview?.session) return;
@@ -226,9 +228,20 @@ export function useTwinSubmitReviewState(devPreview?: DevPreview) {
   }, []);
 
   const handleAddFiles = useCallback((files: File[], origin: "camera_roll" | "files") => {
+    // C4: mesh (.obj/.glb/.gltf/.fbx/.stl), geospatial (.kml/.gpx/.geojson), and
+    // external point-cloud formats aren't used anywhere in reconstruction — reject
+    // before upload rather than silently accepting, billing for, and ignoring them.
+    const usable = files.filter((file) => !isUnusableTwinSourceFile(file));
+    const rejectedCount = files.length - usable.length;
+    setUnusableFileNotice(
+      rejectedCount > 0
+        ? "This file type isn't used in reconstruction yet — it won't be uploaded."
+        : null,
+    );
+    if (!usable.length) return;
     setAddedSources((prev) => [
       ...prev,
-      ...files.map((file) => ({
+      ...usable.map((file) => ({
         id: `local-${Date.now()}-${file.name}`,
         origin,
         file,
@@ -390,6 +403,7 @@ export function useTwinSubmitReviewState(devPreview?: DevPreview) {
     setRetainRaw,
     checkoutNotice,
     restoredNotice,
+    unusableFileNotice,
     captureCategories,
     totalDurationSeconds,
     assetCount,

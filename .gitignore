@@ -79,3 +79,10 @@ thermal-samples/
 # FLIR reference installers are local-only (too large for git)
 /reference/flir-drive-import/installers/
 .claude/worktrees/
+
+# Local-only reference assets (sample plan sets, 360 samples) — never commit binaries
+reference/
+
+# Local 360 sample photos (binaries) — never commit
+360_Sample_Photos/
+360_Sample_Photos.zip

@@ -52,7 +52,7 @@ export function computeTwinSourcesProcessingEstimate(
   frameCount?: number,
 ): TwinProcessingEstimate {
   const assetCount = assets.length;
-  const baseCredits = computeTwinProcessingCredits(assets, outputFormat);
+  const baseCredits = computeTwinProcessingCredits(assets);
   const creditsRequired = applyTwinQualityCredits(baseCredits, quality);
   const resolvedFrames =
     frameCount ??

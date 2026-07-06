@@ -41,6 +41,10 @@ export const GET = (req: NextRequest) =>
       | "ply"
       | "glb";
     if (!OUTPUT_FORMATS.has(outputFormat)) return badRequest("Invalid output_format");
+    // C5: enum stays for the future; only spz is honored today.
+    if (outputFormat !== "spz") {
+      return badRequest("Only spz output is currently supported for digital twins");
+    }
 
     try {
       const estimate = await resolveTwinJobCreditEstimate(admin, orgId, captureId, outputFormat);
@@ -67,6 +71,10 @@ export const POST = (req: NextRequest) =>
 
     const outputFormat = (body.output_format ?? "spz") as "spz" | "ply" | "glb";
     if (!OUTPUT_FORMATS.has(outputFormat)) return badRequest("Invalid output_format");
+    // C5: enum stays for the future; only spz is honored today.
+    if (outputFormat !== "spz") {
+      return badRequest("Only spz output is currently supported for digital twins");
+    }
 
     const quality = (body.quality ?? "standard") as TwinProcessingQuality;
     if (!QUALITY_TIERS.has(quality)) return badRequest("Invalid quality");

@@ -15,6 +15,7 @@ import {
   type BillingCadence,
   type MarketingPricingTier,
 } from "@/lib/marketing/pricing-config";
+import { cheapestCreditPack, formatCreditPackPrice } from "@/lib/billing/credit-packs";
 import {
   MKT_CONTAINER,
   MKT_GLASS_CARD,
@@ -142,8 +143,8 @@ function TierCard({
 }
 
 function CreditsEstimator() {
-  const [twins, setTwins] = useState(5);
-  const credits = twins * 100;
+  const [twins, setTwins] = useState(20);
+  const credits = twins * 15;
   const recommendation =
     credits <= 500 ? "Twin 360 Essential covers this" : credits <= 2000 ? "Twin 360 Professional covers this" : "Professional + a top-up pack, or talk to us";
 
@@ -151,7 +152,7 @@ function CreditsEstimator() {
     <div className={cn(MKT_GLASS_CARD, "mx-auto w-full max-w-2xl")}>
       <p className="text-sm font-bold text-[var(--graphite-text-header)]">How far do credits go?</p>
       <p className="mt-1 text-sm text-[var(--graphite-muted)]">
-        An average twin uses about 100 credits — smaller spaces use fewer, larger or
+        An average twin uses about 15 credits — smaller spaces use fewer, larger or
         higher-detail captures use more. It depends on how much data you bring. Slide to
         your typical month:
       </p>
@@ -159,7 +160,7 @@ function CreditsEstimator() {
         <input
           type="range"
           min={1}
-          max={25}
+          max={200}
           value={twins}
           onChange={(event) => setTwins(Number(event.target.value))}
           className="h-1.5 flex-1 cursor-pointer accent-[var(--twin360-blue)]"
@@ -184,8 +185,9 @@ function CreditsEstimator() {
         </p>
       </div>
       <p className="mt-3 text-xs text-[var(--graphite-muted)]">
-        Need more in a busy month? Buy extra credits anytime — at cost. Slate360 doesn&apos;t
-        mark up processing or profit from credit purchases; you only cover what the work costs.
+        Need more in a busy month? Buy a credit pack anytime — packs start at{" "}
+        {formatCreditPackPrice(cheapestCreditPack())}, credits never expire, and prices are the
+        same on the web and in the app.
       </p>
     </div>
   );

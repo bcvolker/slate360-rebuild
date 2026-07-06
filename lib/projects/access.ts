@@ -1,4 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/admin";
+import { EXCLUDE_SYSTEM_PROJECTS_FILTER } from "@/lib/tours/system-project";
 
 type ProjectListRow = {
   id: string;
@@ -51,7 +52,8 @@ export async function listScopedProjectsForUser(userId: string) {
   let query = admin
     .from("projects")
     .select("id, name, description, metadata, status, created_by, created_at, org_id")
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .or(EXCLUDE_SYSTEM_PROJECTS_FILTER);
 
   query = orgId
     ? query.or(`org_id.eq.${orgId},created_by.eq.${userId}`)
@@ -71,6 +73,7 @@ export async function listScopedProjectsForUser(userId: string) {
         .from("projects")
         .select("id, name, description, metadata, status, created_by, created_at, org_id")
         .in("id", missingIds)
+        .or(EXCLUDE_SYSTEM_PROJECTS_FILTER)
         .order("created_at", { ascending: false });
 
       for (const project of (memberProjects ?? []) as ProjectListRow[]) {

@@ -72,7 +72,7 @@ export const TWIN_360_PRICING: MarketingPricingTier[] = [
     annualEffectiveMonthly: effectiveMonthly(annualFromMonthly(99)),
     features: [
       "Turn walkthrough videos into explorable 3D twins",
-      "About 5 standard twins a month included (~500 credits)",
+      "About 35 standard twins a month included (~500 credits)",
       "Viewers explore from any browser — no app, no login",
       "Uses your phone's LiDAR automatically when available",
     ],
@@ -88,9 +88,8 @@ export const TWIN_360_PRICING: MarketingPricingTier[] = [
     annualEffectiveMonthly: effectiveMonthly(annualFromMonthly(249)),
     features: [
       "Everything in Essential",
-      "About 20 standard twins a month included (~2,000 credits)",
-      "Studio editing, embeds, and white-label sharing",
-      "Front-of-the-line processing for big jobs",
+      "About 140 standard twins a month included (~2,000 credits)",
+      "Desktop studio editor — crop, erase, and clean up a model before sharing",
     ],
     cta: "Start 14-day free trial",
     ctaHref: "/signup?plan=twin-360-professional",
@@ -134,7 +133,7 @@ export const ENTERPRISE_PRICING: MarketingPricingTier = {
 
 export const DATA_PROCESSING_POINTS = [
   "Generous monthly processing credits included",
-  "Extra credits anytime, at cost — no markup on processing",
+  "Buy a credit pack anytime — credits never expire",
   "Storage add-ons",
   "Enterprise pooled credits & storage",
 ] as const;

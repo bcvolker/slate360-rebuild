@@ -39,7 +39,7 @@ export async function resolveTwinJobCreditEstimate(
 
   if (assetsError) throw new Error(assetsError.message);
 
-  const baseCredits = computeTwinProcessingCredits(assets ?? [], outputFormat);
+  const baseCredits = computeTwinProcessingCredits(assets ?? []);
   const creditsRequired = applyTwinQualityCredits(baseCredits, quality);
 
   const { data: org, error: orgError } = await admin

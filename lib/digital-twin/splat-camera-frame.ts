@@ -15,6 +15,7 @@ import {
   computePercentileSplatBounds,
 } from "@/lib/digital-twin/splat-bounds";
 import { applyOverviewHomeFrame } from "@/lib/digital-twin/splat-overview-home";
+import type { SplatManifest } from "@/lib/digital-twin/twin-manifest";
 
 export type SplatCameraFrame = InteriorCameraFrame | ExteriorCameraFrame;
 
@@ -81,8 +82,9 @@ export function frameSplatMeshInterior(
   mesh: SplatMesh,
   camera: THREE.PerspectiveCamera,
   controls: { target: THREE.Vector3; update: () => void } | null,
+  manifest?: SplatManifest | null,
 ): InteriorCameraFrame {
-  const frame = computeInteriorStartFrame(getSplatSceneBounds(mesh), camera);
+  const frame = computeInteriorStartFrame(getSplatSceneBounds(mesh), camera, manifest);
   applyInteriorCameraFrame(camera, controls, frame);
   return frame;
 }

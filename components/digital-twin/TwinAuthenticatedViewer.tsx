@@ -15,6 +15,8 @@ import { TwinMeasureTool } from "./TwinMeasureTool";
 import { TwinViewerCanvasShell } from "./TwinViewerCanvasShell";
 import { TwinCollaborationPanel } from "./TwinCollaborationPanel";
 import type { TwinViewerCameraMode } from "./TwinViewerControlsOverlay";
+import type { SplatManifest } from "@/lib/digital-twin/twin-manifest";
+import { WALK_DISABLED_NO_FLOOR_REASON } from "@/components/digital-twin/splat-viewer-constants";
 
 const TwinShareSplatViewer = dynamic(
   () =>
@@ -52,6 +54,8 @@ export function TwinAuthenticatedViewer({
 }: Props) {
   const viewerRef = useRef<SplatViewerHandle | null>(null);
   const [cameraMode, setCameraMode] = useState<TwinViewerCameraMode>("orbit");
+  const [manifest, setManifest] = useState<SplatManifest | null>(null);
+  const walkDisabledReason = manifest?.up_axis === "UNKNOWN" ? WALK_DISABLED_NO_FLOOR_REASON : null;
   const [repositionMode, setRepositionMode] = useState(false);
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [measureActive, setMeasureActive] = useState(false);
@@ -188,6 +192,8 @@ export function TwinAuthenticatedViewer({
       onToggleReposition={
         cameraMode === "orbit" ? () => setRepositionMode((on) => !on) : undefined
       }
+      walkDisabledReason={walkDisabledReason}
+      metricScaleApplied={manifest?.metric_scale_applied ?? false}
     >
       {splatReady ? (
         <TwinShareSplatViewer
@@ -200,6 +206,7 @@ export function TwinAuthenticatedViewer({
           cameraMode={cameraMode}
           onCameraModeChange={setCameraMode}
           repositionMode={repositionMode}
+          onManifestChange={setManifest}
         />
       ) : (
         <div className="absolute inset-0">

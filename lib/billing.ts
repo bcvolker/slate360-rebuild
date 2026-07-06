@@ -1,20 +1,14 @@
 import type { Tier } from "@/lib/entitlements";
+import { CREDIT_PACKS, getCreditPack as getCreditPackFromConfig, type CreditPack, type CreditPackId } from "@/lib/billing/credit-packs";
 
 export type BillingCycle = "monthly" | "annual";
 export type PaidTier = Exclude<Tier, "trial" | "enterprise">;
-export type CreditPackId = "starter" | "growth" | "pro";
+export type { CreditPackId, CreditPack };
 
 type SubscriptionPlan = {
   tier: PaidTier;
   label: string;
   priceIds: Partial<Record<BillingCycle, string>>;
-};
-
-type CreditPack = {
-  id: CreditPackId;
-  label: string;
-  credits: number;
-  priceId?: string;
 };
 
 export const SUBSCRIPTION_PLANS: Record<PaidTier, SubscriptionPlan> = {
@@ -36,26 +30,12 @@ export const SUBSCRIPTION_PLANS: Record<PaidTier, SubscriptionPlan> = {
   },
 };
 
-export const CREDIT_PACKS: Record<CreditPackId, CreditPack> = {
-  starter: {
-    id: "starter",
-    label: "500 Credits",
-    credits: 500,
-    priceId: process.env.STRIPE_PRICE_CREDITS_STARTER,
-  },
-  growth: {
-    id: "growth",
-    label: "2,000 Credits",
-    credits: 2000,
-    priceId: process.env.STRIPE_PRICE_CREDITS_GROWTH,
-  },
-  pro: {
-    id: "pro",
-    label: "5,000 Credits",
-    credits: 5000,
-    priceId: process.env.STRIPE_PRICE_CREDITS_PRO,
-  },
-};
+export { CREDIT_PACKS };
+
+/** Resolves a credit pack's Stripe price ID from its configured env var name (server-only). */
+export function getCreditPackStripePriceId(id: CreditPackId): string | undefined {
+  return process.env[CREDIT_PACKS[id].stripePriceEnvVar];
+}
 
 export function isPaidTier(value: string | null | undefined): value is PaidTier {
   return value === "standard" || value === "business";
@@ -77,13 +57,7 @@ export function getTierFromPriceId(priceId: string | null | undefined): PaidTier
   return match ?? null;
 }
 
-export function getCreditPack(packId: string | null | undefined): CreditPack | null {
-  if (!packId) return null;
-  if (packId === "starter" || packId === "growth" || packId === "pro") {
-    return CREDIT_PACKS[packId];
-  }
-  return null;
-}
+export const getCreditPack = getCreditPackFromConfig;
 
 export function recommendedUpgradeTier(currentTier: Tier): PaidTier {
   switch (currentTier) {

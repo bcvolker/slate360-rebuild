@@ -78,6 +78,16 @@ export const PROJECT_FOLDER_TAXONOMY = [
       { name: "Shared_Links", folderType: "team_shared_links" },
     ],
   },
+  {
+    name: "06_Tour_360",
+    folderType: "tour_360",
+    app: "tours",
+    children: [
+      { name: "Scenes", folderType: "tour_360_scenes" },
+      { name: "Plan_Sheets", folderType: "tour_360_plan_sheets" },
+      { name: "Deliverables", folderType: "tour_360_deliverables" },
+    ],
+  },
 ] as const satisfies readonly TaxonomyFolderNode[];
 
 /** Site Walk capture → taxonomy subfolder under 02_Site_Walk. */

@@ -69,13 +69,14 @@ export default async function DigitalTwinTwinsPage({ searchParams }: PageProps) 
   const statusFilter = params.status?.toLowerCase();
 
   const context = await resolveServerOrgContext();
-  const [{ twins }, unsubmitted] = await Promise.all([
+  const [{ twins }, { main: unsubmitted, staleDrafts }] = await Promise.all([
     loadDigitalTwinHubData(context.orgId),
     loadUnsubmittedTwinCaptures(context.orgId),
   ]);
-  const filteredTwins = twins.filter((twin) =>
-    matchesTwinStatusFilter(twin.statusChip, statusFilter),
-  );
+  const showingDrafts = statusFilter === "drafts";
+  const filteredTwins = showingDrafts
+    ? []
+    : twins.filter((twin) => matchesTwinStatusFilter(twin.statusChip, statusFilter));
 
   const filterLabel =
     statusFilter === "processing"
@@ -84,21 +85,55 @@ export default async function DigitalTwinTwinsPage({ searchParams }: PageProps) 
         ? "Ready"
         : statusFilter === "failed"
           ? "Failed"
-          : null;
+          : showingDrafts
+            ? "Drafts"
+            : null;
 
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain px-4 py-4">
       {filterLabel ? (
         <p className="mb-3 text-xs font-medium text-zinc-400">
-          Showing {filterLabel.toLowerCase()} twins
+          Showing {filterLabel.toLowerCase()} {showingDrafts ? "" : "twins"}
           {" · "}
           <Link href="/digital-twin/twins" className={twinAccent.link}>
             Clear filter
           </Link>
         </p>
+      ) : staleDrafts.length > 0 ? (
+        <p className="mb-3 text-xs font-medium text-zinc-400">
+          <Link href="/digital-twin/twins?status=drafts" className={twinAccent.link}>
+            {staleDrafts.length} old draft{staleDrafts.length === 1 ? "" : "s"} hidden
+          </Link>
+        </p>
       ) : null}
 
-      {!statusFilter && unsubmitted.length > 0 ? (
+      {showingDrafts ? (
+        <section className="mb-5">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">
+            Drafts
+          </p>
+          <p className="mb-3 text-[11px] leading-snug text-zinc-500">
+            Empty captures with nothing uploaded yet, started more than a day ago. Resume one, or
+            leave it — nothing here is deleted automatically.
+          </p>
+          {staleDrafts.length > 0 ? (
+            <ul className="space-y-2">
+              {staleDrafts.map((capture) => (
+                <li key={capture.id}>
+                  <UnsubmittedCaptureRow
+                    capture={capture}
+                    workspaces={twins.map((t) => ({ id: t.id, title: t.title }))}
+                  />
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-xs text-zinc-500">No drafts.</p>
+          )}
+        </section>
+      ) : null}
+
+      {!showingDrafts && !statusFilter && unsubmitted.length > 0 ? (
         <section className="mb-5">
           <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">
             Continue your captures
@@ -119,7 +154,7 @@ export default async function DigitalTwinTwinsPage({ searchParams }: PageProps) 
         </section>
       ) : null}
 
-      {filteredTwins.length > 0 ? (
+      {showingDrafts ? null : filteredTwins.length > 0 ? (
         <ul className="space-y-2">
           {filteredTwins.map((twin) => (
             <li key={twin.id}>

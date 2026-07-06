@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useSiteWalkSession } from "@/components/site-walk/SiteWalkSessionProvider";
 import { CAPTURE_CANVAS_SHELL_ENABLED } from "@/lib/site-walk/capture-v2-config";
+import { hasReadyPlanSet } from "@/lib/site-walk/capture-v2-fork";
 import { usePlanSheetsRealtime } from "@/lib/hooks/usePlanSheetsRealtime";
 import { CaptureV2DesktopStudio } from "./CaptureV2DesktopStudio";
 import { CaptureV2MobileField } from "./CaptureV2MobileField";
@@ -33,6 +34,27 @@ function resolveInitialPhase(props: Props): CaptureV2UiPhase {
   if (props.autoOpenCamera) return "viewfinder";
   if (props.initialItemId) return "drawer";
   return "hub";
+}
+
+/**
+ * Explains WHY camera mode was landed on when a project is attached but no ready
+ * plan exists to walk on — never shown when the user explicitly picked "Walk
+ * without plan" (that only happens once a ready plan already exists to decline).
+ * See docs/audit/PLANS_WALK_TRACE.md.
+ */
+function resolvePlanStatusNotice(showPlanCanvas: boolean, planSets: SiteWalkPlanSet[]): string | null {
+  if (!showPlanCanvas || hasReadyPlanSet(planSets)) return null;
+  if (planSets.length === 0) {
+    return "No plans yet for this project — add plans from desktop, then start a walk with drawings.";
+  }
+  const failedOnly = planSets.every((set) => set.processing_status === "failed");
+  if (failedOnly) {
+    return "Plan conversion failed for this project — re-upload from desktop, or continue without pins.";
+  }
+  const converting = planSets.filter(
+    (set) => set.processing_status === "pending" || set.processing_status === "processing",
+  ).length;
+  return `${converting} plan${converting === 1 ? "" : "s"} still converting — capturing without pins for now.`;
 }
 
 export function CaptureV2Orchestrator(props: Props) {
@@ -78,6 +100,10 @@ export function CaptureV2Orchestrator(props: Props) {
     CAPTURE_CANVAS_SHELL_ENABLED && !isDesktop && (!showPlanCanvas || fork === "camera");
   const useWithPlansCanvas =
     CAPTURE_CANVAS_SHELL_ENABLED && showPlanCanvas && !isDesktop && fork === "plan";
+  const planStatusNotice = useMemo(
+    () => resolvePlanStatusNotice(showPlanCanvas, planSets),
+    [showPlanCanvas, planSets],
+  );
   const livePlanSheets = usePlanSheetsRealtime(planSheets, session.project_id);
 
   useEffect(() => {
@@ -147,6 +173,7 @@ export function CaptureV2Orchestrator(props: Props) {
         contextLabel={contextLabel}
         photo360Entitled={photo360Entitled}
         returnFromSummary={returnFromSummary}
+        planStatusNotice={planStatusNotice}
       />
     );
   }

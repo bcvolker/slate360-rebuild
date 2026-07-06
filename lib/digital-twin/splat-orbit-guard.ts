@@ -1,7 +1,12 @@
 import * as THREE from "three";
 
-export const ORBIT_HOME_ZOOM_MIN = 0.5;
-export const ORBIT_HOME_ZOOM_MAX = 8;
+// V1: orbit limits scale off the model's own CORE RADIUS, not off the framed
+// home distance. The old homeDistance-based clamp (minDistance = homeDistance
+// * 0.5) put the near limit at roughly 2x the model's radius from center —
+// nowhere near close enough to inspect a wheel or a wall crack. radius/50 gets
+// close to the surface; radius*8 is a generous pull-back for context.
+export const ORBIT_RADIUS_ZOOM_MIN = 1 / 50;
+export const ORBIT_RADIUS_ZOOM_MAX = 8;
 
 const BOX_CORNERS = Array.from({ length: 8 }, () => new THREE.Vector3());
 const PROJECTED = new THREE.Vector3();
@@ -14,11 +19,11 @@ export function clampOrbitTargetToBounds(target: THREE.Vector3, bounds: THREE.Bo
   return target;
 }
 
-export function orbitDistanceLimitsFromHome(homeDistance: number) {
-  const safe = Math.max(homeDistance, 0.5);
+export function orbitDistanceLimitsFromRadius(radius: number) {
+  const safe = Math.max(radius, 0.05);
   return {
-    minDistance: safe * ORBIT_HOME_ZOOM_MIN,
-    maxDistance: safe * ORBIT_HOME_ZOOM_MAX,
+    minDistance: safe * ORBIT_RADIUS_ZOOM_MIN,
+    maxDistance: safe * ORBIT_RADIUS_ZOOM_MAX,
   };
 }
 

@@ -6,6 +6,12 @@
       "runtimeExecutable": "npx",
       "runtimeArgs": ["next", "dev", "--hostname", "127.0.0.1"],
       "autoPort": true
+    },
+    {
+      "name": "marcisz",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "C:/marcisz-preview/site", "run", "dev", "--", "-p", "3311", "--hostname", "127.0.0.1"],
+      "port": 3311
     }
   ]
 }

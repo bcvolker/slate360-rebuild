@@ -33,9 +33,13 @@ async function markJobFailed(
 export const twinGaussianSplatTask = task({
   id: "twin.gaussian_splat",
   maxDuration: 120,
-  run: async (payload: { jobId: string; quality?: string }) => {
+  run: async (payload: { jobId: string; quality?: string; forceColmap?: boolean }) => {
     const { jobId } = payload;
     const quality = payload.quality === "high" ? "high" : "standard";
+    // Diagnostic-only option (see scripts/ops/diagnose-twin-poses.mjs R3): skips the
+    // ARKit pose bypass worker-side and forces the standard COLMAP path even when
+    // lidarPosesKey/lidarPlyKey are present, for A/B comparison against the bypass.
+    const forceColmap = payload.forceColmap === true;
     const supabase = getSupabase();
 
     const { data: job, error: jobError } = await supabase
@@ -103,6 +107,7 @@ export const twinGaussianSplatTask = task({
       newAssetIds: mediaAssets.map((row) => row.id),
       lidarPosesKey: posesAsset?.storage_key ?? null,
       lidarPlyKey: plyAsset?.storage_key ?? null,
+      forceColmap,
     };
 
     try {

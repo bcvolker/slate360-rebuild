@@ -18,6 +18,7 @@ import {
   type OverviewHomeFrame,
 } from "@/lib/digital-twin/splat-overview-home";
 import { raycastSplatMesh } from "@/lib/digital-twin/splat-raycast";
+import type { SplatManifest } from "@/lib/digital-twin/twin-manifest";
 import {
   DOUBLE_TAP_MS,
   ORBIT_DAMPING,
@@ -40,6 +41,7 @@ export function SplatOverviewNavigation({
   onPick,
   onEnterInterior,
   repositionMode = false,
+  manifest = null,
 }: {
   mesh: SplatMesh;
   active: boolean;
@@ -53,6 +55,9 @@ export function SplatOverviewNavigation({
    * When false (default), single-finger / left-drag orbits as usual.
    */
   repositionMode?: boolean;
+  /** AF11: worker-baked framing (recommended_orbit_camera + core bounds), preferred over
+   * client-computed mesh bounds when present. Null for older models / fetch failures. */
+  manifest?: SplatManifest | null;
 }) {
   const { camera, gl, size } = useThree();
   const controlsRef = useRef<OrbitControlsImpl>(null);
@@ -92,6 +97,7 @@ export function SplatOverviewNavigation({
       camera.aspect = size.width / Math.max(size.height, 1);
       const home = applyOverviewHomeFrame(mesh, camera, controls, {
         logLabel: options?.log ? "splat-overview-home" : undefined,
+        manifest,
       });
       homeRef.current = home;
 
@@ -106,7 +112,7 @@ export function SplatOverviewNavigation({
       }
       publishFramingReport();
     },
-    [camera, mesh, publishFramingReport, size.height, size.width],
+    [camera, mesh, manifest, publishFramingReport, size.height, size.width],
   );
 
   useEffect(() => {
@@ -183,7 +189,22 @@ export function SplatOverviewNavigation({
         onPick({ x: hit.point.x, y: hit.point.y, z: hit.point.z });
         return;
       }
-      onEnterInterior(hit.point);
+      // V2 (Package V): re-target the orbit pivot to the picked point instead
+      // of leaving orbit mode — the control that makes inspecting a specific
+      // spot (a wheel, a wall crack) natural. Preserves the camera's current
+      // offset (direction + distance) from the old target so the transition
+      // reads as "look closer here," not a jump cut. Entering Walk mode is a
+      // separate, explicit control (TwinViewerControlsOverlay's Walk toggle).
+      const controls = controlsRef.current;
+      if (!controls) return;
+      const offset = camera.position.clone().sub(controls.target);
+      const newTarget = hit.point.clone();
+      const newPosition = newTarget.clone().add(offset);
+      tweenRef.current.start(
+        { position: camera.position.clone(), target: controls.target.clone() },
+        { position: newPosition, target: newTarget },
+        500,
+      );
     };
 
     const onDoubleClick = (event: MouseEvent) => {

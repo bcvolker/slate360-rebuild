@@ -12,6 +12,7 @@ import {
 } from "@/lib/digital-twin/interior-camera-frame";
 import { frameSplatMeshInterior, getSplatSceneBounds } from "@/lib/digital-twin/splat-camera-frame";
 import { raycastSplatMesh } from "@/lib/digital-twin/splat-raycast";
+import type { SplatManifest } from "@/lib/digital-twin/twin-manifest";
 import {
   INTERIOR_MAX_ZOOM,
   INTERIOR_MIN_ZOOM,
@@ -31,6 +32,7 @@ export function SplatInteriorNavigation({
   zoomRef,
   entryHit,
   onEntryHitConsumed,
+  manifest = null,
 }: {
   mesh: SplatMesh;
   active: boolean;
@@ -41,6 +43,9 @@ export function SplatInteriorNavigation({
   zoomRef: React.MutableRefObject<number>;
   entryHit?: THREE.Vector3 | null;
   onEntryHitConsumed?: () => void;
+  /** R8.2: worker-baked initial_camera — walk mode starts here (eye height on
+   * the detected floor) instead of the bounds-based default when present. */
+  manifest?: SplatManifest | null;
 }) {
   const { camera, gl } = useThree();
   const boundsRef = useRef<THREE.Box3 | null>(null);
@@ -56,6 +61,9 @@ export function SplatInteriorNavigation({
     pinchStartDistance: 0,
     pinchStartZoom: 1,
   });
+  // Q3: registry of currently-down touch pointers, keyed by pointerId — needed
+  // to detect a second finger (pinch start) and track both fingers' positions.
+  const activeTouchesRef = useRef(new Map<number, { x: number; y: number }>());
   const lookTarget = useMemo(() => new THREE.Vector3(), []);
   const forward = useMemo(() => new THREE.Vector3(), []);
   const tweenScratch = useMemo(
@@ -74,7 +82,7 @@ export function SplatInteriorNavigation({
 
   const syncDefaultFrame = useCallback(() => {
     if (!(camera instanceof THREE.PerspectiveCamera) || !mesh?.isInitialized) return;
-    const frame = frameSplatMeshInterior(mesh, camera, null);
+    const frame = frameSplatMeshInterior(mesh, camera, null, manifest);
     defaultFrameRef.current = frame;
     boundsRef.current = getSplatSceneBounds(mesh);
     stateRef.current.position.copy(frame.position);
@@ -83,7 +91,7 @@ export function SplatInteriorNavigation({
     zoomRef.current = frame.zoom;
     tweenRef.current.cancel();
     applyStateToCamera();
-  }, [applyStateToCamera, camera, defaultFrameRef, mesh, zoomRef]);
+  }, [applyStateToCamera, camera, defaultFrameRef, manifest, mesh, zoomRef]);
 
   useEffect(() => {
     if (!active || !mesh?.isInitialized || !(camera instanceof THREE.PerspectiveCamera)) return;
@@ -125,7 +133,29 @@ export function SplatInteriorNavigation({
       );
     };
 
+    const activeTouches = activeTouchesRef.current;
+    const pinchDistance = () => {
+      const pts = [...activeTouches.values()];
+      if (pts.length < 2) return 0;
+      return Math.hypot(pts[0]!.x - pts[1]!.x, pts[0]!.y - pts[1]!.y);
+    };
+
     const onPointerDown = (event: PointerEvent) => {
+      if (event.pointerType === "touch") {
+        activeTouches.set(event.pointerId, { x: event.clientX, y: event.clientY });
+        if (activeTouches.size === 2) {
+          // Q3: second finger down — start pinch-to-zoom, cancelling any
+          // single-finger look-drag the first finger may have started.
+          pointerRef.current.dragging = false;
+          pointerRef.current.pinchActive = true;
+          pointerRef.current.pinchStartDistance = pinchDistance();
+          pointerRef.current.pinchStartZoom = zoomRef.current;
+          tweenRef.current.cancel();
+          return;
+        }
+        if (activeTouches.size > 2) return; // ignore a third+ finger
+      }
+      if (pointerRef.current.pinchActive) return;
       if (event.button !== 0 && event.pointerType !== "touch") return;
       pointerRef.current.dragging = true;
       pointerRef.current.moved = false;
@@ -135,6 +165,20 @@ export function SplatInteriorNavigation({
     };
 
     const onPointerMove = (event: PointerEvent) => {
+      if (event.pointerType === "touch" && activeTouches.has(event.pointerId)) {
+        activeTouches.set(event.pointerId, { x: event.clientX, y: event.clientY });
+      }
+      if (pointerRef.current.pinchActive) {
+        if (activeTouches.size >= 2 && pointerRef.current.pinchStartDistance > 1e-3) {
+          const factor = pinchDistance() / pointerRef.current.pinchStartDistance;
+          zoomRef.current = THREE.MathUtils.clamp(
+            pointerRef.current.pinchStartZoom * factor,
+            INTERIOR_MIN_ZOOM,
+            INTERIOR_MAX_ZOOM,
+          );
+        }
+        return; // pinch owns this move — don't also process as a look-drag
+      }
       if (event.pointerType === "touch" && event.isPrimary === false) return;
       if (!pointerRef.current.dragging || event.pointerId !== pointerRef.current.pointerId) return;
 
@@ -158,6 +202,12 @@ export function SplatInteriorNavigation({
     };
 
     const onPointerUp = (event: PointerEvent) => {
+      if (event.pointerType === "touch") {
+        activeTouches.delete(event.pointerId);
+        if (activeTouches.size < 2) {
+          pointerRef.current.pinchActive = false;
+        }
+      }
       if (event.pointerId !== pointerRef.current.pointerId) return;
       const wasTap = pointerRef.current.dragging && !pointerRef.current.moved;
       pointerRef.current.dragging = false;

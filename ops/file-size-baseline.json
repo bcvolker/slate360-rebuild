@@ -39,7 +39,7 @@
     "lib/market-bot.ts": 352,
     "lib/market/scheduler.ts": 346,
     "app/api/market/polymarket/route.ts": 306,
-    "app/signup/page.tsx": 306,
+    "app/signup/page.tsx": 313,
     "app/site-walk/_legacy_v1/walks/active/[sessionId]/CaptureClient.tsx": 309,
     "components/dashboard/market/MarketAutomationBuilder.tsx": 305,
     "components/ui/sidebar.tsx": 726,
@@ -49,6 +49,6 @@
     "lib/design-system/tokens.ts": 308,
     "lib/supabase/database.types.ts": 17563,
     "components/digital-twin/TwinCaptureWizard.tsx": 338,
-    "components/digital-twin/TwinShareAnnotateShell.tsx": 323
+    "components/digital-twin/TwinShareAnnotateShell.tsx": 329
   }
 }

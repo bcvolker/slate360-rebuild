@@ -7,6 +7,9 @@ import { twinAccent } from "@/lib/digital-twin/twin-accent";
 import type { TwinViewerKind } from "@/lib/digital-twin/viewer-format";
 import type { SplatViewerHandle, TwinPickPoint } from "@/components/digital-twin/TwinShareSplatViewer";
 import { TwinViewerCanvasShell } from "@/components/digital-twin/TwinViewerCanvasShell";
+import type { SplatManifest } from "@/lib/digital-twin/twin-manifest";
+import { WALK_DISABLED_NO_FLOOR_REASON } from "@/components/digital-twin/splat-viewer-constants";
+import { measureToolDisclaimer } from "@/components/digital-twin/TwinViewerDisclaimer";
 import { TwinShareToolStrip, type TwinShareCameraMode, type TwinShareTool } from "./TwinShareToolStrip";
 
 const TwinShareSplatViewer = dynamic(
@@ -27,8 +30,6 @@ type CommentRow = {
 };
 type PinRow = { id: string; title: string };
 
-const APPROX_DISCLAIMER =
-  "Approximate — for visual coordination, not survey. Requires metric scale.";
 const fieldClass =
   "w-full rounded-xl border border-white/10 bg-[#0B0F15]/60 px-3 py-2 text-xs text-zinc-100 placeholder:text-zinc-500";
 
@@ -54,6 +55,8 @@ export function TwinShareAnnotateShell({
   const viewerRef = useRef<SplatViewerHandle | null>(null);
   const [tool, setTool] = useState<TwinShareTool>("view");
   const [cameraMode, setCameraMode] = useState<TwinShareCameraMode>("orbit");
+  const [manifest, setManifest] = useState<SplatManifest | null>(null);
+  const walkDisabledReason = manifest?.up_axis === "UNKNOWN" ? WALK_DISABLED_NO_FLOOR_REASON : null;
   const [repositionMode, setRepositionMode] = useState(false);
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [authorName, setAuthorName] = useState("");
@@ -251,7 +254,7 @@ export function TwinShareAnnotateShell({
             {tool === "measure" ? (
               <p className="text-[10px] leading-relaxed text-zinc-400">
                 {measureA ? "Tap second point on model." : "Tap two points on the pick proxy mesh."}{" "}
-                {APPROX_DISCLAIMER}
+                {measureToolDisclaimer(manifest?.metric_scale_applied)}
               </p>
             ) : null}
           </div>
@@ -302,6 +305,8 @@ export function TwinShareAnnotateShell({
       onToggleReposition={
         cameraMode === "orbit" ? () => setRepositionMode((on) => !on) : undefined
       }
+      walkDisabledReason={walkDisabledReason}
+      metricScaleApplied={manifest?.metric_scale_applied ?? false}
     >
       {splatReady ? (
         <TwinShareSplatViewer
@@ -312,6 +317,7 @@ export function TwinShareAnnotateShell({
           cameraMode={cameraMode}
           onCameraModeChange={setCameraMode}
           repositionMode={repositionMode}
+          onManifestChange={setManifest}
         />
       ) : (
         <div className="absolute inset-0">

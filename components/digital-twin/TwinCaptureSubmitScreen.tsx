@@ -39,7 +39,7 @@ type Props = {
   canUseHighQuality: boolean;
 };
 
-type Quality = "draft" | "standard" | "high";
+type Quality = "standard" | "high";
 
 const BLUE = "var(--twin360-blue)";
 
@@ -53,7 +53,6 @@ const ASSET_LABELS: Record<string, string> = {
 };
 
 const QUALITY_TIERS: { id: Quality; label: string; time: string; sub: string; gated?: boolean }[] = [
-  { id: "draft", label: "Draft", time: "~3 min", sub: "Fast preview" },
   { id: "standard", label: "Standard", time: "~12 min", sub: "Best for site walks" },
   { id: "high", label: "High", time: "~25 min", sub: "Maximum detail", gated: true },
 ];
@@ -89,7 +88,7 @@ export function TwinCaptureSubmitScreen({
 }: Props) {
   const router = useRouter();
   const [submitted, setSubmitted] = useState(false);
-  const [quality, setQuality] = useState<Quality>("draft");
+  const [quality, setQuality] = useState<Quality>("standard");
   const [assetsOpen, setAssetsOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);

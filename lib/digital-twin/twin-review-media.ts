@@ -75,6 +75,21 @@ export function isTwinDroneCategory(category: TwinMediaCategory): boolean {
   return category === "drone_video" || category === "drone_photo";
 }
 
+/**
+ * C4: formats accepted by the file picker but never actually consumed anywhere
+ * in the reconstruction pipeline — textured meshes (worker.py has no .obj/.glb/
+ * .gltf/.fbx/.stl handling anywhere), geospatial tracks (no .kml/.gpx/.geojson
+ * parsing), and external point-cloud formats other than the app's own device
+ * .ply (worker.py's LiDAR path only reads .ply — see _transform_and_write_lidar_ply
+ * — never .las/.laz/.e57/.pcd/.xyz/.pts). Rejected client-side before upload
+ * rather than silently accepted, billed for a surcharge, and unused.
+ */
+const UNUSABLE_SOURCE_EXT = /\.(obj|glb|gltf|fbx|stl|kml|gpx|geojson|las|laz|e57|pcd|xyz|pts)$/i;
+
+export function isUnusableTwinSourceFile(file: File): boolean {
+  return UNUSABLE_SOURCE_EXT.test(file.name.toLowerCase());
+}
+
 export function countTwinEstimateFrames(files: File[]): number {
   let frames = 0;
   for (const file of files) {

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { findOrCreateStripeCustomer, getAuthenticatedOrgContext } from "@/lib/billing-server";
-import { getCreditPack } from "@/lib/billing";
+import { getCreditPack, getCreditPackStripePriceId } from "@/lib/billing";
 import { buildCreditsCheckoutUrls, resolveCreditsCheckoutReturnPath } from "@/lib/billing/credits-checkout-return";
 import { getRequestOrigin, getStripeClient } from "@/lib/stripe";
 
@@ -17,8 +17,9 @@ export async function POST(req: NextRequest) {
     const packId = typeof body.packId === "string" ? body.packId : "starter";
     const returnPath = resolveCreditsCheckoutReturnPath(body.return_to);
     const pack = getCreditPack(packId);
+    const priceId = pack ? getCreditPackStripePriceId(pack.id) : undefined;
 
-    if (!pack?.priceId) {
+    if (!pack || !priceId) {
       return NextResponse.json(
         { error: `Invalid credit pack or missing Stripe price. Set STRIPE_PRICE_CREDITS_${packId.toUpperCase()} env var.` },
         { status: 400 }
@@ -41,7 +42,7 @@ export async function POST(req: NextRequest) {
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       customer: customerId,
-      line_items: [{ price: pack.priceId, quantity: 1 }],
+      line_items: [{ price: priceId, quantity: 1 }],
       allow_promotion_codes: true,
       success_url,
       cancel_url,

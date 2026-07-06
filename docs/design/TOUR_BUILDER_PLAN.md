@@ -267,3 +267,83 @@ out of scope by Principle #1.)
 - Clone tour / duplicate scene for fast CEO iteration.
 - Scene tags/filters (`roof`, `exterior`, `floor-2`, date) in Library + Analytics.
 - Before/after aerial progression = date-stamped scene pairs for owners.
+
+---
+
+## 8. Addendum 2026-07-05 — app-first re-prioritization + plan tours (Brian-confirmed)
+
+> Amends §4's phase order per Brian (relayed through a multi-AI review). The P0–P6
+> content above stays valid; **the mobile app moves from P5 to front-of-line**, and a
+> new deliverable type — the **plan-sheet tour** — is added. Full journey/screen split
+> lives in the 2026-07-05 conversation record and `TWIN360_END_TO_END_UX_PLAN.md`'s
+> sibling discussion; this section records the durable decisions.
+
+### 8.1 Revised sequencing (two tracks)
+1. **Twin Slice 0 (reprocess button) ships first** — separate track, small, stops bad
+   twin links. Then the Tours track opens:
+2. **App import flow** — Photos/Files pickers + iOS share-sheet target; equirect
+   auto-detect by **aspect ratio (~2:1) + XMP `GPano` metadata, never filenames**;
+   resumable upload; auto-file to SlateDrop `Projects/{n}/360/Tours/` or org-level
+   360 Library inbox when project-less.
+3. **Plan-tour recipient viewer** (the differentiator — see §8.3).
+4. **Basic desktop authoring + brand kit / white-label viewer** (branding via
+   derivative selection per §3 — unchanged).
+5. Remaining phases as in §4.
+
+### 8.2 Competitive wedge (validated 2026-07-05 via web scan + external AI teardown)
+Construction platforms (OpenSpace, HoloBuilder/StructionSite-DroneDeploy, Cupix):
+plan-anchored but utilitarian viewers, enterprise/quote-only pricing, weak branding.
+Consumer builders (Kuula, CloudPano, Panoee, 3DVista): artful viewers + white-label on
+higher tiers, zero construction/project context. **Nobody sells artful + plan-anchored
++ white-label + integrated file system at SMB price. That combination is the product.**
+
+### 8.3 Plan-sheet tour — recipient motion spec (external AI design pass, accepted)
+Full-bleed plan sheet with numbered pins · bottom sheet-strip · pin → cinematic
+"dive" into pano · breadcrumb back + next/prev pin-to-pin. Feel: cinematic, calm,
+premium — never a modal, never bouncy.
+
+| Interaction | Duration | Easing | Notes | Reduced-motion |
+|---|---|---|---|---|
+| Sheet strip switch | 280ms | ease-out | crossfade + slight scale on outgoing sheet | instant |
+| Pin idle → hover | 120ms | ease-out | scale 1.0→1.08 + accent pulse on number | static accent |
+| Pin tap → pano entry ("dive") | 420ms | ease-in-out | zoom+slight rotate toward pin; sheet fades; pano fades in, small overshoot, settle | instant |
+| Pano exit (back to sheet) | 320ms | ease-in | reverse — pano pulls back into pin ("coming up for air") | instant |
+| Next/prev pano | 380ms | ease-in-out | camera move + subtle crossfade | hard cut |
+| Active pin | — | — | stronger accent + ring pulse while inside its pano | static |
+
+### 8.4 Sample assets on hand (local `reference/plan-sets/`, gitignored)
+Five real multi-sheet sets characterizing the ingestion envelope:
+
+| Set | Sheets | Sheet size | Text layer |
+|---|---|---|---|
+| ASU West AOB Rm 205 permit | 14 | 42×30 in (Arch E1) | vector text ✅ |
+| Poly Santa Catalina Hall (sealed) | 10 | 24×36 in (Arch D) | none (raster-flattened) |
+| PSF166 Rev 1 (sealed) | 11 | 24×36 in | none |
+| Payne Hall Classroom TI (sealed) | 12 | 24×36 in | none |
+| Pod 5 Phase II | 5 | 16.5×11.7 in (A3) | vector text ✅ |
+
+Implications: sheet rasterization must handle **both** vector and flattened-raster
+PDFs at Arch D/E sizes (rasterize at fixed DPI budget, tile for Leaflet — same
+pipeline family as walks-with-plans); sheet-index/name extraction can use the text
+layer when present but needs a thumbnail-picker fallback when not.
+
+### 8.5 Equirect detection — validated 2026-07-05
+
+**Design decision confirmed against a real file:** detect equirect by **aspect
+ratio (~2:1) as the PRIMARY signal, GPano XMP (`ProjectionType=equirectangular`,
+`FullPanoWidthPixels`, etc.) as a CONFIRMING/enriching signal only.** Reason, proven
+concretely: a genuine 360 panorama on Brian's disk (`pletchers.jpg`, **8192×4096,
+exactly 2.000:1**) had **all GPano XMP and camera Make/Model stripped** — likely by an
+edit/re-export step. A GPano-first detector would have silently rejected a valid 360.
+Real field files lose metadata constantly (editing, chat transfer, re-export), so
+ratio-first is the robust primary; XMP, when present, adds heading/pose/full-res hints.
+Parse XMP cheaply (scan the first ~few hundred KB for the `GPano` namespace — no full
+decode). `pletchers.jpg` (kept in `reference/`) is the "valid-but-metadata-stripped"
+test fixture; the second photo batch this session (Sun Devil Baseball pitching lab)
+was visually confirmed equirectangular (ceiling arc, full 360° text wrap, pole pinch).
+
+**Still nice-to-have from Brian (does NOT block the detection slice — both branches
+are now testable):** 2–3 pristine straight-off-the-X4 exports (Insta360 app → *Export →
+360 photo*, moved via AirDrop/Files/USB, NOT chat) to validate the GPano-present happy
+path + confirm the X4's native 11904×5952 envelope; one raw `.insp` for Tier-2 raw
+ingest planning. DJI Avata deferred (not FAA-registered yet).

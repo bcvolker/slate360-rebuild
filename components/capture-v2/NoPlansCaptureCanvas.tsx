@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { X } from "lucide-react";
 import { getItemPhotoAttachmentPins } from "@/lib/site-walk/photo-attachments";
 import { CAPTURE_CANVAS_CHROME } from "./capture-canvas-chrome-layout";
 import { CaptureCanvasAngleThumbs } from "./CaptureCanvasAngleThumbs";
@@ -39,6 +41,10 @@ type Props = {
   } | null;
   initialDetailsOpen?: boolean;
   devOpenPinPopover?: boolean;
+  /** Why this walk landed on camera-only instead of a plan — null when not
+   *  applicable (no project, or the user explicitly chose camera-only with a
+   *  ready plan available). See docs/audit/PLANS_WALK_TRACE.md. */
+  planStatusNotice?: string | null;
 };
 
 function CaptureV2HiddenFileInputs({ loop }: { loop: CaptureV2Loop }) {
@@ -75,7 +81,16 @@ export function NoPlansCaptureCanvas({
   planPinFlow = null,
   initialDetailsOpen = false,
   devOpenPinPopover = false,
+  planStatusNotice = null,
 }: Props) {
+  const [noticeVisible, setNoticeVisible] = useState(Boolean(planStatusNotice));
+  useEffect(() => {
+    if (!planStatusNotice) return;
+    setNoticeVisible(true);
+    const timer = window.setTimeout(() => setNoticeVisible(false), 8000);
+    return () => window.clearTimeout(timer);
+  }, [planStatusNotice]);
+
   const canvas = useNoPlansCaptureCanvas({
     session,
     loop,
@@ -206,6 +221,26 @@ export function NoPlansCaptureCanvas({
         onFilmstripToggle={() => canvas.setFilmstripExpanded((value) => !value)}
         filmstripPanel={topBarFilmstrip}
       />
+
+      {planStatusNotice && noticeVisible && !canvas.showPreview ? (
+        <div
+          className="pointer-events-auto absolute inset-x-3 z-30 flex items-start gap-2 rounded-xl border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_85%,transparent)] px-3 py-2 text-xs text-white/85 backdrop-blur-md"
+          style={{
+            top: `calc( max(env(safe-area-inset-top), ${CAPTURE_CANVAS_CHROME.topInsetPx}px) + ${CAPTURE_CANVAS_CHROME.topBarHeightPx}px + 4px )`,
+          }}
+          data-capture-chrome="plan-status-notice"
+        >
+          <p className="min-w-0 flex-1 leading-snug">{planStatusNotice}</p>
+          <button
+            type="button"
+            onClick={() => setNoticeVisible(false)}
+            aria-label="Dismiss"
+            className="shrink-0 text-white/50 transition-colors hover:text-white/80"
+          >
+            <X className="h-3.5 w-3.5" aria-hidden />
+          </button>
+        </div>
+      ) : null}
 
       {/* Persistent angle strip for captured photos. Always visible (no expand toggle
           required) so that after "Add Angle" the user immediately sees the new thumb

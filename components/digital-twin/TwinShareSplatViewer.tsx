@@ -6,6 +6,7 @@ import {
   type SplatViewerHandle,
   type TwinPickPoint,
 } from "@/components/digital-twin/splat-viewer-core";
+import type { SplatManifest } from "@/lib/digital-twin/twin-manifest";
 
 export type { TwinPickPoint, SplatViewerHandle };
 
@@ -21,6 +22,7 @@ export const TwinShareSplatViewer = forwardRef<
     overlay?: React.ReactNode;
     onCameraModeChange?: (mode: "interior" | "orbit") => void;
     repositionMode?: boolean;
+    onManifestChange?: (manifest: SplatManifest | null) => void;
   }
 >(function TwinShareSplatViewer(
   {
@@ -33,6 +35,7 @@ export const TwinShareSplatViewer = forwardRef<
     overlay,
     onCameraModeChange,
     repositionMode = false,
+    onManifestChange,
   },
   ref,
 ) {
@@ -48,6 +51,7 @@ export const TwinShareSplatViewer = forwardRef<
       overlay={overlay}
       onCameraModeChange={onCameraModeChange}
       repositionMode={repositionMode}
+      onManifestChange={onManifestChange}
     />
   );
 });

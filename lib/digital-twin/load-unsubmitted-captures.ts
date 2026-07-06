@@ -24,6 +24,12 @@ type CaptureRow = {
 
 type AssetRow = { capture_id: string; asset_kind: string | null };
 
+// A draft with zero assets less than this old is probably still being filled in —
+// keep it in the main "Continue your captures" view. Older than this, it's clutter:
+// drop it from the main view but keep it reachable under the Drafts filter (no
+// destructive deletion in this slice).
+const STALE_EMPTY_DRAFT_MS = 24 * 60 * 60 * 1000;
+
 function bucketFor(kind: string | null): "video" | "photo" | "lidar" | "other" {
   const k = (kind ?? "").toLowerCase();
   if (k.includes("lidar") || k.includes("ply") || k.includes("mesh")) return "lidar";
@@ -32,6 +38,14 @@ function bucketFor(kind: string | null): "video" | "photo" | "lidar" | "other" {
   return "other";
 }
 
+export type UnsubmittedTwinCaptures = {
+  /** Shown in the main "Continue your captures" view. */
+  main: UnsubmittedTwinCapture[];
+  /** Zero-asset drafts older than STALE_EMPTY_DRAFT_MS — hidden from `main`, still
+   *  reachable via the Drafts filter. Nothing here is deleted. */
+  staleDrafts: UnsubmittedTwinCapture[];
+};
+
 /**
  * Captures uploaded from the phone but NOT yet submitted for processing
  * (status draft/uploaded, no processing job). Surfaced on desktop so users can
@@ -39,8 +53,8 @@ function bucketFor(kind: string | null): "video" | "photo" | "lidar" | "other" {
  */
 export async function loadUnsubmittedTwinCaptures(
   orgId: string | null,
-): Promise<UnsubmittedTwinCapture[]> {
-  if (!orgId) return [];
+): Promise<UnsubmittedTwinCaptures> {
+  if (!orgId) return { main: [], staleDrafts: [] };
 
   const admin = createAdminClient();
 
@@ -53,7 +67,7 @@ export async function loadUnsubmittedTwinCaptures(
     .order("updated_at", { ascending: false })
     .limit(24);
 
-  if (error || !captures?.length) return [];
+  if (error || !captures?.length) return { main: [], staleDrafts: [] };
 
   const captureIds = (captures as CaptureRow[]).map((c) => c.id);
 
@@ -80,7 +94,7 @@ export async function loadUnsubmittedTwinCaptures(
     countsByCapture.set(a.capture_id, c);
   }
 
-  return (captures as CaptureRow[])
+  const resolved = (captures as CaptureRow[])
     .filter((c) => !submitted.has(c.id))
     .map((c) => {
       const counts = countsByCapture.get(c.id) ?? { video: 0, photo: 0, lidar: 0, other: 0 };
@@ -94,6 +108,15 @@ export async function loadUnsubmittedTwinCaptures(
         counts,
         assetTotal,
       };
-    })
-    .filter((c) => c.assetTotal > 0);
+    });
+
+  const main: UnsubmittedTwinCapture[] = [];
+  const staleDrafts: UnsubmittedTwinCapture[] = [];
+  for (const capture of resolved) {
+    const isStaleEmptyDraft =
+      capture.assetTotal === 0 && Date.now() - new Date(capture.updatedAt).getTime() > STALE_EMPTY_DRAFT_MS;
+    (isStaleEmptyDraft ? staleDrafts : main).push(capture);
+  }
+
+  return { main, staleDrafts };
 }

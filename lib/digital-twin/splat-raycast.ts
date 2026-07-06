@@ -37,3 +37,23 @@ export function raycastSplatMesh(
     distance: first.distance,
   };
 }
+
+/** R8.2: world-space ray (origin + direction, no camera/screen-coords involved)
+ * — used to find the orbit pivot along a baked initial_camera's view direction. */
+export function raycastSplatMeshFromRay(
+  mesh: SplatMesh,
+  origin: THREE.Vector3,
+  direction: THREE.Vector3,
+): SplatRayHit | null {
+  raycaster.set(origin, direction);
+  hits.length = 0;
+  mesh.raycast(raycaster, hits);
+  if (hits.length === 0) return null;
+
+  hits.sort((a, b) => a.distance - b.distance);
+  const first = hits[0];
+  return {
+    point: first.point.clone(),
+    distance: first.distance,
+  };
+}

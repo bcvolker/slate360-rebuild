@@ -9,24 +9,24 @@ const KIND_SURCHARGE: Record<string, number> = {
   panorama_360: 4,
   ply_lidar: 5,
   lidar_depth: 4,
+  // lidar_mesh: the app's own device-captured LiDAR mesh (RoomPlan/ARKit mesh
+  // anchors) — a real pipeline input, real GPU cost, surcharge stays. NOT the
+  // same thing as an uploaded external mesh file (.obj/.glb/etc.) — those are
+  // rejected client-side before they ever reach this function (C4) since the
+  // pipeline doesn't consume them; billing for them would be dishonest (C5).
   lidar_mesh: 5,
   photo: 1,
   drone_photo: 2,
 };
 
-const OUTPUT_MULTIPLIER: Record<string, number> = {
-  spz: 1,
-  ply: 1.12,
-  glb: 1.28,
-};
-
 /**
  * Computes processing credits for newly processed capture assets (incremental billing).
+ *
+ * C5: output format no longer affects price — the API only ever dispatches
+ * spz (ply/glb output_format requests are rejected before reaching a job),
+ * so a per-format multiplier here would price something that never ships.
  */
-export function computeTwinProcessingCredits(
-  assets: TwinCreditAsset[],
-  outputFormat = "spz",
-): number {
+export function computeTwinProcessingCredits(assets: TwinCreditAsset[]): number {
   if (!assets.length) return 0;
 
   const totalBytes = assets.reduce((sum, row) => sum + Number(row.file_size_bytes ?? 0), 0);
@@ -37,6 +37,5 @@ export function computeTwinProcessingCredits(
     credits += KIND_SURCHARGE[asset.asset_kind] ?? 0;
   }
 
-  const outputMul = OUTPUT_MULTIPLIER[outputFormat] ?? 1;
-  return Math.max(1, Math.round(credits * outputMul));
+  return Math.max(1, credits);
 }

@@ -5,6 +5,8 @@
  * "rasterization") on the homepage; depth lives on Learn More pages.
  */
 
+import { cheapestCreditPack, formatCreditPackPrice } from "@/lib/billing/credit-packs";
+
 export type DemoStep = {
   image: string;
   /** Tap indicator position as % of the screen, from top-left. */
@@ -105,12 +107,12 @@ export const MARKETING_APPS: MarketingAppContent[] = [
       {
         title: "Just press record",
         description:
-          "Walk the space with your phone. A live guide keeps your pace and framing right for a sharp result.",
+          "Walk the space with your phone, then submit the walkthrough for processing.",
       },
       {
         title: "Built for the camera in your pocket",
         description:
-          "Works with any modern phone — and automatically uses your device's LiDAR sensor when available (iPhone Pro models) for even sharper, true-to-scale results.",
+          "Works with any modern phone — and automatically uses your device's LiDAR sensor when available (iPhone Pro models) for sharper results.",
       },
       {
         title: "Share an interactive link",
@@ -118,14 +120,14 @@ export const MARKETING_APPS: MarketingAppContent[] = [
           "Send clients and stakeholders a link they open in any browser — they orbit, walk through, and inspect the space themselves. No app, no download, no login.",
       },
       {
-        title: "Add the surrounding context",
+        title: "Clean it up before you share",
         description:
-          "Drop your twin into its real-world surroundings so it reads in context — useful for exterior, site, and inspection work.",
+          "The desktop studio editor lets you crop and erase stray geometry from a scan before you send the link.",
       },
       {
         title: "More than a model — a studio of deliverables",
         description:
-          "The Twin 360 Studio on the dashboard turns a capture into 2D plans, animated fly-throughs, progression-analysis models, and more — with new deliverable types on the way.",
+          "The Twin 360 Studio on the dashboard turns a capture into a 2D floor plan and a progression timeline against earlier scans of the same space — with more deliverable types on the way.",
       },
     ],
     demoLabel: "Watch a scan",
@@ -172,7 +174,7 @@ export const MARKETING_FAQ = [
   },
   {
     q: "What's a credit?",
-    a: "Credits are how Twin 360 processing is measured. An average twin uses about 100 credits — smaller spaces use fewer and larger or higher-detail captures use more, depending on how much data you bring. Every Twin 360 plan includes a monthly allowance, and you can buy extra credits anytime at cost: Slate360 doesn't mark up processing or profit from credit purchases.",
+    a: `Credits are how Twin 360 processing is measured. An average twin uses about 15 credits — smaller spaces use fewer and larger or higher-detail captures use more, depending on how much data you bring. Every Twin 360 plan includes a monthly allowance, and you can buy a credit pack anytime — packs start at ${formatCreditPackPrice(cheapestCreditPack())}, and prices are the same on the web and in the app.`,
   },
   {
     q: "Do my clients need an account to view what I send?",

@@ -27,7 +27,12 @@ function resolveInitialFork(args: Args): CaptureV2MobileFork {
     args.showPlanCanvas &&
     hasReadyPlanSet(args.planSets);
 
-  if (!forkEligible) return args.showPlanCanvas ? "plan" : "camera";
+  // Only default into plan mode when there's an actual ready plan to show — a
+  // project with zero (or not-yet-ready) plan sets must fall through to camera,
+  // never into a plan canvas with nothing to render (docs/audit/PLANS_WALK_TRACE.md).
+  if (!forkEligible) {
+    return args.showPlanCanvas && hasReadyPlanSet(args.planSets) ? "plan" : "camera";
+  }
   if (args.existingStopCount > 0) return "plan";
   return readStoredCaptureV2Fork(args.sessionId) ?? "choice";
 }

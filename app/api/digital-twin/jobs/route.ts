@@ -63,6 +63,11 @@ export const POST = (req: NextRequest) =>
     const quality = parseQuality(body.quality);
 
     if (!OUTPUT_FORMATS.has(outputFormat)) return badRequest("Invalid output_format");
+    // C5: only spz ever actually ships — the enum stays for the future, but ply/glb
+    // requests are rejected now rather than silently priced and never honored.
+    if (outputFormat !== "spz") {
+      return badRequest("Only spz output is currently supported for digital twins");
+    }
     if (!JOB_TYPES.has(jobType)) return badRequest("Invalid job_type");
     if (!QUALITY_TIERS.has(quality)) return badRequest("Invalid quality");
 

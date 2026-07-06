@@ -3,6 +3,7 @@
   "publicApiRoutesWithoutUserAuth": [
     "app/api/auth/**/route.ts",
     "app/api/stripe/webhook/route.ts",
+    "app/api/billing/store-webhook/route.ts",
     "app/api/deploy-info/route.ts",
     "app/api/external/**/route.ts",
     "app/api/share/**/route.ts",

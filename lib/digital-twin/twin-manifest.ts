@@ -21,7 +21,29 @@ export type SplatManifest = {
     near?: number;
     far?: number;
   };
+  /** R8.1: same shape as recommended_orbit_camera — the new preferred name.
+   * Both are written by the worker (identical values); read fallback_camera
+   * first, falling back to recommended_orbit_camera for pre-R8 models. */
+  fallback_camera?: {
+    position: number[];
+    target: number[];
+    fov?: number;
+    near?: number;
+    far?: number;
+  };
+  /** R8.1: a real capture pose (median-time, sharpest-nearby COLMAP-registered
+   * frame) to open the model on — preferred over fallback_camera whenever
+   * present. Same post-flip space as bounds/fallback_camera. */
+  initial_camera?: {
+    position: number[];
+    /** [x, y, z, w] */
+    rotation: [number, number, number, number];
+    source: "capture_pose";
+  } | null;
   interior_entry_point?: number[];
+  /** Q1: true when a real metric scale factor (recovered from ARKit<->COLMAP
+   * trajectory correspondence) was baked into this model's positions. */
+  metric_scale_applied?: boolean;
 };
 
 /**

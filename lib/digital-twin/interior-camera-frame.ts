@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import type { SplatManifest } from "@/lib/digital-twin/twin-manifest";
 
 export const INTERIOR_EYE_HEIGHT = 1.6;
 export const INTERIOR_FIT_PADDING = 1.12;
@@ -68,10 +69,39 @@ function computeFitZoom(
   return minZoom;
 }
 
+const TMP_INTERIOR_QUAT = new THREE.Quaternion();
+const TMP_INTERIOR_FORWARD = new THREE.Vector3();
+
+/** R8.2: walk mode starts AT the capture pose (X/Z) at eye height on the
+ * detected floor (box.min.y — same floor estimate the bounds-based path
+ * already uses), facing the capture pose's own horizontal look direction.
+ * Pitch stays level (0), matching the existing bounds-based frame's
+ * convention, since a comfortable walk-mode start looks straight ahead
+ * regardless of whether the capture frame itself looked slightly up/down. */
+function computeInteriorStartFrameFromCapture(
+  box: THREE.Box3,
+  cam: NonNullable<SplatManifest["initial_camera"]>,
+): InteriorCameraFrame | null {
+  if (!cam.position || cam.position.length < 3 || !cam.rotation || cam.rotation.length < 4) return null;
+  const floorY = box.min.y;
+  const position = new THREE.Vector3(cam.position[0], floorY + INTERIOR_EYE_HEIGHT, cam.position[2]);
+  TMP_INTERIOR_QUAT.set(cam.rotation[0], cam.rotation[1], cam.rotation[2], cam.rotation[3]);
+  TMP_INTERIOR_FORWARD.set(0, 0, -1).applyQuaternion(TMP_INTERIOR_QUAT);
+  const { yaw } = yawPitchFromDirection(TMP_INTERIOR_FORWARD.normalize());
+  const target = position.clone().add(directionFromYawPitch(yaw, 0));
+  return { position, target, yaw, pitch: 0, zoom: 1 };
+}
+
 export function computeInteriorStartFrame(
   box: THREE.Box3,
   camera: THREE.PerspectiveCamera,
+  manifest?: SplatManifest | null,
 ): InteriorCameraFrame {
+  if (manifest?.initial_camera) {
+    const captureFrame = computeInteriorStartFrameFromCapture(box, manifest.initial_camera);
+    if (captureFrame) return captureFrame;
+  }
+
   box.getCenter(TMP_CENTER);
 
   const eyeY = box.min.y + INTERIOR_EYE_HEIGHT;

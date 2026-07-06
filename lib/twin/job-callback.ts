@@ -1,11 +1,36 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { deductCredits } from "@/lib/credits/idempotency";
+import { deductCredits, type DeductResult } from "@/lib/credits/idempotency";
 import { notifyTwinJobOutcome } from "@/lib/twin/notify-twin-job-complete";
 import { computeTwinProcessingCredits } from "@/lib/twin/processing-credits";
 import { bridgeTwinCompletionToSlateDrop } from "@/lib/twin/slatedrop-bridge";
 import { softDeleteTwinCaptureAsset } from "@/lib/twin/soft-delete";
 
 type AdminClient = SupabaseClient;
+
+const CONCURRENT_BALANCE_ERROR = "Balance changed concurrently — retry";
+
+// Multiple twin jobs completing within seconds of each other race on the same
+// org's credit balance (optimistic lock in deductCredits). The idempotency key
+// (dt-job:{id}) makes retrying the whole call safe — a losing attempt never
+// wrote anything, so there's nothing to double-charge or roll back.
+async function deductCreditsWithRetry(
+  admin: AdminClient,
+  orgId: string,
+  amount: number,
+  idempotencyKey: string,
+  description: string,
+  maxAttempts = 4,
+): Promise<DeductResult> {
+  let result: DeductResult = { ok: false, error: "deductCredits never ran" };
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    result = await deductCredits(admin, orgId, amount, idempotencyKey, description);
+    if (result.ok || result.error !== CONCURRENT_BALANCE_ERROR) return result;
+    if (attempt < maxAttempts) {
+      await new Promise((resolve) => setTimeout(resolve, 50 + Math.random() * 150));
+    }
+  }
+  return result;
+}
 
 export type TwinWorkerCallbackPayload = {
   jobId: string;
@@ -121,10 +146,10 @@ export async function handleTwinJobCallback(
         .eq("org_id", job.org_id)
     : { data: [] as { id: string; asset_kind: string; file_size_bytes: number }[] };
 
-  const creditsToCharge = computeTwinProcessingCredits(chargeAssets ?? [], modelFormat);
+  const creditsToCharge = computeTwinProcessingCredits(chargeAssets ?? []);
   const idempotencyKey = `dt-job:${job.id}`;
 
-  const deduct = await deductCredits(
+  const deduct = await deductCreditsWithRetry(
     admin,
     job.org_id,
     creditsToCharge,

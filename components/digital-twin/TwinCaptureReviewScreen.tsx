@@ -151,6 +151,15 @@ export function TwinCaptureReviewScreen({ canUseHighQuality, devPreview }: Props
           </div>
         ) : null}
 
+        {state.unusableFileNotice ? (
+          <div
+            className="mt-4 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-xs text-[var(--graphite-muted)]"
+            data-twin-review="unusable-file-notice"
+          >
+            {state.unusableFileNotice}
+          </div>
+        ) : null}
+
         {state.submitError ? (
           <p className="mt-4 text-xs text-red-300">{state.submitError}</p>
         ) : null}

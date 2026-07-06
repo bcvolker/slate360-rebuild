@@ -24,6 +24,8 @@ type Props = {
   onToggleCameraMode?: () => void;
   repositionMode?: boolean;
   onToggleReposition?: () => void;
+  walkDisabledReason?: string | null;
+  metricScaleApplied?: boolean;
 };
 
 const MOBILE_CONTROLS_OFFSET_PX = 12;
@@ -42,6 +44,8 @@ export function TwinViewerCanvasShell({
   onToggleCameraMode,
   repositionMode = false,
   onToggleReposition,
+  walkDisabledReason = null,
+  metricScaleApplied = false,
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -72,7 +76,11 @@ export function TwinViewerCanvasShell({
   return (
     <div
       ref={containerRef}
-      className="relative h-full min-h-0 w-full overflow-hidden bg-[var(--graphite-canvas)]"
+      // `contain-layout` makes this the containing block for any `position: fixed`
+      // descendant (the mobile Collaboration bottom-sheet in TwinCommentsOverlay) —
+      // without it, that sheet escapes to the viewport and overlaps the Layers panel
+      // + share controls rendered below the viewer in normal document flow.
+      className="relative h-full min-h-0 w-full overflow-hidden contain-layout bg-[var(--graphite-canvas)]"
     >
       <div className="relative z-0 h-full min-h-0 w-full">{children}</div>
 
@@ -89,6 +97,7 @@ export function TwinViewerCanvasShell({
             onToggleFullscreen={() => void toggleFullscreen()}
             repositionMode={repositionMode}
             onToggleReposition={onToggleReposition}
+            walkDisabledReason={walkDisabledReason}
           />
         </div>
 
@@ -108,7 +117,7 @@ export function TwinViewerCanvasShell({
             className="pointer-events-none absolute inset-x-0 z-10 flex justify-center px-3"
             style={{ bottom: disclaimerBottom }}
           >
-            <TwinViewerFooterDisclaimer className="relative" />
+            <TwinViewerFooterDisclaimer className="relative" metricScaleApplied={metricScaleApplied} />
           </div>
         ) : null}
 

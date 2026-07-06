@@ -10,6 +10,13 @@ HTTP contract (POST /reconstruct):
                 matchToleranceSec? (float, default DEFAULT_MATCH_TOLERANCE_SEC —
                   ARKit-pose/frame timestamp match tolerance override, e.g. pass
                   LEGACY_MATCH_TOLERANCE_SEC for an A/B comparison)
+                debugArtifacts? (bool, default false — upload the processed
+                  transforms.json to the job's R2 sibling key
+                  (<jobId>.transforms.json) before training, for offline inspection
+                  when a run's alignment is suspect)
+                rollCorrectionDeg? (float, default 0 — diagnostic camera-local
+                  roll (deg) about the optical axis applied to every ARKit-bypass
+                  c2w; tests a pixel/pose in-plane rotation mismatch)
   Response: HTTP 200 immediately, header x-modal-run-id: <spawn id>
   Processing runs asynchronously on GPU; completion/failure POSTs a signed callback
   to ${SITE_URL}/api/digital-twin/jobs/callback.
@@ -40,9 +47,11 @@ SECRET_NAME = "slate360-twin-worker"
 WEB_ENDPOINT_LABEL = "reconstruct"
 
 # A10G: 24 GB VRAM, strong price/perf for Splatfacto on typical phone captures.
-# max_duration 3600 s matches long-running photogrammetry jobs on Modal.
+# AF2: 7200s (was 3600) so COLMAP-path standard/high jobs (now the default
+# alignment path — see ALIGNMENT_STRATEGY) can't be container-killed
+# mid-training without ever posting a failure callback.
 GPU_TYPE = "A10G"
-MAX_DURATION_SECONDS = 3600
+MAX_DURATION_SECONDS = 7200
 
 VIDEO_EXTENSIONS = {".mp4", ".mov", ".m4v", ".webm", ".mkv", ".avi"}
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".tif", ".tiff", ".heic", ".heif"}
@@ -55,6 +64,31 @@ IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".tif", ".tiff", ".heic", 
 DEFAULT_MATCH_TOLERANCE_SEC = 0.25
 LEGACY_MATCH_TOLERANCE_SEC = 2.0
 MIN_LIDAR_BYPASS_FRAMES = 5
+
+# ── AF4: sharpness-scored frame selection (replaces flat fps=2 extraction) ──
+# Candidates are pulled at double density (SHARP_CANDIDATE_FPS) and scored by
+# variance-of-Laplacian; the sharpest candidate per SHARP_BUCKET_SEC window is
+# kept, landing back at ~2 effective fps (matching the old flat rate) but now
+# picking the least-motion-blurred frame in each window instead of whichever
+# frame ffmpeg happened to land on. Applies to both the COLMAP path
+# (extract_video_frames) and the ARKit-bypass path (try_lidar_bypass).
+SHARP_CANDIDATE_FPS = 4
+SHARP_BUCKET_SEC = 0.5
+SHARP_BLUR_FLOOR = 30.0  # variance-of-Laplacian; conservative (only drops genuinely blurry frames)
+MIN_FRAMES_FLOOR_GUARD = 3  # never let the blur floor drop the usable frame count below this
+
+# ── Alignment strategy (PACKAGE P) ──────────────────────────────────────────
+# "colmap_first" (default): skip the ARKit-pose bypass for normal jobs and
+# always run COLMAP, exactly as force_colmap=true does today. Poses/PLY assets
+# keep uploading and being stored — they're the substrate for the deferred
+# Round 6 bypass-optimization track (pose interpolation + camera-pose
+# refinement) and the RoomPlan measurement layer, not wasted capture.
+# Why: on identical frames from the same capture, the bypass path caps at
+# trainPsnr ~14.7 (nearest-keyframe pose assignment error) while COLMAP scores
+# ~23.3 (coherent) — see Round 4/5 A/B experiments. Flip back to
+# "bypass_first" (legacy behavior: attempt bypass unless force_colmap is set)
+# once the Round 6 optimization track beats COLMAP.
+ALIGNMENT_STRATEGY = os.environ.get("ALIGNMENT_STRATEGY", "colmap_first").strip().lower()
 
 app = modal.App(APP_NAME)
 
@@ -92,6 +126,8 @@ gpu_image = (
     .pip_install(
         "boto3==1.35.99",
         "requests==2.32.3",
+        # AF4: sharpness-scored frame selection (variance-of-Laplacian).
+        "opencv-python-headless==4.10.0.84",
     )
     .run_commands(
         # torch 2.4.1+cu121: matches gsplat 1.4.0 prebuilt wheel index pt24cu121.
@@ -124,22 +160,30 @@ def output_storage_key(org_id: str, space_id: str, job_id: str) -> str:
     return f"orgs/{org_id}/digital-twin/{space_id}/models/{job_id}.spz"
 
 
-# Pinned so the tool can't change under us; escalating opacity floors shrink huge/noisy
-# models until the .spz WASM writer fits in memory. Floaters are low-opacity, so higher
-# floors ALSO denoise and keep the interactive-link file small.
+# Pinned so the tool can't change under us.
 SPLAT_TRANSFORM_PKG = "@playcanvas/splat-transform@2.7.1"
-SPLAT_OPACITY_TIERS = [0.05, 0.15, 0.30, 0.50, 0.70]
+# AF5: the opacity ladder stops at 0.30 (drop low-opacity floaters, cheap and
+# harmless). Beyond that, escalating to 0.50/0.70 was throwing away material,
+# still-visible splats just to fit the WASM writer's memory — replaced by the
+# saliency top-N fallback below.
+SPLAT_OPACITY_TIERS = [0.05, 0.15, 0.30]
 SPLAT_SCALE_CAP = 0.3  # drop big blurry floater gaussians (was 0.5)
 
 
-def splat_transform_clean_export(ply_path: Path, spz_path: Path) -> None:
-    """CPU-only post-export cleanup + .spz convert with escalating opacity filtering.
+def splat_transform_clean_export(ply_path: Path, spz_path: Path) -> dict[str, Any]:
+    """CPU-only post-export cleanup + .spz convert.
 
     A large/noisy scene (e.g. a sunlit reflective subject) trains into millions of
-    gaussians; the WASM .spz writer then OOMs ("Aborted()") writing a ~1GB file. Each
-    tier raises the opacity floor, removing more low-opacity floaters, until the write
-    succeeds — which also cleans noise and keeps the shared model small. Raises only if
-    even the most aggressive tier fails.
+    gaussians; the WASM .spz writer then OOMs ("Aborted()") writing a ~1GB file. The
+    opacity/scale tiers above remove low-opacity floaters and large blurry gaussians,
+    which is enough for most scenes. AF5: if the writer still OOMs at the top of that
+    ladder (opacity>=0.30), instead of raising the opacity floor further (discarding
+    material splats, not just noise, to fit memory), fall back to a saliency-ranked
+    top-N reduction — keep the highest opacity*scale splats up to a shrinking target
+    count (SALIENCY_TARGET_COUNTS) until the write succeeds. WARNs either way the
+    fallback fires, since it means the effective retention is now count-budget-driven
+    rather than a quality floor. Raises only if every tier AND the saliency fallback
+    fail.
     """
     last_err: Exception | None = None
     for op in SPLAT_OPACITY_TIERS:
@@ -162,12 +206,45 @@ def splat_transform_clean_export(ply_path: Path, spz_path: Path) -> None:
             if spz_path.is_file() and spz_path.stat().st_size > 0:
                 mb = spz_path.stat().st_size / (1024 * 1024)
                 print(f"[export] spz written at opacity>={op}: {mb:.1f} MB")
-                return
+                return {"filterMode": "opacity_tier", "opacityFloor": op, "saliencyFallback": False}
             last_err = RuntimeError("splat-transform produced no output")
         except Exception as exc:  # noqa: BLE001
             last_err = exc
-            print(f"[export] splat-transform failed at opacity>={op} — escalating: {type(exc).__name__}")
-    raise RuntimeError(f"SPZ export failed after all opacity tiers: {last_err}")
+            print(f"[export] splat-transform failed at opacity>={op}: {type(exc).__name__}")
+
+    top_floor = SPLAT_OPACITY_TIERS[-1]
+    print(f"[export] WARN: effective opacity floor exceeded {top_floor} — falling back to saliency top-N")
+    for target_n in SALIENCY_TARGET_COUNTS:
+        try:
+            reduced_ply = ply_path.parent / f"_saliency_top{target_n}.ply"
+            kept = _saliency_reduce_ply(ply_path, reduced_ply, target_n, opacity_floor=top_floor, scale_cap=SPLAT_SCALE_CAP)
+            if spz_path.exists():
+                spz_path.unlink()
+            run_cmd(
+                [
+                    "npx", "-y", SPLAT_TRANSFORM_PKG,
+                    "-w", str(reduced_ply),
+                    "--filter-nan",
+                    str(spz_path),
+                    "--spz-version", "3",
+                ]
+            )
+            if spz_path.is_file() and spz_path.stat().st_size > 0:
+                mb = spz_path.stat().st_size / (1024 * 1024)
+                print(f"[export] spz written via saliency top-{kept} (target {target_n}): {mb:.1f} MB")
+                return {
+                    "filterMode": "saliency_top_n",
+                    "opacityFloor": top_floor,
+                    "saliencyFallback": True,
+                    "saliencyTargetN": target_n,
+                    "saliencyKeptN": kept,
+                }
+            last_err = RuntimeError("splat-transform produced no output (saliency fallback)")
+        except Exception as exc:  # noqa: BLE001
+            last_err = exc
+            print(f"[export] saliency top-{target_n} fallback failed: {type(exc).__name__}")
+
+    raise RuntimeError(f"SPZ export failed after opacity ladder and saliency fallback: {last_err}")
 
 
 # splatfacto default; explicit conservative cull (cleaner than splatfacto-big's 0.005).
@@ -249,19 +326,108 @@ def get_video_duration(video_path: Path) -> float | None:
         return None
 
 
-def arkit_to_nerfstudio_c2w(transform_4x4: list) -> list:
+def resolve_video_start_times(
+    poses_data: dict[str, Any],
+    source_dir: Path,
+    source_keys: list[str],
+) -> dict[int, float]:
+    """Q1: resolve each video source's absolute wall-clock start time, keyed by
+    its index into source_keys. Standalone from try_lidar_bypass (which does
+    its own equivalent resolution for the bypass path) — the two never run in
+    the same job, so there is no duplicate-download concern in practice; this
+    version is used by the COLMAP-path metric-scale recovery below, which
+    needs to know each extracted frame's absolute time to match it against
+    ARKit keyframes. Mirrors try_lidar_bypass's clip-metadata / creation-time /
+    session-start fallback chain exactly, just keyed by source index instead
+    of enumeration order over discovered video files.
+    """
+    kf_timestamps = [kf["timestamp"] for kf in poses_data.get("frames", []) if "timestamp" in kf]
+    session_start: float = poses_data.get("session_start_time") or (min(kf_timestamps) if kf_timestamps else 0.0)
+
+    clips_meta: dict[str, dict] = {}
+    for clip in poses_data.get("clips") or []:
+        if isinstance(clip, dict) and clip.get("video"):
+            clips_meta[str(clip["video"])] = clip
+
+    orig_names: dict[str, str] = {}
+    for i, k in enumerate(source_keys or []):
+        suffix = Path(k).suffix.lower() or ".bin"
+        orig_names[f"source_{i:04d}{suffix}"] = re.sub(r"^\d+_", "", Path(k).name)
+
+    video_paths: dict[int, Path] = {}
+    for idx in range(len(source_keys or [])):
+        matches = list(source_dir.glob(f"source_{idx:04d}.*"))
+        if matches and matches[0].suffix.lower() in VIDEO_EXTENSIONS:
+            video_paths[idx] = matches[0]
+
+    # Largest-video-first matches try_lidar_bypass's legacy single-clip fallback
+    # rule (only the single largest video gets session_start when there is no
+    # clips metadata at all).
+    ordered = sorted(video_paths.items(), key=lambda kv: kv[1].stat().st_size, reverse=True)
+
+    starts: dict[int, float] = {}
+    for order_i, (idx, vp) in enumerate(ordered):
+        orig = orig_names.get(vp.name, vp.name)
+        meta = clips_meta.get(orig)
+        if clips_meta and meta is None:
+            continue
+        if meta and isinstance(meta.get("start_time"), (int, float)):
+            v_start: float | None = float(meta["start_time"])
+        else:
+            v_start = get_video_creation_time(vp)
+        if v_start is None:
+            if order_i == 0 and not clips_meta:
+                v_start = session_start
+            else:
+                continue
+        starts[idx] = v_start
+    return starts
+
+
+def arkit_to_nerfstudio_c2w(transform_4x4: list, roll_deg: float = 0.0) -> list:
     """Convert ARKit column-major flat c2w to Nerfstudio row-major 4×4 list.
 
-    ARKit: camera +X right, +Y up, +Z backward (looks in −Z).
-    COLMAP/Nerfstudio: camera +X right, +Y down, +Z forward (looks in +Z).
-    The conversion negates Y and Z columns of the c2w matrix.
+    ROUND 4: no axis flip. ARKit's camera c2w is already OpenGL-convention
+    (X right, Y up, camera looks down −Z) — which is exactly what
+    Nerfstudio's transforms.json expects (Nerfstudio follows the
+    Blender/OpenGL camera convention, NOT OpenCV/COLMAP's Y-down/Z-forward).
+    The previous version of this function converted INTO OpenCV convention,
+    which mis-oriented every camera pose fed to splatfacto — pass-through
+    reshape only now.
+
+    Empirical basis: across four ARKit-bypass runs (including after fixing
+    the separate world-space PLY-point and Swift depth-unprojection bugs),
+    trainPsnr stayed in the ~9-11 garbage range while COLMAP on identical
+    frames from the same capture scored ~23 (coherent) — i.e. the pose
+    convention itself, not matching/timestamps/seed geometry, was still
+    wrong.
+
+    ROUND 5 (diagnostic): roll_deg applies a camera-LOCAL rotation about the
+    optical axis (right-multiply by R_z) before returning. Non-zero only when
+    the job passes rollCorrectionDeg — it exists to test the hypothesis that
+    the extracted video pixels are rolled 90° relative to the frame the ARKit
+    intrinsics/pose describe (the dining-room clip decodes sideways with no
+    rotation metadata). A camera-local Z roll rotates the camera's X/Y (pixel)
+    axes without moving its position or look direction, which is exactly the
+    correction for an in-plane pixel/pose mismatch.
     """
     import numpy as np
 
     # Swift stores simd_float4x4 as columns; reshape column-major → [row, col].
     c2w = np.array(transform_4x4, dtype=np.float64).reshape(4, 4, order="F")
-    c2w[:3, 1] *= -1  # flip Y column
-    c2w[:3, 2] *= -1  # flip Z column
+    if roll_deg:
+        theta = np.deg2rad(roll_deg)
+        cos_t, sin_t = np.cos(theta), np.sin(theta)
+        rz = np.array(
+            [
+                [cos_t, -sin_t, 0.0, 0.0],
+                [sin_t, cos_t, 0.0, 0.0],
+                [0.0, 0.0, 1.0, 0.0],
+                [0.0, 0.0, 0.0, 1.0],
+            ],
+            dtype=np.float64,
+        )
+        c2w = c2w @ rz  # camera-local roll about the optical (Z) axis
     return c2w.tolist()
 
 
@@ -278,6 +444,7 @@ def _match_and_write_transforms(
     bypass_images: Path,
     processed_dir: Path,
     match_tolerance_sec: float,
+    roll_correction_deg: float = 0.0,
 ) -> tuple[int, int, list[float]]:
     """Match video frames to ARKit keyframes by timestamp and write transforms.json.
 
@@ -314,7 +481,7 @@ def _match_and_write_transforms(
             skipped += 1
             continue
 
-        c2w = arkit_to_nerfstudio_c2w(nearest_kf["transform_4x4"])
+        c2w = arkit_to_nerfstudio_c2w(nearest_kf["transform_4x4"], roll_deg=roll_correction_deg)
         dest_name = f"frame_{len(frames_data):04d}.jpg"
         dest_path = bypass_images / dest_name
         shutil.copy2(str(frame_path), str(dest_path))
@@ -502,6 +669,7 @@ def try_lidar_bypass(
     processed_dir: Path,
     source_keys: list[str] | None = None,
     match_tolerance_sec: float = DEFAULT_MATCH_TOLERANCE_SEC,
+    roll_correction_deg: float = 0.0,
 ) -> tuple[bool, bool, dict[str, Any]]:
     """Attempt to bypass COLMAP using ARKit poses from the LiDAR plugin.
 
@@ -612,15 +780,12 @@ def try_lidar_bypass(
                     continue
             vdir = bypass_frames_dir / f"v{vi}"
             vdir.mkdir(parents=True, exist_ok=True)
-            # 2 fps matches the 0.5 s keyframe interval.
-            run_cmd([
-                "ffmpeg", "-y", "-i", str(vp),
-                "-vf", "fps=2", "-q:v", "2",
-                str(vdir / "frame_%04d.jpg"),
-            ])
-            for fp in sorted(vdir.glob("frame_*.jpg")):
-                fidx = int(fp.stem.split("_")[-1])  # ffmpeg 1-indexed
-                extracted.append((fp, v_start + (fidx - 1) / 2.0))
+            # AF4: sharpness-scored selection (~2 effective fps, matching the
+            # old flat rate, but picking the sharpest candidate per window).
+            kept_times, _kept_sharpness, sharp_stats = extract_sharp_frames(vp, vdir, "frame")
+            stats.setdefault("sharpFrameSelection", []).append(sharp_stats)
+            for i, t in enumerate(kept_times):
+                extracted.append((vdir / f"frame_{i:04d}.jpg", v_start + t))
 
         stats["extractedCount"] = len(extracted)
         if len(extracted) < MIN_LIDAR_BYPASS_FRAMES:
@@ -634,9 +799,18 @@ def try_lidar_bypass(
 
         matched, skipped, deltas = _match_and_write_transforms(
             keyframes, extracted, bypass_images, processed_dir, match_tolerance_sec,
+            roll_correction_deg=roll_correction_deg,
         )
         stats["matchedCount"] = matched
         stats["skippedCount"] = skipped
+        # AF6: `deltas` (from _match_and_write_transforms) intentionally records
+        # EVERY extracted frame's delta, including frames that get skipped for
+        # exceeding match_tolerance_sec. So matchDeltaMaxMs can legitimately be
+        # larger than matchToleranceSec while every MATCHED frame is still within
+        # tolerance — that's correct reporting of the full distribution, not a
+        # bug. Reference: Jul-3 A/B on the Jul-2 capture — 106 extracted / 101
+        # matched / matchDeltaMaxMs 266.7ms @ matchToleranceSec 250ms (the 5
+        # skipped frames' larger deltas pulled the max above the tolerance).
         if deltas:
             stats["matchDeltaMeanMs"] = sum(deltas) / len(deltas) * 1000
             stats["matchDeltaMaxMs"] = max(deltas) * 1000
@@ -690,6 +864,353 @@ def try_lidar_bypass(
         print(f"[lidar-bypass] failed (non-fatal): {type(exc).__name__}: {exc}")
         shutil.rmtree(str(processed_dir), ignore_errors=True)
         return False, False, stats
+
+
+# ── AF1: ready-gate (never publish or charge garbage again) ─────────────────
+PSNR_FAIL_THRESHOLD = 17.0
+PSNR_SOFT_WARN_THRESHOLD = 20.0  # scene-typical bar is ~23-25 per the dining-room COLMAP runs
+MIN_SPLAT_COUNT = 20_000
+MIN_SPZ_BYTES = 1024 * 1024  # 1 MiB
+EXPLOSION_SPLAT_COUNT = 3_000_000
+
+
+def evaluate_ready_gates(train_psnr: float | None, splat_count: int, file_size_bytes: int) -> dict[str, Any]:
+    """Fail (and thus never publish/charge — the worker raises on gate failure,
+    which routes to the failure callback, which never creates a model row or
+    deducts credits) genuinely broken reconstructions.
+
+    psnr_unavailable (ns-eval itself failed) never blocks — a good job must
+    never fail because the EVAL step failed, not the reconstruction. A huge
+    splat count alone (explosionSuspected) doesn't fail either — only when it
+    co-occurs with a low PSNR, since a big-but-coherent scene is fine.
+    """
+    psnr_gate = "psnr_unavailable" if train_psnr is None else ("pass" if train_psnr >= PSNR_FAIL_THRESHOLD else "fail")
+    splat_count_gate = "pass" if splat_count >= MIN_SPLAT_COUNT else "fail"
+    file_size_gate = "pass" if file_size_bytes >= MIN_SPZ_BYTES else "fail"
+    explosion_suspected = splat_count > EXPLOSION_SPLAT_COUNT
+    below_scene_typical = train_psnr is not None and train_psnr < PSNR_SOFT_WARN_THRESHOLD
+
+    reasons: list[str] = []
+    if psnr_gate == "fail":
+        reasons.append(
+            "Reconstruction quality was too low to publish — try recapturing with slower "
+            "movement, more overlap, and steady lighting."
+        )
+    if splat_count_gate == "fail" or file_size_gate == "fail":
+        reasons.append(
+            "Reconstruction produced too little detail to publish — try recapturing with "
+            "more coverage of the space."
+        )
+    if explosion_suspected and psnr_gate == "fail":
+        reasons.append("Reconstruction produced an excessive, low-quality point cloud.")
+
+    return {
+        "psnrGate": psnr_gate,
+        "splatCountGate": splat_count_gate,
+        "fileSizeGate": file_size_gate,
+        "explosionSuspected": explosion_suspected,
+        "belowSceneTypical": below_scene_typical,
+        "failed": bool(reasons),
+        "userMessage": " ".join(reasons) if reasons else None,
+    }
+
+
+# ── Q1 (metric-scale recovery) / Q2 (measured-gravity orientation) ──────────
+SCALE_MATCH_TOLERANCE_SEC = 0.25
+SCALE_MIN_FRAME_PAIRS = 5
+SCALE_MAX_RESIDUAL = 0.15  # 15% spread (P75-P25 / median) — beyond this, skip scaling
+SCALE_FACTOR_MIN = 0.01
+SCALE_FACTOR_MAX = 100.0
+
+
+def _ns_process_data_frame_map(images_dir: Path | None) -> dict[str, str]:
+    """R7/R8 shared helper: reproduce ns-process-data's images/frame_NNNNN.jpg
+    renaming (1-indexed, lexicographic sort of the input directory it was
+    invoked against) so transforms.json's file_path can be mapped back to the
+    original {stem}_{i:04d}.jpg filename frame_abs_times/frame_sharpness are
+    keyed by. Used by both recover_metric_scale (Q1/Q2) and
+    select_representative_frame (R8.1).
+    """
+    if images_dir is None or not images_dir.is_dir():
+        return {}
+    sorted_originals = sorted(
+        p.name for p in images_dir.iterdir()
+        if p.is_file() and p.suffix.lower() in {".jpg", ".jpeg", ".png", ".webp"}
+    )
+    return {f"frame_{i + 1:05d}.jpg": name for i, name in enumerate(sorted_originals)}
+
+
+def _quat_from_matrix(rot: "np.ndarray") -> "np.ndarray":
+    """Standard rotation-matrix -> quaternion [x,y,z,w] (Shepperd's method,
+    trace-based branch selection for numerical stability near +/-180deg)."""
+    import numpy as np
+
+    m = rot
+    trace = m[0, 0] + m[1, 1] + m[2, 2]
+    if trace > 0:
+        s = 0.5 / np.sqrt(trace + 1.0)
+        w = 0.25 / s
+        x = (m[2, 1] - m[1, 2]) * s
+        y = (m[0, 2] - m[2, 0]) * s
+        z = (m[1, 0] - m[0, 1]) * s
+    elif m[0, 0] > m[1, 1] and m[0, 0] > m[2, 2]:
+        s = 2.0 * np.sqrt(1.0 + m[0, 0] - m[1, 1] - m[2, 2])
+        w = (m[2, 1] - m[1, 2]) / s
+        x = 0.25 * s
+        y = (m[0, 1] + m[1, 0]) / s
+        z = (m[0, 2] + m[2, 0]) / s
+    elif m[1, 1] > m[2, 2]:
+        s = 2.0 * np.sqrt(1.0 + m[1, 1] - m[0, 0] - m[2, 2])
+        w = (m[0, 2] - m[2, 0]) / s
+        x = (m[0, 1] + m[1, 0]) / s
+        y = 0.25 * s
+        z = (m[1, 2] + m[2, 1]) / s
+    else:
+        s = 2.0 * np.sqrt(1.0 + m[2, 2] - m[0, 0] - m[1, 1])
+        w = (m[1, 0] - m[0, 1]) / s
+        x = (m[0, 2] + m[2, 0]) / s
+        y = (m[1, 2] + m[2, 1]) / s
+        z = 0.25 * s
+    q = np.array([x, y, z, w], dtype=np.float64)
+    norm = np.linalg.norm(q)
+    return q / norm if norm > 1e-12 else np.array([0.0, 0.0, 0.0, 1.0])
+
+
+def recover_metric_scale(
+    processed_dir: Path,
+    poses_data: dict[str, Any],
+    frame_abs_times: dict[str, float],
+    images_dir: Path | None = None,
+) -> dict[str, Any]:
+    """Q1: recover the metric scale factor by comparing COLMAP's (unitless,
+    arbitrary-scale) solved camera trajectory against the ARKit-measured
+    (real, metric) trajectory for the SAME frames. Also (Q2) recovers the
+    rotation relating the two frames, used to transform ARKit's measured
+    gravity direction into the COLMAP/model frame for manifest orientation.
+
+    Matches each COLMAP-registered frame (by its transforms.json file_path,
+    correlated back to an absolute wall-clock time via frame_abs_times) to its
+    nearest ARKit keyframe by timestamp, within SCALE_MATCH_TOLERANCE_SEC.
+
+    R7 fix: ns-process-data renames every input image to its own sequential
+    images/frame_00001.jpg, frame_00002.jpg, ... (1-indexed, sorted order of
+    the input directory) — NOT the original {stem}_{i:04d}.jpg names
+    frame_abs_times is keyed by. Looking transforms.json's file_path up in
+    frame_abs_times directly always missed (every real capture hit
+    scaleSkipped="insufficient_pairs(0)" despite valid, in-tolerance pose
+    data — confirmed by recomputing deltas from the raw poses/ingest data
+    directly). images_dir is the SAME directory ns-process-data was invoked
+    against, so re-sorting its listing here reproduces the same frame_NNNNN
+    assignment and lets us map back to the original filename first.
+
+    Scale: the MEDIAN ratio of pairwise trajectory-segment lengths (ARKit
+    distance / COLMAP distance) across every matched frame pair — robust to
+    individual mismatched pairs, and mathematically insensitive to any
+    (unknown) rotation or translation between the two coordinate frames,
+    since Euclidean distances are rotation/translation-invariant. This is the
+    median-based estimator Q1 explicitly sanctions as an alternative to a full
+    Umeyama fit / RANSAC.
+
+    Rotation: a Kabsch/SVD rigid-registration fit on the same matched pairs
+    (rotation-only, scale/translation are not needed for Q2's purpose), used
+    only to transform ARKit's gravity vector into the COLMAP frame — NOT
+    applied to the exported geometry (which stays in COLMAP's own frame; only
+    scale and, downstream, the manifest orientation are affected here).
+
+    Returns a dict always containing scaleFactor (None if not applied),
+    framePairsUsed, scaleResidual, scaleSkipped (reason string or None), and
+    measuredUpColmapFrame (ARKit's mean gravity vector expressed in the
+    COLMAP/model frame, or None if rotation recovery failed).
+    """
+    import numpy as np
+
+    result: dict[str, Any] = {
+        "scaleFactor": None,
+        "framePairsUsed": 0,
+        "scaleResidual": None,
+        "scaleSkipped": None,
+        "measuredUpColmapFrame": None,
+    }
+
+    transforms_path = processed_dir / "transforms.json"
+    if not transforms_path.is_file() or not frame_abs_times:
+        result["scaleSkipped"] = "no_transforms_or_frame_times"
+        return result
+
+    try:
+        tdata = json.loads(transforms_path.read_text(encoding="utf-8"))
+    except Exception:
+        result["scaleSkipped"] = "transforms_unreadable"
+        return result
+
+    keyframes = poses_data.get("frames", [])
+    if not keyframes:
+        result["scaleSkipped"] = "no_arkit_keyframes"
+        return result
+
+    # R7 fix: rebuild ns-process-data's frame_NNNNN -> original-filename mapping
+    # by re-sorting the same images_dir it was invoked against (see docstring).
+    frame_index_to_original = _ns_process_data_frame_map(images_dir)
+
+    pairs: list[tuple[np.ndarray, np.ndarray]] = []
+    for frame in tdata.get("frames", []):
+        file_path = frame.get("file_path")
+        matrix = frame.get("transform_matrix")
+        if not file_path or not matrix:
+            continue
+        basename = Path(file_path).name
+        original_name = frame_index_to_original.get(basename, basename)
+        abs_time = frame_abs_times.get(original_name)
+        if abs_time is None:
+            continue
+        nearest_kf = min(keyframes, key=lambda kf: abs(kf.get("timestamp", 1e18) - abs_time))
+        delta = abs(nearest_kf.get("timestamp", 1e18) - abs_time)
+        if delta > SCALE_MATCH_TOLERANCE_SEC:
+            continue
+        arkit_xform = nearest_kf.get("transform_4x4")
+        if not arkit_xform or len(arkit_xform) < 16:
+            continue
+        colmap_pos = np.array([matrix[0][3], matrix[1][3], matrix[2][3]], dtype=np.float64)
+        # ARKit c2w is column-major flat (same layout arkit_to_nerfstudio_c2w
+        # reshapes with order="F") — translation is the last 4 entries.
+        arkit_flat = np.array(arkit_xform, dtype=np.float64)
+        arkit_pos = arkit_flat[12:15]
+        pairs.append((colmap_pos, arkit_pos))
+
+    if len(pairs) < SCALE_MIN_FRAME_PAIRS:
+        result["scaleSkipped"] = f"insufficient_pairs({len(pairs)})"
+        return result
+    result["framePairsUsed"] = len(pairs)
+
+    # -- Q1: scale via median pairwise-distance ratio --
+    ratios: list[float] = []
+    for i in range(len(pairs)):
+        for j in range(i + 1, len(pairs)):
+            colmap_dist = float(np.linalg.norm(pairs[i][0] - pairs[j][0]))
+            arkit_dist = float(np.linalg.norm(pairs[i][1] - pairs[j][1]))
+            if colmap_dist < 1e-6 or arkit_dist < 1e-6:
+                continue  # near-duplicate positions — ratio is unstable
+            ratios.append(arkit_dist / colmap_dist)
+
+    if len(ratios) < SCALE_MIN_FRAME_PAIRS:
+        result["scaleSkipped"] = f"insufficient_ratio_samples({len(ratios)})"
+    else:
+        ratios_arr = np.array(ratios)
+        median_ratio = float(np.median(ratios_arr))
+        p25, p75 = np.percentile(ratios_arr, [25, 75])
+        residual = float((p75 - p25) / median_ratio) if median_ratio > 1e-9 else float("inf")
+        result["scaleResidual"] = residual
+        if not (SCALE_FACTOR_MIN <= median_ratio <= SCALE_FACTOR_MAX):
+            result["scaleSkipped"] = "implausible_factor"
+        elif residual > SCALE_MAX_RESIDUAL:
+            result["scaleSkipped"] = "residual_too_high"
+        else:
+            result["scaleFactor"] = median_ratio
+
+    # -- Q2: rotation via Kabsch/SVD (independent of the scale gate above —
+    #    a noisy scale ratio doesn't necessarily mean the rotation fit is bad) --
+    try:
+        colmap_pts = np.array([p[0] for p in pairs])
+        arkit_pts = np.array([p[1] for p in pairs])
+        colmap_centroid = colmap_pts.mean(axis=0)
+        arkit_centroid = arkit_pts.mean(axis=0)
+        P = colmap_pts - colmap_centroid
+        Q = arkit_pts - arkit_centroid
+        H = P.T @ Q
+        U, _S, Vt = np.linalg.svd(H)
+        d = np.sign(np.linalg.det(Vt.T @ U.T)) or 1.0
+        correction = np.diag([1.0, 1.0, d])
+        R = Vt.T @ correction @ U.T  # rotates COLMAP-frame vectors into the ARKit frame
+
+        mean_gravity = np.mean(
+            [kf.get("gravity", [0.0, 1.0, 0.0]) for kf in keyframes], axis=0,
+        )
+        norm = np.linalg.norm(mean_gravity)
+        if norm > 1e-9:
+            mean_gravity = mean_gravity / norm
+            # R^T = R^-1 maps ARKit-frame vectors into the COLMAP frame.
+            result["measuredUpColmapFrame"] = (R.T @ mean_gravity).tolist()
+    except Exception as rot_exc:  # noqa: BLE001
+        print(f"[scale-recovery] rotation recovery failed (non-fatal): {type(rot_exc).__name__}: {rot_exc}")
+
+    return result
+
+
+# ── R8.1: representative-frame selection ("open at the captured view") ─────
+REPRESENTATIVE_FRAME_TIME_WINDOW = 5  # nearest-in-time candidates considered around the median
+
+
+def select_representative_frame(
+    processed_dir: Path,
+    frame_abs_times: dict[str, float],
+    frame_sharpness: dict[str, float],
+    images_dir: Path | None,
+) -> dict[str, Any] | None:
+    """R8.1: pick a real COLMAP-registered frame to open the model on, instead
+    of a synthetic orbit camera. Primary criterion: closest to the median
+    capture time (a frame from the middle of the walk, not the doorway/exit
+    frame at the very start or end). Tie-break: among the
+    REPRESENTATIVE_FRAME_TIME_WINDOW nearest-in-time candidates, prefer the
+    sharpest (AF4 variance-of-Laplacian score) — a well-focused frame makes a
+    better first impression than a motion-blurred one from nearly the same
+    moment.
+
+    Reuses recover_metric_scale's frame_NNNNN -> original-filename remap (R7)
+    since it needs the exact same join. Same scope decision as Q1/Q2: COLMAP
+    path only (callers skip this for the ARKit-bypass path).
+
+    Returns the frame's RAW pose (position + 3x3 rotation, in ns-export's own
+    unscaled/uncropped PLY coordinate frame — the SAME frame
+    crop_recenter_and_cap_ply's input is in) so the caller can carry it
+    through that exact crop -> recenter -> scale pipeline. Returns None when
+    no registered frame could be matched back to a captured timestamp (e.g.
+    no lidar_poses) — callers must treat that as "no capture pose available"
+    and fall back to the synthetic orbit camera.
+    """
+    import numpy as np
+
+    transforms_path = processed_dir / "transforms.json"
+    if not transforms_path.is_file() or not frame_abs_times:
+        return None
+    try:
+        tdata = json.loads(transforms_path.read_text(encoding="utf-8"))
+    except Exception:
+        return None
+
+    frame_index_to_original = _ns_process_data_frame_map(images_dir)
+
+    # (abs_time, sharpness, position, rotation-3x3)
+    candidates: list[tuple[float, float, "np.ndarray", "np.ndarray"]] = []
+    for frame in tdata.get("frames", []):
+        file_path = frame.get("file_path")
+        matrix = frame.get("transform_matrix")
+        if not file_path or not matrix:
+            continue
+        basename = Path(file_path).name
+        original_name = frame_index_to_original.get(basename, basename)
+        abs_time = frame_abs_times.get(original_name)
+        if abs_time is None:
+            continue
+        m = np.array(matrix, dtype=np.float64)
+        sharpness = frame_sharpness.get(original_name, 0.0)
+        candidates.append((abs_time, sharpness, m[:3, 3].copy(), m[:3, :3].copy()))
+
+    if not candidates:
+        return None
+
+    median_time = float(np.median([c[0] for c in candidates]))
+    candidates.sort(key=lambda c: abs(c[0] - median_time))
+    window = candidates[: min(REPRESENTATIVE_FRAME_TIME_WINDOW, len(candidates))]
+    best = max(window, key=lambda c: c[1])
+
+    return {
+        "position": best[2].tolist(),
+        "rotationMatrix": best[3].tolist(),
+        "absTime": best[0],
+        "sharpness": best[1],
+        "medianTime": median_time,
+        "candidateCount": len(candidates),
+    }
 
 
 def quality_speed_iterations(quality: str, speed: str) -> int:
@@ -811,26 +1332,100 @@ def sanitize_stem(name: str) -> str:
     return re.sub(r"[^a-zA-Z0-9._-]+", "_", name)[:80]
 
 
-def extract_video_frames(video_path: Path, out_dir: Path, stem: str) -> int:
+def _frame_sharpness(frame_path: Path) -> float:
+    """Variance-of-Laplacian sharpness score (higher = sharper)."""
+    import cv2
+
+    img = cv2.imread(str(frame_path), cv2.IMREAD_GRAYSCALE)
+    if img is None:
+        return 0.0
+    return float(cv2.Laplacian(img, cv2.CV_64F).var())
+
+
+def extract_sharp_frames(
+    video_path: Path, out_dir: Path, stem: str,
+) -> tuple[list[float], list[float], dict[str, Any]]:
+    """AF4: sharpness-scored frame selection.
+
+    Extracts candidates at SHARP_CANDIDATE_FPS, scores each by variance-of-
+    Laplacian, and keeps only the sharpest candidate per SHARP_BUCKET_SEC
+    window (~2 effective fps, matching the previous flat rate). Drops kept
+    frames below SHARP_BLUR_FLOOR — UNLESS that would leave fewer than
+    MIN_FRAMES_FLOOR_GUARD usable frames, in which case the floor is relaxed
+    and the best-available frames are kept regardless (logged via
+    blurFloorRelaxed).
+
+    Returns (kept_times, kept_sharpness, stats): kept_times are each retained
+    frame's exact seconds-from-video-start (needed by the ARKit-bypass path to
+    match frames to keyframes by wall-clock time — sharpness selection means
+    frames are no longer at uniform 0.5s spacing). kept_sharpness is the same
+    frame's variance-of-Laplacian score (R8.1: used to prefer the sharpest
+    frame among representative-frame candidates). Written files are named
+    "{stem}_{i:04d}.jpg", 0-indexed, in the same order as kept_times.
+    """
     out_dir.mkdir(parents=True, exist_ok=True)
-    pattern = out_dir / f"{stem}_%04d.jpg"
+    candidates_dir = out_dir / f"_{stem}_candidates"
+    candidates_dir.mkdir(parents=True, exist_ok=True)
     run_cmd(
         [
-            "ffmpeg",
-            "-y",
-            "-i",
-            str(video_path),
-            "-vf",
-            "fps=2",
-            "-q:v",
-            "2",
-            str(pattern),
+            "ffmpeg", "-y", "-i", str(video_path),
+            "-vf", f"fps={SHARP_CANDIDATE_FPS}", "-q:v", "2",
+            str(candidates_dir / f"{stem}_%05d.jpg"),
         ]
     )
-    frames = sorted(out_dir.glob(f"{stem}_*.jpg"))
-    if not frames:
-        raise RuntimeError(f"No frames extracted from video: {video_path.name}")
-    return len(frames)
+    candidates = sorted(candidates_dir.glob(f"{stem}_*.jpg"))
+    if not candidates:
+        raise RuntimeError(f"No candidate frames extracted from video: {video_path.name}")
+
+    scored: list[tuple[float, float, Path]] = []
+    for idx, fp in enumerate(candidates):
+        t = idx / SHARP_CANDIDATE_FPS
+        scored.append((t, _frame_sharpness(fp), fp))
+
+    buckets: dict[int, tuple[float, float, Path]] = {}
+    for t, sharpness, fp in scored:
+        bucket = int(t / SHARP_BUCKET_SEC)
+        if bucket not in buckets or sharpness > buckets[bucket][1]:
+            buckets[bucket] = (t, sharpness, fp)
+
+    picked = sorted(buckets.values(), key=lambda x: x[0])
+    above_floor = [p for p in picked if p[1] >= SHARP_BLUR_FLOOR]
+
+    floor_relaxed = len(above_floor) < MIN_FRAMES_FLOOR_GUARD and len(above_floor) < len(picked)
+    final = picked if floor_relaxed else above_floor
+
+    kept_times: list[float] = []
+    kept_sharpness: list[float] = []
+    sharp_sum = 0.0
+    for i, (t, sharpness, fp) in enumerate(final):
+        dest = out_dir / f"{stem}_{i:04d}.jpg"
+        shutil.copy2(str(fp), str(dest))
+        kept_times.append(t)
+        kept_sharpness.append(sharpness)
+        sharp_sum += sharpness
+
+    shutil.rmtree(candidates_dir, ignore_errors=True)
+
+    if not kept_times:
+        raise RuntimeError(f"No frames survived sharpness selection for {video_path.name}")
+
+    stats = {
+        "candidateCount": len(candidates),
+        "bucketedCount": len(picked),
+        "keptCount": len(kept_times),
+        "droppedCount": len(picked) - len(kept_times),
+        "meanSharpnessKept": sharp_sum / len(kept_times),
+        "blurFloor": SHARP_BLUR_FLOOR,
+        "blurFloorRelaxed": floor_relaxed,
+    }
+    return kept_times, kept_sharpness, stats
+
+
+def extract_video_frames(
+    video_path: Path, out_dir: Path, stem: str,
+) -> tuple[int, dict[str, Any], list[float], list[float]]:
+    kept_times, kept_sharpness, stats = extract_sharp_frames(video_path, out_dir, stem)
+    return len(kept_times), stats, kept_times, kept_sharpness
 
 
 def extract_equirect_views(image_path: Path, out_dir: Path, stem: str) -> int:
@@ -861,9 +1456,12 @@ def materialize_images(
     images_dir: Path,
     source_keys: list[str],
     is360_flags: list[bool],
-) -> dict[str, int]:
+    video_start_times: dict[int, float] | None = None,
+) -> dict[str, Any]:
     images_dir.mkdir(parents=True, exist_ok=True)
-    stats = {"photos": 0, "videos": 0, "panorama_views": 0, "frames": 0}
+    stats: dict[str, Any] = {"photos": 0, "videos": 0, "panorama_views": 0, "frames": 0}
+    frame_abs_times: dict[str, float] = {}
+    frame_sharpness: dict[str, float] = {}
 
     for idx, key in enumerate(source_keys):
         matches = list(source_dir.glob(f"source_{idx:04d}.*"))
@@ -876,8 +1474,21 @@ def materialize_images(
 
         if ext in VIDEO_EXTENSIONS:
             stats["videos"] += 1
-            frame_count = extract_video_frames(src, images_dir, stem)
+            frame_count, sharp_stats, kept_times, kept_sharpness = extract_video_frames(src, images_dir, stem)
             stats["frames"] += frame_count
+            stats.setdefault("sharpFrameSelection", []).append(sharp_stats)
+            # Q1: expose each kept frame's absolute wall-clock time (when a
+            # video start time was resolved) so the COLMAP-path metric-scale
+            # recovery can match registered frames back to ARKit keyframes.
+            v_start = (video_start_times or {}).get(idx)
+            if v_start is not None:
+                for i, t in enumerate(kept_times):
+                    frame_abs_times[f"{stem}_{i:04d}.jpg"] = v_start + t
+            # R8.1: expose each kept frame's sharpness score so representative-
+            # frame selection (select_representative_frame) can prefer the
+            # sharpest frame near the capture's median time.
+            for i, s in enumerate(kept_sharpness):
+                frame_sharpness[f"{stem}_{i:04d}.jpg"] = s
             continue
 
         if is360 and ext in IMAGE_EXTENSIONS:
@@ -902,6 +1513,10 @@ def materialize_images(
         raise RuntimeError(
             f"Need at least 3 images for COLMAP; prepared {len(image_files)}"
         )
+    if frame_abs_times:
+        stats["frameAbsTimes"] = frame_abs_times
+    if frame_sharpness:
+        stats["frameSharpness"] = frame_sharpness
     return stats
 
 
@@ -1005,6 +1620,249 @@ def _read_ply_xyz(ply_path: Path, max_points: int = 400_000):
     return xyz
 
 
+# ── AF9 (crop+recenter) / AF3 (splat-count ceiling) / AF5 (saliency fallback) ─
+# Constants shared by the export-hardening passes below.
+CROP_FACTOR = 1.35
+CROP_MAX_REMOVAL_FRACTION = 0.60  # skip cropping if it would remove more than this
+MAX_SPLAT_COUNT = 2_000_000  # AF3: deterministic post-export point-budget cap
+SALIENCY_TARGET_COUNTS = [1_500_000, 750_000, 350_000]  # AF5: progressive saliency top-N fallback
+# R8.3(b): once a model is in real metric units (scale_factor applied), a single
+# gaussian axis extent above this is not a real piece of geometry any neighbor
+# supports — it's a spike. Only meaningful once units are known, hence gated
+# on scale_applied; on ungated (still-arbitrary-unit) models 0.5 means nothing.
+MAX_METRIC_GAUSSIAN_EXTENT_M = 0.5
+
+
+def _read_ply_structured(ply_path: Path) -> tuple[list[str], "np.ndarray"]:
+    """Parse a scalar-property-only PLY (3DGS export format) into its header
+    lines and a FULL structured numpy array (every property — xyz, normals,
+    SH coefficients, opacity, scale, rotation — not just xyz). Shared by the
+    crop/recenter/cap (AF9/AF3) and saliency-reduction (AF5) export passes."""
+    import numpy as np
+
+    with ply_path.open("rb") as fh:
+        header_lines: list[str] = []
+        while True:
+            line = fh.readline().decode("ascii", errors="ignore").strip()
+            header_lines.append(line)
+            if line == "end_header":
+                break
+        vertex_count = 0
+        props: list[tuple[str, str]] = []
+        in_vertex = False
+        for line in header_lines:
+            if line.startswith("element vertex"):
+                vertex_count = int(line.split()[-1])
+                in_vertex = True
+                continue
+            if line.startswith("element"):
+                in_vertex = False
+                continue
+            if in_vertex and line.startswith("property"):
+                parts = line.split()
+                if parts[1] == "list":
+                    continue  # 3DGS PLYs are scalar-only; skip list props defensively
+                props.append((parts[2], parts[1]))
+        if vertex_count <= 0 or not props:
+            raise RuntimeError(f"Could not parse PLY header: {ply_path}")
+
+        dt = np.dtype([(nm, "<" + _PLY_NP_TYPE.get(tp, "f4")) for nm, tp in props])
+        if "format binary_little_endian" in "\n".join(header_lines):
+            arr = np.fromfile(fh, dtype=dt, count=vertex_count)
+        else:
+            raw_txt = np.loadtxt(fh, max_rows=vertex_count)
+            arr = np.zeros(vertex_count, dtype=dt)
+            for i, (nm, _tp) in enumerate(props):
+                arr[nm] = raw_txt[:, i]
+    return header_lines, arr
+
+
+def _write_ply_structured(out_path: Path, header_lines: list[str], arr: "np.ndarray") -> None:
+    """Write a structured array back out as binary-little-endian PLY, reusing
+    the source header's property list/order (only the vertex count and format
+    line change) — pairs with _read_ply_structured."""
+    out_header_lines = []
+    for line in header_lines:
+        if line.startswith("format"):
+            out_header_lines.append("format binary_little_endian 1.0")
+        elif line.startswith("element vertex"):
+            out_header_lines.append(f"element vertex {len(arr)}")
+        else:
+            out_header_lines.append(line)
+    with out_path.open("wb") as fh:
+        fh.write(("\n".join(out_header_lines) + "\n").encode("ascii"))
+        arr.tofile(fh)
+
+
+def crop_recenter_and_cap_ply(ply_path: Path, out_path: Path, scale_factor: float = 1.0) -> dict[str, Any]:
+    """AF9 (crop + recenter), AF3 (splat-count ceiling), and Q1 (metric-scale
+    bake-in), combined into one full-property PLY read/write pass (avoids
+    reading a possibly ~1GB export twice).
+
+    AF9: computes the core region using the SAME definition
+    compute_splat_manifest uses (5-95 percentile clip → median center; 3-97
+    percentile → radius) — but directly in the PLY's own (unflipped)
+    coordinate space, since this rewrites the file itself rather than the
+    viewer-space manifest. Splats beyond coreRadius * CROP_FACTOR from that
+    center are dropped, and survivors are translated so the core center sits
+    at the origin. Only x/y/z are touched — scale/rotation/opacity/SH
+    properties pass through untouched. Because compute_splat_manifest runs on
+    this function's OUTPUT downstream, the manifest's bounds/center/camera
+    naturally reflect the recentered world with no separate patch needed.
+    Safety: if cropping would remove more than CROP_MAX_REMOVAL_FRACTION of
+    splats, skip it entirely (a genuinely diffuse/noisy capture is a quality
+    problem for the AF1 PSNR gate to catch, not a cropping problem) and pass
+    the cloud through un-recentered.
+
+    AF3: nerfstudio 1.1.5's splatfacto CLI does not expose a direct "max
+    total gaussians" flag — the training-time density-control knobs already
+    in use (stop-split-at, cull-alpha-thresh) influence but don't hard-bound
+    the final count. The reliable, verifiable mechanism is this deterministic
+    post-export cap: if the (already-cropped) splat count still exceeds
+    MAX_SPLAT_COUNT, seeded-RNG subsample down to it — cheap insurance
+    against the explosion class regardless of what happened during training.
+
+    Q1: when scale_factor != 1.0 (a metric scale was recovered — see
+    recover_metric_scale), bakes it into the shipped model by multiplying x/y/z
+    positions directly (linear world-space units) AND adding ln(scale_factor)
+    to the scale_0/1/2 gaussian-size properties, applied AFTER recentering (so
+    it scales around the new origin, not the old one) — measurements, bounds,
+    and walk-mode speed all inherit correct real-world units downstream with
+    no separate unit-tracking needed in the viewer.
+
+    R7.2 CORRECTION (was: linear multiply on scale_0/1/2 — WRONG): the
+    reference 3D Gaussian Splatting format (and nerfstudio's splatfacto, which
+    produced this export) stores scale_0/1/2 as the NATURAL LOG of each axis's
+    Gaussian standard deviation (`scaling_activation = exp` at render time) so
+    the optimizer can use unconstrained reals while guaranteeing a positive
+    real-world extent. Multiplying a log value linearly does not scale the
+    underlying gaussian by scale_factor — it exponentiates it (e.g.
+    scale_factor=2 squared the actual on-screen size instead of doubling it),
+    which is exactly the giant-blob failure this correction fixes. The correct
+    bake is additive in log-space: new_log = old_log + ln(scale_factor), which
+    is algebraically equivalent to actual_linear_scale *= scale_factor since
+    exp(old_log + ln(s)) == exp(old_log) * s.
+    """
+    import numpy as np
+
+    header_lines, arr = _read_ply_structured(ply_path)
+    total = len(arr)
+    xyz = np.stack(
+        [arr["x"].astype(np.float64), arr["y"].astype(np.float64), arr["z"].astype(np.float64)],
+        axis=1,
+    )
+
+    lo = np.percentile(xyz, 5, axis=0)
+    hi = np.percentile(xyz, 95, axis=0)
+    mask95 = np.all((xyz >= lo) & (xyz <= hi), axis=1)
+    core = xyz[mask95] if int(mask95.sum()) >= 100 else xyz
+    center = np.median(core, axis=0)
+    p_lo = np.percentile(core, 3, axis=0)
+    p_hi = np.percentile(core, 97, axis=0)
+    core_radius = float(np.linalg.norm(p_hi - p_lo) / 2.0) or 1.0
+
+    dist = np.linalg.norm(xyz - center, axis=1)
+    keep_mask = dist <= core_radius * CROP_FACTOR
+    kept = int(keep_mask.sum())
+
+    crop_applied = total > 0 and kept >= total * (1.0 - CROP_MAX_REMOVAL_FRACTION)
+    if not crop_applied:
+        keep_mask = np.ones(total, dtype=bool)
+        kept = total
+
+    out_arr = arr[keep_mask]
+    after_crop = kept
+
+    capped = False
+    if len(out_arr) > MAX_SPLAT_COUNT:
+        rng = np.random.default_rng(0)
+        idx = rng.choice(len(out_arr), MAX_SPLAT_COUNT, replace=False)
+        idx.sort()  # keep file order stable/deterministic
+        out_arr = out_arr[idx]
+        capped = True
+
+    if crop_applied:
+        out_arr = out_arr.copy()
+        out_arr["x"] = (out_arr["x"].astype(np.float64) - center[0]).astype(out_arr["x"].dtype)
+        out_arr["y"] = (out_arr["y"].astype(np.float64) - center[1]).astype(out_arr["y"].dtype)
+        out_arr["z"] = (out_arr["z"].astype(np.float64) - center[2]).astype(out_arr["z"].dtype)
+
+    scale_applied = scale_factor != 1.0
+    clamped_count = 0
+    if scale_applied:
+        if not crop_applied:
+            out_arr = out_arr.copy()
+        prop_names = out_arr.dtype.names or ()
+        log_scale_factor = float(np.log(scale_factor))
+        for axis in ("x", "y", "z"):
+            out_arr[axis] = (out_arr[axis].astype(np.float64) * scale_factor).astype(out_arr[axis].dtype)
+        # R8.3(b): metric-aware spike clamp — with real units now known, a
+        # linear extent past MAX_METRIC_GAUSSIAN_EXTENT_M isn't a supported
+        # piece of geometry, it's a training-time spike. Clamped in the SAME
+        # log-space the R7.2 bake above operates in.
+        max_log_scale = float(np.log(MAX_METRIC_GAUSSIAN_EXTENT_M))
+        for i in range(3):
+            nm = f"scale_{i}"
+            if nm in prop_names:
+                # R7.2: scale_0/1/2 are log-encoded (3DGS convention) — additive
+                # in log-space, NOT a linear multiply (see docstring above).
+                new_log = out_arr[nm].astype(np.float64) + log_scale_factor
+                clamped_count += int(np.count_nonzero(new_log > max_log_scale))
+                new_log = np.minimum(new_log, max_log_scale)
+                out_arr[nm] = new_log.astype(out_arr[nm].dtype)
+
+    _write_ply_structured(out_path, header_lines, out_arr)
+
+    return {
+        "splatsBeforeCrop": total,
+        "splatsAfterCrop": after_crop,
+        "cropFactor": CROP_FACTOR,
+        "cropApplied": crop_applied,
+        "cropSkipped": None if crop_applied else "would_remove_majority",
+        "cropCenter": center.tolist() if crop_applied else [0.0, 0.0, 0.0],
+        "splatCapApplied": capped,
+        "spikeClampedCount": clamped_count,
+        "spikeClampMaxExtentM": MAX_METRIC_GAUSSIAN_EXTENT_M if scale_applied else None,
+        "splatCountFinal": int(len(out_arr)),
+        "maxSplatCount": MAX_SPLAT_COUNT,
+        "scaleFactorApplied": scale_factor if scale_applied else None,
+    }
+
+
+def _saliency_reduce_ply(
+    ply_path: Path, out_path: Path, target_n: int, opacity_floor: float, scale_cap: float,
+) -> int:
+    """AF5 fallback: when the .spz writer OOMs even at the top of the opacity
+    ladder, rank surviving points (opacity>=floor, all scales<=cap — the same
+    prefilter the CLI tiers apply) by saliency = opacity * max(scale) (roughly
+    "how much this splat visually contributes") and keep only the top
+    target_n, instead of further raising the opacity floor (which discards
+    material, still-visible splats just to fit memory). Returns kept count."""
+    import numpy as np
+
+    header_lines, arr = _read_ply_structured(ply_path)
+    prop_names = arr.dtype.names or ()
+    if "opacity" not in prop_names or not all(f"scale_{i}" in prop_names for i in range(3)):
+        raise RuntimeError("PLY missing opacity/scale properties for saliency reduction")
+
+    opacity = arr["opacity"].astype(np.float64)
+    scales = np.stack([arr[f"scale_{i}"].astype(np.float64) for i in range(3)], axis=1)
+    max_scale = scales.max(axis=1)
+
+    prefilter = (opacity >= opacity_floor) & np.all(scales <= scale_cap, axis=1)
+    idx = np.nonzero(prefilter)[0]
+    if idx.size == 0:
+        raise RuntimeError("No points survive the opacity/scale prefilter for saliency reduction")
+
+    saliency = opacity[idx] * max_scale[idx]
+    order = np.argsort(-saliency)
+    top_idx = idx[order[: min(target_n, idx.size)]]
+    top_idx.sort()  # stable file order
+
+    _write_ply_structured(out_path, header_lines, arr[top_idx])
+    return int(top_idx.size)
+
+
 def compute_ply_bounds(ply_path: Path) -> dict[str, dict[str, float]]:
     import numpy as np
 
@@ -1099,12 +1957,40 @@ def generate_floor_plan(ply_path: Path, manifest: dict, export_dir: Path) -> "Pa
         return None
 
 
-def compute_splat_manifest(ply_path: Path, fov_deg: float = 55.0) -> dict[str, Any]:
+def compute_splat_manifest(
+    ply_path: Path,
+    fov_deg: float = 55.0,
+    measured_up_colmap_frame: list[float] | None = None,
+    metric_scale_applied: bool = False,
+    initial_camera_position: list[float] | None = None,
+    initial_camera_rotation: list[float] | None = None,
+) -> dict[str, Any]:
     """Bake orientation + framing the web viewer can apply deterministically.
 
     Works in the viewer's POST-flip space (the viewer renders splatMesh with
     rotation=[PI,0,0], i.e. raw*(1,-1,-1)); the correction_quaternion is applied
     to the PARENT group on top of that flip.
+
+    Q2 (finishes AF10's deferred half): when measured_up_colmap_frame is
+    provided (recover_metric_scale's Kabsch-recovered rotation applied to
+    ARKit's mean gravity vector — see run_pipeline), it is authoritative and
+    used directly instead of floor-plane PCA (up_axis "Y_UP_MEASURED"). This
+    was deferred in AF10 specifically because deriving the rotation between
+    ARKit's and COLMAP's independent frames required real cross-frame
+    registration — recover_metric_scale now does exactly that (Q1). PCA
+    remains the fallback whenever no poses exist (web captures) or the
+    correspondence was too weak to trust (recover_metric_scale returned None).
+
+    R8.1: initial_camera_position/rotation (already carried through the crop
+    -> recenter -> scale pipeline by run_pipeline's caller, and already
+    flipped into this SAME *[1,-1,-1] post-flip space) are a real capture pose
+    from the middle of the walk — the "open at the captured view" headline.
+    When absent (no lidar_poses, or COLMAP couldn't register enough frames
+    near the median time), initial_camera is omitted and viewers fall back to
+    fallback_camera (the pre-R8 synthetic orbit camera, computed below
+    exactly as before — kept under its old name recommended_orbit_camera too,
+    for zero regression on any consumer not yet updated to read
+    fallback_camera).
     """
     import numpy as np
 
@@ -1126,32 +2012,49 @@ def compute_splat_manifest(ply_path: Path, fov_deg: float = 55.0) -> dict[str, A
     p_hi = np.percentile(core, 97, axis=0)
     radius = float(np.linalg.norm(p_hi - p_lo) / 2.0) or 1.0
 
-    # Floor cluster = bottom 25% by Y; PCA smallest-variance axis ≈ floor normal.
-    ycut = np.percentile(core[:, 1], 25)
-    floor = core[core[:, 1] <= ycut]
-    if floor.shape[0] < 50:
-        floor = core
-    cen = floor - floor.mean(axis=0)
-    cov = (cen.T @ cen) / max(len(floor) - 1, 1)
-    evals, evecs = np.linalg.eigh(cov)  # ascending
-    normal = evecs[:, 0]
-    if normal[1] < 0:
-        normal = -normal
-    tilt_deg = float(np.degrees(np.arccos(float(np.clip(normal[1], -1.0, 1.0)))))
-    # Plane CONFIDENCE: a real floor is flat → smallest eigenvalue << next. A car interior /
-    # featureless blob has comparable eigenvalues → the "floor normal" is noise, and the
-    # normal[1]<0 sign rule then flips the whole model 180° (the upside-down bug). Only apply
-    # the correction when the plane is genuinely flat AND not wildly tilted; otherwise trust
-    # the capture orientation (identity) rather than a confident wrong flip.
-    ev = np.sort(evals)
-    planarity = float(1.0 - ev[0] / (ev[1] + 1e-9))
-    if planarity >= 0.6 and tilt_deg < 45.0:
-        q = _quat_from_to(normal, np.array([0.0, 1.0, 0.0]))
-        manifest_up_axis = "Y_UP" if tilt_deg < 8.0 else "TILTED"
-    else:
-        q = np.array([0.0, 0.0, 0.0, 1.0])  # identity — no confident flip without a clear floor
-        tilt_deg = 0.0
-        manifest_up_axis = "UNKNOWN"
+    if measured_up_colmap_frame is not None:
+        # Q2: measured gravity, transformed into this model's own (raw PLY)
+        # frame by recover_metric_scale's Kabsch rotation, then into the same
+        # post-flip viewer space `pts` already uses above.
+        raw_up = np.array(measured_up_colmap_frame, dtype=np.float64)
+        raw_up_norm = np.linalg.norm(raw_up)
+        if raw_up_norm > 1e-9:
+            raw_up = raw_up / raw_up_norm
+            flipped_up = raw_up * np.array([1.0, -1.0, -1.0])
+            flipped_up = flipped_up / (np.linalg.norm(flipped_up) or 1.0)
+            q = _quat_from_to(flipped_up, np.array([0.0, 1.0, 0.0]))
+            tilt_deg = float(np.degrees(np.arccos(float(np.clip(flipped_up[1], -1.0, 1.0)))))
+            manifest_up_axis = "Y_UP_MEASURED"
+        else:
+            measured_up_colmap_frame = None  # fall through to PCA below
+
+    if measured_up_colmap_frame is None:
+        # Floor cluster = bottom 25% by Y; PCA smallest-variance axis ≈ floor normal.
+        ycut = np.percentile(core[:, 1], 25)
+        floor = core[core[:, 1] <= ycut]
+        if floor.shape[0] < 50:
+            floor = core
+        cen = floor - floor.mean(axis=0)
+        cov = (cen.T @ cen) / max(len(floor) - 1, 1)
+        evals, evecs = np.linalg.eigh(cov)  # ascending
+        normal = evecs[:, 0]
+        if normal[1] < 0:
+            normal = -normal
+        tilt_deg = float(np.degrees(np.arccos(float(np.clip(normal[1], -1.0, 1.0)))))
+        # Plane CONFIDENCE: a real floor is flat → smallest eigenvalue << next. A car interior /
+        # featureless blob has comparable eigenvalues → the "floor normal" is noise, and the
+        # normal[1]<0 sign rule then flips the whole model 180° (the upside-down bug). Only apply
+        # the correction when the plane is genuinely flat AND not wildly tilted; otherwise trust
+        # the capture orientation (identity) rather than a confident wrong flip.
+        ev = np.sort(evals)
+        planarity = float(1.0 - ev[0] / (ev[1] + 1e-9))
+        if planarity >= 0.6 and tilt_deg < 45.0:
+            q = _quat_from_to(normal, np.array([0.0, 1.0, 0.0]))
+            manifest_up_axis = "Y_UP" if tilt_deg < 8.0 else "TILTED"
+        else:
+            q = np.array([0.0, 0.0, 0.0, 1.0])  # identity — no confident flip without a clear floor
+            tilt_deg = 0.0
+            manifest_up_axis = "UNKNOWN"
 
     vfov = np.deg2rad(fov_deg)
     dist = radius / np.sin(vfov / 2.0) * 1.2
@@ -1159,6 +2062,22 @@ def compute_splat_manifest(ply_path: Path, fov_deg: float = 55.0) -> dict[str, A
     dirv = np.array([np.sin(az) * np.cos(el), np.sin(el), np.cos(az) * np.cos(el)])
     pos = center + dirv * dist
     floor_y = float(cmin[1])
+
+    fallback_camera = {
+        "position": pos.tolist(),
+        "target": center.tolist(),
+        "fov": fov_deg,
+        "near": max(radius / 500.0, 0.01),
+        "far": float(dist + radius * 8.0),
+    }
+
+    initial_camera = None
+    if initial_camera_position is not None and initial_camera_rotation is not None:
+        initial_camera = {
+            "position": [float(v) for v in initial_camera_position],
+            "rotation": [float(v) for v in initial_camera_rotation],
+            "source": "capture_pose",
+        }
 
     return {
         "version": 1,
@@ -1172,14 +2091,17 @@ def compute_splat_manifest(ply_path: Path, fov_deg: float = 55.0) -> dict[str, A
         "up_axis": manifest_up_axis,
         "tilt_deg": tilt_deg,
         "correction_quaternion": [float(q[0]), float(q[1]), float(q[2]), float(q[3])],
-        "recommended_orbit_camera": {
-            "position": pos.tolist(),
-            "target": center.tolist(),
-            "fov": fov_deg,
-            "near": max(radius / 500.0, 0.01),
-            "far": float(dist + radius * 8.0),
-        },
+        # R8.1: a real capture pose to open on — preferred over fallback_camera
+        # (the synthetic orbit camera below) whenever available.
+        "initial_camera": initial_camera,
+        "fallback_camera": fallback_camera,
+        # Kept under the old name too — zero regression for any consumer not
+        # yet updated to read fallback_camera (AF11's original field).
+        "recommended_orbit_camera": fallback_camera,
         "interior_entry_point": [float(center[0]), floor_y + 1.6, float(center[2])],
+        # Q1: lets the viewer upgrade the measurement disclaimer when a real
+        # metric scale factor was baked into this model's positions.
+        "metric_scale_applied": metric_scale_applied,
     }
 
 
@@ -1242,6 +2164,8 @@ class JobInput:
     lidar_ply_key: str | None = None
     force_colmap: bool = False
     match_tolerance_sec: float | None = None
+    debug_artifacts: bool = False
+    roll_correction_deg: float = 0.0
 
     @classmethod
     def from_payload(cls, payload: dict[str, Any]) -> JobInput:
@@ -1282,6 +2206,8 @@ class JobInput:
             lidar_ply_key=payload.get("lidarPlyKey") or None,
             force_colmap=bool(payload.get("forceColmap", False)),
             match_tolerance_sec=float(raw_tolerance) if raw_tolerance is not None else None,
+            debug_artifacts=bool(payload.get("debugArtifacts", False)),
+            roll_correction_deg=float(payload.get("rollCorrectionDeg", 0.0) or 0.0),
         )
 
 
@@ -1297,8 +2223,29 @@ def run_pipeline(job: JobInput, work_root: Path) -> dict[str, Any]:
 
     post_progress(job.job_id, "upload", 10)
     download_sources(s3, bucket, job.source_keys, source_dir)
+
+    # Q1: when lidar_poses exist, prefetch + parse them up front — cheap (a
+    # small JSON), and needed by the COLMAP-path metric-scale recovery below
+    # regardless of which alignment path this job ends up using. Independent
+    # of try_lidar_bypass's own poses handling (the two never run in the same
+    # job under colmap_first).
+    poses_data: dict[str, Any] | None = None
+    video_start_times: dict[int, float] = {}
+    if job.lidar_poses_key:
+        try:
+            poses_prefetch_path = source_dir / "_lidar_poses_prefetch.json"
+            s3.download_file(bucket, job.lidar_poses_key, str(poses_prefetch_path))
+            maybe_gunzip(poses_prefetch_path)
+            with poses_prefetch_path.open(encoding="utf-8") as f:
+                poses_data = json.load(f)
+            video_start_times = resolve_video_start_times(poses_data, source_dir, job.source_keys)
+        except Exception as poses_exc:  # noqa: BLE001
+            print(f"[scale-recovery] poses prefetch failed (non-fatal): {type(poses_exc).__name__}: {poses_exc}")
+            poses_data = None
+
     ingest_stats = materialize_images(
-        source_dir, images_dir, job.source_keys, job.is360_flags
+        source_dir, images_dir, job.source_keys, job.is360_flags,
+        video_start_times=video_start_times,
     )
 
     match_tolerance = (
@@ -1309,14 +2256,17 @@ def run_pipeline(job: JobInput, work_root: Path) -> dict[str, Any]:
     lidar_bypass_used = False
     lidar_ply_init = False
     bypass_stats: dict[str, Any] = {}
-    if job.lidar_poses_key and job.force_colmap:
-        print("[force-colmap] lidarPosesKey present but force_colmap=true — skipping ARKit bypass")
+    skip_bypass_for_strategy = ALIGNMENT_STRATEGY == "colmap_first"
+    if job.lidar_poses_key and (job.force_colmap or skip_bypass_for_strategy):
+        reason = "force_colmap=true" if job.force_colmap else f"ALIGNMENT_STRATEGY={ALIGNMENT_STRATEGY}"
+        print(f"[align] lidarPosesKey present but skipping ARKit bypass ({reason})")
     elif job.lidar_poses_key:
         lidar_bypass_used, lidar_ply_init, bypass_stats = try_lidar_bypass(
             s3, bucket, job.lidar_poses_key, job.lidar_ply_key,
             source_dir, work_root, processed_dir,
             source_keys=job.source_keys,
             match_tolerance_sec=match_tolerance,
+            roll_correction_deg=job.roll_correction_deg,
         )
 
     colmap_images_total: int | None = None
@@ -1348,8 +2298,37 @@ def run_pipeline(job: JobInput, work_root: Path) -> dict[str, Any]:
             if p.is_file() and p.suffix.lower() in {".jpg", ".jpeg", ".png", ".webp"}
         ])
         colmap_images_registered = count_registered_images(processed_dir)
+
+        # Q1/Q2: recover metric scale + measured-gravity orientation by
+        # comparing COLMAP's solved trajectory against ARKit's for the same
+        # frames — only possible when this capture has lidar_poses.
+        scale_info: dict[str, Any] = {
+            "scaleFactor": None, "framePairsUsed": 0, "scaleResidual": None,
+            "scaleSkipped": "no_lidar_poses", "measuredUpColmapFrame": None,
+        }
+        if poses_data is not None:
+            scale_info = recover_metric_scale(
+                processed_dir, poses_data, ingest_stats.get("frameAbsTimes") or {},
+                images_dir=images_dir,
+            )
+
+        # R8.1: pick a real capture frame near the median walk time to open
+        # the model on — same scope decision as Q1/Q2 (COLMAP path only).
+        representative_frame = select_representative_frame(
+            processed_dir,
+            ingest_stats.get("frameAbsTimes") or {},
+            ingest_stats.get("frameSharpness") or {},
+            images_dir,
+        )
+        initial_camera_skipped: str | None = None if representative_frame else "no_registered_frame_matched"
     else:
         matching_method = "lidar_bypass"
+        scale_info = {
+            "scaleFactor": None, "framePairsUsed": 0, "scaleResidual": None,
+            "scaleSkipped": "bypass_path_not_in_scope", "measuredUpColmapFrame": None,
+        }
+        representative_frame = None
+        initial_camera_skipped = "bypass_path_not_in_scope"
 
     iterations = quality_speed_iterations(job.quality, job.speed)
     if lidar_bypass_used and lidar_ply_init:
@@ -1357,10 +2336,28 @@ def run_pipeline(job: JobInput, work_root: Path) -> dict[str, Any]:
         # init, reducing the iterations needed for equivalent quality by ~30%.
         iterations = max(10_000, int(iterations * 0.70))
         print(f"[lidar-bypass] PLY init active — reduced iterations to {iterations}")
+
+    debug_transforms_key: str | None = None
+    if job.debug_artifacts:
+        transforms_path = processed_dir / "transforms.json"
+        if transforms_path.is_file():
+            candidate_key = output_storage_key(job.org_id, job.space_id, job.job_id)[: -len(".spz")] + ".transforms.json"
+            try:
+                s3.upload_file(
+                    str(transforms_path),
+                    bucket,
+                    candidate_key,
+                    ExtraArgs={"ContentType": "application/json"},
+                )
+                debug_transforms_key = candidate_key
+                print(f"[debug] uploaded transforms.json to {candidate_key}")
+            except Exception as debug_exc:  # noqa: BLE001
+                print(f"[debug] transforms.json upload failed (non-fatal): {debug_exc}")
+
     post_progress(job.job_id, "train", 45)
     # Training is self-silent for many minutes; heartbeat 45→84 so the UI shows movement,
-    # and hard-timeout at 40 min so a hung train fails visibly instead of hanging until
-    # Modal's container kill (which posts no callback).
+    # and hard-timeout at 60 min (AF2, was 40) so a hung train fails visibly instead of
+    # hanging until Modal's container kill (which posts no callback).
     run_with_heartbeat(
         [
             "ns-train",
@@ -1389,8 +2386,8 @@ def run_pipeline(job: JobInput, work_root: Path) -> dict[str, Any]:
         stage="train",
         start_pct=45,
         end_pct=85,
-        expected_sec=900,
-        timeout=2400,
+        expected_sec=1350,
+        timeout=3600,
         env={"CUDA_VISIBLE_DEVICES": "0"},
     )
 
@@ -1426,9 +2423,49 @@ def run_pipeline(job: JobInput, work_root: Path) -> dict[str, Any]:
         ]
     )
 
-    ply_path = find_latest_file(export_dir, "**/*.ply")
+    raw_ply_path = find_latest_file(export_dir, "**/*.ply")
+
+    # AF9 (crop + recenter) + AF3 (splat-count ceiling): one full-property pass
+    # over the raw ns-export output, BEFORE any opacity/scale filtering, so
+    # everything downstream (spz conversion, bounds, manifest, floor plan)
+    # operates on the cropped/capped/recentered cloud.
+    cropped_ply_path = export_dir / "model_cropped.ply"
+    crop_stats = crop_recenter_and_cap_ply(
+        raw_ply_path, cropped_ply_path, scale_factor=scale_info.get("scaleFactor") or 1.0,
+    )
+    ply_path = cropped_ply_path
+
+    # R8.1: carry the representative frame's RAW pose through the SAME
+    # crop -> recenter -> scale -> viewer-flip pipeline crop_recenter_and_cap_ply
+    # just applied to the splat positions, so initial_camera lands in exactly
+    # the manifest/viewer space (bounds/fallback_camera's "pts" space, i.e.
+    # raw*[1,-1,-1] — see compute_splat_manifest) the shipped model uses.
+    initial_camera_position: list[float] | None = None
+    initial_camera_rotation: list[float] | None = None
+    if representative_frame is not None:
+        try:
+            import numpy as np
+
+            crop_center = np.array(crop_stats.get("cropCenter") or [0.0, 0.0, 0.0], dtype=np.float64)
+            scale_factor = float(scale_info.get("scaleFactor") or 1.0)
+            flip = np.array([1.0, -1.0, -1.0])
+
+            raw_pos = np.array(representative_frame["position"], dtype=np.float64)
+            pos_pts = ((raw_pos - crop_center) * scale_factor) * flip
+            initial_camera_position = pos_pts.tolist()
+
+            raw_rot = np.array(representative_frame["rotationMatrix"], dtype=np.float64)
+            flip_mat = np.diag(flip)
+            rot_pts = flip_mat @ raw_rot @ flip_mat  # flip is its own inverse (F @ F = I)
+            initial_camera_rotation = _quat_from_matrix(rot_pts).tolist()
+        except Exception as pose_exc:  # noqa: BLE001
+            initial_camera_position = None
+            initial_camera_rotation = None
+            initial_camera_skipped = f"pose_transform_failed:{type(pose_exc).__name__}"
+            print(f"[initial-camera] pose transform failed (non-fatal): {pose_exc}")
+
     spz_path = export_dir / "model.spz"
-    splat_transform_clean_export(ply_path, spz_path)
+    export_filter_stats = splat_transform_clean_export(ply_path, spz_path)
 
     if not spz_path.is_file():
         raise RuntimeError("SPZ export did not produce model.spz")
@@ -1436,6 +2473,20 @@ def run_pipeline(job: JobInput, work_root: Path) -> dict[str, Any]:
     post_progress(job.job_id, "export", 95)
     bounds = compute_ply_bounds(ply_path)
     splat_count = _ply_vertex_count(ply_path)
+    file_size = spz_path.stat().st_size
+
+    # AF1: ready-gate, evaluated on the LOCAL files before uploading anything
+    # to R2 — a failing job should never publish or charge, and shouldn't
+    # waste an upload + manifest + floor-plan pass either. Raising here routes
+    # to process_job's except-block, which posts a "failed" callback; the
+    # callback route never creates a model row or deducts credits for a
+    # failed job, so this is the actual enforcement point.
+    ready_gates = evaluate_ready_gates(train_psnr, splat_count, file_size)
+    if ready_gates["failed"]:
+        print(f"[ready-gate] FAILED: {json.dumps(ready_gates)}")
+        raise RuntimeError(ready_gates["userMessage"])
+    print(f"[ready-gate] passed: {json.dumps(ready_gates)}")
+
     out_key = output_storage_key(job.org_id, job.space_id, job.job_id)
     s3.upload_file(
         str(spz_path),
@@ -1443,7 +2494,6 @@ def run_pipeline(job: JobInput, work_root: Path) -> dict[str, Any]:
         out_key,
         ExtraArgs={"ContentType": "application/octet-stream"},
     )
-    file_size = spz_path.stat().st_size
 
     # Bake an orientation/framing manifest the web viewer applies deterministically.
     # Non-fatal: a failure here must never fail the job. Uploaded to the sibling
@@ -1451,7 +2501,13 @@ def run_pipeline(job: JobInput, work_root: Path) -> dict[str, Any]:
     manifest_key: str | None = None
     manifest: dict = {}
     try:
-        manifest = compute_splat_manifest(ply_path)
+        manifest = compute_splat_manifest(
+            ply_path,
+            measured_up_colmap_frame=scale_info.get("measuredUpColmapFrame"),
+            metric_scale_applied=scale_info.get("scaleFactor") is not None,
+            initial_camera_position=initial_camera_position,
+            initial_camera_rotation=initial_camera_rotation,
+        )
         manifest_path = export_dir / "manifest.json"
         manifest_path.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
         manifest_key = out_key[: -len(".spz")] + ".manifest.json"
@@ -1514,6 +2570,31 @@ def run_pipeline(job: JobInput, work_root: Path) -> dict[str, Any]:
             "colmapImagesTotal": colmap_images_total,
             "colmapImagesRegistered": colmap_images_registered,
             "trainPsnr": train_psnr,
+            "debugTransformsKey": debug_transforms_key,
+            "rollCorrectionDeg": job.roll_correction_deg,
+            "alignmentStrategy": ALIGNMENT_STRATEGY,
+            "readyGates": ready_gates,
+            "crop": crop_stats,
+            "exportFilter": export_filter_stats,
+            "sharpFrameSelection": ingest_stats.get("sharpFrameSelection") or bypass_stats.get("sharpFrameSelection"),
+            "gravityDataAvailable": bool(job.lidar_poses_key),
+            # Q1 (metric scale) + Q2 (measured-gravity orientation) — both
+            # derived from the same ARKit<->COLMAP correspondence.
+            "scaleFactor": scale_info.get("scaleFactor"),
+            "framePairsUsed": scale_info.get("framePairsUsed"),
+            "scaleResidual": scale_info.get("scaleResidual"),
+            "scaleSkipped": scale_info.get("scaleSkipped"),
+            "measuredOrientationApplied": scale_info.get("measuredUpColmapFrame") is not None,
+            # R8.1 ("open at the captured view")
+            "initialCameraSource": "capture_pose" if initial_camera_position is not None else None,
+            "initialCameraSkipped": None if initial_camera_position is not None else initial_camera_skipped,
+            "representativeFrameAbsTime": representative_frame.get("absTime") if representative_frame else None,
+            "representativeFrameMedianTime": representative_frame.get("medianTime") if representative_frame else None,
+            "representativeFrameSharpness": representative_frame.get("sharpness") if representative_frame else None,
+            "representativeFrameCandidateCount": representative_frame.get("candidateCount") if representative_frame else None,
+            # R8.3(b) metric-aware spike clamp
+            "spikeClampedCount": crop_stats.get("spikeClampedCount"),
+            "spikeClampMaxExtentM": crop_stats.get("spikeClampMaxExtentM"),
         },
     }
 

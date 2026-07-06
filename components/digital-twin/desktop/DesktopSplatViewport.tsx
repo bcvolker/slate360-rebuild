@@ -93,6 +93,9 @@ function EditableSparkScene({
   }, [url]);
 
   // Center + fit the model on open, then hand zoom freedom back to the editor.
+  // R8.2: pass the manifest through so this gets the same initial_camera /
+  // fallback_camera precedence as the shared viewer, instead of always
+  // falling through to pure client-side bounds framing.
   const frameToModel = useCallback(
     (mesh: SplatMesh) => {
       if (!(camera instanceof THREE.PerspectiveCamera)) return;
@@ -101,7 +104,7 @@ function EditableSparkScene({
         window.requestAnimationFrame(() => frameToModel(mesh));
         return;
       }
-      applyOverviewHomeFrame(mesh, camera, controls);
+      applyOverviewHomeFrame(mesh, camera, controls, { manifest: manifestRef.current });
       // Keep the good initial framing but don't constrain editing zoom.
       controls.minDistance = 0;
       controls.maxDistance = Infinity;

@@ -14,6 +14,9 @@ type Props = {
   repositionMode?: boolean;
   onToggleReposition?: () => void;
   className?: string;
+  /** V3: when set, the Walk toggle disables and shows this as its reason
+   * instead of silently doing nothing (e.g. no confident floor detected). */
+  walkDisabledReason?: string | null;
 };
 
 const glassCluster =
@@ -31,8 +34,10 @@ export function TwinViewerControlsOverlay({
   repositionMode = false,
   onToggleReposition,
   className,
+  walkDisabledReason = null,
 }: Props) {
   const inWalkMode = cameraMode === "interior";
+  const walkDisabled = !inWalkMode && !!walkDisabledReason;
 
   return (
     <div
@@ -68,10 +73,18 @@ export function TwinViewerControlsOverlay({
       ) : null}
       <button
         type="button"
-        onClick={onToggleCameraMode}
-        className={btnClass}
-        aria-label={inWalkMode ? "Switch to orbit overview" : "Switch to walk mode"}
-        title={inWalkMode ? "Orbit" : "Walk"}
+        onClick={walkDisabled ? undefined : onToggleCameraMode}
+        disabled={walkDisabled}
+        aria-disabled={walkDisabled}
+        className={cn(btnClass, walkDisabled && "cursor-not-allowed opacity-40 hover:bg-transparent")}
+        aria-label={
+          walkDisabled
+            ? walkDisabledReason!
+            : inWalkMode
+              ? "Switch to orbit overview"
+              : "Switch to walk mode"
+        }
+        title={walkDisabled ? walkDisabledReason! : inWalkMode ? "Orbit" : "Walk"}
       >
         {inWalkMode ? <Map className="size-4" aria-hidden /> : <Footprints className="size-4" aria-hidden />}
       </button>
