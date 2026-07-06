@@ -20,21 +20,25 @@ export function ErrorCard({
     <div
       className={cn(
         SPLAT_VIEWER_SURFACE,
-        "flex min-h-[280px] flex-col items-center justify-center gap-3 rounded-xl border border-red-500/25 bg-red-500/10 px-4 text-center",
+        // Calm, on-system state (not an alarming red box) — a model that didn't
+        // load usually just needs a retry, or a reprocess from the Versions sheet.
+        "flex min-h-[280px] flex-col items-center justify-center gap-3 px-6 text-center",
         className,
       )}
     >
-      <AlertTriangle className="size-8 text-red-300" aria-hidden />
-      <p className="text-sm font-medium text-red-100">Unable to load 3D model</p>
-      <p className="max-w-sm text-xs text-red-200/80">{message}</p>
+      <span className="flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] text-[var(--graphite-muted)]">
+        <AlertTriangle className="size-6" strokeWidth={1.75} aria-hidden />
+      </span>
+      <p className="text-sm font-semibold text-zinc-100">This model didn&apos;t load</p>
+      <p className="max-w-xs text-xs leading-relaxed text-[var(--graphite-muted)]">{message}</p>
       {onRetry ? (
         <button
           type="button"
           onClick={onRetry}
-          className="inline-flex items-center gap-1.5 rounded-xl border border-red-500/30 bg-red-500/15 px-3 py-2 text-xs font-semibold text-red-100 transition-colors hover:bg-red-500/25"
+          className="inline-flex items-center gap-1.5 rounded-xl border border-[var(--accent-border-blue)] bg-[color-mix(in_srgb,var(--twin360-blue)_12%,transparent)] px-4 py-2 text-xs font-semibold text-[var(--twin360-blue)] transition active:scale-[0.98]"
         >
           <RotateCcw className="size-3.5" aria-hidden />
-          Retry
+          Try again
         </button>
       ) : null}
     </div>
