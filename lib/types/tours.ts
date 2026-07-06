@@ -70,6 +70,30 @@ export type PublicTourSceneSummary = {
   thumbnailUrl: string | null;
 };
 
+export type PublicPlanPin = {
+  id: string;
+  sheetId: string;
+  sceneId: string;
+  xPct: number;
+  yPct: number;
+  pinNumber: number;
+  title: string | null;
+};
+
+export type PublicPlanSheet = {
+  id: string;
+  sheetNumber: number;
+  sheetName: string | null;
+  imageUrl: string | null;
+  width: number;
+  height: number;
+};
+
+export type PublicPlanTour = {
+  sheets: PublicPlanSheet[];
+  pins: PublicPlanPin[];
+};
+
 export type PublicTourSummary = {
   id: string;
   title: string;
@@ -81,4 +105,8 @@ export type PublicTourSummary = {
     logoWidthPercent: number | null;
   };
   scenes: PublicTourSceneSummary[];
+  /** Present only when the tour is anchored to a plan set — the plan-sheet
+   * tour recipient experience (full-bleed sheet + pins + cinematic dive)
+   * replaces the plain scene carousel when this is set. */
+  planTour: PublicPlanTour | null;
 };

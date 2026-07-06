@@ -4,7 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { s3, BUCKET } from "@/lib/s3";
-import type { PublicTourSummary, SceneRuntime, SceneTileManifestRuntime } from "@/lib/types/tours";
+import type { PublicTourSummary, PublicPlanTour, SceneRuntime, SceneTileManifestRuntime } from "@/lib/types/tours";
 
 const SIGN_EXPIRES_SECONDS = 3600;
 
@@ -29,7 +29,7 @@ export async function resolvePublicTourSummary(
 ): Promise<PublicTourSummary | null> {
   const { data: tour } = await admin
     .from("project_tours")
-    .select("id, title, description, logo_asset_path, logo_width_percent, logo_opacity, logo_position")
+    .select("id, title, description, logo_asset_path, logo_width_percent, logo_opacity, logo_position, plan_set_id")
     .eq("viewer_slug", slug)
     .eq("status", "published")
     .maybeSingle();
@@ -40,6 +40,8 @@ export async function resolvePublicTourSummary(
     .select("id, title, sort_order, thumbnail_path, panorama_path")
     .eq("tour_id", tour.id)
     .order("sort_order", { ascending: true });
+
+  const planTour = tour.plan_set_id ? await resolvePlanTour(admin, tour.id, tour.plan_set_id) : null;
 
   const sceneSummaries = await Promise.all(
     (scenes ?? []).map(async (s) => {
@@ -64,6 +66,60 @@ export async function resolvePublicTourSummary(
       logoWidthPercent: tour.logo_width_percent,
     },
     scenes: sceneSummaries,
+    planTour,
+  };
+}
+
+/**
+ * Resolves the plan-sheet tour data for a published tour anchored to a plan
+ * set — reuses Site Walk's project-scoped rasterized sheets directly (see
+ * lib/tours/plan-sheets.ts for the authoring-side equivalent). Sheet images
+ * are plain <img> src values (no CORS concern, unlike the WebGL tile/panorama
+ * assets), so direct signed URLs are fine here.
+ */
+async function resolvePlanTour(
+  admin: SupabaseClient,
+  tourId: string,
+  planSetId: string,
+): Promise<PublicPlanTour | null> {
+  const { data: sheets } = await admin
+    .from("site_walk_plan_sheets")
+    .select("id, sheet_number, sheet_name, image_s3_key, thumbnail_s3_key, rasterized_key, rasterized_width, rasterized_height, sort_order")
+    .eq("plan_set_id", planSetId)
+    .order("sort_order", { ascending: true });
+  if (!sheets?.length) return null;
+
+  const { data: pins } = await admin
+    .from("tour_plan_pins")
+    .select("id, plan_sheet_id, scene_id, x_pct, y_pct, pin_number, title")
+    .eq("tour_id", tourId)
+    .order("sort_order", { ascending: true });
+
+  const sheetSummaries = await Promise.all(
+    sheets.map(async (sheet) => {
+      const key = sheet.rasterized_key ?? sheet.thumbnail_s3_key ?? sheet.image_s3_key ?? null;
+      return {
+        id: sheet.id,
+        sheetNumber: sheet.sheet_number,
+        sheetName: sheet.sheet_name,
+        imageUrl: key ? await sign(key) : null,
+        width: sheet.rasterized_width ?? 0,
+        height: sheet.rasterized_height ?? 0,
+      };
+    }),
+  );
+
+  return {
+    sheets: sheetSummaries,
+    pins: (pins ?? []).map((p) => ({
+      id: p.id,
+      sheetId: p.plan_sheet_id,
+      sceneId: p.scene_id,
+      xPct: Number(p.x_pct),
+      yPct: Number(p.y_pct),
+      pinNumber: p.pin_number,
+      title: p.title,
+    })),
   };
 }
 

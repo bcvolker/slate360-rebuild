@@ -41,7 +41,7 @@ export const POST = async (req: NextRequest, { params }: { params: Promise<{ tou
 
       const { data: tour } = await admin
         .from("project_tours")
-        .select("id")
+        .select("id, plan_set_id")
         .eq("id", tourId)
         .eq("org_id", orgId)
         .maybeSingle();
@@ -54,6 +54,30 @@ export const POST = async (req: NextRequest, { params }: { params: Promise<{ tou
         .eq("tour_id", tourId)
         .maybeSingle();
       if (!scene) return badRequest("scene does not belong to this tour");
+
+      const { data: sheet } = await admin
+        .from("site_walk_plan_sheets")
+        .select("id, plan_set_id")
+        .eq("id", planSheetId)
+        .eq("org_id", orgId)
+        .maybeSingle();
+      if (!sheet) return badRequest("Plan sheet not found");
+
+      // A tour anchors to exactly ONE plan set — the public viewer only ever
+      // serves that set's sheets (see resolvePlanTour in public-manifest.ts).
+      // Auto-anchor on the first pin so the author never has to pick it
+      // separately; reject a pin on a DIFFERENT set's sheet so pins can't
+      // silently become invisible in the published tour.
+      if (!tour.plan_set_id) {
+        const { error: anchorError } = await admin
+          .from("project_tours")
+          .update({ plan_set_id: sheet.plan_set_id })
+          .eq("id", tourId)
+          .eq("org_id", orgId);
+        if (anchorError) return serverError(anchorError.message);
+      } else if (tour.plan_set_id !== sheet.plan_set_id) {
+        return badRequest("This tour is already anchored to a different plan set. Remove its existing pins first to switch.");
+      }
 
       const { data: maxPin } = await admin
         .from("tour_plan_pins")

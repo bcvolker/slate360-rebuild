@@ -405,6 +405,15 @@
 }
 .animate-pan-360 { animation: pan360 20s linear infinite; }
 
+/* Plan-sheet tour: active-pin ring pulse (§8.3 of TOUR_BUILDER_PLAN.md) —
+   a plain border-opacity loop, never a blurred glow (banned by the design
+   system). */
+@keyframes tourPinPulse {
+  0%, 100% { border-color: rgb(255 255 255 / 1); }
+  50%      { border-color: rgb(255 255 255 / 0.35); }
+}
+.animate-tour-pin-pulse { animation: tourPinPulse 1.8s ease-in-out infinite; }
+
 /* ─────────────────────────────────────────────────────────────────
    Header isolation utilities (permanently dark — no theme follows)
    ───────────────────────────────────────────────────────────────── */

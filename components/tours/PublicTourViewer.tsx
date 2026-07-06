@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PublicTourPanoViewer } from "./PublicTourPanoViewer";
+import { PlanSheetTourViewer } from "./plan-tour/PlanSheetTourViewer";
 import type { PublicTourSummary, SceneRuntime } from "@/lib/types/tours";
 
 interface PublicTourViewerProps {
@@ -35,8 +36,14 @@ export function PublicTourViewer({ slug, summary }: PublicTourViewerProps) {
   );
 
   useEffect(() => {
-    if (scene) void loadScene(scene.id);
-  }, [scene, loadScene]);
+    // Plan-sheet tours render PlanSheetTourViewer instead (below) and load
+    // scenes lazily per pin-dive, not eagerly here.
+    if (scene && !summary.planTour) void loadScene(scene.id);
+  }, [scene, loadScene, summary.planTour]);
+
+  if (summary.planTour) {
+    return <PlanSheetTourViewer planTour={summary.planTour} slug={slug} tourTitle={summary.title} />;
+  }
 
   if (!scene) {
     return (

@@ -56,6 +56,17 @@ export const DELETE = async (
         .eq("tour_id", tourId)
         .eq("org_id", orgId);
       if (error) return serverError(error.message);
+
+      // If that was the tour's last pin, release the plan-set anchor so the
+      // author can pin a different plan set next (see POST /plan-pins).
+      const { count } = await admin
+        .from("tour_plan_pins")
+        .select("id", { count: "exact", head: true })
+        .eq("tour_id", tourId);
+      if (!count) {
+        await admin.from("project_tours").update({ plan_set_id: null }).eq("id", tourId).eq("org_id", orgId);
+      }
+
       return ok({ success: true });
     } catch (err) {
       console.error("[DELETE /api/tours/:tourId/plan-pins/:pinId] Error:", err);
