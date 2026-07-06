@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import {
   ArrowLeft, Upload, Trash2, Loader2, Globe, Crosshair, EyeOff,
-  ImageIcon, AlertTriangle, CheckCircle2, ChevronUp, ChevronDown,
+  CheckCircle2, ChevronUp, ChevronDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -11,8 +11,10 @@ import {
   StudioWorkspaceShell, StudioTabs, type StudioTab,
 } from "@/components/studio/StudioWorkspaceShell";
 import { TourSceneViewer, type TourSceneViewerHandle, type SceneView } from "./TourSceneViewer";
+import { TourPlanTab, type PlanSetSummary, type PlanPinRow } from "./TourPlanTab";
+import { StatusChip, SceneThumb } from "./TourSceneThumb";
 
-export type TourTab = "library" | "build" | "share" | "analytics";
+export type TourTab = "library" | "build" | "plan" | "share" | "analytics";
 export type SceneStatus = "uploading" | "processing" | "ready" | "failed";
 
 export type TourSceneRow = {
@@ -48,54 +50,23 @@ export type TourStudioWorkspaceProps = {
   onPublish: () => void;
   publishing?: boolean;
   onBack: () => void;
+  planLoading: boolean;
+  planSets: PlanSetSummary[];
+  activePlanSheetId: string | null;
+  onSelectPlanSheet: (sheetId: string) => void;
+  planPins: PlanPinRow[];
+  onPlacePin: (xPct: number, yPct: number, sceneId: string) => void;
+  onDeletePin: (pinId: string) => void;
+  creatingPin: boolean;
 };
 
 const TABS: StudioTab<TourTab>[] = [
   { id: "library", label: "Library" },
   { id: "build", label: "Build" },
+  { id: "plan", label: "Plan" },
   { id: "share", label: "Share" },
   { id: "analytics", label: "Analytics" },
 ];
-
-function StatusChip({ status }: { status: SceneStatus }) {
-  if (status === "ready") return null;
-  const map: Record<Exclude<SceneStatus, "ready">, { label: string; cls: string; icon: React.ReactNode }> = {
-    uploading: { label: "Uploading", cls: "text-sky-300", icon: <Loader2 className="size-3 animate-spin" /> },
-    processing: { label: "Processing", cls: "text-[var(--graphite-primary)]", icon: <Loader2 className="size-3 animate-spin" /> },
-    failed: { label: "Failed", cls: "text-red-400", icon: <AlertTriangle className="size-3" /> },
-  };
-  const m = map[status];
-  return (
-    <span className={`flex items-center gap-1 text-[10px] font-medium ${m.cls}`}>{m.icon}{m.label}</span>
-  );
-}
-
-/** Lazy thumbnail that resolves a signed URL only once the scene is ready. */
-function SceneThumb({
-  scene, resolveImageUrl, className = "",
-}: { scene: TourSceneRow; resolveImageUrl: TourStudioWorkspaceProps["resolveImageUrl"]; className?: string }) {
-  const [url, setUrl] = useState<string | null>(null);
-  useEffect(() => {
-    let alive = true;
-    if (scene.status === "ready") {
-      resolveImageUrl(scene.id, "thumbnail").then((u) => { if (alive) setUrl(u); });
-    }
-    return () => { alive = false; };
-  }, [scene.id, scene.status, resolveImageUrl]);
-
-  return (
-    <div className={`relative grid place-items-center overflow-hidden rounded-md bg-[var(--graphite-canvas-deep)] ${className}`}>
-      {url ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={url} alt={scene.title} className="h-full w-full object-cover" />
-      ) : scene.status === "ready" ? (
-        <Loader2 className="size-4 animate-spin text-[var(--graphite-muted)]" />
-      ) : (
-        <ImageIcon className="size-5 text-[var(--graphite-muted)]" />
-      )}
-    </div>
-  );
-}
 
 export function TourStudioWorkspace(props: TourStudioWorkspaceProps) {
   const {
@@ -103,6 +74,8 @@ export function TourStudioWorkspace(props: TourStudioWorkspaceProps) {
     activeTab, onTab, activeSceneId, onSelectScene, resolveImageUrl,
     onUpload, onDeleteScene, onReorder, onSetStartView, onRestrictView,
     onPublish, publishing, onBack,
+    planLoading, planSets, activePlanSheetId, onSelectPlanSheet, planPins,
+    onPlacePin, onDeletePin, creatingPin,
   } = props;
 
   const fileRef = useRef<HTMLInputElement>(null);
@@ -247,6 +220,21 @@ export function TourStudioWorkspace(props: TourStudioWorkspaceProps) {
             </p>
           </aside>
         </div>
+      )}
+
+      {/* ── Plan ────────────────────────────────────────────────── */}
+      {activeTab === "plan" && (
+        <TourPlanTab
+          loading={planLoading}
+          planSets={planSets}
+          activeSheetId={activePlanSheetId}
+          onSelectSheet={onSelectPlanSheet}
+          pins={planPins}
+          scenes={scenes}
+          onPlacePin={onPlacePin}
+          onDeletePin={onDeletePin}
+          creatingPin={creatingPin}
+        />
       )}
 
       {/* ── Share ───────────────────────────────────────────────── */}
