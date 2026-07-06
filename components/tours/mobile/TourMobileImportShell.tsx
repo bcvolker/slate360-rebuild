@@ -5,6 +5,7 @@ import type { ProjectTour } from "@/lib/types/tours";
 import { detectEquirect, type EquirectDetection } from "@/lib/tours/equirect-detect";
 import { uploadTourScene } from "@/lib/tours/mobile-uploader";
 import { TourMobileQueueItem } from "@/components/tours/mobile/TourMobileQueueItem";
+import { TourMobileProjectPicker, type TourMobileProject } from "@/components/tours/mobile/TourMobileProjectPicker";
 
 type QueueStatus = "detecting" | "queued" | "uploading" | "done" | "error";
 
@@ -24,10 +25,17 @@ function makeId(): string {
   return typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : `${Date.now()}_${Math.random()}`;
 }
 
-export function TourMobileImportShell({ recentTours }: { recentTours: ProjectTour[] }) {
+export function TourMobileImportShell({
+  recentTours,
+  projects,
+}: {
+  recentTours: ProjectTour[];
+  projects: TourMobileProject[];
+}) {
   const [screen, setScreen] = useState<Screen>("home");
   const [queue, setQueue] = useState<QueueEntry[]>([]);
   const [tourId, setTourId] = useState<string | null>(null);
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -77,6 +85,7 @@ export function TourMobileImportShell({ recentTours }: { recentTours: ProjectTou
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             title: `Tour — ${new Date().toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}`,
+            projectId: selectedProjectId ?? undefined,
           }),
         });
         const json = await res.json().catch(() => ({}));
@@ -180,6 +189,14 @@ export function TourMobileImportShell({ recentTours }: { recentTours: ProjectTou
           >
             + Add more photos
           </button>
+
+          {!tourId && (
+            <TourMobileProjectPicker
+              projects={projects}
+              selectedProjectId={selectedProjectId}
+              onChange={setSelectedProjectId}
+            />
+          )}
 
           {uploadError && <p className="text-xs text-red-400">{uploadError}</p>}
 
