@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState, type MouseEvent, type RefObje
 import { renderHeatmap, newSpotId } from "@/lib/thermal/probe-palettes";
 import { SpotOverlay } from "@/components/thermal-studio-v2/panels/analyze/SpotOverlay";
 import type { ThermalV2Grid } from "@/components/thermal-studio-v2/lib/grid-api";
-import type { ThermalV2Spot, ThermalV2Tool } from "@/components/thermal-studio-v2/types";
+import type { ThermalV2Isotherm, ThermalV2Spot, ThermalV2Tool } from "@/components/thermal-studio-v2/types";
 
 export type HoverInfo = { x: number; y: number; tempC: number } | null;
 
@@ -31,6 +31,7 @@ export function AnalyzeCanvas({
   palette,
   lo,
   hi,
+  isotherm,
   onHover,
   canvasRef,
   spots,
@@ -47,6 +48,7 @@ export function AnalyzeCanvas({
   palette: string;
   lo: number;
   hi: number;
+  isotherm?: ThermalV2Isotherm;
   onHover: (info: HoverInfo) => void;
   /** Shared with the loupe so it can drawImage() a cropped region of the same painted canvas. */
   canvasRef: RefObject<HTMLCanvasElement | null>;
@@ -79,8 +81,8 @@ export function AnalyzeCanvas({
     canvas.height = grid.height;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-    renderHeatmap(ctx, grid.temps, grid.width, grid.height, palette, lo, hi);
-  }, [grid, palette, lo, hi, canvasRef]);
+    renderHeatmap(ctx, grid.temps, grid.width, grid.height, palette, lo, hi, isotherm ?? null);
+  }, [grid, palette, lo, hi, isotherm, canvasRef]);
 
   // Track the canvas's OWN rendered box (browser already aspect-fit it via CSS) so
   // the overlay div can be positioned to match it pixel-for-pixel — no fit-scale math.

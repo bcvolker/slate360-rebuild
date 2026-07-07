@@ -46,3 +46,17 @@ export type ThermalV2Spot = {
   y2?: number;
   label?: string;
 };
+
+/**
+ * Same shape as the old ThermalProbeViewer's `ProbeTuning` / the capture PATCH
+ * route's `TuningPayload` (kept structurally compatible — no new backend).
+ */
+export type ThermalV2Tuning = {
+  emissivity: number;
+  reflected_c: number;
+  distance_m?: number;
+  humidity_pct?: number;
+  atmospheric_c?: number;
+};
+
+export type ThermalV2Isotherm = { lo: number; hi: number } | null;

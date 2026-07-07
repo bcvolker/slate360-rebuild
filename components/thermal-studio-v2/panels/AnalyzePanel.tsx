@@ -6,18 +6,23 @@ import { AnalyzeCaptureStrip } from "@/components/thermal-studio-v2/panels/analy
 import { AnalyzeViewer } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeViewer";
 import { AnalyzeToolbar } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeToolbar";
 import { AnalyzeMeasurements } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeMeasurements";
+import { AnalyzeTuning } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeTuning";
+import { AnalyzeDisplay } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeDisplay";
+import { AnalyzeAccordion } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeAccordion";
 import { useAnalyzeImage } from "@/components/thermal-studio-v2/lib/useAnalyzeImage";
 import type { HoverInfo } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeCanvas";
 import type { useLibrarySelection } from "@/components/thermal-studio-v2/lib/useLibrarySelection";
-import type { ThermalV2Capture } from "@/components/thermal-studio-v2/types";
+import type { ThermalV2Capture, ThermalV2Scope } from "@/components/thermal-studio-v2/types";
 
-/** Tab 2 — Analyze (doc §1, slice S3-S4): viewer core + measurement lifecycle. Tuning lands in S5. */
+/** Tab 2 — Analyze (doc §1, slice S3-S5): viewer core, measurement lifecycle, tuning + display + batch. */
 export function AnalyzePanel({
   captures,
   selection,
+  scope,
 }: {
   captures: ThermalV2Capture[];
   selection: ReturnType<typeof useLibrarySelection>;
+  scope: ThermalV2Scope;
 }) {
   const [palette, setPalette] = useState("Iron");
   const [unit, setUnit] = useState<"C" | "F">("C");
@@ -26,6 +31,15 @@ export function AnalyzePanel({
   const activeId = selection.focusedId ?? captures[0]?.id ?? null;
   const activeCapture = captures.find((c) => c.id === activeId) ?? null;
   const img = useAnalyzeImage(activeCapture);
+
+  const scopeIds =
+    scope.kind === "all"
+      ? captures.map((c) => c.id)
+      : scope.kind === "selected"
+        ? captures.filter((c) => selection.selectedIds.has(c.id)).map((c) => c.id)
+        : activeId
+          ? [activeId]
+          : [];
 
   function openCapture(id: string) {
     const index = captures.findIndex((c) => c.id === id);
@@ -97,6 +111,7 @@ export function AnalyzePanel({
           unit={unit}
           span={img.span}
           onSpanChange={img.setSpan}
+          isotherm={img.isotherm}
           hover={hover}
           onHoverChange={setHover}
           spots={img.spots}
@@ -109,19 +124,49 @@ export function AnalyzePanel({
         />
       }
       right={{
-        title: "Measurements",
+        title: "Details",
         content: (
-          <AnalyzeMeasurements
-            spots={img.spots}
-            grid={img.grid}
-            unit={unit}
-            referenceId={img.referenceId}
-            selectedId={img.selectedId}
-            onSelect={img.setSelectedId}
-            onSetReference={img.setReferenceId}
-            onRename={img.renameSpot}
-            onDelete={img.deleteSpot}
-          />
+          <div className="flex h-full flex-col overflow-y-auto">
+            <AnalyzeAccordion title="Measurements" defaultOpen>
+              <AnalyzeMeasurements
+                spots={img.spots}
+                grid={img.grid}
+                unit={unit}
+                referenceId={img.referenceId}
+                selectedId={img.selectedId}
+                onSelect={img.setSelectedId}
+                onSetReference={img.setReferenceId}
+                onRename={img.renameSpot}
+                onDelete={img.deleteSpot}
+              />
+            </AnalyzeAccordion>
+            <AnalyzeAccordion title="Tuning">
+              <AnalyzeTuning
+                captureId={activeId}
+                captures={captures}
+                tuning={img.tuning}
+                baseEmissivity={img.baseEmissivity}
+                onTuningChange={img.setTuning}
+                scope={scope}
+                scopeIds={scopeIds}
+              />
+            </AnalyzeAccordion>
+            <AnalyzeAccordion title="Display">
+              <AnalyzeDisplay
+                temps={img.grid?.temps ?? null}
+                span={img.span}
+                gridMin={img.grid?.minC ?? 0}
+                gridMax={img.grid?.maxC ?? 1}
+                unit={unit}
+                onSpanChange={img.setSpan}
+                isotherm={img.isotherm}
+                onIsothermChange={img.setIsotherm}
+              />
+            </AnalyzeAccordion>
+            <AnalyzeAccordion title="Notes & photo data">
+              <div className="p-2 text-xs text-[var(--graphite-muted)]">Findings note + camera/sensor data (later slice).</div>
+            </AnalyzeAccordion>
+          </div>
         ),
       }}
       bottom={{

@@ -5,7 +5,7 @@ import type { ThermalV2Grid } from "@/components/thermal-studio-v2/lib/grid-api"
 import { AnalyzeCanvas, type HoverInfo } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeCanvas";
 import { AnalyzeLegend } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeLegend";
 import { AnalyzeLoupe } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeLoupe";
-import type { ThermalV2Spot, ThermalV2Tool } from "@/components/thermal-studio-v2/types";
+import type { ThermalV2Isotherm, ThermalV2Spot, ThermalV2Tool } from "@/components/thermal-studio-v2/types";
 
 /** Center hero — presentational: canvas + legend + loupe. All state is owned by AnalyzePanel. */
 export function AnalyzeViewer({
@@ -16,6 +16,7 @@ export function AnalyzeViewer({
   unit,
   span,
   onSpanChange,
+  isotherm,
   hover,
   onHoverChange,
   spots,
@@ -33,6 +34,7 @@ export function AnalyzeViewer({
   unit: "C" | "F";
   span: { lo: number; hi: number } | null;
   onSpanChange: (next: { lo: number; hi: number }) => void;
+  isotherm?: ThermalV2Isotherm;
   hover: HoverInfo;
   onHoverChange: (h: HoverInfo) => void;
   spots: ThermalV2Spot[];
@@ -63,6 +65,7 @@ export function AnalyzeViewer({
           palette={palette}
           lo={span?.lo ?? 0}
           hi={span?.hi ?? 1}
+          isotherm={isotherm}
           onHover={onHoverChange}
           canvasRef={canvasRef}
           spots={spots}
