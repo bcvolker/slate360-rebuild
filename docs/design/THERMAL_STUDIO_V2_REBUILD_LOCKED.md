@@ -1,5 +1,10 @@
 # Thermal Studio V2 — Complete UI/Workflow Rebuild (LOCKED)
 
+> **2026-07-06 addendum:** Brian approved a V2.1 enhancement pass (FLIR-parity teardown +
+> human-factors review). New slices S5.5/S5.6/S6.5/S7.5/B1 and upgraded S7/S8 scope live in
+> `THERMAL_STUDIO_V2_1_ENHANCEMENTS.md` — read it together with this doc. §0 rules and §1b
+> guarantees here remain authoritative and unchanged; S9 remains HELD.
+
 > **Status:** LOCKED design, reconciled from a multi-AI panel (Gemini-class NLE/IDE framing,
 > Grok-class pipeline spec ×2) + Brian's corrections on 2026-06-21.
 > **Ground rule: NOTHING in the current thermal UI is reused.** The backend (APIs, jobs,
