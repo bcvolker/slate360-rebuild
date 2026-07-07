@@ -507,3 +507,158 @@ video export; no platform has an e-commerce/shoppable hotspot except Panoee; onl
 CloudPano and EyeSpy360 have native (non-iframe) lead-capture forms; Matterport has
 no native white-label at all (third-party overlay only); Ricoh360 never fully removes
 its watermark even at its top paid tier. These are the gaps this addendum targets.
+
+---
+
+## 10. Addendum 2026-07-07(b) — stitching pipeline confirmed, device table corrected, social sharing reality
+
+> Six independent external-AI research passes on the §9.11/§6 open questions (RAW
+> stitching implementation + camera/drone export compatibility), cross-checked against
+> our actual current code. All six converge on the same core answer; differences were
+> in command-chain detail and device specifics, reconciled below. Also answers a new
+> question: interactive 360 deliverables on social platforms.
+
+### 10.1 Stitching pipeline — §6/P6 plan confirmed correct, now with the real command chain
+
+**Confirmed unanimously by all six passes: Hugin + enblend/enfuse remains the correct
+free/OSS choice for 2026.** Nothing has displaced it. The concrete, verified headless
+chain (replaces the sketch in §6):
+
+```bash
+pto_gen -o project.pto --projection=<0|3> --fov=<HFOV> --sort *.jpg
+cpfind --multirow --celeste -o project.pto project.pto
+cpclean -o project.pto project.pto
+linefind -o project.pto project.pto
+autooptimiser -a -m -l -s -o project.pto project.pto
+pano_modify --projection=2 --fov=360x180 --canvas=AUTO --crop=AUTO -o project.pto project.pto
+nona -m TIFF_m -o remap project.pto
+enblend --compression=LZW -o pano.tif remap*.tif
+convert pano.tif -quality 92 pano.jpg
+exiftool -overwrite_original -XMP-GPano:ProjectionType=equirectangular \
+  -XMP-GPano:UsePanoramaViewer=True -XMP-GPano:FullPanoWidthPixels=<W> \
+  -XMP-GPano:FullPanoHeightPixels=<H> -XMP-GPano:CroppedAreaImageWidthPixels=<W> \
+  -XMP-GPano:CroppedAreaImageHeightPixels=<H> -XMP-GPano:CroppedAreaLeftPixels=0 \
+  -XMP-GPano:CroppedAreaTopPixels=0 pano.jpg
+```
+
+`--projection=0` (rectilinear) for phone/handheld source, `--projection=3` (fisheye)
+for fisheye-lens rigs; `--fov` is a client-supplied hint when EXIF lacks focal length
+(very common for phone/drone shots — pass a `lens_type` + `fov_hint` from the upload
+UI). **Always inject GPano server-side after stitching** — do not assume the source
+images (or the stitch itself) carry it.
+
+**Required QA gate, not optional:** after `autooptimiser`, parse the `.pto` for
+control-point count/connectivity and mean reprojection error. If images form
+disconnected components or mean error exceeds a threshold, **fail to a
+`needs_manual_retouch` status** rather than shipping a ghosted/misaligned result —
+this is a hard requirement, not a nice-to-have, given our evidentiary use case (§0,
+construction `purpose`, §9.3). Retry ladder: low control-point count → retry
+`cpfind --fullscan`/`--allpairs`; still failing → mark `failed`, surface a clear
+"reshoot with more overlap" message, never auto-ship a bad stitch.
+
+**Construction-specific failure mode, worth flagging in the upload UI copy:** blank
+drywall, repeating framing/scaffolding, and handheld parallax (camera not rotated
+around its own no-parallax point) are exactly the conditions construction users will
+hit most, and are the hardest cases for *any* stitcher, free or paid. Set
+expectations accordingly rather than promising flawless results from a walked
+handheld set.
+
+### 10.2 What NOT to attempt (explicit, per convergent research)
+
+- **Do not use OpenCV's `cv2.Stitcher` as the primary/only stitcher.** Confirmed by
+  every pass: no native full-360 equirectangular output, no zenith/nadir handling, no
+  seam-blending quality near enblend, brittle on low-texture surfaces. Fine only as a
+  cheap pre-flight "do these images even overlap" check before invoking Hugin.
+- **Do not adopt a deep-learning/diffusion stitcher as the production pipeline.**
+  Current models (UDIS++, PixelStitch, UniStitch, DiT360, etc.) are pairwise/narrow-
+  baseline research code, not closed-loop full-360 N-image engines. Revisit later
+  **only** as an optional post-process for nadir/zenith hole-filling on
+  `marketing`/`aerial`-purpose tours — never as the primary stitch, and never on
+  `construction`-purpose (evidentiary) tours.
+- **Never use generative/diffusion inpainting to complete a construction/evidentiary
+  photo.** Multiple passes flagged this explicitly: it can hallucinate content (a
+  structural beam, a missing wall section) — unacceptable where the photo is a
+  record, not a marketing asset. If AI hole-filling ever ships, gate it hard to
+  `purpose != 'construction'` and label it visibly as AI-assisted.
+- **Do not build around a "DJI `.360` format."** It doesn't exist — `.360` is
+  GoPro's/Insta360's raw container. DJI photos are plain JPEG/DNG; a DJI drone's
+  in-app "Sphere" panorama is either an auto-stitched JPEG or a set of separate
+  rectilinear/fisheye source frames, never a proprietary DJI 360 file type.
+- **Do not treat GPano XMP as a hard accept/reject gate** — already the right call in
+  §8.5, now doubly confirmed: Insta360's own Studio/app frequently **strips** GPano on
+  export (multiple independent community fix-tools exist for exactly this), and GoPro
+  Player does the same. Aspect-ratio-first, GPano-confirming-only remains correct.
+- **Do not chase PTGui or any paid stitcher** — still excluded by Principle #1; Hugin
+  reaches comparable quality for our unattended-cloud-job use case (speed doesn't
+  matter when nobody's watching it run).
+
+### 10.3 Two real, small gaps found in current code — worth a quick fix
+
+Checked `lib/tours/upload-constraints.ts` directly against the research: `.dng` is
+already correctly rejected (good — one pass's concern was already handled). Two real
+gaps remain:
+1. **`.gpr`** (GoPro's RAW format) is missing from `REJECTED_RAW_EXTENSIONS` — a
+   dual-fisheye GoPro RAW file could pass the aspect/MIME checks and be wrongly
+   accepted as if it were equirectangular. Add it alongside `.insp`/`.insv`/`.360`/`.dng`.
+2. **No server-side minimum width.** Not a clean fix: a hard 4000px floor would
+   correctly catch flat/reframed/low-res exports, but would also reject legitimate
+   older-generation equirect exports (Ricoh Theta S: 2048×1024; original Theta:
+   3584×1792). If a width floor is added, pair it with a quality-tier warning
+   ("this panorama is lower resolution than recommended") rather than an outright
+   reject, or grandfather known-legacy resolutions.
+
+### 10.4 Device compatibility table — corrections and additions
+
+Supersedes/extends the compatibility statement in §9.13:
+
+| Device | Format | Resolution | GPano reliable? |
+|---|---|---|---|
+| Insta360 X3/X4/X5 | JPEG via app/Studio (native `.insp`/DNG) | X4: 11904×5952 (72MP) or 5888×2944 (18MP) | **No — frequently stripped by Insta360's own export**, independent community fix-tools exist for this |
+| Insta360 Titan | JPEG/TIFF via Stitcher | up to ~10560×5280 | Unconfirmed, assume same as X-series |
+| **Insta360 "Antigravity" A1 — confirmed real, shipping** | JPEG/DNG via Antigravity app/Studio (same workflow as Insta360) | 55MP (10496×5248) or 14MP (5248×2624), 8K 360 video | Unconfirmed, assume same stripping behavior — inject server-side regardless |
+| DJI Mini/Air/Mavic "Sphere" mode | **Not a single-shot 360 camera** — captures 26-35 rectilinear frames, auto-stitches in DJI Fly to one JPEG, or saves raw frames for manual stitch | varies by model | Inconsistent — verify per export, don't assume |
+| **DJI Avata 360 — DJI's real native-360 drone** (dual 200° fisheye) | JPEG (auto-stitched) or DNG (2 separate fisheye files, needs stitching) | 30MP (7776×3888) or 120MP (15520×7760) | Unconfirmed |
+| **DJI Osmo 360 — dedicated 360 camera (not a drone)** | Panoramic JPEG | 15520×7760 (120MP) | Unconfirmed |
+| Ricoh Theta (Z1/X) | Equirect JPEG in-camera | Z1: 6720×3360; X: 11008×5504 | **Yes — best-in-class, includes full pose data** |
+| GoPro Max/Max 2 | Stitched equirect JPEG (+ `.gpr` RAW dual-fisheye) | Max: 5760×2880; Max 2: 7680×3840 | **No — not reliably embedded**, community injection scripts exist |
+
+Net: our aspect-ratio-first/GPano-confirming design (§8.5) is validated, not just for
+the one metadata-stripped file already found on disk — it's the correct default
+behavior for Insta360 and GoPro specifically, both mainstream devices.
+
+### 10.5 Interactive 360 deliverables on social media — the honest picture
+
+Researched directly (not part of the six external passes): can a tour be genuinely
+interactive *inside* a LinkedIn/social feed, or does it always have to link out?
+
+**LinkedIn, Instagram, X/Twitter: no way around linking out.** None of these
+platforms execute arbitrary WebGL/iframe content inside a feed post — this is a
+platform security restriction, not a gap in our implementation. A shared tour link
+will always render as a static preview card (image + title + description) that the
+viewer must click to open the real interactive experience. **This is exactly why
+§4 P1's OG/Twitter-card work (1200×630 card from the cover/thumbnail, not a raw
+equirect) already matters most** — it's the only lever we have for these platforms,
+so it needs to look genuinely good, not an afterthought.
+
+**Facebook is the one real exception, worth a feasibility check.** Facebook has
+native support for uploading a photo tagged with 360-spherical metadata that renders
+as a pannable, drag-to-look-around photo directly in the feed (a long-standing
+Facebook Graph API capability, distinct from a regular photo post). If current Graph
+API permissions still allow posting this programmatically (Meta's API access has
+gotten more restrictive over time — needs verification, not assumed), a "Publish to
+Facebook" deliverable option would be a genuine native-interactive social placement,
+not just a link-out. Flagged as worth a feasibility spike, not committed yet.
+
+**Bottom line for messaging to Brian/users:** don't oversell "interactive on
+LinkedIn" — it isn't possible on that platform no matter what we build. Sell the OG
+card quality (already planned) as the real lever everywhere except Facebook, and
+treat native Facebook 360-photo publishing as a distinct, separately-scoped
+possibility to verify before promising it.
+
+### 10.6 Marketing text effects — already covered, no new work needed
+
+The "good-looking embedded text with effects" ask is already the P5 Text Studio
+scope (§4, §0.8): title cards, labels, text bands, lower-thirds, kinetic
+animation, baked-to-equirect-overlay-sprite rendering, capped at ≤8 animated
+layers/scene, MLS mode disables kinetic, reduced-motion forces static. No new
+addendum item needed — just confirming this ask is already inside the locked plan.

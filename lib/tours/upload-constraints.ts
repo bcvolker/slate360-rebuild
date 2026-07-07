@@ -6,8 +6,10 @@
 
 // Raw camera formats we don't ingest yet (Tier 1 = finished equirect exports only).
 // .insp/.insv are Insta360 raw photo/video; .360 is GoPro/Insta360 raw; .dng is
-// drone raw stills (e.g. some DJI panorama workflows).
-export const REJECTED_RAW_EXTENSIONS = [".insp", ".insv", ".360", ".dng"] as const;
+// drone raw stills (e.g. some DJI panorama workflows); .gpr is GoPro's RAW photo
+// format — like .dng, it's a dual-fisheye source frame that can pass a naive
+// aspect-ratio check while not actually being equirectangular.
+export const REJECTED_RAW_EXTENSIONS = [".insp", ".insv", ".360", ".dng", ".gpr"] as const;
 
 export const ACCEPTED_MIME_TYPES = ["image/jpeg", "image/png"] as const;
 
