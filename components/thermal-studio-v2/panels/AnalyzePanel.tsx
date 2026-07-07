@@ -1,16 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { V2PanelFrame } from "@/components/thermal-studio-v2/V2PanelFrame";
 import { AnalyzeCaptureStrip } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeCaptureStrip";
 import { AnalyzeViewer } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeViewer";
 import { AnalyzeToolbar } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeToolbar";
-import { PlaceholderZone } from "@/components/thermal-studio-v2/panels/PlaceholderZone";
+import { AnalyzeMeasurements } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeMeasurements";
+import { useAnalyzeImage } from "@/components/thermal-studio-v2/lib/useAnalyzeImage";
 import type { HoverInfo } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeCanvas";
 import type { useLibrarySelection } from "@/components/thermal-studio-v2/lib/useLibrarySelection";
 import type { ThermalV2Capture } from "@/components/thermal-studio-v2/types";
 
-/** Tab 2 — Analyze (doc §1, slice S3): viewer core. Measurements land in S4, tuning in S5. */
+/** Tab 2 — Analyze (doc §1, slice S3-S4): viewer core + measurement lifecycle. Tuning lands in S5. */
 export function AnalyzePanel({
   captures,
   selection,
@@ -23,15 +24,57 @@ export function AnalyzePanel({
   const [hover, setHover] = useState<HoverInfo>(null);
 
   const activeId = selection.focusedId ?? captures[0]?.id ?? null;
+  const activeCapture = captures.find((c) => c.id === activeId) ?? null;
+  const img = useAnalyzeImage(activeCapture);
 
   function openCapture(id: string) {
     const index = captures.findIndex((c) => c.id === id);
     selection.click(id, index, {});
   }
 
+  // Ctrl/Cmd+Z (undo, +Shift for redo), Ctrl/Cmd+Y (redo), Delete/Backspace removes the selected measurement.
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      const target = e.target as HTMLElement | null;
+      if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA")) return;
+      const mod = e.ctrlKey || e.metaKey;
+      if (mod && e.key.toLowerCase() === "z") {
+        e.preventDefault();
+        if (e.shiftKey) img.redo();
+        else img.undo();
+        return;
+      }
+      if (mod && e.key.toLowerCase() === "y") {
+        e.preventDefault();
+        img.redo();
+        return;
+      }
+      if ((e.key === "Delete" || e.key === "Backspace") && img.selectedId) {
+        e.preventDefault();
+        img.deleteSpot(img.selectedId);
+      }
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [img]);
+
   return (
     <V2PanelFrame
-      toolbar={<AnalyzeToolbar palette={palette} onPaletteChange={setPalette} unit={unit} onUnitChange={setUnit} hover={hover} />}
+      toolbar={
+        <AnalyzeToolbar
+          palette={palette}
+          onPaletteChange={setPalette}
+          unit={unit}
+          onUnitChange={setUnit}
+          hover={hover}
+          tool={img.tool}
+          onToolChange={img.setTool}
+          canUndo={img.canUndo}
+          canRedo={img.canRedo}
+          onUndo={img.undo}
+          onRedo={img.redo}
+        />
+      }
       left={{
         title: "Working set",
         content: (
@@ -45,13 +88,39 @@ export function AnalyzePanel({
           />
         ),
       }}
-      center={<AnalyzeViewer captureId={activeId} palette={palette} unit={unit} onHoverChange={setHover} />}
+      center={
+        <AnalyzeViewer
+          grid={img.grid}
+          loading={img.loading}
+          error={img.error}
+          palette={palette}
+          unit={unit}
+          span={img.span}
+          onSpanChange={img.setSpan}
+          hover={hover}
+          onHoverChange={setHover}
+          spots={img.spots}
+          tool={img.tool}
+          selectedId={img.selectedId}
+          referenceId={img.referenceId}
+          onSelect={img.setSelectedId}
+          onCreateSpot={img.createSpot}
+          onCommitSpots={img.commitSpots}
+        />
+      }
       right={{
         title: "Measurements",
         content: (
-          <PlaceholderZone
-            label="Measurements · Tuning · Display · Notes"
-            detail="Accordions, Measurements open first (S4-S5)"
+          <AnalyzeMeasurements
+            spots={img.spots}
+            grid={img.grid}
+            unit={unit}
+            referenceId={img.referenceId}
+            selectedId={img.selectedId}
+            onSelect={img.setSelectedId}
+            onSetReference={img.setReferenceId}
+            onRename={img.renameSpot}
+            onDelete={img.deleteSpot}
           />
         ),
       }}

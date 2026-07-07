@@ -12,6 +12,9 @@
     "lib/thermal/curation-client.ts",
     "lib/thermal/types.ts",
     "lib/thermal/radiometric.ts",
-    "lib/thermal/probe-palettes.ts"
+    "lib/thermal/probe-palettes.ts",
+    "lib/thermal/spot-stats.ts",
+    "components/site-walk/canvas/useUndoRedo.ts",
+    "components/ops/thermal/ThermalProbeViewer.tsx"
   ]
 }

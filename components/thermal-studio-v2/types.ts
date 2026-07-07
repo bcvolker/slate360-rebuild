@@ -23,3 +23,26 @@ export type ThermalV2Capture = {
 };
 
 export type ThermalV2LibraryFilter = "all" | "flagged" | "in_report" | "high_delta" | string;
+
+export type ThermalV2Tool = "move" | "point" | "area" | "line";
+
+/**
+ * Same shape as the old ThermalProbeViewer's `ProbeSpot` / the capture PATCH
+ * route's `SpotPayload` (kept structurally compatible so lib/thermal/spot-stats.ts
+ * and the unchanged `/api/ops/thermal/captures/:id` `{ spots }` contract work
+ * without modification).
+ */
+export type ThermalV2Spot = {
+  id: string;
+  x: number;
+  y: number;
+  imported?: boolean;
+  kind?: "point" | "area" | "line";
+  target?: "crosshair" | "crosshair-circle" | "dot" | "square";
+  areaShape?: "box" | "circle";
+  w?: number;
+  h?: number;
+  x2?: number;
+  y2?: number;
+  label?: string;
+};
