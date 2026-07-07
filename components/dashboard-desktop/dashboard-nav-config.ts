@@ -50,7 +50,7 @@ const DASHBOARD_DESKTOP_NAV_ALL: DashboardNavItem[] = [
     matchPrefixes: ["/site-walks"],
   },
   {
-    label: "Digital Twins",
+    label: "Twin 360",
     href: "/digital-twins",
     icon: Box,
     matchPrefixes: ["/digital-twins", "/digital-twin/twins"],

@@ -57,7 +57,7 @@ export function DashboardHomeContent({ counts, recentProjects, recentWalks, rece
   const widgets = useMemo<BoardWidget[]>(() => [
     {
       id: "featured",
-      title: featured?.kind === "twin" ? "Continue — Digital Twin" : "Continue where you left off",
+      title: featured?.kind === "twin" ? "Continue — Twin 360" : "Continue where you left off",
       defaultSpan: 8,
       render: () =>
         featured ? (
@@ -150,11 +150,11 @@ export function DashboardHomeContent({ counts, recentProjects, recentWalks, rece
     },
     {
       id: "twins",
-      title: `Digital Twins${counts.digitalTwins ? ` · ${counts.digitalTwins}` : ""}`,
+      title: `Twin 360${counts.digitalTwins ? ` · ${counts.digitalTwins}` : ""}`,
       defaultSpan: 4,
       render: () =>
         recentTwins.length === 0 ? (
-          <DashboardEmptyState title="No digital twins yet" description="Capture a space to build a twin." actionLabel="Open Twins" actionHref="/digital-twins" />
+          <DashboardEmptyState title="No twins yet" description="Capture a space to build a twin." actionLabel="Open Twin 360" actionHref="/digital-twins" />
         ) : (
           <div className="flex flex-col gap-2">
             {recentTwins.slice(0, 8).map((tw) => (

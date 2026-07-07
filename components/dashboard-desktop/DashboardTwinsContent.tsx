@@ -13,13 +13,13 @@ export function DashboardTwinsContent({ twins }: { twins: HubTwin[] }) {
 
   return (
     <DashboardDomainWorkspace
-      title="Digital Twins"
+      title="Twin 360"
       subtitle={`${twins.length.toLocaleString()} twin spaces in this workspace`}
-      primaryAction={{ label: "Open Digital Twin", href: "/digital-twin" }}
+      primaryAction={{ label: "Open Twin 360", href: "/digital-twin" }}
       items={items}
       activeStatuses={["processing", "queued", "uploading", "draft", "capturing"]}
-      emptyTitle="No digital twins yet"
-      emptyDescription="Twin spaces appear here after capture and processing. Use the Digital Twin app to create your first space."
+      emptyTitle="No twins yet"
+      emptyDescription="Twin spaces appear here after capture and processing. Use the Twin 360 app to create your first space."
     />
   );
 }
