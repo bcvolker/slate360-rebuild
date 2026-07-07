@@ -11,7 +11,7 @@ export default async function DashboardHomePage() {
   const { user, orgId } = await resolveServerOrgContext();
   if (!user) redirect("/login?redirectTo=/dashboard");
 
-  const data = await loadDashboardHomeData(orgId);
+  const data = await loadDashboardHomeData(orgId, user.id);
 
   return (
     <DashboardHomeContent
@@ -19,6 +19,7 @@ export default async function DashboardHomePage() {
       recentProjects={data.recentProjects}
       recentWalks={data.recentWalks}
       recentTwins={data.recentTwins}
+      needsAttention={data.needsAttention}
     />
   );
 }

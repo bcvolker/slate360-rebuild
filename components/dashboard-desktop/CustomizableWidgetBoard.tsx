@@ -170,6 +170,7 @@ export default function CustomizableWidgetBoard({
             return (
               <section
                 key={w.id}
+                id={`dashboard-widget-${w.id}`}
                 className={`${SPAN_CLASS[w.span] ?? "lg:col-span-4"} flex min-h-0 flex-col overflow-hidden rounded-2xl border bg-[var(--mobile-app-card-bg)] transition-colors ${
                   dragId === w.id
                     ? "border-[color-mix(in_srgb,var(--graphite-primary)_55%,transparent)] opacity-60"
