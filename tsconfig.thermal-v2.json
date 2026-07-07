@@ -1,0 +1,13 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "incremental": false
+  },
+  "include": [
+    "components/thermal-studio-v2/**/*.ts",
+    "components/thermal-studio-v2/**/*.tsx",
+    "components/studio/**/*.ts",
+    "components/studio/**/*.tsx",
+    "app/preview/thermal-v2/**/*.tsx"
+  ]
+}
