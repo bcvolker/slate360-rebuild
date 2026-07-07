@@ -1632,6 +1632,17 @@ SALIENCY_TARGET_COUNTS = [1_500_000, 750_000, 350_000]  # AF5: progressive salie
 # on scale_applied; on ungated (still-arbitrary-unit) models 0.5 means nothing.
 MAX_METRIC_GAUSSIAN_EXTENT_M = 0.5
 
+# A3 (noise removal): statistical outlier removal (SOR) — the classic Open3D/PCL
+# floater killer. For each splat, the mean distance to its K nearest neighbors is
+# computed; splats whose mean-neighbor-distance is more than SOR_STD_RATIO std
+# devs above the global mean are isolated floaters (the residual "jumbled mess"
+# the radius-crop and spike-clamp don't catch) and are dropped. Conservative by
+# design — never removes more than SOR_MAX_REMOVAL_FRACTION (a genuinely diffuse
+# capture is a quality problem for the AF1 gate, not noise).
+SOR_K_NEIGHBORS = 16
+SOR_STD_RATIO = 2.0
+SOR_MAX_REMOVAL_FRACTION = 0.20
+
 
 def _read_ply_structured(ply_path: Path) -> tuple[list[str], "np.ndarray"]:
     """Parse a scalar-property-only PLY (3DGS export format) into its header
@@ -1694,6 +1705,39 @@ def _write_ply_structured(out_path: Path, header_lines: list[str], arr: "np.ndar
         arr.tofile(fh)
 
 
+def statistical_outlier_removal(xyz: "np.ndarray") -> "np.ndarray":
+    """A3: return a boolean inlier mask dropping isolated floater splats (see the
+    SOR_* constants). Uses a KD-tree for O(n log n) neighbor queries. Skips
+    gracefully (keeps everything) when scipy is unavailable, the cloud is too
+    small, or the result would remove more than SOR_MAX_REMOVAL_FRACTION."""
+    import numpy as np
+
+    n = len(xyz)
+    if n < max(50, SOR_K_NEIGHBORS + 1):
+        return np.ones(n, dtype=bool)
+    try:
+        from scipy.spatial import cKDTree
+    except Exception as exc:  # noqa: BLE001
+        print(f"[sor] scipy unavailable, skipping outlier removal: {exc}")
+        return np.ones(n, dtype=bool)
+
+    tree = cKDTree(xyz)
+    # k+1 because the first neighbor of each point is itself (distance 0).
+    dists, _ = tree.query(xyz, k=SOR_K_NEIGHBORS + 1, workers=-1)
+    mean_neighbor = dists[:, 1:].mean(axis=1)
+    mu = float(mean_neighbor.mean())
+    sigma = float(mean_neighbor.std())
+    if sigma <= 1e-9:
+        return np.ones(n, dtype=bool)
+    inliers = mean_neighbor <= (mu + SOR_STD_RATIO * sigma)
+    kept = int(inliers.sum())
+    if kept < n * (1.0 - SOR_MAX_REMOVAL_FRACTION):
+        # Would remove too much — this is a diffuse capture, not noise. Keep all.
+        print(f"[sor] would remove {n - kept}/{n} (>{SOR_MAX_REMOVAL_FRACTION:.0%}), skipping")
+        return np.ones(n, dtype=bool)
+    return inliers
+
+
 def crop_recenter_and_cap_ply(ply_path: Path, out_path: Path, scale_factor: float = 1.0) -> dict[str, Any]:
     """AF9 (crop + recenter), AF3 (splat-count ceiling), and Q1 (metric-scale
     bake-in), combined into one full-property PLY read/write pass (avoids
@@ -1751,6 +1795,15 @@ def crop_recenter_and_cap_ply(ply_path: Path, out_path: Path, scale_factor: floa
         [arr["x"].astype(np.float64), arr["y"].astype(np.float64), arr["z"].astype(np.float64)],
         axis=1,
     )
+
+    # A3: statistical outlier removal first — strip isolated floaters so the
+    # percentile crop center/radius below are computed on the cleaned cloud.
+    sor_inliers = statistical_outlier_removal(xyz)
+    sor_removed = int(total - int(sor_inliers.sum()))
+    if sor_removed > 0:
+        arr = arr[sor_inliers]
+        xyz = xyz[sor_inliers]
+        total = len(arr)
 
     lo = np.percentile(xyz, 5, axis=0)
     hi = np.percentile(xyz, 95, axis=0)
@@ -1814,6 +1867,8 @@ def crop_recenter_and_cap_ply(ply_path: Path, out_path: Path, scale_factor: floa
     _write_ply_structured(out_path, header_lines, out_arr)
 
     return {
+        "splatsRaw": total + sor_removed,
+        "sorRemoved": sor_removed,
         "splatsBeforeCrop": total,
         "splatsAfterCrop": after_crop,
         "cropFactor": CROP_FACTOR,
