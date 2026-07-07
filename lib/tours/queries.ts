@@ -37,12 +37,14 @@ export async function createTour(
     createdBy,
     title,
     description,
+    purpose,
   }: {
     orgId: string;
     projectId?: string | null;
     createdBy: string;
     title: string;
     description?: string | null;
+    purpose?: string | null;
   }
 ) {
   const { data, error } = await supabase
@@ -53,6 +55,7 @@ export async function createTour(
       created_by: createdBy,
       title,
       description,
+      purpose: purpose || null,
       status: "draft",
     })
     .select("*")

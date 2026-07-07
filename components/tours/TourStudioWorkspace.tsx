@@ -14,7 +14,7 @@ import { TourSceneViewer, type TourSceneViewerHandle, type SceneView } from "./T
 import { TourPlanTab, type PlanSetSummary, type PlanPinRow } from "./TourPlanTab";
 import { StatusChip, SceneThumb } from "./TourSceneThumb";
 
-export type TourTab = "library" | "build" | "plan" | "share" | "analytics";
+export type TourTab = "library" | "build" | "plan" | "deliverables" | "analytics";
 export type SceneStatus = "uploading" | "processing" | "ready" | "failed";
 
 export type TourSceneRow = {
@@ -64,7 +64,7 @@ const TABS: StudioTab<TourTab>[] = [
   { id: "library", label: "Library" },
   { id: "build", label: "Build" },
   { id: "plan", label: "Plan" },
-  { id: "share", label: "Share" },
+  { id: "deliverables", label: "Deliverables" },
   { id: "analytics", label: "Analytics" },
 ];
 
@@ -237,14 +237,14 @@ export function TourStudioWorkspace(props: TourStudioWorkspaceProps) {
         />
       )}
 
-      {/* ── Share ───────────────────────────────────────────────── */}
-      {activeTab === "share" && (
+      {/* ── Deliverables ───────────────────────────────────────────────── */}
+      {activeTab === "deliverables" && (
         <div className="h-full overflow-y-auto p-6">
           <div className="mx-auto max-w-lg space-y-4">
-            <h2 className="text-sm font-semibold text-[var(--graphite-text-header)]">Publish & share</h2>
+            <h2 className="text-sm font-semibold text-[var(--graphite-text-header)]">Interactive Link</h2>
             <p className="text-xs text-[var(--graphite-muted)]">
-              {readyCount} scene{readyCount === 1 ? "" : "s"} ready. Branding, embed builder, MLS/unbranded
-              links and password/expiry arrive in P1.
+              {readyCount} scene{readyCount === 1 ? "" : "s"} ready. This link is the plan-sheet walkthrough
+              automatically if the tour has plan pins, otherwise the scene-to-scene viewer.
             </p>
             <Button size="sm" onClick={onPublish} disabled={publishing || readyCount === 0}>
               {publishing ? <Loader2 className="size-4 animate-spin" /> : <><Globe className="mr-1.5 size-3.5" /> {tourStatus === "published" ? "Unpublish" : "Publish"}</>}
@@ -255,6 +255,15 @@ export function TourStudioWorkspace(props: TourStudioWorkspaceProps) {
                 Open public tour →
               </a>
             )}
+            <div className="border-t border-[var(--mobile-app-card-border)] pt-4">
+              <p className="text-[11px] font-medium uppercase tracking-wide text-[var(--graphite-muted)]">
+                Coming to Deliverables
+              </p>
+              <p className="mt-1.5 text-xs text-[var(--graphite-muted)]">
+                Embed snippet, MLS-compliant unbranded export, PDF leave-behind, video flythrough,
+                offline tour package, and VR/headset entry — see TOUR_BUILDER_PLAN.md §9.2.
+              </p>
+            </div>
           </div>
         </div>
       )}

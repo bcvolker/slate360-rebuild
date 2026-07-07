@@ -662,3 +662,62 @@ scope (§4, §0.8): title cards, labels, text bands, lower-thirds, kinetic
 animation, baked-to-equirect-overlay-sprite rendering, capped at ≤8 animated
 layers/scene, MLS mode disables kinetic, reduced-motion forces static. No new
 addendum item needed — just confirming this ask is already inside the locked plan.
+
+---
+
+## 11. Addendum 2026-07-07(c) — human-factors sweep + implementation
+
+> Role-played five user personas against the actual live code (not hypothetically)
+> to find real workflow dead-ends before shipping further. Findings below drove the
+> fixes implemented in this same pass — this section records both.
+
+### 11.1 Personas and findings
+
+- **Marketing agency, Insta360 X4 owner** — shoots a business showcase. Entry screen
+  (drag-drop + thumbnails) works well. **Gap found:** nothing on entry asked what
+  *kind* of tour this is, so every tour got generic Build/Deliverables treatment
+  regardless of intent. **Fixed:** purpose selector (§11.2).
+- **GC/superintendent, phone or cheap 360 camera, project-linked weekly documentation**
+  — needs plan-sheet pins. **Real bug found:** clicking a plan sheet before any scene
+  finished uploading did **nothing at all** — no cursor change, no message, a silent
+  dead end. **Fixed:** a hint banner now tells the author to upload in Library first
+  (§11.2).
+- **Drone/aerial marketing, DJI or Insta360 Antigravity** — P3 (baked nadir, tiny-
+  planet intro) isn't built yet, so this persona gets generic Build-tab treatment
+  today. Acceptable for now — flagged, not fixed this pass; sequencing unchanged.
+- **Wayfinding, embedding on another business's site / Google** — Deliverables tab
+  copy was vague ("arrives in P1") and didn't say what already works. **Fixed:**
+  clearer copy distinguishing what's live (Interactive Link, which already serves
+  the plan-sheet walkthrough automatically when pins exist) from what's queued
+  (§11.2).
+- **Mobile-first, phone capture, non-technical** — `/app/tours` import flow (project
+  picker + equirect auto-detect) still works as designed; no purpose selector added
+  there this pass — deferred, not a regression, since mobile tours mostly land as
+  project-linked or 360-Library-inbox regardless of purpose.
+
+### 11.2 What was implemented this pass
+
+- **`project_tours.purpose`** column (migration `20260707120000_tour_purpose.sql`,
+  applied to prod) — `marketing | aerial | wayfinding | construction`, per §9.3.
+- **Purpose selector on the entry screen** (`TourImportZone.tsx`) — the first
+  decision an author makes, before a single photo lands; drop-zone copy echoes the
+  selection back ("start a new aerial tour") so the choice feels consequential, not
+  decorative.
+- **`Share` tab renamed to `Deliverables`** throughout `TourStudioWorkspace.tsx`
+  (§9.1) — copy updated to name what's live (Interactive Link, auto-serves the
+  plan-sheet walkthrough) vs. queued (embed, MLS export, PDF, video, package, VR).
+- **Plan-tab dead-end fixed** — a visible hint banner replaces the silent no-op when
+  an author tries to place a pin before any scene has finished uploading.
+- **Dashboard nav re-verified** — `resolveDashboardNav` is the single source of
+  truth for both the sidebar and (indirectly, via `twinVisible`) the top
+  AppSwitcher; no duplicate/orphaned nav list found. The earlier "incorrect tabs"
+  report (2026-07-06/07 conversation) was fully resolved by the Twin 360 naming fix
+  already shipped — nothing further to fix here.
+
+### 11.3 Deferred, not forgotten
+
+P3 aerial nadir/tiny-planet treatment, the embed builder, MLS-compliant export
+toggle, native lead-capture hotspot type, video flythrough export, and the mobile
+purpose selector all remain queued per the phase order in §4/§9/§10 — none of this
+addendum changes that sequencing, it only fixes what was broken in the slices
+already shipped.

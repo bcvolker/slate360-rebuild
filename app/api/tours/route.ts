@@ -4,6 +4,9 @@ import { ok, badRequest, serverError, unauthorized } from "@/lib/server/api-resp
 import { getTours, createTour } from "@/lib/tours/queries";
 import { findOrCreate360LibraryProject } from "@/lib/tours/system-project";
 import { isOwnerEmail } from "@/lib/server/beta-access";
+import type { TourPurpose } from "@/lib/types/tours";
+
+const VALID_PURPOSES: readonly TourPurpose[] = ["marketing", "aerial", "wayfinding", "construction"];
 
 export const runtime = "nodejs";
 
@@ -28,11 +31,14 @@ export const POST = (req: NextRequest) =>
 
     try {
       const body = await req.json();
-      const { title, description } = body;
+      const { title, description, purpose } = body;
       let { projectId } = body;
 
       if (!title) {
         return badRequest("Title is required");
+      }
+      if (purpose !== undefined && purpose !== null && !VALID_PURPOSES.includes(purpose)) {
+        return badRequest(`purpose must be one of: ${VALID_PURPOSES.join(", ")}`);
       }
 
       // Project-less tours (e.g. from the mobile import flow) land in a hidden
@@ -50,6 +56,7 @@ export const POST = (req: NextRequest) =>
         title,
         description,
         projectId,
+        purpose,
       });
 
       return ok(newTour);

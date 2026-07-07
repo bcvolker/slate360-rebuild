@@ -1,13 +1,24 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Loader2, UploadCloud } from "lucide-react";
+import { Loader2, UploadCloud, Megaphone, Plane, Compass, HardHat } from "lucide-react";
 import { TourMobileProjectPicker, type TourMobileProject } from "./mobile/TourMobileProjectPicker";
+import type { TourPurpose } from "@/lib/types/tours";
+
+const PURPOSES: Array<{ id: TourPurpose; label: string; icon: typeof Megaphone; blurb: string }> = [
+  { id: "marketing", label: "Marketing", icon: Megaphone, blurb: "Show off a business or property" },
+  { id: "aerial", label: "Aerial", icon: Plane, blurb: "Drone-captured exteriors" },
+  { id: "wayfinding", label: "Wayfinding", icon: Compass, blurb: "For another site or Google" },
+  { id: "construction", label: "Construction", icon: HardHat, blurb: "Project-linked, plan-pinned" },
+];
 
 /** Full-bleed drag-and-drop hero — the entry point into the builder. Dropping
  * or picking files creates the tour and hands the FileList straight to the
  * workspace, which uploads them the moment it mounts (see TourStudioShell's
- * pendingFiles prop) — no separate "name your tour first" step in the way. */
+ * pendingFiles prop) — no separate "name your tour first" step in the way.
+ * Purpose is the first decision an author makes, before a single photo lands —
+ * it sets sane defaults downstream (branding mode, plan requirement,
+ * evidentiary hash) per TOUR_BUILDER_PLAN.md §9.3, never a fork of the engine. */
 export function TourImportZone({
   projects,
   onCreated,
@@ -16,6 +27,7 @@ export function TourImportZone({
   onCreated: (tourId: string, files: FileList) => void;
 }) {
   const [projectId, setProjectId] = useState<string | null>(null);
+  const [purpose, setPurpose] = useState<TourPurpose>("marketing");
   const [dragOver, setDragOver] = useState(false);
   const [creating, setCreating] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -30,6 +42,7 @@ export function TourImportZone({
         body: JSON.stringify({
           title: `Untitled tour — ${new Date().toLocaleDateString(undefined, { month: "short", day: "numeric" })}`,
           projectId: projectId ?? undefined,
+          purpose,
         }),
       });
       if (!res.ok) return;
@@ -43,7 +56,29 @@ export function TourImportZone({
 
   return (
     <div className="space-y-3">
-      <div className="flex justify-end">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex gap-1.5 rounded-xl border border-[var(--mobile-app-card-border)] bg-white/[0.02] p-1">
+          {PURPOSES.map((p) => {
+            const Icon = p.icon;
+            const active = purpose === p.id;
+            return (
+              <button
+                key={p.id}
+                type="button"
+                title={p.blurb}
+                onClick={() => setPurpose(p.id)}
+                className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition ${
+                  active
+                    ? "bg-[color-mix(in_srgb,var(--graphite-primary)_16%,transparent)] text-[var(--graphite-text-header)]"
+                    : "text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]"
+                }`}
+              >
+                <Icon className="size-3.5" />
+                {p.label}
+              </button>
+            );
+          })}
+        </div>
         <div className="w-64">
           <TourMobileProjectPicker projects={projects} selectedProjectId={projectId} onChange={setProjectId} />
         </div>
@@ -86,7 +121,9 @@ export function TourImportZone({
         )}
         <div>
           <p className="text-sm font-medium text-[var(--graphite-text-header)]">
-            {creating ? "Creating your tour…" : "Drop 360° panoramas here to start a new tour"}
+            {creating
+              ? "Creating your tour…"
+              : `Drop 360° panoramas here to start a new ${PURPOSES.find((p) => p.id === purpose)?.label.toLowerCase()} tour`}
           </p>
           <p className="mt-1 text-xs text-[var(--graphite-muted)]">
             or click to choose files — equirectangular JPG/PNG, 2:1 aspect ratio

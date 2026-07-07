@@ -1,5 +1,8 @@
 export type TourStatus = "draft" | "published";
 export type LogoPosition = "top-left" | "top-right" | "bottom-left" | "bottom-right";
+/** Drives default branding/plan-requirement/evidentiary-hash behavior — see
+ * docs/design/TOUR_BUILDER_PLAN.md §9.3. Not a fork of the engine. */
+export type TourPurpose = "marketing" | "aerial" | "wayfinding" | "construction";
 
 export interface ProjectTour {
   id: string;
@@ -9,6 +12,7 @@ export interface ProjectTour {
   title: string;
   description: string | null;
   status: TourStatus;
+  purpose: TourPurpose | null;
   viewerSlug: string | null;
   logoAssetPath: string | null;
   logoWidthPercent: number | null;
