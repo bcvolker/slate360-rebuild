@@ -98,10 +98,55 @@ Time-lapse & video · Site map (twin) · Q&A inbox**. Center = the active surfac
 - Site map: Leaflet GPS pins (severity colored) + thermal layer toggle + twin link/align.
 - Q&A: client questions with inline replies (feeds Ops Console).
 
+## 1b. Workflow guarantees (verify in EVERY slice, desktop and app)
+
+These are behavioral requirements, not suggestions. Each slice's acceptance check includes them.
+
+1. **Single / multiple / batch everywhere.** Any operation that can apply to one image must
+   also work on a selection and on the whole set: decode, AI detect, tuning, palette, span,
+   add-to-report, export, delete. Multi-select is first-class in every list/grid/carousel
+   (checkbox corners, shift-click ranges, marquee in grids, Select all). The global Scope
+   pill is the single source of truth; batch results always end with the Keep/Undo toast.
+2. **Real-time image response.** Level/span (and isotherm) adjustments re-render the image
+   **live while dragging** — no Apply button, no debounce visible to the eye (<50ms; render
+   from the in-memory temperature grid on a canvas). **Emissivity, reflected temperature,
+   distance, humidity, atmospheric** changes recompute the actual per-pixel temperature
+   values live (the client-side gray-body recompute already exists in `lib/thermal/radiometric.ts`
+   — `tuneTemps`; V2 must keep this path, never a server round-trip for preview). Every
+   readout — cursor temp, loupe, measurement list, legend endpoints, histogram — updates
+   from the SAME recomputed grid so numbers never disagree with the picture.
+3. **Save + export are explicit and complete.**
+   - **Save to file (session):** tuning, palette, span, measurements, notes autosave to the
+     capture record (existing PATCH API) with a visible "Saved ✓" state — plus "Save as
+     preset" for tuning profiles.
+   - **Export image:** current view as PNG/JPEG at full resolution, user choice of
+     **Clean** (no overlays) or **Annotated** (measurements + legend burned in), single or batch.
+   - **Export data with the image:** every image export can include a sidecar (and a batch
+     export produces a ZIP): `image.png` + `image.json` (all metadata: camera, sensor,
+     resolution, capture time, GPS, weather, tuning values, span) + measurements table
+     (CSV rows: label, type, temp, Δ) + **AI findings** (accepted text, severity, boxes).
+     One "Export package" button — never image-only unless the user unchecks data.
+4. **AI is general-purpose.** The AI assistant/interpretation must serve ANY thermal use case
+   — building envelope, electrical, mechanical, plumbing, solar, veterinary, automotive,
+   hobbyist — not assume construction. Rules: (a) the model infers the subject from the
+   image + asks nothing; (b) domain standards (ASTM/NFPA…) are ONLY cited when the operator
+   picked a template/standard — otherwise findings use neutral physical language ("localized
+   heating consistent with electrical resistance or friction"); (c) severity words are
+   universal (Critical/Warning/Advisory), never trade-specific; (d) an optional free-text
+   "context" field lets the operator say what they're inspecting, which is passed to the AI;
+   (e) the app copy never says "construction" — it says "whatever you inspect."
+
 ## 2. Build plan — slices for Sonnet 5 (each: build → scoped tsc → preview-verify → push)
 
-Rebuild in `components/thermal-studio-v2/**` + `app/(dashboard)/thermal-studio/**` swap.
-Backend untouched. Preview harness `/preview/thermal-v2` built FIRST and kept faithful.
+**PARALLEL-BUILD DIRECTIVE (Brian, 2026-06-21):** V2 is built entirely behind
+`/preview/thermal-v2` (unauthenticated harness + a `/thermal-studio-v2` CEO-gated live route
+if useful). The existing `/thermal-studio` stays untouched and working while V2 is built.
+**S9 (the swap + deletion of the old UI) is NOT executed until Brian reviews V2 and
+explicitly approves the swap.** Push every verified slice so Brian can look at the preview
+route on prod at any time.
+
+Rebuild in `components/thermal-studio-v2/**`. Backend untouched. Preview harness
+`/preview/thermal-v2` built FIRST and kept faithful.
 
 - **S1 — Shell + scope + harness.** `ThermalV2Shell` (thin bar: title/session · 5 tabs ·
   global Scope pill · status chips · job pill), resizable-panel frame primitives
@@ -123,12 +168,18 @@ Backend untouched. Preview harness `/preview/thermal-v2` built FIRST and kept fa
   renderer), template gallery, branding, generate + history.
 - **S8 — Deliver.** Section nav + share/exports/motion-section/map/Q&A (port Motion engine
   from the old tab into the section; delete the Motion tab concept).
-- **S9 — Swap + delete.** Route the real pages to V2, delete `components/ops/thermal/**`
-  screens (keep `lib/thermal/**` logic), update memories/docs, full-tab no-scroll +
-  dead-button audit at 3 viewport sizes.
+- **S8.5 — Export engine.** Clean/Annotated PNG export (canvas render at native resolution),
+  data sidecars (JSON metadata + CSV measurements + accepted AI findings), batch → ZIP,
+  "Export package" in Analyze + Deliver (one implementation, two entry points).
+- **S9 — Swap + delete. ⚠ HOLD — do NOT execute until Brian reviews V2 and approves.**
+  Route the real pages to V2, delete `components/ops/thermal/**` screens (keep
+  `lib/thermal/**` logic), update memories/docs, full-tab no-scroll + dead-button audit
+  at 3 viewport sizes.
 
 Per-slice gates: scoped tsconfig typecheck (never bare tsc), guard:design, guard:architecture,
-preview_eval measurements (page scroll = 0, panel/handle counts, feature presence),
+preview_eval measurements (page scroll = 0, panel/handle counts, feature presence, and the
+§1b workflow guarantees relevant to the slice — e.g. S5 must demonstrate live-drag span
+re-render and live emissivity recompute updating cursor/loupe/list/legend together),
 commit small, push after verify (parallel-chat safe: never touch `src/trigger/**`,
 `components/content-studio/**`, `components/design-studio/**`).
 
@@ -166,9 +217,45 @@ Live-camera SDKs (FLIR One, Topdon USB-C) are a v2 track.
 - Cloud costs metered by credits inside the IAP subscription; heavy work (AI, PDF) reuses
   the same Modal workers behind a separate API key/tenant.
 
-**Build order (after desktop V2 stabilizes):** A1 scaffold app + file import + viewer ·
-A2 measurements/palettes/tuning essentials · A3 decode service multi-sensor hardening ·
-A4 reports + IAP · A5 AI credits · A6 store assets + TestFlight → review.
+**Complete app build plan (executable slices — start after desktop S5 is verified, since
+A-slices reuse the V2 viewer/measurement components):**
+
+- **A0 — Product setup.** New repo (e.g. `C:\thermal-app\`), working name + logo placeholder
+  (Brian picks the real name), Capacitor + Next.js (static export) or Vite+React scaffold,
+  new Apple bundle id, new Supabase project (auth + `app_sessions`, `app_captures`,
+  `app_purchases` tables), separate Modal tenant key for AI/PDF calls, Codemagic pipeline
+  cloned from the Slate360 one. NOTHING imports from the Slate360 app; shared logic is
+  copied into a `packages/thermal-core` folder (decode client, radiometric math, palettes,
+  spot-stats, markers) so both products evolve independently.
+- **A1 — Files + viewer.** Bottom tabs scaffold (Files/View/Detect/Report/Settings).
+  Files: on-device folders, import from Files app / Photos / USB, multi-select.
+  View: swipe carousel, pinch zoom, tap = spot temp, long-press loupe, palette + span
+  (live-drag re-render) + °C/°F. Works fully OFFLINE for non-radiometric display and for
+  radiometric files decoded on-device (see A2) — no login wall.
+- **A2 — Decode + measure.** Port the R-JPEG/DJI/HIKMICRO/Autel parsing to a device-side
+  decode where feasible (JS/WASM port of `extract.py` logic for the common R-JPEG variants;
+  cloud decode as fallback for exotic formats). Point/Area/Line with the same
+  select/drag/resize/delete/undo lifecycle; emissivity + reflected live recompute;
+  measurement list with Δ vs reference.
+- **A3 — Save + export.** Autosave per image; Export image (Clean/Annotated) to Photos/
+  Files/share sheet; Export package (image + JSON metadata + CSV measurements) single or
+  multi-select ZIP.
+- **A4 — Reports + IAP.** 2-up PDF (their logo/company/footer, °C/°F) → share sheet.
+  StoreKit subscription via Capacitor IAP plugin (free: view/measure/3 reports/mo;
+  Pro: unlimited reports + AI credits + batch). Paywall copy neutral and review-safe.
+  In-app account creation optional (Sign in with Apple) + in-app account deletion.
+- **A5 — AI Detect.** One-tap cloud detect (metered credits) with the general-purpose AI
+  rules from §1b.4 (optional "what are you inspecting?" context field); Accept/Edit/Dismiss;
+  findings flow into the PDF and exports.
+- **A6 — Store readiness.** App Privacy labels (photos, location-in-EXIF disclosure),
+  privacy policy + terms URLs, screenshots/preview video, TestFlight, submission checklist
+  (no external payment references, no coming-soon, offline free core, deletion flow,
+  descriptive third-party sensor naming). Run the app-store-readiness audit before submit.
+
+**App workflow guarantees:** identical §1b rules apply — multi-select everywhere, live-drag
+span + live emissivity recompute on-device, save/export always offers data-with-image,
+AI stays domain-neutral. The app is a lighter SUBSET of desktop (no Motion, no twin map,
+no template designer — those say "available in the desktop studio").
 
 ## 4. Panel ideas adopted / rejected
 
