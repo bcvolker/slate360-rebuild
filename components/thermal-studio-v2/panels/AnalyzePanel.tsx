@@ -1,27 +1,51 @@
-import { V2PanelFrame } from "@/components/thermal-studio-v2/V2PanelFrame";
-import { PlaceholderZone } from "./PlaceholderZone";
+"use client";
 
-/** Tab 2 — Analyze (doc §1). Real content lands in S3-S5. */
-export function AnalyzePanel() {
+import { useState } from "react";
+import { V2PanelFrame } from "@/components/thermal-studio-v2/V2PanelFrame";
+import { AnalyzeCaptureStrip } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeCaptureStrip";
+import { AnalyzeViewer } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeViewer";
+import { AnalyzeToolbar } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeToolbar";
+import { PlaceholderZone } from "@/components/thermal-studio-v2/panels/PlaceholderZone";
+import type { HoverInfo } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeCanvas";
+import type { useLibrarySelection } from "@/components/thermal-studio-v2/lib/useLibrarySelection";
+import type { ThermalV2Capture } from "@/components/thermal-studio-v2/types";
+
+/** Tab 2 — Analyze (doc §1, slice S3): viewer core. Measurements land in S4, tuning in S5. */
+export function AnalyzePanel({
+  captures,
+  selection,
+}: {
+  captures: ThermalV2Capture[];
+  selection: ReturnType<typeof useLibrarySelection>;
+}) {
+  const [palette, setPalette] = useState("Iron");
+  const [unit, setUnit] = useState<"C" | "F">("C");
+  const [hover, setHover] = useState<HoverInfo>(null);
+
+  const activeId = selection.focusedId ?? captures[0]?.id ?? null;
+
+  function openCapture(id: string) {
+    const index = captures.findIndex((c) => c.id === id);
+    selection.click(id, index, {});
+  }
+
   return (
     <V2PanelFrame
-      toolbar={
-        <span className="text-[11px] text-[var(--graphite-muted)]">
-          Point · Area · Line · Move/Select — palette · °C/°F · Undo ↶ Redo ↷ (S3-S4)
-        </span>
-      }
+      toolbar={<AnalyzeToolbar palette={palette} onPaletteChange={setPalette} unit={unit} onUnitChange={setUnit} hover={hover} />}
       left={{
         title: "Working set",
         content: (
-          <PlaceholderZone label="Working-set list" detail="Filmstrip ↔ folder tree toggle, per-image badges (S3)" />
+          <AnalyzeCaptureStrip
+            captures={captures}
+            activeId={activeId}
+            selectedIds={selection.selectedIds}
+            onOpen={openCapture}
+            onToggleSelect={(id) => selection.click(id, captures.findIndex((c) => c.id === id), { toggle: true })}
+            layout="vertical"
+          />
         ),
       }}
-      center={
-        <PlaceholderZone
-          label="Viewer"
-          detail="Zoom/pan, hover temp readout, draggable legend span, floating loupe, blend slider, synced compare (S3)"
-        />
-      }
+      center={<AnalyzeViewer captureId={activeId} palette={palette} unit={unit} onHoverChange={setHover} />}
       right={{
         title: "Measurements",
         content: (
@@ -33,7 +57,16 @@ export function AnalyzePanel() {
       }}
       bottom={{
         title: "Filmstrip",
-        content: <PlaceholderZone label="Filmstrip carousel" detail="Click = open, ✓ corner = select (S3)" />,
+        content: (
+          <AnalyzeCaptureStrip
+            captures={captures}
+            activeId={activeId}
+            selectedIds={selection.selectedIds}
+            onOpen={openCapture}
+            onToggleSelect={(id) => selection.click(id, captures.findIndex((c) => c.id === id), { toggle: true })}
+            layout="horizontal"
+          />
+        ),
       }}
     />
   );

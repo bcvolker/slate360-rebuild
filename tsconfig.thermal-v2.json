@@ -10,6 +10,8 @@
     "components/studio/**/*.tsx",
     "app/preview/thermal-v2/**/*.tsx",
     "lib/thermal/curation-client.ts",
-    "lib/thermal/types.ts"
+    "lib/thermal/types.ts",
+    "lib/thermal/radiometric.ts",
+    "lib/thermal/probe-palettes.ts"
   ]
 }

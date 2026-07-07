@@ -80,7 +80,7 @@ export function ThermalV2Shell({
       {tab === "library" ? (
         <LibraryPanel sessionId={sessionId} captures={captures} scope={liveScope} selection={selection} />
       ) : null}
-      {tab === "analyze" ? <AnalyzePanel /> : null}
+      {tab === "analyze" ? <AnalyzePanel captures={captures} selection={selection} /> : null}
       {tab === "ai-review" ? <AiReviewPanel /> : null}
       {tab === "report" ? <ReportPanel /> : null}
       {tab === "deliver" ? <DeliverPanel /> : null}
