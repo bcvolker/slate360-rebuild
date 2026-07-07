@@ -31,15 +31,15 @@ export function AnalyzeDisplay({
   const histMax = Math.max(1, ...bins);
 
   return (
-    <div className="flex flex-col gap-3 p-1">
-      <div className="grid grid-cols-2 gap-2 text-[11px]">
+    <div className="flex flex-col gap-4 p-1">
+      <div className="grid grid-cols-2 gap-3 text-[11px]">
         <label className="flex flex-col gap-1 text-[var(--graphite-muted)]">
           Low ({fmtTemp(span.lo, unit, false)})
           <input
             type="number"
             value={Math.round(span.lo * 10) / 10}
             onChange={(e) => onSpanChange({ lo: Number(e.target.value), hi: span.hi })}
-            className="rounded border border-[var(--mobile-app-card-border)] bg-transparent px-1 py-0.5 text-[var(--graphite-text-header)]"
+            className="border-b border-[var(--mobile-app-card-border)] bg-transparent py-0.5 text-[var(--graphite-text-header)] focus:border-[var(--graphite-primary)] focus:outline-none"
           />
         </label>
         <label className="flex flex-col gap-1 text-[var(--graphite-muted)]">
@@ -48,7 +48,7 @@ export function AnalyzeDisplay({
             type="number"
             value={Math.round(span.hi * 10) / 10}
             onChange={(e) => onSpanChange({ lo: span.lo, hi: Number(e.target.value) })}
-            className="rounded border border-[var(--mobile-app-card-border)] bg-transparent px-1 py-0.5 text-[var(--graphite-text-header)]"
+            className="border-b border-[var(--mobile-app-card-border)] bg-transparent py-0.5 text-[var(--graphite-text-header)] focus:border-[var(--graphite-primary)] focus:outline-none"
           />
         </label>
       </div>
@@ -79,14 +79,14 @@ export function AnalyzeDisplay({
         Isotherm — highlight only one temperature band
       </label>
       {isotherm ? (
-        <div className="grid grid-cols-2 gap-2 text-[11px]">
+        <div className="grid grid-cols-2 gap-3 text-[11px]">
           <label className="flex flex-col gap-1 text-[var(--graphite-muted)]">
             Band low
             <input
               type="number"
               value={Math.round(isotherm.lo * 10) / 10}
               onChange={(e) => onIsothermChange({ lo: Number(e.target.value), hi: isotherm.hi })}
-              className="rounded border border-[var(--mobile-app-card-border)] bg-transparent px-1 py-0.5 text-[var(--graphite-text-header)]"
+              className="border-b border-[var(--mobile-app-card-border)] bg-transparent py-0.5 text-[var(--graphite-text-header)] focus:border-[var(--graphite-primary)] focus:outline-none"
             />
           </label>
           <label className="flex flex-col gap-1 text-[var(--graphite-muted)]">
@@ -95,7 +95,7 @@ export function AnalyzeDisplay({
               type="number"
               value={Math.round(isotherm.hi * 10) / 10}
               onChange={(e) => onIsothermChange({ lo: isotherm.lo, hi: Number(e.target.value) })}
-              className="rounded border border-[var(--mobile-app-card-border)] bg-transparent px-1 py-0.5 text-[var(--graphite-text-header)]"
+              className="border-b border-[var(--mobile-app-card-border)] bg-transparent py-0.5 text-[var(--graphite-text-header)] focus:border-[var(--graphite-primary)] focus:outline-none"
             />
           </label>
         </div>

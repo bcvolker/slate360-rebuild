@@ -34,7 +34,7 @@ function Field({
           value={value}
           step={step}
           onChange={(e) => onChange(Number(e.target.value))}
-          className="w-16 rounded border border-[var(--mobile-app-card-border)] bg-transparent px-1 py-0.5 text-right text-[11px] text-[var(--graphite-text-header)]"
+          className="w-16 border-b border-[var(--mobile-app-card-border)] bg-transparent py-0.5 text-right text-[11px] text-[var(--graphite-text-header)] focus:border-[var(--graphite-primary)] focus:outline-none"
         />
       </div>
       <input
@@ -108,7 +108,7 @@ export function AnalyzeTuning({
   }
 
   return (
-    <div className="flex flex-col gap-3 p-1">
+    <div className="flex flex-col gap-4 p-1">
       <Field
         label="Emissivity"
         hint="How much of the surface's own heat (vs reflected heat) the camera is reading"
@@ -145,14 +145,14 @@ export function AnalyzeTuning({
         onChange={(v) => patch({ reflected_c: v })}
       />
 
-      <div className="grid grid-cols-3 gap-2 text-[11px]">
+      <div className="grid grid-cols-3 gap-3 text-[11px]">
         <label className="flex flex-col gap-1 text-[var(--graphite-muted)]">
           Distance (m)
           <input
             type="number"
             value={tuning.distance_m ?? ""}
             onChange={(e) => patch({ distance_m: e.target.value === "" ? undefined : Number(e.target.value) })}
-            className="rounded border border-[var(--mobile-app-card-border)] bg-transparent px-1 py-0.5 text-[var(--graphite-text-header)]"
+            className="border-b border-[var(--mobile-app-card-border)] bg-transparent py-0.5 text-[var(--graphite-text-header)] focus:border-[var(--graphite-primary)] focus:outline-none"
           />
         </label>
         <label className="flex flex-col gap-1 text-[var(--graphite-muted)]">
@@ -161,7 +161,7 @@ export function AnalyzeTuning({
             type="number"
             value={tuning.humidity_pct ?? ""}
             onChange={(e) => patch({ humidity_pct: e.target.value === "" ? undefined : Number(e.target.value) })}
-            className="rounded border border-[var(--mobile-app-card-border)] bg-transparent px-1 py-0.5 text-[var(--graphite-text-header)]"
+            className="border-b border-[var(--mobile-app-card-border)] bg-transparent py-0.5 text-[var(--graphite-text-header)] focus:border-[var(--graphite-primary)] focus:outline-none"
           />
         </label>
         <label className="flex flex-col gap-1 text-[var(--graphite-muted)]">
@@ -170,7 +170,7 @@ export function AnalyzeTuning({
             type="number"
             value={tuning.atmospheric_c ?? ""}
             onChange={(e) => patch({ atmospheric_c: e.target.value === "" ? undefined : Number(e.target.value) })}
-            className="rounded border border-[var(--mobile-app-card-border)] bg-transparent px-1 py-0.5 text-[var(--graphite-text-header)]"
+            className="border-b border-[var(--mobile-app-card-border)] bg-transparent py-0.5 text-[var(--graphite-text-header)] focus:border-[var(--graphite-primary)] focus:outline-none"
           />
         </label>
       </div>

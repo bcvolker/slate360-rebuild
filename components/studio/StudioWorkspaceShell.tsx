@@ -103,6 +103,7 @@ export function StudioWorkspaceShell({
   right,
   bottom,
   children,
+  bare = false,
 }: {
   title: string;
   /** e.g. the active session name. */
@@ -118,9 +119,20 @@ export function StudioWorkspaceShell({
   right?: ReactNode;
   bottom?: ReactNode;
   children?: ReactNode;
+  /**
+   * Edge-to-edge, no floating-card frame (matches Design Studio's actual root
+   * shell — flat canvas, hairline dividers only, no rounded outer border).
+   * Existing consumers (old Thermal Studio, Tour Builder) keep the boxed
+   * default so they don't regress.
+   */
+  bare?: boolean;
 }) {
   return (
-    <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-[var(--mobile-app-card-border)] bg-[var(--graphite-canvas)]">
+    <div
+      className={`flex h-full min-h-0 flex-col overflow-hidden bg-[var(--graphite-canvas)] ${
+        bare ? "" : "rounded-2xl border border-[var(--mobile-app-card-border)]"
+      }`}
+    >
       {/* Thin top bar */}
       <header className="flex h-11 shrink-0 items-center justify-between gap-3 border-b border-[var(--mobile-app-card-border)] px-3">
         <div className="flex min-w-0 items-center gap-2">

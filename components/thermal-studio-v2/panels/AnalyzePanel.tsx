@@ -171,6 +171,8 @@ export function AnalyzePanel({
       }}
       bottom={{
         title: "Filmstrip",
+        compact: true,
+        defaultSize: 20,
         content: (
           <AnalyzeCaptureStrip
             captures={captures}

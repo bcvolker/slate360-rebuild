@@ -62,6 +62,7 @@ export function ThermalV2Shell({
     <StudioWorkspaceShell
       title="Thermal Studio"
       subtitle={sessionName}
+      bare
       tabsSlot={<StudioTabs tabs={tabs} active={tab} onChange={setTab} />}
       rightSlot={
         <>

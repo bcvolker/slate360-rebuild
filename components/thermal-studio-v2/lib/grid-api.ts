@@ -12,12 +12,23 @@ export type ThermalV2Grid = {
 
 export type GridFetchResult = { grid: ThermalV2Grid } | { error: string };
 
+/** Turns raw backend/DB error text into something a thermographer can act on. */
+function friendlyGridError(status: number, rawMessage: string | undefined): string {
+  if (status === 401) return "Sign in to load this image's temperature data.";
+  if (status === 415) return rawMessage ?? "This image hasn't been decoded yet — run Decode temperatures first.";
+  if (status === 404) return "This image couldn't be found — it may have been deleted.";
+  if (!rawMessage || /invalid input syntax|constraint|relation|column/i.test(rawMessage)) {
+    return "This image's temperature data couldn't be loaded right now.";
+  }
+  return rawMessage;
+}
+
 export async function fetchThermalGrid(captureId: string): Promise<GridFetchResult> {
   try {
     const res = await fetch(`/api/ops/thermal/captures/${captureId}/grid`);
     if (!res.ok) {
       const body = await res.json().catch(() => null);
-      return { error: (body?.error as string) ?? `Failed to load grid (${res.status})` };
+      return { error: friendlyGridError(res.status, body?.error as string | undefined) };
     }
     const json = await res.json();
     return {

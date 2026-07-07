@@ -12,6 +12,11 @@ type RailSlot = {
   minSize?: number;
 };
 
+type DockSlot = RailSlot & {
+  /** Skip the full label header bar — just a small floating collapse toggle (e.g. filmstrip). */
+  compact?: boolean;
+};
+
 /**
  * Reusable resizable frame for a V2 tab body (doc §0.4): left/right rails
  * collapse to a thin labeled strip (never invisible), center is the hero,
@@ -29,7 +34,7 @@ export function V2PanelFrame({
   left?: RailSlot;
   center: ReactNode;
   right?: RailSlot;
-  bottom?: RailSlot & { defaultSize?: number };
+  bottom?: DockSlot;
   /** One-row toolbar above the center hero (e.g. Analyze's tool segmented control). */
   toolbar?: ReactNode;
 }) {
@@ -168,7 +173,8 @@ function DockPanel({
   content,
   defaultSize = 16,
   minSize = 8,
-}: RailSlot & { order: number }) {
+  compact = false,
+}: DockSlot & { order: number }) {
   const ref = useRef<ImperativePanelHandle>(null);
   const [collapsed, setCollapsed] = useState(false);
   return (
@@ -181,25 +187,36 @@ function DockPanel({
       collapsible
       onCollapse={() => setCollapsed(true)}
       onExpand={() => setCollapsed(false)}
-      className="flex min-h-0 flex-col overflow-hidden"
+      className="relative flex min-h-0 flex-col overflow-hidden"
     >
-      <div className="flex shrink-0 items-center justify-between border-b border-[var(--mobile-app-card-border)] px-3 py-1.5">
-        <span
-          className="text-[10px] font-semibold uppercase tracking-wide text-[var(--graphite-muted)]"
-          style={{ fontFamily: "var(--font-mono)" }}
-        >
-          {title}
-        </span>
+      {compact ? (
         <button
           type="button"
           onClick={() => (collapsed ? ref.current?.expand() : ref.current?.collapse())}
           title={collapsed ? `Show ${title}` : `Hide ${title}`}
-          className="rounded p-1 text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]"
+          className="absolute right-2 top-1.5 z-10 rounded bg-black/40 p-1 text-[var(--graphite-muted)] hover:bg-black/60 hover:text-[var(--graphite-text-header)]"
         >
           {collapsed ? "▲" : "▼"}
         </button>
-      </div>
-      {collapsed ? null : <div className="min-h-0 flex-1 overflow-y-auto p-2">{content}</div>}
+      ) : (
+        <div className="flex shrink-0 items-center justify-between border-b border-[var(--mobile-app-card-border)] px-3 py-1.5">
+          <span
+            className="text-[10px] font-semibold uppercase tracking-wide text-[var(--graphite-muted)]"
+            style={{ fontFamily: "var(--font-mono)" }}
+          >
+            {title}
+          </span>
+          <button
+            type="button"
+            onClick={() => (collapsed ? ref.current?.expand() : ref.current?.collapse())}
+            title={collapsed ? `Show ${title}` : `Hide ${title}`}
+            className="rounded p-1 text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]"
+          >
+            {collapsed ? "▲" : "▼"}
+          </button>
+        </div>
+      )}
+      {collapsed ? null : <div className={`min-h-0 flex-1 overflow-y-auto ${compact ? "" : "p-2"}`}>{content}</div>}
     </Panel>
   );
 }
