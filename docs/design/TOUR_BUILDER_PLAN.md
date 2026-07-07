@@ -347,3 +347,163 @@ are now testable):** 2–3 pristine straight-off-the-X4 exports (Insta360 app �
 360 photo*, moved via AirDrop/Files/USB, NOT chat) to validate the GPano-present happy
 path + confirm the X4's native 11904×5952 envelope; one raw `.insp` for Tier-2 raw
 ingest planning. DJI Avata deferred (not FAA-registered yet).
+
+---
+
+## 9. Addendum 2026-07-07 — competitive research lock-in + deliverables taxonomy
+
+> Two full research rounds (Kuula deep-dive + 8-platform sweep: Matterport, 3DVista,
+> CloudPano, EyeSpy360, Klapty, Metareal, iStaging, Ricoh360, plus a scan of Cupix,
+> Zillow 3D Home, Giraffe360, Immoviewer, Asteroom, Roundme, TourBuilder/ex-Panoskin,
+> VirtualTourEasy, iGUIDE, Panoee, SeekBeak, Pano2VR). Every finding below is folded into
+> the existing plan — nothing here contradicts §0–§8; it fills gaps and resolves open
+> questions Brian raised directly.
+
+### 9.1 Rename the `Share` tab → `Deliverables`
+
+Matches platform-wide terminology (Site Walk/SlateDrop already call this concept
+"Deliverables," not "Share"). Tab order becomes **Library · Build · Plan · Deliverables
+· Analytics**. The Deliverables tab is where a finished tour is packaged and sent —
+authoring stays in Build/Plan.
+
+### 9.2 Deliverable types (what "Deliverables" actually offers)
+
+| Type | What it is | Built on |
+|---|---|---|
+| **Interactive Link** | Token-gated public viewer (branded or MLS-clean) | existing `deliverable_access_tokens` + `layer_config` (§2) |
+| **Plan-Sheet Walkthrough** | The slideshow-style plan-pin dive viewer — click through sheets, click a pin, dive into the 360 | already built this session (`PlanSheetTourViewer`) |
+| **Embed Snippet** | iframe/JS embed for a client's own website | reuses P1 embed builder |
+| **MLS-Compliant Export** | One-click unbranded link: strips contact info, outbound links, and the nadir logo | extends `mls_clean` derivative (§3) — see 9.5 |
+| **PDF Leave-Behind** | Static summary doc with cover shots + QR to the interactive link | reuses Site Walk's existing PDF/branding infra — do not build a new PDF pipeline |
+| **Video Flythrough** | Rendered MP4 of a guided path (P2's keyframes/paths already produce the camera moves) | new — see 9.7, genuine category gap |
+| **Tour Package (offline file)** | Self-contained HTML+assets bundle, registered into the project's SlateDrop **Deliverables** folder | already scoped at P6 ("Standalone offline HTML/JS bundle export") — just needs the SlateDrop registration wired in, same bridge Site Walk uses (`register-deliverable.ts`) |
+| **VR / Headset Link** | Same interactive link, with a "View in VR" entry point | uses the already-planned `stereo-plugin` (§1, P5) — WebXR-in-browser, matching how every competitor does it (see 9.10) |
+| **Google Business Profile Publish** | Push tour scenes to the org's Google listing | new — see 9.8 |
+
+### 9.3 Tour Type / Purpose (new field, not a new pipeline)
+
+Add `project_tours.purpose` (`marketing | aerial | wayfinding | construction`) — an
+additive tag that changes **defaults**, not a fork of the engine:
+
+| Purpose | Default branding mode | Plan-sheet required? | Evidentiary hash? | Notes |
+|---|---|---|---|---|
+| `marketing` | branded (Slate360 or client logo) | no | no | showcase a business/property; background audio encouraged |
+| `aerial` | branded_nadir (P3) | no | no | drone-captured; tiny-planet intro, altitude metadata (P3, already scoped) |
+| `wayfinding` | MLS-clean / white-label | no | no | destined for another business's site or Google Business Profile (9.8) |
+| `construction` | branded | often yes | yes (content-sha256, matches platform-wide rule) | full Slate360 workflow — project-linked, SlateDrop, plan pins, deliverable registration |
+
+### 9.4 Nadir patch tool (new — fills the "cover the tripod" ask)
+
+Standard, well-understood pattern (Kuula + 3DVista both have it, nobody has anything
+better): author uploads a small transparent PNG, drags to position + scales over the
+nadir; save as a reusable asset; optional "Master" flag auto-applies it to every scene
+in the tour. **Viewer-time overlay, never a destructive edit of `original`** — same
+non-mutation principle as §0.5. Ties into `branded_nadir` derivative (§3); auto-hidden
+when `mls_clean` is requested (9.5). No AI-based automatic tripod removal exists
+anywhere in the category — not attempting that now.
+
+### 9.5 MLS-compliant export — concrete mechanics
+
+Extends the existing `mls_clean` derivative + `layer_config.mode: 'mls'` (§2–§3).
+"MLS-compliant" means: no nadir logo (auto-hidden per 9.4), no agent/company
+name/contact info anywhere in the viewer chrome, no live outbound links (this rules out
+hosting a tour's video/audio on a service whose player links back to itself — matches
+the real MLS rule that disallows YouTube-hosted tours). One-click toggle in
+Deliverables, not a separate authoring mode.
+
+### 9.6 Native lead-capture as a first-class hotspot/card type
+
+Kuula's "interactive card" is iframe-only (no native form, no gallery, no e-commerce).
+CloudPano and EyeSpy360 both ship **native** lead-capture forms (name/email/phone,
+submissions emailed to the owner) — that's the bar. Build a `tour_hotspots.type = 'lead_form'`
+(extends the type enum in §2) with real fields, not an embedded Google Form. Bonus,
+cheap once hotspots exist: an `is_hidden_until_found` flag for scavenger-hunt-style
+reveal hotspots — confirmed absent from every platform researched.
+
+### 9.7 Video flythrough export — real category gap, worth building
+
+Checked directly: Kuula, Matterport, 3DVista, CloudPano — **none** offer one-click
+"export as MP4." Kuula's own official workaround is manually screen-recording the
+browser. This is genuinely buildable for us: P2 already produces `tour_keyframes` +
+`tour_paths` (camera moves for guided autoplay) — a Modal job that renders that same
+camera path server-side (headless browser + PSV, or a WebGL-to-frames renderer) into
+an MP4 is a natural extension, not new authoring surface. Sequence after P2 ships.
+
+### 9.8 Google Street View Publish API integration
+
+Google's old "Trusted Photographer" certification program is dead (ended Dec 31,
+2024). What's live today: the **Street View Publish API** (still active, developer-
+facing — this is what CloudPano etc. use under the hood). A `wayfinding`-purpose tour
+could one-click-publish its scenes to the org's Google Business Profile via this API.
+Real and currently available — not chasing a defunct program.
+
+### 9.9 Sending a tour — reuse Coordination Hub, do not build new send infra
+
+"Send" in Deliverables should pick recipients from the org's existing contacts
+(`org_contacts`, already built for Coordination Hub) and dispatch via the already-wired
+Resend (email) / Twilio (SMS) channels — same pattern as every other coordination
+notification in the platform. No new contact-picker or send pipeline needed.
+
+### 9.10 VR / Apple Vision Pro — confirm the plan, don't over-invest
+
+Researched every competitor's VR story: **nobody has a genuinely native, polished
+headset app** — even Matterport (the category leader) is browser/WebXR-only on Quest
+3 and Vision Pro. The one platform (3DVista) that shipped a real native Quest app sits
+at 2.3 stars and is flagged out of Meta's VR-Check compliance. **Our already-planned
+P5 `stereo-plugin` (browser-based WebXR entry) is the correct, industry-matching
+answer** — do not scope a native VR app now. A genuinely polished native app remains
+real, open whitespace for later if we ever want it.
+
+### 9.11 RAW multi-photo stitching — the §6 plan is confirmed correct, still P6
+
+Every competitor researched (Kuula, 3DVista, CloudPano, EyeSpy360, Ricoh360, iStaging)
+follows the exact same pattern already locked in §6: dedicated-360-camera output is
+pre-stitched by the camera's own app before any of these tools touch it; **nobody**
+does in-browser or in-app RAW-to-equirect stitching themselves. Our planned free/OSS
+Hugin+enblend Modal pipeline (§6, P6) is not behind anyone — it would actually be
+*ahead*, since it's the only "we stitch it for you" offering found anywhere in the
+category (competitors only accept pre-stitched files). No change to sequencing;
+confirmed as still correctly scoped at P6, not urgent to pull forward.
+
+### 9.12 "Remove stitch lines" — be honest about what's real
+
+Kuula's "hide stitching line" toggle is cosmetic UI copy, not actual seam repair —
+real seam quality is won at *capture* (overlap %, exposure sync), which is exactly why
+§6 already frames it that way. An AI inpainting-based seam fixer is a real, harder R&D
+item with no existing precedent anywhere in the category — worth flagging as a future
+`enhanced` derivative candidate (§3, already has a slot for exactly this kind of opt-in
+paid enhancement), not promising it now.
+
+### 9.13 Camera / drone compatibility — confirm "maximum compatibility" is already true
+
+Principle #3 (any 2:1 equirect JPG/PNG from any camera's own app) already means we're
+compatible with Insta360 (X-series/One X2/X3/X4, Titan, Pro), Ricoh Theta, GoPro
+Max/Fusion, Kandao, and DJI's 360-capable output, because **every one of those
+manufacturers' own apps does the stitching before the file ever reaches us** — same
+universal-import model the entire category uses. Insta360's newer drone sub-brand
+("Antigravity") should follow the same pattern once its export format is confirmed —
+add it to the `camera_profiles` stub list (§2) as unverified until a sample file is
+in hand, same treatment already given to DJI Avata. The one concrete to-do: robust
+upload-time validation (clear "this doesn't look like a 360 photo" error) plus the
+horizon/vertical-alignment handling for partial/drone panoramas Kuula already has,
+which we don't yet.
+
+### 9.14 Mobile vs. desktop — confirms §8.1, no change needed
+
+§8.1's app-import-flow (Photos/Files picker + share-sheet, equirect auto-detect,
+resumable upload, auto-file to SlateDrop) already matches the phone-captures/desktop-
+authors split every competitor with a mobile app uses (CloudPano, iStaging, Ricoh360).
+Add one small mobile action confirmed useful by this research: a lightweight "send this
+tour" trigger (picks a contact, dispatches via 9.9) — everything else (settings depth,
+hotspot/pin authoring, Deliverables assembly) stays desktop-only, unchanged.
+
+### 9.15 Full competitive matrix
+
+Condensed reference table (18 platforms researched; full sourced detail in the
+2026-07-06/07 research artifacts, not duplicated here): true gaze/attention heatmap
+analytics exists at only 3 of ~16 platforms checked (SeekBeak, Panoee, 3DVista); no
+platform has a genuinely polished native VR headset app; no platform has one-click
+video export; no platform has an e-commerce/shoppable hotspot except Panoee; only
+CloudPano and EyeSpy360 have native (non-iframe) lead-capture forms; Matterport has
+no native white-label at all (third-party overlay only); Ricoh360 never fully removes
+its watermark even at its top paid tier. These are the gaps this addendum targets.
