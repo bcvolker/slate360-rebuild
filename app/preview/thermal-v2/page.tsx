@@ -4,11 +4,23 @@ import { ThermalV2Shell } from "@/components/thermal-studio-v2/ThermalV2Shell";
 import type { ThermalV2Capture } from "@/components/thermal-studio-v2/types";
 
 const CAPTURES: ThermalV2Capture[] = [
-  { id: "a", filename: "roof-nw-01.jpeg", selected: true },
-  { id: "b", filename: "roof-nw-02.jpeg", selected: true },
-  { id: "c", filename: "panel-east-01.jpeg" },
-  { id: "d", filename: "panel-east-02.jpeg" },
-  { id: "e", filename: "attic-vent-01.jpeg" },
+  {
+    id: "a",
+    filename: "roof-nw-01.jpeg",
+    qualityMetrics: { is_radiometric: true, sensor_model: "HIKMICRO Pocket2" },
+    metadata: { visual_pair_id: "vis-1" },
+    anomalies: [{ severity: "critical", delta_c: 14 }],
+  },
+  {
+    id: "b",
+    filename: "roof-nw-02.jpeg",
+    qualityMetrics: { is_radiometric: true, sensor_model: "HIKMICRO Pocket2" },
+    metadata: { in_report: true },
+    anomalies: [{ severity: "advisory", delta_c: 3 }],
+  },
+  { id: "c", filename: "panel-east-01.jpeg", qualityMetrics: { is_radiometric: false, sensor_model: "FLIR E8" } },
+  { id: "d", filename: "panel-east-02.jpeg", qualityMetrics: { is_radiometric: true, sensor_model: "FLIR E8" } },
+  { id: "e", filename: "attic-vent-01.jpeg", qualityMetrics: { is_radiometric: true, sensor_model: "FLIR E8" } },
 ];
 
 export default function PreviewThermalV2() {
@@ -32,7 +44,7 @@ export default function PreviewThermalV2() {
             </div>
           </header>
           <div className="min-h-0 flex-1">
-            <ThermalV2Shell sessionName="Oak Ridge Roof — Preview" captures={CAPTURES} />
+            <ThermalV2Shell sessionId="preview" sessionName="Oak Ridge Roof — Preview" captures={CAPTURES} />
           </div>
         </div>
       </div>

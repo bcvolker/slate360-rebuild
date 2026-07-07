@@ -8,6 +8,8 @@
     "components/thermal-studio-v2/**/*.tsx",
     "components/studio/**/*.ts",
     "components/studio/**/*.tsx",
-    "app/preview/thermal-v2/**/*.tsx"
+    "app/preview/thermal-v2/**/*.tsx",
+    "lib/thermal/curation-client.ts",
+    "lib/thermal/types.ts"
   ]
 }

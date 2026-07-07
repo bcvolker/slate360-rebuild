@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import {
   StudioWorkspaceShell,
   StudioTabs,
@@ -13,6 +13,7 @@ import { AnalyzePanel } from "@/components/thermal-studio-v2/panels/AnalyzePanel
 import { AiReviewPanel } from "@/components/thermal-studio-v2/panels/AiReviewPanel";
 import { ReportPanel } from "@/components/thermal-studio-v2/panels/ReportPanel";
 import { DeliverPanel } from "@/components/thermal-studio-v2/panels/DeliverPanel";
+import { useLibrarySelection } from "@/components/thermal-studio-v2/lib/useLibrarySelection";
 import type { ThermalV2Capture, ThermalV2Scope, ThermalV2Tab } from "@/components/thermal-studio-v2/types";
 
 const TABS: { id: ThermalV2Tab; label: string }[] = [
@@ -30,16 +31,19 @@ const TABS: { id: ThermalV2Tab; label: string }[] = [
  * standalone V2 tree, reachable today only via /preview/thermal-v2.
  */
 export function ThermalV2Shell({
+  sessionId,
   sessionName,
   captures,
 }: {
+  sessionId: string;
   sessionName: string;
   captures: ThermalV2Capture[];
 }) {
   const [tab, setTab] = useState<ThermalV2Tab>("library");
   const [scope, setScope] = useState<ThermalV2Scope>({ kind: "image" });
+  const selection = useLibrarySelection(sessionId, captures);
 
-  const selectedCount = useMemo(() => captures.filter((c) => c.selected).length, [captures]);
+  const selectedCount = selection.selectedIds.size;
   const totalCount = captures.length;
 
   function changeScope(kind: ThermalV2Scope["kind"]) {
@@ -47,6 +51,10 @@ export function ThermalV2Shell({
     else if (kind === "all") setScope({ kind, count: totalCount });
     else setScope({ kind: "image" });
   }
+
+  // Keep an already-active Selected/All scope's count live as the selection changes.
+  const liveScope: ThermalV2Scope =
+    scope.kind === "selected" ? { kind: "selected", count: selectedCount } : scope.kind === "all" ? { kind: "all", count: totalCount } : scope;
 
   const tabs: StudioTab<ThermalV2Tab>[] = TABS;
 
@@ -57,7 +65,7 @@ export function ThermalV2Shell({
       tabsSlot={<StudioTabs tabs={tabs} active={tab} onChange={setTab} />}
       rightSlot={
         <>
-          <ScopePill scope={scope} selectedCount={selectedCount} totalCount={totalCount} onChange={changeScope} />
+          <ScopePill scope={liveScope} selectedCount={selectedCount} totalCount={totalCount} onChange={changeScope} />
           <StudioChip label="Images" value={totalCount} />
           <span
             title="No processing job running"
@@ -69,7 +77,9 @@ export function ThermalV2Shell({
         </>
       }
     >
-      {tab === "library" ? <LibraryPanel /> : null}
+      {tab === "library" ? (
+        <LibraryPanel sessionId={sessionId} captures={captures} scope={liveScope} selection={selection} />
+      ) : null}
       {tab === "analyze" ? <AnalyzePanel /> : null}
       {tab === "ai-review" ? <AiReviewPanel /> : null}
       {tab === "report" ? <ReportPanel /> : null}
