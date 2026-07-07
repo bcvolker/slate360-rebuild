@@ -11,7 +11,17 @@ import type { PlanSetSummary, PlanPinRow } from "./TourPlanTab";
 
 type TourRow = { id: string; title: string; status: "draft" | "published"; viewer_slug: string | null };
 
-export function TourStudioShell({ tourId, onBack }: { tourId: string; onBack: () => void }) {
+export function TourStudioShell({
+  tourId,
+  onBack,
+  pendingFiles,
+}: {
+  tourId: string;
+  onBack: () => void;
+  /** Files chosen on the entry screen's drop zone before this tour existed —
+   * uploaded once, the moment this workspace mounts. */
+  pendingFiles?: FileList;
+}) {
   const [tour, setTour] = useState<TourRow | null>(null);
   const [scenes, setScenes] = useState<TourSceneRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -95,6 +105,13 @@ export function TourStudioShell({ tourId, onBack }: { tourId: string; onBack: ()
       setUploading(false);
     }
   }, [tourId, fetchScenes]);
+
+  const [pendingConsumed, setPendingConsumed] = useState(false);
+  useEffect(() => {
+    if (loading || pendingConsumed || !pendingFiles?.length) return;
+    setPendingConsumed(true);
+    void handleUpload(pendingFiles);
+  }, [loading, pendingConsumed, pendingFiles, handleUpload]);
 
   const patchScene = useCallback(async (id: string, body: Record<string, unknown>) => {
     await fetch(`/api/tours/${tourId}/scenes/${id}`, {
