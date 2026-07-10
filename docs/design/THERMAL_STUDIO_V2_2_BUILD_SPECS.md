@@ -443,6 +443,130 @@ review:
   audit (touch pan/zoom on panorama tiles, tap-for-temp instead of hover, swipe
   between slideshow frames) — the ASU-leadership demo happens on someone's phone.
 
+# Addendum E (2026-07-10) — import/selection grammar, match-look, deliverable composer, template editor, link branding
+
+Fresh-eyes flow audit per Brian. These AMEND existing roster slices (owners noted) —
+the D8 roster count is unchanged.
+
+## E1. Import & file handling (owners: L1 + W1)
+
+- **Global drop target:** dropping files ANYWHERE in Thermal Studio imports them
+  (full-window dashed overlay on dragenter, per §0 canon). Also: Import button →
+  OS picker (multi-select + folders), and SlateDrop import modal (exists).
+- **Import queue tray:** a bottom-right toast-tray during import — per-file rows with
+  progress, brand badge on completion (Radiometric ✓ / Display-only), failures inline
+  with a Retry. Tray collapses to a count chip; never blocks work on already-imported
+  images. Duplicate detection by content hash → "already imported, skipped (n)".
+- **Selection grammar (one grammar everywhere — Library grid, filmstrip, map pins):**
+  click = focus; Ctrl/Cmd-click = toggle; Shift-click = range; drag on empty space =
+  marquee; Ctrl/Cmd-A = all (in current filter); Esc = clear. Selection count always
+  visible in the Scope pill; a checkbox appears on thumbnail hover for mouse-only
+  users. Delete key on a Library selection = remove-from-library confirm (files stay
+  in SlateDrop; nothing destructive to originals, ever).
+
+## E2. Two analysis entry paths, never a forced pipeline (owner: W1 + S6)
+
+From any selection (1, group, or all), the Library action bar offers exactly two
+verbs side by side: **Analyze** (→ Analyze tab, manual work) and **Find problems
+with AI (n)** (→ queues the run, jumps to AI Review as results stream in). Manual
+and AI are peers — AI first then manual refinement, or manual only, or AI only, in
+any order, per image or per batch. Every downstream verb states its scope count.
+
+## E3. **Match look** — first-class bulk styling (owner: W1; upgrades copy/paste settings)
+
+The "make the set match" flow is a named verb, not a hidden clipboard:
+- On the active image: **Apply this look to… ▾** (toolbar ⋯ menu + right-click on any
+  filmstrip/Library thumb). Opens a small popover: target = Selected (n) / All (n);
+  checkboxes for WHAT transfers — Palette, Span/level, Isotherm, Alarms, Tuning
+  (emissivity/reflected/distance/env), Unit — each independently togglable (checked
+  state persists as the user's default recipe).
+- Applies via the existing batch PATCH path; ends in a **Keep/Undo toast** ("Applied
+  Iron + span to 23 images — Keep / Undo") per the editability law.
+- Copy/paste settings (Ctrl-Shift-C/V) remains as the keyboard twin of the same
+  engine. *Accept:* style 1 → match 20 in ≤3 interactions; undo restores all 20.
+
+## E4. Deliverable composer — the Deliver tab flow (owners: S8 Deliver shell + S7.5 links + B1-addB)
+
+Deliver = two zones, no scroll:
+- **Zone 1 — Saved deliverables (the home, default view):** a grid of every
+  deliverable created for this inspection/project: type badge (PDF · Live Link ·
+  Cinematic · Compare · Explorer · Scrubber · Timelapse · Video), title, updated-at,
+  status (Draft / Published), link analytics glance (views · questions). Row actions:
+  **Open** (re-enter the composer, fully editable — deliverables are SAVED DOCUMENTS,
+  wired to `thermal_deliverables` rows + SlateDrop registration), Copy link,
+  Regenerate link, Expire, Duplicate, Delete (confirm). This answers "always go back
+  to them, open them, generate viewing links."
+- **Zone 2 — New deliverable → a 4-step composer** (steps as a left stepper rail;
+  each step is the full canvas; back/next + Esc-safe):
+  1. **Type** — card picker: Report (PDF) · Live Link (interactive scroll report:
+     image/map/metadata/notes/AI per finding) · Cinematic slideshow · Before/After
+     Compare · Panorama Explorer · Timelapse Scrubber · Video. (Chapter-container
+     links = pick Live Link then add chapters — the composer IS B1-addB.)
+  2. **Images** — the Library grid embedded, same E1 selection grammar, pre-seeded
+     from the current Scope; filter to analyzed-only; drag to order.
+  3. **Content layers** — the customization Brian specified: a checklist of what
+     shows, GLOBAL with per-image overrides (per-image = click a thumb in the side
+     strip): Metadata (time/date/camera/GPS — individually togglable), Map, Spots,
+     Deltas, AI findings (accepted only / all), AI markups (contours/boxes), Notes,
+     Visual pair, Legend/scale, Hover-temps (Live Link only), Q&A (on/off). Defaults
+     come from the chosen type; everything is switchable.
+  4. **Branding & publish** — see E5/E6. Ends in: Save draft · Generate PDF ·
+     Publish link (copies URL).
+- *Accept:* compose a Live Link from 5 analyzed images with map+notes on,
+  metadata off, in ≤10 interactions; reopen it later and flip a layer; the link
+  updates on republish.
+
+## E5. Per-deliverable branding — logos are ALWAYS optional (owners: S7 + S7.5)
+
+Branding is a per-deliverable override on top of saved **branding profiles**:
+- Profile = logo (w/ opacity + size + corner position), company name, cert line
+  (ITC #), contact block, accent color. Multiple profiles (e.g. "Slate360",
+  "BV Thermography", "Unbranded").
+- The publish step shows the profile picker + live preview; **"No logo" and
+  "No branding" are first-class options** — sending to ASU leadership WITHOUT the
+  Slate360 logo is one dropdown. Per-element toggles (logo yes, cert line no).
+  Applies identically to PDFs, link containers, cinematic outro, and MP4 overlays.
+
+## E6. PDF template editor — field-level control (owner: S7)
+
+Templates are user-customizable documents, not fixed layouts:
+- Every block in a template is removable: per-image metadata rows (each field its
+  own toggle), findings table, notes section (**explicit on/off toggle** — off =
+  clean template, on = a lined comments block per image or per report), map locator,
+  legend, cover page, summary page, signature line.
+- Edited layouts save as **My templates** beside the stock gallery (thermal_report_
+  templates API exists); a template remembers its branding-profile default.
+  *Accept:* strip a stock template to images+findings only, save as "Clean", reuse
+  it on a second report in 2 clicks.
+
+## E7. Link Q&A / communication UI round (owner: S7.5)
+
+Viewer side (client): a floating "Questions (n)" button — never overlaying content —
+opens a right sheet (mobile: bottom sheet); questions attach to a specific image/pin
+or the whole report; composer = one text field + Send (name/email captured once,
+remembered). Owner side (Brian): a Q&A inbox per deliverable in Zone 1's row +
+coordination notification on new questions; replies threaded; each thread shows the
+image context inline; resolve toggle. Keep it chat-simple — no accounts required for
+the client.
+
+## E8. Space audit for Deliver (owner: W3/W4)
+
+The composer steps are full-canvas (no half-empty wizard modals); Zone 1 grid
+densifies like Library; the no->120px-empty rule and zero-scroll bars apply to every
+step at 1280×800 and 1440×900.
+
+## E9. Standalone app = a SEPARATE PROJECT — cold-start notes (owner: A0; restated)
+
+Brian will build the app later in a NEW repo/project, not inside s360. A0's prompt
+must therefore be executable cold. Everything needed is in this doc + the locked
+doc's app plan (A0–A6, B5, D5): copy (never import across repos) `packages/
+thermal-core` candidates — lib/thermal/{radiometric,probe-palettes,spot-stats,
+types}.ts + the V2 viewer/measurement components; server side stays the SAME Modal
+workers behind a separate tenant/keys; links render server-side so the app sends
+identical URLs; Apple IAP per A4; branding editor per B5. When Brian says go, a
+fresh session reads THIS file + THERMAL_STUDIO_V2_REBUILD_LOCKED.md and scaffolds
+without s360 context.
+
 # Addendum D (2026-07-10) — layout round 2, location layer, Motion UIs, simplicity audit, SLICE ROSTER
 
 Brian's directive: the current UI is extremely poor; the rebuild must be OBVIOUSLY
