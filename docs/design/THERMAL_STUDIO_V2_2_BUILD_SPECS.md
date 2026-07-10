@@ -443,6 +443,67 @@ review:
   audit (touch pan/zoom on panorama tiles, tap-for-temp instead of hover, swipe
   between slideshow frames) — the ASU-leadership demo happens on someone's phone.
 
+# Addendum F (2026-07-10) — condensed roster (FINAL) + competitor gap pack
+
+## F1. Competitor gap pack — basics FLIR Thermal Studio / Testo IRSoft / Fluke have
+
+Swept against the incumbent desktop suites; these are table-stakes items we were
+missing. Each is assigned to an existing roster slice (no new prompts):
+
+1. **Embedded voice annotations** (FLIR/HIKMICRO cameras record voice notes into the
+   image file): parse on import, show a play button row in Notes & photo data.
+   → owner CAM-1 (worker extract) + W2 (playback row).
+2. **Rotate / flip** (drone + handheld orientation): non-destructive 90° rotate and
+   H/V flip in the Analyze ⋯ menu, stored as metadata, applied at render (grid AND
+   overlays rotate together). → owner S5.6 pack.
+3. **Fusion modes beyond blend**: Picture-in-Picture (thermal window on the visual
+   photo, draggable/resizable) and edge-overlay (visual edges extracted onto the
+   thermal, MSX-style) alongside the blend slider. → owner S6.5.
+4. **Report auto-fields + one-click Quick Report**: templates support auto-fields
+   (date, inspector name + cert from branding profile, project, page x/y, image
+   filename/timestamp) and a TOC/summary page; AI Review gains **"Quick report (n
+   accepted)"** — one click → draft PDF from accepted findings using the default
+   template. → owner S7.
+5. **Export completeness**: optional branding/watermark overlay on exported PNGs;
+   **full-grid radiometric CSV** (per-pixel temps) beside the measurement CSV.
+   → owner S8.5.
+6. **Batch rename** with a pattern ("{project}-{date}-{n}") on any selection.
+   → owner S8.5 (with batch recipes).
+7. **Cross-image spot trend**: a named spot that exists on multiple images (via
+   match-look propagation) can plot avg/max across the set — the static-set cousin
+   of the timelapse region trend. → owner S6.5.
+
+## F2. CONDENSED ROSTER — the FINAL prompt list for Sonnet (supersedes D8's table)
+
+Merges (same files, compatible scope): L1+W3 (restructure IS polish), S5.5p2 folded
+into S5.6 (one Analyze completion pack), W2+CAM-1 (two small independent halves),
+B1 folded into S8.5 (batch outputs). App: A3 folded into A2. **Desktop 16 (15 + held
+swap) · App 6 · Total 22 prompts (21 buildable now).**
+
+| # | Slice | One prompt implements |
+|---|-------|------------------------|
+| 1 | **L1+W3** | Layout restructure + polish: delete duplicate strip, toolbar de-noise + ⋯ menu, one-pill rule, viewer ≥60%, slider+type-in pairs, token/density/micro-interaction audit, ← breadcrumb, Esc cascade, Scope ✕, global Saved ✓ chip |
+| 2 | **W1** | Workflow foundations: dbl-click→Analyze, global drop target + import queue tray (E1), selection grammar everywhere (E1), two peer verbs (E2), **Match look** (E3), palette persist, sticky mini-summary |
+| 3 | **S5.6** | Analyze completion pack: polygon tool UI, Δ-compare, line profile, alarms (above/below/interval/dew-point/insulation), Enhance-here, local contrast, isotherm sweep, A/B flicker, rotate/flip (F1.2) |
+| 4 | **MAP-1** | Location layer: Library Grid⇄Map (Leaflet+OSM), pin-select→Scope, Analyze mini-map, panorama footprint (D2) |
+| 5 | **W2+CAM-1** | View-original (O), Focus (F), analyzed/not filters, voice-note playback (F1.1) + camera fixtures per brand, auto-recognition badges, display-only fallback, NO picker (D1) |
+| 6 | **S6** | AI Review tab: run UX (button + context popover), triage queue, Accept/Edit/Dismiss, explanations, metering flag OFF (B4) |
+| 7 | **S6.6** | Analyst chat: grounded Q&A, revision proposal cards, drag-drop PDF/image grounding, worker `chat` endpoint (C5) |
+| 8 | **S6.5** | Compare (synced pan/zoom), fusion (blend + PiP + edge overlay, F1.3), normalize-scale-across-set, cross-image spot trend (F1.7) |
+| 9 | **S7** | Report builder: WYSIWYG sheets, template gallery + field-level template editor (E6), auto-fields + TOC + Quick Report (F1.4), branding profiles (E5) |
+| 10 | **TS-SD + TS-PROJ** | SlateDrop Thermal folder, deliverable registration, open-from-SlateDrop, project picker |
+| 11 | **S7.5** | Deliver tab: saved-deliverables home + 4-step composer w/ content layers (E4), link container/chapters (B1-addB), Radiometric Live Link, cinematic, Q&A UI (E7), per-link branding incl. No-logo (E5) |
+| 12 | **S8-M** | Motion: Timelapse Builder + Video Trim time-ruler editors (D4) |
+| 13 | **S8.5** | Export engine: clean/annotated PNG (+watermark option), CSV (+full-grid CSV), JSON, ZIP, batch recipes, batch rename (F1.5/6) |
+| 14 | **PAN** | Panorama: stitch job, tile pyramid + grid chunks, contour/trend callouts, difference lens, map footprint (B2/B3) |
+| 15 | **W4** | End-to-end walkthrough + fix pass, P1–P7 specs green, measured interaction bars (D7) |
+| 16 | **S9** | THE SWAP — HELD until Brian approves |
+
+App (separate future project, cold-start per E9): **A0** scaffold/IAP shell → **A1**
+Files + offline viewer → **A2** decode + measurements + bottom sheets + save/export →
+**A4** reports + StoreKit → **A5** AI credits + Assistant → **A6** store readiness +
+B5 branding editor + 390px audit.
+
 # Addendum E (2026-07-10) — import/selection grammar, match-look, deliverable composer, template editor, link branding
 
 Fresh-eyes flow audit per Brian. These AMEND existing roster slices (owners noted) —
