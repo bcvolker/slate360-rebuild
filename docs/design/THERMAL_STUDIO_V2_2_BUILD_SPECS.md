@@ -443,6 +443,109 @@ review:
   audit (touch pan/zoom on panorama tiles, tap-for-temp instead of hover, swipe
   between slideshow frames) — the ASU-leadership demo happens on someone's phone.
 
+# Addendum C (2026-07-08) — polish pass, file management, camera compatibility, Analyst chat
+
+## C1. New slice **W3 — Professional polish pass** (after W2; repeat before S9)
+
+A dedicated design-quality slice, not features. Checklist (each item preview-verified):
+- **Slate360 identity:** graphite-glass tokens audited across every V2 surface (no
+  stray grays), IBM-Plex-style mono uppercase eyebrows on rail headers (via
+  `--font-mono`), one accent used ONLY on interactive states, consistent 12px radius,
+  hairline dividers per the Design-Studio flat standard (already adopted — audit drift).
+- **Density & dead-space audit** per §0.4: no empty region >120px in default state on
+  any tab at 1280×800 and 1440×900; zero page scroll re-verified on all five tabs.
+- **Micro-interactions:** 120ms ease transitions on accordion expand, tab switch
+  cross-fade, toast slide-in, thumbnail hover lift (2%); respect
+  `prefers-reduced-motion` everywhere.
+- **Navigation affordances:** breadcrumb chip in the Analyze/AI Review toolbars
+  (`← Library`) mirroring tab-switch; `Esc` = clear selection → collapse menus →
+  exit focus mode (in that order); Scope pill gains an ✕ when Selected(N) to clear
+  the selection in one click ("way to clear things out").
+- **Save state, globally visible:** one top-bar chip `Saved ✓ / Saving…` aggregating
+  the per-panel debounced autosaves (spots/tuning/palette/findings already autosave —
+  this SURFACES it; no new persistence). Undo/redo covers everything per §0.1.
+- **Empty states audit:** every empty region names exactly ONE next action.
+
+## C2. New slice **CAM-1 — Camera compatibility matrix** (parallel-safe, after S6)
+
+Goal: the widest sensor support in the industry, honestly labeled.
+- **Already parsed by `extract.py` (verify each with a fixture file):** FLIR R-JPEG
+  (Cx / One / E-series / Boson), DJI (M3T / M30T / H20T), **HIKMICRO (Brian's camera —
+  also the live fast-path in the grid route via `decodeHikmicro`)**, Autel EVO 640T,
+  Topdon / InfiRay / UNI-T / Hti R-JPEG variants.
+- Work: per-brand fixture test suite (one real file each, golden min/max/center-pixel
+  assertions); tighten signature sniffing; unknown/non-radiometric files import in
+  **display-only mode with an honest badge** ("No temperature data — display only"),
+  never silently wrong.
+- **UI surface:** the import dropzone's tooltip + an "Supported cameras" line in the
+  Library empty state listing brands ("FLIR · DJI · HIKMICRO · Autel · Topdon ·
+  InfiRay + any radiometric JPEG"); per-file result badges on import (Radiometric ✓ /
+  Display-only).
+- New-brand additions (e.g. Fluke .is2, Testo .bmt) are worker-side parser additions —
+  additive, follow DEPLOY.md; queue behind demand.
+
+## C3. Clean images — baked-in camera graphics (statement + one small feature)
+
+**Automatic by architecture:** cameras burn spot markers/scales/logos into the
+COLORIZED JPEG only — the radiometric payload underneath is untouched, and V2 renders
+every image from that raw grid (`renderHeatmap`). So our render is ALWAYS clean; the
+camera's baked graphics simply never appear. Remaining cases:
+- Camera-defined measurement points that exist as DATA (not pixels) import as
+  removable spot objects labeled "from camera" (locked doc §1 — build in S5.5p2 scope
+  if the parser exposes them, else backlog per-brand).
+- Display-only files (no radiometrics) are shown as-is — baked graphics can't be
+  removed there; the badge (C2) sets expectations.
+- The paired VISUAL photo is presented uncropped; no cleanup needed.
+
+## C4. Metadata panel interactivity (statement — already live, keep it true)
+
+The Notes & photo data accordion (S5.5) shows time/date/GPS/camera compactly without
+dominating space; emissivity/reflected/environment live in Tuning; **changing
+emissivity re-renders every pixel live** via the client-side gray-body recompute
+(S5, `tuneTemps`) — cursor readout, loupe, measurement list, legend, and histogram all
+read the SAME recomputed grid (§1b.2). W3 adds a cross-link: the metadata panel's
+emissivity row is a click-through that opens the Tuning accordion. Guard this
+guarantee in every future slice (P-spec cross-cutting invariant).
+
+## C5. New slice **S6.6 — Analyst chat** (after S6; the "something more")
+
+The AI interaction is LAYERED — each layer optional, none cluttering the last:
+1. **One button** ("Find problems with AI (N)") — automatic, per Scope. Default path.
+2. **Context popover** on that button (free text, lens, camera side) — refinement.
+3. **Analyst chat** — a collapsible right-side drawer (`💬 Ask the analyst`) available
+   in AI Review and Analyze; per-INSPECTION thread (persists in session metadata).
+   Capabilities:
+   - Follow-up Q&A grounded in the inspection: context = accepted + pending findings
+     (text), per-image stats (max/min/avg/ΔTs), measurement tables, session env
+     fields — NOT raw grids (token discipline); when the user references a specific
+     image, that image (+ visual pair) attaches to the message.
+   - **Corrections:** "finding 3 is a sun-warmed junction box, not moisture" → the
+     assistant replies AND emits a **revision proposal card** (rendered in-thread:
+     revised type/severity/note) with Accept / Dismiss — accepting updates
+     `findings_review` through the SAME editability law as everything else. The AI
+     never silently rewrites findings.
+   - **Drag-and-drop grounding:** drop PDFs (prior inspection reports, drawings,
+     spec sheets) or images into the thread — sent as document/image blocks (Claude
+     handles PDF natively, ≤32MB/600pp); the assistant cites them in explanations
+     ("the 2024 report flagged this same drain"). Files register in the SlateDrop
+     Thermal Studio folder so they're kept with the inspection.
+   - Worker: new `chat` endpoint beside `interpret` (same Modal app, same model env,
+     same org USD ledger + metering flag). Streamed responses. Cost ≈ 1.5–3¢/message
+     (Opus, one image attached) — metered per-message when the flag is on.
+   - UI: drawer never overlays the viewer (panel group resize, collapses to a pill);
+     thread scoped per inspection; clear-thread action; copy-to-findings on any
+     assistant paragraph.
+- *Accept:* ask "why is finding 2 severe?" → grounded answer citing its ΔT; drop a
+  PDF → next answer references it; correction → proposal card → Accept updates the
+  finding + survives reload; metering flag off = no debit rows.
+
+## C6. Panorama measurement management (amends A7/B2)
+
+Panoramas are capture rows, so Measurements/AI panels work unchanged — but counts get
+large. `AnalyzeMeasurements` gains (when >8 rows): a filter box, sort by ΔT/severity,
+and section grouping (Manual / From AI / From camera). The AI Review right rail gets
+the same sort. No new components — extend the lists.
+
 ## P7 — persona spec: drone moisture survey (ASU sun-deck class)
 
 Fixture: 24 synthetic overlapping frames of a "deck" grid embedding (a) three diffuse
