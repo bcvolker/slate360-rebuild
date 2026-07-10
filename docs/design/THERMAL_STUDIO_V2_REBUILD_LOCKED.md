@@ -4,6 +4,11 @@
 > human-factors review). New slices S5.5/S5.6/S6.5/S7.5/B1 and upgraded S7/S8 scope live in
 > `THERMAL_STUDIO_V2_1_ENHANCEMENTS.md` — read it together with this doc. §0 rules and §1b
 > guarantees here remain authoritative and unchanged; S9 remains HELD.
+>
+> **2026-07-07 addendum:** V2.2 expert review (`THERMAL_STUDIO_V2_2_EXPERT_REVIEW.md`)
+> adds the industry critique, W1 workflow slice, sensitivity suite, SlateDrop TS-SD
+> persistence slice, revised transfer-first app plan, and the P1–P6 persona test suite.
+> Its §4 build order supersedes V2.1 §9. S9 still HELD.
 
 > **Status:** LOCKED design, reconciled from a multi-AI panel (Gemini-class NLE/IDE framing,
 > Grok-class pipeline spec ×2) + Brian's corrections on 2026-06-21.
