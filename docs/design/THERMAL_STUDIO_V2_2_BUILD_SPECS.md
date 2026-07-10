@@ -234,3 +234,130 @@ Photos re-encode. Assistant tab consumes the same S6 endpoints + credit metering
 P3→S6/S7, P4→W1/S6.5, P5→S7.5, P6→A-slices). All run against `/preview/thermal-v2`
 with mocked `/grid` + PATCH; assertions per V2.2 §5 including the cross-cutting
 invariants (no scroll, undoable everything, readout agreement, no raw errors).
+
+---
+
+# Addendum A (2026-07-08) — workflow Q&A decisions (Brian)
+
+Locked answers to the end-to-end workflow review. These AMEND the slices above.
+
+## A1. Non-destructive versioning (architectural guarantee — document + surface it)
+
+The original is NEVER modified, by construction: the raw R-JPEG bytes are immutable in
+R2 (`storage_path`); the decoded per-pixel grid is immutable (`npz_data_path`); every
+edit (spots, tuning, palette, findings, review state) is metadata JSON on the capture
+row; every view is a live render of original + layers. Surfacing (new slice **W2**,
+after W1):
+- **"View original" toggle** in Analyze (`O` key + toolbar eye icon): temporarily hides
+  all overlays and resets span/palette to camera values. Releasing restores the working
+  state. No data changes.
+- **Focus mode** (`F` key + toolbar ⛶): collapses both rails + filmstrip for a maximum
+  viewer; `F`/Esc restores. Satisfies the "large work area" requirement without layout
+  changes.
+- **Library status filters** (extend `LibraryFiltersRail`): `Not decoded` ·
+  `Not AI-analyzed` · `Has findings` · `Reviewed` — derived: decoded =
+  `qualityMetrics.is_radiometric`; AI-analyzed = `anomalies != null`; reviewed =
+  `metadata.findings_review` present. This answers "where do I see analyzed vs not" —
+  ONE place (Library), filtered, never two galleries.
+- Exports (S8.5) materialize both file versions on demand: **Clean** (no overlays) and
+  **Annotated** — the answer to "is there a version without all of it".
+
+## A2. AI run UX (amends S6)
+
+- **One primary action** ("Find problems with AI (N)") honoring the Scope pill. An
+  optional **"Add context" popover** on that button: free-text ("what am I inspecting"),
+  optional lens dropdown (General default / Building / Roof / Electrical / Mechanical /
+  Drone), camera-side toggle. Analysis is AUTOMATIC by default — context only refines.
+- **Progress:** the top-bar job chip shows `n/N images` (jobs table carries progress via
+  callback updates — verify field, else poll status); AI Review's left list fills as
+  results land (`router.refresh` on job completion, pattern exists in old shell).
+- **Triple protection against double-charge:** (1) button disabled while a job for the
+  same scope is queued/running; (2) jobs POST dedupes — same session + job_type +
+  capture-set hash while active returns the existing job id; (3) S6-CR debit is
+  idempotency-keyed per jobId. An accidental second click can never double-bill.
+- **Markups:** every detection renders as a numbered outline box on the image (grid-pixel
+  bbox from `analyze.py`, already emitted) — hover/click highlights the matching card.
+  Accepted findings keep their boxes into Report/Deliver renders (Annotated exports).
+- Per-finding "Ask why" follow-up (extra interpret round-trip) = v1.1, optional.
+
+## A3. Project integration (new slice **TS-PROJ**, ships with TS-SD)
+
+- Inspection (session) creation/import offers a **project picker** (GET
+  /api/ops/thermal/projects exists; `initialProjectId` plumbing exists in the old shell —
+  keep the linkage fields, rebuild the picker UI).
+- Project-linked inspections: SlateDrop "Thermal Studio" folder is created under THAT
+  project (TS-SD); generated deliverables ALSO register in the project's Deliverables
+  folder so they sit beside Site Walk and Tour deliverables.
+- The project workspace lists thermal inspections alongside walks/tours (read-only list
+  + "Open in Thermal Studio" links — no thermal editing embedded in the project screen).
+  One location = one project = every tool's output together; unlinked "quick inspections"
+  remain fully supported (org-root folder).
+
+## A4. Radiometric Live Link (amends S7.5 — the flagship interactive deliverable)
+
+Viewer (token-gated, reuses share-viewer auth patterns): per-image rendered PNG +
+anomaly pins + accepted finding text. **Industry-first:** lazy-load the per-pixel grid
+per image (existing grid endpoint shape, token-gated variant; ~300KB gzipped JSON at
+640×512) so the CLIENT can hover anywhere and read live temperatures. Viewer tools kept
+deliberately minimal: hover temp readout (°F/°C), pin hover tooltips (finding +
+explanation + ΔT), palette cycle (3 presets), one "Enhance" span slider (client-side
+`renderHeatmap` re-render), pinch/scroll zoom. Plus: per-image Q&A threads (owner
+notified, feeds Ops/Coordination), **Accept & sign** button (timestamped), password +
+expiry, view analytics (opened/when from token logs). No incumbent link can do hover-
+temperature — this is the demo moment.
+
+## A5. Timelapse (amends S8) — honest radiometrics + the Scrubber
+
+- A baked **MP4 is never radiometric** (video codecs carry color, not temperature).
+  Radiometrics are retained on every SOURCE frame (grids stay in R2). Two outputs:
+  1. **MP4 render** (email/social): existing Motion engine (fps/aspect/smoothing/
+     deflicker/overlay) + NEW: **duration target** ("Condense to [30 s]" → fps computed
+     from frame count), trim range, text/timestamp/logo overlays from the branding
+     profile.
+  2. **Timelapse Scrubber link** (interactive deliverable): web viewer scrubbing the
+     actual frames (server-rendered once), radiometric hover per frame (lazy grid
+     fetch), and an optional **region trend chart** — apply a saved area measurement
+     across all frames, worker computes the temp-time series, viewer charts it.
+     Equipment warm-up curves for commissioning firms; moisture dry-down for restoration.
+- Batch scale: hundreds of frames fine (frames render server-side in the existing
+  timelapse worker path).
+
+## A6. Thermal video (amends S8) — quick-trim only, hand off the rest
+
+In Deliver → Time-lapse & video (deliberately NOT featured — a section, not a tab):
+trim in/out, speed (re-time), crop → Modal re-encode job. Anything deeper (multi-clip,
+titles, audio) = **"Open in Content Studio"** handoff (register the clip as a Content
+Studio asset) — keeps Thermal Studio uncluttered and reuses the platform's real editor.
+Frame-extraction to stills (S8) remains the analysis path for video.
+
+## A7. Panorama create + view (amends PAN)
+
+Create: Library multi-select → overflow menu "Stitch panorama (N)" → Modal job →
+returns a NEW capture row (`metadata.panorama: true`) holding the stitched grid — so
+Analyze/measure/AI work on it unchanged (it's just a big image). Deliver: **Panorama
+Explorer link** — full-bleed pan/zoom (tile the render if > 4096px wide), pins, hover
+temps, same viewer chrome as the Live Link. Seam-confidence overlay toggle.
+
+## A8. Deliverable catalog (amends S7/S7.5 template registry)
+
+Gallery groups into **Documents** and **Interactive links** (both from the same ★
+report set + branding profile):
+| Type | Wow for |
+|---|---|
+| Branded PDF (1/2/4-up templates, severity summary, cert line) | Everyone; the paper trail |
+| Executive One-Pager (auto top-5 findings + counts) | Owners/GCs who won't read 40 pages |
+| Radiometric Live Link (A4) | Inspection firms — clients hover real temps |
+| Cinematic Slideshow (S7.5) | Sales-grade walkthrough of findings |
+| Before/After Compare link (two sessions, slider per matched image) | Contractors proving remediation; FM recurring routes |
+| Panorama Explorer (A7) | Roof consultants, drone surveys |
+| Timelapse Scrubber + trend chart (A5) | Commissioning firms, restoration dry-downs |
+
+Build order for the catalog: PDF + Live Link + Cinematic in S7/S7.5 (as planned);
+One-Pager = a template, not a slice; Compare link with S6.5's matching; Explorer with
+PAN; Scrubber with S8. Every type registers in SlateDrop (TS-SD) + project Deliverables
+(TS-PROJ) and is re-openable.
+
+## A9. Build-order amendment
+
+…S5.5p2 → W1 → **W2** → S5.6 → S6(+CR) → S6.5 → S7 → **TS-SD + TS-PROJ** → S7.5(+A4) →
+S8(+A5/A6) → S8.5 → B1 → PAN(+A7) → app → S9 (HELD).
