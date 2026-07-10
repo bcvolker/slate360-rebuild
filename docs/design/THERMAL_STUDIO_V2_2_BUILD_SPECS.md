@@ -443,6 +443,151 @@ review:
   audit (touch pan/zoom on panorama tiles, tap-for-temp instead of hover, swipe
   between slideshow frames) — the ASU-leadership demo happens on someone's phone.
 
+# Addendum D (2026-07-10) — layout round 2, location layer, Motion UIs, simplicity audit, SLICE ROSTER
+
+Brian's directive: the current UI is extremely poor; the rebuild must be OBVIOUSLY
+different, more intuitive, less confusing. Layout-restructure work moves FIRST in the
+build order. The numbered roster at D8 is now the authoritative prompt list for Sonnet.
+
+## D1. Camera recognition is metadata, NEVER a picker (principle)
+
+There is NO camera-selection UI anywhere. The worker sniffs the brand/format from the
+file bytes on import; the recognized camera appears only as one small row in
+Notes & photo data (e.g. "HIKMICRO B20 · radiometric ✓") and as the import-result
+badge. CAM-1 (C2) is entirely detection + fixtures — if any slice sketches a camera
+dropdown, that is a spec violation.
+
+## D2. New slice **MAP-1 — location layer** ("tie everything to location")
+
+GPS already parses into capture metadata (S5.5 shows lat/lon + OSM link). Build on it:
+- **Library map toggle:** a Grid ⇄ Map segmented control in the Library toolbar. Map
+  mode = full-canvas **Leaflet + OSM tiles** (free, keyless, already a repo pattern in
+  walks-with-plans; do NOT take a Google Maps key dependency for v1 — leave a provider
+  seam so Google satellite tiles can be slotted in later if Brian supplies a key).
+  Geotagged captures render as pins (clustered when dense); pin click = thumbnail
+  popover → Open in Analyze; drag-select pins = sets Scope selection. Captures without
+  GPS are simply absent + a quiet count chip ("14 of 24 have location").
+- **Analyze mini-map:** Notes & photo data's GPS row expands to an inline 160px-tall
+  Leaflet mini-map (non-interactive until clicked). Never dominates the rail.
+- **Deliverables:** link container gains an optional **map chapter** (pins for every
+  included finding; pin click jumps to that photo/panorama region). Report templates
+  get an optional small locator-map block per image.
+- **Panoramas:** if source frames carry GPS, the stitch stores a bounding footprint so
+  the panorama pin renders as a small footprint rectangle, not a dot.
+- *Accept:* fixture captures with GPS appear as pins; pin click opens the right image;
+  no-GPS captures degrade gracefully; map mode adds zero page scroll.
+
+## D3. New slice **L1 — Analyze/desktop layout restructure round 2** (BUILD FIRST)
+
+Kill list + restructure, from a code-level redundancy audit of the current V2 build:
+1. **Double image strip (confirmed in `AnalyzePanel.tsx`):** the left "Working set"
+   rail and bottom "Filmstrip" render the SAME captures twice. DELETE the left rail on
+   Analyze entirely; the bottom filmstrip (96px thumbs, selection ticks, active ring)
+   is the only strip. The viewer gains the freed width.
+2. **Toolbar de-noising:** °C/°F is a set-once preference → move it (with future
+   set-once prefs like reduced motion) into a single right-edge **overflow menu (⋯)**;
+   the toolbar keeps only per-image working controls: tools, palette, undo/redo,
+   ‹ n/N ›, breadcrumb, hover readout. Rule: every control that survives must pass
+   "used many times per session"; set-once things live in ⋯.
+3. **One pill rule:** the Scope pill in the top bar is the ONLY pill-shaped control
+   in the product. Anything else pill-styled restyles to standard segmented/button
+   tokens. No double pills, ever.
+4. **Viewer is the hero:** at 1440×900 the canvas owns ≥60% of the tab area with the
+   right rail at default width. Accordions single-open by default (opening one
+   collapses the previous) so the rail never scrolls in the common case.
+5. **Typing everywhere:** every numeric slider (span endpoints, emissivity, distance,
+   opacity, speeds) pairs with a click-to-type field — sliders for feel, fields for
+   precision. Audit + retrofit.
+- *Accept (preview_eval):* one strip in the DOM; toolbar ≤8 top-level controls;
+  exactly one pill; canvas ≥60% measured; each slider has a paired input.
+
+## D4. **Motion — timelapse & video get their OWN UIs** (amends S8; inside Deliver)
+
+Image analysis is a spatial paradigm; motion is a TIME paradigm — different surface,
+deliberately tucked away (few users need it): Deliver shows a quiet "Motion" section
+with two cards (Timelapse · Video); opening one takes over the tab as a full-canvas
+editor with a `← Deliver` breadcrumb. Shared grammar:
+- A horizontal **time ruler** across the bottom (the "filmstrip of time"): frame
+  ticks, draggable in/out handles, a playhead; click a tick = that frame in the
+  preview above. No spot tools here — spatial tools stay in Analyze.
+- Right rail = collapsed-by-default expander groups (expanding bars, toggles,
+  sliders, type-in fields per Brian). **Timelapse Builder** — Source (project/
+  date-range), Range + speed/condense slider ("6 hours → 30 s") with type-in
+  duration, Overlay toggles (timestamp, region-temp readout, logo w/ opacity slider,
+  title text), Region trend (draw ONE box in preview → line chart of its avg/max
+  over time — the commissioning wow), Output (resolution/format). **Video Trim** —
+  in/out handles, retime (0.25×–4×), crop (drag in preview), overlay toggles; deeper
+  editing hands off to Content Studio (locked — no timeline-editor scope creep).
+- Both render server-side via the existing timelapse job type; MP4s stay honest
+  (non-radiometric) per Addendum A.
+- *Accept:* Motion cards visible-but-quiet in Deliver; editor is full-canvas with a
+  working ruler + handles; every slider has a type-in twin; Esc/breadcrumb returns
+  to Deliver with state kept.
+
+## D5. App layout round 2 (amends A0–A6)
+
+Same round-2 laws on the phone product: one strip only (bottom filmstrip above the
+dock); viewer owns the screen with rails as drag-up bottom sheets (Measurements/
+Tuning/Notes — one open at a time); Scope = the only pill; set-once prefs live in the
+Settings tab, never toolbars; 44pt+ targets with primary actions in the thumb zone;
+Files tab gets MAP-1's map view (same Leaflet component); Motion is desktop-first and
+appears in-app only as an "Open on desktop" handoff.
+
+## D6. Simplicity audit — standing bans (enforced by W4)
+
+Beyond D3's kill list, re-confirmed for every slice: no two controls that do the same
+thing on one screen (keyboard shortcuts excepted, and every shortcut appears in its
+tooltip); no button without a verb; no toggle with ambiguous state (labeled states,
+never a lone dot); accordions — not nested tab bars — inside rails; empty states name
+exactly one action; confirmation dialogs only for destructive+irreversible
+(everything else = Keep/Undo toast).
+
+## D7. New slice **W4 — virtual end-to-end walkthrough + fix pass** (last before S9)
+
+Run six journeys as Playwright specs AND a manual preview_eval pass; fix every
+friction point; no new features: (1) import 20 mixed-brand files → tune → report →
+PDF; (2) drone survey → panorama → AI → link to client; (3) open a 6-month-old
+inspection from SlateDrop and resume; (4) phone: shoot → transfer → analyze → send
+link from the field; (5) client opens the link at 390px; (6) correction loop: AI
+wrong → Analyst chat → revised finding → re-export. Measured bars: import→first-
+tuned-image ≤3 interactions; analyze→sent-link ≤6; zero dead clicks; zero page
+scroll at 1280×800 and 1440×900.
+
+## D8. THE SLICE ROSTER — authoritative prompt list for Sonnet (supersedes all prior orders)
+
+Desktop (each row = one prompt, one verified push):
+
+| # | Slice | What it implements |
+|---|-------|--------------------|
+| 1 | **L1** | Layout restructure round 2: delete duplicate strip, toolbar de-noise + ⋯ menu, one-pill rule, viewer ≥60%, slider+type-in pairs (D3) |
+| 2 | **W1** | Workflow foundations: dbl-click→Analyze, drop-anywhere import, palette persist + last-used seed, copy/paste image settings, sticky mini-summary |
+| 3 | **W3** | Professional polish: token/density/micro-interaction audit, ← breadcrumb, Esc cascade, Scope ✕, global Saved ✓ chip (C1) |
+| 4 | **S5.5p2** | Polygon tool UI, Δ-compare between measurements, line-profile chart |
+| 5 | **MAP-1** | Location layer: Library map toggle, pin→open, map-select→Scope, Analyze mini-map (D2) |
+| 6 | **W2** | View-original (O), Focus mode (F), Library analyzed/not filters |
+| 7 | **S5.6** | Sensitivity suite: alarms (above/below/interval/dew-point/insulation), Enhance-here, local contrast, isotherm sweep, A/B flicker |
+| 8 | **CAM-1** | Camera compatibility: per-brand fixtures, auto-recognition badges, display-only fallback — NO picker (C2/D1) |
+| 9 | **S6** | AI Review tab: run UX (button + context popover), triage queue, Accept/Edit/Dismiss, explanations; metering flag OFF (B4) |
+| 10 | **S6.6** | Analyst chat: grounded Q&A, revision proposal cards, drag-drop PDF/image grounding, worker `chat` endpoint (C5) |
+| 11 | **S6.5** | Compare view, thermal↔visual fusion blend, normalize-scale-across-set |
+| 12 | **S7** | Report builder: WYSIWYG sheets, template gallery, branding profile + cert line |
+| 13 | **TS-SD + TS-PROJ** | SlateDrop Thermal folder, deliverable registration, open-from-SlateDrop, project picker |
+| 14 | **S7.5** | Link composer (chapter container, B1-addB), Radiometric Live Link, cinematic slideshow, Q&A/sign-off/analytics |
+| 15 | **B1** | Batch recipes (saved multi-step batch operations) |
+| 16 | **S8-M** | Motion surfaces: Timelapse Builder + Video Trim time-ruler editors (D4) |
+| 17 | **S8.5** | Export engine: clean/annotated PNG, CSV, JSON, findings, batch ZIP |
+| 18 | **PAN** | Panorama: stitch job, tile pyramid + grid chunks, contour/trend callouts, difference lens, map footprint (B2/B3) |
+| 19 | **W4** | End-to-end walkthrough + fix pass; P1–P7 persona specs green (D7) |
+| 20 | **S9** | THE SWAP (HELD for Brian): /thermal-studio serves V2, old UI deleted |
+
+App (can start after desktop #11; each = one prompt): **A0** repo/scaffold/IAP shell
+→ **A1** Files + offline viewer (D5 laws) → **A2** on-device decode + measurements +
+bottom sheets → **A3** save/export + autosave parity → **A4** reports + StoreKit →
+**A5** AI credits + Assistant → **A6** store readiness + B5 branding editor + 390px
+audit. **Total: 20 desktop + 7 app = 27 prompts** (26 without the held swap).
+
+Persona specs P1–P7 land inside their owning slices, not as separate prompts.
+
 # Addendum C (2026-07-08) — polish pass, file management, camera compatibility, Analyst chat
 
 ## C1. New slice **W3 — Professional polish pass** (after W2; repeat before S9)
