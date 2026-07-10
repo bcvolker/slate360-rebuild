@@ -154,7 +154,54 @@ Concrete, assertable simulations — each becomes an e2e spec landing with its s
   1440×900; every mutation undoable or Keep/Undo'd; readouts (cursor/loupe/list/legend)
   agree with each other; no raw backend error strings reach the viewport.
 
-## 6. What we deliberately do NOT copy from the incumbents
+## 6. AI analysis architecture (locked from Brian's 2026-07-07 Q&A)
+
+Grounded in what `workers/modal/thermal-analysis` already does (verified in code):
+the anomaly detector runs on the **raw per-pixel temperature grid** (local-background
+Gaussian deviation, robust sigma, connected-component blobs, edge-softness shape
+classification, linear-streak detection); the `interpret` endpoint already runs
+**Claude Opus 4.8 vision** with scene identification, anchored observation-first
+findings, allowed-cause vocabularies per optional profile, and a false-color guard.
+
+1. **General-first is the product.** No required trade selection — the `general`
+   profile (unconstrained causes) is the default; building/roof/electrical/mechanical/
+   drone are optional *lenses* that only narrow the suggested-cause vocabulary and
+   severity presets. Trades are presets, never gates.
+2. **Scene understanding (S6 upgrades).** The VLM already identifies scenes from the
+   thermal image alone. Make it markedly stronger by (a) sending the **paired visual
+   photo** alongside the thermal (auto-pairing exists since S2 — daylight imagery is
+   what makes "breaker vs door vs bearing" robust), (b) passing the environment fields
+   (ambient/humidity/distance) plus a new optional **camera-side toggle
+   (interior/exterior)** so infiltration-vs-exfiltration direction can be reasoned, and
+   (c) keeping the free-text context field optional — the model infers by default,
+   hints refine.
+3. **High-sensitivity pass (S6).** Today's detector floors at ~2 °C / 1.5σ seeds to
+   avoid false-positive spam. Add a significance-based pass: spatial coherence beats
+   per-pixel noise (NETD on Boson-class cores ≈ 0.04–0.05 °C), so a coherent
+   0.3–0.5 °C region over hundreds of contiguous pixels is statistically real even
+   when invisible at any display span. Findings carry confidence; emissivity-variation
+   false positives (shiny metal "reads cold") are suppressed/annotated via the VLM's
+   object identification. **Detection never depends on the operator's span/palette** —
+   the human sensitivity suite (Enhance-here etc.) exists to *verify* AI flags, not to
+   enable them.
+4. **No external tool needed.** The stack (radiometric feature extraction + Claude
+   vision fusion) is already beyond every incumbent. If volume ever justifies it, a
+   fine-tuned specialist detector slots in behind the same Modal job — an upgrade,
+   not a re-architecture.
+
+### New slice — PAN: radiometric panorama stitching
+
+Stitch 20–30 overlapping frames into ONE measurable panorama by registering on the
+paired-visual/gradient-enhanced imagery, warping the **temperature grids** (never the
+colorized JPEGs) with the same homographies, and blending in temperature space →
+output a large NPZ grid that supports every existing tool (measure/re-palette/re-span/
+AI). Radiometrics preserved end-to-end. Runs as a Modal job (cloud rule). Constraints
+surfaced honestly in-UI: 30–50 % overlap required; seam confidence flagged where
+frame-to-frame temps disagree (angle/reflection/time drift); params batch-applied
+first; ideal case = planar drone roof surveys. FLIR ships non-radiometric panoramas;
+ours measuring end-to-end is a headline differentiator. Slots after S8.
+
+## 7. What we deliberately do NOT copy from the incumbents
 
 - FLIR's ribbon + modal license management — the shell stays flat, quiet, and unlicensed-feeling.
 - Fluke's asset-database ceremony — projects/SlateDrop already organize; don't add a second taxonomy.
