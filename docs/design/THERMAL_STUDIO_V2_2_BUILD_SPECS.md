@@ -443,7 +443,140 @@ review:
   audit (touch pan/zoom on panorama tiles, tap-for-temp instead of hover, swipe
   between slideshow frames) — the ASU-leadership demo happens on someone's phone.
 
-# Addendum F (2026-07-10) — condensed roster (FINAL) + competitor gap pack
+# Addendum G (2026-07-10) — external-critique response: reliability track, FROZEN roster, S9 gates
+
+Two external AI audits (relayed by Brian 07-10) reviewed the plan and product. Verdict
+on their findings, what was fixed same-day, and the FINAL FROZEN roster. **G4's roster
+supersedes F2. After this addendum the order is FROZEN — no chat may reorder it again
+without Brian's explicit instruction.**
+
+## G0. Critique intake — accepted / fixed / rebutted
+
+**FIXED same-day (2026-07-10):**
+- **P0 schema landmine — CONFIRMED AND FIXED.** Prod `thermal_captures` had NO
+  `metadata` column, yet the capture PATCH route selects/updates it — every per-image
+  save (spots/tuning/findings/palette/curation) failed, and client `.catch(() => {})`
+  swallowed the failure. Applied additive migration (jsonb default '{}') to prod +
+  recorded `supabase/migrations/20260710120000_thermal_captures_metadata.sql`.
+  Lesson institutionalized: preview harnesses mock fetch, so **every slice that
+  touches persistence must include one un-mocked round-trip check against the real
+  route** (curl or e2e) — added to the per-slice gates.
+
+**ACCEPTED → became the R1 slice + gate changes (G2/G3):** no job dedupe on POST
+/jobs; no stuck-job reconciler; job marked processing before Modal accepts; partial
+capture failure still completes sessions; interpret has no job row/Realtime; silent
+`.catch(() => {})` in V2 save paths (3 confirmed: spots-api, tuning-api,
+findings-api); zero thermal e2e files despite the plan citing them; roster churn
+(now frozen); differentiators scheduled too late (now moved up); S9 held with no
+dated criterion (now gated, G6); app track as a distraction (now deferred until
+desktop W4 green — matches Brian's separate-project decision); V3 doc IA conflict
+(now marked historical).
+
+**REBUTTED (with code facts):** "§1b radiometric live recompute may be physically
+false — UI only recolors." Incorrect for V2: client-side per-pixel recompute from
+the NPZ grid is SHIPPED (S5) — `tuneTemps` in `lib/thermal/radiometric.ts`, wired
+through `useAnalyzeImage`, and cursor/loupe/measurements/legend/histogram all read
+the recomputed grid. What IS fair: it must be provably consistent with the worker's
+math and honest about scope. → G5 adds a **worker↔client parity test** (golden
+fixtures, ±0.1 °C) and labels the approximation honestly: emissivity/reflected-temp
+correction is exact under the gray-body model; distance/humidity atmospheric terms
+are display-consistent approximations pending re-extract.
+
+**NOTED, resolved by the swap itself:** V1 findings (858-line probe viewer, dead
+components, layout scroll conflict, hardcoded palette, amber/hex drift) live in
+`components/ops/thermal/**`, which S9 deletes wholesale. V1 gets ONLY the P0 schema
+fix (its saves work now too) — no other V1 investment.
+
+## G1. New slice **R1 — "Never lie" reliability pack** (BUILD FIRST, before any UI)
+
+- **Save failures are visible:** replace the three silent catches — failed PATCH →
+  red "Not saved — Retry" state on the global Saved chip + toast; queued retry with
+  backoff; unsaved-changes guard on tab/image switch.
+- **Job dedupe:** POST /jobs returns the existing active job for (session, type,
+  scope-hash) instead of creating a duplicate; disable-while-pending stays in UI.
+- **Stuck-job reconciler:** a sweep (API route + cron) marks jobs `processing`/
+  `queued` older than a threshold with no callback as `failed` with a reason;
+  UI shows failure honestly with a Retry action.
+- **Accept-then-processing:** mark `processing` only after Modal 200-accepts the
+  dispatch; dispatch failure → `failed` immediately, not orphaned.
+- **Partial-failure semantics:** a session with n-of-m failed captures shows
+  "m−n processed · n failed · Retry failed" — never a clean "complete".
+- **interpret gets a job row** → Realtime progress like every other job type (kills
+  the sleep-then-refresh hack).
+- *Accept:* kill Modal mid-job → row fails with reason within the sweep window;
+  double-click Run → one job; unplug network → red chip + retry recovers; e2e spec
+  `e2e/thermal-v2-r1-reliability.spec.ts` green.
+
+## G2. Test-first gate (per-slice, hard rule)
+
+A slice is NOT done without its Playwright spec landing in the same push
+(`e2e/thermal-v2-*.spec.ts`) plus one un-mocked persistence round-trip. Golden
+radiometric fixtures (one real file per brand, expected min/max/center-pixel temps)
+land with W2+CAM-1 and gate decode accuracy forever. W4 becomes the cross-journey
+sweep — not the first time tests exist.
+
+## G3. Sequencing principle — differentiators before deep parity
+
+The wedge (AI Review + reports + Live Link deliverables) moves ahead of Analyze
+parity packs: incumbents already win on deep analysis tools; nobody matches an
+explained-AI + interactive-live-link vertical. Analyze parity (S5.6, S6.5) follows
+so Level III users don't switch back — but the demo-able vertical exists first.
+
+## G4. THE FROZEN ROSTER (supersedes F2 — FINAL, no further reordering)
+
+Big slices ship in **named pushes** (checkpoints with their own gates) so nothing
+merges half-finished, but each row remains one Sonnet prompt/conversation:
+
+| # | Slice | Contents (pushes) |
+|---|-------|-------------------|
+| 1 | **R1** | Reliability pack (G1): visible save failures, job dedupe, reconciler, accept-then-processing, partial-failure, interpret job row |
+| 2 | **L1+W3** | Layout restructure + polish (D3/C1): kill duplicate strip, ⋯ menu, one-pill, viewer ≥60%, Saved chip (now with R1's error state) |
+| 3 | **W1** | Workflow foundations: dbl-click→Analyze, drop-anywhere + import tray, selection grammar, two peer verbs, Match look, palette persist+seed |
+| 4 | **S6** | AI Review tab: run UX + context popover, triage queue, Accept/Edit/Dismiss, explanations, metering flag OFF (pushes: run+queue / review UI) |
+| 5 | **S7** | Reports (pushes: Quick Report + auto-fields/TOC → template gallery + field-level editor + branding profiles) |
+| 6 | **TS-SD + TS-PROJ** | SlateDrop folder + deliverable registration + open-from + project picker |
+| 7 | **S7.5** | Deliver (pushes: saved-deliverables home + 4-step composer → Radiometric Live Link + per-link branding/No-logo → cinematic + Q&A) |
+| 8 | **S5.6** | Analyze completion pack (pushes: polygon/Δ/line-profile → alarms suite → Enhance-here/contrast/sweep/flicker + rotate/flip) |
+| 9 | **W2+CAM-1** | View-original, Focus, filters + per-brand golden fixtures, badges, voice notes, display-only fallback (scientific-validity gate) |
+| 10 | **S6.5** | Compare synced, fusion blend+PiP+edge, normalize-across-set, cross-image trend |
+| 11 | **S8.5** | Export engine + batch recipes + rename + watermark + full-grid CSV |
+| 12 | **S6.6** | Analyst chat (worker `chat` endpoint, proposal cards, drag-drop grounding) |
+| 13 | **S8-M** | Motion: Timelapse Builder + Video Trim |
+| 14 | **MAP-1** | Location layer |
+| 15 | **PAN** | Panorama: stitch, tiles, contours/trend, difference lens |
+| 16 | **W4** | Cross-journey walkthrough + fix pass (specs already exist per-slice; this is the sweep + interaction bars) |
+| 17 | **S9** | THE SWAP — gated, see G6 |
+
+**App track (A0–A6 + B5): DEFERRED until desktop W4 is green** — and it is a
+separate future project per Addendum E9. Do not start it from s360 chats.
+
+## G5. §1b honesty clause (amends the law, doesn't weaken it)
+
+Emissivity/reflected-temp edits recompute per-pixel temps exactly (gray-body model,
+client-side, shipped). Distance/humidity/atmospheric fields are display-consistent
+approximations until a re-extract job runs (queued lazily, results reconciled).
+The UI never claims more than this; the worker↔client parity test (±0.1 °C on golden
+fixtures) lands with slice 9 and runs in CI thereafter.
+
+## G6. S9 go/no-go gates (replaces "held indefinitely")
+
+S9 executes only when ALL are true, then within 2 weeks of Brian's sign-off so the
+dual codebase cannot drift indefinitely: (1) W4 green including P1–P7; (2) golden
+radiometric fixtures green; (3) R1 chaos checks green; (4) share-token authorization
+audit done (expiry, scope, revocation verified); (5) AI false-positive review on a
+real inspection set (Brian judges); (6) **metering/entitlement review** — the
+THERMAL_AI_METERING_ENABLED flag MUST be revisited before any non-CEO exposure;
+(7) Brian's explicit written approval. V1 (`components/ops/thermal/**`, ~600 lines
+dead code included) deletes in the same slice.
+
+## G7. Doc hygiene
+
+`docs/design/THERMAL_STUDIO_REDESIGN_V3.md` is HISTORICAL (useful diagnosis, wrong
+IA — 3-tab model lost to the locked 5-tab). A banner marks it non-executable. The
+authoritative stack: LOCKED doc (laws) → V2.1 (parity) → V2.2 review (critique/
+personas) → THIS file, newest addendum wins, G4 roster frozen.
+
+# Addendum F (2026-07-10) — condensed roster (superseded by Addendum G) + competitor gap pack
 
 ## F1. Competitor gap pack — basics FLIR Thermal Studio / Testo IRSoft / Fluke have
 

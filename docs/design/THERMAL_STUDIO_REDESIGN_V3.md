@@ -1,5 +1,11 @@
 # Thermal Studio — Workflow Reimagining (v3 plan)
 
+> **⚠️ HISTORICAL — NOT A BUILD PLAN (marked 2026-07-10).** This document's diagnosis
+> remains useful context, but its 3-tab IA lost to the locked 5-tab V2 design. The
+> executable plan is `THERMAL_STUDIO_V2_REBUILD_LOCKED.md` +
+> `THERMAL_STUDIO_V2_2_BUILD_SPECS.md` (Addendum G roster, frozen). Do not build from
+> this file.
+
 **Status:** Plan only — no code beyond the draggable level/span scale (shipped 2026-06-23).
 **Decisions locked (Brian, 2026-06-23):** keep the Content-Studio-style layout; present
 **Auto-process** and **Manual-tune** as **two equal, explicit modes**; reduce buttons and
