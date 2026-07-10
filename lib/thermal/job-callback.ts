@@ -118,11 +118,12 @@ async function refreshSessionSummary(
 ) {
   const { data: existing } = await admin
     .from("thermal_analysis_sessions")
-    .select("summary_metrics")
+    .select("summary_metrics, metadata")
     .eq("id", sessionId)
     .maybeSingle();
 
   const prior = (existing?.summary_metrics as Record<string, unknown>) ?? {};
+  const priorMetadata = (existing?.metadata as Record<string, unknown>) ?? {};
   const sessionQuality = averageConfidence(extractResults);
   const radiometricCount = extractResults.filter((r) => r.qualityMetrics?.is_radiometric).length;
   const maxTemp = extractResults.reduce((max, r) => {
@@ -159,7 +160,10 @@ async function refreshSessionSummary(
           : {}),
         critical_anomalies: criticalAnomalies,
       },
+      // Merge — a completing job must never erase session metadata written by
+      // other flows (motion_requests, ai_interpret status, operator fields).
       metadata: {
+        ...priorMetadata,
         last_job_id: jobId,
         session_confidence: sessionQuality || prior.avg_confidence_score,
         radiometric_count: radiometricCount || prior.radiometric_captures,

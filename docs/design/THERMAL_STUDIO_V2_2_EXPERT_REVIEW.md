@@ -102,7 +102,11 @@ Settings.** Lightweight subset rule stands (no Motion, no template designer).
 - **Deliver.** Quick 2-up PDF or instant share link from the truck; anything complex says
   "finish in the desktop studio" and syncs the inspection.
 
-## 4. Build order v2.2 (supersedes V2.1 §9)
+## 4. Build order v2.2 — ⚠️ SUPERSEDED (2026-07-10)
+
+> **Do not build from this table.** The frozen, final order is
+> `THERMAL_STUDIO_V2_2_BUILD_SPECS.md` **Addendum G §G4**. This section is kept for
+> the slice rationale only.
 
 | # | Slice | Contents | Status |
 |---|---|---|---|

@@ -443,6 +443,97 @@ review:
   audit (touch pan/zoom on panorama tiles, tap-for-temp instead of hover, swipe
   between slideshow frames) — the ASU-leadership demo happens on someone's phone.
 
+# Addendum H (2026-07-10) — critique round 2: R1 appendix, second P0 fixed, honesty cuts, positioning
+
+## H0. Positioning statement (read first, every session)
+
+Thermal Studio's target is to be **the most trustworthy, easiest construction-oriented
+thermal-evidence workflow**: vendor-neutral import → honest radiometric analysis →
+human-reviewed AI explanations → branded reports → interactive radiometric client
+links → permanent project record. It does NOT aim to out-FLIR FLIR on batch depth,
+camera-vendor integration, calibration labs, or predictive-maintenance routes. No doc,
+pitch, or slice may claim otherwise. Scope-creep toward "beat everyone at everything"
+gets rejected in review.
+
+## H1. Second P0 — session metadata erasure: CONFIRMED AND FIXED (2026-07-10)
+
+`lib/thermal/job-callback.ts` `refreshSessionSummary` wrote `metadata: {last_job_id,
+…}` as a REPLACEMENT object on every completed processing job — erasing
+`motion_requests`, `ai_interpret` status, and any operator fields (summary_metrics
+merged `...prior`; metadata didn't). Fixed: prior metadata is now selected and
+spread. Residual risk (accepted, documented): read-modify-write races between
+concurrent callbacks remain until R1 adds jsonb-merge semantics; single-operator use
+makes this low.
+
+## H2. R1 engineering appendix (the paragraph becomes a spec)
+
+**Files:** `app/api/ops/thermal/jobs/route.ts` (dedupe + accept-then-processing),
+new `app/api/ops/thermal/jobs/reconcile/route.ts` (sweep; called by a Vercel cron),
+`lib/thermal/job-callback.ts` (partial-failure semantics; jsonb-merge for session
+metadata), `app/api/ops/thermal/interpret/route.ts` (+job row; job_type
+`interpret` added to the existing jobs table — additive), V2 `lib/*-api.ts` ×3
+(surface failures), `components/thermal-studio-v2/` Saved-chip error state, V1
+`ThermalProbeViewer` save-failure toast port (small, V1-protection).
+- **Dedupe key:** `sha256(org_id + session_id + job_type + sorted(capture_ids) +
+  params_json)` stored on the job row (additive column `dedupe_key` + partial unique
+  index where status in (queued, processing)); POST returns the existing row with
+  `{deduped: true}`.
+- **Reconciler SLA:** sweep every 10 min; `queued` > 15 min without dispatch-accept
+  OR `processing` > 45 min without a callback progress event → `failed` with
+  `failure_reason` ("worker unresponsive — Retry"). Retry = new job (new dedupe key
+  via attempt counter).
+- **Accept-then-processing:** job stays `queued` until Modal's dispatch POST returns
+  2xx; non-2xx → `failed` immediately with the response text.
+- **Callback retry (worker side):** Modal callback POSTs retry 3× exponential (worker
+  change, follow DEPLOY.md); reconciler is the net beneath it.
+- **Chaos matrix (e2e/thermal-v2-r1-reliability.spec.ts + manual checklist):**
+  double-click Run; dispatch 500; kill worker mid-job; callback dropped; PATCH 500
+  (red chip + retry); concurrent job on same session; partial n-of-m failure.
+
+## H3. Metering contradiction resolved (S6-CR vs B4)
+
+Final rule: **the metering CODE (pre-flight balance check, idempotent debit) ships
+WITH S6, wired but gated behind `THERMAL_AI_METERING_ENABLED` (default false).**
+Personal/CEO use runs unmetered by design (B4); the worker USD ledger cap stays as
+the cost backstop. "AI is never unmetered" applies to any NON-CEO exposure and is
+enforced by S9 gate #6 (flag review is a blocking checklist item). Both earlier
+statements are amended to this.
+
+## H4. Gate-artifact registry (G6 gates now have named artifacts + owners)
+
+| S9 gate | Artifact | Created by |
+|---------|----------|------------|
+| Chaos/reliability | `e2e/thermal-v2-r1-reliability.spec.ts` + checklist in this doc (H2) | Slice 1 (R1) |
+| Golden radiometric fixtures | `workers/modal/thermal-analysis/fixtures/` (1 real file/brand) + `e2e/thermal-v2-golden-decode.spec.ts` (min/max/center ±0.5 °C vs vendor-tool readings; worker↔client parity ±0.1 °C) | Slice 9 (W2+CAM-1) |
+| Share-token audit | `docs/audit/THERMAL_SHARE_TOKEN_AUDIT.md` (expiry, scope, revocation, enumeration, org isolation) | Slice 7 (S7.5) |
+| AI false-positive review | Brian runs S6 on a REAL inspection set DURING slice 4 (not at S9); results + accepted thresholds recorded in `docs/audit/THERMAL_AI_REVIEW_BASELINE.md` | Slice 4 (S6) |
+| Sign-off/analytics | Live Link sign-off = name + timestamp + content-hash recorded server-side, shown in the owner's deliverable row; analytics = per-chapter view events (open, dwell, question) — acceptance in S7.5 push 3 | Slice 7 (S7.5) |
+
+## H5. Honesty cuts + orphan claims (effective immediately)
+
+- **Twin overlay/align and SAM refinement are STRUCK from the product surface** until
+  genuinely built: no Deliver promise, no pitch line, no UI affordance. The Modal
+  align endpoint is a GPS stub; SAM is a stub. The `metadata.alignment` schema hook
+  stays (harmless), but nothing user-visible references twin alignment. Any future
+  revival is its own post-W4 slice.
+- **Autel honesty:** decodes that are not absolute-calibrated render a quiet
+  "Relative ΔT only — not absolute temperature" banner in Analyze + reports/links
+  (flag carried in `sensor_profile`; worker sets it). Owner: slice 9.
+- **Upload/R2 orphan cleanup** stays out of the roster (cost, not correctness) —
+  logged as a post-W4 backlog item; do not silently drop it from this doc.
+- **⌘K command palette:** owner W1 (slice 3) — §0 canon already promises it.
+- **F3 `asset_tag` (recurring inspections, helps P4):** optional free-text asset tag
+  on sessions + a Library filter; additive column; owner slice 6 (TS-PROJ). Full
+  asset/route management stays OUT of scope (H0).
+
+## H6. Checkpoint discipline (epic rows)
+
+For multi-push rows (S7.5, S5.6, S6, S7, PAN): each named push has its OWN
+acceptance list and gates and lands as its own commit+push; a later checkpoint may
+not start until the previous one's acceptance passed in the preview. A slice is
+reported "done" only when all its pushes are. This is the merge-gate answer to
+"epics disguised as prompts" — few conversations, many verified landings.
+
 # Addendum G (2026-07-10) — external-critique response: reliability track, FROZEN roster, S9 gates
 
 Two external AI audits (relayed by Brian 07-10) reviewed the plan and product. Verdict
@@ -606,7 +697,7 @@ missing. Each is assigned to an existing roster slice (no new prompts):
    match-look propagation) can plot avg/max across the set — the static-set cousin
    of the timelapse region trend. → owner S6.5.
 
-## F2. CONDENSED ROSTER — the FINAL prompt list for Sonnet (supersedes D8's table)
+## F2. CONDENSED ROSTER — ⚠️ SUPERSEDED by Addendum G §G4 (do not build from this table)
 
 Merges (same files, compatible scope): L1+W3 (restructure IS polish), S5.5p2 folded
 into S5.6 (one Analyze completion pack), W2+CAM-1 (two small independent halves),
@@ -871,7 +962,7 @@ wrong → Analyst chat → revised finding → re-export. Measured bars: import�
 tuned-image ≤3 interactions; analyze→sent-link ≤6; zero dead clicks; zero page
 scroll at 1280×800 and 1440×900.
 
-## D8. THE SLICE ROSTER — authoritative prompt list for Sonnet (supersedes all prior orders)
+## D8. THE SLICE ROSTER — ⚠️ SUPERSEDED by Addendum G §G4 (do not build from this table)
 
 Desktop (each row = one prompt, one verified push):
 
