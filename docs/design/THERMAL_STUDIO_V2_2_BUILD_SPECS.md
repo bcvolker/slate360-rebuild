@@ -361,3 +361,96 @@ PAN; Scrubber with S8. Every type registers in SlateDrop (TS-SD) + project Deliv
 
 …S5.5p2 → W1 → **W2** → S5.6 → S6(+CR) → S6.5 → S7 → **TS-SD + TS-PROJ** → S7.5(+A4) →
 S8(+A5/A6) → S8.5 → B1 → PAN(+A7) → app → S9 (HELD).
+
+---
+
+# Addendum B (2026-07-08) — unified link container, panorama at scale, moisture surveys, personal-use scope, standalone app branding
+
+## B1. ONE deliverable link, many chapters (amends S7.5 + A8)
+
+A share link is a **container**, not a single artifact. One branded, token-gated URL
+carries ordered **chapters**, each of a registered type: `cover` (cinematic title card),
+`slideshow` (cinematic sequence), `photos` (finding cards + Live-Link hover viewer),
+`panorama` (Explorer), `video` (player for rendered MP4/trimmed clips), `timelapse`
+(Scrubber), `compare` (before/after slider), `qa` (thread surface — always present
+unless disabled). Left chapter rail (words, not icons), branded header/footer, one
+password/expiry/analytics envelope for the whole link. Deliver's picker becomes a
+**link composer**: check the chapters to include, drag order, send. So a slideshow +
+AI-annotated panorama + video for the same inspection = ONE link the client walks
+through — never three URLs. PDF stays a separate download artifact from the same set.
+
+## B2. Panorama at scale — tiles, hover, and contour callouts (amends PAN/A7)
+
+- **Tile pyramid.** The stitched render (potentially 10k+ px wide) is tiled server-side
+  once at export (256px tiles, 3–5 zoom levels, standard slippy-map scheme); the
+  Explorer viewer is a pan/zoom tile viewer — opens **fit-to-width, centered**, scroll/
+  pinch zooms toward cursor down to native pixels, drag pans. No giant single download.
+- **Tiled radiometric hover.** The stitched grid is chunked the same way (256×256
+  float16 chunks in R2); the viewer lazy-fetches only the chunk under the cursor —
+  hover temps work across a 20-megapixel panorama with kilobyte-sized fetches. At low
+  zoom, a downsampled whole-grid gives coarse readout; native chunks load past ~50%
+  zoom.
+- **Contour callouts, not boxes (amends S6 worker spec).** `analyze.py` already builds
+  connected-component masks; ADDITIVELY emit `contour` (simplified cv2.findContours
+  polygon, ≤120 pts) and `trend` (unit vector from region centroid along the thermal
+  gradient — a "which way is it running" hint) on each anomaly, alongside the existing
+  bbox. Viewers render soft-filled tinted contour regions (severity tint, red/sky/
+  neutral) with a numbered pin at the centroid and an optional direction chevron;
+  clicking opens the finding card (type, ΔT vs surroundings, area in px→ft² when
+  ground-sample distance is known, explanation, confidence). Boxes remain the fallback
+  when no contour is present. Diffuse moisture patterns read as organic outlined
+  plumes — not rectangles slapped on concrete.
+- **Moisture-survey sensitivity (S6 high-sensitivity pass applies unchanged):**
+  spatially-coherent sub-degree regions are the target class; `edge_softness` (already
+  computed) separates diffuse/moisture-like from sharp/focal; the VLM explanation uses
+  neutral language ("retained-heat region consistent with subsurface moisture,
+  trailing toward the drain at lower right") — never asserts water as fact.
+
+## B3. Differential (before/after-rain) survey support (amends S6.5 compare)
+
+For active-leak tracing: two sessions of the same area (e.g. pre-rain and 24–48h
+post-rain panoramas) → **Compare** with locked span + a **difference lens**: viewer
+computes per-pixel ΔT between the two grids (client-side where sizes match; worker
+job for tiled panoramas) and renders the delta as its own layer — regions that
+CHANGED are the active water paths; static features cancel out. Ships as part of the
+`compare` chapter (B1) and the desktop compare view. This is the strongest moisture
+evidence a survey can produce and no incumbent offers it as a client-facing link.
+
+## B4. Scope note — personal use now, product later (Brian, 2026-07-08)
+
+Thermal Studio remains **CEO-only** (existing gate) and is NOT entering Slate360
+subscriptions yet. Therefore: **S6-CR credit metering ships behind a config flag,
+default OFF** (`THERMAL_AI_METERING_ENABLED=false`) — the code lands with S6 so
+productization is a flag flip + price decision, but Brian's own use is unmetered.
+The worker's per-org USD ledger cap STAYS ACTIVE as his personal cost control.
+Everything else builds unchanged — the product-grade path is the point.
+
+## B5. Standalone app — branding-grade links, reproducible product (amends A-plan/§3.2)
+
+Reaffirmed target: a separate App Store product, built later in its OWN repo (locked
+A0 rule: `packages/thermal-core` is COPIED, never imported). Additions from this
+review:
+- **Branding editor (shared desktop + app, ships with S7's branding profile):** logo
+  upload + placement (corner presets) + **opacity slider** (watermark-grade
+  transparency), accent color, header/footer text, per-deliverable **title + subtitle +
+  free-text notes blocks** insertable into links and PDFs. Stored on the branding
+  profile; applied uniformly to every deliverable type (PDF pages, link chrome,
+  slideshow title cards, MP4 overlays).
+- **Links parity from the app:** interactive links are cloud URLs rendered by the
+  server-side viewer — the app composes and sends the SAME links as desktop (chapter
+  composer in the Deliver tab, mobile-optimized). PDFs generate via the same worker.
+- **Mobile-first viewer requirement:** every chapter type must pass a 390px-wide
+  audit (touch pan/zoom on panorama tiles, tap-for-temp instead of hover, swipe
+  between slideshow frames) — the ASU-leadership demo happens on someone's phone.
+
+## P7 — persona spec: drone moisture survey (ASU sun-deck class)
+
+Fixture: 24 synthetic overlapping frames of a "deck" grid embedding (a) three diffuse
+warm plumes 0.5–1.0 °C above background trailing toward drain points, (b) sharp hot
+HVAC features as decoys. Flow: import batch → batch-apply tuning → stitch panorama →
+run AI (high-sensitivity) → assert: plumes detected as CONTOUR regions (not boxes)
+with soft edges classified diffuse, decoys classified focal; explanations use neutral
+moisture language; compose link with panorama + slideshow chapters → viewer opens
+fit-to-width, zooms to native, hover reads correct fixture temps at two zoom levels,
+contour click opens card; before/after pair shows difference lens highlighting only
+the changed plume. *(Lands across PAN + S6 + S7.5/B1 + S6.5/B3.)*
