@@ -9,6 +9,7 @@ import { AnalyzeMeasurements } from "@/components/thermal-studio-v2/panels/analy
 import { AnalyzeTuning } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeTuning";
 import { AnalyzeDisplay } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeDisplay";
 import { AnalyzeAccordion } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeAccordion";
+import { AnalyzeNotes } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeNotes";
 import { useAnalyzeImage } from "@/components/thermal-studio-v2/lib/useAnalyzeImage";
 import type { HoverInfo } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeCanvas";
 import type { useLibrarySelection } from "@/components/thermal-studio-v2/lib/useLibrarySelection";
@@ -30,7 +31,13 @@ export function AnalyzePanel({
 
   const activeId = selection.focusedId ?? captures[0]?.id ?? null;
   const activeCapture = captures.find((c) => c.id === activeId) ?? null;
+  const activeIndex = captures.findIndex((c) => c.id === activeId);
   const img = useAnalyzeImage(activeCapture);
+
+  function step(delta: number) {
+    const next = captures[activeIndex + delta];
+    if (next) selection.click(next.id, activeIndex + delta, {});
+  }
 
   const scopeIds =
     scope.kind === "all"
@@ -66,6 +73,17 @@ export function AnalyzePanel({
       if ((e.key === "Delete" || e.key === "Backspace") && img.selectedId) {
         e.preventDefault();
         img.deleteSpot(img.selectedId);
+        return;
+      }
+      // [ ] step through the working set (V2.1 rule 0.3).
+      if (e.key === "[") {
+        e.preventDefault();
+        step(-1);
+        return;
+      }
+      if (e.key === "]") {
+        e.preventDefault();
+        step(1);
       }
     }
     window.addEventListener("keydown", onKeyDown);
@@ -83,10 +101,16 @@ export function AnalyzePanel({
           hover={hover}
           tool={img.tool}
           onToolChange={img.setTool}
+          areaShape={img.areaShape}
+          onAreaShapeChange={img.setAreaShape}
           canUndo={img.canUndo}
           canRedo={img.canRedo}
           onUndo={img.undo}
           onRedo={img.redo}
+          imageIndex={activeIndex}
+          imageCount={captures.length}
+          onPrev={() => step(-1)}
+          onNext={() => step(1)}
         />
       }
       left={{
@@ -116,6 +140,7 @@ export function AnalyzePanel({
           onHoverChange={setHover}
           spots={img.spots}
           tool={img.tool}
+          areaShape={img.areaShape}
           selectedId={img.selectedId}
           referenceId={img.referenceId}
           onSelect={img.setSelectedId}
@@ -138,6 +163,7 @@ export function AnalyzePanel({
                 onSetReference={img.setReferenceId}
                 onRename={img.renameSpot}
                 onDelete={img.deleteSpot}
+                onMarkExtreme={img.markExtreme}
               />
             </AnalyzeAccordion>
             <AnalyzeAccordion title="Tuning">
@@ -164,7 +190,7 @@ export function AnalyzePanel({
               />
             </AnalyzeAccordion>
             <AnalyzeAccordion title="Notes & photo data">
-              <div className="p-2 text-xs text-[var(--graphite-muted)]">Findings note + camera/sensor data (later slice).</div>
+              <AnalyzeNotes capture={activeCapture} />
             </AnalyzeAccordion>
           </div>
         ),

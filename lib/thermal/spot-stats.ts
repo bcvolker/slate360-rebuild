@@ -7,6 +7,25 @@ import type { ProbeSpot } from "@/components/ops/thermal/ThermalProbeViewer";
 
 export type SpotStats = { value: number; min?: number; max?: number; pixels?: number };
 
+/** Additive extension for V2's polygon areas — old callers pass plain ProbeSpot unchanged. */
+export type StatSpot = Omit<ProbeSpot, "kind"> & {
+  kind?: ProbeSpot["kind"] | "polygon";
+  points?: { x: number; y: number }[];
+};
+
+/** Ray-cast point-in-polygon (even-odd rule). */
+function insidePolygon(x: number, y: number, pts: { x: number; y: number }[]): boolean {
+  let inside = false;
+  for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
+    const xi = pts[i].x;
+    const yi = pts[i].y;
+    const xj = pts[j].x;
+    const yj = pts[j].y;
+    if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) inside = !inside;
+  }
+  return inside;
+}
+
 function sampleAt(temps: number[] | Float32Array | Float64Array, w: number, h: number, x: number, y: number): number {
   const cx = Math.max(0, Math.min(w - 1, Math.round(x)));
   const cy = Math.max(0, Math.min(h - 1, Math.round(y)));
@@ -19,11 +38,35 @@ function sampleAt(temps: number[] | Float32Array | Float64Array, w: number, h: n
  * used for the spot's headline reading and Δ comparisons.
  */
 export function spotStats(
-  spot: ProbeSpot,
+  spot: StatSpot,
   temps: number[] | Float32Array | Float64Array,
   width: number,
   height: number,
 ): SpotStats {
+  // Polygon target: average all pixels inside the vertex loop (V2 additive).
+  if (spot.kind === "polygon" && Array.isArray(spot.points) && spot.points.length >= 3) {
+    const pts = spot.points;
+    const x0 = Math.max(0, Math.floor(Math.min(...pts.map((p) => p.x))));
+    const y0 = Math.max(0, Math.floor(Math.min(...pts.map((p) => p.y))));
+    const x1 = Math.min(width - 1, Math.ceil(Math.max(...pts.map((p) => p.x))));
+    const y1 = Math.min(height - 1, Math.ceil(Math.max(...pts.map((p) => p.y))));
+    let sum = 0;
+    let min = Infinity;
+    let max = -Infinity;
+    let n = 0;
+    for (let y = y0; y <= y1; y++) {
+      for (let x = x0; x <= x1; x++) {
+        if (!insidePolygon(x + 0.5, y + 0.5, pts)) continue;
+        const v = temps[y * width + x];
+        sum += v;
+        if (v < min) min = v;
+        if (v > max) max = v;
+        n += 1;
+      }
+    }
+    if (n === 0) return { value: sampleAt(temps, width, height, spot.x, spot.y) };
+    return { value: sum / n, min, max, pixels: n };
+  }
   // Line target: sample along the segment; value = average, plus min/max.
   if (spot.kind === "line" && spot.x2 != null && spot.y2 != null) {
     const dx = spot.x2 - spot.x;

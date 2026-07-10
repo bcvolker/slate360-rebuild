@@ -21,6 +21,7 @@ export function AnalyzeViewer({
   onHoverChange,
   spots,
   tool,
+  areaShape,
   selectedId,
   referenceId,
   onSelect,
@@ -39,6 +40,7 @@ export function AnalyzeViewer({
   onHoverChange: (h: HoverInfo) => void;
   spots: ThermalV2Spot[];
   tool: ThermalV2Tool;
+  areaShape?: "box" | "circle";
   selectedId: string | null;
   referenceId: string | null;
   onSelect: (id: string | null) => void;
@@ -70,6 +72,7 @@ export function AnalyzeViewer({
           canvasRef={canvasRef}
           spots={spots}
           tool={tool}
+          areaShape={areaShape}
           selectedId={selectedId}
           referenceId={referenceId}
           onSelect={onSelect}
@@ -88,7 +91,7 @@ export function AnalyzeViewer({
           onChange={onSpanChange}
         />
       ) : null}
-      {grid ? <AnalyzeLoupe sourceCanvasRef={canvasRef} hover={hover} /> : null}
+      {grid ? <AnalyzeLoupe sourceCanvasRef={canvasRef} hover={hover} unit={unit} /> : null}
     </div>
   );
 }

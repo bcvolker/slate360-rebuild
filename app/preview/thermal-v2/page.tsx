@@ -7,8 +7,15 @@ const CAPTURES: ThermalV2Capture[] = [
   {
     id: "a",
     filename: "roof-nw-01.jpeg",
-    qualityMetrics: { is_radiometric: true, sensor_model: "HIKMICRO Pocket2" },
-    metadata: { visual_pair_id: "vis-1" },
+    qualityMetrics: { is_radiometric: true, sensor_model: "HIKMICRO Pocket2", resolution: "640 × 512" },
+    metadata: {
+      visual_pair_id: "vis-1",
+      gps: { lat: 33.4213, lon: -111.9268 },
+      ambient_temp_c: 21.5,
+      humidity_pct: 48,
+      compass: "0° N",
+      captured_at: "2026-06-22 18:04",
+    },
     anomalies: [{ severity: "critical", delta_c: 14 }],
   },
   {

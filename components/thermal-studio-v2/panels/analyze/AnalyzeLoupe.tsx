@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type MouseEvent as ReactMouseEvent, type RefObject } from "react";
+import { fmtTemp } from "@/lib/thermal/probe-palettes";
 import type { HoverInfo } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeCanvas";
 
 const ZOOM_FACTOR = 8;
@@ -16,9 +17,11 @@ const MAX_SIZE = 320;
 export function AnalyzeLoupe({
   sourceCanvasRef,
   hover,
+  unit = "C",
 }: {
   sourceCanvasRef: RefObject<HTMLCanvasElement | null>;
   hover: HoverInfo;
+  unit?: "C" | "F";
 }) {
   const [pos, setPos] = useState({ x: 16, y: 16 });
   const [size, setSize] = useState(160);
@@ -41,7 +44,42 @@ export function AnalyzeLoupe({
     const sy = Math.max(0, Math.min(source.height - cropPx, hover.y - cropPx / 2));
     ctx.clearRect(0, 0, size, size);
     ctx.drawImage(source, sx, sy, cropPx, cropPx, 0, 0, size, size);
-  }, [hover, size, collapsed, sourceCanvasRef]);
+
+    // Pixel grid (S5.5) — one thermal pixel renders at ZOOM_FACTOR px here, so a
+    // faint grid marks true sensor-pixel boundaries; offset by the fractional
+    // crop origin so the lines land exactly on them.
+    ctx.strokeStyle = "rgba(255,255,255,0.14)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    for (let gx = -(sx % 1) * ZOOM_FACTOR; gx <= size; gx += ZOOM_FACTOR) {
+      ctx.moveTo(gx, 0);
+      ctx.lineTo(gx, size);
+    }
+    for (let gy = -(sy % 1) * ZOOM_FACTOR; gy <= size; gy += ZOOM_FACTOR) {
+      ctx.moveTo(0, gy);
+      ctx.lineTo(size, gy);
+    }
+    ctx.stroke();
+
+    // Crosshair on the cursor pixel + its exact temperature (S5.5).
+    const cx = (hover.x + 0.5 - sx) * ZOOM_FACTOR;
+    const cy = (hover.y + 0.5 - sy) * ZOOM_FACTOR;
+    ctx.strokeStyle = "rgba(255,255,255,0.9)";
+    ctx.beginPath();
+    ctx.moveTo(cx - 8, cy);
+    ctx.lineTo(cx + 8, cy);
+    ctx.moveTo(cx, cy - 8);
+    ctx.lineTo(cx, cy + 8);
+    ctx.stroke();
+
+    const label = fmtTemp(hover.tempC, unit);
+    ctx.font = "600 11px ui-monospace, monospace";
+    const tw = ctx.measureText(label).width;
+    ctx.fillStyle = "rgba(0,0,0,0.65)";
+    ctx.fillRect(size / 2 - tw / 2 - 5, size - 20, tw + 10, 16);
+    ctx.fillStyle = "#fff";
+    ctx.fillText(label, size / 2 - tw / 2, size - 8);
+  }, [hover, size, collapsed, sourceCanvasRef, unit]);
 
   function startDrag(e: ReactMouseEvent) {
     dragRef.current = { startX: e.clientX, startY: e.clientY, x: pos.x, y: pos.y };

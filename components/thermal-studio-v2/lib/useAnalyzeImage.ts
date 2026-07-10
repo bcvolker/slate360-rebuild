@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useUndoRedo } from "@/components/site-walk/canvas/useUndoRedo";
 import { tuneTemps } from "@/lib/thermal/radiometric";
+import { newSpotId } from "@/lib/thermal/probe-palettes";
 import { fetchThermalGrid, type ThermalV2Grid } from "@/components/thermal-studio-v2/lib/grid-api";
 import { saveSpots } from "@/components/thermal-studio-v2/lib/spots-api";
 import { saveTuning } from "@/components/thermal-studio-v2/lib/tuning-api";
@@ -15,6 +16,14 @@ import type {
 } from "@/components/thermal-studio-v2/types";
 
 const DEFAULT_TUNING: ThermalV2Tuning = { emissivity: 0.95, reflected_c: 20 };
+
+function extremeIndex(temps: number[], kind: "max" | "min"): number {
+  let best = 0;
+  for (let i = 1; i < temps.length; i++) {
+    if (kind === "max" ? temps[i] > temps[best] : temps[i] < temps[best]) best = i;
+  }
+  return best;
+}
 
 /**
  * Owns everything the Analyze tab needs for the ACTIVE image: grid fetch,
@@ -33,9 +42,12 @@ export function useAnalyzeImage(activeCapture: ThermalV2Capture | null) {
   const [isotherm, setIsotherm] = useState<ThermalV2Isotherm>(null);
   const [tuning, setTuning] = useState<ThermalV2Tuning>(DEFAULT_TUNING);
   const [tool, setTool] = useState<ThermalV2Tool>("move");
+  const [areaShape, setAreaShape] = useState<"box" | "circle">("box");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [referenceId, setReferenceId] = useState<string | null>(null);
   const history = useUndoRedo<ThermalV2Spot[]>([]);
+  const historyRef = useRef(history);
+  historyRef.current = history;
 
   const baseEmissivity = rawGrid?.emissivity ?? 0.95;
 
@@ -78,6 +90,29 @@ export function useAnalyzeImage(activeCapture: ThermalV2Capture | null) {
     const tuned = tuneTemps(rawGrid.temps, rawGrid.minC, rawGrid.maxC, baseEmissivity, tuning.emissivity, tuning.reflected_c);
     return { ...rawGrid, temps: Array.from(tuned.temps), minC: tuned.minC, maxC: tuned.maxC };
   }, [rawGrid, baseEmissivity, tuning.emissivity, tuning.reflected_c]);
+
+  // Auto min/max markers re-seat onto the extreme pixels of the CURRENT tuned
+  // grid (S5.5) — a retune that shifts the hottest pixel moves the marker with
+  // it. replaceState: automatic re-seats are not operator edits, so they don't
+  // pollute the undo stack (autosave still fires off the new present state).
+  useEffect(() => {
+    if (!grid) return;
+    const current = historyRef.current.state;
+    if (!current.some((s) => s.auto)) return;
+    let changed = false;
+    const next = current.map((s) => {
+      if (!s.auto) return s;
+      const idx = extremeIndex(grid.temps, s.auto);
+      // Integer pixel coords so spotStats' nearest-pixel sampling reads EXACTLY
+      // the extreme pixel (center-of-pixel +0.5 rounds up into the neighbor).
+      const x = idx % grid.width;
+      const y = Math.floor(idx / grid.width);
+      if (Math.abs(x - s.x) < 0.01 && Math.abs(y - s.y) < 0.01) return s;
+      changed = true;
+      return { ...s, x, y };
+    });
+    if (changed) historyRef.current.replaceState(next);
+  }, [grid]);
 
   // Follow the tuned range with the display span until the operator customizes it.
   useEffect(() => {
@@ -128,6 +163,25 @@ export function useAnalyzeImage(activeCapture: ThermalV2Capture | null) {
     history.commitState(history.state.map((s) => (s.id === id ? { ...s, label } : s)));
   }
 
+  /** One-click "Mark hottest / Mark coldest" (S5.5) — one auto marker of each kind per image. */
+  function markExtreme(kind: "max" | "min") {
+    if (!grid) return;
+    const idx = extremeIndex(grid.temps, kind);
+    // Integer coords — see the re-seat effect note (nearest-pixel sampling).
+    const x = idx % grid.width;
+    const y = Math.floor(idx / grid.width);
+    const label = kind === "max" ? "Hottest" : "Coldest";
+    const existing = history.state.find((s) => s.auto === kind);
+    if (existing) {
+      history.commitState(history.state.map((s) => (s.auto === kind ? { ...s, x, y } : s)));
+      setSelectedId(existing.id);
+      return;
+    }
+    const spot: ThermalV2Spot = { id: newSpotId(), kind: "point", target: "crosshair", x, y, auto: kind, label };
+    history.commitState([...history.state, spot]);
+    setSelectedId(spot.id);
+  }
+
   return {
     grid,
     loading,
@@ -141,10 +195,13 @@ export function useAnalyzeImage(activeCapture: ThermalV2Capture | null) {
     baseEmissivity,
     tool,
     setTool,
+    areaShape,
+    setAreaShape,
     selectedId,
     setSelectedId,
     referenceId,
     setReferenceId,
+    markExtreme,
     spots: history.state,
     canUndo: history.canUndo,
     canRedo: history.canRedo,

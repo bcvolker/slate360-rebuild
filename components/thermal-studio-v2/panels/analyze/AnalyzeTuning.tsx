@@ -50,6 +50,30 @@ function Field({
   );
 }
 
+function EnvField({
+  label,
+  hint,
+  value,
+  onChange,
+}: {
+  label: string;
+  hint: string;
+  value: number | undefined;
+  onChange: (v: number | undefined) => void;
+}) {
+  return (
+    <label title={hint} className="flex flex-col gap-1 text-[var(--graphite-muted)]">
+      {label}
+      <input
+        type="number"
+        value={value ?? ""}
+        onChange={(e) => onChange(e.target.value === "" ? undefined : Number(e.target.value))}
+        className="border-b border-[var(--mobile-app-card-border)] bg-transparent py-0.5 text-[var(--graphite-text-header)] focus:border-[var(--graphite-primary)] focus:outline-none"
+      />
+    </label>
+  );
+}
+
 /** Right rail — Tuning accordion (doc §1, Tab 2 + §1b.2 live recompute, S5 batch). */
 export function AnalyzeTuning({
   captureId,
@@ -146,33 +170,12 @@ export function AnalyzeTuning({
       />
 
       <div className="grid grid-cols-3 gap-3 text-[11px]">
-        <label className="flex flex-col gap-1 text-[var(--graphite-muted)]">
-          Distance (m)
-          <input
-            type="number"
-            value={tuning.distance_m ?? ""}
-            onChange={(e) => patch({ distance_m: e.target.value === "" ? undefined : Number(e.target.value) })}
-            className="border-b border-[var(--mobile-app-card-border)] bg-transparent py-0.5 text-[var(--graphite-text-header)] focus:border-[var(--graphite-primary)] focus:outline-none"
-          />
-        </label>
-        <label className="flex flex-col gap-1 text-[var(--graphite-muted)]">
-          Humidity (%)
-          <input
-            type="number"
-            value={tuning.humidity_pct ?? ""}
-            onChange={(e) => patch({ humidity_pct: e.target.value === "" ? undefined : Number(e.target.value) })}
-            className="border-b border-[var(--mobile-app-card-border)] bg-transparent py-0.5 text-[var(--graphite-text-header)] focus:border-[var(--graphite-primary)] focus:outline-none"
-          />
-        </label>
-        <label className="flex flex-col gap-1 text-[var(--graphite-muted)]">
-          Atmosphere (°C)
-          <input
-            type="number"
-            value={tuning.atmospheric_c ?? ""}
-            onChange={(e) => patch({ atmospheric_c: e.target.value === "" ? undefined : Number(e.target.value) })}
-            className="border-b border-[var(--mobile-app-card-border)] bg-transparent py-0.5 text-[var(--graphite-text-header)] focus:border-[var(--graphite-primary)] focus:outline-none"
-          />
-        </label>
+        <EnvField label="Distance (m)" hint="Camera-to-target distance" value={tuning.distance_m} onChange={(v) => patch({ distance_m: v })} />
+        <EnvField label="Humidity (%)" hint="Relative humidity at capture" value={tuning.humidity_pct} onChange={(v) => patch({ humidity_pct: v })} />
+        <EnvField label="Atmosphere (°C)" hint="Air temperature between camera and target" value={tuning.atmospheric_c} onChange={(v) => patch({ atmospheric_c: v })} />
+        <EnvField label="Ext. optics (°C)" hint="Temperature of any external lens or window" value={tuning.ext_optics_temp_c} onChange={(v) => patch({ ext_optics_temp_c: v })} />
+        <EnvField label="Optics transmission" hint="How much infrared the external optics pass (0–1)" value={tuning.ext_optics_trans} onChange={(v) => patch({ ext_optics_trans: v })} />
+        <EnvField label="Reference (°C)" hint="Known reference temperature in the scene" value={tuning.reference_temp_c} onChange={(v) => patch({ reference_temp_c: v })} />
       </div>
 
       <button

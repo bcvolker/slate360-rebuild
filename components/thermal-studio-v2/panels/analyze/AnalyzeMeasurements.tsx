@@ -23,6 +23,7 @@ export function AnalyzeMeasurements({
   onSetReference,
   onRename,
   onDelete,
+  onMarkExtreme,
 }: {
   spots: ThermalV2Spot[];
   grid: ThermalV2Grid | null;
@@ -33,6 +34,8 @@ export function AnalyzeMeasurements({
   onSetReference: (id: string) => void;
   onRename: (id: string, label: string) => void;
   onDelete: (id: string) => void;
+  /** One-click auto extreme markers (S5.5). */
+  onMarkExtreme: (kind: "max" | "min") => void;
 }) {
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
@@ -40,10 +43,35 @@ export function AnalyzeMeasurements({
   if (!grid) {
     return <div className="p-3 text-xs text-[var(--graphite-muted)]">Open an image to measure it.</div>;
   }
+
+  const markButtons = (
+    <div className="flex shrink-0 gap-2">
+      <button
+        type="button"
+        onClick={() => onMarkExtreme("max")}
+        title="Place a marker on the hottest pixel — it follows the hottest pixel if tuning changes"
+        className="flex-1 rounded-md border border-[var(--mobile-app-card-border)] px-2 py-1 text-[11px] font-medium text-[var(--graphite-text-header)] hover:border-[var(--graphite-primary)]"
+      >
+        Mark hottest
+      </button>
+      <button
+        type="button"
+        onClick={() => onMarkExtreme("min")}
+        title="Place a marker on the coldest pixel — it follows the coldest pixel if tuning changes"
+        className="flex-1 rounded-md border border-[var(--mobile-app-card-border)] px-2 py-1 text-[11px] font-medium text-[var(--graphite-text-header)] hover:border-[var(--graphite-primary)]"
+      >
+        Mark coldest
+      </button>
+    </div>
+  );
+
   if (!spots.length) {
     return (
-      <div className="p-3 text-xs text-[var(--graphite-muted)]">
-        No measurements yet — pick Point, Area, or Line above and click the image.
+      <div className="flex flex-col gap-2">
+        {markButtons}
+        <div className="p-1 text-xs text-[var(--graphite-muted)]">
+          No measurements yet — pick Point, Area, or Line above and click the image.
+        </div>
       </div>
     );
   }
@@ -71,6 +99,7 @@ export function AnalyzeMeasurements({
 
   return (
     <div className="flex h-full flex-col gap-2">
+      {markButtons}
       <ul className="flex flex-1 flex-col gap-1 overflow-y-auto">
         {spots.map((s, i) => {
           const v = values[i];

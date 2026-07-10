@@ -24,7 +24,7 @@ export type ThermalV2Capture = {
 
 export type ThermalV2LibraryFilter = "all" | "flagged" | "in_report" | "high_delta" | string;
 
-export type ThermalV2Tool = "move" | "point" | "area" | "line";
+export type ThermalV2Tool = "move" | "point" | "area" | "line" | "polygon";
 
 /**
  * Same shape as the old ThermalProbeViewer's `ProbeSpot` / the capture PATCH
@@ -37,7 +37,7 @@ export type ThermalV2Spot = {
   x: number;
   y: number;
   imported?: boolean;
-  kind?: "point" | "area" | "line";
+  kind?: "point" | "area" | "line" | "polygon";
   target?: "crosshair" | "crosshair-circle" | "dot" | "square";
   areaShape?: "box" | "circle";
   w?: number;
@@ -45,11 +45,16 @@ export type ThermalV2Spot = {
   x2?: number;
   y2?: number;
   label?: string;
+  /** Auto-seated extreme marker ("mark hottest/coldest") — re-seated when the tuned grid changes. */
+  auto?: "max" | "min";
+  /** Polygon vertices in grid pixels (kind === "polygon"). */
+  points?: { x: number; y: number }[];
 };
 
 /**
  * Same shape as the old ThermalProbeViewer's `ProbeTuning` / the capture PATCH
- * route's `TuningPayload` (kept structurally compatible — no new backend).
+ * route's `TuningPayload` (route extended additively 2026-07-07 for the three
+ * FLIR-parity fields — V2.1 addendum).
  */
 export type ThermalV2Tuning = {
   emissivity: number;
@@ -57,6 +62,9 @@ export type ThermalV2Tuning = {
   distance_m?: number;
   humidity_pct?: number;
   atmospheric_c?: number;
+  ext_optics_temp_c?: number;
+  ext_optics_trans?: number;
+  reference_temp_c?: number;
 };
 
 export type ThermalV2Isotherm = { lo: number; hi: number } | null;

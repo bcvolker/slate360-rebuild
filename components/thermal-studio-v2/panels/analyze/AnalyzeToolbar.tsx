@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { PALETTE_NAMES, fmtTemp } from "@/lib/thermal/probe-palettes";
 import type { HoverInfo } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeCanvas";
 import type { ThermalV2Tool } from "@/components/thermal-studio-v2/types";
@@ -11,7 +12,11 @@ const TOOLS: { id: ThermalV2Tool; label: string; hint: string }[] = [
   { id: "line", label: "Line", hint: "Click the image to average along a line" },
 ];
 
-/** One-row toolbar above the viewer (doc §1, Tab 2). Tools, palette, °C/°F, undo/redo — all real (S3+S4). */
+/**
+ * One-row toolbar above the viewer. V2.1 §7 grouping: the measure→re-palette→
+ * re-span loop lives in ONE left cluster (tools · palette · °C/°F · undo/redo);
+ * the right side is navigation (‹ 3/24 ›) + the live cursor readout.
+ */
 export function AnalyzeToolbar({
   palette,
   onPaletteChange,
@@ -20,10 +25,16 @@ export function AnalyzeToolbar({
   hover,
   tool,
   onToolChange,
+  areaShape,
+  onAreaShapeChange,
   canUndo,
   canRedo,
   onUndo,
   onRedo,
+  imageIndex,
+  imageCount,
+  onPrev,
+  onNext,
 }: {
   palette: string;
   onPaletteChange: (p: string) => void;
@@ -32,57 +43,76 @@ export function AnalyzeToolbar({
   hover: HoverInfo;
   tool: ThermalV2Tool;
   onToolChange: (t: ThermalV2Tool) => void;
+  areaShape: "box" | "circle";
+  onAreaShapeChange: (s: "box" | "circle") => void;
   canUndo: boolean;
   canRedo: boolean;
   onUndo: () => void;
   onRedo: () => void;
+  /** 0-based index of the open image in the working set. */
+  imageIndex: number;
+  imageCount: number;
+  onPrev: () => void;
+  onNext: () => void;
 }) {
+  const [shapeMenuOpen, setShapeMenuOpen] = useState(false);
+
   return (
     <div className="flex w-full items-center justify-between gap-3">
       <div className="flex items-center gap-2">
         <div className="inline-flex overflow-hidden rounded-md border border-[var(--mobile-app-card-border)] text-[11px]">
           {TOOLS.map((t) => (
-            <button
-              key={t.id}
-              type="button"
-              onClick={() => onToolChange(t.id)}
-              title={t.hint}
-              className={`px-2 py-1 font-medium ${
-                tool === t.id
-                  ? "bg-[color-mix(in_srgb,var(--graphite-primary)_18%,transparent)] text-[var(--graphite-text-header)]"
-                  : "text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]"
-              }`}
-            >
-              {t.label}
-            </button>
+            <span key={t.id} className="relative inline-flex">
+              <button
+                type="button"
+                onClick={() => onToolChange(t.id)}
+                title={t.id === "area" ? `${t.hint} — current shape: ${areaShape}` : t.hint}
+                className={`px-2 py-1 font-medium ${
+                  tool === t.id
+                    ? "bg-[color-mix(in_srgb,var(--graphite-primary)_18%,transparent)] text-[var(--graphite-text-header)]"
+                    : "text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]"
+                }`}
+              >
+                {t.id === "area" ? `Area ${areaShape === "circle" ? "○" : "□"}` : t.label}
+              </button>
+              {t.id === "area" ? (
+                <button
+                  type="button"
+                  onClick={() => setShapeMenuOpen((v) => !v)}
+                  title="Choose the area shape"
+                  aria-expanded={shapeMenuOpen}
+                  className="px-1 text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]"
+                >
+                  ▾
+                </button>
+              ) : null}
+            </span>
           ))}
         </div>
-        <div className="flex items-center gap-1">
-          <button
-            type="button"
-            onClick={onUndo}
-            disabled={!canUndo}
-            title="Undo (Ctrl+Z)"
-            className="rounded px-1.5 py-0.5 text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)] disabled:cursor-not-allowed disabled:opacity-30"
-          >
-            ↶
-          </button>
-          <button
-            type="button"
-            onClick={onRedo}
-            disabled={!canRedo}
-            title="Redo (Ctrl+Shift+Z)"
-            className="rounded px-1.5 py-0.5 text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)] disabled:cursor-not-allowed disabled:opacity-30"
-          >
-            ↷
-          </button>
-        </div>
-      </div>
-      <div className="flex items-center gap-2">
-        {hover ? (
-          <span className="text-[11px] font-semibold text-[var(--graphite-text-header)]">
-            {fmtTemp(hover.tempC, unit)}
-          </span>
+        {shapeMenuOpen ? (
+          <>
+            <div className="fixed inset-0 z-40" onClick={() => setShapeMenuOpen(false)} />
+            <div className="absolute left-40 top-9 z-50 flex flex-col rounded-md border border-[var(--mobile-app-card-border)] bg-[var(--graphite-canvas)] p-1 text-[11px] shadow-lg">
+              {(["box", "circle"] as const).map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => {
+                    onAreaShapeChange(s);
+                    onToolChange("area");
+                    setShapeMenuOpen(false);
+                  }}
+                  className={`rounded px-3 py-1 text-left ${
+                    areaShape === s
+                      ? "bg-[color-mix(in_srgb,var(--graphite-primary)_18%,transparent)] text-[var(--graphite-text-header)]"
+                      : "text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]"
+                  }`}
+                >
+                  {s === "box" ? "□ Box" : "○ Circle"}
+                </button>
+              ))}
+            </div>
+          </>
         ) : null}
         <select
           value={palette}
@@ -110,6 +140,58 @@ export function AnalyzeToolbar({
             </button>
           ))}
         </div>
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={onUndo}
+            disabled={!canUndo}
+            title="Undo (Ctrl+Z)"
+            className="rounded px-1.5 py-0.5 text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)] disabled:cursor-not-allowed disabled:opacity-30"
+          >
+            ↶
+          </button>
+          <button
+            type="button"
+            onClick={onRedo}
+            disabled={!canRedo}
+            title="Redo (Ctrl+Shift+Z)"
+            className="rounded px-1.5 py-0.5 text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)] disabled:cursor-not-allowed disabled:opacity-30"
+          >
+            ↷
+          </button>
+        </div>
+      </div>
+      <div className="flex items-center gap-2">
+        {hover ? (
+          <span className="text-[11px] font-semibold tabular-nums text-[var(--graphite-text-header)]">
+            {fmtTemp(hover.tempC, unit)}
+          </span>
+        ) : null}
+        {imageCount > 0 ? (
+          <div className="flex items-center gap-1 text-[11px] text-[var(--graphite-muted)]">
+            <button
+              type="button"
+              onClick={onPrev}
+              disabled={imageIndex <= 0}
+              title="Previous image ( [ )"
+              className="rounded px-1.5 py-0.5 hover:text-[var(--graphite-text-header)] disabled:cursor-not-allowed disabled:opacity-30"
+            >
+              ‹
+            </button>
+            <span className="tabular-nums">
+              {imageIndex + 1}/{imageCount}
+            </span>
+            <button
+              type="button"
+              onClick={onNext}
+              disabled={imageIndex >= imageCount - 1}
+              title="Next image ( ] )"
+              className="rounded px-1.5 py-0.5 hover:text-[var(--graphite-text-header)] disabled:cursor-not-allowed disabled:opacity-30"
+            >
+              ›
+            </button>
+          </div>
+        ) : null}
       </div>
     </div>
   );

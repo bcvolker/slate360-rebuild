@@ -11,13 +11,19 @@ type SpotPayload = {
   x: number;
   y: number;
   imported?: boolean;
-  kind?: "point" | "area" | "line";
+  kind?: "point" | "area" | "line" | "polygon";
   target?: "crosshair" | "crosshair-circle" | "dot" | "square";
   areaShape?: "box" | "circle";
   w?: number;
   h?: number;
   x2?: number;
   y2?: number;
+  /** Operator-given name (V2 rename). */
+  label?: string;
+  /** Auto-seated extreme marker (V2 "mark hottest/coldest") — re-seated client-side on retune. */
+  auto?: "max" | "min";
+  /** Polygon vertices in grid pixels (V2 polygon area). */
+  points?: { x: number; y: number }[];
 };
 type TuningPayload = {
   emissivity?: number;
@@ -25,6 +31,9 @@ type TuningPayload = {
   distance_m?: number;
   humidity_pct?: number;
   atmospheric_c?: number;
+  ext_optics_temp_c?: number;
+  ext_optics_trans?: number;
+  reference_temp_c?: number;
 };
 type AlignmentPayload = {
   twin_id?: string | null;
@@ -102,6 +111,8 @@ export const PATCH = (req: NextRequest, { params }: Params) =>
             y: s.y,
             imported: Boolean(s.imported),
           };
+          if (typeof s.label === "string" && s.label.length) base.label = s.label.slice(0, 120);
+          if (s.auto === "max" || s.auto === "min") base.auto = s.auto;
           if (s.kind === "area") {
             base.kind = "area";
             base.areaShape = s.areaShape === "circle" ? "circle" : "box";
@@ -111,6 +122,15 @@ export const PATCH = (req: NextRequest, { params }: Params) =>
             base.kind = "line";
             if (Number.isFinite(s.x2)) base.x2 = Number(s.x2);
             if (Number.isFinite(s.y2)) base.y2 = Number(s.y2);
+          } else if (s.kind === "polygon" && Array.isArray(s.points)) {
+            const points = s.points
+              .filter((p) => p && Number.isFinite(p.x) && Number.isFinite(p.y))
+              .slice(0, 64)
+              .map((p) => ({ x: Number(p.x), y: Number(p.y) }));
+            if (points.length >= 3) {
+              base.kind = "polygon";
+              base.points = points;
+            }
           } else if (["crosshair", "crosshair-circle", "dot", "square"].includes(s.target ?? "")) {
             base.kind = "point";
             base.target = s.target;
@@ -127,7 +147,14 @@ export const PATCH = (req: NextRequest, { params }: Params) =>
         reflected_c: Number.isFinite(reflected) ? reflected : 20,
       };
       // Optional environment params — persisted only when provided & finite.
-      for (const key of ["distance_m", "humidity_pct", "atmospheric_c"] as const) {
+      for (const key of [
+        "distance_m",
+        "humidity_pct",
+        "atmospheric_c",
+        "ext_optics_temp_c",
+        "ext_optics_trans",
+        "reference_temp_c",
+      ] as const) {
         const v = Number(body.tuning[key]);
         if (Number.isFinite(v)) tuning[key] = v;
       }
