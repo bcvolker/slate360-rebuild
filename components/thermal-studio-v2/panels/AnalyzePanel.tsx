@@ -6,12 +6,7 @@ import { V2PanelFrame } from "@/components/thermal-studio-v2/V2PanelFrame";
 import { AnalyzeCaptureStrip } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeCaptureStrip";
 import { AnalyzeViewer } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeViewer";
 import { AnalyzeToolbar } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeToolbar";
-import { AnalyzeMeasurements } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeMeasurements";
-import { AnalyzeTuning } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeTuning";
-import { AnalyzeDisplay } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeDisplay";
-import { AnalyzeAccordion } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeAccordion";
-import { AnalyzeNotes } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeNotes";
-import { AnalyzeMiniSummary } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeMiniSummary";
+import { AnalyzeDetailsRail } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeDetailsRail";
 import { KeepUndoToast } from "@/components/thermal-studio-v2/panels/analyze/KeepUndoToast";
 import { useAnalyzeImage } from "@/components/thermal-studio-v2/lib/useAnalyzeImage";
 import { useSettingsClipboardActions } from "@/components/thermal-studio-v2/lib/useSettingsClipboardActions";
@@ -49,6 +44,8 @@ export function AnalyzePanel({
     }
   }
   const [hover, setHover] = useState<HoverInfo>(null);
+  // W2 Focus mode: collapses both rails + filmstrip for a maximum viewer.
+  const [focusMode, setFocusMode] = useState(false);
 
   const activeId = selection.focusedId ?? captures[0]?.id ?? null;
   const activeCapture = captures.find((c) => c.id === activeId) ?? null;
@@ -61,6 +58,14 @@ export function AnalyzePanel({
     () => (img.grid ? computeAlarmBand(img.alarm, img.tuning, img.grid.minC, img.grid.maxC) : null),
     [img.alarm, img.tuning, img.grid],
   );
+
+  // W2 "View original": overrides palette/span to camera values and hides every
+  // overlay (alarm band + measurements) — a pure presentation override, same
+  // pattern as the A/B flicker paint override; nothing is persisted or undone.
+  const viewOriginalPalette = img.viewOriginal ? "Iron" : img.displayPalette;
+  const viewOriginalSpan = img.viewOriginal && img.rawGrid ? { lo: img.rawGrid.minC, hi: img.rawGrid.maxC } : img.displaySpan;
+  const viewOriginalIsotherm = img.viewOriginal ? null : alarmBand;
+  const viewOriginalSpots = img.viewOriginal ? [] : img.spots;
 
   function step(delta: number) {
     const next = captures[activeIndex + delta];
@@ -82,7 +87,14 @@ export function AnalyzePanel({
   }
 
   const clipboard = useSettingsClipboardActions(img, scope, scopeIds, captures);
-  useAnalyzeKeyboardShortcuts({ img, hover, clipboard, step });
+  useAnalyzeKeyboardShortcuts({
+    img,
+    hover,
+    clipboard,
+    step,
+    focusMode,
+    onToggleFocusMode: () => setFocusMode((v) => !v),
+  });
 
   // L1 Esc-cascade (Addendum C/W3): register "clear the selected measurement"
   // as this tab's local level of the shell's global Escape cascade — the
@@ -100,10 +112,17 @@ export function AnalyzePanel({
         img.setSpan({ lo: img.grid.minC, hi: img.grid.maxC });
         return true;
       }
+      // W2 Focus mode: Esc exits it last, before falling through to the
+      // Scope-pill reset (doc C1: "clear selection → collapse menus → exit
+      // focus mode", in that order).
+      if (focusMode) {
+        setFocusMode(false);
+        return true;
+      }
       return false;
     });
     return () => registerEscapeHandler(null);
-  }, [registerEscapeHandler, img]);
+  }, [registerEscapeHandler, img, focusMode]);
 
   return (
     <>
@@ -136,6 +155,11 @@ export function AnalyzePanel({
           onFlipHorizontal={img.flipHorizontal}
           onFlipVertical={img.flipVertical}
           onResetTransform={img.resetTransform}
+          viewOriginal={img.viewOriginal}
+          onViewOriginalStart={() => img.setViewOriginal(true)}
+          onViewOriginalEnd={() => img.setViewOriginal(false)}
+          focusMode={focusMode}
+          onToggleFocusMode={() => setFocusMode((v) => !v)}
         />
       }
       center={
@@ -147,109 +171,47 @@ export function AnalyzePanel({
           unit={unit}
           span={img.span}
           onSpanChange={img.setSpan}
-          isotherm={alarmBand}
-          localContrast={img.localContrast}
-          displayPalette={img.displayPalette}
-          displaySpan={img.displaySpan}
+          isotherm={viewOriginalIsotherm}
+          localContrast={img.viewOriginal ? false : img.localContrast}
+          displayPalette={viewOriginalPalette}
+          displaySpan={viewOriginalSpan}
           displayTransform={img.transform}
           hover={hover}
           onHoverChange={setHover}
-          spots={img.spots}
+          spots={viewOriginalSpots}
           tool={img.tool}
           areaShape={img.areaShape}
           selectedId={img.selectedId}
           referenceId={img.referenceId}
           onSelect={img.setSelectedId}
-          onCreateSpot={img.createSpot}
-          onCommitSpots={img.commitSpots}
+          onCreateSpot={img.viewOriginal ? () => {} : img.createSpot}
+          onCommitSpots={img.viewOriginal ? () => {} : img.commitSpots}
         />
       }
-      right={{
-        title: "Details",
-        content: (
-          <div className="flex h-full flex-col overflow-hidden">
-            <AnalyzeMiniSummary temps={img.grid?.temps ?? null} unit={unit} />
-            <div className="min-h-0 flex-1 overflow-y-auto">
-            <AnalyzeAccordion
-              title="Measurements"
-              open={openSection === "Measurements"}
-              onToggle={() => setOpenSection((s) => (s === "Measurements" ? "" : "Measurements"))}
-            >
-              <AnalyzeMeasurements
-                spots={img.spots}
-                grid={img.grid}
-                unit={unit}
-                referenceId={img.referenceId}
-                selectedId={img.selectedId}
-                onSelect={img.setSelectedId}
-                onSetReference={img.setReferenceId}
-                onRename={img.renameSpot}
-                onDelete={img.deleteSpot}
-                onMarkExtreme={img.markExtreme}
-                comparePair={img.comparePair}
-                pendingCompareId={img.pendingCompareId}
-                onToggleCompare={img.toggleCompare}
-                onClearCompare={img.clearCompare}
-                severityBands={img.severityBands}
-              />
-            </AnalyzeAccordion>
-            <AnalyzeAccordion
-              title="Tuning"
-              open={openSection === "Tuning"}
-              onToggle={() => setOpenSection((s) => (s === "Tuning" ? "" : "Tuning"))}
-            >
-              <AnalyzeTuning
-                captureId={activeId}
-                captures={captures}
-                tuning={img.tuning}
-                baseEmissivity={img.baseEmissivity}
-                onTuningChange={img.setTuning}
-                scope={scope}
-                scopeIds={scopeIds}
-              />
-            </AnalyzeAccordion>
-            <AnalyzeAccordion
-              title="Display"
-              open={openSection === "Display"}
-              onToggle={() => setOpenSection((s) => (s === "Display" ? "" : "Display"))}
-            >
-              <AnalyzeDisplay
-                temps={img.grid?.temps ?? null}
-                span={img.span}
-                gridMin={img.grid?.minC ?? 0}
-                gridMax={img.grid?.maxC ?? 1}
-                unit={unit}
-                onSpanChange={img.setSpan}
-                alarm={img.alarm}
-                onAlarmChange={img.setAlarm}
-                tuning={img.tuning}
-                severityBands={img.severityBands}
-                onSeverityBandsChange={img.setSeverityBands}
-                localContrast={img.localContrast}
-                onLocalContrastChange={img.setLocalContrast}
-                hasFlickerA={!!img.flickerA}
-                hasFlickerB={!!img.flickerB}
-                flickerShowing={img.flickerShowing}
-                autoFlicker={img.autoFlicker}
-                onAutoFlickerChange={img.setAutoFlicker}
-                onSnapshotFlickerA={img.snapshotFlickerA}
-                onSnapshotFlickerB={img.snapshotFlickerB}
-                onToggleFlickerView={img.toggleFlickerView}
-                onClearFlicker={img.clearFlicker}
-              />
-            </AnalyzeAccordion>
-            <AnalyzeAccordion
-              title="Notes & photo data"
-              open={openSection === "Notes & photo data"}
-              onToggle={() => setOpenSection((s) => (s === "Notes & photo data" ? "" : "Notes & photo data"))}
-            >
-              <AnalyzeNotes capture={activeCapture} />
-            </AnalyzeAccordion>
-            </div>
-          </div>
-        ),
-      }}
-      bottom={{
+      right={
+        focusMode
+          ? undefined
+          : {
+              title: "Details",
+              content: (
+                <AnalyzeDetailsRail
+                  img={img}
+                  unit={unit}
+                  activeId={activeId}
+                  activeCapture={activeCapture}
+                  captures={captures}
+                  scope={scope}
+                  scopeIds={scopeIds}
+                  openSection={openSection}
+                  onOpenSectionChange={setOpenSection}
+                />
+              ),
+            }
+      }
+      bottom={
+        focusMode
+          ? undefined
+          : {
         title: "Filmstrip",
         compact: true,
         defaultSize: 20,
@@ -263,7 +225,8 @@ export function AnalyzePanel({
             layout="horizontal"
           />
         ),
-      }}
+      }
+      }
     />
     {clipboard.pasteToast ? (
       <KeepUndoToast message={clipboard.pasteToast.message} onKeep={clipboard.keepPasteToast} onUndo={clipboard.undoPasteToast} />

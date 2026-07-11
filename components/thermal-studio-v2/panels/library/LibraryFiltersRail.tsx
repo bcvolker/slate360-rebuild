@@ -48,6 +48,14 @@ export function LibraryFiltersRail({
   const flaggedCount = captures.filter((c) => (c.anomalies?.length ?? 0) > 0).length;
   const inReportCount = captures.filter((c) => reportIds.has(c.id) || isInReport(c)).length;
   const highDeltaCount = captures.filter((c) => isHighDelta(c)).length;
+  // W2 status filters (doc §A1): where do I see analyzed vs not — ONE place, filtered.
+  const notDecodedCount = captures.filter((c) => !c.qualityMetrics).length;
+  const notAiAnalyzedCount = captures.filter((c) => c.anomalies == null).length;
+  const hasFindingsCount = captures.filter((c) => {
+    const review = (c.metadata as Record<string, unknown> | null)?.findings_review as { accepted?: string[] } | undefined;
+    return (review?.accepted?.length ?? 0) > 0;
+  }).length;
+  const reviewedCount = captures.filter((c) => !!(c.metadata as Record<string, unknown> | null)?.findings_review).length;
 
   async function handleFiles(files: FileList | null) {
     if (!files?.length) return;
@@ -126,6 +134,26 @@ export function LibraryFiltersRail({
           label={`High ΔT (${highDeltaCount})`}
           active={filter === "high_delta"}
           onClick={() => onFilterChange("high_delta")}
+        />
+        <Chip
+          label={`Not decoded (${notDecodedCount})`}
+          active={filter === "not_decoded"}
+          onClick={() => onFilterChange("not_decoded")}
+        />
+        <Chip
+          label={`Not AI-analyzed (${notAiAnalyzedCount})`}
+          active={filter === "not_ai_analyzed"}
+          onClick={() => onFilterChange("not_ai_analyzed")}
+        />
+        <Chip
+          label={`Has findings (${hasFindingsCount})`}
+          active={filter === "has_findings"}
+          onClick={() => onFilterChange("has_findings")}
+        />
+        <Chip
+          label={`Reviewed (${reviewedCount})`}
+          active={filter === "reviewed"}
+          onClick={() => onFilterChange("reviewed")}
         />
         {cameras.map((cam) => (
           <Chip key={cam} label={cam} active={filter === cam} onClick={() => onFilterChange(cam)} />

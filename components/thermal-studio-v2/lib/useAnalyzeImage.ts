@@ -43,6 +43,8 @@ export function useAnalyzeImage(activeCapture: ThermalV2Capture | null) {
   const [severityBands, setSeverityBands] = useState<ThermalV2SeverityBands>(null);
   // S5.6 "Local contrast (display only)" toggle — resets on image switch.
   const [localContrast, setLocalContrast] = useState(false);
+  // W2 "View original" (O key, hold-to-view) — resets on image switch.
+  const [viewOriginal, setViewOriginal] = useState(false);
   const [tuning, setTuning] = useState<ThermalV2Tuning>(DEFAULT_TUNING);
   // W1: palette lives in the hook (not the panel) so it seeds from and
   // autosaves to the capture's metadata like tuning/spots do.
@@ -70,6 +72,7 @@ export function useAnalyzeImage(activeCapture: ThermalV2Capture | null) {
     setSpanCustomized(false);
     setAlarm({ mode: "off" });
     setLocalContrast(false);
+    setViewOriginal(false);
     flicker.clearFlicker();
     setError(null);
     setSelectedId(null);
@@ -209,6 +212,8 @@ export function useAnalyzeImage(activeCapture: ThermalV2Capture | null) {
 
   return {
     grid,
+    /** W2 "View original": the untuned worker output (camera-true span). */
+    rawGrid,
     loading,
     error,
     span,
@@ -222,6 +227,8 @@ export function useAnalyzeImage(activeCapture: ThermalV2Capture | null) {
     setSeverityBands,
     localContrast,
     setLocalContrast,
+    viewOriginal,
+    setViewOriginal,
     ...flicker,
     ...displayTransform,
     enhanceHere,

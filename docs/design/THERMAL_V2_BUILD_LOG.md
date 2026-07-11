@@ -746,3 +746,98 @@ which worked correctly once the layout was fixed).
   Δ-compare/line-profile → alarm suite/severity bands/sensitivity aids →
   rotate-flip/isotherm-sweep). Next up per the FROZEN roster (G4): #9
   W2+CAM-1.
+
+---
+
+## Slice 9 — W2 + CAM-1 (2026-07-10)
+
+**Shipped:**
+- **View original (O, hold).** New `rawGrid` exposed from `useAnalyzeImage`
+  (the untuned worker output) plus a `viewOriginal` boolean, hold-to-view via
+  a dedicated keydown/keyup pair in `useAnalyzeKeyboardShortcuts.ts` (not a
+  toggle — releasing restores immediately, per doc §A1) and a toolbar eye
+  button (mousedown/mouseup, extracted into `AnalyzeViewControls.tsx`). A
+  pure presentation override computed in `AnalyzePanel.tsx` (same pattern as
+  the S5.6 A/B-flicker paint override): while held, palette forces to
+  `"Iron"` (there is no per-camera palette signal anywhere in
+  `qualityMetrics`/`metadata` — confirmed via a repo-wide search — so "camera
+  value" is the app default, not a stored vendor value), span forces to
+  `{rawGrid.minC, rawGrid.maxC}`, the alarm band and every measurement spot
+  are hidden, and `onCreateSpot`/`onCommitSpots` are no-op'd so an accidental
+  click during the hold can never mutate state — "no data changes" is
+  enforced, not just visual.
+- **Focus mode (F, toggle).** Collapses both the right rail and the filmstrip
+  for a maximum viewer by conditionally passing `undefined` for
+  `V2PanelFrame`'s `right`/`bottom` slots instead of a new imperative-collapse
+  API — `centerDefaultSize` already recomputes to 100% with no rails present,
+  and `openSection` (lifted in `AnalyzePanel`) survives the remount. Esc
+  exits it as the outermost-but-one cascade level (clear selection → restore
+  span → exit focus mode → reset Scope), per doc C1's stated order.
+- **Library status filters.** Extended `LibraryFiltersRail.tsx` +
+  `LibraryPanel.tsx`'s filter `useMemo` with 4 new chips: Not decoded
+  (`!qualityMetrics`), Not AI-analyzed (`anomalies == null` — distinct from
+  an empty array, which means the AI ran and found nothing), Has findings
+  (`findings_review.accepted.length > 0` — deliberately narrower than the
+  pre-existing "Flagged" chip, which counts raw un-reviewed AI anomalies),
+  Reviewed (`findings_review` present at all). One place, filtered, per doc
+  §A1 — no second gallery.
+- **CAM-1 honest 3-state badge.** `LibraryGrid.tsx`'s thumbnail badge used to
+  render the same "…" for both "not decoded yet" and "decoded but this file
+  has no temperature data" — a real ambiguity gap the doc calls out
+  explicitly. Now three states: `pending` (no quality row) / `radiometric`
+  (✓, accent) / `display-only` (◐, neutral, title "No temperature data —
+  display only"), never silently wrong.
+- **CAM-1 supported-cameras line.** Library's empty state now lists
+  "FLIR · DJI · HIKMICRO · Autel · Topdon · InfiRay + any radiometric JPEG"
+  under the existing drop-to-begin copy, per doc §C2's exact wording.
+
+**Skipped / scoped down (logged, not silently dropped):**
+- **Per-brand golden fixture test suite (CAM-1's other half).** The doc asks
+  for one real vendor file per brand (FLIR/DJI/HIKMICRO/Autel/Topdon) with
+  golden min/max/center-pixel assertions against the actual parser
+  (`extract.py`). This environment has no real camera files to source
+  fixtures from — a genuine blocker, not a shortcut. The worker-side parsers
+  themselves are pre-existing per the doc ("already parsed by extract.py")
+  and untouched; only the badge/UI honesty layer above them shipped this
+  slice. Revisit if/when Brian can supply one sample file per brand.
+  Reference for anyone picking this up: `workers/modal/thermal-analysis/fixtures/`
+  is the doc's intended location, gated by a `e2e/thermal-v2-golden-decode.spec.ts`
+  that doesn't exist yet.
+- **Voice-note playback (F1.1).** Bundled into W2+CAM-1 by a later addendum
+  (Addendum D/F), but it requires greenfield worker-side extraction
+  (`extract.py` has zero audio-parsing today) plus a new persisted field and
+  a Modal redeploy — disproportionate scope for this slice relative to the
+  6 items actually asked for, and unverifiable end-to-end without a real
+  audio-bearing capture file. Deferred; no existing scaffold was touched or
+  half-built.
+
+**Verification:**
+- Scoped typecheck (`tsconfig.thermal-v2.json`): clean.
+- `guard:architecture` — PASS. `guard:design` — pre-existing failures only
+  (same 3 untouched files as every prior thermal-v2 slice). File sizes: two
+  files crossed 300 mid-slice from the new wiring and were fixed by
+  extraction — `AnalyzeToolbar.tsx` (308→286, View original/Focus buttons
+  → new `AnalyzeViewControls.tsx` 45 lines) and `AnalyzePanel.tsx` (310→236,
+  the whole right-rail Measurements/Tuning/Display/Notes block → new
+  `AnalyzeDetailsRail.tsx` 104 lines). `useAnalyzeImage.ts` 261,
+  `useAnalyzeKeyboardShortcuts.ts` 117, `LibraryFiltersRail.tsx` 164,
+  `LibraryPanel.tsx` 110, `LibraryGrid.tsx` 171 — all comfortably under 300.
+- e2e: new `e2e/thermal-v2-w2-cam1.spec.ts` — 6 specs (status-filter chip
+  counts + grid filtering, the 3-state badge distinguishing display-only
+  from pending, the supported-cameras empty-state line, View-original
+  verified via real `getImageData` pixel sampling before/during/after the
+  hold — not just DOM state, Focus mode collapsing + Escape restoring, no
+  page scroll). Full 9-spec / 55-test cross-slice regression (R1 through
+  this slice) reran clean after a fix (below).
+- **Regression + fix:** the new "Not AI-analyzed (N)" filter chip's
+  accessible name contains the substring "Analyze", which collided with 10
+  pre-existing tests across 3 older spec files
+  (`thermal-v2-l1-w3-layout.spec.ts`, `thermal-v2-r1-reliability.spec.ts`,
+  `thermal-v2-w1-workflow.spec.ts`) that clicked the Analyze tab via
+  `getByRole("button", { name: "Analyze" })` **without** `exact: true` — a
+  convention only adopted starting with the S5.6 specs. Fixed at the source
+  (added `exact: true` to all 11 call sites across those 3 files) rather
+  than renaming the filter chip away from the doc's exact wording — the same
+  "short common word collides with a longer label containing it" pattern
+  already logged twice before (`"Display"` vs `"More display settings"`),
+  now generalized to the tab bar itself.

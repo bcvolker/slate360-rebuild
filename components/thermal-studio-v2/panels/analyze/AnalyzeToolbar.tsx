@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { PALETTE_NAMES, fmtTemp } from "@/lib/thermal/probe-palettes";
 import { AnalyzeMoreMenu } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeMoreMenu";
+import { AnalyzeViewControls } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeViewControls";
 import type { HoverInfo } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeCanvas";
 import type { ThermalV2DisplayTransform, ThermalV2Tool } from "@/components/thermal-studio-v2/types";
 
@@ -46,6 +47,11 @@ export function AnalyzeToolbar({
   onFlipHorizontal,
   onFlipVertical,
   onResetTransform,
+  viewOriginal,
+  onViewOriginalStart,
+  onViewOriginalEnd,
+  focusMode,
+  onToggleFocusMode,
 }: {
   palette: string;
   onPaletteChange: (p: string) => void;
@@ -77,6 +83,13 @@ export function AnalyzeToolbar({
   onFlipHorizontal?: () => void;
   onFlipVertical?: () => void;
   onResetTransform?: () => void;
+  /** W2 "View original" — hold to temporarily view the untouched camera image. */
+  viewOriginal: boolean;
+  onViewOriginalStart: () => void;
+  onViewOriginalEnd: () => void;
+  /** W2 Focus mode — collapses both rails + filmstrip for a maximum viewer. */
+  focusMode: boolean;
+  onToggleFocusMode: () => void;
 }) {
   const [shapeMenuOpen, setShapeMenuOpen] = useState(false);
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
@@ -218,6 +231,13 @@ export function AnalyzeToolbar({
             ⧉ Paste
           </button>
         </div>
+        <AnalyzeViewControls
+          viewOriginal={viewOriginal}
+          onViewOriginalStart={onViewOriginalStart}
+          onViewOriginalEnd={onViewOriginalEnd}
+          focusMode={focusMode}
+          onToggleFocusMode={onToggleFocusMode}
+        />
       </div>
       <div className="flex items-center gap-2">
         {hover ? (

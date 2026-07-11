@@ -57,6 +57,10 @@ export function LibraryGrid({
         <span className="text-sm font-semibold text-[var(--graphite-text-header)]">
           Drop thermal photos to begin — radiometric data is preserved
         </span>
+        {/* CAM-1: honest supported-camera list — display-only import for anything else, never silently wrong. */}
+        <span className="text-[11px] text-[var(--graphite-muted)]">
+          Supported cameras: FLIR · DJI · HIKMICRO · Autel · Topdon · InfiRay + any radiometric JPEG
+        </span>
         <input
           ref={inputRef}
           type="file"
@@ -86,7 +90,15 @@ export function LibraryGrid({
       {captures.map((c, i) => {
         const selected = selectedIds.has(c.id);
         const findingCount = c.anomalies?.length ?? 0;
-        const processed = Boolean((c.qualityMetrics as Record<string, unknown> | null)?.is_radiometric);
+        // CAM-1 honest 3-state badge: no quality row yet = still decoding; a quality
+        // row with is_radiometric false = decoded but this camera/file has no
+        // temperature data (display-only) — never conflate the two as one "…".
+        const quality = c.qualityMetrics as Record<string, unknown> | null;
+        const decodeState: "pending" | "radiometric" | "display-only" = !quality
+          ? "pending"
+          : quality.is_radiometric
+            ? "radiometric"
+            : "display-only";
         const paired = Boolean((c.metadata as Record<string, unknown> | null)?.visual_pair_id);
         const flagged = isHighDelta(c);
         const inReport = reportIds.has(c.id) || isInReport(c);
@@ -113,14 +125,20 @@ export function LibraryGrid({
             )}
             <div className="absolute inset-x-0 top-0 flex items-center justify-between p-1">
               <span
-                title={processed ? "Decoded" : "Not decoded yet"}
+                title={
+                  decodeState === "radiometric"
+                    ? "Radiometric — every pixel has a real temperature"
+                    : decodeState === "display-only"
+                      ? "No temperature data — display only"
+                      : "Not decoded yet"
+                }
                 className={`rounded px-1 text-[9px] font-bold ${
-                  processed
+                  decodeState === "radiometric"
                     ? "bg-[color-mix(in_srgb,var(--graphite-primary)_70%,transparent)] text-[var(--graphite-canvas)]"
                     : "bg-black/50 text-[var(--graphite-muted)]"
                 }`}
               >
-                {processed ? "✓" : "…"}
+                {decodeState === "radiometric" ? "✓" : decodeState === "display-only" ? "◐" : "…"}
               </span>
               {paired ? (
                 <span title="Has a paired visual photo" className="h-1.5 w-1.5 rounded-full bg-sky-400" />

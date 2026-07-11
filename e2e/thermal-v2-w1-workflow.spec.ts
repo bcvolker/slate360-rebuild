@@ -33,7 +33,7 @@ test.describe("Thermal V2 W1 workflow foundations", () => {
     await warmBuildIdThenGoto(page);
     const thumb = page.locator('button[title*="roof-nw-01.jpeg"]');
     await thumb.dblclick();
-    await expect(page.getByRole("button", { name: "Analyze" })).toHaveClass(/graphite-primary/);
+    await expect(page.getByRole("button", { name: "Analyze", exact: true })).toHaveClass(/graphite-primary/);
     await expect(page.getByText(/^\d\/5$/)).toBeVisible();
   });
 
@@ -62,7 +62,7 @@ test.describe("Thermal V2 W1 workflow foundations", () => {
     await page.route("https://example.invalid/put", (route) => route.fulfill({ status: 200, body: "" }));
 
     await warmBuildIdThenGoto(page);
-    await page.getByRole("button", { name: "Analyze" }).click();
+    await page.getByRole("button", { name: "Analyze", exact: true }).click();
 
     // Simulate a real OS file drop landing on the window (not the rail's own dropzone).
     await page.evaluate(() => {
@@ -87,7 +87,7 @@ test.describe("Thermal V2 W1 workflow foundations", () => {
     });
 
     await warmBuildIdThenGoto(page);
-    await page.getByRole("button", { name: "Analyze" }).click();
+    await page.getByRole("button", { name: "Analyze", exact: true }).click();
 
     const paletteSelect = page.locator('select[title="Color palette"]');
     await paletteSelect.selectOption("Rainbow");
@@ -102,7 +102,7 @@ test.describe("Thermal V2 W1 workflow foundations", () => {
     });
 
     await warmBuildIdThenGoto(page);
-    await page.getByRole("button", { name: "Analyze" }).click();
+    await page.getByRole("button", { name: "Analyze", exact: true }).click();
 
     const paletteSelect = page.locator('select[title="Color palette"]');
     await paletteSelect.selectOption("Rainbow");
@@ -120,7 +120,7 @@ test.describe("Thermal V2 W1 workflow foundations", () => {
   test("the sticky mini-summary is always visible in Analyze", async ({ page }) => {
     await mockGrid(page);
     await warmBuildIdThenGoto(page);
-    await page.getByRole("button", { name: "Analyze" }).click();
+    await page.getByRole("button", { name: "Analyze", exact: true }).click();
     await expect(page.getByText(/Max .* · Min .* · Avg /)).toBeVisible();
   });
 });

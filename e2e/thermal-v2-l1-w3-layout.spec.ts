@@ -20,7 +20,7 @@ test.describe("Thermal V2 L1+W3 layout", () => {
 
   test("Analyze has no duplicate 'Working set' strip — only the bottom filmstrip", async ({ page }) => {
     await warmBuildIdThenGoto(page);
-    await page.getByRole("button", { name: "Analyze" }).click();
+    await page.getByRole("button", { name: "Analyze", exact: true }).click();
     await expect(page.getByText("Working set")).toHaveCount(0);
     // The bottom dock is compact (no text header, just a collapse toggle) — see DockPanel.
     await expect(page.getByTitle("Hide Filmstrip")).toBeVisible();
@@ -29,7 +29,7 @@ test.describe("Thermal V2 L1+W3 layout", () => {
   test("the viewer is at least 60% of the Analyze width at 1440x900", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await warmBuildIdThenGoto(page);
-    await page.getByRole("button", { name: "Analyze" }).click();
+    await page.getByRole("button", { name: "Analyze", exact: true }).click();
     const viewer = page.getByTestId("v2-viewer-panel");
     await expect(viewer).toBeVisible();
     const box = await viewer.boundingBox();
@@ -40,7 +40,7 @@ test.describe("Thermal V2 L1+W3 layout", () => {
 
   test("accordions are single-open — opening Tuning closes Measurements", async ({ page }) => {
     await warmBuildIdThenGoto(page);
-    await page.getByRole("button", { name: "Analyze" }).click();
+    await page.getByRole("button", { name: "Analyze", exact: true }).click();
 
     const measurementsHeader = page.getByRole("button", { name: "Measurements" });
     const tuningHeader = page.getByRole("button", { name: "Tuning" });
@@ -53,7 +53,7 @@ test.describe("Thermal V2 L1+W3 layout", () => {
 
   test("°C/°F moved into the ⋯ overflow menu", async ({ page }) => {
     await warmBuildIdThenGoto(page);
-    await page.getByRole("button", { name: "Analyze" }).click();
+    await page.getByRole("button", { name: "Analyze", exact: true }).click();
 
     // Not visible as a bare toolbar pill until the ⋯ menu opens.
     await expect(page.getByRole("button", { name: "°F", exact: true })).toHaveCount(0);
@@ -78,7 +78,7 @@ test.describe("Thermal V2 L1+W3 layout", () => {
     test.slow();
     await page.setViewportSize({ width: 1280, height: 800 });
     await warmBuildIdThenGoto(page);
-    await page.getByRole("button", { name: "Analyze" }).click();
+    await page.getByRole("button", { name: "Analyze", exact: true }).click();
     let scrollable = await page.evaluate(() => document.documentElement.scrollHeight > document.documentElement.clientHeight + 1);
     expect(scrollable, "page scrolled at 1280x800").toBe(false);
 

@@ -34,6 +34,15 @@ export function LibraryPanel({
     if (filter === "flagged") return captures.filter((c) => (c.anomalies?.length ?? 0) > 0);
     if (filter === "in_report") return captures.filter((c) => selection.reportIds.has(c.id) || isInReport(c));
     if (filter === "high_delta") return captures.filter((c) => isHighDelta(c));
+    // W2 status filters (doc §A1).
+    if (filter === "not_decoded") return captures.filter((c) => !c.qualityMetrics);
+    if (filter === "not_ai_analyzed") return captures.filter((c) => c.anomalies == null);
+    if (filter === "has_findings")
+      return captures.filter((c) => {
+        const review = (c.metadata as Record<string, unknown> | null)?.findings_review as { accepted?: string[] } | undefined;
+        return (review?.accepted?.length ?? 0) > 0;
+      });
+    if (filter === "reviewed") return captures.filter((c) => !!(c.metadata as Record<string, unknown> | null)?.findings_review);
     return captures.filter((c) => cameraOf(c) === filter);
   }, [captures, filter, selection.reportIds]);
 

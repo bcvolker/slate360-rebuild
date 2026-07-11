@@ -79,7 +79,7 @@ test.describe("Thermal V2 R1 reliability", () => {
     });
 
     await warmBuildIdThenGoto(page);
-    await page.getByRole("button", { name: "Analyze" }).click();
+    await page.getByRole("button", { name: "Analyze", exact: true }).click();
     await page.getByText("Notes & photo data").click();
 
     const notes = page.locator("#thermal-v2-findings");

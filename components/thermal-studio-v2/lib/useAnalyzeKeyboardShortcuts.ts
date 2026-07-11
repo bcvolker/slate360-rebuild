@@ -16,12 +16,40 @@ export function useAnalyzeKeyboardShortcuts({
   hover,
   clipboard,
   step,
+  focusMode,
+  onToggleFocusMode,
 }: {
   img: ReturnType<typeof useAnalyzeImage>;
   hover: HoverInfo;
   clipboard: ReturnType<typeof useSettingsClipboardActions>;
   step: (delta: number) => void;
+  /** W2 Focus mode (F key, toggle — collapses both rails + filmstrip). */
+  focusMode: boolean;
+  onToggleFocusMode: () => void;
 }) {
+  // W2 "View original" (O key) is hold-to-view, not a toggle — separate from the
+  // main keydown handler below so keyup can restore it independently of any
+  // other key state.
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      const target = e.target as HTMLElement | null;
+      if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA")) return;
+      if (e.key.toLowerCase() === "o" && !e.ctrlKey && !e.metaKey && !e.repeat) {
+        e.preventDefault();
+        img.setViewOriginal(true);
+      }
+    }
+    function onKeyUp(e: KeyboardEvent) {
+      if (e.key.toLowerCase() === "o") img.setViewOriginal(false);
+    }
+    window.addEventListener("keydown", onKeyDown);
+    window.addEventListener("keyup", onKeyUp);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("keyup", onKeyUp);
+    };
+  }, [img]);
+
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
       const target = e.target as HTMLElement | null;
@@ -74,10 +102,16 @@ export function useAnalyzeKeyboardShortcuts({
       if (e.key === "\\" && img.flickerActive) {
         e.preventDefault();
         img.toggleFlickerView();
+        return;
+      }
+      // W2 Focus mode: collapse both rails + filmstrip for a maximum viewer.
+      if (e.key.toLowerCase() === "f" && !mod) {
+        e.preventDefault();
+        onToggleFocusMode();
       }
     }
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [img, clipboard, hover, step]);
+  }, [img, clipboard, hover, step, onToggleFocusMode]);
 }
