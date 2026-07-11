@@ -4,6 +4,7 @@ import {
   Clapperboard,
   Cloud,
   CreditCard,
+  FlaskConical,
   FolderOpen,
   LayoutDashboard,
   MapPin,
@@ -67,6 +68,17 @@ const DASHBOARD_DESKTOP_NAV_ALL: DashboardNavItem[] = [
     href: "/thermal-studio",
     icon: Thermometer,
     matchPrefixes: ["/thermal-studio"],
+    ceoOnly: true,
+  },
+  {
+    // Parallel rebuild (see docs/design/THERMAL_V2_BUILD_LOG.md) — real
+    // authenticated sessions via /thermal-studio-v2, the actual UI swap (S9)
+    // is explicitly held pending review, so this stays a SEPARATE nav entry
+    // rather than replacing the row above.
+    label: "Thermal Studio V2",
+    href: "/thermal-studio-v2",
+    icon: FlaskConical,
+    matchPrefixes: ["/thermal-studio-v2"],
     ceoOnly: true,
   },
   {
