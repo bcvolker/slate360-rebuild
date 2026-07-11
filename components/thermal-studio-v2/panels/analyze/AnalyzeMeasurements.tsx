@@ -3,9 +3,19 @@
 import { useState } from "react";
 import { spotStats } from "@/lib/thermal/spot-stats";
 import { fmtDelta, fmtTemp } from "@/lib/thermal/probe-palettes";
+import { severityChipClass } from "@/lib/thermal/severity-labels";
 import { ComparePin, LineProfileChart } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeCompareAndProfile";
 import type { ThermalV2Grid } from "@/components/thermal-studio-v2/lib/grid-api";
-import type { ThermalV2Spot } from "@/components/thermal-studio-v2/types";
+import type { ThermalV2SeverityBands, ThermalV2Spot } from "@/components/thermal-studio-v2/types";
+
+/** S5.6 severity bands: map |ΔT| vs reference into the same action/watch/neutral vocabulary S6 uses. */
+function bandSeverity(absDeltaC: number, bands: ThermalV2SeverityBands): string | null {
+  if (!bands) return null;
+  if (absDeltaC >= bands.critical) return "action";
+  if (absDeltaC >= bands.warning) return "watch";
+  if (absDeltaC >= bands.advisory) return "advisory";
+  return null;
+}
 
 const KIND_WORD: Record<string, string> = { point: "Point", area: "Area", line: "Line", polygon: "Polygon" };
 
@@ -29,6 +39,7 @@ export function AnalyzeMeasurements({
   pendingCompareId,
   onToggleCompare,
   onClearCompare,
+  severityBands,
 }: {
   spots: ThermalV2Spot[];
   grid: ThermalV2Grid | null;
@@ -46,6 +57,8 @@ export function AnalyzeMeasurements({
   pendingCompareId: string | null;
   onToggleCompare: (id: string) => void;
   onClearCompare: () => void;
+  /** S5.6 severity bands — colors the Δ figure red/sky/neutral; null = no coloring. */
+  severityBands?: ThermalV2SeverityBands;
 }) {
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
@@ -116,6 +129,7 @@ export function AnalyzeMeasurements({
           const v = values[i];
           const isRef = s.id === referenceId;
           const delta = refValue !== null && !isRef ? v - refValue : null;
+          const severity = delta !== null ? bandSeverity(Math.abs(delta), severityBands ?? null) : null;
           return (
             <li
               key={s.id}
@@ -160,7 +174,9 @@ export function AnalyzeMeasurements({
                 <span className="min-w-0 flex-1 truncate text-[var(--graphite-text-header)]">{s.label ?? ""}</span>
               )}
               <span className="shrink-0 font-semibold text-[var(--graphite-text-header)]">{fmtTemp(v, unit)}</span>
-              <span className="w-14 shrink-0 text-right text-[var(--graphite-muted)]">
+              <span
+                className={`w-14 shrink-0 rounded px-1 text-right ${severity ? `border ${severityChipClass(severity)}` : "border-transparent text-[var(--graphite-muted)]"}`}
+              >
                 {isRef ? "ref" : delta !== null ? fmtDelta(delta, unit) : "—"}
               </span>
               <button

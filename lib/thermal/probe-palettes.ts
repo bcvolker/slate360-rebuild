@@ -140,3 +140,25 @@ export function computeHistogram(
   }
   return out;
 }
+
+/**
+ * S5.6 "Local contrast (display only)": rank-normalizes every pixel into
+ * [lo, hi] by its percentile within the frame, so subtle local gradients pop
+ * even inside a narrow real-temperature band. DISPLAY-ONLY — callers must
+ * keep reading the true `temps` array for every readout (hover/loupe/list);
+ * this output is only ever fed to `renderHeatmap`.
+ */
+export function histogramEqualize(temps: number[] | Float32Array | Float64Array, lo: number, hi: number): Float32Array {
+  const n = temps.length;
+  const order = new Uint32Array(n);
+  for (let i = 0; i < n; i++) order[i] = i;
+  const indices = Array.from(order);
+  indices.sort((a, b) => temps[a] - temps[b]);
+  const out = new Float32Array(n);
+  const span = hi - lo || 1;
+  const denom = Math.max(1, n - 1);
+  for (let rank = 0; rank < n; rank++) {
+    out[indices[rank]] = lo + (rank / denom) * span;
+  }
+  return out;
+}

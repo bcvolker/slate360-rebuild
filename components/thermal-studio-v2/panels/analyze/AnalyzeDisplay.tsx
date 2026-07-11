@@ -1,9 +1,12 @@
 "use client";
 
 import { computeHistogram, fmtTemp } from "@/lib/thermal/probe-palettes";
-import type { ThermalV2Isotherm } from "@/components/thermal-studio-v2/types";
+import { AnalyzeAlarmControls } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeAlarmControls";
+import { AnalyzeSeverityBands } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeSeverityBands";
+import { AnalyzeContrastFlicker } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeContrastFlicker";
+import type { ThermalV2Alarm, ThermalV2SeverityBands, ThermalV2Tuning } from "@/components/thermal-studio-v2/types";
 
-/** Right rail — Display accordion (doc §1, Tab 2 + S5): span, isotherm, histogram. */
+/** Right rail — Display accordion (doc §1, Tab 2 + S5/S5.6): span, alarms, severity bands, sensitivity aids. */
 export function AnalyzeDisplay({
   temps,
   span,
@@ -11,8 +14,22 @@ export function AnalyzeDisplay({
   gridMax,
   unit,
   onSpanChange,
-  isotherm,
-  onIsothermChange,
+  alarm,
+  onAlarmChange,
+  tuning,
+  severityBands,
+  onSeverityBandsChange,
+  localContrast,
+  onLocalContrastChange,
+  hasFlickerA,
+  hasFlickerB,
+  flickerShowing,
+  autoFlicker,
+  onAutoFlickerChange,
+  onSnapshotFlickerA,
+  onSnapshotFlickerB,
+  onToggleFlickerView,
+  onClearFlicker,
 }: {
   temps: number[] | Float32Array | Float64Array | null;
   span: { lo: number; hi: number } | null;
@@ -20,8 +37,22 @@ export function AnalyzeDisplay({
   gridMax: number;
   unit: "C" | "F";
   onSpanChange: (next: { lo: number; hi: number }) => void;
-  isotherm: ThermalV2Isotherm;
-  onIsothermChange: (next: ThermalV2Isotherm) => void;
+  alarm: ThermalV2Alarm;
+  onAlarmChange: (next: ThermalV2Alarm) => void;
+  tuning: ThermalV2Tuning;
+  severityBands: ThermalV2SeverityBands;
+  onSeverityBandsChange: (next: ThermalV2SeverityBands) => void;
+  localContrast: boolean;
+  onLocalContrastChange: (next: boolean) => void;
+  hasFlickerA: boolean;
+  hasFlickerB: boolean;
+  flickerShowing: "A" | "B";
+  autoFlicker: boolean;
+  onAutoFlickerChange: (next: boolean) => void;
+  onSnapshotFlickerA: () => void;
+  onSnapshotFlickerB: () => void;
+  onToggleFlickerView: () => void;
+  onClearFlicker: () => void;
 }) {
   if (!temps || !span) {
     return <div className="p-2 text-xs text-[var(--graphite-muted)]">Open an image to adjust its display.</div>;
@@ -70,36 +101,21 @@ export function AnalyzeDisplay({
         ))}
       </div>
 
-      <label className="flex items-center gap-2 text-[11px] text-[var(--graphite-text-header)]">
-        <input
-          type="checkbox"
-          checked={!!isotherm}
-          onChange={(e) => onIsothermChange(e.target.checked ? { lo: span.lo, hi: span.hi } : null)}
-        />
-        Isotherm — highlight only one temperature band
-      </label>
-      {isotherm ? (
-        <div className="grid grid-cols-2 gap-3 text-[11px]">
-          <label className="flex flex-col gap-1 text-[var(--graphite-muted)]">
-            Band low
-            <input
-              type="number"
-              value={Math.round(isotherm.lo * 10) / 10}
-              onChange={(e) => onIsothermChange({ lo: Number(e.target.value), hi: isotherm.hi })}
-              className="border-b border-[var(--mobile-app-card-border)] bg-transparent py-0.5 text-[var(--graphite-text-header)] focus:border-[var(--graphite-primary)] focus:outline-none"
-            />
-          </label>
-          <label className="flex flex-col gap-1 text-[var(--graphite-muted)]">
-            Band high
-            <input
-              type="number"
-              value={Math.round(isotherm.hi * 10) / 10}
-              onChange={(e) => onIsothermChange({ lo: isotherm.lo, hi: Number(e.target.value) })}
-              className="border-b border-[var(--mobile-app-card-border)] bg-transparent py-0.5 text-[var(--graphite-text-header)] focus:border-[var(--graphite-primary)] focus:outline-none"
-            />
-          </label>
-        </div>
-      ) : null}
+      <AnalyzeAlarmControls alarm={alarm} onAlarmChange={onAlarmChange} tuning={tuning} unit={unit} />
+      <AnalyzeSeverityBands bands={severityBands} onBandsChange={onSeverityBandsChange} unit={unit} />
+      <AnalyzeContrastFlicker
+        localContrast={localContrast}
+        onLocalContrastChange={onLocalContrastChange}
+        hasA={hasFlickerA}
+        hasB={hasFlickerB}
+        flickerShowing={flickerShowing}
+        autoFlicker={autoFlicker}
+        onAutoFlickerChange={onAutoFlickerChange}
+        onSnapshotA={onSnapshotFlickerA}
+        onSnapshotB={onSnapshotFlickerB}
+        onToggleView={onToggleFlickerView}
+        onClearFlicker={onClearFlicker}
+      />
     </div>
   );
 }

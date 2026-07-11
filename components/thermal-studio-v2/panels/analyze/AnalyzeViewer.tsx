@@ -1,11 +1,12 @@
 "use client";
 
-import { useRef } from "react";
+import { useMemo, useRef } from "react";
+import { histogramEqualize, type Isotherm } from "@/lib/thermal/probe-palettes";
 import type { ThermalV2Grid } from "@/components/thermal-studio-v2/lib/grid-api";
 import { AnalyzeCanvas, type HoverInfo } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeCanvas";
 import { AnalyzeLegend } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeLegend";
 import { AnalyzeLoupe } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeLoupe";
-import type { ThermalV2Isotherm, ThermalV2Spot, ThermalV2Tool } from "@/components/thermal-studio-v2/types";
+import type { ThermalV2Spot, ThermalV2Tool } from "@/components/thermal-studio-v2/types";
 
 /** Center hero — presentational: canvas + legend + loupe. All state is owned by AnalyzePanel. */
 export function AnalyzeViewer({
@@ -17,6 +18,9 @@ export function AnalyzeViewer({
   span,
   onSpanChange,
   isotherm,
+  localContrast,
+  displayPalette,
+  displaySpan,
   hover,
   onHoverChange,
   spots,
@@ -35,7 +39,12 @@ export function AnalyzeViewer({
   unit: "C" | "F";
   span: { lo: number; hi: number } | null;
   onSpanChange: (next: { lo: number; hi: number }) => void;
-  isotherm?: ThermalV2Isotherm;
+  isotherm?: Isotherm | null;
+  /** S5.6 Local contrast (display only). */
+  localContrast?: boolean;
+  /** S5.6 A/B flicker: the currently-shown snapshot's palette/span (falls back to the live ones when no flicker is active). */
+  displayPalette?: string;
+  displaySpan?: { lo: number; hi: number } | null;
   hover: HoverInfo;
   onHoverChange: (h: HoverInfo) => void;
   spots: ThermalV2Spot[];
@@ -48,6 +57,14 @@ export function AnalyzeViewer({
   onCommitSpots: (next: ThermalV2Spot[]) => void;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const paintPalette = displayPalette ?? palette;
+  const paintSpan = displaySpan ?? span;
+
+  const displayTemps = useMemo(() => {
+    if (!localContrast || !grid || !paintSpan) return null;
+    return histogramEqualize(grid.temps, paintSpan.lo, paintSpan.hi);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [localContrast, grid, paintSpan?.lo, paintSpan?.hi]);
 
   if (!grid && !loading && !error) {
     return (
@@ -64,10 +81,11 @@ export function AnalyzeViewer({
           grid={grid}
           loading={loading}
           error={error}
-          palette={palette}
-          lo={span?.lo ?? 0}
-          hi={span?.hi ?? 1}
+          palette={paintPalette}
+          lo={paintSpan?.lo ?? 0}
+          hi={paintSpan?.hi ?? 1}
           isotherm={isotherm}
+          displayTemps={displayTemps}
           onHover={onHoverChange}
           canvasRef={canvasRef}
           spots={spots}

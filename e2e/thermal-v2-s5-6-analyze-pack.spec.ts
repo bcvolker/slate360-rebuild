@@ -100,3 +100,116 @@ test.describe("Thermal V2 S5.6 Analyze completion pack — push 1", () => {
     expect(scrollable, "page scrolled at 1440x900").toBe(false);
   });
 });
+
+test.describe("Thermal V2 S5.6 Analyze completion pack — push 2 (alarms + sensitivity)", () => {
+  test.use({ serviceWorkers: "block" });
+
+  test("Enhance-here (⌖) recenters the span on the hovered temperature", async ({ page }) => {
+    await openAnalyze(page);
+    const canvas = page.locator("canvas").first();
+    const box = await canvas.boundingBox();
+    if (!box) throw new Error("canvas not laid out");
+    // Grid temp at x=0.5 is 20 + 50*0.2 = 30°C.
+    await page.mouse.move(box.x + box.width * 0.5, box.y + box.height * 0.5);
+    await page.getByTitle("Enhance here — center the display span on this temperature (E)").click();
+
+    await page.getByRole("button", { name: /^Display/ }).click();
+    const numberInputs = page.locator('input[type="number"]');
+    const lo = Number(await numberInputs.nth(0).inputValue());
+    const hi = Number(await numberInputs.nth(1).inputValue());
+    expect(hi - lo).toBeCloseTo(4, 0);
+  });
+
+  test("alarm mode 'Above limit' dims out-of-band pixels, leaves in-band pixels in color", async ({ page }) => {
+    await openAnalyze(page);
+    await page.getByRole("button", { name: /^Display/ }).click();
+    await page.getByLabel(/Alarm mode/).selectOption("above");
+    await page.getByLabel(/^Limit \(/).fill("27");
+    await page.waitForTimeout(300);
+
+    const [inBand, outOfBand] = await page.evaluate(() => {
+      const canvas = document.querySelectorAll("canvas")[0] as HTMLCanvasElement;
+      const ctx = canvas.getContext("2d")!;
+      // x=60 → 32°C (above the 27° limit); x=10 → 22°C (below it).
+      const a = ctx.getImageData(60, 50, 1, 1).data;
+      const b = ctx.getImageData(10, 50, 1, 1).data;
+      return [
+        [a[0], a[1], a[2]],
+        [b[0], b[1], b[2]],
+      ];
+    });
+
+    expect(Math.abs(inBand[0] - inBand[1]) + Math.abs(inBand[1] - inBand[2])).toBeGreaterThan(30);
+    expect(outOfBand[0]).toBe(outOfBand[1]);
+    expect(outOfBand[1]).toBe(outOfBand[2]);
+  });
+
+  test("dew point mode computes and displays a dew point value", async ({ page }) => {
+    await openAnalyze(page);
+    await page.getByRole("button", { name: /^Display/ }).click();
+    await page.getByLabel(/Alarm mode/).selectOption("dewpoint");
+    await expect(page.getByText(/dew point \d/i)).toBeVisible();
+  });
+
+  test("severity bands color the Δ chip after choosing a preset", async ({ page }) => {
+    await openAnalyze(page);
+    await page.getByRole("button", { name: "Point", exact: true }).click();
+    const canvas = page.locator("canvas").first();
+    const box = await canvas.boundingBox();
+    if (!box) throw new Error("canvas not laid out");
+    await page.mouse.click(box.x + box.width * 0.3, box.y + box.height * 0.5); // ~26°C
+    await page.mouse.click(box.x + box.width * 0.7, box.y + box.height * 0.5); // ~34°C, Δ~8°
+
+    await expect(page.getByText("Point").first()).toBeVisible();
+    await page.getByTitle("Set as reference").first().click();
+
+    await page.getByRole("button", { name: /^Display/ }).click();
+    await page.getByLabel(/Severity bands/).selectOption("Neutral defaults");
+
+    await page.getByRole("button", { name: "Measurements" }).click();
+    const deltaChip = page.locator("li").nth(1).locator("span.w-14");
+    await expect(deltaChip).toHaveClass(/border-red-500/);
+  });
+
+  test("local contrast toggle doesn't change the hover readout (display only)", async ({ page }) => {
+    await openAnalyze(page);
+    const canvas = page.locator("canvas").first();
+    const box = await canvas.boundingBox();
+    if (!box) throw new Error("canvas not laid out");
+    await page.mouse.move(box.x + box.width * 0.6, box.y + box.height * 0.5);
+    const readout = page.getByText(/^\d+\.\d°F$/);
+    await expect(readout).toBeVisible();
+    const before = await readout.textContent();
+
+    await page.getByRole("button", { name: /^Display/ }).click();
+    await page.getByLabel("Local contrast (display only)").check();
+    await page.mouse.move(box.x + box.width * 0.6, box.y + box.height * 0.5);
+
+    await expect(readout).toHaveText(before ?? "");
+  });
+
+  test("A/B flicker stores two snapshots and toggles which one is showing", async ({ page }) => {
+    await openAnalyze(page);
+    await page.getByRole("button", { name: /^Display/ }).click();
+    await page.getByRole("button", { name: "Store A" }).click();
+    await page.getByTitle("Color palette").selectOption("Rainbow");
+    await page.getByRole("button", { name: "Store B" }).click();
+
+    await expect(page.getByRole("button", { name: "Showing A" })).toBeVisible();
+    await page.getByRole("button", { name: "Showing A" }).click();
+    await expect(page.getByRole("button", { name: "Showing B" })).toBeVisible();
+  });
+
+  test("no page scroll at 1280x800 and 1440x900", async ({ page }) => {
+    test.slow();
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await openAnalyze(page);
+    await page.getByRole("button", { name: /^Display/ }).click();
+    let scrollable = await page.evaluate(() => document.documentElement.scrollHeight > document.documentElement.clientHeight + 1);
+    expect(scrollable, "page scrolled at 1280x800").toBe(false);
+
+    await page.setViewportSize({ width: 1440, height: 900 });
+    scrollable = await page.evaluate(() => document.documentElement.scrollHeight > document.documentElement.clientHeight + 1);
+    expect(scrollable, "page scrolled at 1440x900").toBe(false);
+  });
+});

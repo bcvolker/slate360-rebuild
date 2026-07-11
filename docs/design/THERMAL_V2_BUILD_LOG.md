@@ -586,3 +586,87 @@ which worked correctly once the layout was fixed).
   `title` attribute, so `getByRole` with the tooltip string never matched.
   Fixed via `getByTitle(...)`, matching the recurring "accessible name comes
   from visible text before `title`" pattern already logged in earlier slices.
+
+---
+
+## Slice 8 — S5.6 Analyze completion pack, push 2 (2026-07-10)
+
+**Shipped:**
+- **Alarm suite (replaces the single-band isotherm).** New `ThermalV2Alarm`
+  type (`off`/`above`/`below`/`interval`/`dewpoint`/`insulation`) in
+  `types.ts`; the effective highlight band is computed caller-side in the new
+  `lib/thermal/alarm-band.ts` (`computeAlarmBand`) and fed straight into
+  `renderHeatmap`'s existing isotherm-style paint arg — no changes needed to
+  `probe-palettes.ts`'s render function itself, per spec. New
+  `AnalyzeAlarmControls.tsx` replaces the old isotherm checkbox in the
+  Display accordion with a mode picker + per-mode inline fields (limit,
+  band, air-temp/margin, indoor/outdoor/factor).
+- **Dew point.** New pure `lib/thermal/psychrometrics.ts` (`dewPointC` —
+  Magnus formula, `insulationThresholdC`). Dew-point mode seeds air temp/RH
+  from Tuning's `atmospheric_c`/`humidity_pct` (RH has no per-alarm override
+  — editing Tuning updates the alarm live, per spec's "editable inline").
+- **Severity bands.** New `AnalyzeSeverityBands.tsx`: an
+  advisory/warning/critical ΔT-threshold editor with 3 "-style" presets
+  (Neutral defaults / NETA-style ΔT / RESNET-style envelope) plus "Off" —
+  neutral/no coloring until a preset is explicitly chosen (doc §1b.4). Bands
+  are sticky across image switches (a review criterion, not a per-image
+  display setting), unlike the alarm/contrast/flicker state which resets per
+  image. `AnalyzeMeasurements.tsx` colors each row's Δ figure via the
+  existing `severity-labels.ts` `severityChipClass` (red "action" / sky
+  "watch" / neutral "advisory") — reused verbatim from S6, no new color
+  vocabulary introduced.
+- **Enhance-here (⌖ / E).** Toolbar button + `E` keyboard shortcut center the
+  display span on the hovered temperature (`hover.tempC ± 2°`, stored in
+  °C). Escape now has a 3rd cascade level: clear selected measurement →
+  reset a customized span to full range → reset the Scope pill.
+- **Local contrast (display only).** New `histogramEqualize()` in
+  `probe-palettes.ts` (rank-normalizes every pixel into the display span by
+  percentile) — a DISPLAY-ONLY paint substitution; `AnalyzeCanvas` takes an
+  optional `displayTemps` override, while every readout (hover/loupe/list)
+  keeps reading the true grid.
+- **A/B flicker.** Extracted into its own `useFlickerAB.ts` hook (kept out of
+  `useAnalyzeImage.ts` to stay under the file-size gate): two named
+  snapshots of `{palette, span}`, swappable via a button or the `\` key, plus
+  an opt-in 2Hz auto-flicker interval that's skipped entirely under
+  `prefers-reduced-motion`. Scoped down: only the canvas paint swaps between
+  A/B — the legend and toolbar keep reflecting the live palette/span so
+  editing during a comparison still works (logged, not silently dropped).
+
+**Skipped / scoped down (logged, not silently dropped):**
+- **Dedicated `E`-key test.** Only the ⌖ button click is e2e-covered; both
+  call the same `img.enhanceHere` function so the incremental risk of the
+  keyboard path diverging is low. Time-boxed given push 2's already-large
+  scope (5 sub-features).
+
+**Verification:**
+- Scoped typecheck (`tsconfig.thermal-v2.json`): clean.
+- `guard:architecture` — PASS. `guard:design` — pre-existing failures only
+  (same 3 untouched files as push 1). File sizes: `useAnalyzeImage.ts` grew
+  past 300 lines from this push's additions (271→351) — fixed by extracting
+  the A/B flicker state/effect into new `useFlickerAB.ts` (64 lines),
+  bringing it back to 296. `AnalyzePanel.tsx` similarly grew past 300 from
+  the new wiring (280→325) — fixed by extracting the keyboard-shortcut
+  effect into new `useAnalyzeKeyboardShortcuts.ts` (83 lines), bringing it
+  to 267. All other touched/new files well under 300 (`alarm-band.ts` 35,
+  `psychrometrics.ts` 23, `AnalyzeAlarmControls.tsx` 174,
+  `AnalyzeSeverityBands.tsx` 77, `AnalyzeContrastFlicker.tsx` 81,
+  `probe-palettes.ts` 164).
+- e2e: `e2e/thermal-v2-s5-6-analyze-pack.spec.ts` — 7 new specs (Enhance-here
+  recenters the span, "Above limit" alarm dims out-of-band pixels verified
+  via real `getImageData` pixel sampling — not just DOM text, dew-point mode
+  renders a computed value, severity preset colors the Δ chip red, local
+  contrast leaves the hover readout unchanged, A/B flicker stores + toggles
+  snapshots, no page scroll). Full 8-spec / 44-test cross-slice regression
+  reran clean after both the alarm-suite implementation and the file-size
+  refactor.
+- **Debugging notes:** the accordion header's accessible name is its full
+  text content including the `▾`/`▸` disclosure glyph (e.g. "Display ▸"),
+  not just the title prop — `getByRole("button", { name: "Display" })` first
+  strict-mode-collided with the toolbar's "More display settings" button
+  (case-insensitive substring match on "display"), then failed outright
+  under `exact: true` since the real name has the glyph suffix; fixed with
+  `getByRole("button", { name: /^Display/ })`. The local-contrast hover-temp
+  assertion originally hardcoded an expected "89.6°F" string and failed —
+  switched to the same anchored-regex-plus-captured-value pattern already
+  proven in `thermal-v2-s7-5-deliver.spec.ts`'s Live Link hover test rather
+  than asserting a specific formatted number.

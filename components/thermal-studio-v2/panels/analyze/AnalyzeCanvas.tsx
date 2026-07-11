@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useState, type MouseEvent, type RefObject } from "react";
-import { renderHeatmap, newSpotId } from "@/lib/thermal/probe-palettes";
+import { renderHeatmap, newSpotId, type Isotherm } from "@/lib/thermal/probe-palettes";
 import { SpotOverlay } from "@/components/thermal-studio-v2/panels/analyze/SpotOverlay";
 import { useCanvasStage } from "@/components/thermal-studio-v2/lib/useCanvasStage";
 import type { ThermalV2Grid } from "@/components/thermal-studio-v2/lib/grid-api";
-import type { ThermalV2Isotherm, ThermalV2Spot, ThermalV2Tool } from "@/components/thermal-studio-v2/types";
+import type { ThermalV2Spot, ThermalV2Tool } from "@/components/thermal-studio-v2/types";
 
 export type HoverInfo = { x: number; y: number; tempC: number } | null;
 
@@ -23,6 +23,7 @@ export function AnalyzeCanvas({
   lo,
   hi,
   isotherm,
+  displayTemps,
   onHover,
   canvasRef,
   spots,
@@ -40,7 +41,9 @@ export function AnalyzeCanvas({
   palette: string;
   lo: number;
   hi: number;
-  isotherm?: ThermalV2Isotherm;
+  isotherm?: Isotherm | null;
+  /** S5.6 Local contrast: histogram-equalized paint source (display only) — falls back to grid.temps. */
+  displayTemps?: Float32Array | null;
   onHover: (info: HoverInfo) => void;
   /** Shared with the loupe so it can drawImage() a cropped region of the same painted canvas. */
   canvasRef: RefObject<HTMLCanvasElement | null>;
@@ -97,8 +100,8 @@ export function AnalyzeCanvas({
     canvas.height = grid.height;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-    renderHeatmap(ctx, grid.temps, grid.width, grid.height, palette, lo, hi, isotherm ?? null);
-  }, [grid, palette, lo, hi, isotherm, canvasRef]);
+    renderHeatmap(ctx, displayTemps ?? grid.temps, grid.width, grid.height, palette, lo, hi, isotherm ?? null);
+  }, [grid, palette, lo, hi, isotherm, displayTemps, canvasRef]);
 
   function createDefaultSpot(imgX: number, imgY: number) {
     if (!grid) return;

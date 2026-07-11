@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { computeAlarmBand } from "@/lib/thermal/alarm-band";
 import { V2PanelFrame } from "@/components/thermal-studio-v2/V2PanelFrame";
 import { AnalyzeCaptureStrip } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeCaptureStrip";
 import { AnalyzeViewer } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeViewer";
@@ -14,6 +15,7 @@ import { AnalyzeMiniSummary } from "@/components/thermal-studio-v2/panels/analyz
 import { KeepUndoToast } from "@/components/thermal-studio-v2/panels/analyze/KeepUndoToast";
 import { useAnalyzeImage } from "@/components/thermal-studio-v2/lib/useAnalyzeImage";
 import { useSettingsClipboardActions } from "@/components/thermal-studio-v2/lib/useSettingsClipboardActions";
+import { useAnalyzeKeyboardShortcuts } from "@/components/thermal-studio-v2/lib/useAnalyzeKeyboardShortcuts";
 import type { HoverInfo } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeCanvas";
 import type { useLibrarySelection } from "@/components/thermal-studio-v2/lib/useLibrarySelection";
 import type { ThermalV2Capture, ThermalV2Scope } from "@/components/thermal-studio-v2/types";
@@ -53,6 +55,13 @@ export function AnalyzePanel({
   const activeIndex = captures.findIndex((c) => c.id === activeId);
   const img = useAnalyzeImage(activeCapture);
 
+  // S5.6 alarm suite: caller-side band computed from the alarm mode + tuning,
+  // fed straight into AnalyzeViewer's isotherm-style paint prop.
+  const alarmBand = useMemo(
+    () => (img.grid ? computeAlarmBand(img.alarm, img.tuning, img.grid.minC, img.grid.maxC) : null),
+    [img.alarm, img.tuning, img.grid],
+  );
+
   function step(delta: number) {
     const next = captures[activeIndex + delta];
     if (next) selection.click(next.id, activeIndex + delta, {});
@@ -73,54 +82,7 @@ export function AnalyzePanel({
   }
 
   const clipboard = useSettingsClipboardActions(img, scope, scopeIds, captures);
-
-  // Ctrl/Cmd+Z (undo, +Shift for redo), Ctrl/Cmd+Y (redo), Delete/Backspace removes the selected measurement.
-  useEffect(() => {
-    function onKeyDown(e: KeyboardEvent) {
-      const target = e.target as HTMLElement | null;
-      if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA")) return;
-      const mod = e.ctrlKey || e.metaKey;
-      if (mod && e.shiftKey && e.key.toLowerCase() === "c") {
-        e.preventDefault();
-        clipboard.copySettings();
-        return;
-      }
-      if (mod && e.shiftKey && e.key.toLowerCase() === "v") {
-        e.preventDefault();
-        void clipboard.pasteSettings();
-        return;
-      }
-      if (mod && e.key.toLowerCase() === "z") {
-        e.preventDefault();
-        if (e.shiftKey) img.redo();
-        else img.undo();
-        return;
-      }
-      if (mod && e.key.toLowerCase() === "y") {
-        e.preventDefault();
-        img.redo();
-        return;
-      }
-      if ((e.key === "Delete" || e.key === "Backspace") && img.selectedId) {
-        e.preventDefault();
-        img.deleteSpot(img.selectedId);
-        return;
-      }
-      // [ ] step through the working set (V2.1 rule 0.3).
-      if (e.key === "[") {
-        e.preventDefault();
-        step(-1);
-        return;
-      }
-      if (e.key === "]") {
-        e.preventDefault();
-        step(1);
-      }
-    }
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [img, scope, scopeIds, clipboard]);
+  useAnalyzeKeyboardShortcuts({ img, hover, clipboard, step });
 
   // L1 Esc-cascade (Addendum C/W3): register "clear the selected measurement"
   // as this tab's local level of the shell's global Escape cascade — the
@@ -130,6 +92,12 @@ export function AnalyzePanel({
     registerEscapeHandler(() => {
       if (img.selectedId) {
         img.setSelectedId(null);
+        return true;
+      }
+      // S5.6 Enhance-here restore: Escape resets a customized span back to
+      // full range before falling through to the Scope-pill reset.
+      if (img.spanCustomized && img.grid) {
+        img.setSpan({ lo: img.grid.minC, hi: img.grid.maxC });
         return true;
       }
       return false;
@@ -162,6 +130,7 @@ export function AnalyzePanel({
           onCopySettings={clipboard.copySettings}
           onPasteSettings={clipboard.pasteSettings}
           canPaste={clipboard.hasClip}
+          onEnhanceHere={hover ? () => img.enhanceHere(hover.tempC) : undefined}
         />
       }
       center={
@@ -173,7 +142,10 @@ export function AnalyzePanel({
           unit={unit}
           span={img.span}
           onSpanChange={img.setSpan}
-          isotherm={img.isotherm}
+          isotherm={alarmBand}
+          localContrast={img.localContrast}
+          displayPalette={img.displayPalette}
+          displaySpan={img.displaySpan}
           hover={hover}
           onHoverChange={setHover}
           spots={img.spots}
@@ -212,6 +184,7 @@ export function AnalyzePanel({
                 pendingCompareId={img.pendingCompareId}
                 onToggleCompare={img.toggleCompare}
                 onClearCompare={img.clearCompare}
+                severityBands={img.severityBands}
               />
             </AnalyzeAccordion>
             <AnalyzeAccordion
@@ -241,8 +214,22 @@ export function AnalyzePanel({
                 gridMax={img.grid?.maxC ?? 1}
                 unit={unit}
                 onSpanChange={img.setSpan}
-                isotherm={img.isotherm}
-                onIsothermChange={img.setIsotherm}
+                alarm={img.alarm}
+                onAlarmChange={img.setAlarm}
+                tuning={img.tuning}
+                severityBands={img.severityBands}
+                onSeverityBandsChange={img.setSeverityBands}
+                localContrast={img.localContrast}
+                onLocalContrastChange={img.setLocalContrast}
+                hasFlickerA={!!img.flickerA}
+                hasFlickerB={!!img.flickerB}
+                flickerShowing={img.flickerShowing}
+                autoFlicker={img.autoFlicker}
+                onAutoFlickerChange={img.setAutoFlicker}
+                onSnapshotFlickerA={img.snapshotFlickerA}
+                onSnapshotFlickerB={img.snapshotFlickerB}
+                onToggleFlickerView={img.toggleFlickerView}
+                onClearFlicker={img.clearFlicker}
               />
             </AnalyzeAccordion>
             <AnalyzeAccordion

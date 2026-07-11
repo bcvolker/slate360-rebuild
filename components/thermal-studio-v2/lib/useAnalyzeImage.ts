@@ -8,9 +8,11 @@ import { fetchThermalGrid, type ThermalV2Grid } from "@/components/thermal-studi
 import { saveSpots } from "@/components/thermal-studio-v2/lib/spots-api";
 import { saveTuning } from "@/components/thermal-studio-v2/lib/tuning-api";
 import { savePalette } from "@/components/thermal-studio-v2/lib/palette-api";
+import { useFlickerAB } from "@/components/thermal-studio-v2/lib/useFlickerAB";
 import type {
+  ThermalV2Alarm,
   ThermalV2Capture,
-  ThermalV2Isotherm,
+  ThermalV2SeverityBands,
   ThermalV2Spot,
   ThermalV2Tool,
   ThermalV2Tuning,
@@ -40,11 +42,20 @@ export function useAnalyzeImage(activeCapture: ThermalV2Capture | null) {
   const [error, setError] = useState<string | null>(null);
   const [span, setSpanState] = useState<{ lo: number; hi: number } | null>(null);
   const [spanCustomized, setSpanCustomized] = useState(false);
-  const [isotherm, setIsotherm] = useState<ThermalV2Isotherm>(null);
+  // S5.6 alarm suite (supersedes the old single-band isotherm) — session-local,
+  // resets on image switch same as the isotherm it replaces.
+  const [alarm, setAlarm] = useState<ThermalV2Alarm>({ mode: "off" });
+  // S5.6 severity bands: sticky across image switches (a review criterion, not
+  // a per-image display setting) — null/no preset chosen renders neutral (§1b.4).
+  const [severityBands, setSeverityBands] = useState<ThermalV2SeverityBands>(null);
+  // S5.6 "Local contrast (display only)" toggle — resets on image switch.
+  const [localContrast, setLocalContrast] = useState(false);
   const [tuning, setTuning] = useState<ThermalV2Tuning>(DEFAULT_TUNING);
   // W1: palette lives in the hook (not the panel) so it seeds from and
   // autosaves to the capture's metadata like tuning/spots do.
   const [palette, setPaletteState] = useState("Iron");
+  // S5.6 A/B flicker (extracted — see useFlickerAB for the swap/interval logic).
+  const flicker = useFlickerAB(palette, span);
   const [tool, setTool] = useState<ThermalV2Tool>("move");
   const [areaShape, setAreaShape] = useState<"box" | "circle">("box");
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -64,7 +75,9 @@ export function useAnalyzeImage(activeCapture: ThermalV2Capture | null) {
     setRawGrid(null);
     setSpanState(null);
     setSpanCustomized(false);
-    setIsotherm(null);
+    setAlarm({ mode: "off" });
+    setLocalContrast(false);
+    flicker.clearFlicker();
     setError(null);
     setSelectedId(null);
     setReferenceId(null);
@@ -137,6 +150,11 @@ export function useAnalyzeImage(activeCapture: ThermalV2Capture | null) {
 
   function setPalette(next: string) {
     setPaletteState(next);
+  }
+
+  /** S5.6 Enhance-here (⌖ / E key): center the display span on a hovered temperature. */
+  function enhanceHere(tempC: number) {
+    setSpan({ lo: tempC - 2, hi: tempC + 2 });
   }
 
   const spotSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -238,10 +256,17 @@ export function useAnalyzeImage(activeCapture: ThermalV2Capture | null) {
     error,
     span,
     setSpan,
+    spanCustomized,
     palette,
     setPalette,
-    isotherm,
-    setIsotherm,
+    alarm,
+    setAlarm,
+    severityBands,
+    setSeverityBands,
+    localContrast,
+    setLocalContrast,
+    ...flicker,
+    enhanceHere,
     tuning,
     setTuning,
     baseEmissivity,

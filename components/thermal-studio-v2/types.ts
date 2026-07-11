@@ -67,4 +67,28 @@ export type ThermalV2Tuning = {
   reference_temp_c?: number;
 };
 
-export type ThermalV2Isotherm = { lo: number; hi: number } | null;
+/**
+ * S5.6 alarm suite (supersedes the old single-band ThermalV2Isotherm):
+ * session-local, NOT persisted (doc: "display-only, do NOT persist in v1").
+ * "interval" mode is the old manual isotherm band; the other four modes
+ * derive their effective band from tuning/thresholds (see lib/thermal/alarm-band.ts).
+ */
+export type ThermalV2AlarmMode = "off" | "above" | "below" | "interval" | "dewpoint" | "insulation";
+
+export type ThermalV2Alarm = {
+  mode: ThermalV2AlarmMode;
+  /** above/below: single limit stored in `hi` (below) or `lo` (above). interval: manual band. */
+  lo?: number;
+  hi?: number;
+  /** dewpoint: added to the dew point before highlighting (default 2°C). */
+  margin?: number;
+  /** dewpoint: air temp override (else falls back to Tuning's atmospheric_c). insulation: indoor air temp. */
+  indoor_c?: number;
+  /** insulation: outdoor air temp. */
+  outdoor_c?: number;
+  /** insulation: 0-1 thermographic-index-style threshold (1 = as warm as indoor, 0 = as cold as outdoor). */
+  factor?: number;
+};
+
+/** S5.6 severity bands (ΔT-vs-reference thresholds, °C) — null until a preset is chosen (labels stay neutral). */
+export type ThermalV2SeverityBands = { advisory: number; warning: number; critical: number } | null;

@@ -29,7 +29,7 @@ export function useSettingsClipboardActions(
   const [pasteToast, setPasteToast] = useState<PasteToastState | null>(null);
 
   function copySettings() {
-    copySettingsToClipboard({ palette: img.palette, span: img.span, tuning: img.tuning, isotherm: img.isotherm });
+    copySettingsToClipboard({ palette: img.palette, span: img.span, tuning: img.tuning, alarm: img.alarm });
     setHasClip(true);
   }
 
@@ -40,7 +40,7 @@ export function useSettingsClipboardActions(
       img.setPalette(clip.palette);
       if (clip.span) img.setSpan(clip.span);
       img.setTuning(clip.tuning);
-      img.setIsotherm(clip.isotherm);
+      img.setAlarm(clip.alarm);
       return;
     }
     if (!scopeIds.length) return;

@@ -39,6 +39,7 @@ export function AnalyzeToolbar({
   onCopySettings,
   onPasteSettings,
   canPaste,
+  onEnhanceHere,
 }: {
   palette: string;
   onPaletteChange: (p: string) => void;
@@ -58,10 +59,12 @@ export function AnalyzeToolbar({
   imageCount: number;
   onPrev: () => void;
   onNext: () => void;
-  /** W1 copy/paste settings (palette, span, tuning, isotherm). */
+  /** W1 copy/paste settings (palette, span, tuning, alarm mode). */
   onCopySettings: () => void;
   onPasteSettings: () => void;
   canPaste: boolean;
+  /** S5.6 Enhance-here (⌖ / E) — undefined while nothing is hovered. */
+  onEnhanceHere?: () => void;
 }) {
   const [shapeMenuOpen, setShapeMenuOpen] = useState(false);
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
@@ -198,7 +201,7 @@ export function AnalyzeToolbar({
           <button
             type="button"
             onClick={onCopySettings}
-            title="Copy this image's palette, span, tuning, and isotherm (Ctrl+Shift+C)"
+            title="Copy this image's palette, span, tuning, and alarm mode (Ctrl+Shift+C)"
             className="rounded px-1.5 py-0.5 text-[11px] text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]"
           >
             ⧉ Copy
@@ -216,9 +219,19 @@ export function AnalyzeToolbar({
       </div>
       <div className="flex items-center gap-2">
         {hover ? (
-          <span className="text-[11px] font-semibold tabular-nums text-[var(--graphite-text-header)]">
-            {fmtTemp(hover.tempC, unit)}
-          </span>
+          <>
+            <span className="text-[11px] font-semibold tabular-nums text-[var(--graphite-text-header)]">
+              {fmtTemp(hover.tempC, unit)}
+            </span>
+            <button
+              type="button"
+              onClick={onEnhanceHere}
+              title="Enhance here — center the display span on this temperature (E)"
+              className="rounded px-1.5 py-0.5 text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]"
+            >
+              ⌖
+            </button>
+          </>
         ) : null}
         {imageCount > 0 ? (
           <div className="flex items-center gap-1 text-[11px] text-[var(--graphite-muted)]">
