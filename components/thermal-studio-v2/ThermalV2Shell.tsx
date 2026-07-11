@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   StudioWorkspaceShell,
   StudioTabs,
@@ -78,6 +78,24 @@ export function ThermalV2Shell({
     void dispatchThermalJob(sessionId, jobType as "extract" | "extract_analyze" | "align" | "analyze" | "report" | "full_pipeline", failedCaptureIds);
   }
 
+  // W3 Esc-cascade: innermost first. The active tab can register a handler
+  // (e.g. Analyze clearing a selected measurement); only when that handler
+  // is absent or reports it had nothing to clear does Escape fall through to
+  // resetting the global Scope pill back to "This image".
+  const analyzeEscapeRef = useRef<(() => boolean) | null>(null);
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key !== "Escape") return;
+      const target = e.target as HTMLElement | null;
+      if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA")) return;
+      const consumed = analyzeEscapeRef.current?.() ?? false;
+      if (!consumed && scope.kind !== "image") changeScope("image");
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scope.kind]);
+
   return (
     <StudioWorkspaceShell
       title="Thermal Studio"
@@ -96,7 +114,16 @@ export function ThermalV2Shell({
       {tab === "library" ? (
         <LibraryPanel sessionId={sessionId} captures={captures} scope={liveScope} selection={selection} />
       ) : null}
-      {tab === "analyze" ? <AnalyzePanel captures={captures} selection={selection} scope={liveScope} /> : null}
+      {tab === "analyze" ? (
+        <AnalyzePanel
+          captures={captures}
+          selection={selection}
+          scope={liveScope}
+          registerEscapeHandler={(fn) => {
+            analyzeEscapeRef.current = fn;
+          }}
+        />
+      ) : null}
       {tab === "ai-review" ? <AiReviewPanel /> : null}
       {tab === "report" ? <ReportPanel /> : null}
       {tab === "deliver" ? <DeliverPanel /> : null}

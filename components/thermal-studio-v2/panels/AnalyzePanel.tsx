@@ -20,12 +20,16 @@ export function AnalyzePanel({
   captures,
   selection,
   scope,
+  registerEscapeHandler,
 }: {
   captures: ThermalV2Capture[];
   selection: ReturnType<typeof useLibrarySelection>;
   scope: ThermalV2Scope;
+  /** L1: lets the shell's Escape-cascade clear the selected measurement before it resets Scope. */
+  registerEscapeHandler?: (handler: (() => boolean) | null) => void;
 }) {
   const [palette, setPalette] = useState("Iron");
+  const [openSection, setOpenSection] = useState("Measurements");
   // °F is the product default (Brian, 2026-07-07); the choice persists per
   // browser. Init "F" then hydrate from storage in an effect (SSR-safe).
   const [unit, setUnitState] = useState<"C" | "F">("F");
@@ -103,6 +107,21 @@ export function AnalyzePanel({
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [img]);
 
+  // L1 Esc-cascade (Addendum C/W3): register "clear the selected measurement"
+  // as this tab's local level of the shell's global Escape cascade — the
+  // shell only falls through to resetting Scope when this returns false.
+  useEffect(() => {
+    if (!registerEscapeHandler) return;
+    registerEscapeHandler(() => {
+      if (img.selectedId) {
+        img.setSelectedId(null);
+        return true;
+      }
+      return false;
+    });
+    return () => registerEscapeHandler(null);
+  }, [registerEscapeHandler, img]);
+
   return (
     <V2PanelFrame
       toolbar={
@@ -126,19 +145,6 @@ export function AnalyzePanel({
           onNext={() => step(1)}
         />
       }
-      left={{
-        title: "Working set",
-        content: (
-          <AnalyzeCaptureStrip
-            captures={captures}
-            activeId={activeId}
-            selectedIds={selection.selectedIds}
-            onOpen={openCapture}
-            onToggleSelect={(id) => selection.click(id, captures.findIndex((c) => c.id === id), { toggle: true })}
-            layout="vertical"
-          />
-        ),
-      }}
       center={
         <AnalyzeViewer
           grid={img.grid}
@@ -165,7 +171,11 @@ export function AnalyzePanel({
         title: "Details",
         content: (
           <div className="flex h-full flex-col overflow-y-auto">
-            <AnalyzeAccordion title="Measurements" defaultOpen>
+            <AnalyzeAccordion
+              title="Measurements"
+              open={openSection === "Measurements"}
+              onToggle={() => setOpenSection((s) => (s === "Measurements" ? "" : "Measurements"))}
+            >
               <AnalyzeMeasurements
                 spots={img.spots}
                 grid={img.grid}
@@ -179,7 +189,11 @@ export function AnalyzePanel({
                 onMarkExtreme={img.markExtreme}
               />
             </AnalyzeAccordion>
-            <AnalyzeAccordion title="Tuning">
+            <AnalyzeAccordion
+              title="Tuning"
+              open={openSection === "Tuning"}
+              onToggle={() => setOpenSection((s) => (s === "Tuning" ? "" : "Tuning"))}
+            >
               <AnalyzeTuning
                 captureId={activeId}
                 captures={captures}
@@ -190,7 +204,11 @@ export function AnalyzePanel({
                 scopeIds={scopeIds}
               />
             </AnalyzeAccordion>
-            <AnalyzeAccordion title="Display">
+            <AnalyzeAccordion
+              title="Display"
+              open={openSection === "Display"}
+              onToggle={() => setOpenSection((s) => (s === "Display" ? "" : "Display"))}
+            >
               <AnalyzeDisplay
                 temps={img.grid?.temps ?? null}
                 span={img.span}
@@ -202,7 +220,11 @@ export function AnalyzePanel({
                 onIsothermChange={img.setIsotherm}
               />
             </AnalyzeAccordion>
-            <AnalyzeAccordion title="Notes & photo data">
+            <AnalyzeAccordion
+              title="Notes & photo data"
+              open={openSection === "Notes & photo data"}
+              onToggle={() => setOpenSection((s) => (s === "Notes & photo data" ? "" : "Notes & photo data"))}
+            >
               <AnalyzeNotes capture={activeCapture} />
             </AnalyzeAccordion>
           </div>

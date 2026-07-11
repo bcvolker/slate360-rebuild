@@ -1,23 +1,30 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import type { ReactNode } from "react";
 
-/** Right-rail accordion section (doc §1, Tab 2 — Measurements opens first). */
+/**
+ * Right-rail accordion section (doc §1, Tab 2 — Measurements opens first).
+ * L1 (Addendum D3): single-open group — the parent owns which section is
+ * open so opening one closes the others, instead of independently toggled
+ * sections stacking into a scrolling wall of open panels.
+ */
 export function AnalyzeAccordion({
   title,
-  defaultOpen = false,
+  open,
+  onToggle,
   children,
 }: {
   title: string;
-  defaultOpen?: boolean;
+  open: boolean;
+  onToggle: () => void;
   children: ReactNode;
 }) {
-  const [open, setOpen] = useState(defaultOpen);
   return (
     <div className="flex flex-col border-b border-[var(--mobile-app-card-border)] last:border-b-0">
       <button
         type="button"
-        onClick={() => setOpen((v) => !v)}
+        onClick={onToggle}
+        aria-expanded={open}
         className="flex shrink-0 items-center justify-between px-1 py-2 text-left"
       >
         <span className="text-[10px] font-semibold uppercase tracking-wide text-[var(--graphite-muted)]">{title}</span>

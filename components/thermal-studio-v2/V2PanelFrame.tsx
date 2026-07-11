@@ -46,7 +46,11 @@ export function V2PanelFrame({
           <StudioHandle vertical />
         </>
       ) : null}
-      <Panel order={2} className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-[var(--graphite-canvas-deep)]">
+      <Panel
+        order={2}
+        data-testid="v2-viewer-panel"
+        className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-[var(--graphite-canvas-deep)]"
+      >
         {toolbar ? (
           <div className="flex shrink-0 items-center gap-2 border-b border-[var(--mobile-app-card-border)] px-3 py-1.5">
             {toolbar}

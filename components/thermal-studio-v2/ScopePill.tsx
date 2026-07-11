@@ -51,6 +51,17 @@ export function ScopePill({
           </button>
         );
       })}
+      {scope.kind !== "image" ? (
+        <button
+          type="button"
+          onClick={() => onChange("image")}
+          title="Clear scope back to This image (Esc)"
+          aria-label="Clear scope"
+          className="ml-0.5 rounded px-1.5 py-1 text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]"
+        >
+          ✕
+        </button>
+      ) : null}
     </div>
   );
 }

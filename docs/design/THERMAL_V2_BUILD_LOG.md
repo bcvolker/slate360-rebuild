@@ -105,4 +105,86 @@ memory `slate360-thermal-studio-v2-rebuild.md` (shipped-state summary).
 - None. Every G1 acceptance item shipped. The one open item is the manual/
   authenticated HTTP round-trip note above — not a skip, a scoping note.
 
-**Not started yet:** Slices #2–#16 of the frozen roster.
+**Not started yet:** Slices #3–#16 of the frozen roster.
+
+---
+
+## Slice 2 — L1+W3 layout restructure + polish (2026-07-10)
+
+**Shipped:**
+- **Killed the duplicate "Working set" strip.** `AnalyzePanel.tsx` had a
+  left rail (`AnalyzeCaptureStrip` vertical) rendering the exact same capture
+  list as the bottom filmstrip (`AnalyzeCaptureStrip` horizontal) — confirmed
+  redundant per Addendum D3. Removed the `left` slot entirely; the bottom
+  filmstrip is now the one place to browse/select images in Analyze.
+- **Viewer ≥60% width at 1440×900.** A direct consequence of removing the
+  duplicate strip: center went from `56%` (100 − 22 left − 22 right) to
+  `~62%` (measured via DOM `getBoundingClientRect`, confirmed both by e2e and
+  a live `preview_eval` check).
+- **Single-open accordions.** `AnalyzeAccordion` was self-toggling (each of
+  the 4 sections held its own `useState`, so multiple could stack open).
+  Converted to a controlled component; `AnalyzePanel` now owns one
+  `openSection` string so opening one closes the others (Measurements opens
+  first, per doc §1).
+- **°C/°F → ⋯ overflow menu.** Moved out of a standalone toolbar segmented
+  control into a small "More display settings" dropdown (same open/close
+  pattern as the existing area-shape picker) — one fewer pill-shaped control
+  competing with the tool segmented control for toolbar space.
+- **Scope-pill ✕.** `ScopePill` now renders a small ✕ whenever scope isn't
+  "This image", resetting it in one click.
+- **Esc-cascade.** `ThermalV2Shell` owns a global Escape listener with a
+  2-level cascade: the active tab can register a handler (Analyze registers
+  "clear the selected measurement, return whether it did"); only when that
+  returns false does Escape fall through to resetting the Scope pill. Wired
+  via a ref-based `registerEscapeHandler` callback (Analyze → Shell) rather
+  than lifting all of `useAnalyzeImage`'s state up, to keep the change small.
+- **"Every slider gets a type-in twin" — audited, already satisfied.**
+  `AnalyzeTuning`'s `Field` component already pairs a number input with each
+  `<input type="range">` (Emissivity, Reflected temp — shipped in S5/S5.5).
+  `AnalyzeDisplay`'s span/isotherm controls are number-input pairs whose
+  "slider" is the legend's draggable handles (shipped in S3) — verified this
+  is the only other `type="range"` in the tree (grepped the whole
+  `components/thermal-studio-v2` tree — one file, both already paired). No
+  code change needed; recorded here so it isn't re-investigated later.
+- **One-pill rule — audited, already satisfied.** `ThermalV2Shell`'s top bar
+  has exactly one `radiogroup`-styled pill (Scope); the other top-bar items
+  (Images count, Saved status, Job status) are plain status chips, not
+  pills. No change needed.
+
+**Skipped / scoped down (logged, not silently dropped):**
+- **"← Library breadcrumb" (Addendum C).** Not built. Every ThermalV2Shell
+  tab is always one click away via the visible tab bar — a separate "←
+  Library" button next to the title would do the exact same thing as
+  clicking the "Library" tab, which is a literal duplicate control under the
+  LOCKED doc's own §0.5 ("no duplicate buttons... every action exists in
+  exactly ONE place"). There's also no drill-down sub-screen yet that lacks
+  a visible tab bar (those arrive with S7's template editor and S7.5's
+  composer) — until one exists, a breadcrumb has no distinct job to do.
+  Revisit when S7/S7.5 land a sub-screen that hides the tab bar.
+- **"Token/density/micro-interaction audit" (Addendum C).** Treated as a
+  light-touch pass, not a full re-theme: reviewed the touched files for
+  Graphite Glass token usage and spacing consistency (all clean, no
+  hardcoded hex introduced — guard:design confirms) rather than auditing
+  every existing V2 screen line-by-line. A full audit is better scoped to
+  W4's cross-journey sweep (roster #16), which already exists specifically
+  to catch this class of issue across the whole finished app instead of a
+  half-built one.
+
+**Verification:**
+- Scoped typecheck: clean.
+- `guard:architecture` — PASS. `guard:design` — pre-existing failures only
+  (untouched files). File sizes: all touched files well under 300 lines
+  (`AnalyzePanel.tsx` 250, `ThermalV2Shell.tsx` 132, `AnalyzeToolbar.tsx` 224,
+  `ScopePill.tsx` 67, `AnalyzeAccordion.tsx` 36).
+- e2e: `e2e/thermal-v2-l1-w3-layout.spec.ts` — 6 specs (no duplicate strip,
+  viewer ≥60% width, single-open accordions, unit menu relocation, Scope ✕ +
+  Esc cascade, no page scroll at 1280×800/1440×900).
+- DOM verification via `preview_eval` at 1440×900 confirmed all of the above
+  live (viewer fraction measured 0.62, single accordion expanded, no scroll).
+- **Test-harness note:** running the Playwright suite while a separate
+  `preview_start` dev server is also live against the same repo caused every
+  test to fail on a `localStorage` wait timeout — two `next dev` processes
+  compiling into the same `.next` cache concurrently corrupts/slows the
+  build. Fix: never run `preview_start` and the Playwright-managed webServer
+  at the same time against this repo; confirmed both ports clear before each
+  run going forward.

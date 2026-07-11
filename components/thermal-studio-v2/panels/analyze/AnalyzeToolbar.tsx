@@ -56,6 +56,7 @@ export function AnalyzeToolbar({
   onNext: () => void;
 }) {
   const [shapeMenuOpen, setShapeMenuOpen] = useState(false);
+  const [moreMenuOpen, setMoreMenuOpen] = useState(false);
 
   return (
     <div className="flex w-full items-center justify-between gap-3">
@@ -126,19 +127,44 @@ export function AnalyzeToolbar({
             </option>
           ))}
         </select>
-        <div className="inline-flex overflow-hidden rounded-md border border-[var(--mobile-app-card-border)] text-[11px]">
-          {(["C", "F"] as const).map((u) => (
-            <button
-              key={u}
-              type="button"
-              onClick={() => onUnitChange(u)}
-              className={`px-1.5 py-0.5 font-semibold ${
-                unit === u ? "bg-[color-mix(in_srgb,var(--graphite-primary)_18%,transparent)] text-[var(--graphite-text-header)]" : "text-[var(--graphite-muted)]"
-              }`}
-            >
-              °{u}
-            </button>
-          ))}
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => setMoreMenuOpen((v) => !v)}
+            title="More display settings"
+            aria-expanded={moreMenuOpen}
+            aria-label="More display settings"
+            className="rounded-md border border-[var(--mobile-app-card-border)] px-1.5 py-0.5 text-[11px] text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]"
+          >
+            ⋯
+          </button>
+          {moreMenuOpen ? (
+            <>
+              <div className="fixed inset-0 z-40" onClick={() => setMoreMenuOpen(false)} />
+              <div className="absolute left-0 top-8 z-50 flex flex-col gap-1 rounded-md border border-[var(--mobile-app-card-border)] bg-[var(--graphite-canvas)] p-2 text-[11px] shadow-lg">
+                <span className="px-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--graphite-muted)]">Units</span>
+                <div className="inline-flex overflow-hidden rounded-md border border-[var(--mobile-app-card-border)]">
+                  {(["C", "F"] as const).map((u) => (
+                    <button
+                      key={u}
+                      type="button"
+                      onClick={() => {
+                        onUnitChange(u);
+                        setMoreMenuOpen(false);
+                      }}
+                      className={`px-2.5 py-1 font-semibold ${
+                        unit === u
+                          ? "bg-[color-mix(in_srgb,var(--graphite-primary)_18%,transparent)] text-[var(--graphite-text-header)]"
+                          : "text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]"
+                      }`}
+                    >
+                      °{u}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </>
+          ) : null}
         </div>
         <div className="flex items-center gap-1">
           <button
