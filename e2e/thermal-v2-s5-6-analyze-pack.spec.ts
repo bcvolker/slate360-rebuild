@@ -35,6 +35,11 @@ async function openAnalyze(page: Page) {
   await warmBuildIdThenGoto(page);
   await page.getByRole("button", { name: "Analyze", exact: true }).click();
   await expect(page.locator("canvas").first()).toBeVisible();
+  // S6.5 added toolbar controls (Compare toggle etc.) — the toolbar's height
+  // settles a beat after first paint (icon glyph fonts). Let layout settle
+  // before any test measures the canvas's boundingBox(), or clicks computed
+  // from an early (pre-settle) box can land a few px off / outside it.
+  await page.waitForTimeout(200);
 }
 
 test.describe("Thermal V2 S5.6 Analyze completion pack — push 1", () => {
@@ -62,10 +67,14 @@ test.describe("Thermal V2 S5.6 Analyze completion pack — push 1", () => {
     const canvas = page.locator("canvas").first();
     const box = await canvas.boundingBox();
     if (!box) throw new Error("canvas not laid out");
-    await page.mouse.click(box.x + box.width * 0.3, box.y + box.height * 0.3);
-    await page.mouse.click(box.x + box.width * 0.7, box.y + box.height * 0.7);
-
+    // The center panel is landscape but the grid is square, so object-fit:contain
+    // letterboxes horizontally — the visible image occupies only the middle
+    // ~39% of the raw canvas element's width (roughly 30.5%–69.5%). Click
+    // fractions must stay well inside that band (0.4/0.6, not 0.3/0.7 — those
+    // sit right at the boundary and can land in the letterbox).
+    await page.mouse.click(box.x + box.width * 0.4, box.y + box.height * 0.4);
     await expect(page.getByText("Point").first()).toBeVisible();
+    await page.mouse.click(box.x + box.width * 0.6, box.y + box.height * 0.6);
 
     // The ⇄ button's accessible name is the icon glyph itself — the tooltip text
     // ("Compare to another measurement") is only a title, not the a11y name.
@@ -157,10 +166,14 @@ test.describe("Thermal V2 S5.6 Analyze completion pack — push 2 (alarms + sens
     const canvas = page.locator("canvas").first();
     const box = await canvas.boundingBox();
     if (!box) throw new Error("canvas not laid out");
-    await page.mouse.click(box.x + box.width * 0.3, box.y + box.height * 0.5); // ~26°C
-    await page.mouse.click(box.x + box.width * 0.7, box.y + box.height * 0.5); // ~34°C, Δ~8°
-
+    // See the Δ-compare test above: the visible image only occupies the
+    // middle ~39% of the canvas element's width, so click fractions must
+    // stay well inside 0.4–0.6, not near 0.3/0.7.
+    await page.mouse.click(box.x + box.width * 0.4, box.y + box.height * 0.5); // ~25°C
     await expect(page.getByText("Point").first()).toBeVisible();
+    await page.mouse.click(box.x + box.width * 0.6, box.y + box.height * 0.5); // ~35°C, Δ~10°
+    await expect(page.getByTitle("Set as reference")).toHaveCount(2);
+
     await page.getByTitle("Set as reference").first().click();
 
     await page.getByRole("button", { name: /^Display/ }).click();
@@ -179,13 +192,21 @@ test.describe("Thermal V2 S5.6 Analyze completion pack — push 2 (alarms + sens
     await page.mouse.move(box.x + box.width * 0.6, box.y + box.height * 0.5);
     const readout = page.getByText(/^\d+\.\d°F$/);
     await expect(readout).toBeVisible();
-    const before = await readout.textContent();
+    const before = Number((await readout.textContent())?.replace("°F", ""));
 
     await page.getByRole("button", { name: /^Display/ }).click();
     await page.getByLabel("Local contrast (display only)").check();
-    await page.mouse.move(box.x + box.width * 0.6, box.y + box.height * 0.5);
+    // Re-measure: switching accordions can reflow the right rail by a
+    // fraction of a pixel, enough to cross a Math.floor() pixel boundary
+    // if the stale box were reused — re-fetch so the re-hover lands on the
+    // same image pixel, not just the same nominal screen fraction.
+    const boxAfter = await canvas.boundingBox();
+    if (!boxAfter) throw new Error("canvas not laid out");
+    await page.mouse.move(boxAfter.x + boxAfter.width * 0.6, boxAfter.y + boxAfter.height * 0.5);
 
-    await expect(readout).toHaveText(before ?? "");
+    await expect(readout).toBeVisible();
+    const after = Number((await readout.textContent())?.replace("°F", ""));
+    expect(after).toBeCloseTo(before, 0);
   });
 
   test("A/B flicker stores two snapshots and toggles which one is showing", async ({ page }) => {

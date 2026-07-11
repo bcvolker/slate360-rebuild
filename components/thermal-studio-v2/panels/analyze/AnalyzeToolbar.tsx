@@ -4,7 +4,8 @@ import { useState } from "react";
 import { PALETTE_NAMES, fmtTemp } from "@/lib/thermal/probe-palettes";
 import { AnalyzeMoreMenu } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeMoreMenu";
 import { AnalyzeViewControls } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeViewControls";
-import type { HoverInfo } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeCanvas";
+import { AnalyzeCompareToggle } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeCompareToggle";
+import { AnalyzeHistoryControls } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeHistoryControls";
 import type { ThermalV2DisplayTransform, ThermalV2Tool } from "@/components/thermal-studio-v2/types";
 
 const TOOLS: { id: ThermalV2Tool; label: string; hint: string }[] = [
@@ -25,7 +26,7 @@ export function AnalyzeToolbar({
   onPaletteChange,
   unit,
   onUnitChange,
-  hover,
+  hoverTemp,
   tool,
   onToolChange,
   areaShape,
@@ -52,12 +53,17 @@ export function AnalyzeToolbar({
   onViewOriginalEnd,
   focusMode,
   onToggleFocusMode,
+  canCompare,
+  compareMode,
+  onToggleCompare,
+  spanLock,
+  onSpanLockChange,
 }: {
   palette: string;
   onPaletteChange: (p: string) => void;
   unit: "C" | "F";
   onUnitChange: (u: "C" | "F") => void;
-  hover: HoverInfo;
+  hoverTemp: number | null;
   tool: ThermalV2Tool;
   onToolChange: (t: ThermalV2Tool) => void;
   areaShape: "box" | "circle";
@@ -90,6 +96,12 @@ export function AnalyzeToolbar({
   /** W2 Focus mode — collapses both rails + filmstrip for a maximum viewer. */
   focusMode: boolean;
   onToggleFocusMode: () => void;
+  /** S6.5 Compare view — enabled only when exactly 2 captures are selected. */
+  canCompare: boolean;
+  compareMode: boolean;
+  onToggleCompare: () => void;
+  spanLock: boolean;
+  onSpanLockChange: (next: boolean) => void;
 }) {
   const [shapeMenuOpen, setShapeMenuOpen] = useState(false);
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
@@ -192,45 +204,15 @@ export function AnalyzeToolbar({
             </>
           ) : null}
         </div>
-        <div className="flex items-center gap-1">
-          <button
-            type="button"
-            onClick={onUndo}
-            disabled={!canUndo}
-            title="Undo (Ctrl+Z)"
-            className="rounded px-1.5 py-0.5 text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)] disabled:cursor-not-allowed disabled:opacity-30"
-          >
-            ↶
-          </button>
-          <button
-            type="button"
-            onClick={onRedo}
-            disabled={!canRedo}
-            title="Redo (Ctrl+Shift+Z)"
-            className="rounded px-1.5 py-0.5 text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)] disabled:cursor-not-allowed disabled:opacity-30"
-          >
-            ↷
-          </button>
-        </div>
-        <div className="flex items-center gap-1 border-l border-[var(--mobile-app-card-border)] pl-2">
-          <button
-            type="button"
-            onClick={onCopySettings}
-            title="Copy this image's palette, span, tuning, and alarm mode (Ctrl+Shift+C)"
-            className="rounded px-1.5 py-0.5 text-[11px] text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]"
-          >
-            ⧉ Copy
-          </button>
-          <button
-            type="button"
-            onClick={onPasteSettings}
-            disabled={!canPaste}
-            title={canPaste ? "Paste the copied look onto this scope (Ctrl+Shift+V)" : "Copy a look first"}
-            className="rounded px-1.5 py-0.5 text-[11px] text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)] disabled:cursor-not-allowed disabled:opacity-30"
-          >
-            ⧉ Paste
-          </button>
-        </div>
+        <AnalyzeHistoryControls
+          canUndo={canUndo}
+          canRedo={canRedo}
+          onUndo={onUndo}
+          onRedo={onRedo}
+          onCopySettings={onCopySettings}
+          onPasteSettings={onPasteSettings}
+          canPaste={canPaste}
+        />
         <AnalyzeViewControls
           viewOriginal={viewOriginal}
           onViewOriginalStart={onViewOriginalStart}
@@ -238,12 +220,19 @@ export function AnalyzeToolbar({
           focusMode={focusMode}
           onToggleFocusMode={onToggleFocusMode}
         />
+        <AnalyzeCompareToggle
+          canCompare={canCompare}
+          compareMode={compareMode}
+          onToggleCompare={onToggleCompare}
+          spanLock={spanLock}
+          onSpanLockChange={onSpanLockChange}
+        />
       </div>
       <div className="flex items-center gap-2">
-        {hover ? (
+        {hoverTemp != null ? (
           <>
             <span className="text-[11px] font-semibold tabular-nums text-[var(--graphite-text-header)]">
-              {fmtTemp(hover.tempC, unit)}
+              {fmtTemp(hoverTemp, unit)}
             </span>
             <button
               type="button"

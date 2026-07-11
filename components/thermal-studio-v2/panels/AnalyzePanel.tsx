@@ -5,6 +5,7 @@ import { computeAlarmBand } from "@/lib/thermal/alarm-band";
 import { V2PanelFrame } from "@/components/thermal-studio-v2/V2PanelFrame";
 import { AnalyzeCaptureStrip } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeCaptureStrip";
 import { AnalyzeViewer } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeViewer";
+import { AnalyzeCompareView } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeCompareView";
 import { AnalyzeToolbar } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeToolbar";
 import { AnalyzeDetailsRail } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeDetailsRail";
 import { KeepUndoToast } from "@/components/thermal-studio-v2/panels/analyze/KeepUndoToast";
@@ -44,8 +45,23 @@ export function AnalyzePanel({
     }
   }
   const [hover, setHover] = useState<HoverInfo>(null);
+  // The toolbar's readout + Enhance-here button use the LAST non-null hover
+  // temp, not the live one: clicking that button requires moving the mouse
+  // off the canvas toward the toolbar, which fires onMouseLeave (hover→null)
+  // before the click lands — gating the button on live hover made it
+  // disappear out from under every click, for a real user too, not just tests.
+  const [lastHoverTemp, setLastHoverTemp] = useState<number | null>(null);
+  function handleHoverChange(next: HoverInfo) {
+    setHover(next);
+    if (next) setLastHoverTemp(next.tempC);
+  }
   // W2 Focus mode: collapses both rails + filmstrip for a maximum viewer.
   const [focusMode, setFocusMode] = useState(false);
+  // S6.5 Compare view: enabled only when exactly 2 captures are selected.
+  const [compareMode, setCompareMode] = useState(false);
+  const [spanLock, setSpanLock] = useState(false);
+  const compareIds = Array.from(selection.selectedIds);
+  const canCompare = compareIds.length === 2;
 
   const activeId = selection.focusedId ?? captures[0]?.id ?? null;
   const activeCapture = captures.find((c) => c.id === activeId) ?? null;
@@ -66,6 +82,16 @@ export function AnalyzePanel({
   const viewOriginalSpan = img.viewOriginal && img.rawGrid ? { lo: img.rawGrid.minC, hi: img.rawGrid.maxC } : img.displaySpan;
   const viewOriginalIsotherm = img.viewOriginal ? null : alarmBand;
   const viewOriginalSpots = img.viewOriginal ? [] : img.spots;
+
+  // Exit Compare automatically if the selection stops being exactly 2 (e.g.
+  // the operator picks a 3rd image, or clears selection from Library).
+  useEffect(() => {
+    if (compareMode && !canCompare) setCompareMode(false);
+  }, [compareMode, canCompare]);
+
+  useEffect(() => {
+    setLastHoverTemp(null);
+  }, [activeId]);
 
   function step(delta: number) {
     const next = captures[activeIndex + delta];
@@ -133,7 +159,7 @@ export function AnalyzePanel({
           onPaletteChange={img.setPalette}
           unit={unit}
           onUnitChange={setUnit}
-          hover={hover}
+          hoverTemp={lastHoverTemp}
           tool={img.tool}
           onToolChange={img.setTool}
           areaShape={img.areaShape}
@@ -149,7 +175,7 @@ export function AnalyzePanel({
           onCopySettings={clipboard.copySettings}
           onPasteSettings={clipboard.pasteSettings}
           canPaste={clipboard.hasClip}
-          onEnhanceHere={hover ? () => img.enhanceHere(hover.tempC) : undefined}
+          onEnhanceHere={lastHoverTemp != null ? () => img.enhanceHere(lastHoverTemp) : undefined}
           displayTransform={img.transform}
           onRotate90={img.rotate90}
           onFlipHorizontal={img.flipHorizontal}
@@ -160,33 +186,48 @@ export function AnalyzePanel({
           onViewOriginalEnd={() => img.setViewOriginal(false)}
           focusMode={focusMode}
           onToggleFocusMode={() => setFocusMode((v) => !v)}
+          canCompare={canCompare}
+          compareMode={compareMode}
+          onToggleCompare={() => setCompareMode((v) => !v)}
+          spanLock={spanLock}
+          onSpanLockChange={setSpanLock}
         />
       }
       center={
-        <AnalyzeViewer
-          grid={img.grid}
-          loading={img.loading}
-          error={img.error}
-          palette={img.palette}
-          unit={unit}
-          span={img.span}
-          onSpanChange={img.setSpan}
-          isotherm={viewOriginalIsotherm}
-          localContrast={img.viewOriginal ? false : img.localContrast}
-          displayPalette={viewOriginalPalette}
-          displaySpan={viewOriginalSpan}
-          displayTransform={img.transform}
-          hover={hover}
-          onHoverChange={setHover}
-          spots={viewOriginalSpots}
-          tool={img.tool}
-          areaShape={img.areaShape}
-          selectedId={img.selectedId}
-          referenceId={img.referenceId}
-          onSelect={img.setSelectedId}
-          onCreateSpot={img.viewOriginal ? () => {} : img.createSpot}
-          onCommitSpots={img.viewOriginal ? () => {} : img.commitSpots}
-        />
+        compareMode ? (
+          <AnalyzeCompareView
+            captureA={captures.find((c) => c.id === compareIds[0]) ?? null}
+            captureB={captures.find((c) => c.id === compareIds[1]) ?? null}
+            palette={img.palette}
+            unit={unit}
+            spanLock={spanLock}
+          />
+        ) : (
+          <AnalyzeViewer
+            grid={img.grid}
+            loading={img.loading}
+            error={img.error}
+            palette={img.palette}
+            unit={unit}
+            span={img.span}
+            onSpanChange={img.setSpan}
+            isotherm={viewOriginalIsotherm}
+            localContrast={img.viewOriginal ? false : img.localContrast}
+            displayPalette={viewOriginalPalette}
+            displaySpan={viewOriginalSpan}
+            displayTransform={img.transform}
+            hover={hover}
+            onHoverChange={handleHoverChange}
+            spots={viewOriginalSpots}
+            tool={img.tool}
+            areaShape={img.areaShape}
+            selectedId={img.selectedId}
+            referenceId={img.referenceId}
+            onSelect={img.setSelectedId}
+            onCreateSpot={img.viewOriginal ? () => {} : img.createSpot}
+            onCommitSpots={img.viewOriginal ? () => {} : img.commitSpots}
+          />
+        )
       }
       right={
         focusMode

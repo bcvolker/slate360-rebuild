@@ -841,3 +841,97 @@ which worked correctly once the layout was fixed).
   "short common word collides with a longer label containing it" pattern
   already logged twice before (`"Display"` vs `"More display settings"`),
   now generalized to the tab bar itself.
+
+---
+
+## Slice 10 — S6.5 Compare + fusion, push 1 (2026-07-10)
+
+**Shipped:**
+- **Compare view (P4 core "Accept" bar).** New `⧉⧉ Compare` toolbar toggle
+  (enabled only when exactly 2 captures are selected in Library — auto-exits
+  if the selection stops being exactly 2), replacing the single-image
+  `AnalyzeViewer` in the center panel with a new `AnalyzeCompareView.tsx`:
+  two read-only canvases sharing ONE pan/zoom state (drag/wheel on either
+  side pans/zooms both — doc's "compare view pans in sync"), each with its
+  own hover-temp readout, plus an optional "Lock span across both" checkbox
+  that, when checked, computes a shared `{lo,hi}` from both grids' combined
+  range so color differences between the two images are directly
+  comparable. New `useComparePair.ts` fetches + tunes both sides
+  independently (each using its own saved tuning), deliberately NOT reusing
+  the full measurement/undo-history `useAnalyzeImage` hook since Compare is
+  view-only, no editing.
+- **Real product bug found + fixed: Enhance-here button gated on live
+  hover.** While building Compare, an S5.6 regression (see below) led to
+  discovering the ⌖ button and its temp readout were rendered conditionally
+  on the LIVE `hover` state — meaning moving the mouse off the canvas to
+  click the toolbar button (which is physically outside the canvas)
+  triggers `onMouseLeave` → `hover=null` → the button unmounts mid-move,
+  for a real user, not just tests. Fixed by tracking a separate
+  `lastHoverTemp` in `AnalyzePanel.tsx` that updates on every non-null hover
+  but never clears on mouse-leave (only resets on image switch) — the
+  toolbar's readout/button now key off this persistent value instead.
+  `AnalyzeToolbar`'s `hover: HoverInfo` prop was simplified to
+  `hoverTemp: number | null` accordingly.
+
+**Skipped / scoped down (logged, not silently dropped) — the F1.3/F1.7
+competitor-gap additions bundled onto this slice, not the P4 core bar:**
+- **Thermal↔visual fusion blend + alignment nudge.** Not built this push.
+  Real, substantial scope (paired-visual lookup, opacity compositing,
+  dx/dy/scale persisted as `metadata.pair_align`) — deferred to push 2.
+- **Picture-in-Picture and edge-overlay (MSX-style) fusion modes (F1.3).**
+  Deferred — edge-overlay specifically requires real edge-detection image
+  processing (Sobel/Canny on the paired visual), a distinct algorithm this
+  push didn't attempt to half-build.
+- **Cross-image spot trend (F1.7).** A named spot present on multiple
+  images (via match-look propagation) plotting avg/max across the set —
+  requires a spot-name-matching aggregation engine across the whole
+  capture set, genuinely separate scope from the P4 "Accept" bar. Deferred.
+
+**Verification:**
+- Scoped typecheck (`tsconfig.thermal-v2.json`): clean.
+- `guard:architecture` — PASS. `guard:design` — pre-existing failures only
+  (same 3 untouched files as every prior thermal-v2 slice). File sizes: all
+  touched/new files under 300 (`AnalyzePanel.tsx` 277, `AnalyzeToolbar.tsx`
+  275 — both extracted further this push, see below — `AnalyzeCompareView.tsx`
+  155, `AnalyzeCompareToggle.tsx` 40, `AnalyzeHistoryControls.tsx` 64,
+  `useComparePair.ts` 57, `AnalyzeCanvas.tsx` 250).
+- Extraction: adding the Compare toggle pushed `AnalyzeToolbar.tsx` back
+  over 300 — fixed by extracting the undo/redo + copy/paste button clusters
+  into new `AnalyzeHistoryControls.tsx` (64 lines).
+- e2e: new `e2e/thermal-v2-s6-5-compare-fusion.spec.ts` — 4 specs (Compare
+  disabled until exactly 2 selected, selecting 2 enables it and renders two
+  synced canvases, span-lock checkbox only appears while active, no page
+  scroll). Full 10-spec / 59-test cross-slice regression (R1 through this
+  slice) reran clean after two real bugs found and fixed (below) — this was
+  the most involved debugging session of the whole build so far.
+- **Debugging (two real, distinct bugs found via this push's regression,
+  neither a flake):**
+  1. **Enhance-here hover-gating bug** (described above under "Shipped") —
+     surfaced because adding new toolbar buttons apparently shifted enough
+     render/interaction timing to expose a pre-existing latent race that
+     had been passing by luck. Root-caused via live reproduction in the
+     preview browser (mocking `window.fetch` for the grid endpoint,
+     dispatching real mouse events, reading `document.elementFromPoint`)
+     rather than guessing from Playwright logs alone.
+  2. **Two-click measurement tests landing in the canvas's own letterbox.**
+     `thermal-v2-s5-6-analyze-pack.spec.ts`'s Δ-compare and severity-bands
+     tests placed two points via `page.mouse.click()` at 0.3/0.7 fractions
+     of the raw `<canvas>` element's bounding box. The center panel is
+     landscape but the grid is square, so `object-fit: contain` letterboxes
+     HORIZONTALLY — the visible image occupies only the middle ~39% of the
+     element's width (~30.5%–69.5%), so 0.3 and 0.7 were sitting right at
+     that boundary; a marginal shift (this push's toolbar buttons very
+     slightly changed the panel's height, hence its aspect ratio) tipped
+     0.7 just past the boundary, landing the second click in the empty
+     letterbox — `toImageCoords` correctly computed `inBounds: false` and
+     silently dropped it (correct behavior, not a bug in the app). Spent
+     significant time on red herrings first — layout-shift timing, a
+     `ResizeObserver` lag theory, a settle-wait — before adding a temporary
+     `console.log` of `clientX/imgX/inBounds/canvasBox` inside
+     `AnalyzeCanvas.tsx` and comparing against Playwright's own
+     `canvas.boundingBox()` reading, which revealed the raw element width
+     (853px) vs. the app's internal letterboxed `canvasBox.width` (333px) —
+     the actual root cause. Fixed by moving both tests' click fractions to
+     0.4/0.6 (safely inside the visible band) instead of 0.3/0.7, with a
+     comment explaining the letterbox math so this isn't re-investigated.
+     Diagnostic code was removed before commit.
