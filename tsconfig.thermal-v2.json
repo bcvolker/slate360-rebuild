@@ -24,6 +24,7 @@
     "lib/thermal/job-result-appliers.ts",
     "lib/thermal/ai-credits.ts",
     "lib/thermal/anomaly-describe.ts",
+    "lib/thermal/reviewed-findings.ts",
     "lib/thermal/severity-labels.ts",
     "lib/credits/idempotency.ts",
     "components/site-walk/canvas/useUndoRedo.ts",

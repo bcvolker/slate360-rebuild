@@ -42,12 +42,20 @@ export function ThermalV2Shell({
   sessionName,
   captures: initialCaptures,
   initialTab,
+  initialReportSet,
 }: {
   sessionId: string;
   sessionName: string;
   captures: ThermalV2Capture[];
   /** TS-SD re-open deep link (?report=1) jumps straight to a tab on load. */
   initialTab?: ThermalV2Tab;
+  /**
+   * Audit remediation Batch 2: session.metadata.report_set, the operator's
+   * curated/ordered report selection. Without this, useLibrarySelection falls
+   * back to scanning per-capture in_report/report_order flags, which loses the
+   * operator's chosen ORDER (only the ★ set survives, not the sequence).
+   */
+  initialReportSet?: string[] | null;
 }) {
   // Audit remediation Batch 1 (docs/design/THERMAL_V2_AUDIT_REMEDIATION_LOCKED.md
   // §2): `captures` used to be a frozen prop for the shell's entire lifetime —
@@ -60,7 +68,7 @@ export function ThermalV2Shell({
   const [tab, setTab] = useState<ThermalV2Tab>(initialTab ?? "library");
   const [scope, setScope] = useState<ThermalV2Scope>({ kind: "image" });
   const [dropUpload, setDropUpload] = useState<{ done: number; total: number } | null>(null);
-  const selection = useLibrarySelection(sessionId, captures);
+  const selection = useLibrarySelection(sessionId, captures, initialReportSet);
   // S8-M Motion: owned here (not DeliverPanel) so it survives a shell tab
   // switch away from Deliver and back — DeliverPanel itself still unmounts.
   const motion = useMotionState(captures.length);

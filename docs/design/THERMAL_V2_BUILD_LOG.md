@@ -1680,3 +1680,90 @@ tracked as separate remediation batches): AI Review's decisions still
 don't reach Report/PDF/HTML (Batch 2); the dozen smaller independent
 fixes (Batch 3); the visual density/text-overflow pass (Batch 4).
 Proceeding to Batch 2.
+
+---
+
+## Remediation Batch 2 — Review decisions reach every deliverable (2026-07-11)
+
+Fixes the other Critical from the audit remediation plan
+(`docs/design/THERMAL_V2_AUDIT_REMEDIATION_LOCKED.md` §3): AI Review's
+Accept/Edit/Dismiss decisions (S6) never reached the Report preview, the PDF,
+or the HTML export — all three read `capture.anomalies` raw, so a dismissed
+finding could still print in a delivered report. Also fixes a report-outline
+curation gap flagged by both audits: ★-add-only with no way to remove an
+image, and a silent "show all captures" fallback that masked the report
+preview's own honest disclosure banner.
+
+**Shipped:**
+- **`lib/thermal/reviewed-findings.ts`** (new) — the ONE place "what should
+  actually render for this capture's findings" is decided:
+  `projectReviewedFindings(anomalies, findingsReview, opts)` drops dismissed
+  anomalies entirely and prefers the operator's edited text over the AI's
+  raw observation/template sentence. Index-keyed against `findings_review`
+  exactly like `useFindingsReview.ts` already writes it (`accepted` /
+  `dismissed` / `edits`, all string-keyed by original array index).
+- **`components/ops/thermal/ThermalReportPreview.tsx`** — `ImageBlock` now
+  calls `projectReviewedFindings` instead of iterating `capture.anomalies`
+  directly, for both the measurements table (`A{n} peak`/`ΔT` rows) and the
+  findings-list JSX. A dismissed finding disappears from the WYSIWYG preview
+  entirely; an edited one shows the operator's text, not the AI's.
+  Renumbers `A{n}` from the filtered list's position, matching the Python
+  port below.
+- **`workers/modal/thermal-analysis/report.py`** — new
+  `project_reviewed_findings()`, an explicit Python port (the worker can't
+  share the TS module) kept in lockstep by construction — same dismissed-set/
+  edits-map logic, same `observation`-or-`describe_anomaly()` text fallback.
+  Wired into all 5 places the PDF/HTML renderer previously read
+  `capture.get("anomalies")` raw: the measurement-table rows, the compact
+  grid card's one-line finding, the per-image sidebar's findings list, the
+  HTML "Findings" section's per-image cards, and `_derive_summary`'s action-
+  anomaly count (a dismissed action-severity finding no longer inflates the
+  cover-page metric).
+- **Report outline restore bug** — `useLibrarySelection`'s `seedReportOrder`
+  call never passed `session.metadata.report_set`, so the operator's chosen
+  report ORDER was silently discarded on every reload (only which images
+  were ★'d survived, via the per-capture `in_report` fallback scan). Now
+  threaded through: `ThermalV2Shell` accepts an `initialReportSet` prop, the
+  real `[sessionId]/page.tsx` route reads it from `detail.session.metadata`
+  and passes it down; the `/preview/thermal-v2` fixture is unaffected
+  (no session metadata to restore in the mock).
+- **"Remove image" control** — the Report outline was ★-add-only. New
+  `removeFromReport(id)` in `useLibrarySelection` (mirrors `addToReport`'s
+  persistence: clears `in_report` server-side, re-persists the trimmed
+  `report_set`); wired to a small `×` button per outline row in
+  `ReportOutline.tsx`.
+- **Silent all-captures fallback** — `ReportPanel.tsx` used to flatten an
+  empty `reportOrder` into "every capture's id" before handing `order` to
+  `ThermalReportPreview`, which meant that component's own honest
+  `usingAll` banner ("Previewing all N images — mark ★ to choose") could
+  never actually trigger (it never saw an empty order). Removed the
+  flattening in `ReportPanel.tsx`; the preview now decides and discloses
+  the fallback itself, as it was already built to do.
+
+**Verified manually first** (preview tools): starred/un-starred a capture,
+confirmed the outline's `×` button empties the outline and the center
+preview immediately switches to "Previewing all 6 images. Mark images with
+★ in the Library to choose which ones — and in what order — appear in the
+report." — previously this banner was unreachable in the live build.
+
+**Verification:**
+- Scoped typecheck (`tsconfig.thermal-v2.json`, extended with
+  `lib/thermal/reviewed-findings.ts`): clean.
+- `python -m py_compile` on `report.py`: clean.
+- `guard:architecture` — PASS. `guard:file-size-regression` /
+  `guard:design` — same pre-existing, unrelated offenders across the repo
+  (capture-v2, content-studio, slatedrop, etc.), confirmed none newly
+  introduced by this batch.
+- e2e: new `e2e/thermal-v2-audit-batch2-review-to-report.spec.ts` (2 specs)
+  — dismissing a finding in AI Review keeps it out of the Report; removing
+  the outline's only image shows the empty state and the honest
+  all-images-fallback banner. Full `thermal-v2-*` regression: 89/89 green
+  on `desktop-chromium`. Noted, not fixed (pre-existing, unrelated to this
+  batch): this whole suite — including the already-shipped Batch 1 specs —
+  fails on the `mobile-chromium` project (390px viewport); Thermal Studio
+  is a CEO-only desktop tool with no mobile layout, so this is an existing
+  gap in viewport coverage, not a regression.
+
+**What this does NOT yet cover:** the dozen smaller independent fixes
+(Batch 3); the visual density/text-overflow pass (Batch 4). Proceeding to
+Batch 3.

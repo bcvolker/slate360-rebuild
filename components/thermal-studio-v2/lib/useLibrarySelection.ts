@@ -9,11 +9,19 @@ import type { ThermalV2Capture } from "@/components/thermal-studio-v2/types";
  * across tabs, so this must live above any single tab). Shift-click range
  * selection follows the same anchor-index pattern as SlateDropFileArea.
  */
-export function useLibrarySelection(sessionId: string, captures: ThermalV2Capture[]) {
+export function useLibrarySelection(
+  sessionId: string,
+  captures: ThermalV2Capture[],
+  initialReportSet?: string[] | null,
+) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [focusedId, setFocusedId] = useState<string | null>(null);
   const [anchorIndex, setAnchorIndex] = useState<number | null>(null);
-  const [reportOrder, setReportOrder] = useState<string[]>(() => seedReportOrder(captures));
+  // Audit remediation Batch 2: restore session.metadata.report_set's ORDER, not
+  // just which captures are starred — previously this always fell back to a
+  // per-capture in_report/report_order scan, silently discarding the
+  // operator's chosen sequence on every reload.
+  const [reportOrder, setReportOrder] = useState<string[]>(() => seedReportOrder(captures, initialReportSet));
 
   const reportIds = useMemo(() => new Set(reportOrder), [reportOrder]);
 
@@ -67,6 +75,25 @@ export function useLibrarySelection(sessionId: string, captures: ThermalV2Captur
     [sessionId],
   );
 
+  /**
+   * Audit remediation Batch 2: the outline was ★-add-only — there was no way to
+   * pull an image back out short of finding it again in Library and un-starring
+   * it. Mirrors addToReport's persistence (clears in_report so a future
+   * report_set-less seed doesn't resurrect it).
+   */
+  const removeFromReport = useCallback(
+    (id: string) => {
+      setReportOrder((prev) => {
+        if (!prev.includes(id)) return prev;
+        const next = prev.filter((existing) => existing !== id);
+        void persistCaptureInReport(id, false, -1);
+        void persistReportSet(sessionId, next);
+        return next;
+      });
+    },
+    [sessionId],
+  );
+
   return {
     selectedIds,
     focusedId,
@@ -77,5 +104,6 @@ export function useLibrarySelection(sessionId: string, captures: ThermalV2Captur
     clearSelection,
     addToReport,
     reorderReport,
+    removeFromReport,
   };
 }

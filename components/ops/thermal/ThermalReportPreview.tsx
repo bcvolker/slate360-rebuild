@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo } from "react";
-import { describeAnomaly, type ThermalAnomaly, type DescribeUnit } from "@/lib/thermal/anomaly-describe";
+import type { DescribeUnit, ThermalAnomaly } from "@/lib/thermal/anomaly-describe";
+import { projectReviewedFindings, type FindingsReviewMeta } from "@/lib/thermal/reviewed-findings";
 import type { ThermalReportTemplate } from "@/lib/thermal/report-templates";
 import type { ThermalBrandingConfig } from "@/lib/thermal/types";
 import type { StudioCapture } from "@/components/ops/thermal/ThermalStudioWorkView";
@@ -185,16 +186,21 @@ function ImageBlock({
   const meta = (capture.metadata ?? {}) as Record<string, unknown>;
   const tuning = (meta.tuning ?? {}) as Record<string, unknown>;
   const gps = (meta.gps ?? {}) as Record<string, unknown>;
-  const anomalies = (capture.anomalies ?? []) as ThermalAnomaly[];
+  // The operator's Accept/Edit/Dismiss review, not the raw anomalies array, decides what renders.
+  const findings = projectReviewedFindings(
+    capture.anomalies as ThermalAnomaly[] | null,
+    meta.findings_review as FindingsReviewMeta,
+    { standards, unit },
+  );
   const findingsText = typeof meta.findings === "string" ? meta.findings : "";
 
   const measurements: [string, string][] = [];
   if (q.max_temp_c != null) measurements.push(["Max", fmt(q.max_temp_c, unit)]);
   if (q.min_temp_c != null) measurements.push(["Min", fmt(q.min_temp_c, unit)]);
   if (q.avg_temp_c != null) measurements.push(["Average", fmt(q.avg_temp_c, unit)]);
-  anomalies.forEach((a, i) => {
-    measurements.push([`A${i + 1} peak`, fmt(a.temp_c, unit)]);
-    measurements.push([`A${i + 1} ΔT`, fmtDelta(a.delta_c, unit)]);
+  findings.forEach(({ anomaly }, i) => {
+    measurements.push([`A${i + 1} peak`, fmt(anomaly.temp_c, unit)]);
+    measurements.push([`A${i + 1} ΔT`, fmtDelta(anomaly.delta_c, unit)]);
   });
 
   // Camera / sensor / resolution (pixels).
@@ -257,10 +263,10 @@ function ImageBlock({
       <div className="mt-2 text-[11px] text-slate-700">
         <p className="text-[9px] font-bold uppercase tracking-wide text-slate-500">Findings &amp; notes</p>
         {findingsText ? <p className="mt-1 leading-relaxed">{findingsText}</p> : null}
-        {anomalies.map((a, i) => (
-          <p key={i} className="mt-1 leading-relaxed">• {describeAnomaly(a, { standards, unit })}</p>
+        {findings.map(({ text }, i) => (
+          <p key={i} className="mt-1 leading-relaxed">• {text}</p>
         ))}
-        {!findingsText && anomalies.length === 0 ? <p className="mt-1 text-slate-400">No findings recorded.</p> : null}
+        {!findingsText && findings.length === 0 ? <p className="mt-1 text-slate-400">No findings recorded.</p> : null}
       </div>
     </div>
   );

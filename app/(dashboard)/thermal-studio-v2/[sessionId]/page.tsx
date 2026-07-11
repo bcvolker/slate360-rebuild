@@ -19,10 +19,18 @@ export default async function ThermalStudioV2SessionPage({ params, searchParams 
   const captures = toThermalV2Captures(detail.captures);
 
   const initialTab: ThermalV2Tab | undefined = report ? "report" : undefined;
+  const sessionMeta = (detail.session.metadata ?? null) as { report_set?: string[] } | null;
+  const initialReportSet = Array.isArray(sessionMeta?.report_set) ? sessionMeta.report_set : null;
 
   return (
     <div className="h-full min-h-0">
-      <ThermalV2Shell sessionId={detail.session.id} sessionName={detail.session.name} captures={captures} initialTab={initialTab} />
+      <ThermalV2Shell
+        sessionId={detail.session.id}
+        sessionName={detail.session.name}
+        captures={captures}
+        initialTab={initialTab}
+        initialReportSet={initialReportSet}
+      />
     </div>
   );
 }

@@ -21,12 +21,15 @@ export function ReportOutline({
   order,
   byId,
   onReorder,
+  onRemove,
   template,
   onToggleSection,
 }: {
   order: string[];
   byId: Map<string, ThermalV2Capture>;
   onReorder: (next: string[]) => void;
+  /** Audit remediation Batch 2: the outline was ★-add-only with no way back out. */
+  onRemove: (id: string) => void;
   template: ThermalReportTemplate;
   onToggleSection: (key: ReportSectionKey, on: boolean) => void;
 }) {
@@ -70,7 +73,19 @@ export function ReportOutline({
                   }`}
                 >
                   <span className="text-[var(--graphite-muted)]">⠿</span>
-                  <span className="truncate">{c.filename}</span>
+                  <span className="min-w-0 flex-1 truncate">{c.filename}</span>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onRemove(id);
+                    }}
+                    aria-label={`Remove ${c.filename} from report`}
+                    title="Remove from report"
+                    className="shrink-0 rounded px-1 text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]"
+                  >
+                    ×
+                  </button>
                 </div>
               );
             })

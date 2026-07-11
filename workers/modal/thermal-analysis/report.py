@@ -98,6 +98,29 @@ def describe_anomaly(a: dict[str, Any], standards: list[str] | None = None, unit
     return f"Thermal anomaly observed — {dt}{polarity} at the time of capture. Confirm the source and context on site.{act}{std}"
 
 
+def project_reviewed_findings(
+    capture: dict[str, Any], standards: list[str] | None = None, unit: str = "C"
+) -> list[dict[str, Any]]:
+    """Python port of lib/thermal/reviewed-findings.ts — MUST stay in lockstep with
+    that file. The operator's Accept/Edit/Dismiss review (S6 AI Review), not the
+    raw anomalies array, decides what a deliverable actually shows: dismissed
+    anomalies are dropped entirely, and an operator edit wins over the AI's text."""
+    anomalies = capture.get("anomalies") or []
+    meta = capture.get("metadata") or {}
+    review = meta.get("findings_review") or {}
+    dismissed = {str(k) for k in (review.get("dismissed") or [])}
+    edits = review.get("edits") or {}
+    kept: list[dict[str, Any]] = []
+    for i, a in enumerate(anomalies):
+        key = str(i)
+        if key in dismissed:
+            continue
+        edit_text = edits.get(key)
+        text = edit_text or a.get("observation") or describe_anomaly(a, standards, unit)
+        kept.append({"anomaly": a, "index": i, "text": text})
+    return kept
+
+
 def _template(session_meta: dict[str, Any]) -> dict[str, Any]:
     return session_meta.get("report_template") or {}
 
@@ -222,7 +245,10 @@ def _measurement_table_rows(capture: dict[str, Any], unit: str) -> list[list[str
     # Detected anomalies (peak + ΔT vs surroundings) supplement the spot table.
     # Only emit a row when the value exists — linear/diffuse anomalies often have no
     # single peak, and empty "A4 peak —" placeholder rows look broken in the report.
-    for i, a in enumerate(capture.get("anomalies") or [], start=1):
+    # Dismissed findings (S6 AI Review) never reach the report — see
+    # project_reviewed_findings.
+    for i, finding in enumerate(project_reviewed_findings(capture, unit=unit), start=1):
+        a = finding["anomaly"]
         if a.get("temp_c") is not None:
             rows.append([f"A{i} peak", _fmt_temp(a.get("temp_c"), unit)])
         if a.get("delta_c") is not None:
@@ -290,8 +316,8 @@ def _compact_card(
         reads.append(f"Max {_fmt_temp(q['max_temp_c'], unit)}")
     if q.get("avg_temp_c") is not None:
         reads.append(f"Avg {_fmt_temp(q['avg_temp_c'], unit)}")
-    anoms = capture.get("anomalies") or []
-    finding = describe_anomaly(anoms[0], standards, unit) if anoms else (capture.get("metadata") or {}).get("findings") or ""
+    reviewed = project_reviewed_findings(capture, standards, unit)
+    finding = reviewed[0]["text"] if reviewed else (capture.get("metadata") or {}).get("findings") or ""
     inner = [
         _image_flowable(capture.get("preview_b64"), 2.6 * inch),
         Paragraph(_safe(capture.get("filename") or ""), _CAPTION),
@@ -369,9 +395,10 @@ def _per_image_flowables(
     findings_text = meta.get("findings")
     if findings_text:
         sidebar.append(Paragraph(_safe(findings_text), _SIDEBAR_TEXT))
-    for a in capture.get("anomalies") or []:
-        sidebar.append(Paragraph(f"• {_safe(describe_anomaly(a, standards, unit))}", _SIDEBAR_TEXT))
-    if not findings_text and not (capture.get("anomalies")):
+    reviewed_findings = project_reviewed_findings(capture, standards, unit)
+    for finding in reviewed_findings:
+        sidebar.append(Paragraph(f"• {_safe(finding['text'])}", _SIDEBAR_TEXT))
+    if not findings_text and not reviewed_findings:
         sidebar.append(Paragraph("No findings recorded.", _SIDEBAR_TEXT))
 
     # --- Image column (thermal over paired visual) ---
@@ -438,11 +465,11 @@ def build_html_report(session_meta: dict[str, Any], captures: list[dict[str, Any
                 if preview_b64
                 else "<p>No preview embedded</p>"
             )
-            anomalies = capture.get("anomalies") or []
+            reviewed_findings = project_reviewed_findings(capture, standards)
             items = "".join(
-                f'<li style="margin-bottom:6px;"><strong>{_safe(a.get("severity"))}</strong> — '
-                f"{_safe(describe_anomaly(a, standards))}</li>"
-                for a in anomalies[:5]
+                f'<li style="margin-bottom:6px;"><strong>{_safe(finding["anomaly"].get("severity"))}</strong> — '
+                f'{_safe(finding["text"])}</li>'
+                for finding in reviewed_findings[:5]
             )
             cards.append(
                 f'<article style="border:1px solid #334155;border-radius:16px;padding:16px;margin-bottom:16px;">'
@@ -522,8 +549,8 @@ def _derive_summary(captures: list[dict[str, Any]], unit: str) -> dict[str, str]
         cf = q.get("confidence_score", q.get("confidence"))
         if isinstance(cf, (int, float)):
             confs.append(cf)
-        for a in c.get("anomalies") or []:
-            if a.get("severity") == "action":
+        for finding in project_reviewed_findings(c):
+            if finding["anomaly"].get("severity") == "action":
                 action += 1
     avg = round(sum(confs) / len(confs), 3) if confs else None
     return {

@@ -22,14 +22,25 @@ export function ReportPanel({
 }) {
   const report = useReportState(sessionId);
   const byId = useMemo(() => new Map(captures.map((c) => [c.id, c])), [captures]);
-  const order = selection.reportOrder.length ? selection.reportOrder : captures.map((c) => c.id);
+  // Audit remediation Batch 2: don't flatten "nothing curated yet" into "every
+  // capture" here — that silently masked ThermalReportPreview's own honest
+  // "Previewing all N images, mark ★ to choose" banner (it never saw an empty
+  // order to trigger it). Pass the real, possibly-empty selection through.
+  const order = selection.reportOrder;
 
   return (
     <V2PanelFrame
       left={{
         title: "Outline",
         content: (
-          <ReportOutline order={order} byId={byId} onReorder={selection.reorderReport} template={report.template} onToggleSection={report.toggleSection} />
+          <ReportOutline
+            order={order}
+            byId={byId}
+            onReorder={selection.reorderReport}
+            onRemove={selection.removeFromReport}
+            template={report.template}
+            onToggleSection={report.toggleSection}
+          />
         ),
       }}
       center={
