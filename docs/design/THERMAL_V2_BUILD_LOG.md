@@ -1584,3 +1584,33 @@ action is his: inspect the pushed `/preview/thermal-v2` build on prod,
 and — only when he approves — a future session executes S9 (delete the
 old `components/ops/thermal/**` UI, swap the route, per doc's own
 explicit gate).
+
+## Post-build — external adversarial audits + remediation plan LOCKED (2026-07-11)
+
+Immediately after the roster closed, Brian relayed two independent AI-platform
+adversarial audits of the deployed `/preview/thermal-v2` build (his standing
+multi-AI validation workflow), plus his own visual critique (too dark,
+boxes-within-boxes, text spilling out of cards — not the "fresh and
+beautiful" redesign the rebuild was meant to deliver). Both audits converged
+independently on the same root causes and both concluded **not
+production-ready** — consistent with S9 already being held.
+
+Rather than act on audit prose, every load-bearing claim (15 total) was
+re-verified directly against the current code by a dedicated read-only pass.
+**All 15 came back confirmed true** (one partially). The two biggest,
+audit-converged findings: (1) `ThermalV2Shell.tsx` never mutates/refetches
+its `captures` prop and fully unmounts each tab on switch — this single
+defect explains ~7 of the "Critical" findings (upload needing a manual
+refresh, panorama results invisible until reload, Motion's range resetting
+on tab switch, edited metadata appearing stale after a tab round-trip); (2)
+AI Review's Accept/Edit/Dismiss decisions never reach the Report preview,
+PDF, or HTML — all three still read raw `anomalies` (an evidentiary-trust
+break, not a cosmetic one).
+
+The full remediation plan — 5 batches (shell state ownership, review→report
+wiring, a dozen smaller independent fixes, a visual density/text-overflow
+pass, and a flagged-not-unilateral visual-tone review) plus the full
+verification table — is **LOCKED**:
+`docs/design/THERMAL_V2_AUDIT_REMEDIATION_LOCKED.md`. Execution starts with
+Batch 1 next session/turn. This remediation work stays entirely within the
+existing "keep building on `/preview/thermal-v2`" pattern — S9 remains held.
