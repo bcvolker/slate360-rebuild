@@ -208,6 +208,10 @@ export function AnalyzePanel({
                 onRename={img.renameSpot}
                 onDelete={img.deleteSpot}
                 onMarkExtreme={img.markExtreme}
+                comparePair={img.comparePair}
+                pendingCompareId={img.pendingCompareId}
+                onToggleCompare={img.toggleCompare}
+                onClearCompare={img.clearCompare}
               />
             </AnalyzeAccordion>
             <AnalyzeAccordion

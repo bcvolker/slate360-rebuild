@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, type MouseEvent, type RefObject } from "react";
+import { useEffect, useState, type MouseEvent, type RefObject } from "react";
 import { renderHeatmap, newSpotId } from "@/lib/thermal/probe-palettes";
 import { SpotOverlay } from "@/components/thermal-studio-v2/panels/analyze/SpotOverlay";
 import { useCanvasStage } from "@/components/thermal-studio-v2/lib/useCanvasStage";
@@ -57,6 +57,39 @@ export function AnalyzeCanvas({
   const stage = useCanvasStage({ grid, spots, canvasRef, onCommitSpots });
   const { canvasBox, zoom, pan, visibleSpots, toImageCoords } = stage;
 
+  // S5.6 polygon tool: click accumulates draft vertices; Enter/double-click
+  // commits (≥3 points), Escape cancels. Local to this component — nothing
+  // is created (and nothing autosaves) until the draft is committed.
+  const [polygonDraft, setPolygonDraft] = useState<{ x: number; y: number }[]>([]);
+
+  useEffect(() => {
+    setPolygonDraft([]);
+  }, [tool]);
+
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if (tool !== "polygon" || polygonDraft.length === 0) return;
+      if (e.key === "Escape") {
+        setPolygonDraft([]);
+      } else if (e.key === "Enter" && polygonDraft.length >= 3) {
+        commitPolygon();
+      }
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tool, polygonDraft]);
+
+  function commitPolygon() {
+    if (polygonDraft.length < 3) return;
+    const cx = polygonDraft.reduce((a, p) => a + p.x, 0) / polygonDraft.length;
+    const cy = polygonDraft.reduce((a, p) => a + p.y, 0) / polygonDraft.length;
+    const id = newSpotId();
+    onCreateSpot({ id, kind: "polygon", x: cx, y: cy, points: polygonDraft.slice(0, 64) });
+    onSelect(id);
+    setPolygonDraft([]);
+  }
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas || !grid) return;
@@ -86,6 +119,11 @@ export function AnalyzeCanvas({
   }
 
   function handleStageMouseDown(e: MouseEvent) {
+    if (tool === "polygon") {
+      const coords = toImageCoords(e.clientX, e.clientY);
+      if (coords?.inBounds) setPolygonDraft((prev) => [...prev, { x: coords.imgX, y: coords.imgY }]);
+      return;
+    }
     if (tool !== "move") {
       const coords = toImageCoords(e.clientX, e.clientY);
       if (coords?.inBounds) createDefaultSpot(coords.imgX, coords.imgY);
@@ -93,6 +131,10 @@ export function AnalyzeCanvas({
     }
     onSelect(null);
     stage.startPan(e);
+  }
+
+  function handleStageDoubleClick() {
+    if (tool === "polygon") commitPolygon();
   }
 
   function handleMouseMove(e: MouseEvent) {
@@ -109,7 +151,13 @@ export function AnalyzeCanvas({
 
   return (
     <div
-      title={tool === "move" ? "Scroll to zoom, drag to pan" : `Click to place a ${tool}`}
+      title={
+        tool === "move"
+          ? "Scroll to zoom, drag to pan"
+          : tool === "polygon"
+            ? "Click each corner, then Enter or double-click to close the shape (Esc cancels)"
+            : `Click to place a ${tool}`
+      }
       className={`relative flex h-full w-full items-center justify-center overflow-hidden ${
         tool === "move" ? "cursor-grab active:cursor-grabbing" : "cursor-crosshair"
       }`}
@@ -121,6 +169,7 @@ export function AnalyzeCanvas({
           ref={stage.stageRef}
           onWheel={stage.handleWheel}
           onMouseDown={handleStageMouseDown}
+          onDoubleClick={handleStageDoubleClick}
           onMouseMove={handleMouseMove}
           onMouseLeave={() => onHover(null)}
           style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})` }}
@@ -152,6 +201,21 @@ export function AnalyzeCanvas({
                   />
                 </div>
               ))}
+              {polygonDraft.length > 0 ? (
+                <svg className="pointer-events-none absolute inset-0 h-full w-full overflow-visible" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  <polyline
+                    points={polygonDraft.map((p) => `${(p.x / grid.width) * 100},${(p.y / grid.height) * 100}`).join(" ")}
+                    fill="none"
+                    stroke="var(--graphite-primary)"
+                    strokeWidth={0.4}
+                    strokeDasharray="2,1.5"
+                    vectorEffect="non-scaling-stroke"
+                  />
+                  {polygonDraft.map((p, i) => (
+                    <circle key={i} cx={(p.x / grid.width) * 100} cy={(p.y / grid.height) * 100} r={0.6} fill="var(--graphite-primary)" vectorEffect="non-scaling-stroke" />
+                  ))}
+                </svg>
+              ) : null}
             </div>
           ) : null}
         </div>

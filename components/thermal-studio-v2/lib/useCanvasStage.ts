@@ -9,7 +9,16 @@ const MAX_ZOOM = 12;
 
 type Gesture =
   | { type: "pan"; startX: number; startY: number; panX: number; panY: number }
-  | { type: "drag"; id: string; origX: number; origY: number; origX2?: number; origY2?: number }
+  | {
+      type: "drag";
+      id: string;
+      origX: number;
+      origY: number;
+      origX2?: number;
+      origY2?: number;
+      /** Whole-polygon drag (S5.6): translate every vertex by the same delta. */
+      origPoints?: { x: number; y: number }[];
+    }
   | { type: "resize"; id: string }
   | { type: "line-end"; id: string; which: "start" | "end" };
 
@@ -102,7 +111,15 @@ export function useCanvasStage({
   function startSpotDrag(id: string) {
     const spot = spots.find((s) => s.id === id);
     if (!spot) return;
-    gestureRef.current = { type: "drag", id, origX: spot.x, origY: spot.y, origX2: spot.x2, origY2: spot.y2 };
+    gestureRef.current = {
+      type: "drag",
+      id,
+      origX: spot.x,
+      origY: spot.y,
+      origX2: spot.x2,
+      origY2: spot.y2,
+      origPoints: spot.kind === "polygon" ? spot.points : undefined,
+    };
     setDraftSpots(spots);
   }
 
@@ -133,6 +150,9 @@ export function useCanvasStage({
           if (g.type === "drag") {
             const dx = coords.imgX - g.origX;
             const dy = coords.imgY - g.origY;
+            if (s.kind === "polygon" && g.origPoints) {
+              return { ...s, x: g.origX + dx, y: g.origY + dy, points: g.origPoints.map((p) => ({ x: p.x + dx, y: p.y + dy })) };
+            }
             if (s.kind === "line" && s.x2 != null && s.y2 != null) {
               return { ...s, x: g.origX + dx, y: g.origY + dy, x2: (g.origX2 ?? s.x2) + dx, y2: (g.origY2 ?? s.y2) + dy };
             }

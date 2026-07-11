@@ -3,10 +3,11 @@
 import { useState } from "react";
 import { spotStats } from "@/lib/thermal/spot-stats";
 import { fmtDelta, fmtTemp } from "@/lib/thermal/probe-palettes";
+import { ComparePin, LineProfileChart } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeCompareAndProfile";
 import type { ThermalV2Grid } from "@/components/thermal-studio-v2/lib/grid-api";
 import type { ThermalV2Spot } from "@/components/thermal-studio-v2/types";
 
-const KIND_WORD: Record<string, string> = { point: "Point", area: "Area", line: "Line" };
+const KIND_WORD: Record<string, string> = { point: "Point", area: "Area", line: "Line", polygon: "Polygon" };
 
 /**
  * Right rail — Measurements accordion, open first (doc §1, Tab 2 + §0.1):
@@ -24,6 +25,10 @@ export function AnalyzeMeasurements({
   onRename,
   onDelete,
   onMarkExtreme,
+  comparePair,
+  pendingCompareId,
+  onToggleCompare,
+  onClearCompare,
 }: {
   spots: ThermalV2Spot[];
   grid: ThermalV2Grid | null;
@@ -36,6 +41,11 @@ export function AnalyzeMeasurements({
   onDelete: (id: string) => void;
   /** One-click auto extreme markers (S5.5). */
   onMarkExtreme: (kind: "max" | "min") => void;
+  /** S5.6 Δ-compare between any two measurements. */
+  comparePair: [string, string] | null;
+  pendingCompareId: string | null;
+  onToggleCompare: (id: string) => void;
+  onClearCompare: () => void;
 }) {
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
@@ -79,6 +89,7 @@ export function AnalyzeMeasurements({
   const values = spots.map((s) => spotStats(s, grid.temps, grid.width, grid.height).value);
   const refIndex = spots.findIndex((s) => s.id === referenceId);
   const refValue = refIndex >= 0 ? values[refIndex] : null;
+  const selectedSpot = spots.find((s) => s.id === selectedId) ?? null;
 
   const avg = values.reduce((a, b) => a + b, 0) / values.length;
   const spread = Math.max(...values) - Math.min(...values);
@@ -168,6 +179,17 @@ export function AnalyzeMeasurements({
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation();
+                  onToggleCompare(s.id);
+                }}
+                title={pendingCompareId === s.id ? "Cancel compare" : "Compare to another measurement"}
+                className={`shrink-0 text-[10px] ${pendingCompareId === s.id ? "text-[var(--graphite-primary)]" : "text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]"}`}
+              >
+                ⇄
+              </button>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
                   onDelete(s.id);
                 }}
                 title="Delete this measurement"
@@ -184,6 +206,8 @@ export function AnalyzeMeasurements({
           Average {fmtTemp(avg, unit)} · Spread {fmtDelta(spread, unit)}
         </div>
       ) : null}
+      {comparePair ? <ComparePin spots={spots} grid={grid} unit={unit} comparePair={comparePair} onClear={onClearCompare} /> : null}
+      {selectedSpot?.kind === "line" ? <LineProfileChart spot={selectedSpot} grid={grid} unit={unit} /> : null}
       <button
         type="button"
         onClick={() => void copyTable()}

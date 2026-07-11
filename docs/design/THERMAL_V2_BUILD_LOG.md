@@ -539,3 +539,50 @@ which worked correctly once the layout was fixed).
   build. Fix: never run `preview_start` and the Playwright-managed webServer
   at the same time against this repo; confirmed both ports clear before each
   run going forward.
+
+---
+
+## Slice 8 — S5.6 Analyze completion pack, push 1 (2026-07-10)
+
+**Shipped:**
+- **Polygon measurement tool.** New "Polygon" entry in `AnalyzeToolbar`'s tool
+  segmented control. `AnalyzeCanvas` accumulates draft vertices on click while
+  the tool is active, rendering a dashed `<polyline>` + vertex dots preview;
+  Enter commits the polygon as a spot, Escape cancels the in-progress draft.
+  `SpotOverlay` gained a polygon SVG render branch (filled + outlined
+  `<polygon>`) with whole-shape drag support. `useCanvasStage`'s drag gesture
+  now carries `origPoints` so dragging a polygon translates every vertex
+  together instead of just its bounding-box anchor.
+- **Δ-compare.** `useAnalyzeImage` gained `comparePair`/`pendingCompareId`/
+  `toggleCompare(id)`/`clearCompare()`. Each row in `AnalyzeMeasurements` has a
+  ⇄ "Compare to another measurement" button; picking two pins a
+  `#B vs #A: Δ ±N°` readout (rendered by the new
+  `AnalyzeCompareAndProfile.tsx`'s `ComparePin`). Deleting either compared spot
+  clears the pair.
+- **Line profile chart.** `lib/thermal/spot-stats.ts` gained `lineProfile()`
+  (samples the temperature grid along a line spot at 1 sample per pixel of
+  length, capped by `sampleAt`'s existing bilinear interpolation). Selecting a
+  line spot renders `LineProfileChart` (also in `AnalyzeCompareAndProfile.tsx`)
+  at the bottom of the Measurements accordion — an inline SVG polyline, no
+  charting dependency added.
+
+**Verification:**
+- Scoped typecheck (`tsconfig.thermal-v2.json`): clean.
+- `guard:architecture` — PASS. `guard:design` — pre-existing failures only,
+  all in files this slice never touched (`app/preview/twin-screens/page.tsx`,
+  `app/preview/capture-shell/page.tsx`, `components/projects/
+  ProjectsPortfolioOverview.tsx`). File sizes: every touched/new file well
+  under 300 lines (`AnalyzeCompareAndProfile.tsx` 64, `useAnalyzeImage.ts` 271,
+  `useCanvasStage.ts` 206, `AnalyzePanel.tsx` 280, `AnalyzeCanvas.tsx` 225,
+  `AnalyzeMeasurements.tsx` 220, `AnalyzeToolbar.tsx` 251, `SpotOverlay.tsx`
+  195, `spot-stats.ts` 128) — none newly crossed the guard's baseline.
+- e2e: `e2e/thermal-v2-s5-6-analyze-pack.spec.ts` — 4 specs (polygon draw via
+  3 clicks + Enter, Δ-compare pinning, line-profile chart render, no page
+  scroll at 1280×800/1440×900). Full 8-spec / 37-test cross-slice regression
+  (R1 through this slice) reran clean after this push — no regressions.
+- **Debugging note:** the Δ-compare test's ⇄ button locator initially timed
+  out under `getByRole("button", { name: "Compare to another measurement" })`
+  — the button's accessible name is its icon glyph text content, not its
+  `title` attribute, so `getByRole` with the tooltip string never matched.
+  Fixed via `getByTitle(...)`, matching the recurring "accessible name comes
+  from visible text before `title`" pattern already logged in earlier slices.

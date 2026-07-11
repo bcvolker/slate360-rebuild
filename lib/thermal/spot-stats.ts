@@ -113,3 +113,16 @@ export function spotStats(
   if (n === 0) return { value: sampleAt(temps, width, height, spot.x, spot.y) };
   return { value: sum / n, min, max, pixels: n };
 }
+
+/** S5.6 line-profile chart data: temperature sampled along a line spot's segment. */
+export function lineProfile(spot: StatSpot, temps: number[] | Float32Array | Float64Array, width: number, height: number): number[] {
+  if (spot.kind !== "line" || spot.x2 == null || spot.y2 == null) return [];
+  const dx = spot.x2 - spot.x;
+  const dy = spot.y2 - spot.y;
+  const steps = Math.max(2, Math.ceil(Math.hypot(dx, dy)));
+  const values: number[] = [];
+  for (let i = 0; i <= steps; i++) {
+    values.push(sampleAt(temps, width, height, spot.x + (dx * i) / steps, spot.y + (dy * i) / steps));
+  }
+  return values;
+}

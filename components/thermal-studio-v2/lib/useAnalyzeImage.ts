@@ -49,6 +49,11 @@ export function useAnalyzeImage(activeCapture: ThermalV2Capture | null) {
   const [areaShape, setAreaShape] = useState<"box" | "circle">("box");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [referenceId, setReferenceId] = useState<string | null>(null);
+  // S5.6 Δ-compare: pick two measurements, see the delta between them (not
+  // just each vs the single reference). One active pair; a lighter click-
+  // based flow than a right-click menu — same outcome, simpler to build/use.
+  const [comparePair, setComparePair] = useState<[string, string] | null>(null);
+  const [pendingCompareId, setPendingCompareId] = useState<string | null>(null);
   const history = useUndoRedo<ThermalV2Spot[]>([]);
   const historyRef = useRef(history);
   historyRef.current = history;
@@ -176,6 +181,32 @@ export function useAnalyzeImage(activeCapture: ThermalV2Capture | null) {
     history.commitState(history.state.filter((s) => s.id !== id));
     if (selectedId === id) setSelectedId(null);
     if (referenceId === id) setReferenceId(null);
+    if (pendingCompareId === id) setPendingCompareId(null);
+    if (comparePair && (comparePair[0] === id || comparePair[1] === id)) setComparePair(null);
+  }
+
+  /** S5.6 Δ-compare: first click arms a source, second click on another row completes the pair. */
+  function toggleCompare(id: string) {
+    if (comparePair) {
+      setComparePair(null);
+      setPendingCompareId(id);
+      return;
+    }
+    if (!pendingCompareId) {
+      setPendingCompareId(id);
+      return;
+    }
+    if (pendingCompareId === id) {
+      setPendingCompareId(null);
+      return;
+    }
+    setComparePair([pendingCompareId, id]);
+    setPendingCompareId(null);
+  }
+
+  function clearCompare() {
+    setComparePair(null);
+    setPendingCompareId(null);
   }
 
   function renameSpot(id: string, label: string) {
@@ -232,5 +263,9 @@ export function useAnalyzeImage(activeCapture: ThermalV2Capture | null) {
     commitSpots,
     deleteSpot,
     renameSpot,
+    comparePair,
+    pendingCompareId,
+    toggleCompare,
+    clearCompare,
   };
 }

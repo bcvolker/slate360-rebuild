@@ -107,6 +107,34 @@ export function SpotOverlay({
     );
   }
 
+  if (spot.kind === "polygon" && Array.isArray(spot.points) && spot.points.length >= 3) {
+    const pointsAttr = spot.points.map((p) => `${(p.x / gridWidth) * 100},${(p.y / gridHeight) * 100}`).join(" ");
+    return (
+      <>
+        <svg
+          className="absolute inset-0 h-full w-full cursor-move overflow-visible"
+          viewBox="0 0 100 100"
+          preserveAspectRatio="none"
+          onMouseDown={(e) => {
+            e.stopPropagation();
+            onSelect();
+            onDragStart(e);
+          }}
+        >
+          <polygon
+            points={pointsAttr}
+            fill={selected ? "color-mix(in srgb, var(--graphite-primary) 20%, transparent)" : "rgba(255,255,255,0.12)"}
+            stroke={selected ? "var(--graphite-primary)" : "white"}
+            strokeWidth={selected ? 0.6 : 0.4}
+            vectorEffect="non-scaling-stroke"
+          />
+        </svg>
+        {badge}
+        {deleteButton(pctX(spot.points[0].x), pctY(spot.points[0].y))}
+      </>
+    );
+  }
+
   if (spot.kind === "area") {
     const w = spot.w ?? 20;
     const h = spot.h ?? 20;

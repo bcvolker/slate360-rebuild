@@ -10,6 +10,7 @@ const TOOLS: { id: ThermalV2Tool; label: string; hint: string }[] = [
   { id: "point", label: "Point", hint: "Click the image to read one pixel's temperature" },
   { id: "area", label: "Area", hint: "Click the image to average a region's temperature" },
   { id: "line", label: "Line", hint: "Click the image to average along a line" },
+  { id: "polygon", label: "Polygon", hint: "Click each corner, then Enter (or double-click) to close the shape" },
 ];
 
 /**
