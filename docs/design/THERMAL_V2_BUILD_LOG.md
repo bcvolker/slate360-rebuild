@@ -1216,3 +1216,85 @@ crash, proving the full client → route wiring before writing mocked e2e.
   case (a specific finding gets revised).
 Roster item #12 (S6.6 Analyst chat) is closed as delivered. Proceeding to
 #13 (S8-M Motion) per the frozen roster.
+
+## Slice 13 — S8-M Motion (2026-07-10)
+
+**Shipped** Timelapse Builder + Video Trim (doc D4) — a quiet Deliver section
+that takes over the whole tab as a full-canvas time-ruler editor, reusing
+100% existing backend:
+- **No new backend.** `/api/ops/thermal/timelapse` (POST) and the Modal
+  `timelapse` endpoint (`render_motion_job` in `worker.py`) already existed
+  and already work — this slice is UI-only, porting the interaction to V2's
+  design language per S8's own note ("Timelapse section ports the old
+  Motion engine"). Read the OLD `ThermalMotionStudio.tsx` (untouched,
+  read-only reference) to confirm the exact settings shape
+  (`{aspect, fps, smoothing, deflicker, overlay, retainRadiometric}`) the
+  worker already consumes.
+- **Range-based time ruler, not the old manual multi-select+reorder list**
+  — a deliberate simplification the doc's own language already implied
+  ("draggable in/out handles" describes a contiguous RANGE, not arbitrary
+  reordering): `MotionTimeRuler.tsx` renders one tick per session frame,
+  a drag-to-resize in/out handle pair, and a draggable playhead (click any
+  tick to preview that frame). Frames sent to render = every capture
+  between in/out (inclusive), in existing array order.
+- **`MotionEditor.tsx`** — full-canvas shell (preview + ruler + right rail),
+  Esc or the `← Deliver` breadcrumb returns to Deliver. Right rail reuses
+  the existing `AnalyzeAccordion` (single-open expander groups, matching
+  doc D4's "collapsed-by-default expander groups" verbatim) for Speed/
+  Overlay/Output — every slider paired with a type-in number field per the
+  W3 standing law.
+- **State kept across the breadcrumb round-trip** (explicit doc acceptance
+  criterion): the in/out range + settings live in `useMotionState.ts` at
+  the `DeliverPanel` level (two independent state bags, one per mode), NOT
+  inside `MotionEditor` itself — so closing and reopening the editor
+  doesn't lose the range to a component unmount. Verified manually in the
+  live preview (dragged the in-handle, hit "← Deliver", reopened — range
+  was still narrowed) before writing e2e for it.
+- `DeliverMotionCards.tsx` — the two quiet entry cards; wired into
+  `DeliverSectionNav.tsx` as a 5th, deliberately-last "Motion" section.
+  `DeliverPanel.tsx` now receives `captures` (it previously only took
+  `sessionId` — Motion needs the frame list); threaded from
+  `ThermalV2Shell.tsx`.
+
+**Bug found + fixed via the preview-tools manual pass, before e2e:** the
+playhead marker defaults to index 0, the SAME position as the in-handle's
+default — with the playhead's `z-20` sitting above the in-handle's `z-10`,
+a fresh editor's in-handle was unclickable (100% covered by the playhead)
+until the operator first moved the playhead elsewhere. Fixed by dropping
+the playhead to `z-0` (range handles are the primary drag tool; the
+playhead is secondary) — a real interaction bug, not just a test
+convenience, caught by literally trying to drag the handle in the browser
+before writing the mocked e2e version of the same interaction.
+
+**Verification:**
+- Scoped typecheck (`tsconfig.thermal-v2.json`): clean.
+- `guard:architecture` — PASS. File sizes: all new files under 300
+  (`MotionEditor.tsx` 189, `MotionTimeRuler.tsx` 109, `motion-api.ts` 47,
+  `useMotionState.ts` 39, `DeliverMotionCards.tsx` 28, `DeliverPanel.tsx`
+  56, `DeliverSectionNav.tsx` 33).
+- e2e: new `e2e/thermal-v2-s8-m-motion.spec.ts` (6 specs) — quiet cards
+  render; opening Timelapse Builder shows the full editor + ruler;
+  dragging the in-handle narrows the range AND Render dispatches only
+  that narrowed frame-id set to the real `/api/ops/thermal/timelapse`
+  contract; `← Deliver` keeps the range on reopen; Escape also returns to
+  Deliver; Video Trim opens its own independent editor/state. Full
+  cross-slice regression (12 specs / 76 tests) green on `desktop-chromium`
+  (one pre-existing parallel-worker flake in an unrelated S7.5 spec,
+  confirmed via isolated re-run — not a regression).
+
+**Scoped down / deferred (real, logged):**
+- **Region trend chart** (draw one box in the preview → line chart of its
+  avg/max over time) — a genuinely separate feature needing per-frame
+  region-average computation across the whole range, comparable in scope
+  to S5.6's line-profile chart; not attempted here.
+- **Video Trim's crop-by-dragging-in-preview** — Video Trim currently
+  shares the exact same ruler + fps/aspect/overlay controls as Timelapse
+  (both are "trim a range, pick output settings" today); a dedicated
+  drag-crop-rect tool over the preview is deferred.
+- **Overlay "animate" mode's actual per-frame temperature animation** —
+  the UI captures the choice and threads it to the worker; whether the
+  worker's ffmpeg pipeline currently does anything differently for
+  `overlay=animate` vs `keep` was not verified this slice (pre-existing
+  worker behavior, out of scope for a UI-only port).
+Roster item #13 (S8-M Motion) is closed as delivered. Proceeding to #14
+(MAP-1 Location layer) per the frozen roster.

@@ -1,10 +1,12 @@
-export type DeliverSection = "share" | "reports" | "exports" | "qa";
+export type DeliverSection = "share" | "reports" | "exports" | "qa" | "motion";
 
 const SECTIONS: { id: DeliverSection; label: string }[] = [
   { id: "share", label: "Share link" },
   { id: "reports", label: "Report downloads" },
   { id: "exports", label: "Data exports" },
   { id: "qa", label: "Q&A inbox" },
+  // S8-M (doc D4): deliberately last + plainly worded — few users need it.
+  { id: "motion", label: "Motion" },
 ];
 
 /** Left section nav (doc §1, Tab 5) — words, not icons alone. */
