@@ -1,11 +1,19 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import dynamic from "next/dynamic";
 import { cameraOf, isHighDelta, isInReport } from "@/lib/thermal/curation-client";
 import { V2PanelFrame } from "@/components/thermal-studio-v2/V2PanelFrame";
 import { LibraryFiltersRail } from "@/components/thermal-studio-v2/panels/library/LibraryFiltersRail";
 import { LibraryGrid } from "@/components/thermal-studio-v2/panels/library/LibraryGrid";
 import { LibraryNextSteps } from "@/components/thermal-studio-v2/panels/library/LibraryNextSteps";
+
+// Leaflet touches `window` at import time — must never enter the SSR bundle
+// (same fix as the old ops/thermal ThermalTwinLayerPanel.tsx's map import).
+const LibraryMap = dynamic(
+  () => import("@/components/thermal-studio-v2/panels/library/LibraryMap").then((m) => m.LibraryMap),
+  { ssr: false },
+);
 import { SlateDropImportModal } from "@/components/thermal-studio-v2/panels/library/SlateDropImportModal";
 import type { useLibrarySelection } from "@/components/thermal-studio-v2/lib/useLibrarySelection";
 import type { ThermalV2Capture, ThermalV2LibraryFilter, ThermalV2Scope } from "@/components/thermal-studio-v2/types";
@@ -28,6 +36,8 @@ export function LibraryPanel({
   const [filter, setFilter] = useState<ThermalV2LibraryFilter>("all");
   const [importOpen, setImportOpen] = useState(false);
   const [refreshNote, setRefreshNote] = useState<string | null>(null);
+  // MAP-1 (doc D2): Grid ⇄ Map — the only new top-level control this slice adds.
+  const [viewMode, setViewMode] = useState<"grid" | "map">("grid");
 
   const visible = useMemo(() => {
     if (filter === "all") return captures;
@@ -55,6 +65,24 @@ export function LibraryPanel({
   return (
     <div className="relative flex h-full min-h-0 flex-col overflow-hidden">
       <V2PanelFrame
+        toolbar={
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => setViewMode("grid")}
+              className={`rounded-md px-2 py-1 text-xs font-medium ${viewMode === "grid" ? "bg-[color-mix(in_srgb,var(--graphite-primary)_16%,transparent)] text-[var(--graphite-text-header)]" : "text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]"}`}
+            >
+              Grid
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode("map")}
+              className={`rounded-md px-2 py-1 text-xs font-medium ${viewMode === "map" ? "bg-[color-mix(in_srgb,var(--graphite-primary)_16%,transparent)] text-[var(--graphite-text-header)]" : "text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]"}`}
+            >
+              Map
+            </button>
+          </div>
+        }
         left={{
           title: "Folders & filters",
           content: (
@@ -70,15 +98,24 @@ export function LibraryPanel({
           ),
         }}
         center={
-          <LibraryGrid
-            captures={visible}
-            selectedIds={selection.selectedIds}
-            reportIds={selection.reportIds}
-            onClick={selection.click}
-            onOpenInAnalyze={onOpenInAnalyze}
-            sessionId={sessionId}
-            onUploaded={() => setRefreshNote("Uploaded — refresh to see new images")}
-          />
+          viewMode === "map" ? (
+            <LibraryMap
+              captures={visible}
+              selectedIds={selection.selectedIds}
+              onToggleSelect={(id, index) => selection.click(id, index, { toggle: true })}
+              onOpenInAnalyze={onOpenInAnalyze}
+            />
+          ) : (
+            <LibraryGrid
+              captures={visible}
+              selectedIds={selection.selectedIds}
+              reportIds={selection.reportIds}
+              onClick={selection.click}
+              onOpenInAnalyze={onOpenInAnalyze}
+              sessionId={sessionId}
+              onUploaded={() => setRefreshNote("Uploaded — refresh to see new images")}
+            />
+          )
         }
         right={{
           title: "Next steps",

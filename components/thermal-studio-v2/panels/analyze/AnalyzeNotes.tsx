@@ -1,8 +1,15 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import { cameraOf } from "@/lib/thermal/curation-client";
 import { saveFindings } from "@/components/thermal-studio-v2/lib/findings-api";
+
+// Leaflet touches `window` at import time — must never enter the SSR bundle.
+const AnalyzeGpsMiniMap = dynamic(
+  () => import("@/components/thermal-studio-v2/panels/analyze/AnalyzeGpsMiniMap").then((m) => m.AnalyzeGpsMiniMap),
+  { ssr: false },
+);
 import type { ThermalV2Capture } from "@/components/thermal-studio-v2/types";
 
 function row(label: string, value: string | null): [string, string] | null {
@@ -93,15 +100,18 @@ export function AnalyzeNotes({ capture }: { capture: ThermalV2Capture | null }) 
       ) : null}
 
       {hasGps ? (
-        <a
-          href={`https://www.openstreetmap.org/?mlat=${gps.lat}&mlon=${gps.lon}#map=17/${gps.lat}/${gps.lon}`}
-          target="_blank"
-          rel="noreferrer"
-          className="text-[11px] text-[var(--graphite-primary)] underline"
-          title="Open the capture location in OpenStreetMap"
-        >
-          {Number(gps.lat).toFixed(5)}, {Number(gps.lon).toFixed(5)} — view on map
-        </a>
+        <div className="flex flex-col gap-1">
+          <AnalyzeGpsMiniMap lat={Number(gps.lat)} lon={Number(gps.lon)} />
+          <a
+            href={`https://www.openstreetmap.org/?mlat=${gps.lat}&mlon=${gps.lon}#map=17/${gps.lat}/${gps.lon}`}
+            target="_blank"
+            rel="noreferrer"
+            className="text-[11px] text-[var(--graphite-primary)] underline"
+            title="Open the capture location in OpenStreetMap"
+          >
+            {Number(gps.lat).toFixed(5)}, {Number(gps.lon).toFixed(5)} — open full map
+          </a>
+        </div>
       ) : null}
     </div>
   );

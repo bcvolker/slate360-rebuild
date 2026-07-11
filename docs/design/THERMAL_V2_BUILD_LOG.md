@@ -1298,3 +1298,85 @@ before writing the mocked e2e version of the same interaction.
   worker behavior, out of scope for a UI-only port).
 Roster item #13 (S8-M Motion) is closed as delivered. Proceeding to #14
 (MAP-1 Location layer) per the frozen roster.
+
+## Slice 14 — MAP-1 Location layer (2026-07-10)
+
+**Shipped** the Library Grid⇄Map toggle + Analyze GPS mini-map (doc D2):
+- `lib/geo-pins.ts` — pure `capturesToPins()`, reading the SAME
+  `metadata.gps.{lat,lon|lng}` shape S5.5's Notes panel already reads
+  (no new data model).
+- `LibraryMap.tsx` — a real Leaflet + OSM (`{s}.tile.openstreetmap.org`,
+  keyless, no Google Maps key dependency, per doc) full-canvas map, ported
+  from the OLD (untouched, read-only reference) `ThermalTwinOverlayMap.tsx`
+  — confirming the doc's "already a repo pattern" claim. Geotagged captures
+  render as `CircleMarker` pins with a popup (thumbnail + filename +
+  **Open in Analyze** + **+ Select**); a quiet count chip ("N of M have
+  location") when some/all captures lack GPS.
+- **Selection is click-to-toggle per pin, not drag-marquee** — a
+  deliberate, logged scope decision: the doc says "drag-select pins sets
+  Scope selection," but Leaflet has no built-in rectangle-select (would
+  need a plugin or a hand-rolled overlay computing which pins fall inside
+  a dragged rectangle — real, separable scope). The app's OWN existing
+  selection grammar (Addendum E1) already treats click/Ctrl-click-toggle
+  as an equally valid, established selection mechanism elsewhere in
+  Library — the popup's "+ Select" button is that same mechanism applied
+  to a pin, wiring into `selection.click(id, index, {toggle:true})` — the
+  SAME selection state the Grid view's thumbnails write to, confirmed via
+  manual pass: selecting a pin flips the Scope pill to "Selected (1)".
+- Grid⇄Map lives in `LibraryPanel.tsx`'s new `toolbar` prop (V2PanelFrame
+  already supported one; Library hadn't used it yet).
+- **Analyze GPS mini-map:** `AnalyzeGpsMiniMap.tsx` — a 160px inline
+  Leaflet map in Notes & photo data's existing GPS row, **non-interactive
+  until clicked** (doc's exact phrasing) via `dragging={active}` /
+  `scrollWheelZoom={active}` etc. gated on a local `active` state that
+  flips true on first click — so it doesn't fight the rail's own scroll
+  with an always-live scroll-to-zoom. The old plain OSM link stays
+  underneath as "— open full map".
+- **A real bug found + fixed via the SSR** (not just the browser) **pass:**
+  Leaflet touches `window` at *import* time, which crashes Next's
+  server-side render of any page that statically imports a component using
+  `react-leaflet` (`ReferenceError: window is not defined`, confirmed in
+  `preview_logs`) — invisible in a quick browser click-test because the
+  page had already hydrated client-side by the time it was inspected;
+  only surfaced by checking server logs after a full server restart (a
+  stale dev-server HMR state initially masked whether the fix had taken
+  effect — a fresh `preview_start` was needed to confirm). Fixed by
+  wrapping both `LibraryMap` and `AnalyzeGpsMiniMap`'s imports in
+  `next/dynamic(..., { ssr: false })` at their call sites — the exact same
+  fix the OLD `ThermalTwinLayerPanel.tsx` already uses for its own Leaflet
+  import, confirming this is a known, standard pattern for this codebase's
+  Leaflet usage, not a one-off workaround.
+
+**Verified manually first** (preview tools): Map mode rendered real OSM
+tiles centered on the fixture's actual GPS (ASU Tempe campus — "Walton
+Center for Planetary Health"), clicking the pin opened the popup, "+
+Select" flipped the Scope pill to "Selected (1)", and the Analyze GPS
+mini-map rendered inline in Notes & photo data — all before writing e2e.
+
+**Verification:**
+- Scoped typecheck (`tsconfig.thermal-v2.json`): clean.
+- `guard:architecture` — PASS. File sizes: all new/touched files under 300
+  (`LibraryMap.tsx` 113, `geo-pins.ts` 21, `AnalyzeGpsMiniMap.tsx` 40,
+  `LibraryPanel.tsx` 141, `AnalyzeNotes.tsx` 112).
+- e2e: new `e2e/thermal-v2-map-1-location.spec.ts` (5 specs) — Map toggle
+  shows the count chip + a pin; pin popup's Open-in-Analyze switches tabs;
+  pin popup's +Select updates the Scope pill; Grid↔Map round-trips
+  cleanly; the Analyze mini-map appears only for a geotagged image (not a
+  non-geotagged one). Full cross-slice regression (13 specs / 81 tests)
+  green on `desktop-chromium`.
+
+**Scoped down / deferred (real, logged):**
+- **Pin clustering** — the doc mentions it for dense sites; this session's
+  fixture (and realistically most single sessions) has too few geotagged
+  captures to need it yet; deferred until density warrants it.
+- **Deliverables map chapter** (pins for every included finding in the
+  share-link container) — depends on the chapters/container model that
+  doesn't exist until B1 lands; genuinely blocked, not skipped.
+- **Panorama footprint rendering** (bounding-box pin instead of a dot) —
+  literally impossible before PAN (roster #15, next) produces a panorama
+  row with a footprint to read.
+- **Google satellite tile seam** — doc explicitly says "leave a provider
+  seam... later," not build now; the `TileLayer url` prop is already the
+  seam (swap the URL/add a toggle when Brian supplies a key).
+Roster item #14 (MAP-1 Location layer) is closed as delivered. Proceeding
+to #15 (PAN Panorama) per the frozen roster.
