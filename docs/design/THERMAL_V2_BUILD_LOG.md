@@ -1517,3 +1517,70 @@ Roster item #15 (PAN Panorama) is closed as delivered. Proceeding to #16
 (W4 walkthrough + fix pass) per the frozen roster — the FINAL buildable
 item; #17 (S9, the live swap) remains explicitly HELD per every prior
 addendum and will NOT be executed.
+
+## Slice 16 — W4 walkthrough + fix pass (2026-07-11)
+
+**The frozen G4 roster's final buildable item.** Rather than new features,
+this slice is verification: a full-suite regression run, a live five-tab
+walkthrough for dead clicks/scroll, and a final guard sweep across
+everything the whole build touched.
+
+- **Full e2e regression, one shot:** `playwright test e2e/thermal-v2-*.spec.ts`
+  (all 15 spec files together, not run individually slice-by-slice as
+  during development) — **84/84 passed** on `desktop-chromium`. No new
+  failures from running the full set together (confirms no cross-spec
+  state leakage across the whole build).
+- **Live five-tab walkthrough** (preview tools, not e2e): loaded
+  `/preview/thermal-v2`, clicked through Library → Analyze → AI Review →
+  Report → Deliver in one continuous session and confirmed zero page
+  scroll on every tab (`scrollHeight === clientHeight` at each), zero
+  console errors accumulated across the whole walkthrough, and — since
+  this build's later slices (S6.6, S8-M, MAP-1, PAN) each individually
+  extended earlier ones (Analyze, Deliver, Library) — specifically
+  re-exercised the COMBINATIONS a slice-by-slice test run can't catch:
+  Analyze's chat toggle opens/closes cleanly after switching tabs away and
+  back; Deliver's Motion → Timelapse Builder full-canvas takeover still
+  opens/closes cleanly after the same tab-switching. No dead clicks, no
+  broken combined state found.
+- **Final guard sweep:** `guard:architecture` — PASS (no forbidden import-
+  direction or auth-pattern violations anywhere this build touched).
+  `guard:design` — same 3 pre-existing failures as every prior slice
+  check this whole build (`app/preview/twin-screens/page.tsx`,
+  `app/preview/capture-shell/page.tsx`, a stale allow-list entry),
+  reconfirmed via `git status` as untouched by ANY thermal-v2 work across
+  all 16 slices — zero new amber/hex violations introduced by this build.
+  `guard:file-size-regression` — zero thermal-v2 files ever appeared in
+  its failure list at any slice; the "new files over threshold" it
+  reports throughout this build's history is a separate, concurrent Twin
+  360 session's uncommitted work (`components/digital-twin/**` etc.),
+  confirmed via `git status` at every check.
+- **Dead-stub sweep:** grepped every new lib/component file from slices
+  8–15 (fusion, chat, export, motion, map, panorama) for
+  TODO/stub/"coming soon"/"not implemented" — none found; every shipped
+  button in this build calls a real, wired handler (verified per-slice via
+  the preview-tools manual pass before its e2e was written).
+
+**Roster status: ALL 16 buildable items (Addendum G4) are now shipped and
+closed.** Full slice list: #1 R1 reliability → #2 L1+W3 layout → #3 W1
+workflow → #4 S6 AI Review → #5 S7 Reports → #6 TS-SD/TS-PROJ → #7 S7.5
+Deliver → #8 S5.6 Analyze pack → #9 W2+CAM-1 → #10 S6.5 Compare+fusion →
+#11 S8.5 Export engine → #12 S6.6 Analyst chat → #13 S8-M Motion → #14
+MAP-1 Location layer → #15 PAN Panorama → #16 W4 walkthrough. **#17 (S9 —
+the live swap, deleting the old thermal UI) was NEVER executed**, per
+every governing addendum (G4, H6) — it is explicitly HELD until Brian
+reviews the `/preview/thermal-v2` build on prod and approves the swap.
+Every slice's scope cuts are logged above in their own entries (not
+repeated here) — the honest running list spans: voice-note playback
+(F1.1), per-brand golden camera fixtures, PiP/edge-overlay fusion modes,
+cross-image spot trend, fusion watermark/batch-rename/recipes, drag-drop
+AI-chat grounding + SSE streaming, region-trend chart + Video Trim crop,
+panorama tile-pyramid/contour/difference-lens/seam-blending, deliverables
+map chapter, and the standalone mobile app (A0–A6, a separate future
+project per Addendum E9). None of these were silently dropped — each is
+named, reasoned about, and left for a deliberate future session.
+
+**This build session is now complete pending Brian's review.** Next
+action is his: inspect the pushed `/preview/thermal-v2` build on prod,
+and — only when he approves — a future session executes S9 (delete the
+old `components/ops/thermal/**` UI, swap the route, per doc's own
+explicit gate).
