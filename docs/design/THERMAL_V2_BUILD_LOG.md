@@ -105,7 +105,89 @@ memory `slate360-thermal-studio-v2-rebuild.md` (shipped-state summary).
 - None. Every G1 acceptance item shipped. The one open item is the manual/
   authenticated HTTP round-trip note above — not a skip, a scoping note.
 
-**Not started yet:** Slices #4–#16 of the frozen roster.
+**Not started yet:** Slices #5–#16 of the frozen roster.
+
+---
+
+## Slice 4 — S6 AI Review tab (2026-07-10)
+
+G4 lists this as two named pushes ("run+queue / review UI", H6). Both landed
+in the same working session and are gated + committed together — treated as
+one verified checkpoint rather than an artificial split of code that was
+built as one piece.
+
+**Shipped:**
+- **Run + queue.** AI Review's "Run AI on N" reuses R1's `/sessions/[id]/interpret`
+  route (job row, dedupe, accept-then-processing, Realtime progress — all
+  already built; no new dispatch infrastructure needed). Scope-aware: N =
+  captures in the current Scope pill selection that already have detected
+  anomalies (statistical `analyze` must run first, same as before).
+- **findings_review persistence.** Capture PATCH route gained an additive
+  `findings_review: {accepted, dismissed, edits}` field (per-anomaly-index),
+  mirroring the `spots`/`tuning` pattern. New `useFindingsReview` hook seeds
+  from it and autosaves through `patchCaptureWithStatus` (R1's visible-save-
+  failure path, reused for free).
+- **Triage queue UI.** Real `AiReviewList` (left): severity-sorted (Critical
+  → Warning → Advisory, universal words per §1b.4c — never amber, never
+  trade-specific), filterable. New `severity-labels.ts` maps the raw
+  `action`/`watch`/`info` values consistently across the list, chips, and
+  filter — the preview fixture's anomaly data was updated from placeholder
+  `"critical"`/`"advisory"` strings (which don't match the real
+  `ThermalAnomalyType`) to real values so the filter is actually exercised.
+- **Read-only viewer with numbered boxes.** New `AiReviewViewer` — a
+  deliberately lighter build than `AnalyzeCanvas`/`useCanvasStage` (no
+  measurement tools needed for reviewing AI proposals): fetches the grid,
+  renders it with `renderHeatmap`, overlays numbered severity-colored boxes
+  from `anomaly.bbox`; click a box or its matching card to highlight both.
+- **Finding cards: Accept ✓ / Edit ✎ / Dismiss ✕.** New `AiReviewFindingCard`
+  + `AiReviewFindings` container — AI-drafted `observation` text is editable
+  inline; dismissed findings collapse into a "Dismissed (N)" group with a
+  Restore action (nothing is unrecoverable, per doc §0.1); "Accept all
+  severe" bulk action when more than one Critical finding exists.
+- **S6-CR credit metering — code ships, flag OFF (Addendum H3/B4).** New
+  `lib/thermal/ai-credits.ts` (`THERMAL_AI_METERING_ENABLED`, default false;
+  `THERMAL_AI_CREDITS_PER_IMAGE`). Pre-flight balance check added to the
+  interpret route (402-shaped `insufficient_credits` response when the flag
+  is on); idempotent debit added to the interpret callback via the existing
+  `lib/credits/idempotency.ts` (twin precedent, not a forbidden zone),
+  keyed `${orgId}:thermal-ai:${jobId}` so a retried/duplicate callback can
+  never double-charge. Both paths are no-ops today since the flag is off —
+  Brian's own use stays unmetered; the worker's per-org USD ledger remains
+  the real cost backstop until this flag is revisited before any non-CEO
+  exposure (S9 gate #6).
+
+**Scoping note:** the spec's "two peer verbs" framing (Addendum E2 — a
+single "Analyze | Find problems with AI (n)" pairing that implies one
+combined dispatch) was NOT built as a single auto-chaining button. Library's
+existing "Find problems with AI (N)" (statistical `analyze`, already
+shipped) and AI Review's new "Run AI on N" (VLM `interpret`, this slice)
+stay as two distinct, sequential steps rather than inventing job-chaining
+infrastructure to auto-run one after the other. This matches "AI Review: AI
+proposes, the operator decides" as a genuinely separate step, and avoids a
+nontrivial new orchestration layer for a slice that was already large.
+Revisit if a later slice needs the fully-combined verb.
+
+**Verification:**
+- Scoped typecheck: clean (fixed one real type error — the interpret route's
+  402 response needs the `ok()` helper's status-code overload, not a raw
+  `Response`, to satisfy `withThermalOpsAuth`'s handler type).
+- `guard:architecture` — PASS. `guard:design` — pre-existing failures only.
+  File sizes: all new/touched files under 300 lines (largest: `AiReviewViewer.tsx`
+  at 128, `captures/[captureId]/route.ts` at 222 after the findings_review
+  addition — still comfortably under the gate).
+- e2e: `e2e/thermal-v2-s6-ai-review.spec.ts` — 6 specs (severity-sorted list +
+  AI observation text, Accept persists via findings_review PATCH, Dismiss →
+  Dismissed group → Restore, Run AI dispatches interpret with the right scope
+  ids, severity filter narrows the list, no page scroll). One test-authoring
+  fix needed: filtering the left list doesn't auto-navigate the viewer
+  (consistent with how Library's own filters behave) — the severity-filter
+  test was asserting against the wrong panel and got corrected to check the
+  list's own contents.
+- Full 4-spec regression (R1 + L1+W3 + W1 + S6, 21 specs) run together to
+  confirm no cross-slice regressions before push.
+- Un-mocked persistence: `findings_review` reuses the same real PATCH route
+  R1/W1 already exercise against the real DB shape; no new migration needed
+  (metadata is jsonb).
 
 ---
 

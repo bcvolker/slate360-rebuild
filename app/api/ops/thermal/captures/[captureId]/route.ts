@@ -40,6 +40,11 @@ type AlignmentPayload = {
   scene_id?: string | null;
   transform?: unknown;
 };
+type FindingsReviewPayload = {
+  accepted?: string[];
+  dismissed?: string[];
+  edits?: Record<string, string>;
+};
 type CapturePatchBody = {
   spots?: SpotPayload[];
   tuning?: TuningPayload;
@@ -51,6 +56,8 @@ type CapturePatchBody = {
   palette?: string;
   /** Twin-overlay alignment hook (schema only for now — see roadmap). */
   alignment?: AlignmentPayload | null;
+  /** S6 AI Review: per-anomaly-index Accept/Dismiss/Edit state (additive). */
+  findings_review?: FindingsReviewPayload;
 };
 
 const CURATION_KEYS = [
@@ -60,6 +67,7 @@ const CURATION_KEYS = [
   "visual_pair_id",
   "palette",
   "alignment",
+  "findings_review",
 ] as const;
 
 /**
@@ -186,6 +194,22 @@ export const PATCH = (req: NextRequest, { params }: Params) =>
               transform: body.alignment.transform ?? null,
             }
           : null;
+    }
+    if (body.findings_review && typeof body.findings_review === "object") {
+      const fr = body.findings_review;
+      metadata.findings_review = {
+        accepted: Array.isArray(fr.accepted) ? fr.accepted.filter((v) => typeof v === "string").slice(0, 500) : [],
+        dismissed: Array.isArray(fr.dismissed) ? fr.dismissed.filter((v) => typeof v === "string").slice(0, 500) : [],
+        edits:
+          fr.edits && typeof fr.edits === "object"
+            ? Object.fromEntries(
+                Object.entries(fr.edits)
+                  .filter(([, v]) => typeof v === "string")
+                  .slice(0, 500)
+                  .map(([k, v]) => [k, String(v).slice(0, 2000)]),
+              )
+            : {},
+      };
     }
 
     const { error: updateError } = await admin

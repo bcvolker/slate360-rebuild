@@ -18,14 +18,16 @@ const CAPTURES: ThermalV2Capture[] = [
       compass: "0° N",
       captured_at: "2026-06-22 18:04",
     },
-    anomalies: [{ severity: "critical", delta_c: 14 }],
+    anomalies: [
+      { id: "an-1", type: "hot_spot", severity: "action", temp_c: 42, delta_c: 14, bbox: { x: 80, y: 60, w: 60, h: 40 }, observation: "Localized heating consistent with electrical resistance or friction." },
+    ],
   },
   {
     id: "b",
     filename: "roof-nw-02.jpeg",
     qualityMetrics: { is_radiometric: true, sensor_model: "HIKMICRO Pocket2" },
     metadata: { in_report: true },
-    anomalies: [{ severity: "advisory", delta_c: 3 }],
+    anomalies: [{ id: "an-2", type: "cold_bridge", severity: "info", temp_c: 12, delta_c: 3, bbox: { x: 20, y: 20, w: 40, h: 30 } }],
   },
   { id: "c", filename: "panel-east-01.jpeg", qualityMetrics: { is_radiometric: false, sensor_model: "FLIR E8" } },
   { id: "d", filename: "panel-east-02.jpeg", qualityMetrics: { is_radiometric: true, sensor_model: "FLIR E8" } },

@@ -2,6 +2,8 @@ import { NextRequest } from "next/server";
 import { unauthorized, badRequest, serverError } from "@/lib/server/api-response";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { verifyWorkerSignature } from "@/lib/twin/worker-signature";
+import { deductCredits } from "@/lib/credits/idempotency";
+import { THERMAL_AI_CREDITS_PER_IMAGE, THERMAL_AI_METERING_ENABLED } from "@/lib/thermal/ai-credits";
 
 export const runtime = "nodejs";
 
@@ -109,7 +111,7 @@ export async function POST(req: NextRequest) {
     // and Realtime subscription reflect completion/failure like every other job.
     const { data: job } = await admin
       .from("thermal_processing_jobs")
-      .select("id, input_capture_ids")
+      .select("id, org_id, input_capture_ids")
       .eq("session_id", body.sessionId)
       .eq("job_type", "interpret")
       .in("status", ["queued", "processing"])
@@ -136,6 +138,18 @@ export async function POST(req: NextRequest) {
                 : null,
         })
         .eq("id", job.id);
+
+      // S6-CR debit (flag-gated, see ai-credits.ts): idempotency-keyed on the
+      // job id, same shared util as twin's job-callback — safe against retries.
+      if (THERMAL_AI_METERING_ENABLED && job.org_id && updated > 0 && body.status !== "failed") {
+        await deductCredits(
+          admin,
+          job.org_id,
+          updated * THERMAL_AI_CREDITS_PER_IMAGE,
+          `${job.org_id}:thermal-ai:${job.id}`,
+          "Thermal AI analysis",
+        );
+      }
     }
 
     return new Response(JSON.stringify({ ok: true, updated }), {

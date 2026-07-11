@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { createHash } from "node:crypto";
 import { withThermalOpsAuth } from "@/lib/thermal/access";
 import { ok, badRequest, notFound, serverError } from "@/lib/server/api-response";
+import { THERMAL_AI_CREDITS_PER_IMAGE, THERMAL_AI_METERING_ENABLED } from "@/lib/thermal/ai-credits";
 
 export const runtime = "nodejs";
 
@@ -59,6 +60,19 @@ export const POST = (req: NextRequest, ctx: RouteContext) =>
       .map((r) => r.id);
     if (!captureIds.length) {
       return badRequest("No captures with detected anomalies + a decoded preview to interpret");
+    }
+
+    // S6-CR credit metering (Addendum H3): code ships wired but OFF by default
+    // (CEO-only, unmetered by design — B4). When flipped on for non-CEO
+    // exposure, a session without enough credits gets a 402-shaped response
+    // the UI can turn into a "Buy credits" prompt instead of silently running.
+    if (THERMAL_AI_METERING_ENABLED) {
+      const required = captureIds.length * THERMAL_AI_CREDITS_PER_IMAGE;
+      const { data: org } = await admin.from("organizations").select("credits_balance").eq("id", orgId).maybeSingle();
+      const balance = Number(org?.credits_balance ?? 0);
+      if (balance < required) {
+        return ok({ error: "insufficient_credits", required, balance }, 402);
+      }
     }
 
     const dedupeKey = createHash("sha256")
