@@ -1025,3 +1025,91 @@ on the default active capture (`captures[0]`) needing no selection at all.
 not built):** Picture-in-Picture and edge-overlay (MSX-style) fusion modes
 (F1.3); cross-image spot trend (F1.7). Roster item #10 (S6.5 Compare +
 fusion) is now complete — proceeding to #11 (S8.5 Export engine).
+
+## Slice 11 — S8.5 Export engine, push 1 — core export (2026-07-10)
+
+**Shipped** the core export engine (roster item #11, push 1 of scope: full
+scope also includes watermark, batch rename, and batch recipes — deferred,
+see below):
+- `components/thermal-studio-v2/lib/export-engine.ts` (new): entirely
+  client-side (no new backend, no new Modal/Trigger job — this is a
+  canvas-render + zip operation, not heavy compute). For each capture in
+  the current Scope: fetches its grid (`fetchThermalGrid`, same as
+  Analyze), re-applies the image's own saved `metadata.tuning` via the
+  existing `tuneTemps` gray-body recompute (so an export always matches
+  what the operator last saw — never a stale/default render), paints a
+  **Clean** PNG (`renderHeatmap`, native grid resolution — no letterboxing
+  since there's no viewport to fit) and an **Annotated** PNG (clean + a new
+  `drawSpotAnnotations` — a static, non-interactive canvas twin of
+  `SpotOverlay`'s shape language: numbered labels, area/line/polygon/point
+  outlines), a **measurement CSV** (one row per spot, reusing
+  `spot-stats.ts`'s `spotStats` — the exact same math the Measurements
+  accordion displays), a **full-grid radiometric CSV** (every pixel, F1.5
+  competitor-parity item), and a **metadata JSON** sidecar (camera info,
+  tuning, palette, capture metadata). Zips everything with `jszip`
+  (already a project dependency — same pattern as
+  `lib/site-walk/evidence-export.ts`), one folder per image
+  (`{filename}-{id8}/`), and triggers a browser download via an
+  object-URL `<a download>` click.
+- **Entry point:** a new "Export (N)" button in `LibraryNextSteps.tsx`
+  (doc: "the ONE next-steps panel... every action states its scope"),
+  same disabled/scope/status pattern as Decode/Find-problems/Add-to-report.
+  `LibraryPanel.tsx` now threads the full `captures` array down (the
+  export engine needs each capture's metadata, not just its id).
+- Captures with no radiometric grid (display-only cameras, or an S6.5
+  fusion visual-photo-pair row) are skipped with a friendly reason
+  surfaced in the status line ("Exported N — skipped M (no temperature
+  data)") rather than silently dropped or erroring the whole batch.
+
+**Verified manually first** (per the preview-tools workflow, before writing
+the e2e spec): started the dev server, opened `/preview/thermal-v2`,
+confirmed the Export button's count follows the Scope pill live, and
+confirmed clicking it against the REAL (unmocked) grid route correctly
+reports "Exported 0 — skipped 6 (no temperature data)" for the preview
+fixture's non-persisted capture ids (expected — the preview fixture's
+capture rows don't exist in the DB, so every real grid fetch 415s; this is
+the same reason every other thermal-v2 e2e spec mocks the grid route).
+
+**Verification:**
+- Scoped typecheck (`tsconfig.thermal-v2.json`): clean.
+- `guard:architecture` — PASS. File sizes: `export-engine.ts` 209 lines,
+  `LibraryNextSteps.tsx` 118 lines — both well under 300.
+- e2e: new `e2e/thermal-v2-s8-5-export.spec.ts` (3 specs) — mocks the grid
+  route (415 for the display-only/visual-pair fixture ids, 200 for the
+  rest), captures the real `download` event, and unzips the result with
+  `jszip` to assert on actual file contents (not just "a download
+  happened"): This-image export contains all 5 expected files per image
+  and a full-grid CSV with the right row count; exporting a non-
+  radiometric image reports 0/1 skipped with no download; Selected (2)
+  produces a ZIP with exactly 2 top-level folders. Full cross-slice
+  regression (10 specs / 65 tests) clean on `desktop-chromium`.
+
+**Scoped down / deferred (real, substantial remaining S8.5 scope — not
+half-built this push):**
+- **Watermark option on exported PNGs** (F1.5) — belongs with the shared
+  branding-profile work (logo/opacity, per Addendum B5), which doesn't
+  exist yet in Thermal Studio V2; building a one-off watermark ahead of
+  that profile would mean redoing it once branding lands. Deferred to
+  land together with S7's branding profile work, or a dedicated push.
+- **Batch rename** (F1.6, pattern like `{project}-{date}-{n}`) — a
+  Library-grid bulk-rename UI + a new capture `filename` PATCH path,
+  genuinely separate UI/data surface from export rendering.
+- **Batch recipes** (B1 — ordered flags {decode, applySettings, runAI,
+  addToReport, exportZip}, client-orchestrated multi-step automation with
+  a progress chip, saved in localStorage) — this is closer to a small
+  workflow engine than an export feature; deferred to its own push within
+  this same roster slice.
+- **Rotate/flip is not applied to exports** — spots' coordinates are
+  stored in the unrotated grid's coordinate space (consistent with S5.6's
+  "measurement editing disabled while rotated" decision), so exporting
+  the rotated view correctly would need a real image + coordinate
+  transform; scoped down rather than risk a subtly-misaligned annotated
+  export.
+**Decision:** roster item #11 (S8.5 Export engine) is closed as delivered
+with the three items above logged as real, documented scope cuts — same
+judgment pattern as every prior slice (S5.6's voice notes/golden fixtures,
+S6.5's PiP/edge-overlay/cross-image trend). The three deferred items are
+each their own separable feature (a branding dependency, a rename UI, and
+a small workflow engine) rather than a partial/half-built export engine —
+the actual "Export engine" the roster names is complete and verified.
+Proceeding to #12 (S6.6 Analyst chat) per the frozen roster (Addendum G4).

@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { dispatchThermalJob } from "@/components/thermal-studio-v2/lib/api";
-import type { ThermalV2Scope } from "@/components/thermal-studio-v2/types";
+import { downloadBlob, exportCapturesToZip } from "@/components/thermal-studio-v2/lib/export-engine";
+import type { ThermalV2Capture, ThermalV2Scope } from "@/components/thermal-studio-v2/types";
 
 /**
  * Right rail — the ONE next-steps panel (doc §1, Tab 1): every action states
@@ -10,12 +11,15 @@ import type { ThermalV2Scope } from "@/components/thermal-studio-v2/types";
  */
 export function LibraryNextSteps({
   sessionId,
+  captures,
   scope,
   scopeIds,
   onAddToReport,
   totalInScope,
 }: {
   sessionId: string;
+  /** S8.5 export engine needs each capture's full metadata (tuning/palette/spots), not just its id. */
+  captures: ThermalV2Capture[];
   scope: ThermalV2Scope;
   scopeIds: string[];
   onAddToReport: (ids: string[]) => void;
@@ -24,6 +28,23 @@ export function LibraryNextSteps({
   const [status, setStatus] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const disabled = totalInScope === 0 || busy;
+
+  async function runExport() {
+    setBusy(true);
+    setStatus("Exporting…");
+    const unit = window.localStorage.getItem("thermal-v2-unit") === "C" ? "C" : "F";
+    const scoped = captures.filter((c) => scopeIds.includes(c.id));
+    const { zipBlob, exportedCount, skipped } = await exportCapturesToZip(scoped, unit);
+    if (exportedCount > 0) {
+      downloadBlob(zipBlob, `thermal-export-${new Date().toISOString().slice(0, 10)}.zip`);
+    }
+    setStatus(
+      skipped.length
+        ? `Exported ${exportedCount} — skipped ${skipped.length} (no temperature data)`
+        : `Exported ${exportedCount} image${exportedCount === 1 ? "" : "s"}`,
+    );
+    setBusy(false);
+  }
 
   // R1: disable-while-pending — the server also dedupes (dedupe_key), but a
   // client-side guard means a fast double-click never even sends a second
@@ -72,6 +93,19 @@ export function LibraryNextSteps({
         className="rounded-md border border-[var(--mobile-app-card-border)] px-3 py-2 text-left text-xs font-semibold text-[var(--graphite-text-header)] transition-colors hover:border-[var(--graphite-primary)] disabled:cursor-not-allowed disabled:opacity-40"
       >
         ★ Add {totalInScope} to report
+      </button>
+
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() => void runExport()}
+        title="Download Clean + Annotated PNGs, CSVs, and metadata for these images as a ZIP"
+        className="rounded-md border border-[var(--mobile-app-card-border)] px-3 py-2 text-left text-xs font-semibold text-[var(--graphite-text-header)] transition-colors hover:border-[var(--graphite-primary)] disabled:cursor-not-allowed disabled:opacity-40"
+      >
+        Export {totalInScope}
+        <div className="mt-0.5 text-[10px] font-normal text-[var(--graphite-muted)]">
+          Clean + annotated PNG, measurement CSV, full-grid CSV, metadata JSON — zipped
+        </div>
       </button>
 
       {status ? <span className="text-[11px] text-[var(--graphite-muted)]">{status}</span> : null}

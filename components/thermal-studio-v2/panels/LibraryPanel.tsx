@@ -85,6 +85,7 @@ export function LibraryPanel({
           content: (
             <LibraryNextSteps
               sessionId={sessionId}
+              captures={captures}
               scope={scope}
               scopeIds={scopeIds}
               totalInScope={scopeIds.length}
