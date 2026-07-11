@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { dispatchThermalJob } from "@/components/thermal-studio-v2/lib/api";
 import { downloadBlob, exportCapturesToZip } from "@/components/thermal-studio-v2/lib/export-engine";
+import { dispatchPanoramaStitch } from "@/components/thermal-studio-v2/lib/panorama-api";
 import type { ThermalV2Capture, ThermalV2Scope } from "@/components/thermal-studio-v2/types";
 
 /**
@@ -57,6 +58,20 @@ export function LibraryNextSteps({
     setBusy(false);
   }
 
+  async function runPanorama() {
+    setBusy(true);
+    setStatus("Stitching…");
+    const result = await dispatchPanoramaStitch(sessionId, scopeIds);
+    setStatus(
+      "error" in result
+        ? result.error
+        : result.dispatched
+          ? "Stitching in the cloud — the panorama will appear in Library when ready."
+          : "Saved — will stitch once the cloud worker is enabled for this environment.",
+    );
+    setBusy(false);
+  }
+
   return (
     <div className="flex h-full flex-col gap-3">
       <button
@@ -107,6 +122,21 @@ export function LibraryNextSteps({
           Clean + annotated PNG, measurement CSV, full-grid CSV, metadata JSON — zipped
         </div>
       </button>
+
+      {totalInScope >= 2 ? (
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => void runPanorama()}
+          title="Register and blend these images into one wider panorama you can measure and export like any image"
+          className="rounded-md border border-[var(--mobile-app-card-border)] px-3 py-2 text-left text-xs font-semibold text-[var(--graphite-text-header)] transition-colors hover:border-[var(--graphite-primary)] disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          Stitch panorama ({totalInScope})
+          <div className="mt-0.5 text-[10px] font-normal text-[var(--graphite-muted)]">
+            Blends these images into one wider capture, in temperature space
+          </div>
+        </button>
+      ) : null}
 
       {status ? <span className="text-[11px] text-[var(--graphite-muted)]">{status}</span> : null}
 

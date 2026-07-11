@@ -1380,3 +1380,140 @@ mini-map rendered inline in Notes & photo data — all before writing e2e.
   seam (swap the URL/add a toggle when Brian supplies a key).
 Roster item #14 (MAP-1 Location layer) is closed as delivered. Proceeding
 to #15 (PAN Panorama) per the frozen roster.
+
+## Slice 15 — PAN Panorama (2026-07-11)
+
+**Shipped** panorama stitching (doc's headline PAN contract) — the first
+roster item this build required genuinely NEW backend (a Modal CV function
++ a novel new-capture-row insert pattern), not a UI-only port:
+- **New Modal function** `stitch_panorama_job` (`workers/modal/thermal-analysis/panorama.py`
+  + `worker.py`'s `panorama_endpoint`, label `panorama` — async spawn+
+  callback, same shape as `interpret`; deployed): registers N thermal
+  grids via OpenCV ORB feature matching + RANSAC homography (sequential
+  pairwise: frame i registers against frame i−1, homographies chain into
+  frame 0's coordinate system), warps every frame into one canvas via
+  `cv2.warpPerspective`, and blends overlaps by simple coverage-weighted
+  averaging (NOT the doc's fancier seam-confidence mask — logged scope
+  simplification). Output is the SAME `temperatures` NPZ format
+  (`np.savez_compressed(..., temperatures=stitched)`, shape (height,width))
+  every other capture already uses, plus a rendered preview JPEG
+  (`extract.py`'s existing `false_color_preview`, reused as-is) — so the
+  result is just another radiometric capture the EXISTING grid route /
+  Analyze viewer / measurements / tuning / S8.5 export all read unchanged,
+  no new viewer built.
+- **A real algorithmic bug found + fixed via a local smoke test, before
+  ever deploying to Modal:** ORB+RANSAC on a synthetic two-frame test
+  produced a "successful" (non-null) homography with 0.58×/0.84× scale and
+  real shear — numerically valid but clearly wrong for what should be a
+  near-pure horizontal translation — which, once chained and used to size
+  the output canvas, nearly DOUBLED the stitched result's height (200→354px
+  for a scene that should stay ~200px tall). Root-caused by running
+  `stitch_panorama_grids()` directly in a local Python shell (opencv-python
+  is installed on this machine) against synthetic overlapping frames with
+  distinctive random-blob texture, BEFORE writing any e2e or deploying —
+  printing the intermediate per-pair homography matrices directly showed
+  the bad fit. Fixed by adding `_is_plausible_homography()` (rejects a
+  homography whose 2×2 linear block's singular values deviate from 1.0 by
+  more than ~35%, or whose perspective terms are non-negligible) plus a
+  minimum-inlier-count check on the RANSAC match set, falling back to a
+  translation-only guess otherwise — re-ran the same synthetic tests after
+  the fix and confirmed height stayed ~200px (ratio 1.0–1.005) across
+  three- and two-frame cases, plus verified the 1-frame passthrough and
+  no-NaN-output edge cases. This same fragility (thermal imagery has far
+  less corner-rich texture than visible-light photos for ORB to key on)
+  is exactly why the doc gates panorama registration on "paired-visual/
+  gradient features" as a future refinement — logged, not attempted this
+  push (see scope cuts below).
+- **New API routes:** `sessions/[sessionId]/panorama/route.ts` (dispatch —
+  validates ≥2 selected images have decoded NPZ data, derives the Modal
+  endpoint URL from `MODAL_THERMAL_ENDPOINT` by string-replacing the label
+  — same trick `timelapse/route.ts` already uses, so **no new Vercel env
+  var and no Trigger involvement**, consistent with S6.6/S8-M's direct-
+  to-Modal pattern) and `panorama/callback/route.ts` (HMAC-verified worker
+  callback, same `verifyWorkerSignature` + `GPU_WORKER_SECRET_KEY` every
+  other callback uses). Both track the request in the session's existing
+  generic `metadata.panorama_requests` array — the SAME lightweight
+  pattern `motion_requests` (S8-M) already established, not a
+  `thermal_processing_jobs` row (that table's `job_type` is DDL-gated,
+  per the R1 doc note).
+- **New capture-row insert (a genuinely new pattern for this codebase):**
+  every prior job callback only `.update()`s an EXISTING `thermal_captures`
+  row by id; the panorama callback `.insert()`s a brand-new row (the
+  stitched result), using the rendered preview JPEG as BOTH `storage_path`
+  and `preview_path` (the panorama's "original file" legitimately IS its
+  own rendered composite — not a workaround, since `storage_path` is
+  NOT NULL and every real capture needs a viewable file regardless).
+  Flagged `metadata.panorama: true` + `metadata.source_capture_ids` (doc:
+  "one NPZ + capture row flagged panorama:true").
+- **UI:** "Stitch panorama (N)" in `LibraryNextSteps.tsx` (same scope-
+  reading pattern as Decode/Find-problems/Export), gated on
+  `totalInScope >= 2` since a 1-image "panorama" is meaningless; a small
+  "PAN" badge in `LibraryGrid.tsx` next to the existing paired-visual dot
+  for `metadata.panorama` captures.
+
+**Verified manually first** (preview tools, before e2e): confirmed
+"Stitch panorama (6)" appears only once Scope is switched to "All", and
+that clicking it dispatches the full scoped capture-id set with the
+correct status message — using a mocked `window.fetch` since the preview
+fixture's capture ids aren't real DB rows (same reason every other slice
+mocks the grid/job routes).
+
+**Verification:**
+- Scoped typecheck (`tsconfig.thermal-v2.json`, now including both new
+  routes): clean.
+- `guard:architecture` — PASS. File sizes: all new/touched files well
+  under 300 (`panorama-api.ts` 18, `LibraryNextSteps.tsx` 148,
+  `LibraryGrid.tsx` 179, dispatch route 86, callback route 105,
+  `panorama.py` 126 — Python isn't gated by this JS guard but stayed
+  reasonable regardless).
+- **Modal deployed twice this push** — once after the initial
+  implementation (confirmed no syntax/import errors), then again after the
+  homography-plausibility fix (confirmed the bug fix shipped, not just
+  validated locally). Both deploys succeeded (`slate360-thermal-analysis`,
+  endpoint `https://bcvolker--panorama.modal.run`).
+- e2e: new `e2e/thermal-v2-pan-panorama.spec.ts` (3 specs) — button hidden
+  below 2-in-scope, appears and dispatches the correct capture-id set at
+  6-in-scope, and a "not dispatched" response surfaces the fallback
+  message instead of crashing. Full cross-slice regression (14 specs / 84
+  tests) green on `desktop-chromium`.
+- **Deliberately NOT e2e-tested:** the "PAN" Library-grid badge itself.
+  Testing it properly needs a fixture capture with `metadata.panorama:
+  true`, which — per this session's S6.5-push-2 experience adding just
+  ONE extra fixture capture (`vis-1`) — ripples ~4 unrelated hardcoded
+  "N captures" assertions across other spec files. Given the badge is a
+  single conditional `<span>` (identical pattern to the adjacent, already-
+  tested `paired` dot), the ripple cost wasn't judged worth it for this
+  push; it's exercised for real the first time Brian actually stitches a
+  panorama in production.
+
+**Scoped down / deferred (real, substantial, logged):**
+- **Tile pyramid + tiled radiometric hover** (B2 — 256px JPEG tiles at
+  3–5 zoom levels, 256×256 float16 grid chunks for kilobyte-sized hover
+  fetches on 10k+ px panoramas) — a real, separate scale-optimization
+  layer; premature until a panorama actually produced this large (this
+  push's stitched output is capped at `MAX_CANVAS_DIM = 8000` and served
+  as one NPZ fetch via the existing grid route, same as any capture).
+- **Contour/trend callouts on panorama anomalies** (B2, amends `analyze.py`)
+  — an AI-worker feature orthogonal to stitching; not attempted.
+- **Difference lens** (B3) — needs TWO SESSIONS (before/after), a
+  materially bigger feature than anything else in this push; deferred.
+- **Panorama footprint on the MAP-1 map** (bounding-box pin instead of a
+  dot) — the panorama row's stored GPS (inherited/averaged from source
+  frames) would render as a normal dot today via MAP-1's existing pin
+  logic; a proper bounding-box footprint render is a small follow-up, not
+  attempted this push.
+- **Multi-band/seam-confidence blending** (doc's exact phrasing) — this
+  push uses simple coverage-weighted averaging; visible seams are possible
+  on frames with strong local contrast at the boundary. A real, separate
+  algorithmic upgrade.
+- **Non-sequential/graph-based registration** ("paired-visual/gradient
+  features" per doc) — this push assumes roughly sequential input order
+  (operator's selection order) and registers each frame only against its
+  immediate predecessor; out-of-order or wide-baseline captures aren't
+  handled. The plausibility guard (above) means a bad registration falls
+  back to a translation guess rather than corrupting the canvas, but
+  doesn't recover the CORRECT registration in that case.
+Roster item #15 (PAN Panorama) is closed as delivered. Proceeding to #16
+(W4 walkthrough + fix pass) per the frozen roster — the FINAL buildable
+item; #17 (S9, the live swap) remains explicitly HELD per every prior
+addendum and will NOT be executed.

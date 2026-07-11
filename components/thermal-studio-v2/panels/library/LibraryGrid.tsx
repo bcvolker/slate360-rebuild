@@ -100,6 +100,7 @@ export function LibraryGrid({
             ? "radiometric"
             : "display-only";
         const paired = Boolean((c.metadata as Record<string, unknown> | null)?.visual_pair_id);
+        const panorama = Boolean((c.metadata as Record<string, unknown> | null)?.panorama);
         const flagged = isHighDelta(c);
         const inReport = reportIds.has(c.id) || isInReport(c);
         return (
@@ -140,9 +141,16 @@ export function LibraryGrid({
               >
                 {decodeState === "radiometric" ? "✓" : decodeState === "display-only" ? "◐" : "…"}
               </span>
-              {paired ? (
-                <span title="Has a paired visual photo" className="h-1.5 w-1.5 rounded-full bg-sky-400" />
-              ) : null}
+              <div className="flex items-center gap-1">
+                {panorama ? (
+                  <span title="Stitched panorama" className="rounded bg-black/50 px-1 text-[9px] font-bold text-[var(--graphite-primary)]">
+                    PAN
+                  </span>
+                ) : null}
+                {paired ? (
+                  <span title="Has a paired visual photo" className="h-1.5 w-1.5 rounded-full bg-sky-400" />
+                ) : null}
+              </div>
             </div>
             <div className="absolute inset-x-0 bottom-0 flex items-center justify-between p-1">
               {findingCount > 0 ? (

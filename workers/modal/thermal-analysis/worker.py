@@ -58,7 +58,7 @@ cpu_image = (
     # Modern Modal does not auto-mount the entrypoint's directory, so the worker's
     # sibling modules must be added explicitly or `from pipeline import ...` fails
     # at container startup (ModuleNotFoundError -> crash loop).
-    .add_local_python_source("pipeline", "extract", "analyze", "report", "r2_utils", "timelapse")
+    .add_local_python_source("pipeline", "extract", "analyze", "report", "r2_utils", "timelapse", "panorama")
 )
 
 
@@ -596,3 +596,94 @@ def chat(body: dict):
         return JSONResponse({"reply": reply, "usage": {"cost_usd": round(cost, 4), "model": model}})
     except Exception as exc:  # noqa: BLE001
         return JSONResponse({"error": str(exc)[:500]}, status_code=500)
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# PAN — panorama stitching. Async job (spawn+callback, no thermal_processing_jobs
+# row — same "session-metadata-tracked request" pattern the timelapse job uses,
+# since the job_type CHECK constraint is DDL-gated per the R1 doc note).
+# ──────────────────────────────────────────────────────────────────────────────
+
+
+def post_panorama_callback(payload: dict[str, Any]) -> None:
+    site_url = os.environ["SITE_URL"].rstrip("/")
+    secret = os.environ["GPU_WORKER_SECRET_KEY"]
+    url = f"{site_url}/api/ops/thermal/panorama/callback"
+    raw_body = dumps_json(payload)
+    headers = {"Content-Type": "application/json", "x-worker-signature": sign_callback_body(raw_body, secret)}
+    resp = requests.post(url, data=raw_body, headers=headers, timeout=60)
+    if resp.status_code >= 400:
+        raise RuntimeError(f"Panorama callback rejected ({resp.status_code}): {resp.text[:1000]}")
+
+
+@app.function(image=cpu_image, cpu=4, memory=8192, timeout=MAX_DURATION_SECONDS, secrets=[worker_secret])
+def stitch_panorama_job(payload: dict[str, Any]) -> None:
+    import tempfile
+    import uuid
+
+    import numpy as np
+
+    from extract import false_color_preview
+    from panorama import stitch_panorama_grids
+    from pipeline import processed_keys
+    from r2_utils import download_object, s3_client, upload_file
+
+    session_id = str(payload["sessionId"])
+    org_id = str(payload["orgId"])
+    request_index = payload.get("requestIndex")
+    sources = payload.get("captures") or []  # [{captureId, npzDataPath, filename}]
+    new_capture_id = str(uuid.uuid4())
+
+    try:
+        s3 = s3_client()
+        bucket = os.environ["R2_BUCKET"]
+        if len(sources) < 2:
+            raise ValueError("Panorama needs at least 2 source images")
+
+        with tempfile.TemporaryDirectory() as td:
+            work_dir = Path(td)
+            temps_list = []
+            for src in sources:
+                local = work_dir / f"{src['captureId']}.npz"
+                download_object(s3, bucket, str(src["npzDataPath"]), str(local))
+                temps_list.append(np.load(local)["temperatures"].astype(np.float32))
+
+            stitched = stitch_panorama_grids(temps_list)
+
+            npz_key, preview_key, _quality_key = processed_keys(org_id, session_id, new_capture_id)
+            local_npz = work_dir / f"{new_capture_id}.npz"
+            local_preview = work_dir / f"{new_capture_id}.jpg"
+            np.savez_compressed(local_npz, temperatures=stitched)
+            false_color_preview(stitched, local_preview)
+            upload_file(s3, bucket, str(local_npz), npz_key, "application/octet-stream")
+            upload_file(s3, bucket, str(local_preview), preview_key, "image/jpeg")
+
+        filenames = [str(s.get("filename") or s["captureId"]) for s in sources]
+        post_panorama_callback({
+            "sessionId": session_id,
+            "requestIndex": request_index,
+            "status": "completed",
+            "capture": {
+                "id": new_capture_id,
+                "filename": f"panorama-{len(sources)}-frames.jpg",
+                "npzDataPath": npz_key,
+                "previewPath": preview_key,
+                "storagePath": preview_key,
+                "minC": round(float(np.min(stitched)), 2),
+                "maxC": round(float(np.max(stitched)), 2),
+                "sourceCaptureIds": [s["captureId"] for s in sources],
+                "sourceFilenames": filenames,
+            },
+        })
+    except Exception as exc:  # noqa: BLE001
+        post_panorama_callback({
+            "sessionId": session_id, "requestIndex": request_index,
+            "status": "failed", "errorLog": str(exc)[:500],
+        })
+
+
+@app.function(image=cpu_image, secrets=[worker_secret])
+@modal.fastapi_endpoint(method="POST", label="panorama")
+def panorama_endpoint(body: dict):
+    fc = stitch_panorama_job.spawn(body)
+    return JSONResponse({"accepted": True}, headers={"x-modal-run-id": fc.object_id})
