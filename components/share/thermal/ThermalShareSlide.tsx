@@ -6,6 +6,8 @@ import {
   severityMeta,
   type ThermalAnomaly,
 } from "@/lib/thermal/anomaly-describe";
+import { useShareHoverTemp } from "@/components/share/thermal/useShareHoverTemp";
+import { fmtTemp } from "@/lib/thermal/probe-palettes";
 
 type Capture = {
   id: string;
@@ -47,9 +49,10 @@ function dataRows(
 }
 
 /** One inspection image — large preview with anomaly call-outs, findings, and data. */
-export function ThermalShareSlide({ capture }: { capture: Capture }) {
+export function ThermalShareSlide({ capture, token }: { capture: Capture; token?: string }) {
   const [nat, setNat] = useState<{ w: number; h: number } | null>(null);
   const imgRef = useRef<HTMLImageElement>(null);
+  const hover = useShareHoverTemp(token, capture.id);
 
   // Cached images can already be `complete` before onLoad attaches — read dims directly.
   useEffect(() => {
@@ -75,8 +78,10 @@ export function ThermalShareSlide({ capture }: { capture: Capture }) {
             ref={imgRef}
             src={capture.previewUrl}
             alt={capture.filename ?? "Thermal capture"}
-            className="block w-full"
+            className={`block w-full ${hover.hasGrid ? "cursor-crosshair" : ""}`}
             onLoad={(e) => setNat({ w: e.currentTarget.naturalWidth, h: e.currentTarget.naturalHeight })}
+            onMouseMove={hover.onHover}
+            onMouseLeave={hover.onLeave}
           />
         ) : (
           <div className="flex aspect-[4/3] items-center justify-center text-xs text-[var(--graphite-muted)]">
@@ -109,6 +114,11 @@ export function ThermalShareSlide({ capture }: { capture: Capture }) {
               );
             })
           : null}
+        {hover.hasGrid ? (
+          <span className="pointer-events-none absolute bottom-2 left-2 rounded-md bg-black/70 px-2 py-1 text-xs font-semibold tabular-nums text-white">
+            {hover.tempC != null ? fmtTemp(hover.tempC, "F") : "Hover to read temperature"}
+          </span>
+        ) : null}
       </div>
 
       <div className="space-y-3">

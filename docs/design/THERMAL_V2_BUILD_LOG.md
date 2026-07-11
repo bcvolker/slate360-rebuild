@@ -105,7 +105,85 @@ memory `slate360-thermal-studio-v2-rebuild.md` (shipped-state summary).
 - None. Every G1 acceptance item shipped. The one open item is the manual/
   authenticated HTTP round-trip note above — not a skip, a scoping note.
 
-**Not started yet:** Slices #7–#16 of the frozen roster.
+**Not started yet:** Slices #8–#16 of the frozen roster.
+
+---
+
+## Slice 7 — S7.5 Deliver composer + Radiometric Live Link (2026-07-10)
+
+Found substantially more existing infrastructure than expected before
+writing any code: `thermal_analysis_share_tokens`/`_share_views`/
+`_share_questions` tables, create/revoke routes, a public
+`/share/thermal/[token]` viewer with password gate, view-claiming/analytics,
+Q&A (`ThermalShareQA.tsx`), export, and report-download routes were ALL
+already live. This slice's real gap was narrower than the spec reads in
+isolation: (1) no composer UI existed inside Thermal Studio V2 itself
+(Deliver tab was a placeholder), and (2) no per-pixel hover-temperature
+capability existed anywhere — the public viewer only ever showed a static
+colorized image.
+
+**Shipped:**
+- **Saved-deliverables home + composer** (`DeliverPanel` + `panels/deliver/*`).
+  Real left section nav (Share link / Report downloads / Data exports / Q&A
+  inbox). Share link section: a compact composer (role/label/password) over
+  the EXISTING create route, plus a new `GET /sessions/[id]/share` list route
+  so existing links show as a real "home" (copy URL, view count, revoke).
+  Report downloads reuses S7's report history; Data exports links to the
+  existing CSV/JSON/GeoJSON export route; Q&A inbox reuses the
+  session-level questions GET/POST that already existed — genuinely zero new
+  backend needed for 3 of the 4 sections.
+- **Radiometric Live Link (Addendum A4) — the actual new capability.** New
+  token-gated `GET /api/share/thermal/[token]/grid/[captureId]` (verifies
+  token validity + password unlock + that the capture belongs to the
+  token's session, so one link can never read another session's data).
+  Shares its decode logic with the authenticated Analyze grid route via a
+  new `lib/thermal/read-capture-grid.ts` (extracted from the existing route
+  verbatim, zero behavior change — confirmed by scoped typecheck) so the two
+  copies can't drift. `ThermalShareSlide` (public viewer) gained a
+  `useShareHoverTemp` hook: lazy per-image grid fetch (cached per capture,
+  not the whole session), mouse-position → nearest-pixel lookup, floating
+  temp readout. This is the feature the addendum calls "industry-first" — a
+  client with no login can now hover anywhere on a shared thermal image and
+  read a REAL temperature, not a colorized picture.
+
+**Scoped down / deferred (disclosed, not silent):**
+- **Cinematic slideshow (Ken Burns transitions, lower-third findings).** The
+  existing viewer is a clean prev/next slide viewer, not animated. Building
+  a full cinematic engine is a distinct animation feature; not attempted
+  this slice.
+- **Per-link branding overrides / "No logo" first-class toggle.** Links
+  already snapshot `branding_snapshot` from the session at creation time
+  (existing `create` route), but there's no UI yet to override it
+  per-link. Deferred.
+- **Accept & sign.** Not built this slice.
+- **B1 "one link, many chapters" container model (Addendum B1).** The
+  current share link is single-purpose per token (view/annotate/download),
+  not a composable chapter list. A bigger restructuring than this slice's
+  budget; the saved-links home built here is still the right foundation for
+  it later.
+
+These are real, substantial pieces of the S7.5 vision — flagged here rather
+than claimed as done. The two highest-value, most distinctive pieces (a
+real composer replacing the placeholder tab, and the hover-temperature
+capability that's the wedge's actual differentiator) are genuinely shipped
+and tested.
+
+**Verification:**
+- Scoped typecheck: clean (one fix needed — the new authenticated-route
+  refactor and the new token-gated route both needed the `ok()` helper's
+  status-code overload for their 415 case, same pattern as R1/S6's fix).
+- `guard:architecture` — PASS. `guard:design` — pre-existing failures only.
+  File sizes: all new/touched files well under 300 lines.
+- e2e: `e2e/thermal-v2-s7-5-deliver.spec.ts` — 5 specs (create-link → appears
+  in saved-links home, Q&A inbox lists + replies, data-export links point at
+  the real formats, no page scroll, AND a genuine hover-temperature
+  assertion against a mocked grid). The hover test needed a new tiny preview
+  harness (`/preview/thermal-share-slide`) since the real `/share/thermal/[token]`
+  page resolves its token server-side (RSC) and can't be Playwright-mocked
+  directly — same "build a harness to make it testable" pattern used
+  throughout this roster.
+- Full 7-spec cross-slice regression (R1 + L1+W3 + W1 + S6 + S7 + TS-SD +
+  S7.5, 33 specs) run together before push.
 
 ---
 

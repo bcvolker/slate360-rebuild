@@ -98,7 +98,7 @@ export function ThermalShareViewer({ data, token, tokenState, embed = false }: P
               </button>
             </div>
 
-            {current ? <ThermalShareSlide capture={current} /> : null}
+            {current ? <ThermalShareSlide capture={current} token={token} /> : null}
 
             {/* Thumbnail strip — click to jump */}
             <div className="mt-3 flex gap-2 overflow-x-auto rounded-xl border border-[var(--mobile-app-card-border)] p-2">

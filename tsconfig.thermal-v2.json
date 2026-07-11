@@ -9,6 +9,7 @@
     "components/studio/**/*.ts",
     "components/studio/**/*.tsx",
     "app/preview/thermal-v2/**/*.tsx",
+    "app/preview/thermal-share-slide/**/*.tsx",
     "app/(dashboard)/thermal-studio-v2/**/*.tsx",
     "lib/thermal/load-session-data.ts",
     "lib/thermal/slatedrop-bridge.ts",
@@ -36,6 +37,20 @@
     "app/api/ops/thermal/jobs/callback/route.ts",
     "app/api/ops/thermal/captures/[captureId]/route.ts",
     "app/api/ops/thermal/sessions/[sessionId]/interpret/route.ts",
-    "app/api/ops/thermal/interpret/callback/route.ts"
+    "app/api/ops/thermal/interpret/callback/route.ts",
+    "app/api/ops/thermal/captures/[captureId]/grid/route.ts",
+    "app/api/ops/thermal/sessions/[sessionId]/share/route.ts",
+    "app/api/ops/thermal/sessions/[sessionId]/questions/route.ts",
+    "app/api/ops/thermal/sessions/[sessionId]/reports/route.ts",
+    "app/api/ops/thermal/sessions/[sessionId]/export/route.ts",
+    "app/api/ops/thermal/share/create/route.ts",
+    "app/api/ops/thermal/share/revoke/route.ts",
+    "app/api/share/thermal/[token]/grid/[captureId]/route.ts",
+    "lib/thermal/read-capture-grid.ts",
+    "lib/thermal/share-token.ts",
+    "lib/thermal/share-access.ts",
+    "components/share/thermal/ThermalShareSlide.tsx",
+    "components/share/thermal/ThermalShareViewer.tsx",
+    "components/share/thermal/useShareHoverTemp.ts"
   ]
 }
