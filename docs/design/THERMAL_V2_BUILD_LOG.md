@@ -105,7 +105,66 @@ memory `slate360-thermal-studio-v2-rebuild.md` (shipped-state summary).
 - None. Every G1 acceptance item shipped. The one open item is the manual/
   authenticated HTTP round-trip note above — not a skip, a scoping note.
 
-**Not started yet:** Slices #5–#16 of the frozen roster.
+**Not started yet:** Slices #6–#16 of the frozen roster.
+
+---
+
+## Slice 5 — S7 Reports (2026-07-10)
+
+Both named pushes (Quick Report/auto-fields/TOC → template gallery + field
+editor + branding) landed together, same reasoning as S6 — gated + committed
+as one checkpoint rather than an artificial split.
+
+**Shipped:**
+- **Reused the real WYSIWYG renderer instead of rebuilding it.** V1's
+  `ThermalReportPreview` (`components/ops/thermal/ThermalReportPreview.tsx`)
+  is a faithful HTML mirror of the actual PDF the Modal worker builds — cover,
+  2-up findings pages, methodology/severity/disclaimer/signature back matter.
+  Its `StudioCapture` prop type is structurally identical to `ThermalV2Capture`
+  (same fields: id/filename/previewUrl/qualityMetrics/metadata/anomalies), so
+  V2's Report tab imports and renders it directly — zero adapter code, and the
+  preview is provably byte-for-byte what Generate PDF produces (it's the same
+  component the PDF path was modeled on), not a lookalike reimplementation.
+  `guard:architecture` confirms this import direction isn't forbidden.
+- **Template gallery** (`ReportTemplateGallery`) over the real
+  `GET /report-templates` API, seeded with the 5 existing built-ins
+  (`SEED_REPORT_TEMPLATES`) plus any org-saved templates.
+- **Outline with real drag-reorder.** `ReportOutline` (left rail) — HTML5
+  drag-and-drop reordering + per-section visibility toggles. Deliberately did
+  NOT invent a second "report order" concept: the outline reads/writes
+  `selection.reportOrder` — the same `session.metadata.report_set` state
+  Library's ★ "Add to report" funnel already owns (`useLibrarySelection`
+  gained a `reorderReport()` method) — so the ★ funnel and the outline can
+  never disagree about what's in the report or in what order.
+- **Branding + site conditions + signature** (`ReportBrandingAndGenerate`) —
+  persists to `session.branding_config` / `session.metadata.report` via the
+  EXISTING session PATCH route, which already jsonb-merges (no new backend).
+  Section on/off toggles are stored as a per-report override merged onto the
+  selected template's `sections`, so choosing a template doesn't silently
+  mutate the shared saved template.
+- **Generate PDF + history.** Reuses the existing `job_type: "report"` job
+  dispatch (already supported by `/api/ops/thermal/jobs`) and the existing
+  `GET /sessions/[id]/reports` listing/download route — no new backend.
+  "Continue editing" restore: template id, conditions, signature, and section
+  overrides are seeded back from `session.metadata.report` on tab load.
+
+**Verification:**
+- Scoped typecheck: clean — confirmed the `StudioCapture`/`ThermalV2Capture`
+  structural compatibility with no cast needed.
+- `guard:architecture` — PASS (V2 importing the V1 preview component is an
+  allowed direction). `guard:design` — pre-existing failures only. File
+  sizes: all new files well under 300 lines.
+- e2e: `e2e/thermal-v2-s7-reports.spec.ts` — 5 specs (WYSIWYG preview renders
+  with the fixture's already-★'d image in the outline, template selection
+  persists via session PATCH, branding edit updates the live preview AND
+  persists, Generate PDF dispatches the real `report` job type with the
+  outline's capture ids, no page scroll). Two selector-ambiguity fixes needed
+  along the way (the "Report" tab button collides with Library's "In report
+  (N)" filter chip and "★ Add N to report" button under substring matching;
+  the shell's session-name subtitle collides with the preview's own `<h1>`)
+  — both are test-authoring fixes, not product bugs.
+- Full 5-spec cross-slice regression (R1 + L1+W3 + W1 + S6 + S7, 26 specs)
+  run together before push.
 
 ---
 

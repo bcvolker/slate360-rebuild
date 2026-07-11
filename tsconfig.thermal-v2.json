@@ -24,6 +24,8 @@
     "components/site-walk/canvas/useUndoRedo.ts",
     "components/ops/thermal/ThermalProbeViewer.tsx",
     "components/ops/thermal/ThermalStudioWorkView.tsx",
+    "components/ops/thermal/ThermalReportPreview.tsx",
+    "lib/thermal/report-templates.ts",
     "hooks/useThermalJobRealtime.ts",
     "app/api/ops/thermal/jobs/route.ts",
     "app/api/ops/thermal/jobs/reconcile/route.ts",

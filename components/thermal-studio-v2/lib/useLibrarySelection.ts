@@ -58,13 +58,24 @@ export function useLibrarySelection(sessionId: string, captures: ThermalV2Captur
     [sessionId],
   );
 
+  /** S7 Report outline drag-reorder — same session.metadata.report_set the ★ funnel writes to. */
+  const reorderReport = useCallback(
+    (next: string[]) => {
+      setReportOrder(next);
+      void persistReportSet(sessionId, next);
+    },
+    [sessionId],
+  );
+
   return {
     selectedIds,
     focusedId,
     reportIds,
+    reportOrder,
     click,
     selectAll,
     clearSelection,
     addToReport,
+    reorderReport,
   };
 }

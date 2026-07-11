@@ -176,7 +176,7 @@ export function ThermalV2Shell({
       {tab === "ai-review" ? (
         <AiReviewPanel sessionId={sessionId} captures={captures} selection={selection} scope={liveScope} />
       ) : null}
-      {tab === "report" ? <ReportPanel /> : null}
+      {tab === "report" ? <ReportPanel sessionId={sessionId} captures={captures} selection={selection} /> : null}
       {tab === "deliver" ? <DeliverPanel /> : null}
     </StudioWorkspaceShell>
   );
