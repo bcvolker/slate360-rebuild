@@ -35,6 +35,9 @@ export function AnalyzeToolbar({
   imageCount,
   onPrev,
   onNext,
+  onCopySettings,
+  onPasteSettings,
+  canPaste,
 }: {
   palette: string;
   onPaletteChange: (p: string) => void;
@@ -54,6 +57,10 @@ export function AnalyzeToolbar({
   imageCount: number;
   onPrev: () => void;
   onNext: () => void;
+  /** W1 copy/paste settings (palette, span, tuning, isotherm). */
+  onCopySettings: () => void;
+  onPasteSettings: () => void;
+  canPaste: boolean;
 }) {
   const [shapeMenuOpen, setShapeMenuOpen] = useState(false);
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
@@ -184,6 +191,25 @@ export function AnalyzeToolbar({
             className="rounded px-1.5 py-0.5 text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)] disabled:cursor-not-allowed disabled:opacity-30"
           >
             ↷
+          </button>
+        </div>
+        <div className="flex items-center gap-1 border-l border-[var(--mobile-app-card-border)] pl-2">
+          <button
+            type="button"
+            onClick={onCopySettings}
+            title="Copy this image's palette, span, tuning, and isotherm (Ctrl+Shift+C)"
+            className="rounded px-1.5 py-0.5 text-[11px] text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]"
+          >
+            ⧉ Copy
+          </button>
+          <button
+            type="button"
+            onClick={onPasteSettings}
+            disabled={!canPaste}
+            title={canPaste ? "Paste the copied look onto this scope (Ctrl+Shift+V)" : "Copy a look first"}
+            className="rounded px-1.5 py-0.5 text-[11px] text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)] disabled:cursor-not-allowed disabled:opacity-30"
+          >
+            ⧉ Paste
           </button>
         </div>
       </div>

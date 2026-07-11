@@ -1,6 +1,8 @@
 "use client";
 
+import { useRef, useState } from "react";
 import { cameraOf, isHighDelta, isInReport } from "@/lib/thermal/curation-client";
+import { uploadThermalFile } from "@/components/thermal-studio-v2/lib/api";
 import type { ThermalV2Capture } from "@/components/thermal-studio-v2/types";
 
 /**
@@ -13,19 +15,68 @@ export function LibraryGrid({
   selectedIds,
   reportIds,
   onClick,
+  onOpenInAnalyze,
+  sessionId,
+  onUploaded,
 }: {
   captures: ThermalV2Capture[];
   selectedIds: Set<string>;
   reportIds: Set<string>;
   onClick: (id: string, index: number, opts: { shift?: boolean; toggle?: boolean }) => void;
+  /** W1: double-click a thumbnail jumps straight to Analyze on that image. */
+  onOpenInAnalyze?: (id: string, index: number) => void;
+  sessionId?: string;
+  onUploaded?: () => void;
 }) {
+  const [uploading, setUploading] = useState<{ done: number; total: number } | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  async function handleFiles(files: FileList | null) {
+    if (!files?.length || !sessionId) return;
+    const list = Array.from(files);
+    setUploading({ done: 0, total: list.length });
+    for (let i = 0; i < list.length; i++) {
+      await uploadThermalFile(sessionId, list[i]);
+      setUploading({ done: i + 1, total: list.length });
+    }
+    setUploading(null);
+    onUploaded?.();
+  }
+
   if (!captures.length) {
+    // W1 "Start strip" (doc): one verb, not a wall of empty-state copy.
     return (
-      <div className="flex h-full flex-col items-center justify-center gap-1 p-6 text-center">
-        <span className="text-sm font-semibold text-[var(--graphite-text-header)]">No images yet</span>
-        <span className="text-xs text-[var(--graphite-muted)]">
-          Drag files into the left rail, or import from SlateDrop.
+      <div
+        onDragOver={(e) => e.preventDefault()}
+        onDrop={(e) => {
+          e.preventDefault();
+          void handleFiles(e.dataTransfer.files);
+        }}
+        className="flex h-full flex-col items-center justify-center gap-3 p-6 text-center"
+      >
+        <span className="text-sm font-semibold text-[var(--graphite-text-header)]">
+          Drop thermal photos to begin — radiometric data is preserved
         </span>
+        <input
+          ref={inputRef}
+          type="file"
+          accept="image/*,.tif,.tiff"
+          multiple
+          className="hidden"
+          onChange={(e) => void handleFiles(e.target.files)}
+        />
+        <button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          className="rounded-md border border-[var(--mobile-app-card-border)] px-3 py-1.5 text-xs font-semibold text-[var(--graphite-text-header)] hover:border-[var(--graphite-primary)]"
+        >
+          Choose files
+        </button>
+        {uploading ? (
+          <span className="text-[11px] text-[var(--graphite-muted)]">
+            Uploading {uploading.done}/{uploading.total}…
+          </span>
+        ) : null}
       </div>
     );
   }
@@ -43,8 +94,9 @@ export function LibraryGrid({
           <button
             key={c.id}
             type="button"
-            title={`${c.filename} — ${cameraOf(c)}`}
+            title={`${c.filename} — ${cameraOf(c)} (double-click to analyze)`}
             onClick={(e) => onClick(c.id, i, { shift: e.shiftKey, toggle: e.metaKey || e.ctrlKey })}
+            onDoubleClick={() => onOpenInAnalyze?.(c.id, i)}
             className={`group relative flex aspect-square flex-col overflow-hidden rounded-lg border text-left transition-colors ${
               selected
                 ? "border-[var(--graphite-primary)] ring-1 ring-[var(--graphite-primary)]"

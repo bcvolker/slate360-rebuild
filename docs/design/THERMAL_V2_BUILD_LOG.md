@@ -105,7 +105,73 @@ memory `slate360-thermal-studio-v2-rebuild.md` (shipped-state summary).
 - None. Every G1 acceptance item shipped. The one open item is the manual/
   authenticated HTTP round-trip note above — not a skip, a scoping note.
 
-**Not started yet:** Slices #3–#16 of the frozen roster.
+**Not started yet:** Slices #4–#16 of the frozen roster.
+
+---
+
+## Slice 3 — W1 workflow foundations (2026-07-10)
+
+**Shipped:**
+- **Double-click → Analyze.** `LibraryGrid` thumbnails gained `onDoubleClick`;
+  a new `onOpenInAnalyze` callback threads Shell → LibraryPanel → LibraryGrid,
+  and the shell's `openInAnalyze` focuses the capture + switches tabs.
+- **Drop-anywhere + Start strip.** `ThermalV2Shell` now has window-level
+  `dragover`/`drop` listeners (guarded on `dataTransfer.types.includes("Files")`)
+  that upload every dropped file via the existing `uploadThermalFile`, switch
+  to Library, and show `Uploading n/N…` in the top bar — the rail's own
+  dropzone is untouched. `LibraryGrid`'s empty state is now the one-verb
+  "Drop thermal photos to begin… + Choose files" strip (was a passive
+  "No images yet" message) with its own drop target + hidden file input.
+- **Palette persist + seed.** Palette moved OUT of `AnalyzePanel`'s local
+  `useState` and INTO `useAnalyzeImage`, seeded from
+  `capture.metadata.palette` (fallback "Iron") on every image switch, and
+  autosaved via a new `palette-api.ts` (reuses R1's `patchCaptureWithStatus`,
+  so a failed palette save gets the same visible-failure treatment for free).
+- **Copy/Paste settings.** New module-level `settings-clipboard.ts`
+  ({palette, span, tuning, isotherm}); toolbar ⧉ Copy / ⧉ Paste (Paste
+  disabled + tooltipped until something's copied); `Ctrl+Shift+C` /
+  `Ctrl+Shift+V`. "This image" scope applies all four fields locally;
+  Selected/All batch-applies the two that persist per OTHER capture (palette
+  + tuning, one PATCH per capture via new `settings-batch-api.ts`) with the
+  same Keep/Undo toast pattern as `AnalyzeTuning`'s existing batch apply.
+- **Sticky mini-summary.** New `AnalyzeMiniSummary` — `Max/Min/Avg` computed
+  with a manual min/max/sum loop (NOT `Math.max(...array)`, which would blow
+  the call stack on a 640×512 = 327,680-element grid) — sits above the
+  right-rail accordions, always visible regardless of which accordion is open.
+
+**Bug found and fixed (pre-existing, not introduced this slice):**
+`V2PanelFrame`'s center Panel had no `defaultSize` prop (relied on `flex-1`
+CSS alone). `react-resizable-panels` needs an explicit `defaultSize` on
+every panel in a group for a correct first render — confirmed via direct DOM
+measurement that the Library tab's 3-panel layout (left+center+right) was
+hydrating with the center panel at **~25px wide** (should be ~700px), pushing
+the real thumbnail grid underneath/behind the right rail so clicks landed on
+the "Next steps" panel instead. The 2-panel Analyze tab (post-L1+W3, no left
+rail) happened not to trip this. Fixed by computing `centerDefaultSize =
+100 - left% - right%` explicitly. This was very likely the root cause of the
+original double-click test failure, not a bug in the double-click wiring
+itself (confirmed by dispatching a raw native `dblclick` DOM event directly,
+which worked correctly once the layout was fixed).
+
+**Verification:**
+- Scoped typecheck: clean. `guard:architecture` — PASS. `guard:design` —
+  pre-existing failures only. File sizes: `AnalyzePanel.tsx` grew past 300
+  with the new copy/paste + summary code, so the copy/paste state machine was
+  extracted to `useSettingsClipboardActions.ts` and the summary row to
+  `AnalyzeMiniSummary.tsx`, bringing `AnalyzePanel.tsx` back to 276 lines.
+- e2e: `e2e/thermal-v2-w1-workflow.spec.ts` — 6 specs (double-click→Analyze,
+  empty-state start strip via a new `?empty=1` preview harness param,
+  drop-anywhere upload, palette seed+persist, copy→paste, sticky summary).
+  Two test-authoring fixes needed along the way: (1) the left rail's own
+  dropzone text contains "choose files" as a substring, colliding with the
+  new center-panel button under Playwright's default substring name
+  matching — scoped the assertion to the viewer panel testid; (2) palette/
+  tuning autosave is gated on `useAnalyzeImage`'s `!grid` check, so tests
+  that exercise it need the `/grid` endpoint mocked (the R1/L1+W3 specs
+  never needed this since findings-note autosave doesn't share that gate).
+- Un-mocked persistence: palette is a pre-existing PATCH field on the real
+  capture route (verified in R1's review of `captures/[captureId]/route.ts`);
+  no new server-side mutation was added this slice.
 
 ---
 

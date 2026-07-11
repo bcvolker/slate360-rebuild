@@ -38,6 +38,13 @@ export function V2PanelFrame({
   /** One-row toolbar above the center hero (e.g. Analyze's tool segmented control). */
   toolbar?: ReactNode;
 }) {
+  // react-resizable-panels needs an explicit defaultSize on every panel in a
+  // group for a correct FIRST render (a Panel left to infer its size from
+  // flex-1 alone can hydrate at a near-zero width — confirmed via DOM
+  // measurement: the Library center panel rendered ~25px wide with no
+  // defaultSize here). Compute the center's share from whichever rails exist.
+  const centerDefaultSize = 100 - (left?.defaultSize ?? (left ? 22 : 0)) - (right?.defaultSize ?? (right ? 22 : 0));
+
   const body = (
     <PanelGroup direction="horizontal" className="min-h-0 flex-1">
       {left ? (
@@ -48,6 +55,8 @@ export function V2PanelFrame({
       ) : null}
       <Panel
         order={2}
+        defaultSize={centerDefaultSize}
+        minSize={30}
         data-testid="v2-viewer-panel"
         className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-[var(--graphite-canvas-deep)]"
       >

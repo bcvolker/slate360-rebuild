@@ -16,11 +16,14 @@ export function LibraryPanel({
   captures,
   scope,
   selection,
+  onOpenInAnalyze,
 }: {
   sessionId: string;
   captures: ThermalV2Capture[];
   scope: ThermalV2Scope;
   selection: ReturnType<typeof useLibrarySelection>;
+  /** W1: double-click a thumbnail switches the shell to the Analyze tab. */
+  onOpenInAnalyze?: (id: string, index: number) => void;
 }) {
   const [filter, setFilter] = useState<ThermalV2LibraryFilter>("all");
   const [importOpen, setImportOpen] = useState(false);
@@ -63,6 +66,9 @@ export function LibraryPanel({
             selectedIds={selection.selectedIds}
             reportIds={selection.reportIds}
             onClick={selection.click}
+            onOpenInAnalyze={onOpenInAnalyze}
+            sessionId={sessionId}
+            onUploaded={() => setRefreshNote("Uploaded — refresh to see new images")}
           />
         }
         right={{

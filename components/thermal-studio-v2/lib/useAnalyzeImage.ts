@@ -7,6 +7,7 @@ import { newSpotId } from "@/lib/thermal/probe-palettes";
 import { fetchThermalGrid, type ThermalV2Grid } from "@/components/thermal-studio-v2/lib/grid-api";
 import { saveSpots } from "@/components/thermal-studio-v2/lib/spots-api";
 import { saveTuning } from "@/components/thermal-studio-v2/lib/tuning-api";
+import { savePalette } from "@/components/thermal-studio-v2/lib/palette-api";
 import type {
   ThermalV2Capture,
   ThermalV2Isotherm,
@@ -41,6 +42,9 @@ export function useAnalyzeImage(activeCapture: ThermalV2Capture | null) {
   const [spanCustomized, setSpanCustomized] = useState(false);
   const [isotherm, setIsotherm] = useState<ThermalV2Isotherm>(null);
   const [tuning, setTuning] = useState<ThermalV2Tuning>(DEFAULT_TUNING);
+  // W1: palette lives in the hook (not the panel) so it seeds from and
+  // autosaves to the capture's metadata like tuning/spots do.
+  const [palette, setPaletteState] = useState("Iron");
   const [tool, setTool] = useState<ThermalV2Tool>("move");
   const [areaShape, setAreaShape] = useState<"box" | "circle">("box");
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -64,6 +68,7 @@ export function useAnalyzeImage(activeCapture: ThermalV2Capture | null) {
     history.reset(Array.isArray(seededSpots) ? (seededSpots as ThermalV2Spot[]) : []);
     const seededTuning = meta?.tuning as ThermalV2Tuning | undefined;
     setTuning(seededTuning ?? DEFAULT_TUNING);
+    setPaletteState(typeof meta?.palette === "string" ? meta.palette : "Iron");
     if (!captureId) return;
     setLoading(true);
     let cancelled = false;
@@ -125,6 +130,10 @@ export function useAnalyzeImage(activeCapture: ThermalV2Capture | null) {
     setSpanState(next);
   }
 
+  function setPalette(next: string) {
+    setPaletteState(next);
+  }
+
   const spotSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
     if (!captureId || !grid) return;
@@ -144,6 +153,16 @@ export function useAnalyzeImage(activeCapture: ThermalV2Capture | null) {
       if (tuningSaveTimer.current) clearTimeout(tuningSaveTimer.current);
     };
   }, [tuning, captureId, grid]);
+
+  const paletteSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (!captureId || !grid) return;
+    if (paletteSaveTimer.current) clearTimeout(paletteSaveTimer.current);
+    paletteSaveTimer.current = setTimeout(() => savePalette(captureId, palette), 600);
+    return () => {
+      if (paletteSaveTimer.current) clearTimeout(paletteSaveTimer.current);
+    };
+  }, [palette, captureId, grid]);
 
   function createSpot(spot: ThermalV2Spot) {
     history.commitState([...history.state, spot]);
@@ -188,6 +207,8 @@ export function useAnalyzeImage(activeCapture: ThermalV2Capture | null) {
     error,
     span,
     setSpan,
+    palette,
+    setPalette,
     isotherm,
     setIsotherm,
     tuning,

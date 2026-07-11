@@ -1,5 +1,7 @@
 "use client";
 
+import { Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { ThermalV2Shell } from "@/components/thermal-studio-v2/ThermalV2Shell";
 import type { ThermalV2Capture } from "@/components/thermal-studio-v2/types";
 
@@ -30,7 +32,12 @@ const CAPTURES: ThermalV2Capture[] = [
   { id: "e", filename: "attic-vent-01.jpeg", qualityMetrics: { is_radiometric: true, sensor_model: "FLIR E8" } },
 ];
 
-export default function PreviewThermalV2() {
+function PreviewThermalV2Inner() {
+  // ?empty=1 swaps in zero captures — lets e2e/manual QA reach the W1 "Start
+  // strip" empty state without a real upload round trip.
+  const empty = useSearchParams().get("empty") === "1";
+  const captures = empty ? [] : CAPTURES;
+
   // Replicates the real embedding chain (dashboard shell → top bar → scroll
   // container → session header → studio shell) so page-level scroll bugs
   // reproduce here identically to production. See app/preview/thermal-studio-shell
@@ -51,10 +58,18 @@ export default function PreviewThermalV2() {
             </div>
           </header>
           <div className="min-h-0 flex-1">
-            <ThermalV2Shell sessionId="preview" sessionName="Oak Ridge Roof — Preview" captures={CAPTURES} />
+            <ThermalV2Shell sessionId="preview" sessionName="Oak Ridge Roof — Preview" captures={captures} />
           </div>
         </div>
       </div>
     </div>
+  );
+}
+
+export default function PreviewThermalV2() {
+  return (
+    <Suspense fallback={null}>
+      <PreviewThermalV2Inner />
+    </Suspense>
   );
 }

@@ -10,7 +10,10 @@ import { AnalyzeTuning } from "@/components/thermal-studio-v2/panels/analyze/Ana
 import { AnalyzeDisplay } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeDisplay";
 import { AnalyzeAccordion } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeAccordion";
 import { AnalyzeNotes } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeNotes";
+import { AnalyzeMiniSummary } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeMiniSummary";
+import { KeepUndoToast } from "@/components/thermal-studio-v2/panels/analyze/KeepUndoToast";
 import { useAnalyzeImage } from "@/components/thermal-studio-v2/lib/useAnalyzeImage";
+import { useSettingsClipboardActions } from "@/components/thermal-studio-v2/lib/useSettingsClipboardActions";
 import type { HoverInfo } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeCanvas";
 import type { useLibrarySelection } from "@/components/thermal-studio-v2/lib/useLibrarySelection";
 import type { ThermalV2Capture, ThermalV2Scope } from "@/components/thermal-studio-v2/types";
@@ -28,7 +31,6 @@ export function AnalyzePanel({
   /** L1: lets the shell's Escape-cascade clear the selected measurement before it resets Scope. */
   registerEscapeHandler?: (handler: (() => boolean) | null) => void;
 }) {
-  const [palette, setPalette] = useState("Iron");
   const [openSection, setOpenSection] = useState("Measurements");
   // °F is the product default (Brian, 2026-07-07); the choice persists per
   // browser. Init "F" then hydrate from storage in an effect (SSR-safe).
@@ -70,12 +72,24 @@ export function AnalyzePanel({
     selection.click(id, index, {});
   }
 
+  const clipboard = useSettingsClipboardActions(img, scope, scopeIds, captures);
+
   // Ctrl/Cmd+Z (undo, +Shift for redo), Ctrl/Cmd+Y (redo), Delete/Backspace removes the selected measurement.
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
       const target = e.target as HTMLElement | null;
       if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA")) return;
       const mod = e.ctrlKey || e.metaKey;
+      if (mod && e.shiftKey && e.key.toLowerCase() === "c") {
+        e.preventDefault();
+        clipboard.copySettings();
+        return;
+      }
+      if (mod && e.shiftKey && e.key.toLowerCase() === "v") {
+        e.preventDefault();
+        void clipboard.pasteSettings();
+        return;
+      }
       if (mod && e.key.toLowerCase() === "z") {
         e.preventDefault();
         if (e.shiftKey) img.redo();
@@ -105,7 +119,8 @@ export function AnalyzePanel({
     }
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [img]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [img, scope, scopeIds, clipboard]);
 
   // L1 Esc-cascade (Addendum C/W3): register "clear the selected measurement"
   // as this tab's local level of the shell's global Escape cascade — the
@@ -123,11 +138,12 @@ export function AnalyzePanel({
   }, [registerEscapeHandler, img]);
 
   return (
+    <>
     <V2PanelFrame
       toolbar={
         <AnalyzeToolbar
-          palette={palette}
-          onPaletteChange={setPalette}
+          palette={img.palette}
+          onPaletteChange={img.setPalette}
           unit={unit}
           onUnitChange={setUnit}
           hover={hover}
@@ -143,6 +159,9 @@ export function AnalyzePanel({
           imageCount={captures.length}
           onPrev={() => step(-1)}
           onNext={() => step(1)}
+          onCopySettings={clipboard.copySettings}
+          onPasteSettings={clipboard.pasteSettings}
+          canPaste={clipboard.hasClip}
         />
       }
       center={
@@ -150,7 +169,7 @@ export function AnalyzePanel({
           grid={img.grid}
           loading={img.loading}
           error={img.error}
-          palette={palette}
+          palette={img.palette}
           unit={unit}
           span={img.span}
           onSpanChange={img.setSpan}
@@ -170,7 +189,9 @@ export function AnalyzePanel({
       right={{
         title: "Details",
         content: (
-          <div className="flex h-full flex-col overflow-y-auto">
+          <div className="flex h-full flex-col overflow-hidden">
+            <AnalyzeMiniSummary temps={img.grid?.temps ?? null} unit={unit} />
+            <div className="min-h-0 flex-1 overflow-y-auto">
             <AnalyzeAccordion
               title="Measurements"
               open={openSection === "Measurements"}
@@ -227,6 +248,7 @@ export function AnalyzePanel({
             >
               <AnalyzeNotes capture={activeCapture} />
             </AnalyzeAccordion>
+            </div>
           </div>
         ),
       }}
@@ -246,5 +268,9 @@ export function AnalyzePanel({
         ),
       }}
     />
+    {clipboard.pasteToast ? (
+      <KeepUndoToast message={clipboard.pasteToast.message} onKeep={clipboard.keepPasteToast} onUndo={clipboard.undoPasteToast} />
+    ) : null}
+    </>
   );
 }

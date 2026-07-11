@@ -16,7 +16,7 @@ import { AiReviewPanel } from "@/components/thermal-studio-v2/panels/AiReviewPan
 import { ReportPanel } from "@/components/thermal-studio-v2/panels/ReportPanel";
 import { DeliverPanel } from "@/components/thermal-studio-v2/panels/DeliverPanel";
 import { useLibrarySelection } from "@/components/thermal-studio-v2/lib/useLibrarySelection";
-import { dispatchThermalJob } from "@/components/thermal-studio-v2/lib/api";
+import { dispatchThermalJob, uploadThermalFile } from "@/components/thermal-studio-v2/lib/api";
 import { hasUnsavedWork } from "@/components/thermal-studio-v2/lib/save-status";
 import type { ThermalV2Capture, ThermalV2Scope, ThermalV2Tab } from "@/components/thermal-studio-v2/types";
 
@@ -45,6 +45,7 @@ export function ThermalV2Shell({
 }) {
   const [tab, setTab] = useState<ThermalV2Tab>("library");
   const [scope, setScope] = useState<ThermalV2Scope>({ kind: "image" });
+  const [dropUpload, setDropUpload] = useState<{ done: number; total: number } | null>(null);
   const selection = useLibrarySelection(sessionId, captures);
 
   const selectedCount = selection.selectedIds.size;
@@ -72,6 +73,43 @@ export function ThermalV2Shell({
     window.addEventListener("beforeunload", guard);
     return () => window.removeEventListener("beforeunload", guard);
   }, []);
+
+  // W1 drop-anywhere: dropping files ANYWHERE in Thermal Studio imports them
+  // (not just the Library rail's own dropzone) — switches to Library and
+  // shows upload progress as a top-bar chip.
+  useEffect(() => {
+    function isFileDrag(e: DragEvent) {
+      return Boolean(e.dataTransfer?.types.includes("Files"));
+    }
+    function onDragOver(e: DragEvent) {
+      if (!isFileDrag(e)) return;
+      e.preventDefault();
+    }
+    async function onDrop(e: DragEvent) {
+      if (!isFileDrag(e)) return;
+      e.preventDefault();
+      const files = Array.from(e.dataTransfer?.files ?? []);
+      if (!files.length) return;
+      setTab("library");
+      setDropUpload({ done: 0, total: files.length });
+      for (let i = 0; i < files.length; i++) {
+        await uploadThermalFile(sessionId, files[i]);
+        setDropUpload({ done: i + 1, total: files.length });
+      }
+      setTimeout(() => setDropUpload(null), 2000);
+    }
+    window.addEventListener("dragover", onDragOver);
+    window.addEventListener("drop", onDrop);
+    return () => {
+      window.removeEventListener("dragover", onDragOver);
+      window.removeEventListener("drop", onDrop);
+    };
+  }, [sessionId]);
+
+  function openInAnalyze(id: string, index: number) {
+    selection.click(id, index, {});
+    setTab("analyze");
+  }
 
   function retryJob(jobType: string, failedCaptureIds: string[]) {
     if (!failedCaptureIds.length) return;
@@ -108,11 +146,22 @@ export function ThermalV2Shell({
           <StudioChip label="Images" value={totalCount} />
           <SavedStatusChip />
           <JobStatusChip sessionId={sessionId} onRetry={retryJob} />
+          {dropUpload ? (
+            <span className="flex items-center gap-1.5 rounded-md border border-[var(--mobile-app-card-border)] px-2 py-0.5 text-[11px] text-[var(--graphite-muted)]">
+              Uploading {dropUpload.done}/{dropUpload.total}…
+            </span>
+          ) : null}
         </>
       }
     >
       {tab === "library" ? (
-        <LibraryPanel sessionId={sessionId} captures={captures} scope={liveScope} selection={selection} />
+        <LibraryPanel
+          sessionId={sessionId}
+          captures={captures}
+          scope={liveScope}
+          selection={selection}
+          onOpenInAnalyze={openInAnalyze}
+        />
       ) : null}
       {tab === "analyze" ? (
         <AnalyzePanel
