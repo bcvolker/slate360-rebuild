@@ -6,6 +6,7 @@ import { AnalyzeCaptureStrip } from "@/components/thermal-studio-v2/panels/analy
 import { AiReviewList } from "@/components/thermal-studio-v2/panels/ai-review/AiReviewList";
 import { AiReviewViewer } from "@/components/thermal-studio-v2/panels/ai-review/AiReviewViewer";
 import { AiReviewFindings } from "@/components/thermal-studio-v2/panels/ai-review/AiReviewFindings";
+import { AnalystChatToggleRail } from "@/components/thermal-studio-v2/panels/shared/AnalystChatToggleRail";
 import { useFindingsReview } from "@/components/thermal-studio-v2/lib/useFindingsReview";
 import { dispatchInterpret } from "@/components/thermal-studio-v2/lib/interpret-api";
 import type { useLibrarySelection } from "@/components/thermal-studio-v2/lib/useLibrarySelection";
@@ -88,7 +89,16 @@ export function AiReviewPanel({
       right={{
         title: "Findings",
         content: (
-          <AiReviewFindings anomalies={anomalies} unit={unit} selectedIndex={selectedIndex} onSelectIndex={setSelectedIndex} review={review} />
+          <AnalystChatToggleRail
+            sessionId={sessionId}
+            captureId={activeId}
+            onAcceptProposal={(index, note) => {
+              review.setEdit(index, note);
+              review.accept(index);
+            }}
+          >
+            <AiReviewFindings anomalies={anomalies} unit={unit} selectedIndex={selectedIndex} onSelectIndex={setSelectedIndex} review={review} />
+          </AnalystChatToggleRail>
         ),
       }}
       bottom={{

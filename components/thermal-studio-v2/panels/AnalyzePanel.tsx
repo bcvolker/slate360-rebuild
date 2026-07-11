@@ -9,7 +9,10 @@ import { AnalyzeCompareView } from "@/components/thermal-studio-v2/panels/analyz
 import { AnalyzeToolbar } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeToolbar";
 import { AnalyzeDetailsRail } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeDetailsRail";
 import { KeepUndoToast } from "@/components/thermal-studio-v2/panels/analyze/KeepUndoToast";
+import { AnalystChatToggleRail } from "@/components/thermal-studio-v2/panels/shared/AnalystChatToggleRail";
 import { useAnalyzeImage } from "@/components/thermal-studio-v2/lib/useAnalyzeImage";
+import { useFindingsReview } from "@/components/thermal-studio-v2/lib/useFindingsReview";
+import { useUnitPreference } from "@/components/thermal-studio-v2/lib/useUnitPreference";
 import { useSettingsClipboardActions } from "@/components/thermal-studio-v2/lib/useSettingsClipboardActions";
 import { useAnalyzeKeyboardShortcuts } from "@/components/thermal-studio-v2/lib/useAnalyzeKeyboardShortcuts";
 import type { HoverInfo } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeCanvas";
@@ -18,11 +21,14 @@ import type { ThermalV2Capture, ThermalV2Scope } from "@/components/thermal-stud
 
 /** Tab 2 — Analyze (doc §1, slice S3-S5): viewer core, measurement lifecycle, tuning + display + batch. */
 export function AnalyzePanel({
+  sessionId,
   captures,
   selection,
   scope,
   registerEscapeHandler,
 }: {
+  /** S6.6 Analyst chat needs the session id — the thread persists in session metadata. */
+  sessionId: string;
   captures: ThermalV2Capture[];
   selection: ReturnType<typeof useLibrarySelection>;
   scope: ThermalV2Scope;
@@ -30,20 +36,7 @@ export function AnalyzePanel({
   registerEscapeHandler?: (handler: (() => boolean) | null) => void;
 }) {
   const [openSection, setOpenSection] = useState("Measurements");
-  // °F is the product default (Brian, 2026-07-07); the choice persists per
-  // browser. Init "F" then hydrate from storage in an effect (SSR-safe).
-  const [unit, setUnitState] = useState<"C" | "F">("F");
-  useEffect(() => {
-    if (window.localStorage.getItem("thermal-v2-unit") === "C") setUnitState("C");
-  }, []);
-  function setUnit(u: "C" | "F") {
-    setUnitState(u);
-    try {
-      window.localStorage.setItem("thermal-v2-unit", u);
-    } catch {
-      // storage unavailable (private mode) — preference just won't persist
-    }
-  }
+  const { unit, setUnit } = useUnitPreference();
   const [hover, setHover] = useState<HoverInfo>(null);
   // The toolbar's readout + Enhance-here button use the LAST non-null hover
   // temp, not the live one: clicking that button requires moving the mouse
@@ -67,6 +60,9 @@ export function AnalyzePanel({
   const activeCapture = captures.find((c) => c.id === activeId) ?? null;
   const activeIndex = captures.findIndex((c) => c.id === activeId);
   const img = useAnalyzeImage(activeCapture);
+  // S6.6 Analyst chat's Accept action reuses the SAME findings_review editability
+  // law AI Review uses — the AI never silently rewrites a finding.
+  const review = useFindingsReview(activeCapture);
 
   // S5.6 alarm suite: caller-side band computed from the alarm mode + tuning,
   // fed straight into AnalyzeViewer's isotherm-style paint prop.
@@ -244,17 +240,26 @@ export function AnalyzePanel({
           : {
               title: "Details",
               content: (
-                <AnalyzeDetailsRail
-                  img={img}
-                  unit={unit}
-                  activeId={activeId}
-                  activeCapture={activeCapture}
-                  captures={captures}
-                  scope={scope}
-                  scopeIds={scopeIds}
-                  openSection={openSection}
-                  onOpenSectionChange={setOpenSection}
-                />
+                <AnalystChatToggleRail
+                  sessionId={sessionId}
+                  captureId={activeId}
+                  onAcceptProposal={(index, note) => {
+                    review.setEdit(index, note);
+                    review.accept(index);
+                  }}
+                >
+                  <AnalyzeDetailsRail
+                    img={img}
+                    unit={unit}
+                    activeId={activeId}
+                    activeCapture={activeCapture}
+                    captures={captures}
+                    scope={scope}
+                    scopeIds={scopeIds}
+                    openSection={openSection}
+                    onOpenSectionChange={setOpenSection}
+                  />
+                </AnalystChatToggleRail>
               ),
             }
       }

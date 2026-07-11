@@ -168,6 +168,7 @@ export function ThermalV2Shell({
       ) : null}
       {tab === "analyze" ? (
         <AnalyzePanel
+          sessionId={sessionId}
           captures={captures}
           selection={selection}
           scope={liveScope}

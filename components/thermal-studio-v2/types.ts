@@ -106,3 +106,19 @@ export type ThermalV2DisplayTransform = { rotation: 0 | 90 | 180 | 270; flipH: b
  * alignment under the thermal canvas, not a session-local view setting.
  */
 export type ThermalV2PairAlign = { dx: number; dy: number; scale: number };
+
+/**
+ * S6.6 Analyst chat — one grounded Q&A turn, persisted in the session's
+ * `metadata.analyst_chat` array (additive, no new column). `proposal` is
+ * present only on an assistant message that corrected a specific finding —
+ * the operator Accepts/Dismisses it through the existing findings_review
+ * editability law, same as every other AI suggestion.
+ */
+export type ThermalV2ChatProposal = { anomaly_index: number; note: string };
+export type ThermalV2ChatMessage = {
+  role: "user" | "assistant";
+  content: string;
+  capture_id: string | null;
+  at: string;
+  proposal?: ThermalV2ChatProposal | null;
+};

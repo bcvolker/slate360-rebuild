@@ -1113,3 +1113,106 @@ each their own separable feature (a branding dependency, a rename UI, and
 a small workflow engine) rather than a partial/half-built export engine —
 the actual "Export engine" the roster names is complete and verified.
 Proceeding to #12 (S6.6 Analyst chat) per the frozen roster (Addendum G4).
+
+## Slice 12 — S6.6 Analyst chat (2026-07-10)
+
+**Shipped** the layered AI's third tier (doc §C5): a grounded Q&A drawer over
+one image's findings, with corrections emitted as reviewable revision
+proposals — real new backend (Modal endpoint + deployed) plus client UI:
+- **New Modal endpoint** (`workers/modal/thermal-analysis/worker.py`):
+  `chat` — a **synchronous** `fastapi_endpoint` (unlike `interpret`'s
+  spawn+callback job pattern; a chat turn needs to come back in the same
+  request/response cycle, so no job row). Shares `interpret`'s USD-ledger
+  cap (`_read_spend`/`_write_spend`, same org/month key) and
+  `THERMAL_VLM_MODEL` env. System prompt instructs the model to answer
+  ONLY from the given facts and, when the user's message implies a
+  correction, append a fenced ` ```revision-proposal ` JSON block
+  (`{anomaly_index, note}`) — never silently rewrite a finding. **Deployed**
+  (`modal deploy worker.py`) — live at `https://bcvolker--thermal-chat.modal.run`.
+  Label deliberately namespaced `thermal-chat` (not the generic `chat`) since
+  Modal endpoint labels are workspace-global, not app-scoped.
+- **New Next.js route** `app/api/ops/thermal/sessions/[sessionId]/chat/route.ts`
+  (GET hydrates the thread, POST sends a turn) — calls Modal **directly**
+  via `fetch` (same no-inbound-auth convention as `interpret`/`process`;
+  Vercel-side auth is `withThermalOpsAuth`, same as every other thermal
+  route). Assembles the grounding-context text server-side from the active
+  capture's `anomalies` + `findings_review` + env metadata fields — **never
+  the raw grid** (token discipline, per doc). Extracts the proposal block
+  from the reply, strips it from the displayed text, and persists the
+  whole exchange into the session's **existing generic** `metadata` field
+  as `metadata.analyst_chat` (additive — no new column; reused the session
+  PATCH route's pre-existing shallow-merge-at-metadata-key behavior instead
+  of adding a dedicated field). Added to `tsconfig.thermal-v2.json`'s
+  include list (it wasn't picked up by the scoped typecheck otherwise —
+  caught this before it became a silent gap).
+- **Client:** `useAnalystChat.ts` (thread state, hydrate-on-open, optimistic
+  user-message append), `chat-api.ts` (fetch wrappers), `AnalystChatDrawer.tsx`
+  (message list + proposal cards with Accept/Dismiss + input), and a small
+  reusable `AnalystChatToggleRail.tsx` that swaps an EXISTING right rail's
+  content between its normal view and the chat drawer — a deliberate design
+  simplification over adding a 5th `V2PanelFrame` slot: this inherits the
+  rail's already-built collapse-to-pill behavior for free and avoids
+  touching the shared frame component (used by every tab) for a two-tab
+  feature. Wired into both **AI Review** (swaps "Findings") and **Analyze**
+  (swaps "Details"), per doc "available in AI Review and Analyze" —
+  Analyze gained its own `useFindingsReview(activeCapture)` instance so its
+  Accept action reuses the identical editability law AI Review uses.
+- **Accept wiring:** a proposal's Accept button calls the SAME
+  `useFindingsReview` `setEdit(index, note)` + `accept(index)` AI Review's
+  own Accept/Edit cards use — one persistence path, not a parallel one.
+  Simplification (logged): the existing `findings_review.edits` schema is
+  free-text per anomaly index, not a structured type/severity object, so
+  "revised type/severity/note" (doc language) became "revised note" — a
+  new structured field wasn't worth adding just for chat when the existing
+  text-edit path already satisfies "operator accepts a specific rewritten
+  observation."
+- File-size gate: extracted `useUnitPreference.ts` (the °C/°F
+  seed-from-localStorage pattern, previously duplicated inline in both
+  `AnalyzePanel.tsx` and `AiReviewPanel.tsx`) out of `AnalyzePanel.tsx`,
+  which had crossed 300 lines after the chat wiring — fixed the gate AND
+  removed a duplication in the same move.
+
+**Verified manually first** (preview tools workflow): opened `/preview/thermal-v2`,
+confirmed "💬 Ask the analyst" renders and toggles the AI Review right rail,
+sent a message, and confirmed it reached the real (unauthenticated-in-dev)
+route — got a friendly "Unauthorized" surfaced in the drawer rather than a
+crash, proving the full client → route wiring before writing mocked e2e.
+
+**Verification:**
+- Scoped typecheck (`tsconfig.thermal-v2.json`, now including the new chat
+  route): clean.
+- `guard:architecture` — PASS. File sizes: all new/touched files under 300
+  (`AnalystChatDrawer.tsx` 123, `chat/route.ts` 170, `useAnalystChat.ts` 53,
+  `AnalystChatToggleRail.tsx` 38, `useUnitPreference.ts` 20,
+  `AnalyzePanel.tsx` back to 291 after the extraction).
+- e2e: new `e2e/thermal-v2-s6-6-analyst-chat.spec.ts` (5 specs) — toggle
+  swaps the rail; sending a message shows + persists the grounded reply;
+  a mocked proposal's Accept persists via `findings_review` (same PATCH
+  shape as AI Review's own Accept test); Dismiss hides the card without
+  touching `findings_review`; the toggle is also present in Analyze. Full
+  cross-slice regression (11 specs / 70 tests) green on `desktop-chromium`
+  (one parallel-worker navigation flake in an unrelated pre-existing spec,
+  confirmed by isolated re-run — not a regression).
+- **Deployed both halves** per the CLAUDE.md deploy rule of thumb: Modal
+  worker (`modal deploy worker.py`, `chat` endpoint live) AND the Vercel
+  prod env var (`MODAL_THERMAL_CHAT_ENDPOINT`, added via
+  `vercel env add ... --no-sensitive --yes`, confirmed present via
+  `vercel env ls production`). No Trigger redeploy needed — unlike
+  `interpret`/`extract`, chat's Modal call happens directly from a Vercel
+  API route, not from a `src/trigger/*` task, so Trigger's env sync
+  doesn't apply here (this is architecturally different from the
+  established interpret/extract pattern — noted so a future session
+  doesn't assume Trigger needs touching for this feature).
+
+**Scoped down / deferred (real, logged, not half-built):**
+- **Drag-and-drop PDF/image grounding** (Claude document blocks,
+  SlateDrop registration) — a genuinely separate file-upload + document-
+  block-attachment surface from the text-only Q&A shipped here.
+- **True token-level streaming** — the worker returns one complete JSON
+  reply; Modal-to-browser SSE streaming is a distinct, non-trivial wiring
+  problem deferred rather than half-built.
+- **Copy-to-findings on any assistant paragraph** (doc UI nicety) —
+  omitted; the proposal-card Accept already covers the substantive use
+  case (a specific finding gets revised).
+Roster item #12 (S6.6 Analyst chat) is closed as delivered. Proceeding to
+#13 (S8-M Motion) per the frozen roster.

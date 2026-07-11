@@ -534,3 +534,65 @@ def interpret_thermal_job(payload: dict[str, Any]) -> None:
 def interpret(body: dict):
     fc = interpret_thermal_job.spawn(body)
     return JSONResponse({"accepted": True}, headers={"x-modal-run-id": fc.object_id})
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# S6.6 Analyst chat — grounded Q&A over an inspection's findings, synchronous
+# (a chat turn needs to come back in the request/response cycle, unlike the
+# batch interpret job above — no job row, no callback). The USD ledger cap is
+# shared with interpret (same org, same month, same _read_spend/_write_spend).
+# ──────────────────────────────────────────────────────────────────────────────
+
+_CHAT_SYSTEM = (
+    "You are a thermal-inspection analyst assistant helping a thermographer review ONE image's findings. "
+    "You are given the image's authoritative measured facts as text (never re-derive numbers yourself). "
+    "Answer questions grounded ONLY in the given facts and any attached documents — say so plainly if something "
+    "isn't covered. If the user's message corrects or disputes a specific finding (e.g. 'finding 2 is X, not Y'), "
+    "reply conversationally AND append, on its own line, a fenced block starting with ```revision-proposal "
+    "containing exactly one JSON object {\"anomaly_index\": int, \"note\": \"revised, neutral one-sentence "
+    "observation\"} — omit this block entirely when no correction is implied. Never silently rewrite a finding "
+    "without this proposal block; the operator always accepts or dismisses it."
+)
+_CHAT_USD_PER_MTOK_IN = 5.0   # claude-opus-4-8 input (matches _VLM_USD_PER_MTOK_IN)
+_CHAT_USD_PER_MTOK_OUT = 25.0
+
+
+@app.function(image=cpu_image, cpu=1, memory=2048, timeout=120, secrets=[worker_secret])
+@modal.fastapi_endpoint(method="POST", label="thermal-chat")
+def chat(body: dict):
+    import anthropic
+    from r2_utils import s3_client
+
+    org_id = str(body.get("orgId") or "")
+    grounding = str(body.get("groundingContext") or "")
+    history = body.get("history") or []
+    message = str(body.get("message") or "")
+    model = os.environ.get("THERMAL_VLM_MODEL", "claude-opus-4-8")
+    cap_usd = float(os.environ.get("THERMAL_VLM_MONTHLY_USD_CAP", body.get("monthlyCapUsd") or 25.0))
+
+    if not message.strip():
+        return JSONResponse({"error": "message is required"}, status_code=400)
+
+    try:
+        bucket = os.environ["R2_BUCKET"]
+        s3 = s3_client()
+        spent = _read_spend(s3, bucket, org_id) if org_id else 0.0
+        if org_id and spent >= cap_usd:
+            return JSONResponse(
+                {"error": f"Monthly AI budget reached (${spent:.2f} of ${cap_usd:.2f}). Raise the cap to continue."},
+                status_code=402,
+            )
+
+        client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
+        messages = [{"role": m.get("role"), "content": str(m.get("content") or "")} for m in history if m.get("role") in ("user", "assistant")]
+        messages.append({"role": "user", "content": f"INSPECTION FACTS:\n{grounding}\n\nQUESTION: {message}"})
+        msg = client.messages.create(model=model, max_tokens=800, system=_CHAT_SYSTEM, messages=messages)
+        reply = "".join(b.text for b in msg.content if b.type == "text").strip()
+        in_tok = getattr(msg.usage, "input_tokens", 0) or 0
+        out_tok = getattr(msg.usage, "output_tokens", 0) or 0
+        cost = in_tok * _CHAT_USD_PER_MTOK_IN / 1e6 + out_tok * _CHAT_USD_PER_MTOK_OUT / 1e6
+        if org_id:
+            _write_spend(s3, bucket, org_id, spent + cost)
+        return JSONResponse({"reply": reply, "usage": {"cost_usd": round(cost, 4), "model": model}})
+    except Exception as exc:  # noqa: BLE001
+        return JSONResponse({"error": str(exc)[:500]}, status_code=500)

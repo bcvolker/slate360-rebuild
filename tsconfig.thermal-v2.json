@@ -37,6 +37,7 @@
     "app/api/ops/thermal/jobs/callback/route.ts",
     "app/api/ops/thermal/captures/[captureId]/route.ts",
     "app/api/ops/thermal/sessions/[sessionId]/interpret/route.ts",
+    "app/api/ops/thermal/sessions/[sessionId]/chat/route.ts",
     "app/api/ops/thermal/interpret/callback/route.ts",
     "app/api/ops/thermal/captures/[captureId]/grid/route.ts",
     "app/api/ops/thermal/sessions/[sessionId]/share/route.ts",
