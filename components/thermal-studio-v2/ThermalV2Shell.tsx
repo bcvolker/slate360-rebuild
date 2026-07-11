@@ -38,12 +38,15 @@ export function ThermalV2Shell({
   sessionId,
   sessionName,
   captures,
+  initialTab,
 }: {
   sessionId: string;
   sessionName: string;
   captures: ThermalV2Capture[];
+  /** TS-SD re-open deep link (?report=1) jumps straight to a tab on load. */
+  initialTab?: ThermalV2Tab;
 }) {
-  const [tab, setTab] = useState<ThermalV2Tab>("library");
+  const [tab, setTab] = useState<ThermalV2Tab>(initialTab ?? "library");
   const [scope, setScope] = useState<ThermalV2Scope>({ kind: "image" });
   const [dropUpload, setDropUpload] = useState<{ done: number; total: number } | null>(null);
   const selection = useLibrarySelection(sessionId, captures);

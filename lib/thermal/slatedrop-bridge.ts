@@ -10,7 +10,9 @@ import { trackStorageUsed } from "@/lib/slatedrop/track-storage";
  * Registers a thermal DELIVERABLE (report PDF/HTML, export) into SlateDrop as a
  * `slatedrop_uploads` row pointing at the EXISTING thermal R2 key. We never copy
  * the heavy radiometric bytes — raw/NPZ stay under orgs/{org}/thermal/... and only
- * finished artifacts are indexed under the linked project's Reports folder.
+ * finished artifacts are indexed under the project's real, auto-provisioned
+ * Deliverables folder (TS-SD/Addendum A3 — sit beside Site Walk + Tour outputs,
+ * not a bespoke thermal-only folder).
  */
 type BridgeDeliverableParams = {
   storageKey: string;
@@ -37,12 +39,12 @@ export async function bridgeThermalDeliverableToSlateDrop(
   try {
     const folderId = await resolveProjectFolderIdByName(
       params.projectId,
-      "Reports",
+      "Deliverables",
       params.orgId,
       params.userId ?? "",
     );
     if (!folderId) {
-      console.warn(`[thermal-slatedrop-bridge] No Reports folder for project ${params.projectId}`);
+      console.warn(`[thermal-slatedrop-bridge] No Deliverables folder for project ${params.projectId}`);
       return null;
     }
 
@@ -84,8 +86,16 @@ export async function bridgeThermalDeliverableToSlateDrop(
 }
 
 /**
- * Registers a finished report's PDF + HTML into SlateDrop, but only if the session
- * is linked to a project. Best-effort and self-contained (looks up the project).
+ * Registers a finished report's PDF + HTML into SlateDrop's Deliverables
+ * folder, but only if the session is linked to a project. Best-effort and
+ * self-contained (looks up the project).
+ *
+ * Unlinked ("quick inspection") sessions are NOT registered — SlateDrop has
+ * no established concept of an org-root folder visible outside a project
+ * (project_folders.project_id is nullable in the schema, but nothing in the
+ * browsing/listing routes surfaces such rows today). Building that safely is
+ * a SlateDrop-wide change outside this slice's scope — logged as a
+ * deliberate, disclosed gap in the build log, not a silent drop.
  */
 export async function bridgeThermalReportDeliverables(
   admin: SupabaseClient,

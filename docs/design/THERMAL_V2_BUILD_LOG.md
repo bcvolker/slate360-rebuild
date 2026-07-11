@@ -105,7 +105,73 @@ memory `slate360-thermal-studio-v2-rebuild.md` (shipped-state summary).
 - None. Every G1 acceptance item shipped. The one open item is the manual/
   authenticated HTTP round-trip note above — not a skip, a scoping note.
 
-**Not started yet:** Slices #6–#16 of the frozen roster.
+**Not started yet:** Slices #7–#16 of the frozen roster.
+
+---
+
+## Slice 6 — TS-SD + TS-PROJ (2026-07-10)
+
+**Shipped:**
+- **Real, authenticated `/thermal-studio-v2` route.** New
+  `app/(dashboard)/thermal-studio-v2/{layout.tsx, page.tsx, [sessionId]/page.tsx}`
+  — same CEO-only gate as V1's `/thermal-studio` (`resolveServerOrgContext`,
+  `notFound()` unless `isSlateCeo`, copied verbatim since layouts are scoped
+  per route segment and can't be shared across a different top-level path).
+  `[sessionId]/page.tsx` loads a REAL session via the existing
+  `loadThermalSessionDetail` and renders `ThermalV2Shell` with real data —
+  previously V2 only ever ran against the 5-fixture preview harness. An
+  index page lists real sessions (mirrors V1's list) so the CEO has a way to
+  reach real data without needing a SlateDrop deep link first.
+- **`?report=1` re-open deep link.** `ThermalV2Shell` gained an optional
+  `initialTab` prop; the new page reads `?report=` and passes
+  `initialTab="report"`. `session.metadata.report` (template/conditions/
+  signature/section-overrides, from S7) and `session.metadata.report_set`
+  (outline order, from Library's ★ funnel) already restore automatically on
+  load — no new "restore" code needed, S7's persistence was already correct.
+- **SlateDrop bridge fixed to the real Deliverables folder.** The existing
+  `bridgeThermalReportDeliverables` (already wired into `job-result-appliers.ts`
+  since before this session) was targeting a "Reports" folder name that
+  doesn't exist in the SlateDrop taxonomy. Fixed to target "Deliverables" —
+  the same real, auto-provisioned folder Site Walk and Tour deliverables use
+  (Addendum A3: "sit beside Site Walk and Tour deliverables"), via the
+  already-existing `resolveProjectFolderIdByName`. One string literal, zero
+  new backend.
+
+**Scoped down / deferred (disclosed, not silent):**
+- **Unlinked ("quick inspection") session registration.** The doc's original
+  framing ("Thermal Studio folder... org root otherwise") requires an
+  org-root-level SlateDrop folder visible outside any project.
+  `project_folders.project_id` is nullable in the schema, but nothing in
+  SlateDrop's browsing/listing routes surfaces such rows today — building
+  that safely is a SlateDrop-wide change, not a thermal-scoped one. Left
+  unregistered for unlinked sessions (same as before this slice); documented
+  in `slatedrop-bridge.ts` directly.
+- **Project picker / session-creation UI.** V2 has no session-creation flow
+  of its own yet (it only ever ran against a fixed session prop before this
+  slice). Session creation with a project dropdown already works end-to-end
+  on V1's `/thermal-studio/upload` (POST already accepts `project_id`, GET
+  `/api/ops/thermal/projects` already lists them) — the new V2 index page
+  links there rather than rebuilding session creation from scratch, which is
+  a materially bigger feature than "TS-PROJ" as named (linking + re-open).
+- **Project workspace listing thermal inspections beside walks/tours.** This
+  touches the project workspace page (not thermal's own code) and wasn't
+  started — flagged here rather than silently dropped.
+
+**Verification:**
+- Scoped typecheck: clean. `guard:architecture` — PASS. `guard:design` —
+  pre-existing failures only. File sizes: all new files well under 300 lines.
+- The new route's CEO gate can't be Playwright-driven in this sandbox (per
+  CLAUDE.md, thermal UI auth can't be exercised without a real logged-in
+  session) — verified by direct code match against V1's `/thermal-studio`
+  layout, which is the proven-working gate in production; final acceptance
+  is Brian's on-device check per the project's own gate rules.
+- e2e: `e2e/thermal-v2-ts-sd-proj.spec.ts` — 2 specs verifying the
+  `initialTab` deep-link mechanism itself (shared by the real route's
+  `?report=1` and a new `?tab=` param on the preview harness) via the
+  unauthenticated `/preview/thermal-v2` harness, since that's the part of
+  this slice that's actually testable here.
+- Full 6-spec cross-slice regression (R1 + L1+W3 + W1 + S6 + S7 + TS-SD, 28
+  specs) run together before push.
 
 ---
 

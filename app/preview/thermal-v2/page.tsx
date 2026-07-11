@@ -3,7 +3,7 @@
 import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { ThermalV2Shell } from "@/components/thermal-studio-v2/ThermalV2Shell";
-import type { ThermalV2Capture } from "@/components/thermal-studio-v2/types";
+import type { ThermalV2Capture, ThermalV2Tab } from "@/components/thermal-studio-v2/types";
 
 const CAPTURES: ThermalV2Capture[] = [
   {
@@ -37,8 +37,12 @@ const CAPTURES: ThermalV2Capture[] = [
 function PreviewThermalV2Inner() {
   // ?empty=1 swaps in zero captures — lets e2e/manual QA reach the W1 "Start
   // strip" empty state without a real upload round trip.
-  const empty = useSearchParams().get("empty") === "1";
+  const searchParams = useSearchParams();
+  const empty = searchParams.get("empty") === "1";
   const captures = empty ? [] : CAPTURES;
+  // ?tab=report (TS-SD) exercises ThermalV2Shell's initialTab prop — the same
+  // mechanism the real /thermal-studio-v2/[sessionId]?report=1 route uses.
+  const initialTab = (searchParams.get("tab") as ThermalV2Tab | null) ?? undefined;
 
   // Replicates the real embedding chain (dashboard shell → top bar → scroll
   // container → session header → studio shell) so page-level scroll bugs
@@ -60,7 +64,7 @@ function PreviewThermalV2Inner() {
             </div>
           </header>
           <div className="min-h-0 flex-1">
-            <ThermalV2Shell sessionId="preview" sessionName="Oak Ridge Roof — Preview" captures={captures} />
+            <ThermalV2Shell sessionId="preview" sessionName="Oak Ridge Roof — Preview" captures={captures} initialTab={initialTab} />
           </div>
         </div>
       </div>
