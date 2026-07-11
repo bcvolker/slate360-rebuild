@@ -131,6 +131,11 @@ export function AnalyzePanel({
           onPasteSettings={clipboard.pasteSettings}
           canPaste={clipboard.hasClip}
           onEnhanceHere={hover ? () => img.enhanceHere(hover.tempC) : undefined}
+          displayTransform={img.transform}
+          onRotate90={img.rotate90}
+          onFlipHorizontal={img.flipHorizontal}
+          onFlipVertical={img.flipVertical}
+          onResetTransform={img.resetTransform}
         />
       }
       center={
@@ -146,6 +151,7 @@ export function AnalyzePanel({
           localContrast={img.localContrast}
           displayPalette={img.displayPalette}
           displaySpan={img.displaySpan}
+          displayTransform={img.transform}
           hover={hover}
           onHoverChange={setHover}
           spots={img.spots}

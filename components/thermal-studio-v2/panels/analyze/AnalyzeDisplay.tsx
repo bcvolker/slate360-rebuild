@@ -101,7 +101,7 @@ export function AnalyzeDisplay({
         ))}
       </div>
 
-      <AnalyzeAlarmControls alarm={alarm} onAlarmChange={onAlarmChange} tuning={tuning} unit={unit} />
+      <AnalyzeAlarmControls alarm={alarm} onAlarmChange={onAlarmChange} tuning={tuning} unit={unit} gridMin={gridMin} gridMax={gridMax} />
       <AnalyzeSeverityBands bands={severityBands} onBandsChange={onSeverityBandsChange} unit={unit} />
       <AnalyzeContrastFlicker
         localContrast={localContrast}

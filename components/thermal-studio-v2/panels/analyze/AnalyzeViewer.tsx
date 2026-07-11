@@ -6,7 +6,7 @@ import type { ThermalV2Grid } from "@/components/thermal-studio-v2/lib/grid-api"
 import { AnalyzeCanvas, type HoverInfo } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeCanvas";
 import { AnalyzeLegend } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeLegend";
 import { AnalyzeLoupe } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeLoupe";
-import type { ThermalV2Spot, ThermalV2Tool } from "@/components/thermal-studio-v2/types";
+import type { ThermalV2DisplayTransform, ThermalV2Spot, ThermalV2Tool } from "@/components/thermal-studio-v2/types";
 
 /** Center hero — presentational: canvas + legend + loupe. All state is owned by AnalyzePanel. */
 export function AnalyzeViewer({
@@ -21,6 +21,7 @@ export function AnalyzeViewer({
   localContrast,
   displayPalette,
   displaySpan,
+  displayTransform,
   hover,
   onHoverChange,
   spots,
@@ -45,6 +46,8 @@ export function AnalyzeViewer({
   /** S5.6 A/B flicker: the currently-shown snapshot's palette/span (falls back to the live ones when no flicker is active). */
   displayPalette?: string;
   displaySpan?: { lo: number; hi: number } | null;
+  /** S5.6 rotate/flip (F1.2). */
+  displayTransform?: ThermalV2DisplayTransform;
   hover: HoverInfo;
   onHoverChange: (h: HoverInfo) => void;
   spots: ThermalV2Spot[];
@@ -59,6 +62,7 @@ export function AnalyzeViewer({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const paintPalette = displayPalette ?? palette;
   const paintSpan = displaySpan ?? span;
+  const isIdentity = !displayTransform || (displayTransform.rotation === 0 && !displayTransform.flipH && !displayTransform.flipV);
 
   const displayTemps = useMemo(() => {
     if (!localContrast || !grid || !paintSpan) return null;
@@ -86,6 +90,7 @@ export function AnalyzeViewer({
           hi={paintSpan?.hi ?? 1}
           isotherm={isotherm}
           displayTemps={displayTemps}
+          displayTransform={displayTransform}
           onHover={onHoverChange}
           canvasRef={canvasRef}
           spots={spots}
@@ -109,7 +114,8 @@ export function AnalyzeViewer({
           onChange={onSpanChange}
         />
       ) : null}
-      {grid ? <AnalyzeLoupe sourceCanvasRef={canvasRef} hover={hover} unit={unit} /> : null}
+      {/* Loupe crops the raw (unrotated) canvas bitmap — hidden while rotated to avoid showing a mismatched crop. */}
+      {grid && isIdentity ? <AnalyzeLoupe sourceCanvasRef={canvasRef} hover={hover} unit={unit} /> : null}
     </div>
   );
 }

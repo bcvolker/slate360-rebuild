@@ -213,3 +213,80 @@ test.describe("Thermal V2 S5.6 Analyze completion pack — push 2 (alarms + sens
     expect(scrollable, "page scrolled at 1440x900").toBe(false);
   });
 });
+
+test.describe("Thermal V2 S5.6 Analyze completion pack — push 3 (rotate/flip + isotherm sweep)", () => {
+  test.use({ serviceWorkers: "block" });
+
+  test("Rotate 90° applies a CSS rotation to the canvas stage", async ({ page }) => {
+    await openAnalyze(page);
+    await page.getByRole("button", { name: "More display settings" }).click();
+    await page.getByRole("button", { name: "⟳ 90°" }).click();
+
+    const transform = await page.evaluate(() => {
+      const canvas = document.querySelectorAll("canvas")[0] as HTMLElement;
+      return (canvas.parentElement as HTMLElement).style.transform;
+    });
+    expect(transform).toContain("rotate(90deg)");
+  });
+
+  test("rotating disables measurement creation and shows the view-only banner", async ({ page }) => {
+    await openAnalyze(page);
+    await page.getByRole("button", { name: "More display settings" }).click();
+    await page.getByRole("button", { name: "⟳ 90°" }).click();
+    await page.mouse.click(5, 5); // close the ⋯ dropdown (stays open to allow repeated rotate/flip clicks)
+    await expect(page.getByText("Rotated view — reset rotation to measure")).toBeVisible();
+
+    await page.getByRole("button", { name: "Point", exact: true }).click();
+    const canvas = page.locator("canvas").first();
+    const box = await canvas.boundingBox();
+    if (!box) throw new Error("canvas not laid out");
+    await page.mouse.click(box.x + box.width * 0.5, box.y + box.height * 0.5);
+
+    // Measurements is already open by default (never switched away in this test).
+    await expect(page.getByText("No measurements yet")).toBeVisible();
+  });
+
+  test("Reset rotation restores the identity orientation and re-enables measuring", async ({ page }) => {
+    await openAnalyze(page);
+    await page.getByRole("button", { name: "More display settings" }).click();
+    await page.getByRole("button", { name: "⟳ 90°" }).click();
+    await page.getByRole("button", { name: "Reset rotation" }).click();
+    await page.mouse.click(5, 5); // close the ⋯ dropdown
+    await expect(page.getByText("Rotated view — reset rotation to measure")).not.toBeVisible();
+
+    await page.getByRole("button", { name: "Point", exact: true }).click();
+    const canvas = page.locator("canvas").first();
+    const box = await canvas.boundingBox();
+    if (!box) throw new Error("canvas not laid out");
+    await page.mouse.click(box.x + box.width * 0.5, box.y + box.height * 0.5);
+
+    await page.getByRole("button", { name: "Measurements" }).click();
+    await expect(page.getByText("Point").first()).toBeVisible();
+  });
+
+  test("isotherm sweep slider live-updates the interval band", async ({ page }) => {
+    await openAnalyze(page);
+    await page.getByRole("button", { name: /^Display/ }).click();
+    await page.getByLabel(/Alarm mode/).selectOption("interval");
+
+    const sweep = page.getByLabel("Sweep");
+    await sweep.fill("35");
+
+    const numberInputs = page.locator('input[type="number"]');
+    const lo = Number(await numberInputs.nth(2).inputValue());
+    const hi = Number(await numberInputs.nth(3).inputValue());
+    expect((lo + hi) / 2).toBeCloseTo(35, 0);
+  });
+
+  test("no page scroll at 1280x800 and 1440x900", async ({ page }) => {
+    test.slow();
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await openAnalyze(page);
+    let scrollable = await page.evaluate(() => document.documentElement.scrollHeight > document.documentElement.clientHeight + 1);
+    expect(scrollable, "page scrolled at 1280x800").toBe(false);
+
+    await page.setViewportSize({ width: 1440, height: 900 });
+    scrollable = await page.evaluate(() => document.documentElement.scrollHeight > document.documentElement.clientHeight + 1);
+    expect(scrollable, "page scrolled at 1440x900").toBe(false);
+  });
+});

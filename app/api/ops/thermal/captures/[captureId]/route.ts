@@ -45,6 +45,11 @@ type FindingsReviewPayload = {
   dismissed?: string[];
   edits?: Record<string, string>;
 };
+type DisplayTransformPayload = {
+  rotation?: 0 | 90 | 180 | 270;
+  flipH?: boolean;
+  flipV?: boolean;
+};
 type CapturePatchBody = {
   spots?: SpotPayload[];
   tuning?: TuningPayload;
@@ -58,6 +63,8 @@ type CapturePatchBody = {
   alignment?: AlignmentPayload | null;
   /** S6 AI Review: per-anomaly-index Accept/Dismiss/Edit state (additive). */
   findings_review?: FindingsReviewPayload;
+  /** S5.6 non-destructive rotate/flip (display only — grid values never change). */
+  display_transform?: DisplayTransformPayload | null;
 };
 
 const CURATION_KEYS = [
@@ -68,6 +75,7 @@ const CURATION_KEYS = [
   "palette",
   "alignment",
   "findings_review",
+  "display_transform",
 ] as const;
 
 /**
@@ -78,6 +86,7 @@ const CURATION_KEYS = [
  *  - `metadata.in_report` / `report_order` curation (include + order in report set)
  *  - `metadata.visual_pair_id` linked visual photo
  *  - `metadata.alignment` twin-overlay transform (schema hook)
+ *  - `metadata.display_transform` non-destructive rotate/flip (S5.6, display only)
  */
 export const PATCH = (req: NextRequest, { params }: Params) =>
   withThermalOpsAuth(req, async ({ admin, orgId }) => {
@@ -192,6 +201,18 @@ export const PATCH = (req: NextRequest, { params }: Params) =>
               twin_id: body.alignment.twin_id ?? null,
               scene_id: body.alignment.scene_id ?? null,
               transform: body.alignment.transform ?? null,
+            }
+          : null;
+    }
+    if (body.display_transform !== undefined) {
+      const dt = body.display_transform;
+      const rotation = dt?.rotation;
+      metadata.display_transform =
+        dt && typeof dt === "object"
+          ? {
+              rotation: rotation === 90 || rotation === 180 || rotation === 270 ? rotation : 0,
+              flipH: !!dt.flipH,
+              flipV: !!dt.flipV,
             }
           : null;
     }

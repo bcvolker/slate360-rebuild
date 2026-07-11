@@ -5,7 +5,7 @@ import { renderHeatmap, newSpotId, type Isotherm } from "@/lib/thermal/probe-pal
 import { SpotOverlay } from "@/components/thermal-studio-v2/panels/analyze/SpotOverlay";
 import { useCanvasStage } from "@/components/thermal-studio-v2/lib/useCanvasStage";
 import type { ThermalV2Grid } from "@/components/thermal-studio-v2/lib/grid-api";
-import type { ThermalV2Spot, ThermalV2Tool } from "@/components/thermal-studio-v2/types";
+import type { ThermalV2DisplayTransform, ThermalV2Spot, ThermalV2Tool } from "@/components/thermal-studio-v2/types";
 
 export type HoverInfo = { x: number; y: number; tempC: number } | null;
 
@@ -24,6 +24,7 @@ export function AnalyzeCanvas({
   hi,
   isotherm,
   displayTemps,
+  displayTransform,
   onHover,
   canvasRef,
   spots,
@@ -44,6 +45,8 @@ export function AnalyzeCanvas({
   isotherm?: Isotherm | null;
   /** S5.6 Local contrast: histogram-equalized paint source (display only) — falls back to grid.temps. */
   displayTemps?: Float32Array | null;
+  /** S5.6 rotate/flip (F1.2) — a pure CSS transform on the canvas+overlay stage. */
+  displayTransform?: ThermalV2DisplayTransform;
   onHover: (info: HoverInfo) => void;
   /** Shared with the loupe so it can drawImage() a cropped region of the same painted canvas. */
   canvasRef: RefObject<HTMLCanvasElement | null>;
@@ -59,6 +62,16 @@ export function AnalyzeCanvas({
 }) {
   const stage = useCanvasStage({ grid, spots, canvasRef, onCommitSpots });
   const { canvasBox, zoom, pan, visibleSpots, toImageCoords } = stage;
+
+  // S5.6 rotate/flip (F1.2): a pure display transform — grid AND overlays rotate
+  // together since both live inside this one stage div. Measurement creation/
+  // editing is disabled while rotated (scoped down: click coordinates aren't
+  // reprojected through the transform, so hit-testing would silently misplace
+  // measurements — safer to view-only until reset to the identity orientation).
+  const rotation = displayTransform?.rotation ?? 0;
+  const flipH = displayTransform?.flipH ?? false;
+  const flipV = displayTransform?.flipV ?? false;
+  const isIdentity = rotation === 0 && !flipH && !flipV;
 
   // S5.6 polygon tool: click accumulates draft vertices; Enter/double-click
   // commits (≥3 points), Escape cancels. Local to this component — nothing
@@ -123,11 +136,13 @@ export function AnalyzeCanvas({
 
   function handleStageMouseDown(e: MouseEvent) {
     if (tool === "polygon") {
+      if (!isIdentity) return;
       const coords = toImageCoords(e.clientX, e.clientY);
       if (coords?.inBounds) setPolygonDraft((prev) => [...prev, { x: coords.imgX, y: coords.imgY }]);
       return;
     }
     if (tool !== "move") {
+      if (!isIdentity) return;
       const coords = toImageCoords(e.clientX, e.clientY);
       if (coords?.inBounds) createDefaultSpot(coords.imgX, coords.imgY);
       return;
@@ -167,6 +182,11 @@ export function AnalyzeCanvas({
     >
       {loading ? <span className="text-xs text-[var(--graphite-muted)]">Loading grid…</span> : null}
       {error ? <span className="max-w-xs text-center text-xs text-[#fca5a5]">{error}</span> : null}
+      {!isIdentity ? (
+        <div className="pointer-events-none absolute left-2 top-2 z-20 rounded-md border border-[var(--mobile-app-card-border)] bg-[var(--graphite-canvas)]/90 px-2 py-1 text-[10px] text-[var(--graphite-muted)]">
+          Rotated view — reset rotation to measure
+        </div>
+      ) : null}
       {grid ? (
         <div
           ref={stage.stageRef}
@@ -175,7 +195,9 @@ export function AnalyzeCanvas({
           onDoubleClick={handleStageDoubleClick}
           onMouseMove={handleMouseMove}
           onMouseLeave={() => onHover(null)}
-          style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})` }}
+          style={{
+            transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom}) rotate(${rotation}deg) scaleX(${flipH ? -1 : 1}) scaleY(${flipV ? -1 : 1})`,
+          }}
           className="relative flex h-full w-full items-center justify-center"
         >
           <canvas
@@ -198,9 +220,9 @@ export function AnalyzeCanvas({
                     isReference={spot.id === referenceId}
                     onSelect={() => onSelect(spot.id)}
                     onDelete={() => onCommitSpots(spots.filter((s) => s.id !== spot.id))}
-                    onDragStart={() => tool === "move" && stage.startSpotDrag(spot.id)}
-                    onResizeStart={() => tool === "move" && stage.startResize(spot.id)}
-                    onLineEndStart={(_e, which) => tool === "move" && stage.startLineEnd(spot.id, which)}
+                    onDragStart={() => tool === "move" && isIdentity && stage.startSpotDrag(spot.id)}
+                    onResizeStart={() => tool === "move" && isIdentity && stage.startResize(spot.id)}
+                    onLineEndStart={(_e, which) => tool === "move" && isIdentity && stage.startLineEnd(spot.id, which)}
                   />
                 </div>
               ))}

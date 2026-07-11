@@ -26,11 +26,15 @@ export function AnalyzeAlarmControls({
   onAlarmChange,
   tuning,
   unit,
+  gridMin,
+  gridMax,
 }: {
   alarm: ThermalV2Alarm;
   onAlarmChange: (next: ThermalV2Alarm) => void;
   tuning: ThermalV2Tuning;
   unit: "C" | "F";
+  gridMin: number;
+  gridMax: number;
 }) {
   return (
     <div className="flex flex-col gap-3">
@@ -74,26 +78,47 @@ export function AnalyzeAlarmControls({
       ) : null}
 
       {alarm.mode === "interval" ? (
-        <div className="grid grid-cols-2 gap-3 text-[11px]">
-          <label className="flex flex-col gap-1 text-[var(--graphite-muted)]">
-            Band low ({fmtTemp(alarm.lo ?? 0, unit, false)})
+        <>
+          <div className="grid grid-cols-2 gap-3 text-[11px]">
+            <label className="flex flex-col gap-1 text-[var(--graphite-muted)]">
+              Band low ({fmtTemp(alarm.lo ?? gridMin, unit, false)})
+              <input
+                type="number"
+                value={alarm.lo ?? gridMin}
+                onChange={(e) => onAlarmChange({ ...alarm, lo: Number(e.target.value) })}
+                className={numberField}
+              />
+            </label>
+            <label className="flex flex-col gap-1 text-[var(--graphite-muted)]">
+              Band high ({fmtTemp(alarm.hi ?? gridMax, unit, false)})
+              <input
+                type="number"
+                value={alarm.hi ?? gridMax}
+                onChange={(e) => onAlarmChange({ ...alarm, hi: Number(e.target.value) })}
+                className={numberField}
+              />
+            </label>
+          </div>
+          <label
+            className="flex flex-col gap-1 text-[11px] text-[var(--graphite-muted)]"
+            title="Drag to scan this band across the full range — watch which pixels light up"
+          >
+            Sweep
             <input
-              type="number"
-              value={alarm.lo ?? 0}
-              onChange={(e) => onAlarmChange({ ...alarm, lo: Number(e.target.value) })}
-              className={numberField}
+              type="range"
+              min={gridMin}
+              max={gridMax}
+              step={(gridMax - gridMin) / 200 || 0.1}
+              value={((alarm.lo ?? gridMin) + (alarm.hi ?? gridMax)) / 2}
+              onChange={(e) => {
+                const center = Number(e.target.value);
+                const width = (alarm.hi ?? gridMax) - (alarm.lo ?? gridMin) || (gridMax - gridMin) * 0.05;
+                onAlarmChange({ ...alarm, lo: center - width / 2, hi: center + width / 2 });
+              }}
+              className="w-full accent-[var(--graphite-primary)]"
             />
           </label>
-          <label className="flex flex-col gap-1 text-[var(--graphite-muted)]">
-            Band high ({fmtTemp(alarm.hi ?? 0, unit, false)})
-            <input
-              type="number"
-              value={alarm.hi ?? 0}
-              onChange={(e) => onAlarmChange({ ...alarm, hi: Number(e.target.value) })}
-              className={numberField}
-            />
-          </label>
-        </div>
+        </>
       ) : null}
 
       {alarm.mode === "dewpoint" ? (

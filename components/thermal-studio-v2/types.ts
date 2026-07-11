@@ -92,3 +92,10 @@ export type ThermalV2Alarm = {
 
 /** S5.6 severity bands (ΔT-vs-reference thresholds, °C) — null until a preset is chosen (labels stay neutral). */
 export type ThermalV2SeverityBands = { advisory: number; warning: number; critical: number } | null;
+
+/**
+ * S5.6 non-destructive rotate/flip (F1.2): a pure DISPLAY transform, persisted
+ * per-image (`metadata.display_transform`) — the underlying temperature grid
+ * never changes. Rotation is clockwise degrees.
+ */
+export type ThermalV2DisplayTransform = { rotation: 0 | 90 | 180 | 270; flipH: boolean; flipV: boolean };

@@ -670,3 +670,79 @@ which worked correctly once the layout was fixed).
   switched to the same anchored-regex-plus-captured-value pattern already
   proven in `thermal-v2-s7-5-deliver.spec.ts`'s Live Link hover test rather
   than asserting a specific formatted number.
+
+---
+
+## Slice 8 — S5.6 Analyze completion pack, push 3 (2026-07-10)
+
+**Shipped (roster #8 complete — S5.6 fully done):**
+- **Non-destructive rotate/flip (F1.2).** New `metadata.display_transform`
+  field (`{rotation: 0|90|180|270, flipH, flipV}`), additive on the existing
+  capture PATCH route (`app/api/ops/thermal/captures/[captureId]/route.ts`) —
+  the underlying temperature grid never changes. New `useDisplayTransform.ts`
+  hook seeds/autosaves it per image (mirrors the palette pattern). Applied as
+  one CSS `transform` on `AnalyzeCanvas`'s shared stage div (which already
+  holds the canvas, the SpotOverlay layer, and the polygon-draft SVG) — doc's
+  "grid AND overlays rotate together" is satisfied for free since everything
+  rotates as one unit, no coordinate reprojection needed for the paint.
+  Rotate 90°/flip H/flip V/Reset live in the toolbar's `⋯` menu (new
+  `AnalyzeMoreMenu.tsx`, extracted from `AnalyzeToolbar.tsx` for the
+  file-size gate — also houses the pre-existing °C/°F picker).
+- **Isotherm sweep.** Missed in push 2 (the roster's own line-item groups it
+  with the alarm/sensitivity suite, not rotate/flip) — added here instead of
+  silently dropped. `AnalyzeAlarmControls`'s "interval" alarm mode gained a
+  Sweep slider: dragging it recenters the existing band (same width) across
+  the full grid range, so pixels light up live as the band scans — "drag the
+  band across the range and watch pixels light up" per the expert-review
+  spec. Reuses the interval mode's own lo/hi number inputs as its type-in
+  twin (no duplicate control).
+
+**Skipped / scoped down (logged, not silently dropped):**
+- **Measurement editing while rotated.** Creating/dragging/resizing
+  measurements is disabled whenever the display transform isn't identity — a
+  correct inverse-transform for click hit-testing (mapping a click through
+  the rotation/flip back to true grid coordinates, with 90°/270° also
+  swapping the canvas's effective width/height) is real, non-trivial
+  geometry that risks a SILENT measurement-misplacement bug if gotten wrong
+  without live device testing, which isn't available in this environment.
+  Given the product's positioning as an evidentiary tool, view-only-while-
+  rotated (with a visible "Rotated view — reset rotation to measure" banner)
+  was judged safer than a plausible-but-unverified coordinate transform.
+  Rotate/flip's core value — correcting a sideways/upside-down drone or
+  handheld capture for VIEWING — is fully delivered; measuring in a rotated
+  orientation is a documented future improvement if ever prioritized.
+- **Loupe while rotated.** The loupe crops the raw (unrotated) canvas bitmap
+  directly via `drawImage`, ignoring CSS transforms — hidden while rotated
+  rather than showing a mismatched crop.
+- **A/B flicker legend/toolbar during comparison** (logged already in push
+  2's entry, still true here): only the canvas paint swaps between A/B.
+
+**Verification:**
+- Scoped typecheck (`tsconfig.thermal-v2.json`): clean.
+- `guard:architecture` — PASS. `guard:design` — pre-existing failures only
+  (same 3 untouched files as pushes 1–2). File sizes: this push's wiring
+  pushed `useAnalyzeImage.ts` and `AnalyzeToolbar.tsx` back over 300 —
+  fixed by extracting `useExtremeMarkers.ts` (70 lines, the S5.5 mark-
+  hottest/coldest logic) out of `useAnalyzeImage.ts` (now 254) and
+  `AnalyzeMoreMenu.tsx` (78 lines) out of `AnalyzeToolbar.tsx` (now 266).
+  All other touched/new files well under 300 (`useDisplayTransform.ts` 55,
+  `transform-api.ts` 7, `AnalyzeAlarmControls.tsx` 199, `AnalyzeCanvas.tsx`
+  250, `AnalyzeViewer.tsx` 121, `AnalyzePanel.tsx` 273, capture PATCH route
+  243).
+- e2e: `e2e/thermal-v2-s5-6-analyze-pack.spec.ts` — 5 new specs (rotate
+  applies a real CSS `rotate(90deg)` on the canvas stage — verified via
+  `element.style.transform`, rotating shows the view-only banner and blocks
+  new measurements, Reset rotation restores measuring, the sweep slider
+  live-updates the interval band's lo/hi, no page scroll). Full 8-spec /
+  49-test cross-slice regression (R1 through this slice) reran clean.
+- **Debugging note:** the "⋯ More display settings" dropdown's click-outside
+  backdrop (`<div class="fixed inset-0 z-40">`) doesn't auto-close on
+  Rotate/Flip clicks by design (so an operator can chain multiple rotates/
+  flips without reopening the menu each time) — only the °C/°F buttons close
+  it, matching the pre-existing pattern. Tests that need to interact with
+  the canvas afterward must explicitly click the backdrop first or the
+  full-viewport overlay intercepts the next click.
+- **S5.6 roster item #8 is now fully shipped** across all 3 pushes (polygon/
+  Δ-compare/line-profile → alarm suite/severity bands/sensitivity aids →
+  rotate-flip/isotherm-sweep). Next up per the FROZEN roster (G4): #9
+  W2+CAM-1.
