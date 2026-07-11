@@ -50,6 +50,11 @@ type DisplayTransformPayload = {
   flipH?: boolean;
   flipV?: boolean;
 };
+type PairAlignPayload = {
+  dx?: number;
+  dy?: number;
+  scale?: number;
+};
 type CapturePatchBody = {
   spots?: SpotPayload[];
   tuning?: TuningPayload;
@@ -65,6 +70,8 @@ type CapturePatchBody = {
   findings_review?: FindingsReviewPayload;
   /** S5.6 non-destructive rotate/flip (display only — grid values never change). */
   display_transform?: DisplayTransformPayload | null;
+  /** S6.5 fusion blend registration nudge (thermal-over-visual composite). */
+  pair_align?: PairAlignPayload | null;
 };
 
 const CURATION_KEYS = [
@@ -76,6 +83,7 @@ const CURATION_KEYS = [
   "alignment",
   "findings_review",
   "display_transform",
+  "pair_align",
 ] as const;
 
 /**
@@ -213,6 +221,17 @@ export const PATCH = (req: NextRequest, { params }: Params) =>
               rotation: rotation === 90 || rotation === 180 || rotation === 270 ? rotation : 0,
               flipH: !!dt.flipH,
               flipV: !!dt.flipV,
+            }
+          : null;
+    }
+    if (body.pair_align !== undefined) {
+      const pa = body.pair_align;
+      metadata.pair_align =
+        pa && typeof pa === "object"
+          ? {
+              dx: Number.isFinite(pa.dx) ? pa.dx : 0,
+              dy: Number.isFinite(pa.dy) ? pa.dy : 0,
+              scale: Number.isFinite(pa.scale) && pa.scale! > 0 ? pa.scale : 1,
             }
           : null;
     }

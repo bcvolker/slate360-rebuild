@@ -64,7 +64,7 @@ test.describe("Thermal V2 R1 reliability", () => {
     await expect.poll(() => jobCalls, { timeout: 2000 }).toBe(1);
 
     await expect(decodeBtn).toBeEnabled({ timeout: 3000 });
-    await expect(decodeBtn).toHaveText(/Decode temperatures \(5\)/);
+    await expect(decodeBtn).toHaveText(/Decode temperatures \(6\)/);
   });
 
   test("a failed autosave shows the red Not-saved chip, and Retry recovers it", async ({ page }) => {

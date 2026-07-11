@@ -6,7 +6,7 @@ import type { ThermalV2Grid } from "@/components/thermal-studio-v2/lib/grid-api"
 import { AnalyzeCanvas, type HoverInfo } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeCanvas";
 import { AnalyzeLegend } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeLegend";
 import { AnalyzeLoupe } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeLoupe";
-import type { ThermalV2DisplayTransform, ThermalV2Spot, ThermalV2Tool } from "@/components/thermal-studio-v2/types";
+import type { ThermalV2DisplayTransform, ThermalV2PairAlign, ThermalV2Spot, ThermalV2Tool } from "@/components/thermal-studio-v2/types";
 
 /** Center hero — presentational: canvas + legend + loupe. All state is owned by AnalyzePanel. */
 export function AnalyzeViewer({
@@ -32,6 +32,9 @@ export function AnalyzeViewer({
   onSelect,
   onCreateSpot,
   onCommitSpots,
+  visualUrl,
+  blend,
+  align,
 }: {
   grid: ThermalV2Grid | null;
   loading: boolean;
@@ -58,6 +61,10 @@ export function AnalyzeViewer({
   onSelect: (id: string | null) => void;
   onCreateSpot: (spot: ThermalV2Spot) => void;
   onCommitSpots: (next: ThermalV2Spot[]) => void;
+  /** S6.5 fusion: paired visual photo shown under the thermal canvas (null when unpaired). */
+  visualUrl?: string | null;
+  blend?: number;
+  align?: ThermalV2PairAlign;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const paintPalette = displayPalette ?? palette;
@@ -101,6 +108,9 @@ export function AnalyzeViewer({
           onSelect={onSelect}
           onCreateSpot={onCreateSpot}
           onCommitSpots={onCommitSpots}
+          visualUrl={visualUrl}
+          blend={blend}
+          align={align}
         />
       </div>
       {grid && span ? (

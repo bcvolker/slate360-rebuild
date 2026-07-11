@@ -57,7 +57,7 @@ test.describe("Thermal V2 W2 — View original, Focus mode, Library status filte
     await mockGrid(page);
     await warmBuildIdThenGoto(page);
 
-    // Fixture: 3 of 5 captures have no `anomalies` field (never AI-analyzed).
+    // Fixture: 3 of 6 captures have no `anomalies` field (never AI-analyzed).
     const chip = page.getByText("Not AI-analyzed (3)");
     await expect(chip).toBeVisible();
     await chip.click();
@@ -70,9 +70,11 @@ test.describe("Thermal V2 W2 — View original, Focus mode, Library status filte
     await mockGrid(page);
     await warmBuildIdThenGoto(page);
 
+    // Fixture: "c" (unsupported camera) and "vis-1" (paired visual-photo row,
+    // no radiometric grid — S6.5 fusion fixture) are both display-only.
     const displayOnlyBadge = page.getByTitle("No temperature data — display only");
-    await expect(displayOnlyBadge).toHaveCount(1);
-    await expect(displayOnlyBadge).toHaveText("◐");
+    await expect(displayOnlyBadge).toHaveCount(2);
+    await expect(displayOnlyBadge.first()).toHaveText("◐");
 
     const radiometricBadges = page.getByTitle("Radiometric — every pixel has a real temperature");
     await expect(radiometricBadges).toHaveCount(4);

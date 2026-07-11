@@ -4,7 +4,13 @@ import { computeHistogram, fmtTemp } from "@/lib/thermal/probe-palettes";
 import { AnalyzeAlarmControls } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeAlarmControls";
 import { AnalyzeSeverityBands } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeSeverityBands";
 import { AnalyzeContrastFlicker } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeContrastFlicker";
-import type { ThermalV2Alarm, ThermalV2SeverityBands, ThermalV2Tuning } from "@/components/thermal-studio-v2/types";
+import { AnalyzeFusionControls } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeFusionControls";
+import type {
+  ThermalV2Alarm,
+  ThermalV2PairAlign,
+  ThermalV2SeverityBands,
+  ThermalV2Tuning,
+} from "@/components/thermal-studio-v2/types";
 
 /** Right rail — Display accordion (doc §1, Tab 2 + S5/S5.6): span, alarms, severity bands, sensitivity aids. */
 export function AnalyzeDisplay({
@@ -30,6 +36,13 @@ export function AnalyzeDisplay({
   onSnapshotFlickerB,
   onToggleFlickerView,
   onClearFlicker,
+  hasPairedVisual,
+  blend,
+  onBlendChange,
+  align,
+  onNudge,
+  onScaleChange,
+  onResetAlign,
 }: {
   temps: number[] | Float32Array | Float64Array | null;
   span: { lo: number; hi: number } | null;
@@ -53,6 +66,14 @@ export function AnalyzeDisplay({
   onSnapshotFlickerB: () => void;
   onToggleFlickerView: () => void;
   onClearFlicker: () => void;
+  /** S6.5 fusion: only offered when the active image has a matched visual-photo pair. */
+  hasPairedVisual: boolean;
+  blend: number;
+  onBlendChange: (next: number) => void;
+  align: ThermalV2PairAlign;
+  onNudge: (dx: number, dy: number) => void;
+  onScaleChange: (next: number) => void;
+  onResetAlign: () => void;
 }) {
   if (!temps || !span) {
     return <div className="p-2 text-xs text-[var(--graphite-muted)]">Open an image to adjust its display.</div>;
@@ -116,6 +137,16 @@ export function AnalyzeDisplay({
         onToggleView={onToggleFlickerView}
         onClearFlicker={onClearFlicker}
       />
+      {hasPairedVisual ? (
+        <AnalyzeFusionControls
+          blend={blend}
+          onBlendChange={onBlendChange}
+          align={align}
+          onNudge={onNudge}
+          onScaleChange={onScaleChange}
+          onResetAlign={onResetAlign}
+        />
+      ) : null}
     </div>
   );
 }

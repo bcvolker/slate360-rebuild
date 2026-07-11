@@ -34,7 +34,7 @@ test.describe("Thermal V2 W1 workflow foundations", () => {
     const thumb = page.locator('button[title*="roof-nw-01.jpeg"]');
     await thumb.dblclick();
     await expect(page.getByRole("button", { name: "Analyze", exact: true })).toHaveClass(/graphite-primary/);
-    await expect(page.getByText(/^\d\/5$/)).toBeVisible();
+    await expect(page.getByText(/^\d\/6$/)).toBeVisible();
   });
 
   test("empty Library shows the one-verb start strip", async ({ page }) => {
@@ -110,7 +110,7 @@ test.describe("Thermal V2 W1 workflow foundations", () => {
 
     // Step to image 2 with the ] shortcut, then paste.
     await page.keyboard.press("]");
-    await expect(page.getByText(/^2\/5$/)).toBeVisible();
+    await expect(page.getByText(/^2\/6$/)).toBeVisible();
     const pasteBtn = page.getByRole("button", { name: "⧉ Paste" });
     await expect(pasteBtn).toBeEnabled();
     await pasteBtn.click();

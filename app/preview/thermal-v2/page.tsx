@@ -32,6 +32,17 @@ const CAPTURES: ThermalV2Capture[] = [
   { id: "c", filename: "panel-east-01.jpeg", qualityMetrics: { is_radiometric: false, sensor_model: "FLIR E8" } },
   { id: "d", filename: "panel-east-02.jpeg", qualityMetrics: { is_radiometric: true, sensor_model: "FLIR E8" } },
   { id: "e", filename: "attic-vent-01.jpeg", qualityMetrics: { is_radiometric: true, sensor_model: "FLIR E8" } },
+  // S6.5 fusion: "a"'s dual-lens visual-photo pair (a real row, no radiometric grid — see lib/thermal/pair-visual-apply.ts).
+  {
+    id: "vis-1",
+    filename: "roof-nw-01-visual.jpeg",
+    previewUrl:
+      "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='640' height='512'%3E%3Crect width='640' height='512' fill='%23667788'/%3E%3C/svg%3E",
+    qualityMetrics: { is_radiometric: false, sensor_model: "HIKMICRO Pocket2" },
+    // Visual-only pair row — not subject to AI thermal-anomaly detection, so it
+    // must not shift the Library "Not AI-analyzed" count (anomalies==null test).
+    anomalies: [],
+  },
 ];
 
 function PreviewThermalV2Inner() {

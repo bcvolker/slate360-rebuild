@@ -83,6 +83,12 @@ export function AnalyzePanel({
   const viewOriginalIsotherm = img.viewOriginal ? null : alarmBand;
   const viewOriginalSpots = img.viewOriginal ? [] : img.spots;
 
+  // S6.5 fusion: resolve the active image's matched visual-photo pair (if any)
+  // — View original always shows pure camera thermal, so blend is forced to 100.
+  const pairedVisualId = (activeCapture?.metadata as Record<string, unknown> | null)?.visual_pair_id;
+  const pairedVisual = typeof pairedVisualId === "string" ? (captures.find((c) => c.id === pairedVisualId) ?? null) : null;
+  const viewOriginalBlend = img.viewOriginal ? 100 : img.blend;
+
   // Exit Compare automatically if the selection stops being exactly 2 (e.g.
   // the operator picks a 3rd image, or clears selection from Library).
   useEffect(() => {
@@ -226,6 +232,9 @@ export function AnalyzePanel({
             onSelect={img.setSelectedId}
             onCreateSpot={img.viewOriginal ? () => {} : img.createSpot}
             onCommitSpots={img.viewOriginal ? () => {} : img.commitSpots}
+            visualUrl={pairedVisual?.previewUrl ?? null}
+            blend={viewOriginalBlend}
+            align={img.align}
           />
         )
       }

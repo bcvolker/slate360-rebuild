@@ -935,3 +935,93 @@ competitor-gap additions bundled onto this slice, not the P4 core bar:**
      0.4/0.6 (safely inside the visible band) instead of 0.3/0.7, with a
      comment explaining the letterbox math so this isn't re-investigated.
      Diagnostic code was removed before commit.
+
+## Slice 10 — S6.5 Compare + fusion, push 2 — fusion blend (2026-07-10)
+
+**Shipped** thermal↔visual fusion blend, completing roster item #10:
+- `pair_align` additive metadata field on the capture PATCH route
+  (`app/api/ops/thermal/captures/[captureId]/route.ts`) — `{dx, dy, scale}`,
+  same validate-then-merge pattern as `display_transform`.
+- `useFusion.ts` (new hook): `blend` (0-100, session-local — resets per
+  image like local contrast) and `align` (dx/dy/scale, persisted per-image
+  since misalignment is a real fact about the capture, not a view setting).
+  Autosave debounced 600ms, same pattern as `useDisplayTransform`.
+- `AnalyzeFusionControls.tsx` (new, Display accordion): blend slider,
+  4-direction nudge (2px/click), scale slider (50-200%), reset. Only
+  rendered when the active image resolves a `metadata.visual_pair_id` to
+  another capture in the working set (`AnalyzeDetailsRail`'s
+  `hasPairedVisual`).
+- `AnalyzeCanvas.tsx`: renders the paired visual's `previewUrl` as an
+  `<img>` positioned to `canvasBox` (the same letterbox-corrected rect used
+  for spot overlays, from Slice 10 push 1's bug), offset/scaled by
+  `align.dx/dy/scale`, sitting behind the thermal `<canvas>`; the canvas's
+  own `opacity` is driven by `blend/100` so the photo shows through. View
+  original forces blend to 100 (pure camera thermal, no fusion) — same
+  override pattern as the alarm-band/spots suppression already in
+  `AnalyzePanel.tsx`.
+- Preview fixture (`app/preview/thermal-v2/page.tsx`): added capture
+  `vis-1` — a real row with no radiometric grid, `previewUrl` set, and
+  `anomalies: []` (so it doesn't shift the W2 "Not AI-analyzed" count) —
+  representing capture "a"'s dual-lens visual-photo companion per
+  `lib/thermal/pair-visual-apply.ts`'s existing pairing model (the visual
+  half of a dual-lens capture is a real, separately-counted library row,
+  not a hidden asset — confirmed from `LibraryGrid.tsx`'s existing "paired"
+  badge logic, which reads the badge off the *thermal* row that links to
+  one).
+
+**Fixture-count ripple (expected, not a regression):** adding a 6th capture
+to the preview fixture shifted every hardcoded "N captures" assertion
+across the suite by one. Fixed at the source in the 3 affected specs
+(confirmed via isolated re-runs that each was passing before the fixture
+change, i.e. this was caused by the new fixture, not a real break):
+- `thermal-v2-r1-reliability.spec.ts`: `Decode temperatures (5)` → `(6)`.
+- `thermal-v2-w1-workflow.spec.ts`: both `/^\d\/5$/`-style image-index
+  assertions → `/6`.
+- `thermal-v2-w2-cam1.spec.ts`: "display-only" badge count 1 → 2 (`c` the
+  unsupported camera, and now `vis-1` the visual-only companion row are
+  both non-radiometric).
+
+**Test-authoring gotcha (same family as prior slices' accessible-name
+bugs):** the fusion nudge buttons (`←`/`↑`/`↓`/`→`) are icon-only, so their
+accessible name would otherwise be the visible glyph, not the `title` —
+fixed by adding explicit `aria-label`s matching the titles up front, rather
+than discovering the mismatch via a failing test. Separately, the first
+draft of the fusion e2e tests clicked "Analyze" *before* trying to locate
+`button[title*="double-click to analyze"]` thumbnails — that title only
+exists on the Library grid's cards, not the Analyze tab's filmstrip
+(`AnalyzeCaptureStrip`, whose thumbnail `title` is the filename). Fixed by
+following the same order the passing Compare-view tests already used
+(select/switch images from Library *before* opening Analyze), or relying
+on the default active capture (`captures[0]`) needing no selection at all.
+
+**Verification:**
+- Scoped typecheck (`tsconfig.thermal-v2.json`): clean.
+- `guard:architecture` — PASS. `guard:design` — same 3 pre-existing
+  failures, confirmed unmodified by this session (`git status --porcelain`
+  on each). `guard:file-size-regression` — the reported "new files over
+  threshold" list is entirely unrelated in-progress work from a different,
+  concurrent Twin 360 session (`components/digital-twin/**`,
+  `TwinWalkJoystick.tsx`, `walk-stick.ts` etc., confirmed pre-existing via
+  `git status`), not anything touched by this slice; every fusion file is
+  well under 300 lines (`AnalyzeFusionControls.tsx` 78, `useFusion.ts` 53,
+  `pair-align-api.ts` 7, `AnalyzePanel.tsx` 286, `AnalyzeCanvas.tsx` 279,
+  `useAnalyzeImage.ts` 266, `AnalyzeDisplay.tsx` 163,
+  `AnalyzeDetailsRail.tsx` 113, `AnalyzeViewer.tsx` 131).
+- e2e: `e2e/thermal-v2-s6-5-compare-fusion.spec.ts` gained 3 new fusion
+  specs (hidden for unpaired image; controls appear + blend fades canvas
+  opacity for a paired image; align-nudge PATCH persistence). Full 10-spec
+  / 62-test cross-slice regression (R1 through this slice) reran clean on
+  `desktop-chromium` after the fixture-count fixes above.
+- `mobile-chromium` note (not a regression, not investigated further this
+  push): the whole thermal-v2 suite already fails on the `mobile-chromium`
+  Playwright project — confirmed by running an untouched, already-shipped
+  spec (`thermal-v2-w2-cam1.spec.ts`) in isolation, which fails identically
+  ("This image" scope-pill radio intercepts the Analyze tab click at
+  390px). Thermal Studio V2 is a desktop cockpit tool (CLAUDE.md); this
+  project was never green for this suite and is out of scope for this
+  build.
+
+**Scoped down / deferred (same items logged at the end of push 1, still
+not built):** Picture-in-Picture and edge-overlay (MSX-style) fusion modes
+(F1.3); cross-image spot trend (F1.7). Roster item #10 (S6.5 Compare +
+fusion) is now complete — proceeding to #11 (S8.5 Export engine).

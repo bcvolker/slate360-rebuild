@@ -10,6 +10,7 @@ import { savePalette } from "@/components/thermal-studio-v2/lib/palette-api";
 import { useFlickerAB } from "@/components/thermal-studio-v2/lib/useFlickerAB";
 import { useDisplayTransform } from "@/components/thermal-studio-v2/lib/useDisplayTransform";
 import { useExtremeMarkers } from "@/components/thermal-studio-v2/lib/useExtremeMarkers";
+import { useFusion } from "@/components/thermal-studio-v2/lib/useFusion";
 import type {
   ThermalV2Alarm,
   ThermalV2Capture,
@@ -112,6 +113,9 @@ export function useAnalyzeImage(activeCapture: ThermalV2Capture | null) {
 
   // S5.6 rotate/flip (F1.2, extracted — see useDisplayTransform).
   const displayTransform = useDisplayTransform(activeCapture, !!grid);
+
+  // S6.5 thermal↔visual fusion blend (extracted — see useFusion).
+  const fusion = useFusion(activeCapture, !!grid);
 
   // S5.5 "Mark hottest/coldest" + re-seat-on-retune (extracted — see useExtremeMarkers).
   const { markExtreme } = useExtremeMarkers(grid, historyRef, setSelectedId);
@@ -231,6 +235,7 @@ export function useAnalyzeImage(activeCapture: ThermalV2Capture | null) {
     setViewOriginal,
     ...flicker,
     ...displayTransform,
+    ...fusion,
     enhanceHere,
     tuning,
     setTuning,

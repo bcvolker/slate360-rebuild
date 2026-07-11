@@ -5,7 +5,7 @@ import { renderHeatmap, newSpotId, type Isotherm } from "@/lib/thermal/probe-pal
 import { SpotOverlay } from "@/components/thermal-studio-v2/panels/analyze/SpotOverlay";
 import { useCanvasStage } from "@/components/thermal-studio-v2/lib/useCanvasStage";
 import type { ThermalV2Grid } from "@/components/thermal-studio-v2/lib/grid-api";
-import type { ThermalV2DisplayTransform, ThermalV2Spot, ThermalV2Tool } from "@/components/thermal-studio-v2/types";
+import type { ThermalV2DisplayTransform, ThermalV2PairAlign, ThermalV2Spot, ThermalV2Tool } from "@/components/thermal-studio-v2/types";
 
 export type HoverInfo = { x: number; y: number; tempC: number } | null;
 
@@ -35,6 +35,9 @@ export function AnalyzeCanvas({
   onSelect,
   onCreateSpot,
   onCommitSpots,
+  visualUrl,
+  blend,
+  align,
 }: {
   grid: ThermalV2Grid | null;
   loading: boolean;
@@ -59,6 +62,10 @@ export function AnalyzeCanvas({
   onSelect: (id: string | null) => void;
   onCreateSpot: (spot: ThermalV2Spot) => void;
   onCommitSpots: (next: ThermalV2Spot[]) => void;
+  /** S6.5 fusion: paired visual photo shown under the thermal canvas (null when unpaired). */
+  visualUrl?: string | null;
+  blend?: number;
+  align?: ThermalV2PairAlign;
 }) {
   const stage = useCanvasStage({ grid, spots, canvasRef, onCommitSpots });
   const { canvasBox, zoom, pan, visibleSpots, toImageCoords } = stage;
@@ -200,9 +207,31 @@ export function AnalyzeCanvas({
           }}
           className="relative flex h-full w-full items-center justify-center"
         >
+          {visualUrl && canvasBox.width > 0 ? (
+            <img
+              src={visualUrl}
+              alt=""
+              className="pointer-events-none absolute object-cover"
+              style={{
+                left: canvasBox.left,
+                top: canvasBox.top,
+                width: canvasBox.width,
+                height: canvasBox.height,
+                transform: `translate(${align?.dx ?? 0}px, ${align?.dy ?? 0}px) scale(${align?.scale ?? 1})`,
+              }}
+            />
+          ) : null}
           <canvas
             ref={canvasRef}
-            style={{ width: "100%", height: "100%", objectFit: "contain", imageRendering: "pixelated", display: "block" }}
+            style={{
+              position: "relative",
+              width: "100%",
+              height: "100%",
+              objectFit: "contain",
+              imageRendering: "pixelated",
+              display: "block",
+              opacity: visualUrl ? (blend ?? 100) / 100 : 1,
+            }}
           />
           {canvasBox.width > 0 ? (
             <div

@@ -99,3 +99,10 @@ export type ThermalV2SeverityBands = { advisory: number; warning: number; critic
  * never changes. Rotation is clockwise degrees.
  */
 export type ThermalV2DisplayTransform = { rotation: 0 | 90 | 180 | 270; flipH: boolean; flipV: boolean };
+
+/**
+ * S6.5 fusion blend registration nudge — persisted per-image
+ * (`metadata.pair_align`) since it corrects the paired visual photo's
+ * alignment under the thermal canvas, not a session-local view setting.
+ */
+export type ThermalV2PairAlign = { dx: number; dy: number; scale: number };

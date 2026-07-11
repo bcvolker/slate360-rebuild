@@ -91,3 +91,55 @@ test.describe("Thermal V2 S6.5 Compare view", () => {
     expect(scrollable, "page scrolled at 1440x900").toBe(false);
   });
 });
+
+test.describe("Thermal V2 S6.5 fusion blend", () => {
+  test.use({ serviceWorkers: "block" });
+
+  test("fusion controls are hidden for an unpaired image", async ({ page }) => {
+    await mockGrid(page);
+    await warmBuildIdThenGoto(page);
+    await page.getByRole("button", { name: "Analyze", exact: true }).click();
+    await expect(page.locator("canvas").first()).toBeVisible();
+    // Fixture image "b" has no visual_pair_id — switch via the Analyze filmstrip (title=filename).
+    await page.getByTitle("roof-nw-02.jpeg").click();
+    await page.getByRole("button", { name: /^Display/ }).click();
+    await expect(page.getByText("Fusion — thermal over paired visual photo")).not.toBeVisible();
+  });
+
+  test("fusion controls appear for a paired image and blend fades the thermal canvas", async ({ page }) => {
+    await mockGrid(page);
+    await warmBuildIdThenGoto(page);
+    await page.getByRole("button", { name: "Analyze", exact: true }).click();
+    // Fixture image "a" (default active capture) is paired with visual row "vis-1".
+    await expect(page.locator("canvas").first()).toBeVisible();
+    await page.getByRole("button", { name: /^Display/ }).click();
+    await expect(page.getByText("Fusion — thermal over paired visual photo")).toBeVisible();
+
+    const canvas = page.locator("canvas").first();
+    await expect(canvas).toHaveCSS("opacity", "1");
+
+    const blendSlider = page.getByLabel(/^Blend/);
+    await blendSlider.fill("40");
+    await expect(canvas).toHaveCSS("opacity", "0.4");
+  });
+
+  test("align nudge + reset persist via the capture PATCH route", async ({ page }) => {
+    const patchBodies: unknown[] = [];
+    await mockGrid(page);
+    await page.route("**/api/ops/thermal/captures/a", async (route) => {
+      if (route.request().method() === "PATCH") {
+        patchBodies.push(JSON.parse(route.request().postData() ?? "{}"));
+      }
+      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { ok: true } }) });
+    });
+    await warmBuildIdThenGoto(page);
+    await page.getByRole("button", { name: "Analyze", exact: true }).click();
+    await expect(page.locator("canvas").first()).toBeVisible();
+    await page.getByRole("button", { name: /^Display/ }).click();
+
+    await page.getByRole("button", { name: "Nudge right" }).click();
+    await expect
+      .poll(() => patchBodies.some((b) => (b as Record<string, unknown>).pair_align != null))
+      .toBe(true);
+  });
+});

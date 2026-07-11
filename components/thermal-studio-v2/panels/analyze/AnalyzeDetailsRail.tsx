@@ -35,6 +35,8 @@ export function AnalyzeDetailsRail({
     onOpenSectionChange(openSection === section ? "" : section);
   }
 
+  const hasPairedVisual = Boolean((activeCapture?.metadata as Record<string, unknown> | null)?.visual_pair_id);
+
   return (
     <div className="flex h-full flex-col overflow-hidden">
       <AnalyzeMiniSummary temps={img.grid?.temps ?? null} unit={unit} />
@@ -93,6 +95,13 @@ export function AnalyzeDetailsRail({
             onSnapshotFlickerB={img.snapshotFlickerB}
             onToggleFlickerView={img.toggleFlickerView}
             onClearFlicker={img.clearFlicker}
+            hasPairedVisual={hasPairedVisual}
+            blend={img.blend}
+            onBlendChange={img.setBlend}
+            align={img.align}
+            onNudge={img.nudge}
+            onScaleChange={img.setScale}
+            onResetAlign={img.resetAlign}
           />
         </AnalyzeAccordion>
         <AnalyzeAccordion title="Notes & photo data" open={openSection === "Notes & photo data"} onToggle={() => toggle("Notes & photo data")}>
