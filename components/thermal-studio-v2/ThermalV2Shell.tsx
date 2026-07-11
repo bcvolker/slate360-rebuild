@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   StudioWorkspaceShell,
   StudioTabs,
@@ -8,12 +8,16 @@ import {
   type StudioTab,
 } from "@/components/studio/StudioWorkspaceShell";
 import { ScopePill } from "@/components/thermal-studio-v2/ScopePill";
+import { SavedStatusChip } from "@/components/thermal-studio-v2/SavedStatusChip";
+import { JobStatusChip } from "@/components/thermal-studio-v2/JobStatusChip";
 import { LibraryPanel } from "@/components/thermal-studio-v2/panels/LibraryPanel";
 import { AnalyzePanel } from "@/components/thermal-studio-v2/panels/AnalyzePanel";
 import { AiReviewPanel } from "@/components/thermal-studio-v2/panels/AiReviewPanel";
 import { ReportPanel } from "@/components/thermal-studio-v2/panels/ReportPanel";
 import { DeliverPanel } from "@/components/thermal-studio-v2/panels/DeliverPanel";
 import { useLibrarySelection } from "@/components/thermal-studio-v2/lib/useLibrarySelection";
+import { dispatchThermalJob } from "@/components/thermal-studio-v2/lib/api";
+import { hasUnsavedWork } from "@/components/thermal-studio-v2/lib/save-status";
 import type { ThermalV2Capture, ThermalV2Scope, ThermalV2Tab } from "@/components/thermal-studio-v2/types";
 
 const TABS: { id: ThermalV2Tab; label: string }[] = [
@@ -58,6 +62,22 @@ export function ThermalV2Shell({
 
   const tabs: StudioTab<ThermalV2Tab>[] = TABS;
 
+  // R1: never navigate away from unsaved/errored work silently.
+  useEffect(() => {
+    function guard(e: BeforeUnloadEvent) {
+      if (!hasUnsavedWork()) return;
+      e.preventDefault();
+      e.returnValue = "";
+    }
+    window.addEventListener("beforeunload", guard);
+    return () => window.removeEventListener("beforeunload", guard);
+  }, []);
+
+  function retryJob(jobType: string, failedCaptureIds: string[]) {
+    if (!failedCaptureIds.length) return;
+    void dispatchThermalJob(sessionId, jobType as "extract" | "extract_analyze" | "align" | "analyze" | "report" | "full_pipeline", failedCaptureIds);
+  }
+
   return (
     <StudioWorkspaceShell
       title="Thermal Studio"
@@ -68,13 +88,8 @@ export function ThermalV2Shell({
         <>
           <ScopePill scope={liveScope} selectedCount={selectedCount} totalCount={totalCount} onChange={changeScope} />
           <StudioChip label="Images" value={totalCount} />
-          <span
-            title="No processing job running"
-            className="flex items-center gap-1.5 rounded-md border border-[var(--mobile-app-card-border)] px-2 py-0.5 text-[11px] text-[var(--graphite-muted)]"
-          >
-            <span className="h-1.5 w-1.5 rounded-full bg-[var(--graphite-muted)]" />
-            Idle
-          </span>
+          <SavedStatusChip />
+          <JobStatusChip sessionId={sessionId} onRetry={retryJob} />
         </>
       }
     >

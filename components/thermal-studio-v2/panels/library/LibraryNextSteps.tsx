@@ -22,12 +22,18 @@ export function LibraryNextSteps({
   totalInScope: number;
 }) {
   const [status, setStatus] = useState<string | null>(null);
-  const disabled = totalInScope === 0;
+  const [busy, setBusy] = useState(false);
+  const disabled = totalInScope === 0 || busy;
 
+  // R1: disable-while-pending — the server also dedupes (dedupe_key), but a
+  // client-side guard means a fast double-click never even sends a second
+  // request while the first is still in flight.
   async function run(jobType: "extract" | "analyze", label: string) {
+    setBusy(true);
     setStatus(`${label}…`);
     const result = await dispatchThermalJob(sessionId, jobType, scopeIds);
     setStatus(result.message);
+    setBusy(false);
   }
 
   return (

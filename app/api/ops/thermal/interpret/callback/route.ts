@@ -105,6 +105,39 @@ export async function POST(req: NextRequest) {
     };
     await admin.from("thermal_analysis_sessions").update({ metadata }).eq("id", body.sessionId);
 
+    // R1: close out the job row this run's dispatch created, so the job chip
+    // and Realtime subscription reflect completion/failure like every other job.
+    const { data: job } = await admin
+      .from("thermal_processing_jobs")
+      .select("id, input_capture_ids")
+      .eq("session_id", body.sessionId)
+      .eq("job_type", "interpret")
+      .in("status", ["queued", "processing"])
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (job) {
+      const inputIds = (job.input_capture_ids as string[] | null) ?? [];
+      const partial = body.status === "capped" && updated < inputIds.length;
+      await admin
+        .from("thermal_processing_jobs")
+        .update({
+          status: body.status === "failed" ? "failed" : "completed",
+          progress_pct: 100,
+          stage: "complete",
+          completed_at: new Date().toISOString(),
+          partial,
+          failure_reason: body.status === "failed" ? "interpret_failed" : partial ? "spend_cap_reached" : null,
+          error_log:
+            body.status === "failed"
+              ? (body.errorLog ?? "Interpret worker reported failure")
+              : partial
+                ? `${updated}/${inputIds.length} processed — spend cap reached`
+                : null,
+        })
+        .eq("id", job.id);
+    }
+
     return new Response(JSON.stringify({ ok: true, updated }), {
       status: 200,
       headers: { "Content-Type": "application/json" },

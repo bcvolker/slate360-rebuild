@@ -11,6 +11,10 @@ export type ThermalJobSnapshot = {
   stage: string | null;
   error_log: string | null;
   created_at: string | null;
+  job_type?: string;
+  partial?: boolean;
+  failed_capture_ids?: string[];
+  input_capture_ids?: string[];
 };
 
 export function useThermalJobRealtime(sessionId: string | null) {
@@ -46,7 +50,9 @@ export function useThermalJobRealtime(sessionId: string | null) {
 
     void supabase
       .from("thermal_processing_jobs")
-      .select("id, status, progress_pct, stage, error_log, created_at")
+      .select(
+        "id, status, progress_pct, stage, error_log, created_at, job_type, partial, failed_capture_ids, input_capture_ids",
+      )
       .eq("session_id", sessionId)
       .order("created_at", { ascending: false })
       .limit(1)

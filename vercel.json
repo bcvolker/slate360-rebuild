@@ -11,6 +11,10 @@
     {
       "path": "/api/ops/cron/r2-cleanup",
       "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/ops/thermal/jobs/reconcile",
+      "schedule": "*/10 * * * *"
     }
   ]
 }

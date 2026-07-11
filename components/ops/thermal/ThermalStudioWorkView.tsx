@@ -45,36 +45,43 @@ type Props = {
   saveFindings?: (captureId: string, findings: string) => void;
 };
 
-function defaultSaveSpots(captureId: string, spots: ProbeSpot[]): void {
+const V1_SAVE_ERROR_EVENT = "thermal-v1-save-error";
+
+/** R1 (small, V1-protection): the old silent `.catch(() => {})` now fires a
+ * DOM event a lightweight toast in this component listens for — a failed save
+ * must be visible here too, not just in V2. */
+function notifySaveError() {
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent(V1_SAVE_ERROR_EVENT));
+  }
+}
+
+function patchCapture(captureId: string, body: Record<string, unknown>): void {
   fetch(`/api/ops/thermal/captures/${captureId}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ spots }),
-  }).catch(() => {});
+    body: JSON.stringify(body),
+  })
+    .then((res) => {
+      if (!res.ok) notifySaveError();
+    })
+    .catch(() => notifySaveError());
+}
+
+function defaultSaveSpots(captureId: string, spots: ProbeSpot[]): void {
+  patchCapture(captureId, { spots });
 }
 
 function defaultSaveTuning(captureId: string, tuning: ProbeTuning): void {
-  fetch(`/api/ops/thermal/captures/${captureId}`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ tuning }),
-  }).catch(() => {});
+  patchCapture(captureId, { tuning });
 }
 
 function defaultSavePalette(captureId: string, palette: string): void {
-  fetch(`/api/ops/thermal/captures/${captureId}`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ palette }),
-  }).catch(() => {});
+  patchCapture(captureId, { palette });
 }
 
 function defaultSaveFindings(captureId: string, findings: string): void {
-  fetch(`/api/ops/thermal/captures/${captureId}`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ findings }),
-  }).catch(() => {});
+  patchCapture(captureId, { findings });
 }
 
 function defaultLoadGrid(captureId: string): Promise<ThermalProbeGrid | null> {
@@ -141,6 +148,21 @@ export function ThermalStudioWorkView({
   const [findingsText, setFindingsText] = useState("");
   const [drafting, setDrafting] = useState(false);
   const [draftNote, setDraftNote] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState(false);
+
+  useEffect(() => {
+    function onSaveError() {
+      setSaveError(true);
+    }
+    window.addEventListener(V1_SAVE_ERROR_EVENT, onSaveError);
+    return () => window.removeEventListener(V1_SAVE_ERROR_EVENT, onSaveError);
+  }, []);
+
+  useEffect(() => {
+    if (!saveError) return;
+    const t = setTimeout(() => setSaveError(false), 6000);
+    return () => clearTimeout(t);
+  }, [saveError]);
 
   const flaggedCount = captures.filter((c) => (c.anomalies?.length ?? 0) > 0).length;
   const visibleCaptures = flaggedOnly
@@ -336,6 +358,21 @@ export function ThermalStudioWorkView({
     // Resizable workspace (Content Studio pattern): drag the splitters; the files rail
     // and the bottom filmstrip collapse. Center image is the protected focal point.
     <>
+    {saveError ? (
+      <div
+        role="alert"
+        className="pointer-events-none fixed right-3 top-3 z-50 flex items-center gap-2 rounded-md border border-red-500/40 bg-red-500/10 px-3 py-1.5 text-[11px] text-red-400"
+      >
+        Not saved — check your connection and try again.
+        <button
+          type="button"
+          className="pointer-events-auto underline"
+          onClick={() => setSaveError(false)}
+        >
+          Dismiss
+        </button>
+      </div>
+    ) : null}
     <PanelGroup direction="vertical" className="h-full min-h-0">
       <Panel defaultSize={76} minSize={45}>
         <PanelGroup direction="horizontal" className="h-full">

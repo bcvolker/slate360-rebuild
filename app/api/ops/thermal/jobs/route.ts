@@ -1,9 +1,18 @@
 import { NextRequest } from "next/server";
+import { createHash } from "node:crypto";
 import { withThermalOpsAuth } from "@/lib/thermal/access";
 import { ok, badRequest, notFound, serverError } from "@/lib/server/api-response";
 import type { ThermalJobType } from "@/lib/thermal/types";
 
 export const runtime = "nodejs";
+
+const JOB_SELECT = "id, status, progress_pct, job_type, dedupe_key";
+
+/** sha256(org + session + type + sorted capture ids) — one active job per key (R1 dedupe). */
+function computeDedupeKey(orgId: string, sessionId: string, jobType: string, captureIds: string[]): string {
+  const sorted = [...captureIds].sort();
+  return createHash("sha256").update(`${orgId}:${sessionId}:${jobType}:${sorted.join(",")}`).digest("hex");
+}
 
 const triggerRequestOptions = { clientConfig: { previewBranch: "" } };
 
@@ -78,6 +87,19 @@ export const POST = (req: NextRequest) =>
       );
     }
 
+    const captureIds = readyCaptures.map((row) => row.id);
+    const dedupeKey = computeDedupeKey(orgId, body.session_id, jobType, captureIds);
+
+    // R1 dedupe: a double-click or a retried client request while an identical
+    // job is still queued/processing returns that job instead of creating a duplicate.
+    const { data: activeJob } = await admin
+      .from("thermal_processing_jobs")
+      .select(JOB_SELECT)
+      .eq("dedupe_key", dedupeKey)
+      .in("status", ["queued", "processing"])
+      .maybeSingle();
+    if (activeJob) return ok({ job: activeJob, deduped: true });
+
     const { data: job, error: jobError } = await admin
       .from("thermal_processing_jobs")
       .insert({
@@ -86,18 +108,29 @@ export const POST = (req: NextRequest) =>
         created_by: user.id,
         job_type: jobType,
         status: "queued",
-        input_capture_ids: readyCaptures.map((row) => row.id),
+        input_capture_ids: captureIds,
+        dedupe_key: dedupeKey,
       })
-      .select("id, status, progress_pct, job_type")
+      .select(JOB_SELECT)
       .single();
 
-    if (jobError || !job) return serverError(jobError?.message ?? "Failed to create job");
+    if (jobError || !job) {
+      // Unique-violation race: another request won the insert first — return its job.
+      if (jobError?.code === "23505") {
+        const { data: raced } = await admin
+          .from("thermal_processing_jobs")
+          .select(JOB_SELECT)
+          .eq("dedupe_key", dedupeKey)
+          .in("status", ["queued", "processing"])
+          .maybeSingle();
+        if (raced) return ok({ job: raced, deduped: true });
+      }
+      return serverError(jobError?.message ?? "Failed to create job");
+    }
 
-    await admin
-      .from("thermal_analysis_sessions")
-      .update({ status: "processing" })
-      .eq("id", body.session_id);
-
+    // R1 accept-then-processing: the job stays "queued" and the session stays
+    // untouched until Trigger.dev actually accepts the dispatch — a dispatch
+    // failure must never leave a job silently stuck at "queued" forever.
     try {
       const { tasks } = await import("@trigger.dev/sdk/v3");
       const handle = await tasks.trigger(
@@ -118,6 +151,7 @@ export const POST = (req: NextRequest) =>
         .update({
           status: "failed",
           error_log: `Dispatch error: ${msg}`,
+          failure_reason: "dispatch_failed",
           completed_at: new Date().toISOString(),
         })
         .eq("id", job.id);
@@ -128,6 +162,18 @@ export const POST = (req: NextRequest) =>
       return serverError(`Failed to dispatch thermal job: ${msg}`);
     }
 
-    return ok({ job, triggerDispatched: true });
+    const { data: processingJob } = await admin
+      .from("thermal_processing_jobs")
+      .update({ status: "processing" })
+      .eq("id", job.id)
+      .select(JOB_SELECT)
+      .single();
+
+    await admin
+      .from("thermal_analysis_sessions")
+      .update({ status: "processing" })
+      .eq("id", body.session_id);
+
+    return ok({ job: processingJob ?? job, triggerDispatched: true });
   });
 

@@ -14,7 +14,18 @@
     "lib/thermal/radiometric.ts",
     "lib/thermal/probe-palettes.ts",
     "lib/thermal/spot-stats.ts",
+    "lib/thermal/job-callback.ts",
+    "lib/thermal/job-partial-failure.ts",
+    "lib/thermal/job-result-appliers.ts",
     "components/site-walk/canvas/useUndoRedo.ts",
-    "components/ops/thermal/ThermalProbeViewer.tsx"
+    "components/ops/thermal/ThermalProbeViewer.tsx",
+    "components/ops/thermal/ThermalStudioWorkView.tsx",
+    "hooks/useThermalJobRealtime.ts",
+    "app/api/ops/thermal/jobs/route.ts",
+    "app/api/ops/thermal/jobs/reconcile/route.ts",
+    "app/api/ops/thermal/jobs/callback/route.ts",
+    "app/api/ops/thermal/captures/[captureId]/route.ts",
+    "app/api/ops/thermal/sessions/[sessionId]/interpret/route.ts",
+    "app/api/ops/thermal/interpret/callback/route.ts"
   ]
 }
