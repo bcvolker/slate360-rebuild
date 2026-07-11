@@ -1614,3 +1614,69 @@ verification table — is **LOCKED**:
 `docs/design/THERMAL_V2_AUDIT_REMEDIATION_LOCKED.md`. Execution starts with
 Batch 1 next session/turn. This remediation work stays entirely within the
 existing "keep building on `/preview/thermal-v2`" pattern — S9 remains held.
+
+## Remediation Batch 1 — shell owns mutable capture state (2026-07-11)
+
+**Shipped** the root-cause fix behind ~7 Critical audit findings:
+- `components/thermal-studio-v2/lib/map-captures.ts` (new) — the one
+  snake_case→camelCase capture mapping, extracted out of the `[sessionId]`
+  page so a client refetch and SSR never disagree on shape.
+- `hooks/useThermalCapturesRealtime.ts` (new) — mirrors the existing
+  `useThermalJobRealtime.ts` channel shape exactly; fires on any new
+  `thermal_captures` INSERT for the session (upload finalize, or — the
+  case with no other client signal — a panorama-stitch callback landing
+  asynchronously). New migration `20260711120000_thermal_captures_realtime.sql`
+  adds `thermal_captures` to the `supabase_realtime` publication (additive,
+  applied to prod via `supabase db query --linked`, verified via
+  `pg_publication_tables`).
+- `save-status.ts` gained `onCaptureMetadataSaved` — `patchCaptureWithStatus`
+  now parses the PATCH response's `{ metadata }` body (previously
+  discarded) and notifies listeners. All 8 existing autosave call sites
+  needed zero changes — they already funnel through this one function.
+- `ThermalV2Shell.tsx` — `captures` lifted from a frozen prop into
+  `useState`; new `refetchCaptures()` hits the existing session GET route
+  (no new backend route); subscribes to the new Realtime hook and to
+  `onCaptureMetadataSaved` (merges an edit into `captures` in place,
+  instantly, no network round-trip — avoids a race between a full refetch
+  and an in-flight edit elsewhere). `useMotionState` also moved here from
+  `DeliverPanel` (confirmed via the plan's verification pass: it only ever
+  depended on `captures.length`) — `DeliverPanel` now receives `motion` as
+  a prop and keeps only its own view-navigation state locally.
+- `LibraryPanel.tsx` — `onUploaded`/`onImported` now call `refetchCaptures()`
+  and the toast copy drops "— refresh to see new images" (no longer true).
+
+**Verified manually first** (preview tools, same discipline as the
+original build): confirmed the Motion in/out range now survives a
+Library→Deliver→Library→Deliver shell tab switch (previously reset to
+full range — reproduced the exact audit-reported bug, then confirmed the
+fix), and confirmed a palette change on an image survives an Analyze→
+Library→Analyze round-trip (previously reseeded the stale default). One
+real HMR/dev-server-state artifact hit during this pass (a fully blank
+page after several rapid successive file edits) — resolved by a full
+`preview_stop`/`preview_start` restart, same class of false alarm noted
+during MAP-1's earlier SSR fix; not a code bug.
+
+**Verification:**
+- Scoped typecheck (`tsconfig.thermal-v2.json`, extended to include the
+  new hook + the previously-uncovered session GET route): clean.
+- `guard:architecture` — PASS. `guard:design` — same 3 pre-existing
+  failures, confirmed untouched by this batch via `git status`. File
+  sizes: all new/touched files well under 300.
+- e2e: new `e2e/thermal-v2-audit-batch1-shell-state.spec.ts` (3 specs) —
+  upload appears in Library with zero `page.reload()` calls in the test;
+  an edited capture's metadata survives a Library⇄Analyze round-trip;
+  Motion's range survives a Deliver→Library→Deliver switch. One authoring
+  gotcha (same family as prior slices): the drop-anywhere window listener
+  needs a real prior UI interaction (a `.click()`), not just an
+  assert-visible wait, before firing the synthetic `DragEvent` — otherwise
+  the event can fire before React has attached the listener; matched
+  `thermal-v2-w1-workflow.spec.ts`'s already-reliable pattern. Full
+  cross-slice regression (16 specs / 87 tests) green on `desktop-chromium`
+  (one pre-existing parallel-worker flake in MAP-1, confirmed via isolated
+  re-run — not a regression).
+
+**What this does NOT yet cover** (real, still-open from the same audit,
+tracked as separate remediation batches): AI Review's decisions still
+don't reach Report/PDF/HTML (Batch 2); the dozen smaller independent
+fixes (Batch 3); the visual density/text-overflow pass (Batch 4).
+Proceeding to Batch 2.

@@ -77,6 +77,22 @@ export function hasUnsavedWork(): boolean {
   return false;
 }
 
+// Audit remediation Batch 1: the shell owns `captures` as mutable state now
+// (docs/design/THERMAL_V2_AUDIT_REMEDIATION_LOCKED.md §2) — this is how an
+// autosaved edit reaches it instantly, with no network round-trip and no
+// race against a full Realtime-triggered refetch, so a tab the operator
+// left and returned to reflects the just-saved value instead of the stale
+// prop it mounted with.
+type CaptureMetadataListener = (captureId: string, metadata: Record<string, unknown>) => void;
+const captureMetadataListeners = new Set<CaptureMetadataListener>();
+
+export function onCaptureMetadataSaved(listener: CaptureMetadataListener): () => void {
+  captureMetadataListeners.add(listener);
+  return () => {
+    captureMetadataListeners.delete(listener);
+  };
+}
+
 const RETRY_DELAYS_MS = [1000, 3000, 9000];
 
 /** Fetch with the R1 retry/backoff + status-reporting contract every autosave uses. */
@@ -93,7 +109,13 @@ export function patchCaptureWithStatus(
   })
     .then((res) => {
       if (!res.ok) throw new Error(`Save failed (${res.status})`);
+      return res.json().catch(() => null);
+    })
+    .then((json: { metadata?: Record<string, unknown> } | null) => {
       reportSaveOk(captureId);
+      if (json?.metadata) {
+        for (const listener of captureMetadataListeners) listener(captureId, json.metadata);
+      }
       return true;
     })
     .catch((err) => {

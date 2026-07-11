@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   StudioWorkspaceShell,
   StudioTabs,
@@ -16,8 +16,11 @@ import { AiReviewPanel } from "@/components/thermal-studio-v2/panels/AiReviewPan
 import { ReportPanel } from "@/components/thermal-studio-v2/panels/ReportPanel";
 import { DeliverPanel } from "@/components/thermal-studio-v2/panels/DeliverPanel";
 import { useLibrarySelection } from "@/components/thermal-studio-v2/lib/useLibrarySelection";
+import { useMotionState } from "@/components/thermal-studio-v2/lib/useMotionState";
 import { dispatchThermalJob, uploadThermalFile } from "@/components/thermal-studio-v2/lib/api";
-import { hasUnsavedWork } from "@/components/thermal-studio-v2/lib/save-status";
+import { hasUnsavedWork, onCaptureMetadataSaved } from "@/components/thermal-studio-v2/lib/save-status";
+import { toThermalV2Captures } from "@/components/thermal-studio-v2/lib/map-captures";
+import { useThermalCapturesRealtime } from "@/hooks/useThermalCapturesRealtime";
 import type { ThermalV2Capture, ThermalV2Scope, ThermalV2Tab } from "@/components/thermal-studio-v2/types";
 
 const TABS: { id: ThermalV2Tab; label: string }[] = [
@@ -37,7 +40,7 @@ const TABS: { id: ThermalV2Tab; label: string }[] = [
 export function ThermalV2Shell({
   sessionId,
   sessionName,
-  captures,
+  captures: initialCaptures,
   initialTab,
 }: {
   sessionId: string;
@@ -46,13 +49,44 @@ export function ThermalV2Shell({
   /** TS-SD re-open deep link (?report=1) jumps straight to a tab on load. */
   initialTab?: ThermalV2Tab;
 }) {
+  // Audit remediation Batch 1 (docs/design/THERMAL_V2_AUDIT_REMEDIATION_LOCKED.md
+  // §2): `captures` used to be a frozen prop for the shell's entire lifetime —
+  // upload/panorama results never appeared without a manual browser refresh,
+  // and since each tab fully unmounts on switch, a just-saved edit looked
+  // reverted on return. Now owned as shell state: `refetchCaptures` hits the
+  // existing session GET route, a Realtime subscription catches async inserts
+  // (panorama), and `onCaptureMetadataSaved` merges an edit in place instantly.
+  const [captures, setCaptures] = useState<ThermalV2Capture[]>(initialCaptures);
   const [tab, setTab] = useState<ThermalV2Tab>(initialTab ?? "library");
   const [scope, setScope] = useState<ThermalV2Scope>({ kind: "image" });
   const [dropUpload, setDropUpload] = useState<{ done: number; total: number } | null>(null);
   const selection = useLibrarySelection(sessionId, captures);
+  // S8-M Motion: owned here (not DeliverPanel) so it survives a shell tab
+  // switch away from Deliver and back — DeliverPanel itself still unmounts.
+  const motion = useMotionState(captures.length);
 
   const selectedCount = selection.selectedIds.size;
   const totalCount = captures.length;
+
+  const refetchCaptures = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/ops/thermal/sessions/${sessionId}`);
+      if (!res.ok) return;
+      const detail = await res.json();
+      if (Array.isArray(detail?.captures)) setCaptures(toThermalV2Captures(detail.captures));
+    } catch {
+      // best-effort — a missed refetch just means the operator still sees
+      // prior state, not a regression from the old (always-frozen) behavior
+    }
+  }, [sessionId]);
+
+  useThermalCapturesRealtime(sessionId, refetchCaptures);
+
+  useEffect(() => {
+    return onCaptureMetadataSaved((captureId, metadata) => {
+      setCaptures((prev) => prev.map((c) => (c.id === captureId ? { ...c, metadata } : c)));
+    });
+  }, []);
 
   function changeScope(kind: ThermalV2Scope["kind"]) {
     if (kind === "selected") setScope({ kind, count: selectedCount });
@@ -100,6 +134,7 @@ export function ThermalV2Shell({
         setDropUpload({ done: i + 1, total: files.length });
       }
       setTimeout(() => setDropUpload(null), 2000);
+      void refetchCaptures();
     }
     window.addEventListener("dragover", onDragOver);
     window.addEventListener("drop", onDrop);
@@ -107,7 +142,7 @@ export function ThermalV2Shell({
       window.removeEventListener("dragover", onDragOver);
       window.removeEventListener("drop", onDrop);
     };
-  }, [sessionId]);
+  }, [sessionId, refetchCaptures]);
 
   function openInAnalyze(id: string, index: number) {
     selection.click(id, index, {});
@@ -164,6 +199,7 @@ export function ThermalV2Shell({
           scope={liveScope}
           selection={selection}
           onOpenInAnalyze={openInAnalyze}
+          refetchCaptures={refetchCaptures}
         />
       ) : null}
       {tab === "analyze" ? (
@@ -181,7 +217,7 @@ export function ThermalV2Shell({
         <AiReviewPanel sessionId={sessionId} captures={captures} selection={selection} scope={liveScope} />
       ) : null}
       {tab === "report" ? <ReportPanel sessionId={sessionId} captures={captures} selection={selection} /> : null}
-      {tab === "deliver" ? <DeliverPanel sessionId={sessionId} captures={captures} /> : null}
+      {tab === "deliver" ? <DeliverPanel sessionId={sessionId} captures={captures} motion={motion} /> : null}
     </StudioWorkspaceShell>
   );
 }

@@ -25,6 +25,7 @@ export function LibraryPanel({
   scope,
   selection,
   onOpenInAnalyze,
+  refetchCaptures,
 }: {
   sessionId: string;
   captures: ThermalV2Capture[];
@@ -32,12 +33,25 @@ export function LibraryPanel({
   selection: ReturnType<typeof useLibrarySelection>;
   /** W1: double-click a thumbnail switches the shell to the Analyze tab. */
   onOpenInAnalyze?: (id: string, index: number) => void;
+  /** Audit remediation Batch 1: pulls the new row into shell state — no more "refresh to see it." */
+  refetchCaptures: () => void;
 }) {
   const [filter, setFilter] = useState<ThermalV2LibraryFilter>("all");
   const [importOpen, setImportOpen] = useState(false);
   const [refreshNote, setRefreshNote] = useState<string | null>(null);
   // MAP-1 (doc D2): Grid ⇄ Map — the only new top-level control this slice adds.
   const [viewMode, setViewMode] = useState<"grid" | "map">("grid");
+
+  function handleUploaded() {
+    setRefreshNote("Uploaded ✓");
+    refetchCaptures();
+    setTimeout(() => setRefreshNote(null), 2500);
+  }
+  function handleImported() {
+    setRefreshNote("Imported ✓");
+    refetchCaptures();
+    setTimeout(() => setRefreshNote(null), 2500);
+  }
 
   const visible = useMemo(() => {
     if (filter === "all") return captures;
@@ -92,7 +106,7 @@ export function LibraryPanel({
               filter={filter}
               onFilterChange={setFilter}
               sessionId={sessionId}
-              onUploaded={() => setRefreshNote("Uploaded — refresh to see new images")}
+              onUploaded={handleUploaded}
               onOpenSlateDropImport={() => setImportOpen(true)}
             />
           ),
@@ -113,7 +127,7 @@ export function LibraryPanel({
               onClick={selection.click}
               onOpenInAnalyze={onOpenInAnalyze}
               sessionId={sessionId}
-              onUploaded={() => setRefreshNote("Uploaded — refresh to see new images")}
+              onUploaded={handleUploaded}
             />
           )
         }
@@ -140,7 +154,7 @@ export function LibraryPanel({
         <SlateDropImportModal
           sessionId={sessionId}
           onClose={() => setImportOpen(false)}
-          onImported={() => setRefreshNote("Imported — refresh to see new images")}
+          onImported={handleImported}
         />
       ) : null}
     </div>

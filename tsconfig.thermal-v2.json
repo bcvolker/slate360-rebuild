@@ -32,6 +32,8 @@
     "components/ops/thermal/ThermalReportPreview.tsx",
     "lib/thermal/report-templates.ts",
     "hooks/useThermalJobRealtime.ts",
+    "hooks/useThermalCapturesRealtime.ts",
+    "app/api/ops/thermal/sessions/[sessionId]/route.ts",
     "app/api/ops/thermal/jobs/route.ts",
     "app/api/ops/thermal/jobs/reconcile/route.ts",
     "app/api/ops/thermal/jobs/callback/route.ts",

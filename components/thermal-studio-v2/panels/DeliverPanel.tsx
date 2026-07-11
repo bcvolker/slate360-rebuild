@@ -8,17 +8,25 @@ import { DeliverExports } from "@/components/thermal-studio-v2/panels/deliver/De
 import { DeliverQA } from "@/components/thermal-studio-v2/panels/deliver/DeliverQA";
 import { DeliverMotionCards } from "@/components/thermal-studio-v2/panels/deliver/DeliverMotionCards";
 import { MotionEditor } from "@/components/thermal-studio-v2/panels/deliver/MotionEditor";
-import { useMotionState } from "@/components/thermal-studio-v2/lib/useMotionState";
+import type { MotionState } from "@/components/thermal-studio-v2/lib/useMotionState";
 import type { MotionMode } from "@/components/thermal-studio-v2/lib/motion-api";
 import type { ThermalV2Capture } from "@/components/thermal-studio-v2/types";
 
 /** Tab 5 — Deliver (doc §1, S7.5 + S8-M): saved-deliverables home + composer, reusing the real share/report/export/Q&A/motion backend. */
-export function DeliverPanel({ sessionId, captures }: { sessionId: string; captures: ThermalV2Capture[] }) {
+export function DeliverPanel({
+  sessionId,
+  captures,
+  motion,
+}: {
+  sessionId: string;
+  captures: ThermalV2Capture[];
+  /** Audit remediation Batch 1: owned by ThermalV2Shell (never unmounts on tab switch), not here. */
+  motion: MotionState;
+}) {
   const [section, setSection] = useState<DeliverSection>("share");
-  // S8-M Motion: state lives HERE (not inside MotionEditor) so "← Deliver"
-  // keeps the in/out range + settings instead of losing them to an unmount.
+  // S8-M Motion: which sub-view is open resets on remount, which is fine —
+  // only the in/out range + settings (now shell-level) need to survive.
   const [motionMode, setMotionMode] = useState<MotionMode | null>(null);
-  const motion = useMotionState(captures.length);
 
   if (motionMode) {
     const state = motion.stateFor(motionMode);

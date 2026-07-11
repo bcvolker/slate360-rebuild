@@ -12,10 +12,13 @@ function initialState(frameCount: number): ModeState {
 }
 
 /**
- * Owns BOTH Motion editors' state at the Deliver-tab level (not inside the
- * editor itself) so "← Deliver" / Esc keeps the in/out range + settings —
- * doc D4's "returns to Deliver with state kept" — instead of losing them to
- * an unmount when the editor closes.
+ * Owns BOTH Motion editors' state. Originally instantiated inside
+ * DeliverPanel so "← Deliver" / Esc kept the in/out range + settings across
+ * the in-component editor toggle (doc D4's "returns to Deliver with state
+ * kept") — but DeliverPanel itself unmounts on every SHELL tab switch, which
+ * reset the range anyway (audit remediation Batch 1, confirmed bug). Now
+ * instantiated in ThermalV2Shell, which never unmounts across tab changes,
+ * and passed down as a prop.
  */
 export function useMotionState(frameCount: number) {
   const [timelapse, setTimelapse] = useState<ModeState>(() => initialState(frameCount));
@@ -37,3 +40,5 @@ export function useMotionState(frameCount: number) {
 
   return { stateFor, setRange, setSettings };
 }
+
+export type MotionState = ReturnType<typeof useMotionState>;

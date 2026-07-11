@@ -1,7 +1,8 @@
 import { notFound } from "next/navigation";
 import { loadThermalSessionDetail } from "@/lib/thermal/load-session-data";
 import { ThermalV2Shell } from "@/components/thermal-studio-v2/ThermalV2Shell";
-import type { ThermalV2Capture, ThermalV2Tab } from "@/components/thermal-studio-v2/types";
+import { toThermalV2Captures } from "@/components/thermal-studio-v2/lib/map-captures";
+import type { ThermalV2Tab } from "@/components/thermal-studio-v2/types";
 
 type PageProps = {
   params: Promise<{ sessionId: string }>;
@@ -15,14 +16,7 @@ export default async function ThermalStudioV2SessionPage({ params, searchParams 
   const detail = await loadThermalSessionDetail(sessionId);
   if (!detail) notFound();
 
-  const captures: ThermalV2Capture[] = detail.captures.map((c) => ({
-    id: c.id,
-    filename: c.filename ?? "Capture",
-    previewUrl: c.previewUrl,
-    qualityMetrics: (c.quality_metrics as Record<string, unknown> | null) ?? null,
-    metadata: (c.metadata as Record<string, unknown> | null) ?? null,
-    anomalies: (c.anomalies as unknown[] | null) ?? null,
-  }));
+  const captures = toThermalV2Captures(detail.captures);
 
   const initialTab: ThermalV2Tab | undefined = report ? "report" : undefined;
 
