@@ -1856,3 +1856,54 @@ provide one.
 **What this does NOT yet cover:** the visual density/text-overflow pass
 (Batch 4); the visual-tone screenshot review (Batch 5, requires Brian's
 sign-off). Proceeding to Batch 4.
+
+---
+
+## Remediation Batch 4 — visual density + text-overflow (2026-07-11)
+
+**Border-nesting audit result (§4's first item):** dispatched a targeted
+read-only audit of the specifically-named accordion groups (Alarm controls,
+Severity bands, Fusion controls, the GPS mini-map, the Motion ruler track)
+against their full ancestor chain. Result: **each of these already uses
+dividers (`border-t`/`border-b`) or no border at all at the group level** —
+the only full 4-side `border` boxes in these regions are single-level
+(individual form controls, the GPS mini-map, the Motion track), not stacked
+2-3-4 levels deep as the original audit's 111-usage count implied when
+read at face value. No changes made here — manufacturing edits against
+already-compliant code would just be churn. (The remaining ~106 `border`
+usages across the other 43 files were not individually re-audited this
+pass; if a future pass finds real stacked nesting elsewhere, it's a
+straightforward follow-up.)
+
+**Text-overflow fixes (§4's second item) — all 4 named spots confirmed
+real and fixed:**
+- `MotionTimeRuler.tsx`'s status line (`N of M frames in range` /
+  filename) — added `min-w-0 truncate` to the filename span, `shrink-0` to
+  the frame-count span.
+- `AnalyzeNotes.tsx`'s metadata `dl` rows (camera/lens/etc. key-value
+  pairs) — added `min-w-0 truncate` to the value (`dd`), `shrink-0` to the
+  label (`dt`).
+- `AnalyzeFusionControls.tsx`'s Blend/Scale labels — added `min-w-0
+  truncate` to both labels, `shrink-0` to their paired number inputs.
+- `AnalystChatDrawer.tsx`'s chat bubbles and proposal-card text — added
+  `min-w-0 break-words` (column-flex, so the risk was long unbroken tokens
+  rather than the classic row-shrink push, hence `break-words` over
+  `truncate` — a chat message shouldn't silently lose its tail).
+
+**New coverage:** the existing "no page scroll" specs only check
+1280×800/1440×900; added
+`e2e/thermal-v2-audit-batch4-density.spec.ts` (2 specs) re-running the same
+no-horizontal-overflow check at 1024×768 — the width where these fixed
+spots were actually at risk — for Analyze's Fusion+Notes accordions and
+Deliver's Motion ruler.
+
+**Verification:**
+- Scoped typecheck (`tsconfig.thermal-v2.json`): clean.
+- `guard:architecture` — PASS. File sizes: all touched files (93-128 lines)
+  well under 300.
+- e2e: full `thermal-v2-*.spec.ts` regression — 91/91 green on
+  `desktop-chromium` (89 existing + 2 new Batch 4 specs).
+
+**What this does NOT cover:** the visual-tone review (Batch 5 — locked
+Graphite Glass tokens, requires Brian's screenshot sign-off, not to be
+touched unilaterally). Proceeding to deploy + dashboard access URL.

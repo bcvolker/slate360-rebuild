@@ -63,9 +63,9 @@ export function MotionTimeRuler({
 
   return (
     <div className="flex h-full min-h-0 flex-col gap-1 px-2 py-1.5">
-      <div className="flex items-center justify-between text-[10px] text-[var(--graphite-muted)]">
-        <span>{range.outIdx - range.inIdx + 1} of {frameCount} frames in range</span>
-        <span>{filenames[range.playheadIdx] ?? ""}</span>
+      <div className="flex items-center justify-between gap-2 text-[10px] text-[var(--graphite-muted)]">
+        <span className="shrink-0">{range.outIdx - range.inIdx + 1} of {frameCount} frames in range</span>
+        <span className="min-w-0 truncate">{filenames[range.playheadIdx] ?? ""}</span>
       </div>
       <div
         ref={trackRef}

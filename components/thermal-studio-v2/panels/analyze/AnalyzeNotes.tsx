@@ -92,8 +92,8 @@ export function AnalyzeNotes({ capture }: { capture: ThermalV2Capture | null }) 
         <dl className="flex flex-col gap-1 text-[11px]">
           {rows.map(([label, value]) => (
             <div key={label} className="flex items-baseline justify-between gap-3">
-              <dt className="text-[var(--graphite-muted)]">{label}</dt>
-              <dd className="m-0 text-right text-[var(--graphite-text-header)]">{value}</dd>
+              <dt className="shrink-0 text-[var(--graphite-muted)]">{label}</dt>
+              <dd className="m-0 min-w-0 truncate text-right text-[var(--graphite-text-header)]">{value}</dd>
             </div>
           ))}
         </dl>

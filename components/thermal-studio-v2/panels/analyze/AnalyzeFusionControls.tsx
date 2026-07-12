@@ -26,8 +26,10 @@ export function AnalyzeFusionControls({
     <div className="flex flex-col gap-3 border-t border-[var(--mobile-app-card-border)] pt-3">
       <span className="text-[11px] text-[var(--graphite-muted)]">Fusion — thermal over paired visual photo</span>
       <div className="flex flex-col gap-1 text-[11px] text-[var(--graphite-text-header)]">
-        <div className="flex items-center justify-between">
-          <label htmlFor="fusion-blend-range">Blend ({blend}% thermal)</label>
+        <div className="flex items-center justify-between gap-2">
+          <label htmlFor="fusion-blend-range" className="min-w-0 truncate">
+            Blend ({blend}% thermal)
+          </label>
           <input
             type="number"
             aria-label="Thermal blend, percent"
@@ -35,7 +37,7 @@ export function AnalyzeFusionControls({
             max={100}
             value={blend}
             onChange={(e) => onBlendChange(Math.min(100, Math.max(0, Number(e.target.value) || 0)))}
-            className="w-14 border-b border-[var(--mobile-app-card-border)] bg-transparent py-0.5 text-right text-[var(--graphite-text-header)] focus:border-[var(--graphite-primary)] focus:outline-none"
+            className="w-14 shrink-0 border-b border-[var(--mobile-app-card-border)] bg-transparent py-0.5 text-right text-[var(--graphite-text-header)] focus:border-[var(--graphite-primary)] focus:outline-none"
           />
         </div>
         <input id="fusion-blend-range" type="range" min={0} max={100} value={blend} onChange={(e) => onBlendChange(Number(e.target.value))} />
@@ -56,8 +58,10 @@ export function AnalyzeFusionControls({
         </button>
       </div>
       <div className="flex flex-col gap-1 text-[11px] text-[var(--graphite-text-header)]">
-        <div className="flex items-center justify-between">
-          <label htmlFor="fusion-scale-range">Scale ({Math.round(align.scale * 100)}%)</label>
+        <div className="flex items-center justify-between gap-2">
+          <label htmlFor="fusion-scale-range" className="min-w-0 truncate">
+            Scale ({Math.round(align.scale * 100)}%)
+          </label>
           <input
             type="number"
             aria-label="Photo scale, percent"
@@ -65,7 +69,7 @@ export function AnalyzeFusionControls({
             max={200}
             value={Math.round(align.scale * 100)}
             onChange={(e) => onScaleChange(Math.min(200, Math.max(50, Number(e.target.value) || 100)) / 100)}
-            className="w-14 border-b border-[var(--mobile-app-card-border)] bg-transparent py-0.5 text-right text-[var(--graphite-text-header)] focus:border-[var(--graphite-primary)] focus:outline-none"
+            className="w-14 shrink-0 border-b border-[var(--mobile-app-card-border)] bg-transparent py-0.5 text-right text-[var(--graphite-text-header)] focus:border-[var(--graphite-primary)] focus:outline-none"
           />
         </div>
         <input

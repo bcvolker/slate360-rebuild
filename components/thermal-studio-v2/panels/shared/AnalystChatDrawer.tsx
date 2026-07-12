@@ -90,7 +90,7 @@ function ChatBubble({
   return (
     <div className={`flex flex-col ${isUser ? "items-end" : "items-start"}`}>
       <div
-        className={`max-w-[90%] rounded-md px-2.5 py-1.5 text-xs ${
+        className={`max-w-[90%] min-w-0 break-words rounded-md px-2.5 py-1.5 text-xs ${
           message.failed
             ? "border border-red-400/50 bg-red-400/10 text-[var(--graphite-text-header)]"
             : isUser
@@ -102,9 +102,9 @@ function ChatBubble({
       </div>
       {message.failed ? <span className="mt-0.5 text-[10px] text-red-400">Not sent — try again</span> : null}
       {message.proposal && !dismissed ? (
-        <div className="mt-1 flex max-w-[90%] flex-col gap-1.5 rounded-md border border-[var(--graphite-primary)] p-2 text-xs">
-          <span className="font-semibold text-[var(--graphite-text-header)]">Proposed revision — finding {message.proposal.anomaly_index + 1}</span>
-          <span className="text-[var(--graphite-muted)]">{message.proposal.note}</span>
+        <div className="mt-1 flex max-w-[90%] min-w-0 flex-col gap-1.5 rounded-md border border-[var(--graphite-primary)] p-2 text-xs">
+          <span className="break-words font-semibold text-[var(--graphite-text-header)]">Proposed revision — finding {message.proposal.anomaly_index + 1}</span>
+          <span className="break-words text-[var(--graphite-muted)]">{message.proposal.note}</span>
           <div className="flex gap-2">
             <button
               type="button"
