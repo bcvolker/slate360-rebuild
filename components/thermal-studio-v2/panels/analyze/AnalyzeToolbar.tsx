@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { PALETTE_NAMES, fmtTemp } from "@/lib/thermal/probe-palettes";
 import { AnalyzeMoreMenu } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeMoreMenu";
 import { AnalyzeViewControls } from "@/components/thermal-studio-v2/panels/analyze/AnalyzeViewControls";
@@ -106,6 +106,23 @@ export function AnalyzeToolbar({
   const [shapeMenuOpen, setShapeMenuOpen] = useState(false);
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
 
+  // Audit remediation Batch 3: Escape used to fall through to the shell's
+  // global cascade (clear selection / reset span / exit focus mode) without
+  // ever closing an open menu first — self-contained here rather than
+  // lifted into the shell cascade to avoid prop-drilling two more files
+  // that are already near the 300-line size gate.
+  useEffect(() => {
+    if (!shapeMenuOpen && !moreMenuOpen) return;
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key !== "Escape") return;
+      e.stopPropagation();
+      setShapeMenuOpen(false);
+      setMoreMenuOpen(false);
+    }
+    window.addEventListener("keydown", onKeyDown, true);
+    return () => window.removeEventListener("keydown", onKeyDown, true);
+  }, [shapeMenuOpen, moreMenuOpen]);
+
   return (
     <div className="flex w-full items-center justify-between gap-3">
       <div className="flex items-center gap-2">
@@ -128,6 +145,7 @@ export function AnalyzeToolbar({
                 <button
                   type="button"
                   onClick={() => setShapeMenuOpen((v) => !v)}
+                  aria-label="Choose the area shape"
                   title="Choose the area shape"
                   aria-expanded={shapeMenuOpen}
                   className="px-1 text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]"
@@ -237,6 +255,7 @@ export function AnalyzeToolbar({
             <button
               type="button"
               onClick={onEnhanceHere}
+              aria-label="Enhance here"
               title="Enhance here — center the display span on this temperature (E)"
               className="rounded px-1.5 py-0.5 text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]"
             >
@@ -250,6 +269,7 @@ export function AnalyzeToolbar({
               type="button"
               onClick={onPrev}
               disabled={imageIndex <= 0}
+              aria-label="Previous image"
               title="Previous image ( [ )"
               className="rounded px-1.5 py-0.5 hover:text-[var(--graphite-text-header)] disabled:cursor-not-allowed disabled:opacity-30"
             >
@@ -262,6 +282,7 @@ export function AnalyzeToolbar({
               type="button"
               onClick={onNext}
               disabled={imageIndex >= imageCount - 1}
+              aria-label="Next image"
               title="Next image ( ] )"
               className="rounded px-1.5 py-0.5 hover:text-[var(--graphite-text-header)] disabled:cursor-not-allowed disabled:opacity-30"
             >

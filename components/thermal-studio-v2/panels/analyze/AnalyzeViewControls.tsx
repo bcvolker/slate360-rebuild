@@ -21,6 +21,7 @@ export function AnalyzeViewControls({
         onMouseDown={onViewOriginalStart}
         onMouseUp={onViewOriginalEnd}
         onMouseLeave={onViewOriginalEnd}
+        aria-label="View original camera image (hold)"
         title="Hold to view the original camera image (O) — no overlays, no tuning"
         aria-pressed={viewOriginal}
         className={`rounded px-1.5 py-0.5 ${
@@ -32,6 +33,7 @@ export function AnalyzeViewControls({
       <button
         type="button"
         onClick={onToggleFocusMode}
+        aria-label="Focus mode"
         title="Focus mode — collapse the rails and filmstrip for a maximum viewer (F)"
         aria-pressed={focusMode}
         className={`rounded px-1.5 py-0.5 ${

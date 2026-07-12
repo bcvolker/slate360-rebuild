@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { AnalystChatDrawer } from "@/components/thermal-studio-v2/panels/shared/AnalystChatDrawer";
 
 /**
@@ -21,6 +21,20 @@ export function AnalystChatToggleRail({
   children: ReactNode;
 }) {
   const [chatOpen, setChatOpen] = useState(false);
+
+  // Audit remediation Batch 3: Escape used to fall through to the shell's
+  // global cascade without closing the chat drawer first.
+  useEffect(() => {
+    if (!chatOpen) return;
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key !== "Escape") return;
+      e.stopPropagation();
+      setChatOpen(false);
+    }
+    window.addEventListener("keydown", onKeyDown, true);
+    return () => window.removeEventListener("keydown", onKeyDown, true);
+  }, [chatOpen]);
+
   return (
     <div className="flex h-full flex-col gap-2">
       <button

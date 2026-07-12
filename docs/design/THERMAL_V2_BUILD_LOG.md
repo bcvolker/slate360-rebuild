@@ -1767,3 +1767,92 @@ report." — previously this banner was unreachable in the live build.
 **What this does NOT yet cover:** the dozen smaller independent fixes
 (Batch 3); the visual density/text-overflow pass (Batch 4). Proceeding to
 Batch 3.
+
+---
+
+## Remediation Batch 3 — ~12 independent smaller fixes (2026-07-11)
+
+All independent, standalone items from `THERMAL_V2_AUDIT_REMEDIATION_LOCKED.md`
+§4, done as one sweep:
+
+- **Default Scope fallback.** `LibraryPanel.tsx`'s `scopeIds` for "This image"
+  scope now falls back to `captures[0]?.id` when nothing is focused yet
+  (matches `AnalyzePanel.tsx`'s existing `activeId` fallback) — before this,
+  "This image" resolved to 0 images until a thumbnail was clicked.
+- **Upload success/failure tracking.** `LibraryGrid.tsx` and
+  `LibraryFiltersRail.tsx` both discarded/overwrote `uploadThermalFile`'s
+  per-file result and always reported success; now track successes and
+  failures separately, only call the success path when ≥1 file actually
+  finalized, and surface the first failure's message.
+- **AI Review busy-guard.** `AiReviewPanel.tsx`'s "Run AI" had no in-flight
+  disable, unlike the established `busy` pattern elsewhere; added.
+- **Escape closes the ⋯ menu and the chat drawer.** `AnalyzeToolbar.tsx`'s
+  shape/more menus and `AnalystChatToggleRail.tsx`'s chat drawer now close on
+  Escape via a local capturing keydown listener (`e.stopPropagation()`) rather
+  than being lifted into the shell's global cascade — those two components
+  are already near the 300-line file-size gate, so a local listener was the
+  lower-risk fix for the same user-facing outcome.
+- **Fusion blend/scale numeric twins.** `AnalyzeFusionControls.tsx`'s two
+  sliders (Blend, Scale) now pair with a number input, matching every other
+  slider in the app. (First pass broke `getByLabel(/^Blend/)` by removing the
+  `<label>` wrapping the range input — fixed by re-associating the label via
+  `htmlFor`/`id` and giving the number twin a distinct, non-colliding
+  `aria-label`; caught by the full regression re-run below.)
+- **Emissivity/reflected-temp validation.** `AnalyzeTuning.tsx`'s shared
+  `Field` number input had no bounds, unlike its paired range slider; live
+  typing is left unclamped (so e.g. typing "0.5" isn't fought
+  character-by-character) but the value is clamped to `[min, max]` on blur.
+- **Unified °C/°F preference.** `AiReviewPanel.tsx` had its own bespoke
+  one-shot `localStorage` read instead of the shared `useUnitPreference()`
+  hook `AnalyzePanel.tsx` already uses; switched over.
+- **Export honors a customized display span.** Previously always rendered
+  the tuned grid's full natural min/max. Now persists a customized span
+  (`metadata.display_span`, same autosave-on-blur/debounce pattern as
+  palette/tuning, seeded on image switch) and `export-engine.ts` reads it
+  when present — "what you see [in Analyze] is what you get [in Export]."
+- **Chat failed-send marker.** `useAnalystChat.ts`'s optimistic user bubble
+  looked identical whether it sent or not; a failed send now flags that
+  specific message (`failed: true`), rendered in `AnalystChatDrawer.tsx` with
+  a red-tinted bubble + "Not sent — try again".
+- **Compare view's letterbox-correct hover math.** `AnalyzeCompareView.tsx`
+  mapped the mouse straight against the canvas element's raw bounding box,
+  ignoring that `object-fit: contain` letterboxes a square grid inside a
+  non-square box — ported the same `fitScale`/offset math the single-image
+  viewer's `useCanvasStage.ts` already uses.
+- **Share-link Revoke confirmation.** `DeliverShareHome.tsx`'s Revoke was a
+  bare destructive action; added a `window.confirm` naming the link (same
+  pattern already used elsewhere in the codebase for destructive actions).
+- **Icon-only control a11y sweep.** ~20 icon/symbol-only or content-less
+  controls across `analyze/`, `ai-review/`, `library/`, `deliver/`, and
+  `V2PanelFrame.tsx` gained `aria-label` (and `aria-pressed` where they're
+  genuine toggles) where they previously relied on `title` alone or had no
+  accessible name at all.
+
+**Regression caught and fixed before commit:** the first pass of the a11y
+sweep added `aria-label`s to `AnalyzeMoreMenu.tsx`'s rotate/flip buttons
+(`⟳ 90°` / `⇋ H` / `⇵ V`) — these already had adequate accessible names from
+their own visible text content, and overriding it with `aria-label` silently
+changed their computed accessible name, breaking 3 existing
+`getByRole("button", { name: "⟳ 90°" })` e2e assertions. Caught by the full
+regression run, reverted those 3 additions (kept the ones on genuinely
+icon/emoji-only or content-less controls), fixed the fusion-label collision
+above, and re-ran clean. Lesson: `aria-label` overrides visible text content
+in accessible-name computation — only add it where content doesn't already
+provide one.
+
+**Verification:**
+- Scoped typecheck (`tsconfig.thermal-v2.json`): clean throughout.
+- `guard:architecture` — PASS. `guard:file-size-regression` / `guard:design`
+  — same pre-existing, unrelated offenders across the repo, confirmed none
+  newly introduced by this batch (all touched files well under 300 lines).
+- e2e: full `thermal-v2-*.spec.ts` regression — 89/89 green on
+  `desktop-chromium` after the aria-label/label fixes above (an initial full
+  run under heavy concurrent load from this session's own background
+  processes showed 11 failures; re-running the affected spec files in
+  isolation reproduced only the 2 real regressions above — the other 9 were
+  confirmed environment-contention flakes, not code regressions, via a clean
+  isolated re-run).
+
+**What this does NOT yet cover:** the visual density/text-overflow pass
+(Batch 4); the visual-tone screenshot review (Batch 5, requires Brian's
+sign-off). Proceeding to Batch 4.

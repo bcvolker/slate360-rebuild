@@ -63,7 +63,13 @@ export function AnalyzeContrastFlicker({
               >
                 Showing {flickerShowing}
               </button>
-              <button type="button" onClick={onClearFlicker} title="Clear both snapshots" className="text-[var(--graphite-muted)] hover:text-red-400">
+              <button
+                type="button"
+                onClick={onClearFlicker}
+                aria-label="Clear both snapshots"
+                title="Clear both snapshots"
+                className="text-[var(--graphite-muted)] hover:text-red-400"
+              >
                 ✕
               </button>
             </>

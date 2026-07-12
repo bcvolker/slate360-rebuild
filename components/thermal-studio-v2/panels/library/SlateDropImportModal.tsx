@@ -79,7 +79,7 @@ export function SlateDropImportModal({
       <div className="flex max-h-[80vh] w-full max-w-2xl flex-col overflow-hidden rounded-xl border border-[var(--mobile-app-card-border)] bg-[var(--graphite-canvas)]">
         <div className="flex shrink-0 items-center justify-between border-b border-[var(--mobile-app-card-border)] px-4 py-2.5">
           <span className="text-sm font-semibold text-[var(--graphite-text-header)]">Import from SlateDrop</span>
-          <button type="button" onClick={onClose} title="Close" className="text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]">
+          <button type="button" onClick={onClose} aria-label="Close" title="Close" className="text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]">
             ✕
           </button>
         </div>

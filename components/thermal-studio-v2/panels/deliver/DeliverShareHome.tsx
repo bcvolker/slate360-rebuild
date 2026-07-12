@@ -29,7 +29,10 @@ export function DeliverShareHome({ sessionId }: { sessionId: string }) {
     }
   }
 
-  async function revoke(token: string) {
+  async function revoke(token: string, label: string) {
+    // Audit remediation Batch 3: this was a bare destructive action with no
+    // confirmation — one misclick permanently killed a client-facing link.
+    if (!window.confirm(`Revoke "${label}"? Anyone with this link will immediately lose access.`)) return;
     if (await revokeShareLink(token)) refresh();
   }
 
@@ -90,7 +93,7 @@ export function DeliverShareHome({ sessionId }: { sessionId: string }) {
               <div className="flex items-center justify-between text-[10px] text-[var(--graphite-muted)]">
                 <span>{l.view_count} view{l.view_count === 1 ? "" : "s"}</span>
                 {!l.is_revoked ? (
-                  <button type="button" onClick={() => void revoke(l.token)} className="text-red-400 underline">
+                  <button type="button" onClick={() => void revoke(l.token, l.label || l.role)} className="text-red-400 underline">
                     Revoke
                   </button>
                 ) : null}

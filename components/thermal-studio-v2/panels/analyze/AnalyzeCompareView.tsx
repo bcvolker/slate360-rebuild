@@ -42,16 +42,32 @@ function CompareSide({
     renderHeatmap(ctx, grid.temps, grid.width, grid.height, palette, span.lo, span.hi, null);
   }, [grid, palette, span]);
 
+  // Audit remediation Batch 3: this used to map the mouse straight against
+  // the canvas element's raw bounding box, ignoring that `object-fit:
+  // contain` letterboxes a square grid inside a non-square box — hover was
+  // wrong (or silently accepted a letterbox bar as an edge pixel) whenever
+  // the container's aspect ratio didn't match the grid's, exactly the bug
+  // useCanvasStage.ts's `canvasBox`/`fitScale` math already fixed for the
+  // single-image viewer. Same math, ported here since Compare uses its own
+  // plain canvas rather than that stage hook.
   function handleMouseMove(e: MouseEvent) {
     const canvas = canvasRef.current;
     if (!canvas || !grid) return;
     const rect = canvas.getBoundingClientRect();
     if (rect.width === 0 || rect.height === 0) return;
-    const fx = (e.clientX - rect.left) / rect.width;
-    const fy = (e.clientY - rect.top) / rect.height;
-    if (fx < 0 || fx > 1 || fy < 0 || fy > 1) return;
-    const ix = Math.min(grid.width - 1, Math.floor(fx * grid.width));
-    const iy = Math.min(grid.height - 1, Math.floor(fy * grid.height));
+    const fitScale = Math.min(rect.width / grid.width, rect.height / grid.height);
+    const fitW = grid.width * fitScale;
+    const fitH = grid.height * fitScale;
+    const offsetX = (rect.width - fitW) / 2;
+    const offsetY = (rect.height - fitH) / 2;
+    const localX = e.clientX - rect.left - offsetX;
+    const localY = e.clientY - rect.top - offsetY;
+    if (localX < 0 || localY < 0 || localX > fitW || localY > fitH) {
+      setHoverTemp(null);
+      return;
+    }
+    const ix = Math.min(grid.width - 1, Math.floor(localX / fitScale));
+    const iy = Math.min(grid.height - 1, Math.floor(localY / fitScale));
     setHoverTemp(grid.temps[iy * grid.width + ix]);
   }
 

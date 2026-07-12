@@ -86,6 +86,7 @@ export function SpotOverlay({
             onSelect();
             onLineEndStart(e, "start");
           }}
+          aria-label="Drag to move this line's start"
           title="Drag to move this end"
           className="absolute h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 cursor-move rounded-full border border-white bg-black/60"
           style={{ left: pctX(spot.x), top: pctY(spot.y) }}
@@ -97,6 +98,7 @@ export function SpotOverlay({
             onSelect();
             onLineEndStart(e, "end");
           }}
+          aria-label="Drag to move this line's end"
           title="Drag to move this end"
           className="absolute h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 cursor-move rounded-full border border-white bg-black/60"
           style={{ left: pctX(spot.x2), top: pctY(spot.y2) }}

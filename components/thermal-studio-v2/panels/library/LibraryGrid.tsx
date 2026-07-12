@@ -29,18 +29,33 @@ export function LibraryGrid({
   onUploaded?: () => void;
 }) {
   const [uploading, setUploading] = useState<{ done: number; total: number } | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   async function handleFiles(files: FileList | null) {
     if (!files?.length || !sessionId) return;
     const list = Array.from(files);
+    setUploadError(null);
     setUploading({ done: 0, total: list.length });
+    let succeeded = 0;
+    const failures: string[] = [];
     for (let i = 0; i < list.length; i++) {
-      await uploadThermalFile(sessionId, list[i]);
+      const result = await uploadThermalFile(sessionId, list[i]);
+      if (result.ok) succeeded += 1;
+      else failures.push(`${list[i].name}: ${result.message}`);
       setUploading({ done: i + 1, total: list.length });
     }
     setUploading(null);
-    onUploaded?.();
+    // Audit remediation Batch 3: this used to always report success even when
+    // every upload actually failed (e.g. presign rejected, network error).
+    if (failures.length) {
+      setUploadError(
+        succeeded > 0
+          ? `${succeeded} uploaded, ${failures.length} failed — ${failures[0]}`
+          : `Upload failed — ${failures[0]}`,
+      );
+    }
+    if (succeeded > 0) onUploaded?.();
   }
 
   if (!captures.length) {
@@ -81,6 +96,7 @@ export function LibraryGrid({
             Uploading {uploading.done}/{uploading.total}…
           </span>
         ) : null}
+        {uploadError ? <span className="text-[11px] text-[#fca5a5]">{uploadError}</span> : null}
       </div>
     );
   }

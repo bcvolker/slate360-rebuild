@@ -167,6 +167,7 @@ function RailPanelInner({
             <button
               type="button"
               onClick={() => panelRef.current?.collapse()}
+              aria-label={`Hide ${title}`}
               title={`Hide ${title}`}
               className="rounded p-1 text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]"
             >
@@ -206,7 +207,9 @@ function DockPanel({
         <button
           type="button"
           onClick={() => (collapsed ? ref.current?.expand() : ref.current?.collapse())}
+          aria-label={collapsed ? `Show ${title}` : `Hide ${title}`}
           title={collapsed ? `Show ${title}` : `Hide ${title}`}
+          aria-pressed={collapsed}
           className="absolute right-2 top-1.5 z-10 rounded bg-black/40 p-1 text-[var(--graphite-muted)] hover:bg-black/60 hover:text-[var(--graphite-text-header)]"
         >
           {collapsed ? "▲" : "▼"}
@@ -222,7 +225,9 @@ function DockPanel({
           <button
             type="button"
             onClick={() => (collapsed ? ref.current?.expand() : ref.current?.collapse())}
+            aria-label={collapsed ? `Show ${title}` : `Hide ${title}`}
             title={collapsed ? `Show ${title}` : `Hide ${title}`}
+            aria-pressed={collapsed}
             className="rounded p-1 text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]"
           >
             {collapsed ? "▲" : "▼"}

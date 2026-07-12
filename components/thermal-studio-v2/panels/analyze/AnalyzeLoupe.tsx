@@ -128,7 +128,9 @@ export function AnalyzeLoupe({
         <button
           type="button"
           onClick={() => setCollapsed((v) => !v)}
+          aria-label={collapsed ? "Expand loupe" : "Collapse loupe to a pill"}
           title={collapsed ? "Expand loupe" : "Collapse loupe to a pill"}
+          aria-pressed={collapsed}
           className="rounded px-1 text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]"
         >
           {collapsed ? "▢" : "−"}

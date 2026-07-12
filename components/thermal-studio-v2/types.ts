@@ -121,4 +121,6 @@ export type ThermalV2ChatMessage = {
   capture_id: string | null;
   at: string;
   proposal?: ThermalV2ChatProposal | null;
+  /** Audit remediation Batch 3: marks an optimistic user bubble whose send actually failed. */
+  failed?: boolean;
 };

@@ -23,6 +23,14 @@ function Field({
   step: number;
   onChange: (v: number) => void;
 }) {
+  // Audit remediation Batch 3: the paired range slider is bounded, but this
+  // number twin wasn't — 0/negative/garbage flowed straight into tuning
+  // state and autosaved. Let live typing through unclamped (so e.g. typing
+  // "0.5" isn't fought character-by-character), but clamp to the slider's
+  // [min, max] on blur so what actually persists is always valid.
+  function clamp(raw: number) {
+    return Math.min(max, Math.max(min, raw));
+  }
   return (
     <div className="flex flex-col gap-1">
       <div className="flex items-center justify-between">
@@ -32,8 +40,17 @@ function Field({
         <input
           type="number"
           value={value}
+          min={min}
+          max={max}
           step={step}
-          onChange={(e) => onChange(Number(e.target.value))}
+          onChange={(e) => {
+            const raw = Number(e.target.value);
+            if (Number.isFinite(raw)) onChange(raw);
+          }}
+          onBlur={(e) => {
+            const raw = Number(e.target.value);
+            onChange(clamp(Number.isFinite(raw) ? raw : min));
+          }}
           className="w-16 border-b border-[var(--mobile-app-card-border)] bg-transparent py-0.5 text-right text-[11px] text-[var(--graphite-text-header)] focus:border-[var(--graphite-primary)] focus:outline-none"
         />
       </div>

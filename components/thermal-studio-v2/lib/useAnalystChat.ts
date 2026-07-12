@@ -39,6 +39,15 @@ export function useAnalystChat(sessionId: string, captureId: string | null) {
     const result = await sendAnalystChatMessage(sessionId, captureId, message.trim());
     if ("error" in result) {
       setError(result.error);
+      // Audit remediation Batch 3: the just-appended bubble looked identical
+      // whether it actually sent or not — mark it so the UI can show a
+      // per-message failed state, not just a separate generic error string.
+      setThread((prev) => {
+        const next = [...prev];
+        const lastUserIndex = next.map((m) => m.role).lastIndexOf("user");
+        if (lastUserIndex !== -1) next[lastUserIndex] = { ...next[lastUserIndex], failed: true };
+        return next;
+      });
     } else {
       setThread((prev) => [...prev, { role: "assistant", content: result.reply, capture_id: captureId, at: new Date().toISOString(), proposal: result.proposal }]);
     }

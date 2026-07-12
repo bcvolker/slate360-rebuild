@@ -61,13 +61,25 @@ export function LibraryFiltersRail({
     if (!files?.length) return;
     const list = Array.from(files);
     setUploading({ done: 0, total: list.length });
+    let succeeded = 0;
+    const failures: string[] = [];
     for (let i = 0; i < list.length; i++) {
       const result = await uploadThermalFile(sessionId, list[i]);
-      setStatus(result.ok ? null : result.message);
+      if (result.ok) succeeded += 1;
+      else failures.push(`${list[i].name}: ${result.message}`);
       setUploading({ done: i + 1, total: list.length });
     }
     setUploading(null);
-    onUploaded();
+    // Audit remediation Batch 3: a later success used to silently clear an
+    // earlier failure's status message (each iteration overwrote it).
+    setStatus(
+      failures.length
+        ? succeeded > 0
+          ? `${succeeded} uploaded, ${failures.length} failed — ${failures[0]}`
+          : `Upload failed — ${failures[0]}`
+        : null,
+    );
+    if (succeeded > 0) onUploaded();
   }
 
   return (

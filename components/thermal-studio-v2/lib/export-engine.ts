@@ -29,12 +29,12 @@ function csvTemp(c: number, unit: "C" | "F"): string {
   return toDisplayTemp(c, unit).toFixed(1);
 }
 
-function paintCanvas(grid: ThermalV2Grid, palette: string): HTMLCanvasElement {
+function paintCanvas(grid: ThermalV2Grid, palette: string, span: { lo: number; hi: number }): HTMLCanvasElement {
   const canvas = document.createElement("canvas");
   canvas.width = grid.width;
   canvas.height = grid.height;
   const ctx = canvas.getContext("2d");
-  if (ctx) renderHeatmap(ctx, grid.temps, grid.width, grid.height, palette, grid.minC, grid.maxC, null);
+  if (ctx) renderHeatmap(ctx, grid.temps, grid.width, grid.height, palette, span.lo, span.hi, null);
   return canvas;
 }
 
@@ -169,8 +169,14 @@ export async function exportCapturesToZip(captures: ThermalV2Capture[], unit: "C
     const grid: ThermalV2Grid = { ...rawGrid, temps: Array.from(tuned.temps), minC: tuned.minC, maxC: tuned.maxC };
     const palette = typeof meta.palette === "string" ? meta.palette : "Iron";
     const spots = Array.isArray(meta.spots) ? (meta.spots as ThermalV2Spot[]) : [];
+    // Audit remediation Batch 3: honor a customized display span (persisted
+    // by useAnalyzeImage.ts) instead of always the tuned grid's full natural
+    // range — "what you see [in Analyze] is what you get [in Export]".
+    const savedSpan = meta.display_span as { lo: number; hi: number } | undefined;
+    const span =
+      savedSpan && Number.isFinite(savedSpan.lo) && Number.isFinite(savedSpan.hi) ? savedSpan : { lo: grid.minC, hi: grid.maxC };
 
-    const cleanCanvas = paintCanvas(grid, palette);
+    const cleanCanvas = paintCanvas(grid, palette, span);
     const cleanBlob = await canvasToPngBlob(cleanCanvas);
 
     const annotatedCanvas = document.createElement("canvas");

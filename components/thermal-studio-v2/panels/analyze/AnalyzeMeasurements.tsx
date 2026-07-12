@@ -144,7 +144,9 @@ export function AnalyzeMeasurements({
                   e.stopPropagation();
                   onSetReference(s.id);
                 }}
+                aria-label={isRef ? `Measurement ${i + 1} — reference` : `Set measurement ${i + 1} as reference`}
                 title={isRef ? "Reference measurement" : "Set as reference"}
+                aria-pressed={isRef}
                 className={`shrink-0 rounded-sm px-1 text-[9px] font-bold ${
                   isRef ? "bg-[var(--graphite-primary)] text-[var(--graphite-canvas)]" : "bg-black/40 text-[var(--graphite-muted)]"
                 }`}
@@ -186,6 +188,7 @@ export function AnalyzeMeasurements({
                   setDraft(s.label ?? "");
                   setRenamingId(s.id);
                 }}
+                aria-label={`Rename measurement ${i + 1}`}
                 title="Rename"
                 className="shrink-0 text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]"
               >
@@ -197,7 +200,9 @@ export function AnalyzeMeasurements({
                   e.stopPropagation();
                   onToggleCompare(s.id);
                 }}
+                aria-label={pendingCompareId === s.id ? `Cancel comparing measurement ${i + 1}` : `Compare measurement ${i + 1} to another`}
                 title={pendingCompareId === s.id ? "Cancel compare" : "Compare to another measurement"}
+                aria-pressed={pendingCompareId === s.id}
                 className={`shrink-0 text-[10px] ${pendingCompareId === s.id ? "text-[var(--graphite-primary)]" : "text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]"}`}
               >
                 ⇄
@@ -208,6 +213,7 @@ export function AnalyzeMeasurements({
                   e.stopPropagation();
                   onDelete(s.id);
                 }}
+                aria-label={`Delete measurement ${i + 1}`}
                 title="Delete this measurement"
                 className="shrink-0 text-[var(--graphite-muted)] hover:text-red-400"
               >

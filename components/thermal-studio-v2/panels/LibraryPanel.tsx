@@ -73,7 +73,11 @@ export function LibraryPanel({
   const scopeIds = useMemo(() => {
     if (scope.kind === "all") return captures.map((c) => c.id);
     if (scope.kind === "selected") return captures.filter((c) => selection.selectedIds.has(c.id)).map((c) => c.id);
-    return selection.focusedId ? [selection.focusedId] : [];
+    // Same fallback AnalyzePanel already uses for its activeId — before this,
+    // "This image" scope resolved to nothing (0) until a thumbnail was
+    // clicked, even though a capture was already implicitly in view.
+    const id = selection.focusedId ?? captures[0]?.id ?? null;
+    return id ? [id] : [];
   }, [scope, captures, selection.selectedIds, selection.focusedId]);
 
   return (

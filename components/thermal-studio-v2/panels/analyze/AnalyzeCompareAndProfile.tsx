@@ -29,7 +29,13 @@ export function ComparePin({
       <span className="text-[var(--graphite-text-header)]">
         #{iB + 1} vs #{iA + 1}: Δ {fmtDelta(vB - vA, unit)}
       </span>
-      <button type="button" onClick={onClear} className="text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]">
+      <button
+        type="button"
+        onClick={onClear}
+        aria-label="Clear Δ-compare"
+        title="Clear Δ-compare"
+        className="text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]"
+      >
         ✕
       </button>
     </div>

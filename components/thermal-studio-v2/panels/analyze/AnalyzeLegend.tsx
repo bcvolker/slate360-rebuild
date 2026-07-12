@@ -73,6 +73,7 @@ export function AnalyzeLegend({
         <button
           type="button"
           onMouseDown={() => startDrag("hi")}
+          aria-label={`Drag to change the high end — ${fmtTemp(hi, unit)}`}
           title={`High end — ${fmtTemp(hi, unit)}`}
           className="absolute left-1/2 h-2 w-6 -translate-x-1/2 translate-y-1/2 cursor-ns-resize rounded-sm border border-[var(--graphite-text-header)] bg-white/80"
           style={{ bottom: `${hiPct}%` }}
@@ -80,6 +81,7 @@ export function AnalyzeLegend({
         <button
           type="button"
           onMouseDown={() => startDrag("lo")}
+          aria-label={`Drag to change the low end — ${fmtTemp(lo, unit)}`}
           title={`Low end — ${fmtTemp(lo, unit)}`}
           className="absolute left-1/2 h-2 w-6 -translate-x-1/2 translate-y-1/2 cursor-ns-resize rounded-sm border border-[var(--graphite-text-header)] bg-white/80"
           style={{ bottom: `${loPct}%` }}

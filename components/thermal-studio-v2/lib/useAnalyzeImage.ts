@@ -6,7 +6,7 @@ import { tuneTemps } from "@/lib/thermal/radiometric";
 import { fetchThermalGrid, type ThermalV2Grid } from "@/components/thermal-studio-v2/lib/grid-api";
 import { saveSpots } from "@/components/thermal-studio-v2/lib/spots-api";
 import { saveTuning } from "@/components/thermal-studio-v2/lib/tuning-api";
-import { savePalette } from "@/components/thermal-studio-v2/lib/palette-api";
+import { savePalette, saveDisplaySpan } from "@/components/thermal-studio-v2/lib/palette-api";
 import { useFlickerAB } from "@/components/thermal-studio-v2/lib/useFlickerAB";
 import { useDisplayTransform } from "@/components/thermal-studio-v2/lib/useDisplayTransform";
 import { useExtremeMarkers } from "@/components/thermal-studio-v2/lib/useExtremeMarkers";
@@ -70,7 +70,6 @@ export function useAnalyzeImage(activeCapture: ThermalV2Capture | null) {
   useEffect(() => {
     setRawGrid(null);
     setSpanState(null);
-    setSpanCustomized(false);
     setAlarm({ mode: "off" });
     setLocalContrast(false);
     setViewOriginal(false);
@@ -84,6 +83,12 @@ export function useAnalyzeImage(activeCapture: ThermalV2Capture | null) {
     const seededTuning = meta?.tuning as ThermalV2Tuning | undefined;
     setTuning(seededTuning ?? DEFAULT_TUNING);
     setPaletteState(typeof meta?.palette === "string" ? meta.palette : "Iron");
+    // Audit remediation Batch 3: seed a previously-persisted custom span so
+    // it survives a switch away and back, same as palette/tuning already do.
+    const seededSpan = meta?.display_span as { lo: number; hi: number } | undefined;
+    const hasSeededSpan = !!seededSpan && Number.isFinite(seededSpan.lo) && Number.isFinite(seededSpan.hi);
+    setSpanCustomized(hasSeededSpan);
+    if (hasSeededSpan) setSpanState(seededSpan);
     if (!captureId) return;
     setLoading(true);
     let cancelled = false;
@@ -95,7 +100,7 @@ export function useAnalyzeImage(activeCapture: ThermalV2Capture | null) {
         return;
       }
       setRawGrid(result.grid);
-      setSpanState({ lo: result.grid.minC, hi: result.grid.maxC });
+      if (!hasSeededSpan) setSpanState({ lo: result.grid.minC, hi: result.grid.maxC });
     });
     return () => {
       cancelled = true;
@@ -169,6 +174,19 @@ export function useAnalyzeImage(activeCapture: ThermalV2Capture | null) {
       if (paletteSaveTimer.current) clearTimeout(paletteSaveTimer.current);
     };
   }, [palette, captureId, grid]);
+
+  // Audit remediation Batch 3: only persist once the operator has actually
+  // customized the span — the natural range that follows re-tuning isn't a
+  // choice worth saving/restoring.
+  const spanSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (!captureId || !grid || !spanCustomized || !span) return;
+    if (spanSaveTimer.current) clearTimeout(spanSaveTimer.current);
+    spanSaveTimer.current = setTimeout(() => saveDisplaySpan(captureId, span), 600);
+    return () => {
+      if (spanSaveTimer.current) clearTimeout(spanSaveTimer.current);
+    };
+  }, [span, spanCustomized, captureId, grid]);
 
   function createSpot(spot: ThermalV2Spot) {
     history.commitState([...history.state, spot]);

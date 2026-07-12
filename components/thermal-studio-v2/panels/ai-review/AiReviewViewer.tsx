@@ -110,7 +110,9 @@ export function AiReviewViewer({
                 key={a.id ?? i}
                 type="button"
                 onClick={() => onSelectIndex(i)}
+                aria-label={`Finding #${i + 1}`}
                 title={`Finding #${i + 1}`}
+                aria-pressed={selected}
                 style={{ left, top, width: Math.max(w, 12), height: Math.max(h, 12) }}
                 className={`absolute rounded border-2 ${SEVERITY_BORDER[a.severity] ?? SEVERITY_BORDER.info} ${
                   selected ? "ring-2 ring-[var(--graphite-primary)]" : ""
