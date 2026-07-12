@@ -1927,9 +1927,22 @@ for thermal V2 only (same color scheme, best-possible look, other pages
 untouched) and asked for analysis-recipe templates.
 
 **Authoritative plan: `docs/design/THERMAL_V2_REAL_SESSION_FIX_PLAN.md`
-(LOCKED)** — 9 slices: 0 real-data diagnostic + session-status fix →
+(LOCKED, rev 2)** — rev 2 (same day) adds the REPORT & DELIVERABLES
+GROUND-UP REDO after Brian reviewed the live Report tab ("anything you
+see in the picture needs to be completely changed"): per-image pages
+were value dumps (un-annotated preview image next to bare A1/A2
+temperature rows — markers never drawn ON the image, findings text not
+beside it), template switching changed ~nothing visible (all 5 share
+identical cover/page layout; gray placeholder thumbnails), branding was
+a "Logo URL" text field persisting per-session only, Deliver tab purpose
+unclear. 10 slices: 0 real-data diagnostic + session-status fix →
 1 measurement manipulation → 2 span sliders + visible tuning → 3 auto-
 decode + never-dead Analyze → 4 entry + file-list IA → 5 one-button AI →
-6 visual overhaul ("Obsidian Instrument", forked V2WorkspaceShell +
---tsv2-* scoped tokens) → 7 analysis recipes → 8 full-feature sweep.
-Supersedes THERMAL_V2_AUDIT_REMEDIATION_LOCKED.md (Batches 1-4 shipped).
+6 REPORT/DELIVERABLES REDO (FLIR-grade annotated-image pages, findings
+beside the image via projectReviewedFindings, templates with real layout
+identities + mini-render thumbnails, logo UPLOAD + org-level persistent
+branding profile, deliverable-first Deliver cards; worker report.py
+renders the same annotations) → 7 visual overhaul ("Obsidian
+Instrument", forked V2WorkspaceShell + --tsv2-* scoped tokens) →
+8 analysis recipes → 9 full-feature sweep. Supersedes
+THERMAL_V2_AUDIT_REMEDIATION_LOCKED.md (Batches 1-4 shipped).
