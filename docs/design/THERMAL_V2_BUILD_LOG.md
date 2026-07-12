@@ -1907,3 +1907,29 @@ Deliver's Motion ruler.
 **What this does NOT cover:** the visual-tone review (Batch 5 — locked
 Graphite Glass tokens, requires Brian's screenshot sign-off, not to be
 touched unilaterally). Proceeding to deploy + dashboard access URL.
+
+---
+
+## 2026-07-12 — Brian's REAL-session field test FAILED → new locked plan
+
+Brian's first hands-on test of `/thermal-studio-v2` against a real session
+("Dog Test") surfaced a class of defects the e2e suite structurally could
+not catch (it mocks the grid endpoint): draw tools never hand back to
+Move (endless new boxes, nothing draggable), deltas gated behind an
+undocumented set-reference click, no span sliders, emissivity changes
+visually cancelled by span re-normalization, upload never auto-decodes
+(undecoded capture = fully inert Analyze tab with no decode button in
+sight), 2-click entry with no session creation in V2, filters-only left
+rail, and a 3-button AI scavenger hunt. All claims verified against code
+(file:line) + his prod data (his captures WERE decoded — these are UX
+defects, not missing data). Brian also unlocked a full visual overhaul
+for thermal V2 only (same color scheme, best-possible look, other pages
+untouched) and asked for analysis-recipe templates.
+
+**Authoritative plan: `docs/design/THERMAL_V2_REAL_SESSION_FIX_PLAN.md`
+(LOCKED)** — 9 slices: 0 real-data diagnostic + session-status fix →
+1 measurement manipulation → 2 span sliders + visible tuning → 3 auto-
+decode + never-dead Analyze → 4 entry + file-list IA → 5 one-button AI →
+6 visual overhaul ("Obsidian Instrument", forked V2WorkspaceShell +
+--tsv2-* scoped tokens) → 7 analysis recipes → 8 full-feature sweep.
+Supersedes THERMAL_V2_AUDIT_REMEDIATION_LOCKED.md (Batches 1-4 shipped).
