@@ -121,7 +121,7 @@ export default async function SW360HomePage() {
             {projects.slice(0, 4).map((p) => (
               <Link
                 key={p.id}
-                href="/sw360/projects"
+                href={`/sw360/projects/${p.id}`}
                 className="rounded-xl border border-[var(--border)] bg-white/70 p-3"
               >
                 <p className="truncate text-sm font-semibold text-[var(--sw360-charcoal)]">{p.name}</p>
