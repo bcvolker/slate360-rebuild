@@ -46,8 +46,15 @@ function resolveInitialFork(args: Args): CaptureV2MobileFork {
   if (!forkEligible) {
     return args.showPlanCanvas && hasReadyPlanSet(args.planSets) ? "plan" : "camera";
   }
+
+  // A resumed session with an explicit stored choice always honors it — a walk
+  // deliberately started camera-only must stay camera-only on resume, even once
+  // the project has a ready plan. Only fall back to the "resuming with captured
+  // stops implies plan mode" heuristic when nothing was ever explicitly chosen.
+  const stored = readStoredCaptureV2Fork(args.sessionId);
+  if (stored) return stored;
   if (args.existingStopCount > 0) return "plan";
-  return readStoredCaptureV2Fork(args.sessionId) ?? "choice";
+  return "choice";
 }
 
 export function useCaptureV2MobileFork(args: Args) {

@@ -140,5 +140,17 @@ export const DELETE = (req: NextRequest, ctx: IdRouteContext) =>
 
     if (error) return serverError(error.message);
     if (!data) return notFound("Item not found");
+
+    // A plan pin can point at this item (site_walk_pins.item_id). Left alone, the
+    // pin keeps rendering as "captured" on the plan while its detail sheet finds
+    // nothing — an orphan. Revert it to an empty/uncaptured pin (same shape as a
+    // freshly dropped one) so the location is still marked but re-capturable.
+    const { error: pinError } = await admin
+      .from("site_walk_pins")
+      .update({ item_id: null, pin_status: "draft" })
+      .eq("item_id", id)
+      .eq("org_id", orgId);
+    if (pinError) console.error("[items DELETE] failed to clear pin for deleted item", pinError);
+
     return ok({ deleted: true, soft: true });
   });
