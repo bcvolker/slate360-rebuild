@@ -5,7 +5,8 @@
   "files": {
     "components/site-walk/capture/PlanViewerLeaflet.tsx": 361,
     "components/projects/ProjectDeliverablesTab.tsx": 719,
-    "app/api/site-walk/deliverables/[id]/export/route.ts": 309,
+    "app/api/site-walk/deliverables/[id]/export/route.ts": 386,
+    "app/view/[token]/ViewerClient.tsx": 444,
     "app/_color-audit/page.tsx": 387,
     "app/(dashboard)/project-hub/[projectId]/budget/page.tsx": 421,
     "app/(dashboard)/project-hub/[projectId]/daily-logs/page.tsx": 358,

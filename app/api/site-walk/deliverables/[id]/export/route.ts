@@ -58,6 +58,7 @@ export const POST = (req: NextRequest, ctx: IdRouteContext) =>
       const doc = new jsPDF({ unit: "pt", format: "letter" });
       const blocks = (del.content ?? []) as ExportItem[];
       const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
       const margin = 50;
       const usable = pageWidth - margin * 2;
       let y = margin;
@@ -102,6 +103,83 @@ export const POST = (req: NextRequest, ctx: IdRouteContext) =>
       doc.text(del.title || "Untitled Report", margin, y);
       y += 28;
 
+      // Plan page(s) — the walks-with-plans payoff: show WHERE every stop was,
+      // not just a flat photo list. One page per sheet that actually has pins
+      // from this walk; each numbered pin matches the same pin_number a stop
+      // carries in the interactive link's plan view.
+      let addedPlanPage = false;
+      if (del.session_id) {
+        const { data: pinRows } = await admin
+          .from("site_walk_pins")
+          .select("plan_sheet_id, x_pct, y_pct, pin_number")
+          .eq("session_id", del.session_id)
+          .not("plan_sheet_id", "is", null);
+
+        const sheetIds = [...new Set((pinRows ?? []).map((p) => p.plan_sheet_id as string))];
+        if (sheetIds.length > 0) {
+          const { data: sheetRows } = await admin
+            .from("site_walk_plan_sheets")
+            .select("id, sheet_name, sheet_number, rasterized_key")
+            .in("id", sheetIds)
+            .not("rasterized_key", "is", null)
+            .order("sheet_number", { ascending: true });
+
+          for (const sheet of sheetRows ?? []) {
+            const dataUrl = await imageDataUrl(sheet.rasterized_key as string);
+            if (!dataUrl) continue;
+            try {
+              const props = doc.getImageProperties(dataUrl);
+              if (!props.width || !props.height) continue;
+
+              doc.addPage();
+              addedPlanPage = true;
+              y = margin;
+              doc.setFontSize(14);
+              doc.setTextColor(0);
+              doc.text(
+                `Plan — ${(sheet.sheet_name as string)?.trim() || `Sheet ${sheet.sheet_number}`}`,
+                margin,
+                y,
+              );
+              y += 18;
+
+              const maxH = pageHeight - margin - y;
+              let imgW = usable;
+              let imgH = imgW * (props.height / props.width);
+              if (imgH > maxH) {
+                imgH = maxH;
+                imgW = imgH * (props.width / props.height);
+              }
+              const imgX = margin + (usable - imgW) / 2;
+              doc.addImage(dataUrl, props.fileType || "PNG", imgX, y, imgW, imgH);
+
+              for (const pin of pinRows ?? []) {
+                if (pin.plan_sheet_id !== sheet.id) continue;
+                const px = imgX + (pin.x_pct / 100) * imgW;
+                const py = y + (pin.y_pct / 100) * imgH;
+                doc.setFillColor(0, 122, 82); // Site Walk 360 field green
+                doc.circle(px, py, 8, "F");
+                doc.setFontSize(8);
+                doc.setTextColor(255, 255, 255);
+                doc.text(
+                  pin.pin_number != null ? String(pin.pin_number).padStart(2, "0") : "-",
+                  px,
+                  py + 2.8,
+                  { align: "center" },
+                );
+              }
+            } catch {
+              /* plan page optional — a bad sheet image never blocks the report */
+            }
+          }
+        }
+      }
+
+      if (addedPlanPage) {
+        doc.addPage();
+        y = margin;
+      }
+
       // Resolve source items for real-image embedding + metadata burn-in.
       const mediaIds = Array.from(
         new Set(blocks.map((b) => b.mediaItemId).filter((v): v is string => typeof v === "string")),
@@ -123,7 +201,6 @@ export const POST = (req: NextRequest, ctx: IdRouteContext) =>
         }
       }
 
-      const pageHeight = doc.internal.pageSize.getHeight();
       const ensure = (need: number) => {
         if (y + need > pageHeight - margin) { doc.addPage(); y = margin; }
       };

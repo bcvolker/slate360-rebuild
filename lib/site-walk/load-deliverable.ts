@@ -7,7 +7,13 @@
  */
 
 import { createAdminClient } from "@/lib/supabase/admin";
-import type { ViewerDeliverable, ViewerItem, MetadataVisibility } from "./viewer-types";
+import type {
+  ViewerDeliverable,
+  ViewerItem,
+  MetadataVisibility,
+  ViewerPlanSheet,
+  ViewerPlanPin,
+} from "./viewer-types";
 
 interface DeliverableRow {
   id: string;
@@ -20,6 +26,7 @@ interface DeliverableRow {
   share_max_views: number | null;
   share_view_count: number | null;
   shared_snapshot_id: string | null;
+  session_id: string | null;
 }
 
 interface SnapshotRow {
@@ -85,7 +92,7 @@ export async function loadDeliverableByToken(
   const { data: deliverable, error } = await admin
     .from("site_walk_deliverables")
     .select(
-      "id, title, content, created_by, share_token, share_revoked, share_expires_at, share_max_views, share_view_count, shared_snapshot_id"
+      "id, title, content, created_by, share_token, share_revoked, share_expires_at, share_max_views, share_view_count, shared_snapshot_id, session_id"
     )
     .eq("share_token", token)
     .maybeSingle<DeliverableRow>();
@@ -131,8 +138,10 @@ export async function loadDeliverableByToken(
       content: resolvedContent,
       created_by: deliverable.created_by,
       share_token: deliverable.share_token,
+      session_id: deliverable.session_id,
     },
     (mediaItemId) => `/api/view/${deliverable.share_token}/media/${mediaItemId}`,
+    (sheetId) => `/api/view/${deliverable.share_token}/plan-sheet/${sheetId}`,
   );
 }
 
@@ -151,8 +160,10 @@ export async function finishViewerDeliverable(
     content: unknown;
     created_by: string;
     share_token: string | null;
+    session_id?: string | null;
   },
   mediaUrlFor: (mediaItemId: string) => string,
+  planSheetUrlFor?: (sheetId: string) => string,
 ): Promise<ViewerDeliverable> {
   let senderName = "Slate360 user";
   let senderLogo: string | undefined;
@@ -184,13 +195,81 @@ export async function finishViewerDeliverable(
     author: true,
   };
 
+  const items = normaliseItems(base.content, mediaUrlFor);
+  const { planSheets, planPins } = base.session_id && planSheetUrlFor
+    ? await resolvePlanContext(admin, base.session_id, items, planSheetUrlFor)
+    : { planSheets: undefined, planPins: undefined };
+
   return {
     id: base.id,
     title: base.title ?? "Untitled Deliverable",
     senderName,
     senderLogo,
     shareToken: base.share_token ?? "",
-    items: normaliseItems(base.content, mediaUrlFor),
+    items,
     metadataVisibility,
+    planSheets,
+    planPins,
   };
+}
+
+/**
+ * Resolves the walk's plan sheets + pins for the deliverable's plan stage —
+ * only the sheets a captured stop actually pinned, not the whole plan set.
+ * Returns undefined fields (not empty arrays) when the walk used no plan, so
+ * the viewer can cheaply check `deliverable.planSheets?.length` to decide
+ * whether to offer the plan view at all.
+ */
+async function resolvePlanContext(
+  admin: ReturnType<typeof createAdminClient>,
+  sessionId: string,
+  items: ViewerItem[],
+  planSheetUrlFor: (sheetId: string) => string,
+): Promise<{ planSheets?: ViewerPlanSheet[]; planPins?: ViewerPlanPin[] }> {
+  const { data: pinRows } = await admin
+    .from("site_walk_pins")
+    .select("id, plan_sheet_id, x_pct, y_pct, pin_number, item_id")
+    .eq("session_id", sessionId)
+    .not("plan_sheet_id", "is", null);
+
+  if (!pinRows || pinRows.length === 0) return {};
+
+  const itemIds = new Set(items.map((it) => it.id));
+  const sheetIds = [...new Set(pinRows.map((p) => p.plan_sheet_id as string))];
+
+  const { data: sheetRows } = await admin
+    .from("site_walk_plan_sheets")
+    .select("id, sheet_name, sheet_number, rasterized_key, rasterized_width, rasterized_height")
+    .in("id", sheetIds);
+
+  const readySheets = (sheetRows ?? []).filter((s) => s.rasterized_key);
+  if (readySheets.length === 0) return {};
+  const readySheetIds = new Set(readySheets.map((s) => s.id));
+
+  const planSheets: ViewerPlanSheet[] = readySheets
+    .sort((a, b) => (a.sheet_number ?? 0) - (b.sheet_number ?? 0))
+    .map((s) => ({
+      id: s.id,
+      sheetName: s.sheet_name?.trim() || `Sheet ${s.sheet_number}`,
+      sheetNumber: s.sheet_number ?? 0,
+      width: s.rasterized_width ?? 0,
+      height: s.rasterized_height ?? 0,
+      imageUrl: planSheetUrlFor(s.id),
+    }));
+
+  const planPins: ViewerPlanPin[] = pinRows
+    .filter((p) => readySheetIds.has(p.plan_sheet_id as string))
+    .map((p) => ({
+      id: p.id,
+      planSheetId: p.plan_sheet_id as string,
+      xPct: p.x_pct,
+      yPct: p.y_pct,
+      pinNumber: p.pin_number,
+      // Only surface item links the recipient can actually see — a pin whose
+      // item was deleted (or belongs to a different deliverable's snapshot)
+      // must not appear clickable.
+      itemId: p.item_id && itemIds.has(p.item_id) ? p.item_id : null,
+    }));
+
+  return { planSheets, planPins };
 }

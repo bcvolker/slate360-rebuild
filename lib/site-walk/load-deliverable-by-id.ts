@@ -26,7 +26,7 @@ export async function loadDeliverableById(
 
   const { data } = await admin
     .from("site_walk_deliverables")
-    .select("id, title, content, created_by, share_token")
+    .select("id, title, content, created_by, share_token, session_id")
     .eq("id", id)
     .eq("org_id", orgId)
     .maybeSingle<{
@@ -35,6 +35,7 @@ export async function loadDeliverableById(
       content: unknown;
       created_by: string;
       share_token: string | null;
+      session_id: string | null;
     }>();
 
   if (!data) return null;
@@ -43,5 +44,6 @@ export async function loadDeliverableById(
     admin,
     data,
     (mediaItemId) => `/api/site-walk/deliverables/${id}/media/${mediaItemId}`,
+    (sheetId) => `/api/site-walk/plan-sheets/${sheetId}/image`,
   );
 }

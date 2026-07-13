@@ -8,6 +8,7 @@ export {
   PortalSecondaryLink,
 } from "./PortalCta";
 export { PublicItemStage } from "./PublicItemStage";
+export { DeliverablePlanStage } from "./DeliverablePlanStage";
 export { SharedDeliverableDocument } from "./SharedDeliverableDocument";
 export { DeliverableQnA } from "./DeliverableQnA";
 export { TokenStatePage } from "./TokenStatePage";

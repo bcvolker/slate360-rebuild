@@ -1,9 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ChevronLeft, ChevronRight, X, Info, Share2, Printer, Pencil, Check } from "lucide-react";
+import { ChevronLeft, ChevronRight, X, Info, Share2, Printer, Pencil, Check, Map } from "lucide-react";
 import type { ViewerDeliverable } from "@/lib/site-walk/viewer-types";
-import { ExternalPortalShell, PublicItemStage } from "@/components/external-portal";
+import { ExternalPortalShell, PublicItemStage, DeliverablePlanStage } from "@/components/external-portal";
 import { cn } from "@/lib/utils";
 import CommentThread from "./CommentThread";
 
@@ -23,6 +23,8 @@ interface Props {
 export default function ViewerClient({ deliverable, token, backHref, editableTitle }: Props) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [panelOpen, setPanelOpen] = useState(true);
+  const [planOpen, setPlanOpen] = useState(false);
+  const hasPlan = Boolean(deliverable.planSheets && deliverable.planSheets.length > 0);
   const [title, setTitle] = useState(deliverable.title);
   const [editingTitle, setEditingTitle] = useState(false);
   const [titleDraft, setTitleDraft] = useState(deliverable.title);
@@ -209,6 +211,17 @@ export default function ViewerClient({ deliverable, token, backHref, editableTit
       >
         <Info size={16} />
       </button>
+      {hasPlan ? (
+        <button
+          type="button"
+          onClick={() => setPlanOpen(true)}
+          className="rounded-lg p-2 text-slate-300 transition-colors hover:bg-[color-mix(in_srgb,var(--graphite-primary)_15%,transparent)] hover:text-[var(--graphite-primary)]"
+          aria-label="View plan"
+          title="View plan"
+        >
+          <Map size={16} />
+        </button>
+      ) : null}
     </>
   );
 
@@ -262,6 +275,25 @@ export default function ViewerClient({ deliverable, token, backHref, editableTit
       ) : null}
       {/* Info rail (LEFT on desktop) + media stage */}
       <div className="relative flex min-h-0 flex-1 overflow-hidden">
+        {planOpen && deliverable.planSheets && deliverable.planPins ? (
+          <DeliverablePlanStage
+            sheets={deliverable.planSheets}
+            pins={deliverable.planPins}
+            onSelectItem={(itemId) => {
+              const idx = items.findIndex((it) => it.id === itemId);
+              if (idx >= 0) {
+                setActiveIndex(idx);
+                try {
+                  window.localStorage.setItem(storageKey, String(idx));
+                } catch {
+                  /* ignore */
+                }
+              }
+              setPlanOpen(false);
+            }}
+            onClose={() => setPlanOpen(false)}
+          />
+        ) : null}
         <div className="flex-1 relative flex items-center justify-center overflow-hidden bg-black sm:order-2">
           {/* Keyed wrapper → gentle fade-in on each slide change (crossfade feel) */}
           <div

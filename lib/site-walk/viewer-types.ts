@@ -42,6 +42,29 @@ export interface ViewerItem {
 
 export type MetadataVisibility = Partial<Record<keyof ViewerMetadata, boolean>>;
 
+/** A plan sheet the walk's pins can reference — rendered as the plan stage. */
+export interface ViewerPlanSheet {
+  id: string;
+  sheetName: string;
+  sheetNumber: number;
+  width: number;
+  height: number;
+  /** Fetched via `/api/view/[token]/plan-sheet/[sheetId]` — token-gated, mirrors
+   *  the item media route. Absent (sheet omitted) when not yet rasterized. */
+  imageUrl: string;
+}
+
+/** A pin placed on a plan sheet during the walk, linking to a captured item. */
+export interface ViewerPlanPin {
+  id: string;
+  planSheetId: string;
+  xPct: number;
+  yPct: number;
+  pinNumber: number | null;
+  /** Matches a `ViewerItem.id` in `items` when the pin has a captured stop. */
+  itemId: string | null;
+}
+
 export interface ViewerDeliverable {
   id: string;
   title: string;
@@ -50,6 +73,9 @@ export interface ViewerDeliverable {
   shareToken: string;
   items: ViewerItem[];
   metadataVisibility: MetadataVisibility;
+  /** Present only when the walk this deliverable came from used a plan. */
+  planSheets?: ViewerPlanSheet[];
+  planPins?: ViewerPlanPin[];
 }
 
 export interface ViewerComment {
