@@ -148,6 +148,20 @@ workflows:
         script: |
           gem install xcodeproj --no-document
           ruby scripts/ios/add-lidar-plugin.rb
+      - name: Set project bundle id to com.slate360.sitewalk360
+        # MUST run before "Set up code signing" — xcode-project use-profiles
+        # matches/assigns the fetched provisioning profile against whatever
+        # PRODUCT_BUNDLE_IDENTIFIER the project file declares AT THAT MOMENT.
+        # An archive-time-only override (xcodebuild ... PRODUCT_BUNDLE_
+        # IDENTIFIER=...) changes what gets compiled but not what use-profiles
+        # already matched, so the fetched com.slate360.sitewalk360 profile
+        # never got attached to the target and archiving failed with
+        # "requires a provisioning profile" even though signing setup itself
+        # reported success (diagnosed from the actual build log after the
+        # first --archive-xcargs attempt).
+        script: |
+          APP_BUNDLE_ID="$BUNDLE_ID" APP_ICON_NAME="AppIcon-SW360" \
+            ruby scripts/ios/set-bundle-variant.rb
       - name: Set up code signing
         script: |
           echo "$APP_STORE_CONNECT_PRIVATE_KEY_B64" | base64 --decode > /tmp/asc_api_key.p8
@@ -180,16 +194,13 @@ workflows:
             || /usr/libexec/PlistBuddy -c "Set :SlateBuildCommit $SHA" "$PLIST"
           echo "Stamped SW360 CFBundleDisplayName + SlateBuildCommit=$SHA"
       - name: Build .ipa
+        # No archive-xcargs needed — the project file itself now declares
+        # PRODUCT_BUNDLE_IDENTIFIER=com.slate360.sitewalk360 (set two steps
+        # ago, before signing resolved), same plain invocation as ios-capacitor.
         script: |
-          # NOTE: the flag is --archive-xcargs, not --xcargs (verified against
-          # https://github.com/codemagic-ci-cd/cli-tools/blob/master/docs/xcode-project/build-ipa.md
-          # after the first SW360 build attempt failed on the wrong flag name).
-          # PRODUCT_BUNDLE_IDENTIFIER/ASSETCATALOG_COMPILER_APPICON_NAME are
-          # compile-time settings, so they belong on the archive phase, not export.
           xcode-project build-ipa \
             --project "$XCODE_PROJECT" \
-            --scheme "$XCODE_SCHEME" \
-            --archive-xcargs "PRODUCT_BUNDLE_IDENTIFIER=$BUNDLE_ID ASSETCATALOG_COMPILER_APPICON_NAME=AppIcon-SW360"
+            --scheme "$XCODE_SCHEME"
       - name: Publish to TestFlight
         script: |
           app-store-connect publish \
