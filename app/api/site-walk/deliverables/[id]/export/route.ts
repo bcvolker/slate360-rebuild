@@ -10,6 +10,7 @@ import { ok, badRequest, notFound, serverError } from "@/lib/server/api-response
 import type { IdRouteContext } from "@/lib/types/api";
 import { uploadBuffer } from "@/lib/s3-utils";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { s3, BUCKET } from "@/lib/s3";
 import { bridgePdfToSlateDrop } from "@/lib/site-walk/slatedrop-bridge";
 
@@ -283,7 +284,24 @@ export const POST = (req: NextRequest, ctx: IdRouteContext) =>
         }
       }
 
-      return ok({ export_s3_key: s3Key, size: pdfBuffer.byteLength, ...(warnings.length > 0 ? { warnings } : {}) });
+      // Short-lived download link so the caller can trigger a download
+      // immediately without a second round trip to look up the s3 key.
+      let downloadUrl: string | null = null;
+      try {
+        downloadUrl = await getSignedUrl(s3, new GetObjectCommand({ Bucket: BUCKET, Key: s3Key }), {
+          expiresIn: 60 * 15,
+        });
+      } catch {
+        // The PDF is still safely stored; the caller can re-request export to
+        // get a fresh link if this presign step ever fails.
+      }
+
+      return ok({
+        export_s3_key: s3Key,
+        download_url: downloadUrl,
+        size: pdfBuffer.byteLength,
+        ...(warnings.length > 0 ? { warnings } : {}),
+      });
     } catch (err) {
       const msg = err instanceof Error ? err.message : "PDF generation failed";
       return serverError(msg);

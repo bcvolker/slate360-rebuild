@@ -74,9 +74,11 @@ function DeliverableCard({ deliverable }: { deliverable: DeliverableRow }) {
         <span className={`rounded-full px-2 py-0.5 text-xs font-black uppercase tracking-wider ${statusStyle}`}>{deliverable.status.replace(/_/g, " ")}</span>
         {/* Publish & share a PUBLIC link (mints a token on first use) — the mobile send path. */}
         <DeliverableShareButton deliverableId={deliverable.id} initialToken={deliverable.share_token ?? null} />
-        {/* Open the existing public link once one exists. */}
+        {/* Open the existing public link once one exists. /view/[token] is the
+            canonical viewer — /share/deliverable/[token] rendered quick-generated
+            deliverables (photo/360/note/voice stops) as a blank page. */}
         {deliverable.share_token && (
-          <Link href={`/share/deliverable/${deliverable.share_token}`} className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10 text-slate-300 hover:bg-white/20 hover:text-white" title="Open public share link">
+          <Link href={`/view/${deliverable.share_token}`} className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10 text-slate-300 hover:bg-white/20 hover:text-white" title="Open public share link">
             <ExternalLink className="h-4 w-4" />
           </Link>
         )}

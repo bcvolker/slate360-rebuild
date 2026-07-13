@@ -1,9 +1,12 @@
 import { NextRequest } from "next/server";
+import { GetObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { withAppAuth } from "@/lib/server/api-auth";
 import { ok, badRequest, serverError, notFound } from "@/lib/server/api-response";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { loadDeliverableByToken } from "@/lib/site-walk/load-deliverable";
 import { renderDeliverablePdf } from "@/lib/site-walk/pdf";
+import { s3, BUCKET } from "@/lib/s3";
 import {
   sendDeliverableShareEmail,
   sendDeliverableInlineImageEmail,
@@ -15,6 +18,19 @@ import { sendSms, isValidPhone } from "@/lib/sms";
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://slate360.ai";
 
 type SendMode = "link" | "inline_images" | "pdf_attachment";
+
+async function freshSignedUrl(s3Key: unknown, fallbackUrl: unknown): Promise<string | null> {
+  if (typeof s3Key === "string" && s3Key) {
+    try {
+      return await getSignedUrl(s3, new GetObjectCommand({ Bucket: BUCKET, Key: s3Key }), {
+        expiresIn: 60 * 60,
+      });
+    } catch {
+      // fall through to whatever was stored, better than nothing
+    }
+  }
+  return typeof fallbackUrl === "string" ? fallbackUrl : null;
+}
 
 /**
  * POST /api/site-walk/deliverables/send
@@ -80,9 +96,16 @@ export const POST = (req: NextRequest) =>
           .single();
 
         const bs = (orgRow?.brand_settings as Record<string, unknown> | null) ?? {};
+        // brand_settings.{logo,signature}_url are presigned URLs stamped at upload
+        // time with a 7-day expiry — reused verbatim here, a logo silently breaks
+        // on any deliverable sent more than a week after the org last re-uploaded
+        // it. Re-sign fresh from the stored s3 key (same fields recorded by
+        // POST /api/site-walk/branding) whenever one exists.
+        const logoUrl = await freshSignedUrl(bs.logo_s3_key, bs.logo_url);
+        const signatureUrl = await freshSignedUrl(bs.signature_s3_key, bs.signature_url);
         const branding = {
-          logoUrl: typeof bs.logo_url === "string" ? bs.logo_url : null,
-          signatureUrl: typeof bs.signature_url === "string" ? bs.signature_url : null,
+          logoUrl,
+          signatureUrl,
           primaryColor: typeof bs.primary_color === "string" ? bs.primary_color : null,
           companyName: orgRow?.name ?? null,
         };

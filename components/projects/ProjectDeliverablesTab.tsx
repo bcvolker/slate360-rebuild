@@ -224,7 +224,11 @@ function DeliverableCard({ d, projectId }: { d: ProjectDeliverableRow; projectId
 
   const mode = modeMeta(d.outputMode, d.deliverableType);
   const ModeIcon = mode.icon;
-  const shareUrl = d.shareToken ? `/share/deliverable/${d.shareToken}` : null;
+  // /view/[token] is the canonical viewer — it understands both the legacy
+  // EditorBlock content model and quick-generated ViewerItem stops (photo/
+  // photo_360/note/voice). /share/deliverable/[token] only handled the former
+  // and rendered quick-generated deliverables as a blank page.
+  const shareUrl = d.shareToken ? `/view/${d.shareToken}` : null;
 
   async function copyLink() {
     if (!shareUrl) return;
@@ -234,6 +238,21 @@ function DeliverableCard({ d, projectId }: { d: ProjectDeliverableRow; projectId
       setTimeout(() => setCopied(false), 1800);
     } catch {
       /* ignore */
+    }
+  }
+
+  async function exportPdf() {
+    setBusy(true);
+    setFeedback(null);
+    try {
+      const res = await fetch(`/api/site-walk/deliverables/${d.id}/export`, { method: "POST" });
+      const data = (await res.json().catch(() => null)) as { download_url?: string | null; error?: string } | null;
+      if (!res.ok || !data?.download_url) throw new Error(data?.error ?? "Couldn't generate the PDF.");
+      window.open(data.download_url, "_blank", "noopener,noreferrer");
+    } catch (e) {
+      setFeedback({ kind: "err", text: e instanceof Error ? e.message : "Couldn't generate the PDF." });
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -431,6 +450,10 @@ function DeliverableCard({ d, projectId }: { d: ProjectDeliverableRow; projectId
         <Link href={`/projects/${projectId}/deliverables/${d.id}/edit`} className={cn(t.secondaryButton, "!min-h-9 !px-3 text-xs")}>
           <Pencil className="mr-1.5 h-3.5 w-3.5" aria-hidden /> Edit
         </Link>
+        <button type="button" onClick={exportPdf} disabled={busy} className={cn(t.secondaryButton, "!min-h-9 !px-3 text-xs")}>
+          {busy ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" aria-hidden /> : <FileText className="mr-1.5 h-3.5 w-3.5" aria-hidden />}
+          Export PDF
+        </button>
         {shareUrl ? (
           <>
             <Link href={shareUrl} target="_blank" rel="noopener noreferrer" className={cn(t.secondaryButton, "!min-h-9 !px-3 text-xs")}>
