@@ -11,9 +11,10 @@
  */
 import { NextRequest } from "next/server";
 import { withAppAuth } from "@/lib/server/api-auth";
-import { ok, badRequest, serverError } from "@/lib/server/api-response";
+import { ok, badRequest, serverError, forbidden } from "@/lib/server/api-response";
 import { SITE_WALK_PIN_STATUSES, type CreatePinPayload } from "@/lib/types/site-walk";
 import { isMarkupData } from "@/lib/site-walk/markup-types";
+import { canOrgWalkWithPlans } from "@/lib/site-walk/plan-walk-entitlement";
 
 export const GET = (req: NextRequest) =>
   withAppAuth("punchwalk", req, async ({ admin, orgId }) => {
@@ -46,6 +47,12 @@ export const GET = (req: NextRequest) =>
 export const POST = (req: NextRequest) =>
   withAppAuth("punchwalk", req, async ({ admin, orgId, user }) => {
     if (!orgId) return badRequest("Organization context required");
+    // Every pin drop is a plan-walk action (plan_id/plan_sheet_id is required
+    // below) — Pro-only per the pricing model, but nothing server-side enforced
+    // that until now.
+    if (!(await canOrgWalkWithPlans(admin, orgId))) {
+      return forbidden("Walks with drawings require the Site Walk Pro plan.");
+    }
 
     const body = (await req.json()) as CreatePinPayload;
     if (!body.plan_id && !body.plan_sheet_id) {
