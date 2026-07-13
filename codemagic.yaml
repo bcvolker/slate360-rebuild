@@ -181,10 +181,15 @@ workflows:
           echo "Stamped SW360 CFBundleDisplayName + SlateBuildCommit=$SHA"
       - name: Build .ipa
         script: |
+          # NOTE: the flag is --archive-xcargs, not --xcargs (verified against
+          # https://github.com/codemagic-ci-cd/cli-tools/blob/master/docs/xcode-project/build-ipa.md
+          # after the first SW360 build attempt failed on the wrong flag name).
+          # PRODUCT_BUNDLE_IDENTIFIER/ASSETCATALOG_COMPILER_APPICON_NAME are
+          # compile-time settings, so they belong on the archive phase, not export.
           xcode-project build-ipa \
             --project "$XCODE_PROJECT" \
             --scheme "$XCODE_SCHEME" \
-            --xcargs "PRODUCT_BUNDLE_IDENTIFIER=$BUNDLE_ID ASSETCATALOG_COMPILER_APPICON_NAME=AppIcon-SW360"
+            --archive-xcargs "PRODUCT_BUNDLE_IDENTIFIER=$BUNDLE_ID ASSETCATALOG_COMPILER_APPICON_NAME=AppIcon-SW360"
       - name: Publish to TestFlight
         script: |
           app-store-connect publish \
