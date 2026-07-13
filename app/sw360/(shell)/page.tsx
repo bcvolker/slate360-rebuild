@@ -4,6 +4,7 @@ import { loadMobileAppHomeData } from "@/lib/mobile/load-app-home-data";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { buildCaptureLaunchUrl } from "@/lib/site-walk/capture-v2-config";
 import { SW360StartWalkButton } from "@/components/sw360/SW360StartWalkButton";
+import { SW360BrandHero } from "@/components/sw360/SW360BrandHero";
 
 /**
  * SW360 Home — real data, reusing the same loaders the legacy mobile home
@@ -36,11 +37,7 @@ export default async function SW360HomePage() {
 
   return (
     <div className="flex flex-col gap-5 px-4 py-6">
-      <div>
-        <h1 className="text-2xl font-black tracking-tight text-[var(--sw360-charcoal)]">
-          {context.user ? "Welcome back" : "Welcome"}
-        </h1>
-      </div>
+      <SW360BrandHero greeting={context.user ? "Welcome back" : "Welcome"} />
 
       {resumableWalk ? (
         <Link
@@ -110,7 +107,15 @@ export default async function SW360HomePage() {
           </Link>
         </div>
         {projects.length === 0 ? (
-          <p className="text-sm text-[var(--sw360-charcoal)]/60">No projects yet.</p>
+          <Link
+            href="/sw360/projects"
+            className="flex min-h-[80px] flex-col justify-center rounded-2xl border border-dashed border-[var(--sw360-charcoal)]/25 bg-white/40 px-5"
+          >
+            <p className="text-sm font-bold text-[var(--sw360-charcoal)]">Create your first project</p>
+            <p className="mt-0.5 text-xs text-[var(--sw360-charcoal)]/60">
+              A project keeps every walk, plan, and report for a job in one place.
+            </p>
+          </Link>
         ) : (
           <div className="grid grid-cols-2 gap-3">
             {projects.slice(0, 4).map((p) => (
