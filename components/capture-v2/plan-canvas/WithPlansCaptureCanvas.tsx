@@ -33,6 +33,7 @@ type Props = {
   planSets: SiteWalkPlanSet[];
   planSheets: SiteWalkPlanSheet[];
   sheetImageUrls?: Record<string, string>;
+  preferredPlanSetId?: string | null;
   photo360Entitled?: boolean;
   onPlanCaptureSaved?: () => void;
   devExposeMap?: boolean;
@@ -44,6 +45,7 @@ export function WithPlansCaptureCanvas({
   planSets,
   planSheets,
   sheetImageUrls,
+  preferredPlanSetId = null,
   photo360Entitled = false,
   onPlanCaptureSaved,
   devExposeMap = false,
@@ -60,6 +62,7 @@ export function WithPlansCaptureCanvas({
     planSets,
     planSheets,
     sheetImageUrls,
+    preferredPlanSetId,
     sessionId: session.id,
     pinRefreshKey,
   });

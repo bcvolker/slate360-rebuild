@@ -67,6 +67,12 @@ export default async function CaptureV2Page({ searchParams }: Props) {
     : { planSets: [], sheets: [] };
   const showPlanCanvas = plan !== "skip" && !!session.project_id;
   const showStartChoice = showPlanCanvas && !plan && !quick && !item;
+  // `plan` doubles as a boolean gate ("skip"/absent) AND, when it's the id of a
+  // specific plan set (e.g. from ProjectPlansTab's "Start walk on this plan"), the
+  // exact set the canvas should open. A bare presence check here previously threw
+  // the id away, so with 2+ plan sets the canvas silently opened whichever one
+  // happened to be newest instead of the one the user picked.
+  const preferredPlanSetId = plan && plan !== "skip" ? plan : null;
   const entitlements = await resolveOrgEntitlements(context.orgId);
   const photo360Entitled =
     entitlements.canAccessTourBuilder || entitlements.canAccessStandaloneTourBuilder;
@@ -82,6 +88,7 @@ export default async function CaptureV2Page({ searchParams }: Props) {
       returnFromSummary={from === "summary"}
       planSets={planRoom.planSets}
       planSheets={planRoom.sheets}
+      preferredPlanSetId={preferredPlanSetId}
       photo360Entitled={photo360Entitled}
     />
   );

@@ -19,6 +19,11 @@ type Args = {
   planSets: SiteWalkPlanSet[];
   planSheets: SiteWalkPlanSheet[];
   sheetImageUrls?: Record<string, string>;
+  /** Exact plan set the user picked (e.g. ProjectPlansTab "Start walk on this
+   *  plan"). Takes priority whenever it exists in `planSets`, regardless of its
+   *  processing_status, so a still-converting/failed pick surfaces its own state
+   *  instead of silently opening a different plan. */
+  preferredPlanSetId?: string | null;
   sessionId?: string | null;
   pinRefreshKey?: number;
 };
@@ -41,6 +46,7 @@ export function useWithPlansCaptureCanvas({
   planSets,
   planSheets,
   sheetImageUrls,
+  preferredPlanSetId = null,
   sessionId,
   pinRefreshKey = 0,
 }: Args) {
@@ -58,10 +64,13 @@ export function useWithPlansCaptureCanvas({
   // another sheet switches sheets before the focus pan fires.
   const pinSheetIndex = useSessionPinSheetIndex({ sessionId, pinRefreshKey });
 
-  const activePlanSet = useMemo(
-    () => planSets.find((set) => set.processing_status === "ready") ?? planSets[0] ?? null,
-    [planSets],
-  );
+  const activePlanSet = useMemo(() => {
+    if (preferredPlanSetId) {
+      const preferred = planSets.find((set) => set.id === preferredPlanSetId);
+      if (preferred) return preferred;
+    }
+    return planSets.find((set) => set.processing_status === "ready") ?? planSets[0] ?? null;
+  }, [planSets, preferredPlanSetId]);
 
   const sortedSheets = useMemo(
     () =>

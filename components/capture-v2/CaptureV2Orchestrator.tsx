@@ -25,6 +25,7 @@ type Props = {
   initialItemId: string | null;
   planSets: SiteWalkPlanSet[];
   planSheets: SiteWalkPlanSheet[];
+  preferredPlanSetId?: string | null;
   isDesktop: boolean;
   photo360Entitled?: boolean;
   returnFromSummary?: boolean;
@@ -64,6 +65,7 @@ export function CaptureV2Orchestrator(props: Props) {
     showStartChoice,
     planSets,
     planSheets,
+    preferredPlanSetId = null,
     launchId,
     initialItemId,
     isDesktop,
@@ -88,6 +90,7 @@ export function CaptureV2Orchestrator(props: Props) {
     shellEnabled: CAPTURE_CANVAS_SHELL_ENABLED,
     isDesktop,
     existingStopCount: capturedItems.length,
+    preferredPlanSetId,
   });
 
   const openedCameraRef = useRef(false);
@@ -185,6 +188,7 @@ export function CaptureV2Orchestrator(props: Props) {
         loop={loop}
         planSets={planSets}
         planSheets={livePlanSheets}
+        preferredPlanSetId={preferredPlanSetId}
         photo360Entitled={photo360Entitled}
       />
     );

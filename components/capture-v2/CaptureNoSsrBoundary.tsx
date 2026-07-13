@@ -16,6 +16,7 @@ type Props = {
   returnFromSummary?: boolean;
   planSets: SiteWalkPlanSet[];
   planSheets: SiteWalkPlanSheet[];
+  preferredPlanSetId?: string | null;
   photo360Entitled?: boolean;
 };
 

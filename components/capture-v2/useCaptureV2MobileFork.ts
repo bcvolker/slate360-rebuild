@@ -17,9 +17,22 @@ type Args = {
   shellEnabled: boolean;
   isDesktop: boolean;
   existingStopCount: number;
+  preferredPlanSetId?: string | null;
 };
 
 function resolveInitialFork(args: Args): CaptureV2MobileFork {
+  // An explicit deep-link pick (ProjectPlansTab "Start walk on this plan") always
+  // wins — the user chose this exact plan, so land on the plan canvas and let it
+  // show that set's real state (ready/processing/failed) instead of silently
+  // falling back to camera mode just because it isn't ready yet.
+  if (
+    args.preferredPlanSetId &&
+    args.showPlanCanvas &&
+    args.planSets.some((set) => set.id === args.preferredPlanSetId)
+  ) {
+    return "plan";
+  }
+
   const forkEligible =
     args.shellEnabled &&
     !args.isDesktop &&
