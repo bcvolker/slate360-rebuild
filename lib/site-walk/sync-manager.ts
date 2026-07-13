@@ -91,7 +91,7 @@ async function replayItemCreate(mutation: OfflineMutation) {
 }
 
 async function replayJsonMutation(mutation: OfflineMutation) {
-  const body = replaceLocalRefs(mutation.body ?? {});
+  const body = await resolveLocalRefs(mutation.body ?? {}, mutation.sessionId);
   const url = await resolveMutationUrl(mutation);
   const response = await fetch(url, {
     method: mutation.method,
@@ -132,12 +132,26 @@ async function lookupServerItemId(sessionId: string | undefined, clientItemId: s
   return data?.items?.find((item) => item.client_item_id === clientItemId)?.id ?? null;
 }
 
-function replaceLocalRefs(value: unknown): unknown {
-  if (typeof value === "string" && value.startsWith("__client:")) return idMap.get(value.slice(9)) ?? value;
-  if (Array.isArray(value)) return value.map(replaceLocalRefs);
+// The in-memory idMap only lives as long as the current app run — after an app
+// kill/relaunch mid-sync, a queued mutation whose body still references
+// "__client:<id>" (e.g. a pin's item_id) would previously find nothing in idMap
+// and silently ship that literal placeholder string to the server as if it were
+// a real UUID, permanently breaking the pin<->photo link. Fall back to the same
+// server lookup resolveMutationUrl already uses for PATCH targets, and — if a
+// ref genuinely can't be resolved yet (its item hasn't synced) — throw so the
+// mutation stays queued and retries on the next pass instead of corrupting data.
+async function resolveLocalRefs(value: unknown, sessionId: string | undefined): Promise<unknown> {
+  if (typeof value === "string" && value.startsWith("__client:")) {
+    const clientId = value.slice(9);
+    const resolved = idMap.get(clientId) ?? (await lookupServerItemId(sessionId, clientId));
+    if (!resolved) throw new Error("Waiting for item create before dependent sync");
+    idMap.set(clientId, resolved);
+    return resolved;
+  }
+  if (Array.isArray(value)) return Promise.all(value.map((entry) => resolveLocalRefs(entry, sessionId)));
   if (value && typeof value === "object") {
     const next: Record<string, unknown> = {};
-    for (const [key, child] of Object.entries(value)) next[key] = replaceLocalRefs(child);
+    for (const [key, child] of Object.entries(value)) next[key] = await resolveLocalRefs(child, sessionId);
     return next;
   }
   return value;
