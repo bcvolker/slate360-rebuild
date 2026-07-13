@@ -6,6 +6,7 @@ import { ImageOverlay, MapContainer, Marker } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import { Loader2 } from "lucide-react";
 import { createPlanPinMarkerIcon } from "@/components/capture-v2/plan-canvas/plan-pin-marker-icon";
+import { PlanFailedCard } from "./PlanFailedCard";
 import { capturePlanFitPadding } from "@/lib/site-walk/capture-plan-canvas-tokens";
 import { fitPlanLeafletMap } from "@/lib/site-walk/plan-leaflet-fit";
 import type { SiteWalkItemType, SiteWalkPlanSet, SiteWalkPlanSheet } from "@/lib/types/site-walk";
@@ -27,6 +28,8 @@ type Props = {
   onSelectItem?: (itemId: string) => void;
   onPinDropped?: (payload: PlanPinDropPayload) => void;
   onSessionPinTap?: (pin: PlanViewerPin) => void;
+  /** Camera-only escape from a failed/stuck plan — surfaced on the failed-state card. */
+  onContinueWithCamera?: () => void;
   hideToolbar?: boolean;
   pageIndex?: number;
   onPageIndexChange?: (index: number) => void;
@@ -61,6 +64,7 @@ export function PlanViewerLeaflet({
   onSelectItem,
   onPinDropped,
   onSessionPinTap,
+  onContinueWithCamera,
   hideToolbar = false,
   pageIndex: controlledPageIndex,
   onPageIndexChange,
@@ -76,6 +80,7 @@ export function PlanViewerLeaflet({
   const [internalPageIndex, setInternalPageIndex] = useState(0);
   const [filter, setFilter] = useState<LayerFilter>("all");
   const [quickMenu, setQuickMenu] = useState<QuickMenuState>(null);
+  const [retrying, setRetrying] = useState(false);
   const mapRef = useRef<L.Map | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -84,9 +89,27 @@ export function PlanViewerLeaflet({
   const padding = fitPadding ?? capturePlanFitPadding();
 
   const activePlanSet = useMemo(
-    () => planSets.find((ps) => ps.processing_status === "ready") ?? planSets[0] ?? null,
+    () =>
+      planSets.find((ps) => ps.processing_status === "ready") ??
+      // Prefer a still-converting set over a failed one for the default view — a
+      // failed set should surface its error card, not silently hide behind whatever
+      // set happens to be first.
+      planSets.find((ps) => ps.processing_status !== "failed") ??
+      planSets[0] ??
+      null,
     [planSets],
   );
+  const planSetFailed = activePlanSet?.processing_status === "failed";
+
+  const retryRasterize = useCallback(async () => {
+    if (!activePlanSet || retrying) return;
+    setRetrying(true);
+    try {
+      await fetch(`/api/site-walk/plan-sets/${activePlanSet.id}/rasterize`, { method: "POST" });
+    } finally {
+      setRetrying(false);
+    }
+  }, [activePlanSet, retrying]);
   const planSheets = useMemo(
     () =>
       activePlanSet
@@ -283,6 +306,13 @@ export function PlanViewerLeaflet({
             );
           })}
         </MapContainer>
+      ) : planSetFailed ? (
+        <PlanFailedCard
+          errorText={activePlanSet?.processing_error}
+          retrying={retrying}
+          onRetry={() => void retryRasterize()}
+          onContinueWithCamera={onContinueWithCamera}
+        />
       ) : (
         <div className="flex h-full w-full flex-col items-center justify-center gap-3 px-6 text-center">
           <Loader2 className="h-8 w-8 animate-spin text-[var(--graphite-primary)]" />

@@ -140,6 +140,14 @@ export const rasterizePlanTask = task({
         .in("id", jobs.map(j => j.id));
     }
 
+    // The plan set's own processing_status is what the client actually reads
+    // (PlanViewerLeaflet / ProjectPlansTab) — plan_raster_jobs is an internal job
+    // ledger the UI never queries. Keep both in sync so status pills are honest.
+    await supabase
+      .from("site_walk_plan_sets")
+      .update({ processing_status: "processing", processing_error: null })
+      .eq("id", planSetId);
+
     try {
       const { data: planSet, error: setError } = await supabase
         .from("site_walk_plan_sets")
@@ -162,6 +170,10 @@ export const rasterizePlanTask = task({
         if (jobs && jobs.length > 0) {
           await supabase.from("plan_raster_jobs").update({ status: "completed" }).in("id", jobs.map(j=>j.id));
         }
+        await supabase
+          .from("site_walk_plan_sets")
+          .update({ processing_status: "ready" })
+          .eq("id", planSetId);
         return { success: true, count: 0 };
       }
 
@@ -239,6 +251,10 @@ export const rasterizePlanTask = task({
       if (jobs && jobs.length > 0) {
          await supabase.from("plan_raster_jobs").update({ status: "completed" }).in("id", jobs.map(j=>j.id));
       }
+      await supabase
+        .from("site_walk_plan_sets")
+        .update({ processing_status: "ready" })
+        .eq("id", planSetId);
       return { success: true, count };
 
     } catch (e: any) {
@@ -246,6 +262,10 @@ export const rasterizePlanTask = task({
         if (jobs && jobs.length > 0) {
            await supabase.from("plan_raster_jobs").update({ status: "failed", error_text: e.message }).in("id", jobs.map(j=>j.id));
         }
+        await supabase
+          .from("site_walk_plan_sets")
+          .update({ processing_status: "failed", processing_error: e?.message ?? String(e) })
+          .eq("id", planSetId);
         throw e;
     }
   }

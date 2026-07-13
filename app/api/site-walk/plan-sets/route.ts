@@ -96,7 +96,7 @@ export const POST = (req: NextRequest) =>
         mime_type: body.mimeType ?? upload.file_type ?? "application/pdf",
         file_size: Number(upload.file_size ?? body.fileSize ?? 0),
         page_count: pageCount,
-        processing_status: "ready",
+        processing_status: "pending",
         uploaded_by: user.id,
         metadata: { slateDropFolder: "Site Walk Files/Plans" },
       })
@@ -134,10 +134,12 @@ export const POST = (req: NextRequest) =>
 
     // Fire Trigger.dev — no silent guards. If this throws, write the error to the DB so
     // PlanViewer can surface it as a red card instead of an infinite spinner.
+    let dispatchFailed = false;
     try {
       const handle = await tasks.trigger("plan.rasterize", { planSetId: planSet.id, orgId }, undefined, triggerRequestOptions);
       console.info("[plan-sets] Trigger.dev dispatch accepted", { planSetId: planSet.id, runId: handle.id });
     } catch (e: unknown) {
+      dispatchFailed = true;
       const msg = e instanceof Error ? e.message : String(e);
       console.error("[plan-sets] Trigger.dev dispatch failed:", msg);
       if (rasterJob?.id) {
@@ -146,7 +148,21 @@ export const POST = (req: NextRequest) =>
           .update({ status: "failed", error_text: `Vercel Dispatch Error: ${msg}` })
           .eq("id", rasterJob.id);
       }
+      // Mark the plan set itself failed — the client reads processing_status on the
+      // set, not the raster job, so without this it stays "pending" forever with no
+      // visible error (the eternal-spinner bug).
+      await admin
+        .from("site_walk_plan_sets")
+        .update({ processing_status: "failed", processing_error: `Dispatch failed: ${msg}` })
+        .eq("id", planSet.id);
     }
 
-    return ok({ planSet, planSets: [planSet], sheets: sheets ?? [] }, 201);
+    return ok(
+      {
+        planSet: dispatchFailed ? { ...planSet, processing_status: "failed" } : planSet,
+        planSets: [planSet],
+        sheets: sheets ?? [],
+      },
+      201,
+    );
   });

@@ -3,6 +3,7 @@
   "updatedAt": "2026-06-04",
   "threshold": 300,
   "files": {
+    "components/site-walk/capture/PlanViewerLeaflet.tsx": 361,
     "app/_color-audit/page.tsx": 387,
     "app/(dashboard)/project-hub/[projectId]/budget/page.tsx": 421,
     "app/(dashboard)/project-hub/[projectId]/daily-logs/page.tsx": 358,

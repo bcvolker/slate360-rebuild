@@ -56,6 +56,13 @@ export const POST = (req: NextRequest, ctx: IdRouteContext) =>
       jobId = newJob?.id;
     }
 
+    // Clear the failed state optimistically so the retry reads as "trying again," not
+    // a stale error card, while dispatch is in flight.
+    await admin
+      .from("site_walk_plan_sets")
+      .update({ processing_status: "pending", processing_error: null })
+      .eq("id", id);
+
     // Fire Trigger.dev — no silent guards. If this throws, write the error to the DB so
     // PlanViewer can surface it as a red card instead of an infinite spinner.
     try {
@@ -71,6 +78,10 @@ export const POST = (req: NextRequest, ctx: IdRouteContext) =>
           .update({ status: "failed", error_text: `Vercel Dispatch Error: ${msg}` })
           .eq("id", jobId);
       }
+      await admin
+        .from("site_walk_plan_sets")
+        .update({ processing_status: "failed", processing_error: `Dispatch failed: ${msg}` })
+        .eq("id", id);
       return ok({
         jobId,
         status: "failed",
