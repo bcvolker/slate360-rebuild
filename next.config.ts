@@ -95,6 +95,26 @@ const nextConfig: NextConfig = {
       // NOTE: /analytics is now a real dashboard route (app/(dashboard)/analytics/page.tsx) — do NOT redirect it
     ];
   },
+  async rewrites() {
+    return {
+      // beforeFiles: host-matched rewrites run before Next checks the filesystem,
+      // so app.sitewalk360.app transparently serves app/sw360/** at clean paths
+      // (app.sitewalk360.app/login, not .../sw360/login) with ZERO middleware.ts
+      // (a forbidden edit zone) — Next's native host-matched rewrite config is the
+      // approved mechanism (docs/design/SITEWALK360_SONNET_BUILD_PLAN.md B2.0).
+      // /api/**, /_next/**, and anything already under /sw360 are excluded so
+      // client-side fetch('/api/...') calls from SW360 pages keep hitting the
+      // SAME shared backend at its real path instead of a nonexistent
+      // /sw360/api/... shadow route.
+      beforeFiles: [
+        {
+          source: "/:path((?!api|_next|sw360).*)",
+          has: [{ type: "host", value: "app.sitewalk360.app" }],
+          destination: "/sw360/:path",
+        },
+      ],
+    };
+  },
 };
 
 export default withSentryConfig(withSerwist(nextConfig), {

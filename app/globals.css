@@ -1010,3 +1010,51 @@
 [data-app="site-walk"] { --app-accent: var(--graphite-primary); }
 [data-app="twin360"]   { --app-accent: var(--twin360-blue); }
 [data-app="dashboard"] { --app-accent: var(--graphite-primary); }
+
+/* ── Site Walk 360 — THE FIELD SYSTEM (docs/design/SITEWALK360_LOCK_SHEET.md) ──
+   Its own standalone brand, NOT an accent flip on Graphite Glass — SW360 uses
+   light "paper" surfaces on non-camera screens (plans/reports/home) and dark
+   chrome only in capture/360 viewing (dual-surface rule). All --sw360-* tokens
+   are namespaced so they never collide with or alter the existing --graphite-*
+   tokens the legacy Slate360 app still uses. Provisional values pending
+   Brian's final logo/green on-device sunlight confirm (B0) — swap here only. */
+[data-app="sw360"] {
+  --sw360-charcoal: #14171B;
+  --sw360-iron: #1C2127;
+  --sw360-bone: #F2EFE9;
+  --sw360-silver: #C9D1D9;
+  /* One green hue, two WCAG-contrast-verified variants — a single mid-green
+     fails on bone (2.93:1). Dark surfaces (capture chrome) use the brighter
+     variant; light "paper" surfaces (Home/Projects/Reports/plans) use the
+     deeper one. Never use --sw360-green-dark text on a light surface or vice
+     versa. */
+  --sw360-green-dark: #00B878;   /* on charcoal/iron — 6.96:1 */
+  --sw360-green-light: #007A52;  /* on bone — 4.69:1 */
+  /* Semantic — separate from brand green; red is ONLY destructive/error/
+     overdue, never an ordinary action (no red anywhere in the SW360 logo). */
+  --sw360-destructive: #E23D2E;
+
+  /* Component-facing aliases so SW360 screens compose the same way the
+     legacy shell does (--app-accent, --primary, --ring) without SW360 code
+     needing its own token names sprinkled everywhere. Default context is the
+     light "paper" surface — dark capture screens opt into the dark-surface
+     green explicitly via .sw360-dark-surface (below), not by flipping this. */
+  --app-accent: var(--sw360-green-light);
+  --primary: var(--sw360-green-light);
+  --primary-foreground: var(--sw360-bone);
+  --ring: var(--sw360-green-light);
+  --background: var(--sw360-bone);
+  --foreground: var(--sw360-charcoal);
+  --border: color-mix(in srgb, var(--sw360-charcoal) 16%, transparent);
+  --destructive: var(--sw360-destructive);
+}
+
+/* Dark-surface opt-in for capture/360/plan-viewer screens within SW360 — swaps
+   the paper defaults for charcoal chrome + the dark-contrast green variant. */
+[data-app="sw360"] .sw360-dark-surface {
+  --app-accent: var(--sw360-green-dark);
+  --primary: var(--sw360-green-dark);
+  --background: var(--sw360-charcoal);
+  --foreground: var(--sw360-bone);
+  --border: color-mix(in srgb, var(--sw360-bone) 14%, transparent);
+}
