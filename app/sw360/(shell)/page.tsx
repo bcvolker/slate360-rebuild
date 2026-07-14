@@ -70,7 +70,7 @@ export default async function SW360HomePage() {
     <div className="flex flex-col gap-5 px-4 py-6">
       <SW360BrandHero greeting={context.user ? "Welcome back" : "Welcome"} />
 
-      <SW360StartWalkButton projects={projects} />
+      <SW360StartWalkButton projects={projects} showQuickWalk />
 
       <SW360RecentWalksScroller walks={recentWalks} />
 

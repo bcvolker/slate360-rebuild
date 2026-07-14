@@ -2,6 +2,8 @@ import { notFound } from "next/navigation";
 import { resolveServerOrgContext } from "@/lib/server/org-context";
 import { getScopedProjectForUser } from "@/lib/projects/access";
 import { SW360StartWalkButton } from "@/components/sw360/SW360StartWalkButton";
+import { SW360BackHeader } from "@/components/sw360/SW360BackHeader";
+import { SW360DeleteProjectButton } from "@/components/sw360/SW360DeleteProjectButton";
 
 type ProjectRow = { id: string; name: string; description: string | null };
 type WalkRow = { id: string; title: string | null; status: string; created_at: string };
@@ -40,6 +42,8 @@ export default async function SW360ProjectDetailPage({
 
   return (
     <div className="flex flex-col gap-4 px-4 py-6">
+      <SW360BackHeader href="/sw360/projects" label="Projects" />
+
       <div>
         <h1 className="text-xl font-black tracking-tight text-[var(--sw360-charcoal)]">{p.name}</h1>
         {p.description ? (
@@ -72,6 +76,10 @@ export default async function SW360ProjectDetailPage({
             ))}
           </div>
         )}
+      </div>
+
+      <div className="mt-2 border-t border-[var(--border)] pt-4">
+        <SW360DeleteProjectButton projectId={p.id} projectName={p.name} />
       </div>
     </div>
   );

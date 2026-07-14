@@ -65,7 +65,6 @@ export function ClientProviders({ children }: { children: ReactNode }) {
       <SWRegistrar />
       <OfflineBanner />
       <InstallBanner />
-      <NativeChromeInit />
       {children}
     </>
   );

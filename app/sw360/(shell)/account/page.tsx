@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { LogOut } from "lucide-react";
+import { SW360BackHeader } from "@/components/sw360/SW360BackHeader";
 
 export default function SW360AccountPage() {
   const router = useRouter();
@@ -16,6 +17,7 @@ export default function SW360AccountPage() {
 
   return (
     <div className="flex flex-col gap-4 px-4 py-6">
+      <SW360BackHeader href="/sw360" label="Home" />
       <h1 className="text-lg font-black text-[var(--sw360-charcoal)]">Account</h1>
       <p className="text-sm text-[var(--sw360-charcoal)]/60">
         Full account settings are coming in this build train.

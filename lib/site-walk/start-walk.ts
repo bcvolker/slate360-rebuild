@@ -49,6 +49,42 @@ export async function startProjectWalk(
 }
 
 /**
+ * Starts a walk with NO project — an ad-hoc session (project_id: null), which
+ * /api/site-walk/sessions already supports natively (is_ad_hoc defaults to
+ * true when no project_id is sent). Launches straight into the camera
+ * (quick=camera) since there's no plan to pick from. Assigning the walk to a
+ * project afterward is separate, later work — this exists so a user can
+ * start capturing immediately without being forced through project creation
+ * first (Brian's feedback: "the ability to do a quick walk so they can just
+ * begin doing captures").
+ */
+export async function startQuickWalk(): Promise<string> {
+  let res: Response;
+  try {
+    res = await fetch("/api/site-walk/sessions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: `Quick walk — ${todayLabel()}`,
+        session_type: "general",
+        is_ad_hoc: true,
+        metadata: { started_at: new Date().toISOString(), started_from: "sw360_home_quick" },
+      }),
+    });
+  } catch {
+    throw new StartWalkError("Could not reach the server. Check your connection and try again.");
+  }
+  if (!res.ok) {
+    throw new StartWalkError("Could not start the walk. Try again.");
+  }
+  const body = (await res.json().catch(() => null)) as { session?: { id?: string } } | null;
+  if (!body?.session?.id) {
+    throw new StartWalkError("Walk was created but could not be opened. Try again.");
+  }
+  return buildCaptureLaunchUrl({ session: body.session.id, quick: "camera" });
+}
+
+/**
  * Quick-create a project from just a name (everything else filled in later in
  * the project section), returning its id + name. Used when "Walk from project"
  * runs with no project yet.

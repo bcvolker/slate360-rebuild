@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { usePathname } from "next/navigation";
 
 /**
  * iOS native shell chrome. Makes the WKWebView render edge-to-edge (status bar
@@ -14,15 +15,24 @@ import { useEffect } from "react";
  * belt-and-suspenders for the remote server.url shell where config alone can be
  * applied inconsistently.
  *
- * Style.Dark forces WHITE status bar icons and previously ran unconditionally,
- * hardcoded for the legacy app's dark #0B0F15 canvas — inside the Site Walk 360
- * shell (light bone #F2EFE9 background) that made the time/battery/wifi icons
- * render white-on-near-white, i.e. invisible (Brian's on-device report). Each
- * compiled native variant's server.url is fixed at build time
- * (capacitor.config.ts), so the hostname reliably tells us which shell is
- * running and which icon color it needs — no shared/ambiguous state.
+ * Style.Dark forces WHITE status bar icons; Style.Light forces dark icons.
+ * SW360's light bone background needs dark icons, the legacy dark canvas
+ * needs white icons — each compiled native variant's server.url is fixed at
+ * build time (capacitor.config.ts), so window.location.hostname reliably
+ * identifies which shell is running.
+ *
+ * Re-applies on every pathname change (not just once at mount) — this was a
+ * single mount-only effect before, and Brian reported the icons were STILL
+ * invisible on-device after that first attempt. Client-side route changes
+ * never remount this top-level provider, so if the very first native-bridge
+ * call raced the WKWebView's readiness (a known category of Capacitor
+ * plugin-timing issue) it would silently never retry. Re-running it per
+ * navigation costs nothing and removes that failure mode regardless of
+ * whether it was the actual cause.
  */
 export function NativeChromeInit() {
+  const pathname = usePathname();
+
   useEffect(() => {
     let cancelled = false;
     void (async () => {
@@ -33,8 +43,6 @@ export function NativeChromeInit() {
         if (cancelled) return;
         // overlay=true → web view extends under the status bar (edge-to-edge).
         await StatusBar.setOverlaysWebView({ overlay: true });
-        // SW360's light bone background needs dark icons (Style.Light); the
-        // legacy dark canvas needs white icons (Style.Dark).
         const isSW360 = window.location.hostname === "app.sitewalk360.app";
         await StatusBar.setStyle({ style: isSW360 ? Style.Light : Style.Dark });
       } catch {
@@ -44,6 +52,6 @@ export function NativeChromeInit() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [pathname]);
   return null;
 }

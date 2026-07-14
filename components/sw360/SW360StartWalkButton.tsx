@@ -3,27 +3,66 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
-import { startProjectWalk, quickCreateProject, StartWalkError } from "@/lib/site-walk/start-walk";
+import {
+  startProjectWalk,
+  startQuickWalk,
+  quickCreateProject,
+  StartWalkError,
+} from "@/lib/site-walk/start-walk";
 
 type Project = { id: string; name: string };
 
 /**
- * Real "Start a walk" action. One project (also always true on the project
- * detail page, which passes a single-item array): starts immediately. Zero:
- * quick-create-and-go, since there's nothing to be ambiguous about yet.
- * Multiple: routes to Projects instead of popping an inline "which project?"
- * picker here — Brian's feedback was that a generic Home button asking you
- * to pick a project isn't intuitive; going TO the project and starting the
- * walk FROM there is. lib/site-walk/start-walk.ts is shared, proven
- * plumbing (same helpers the legacy home's "Walk from project" door uses).
- * Lands in the existing capture-v2 engine; B2.5 reskins its chrome.
+ * Two distinct, honestly-labeled actions (Brian: a single ambiguous "Start a
+ * walk" button wasn't intuitive, and there was no way to just start
+ * capturing without a project at all):
+ *
+ * - Quick walk (showQuickWalk=true, Home only): starts capturing immediately,
+ *   no project required (an ad-hoc session — assigning it to a project later
+ *   is separate future work). Always shown first/primary on Home.
+ * - Start a walk in a project: one project (also always true on the project
+ *   detail page, which passes a single-item array) starts immediately and
+ *   names the project; zero quick-creates one; multiple routes to Projects
+ *   (starting a walk FROM a project you navigated to is the intuitive path,
+ *   not an on-page picker).
+ *
+ * lib/site-walk/start-walk.ts is shared, proven plumbing. Lands in the
+ * existing capture-v2 engine; B2.5 reskins its chrome.
  */
-export function SW360StartWalkButton({ projects }: { projects: Project[] }) {
+export function SW360StartWalkButton({
+  projects,
+  showQuickWalk = false,
+}: {
+  projects: Project[];
+  showQuickWalk?: boolean;
+}) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [newProjectName, setNewProjectName] = useState("");
+
+  async function goTo(url: string) {
+    setBusy(true);
+    setError(null);
+    try {
+      router.push(url);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleQuickWalk() {
+    setBusy(true);
+    setError(null);
+    try {
+      const url = await startQuickWalk();
+      router.push(url);
+    } catch (e) {
+      setError(e instanceof StartWalkError ? e.message : "Something went wrong. Try again.");
+      setBusy(false);
+    }
+  }
 
   async function goToCapture(projectId: string, projectName: string) {
     setBusy(true);
@@ -37,7 +76,7 @@ export function SW360StartWalkButton({ projects }: { projects: Project[] }) {
     }
   }
 
-  function handleStart() {
+  function handleStartInProject() {
     if (projects.length === 1) {
       void goToCapture(projects[0].id, projects[0].name);
       return;
@@ -46,7 +85,7 @@ export function SW360StartWalkButton({ projects }: { projects: Project[] }) {
       setCreating(true);
       return;
     }
-    router.push("/sw360/projects");
+    void goTo("/sw360/projects");
   }
 
   async function handleQuickCreate(e: React.FormEvent) {
@@ -93,14 +132,31 @@ export function SW360StartWalkButton({ projects }: { projects: Project[] }) {
   }
 
   return (
-    <button
-      type="button"
-      disabled={busy}
-      onClick={handleStart}
-      className="flex min-h-[56px] w-full items-center justify-center gap-2 rounded-2xl bg-[var(--sw360-green-light)] text-base font-bold text-white disabled:opacity-60"
-    >
-      {busy ? <Loader2 size={18} className="animate-spin" /> : null}
-      {projects.length === 1 ? `Start a walk in ${projects[0].name}` : "Start a walk"}
-    </button>
+    <div className="flex flex-col gap-2">
+      {error ? <p className="text-xs font-semibold text-[var(--sw360-destructive)]">{error}</p> : null}
+      {showQuickWalk ? (
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => void handleQuickWalk()}
+          className="flex min-h-[56px] w-full items-center justify-center gap-2 rounded-2xl bg-[var(--sw360-green-light)] text-base font-bold text-white disabled:opacity-60"
+        >
+          {busy ? <Loader2 size={18} className="animate-spin" /> : null}
+          Quick walk — start capturing now
+        </button>
+      ) : null}
+      <button
+        type="button"
+        disabled={busy}
+        onClick={handleStartInProject}
+        className={
+          showQuickWalk
+            ? "flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl border border-[var(--sw360-green-light)] text-sm font-bold text-[var(--sw360-green-light)] disabled:opacity-60"
+            : "flex min-h-[56px] w-full items-center justify-center gap-2 rounded-2xl bg-[var(--sw360-green-light)] text-base font-bold text-white disabled:opacity-60"
+        }
+      >
+        {projects.length === 1 ? `Start a walk in ${projects[0].name}` : "Start a walk in a project"}
+      </button>
+    </div>
   );
 }
