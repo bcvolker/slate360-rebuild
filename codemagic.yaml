@@ -185,14 +185,27 @@ workflows:
           fi
           cd ios/App
           agvtool new-version -all "$NEXT"
-      - name: Set display name + stamp git commit into Info.plist
+      - name: Set display name + force light UI style + stamp git commit
         script: |
           PLIST=ios/App/App/Info.plist
           /usr/libexec/PlistBuddy -c "Set :CFBundleDisplayName 'Site Walk 360'" "$PLIST"
+          # Documented Capacitor/iOS behavior: @capacitor/status-bar's setStyle()
+          # gets silently overridden by iOS system Dark Mode — the status bar
+          # falls back to light-content (white icons) regardless of what the JS
+          # plugin call requests. This is invisible on the legacy app (it WANTS
+          # white icons, so the override happens to match) but breaks SW360
+          # (wants dark icons on its light bone background) exactly matching
+          # Brian's report: icons stayed invisible across every JS-level fix
+          # attempt because the bug isn't in the JS at all. SW360 has no dark-
+          # surface screens yet, so force the whole app to iOS Light appearance
+          # regardless of the device's system dark/light setting — legacy build
+          # is untouched (this step only runs in the sitewalk360-ios workflow).
+          /usr/libexec/PlistBuddy -c "Add :UIUserInterfaceStyle string Light" "$PLIST" \
+            || /usr/libexec/PlistBuddy -c "Set :UIUserInterfaceStyle Light" "$PLIST"
           SHA=$(echo "$CM_COMMIT" | cut -c1-7)
           /usr/libexec/PlistBuddy -c "Add :SlateBuildCommit string $SHA" "$PLIST" \
             || /usr/libexec/PlistBuddy -c "Set :SlateBuildCommit $SHA" "$PLIST"
-          echo "Stamped SW360 CFBundleDisplayName + SlateBuildCommit=$SHA"
+          echo "Stamped SW360 CFBundleDisplayName + UIUserInterfaceStyle=Light + SlateBuildCommit=$SHA"
       - name: Build .ipa
         # No archive-xcargs needed — the project file itself now declares
         # PRODUCT_BUNDLE_IDENTIFIER=com.slate360.sitewalk360 (set two steps
