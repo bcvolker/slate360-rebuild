@@ -2,21 +2,38 @@ import Link from "next/link";
 import { resolveServerOrgContext } from "@/lib/server/org-context";
 import { loadMobileAppHomeData } from "@/lib/mobile/load-app-home-data";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { buildCaptureLaunchUrl } from "@/lib/site-walk/capture-v2-config";
 import { SW360StartWalkButton } from "@/components/sw360/SW360StartWalkButton";
 import { SW360BrandHero } from "@/components/sw360/SW360BrandHero";
+import { SW360RecentWalksScroller, type RecentWalkCard } from "@/components/sw360/SW360RecentWalksScroller";
+
+type ProjectRow = { id: string; name: string };
+type SessionJoinRow = {
+  id: string;
+  title: string | null;
+  status: string;
+  projects: { name: string } | { name: string }[] | null;
+};
+
+function projectNameFromJoin(row: SessionJoinRow): string | null {
+  const rel = row.projects;
+  if (!rel) return null;
+  return Array.isArray(rel) ? (rel[0]?.name ?? null) : rel.name;
+}
 
 /**
- * SW360 Home — real data, reusing the same loaders the legacy mobile home
- * already uses (loadMobileAppHomeData, start-walk.ts). B2.2: Start/Resume,
- * Needs attention, Assigned to you, active projects. No fake data.
+ * SW360 Home — real data throughout. Reworked per Brian's on-device
+ * feedback: no more single "Resume [walk]" banner claiming to know THE
+ * relevant walk — a Recent walks scroller across projects instead, and
+ * Start-a-walk routes to Projects (rather than an on-page picker) once
+ * there's more than one project, since starting a walk FROM a project is
+ * the intuitive path.
  */
 export default async function SW360HomePage() {
   const context = await resolveServerOrgContext();
   const orgId = context.orgId;
   const userId = context.user?.id ?? null;
 
-  const [home, projectsRes] = await Promise.all([
+  const [home, projectsRes, recentWalksRes] = await Promise.all([
     loadMobileAppHomeData(orgId, userId),
     orgId
       ? createAdminClient()
@@ -26,11 +43,25 @@ export default async function SW360HomePage() {
           .eq("status", "active")
           .order("created_at", { ascending: false })
           .limit(6)
-      : Promise.resolve({ data: [] as { id: string; name: string }[] }),
+      : Promise.resolve({ data: [] as ProjectRow[] }),
+    orgId
+      ? createAdminClient()
+          .from("site_walk_sessions")
+          .select("id, title, status, projects(name)")
+          .eq("org_id", orgId)
+          .neq("status", "archived")
+          .order("updated_at", { ascending: false })
+          .limit(8)
+      : Promise.resolve({ data: [] as SessionJoinRow[] }),
   ]);
 
   const projects = projectsRes.data ?? [];
-  const resumableWalk = home.recentWalks.find((w) => w.status !== "completed" && w.status !== "archived");
+  const recentWalks: RecentWalkCard[] = ((recentWalksRes.data ?? []) as SessionJoinRow[]).map((w) => ({
+    id: w.id,
+    title: w.title || "Untitled walk",
+    status: w.status,
+    projectName: projectNameFromJoin(w),
+  }));
   const unsentReports = home.hubSummary.draftDeliverables;
   const unanswered = home.alerts.length;
   const hasAttention = unsentReports > 0 || unanswered > 0;
@@ -39,20 +70,9 @@ export default async function SW360HomePage() {
     <div className="flex flex-col gap-5 px-4 py-6">
       <SW360BrandHero greeting={context.user ? "Welcome back" : "Welcome"} />
 
-      {resumableWalk ? (
-        <Link
-          href={buildCaptureLaunchUrl({ session: resumableWalk.id })}
-          className="flex min-h-[64px] items-center justify-between rounded-2xl border border-[var(--sw360-green-light)] bg-white/70 px-5"
-        >
-          <div>
-            <p className="text-xs font-bold uppercase tracking-wide text-[var(--sw360-green-light)]">Resume</p>
-            <p className="text-sm font-semibold text-[var(--sw360-charcoal)]">{resumableWalk.title}</p>
-          </div>
-          <span className="text-sm font-bold text-[var(--sw360-green-light)]">→</span>
-        </Link>
-      ) : null}
-
       <SW360StartWalkButton projects={projects} />
+
+      <SW360RecentWalksScroller walks={recentWalks} />
 
       {hasAttention ? (
         <div className="rounded-2xl border border-[var(--border)] bg-white/70 p-4">

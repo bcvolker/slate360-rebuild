@@ -13,6 +13,14 @@ import { useEffect } from "react";
  * Runtime call complements the capacitor.config StatusBar.overlaysWebView setting —
  * belt-and-suspenders for the remote server.url shell where config alone can be
  * applied inconsistently.
+ *
+ * Style.Dark forces WHITE status bar icons and previously ran unconditionally,
+ * hardcoded for the legacy app's dark #0B0F15 canvas — inside the Site Walk 360
+ * shell (light bone #F2EFE9 background) that made the time/battery/wifi icons
+ * render white-on-near-white, i.e. invisible (Brian's on-device report). Each
+ * compiled native variant's server.url is fixed at build time
+ * (capacitor.config.ts), so the hostname reliably tells us which shell is
+ * running and which icon color it needs — no shared/ambiguous state.
  */
 export function NativeChromeInit() {
   useEffect(() => {
@@ -25,8 +33,10 @@ export function NativeChromeInit() {
         if (cancelled) return;
         // overlay=true → web view extends under the status bar (edge-to-edge).
         await StatusBar.setOverlaysWebView({ overlay: true });
-        // Style.Dark = light text/icons, correct for the dark #0B0F15 background.
-        await StatusBar.setStyle({ style: Style.Dark });
+        // SW360's light bone background needs dark icons (Style.Light); the
+        // legacy dark canvas needs white icons (Style.Dark).
+        const isSW360 = window.location.hostname === "app.sitewalk360.app";
+        await StatusBar.setStyle({ style: isSW360 ? Style.Light : Style.Dark });
       } catch {
         // Non-fatal: web platform or plugin unavailable.
       }
