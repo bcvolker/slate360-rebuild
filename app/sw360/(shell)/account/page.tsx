@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { LogOut, Calendar, Users, ChevronRight } from "lucide-react";
+import { LogOut, Calendar, Users, Palette, ChevronRight } from "lucide-react";
 import { SW360BackHeader } from "@/components/sw360/SW360BackHeader";
 
 export default function SW360AccountPage() {
@@ -30,6 +30,11 @@ export default function SW360AccountPage() {
         <Link href="/sw360/contacts" className="flex min-h-[52px] items-center gap-3 px-4">
           <Users size={18} className="text-[var(--sw360-green-light)]" />
           <span className="flex-1 text-sm font-semibold text-[var(--sw360-charcoal)]">Contacts</span>
+          <ChevronRight size={16} className="text-[var(--sw360-charcoal)]/40" />
+        </Link>
+        <Link href="/sw360/account/branding" className="flex min-h-[52px] items-center gap-3 px-4">
+          <Palette size={18} className="text-[var(--sw360-green-light)]" />
+          <span className="flex-1 text-sm font-semibold text-[var(--sw360-charcoal)]">Branding</span>
           <ChevronRight size={16} className="text-[var(--sw360-charcoal)]/40" />
         </Link>
       </div>
