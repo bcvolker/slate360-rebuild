@@ -1,10 +1,13 @@
 import Link from "next/link";
 import { resolveServerOrgContext } from "@/lib/server/org-context";
 import { loadMobileAppHomeData } from "@/lib/mobile/load-app-home-data";
+import { loadWeekStrip, loadPeopleStrip } from "@/lib/sw360/load-home-strips";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { SW360StartWalkButton } from "@/components/sw360/SW360StartWalkButton";
 import { SW360BrandHero } from "@/components/sw360/SW360BrandHero";
 import { SW360RecentWalksScroller, type RecentWalkCard } from "@/components/sw360/SW360RecentWalksScroller";
+import { SW360WeekStrip } from "@/components/sw360/SW360WeekStrip";
+import { SW360PeopleStrip } from "@/components/sw360/SW360PeopleStrip";
 
 type ProjectRow = { id: string; name: string };
 type SessionJoinRow = {
@@ -33,7 +36,7 @@ export default async function SW360HomePage() {
   const orgId = context.orgId;
   const userId = context.user?.id ?? null;
 
-  const [home, projectsRes, recentWalksRes] = await Promise.all([
+  const [home, projectsRes, recentWalksRes, weekEvents, peopleContacts] = await Promise.all([
     loadMobileAppHomeData(orgId, userId),
     orgId
       ? createAdminClient()
@@ -53,6 +56,8 @@ export default async function SW360HomePage() {
           .order("updated_at", { ascending: false })
           .limit(8)
       : Promise.resolve({ data: [] as SessionJoinRow[] }),
+    loadWeekStrip(orgId),
+    loadPeopleStrip(orgId),
   ]);
 
   const projects = projectsRes.data ?? [];
@@ -71,6 +76,8 @@ export default async function SW360HomePage() {
       <SW360BrandHero greeting={context.user ? "Welcome back" : "Welcome"} />
 
       <SW360StartWalkButton projects={projects} showQuickWalk />
+
+      <SW360WeekStrip events={weekEvents} />
 
       <SW360RecentWalksScroller walks={recentWalks} />
 
@@ -116,6 +123,8 @@ export default async function SW360HomePage() {
           </div>
         </div>
       ) : null}
+
+      <SW360PeopleStrip contacts={peopleContacts} />
 
       <div>
         <div className="mb-2 flex items-center justify-between">

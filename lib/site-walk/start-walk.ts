@@ -84,12 +84,20 @@ export async function startQuickWalk(): Promise<string> {
   return buildCaptureLaunchUrl({ session: body.session.id, quick: "camera" });
 }
 
+export type QuickCreateLocation = { address: string; lat: number | null; lng: number | null };
+
 /**
- * Quick-create a project from just a name (everything else filled in later in
- * the project section), returning its id + name. Used when "Walk from project"
- * runs with no project yet.
+ * Quick-create a project from a name (+ optional location — rev 6/7 lock:
+ * name + address at create, everything else post-create inside the
+ * project), returning its id + name. Used when "Walk from project" runs
+ * with no project yet, and by the Projects tab's create flow.
+ * POST /api/projects/create stores `metadata` verbatim/untyped, so location
+ * travels there rather than needing an API/schema change.
  */
-export async function quickCreateProject(name: string): Promise<{ id: string; name: string }> {
+export async function quickCreateProject(
+  name: string,
+  location?: QuickCreateLocation | null,
+): Promise<{ id: string; name: string }> {
   const trimmed = name.trim();
   if (!trimmed) throw new StartWalkError("Enter a project name.");
   let res: Response;
@@ -97,7 +105,13 @@ export async function quickCreateProject(name: string): Promise<{ id: string; na
     res = await fetch("/api/projects/create", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: trimmed, metadata: { quickCreated: true } }),
+      body: JSON.stringify({
+        name: trimmed,
+        metadata: {
+          quickCreated: true,
+          location: location?.address ? location : undefined,
+        },
+      }),
     });
   } catch {
     throw new StartWalkError("Could not reach the server. Check your connection and try again.");

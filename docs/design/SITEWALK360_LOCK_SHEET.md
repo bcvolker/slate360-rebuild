@@ -278,15 +278,17 @@ questions. Where they converged, that's the lock below; the one place they diver
 - **Q3 — Inbox triage model (the one divergence, now resolved):** personal triage
   (flag / mark-as-to-do / done-for-me) is a **separate layer from the formal GC-verify
   state machine** (open→in_progress→ready_for_review→verified/rejected stays untouched
-  and assigner-only). Locking a **new additive `inbox_triage` table**
-  (`user_id, item_kind, item_id, flagged, is_todo, done_for_me, created_at`) over
-  adding columns directly to `site_walk_assignments`/`project_notifications` — triage
-  state is inherently **per-viewing-user**, and `project_notifications` rows are not
-  guaranteed 1:1 per recipient, so a column on that row would falsely flag/complete the
-  item for every recipient instead of just the user who triaged it. A junction table
-  also generalizes cleanly if a third inbox item kind (e.g. calendar reminders) is added
-  later, without a fourth set of bolted-on columns. Prepare as an additive migration
-  (Brian applies via Supabase Management API) when B-phase work reaches Inbox.
+  and assigner-only). **CORRECTED 2026-07-14** after reading the actual schema: both
+  source tables are already per-recipient rows (`site_walk_assignments.assigned_to` and
+  `project_notifications.user_id` are both required, RLS-scoped 1:1-per-user columns —
+  neither is a broadcast row read by multiple people), which invalidates the
+  cross-contamination risk the separate-table option was chosen to avoid. Locking the
+  simpler option instead: **add `flagged boolean`, `is_todo boolean` directly to both
+  `site_walk_assignments` and `project_notifications`** (the latter already has
+  `is_read`, so `flagged`/`is_todo` sit naturally alongside it; "done for me" reuses
+  `is_read`/existing status rather than a new column). No junction table. Prepare as an
+  additive migration (Brian applies via Supabase Management API) when Inbox triage UI
+  is built.
 - **Q4 — Calendar/Contacts placement:** hybrid of **(b) Home strips** (Q1's "This
   week"/"People") **+ (d) multi-door dedicated screens** reached from the Home strip's
   "see all," the account menu, AND a project's Team tab linking back to the same global
