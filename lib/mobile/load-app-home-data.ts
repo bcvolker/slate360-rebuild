@@ -12,6 +12,8 @@ export type MobileAppHomeAlert = {
   message: string;
   linkPath: string | null;
   createdAt: string;
+  flagged: boolean;
+  isTodo: boolean;
 };
 
 export type MobileAppHomeRecentWalk = {
@@ -122,11 +124,11 @@ export async function loadMobileAppHomeData(
     userId
       ? supabase
           .from("project_notifications")
-          .select("id, title, message, link_path, created_at")
+          .select("id, title, message, link_path, created_at, flagged, is_todo")
           .eq("user_id", userId)
           .eq("is_read", false)
           .order("created_at", { ascending: false })
-          .limit(8)
+          .limit(50)
       : Promise.resolve({ data: [], error: null }),
   ]);
 
@@ -162,6 +164,8 @@ export async function loadMobileAppHomeData(
           message: row.message,
           linkPath: row.link_path,
           createdAt: row.created_at,
+          flagged: row.flagged ?? false,
+          isTodo: row.is_todo ?? false,
         }))
       : [],
     assignments,

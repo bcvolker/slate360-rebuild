@@ -61,6 +61,11 @@ export const PATCH = (req: NextRequest, ctx: IdRouteContext) =>
       if (body.status === "done") updates.completed_at = new Date().toISOString();
     }
 
+    // Personal Inbox triage (flag / to-do) — deliberately separate from the
+    // formal status state machine above; never implies acknowledged/done.
+    if (body.flagged !== undefined) updates.flagged = body.flagged;
+    if (body.is_todo !== undefined) updates.is_todo = body.is_todo;
+
     if (Object.keys(updates).length === 0) {
       return badRequest("No valid fields to update");
     }

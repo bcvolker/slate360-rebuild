@@ -7,17 +7,19 @@ export type MobileHomeAssignment = {
   title: string;
   status: string;
   sessionId: string;
+  flagged: boolean;
+  isTodo: boolean;
 };
 
 export async function loadMobileAssignments(
   orgId: string,
   userId: string,
-  limit = 8,
+  limit = 50,
 ): Promise<MobileHomeAssignment[]> {
   const admin = createAdminClient();
   const { data } = await admin
     .from("site_walk_assignments")
-    .select("id, title, status, session_id")
+    .select("id, title, status, session_id, flagged, is_todo")
     .eq("org_id", orgId)
     .eq("assigned_to", userId)
     .neq("status", "done")
@@ -29,5 +31,7 @@ export async function loadMobileAssignments(
     title: row.title,
     status: row.status,
     sessionId: row.session_id,
+    flagged: row.flagged ?? false,
+    isTodo: row.is_todo ?? false,
   }));
 }

@@ -66,4 +66,7 @@ export type UpdateAssignmentPayload = {
   priority?: AssignmentPriority;
   status?: AssignmentStatus;
   due_date?: string;
+  /** Personal Inbox triage — separate from the formal status state machine above. */
+  flagged?: boolean;
+  is_todo?: boolean;
 };
