@@ -443,6 +443,24 @@ review:
   audit (touch pan/zoom on panorama tiles, tap-for-temp instead of hover, swipe
   between slideshow frames) — the ASU-leadership demo happens on someone's phone.
 
+# Addendum X (2026-07-15) — mosaic v4: dense graph + perimeter verdict (parallax, not error)
+
+v4: dense match graph (791 cross-leg + loop-closure edges, median connectivity 8),
+progressive outlier pruning (1.5→0.8→0.4 m re-solves), finer 3 cm/px canvas,
+deeper border crop, per-edge perimeter QC crops (edgeL/R/T/B).
+**Perimeter verdict from the crops:** the flat INTERIOR (deck field + roofs — the
+survey subject) is aligned and crisp. The "broken concrete walls" Brian saw are the
+STADIUM SEATING/STAND STRUCTURES at the coverage periphery — elevated 3D structure
+viewed from different drone positions has parallax a 2D mosaic PHYSICALLY cannot
+reconcile (no 2D transform aligns two viewpoints of a tall object). Weakly-connected
+frames (227–239 run, feature-poor stand views) compound it.
+**Resolution:** (1) the PRESENTATION panorama is bounded/masked to the deck +
+building roofs — stands excluded (they are not survey subject); (2) stands render
+properly in the 3D SPLAT chapter (that's what 3D is for); (3) a true orthomosaic
+(DEM-rectified, stands included) becomes possible after P4's splat produces the
+surface model — optional post-ASU upgrade. Full-scene 2D perfection is not a
+achievable target and must not be promised.
+
 # Addendum W (2026-07-15) — mosaic v3 QUALITY PASS (after Brian rejected v1 quality)
 
 Brian rejected v1 (misaligned, soft). v2/v3 rebuilt the geometry + compositing:
