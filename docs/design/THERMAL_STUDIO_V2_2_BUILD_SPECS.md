@@ -443,6 +443,72 @@ review:
   audit (touch pan/zoom on panorama tiles, tap-for-temp instead of hover, swipe
   between slideshow frames) — the ASU-leadership demo happens on someone's phone.
 
+# Addendum P (2026-07-15) — 360 pinning, LiDAR verdict, slope layer, business layer
+
+## P1. 360 photos pin EVERYWHERE via one anchor
+
+A 360 is stored once with ONE spatial anchor (auto from the Mini 5 Pro's GPS, else
+the J3 point-picker) and then appears on EVERY chapter that shows space: a pin on
+the thermal panorama, a pin on the 2D map/drawing, and a floating billboard pin in
+the 3D splat (TwinSceneOverlays). Click any of them → the same TourPanoViewer
+opens. Same rule for handheld-thermal insets and findings: anchor once, surface
+everywhere — this is what makes the chapters feel like ONE model of the site.
+Capture-time metadata records that 360s were shot later in daylight (visual
+context, not thermal-state evidence) — shown quietly in the inset header.
+
+## P2. Handheld intentional zones — confirmed
+
+Brian will walk covered zones with deliberate high overlap → each becomes a LOCAL
+radiometric mini-panorama inset (O2.2). Voice-note or sequence-note the zone per
+sweep so insets are labeled.
+
+## P3. Phone LiDAR (Twin 360 capture) — honest verdict
+
+Prior twin captures have been poor and phone LiDAR range is ~5 m, so: NOT useful
+for the open deck expanse. Two narrow, optional uses if time permits (never at the
+expense of the thermal mission): (a) under-deck covered zones at close range —
+local geometry context for the handheld insets; (b) small experimental patches at
+EJ/drain locations to probe local ponding depressions. Treat as bonus data;
+centimeter-level slope for the whole deck comes from P4 instead.
+
+## P4. **Slope & ponding layer from the daylight 3D flight** (big one)
+
+The COLMAP/splat pipeline's intermediate product is a dense point cloud → DEM →
+**per-pixel slope + ponding-basin map of the whole deck**. RDH's central claims
+(H3/H4) are NEGATIVE SLOPE — this layer can SHOW it: predicted ponding basins and
+downhill flow directions, overlaid against the moisture plumes and drains. Where
+predicted ponding ∩ thermal moisture ∩ a blocked drain — that's a three-evidence
+overlay no inspection deliverable has ever shown. Scale/level from drawing
+alignment + GPS; label as photogrammetric relative topography (good for slope
+direction/basins; not a survey instrument). Also yields the **RGB orthomosaic** →
+P5. Runs in the same GPU worker slice as J1.
+
+## P5. Panorama-scale thermal ↔ visual slider
+
+The daylight flight's RGB orthomosaic, control-point aligned to the thermal
+panorama (same J3 tool, same transform family as the drawing) → the link gets a
+thermal↔visual opacity/wipe slider across the WHOLE deck. Stakeholders instantly
+see WHERE a plume is ("that's outside concessions 216") without reading a drawing.
+
+## P6. Presentation & business layer (the report IS the business card)
+
+- **Narrated auto-tour:** Brian records a ~90-second voiceover over the executive
+  auto-tour (O3.5) — a Level III walking leadership through the findings in his own
+  voice. Slideshow/audio support is already in the deliverable plans.
+- **"How to read this" explainer:** a collapsible 30-second primer in the sidebar
+  (what colors mean, why pre-dawn, what a moisture signature looks like) — written
+  for leadership, not thermographers.
+- **About-the-thermographer card:** footer panel with insignia, cert, photo
+  optional, and CONTACT — tasteful, one card, no sales copy. Multiple inspection/
+  commissioning companies will open this link; the deliverable itself is the pitch.
+- **Per-stakeholder links + analytics:** issue each party (ASU, RDH, the other
+  inspector, the Cx firm) its OWN link (exists: token roles/labels) — the analytics
+  glance shows who viewed what and who asked questions; follow up accordingly.
+- **Monsoon differential:** July in Tempe = monsoon season. Plan the post-rain
+  re-flight (same pattern, same pre-dawn hour) the day after the first storm —
+  the difference lens (B3) turns it into the active-leak-path chapter, the
+  strongest single piece of evidence in the package.
+
 # Addendum O (2026-07-15) — insignia v2, covered-area strategy, wow-factor additions
 
 ## O1. Insignia v2 + color treatment
