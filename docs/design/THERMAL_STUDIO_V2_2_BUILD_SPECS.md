@@ -443,6 +443,54 @@ review:
   audit (touch pan/zoom on panorama tiles, tap-for-temp instead of hover, swipe
   between slideshow frames) — the ASU-leadership demo happens on someone's phone.
 
+# Addendum T (2026-07-15) — processing logistics: where outputs live, QC without a UI, viewer-first order
+
+## T1. Spheres located (corrects S1's "not in folder")
+
+8× DJI onboard-stitched spheres at the ROOT of `.tmp/asu` (`DJI_2026071507…_D.JPG`,
+12000×6000 true equirectangular, 07:01–07:04). Standard format — no decoding;
+render directly in a sphere viewer.
+
+## T2. Where processing runs and where files land (Brian's "computer closed" question)
+
+- Heavy jobs run on MODAL (cloud). Once dispatched they do NOT need Brian's
+  computer on; outputs persist in R2 + DB rows regardless.
+- Files do NOT auto-appear in the local folder. The working session (Claude)
+  PULLS artifacts into `.tmp/asu/deliverables/` when producing/fetching them —
+  so local copies appear whenever a session runs with the machine on, not on
+  their own. The authoritative copies are always R2.
+
+## T3. QC WITHOUT a working UI (the unblock for "how do I view results")
+
+Every processing stage emits **flat QC artifacts** — ordinary JPG/PNGs Brian can
+double-click in Windows Photos, zero web UI required:
+- Stitch QC: the panorama rendered in 2–3 palettes at full span, WITH a legend +
+  min/max + a coverage/seam diagnostic image.
+- Decode QC: contact-sheet grids (thumbnails w/ per-frame min/max °C).
+- Splat QC: turntable-rendered MP4/frames of the reconstruction.
+Interactive verification (hover temps, pan/zoom) happens ONLY in the NEW viewer —
+never the old UI. Nothing ever needs manual "import": pipeline outputs register in
+the DB; the viewer streams from R2 by URL. Brian receives a link, not a file.
+
+## T4. Order of operations (revised: viewer shell EARLY, in parallel)
+
+1. Batch decode + stitch validation (cloud) → flat QC images into deliverables/.
+2. IN PARALLEL: build the NEW viewer shell v0 (S3 design mandate, static mockup →
+   Brian approval → minimal live shell rendering the real panorama w/ hover+pan/
+   zoom + sphere chapter). This is the ONLY interactive surface Brian ever opens.
+3. Splat pipeline (GPU) → turntable QC → embedded as a chapter in the NEW viewer
+   with proper controls (the old twin UI is never used for this).
+4. Analysis pass after PM drawings arrive → analyzed chapter + overlays + PDF.
+
+## T5. Low-flight presentation rule (Brian's confusion concern)
+
+Ground-level thermal frames are DISORIENTING to non-thermographers. Rule: low-
+flight frames NEVER appear standalone. They render only as a paired card inside a
+finding: location mini-map + the panorama crop (context) + the visual pair +
+the close-up, with a caption. Default OFF for the leadership link; Brian decides
+per-finding whether a close-up earns its place. If in doubt, leave them out —
+they're ground truth for HIS analysis, not necessarily for the audience.
+
 # Addendum S (2026-07-15) — Brian's corrections: dataset roles, staged processing, VIEWER DESIGN MANDATE
 
 ## S1. Corrected dataset roles (supersedes R1 assumptions)
