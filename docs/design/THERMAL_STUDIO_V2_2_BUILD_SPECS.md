@@ -443,7 +443,58 @@ review:
   audit (touch pan/zoom on panorama tiles, tap-for-temp instead of hover, swipe
   between slideshow frames) — the ASU-leadership demo happens on someone's phone.
 
-# Addendum R (2026-07-15) — ASU flight COMPLETE: dataset inventory + execution plan
+# Addendum S (2026-07-15) — Brian's corrections: dataset roles, staged processing, VIEWER DESIGN MANDATE
+
+## S1. Corrected dataset roles (supersedes R1 assumptions)
+
+- **NO handheld thermal exists.** Drop all handheld-inset items for ASU (O2 stays
+  as future capability). Two thermal flights only:
+  - `102MEDIA` (502 frames, 100 ft, 2 s interval @ ~2 mph) = THE panorama source.
+  - `103MEDIA` (178 frames, few feet AGL) = NOT stitched (ground-level parallax
+    makes mosaicking wrong) → role: **pinned detail insets** + spot ground-truth
+    for panorama findings. Verified absolute °C.
+- **RGB sets are DJI waypoint MAPPING missions** (filenames carry
+  `map-plan-…-wp` ids; per-photo .MRK positions): 0015 (381) + 0016 (408) + 0017
+  (126, larger area) + 0014 (5 manual context stills) → combine ALL (~920 photos)
+  into ONE COLMAP reconstruction for the splat + DEM. Different angles/areas
+  combining is exactly right.
+- **Spherical panoramas are NOT yet in the folder** (`Panoramic/` is empty; no 2:1
+  images anywhere in the sets — all stills are 4:3 5280×3956). DJI's onboard-
+  stitched sphere output is a standard equirectangular JPEG → **needs NO decoding**;
+  the existing spherical pano viewer renders it interactively as-is. ACTION
+  (Brian): copy the DJI panorama JPGs (typically in DCIM/PANORAMA) into
+  `Panoramic/`.
+
+## S2. Staged processing (answers "process individually now, analyze after drawings")
+
+YES — the pipeline stages are independent and that's the plan:
+- **NOW (no drawings needed):** batch-decode both thermal flights → NPZ; stitch
+  validation passes on 102MEDIA (strip/section composition, gain/offset comp);
+  COLMAP+splat run on the combined RGB sets; spherical panos viewable on copy-in.
+  These are mechanical and slow — get them RIGHT and DONE early.
+- **AFTER drawings/context arrive (PM docs, ideally the submitted sloping plan):**
+  the analysis pass — moisture detection + recipes + callouts + sq-ft + overlays +
+  hypothesis tagging — runs ON the already-stitched panorama. Analysis is a
+  display/metadata layer over immutable data (§1b), so re-running it later costs
+  nothing and loses nothing.
+
+## S3. VIEWER DESIGN MANDATE (Brian, verbatim intent)
+
+The current viewer is unacceptable for leadership eyes — nobody at ASU sees ANY
+existing thermal UI. The ASU link viewer is a **fresh build** and becomes the
+design flagship for the whole platform's coming redesign. Bar: "looks like SpaceX/
+Tesla built it." Canon for it:
+- Cinematic dark canvas; imagery owns ≥85% of the frame; chrome is hairline and
+  recedes; one accent; premium typographic hierarchy (large numerals for temps,
+  mono microlabels); fluid 150–250 ms eased transitions; every control feels
+  physical (sliders drag with inertia-free precision, layers crossfade).
+- No-scroll, tab/chapter architecture (locked); collapsible sidebar; toggles +
+  opacity sliders; hover/tap temps; mobile parity.
+- Process: DESIGN-FIRST — static mockups/preview harness of the viewer shell get
+  Brian's approval BEFORE feature wiring; the approved shell then becomes the
+  design reference for the platform-wide upgrade.
+
+# Addendum R (2026-07-15) — ASU flight COMPLETE: dataset inventory + execution plan (roles corrected by Addendum S)
 
 ## R1. Dataset facts (verified on disk, C:\s360\.tmp\asu — 2,524 files, 19 GB)
 
