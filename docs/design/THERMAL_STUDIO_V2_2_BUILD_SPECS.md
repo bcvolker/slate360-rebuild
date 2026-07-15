@@ -443,6 +443,29 @@ review:
   audit (touch pan/zoom on panorama tiles, tap-for-temp instead of hover, swipe
   between slideshow frames) — the ASU-leadership demo happens on someone's phone.
 
+# Addendum AD (2026-07-15) — EJ-kink ROOT CAUSE: per-leg rotation errors (measured, unfixed pending Brian's go)
+
+Brian: "why is the EJ line not straight?" Measured the per-leg rotations the
+mosaic actually uses (stage-1 Procrustes per leg):
+- **Adjacent grid legs disagree in rotation by 2.3–10.6°** (leg0→1: 7.8°, 2→3:
+  10.6°, 6→7: 9.3°); leg 9 (transit-contaminated) fits GPS at 23 m RMS.
+- ROOT CAUSE (two compounding parts): (1) a leg's GPS points are nearly COLLINEAR,
+  so a similarity fit's rotation about that line is ill-determined — consumer GPS
+  noise (±2–3 m) swings it degrees; (2) within-leg chain drift bends the chained
+  centers, which the fit averages into a wrong rotation. **Stage 2 then solves
+  TRANSLATIONS ONLY — the pairwise feature edges MEASURE relative rotation to
+  ~0.1° but stage 2 discards that information.** So each leg keeps its wrong
+  rotation; a 100 m straight EJ kinks at EVERY leg seam (a 7° disagreement =
+  ~1.2 m lateral break across a 10 m leg width). Equipment/wall misalignments at
+  seams are the same error. Scale had the same disease and was already cured by
+  median-unification; rotation was not.
+- **THE FIX (designed, awaiting go):** extend the global solve to rotation —
+  per-frame (θ, t) pose graph with small-angle linearization, one/two Gauss-Newton
+  iterations; feature edges constrain relative rotation (their strong suit), GPS
+  constrains only global orientation/position (its strong suit). Expected result:
+  legs rotationally reconciled to the feature measurements (~0.1°), EJ straight,
+  seam misalignments collapse. Cheap to run (sparse LSQ, 3N vars).
+
 # Addendum AC (2026-07-15) — ECC verdict: valuable as sequential rescue, unreliable as cross-matcher
 
 Final mosaic build (v5 files refreshed) uses a **two-population solve**: ORB-verified
